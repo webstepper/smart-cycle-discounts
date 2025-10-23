@@ -278,9 +278,6 @@
 			// Initialize collapsible sections
 			this.initializeCollapsibles();
 
-			// Initialize tooltips using safe wrapper
-			this.safeTooltipInit( null, '[data-tooltip]' );
-
 			// Set initial discount type UI
 			var currentType = this.getDiscountType();
 			if ( currentType ) {

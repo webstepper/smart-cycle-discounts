@@ -519,31 +519,6 @@
 	},
 
 	/**
-	 * Safe wrapper for TooltipManager initialization
-	 * Eliminates defensive checks when initializing tooltips
-	 *
-	 * @param {jQuery} $container Container element
-	 * @param {string} selector Tooltip trigger selector (optional)
-	 */
-	safeTooltipInit: function( $container, selector ) {
-		if ( window.SCD && window.SCD.TooltipManager ) {
-			SCD.TooltipManager.initialize( $container || this.$container, selector );
-		}
-	},
-
-	/**
-	 * Safe wrapper for TooltipManager destroy
-	 *
-	 * @param {jQuery} $container Container element
-	 * @param {string} selector Tooltip trigger selector (optional)
-	 */
-	safeTooltipDestroy: function( $container, selector ) {
-		if ( window.SCD && window.SCD.TooltipManager ) {
-			SCD.TooltipManager.destroy( $container || this.$container, selector );
-		}
-	},
-
-	/**
 	 * Safe wrapper for ValidationError.show
 	 * Eliminates defensive checks when showing validation errors
 	 *

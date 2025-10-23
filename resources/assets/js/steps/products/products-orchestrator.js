@@ -85,6 +85,10 @@
 				if ( 'function' === typeof this.modules.state.init ) {
 					this.modules.state.init();
 				}
+				// Register state instance for complex field handling
+				if ( 'function' === typeof this.registerComplexFieldHandler ) {
+					this.registerComplexFieldHandler( 'products.state', this.modules.state );
+				}
 			}
 
 			// API module (required)
@@ -153,9 +157,6 @@
 		initializeUI: function() {
 			var self = this;
 			var promises = [];
-
-			// Initialize tooltips using safe wrapper
-			this.safeTooltipInit();
 
 			// Initialize Category Filter Tom Select
 			// Note: This initializes empty on first load. If restoring data, persistence service will call setValue
