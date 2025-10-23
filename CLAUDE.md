@@ -246,7 +246,7 @@ $field.siblings('.scd-field-error-message').remove();
 - Proper ARIA attributes
 
 **Component-Specific showError Methods:**
-Components like `campaign-name.js` and `description.js` have `showError()` methods that internally delegate to `ValidationError.show()`. This is the correct pattern - keep the component API but use centralized implementation.
+Component modules have `showError()` methods that internally delegate to `ValidationError.show()`. This is the correct pattern - keep the component API but use centralized implementation.
 
 ## 🛡️ SECURITY REQUIREMENTS
 
