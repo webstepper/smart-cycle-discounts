@@ -1,0 +1,443 @@
+/**
+ * Tom Select Custom Styling
+ *
+ * Provides custom styling for Tom Select components to match
+ * Smart Cycle Discounts UI design system.
+ *
+ * Dependencies: tom-select, scd-admin, scd-variables, scd-utilities, scd-components (loaded via WordPress deps)
+ *
+ * @package SmartCycleDiscounts
+ * @since 1.0.0
+ */
+
+/* ==========================================================================
+   Base Container
+   ========================================================================== */
+
+.scd-wizard-form .ts-wrapper {
+	position: relative;
+	z-index: 1000; /* Normal stacking context */
+}
+
+.scd-wizard-form .ts-wrapper.multi .ts-control {
+	min-height: calc(var(--scd-input-height-large) + 2px);
+	padding: var(--scd-spacing-xs) var(--scd-spacing-sm);
+}
+
+/* ==========================================================================
+   Control (Input Area)
+   ========================================================================== */
+
+.scd-wizard-form .ts-control {
+	background-color: var(--scd-color-background);
+	border: 1px solid var(--scd-color-border);
+	border-radius: var(--scd-radius-md);
+	box-shadow: inset 0 1px 2px var(--scd-shadow-inset);
+	color: var(--scd-color-text);
+	font-size: var(--scd-font-size-medium);
+	line-height: var(--scd-line-height-base);
+	padding: calc(var(--scd-spacing-sm) - 2px) calc(var(--scd-spacing-sm) + 2px);
+	transition: border-color var(--scd-transition-base) ease-in-out,
+	            box-shadow var(--scd-transition-base) ease-in-out;
+}
+
+.scd-wizard-form .ts-control:hover {
+	border-color: var(--scd-color-border-dark);
+}
+
+.scd-wizard-form .ts-wrapper.focus .ts-control {
+	border-color: var(--scd-color-primary);
+	box-shadow: 0 0 0 1px var(--scd-color-primary);
+	outline: 2px solid transparent;
+}
+
+.scd-wizard-form .ts-control > input {
+	color: var(--scd-color-text);
+	font-size: var(--scd-font-size-medium);
+	line-height: 1.5;
+}
+
+.scd-wizard-form .ts-control input::placeholder {
+	color: var(--scd-color-text-lighter);
+}
+
+/* ==========================================================================
+   Selected Items (Tags)
+   ========================================================================== */
+
+.scd-wizard-form .ts-control > .item {
+	background-color: var(--scd-color-surface);
+	border: 1px solid var(--scd-color-border);
+	border-radius: var(--scd-radius-sm);
+	color: var(--scd-color-text);
+	font-size: var(--scd-font-size-base);
+	line-height: 1.4;
+	margin: calc(var(--scd-spacing-xs) / 2) var(--scd-spacing-xs) calc(var(--scd-spacing-xs) / 2) 0;
+	padding: calc(var(--scd-spacing-xs) - 1px) var(--scd-spacing-sm);
+}
+
+.scd-wizard-form .ts-control > .item.active {
+	background-color: var(--scd-color-primary);
+	border-color: var(--scd-color-primary);
+	color: var(--scd-color-white);
+}
+
+/* Remove Button */
+.scd-wizard-form .ts-control > .item .remove {
+	border-left: 1px solid var(--scd-color-border);
+	color: var(--scd-color-text-muted);
+	display: inline-block;
+	font-weight: var(--scd-font-weight-bold);
+	margin-left: calc(var(--scd-spacing-xs) + 1px);
+	padding-left: calc(var(--scd-spacing-xs) + 1px);
+	text-decoration: none;
+}
+
+.scd-wizard-form .ts-control > .item .remove:hover {
+	color: var(--scd-color-danger);
+}
+
+.scd-wizard-form .ts-control > .item.active .remove {
+	border-color: var(--scd-color-overlay-light);
+	color: var(--scd-color-overlay-light-text);
+}
+
+/* ==========================================================================
+   Dropdown
+   ========================================================================== */
+
+.scd-wizard-form .ts-dropdown,
+body > .ts-dropdown {
+	background: var(--scd-color-background);
+	border: 1px solid var(--scd-color-border);
+	border-radius: 0 0 var(--scd-radius-md) var(--scd-radius-md);
+	border-top: 0;
+	box-shadow: var(--scd-shadow-sm);
+	margin-top: -1px;
+	max-height: 300px;
+	overflow-x: hidden;
+	overflow-y: auto;
+	z-index: 9999; /* Below WordPress admin bar (99999) but above content */
+}
+
+/* Dropdown Options */
+.scd-wizard-form .ts-dropdown .option,
+body > .ts-dropdown .option {
+	color: var(--scd-color-text);
+	cursor: pointer;
+	padding: var(--scd-spacing-sm) var(--scd-spacing-md);
+}
+
+.scd-wizard-form .ts-dropdown .option:hover,
+.scd-wizard-form .ts-dropdown .option.active,
+body > .ts-dropdown .option:hover,
+body > .ts-dropdown .option.active {
+	background-color: var(--scd-color-surface);
+}
+
+.scd-wizard-form .ts-dropdown .option.selected,
+body > .ts-dropdown .option.selected {
+	background-color: var(--scd-color-info-bg);
+	font-weight: var(--scd-font-weight-semibold);
+}
+
+/* Checkbox Plugin Support */
+.scd-wizard-form .ts-dropdown .option input[type="checkbox"],
+body > .ts-dropdown .option input[type="checkbox"] {
+	margin-right: var(--scd-spacing-sm);
+}
+
+/* No Results State */
+.scd-wizard-form .ts-dropdown .no-results,
+body > .ts-dropdown .no-results {
+	color: var(--scd-color-text-muted);
+	padding: var(--scd-spacing-md);
+	text-align: center;
+}
+
+/* ==========================================================================
+   Category Display
+   ========================================================================== */
+
+/* Category Option Layout */
+.scd-tom-select-option {
+	align-items: center;
+	display: flex;
+}
+
+.scd-tom-select-option .option-text {
+	flex: 1;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Category Count Badge */
+.scd-wizard-form .ts-dropdown .option .category-count,
+body > .ts-dropdown .option .category-count {
+	color: var(--scd-color-text-lighter);
+	opacity: 0.8;
+}
+
+/* Hierarchical Indentation */
+.scd-wizard-form .ts-dropdown .category-option,
+body > .ts-dropdown .category-option {
+	padding-left: var(--scd-spacing-md);
+}
+
+.scd-wizard-form .ts-dropdown .category-option.level-1,
+body > .ts-dropdown .category-option.level-1 {
+	padding-left: calc(var(--scd-spacing-md) + var(--scd-spacing-lg));
+}
+
+.scd-wizard-form .ts-dropdown .category-option.level-2,
+body > .ts-dropdown .category-option.level-2 {
+	padding-left: calc(var(--scd-spacing-md) + (var(--scd-spacing-lg) * 2));
+}
+
+.scd-wizard-form .ts-dropdown .category-option.level-3,
+body > .ts-dropdown .category-option.level-3 {
+	padding-left: calc(var(--scd-spacing-md) + (var(--scd-spacing-lg) * 3));
+}
+
+.scd-wizard-form .ts-dropdown .category-option.level-4,
+body > .ts-dropdown .category-option.level-4 {
+	padding-left: calc(var(--scd-spacing-md) + (var(--scd-spacing-lg) * 4));
+}
+
+/* ==========================================================================
+   Product Display
+   ========================================================================== */
+
+/* Product Option Layout */
+.scd-tom-select-product-option {
+	display: flex;
+	gap: var(--scd-spacing-md);
+	padding: var(--scd-spacing-xs) 0;
+}
+
+/* Product Thumbnail */
+.scd-tom-select-product-option .product-image {
+	flex-shrink: 0;
+	height: var(--scd-spacing-xxxl);
+	width: var(--scd-spacing-xxxl);
+}
+
+.scd-tom-select-product-option .product-image img {
+	border-radius: var(--scd-radius-sm);
+	height: 100%;
+	object-fit: cover;
+	width: 100%;
+}
+
+/* No Image Placeholder */
+.scd-tom-select-product-option .product-image.no-image {
+	align-items: center;
+	background-color: var(--scd-color-surface);
+	border: 1px solid var(--scd-color-border);
+	border-radius: var(--scd-radius-sm);
+	color: var(--scd-color-text-lighter);
+	display: flex;
+	font-size: var(--scd-font-size-xxl);
+	justify-content: center;
+}
+
+/* Product Information */
+.scd-tom-select-product-option .product-details {
+	flex: 1;
+	min-width: 0;
+}
+
+.scd-tom-select-product-option .product-name {
+	color: var(--scd-color-text);
+	font-size: var(--scd-font-size-medium);
+	font-weight: var(--scd-font-weight-medium);
+	line-height: 1.4;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.scd-tom-select-product-option .product-meta {
+	color: var(--scd-color-text-muted);
+	font-size: var(--scd-font-size-small);
+	line-height: 1.4;
+	margin-top: calc(var(--scd-spacing-xs) / 2);
+}
+
+.scd-tom-select-product-option .product-price {
+	font-weight: var(--scd-font-weight-semibold);
+}
+
+.scd-tom-select-product-option .product-sku {
+	margin-left: var(--scd-spacing-sm);
+}
+
+/* Selected Product Item */
+.scd-tom-select-product-item {
+	align-items: center;
+	display: flex;
+	font-size: var(--scd-font-size-base);
+	gap: var(--scd-spacing-xs);
+}
+
+/* ==========================================================================
+   Loading States
+   ========================================================================== */
+
+.scd-tom-select-loading {
+	color: var(--scd-color-text-muted);
+	font-style: italic;
+	padding: var(--scd-spacing-md);
+	text-align: center;
+}
+
+.scd-wizard-form .ts-dropdown.loading-more::after,
+body > .ts-dropdown.loading-more::after {
+	background: var(--scd-color-surface-light);
+	border-top: 1px solid var(--scd-color-border-light);
+	color: var(--scd-color-text-muted);
+	content: 'Loading more products...';
+	display: block;
+	font-style: italic;
+	padding: calc(var(--scd-spacing-sm) + 2px);
+	text-align: center;
+}
+
+/* ==========================================================================
+   Clear Button
+   ========================================================================== */
+
+.scd-wizard-form .ts-wrapper .clear-button {
+	background: var(--scd-color-surface);
+	border: 1px solid var(--scd-color-border);
+	border-radius: var(--scd-radius-sm);
+	cursor: pointer;
+	font-size: 0;
+	line-height: 0;
+	margin: 0;
+	opacity: 0;
+	padding: var(--scd-spacing-xs) calc(var(--scd-spacing-xs) + 2px);
+	position: absolute;
+	right: var(--scd-spacing-sm);
+	top: 50%;
+	transform: translateY(-50%);
+	transition: opacity var(--scd-transition-base);
+	z-index: var(--scd-z-base);
+}
+
+.scd-wizard-form .ts-wrapper.has-items .clear-button {
+	opacity: 0.6;
+}
+
+.scd-wizard-form .ts-wrapper.has-items .clear-button:hover {
+	background: var(--scd-color-border-light);
+	opacity: 1;
+}
+
+.scd-wizard-form .ts-wrapper .clear-button * {
+	display: none;
+}
+
+.scd-wizard-form .ts-wrapper .clear-button::after {
+	color: var(--scd-color-text-muted);
+	content: '×';
+	display: block;
+	font-size: var(--scd-font-size-large);
+	line-height: 1;
+}
+
+.scd-wizard-form .ts-wrapper.has-items.plugin-clear_button .ts-control {
+	padding-right: var(--scd-spacing-xxxl);
+}
+
+/* ==========================================================================
+   Load More Footer
+   ========================================================================== */
+
+.scd-tom-select-footer {
+	background-color: var(--scd-color-surface-light);
+	border-top: 1px solid var(--scd-color-border-light);
+	bottom: 0;
+	padding: var(--scd-spacing-sm);
+	position: sticky;
+	text-align: center;
+}
+
+.scd-tom-select-footer .scd-load-more-products,
+.scd-tom-select-footer .scd-load-more-btn {
+	background: var(--scd-color-background);
+	border: 1px solid var(--scd-color-border);
+	border-radius: var(--scd-radius-sm);
+	color: var(--scd-color-text);
+	cursor: pointer;
+	font-size: var(--scd-font-size-base);
+	padding: var(--scd-spacing-xs) var(--scd-spacing-md);
+	transition: background-color var(--scd-transition-base);
+	width: 100%;
+}
+
+.scd-tom-select-footer .scd-load-more-products:hover,
+.scd-tom-select-footer .scd-load-more-btn:hover {
+	background-color: var(--scd-color-surface);
+	border-color: var(--scd-color-border-dark);
+}
+
+.scd-tom-select-footer .scd-load-more-products:disabled {
+	cursor: not-allowed;
+	opacity: 0.6;
+}
+
+.scd-tom-select-footer .scd-load-more-products .dashicons,
+.scd-tom-select-footer .scd-load-more-btn .dashicons {
+	font-size: var(--scd-font-size-large);
+	line-height: 1;
+	margin-right: var(--scd-spacing-xs);
+	vertical-align: sub;
+}
+
+/* ==========================================================================
+   State Modifiers
+   ========================================================================== */
+
+.scd-wizard-form .ts-wrapper.disabled .ts-control {
+	background-color: var(--scd-color-surface);
+	cursor: not-allowed;
+	opacity: 0.6;
+}
+
+.scd-wizard-form .ts-wrapper.multi .ts-control > div {
+	cursor: pointer;
+	display: inline-block;
+}
+
+/* ==========================================================================
+   Instance-Specific Overrides
+   ========================================================================== */
+
+#scd-campaign-categories + .ts-wrapper .ts-control,
+#scd-product-search + .ts-wrapper .ts-control {
+	max-width: 100%;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media screen and (max-width: 782px) {
+	.scd-wizard-form .ts-control {
+		font-size: var(--scd-font-size-large);
+	}
+
+	.scd-wizard-form .ts-control > .item {
+		font-size: var(--scd-font-size-medium);
+		padding: var(--scd-spacing-xs) calc(var(--scd-spacing-sm) + 2px);
+	}
+
+	.scd-tom-select-product-option {
+		gap: calc(var(--scd-spacing-sm) + 2px);
+	}
+
+	.scd-tom-select-product-option .product-image {
+		height: var(--scd-button-height-large);
+		width: var(--scd-button-height-large);
+	}
+}

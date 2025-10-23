@@ -1,0 +1,59 @@
+/**
+ * Smart Cycle Discounts - Frontend Styles
+ *
+ * @package SmartCycleDiscounts
+ * @since 1.0.0
+ */
+
+/* Discount Badge Styles */
+.scd-discount-badge {
+    display: inline-block;
+    background-color: var(--scd-frontend-badge-bg, #e74c3c);
+    color: var(--scd-frontend-badge-color, #ffffff);
+    font-size: 12px;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 3px;
+    margin-left: 8px;
+    vertical-align: middle;
+    line-height: 1;
+}
+
+/* Product Price Display */
+.price .scd-discount-badge {
+    font-size: 11px;
+    padding: 2px 6px;
+}
+
+/* Shop Loop Badge */
+.woocommerce ul.products li.product .scd-discount-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 9;
+}
+
+/* Single Product Badge */
+.woocommerce div.product .scd-discount-badge {
+    font-size: 14px;
+    padding: 4px 10px;
+}
+
+/* Sale Price Styling */
+.woocommerce-Price-amount.scd-original-price {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+/* Cart Item Discounts */
+.woocommerce-cart-form__cart-item .scd-discount-info {
+    font-size: 12px;
+    color: var(--scd-frontend-discount-color, #e74c3c);
+    margin-top: 4px;
+}
+
+/* Checkout Discount Display */
+.woocommerce-checkout-review-order .scd-discount-line {
+    color: var(--scd-frontend-success-color, #27ae60);
+    font-weight: 600;
+}

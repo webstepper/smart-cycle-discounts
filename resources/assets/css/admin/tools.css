@@ -1,0 +1,294 @@
+/**
+ * Smart Cycle Discounts - Tools Page Styles
+ * Applies plugin's design system to Tools & Maintenance page
+ *
+ * @package    SmartCycleDiscounts
+ * @since      1.0.0
+ */
+
+/* ==========================================================================
+   Tools Page Container
+   ========================================================================== */
+
+.scd-tools-page {
+	max-width: 1200px;
+	margin: 20px 20px 0 0;
+}
+
+.scd-tools-page h1 {
+	margin-bottom: var(--scd-spacing-lg);
+	font-size: var(--scd-font-size-xxxl);
+	font-weight: var(--scd-font-weight-semibold);
+	color: var(--scd-color-text);
+}
+
+/* ==========================================================================
+   Tools Sections
+   ========================================================================== */
+
+.scd-tools-section {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 24px;
+	margin-bottom: 24px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.scd-tools-section h2 {
+	margin: 0 0 16px;
+	padding-bottom: 12px;
+	border-bottom: 1px solid #dcdcde;
+	font-size: 18px;
+	font-weight: 600;
+	color: #1d2327;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.scd-tools-section h2 .dashicons {
+	font-size: 24px;
+	width: 24px;
+	height: 24px;
+	color: #2271b1;
+}
+
+.scd-tools-section .description {
+	color: #646970;
+	font-size: 13px;
+	margin-bottom: 20px;
+}
+
+/* ==========================================================================
+   Form Table Styling
+   ========================================================================== */
+
+.scd-tools-section .form-table {
+	margin-top: 0;
+}
+
+.scd-tools-section .form-table th {
+	padding: 20px 10px 20px 0;
+	width: 200px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.scd-tools-section .form-table td {
+	padding: 20px 10px;
+}
+
+.scd-tools-section .form-table tr {
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.scd-tools-section .form-table tr:last-child {
+	border-bottom: none;
+}
+
+.scd-tools-section .form-table p.description {
+	margin: 0 0 10px;
+	font-style: normal;
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+
+.scd-tools-section .button {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	min-height: 32px;
+	padding: 0 12px;
+}
+
+.scd-tools-section .button .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+}
+
+.scd-tools-section .button .dashicons-spin {
+	animation: rotation 2s infinite linear;
+}
+
+@keyframes rotation {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(359deg);
+	}
+}
+
+/* ==========================================================================
+   Log Viewer
+   ========================================================================== */
+
+.scd-log-viewer-wrapper {
+	margin-top: 10px;
+}
+
+.scd-log-stats {
+	background: #f6f7f7;
+	border-left: 4px solid #2271b1;
+	padding: 12px;
+	margin: 15px 0;
+	font-size: 13px;
+	line-height: 1.6;
+}
+
+.scd-log-stats code {
+	background: #fff;
+	padding: 2px 6px;
+	border-radius: 3px;
+	font-family: Consolas, Monaco, monospace;
+	font-size: 12px;
+}
+
+.scd-log-actions {
+	margin: 10px 0;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+
+.scd-log-actions label {
+	margin: 0;
+	font-weight: 600;
+}
+
+.scd-log-actions select {
+	min-width: 150px;
+	height: 32px;
+}
+
+#scd-log-viewer-modal {
+	margin-top: 15px;
+	padding: 15px;
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+}
+
+#scd-log-viewer-modal textarea {
+	width: 100%;
+	font-family: Consolas, Monaco, monospace;
+	font-size: 12px;
+	background: #1d2327;
+	color: #f0f0f1;
+	border: none;
+	padding: 12px;
+	border-radius: 3px;
+	line-height: 1.6;
+}
+
+/* ==========================================================================
+   System Report
+   ========================================================================== */
+
+#scd-system-report {
+	margin-top: 10px;
+	padding: 15px;
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+}
+
+#scd-system-report textarea {
+	width: 100%;
+	font-family: Consolas, Monaco, monospace;
+	font-size: 12px;
+	background: #fff;
+	color: #1d2327;
+	border: 1px solid #dcdcde;
+	padding: 12px;
+	border-radius: 3px;
+	line-height: 1.6;
+}
+
+/* ==========================================================================
+   Health Check Results
+   ========================================================================== */
+
+.scd-health-check-results {
+	margin-top: 15px;
+}
+
+.scd-health-check-results .notice {
+	margin: 8px 0;
+	padding: 12px;
+}
+
+.scd-health-check-results .notice p {
+	margin: 0;
+	font-size: 13px;
+}
+
+.scd-health-check-results .notice strong {
+	color: #1d2327;
+}
+
+/* ==========================================================================
+   Import Status
+   ========================================================================== */
+
+.scd-import-status {
+	margin-top: 10px;
+	padding: 10px;
+	border-radius: 4px;
+	display: none;
+}
+
+.scd-import-status.success {
+	display: block;
+	background: #d7f0d7;
+	border-left: 4px solid #00a32a;
+	color: #1d2327;
+}
+
+.scd-import-status.error {
+	display: block;
+	background: #f8d7da;
+	border-left: 4px solid #d63638;
+	color: #1d2327;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media screen and (max-width: 782px) {
+	.scd-tools-section {
+		padding: 16px;
+	}
+
+	.scd-tools-section .form-table th,
+	.scd-tools-section .form-table td {
+		display: block;
+		width: 100%;
+		padding: 12px 0;
+	}
+
+	.scd-tools-section .form-table th {
+		padding-bottom: 0;
+	}
+
+	.scd-log-actions {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.scd-log-actions label {
+		margin-bottom: 4px;
+	}
+
+	.scd-log-actions select,
+	.scd-log-actions .button {
+		width: 100%;
+		justify-content: center;
+	}
+}

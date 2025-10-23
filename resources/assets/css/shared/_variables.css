@@ -1,0 +1,206 @@
+/**
+ * CSS Variables - Centralized Design Tokens
+ * WordPress 6.4+ Design System
+ * 
+ * Single source of truth for all design values
+ * Prevents duplication across files
+ */
+
+/* Theme colors are now loaded separately or included inline */
+
+:root {
+    /* ==========================================================================
+       Colors - WordPress 6.4+ Palette
+       ========================================================================== */
+    
+    /* Color aliases - referencing theme colors defined in _theme-colors.css */
+    --scd-color-primary-darker: var(--scd-color-primary-dark);
+    --scd-color-primary-lighter: var(--scd-color-secondary);
+    --scd-color-error: var(--scd-color-danger);
+    --scd-color-error-dark: var(--scd-color-danger-dark);
+    --scd-color-error-light: var(--scd-color-danger-light);
+    
+    /* Neutral Colors */
+    --scd-color-white: #fff;
+    --scd-color-black: #000;
+    --scd-color-text: #1d2327;
+    --scd-color-text-muted: #646970;
+    --scd-color-text-lighter: #8c8f94;
+    --scd-color-text-disabled: #a7aaad;
+    
+    /* Background Colors */
+    --scd-color-background: #fff;
+    --scd-color-surface: #f6f7f7;
+    --scd-color-surface-dark: #f0f0f1;
+    
+    /* Border Colors */
+    --scd-color-border: #c3c4c7;
+    --scd-color-border-dark: #8c8f94;
+    --scd-color-border-light: #e0e0e0;
+    --scd-color-border-lighter: #f0f0f1;
+    
+    /* Semantic Background Colors */
+    --scd-color-primary-bg: rgba(34, 113, 177, 0.05);
+    --scd-color-success-bg: rgba(0, 163, 42, 0.05);
+    --scd-color-error-bg: rgba(214, 54, 56, 0.05);
+    --scd-color-warning-bg: rgba(219, 166, 23, 0.05);
+    
+    /* ==========================================================================
+       Typography
+       ========================================================================== */
+    
+    /* Font Family */
+    --scd-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    --scd-font-family-mono: Consolas, Monaco, monospace;
+    
+    /* Font Sizes */
+    --scd-font-size-small: 11px;
+    --scd-font-size-base: 13px;
+    --scd-font-size-medium: 14px;
+    --scd-font-size-large: 16px;
+    --scd-font-size-xl: 18px;
+    --scd-font-size-xxl: 20px;
+    --scd-font-size-xxxl: 24px;
+    
+    /* Font Weights */
+    --scd-font-weight-normal: 400;
+    --scd-font-weight-medium: 500;
+    --scd-font-weight-semibold: 600;
+    --scd-font-weight-bold: 700;
+    
+    /* Line Heights */
+    --scd-line-height-tight: 1.2;
+    --scd-line-height-base: 1.5;
+    --scd-line-height-relaxed: 1.7;
+    
+    /* ==========================================================================
+       Spacing - 8px Grid System
+       ========================================================================== */
+    
+    --scd-spacing-xs: 4px;
+    --scd-spacing-sm: 8px;
+    --scd-spacing-md: 12px;
+    --scd-spacing-base: 16px;
+    --scd-spacing-lg: 20px;
+    --scd-spacing-xl: 24px;
+    --scd-spacing-xxl: 32px;
+    --scd-spacing-xxxl: 40px;
+    
+    /* ==========================================================================
+       Layout
+       ========================================================================== */
+    
+    /* Container Widths */
+    --scd-container-sm: 600px;
+    --scd-container-md: 800px;
+    --scd-container-lg: 1200px;
+    --scd-container-xl: 1400px;
+    
+    /* Component Heights */
+    --scd-input-height: 30px;
+    --scd-input-height-large: 36px;
+    --scd-button-height: 32px;
+    --scd-button-height-large: 36px;
+    
+    /* ==========================================================================
+       Borders & Radius
+       ========================================================================== */
+    
+    /* Border Width */
+    --scd-border-width: 1px;
+    --scd-border-width-thick: 2px;
+    --scd-border-width-focus: 2px;
+    --scd-border-width-accent: 4px;
+    
+    /* Border Radius */
+    --scd-radius-sm: 2px;
+    --scd-radius-md: 4px;
+    --scd-radius-lg: 8px;
+    --scd-radius-xl: 12px;
+    --scd-radius-full: 50%;
+    --scd-radius-pill: 100px;
+    
+    /* ==========================================================================
+       Shadows
+       ========================================================================== */
+    
+    --scd-shadow-sm: 0 1px 1px rgba(0, 0, 0, 0.04);
+    --scd-shadow-md: 0 1px 3px rgba(0, 0, 0, 0.04);
+    --scd-shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --scd-shadow-xl: 0 2px 8px rgba(0, 0, 0, 0.15);
+    --scd-shadow-focus: 0 0 0 var(--scd-border-width-focus) var(--scd-color-primary);
+    
+    /* ==========================================================================
+       Z-Index Scale
+       ========================================================================== */
+    
+    --scd-z-base: 1;
+    --scd-z-dropdown: 100;
+    --scd-z-sticky: 200;
+    --scd-z-overlay: 300;
+    --scd-z-modal: 1000;
+    --scd-z-popover: 1100;
+    --scd-z-tooltip: 1200;
+    --scd-z-notification: 9999;
+    
+    /* ==========================================================================
+       Animation & Transitions
+       ========================================================================== */
+    
+    /* Durations */
+    --scd-transition-fast: 0.1s;
+    --scd-transition-base: 0.2s;
+    --scd-transition-slow: 0.3s;
+    --scd-transition-slower: 0.5s;
+    
+    /* Easing */
+    --scd-ease-in: ease-in;
+    --scd-ease-out: ease-out;
+    --scd-ease-in-out: ease-in-out;
+    --scd-ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    
+    /* ==========================================================================
+       Breakpoints (for reference in JS)
+       ========================================================================== */
+    
+    --scd-breakpoint-xs: 480px;
+    --scd-breakpoint-sm: 600px;
+    --scd-breakpoint-md: 782px; /* WordPress admin breakpoint */
+    --scd-breakpoint-lg: 960px;
+    --scd-breakpoint-xl: 1200px;
+    --scd-breakpoint-xxl: 1400px;
+}
+
+/* ==========================================================================
+   Dark Mode Support (if needed in future)
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* Dark mode overrides can go here */
+    }
+}
+
+/* ==========================================================================
+   High Contrast Mode
+   ========================================================================== */
+
+@media (prefers-contrast: high) {
+    :root {
+        --scd-border-width: 2px;
+        --scd-border-width-focus: 3px;
+    }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --scd-transition-fast: 0.01ms;
+        --scd-transition-base: 0.01ms;
+        --scd-transition-slow: 0.01ms;
+        --scd-transition-slower: 0.01ms;
+    }
+}

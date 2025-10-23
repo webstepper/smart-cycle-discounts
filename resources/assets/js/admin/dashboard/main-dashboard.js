@@ -1,0 +1,372 @@
+/**
+ * Main Dashboard JavaScript (Refactored)
+ *
+ * Handles dashboard data loading and updates for streamlined UI.
+ * Simplified to match new structure with fewer moving parts.
+ *
+ * @package SmartCycleDiscounts
+ * @since   1.0.0
+ */
+
+( function( $, window, document ) {
+	'use strict';
+
+	/**
+	 * Main Dashboard Manager
+	 *
+	 * @since 1.0.0
+	 */
+	var SCD_Main_Dashboard = {
+
+		/**
+		 * Dashboard data cache
+		 *
+		 * @since 1.0.0
+		 * @type {Object}
+		 */
+		data: {},
+
+		/**
+		 * Loading state
+		 *
+		 * @since 1.0.0
+		 * @type {Boolean}
+		 */
+		isLoading: false,
+
+		/**
+		 * Initialize dashboard
+		 *
+		 * @since 1.0.0
+		 */
+		init: function() {
+			this.bindEvents();
+		},
+
+		/**
+		 * Bind event handlers
+		 *
+		 * @since 1.0.0
+		 */
+		bindEvents: function() {
+			// Refresh button (if needed in future)
+			$( document ).on( 'click', '#scd-refresh-data', function( e ) {
+				e.preventDefault();
+				SCD_Main_Dashboard.loadDashboardData();
+			} );
+
+			// Campaign suggestion details toggle
+			$( document ).on( 'click', '.scd-details-toggle-btn', function( e ) {
+				e.preventDefault();
+				SCD_Main_Dashboard.toggleSuggestionDetails( $( this ) );
+			} );
+
+			// Prevent page unload during data loading
+			$( window ).on( 'beforeunload', function() {
+				if ( SCD_Main_Dashboard.isLoading ) {
+					return 'Dashboard data is still loading. Are you sure you want to leave?';
+				}
+			} );
+		},
+
+		/**
+		 * Load dashboard data via AJAX
+		 *
+		 * @since 1.0.0
+		 */
+		loadDashboardData: function() {
+			// Prevent multiple simultaneous requests
+			if ( this.isLoading ) {
+				return;
+			}
+
+			this.showLoading();
+
+			var self = this;
+
+			$.ajax( {
+				url: ajaxurl,
+				type: 'POST',
+				data: {
+					action: 'scd_ajax',
+					scdAction: 'main_dashboard_data',
+					nonce: window.scdDashboard.nonce
+				},
+				dataType: 'json',
+				timeout: 30000,
+				success: function( response ) {
+					self.hideLoading();
+
+					if ( response.success && response.data ) {
+						self.data = response.data;
+						self.updateDashboard( response.data );
+					} else {
+						self.handleError( response.data && response.data.message ? response.data.message : 'Failed to load dashboard data' );
+					}
+				},
+				error: function( xhr, status, error ) {
+					self.hideLoading();
+					self.handleError( 'Network error: ' + error );
+				}
+			} );
+		},
+
+		/**
+		 * Update dashboard with new data
+		 *
+		 * @since 1.0.0
+		 * @param {Object} data Dashboard data
+		 */
+		updateDashboard: function( data ) {
+			// Update hero stats
+			if ( data.metrics ) {
+				this.updateHeroStats( data.metrics );
+			}
+
+			// Update campaign status summary
+			if ( data.campaign_stats ) {
+				this.updateCampaignStats( data.campaign_stats );
+			}
+
+			// Update top campaigns table
+			if ( data.top_campaigns ) {
+				this.updateTopCampaigns( data.top_campaigns );
+			}
+
+			// Show success notification
+			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
+				SCD.Shared.NotificationService.success( 'Dashboard updated successfully' );
+			}
+		},
+
+		/**
+		 * Update hero stat cards
+		 *
+		 * @since 1.0.0
+		 * @param {Object} metrics Metrics data
+		 */
+		updateHeroStats: function( metrics ) {
+			// Update revenue (use .html() to support potential HTML formatting)
+			if ( metrics.revenue !== undefined ) {
+				$( '#scd-stat-revenue' ).html( this.formatCurrency( metrics.revenue ) );
+			}
+
+			// Update active campaigns
+			if ( metrics.active_campaigns !== undefined ) {
+				$( '#scd-stat-active-campaigns' ).text( metrics.active_campaigns );
+			}
+
+			// Update conversions
+			if ( metrics.conversions !== undefined ) {
+				$( '#scd-stat-conversions' ).text( this.formatNumber( metrics.conversions ) );
+			}
+
+			// Update CTR
+			if ( metrics.clicks !== undefined && metrics.impressions !== undefined ) {
+				var ctr = metrics.impressions > 0 ? ( metrics.clicks / metrics.impressions ) * 100 : 0;
+				$( '#scd-stat-ctr' ).text( this.formatPercentage( ctr ) );
+			}
+		},
+
+		/**
+		 * Update campaign status badges
+		 *
+		 * @since 1.0.0
+		 * @param {Object} stats Campaign status counts
+		 */
+		updateCampaignStats: function( stats ) {
+			// Update status counts in badges
+			var statuses = [ 'active', 'scheduled', 'paused', 'draft' ];
+
+			for ( var i = 0; i < statuses.length; i++ ) {
+				var status = statuses[i];
+				if ( stats[status] !== undefined ) {
+					// Update count in status badge
+					$( '.scd-status-badge.scd-status-' + status ).each( function() {
+						var $badge = $( this );
+						var currentText = $badge.text();
+						// Replace number while keeping label
+						var newText = currentText.replace( /\d+/, stats[status] );
+						$badge.text( newText );
+					} );
+				}
+			}
+
+			// Update total count
+			if ( stats.total !== undefined ) {
+				$( '.scd-status-total strong' ).next().text( stats.total );
+			}
+		},
+
+		/**
+		 * Update top campaigns table
+		 *
+		 * @since 1.0.0
+		 * @param {Array} campaigns Top campaigns data
+		 */
+		updateTopCampaigns: function( campaigns ) {
+			var $tbody = $( '.scd-campaigns-table tbody' );
+
+			if ( !campaigns || campaigns.length === 0 ) {
+				return;
+			}
+
+			// Clear and rebuild table
+			$tbody.empty();
+
+			for ( var i = 0; i < campaigns.length; i++ ) {
+				var campaign = campaigns[i];
+				var row = '<tr>' +
+					'<td>' +
+					'<strong>' + this.escapeHtml( campaign.name ) + '</strong>' +
+					'<span class="scd-campaign-status scd-status-' + this.escapeHtml( campaign.status ) + '">' +
+					this.escapeHtml( this.capitalizeFirst( campaign.status ) ) +
+					'</span>' +
+					'</td>' +
+					'<td>' + this.formatCurrency( campaign.revenue || 0 ) + '</td>' +
+					'<td>' + this.formatNumber( campaign.conversions || 0 ) + '</td>' +
+					'<td>' +
+					'<a href="admin.php?page=scd-campaigns&action=edit&id=' + campaign.id + '" class="button button-small">Edit</a>' +
+					'</td>' +
+					'</tr>';
+
+				$tbody.append( row );
+			}
+		},
+
+		/**
+		 * Show loading overlay
+		 *
+		 * @since 1.0.0
+		 */
+		showLoading: function() {
+			this.isLoading = true;
+			$( '#scd-dashboard-loading' ).fadeIn( 200 );
+		},
+
+		/**
+		 * Hide loading overlay
+		 *
+		 * @since 1.0.0
+		 */
+		hideLoading: function() {
+			this.isLoading = false;
+			$( '#scd-dashboard-loading' ).fadeOut( 200 );
+		},
+
+		/**
+		 * Handle error
+		 *
+		 * @since 1.0.0
+		 * @param {String} message Error message
+		 */
+		handleError: function( message ) {
+			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
+				SCD.Shared.NotificationService.error( message );
+			} else {
+				alert( 'Error: ' + message );
+			}
+		},
+
+		/**
+		 * Format currency value
+		 *
+		 * @since 1.0.0
+		 * @param {Number} value Numeric value
+		 * @return {String} Formatted currency
+		 */
+		formatCurrency: function( value ) {
+			// Use WordPress currency formatting if available
+			if ( window.scdDashboard && window.scdDashboard.currencySymbol ) {
+				return window.scdDashboard.currencySymbol + this.formatNumber( value, 2 );
+			}
+			return '$' + this.formatNumber( value, 2 );
+		},
+
+		/**
+		 * Format number with thousands separator
+		 *
+		 * @since 1.0.0
+		 * @param {Number} value Numeric value
+		 * @param {Number} decimals Number of decimal places
+		 * @return {String} Formatted number
+		 */
+		formatNumber: function( value, decimals ) {
+			decimals = decimals || 0;
+			var number = parseFloat( value ).toFixed( decimals );
+			var parts = number.split( '.' );
+			parts[0] = parts[0].replace( /\B(?=(\d{3})+(?!\d))/g, ',' );
+			return parts.join( '.' );
+		},
+
+		/**
+		 * Format percentage value
+		 *
+		 * @since 1.0.0
+		 * @param {Number} value Numeric value
+		 * @return {String} Formatted percentage
+		 */
+		formatPercentage: function( value ) {
+			return this.formatNumber( value, 2 ) + '%';
+		},
+
+		/**
+		 * Toggle campaign suggestion details
+		 *
+		 * @since 1.0.0
+		 * @param {jQuery} $button Toggle button element
+		 */
+		toggleSuggestionDetails: function( $button ) {
+			var suggestionId = $button.data( 'suggestion-id' );
+			var $details = $( '#scd-details-' + suggestionId );
+
+			if ( $details.is( ':visible' ) ) {
+				// Close details
+				$details.slideUp( 300 );
+				$button.removeClass( 'scd-active' );
+				$button.find( 'span:not(.dashicons)' ).text( 'Show More Details' );
+			} else {
+				// Open details
+				$details.slideDown( 300 );
+				$button.addClass( 'scd-active' );
+				$button.find( 'span:not(.dashicons)' ).text( 'Show Less Details' );
+			}
+		},
+
+		/**
+		 * Capitalize first letter
+		 *
+		 * @since 1.0.0
+		 * @param {String} str String to capitalize
+		 * @return {String} Capitalized string
+		 */
+		capitalizeFirst: function( str ) {
+			return str.charAt( 0 ).toUpperCase() + str.slice( 1 );
+		},
+
+		/**
+		 * Escape HTML entities
+		 *
+		 * @since 1.0.0
+		 * @param {String} str String to escape
+		 * @return {String} Escaped string
+		 */
+		escapeHtml: function( str ) {
+			var div = document.createElement( 'div' );
+			div.appendChild( document.createTextNode( str ) );
+			return div.innerHTML;
+		}
+	};
+
+	// Initialize on document ready
+	$( document ).ready( function() {
+		// Only initialize if we're on the main dashboard page
+		if ( $( '.scd-main-dashboard' ).length > 0 ) {
+			SCD_Main_Dashboard.init();
+		}
+	} );
+
+	// Expose to global scope for debugging
+	window.SCD_Main_Dashboard = SCD_Main_Dashboard;
+
+} )( jQuery, window, document );

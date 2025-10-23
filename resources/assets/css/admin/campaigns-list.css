@@ -1,0 +1,229 @@
+/**
+ * Smart Cycle Discounts - Campaigns List Styles
+ *
+ * Styles for campaigns list table columns and components.
+ *
+ * @package    SmartCycleDiscounts
+ * @since      1.0.0
+ */
+
+/* ==========================================================================
+   Priority Badge
+   ========================================================================== */
+
+.scd-priority-badge {
+	display: inline-block;
+	padding: 4px 10px;
+	border-radius: 3px;
+	font-weight: 600;
+	font-size: 13px;
+	text-align: center;
+	min-width: 32px;
+	background: #f0f0f1;
+	color: #50575e;
+	border: 1px solid #dcdcde;
+}
+
+.scd-priority-badge.scd-priority-1 {
+	background: #d63638;
+	color: #fff;
+	border-color: #d63638;
+}
+
+.scd-priority-badge.scd-priority-2 {
+	background: #d63638;
+	color: #fff;
+	border-color: #d63638;
+	opacity: 0.9;
+}
+
+.scd-priority-badge.scd-priority-3 {
+	background: #f0ad4e;
+	color: #fff;
+	border-color: #f0ad4e;
+}
+
+.scd-priority-badge.scd-priority-4 {
+	background: #5bc0de;
+	color: #fff;
+	border-color: #5bc0de;
+}
+
+.scd-priority-badge.scd-priority-5 {
+	background: #2271b1;
+	color: #fff;
+	border-color: #2271b1;
+}
+
+.scd-priority-badge.scd-priority-6,
+.scd-priority-badge.scd-priority-7,
+.scd-priority-badge.scd-priority-8,
+.scd-priority-badge.scd-priority-9,
+.scd-priority-badge.scd-priority-10 {
+	background: #50575e;
+	color: #fff;
+	border-color: #50575e;
+}
+
+/* ==========================================================================
+   Health Indicator
+   ========================================================================== */
+
+.scd-health-indicator {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 14px;
+	padding: 4px 8px;
+	border-radius: 4px;
+	transition: all 0.2s ease;
+}
+
+.scd-health-indicator:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.scd-health-indicator strong {
+	font-weight: 600;
+	font-size: 13px;
+}
+
+.scd-health-indicator.scd-health-excellent {
+	background: #e7f7ed;
+	color: #00a32a;
+}
+
+.scd-health-indicator.scd-health-excellent strong {
+	color: #007017;
+}
+
+.scd-health-indicator.scd-health-good {
+	background: #fcf9e8;
+	color: #b58500;
+}
+
+.scd-health-indicator.scd-health-good strong {
+	color: #8a6500;
+}
+
+.scd-health-indicator.scd-health-fair {
+	background: #fef3ec;
+	color: #c85d0c;
+}
+
+.scd-health-indicator.scd-health-fair strong {
+	color: #a54909;
+}
+
+.scd-health-indicator.scd-health-poor {
+	background: #fcf0f1;
+	color: #d63638;
+}
+
+.scd-health-indicator.scd-health-poor strong {
+	color: #b32d2e;
+}
+
+/* ==========================================================================
+   Performance Column
+   ========================================================================== */
+
+.scd-performance-metrics {
+	font-size: 12px;
+	line-height: 1.6;
+}
+
+.scd-performance-metrics strong {
+	display: inline-block;
+	min-width: 70px;
+	color: #50575e;
+	font-weight: 600;
+}
+
+.scd-performance-metrics .description {
+	color: #8c8f94;
+	font-style: normal;
+}
+
+/* ==========================================================================
+   Products Column
+   ========================================================================== */
+
+.wp-list-table .column-products small {
+	color: #646970;
+	line-height: 1.5;
+	display: block;
+	margin-top: 4px;
+}
+
+.wp-list-table .column-products small strong {
+	color: #1d2327;
+}
+
+/* ==========================================================================
+   Table Column Widths
+   ========================================================================== */
+
+.wp-list-table .column-priority {
+	width: 80px;
+	text-align: center;
+}
+
+.wp-list-table .column-health {
+	width: 120px;
+	text-align: center;
+}
+
+.wp-list-table .column-performance {
+	width: 140px;
+}
+
+.wp-list-table .column-discount {
+	width: 120px;
+}
+
+.wp-list-table .column-products {
+	width: 150px;
+}
+
+.wp-list-table .column-status {
+	width: 130px;
+}
+
+.wp-list-table .column-schedule {
+	width: 160px;
+}
+
+.wp-list-table .column-created {
+	width: 140px;
+}
+
+/* ==========================================================================
+   Responsive Adjustments
+   ========================================================================== */
+
+@media screen and (max-width: 1280px) {
+	.wp-list-table .column-created {
+		display: none;
+	}
+}
+
+@media screen and (max-width: 1024px) {
+	.wp-list-table .column-performance {
+		display: none;
+	}
+}
+
+@media screen and (max-width: 782px) {
+	.wp-list-table .column-priority,
+	.wp-list-table .column-health {
+		display: none;
+	}
+
+	.scd-health-indicator,
+	.scd-priority-badge {
+		font-size: 12px;
+		padding: 3px 6px;
+	}
+}

@@ -1,0 +1,302 @@
+/**
+ * Basic Step Fields Handler
+ *
+ * Manages form fields and validation for the basic information step
+ *
+ * @param $
+ * @package SmartCycleDiscounts
+ * @since 1.0.0
+ */
+
+( function( $ ) {
+	'use strict';
+
+	// Register module using utility
+	SCD.Utils.registerModule( 'SCD.Modules.Basic', 'Fields', function( state ) {
+		this.state = state;
+
+		// Initialize event manager
+		this.initEventManager();
+
+		// Initialize with dependency checks
+		if ( !SCD.Utils.ensureInitialized( this, {
+			'state': this.state
+		}, 'BasicFields' ) ) {
+			return;
+		}
+	} );
+
+	SCD.Modules.Basic.Fields.prototype = {
+		/**
+		 * Initialize field handlers
+		 */
+		init: function() {
+			this.bindFieldEvents();
+			this.setupValidation();
+		},
+
+		/**
+		 * Bind field events using event manager
+		 */
+		bindFieldEvents: function() {
+			var self = this;
+
+			// Get field selectors from field definitions (single source of truth)
+			var fieldDefs = SCD.FieldDefinitions.basic || {};
+
+			// Campaign name field
+			if ( fieldDefs.name && fieldDefs.name.selector ) {
+				this.bindDelegatedEvent( document, fieldDefs.name.selector, 'input',
+					SCD.Utils.debounce( function( e ) {
+						self.handleNameChange( e );
+					}, 300 )
+				);
+			}
+
+			// Description field
+			if ( fieldDefs.description && fieldDefs.description.selector ) {
+				this.bindDelegatedEvent( document, fieldDefs.description.selector, 'input', function( e ) {
+					self.handleDescriptionChange( e );
+				} );
+			}
+
+			// Priority field
+			if ( fieldDefs.priority && fieldDefs.priority.selector ) {
+				this.bindDelegatedEvent( document, fieldDefs.priority.selector, 'change', function( e ) {
+					self.handlePriorityChange( e );
+				} );
+			}
+		},
+
+		/**
+		 * Setup validation
+		 */
+		setupValidation: function() {
+			// Validation is handled by orchestrator's StepPersistence mixin
+			// No duplicate validation logic needed here
+		},
+
+		/**
+		 * Handle campaign name changes - delegates to ValidationManager
+		 * @param e
+		 */
+		handleNameChange: function( e ) {
+			var $field = $( e.target );
+			var value = $field.val().trim();
+
+			// Use ValidationManager for field validation
+			if ( window.SCD && window.SCD.ValidationManager ) {
+				window.SCD.ValidationManager.validateFieldDebounced( e.target, {
+					stepId: 'basic'
+				} );
+			}
+
+			// Emit event for orchestrator to handle state update
+			this.triggerCustomEvent( 'scd:basic:field:changed', [ {
+				field: 'name',
+				value: value
+			} ] );
+
+			// Check uniqueness for valid names
+			if ( 3 <= value.length ) {
+				this.checkNameUniqueness( value );
+			}
+		},
+
+		/**
+		 * Check campaign name uniqueness
+		 * @param name
+		 */
+		checkNameUniqueness: function( name ) {
+			var self = this;
+			// Use field definitions for selector
+			var fieldDef = SCD.FieldDefinitions.basic && SCD.FieldDefinitions.basic.name;
+			var $field = fieldDef && fieldDef.selector ? $( fieldDef.selector ) : $( '[name="name"]' );
+
+			// Ensure API is available
+			if ( ! window.SCD || ! window.SCD.Modules || ! window.SCD.Modules.Basic || ! window.SCD.Modules.Basic.API ) {
+				return;
+			}
+
+			// Cancel any pending request - using camelCase per CLAUDE.md
+			if ( this.nameCheckRequest && this.nameCheckRequest.abort ) {
+				this.nameCheckRequest.abort();
+			}
+
+			var api = new SCD.Modules.Basic.API();
+			var excludeId = this.state.getData( 'id' );
+
+			this.nameCheckRequest = api.checkCampaignName( name, excludeId )
+				.done( function( response ) {
+					// Only process if this is still the current name
+					var currentName = self.state.getData( 'name' );
+					if ( currentName === name ) {
+						if ( ! response.unique ) {
+							// Use centralized message from constants
+							var message = window.SCD && window.SCD.Constants && window.SCD.Constants.Validation ?
+								window.SCD.Constants.Validation.DEFAULT_MESSAGES.DUPLICATE_NAME :
+								'A campaign with this name already exists';
+							// Use ValidationError component directly
+							if ( window.SCD && window.SCD.ValidationError ) {
+								window.SCD.ValidationError.show( $field, message );
+							}
+						} else {
+							// Use ValidationError component directly
+							if ( window.SCD && window.SCD.ValidationError ) {
+								window.SCD.ValidationError.clear( $field );
+							}
+						}
+					}
+				} )
+				.fail( function( jqXHR ) {
+					// Ignore aborted requests
+					if ( 'abort' !== jqXHR.statusText ) {
+						// Error already handled by ErrorHandler
+					}
+				} )
+				.always( function() {
+					self.nameCheckRequest = null;
+				} );
+		},
+
+		/**
+		 * Handle description changes - delegates to ValidationManager
+		 * @param e
+		 */
+		handleDescriptionChange: function( e ) {
+			var $field = $( e.target );
+			var value = $field.val().trim();
+
+			// Use ValidationManager for field validation
+			if ( window.SCD && window.SCD.ValidationManager ) {
+				window.SCD.ValidationManager.validateFieldDebounced( e.target, {
+					stepId: 'basic'
+				} );
+			}
+
+			// Emit event for orchestrator to handle state update
+			this.triggerCustomEvent( 'scd:basic:field:changed', [ {
+				field: 'description',
+				value: value
+			} ] );
+		},
+
+		/**
+		 * Handle priority changes - delegates to ValidationManager
+		 * @param e
+		 */
+		handlePriorityChange: function( e ) {
+			var $field = $( e.target );
+			var value = parseInt( $field.val() );
+
+			// Use ValidationManager for field validation
+			if ( window.SCD && window.SCD.ValidationManager ) {
+				window.SCD.ValidationManager.validateFieldDebounced( e.target, {
+					stepId: 'basic'
+				} );
+			}
+
+			// Emit event for orchestrator to handle state update
+			this.triggerCustomEvent( 'scd:basic:field:changed', [ {
+				field: 'priority',
+				value: value
+			} ] );
+		},
+
+		// validateAllFields method removed - handled by orchestrator's StepPersistence mixin
+		// This ensures single source of truth for validation through ValidationManager
+
+		/**
+		 * Show field error or warning
+		 * @param $field
+		 * @param message
+		 * @param severity
+		 */
+		showFieldError: function( $field, message, severity ) {
+			severity = severity || 'error';
+
+			if ( window.SCD && window.SCD.ValidationError ) {
+				window.SCD.ValidationError.show( $field, message, {
+					type: severity,
+					animate: true
+				} );
+			} else {
+				console.error( '[BasicFields] ValidationError component not available' );
+			}
+
+			// Log actual errors
+			if ( 'error' === severity && window.SCD && window.SCD.ErrorHandler ) {
+				SCD.ErrorHandler.handle(
+					new Error( 'Field validation error: ' + message ),
+					'BasicFields.showFieldError',
+					SCD.ErrorHandler.SEVERITY.LOW,
+					{ field: $field.attr( 'name' ), message: message }
+				);
+			}
+		},
+
+		/**
+		 * Clear field error using ValidationError component
+		 * @param $field
+		 */
+		clearFieldError: function( $field ) {
+			if ( window.SCD && window.SCD.ValidationError ) {
+				window.SCD.ValidationError.clear( $field );
+			}
+		},
+
+		// populateFields method removed - handled by orchestrator's StepPersistence mixin
+		// This ensures single source of truth for field population
+
+		// getFieldValues method removed - handled by orchestrator's StepPersistence mixin
+		// This ensures single source of truth for field collection
+
+		/**
+		 * Reset all fields
+		 */
+		resetFields: function() {
+			// Update field values directly using jQuery
+			$( '[name="name"]' ).val( '' ).trigger( 'change' );
+			$( '[name="description"]' ).val( '' ).trigger( 'change' );
+			$( '[name="priority"]' ).val( 5 ).trigger( 'change' );
+
+			// Also reset using Utils.Fields if available for consistency
+			if ( window.SCD && window.SCD.Utils && window.SCD.Utils.Fields ) {
+				// Emit events for orchestrator to handle
+				this.triggerCustomEvent( 'scd:basic:field:changed', [ {
+					field: 'name',
+					value: ''
+				} ] );
+				this.triggerCustomEvent( 'scd:basic:field:changed', [ {
+					field: 'description',
+					value: ''
+				} ] );
+				this.triggerCustomEvent( 'scd:basic:field:changed', [ {
+					field: 'priority',
+					value: 5
+				} ] );
+			}
+
+			// Clear all errors
+			$( '.error-message' ).remove();
+			$( '.error' ).removeClass( 'error' );
+		},
+
+		/**
+		 * Cleanup
+		 */
+		destroy: function() {
+			// Cancel any pending name check request - using camelCase per CLAUDE.md
+			if ( this.nameCheckRequest && this.nameCheckRequest.abort ) {
+				this.nameCheckRequest.abort();
+			}
+
+			this.unbindAllEvents();
+			this.state = null;
+		}
+	};
+
+	// Mix in event manager functionality
+	SCD.Utils.extend( SCD.Modules.Basic.Fields.prototype, SCD.Mixins.EventManager );
+
+} )( jQuery );

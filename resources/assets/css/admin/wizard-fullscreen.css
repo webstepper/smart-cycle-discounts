@@ -1,0 +1,871 @@
+/**
+ * Smart Cycle Discounts - Campaign Wizard Styles
+ * Clean, maintainable CSS without excessive specificity
+ *
+ * Dependencies: scd-variables, scd-utilities, scd-components
+ * (loaded via WordPress enqueue system)
+ */
+
+/* Dynamic theme colors for wizard progress - populated by JavaScript */
+:root {
+    --scd-wizard-primary: #2271b1;
+    --scd-wizard-secondary: #72aee6;
+    --scd-wizard-success: #00a32a;
+    --scd-wizard-warning: #dba617;
+    --scd-wizard-danger: #d63638;
+    --scd-wizard-accent: #3858e9;
+}
+
+/* Initial reset for admin.min.css conflicts */
+.scd-wizard-wrapper {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    margin-top: 0;
+}
+
+.scd-wizard-content {
+    margin-bottom: 0;
+}
+
+/* Reset and base styles */
+.scd-campaign-wizard * {
+    box-sizing: border-box;
+}
+
+/* WordPress admin adjustments */
+.scd-campaign-wizard #wpcontent {
+    padding-left: 0;
+}
+
+.wrap.scd-campaign-wizard {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* Main wizard wrapper - redefine after override */
+.scd-wizard-wrapper {
+    background: var(--scd-color-surface);
+    min-height: calc(100vh - 32px);
+    padding: 20px;
+    padding-bottom: 100px; /* Space for fixed navigation */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Wizard container - extends card component */
+.scd-wizard-container {
+    /* Extends .scd-card from components.css */
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    width: 100%;
+}
+
+/* Wizard Header */
+.scd-wizard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.scd-wizard-header h1 {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.scd-wizard-header h1 .scd-campaign-name {
+    color: #646970;
+    font-weight: 400;
+    font-size: 0.9em;
+}
+
+/* Exit Wizard Button */
+.scd-exit-wizard {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px !important;
+    padding: 4px 12px !important;
+    height: 30px !important;
+    line-height: 1.5 !important;
+}
+
+.scd-exit-wizard .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    margin-right: 3px;
+}
+
+.scd-exit-wizard:hover {
+    background: var(--scd-color-danger) !important;
+    border-color: var(--scd-color-danger) !important;
+    color: var(--scd-color-white) !important;
+}
+
+/* Status Badge - extends badge component from shared _components.css */
+.scd-status-badge {
+    /* Extends .scd-badge from components.css */
+    display: inline-flex;
+    align-items: center;
+    gap: var(--scd-spacing-xs);
+    margin: 0 auto;
+}
+
+.scd-status-new {
+    /* Extends .scd-badge--primary */
+    background-color: var(--scd-color-primary-bg);
+    color: var(--scd-color-primary);
+    border: 1px solid var(--scd-color-primary-light);
+}
+
+.scd-status-draft {
+    /* Extends .scd-badge--warning */
+    background-color: var(--scd-color-warning-bg);
+    color: var(--scd-color-warning-dark);
+    border: 1px solid var(--scd-color-warning-light);
+}
+
+.scd-status-edit {
+    /* Extends .scd-badge--info */
+    background-color: var(--scd-color-info-bg);
+    color: var(--scd-color-info-dark);
+    border: 1px solid var(--scd-color-info-light);
+}
+
+.scd-status-badge .dashicons {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+}
+
+/* Save Indicator */
+.scd-save-indicator {
+    position: absolute;
+    top: var(--scd-spacing-md);
+    right: var(--scd-spacing-md);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--scd-spacing-xs);
+    padding: var(--scd-spacing-xs) var(--scd-spacing-sm);
+    background: var(--scd-color-white);
+    border-radius: var(--scd-radius-md);
+    box-shadow: var(--scd-shadow-sm);
+    font-size: var(--scd-font-size-small);
+    transition: all var(--scd-transition-fast);
+}
+
+.scd-save-indicator .dashicons {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+}
+
+.scd-save-saving {
+    color: var(--scd-color-info);
+    border: 1px solid var(--scd-color-info-light);
+}
+
+.scd-save-success {
+    color: var(--scd-color-success);
+    border: 1px solid var(--scd-color-success-light);
+}
+
+.scd-save-error {
+    color: var(--scd-color-danger);
+    border: 1px solid var(--scd-color-danger-light);
+}
+
+/* Spinning animation handled by shared/_utilities.css */
+
+/* ===== WIZARD PROGRESS BAR ===== */
+/* Main Progress Container */
+.scd-wizard-progress {
+    background: linear-gradient(to bottom, var(--scd-color-surface-light) 0%, var(--scd-color-background) 100%);
+    border-bottom: 1px solid var(--scd-color-border);
+    padding: 24px 40px;
+    position: relative;
+    box-shadow: var(--scd-shadow-sm);
+}
+
+/* Progress bar removed - only step indicators remain */
+
+/* Wizard Steps Container */
+.scd-wizard-steps {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+    z-index: 1;
+}
+
+/* Step Item */
+.scd-wizard-steps li {
+    position: relative;
+    flex: 1;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Step Number Circle */
+.scd-wizard-steps li::before {
+    content: attr(data-step);
+    width: 32px;
+    height: 32px;
+    background: var(--scd-color-surface);
+    border: 2px solid var(--scd-color-border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--scd-color-text-muted);
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 10;
+}
+
+/* Step Label */
+.scd-wizard-steps li span.step-label {
+    font-size: 13px;
+    color: var(--scd-color-text-muted);
+    font-weight: 500;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+    display: block;
+    margin-top: 8px;
+}
+
+/* Completed Step Styling */
+.scd-wizard-steps li.completed::before {
+    background: var(--scd-wizard-success);
+    border-color: var(--scd-wizard-success);
+    color: var(--scd-color-white);
+    content: '✓';
+    font-size: 16px;
+}
+
+.scd-wizard-steps li.completed span.step-label {
+    color: var(--scd-wizard-success);
+}
+
+/* Active Step Styling - must come after completed to override */
+.scd-wizard-steps li.active::before,
+.scd-wizard-steps li.active.completed::before {
+    background: var(--scd-wizard-primary);
+    border-color: var(--scd-wizard-primary);
+    color: var(--scd-color-white);
+    content: attr(data-step);
+    font-size: 14px;
+    /* No scale transform on active state */
+    box-shadow: 0 2px 4px var(--scd-shadow-primary);
+}
+
+.scd-wizard-steps li.active span.step-label,
+.scd-wizard-steps li.active.completed span.step-label {
+    color: var(--scd-wizard-primary);
+    font-weight: 600;
+}
+
+/* Connecting lines between steps - new approach */
+.scd-wizard-steps li:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 16px;
+    left: calc(50% + 16px); /* Start from edge of circle (16px = half of 32px circle width) */
+    right: calc(-50% + 16px); /* Extend to the next circle */
+    height: 2px;
+    background: var(--scd-color-border);
+    z-index: 0;
+}
+
+/* Active/completed line styling */
+.scd-wizard-steps li.completed:not(:last-child)::after {
+    background: var(--scd-wizard-success);
+}
+
+/* Remove the step labels and use data attributes */
+.scd-wizard-steps li {
+    position: relative;
+}
+
+.scd-wizard-steps li[data-step="1"]::before { content: '1'; }
+.scd-wizard-steps li[data-step="2"]::before { content: '2'; }
+.scd-wizard-steps li[data-step="3"]::before { content: '3'; }
+.scd-wizard-steps li[data-step="4"]::before { content: '4'; }
+.scd-wizard-steps li[data-step="5"]::before { content: '5'; }
+
+/* Hover effect for clickable steps */
+.scd-wizard-steps li:not(.active):not(.completed):hover::before {
+    background: var(--scd-color-surface);
+    border-color: var(--scd-color-border-dark);
+    cursor: pointer;
+}
+
+/* Responsive adjustments */
+@media (max-width: 782px) {
+    .scd-wizard-progress {
+        padding: 16px 20px;
+    }
+    
+    .scd-wizard-steps {
+        max-width: 100%;
+    }
+    
+    .scd-wizard-steps li span.step-label {
+        font-size: 12px;
+    }
+    
+    .scd-wizard-steps li::before {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+    
+    .scd-progress-bar {
+        margin-bottom: 16px;
+    }
+}
+
+@media (max-width: 600px) {
+    .scd-wizard-steps li span.step-label {
+        display: none;
+    }
+    
+    .scd-wizard-steps li::before {
+        margin-bottom: 0;
+    }
+}
+
+/* Progress Steps */
+.scd-progress-steps {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 50px;
+    position: relative;
+}
+
+/* Progress line between steps */
+.scd-progress-steps::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 20%;
+    right: 20%;
+    height: 1px;
+    background: var(--scd-color-border-light);
+    z-index: 0;
+}
+
+/* Progress Step */
+.scd-progress-step {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+/* Clickable steps */
+.scd-progress-step[data-clickable="true"] {
+    cursor: pointer;
+}
+
+.scd-progress-step:not([data-clickable="true"]) {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.scd-step-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.scd-progress-step[data-clickable="true"]:hover .scd-step-indicator {
+    /* No scale transform on active state */
+    box-shadow: 0 0 0 2px var(--scd-shadow-primary);
+}
+
+.scd-progress-step[data-clickable="true"]:hover .scd-step-label {
+    color: var(--scd-wizard-primary);
+}
+
+/* Step Indicator */
+.scd-step-indicator {
+    width: 30px;
+    height: 30px;
+    background: var(--scd-color-surface);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--scd-color-text-muted);
+    border: 2px solid var(--scd-color-white);
+    box-shadow: 0 0 0 1px var(--scd-color-border-light);
+    transition: all 0.2s ease;
+}
+
+.scd-step-current .scd-step-indicator {
+    background: var(--scd-wizard-primary);
+    color: var(--scd-color-white);
+    box-shadow: 0 0 0 1px var(--scd-wizard-primary);
+}
+
+.scd-step-completed .scd-step-indicator {
+    background: var(--scd-wizard-success);
+    color: var(--scd-color-white);
+    box-shadow: 0 0 0 1px var(--scd-wizard-success);
+}
+
+.scd-step-incomplete .scd-step-indicator {
+    background: var(--scd-wizard-warning);
+    color: var(--scd-color-white);
+    box-shadow: 0 0 0 1px var(--scd-wizard-warning);
+}
+
+.scd-step-indicator .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+/* Step Label */
+.scd-step-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--scd-color-text-muted);
+    margin: 0;
+}
+
+.scd-step-current .scd-step-label {
+    color: var(--scd-color-text);
+    font-weight: 600;
+}
+
+/* Removed quick actions and tips for cleaner design */
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .scd-progress-steps {
+        gap: 20px;
+    }
+    
+    .scd-progress-steps::before {
+        display: none;
+    }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+    .scd-step-card {
+        border-width: 3px;
+    }
+    
+    .scd-step-current .scd-step-card {
+        border-color: var(--scd-color-primary-dark);
+    }
+    
+    .scd-step-completed .scd-step-card {
+        border-color: var(--scd-color-success-dark);
+    }
+}
+
+/* Reduced motion handled by shared/_utilities.css */
+
+/* Animation keyframes handled by shared/_utilities.css */
+
+/* Main content layout - single, clean definition */
+.scd-wizard-content {
+    display: flex;
+    flex-direction: row;
+    gap: 40px;
+    padding: 30px 0 40px 0;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    position: relative;
+    min-height: 300px;
+}
+
+
+/* Override conflicting admin.min.css margin */
+.scd-campaign-wizard .scd-wizard-content {
+    margin-bottom: 0;
+}
+
+/* Wizard layout container */
+.scd-wizard-layout {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+}
+
+/* Main content area */
+.scd-step-main-content {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Sidebar */
+.scd-step-sidebar {
+    flex: 0 0 360px;
+    width: 360px;
+}
+
+
+/* Form sections - Removed: Now using scd-card pattern consistently */
+
+/* Section classes removed - Now using scd-card__header, scd-card__title, scd-card__subtitle */
+
+/* Sidebar panels - Minimalist design */
+.scd-sidebar-panel {
+    background: var(--scd-color-background, #fff);
+    border: var(--scd-border-width) solid var(--scd-color-border);
+    border-radius: var(--scd-radius-lg);
+    overflow: hidden;
+}
+
+.scd-sidebar-content {
+    padding: var(--scd-spacing-lg, 20px);
+}
+
+.scd-stats-panel {
+    /* Premium card styling with depth */
+    padding: var(--scd-spacing-lg, 20px);
+    margin-bottom: var(--scd-spacing-base, 16px);
+    background: var(--scd-color-background, #fff);
+    border: 1px solid var(--scd-color-border-light, #e0e0e0);
+    border-radius: var(--scd-radius-md, 4px);
+    box-shadow: var(--scd-shadow-sm);
+}
+
+.scd-stats-panel:last-child {
+    margin-bottom: 0;
+}
+
+/* Sidebar header - matches card header design
+ *
+ * Usage:
+ * <div class="scd-sidebar-header">
+ *     <h3 class="scd-sidebar-header-title">
+ *         <span class="dashicons dashicons-info-outline"></span>
+ *         Campaign Setup Guide
+ *     </h3>
+ *     <p class="scd-sidebar-header-description">Learn best practices for creating effective campaigns</p>
+ * </div>
+ */
+.scd-sidebar-header {
+    position: relative;
+    margin: calc(var(--scd-spacing-lg, 20px) * -1 + 1px) calc(var(--scd-spacing-lg, 20px) * -1 + 1px) var(--scd-spacing-lg, 20px);
+    padding: var(--scd-spacing-base, 16px) var(--scd-spacing-lg, 20px);
+    background: var(--scd-color-surface, #f6f7f7);
+    border: var(--scd-border-width) solid var(--scd-color-border-light);
+    border-radius: calc(var(--scd-radius-lg) - 2px) calc(var(--scd-radius-lg) - 2px) 0 0;
+}
+
+.scd-sidebar-header-title .dashicons {
+    color: var(--wp-admin-theme-color, #2271b1);
+    margin-right: 8px;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+}
+
+.scd-sidebar-header-title {
+    margin: 0;
+    padding: 0;
+    font-size: var(--scd-font-size-large, 16px);
+    font-weight: 600;
+    color: var(--scd-color-text, #1d2327);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    border-bottom: none;
+}
+
+.scd-sidebar-header-description {
+    margin: var(--scd-spacing-xs) 0 0;
+    padding: 0;
+    font-size: var(--scd-font-size-small, 12px);
+    color: var(--scd-color-text-muted, #646970);
+    line-height: var(--scd-line-height, 1.5);
+    font-weight: 400;
+}
+
+/* Legacy h3 support - deprecated, use .scd-sidebar-header instead */
+.scd-sidebar-content h3:not(.scd-sidebar-header-title) {
+    margin: calc(var(--scd-spacing-lg, 20px) * -1) calc(var(--scd-spacing-lg, 20px) * -1) var(--scd-spacing-base, 16px);
+    padding: var(--scd-spacing-md, 12px) var(--scd-spacing-lg, 20px);
+    background: var(--scd-color-surface, #f6f7f7);
+    border-bottom: var(--scd-border-width) solid var(--scd-color-border-light, #e0e0e0);
+    font-size: var(--scd-font-size-medium, 14px);
+    font-weight: 600;
+    color: var(--scd-color-text, #1d2327);
+    line-height: 1.4;
+}
+
+/* Responsive adjustments for sidebar header */
+@media (max-width: 782px) {
+    .scd-sidebar-header {
+        padding: var(--scd-spacing-sm, 8px) var(--scd-spacing-md, 12px);
+    }
+
+    .scd-sidebar-header-title {
+        font-size: var(--scd-font-size-medium, 14px);
+    }
+}
+
+/* RTL support for sidebar header */
+[dir="rtl"] .scd-sidebar-header {
+    text-align: right;
+}
+
+[dir="rtl"] .scd-sidebar-header-title .dashicons {
+    margin-right: 0;
+    margin-left: 8px;
+}
+
+.scd-stats-title {
+    font-size: var(--scd-font-size-medium, 14px);
+    font-weight: 600;
+    color: var(--scd-color-text, #1d2327);
+    margin: 0 0 var(--scd-spacing-base, 16px);
+    display: flex;
+    align-items: center;
+    gap: var(--scd-spacing-sm, 8px);
+    letter-spacing: -0.01em;
+}
+
+.scd-stats-title .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: var(--scd-color-primary, #2271b1);
+}
+
+/* Common tip box style - Minimalist */
+.scd-tip {
+    background: #f9f9f9;
+    border-left: 2px solid #d0d0d0;
+    border-radius: 2px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.scd-tip .tip-icon {
+    flex-shrink: 0;
+    font-size: 14px;
+    opacity: 0.6;
+}
+
+.scd-tip p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #4a4a4a;
+}
+
+/* Form styling */
+.form-table {
+    margin: 0;
+}
+
+.form-table th {
+    width: 200px;
+    padding: 20px 10px 20px 0;
+    font-weight: 600;
+    font-size: 14px;
+    vertical-align: top;
+}
+
+.form-table td {
+    padding: 15px 0;
+    vertical-align: top;
+}
+
+/* Input field styles removed - handled by step-specific CSS */
+
+/* Navigation styles moved to wizard-navigation.css */
+
+/* Ensure main content doesn't overlap navigation */
+.scd-wizard-step {
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* Card styling defined in _components.css */
+
+/* Discount type grid styling */
+.scd-discount-type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .scd-wizard-layout {
+        gap: 20px;
+    }
+    
+    .scd-step-sidebar {
+        flex: 0 0 300px;
+        width: 300px;
+    }
+}
+
+@media (max-width: 960px) {
+    .scd-wizard-layout {
+        flex-direction: column;
+    }
+    
+    .scd-step-sidebar {
+        flex: 1 1 auto;
+        width: 100%;
+    }
+}
+
+@media (max-width: 782px) {
+    .scd-wizard-layout {
+        gap: 15px;
+    }
+    
+    .scd-progress-title {
+        font-size: 14px;
+    }
+    
+    .scd-progress-steps {
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+}
+
+
+/* Form table responsive adjustments */
+.scd-wizard-step .form-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.scd-wizard-step .form-table th {
+    min-width: 150px;
+    word-wrap: break-word;
+    vertical-align: top;
+}
+
+.scd-wizard-step .form-table td {
+    word-wrap: break-word;
+    padding-right: 20px;
+    vertical-align: top;
+}
+
+/* Responsive table handling */
+@media (max-width: 782px) {
+    .scd-wizard-step .form-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    .scd-wizard-step .form-table th,
+    .scd-wizard-step .form-table td {
+        white-space: normal;
+        min-width: 120px;
+    }
+}
+
+@media (max-width: 480px) {
+    .scd-wizard-step .form-table,
+    .scd-wizard-step .form-table tbody,
+    .scd-wizard-step .form-table tr,
+    .scd-wizard-step .form-table th,
+    .scd-wizard-step .form-table td {
+        display: block;
+        width: 100%;
+    }
+    
+    .scd-wizard-step .form-table th {
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    
+    .scd-wizard-step .form-table td {
+        margin-bottom: 15px;
+        padding-left: 0;
+        border: none;
+    }
+}
+
+/* Utility classes */
+.required {
+    color: var(--scd-color-danger);
+}
+
+.description {
+    display: block;
+    margin-top: 5px;
+    font-size: 13px;
+    color: var(--scd-color-text-muted);
+}
+
+.error-message {
+    color: var(--scd-color-danger);
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+/* Hide WordPress notices */
+.scd-campaign-wizard .notice:not(.scd-wizard-notice) {
+    display: none;
+}
+
+/* Hide WordPress screen options only when wizard is present */
+.scd-wizard-page ~ #wpbody-content #screen-meta-links,
+.scd-wizard-page ~ #wpbody-content #screen-meta {
+    display: none !important;
+}
+
+/* Alternative approach using parent selector if wizard is loaded */
+body:has(.scd-wizard-page) #screen-meta-links,
+body:has(.scd-wizard-page) #screen-meta {
+    display: none !important;
+}
+
+/* Ensure forms don't break layout */
+.scd-wizard-form {
+    width: 100%;
+}
+
+/* Fix any absolute positioning issues */
+.scd-wizard-content > * {
+    position: relative;
+}
+

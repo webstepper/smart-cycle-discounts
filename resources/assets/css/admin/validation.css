@@ -1,0 +1,201 @@
+/**
+ * Smart Cycle Discounts - Validation Styles
+ *
+ * Visual feedback for form validation following WCAG 2.2 AA standards.
+ * Provides clear indicators without relying solely on color.
+ *
+ * Dependencies: scd-variables, scd-utilities, scd-components (loaded via WordPress deps)
+ *
+ * @package SmartCycleDiscounts
+ * @since 1.0.0
+ */
+
+/* ==========================================================================
+   Field Validation States
+   ========================================================================== */
+
+/* Error state - standardized classes only */
+.has-error input,
+.has-error select,
+.has-error textarea,
+input.error,
+select.error,
+textarea.error {
+    border-color: var(--scd-color-danger) !important;
+    border-width: 2px;
+    box-shadow: 0 0 0 1px var(--scd-color-danger);
+    background-color: var(--scd-alert-danger-bg) !important;
+    color: var(--scd-color-text, #1d2327) !important; /* Ensure text is always readable */
+}
+
+/* Focus state for error fields */
+.has-error input:focus,
+.has-error select:focus,
+.has-error textarea:focus,
+input.error:focus,
+select.error:focus,
+textarea.error:focus {
+    border-color: var(--scd-color-danger);
+    box-shadow: 0 0 0 3px var(--scd-shadow-danger);
+    outline: none;
+}
+
+/* Success state */
+.scd-field-container.has-success input,
+.scd-field-container.has-success select,
+.scd-field-container.has-success textarea,
+.has-success input,
+.has-success select,
+.has-success textarea {
+    border-color: var(--scd-color-success);
+    border-width: 2px;
+    background-color: var(--scd-alert-success-bg);
+}
+
+/* Validating state */
+.scd-field-validating input,
+.scd-field-validating select,
+.scd-field-validating textarea {
+    background-image: url('data:image/svg+xml;charset=utf8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Cpath fill="%23999" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z" opacity=".3"/%3E%3Cpath fill="%23666" d="M12 2a10 10 0 0 0-10 10h2a8 8 0 0 1 8-8z"%3E%3CanimateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/%3E%3C/path%3E%3C/svg%3E');
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px 16px;
+    padding-right: 32px;
+}
+
+/* ==========================================================================
+   Error Messages
+   ========================================================================== */
+
+
+/* ==========================================================================
+   WordPress Admin Integration
+   ========================================================================== */
+
+.wp-admin .scd-field-error,
+.wp-admin .field-error {
+    clear: both;
+    display: block;
+}
+
+.form-table .has-error th {
+    color: var(--scd-color-danger);
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   Accessibility Support
+   ========================================================================== */
+
+/* Screen reader only text */
+.scd-validation-screen-reader-text,
+.screen-reader-text {
+    position: absolute !important;
+    clip: rect(1px, 1px, 1px, 1px);
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+    word-wrap: normal !important;
+}
+
+/* Skip to errors link */
+.scd-skip-to-errors {
+    position: absolute;
+    left: -9999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.scd-skip-to-errors:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 8px 16px;
+    background: var(--scd-color-primary);
+    color: var(--scd-color-white);
+    text-decoration: none;
+    border-radius: 3px;
+    display: inline-block;
+    margin: 10px 0;
+}
+
+/* ==========================================================================
+   Media Queries
+   ========================================================================== */
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .has-error input,
+    .has-error select,
+    .has-error textarea,
+    input.error,
+    select.error,
+    textarea.error {
+        outline: 3px solid var(--scd-color-danger);
+        outline-offset: 2px;
+    }
+    
+    .scd-field-error {
+        font-weight: bold;
+        text-decoration: underline;
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .has-error .scd-field-error,
+    .scd-field-error {
+        animation: none;
+        transition: none;
+    }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    .has-error input,
+    .has-error select,
+    .has-error textarea,
+    input.error,
+    select.error,
+    textarea.error {
+        background-color: rgba(214, 54, 56, 0.15);
+        border-color: var(--scd-color-danger-light);
+        /* Keep text color as default for readability */
+    }
+    
+    .scd-field-error {
+        color: var(--scd-color-danger-light);
+    }
+}
+
+/* Mobile/responsive */
+@media screen and (max-width: 782px) {
+    .scd-field-error {
+        font-size: 0.8125em;
+    }
+    
+    .has-error input,
+    .has-error select,
+    .has-error textarea {
+        margin-bottom: 4px;
+    }
+}
+
+/* Print styles */
+@media print {
+    .scd-field-error::before {
+        content: "[Error] ";
+        position: static;
+        background: none;
+        color: inherit;
+    }
+    
+    .has-error input,
+    .has-error select,
+    .has-error textarea {
+        border: 1px solid var(--scd-color-text);
+        background: none;
+    }
+}

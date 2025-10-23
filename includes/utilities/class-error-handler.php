@@ -1,0 +1,388 @@
+<?php
+/**
+ * Error Handler
+ *
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
+ *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/includes/core
+ */
+
+declare(strict_types=1);
+
+/**
+ * Error Handler Class
+ *
+ * Handles errors and exceptions throughout the plugin.
+ *
+ * @since      1.0.0
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/includes/core
+ * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ */
+class SCD_Error_Handler {
+
+    /**
+     * Logger instance.
+     *
+     * @since    1.0.0
+     * @access   private
+     * @var      SCD_Logger|null    $logger    Logger instance.
+     */
+    private ?SCD_Logger $logger = null;
+
+    /**
+     * Error types mapping.
+     *
+     * @since    1.0.0
+     * @access   private
+     * @var      array    $error_types    Error types.
+     */
+    private array $error_types = array(
+        E_ERROR             => 'Fatal Error',
+        E_WARNING           => 'Warning',
+        E_PARSE             => 'Parse Error',
+        E_NOTICE            => 'Notice',
+        E_CORE_ERROR        => 'Core Error',
+        E_CORE_WARNING      => 'Core Warning',
+        E_COMPILE_ERROR     => 'Compile Error',
+        E_COMPILE_WARNING   => 'Compile Warning',
+        E_USER_ERROR        => 'User Error',
+        E_USER_WARNING      => 'User Warning',
+        E_USER_NOTICE       => 'User Notice',
+        E_STRICT            => 'Strict Notice',
+        E_RECOVERABLE_ERROR => 'Recoverable Error',
+        E_DEPRECATED        => 'Deprecated',
+        E_USER_DEPRECATED   => 'User Deprecated'
+    );
+
+    /**
+     * Initialize the error handler.
+     *
+     * @since    1.0.0
+     * @param    SCD_Logger|null    $logger    Logger instance.
+     */
+    public function __construct(?SCD_Logger $logger = null) {
+        $this->logger = $logger;
+    }
+
+    /**
+     * Handle an error.
+     *
+     * @since    1.0.0
+     * @param    int       $errno       Error number.
+     * @param    string    $errstr      Error message.
+     * @param    string    $errfile     Error file.
+     * @param    int       $errline     Error line.
+     * @param    array     $errcontext  Error context.
+     * @return   bool                   True if error was handled.
+     */
+    public function handle_error(int $errno, string $errstr, string $errfile = '', int $errline = 0, array $errcontext = array()): bool {
+        // Don't handle errors if error reporting is disabled
+        if (!(error_reporting() & $errno)) {
+            return false;
+        }
+
+        $error_type = $this->error_types[$errno] ?? 'Unknown Error';
+        
+        // Sanitize file path to remove sensitive information
+        $safe_file = $this->sanitize_file_path( $errfile );
+        
+        $error_data = array(
+            'type' => $error_type,
+            'message' => $errstr,
+            'file' => $safe_file,
+            'line' => $errline
+        );
+        
+        // Only include minimal context in development mode
+        if ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+            // Filter out sensitive data from context
+            $safe_context = $this->sanitize_error_context( $errcontext );
+            if ( ! empty( $safe_context ) ) {
+                $error_data['context_keys'] = array_keys( $safe_context );
+            }
+        }
+
+        // Log the error
+        if ($this->logger) {
+            switch ($errno) {
+                case E_ERROR:
+                case E_PARSE:
+                case E_CORE_ERROR:
+                case E_COMPILE_ERROR:
+                case E_USER_ERROR:
+                    $this->logger->error($errstr, $error_data);
+                    break;
+                    
+                case E_WARNING:
+                case E_CORE_WARNING:
+                case E_COMPILE_WARNING:
+                case E_USER_WARNING:
+                    $this->logger->warning($errstr, $error_data);
+                    break;
+                    
+                case E_NOTICE:
+                case E_USER_NOTICE:
+                case E_STRICT:
+                case E_DEPRECATED:
+                case E_USER_DEPRECATED:
+                    $this->logger->notice($errstr, $error_data);
+                    break;
+                    
+                default:
+                    $this->logger->debug($errstr, $error_data);
+                    break;
+            }
+        }
+
+        // Don't execute PHP internal error handler
+        return true;
+    }
+
+    /**
+     * Handle an exception.
+     *
+     * @since    1.0.0
+     * @param    Throwable    $exception    Exception to handle.
+     * @return   void
+     */
+    public function handle_exception(Throwable $exception): void {
+        // Sanitize file path
+        $safe_file = $this->sanitize_file_path( $exception->getFile() );
+        
+        $error_data = array(
+            'message' => $exception->getMessage(),
+            'file' => $safe_file,
+            'line' => $exception->getLine(),
+            'type' => get_class($exception)
+        );
+        
+        // Only include stack trace in development mode
+        if ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+            // Sanitize stack trace to remove sensitive data
+            $error_data['trace'] = $this->sanitize_stack_trace( $exception->getTrace() );
+        }
+
+        // Log the exception
+        if ($this->logger) {
+            $this->logger->error('Uncaught exception: ' . $exception->getMessage(), $error_data);
+        }
+
+        // In production, show a user-friendly error
+        if (!defined('WP_DEBUG') || !WP_DEBUG) {
+            wp_die(
+                esc_html__('An error occurred. Please try again later.', 'smart-cycle-discounts'),
+                esc_html__('Error', 'smart-cycle-discounts'),
+                array('response' => 500)
+            );
+        }
+    }
+
+
+    /**
+     * Log and format error.
+     *
+     * @since    1.0.0
+     * @param    string    $message    Error message.
+     * @param    array     $context    Error context.
+     * @param    string    $level      Error level.
+     * @return   void
+     */
+    public function log_error(string $message, array $context = array(), string $level = 'error'): void {
+        if (!$this->logger) {
+            return;
+        }
+
+        switch ($level) {
+            case 'emergency':
+                $this->logger->emergency($message, $context);
+                break;
+            case 'alert':
+                $this->logger->alert($message, $context);
+                break;
+            case 'critical':
+                $this->logger->critical($message, $context);
+                break;
+            case 'error':
+                $this->logger->error($message, $context);
+                break;
+            case 'warning':
+                $this->logger->warning($message, $context);
+                break;
+            case 'notice':
+                $this->logger->notice($message, $context);
+                break;
+            case 'info':
+                $this->logger->info($message, $context);
+                break;
+            case 'debug':
+                $this->logger->debug($message, $context);
+                break;
+        }
+    }
+
+    /**
+     * Handle shutdown errors.
+     *
+     * @since    1.0.0
+     * @return   void
+     */
+    public function handle_shutdown(): void {
+        $error = error_get_last();
+        
+        if ($error !== null && in_array($error['type'], array(E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR), true)) {
+            $this->handle_error(
+                $error['type'],
+                $error['message'],
+                $error['file'],
+                $error['line']
+            );
+        }
+    }
+
+    /**
+     * Register error handlers.
+     *
+     * @since    1.0.0
+     * @return   void
+     */
+    public function register_handlers(): void {
+        set_error_handler(array($this, 'handle_error'));
+        set_exception_handler(array($this, 'handle_exception'));
+        register_shutdown_function(array($this, 'handle_shutdown'));
+    }
+
+    /**
+     * Restore default error handlers.
+     *
+     * @since    1.0.0
+     * @return   void
+     */
+    public function restore_handlers(): void {
+        restore_error_handler();
+        restore_exception_handler();
+    }
+
+    /**
+     * Check if error should be reported.
+     *
+     * @since    1.0.0
+     * @param    int    $errno    Error number.
+     * @return   bool             True if error should be reported.
+     */
+    public function should_report_error(int $errno): bool {
+        // Check if error reporting is enabled for this error type
+        return (bool) (error_reporting() & $errno);
+    }
+
+    /**
+     * Get error type name.
+     *
+     * @since    1.0.0
+     * @param    int    $errno    Error number.
+     * @return   string           Error type name.
+     */
+    public function get_error_type_name(int $errno): string {
+        return $this->error_types[$errno] ?? 'Unknown Error';
+    }
+    
+    /**
+     * Sanitize file path to remove sensitive information.
+     *
+     * @since    1.0.0
+     * @param    string    $file_path    File path to sanitize.
+     * @return   string                  Sanitized file path.
+     */
+    private function sanitize_file_path( string $file_path ): string {
+        // Remove absolute path up to plugin directory
+        if ( defined( 'SCD_PLUGIN_DIR' ) ) {
+            $file_path = str_replace( SCD_PLUGIN_DIR, 'SCD/', $file_path );
+        }
+        
+        // Remove WordPress root path
+        if ( defined( 'ABSPATH' ) ) {
+            $file_path = str_replace( ABSPATH, 'WP/', $file_path );
+        }
+        
+        // Remove any remaining sensitive paths
+        $file_path = preg_replace( '/^.*\/plugins\//', 'plugins/', $file_path );
+        
+        return $file_path;
+    }
+    
+    /**
+     * Sanitize error context to remove sensitive data.
+     *
+     * @since    1.0.0
+     * @param    array    $context    Error context.
+     * @return   array                Sanitized context.
+     */
+    private function sanitize_error_context( array $context ): array {
+        $sensitive_keys = array(
+            'password', 'pass', 'pwd', 'secret', 'token', 'key', 'auth',
+            'api_key', 'apikey', 'access_token', 'private', 'credential',
+            'db_password', 'db_host', 'database'
+        );
+        
+        $safe_context = array();
+        
+        foreach ( $context as $key => $value ) {
+            $lower_key = strtolower( $key );
+            
+            // Skip sensitive keys
+            $is_sensitive = false;
+            foreach ( $sensitive_keys as $sensitive ) {
+                if ( strpos( $lower_key, $sensitive ) !== false ) {
+                    $is_sensitive = true;
+                    break;
+                }
+            }
+            
+            if ( ! $is_sensitive ) {
+                // Only include basic type information, not actual values
+                $safe_context[$key] = gettype( $value );
+            }
+        }
+        
+        return $safe_context;
+    }
+    
+    /**
+     * Sanitize stack trace to remove sensitive data.
+     *
+     * @since    1.0.0
+     * @param    array    $trace    Stack trace.
+     * @return   array              Sanitized trace.
+     */
+    private function sanitize_stack_trace( array $trace ): array {
+        $safe_trace = array();
+        
+        foreach ( $trace as $i => $frame ) {
+            $safe_frame = array(
+                'file' => isset( $frame['file'] ) ? $this->sanitize_file_path( $frame['file'] ) : 'unknown',
+                'line' => isset( $frame['line'] ) ? $frame['line'] : 0,
+                'function' => isset( $frame['function'] ) ? $frame['function'] : 'unknown'
+            );
+            
+            if ( isset( $frame['class'] ) ) {
+                $safe_frame['class'] = $frame['class'];
+            }
+            
+            if ( isset( $frame['type'] ) ) {
+                $safe_frame['type'] = $frame['type'];
+            }
+            
+            // Don't include args as they may contain sensitive data
+            $safe_trace[] = $safe_frame;
+            
+            // Limit trace depth
+            if ( $i >= 10 ) {
+                break;
+            }
+        }
+        
+        return $safe_trace;
+    }
+}

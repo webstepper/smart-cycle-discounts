@@ -1,0 +1,261 @@
+/**
+ * Smart Cycle Discounts - Validation UI Styles
+ * WordPress 6.4+ Design System Implementation
+ *
+ * Styles for validation feedback and error handling
+ *
+ * Dependencies: scd-variables, scd-utilities, scd-components, scd-forms, scd-buttons, scd-theme-colors (loaded via WordPress deps)
+ *
+ * @package SmartCycleDiscounts
+ * @since 1.0.0
+ */
+
+/* Field States */
+.scd-field-wrapper,
+.scd-field-group {
+    position: relative;
+    margin-bottom: var(--scd-spacing-lg, 1.5rem);
+    transition: all var(--scd-transition-base, 0.2s) ease;
+}
+
+/* Required indicator styles handled by wizard-steps.css */
+
+/* Field Validation States - Standardized */
+.scd-field-has-error {
+    animation: scd-shake 0.3s ease-in-out;
+}
+
+/* Animation keyframe handled by shared/_utilities.css */
+
+.scd-wizard-page .scd-field-has-error input,
+.scd-wizard-page .scd-field-has-error select,
+.scd-wizard-page .scd-field-has-error textarea {
+    border-color: var(--scd-color-error, #d63638);
+    box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 2px) var(--scd-color-error, #d63638);
+}
+
+.scd-field-has-error:focus-within input,
+.scd-field-has-error:focus-within select,
+.scd-field-has-error:focus-within textarea {
+    box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 2px) var(--scd-color-error, #d63638);
+    outline: 2px solid transparent;
+}
+
+.scd-wizard-page .scd-field-has-success input,
+.scd-wizard-page .scd-field-has-success select,
+.scd-wizard-page .scd-field-has-success textarea {
+    border-color: var(--scd-color-success, #00a32a);
+}
+
+
+.scd-field-has-success::after {
+    content: '\f147'; /* Checkmark */
+    font-family: dashicons;
+    position: absolute;
+    right: var(--scd-spacing-sm, 0.5rem);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--scd-color-success, #00a32a);
+    font-size: 20px;
+    animation: scd-fade-in 0.2s ease;
+}
+
+/* For select elements, adjust checkmark position */
+.scd-field-has-success:has(select)::after {
+    right: 35px;
+}
+
+
+
+/* Validation Summary - WordPress 6.4+ Style */
+.scd-validation-summary {
+    margin: var(--scd-spacing-lg, 1.5rem) 0;
+    padding: var(--scd-spacing-md, 1rem);
+    background-color: var(--scd-color-error-bg);
+    border: 1px solid var(--scd-color-error, #d63638);
+    border-left-width: 4px;
+    border-radius: var(--scd-radius-md, 4px);
+    animation: scd-fade-in 0.2s ease;
+    box-shadow: var(--scd-shadow-sm, 0 1px 1px rgba(0, 0, 0, 0.04));
+}
+
+.scd-validation-summary__header {
+    display: flex;
+    align-items: center;
+    gap: var(--scd-spacing-md, 1rem);
+    margin-bottom: var(--scd-spacing-md, 1rem);
+}
+
+.scd-validation-summary__header .dashicons {
+    color: var(--scd-color-error, #d63638);
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.scd-validation-summary__header h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--scd-color-error, #d63638);
+}
+
+.scd-validation-summary__list {
+    margin: 0;
+    padding-left: 2rem;
+    list-style-type: disc;
+}
+
+.scd-validation-summary__list li {
+    margin-bottom: var(--scd-spacing-xs, 0.25rem);
+    color: var(--scd-color-text, #1d2327);
+    font-size: var(--scd-font-size-base, 13px);
+}
+
+.scd-validation-summary__list a {
+    color: var(--scd-color-primary, #2271b1);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.scd-validation-summary__list a:hover,
+.scd-validation-summary__list a:focus {
+    text-decoration: underline;
+    color: var(--scd-color-primary-hover, #1e5e8e);
+}
+
+/* Navigation Button States */
+.scd-wizard-page .scd-nav-btn--next.scd-btn--disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background-color: var(--scd-color-surface, #f6f7f7);
+    color: var(--scd-color-text-lighter, #8c8f94);
+    border-color: var(--scd-color-border, #c3c4c7);
+}
+
+.scd-wizard-page .scd-nav-btn--next.scd-btn--disabled:hover {
+    background-color: var(--scd-color-surface, #f6f7f7);
+    color: var(--scd-color-text-lighter, #8c8f94);
+    /* transform: none; removed for instant state change */
+    box-shadow: none;
+}
+
+/* Inline Validation Notification */
+.scd-navigation-notice {
+    margin: var(--scd-spacing-md, 1rem) 0;
+    padding: var(--scd-spacing-md, 1rem);
+    position: relative;
+    border-radius: var(--scd-radius-md, 4px);
+    box-shadow: var(--scd-shadow-sm, 0 1px 1px rgba(0, 0, 0, 0.04));
+}
+
+.scd-navigation-notice.notice-error {
+    background-color: var(--scd-color-error-bg);
+    border: 1px solid var(--scd-color-error, #d63638);
+    border-left-width: 4px;
+}
+
+.scd-navigation-notice .notice-dismiss {
+    position: absolute;
+    top: var(--scd-spacing-xs, 0.25rem);
+    right: var(--scd-spacing-xs, 0.25rem);
+    border: none;
+    margin: 0;
+    padding: var(--scd-spacing-xs, 0.25rem);
+    background: none;
+    color: var(--scd-color-text-lighter, #8c8f94);
+    cursor: pointer;
+    transition: color var(--scd-transition-fast, 0.1s);
+}
+
+.scd-navigation-notice .notice-dismiss:hover::before,
+.scd-navigation-notice .notice-dismiss:focus::before {
+    color: var(--scd-color-error, #d63638);
+}
+
+.scd-navigation-notice .notice-dismiss::before {
+    background: none;
+    color: inherit;
+    content: '\f153';
+    display: block;
+    font: normal 16px/20px dashicons;
+    speak: never;
+    height: 20px;
+    text-align: center;
+    width: 20px;
+}
+
+/* Loading State for Validation */
+.scd-field--validating {
+    position: relative;
+}
+
+/* Loading spinner styles extend shared _components.css */
+.scd-field--validating::after {
+    /* Extends spinner from shared _components.css */
+    content: '';
+    position: absolute;
+    right: var(--scd-spacing-sm, 0.5rem);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    /* Spinner animation handled by shared/_utilities.css */
+}
+
+
+/* Tooltip styles handled by shared _components.css */
+.scd-nav-btn--next[title] {
+    position: relative;
+}
+
+/* Animation keyframes handled by shared/_utilities.css */
+
+/* Accessibility Focus States */
+.scd-field-has-error input:focus,
+.scd-field-has-error select:focus,
+.scd-field-has-error textarea:focus {
+    outline: 2px solid transparent;
+    box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 2px) var(--scd-color-error, #d63638);
+}
+
+.scd-field-has-success input:focus,
+.scd-field-has-success select:focus,
+.scd-field-has-success textarea:focus {
+    outline: 2px solid transparent;
+    box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 2px) var(--scd-color-success, #00a32a);
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .scd-field-has-error input,
+    .scd-field-has-error select,
+    .scd-field-has-error textarea {
+        border-width: 2px;
+        outline: 3px solid;
+        outline-offset: 2px;
+    }
+    
+    .scd-field-error {
+        border-width: 2px;
+        font-weight: bold;
+    }
+    
+    .scd-validation-summary {
+        border-width: 2px;
+    }
+}
+
+/* Reduced motion handled by shared/_utilities.css */
+
+/* Success Messages - extends alert component */
+.scd-field-success {
+    /* Extends .scd-alert--success from components.css */
+    display: none;
+    margin-top: var(--scd-spacing-xs, 0.25rem);
+    font-size: var(--scd-font-size-small, 12px);
+}
+
+.scd-field-success.scd-success--visible {
+    display: block;
+    animation: scd-fade-in 0.2s ease;
+}

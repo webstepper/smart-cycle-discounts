@@ -1,0 +1,156 @@
+/**
+ * Review Step Sidebar Styles
+ * WordPress 6.4+ Design System Implementation
+ *
+ * Additional sidebar-specific styles for the review step
+ * Common sidebar styles are in wizard-fullscreen.css
+ *
+ * Follows YAGNI, KISS, and DRY principles
+ * - Only sidebar-specific styles
+ * - Simple, readable class names
+ * - No duplicate code
+ *
+ * Dependencies: scd-variables, scd-utilities, scd-components (loaded via WordPress deps)
+ */
+
+/* ==========================================================================
+   Campaign Summary Overview
+   ========================================================================== */
+
+.scd-sidebar-summary {
+	margin-top: var(--scd-spacing-xs, 4px);
+}
+
+.scd-summary-item {
+	padding: var(--scd-spacing-sm, 8px) 0;
+	border-bottom: 1px solid var(--scd-color-border-light, #f0f0f1);
+}
+
+.scd-summary-item:last-child {
+	border-bottom: none;
+}
+
+.scd-summary-label {
+	font-size: var(--scd-font-size-small, 12px);
+	color: var(--scd-color-text-muted, #646970);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	margin-bottom: var(--scd-spacing-xs, 4px);
+}
+
+.scd-summary-value {
+	font-size: var(--scd-font-size-base, 14px);
+	font-weight: 500;
+	color: var(--scd-color-text, #1d2327);
+}
+
+.scd-summary-highlight {
+	color: var(--scd-color-primary, #2271b1);
+	font-size: var(--scd-font-size-large, 18px);
+}
+
+/* Priority Badge */
+.scd-priority-badge {
+	display: inline-block;
+	padding: 2px var(--scd-spacing-sm, 8px);
+	border-radius: var(--scd-radius-sm, 3px);
+	background: var(--scd-color-text-muted, #646970);
+	color: var(--scd-color-white, #fff);
+	font-size: var(--scd-font-size-small, 12px);
+	font-weight: 600;
+}
+
+.scd-priority-badge.scd-priority-1,
+.scd-priority-badge.scd-priority-2,
+.scd-priority-badge.scd-priority-3 {
+	background: var(--scd-color-success, #00a32a);
+}
+
+.scd-priority-badge.scd-priority-8,
+.scd-priority-badge.scd-priority-9,
+.scd-priority-badge.scd-priority-10 {
+	background: var(--scd-color-error, #d63638);
+}
+
+/* ==========================================================================
+   Quick Edit Links
+   ========================================================================== */
+
+.scd-quick-edit-links {
+	display: flex;
+	flex-direction: column;
+	gap: var(--scd-spacing-sm, 8px);
+}
+
+.scd-edit-link {
+	display: flex;
+	align-items: center;
+	gap: var(--scd-spacing-sm, 8px);
+	padding: var(--scd-spacing-sm, 8px) var(--scd-spacing-md, 12px);
+	background: var(--scd-color-surface, #f6f7f7);
+	border-radius: var(--scd-radius-sm, 3px);
+	text-decoration: none;
+	color: var(--scd-color-primary, #2271b1);
+	transition: background var(--scd-transition-fast, 0.2s);
+}
+
+.scd-edit-link:hover {
+	background: var(--scd-color-border-light, #e5e5e5);
+	color: var(--scd-color-primary-dark, #135e96);
+}
+
+.scd-edit-link .dashicons {
+	font-size: var(--scd-font-size-base, 16px);
+	width: 16px;
+	height: 16px;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 782px) {
+	.scd-sidebar-summary {
+		padding: 0;
+	}
+
+	.scd-summary-item {
+		padding: var(--scd-spacing-md, 12px) 0;
+	}
+}
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+	.scd-summary-item {
+		border-bottom-width: 2px;
+	}
+
+	.scd-edit-link {
+		border: 2px solid currentColor;
+	}
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+	.scd-edit-link {
+		transition-duration: 0.01ms !important;
+	}
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+	.scd-quick-edit-links {
+		display: none;
+	}
+
+	.scd-summary-item {
+		border-bottom: 1px solid var(--scd-color-text, #1d2327);
+	}
+}

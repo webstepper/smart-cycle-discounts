@@ -1,0 +1,966 @@
+/**
+ * Product Step Styles
+ * WordPress 6.4+ Design System Implementation
+ *
+ * Follows YAGNI, KISS, and DRY principles
+ * - Only essential styles for product selection functionality
+ * - Simple, readable class names
+ * - No duplicate code (common styles in wizard-steps.css)
+ *
+ * Dependencies: scd-variables, scd-utilities, scd-components, scd-forms, scd-buttons, scd-theme-colors (loaded via WordPress deps)
+ */
+
+/* ==========================================================================
+   Product Step Variables
+   ========================================================================== */
+
+.scd-wizard-step--products {
+	/* Custom CSS variables for products step */
+	--scd-products-accent: var(--scd-color-primary, #2271b1);
+	--scd-products-highlight: rgba(34, 113, 177, 0.05);
+}
+
+/* ==========================================================================
+   Layout Structure
+   ========================================================================== */
+
+/* Layout handled by wizard-fullscreen.css - only product-specific overrides below */
+.scd-wizard-step--products .scd-step-main-content {
+	order: 1; /* Products step specific order */
+}
+
+.scd-wizard-step--products .scd-step-sidebar {
+	order: 2; /* Products step specific order */
+}
+
+/* ==========================================================================
+   Utility Classes
+   ========================================================================== */
+
+.scd-disabled-notice {
+	display: inline-block;
+	margin-left: 10px;
+	padding: 2px 8px;
+	background: var(--scd-color-surface, #f0f0f1);
+	color: var(--scd-color-text-muted, #50575e);
+	font-size: 12px;
+	border-radius: var(--scd-radius-sm, 3px);
+}
+
+/* ==========================================================================
+   Product Selection Cards
+   ========================================================================== */
+
+.scd-product-selection-cards {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+/* Product selection card - professional aesthetic */
+.scd-card-option {
+	background: var(--scd-color-background);
+	border: 1px solid var(--scd-color-border-light, #e0e0e0);
+	border-radius: 6px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+	transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+	padding: 24px;
+	position: relative;
+	overflow: hidden;
+}
+
+.scd-card-option::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: transparent;
+	transition: background 0.15s ease;
+}
+
+.scd-card-option:hover {
+	background: linear-gradient(to bottom, #ffffff, #fafbfc);
+	border-color: var(--scd-color-border-dark, #8c8f94);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.scd-card-option:hover::before {
+	background: linear-gradient(to right, var(--scd-color-primary, #2271b1), var(--wp-admin-theme-color-darker-10, #135e96));
+}
+
+/* Hide radio buttons - card acts as visual indicator */
+.scd-card-option input[type="radio"] {
+	display: none;
+}
+
+/* Enhanced card title styling */
+.scd-card-option .scd-card__title {
+	font-size: 16px;
+	font-weight: 600;
+	color: var(--scd-color-text, #1d2327);
+	letter-spacing: -0.01em;
+	margin-bottom: 8px;
+	line-height: 1.4;
+}
+
+/* Divider line between title and subtitle */
+.scd-card-option .scd-card__title::after {
+	content: '';
+	display: block;
+	width: 40px;
+	height: 1px;
+	background: var(--scd-color-border, #c3c4c7);
+	margin-top: 10px;
+	border-radius: 1px;
+	transition: width 0.15s ease;
+}
+
+.scd-card-option:hover .scd-card__title::after {
+	width: 60px;
+}
+
+/* Enhanced subtitle styling */
+.scd-card-option .scd-card__subtitle {
+	font-size: 13px;
+	color: var(--scd-color-text-muted, #646970);
+	line-height: 1.6;
+	margin-top: 12px;
+	margin-bottom: 0;
+	letter-spacing: 0.01em;
+}
+
+/* Icon styling in cards */
+.scd-card-option .dashicons {
+	color: var(--scd-color-primary, #2271b1);
+	font-size: 22px;
+	width: 22px;
+	height: 22px;
+	margin-right: 10px;
+	vertical-align: middle;
+	transition: color 0.15s ease;
+}
+
+.scd-card-option:hover .dashicons {
+	color: var(--wp-admin-theme-color-darker-10, #135e96);
+}
+
+/* Product-specific spacing handled in components.css */
+
+/* Focus and selected states for product cards */
+.scd-card-option:focus-within {
+	background: var(--scd-color-background);
+	border-color: var(--scd-color-primary);
+	outline: 2px solid var(--scd-color-primary);
+	outline-offset: 2px;
+	box-shadow: 0 4px 8px rgba(34, 113, 177, 0.15);
+}
+
+/* Modern browsers with :has() support - clean selected state */
+.scd-card-option:has(input[type="radio"]:checked) {
+	background: linear-gradient(to bottom, #f8fbff, #ffffff);
+	border-color: var(--scd-color-primary);
+	border-width: 2px;
+	box-shadow: 0 0 0 1px var(--scd-color-primary), 0 4px 12px rgba(34, 113, 177, 0.12);
+}
+
+/* Selected state - expand divider line and show top accent */
+.scd-card-option:has(input[type="radio"]:checked) .scd-card__title::after {
+	width: 100%;
+	background: var(--scd-color-primary, #2271b1);
+}
+
+.scd-card-option:has(input[type="radio"]:checked)::before {
+	background: var(--scd-color-primary, #2271b1);
+}
+
+/* Padding adjustment handled in components.css */
+
+
+
+/* Card subsections - visibility handled by JavaScript */
+.scd-random-count,
+.scd-specific-products,
+.scd-smart-criteria {
+	display: none;
+	margin-top: 20px;
+	padding: 20px;
+	background: var(--scd-color-surface, #f6f7f7);
+	border: 1px solid var(--scd-color-border-lighter, #f0f0f1);
+	border-radius: 4px;
+}
+
+/* Active section state */
+.scd-random-count.scd-active-section,
+.scd-specific-products.scd-active-section,
+.scd-smart-criteria.scd-active-section {
+	display: block;
+}
+
+.scd-random-count label {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 600;
+	font-size: 13px;
+	color: var(--scd-color-text-muted, #646970);
+}
+
+.scd-random-count input {
+	width: 80px;
+	height: 30px;
+}
+
+.scd-specific-products label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 8px;
+	font-size: 13px;
+	color: var(--scd-color-text-muted, #646970);
+}
+
+.scd-smart-label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 12px;
+	font-size: 13px;
+	color: var(--scd-color-text-muted, #646970);
+}
+
+.scd-smart-options {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.scd-smart-option {
+	display: block;
+	position: relative;
+	background: var(--scd-color-background, #fff);
+	border: 1px solid var(--scd-color-border-lighter, #f0f0f1);
+	border-radius: var(--scd-radius-md, 4px);
+	padding: 12px;
+	cursor: pointer;
+	transition: all var(--scd-transition-base, 0.2s);
+}
+
+.scd-smart-option:hover {
+	border-color: var(--scd-color-primary, #2271b1);
+	background: var(--scd-color-background, #fff);
+}
+
+.scd-smart-option input[type="radio"] {
+	position: absolute;
+	opacity: 0;
+	pointer-events: auto;
+	z-index: 1;
+}
+
+.scd-smart-option:focus-within {
+	border-color: var(--scd-color-primary, #2271b1);
+	background: var(--scd-color-background, #fff);
+	outline: 2px solid transparent;
+	outline-offset: 2px;
+}
+
+/* Selected smart option state */
+.scd-smart-option:has(input[type="radio"]:checked) {
+	border-color: var(--scd-color-primary, #2271b1);
+	border-width: 2px;
+	background: var(--scd-color-background, #fff);
+}
+
+/* Adjust padding for selected state */
+.scd-smart-option:has(input[type="radio"]:checked) .scd-smart-option-content {
+	padding-left: 1px;
+}
+
+.scd-smart-option-content {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.scd-smart-option .dashicons {
+	font-size: 20px;
+	width: 20px;
+	height: 20px;
+	color: var(--scd-color-primary, #2271b1);
+}
+
+.scd-smart-option:hover .dashicons,
+.scd-smart-option:focus-within .dashicons {
+	color: var(--scd-color-primary-dark, #135e96);
+}
+
+/* Special styling for low stock warning icon */
+.scd-smart-option .dashicons-warning {
+	color: var(--scd-color-error, #d63638);
+}
+
+.scd-smart-option:hover .dashicons-warning,
+.scd-smart-option:focus-within .dashicons-warning {
+	color: var(--scd-color-danger-dark, #a02222);
+}
+
+.scd-smart-option-text {
+	flex: 1;
+}
+
+.scd-smart-option-text strong {
+	display: block;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--scd-color-text, #1d2327);
+	margin-bottom: 2px;
+}
+
+.scd-smart-option-text span {
+	display: block;
+	font-size: 12px;
+	color: var(--scd-color-text-muted, #646970);
+	font-weight: normal;
+}
+
+.scd-smart-option:focus-within .scd-smart-option-text strong {
+	color: var(--scd-color-primary-dark, #135e96);
+}
+
+/* ==========================================================================
+   Conditions Logic Selector
+   ========================================================================== */
+
+.scd-conditions-logic-wrapper {
+	background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(246, 247, 247, 0.9) 100%);
+	border: 1px solid var(--scd-color-border-light, #e0e0e0);
+	border-radius: var(--scd-radius-lg, 8px);
+	padding: 24px;
+	margin-bottom: 24px;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+	transition: all var(--scd-transition-base, 0.2s) var(--scd-ease-in-out);
+}
+
+.scd-conditions-logic-wrapper:hover {
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+.scd-conditions-logic {
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	flex-wrap: wrap;
+}
+
+.scd-logic-label {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 600;
+	font-size: 14px;
+	color: var(--scd-color-text, #1d2327);
+}
+
+.scd-logic-label .dashicons {
+	color: var(--scd-color-primary, #2271b1);
+	font-size: 20px;
+	vertical-align: middle;
+}
+
+.scd-logic-selector {
+	display: flex;
+	gap: 0;
+	background: var(--scd-color-background, #fff);
+	border: 2px solid var(--scd-color-border, #c3c4c7);
+	border-radius: var(--scd-radius-md, 4px);
+	overflow: hidden;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+	transition: all var(--scd-transition-fast, 0.1s) var(--scd-ease-in-out);
+}
+
+.scd-logic-selector:hover {
+	border-color: var(--scd-color-primary, #2271b1);
+	box-shadow: 0 2px 8px rgba(34, 113, 177, 0.15);
+}
+
+.scd-logic-selector input[type="radio"] {
+	position: absolute;
+	opacity: 0;
+	pointer-events: auto;
+}
+
+.scd-logic-option {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 10px 20px;
+	margin: 0;
+	cursor: pointer;
+	transition: all var(--scd-transition-fast, 0.1s) var(--scd-ease-in-out);
+	border-right: 1px solid var(--scd-color-border-light, #e0e0e0);
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--scd-color-text-muted, #646970);
+	background: var(--scd-color-background, #fff);
+	position: relative;
+}
+
+.scd-logic-option::before {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 2px;
+	background: var(--scd-color-primary, #2271b1);
+	transform: scaleX(0);
+	transition: transform var(--scd-transition-fast, 0.1s) var(--scd-ease-in-out);
+}
+
+.scd-logic-option:last-child {
+	border-right: none;
+}
+
+.scd-logic-option:hover {
+	background: linear-gradient(to bottom, rgba(34, 113, 177, 0.05) 0%, rgba(34, 113, 177, 0.02) 100%);
+	color: var(--scd-color-text, #1d2327);
+}
+
+.scd-logic-option:has(input[type="radio"]:checked) {
+	background: linear-gradient(135deg, var(--scd-color-primary, #2271b1) 0%, var(--wp-admin-theme-color-darker-10, #135e96) 100%);
+	color: var(--scd-color-white, #fff);
+	font-weight: 600;
+	box-shadow: 0 2px 8px rgba(34, 113, 177, 0.3);
+}
+
+.scd-logic-option:has(input[type="radio"]:checked)::before {
+	transform: scaleX(1);
+}
+
+.scd-logic-option:has(input[type="radio"]:focus) {
+	box-shadow: inset 0 0 0 2px rgba(34, 113, 177, 0.3);
+	outline: 2px solid transparent;
+}
+
+.scd-logic-hint {
+	font-size: 11px;
+	opacity: 0.85;
+	font-weight: normal;
+	letter-spacing: 0.02em;
+}
+
+.scd-logic-description {
+	margin: 12px 0 0 0;
+	font-size: 12px;
+	color: var(--scd-color-text-muted, #646970);
+	font-style: italic;
+}
+
+/* ==========================================================================
+   Condition Builder
+   ========================================================================== */
+
+.scd-condition-row {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 16px;
+	padding: 20px;
+	background: linear-gradient(135deg, var(--scd-color-background) 0%, rgba(246, 247, 247, 0.6) 100%);
+	border: 1px solid var(--scd-color-border-light, #e0e0e0);
+	border-left: 3px solid var(--scd-color-primary, #2271b1);
+	border-radius: var(--scd-radius-md, 4px);
+	transition: all var(--scd-transition-base, 0.2s) var(--scd-ease-in-out);
+	position: relative;
+	animation: scd-fade-in 0.3s ease-out;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.scd-condition-row:hover {
+	background: linear-gradient(135deg, var(--scd-color-background) 0%, var(--scd-color-surface) 100%);
+	border-color: var(--scd-color-border, #c3c4c7);
+	border-left-color: var(--wp-admin-theme-color-darker-10, #135e96);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Value wrapper for dynamic inputs */
+.scd-condition-value-wrapper {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex: 1;
+	max-width: 300px;
+}
+
+.scd-condition-value-separator {
+	color: var(--scd-color-text-muted, #646970);
+	font-size: 12px;
+	font-weight: 600;
+	padding: 0 4px;
+}
+
+.scd-condition-fields {
+	display: flex;
+	gap: 12px;
+	flex: 1;
+	align-items: center;
+}
+
+.scd-condition-fields select,
+.scd-condition-fields input {
+	min-width: 140px;
+	height: 36px;
+	border: 1px solid var(--scd-color-border-light, #e0e0e0);
+	border-radius: var(--scd-radius-sm, 3px);
+	padding: 8px 12px;
+	transition: all var(--scd-transition-fast, 0.1s) var(--scd-ease-in-out);
+}
+
+.scd-condition-fields select:hover,
+.scd-condition-fields input:hover {
+	border-color: var(--scd-color-border, #c3c4c7);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.scd-condition-fields select:focus,
+.scd-condition-fields input:focus {
+	border-color: var(--scd-color-primary, #2271b1);
+	box-shadow: 0 0 0 1px var(--scd-color-primary, #2271b1), 0 2px 8px rgba(34, 113, 177, 0.15);
+	outline: none;
+}
+
+/* Specific field type styling */
+.scd-condition-mode {
+	min-width: 140px;
+	max-width: 140px;
+	font-weight: 500;
+}
+
+.scd-condition-type {
+	min-width: 180px;
+}
+
+.scd-condition-operator {
+	min-width: 160px;
+}
+
+/* Prevent style inheritance issues for condition selects */
+.scd-wizard-step--products .scd-condition-fields select {
+	background-image: none;
+	padding-right: 12px;
+}
+
+.scd-condition-value {
+	flex: 1;
+}
+
+.scd-condition-value-boolean,
+.scd-condition-value-select {
+	min-width: 120px;
+}
+
+.scd-condition-value[type="number"] {
+	max-width: 120px;
+}
+
+/* Remove button styling */
+.scd-remove-condition {
+	padding: 8px 10px;
+	min-width: auto;
+	background: linear-gradient(135deg, rgba(214, 54, 56, 0.08) 0%, rgba(214, 54, 56, 0.05) 100%);
+	border: 1px solid rgba(214, 54, 56, 0.2);
+	border-radius: var(--scd-radius-sm, 3px);
+	color: var(--scd-color-danger, #d63638);
+	transition: all var(--scd-transition-fast, 0.1s) var(--scd-ease-in-out);
+	cursor: pointer;
+}
+
+.scd-remove-condition:hover {
+	background: var(--scd-color-danger, #d63638);
+	border-color: var(--scd-color-danger, #d63638);
+	color: var(--scd-color-white, #fff);
+	box-shadow: 0 2px 8px rgba(214, 54, 56, 0.3);
+}
+
+.scd-remove-condition .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	line-height: 1;
+	vertical-align: middle;
+}
+
+
+/* Visual indicator for condition logic */
+.scd-conditions-list:has(.scd-condition-row:nth-child(2)) .scd-condition-row::after {
+	content: attr(data-logic-connector);
+	position: absolute;
+	left: 50%;
+	bottom: -20px;
+	transform: translateX(-50%);
+	background: var(--scd-color-primary, #2271b1);
+	color: var(--scd-color-white, #fff);
+	padding: 2px 12px;
+	border-radius: 12px;
+	font-size: 12px;
+	font-weight: 600;
+	text-transform: uppercase;
+	z-index: 1;
+}
+
+.scd-conditions-list[data-logic="all"] .scd-condition-row:not(:last-child)::after {
+	content: "AND";
+}
+
+.scd-conditions-list[data-logic="any"] .scd-condition-row:not(:last-child)::after {
+	content: "OR";
+}
+
+/* Condition Actions Wrapper */
+.scd-condition-actions-wrapper {
+	margin-top: var(--scd-spacing-xl, 24px);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--scd-spacing-lg, 20px);
+	flex-wrap: wrap;
+}
+
+.scd-add-condition {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 12px 24px;
+	background: linear-gradient(135deg, var(--scd-color-primary, #2271b1) 0%, var(--wp-admin-theme-color-darker-10, #135e96) 100%);
+	color: var(--scd-color-white, #fff);
+	border: none;
+	border-radius: var(--scd-radius-md, 4px);
+	font-size: var(--scd-font-size-base, 13px);
+	font-weight: var(--scd-font-weight-semibold, 600);
+	box-shadow: 0 2px 8px rgba(34, 113, 177, 0.3);
+	transition: all var(--scd-transition-fast, 0.1s) var(--scd-ease-in-out);
+	cursor: pointer;
+}
+
+.scd-add-condition:hover {
+	box-shadow: 0 4px 12px rgba(34, 113, 177, 0.4);
+}
+
+.scd-add-condition:active {
+	box-shadow: 0 2px 6px rgba(34, 113, 177, 0.3);
+}
+
+.scd-add-condition .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+}
+
+.scd-condition-help {
+	flex: 1;
+	min-width: 250px;
+}
+
+.scd-condition-help .description {
+	margin: 0;
+	padding: 12px 16px;
+	background: linear-gradient(135deg, rgba(34, 113, 177, 0.05) 0%, rgba(34, 113, 177, 0.02) 100%);
+	border: 1px solid rgba(34, 113, 177, 0.2);
+	border-left-width: 4px;
+	border-left-color: var(--scd-color-primary, #2271b1);
+	color: var(--scd-color-text, #1d2327);
+	border-radius: var(--scd-radius-md, 4px);
+	font-size: 12px;
+	line-height: 1.6;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.scd-condition-help .dashicons {
+	color: var(--scd-color-primary, #2271b1);
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+	flex-shrink: 0;
+}
+
+/* Sidebar-specific styles are in step-products-sidebar.css */
+/* ==========================================================================
+   Validation Messages
+   ========================================================================== */
+
+.scd-validation-messages {
+	margin: 0 0 20px 0;
+}
+
+.scd-validation-error {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	padding: 12px;
+	background: var(--scd-color-error-bg);
+	border: 1px solid var(--scd-color-error, #d63638);
+	border-left-width: 4px;
+	border-radius: var(--scd-radius-md, 4px);
+}
+
+.scd-validation-error .dashicons {
+	color: var(--scd-color-error, #d63638);
+	font-size: 20px;
+	flex-shrink: 0;
+	line-height: 1;
+	vertical-align: middle;
+}
+
+.scd-validation-content h4 {
+	font-size: 14px;
+	font-weight: 600;
+	margin: 0 0 6px 0;
+	color: var(--scd-color-error, #d63638);
+}
+
+.scd-validation-content ul {
+	margin: 0;
+	padding-left: 20px;
+}
+
+.scd-validation-content li {
+	font-size: 12px;
+	margin-bottom: 4px;
+	line-height: 1.5;
+	color: var(--scd-color-text, #1d2327);
+}
+
+/* ==========================================================================
+   Advanced Filters Container
+   ========================================================================== */
+
+.scd-advanced-filters-container {
+	position: relative;
+	min-height: 300px;
+	background: linear-gradient(135deg, var(--scd-color-background) 0%, var(--scd-color-surface) 100%);
+	border: 1px solid var(--scd-color-border-light, #e0e0e0);
+	border-radius: var(--scd-radius-lg, 8px);
+	padding: var(--scd-spacing-xl, 24px);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+	transition: all var(--scd-transition-base, 0.2s) var(--scd-ease-in-out);
+}
+
+.scd-advanced-filters-container:hover {
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media (max-width: 782px) {
+	/* Layout handled by wizard-fullscreen.css */
+	/* Products step specific: sidebar comes first on mobile */
+	.scd-wizard-step--products .scd-step-sidebar {
+		order: 1;
+	}
+	
+	.scd-wizard-step--products .scd-step-main-content {
+		order: 2;
+	}
+	
+	/* Card adjustments */
+	.scd-card-option input[type="radio"] {
+		top: 12px;
+		right: 12px;
+	}
+	
+	.scd-smart-option {
+		padding: 10px;
+	}
+	
+	.scd-smart-option-content {
+		gap: 10px;
+	}
+	
+	.scd-smart-option .dashicons {
+		font-size: 20px;
+		width: 20px;
+		height: 20px;
+	}
+	
+	/* Conditions adjustments */
+	.scd-conditions-logic {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 12px;
+	}
+	
+	.scd-logic-selector {
+		width: 100%;
+	}
+	
+	.scd-logic-option {
+		flex: 1;
+		justify-content: center;
+	}
+	
+	.scd-condition-row {
+		flex-direction: column;
+		align-items: stretch;
+		padding: 10px;
+	}
+	
+	.scd-condition-fields {
+		flex-direction: column;
+		gap: 8px;
+	}
+	
+	.scd-condition-fields select,
+	.scd-condition-fields input {
+		width: 100%;
+		min-width: unset;
+	}
+	
+	.scd-condition-add {
+		flex-direction: column;
+		gap: 12px;
+		text-align: center;
+		padding: 12px;
+	}
+
+	/* Advanced filters container adjustments for mobile */
+	.scd-advanced-filters-container {
+		padding: var(--scd-spacing-lg, 20px);
+	}
+
+	/* Conditions adjustments */
+	.scd-conditions-logic-wrapper {
+		padding: var(--scd-spacing-lg, 20px);
+	}
+
+	.scd-condition-row {
+		padding: 16px;
+		border-left-width: 3px;
+	}
+
+	.scd-condition-fields select,
+	.scd-condition-fields input {
+		height: 40px;
+	}
+
+	.scd-condition-actions-wrapper {
+		flex-direction: column;
+		align-items: stretch;
+		gap: var(--scd-spacing-md, 12px);
+	}
+
+	.scd-add-condition {
+		width: 100%;
+		justify-content: center;
+	}
+
+	.scd-condition-help {
+		width: 100%;
+		min-width: unset;
+	}
+}
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
+/* Focus styles and reduced motion handled by components.css */
+
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+	.scd-card-option:focus-within {
+		border-width: 3px;
+		box-shadow: 0 0 0 2px currentColor;
+	}
+	
+	.scd-validation-error {
+		border-width: 2px;
+	}
+	
+	.scd-condition-add {
+		border-width: 3px;
+	}
+	
+	.scd-logic-option:has(input[type="radio"]:checked) {
+		outline: 2px solid var(--scd-color-white, #fff);
+		outline-offset: -4px;
+	}
+}
+
+/* ==========================================================================
+   RTL Support
+   ========================================================================== */
+
+/* RTL card styles handled by components.css */
+
+[dir="rtl"] .scd-condition-help .description {
+	border-left: none;
+	border-right: 4px solid var(--scd-color-primary);
+	border-radius: 0 var(--scd-radius-md, 4px) var(--scd-radius-md, 4px) 0;
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+	.scd-wizard-step--products .scd-step-sidebar {
+		display: none;
+	}
+	
+	.scd-card-option {
+		page-break-inside: avoid;
+	}
+	
+	.scd-condition-row {
+		page-break-inside: avoid;
+	}
+}
+
+/* ==========================================================================
+   Form Fields
+   ========================================================================== */
+
+.scd-product-search-container {
+	position: relative;
+	margin-top: 12px;
+}
+
+/* ==========================================================================
+   Category Hierarchical Display - Moved to tom-select-custom.css
+   ========================================================================== */
+
+/* ==========================================================================
+   Conditional Section Visibility
+   ========================================================================== */
+
+/* Hide conditional sections by default */
+.scd-random-count,
+.scd-specific-products,
+.scd-smart-criteria {
+	display: none;
+	margin-top: 1rem;
+	padding: 1rem;
+	background-color: #f5f5f5;
+	border-radius: 4px;
+}
+
+/* Show active sections with important to override default */
+.scd-random-count.scd-active-section,
+.scd-specific-products.scd-active-section,
+.scd-smart-criteria.scd-active-section {
+	display: block !important;
+}
+
+/* Ensure sections inside cards display properly */
+.scd-card-option .scd-random-count,
+.scd-card-option .scd-specific-products,
+.scd-card-option .scd-smart-criteria {
+	margin-left: 0;
+	margin-right: 0;
+	background-color: rgba(245, 245, 245, 0.5);
+}

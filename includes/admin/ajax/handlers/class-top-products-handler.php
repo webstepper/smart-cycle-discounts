@@ -1,0 +1,100 @@
+<?php
+/**
+ * Top Products Handler
+ *
+ * Handles AJAX requests for top products by discount revenue data.
+ *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/includes/admin/ajax/analytics
+ * @since      1.0.0
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
+
+
+/**
+ * Top Products Handler Class
+ *
+ * @since      1.0.0
+ */
+class SCD_Top_Products_Handler extends SCD_Abstract_Analytics_Handler {
+
+    /**
+     * Analytics collector instance.
+     *
+     * @since    1.0.0
+     * @var      SCD_Analytics_Collector
+     */
+    private $analytics_collector;
+
+    /**
+     * Initialize the handler.
+     *
+     * @since    1.0.0
+     * @param    SCD_Metrics_Calculator     $metrics_calculator     Metrics calculator.
+     * @param    SCD_Logger                 $logger                 Logger instance.
+     * @param    SCD_Analytics_Collector    $analytics_collector    Analytics collector.
+     */
+    public function __construct( $metrics_calculator, $logger, $analytics_collector ) {
+        parent::__construct( $metrics_calculator, $logger );
+        $this->analytics_collector = $analytics_collector;
+    }
+
+    /**
+     * Get required capability.
+     *
+     * @since    1.0.0
+     * @return   string    Required capability.
+     */
+    protected function get_required_capability() {
+        return 'scd_view_analytics';
+    }
+
+    /**
+     * Handle the request.
+     *
+     * @since    1.0.0
+     * @param    array    $request    Request data.
+     * @return   array                Response data.
+     */
+    public function handle( $request ) {
+        // Verify request
+        $verification = $this->verify_request( $request, 'scd_analytics_top_products' );
+        if ( is_wp_error( $verification ) ) {
+            return $this->error(
+                $verification->get_error_message(),
+                $verification->get_error_code()
+            );
+        }
+
+        // Sanitize inputs
+        $date_range = sanitize_text_field( isset( $request['date_range'] ) ? $request['date_range'] : '30days' );
+        $limit = isset( $request['limit'] ) ? absint( $request['limit'] ) : 10;
+
+        try {
+            // Get top products data from analytics collector
+            $products_data = $this->analytics_collector->get_top_products_by_revenue(
+                $date_range,
+                $limit
+            );
+
+            return $this->success( array(
+                'products' => $products_data['products'],
+                'period' => $products_data['period'],
+                'generated_at' => isset( $products_data['generated_at'] ) ? $products_data['generated_at'] : current_time( 'timestamp' )
+            ) );
+
+        } catch ( Exception $e ) {
+            $this->logger->error( 'Get top products failed', array(
+                'error' => $e->getMessage()
+            ) );
+
+            return $this->error(
+                sprintf( __( 'Failed to retrieve top products: %s', 'smart-cycle-discounts' ), $e->getMessage() ),
+                'top_products_failed'
+            );
+        }
+    }
+}

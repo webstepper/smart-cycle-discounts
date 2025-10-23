@@ -1,0 +1,81 @@
+/**
+ * Recurring Campaign Badges Styles
+ *
+ * @package SmartCycleDiscounts
+ * @since 1.0.0
+ */
+
+/* Recurring badges in campaign list */
+.scd-recurring-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	margin-left: 8px;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1.4;
+	border-radius: 3px;
+	vertical-align: middle;
+	white-space: nowrap;
+}
+
+/* Active recurring campaign */
+.scd-recurring-badge.scd-recurring-active {
+	background-color: var(--scd-color-success-light, #e8f5e9);
+	color: var(--scd-color-success-dark, #2e7d32);
+	border: 1px solid #a5d6a7;
+}
+
+/* Inactive/stopped recurring */
+.scd-recurring-badge.scd-recurring-inactive {
+	background-color: var(--scd-color-surface, #f6f7f7);
+	color: var(--scd-color-text-muted, #646970);
+	border: 1px solid #e0e0e0;
+}
+
+/* Child campaign (created by recurring) */
+.scd-recurring-badge.scd-recurring-child {
+	background-color: var(--scd-color-info-light, #e3f2fd);
+	color: var(--scd-color-info-dark, #1565c0);
+	border: 1px solid #90caf9;
+}
+
+/* Status badge adjustments when recurring badge is present */
+.wp-list-table .column-name .row-title + .scd-recurring-badge {
+	margin-left: 4px;
+}
+
+/* Hover states */
+.scd-recurring-badge:hover {
+	opacity: 0.9;
+	cursor: help;
+}
+
+/* Stop recurring link styling */
+.row-actions .stop-recurring {
+	color: var(--scd-color-error, #d63638);
+}
+
+.row-actions .stop-recurring:hover {
+	color: var(--scd-color-danger-dark, #a02222);
+}
+
+/* Schedule column recurring info */
+.column-schedule .recurring-info {
+	display: block;
+	margin-top: 5px;
+	font-size: 11px;
+	color: var(--scd-color-text-muted, #646970);
+}
+
+.column-schedule .recurring-info strong {
+	color: var(--scd-color-text, #1d2327);
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 782px) {
+	.scd-recurring-badge {
+		display: block;
+		margin: 4px 0;
+		width: fit-content;
+	}
+}

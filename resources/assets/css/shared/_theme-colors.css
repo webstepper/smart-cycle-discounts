@@ -1,0 +1,143 @@
+/**
+ * Theme Colors CSS Variables
+ * 
+ * Centralized CSS custom properties for theme colors.
+ * These are dynamically updated by the Theme Color Service.
+ * 
+ * @package SmartCycleDiscounts
+ * @since 1.0.0
+ */
+
+/* Global theme color properties */
+:root {
+    /* Primary colors - dynamically updated by JavaScript */
+    --scd-color-primary: #2271b1;
+    --scd-color-secondary: #72aee6;
+    --scd-color-success: #00a32a;
+    --scd-color-warning: #dba617;
+    --scd-color-danger: #d63638;
+    --scd-color-accent: #3858e9;
+    --scd-color-info: #72aee6;
+    --scd-color-dark: #1d2327;
+    --scd-color-light: #f0f0f1;
+    --scd-color-muted: #646970;
+    
+    /* Color variations (auto-generated) */
+    --scd-color-primary-light: #4d8fc4;
+    --scd-color-primary-dark: #1a5a8c;
+    --scd-color-secondary-light: #8ebced;
+    --scd-color-secondary-dark: #5991c5;
+    --scd-color-success-light: #46b450;
+    --scd-color-success-dark: #008a20;
+    --scd-color-warning-light: #e4c441;
+    --scd-color-warning-dark: #b19313;
+    --scd-color-danger-light: #dc5858;
+    --scd-color-danger-dark: #a02222;
+    --scd-color-accent-light: #5b7dff;
+    --scd-color-accent-dark: #2148c0;
+    
+    /* Component-specific mappings */
+    /* Buttons */
+    --scd-button-primary: var(--scd-color-primary);
+    --scd-button-primary-hover: var(--scd-color-primary-dark);
+    --scd-button-secondary: var(--scd-color-secondary);
+    --scd-button-secondary-hover: var(--scd-color-secondary-dark);
+    --scd-button-success: var(--scd-color-success);
+    --scd-button-success-hover: var(--scd-color-success-dark);
+    --scd-button-danger: var(--scd-color-danger);
+    --scd-button-danger-hover: var(--scd-color-danger-dark);
+    
+    /* Forms */
+    --scd-form-focus: var(--scd-color-primary);
+    --scd-form-focus-shadow: rgba(34, 113, 177, 0.25);
+    --scd-form-error: var(--scd-color-danger);
+    --scd-form-success: var(--scd-color-success);
+    
+    /* Alerts/Notifications */
+    --scd-alert-info-bg: rgba(114, 174, 230, 0.1);
+    --scd-alert-info-border: var(--scd-color-info);
+    --scd-alert-info-text: var(--scd-color-dark);
+    
+    --scd-alert-success-bg: rgba(0, 163, 42, 0.1);
+    --scd-alert-success-border: var(--scd-color-success);
+    --scd-alert-success-text: var(--scd-color-dark);
+    
+    --scd-alert-warning-bg: rgba(219, 166, 23, 0.1);
+    --scd-alert-warning-border: var(--scd-color-warning);
+    --scd-alert-warning-text: var(--scd-color-dark);
+    
+    --scd-alert-danger-bg: rgba(214, 54, 56, 0.1);
+    --scd-alert-danger-border: var(--scd-color-danger);
+    --scd-alert-danger-text: var(--scd-color-dark);
+    
+    /* Charts */
+    --scd-chart-primary: var(--scd-color-primary);
+    --scd-chart-secondary: var(--scd-color-secondary);
+    --scd-chart-success: var(--scd-color-success);
+    --scd-chart-warning: var(--scd-color-warning);
+    --scd-chart-danger: var(--scd-color-danger);
+    --scd-chart-series-1: var(--scd-color-primary);
+    --scd-chart-series-2: var(--scd-color-accent);
+    --scd-chart-series-3: var(--scd-color-secondary);
+    --scd-chart-series-4: var(--scd-color-success);
+    --scd-chart-series-5: var(--scd-color-warning);
+    
+    /* Badges/Status */
+    --scd-badge-active: var(--scd-color-success);
+    --scd-badge-inactive: var(--scd-color-muted);
+    --scd-badge-scheduled: var(--scd-color-info);
+    --scd-badge-expired: var(--scd-color-danger);
+    --scd-badge-draft: var(--scd-color-warning);
+    
+    /* Tables */
+    --scd-table-hover: rgba(34, 113, 177, 0.05);
+    --scd-table-selected: rgba(34, 113, 177, 0.1);
+    --scd-table-border: #dcdcde;
+    
+    /* Loading states */
+    --scd-loader-primary: var(--scd-color-primary);
+    --scd-loader-track: var(--scd-color-light);
+    
+    /* Progress bars */
+    --scd-progress-bg: var(--scd-color-light);
+    --scd-progress-fill: var(--scd-color-primary);
+    --scd-progress-success: var(--scd-color-success);
+    --scd-progress-warning: var(--scd-color-warning);
+    --scd-progress-danger: var(--scd-color-danger);
+    
+    /* Additional colors needed by components */
+    --scd-color-white: #ffffff;
+    --scd-color-background-overlay: rgba(255, 255, 255, 0.9);
+    --scd-color-primary-bg: rgba(34, 113, 177, 0.05);
+    --scd-color-success-bg: rgba(0, 163, 42, 0.05);
+    --scd-color-warning-bg: rgba(219, 166, 23, 0.05);
+    --scd-color-error-bg: rgba(214, 54, 56, 0.05);
+    
+    /* Additional shadow definitions */
+    --scd-shadow-success: rgba(0, 163, 42, 0.15);
+    --scd-shadow-gradient-light: rgba(0, 0, 0, 0.02);
+    
+    /* Overlay colors */
+    --scd-color-overlay-light: rgba(255, 255, 255, 0.5);
+    --scd-color-background-solid: rgba(255, 255, 255, 0.98);
+    
+    /* Extended color variations */
+    --scd-color-text-disabled: #a7aaad;
+    --scd-color-primary-light-bg: rgba(34, 113, 177, 0.08);
+    --scd-color-primary-light-border: rgba(34, 113, 177, 0.2);
+    --scd-color-surface-light: #fafafa;
+    --scd-shadow-primary: rgba(34, 113, 177, 0.3);
+    --scd-color-danger-light-border: rgba(214, 54, 56, 0.2);
+    --scd-color-warning-light-border: rgba(219, 166, 23, 0.2);
+    
+    /* Additional colors for components */
+    --scd-shadow-inset: rgba(0, 0, 0, 0.07);
+    --scd-color-border-dark: #b4b9be;
+    --scd-color-overlay-light-text: rgba(255, 255, 255, 0.8);
+    --scd-color-info-bg: #e8f5f9;
+    --scd-color-text-lighter: #999;
+    --scd-shadow-danger: rgba(220, 50, 50, 0.2);
+    --scd-color-primary-light: #00a0d2;
+    --scd-color-danger-dark-bg: #3d1f1f;
+    --scd-color-danger-light: #ff6b6b;
+}

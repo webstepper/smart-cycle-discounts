@@ -1,0 +1,68 @@
+# WordPress Plugin .gitignore
+
+# Dependencies
+node_modules/
+vendor/
+
+# Build artifacts
+/assets/build/
+/resources/assets/build/
+*.min.js
+*.min.css
+*.map
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE Files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# Testing
+/tmp/
+/tests/tmp/
+phpunit.xml
+.phpunit.result.cache
+
+# Composer
+composer.lock
+composer.phar
+
+# Package managers
+package-lock.json
+yarn.lock
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Temporary files
+*.tmp
+.cache/
+
+# WordPress specific
+wp-config.php
+.htaccess
+
+# Distribution files (if you create zip releases)
+*.zip
+/releases/

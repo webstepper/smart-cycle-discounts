@@ -1,0 +1,447 @@
+/**
+ * Smart Cycle Discounts - Wizard Navigation Styles
+ * WordPress 6.4+ Design System Implementation
+ *
+ * Dependencies: scd-variables, scd-utilities, scd-components, scd-forms, scd-buttons, scd-theme-colors (loaded via WordPress deps)
+ *
+ * @package SmartCycleDiscounts
+ * @since 1.0.0
+ */
+
+/* Dashicons styling handled by WordPress admin */
+
+/* ===== SAVE INDICATOR ===== */
+.scd-save-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--scd-bg-secondary);
+    border: 1px solid var(--scd-border-color);
+    border-radius: var(--scd-radius-sm);
+    font-size: 13px;
+    color: var(--scd-text-secondary);
+    position: absolute;
+    right: 160px; /* Position next to exit button */
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.scd-save-indicator.scd-save-success {
+    background: var(--scd-bg-success-subtle);
+    border-color: var(--scd-color-success);
+    color: var(--scd-color-success);
+}
+
+.scd-save-indicator.scd-save-error {
+    background: var(--scd-bg-error-subtle);
+    border-color: var(--scd-color-error);
+    color: var(--scd-color-error);
+}
+
+.scd-save-icon .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+/* Spinning animation handled by shared/_utilities.css */
+
+/* ===== NAVIGATION CONTAINER ===== */
+#scd-wizard-navigation-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+/* Subtle backdrop gradient */
+#scd-wizard-navigation-container::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    height: 15px;
+    background: linear-gradient(to top, var(--scd-shadow-gradient-light) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+/* ===== MAIN NAVIGATION BAR ===== */
+.scd-wizard-navigation {
+    position: fixed;
+    bottom: 0;
+    left: 160px; /* Account for WP admin menu */
+    right: 0;
+    background: var(--scd-color-background);
+    border-top: 1px solid var(--scd-color-border);
+    padding: 12px 0; /* Add vertical padding for spacing */
+    box-shadow: 
+        0 -2px 4px var(--scd-shadow-sm),
+        0 -4px 8px var(--scd-shadow-md);
+    z-index: 9999;
+    transition: all 0.3s ease;
+    pointer-events: auto; /* Re-enable pointer events for navigation buttons */
+}
+
+/* Account for collapsed admin menu */
+.folded .scd-wizard-navigation {
+    left: 36px;
+}
+
+/* Full width on mobile */
+@media screen and (max-width: 782px) {
+    .scd-wizard-navigation {
+        left: 0;
+    }
+}
+
+/* Navigation states */
+.scd-wizard-navigation.is-navigating {
+    pointer-events: none;
+    opacity: 0.9;
+}
+
+.scd-wizard-navigation.is-navigating::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--scd-color-overlay-light);
+    z-index: 1;
+}
+
+/* ===== LAYOUT ADJUSTMENTS ===== */
+#wpbody-content {
+    position: relative;
+    z-index: 1;
+}
+
+.scd-wizard-wrapper {
+    padding-bottom: 80px; /* Increased to account for padding + button height */
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 782px) {
+    .scd-wizard-navigation {
+        padding: 10px 0; /* Slightly less padding on mobile */
+    }
+    
+    .scd-wizard-wrapper {
+        padding-bottom: 76px; /* Adjusted for mobile */
+    }
+    
+    #scd-wizard-navigation-container {
+        left: 0 !important;
+        right: 0 !important;
+    }
+}
+
+/* ===== NAVIGATION CONTAINER LAYOUT ===== */
+.scd-nav-container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 0 1.4rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* Navigation Sections */
+.scd-nav-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.scd-nav-section--left {
+    flex: 1;
+    justify-content: flex-start;
+}
+
+.scd-nav-section--center {
+    flex: 0 0 auto;
+}
+
+.scd-nav-section--right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.7rem;
+}
+
+/* ===== NAVIGATION BUTTONS ===== */
+/* Enhanced button styling with better spacing and polish */
+.scd-wizard-navigation .scd-nav-container .scd-nav-btn {
+    position: relative;
+    white-space: nowrap;
+    /* Button styles extend shared _buttons.css */
+    padding: 6px 14px;
+    min-height: 32px;
+}
+
+/* Make all navigation buttons same size */
+.scd-wizard-navigation .scd-nav-container .scd-nav-btn--prev,
+.scd-wizard-navigation .scd-nav-container .scd-nav-btn--next,
+.scd-wizard-navigation .scd-nav-container .scd-nav-btn--complete {
+    min-width: 100px;
+    width: 100px;
+    padding: 6px 14px;
+    font-size: 13px;
+    box-shadow: 0 1px 0 var(--scd-shadow-sm), 0 2px 4px var(--scd-shadow-sm);
+    text-align: center;
+}
+
+.scd-wizard-navigation .scd-nav-container .scd-nav-btn--prev:hover:not(:disabled),
+.scd-wizard-navigation .scd-nav-container .scd-nav-btn--next:hover:not(:disabled),
+.scd-wizard-navigation .scd-nav-container .scd-nav-btn--complete:hover:not(:disabled) {
+    box-shadow: 0 1px 0 var(--scd-shadow-md), 0 3px 8px var(--scd-shadow-md);
+}
+
+/* Adjust complete button to use success color */
+.scd-nav-btn--complete {
+    background-color: var(--scd-color-success, #00a32a);
+    border-color: var(--scd-color-success, #00a32a);
+}
+
+.scd-nav-btn--complete:hover:not(:disabled),
+.scd-nav-btn--complete:focus:not(:disabled) {
+    background-color: var(--scd-color-success-dark);
+    border-color: var(--scd-color-success-dark);
+}
+
+
+/* Loading State */
+.scd-nav-btn.is-loading {
+    position: relative;
+    opacity: 1; /* Full opacity during loading */
+}
+
+/* Keep text fully visible during loading */
+.scd-nav-btn.is-loading .scd-nav-btn__text {
+    opacity: 1; /* Full visibility for text */
+    color: inherit; /* Ensure color isn't changed */
+}
+
+.scd-nav-btn.is-loading::after {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    top: 50%;
+    left: 50%;
+    margin-left: -9px;
+    margin-top: -9px;
+    border: 2px solid var(--scd-color-border-light, #e0e0e0);
+    border-radius: 50%;
+    border-top-color: var(--scd-color-primary, #2271b1);
+    animation: scd-spin 0.8s linear infinite;
+}
+
+.scd-nav-btn--next.is-loading::after,
+.scd-nav-btn--complete.is-loading::after {
+    border-color: var(--scd-color-overlay-light);
+    border-top-color: var(--scd-color-white);
+}
+
+/* Animation keyframe handled by shared/_utilities.css */
+
+/* Active/clicked state - full visibility */
+.scd-wizard-navigation .scd-nav-container .scd-nav-btn:active {
+    opacity: 1; /* Full opacity when clicking */
+    box-shadow: 0 1px 0 var(--scd-shadow-sm); /* Subtle shadow instead of inset */
+}
+
+/* Disabled state */
+.scd-nav-btn:disabled {
+    opacity: 1; /* Full visibility when disabled */
+    cursor: not-allowed;
+    background-color: var(--scd-color-surface);
+    color: var(--scd-color-text-disabled);
+}
+
+/* Disabled but loading state - ensure full visibility */
+.scd-nav-btn:disabled.is-loading {
+    opacity: 1;
+    background-color: inherit; /* Keep original background during loading */
+    color: inherit; /* Keep original color during loading */
+}
+
+/* Button Icons - Enhanced styling */
+.scd-wizard-navigation .scd-nav-container .scd-nav-btn .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    margin: 0 4px;
+    vertical-align: middle;
+}
+
+.scd-wizard-navigation .scd-nav-container .scd-nav-btn--next .dashicons {
+    order: 2; /* Move arrow after text */
+    margin-left: 6px;
+    margin-right: 0;
+}
+
+.scd-wizard-navigation .scd-nav-container .scd-nav-btn--prev .dashicons {
+    margin-left: 0;
+    margin-right: 6px;
+}
+
+/* ===== NAVIGATION STATUS ===== */
+.scd-nav-status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--scd-color-text-muted);
+    font-size: 13px;
+}
+
+.scd-nav-status__step {
+    font-weight: 600;
+    color: var(--scd-color-text);
+    font-size: 14px;
+}
+
+/* ===== AUTOSAVE INDICATOR ===== */
+.scd-nav-status__autosave {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: translateX(10px);
+    margin-right: 0.7rem;
+    white-space: nowrap;
+}
+
+/* Saving state */
+.scd-nav-status__autosave.is-saving {
+    opacity: 1;
+    transform: translateX(0);
+    background: var(--scd-color-primary-light-bg);
+    border: 1px solid var(--scd-color-primary-light-border);
+    color: var(--scd-color-primary, #2271b1);
+}
+
+/* Success state */
+.scd-nav-status__autosave.is-saved {
+    opacity: 1; /* Full opacity for better visibility */
+    transform: translateX(0);
+    background: rgba(0, 163, 42, 0.12); /* Slightly more visible background */
+    border: 1px solid rgba(0, 163, 42, 0.3); /* Slightly stronger border */
+    color: var(--scd-color-success, #00a32a);
+}
+
+/* Error state */
+.scd-nav-status__autosave.is-error {
+    opacity: 1;
+    transform: translateX(0);
+    background: rgba(215, 25, 33, 0.08);
+    border: 1px solid rgba(215, 25, 33, 0.2);
+    color: var(--scd-color-error, #d71921);
+}
+
+.scd-nav-status__autosave .dashicons {
+    font-size: 12px;
+    width: 12px;
+    height: 12px;
+    margin-right: 2px;
+}
+
+/* Spinning animation handled by shared/_utilities.css */
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media (max-width: 782px) {
+    .scd-wizard-navigation {
+        padding: 11px 0;
+    }
+    
+    .scd-nav-container {
+        padding: 0 0.7rem;
+        min-height: 34px;
+        gap: 0.7rem;
+    }
+    
+    .scd-nav-btn__text {
+        display: none; /* Icon only on mobile */
+    }
+    
+    /* No custom icon styling needed - WordPress handles it */
+    
+    /* Hide autosave text on mobile */
+    .scd-nav-status__autosave-text {
+        display: none;
+    }
+    
+    .scd-nav-status__autosave .dashicons {
+        margin-right: 0;
+    }
+}
+
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .scd-nav-btn {
+        border-width: 2px;
+    }
+    
+    .scd-nav-btn:focus {
+        outline: 3px solid;
+        outline-offset: 2px;
+    }
+}
+
+/* Reduced motion handled by shared/_utilities.css */
+
+/* Progress Indicator */
+.scd-nav-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.scd-nav-progress__bar {
+    height: 100%;
+    background: linear-gradient(90deg, 
+        var(--scd-color-primary, #2271b1) 0%, 
+        var(--wp-admin-theme-color-darker-10, #135e96) 100%);
+    transition: width var(--scd-transition-base, 0.3s) ease-out;
+    width: var(--progress, 0%);
+    box-shadow: 0 0 8px rgba(34, 113, 177, 0.4);
+}
+
+/* Step Counter */
+.scd-nav-steps {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 13px;
+    color: var(--scd-color-text-muted, #646970);
+    background: var(--scd-color-surface, #f6f7f7);
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-weight: 500;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.scd-nav-steps__current {
+    color: var(--scd-color-text, #1d2327);
+    font-weight: 700;
+}
+

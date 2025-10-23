@@ -1,0 +1,48 @@
+/**
+ * Tooltip Styles
+ *
+ * Additional tooltip configurations for Smart Cycle Discounts
+ * Base tooltip styles are defined in shared/_components.css
+ *
+ * Dependencies: scd-variables, scd-utilities, scd-components, scd-forms, scd-buttons, scd-theme-colors (loaded via WordPress deps)
+ *
+ * @package SmartCycleDiscounts
+ * @since 1.0.0
+ */
+
+/* ==========================================================================
+   Tooltip styles are defined in shared/_components.css
+   ========================================================================== */
+
+/* ==========================================================================
+   Tooltip Trigger Styles
+   ========================================================================== */
+
+/* Style for elements that have tooltips */
+[data-tooltip] {
+    cursor: help;
+    position: relative;
+}
+
+/* Tooltip trigger styles handled by shared _components.css (.scd-field-helper) */
+
+/* Responsive styles handled by shared _components.css */
+
+/* ==========================================================================
+   Dark Mode Support (if enabled in WordPress)
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+    .is-dark-theme .scd-tooltip {
+        background: var(--scd-color-text, #1d2327);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .is-dark-theme .scd-tooltip:before {
+        border-top-color: var(--scd-color-text, #1d2327);
+    }
+    
+    .is-dark-theme .scd-tooltip.tooltip-bottom:before {
+        border-bottom-color: var(--scd-color-text, #1d2327);
+    }
+}

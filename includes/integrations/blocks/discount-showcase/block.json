@@ -1,0 +1,145 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "scd/discount-showcase",
+	"version": "1.0.0",
+	"title": "Discount Showcase",
+	"category": "smart-cycle-discounts",
+	"icon": "tag",
+	"description": "Display active discounts and campaigns in an attractive showcase format.",
+	"keywords": [
+		"discount",
+		"sale",
+		"campaign",
+		"smart-cycle",
+		"woocommerce"
+	],
+	"textdomain": "smart-cycle-discounts",
+	"attributes": {
+		"campaign_id": {
+			"type": "number",
+			"default": 0
+		},
+		"display_type": {
+			"type": "string",
+			"default": "grid",
+			"enum": ["grid", "list", "carousel"]
+		},
+		"show_timer": {
+			"type": "boolean",
+			"default": true
+		},
+		"max_products": {
+			"type": "number",
+			"default": 6,
+			"minimum": 1,
+			"maximum": 20
+		},
+		"columns": {
+			"type": "number",
+			"default": 3,
+			"minimum": 1,
+			"maximum": 6
+		},
+		"show_prices": {
+			"type": "boolean",
+			"default": true
+		},
+		"show_discount_badge": {
+			"type": "boolean",
+			"default": true
+		},
+		"show_add_to_cart": {
+			"type": "boolean",
+			"default": true
+		},
+		"background_color": {
+			"type": "string"
+		},
+		"text_color": {
+			"type": "string"
+		},
+		"border_radius": {
+			"type": "number",
+			"default": 8
+		},
+		"spacing": {
+			"type": "object",
+			"default": {
+				"margin": {
+					"top": "0px",
+					"right": "0px",
+					"bottom": "20px",
+					"left": "0px"
+				},
+				"padding": {
+					"top": "20px",
+					"right": "20px",
+					"bottom": "20px",
+					"left": "20px"
+				}
+			}
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": ["wide", "full"],
+		"color": {
+			"background": true,
+			"text": true,
+			"gradients": true,
+			"__experimentalDefaultControls": {
+				"background": true,
+				"text": true
+			}
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true,
+			"__experimentalDefaultControls": {
+				"margin": false,
+				"padding": true
+			}
+		},
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true,
+			"__experimentalFontFamily": true,
+			"__experimentalFontWeight": true,
+			"__experimentalFontStyle": true,
+			"__experimentalTextTransform": true,
+			"__experimentalTextDecoration": true,
+			"__experimentalLetterSpacing": true,
+			"__experimentalDefaultControls": {
+				"fontSize": true
+			}
+		},
+		"__experimentalBorder": {
+			"color": true,
+			"radius": true,
+			"style": true,
+			"width": true,
+			"__experimentalDefaultControls": {
+				"color": true,
+				"radius": true,
+				"style": true,
+				"width": true
+			}
+		}
+	},
+	"example": {
+		"attributes": {
+			"campaign_id": 1,
+			"display_type": "grid",
+			"show_timer": true,
+			"max_products": 4,
+			"columns": 2,
+			"show_prices": true,
+			"show_discount_badge": true,
+			"show_add_to_cart": true
+		}
+	},
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./editor.css",
+	"style": "file:./style.css"
+}

@@ -1,0 +1,559 @@
+/**
+ * Smart Cycle Discounts - Main Admin Styles (Optimized)
+ * WordPress 6.4+ Design System Implementation
+ * 
+ * Design Principles:
+ * - YAGNI: Only essential styles, no decorative elements
+ * - KISS: Simple, maintainable CSS using WordPress standards
+ * - DRY: Reusable utility classes and CSS custom properties
+ */
+
+/* ==========================================================================
+   Imports - Centralized Design System
+   ========================================================================== */
+
+/* Shared styles are now loaded as separate files via WordPress enqueue system
+   This ensures proper loading order and avoids @import path resolution issues */
+
+/* ==========================================================================
+   Base Styles
+   ========================================================================== */
+
+.scd-admin-page * {
+    box-sizing: border-box;
+}
+
+/* Admin Page Container */
+.scd-admin-page {
+    margin: 0;
+    padding: 20px 20px 0 2px;
+    font-family: var(--scd-font-family);
+    font-size: var(--scd-font-size-base);
+    line-height: var(--scd-line-height-base);
+    color: var(--scd-color-text);
+    background: transparent;
+    min-height: calc(100vh - 32px);
+}
+
+/* Right margin for WordPress admin */
+.auto-fold .scd-admin-page {
+    margin-left: 36px;
+}
+
+@media only screen and (max-width: 960px) {
+    .auto-fold .scd-admin-page {
+        margin-left: 0;
+    }
+}
+
+/* ==========================================================================
+   Additional Component Styles
+   ========================================================================== */
+
+/* Card styles defined in _components.css */
+
+/* Extra form styles */
+.scd-select {
+    background-image: url(data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2720%27%20height%3D%2720%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%3E%3Cpath%20d%3D%27M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%27%20fill%3D%27%23555%27%2F%3E%3C%2Fsvg%3E);
+    background-repeat: no-repeat;
+    background-position: right 5px top 50%;
+    background-size: 16px 16px;
+}
+
+.scd-field-help {
+    font-style: italic;
+}
+
+/* Input Groups */
+.scd-input-group {
+    display: flex;
+    align-items: stretch;
+}
+
+.scd-input-prefix,
+.scd-input-suffix {
+    display: flex;
+    align-items: center;
+    padding: 0 var(--scd-spacing-md);
+    background: var(--scd-color-surface);
+    border: var(--scd-border-width) solid var(--scd-color-border);
+    color: var(--scd-color-text-muted);
+    white-space: nowrap;
+}
+
+.scd-input-prefix {
+    border-right: 0;
+    border-radius: var(--scd-radius-md) 0 0 var(--scd-radius-md);
+}
+
+.scd-input-suffix {
+    border-left: 0;
+    border-radius: 0 var(--scd-radius-md) var(--scd-radius-md) 0;
+}
+
+.scd-input-group .scd-form-input {
+    border-radius: 0;
+    flex: 1;
+}
+
+.scd-input-group .scd-form-input:first-child {
+    border-radius: var(--scd-radius-md) 0 0 var(--scd-radius-md);
+}
+
+.scd-input-group .scd-form-input:last-child {
+    border-radius: 0 var(--scd-radius-md) var(--scd-radius-md) 0;
+}
+
+/* Toggle Switch styles moved to shared/_forms.css to avoid duplication */
+
+/* ==========================================================================
+   Table Extensions
+   ========================================================================== */
+
+.scd-table-wrapper {
+    overflow-x: auto;
+    margin-bottom: var(--scd-spacing-lg);
+}
+
+/* ==========================================================================
+   Notice Extensions
+   ========================================================================== */
+
+/* Dismiss Button */
+.scd-notice__dismiss {
+    position: absolute;
+    top: 0;
+    right: 1px;
+    padding: 9px;
+    background: none;
+    border: none;
+    color: var(--scd-color-text-lighter);
+    cursor: pointer;
+    transition: color var(--scd-transition-fast);
+}
+
+.scd-notice__dismiss:hover {
+    color: var(--scd-color-text);
+}
+
+/* Notification System - Modern Toast Style */
+.scd-notification {
+    position: fixed;
+    top: 46px;
+    right: 20px;
+    max-width: 360px;
+    padding: var(--scd-spacing-md) var(--scd-spacing-base);
+    background: var(--scd-color-background);
+    border: var(--scd-border-width) solid var(--scd-color-border);
+    border-left-width: var(--scd-border-width-accent);
+    border-radius: var(--scd-radius-md);
+    box-shadow: var(--scd-shadow-lg);
+    z-index: var(--scd-z-notification);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--scd-spacing-md);
+}
+
+.scd-notification--success {
+    border-left-color: var(--scd-color-success);
+}
+
+.scd-notification--error {
+    border-left-color: var(--scd-color-error);
+}
+
+.scd-notification--warning {
+    border-left-color: var(--scd-color-warning);
+}
+
+.scd-notification--info {
+    border-left-color: var(--scd-color-info);
+}
+
+.scd-notification__message {
+    flex: 1;
+    font-size: var(--scd-font-size-base);
+    line-height: var(--scd-line-height-base);
+}
+
+.scd-notification__close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    opacity: 0.6;
+    padding: var(--scd-spacing-xs);
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity var(--scd-transition-fast);
+    margin: -4px -4px 0 0;
+}
+
+.scd-notification__close:hover {
+    opacity: 1;
+}
+
+.scd-notification--fade-out {
+    animation: scdFadeOut 0.3s ease-out forwards;
+}
+
+@keyframes scdFadeOut {
+    to {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+}
+
+/* Validation Messages */
+.scd-validation-errors {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.scd-validation-item {
+    margin-bottom: var(--scd-spacing-xs);
+    padding-left: 20px;
+    position: relative;
+    font-size: var(--scd-font-size-base);
+    line-height: var(--scd-line-height-base);
+}
+
+.scd-validation-item:before {
+    content: "•";
+    position: absolute;
+    left: 8px;
+    color: var(--scd-color-error);
+}
+
+.scd-validation-item--error {
+    color: var(--scd-color-error);
+}
+
+/* Form Field Validation States */
+.scd-wizard-step input,
+.scd-wizard-step textarea,
+.scd-wizard-step select {
+    transition: border-color var(--scd-transition-fast) ease-in-out,
+                box-shadow var(--scd-transition-fast) ease-in-out;
+}
+
+.scd-wizard-step input.error,
+.scd-wizard-step textarea.error,
+.scd-wizard-step select.error {
+    border-color: var(--scd-color-danger);
+    box-shadow: 0 0 0 1px var(--scd-color-danger);
+}
+
+.scd-wizard-step input.error:focus,
+.scd-wizard-step textarea.error:focus,
+.scd-wizard-step select.error:focus {
+    border-color: var(--scd-color-danger);
+    box-shadow: 0 0 0 var(--scd-border-width-focus) var(--scd-color-danger);
+    outline: 2px solid transparent;
+    outline-offset: 0;
+}
+
+.scd-wizard-step input.warning,
+.scd-wizard-step textarea.warning {
+    border-color: var(--scd-color-warning);
+    box-shadow: 0 0 0 1px var(--scd-color-warning);
+}
+
+.scd-wizard-step input.warning:focus,
+.scd-wizard-step textarea.warning:focus {
+    border-color: var(--scd-color-warning);
+    box-shadow: 0 0 0 var(--scd-border-width-focus) var(--scd-color-warning);
+    outline: 2px solid transparent;
+    outline-offset: 0;
+}
+
+.scd-wizard-step input.success,
+.scd-wizard-step textarea.success {
+    border-color: var(--scd-color-success);
+    box-shadow: 0 0 0 1px var(--scd-color-success);
+}
+
+.scd-wizard-step input.success:focus,
+.scd-wizard-step textarea.success:focus {
+    border-color: var(--scd-color-success);
+    box-shadow: 0 0 0 var(--scd-border-width-focus) var(--scd-color-success);
+    outline: 2px solid transparent;
+    outline-offset: 0;
+}
+
+/* Validation Messages */
+.error-message,
+.warning-message {
+    display: block;
+    font-size: var(--scd-font-size-base);
+    margin-top: var(--scd-spacing-xs);
+    line-height: var(--scd-line-height-base);
+    font-weight: var(--scd-font-weight-normal);
+}
+
+.error-message {
+    color: var(--scd-color-danger);
+}
+
+.warning-message {
+    color: var(--scd-color-warning-dark); /* Using darker variant for better readability */
+}
+
+/* Validation message animation */
+.error-message,
+.warning-message {
+    animation: scdValidationFadeIn var(--scd-transition-base) ease-out;
+}
+
+@keyframes scdValidationFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-2px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==========================================================================
+   Wizard Styles
+   ========================================================================== */
+
+.scd-campaign-wizard {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Wizard styles moved to wizard-specific CSS files */
+
+
+
+
+.scd-wizard-exit {
+    position: absolute;
+    top: var(--scd-spacing-lg);
+    right: var(--scd-spacing-lg);
+}
+
+/* ==========================================================================
+   Discount Configuration
+   ========================================================================== */
+
+.scd-discount-type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--scd-spacing-base);
+    margin: var(--scd-spacing-lg) 0;
+}
+
+.scd-discount-type-card {
+    position: relative;
+    border: var(--scd-border-width-thick) solid var(--scd-color-border-light);
+    border-radius: var(--scd-radius-lg);
+    padding: var(--scd-spacing-lg);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--scd-transition-fast);
+}
+
+.scd-discount-type-card:hover {
+    border-color: var(--scd-color-primary);
+    box-shadow: var(--scd-shadow-md);
+}
+
+.scd-discount-type-card.selected {
+    border-color: var(--scd-color-primary);
+    background: var(--scd-color-primary-bg);
+}
+
+.scd-discount-type-icon {
+    font-size: 32px;
+    margin-bottom: var(--scd-spacing-md);
+    color: var(--scd-color-primary);
+}
+
+.scd-discount-type-title {
+    font-size: var(--scd-font-size-large);
+    font-weight: var(--scd-font-weight-semibold);
+    margin-bottom: var(--scd-spacing-xs);
+}
+
+.scd-discount-type-description {
+    font-size: var(--scd-font-size-small);
+    color: var(--scd-color-text-muted);
+}
+
+/* ==========================================================================
+   Product Selection
+   ========================================================================== */
+
+.scd-product-search {
+    position: relative;
+    margin-bottom: var(--scd-spacing-lg);
+}
+
+.scd-product-search-input {
+    padding-left: var(--scd-spacing-xxxl);
+}
+
+.scd-product-search-icon {
+    position: absolute;
+    left: var(--scd-spacing-md);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--scd-color-text-muted);
+}
+
+.scd-product-list {
+    max-height: 400px;
+    overflow-y: auto;
+    border: var(--scd-border-width) solid var(--scd-color-border);
+    border-radius: var(--scd-radius-md);
+}
+
+.scd-product-item {
+    display: flex;
+    align-items: center;
+    padding: var(--scd-spacing-md);
+    border-bottom: var(--scd-border-width) solid var(--scd-color-border-light);
+    cursor: pointer;
+    transition: background var(--scd-transition-fast);
+}
+
+.scd-product-item:hover {
+    background: var(--scd-color-surface);
+}
+
+.scd-product-item.selected {
+    background: var(--scd-color-primary-bg);
+}
+
+.scd-product-checkbox {
+    margin-right: var(--scd-spacing-md);
+}
+
+.scd-product-info {
+    flex: 1;
+}
+
+.scd-product-name {
+    font-weight: var(--scd-font-weight-medium);
+    margin-bottom: var(--scd-spacing-xs);
+}
+
+.scd-product-meta {
+    font-size: var(--scd-font-size-small);
+    color: var(--scd-color-text-muted);
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media screen and (max-width: 782px) {
+    .scd-admin-page {
+        padding: 10px;
+    }
+    
+    .scd-wizard-content {
+        padding: var(--scd-spacing-lg);
+    }
+    
+    .scd-discount-type-grid {
+        grid-template-columns: 1fr;
+    }
+    
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+    .scd-admin-page {
+        padding: 0;
+        background: var(--scd-color-white, #fff);
+    }
+    
+    .scd-button,
+    .scd-notification {
+        display: none !important;
+    }
+    
+    .scd-wizard-step {
+        display: block !important;
+        page-break-inside: avoid;
+    }
+}
+
+/* ==========================================================================
+   Loading States
+   ========================================================================== */
+
+.scd-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--scd-color-background-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--scd-z-modal);
+}
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
+/* Skip Links */
+.scd-skip-link {
+    position: absolute;
+    left: -9999px;
+}
+
+.scd-skip-link:focus {
+    position: absolute;
+    left: 6px;
+    top: 7px;
+    z-index: var(--scd-z-notification);
+    padding: var(--scd-spacing-sm) var(--scd-spacing-md);
+    background: var(--scd-color-primary);
+    color: var(--scd-color-white);
+    text-decoration: none;
+    border-radius: var(--scd-radius-md);
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .scd-card,
+    .scd-button {
+        border-width: var(--scd-border-width-thick);
+    }
+}
+
+/* RTL Support */
+[dir="rtl"] .scd-product-checkbox {
+    margin-right: 0;
+    margin-left: var(--scd-spacing-md);
+}
+
+[dir="rtl"] .scd-notification {
+    right: auto;
+    left: 20px;
+}
+
+[dir="rtl"] .scd-product-search-icon {
+    left: auto;
+    right: var(--scd-spacing-md);
+}
+
+[dir="rtl"] .scd-product-search-input {
+    padding-left: var(--scd-spacing-md);
+    padding-right: var(--scd-spacing-xxxl);
+}

@@ -1,0 +1,413 @@
+/**
+ * Settings Page Styles
+ *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/assets/css/admin
+ * @since      1.0.0
+ */
+
+/* ==========================================================================
+   Settings Page Wrapper
+   ========================================================================== */
+
+.scd-settings {
+	max-width: 1200px;
+}
+
+.scd-settings h1 .dashicons {
+	font-size: 32px;
+	width: 32px;
+	height: 32px;
+	margin-right: 8px;
+	color: #2271b1;
+}
+
+/* ==========================================================================
+   Tab Navigation
+   ========================================================================== */
+
+.scd-settings-tabs {
+	margin: 20px 0;
+	border-bottom: 1px solid #c3c4c7;
+}
+
+.scd-settings-tabs .nav-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 14px;
+	padding: 10px 16px;
+}
+
+.scd-settings-tabs .nav-tab .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+}
+
+/* ==========================================================================
+   Settings Form
+   ========================================================================== */
+
+.scd-settings-form {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 20px;
+	margin-top: 20px;
+}
+
+.scd-settings-form h2 {
+	margin-top: 0;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #e5e5e5;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.scd-settings-form h2:not(:first-child) {
+	margin-top: 30px;
+	padding-top: 30px;
+	border-top: 1px solid #e5e5e5;
+}
+
+.scd-settings-form h2 .dashicons {
+	color: #2271b1;
+}
+
+.scd-settings-form .form-table {
+	margin-top: 20px;
+}
+
+.scd-settings-form .form-table th {
+	width: 220px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.scd-settings-form .form-table td {
+	padding: 15px 10px;
+}
+
+/* Field descriptions */
+.scd-settings-form .form-table td p.description {
+	margin-top: 5px;
+	font-size: 13px;
+	color: #646970;
+	line-height: 1.6;
+}
+
+/* Field Tooltips */
+.scd-field-tooltip {
+	color: #646970;
+	cursor: help;
+	margin-left: 5px;
+}
+
+.scd-field-tooltip:hover {
+	color: #2271b1;
+}
+
+/* Section Descriptions */
+.scd-section-description {
+	color: #646970;
+	font-size: 13px;
+	line-height: 1.6;
+	margin: 0 0 20px 0;
+	padding: 12px;
+	background: #f6f7f7;
+	border-left: 4px solid #2271b1;
+	border-radius: 3px;
+}
+
+/* ==========================================================================
+   Form Fields
+   ========================================================================== */
+
+/* Text inputs */
+.scd-settings-form input[type="text"],
+.scd-settings-form input[type="email"],
+.scd-settings-form input[type="url"],
+.scd-settings-form input[type="number"],
+.scd-settings-form input[type="password"] {
+	padding: 0 8px;
+	height: 30px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	font-size: 14px;
+	color: #1d2327;
+	background: #fff;
+	transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.scd-settings-form input[type="text"]:hover,
+.scd-settings-form input[type="email"]:hover,
+.scd-settings-form input[type="url"]:hover,
+.scd-settings-form input[type="number"]:hover,
+.scd-settings-form input[type="password"]:hover {
+	border-color: #646970;
+}
+
+.scd-settings-form input[type="text"]:focus,
+.scd-settings-form input[type="email"]:focus,
+.scd-settings-form input[type="url"]:focus,
+.scd-settings-form input[type="number"]:focus,
+.scd-settings-form input[type="password"]:focus {
+	outline: 2px solid transparent;
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+/* Select fields */
+.scd-settings-form select {
+	padding: 0 8px;
+	height: 30px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	font-size: 14px;
+	color: #1d2327;
+	background: #fff;
+	transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.scd-settings-form select:hover {
+	border-color: #646970;
+}
+
+.scd-settings-form select:focus {
+	outline: 2px solid transparent;
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+/* Textarea fields */
+.scd-settings-form textarea {
+	padding: 8px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	font-size: 14px;
+	color: #1d2327;
+	background: #fff;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	line-height: 1.6;
+	transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.scd-settings-form textarea:hover {
+	border-color: #646970;
+}
+
+.scd-settings-form textarea:focus {
+	outline: 2px solid transparent;
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+/* Toggle Switch */
+.scd-toggle-wrapper {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.scd-toggle {
+	position: relative;
+	display: inline-block;
+	width: 44px;
+	height: 24px;
+}
+
+.scd-toggle input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.scd-toggle-slider {
+	position: absolute;
+	cursor: pointer;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #c3c4c7;
+	transition: 0.3s;
+	border-radius: 24px;
+}
+
+.scd-toggle-slider:before {
+	position: absolute;
+	content: "";
+	height: 18px;
+	width: 18px;
+	left: 3px;
+	bottom: 3px;
+	background-color: white;
+	transition: 0.3s;
+	border-radius: 50%;
+}
+
+.scd-toggle input:checked + .scd-toggle-slider {
+	background-color: #2271b1;
+}
+
+.scd-toggle input:checked + .scd-toggle-slider:before {
+	transform: translateX( 20px );
+}
+
+.scd-toggle input:focus + .scd-toggle-slider {
+	box-shadow: 0 0 0 2px #fff, 0 0 0 4px #2271b1;
+}
+
+/* ==========================================================================
+   Submit Section
+   ========================================================================== */
+
+.scd-settings-submit {
+	margin-top: 30px;
+	padding-top: 20px;
+	border-top: 1px solid #c3c4c7;
+	text-align: right;
+}
+
+.scd-settings-submit .button-primary {
+	padding: 8px 24px;
+	height: auto;
+	font-size: 14px;
+}
+
+/* ==========================================================================
+   Admin Notices
+   ========================================================================== */
+
+.scd-settings .notice {
+	margin: 0 0 20px 0;
+	padding: 12px;
+	border-left-width: 4px;
+	border-radius: 4px;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media screen and ( max-width: 782px ) {
+	.scd-settings {
+		margin: 10px 10px 0 10px;
+	}
+
+	.scd-settings-form {
+		padding: 15px;
+	}
+
+	.scd-settings-tabs .nav-tab {
+		display: block;
+		margin-bottom: 5px;
+	}
+
+	.scd-settings-form .form-table th,
+	.scd-settings-form .form-table td {
+		display: block;
+		width: 100%;
+		padding: 10px 0;
+	}
+
+	.scd-settings-form .form-table th {
+		padding-right: 0;
+		padding-bottom: 5px;
+	}
+}
+
+@media screen and ( max-width: 600px ) {
+	.scd-settings h1 {
+		font-size: 20px;
+	}
+
+	.scd-settings-form h2 {
+		font-size: 18px;
+	}
+
+	.scd-settings-tabs .nav-tab {
+		padding: 8px 12px;
+		font-size: 13px;
+	}
+}
+
+/* ==========================================================================
+   Loading States
+   ========================================================================== */
+
+.scd-loading {
+	position: relative;
+	pointer-events: none;
+	opacity: 0.6;
+}
+
+.scd-loading::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 20px;
+	height: 20px;
+	margin-top: -10px;
+	margin-left: -10px;
+	border: 2px solid #2271b1;
+	border-top-color: transparent;
+	border-radius: 50%;
+	animation: scd-spin 0.6s linear infinite;
+}
+
+@keyframes scd-spin {
+	to {
+		transform: rotate( 360deg );
+	}
+}
+
+/* ==========================================================================
+   Performance Settings - Cache Statistics
+   ========================================================================== */
+
+.scd-cache-backend-info {
+	background: #f0f6fc;
+	border-left: 4px solid #2271b1;
+	padding: 12px;
+	margin-bottom: 20px;
+}
+
+.scd-cache-active-icon {
+	color: #00a32a;
+}
+
+.scd-cache-stats-table {
+	max-width: 600px;
+}
+
+.scd-cache-stats-label {
+	width: 200px;
+}
+
+.scd-status-enabled {
+	color: #00a32a;
+}
+
+.scd-status-disabled {
+	color: #d63638;
+}
+
+.scd-status-active {
+	color: #00a32a;
+}
+
+.scd-status-warning {
+	color: #dba617;
+}
+
+.scd-cache-clear-actions {
+	margin-top: 20px;
+}
+
+.scd-cache-clear-actions #scd-clear-cache-status {
+	margin-left: 10px;
+}

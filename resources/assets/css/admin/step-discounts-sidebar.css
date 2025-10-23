@@ -1,0 +1,183 @@
+/**
+ * Discounts Step Sidebar Styles
+ * WordPress 6.4+ Design System Implementation
+ *
+ * Static help content styles for the discounts step sidebar.
+ * Common sidebar styles are in wizard-fullscreen.css
+ *
+ * Follows YAGNI, KISS, and DRY principles
+ * - Only sidebar-specific styles
+ * - Simple, readable class names
+ * - No duplicate code
+ *
+ * Dependencies: scd-variables, scd-utilities, scd-components (loaded via WordPress deps)
+ */
+
+/* ==========================================================================
+   Help Content
+   ========================================================================== */
+
+.scd-help-content {
+	line-height: 1.7;
+	color: var(--scd-color-text-muted, #646970);
+}
+
+.scd-help-content p {
+	margin: 0 0 var(--scd-spacing-md, 12px) 0;
+}
+
+.scd-help-content p:last-child {
+	margin-bottom: 0;
+}
+
+.scd-help-content h4 {
+	margin: var(--scd-spacing-md, 16px) 0 var(--scd-spacing-xs, 4px) 0;
+	padding: 0;
+	font-size: var(--scd-font-size-medium, 14px);
+	font-weight: 600;
+	color: var(--scd-color-text, #1d2327);
+	border: none;
+}
+
+.scd-help-content h4:first-child {
+	margin-top: 0;
+}
+
+/* ==========================================================================
+   Sidebar Lists
+   ========================================================================== */
+
+.scd-sidebar-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.scd-sidebar-list li {
+	padding: var(--scd-spacing-sm, 8px) 0;
+	border-bottom: 1px solid var(--scd-color-border-lighter, #f0f0f1);
+	line-height: 1.6;
+}
+
+.scd-sidebar-list li:last-child {
+	border-bottom: none;
+	padding-bottom: 0;
+}
+
+.scd-sidebar-list li:first-child {
+	padding-top: 0;
+}
+
+.scd-sidebar-list li strong {
+	color: var(--scd-color-text, #1d2327);
+	font-weight: 600;
+}
+
+/* Warning list with icons */
+.scd-warning-list li {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--scd-spacing-sm, 8px);
+	padding: var(--scd-spacing-sm, 10px) 0;
+}
+
+.scd-warning-list .dashicons {
+	flex-shrink: 0;
+	color: var(--scd-color-error, #d63638);
+	font-size: 20px;
+	width: 20px;
+	height: 20px;
+	margin-top: 2px;
+}
+
+/* ==========================================================================
+   Benchmark Table
+   ========================================================================== */
+
+.scd-benchmark-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: var(--scd-spacing-sm, 8px) 0;
+	font-size: var(--scd-font-size-small, 12px);
+}
+
+.scd-benchmark-table thead {
+	background: var(--scd-color-surface, #f6f7f7);
+}
+
+.scd-benchmark-table th {
+	padding: var(--scd-spacing-sm, 8px);
+	text-align: left;
+	font-weight: 600;
+	color: var(--scd-color-text, #1d2327);
+	border-bottom: 2px solid var(--scd-color-border, #c3c4c7);
+}
+
+.scd-benchmark-table td {
+	padding: var(--scd-spacing-sm, 8px);
+	border-bottom: 1px solid var(--scd-color-border-lighter, #f0f0f1);
+}
+
+.scd-benchmark-table tbody tr:last-child td {
+	border-bottom: none;
+}
+
+.scd-benchmark-table tbody tr:hover {
+	background: var(--scd-color-surface, #f6f7f7);
+}
+
+.scd-benchmark-note {
+	margin: var(--scd-spacing-md, 12px) 0 0;
+	font-size: var(--scd-font-size-small, 12px);
+	color: var(--scd-color-text-lighter, #8c8f94);
+	line-height: 1.5;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 782px) {
+	.scd-help-content {
+		font-size: var(--scd-font-size-small, 12px);
+	}
+
+	.scd-benchmark-table {
+		font-size: 12px;
+	}
+
+	.scd-benchmark-table th,
+	.scd-benchmark-table td {
+		padding: var(--scd-spacing-xs, 6px);
+	}
+}
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+	.scd-sidebar-list li {
+		border-bottom-width: 2px;
+	}
+
+	.scd-benchmark-table th {
+		border-bottom-width: 3px;
+	}
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+	.scd-benchmark-table {
+		border: 1px solid var(--scd-color-text, #1d2327);
+	}
+
+	.scd-benchmark-table th,
+	.scd-benchmark-table td {
+		border: 1px solid var(--scd-color-text, #1d2327);
+	}
+}

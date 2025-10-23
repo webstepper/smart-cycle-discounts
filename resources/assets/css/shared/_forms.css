@@ -1,0 +1,339 @@
+/**
+ * Form Element Styles - Theme-aware form components
+ * 
+ * Uses theme colors from CSS custom properties
+ * Follows WordPress form patterns
+ * 
+ * @package SmartCycleDiscounts
+ * @since 1.0.0
+ */
+
+/* ==========================================================================
+   Form Fields - Theme-aware focus states
+   ========================================================================== */
+
+.scd-form-field {
+    margin-bottom: var(--scd-spacing-lg);
+}
+
+.scd-field-container {
+    margin-bottom: 20px;
+}
+
+/* .scd-form-label moved to _components.css to avoid duplication */
+
+.scd-form-label .required {
+    color: var(--scd-form-error);
+}
+
+/* Professional label styling for form fields */
+.form-field label {
+    display: inline-block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--scd-color-text, #1d2327);
+    letter-spacing: -0.01em;
+}
+
+/* Remove margin from required asterisk in all wizard steps */
+.form-field label .required {
+    margin-left: 0;
+}
+
+/* Text inputs with theme colors */
+.scd-input,
+.scd-textarea,
+.scd-select,
+input[type="text"].scd-themed,
+input[type="email"].scd-themed,
+input[type="url"].scd-themed,
+input[type="number"].scd-themed,
+input[type="password"].scd-themed,
+input[type="search"].scd-themed,
+textarea.scd-themed,
+select.scd-themed {
+    width: 100%;
+    padding: 0 var(--scd-spacing-sm);
+    font-size: var(--scd-font-size-base);
+    line-height: 2;
+    color: var(--scd-color-text);
+    background-color: var(--scd-color-background);
+    border: var(--scd-border-width) solid var(--scd-color-border);
+    border-radius: var(--scd-radius-md);
+    transition: border-color var(--scd-transition-fast) var(--scd-ease-in-out),
+                box-shadow var(--scd-transition-fast) var(--scd-ease-in-out);
+}
+
+.scd-input:focus,
+.scd-textarea:focus,
+.scd-select:focus,
+input[type="text"].scd-themed:focus,
+input[type="email"].scd-themed:focus,
+input[type="url"].scd-themed:focus,
+input[type="number"].scd-themed:focus,
+input[type="password"].scd-themed:focus,
+input[type="search"].scd-themed:focus,
+textarea.scd-themed:focus,
+select.scd-themed:focus {
+    outline: none;
+    border-color: var(--scd-form-focus);
+    box-shadow: 0 0 0 1px var(--scd-form-focus);
+}
+
+/* Textarea specific */
+.scd-textarea,
+textarea.scd-themed {
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* Select specific */
+.scd-select,
+select.scd-themed {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M6 9L1 4h10z' fill='%23646970'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 28px;
+}
+
+/* ==========================================================================
+   Checkboxes & Radios - Theme-aware checked states
+   ========================================================================== */
+
+.scd-checkbox,
+.scd-radio {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--scd-spacing-sm);
+    margin-bottom: var(--scd-spacing-sm);
+    cursor: pointer;
+}
+
+.scd-checkbox input[type="checkbox"],
+.scd-radio input[type="radio"],
+input[type="checkbox"].scd-themed,
+input[type="radio"].scd-themed {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    cursor: pointer;
+    border: var(--scd-border-width) solid var(--scd-color-border-dark);
+    background: var(--scd-color-background);
+    transition: all var(--scd-transition-fast) var(--scd-ease-in-out);
+}
+
+input[type="checkbox"].scd-themed {
+    border-radius: var(--scd-radius-sm);
+}
+
+input[type="radio"].scd-themed {
+    border-radius: var(--scd-radius-full);
+}
+
+input[type="checkbox"].scd-themed:checked,
+input[type="radio"].scd-themed:checked {
+    background: var(--scd-form-checked-bg);
+    border-color: var(--scd-form-checked-border);
+}
+
+input[type="checkbox"].scd-themed:focus,
+input[type="radio"].scd-themed:focus {
+    outline: none;
+    border-color: var(--scd-form-focus);
+    box-shadow: 0 0 0 2px var(--scd-form-focus-shadow);
+}
+
+/* ==========================================================================
+   Toggle Switches - Theme-aware colors
+   ========================================================================== */
+
+.scd-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--scd-spacing-sm);
+    cursor: pointer;
+}
+
+.scd-toggle-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.scd-toggle-track {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: var(--scd-color-border);
+    border-radius: var(--scd-radius-pill);
+    transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+}
+
+.scd-toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: var(--scd-color-background);
+    border-radius: var(--scd-radius-full);
+    box-shadow: var(--scd-shadow-sm);
+    transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+}
+
+.scd-toggle-input:checked + .scd-toggle-track {
+    background: var(--scd-form-toggle-on);
+}
+
+.scd-toggle-input:checked + .scd-toggle-track .scd-toggle-thumb {
+    transform: translateX(20px);
+}
+
+.scd-toggle-input:focus + .scd-toggle-track {
+    box-shadow: 0 0 0 2px var(--scd-form-focus-shadow);
+}
+
+/* ==========================================================================
+   Form States
+   ========================================================================== */
+
+/* Error state */
+.scd-form-field--error .scd-input,
+.scd-form-field--error .scd-textarea,
+.scd-form-field--error .scd-select,
+.scd-input--error,
+.scd-textarea--error,
+.scd-select--error {
+    border-color: var(--scd-form-error);
+}
+
+.scd-form-field--error .scd-input:focus,
+.scd-form-field--error .scd-textarea:focus,
+.scd-form-field--error .scd-select:focus,
+.scd-input--error:focus,
+.scd-textarea--error:focus,
+.scd-select--error:focus {
+    border-color: var(--scd-form-error);
+    box-shadow: 0 0 0 1px var(--scd-form-error);
+}
+
+.scd-form-error {
+    display: block;
+    margin-top: var(--scd-spacing-xs);
+    font-size: var(--scd-font-size-small);
+    color: var(--scd-form-error);
+}
+
+/* Success state */
+.scd-form-field--success .scd-input,
+.scd-form-field--success .scd-textarea,
+.scd-form-field--success .scd-select,
+.scd-input--success,
+.scd-textarea--success,
+.scd-select--success {
+    border-color: var(--scd-form-success);
+}
+
+.scd-form-field--success .scd-input:focus,
+.scd-form-field--success .scd-textarea:focus,
+.scd-form-field--success .scd-select:focus,
+.scd-input--success:focus,
+.scd-textarea--success:focus,
+.scd-select--success:focus {
+    border-color: var(--scd-form-success);
+    box-shadow: 0 0 0 1px var(--scd-form-success);
+}
+
+.scd-form-success {
+    display: block;
+    margin-top: var(--scd-spacing-xs);
+    font-size: var(--scd-font-size-small);
+    color: var(--scd-form-success);
+}
+
+/* Disabled state */
+.scd-input:disabled,
+.scd-textarea:disabled,
+.scd-select:disabled,
+.scd-input--disabled,
+.scd-textarea--disabled,
+.scd-select--disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: var(--scd-color-surface);
+}
+
+/* ==========================================================================
+   Form Helpers
+   ========================================================================== */
+
+.scd-form-help {
+    display: block;
+    margin-top: var(--scd-spacing-xs);
+    font-size: var(--scd-font-size-small);
+    color: var(--scd-color-text-muted);
+}
+
+/* Input groups */
+.scd-input-group {
+    display: flex;
+    align-items: stretch;
+}
+
+.scd-input-group .scd-input {
+    flex: 1;
+    border-radius: 0;
+}
+
+.scd-input-group .scd-input:first-child {
+    border-radius: var(--scd-radius-md) 0 0 var(--scd-radius-md);
+}
+
+.scd-input-group .scd-input:last-child {
+    border-radius: 0 var(--scd-radius-md) var(--scd-radius-md) 0;
+}
+
+.scd-input-group-addon {
+    display: flex;
+    align-items: center;
+    padding: 0 var(--scd-spacing-md);
+    background: var(--scd-color-surface);
+    border: var(--scd-border-width) solid var(--scd-color-border);
+    color: var(--scd-color-text-muted);
+}
+
+.scd-input-group-addon:first-child {
+    border-radius: var(--scd-radius-md) 0 0 var(--scd-radius-md);
+    border-right: 0;
+}
+
+.scd-input-group-addon:last-child {
+    border-radius: 0 var(--scd-radius-md) var(--scd-radius-md) 0;
+    border-left: 0;
+}
+
+/* ==========================================================================
+   WordPress Admin Form Integration
+   ========================================================================== */
+
+/* Apply theme colors to WordPress form elements when opted-in */
+.scd-themed-forms input[type="text"]:focus,
+.scd-themed-forms input[type="email"]:focus,
+.scd-themed-forms input[type="url"]:focus,
+.scd-themed-forms input[type="number"]:focus,
+.scd-themed-forms input[type="password"]:focus,
+.scd-themed-forms input[type="search"]:focus,
+.scd-themed-forms textarea:focus,
+.scd-themed-forms select:focus {
+    border-color: var(--scd-form-focus);
+    box-shadow: 0 0 0 1px var(--scd-form-focus);
+}
+
+.scd-themed-forms input[type="checkbox"]:checked,
+.scd-themed-forms input[type="radio"]:checked {
+    background: var(--scd-form-checked-bg);
+    border-color: var(--scd-form-checked-border);
+}

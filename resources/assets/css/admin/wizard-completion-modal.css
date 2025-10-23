@@ -1,0 +1,444 @@
+/**
+ * Wizard Completion Modal Styles
+ * Professional centered modal for campaign creation process
+ *
+ * Dependencies: scd-variables, scd-utilities, scd-components, scd-forms, scd-buttons, scd-theme-colors (loaded via WordPress deps)
+ *
+ * @package SmartCycleDiscounts
+ * @since 1.0.0
+ */
+
+/* ===== OVERLAY ===== */
+.scd-completion-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.7);
+	backdrop-filter: blur(4px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 999999;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.scd-completion-overlay.is-active {
+	opacity: 1;
+	visibility: visible;
+}
+
+/* Prevent body scroll when modal is active */
+body.scd-completion-active {
+	overflow: hidden;
+}
+
+/* ===== MODAL CARD ===== */
+.scd-completion-modal {
+	background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+	border-radius: 12px;
+	padding: 48px 64px;
+	box-shadow:
+		0 8px 32px rgba(0, 0, 0, 0.12),
+		0 2px 8px rgba(0, 0, 0, 0.08),
+		0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+	min-width: 420px;
+	max-width: 520px;
+	text-align: center;
+	transform: scale(0.9) translateY(20px);
+	opacity: 0;
+	transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+	position: relative;
+	overflow: hidden;
+}
+
+.scd-completion-overlay.is-active .scd-completion-modal {
+	transform: scale(1) translateY(0);
+	opacity: 1;
+}
+
+/* Subtle background pattern */
+.scd-completion-modal::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background:
+		radial-gradient(circle at 30% 30%, rgba(34, 113, 177, 0.04) 0%, transparent 50%),
+		radial-gradient(circle at 70% 70%, rgba(0, 163, 42, 0.04) 0%, transparent 50%);
+	pointer-events: none;
+	z-index: 0;
+}
+
+/* Error state background */
+.scd-completion-overlay.is-error .scd-completion-modal::before {
+	background:
+		radial-gradient(circle at 30% 30%, rgba(204, 0, 0, 0.04) 0%, transparent 50%),
+		radial-gradient(circle at 70% 70%, rgba(204, 0, 0, 0.04) 0%, transparent 50%);
+}
+
+/* ===== ICON WRAPPER ===== */
+.scd-completion-icon-wrapper {
+	position: relative;
+	width: 80px;
+	height: 80px;
+	margin: 0 auto 24px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+/* ===== ICONS ===== */
+.scd-completion-icon {
+	font-size: 64px;
+	width: 64px;
+	height: 64px;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+/* Loading icon (spinning update) */
+.scd-completion-icon--loading {
+	color: #2271b1;
+	filter: drop-shadow(0 4px 8px rgba(34, 113, 177, 0.3));
+}
+
+.scd-completion-overlay.is-loading .scd-completion-icon--loading {
+	opacity: 1;
+	animation: scd-spin-icon 1s linear infinite;
+}
+
+@keyframes scd-spin-icon {
+	0% {
+		transform: translate(-50%, -50%) rotate(0deg);
+	}
+	100% {
+		transform: translate(-50%, -50%) rotate(360deg);
+	}
+}
+
+/* Success icon (checkmark) */
+.scd-completion-icon--success {
+	color: #00a32a;
+	filter: drop-shadow(0 4px 12px rgba(0, 163, 42, 0.4));
+}
+
+.scd-completion-overlay.is-success .scd-completion-icon--success {
+	opacity: 1;
+	animation: scd-checkmark-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes scd-checkmark-pop {
+	0% {
+		transform: translate(-50%, -50%) scale(0) rotate(-90deg);
+		opacity: 0;
+	}
+	50% {
+		transform: translate(-50%, -50%) scale(1.2) rotate(10deg);
+	}
+	100% {
+		transform: translate(-50%, -50%) scale(1) rotate(0deg);
+		opacity: 1;
+	}
+}
+
+/* Error icon (X mark) */
+.scd-completion-icon--error {
+	color: #d63638;
+	filter: drop-shadow(0 4px 12px rgba(214, 54, 56, 0.4));
+}
+
+.scd-completion-overlay.is-error .scd-completion-icon--error {
+	opacity: 1;
+	animation: scd-error-shake 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes scd-error-shake {
+	0%, 100% {
+		transform: translate(-50%, -50%) translateX(0);
+	}
+	10%, 30%, 50%, 70%, 90% {
+		transform: translate(-50%, -50%) translateX(-8px);
+	}
+	20%, 40%, 60%, 80% {
+		transform: translate(-50%, -50%) translateX(8px);
+	}
+}
+
+/* ===== TITLE ===== */
+.scd-completion-title {
+	font-size: 24px;
+	font-weight: 600;
+	color: #1d2327;
+	margin: 0 0 12px;
+	line-height: 1.3;
+	letter-spacing: -0.02em;
+	position: relative;
+	z-index: 1;
+}
+
+/* Loading state title */
+.scd-completion-overlay.is-loading .scd-completion-title {
+	color: #2271b1;
+	margin-bottom: 0;
+}
+
+/* Success state title */
+.scd-completion-overlay.is-success .scd-completion-title {
+	color: #00a32a;
+	animation: scd-title-fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+}
+
+/* Error state title */
+.scd-completion-overlay.is-error .scd-completion-title {
+	color: #d63638;
+	animation: scd-title-fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+}
+
+@keyframes scd-title-fade-in {
+	0% {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* ===== MESSAGE ===== */
+.scd-completion-message {
+	font-size: 15px;
+	line-height: 1.5;
+	color: #50575e;
+	margin: 0 0 24px;
+	position: relative;
+	z-index: 1;
+	animation: scd-message-fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.3s both;
+}
+
+.scd-completion-message:empty {
+	display: none;
+}
+
+.scd-completion-overlay.is-error .scd-completion-message {
+	color: #3c434a;
+}
+
+@keyframes scd-message-fade-in {
+	0% {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* ===== ACTIONS ===== */
+.scd-completion-actions {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	gap: 12px;
+	justify-content: center;
+	align-items: center;
+	animation: scd-actions-fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.4s both;
+}
+
+.scd-completion-actions:empty {
+	display: none;
+}
+
+.scd-completion-actions .button {
+	min-width: 120px;
+}
+
+.scd-completion-actions .scd-completion-view {
+	text-decoration: none;
+}
+
+@keyframes scd-actions-fade-in {
+	0% {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* ===== SCREEN READER STATUS (HIDDEN) ===== */
+.scd-completion-status {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* ===== PULSING EFFECT FOR LOADING ===== */
+.scd-completion-overlay.is-loading .scd-completion-modal::after {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 100px;
+	height: 100px;
+	margin-left: -50px;
+	margin-top: -50px;
+	border-radius: 50%;
+	background: radial-gradient(circle, rgba(34, 113, 177, 0.1) 0%, transparent 70%);
+	animation: scd-pulse 2s ease-in-out infinite;
+	pointer-events: none;
+	z-index: 0;
+}
+
+@keyframes scd-pulse {
+	0%, 100% {
+		transform: scale(1);
+		opacity: 0.3;
+	}
+	50% {
+		transform: scale(1.5);
+		opacity: 0;
+	}
+}
+
+/* ===== SUCCESS BURST EFFECT ===== */
+.scd-completion-overlay.is-success .scd-completion-modal::after {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 120px;
+	height: 120px;
+	margin-left: -60px;
+	margin-top: -60px;
+	border-radius: 50%;
+	background: radial-gradient(circle, rgba(0, 163, 42, 0.15) 0%, transparent 70%);
+	animation: scd-success-burst 0.6s ease-out;
+	pointer-events: none;
+	z-index: 0;
+}
+
+@keyframes scd-success-burst {
+	0% {
+		transform: scale(0);
+		opacity: 0.8;
+	}
+	100% {
+		transform: scale(2);
+		opacity: 0;
+	}
+}
+
+/* ===== ERROR PULSE EFFECT ===== */
+.scd-completion-overlay.is-error .scd-completion-modal::after {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 120px;
+	height: 120px;
+	margin-left: -60px;
+	margin-top: -60px;
+	border-radius: 50%;
+	background: radial-gradient(circle, rgba(214, 54, 56, 0.1) 0%, transparent 70%);
+	animation: scd-error-pulse 0.6s ease-out;
+	pointer-events: none;
+	z-index: 0;
+}
+
+@keyframes scd-error-pulse {
+	0% {
+		transform: scale(0);
+		opacity: 0.8;
+	}
+	100% {
+		transform: scale(2);
+		opacity: 0;
+	}
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 600px) {
+	.scd-completion-modal {
+		min-width: 320px;
+		max-width: 90%;
+		padding: 36px 32px;
+	}
+
+	.scd-completion-icon-wrapper {
+		width: 64px;
+		height: 64px;
+		margin-bottom: 20px;
+	}
+
+	.scd-completion-icon {
+		font-size: 48px;
+		width: 48px;
+		height: 48px;
+	}
+
+	.scd-completion-title {
+		font-size: 20px;
+	}
+
+	.scd-completion-message {
+		font-size: 14px;
+	}
+
+	.scd-completion-actions {
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.scd-completion-actions .button {
+		width: 100%;
+		min-width: 0;
+	}
+}
+
+/* ===== REDUCED MOTION SUPPORT ===== */
+@media (prefers-reduced-motion: reduce) {
+	.scd-completion-overlay,
+	.scd-completion-modal,
+	.scd-completion-icon,
+	.scd-completion-title,
+	.scd-completion-message,
+	.scd-completion-actions {
+		animation: none !important;
+		transition-duration: 0.1s !important;
+	}
+
+	.scd-completion-overlay.is-active .scd-completion-modal {
+		transform: scale(1) translateY(0);
+	}
+
+	.scd-completion-overlay.is-loading .scd-completion-icon--loading,
+	.scd-completion-overlay.is-success .scd-completion-icon--success,
+	.scd-completion-overlay.is-error .scd-completion-icon--error {
+		opacity: 1;
+		transform: translate(-50%, -50%);
+	}
+
+	.scd-completion-modal::after {
+		display: none !important;
+	}
+}

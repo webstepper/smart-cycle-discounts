@@ -1,0 +1,1735 @@
+/**
+ * Schedule Step Styles
+ * WordPress 6.4+ Design System Implementation
+ *
+ * Follows YAGNI, KISS, and DRY principles
+ * - Only essential styles for schedule selection functionality
+ * - Simple, readable class names
+ * - No duplicate code (common styles in wizard-steps.css)
+ *
+ * Dependencies: scd-variables, scd-utilities, scd-components, scd-forms, scd-buttons, scd-theme-colors (loaded via WordPress deps)
+ */
+
+/* ==========================================================================
+   Schedule Step Variables
+   ========================================================================== */
+
+.scd-wizard-step--schedule {
+    --scd-schedule-accent: var(--wp-admin-theme-color, #2271b1);
+    --scd-schedule-highlight: var(--wp-admin-theme-color-lighter-20, #f0f6fc);
+}
+
+/* Layout handled by wizard-fullscreen.css */
+.scd-wizard-step--schedule .scd-step-main-content {
+    order: 1;
+}
+
+.scd-wizard-step--schedule .scd-step-sidebar {
+    order: 2;
+}
+
+/* ==========================================================================
+   Schedule Type Selection Cards
+   ========================================================================== */
+
+.scd-schedule-selection-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-top: var(--scd-spacing-lg, 20px);
+}
+
+/* Schedule selection card - professional aesthetic matching products step */
+.scd-schedule-selection-cards .scd-card-option {
+    background: var(--scd-color-background);
+    border: 1px solid var(--scd-color-border-light, #e0e0e0);
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Top accent bar */
+.scd-schedule-selection-cards .scd-card-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: transparent;
+    transition: background 0.15s ease;
+}
+
+.scd-schedule-selection-cards .scd-card-option input[type="radio"] {
+    display: none;
+}
+
+.scd-schedule-selection-cards .scd-card-option:hover {
+    background: linear-gradient(to bottom, #ffffff, #fafbfc);
+    border-color: var(--scd-color-border-dark, #8c8f94);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.scd-schedule-selection-cards .scd-card-option:hover::before {
+    background: linear-gradient(to right, var(--scd-color-primary, #2271b1), var(--wp-admin-theme-color-darker-10, #135e96));
+}
+
+.scd-schedule-selection-cards .scd-card-option:has(input[type="radio"]:checked) {
+    background: linear-gradient(to bottom, #f8fbff, #ffffff);
+    border-color: var(--scd-color-primary);
+    border-width: 2px;
+    box-shadow: 0 0 0 1px var(--scd-color-primary), 0 4px 12px rgba(34, 113, 177, 0.12);
+}
+
+.scd-schedule-selection-cards .scd-card-option:has(input[type="radio"]:checked)::before {
+    background: var(--scd-color-primary, #2271b1);
+}
+
+.scd-schedule-selection-cards .scd-card__content {
+    padding: 0;
+}
+
+.scd-schedule-selection-cards .scd-card__content h4 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--scd-color-text, #1d2327);
+    letter-spacing: -0.01em;
+    line-height: 1.4;
+}
+
+/* Divider line between title and description */
+.scd-schedule-selection-cards .scd-card__content h4::after {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 1px;
+    background: var(--scd-color-border, #c3c4c7);
+    margin-top: 10px;
+    border-radius: 1px;
+    transition: width 0.15s ease;
+}
+
+.scd-schedule-selection-cards .scd-card-option:hover .scd-card__content h4::after {
+    width: 60px;
+}
+
+.scd-schedule-selection-cards .scd-card-option:has(input[type="radio"]:checked) .scd-card__content h4::after {
+    width: 100%;
+    background: var(--scd-color-primary, #2271b1);
+}
+
+.scd-schedule-selection-cards .scd-card__content h4 .dashicons {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+    color: var(--scd-color-primary, #2271b1);
+    margin-right: 10px;
+    vertical-align: middle;
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.scd-schedule-selection-cards .scd-card-option:hover .scd-card__content h4 .dashicons {
+    transform: scale(1.08);
+    color: var(--wp-admin-theme-color-darker-10, #135e96);
+}
+
+.scd-schedule-selection-cards .scd-card__content p {
+    margin: 12px 0 0 0;
+    font-size: 13px;
+    color: var(--scd-color-text-muted, #646970);
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+}
+
+/* ==========================================================================
+   Form Sections and Headers - Improved Spacing
+   ========================================================================== */
+
+.scd-form-section {
+    margin-bottom: 32px;
+}
+
+.scd-section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--scd-color-text, #1d2327);
+    margin: 0 0 20px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--scd-color-border-light, #e0e0e0);
+}
+
+/* ==========================================================================
+   Duration Presets - Fixed for Timeline Preset Classes
+   ========================================================================== */
+
+.scd-preset-section {
+    margin-bottom: 32px;
+}
+
+.scd-preset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+}
+
+/* Timeline preset styles - refined to match overall aesthetic */
+.scd-timeline-preset {
+    position: relative;
+    text-align: center;
+}
+
+.scd-timeline-preset__button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 100px;
+    padding: 18px 14px;
+    background: var(--scd-color-white, #fff);
+    border: 1px solid var(--scd-color-border-light, #e0e0e0);
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    font-family: inherit;
+}
+
+.scd-timeline-preset__button:hover {
+    border-color: var(--scd-color-border-dark, #8c8f94);
+    background: linear-gradient(to bottom, #ffffff, #fafbfc);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.scd-timeline-preset__button:focus {
+    outline: 2px solid var(--scd-color-primary, #2271b1);
+    outline-offset: 2px;
+    box-shadow: 0 2px 4px rgba(34, 113, 177, 0.12);
+}
+
+.scd-timeline-preset--active .scd-timeline-preset__button {
+    border-color: var(--scd-color-primary, #2271b1);
+    border-width: 2px;
+    background: var(--scd-color-primary, #2271b1);
+    color: var(--scd-color-white, #fff);
+    box-shadow: 0 0 0 1px var(--scd-color-primary), 0 4px 8px rgba(34, 113, 177, 0.2);
+}
+
+.scd-timeline-preset__icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+    color: var(--scd-color-primary, #2271b1);
+    transition: transform 0.15s ease;
+}
+
+.scd-timeline-preset__button:hover .scd-timeline-preset__icon {
+    transform: scale(1.05);
+}
+
+.scd-timeline-preset--active .scd-timeline-preset__icon {
+    color: var(--scd-color-white, #fff);
+    transform: scale(1);
+}
+
+.scd-timeline-preset__duration {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--scd-color-text, #1d2327);
+    letter-spacing: -0.01em;
+}
+
+.scd-timeline-preset--active .scd-timeline-preset__duration {
+    color: var(--scd-color-white, #fff);
+}
+
+.scd-timeline-preset__name {
+    font-size: 12px;
+    color: var(--scd-color-text-muted, #646970);
+    letter-spacing: 0.01em;
+}
+
+.scd-timeline-preset--active .scd-timeline-preset__name {
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.scd-timeline-preset__tooltip {
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--scd-color-white, #fff);
+    font-size: 12px;
+    white-space: nowrap;
+    border-radius: 4px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.scd-timeline-preset:hover .scd-timeline-preset__tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Loading State */
+.scd-preset-loading {
+    grid-column: 1 / -1;
+    padding: 40px;
+    text-align: center;
+    color: var(--scd-color-text-muted, #646970);
+}
+
+/* ==========================================================================
+   Date/Time Fields Section
+   ========================================================================== */
+
+.scd-scheduled-start-fields {
+    margin-top: 20px;
+}
+
+/* Table layout for form fields */
+.scd-rules-table {
+    width: 100%;
+    border-spacing: 0;
+}
+
+/* More specific selector to override other step styles */
+#scd-step-schedule .scd-rules-table th,
+.scd-wizard-step--schedule .scd-rules-table th,
+[data-step="schedule"] .scd-rules-table th {
+    width: 180px;
+    padding: 18px 24px 18px 0;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--scd-color-text, #1d2327);
+    text-align: left;
+    vertical-align: top;
+    letter-spacing: -0.01em;
+}
+
+#scd-step-schedule .scd-rules-table td,
+.scd-wizard-step--schedule .scd-rules-table td,
+[data-step="schedule"] .scd-rules-table td {
+    padding: 18px 0;
+    vertical-align: top;
+}
+
+.scd-rules-table tr {
+    border-bottom: 1px solid transparent;
+}
+
+.scd-rules-table tr:hover {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.scd-field-help {
+    display: block;
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--scd-color-text-muted, #646970);
+    font-style: normal;
+}
+
+/* Clear button styling - matching step aesthetic */
+.scd-clear-end-date {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 12px;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    background: var(--scd-color-background, #fff);
+    border: 1px solid var(--scd-color-border-light, #e0e0e0);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.scd-clear-end-date .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: var(--scd-color-text-muted, #646970);
+    transition: color 0.15s ease;
+}
+
+.scd-clear-end-date:hover {
+    background: var(--scd-color-error-bg, #fcf0f1);
+    border-color: var(--scd-color-error, #d63638);
+    box-shadow: 0 1px 3px rgba(214, 54, 56, 0.1);
+}
+
+.scd-clear-end-date:hover .dashicons {
+    color: var(--scd-color-error, #d63638);
+}
+
+.scd-clear-end-date:focus {
+    outline: 2px solid var(--scd-color-error, #d63638);
+    outline-offset: 2px;
+}
+
+/* Required indicator handled by wizard-steps.css */
+
+/* Input constraints for schedule step specifically */
+.scd-step-main-content input[type="text"],
+.scd-step-main-content input[type="date"],
+.scd-step-main-content input[type="time"],
+.scd-step-main-content select {
+    max-width: 280px;
+}
+
+/* Date and time wrapper - Professional Minimalist */
+.scd-datetime-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 20px;
+    border: 1px solid var(--scd-color-border-light, #e0e0e0);
+    border-left: 3px solid var(--wp-admin-theme-color, #2271b1);
+    border-radius: 4px;
+}
+
+/* Date picker wrapper - Minimalist Design */
+.scd-date-picker-wrapper {
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+    max-width: 280px;
+}
+
+.scd-date-picker {
+    width: 100%;
+    height: 40px;
+    padding: 0 40px 0 12px;
+    border: 1px solid var(--scd-color-border, #c3c4c7);
+    border-radius: 4px;
+    font-size: 14px;
+    background: var(--scd-color-white, #fff);
+    color: var(--scd-color-text, #1d2327);
+    transition: border-color 0.15s ease;
+}
+
+.scd-date-picker:hover {
+    border-color: var(--scd-color-text-muted, #646970);
+}
+
+.scd-date-picker:focus {
+    border-color: var(--wp-admin-theme-color, #2271b1);
+    outline: none;
+}
+
+/* Calendar icon button - Minimalist Design */
+.scd-calendar-icon {
+    position: absolute;
+    right: 1px;
+    top: 1px;
+    bottom: 1px;
+    width: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-left: 1px solid var(--scd-color-border, #c3c4c7);
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.scd-calendar-icon:hover {
+    background: var(--scd-color-surface, #f6f7f7);
+}
+
+.scd-calendar-icon .dashicons {
+    font-size: 18px;
+    color: var(--scd-color-text-muted, #646970);
+}
+
+/* Time picker wrapper - Minimalist Design */
+.scd-time-picker-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.scd-at-label {
+    color: var(--scd-color-text-muted, #646970);
+    font-size: 13px;
+}
+
+.scd-time-picker {
+    width: 100px;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--scd-color-border, #c3c4c7);
+    border-radius: 4px;
+    font-size: 14px;
+    background: var(--scd-color-white, #fff);
+    color: var(--scd-color-text, #1d2327);
+    transition: border-color 0.15s ease;
+}
+
+.scd-time-picker:hover {
+    border-color: var(--scd-color-text-muted, #646970);
+}
+
+.scd-time-picker:focus {
+    border-color: var(--wp-admin-theme-color, #2271b1);
+    outline: none;
+}
+
+/* Clear button - Minimalist Design */
+.scd-clear-end-date {
+    padding: 0 12px;
+    height: 40px;
+    background: transparent;
+    border: 1px solid var(--scd-color-border, #c3c4c7);
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--scd-color-text-muted, #646970);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.scd-clear-end-date:hover {
+    border-color: var(--scd-color-error, #d63638);
+    color: var(--scd-color-error, #d63638);
+}
+
+/* ==========================================================================
+   Status Messages and Indicators
+   ========================================================================== */
+
+.scd-duration-display {
+    background: linear-gradient(135deg, var(--scd-schedule-highlight) 0%, rgba(34, 113, 177, 0.05) 100%);
+    border: 1px solid var(--scd-color-primary, #2271b1);
+    border-left-width: 4px;
+    border-radius: 6px;
+    padding: 20px 24px;
+    margin: 32px 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.scd-duration-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.scd-duration-icon {
+    font-size: 24px;
+    color: var(--scd-color-primary, #2271b1);
+}
+
+.scd-duration-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--scd-color-text, #1d2327);
+}
+
+.scd-duration-value {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--scd-color-primary, #2271b1);
+}
+
+.scd-duration-hint {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(34, 113, 177, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.scd-hint-icon {
+    font-size: 18px;
+}
+
+.scd-hint-text {
+    font-size: 13px;
+    color: var(--scd-color-text-muted, #646970);
+}
+
+.scd-timezone-indicator {
+    background: var(--scd-color-surface, #f6f7f7);
+    border: 1px solid var(--scd-color-border-light, #e0e0e0);
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-top: 24px;
+}
+
+.scd-timezone-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.scd-timezone-icon {
+    font-size: 20px;
+    color: var(--scd-color-primary, #2271b1);
+}
+
+.scd-timezone-label {
+    font-size: 13px;
+    color: var(--scd-color-text-muted, #646970);
+}
+
+.scd-timezone-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--scd-color-text, #1d2327);
+}
+
+.scd-timezone-note {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--scd-color-text-muted, #646970);
+    font-style: italic;
+}
+
+.scd-timezone-note strong {
+    color: var(--scd-color-primary, #2271b1);
+    font-weight: 600;
+    font-style: normal;
+}
+
+/* ==========================================================================
+   Validation Messages
+   ========================================================================== */
+
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.scd-error-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--scd-color-error-light, #fef2f2);
+    border: 1px solid var(--scd-color-error-border, #fecaca);
+    border-left-width: 4px;
+    border-left-color: var(--scd-color-error, #d63638);
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--scd-color-error, #d63638);
+}
+
+.scd-error-message .dashicons {
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media (max-width: 782px) {
+    .scd-schedule-selection-cards {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    
+    .scd-preset-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .scd-timeline-preset__button {
+        min-height: 80px;
+        padding: 12px;
+    }
+    
+    .scd-timeline-preset__icon {
+        font-size: 24px;
+    }
+    
+    .scd-rules-table th {
+        width: auto;
+        display: block;
+        padding: 8px 0;
+    }
+    
+    .scd-rules-table td {
+        display: block;
+        padding: 8px 0;
+    }
+    
+    .scd-step-main-content input[type="text"],
+    .scd-step-main-content input[type="date"],
+    .scd-step-main-content input[type="time"],
+    .scd-step-main-content select,
+    .scd-date-picker-wrapper {
+        max-width: 100%;
+    }
+    
+    /* Stack datetime elements on mobile */
+    .scd-datetime-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .scd-time-picker-wrapper {
+        width: 100%;
+    }
+    
+    .scd-time-picker {
+        flex: 1;
+        max-width: 280px;
+        width: 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    .scd-preset-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .scd-timeline-preset__button {
+        min-height: 80px;
+        padding: 12px;
+    }
+    
+    .scd-timeline-preset__icon {
+        font-size: 24px;
+    }
+    
+    .scd-card__content {
+        padding: 20px;
+    }
+    
+    .scd-card__content h4 {
+        font-size: 14px;
+    }
+    
+    .scd-card__content p {
+        font-size: 13px;
+    }
+    
+}
+
+/* ==========================================================================
+   Status Panel - Modern Design
+   ========================================================================== */
+
+.scd-status-panel {
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin: 24px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.scd-status-panel--success {
+    background: var(--scd-color-success-light, #d4edda);
+    border: 1px solid var(--scd-color-success-border, #c3e6cb);
+    color: var(--scd-color-success-text, #155724);
+}
+
+.scd-status-panel--error {
+    background: var(--scd-color-error-light, #f8d7da);
+    border: 1px solid var(--scd-color-error-border, #f5c6cb);
+    color: var(--scd-color-error-text, #721c24);
+}
+
+.scd-status-panel--warning {
+    background: var(--scd-color-warning-light, #fff3cd);
+    border: 1px solid var(--scd-color-warning-border, #ffeaa7);
+    color: var(--scd-color-warning-text, #856404);
+}
+
+.scd-status-panel--info {
+    background: var(--scd-color-info-light, #d1ecf1);
+    border: 1px solid var(--scd-color-info-border, #bee5eb);
+    color: var(--scd-color-info-text, #0c5460);
+}
+
+.scd-status-icon {
+    font-size: 20px;
+}
+
+.scd-status-message {
+    flex: 1;
+    font-size: 14px;
+}
+
+/* ==========================================================================
+   Loading States
+   ========================================================================== */
+
+/* Loading states handled by shared _components.css and wizard-steps.css */
+
+/* Save indicator */
+.scd-save-status {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--scd-color-white, #fff);
+    border: 1px solid var(--scd-color-border, #c3c4c7);
+    border-radius: 4px;
+    padding: 12px 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 1000;
+}
+
+.scd-save-status.is-active .dashicons {
+    animation: spin 1s linear infinite;
+}
+
+.scd-save-text {
+    font-size: 14px;
+    color: var(--scd-color-text, #1d2327);
+}
+
+/* ==========================================================================
+   jQuery UI Datepicker - Custom Styling
+   ========================================================================== */
+
+/* Datepicker container */
+.ui-datepicker {
+    background: var(--scd-color-white, #fff);
+    border: 2px solid var(--wp-admin-theme-color, #2271b1);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    width: 280px;
+    z-index: 9999;
+}
+
+/* Datepicker header */
+.ui-datepicker .ui-datepicker-header {
+    background: var(--wp-admin-theme-color, #2271b1);
+    border: none;
+    border-radius: 6px 6px 0 0;
+    color: var(--scd-color-white, #fff);
+    font-weight: 600;
+    padding: 16px;
+    position: relative;
+}
+
+.ui-datepicker .ui-datepicker-title {
+    color: var(--scd-color-white, #fff);
+    font-weight: 600;
+    font-size: 16px;
+    text-align: center;
+    line-height: 1.2;
+    margin: 0;
+}
+
+/* Navigation buttons */
+.ui-datepicker .ui-datepicker-prev,
+.ui-datepicker .ui-datepicker-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ui-datepicker .ui-datepicker-prev {
+    left: 12px;
+}
+
+.ui-datepicker .ui-datepicker-next {
+    right: 12px;
+}
+
+.ui-datepicker .ui-datepicker-prev:hover,
+.ui-datepicker .ui-datepicker-next:hover {
+    background: rgba(255, 255, 255, 0.3);
+    /* transform: translateY(-50%); removed for instant state change */
+}
+
+/* Override jQuery UI default span hiding */
+.ui-datepicker .ui-datepicker-prev span,
+.ui-datepicker .ui-datepicker-next span {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 0 !important;
+    position: relative;
+    text-indent: 0 !important;
+    overflow: visible !important;
+}
+
+/* CSS Triangle Arrow Icons - Always visible */
+.ui-datepicker .ui-datepicker-prev span::before {
+    content: '';
+    display: block;
+    width: 0;
+    height: 0;
+    border-top: 7px solid transparent;
+    border-bottom: 7px solid transparent;
+    border-right: 9px solid var(--scd-color-white, #fff);
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
+}
+
+.ui-datepicker .ui-datepicker-next span::before {
+    content: '';
+    display: block;
+    width: 0;
+    height: 0;
+    border-top: 7px solid transparent;
+    border-bottom: 7px solid transparent;
+    border-left: 9px solid var(--scd-color-white, #fff);
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
+}
+
+/* Fallback text arrows for older browsers */
+@supports not (filter: drop-shadow(0 0 0 transparent)) {
+    .ui-datepicker .ui-datepicker-prev span::before {
+        content: '‹';
+        border: none;
+        width: auto;
+        height: auto;
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--scd-color-white, #fff);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+        line-height: 1;
+    }
+    
+    .ui-datepicker .ui-datepicker-next span::before {
+        content: '›';
+        border: none;
+        width: auto;
+        height: auto;
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--scd-color-white, #fff);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+        line-height: 1;
+    }
+}
+
+/* Calendar table */
+.ui-datepicker table {
+    width: 100%;
+    margin: 0;
+    border-collapse: separate;
+    border-spacing: 2px;
+    padding: 12px;
+}
+
+.ui-datepicker th {
+    background: var(--scd-color-surface, #f6f7f7);
+    color: var(--scd-color-text, #1d2327);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 4px;
+    text-align: center;
+    border: none;
+    border-radius: 4px;
+}
+
+.ui-datepicker td {
+    padding: 0;
+    border: none;
+}
+
+.ui-datepicker td a,
+.ui-datepicker td span {
+    display: block;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    margin: 1px;
+}
+
+/* Default date cells */
+.ui-datepicker td a {
+    color: var(--scd-color-text, #1d2327);
+    background: transparent;
+    border: 1px solid transparent;
+}
+
+.ui-datepicker td a:hover {
+    background: var(--wp-admin-theme-color-lighter-20, #f0f6fc);
+    border-color: var(--wp-admin-theme-color, #2271b1);
+    color: var(--wp-admin-theme-color, #2271b1);
+    /* transform: scale(1.05); removed for instant state change */
+}
+
+/* Today's date */
+.ui-datepicker td.ui-datepicker-today a {
+    background: var(--scd-color-warning-light, #fff3cd);
+    border-color: var(--scd-color-warning-border, #ffc107);
+    color: var(--scd-color-warning-text, #856404);
+    font-weight: 600;
+}
+
+.ui-datepicker td.ui-datepicker-today a:hover {
+    background: var(--scd-color-warning-light, #fff3cd);
+    border-color: var(--scd-color-warning-border, #ffc107);
+    /* transform: scale(1.05); removed for instant state change */
+}
+
+/* Selected date */
+.ui-datepicker td.ui-datepicker-current-day a,
+.ui-datepicker td a.ui-state-active {
+    background: var(--wp-admin-theme-color, #2271b1) !important;
+    border-color: var(--wp-admin-theme-color, #2271b1) !important;
+    color: var(--scd-color-white, #fff) !important;
+    font-weight: 600;
+    box-shadow: 0 2px 6px var(--wp-admin-theme-color-darker-10, rgba(34, 113, 177, 0.3));
+}
+
+/* Disabled/other month dates */
+.ui-datepicker td.ui-datepicker-other-month a {
+    color: var(--scd-color-gray-400, #c3c4c7);
+    background: transparent;
+}
+
+.ui-datepicker td.ui-datepicker-unselectable span {
+    color: var(--scd-color-gray-400, #c3c4c7);
+    background: transparent;
+    cursor: not-allowed;
+}
+
+/* Weekend dates */
+.ui-datepicker td.ui-datepicker-week-end a {
+    color: var(--wp-admin-theme-color-darker-20, #135e96);
+}
+
+.ui-datepicker td.ui-datepicker-week-end a:hover {
+    background: var(--wp-admin-theme-color-lighter-10, #e5f3ff);
+    border-color: var(--wp-admin-theme-color-darker-20, #135e96);
+    color: var(--wp-admin-theme-color-darker-20, #135e96);
+}
+
+/* Month/year dropdowns */
+.ui-datepicker select.ui-datepicker-month,
+.ui-datepicker select.ui-datepicker-year {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    color: var(--scd-color-white, #fff);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 4px 8px;
+    margin: 0 4px;
+}
+
+.ui-datepicker select.ui-datepicker-month:focus,
+.ui-datepicker select.ui-datepicker-year:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
+}
+
+/* Clean datepicker appearance */
+.ui-datepicker {
+    /* Animations disabled in JavaScript configuration */
+}
+
+/* Button panel (if enabled) */
+.ui-datepicker .ui-datepicker-buttonpane {
+    background: var(--scd-color-surface, #f6f7f7);
+    border-top: 1px solid var(--scd-color-border-light, #e0e0e0);
+    padding: 12px;
+    text-align: right;
+    border-radius: 0 0 6px 6px;
+}
+
+.ui-datepicker .ui-datepicker-buttonpane button {
+    background: var(--wp-admin-theme-color, #2271b1);
+    border: none;
+    border-radius: 4px;
+    color: var(--scd-color-white, #fff);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    margin: 0 4px;
+    padding: 6px 12px;
+    transition: all 0.2s ease;
+}
+
+.ui-datepicker .ui-datepicker-buttonpane button:hover {
+    background: var(--wp-admin-theme-color-darker-10, #135e96);
+    /* transform: translateY(-1px); removed for instant state change */
+}
+
+/* Multi-month datepicker */
+.ui-datepicker.ui-datepicker-multi {
+    width: auto;
+}
+
+.ui-datepicker.ui-datepicker-multi .ui-datepicker-group {
+    float: left;
+}
+
+.ui-datepicker.ui-datepicker-multi-2 .ui-datepicker-group {
+    width: 50%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .ui-datepicker {
+        width: 260px;
+        font-size: 13px;
+    }
+    
+    .ui-datepicker .ui-datepicker-header {
+        padding: 12px;
+    }
+    
+    .ui-datepicker .ui-datepicker-title {
+        font-size: 14px;
+    }
+    
+    .ui-datepicker td a,
+    .ui-datepicker td span {
+        width: 28px;
+        height: 28px;
+        line-height: 28px;
+        font-size: 12px;
+    }
+    
+    .ui-datepicker th {
+        padding: 6px 2px;
+        font-size: 12px;
+    }
+}
+
+/* WordPress Admin Color Scheme Adaptations */
+
+/* Fresh (Default Blue) */
+body.admin-color-fresh .ui-datepicker {
+    border-color: var(--wp-admin-theme-color, #2271b1);
+}
+
+body.admin-color-fresh .ui-datepicker .ui-datepicker-header {
+    background: var(--wp-admin-theme-color, #2271b1);
+}
+
+/* Light */
+body.admin-color-light .ui-datepicker {
+    border-color: var(--wp-admin-theme-color, #0085ba);
+}
+
+body.admin-color-light .ui-datepicker .ui-datepicker-header {
+    background: var(--wp-admin-theme-color, #0085ba);
+}
+
+body.admin-color-light .ui-datepicker td a:hover {
+    background: var(--scd-color-primary-light, #e5f3ff);
+    border-color: var(--wp-admin-theme-color, #0085ba);
+    color: var(--wp-admin-theme-color, #0085ba);
+}
+
+body.admin-color-light .ui-datepicker td.ui-datepicker-current-day a,
+body.admin-color-light .ui-datepicker td a.ui-state-active {
+    background: var(--wp-admin-theme-color, #0085ba) !important;
+    border-color: var(--wp-admin-theme-color, #0085ba) !important;
+}
+
+/* Modern */
+body.admin-color-modern .ui-datepicker {
+    border-color: var(--wp-admin-theme-color, #3858e9);
+}
+
+body.admin-color-modern .ui-datepicker .ui-datepicker-header {
+    background: var(--wp-admin-theme-color, #3858e9);
+}
+
+body.admin-color-modern .ui-datepicker td a:hover {
+    background: var(--scd-color-primary-light, #f0f2ff);
+    border-color: var(--wp-admin-theme-color, #3858e9);
+    color: var(--wp-admin-theme-color, #3858e9);
+}
+
+body.admin-color-modern .ui-datepicker td.ui-datepicker-current-day a,
+body.admin-color-modern .ui-datepicker td a.ui-state-active {
+    background: var(--wp-admin-theme-color, #3858e9) !important;
+    border-color: var(--wp-admin-theme-color, #3858e9) !important;
+}
+
+/* Blue */
+body.admin-color-blue .ui-datepicker {
+    border-color: var(--wp-admin-theme-color, #096484);
+}
+
+body.admin-color-blue .ui-datepicker .ui-datepicker-header {
+    background: var(--wp-admin-theme-color, #096484);
+}
+
+body.admin-color-blue .ui-datepicker td a:hover {
+    background: var(--scd-color-primary-light, #e6f3f7);
+    border-color: var(--wp-admin-theme-color, #096484);
+    color: var(--wp-admin-theme-color, #096484);
+}
+
+body.admin-color-blue .ui-datepicker td.ui-datepicker-current-day a,
+body.admin-color-blue .ui-datepicker td a.ui-state-active {
+    background: var(--wp-admin-theme-color, #096484) !important;
+    border-color: var(--wp-admin-theme-color, #096484) !important;
+}
+
+/* Coffee */
+body.admin-color-coffee .ui-datepicker {
+    border-color: var(--wp-admin-theme-color, #46403c);
+}
+
+body.admin-color-coffee .ui-datepicker .ui-datepicker-header {
+    background: var(--wp-admin-theme-color, #46403c);
+}
+
+body.admin-color-coffee .ui-datepicker td a:hover {
+    background: var(--scd-color-primary-light, #f3f1f0);
+    border-color: var(--wp-admin-theme-color, #46403c);
+    color: var(--wp-admin-theme-color, #46403c);
+}
+
+body.admin-color-coffee .ui-datepicker td.ui-datepicker-current-day a,
+body.admin-color-coffee .ui-datepicker td a.ui-state-active {
+    background: var(--wp-admin-theme-color, #46403c) !important;
+    border-color: var(--wp-admin-theme-color, #46403c) !important;
+}
+
+/* Ectoplasm */
+body.admin-color-ectoplasm .ui-datepicker {
+    border-color: var(--wp-admin-theme-color, #523f6d);
+}
+
+body.admin-color-ectoplasm .ui-datepicker .ui-datepicker-header {
+    background: var(--wp-admin-theme-color, #523f6d);
+}
+
+body.admin-color-ectoplasm .ui-datepicker td a:hover {
+    background: var(--scd-color-primary-light, #f2f0f5);
+    border-color: var(--wp-admin-theme-color, #523f6d);
+    color: var(--wp-admin-theme-color, #523f6d);
+}
+
+body.admin-color-ectoplasm .ui-datepicker td.ui-datepicker-current-day a,
+body.admin-color-ectoplasm .ui-datepicker td a.ui-state-active {
+    background: var(--wp-admin-theme-color, #523f6d) !important;
+    border-color: var(--wp-admin-theme-color, #523f6d) !important;
+}
+
+/* Midnight */
+body.admin-color-midnight .ui-datepicker {
+    border-color: var(--wp-admin-theme-color, #e14d43);
+}
+
+body.admin-color-midnight .ui-datepicker .ui-datepicker-header {
+    background: var(--wp-admin-theme-color, #e14d43);
+}
+
+body.admin-color-midnight .ui-datepicker td a:hover {
+    background: var(--scd-color-primary-light, #fdf2f1);
+    border-color: var(--wp-admin-theme-color, #e14d43);
+    color: var(--wp-admin-theme-color, #e14d43);
+}
+
+body.admin-color-midnight .ui-datepicker td.ui-datepicker-current-day a,
+body.admin-color-midnight .ui-datepicker td a.ui-state-active {
+    background: var(--wp-admin-theme-color, #e14d43) !important;
+    border-color: var(--wp-admin-theme-color, #e14d43) !important;
+}
+
+/* Ocean */
+body.admin-color-ocean .ui-datepicker {
+    border-color: var(--wp-admin-theme-color, #627c83);
+}
+
+body.admin-color-ocean .ui-datepicker .ui-datepicker-header {
+    background: var(--wp-admin-theme-color, #627c83);
+}
+
+body.admin-color-ocean .ui-datepicker td a:hover {
+    background: var(--scd-color-primary-light, #f1f3f4);
+    border-color: var(--wp-admin-theme-color, #627c83);
+    color: var(--wp-admin-theme-color, #627c83);
+}
+
+body.admin-color-ocean .ui-datepicker td.ui-datepicker-current-day a,
+body.admin-color-ocean .ui-datepicker td a.ui-state-active {
+    background: var(--wp-admin-theme-color, #627c83) !important;
+    border-color: var(--wp-admin-theme-color, #627c83) !important;
+}
+
+/* Sunrise */
+body.admin-color-sunrise .ui-datepicker {
+    border-color: var(--wp-admin-theme-color, #dd823b);
+}
+
+body.admin-color-sunrise .ui-datepicker .ui-datepicker-header {
+    background: var(--wp-admin-theme-color, #dd823b);
+}
+
+body.admin-color-sunrise .ui-datepicker td a:hover {
+    background: var(--scd-color-primary-light, #fcf7f1);
+    border-color: var(--wp-admin-theme-color, #dd823b);
+    color: var(--wp-admin-theme-color, #dd823b);
+}
+
+body.admin-color-sunrise .ui-datepicker td.ui-datepicker-current-day a,
+body.admin-color-sunrise .ui-datepicker td a.ui-state-active {
+    background: var(--wp-admin-theme-color, #dd823b) !important;
+    border-color: var(--wp-admin-theme-color, #dd823b) !important;
+}
+
+/* Dark mode support for all color schemes */
+@media (prefers-color-scheme: dark) {
+    .ui-datepicker {
+        background: var(--scd-color-gray-900, #1d2327);
+        color: var(--scd-color-surface-dark, #f0f0f1);
+    }
+    
+    .ui-datepicker th {
+        background: var(--scd-color-gray-800, #2c3338);
+        color: var(--scd-color-surface-dark, #f0f0f1);
+    }
+    
+    .ui-datepicker td a {
+        color: var(--scd-color-surface-dark, #f0f0f1);
+    }
+    
+    .ui-datepicker td a:hover {
+        background: var(--scd-color-gray-800, #2c3338);
+    }
+    
+    .ui-datepicker .ui-datepicker-buttonpane {
+        background: var(--scd-color-gray-800, #2c3338);
+        border-color: var(--scd-color-gray-700, #3c434a);
+    }
+}
+
+/* ==========================================================================
+   Recurring Schedule Styles - WordPress Standards
+   ========================================================================== */
+
+/* Badge styling */
+.scd-badge--optional {
+    display: inline-block;
+    padding: 2px 8px;
+    margin-left: 8px;
+    background: var(--scd-color-surface-dark, #f0f0f1);
+    color: var(--scd-color-text-muted, #646970);
+    font-size: 12px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 3px;
+}
+
+/* Toggle control - WordPress admin style */
+.scd-toggle-control {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.scd-toggle-control input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.scd-toggle-slider {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    background-color: var(--scd-color-gray-400, #ccc);
+    border-radius: 12px;
+    transition: background-color 0.2s ease;
+    margin-right: 12px;
+}
+
+.scd-toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: var(--scd-color-white, #fff);
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.scd-toggle-control input:checked + .scd-toggle-slider {
+    background-color: var(--wp-admin-theme-color, #2271b1);
+}
+
+.scd-toggle-control input:checked + .scd-toggle-slider::before {
+    transform: translateX(20px);
+}
+
+.scd-toggle-control input:focus + .scd-toggle-slider {
+    box-shadow: 0 0 0 2px var(--wp-admin-theme-color, #2271b1);
+    outline: 2px solid transparent;
+}
+
+/* Recurrence input group */
+.scd-recurrence-input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.scd-input-small {
+    width: 80px !important;
+    max-width: 80px !important;
+}
+
+.scd-input-tiny {
+    width: 60px !important;
+    max-width: 60px !important;
+    margin: 0 8px;
+}
+
+.scd-input-date {
+    width: 140px !important;
+    max-width: 140px !important;
+    margin-left: 8px;
+}
+
+.scd-select-medium {
+    width: 150px !important;
+    max-width: 150px !important;
+}
+
+/* Apply WordPress admin input styles */
+.scd-input-small,
+.scd-input-tiny,
+.scd-input-date {
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--scd-color-border, #c3c4c7);
+    border-radius: 4px;
+    font-size: 14px;
+    background: var(--scd-color-white, #fff);
+    transition: all 0.2s ease;
+}
+
+.scd-input-small:hover,
+.scd-input-tiny:hover,
+.scd-input-date:hover {
+    border-color: var(--scd-color-text-muted, #646970);
+}
+
+.scd-input-small:focus,
+.scd-input-tiny:focus,
+.scd-input-date:focus {
+    border-color: var(--wp-admin-theme-color, #2271b1);
+    box-shadow: 0 0 0 1px var(--wp-admin-theme-color, #2271b1);
+    outline: none;
+}
+
+/* Days selector */
+.scd-days-selector {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.scd-day-checkbox {
+    position: relative;
+    display: inline-block;
+}
+
+.scd-day-checkbox input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.scd-day-label {
+    display: block;
+    padding: 8px 16px;
+    background: var(--scd-color-white, #fff);
+    border: 2px solid var(--scd-color-border, #c3c4c7);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 50px;
+}
+
+.scd-day-checkbox input:checked + .scd-day-label {
+    background: var(--wp-admin-theme-color, #2271b1);
+    border-color: var(--wp-admin-theme-color, #2271b1);
+    color: var(--scd-color-white, #fff);
+}
+
+.scd-day-checkbox input:focus + .scd-day-label {
+    outline: 2px solid var(--wp-admin-theme-color, #2271b1);
+    outline-offset: 2px;
+}
+
+.scd-day-label:hover {
+    border-color: var(--wp-admin-theme-color, #2271b1);
+}
+
+/* Radio inline options */
+.scd-recurrence-end-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+}
+
+.scd-radio-inline {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.scd-radio-inline input[type="radio"] {
+    margin-right: 6px;
+}
+
+/* Preview section */
+.scd-recurrence-preview {
+    margin-top: 32px;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--scd-color-surface, #f6f7f7) 0%, var(--scd-color-gray-50, #fafafa) 100%);
+    border: 1px solid var(--scd-color-border, #c3c4c7);
+    border-radius: 8px;
+}
+
+.scd-preview-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    color: var(--scd-color-text, #1d2327);
+    font-size: 15px;
+}
+
+.scd-preview-header .dashicons {
+    font-size: 20px;
+    color: var(--wp-admin-theme-color, #2271b1);
+}
+
+.scd-preview-text {
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--scd-color-text-muted, #646970);
+    padding: 12px 0;
+}
+
+.scd-preview-text em {
+    color: var(--scd-color-text-muted, #646970);
+}
+
+.scd-preview-text .scd-occurrence-list {
+    list-style: none;
+    margin: 8px 0;
+    padding: 0;
+}
+
+.scd-preview-text .scd-occurrence-list li {
+    padding: 4px 0;
+    padding-left: 24px;
+    position: relative;
+}
+
+.scd-preview-text .scd-occurrence-list li::before {
+    content: '•';
+    position: absolute;
+    left: 8px;
+    color: var(--wp-admin-theme-color, #2271b1);
+    font-weight: bold;
+}
+
+.scd-preview-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--scd-color-border-light, #e0e0e0);
+    font-size: 13px;
+    color: var(--scd-color-text-muted, #646970);
+}
+
+.scd-preview-note .dashicons {
+    font-size: 16px;
+    color: var(--scd-color-text-muted, #646970);
+}
+
+/* Recurring card specific styling */
+.scd-card--recurring {
+    border: 1px solid var(--scd-color-border, #c3c4c7);
+    background: var(--scd-color-white, #fff);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.2s ease;
+}
+
+.scd-card--recurring:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Form row spacing */
+.scd-form-row {
+    margin-bottom: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 782px) {
+    .scd-recurrence-end-options {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .scd-radio-inline {
+        width: 100%;
+    }
+    
+    .scd-days-selector {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+    
+    .scd-day-label {
+        font-size: 13px;
+        padding: 6px 8px;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 600px) {
+    .scd-recurrence-input-group {
+        flex-wrap: wrap;
+    }
+    
+    .scd-input-small,
+    .scd-select-medium {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    .scd-days-selector {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
+/* Focus styles handled by shared _components.css */
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+    
+    .scd-card-option:hover {
+        /* transform: none; removed for instant state change */
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .scd-card-option:has(input:checked) {
+        border-width: 3px;
+        box-shadow: 0 0 0 2px currentColor;
+    }
+    
+    .scd-preset-option:has(input:checked) {
+        outline: 2px solid currentColor;
+        outline-offset: -4px;
+    }
+}
+
+/* ==========================================================================
+   RTL Support
+   ========================================================================== */
+
+/* RTL card styles handled by components.css */
+
+[dir="rtl"] .scd-calendar-icon {
+    right: auto;
+    left: 8px;
+}
+
+[dir="rtl"] .scd-error-message {
+    border-left: none;
+    border-right: 4px solid var(--scd-color-error);
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+    .scd-card-option {
+        page-break-inside: avoid;
+    }
+
+    .scd-preset-grid {
+        display: block;
+    }
+
+    .scd-preset-option {
+        display: inline-block;
+        margin: 4px;
+    }
+}

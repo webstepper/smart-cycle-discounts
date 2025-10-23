@@ -1,0 +1,324 @@
+/**
+ * Button Styles - Theme-aware button components
+ * 
+ * Uses theme colors from CSS custom properties
+ * Follows WordPress button patterns
+ * 
+ * @package SmartCycleDiscounts
+ * @since 1.0.0
+ */
+
+/* ==========================================================================
+   Base Button Styles
+   ========================================================================== */
+
+.scd-button,
+.scd-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--scd-spacing-xs);
+    padding: 0 var(--scd-spacing-md);
+    height: var(--scd-button-height);
+    font-size: var(--scd-font-size-base);
+    font-weight: var(--scd-font-weight-normal);
+    line-height: 1;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    border: var(--scd-border-width) solid transparent;
+    border-radius: var(--scd-radius-md);
+    transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+}
+
+/* Button sizes */
+.scd-button--large,
+.scd-btn-lg {
+    height: var(--scd-button-height-large);
+    padding: 0 var(--scd-spacing-lg);
+    font-size: var(--scd-font-size-medium);
+}
+
+.scd-button--small,
+.scd-btn-sm {
+    height: 26px;
+    padding: 0 var(--scd-spacing-sm);
+    font-size: var(--scd-font-size-small);
+}
+
+/* ==========================================================================
+   Primary Button - Uses theme primary color
+   ========================================================================== */
+
+.scd-button--primary,
+.scd-btn-primary,
+.button-primary.scd-themed {
+    background-color: var(--scd-button-primary);
+    border-color: var(--scd-button-primary);
+    color: var(--scd-color-white, #fff);
+}
+
+.scd-button--primary:hover,
+.scd-btn-primary:hover,
+.button-primary.scd-themed:hover {
+    background-color: var(--scd-button-primary-hover);
+    border-color: var(--scd-button-primary-hover);
+    color: var(--scd-color-white, #fff);
+}
+
+.scd-button--primary:focus,
+.scd-btn-primary:focus,
+.button-primary.scd-themed:focus {
+    background-color: var(--scd-button-primary-hover);
+    border-color: var(--scd-button-primary);
+    box-shadow: 0 0 0 1px var(--scd-color-white, #fff), 0 0 0 3px var(--scd-button-primary);
+    outline: none;
+}
+
+.scd-button--primary:active,
+.scd-btn-primary:active,
+.button-primary.scd-themed:active {
+    background-color: var(--scd-button-primary-hover);
+    border-color: var(--scd-button-primary-hover);
+    transform: translateY(1px);
+}
+
+/* ==========================================================================
+   Secondary Button - Uses theme secondary color
+   ========================================================================== */
+
+.scd-button--secondary,
+.scd-btn-secondary,
+.button-secondary.scd-themed {
+    background-color: var(--scd-button-secondary);
+    border-color: var(--scd-button-secondary);
+    color: var(--scd-color-white, #fff);
+}
+
+.scd-button--secondary:hover,
+.scd-btn-secondary:hover,
+.button-secondary.scd-themed:hover {
+    background-color: var(--scd-button-secondary-hover);
+    border-color: var(--scd-button-secondary-hover);
+    color: var(--scd-color-white, #fff);
+}
+
+.scd-button--secondary:focus,
+.scd-btn-secondary:focus,
+.button-secondary.scd-themed:focus {
+    background-color: var(--scd-button-secondary-hover);
+    border-color: var(--scd-button-secondary);
+    box-shadow: 0 0 0 1px var(--scd-color-white, #fff), 0 0 0 3px var(--scd-button-secondary);
+    outline: none;
+}
+
+/* ==========================================================================
+   Success Button - Uses theme success color
+   ========================================================================== */
+
+.scd-button--success,
+.scd-btn-success {
+    background-color: var(--scd-button-success);
+    border-color: var(--scd-button-success);
+    color: var(--scd-color-white, #fff);
+}
+
+.scd-button--success:hover,
+.scd-btn-success:hover {
+    background-color: var(--scd-button-success-hover);
+    border-color: var(--scd-button-success-hover);
+    color: var(--scd-color-white, #fff);
+}
+
+.scd-button--success:focus,
+.scd-btn-success:focus {
+    background-color: var(--scd-button-success-hover);
+    border-color: var(--scd-button-success);
+    box-shadow: 0 0 0 1px var(--scd-color-white, #fff), 0 0 0 3px var(--scd-button-success);
+    outline: none;
+}
+
+/* ==========================================================================
+   Danger Button - Uses theme danger color
+   ========================================================================== */
+
+.scd-button--danger,
+.scd-btn-danger,
+.button-link-delete.scd-themed {
+    background-color: var(--scd-button-danger);
+    border-color: var(--scd-button-danger);
+    color: var(--scd-color-white, #fff);
+}
+
+.scd-button--danger:hover,
+.scd-btn-danger:hover,
+.button-link-delete.scd-themed:hover {
+    background-color: var(--scd-button-danger-hover);
+    border-color: var(--scd-button-danger-hover);
+    color: var(--scd-color-white, #fff);
+}
+
+.scd-button--danger:focus,
+.scd-btn-danger:focus,
+.button-link-delete.scd-themed:focus {
+    background-color: var(--scd-button-danger-hover);
+    border-color: var(--scd-button-danger);
+    box-shadow: 0 0 0 1px var(--scd-color-white, #fff), 0 0 0 3px var(--scd-button-danger);
+    outline: none;
+}
+
+/* ==========================================================================
+   Ghost/Outline Buttons - Theme-aware borders
+   ========================================================================== */
+
+.scd-button--ghost,
+.scd-btn-ghost {
+    background-color: transparent;
+    border-color: var(--scd-color-border);
+    color: var(--scd-color-text);
+}
+
+.scd-button--ghost:hover,
+.scd-btn-ghost:hover {
+    background-color: var(--scd-color-surface);
+    border-color: var(--scd-color-border-dark);
+}
+
+.scd-button--ghost-primary {
+    border-color: var(--scd-button-primary);
+    color: var(--scd-button-primary);
+}
+
+.scd-button--ghost-primary:hover {
+    background-color: var(--scd-button-primary);
+    color: var(--scd-color-white, #fff);
+}
+
+/* ==========================================================================
+   Link Buttons - Theme-aware text colors
+   ========================================================================== */
+
+.scd-button--link,
+.scd-btn-link {
+    background: none;
+    border: none;
+    color: var(--scd-color-primary);
+    text-decoration: underline;
+    padding: 0;
+    height: auto;
+}
+
+.scd-button--link:hover,
+.scd-btn-link:hover {
+    color: var(--scd-color-primary-dark);
+    text-decoration: none;
+}
+
+.scd-button--link:focus,
+.scd-btn-link:focus {
+    box-shadow: none;
+    outline: 2px solid var(--scd-color-primary);
+    outline-offset: 2px;
+}
+
+/* ==========================================================================
+   Button States
+   ========================================================================== */
+
+.scd-button:disabled,
+.scd-button--disabled,
+.scd-btn:disabled,
+.scd-btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.scd-button--loading,
+.scd-btn-loading {
+    color: transparent;
+    position: relative;
+    pointer-events: none;
+}
+
+.scd-button--loading::after,
+.scd-btn-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+    border-right-color: transparent;
+    animation: scd-spin 0.75s linear infinite;
+}
+
+/* ==========================================================================
+   Button Groups
+   ========================================================================== */
+
+.scd-button-group {
+    display: inline-flex;
+    gap: var(--scd-spacing-sm);
+}
+
+.scd-button-group--attached {
+    gap: 0;
+}
+
+.scd-button-group--attached .scd-button:not(:first-child) {
+    margin-left: -1px;
+    border-radius: 0;
+}
+
+.scd-button-group--attached .scd-button:first-child {
+    border-radius: var(--scd-radius-md) 0 0 var(--scd-radius-md);
+}
+
+.scd-button-group--attached .scd-button:last-child {
+    border-radius: 0 var(--scd-radius-md) var(--scd-radius-md) 0;
+}
+
+/* ==========================================================================
+   Icon Support
+   ========================================================================== */
+
+/* WordPress handles dashicon alignment and sizing */
+
+.scd-button--icon-only,
+.scd-btn-icon {
+    width: var(--scd-button-height);
+    padding: 0;
+}
+
+/* ==========================================================================
+   WordPress Admin Integration
+   ========================================================================== */
+
+/* Apply theme colors to WordPress buttons when opted-in */
+.scd-themed-buttons .button-primary,
+.scd-themed-buttons .wp-core-ui .button-primary {
+    background: var(--scd-button-primary);
+    border-color: var(--scd-button-primary);
+}
+
+.scd-themed-buttons .button-primary:hover,
+.scd-themed-buttons .wp-core-ui .button-primary:hover {
+    background: var(--scd-button-primary-hover);
+    border-color: var(--scd-button-primary-hover);
+}
+
+.scd-themed-buttons .button-secondary,
+.scd-themed-buttons .wp-core-ui .button-secondary {
+    color: var(--scd-color-primary);
+    border-color: var(--scd-color-primary);
+}
+
+.scd-themed-buttons .button-secondary:hover,
+.scd-themed-buttons .wp-core-ui .button-secondary:hover {
+    border-color: var(--scd-color-primary-dark);
+    color: var(--scd-color-primary-dark);
+}

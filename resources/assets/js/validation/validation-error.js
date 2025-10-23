@@ -1,0 +1,926 @@
+/**
+ * Smart Cycle Discounts - Validation Error Component
+ *
+ * Unified error display component that provides consistent, accessible
+ * error messaging throughout the plugin. Implements WCAG 2.1 AA standards
+ * and integrates seamlessly with the ValidationManager system.
+ *
+ * Features:
+ * - Consistent error display across all forms
+ * - Full ARIA accessibility support
+ * - Smooth animations and transitions
+ * - Multiple error display modes
+ * - Validation summary generation
+ * - Screen reader compatibility
+ * - High contrast mode support
+ *
+ * @param $
+ * @package SmartCycleDiscounts
+ * @since 1.0.0
+ * @version 2.0.0 - Unified validation system
+ * @author Smart Cycle Discounts Team
+ */
+
+( function( $ ) {
+	'use strict';
+
+	window.SCD = window.SCD || {};
+	window.SCD.Components = window.SCD.Components || {};
+
+	/**
+	 * ValidationError Component
+	 *
+	 * Centralized error display component that handles all validation error
+	 * presentation throughout the plugin. Provides consistent styling,
+	 * accessibility compliance, and integration with validation workflows.
+	 *
+	 * @namespace SCD.Components.ValidationError
+	 * @since 1.0.0
+	 *
+	 * Design Principles:
+	 * - KISS: Simple, focused error display functionality
+	 * - DRY: Single implementation eliminates code duplication
+	 * - WCAG 2.1 AA: Full accessibility compliance
+	 * - Performance: Efficient DOM manipulation and caching
+	 * - Integration: Seamless ValidationManager integration
+	 */
+	SCD.Components.ValidationError = {
+
+		/**
+		 * Track timeouts for cleanup
+		 * @private
+		 */
+		_activeTimeouts: [],
+
+		/**
+		 * Track pending focus timeout to prevent memory leaks
+		 * @private
+		 */
+		_pendingFocusTimeout: null,
+
+		/**
+		 * Cache for field labels to avoid repeated lookups
+		 * @private
+		 */
+		_labelCache: {},
+
+		/**
+		 * Cached announcer element
+		 * @private
+		 */
+		_$announcer: null,
+
+		/**
+		 * Cached scroll container
+		 * @private
+		 */
+		_$scrollContainer: null,
+
+		/**
+		 * Display validation error for a specific field
+		 *
+		 * Shows an error message for a form field with proper accessibility
+		 * attributes, animations, and styling. Handles error element creation,
+		 * positioning, and ARIA compliance automatically.
+		 *
+		 * @function show
+		 * @memberof SCD.Components.ValidationError
+		 * @param {jQuery} $field - jQuery field element to show error for
+		 * @param {string} message - Error message to display
+		 * @param {object} [options={}] - Display configuration options
+		 * @param {string} [options.type='error'] - Error type (error, warning, info)
+		 * @param {boolean} [options.animate=true] - Whether to animate error display
+		 * @param {string} [options.position='after-field'] - Error position relative to field
+		 * @param {boolean} [options.focus=false] - Whether to focus the field
+		 * @param {string} [options.cssClass=''] - Additional CSS classes
+		 *
+		 * @example
+		 * // Show basic error
+		 * SCD.Components.ValidationError.show($('#email'), 'Invalid email address');
+		 *
+		 * // Show warning with custom options
+		 * SCD.Components.ValidationError.show($('#password'), 'Weak password', {
+		 *     type: 'warning',
+		 *     animate: true,
+		 *     focus: true
+		 * });
+		 *
+		 * @since 1.0.0
+		 */
+	show: function( $field, message, options ) {
+		options = options || {};
+
+		if ( ! $field || ! $field.length ) {
+			return;
+		}
+
+		// Clear any existing error message for this field first
+		this.clear( $field );
+
+		// Apply error styling (red border, ARIA attributes)
+		this._applyErrorStyling( $field );
+
+		// Create and insert inline error message
+		if ( message ) {
+			var $container = this._findContainer( $field );
+			var errorId = 'error-' + ( $field.attr( 'name' ) || $field.attr( 'id' ) || 'field' ).replace( /[^a-zA-Z0-9]/g, '-' );
+
+			// Create error message element safely to prevent XSS
+			var $errorMsg = $( '<div class="scd-field-error" id="' + errorId + '" role="alert"></div>' ).text( message );
+
+			// Insert error message after field (or after container based on position option)
+			if ( 'after-container' === options.position ) {
+				$container.after( $errorMsg );
+			} else {
+				$field.after( $errorMsg );
+			}
+
+			// Link field to error message for accessibility
+			$field.attr( 'aria-describedby', errorId );
+
+			// Announce error to screen readers
+			this.announceError( message, $field.attr( 'name' ) || $field.attr( 'id' ) );
+		}
+
+		// Debug logging
+		var fieldName = $field.attr( 'name' ) || $field.attr( 'id' ) || 'field';
+		this._logDebug( 'Showing error for field: ' + fieldName, { message: message } );
+	},
+
+		/**
+		 * Clear validation error from a specific field
+		 *
+		 * Removes error display, resets field state, and cleans up ARIA
+		 * attributes. Handles animations and provides options for complete
+		 * error element removal or just hiding.
+		 *
+		 * @function clear
+		 * @memberof SCD.Components.ValidationError
+		 * @param {jQuery} $field - jQuery field element to clear error from
+		 * @param {object} [options={}] - Clear configuration options
+		 * @param {boolean} [options.animate=true] - Whether to animate error removal
+		 * @param {boolean} [options.remove=false] - Whether to remove error element completely
+		 *
+		 * @example
+		 * // Clear error with animation
+		 * SCD.Components.ValidationError.clear($('#email'));
+		 *
+		 * // Clear and remove error element completely
+		 * SCD.Components.ValidationError.clear($('#password'), {
+		 *     animate: true,
+		 *     remove: true
+		 * });
+		 *
+		 * @since 1.0.0
+		 */
+	clear: function( $field, _options ) {
+		_options = _options || {};
+
+		if ( ! $field || ! $field.length ) {
+			return;
+		}
+
+		var $container = this._findContainer( $field );
+
+		// Remove inline error message
+		var errorId = $field.attr( 'aria-describedby' );
+		if ( errorId ) {
+			$( '#' + errorId ).remove();
+		}
+
+		// Also remove any error messages near the field
+		$field.siblings( '.scd-field-error' ).remove();
+		$container.find( '.scd-field-error' ).remove();
+
+		// Clear field error styling
+		$field
+			.attr( 'aria-invalid', 'false' )
+			.removeAttr( 'aria-describedby' )
+			.removeClass( 'error' );
+
+		// Remove any inline styles
+		$field.css( {
+			'border': '',
+			'background-color': ''
+		} );
+
+		// Clear container class
+		$container.removeClass( 'has-error' );
+
+		// Clear parent form-field
+		$field.closest( '.form-field' ).removeClass( 'has-error' );
+	},
+
+		/**
+		 * Display validation errors for multiple fields simultaneously
+		 *
+		 * Efficiently processes and displays errors for multiple form fields,
+		 * with optional validation summary generation and batch clearing.
+		 * Commonly used for complete form validation results.
+		 *
+		 * @function showMultiple
+		 * @memberof SCD.Components.ValidationError
+		 * @param {object} errors - Field name to error messages mapping
+		 * @param {jQuery} $context - Container element to search for fields
+		 * @param {object} [options={}] - Display configuration options
+		 * @param {boolean} [options.clearFirst=false] - Clear existing errors first
+		 * @param {boolean} [options.showSummary=false] - Show validation summary
+		 * @param {string} [options.summaryPosition='top'] - Summary position
+		 * @param {boolean} [options.focusSummary=false] - Focus summary after display
+		 *
+		 * @example
+		 * // Show multiple field errors
+		 * const errors = {
+		 *     'email': 'Invalid email format',
+		 *     'password': 'Password too short',
+		 *     'confirm_password': 'Passwords do not match'
+		 * };
+		 *
+		 * SCD.Components.ValidationError.showMultiple(errors, $('#registration-form'), {
+		 *     clearFirst: true,
+		 *     showSummary: true,
+		 *     summaryPosition: 'top'
+		 * });
+		 *
+		 * @since 1.0.0
+		 */
+		showMultiple: function( errors, $context, options ) {
+			var self = this;
+			options = options || {};
+
+			// Debug logging
+			this._logDebug( 'showMultiple called', { errors: errors, context: $context, options: options } );
+
+			// Clear existing errors first if requested
+			if ( options.clearFirst ) {
+				this.clearAll( $context );
+			}
+
+			// Show each error
+			$.each( errors, function( fieldName, messages ) {
+				var $field = self._findField( fieldName, $context );
+
+				if ( $field.length ) {
+					// Get the first error message (messages can be string or array)
+					var message = Array.isArray( messages ) ? messages[0] : messages;
+
+					// Use the centralized show() method to display inline error with message
+					self.show( $field, message );
+					self._logDebug( 'Showing error for field: ' + fieldName, { message: message } );
+				} else {
+					// Field not found - log for debugging
+					self._logDebug( 'Field not found: ' + fieldName, {
+						context: $context,
+						availableFields: $context.find( 'input, select, textarea' ).map( function() {
+							return this.name || this.id;
+						} ).get()
+					} );
+				}
+			} );
+
+			// Create validation summary if requested
+			if ( options.showSummary ) {
+				this.showSummary( errors, $context, options );
+			}
+		},
+
+		/**
+		 * Find field by name with fallback strategies
+		 * @private
+		 * @since 1.0.0
+		 * @param {string} fieldName - Field name to find
+		 * @param {jQuery} $context - Context to search in
+		 * @returns {jQuery} Field element or empty jQuery object
+		 */
+		_findField: function( fieldName, $context ) {
+			// Try to find field by name first
+			var $field = $context.find( '[name="' + this.escapeSelector( fieldName ) + '"]' );
+
+			// If not found by name, try by ID
+			if ( ! $field.length ) {
+				$field = $context.find( '#' + this.escapeSelector( fieldName ) );
+			}
+
+			// Also handle snake_case to camelCase conversion
+			if ( ! $field.length && window.SCD && window.SCD.Utils && window.SCD.Utils.snakeToCamelCase ) {
+				var camelFieldName = window.SCD.Utils.snakeToCamelCase( fieldName );
+				$field = $context.find( '[name="' + this.escapeSelector( camelFieldName ) + '"]' );
+			}
+
+			return $field;
+		},
+
+		/**
+		 * Find field container with fallback strategies
+		 * @private
+		 * @since 1.0.0
+		 * @param {jQuery} $field - Field element
+		 * @returns {jQuery} Container element
+		 */
+		_findContainer: function( $field ) {
+			var $container = $field.closest( '.scd-field-container, .scd-field-wrapper, .form-field' );
+
+			if ( ! $container.length ) {
+				$container = $field.parent();
+			}
+
+			return $container;
+		},
+
+		/**
+		 * Log debug message if debug enabled
+		 * @private
+		 * @since 1.0.0
+		 * @param {string} message - Debug message
+		 * @param {*} data - Optional data to log
+		 */
+		_logDebug: function( message, data ) {
+			if ( window.scdDebugPersistence ) {
+				if ( data ) {
+				} else {
+				}
+			}
+		},
+
+		/**
+		 * Apply error styling to field without showing error message
+		 * @private
+		 * @since 1.0.0
+		 * @param {jQuery} $field - Field element
+		 */
+		_applyErrorStyling: function( $field ) {
+			// Add error class for styling
+			$field.addClass( 'error' );
+
+			// Set accessibility attributes
+			$field.attr( 'aria-invalid', 'true' );
+
+			// Also add error class to container for proper CSS targeting
+			var $container = this._findContainer( $field );
+			$container.addClass( 'has-error' );
+		},
+
+		/**
+		 * Create and track timeout for proper cleanup
+		 * @private
+		 * @since 1.0.0
+		 * @param {function} callback - Callback function
+		 * @param {number} delay - Delay in milliseconds
+		 * @returns {number} Timeout ID
+		 */
+		_setTimeout: function( callback, delay ) {
+			var timeoutId = setTimeout( callback, delay );
+			this._activeTimeouts.push( timeoutId );
+			return timeoutId;
+		},
+
+		/**
+		 * Clear specific timeout and remove from tracking
+		 * @private
+		 * @since 1.0.0
+		 * @param {number} timeoutId - Timeout ID to clear
+		 */
+		_clearTimeout: function( timeoutId ) {
+			var index = this._activeTimeouts.indexOf( timeoutId );
+			if ( -1 !== index ) {
+				this._activeTimeouts.splice( index, 1 );
+			}
+			clearTimeout( timeoutId );
+		},
+
+		/**
+		 * Clear all pending timeouts
+		 * @private
+		 * @since 1.0.0
+		 */
+		_clearAllTimeouts: function() {
+			while ( this._activeTimeouts.length ) {
+				clearTimeout( this._activeTimeouts.pop() );
+			}
+		},
+
+		/**
+		 * Clear all validation errors within a container
+		 *
+		 * Removes all validation errors, summaries, and resets field states
+		 * within the specified container. Useful for form resets or when
+		 * starting fresh validation cycles.
+		 *
+		 * @function clearAll
+		 * @memberof SCD.Components.ValidationError
+		 * @param {jQuery} $context - Container element to clear errors from
+		 * @param {object} [options={}] - Clear configuration options
+		 * @param {boolean} [options.animate=true] - Whether to animate error removal
+		 * @param {boolean} [options.remove=false] - Whether to remove error elements
+		 *
+		 * @example
+		 * // Clear all errors in form
+		 * SCD.Components.ValidationError.clearAll($('#wizard-form'));
+		 *
+		 * // Clear all errors and remove elements
+		 * SCD.Components.ValidationError.clearAll($('#step-container'), {
+		 *     animate: false,
+		 *     remove: true
+		 * });
+		 *
+		 * @since 1.0.0
+		 */
+		clearAll: function( $context, options ) {
+			var self = this;
+			options = options || {};
+
+			// Find all error fields
+			$context.find( '.error[aria-invalid="true"]' ).each( function() {
+				self.clear( $( this ), options );
+			} );
+
+			// Clear validation notifications
+			if ( SCD.Shared && SCD.Shared.NotificationService ) {
+				SCD.Shared.NotificationService.dismiss( 'validation-errors' );
+			}
+
+			// Clear screen reader announcement area using cached element
+			if ( this._$announcer && this._$announcer.length ) {
+				this._$announcer.empty();
+			}
+		},
+
+		/**
+		 * Show validation summary using notification system
+		 *
+		 * @param {object} errors Field errors
+		 * @param {jQuery} $context Container element
+		 * @param {object} options Summary options
+		 */
+		showSummary: function( errors, $context, _options ) {
+			_options = _options || {};
+			var self = this;
+
+			// Count errors and build messages
+			var errorCount = 0;
+			var errorMessages = [];
+			var fieldCache = {};
+
+			$.each( errors, function( fieldName, messages ) {
+				var messageArray = Array.isArray( messages ) ? messages : [ messages ];
+
+				// Cache field lookup for this summary
+				if ( ! fieldCache[fieldName] ) {
+					fieldCache[fieldName] = self._findField( fieldName, $context );
+				}
+				var $field = fieldCache[fieldName];
+
+				$.each( messageArray, function( index, message ) {
+					errorCount++;
+					var fieldLabel = self._getFieldLabel( $field, fieldName );
+					errorMessages.push( fieldLabel + ': ' + message );
+				} );
+			} );
+
+		if ( 0 === errorCount ) {
+			// Dismiss any existing validation error notification when there are no errors
+			if ( SCD.Shared && SCD.Shared.NotificationService ) {
+				SCD.Shared.NotificationService.dismiss( 'validation-errors' );
+			}
+			return;
+		}
+
+			// Create notification message with visible separators (NotificationService uses .text() which collapses newlines)
+			var notificationMessage = 1 === errorCount
+				? errorMessages[0]
+				: errorMessages.join( ' • ' );
+
+			// Show notification using the notification service
+			if ( SCD.Shared && SCD.Shared.NotificationService ) {
+				SCD.Shared.NotificationService.show( 
+					notificationMessage, 
+					'error', 
+					3000, // Auto-dismiss after 3 seconds
+					{
+						id: 'validation-errors',
+						replace: true,
+						dismissible: true
+					}
+				);
+			}
+
+		// Note: Scrolling and focusing is handled by focusFirstError() when focusFirstError option is set
+		// This avoids duplicate scrolling and allows proper animation timing
+		},
+
+		/**
+		 * Get field label for error messages
+		 * Uses cache to avoid repeated DOM lookups
+		 * @private
+		 * @param {jQuery} $field Field element
+		 * @param {string} fieldName Field name fallback
+		 * @returns {string} Field label
+		 */
+		_getFieldLabel: function( $field, fieldName ) {
+			// Ensure fieldName is a string
+			fieldName = fieldName || '';
+
+			if ( ! $field || ! $field.length ) {
+				// Format field name if no field element
+				return fieldName ? fieldName.replace( /_/g, ' ' ).replace( /\b\w/g, function( l ) {
+					return l.toUpperCase();
+				} ) : 'This field';
+			}
+
+			// Check cache first
+			var cacheKey = fieldName || $field.attr( 'name' ) || $field.attr( 'id' );
+			if ( cacheKey && this._labelCache[cacheKey] ) {
+				return this._labelCache[cacheKey];
+			}
+
+			var label = '';
+
+			// Try to find associated label
+			var fieldId = $field.attr( 'id' );
+			if ( fieldId ) {
+				var $label = $( 'label[for="' + fieldId + '"]' );
+				if ( $label.length ) {
+					label = $label.text().replace( /[*:]/g, '' ).trim();
+				}
+			}
+
+			// Try parent label
+			if ( ! label ) {
+				var $parentLabel = $field.closest( 'label' );
+				if ( $parentLabel.length ) {
+					var labelText = $parentLabel.clone();
+					labelText.find( 'input, select, textarea' ).remove();
+					label = labelText.text().replace( /[*:]/g, '' ).trim();
+				}
+			}
+
+			// Try aria-label
+			if ( ! label ) {
+				var ariaLabel = $field.attr( 'aria-label' );
+				if ( ariaLabel ) {
+					label = ariaLabel;
+				}
+			}
+
+			// Use placeholder as last resort
+			if ( ! label ) {
+				var placeholder = $field.attr( 'placeholder' );
+				if ( placeholder ) {
+					label = placeholder;
+				}
+			}
+
+			// Format field name
+			if ( ! label && fieldName ) {
+				label = fieldName.replace( /_/g, ' ' ).replace( /\b\w/g, function( l ) {
+					return l.toUpperCase();
+				} );
+			}
+
+			// Final fallback
+			if ( ! label ) {
+				label = 'This field';
+			}
+
+			// Cache the result
+			if ( cacheKey ) {
+				this._labelCache[cacheKey] = label;
+			}
+
+			return label;
+		},
+
+		/**
+		 * Announce error to screen readers
+		 * Uses cached announcer element for performance
+		 * @param {string} message Error message
+		 * @param {string} fieldName Field name
+		 */
+		announceError: function( message, fieldName ) {
+			// Use cached announcer or create if needed
+			if ( ! this._$announcer || ! this._$announcer.length ) {
+				this._$announcer = $( '#scd-validation-announcer' );
+
+				if ( ! this._$announcer.length ) {
+					this._$announcer = $( '<div id="scd-validation-announcer" class="screen-reader-text" aria-live="assertive" aria-atomic="true"></div>' );
+					$( 'body' ).append( this._$announcer );
+				}
+			}
+
+			// Format announcement using internal method
+			var announcement = 'Error in ' + this._getFieldLabel( null, fieldName ) + ': ' + message;
+
+			// Update announcer (clear first to ensure re-announcement)
+			var $announcer = this._$announcer;
+			$announcer.empty();
+			// Use requestAnimationFrame to ensure DOM update
+			requestAnimationFrame( function() {
+				$announcer.text( announcement );
+			} );
+		},
+
+		/**
+		 * Escape jQuery selector special characters
+		 * @since 1.0.0
+		 * @param {string} selector Selector to escape
+		 * @returns {string} Escaped selector
+		 */
+		escapeSelector: function( selector ) {
+			if ( 'string' !== typeof selector ) {
+				return '';
+			}
+			// Escape special jQuery selector characters
+			return selector.replace( /([!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~])/g, '\\$1' );
+		},
+
+		/**
+		 * Initialize error component
+		 * Sets up announcer and caches
+		 */
+		init: function() {
+			// Create and cache announcer element
+			if ( ! $( '#scd-validation-announcer' ).length ) {
+				this._$announcer = $( '<div id="scd-validation-announcer" class="screen-reader-text" aria-live="assertive" aria-atomic="true"></div>' );
+				$( 'body' ).append( this._$announcer );
+			} else {
+				this._$announcer = $( '#scd-validation-announcer' );
+			}
+
+			// Cache scroll container
+			this._$scrollContainer = $( 'html, body' );
+
+		},
+
+		/**
+		 * Destroy method for cleanup
+		 * Cleans up all resources, removes elements, clears caches and timeouts
+		 */
+		destroy: function() {
+			// Clear pending focus timeout
+			if ( this._pendingFocusTimeout ) {
+				this._clearTimeout( this._pendingFocusTimeout );
+				this._pendingFocusTimeout = null;
+			}
+
+			// Clear all active timeouts
+			this._clearAllTimeouts();
+
+			// Remove all error elements
+			$( '.scd-field-error, .field-error' ).remove();
+
+			// Remove validation announcer
+			if ( this._$announcer && this._$announcer.length ) {
+				this._$announcer.remove();
+			}
+			$( '#scd-validation-announcer' ).remove();
+
+			// Remove validation summary if present
+			$( '.scd-validation-summary' ).remove();
+
+			// Clear error styling from all fields
+			$( '.has-error' ).removeClass( 'has-error' );
+			$( '.scd-field-error-border' ).removeClass( 'scd-field-error-border' );
+
+			// Clear caches
+			this._labelCache = {};
+			this._$announcer = null;
+			this._$scrollContainer = null;
+		}
+	};
+
+	/**
+	 * Unified getFieldLabel function
+	 * Delegates to private instance method or formats field name
+	 * @param {string|jQuery} fieldOrName - Field element or field name
+	 * @param {string} fallbackName - Fallback field name if first param is jQuery
+	 * @returns {string} Human-readable label
+	 */
+	SCD.Components.ValidationError.getFieldLabel = function( fieldOrName, fallbackName ) {
+		// If first parameter is a jQuery object, use private instance method
+		if ( fieldOrName && fieldOrName.jquery ) {
+			var fieldName = fallbackName || fieldOrName.attr( 'name' ) || fieldOrName.attr( 'id' ) || '';
+			// Call private instance method which has caching and DOM lookup logic
+			return this._getFieldLabel.call( this, fieldOrName, fieldName );
+		}
+
+		// Otherwise, treat as field name string
+		var fieldName = String( fieldOrName || '' );
+
+		// Try PHP field definitions first
+		if ( window.SCD && window.SCD.FieldDefinitions && window.SCD.FieldDefinitions.getFieldByName ) {
+			var steps = ['basic', 'products', 'discounts', 'schedule'];
+			for ( var i = 0; i < steps.length; i++ ) {
+				var field = window.SCD.FieldDefinitions.getFieldByName( steps[i], fieldName );
+
+				if ( field && field.label ) {
+					return field.label;
+				}
+			}
+		}
+
+		// Fallback: Convert snake_case to Title Case
+
+		return fieldName.replace( /_/g, ' ' ).replace( /\b\w/g, function( letter ) {
+			return letter.toUpperCase();
+		} );
+	};
+
+	/**
+	 * Get validation message with proper formatting and escaping
+	 * Moved from validation-manager.js for better separation of concerns
+	 * @param {string} key - Message key
+	 * @param {string} fieldName - Field name for field-specific messages
+	 * @returns {string} Formatted and escaped message
+	 */
+	SCD.Components.ValidationError.getMessage = function( key, fieldName ) {
+		// Use localized messages from PHP
+		var messages = window.scdValidationMessages || {};
+		var message = messages[key];
+
+		// Get field label if provided
+		var fieldLabel = fieldName ? this.getFieldLabel( fieldName ) : 'This field';
+
+		// Minimal fallback for critical messages only
+		if ( ! message ) {
+			var fallbacks = {
+				'required': fieldLabel + ' is required',
+				'invalid': 'Invalid ' + fieldLabel
+			};
+			message = fallbacks[key] || key;
+		}
+
+		// Final fallback
+		message = message || key;
+
+		// Get template parameters (skip fieldName which is at index 1)
+		var templateArgs = Array.prototype.slice.call( arguments, 2 );
+
+		// Escape all template arguments to prevent XSS
+		var escapedArgs = [];
+		for ( var i = 0; i < templateArgs.length; i++ ) {
+			var argValue = String( templateArgs[i] );
+			// Use SCD.Utils.escapeHtml if available, otherwise use basic escaping
+			if ( window.SCD && window.SCD.Utils && window.SCD.Utils.escapeHtml ) {
+				escapedArgs.push( window.SCD.Utils.escapeHtml( argValue ) );
+			} else {
+				// Basic HTML escaping as fallback
+				escapedArgs.push( argValue
+					.replace( /&/g, '&amp;' )
+					.replace( /</g, '&lt;' )
+					.replace( />/g, '&gt;' )
+					.replace( /"/g, '&quot;' )
+					.replace( /'/g, '&#39;' )
+				);
+			}
+		}
+
+		// Simple sprintf replacement with escaped values
+		$.each( escapedArgs, function( index, arg ) {
+			var placeholder1 = new RegExp( '%' + ( index + 1 ) + '\\$?[ds]', 'g' );
+			var placeholder2 = new RegExp( '\\{' + index + '\\}', 'g' );
+			var placeholder3 = new RegExp( '%[ds]' ); // Handle simple %s or %d (only first occurrence)
+			message = message.replace( placeholder1, arg );
+			message = message.replace( placeholder2, arg );
+			if ( 0 === index ) {
+				message = message.replace( placeholder3, arg );
+			}
+		} );
+
+		return message;
+	};
+
+	/**
+	 * Update validation state and emit events
+	 * Moved from validation-manager.js for UI state management
+	 * @param {string} stepName - Step name for wizard validation
+	 * @param {boolean} isValid - Validation result
+	 * @param {object} errors - Validation errors object
+	 */
+	SCD.Components.ValidationError.updateValidationState = function( stepName, isValid, errors ) {
+		// Update state manager if available
+		if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.StateManager ) {
+			window.SCD.Wizard.StateManager.set( {
+				isValid: isValid,
+				validationErrors: errors
+			}, { silent: true } );
+		}
+
+		// Emit validation event
+		if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.EventBus ) {
+			window.SCD.Wizard.EventBus.emit( 'validation:complete', {
+				step: stepName,
+				valid: isValid,
+				errors: errors
+			} );
+		}
+
+		// Trigger jQuery event for backward compatibility
+		$( document ).trigger( 'scd:validation:state:updated', {
+			step: stepName,
+			valid: isValid,
+			errors: errors
+		} );
+	};
+
+	/**
+	 * Clear validation for a form or container
+	 * Enhanced version that handles both error display and state
+	 * @param {jQuery} $container - Container to clear validation from
+	 */
+	SCD.Components.ValidationError.clearValidation = function( $container ) {
+		// Use existing clearAll method for display
+		this.clearAll( $container );
+
+		// Trigger event for state cleanup
+		$( document ).trigger( 'scd:validation:cleared', { container: $container } );
+	};
+
+	/**
+	 * Focus and scroll to first invalid field
+	 * @param {jQuery} $container - Container to search for errors
+	 * @param {object} [options={}] - Options for focus behavior
+	 */
+	SCD.Components.ValidationError.focusFirstError = function( $container, options ) {
+		options = options || {};
+		options = $.extend( {
+			scrollOffset: 100,
+			animationDuration: 300,
+			focusDelay: 10
+		}, options );
+
+		// Find first error field
+		var $firstError = $container.find( '.error[aria-invalid="true"]' ).first();
+
+		if ( ! $firstError.length ) {
+			// Try to find error within radio groups or complex fields
+			$firstError = $container.find( '.has-error' ).first().find( 'input, select, textarea' ).first();
+		}
+
+		if ( $firstError.length ) {
+			// Calculate scroll position
+			var scrollTop = $firstError.offset().top - options.scrollOffset;
+
+			// Smooth scroll to field using cached scroll container
+			var $scroller = this._$scrollContainer || $( 'html, body' );
+			$scroller.animate( {
+				scrollTop: scrollTop
+			}, options.animationDuration, function() {
+				// Focus the field after scroll completes
+				setTimeout( function() {
+					// Check if field is focusable
+					if ( $firstError.is( ':visible' ) && ! $firstError.is( ':disabled' ) ) {
+						$firstError.focus();
+
+						// If it's a select element with Tom Select, focus the Tom Select control
+						if ( $firstError.is( 'select' ) && $firstError[0].tomselect ) {
+							$firstError[0].tomselect.focus();
+						}
+					}
+				}, options.focusDelay );
+			} );
+
+			// Announce to screen readers
+			this.announceError( 'Please correct the errors below', 'form' );
+
+			return true;
+		}
+
+		return false;
+	};
+
+	/**
+	 * Enhanced showMultiple that includes focus behavior
+	 */
+	var originalShowMultiple = SCD.Components.ValidationError.showMultiple;
+	SCD.Components.ValidationError.showMultiple = function( errors, $context, options ) {
+		// Call original method
+		originalShowMultiple.call( this, errors, $context, options );
+
+		// Auto-focus first error if requested
+		if ( options && options.focusFirstError ) {
+			var self = this;
+
+			// Clear any pending focus timeout to prevent memory leak
+			if ( this._pendingFocusTimeout ) {
+				this._clearTimeout( this._pendingFocusTimeout );
+				this._pendingFocusTimeout = null;
+			}
+
+			// Small delay to ensure DOM updates are complete
+			this._pendingFocusTimeout = this._setTimeout( function() {
+				self._pendingFocusTimeout = null;
+				self.focusFirstError( $context );
+			}, 50 );
+		}
+	};
+
+	// Initialize on document ready
+	$( document ).ready( function() {
+		SCD.Components.ValidationError.init();
+	} );
+
+	// Make component globally available
+	window.SCD.ValidationError = SCD.Components.ValidationError;
+
+
+} )( jQuery );

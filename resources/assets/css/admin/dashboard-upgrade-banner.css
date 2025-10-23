@@ -1,0 +1,230 @@
+/**
+ * Compact Upgrade Banner (Professional Plugin Style)
+ *
+ * Notification-sized, dismissable upgrade prompt for Smart Cycle Discounts
+ * Uses plugin's theme color system for professional, cohesive appearance
+ *
+ * @package SmartCycleDiscounts
+ * @since   1.0.0
+ */
+
+/* ==========================================================================
+   Main Banner Container (Inline Positioned)
+   ========================================================================== */
+
+.scd-upgrade-banner-inline {
+	position: relative;
+	margin: 20px 0;
+	padding: 12px 40px 12px 16px;
+	background: var(--scd-color-white);
+	border: 1px solid var(--scd-table-border);
+	border-left: 4px solid var(--scd-color-primary);
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+	border-radius: 0;
+}
+
+/* Promotional Variant */
+.scd-upgrade-banner-inline.scd-has-promotion {
+	border-left-color: var(--scd-color-accent);
+	background: linear-gradient(90deg, var(--scd-color-primary-light-bg) 0%, var(--scd-color-white) 100%);
+	box-shadow: 0 2px 8px var(--scd-shadow-primary);
+}
+
+/* ==========================================================================
+   Banner Content Layout
+   ========================================================================== */
+
+.scd-upgrade-banner-content {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+}
+
+.scd-upgrade-banner-left {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex: 1 1 auto;
+	min-width: 300px;
+}
+
+.scd-upgrade-icon {
+	font-size: 20px;
+	width: 20px;
+	height: 20px;
+	color: var(--scd-color-primary);
+	flex-shrink: 0;
+}
+
+.scd-has-promotion .scd-upgrade-icon {
+	color: var(--scd-color-accent);
+}
+
+.scd-upgrade-text {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.scd-upgrade-text strong {
+	font-weight: 600;
+	color: var(--scd-color-dark);
+	margin-right: 4px;
+}
+
+.scd-upgrade-message {
+	color: var(--scd-color-muted);
+}
+
+/* ==========================================================================
+   Promotional Badge
+   ========================================================================== */
+
+.scd-promotion-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 2px 8px;
+	background: var(--scd-color-accent);
+	color: var(--scd-color-white);
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+	border-radius: 3px;
+	margin: 0 4px;
+	box-shadow: 0 2px 4px rgba(56, 88, 233, 0.2);
+}
+
+/* ==========================================================================
+   Action Buttons
+   ========================================================================== */
+
+.scd-upgrade-banner-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+.scd-upgrade-btn,
+.scd-trial-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 12px;
+	font-size: 13px;
+	height: auto;
+	line-height: 1.5;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+.scd-upgrade-btn .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+}
+
+.scd-upgrade-btn:hover .dashicons {
+	transform: translateX(2px);
+}
+
+/* Promotional variant button styling */
+.scd-has-promotion .scd-upgrade-btn.button-primary {
+	background: var(--scd-color-accent);
+	border-color: var(--scd-color-accent);
+	box-shadow: 0 2px 6px rgba(56, 88, 233, 0.25);
+}
+
+.scd-has-promotion .scd-upgrade-btn.button-primary:hover {
+	background: var(--scd-color-accent-dark);
+	border-color: var(--scd-color-accent-dark);
+	box-shadow: 0 4px 12px rgba(56, 88, 233, 0.35);
+}
+
+/* ==========================================================================
+   Dismiss Button (Custom)
+   ========================================================================== */
+
+.scd-banner-dismiss {
+	position: absolute;
+	top: 0;
+	right: 0;
+	padding: 9px;
+	border: none;
+	background: none;
+	color: var(--scd-color-muted);
+	cursor: pointer;
+	font-size: 16px;
+	line-height: 20px;
+	transition: color 0.2s ease;
+}
+
+.scd-banner-dismiss .dashicons {
+	font-size: 20px;
+	width: 20px;
+	height: 20px;
+}
+
+.scd-banner-dismiss:hover {
+	color: var(--scd-color-danger);
+}
+
+.scd-banner-dismiss:focus {
+	outline: 2px solid var(--scd-color-primary);
+	outline-offset: -2px;
+	color: var(--scd-color-primary);
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media screen and (max-width: 782px) {
+	.scd-upgrade-banner-content {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.scd-upgrade-banner-left {
+		min-width: 0;
+		width: 100%;
+	}
+
+	.scd-upgrade-banner-actions {
+		width: 100%;
+	}
+
+	.scd-upgrade-btn,
+	.scd-trial-btn {
+		flex: 1;
+	}
+}
+
+@media screen and (max-width: 600px) {
+	.scd-upgrade-text {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 4px;
+	}
+
+	.scd-promotion-badge {
+		margin: 0;
+	}
+
+	.scd-upgrade-banner-actions {
+		flex-direction: column;
+		gap: 6px;
+	}
+
+	.scd-upgrade-btn,
+	.scd-trial-btn {
+		width: 100%;
+		justify-content: center;
+	}
+}

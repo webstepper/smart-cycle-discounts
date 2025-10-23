@@ -1,0 +1,504 @@
+/**
+ * CSS Components - Reusable UI Components
+ * WordPress 6.4+ Design System
+ * 
+ * Component-based styles to prevent duplication
+ * Import after _variables.css and _utilities.css
+ */
+
+/* Badge styles are now included inline or loaded separately */
+
+/* ==========================================================================
+   Cards - Unified Card System
+   ========================================================================== */
+
+.scd-card {
+    background: var(--scd-color-background);
+    border: var(--scd-border-width) solid var(--scd-color-border);
+    border-radius: var(--scd-radius-lg);
+    padding: var(--scd-spacing-lg);
+    margin-bottom: var(--scd-spacing-lg);
+    box-shadow: var(--scd-shadow-sm);
+}
+
+.scd-card:hover {
+    border-color: var(--scd-color-border-dark);
+    box-shadow: var(--scd-shadow-md);
+}
+
+/* Card Variants */
+.scd-card--compact {
+    padding: var(--scd-spacing-md);
+}
+
+/* Interactive card options - more compact */
+.scd-card--interactive.scd-card-option {
+    padding: var(--scd-spacing-sm);
+}
+
+.scd-card--surface {
+    background: var(--scd-color-surface);
+}
+
+.scd-card--bordered {
+    border-width: var(--scd-border-width-thick);
+}
+
+.scd-card--interactive {
+    cursor: pointer;
+}
+
+.scd-card--interactive:hover {
+    /* Transform removed for instant state change */
+}
+
+.scd-card--selected {
+    border-color: var(--scd-color-primary);
+    background: var(--scd-color-primary-bg);
+    box-shadow: 0 0 0 1px var(--scd-color-primary);
+}
+
+/* Unavailable Card State - Professional styling */
+.scd-card--unavailable {
+    position: relative;
+    background: linear-gradient(to bottom, #fafafa, #f7f7f7) !important;
+    border-color: #e5e5e5 !important;
+    color: #888 !important;
+    pointer-events: none !important;
+    user-select: none !important;
+}
+
+.scd-card--unavailable::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(0, 0, 0, 0.02) 10px,
+        rgba(0, 0, 0, 0.02) 20px
+    );
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.scd-card--unavailable .scd-card__title {
+    color: #888 !important;
+}
+
+.scd-card--unavailable .scd-card__subtitle {
+    color: #999 !important;
+}
+
+/* Disable all interactive elements within unavailable cards */
+.scd-card--unavailable input,
+.scd-card--unavailable select,
+.scd-card--unavailable button,
+.scd-card--unavailable textarea {
+    background-color: #f5f5f5 !important;
+    color: #999 !important;
+    border-color: #e5e5e5 !important;
+    cursor: not-allowed !important;
+    opacity: 0.7 !important;
+    pointer-events: none !important;
+}
+
+/* Override any hover states */
+.scd-card--unavailable:hover {
+    background: linear-gradient(to bottom, #fafafa, #f7f7f7) !important;
+    border-color: #e5e5e5 !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Professional unavailable badge */
+.scd-card--unavailable .scd-card__header::after,
+.scd-card--unavailable .scd-card__content::before {
+    content: 'UNAVAILABLE';
+    position: absolute;
+    top: var(--scd-spacing-sm);
+    right: var(--scd-spacing-sm);
+    padding: 4px 12px;
+    background: #888;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-radius: var(--scd-radius-sm);
+    text-transform: uppercase;
+    z-index: 10;
+}
+
+/* Ensure badge shows when no header exists */
+.scd-card--unavailable:not(:has(.scd-card__header)) .scd-card__content::before {
+    display: block;
+}
+
+.scd-card--unavailable:has(.scd-card__header) .scd-card__content::before {
+    display: none;
+}
+
+/* Card Elements */
+.scd-card__header {
+    position: relative;
+    margin: calc(var(--scd-spacing-lg) * -1 + 1px);
+    margin-bottom: var(--scd-spacing-lg);
+    padding: var(--scd-spacing-md) var(--scd-spacing-lg);
+    background-color: var(--scd-color-surface);
+    border: var(--scd-border-width) solid var(--scd-color-border-light);
+    border-radius: calc(var(--scd-radius-lg) - 2px) calc(var(--scd-radius-lg) - 2px) 0 0;
+    box-shadow: 0 1px 3px var(--scd-shadow-gradient-light);
+}
+
+/* WordPress handles dashicon alignment and sizing */
+
+/* Dashicon styling in card headers - Uses WordPress admin color schemes */
+.scd-card__header .dashicons,
+.scd-card__title .dashicons {
+    color: var(--wp-admin-theme-color, #2271b1); /* Uses WordPress admin color scheme */
+    margin-right: 8px;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+}
+
+/* Hover state for interactive cards */
+.scd-card:hover .scd-card__header .dashicons,
+.scd-card:hover .scd-card__title .dashicons {
+    color: var(--wp-admin-theme-color-darker-10, #135e96); /* Darker shade on hover */
+}
+
+/* Focus state for accessibility */
+.scd-card:focus-within .scd-card__header .dashicons,
+.scd-card:focus-within .scd-card__title .dashicons {
+    color: var(--wp-admin-theme-color-darker-20, #0a4b78); /* Even darker for focus */
+}
+
+/* Responsive styles for card header */
+@media screen and (max-width: 782px) {
+    .scd-card__header {
+        padding: var(--scd-spacing-sm) var(--scd-spacing-md);
+    }
+    
+    .scd-card__title {
+        font-size: var(--scd-font-size-medium);
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .scd-card__header {
+        padding: var(--scd-spacing-sm);
+    }
+}
+
+.scd-card__title {
+    margin: 0;
+    font-size: var(--scd-font-size-large);
+    font-weight: var(--scd-font-weight-semibold);
+    color: var(--scd-color-text);
+    line-height: var(--scd-line-height-tight);
+}
+
+.scd-card__subtitle {
+    margin: var(--scd-spacing-xs) 0 0;
+    font-size: var(--scd-font-size-base);
+    color: var(--scd-color-text-muted);
+    line-height: var(--scd-line-height-base);
+}
+
+.scd-card__content {
+    display: block;
+    position: relative;
+    line-height: var(--scd-line-height-base);
+}
+
+/* Interactive Card Option States */
+.scd-card-option {
+    position: relative;
+    cursor: pointer;
+}
+
+.scd-card-option input[type="radio"] {
+    position: absolute;
+    top: var(--scd-spacing-md);
+    right: var(--scd-spacing-md);
+    margin: 0;
+    width: 20px;
+    height: 20px;
+    z-index: 2;
+}
+
+.scd-card-option .scd-card__content {
+    cursor: pointer;
+    z-index: 0;
+    padding: var(--scd-spacing-md) calc(var(--scd-spacing-lg) + 20px) var(--scd-spacing-md) var(--scd-spacing-md); /* Space for radio button */
+}
+
+/* Selected state - removed in favor of :has() selector on card */
+
+/* Focus states */
+.scd-card-option:focus-within {
+    background: var(--scd-color-background);
+}
+
+/* Modern browsers with :has() support */
+.scd-card-option:has(input[type="radio"]:checked) {
+    border-width: 2px;
+    border-color: var(--scd-color-primary);
+}
+
+/* RTL Support */
+[dir="rtl"] .scd-card-option input[type="radio"] {
+    right: auto;
+    left: var(--scd-spacing-md);
+}
+
+[dir="rtl"] .scd-card-option .scd-card__content {
+    padding: var(--scd-spacing-lg) var(--scd-spacing-lg) var(--scd-spacing-lg) calc(var(--scd-spacing-lg) + 30px);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .scd-card__content {
+        padding: var(--scd-spacing-sm);
+    }
+    
+    .scd-card-option .scd-card__content {
+        padding: var(--scd-spacing-sm) calc(var(--scd-spacing-md) + 20px) var(--scd-spacing-sm) var(--scd-spacing-sm);
+    }
+    
+    [dir="rtl"] .scd-card-option .scd-card__content {
+        padding: var(--scd-spacing-md) var(--scd-spacing-md) var(--scd-spacing-md) calc(var(--scd-spacing-md) + 30px);
+    }
+}
+
+.scd-card__footer {
+    margin: var(--scd-spacing-lg) calc(var(--scd-spacing-lg) * -1) calc(var(--scd-spacing-lg) * -1);
+    padding: var(--scd-spacing-md) var(--scd-spacing-lg);
+    border-top: var(--scd-border-width) solid var(--scd-color-border-light);
+}
+
+/* ==========================================================================
+   Button Styles - Moved to shared/_buttons.css to avoid duplication
+   ========================================================================== */
+
+/* ==========================================================================
+   Form Control Styles - Moved to shared/_forms.css to avoid duplication
+   ========================================================================== */
+
+/* ==========================================================================
+   Badge Styles - Moved to shared/_badges.css to avoid duplication
+   ========================================================================== */
+
+/* ==========================================================================
+   Alert Styles - Moved to shared/_alerts.css to avoid duplication
+   ========================================================================== */
+
+/* ==========================================================================
+   Loading States
+   ========================================================================== */
+
+.scd-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--scd-color-border);
+    border-top-color: var(--scd-color-primary);
+    border-radius: 50%;
+    animation: scd-spin 0.8s linear infinite;
+}
+
+.scd-spinner--small {
+    width: 14px;
+    height: 14px;
+    border-width: 2px;
+}
+
+.scd-spinner--large {
+    width: 32px;
+    height: 32px;
+    border-width: 3px;
+}
+
+.scd-skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--scd-color-surface) 25%,
+        var(--scd-color-border-light) 50%,
+        var(--scd-color-surface) 75%
+    );
+    background-size: 200% 100%;
+    animation: scd-skeleton-loading 1.5s infinite;
+    border-radius: var(--scd-radius-md);
+}
+
+@keyframes scd-skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ==========================================================================
+   Tables - Consistent Table Styling
+   ========================================================================== */
+
+.scd-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--scd-color-background);
+    border: var(--scd-border-width) solid var(--scd-color-border);
+    border-radius: var(--scd-radius-lg);
+    overflow: hidden;
+}
+
+.scd-table thead {
+    background: var(--scd-color-surface);
+}
+
+.scd-table th,
+.scd-table td {
+    padding: var(--scd-spacing-md);
+    text-align: left;
+    border-bottom: var(--scd-border-width) solid var(--scd-color-border-light);
+}
+
+.scd-table th {
+    font-weight: var(--scd-font-weight-semibold);
+    color: var(--scd-color-text);
+    font-size: var(--scd-font-size-base);
+}
+
+.scd-table td {
+    color: var(--scd-color-text);
+    font-size: var(--scd-font-size-base);
+}
+
+.scd-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.scd-table tbody tr:hover {
+    background: var(--scd-color-surface);
+}
+
+/* Table Variants */
+.scd-table--striped tbody tr:nth-child(even) {
+    background: var(--scd-color-surface);
+}
+
+.scd-table--bordered th,
+.scd-table--bordered td {
+    border: var(--scd-border-width) solid var(--scd-color-border-light);
+}
+
+/* ==========================================================================
+   Tooltips - Unified Tooltip System
+   ========================================================================== */
+
+/* Field helper (tooltip icon) - exact match to wizard */
+.scd-field-helper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--scd-icon-small, 18px);
+    height: var(--scd-icon-small, 18px);
+    cursor: help;
+    margin-left: var(--scd-gap-tight, 8px);
+}
+
+.scd-field-helper .dashicons {
+    font-size: var(--scd-icon-small, 18px);
+    width: var(--scd-icon-small, 18px);
+    height: var(--scd-icon-small, 18px);
+    color: var(--scd-color-text-muted, #646970);
+    opacity: 0.7;
+}
+
+/* Tooltip wrapper container */
+#scd-tooltip-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 99999;
+}
+
+/* Tooltip Styles - Enhanced to match discounts step */
+.scd-tooltip {
+    position: absolute; /* Use absolute positioning within container */
+    background: var(--scd-color-text, #1d2327);
+    color: var(--scd-color-white, #fff);
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    max-width: 320px;
+    word-wrap: break-word;
+    box-shadow:
+        0 4px 20px var(--scd-shadow-lg-alpha, rgba(0,0,0,0.15)),
+        0 1px 3px var(--scd-shadow-md-alpha, rgba(0,0,0,0.2));
+    opacity: 0;
+    transition: opacity 0.15s ease-out;
+    pointer-events: none;
+    border: 1px solid var(--scd-shadow-border, rgba(0,0,0,0.1));
+    z-index: 100000;
+}
+
+/* Arrow pointing to trigger element */
+.scd-tooltip:before {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: calc(50% + var(--arrow-offset, 0px));
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid var(--scd-color-text, #1d2327);
+    filter: drop-shadow(0 2px 4px var(--scd-shadow-sm-alpha, rgba(0,0,0,0.1)));
+}
+
+.scd-tooltip.show {
+    opacity: 1;
+}
+
+/* Bottom position variant */
+.scd-tooltip.tooltip-bottom:before {
+    top: -6px;
+    bottom: auto;
+    left: calc(50% + var(--arrow-offset, 0px));
+    border-top: none;
+    border-bottom: 6px solid var(--scd-color-text, #1d2327);
+}
+
+/* Right position variant */
+.scd-tooltip.tooltip-right {
+    transform: none;
+}
+
+.scd-tooltip.tooltip-right:before {
+    top: 50%;
+    left: -6px;
+    bottom: auto;
+    right: auto;
+    transform: translateY(-50%);
+    border: none;
+    border-right: 6px solid var(--scd-color-text, #1d2327);
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+}
+
+/* Ensure wpcontent has proper positioning context */
+#wpcontent {
+    position: relative;
+}
+
+/* ==========================================================================
+   Component Imports
+   ========================================================================== */
+

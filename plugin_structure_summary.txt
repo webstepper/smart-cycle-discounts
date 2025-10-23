@@ -1,0 +1,301 @@
+================================================================================
+SMART CYCLE DISCOUNTS PLUGIN - ARCHITECTURE ANALYSIS SUMMARY
+================================================================================
+
+PLUGIN PATH: /mnt/c/Users/Alienware/Local Sites/vvmdov/app/public/wp-content/plugins/smart-cycle-discounts
+
+================================================================================
+1. CORE PURPOSE
+================================================================================
+
+WordPress/WooCommerce plugin for intelligent discount management with:
+- Multi-campaign organization with scheduling and rotation
+- Advanced discount types (percentage, fixed, BOGO, tiered, spend threshold)
+- Real-time analytics and performance tracking
+- Customer usage limits and restrictions
+- Product selection and filtering
+- Campaign templates and automation
+
+
+================================================================================
+2. KEY DATABASE TABLES (5 Main Tables)
+================================================================================
+
+1. wp_scd_campaigns
+   - Master campaign data, status, scheduling, discount settings
+   - File: includes/database/migrations/001-initial-schema.php:83-160
+   - Key fields: name, status, discount_type, starts_at, ends_at, revenue_generated
+
+2. wp_scd_active_discounts  
+   - Real-time discount applications to products
+   - File: includes/database/migrations/001-initial-schema.php:170-219
+   - Key fields: campaign_id, product_id, discounted_price, status, revenue_generated
+
+3. wp_scd_analytics
+   - Historical performance data aggregated by date/hour
+   - File: includes/database/migrations/001-initial-schema.php:229-282
+   - Key fields: campaign_id, impressions, clicks, conversions, revenue, device/traffic breakdown
+
+4. wp_scd_customer_usage
+   - Tracks customer discount usage for limits enforcement
+
+5. wp_scd_campaign_recurring
+   - Manages recurring campaign instances
+
+
+================================================================================
+3. CORE SERVICES & DATA PROVIDERS (File Locations)
+================================================================================
+
+Analytics Services:
+├─ SCD_Analytics_Collector
+│  File: includes/core/analytics/class-analytics-collector.php
+│  Purpose: Collects raw events (views, clicks, purchases, cart actions)
+│
+├─ SCD_Metrics_Calculator
+│  File: includes/core/analytics/class-metrics-calculator.php
+│  Methods: calculate_campaign_metrics(), calculate_overall_metrics()
+│  Purpose: Calculates derived KPIs (conversion rates, ROI, trends)
+│
+├─ SCD_Analytics_Dashboard
+│  File: includes/admin/pages/class-analytics-dashboard.php
+│  Methods: get_dashboard_metrics(), get_batch_campaign_metrics(), get_time_series_data()
+│  Purpose: Optimized dashboard data retrieval (15-min cache, single query)
+│
+├─ SCD_Campaign_Manager
+│  File: includes/core/campaigns/class-campaign-manager.php
+│  Purpose: Campaign CRUD operations and business logic
+│
+└─ SCD_Activity_Tracker
+   File: includes/core/analytics/class-activity-tracker.php
+   Purpose: Session-based event tracking
+
+
+================================================================================
+4. ADMIN PAGES (File Locations)
+================================================================================
+
+Main Menu Registration:
+├─ File: includes/admin/class-menu-manager.php:111-195
+│  Creates: 6 menu items under "SC Discounts"
+
+Pages:
+
+1. Main Dashboard (slug: smart-cycle-discounts)
+   File: includes/admin/pages/class-analytics-page.php
+   View: resources/views/admin/pages/dashboard.php
+   Data: 5 KPI cards, date range selector, charts, export options
+   Current Metrics: Revenue, Conversions, AOV, CTR, Active Campaigns
+
+2. Campaigns Page (slug: scd-campaigns)
+   File: includes/admin/pages/class-campaigns-page.php
+   Functions: Campaign list, create, edit, wizard, delete, duplicate, activate/deactivate
+
+3. Analytics Page (slug: scd-analytics)
+   File: includes/admin/pages/class-analytics-page.php
+   Purpose: Detailed analytics and campaign-specific metrics
+
+4. Settings Page (slug: scd-settings)
+   Purpose: Plugin configuration
+
+5. Tools Page (slug: scd-tools)
+   File: includes/admin/pages/class-tools-page.php
+   Purpose: Maintenance, debugging, data management
+
+
+================================================================================
+5. AJAX ENDPOINTS FOR DATA
+================================================================================
+
+All AJAX handlers route through: includes/admin/ajax/class-ajax-router.php
+
+Key Analytics Handlers (scd_action parameter):
+
+├─ overview_handler
+│  Class: SCD_Overview_Handler
+│  File: includes/admin/ajax/handlers/class-overview-handler.php
+│  Returns: Dashboard overview metrics
+│
+├─ campaign_performance_handler
+│  Class: SCD_Campaign_Performance_Handler
+│  File: includes/admin/ajax/handlers/class-campaign-performance-handler.php
+│  Returns: Per-campaign performance data
+│
+├─ activity_feed_handler
+│  Class: SCD_Activity_Feed_Handler
+│  File: includes/admin/ajax/handlers/class-activity-feed-handler.php
+│  Returns: Recent campaign events
+│
+├─ health_check_handler
+│  Class: SCD_Health_Check_Handler
+│  File: includes/admin/ajax/handlers/class-health-check-handler.php
+│  Returns: System health status
+│
+├─ get_active_campaigns_handler
+│  Class: SCD_Get_Active_Campaigns_Handler
+│  Returns: List of active campaigns
+│
+└─ campaign_health_handler
+   Class: SCD_Campaign_Health_Handler
+   Returns: Campaign health indicators
+
+
+================================================================================
+6. AVAILABLE METRICS FOR DASHBOARD
+================================================================================
+
+From Analytics Table (wp_scd_analytics):
+
+Direct Metrics:
+- impressions, clicks, conversions, revenue, discount_given
+- unique_customers, returning_customers
+- cart_additions, cart_abandonments, checkout_starts, completions
+- products_shown, products_clicked, products_purchased
+- average_order_value, bounce_rate, session_duration
+- device breakdown: mobile, tablet, desktop
+- traffic sources: organic, direct, referral, social, email, paid
+
+Calculated Metrics:
+- conversion_rate = (conversions / impressions) * 100
+- click_through_rate = (clicks / impressions) * 100
+- revenue_per_conversion = total_revenue / conversions
+- profit_margin = revenue - discount_given
+- ROI = (revenue - discount) / discount * 100
+- repeat_customer_rate = returning / unique * 100
+
+Campaign-Specific (from wp_scd_campaigns):
+- revenue_generated, orders_count, impressions_count, clicks_count
+- current_uses vs max_uses (usage limits)
+- starts_at, ends_at (campaign duration)
+- status, priority, product_selection_type, rotation_type
+
+
+================================================================================
+7. WHAT'S VALUABLE FOR MAIN DASHBOARD (page=smart-cycle-discounts)
+================================================================================
+
+Current State:
+- Dashboard exists but shows only 5 KPI cards
+- Acts mainly as navigation to other pages
+
+High-Value Additions:
+
+1. QUICK STATS (Overview Section)
+   ├─ Active Campaigns Count (with status breakdown)
+   ├─ Total Active Discounts
+   ├─ Today's Revenue vs Yesterday
+   ├─ Total Profit Generated (revenue - discounts)
+   └─ Average ROI per Campaign
+
+2. CAMPAIGN STATUS OVERVIEW
+   ├─ Pie chart: Active, Scheduled, Paused, Expired, Archived
+   ├─ Top 5-10 campaigns by revenue (with quick actions: edit, stop, duplicate)
+   └─ Campaigns expiring soon (within 7 days)
+
+3. ALERTS & OPPORTUNITIES
+   ├─ Low conversion rate campaigns
+   ├─ Campaigns approaching usage limits
+   ├─ Scheduling conflicts
+   └─ Underperforming campaigns (below average ROI)
+
+4. PERFORMANCE TRENDS
+   ├─ Revenue trend line chart
+   ├─ Conversion trend chart
+   ├─ Device breakdown (Mobile/Tablet/Desktop)
+   └─ Traffic source breakdown
+
+5. CUSTOMER ENGAGEMENT
+   ├─ Unique users this period
+   ├─ Returning customer percentage
+   ├─ Cart abandonment rate
+   ├─ Average customer lifetime value
+
+6. RECENT ACTIVITY FEED
+   ├─ Last 10 campaign events (created, activated, paused, etc)
+   ├─ Performance milestones reached
+   └─ Timestamps with user who performed action
+
+7. SYSTEM HEALTH
+   ├─ Plugin status indicator
+   ├─ Database health
+   ├─ Last analytics update
+   └─ Scheduled cron tasks status
+
+
+================================================================================
+8. TECHNICAL IMPLEMENTATION NOTES
+================================================================================
+
+Performance Optimization:
+- Use SCD_Analytics_Dashboard::get_dashboard_metrics() for optimized single query
+- Transient caching: 15-minute TTL (CACHE_TTL = 900)
+- Use get_batch_campaign_metrics() for multiple campaigns instead of individual queries
+- Lazy load detailed data on user interaction
+
+Security:
+- Check capability: current_user_can('scd_view_analytics')
+- Nonce verification for all AJAX via SCD_Ajax_Security
+- Sanitize all inputs (date ranges, filters)
+- Escape all output (esc_html, esc_attr, esc_url)
+
+Data Access Pattern:
+1. Service Container (bootstrap/class-container.php) provides instances
+2. Analytics Dashboard queries cache first, then database
+3. Cache invalidation on campaign status changes
+4. AJAX handlers use same data sources as page rendering
+
+
+================================================================================
+9. KEY FILES TO UNDERSTAND
+================================================================================
+
+Architecture:
+├─ smart-cycle-discounts.php (main plugin file, plugin setup)
+├─ includes/class-smart-cycle-discounts.php (core plugin class, singleton)
+└─ includes/bootstrap/class-container.php (dependency injection container)
+
+Admin Interface:
+├─ includes/admin/class-admin.php (main admin controller)
+├─ includes/admin/class-menu-manager.php (menu creation)
+├─ includes/admin/pages/class-analytics-page.php (dashboard page)
+└─ resources/views/admin/pages/dashboard.php (dashboard template)
+
+Data Access:
+├─ includes/core/analytics/class-analytics-dashboard.php (optimized queries)
+├─ includes/core/analytics/class-metrics-calculator.php (calculations)
+├─ includes/core/campaigns/class-campaign-manager.php (campaign logic)
+└─ includes/database/class-database-manager.php (query abstraction)
+
+AJAX:
+├─ includes/admin/ajax/class-ajax-router.php (routing)
+└─ includes/admin/ajax/handlers/ (all handler classes)
+
+
+================================================================================
+10. PLUGIN WORKFLOW SUMMARY
+================================================================================
+
+User Creates Campaign:
+1. Page: Campaigns (scd-campaigns?action=wizard)
+2. Form collects: name, discount, products, schedule, limits
+3. Wizard validates via AJAX handlers
+4. Campaign saved to wp_scd_campaigns table
+5. On activation: Creates records in wp_scd_active_discounts
+
+During Cart/Checkout:
+1. WooCommerce integration detects active campaigns
+2. For matching products: Calculates discounted price
+3. Displays discount on product/cart
+4. On purchase: Event tracked to wp_scd_analytics
+5. Customer usage tracked in wp_scd_customer_usage
+
+Analytics Processing:
+1. Events collected by SCD_Analytics_Collector
+2. Aggregated in wp_scd_analytics by date/hour
+3. SCD_Metrics_Calculator computes KPIs
+4. SCD_Analytics_Dashboard serves to UI (with caching)
+5. Dashboard pages and AJAX endpoints display results
+
+================================================================================
+END OF ANALYSIS
+================================================================================

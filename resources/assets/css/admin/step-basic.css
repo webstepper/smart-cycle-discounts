@@ -1,0 +1,449 @@
+/**
+ * Smart Cycle Discounts - Basic Step Styles
+ *
+ * Styles for the campaign basic information step.
+ * Follows WordPress design patterns and plugin conventions.
+ *
+ * Dependencies: scd-variables, scd-utilities, scd-components, scd-forms, scd-buttons, scd-theme-colors (loaded via WordPress deps)
+ *
+ * @package SmartCycleDiscounts
+ * @since 1.0.0
+ */
+
+/* ==========================================================================
+   Layout Structure
+   ========================================================================== */
+
+.scd-wizard-step--basic {
+    /* Local CSS variables */
+    --scd-basic-accent: var(--scd-color-primary, #2271b1);
+}
+
+/* Content layout */
+.scd-wizard-step--basic .scd-step-content {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+}
+
+.scd-wizard-step--basic .scd-step-main-content {
+    flex: 1;
+    min-width: 0;
+    order: 1;
+}
+
+.scd-wizard-step--basic .scd-step-sidebar {
+    flex: 0 0 360px;
+    width: 360px;
+    order: 2;
+}
+
+/* ==========================================================================
+   Form Elements
+   ========================================================================== */
+
+/* Field constraints */
+.scd-wizard-step--basic input[type="text"],
+.scd-wizard-step--basic input[type="number"],
+.scd-wizard-step--basic input[type="email"],
+.scd-wizard-step--basic select,
+.scd-wizard-step--basic textarea {
+    max-width: 400px;
+}
+
+/* Character counter */
+.scd-char-counter {
+    font-size: 12px;
+    color: var(--scd-color-text-muted, #646970);
+    margin-top: 8px;
+    font-style: italic;
+}
+
+.scd-char-counter--warning {
+    color: var(--scd-color-warning, #dba617);
+}
+
+.scd-char-counter--error {
+    color: var(--scd-color-error, #d63638);
+}
+
+/* ==========================================================================
+   Warnings and Hints
+   ========================================================================== */
+
+.scd-field-warning,
+.scd-uniqueness-hint {
+    margin-top: 12px;
+    padding: 14px 16px;
+    background: var(--scd-color-warning-bg);
+    border: 1px solid var(--scd-color-warning, #dba617);
+    border-left-width: 4px;
+    border-radius: var(--scd-radius-md, 4px);
+    color: var(--scd-color-text, #1d2327);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.scd-field-warning .dashicons,
+.scd-uniqueness-hint .dashicons {
+    color: var(--scd-color-warning, #dba617);
+    margin-right: 6px;
+    vertical-align: middle;
+    font-size: 16px;
+}
+
+/* ==========================================================================
+   Priority Display
+   ========================================================================== */
+
+.scd-priority-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 12px;
+    padding: 6px 14px;
+    background: var(--scd-color-surface, #f6f7f7);
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.scd-priority-display__icon {
+    font-size: 14px;
+    line-height: 1;
+}
+
+/* Priority variants */
+.scd-priority-display--high {
+    background: var(--scd-color-error-bg);
+    color: var(--scd-color-error, #d63638);
+    border: 1px solid var(--scd-color-danger-light-border);
+}
+
+.scd-priority-display--medium {
+    background: var(--scd-color-warning-bg);
+    color: var(--scd-color-warning, #dba617);
+    border: 1px solid var(--scd-color-warning-light-border);
+}
+
+.scd-priority-display--low {
+    background: var(--scd-color-primary-light-bg);
+    color: var(--scd-color-primary, #2271b1);
+    border: 1px solid var(--scd-color-primary-light-border);
+}
+
+/* ==========================================================================
+   Priority Guide
+   ========================================================================== */
+
+.scd-priority-levels {
+    display: grid;
+    gap: 16px;
+}
+
+.scd-priority-level {
+    display: flex;
+    gap: 16px;
+    background: var(--scd-color-background, #fff);
+    border: 1px solid var(--scd-color-border-light, #e0e0e0);
+    border-radius: var(--scd-radius-lg, 8px);
+    padding: 20px;
+    align-items: center;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.scd-priority-level:hover {
+    border-color: var(--scd-color-border-dark, #8c8f94);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* Priority number badge */
+.scd-priority-level__number {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.scd-priority-level--high .scd-priority-level__number {
+    background: var(--scd-alert-danger-bg);
+    color: var(--scd-color-error, #d63638);
+}
+
+.scd-priority-level--medium .scd-priority-level__number {
+    background: var(--scd-alert-warning-bg);
+    color: var(--scd-color-warning, #dba617);
+}
+
+.scd-priority-level--low .scd-priority-level__number {
+    background: var(--scd-alert-info-bg);
+    color: var(--scd-color-primary, #2271b1);
+}
+
+/* Priority info content */
+.scd-priority-level__info h5 {
+    margin: 0 0 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--scd-color-text, #1d2327);
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+}
+
+.scd-priority-level__info p {
+    margin: 0 0 8px;
+    font-size: 14px;
+    color: var(--scd-color-text-muted, #646970);
+    line-height: 1.6;
+}
+
+.scd-priority-level__use-case {
+    font-size: 12px;
+    color: var(--scd-color-text-lighter, #8c8f94);
+    font-style: italic;
+}
+
+.scd-priority-level__use-case strong {
+    color: var(--scd-color-text-muted, #646970);
+}
+
+/* ==========================================================================
+   Setup Checklist
+   ========================================================================== */
+
+.scd-checklist {
+    background: var(--scd-color-background, #fff);
+    border: 1px solid var(--scd-color-border, #c3c4c7);
+    border-radius: var(--scd-radius-lg, 8px);
+    padding: 20px;
+}
+
+.scd-checklist__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.scd-checklist__item:last-child {
+    margin-bottom: 0;
+}
+
+.scd-checklist__item input[type="checkbox"] {
+    flex-shrink: 0;
+    margin: 0;
+    width: 16px;
+    height: 16px;
+}
+
+.scd-checklist__item span {
+    font-size: 14px;
+    color: var(--scd-color-text, #1d2327);
+    line-height: 1.6;
+}
+
+/* Next step items */
+.scd-checklist__item--next {
+    padding-top: 8px;
+    border-top: 1px solid var(--scd-color-border-light, #e0e0e0);
+    margin-top: 8px;
+}
+
+/* ==========================================================================
+   Campaign Idea Cards
+   ========================================================================== */
+
+.scd-idea-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.scd-idea-card {
+    background: var(--scd-color-background, #fff);
+    border: 1px solid var(--scd-color-border-light, #e0e0e0);
+    border-radius: var(--scd-radius-lg, 8px);
+    padding: 20px;
+    text-align: center;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    cursor: pointer;
+}
+
+.scd-idea-card:hover {
+    border-color: var(--scd-color-border-dark, #8c8f94);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.scd-idea-card__icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+    color: var(--scd-color-primary, #2271b1);
+    line-height: 1;
+}
+
+.scd-idea-card h5 {
+    margin: 0 0 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--scd-color-text, #1d2327);
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+}
+
+.scd-idea-card p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--scd-color-text-muted, #646970);
+    line-height: 1.6;
+}
+
+/* ==========================================================================
+   Sidebar Components
+   ========================================================================== */
+
+/* NOTE: .scd-sidebar-footer and .scd-sidebar-link styles moved to wizard-steps.css */
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
+/* Focus states */
+.scd-checklist__item input[type="checkbox"]:focus {
+    outline: 2px solid transparent;
+    box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 2px) var(--scd-color-primary, #2271b1);
+}
+
+/* ==========================================================================
+   Media Queries
+   ========================================================================== */
+
+/* Large tablets */
+@media (max-width: 1200px) {
+    .scd-wizard-step--basic .scd-step-sidebar {
+        flex: 0 0 300px;
+        width: 300px;
+    }
+    
+    .scd-idea-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Tablets */
+@media (max-width: 960px) {
+    .scd-wizard-step--basic .scd-step-content {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .scd-wizard-step--basic .scd-step-sidebar {
+        flex: none;
+        width: 100%;
+        order: 3;
+    }
+    
+    .scd-wizard-step--basic .scd-step-main-content {
+        order: 2;
+    }
+}
+
+/* WordPress mobile breakpoint */
+@media (max-width: 782px) {
+    .scd-priority-display {
+        display: inline-block;
+        margin-left: 0;
+        margin-top: 6px;
+    }
+    
+    .scd-priority-level {
+        padding: 12px;
+    }
+    
+    .scd-priority-level__number {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+    
+    .scd-idea-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Small mobile */
+@media (max-width: 600px) {
+    .scd-priority-level {
+        flex-direction: column;
+        text-align: center;
+        gap: 8px;
+    }
+    
+    .scd-checklist {
+        padding: 12px;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .scd-priority-display {
+        border: 1px solid currentColor;
+    }
+    
+    .scd-priority-level,
+    .scd-idea-card {
+        border-width: 2px;
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .scd-idea-card,
+    .scd-priority-level {
+        transition: none;
+    }
+}
+
+/* Print styles */
+@media print {
+    .scd-sidebar-footer,
+    .scd-idea-cards,
+    .scd-step-sidebar {
+        display: none !important;
+    }
+    
+    .scd-priority-level,
+    .scd-priority-display {
+        border: 1px solid #000;
+        background: #fff !important;
+    }
+    
+    .scd-priority-display {
+        color: #000 !important;
+    }
+}
+
+/* ==========================================================================
+   RTL Support
+   ========================================================================== */
+
+[dir="rtl"] .scd-priority-level,
+[dir="rtl"] .scd-checklist__item {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .scd-priority-display {
+    margin-left: 0;
+    margin-right: 12px;
+}
+
+[dir="rtl"] .scd-field-warning .dashicons,
+[dir="rtl"] .scd-uniqueness-hint .dashicons {
+    margin-right: 0;
+    margin-left: 6px;
+}

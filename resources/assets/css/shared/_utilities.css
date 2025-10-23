@@ -1,0 +1,477 @@
+/**
+ * CSS Utilities - Common Patterns & Helpers
+ * WordPress 6.4+ Design System
+ * 
+ * Reusable utility classes to prevent duplication
+ * Import after _variables.css
+ * 
+ * Usage Guidelines:
+ * - Don't combine transform utilities (hover-lift, hover-scale) on same element
+ * - Use transition utilities separately for flexibility  
+ * - For form elements, prefer :disabled over .scd-disabled
+ * - Avoid using generic element selectors to prevent WordPress conflicts
+ */
+
+/* ==========================================================================
+   Focus States - Consistent WordPress Admin Focus
+   ========================================================================== */
+
+/* Use with scd- prefixed elements to avoid WordPress conflicts */
+.scd-focus,
+.scd-focus-visible:focus-visible {
+    outline: 2px solid transparent;
+    outline-offset: 0;
+    box-shadow: var(--scd-shadow-focus);
+}
+
+/* Remove focus for mouse users, keep for keyboard */
+.scd-focus-visible:focus:not(:focus-visible) {
+    box-shadow: none;
+}
+
+/* ==========================================================================
+   Transitions - Smooth State Changes
+   ========================================================================== */
+
+.scd-transition {
+    transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+}
+
+.scd-transition-fast {
+    transition: all var(--scd-transition-fast) var(--scd-ease-in-out);
+}
+
+.scd-transition-slow {
+    transition: all var(--scd-transition-slow) var(--scd-ease-in-out);
+}
+
+.scd-transition-colors {
+    transition: color var(--scd-transition-fast) var(--scd-ease-in-out),
+                background-color var(--scd-transition-fast) var(--scd-ease-in-out),
+                border-color var(--scd-transition-fast) var(--scd-ease-in-out);
+}
+
+/* ==========================================================================
+   Hover Effects - Consistent Interactions
+   ========================================================================== */
+
+/* Note: Don't combine hover transform utilities on the same element */
+.scd-hover-lift:hover {
+    /* transform: translateY(-1px); removed for instant state change */
+    box-shadow: var(--scd-shadow-md);
+}
+
+.scd-hover-scale:hover {
+    /* transform: scale(1.02); removed for instant state change */
+}
+
+/* ==========================================================================
+   Card Base - Consistent Card Styling
+   ========================================================================== */
+
+.scd-card-base {
+    background: var(--scd-color-background);
+    border: var(--scd-border-width) solid var(--scd-color-border);
+    border-radius: var(--scd-radius-lg);
+    padding: var(--scd-spacing-lg);
+    box-shadow: var(--scd-shadow-sm);
+}
+
+/* Apply transition utilities separately for flexibility */
+.scd-card-base:hover {
+    border-color: var(--scd-color-border-dark);
+    box-shadow: var(--scd-shadow-md);
+}
+
+/* ==========================================================================
+   Form Elements - Consistent Input Styling
+   ========================================================================== */
+
+.scd-input-base {
+    width: 100%;
+    height: var(--scd-input-height);
+    padding: 0 var(--scd-spacing-sm);
+    background: var(--scd-color-background);
+    border: var(--scd-border-width) solid var(--scd-color-border);
+    border-radius: var(--scd-radius-md);
+    font-size: var(--scd-font-size-base);
+    line-height: normal;
+    color: var(--scd-color-text);
+}
+
+.scd-input-base:hover:not(:disabled) {
+    border-color: var(--scd-color-border-dark);
+}
+
+/* Focus inherits from .scd-focus if both classes are used */
+.scd-input-base:focus {
+    border-color: var(--scd-color-primary);
+    outline: 2px solid transparent;
+}
+
+.scd-input-base:disabled {
+    background: var(--scd-color-surface);
+    color: var(--scd-color-text-disabled);
+    cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Button Base - Consistent Button Styling
+   ========================================================================== */
+
+.scd-button-base {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--scd-spacing-xs);
+    min-height: var(--scd-button-height);
+    padding: 0 var(--scd-spacing-md);
+    background: var(--scd-color-background);
+    border: var(--scd-border-width) solid var(--scd-color-border);
+    border-radius: var(--scd-radius-md);
+    font-size: var(--scd-font-size-base);
+    font-weight: var(--scd-font-weight-medium);
+    line-height: 1;
+    color: var(--scd-color-text);
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+/* Note: Don't use with .scd-hover-lift to avoid transform conflicts */
+.scd-button-base:hover:not(:disabled) {
+    background: var(--scd-color-surface);
+    border-color: var(--scd-color-border-dark);
+    /* transform: translateY(-1px); removed for instant state change */
+    box-shadow: var(--scd-shadow-sm);
+}
+
+.scd-button-base:active:not(:disabled) {
+    /* transform: translateY(0); removed for instant state change */
+    box-shadow: none;
+}
+
+.scd-button-base:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    /* transform: none; removed for instant state change */
+}
+
+/* ==========================================================================
+   Status Messages - Consistent Alerts
+   ========================================================================== */
+
+.scd-status-base {
+    padding: var(--scd-spacing-md);
+    border: var(--scd-border-width) solid;
+    border-left-width: var(--scd-border-width-accent);
+    border-radius: var(--scd-radius-md);
+    font-size: var(--scd-font-size-base);
+    line-height: var(--scd-line-height-base);
+}
+
+.scd-status-success {
+    background: var(--scd-color-success-bg);
+    border-color: var(--scd-color-success);
+    color: var(--scd-color-text);
+}
+
+.scd-status-error {
+    background: var(--scd-color-error-bg);
+    border-color: var(--scd-color-error);
+    color: var(--scd-color-text);
+}
+
+.scd-status-warning {
+    background: var(--scd-color-warning-bg);
+    border-color: var(--scd-color-warning);
+    color: var(--scd-color-text);
+}
+
+.scd-status-info {
+    background: var(--scd-color-primary-bg);
+    border-color: var(--scd-color-primary);
+    color: var(--scd-color-text);
+}
+
+/* ==========================================================================
+   Spacing Utilities
+   ========================================================================== */
+
+/* Margin */
+.scd-m-0 { margin: 0; }
+.scd-mt-0 { margin-top: 0; }
+.scd-mb-0 { margin-bottom: 0; }
+.scd-mt-xs { margin-top: var(--scd-spacing-xs); }
+.scd-mt-sm { margin-top: var(--scd-spacing-sm); }
+.scd-mt-md { margin-top: var(--scd-spacing-md); }
+.scd-mt-lg { margin-top: var(--scd-spacing-lg); }
+.scd-mb-xs { margin-bottom: var(--scd-spacing-xs); }
+.scd-mb-sm { margin-bottom: var(--scd-spacing-sm); }
+.scd-mb-md { margin-bottom: var(--scd-spacing-md); }
+.scd-mb-lg { margin-bottom: var(--scd-spacing-lg); }
+
+/* Padding */
+.scd-p-0 { padding: 0; }
+.scd-p-xs { padding: var(--scd-spacing-xs); }
+.scd-p-sm { padding: var(--scd-spacing-sm); }
+.scd-p-md { padding: var(--scd-spacing-md); }
+.scd-p-lg { padding: var(--scd-spacing-lg); }
+
+/* ==========================================================================
+   Display Utilities
+   ========================================================================== */
+
+.scd-hidden { display: none !important; }
+.scd-block { display: block; }
+.scd-inline-block { display: inline-block; }
+.scd-flex { display: flex; }
+.scd-inline-flex { display: inline-flex; }
+
+/* Disabled state - use for non-form elements or visual overlay */
+/* For form elements, prefer native :disabled pseudo-selector */
+.scd-disabled {
+    pointer-events: none;
+    position: relative;
+    opacity: 0.5;
+    transition: opacity var(--scd-transition-base) var(--scd-ease-in-out);
+}
+
+.scd-disabled::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(0, 0, 0, 0.02) 10px,
+        rgba(0, 0, 0, 0.02) 20px
+    );
+    border-radius: inherit;
+    z-index: 10;
+}
+
+/* Removed scd-disabled-notice - not used anywhere */
+
+/* Flex utilities */
+.scd-flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scd-flex-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.scd-flex-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.scd-gap-xs { gap: var(--scd-spacing-xs); }
+.scd-gap-sm { gap: var(--scd-spacing-sm); }
+.scd-gap-md { gap: var(--scd-spacing-md); }
+.scd-gap-lg { gap: var(--scd-spacing-lg); }
+
+/* ==========================================================================
+   Text Utilities
+   ========================================================================== */
+
+.scd-text-center { text-align: center; }
+.scd-text-left { text-align: left; }
+.scd-text-right { text-align: right; }
+
+.scd-text-small { font-size: var(--scd-font-size-small); }
+.scd-text-base { font-size: var(--scd-font-size-base); }
+.scd-text-large { font-size: var(--scd-font-size-large); }
+
+.scd-text-muted { color: var(--scd-color-text-muted); }
+.scd-text-primary { color: var(--scd-color-primary); }
+.scd-text-success { color: var(--scd-color-success); }
+.scd-text-error { color: var(--scd-color-error); }
+.scd-text-warning { color: var(--scd-color-warning); }
+
+.scd-font-medium { font-weight: var(--scd-font-weight-medium); }
+.scd-font-semibold { font-weight: var(--scd-font-weight-semibold); }
+.scd-font-bold { font-weight: var(--scd-font-weight-bold); }
+
+/* ==========================================================================
+   Border Utilities
+   ========================================================================== */
+
+.scd-border { border: var(--scd-border-width) solid var(--scd-color-border); }
+.scd-border-top { border-top: var(--scd-border-width) solid var(--scd-color-border); }
+.scd-border-bottom { border-bottom: var(--scd-border-width) solid var(--scd-color-border); }
+.scd-border-none { border: none; }
+
+.scd-rounded-sm { border-radius: var(--scd-radius-sm); }
+.scd-rounded { border-radius: var(--scd-radius-md); }
+.scd-rounded-lg { border-radius: var(--scd-radius-lg); }
+.scd-rounded-full { border-radius: var(--scd-radius-full); }
+
+/* ==========================================================================
+   Accessibility Utilities
+   ========================================================================== */
+
+/* Screen reader only - standard accessible hiding pattern */
+.scd-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Focus within */
+.scd-focus-within:focus-within {
+    box-shadow: var(--scd-shadow-focus);
+}
+
+/* ==========================================================================
+   Animation Utilities
+   ========================================================================== */
+
+@keyframes scd-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes scd-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scd-slide-up {
+    from { 
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scd-slide-down {
+    from { 
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.scd-animate-spin {
+    animation: scd-spin 1s linear infinite;
+}
+
+.scd-animate-fade-in {
+    animation: scd-fade-in var(--scd-transition-base) var(--scd-ease-out);
+}
+
+.scd-animate-slide-up {
+    animation: scd-slide-up var(--scd-transition-base) var(--scd-ease-out);
+}
+
+.scd-animate-slide-down {
+    animation: scd-slide-down var(--scd-transition-base) var(--scd-ease-out);
+}
+
+/* ==========================================================================
+   Transition Utilities
+   ========================================================================== */
+
+/* Theme color transition utilities moved to theme service */
+
+/* ==========================================================================
+   Background Color Utilities
+   ========================================================================== */
+
+.scd-bg-white { background-color: var(--scd-color-white); }
+.scd-bg-background { background-color: var(--scd-color-background); }
+.scd-bg-surface { background-color: var(--scd-color-surface); }
+.scd-bg-surface-light { background-color: var(--scd-color-surface-light); }
+.scd-bg-primary { background-color: var(--scd-color-primary); }
+.scd-bg-primary-light { background-color: var(--scd-color-primary-bg); }
+.scd-bg-success { background-color: var(--scd-color-success-bg); }
+.scd-bg-warning { background-color: var(--scd-color-warning-bg); }
+.scd-bg-danger { background-color: var(--scd-color-error-bg); }
+.scd-bg-info { background-color: var(--scd-color-info-bg); }
+
+/* ==========================================================================
+   Border Color Utilities  
+   ========================================================================== */
+
+.scd-border-light { border-color: var(--scd-color-border-light); }
+.scd-border-dark { border-color: var(--scd-color-border-dark); }
+.scd-border-primary { border-color: var(--scd-color-primary); }
+.scd-border-success { border-color: var(--scd-color-success); }
+.scd-border-warning { border-color: var(--scd-color-warning); }
+.scd-border-danger { border-color: var(--scd-color-danger); }
+
+.scd-border-left-primary { border-left: var(--scd-border-width) solid var(--scd-color-primary); }
+.scd-border-left-success { border-left: var(--scd-border-width) solid var(--scd-color-success); }
+.scd-border-left-warning { border-left: var(--scd-border-width) solid var(--scd-color-warning); }
+.scd-border-left-danger { border-left: var(--scd-border-width) solid var(--scd-color-danger); }
+.scd-border-left-info { border-left: var(--scd-border-width) solid var(--scd-color-info); }
+
+.scd-border-left-4 { border-left-width: var(--scd-border-width-accent); }
+
+/* Alert components moved to _alerts.css */
+
+/* Card components moved to _components.css */
+
+/* Badge components moved to _badges.css */
+
+/* Data display components - keep only stat utilities */
+.scd-stat-change-positive {
+    color: var(--scd-color-success);
+}
+
+.scd-stat-change-negative {
+    color: var(--scd-color-danger);
+}
+
+/* Layout components - removed, use semantic HTML instead */
+
+/* ==========================================================================
+   Form Enhancement Utilities
+   ========================================================================== */
+
+.scd-form-group {
+    margin-bottom: var(--scd-spacing-lg);
+}
+
+.scd-form-label {
+    display: block;
+    color: var(--scd-color-text);
+    font-weight: var(--scd-font-weight-semibold);
+    margin-bottom: var(--scd-spacing-xs);
+}
+
+.scd-form-help {
+    color: var(--scd-color-text-muted);
+    font-size: var(--scd-font-size-small);
+    margin-top: var(--scd-spacing-xs);
+}
+
+/* Toggle switch styles moved to shared/_forms.css to avoid duplication */
+
+/* Chart components - removed, use specific chart styles */
+
+/* Email templates - removed, use inline styles for emails */
+
+/* WordPress handles dashicon alignment - removed custom fixes as per user feedback */
