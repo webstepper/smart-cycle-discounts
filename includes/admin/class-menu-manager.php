@@ -653,7 +653,7 @@ class SCD_Menu_Manager {
                 if ($this->capability_manager->current_user_can('create_campaigns')) {
                     printf(
                         '<a href="%s" class="page-title-action">%s</a>',
-                        esc_url(admin_url('admin.php?page=scd-campaigns&action=new')),
+                        esc_url(admin_url('admin.php?page=scd-campaigns&action=wizard&intent=new')),
                         esc_html__('Add New Campaign', 'smart-cycle-discounts')
                     );
                 }
