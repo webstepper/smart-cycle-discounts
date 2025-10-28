@@ -1473,7 +1473,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
                 echo ' ';
                 printf(
                     '<a href="%s">%s</a>',
-                    esc_url( admin_url( 'admin.php?page=scd-campaigns&action=new' ) ),
+                    esc_url( admin_url( 'admin.php?page=scd-campaigns&action=wizard&intent=new' ) ),
                     esc_html__( 'Create your first campaign', 'smart-cycle-discounts' )
                 );
             }
