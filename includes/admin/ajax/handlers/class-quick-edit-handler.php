@@ -161,7 +161,8 @@ class SCD_Quick_Edit_Handler extends SCD_Abstract_Ajax_Handler {
 		// Discount value
 		if ( isset( $request['discount_value'] ) ) {
 			$discount_value = floatval( $request['discount_value'] );
-			if ( $discount_value > 0 ) {
+			// Prevent INF/NAN injection - only accept finite positive numbers
+			if ( $discount_value > 0 && is_finite( $discount_value ) ) {
 				$update_data['discount_value'] = $discount_value;
 			}
 		}
@@ -169,7 +170,8 @@ class SCD_Quick_Edit_Handler extends SCD_Abstract_Ajax_Handler {
 		// Start date
 		if ( isset( $request['start_date'] ) ) {
 			$start_date = $this->sanitize_text( $request['start_date'] );
-			if ( ! empty( $start_date ) ) {
+			// Validate date format to prevent XSS via malformed dates
+			if ( ! empty( $start_date ) && $this->is_valid_date_format( $start_date ) ) {
 				$update_data['start_date'] = $start_date;
 			}
 		}
@@ -177,11 +179,39 @@ class SCD_Quick_Edit_Handler extends SCD_Abstract_Ajax_Handler {
 		// End date
 		if ( isset( $request['end_date'] ) ) {
 			$end_date = $this->sanitize_text( $request['end_date'] );
-			if ( ! empty( $end_date ) ) {
+			// Validate date format to prevent XSS via malformed dates
+			if ( ! empty( $end_date ) && $this->is_valid_date_format( $end_date ) ) {
 				$update_data['end_date'] = $end_date;
 			}
 		}
 
 		return $update_data;
+	}
+
+	/**
+	 * Validate date format.
+	 *
+	 * Checks if the date string is in a valid Y-m-d H:i:s or Y-m-d format
+	 * to prevent XSS attacks via malformed date strings.
+	 *
+	 * @since    1.0.1
+	 * @access   private
+	 * @param    string $date    Date string to validate.
+	 * @return   bool            True if valid date format, false otherwise.
+	 */
+	private function is_valid_date_format( $date ) {
+		// Try Y-m-d H:i:s format first (datetime)
+		$datetime = DateTime::createFromFormat( 'Y-m-d H:i:s', $date );
+		if ( $datetime && $datetime->format( 'Y-m-d H:i:s' ) === $date ) {
+			return true;
+		}
+
+		// Try Y-m-d format (date only)
+		$date_obj = DateTime::createFromFormat( 'Y-m-d', $date );
+		if ( $date_obj && $date_obj->format( 'Y-m-d' ) === $date ) {
+			return true;
+		}
+
+		return false;
 	}
 }

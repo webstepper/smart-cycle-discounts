@@ -663,25 +663,47 @@ class SCD_Ajax_Security {
 	/**
 	 * Get client IP address
 	 *
+	 * Only trusts proxy headers if the request comes from a trusted proxy.
+	 * This prevents IP spoofing attacks where attackers can bypass rate
+	 * limiting by forging HTTP headers.
+	 *
 	 * @since    1.0.0
 	 * @return   string    Client IP
 	 */
 	public static function get_client_ip() {
-		$ip_keys = array( 'HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'REMOTE_ADDR' );
+		// Always use REMOTE_ADDR as the base (most reliable)
+		$remote_addr = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
 
-		foreach ( $ip_keys as $key ) {
-			if ( ! empty( $_SERVER[ $key ] ) ) {
-				$ip = $_SERVER[ $key ];
+		// Only trust forwarded headers if request comes from trusted proxy
+		// For security, we DON'T trust proxy headers by default
+		// Users can add trusted proxies via wp-config.php if needed:
+		// define( 'SCD_TRUSTED_PROXIES', array( '10.0.0.1', '192.168.1.1' ) );
+		$trusted_proxies = defined( 'SCD_TRUSTED_PROXIES' ) ? SCD_TRUSTED_PROXIES : array();
+
+		// If not from trusted proxy, always use REMOTE_ADDR
+		if ( ! in_array( $remote_addr, $trusted_proxies, true ) ) {
+			return $remote_addr;
+		}
+
+		// Only check proxy headers if from trusted proxy
+		$proxy_headers = array( 'HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP' );
+
+		foreach ( $proxy_headers as $header ) {
+			if ( ! empty( $_SERVER[ $header ] ) ) {
+				$ip = sanitize_text_field( wp_unslash( $_SERVER[ $header ] ) );
+				// Handle comma-separated IPs (take first one)
 				if ( strpos( $ip, ',' ) !== false ) {
 					$ip = trim( explode( ',', $ip )[0] );
 				}
+				// Validate IP format
 				if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) ) {
 					return $ip;
 				}
 			}
 		}
 
-		return $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+		// Fallback to REMOTE_ADDR
+		return $remote_addr;
 	}
 
 	/**
