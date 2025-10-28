@@ -20,39 +20,6 @@
 	 * which loads definitions from PHP via wp_localize_script
 	 */
 
-	/**
-	 * Helper function to initialize persistence service
-	 * Extracted to reduce cognitive complexity
-	 */
-	function initializePersistenceService() {
-		// Try to get the persistence service from multiple locations
-		var persistenceService = null;
-
-		// First try the standard location
-		if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.PersistenceService ) {
-			persistenceService = window.SCD.Wizard.PersistenceService;
-		}
-		// Fallback to global
-		else if ( window.SCDPersistenceService ) {
-			persistenceService = window.SCDPersistenceService;
-			// Also set it in the expected location for consistency
-			if ( window.SCD && window.SCD.Wizard ) {
-				window.SCD.Wizard.PersistenceService = persistenceService;
-			}
-		}
-
-		// Initialize if needed
-		if ( persistenceService && 'function' === typeof persistenceService.init && ! persistenceService.initialized ) {
-			try {
-				persistenceService.init();
-				persistenceService.initialized = true;
-			} catch ( e ) {
-				// Failed to initialize persistence service
-			}
-		}
-
-		return persistenceService;
-	}
 
 	/**
 	 * Wizard Orchestrator Class
@@ -74,9 +41,6 @@
 			eventBus: function() {
 				return SCD.Wizard.EventBus;
 			},
-			persistenceService: function() {
-				return initializePersistenceService();
-			},
 			navigationService: function() {
 				return SCD.Wizard.Navigation;
 			},
@@ -96,11 +60,7 @@
 		this.isInternalNavigation = false; // Track wizard internal navigation
 		this.config = {
 			steps: [ 'basic', 'products', 'discounts', 'schedule', 'review' ],
-			autoSaveInterval: 30000,
 			sessionTimeout: 3600000
-		};
-		this.timers = {
-			autoSave: null
 		};
 	};
 
@@ -109,13 +69,26 @@
 	WizardOrchestrator.prototype.constructor = WizardOrchestrator;
 
 	/**
+	 * Initialize wizard orchestrator
+	 * Overrides BaseOrchestrator.init to add wizard-specific initialization
+	 *
+	 * @param {object} wizard Wizard instance
+	 * @param {object} config Configuration options
+	 * @returns {Promise} Initialization promise
+	 */
+	WizardOrchestrator.prototype.init = function( wizard, config ) {
+		// Call parent init
+		// Note: Parent init calls onInit() which loads the current step
+		// No need to call loadCurrentStep() here - it's handled in onInit()
+		return SCD.Shared.BaseOrchestrator.prototype.init.call( this, wizard, config );
+	};
+
+	/**
 	 * Get default configuration
 	 */
 	WizardOrchestrator.prototype.getDefaultConfig = function() {
 		return $.extend( {}, SCD.Shared.BaseOrchestrator.prototype.getDefaultConfig.call( this ), {
 			steps: [ 'basic', 'products', 'discounts', 'schedule', 'review' ],
-			autoSaveEnabled: true, // ENABLED: Auto-save as safety net alongside navigation saves
-			autoSaveInterval: 60000, // 60 seconds - less frequent than navigation saves
 			sessionTimeout: 3600000,
 			validateOnNavigation: true,
 			allowBackNavigation: true
@@ -168,8 +141,63 @@
 		};
 
 		// Load completed steps if available
-		if ( window.scdWizardData.current_campaign && window.scdWizardData.current_campaign._completed_steps ) {
-			initData.completedSteps = window.scdWizardData.current_campaign._completed_steps;
+		if ( window.scdWizardData.current_campaign && window.scdWizardData.current_campaign.completedSteps ) {
+			initData.completedSteps = window.scdWizardData.current_campaign.completedSteps;
+		}
+
+		// Check if we're in edit mode (URL has intent=edit or id parameter)
+		var urlParams = new URLSearchParams( window.location.search );
+		var isEditMode = urlParams.get( 'intent' ) === 'edit' || ( urlParams.get( 'id' ) && urlParams.get( 'intent' ) !== 'new' );
+
+		// Load step data from current campaign
+		// PHP uses snake_case (current_campaign) which gets auto-converted to camelCase (currentCampaign)
+		var currentCampaign = window.scdWizardData.currentCampaign || window.scdWizardData.current_campaign;
+
+		if ( window.SCD && window.SCD.Debug ) {
+			window.SCD.Debug.log( '[WizardOrchestrator] isEditMode:', isEditMode );
+			window.SCD.Debug.log( '[WizardOrchestrator] currentCampaign:', currentCampaign );
+			window.SCD.Debug.log( '[WizardOrchestrator] window.scdWizardData:', window.scdWizardData );
+		}
+
+		if ( currentCampaign ) {
+			// Only initialize stepData if we have actual data to load
+			initData.stepData = {};
+
+			// Deep clone step data to avoid mutations affecting the original window data
+			// Only add step data that actually exists in the session
+			if ( currentCampaign.basic ) {
+				initData.stepData.basic = $.extend( true, {}, currentCampaign.basic );
+			}
+			if ( currentCampaign.products ) {
+				initData.stepData.products = $.extend( true, {}, currentCampaign.products );
+			}
+			if ( currentCampaign.discounts ) {
+				initData.stepData.discounts = $.extend( true, {}, currentCampaign.discounts );
+			}
+			if ( currentCampaign.schedule ) {
+				initData.stepData.schedule = $.extend( true, {}, currentCampaign.schedule );
+			}
+			if ( currentCampaign.review ) {
+				initData.stepData.review = $.extend( true, {}, currentCampaign.review );
+			}
+
+			// Load campaign ID ONLY if in edit mode
+			if ( isEditMode ) {
+				// Get campaign ID from currentCampaign or URL parameter
+				var campaignId = currentCampaign.campaignId || urlParams.get( 'id' );
+				if ( campaignId ) {
+					initData.campaignId = parseInt( campaignId, 10 );
+					initData.wizardMode = 'edit';
+
+					if ( window.SCD && window.SCD.Debug ) {
+						window.SCD.Debug.log( '[WizardOrchestrator] Setting edit mode. Campaign ID: ' + initData.campaignId );
+					}
+				}
+			}
+		}
+
+		if ( window.SCD && window.SCD.Debug ) {
+			window.SCD.Debug.log( '[WizardOrchestrator] Initializing StateManager with:', initData );
 		}
 
 		this.modules.stateManager.init( initData );
@@ -210,14 +238,6 @@
 	WizardOrchestrator.prototype.onInit = function() {
 		var self = this;
 
-		// If persistence service isn't available, try to reinitialize it
-		if ( !  this.modules.persistenceService && this._moduleFactories && this._moduleFactories.persistenceService ) {
-			var persistenceService = this._moduleFactories.persistenceService.call( this );
-			if ( persistenceService ) {
-				this.modules.persistenceService = persistenceService;
-			}
-		}
-
 		// Check if we're starting a new campaign
 		var urlParams = new URLSearchParams( window.location.search );
 		var intent = urlParams.get( 'intent' );
@@ -241,11 +261,6 @@
 		// Initialize current step
 		this.loadCurrentStep()
 			.then( function() {
-				// Start auto-save if enabled
-				if ( self.config.autoSaveEnabled ) {
-					self.startAutoSave();
-				}
-
 				// Set lifecycle to ready
 				if ( self.modules.lifecycleManager ) {
 					self.modules.lifecycleManager.setPhase( 'ready' );
@@ -305,18 +320,10 @@
 			} );
 		}
 
-		// Window events
-		$( window ).on( 'beforeunload.wizard', function( e ) {
-			// Only warn if user is truly leaving the wizard (not using wizard navigation)
-			if ( self.modules.stateManager &&
-                 self.modules.stateManager.get( 'hasUnsavedChanges' ) &&
-                 ! self.isInternalNavigation ) {
-				e.preventDefault();
-				return 'You have unsaved changes. Are you sure you want to leave?';
-			}
-		} );
+		// beforeunload warning removed - navigation saves handle data protection
+		// Navigation saves work perfectly without false warnings
 
-		// Track form changes to set hasUnsavedChanges
+		// Track form changes to set hasUnsavedChanges (for UI state only)
 		$( document ).on( 'change.wizard input.wizard', 'input, select, textarea', function( e ) {
 			// Skip if this is a navigation button or non-form element
 			if ( 0 < $( e.target ).closest( '.scd-wizard-navigation' ).length ) {
@@ -501,45 +508,31 @@
 		return deferred.promise();
 	};
 
-	/**
-	 * Get persistence service with retry logic
-	 * @returns {object | null} Persistence service instance
-	 */
-	WizardOrchestrator.prototype.getPersistenceService = function() {
-		// First check if we already have it
-		if ( this.modules.persistenceService ) {
-			return this.modules.persistenceService;
-		}
-
-		// Try to reinitialize from factory
-		if ( this._moduleFactories && this._moduleFactories.persistenceService ) {
-			var persistenceService = this._moduleFactories.persistenceService.call( this );
-			if ( persistenceService ) {
-				this.modules.persistenceService = persistenceService;
-				return persistenceService;
-			}
-		}
-
-		// Last resort: try global fallback
-		if ( window.SCDPersistenceService ) {
-			// Using global persistence service fallback
-			this.modules.persistenceService = window.SCDPersistenceService;
-			return window.SCDPersistenceService;
-		}
-
-		return null;
-	};
 
 	/**
 	 * Retrieve step data from state manager or wizard data
 	 * Extracted to reduce cognitive complexity
 	 */
 	WizardOrchestrator.prototype.getStepData = function( stepName ) {
-		// First check state manager
+		// First check state manager (but only if it has non-empty data)
 		if ( this.modules.stateManager ) {
 			var state = this.modules.stateManager.get();
 			if ( state && state.stepData && state.stepData[stepName] ) {
-				return state.stepData[stepName];
+				// Check if the data is actually non-empty (not just an empty object)
+				var hasData = false;
+				if ( 'object' === typeof state.stepData[stepName] ) {
+					// Check if object has any own properties
+					for ( var key in state.stepData[stepName] ) {
+						if ( Object.prototype.hasOwnProperty.call( state.stepData[stepName], key ) ) {
+							hasData = true;
+							break;
+						}
+					}
+				}
+
+				if ( hasData ) {
+					return state.stepData[stepName];
+				}
 			}
 		}
 
@@ -598,6 +591,7 @@
 				stepName: stepName,
 				container: '.scd-wizard-step--' + stepName
 			};
+
 			orchestrator.init( this, config );
 
 			// After init, populate with any saved data
@@ -688,22 +682,22 @@
 				completionSuccess: true,
 				hasUnsavedChanges: false,
 				completionData: {
-					campaignId: response.campaign_id || response.campaignId,
+					campaignId: response.campaignId,
 					campaignName: campaignName,
 					status: response.status || 'draft',
 					message: response.message,
-					redirectUrl: response.redirect_url || response.redirectUrl
+					redirectUrl: response.redirectUrl
 				}
 			} );
 		}
 
 		// Build completion event data
 		var eventData = {
-			campaignId: response.campaign_id || response.campaignId,
+			campaignId: response.campaignId,
 			campaignName: campaignName,
 			status: response.status || 'draft',
 			message: response.message,
-			redirectUrl: response.redirect_url || response.redirectUrl
+			redirectUrl: response.redirectUrl
 		};
 
 		// Emit completion event for other components
@@ -715,7 +709,7 @@
 		$( document ).trigger( 'scd:wizard:completed', [ eventData ] );
 
 		// Redirect after delay
-		this.scheduleRedirect( response.redirect_url || response.redirectUrl );
+		this.scheduleRedirect( response.redirectUrl );
 	};
 
 	/**
@@ -777,13 +771,10 @@
 					} );
 				}
 
-				// Use persistence service to complete
-				var persistenceService = self.getPersistenceService();
-				if ( persistenceService ) {
-					return persistenceService.completeWizard( options );
-				}
-
-				throw new Error( 'Persistence service not available' );
+				// Complete wizard via AJAX
+				return SCD.Ajax.post( 'scd_complete_wizard', {
+					saveAsDraft: options.saveAsDraft
+				} );
 			} )
 			.then( function( response ) {
 				self.handleCompletionSuccess( response );
@@ -841,11 +832,9 @@
 	 * @param _redirectUrl - redirectUrl parameter is passed through but not used here as modal handles actual redirect
 	 */
 	WizardOrchestrator.prototype.scheduleRedirect = function( _redirectUrl ) {
-		// Mark as internal navigation to prevent beforeunload warning
-		this.isInternalNavigation = true;
-
 		// Note: Redirect delay is now controlled by completion modal (3 seconds)
 		// This method is called immediately, modal handles the delay
+		// No beforeunload warning to suppress (removed with Smart Save system)
 	};
 
 	/**
@@ -892,10 +881,10 @@
 				return !! ( data.name && 0 < data.name.trim().length );
 
 			case 'products':
-				return !! ( data.selectionType || data.productSelectionType );
+				return !! data.productSelectionType;
 
 			case 'discounts':
-				return !! ( data.discountType || data.type );
+				return !! data.discountType;
 
 			case 'schedule':
 				return undefined !== data.startType;
@@ -969,86 +958,6 @@
 		return deferred.promise();
 	};
 
-	/**
-	 * Start auto-save
-	 */
-	WizardOrchestrator.prototype.startAutoSave = function() {
-		var self = this;
-
-		// Listen for state changes instead of polling
-		if ( this.modules.stateManager && 'function' === typeof this.modules.stateManager.on ) {
-			this.modules.stateManager.on( 'change', function( state, oldState, _changes ) {
-				if ( state.hasUnsavedChanges && ! oldState.hasUnsavedChanges ) {
-					self.scheduleAutoSave();
-				}
-			} );
-		} else if ( this.modules.stateManager && 'function' === typeof this.modules.stateManager.subscribe ) {
-			// Alternative method for state monitoring
-			this.modules.stateManager.subscribe( function( change ) {
-				if ( 'hasUnsavedChanges' === change.property && true === change.value ) {
-					self.scheduleAutoSave();
-				}
-			} );
-		}
-	};
-
-	/**
-	 * Schedule auto-save after changes
-	 */
-	WizardOrchestrator.prototype.scheduleAutoSave = function() {
-		var self = this;
-
-		// Don't schedule if save already in progress
-		var persistenceService = this.getPersistenceService();
-		if ( persistenceService && persistenceService.isSaving ) {
-			return;
-		}
-
-		// Don't reschedule if already scheduled (prevents race condition)
-		if ( this.timers.autoSave ) {
-			return;
-		}
-
-		// Schedule save after interval
-		this.timers.autoSave = setTimeout( function() {
-			self.timers.autoSave = null; // Clear flag before executing
-			self.autoSave();
-		}, this.config.autoSaveInterval );
-	};
-
-	/**
-	 * Auto-save current step
-	 */
-	WizardOrchestrator.prototype.autoSave = function() {
-		// Only auto-save if user hasn't navigated in last 30 seconds
-		if ( this.modules.stateManager ) {
-			var lastSave = this.modules.stateManager.get( 'lastSavedAt' );
-			var now = Date.now();
-
-			if ( lastSave && ( now - new Date( lastSave ).getTime() < 30000 ) ) {
-				// Skip auto-save - recent navigation save already occurred
-				return;
-			}
-		}
-
-		var persistenceService = this.getPersistenceService();
-		if ( persistenceService ) {
-			var stepName = this.getCurrentStep();
-			var orchestrator = this.stepOrchestrators[stepName];
-
-			if ( orchestrator && 'function' === typeof orchestrator.collectData ) {
-				var data = orchestrator.collectData();
-
-				// For autosave, mark the request so backend can handle it differently
-				var options = {
-					silent: true,
-					isAutoSave: true
-				};
-
-				persistenceService.saveStepData( stepName, data, options );
-			}
-		}
-	};
 
 	/**
 	 * Handle state change
@@ -1195,12 +1104,6 @@
 	 * Cleanup
 	 */
 	WizardOrchestrator.prototype.cleanup = function() {
-		// Clear timers
-		if ( this.timers.autoSave ) {
-			clearTimeout( this.timers.autoSave );
-			this.timers.autoSave = null;
-		}
-
 		// Cleanup step orchestrators
 		for ( var stepName in this.stepOrchestrators ) {
 			if ( Object.prototype.hasOwnProperty.call( this.stepOrchestrators, stepName ) ) {
@@ -1242,7 +1145,7 @@
 
 	// Service readiness system - implements proper dependency waiting
 	var ServiceReadiness = {
-		requiredServices: [ 'PersistenceService', 'EventBus', 'BaseOrchestrator' ],
+		requiredServices: [ 'EventBus', 'BaseOrchestrator' ],
 		readyServices: [],
 		maxWaitTime: 10000, // 10 seconds timeout - increased for slow connections
 		checkInterval: 250,  // Check every 250ms - reduced polling frequency
@@ -1265,15 +1168,6 @@
 					self.readyServices.push( serviceName );
 				}
 			} );
-		},
-
-		// Check if PersistenceService is ready
-		// Extracted to reduce cognitive complexity
-		isPersistenceServiceReady: function() {
-			var windowCheck = !! ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.PersistenceService );
-			var localCheck = !! ( SCD && SCD.Wizard && SCD.Wizard.PersistenceService );
-			var globalFallback = !! window.SCDPersistenceService;
-			return windowCheck || localCheck || globalFallback;
 		},
 
 		// Check if EventBus is ready
@@ -1300,9 +1194,6 @@
 			}
 
 			switch( serviceName ) {
-				case 'PersistenceService':
-					return this.isPersistenceServiceReady();
-
 				case 'EventBus':
 					return this.isEventBusReady();
 
@@ -1401,7 +1292,6 @@
 	}
 
 	$( document ).ready( function() {
-
 		// Initialize service readiness system
 		ServiceReadiness.init();
 

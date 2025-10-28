@@ -246,14 +246,25 @@ class Smart_Cycle_Discounts {
          */
         require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
         // AJAX endpoints removed - now handled by unified router
-        
+
         /**
-         * Load wizard components
+         * Load wizard components and services
          */
         require_once SCD_INCLUDES_DIR . 'utilities/class-session-service.php';
         require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-manager.php';
         require_once SCD_INCLUDES_DIR . 'core/wizard/class-sidebar-base.php';
         require_once SCD_INCLUDES_DIR . 'utilities/class-session-lock-service.php';
+
+        // Load Phase 1 & 2 services
+        require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-step-registry.php';
+        require_once SCD_INCLUDES_DIR . 'core/wizard/class-idempotency-service.php';
+        require_once SCD_INCLUDES_DIR . 'core/wizard/class-step-data-transformer.php';
+        require_once SCD_INCLUDES_DIR . 'core/wizard/class-campaign-change-tracker.php';
+
+        // Load exceptions
+        if ( ! class_exists( 'SCD_Concurrent_Modification_Exception' ) ) {
+            require_once SCD_INCLUDES_DIR . 'core/exceptions/class-concurrent-modification-exception.php';
+        }
         
         /**
          * Load security manager if not already loaded
@@ -294,7 +305,15 @@ class Smart_Cycle_Discounts {
          * Load licensing classes
          */
         require_once SCD_INCLUDES_DIR . 'admin/licensing/class-feature-gate.php';
+        require_once SCD_INCLUDES_DIR . 'admin/licensing/class-license-manager.php';
+        require_once SCD_INCLUDES_DIR . 'admin/licensing/license-functions.php';
+        require_once SCD_INCLUDES_DIR . 'admin/licensing/class-license-notices.php';
         require_once SCD_INCLUDES_DIR . 'admin/licensing/class-upgrade-prompt-manager.php';
+
+        /**
+         * Load AJAX licensing validation trait
+         */
+        require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-license-validation.php';
 
         /**
          * Load admin page classes
@@ -492,6 +511,17 @@ class Smart_Cycle_Discounts {
     private function define_admin_hooks(): void {
         $plugin_admin = new SCD_Admin($this->get_plugin_name(), $this->get_version(), $this->container);
 
+        // Initialize license manager to register hooks for health checks
+        if ( $this->container->has( 'license_manager' ) ) {
+            $this->container->get( 'license_manager' );
+        }
+
+        // Initialize license notices to register admin notice hooks
+        if ( $this->container->has( 'license_notices' ) ) {
+            $license_notices = $this->container->get( 'license_notices' );
+            $license_notices->init();
+        }
+
         // Initialize admin manager to register its hooks
         if ( $this->container->has( 'admin_manager' ) ) {
             $admin_manager = $this->container->get( 'admin_manager' );
@@ -537,27 +567,14 @@ class Smart_Cycle_Discounts {
                 $wc_integration = $this->container->get('woocommerce_integration');
 
                 if ($wc_integration) {
+                    // Initialize WooCommerce integration coordinator
+                    // The coordinator's init() method handles all hook registration via sub-integrations
                     if (method_exists($wc_integration, 'init')) {
                         $wc_integration->init();
                     }
 
-                    // Register WooCommerce hooks through the loader
-                    $this->loader->add_filter('woocommerce_product_get_price', $wc_integration, 'modify_product_price', 10, 2);
-                    $this->loader->add_filter('woocommerce_product_get_sale_price', $wc_integration, 'modify_sale_price', 10, 2);
-                    $this->loader->add_filter('woocommerce_product_variation_get_price', $wc_integration, 'modify_product_price', 10, 2);
-                    $this->loader->add_filter('woocommerce_product_variation_get_sale_price', $wc_integration, 'modify_sale_price', 10, 2);
-                    $this->loader->add_filter('woocommerce_get_price_html', $wc_integration, 'modify_price_html', 10, 2);
-
-                    // Cart hooks
-                    $this->loader->add_action('woocommerce_before_calculate_totals', $wc_integration, 'modify_cart_item_prices', 10, 1);
-                    $this->loader->add_filter('woocommerce_cart_item_price', $wc_integration, 'display_cart_item_price', 10, 3);
-                    $this->loader->add_filter('woocommerce_cart_item_subtotal', $wc_integration, 'display_cart_item_subtotal', 10, 3);
-
-                    // CRITICAL: Also register for REST API requests (WooCommerce Blocks)
-                    $this->loader->add_action('rest_api_init', $wc_integration, 'init', 5);
-
                     if (defined('WP_DEBUG') && WP_DEBUG) {
-                        SCD_Log::info( 'WooCommerce hooks registered successfully' );
+                        SCD_Log::info( 'WooCommerce integration coordinator initialized successfully' );
                     }
                 } else {
                     if (defined('WP_DEBUG') && WP_DEBUG) {

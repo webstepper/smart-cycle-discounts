@@ -22,8 +22,8 @@
 
 		// Get currency symbol (simpler approach)
 		this.currencySymbol = '$'; // Default
-		if ( window.scdDiscountStepData && window.scdDiscountStepData.currency_symbol ) {
-			this.currencySymbol = this.decodeHtmlEntity( window.scdDiscountStepData.currency_symbol );
+		if ( window.scdDiscountStepData && window.scdDiscountStepData.currencySymbol ) {
+			this.currencySymbol = this.decodeHtmlEntity( window.scdDiscountStepData.currencySymbol );
 		}
 
 		// Ready state tracking (following advanced filters pattern)
@@ -682,10 +682,10 @@
 				var normalizedTiers = Array.isArray( data.tiers ) ?
 					data.tiers.map( function( tier ) {
 						return {
-							quantity: tier.quantity || tier.minQuantity,
-							value: tier.value || tier.minValue,
-							discount: tier.discount || tier.discountValue,
-							type: tier.type || tier.discountType || 'percentage'
+							quantity: tier.quantity,
+							value: tier.value,
+							discount: tier.discount,
+							type: tier.type || 'percentage'
 						};
 					} ) : [];
 
@@ -999,12 +999,12 @@
 
 				tiers.forEach( function( tier ) {
 					var tierObj = {
-						quantity: tier.min_quantity,
-						discount: tier.discount_value,
-						type: tier.discount_type
+						quantity: tier.minQuantity,
+						discount: tier.discountValue,
+						type: tier.discountType
 					};
 
-					if ( 'percentage' === tier.discount_type ) {
+					if ( 'percentage' === tier.discountType ) {
 						this._percentageTiers.push( tierObj );
 					} else {
 						this._fixedTiers.push( tierObj );

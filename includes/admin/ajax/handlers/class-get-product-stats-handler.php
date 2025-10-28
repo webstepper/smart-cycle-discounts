@@ -63,6 +63,9 @@ class SCD_Get_Product_Stats_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
+		// NOTE: Product stats is FREE - helps users during campaign setup (exploration feature)
+		// License protection happens at campaign SAVE level (in save-step-handler)
+
 		// Get product IDs from request with type validation
 		$product_ids = isset( $request['product_ids'] ) ? $request['product_ids'] : array();
 

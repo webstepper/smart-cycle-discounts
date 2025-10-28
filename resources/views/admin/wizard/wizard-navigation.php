@@ -29,6 +29,12 @@ $progress = $nav_data['progress'] ?? array();
 // Button classes
 $btn_classes = $config['button_classes'] ?? array();
 $icons = $config['icons'] ?? array();
+
+// Detect edit mode - match JavaScript logic in wizard-orchestrator.js
+// Edit mode only if: intent=edit OR (id exists AND intent is NOT 'new')
+$is_edit_mode = ( isset( $_GET['intent'] ) && 'edit' === $_GET['intent'] )
+                || ( isset( $_GET['id'] ) && ! empty( $_GET['id'] ) && ( ! isset( $_GET['intent'] ) || 'new' !== $_GET['intent'] ) );
+$complete_button_text = $is_edit_mode ? __( 'Update Campaign', 'smart-cycle-discounts' ) : __( 'Create Campaign', 'smart-cycle-discounts' );
 ?>
 
 <nav class="scd-wizard-navigation"
@@ -81,9 +87,9 @@ $icons = $config['icons'] ?? array();
                 <button type="button"
                         class="<?php echo esc_attr($btn_classes['complete']); ?>"
                         data-action="complete"
-                        aria-label="<?php esc_attr_e('Complete wizard and create campaign', 'smart-cycle-discounts'); ?>">
+                        aria-label="<?php echo esc_attr( $is_edit_mode ? __( 'Complete wizard and update campaign', 'smart-cycle-discounts' ) : __( 'Complete wizard and create campaign', 'smart-cycle-discounts' ) ); ?>">
                     <span class="dashicons <?php echo esc_attr($icons['complete']); ?>" aria-hidden="true"></span>
-                    <span class="scd-nav-btn__text"><?php esc_html_e('Create Campaign', 'smart-cycle-discounts'); ?></span>
+                    <span class="scd-nav-btn__text"><?php echo esc_html( $complete_button_text ); ?></span>
                 </button>
             <?php elseif ($next_step): ?>
                 <button type="button" 

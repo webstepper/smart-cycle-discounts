@@ -20,7 +20,6 @@
 	 * Wizard Facade
 	 *
 	 * Public API that delegates to the orchestrator
-	 * Preserve existing properties (like EventBus, PersistenceService)
 	 */
 	SCD.Wizard = SCD.Utils.extend( SCD.Wizard || {}, {
 		// Constants
@@ -160,11 +159,11 @@
 				var stepName = this.getCurrentStep();
 				var stepData = this.collectStepData();
 
-				// Use persistence service directly to save and return promise
-				var persistenceService = orchestrator.modules && orchestrator.modules.persistenceService;
-				if ( persistenceService ) {
-					return persistenceService.saveStepData( stepName, stepData );
-				}
+			// Get step orchestrator
+			var stepOrchestrator = orchestrator.getStepInstance( stepName );
+			if ( stepOrchestrator && 'function' === typeof stepOrchestrator.saveStep ) {
+				return stepOrchestrator.saveStep();
+			}
 			}
 
 			// Return resolved promise if no orchestrator
@@ -303,12 +302,11 @@
 				return $.Deferred().resolve().promise();
 			}
 
-			var persistenceService = orchestrator.modules && orchestrator.modules.persistenceService;
-			if ( !persistenceService ) {
-				return $.Deferred().resolve().promise();
+			// Get step orchestrator
+			var stepOrchestrator = orchestrator.getStepInstance( stepName );
+			if ( stepOrchestrator && 'function' === typeof stepOrchestrator.saveStep ) {
+				return stepOrchestrator.saveStep();
 			}
-
-			return persistenceService.saveStepData( stepName, data );
 		},
 
 		/**
@@ -551,45 +549,9 @@
 		loadSessionData: function() {
 			var self = this;
 
-			// Get persistence service
-			var persistenceService = null;
-			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.PersistenceService ) {
-				persistenceService = window.SCD.Wizard.PersistenceService;
-			}
-
-			if ( !persistenceService || !persistenceService.loadSessionData ) {
-				console.error( '[SCD Wizard] Persistence service not available for loading session' );
-				return;
-			}
-
-			// Load session data
-			persistenceService.loadSessionData()
-				.then( function( response ) {
-					if ( !( response && response.data ) ) {
-						return;
-					}
-
-					// Extract step data from session
-					if ( response.data.steps ) {
-						self.updateStateManagerWithSteps( response.data.steps );
-						self.populateCurrentStepFromSession( response.data.steps );
-					}
-
-					// Update other session properties
-					// Server automatically converts snake_case to camelCase
-					if ( response.data.completedSteps ) {
-						self.updateCompletedStepsFromSession( response.data.completedSteps );
-					}
-				} )
-				.catch( function( error ) {
-					console.error( '[SCD Wizard] Failed to load session data:', error );
-					SCD.Shared.NotificationService.error( 'Failed to load saved data. Starting fresh.' );
-				} );
-		},
-
-		// loadWizardThemeColors() and updateWizardCSSColors() removed
-		// Theme colors are now handled exclusively by shared/theme-color-init.js
-		// This eliminates duplicate color setting that caused visual flashing
+		// Session data already loaded via PHP template - nothing to do
+		console.log( '[SCD Wizard] Session data loaded from PHP template' );
+		}
 	} );
 
 	// Initialize on ready
@@ -610,12 +572,36 @@
 			// When continuing, we'll load data from session after orchestrator is ready
 			SCD.Wizard.data = {};
 			SCD.Wizard.loadFromSession = true;
-		} else if ( window.scdWizardData && window.scdWizardData.current_campaign ) {
+			if ( window.console && window.console.log ) {
+				console.log( '[SCD Wizard Init] Intent=continue, loadFromSession=true' );
+			}
+		} else if ( window.scdWizardData && window.scdWizardData.currentCampaign ) {
+			// UNCONDITIONAL DEBUG: Inspect scdWizardData structure
+			console.log( '[DEBUG] scdWizardData keys:', Object.keys( window.scdWizardData || {} ) );
+			console.log( '[DEBUG] scdWizardData.debugPersistence:', window.scdWizardData.debugPersistence );
+			console.log( '[DEBUG] Full scdWizardData object:', window.scdWizardData );
+
 			// Use pre-loaded data for editing existing campaigns
-			SCD.Wizard.data = window.scdWizardData.current_campaign;
+			SCD.Wizard.data = window.scdWizardData.currentCampaign;
+
+			// Set debug flag if enabled
+			if ( window.scdWizardData.debugPersistence ) {
+				window.scdDebugPersistence = true;
+				console.log( '[DEBUG] Debug flag enabled!' );
+			} else {
+				console.log( '[DEBUG] Debug flag NOT enabled - value was:', window.scdWizardData.debugPersistence );
+			}
+
+			if ( window.console && window.console.log ) {
+				console.log( '[SCD Wizard Init] Loaded current_campaign data:', SCD.Wizard.data );
+				console.log( '[SCD Wizard Init] Basic data:', SCD.Wizard.data.basic );
+			}
 		} else {
 			// Fresh start
 			SCD.Wizard.data = {};
+			if ( window.console && window.console.log ) {
+				console.log( '[SCD Wizard Init] Fresh start, empty data' );
+			}
 		}
 
 		// Initialize wizard (handle race condition properly)

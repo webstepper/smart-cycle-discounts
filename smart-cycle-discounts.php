@@ -601,11 +601,12 @@ register_deactivation_hook( __FILE__, 'scd_deactivate_plugin' );
  */
 function scd_deactivate_plugin() {
 	// Clear scheduled cron events
-	wp_clear_scheduled_hook('scd_cleanup_expired_sessions');
-	wp_clear_scheduled_hook('scd_cleanup_old_analytics');
-	wp_clear_scheduled_hook('scd_check_campaign_schedules');
-	wp_clear_scheduled_hook('scd_cleanup_expired_campaigns');
-	wp_clear_scheduled_hook('scd_purge_old_trash');
+	wp_clear_scheduled_hook( 'scd_cleanup_expired_sessions' );
+	wp_clear_scheduled_hook( 'scd_cleanup_old_analytics' );
+	wp_clear_scheduled_hook( 'scd_check_campaign_schedules' );
+	wp_clear_scheduled_hook( 'scd_cleanup_expired_campaigns' );
+	wp_clear_scheduled_hook( 'scd_purge_old_trash' );
+	wp_clear_scheduled_hook( 'scd_license_health_check' );
 	require_once SCD_INCLUDES_DIR . 'class-deactivator.php';
 	SCD_Deactivator::deactivate();
 }

@@ -152,8 +152,8 @@
 			}
 
 			// Update active campaigns
-			if ( metrics.active_campaigns !== undefined ) {
-				$( '#scd-stat-active-campaigns' ).text( metrics.active_campaigns );
+			if ( metrics.active !== undefined ) {
+				$( '#scd-stat-active-campaigns' ).text( metrics.active );
 			}
 
 			// Update conversions

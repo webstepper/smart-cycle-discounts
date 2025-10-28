@@ -212,37 +212,20 @@ class SCD_AJAX_Response {
      * Convert array keys from snake_case to camelCase recursively
      * Normalizes data at the API boundary for JavaScript consumption
      *
+     * Delegates to SCD_Case_Converter utility for actual conversion.
+     *
      * @since    1.0.0
      * @access   private
      * @param    mixed    $data    Data to convert.
      * @return   mixed             Converted data.
      */
     private static function snake_to_camel_keys( $data ) {
-        if ( ! is_array( $data ) ) {
-            return $data;
+        // Ensure utility class is loaded
+        if ( ! class_exists( 'SCD_Case_Converter' ) ) {
+            require_once SCD_PLUGIN_DIR . 'includes/utilities/class-case-converter.php';
         }
 
-        // Check if this is a numeric array (list) - preserve as-is but recurse into values
-        $is_list = array_keys( $data ) === range( 0, count( $data ) - 1 );
-        if ( $is_list ) {
-            $result = array();
-            foreach ( $data as $value ) {
-                $result[] = is_array( $value ) ? self::snake_to_camel_keys( $value ) : $value;
-            }
-            return $result;
-        }
-
-        // Associative array - convert keys
-        $result = array();
-        foreach ( $data as $key => $value ) {
-            // Convert snake_case key to camelCase
-            $camel_key = lcfirst( str_replace( '_', '', ucwords( $key, '_' ) ) );
-
-            // Recursively convert nested arrays
-            $result[ $camel_key ] = is_array( $value ) ? self::snake_to_camel_keys( $value ) : $value;
-        }
-
-        return $result;
+        return SCD_Case_Converter::snake_to_camel( $data );
     }
 
     /**

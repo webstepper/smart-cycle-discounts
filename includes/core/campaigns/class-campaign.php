@@ -225,6 +225,16 @@ class SCD_Campaign {
     private DateTime $updated_at;
 
     /**
+     * Version number for optimistic locking.
+     *
+     * Incremented on each update to prevent concurrent modification conflicts.
+     *
+     * @since    1.0.0
+     * @var      int    $version    Version number.
+     */
+    private int $version = 1;
+
+    /**
      * Deleted date.
      *
      * @since    1.0.0
@@ -571,6 +581,25 @@ class SCD_Campaign {
         }
     }
 
+    public function get_version(): int {
+        return $this->version;
+    }
+
+    public function set_version( int $version ): void {
+        $this->version = $version;
+    }
+
+    /**
+     * Increment version for optimistic locking.
+     *
+     * @since    1.0.0
+     * @return   int    New version number.
+     */
+    public function increment_version(): int {
+        $this->version++;
+        return $this->version;
+    }
+
     public function get_deleted_at(): ?DateTime {
         return $this->deleted_at;
     }
@@ -618,6 +647,7 @@ class SCD_Campaign {
             'discount_rules' => $this->discount_rules,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
+            'version' => $this->version,
             'deleted_at' => $this->deleted_at?->format('Y-m-d H:i:s')
         );
     }

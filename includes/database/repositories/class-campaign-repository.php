@@ -376,106 +376,144 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
             error_log('[Campaign Repository] Campaign validation PASSED');
         }
 
-        $data = $this->dehydrate($campaign);
-
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('[Campaign Repository] Dehydrated data: ' . json_encode($data));
-        }
-
-        if ($campaign->get_id()) {
-            // Update existing campaign - verify ownership first
-            $existing = $this->find($campaign->get_id());
-            if (!$existing) {
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log('[Campaign Repository] UPDATE FAILED - campaign not found: ' . $campaign->get_id());
-                }
-                return false;
-            }
-
-            // Check ownership - only creator, admin, or system operations can update
-            $current_user_id = get_current_user_id();
-            // Allow updates if:
-            // 1. User is the creator
-            // 2. User is an admin (has manage_options capability)
-            // 3. User is 0 (system operation like cron, which needs to activate/deactivate campaigns)
-            if ($current_user_id !== 0 && $existing->get_created_by() !== $current_user_id && !current_user_can('manage_options')) {
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log('[Campaign Repository] User ' . $current_user_id . ' attempted to update campaign ' . $campaign->get_id() . ' owned by ' . $existing->get_created_by());
-                }
-                return false;
-            }
-
-            unset($data['created_at']); // Don't update created_at
-            $data['updated_at'] = gmdate( 'Y-m-d H:i:s' );
-            // Respect updated_by if explicitly set to NULL (system action)
-            // Otherwise set to current user (or NULL if cron with user_id = 0)
-            if ( ! array_key_exists( 'updated_by', $data ) || null !== $data['updated_by'] ) {
-                $data['updated_by'] = $current_user_id === 0 ? null : $current_user_id;
-            }
-            // If $data['updated_by'] is NULL from campaign object, it stays NULL
-
-            $result = $this->db->update(
-                'campaigns',
-                $data,
-                array('id' => $campaign->get_id()),
-                $this->get_data_format($data),
-                ['%d']
-            );
+        // Wrap save operation in transaction for data integrity
+        $result = $this->db->transaction( function() use ( $campaign ) {
+            $data = $this->dehydrate($campaign);
 
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('[Campaign Repository] Update result: ' . ($result !== false ? 'Success' : 'Failed'));
+                error_log('[Campaign Repository] Dehydrated data: ' . json_encode($data));
             }
-        } else {
-            // Create new campaign
-            $data['created_at'] = gmdate( 'Y-m-d H:i:s' );
-            $data['updated_at'] = gmdate( 'Y-m-d H:i:s' );
 
-            // Debug logging before insert
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('[Campaign Repository] Attempting INSERT with data: ' . json_encode($data));
-                error_log('[Campaign Repository] Table name: ' . $this->table_name);
-
-                // Check if table exists
-                if (!$this->db->table_exists('campaigns')) {
-                    error_log('[Campaign Repository] WARNING: campaigns table does NOT exist!');
-                } else {
-                    error_log('[Campaign Repository] Table exists: ' . $this->table_name);
+            if ($campaign->get_id()) {
+                // Update existing campaign - verify ownership first
+                $existing = $this->find($campaign->get_id());
+                if (!$existing) {
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        error_log('[Campaign Repository] UPDATE FAILED - campaign not found: ' . $campaign->get_id());
+                    }
+                    return false;
                 }
-            }
 
-            $result = $this->db->insert(
-                'campaigns',
-                $data,
-                $this->get_data_format($data)
-            );
+                // Check ownership - only creator, admin, or system operations can update
+                $current_user_id = get_current_user_id();
+                // Allow updates if:
+                // 1. User is the creator
+                // 2. User is an admin (has manage_options capability)
+                // 3. User is 0 (system operation like cron, which needs to activate/deactivate campaigns)
+                if ($current_user_id !== 0 && $existing->get_created_by() !== $current_user_id && !current_user_can('manage_options')) {
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        error_log('[Campaign Repository] User ' . $current_user_id . ' attempted to update campaign ' . $campaign->get_id() . ' owned by ' . $existing->get_created_by());
+                    }
+                    return false;
+                }
 
-            if ($result) {
-                $campaign->set_id($result);
+                // Optimistic locking: Store expected version
+                $expected_version = $existing->get_version();
+
+                unset($data['created_at']); // Don't update created_at
+                $data['updated_at'] = gmdate( 'Y-m-d H:i:s' );
+
+                // Increment version for optimistic locking
+                $campaign->increment_version();
+                $data['version'] = $campaign->get_version();
+
+                // Respect updated_by if explicitly set to NULL (system action)
+                // Otherwise set to current user (or NULL if cron with user_id = 0)
+                if ( ! array_key_exists( 'updated_by', $data ) || null !== $data['updated_by'] ) {
+                    $data['updated_by'] = $current_user_id === 0 ? null : $current_user_id;
+                }
+                // If $data['updated_by'] is NULL from campaign object, it stays NULL
+
+                // Optimistic locking: Only update if version matches expected
+                $result = $this->db->update(
+                    'campaigns',
+                    $data,
+                    array(
+                        'id' => $campaign->get_id(),
+                        'version' => $expected_version  // Prevents concurrent edits
+                    ),
+                    $this->get_data_format($data),
+                    array( '%d', '%d' )
+                );
+
                 if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log('[Campaign Repository] INSERT SUCCESS - Campaign ID: ' . $result);
+                    error_log('[Campaign Repository] Update result: ' . ($result !== false ? 'Success' : 'Failed'));
+                    error_log('[Campaign Repository] Expected version: ' . $expected_version . ', New version: ' . $data['version']);
+                }
+
+                // Check if update failed due to concurrent modification
+                if ( $result === 0 ) {
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        error_log('[Campaign Repository] UPDATE FAILED - Concurrent modification detected (version mismatch)');
+                    }
+
+                    // Throw exception for concurrent modification
+                    throw new SCD_Concurrent_Modification_Exception(
+                        $campaign->get_id(),
+                        $expected_version,
+                        $expected_version + 1  // Current version must be higher
+                    );
                 }
             } else {
+                // Create new campaign
+                $data['created_at'] = gmdate( 'Y-m-d H:i:s' );
+                $data['updated_at'] = gmdate( 'Y-m-d H:i:s' );
+                $data['version'] = 1;  // Initial version
+
+                // Debug logging before insert
                 if (defined('WP_DEBUG') && WP_DEBUG) {
-                    global $wpdb;
-                    error_log('[Campaign Repository] INSERT FAILED');
-                    error_log('[Campaign Repository] Database error: ' . $wpdb->last_error);
-                    error_log('[Campaign Repository] Last query: ' . $wpdb->last_query);
+                    error_log('[Campaign Repository] Attempting INSERT with data: ' . json_encode($data));
+                    error_log('[Campaign Repository] Table name: ' . $this->table_name);
+
+                    // Check if table exists
+                    if (!$this->db->table_exists('campaigns')) {
+                        error_log('[Campaign Repository] WARNING: campaigns table does NOT exist!');
+                    } else {
+                        error_log('[Campaign Repository] Table exists: ' . $this->table_name);
+                    }
+                }
+
+                $result = $this->db->insert(
+                    'campaigns',
+                    $data,
+                    $this->get_data_format($data)
+                );
+
+                if ($result) {
+                    $campaign->set_id($result);
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        error_log('[Campaign Repository] INSERT SUCCESS - Campaign ID: ' . $result);
+                    }
+                } else {
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        global $wpdb;
+                        error_log('[Campaign Repository] INSERT FAILED');
+                        error_log('[Campaign Repository] Database error: ' . $wpdb->last_error);
+                        error_log('[Campaign Repository] Last query: ' . $wpdb->last_query);
+                    }
                 }
             }
-        }
 
-        if ($result !== false) {
-            $this->clear_campaign_cache($campaign);
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('[Campaign Repository] Save completed successfully');
+            if ($result !== false) {
+                $this->clear_campaign_cache($campaign);
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('[Campaign Repository] Save completed successfully');
+                }
+                return true;
             }
-            return true;
+
+            return false;
+        } );
+
+        // Transaction returns false on failure, result on success
+        if ( $result === false ) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('[Campaign Repository] Save FAILED - returning false');
+            }
+            return false;
         }
 
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('[Campaign Repository] Save FAILED - returning false');
-        }
-        return false;
+        return (bool) $result;
     }
 
     /**
@@ -1057,6 +1095,7 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
             'description' => $data->description,
             'status' => $data->status,
             'priority' => (int) $data->priority,
+            'version' => (int) $data->version,
             'settings' => json_decode($data->settings ?: '{}', true),
             'metadata' => json_decode($data->metadata ?: '{}', true),
             'template_id' => $data->template_id,
@@ -1064,7 +1103,7 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
             'updated_by' => $data->updated_by ? (int) $data->updated_by : null,
 
             // Product Selection
-            'product_selection_type' => $data->product_selection_type ?? 'all',
+            'product_selection_type' => $data->product_selection_type ?? 'all_products',
             'product_ids' => isset($data->product_ids) ? json_decode($data->product_ids ?: '[]', true) : array(),
             'category_ids' => isset($data->category_ids) ? json_decode($data->category_ids ?: '[]', true) : array(),
             'tag_ids' => isset($data->tag_ids) ? json_decode($data->tag_ids ?: '[]', true) : array(),
@@ -1285,6 +1324,7 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
             'average_conversion_rate' => 0.0
         );
     }
+
 
     /**
      * Clear campaign cache by ID.

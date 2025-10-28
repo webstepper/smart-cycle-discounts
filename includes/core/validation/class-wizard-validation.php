@@ -464,4 +464,199 @@ class SCD_Wizard_Validation {
 			'max_request_size' => SCD_Validation_Rules::MAX_REQUEST_SIZE,
 		);
 	}
+
+	/**
+	 * Validate compiled campaign data.
+	 *
+	 * This context is for already-compiled campaign data from the Campaign Creator Service.
+	 * The data has already been transformed from step-based structure to flat campaign structure,
+	 * so we skip step-by-step validation and validate the compiled fields directly.
+	 *
+	 * @since    1.0.0
+	 * @param    array    $data    Compiled campaign data (flat structure).
+	 * @return   array|WP_Error     Validated data or error.
+	 */
+	public static function validate_compiled_campaign( array $data ) {
+		$errors = new WP_Error();
+		$validated = array();
+
+		// Validate required campaign fields
+		self::validate_required_campaign_fields( $data, $validated, $errors );
+
+		// Validate discount configuration
+		self::validate_discount_config( $data, $validated, $errors );
+
+		// Validate product configuration
+		self::validate_product_config( $data, $validated, $errors );
+
+		// Validate schedule configuration
+		self::validate_schedule_config( $data, $validated, $errors );
+
+		return $errors->has_errors() ? $errors : $validated;
+	}
+
+	/**
+	 * Validate campaign update data.
+	 *
+	 * This context is for updating existing campaigns.
+	 * Some fields may be optional (not all fields need to be present for updates).
+	 *
+	 * @since    1.0.0
+	 * @param    array    $data    Update data.
+	 * @return   array|WP_Error     Validated data or error.
+	 */
+	public static function validate_campaign_update( array $data ) {
+		$errors = new WP_Error();
+		$validated = array();
+
+		// Only validate fields that are present (partial updates allowed)
+		if ( isset( $data['name'] ) ) {
+			$validated['name'] = sanitize_text_field( $data['name'] );
+			if ( empty( $validated['name'] ) ) {
+				$errors->add( 'invalid_name', __( 'Campaign name cannot be empty', 'smart-cycle-discounts' ) );
+			}
+		}
+
+		if ( isset( $data['status'] ) ) {
+			$allowed_statuses = array( 'draft', 'scheduled', 'active', 'paused', 'expired', 'archived' );
+			$status = sanitize_key( $data['status'] );
+			if ( ! in_array( $status, $allowed_statuses, true ) ) {
+				$errors->add( 'invalid_status', __( 'Invalid campaign status', 'smart-cycle-discounts' ) );
+			} else {
+				$validated['status'] = $status;
+			}
+		}
+
+		// Validate other update fields as needed
+		if ( isset( $data['priority'] ) ) {
+			$priority = absint( $data['priority'] );
+			if ( $priority < 1 || $priority > 10 ) {
+				$errors->add( 'invalid_priority', __( 'Priority must be between 1 and 10', 'smart-cycle-discounts' ) );
+			} else {
+				$validated['priority'] = $priority;
+			}
+		}
+
+		return $errors->has_errors() ? $errors : $validated;
+	}
+
+	/**
+	 * Validate required campaign fields.
+	 *
+	 * @since    1.0.0
+	 * @param    array      $data         Campaign data.
+	 * @param    array      &$validated   Validated data.
+	 * @param    WP_Error   $errors       Error object.
+	 * @return   void
+	 */
+	private static function validate_required_campaign_fields( array $data, array &$validated, WP_Error $errors ): void {
+		// Campaign name
+		if ( empty( $data['name'] ) ) {
+			$errors->add( 'missing_name', __( 'Campaign name is required', 'smart-cycle-discounts' ) );
+		} else {
+			$validated['name'] = sanitize_text_field( $data['name'] );
+		}
+
+		// Priority
+		if ( isset( $data['priority'] ) ) {
+			$validated['priority'] = absint( $data['priority'] );
+		} else {
+			$validated['priority'] = 5; // Default priority
+		}
+
+		// Status
+		if ( isset( $data['status'] ) ) {
+			$validated['status'] = sanitize_key( $data['status'] );
+		}
+	}
+
+	/**
+	 * Validate discount configuration.
+	 *
+	 * @since    1.0.0
+	 * @param    array      $data         Campaign data.
+	 * @param    array      &$validated   Validated data.
+	 * @param    WP_Error   $errors       Error object.
+	 * @return   void
+	 */
+	private static function validate_discount_config( array $data, array &$validated, WP_Error $errors ): void {
+		// Discount type
+		if ( empty( $data['discount_type'] ) ) {
+			$errors->add( 'missing_discount_type', __( 'Discount type is required', 'smart-cycle-discounts' ) );
+			return;
+		}
+
+		$validated['discount_type'] = sanitize_key( $data['discount_type'] );
+
+		// Discount value (type-specific validation)
+		if ( 'percentage' === $validated['discount_type'] && isset( $data['discount_value'] ) ) {
+			$value = floatval( $data['discount_value'] );
+			if ( $value <= 0 || $value > 100 ) {
+				$errors->add( 'invalid_percentage', __( 'Percentage must be between 0 and 100', 'smart-cycle-discounts' ) );
+			} else {
+				$validated['discount_value'] = $value;
+			}
+		} elseif ( 'fixed' === $validated['discount_type'] && isset( $data['discount_value'] ) ) {
+			$value = floatval( $data['discount_value'] );
+			if ( $value <= 0 ) {
+				$errors->add( 'invalid_fixed_amount', __( 'Fixed amount must be greater than 0', 'smart-cycle-discounts' ) );
+			} else {
+				$validated['discount_value'] = $value;
+			}
+		}
+	}
+
+	/**
+	 * Validate product configuration.
+	 *
+	 * @since    1.0.0
+	 * @param    array      $data         Campaign data.
+	 * @param    array      &$validated   Validated data.
+	 * @param    WP_Error   $errors       Error object.
+	 * @return   void
+	 */
+	private static function validate_product_config( array $data, array &$validated, WP_Error $errors ): void {
+		// Product selection type
+		if ( empty( $data['product_selection_type'] ) ) {
+			$errors->add( 'missing_selection_type', __( 'Product selection type is required', 'smart-cycle-discounts' ) );
+			return;
+		}
+
+		$validated['product_selection_type'] = sanitize_key( $data['product_selection_type'] );
+
+		// Validate based on selection type
+		if ( 'specific_products' === $validated['product_selection_type'] ) {
+			if ( empty( $data['product_ids'] ) || ! is_array( $data['product_ids'] ) ) {
+				$errors->add( 'missing_product_ids', __( 'Product IDs are required for specific products selection', 'smart-cycle-discounts' ) );
+			} else {
+				$validated['product_ids'] = array_map( 'absint', $data['product_ids'] );
+			}
+		}
+	}
+
+	/**
+	 * Validate schedule configuration.
+	 *
+	 * @since    1.0.0
+	 * @param    array      $data         Campaign data.
+	 * @param    array      &$validated   Validated data.
+	 * @param    WP_Error   $errors       Error object.
+	 * @return   void
+	 */
+	private static function validate_schedule_config( array $data, array &$validated, WP_Error $errors ): void {
+		// Start date
+		if ( isset( $data['starts_at'] ) && ! empty( $data['starts_at'] ) ) {
+			$validated['starts_at'] = sanitize_text_field( $data['starts_at'] );
+		}
+
+		// End date
+		if ( isset( $data['ends_at'] ) && ! empty( $data['ends_at'] ) ) {
+			$validated['ends_at'] = sanitize_text_field( $data['ends_at'] );
+		}
+
+		// Timezone
+		if ( isset( $data['timezone'] ) ) {
+			$validated['timezone'] = sanitize_text_field( $data['timezone'] );
+		}
+	}
 }

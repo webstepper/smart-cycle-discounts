@@ -186,6 +186,18 @@ class SCD_Template_Loader {
     public function get_template_dir(): string {
         return $this->template_dir;
     }
+
+    /**
+     * Get template (alias for load_template with echo=true).
+     *
+     * @since    1.0.0
+     * @param    string    $template    Template name.
+     * @param    array     $args        Template arguments.
+     * @return   void
+     */
+    public function get_template(string $template, array $args = array()): void {
+        $this->load_template($template, $args, true);
+    }
     
     /**
      * Sanitize template name to prevent path traversal.

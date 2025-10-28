@@ -214,8 +214,24 @@
 		 */
 		validateStep: function() {
 			var deferred = $.Deferred();
+			var data = null;
 
-			var data = this.collectData();
+			// Try to get data from state manager first (for unloaded steps)
+			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.stateManager ) {
+				var stateManager = window.SCD.Wizard.stateManager;
+				if ( 'function' === typeof stateManager.get ) {
+					var fullState = stateManager.get();
+					if ( fullState.stepData && fullState.stepData[this.stepName] ) {
+						data = fullState.stepData[this.stepName];
+					}
+				}
+			}
+
+			// Fallback to collecting from DOM if step is loaded
+			if ( ! data || 0 === Object.keys( data ).length ) {
+				data = this.collectData();
+			}
+
 			var result = this.validateData( data );
 
 			// Handle validation result - legacy format from validateData
@@ -603,8 +619,6 @@
                             '<div class="scd-loading-spinner"></div>' +
                             '<div class="scd-loading-message">' + message + '</div>' +
                         '</div>' );
-					/* Old multiline string removed */
-					/* $step.append('\n                        <div class="scd-loading-overlay">\n                            <div class="scd-loading-spinner"></div>\n                            <div class="scd-loading-message">' + ( message ) + '</div>\n                        </div>\n                    '); */
 				}
 			} else {
 				$step.removeClass( 'loading' );

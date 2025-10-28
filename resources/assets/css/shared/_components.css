@@ -140,6 +140,276 @@
     display: none;
 }
 
+/* ==========================================================================
+   Skeleton Loading Screens
+   ========================================================================== */
+
+.scd-skeleton {
+	animation: scd-skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes scd-skeleton-pulse {
+	0%, 100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.5;
+	}
+}
+
+.scd-skeleton-wrapper {
+	padding: var(--scd-spacing-lg);
+	background: var(--scd-color-background);
+}
+
+/* Skeleton Header */
+.scd-skeleton-header {
+	height: 32px;
+	background: linear-gradient(90deg,
+		#f0f0f1 25%,
+		#e8e9ea 50%,
+		#f0f0f1 75%);
+	background-size: 200% 100%;
+	animation: scd-skeleton-shimmer 1.8s ease-in-out infinite;
+	border-radius: 8px;
+	margin-bottom: var(--scd-spacing-lg);
+	width: 60%;
+}
+
+/* Skeleton Card - prevent collapse with min-height */
+.scd-skeleton-card {
+	background: var(--scd-color-background);
+	border: var(--scd-border-width) solid var(--scd-color-border);
+	border-radius: var(--scd-radius-lg);
+	padding: var(--scd-spacing-lg);
+	margin-bottom: var(--scd-spacing-lg);
+	min-height: 150px;
+	width: 100%;
+	box-sizing: border-box;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* Skeleton Lines */
+.scd-skeleton-line {
+	height: 16px;
+	background: linear-gradient(90deg,
+		#f0f0f1 25%,
+		#e8e9ea 50%,
+		#f0f0f1 75%);
+	background-size: 200% 100%;
+	animation: scd-skeleton-shimmer 1.8s ease-in-out infinite;
+	border-radius: 6px;
+	margin-bottom: var(--scd-spacing-md);
+}
+
+.scd-skeleton-line:last-child {
+	margin-bottom: 0;
+}
+
+.scd-skeleton-line--short {
+	width: 70%;
+}
+
+.scd-skeleton-line--medium {
+	width: 85%;
+}
+
+.scd-skeleton-line--long {
+	width: 100%;
+}
+
+/* Skeleton Field (form input placeholder) - matches actual input height */
+.scd-skeleton-field {
+	min-height: 40px;
+	height: 40px;
+	background: linear-gradient(90deg,
+		#f0f0f1 25%,
+		#e8e9ea 50%,
+		#f0f0f1 75%);
+	background-size: 200% 100%;
+	animation: scd-skeleton-shimmer 1.8s ease-in-out infinite;
+	border-radius: var(--scd-radius-md);
+	margin-bottom: var(--scd-spacing-md);
+}
+
+.scd-skeleton-field--small {
+	height: 32px;
+	width: 50%;
+}
+
+.scd-skeleton-field--textarea {
+	height: 80px;
+}
+
+/* Skeleton Button */
+.scd-skeleton-button {
+	height: 36px;
+	width: 120px;
+	background: linear-gradient(90deg,
+		#f0f0f1 25%,
+		#e8e9ea 50%,
+		#f0f0f1 75%);
+	background-size: 200% 100%;
+	animation: scd-skeleton-shimmer 1.8s ease-in-out infinite;
+	border-radius: var(--scd-radius-md);
+	display: inline-block;
+}
+
+/* Shimmer animation for smooth loading effect - optimized timing */
+@keyframes scd-skeleton-shimmer {
+	0% {
+		background-position: -200% 0;
+	}
+	100% {
+		background-position: 200% 0;
+	}
+}
+
+/* Skeleton Avatar/Icon */
+.scd-skeleton-icon {
+	width: 48px;
+	height: 48px;
+	background: linear-gradient(90deg,
+		#f0f0f1 25%,
+		#e8e9ea 50%,
+		#f0f0f1 75%);
+	background-size: 200% 100%;
+	animation: scd-skeleton-shimmer 1.8s ease-in-out infinite;
+	border-radius: 50%;
+	display: inline-block;
+	margin-right: var(--scd-spacing-md);
+}
+
+/* Skeleton Grid for product cards, etc. */
+.scd-skeleton-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+	gap: var(--scd-spacing-md);
+	margin-bottom: var(--scd-spacing-lg);
+}
+
+.scd-skeleton-grid-item {
+	height: 180px;
+	background: linear-gradient(90deg,
+		#f0f0f1 25%,
+		#e8e9ea 50%,
+		#f0f0f1 75%);
+	background-size: 200% 100%;
+	animation: scd-skeleton-shimmer 1.8s ease-in-out infinite;
+	border-radius: var(--scd-radius-lg);
+	border: var(--scd-border-width) solid var(--scd-color-border);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* Fade transition for smooth appearance */
+.scd-wizard-main--loading,
+.scd-step-main-content.scd-wizard-main--loading,
+.scd-wizard-wrap.scd-wizard-main--loading {
+	opacity: 0.6;
+	pointer-events: none;
+	transition: opacity 0.2s ease-in-out;
+}
+
+/* Ensure skeleton cards render at full width when loaded via JavaScript */
+.scd-step-main-content > .scd-card.scd-wizard-card {
+	width: 100%;
+	max-width: 100%;
+	min-height: 180px;
+	box-sizing: border-box;
+}
+
+/* Skeleton progress steps styling */
+.scd-wizard-progress .scd-skeleton-line {
+	background: linear-gradient(90deg, #e8e8e8 25%, #d8d8d8 50%, #e8e8e8 75%);
+	background-size: 200% 100%;
+	animation: scd-skeleton-shimmer 2s ease-in-out infinite;
+	border-radius: var(--scd-radius-sm);
+}
+
+/* Skeleton progress step components */
+.scd-skeleton-step-circle {
+	display: inline-block;
+}
+
+.scd-skeleton-step-label {
+	display: inline-block;
+}
+
+/* Hide connecting lines in skeleton mode */
+.scd-wizard-step--skeleton::after {
+	display: none !important;
+}
+
+/* Prevent pseudo-elements from showing in skeleton steps */
+.scd-wizard-step--skeleton::before {
+	content: none !important;
+}
+
+/* Staggered animation delays for organic feel */
+.scd-card:nth-child(1) .scd-skeleton-line,
+.scd-card:nth-child(1) .scd-skeleton-field,
+.scd-card:nth-child(1) .scd-skeleton-icon {
+	animation-delay: 0s;
+}
+
+.scd-card:nth-child(2) .scd-skeleton-line,
+.scd-card:nth-child(2) .scd-skeleton-field,
+.scd-card:nth-child(2) .scd-skeleton-icon {
+	animation-delay: 0.1s;
+}
+
+.scd-card:nth-child(3) .scd-skeleton-line,
+.scd-card:nth-child(3) .scd-skeleton-field,
+.scd-card:nth-child(3) .scd-skeleton-icon {
+	animation-delay: 0.2s;
+}
+
+.scd-card:nth-child(4) .scd-skeleton-line,
+.scd-card:nth-child(4) .scd-skeleton-field,
+.scd-card:nth-child(4) .scd-skeleton-icon {
+	animation-delay: 0.3s;
+}
+
+/* Individual line stagger within cards */
+.scd-skeleton-line:nth-child(1) { animation-delay: 0s; }
+.scd-skeleton-line:nth-child(2) { animation-delay: 0.05s; }
+.scd-skeleton-line:nth-child(3) { animation-delay: 0.1s; }
+.scd-skeleton-line:nth-child(4) { animation-delay: 0.15s; }
+
+/* Grid items stagger */
+.scd-skeleton-grid-item:nth-child(1) { animation-delay: 0s; }
+.scd-skeleton-grid-item:nth-child(2) { animation-delay: 0.1s; }
+.scd-skeleton-grid-item:nth-child(3) { animation-delay: 0.2s; }
+.scd-skeleton-grid-item:nth-child(4) { animation-delay: 0.3s; }
+
+/* Loading Progress Bar - thin indicator at top of page */
+.scd-loading-bar {
+	position: fixed;
+	top: 0;
+	left: 0;
+	height: 3px;
+	background: linear-gradient(to right, #0073aa, #00a0d2, #0073aa);
+	background-size: 200% 100%;
+	animation: scd-loading-bar-slide 0.8s ease-out forwards;
+	z-index: 999999;
+	box-shadow: 0 0 10px rgba(0, 115, 170, 0.5);
+}
+
+@keyframes scd-loading-bar-slide {
+	0% {
+		width: 0%;
+		opacity: 1;
+	}
+	70% {
+		width: 90%;
+		opacity: 1;
+	}
+	100% {
+		width: 100%;
+		opacity: 0;
+	}
+}
+
 /* Card Elements */
 .scd-card__header {
     position: relative;
@@ -294,7 +564,7 @@
    ========================================================================== */
 
 /* ==========================================================================
-   Alert Styles - Moved to shared/_alerts.css to avoid duplication
+   Alert Styles - Implemented in admin.css via notification system
    ========================================================================== */
 
 /* ==========================================================================

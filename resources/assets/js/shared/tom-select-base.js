@@ -296,14 +296,15 @@
 	 * @param {Array|string} values - Values to set
 	 * @return {Object} This instance for chaining
 	 */
-	SCD.Shared.TomSelectBase.prototype.setValue = function( values ) {
+	SCD.Shared.TomSelectBase.prototype.setValue = function( values, silent ) {
 		if ( !this.instance ) {
 			return this;
 		}
 
-		// Always trigger change events (no silent mode)
-		// This ensures state stays in sync
-		this.instance.setValue( values, false );
+		// Second parameter controls whether onChange fires:
+		// false (default) = trigger onChange
+		// true = silent mode, no onChange (for initialization)
+		this.instance.setValue( values, silent || false );
 		return this;
 	};
 

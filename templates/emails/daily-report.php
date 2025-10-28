@@ -4,7 +4,7 @@
  *
  * Available variables:
  * - {date}               Report date
- * - {active_campaigns}   Number of active campaigns
+ * - {active}   Active campaigns count
  * - {total_revenue}      Total revenue for the day
  * - {total_orders}       Total orders for the day
  * - {top_products}       Top performing products
@@ -198,7 +198,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 			<div class="stats-grid">
 				<div class="stat-box">
-					<span class="stat-value">{active_campaigns}</span>
+					<span class="stat-value">{active}</span>
 					<span class="stat-label"><?php esc_html_e( 'Active Campaigns', 'smart-cycle-discounts' ); ?></span>
 				</div>
 				<div class="stat-box">

@@ -85,9 +85,9 @@
 
 			// Currency symbol
 			this.currencySymbol = '$';
-			if ( window.scdDiscountStepData && window.scdDiscountStepData.currency_symbol ) {
+			if ( window.scdDiscountStepData && window.scdDiscountStepData.currencySymbol ) {
 				var parser = new DOMParser();
-				var doc = parser.parseFromString( window.scdDiscountStepData.currency_symbol, 'text/html' );
+				var doc = parser.parseFromString( window.scdDiscountStepData.currencySymbol, 'text/html' );
 				this.currencySymbol = doc.documentElement.textContent || '$';
 			}
 

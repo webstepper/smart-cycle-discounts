@@ -204,9 +204,9 @@
 
 			// Only validate if moving forward
 			if ( targetIndex > currentIndex ) {
-				this.validateCurrentStep( currentStep ).done( function( isValid ) {
-					if ( isValid ) {
-						self.navigateToStep( targetStep, currentStep );
+				this.validateCurrentStep( currentStep ).done( function( validationResult ) {
+					if ( validationResult.isValid ) {
+						self.navigateToStep( targetStep, currentStep, validationResult.formData );
 					}
 				} );
 			} else {
@@ -226,9 +226,9 @@
 
 			if ( nextStep ) {
 				var self = this;
-				this.validateCurrentStep( currentStep ).done( function( isValid ) {
-					if ( isValid ) {
-						self.navigateToStep( nextStep, currentStep );
+				this.validateCurrentStep( currentStep ).done( function( validationResult ) {
+					if ( validationResult && validationResult.isValid ) {
+						self.navigateToStep( nextStep, currentStep, validationResult.formData );
 					}
 					// Validation errors are shown by ValidationError component automatically
 				} ).fail( function( error ) {
@@ -245,7 +245,7 @@
 		 *
 		 * @since 1.0.0
 		 * @param {string} stepName Step name to validate
-		 * @returns {jQuery.Deferred} Promise that resolves to boolean
+		 * @returns {jQuery.Deferred} Promise that resolves to {isValid: boolean, formData: object}
 		 */
 		validateCurrentStep: function( stepName ) {
 			var self = this;
@@ -258,7 +258,7 @@
 			if ( proCheck.blocked ) {
 				// Modal is already shown by checkProFeatures()
 				// Block validation without showing error notification
-				return $.Deferred().resolve( false ).promise();
+				return $.Deferred().resolve( { isValid: false, formData: formData } ).promise();
 			}
 
 			// Try to get step orchestrator
@@ -267,7 +267,10 @@
 
 				// If orchestrator exists and has validateStep, use it
 				if ( stepOrchestrator && 'function' === typeof stepOrchestrator.validateStep ) {
-					return stepOrchestrator.validateStep();
+					// Wrap orchestrator validation to include formData in result
+					return stepOrchestrator.validateStep().then( function( validationResult ) {
+						return { isValid: validationResult, formData: formData };
+					} );
 				}
 			}
 
@@ -276,15 +279,15 @@
 			// This prevents the validation bypass bug
 			console.error( '[SCD Wizard:Navigation] Cannot validate - step orchestrator not loaded for: ' + stepName );
 
-			// Show error to user
-			if ( window.SCD && window.SCD.ErrorHandler ) {
-				window.SCD.ErrorHandler.showNotice(
-					'error',
-					'Cannot proceed: Step validation system not ready. Please refresh the page and try again.'
+			// Show error to user using NotificationService
+			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
+				window.SCD.Shared.NotificationService.error(
+					'Cannot proceed: Step validation system not ready. Please refresh the page and try again.',
+					0 // Persistent notification
 				);
 			}
 
-			return $.Deferred().resolve( false ).promise();
+			return $.Deferred().resolve( { isValid: false, formData: formData } ).promise();
 		},
 
 		/**
@@ -326,7 +329,7 @@
 		 * @param {string} targetStep Target step
 		 * @param {boolean} isRetry Whether this is a retry attempt
 		 */
-		performNavigation: function( fromStep, targetStep, isRetry ) {
+		performNavigation: function( fromStep, targetStep, isRetry, formData ) {
 			var self = this;
 
 			if ( SCD.Wizard && SCD.Wizard.Orchestrator ) {
@@ -440,41 +443,73 @@
 		sendNavigationRequest: function( fromStep, targetStep, formData ) {
 			var self = this;
 
-			console.log( '[SCD Navigation] sendNavigationRequest called' );
-			console.log( '[SCD Navigation] From:', fromStep, 'To:', targetStep );
-			console.log( '[SCD Navigation] Form data keys:', Object.keys( formData || {} ) );
+			// Prevent duplicate save requests (debounce)
+			if ( this._saveInProgress ) {
+					return this._savePromise || $.Deferred().reject( {
+					success: false,
+					data: {
+						message: 'Save already in progress',
+						code: 'save_in_progress'
+					}
+				} ).promise();
+			}
 
-			// Validate we have persistence service
-			if ( ! window.SCD || ! window.SCD.Wizard || ! window.SCD.Wizard.PersistenceService ) {
-				console.error( '[SCD Navigation] PersistenceService not available' );
-				console.error( '[SCD Navigation] window.SCD exists:', !! window.SCD );
-				console.error( '[SCD Navigation] window.SCD.Wizard exists:', !! ( window.SCD && window.SCD.Wizard ) );
-				console.error( '[SCD Navigation] PersistenceService exists:', !! ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.PersistenceService ) );
+			// Validate we have main orchestrator
+			if ( ! window.SCD || ! window.SCD.Wizard || ! window.SCD.Wizard.Orchestrator ) {
+				console.error( '[SCD Navigation] Main orchestrator not available' );
 				return $.Deferred().reject( {
 					success: false,
 					data: {
-						message: 'Persistence service not available',
+						message: 'Orchestrator not available',
 						code: 'service_unavailable'
 					}
 				} ).promise();
 			}
 
-			// Use PersistenceService to save with navigation flag
-			// This calls scd_save_step with is_navigation_save=true
-			var persistenceService = window.SCD.Wizard.PersistenceService;
-			console.log( '[SCD Navigation] Calling PersistenceService.saveStepData with isNavigationSave=true' );
+			// Get step orchestrator
+			var stepOrchestrator = window.SCD.Wizard.Orchestrator.getStepInstance( fromStep );
+			if ( ! stepOrchestrator ) {
+				console.error( '[SCD Navigation] Step orchestrator not found for step:', fromStep );
+				console.error( '[SCD Navigation] Available orchestrators:', window.SCD.Wizard.Orchestrator.stepOrchestrators ? Object.keys( window.SCD.Wizard.Orchestrator.stepOrchestrators ) : 'none' );
+				return $.Deferred().reject( {
+					success: false,
+					data: {
+						message: 'Step orchestrator not found',
+						code: 'orchestrator_not_found'
+					}
+				} ).promise();
+			}
 
-			return persistenceService.saveStepData( fromStep, formData, {
-				isNavigationSave: true,
-				force: true
-			} ).then( function( response ) {
-				console.log( '[SCD Navigation] Server save SUCCESS:', response );
+			if ( 'function' !== typeof stepOrchestrator.saveStep ) {
+				console.error( '[SCD Navigation] saveStep method not available on orchestrator for step:', fromStep );
+				console.error( '[SCD Navigation] Orchestrator methods:', Object.keys( stepOrchestrator ) );
+				return $.Deferred().reject( {
+					success: false,
+					data: {
+						message: 'saveStep method not available',
+						code: 'method_not_available'
+					}
+				} ).promise();
+			}
+
+				// Mark save as in progress
+			this._saveInProgress = true;
+
+			// Save via step orchestrator (navigation save - primary save mechanism)
+			return stepOrchestrator.saveStep().then( function( response ) {
+					// Clear save flag
+				self._saveInProgress = false;
+				self._savePromise = null;
+
 				// Server validated and saved data
 				// Extract completed steps from progress
 				var completedSteps = [];
 				if ( response && response.progress && response.progress.completedSteps ) {
 					completedSteps = response.progress.completedSteps;
 				}
+
+				var redirectUrl = self.buildStepUrl( targetStep );
+				console.log( '[SCD Navigation] Building redirect URL for target:', targetStep, '→', redirectUrl );
 
 				// Build navigation response and return immediately
 				return {
@@ -485,10 +520,14 @@
 						currentStep: targetStep,
 						nextStep: targetStep,
 						completedSteps: completedSteps,
-					redirectUrl: self.buildStepUrl( targetStep )
+						redirectUrl: redirectUrl
 					}
 				};
 			} ).fail( function( error ) {
+					// Clear save flag on error
+				self._saveInProgress = false;
+				self._savePromise = null;
+
 				// Validation failed or save error
 				var errorMessage = window.SCD && window.SCD.Utils && window.SCD.Utils.getValidationMessage
 					? window.SCD.Utils.getValidationMessage( 'navigation.incomplete_step', 'Please complete all required fields before proceeding.' )
@@ -512,6 +551,254 @@
 					}
 				} ).promise();
 			} );
+
+			
+		},
+
+		/**
+		 * Show skeleton loading screen
+		 *
+		 * Displays a skeleton placeholder while navigating to give instant feedback.
+		 *
+		 * @since 1.0.0
+		 * @param {string} targetStep Target step name
+		 */
+		showSkeletonScreen: function( targetStep ) {
+			console.log( '[SCD Skeleton] Starting skeleton display for step:', targetStep );
+
+			var contentSkeleton = this.getSkeletonHTML( targetStep );
+			console.log( '[SCD Skeleton] Content skeleton length:', contentSkeleton.length );
+
+			var fullSkeleton = this.buildFullPageSkeleton( targetStep, contentSkeleton );
+			console.log( '[SCD Skeleton] Full skeleton length:', fullSkeleton.length );
+
+			var $wizardWrap = $( '.scd-wizard-wrap' ).first();
+			console.log( '[SCD Skeleton] Found wizard wrap elements:', $wizardWrap.length );
+
+			if ( $wizardWrap.length ) {
+				console.log( '[SCD Skeleton] Displaying skeleton...' );
+
+				// Add loading progress bar at top
+				$( 'body' ).append( '<div class="scd-loading-bar"></div>' );
+
+				// Show skeleton immediately for instant feedback
+				$wizardWrap.addClass( 'scd-wizard-main--loading' );
+				$wizardWrap.html( fullSkeleton );
+				$wizardWrap.removeClass( 'scd-wizard-main--loading' );
+
+				console.log( '[SCD Skeleton] Skeleton displayed successfully' );
+			} else {
+				console.error( '[SCD Skeleton] No .scd-wizard-wrap element found!' );
+			}
+		},
+
+		buildFullPageSkeleton: function( targetStep, contentSkeleton ) {
+			var stepLabels = { 'basic': 'Campaign Setup', 'products': 'Product Selection', 'discounts': 'Discount Configuration', 'schedule': 'Schedule & Limits', 'review': 'Review & Launch' };
+			var currentIndex = this.config.steps.indexOf( targetStep );
+			var totalSteps = this.config.steps.length;
+			var isLast = currentIndex === totalSteps - 1;
+
+			var header = '<div class="scd-wizard-header" style="margin-bottom:20px;display:flex;align-items:center;"><h1 style="margin:0;padding:0;"><span class="scd-skeleton-line" style="width:220px;height:32px;display:inline-block;margin-bottom:0;"></span></h1></div>';
+
+			var progress = '<div class="scd-wizard-progress" style="padding:24px 40px;"><ul class="scd-wizard-steps" style="max-width:800px;margin:0 auto;padding:0;list-style:none;display:flex;justify-content:space-between;align-items:center;">';
+			for ( var i = 0; i < this.config.steps.length; i++ ) {
+				var stepName = this.config.steps[i];
+				var isActive = i === currentIndex;
+				var isCompleted = i < currentIndex;
+				var classes = 'scd-wizard-step scd-wizard-step--skeleton';
+				if ( isActive ) { classes += ' active current'; }
+				if ( isCompleted ) { classes += ' completed'; }
+
+				// Create skeleton circle for step number
+				var stepNumberSkeleton = '<div class="scd-skeleton-step-circle" style="width:32px;height:32px;border-radius:50%;margin-bottom:8px;background:linear-gradient(90deg,#f0f0f1 25%,#e8e9ea 50%,#f0f0f1 75%);background-size:200% 100%;animation:scd-skeleton-shimmer 1.8s ease-in-out infinite;"></div>';
+
+				// Create skeleton line for step label with varied widths for organic look
+				var labelWidths = ['80px', '95px', '110px', '85px', '100px'];
+				var labelWidth = labelWidths[i] || '90px';
+				var stepLabelSkeleton = '<div class="scd-skeleton-step-label" style="width:' + labelWidth + ';height:13px;margin-top:8px;border-radius:4px;background:linear-gradient(90deg,#f0f0f1 25%,#e8e9ea 50%,#f0f0f1 75%);background-size:200% 100%;animation:scd-skeleton-shimmer 1.8s ease-in-out infinite;animation-delay:' + (i * 0.05) + 's;"></div>';
+
+				progress += '<li class="' + classes + '" data-step-name="' + stepName + '" style="flex:1;text-align:center;display:flex;flex-direction:column;align-items:center;">' +
+					stepNumberSkeleton +
+					stepLabelSkeleton +
+					'</li>';
+			}
+			progress += '</ul></div>';
+
+			// Build clean sidebar skeleton matching real structure
+			var sidebar = '<aside class="scd-step-sidebar" style="flex:0 0 360px;width:360px;">';
+
+			// Main sidebar card (clean style matching content cards)
+			sidebar += '<div class="scd-card scd-sidebar-panel" style="padding:20px;border-radius:8px;">';
+
+			// Card header (same clean style as content cards)
+			sidebar += '<div class="scd-card__header">';
+			sidebar += '<h3 class="scd-card__title" style="margin:0 0 8px 0;display:flex;align-items:center;">';
+			sidebar += '<span class="scd-skeleton-icon" style="width:20px;height:20px;display:inline-block;margin-right:8px;"></span>';
+			sidebar += '<span class="scd-skeleton-line" style="width:180px;height:20px;display:inline-block;vertical-align:middle;margin-bottom:0;"></span>';
+			sidebar += '</h3>';
+			sidebar += '<p class="scd-card__subtitle" style="margin:0 0 16px 0;">';
+			sidebar += '<span class="scd-skeleton-line" style="width:85%;height:14px;"></span>';
+			sidebar += '</p>';
+			sidebar += '</div>';
+
+			// Card content with sections
+			sidebar += '<div class="scd-card__content" style="padding-top:8px;">';
+
+			// Create 3 collapsible sections (1 open, 2 collapsed)
+			for (var s = 0; s < 3; s++) {
+				var isOpen = s === 0;
+
+				// Section container (matches .scd-sidebar-section)
+				sidebar += '<div class="scd-sidebar-section" style="margin-bottom:' + (s < 2 ? '20px' : '0') + ';background:#fff;border:1px solid #f0f0f1;border-radius:4px;">';
+
+				// Section header (matches .scd-sidebar-section-header)
+				sidebar += '<div class="scd-sidebar-section-header" style="display:flex;align-items:center;padding:16px 20px;background:' + (isOpen ? '#f6f7f7' : 'transparent') + ';border-bottom:' + (isOpen ? '1px solid #f0f0f1' : 'none') + ';border-radius:' + (isOpen ? '4px 4px 0 0' : '4px') + ';">';
+				sidebar += '<span class="scd-skeleton-icon" style="width:20px;height:20px;margin-right:12px;"></span>';
+				sidebar += '<span class="scd-skeleton-line" style="width:' + (110 + s * 20) + 'px;height:14px;margin-bottom:0;"></span>';
+				sidebar += '</div>';
+
+				// Section content (only for open section)
+				if (isOpen) {
+					sidebar += '<div class="scd-sidebar-section-content" style="padding:20px;">';
+
+					// List items (3 items)
+					for (var i = 0; i < 3; i++) {
+						sidebar += '<div style="margin-bottom:' + (i < 2 ? '8px' : '0') + ';">';
+						sidebar += '<span class="scd-skeleton-line" style="width:' + (85 + i * 5) + '%;height:13px;"></span>';
+						sidebar += '</div>';
+					}
+
+					sidebar += '</div>';
+				}
+
+				sidebar += '</div>'; // Close section
+			}
+
+			sidebar += '</div>'; // Close card__content
+			sidebar += '</div>'; // Close card
+			sidebar += '</aside>';
+
+			// Build navigation skeleton
+			var navigation = '<nav class="scd-wizard-navigation" role="navigation" style="padding:12px 0;">';
+			navigation += '<div class="scd-nav-container">';
+
+			// Left section - Previous button (only if not first step)
+			navigation += '<div class="scd-nav-section scd-nav-section--left">';
+			if (currentIndex > 0) {
+				navigation += '<div class="scd-skeleton-button" style="min-width:100px;width:100px;height:32px;border-radius:4px;"></div>';
+			}
+			navigation += '</div>';
+
+			// Center section - Step counter
+			navigation += '<div class="scd-nav-section scd-nav-section--center">';
+			navigation += '<div class="scd-nav-status">';
+			navigation += '<span class="scd-skeleton-line" style="width:90px;height:14px;display:inline-block;margin-bottom:0;"></span>';
+			navigation += '</div>';
+			navigation += '</div>';
+
+			// Right section - Next/Complete button
+			navigation += '<div class="scd-nav-section scd-nav-section--right">';
+			navigation += '<div class="scd-skeleton-button" style="min-width:100px;width:100px;height:32px;border-radius:4px;"></div>';
+			navigation += '</div>';
+
+			navigation += '</div>'; // Close nav-container
+			navigation += '</nav>';
+
+			var content = '<form method="post" class="scd-wizard-form" autocomplete="off"><div class="scd-wizard-content scd-wizard-layout" style="gap:40px;padding:30px 0 40px 0;" data-step="' + targetStep + '"><div class="scd-step-main-content scd-wizard-step--' + targetStep + '">' + contentSkeleton + '</div>' + sidebar + '</div>' + navigation + '</form>';
+
+			return header + progress + content;
+		},
+
+		/**
+		 * Get skeleton HTML for a specific step
+		 *
+		 * Returns appropriate skeleton structure based on target step.
+		 *
+		 * @since 1.0.0
+		 * @param {string} stepName Step name
+		 * @returns {string} Skeleton HTML
+		 */
+		getSkeletonHTML: function( stepName ) {
+			// Helper to create wizard card skeleton matching actual .scd-card structure
+			var createCard = function( hasIcon, fields ) {
+				var c = '<div class="scd-card scd-wizard-card" style="padding:20px;margin-bottom:20px;border-radius:8px;"><div class="scd-card__header"><h3 class="scd-card__title" style="margin:0 0 8px 0;display:flex;align-items:center;">';
+				if ( hasIcon ) { c += '<span class="scd-skeleton-icon" style="width:20px;height:20px;display:inline-block;margin-right:8px;"></span>'; }
+				c += '<span class="scd-skeleton-line" style="width:200px;height:22px;display:inline-block;vertical-align:middle;margin-bottom:0;"></span></h3>';
+				c += '<p class="scd-card__subtitle" style="margin:0 0 16px 0;"><span class="scd-skeleton-line" style="width:85%;height:14px;"></span></p>';
+				c += '</div><div class="scd-card__content" style="padding-top:8px;">';
+				for ( var i = 0; i < fields; i++ ) { c += '<div class="scd-skeleton-field" style="margin-bottom:' + ( i < fields - 1 ? '16px' : '0' ) + ';"></div>'; }
+				c += '</div></div>';
+				return c;
+			};
+
+			var skeleton = '';
+
+			// Step-specific skeletons matching actual layouts
+			if ( 'basic' === stepName ) {
+				// Basic: Campaign Details + Priority cards
+				skeleton = createCard( true, 2 ) + createCard( true, 1 );
+
+			} else if ( 'products' === stepName ) {
+				// Products: Selection card with grid
+				skeleton = '<div class="scd-card scd-wizard-card"><div class="scd-card__header"><h3 class="scd-card__title">' +
+					'<span class="scd-skeleton-icon" style="width:20px;height:20px;display:inline-block;margin-right:8px;"></span>' +
+					'<span class="scd-skeleton-line" style="width:50%;height:20px;display:inline-block;vertical-align:middle;margin-bottom:0;"></span></h3>' +
+					'<p class="scd-card__subtitle"><span class="scd-skeleton-line scd-skeleton-line--long" style="height:14px;"></span></p>' +
+					'</div><div class="scd-card__content">' +
+					'<div class="scd-skeleton-field" style="margin-bottom:20px;"></div>' +
+					'<div class="scd-skeleton-grid">' +
+					'<div class="scd-skeleton-grid-item"></div>' +
+					'<div class="scd-skeleton-grid-item"></div>' +
+					'<div class="scd-skeleton-grid-item"></div>' +
+					'<div class="scd-skeleton-grid-item"></div>' +
+					'</div></div></div>';
+
+			} else if ( 'discounts' === stepName ) {
+				// Discounts: Type selector + Config cards
+				skeleton = createCard( true, 1 ) + createCard( true, 3 );
+
+			} else if ( 'schedule' === stepName ) {
+				// Schedule: Date Range + Usage Limits
+				skeleton = createCard( true, 2 ) + createCard( true, 2 );
+
+			} else if ( 'review' === stepName ) {
+				// Review: Summary cards with varied line widths for realistic look
+				var rc1 = '<div class="scd-card scd-wizard-card"><div class="scd-card__header"><h3 class="scd-card__title">' +
+					'<span class="scd-skeleton-line" style="width:35%;height:20px;display:inline-block;margin-bottom:0;"></span></h3>' +
+					'</div><div class="scd-card__content">' +
+					'<div class="scd-skeleton-line" style="width:92%;"></div>' +
+					'<div class="scd-skeleton-line" style="width:78%;"></div>' +
+					'<div class="scd-skeleton-line" style="width:65%;"></div>' +
+					'</div></div>';
+				var rc2 = '<div class="scd-card scd-wizard-card"><div class="scd-card__header"><h3 class="scd-card__title">' +
+					'<span class="scd-skeleton-line" style="width:40%;height:20px;display:inline-block;margin-bottom:0;"></span></h3>' +
+					'</div><div class="scd-card__content">' +
+					'<div class="scd-skeleton-line" style="width:88%;"></div>' +
+					'<div class="scd-skeleton-line" style="width:95%;"></div>' +
+					'<div class="scd-skeleton-line" style="width:72%;"></div>' +
+					'</div></div>';
+				var rc3 = '<div class="scd-card scd-wizard-card"><div class="scd-card__header"><h3 class="scd-card__title">' +
+					'<span class="scd-skeleton-line" style="width:45%;height:20px;display:inline-block;margin-bottom:0;"></span></h3>' +
+					'</div><div class="scd-card__content">' +
+					'<div class="scd-skeleton-line" style="width:85%;"></div>' +
+					'<div class="scd-skeleton-line" style="width:90%;"></div>' +
+					'<div class="scd-skeleton-line" style="width:68%;"></div>' +
+					'</div></div>';
+				var rc4 = '<div class="scd-card scd-wizard-card"><div class="scd-card__header"><h3 class="scd-card__title">' +
+					'<span class="scd-skeleton-line" style="width:38%;height:20px;display:inline-block;margin-bottom:0;"></span></h3>' +
+					'</div><div class="scd-card__content">' +
+					'<div class="scd-skeleton-line" style="width:93%;"></div>' +
+					'<div class="scd-skeleton-line" style="width:80%;"></div>' +
+					'<div class="scd-skeleton-line" style="width:70%;"></div>' +
+					'</div></div>';
+				skeleton = rc1 + rc2 + rc3 + rc4;
+
+			} else {
+				// Fallback: Generic 2-card layout
+				skeleton = createCard( true, 2 ) + createCard( true, 2 );
+			}
+
+			return skeleton;
 		},
 
 		/**
@@ -541,10 +828,25 @@
 			// Server automatically converts snake_case to camelCase via SCD_AJAX_Response
 			// Use camelCase directly as received from server
 			if ( data.redirectUrl ) {
-				// Full page redirect - keep buttons disabled until new page loads
-				window.location.href = data.redirectUrl;
+				console.log( '[SCD Navigation] Redirecting to:', data.redirectUrl );
+				console.log( '[SCD Navigation] Current URL before redirect:', window.location.href );
+
+				// Show skeleton screen immediately for instant feedback
+				this.showSkeletonScreen( targetStep );
+
+				// Prevent any navigation events from interfering
+				self.setNavigationState( true );
+
+				// Minimal delay for skeleton render, then redirect
+				setTimeout( function() {
+					console.log( '[SCD Navigation] Executing redirect now...' );
+					window.location.href = data.redirectUrl;
+				}, 100 );
+
+				// Nothing after this line will execute
+				return;
 			} else {
-				// Client-side navigation - update UI then re-enable buttons
+					// Client-side navigation - update UI then re-enable buttons
 				this.updateURL( targetStep );
 
 				// Load the target step's orchestrator so it's available for next validation
@@ -732,6 +1034,12 @@
 				'function' === typeof window.SCD.Wizard.Orchestrator.collectCurrentStepData ) {
 				try {
 					var data = window.SCD.Wizard.Orchestrator.collectCurrentStepData();
+
+					if ( window.console && window.console.log ) {
+						console.log( '[SCD Navigation] Collected step data for save:', data );
+					}
+
+
 					return data && 'object' === typeof data ? data : {};
 				} catch ( e ) {
 					if ( window.console && window.console.error ) {
@@ -742,9 +1050,11 @@
 			}
 
 			// Orchestrator not available
+			if ( window.console && window.console.warn ) {
+				console.warn( '[SCD Navigation] Wizard orchestrator not available for data collection' );
+			}
 			return {};
 		},
-
 
 		/**
 		 * Build URL for a specific step
@@ -1126,15 +1436,18 @@
 			// Close modal
 			self.closeProModal();
 
-			// Trigger auto-save
-			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.PersistenceService ) {
-				SCD.Wizard.PersistenceService.saveStepData( options.step, options.configData, {
-					isAutoSave: true
-				} ).done( function() {
-					if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
-						SCD.Shared.NotificationService.success( 'Draft saved! Upgrade anytime to activate this campaign.' );
-					}
-				} );
+			// Trigger save via orchestrator
+			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Orchestrator ) {
+				var currentStep = SCD.Wizard.StateManager.state.currentStep;
+				var stepOrchestrator = SCD.Wizard.Orchestrator.getStepInstance( currentStep );
+
+				if ( stepOrchestrator && 'function' === typeof stepOrchestrator.saveStep ) {
+					stepOrchestrator.saveStep().done( function() {
+						if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
+							SCD.Shared.NotificationService.success( 'Draft saved! Upgrade anytime to activate this campaign.' );
+						}
+					} );
+				}
 			}
 		} );
 

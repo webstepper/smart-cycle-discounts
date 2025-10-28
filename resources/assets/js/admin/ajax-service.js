@@ -276,8 +276,8 @@
 
 			if ( error.response && error.response.error && Array.isArray( error.response.error ) ) {
 				var errorObj = error.response.error[0];
-				if ( errorObj && errorObj.data && errorObj.data.retry_after ) {
-					retryAfter = errorObj.data.retry_after;
+				if ( errorObj && errorObj.data && errorObj.data.retryAfter ) {
+					retryAfter = errorObj.data.retryAfter;
 				}
 			}
 
@@ -341,7 +341,8 @@
 			}
 
 			// Cancel previous search requests (for search-type actions)
-			this.cancelPreviousSearchRequest( action );
+			// Pass data so we can check for non-cancellable operations like get_products_by_ids
+			this.cancelPreviousSearchRequest( action, data );
 
 			// Build request data for unified endpoint
 			var nonce = this.getNonce( action );
@@ -534,7 +535,34 @@
 						delete self.activeRequests[requestKey];
 					}
 
-					// Debug logging
+					// Skip error logging for aborted requests (intentional cancellations)
+					if ( 'abort' === textStatus ) {
+						var error = new Error( 'Request cancelled' );
+						error.code = 'request_cancelled';
+						error.status = 0;
+						deferred.reject( error );
+						return;
+					}
+
+					// Handle status 0 (network error or request cancellation)
+					// Status 0 with 'error' textStatus often means cancelled/aborted request
+					if ( 0 === jqXHR.status && 'error' === textStatus ) {
+						// This is likely a cancelled request from debouncing or navigation
+						// Log as info, not error
+						if ( window.console && window.console.info ) {
+							console.info( '[AjaxService] Request cancelled (debouncing or navigation):', {
+								action: data.scdAction || data.action,
+								textStatus: textStatus
+							} );
+						}
+						var error = new Error( 'Request cancelled' );
+						error.code = 'request_cancelled';
+						error.status = 0;
+						deferred.reject( error );
+						return;
+					}
+
+					// Debug logging for actual errors
 					if ( window.console && window.console.error ) {
 						console.error( '[AjaxService] Request failed:', {
 							status: jqXHR.status,
@@ -680,8 +708,9 @@
 		 * Cancel previous request with same action (for search-type actions)
 		 *
 		 * @param {string} action Action name
+		 * @param {object} data Request data (to check for exceptions)
 		 */
-		cancelPreviousSearchRequest: function( action ) {
+		cancelPreviousSearchRequest: function( action, data ) {
 			// Only cancel for search-type actions
 			var searchActions = [ 'scd_product_search', 'get_product_categories', 'search_categories' ];
 			var isCancellable = searchActions.some( function( searchAction ) {
@@ -689,6 +718,12 @@
 			} );
 
 			if ( ! isCancellable ) {
+				return;
+			}
+
+			// EXCEPTION: Don't cancel product restoration requests (get_products_by_ids)
+			// These are critical for maintaining Tom Select state and should not be interrupted by search requests
+			if ( data && data.wizardAction === 'get_products_by_ids' ) {
 				return;
 			}
 

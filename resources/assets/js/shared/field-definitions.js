@@ -82,13 +82,8 @@
 					return stepFields[ key ];
 				}
 			}
-			
-			// Try converting snake_case to camelCase as fallback
-			var camelKey = fieldName.replace( /_([a-z])/g, function( match, letter ) {
-				return letter.toUpperCase();
-			});
-			
-			return stepFields[ camelKey ] || null;
+
+			return null;
 		}
 
 		/**

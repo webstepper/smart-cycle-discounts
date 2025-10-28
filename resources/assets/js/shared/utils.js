@@ -1261,18 +1261,27 @@
 		 * @returns {*} Field value
 		 */
 		getFieldValue: function( fieldNameCamel, fieldDef ) {
-			var fieldId = this.toSnakeCase( fieldNameCamel );
-			var escapedFieldId = this.escapeFieldId( fieldId );
-			var $field = $( '#' + escapedFieldId );
+			var $field;
 			var arrayData;
 
-			if ( !$field.length ) {
-				$field = $( '[name="' + escapedFieldId + '"]' );
+			// Use explicit selector if provided in field definition
+			if ( fieldDef.selector ) {
+				$field = $( fieldDef.selector );
+			} else {
+				// Fallback to auto-generated selectors
+				var fieldId = this.toSnakeCase( fieldNameCamel );
+				var escapedFieldId = this.escapeFieldId( fieldId );
+				$field = $( '#' + escapedFieldId );
+
+				if ( !$field.length ) {
+					$field = $( '[name="' + escapedFieldId + '"]' );
+				}
+				// Also check for array fields with brackets
+				if ( !$field.length && 'array' === fieldDef.type ) {
+					$field = $( '[name="' + escapedFieldId + '[]"]' );
+				}
 			}
-			// Also check for array fields with brackets
-			if ( !$field.length && 'array' === fieldDef.type ) {
-				$field = $( '[name="' + escapedFieldId + '[]"]' );
-			}
+
 			if ( !$field.length ) {
 				return SCD.Utils.deepClone( fieldDef.default );
 			}
@@ -1295,6 +1304,9 @@
 						return Array.isArray( arrayData ) ? arrayData.slice() : [];
 					}
 					return [];
+				case 'nested_array':
+					// Collect nested form arrays (e.g., conditions[0][mode], conditions[0][type])
+					return SCD.Utils.collectNestedFormArray( fieldDef.field_name || this.toSnakeCase( fieldNameCamel ) );
 				case 'radio':
 					// For radio buttons, filter to get only the checked one
 					return $field.filter( ':checked' ).val() || fieldDef.default;
@@ -1365,6 +1377,14 @@
 							$field.trigger( 'change' );
 						}
 					}
+					break;
+				case 'nested_array':
+					// Populate nested form arrays (e.g., conditions[0][mode], conditions[0][type])
+					// Trigger event for orchestrator to handle UI reconstruction
+					$( document ).trigger( 'scd:populate-nested-array', {
+						fieldName: fieldDef.field_name || this.toSnakeCase( fieldNameCamel ),
+						value: value
+					} );
 					break;
 				case 'radio':
 					// For radio buttons, we need to check the one with matching value
@@ -1444,6 +1464,80 @@
 			return str.replace( /[A-Z]/g, function( match ) {
 				return '_' + match.toLowerCase();
 			}).replace( /^_/, '' ); // Remove leading underscore if any
+		},
+
+		/**
+		 * Collect nested form array from DOM
+		 *
+		 * Collects form inputs with bracket notation (e.g., conditions[0][mode], conditions[0][type])
+		 * and returns a properly structured JavaScript array.
+		 *
+		 * Example HTML:
+		 *   <input name="conditions[0][mode]" value="include">
+		 *   <input name="conditions[0][type]" value="price">
+		 *
+		 * Returns:
+		 *   [{ mode: 'include', type: 'price' }]
+		 *
+		 * @param {string} fieldName - Base field name (e.g., 'conditions')
+		 * @param {jQuery} $container - Container element to search within (optional)
+		 * @returns {Array} Array of objects representing the nested data
+		 * @since 1.0.0
+		 */
+		collectNestedFormArray: function( fieldName, $container ) {
+			$container = $container || $( document );
+
+			// Find all inputs matching pattern: name="fieldName[index][property]"
+			var selector = '[name^="' + fieldName + '["]';
+			var $fields = $container.find( selector );
+
+			if ( !$fields.length ) {
+				return [];
+			}
+
+			// Parse field names and build nested structure
+			var dataMap = {};
+
+			$fields.each( function() {
+				var $field = $( this );
+				var name = $field.attr( 'name' );
+
+				// Skip disabled fields
+				if ( $field.prop( 'disabled' ) ) {
+					return;
+				}
+
+				// Parse name: conditions[0][mode] → index: 0, property: mode
+				var matches = name.match( /\[(\d+)\]\[([^\]]+)\]/ );
+				if ( !matches ) {
+					return;
+				}
+
+				var index = matches[1];
+				var property = matches[2];
+				var value = $field.val();
+
+				// Initialize index object if needed
+				if ( !dataMap[index] ) {
+					dataMap[index] = {};
+				}
+
+				// Store value
+				dataMap[index][property] = value;
+			} );
+
+			// Convert map to array (preserving index order)
+			var result = [];
+			var indices = Object.keys( dataMap ).sort( function( a, b ) {
+				return parseInt( a, 10 ) - parseInt( b, 10 );
+			} );
+
+			for ( var i = 0; i < indices.length; i++ ) {
+				var idx = indices[i];
+				result.push( dataMap[idx] );
+			}
+
+			return result;
 		}
 	};
 

@@ -225,11 +225,29 @@
 	 */
 	SCD.Modules.Review.Components.prototype.updateNavigationButton = function() {
 		var option = this.state.getState().launchOption;
-		var buttonText = 'draft' === option ? 'Save as Draft' : 'Launch Campaign';
+
+		// Detect edit mode: we're editing if current_campaign data exists
+		// PHP uses snake_case (current_campaign) which gets auto-converted to camelCase (currentCampaign)
+		var isEditMode = window.scdWizardData && ( window.scdWizardData.currentCampaign || window.scdWizardData.current_campaign );
+
+		// Button text based on mode and launch option
+		var buttonText;
+		if ( isEditMode ) {
+			// Editing existing campaign
+			buttonText = 'draft' === option ? 'Update Draft' : 'Update Campaign';
+		} else {
+			// Creating new campaign
+			buttonText = 'draft' === option ? 'Save as Draft' : 'Launch Campaign';
+		}
 
 		if ( this.elements.$completeButton.length ) {
-			this.elements.$completeButton.find( '.scd-btn-text' ).text( buttonText );
-			
+			// Try both selector formats for compatibility
+			var $buttonText = this.elements.$completeButton.find( '.scd-btn-text' );
+			if ( ! $buttonText.length ) {
+				$buttonText = this.elements.$completeButton.find( '.scd-nav-btn__text' );
+			}
+			$buttonText.text( buttonText );
+
 			// Also update the data attribute for the draft flag
 			if ( 'draft' === option ) {
 				this.elements.$completeButton.attr( 'data-save-as-draft', 'true' );

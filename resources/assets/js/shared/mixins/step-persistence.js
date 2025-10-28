@@ -47,8 +47,9 @@
 			// Initialize instance-level handler caches
 			// CRITICAL: These must be instance properties, not prototype properties
 			// to avoid sharing handlers between different step orchestrators
-			this._complexFieldHandlers = {};
-			this._complexFieldQueue = {};
+			// Don't overwrite if already initialized (by custom init before initPersistence)
+			this._complexFieldHandlers = this._complexFieldHandlers || {};
+			this._complexFieldQueue = this._complexFieldQueue || {};
 
 			// Initialize state with field defaults if empty
 			if ( this.modules && this.modules.state ) {
@@ -153,47 +154,10 @@
 					}
 				}
 
-				// Return merged data (state + fresh field data)
-				// Use toJSON if available to get properly formatted data for backend
-				var stateData;
-				if ( this.modules && this.modules.state ) {
-					try {
-						if ( 'function' === typeof this.modules.state.toJSON ) {
-							// Use toJSON for proper backend formatting (snake_case keys, etc)
-							stateData = this.modules.state.toJSON();
-							// If toJSON returns a string, parse it
-							if ( 'string' === typeof stateData ) {
-								try {
-									stateData = JSON.parse( stateData );
-								} catch ( e ) {
-									console.error( '[StepPersistence] Failed to parse toJSON result:', e );
-									stateData = this.modules.state.getState();
-								}
-							}
-						} else {
-							// Fallback to getState if toJSON not available
-							stateData = this.modules.state.getState();
-						}
-					} catch ( stateError ) {
-						console.error( '[StepPersistence] Error getting state data:', stateError );
-						stateData = {};
-					}
-				} else {
-					stateData = {};
-				}
-
+				// Return sanitized field data from Form Fields
+				// All data now comes from form fields (including hidden fields for complex widgets)
+				// State module is used for UI reactivity only - NOT as a data source
 				// Server will auto-convert camelCase to snake_case
-				// No conversion needed - send camelCase data directly
-
-				// Debug logging (reduced to prevent console spam)
-				if ( window.scdDebugPersistence ) {
-				}
-
-				// Use sanitized field data directly (already includes conditional visibility logic)
-				// Don't merge with stateData as it may contain fields that shouldn't be sent based on conditionals
-				if ( window.scdDebugPersistence ) {
-				}
-
 				return sanitizedData;
 			} catch ( error ) {
 				console.error( '[StepPersistence] Error collecting data:', error );
@@ -312,7 +276,7 @@
 				}
 
 				// Update state with recursion guard
-				// Data already converted to camelCase by server
+				// NOTE: Data from PHP uses snake_case, will be normalized by state import/setState
 				if ( this.modules && this.modules.state && !this._isUpdatingState ) {
 					this._isUpdatingState = true;
 					// Use import() if available (for enriched data loading), otherwise setState()
@@ -855,23 +819,28 @@
 		}
 
 		var conditional = fieldDef.conditional;
-		var conditionalField = conditional.field;
+		var conditionalFieldSnake = conditional.field; // Field name in snake_case (from PHP)
 		var conditionalValue = conditional.value;
 
 		// Get current value - check both collected data and state
 		var actualValue = null;
 
+		// Convert to camelCase for JavaScript data lookup (collected data uses camelCase keys)
+		var conditionalFieldName = window.SCD && window.SCD.Utils && window.SCD.Utils.Fields
+			? window.SCD.Utils.Fields.toCamelCase( conditionalFieldSnake )
+			: conditionalFieldSnake;
+
 		// First check the data parameter (for populateFields)
-		if ( currentData && Object.prototype.hasOwnProperty.call( currentData, conditionalField ) ) {
-			actualValue = currentData[conditionalField];
+		if ( currentData && Object.prototype.hasOwnProperty.call( currentData, conditionalFieldName ) ) {
+			actualValue = currentData[conditionalFieldName];
 		}
 		// Fall back to state (for collectData when data is being built)
 		else if ( this.modules && this.modules.state ) {
-			actualValue = this.modules.state.getData( conditionalField );
+			actualValue = this.modules.state.getData( conditionalFieldSnake );
 		}
 		// Finally check DOM (for collectData early execution)
 		else {
-			var $field = $( '[name="' + conditionalField + '"]' );
+			var $field = $( '[name="' + conditionalFieldSnake + '"]' );
 			if ( $field.length ) {
 				actualValue = $field.val();
 			}

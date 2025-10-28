@@ -125,6 +125,9 @@ class SCD_Draft_Handler {
 	 */
 	public function handle( $request = array() ) {
 		try {
+			// NOTE: Draft operations are FREE (core freemium feature)
+			// PRO features are protected at campaign creation level (via feature gate)
+
 			// Use request data from router if available, otherwise fallback to $_POST
 			// Router converts camelCase to snake_case, so we need to use that data
 			$data = ! empty( $request ) ? $request : $_POST;
@@ -218,6 +221,30 @@ class SCD_Draft_Handler {
 			}
 			SCD_Ajax_Response::error( __( 'Service unavailable. Please try again.', 'smart-cycle-discounts' ) );
 			return;
+		}
+
+		// CRITICAL: If campaign_data is provided in request, save it to session first
+		// This handles edit mode where sessionStorage was cleared but we have fresh data
+		if ( isset( $this->validated_data['campaign_data'] ) && is_array( $this->validated_data['campaign_data'] ) ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( '[Draft_Handler] Saving campaign_data to session before completing' );
+			}
+
+			$campaign_data = $this->validated_data['campaign_data'];
+			$steps = array( 'basic', 'products', 'discounts', 'schedule', 'review' );
+
+			foreach ( $steps as $step ) {
+				if ( isset( $campaign_data[$step] ) && is_array( $campaign_data[$step] ) ) {
+					$this->state_service->set_step_data( $step, $campaign_data[$step] );
+				}
+			}
+
+			// Save the session
+			$this->state_service->save();
+
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( '[Draft_Handler] Campaign data saved to session' );
+			}
 		}
 
 		if ( ! $this->campaign_manager ) {
@@ -474,7 +501,7 @@ class SCD_Draft_Handler {
 		$response = array(
 			'drafts' => $this->format_drafts( $drafts ),
 			'session_draft' => $session_draft,
-			'total' => $this->campaign_manager->get_campaigns_count( array( 'status' => 'draft' ) ),
+			'total' => $this->campaign_manager->count_campaigns( array( 'status' => 'draft' ) ),
 			'per_page' => 20,
 			'current_page' => $args['page']
 		);

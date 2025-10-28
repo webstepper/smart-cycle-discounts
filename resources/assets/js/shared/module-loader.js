@@ -237,7 +237,6 @@
 			var scheduleModules = [
 				'schedule-config',
 				'schedule-validation',
-				'duration-calculator',
 				'date-time-picker',
 				'timeline-visualizer'
 			];

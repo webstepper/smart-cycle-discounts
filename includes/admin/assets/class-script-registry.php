@@ -294,6 +294,15 @@ class SCD_Script_Registry {
             'localize' => 'scdSettingsPerformance'
         ));
 
+        // Campaign list modals
+        $this->add_script('scd-campaign-list-modals', array(
+            'src' => 'resources/assets/js/admin/campaign-list-modals.js',
+            'deps' => array('jquery'),
+            'pages' => array('scd-campaigns'),
+            'condition' => array('action' => null), // Load on list page (no action parameter)
+            'in_footer' => true
+        ));
+
         // Tools page
         $this->add_script('scd-tools', array(
             'src' => 'resources/assets/js/admin/tools.js',
@@ -357,16 +366,10 @@ class SCD_Script_Registry {
         ));
         
         // wizard-validation-service.js removed - ValidationManager handles all validation directly
-        
-        $this->add_script('scd-wizard-persistence-service', array(
-            'src' => 'resources/assets/js/wizard/wizard-persistence-service.js',
-            'deps' => array('jquery', 'scd-wizard-event-bus', 'scd-wizard-state-manager', 'scd-shared-ajax-service'),
-            'pages' => array('scd-campaigns'),
-            'condition' => array('action' => 'wizard'),
-            'localize' => null,
-            'in_footer' => false
-        ));
-        
+        // wizard-persistence-service.js removed - Navigation saves handle all data persistence
+        // wizard-smart-save.js removed - Simplified to navigation saves only (WordPress standard)
+        // wizard-session-keeper.js removed - WordPress native session management sufficient
+
         $this->add_script('scd-wizard-lifecycle', array(
             'src' => 'resources/assets/js/wizard/wizard-lifecycle.js',
             'deps' => array('jquery', 'scd-wizard-event-bus'),
@@ -383,7 +386,6 @@ class SCD_Script_Registry {
             'scd-wizard-event-bus',
             'scd-wizard-state-manager',
             'scd-validation-manager', // Direct dependency on ValidationManager
-            'scd-wizard-persistence-service',
         );
         if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
             $wizard_orchestrator_deps[] = 'scd-debug-logger';
@@ -809,10 +811,7 @@ class SCD_Script_Registry {
         $modules = array(
             'scd-products-state' => 'products-state.js',
             'scd-products-api' => 'products-api.js',
-            'scd-products-selector' => 'products-selector.js',
-            'scd-products-filter' => 'products-filter.js',
-            'scd-products-category-filter' => 'category-filter.js',
-            'scd-products-tom-select' => 'products-tom-select.js',
+            'scd-products-picker' => 'products-picker.js',
             'scd-products-orchestrator' => 'products-orchestrator.js'
         );
 
@@ -1038,7 +1037,7 @@ class SCD_Script_Registry {
             // Add dependencies for all modules of this step
             $step_modules = array(
                 'basic' => array('scd-basic-state', 'scd-basic-api', 'scd-basic-fields'),
-                'products' => array('scd-constants-product-selection', 'scd-tom-select-base', 'scd-products-state', 'scd-products-api', 'scd-products-selector', 'scd-products-filter', 'scd-products-category-filter', 'scd-products-tom-select'),
+                'products' => array('scd-constants-product-selection', 'scd-tom-select-base', 'scd-products-state', 'scd-products-api', 'scd-products-picker'),
                 'discounts' => array('scd-discounts-config', 'scd-discounts-state', 'scd-discounts-api', 'scd-discounts-conditions', 'scd-discounts-type-registry'),
                 'schedule' => array('jquery-ui-datepicker', 'scd-schedule-debug', 'scd-schedule-state', 'scd-schedule-api', 'scd-schedule-config'),
                 'review' => array('scd-review-state', 'scd-review-api', 'scd-review-components')
@@ -1056,33 +1055,15 @@ class SCD_Script_Registry {
             'scd-discount-type-fixed'
         );
         
-        // Products modules that need module utilities
-        $products_modules_needing_utils = array(
-            'scd-products-selector',
-            'scd-products-filter',
-            'scd-products-category-filter',
-            'scd-products-tom-select'
-        );
-        
-        if ( in_array( $handle, $products_modules_needing_utils ) ) {
-            return array( 'jquery', 'scd-module-utilities', 'scd-event-manager-mixin', 'scd-error-handler' );
-        }
-        
-        // Category Filter module needs tom-select library and base plus utilities
-        if ( $handle === 'scd-products-category-filter' ) {
+        // Picker module needs tom-select library, base, and utilities
+        if ( $handle === 'scd-products-picker' ) {
             return array('jquery', 'tom-select', 'scd-tom-select-base', 'scd-module-utilities', 'scd-event-manager-mixin', 'scd-error-handler');
         }
-        
-        // Tom Select module needs tom-select library, base, and utilities
-        if ( $handle === 'scd-products-tom-select' ) {
-            return array('jquery', 'tom-select', 'scd-tom-select-base', 'scd-module-utilities', 'scd-event-manager-mixin', 'scd-error-handler');
-        }
-        
+
         // Products modules that need constants
         $products_modules_with_constants = array(
             'scd-products-orchestrator',
-            'scd-products-state',
-            'scd-products-filter'
+            'scd-products-state'
         );
         
         if ( in_array( $handle, $products_modules_with_constants ) ) {

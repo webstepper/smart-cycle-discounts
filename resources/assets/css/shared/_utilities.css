@@ -430,7 +430,7 @@
 
 .scd-border-left-4 { border-left-width: var(--scd-border-width-accent); }
 
-/* Alert components moved to _alerts.css */
+/* Alert components implemented in admin.css via notification system */
 
 /* Card components moved to _components.css */
 

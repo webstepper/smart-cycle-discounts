@@ -226,9 +226,12 @@ class SCD_Campaign_Manager {
 									) );
 
 									// Reload campaign to get fresh status before activation
+									// RACE CONDITION FIX: Check status again to prevent duplicate activation
 									$reloaded_campaign = $this->repository->find( $campaign->get_id() );
 									if ( $reloaded_campaign && 'scheduled' === $reloaded_campaign->get_status() ) {
 										$activation_result = $this->activate( $campaign->get_id() );
+
+										// Handle both success and "already active" gracefully
 										if ( ! is_wp_error( $activation_result ) ) {
 											$this->log( 'info', 'Campaign activated immediately after creation', array(
 												'campaign_id' => $campaign->get_id()
@@ -236,7 +239,27 @@ class SCD_Campaign_Manager {
 
 											// Reload again to get updated status for return
 											$campaign = $this->repository->find( $campaign->get_id() );
+										} elseif ( 'cannot_activate' === $activation_result->get_error_code() ) {
+											// Campaign already activated by another process - this is OK
+											$this->log( 'debug', 'Campaign already activated by another process', array(
+												'campaign_id' => $campaign->get_id()
+											) );
+
+											// Reload to get current status
+											$campaign = $this->repository->find( $campaign->get_id() );
+										} else {
+											// Actual error occurred
+											$this->log( 'warning', 'Failed to activate campaign immediately', array(
+												'campaign_id' => $campaign->get_id(),
+												'error' => $activation_result->get_error_message()
+											) );
 										}
+									} elseif ( $reloaded_campaign && 'active' === $reloaded_campaign->get_status() ) {
+										// Campaign already active - another process beat us to it
+										$this->log( 'debug', 'Campaign already active - skipping activation', array(
+											'campaign_id' => $campaign->get_id()
+										) );
+										$campaign = $reloaded_campaign;
 									}
 								}
 							} catch ( Exception $e ) {
@@ -270,26 +293,60 @@ class SCD_Campaign_Manager {
 	/**
 	 * Validate campaign data.
 	 *
+	 * Uses explicit validation context to determine which validation rules to apply.
+	 * This is more secure and testable than the old validation bypass flag approach.
+	 *
 	 * @since    1.0.0
 	 * @param    array    $data    Data to validate.
 	 * @return   true|WP_Error     True or error.
 	 */
 	private function validate_data( array &$data ): bool|WP_Error {
-		// Skip wizard validation if data comes from wizard completion (already validated)
-		$skip_wizard_validation = isset( $data['_skip_wizard_validation'] ) && $data['_skip_wizard_validation'];
+		// Determine validation context based on data structure
+		$validation_context = $this->determine_validation_context( $data );
 
-		if ( ! $skip_wizard_validation && class_exists( 'SCD_Validation' ) ) {
-			$result = SCD_Validation::validate( $data, 'campaign_complete' );
+		// Remove validation context marker from data
+		unset( $data['_validation_context'] );
+
+		// Apply context-specific validation
+		if ( class_exists( 'SCD_Validation' ) ) {
+			$result = SCD_Validation::validate( $data, $validation_context );
 			if ( is_wp_error( $result ) ) {
 				$this->log_validation_error( $result, $data );
 				return $result;
 			}
 		}
 
-		// Remove internal flag before further validation
-		unset( $data['_skip_wizard_validation'] );
-
 		return $this->validate_campaign_data( $data );
+	}
+
+	/**
+	 * Determine validation context from data structure.
+	 *
+	 * @since    1.0.0
+	 * @param    array    $data    Campaign data.
+	 * @return   string            Validation context.
+	 */
+	private function determine_validation_context( array $data ): string {
+		// Check for explicit context marker (set by trusted services)
+		if ( isset( $data['_validation_context'] ) ) {
+			$context = sanitize_key( $data['_validation_context'] );
+			$allowed_contexts = array( 'campaign_compiled', 'campaign_update', 'campaign_complete' );
+			if ( in_array( $context, $allowed_contexts, true ) ) {
+				return $context;
+			}
+		}
+
+		// Auto-detect context from data structure
+		// Compiled data has flat structure (name, discount_type, product_selection_type, etc.)
+		// Step-based data has nested structure (basic => [name], discounts => [discount_type], etc.)
+		$has_step_structure = isset( $data['basic'] ) || isset( $data['products'] ) || isset( $data['discounts'] ) || isset( $data['schedule'] );
+
+		if ( $has_step_structure ) {
+			return 'campaign_complete'; // Step-based validation
+		}
+
+		// Default to compiled validation for flat structure
+		return 'campaign_compiled';
 	}
 
 	/**
@@ -1107,6 +1164,7 @@ class SCD_Campaign_Manager {
 		unset(
 			$data['id'],
 			$data['uuid'],
+			$data['version'],
 			$data['created_at'],
 			$data['updated_at'],
 			$data['deleted_at']
@@ -1462,16 +1520,6 @@ class SCD_Campaign_Manager {
 		return $this->repository->count( $args );
 	}
 
-	/**
-	 * Get campaigns count.
-	 *
-	 * @since    1.0.0
-	 * @param    array    $args    Query arguments.
-	 * @return   int               Campaign count.
-	 */
-	public function get_campaigns_count( array $args = array() ): int {
-		return $this->count_campaigns( $args );
-	}
 
 	/**
 	 * Get status counts.
@@ -1578,11 +1626,6 @@ class SCD_Campaign_Manager {
 		$stats['scheduled'] = $this->repository->count( array( 'status' => 'scheduled' ) );
 		$stats['paused'] = $this->repository->count( array( 'status' => 'paused' ) );
 
-		// Legacy fields
-		$stats['total_campaigns'] = $stats['total'];
-		$stats['active_campaigns'] = $stats['active'];
-		$stats['scheduled_campaigns'] = $stats['scheduled'];
-		$stats['paused_campaigns'] = $stats['paused'];
 	}
 
 	/**
@@ -1753,6 +1796,7 @@ class SCD_Campaign_Manager {
 		$this->validate_date_range( $data, $id, $errors );
 		$this->validate_priority( $data, $errors );
 		$this->validate_status( $data, $errors );
+		$this->validate_related_data( $data, $errors );
 
 		if ( ! empty( $errors ) ) {
 			return new WP_Error( 'validation_failed', 'Validation failed.', $errors );
@@ -1885,6 +1929,115 @@ class SCD_Campaign_Manager {
 	}
 
 	/**
+	 * Validate related data (products, categories).
+	 *
+	 * Ensures that referenced products and categories actually exist.
+	 * Prevents runtime errors when campaigns reference deleted/invalid data.
+	 *
+	 * @since    1.0.0
+	 * @param    array    $data       Campaign data.
+	 * @param    array    &$errors    Errors array.
+	 * @return   void
+	 */
+	private function validate_related_data( array $data, array &$errors ): void {
+		// Validate product IDs if present
+		if ( ! empty( $data['product_ids'] ) && is_array( $data['product_ids'] ) ) {
+			// Check if WooCommerce is active
+			if ( ! function_exists( 'wc_get_product' ) ) {
+				// WooCommerce not active, skip validation
+				return;
+			}
+
+			// Separate numeric and non-numeric IDs
+			$numeric_ids = array();
+			$non_numeric_ids = array();
+
+			foreach ( $data['product_ids'] as $product_id ) {
+				if ( ! is_numeric( $product_id ) ) {
+					$non_numeric_ids[] = $product_id;
+				} else {
+					$numeric_ids[] = absint( $product_id );
+				}
+			}
+
+			// PERFORMANCE FIX: Batch query instead of N+1
+			// Query all product IDs at once using WordPress $wpdb
+			$invalid_products = $non_numeric_ids; // Start with non-numeric IDs
+
+			if ( ! empty( $numeric_ids ) ) {
+				global $wpdb;
+
+				// Build safe query with proper placeholders
+				$placeholders = implode( ',', array_fill( 0, count( $numeric_ids ), '%d' ) );
+				$query = $wpdb->prepare(
+					"SELECT ID FROM {$wpdb->posts} WHERE ID IN ($placeholders) AND post_type IN ('product', 'product_variation') AND post_status != 'trash'",
+					...$numeric_ids
+				);
+
+				// Get all existing product IDs
+				$existing_ids = $wpdb->get_col( $query );
+
+				// Find IDs that don't exist
+				$missing_ids = array_diff( $numeric_ids, array_map( 'intval', $existing_ids ) );
+				$invalid_products = array_merge( $invalid_products, $missing_ids );
+			}
+
+			if ( ! empty( $invalid_products ) ) {
+				$errors['product_ids'] = sprintf(
+					/* translators: %s: comma-separated list of invalid product IDs */
+					__( 'The following product IDs do not exist: %s', 'smart-cycle-discounts' ),
+					implode( ', ', $invalid_products )
+				);
+			}
+		}
+
+		// Validate category IDs if present
+		if ( ! empty( $data['category_ids'] ) && is_array( $data['category_ids'] ) ) {
+			// Separate numeric and non-numeric IDs
+			$numeric_ids = array();
+			$non_numeric_ids = array();
+
+			foreach ( $data['category_ids'] as $category_id ) {
+				if ( ! is_numeric( $category_id ) ) {
+					$non_numeric_ids[] = $category_id;
+				} else {
+					$numeric_ids[] = absint( $category_id );
+				}
+			}
+
+			// PERFORMANCE FIX: Batch query instead of N+1
+			// Query all category IDs at once using WordPress $wpdb
+			$invalid_categories = $non_numeric_ids; // Start with non-numeric IDs
+
+			if ( ! empty( $numeric_ids ) ) {
+				global $wpdb;
+
+				// Build safe query with proper placeholders
+				$placeholders = implode( ',', array_fill( 0, count( $numeric_ids ), '%d' ) );
+				$query = $wpdb->prepare(
+					"SELECT term_id FROM {$wpdb->term_taxonomy} WHERE term_id IN ($placeholders) AND taxonomy = 'product_cat'",
+					...$numeric_ids
+				);
+
+				// Get all existing category IDs
+				$existing_ids = $wpdb->get_col( $query );
+
+				// Find IDs that don't exist
+				$missing_ids = array_diff( $numeric_ids, array_map( 'intval', $existing_ids ) );
+				$invalid_categories = array_merge( $invalid_categories, $missing_ids );
+			}
+
+			if ( ! empty( $invalid_categories ) ) {
+				$errors['category_ids'] = sprintf(
+					/* translators: %s: comma-separated list of invalid category IDs */
+					__( 'The following category IDs do not exist: %s', 'smart-cycle-discounts' ),
+					implode( ', ', $invalid_categories )
+				);
+			}
+		}
+	}
+
+	/**
 	 * Set default values.
 	 *
 	 * @since    1.0.0
@@ -1906,209 +2059,6 @@ class SCD_Campaign_Manager {
 		return array_merge( $defaults, $data );
 	}
 
-	/**
-	 * Get active campaigns for multiple products.
-	 *
-	 * @since    1.0.0
-	 * @param    array    $product_ids    Product IDs.
-	 * @return   array                    Campaigns by product ID.
-	 */
-	public function get_active_campaigns_for_products( array $product_ids ): array {
-		if ( empty( $product_ids ) ) {
-			return array();
-		}
-
-		$active_campaigns = $this->get_active_campaigns();
-		if ( empty( $active_campaigns ) ) {
-			return array_fill_keys( $product_ids, array() );
-		}
-
-		$product_terms = $this->batch_fetch_product_terms( $product_ids );
-		$results = array();
-
-		foreach ( $product_ids as $product_id ) {
-			$results[ $product_id ] = $this->get_campaigns_for_single_product(
-				$product_id,
-				$active_campaigns,
-				$product_terms
-			);
-		}
-
-		return $results;
-	}
-
-	/**
-	 * Batch fetch product terms.
-	 *
-	 * @since    1.0.0
-	 * @param    array    $product_ids    Product IDs.
-	 * @return   array                    Terms by taxonomy and product.
-	 */
-	private function batch_fetch_product_terms( array $product_ids ): array {
-		$terms = array(
-			'categories' => array(),
-			'tags'       => array(),
-		);
-
-		$taxonomies = array(
-			'product_cat' => 'categories',
-			'product_tag' => 'tags',
-		);
-
-		foreach ( $taxonomies as $taxonomy => $key ) {
-			$results = $this->fetch_terms_for_products( $product_ids, $taxonomy );
-			$terms[ $key ] = $this->group_terms_by_product( $results );
-		}
-
-		return $terms;
-	}
-
-	/**
-	 * Fetch terms for products.
-	 *
-	 * @since    1.0.0
-	 * @param    array     $product_ids    Product IDs.
-	 * @param    string    $taxonomy       Taxonomy name.
-	 * @return   array                     Query results.
-	 */
-	private function fetch_terms_for_products( array $product_ids, string $taxonomy ): array {
-		global $wpdb;
-
-		$placeholders = array_fill( 0, count( $product_ids ), '%d' );
-		$placeholder_string = implode( ',', $placeholders );
-
-		$query = "SELECT tr.object_id, tt.term_id 
-				  FROM {$wpdb->term_relationships} tr
-				  INNER JOIN {$wpdb->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
-				  WHERE tt.taxonomy = %s AND tr.object_id IN ({$placeholder_string})";
-
-		$query_args = array_merge( array( $taxonomy ), $product_ids );
-		return $wpdb->get_results( $wpdb->prepare( $query, $query_args ) );
-	}
-
-	/**
-	 * Group terms by product.
-	 *
-	 * @since    1.0.0
-	 * @param    array    $results    Query results.
-	 * @return   array                Terms grouped by product.
-	 */
-	private function group_terms_by_product( array $results ): array {
-		$grouped = array();
-
-		foreach ( $results as $result ) {
-			if ( ! isset( $grouped[ $result->object_id ] ) ) {
-				$grouped[ $result->object_id ] = array();
-			}
-			$grouped[ $result->object_id ][] = (int) $result->term_id;
-		}
-
-		return $grouped;
-	}
-
-	/**
-	 * Get campaigns for single product.
-	 *
-	 * Returns campaigns sorted by priority (highest priority first).
-	 * The first campaign in returned array wins and applies to the product.
-	 *
-	 * @since    1.0.0
-	 * @param    int      $product_id      Product ID.
-	 * @param    array    $campaigns       Active campaigns.
-	 * @param    array    $product_terms   Product terms.
-	 * @return   array                     Applicable campaigns sorted by priority (1 first, 10 last).
-	 */
-	private function get_campaigns_for_single_product( int $product_id, array $campaigns, array $product_terms ): array {
-		$applicable = array();
-		$product_categories = $product_terms['categories'][ $product_id ] ?? array();
-		$product_tags = $product_terms['tags'][ $product_id ] ?? array();
-
-		foreach ( $campaigns as $campaign ) {
-			if ( $this->campaign_applies_to_product( $campaign, $product_id, $product_categories, $product_tags ) ) {
-				$applicable[] = $campaign;
-			}
-		}
-
-		return $this->sort_campaigns_by_priority( $applicable );
-	}
-
-	/**
-	 * Check if campaign applies to product.
-	 *
-	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign           Campaign object.
-	 * @param    int             $product_id         Product ID.
-	 * @param    array           $product_categories Product categories.
-	 * @param    array           $product_tags       Product tags.
-	 * @return   bool                                Applies to product.
-	 */
-	private function campaign_applies_to_product( SCD_Campaign $campaign, int $product_id, array $product_categories, array $product_tags ): bool {
-		$selection_type = $campaign->get_product_selection_type();
-
-		switch ( $selection_type ) {
-			case 'all':
-				return true;
-
-			case 'individual':
-				return $this->campaign_includes_product( $campaign, $product_id );
-
-			case 'categories':
-				return $this->campaign_matches_categories( $campaign, $product_categories );
-
-			case 'tags':
-				return $this->campaign_matches_tags( $campaign, $product_tags );
-
-			default:
-				return false;
-		}
-	}
-
-	/**
-	 * Check if campaign includes product.
-	 *
-	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign      Campaign object.
-	 * @param    int             $product_id    Product ID.
-	 * @return   bool                           Includes product.
-	 */
-	private function campaign_includes_product( SCD_Campaign $campaign, int $product_id ): bool {
-		$product_ids = $campaign->get_product_ids();
-		return ! empty( $product_ids ) && is_array( $product_ids ) && in_array( $product_id, $product_ids, true );
-	}
-
-	/**
-	 * Check if campaign matches categories.
-	 *
-	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign             Campaign object.
-	 * @param    array           $product_categories   Product categories.
-	 * @return   bool                                  Matches categories.
-	 */
-	private function campaign_matches_categories( SCD_Campaign $campaign, array $product_categories ): bool {
-		if ( empty( $product_categories ) ) {
-			return false;
-		}
-
-		$category_ids = $campaign->get_category_ids();
-		return ! empty( $category_ids ) && is_array( $category_ids ) && array_intersect( $category_ids, $product_categories );
-	}
-
-	/**
-	 * Check if campaign matches tags.
-	 *
-	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign       Campaign object.
-	 * @param    array           $product_tags   Product tags.
-	 * @return   bool                            Matches tags.
-	 */
-	private function campaign_matches_tags( SCD_Campaign $campaign, array $product_tags ): bool {
-		if ( empty( $product_tags ) ) {
-			return false;
-		}
-
-		$tag_ids = $campaign->get_tag_ids();
-		return ! empty( $tag_ids ) && is_array( $tag_ids ) && array_intersect( $tag_ids, $product_tags );
-	}
 
 	/**
 	 * Sort campaigns by priority.
@@ -2271,9 +2221,6 @@ class SCD_Campaign_Manager {
 					'category_ids'   => $category_ids,
 				) );
 
-				// Debug output if WP_DEBUG is on
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				}
 			}
 
 		} catch ( Exception $e ) {
@@ -2361,13 +2308,14 @@ class SCD_Campaign_Manager {
 				$product_ids = $campaign->get_product_ids();
 				if ( ! empty( $product_ids ) ) {
 					// Treat as specific_products if compiled with conditions
-					return $this->campaign_includes_product( $campaign, $product_id );
+					return in_array( $product_id, $product_ids, true );
 				}
 				// Fallback to category filter if no conditions
 				return $this->matches_category_filter( $campaign_categories, $product_terms['categories'] );
 
 			case 'specific_products':
-				return $this->campaign_includes_product( $campaign, $product_id );
+				$product_ids = $campaign->get_product_ids();
+				return in_array( $product_id, $product_ids, true );
 
 			case 'random_products':
 			case 'smart_selection':
@@ -2376,7 +2324,7 @@ class SCD_Campaign_Manager {
 				$product_ids = $campaign->get_product_ids();
 				if ( ! empty( $product_ids ) ) {
 					// Treat as specific_products if compiled
-					return $this->campaign_includes_product( $campaign, $product_id );
+					return in_array( $product_id, $product_ids, true );
 				}
 				// Fallback to category filter if not yet compiled (shouldn't happen for active campaigns)
 				return $this->matches_category_filter( $campaign_categories, $product_terms['categories'] );

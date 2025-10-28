@@ -100,8 +100,8 @@
 			var self = this;
 			var eventBus = window.SCD.Wizard.EventBus;
 
-			// Auto-save start
-			eventBus.on( 'autoSave:start', function() {
+			// Save start (generic - works with Smart Save)
+			eventBus.on( 'save:start', function() {
 				self.showSaving();
 			} );
 

@@ -1,7 +1,7 @@
 /**
  * Schedule State Module
  *
- * Simple state management for the schedule step - no complex inheritance
+ * Extends BaseState to manage schedule step data
  *
  * @param $
  * @package SmartCycleDiscounts
@@ -17,7 +17,8 @@
 	SCD.Modules.Schedule = SCD.Modules.Schedule || {};
 
 	/**
-	 * Schedule State - Direct implementation without inheritance
+	 * Schedule State Constructor
+	 * Extends BaseState for state management
 	 */
 	SCD.Modules.Schedule.State = function() {
 		if ( SCD.Modules.Schedule.Debug ) {
@@ -26,8 +27,8 @@
 			} );
 		}
 
-		// Initialize state directly
-		this._state = {
+		// Define initial state
+		var initialState = {
 			// Date and time values
 			startDate: '',
 			endDate: '',
@@ -59,7 +60,7 @@
 			errors: {},
 			warnings: {},
 
-			// Change tracking
+			// Change tracking - note: BaseState has _isDirty, we keep this for compatibility
 			isDirty: false,
 			lastSaved: null,
 			originalState: null,
@@ -79,33 +80,22 @@
 			recurrenceEndDate: ''
 		};
 
-		// Simple subscriber pattern for state changes
-		this._subscribers = [];
+		// Call parent constructor
+		if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
+			SCD.Shared.BaseState.call( this, initialState );
+		}
 	};
 
-	// Add methods directly to prototype
-	SCD.Modules.Schedule.State.prototype = {
-		/**
-		 * Get current state
-		 */
-		getState: function() {
-			return this._state;
-		},
+	// Set up proper prototype chain
+	if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
+		SCD.Modules.Schedule.State.prototype = Object.create( SCD.Shared.BaseState.prototype );
+		SCD.Modules.Schedule.State.prototype.constructor = SCD.Modules.Schedule.State;
+	}
 
+	// Extend prototype with custom methods
+	$.extend( SCD.Modules.Schedule.State.prototype, {
 		/**
-		 * Get value of a specific field
-		 * @param fieldName
-		 * @return mixed
-		 */
-		getData: function( fieldName ) {
-			if ( !fieldName ) {
-				return undefined;
-			}
-			return this._state[fieldName];
-		},
-
-		/**
-		 * Set state and notify subscribers
+		 * Override setState to add duration calculation
 		 * @param updates
 		 */
 		setState: function( updates ) {
@@ -113,97 +103,46 @@
 				SCD.Modules.Schedule.Debug.log( 'info', 'State', 'setState called with:', updates );
 			}
 
-			var key;
-			var changed = false;
-			var oldValues = {};
-
-			// Apply updates and track changes
-			for ( key in updates ) {
-				if ( Object.prototype.hasOwnProperty.call( updates, key ) && this._state[key] !== updates[key] ) {
-					oldValues[key] = this._state[key];
-					this._state[key] = updates[key];
-					changed = true;
-				}
-			}
-
-			// Mark as dirty if changed
-			if ( changed && !this._state.isDirty ) {
-				this._state.isDirty = true;
-			}
-
 			// Calculate duration if dates changed
-			if ( changed && ( 'startDate' in updates || 'endDate' in updates ||
+			if ( updates && ( 'startDate' in updates || 'endDate' in updates ||
 					'startTime' in updates || 'endTime' in updates ) ) {
+				// Apply updates first via parent
+				if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
+					SCD.Shared.BaseState.prototype.setState.call( this, updates, false );
+				}
+				// Then calculate duration with updated state
 				this._calculateDuration();
+			} else {
+				// No date changes, just apply updates
+				if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
+					SCD.Shared.BaseState.prototype.setState.call( this, updates, false );
+				}
 			}
 
 			// Update validation state if errors changed
-			if ( 'errors' in updates ) {
-				this._state.isValid = 0 === Object.keys( this._state.errors ).length;
-			}
-
-			// Notify subscribers of changes
-			if ( changed ) {
-				if ( SCD.Modules.Schedule.Debug ) {
-					SCD.Modules.Schedule.Debug.logStateChange( 'State', updates, oldValues );
+			if ( updates && 'errors' in updates ) {
+				var state = this.getState();
+				var newUpdates = { isValid: 0 === Object.keys( state.errors ).length };
+				if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
+					SCD.Shared.BaseState.prototype.setState.call( this, newUpdates, false );
 				}
-				this._notifySubscribers( updates, oldValues );
 			}
 
 			// Emit jQuery events for compatibility
-			if ( changed ) {
-				for ( key in updates ) {
+			var self = this;
+			var state = this.getState();
+			if ( updates ) {
+				for ( var key in updates ) {
 					if ( Object.prototype.hasOwnProperty.call( updates, key ) ) {
 						$( document ).trigger( 'scd:schedule:state:changed', {
 							property: key,
-							value: updates[key],
-							oldValue: oldValues[key],
-							state: this._state
+							value: state[key],
+							oldValue: undefined, // We don't track old values in this override
+							state: state
 						} );
 					}
 				}
 			}
-		},
-
-		/**
-		 * Subscribe to state changes
-		 * @param callback
-		 */
-		subscribe: function( callback ) {
-			if ( 'function' === typeof callback ) {
-				this._subscribers.push( callback );
-
-				if ( SCD.Modules.Schedule.Debug ) {
-					SCD.Modules.Schedule.Debug.log( 'info', 'State', 'New subscriber added. Total subscribers:', this._subscribers.length );
-				}
-			}
-		},
-
-		/**
-		 * Unsubscribe from state changes
-		 * @param callback
-		 */
-		unsubscribe: function( callback ) {
-			var index = this._subscribers.indexOf( callback );
-			if ( -1 < index ) {
-				this._subscribers.splice( index, 1 );
-			}
-		},
-
-		/**
-		 * Notify all subscribers of state changes
-		 * @param changes
-		 * @param oldValues
-		 */
-		_notifySubscribers: function( changes, oldValues ) {
-			var self = this;
-			$.each( this._subscribers, function( i, callback ) {
-				try {
-					callback( self._state, changes, oldValues );
-				} catch ( error ) {
-					console.error( '[Schedule State] Subscriber error:', error );
-				}
-			} );
 		},
 
 		/**
@@ -214,9 +153,15 @@
 				SCD.Modules.Schedule.Debug.time( 'Duration Calculation' );
 			}
 
-			if ( !this._state.startDate || !this._state.endDate ) {
-				this._state.duration = null;
-				this._state.durationText = '';
+			var state = this.getState();
+			if ( !state.startDate || !state.endDate ) {
+				var updates = {
+					duration: null,
+					durationText: ''
+				};
+				if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
+					SCD.Shared.BaseState.prototype.setState.call( this, updates, false );
+				}
 
 				if ( SCD.Modules.Schedule.Debug ) {
 					SCD.Modules.Schedule.Debug.log( 'info', 'State', 'Duration calculation skipped - missing dates' );
@@ -226,39 +171,77 @@
 			}
 
 			// Parse dates
-			var start = new Date( this._state.startDate + ' ' + this._state.startTime );
-			var end = new Date( this._state.endDate + ' ' + this._state.endTime );
+			var start = new Date( state.startDate + ' ' + state.startTime );
+			var end = new Date( state.endDate + ' ' + state.endTime );
+
+			// Check for invalid dates
+			if ( isNaN( start.getTime() ) || isNaN( end.getTime() ) ) {
+				if ( SCD.Modules.Schedule.Debug ) {
+					SCD.Modules.Schedule.Debug.log( 'error', 'State', 'Invalid dates for duration calculation' );
+				}
+				var invalidUpdates = {
+					duration: null,
+					durationText: 'Invalid dates'
+				};
+				if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
+					SCD.Shared.BaseState.prototype.setState.call( this, invalidUpdates, false );
+				}
+				return;
+			}
+
 			var diff = end - start;
 
+			var durationUpdates = {};
 			if ( 0 < diff ) {
-				var days = Math.floor( diff / ( 1000 * 60 * 60 * 24 ) );
-				var hours = Math.floor( ( diff % ( 1000 * 60 * 60 * 24 ) ) / ( 1000 * 60 * 60 ) );
+				// Calculate difference in minutes for better precision
+				var totalMinutes = Math.floor( diff / ( 1000 * 60 ) );
 
-				this._state.duration = {
+				// Account for timezone offset changes (DST transitions)
+				var startOffset = start.getTimezoneOffset();
+				var endOffset = end.getTimezoneOffset();
+				var offsetDiffMinutes = startOffset - endOffset;
+
+				// Adjust total minutes for DST transition
+				totalMinutes += offsetDiffMinutes;
+
+				// Convert to days, hours, minutes
+				var days = Math.floor( totalMinutes / ( 60 * 24 ) );
+				var hours = Math.floor( ( totalMinutes % ( 60 * 24 ) ) / 60 );
+				var minutes = totalMinutes % 60;
+
+				durationUpdates.duration = {
 					days: days,
 					hours: hours,
+					minutes: minutes,
 					totalMs: diff,
-					totalDays: days + ( hours / 24 )
+					totalMinutes: totalMinutes,
+					totalDays: days + ( hours / 24 ) + ( minutes / 1440 )
 				};
 
 				// Format duration text
 				if ( 0 < days ) {
-					this._state.durationText = days + ( 1 === days ? ' day' : ' days' );
+					durationUpdates.durationText = days + ( 1 === days ? ' day' : ' days' );
 					if ( 0 < hours ) {
-						this._state.durationText += ', ' + hours + ( 1 === hours ? ' hour' : ' hours' );
+						durationUpdates.durationText += ', ' + hours + ( 1 === hours ? ' hour' : ' hours' );
 					}
+				} else if ( 0 < hours ) {
+					durationUpdates.durationText = hours + ( 1 === hours ? ' hour' : ' hours' );
 				} else {
-					this._state.durationText = hours + ( 1 === hours ? ' hour' : ' hours' );
+					durationUpdates.durationText = minutes + ( 1 === minutes ? ' minute' : ' minutes' );
 				}
 			} else {
-				this._state.duration = null;
-				this._state.durationText = 'Invalid duration';
+				durationUpdates.duration = null;
+				durationUpdates.durationText = 'Invalid duration';
+			}
+
+			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
+				SCD.Shared.BaseState.prototype.setState.call( this, durationUpdates, false );
 			}
 
 			if ( SCD.Modules.Schedule.Debug ) {
 				SCD.Modules.Schedule.Debug.log( 'data', 'State', 'Duration calculated:', {
-					duration: this._state.duration,
-					text: this._state.durationText
+					duration: durationUpdates.duration,
+					text: durationUpdates.durationText
 				} );
 				SCD.Modules.Schedule.Debug.timeEnd( 'Duration Calculation' );
 			}
@@ -268,23 +251,24 @@
 		 * Convert state to JSON for saving
 		 */
 		toJSON: function() {
+			var state = this.getState();
 			var json = {
 				// Router will convert camelCase to snake_case for backend
-				startDate: this._state.startDate,
-				endDate: this._state.endDate,
-				startTime: this._state.startTime,
-				endTime: this._state.endTime,
-				timezone: this._state.timezone,
-				startType: this._state.startType,
-				presetId: this._state.presetId,
+				startDate: state.startDate,
+				endDate: state.endDate,
+				startTime: state.startTime,
+				endTime: state.endTime,
+				timezone: state.timezone,
+				startType: state.startType,
+				presetId: state.presetId,
 				// Recurring fields
-				enableRecurring: this._state.enableRecurring,
-				recurrencePattern: this._state.recurrencePattern,
-				recurrenceInterval: this._state.recurrenceInterval,
-				recurrenceDays: this._state.recurrenceDays,
-				recurrenceEndType: this._state.recurrenceEndType,
-				recurrenceCount: this._state.recurrenceCount,
-				recurrenceEndDate: this._state.recurrenceEndDate
+				enableRecurring: state.enableRecurring,
+				recurrencePattern: state.recurrencePattern,
+				recurrenceInterval: state.recurrenceInterval,
+				recurrenceDays: state.recurrenceDays,
+				recurrenceEndType: state.recurrenceEndType,
+				recurrenceCount: state.recurrenceCount,
+				recurrenceEndDate: state.recurrenceEndDate
 			};
 
 			if ( SCD.Modules.Schedule.Debug ) {
@@ -330,8 +314,11 @@
 			this.setState( updates );
 
 			// Clear dirty flag since we're loading saved data
-			this._state.isDirty = false;
-			this._state.lastSaved = new Date();
+			this.clearDirty();
+			var lastSavedUpdate = { lastSaved: new Date() };
+			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
+				SCD.Shared.BaseState.prototype.setState.call( this, lastSavedUpdate, false );
+			}
 		},
 
 		/**
@@ -387,7 +374,7 @@
 			var originalTimezone = ( window.scdWizardData && window.scdWizardData.timezone ) || 'UTC';
 
 			// Reset all values
-			this._state = {
+			var defaults = {
 				startDate: '',
 				endDate: '',
 				startTime: '00:00',
@@ -420,8 +407,10 @@
 				recurrenceEndDate: ''
 			};
 
-			// Notify of reset
-			this._notifySubscribers( this._state, {} );
+			// Call parent reset
+			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
+				SCD.Shared.BaseState.prototype.reset.call( this, defaults );
+			}
 		},
 
 		/**
@@ -432,12 +421,11 @@
 				SCD.Modules.Schedule.Debug.log( 'warning', 'State', 'Destroying state module' );
 			}
 
-			// Clear all subscribers
-			this._subscribers = [];
-
-			// Reset state
-			this.reset();
+			// Call parent destroy
+			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
+				SCD.Shared.BaseState.prototype.destroy.call( this );
+			}
 		}
-	};
+	} );
 
 } )( jQuery );

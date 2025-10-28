@@ -427,7 +427,8 @@
 	border: var(--scd-border-width) solid var(--scd-color-border-light);
 	border-radius: var(--scd-radius-lg);
 	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-	transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+	transition: box-shadow var(--scd-transition-base) var(--scd-ease-in-out),
+	            transform var(--scd-transition-base) var(--scd-ease-in-out);
 }
 
 /* Common card hover state */
@@ -732,7 +733,8 @@
 	border: var(--scd-border-width) solid;
 	border-radius: var(--scd-radius-lg);
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-	transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+	transition: box-shadow var(--scd-transition-base) var(--scd-ease-in-out),
+	            transform var(--scd-transition-base) var(--scd-ease-in-out);
 }
 
 .scd-health-item:hover {
@@ -791,7 +793,8 @@
 	border-radius: var(--scd-radius-lg);
 	padding: var(--scd-spacing-xl);
 	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-	transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+	transition: box-shadow var(--scd-transition-base) var(--scd-ease-in-out),
+	            transform var(--scd-transition-base) var(--scd-ease-in-out);
 	overflow: hidden;
 }
 
@@ -810,7 +813,8 @@
 	margin-right: var(--scd-spacing-lg);
 	background: #f0f6fb;
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-	transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+	transition: box-shadow var(--scd-transition-base) var(--scd-ease-in-out),
+	            transform var(--scd-transition-base) var(--scd-ease-in-out);
 }
 
 .scd-stat-card .scd-stat-icon .dashicons {
@@ -889,7 +893,8 @@
 	padding: var(--scd-spacing-xl);
 	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 	margin-bottom: var(--scd-spacing-xxl);
-	transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+	transition: box-shadow var(--scd-transition-base) var(--scd-ease-in-out),
+	            transform var(--scd-transition-base) var(--scd-ease-in-out);
 }
 
 .scd-campaign-suggestions:hover {
@@ -976,7 +981,8 @@
 	border-radius: var(--scd-radius-lg);
 	padding: var(--scd-spacing-xl);
 	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-	transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+	transition: box-shadow var(--scd-transition-base) var(--scd-ease-in-out),
+	            transform var(--scd-transition-base) var(--scd-ease-in-out);
 	display: flex;
 	flex-direction: column;
 	gap: var(--scd-spacing-md);
@@ -1171,7 +1177,8 @@
 	border-radius: var(--scd-radius-lg);
 	border-left: 5px solid var(--scd-color-info);
 	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-	transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+	transition: box-shadow var(--scd-transition-base) var(--scd-ease-in-out),
+	            transform var(--scd-transition-base) var(--scd-ease-in-out);
 }
 
 .scd-feature-card:hover {
@@ -1281,7 +1288,8 @@
 	justify-content: center;
 	border-radius: var(--scd-radius-full);
 	flex-shrink: 0;
-	transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+	transition: box-shadow var(--scd-transition-base) var(--scd-ease-in-out),
+	            transform var(--scd-transition-base) var(--scd-ease-in-out);
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -1482,7 +1490,8 @@
 	font-weight: var(--scd-font-weight-semibold);
 	font-size: var(--scd-font-size-small);
 	white-space: nowrap;
-	transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+	transition: box-shadow var(--scd-transition-base) var(--scd-ease-in-out),
+	            transform var(--scd-transition-base) var(--scd-ease-in-out);
 }
 
 /* Color-coded countdown based on urgency - calculated in JS but styled here */
@@ -1575,7 +1584,9 @@
 	font-size: var(--scd-font-size-small);
 	font-weight: var(--scd-font-weight-medium);
 	cursor: pointer;
-	transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+	transition: background var(--scd-transition-base) var(--scd-ease-in-out),
+	            border-color var(--scd-transition-base) var(--scd-ease-in-out),
+	            color var(--scd-transition-base) var(--scd-ease-in-out);
 }
 
 .scd-details-toggle-btn:hover {
@@ -1640,7 +1651,8 @@
 	border-radius: var(--scd-radius-lg);
 	border-left: 5px solid var(--scd-color-info);
 	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-	transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+	transition: box-shadow var(--scd-transition-base) var(--scd-ease-in-out),
+	            transform var(--scd-transition-base) var(--scd-ease-in-out);
 }
 
 .scd-stat-box:hover {
@@ -1734,7 +1746,9 @@
 	font-weight: var(--scd-font-weight-semibold);
 	padding: 12px 24px;
 	min-height: 44px;
-	transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+	transition: transform var(--scd-transition-base) var(--scd-ease-in-out),
+	            box-shadow var(--scd-transition-base) var(--scd-ease-in-out),
+	            opacity var(--scd-transition-base) var(--scd-ease-in-out);
 }
 
 .scd-suggestion-action .button-primary:hover {
@@ -1952,7 +1966,8 @@
 	background: var(--scd-color-surface);
 	border: var(--scd-border-width) solid var(--scd-color-border-light);
 	border-radius: var(--scd-radius-md);
-	transition: all var(--scd-transition-fast);
+	transition: box-shadow var(--scd-transition-fast),
+	            transform var(--scd-transition-fast);
 }
 
 .scd-insight-card:hover {
@@ -2073,7 +2088,8 @@
 	border-radius: var(--scd-radius-lg);
 	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 	margin-bottom: var(--scd-spacing-xxl);
-	transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+	transition: box-shadow var(--scd-transition-base) var(--scd-ease-in-out),
+	            transform var(--scd-transition-base) var(--scd-ease-in-out);
 }
 
 .scd-dashboard-section:hover {
@@ -2170,7 +2186,8 @@
 
 .scd-status-segment {
 	height: 100%;
-	transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+	transition: filter var(--scd-transition-base) var(--scd-ease-in-out),
+	            transform var(--scd-transition-base) var(--scd-ease-in-out);
 	position: relative;
 	cursor: pointer;
 }
@@ -2292,7 +2309,8 @@
 	border-radius: var(--scd-radius-lg);
 	padding: var(--scd-spacing-lg);
 	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-	transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+	transition: box-shadow var(--scd-transition-base) var(--scd-ease-in-out),
+	            transform var(--scd-transition-base) var(--scd-ease-in-out);
 	display: flex;
 	flex-direction: column;
 	gap: var(--scd-spacing-md);
@@ -2575,7 +2593,8 @@
 	background: var(--scd-color-background);
 	border: var(--scd-border-width) solid var(--scd-color-border-light);
 	border-radius: var(--scd-radius-md);
-	transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+	transition: box-shadow var(--scd-transition-base) var(--scd-ease-in-out),
+	            transform var(--scd-transition-base) var(--scd-ease-in-out);
 }
 
 .scd-timeline-campaign:hover {
@@ -2654,7 +2673,8 @@
 	top: 0;
 	height: 100%;
 	border-radius: var(--scd-radius-sm);
-	transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+	transition: box-shadow var(--scd-transition-base) var(--scd-ease-in-out),
+	            transform var(--scd-transition-base) var(--scd-ease-in-out);
 	cursor: pointer;
 }
 
@@ -2756,7 +2776,8 @@
 	border-left: 5px solid var(--wp-admin-theme-color, var(--scd-color-primary));
 	border-radius: var(--scd-radius-lg);
 	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-	transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+	transition: box-shadow var(--scd-transition-base) var(--scd-ease-in-out),
+	            transform var(--scd-transition-base) var(--scd-ease-in-out);
 }
 
 .scd-upgrade-prompt:hover {
@@ -2844,7 +2865,8 @@
 	margin-bottom: var(--scd-spacing-xxl);
 	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 	text-align: center;
-	transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+	transition: box-shadow var(--scd-transition-base) var(--scd-ease-in-out),
+	            transform var(--scd-transition-base) var(--scd-ease-in-out);
 }
 
 .scd-quick-actions:hover {
@@ -2870,7 +2892,9 @@
 	display: inline-flex;
 	align-items: center;
 	gap: var(--scd-spacing-sm);
-	transition: all var(--scd-transition-fast) var(--scd-ease-in-out);
+	transition: transform var(--scd-transition-fast) var(--scd-ease-in-out),
+	            box-shadow var(--scd-transition-fast) var(--scd-ease-in-out),
+	            opacity var(--scd-transition-fast) var(--scd-ease-in-out);
 }
 
 .scd-action-buttons .button-hero {

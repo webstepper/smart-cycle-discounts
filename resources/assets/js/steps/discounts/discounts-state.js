@@ -1,7 +1,7 @@
 /**
  * Discount State Module
  *
- * Manages state for discount configuration following the products step pattern
+ * Extends BaseState to manage discount configuration state
  * Includes persistence, loading, and transformation functionality
  *
  * @param $
@@ -12,10 +12,18 @@
 ( function( $ ) {
 	'use strict';
 
-	// Register module using utility
-	SCD.Utils.registerModule( 'SCD.Modules.Discounts', 'State', function() {
-		// Initialize state data with correct property names
-		this.data = {
+	// Ensure namespaces exist
+	window.SCD = window.SCD || {};
+	SCD.Modules = SCD.Modules || {};
+	SCD.Modules.Discounts = SCD.Modules.Discounts || {};
+
+	/**
+	 * Discounts State Constructor
+	 * Extends BaseState for state management
+	 */
+	SCD.Modules.Discounts.State = function() {
+		// Define initial state
+		var initialState = {
 			// Core discount configuration
 			discountType: 'percentage',
 
@@ -70,8 +78,13 @@
 			tierType: 'quantity' // 'quantity' | 'value'
 		};
 
+		// Call parent constructor
+		if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
+			SCD.Shared.BaseState.call( this, initialState );
+		}
+
+		// Additional properties not in base state
 		this.errors = {};
-		this.dirty = false;
 		this.validated = false;
 		this.lastSaved = null;
 		this.campaignId = ( window.scdWizardData && window.scdWizardData.current_campaign && window.scdWizardData.current_campaign.id ) || null;
@@ -80,13 +93,20 @@
 		this.initEventManager();
 
 		// Setup discount type change monitoring
-		this._previousDiscountType = this.data.discountType;
+		this._previousDiscountType = initialState.discountType;
 
 		// Load initial data
 		this.loadInitialData();
-	} );
+	};
 
-	SCD.Modules.Discounts.State.prototype = {
+	// Set up proper prototype chain
+	if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
+		SCD.Modules.Discounts.State.prototype = Object.create( SCD.Shared.BaseState.prototype );
+		SCD.Modules.Discounts.State.prototype.constructor = SCD.Modules.Discounts.State;
+	}
+
+	// Extend prototype with custom methods
+	SCD.Utils.extend( SCD.Modules.Discounts.State.prototype, {
 		/**
 		 * Set API reference
 		 * @param api
@@ -105,6 +125,7 @@
 
 		/**
 		 * Set data with validation
+		 * Override to add custom discount handling
 		 * @param key
 		 * @param value
 		 */
@@ -112,14 +133,11 @@
 			if ( 'object' === typeof key ) {
 				// Bulk update
 				var updates = key;
-				var oldData = $.extend( {}, this.data );
-
-				// Apply all updates
-				$.extend( this.data, updates );
+				var state = this.getState();
 
 				// Special handling for discount type changes
-				if ( updates.discountType && oldData.discountType !== updates.discountType ) {
-					this._handleDiscountTypeChange( updates.discountType, oldData.discountType );
+				if ( updates.discountType && state.discountType !== updates.discountType ) {
+					this._handleDiscountTypeChange( updates.discountType, state.discountType );
 				}
 
 				// Special handling for discount config changes
@@ -127,17 +145,13 @@
 					this._updateDiscountValue();
 				}
 
-				this.dirty = true;
-				// Trigger single change event for bulk update
-				this.triggerChange( null, oldData );
+				// Call parent setState
+				this.setState( updates, true );
 			} else {
-				var oldValue = this.data[key];
-				this.data[key] = value;
-				this.dirty = true;
-
+				var currentState = this.getState();
 				// Special handling for discount type changes
-				if ( 'discountType' === key && oldValue !== value ) {
-					this._handleDiscountTypeChange( value, oldValue );
+				if ( 'discountType' === key && currentState.discountType !== value ) {
+					this._handleDiscountTypeChange( value, currentState.discountType );
 				}
 
 				// Special handling for discount config changes
@@ -145,41 +159,19 @@
 					this._updateDiscountValue();
 				}
 
-				this.triggerChange( key, oldValue );
+				// Call parent setState with single property
+				var update = {};
+				update[key] = value;
+				this.setState( update, false );
 			}
-		},
-
-		/**
-		 * Get data safely
-		 * @param key
-		 */
-		getData: function( key ) {
-			if ( key ) {
-				return SCD.Utils.get( this.data, key );
-			}
-			return this.data;
-		},
-
-		/**
-		 * Get state (alias for getData for compatibility)
-		 */
-		getState: function() {
-			return this.data;
-		},
-
-		/**
-		 * Set state (for compatibility)
-		 * @param updates
-		 */
-		setState: function( updates ) {
-			this.setData( updates );
 		},
 
 		/**
 		 * Get current discount configuration
 		 */
 		getCurrentConfig: function() {
-			return this.data.discountConfig[this.data.discountType];
+			var state = this.getState();
+			return state.discountConfig[state.discountType];
 		},
 
 		/**
@@ -187,9 +179,10 @@
 		 * @param updates
 		 */
 		updateCurrentConfig: function( updates ) {
-			var currentConfig = $.extend( true, {}, this.data.discountConfig );
-			currentConfig[this.data.discountType] = $.extend( {}, currentConfig[this.data.discountType], updates );
-			this.setData( 'discountConfig', currentConfig );
+			var state = this.getState();
+			var currentConfig = $.extend( true, {}, state.discountConfig );
+			currentConfig[state.discountType] = $.extend( {}, currentConfig[state.discountType], updates );
+			this.setState( { discountConfig: currentConfig } );
 		},
 
 		/**
@@ -205,8 +198,8 @@
 			this.triggerCustomEvent( 'scd:discounts:type:changed', [ {
 				newType: newType,
 				oldType: oldType,
-				config: this.data.discountConfig[newType],
-				state: this.data
+				config: this.getCurrentConfig(),
+				state: this.getState()
 			} ] );
 		},
 
@@ -215,15 +208,16 @@
 		 */
 		_updateDiscountValue: function() {
 			var value = this._calculateDiscountValue();
-			if ( value !== this.data.discountValue ) {
-				this.data.discountValue = value;
+			var state = this.getState();
+			if ( value !== state.discountValue ) {
+				this.setState( { discountValue: value } );
 
 				// Trigger value changed event
 				this.triggerCustomEvent( 'scd:discounts:value:changed', [ {
 					value: value,
-					type: this.data.discountType,
-					config: this.data.discountConfig[this.data.discountType],
-					state: this.data
+					type: state.discountType,
+					config: this.getCurrentConfig(),
+					state: this.getState()
 				} ] );
 			}
 		},
@@ -232,14 +226,15 @@
 		 * Calculate discount value based on current type
 		 */
 		_calculateDiscountValue: function() {
-			var config = this.data.discountConfig[this.data.discountType];
+			var state = this.getState();
+			var config = state.discountConfig[state.discountType];
 			var value = 0;
 
 			if ( !config ) {
 				return value;
 			}
 
-			switch ( this.data.discountType ) {
+			switch ( state.discountType ) {
 				case 'percentage':
 				case 'fixed':
 					value = config.value || 0;
@@ -253,7 +248,7 @@
 					break;
 				case 'spend_threshold':
 					// Use first threshold as representative value
-					var thresholds = this.data.thresholds || [];
+					var thresholds = state.thresholds || [];
 					value = 0 < thresholds.length ? thresholds[0].discount : 0;
 					break;
 			}
@@ -266,16 +261,17 @@
 		 */
 		validate: function() {
 			this.errors = {};
+			var state = this.getState();
 
 			// Validate discount type
 			var validTypes = [ 'percentage', 'fixed', 'tiered', 'bogo', 'spend_threshold' ];
-			if ( -1 === validTypes.indexOf( this.data.discountType ) ) {
+			if ( -1 === validTypes.indexOf( state.discountType ) ) {
 				this.errors.discountType = 'Invalid discount type';
 			}
 
 			// Validate based on discount type
 			var config = this.getCurrentConfig();
-			switch ( this.data.discountType ) {
+			switch ( state.discountType ) {
 				case 'percentage':
 					if ( !config.value || 0 >= config.value || 100 < config.value ) {
 						this.errors.discountValue = 'Percentage must be between 1 and 100';
@@ -323,13 +319,14 @@
 		 * @param oldValue
 		 */
 		triggerChange: function( property, oldValue ) {
+			var state = this.getState();
 			var eventData = {
-				data: this.data,
+				data: state,
 				property: property || null
 			};
 
 			if ( property ) {
-				eventData.value = this.data[property];
+				eventData.value = state[property];
 				if ( oldValue !== undefined ) {
 					eventData.oldValue = oldValue;
 				}
@@ -358,31 +355,11 @@
 		},
 
 		/**
-		 * Check if state is dirty
-		 */
-		isDirty: function() {
-			return this.dirty;
-		},
-
-		/**
-		 * Mark state as clean
-		 */
-		markClean: function() {
-			this.dirty = false;
-		},
-
-		/**
-		 * Clear dirty flag (alias for compatibility)
-		 */
-		clearDirty: function() {
-			this.markClean();
-		},
-
-		/**
 		 * Reset state to defaults
+		 * Override to use custom defaults
 		 */
 		reset: function() {
-			this.data = {
+			var defaults = {
 				discountType: 'percentage',
 				discountValue: 0,
 				discountConfig: {
@@ -418,8 +395,12 @@
 				tierType: 'quantity'
 			};
 
+			// Call parent reset with custom defaults
+			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
+				SCD.Shared.BaseState.prototype.reset.call( this, defaults );
+			}
+
 			this.errors = {};
-			this.dirty = false;
 			this.validated = false;
 
 			this.triggerChange();
@@ -428,70 +409,70 @@
 		/**
 		 * Convert state to JSON for saving
 		 */
-	toJSON: function() {
-		var state = this.data;
-		var config = state.discountConfig[state.discountType];
+		toJSON: function() {
+			var state = this.getState();
+			var config = state.discountConfig[state.discountType];
 
-		// Calculate unified value
-		var discountValue = this._calculateDiscountValue();
+			// Calculate unified value
+			var discountValue = this._calculateDiscountValue();
 
-		// Base data structure
-		var data = {
-			discountType: state.discountType,
-			discountValue: discountValue,
-			conditions: state.conditions,
-			conditionsLogic: state.conditionsLogic,
-			// Usage Limits
-			usageLimitPerCustomer: state.usageLimitPerCustomer,
-			totalUsageLimit: state.totalUsageLimit,
-			lifetimeUsageCap: state.lifetimeUsageCap,
-			onePerOrder: state.onePerOrder,
-			// Application Rules
-			applyTo: state.applyTo,
-			maxDiscountAmount: state.maxDiscountAmount,
-			minimumQuantity: state.minimumQuantity,
-			minimumOrderAmount: state.minimumOrderAmount,
-			// Combination Policy
-			stackWithOthers: state.stackWithOthers,
-			allowCoupons: state.allowCoupons,
-			applyToSaleItems: state.applyToSaleItems,
-			// Badge settings
-			badgeEnabled: state.badgeEnabled,
-			badgeText: state.badgeText,
-			badgeBgColor: state.badgeBgColor,
-			badgeTextColor: state.badgeTextColor,
-			badgePosition: state.badgePosition
-		};
+			// Base data structure
+			var data = {
+				discountType: state.discountType,
+				discountValue: discountValue,
+				conditions: state.conditions,
+				conditionsLogic: state.conditionsLogic,
+				// Usage Limits
+				usageLimitPerCustomer: state.usageLimitPerCustomer,
+				totalUsageLimit: state.totalUsageLimit,
+				lifetimeUsageCap: state.lifetimeUsageCap,
+				onePerOrder: state.onePerOrder,
+				// Application Rules
+				applyTo: state.applyTo,
+				maxDiscountAmount: state.maxDiscountAmount,
+				minimumQuantity: state.minimumQuantity,
+				minimumOrderAmount: state.minimumOrderAmount,
+				// Combination Policy
+				stackWithOthers: state.stackWithOthers,
+				allowCoupons: state.allowCoupons,
+				applyToSaleItems: state.applyToSaleItems,
+				// Badge settings
+				badgeEnabled: state.badgeEnabled,
+				badgeText: state.badgeText,
+				badgeBgColor: state.badgeBgColor,
+				badgeTextColor: state.badgeTextColor,
+				badgePosition: state.badgePosition
+			};
 
-		// Add type-specific data
-		switch ( state.discountType ) {
-			case 'percentage':
-				data.discountValuePercentage = config && config.value !== undefined ? config.value : discountValue;
-				break;
-			case 'fixed':
-				data.discountValueFixed = config && config.value !== undefined ? config.value : discountValue;
-				break;
-			case 'tiered':
-				data.tiers = config.tiers || [];
-				data.tierMode = state.tierMode || 'percentage';
-				data.tierType = state.tierType || 'quantity';
-				break;
-			case 'bogo':
-				data.bogoConfig = {
-					buyQuantity: config.buyQuantity,
-					getQuantity: config.getQuantity,
-					discountPercent: config.discountPercentage,
-					applyTo: config.applyTo
-				};
-				break;
-			case 'spend_threshold':
-				data.thresholds = state.thresholds || [];
-				data.thresholdMode = state.thresholdMode || 'percentage';
-				break;
-		}
+			// Add type-specific data
+			switch ( state.discountType ) {
+				case 'percentage':
+					data.discountValuePercentage = config && config.value !== undefined ? config.value : discountValue;
+					break;
+				case 'fixed':
+					data.discountValueFixed = config && config.value !== undefined ? config.value : discountValue;
+					break;
+				case 'tiered':
+					data.tiers = config.tiers || [];
+					data.tierMode = state.tierMode || 'percentage';
+					data.tierType = state.tierType || 'quantity';
+					break;
+				case 'bogo':
+					data.bogoConfig = {
+						buyQuantity: config.buyQuantity,
+						getQuantity: config.getQuantity,
+						discountPercent: config.discountPercentage,
+						applyTo: config.applyTo
+					};
+					break;
+				case 'spend_threshold':
+					data.thresholds = state.thresholds || [];
+					data.thresholdMode = state.thresholdMode || 'percentage';
+					break;
+			}
 
-		return data;
-	},
+			return data;
+		},
 
 		/**
 		 * Export state for saving (alias for toJSON)
@@ -504,118 +485,119 @@
 		 * Load state from saved data
 		 * @param data
 		 */
-	fromJSON: function( data ) {
-		if ( !data ) {
-			return;
-		}
-
-		// Data already converted to camelCase by server
-		var updates = {};
-		var configUpdates = {};
-
-		// Map backend fields to state
-		var discountType = data.discountType;
-		if ( discountType ) {
-			updates.discountType = discountType;
-		}
-
-		// Build discount configuration based on type
-		if ( discountType ) {
-			switch ( discountType ) {
-				case 'percentage':
-					var percentageValue = data.discountValuePercentage !== undefined ?
-						data.discountValuePercentage : data.discountValue;
-					if ( percentageValue !== undefined ) {
-						configUpdates.percentage = { value: parseFloat( percentageValue ) || 0 };
-					}
-					break;
-				case 'fixed':
-					var fixedValue = data.discountValueFixed !== undefined ?
-						data.discountValueFixed : data.discountValue;
-					if ( fixedValue !== undefined ) {
-						configUpdates.fixed = { value: parseFloat( fixedValue ) || 0 };
-					}
-					break;
-				case 'tiered':
-					var tieredData = data.tiers;
-					if ( tieredData ) {
-						configUpdates.tiered = {
-							tiers: Array.isArray( tieredData ) ? tieredData : []
-						};
-					}
-					if ( data.tierMode ) {
-						updates.tierMode = data.tierMode;
-					}
-					if ( data.tierType ) {
-						updates.tierType = data.tierType;
-					}
-					break;
-				case 'bogo':
-					if ( data.bogoBuyQuantity !== undefined ) {
-						configUpdates.bogo = {
-							buyQuantity: data.bogoBuyQuantity,
-							getQuantity: data.bogoGetQuantity || 1,
-							discountPercentage: data.bogoDiscount || data.bogoDiscountPercentage || 100,
-							applyTo: data.bogoApplyTo || 'cheapest'
-						};
-					}
-					break;
-				case 'spend_threshold':
-					if ( data.thresholdMode ) {
-						updates.thresholdMode = data.thresholdMode;
-					}
-					if ( data.thresholds ) {
-						updates.thresholds = Array.isArray( data.thresholds ) ? data.thresholds : [];
-					}
-					break;
+		fromJSON: function( data ) {
+			if ( !data ) {
+				return;
 			}
-		}
 
-		// Handle existing discountConfig directly if provided (for direct state imports)
-		if ( data.discountConfig ) {
-			configUpdates = $.extend( true, configUpdates, data.discountConfig );
-		}
+			// Data already converted to camelCase by server
+			var updates = {};
+			var configUpdates = {};
 
-		// Merge config updates into existing config
-		if ( 0 < Object.keys( configUpdates ).length ) {
-			var currentConfig = this.data.discountConfig || {};
-			updates.discountConfig = $.extend( true, {}, currentConfig, configUpdates );
-		}
+			// Map backend fields to state
+			var discountType = data.discountType;
+			if ( discountType ) {
+				updates.discountType = discountType;
+			}
 
-		// Other fields
-		if ( data.conditions ) {updates.conditions = data.conditions;}
-		if ( data.conditionsLogic ) {updates.conditionsLogic = data.conditionsLogic;}
+			// Build discount configuration based on type
+			if ( discountType ) {
+				switch ( discountType ) {
+					case 'percentage':
+						var percentageValue = data.discountValuePercentage !== undefined ?
+							data.discountValuePercentage : data.discountValue;
+						if ( percentageValue !== undefined ) {
+							configUpdates.percentage = { value: parseFloat( percentageValue ) || 0 };
+						}
+						break;
+					case 'fixed':
+						var fixedValue = data.discountValueFixed !== undefined ?
+							data.discountValueFixed : data.discountValue;
+						if ( fixedValue !== undefined ) {
+							configUpdates.fixed = { value: parseFloat( fixedValue ) || 0 };
+						}
+						break;
+					case 'tiered':
+						var tieredData = data.tiers;
+						if ( tieredData ) {
+							configUpdates.tiered = {
+								tiers: Array.isArray( tieredData ) ? tieredData : []
+							};
+						}
+						if ( data.tierMode ) {
+							updates.tierMode = data.tierMode;
+						}
+						if ( data.tierType ) {
+							updates.tierType = data.tierType;
+						}
+						break;
+					case 'bogo':
+						if ( data.bogoBuyQuantity !== undefined ) {
+							configUpdates.bogo = {
+								buyQuantity: data.bogoBuyQuantity,
+								getQuantity: data.bogoGetQuantity || 1,
+								discountPercentage: data.bogoDiscount || data.bogoDiscountPercentage || 100,
+								applyTo: data.bogoApplyTo || 'cheapest'
+							};
+						}
+						break;
+					case 'spend_threshold':
+						if ( data.thresholdMode ) {
+							updates.thresholdMode = data.thresholdMode;
+						}
+						if ( data.thresholds ) {
+							updates.thresholds = Array.isArray( data.thresholds ) ? data.thresholds : [];
+						}
+						break;
+				}
+			}
 
-		// Usage Limits
-		if ( data.usageLimitPerCustomer !== undefined ) {updates.usageLimitPerCustomer = data.usageLimitPerCustomer;}
-		if ( data.totalUsageLimit !== undefined ) {updates.totalUsageLimit = data.totalUsageLimit;}
-		if ( data.lifetimeUsageCap !== undefined ) {updates.lifetimeUsageCap = data.lifetimeUsageCap;}
-		if ( data.onePerOrder !== undefined ) {updates.onePerOrder = data.onePerOrder;}
+			// Handle existing discountConfig directly if provided (for direct state imports)
+			if ( data.discountConfig ) {
+				configUpdates = $.extend( true, configUpdates, data.discountConfig );
+			}
 
-		// Application Rules
-		if ( data.applyTo !== undefined ) {updates.applyTo = data.applyTo;}
-		if ( data.maxDiscountAmount !== undefined ) {updates.maxDiscountAmount = data.maxDiscountAmount;}
-		if ( data.minimumQuantity !== undefined ) {updates.minimumQuantity = data.minimumQuantity;}
-		if ( data.minimumOrderAmount !== undefined ) {updates.minimumOrderAmount = data.minimumOrderAmount;}
+			// Merge config updates into existing config
+			if ( 0 < Object.keys( configUpdates ).length ) {
+				var state = this.getState();
+				var currentConfig = state.discountConfig || {};
+				updates.discountConfig = $.extend( true, {}, currentConfig, configUpdates );
+			}
 
-		// Combination Policy
-		if ( data.stackWithOthers !== undefined ) {updates.stackWithOthers = data.stackWithOthers;}
-		if ( data.allowCoupons !== undefined ) {updates.allowCoupons = data.allowCoupons;}
-		if ( data.applyToSaleItems !== undefined ) {updates.applyToSaleItems = data.applyToSaleItems;}
+			// Other fields
+			if ( data.conditions ) {updates.conditions = data.conditions;}
+			if ( data.conditionsLogic ) {updates.conditionsLogic = data.conditionsLogic;}
 
-		// Badge settings
-		if ( data.badgeEnabled !== undefined ) {updates.badgeEnabled = data.badgeEnabled;}
-		if ( data.badgeText ) {updates.badgeText = data.badgeText;}
-		if ( data.badgeBgColor ) {updates.badgeBgColor = data.badgeBgColor;}
-		if ( data.badgeTextColor ) {updates.badgeTextColor = data.badgeTextColor;}
-		if ( data.badgePosition ) {updates.badgePosition = data.badgePosition;}
+			// Usage Limits
+			if ( data.usageLimitPerCustomer !== undefined ) {updates.usageLimitPerCustomer = data.usageLimitPerCustomer;}
+			if ( data.totalUsageLimit !== undefined ) {updates.totalUsageLimit = data.totalUsageLimit;}
+			if ( data.lifetimeUsageCap !== undefined ) {updates.lifetimeUsageCap = data.lifetimeUsageCap;}
+			if ( data.onePerOrder !== undefined ) {updates.onePerOrder = data.onePerOrder;}
 
-		// Apply all updates
-		this.setData( updates );
+			// Application Rules
+			if ( data.applyTo !== undefined ) {updates.applyTo = data.applyTo;}
+			if ( data.maxDiscountAmount !== undefined ) {updates.maxDiscountAmount = data.maxDiscountAmount;}
+			if ( data.minimumQuantity !== undefined ) {updates.minimumQuantity = data.minimumQuantity;}
+			if ( data.minimumOrderAmount !== undefined ) {updates.minimumOrderAmount = data.minimumOrderAmount;}
 
-		// Clear dirty flag since we're loading saved data
-		this.markClean();
-	},
+			// Combination Policy
+			if ( data.stackWithOthers !== undefined ) {updates.stackWithOthers = data.stackWithOthers;}
+			if ( data.allowCoupons !== undefined ) {updates.allowCoupons = data.allowCoupons;}
+			if ( data.applyToSaleItems !== undefined ) {updates.applyToSaleItems = data.applyToSaleItems;}
+
+			// Badge settings
+			if ( data.badgeEnabled !== undefined ) {updates.badgeEnabled = data.badgeEnabled;}
+			if ( data.badgeText ) {updates.badgeText = data.badgeText;}
+			if ( data.badgeBgColor ) {updates.badgeBgColor = data.badgeBgColor;}
+			if ( data.badgeTextColor ) {updates.badgeTextColor = data.badgeTextColor;}
+			if ( data.badgePosition ) {updates.badgePosition = data.badgePosition;}
+
+			// Apply all updates
+			this.setState( updates );
+
+			// Clear dirty flag since we're loading saved data
+			this.clearDirty();
+		},
 
 		/**
 		 * Import state from saved data (alias for fromJSON)
@@ -650,19 +632,20 @@
 		 */
 		save: function( callback ) {
 			var self = this;
+			var state = this.getState();
 
-			if ( this.data.isSaving ) {
+			if ( state.isSaving ) {
 				return ( function() { var d = $.Deferred(); d.reject( 'Save already in progress' ); return d.promise(); } )();
 			}
 
-			this.setData( { isSaving: true } );
+			this.setState( { isSaving: true } );
 
 			// Get current state data
 			var data = this.toJSON();
 
 			// Don't save if no discount type is selected
 			if ( !data.discountType || '' === data.discountType ) {
-				this.setData( { isSaving: false } );
+				this.setState( { isSaving: false } );
 
 				// Return a rejected promise with a descriptive message
 				var deferred = $.Deferred();
@@ -684,7 +667,7 @@
 
 			promise
 				.done( function( response ) {
-					self.markClean();
+					self.clearDirty();
 					self.lastSaved = Date.now();
 					SCD.Shared.NotificationService.success( 'Discount settings saved' );
 
@@ -696,7 +679,7 @@
 					if ( callback ) {callback( error );}
 				} )
 				.always( function() {
-					self.setData( { isSaving: false } );
+					self.setState( { isSaving: false } );
 				} );
 
 			return promise;
@@ -778,18 +761,22 @@
 			return deferred.promise();
 		},
 
-
 		/**
 		 * Cleanup
 		 */
 		destroy: function() {
 			this.unbindAllEvents();
-			this.data = null;
+
+			// Call parent destroy
+			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
+				SCD.Shared.BaseState.prototype.destroy.call( this );
+			}
+
 			this.errors = null;
 			this.api = null;
 			this.orchestrator = null;
 		}
-	};
+	} );
 
 	// Mix in event manager functionality
 	SCD.Utils.extend( SCD.Modules.Discounts.State.prototype, SCD.Mixins.EventManager );

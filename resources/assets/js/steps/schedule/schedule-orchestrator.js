@@ -62,6 +62,9 @@
 			this.$container.find( 'input[name="start_type"]:checked' )
 				.closest( '.scd-radio-option' )
 				.addClass( 'scd-radio-option--selected' );
+
+			// Set initial time constraints
+			this.updateTimeConstraints();
 		},
 
 		/**
@@ -69,6 +72,13 @@
 		 */
 		onBindEvents: function() {
 			var self = this;
+
+			// Update time constraints when step is shown (in case time has passed)
+			$( document ).on( 'scd:step:shown', function( event, stepName ) {
+				if ( 'schedule' === stepName ) {
+					self.updateTimeConstraints();
+				}
+			} );
 
 			// Date and time changes
 			this.$container.on( 'change', '#start_date, #end_date', function() {
@@ -95,10 +105,22 @@
 				self.updateDurationDisplay();
 			} );
 
-			this.$container.on( 'change', '#start_time, #end_time', function() {
-				var field = $( this ).attr( 'id' ).replace( '_time', '' );
+			// Time input change handler with validation
+			var validateAndHandleTimeChange = function( $input, field ) {
+				var selectedTime = $input.val();
+				var minTime = $input.attr( 'min' );
 
-				// FIX: Clear stale duration_seconds when user manually changes end time
+				// Skip validation if time is empty
+				if ( !selectedTime ) {
+					if ( window.SCD && window.SCD.ValidationError ) {
+						SCD.ValidationError.clear( $input );
+					}
+					self.handleTimeChange( field, selectedTime );
+					self.updateDurationDisplay();
+					return;
+				}
+
+				// Clear stale duration_seconds when user manually changes end time
 				if ( 'end' === field ) {
 					var $durationField = $( 'input[name="duration_seconds"]' );
 					if ( $durationField.length ) {
@@ -106,8 +128,39 @@
 					}
 				}
 
-				self.handleTimeChange( field, $( this ).val() );
+				// Validate time constraints - show error but don't auto-correct
+				if ( minTime && selectedTime < minTime ) {
+					var errorMessage = '';
+					if ( 'start' === field ) {
+						errorMessage = 'Start time cannot be in the past. Please select ' + minTime + ' or later.';
+					} else {
+						errorMessage = 'End time must be after start time (' + minTime + ' or later).';
+					}
+
+					if ( window.SCD && window.SCD.ValidationError ) {
+						SCD.ValidationError.show( $input, errorMessage );
+					}
+
+					self.handleTimeChange( field, selectedTime );
+					self.updateDurationDisplay();
+					return;
+				}
+
+				// Valid time - clear any errors
+				if ( window.SCD && window.SCD.ValidationError ) {
+					SCD.ValidationError.clear( $input );
+				}
+
+				self.handleTimeChange( field, selectedTime );
 				self.updateDurationDisplay();
+			};
+
+			// Only use 'change' event - fires when user commits a valid time (not while typing)
+			// This prevents validation from interfering with manual typing
+			this.$container.on( 'change', '#start_time, #end_time', function() {
+				var field = $( this ).attr( 'id' ).replace( '_time', '' );
+				var $input = $( this );
+				validateAndHandleTimeChange( $input, field );
 			} );
 
 			// Start type changes
@@ -231,6 +284,9 @@
 					this.modules.state.setState( stateUpdate );
 				}
 				$( document ).trigger( 'scd:schedule:' + field + ':changed', value );
+
+				// Update time constraints when date changes
+				this.updateTimeConstraints();
 			} catch ( error ) {
 			this.safeErrorHandle( error, 'schedule-date-change' );
 				this.showError( 'Failed to update date. Please check your input.', 'error', 5000 );
@@ -250,10 +306,159 @@
 					this.modules.state.setState( stateUpdate );
 				}
 				$( document ).trigger( 'scd:schedule:' + field + '-time:changed', value );
+
+				// Update time constraints when time changes (affects end time constraint)
+				if ( 'start' === field ) {
+					this.updateTimeConstraints();
+				}
 			} catch ( error ) {
 			this.safeErrorHandle( error, 'schedule-time-change' );
 				this.showError( 'Failed to update time. Please check your input.', 'error', 5000 );
 			}
+		},
+
+		/**
+		 * Update time input constraints to prevent past time selection
+		 *
+		 * Dynamically sets min attribute on time inputs based on:
+		 * - Current time (if date is today)
+		 * - Start time (for end time if same day)
+		 */
+		updateTimeConstraints: function() {
+			var $startDate = $( '#start_date' );
+			var $startTime = $( '#start_time' );
+			var $endDate = $( '#end_date' );
+			var $endTime = $( '#end_time' );
+
+			if ( !$startDate.length || !$startTime.length ) {
+				return;
+			}
+
+			var startDateValue = $startDate.val();
+			var startTimeValue = $startTime.val();
+			var endDateValue = $endDate.val();
+
+			var now = new Date();
+			var todayStr = this.formatDateISO( now );
+			var currentTimeStr = this.formatTimeHHMM( now );
+
+			// Constraint 1: If start_date is today, set start_time min to current time
+			if ( startDateValue === todayStr ) {
+				$startTime.attr( 'min', currentTimeStr );
+
+				if ( startTimeValue && startTimeValue < currentTimeStr ) {
+					if ( window.SCD && window.SCD.ValidationError ) {
+						SCD.ValidationError.show(
+							$startTime,
+							'Start time cannot be in the past. Please select ' + currentTimeStr + ' or later.'
+						);
+					}
+				} else {
+					if ( window.SCD && window.SCD.ValidationError ) {
+						SCD.ValidationError.clear( $startTime );
+					}
+				}
+			} else {
+				$startTime.removeAttr( 'min' );
+				if ( window.SCD && window.SCD.ValidationError ) {
+					SCD.ValidationError.clear( $startTime );
+				}
+			}
+
+			// Constraint 2: If end_date is same as start_date, end_time must be after start_time
+			if ( endDateValue && startDateValue && endDateValue === startDateValue && startTimeValue ) {
+				var minEndTime = this.addMinutesToTime( startTimeValue, 1 );
+				$endTime.attr( 'min', minEndTime );
+
+				var endTimeValue = $endTime.val();
+				if ( endTimeValue && endTimeValue <= startTimeValue ) {
+					if ( window.SCD && window.SCD.ValidationError ) {
+						SCD.ValidationError.show(
+							$endTime,
+							'End time must be after start time (' + minEndTime + ' or later).'
+						);
+					}
+				} else {
+					if ( window.SCD && window.SCD.ValidationError ) {
+						SCD.ValidationError.clear( $endTime );
+					}
+				}
+			} else if ( endDateValue && endDateValue === todayStr && !startDateValue ) {
+				// Immediate start with today's end date
+				$endTime.attr( 'min', currentTimeStr );
+
+				var endTimeValue = $endTime.val();
+				if ( endTimeValue && endTimeValue < currentTimeStr ) {
+					if ( window.SCD && window.SCD.ValidationError ) {
+						SCD.ValidationError.show(
+							$endTime,
+							'End time cannot be in the past. Please select ' + currentTimeStr + ' or later.'
+						);
+					}
+				} else {
+					if ( window.SCD && window.SCD.ValidationError ) {
+						SCD.ValidationError.clear( $endTime );
+					}
+				}
+			} else {
+				// Different dates - no constraint needed
+				$endTime.removeAttr( 'min' );
+				if ( window.SCD && window.SCD.ValidationError ) {
+					SCD.ValidationError.clear( $endTime );
+				}
+			}
+		},
+
+		/**
+		 * Format Date object as YYYY-MM-DD (ISO format)
+		 *
+		 * @param {Date} date Date object
+		 * @return {string} Date in YYYY-MM-DD format
+		 */
+		formatDateISO: function( date ) {
+			var year = date.getFullYear();
+			var month = String( date.getMonth() + 1 ).padStart( 2, '0' );
+			var day = String( date.getDate() ).padStart( 2, '0' );
+			return year + '-' + month + '-' + day;
+		},
+
+		/**
+		 * Format Date object as HH:MM (24-hour format)
+		 *
+		 * @param {Date} date Date object
+		 * @return {string} Time in HH:MM format
+		 */
+		formatTimeHHMM: function( date ) {
+			var hours = String( date.getHours() ).padStart( 2, '0' );
+			var minutes = String( date.getMinutes() ).padStart( 2, '0' );
+			return hours + ':' + minutes;
+		},
+
+		/**
+		 * Add minutes to a time string (HH:MM format)
+		 *
+		 * @param {string} timeStr Time in HH:MM format
+		 * @param {number} minutesToAdd Minutes to add
+		 * @return {string} New time in HH:MM format
+		 */
+		addMinutesToTime: function( timeStr, minutesToAdd ) {
+			var parts = timeStr.split( ':' );
+			var hours = parseInt( parts[0], 10 );
+			var minutes = parseInt( parts[1], 10 );
+
+			minutes += minutesToAdd;
+
+			if ( minutes >= 60 ) {
+				hours += Math.floor( minutes / 60 );
+				minutes = minutes % 60;
+			}
+
+			if ( hours >= 24 ) {
+				hours = 23;
+				minutes = 59;
+			}
+
+			return String( hours ).padStart( 2, '0' ) + ':' + String( minutes ).padStart( 2, '0' );
 		},
 
 		/**

@@ -1,0 +1,3 @@
+chmod +x analyze-plugin-structure.sh
+./analyze-plugin-structure.sh
+

@@ -392,9 +392,15 @@ class SCD_Activator {
 		// Scheduling will be handled by SCD_Cron_Scheduler::init() which runs on the 'init' hook.
 		// This ensures ActionScheduler is ready before we attempt to schedule actions.
 
-		// Log that scheduling will be deferred
+		// Schedule native WordPress cron jobs (don't require ActionScheduler)
+		// License health check - runs daily
+		if ( ! wp_next_scheduled( 'scd_license_health_check' ) ) {
+			wp_schedule_event( time(), 'daily', 'scd_license_health_check' );
+		}
+
+		// Log that ActionScheduler scheduling will be deferred
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'Smart Cycle Discounts: Cron job scheduling deferred to init hook for ActionScheduler compatibility' );
+			error_log( 'Smart Cycle Discounts: ActionScheduler cron job scheduling deferred to init hook' );
 		}
 	}
 

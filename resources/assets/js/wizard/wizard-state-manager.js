@@ -69,7 +69,7 @@
 
 			// Feature flags
 			features: {
-				autoSave: true,
+				smartSave: true,  // Replaced autoSave with Smart Save
 				validation: true,
 				preview: true,
 				debug: window.scdWizardData && window.scdWizardData.debug
@@ -91,20 +91,41 @@
 		init: function( initialState ) {
 			// Merge with initial state
 			if ( initialState ) {
+				// Deep merge most properties, but REPLACE stepData completely
+				// This prevents snake_case keys from PHP mixing with camelCase keys from JS
+				var stepData = initialState.stepData;
+				delete initialState.stepData;
+
 				this.state = $.extend( true, {}, this.state, initialState );
+
+				// Replace stepData instead of merging
+				if ( stepData ) {
+					this.state.stepData = $.extend( true, {}, stepData );
+				}
 			}
 
 			// Allow configuration of history size
-			if ( initialState.maxHistorySize ) {
+			if ( initialState && initialState.maxHistorySize ) {
 				this.maxHistorySize = initialState.maxHistorySize;
 			}
 
-			// Check if intent is to start fresh
-			if ( window.scdWizardSessionInfo && 'new' === window.scdWizardSessionInfo.intent ) {
+			// Check if intent is to start fresh OR if we're loading fresh edit data
+			var isEditMode = initialState && initialState.wizardMode === 'edit' && initialState.campaignId;
+			var isNewIntent = window.scdWizardSessionInfo && 'new' === window.scdWizardSessionInfo.intent;
+
+			if ( isNewIntent ) {
 				// Clear session storage when starting fresh
 				this.clearStorage();
+			} else if ( isEditMode ) {
+				// CRITICAL: When editing, don't load from sessionStorage
+				// The fresh campaign data from server should take precedence
+				// Clear old session data to prevent stale wizardMode/campaignId
+				this.clearStorage();
+				if ( window.SCD && window.SCD.Debug ) {
+					window.SCD.Debug.log( '[StateManager] Edit mode detected - using fresh campaign data from server, not sessionStorage' );
+				}
 			} else {
-				// Load from session storage if available
+				// Load from session storage if available (for new campaigns in progress)
 				this.loadFromStorage();
 			}
 
@@ -164,8 +185,20 @@
 				options = arguments[2] || {};
 			}
 
-			// Merge updates
-			this.state = $.extend( true, {}, this.state, updates );
+			// Merge updates, but REPLACE stepData to prevent key pollution
+			if ( updates.stepData ) {
+				var stepData = updates.stepData;
+				delete updates.stepData;
+
+				this.state = $.extend( true, {}, this.state, updates );
+
+				// Replace entire stepData object instead of deep merging
+				// This prevents snake_case/camelCase key conflicts
+				this.state.stepData = $.extend( true, {}, this.state.stepData || {}, stepData );
+			} else {
+				// Normal deep merge for non-stepData updates
+				this.state = $.extend( true, {}, this.state, updates );
+			}
 
 			// Update timestamps
 			this.state.lastActivityAt = new Date().toISOString();

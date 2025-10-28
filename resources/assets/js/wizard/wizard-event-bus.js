@@ -276,20 +276,8 @@
 		setupGlobalHandlers: function() {
 			var self = this;
 
-			// Window events
-			$( window ).on( 'beforeunload.' + this.namespaces.wizard, function( e ) {
-				var eventData = self.emit( 'wizard:beforeUnload', {
-					hasUnsavedChanges: window.SCD && window.SCD.Wizard &&
-                                     window.SCD.Wizard.StateManager &&
-                                     window.SCD.Wizard.StateManager.get( 'hasUnsavedChanges' )
-				} );
-
-				// Allow preventing unload
-				if ( eventData.preventDefault ) {
-					e.preventDefault();
-					return eventData.message || 'You have unsaved changes.';
-				}
-			} );
+			// beforeunload warning removed - navigation saves handle data protection
+			// Navigation saves work perfectly without false warnings
 
 			// Error handling
 			$( window ).on( 'error.' + this.namespaces.wizard, function( e ) {

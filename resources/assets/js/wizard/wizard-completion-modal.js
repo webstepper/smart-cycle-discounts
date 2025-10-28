@@ -47,6 +47,13 @@
 		completionData: null,
 
 		/**
+		 * Retry in progress flag
+		 *
+		 * @since 1.0.0
+		 */
+		retryInProgress: false,
+
+		/**
 		 * Configuration
 		 *
 		 * @since 1.0.0
@@ -141,10 +148,7 @@
 				e.preventDefault();
 				var url = $( this ).attr( 'href' );
 				if ( url ) {
-					// Set flag to prevent beforeunload warning
-					if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Orchestrator ) {
-						window.SCD.Wizard.Orchestrator.isInternalNavigation = true;
-					}
+					// Navigate directly (no beforeunload warning to suppress)
 					window.location.href = url;
 				}
 			} );
@@ -198,13 +202,13 @@
 			// Store data for potential future use
 			this.completionData = data;
 
-			var campaignName = data.campaignName || data.campaign_name || '';
+			var campaignName = data.campaignName || '';
 			var message = campaignName ?
 				'Campaign "' + campaignName + '" Successfully Created!' :
 				( data.message || 'Campaign Successfully Created!' );
 
-			var redirectUrl = data.redirectUrl || data.redirect_url;
-			var campaignId = data.campaignId || data.campaign_id;
+			var redirectUrl = data.redirectUrl;
+			var campaignId = data.campaignId;
 			var viewUrl = redirectUrl;
 
 
@@ -246,10 +250,7 @@
 				// Schedule redirect
 				if ( redirectUrl ) {
 					setTimeout( function() {
-						// Set flag to prevent beforeunload warning
-						if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Orchestrator ) {
-							window.SCD.Wizard.Orchestrator.isInternalNavigation = true;
-						}
+						// Navigate directly (no beforeunload warning to suppress)
 						window.location.href = redirectUrl;
 					}, self.config.redirectDelay );
 				}
@@ -303,11 +304,25 @@
 		 * @since 1.0.0
 		 */
 		handleRetry: function() {
+			// Prevent multiple simultaneous retries
+			if ( this.retryInProgress ) {
+				return;
+			}
+
+			// Set retry flag
+			this.retryInProgress = true;
+
 			// Hide error state and show loading
 			this.showLoading();
 
 			// Trigger retry event for wizard orchestrator to handle
 			$( document ).trigger( 'scd:wizard:retry' );
+
+			// Reset flag after a delay (prevents rapid clicking)
+			var self = this;
+			setTimeout( function() {
+				self.retryInProgress = false;
+			}, 2000 );
 		},
 
 		/**

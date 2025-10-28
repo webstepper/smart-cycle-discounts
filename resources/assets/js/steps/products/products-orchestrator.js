@@ -5,6 +5,8 @@
  *
  * @package SmartCycleDiscounts
  * @since 1.0.0
+ *
+ * CACHE BUST: 2025-10-25-DEBUG-V3
  */
 ( function( $ ) {
 	'use strict';
@@ -57,6 +59,7 @@
 
 			// Return promise that resolves when UI is ready
 			return $.when( uiPromise ).then( function() {
+
 				// Set initial state
 				self._setInitialState();
 
@@ -65,6 +68,8 @@
 
 				return self;
 			} ).fail( function( error ) {
+				console.error('[Products] ========== INIT FAILED ==========');
+				console.error('[Products] Initialization error:', error);
 				// Handle initialization errors
 				this.safeErrorHandle( error, 'ProductsOrchestrator.init', SCD.ErrorHandler.SEVERITY.CRITICAL );
 				throw error;
@@ -73,18 +78,35 @@
 
 		/**
 		 * Initialize modules (State, API, Selector, Filter, CategoryFilter, TomSelect)
-		 * 
+		 *
 		 * @since 1.0.0
 		 * @private
 		 * @returns {void}
 		 */
 		initializeModules: function() {
-			// State management module (required)
+
+			// State management module (required) - Pure data storage, no business logic
 			if ( ! this.modules.state && SCD.Modules.Products.State ) {
 				this.modules.state = new SCD.Modules.Products.State();
 				if ( 'function' === typeof this.modules.state.init ) {
 					this.modules.state.init();
 				}
+
+				// Load existing step data from wizard state manager (for edit mode)
+
+				if ( this.wizard && this.wizard.modules && this.wizard.modules.stateManager ) {
+					var stateManager = this.wizard.modules.stateManager;
+					var allStepData = stateManager.get( 'stepData' );
+
+					var stepData = allStepData ? allStepData.products : null;
+
+					if ( stepData && 'function' === typeof this.modules.state.setState ) {
+						this.modules.state.setState( stepData );
+					} else {
+					}
+				} else {
+				}
+
 				// Register state instance for complex field handling
 				if ( 'function' === typeof this.registerComplexFieldHandler ) {
 					this.registerComplexFieldHandler( 'products.state', this.modules.state );
@@ -97,103 +119,60 @@
 					ajaxUrl: window.scdAjax && window.scdAjax.ajaxUrl || '',
 					nonce: window.scdAjax && window.scdAjax.nonce || ''
 				} );
-
-				// Set API reference on state module so it can make API calls
-				if ( this.modules.state && 'function' === typeof this.modules.state.setApi ) {
-					this.modules.state.setApi( this.modules.api );
-				}
 			}
 
-			// Selector module
-			if ( ! this.modules.selector && SCD.Modules.Products.Selector ) {
-				this.modules.selector = new SCD.Modules.Products.Selector( this.modules.state, this.modules.api );
-				if ( 'function' === typeof this.modules.selector.init ) {
-					this.modules.selector.init();
-				}
-			}
-
-			// Filter module
-			if ( !this.modules.filter && SCD.Modules.Products.Filter ) {
-				this.modules.filter = new SCD.Modules.Products.Filter( this.modules.state, this.modules.api );
-				if ( this.modules.filter.init ) {
-					this.modules.filter.init();
-				}
+			// Unified Picker module (replaces CategoryFilter + TomSelect)
+			if ( ! this.modules.picker && SCD.Modules.Products.Picker ) {
+				this.modules.picker = new SCD.Modules.Products.Picker( this.modules.state, this.modules.api );
 				// Register instance for complex field handling
 				if ( 'function' === typeof this.registerComplexFieldHandler ) {
-					this.registerComplexFieldHandler( 'SCD.Modules.Products.Filter', this.modules.filter );
-				}
-			}
-
-			// Category Filter module
-			if ( !this.modules.categoryFilter && SCD.Modules.Products.CategoryFilter ) {
-				this.modules.categoryFilter = new SCD.Modules.Products.CategoryFilter( this.modules.state, this.modules.api );
-				if ( this.modules.categoryFilter.init ) {
-					this.modules.categoryFilter.init();
-				}
-				// Register instance for complex field handling
-				if ( 'function' === typeof this.registerComplexFieldHandler ) {
-					this.registerComplexFieldHandler( 'SCD.Modules.Products.CategoryFilter', this.modules.categoryFilter );
-				}
-			}
-
-			// Tom Select module (depends on CategoryFilter for category events)
-			if ( !this.modules.tomSelect && SCD.Modules.Products.TomSelect ) {
-				this.modules.tomSelect = new SCD.Modules.Products.TomSelect( this.modules.state, this.modules.api );
-				if ( this.modules.tomSelect.init ) {
-					this.modules.tomSelect.init();
-				}
-				// Register instance for complex field handling
-				if ( 'function' === typeof this.registerComplexFieldHandler ) {
-					this.registerComplexFieldHandler( 'SCD.Modules.Products.TomSelect', this.modules.tomSelect );
+					this.registerComplexFieldHandler( 'SCD.Modules.Products.Picker', this.modules.picker );
 				}
 			}
 		},
 
 		/**
 		 * Initialize UI components
+		 *
+		 * @since 1.0.0
 		 * @private
-		 * @returns {Promise}
+		 * @returns {Promise} Promise that resolves when UI initialized
 		 */
 		initializeUI: function() {
 			var self = this;
-			var promises = [];
 
-			// Initialize Category Filter Tom Select
-			// Note: This initializes empty on first load. If restoring data, persistence service will call setValue
-			// which triggers pending restoration pattern (setValue stores in pendingCategoryIds before init completes)
-			if ( this.modules.categoryFilter && 'function' === typeof this.modules.categoryFilter.initializeCategorySelect ) {
-				var categoryPromise = this.modules.categoryFilter.initializeCategorySelect()
-					.catch( function( _error ) {
-						SCD.ErrorHandler.handle( _error, 'products-init-category-select', SCD.ErrorHandler.SEVERITY.HIGH );
-						throw _error;
+			// Initialize unified Picker (handles both category and product selection)
+			if ( this.modules.picker && 'function' === typeof this.modules.picker.init ) {
+				return this.modules.picker.init()
+					.then( function() {
+						return self;
+					} )
+					.catch( function( error ) {
+						console.error('[Products] Picker initialization FAILED:', error);
+						SCD.ErrorHandler.handle( error, 'products-init-picker', SCD.ErrorHandler.SEVERITY.HIGH );
+						throw error;
 					} );
-				promises.push( categoryPromise );
 			}
 
-			// Initialize Product Tom Select only if selection type is specific_products
-			var currentState = this.modules.state ? this.modules.state.getState() : {};
-			if ( 'specific_products' === currentState.productSelectionType ) {
-				if ( this.modules.tomSelect && 'function' === typeof this.modules.tomSelect.initializeProductSearch ) {
-					var productPromise = this.modules.tomSelect.initializeProductSearch()
-						.catch( function( error ) {
-							SCD.ErrorHandler.handle( error, 'products-init-product-search', SCD.ErrorHandler.SEVERITY.HIGH );
-							throw error;
-						} );
-					promises.push( productPromise );
-				}
-			}
-
-			// Return a promise that resolves when all UI components are ready
-			return Promise.all( promises ).then( function() {
-				return self;
-			} );
+			return Promise.resolve( this );
 		},
 
 		/**
 		 * Custom initialization hook
+		 * Called after all modules and UI are initialized
+		 *
+		 * NOTE: Do NOT populate TomSelect fields here!
+		 * TomSelect restoration is handled by step-persistence.js via populateComplexField()
+		 * which properly queues restoration until handlers are fully ready.
+		 *
+		 * Attempting to populate TomSelect here causes race conditions because:
+		 * 1. TomSelect init() is asynchronous
+		 * 2. Complex field handlers may not be fully registered yet
+		 * 3. Step persistence system handles proper retry logic
 		 */
 		onInit: function() {
-			// Custom initialization if needed
+			// Reserved for future orchestrator-level initialization
+			// Do NOT add TomSelect population logic here
 		},
 
 		/**
@@ -247,6 +226,7 @@
 			// Create bound handlers for proper cleanup
 			this._boundHandlers.selectionTypeChange = function() {
 				var selectedType = $( this ).val();
+
 				self.updateSectionVisibility( selectedType );
 				self.clearSelectionsForType( selectedType );
 
@@ -293,6 +273,14 @@
 			};
 			this.$container.on( 'click.scd-products', '.scd-remove-condition', this._boundHandlers.removeCondition );
 
+			// Nested array population (for conditions field restoration)
+			this._boundHandlers.populateNestedArray = function( e, data ) {
+				if ( data && 'conditions' === data.fieldName ) {
+					self.handlePopulateConditions( data.value || [] );
+				}
+			};
+			$( document ).on( 'scd:populate-nested-array', this._boundHandlers.populateNestedArray );
+
 			// Custom events from modules
 			this._bindModuleEvents();
 		},
@@ -309,6 +297,11 @@
 				this.$container.off( '.scd-products' );
 			}
 
+			// Unbind document-level events
+			if ( this._boundHandlers.populateNestedArray ) {
+				$( document ).off( 'scd:populate-nested-array', this._boundHandlers.populateNestedArray );
+			}
+
 			// Clear bound handlers
 			this._boundHandlers = {};
 		},
@@ -323,15 +316,7 @@
 		_bindModuleEvents: function() {
 			var self = this;
 
-			// State changes
-			if ( 'function' === typeof this.bindCustomEvent ) {
-				this.bindCustomEvent( 'scd:products:state:changed', function( event, data ) {
-					// Check if conditions property changed
-					if ( data && 'conditions' === data.property ) {
-						self.updateConditions();
-					}
-				} );
-			}
+			// Note: Conditions are handled directly by PHP template and field definitions
 
 			// Product selection events
 			if ( 'function' === typeof this.bindCustomEvent ) {
@@ -370,11 +355,11 @@
 		 */
 		updateSectionVisibility: function( selectionType ) {
 			var self = this;
-			
+
 			if ( ! this.$container || ! this.$container.length ) {
 				return;
 			}
-			
+
 			// Hide all conditional sections first
 			this.$container.find( '.scd-random-count, .scd-specific-products, .scd-smart-criteria' ).each( function() {
 				$( this ).removeClass( 'scd-active-section' ).hide();
@@ -393,11 +378,12 @@
 					sectionSelector = '.scd-smart-criteria';
 					break;
 			}
-			
+
+
 			if ( sectionSelector ) {
 				var $section = this.$container.find( sectionSelector );
 				$section.addClass( 'scd-active-section' ).show();
-				
+
 				// If the section is inside a card option, ensure the parent is visible
 				var $parentCard = $section.closest( '.scd-card-option' );
 				if ( $parentCard.length ) {
@@ -405,10 +391,9 @@
 				}
 			}
 
-			// Update state
-			if ( this.modules.state ) {
-				this.modules.state.setState( { productSelectionType: selectionType } );
-			}
+			// NOTE: We DO NOT update state here - this method is for UI updates only.
+			// State should already be set before this method is called.
+			// Updating state here causes the wrong value to overwrite correct loaded data.
 
 			// Enable/disable Advanced Filters (conditions) based on selection type
 			// Advanced Filters are only available for 'all_products' and 'random_products'
@@ -419,12 +404,12 @@
 				$conditionsSection.addClass( 'scd-disabled' );
 			}
 
-			// Initialize Tom Select if needed
-			if ( 'specific_products' === selectionType && this.modules.tomSelect ) {
+			// Initialize Product Select if needed (for specific_products mode)
+			if ( 'specific_products' === selectionType && this.modules.picker ) {
 				// Delay to ensure DOM is ready
 				setTimeout( function() {
-					if ( self.modules.tomSelect && 'function' === typeof self.modules.tomSelect.initProductSearch ) {
-						self.modules.tomSelect.initProductSearch();
+					if ( self.modules.picker && 'function' === typeof self.modules.picker.initProductSelect ) {
+						self.modules.picker.initProductSelect();
 					}
 				}, 100 );
 			}
@@ -432,21 +417,26 @@
 
 		/**
 		 * Update products list display
+		 * Moved from products-selector.js (deleted in Phase 2)
+		 *
+		 * @since 1.0.0
+		 * @returns {void}
 		 */
 		updateProductsList: function() {
-			if ( this.modules && this.modules.selector && this.modules.selector.updateProductCounts ) {
-				this.modules.selector.updateProductCounts();
+			var state = this.modules.state ? this.modules.state.getState() : {};
+			var count = 0;
+
+			// Calculate count based on selection type
+			if ( 'specific_products' === state.productSelectionType ) {
+				count = state.productIds ? state.productIds.length : 0;
+			} else if ( 'random_products' === state.productSelectionType ) {
+				count = state.randomCount || 0;
 			}
+
+			// Update UI count display
+			this.$container.find( '.scd-selected-count' ).text( count );
 		},
 
-		/**
-		 * Update conditions display
-		 */
-		updateConditions: function() {
-			if ( this.modules && this.modules.filter && this.modules.filter.render ) {
-				this.modules.filter.render();
-			}
-		}
 	} );
 
 	// =========================================================================
@@ -461,12 +451,90 @@
 		 * @param {object} data - Data to populate
 		 */
 		onPopulateFieldsComplete: function( data ) {
-			// After parent handles field population, get the transformed state
-			var transformedData = this.modules.state ? this.modules.state.getState() : data;
-
-			// Handle selection type UI update - use camelCase from state
-			var selectionType = transformedData.productSelectionType || 'all_products';
+			var selectionType = data.productSelectionType || 'all_products';
 			this.updateSectionVisibility( selectionType );
+		},
+
+		/**
+		 * Process category selection with business logic
+		 * Handles "All Categories" exclusive selection logic
+		 *
+		 * @since 1.0.0
+		 * @param {Array} categories - Selected category IDs
+		 * @returns {Array} Processed category IDs
+		 */
+		processCategorySelection: function( categories ) {
+			// Ensure array format
+			if ( ! Array.isArray( categories ) ) {
+				categories = categories ? [ categories ] : [ 'all' ];
+			}
+
+			// Remove empty/invalid values
+			categories = categories.filter( function( cat ) {
+				return null !== cat && cat !== undefined && '' !== cat;
+			} ).map( String );
+
+			// If no valid categories, default to "All Categories"
+			if ( 0 === categories.length ) {
+				categories = [ 'all' ];
+			}
+
+			// Handle "All Categories" exclusive logic
+			var state = this.modules.state.getState();
+			var previousCategories = state.categoryIds || [ 'all' ];
+			var allWasSelected = -1 !== previousCategories.indexOf( 'all' );
+			var allIsNowSelected = -1 !== categories.indexOf( 'all' );
+
+			// Case 1: "All Categories" is selected along with other categories
+			if ( allIsNowSelected && 1 < categories.length ) {
+				if ( ! allWasSelected ) {
+					// User just added "All Categories" - it takes precedence
+					categories = [ 'all' ];
+				} else {
+					// "All Categories" was already selected, user added specific category - remove "All"
+					categories = categories.filter( function( cat ) {
+						return 'all' !== cat;
+					} );
+					// If filtering removed everything, default back to "All Categories"
+					if ( 0 === categories.length ) {
+						categories = [ 'all' ];
+					}
+				}
+			}
+
+			return categories;
+		},
+
+		/**
+		 * Handle category changes and trigger necessary updates
+		 * Business logic for category filter changes
+		 *
+		 * @since 1.0.0
+		 * @param {Array} categories - New category selection
+		 * @returns {void}
+		 */
+		handleCategoryChange: function( categories ) {
+
+			var state = this.modules.state.getState();
+			var oldCategories = state.categoryIds || [ 'all' ];
+
+			// Process categories with business logic
+			categories = this.processCategorySelection( categories );
+
+			// Update state
+			this.modules.state.setState( { categoryIds: categories } );
+
+			// Check if categories actually changed
+			var categoriesChanged = JSON.stringify( categories.slice().sort() ) !==
+									JSON.stringify( oldCategories.slice().sort() );
+
+			if ( categoriesChanged ) {
+				// Trigger event for other modules (e.g., TomSelect to reload products)
+				$( document ).trigger( 'scd:categories:changed', {
+					categories: categories,
+					oldCategories: oldCategories
+				} );
+			}
 		},
 
 		/**
@@ -574,7 +642,7 @@
 
 		/**
 		 * Handle remove condition
-		 * 
+		 *
 		 * @since 1.0.0
 		 * @param {jQuery} $row - Row to remove
 		 * @returns {void}
@@ -591,7 +659,7 @@
 
 			var state = this.modules.state.getState();
 			var currentConditions = state.conditions || [];
-			
+
 			if ( index < currentConditions.length ) {
 				// Create new array without the removed condition
 				var updatedConditions = [];
@@ -602,6 +670,26 @@
 				}
 				this.modules.state.setState( { conditions: updatedConditions } );
 			}
+		},
+
+		/**
+		 * Handle populate conditions (restore from saved data)
+		 *
+		 * @since 1.0.0
+		 * @param {Array} conditions - Array of condition objects
+		 * @returns {void}
+		 */
+		handlePopulateConditions: function( conditions ) {
+			if ( ! this.modules.state ) {
+				return;
+			}
+
+			// Validate conditions is array
+			var validConditions = Array.isArray( conditions ) ? conditions : [];
+
+			// Update state with restored conditions
+			// State module will trigger UI re-render via existing mechanisms
+			this.modules.state.setState( { conditions: validConditions } );
 		}
 	} );
 
@@ -695,10 +783,16 @@
 		 */
 		_validateSpecificProducts: function( data, errors ) {
 			var productIds = data.productIds || [];
-			
+
 			// Ensure it's an array
 			if ( ! Array.isArray( productIds ) ) {
 				productIds = [];
+			}
+
+			// Check for empty selection (matches server-side required validation)
+			if ( productIds.length === 0 ) {
+				errors.productIds = 'Please select at least one product';
+				return;
 			}
 
 			if ( productIds.length > 100 ) {
@@ -809,14 +903,9 @@
 
 			// Destroy modules
 			if ( this.modules ) {
-				// Destroy Tom Select instances
-				if ( this.modules.tomSelect && 'function' === typeof this.modules.tomSelect.destroy ) {
-					this.modules.tomSelect.destroy();
-				}
-
-				// Destroy CategoryFilter instance
-				if ( this.modules.categoryFilter && 'function' === typeof this.modules.categoryFilter.destroy ) {
-					this.modules.categoryFilter.destroy();
+				// Destroy Picker instance (handles both category and product selection)
+				if ( this.modules.picker && 'function' === typeof this.modules.picker.destroy ) {
+					this.modules.picker.destroy();
 				}
 
 				// Destroy other modules

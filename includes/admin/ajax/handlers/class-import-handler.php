@@ -20,6 +20,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 
+	use SCD_License_Validation_Trait;
+
 	/**
 	 * Container instance.
 	 *
@@ -55,6 +57,12 @@ class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 	 */
 	protected function handle( $request ) {
 		$start_time = microtime( true );
+
+		// Check license (critical tier - import is sensitive operation)
+		$license_check = $this->validate_license( 'critical' );
+		if ( $this->license_validation_failed( $license_check ) ) {
+			return $this->license_error_response( $license_check );
+		}
 
 		// Get import data
 		$import_data = isset( $request['import_data'] ) ? $request['import_data'] : '';

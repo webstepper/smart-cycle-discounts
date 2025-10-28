@@ -359,7 +359,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
                         '<a href="%s">%s</a>',
                         esc_url( wp_nonce_url(
                             admin_url( 'admin.php?page=scd-campaigns&action=deactivate&id=' . $campaign_id ),
-                            'campaign_status_' . $campaign_id
+                            'scd-campaign-action-deactivate-' . $campaign_id
                         ) ),
                         __( 'Deactivate', 'smart-cycle-discounts' )
                     );
@@ -371,7 +371,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
                         '<a href="%s">%s</a>',
                         esc_url( wp_nonce_url(
                             admin_url( 'admin.php?page=scd-campaigns&action=activate&id=' . $campaign_id ),
-                            'campaign_status_' . $campaign_id
+                            'scd-campaign-action-activate-' . $campaign_id
                         ) ),
                         __( 'Activate', 'smart-cycle-discounts' )
                     );
@@ -404,7 +404,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
                     '<a href="%s" class="submitdelete" onclick="return confirm(\'%s\')">%s</a>',
                     esc_url( wp_nonce_url(
                         admin_url( 'admin.php?page=scd-campaigns&action=delete&id=' . $campaign_id ),
-                        'scd_delete_campaign_' . $campaign_id
+                        'scd-campaign-action-delete-' . $campaign_id
                     ) ),
                     $confirm_message,
                     __( 'Move to Trash', 'smart-cycle-discounts' )

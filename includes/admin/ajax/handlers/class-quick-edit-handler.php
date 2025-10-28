@@ -58,6 +58,9 @@ class SCD_Quick_Edit_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array                Response array.
 	 */
 	protected function handle( $request ) {
+		// NOTE: Quick edit is FREE (core freemium feature)
+		// Users can edit their own campaigns regardless of license
+
 		// Validate campaign ID
 		$campaign_id = $this->sanitize_int( $this->get_param( $request, 'campaign_id' ) );
 		if ( ! $campaign_id ) {

@@ -55,6 +55,17 @@ class SCD_Freemius_Integration {
 			return null;
 		}
 
+		// Disable Freemius debug/dev mode BEFORE loading SDK
+		if ( ! defined( 'WP_FS__DEV_MODE' ) ) {
+			define( 'WP_FS__DEV_MODE', false );
+		}
+		if ( ! defined( 'WP_FS__DEBUG_SDK' ) ) {
+			define( 'WP_FS__DEBUG_SDK', false );
+		}
+		if ( ! defined( 'WP_FS__ECHO_DEBUG_SDK' ) ) {
+			define( 'WP_FS__ECHO_DEBUG_SDK', false );
+		}
+
 		require_once SCD_PLUGIN_DIR . 'includes/freemius/wordpress-sdk-master/start.php';
 
 		$scd_fs = fs_dynamic_init( array(
@@ -90,13 +101,24 @@ class SCD_Freemius_Integration {
 	 * @return   void
 	 */
 	private static function setup_hooks() {
+		// Disable Freemius debug mode
+		add_filter( 'fs_is_dev_mode', '__return_false' );
+		add_filter( 'fs_is_debug_mode', '__return_false' );
+
 		add_filter( 'fs_show_trial_as_pricing_option', '__return_false' );
 
+		// Account and license change hooks
 		self::$freemius->add_action( 'after_account_connection', array( __CLASS__, 'after_activation' ) );
 		self::$freemius->add_action( 'after_premium_subscription_change', array( __CLASS__, 'after_plan_change' ) );
 		self::$freemius->add_action( 'after_trial_started', array( __CLASS__, 'after_trial_started' ) );
 		self::$freemius->add_action( 'after_trial_cancelled', array( __CLASS__, 'after_trial_cancelled' ) );
+		self::$freemius->add_action( 'after_account_plan_change', array( __CLASS__, 'after_plan_change' ) );
 
+		// License sync hooks for security
+		self::$freemius->add_filter( 'after_account_connection', array( __CLASS__, 'sync_license_on_connect' ) );
+		self::$freemius->add_filter( 'license_key_maxed', array( __CLASS__, 'handle_license_maxed' ), 10, 2 );
+
+		// Admin notice filters
 		add_filter( 'fs_show_admin_notice', array( __CLASS__, 'filter_admin_notices' ), 10, 2 );
 		add_action( 'admin_notices', array( __CLASS__, 'upgrade_notices' ) );
 	}
@@ -133,6 +155,14 @@ class SCD_Freemius_Integration {
 				'user_id' => get_current_user_id(),
 			) );
 		}
+
+		// Force immediate validation after plan change
+		if ( class_exists( 'SCD_License_Manager' ) ) {
+			$license_manager = SCD_License_Manager::instance();
+			if ( method_exists( $license_manager, 'force_validation' ) ) {
+				$license_manager->force_validation();
+			}
+		}
 	}
 
 	/**
@@ -148,6 +178,14 @@ class SCD_Freemius_Integration {
 			scd_log_info( 'Freemius trial started', array(
 				'user_id' => get_current_user_id(),
 			) );
+		}
+
+		// Force immediate validation
+		if ( class_exists( 'SCD_License_Manager' ) ) {
+			$license_manager = SCD_License_Manager::instance();
+			if ( method_exists( $license_manager, 'force_validation' ) ) {
+				$license_manager->force_validation();
+			}
 		}
 
 		add_action( 'admin_notices', function() {
@@ -176,31 +214,83 @@ class SCD_Freemius_Integration {
 				'user_id' => get_current_user_id(),
 			) );
 		}
+
+		// Force immediate validation
+		if ( class_exists( 'SCD_License_Manager' ) ) {
+			$license_manager = SCD_License_Manager::instance();
+			if ( method_exists( $license_manager, 'force_validation' ) ) {
+				$license_manager->force_validation();
+			}
+		}
 	}
 
 	/**
-	 * Clear Feature Gate premium status cache.
+	 * Clear Feature Gate and License Manager caches.
 	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @return   void
 	 */
 	private static function clear_feature_gate_cache() {
-		if ( ! class_exists( 'SCD_Feature_Gate' ) || ! function_exists( 'scd_get_instance' ) ) {
-			return;
+		// Clear Feature Gate cache
+		if ( class_exists( 'SCD_Feature_Gate' ) && function_exists( 'scd_get_instance' ) ) {
+			try {
+				$container = scd_get_instance()->get_container();
+				if ( $container && $container->has( 'feature_gate' ) ) {
+					$feature_gate = $container->get( 'feature_gate' );
+					if ( method_exists( $feature_gate, 'clear_cache' ) ) {
+						$feature_gate->clear_cache();
+					}
+				}
+			} catch ( Exception $e ) {
+				// Silently fail - cache clearing is not critical
+			}
 		}
 
-		try {
-			$container = scd_get_instance()->get_container();
-			if ( $container && $container->has( 'feature_gate' ) ) {
-				$feature_gate = $container->get( 'feature_gate' );
-				if ( method_exists( $feature_gate, 'clear_cache' ) ) {
-					$feature_gate->clear_cache();
-				}
+		// Clear License Manager cache
+		if ( class_exists( 'SCD_License_Manager' ) ) {
+			$license_manager = SCD_License_Manager::instance();
+			if ( method_exists( $license_manager, 'clear_validation_cache' ) ) {
+				$license_manager->clear_validation_cache();
 			}
-		} catch ( Exception $e ) {
-			// Silently fail - cache clearing is not critical
 		}
+	}
+
+	/**
+	 * Sync license information on account connection.
+	 *
+	 * @since    1.0.0
+	 * @param    WP_User    $user    WordPress user object.
+	 * @return   WP_User             Unchanged user object.
+	 */
+	public static function sync_license_on_connect( $user ) {
+		// Trigger immediate license validation
+		if ( class_exists( 'SCD_License_Manager' ) ) {
+			$license_manager = SCD_License_Manager::instance();
+			if ( method_exists( $license_manager, 'force_validation' ) ) {
+				$license_manager->force_validation();
+			}
+		}
+
+		return $user;
+	}
+
+	/**
+	 * Handle license activation limit reached.
+	 *
+	 * @since    1.0.0
+	 * @param    bool    $is_maxed    Whether license reached activation limit.
+	 * @param    object  $license     License object.
+	 * @return   bool                 Unchanged value.
+	 */
+	public static function handle_license_maxed( $is_maxed, $license ) {
+		if ( $is_maxed && function_exists( 'scd_log_warning' ) ) {
+			scd_log_warning( 'License activation limit reached', array(
+				'license_id' => isset( $license->id ) ? $license->id : 'unknown',
+			) );
+		}
+
+		return $is_maxed;
 	}
 
 	/**

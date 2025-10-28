@@ -29,7 +29,6 @@ require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
  * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
  */
 class SCD_Calculate_Discount_Impact_Handler extends SCD_Abstract_Ajax_Handler {
-
 	use SCD_Wizard_Helpers;
 
 	/**
@@ -60,6 +59,9 @@ class SCD_Calculate_Discount_Impact_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
+		// NOTE: Discount impact preview is FREE - shows what discount WOULD do (teaser feature)
+		// License protection happens at campaign SAVE level (in save-step-handler)
+
 		// Get validated wizard state using trait helper
 		$wizard_state = $this->_get_validated_wizard_state( __( 'Configure discount to see impact', 'smart-cycle-discounts' ) );
 

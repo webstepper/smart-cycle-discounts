@@ -18,8 +18,8 @@
 
 		this.type = 'fixed';
 		this.config = SCD.Modules.Discounts.Config;
-		this.currencySymbol = SCD.Utils.get( window, 'scdDiscountStepData.currency_symbol', '$' )
-		this.currencyPosition = SCD.Utils.get( window, 'scdDiscountStepData.currency_pos', 'left' );
+		this.currencySymbol = SCD.Utils.get( window, 'scdDiscountStepData.currencySymbol', '$' )
+		this.currencyPosition = SCD.Utils.get( window, 'scdDiscountStepData.currencyPos', 'left' );
 
 		// Initialize with dependency checks
 		if ( !SCD.Utils.ensureInitialized( this, {

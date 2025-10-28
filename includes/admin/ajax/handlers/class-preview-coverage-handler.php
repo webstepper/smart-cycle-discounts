@@ -29,7 +29,6 @@ require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
  * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
  */
 class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
-
 	use SCD_Wizard_Helpers;
 
 	/**
@@ -60,6 +59,9 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
+		// NOTE: Coverage preview is FREE - shows what WOULD be covered (exploration feature)
+		// License protection happens at campaign SAVE level (in save-step-handler)
+
 		// Get campaign data from state service
 		$state_service = $this->_get_state_service();
 		if ( ! $state_service ) {

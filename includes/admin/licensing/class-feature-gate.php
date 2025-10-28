@@ -110,6 +110,9 @@ class SCD_Feature_Gate {
 	/**
 	 * Check if user has premium access.
 	 *
+	 * Uses server-validated license check via License Manager for security.
+	 * Falls back to Freemius direct check if License Manager unavailable.
+	 *
 	 * @since    1.0.0
 	 * @return   bool    True if user has premium or trial access.
 	 */
@@ -119,13 +122,19 @@ class SCD_Feature_Gate {
 			return $this->is_premium_cached;
 		}
 
-		// Default to free if Freemius not loaded
+		// Use License Manager for server-validated check (Phase 2)
+		if ( function_exists( 'scd_is_license_valid' ) ) {
+			$this->is_premium_cached = scd_is_license_valid();
+			return $this->is_premium_cached;
+		}
+
+		// Fallback: check Freemius directly if License Manager unavailable
 		if ( ! $this->is_freemius_loaded() ) {
 			$this->is_premium_cached = false;
 			return false;
 		}
 
-		// Check premium or trial status
+		// Last resort: direct Freemius check
 		$this->is_premium_cached = scd_fs()->is_premium() || scd_fs()->is_trial();
 
 		return $this->is_premium_cached;

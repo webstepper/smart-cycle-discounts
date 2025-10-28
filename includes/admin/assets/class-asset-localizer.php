@@ -377,7 +377,9 @@ class SCD_Asset_Localizer {
         }
 
         if (!empty($this->data[$object_name])) {
-            wp_localize_script($handle, $object_name, $this->data[$object_name]);
+            // Convert snake_case keys to camelCase for JavaScript
+            $localized_data = $this->snake_to_camel_keys( $this->data[$object_name] );
+            wp_localize_script($handle, $object_name, $localized_data);
         }
     }
 
@@ -406,6 +408,23 @@ class SCD_Asset_Localizer {
      */
     public function get_data(string $object_name): ?array {
         return $this->data[$object_name] ?? null;
+    }
+
+    /**
+     * Convert snake_case keys to camelCase for JavaScript.
+     * Delegates to SCD_Case_Converter utility.
+     *
+     * @since 1.0.0
+     * @param array $data Data to convert.
+     * @return array Converted data with camelCase keys.
+     */
+    private function snake_to_camel_keys( $data ) {
+        // Ensure utility class is loaded
+        if ( ! class_exists( 'SCD_Case_Converter' ) ) {
+            require_once SCD_PLUGIN_DIR . 'includes/utilities/class-case-converter.php';
+        }
+
+        return SCD_Case_Converter::snake_to_camel( $data );
     }
 
     /**
@@ -466,7 +485,7 @@ class SCD_Asset_Localizer {
      */
     private function get_wizard_data(): array {
         // Phase 2: No session ID needed in JavaScript - handled by secure cookies
-        
+
         // Get nonces from security configuration
         $nonces = array();
         
@@ -477,15 +496,6 @@ class SCD_Asset_Localizer {
         
         if ( class_exists( 'SCD_Ajax_Security' ) ) {
             $nonces = SCD_Ajax_Security::get_nonce_config();
-            
-            // Debug logging to verify nonce generation
-            if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-                error_log( '[Asset_Localizer] Generated nonces for wizard: ' . print_r( $nonces, true ) );
-                error_log( '[Asset_Localizer] Nonces array keys: ' . implode( ', ', array_keys( $nonces ) ) );
-                error_log( '[Asset_Localizer] Has action_map: ' . ( isset( $nonces['action_map'] ) ? 'yes' : 'no' ) );
-            }
-        } else {
-            error_log( '[Asset_Localizer] ERROR: SCD_Ajax_Security class not available' );
         }
         
         $wizard_data = array(
@@ -495,8 +505,8 @@ class SCD_Asset_Localizer {
             'ajax_url' => admin_url( 'admin-ajax.php' ),
             'admin_url' => admin_url(),
             'campaigns_url' => admin_url( 'admin.php?page=scd-campaigns' ),
-            'campaignListUrl' => admin_url( 'admin.php?page=scd-campaigns' ),
-            'editDraftUrl' => admin_url( 'admin.php?page=scd-campaigns&action=edit&campaign_id={id}' ),
+            'campaign_list_url' => admin_url( 'admin.php?page=scd-campaigns' ),
+            'edit_draft_url' => admin_url( 'admin.php?page=scd-campaigns&action=edit&campaign_id={id}' ),
             'plugin_url' => trailingslashit( plugins_url( '', SCD_PLUGIN_FILE ) ),
             'steps' => array( 'basic', 'products', 'discounts', 'schedule', 'review' ),
             'debug' => defined( 'SCD_DEBUG' ) && SCD_DEBUG, // Add debug flag for JavaScript debug logger
@@ -573,16 +583,18 @@ class SCD_Asset_Localizer {
                     'RANDOM_PRODUCTS' => SCD_Product_Selection_Types::RANDOM_PRODUCTS,
                 )
             ),
-            'timezone' => wp_timezone_string()
+            'timezone' => wp_timezone_string(),
+            'debug_persistence' => true  // Enable debug logging for wizard
         );
-        
+
         // Load current wizard session data
         $session_data = $this->load_wizard_session_data();
+
         if ( !empty( $session_data ) ) {
             $wizard_data['current_campaign'] = $session_data;
         }
-        
-        
+
+
         return $wizard_data;
     }
     
@@ -598,39 +610,26 @@ class SCD_Asset_Localizer {
         if ( wp_doing_ajax() ) {
             return array();
         }
-        
+
         // Only load session data on wizard pages
-        if ( !isset( $_GET['action'] ) || $_GET['action'] !== 'wizard' ) {
+        // Check for both 'wizard' (new campaigns) and 'edit' (editing existing campaigns)
+        if ( !isset( $_GET['action'] ) || ( $_GET['action'] !== 'wizard' && $_GET['action'] !== 'edit' ) ) {
             return array();
         }
-        
+
         // Don't load session data if intent is to start fresh
         if ( isset( $_GET['intent'] ) && $_GET['intent'] === 'new' ) {
-            if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-                error_log( '[Asset_Localizer] Skipping session data load - intent is new' );
-            }
             return array();
         }
         
         try {
-            // Debug: Log session loading attempt
-            if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-                error_log( '[Asset_Localizer] Attempting to load wizard session data' );
-            }
-            
             // Load the wizard state service
             if ( !class_exists( 'SCD_Wizard_State_Service' ) ) {
                 require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
             }
-            
+
             // Create state service - it will automatically load session from cookie
             $state_service = new SCD_Wizard_State_Service();
-            
-            // Debug: Log session status
-            if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-                error_log( '[Asset_Localizer] Session ID: ' . $state_service->get_session_id() );
-                error_log( '[Asset_Localizer] Has session: ' . ( $state_service->has_session() ? 'Yes' : 'No' ) );
-            }
             
             // Get all session data at once
             $all_data = $state_service->get_all_data();
@@ -645,21 +644,6 @@ class SCD_Asset_Localizer {
                     $session_data['_completed_steps'] = $all_data['completed_steps'];
                 }
                 
-                // Debug: Log found data
-                if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-                    error_log( '[Asset_Localizer] Found step data for: ' . implode( ', ', array_keys( $session_data ) ) );
-                    
-                    // DETAILED DEBUG for products conditions
-                    if ( isset( $session_data['products'] ) ) {
-                        error_log( '[Asset_Localizer] Products step data keys: ' . implode( ', ', array_keys( $session_data['products'] ) ) );
-                        if ( isset( $session_data['products']['conditions'] ) ) {
-                            error_log( '[Asset_Localizer] Products conditions found: ' . count( $session_data['products']['conditions'] ) . ' conditions' );
-                            error_log( '[Asset_Localizer] First condition: ' . print_r( $session_data['products']['conditions'][0] ?? 'none', true ) );
-                        } else {
-                            error_log( '[Asset_Localizer] WARNING: No conditions in products data!' );
-                        }
-                    }
-                }
             } else {
                 // Fallback: try to get individual step data
                 $steps = array( 'basic', 'products', 'discounts', 'schedule', 'review' );
@@ -671,7 +655,18 @@ class SCD_Asset_Localizer {
                     }
                 }
             }
-            
+
+            // Check if we're in edit mode and need to load campaign data
+            $campaign_id = isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0;
+            $intent = isset( $_GET['intent'] ) ? sanitize_text_field( $_GET['intent'] ) : '';
+
+            // Edit mode data loading is now handled by Change Tracker
+            // Data is loaded on-demand from database, not decomposed into session
+            if ( 'edit' === $intent && $campaign_id > 0 ) {
+                // Just store campaign ID - Change Tracker will handle the rest
+                $session_data['campaign_id'] = $campaign_id;
+            }
+
             // For products step, only load product IDs - not full product data
             // This prevents loading hundreds of products into frontend memory
             if ( isset( $session_data['products'] ) ) {
@@ -690,11 +685,10 @@ class SCD_Asset_Localizer {
                     }
                 }
             }
-            
+
             return $session_data;
-            
+
         } catch ( Exception $e ) {
-            error_log( '[Asset_Localizer] Error loading wizard session data: ' . $e->getMessage() );
             return array();
         }
     }
@@ -740,7 +734,6 @@ class SCD_Asset_Localizer {
                     break;
             }
         } catch ( Exception $e ) {
-            error_log( '[Asset_Localizer] Error loading products: ' . $e->getMessage() );
         }
         
         return $products;
@@ -772,13 +765,11 @@ class SCD_Asset_Localizer {
             ) );
             
             if ( is_wp_error( $products ) ) {
-                error_log( '[Asset_Localizer] WooCommerce query error: ' . $products->get_error_message() );
                 return array();
             }
             
             return $this->format_products_for_frontend( $products );
         } catch ( Exception $e ) {
-            error_log( '[Asset_Localizer] Error fetching products by IDs: ' . $e->getMessage() );
             return array();
         }
     }
@@ -809,13 +800,11 @@ class SCD_Asset_Localizer {
             ) );
             
             if ( is_wp_error( $products ) ) {
-                error_log( '[Asset_Localizer] WooCommerce category query error: ' . $products->get_error_message() );
                 return array();
             }
             
             return $this->format_products_for_frontend( $products );
         } catch ( Exception $e ) {
-            error_log( '[Asset_Localizer] Error fetching products by categories: ' . $e->getMessage() );
             return array();
         }
     }
@@ -841,12 +830,19 @@ class SCD_Asset_Localizer {
      */
     private function format_products_for_frontend( array $products ): array {
         $formatted = array();
-        
+
         foreach ( $products as $product ) {
             if ( !( $product instanceof WC_Product ) ) {
                 continue;
             }
-            
+
+            // Get product category IDs - CRITICAL for category filtering to work
+            $category_ids = array();
+            $product_categories = wp_get_post_terms( $product->get_id(), 'product_cat', array( 'fields' => 'ids' ) );
+            if ( ! is_wp_error( $product_categories ) && is_array( $product_categories ) ) {
+                $category_ids = array_map( 'intval', $product_categories );
+            }
+
             $formatted[] = array(
                 'id'    => $product->get_id(),
                 'name'  => $product->get_name(),
@@ -854,15 +850,16 @@ class SCD_Asset_Localizer {
                 'price' => (float) $product->get_regular_price(),
                 'sale_price' => (float) $product->get_sale_price(),
                 'stock_status' => $product->get_stock_status(),
-                'type' => $product->get_type()
+                'type' => $product->get_type(),
+                'categoryIds' => $category_ids  // JavaScript uses camelCase
             );
         }
-        
+
         // Sort by name for better UX
         usort( $formatted, function( $a, $b ) {
             return strcmp( $a['name'], $b['name'] );
         } );
-        
+
         return $formatted;
     }
 

@@ -552,8 +552,28 @@ class SCD_Ajax_Router {
                 // Get feature gate for PRO feature validation
                 $feature_gate = $container::get_service( 'feature_gate' );
 
-                // Save_Step_Handler with feature gate for PRO validation
-                $this->handler_instances[$action] = new $handler_class( $state_service, null, $feature_gate );
+                // Get idempotency and transformer services
+                $idempotency_service = null;
+                $transformer = null;
+
+                try {
+                    $idempotency_service = $container::get_service( 'idempotency_service' );
+                    $transformer = $container::get_service( 'step_data_transformer' );
+                } catch ( Exception $e ) {
+                    // Services will be created in handler constructor if not available
+                    if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+                        error_log( '[SCD AJAX] Optional services not available, will be created: ' . $e->getMessage() );
+                    }
+                }
+
+                // Save_Step_Handler with all services
+                $this->handler_instances[$action] = new $handler_class(
+                    $state_service,
+                    null,  // logger
+                    $feature_gate,
+                    $idempotency_service,
+                    $transformer
+                );
             } elseif ( 'SCD_Load_Data_Handler' === $handler_class ) {
                 // Load Data handler requires state service
                 $container = Smart_Cycle_Discounts::get_instance();
@@ -731,7 +751,7 @@ class SCD_Ajax_Router {
                     $this->handler_instances[$action] = new $handler_class( $metrics_calculator, $logger, $activity_tracker );
 
                 } elseif ( 'SCD_Export_Handler' === $handler_class ) {
-                    // Export handler needs export_service and feature_gate
+                    // Export handler needs export_service
                     $export_service = $container::get_service( 'export_service' );
                     if ( ! $export_service ) {
                         if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -744,13 +764,7 @@ class SCD_Ajax_Router {
                         return null;
                     }
 
-                    // Get feature gate
-                    $feature_gate = $container::get_service( 'feature_gate' );
-                    if ( ! $feature_gate && class_exists( 'SCD_Feature_Gate' ) ) {
-                        $feature_gate = new SCD_Feature_Gate();
-                    }
-
-                    $this->handler_instances[$action] = new $handler_class( $metrics_calculator, $logger, $export_service, $feature_gate );
+                    $this->handler_instances[$action] = new $handler_class( $metrics_calculator, $logger, $export_service );
 
                 } elseif ( 'SCD_Refresh_Cache_Handler' === $handler_class ) {
                     // Refresh cache handler needs cache_manager
@@ -883,40 +897,20 @@ class SCD_Ajax_Router {
      * Convert array keys from camelCase to snake_case recursively
      * Normalizes data from JavaScript for PHP consumption
      *
+     * Delegates to SCD_Case_Converter utility for actual conversion.
+     *
      * @since    1.0.0
      * @access   private
      * @param    mixed    $data    Data to convert.
+     * @param    string   $path    Internal path tracking (unused, kept for BC).
      * @return   mixed             Converted data.
      */
     private static function camel_to_snake_keys( $data, $path = '' ) {
-        if ( ! is_array( $data ) ) {
-            return $data;
+        // Ensure utility class is loaded
+        if ( ! class_exists( 'SCD_Case_Converter' ) ) {
+            require_once SCD_PLUGIN_DIR . 'includes/utilities/class-case-converter.php';
         }
 
-        // Check if this is a numeric array (list) - preserve as-is but recurse into values
-        $is_list = array_keys( $data ) === range( 0, count( $data ) - 1 );
-        if ( $is_list ) {
-            $result = array();
-            foreach ( $data as $index => $value ) {
-                $item_path = $path ? $path . '[' . $index . ']' : '[' . $index . ']';
-                $converted = is_array( $value ) ? self::camel_to_snake_keys( $value, $item_path ) : $value;
-                $result[] = $converted;
-            }
-            return $result;
-        }
-
-        // Associative array - convert keys
-        $result = array();
-        foreach ( $data as $key => $value ) {
-            $item_path = $path ? $path . '.' . $key : $key;
-
-            // Convert camelCase key to snake_case
-            $snake_key = strtolower( preg_replace( '/(?<!^)[A-Z]/', '_$0', $key ) );
-
-            // Recursively convert nested arrays
-            $result[ $snake_key ] = is_array( $value ) ? self::camel_to_snake_keys( $value, $item_path ) : $value;
-        }
-
-        return $result;
+        return SCD_Case_Converter::camel_to_snake( $data );
     }
 }

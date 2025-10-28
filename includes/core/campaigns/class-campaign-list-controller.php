@@ -89,13 +89,13 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 
         // Initialize list table
         $this->init_list_table();
-        
+
         // Handle bulk actions
         $this->handle_bulk_actions();
-        
+
         // Enqueue required scripts
         $this->enqueue_scripts();
-        
+
         // Render the page
         $this->render();
     }
@@ -271,7 +271,7 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
         }
 
         // Discard the draft
-        $this->wizard_state_service->cleanup();
+        $this->wizard_state_service->clear_session();
 
         // Check if we have a redirect URL
         if (isset($_GET['redirect'])) {
@@ -319,10 +319,33 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
             // Display success messages
             if (isset($_GET['message'])) {
                 $message = sanitize_text_field($_GET['message']);
-                if ('draft_discarded' === $message) {
+                $messages = array(
+                    'draft_discarded' => __('Draft campaign has been discarded.', 'smart-cycle-discounts'),
+                    'activated' => __('Campaign activated successfully.', 'smart-cycle-discounts'),
+                    'deactivated' => __('Campaign deactivated successfully.', 'smart-cycle-discounts'),
+                    'deleted' => __('Campaign moved to trash successfully.', 'smart-cycle-discounts'),
+                );
+                if (isset($messages[$message])) {
                     ?>
                     <div class="notice notice-success is-dismissible">
-                        <p><?php echo esc_html__('Draft campaign has been discarded.', 'smart-cycle-discounts'); ?></p>
+                        <p><?php echo esc_html($messages[$message]); ?></p>
+                    </div>
+                    <?php
+                }
+            }
+
+            // Display error messages
+            if (isset($_GET['error'])) {
+                $error = sanitize_text_field($_GET['error']);
+                $errors = array(
+                    'activate_failed' => __('Failed to activate campaign.', 'smart-cycle-discounts'),
+                    'deactivate_failed' => __('Failed to deactivate campaign.', 'smart-cycle-discounts'),
+                    'delete_failed' => __('Failed to delete campaign.', 'smart-cycle-discounts'),
+                );
+                if (isset($errors[$error])) {
+                    ?>
+                    <div class="notice notice-error is-dismissible">
+                        <p><?php echo esc_html($errors[$error]); ?></p>
                     </div>
                     <?php
                 }
@@ -334,36 +357,33 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 
             <?php if ($this->check_capability('scd_create_campaigns')): ?>
                 <?php
-                // Check for draft campaign
+                // Check for draft
                 $draft_info = $this->wizard_state_service->get_draft_info();
-                
-                // Debug output (remove in production)
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                    echo '<!-- Draft Debug: ';
-                    echo 'Session ID: ' . ($this->wizard_state_service->get_session_id() ?: 'none') . ', ';
-                    echo 'Has session: ' . ($this->wizard_state_service->has_session() ? 'yes' : 'no') . ', ';
-                    echo 'Has draft: ' . ($this->wizard_state_service->has_draft() ? 'yes' : 'no') . ', ';
-                    echo 'Draft info: ' . json_encode($draft_info);
-                    echo ' -->';
-                    
-                    // Log session data for debugging
+                $has_draft = $draft_info && empty( $draft_info['is_expired'] );
+
+                // Prepare data for JavaScript
+                if ( $has_draft ) {
+                    $session_type = 'draft';
+                    $campaign_name = $draft_info['campaign_name'] ?? '';
+                    $last_activity = ! empty( $draft_info['last_updated'] ) ?
+                        human_time_diff( $draft_info['last_updated'], current_time( 'timestamp' ) ) : '';
+                } else {
+                    $session_type = 'none';
+                    $campaign_name = '';
+                    $last_activity = '';
                 }
                 ?>
-                
-                <?php
-                // Prepare draft data for modal
-                $has_draft = $draft_info && empty($draft_info['is_expired']);
-                $draft_name = $has_draft ? ($draft_info['campaign_name'] ?? '') : '';
-                ?>
-                <a href="<?php echo esc_url(admin_url('admin.php?page=scd-campaigns&action=wizard&intent=new')); ?>" 
+                <a href="<?php echo esc_url(admin_url('admin.php?page=scd-campaigns&action=wizard&intent=new')); ?>"
                    class="page-title-action scd-new-campaign-btn"
-                   data-has-draft="<?php echo $has_draft ? 'true' : 'false'; ?>"
-                   data-draft-name="<?php echo esc_attr($draft_name); ?>">
+                   data-has-session="<?php echo $has_draft ? 'true' : 'false'; ?>"
+                   data-session-type="<?php echo esc_attr( $session_type ); ?>"
+                   data-campaign-name="<?php echo esc_attr( $campaign_name ); ?>"
+                   data-last-activity="<?php echo esc_attr( $last_activity ); ?>">
                     <?php echo esc_html__('Add New Campaign', 'smart-cycle-discounts'); ?>
                 </a>
-                
+
                 <?php if ($has_draft): ?>
-                    <a href="<?php echo esc_url(admin_url('admin.php?page=scd-campaigns&action=wizard&intent=continue')); ?>" 
+                    <a href="<?php echo esc_url(admin_url('admin.php?page=scd-campaigns&action=wizard&intent=continue')); ?>"
                        class="page-title-action button-secondary">
                         <span class="dashicons dashicons-edit"></span>
                         <?php echo esc_html__('Continue Draft', 'smart-cycle-discounts'); ?>
@@ -401,114 +421,8 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
         // Render draft conflict modal if user can create campaigns
         if ($this->check_capability('scd_create_campaigns')) {
             $this->render_draft_conflict_modal();
+			$this->enqueue_modal_scripts();
         }
-        ?>
-        
-        <script type="text/javascript">
-        jQuery(document).ready(function($) {
-            
-            // Draft Conflict Modal Handler
-            var DraftConflictModal = {
-                init: function() {
-                    this.bindEvents();
-                },
-                
-                bindEvents: function() {
-                    $('.scd-new-campaign-btn').on('click', function(e) {
-                        var hasDraft = $(this).data('has-draft') === 'true' || $(this).data('has-draft') === true;
-                        var draftName = $(this).data('draft-name');
-                        
-                        // Only show modal if we actually have a draft
-                        if (hasDraft === true && draftName) {
-                            e.preventDefault();
-                            $('#scd-draft-name').text(draftName);
-                            if (typeof SCD !== 'undefined' && SCD.Modal) {
-                                SCD.Modal.show('scd-draft-conflict-modal');
-                            }
-                        }
-                    });
-                }
-            };
-            
-            // Initialize modal handler
-            DraftConflictModal.init();
-            
-            // Modal button handlers
-            $(document).on('click', '.scd-modal__actions button[data-action], .scd-modal-cancel, .scd-modal__close', function(e) {
-                e.preventDefault();
-                var action = $(this).data('action');
-                var adminUrl = '<?php echo admin_url('admin.php'); ?>';
-                
-                switch(action) {
-                    case 'save-new':
-                        // Save current draft as campaign first, then create new
-                        var $button = $(this);
-                        $button.prop('disabled', true).text('<?php echo esc_js(__('Saving Draft...', 'smart-cycle-discounts')); ?>');
-                        
-                        // Make AJAX call to save the current draft
-                        $.ajax({
-                            url: ajaxurl,
-                            type: 'POST',
-                            data: {
-                                action: 'scd_ajax',
-                                scd_action: 'save_draft',
-                                save_as_draft: true,
-                                nonce: '<?php echo wp_create_nonce('scd_wizard_nonce'); ?>'
-                            },
-                            success: function(response) {
-                                // After saving, redirect to create new
-                                window.location.href = adminUrl + '?page=scd-campaigns&action=wizard&intent=new';
-                            },
-                            error: function(xhr, status, error) {
-                                // Enable button and show error
-                                $button.prop('disabled', false).text('<?php echo esc_js(__('Save Draft & Create New', 'smart-cycle-discounts')); ?>');
-                                alert('<?php echo esc_js(__('Failed to save draft. Please try again.', 'smart-cycle-discounts')); ?>');
-                            }
-                        });
-                        break;
-                        
-                    case 'discard-new':
-                        var $button = $(this);
-                        $button.prop('disabled', true).text('<?php echo esc_js(__('Discarding...', 'smart-cycle-discounts')); ?>');
-                        
-                        // Make AJAX call to discard the draft
-                        $.ajax({
-                            url: ajaxurl,
-                            type: 'POST',
-                            data: {
-                                action: 'scd_ajax',
-                                scd_action: 'delete_draft',
-                                draft_action: 'delete',
-                                draft_type: 'session',
-                                draft_id: 'current',
-                                nonce: '<?php echo wp_create_nonce('scd_wizard_nonce'); ?>'
-                            },
-                            success: function(response) {
-                                window.location.href = adminUrl + '?page=scd-campaigns&action=wizard&intent=new';
-                            },
-                            error: function(xhr, status, error) {
-                                // Still redirect even on error
-                                window.location.href = adminUrl + '?page=scd-campaigns&action=wizard&intent=new';
-                            }
-                        });
-                        break;
-                        
-                    case 'close':
-                        SCD.Modal.hide('scd-draft-conflict-modal');
-                        break;
-                        
-                    default:
-                        // Handle cancel button and close button
-                        if ($(this).hasClass('scd-modal-cancel') || $(this).hasClass('scd-modal__close')) {
-                            SCD.Modal.hide('scd-draft-conflict-modal');
-                        }
-                        break;
-                }
-            });
-        });
-        </script>
-        
-        <?php
     }
 
     /**
@@ -563,48 +477,48 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
     /**
      * Render draft conflict modal.
      *
+     * Handles unsaved draft campaigns.
+     *
      * @since    1.0.0
      * @return   void
      */
     private function render_draft_conflict_modal(): void {
         // Load modal component
         require_once SCD_INCLUDES_DIR . 'admin/components/class-modal-component.php';
-        
+
         // Create modal configuration
         $modal_config = array(
             'id' => 'scd-draft-conflict-modal',
-            'title' => __('Draft Campaign Exists', 'smart-cycle-discounts'),
-            'content' => sprintf(
-                '<p>%s <strong id="scd-draft-name"></strong></p><p>%s</p>',
-                __('You have an unsaved draft campaign:', 'smart-cycle-discounts'),
-                __('What would you like to do?', 'smart-cycle-discounts')
-            ),
+            'title' => '<span id="scd-modal-title">' . esc_html__( 'Draft Campaign Exists', 'smart-cycle-discounts' ) . '</span>',
+            'content' => '<div id="scd-modal-message"></div>',
             'icon' => 'dashicons-warning',
-            'classes' => array('scd-modal__icon--warning'),
+            'classes' => array( 'scd-modal__icon--warning' ),
             'buttons' => array(
                 array(
                     'id' => 'scd-save-and-new',
-                    'text' => __('Save Draft & Create New', 'smart-cycle-discounts'),
-                    'class' => 'button button-primary',
-                    'action' => 'save-new'
+                    'text' => __( 'Save as Draft & Create New', 'smart-cycle-discounts' ),
+                    'class' => 'button button-secondary scd-save-btn',
+                    'action' => 'save-new',
+                    'style' => 'display:none;'
                 ),
                 array(
                     'id' => 'scd-discard-and-new',
-                    'text' => __('Discard Draft & Create New', 'smart-cycle-discounts'),
-                    'class' => 'button button-secondary',
-                    'action' => 'discard-new'
+                    'text' => __( 'Discard & Create New', 'smart-cycle-discounts' ),
+                    'class' => 'button button-secondary scd-discard-btn',
+                    'action' => 'discard-new',
+                    'style' => 'display:none;'
                 ),
                 array(
-                    'text' => __('Cancel', 'smart-cycle-discounts'),
+                    'text' => __( 'Cancel', 'smart-cycle-discounts' ),
                     'class' => 'button scd-modal-cancel',
                     'action' => 'close'
                 )
             ),
             'escape_content' => false // Already escaped above
         );
-        
+
         // Create and render modal
-        $modal = new SCD_Modal_Component($modal_config);
+        $modal = new SCD_Modal_Component( $modal_config );
         $modal->render();
     }
 
@@ -676,4 +590,27 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
         </div>
         <?php
     }
+
+	/**
+	 * Enqueue modal scripts and localization.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	private function enqueue_modal_scripts(): void {
+		// Enqueue campaign list modals script
+		wp_enqueue_script( 'scd-campaign-list-modals' );
+
+		// Localize script with translations and URLs
+		wp_localize_script( 'scd-campaign-list-modals', 'scdCampaignListL10n', array(
+			'unsavedDraftText'     => esc_html__( 'You have an unsaved draft campaign:', 'smart-cycle-discounts' ),
+			'whatToDoText'         => esc_html__( 'What would you like to do?', 'smart-cycle-discounts' ),
+			'savingDraftText'      => esc_html__( 'Saving Draft...', 'smart-cycle-discounts' ),
+			'discardingText'       => esc_html__( 'Discarding...', 'smart-cycle-discounts' ),
+			'saveDraftButtonText'  => esc_html__( 'Save Draft & Create New', 'smart-cycle-discounts' ),
+			'saveDraftErrorText'   => esc_html__( 'Failed to save draft. Please try again.', 'smart-cycle-discounts' ),
+			'adminUrl'             => admin_url( 'admin.php' ),
+			'nonce'                => wp_create_nonce( 'scd_wizard_nonce' ),
+		) );
+	}
 }

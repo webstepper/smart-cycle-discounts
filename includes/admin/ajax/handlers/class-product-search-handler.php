@@ -66,12 +66,9 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
      * @throws   Exception            If request fails.
      */
     protected function handle( $request ) {
-        // Add detailed debugging
-        if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-            error_log( '[SCD Product Search] === HANDLE START ===' );
-            error_log( '[SCD Product Search] Request data: ' . json_encode( $request ) );
-        }
-        
+        // NOTE: Product browsing/searching is FREE - allows users to explore what's available
+        // License protection happens at campaign SAVE level (in save-step-handler)
+
         try {
             // Determine which action to perform with whitelist validation
             $action = isset( $request['wizard_action'] ) ? sanitize_text_field( $request['wizard_action'] ) : '';
@@ -89,10 +86,6 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
                     'Invalid action requested',
                     400
                 );
-            }
-
-            if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-                error_log( '[SCD Product Search] Wizard action: ' . $action );
             }
 
             if ( 'get_products_by_ids' === $action ) {
@@ -143,14 +136,7 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
         
         // Get selected products
         $selected = array_map( 'intval', (array) ( isset( $request['selected'] ) ? $request['selected'] : array() ) );
-        
-        // Debug logging
-        if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-            error_log( '[SCD Product Search Handler] Raw categories: ' . print_r( isset( $request['categories'] ) ? $request['categories'] : array(), true ) );
-            error_log( '[SCD Product Search Handler] Processed categories: ' . print_r( $categories, true ) );
-            error_log( '[SCD Product Search Handler] Search term: ' . $search );
-        }
-        
+
         // Delegate to service
         try {
             $service = $this->get_product_service();
@@ -162,10 +148,6 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
             
             $results = $service->search_products( $search, $categories, $page, $per_page, $selected );
         } catch ( Exception $e ) {
-            // Log error for debugging
-            if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-                error_log( '[SCD Product Search Handler] Service error: ' . $e->getMessage() );
-            }
             throw $e;
         }
         
@@ -269,11 +251,6 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
         $categories = array_map( 'intval', $categories );
         $filtered = array_filter( $categories, array( $this, 'filter_valid_category_ids' ) );
 
-        // Debug logging
-        if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-            error_log( '[SCD Product Search Handler] Final filtered categories: ' . print_r( $filtered, true ) );
-        }
-
         return $filtered;
     }
 
@@ -301,12 +278,7 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
             // Use dirname to go up to the includes directory
             $includes_dir = dirname( dirname( dirname( dirname( __FILE__ ) ) ) );
             $service_file = $includes_dir . '/core/products/class-product-service.php';
-            
-            // Debug logging
-            if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-                error_log( '[SCD Product Search Handler] Loading product service from: ' . $service_file );
-            }
-            
+
             if ( ! file_exists( $service_file ) ) {
                 throw new Exception( 'Product Service file not found: ' . $service_file );
             }

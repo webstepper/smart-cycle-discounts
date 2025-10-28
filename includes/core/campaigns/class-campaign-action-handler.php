@@ -37,7 +37,7 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
         }
 
         // Verify nonce
-        if ( ! wp_verify_nonce( isset( $_REQUEST['_wpnonce'] ) ? $_REQUEST['_wpnonce'] : '', 'scd_delete_campaign_' . $campaign_id ) ) {
+        if ( ! wp_verify_nonce( isset( $_REQUEST['_wpnonce'] ) ? $_REQUEST['_wpnonce'] : '', 'scd-campaign-action-delete-' . $campaign_id ) ) {
             $this->redirect_with_error( __( 'Security check failed.', 'smart-cycle-discounts' ) );
             return;
         }
@@ -105,8 +105,11 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 
             if ( ! is_wp_error( $new_campaign ) && $new_campaign ) {
                 $this->redirect_with_message(
-                    admin_url( 'admin.php?page=scd-campaigns&action=edit&id=' . $new_campaign->get_id() ),
-                    __( 'Campaign duplicated successfully.', 'smart-cycle-discounts' ),
+                    admin_url( 'admin.php?page=scd-campaigns' ),
+                    sprintf(
+                        __( 'Campaign duplicated successfully as "%s". Click Edit to configure it.', 'smart-cycle-discounts' ),
+                        esc_html( $new_campaign->get_name() )
+                    ),
                     'success'
                 );
             } else {
@@ -167,8 +170,13 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
             return;
         }
 
+        // Determine action for nonce
+        $action = ( 'active' === $new_status ) ? 'activate' : 'deactivate';
+        $nonce_name = 'scd-campaign-action-' . $action . '-' . $campaign_id;
+        $nonce_value = isset( $_REQUEST['_wpnonce'] ) ? $_REQUEST['_wpnonce'] : '';
+
         // Verify nonce
-        if ( ! wp_verify_nonce( isset( $_REQUEST['_wpnonce'] ) ? $_REQUEST['_wpnonce'] : '', 'campaign_status_' . $campaign_id ) ) {
+        if ( ! wp_verify_nonce( $nonce_value, $nonce_name ) ) {
             $this->redirect_with_error( __( 'Security check failed.', 'smart-cycle-discounts' ) );
             return;
         }

@@ -248,9 +248,10 @@ class SCD_Campaign_Creator_Service {
 			// Set created_by metadata
 			$campaign_data['created_by'] = get_current_user_id();
 
-			// CRITICAL: Skip wizard validation in Campaign_Manager
-			// The compiled data doesn't have step structure - it's already validated compiled data
-			$campaign_data['_skip_wizard_validation'] = true;
+			// Set validation context for compiled campaign data
+			// This tells Campaign_Manager to use 'campaign_compiled' validation
+			// instead of 'campaign_complete' (step-based) validation
+			$campaign_data['_validation_context'] = 'campaign_compiled';
 
 			// CRITICAL: Validate PRO features in final campaign data (security layer)
 			// This is the last line of defense before campaign creation
@@ -262,53 +263,92 @@ class SCD_Campaign_Creator_Service {
 				);
 			}
 
-			// Create the campaign
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Campaign_Creator_Service] Calling campaign_manager->create()' );
-			}
+			// Create or update the campaign
+			$campaign_id = isset( $session_data['campaign_id'] ) ? absint( $session_data['campaign_id'] ) : 0;
+			$is_update = $campaign_id > 0;
 
-			$campaign = $this->campaign_manager->create($campaign_data);
-
-			if (is_wp_error($campaign)) {
+			if ( $is_update ) {
+				// Update existing campaign
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[Campaign_Creator_Service] ERROR: create() returned WP_Error: ' . $campaign->get_error_message() );
+					error_log( '[Campaign_Creator_Service] Calling campaign_manager->update() for campaign ID: ' . $campaign_id );
 				}
-				return $this->error_response(
-					$campaign->get_error_message(),
-					500
-				);
-			}
 
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Campaign_Creator_Service] Campaign created successfully with ID: ' . $campaign->get_id() );
+				$campaign = $this->campaign_manager->update( $campaign_id, $campaign_data );
+
+				if ( is_wp_error( $campaign ) ) {
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						error_log( '[Campaign_Creator_Service] ERROR: update() returned WP_Error: ' . $campaign->get_error_message() );
+					}
+					return $this->error_response(
+						$campaign->get_error_message(),
+						500
+					);
+				}
+
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( '[Campaign_Creator_Service] Campaign updated successfully with ID: ' . $campaign->get_id() );
+				}
+			} else {
+				// Create new campaign
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( '[Campaign_Creator_Service] Calling campaign_manager->create()' );
+				}
+
+				$campaign = $this->campaign_manager->create( $campaign_data );
+
+				if ( is_wp_error( $campaign ) ) {
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						error_log( '[Campaign_Creator_Service] ERROR: create() returned WP_Error: ' . $campaign->get_error_message() );
+					}
+					return $this->error_response(
+						$campaign->get_error_message(),
+						500
+					);
+				}
+
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( '[Campaign_Creator_Service] Campaign created successfully with ID: ' . $campaign->get_id() );
+				}
 			}
 
 			// Clear wizard session
 			try {
-				$state_service->cleanup();
-			} catch (Exception $e) {
+				$state_service->clear_session();
+			} catch ( Exception $e ) {
 				// Log but don't fail - session will expire anyway
-				$this->logger->warning('Failed to clear wizard session after campaign creation', array(
+				$this->logger->warning( 'Failed to clear wizard session after campaign ' . ( $is_update ? 'update' : 'creation' ), array(
 					'error' => $e->getMessage()
-				));
+				) );
 			}
 
 			// Log success
-			$this->log_campaign_created($campaign, 'wizard', $save_as_draft);
+			if ( $is_update ) {
+				$this->logger->info( 'Campaign updated from wizard', array(
+					'campaign_id' => $campaign->get_id(),
+					'method'      => 'wizard',
+					'save_draft'  => $save_as_draft
+				) );
+			} else {
+				$this->log_campaign_created( $campaign, 'wizard', $save_as_draft );
+			}
 
 			// Trigger action for extensions
-			do_action('scd_campaign_created_from_wizard', $campaign->get_id(), $campaign_data);
+			if ( $is_update ) {
+				do_action( 'scd_campaign_updated_from_wizard', $campaign->get_id(), $campaign_data );
+			} else {
+				do_action( 'scd_campaign_created_from_wizard', $campaign->get_id(), $campaign_data );
+			}
 
-			return $this->success_response($campaign, $save_as_draft);
+			return $this->success_response( $campaign, $save_as_draft );
 
-		} catch (Exception $e) {
-			$this->logger->error('Campaign creation from wizard failed', array(
+		} catch ( Exception $e ) {
+			$this->logger->error( 'Campaign ' . ( isset( $is_update ) && $is_update ? 'update' : 'creation' ) . ' from wizard failed', array(
 				'error' => $e->getMessage(),
 				'trace' => $e->getTraceAsString()
-			));
+			) );
 
 			return $this->error_response(
-				sprintf(__('Campaign creation failed: %s', 'smart-cycle-discounts'), $e->getMessage()),
+				sprintf( __( 'Campaign %s failed: %s', 'smart-cycle-discounts' ), ( isset( $is_update ) && $is_update ? 'update' : 'creation' ), $e->getMessage() ),
 				500
 			);
 		}

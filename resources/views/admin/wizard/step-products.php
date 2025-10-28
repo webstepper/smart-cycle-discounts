@@ -238,8 +238,13 @@ ob_start();
 							<span class="dashicons dashicons-editor-help"></span>
 						</span>
 					</label>
+					<!-- Hidden field stores actual product IDs (single source of truth) -->
+					<input type="hidden"
+						   id="scd-product-ids-hidden"
+						   name="product_ids"
+						   value="<?php echo esc_attr( ! empty( $product_ids ) ? implode( ',', array_map( 'absint', $product_ids ) ) : '' ); ?>" />
+					<!-- TomSelect UI (syncs to hidden field) -->
 					<select id="scd-product-search"
-							name="product_ids[]"
 							multiple="multiple"
 							class="scd-product-search-select"
 							placeholder="<?php esc_attr_e( 'Type to search products by name or SKU...', 'smart-cycle-discounts' ); ?>">

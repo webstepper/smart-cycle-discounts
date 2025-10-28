@@ -69,15 +69,14 @@
 
 			// Use AjaxService to prevent rate limiting
 			SCD.Ajax.post( 'campaign_health', {} ).then( function( response ) {
-				if ( response.success && response.data ) {
-					self.renderHealthCheck( response.data );
+				// AjaxService resolves with response.data directly, so check for valid health data
+				if ( response && 'object' === typeof response && response.score !== undefined ) {
+					self.renderHealthCheck( response );
 				} else {
 					var errorMsg = 'Failed to load health check';
 					if ( response.error && response.error.length > 0 ) {
 						console.error( '[Health Check] Error details:', response.error );
 						errorMsg = response.error[0].message || response.error[0];
-					} else if ( response.data && response.data.message ) {
-						errorMsg = response.data.message;
 					} else if ( response.message ) {
 						errorMsg = response.message;
 					}
@@ -848,13 +847,13 @@
 			// Create contextual messages based on action type
 			switch ( actionType ) {
 				case 'change_discount_type':
-					var discountType = data.discount_type || item.action.data.discount_type;
+					var discountType = data.discountType;
 					var message = 'Discount type changed to ' + discountType;
 
-					if ( 'percentage' === discountType && data.discount_value ) {
-						message += ' (' + data.discount_value + '%)';
-					} else if ( 'fixed' === discountType && data.discount_value ) {
-						message += ' (' + data.discount_value + ')';
+					if ( 'percentage' === discountType && data.discountValue ) {
+						message += ' (' + data.discountValue + '%)';
+					} else if ( 'fixed' === discountType && data.discountValue ) {
+						message += ' (' + data.discountValue + ')';
 					} else if ( 'tiered' === discountType && data.tiers ) {
 						message += ' with ' + data.tiers.length + ' tiers';
 					} else if ( 'bogo' === discountType ) {
@@ -864,15 +863,15 @@
 					return message + '. Navigating to discount step...';
 
 				case 'update_discount_value':
-					var value = data.discount_value || item.action.data.discount_value;
+					var value = data.discountValue;
 					return 'Discount value updated to ' + value + '%. Navigating to discount step...';
 
 				case 'set_end_date':
-					var duration = item.action.data.duration_days || '14';
+					var duration = item.action.data.durationDays || '14';
 					return 'Campaign duration set to ' + duration + ' days. Navigating to schedule...';
 
 				case 'change_selection_type':
-					var selectionType = data.product_selection_type || item.action.data.selection_type;
+					var selectionType = data.productSelectionType;
 					return 'Product selection changed to ' + selectionType + '. Navigating to products...';
 
 				default:

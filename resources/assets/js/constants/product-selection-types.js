@@ -18,7 +18,7 @@
 	// Check if constants are available from PHP localization
 	var localizedConstants = window.scdWizardData &&
                            window.scdWizardData.constants &&
-                           window.scdWizardData.constants.product_selection_types || null;
+                           window.scdWizardData.constants.productSelectionTypes || null;
 
 	/**
 	 * Product Selection Types

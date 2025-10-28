@@ -41,12 +41,13 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	private SCD_Feature_Gate $feature_gate;
 
 	/**
-	 * Available wizard steps.
+	 * Available wizard steps (delegated to Step Registry).
 	 *
 	 * @since    1.0.0
+	 * @deprecated Use SCD_Wizard_Step_Registry::get_steps() instead
 	 * @var      array
 	 */
-	private array $steps = array( 'basic', 'products', 'discounts', 'schedule', 'review' );
+	private array $steps;
 
 	/**
 	 * Initialize the controller.
@@ -68,6 +69,9 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 		parent::__construct( $campaign_manager, $capability_manager, $logger );
 		$this->session = $session;
 		$this->feature_gate = $feature_gate;
+
+		// Use Step Registry for step definitions
+		$this->steps = SCD_Wizard_Step_Registry::get_steps();
 
 		$this->init_wizard_components();
 	}
@@ -114,6 +118,9 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			return;
 		}
 
+		// Initial redirect for intent=new: drop the intent parameter after session is initialized
+		// The session already knows it's a new campaign from initialize_with_intent() above
+		// Keeping intent=new in URL causes redirect loops and function issues
 		if ( 'new' === $intent ) {
 			$this->redirect_to_wizard( 'basic' );
 			return;
@@ -146,13 +153,8 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			return;
 		}
 
-		// Load campaign data if in edit mode and data not yet loaded
-		if ( ! empty( $session['is_edit_mode'] ) && ! empty( $session['campaign_id'] ) ) {
-			$data_loaded = $this->session->get( 'campaign_data_loaded', false );
-			if ( ! $data_loaded ) {
-				$this->load_campaign_data_into_session( $session['campaign_id'] );
-			}
-		}
+		// Edit mode data loading is now handled by Change Tracker
+		// Data is loaded on-demand from database, not decomposed into session
 
 		// Validate step access - prevent users from accessing steps they haven't completed
 		$requested_step = $this->get_current_step();
@@ -174,7 +176,15 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( '[SCD Wizard Access Control] BLOCKING access - redirecting to: ' . $allowed_step );
 			}
-			$this->redirect_to_wizard( $allowed_step );
+
+			// Preserve intent parameter if present
+			$args = array();
+			$intent = $this->get_intent();
+			if ( 'new' === $intent || 'edit' === $intent ) {
+				$args['intent'] = $intent;
+			}
+
+			$this->redirect_to_wizard( $allowed_step, $args );
 			return;
 		}
 
@@ -201,12 +211,20 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	private function create_new_session(): void {
 		try {
 			$this->session->create();
-			$this->redirect_to_wizard( 'basic' );
+
+			// Preserve intent parameter if present
+			$args = array();
+			$intent = $this->get_intent();
+			if ( 'new' === $intent || 'edit' === $intent ) {
+				$args['intent'] = $intent;
+			}
+
+			$this->redirect_to_wizard( 'basic', $args );
 		} catch ( Throwable $e ) {
 			$this->logger->error( 'Failed to create wizard session', array(
 				'error' => $e->getMessage()
 			) );
-			
+
 			$this->redirect_with_message(
 				admin_url( 'admin.php?page=scd-campaigns' ),
 				__( 'Unable to start wizard session.', 'smart-cycle-discounts' ),
@@ -272,7 +290,14 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 				return;
 			}
 
-			$this->redirect_to_wizard( $next_step, array( 'saved' => 1 ) );
+			// Preserve intent parameter if present
+			$args = array( 'saved' => 1 );
+			$intent = $this->get_intent();
+			if ( 'new' === $intent || 'edit' === $intent ) {
+				$args['intent'] = $intent;
+			}
+
+			$this->redirect_to_wizard( $next_step, $args );
 			
 		} catch ( Exception $e ) {
 			$this->handle_submission_error( $e, $current_step );
@@ -425,7 +450,14 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	private function handle_validation_error( string $step ): void {
-		$this->redirect_to_wizard( $step, array( 'errors' => 1 ) );
+		// Preserve intent parameter if present
+		$args = array( 'errors' => 1 );
+		$intent = $this->get_intent();
+		if ( 'new' === $intent || 'edit' === $intent ) {
+			$args['intent'] = $intent;
+		}
+
+		$this->redirect_to_wizard( $step, $args );
 	}
 
 	/**
@@ -891,13 +923,13 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * @return   array    Step labels.
 	 */
 	private function get_step_labels(): array {
-		return array(
-			'basic'     => __( 'Basic Info', 'smart-cycle-discounts' ),
-			'products'  => __( 'Products', 'smart-cycle-discounts' ),
-			'discounts' => __( 'Discounts', 'smart-cycle-discounts' ),
-			'schedule'  => __( 'Schedule', 'smart-cycle-discounts' ),
-			'review'    => __( 'Review', 'smart-cycle-discounts' )
-		);
+		// Delegate to Step Registry
+		$labels = SCD_Wizard_Step_Registry::get_step_labels();
+
+		// Translate labels
+		return array_map( function( $label ) {
+			return __( $label, 'smart-cycle-discounts' );
+		}, $labels );
 	}
 
 	/**
@@ -1130,97 +1162,5 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			</style>
 		</div>
 		<?php
-	}
-
-	/**
-	 * Load campaign data into wizard session.
-	 *
-	 * @since    1.0.0
-	 * @param    int    $campaign_id    Campaign ID to load.
-	 * @return   void
-	 */
-	private function load_campaign_data_into_session( int $campaign_id ): void {
-		// Load campaign from database
-		$campaign = $this->campaign_manager->find( $campaign_id );
-
-		if ( ! $campaign ) {
-			// Campaign not found, redirect to list
-			$this->redirect_with_message(
-				admin_url( 'admin.php?page=scd-campaigns' ),
-				__( 'Campaign not found.', 'smart-cycle-discounts' ),
-				'error'
-			);
-			return;
-		}
-
-		// Populate basic step data
-		$this->session->set_step_data( 'basic', array(
-			'name'        => $campaign->get_name(),  // Fixed: was 'campaign_name'
-			'description' => $campaign->get_description(),
-			'priority'    => $campaign->get_priority()
-		) );
-
-		// Populate products step data
-		$metadata = $campaign->get_metadata();
-		$this->session->set_step_data( 'products', array(
-			'product_selection_type' => $campaign->get_product_selection_type(),
-			'product_ids'            => $campaign->get_product_ids() ?: array(),
-			'category_ids'           => $campaign->get_category_ids() ?: array(),
-			'random_count'           => $metadata['random_count'] ?? 10,
-			'conditions'             => $metadata['product_conditions'] ?? array(),
-			'conditions_logic'       => $metadata['product_conditions_logic'] ?? 'all',
-			'smart_criteria'         => $metadata['smart_criteria'] ?? ''
-		) );
-
-		// Populate discounts step data
-		$discount_type = $campaign->get_discount_type();
-		$discount_value = $campaign->get_discount_value();
-		$discount_rules = $campaign->get_discount_rules() ?: array();
-
-		$this->session->set_step_data( 'discounts', array(
-			'discount_type'              => $discount_type,
-			'discount_value_percentage'  => 'percentage' === $discount_type ? $discount_value : '',
-			'discount_value_fixed'       => 'fixed' === $discount_type ? $discount_value : '',
-			'conditions'                 => $discount_rules['conditions'] ?? array(),
-			'conditions_logic'           => $discount_rules['conditions_logic'] ?? 'all',
-			'usage_limit_per_customer'   => $discount_rules['usage_limit_per_customer'] ?? '',
-			'total_usage_limit'          => $discount_rules['total_usage_limit'] ?? '',
-			'apply_to'                   => $discount_rules['apply_to'] ?? 'per_item',
-			'max_discount_amount'        => $discount_rules['max_discount_amount'] ?? '',
-			'minimum_quantity'           => $discount_rules['minimum_quantity'] ?? '',
-			'minimum_order_amount'       => $discount_rules['minimum_order_amount'] ?? '',
-			'stack_with_others'          => $discount_rules['stack_with_others'] ?? false,
-			'allow_coupons'              => $discount_rules['allow_coupons'] ?? false,
-			'apply_to_sale_items'        => $discount_rules['apply_to_sale_items'] ?? false
-		) );
-
-		// Populate schedule step data
-		$starts_at = $campaign->get_starts_at();
-		$ends_at = $campaign->get_ends_at();
-		$campaign_timezone = $campaign->get_timezone();
-
-		// Use DateTimeSplitter to convert UTC to campaign timezone
-		$start_split = SCD_DateTime_Splitter::for_editing( $starts_at, $campaign_timezone );
-		$end_split = SCD_DateTime_Splitter::for_editing( $ends_at, $campaign_timezone );
-
-		$this->session->set_step_data( 'schedule', array(
-			'start_type' => $starts_at ? 'scheduled' : 'immediate',
-			'start_date' => $start_split['date'] ?? '',
-			'start_time' => $start_split['time'] ?? '00:00',
-			'end_date'   => $end_split['date'] ?? '',
-			'end_time'   => $end_split['time'] ?? '23:59',
-			'timezone'   => $campaign_timezone
-		) );
-
-		// Mark campaign data as loaded
-		$this->session->set( 'campaign_data_loaded', true );
-
-		// Save session to persist the loaded data
-		$this->session->save();
-
-		$this->logger->info( 'Loaded campaign data into wizard session', array(
-			'campaign_id'   => $campaign_id,
-			'campaign_name' => $campaign->get_name()
-		) );
 	}
 }

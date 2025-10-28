@@ -21,6 +21,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class SCD_Export_Handler extends SCD_Abstract_Analytics_Handler {
 
+    use SCD_License_Validation_Trait;
+
     /**
      * Export service instance.
      *
@@ -30,26 +32,16 @@ class SCD_Export_Handler extends SCD_Abstract_Analytics_Handler {
     private $export_service;
 
     /**
-     * Feature gate instance.
-     *
-     * @since    1.0.0
-     * @var      SCD_Feature_Gate
-     */
-    private $feature_gate;
-
-    /**
      * Initialize the handler.
      *
      * @since    1.0.0
      * @param    SCD_Metrics_Calculator    $metrics_calculator    Metrics calculator.
      * @param    SCD_Logger                $logger                Logger instance.
      * @param    SCD_Export_Service        $export_service        Export service.
-     * @param    SCD_Feature_Gate          $feature_gate          Feature gate.
      */
-    public function __construct( $metrics_calculator, $logger, $export_service, $feature_gate = null ) {
+    public function __construct( $metrics_calculator, $logger, $export_service ) {
         parent::__construct( $metrics_calculator, $logger );
         $this->export_service = $export_service;
-        $this->feature_gate = $feature_gate;
     }
 
     /**
@@ -79,12 +71,10 @@ class SCD_Export_Handler extends SCD_Abstract_Analytics_Handler {
             );
         }
 
-        // Check if user can export data (premium feature)
-        if ( $this->feature_gate && ! $this->feature_gate->can_export_data() ) {
-            return $this->error(
-                __( 'Export functionality is available in the Pro version. Please upgrade to access this feature.', 'smart-cycle-discounts' ),
-                'feature_locked'
-            );
+        // Check if user can export data (premium feature - critical tier)
+        $license_check = $this->validate_license( 'critical' );
+        if ( $this->license_validation_failed( $license_check ) ) {
+            return $this->license_error_response( $license_check );
         }
 
         // Sanitize inputs

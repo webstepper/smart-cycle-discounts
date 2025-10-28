@@ -72,10 +72,12 @@ class SCD_Validation {
 
 		// Check exact routes
 		$exact_routes = array(
-			'campaign_complete' => array( 'class' => 'SCD_Wizard_Validation', 'method' => 'validate_complete_campaign' ),
-			'ajax_action'       => array( 'class' => 'SCD_AJAX_Validation', 'method' => 'validate' ),
-			'ajax_navigation'   => array( 'class' => 'SCD_Wizard_Validation', 'method' => 'validate_navigation' ),
-			'product_meta'      => array( 'class' => 'SCD_AJAX_Validation', 'method' => 'validate_product_meta' ),
+			'campaign_complete'          => array( 'class' => 'SCD_Wizard_Validation', 'method' => 'validate_complete_campaign' ),
+			'campaign_compiled'          => array( 'class' => 'SCD_Wizard_Validation', 'method' => 'validate_compiled_campaign' ),
+			'campaign_update'            => array( 'class' => 'SCD_Wizard_Validation', 'method' => 'validate_campaign_update' ),
+			'ajax_action'                => array( 'class' => 'SCD_AJAX_Validation', 'method' => 'validate' ),
+			'ajax_navigation'            => array( 'class' => 'SCD_Wizard_Validation', 'method' => 'validate_navigation' ),
+			'product_meta'               => array( 'class' => 'SCD_AJAX_Validation', 'method' => 'validate_product_meta' ),
 		);
 
 		if ( isset( $exact_routes[ $context ] ) ) {

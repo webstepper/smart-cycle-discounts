@@ -130,10 +130,10 @@ class SCD_Field_Definitions {
 				'default'      => array( 'all' ),
 				'sanitizer'    => array( __CLASS__, 'sanitize_array_values' ),
 				'validator'    => array( __CLASS__, 'validate_category_ids' ),
-				'handler'      => 'SCD.Modules.Products.CategoryFilter',
+				'handler'      => 'SCD.Modules.Products.Picker',
 				'methods'      => array(
-					'collect'  => 'getValue',
-					'populate' => 'setValue',
+					'collect'  => 'getCategoryIds',
+					'populate' => 'setCategoryIds',
 				),
 				'attributes'   => array(
 					'multiple' => true,
@@ -142,21 +142,13 @@ class SCD_Field_Definitions {
 				'field_name'   => 'category_ids',
 			),
 			'product_ids' => array(
-				'type'         => 'complex',
+				'type'         => 'hidden',
 				'label'        => __( 'Products', 'smart-cycle-discounts' ),
 				'required'     => true,
-				'default'      => array(),
-				'sanitizer'    => array( __CLASS__, 'sanitize_array_values' ),
+				'default'      => '',
+				'sanitizer'    => array( __CLASS__, 'sanitize_product_ids_csv' ),
 				'validator'    => array( __CLASS__, 'validate_product_ids' ),
-				'handler'      => 'SCD.Modules.Products.TomSelect',
-				'methods'      => array(
-					'collect'  => 'getValue',
-					'populate' => 'setValue',
-				),
-				'attributes'   => array(
-					'multiple' => true,
-					'class' => 'scd-product-select',
-				),
+				'selector'     => '#scd-product-ids-hidden',
 				'conditional'  => array(
 					'field' => 'product_selection_type',
 					'value' => 'specific_products',
@@ -198,17 +190,12 @@ class SCD_Field_Definitions {
 				'field_name'   => 'smart_criteria',
 			),
 			'conditions' => array(
-				'type'         => 'complex',
+				'type'         => 'nested_array',
 				'label'        => __( 'Product Conditions', 'smart-cycle-discounts' ),
 				'required'     => false,
 				'default'      => array(),
 				'sanitizer'    => array( __CLASS__, 'sanitize_conditions' ),
 				'validator'    => array( __CLASS__, 'validate_conditions' ),
-				'handler'      => 'SCD.Modules.Products.Filter',
-				'methods'      => array(
-					'collect'  => 'getConditions',
-					'populate' => 'setConditions',
-				),
 				'field_name'   => 'conditions',
 			),
 			'conditions_logic' => array(
@@ -861,10 +848,15 @@ class SCD_Field_Definitions {
 					}
 				}
 
+				// Add selector (for hidden fields and custom selectors)
+				if ( isset( $field_schema['selector'] ) ) {
+					$js_field['selector'] = $field_schema['selector'];
+				}
+
 				// Add conditional information
 				if ( isset( $field_schema['conditional'] ) ) {
 					$js_field['conditional'] = array(
-						'field' => self::to_camel_case( $field_schema['conditional']['field'] ),
+						'field' => $field_schema['conditional']['field'], // Keep snake_case to match form field names
 						'value' => $field_schema['conditional']['value'],
 					);
 				}
@@ -1408,6 +1400,35 @@ class SCD_Field_Definitions {
 		}
 
 		return array_map( 'sanitize_text_field', $value );
+	}
+
+	/**
+	 * Sanitize product IDs from CSV string to array
+	 *
+	 * Converts comma-separated product IDs from hidden field to array of integers.
+	 *
+	 * @since    1.0.0
+	 * @param    string|array    $value    CSV string or array of product IDs.
+	 * @return   array                     Array of sanitized product IDs.
+	 */
+	public static function sanitize_product_ids_csv( $value ) {
+		// If already an array, sanitize it
+		if ( is_array( $value ) ) {
+			return array_filter( array_map( 'absint', $value ) );
+		}
+
+		// If empty string, return empty array
+		if ( empty( $value ) || ! is_string( $value ) ) {
+			return array();
+		}
+
+		// Split CSV, sanitize, filter out zeros
+		$ids = explode( ',', $value );
+		$ids = array_map( 'trim', $ids );
+		$ids = array_map( 'absint', $ids );
+		$ids = array_filter( $ids );
+
+		return array_values( $ids );
 	}
 
 	/**

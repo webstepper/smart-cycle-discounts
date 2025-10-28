@@ -102,8 +102,9 @@ class SCD_Complete_Wizard_Handler {
             // Status is already correctly set by compiler based on start time
             // No need to override it here
 
-            // Add skip_wizard_validation flag to bypass incompatible validation
-            $campaign_data['_skip_wizard_validation'] = true;
+            // Set validation context for compiled campaign data
+            // This tells Campaign_Manager to use 'campaign_compiled' validation
+            $campaign_data['_validation_context'] = 'campaign_compiled';
 
             if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
                 error_log( '[Complete Wizard] Compiled campaign data: ' . print_r( $campaign_data, true ) );

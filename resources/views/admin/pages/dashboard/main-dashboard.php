@@ -20,11 +20,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Main Dashboard Template
  *
+ * Data is provided by Dashboard Service with 5-minute caching (PHASE 3).
+ * Cache automatically invalidates when campaigns change.
+ *
  * @var array                        $metrics                  Dashboard metrics (includes pre-calculated trends)
  * @var array                        $campaign_stats           Campaign status breakdown
  * @var array                        $top_campaigns            Top campaigns by revenue
  * @var array                        $campaign_health          Campaign health data
  * @var array                        $campaign_suggestions     Campaign suggestions
+ * @var array                        $all_campaigns            Recent campaigns with pre-computed display data (PHASE 2)
+ * @var array                        $timeline_campaigns       Timeline campaigns with positioning data (PHASE 2)
  * @var bool                         $is_premium               Premium status
  * @var int                          $campaign_limit           Campaign limit
  * @var SCD_Feature_Gate             $feature_gate             Feature gate instance
@@ -37,6 +42,8 @@ $campaign_stats = $campaign_stats ?? array();
 $top_campaigns = $top_campaigns ?? array();
 $campaign_health = $campaign_health ?? array( 'status' => 'success', 'issues' => array(), 'warnings' => array(), 'success_messages' => array() );
 $campaign_suggestions = $campaign_suggestions ?? array();
+$all_campaigns = $all_campaigns ?? array();
+$timeline_campaigns = $timeline_campaigns ?? array();
 $is_premium = $is_premium ?? false;
 $campaign_limit = $campaign_limit ?? 3;
 
@@ -65,194 +72,9 @@ $approaching_limit = ! $is_premium && 0 !== $campaign_limit && $active_campaigns
 	<hr class="wp-header-end">
 
 	<?php
-	// 1. SMART CAMPAIGN HEALTH WIDGET (Always Visible - Basic + Full Analysis)
-	$health_status = $campaign_health['status'];
-	$health_icon = 'success' === $health_status ? 'yes-alt' : ( 'warning' === $health_status ? 'warning' : 'dismiss' );
-	$health_class = 'scd-health-' . $health_status;
-	$quick_stats = isset( $campaign_health['quick_stats'] ) ? $campaign_health['quick_stats'] : array( 'total_analyzed' => 0, 'issues_count' => 0, 'warnings_count' => 0 );
-	$categories = isset( $campaign_health['categories'] ) ? $campaign_health['categories'] : array();
+	// 1. SMART CAMPAIGN HEALTH WIDGET (PHASE 4: Extracted to Partial)
+	require __DIR__ . '/partials/health-widget.php';
 	?>
-	<div class="scd-campaign-health-widget <?php echo esc_attr( $health_class ); ?>" id="scd-health-widget">
-		<div class="scd-health-header">
-			<div class="scd-health-header-left">
-				<div class="scd-health-icon">
-					<span class="dashicons dashicons-<?php echo esc_attr( $health_icon ); ?>"></span>
-				</div>
-				<div class="scd-health-title">
-					<h3>
-						<?php
-						if ( 'success' === $health_status ) {
-							esc_html_e( 'Campaign Health: All Systems Running Smoothly', 'smart-cycle-discounts' );
-						} elseif ( 'warning' === $health_status ) {
-							esc_html_e( 'Campaign Health: Needs Attention', 'smart-cycle-discounts' );
-						} else {
-							esc_html_e( 'Campaign Health: Critical Issues', 'smart-cycle-discounts' );
-						}
-						?>
-					</h3>
-					<div class="scd-health-subtitle">
-						<?php
-						echo esc_html(
-							sprintf(
-								/* translators: %d: number of campaigns analyzed */
-								_n( '%d campaign analyzed', '%d campaigns analyzed', $quick_stats['total_analyzed'], 'smart-cycle-discounts' ),
-								$quick_stats['total_analyzed']
-							)
-						);
-						?>
-						<span class="scd-health-divider">•</span>
-						<span class="scd-health-quick-stats">
-							<span class="scd-health-stat-critical"><?php echo esc_html( $quick_stats['issues_count'] ); ?> <?php esc_html_e( 'critical', 'smart-cycle-discounts' ); ?></span>
-							<span class="scd-health-divider">•</span>
-							<span class="scd-health-stat-warning"><?php echo esc_html( $quick_stats['warnings_count'] ); ?> <?php esc_html_e( 'warnings', 'smart-cycle-discounts' ); ?></span>
-						</span>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div class="scd-health-content">
-			<!-- Quick Health Categories -->
-			<?php if ( ! empty( $categories ) && $quick_stats['total_analyzed'] > 0 ) : ?>
-				<div class="scd-health-categories">
-					<?php foreach ( $categories as $category_key => $category_data ) : ?>
-						<?php
-						$category_status = $category_data['status'];
-						$category_count = $category_data['count'];
-						$category_icon = '';
-						$category_label = '';
-
-						switch ( $category_key ) {
-							case 'configuration':
-								$category_icon = 'admin-settings';
-								$category_label = __( 'Configuration', 'smart-cycle-discounts' );
-								break;
-							case 'coverage':
-								$category_icon = 'visibility';
-								$category_label = __( 'Coverage', 'smart-cycle-discounts' );
-								break;
-							case 'schedule':
-								$category_icon = 'calendar-alt';
-								$category_label = __( 'Schedule', 'smart-cycle-discounts' );
-								break;
-							case 'discount':
-								$category_icon = 'tag';
-								$category_label = __( 'Discount', 'smart-cycle-discounts' );
-								break;
-							case 'stock':
-								$category_icon = 'products';
-								$category_label = __( 'Stock', 'smart-cycle-discounts' );
-								break;
-							case 'conflicts':
-								$category_icon = 'randomize';
-								$category_label = __( 'Conflicts', 'smart-cycle-discounts' );
-								break;
-						}
-						?>
-						<div class="scd-health-category scd-health-category-<?php echo esc_attr( $category_status ); ?>">
-							<div class="scd-health-category-icon">
-								<span class="dashicons dashicons-<?php echo esc_attr( $category_icon ); ?>"></span>
-							</div>
-							<div class="scd-health-category-content">
-								<div class="scd-health-category-label"><?php echo esc_html( $category_label ); ?></div>
-								<div class="scd-health-category-status">
-									<?php if ( 'healthy' === $category_status ) : ?>
-										<span class="scd-badge scd-badge-success"><?php esc_html_e( 'Healthy', 'smart-cycle-discounts' ); ?></span>
-									<?php elseif ( 'warning' === $category_status ) : ?>
-										<span class="scd-badge scd-badge-warning">
-											<?php echo esc_html( sprintf( _n( '%d warning', '%d warnings', $category_count, 'smart-cycle-discounts' ), $category_count ) ); ?>
-										</span>
-									<?php else : ?>
-										<span class="scd-badge scd-badge-critical">
-											<?php echo esc_html( sprintf( _n( '%d issue', '%d issues', $category_count, 'smart-cycle-discounts' ), $category_count ) ); ?>
-										</span>
-									<?php endif; ?>
-								</div>
-							</div>
-						</div>
-					<?php endforeach; ?>
-				</div>
-			<?php endif; ?>
-
-			<!-- Success State -->
-			<?php if ( 'success' === $health_status && empty( $campaign_health['issues'] ) && empty( $campaign_health['warnings'] ) ) : ?>
-				<?php if ( 0 === $total_campaigns ) : ?>
-					<p class="scd-health-empty-message">
-						<?php esc_html_e( 'You don\'t have any campaigns yet. Create your first campaign to start tracking its health.', 'smart-cycle-discounts' ); ?>
-					</p>
-				<?php else : ?>
-					<p class="scd-health-success-message">
-						<span class="dashicons dashicons-yes-alt"></span>
-						<?php esc_html_e( 'All campaigns are configured correctly and running as expected. Great work!', 'smart-cycle-discounts' ); ?>
-					</p>
-					<?php if ( ! empty( $campaign_health['success_messages'] ) ) : ?>
-						<div class="scd-health-details">
-							<?php foreach ( $campaign_health['success_messages'] as $message ) : ?>
-								<div class="scd-health-detail-item">
-									<span class="dashicons dashicons-yes"></span>
-									<span><?php echo esc_html( $message ); ?></span>
-								</div>
-							<?php endforeach; ?>
-						</div>
-					<?php endif; ?>
-				<?php endif; ?>
-			<?php endif; ?>
-
-			<!-- Critical Issues -->
-			<?php if ( ! empty( $campaign_health['issues'] ) ) : ?>
-				<div class="scd-health-issues">
-					<div class="scd-health-section-title">
-						<span class="dashicons dashicons-warning"></span>
-						<?php esc_html_e( 'Critical Issues', 'smart-cycle-discounts' ); ?>
-					</div>
-					<?php foreach ( $campaign_health['issues'] as $issue ) : ?>
-						<div class="scd-health-item scd-health-critical">
-							<div class="scd-health-item-content">
-								<span class="dashicons dashicons-warning"></span>
-								<span><?php echo esc_html( $issue['message'] ); ?></span>
-							</div>
-							<?php if ( isset( $issue['campaign_id'] ) ) : ?>
-								<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns&action=edit&id=' . $issue['campaign_id'] ) ); ?>" class="button button-small">
-									<?php esc_html_e( 'Fix Now', 'smart-cycle-discounts' ); ?>
-								</a>
-							<?php elseif ( 'limit_reached' === $issue['type'] ) : ?>
-								<a href="<?php echo esc_url( $feature_gate->get_upgrade_url() ); ?>" class="button button-primary button-small">
-									<?php esc_html_e( 'Upgrade', 'smart-cycle-discounts' ); ?>
-								</a>
-							<?php endif; ?>
-						</div>
-					<?php endforeach; ?>
-				</div>
-			<?php endif; ?>
-
-			<!-- Warnings -->
-			<?php if ( ! empty( $campaign_health['warnings'] ) ) : ?>
-				<div class="scd-health-warnings">
-					<div class="scd-health-section-title">
-						<span class="dashicons dashicons-info"></span>
-						<?php esc_html_e( 'Warnings', 'smart-cycle-discounts' ); ?>
-					</div>
-					<?php foreach ( $campaign_health['warnings'] as $warning ) : ?>
-						<div class="scd-health-item scd-health-warning">
-							<div class="scd-health-item-content">
-								<span class="dashicons dashicons-info"></span>
-								<span><?php echo esc_html( $warning['message'] ); ?></span>
-							</div>
-							<?php if ( isset( $warning['campaign_id'] ) && in_array( $warning['type'], array( 'ending_soon', 'scheduled_past' ), true ) ) : ?>
-								<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns&action=edit&id=' . $warning['campaign_id'] ) ); ?>" class="button button-small">
-									<?php esc_html_e( 'Review', 'smart-cycle-discounts' ); ?>
-								</a>
-							<?php elseif ( 'approaching_limit' === $warning['type'] ) : ?>
-								<a href="<?php echo esc_url( $feature_gate->get_upgrade_url() ); ?>" class="button button-secondary button-small">
-									<?php esc_html_e( 'Learn More', 'smart-cycle-discounts' ); ?>
-								</a>
-							<?php endif; ?>
-						</div>
-					<?php endforeach; ?>
-				</div>
-			<?php endif; ?>
-		</div>
-	</div>
 
 	<?php
 	// 2. UPGRADE BANNER (Compact, Dismissable)
@@ -649,28 +471,11 @@ $approaching_limit = ! $is_premium && 0 !== $campaign_limit && $active_campaigns
 					</div>
 				</div>
 
+
 				<?php
-				// Get all campaigns and sort by urgency for display
-				// Fetch campaigns using the repository
-				global $wpdb;
-				$table_name = $wpdb->prefix . 'scd_campaigns';
-				$all_campaigns = $wpdb->get_results(
-					"SELECT id, name, status, starts_at, ends_at, discount_type, discount_value
-					FROM {$table_name}
-					WHERE deleted_at IS NULL
-					ORDER BY
-						CASE
-							WHEN status = 'active' AND ends_at IS NOT NULL AND ends_at <= DATE_ADD(NOW(), INTERVAL 7 DAY) THEN 1
-							WHEN status = 'active' THEN 2
-							WHEN status = 'scheduled' AND starts_at IS NOT NULL AND starts_at <= DATE_ADD(NOW(), INTERVAL 7 DAY) THEN 3
-							WHEN status = 'scheduled' THEN 4
-							WHEN status = 'paused' THEN 5
-							ELSE 6
-						END,
-						starts_at ASC
-					LIMIT 5",
-					ARRAY_A
-				);
+				// $all_campaigns is provided by Dashboard Service with pre-computed display data (PHASE 2)
+				// Sorted by urgency, with all time calculations and urgency flags already computed
+				// No database queries needed here - all calculations done in service layer
 
 				// Merge performance data from top_campaigns if available
 				$campaign_performance = array();
@@ -696,89 +501,13 @@ $approaching_limit = ! $is_premium && 0 !== $campaign_limit && $active_campaigns
 								$performance = isset( $campaign_performance[ $campaign_id ] ) ? $campaign_performance[ $campaign_id ] : null;
 								$has_performance = null !== $performance;
 
-								// Calculate urgency
-								$is_ending_soon = false;
-								$is_starting_soon = false;
-								$days_until_end = null;
-								$days_until_start = null;
-								$end_time_text = '';
-								$start_time_text = '';
 
-								if ( ! empty( $campaign['ends_at'] ) && 'active' === $campaign['status'] ) {
-									// Create DateTime object from UTC database string (same as Campaign class)
-									$end_date = new DateTime( $campaign['ends_at'], new DateTimeZone( 'UTC' ) );
-									$now_date = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
-
-									$diff_seconds = $end_date->getTimestamp() - $now_date->getTimestamp();
-									$days_until_end = max( 0, floor( $diff_seconds / DAY_IN_SECONDS ) );
-									$is_ending_soon = 0 <= $days_until_end && 7 >= $days_until_end && 0 < $diff_seconds;
-
-									// Calculate time text for display
-									if ( 0 === $days_until_end && 0 < $diff_seconds ) {
-										// Less than 1 day - show hours and minutes
-										$hours = floor( $diff_seconds / HOUR_IN_SECONDS );
-										$minutes = floor( ( $diff_seconds % HOUR_IN_SECONDS ) / MINUTE_IN_SECONDS );
-
-										if ( 0 < $hours ) {
-											$end_time_text = sprintf(
-												/* translators: 1: hours, 2: minutes */
-												_n( 'Ends in %1$d hour %2$d min', 'Ends in %1$d hours %2$d min', $hours, 'smart-cycle-discounts' ),
-												$hours,
-												$minutes
-											);
-										} else {
-											$end_time_text = sprintf(
-												/* translators: %d: minutes */
-												_n( 'Ends in %d minute', 'Ends in %d minutes', $minutes, 'smart-cycle-discounts' ),
-												$minutes
-											);
-										}
-									} else {
-										$end_time_text = sprintf(
-											/* translators: %d: days */
-											_n( 'Ends in %d day', 'Ends in %d days', $days_until_end, 'smart-cycle-discounts' ),
-											$days_until_end
-										);
-									}
-								}
-
-								if ( ! empty( $campaign['starts_at'] ) && 'scheduled' === $campaign['status'] ) {
-									// Create DateTime object from UTC database string (same as Campaign class)
-									$start_date = new DateTime( $campaign['starts_at'], new DateTimeZone( 'UTC' ) );
-									$now_date = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
-
-									$diff_seconds = $start_date->getTimestamp() - $now_date->getTimestamp();
-									$days_until_start = max( 0, floor( $diff_seconds / DAY_IN_SECONDS ) );
-									$is_starting_soon = 0 <= $days_until_start && 7 >= $days_until_start && 0 < $diff_seconds;
-
-									// Calculate time text for display
-									if ( 0 === $days_until_start && 0 < $diff_seconds ) {
-										// Less than 1 day - show hours and minutes
-										$hours = floor( $diff_seconds / HOUR_IN_SECONDS );
-										$minutes = floor( ( $diff_seconds % HOUR_IN_SECONDS ) / MINUTE_IN_SECONDS );
-
-										if ( 0 < $hours ) {
-											$start_time_text = sprintf(
-												/* translators: 1: hours, 2: minutes */
-												_n( 'Starts in %1$d hour %2$d min', 'Starts in %1$d hours %2$d min', $hours, 'smart-cycle-discounts' ),
-												$hours,
-												$minutes
-											);
-										} else {
-											$start_time_text = sprintf(
-												/* translators: %d: minutes */
-												_n( 'Starts in %d minute', 'Starts in %d minutes', $minutes, 'smart-cycle-discounts' ),
-												$minutes
-											);
-										}
-									} else {
-										$start_time_text = sprintf(
-											/* translators: %d: days */
-											_n( 'Starts in %d day', 'Starts in %d days', $days_until_start, 'smart-cycle-discounts' ),
-											$days_until_start
-										);
-									}
-								}
+								// Use pre-computed display data from Dashboard Service (PHASE 2)
+								// All DateTime calculations done in service layer
+								$is_ending_soon = $campaign['is_ending_soon'] ?? false;
+								$is_starting_soon = $campaign['is_starting_soon'] ?? false;
+								$end_time_text = $campaign['time_remaining_text'] ?? '';
+								$start_time_text = $campaign['time_until_start_text'] ?? '';
 								?>
 								<div class="scd-campaign-card scd-campaign-status-<?php echo esc_attr( $campaign['status'] ); ?> <?php echo $is_ending_soon ? 'scd-campaign-urgent' : ''; ?>">
 									<div class="scd-campaign-card-header">
@@ -857,26 +586,10 @@ $approaching_limit = ! $is_premium && 0 !== $campaign_limit && $active_campaigns
 
 				<!-- Campaign Timeline Visualization -->
 				<?php
-				// Get active and scheduled campaigns for timeline.
-				global $wpdb;
-				$table_name = $wpdb->prefix . 'scd_campaigns';
+				// $timeline_campaigns is provided by Dashboard Service with pre-computed positioning (PHASE 2)
+				// All position calculations and date formatting done in service layer
 
-				$timeline_campaigns = $wpdb->get_results(
-					"SELECT id, name, status, starts_at, ends_at
-					FROM {$table_name}
-					WHERE deleted_at IS NULL
-						AND status IN ('active', 'scheduled')
-					ORDER BY
-						CASE WHEN starts_at IS NULL THEN 1 ELSE 0 END,
-						starts_at ASC
-					LIMIT 10",
-					ARRAY_A
-				);
-
-				// Debug: Show campaign count (remove this after testing).
-				// echo '<!-- Timeline query returned: ' . count( $timeline_campaigns ) . ' campaigns -->';
 				?>
-
 				<div class="scd-campaign-timeline-section">
 					<h3 class="scd-subsection-title">
 						<span class="dashicons dashicons-calendar-alt"></span>
@@ -913,39 +626,14 @@ $approaching_limit = ! $is_premium && 0 !== $campaign_limit && $active_campaigns
 						<div class="scd-timeline-list">
 							<?php
 							foreach ( $timeline_campaigns as $timeline_campaign ) :
-								// Create DateTime objects from UTC database strings (same as Campaign class)
-								$start_date = ! empty( $timeline_campaign['starts_at'] ) ? new DateTime( $timeline_campaign['starts_at'], new DateTimeZone( 'UTC' ) ) : null;
-								$end_date = ! empty( $timeline_campaign['ends_at'] ) ? new DateTime( $timeline_campaign['ends_at'], new DateTimeZone( 'UTC' ) ) : null;
-								$start_time = $start_date ? $start_date->getTimestamp() : null;
-								$end_time = $end_date ? $end_date->getTimestamp() : null;
-
-								// Calculate position and width for progress bar.
-								$start_pos = 0;
-								$width = 100;
-
-								if ( null !== $start_time && $timeline_start < $start_time ) {
-									$start_pos = ( ( $start_time - $timeline_start ) / ( $timeline_end - $timeline_start ) ) * 100;
-								}
-
-								if ( null !== $end_time && $timeline_end > $end_time ) {
-									$end_pos = ( ( $end_time - $timeline_start ) / ( $timeline_end - $timeline_start ) ) * 100;
-									$width = $end_pos - $start_pos;
-								} elseif ( null !== $start_time ) {
-									$width = 100 - $start_pos;
-								}
-
-								// Ensure minimum visible width (2%).
-								$width = max( 2, $width );
-
-								// Format dates.
-								$start_date = null !== $start_time ? wp_date( 'M j', $start_time ) : __( 'Ongoing', 'smart-cycle-discounts' );
-								$end_date = null !== $end_time ? wp_date( 'M j', $end_time ) : __( 'No end', 'smart-cycle-discounts' );
-								$date_range = $start_date . ' - ' . $end_date;
-
-								// Get campaign status.
+								// Use pre-computed position data from Dashboard Service (PHASE 2)
+								$position = $timeline_campaign['timeline_position'] ?? array();
+								$start_pos = $position['left'] ?? 0;
+								$width = $position['width'] ?? 100;
+								$date_range = $position['date_range'] ?? '';
 								$status = $timeline_campaign['status'];
-
-								// Translatable status labels.
+								
+								// Translatable status labels
 								$status_labels = array(
 									'active'    => __( 'Active', 'smart-cycle-discounts' ),
 									'scheduled' => __( 'Scheduled', 'smart-cycle-discounts' ),
@@ -954,6 +642,7 @@ $approaching_limit = ! $is_premium && 0 !== $campaign_limit && $active_campaigns
 									'draft'     => __( 'Draft', 'smart-cycle-discounts' ),
 								);
 								$status_label = isset( $status_labels[ $status ] ) ? $status_labels[ $status ] : ucfirst( $status );
+								?>
 								?>
 								<div class="scd-timeline-campaign">
 									<div class="scd-timeline-campaign-info">

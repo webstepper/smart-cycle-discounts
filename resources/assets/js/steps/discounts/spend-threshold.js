@@ -22,8 +22,8 @@
 
 		// Get currency symbol (simpler approach)
 		this.currencySymbol = '$'; // Default
-		if ( window.scdDiscountStepData && window.scdDiscountStepData.currency_symbol ) {
-			this.currencySymbol = this.decodeHtmlEntity( window.scdDiscountStepData.currency_symbol );
+		if ( window.scdDiscountStepData && window.scdDiscountStepData.currencySymbol ) {
+			this.currencySymbol = this.decodeHtmlEntity( window.scdDiscountStepData.currencySymbol );
 		}
 
 		// Ready state tracking (following advanced filters pattern)
@@ -593,13 +593,12 @@
 			// Handle combined thresholds format (single source of truth)
 			if ( !hasData && data.thresholds ) {
 				// Normalize threshold objects
-				// Support both new field names (threshold, discount_value) and legacy (amount, discount, minAmount, discountValue)
 				var normalizedThresholds = Array.isArray( data.thresholds ) ?
 					data.thresholds.map( function( threshold ) {
 						return {
-							threshold: threshold.threshold || threshold.amount || threshold.minAmount || 0,
-							discount_value: threshold.discount_value || threshold.discount || threshold.discountValue || 0,
-							discount_type: threshold.discount_type || threshold.type || threshold.discountType || 'percentage'
+							threshold: threshold.threshold || 0,
+							discount_value: threshold.discountValue || 0,
+							discount_type: threshold.discountType || 'percentage'
 						};
 					} ) : [];
 

@@ -28,24 +28,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 class SCD_Main_Dashboard_Data_Handler extends SCD_Abstract_Ajax_Handler {
 
 	/**
-	 * Main dashboard page instance.
+	 * Dashboard service instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Main_Dashboard_Page    $dashboard_page    Dashboard page instance.
+	 * @var      SCD_Dashboard_Service    $dashboard_service    Dashboard service instance.
 	 */
-	private $dashboard_page;
+	private $dashboard_service;
 
 	/**
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Main_Dashboard_Page    $dashboard_page    Dashboard page instance.
-	 * @param    SCD_Logger                 $logger            Logger instance.
+	 * @param    SCD_Dashboard_Service    $dashboard_service    Dashboard service instance.
+	 * @param    SCD_Logger               $logger               Logger instance.
 	 */
-	public function __construct( $dashboard_page, $logger = null ) {
+	public function __construct( $dashboard_service, $logger = null ) {
 		parent::__construct( $logger );
-		$this->dashboard_page = $dashboard_page;
+		$this->dashboard_service = $dashboard_service;
 	}
 
 	/**
@@ -77,14 +77,11 @@ class SCD_Main_Dashboard_Data_Handler extends SCD_Abstract_Ajax_Handler {
 	 */
 	public function handle( $request ) {
 		try {
-			// Get dashboard data using reflection to access private method
-			// This is necessary because get_dashboard_data is private
-			$reflection = new ReflectionClass( $this->dashboard_page );
-			$method = $reflection->getMethod( 'get_dashboard_data' );
-			$method->setAccessible( true );
-
+			// Get dashboard data via service layer (clean, no reflection hack)
 			// Fixed 7-day range for free tier
-			$data = $method->invoke( $this->dashboard_page, '7days' );
+			$data = $this->dashboard_service->get_dashboard_data( array(
+				'date_range' => '7days',
+			) );
 
 			// Return formatted response
 			return array(
@@ -95,18 +92,6 @@ class SCD_Main_Dashboard_Data_Handler extends SCD_Abstract_Ajax_Handler {
 					'top_campaigns' => isset( $data['top_campaigns'] ) ? $data['top_campaigns'] : array(),
 					'is_premium' => isset( $data['is_premium'] ) ? $data['is_premium'] : false,
 					'campaign_limit' => isset( $data['campaign_limit'] ) ? $data['campaign_limit'] : 3,
-				),
-			);
-
-		} catch ( ReflectionException $e ) {
-			$this->logger->error( 'Dashboard data reflection failed', array(
-				'error' => $e->getMessage(),
-			) );
-
-			return array(
-				'success' => false,
-				'data' => array(
-					'message' => __( 'Failed to load dashboard data (reflection error)', 'smart-cycle-discounts' ),
 				),
 			);
 

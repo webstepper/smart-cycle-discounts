@@ -301,12 +301,16 @@
 			var fieldName = condition.field;
 			var expectedValue = condition.value;
 
-			// Convert camelCase field name to snake_case for HTML form field lookup
-			// Field definitions use camelCase, but HTML form fields use snake_case
-			var htmlFieldName = window.SCD && window.SCD.Utils && window.SCD.Utils.camelToSnakeCase ?
-				window.SCD.Utils.camelToSnakeCase( fieldName ) : fieldName;
+			// Try to get value with multiple naming conventions
+			// collectData() returns camelCase keys, but field definitions use snake_case
+			var actualValue = allValues[fieldName]; // Try original name first (snake_case from PHP)
 
-			var actualValue = allValues[htmlFieldName];
+			// If not found, try snake_case conversion
+			if ( undefined === actualValue ) {
+				var htmlFieldName = window.SCD && window.SCD.Utils && window.SCD.Utils.camelToSnakeCase ?
+					window.SCD.Utils.camelToSnakeCase( fieldName ) : fieldName;
+				actualValue = allValues[htmlFieldName];
+			}
 
 			// Array of possible values
 			if ( Array.isArray( expectedValue ) ) {
@@ -657,13 +661,16 @@
 	 * @returns {object} Form values
 	 */
 	ValidationManager.prototype._collectFormValues = function( $form ) {
+
 		var values = {};
-		
+
 		if ( !$form || !$form.length ) {
 			return values;
 		}
-		
-		$form.serializeArray().forEach( function( item ) {
+
+		var serializedArray = $form.serializeArray();
+
+		serializedArray.forEach( function( item ) {
 			// Handle array fields
 			if ( item.name.indexOf( '[]' ) !== -1 ) {
 				var name = item.name.replace( '[]', '' );
@@ -675,7 +682,7 @@
 				values[item.name] = item.value;
 			}
 		} );
-		
+
 		// Include unchecked checkboxes
 		$form.find( 'input[type="checkbox"]' ).each( function() {
 			var name = this.name;
@@ -683,7 +690,51 @@
 				values[name] = '';
 			}
 		} );
-		
+
+		// CRITICAL FIX: Collect complex fields using the SAME pattern as collectData()
+		// Tom Select and other complex components manage state in JavaScript,
+		// not in DOM. DOM state lags behind due to async updates.
+		// Use the existing collectComplexField() method that persistence already uses.
+		if ( window.SCD && window.SCD.FieldDefinitions ) {
+			// Get the step name from the form
+			var stepName = $form.data( 'step' ) || $form.closest( '[data-step]' ).data( 'step' );
+
+			if ( stepName ) {
+				// Find the orchestrator for this step
+				var orchestratorKey = stepName.charAt( 0 ).toUpperCase() + stepName.slice( 1 ) + 'Orchestrator';
+				var orchestrator = window.SCD.Steps && window.SCD.Steps[orchestratorKey];
+
+
+				if ( orchestrator && 'function' === typeof orchestrator.collectComplexField ) {
+					// Get field definitions for this step
+					var stepFields = window.SCD.FieldDefinitions.getStepFields( stepName ) || {};
+
+					// Collect complex fields using the SAME method as persistence
+					for ( var fieldName in stepFields ) {
+						if ( stepFields.hasOwnProperty( fieldName ) ) {
+							var fieldDef = stepFields[fieldName];
+
+							// Only process complex fields
+							if ( 'complex' === fieldDef.type ) {
+								// Convert to snake_case for HTML field names
+								var htmlFieldName = window.SCD.Utils && window.SCD.Utils.camelToSnakeCase
+									? window.SCD.Utils.camelToSnakeCase( fieldName )
+									: fieldName;
+
+								// Use the SAME collectComplexField method as persistence
+								var complexValue = orchestrator.collectComplexField( fieldDef );
+
+								if ( complexValue !== null && complexValue !== undefined ) {
+									values[htmlFieldName] = complexValue;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+
 		return values;
 	};
 	
@@ -748,21 +799,17 @@
 	 * @returns {object} { ok: boolean, errors: object, clean: object }
 	 */
 	ValidationManager.prototype.validateStep = function( stepName, allStepData ) {
+
 		var stepResult = {
 			ok: true,
 			errors: {},
 			clean: {}
 		};
-		
-		// Find step container
-		var $stepContainer = $( '.scd-wizard-step[data-step="' + stepName + '"]' );
-		if ( !$stepContainer.length ) {
-			$stepContainer = $( '#scd-step-' + stepName );
-		}
-		if ( !$stepContainer.length ) {
-			$stepContainer = $( '.scd-wizard-step--' + stepName );
-		}
-		
+
+		// Find step container using the ACTUAL DOM structure from PHP
+		// The wizard renders: <div class="scd-wizard-content scd-wizard-layout" data-step="products">
+		var $stepContainer = $( '.scd-wizard-content[data-step="' + stepName + '"]' );
+
 		if ( !$stepContainer.length ) {
 			// CRITICAL FIX: Container not found - validation MUST fail for safety
 			// Never assume valid when we cannot verify - fail closed, not fail open
@@ -778,21 +825,26 @@
 				clean: {}
 			};
 		}
-		
+
+		var $form = $stepContainer.find( 'form' ).first();
+
 		// Build validation context
 		var validationContext = {
 			stepId: stepName,
-			allValues: allStepData || this._collectFormValues( $stepContainer.find( 'form' ).first() ),
-			visibilityMap: this._computeVisibilityMap( $stepContainer.find( 'form' ).first() )
+			allValues: allStepData || this._collectFormValues( $form ),
+			visibilityMap: this._computeVisibilityMap( $form )
 		};
+
 		
 		// Get field definitions for this step
 		if ( window.SCD && window.SCD.FieldDefinitions && window.SCD.FieldDefinitions.getStepFields ) {
 			var stepFields = window.SCD.FieldDefinitions.getStepFields( stepName );
 
+
 			// CRITICAL FIX: Check if stepFields has actual fields, not just truthy check
 			// Empty object {} is truthy but has no fields, which would skip validation
 			var hasFields = stepFields && Object.keys( stepFields ).length > 0;
+
 
 			if ( hasFields ) {
 				// Validate each field defined in the schema
@@ -803,11 +855,15 @@
 							SCD.Utils.camelToSnakeCase( fieldName ) : fieldName;
 
 						var value = validationContext.allValues[htmlFieldName];
+
+
 						var fieldResult = this.validateField( htmlFieldName, value, validationContext );
+
 
 						if ( !fieldResult.ok ) {
 							stepResult.ok = false;
 							stepResult.errors[htmlFieldName] = fieldResult.errors;
+							console.error( '[ValidationManager] - VALIDATION FAILED for', htmlFieldName, ':', fieldResult.errors );
 						}
 
 						// Always store clean value
@@ -836,7 +892,8 @@
 			stepResult.errors = formResult.errors;
 			stepResult.clean = formResult.clean;
 		}
-		
+
+
 		return stepResult;
 	};
 

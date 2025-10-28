@@ -342,6 +342,26 @@ class SCD_Service_Definitions {
                 }
             ),
 
+            'license_manager' => array(
+                'class' => 'SCD_License_Manager',
+                'singleton' => true,
+                'dependencies' => array(),
+                'factory' => function($container) {
+                    require_once SCD_INCLUDES_DIR . 'admin/licensing/class-license-manager.php';
+                    return SCD_License_Manager::instance();
+                }
+            ),
+
+            'license_notices' => array(
+                'class' => 'SCD_License_Notices',
+                'singleton' => true,
+                'dependencies' => array(),
+                'factory' => function($container) {
+                    require_once SCD_INCLUDES_DIR . 'admin/licensing/class-license-notices.php';
+                    return new SCD_License_Notices();
+                }
+            ),
+
             'upgrade_prompt_manager' => array(
                 'class' => 'SCD_Upgrade_Prompt_Manager',
                 'singleton' => true,
@@ -558,8 +578,27 @@ class SCD_Service_Definitions {
                     }
                 }
             ),
-            
-            
+
+            'idempotency_service' => array(
+                'class' => 'SCD_Idempotency_Service',
+                'singleton' => false,
+                'dependencies' => array('wizard_state_service'),
+                'factory' => function($container) {
+                    return new SCD_Idempotency_Service(
+                        $container->get('wizard_state_service')
+                    );
+                }
+            ),
+
+            'step_data_transformer' => array(
+                'class' => 'SCD_Step_Data_Transformer',
+                'singleton' => false,
+                'factory' => function($container) {
+                    return new SCD_Step_Data_Transformer();
+                }
+            ),
+
+
             'wizard_manager' => array(
                 'class' => 'SCD_Wizard_Manager',
                 'singleton' => true,
@@ -791,7 +830,7 @@ class SCD_Service_Definitions {
             'main_dashboard_page' => array(
                 'class' => 'SCD_Main_Dashboard_Page',
                 'singleton' => true,
-                'dependencies' => array('analytics_dashboard', 'campaign_repository', 'feature_gate', 'upgrade_prompt_manager', 'logger', 'campaign_health_service'),
+                'dependencies' => array('analytics_dashboard', 'campaign_repository', 'feature_gate', 'upgrade_prompt_manager', 'logger', 'campaign_health_service', 'dashboard_service'),
                 'factory' => function($container) {
                     return new SCD_Main_Dashboard_Page(
                         $container->get('analytics_dashboard'),
@@ -799,7 +838,23 @@ class SCD_Service_Definitions {
                         $container->get('feature_gate'),
                         $container->get('upgrade_prompt_manager'),
                         $container->get('logger'),
-                        $container->get('campaign_health_service')
+                        $container->get('campaign_health_service'),
+                        $container->get('dashboard_service')
+                    );
+                }
+            ),
+
+            'dashboard_service' => array(
+                'class' => 'SCD_Dashboard_Service',
+                'singleton' => true,
+                'dependencies' => array('analytics_dashboard', 'campaign_repository', 'campaign_health_service', 'feature_gate', 'logger'),
+                'factory' => function($container) {
+                    return new SCD_Dashboard_Service(
+                        $container->get('analytics_dashboard'),
+                        $container->get('campaign_repository'),
+                        $container->get('campaign_health_service'),
+                        $container->get('feature_gate'),
+                        $container->get('logger')
                     );
                 }
             ),
@@ -807,10 +862,10 @@ class SCD_Service_Definitions {
             'main_dashboard_data_handler' => array(
                 'class' => 'SCD_Main_Dashboard_Data_Handler',
                 'singleton' => false,
-                'dependencies' => array('main_dashboard_page', 'logger'),
+                'dependencies' => array('dashboard_service', 'logger'),
                 'factory' => function($container) {
                     return new SCD_Main_Dashboard_Data_Handler(
-                        $container->get('main_dashboard_page'),
+                        $container->get('dashboard_service'),
                         $container->get('logger')
                     );
                 }

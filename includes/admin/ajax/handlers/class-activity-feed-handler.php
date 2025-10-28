@@ -20,6 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  */
 class SCD_Activity_Feed_Handler extends SCD_Abstract_Analytics_Handler {
+    use SCD_License_Validation_Trait;
 
     /**
      * Activity tracker instance.
@@ -60,6 +61,12 @@ class SCD_Activity_Feed_Handler extends SCD_Abstract_Analytics_Handler {
      * @return   array                Response data.
      */
     public function handle( $request ) {
+        // Check license (logic tier - analytics data is premium feature)
+        $license_check = $this->validate_license( 'logic' );
+        if ( $this->license_validation_failed( $license_check ) ) {
+            return $this->license_error_response( $license_check );
+        }
+
         // Verify request
         $verification = $this->verify_request( $request, 'scd_analytics_activity_feed' );
         if ( is_wp_error( $verification ) ) {

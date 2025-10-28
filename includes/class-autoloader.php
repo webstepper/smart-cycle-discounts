@@ -135,7 +135,15 @@ class SCD_Autoloader {
         
         // Integration classes
         'SCD_WooCommerce_Integration' => 'integrations/woocommerce/class-woocommerce-integration.php',
-        'SCD_HPOS_Compatibility' => 'integrations/woocommerce/class-hpos-compatibility.php',
+
+        // WooCommerce sub-integrations (Phase 2 & 3)
+        'SCD_WC_Discount_Query_Service' => 'integrations/woocommerce/class-wc-discount-query-service.php',
+        'SCD_WC_Price_Integration' => 'integrations/woocommerce/class-wc-price-integration.php',
+        'SCD_WC_Display_Integration' => 'integrations/woocommerce/class-wc-display-integration.php',
+        'SCD_WC_Cart_Message_Service' => 'integrations/woocommerce/class-wc-cart-message-service.php',
+        'SCD_WC_Admin_Integration' => 'integrations/woocommerce/class-wc-admin-integration.php',
+        'SCD_WC_Order_Integration' => 'integrations/woocommerce/class-wc-order-integration.php',
+
         'SCD_Blocks_Manager' => 'integrations/blocks/class-blocks-manager.php',
         'SCD_Email_Manager' => 'integrations/email/class-email-manager.php',
         'SCD_Email_Provider' => 'integrations/email/interface-email-provider.php',
