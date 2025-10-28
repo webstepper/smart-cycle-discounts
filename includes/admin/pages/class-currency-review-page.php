@@ -41,7 +41,7 @@ class SCD_Currency_Review_Page {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Currency_Change_Service    $currency_service    Currency service instance.
+	 * @param    SCD_Currency_Change_Service $currency_service    Currency service instance.
 	 */
 	public function __construct( $currency_service = null ) {
 		$this->currency_service = $currency_service;
@@ -91,7 +91,7 @@ class SCD_Currency_Review_Page {
 	 */
 	public function add_menu_badge_script() {
 		$needing_review = $this->currency_service->get_campaigns_needing_review();
-		$count = count( $needing_review );
+		$count          = count( $needing_review );
 		?>
 		<script>
 		jQuery(document).ready(function($) {
@@ -125,7 +125,7 @@ class SCD_Currency_Review_Page {
 
 		// Get current currency
 		$current_currency = get_woocommerce_currency();
-		$current_symbol = get_woocommerce_currency_symbol();
+		$current_symbol   = get_woocommerce_currency_symbol();
 
 		// Render page
 		include SCD_PLUGIN_DIR . 'resources/views/admin/pages/currency-review.php';
@@ -170,7 +170,7 @@ class SCD_Currency_Review_Page {
 		}
 
 		// Get action and campaign ID
-		$action = isset( $_POST['review_action'] ) ? sanitize_text_field( $_POST['review_action'] ) : '';
+		$action      = isset( $_POST['review_action'] ) ? sanitize_text_field( $_POST['review_action'] ) : '';
 		$campaign_id = isset( $_POST['campaign_id'] ) ? intval( $_POST['campaign_id'] ) : 0;
 
 		if ( ! $campaign_id ) {
@@ -202,10 +202,12 @@ class SCD_Currency_Review_Page {
 		}
 
 		if ( $result ) {
-			wp_send_json_success( array(
-				'message' => __( 'Campaign updated successfully', 'smart-cycle-discounts' ),
-				'campaign_id' => $campaign_id
-			) );
+			wp_send_json_success(
+				array(
+					'message'     => __( 'Campaign updated successfully', 'smart-cycle-discounts' ),
+					'campaign_id' => $campaign_id,
+				)
+			);
 		} else {
 			wp_send_json_error( array( 'message' => __( 'Failed to update campaign', 'smart-cycle-discounts' ) ) );
 		}
@@ -215,7 +217,7 @@ class SCD_Currency_Review_Page {
 	 * Approve and resume campaign.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $campaign_id    Campaign ID.
+	 * @param    int $campaign_id    Campaign ID.
 	 * @return   bool                   True on success.
 	 */
 	private function approve_and_resume_campaign( $campaign_id ) {
@@ -232,7 +234,7 @@ class SCD_Currency_Review_Page {
 	 * Mark campaign as reviewed (keep paused).
 	 *
 	 * @since    1.0.0
-	 * @param    int    $campaign_id    Campaign ID.
+	 * @param    int $campaign_id    Campaign ID.
 	 * @return   bool                   True on success.
 	 */
 	private function mark_campaign_reviewed( $campaign_id ) {
@@ -249,7 +251,7 @@ class SCD_Currency_Review_Page {
 	 * Archive campaign.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $campaign_id    Campaign ID.
+	 * @param    int $campaign_id    Campaign ID.
 	 * @return   bool                   True on success.
 	 */
 	private function archive_campaign( $campaign_id ) {
@@ -276,11 +278,13 @@ class SCD_Currency_Review_Page {
 
 			return true;
 		} catch ( Exception $e ) {
-			error_log( sprintf(
-				'[SCD Currency Review] Failed to archive campaign #%d: %s',
-				$campaign_id,
-				$e->getMessage()
-			) );
+			error_log(
+				sprintf(
+					'[SCD Currency Review] Failed to archive campaign #%d: %s',
+					$campaign_id,
+					$e->getMessage()
+				)
+			);
 			return false;
 		}
 	}

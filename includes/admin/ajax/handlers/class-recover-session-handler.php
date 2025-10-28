@@ -39,8 +39,8 @@ class SCD_Recover_Session_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Wizard_State_Service    $state_service    State service instance.
-	 * @param    SCD_Logger                  $logger           Logger instance (optional).
+	 * @param    SCD_Wizard_State_Service $state_service    State service instance.
+	 * @param    SCD_Logger               $logger           Logger instance (optional).
 	 */
 	public function __construct( $state_service, $logger = null ) {
 		parent::__construct( $logger );
@@ -61,7 +61,7 @@ class SCD_Recover_Session_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle the request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
@@ -87,11 +87,11 @@ class SCD_Recover_Session_Handler extends SCD_Abstract_Ajax_Handler {
 
 		// Phase 3: Create new session using secure cookie system
 		$new_state_service = new SCD_Wizard_State_Service();
-		$new_session_id = $new_state_service->create(); // This sets the secure cookie
+		$new_session_id    = $new_state_service->create(); // This sets the secure cookie
 
 		// Restore each step's data
 		$restored_steps = array();
-		$errors = array();
+		$errors         = array();
 
 		foreach ( $recovery_data['steps'] as $step => $step_data ) {
 			// Validate step name
@@ -119,7 +119,7 @@ class SCD_Recover_Session_Handler extends SCD_Abstract_Ajax_Handler {
 				}
 			} catch ( Exception $e ) {
 				$errors[] = sprintf(
-					__( 'Error restoring %s step: %s', 'smart-cycle-discounts' ),
+					__( 'Error restoring %1$s step: %2$s', 'smart-cycle-discounts' ),
 					$step,
 					$e->getMessage()
 				);
@@ -142,36 +142,44 @@ class SCD_Recover_Session_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		// Build redirect URL to continue where user left off - Phase 2: No session_id in URL
-		$redirect_url = add_query_arg( array(
-			'page' => 'scd-campaigns',
-			'action' => 'wizard',
-			'step' => $current_step,
-			'recovered' => '1'
-		), admin_url( 'admin.php' ) );
+		$redirect_url = add_query_arg(
+			array(
+				'page'      => 'scd-campaigns',
+				'action'    => 'wizard',
+				'step'      => $current_step,
+				'recovered' => '1',
+			),
+			admin_url( 'admin.php' )
+		);
 
 		// Log recovery
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			$this->log_info( 'Session recovered', array(
-				'restored_steps' => $restored_steps,
-				'errors' => $errors
-			) );
+			$this->log_info(
+				'Session recovered',
+				array(
+					'restored_steps' => $restored_steps,
+					'errors'         => $errors,
+				)
+			);
 
 			if ( ! empty( $errors ) ) {
 				$this->log_warning( 'Session recovery had errors', array( 'errors' => $errors ) );
 			}
 		}
 
-		return $this->success( array(
-			// Phase 2: Session ID handled via secure cookies, not returned to client
-			'redirect_url' => $redirect_url,
-			'restored_steps' => $restored_steps,
-			'errors' => $errors,
-			'message' => sprintf(
-				__( 'Successfully recovered %d of %d steps', 'smart-cycle-discounts' ),
-				count( $restored_steps ),
-				count( $recovery_data['steps'] )
+		return $this->success(
+			array(
+				// Phase 2: Session ID handled via secure cookies, not returned to client
+				'redirect_url'   => $redirect_url,
+				'restored_steps' => $restored_steps,
+				'errors'         => $errors,
+				'message'        => sprintf(
+					__( 'Successfully recovered %1$d of %2$d steps', 'smart-cycle-discounts' ),
+					count( $restored_steps ),
+					count( $recovery_data['steps'] )
+				),
 			)
-		) );
+		);
 	}
 
 	/**

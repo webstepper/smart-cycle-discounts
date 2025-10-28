@@ -80,11 +80,11 @@ class SCD_Campaign_Creator_Service {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Manager               $campaign_manager    Campaign manager.
-	 * @param    SCD_Campaign_Compiler_Service      $compiler           Campaign compiler.
-	 * @param    SCD_Logger                         $logger             Logger.
-	 * @param    SCD_Audit_Logger|null             $audit_logger       Audit logger.
-	 * @param    SCD_Feature_Gate|null             $feature_gate       Feature gate.
+	 * @param    SCD_Campaign_Manager          $campaign_manager    Campaign manager.
+	 * @param    SCD_Campaign_Compiler_Service $compiler           Campaign compiler.
+	 * @param    SCD_Logger                    $logger             Logger.
+	 * @param    SCD_Audit_Logger|null         $audit_logger       Audit logger.
+	 * @param    SCD_Feature_Gate|null         $feature_gate       Feature gate.
 	 */
 	public function __construct(
 		SCD_Campaign_Manager $campaign_manager,
@@ -94,21 +94,21 @@ class SCD_Campaign_Creator_Service {
 		?SCD_Feature_Gate $feature_gate = null
 	) {
 		$this->campaign_manager = $campaign_manager;
-		$this->compiler = $compiler;
-		$this->logger = $logger;
-		$this->audit_logger = $audit_logger;
-		$this->feature_gate = $feature_gate;
+		$this->compiler         = $compiler;
+		$this->logger           = $logger;
+		$this->audit_logger     = $audit_logger;
+		$this->feature_gate     = $feature_gate;
 	}
 
 	/**
 	 * Create campaign from wizard session.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Wizard_State_Service    $state_service    Wizard state service.
-	 * @param    bool                        $save_as_draft    Whether to save as draft.
+	 * @param    SCD_Wizard_State_Service $state_service    Wizard state service.
+	 * @param    bool                     $save_as_draft    Whether to save as draft.
 	 * @return   array                                        Result array with success status and data.
 	 */
-	public function create_from_wizard(SCD_Wizard_State_Service $state_service, bool $save_as_draft = false): array {
+	public function create_from_wizard( SCD_Wizard_State_Service $state_service, bool $save_as_draft = false ): array {
 		try {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( '[Campaign_Creator_Service] create_from_wizard() called with save_as_draft=' . ( $save_as_draft ? 'true' : 'false' ) );
@@ -120,22 +120,24 @@ class SCD_Campaign_Creator_Service {
 					error_log( '[Campaign_Creator_Service] ERROR: User lacks capability' );
 				}
 				return $this->error_response(
-					__('You do not have permission to create campaigns.', 'smart-cycle-discounts'),
+					__( 'You do not have permission to create campaigns.', 'smart-cycle-discounts' ),
 					403
 				);
 			}
 
 			// Check campaign limit for new campaigns (not when editing existing)
-			$session_data = $state_service->get_all_data();
+			$session_data    = $state_service->get_all_data();
 			$is_new_campaign = empty( $session_data['campaign_id'] );
 
 			if ( $is_new_campaign && ! $save_as_draft && $this->feature_gate ) {
 				if ( ! $this->feature_gate->is_premium() ) {
 					$repository = $this->campaign_manager->get_repository();
 					if ( $repository ) {
-						$current_count = $repository->count( array(
-							'status__not' => 'deleted'
-						) );
+						$current_count = $repository->count(
+							array(
+								'status__not' => 'deleted',
+							)
+						);
 
 						if ( ! $this->feature_gate->can_create_campaign( $current_count ) ) {
 							$campaign_limit = $this->feature_gate->get_campaign_limit();
@@ -158,25 +160,25 @@ class SCD_Campaign_Creator_Service {
 				error_log( '[Campaign_Creator_Service] Progress can_complete: ' . ( $progress['can_complete'] ? 'true' : 'false' ) );
 			}
 
-			if (!$save_as_draft && !$progress['can_complete']) {
+			if ( ! $save_as_draft && ! $progress['can_complete'] ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					error_log( '[Campaign_Creator_Service] ERROR: Wizard not complete' );
 				}
 				return $this->error_response(
-					__('Please complete all required steps before creating the campaign.', 'smart-cycle-discounts'),
+					__( 'Please complete all required steps before creating the campaign.', 'smart-cycle-discounts' ),
 					400
 				);
 			}
 
 			// For draft saves, ensure we have at least basic info
-			if ($save_as_draft) {
-				$basic_data = $state_service->get_step_data('basic');
+			if ( $save_as_draft ) {
+				$basic_data = $state_service->get_step_data( 'basic' );
 				if ( empty( $basic_data['name'] ) ) {
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						error_log( '[Campaign_Creator_Service] ERROR: Campaign name missing for draft' );
 					}
 					return $this->error_response(
-						__('Campaign name is required to save as draft.', 'smart-cycle-discounts'),
+						__( 'Campaign name is required to save as draft.', 'smart-cycle-discounts' ),
 						400
 					);
 				}
@@ -188,14 +190,14 @@ class SCD_Campaign_Creator_Service {
 			}
 
 			$session_data = $state_service->get_all_data();
-			$steps_data = isset( $session_data['steps'] ) ? $session_data['steps'] : array();
+			$steps_data   = isset( $session_data['steps'] ) ? $session_data['steps'] : array();
 
 			if ( empty( $steps_data ) ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					error_log( '[Campaign_Creator_Service] ERROR: No steps data in session' );
 				}
 				return $this->error_response(
-					__('No campaign data found in session.', 'smart-cycle-discounts'),
+					__( 'No campaign data found in session.', 'smart-cycle-discounts' ),
 					400
 				);
 			}
@@ -204,13 +206,13 @@ class SCD_Campaign_Creator_Service {
 				error_log( '[Campaign_Creator_Service] Steps data keys: ' . implode( ', ', array_keys( $steps_data ) ) );
 			}
 
-			$campaign_data = $this->compiler->compile($steps_data);
-			if (!$campaign_data) {
+			$campaign_data = $this->compiler->compile( $steps_data );
+			if ( ! $campaign_data ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					error_log( '[Campaign_Creator_Service] ERROR: Compiler returned empty/false' );
 				}
 				return $this->error_response(
-					__('Failed to compile campaign data.', 'smart-cycle-discounts'),
+					__( 'Failed to compile campaign data.', 'smart-cycle-discounts' ),
 					500
 				);
 			}
@@ -232,8 +234,8 @@ class SCD_Campaign_Creator_Service {
 				// Check if campaign start time is in the future
 				$is_future_campaign = false;
 				if ( isset( $campaign_data['starts_at'] ) && ! empty( $campaign_data['starts_at'] ) ) {
-					$start_timestamp = strtotime( $campaign_data['starts_at'] );
-					$now_timestamp = current_time( 'timestamp', true );
+					$start_timestamp    = strtotime( $campaign_data['starts_at'] );
+					$now_timestamp      = time();
 					$is_future_campaign = ( $start_timestamp > $now_timestamp );
 				}
 
@@ -265,7 +267,7 @@ class SCD_Campaign_Creator_Service {
 
 			// Create or update the campaign
 			$campaign_id = isset( $session_data['campaign_id'] ) ? absint( $session_data['campaign_id'] ) : 0;
-			$is_update = $campaign_id > 0;
+			$is_update   = $campaign_id > 0;
 
 			if ( $is_update ) {
 				// Update existing campaign
@@ -273,7 +275,7 @@ class SCD_Campaign_Creator_Service {
 					error_log( '[Campaign_Creator_Service] Calling campaign_manager->update() for campaign ID: ' . $campaign_id );
 				}
 
-				$campaign = $this->campaign_manager->update( $campaign_id, $campaign_data );
+				$campaign = $this->update_with_retry( $campaign_id, $campaign_data );
 
 				if ( is_wp_error( $campaign ) ) {
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -316,18 +318,24 @@ class SCD_Campaign_Creator_Service {
 				$state_service->clear_session();
 			} catch ( Exception $e ) {
 				// Log but don't fail - session will expire anyway
-				$this->logger->warning( 'Failed to clear wizard session after campaign ' . ( $is_update ? 'update' : 'creation' ), array(
-					'error' => $e->getMessage()
-				) );
+				$this->logger->warning(
+					'Failed to clear wizard session after campaign ' . ( $is_update ? 'update' : 'creation' ),
+					array(
+						'error' => $e->getMessage(),
+					)
+				);
 			}
 
 			// Log success
 			if ( $is_update ) {
-				$this->logger->info( 'Campaign updated from wizard', array(
-					'campaign_id' => $campaign->get_id(),
-					'method'      => 'wizard',
-					'save_draft'  => $save_as_draft
-				) );
+				$this->logger->info(
+					'Campaign updated from wizard',
+					array(
+						'campaign_id' => $campaign->get_id(),
+						'method'      => 'wizard',
+						'save_draft'  => $save_as_draft,
+					)
+				);
 			} else {
 				$this->log_campaign_created( $campaign, 'wizard', $save_as_draft );
 			}
@@ -342,13 +350,16 @@ class SCD_Campaign_Creator_Service {
 			return $this->success_response( $campaign, $save_as_draft );
 
 		} catch ( Exception $e ) {
-			$this->logger->error( 'Campaign ' . ( isset( $is_update ) && $is_update ? 'update' : 'creation' ) . ' from wizard failed', array(
-				'error' => $e->getMessage(),
-				'trace' => $e->getTraceAsString()
-			) );
+			$this->logger->error(
+				'Campaign ' . ( isset( $is_update ) && $is_update ? 'update' : 'creation' ) . ' from wizard failed',
+				array(
+					'error' => $e->getMessage(),
+					'trace' => $e->getTraceAsString(),
+				)
+			);
 
 			return $this->error_response(
-				sprintf( __( 'Campaign %s failed: %s', 'smart-cycle-discounts' ), ( isset( $is_update ) && $is_update ? 'update' : 'creation' ), $e->getMessage() ),
+				sprintf( __( 'Campaign %1$s failed: %2$s', 'smart-cycle-discounts' ), ( isset( $is_update ) && $is_update ? 'update' : 'creation' ), $e->getMessage() ),
 				500
 			);
 		}
@@ -358,30 +369,32 @@ class SCD_Campaign_Creator_Service {
 	 * Create campaign from data array.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $data    Campaign data.
+	 * @param    array $data    Campaign data.
 	 * @return   array             Result array with success status and data.
 	 */
-	public function create_from_data(array $data): array {
+	public function create_from_data( array $data ): array {
 		try {
 			// Validate capability
 			if ( ! current_user_can( 'scd_create_campaigns' ) && ! current_user_can( 'manage_options' ) ) {
 				return $this->error_response(
-					__('You do not have permission to create campaigns.', 'smart-cycle-discounts'),
+					__( 'You do not have permission to create campaigns.', 'smart-cycle-discounts' ),
 					403
 				);
 			}
 
 			// Check campaign limit for new campaigns
 			$is_new_campaign = empty( $data['id'] );
-			$is_draft = isset( $data['status'] ) && 'draft' === $data['status'];
+			$is_draft        = isset( $data['status'] ) && 'draft' === $data['status'];
 
 			if ( $is_new_campaign && ! $is_draft && $this->feature_gate ) {
 				if ( ! $this->feature_gate->is_premium() ) {
 					$repository = $this->campaign_manager->get_repository();
 					if ( $repository ) {
-						$current_count = $repository->count( array(
-							'status__not' => 'deleted'
-						) );
+						$current_count = $repository->count(
+							array(
+								'status__not' => 'deleted',
+							)
+						);
 
 						if ( ! $this->feature_gate->can_create_campaign( $current_count ) ) {
 							$campaign_limit = $this->feature_gate->get_campaign_limit();
@@ -404,9 +417,9 @@ class SCD_Campaign_Creator_Service {
 			}
 
 			// Create the campaign
-			$campaign = $this->campaign_manager->create($data);
-			
-			if (is_wp_error($campaign)) {
+			$campaign = $this->campaign_manager->create( $data );
+
+			if ( is_wp_error( $campaign ) ) {
 				return $this->error_response(
 					$campaign->get_error_message(),
 					500
@@ -414,21 +427,24 @@ class SCD_Campaign_Creator_Service {
 			}
 
 			// Log success
-			$this->log_campaign_created($campaign, 'direct');
+			$this->log_campaign_created( $campaign, 'direct' );
 
 			// Trigger action for extensions
-			do_action('scd_campaign_created_from_data', $campaign->get_id(), $data);
+			do_action( 'scd_campaign_created_from_data', $campaign->get_id(), $data );
 
-			return $this->success_response($campaign);
+			return $this->success_response( $campaign );
 
-		} catch (Exception $e) {
-			$this->logger->error('Campaign creation from data failed', array(
-				'error' => $e->getMessage(),
-				'data' => $data
-			));
+		} catch ( Exception $e ) {
+			$this->logger->error(
+				'Campaign creation from data failed',
+				array(
+					'error' => $e->getMessage(),
+					'data'  => $data,
+				)
+			);
 
 			return $this->error_response(
-				sprintf(__('Campaign creation failed: %s', 'smart-cycle-discounts'), $e->getMessage()),
+				sprintf( __( 'Campaign creation failed: %s', 'smart-cycle-discounts' ), $e->getMessage() ),
 				500
 			);
 		}
@@ -438,15 +454,15 @@ class SCD_Campaign_Creator_Service {
 	 * Duplicate an existing campaign.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $campaign_id    Campaign ID to duplicate.
+	 * @param    int $campaign_id    Campaign ID to duplicate.
 	 * @return   array                 Result array with success status and data.
 	 */
-	public function duplicate_campaign(int $campaign_id): array {
+	public function duplicate_campaign( int $campaign_id ): array {
 		try {
 			// Validate capability
 			if ( ! current_user_can( 'scd_create_campaigns' ) && ! current_user_can( 'manage_options' ) ) {
 				return $this->error_response(
-					__('You do not have permission to duplicate campaigns.', 'smart-cycle-discounts'),
+					__( 'You do not have permission to duplicate campaigns.', 'smart-cycle-discounts' ),
 					403
 				);
 			}
@@ -455,9 +471,11 @@ class SCD_Campaign_Creator_Service {
 			if ( $this->feature_gate && ! $this->feature_gate->is_premium() ) {
 				$repository = $this->campaign_manager->get_repository();
 				if ( $repository ) {
-					$current_count = $repository->count( array(
-						'status__not' => 'deleted'
-					) );
+					$current_count = $repository->count(
+						array(
+							'status__not' => 'deleted',
+						)
+					);
 
 					if ( ! $this->feature_gate->can_create_campaign( $current_count ) ) {
 						$campaign_limit = $this->feature_gate->get_campaign_limit();
@@ -474,10 +492,10 @@ class SCD_Campaign_Creator_Service {
 			}
 
 			// Get original campaign
-			$original = $this->campaign_manager->find($campaign_id);
-			if (!$original) {
+			$original = $this->campaign_manager->find( $campaign_id );
+			if ( ! $original ) {
 				return $this->error_response(
-					__('Original campaign not found.', 'smart-cycle-discounts'),
+					__( 'Original campaign not found.', 'smart-cycle-discounts' ),
 					404
 				);
 			}
@@ -485,16 +503,16 @@ class SCD_Campaign_Creator_Service {
 			// Prepare duplicate data
 			$duplicate_data = $original->to_array();
 			unset( $duplicate_data['id'], $duplicate_data['uuid'], $duplicate_data['created_at'], $duplicate_data['updated_at'] );
-			
+
 			// Update name and status
-			$duplicate_data['name'] = sprintf(__('%s (Copy)', 'smart-cycle-discounts'), $original->get_name());
-			$duplicate_data['status'] = 'draft';
+			$duplicate_data['name']       = sprintf( __( '%s (Copy)', 'smart-cycle-discounts' ), $original->get_name() );
+			$duplicate_data['status']     = 'draft';
 			$duplicate_data['created_by'] = get_current_user_id();
 
 			// Create the duplicate
-			$duplicate = $this->campaign_manager->create($duplicate_data);
-			
-			if (is_wp_error($duplicate)) {
+			$duplicate = $this->campaign_manager->create( $duplicate_data );
+
+			if ( is_wp_error( $duplicate ) ) {
 				return $this->error_response(
 					$duplicate->get_error_message(),
 					500
@@ -502,21 +520,24 @@ class SCD_Campaign_Creator_Service {
 			}
 
 			// Log success
-			$this->log_campaign_created($duplicate, 'duplicate', false, $campaign_id);
+			$this->log_campaign_created( $duplicate, 'duplicate', false, $campaign_id );
 
 			// Trigger action for extensions
-			do_action('scd_campaign_duplicated', $duplicate->get_id(), $campaign_id);
+			do_action( 'scd_campaign_duplicated', $duplicate->get_id(), $campaign_id );
 
-			return $this->success_response($duplicate);
+			return $this->success_response( $duplicate );
 
-		} catch (Exception $e) {
-			$this->logger->error('Campaign duplication failed', array(
-				'original_id' => $campaign_id,
-				'error' => $e->getMessage()
-			));
+		} catch ( Exception $e ) {
+			$this->logger->error(
+				'Campaign duplication failed',
+				array(
+					'original_id' => $campaign_id,
+					'error'       => $e->getMessage(),
+				)
+			);
 
 			return $this->error_response(
-				sprintf(__('Campaign duplication failed: %s', 'smart-cycle-discounts'), $e->getMessage()),
+				sprintf( __( 'Campaign duplication failed: %s', 'smart-cycle-discounts' ), $e->getMessage() ),
 				500
 			);
 		}
@@ -526,41 +547,47 @@ class SCD_Campaign_Creator_Service {
 	 * Build success response.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign         Created campaign.
-	 * @param    bool            $is_draft        Whether campaign is draft.
+	 * @param    SCD_Campaign $campaign         Created campaign.
+	 * @param    bool         $is_draft        Whether campaign is draft.
 	 * @return   array                            Response array.
 	 */
-	private function success_response(SCD_Campaign $campaign, bool $is_draft = false): array {
+	private function success_response( SCD_Campaign $campaign, bool $is_draft = false ): array {
 		$message = $is_draft
-			? __('Campaign saved as draft successfully.', 'smart-cycle-discounts')
-			: __('Campaign created successfully.', 'smart-cycle-discounts');
+			? __( 'Campaign saved as draft successfully.', 'smart-cycle-discounts' )
+			: __( 'Campaign created successfully.', 'smart-cycle-discounts' );
 
 		$redirect_url = $is_draft
-			? add_query_arg(array(
-				'page' => 'scd-campaigns',
-				'status' => 'draft',
-				'message' => 'draft_saved'
-			), admin_url('admin.php'))
-			: add_query_arg(array(
-				'page' => 'scd-campaigns',
-				'action' => 'view',
-				'id' => $campaign->get_id(),
-				'message' => 'created'
-			), admin_url('admin.php'));
+			? add_query_arg(
+				array(
+					'page'    => 'scd-campaigns',
+					'status'  => 'draft',
+					'message' => 'draft_saved',
+				),
+				admin_url( 'admin.php' )
+			)
+			: add_query_arg(
+				array(
+					'page'    => 'scd-campaigns',
+					'action'  => 'view',
+					'id'      => $campaign->get_id(),
+					'message' => 'created',
+				),
+				admin_url( 'admin.php' )
+			);
 
 		return array(
-			'success' => true,
-			'message' => $message,
-			'campaign_id' => $campaign->get_id(),
+			'success'       => true,
+			'message'       => $message,
+			'campaign_id'   => $campaign->get_id(),
 			'campaign_uuid' => $campaign->get_uuid(),
-			'status' => $campaign->get_status(),
-			'redirect_url' => $redirect_url,
-			'campaign' => array(
-				'id' => $campaign->get_id(),
-				'uuid' => $campaign->get_uuid(),
-				'name' => $campaign->get_name(),
-				'status' => $campaign->get_status()
-			)
+			'status'        => $campaign->get_status(),
+			'redirect_url'  => $redirect_url,
+			'campaign'      => array(
+				'id'     => $campaign->get_id(),
+				'uuid'   => $campaign->get_uuid(),
+				'name'   => $campaign->get_name(),
+				'status' => $campaign->get_status(),
+			),
 		);
 	}
 
@@ -568,15 +595,15 @@ class SCD_Campaign_Creator_Service {
 	 * Build error response.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $message    Error message.
-	 * @param    int       $code       Error code.
+	 * @param    string $message    Error message.
+	 * @param    int    $code       Error code.
 	 * @return   array                 Response array.
 	 */
-	private function error_response(string $message, int $code = 500): array {
+	private function error_response( string $message, int $code = 500 ): array {
 		return array(
 			'success' => false,
-			'error' => $message,
-			'code' => $code
+			'error'   => $message,
+			'code'    => $code,
 		);
 	}
 
@@ -584,36 +611,36 @@ class SCD_Campaign_Creator_Service {
 	 * Log campaign creation.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign       Created campaign.
-	 * @param    string          $source         Creation source.
-	 * @param    bool            $is_draft       Whether saved as draft.
-	 * @param    int|null        $original_id    Original campaign ID if duplicated.
+	 * @param    SCD_Campaign $campaign       Created campaign.
+	 * @param    string       $source         Creation source.
+	 * @param    bool         $is_draft       Whether saved as draft.
+	 * @param    int|null     $original_id    Original campaign ID if duplicated.
 	 * @return   void
 	 */
 	private function log_campaign_created(
-		SCD_Campaign $campaign, 
-		string $source, 
+		SCD_Campaign $campaign,
+		string $source,
 		bool $is_draft = false,
 		?int $original_id = null
 	): void {
 		$log_data = array(
-			'campaign_id' => $campaign->get_id(),
+			'campaign_id'   => $campaign->get_id(),
 			'campaign_name' => $campaign->get_name(),
-			'status' => $campaign->get_status(),
-			'source' => $source,
-			'user_id' => get_current_user_id()
+			'status'        => $campaign->get_status(),
+			'source'        => $source,
+			'user_id'       => get_current_user_id(),
 		);
 
-		if ($original_id) {
+		if ( $original_id ) {
 			$log_data['original_campaign_id'] = $original_id;
 		}
 
 		$action = $is_draft ? 'Draft saved' : 'Campaign created';
-		$this->logger->info($action, $log_data);
+		$this->logger->info( $action, $log_data );
 
-		if ($this->audit_logger) {
+		if ( $this->audit_logger ) {
 			$event = $is_draft ? 'draft_saved' : 'campaign_created';
-			$this->audit_logger->log_security_event($event, $action, $log_data);
+			$this->audit_logger->log_security_event( $event, $action, $log_data );
 		}
 	}
 
@@ -625,7 +652,7 @@ class SCD_Campaign_Creator_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $campaign_data    Complete campaign data.
+	 * @param    array $campaign_data    Complete campaign data.
 	 * @return   true|WP_Error              True if valid, WP_Error if PRO feature detected.
 	 */
 	private function validate_pro_features( array $campaign_data ) {
@@ -638,9 +665,12 @@ class SCD_Campaign_Creator_Service {
 		$validator_path = SCD_PLUGIN_DIR . 'includes/core/validation/class-pro-feature-validator.php';
 		if ( ! file_exists( $validator_path ) ) {
 			// Validator file missing - log error but allow (fail open)
-			$this->logger->warning( 'PRO feature validator file not found', array(
-				'path' => $validator_path
-			) );
+			$this->logger->warning(
+				'PRO feature validator file not found',
+				array(
+					'path' => $validator_path,
+				)
+			);
 			return true;
 		}
 
@@ -654,7 +684,7 @@ class SCD_Campaign_Creator_Service {
 
 		// Create validator and validate complete campaign
 		$validator = new SCD_PRO_Feature_Validator( $this->feature_gate );
-		$result = $validator->validate_campaign( $campaign_data );
+		$result    = $validator->validate_campaign( $campaign_data );
 
 		// Log validation failures for security auditing
 		if ( is_wp_error( $result ) && $this->audit_logger ) {
@@ -662,14 +692,100 @@ class SCD_Campaign_Creator_Service {
 				'pro_feature_violation',
 				'Free user attempted to use PRO feature',
 				array(
-					'user_id' => get_current_user_id(),
-					'error' => $result->get_error_message(),
-					'feature' => $result->get_error_data()['feature'] ?? 'unknown',
-					'campaign_name' => $campaign_data['name'] ?? 'unknown'
+					'user_id'       => get_current_user_id(),
+					'error'         => $result->get_error_message(),
+					'feature'       => $result->get_error_data()['feature'] ?? 'unknown',
+					'campaign_name' => $campaign_data['name'] ?? 'unknown',
 				)
 			);
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Update campaign with automatic retry on version conflict.
+	 *
+	 * Implements optimistic locking retry logic:
+	 * 1. Attempt update with user's changes
+	 * 2. If version conflict detected, reload fresh campaign
+	 * 3. Retry update ONCE with fresh version
+	 * 4. If still fails, return error to user (genuine conflict)
+	 *
+	 * @since    1.0.0
+	 * @param    int   $campaign_id      Campaign ID.
+	 * @param    array $campaign_data    Campaign data to update.
+	 * @return   SCD_Campaign|WP_Error      Updated campaign or error.
+	 */
+	private function update_with_retry( $campaign_id, $campaign_data ) {
+		try {
+			// First attempt
+			return $this->campaign_manager->update( $campaign_id, $campaign_data );
+
+		} catch ( SCD_Concurrent_Modification_Exception $e ) {
+			// Version conflict detected - attempt auto-recovery
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( '[Campaign_Creator_Service] Version conflict detected (expected: ' . $e->get_expected_version() . ', current: ' . $e->get_current_version() . ')' );
+				error_log( '[Campaign_Creator_Service] Attempting auto-retry with fresh version...' );
+			}
+
+			// Reload fresh campaign from database to get latest version
+			$fresh_campaign = $this->campaign_manager->find( $campaign_id );
+			if ( ! $fresh_campaign ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( '[Campaign_Creator_Service] Auto-retry failed: Campaign not found' );
+				}
+				return new WP_Error(
+					'campaign_not_found',
+					__( 'Campaign not found. It may have been deleted.', 'smart-cycle-discounts' )
+				);
+			}
+
+			// Merge user's changes with fresh campaign data
+			// The fresh campaign has the correct version number from database
+			$fresh_data = $fresh_campaign->to_array();
+
+			// Apply user's changes on top of fresh data
+			// This preserves any concurrent changes to fields the user didn't modify
+			$merged_data = array_merge( $fresh_data, $campaign_data );
+
+			// Preserve the fresh version number (critical for optimistic locking)
+			unset( $merged_data['version'] );
+
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( '[Campaign_Creator_Service] Retrying update with fresh version ' . $fresh_campaign->get_version() );
+			}
+
+			// Retry update with fresh version
+			try {
+				$result = $this->campaign_manager->update( $campaign_id, $merged_data );
+
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					if ( is_wp_error( $result ) ) {
+						error_log( '[Campaign_Creator_Service] Auto-retry failed: ' . $result->get_error_message() );
+					} else {
+						error_log( '[Campaign_Creator_Service] Auto-retry succeeded! Campaign updated with version ' . $result->get_version() );
+					}
+				}
+
+				return $result;
+
+			} catch ( SCD_Concurrent_Modification_Exception $retry_exception ) {
+				// Second failure - genuine concurrent edit conflict
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( '[Campaign_Creator_Service] Auto-retry failed with another version conflict' );
+				}
+
+				// Return user-friendly error
+				return new WP_Error(
+					'concurrent_modification',
+					sprintf(
+						/* translators: %d: campaign ID */
+						__( 'Campaign %d was modified by another user while you were editing. Please refresh the page and try again.', 'smart-cycle-discounts' ),
+						$campaign_id
+					)
+				);
+			}
+		}
 	}
 }

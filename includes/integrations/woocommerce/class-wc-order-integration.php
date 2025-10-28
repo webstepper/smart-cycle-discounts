@@ -57,9 +57,9 @@ class SCD_WC_Order_Integration {
 	 * Initialize order integration.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_WC_Discount_Query_Service       $discount_query    Discount query service.
-	 * @param    SCD_Customer_Usage_Manager|null     $usage_manager     Usage manager.
-	 * @param    object|null                         $logger            Logger.
+	 * @param    SCD_WC_Discount_Query_Service   $discount_query    Discount query service.
+	 * @param    SCD_Customer_Usage_Manager|null $usage_manager     Usage manager.
+	 * @param    object|null                     $logger            Logger.
 	 */
 	public function __construct(
 		SCD_WC_Discount_Query_Service $discount_query,
@@ -67,8 +67,8 @@ class SCD_WC_Order_Integration {
 		?object $logger = null
 	) {
 		$this->discount_query = $discount_query;
-		$this->usage_manager = $usage_manager;
-		$this->logger = $logger;
+		$this->usage_manager  = $usage_manager;
+		$this->logger         = $logger;
 	}
 
 	/**
@@ -87,10 +87,10 @@ class SCD_WC_Order_Integration {
 	 * Add order item meta for discount tracking.
 	 *
 	 * @since    1.0.0
-	 * @param    WC_Order_Item_Product    $item             Order item.
-	 * @param    string                   $cart_item_key    Cart item key.
-	 * @param    array                    $cart_item        Cart item data.
-	 * @param    WC_Order                 $order            Order object.
+	 * @param    WC_Order_Item_Product $item             Order item.
+	 * @param    string                $cart_item_key    Cart item key.
+	 * @param    array                 $cart_item        Cart item data.
+	 * @param    WC_Order              $order            Order object.
 	 * @return   void
 	 */
 	public function add_order_item_meta( $item, string $cart_item_key, array $cart_item, $order ): void {
@@ -109,7 +109,7 @@ class SCD_WC_Order_Integration {
 	 * Track customer usage when order is completed.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $order_id    Order ID.
+	 * @param    int $order_id    Order ID.
 	 * @return   void
 	 */
 	public function track_customer_usage( int $order_id ): void {
@@ -136,19 +136,26 @@ class SCD_WC_Order_Integration {
 				if ( $campaign_id ) {
 					$this->usage_manager->track_usage( $customer_id, (int) $campaign_id, $order_id );
 
-					$this->log( 'info', 'Tracked customer usage', array(
-						'customer_id' => $customer_id,
-						'campaign_id' => $campaign_id,
-						'order_id' => $order_id
-					) );
+					$this->log(
+						'info',
+						'Tracked customer usage',
+						array(
+							'customer_id' => $customer_id,
+							'campaign_id' => $campaign_id,
+							'order_id'    => $order_id,
+						)
+					);
 				}
 			}
-
 		} catch ( Exception $e ) {
-			$this->log( 'error', 'Failed to track customer usage', array(
-				'order_id' => $order_id,
-				'error' => $e->getMessage()
-			) );
+			$this->log(
+				'error',
+				'Failed to track customer usage',
+				array(
+					'order_id' => $order_id,
+					'error'    => $e->getMessage(),
+				)
+			);
 		}
 	}
 
@@ -157,9 +164,9 @@ class SCD_WC_Order_Integration {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $level      Level.
-	 * @param    string    $message    Message.
-	 * @param    array     $context    Context.
+	 * @param    string $level      Level.
+	 * @param    string $message    Message.
+	 * @param    array  $context    Context.
 	 * @return   void
 	 */
 	private function log( string $level, string $message, array $context = array() ): void {

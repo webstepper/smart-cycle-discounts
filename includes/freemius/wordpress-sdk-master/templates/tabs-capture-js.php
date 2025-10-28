@@ -6,9 +6,9 @@
 	 * @since       1.2.2.7
 	 */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 	/**
 	 * @var array    $VARS
@@ -20,18 +20,18 @@
 <script type="text/javascript">
 	(function ($) {
 		$(document).ready(function () {
-		    var $wrap = $( '.wrap' );
-		    if ( 0 === $wrap.length ) {
-		        $wrap = $( '<div class="wrap">' );
-		        $wrap.insertBefore( $( '#wpbody-content .clear' ) );
-            }
+			var $wrap = $( '.wrap' );
+			if ( 0 === $wrap.length ) {
+				$wrap = $( '<div class="wrap">' );
+				$wrap.insertBefore( $( '#wpbody-content .clear' ) );
+			}
 
-            $wrap = $wrap.clone().wrap( '<div>' ).parent();
+			$wrap = $wrap.clone().wrap( '<div>' ).parent();
 
-		    var
-			    settingHtml   = $wrap.html(),
-			    tabsPosition  = settingHtml.indexOf('nav-tab-wrapper'),
-			    aboveTabsHtml = '';
+			var
+				settingHtml   = $wrap.html(),
+				tabsPosition  = settingHtml.indexOf('nav-tab-wrapper'),
+				aboveTabsHtml = '';
 
 			if (-1 < tabsPosition) {
 				// Find the tabs HTML beginning exact position.
@@ -43,13 +43,13 @@
 					aboveTabsHtml = settingHtml.substr(0, tabsPosition);
 
 					var tabsHtml = $('.wrap .nav-tab-wrapper').clone().wrap('<div>').parent().html(),
-						ajaxUrl  = <?php echo Freemius::ajax_url() ?>;
+						ajaxUrl  = <?php echo Freemius::ajax_url(); ?>;
 
 					$.ajax({
 							url      : ajaxUrl + (ajaxUrl.includes('?') ? '&' : '?') + $.param({
-							action   : '<?php echo $fs->get_ajax_action( 'store_tabs' ) ?>',
-							security : '<?php echo $fs->get_ajax_security( 'store_tabs' ) ?>',
-							module_id: '<?php echo $fs->get_id() ?>'
+							action   : '<?php echo $fs->get_ajax_action( 'store_tabs' ); ?>',
+							security : '<?php echo $fs->get_ajax_security( 'store_tabs' ); ?>',
+							module_id: '<?php echo $fs->get_id(); ?>'
 						}),
 						method     : 'POST',
 						data       : aboveTabsHtml + "\n" + tabsHtml + '</div>',

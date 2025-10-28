@@ -42,7 +42,7 @@ class SCD_Campaign_Health_Service {
 	 * Initialize the service.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger    $logger    Logger instance.
+	 * @param    SCD_Logger $logger    Logger instance.
 	 */
 	public function __construct( $logger ) {
 		$this->logger = $logger;
@@ -58,9 +58,9 @@ class SCD_Campaign_Health_Service {
 	 * - 'review': Show validation-style warnings since user can still change things
 	 *
 	 * @since    1.0.0
-	 * @param    mixed     $campaign      Campaign data (array from DB or SCD_Campaign object).
-	 * @param    string    $mode          Analysis mode: 'quick', 'standard', 'comprehensive'.
-	 * @param    array     $context       Additional context (coverage_data, conflicts_data, view_context).
+	 * @param    mixed  $campaign      Campaign data (array from DB or SCD_Campaign object).
+	 * @param    string $mode          Analysis mode: 'quick', 'standard', 'comprehensive'.
+	 * @param    array  $context       Additional context (coverage_data, conflicts_data, view_context).
 	 * @return   array                    Health analysis results.
 	 */
 	public function analyze_health( $campaign, $mode = 'standard', $context = array() ) {
@@ -72,13 +72,13 @@ class SCD_Campaign_Health_Service {
 
 		// Initialize health analysis
 		$health = array(
-			'score' => 100,
-			'status' => 'excellent',
+			'score'           => 100,
+			'status'          => 'excellent',
 			'critical_issues' => array(),
-			'warnings' => array(),
-			'info' => array(),
+			'warnings'        => array(),
+			'info'            => array(),
 			'recommendations' => array(),
-			'breakdown' => array(),
+			'breakdown'       => array(),
 		);
 
 		// Run health checks
@@ -109,8 +109,8 @@ class SCD_Campaign_Health_Service {
 
 		// Calculate final status
 		// IMPROVED LOGIC: Severity-based status with score as secondary metric
-		$health['score'] = max( 0, min( 100, $health['score'] ) );
-		$health['status'] = $this->get_status_from_issues( $health );
+		$health['score']    = max( 0, min( 100, $health['score'] ) );
+		$health['status']   = $this->get_status_from_issues( $health );
 		$health['is_ready'] = empty( $health['critical_issues'] );
 
 		return $health;
@@ -121,25 +121,25 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    mixed    $campaign    Campaign data (array or SCD_Campaign object).
+	 * @param    mixed $campaign    Campaign data (array or SCD_Campaign object).
 	 * @return   array                 Normalized campaign data array.
 	 */
 	private function normalize_campaign_data( $campaign ) {
 		if ( is_object( $campaign ) && method_exists( $campaign, 'get_id' ) ) {
 			// SCD_Campaign object
 			return array(
-				'id' => $campaign->get_id(),
-				'name' => $campaign->get_name(),
-				'description' => $campaign->get_description(),
-				'status' => $campaign->get_status(),
-				'priority' => $campaign->get_priority(),
-				'discount_type' => $campaign->get_discount_type(),
-				'discount_value' => $campaign->get_discount_value(),
+				'id'                     => $campaign->get_id(),
+				'name'                   => $campaign->get_name(),
+				'description'            => $campaign->get_description(),
+				'status'                 => $campaign->get_status(),
+				'priority'               => $campaign->get_priority(),
+				'discount_type'          => $campaign->get_discount_type(),
+				'discount_value'         => $campaign->get_discount_value(),
 				'product_selection_type' => $campaign->get_product_selection_type(),
-				'selected_product_ids' => $campaign->get_product_ids(),
-				'start_date' => $campaign->get_starts_at() ? $campaign->get_starts_at()->format( 'Y-m-d' ) : null,
-				'end_date' => $campaign->get_ends_at() ? $campaign->get_ends_at()->format( 'Y-m-d' ) : null,
-				'metadata' => $campaign->get_metadata(),
+				'selected_product_ids'   => $campaign->get_product_ids(),
+				'start_date'             => $campaign->get_starts_at() ? $campaign->get_starts_at()->format( 'Y-m-d' ) : null,
+				'end_date'               => $campaign->get_ends_at() ? $campaign->get_ends_at()->format( 'Y-m-d' ) : null,
+				'metadata'               => $campaign->get_metadata(),
 			);
 		} elseif ( is_array( $campaign ) ) {
 			// Array format from database - normalize field names and decode JSON fields
@@ -147,7 +147,7 @@ class SCD_Campaign_Health_Service {
 			if ( isset( $campaign['product_ids'] ) && ! isset( $campaign['selected_product_ids'] ) ) {
 				// Decode JSON if it's a string
 				if ( is_string( $campaign['product_ids'] ) ) {
-					$decoded = json_decode( $campaign['product_ids'], true );
+					$decoded                          = json_decode( $campaign['product_ids'], true );
 					$campaign['selected_product_ids'] = ( null !== $decoded && is_array( $decoded ) ) ? $decoded : array();
 				} else {
 					$campaign['selected_product_ids'] = $campaign['product_ids'];
@@ -156,12 +156,12 @@ class SCD_Campaign_Health_Service {
 
 			// Decode other JSON fields if needed
 			if ( isset( $campaign['category_ids'] ) && is_string( $campaign['category_ids'] ) ) {
-				$decoded = json_decode( $campaign['category_ids'], true );
+				$decoded                  = json_decode( $campaign['category_ids'], true );
 				$campaign['category_ids'] = ( null !== $decoded && is_array( $decoded ) ) ? $decoded : array();
 			}
 
 			if ( isset( $campaign['tag_ids'] ) && is_string( $campaign['tag_ids'] ) ) {
-				$decoded = json_decode( $campaign['tag_ids'], true );
+				$decoded             = json_decode( $campaign['tag_ids'], true );
 				$campaign['tag_ids'] = ( null !== $decoded && is_array( $decoded ) ) ? $decoded : array();
 			}
 
@@ -181,9 +181,9 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array     $campaign       Campaign data.
-	 * @param    array     $health         Health data array.
-	 * @param    string    $view_context   View context ('dashboard' or 'review').
+	 * @param    array  $campaign       Campaign data.
+	 * @param    array  $health         Health data array.
+	 * @param    string $view_context   View context ('dashboard' or 'review').
 	 * @return   array                     Updated health data.
 	 */
 	private function check_configuration( $campaign, $health, $view_context ) {
@@ -194,48 +194,48 @@ class SCD_Campaign_Health_Service {
 
 		// Review context: Only show warnings about generic names/descriptions (user can still change)
 		$penalty = 0;
-		$status = 'healthy';
+		$status  = 'healthy';
 
 		if ( ! empty( $campaign['name'] ) ) {
-			$name = trim( $campaign['name'] );
+			$name          = trim( $campaign['name'] );
 			$generic_names = array( 'test', 'new campaign', 'campaign', 'discount', 'sale', 'temp', 'untitled' );
-			$name_lower = strtolower( $name );
+			$name_lower    = strtolower( $name );
 
 			foreach ( $generic_names as $generic ) {
 				if ( $generic === $name_lower || strlen( $name ) < 10 ) {
 					$health['warnings'][] = array(
-						'code' => 'generic_name',
-						'message' => sprintf(
+						'code'     => 'generic_name',
+						'message'  => sprintf(
 							/* translators: %s: campaign name */
 							__( 'Campaign name "%s" is generic - use a descriptive name with timeframe', 'smart-cycle-discounts' ),
 							$name
 						),
 						'category' => 'configuration',
 					);
-					$penalty += 3;
-					$status = 'warning';
+					$penalty             += 3;
+					$status               = 'warning';
 					break;
 				}
 			}
 		}
 
 		if ( ! empty( $campaign['description'] ) ) {
-			$description = $campaign['description'];
+			$description          = $campaign['description'];
 			$generic_descriptions = array( 'test', 'description', 'campaign description', 'discount', 'sale' );
-			$desc_lower = strtolower( trim( $description ) );
+			$desc_lower           = strtolower( trim( $description ) );
 
 			foreach ( $generic_descriptions as $generic ) {
 				if ( $generic === $desc_lower ) {
 					$health['warnings'][] = array(
-						'code' => 'generic_description',
-						'message' => sprintf(
+						'code'     => 'generic_description',
+						'message'  => sprintf(
 							/* translators: %s: description text */
 							__( 'Description "%s" is too generic - add specific campaign details', 'smart-cycle-discounts' ),
 							$description
 						),
 						'category' => 'configuration',
 					);
-					$penalty += 3;
+					$penalty             += 3;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
@@ -247,7 +247,7 @@ class SCD_Campaign_Health_Service {
 		// Track breakdown
 		$health['breakdown']['configuration'] = array(
 			'penalty' => $penalty,
-			'status' => $status,
+			'status'  => $status,
 		);
 
 		$health['score'] -= $penalty;
@@ -267,15 +267,15 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array     $campaign       Campaign data.
-	 * @param    array     $health         Health data array.
-	 * @param    array     $context        Additional context data.
-	 * @param    string    $view_context   View context ('dashboard' or 'review').
+	 * @param    array  $campaign       Campaign data.
+	 * @param    array  $health         Health data array.
+	 * @param    array  $context        Additional context data.
+	 * @param    string $view_context   View context ('dashboard' or 'review').
 	 * @return   array                     Updated health data.
 	 */
 	private function check_products( $campaign, $health, $context, $view_context ) {
 		$penalty = 0;
-		$status = 'healthy';
+		$status  = 'healthy';
 
 		$selection_type = isset( $campaign['product_selection_type'] ) ? $campaign['product_selection_type'] : '';
 
@@ -295,7 +295,7 @@ class SCD_Campaign_Health_Service {
 
 		// DEBUG: Log product IDs for dashboard
 		if ( 'dashboard' === $view_context ) {
-			$campaign_id = isset( $campaign['id'] ) ? $campaign['id'] : 'unknown';
+			$campaign_id   = isset( $campaign['id'] ) ? $campaign['id'] : 'unknown';
 			$campaign_name = isset( $campaign['name'] ) ? $campaign['name'] : 'unknown';
 			error_log( sprintf( '🔍 HEALTH CHECK [Dashboard] Campaign #%s "%s": selection_type=%s, product_count=%d', $campaign_id, $campaign_name, $selection_type, count( $product_ids ) ) );
 			if ( ! empty( $product_ids ) ) {
@@ -310,8 +310,8 @@ class SCD_Campaign_Health_Service {
 				$total_products = wp_count_posts( 'product' )->publish;
 				if ( $random_count > $total_products ) {
 					$health['critical_issues'][] = array(
-						'code' => 'random_count_exceeds_total',
-						'message' => sprintf(
+						'code'     => 'random_count_exceeds_total',
+						'message'  => sprintf(
 							/* translators: 1: random count, 2: total products */
 							__( 'Random count (%1$d) exceeds available products (%2$d)', 'smart-cycle-discounts' ),
 							$random_count,
@@ -319,8 +319,8 @@ class SCD_Campaign_Health_Service {
 						),
 						'category' => 'products',
 					);
-					$penalty += 15;
-					$status = 'critical';
+					$penalty                    += 15;
+					$status                      = 'critical';
 				}
 			}
 		}
@@ -330,17 +330,17 @@ class SCD_Campaign_Health_Service {
 			// Check if campaign has category filter
 			$category_ids = isset( $campaign['category_ids'] ) ? $campaign['category_ids'] : array();
 			if ( is_string( $category_ids ) ) {
-				$decoded = json_decode( $category_ids, true );
+				$decoded      = json_decode( $category_ids, true );
 				$category_ids = ( null !== $decoded && is_array( $decoded ) ) ? $decoded : array();
 			}
 
 			if ( ! empty( $category_ids ) ) {
 				// Get products in these categories (limit to 100 for performance)
-				$args = array(
-					'status' => 'publish',
-					'limit' => 100,
+				$args        = array(
+					'status'   => 'publish',
+					'limit'    => 100,
 					'category' => $category_ids,
-					'return' => 'ids',
+					'return'   => 'ids',
 				);
 				$product_ids = wc_get_products( $args );
 
@@ -353,44 +353,44 @@ class SCD_Campaign_Health_Service {
 		// Check specific products OR resolved all_products (from category filter)
 		if ( ! empty( $product_ids ) && ( 'specific_products' === $selection_type || 'all_products' === $selection_type ) ) {
 			$product_count = count( $product_ids );
-			$unique_ids = array_unique( $product_ids );
+			$unique_ids    = array_unique( $product_ids );
 
 			// Check for products deleted from catalog (post-creation issue)
 			$valid_product_ids = array();
-			$invalid_count = 0;
+			$invalid_count     = 0;
 			foreach ( $unique_ids as $product_id ) {
 				$product = wc_get_product( $product_id );
 				if ( $product ) {
 					$valid_product_ids[] = $product_id;
 				} else {
-					$invalid_count++;
+					++$invalid_count;
 				}
 			}
 
 			if ( $invalid_count > 0 ) {
 				$health['critical_issues'][] = array(
-					'code' => 'products_deleted_from_catalog',
-					'message' => sprintf(
+					'code'     => 'products_deleted_from_catalog',
+					'message'  => sprintf(
 						/* translators: %d: number of deleted products */
 						_n( '%d product no longer exists in catalog', '%d products no longer exist in catalog', $invalid_count, 'smart-cycle-discounts' ),
 						$invalid_count
 					),
 					'category' => 'products',
 				);
-				$penalty += 15;
-				$status = 'critical';
+				$penalty                    += 15;
+				$status                      = 'critical';
 			}
 
 			// Use valid IDs for stock checks
-			$product_ids = $valid_product_ids;
+			$product_ids   = $valid_product_ids;
 			$product_count = count( $product_ids );
 
 			if ( $product_count > 0 ) {
 				// Analyze stock status (can change after creation)
-				$check_products = array_slice( $product_ids, 0, 100 );
+				$check_products     = array_slice( $product_ids, 0, 100 );
 				$out_of_stock_count = 0;
-				$low_stock_count = 0;
-				$draft_count = 0;
+				$low_stock_count    = 0;
+				$draft_count        = 0;
 
 				foreach ( $check_products as $product_id ) {
 					$product = wc_get_product( $product_id );
@@ -402,23 +402,21 @@ class SCD_Campaign_Health_Service {
 					if ( $product->managing_stock() ) {
 						$stock = $product->get_stock_quantity();
 						if ( $stock <= 0 ) {
-							$out_of_stock_count++;
+							++$out_of_stock_count;
 						} elseif ( $stock < 10 ) {
-							$low_stock_count++;
+							++$low_stock_count;
 							// DEBUG: Log each low stock product
 							if ( 'dashboard' === $view_context ) {
 								error_log( sprintf( '   📦 Product #%d has low stock: %d units', $product_id, $stock ) );
 							}
 						}
-					} else {
-						if ( ! $product->is_in_stock() ) {
-							$out_of_stock_count++;
-						}
+					} elseif ( ! $product->is_in_stock() ) {
+							++$out_of_stock_count;
 					}
 
 					// Product status (can change after creation)
 					if ( 'publish' !== get_post_status( $product_id ) ) {
-						$draft_count++;
+						++$draft_count;
 					}
 				}
 
@@ -431,22 +429,22 @@ class SCD_Campaign_Health_Service {
 				// Critical: All products out of stock
 				if ( $out_of_stock_count === count( $check_products ) && $out_of_stock_count > 0 ) {
 					$health['critical_issues'][] = array(
-						'code' => 'all_products_out_of_stock',
-						'message' => sprintf(
+						'code'     => 'all_products_out_of_stock',
+						'message'  => sprintf(
 							/* translators: %d: number of products */
 							__( 'All %d products are out of stock', 'smart-cycle-discounts' ),
 							$product_count
 						),
 						'category' => 'products',
 					);
-					$penalty += 25;
-					$status = 'critical';
+					$penalty                    += 25;
+					$status                      = 'critical';
 				} elseif ( $out_of_stock_count > count( $check_products ) / 2 && $out_of_stock_count > 0 ) {
 					// Warning: Most products out of stock
 					$out_of_stock_percent = round( ( $out_of_stock_count / count( $check_products ) ) * 100 );
 					$health['warnings'][] = array(
-						'code' => 'most_products_out_of_stock',
-						'message' => sprintf(
+						'code'     => 'most_products_out_of_stock',
+						'message'  => sprintf(
 							/* translators: 1: number out of stock, 2: total, 3: percentage */
 							__( '%1$d of %2$d products (%3$d%%) out of stock', 'smart-cycle-discounts' ),
 							$out_of_stock_count,
@@ -455,7 +453,7 @@ class SCD_Campaign_Health_Service {
 						),
 						'category' => 'products',
 					);
-					$penalty += 10;
+					$penalty             += 10;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
@@ -464,18 +462,18 @@ class SCD_Campaign_Health_Service {
 				// Warning: Low stock (only on dashboard - actionable)
 				if ( 'dashboard' === $view_context && $low_stock_count > 0 ) {
 					$campaign_name = isset( $campaign['name'] ) ? $campaign['name'] : 'Unknown';
-					$campaign_id = isset( $campaign['id'] ) ? $campaign['id'] : 0;
+					$campaign_id   = isset( $campaign['id'] ) ? $campaign['id'] : 0;
 					error_log( sprintf( '🔔 LOW STOCK WARNING: Campaign ID=%d Name="%s" has %d products with low stock, view_context=%s', $campaign_id, $campaign_name, $low_stock_count, $view_context ) );
 					$health['warnings'][] = array(
-						'code' => 'low_stock_products',
-						'message' => sprintf(
+						'code'     => 'low_stock_products',
+						'message'  => sprintf(
 							/* translators: %d: number of products */
 							_n( '%d product low on stock (<10 units)', '%d products low on stock (<10 units)', $low_stock_count, 'smart-cycle-discounts' ),
 							$low_stock_count
 						),
 						'category' => 'products',
 					);
-					$penalty += 5;
+					$penalty             += 5;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
@@ -484,15 +482,15 @@ class SCD_Campaign_Health_Service {
 				// Warning: Draft products (status changed after creation)
 				if ( $draft_count > 0 ) {
 					$health['warnings'][] = array(
-						'code' => 'products_not_published',
-						'message' => sprintf(
+						'code'     => 'products_not_published',
+						'message'  => sprintf(
 							/* translators: %d: number of products */
 							_n( '%d product is not published', '%d products are not published', $draft_count, 'smart-cycle-discounts' ),
 							$draft_count
 						),
 						'category' => 'products',
 					);
-					$penalty += 8;
+					$penalty             += 8;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
@@ -521,53 +519,53 @@ class SCD_Campaign_Health_Service {
 			if ( ! empty( $selected_ids ) ) {
 				// Get current product count from these categories/tags
 				$args = array(
-					'post_type' => 'product',
-					'post_status' => 'publish',
+					'post_type'      => 'product',
+					'post_status'    => 'publish',
 					'posts_per_page' => -1,
-					'fields' => 'ids',
+					'fields'         => 'ids',
 				);
 
 				if ( 'categories' === $selection_type ) {
 					$args['tax_query'] = array(
 						array(
 							'taxonomy' => 'product_cat',
-							'field' => 'term_id',
-							'terms' => $selected_ids,
+							'field'    => 'term_id',
+							'terms'    => $selected_ids,
 						),
 					);
 				} else {
 					$args['tax_query'] = array(
 						array(
 							'taxonomy' => 'product_tag',
-							'field' => 'term_id',
-							'terms' => $selected_ids,
+							'field'    => 'term_id',
+							'terms'    => $selected_ids,
 						),
 					);
 				}
 
 				$current_products = get_posts( $args );
-				$current_count = count( $current_products );
+				$current_count    = count( $current_products );
 
 				// Critical: Selection resulted in zero products
 				if ( 0 === $current_count ) {
-					$taxonomy_label = ( 'categories' === $selection_type ) ? __( 'categories', 'smart-cycle-discounts' ) : __( 'tags', 'smart-cycle-discounts' );
+					$taxonomy_label              = ( 'categories' === $selection_type ) ? __( 'categories', 'smart-cycle-discounts' ) : __( 'tags', 'smart-cycle-discounts' );
 					$health['critical_issues'][] = array(
-						'code' => 'taxonomy_selection_empty',
-						'message' => sprintf(
+						'code'     => 'taxonomy_selection_empty',
+						'message'  => sprintf(
 							/* translators: %s: taxonomy label (categories/tags) */
 							__( 'Selected %s contain 0 published products', 'smart-cycle-discounts' ),
 							$taxonomy_label
 						),
 						'category' => 'products',
 					);
-					$penalty += 25;
-					$status = 'critical';
+					$penalty                    += 25;
+					$status                      = 'critical';
 				} elseif ( $current_count > 500 ) {
 					// Warning: Selection expanded to too many products
-					$taxonomy_label = ( 'categories' === $selection_type ) ? __( 'category', 'smart-cycle-discounts' ) : __( 'tag', 'smart-cycle-discounts' );
+					$taxonomy_label       = ( 'categories' === $selection_type ) ? __( 'category', 'smart-cycle-discounts' ) : __( 'tag', 'smart-cycle-discounts' );
 					$health['warnings'][] = array(
-						'code' => 'taxonomy_selection_too_broad',
-						'message' => sprintf(
+						'code'     => 'taxonomy_selection_too_broad',
+						'message'  => sprintf(
 							/* translators: 1: taxonomy label, 2: product count */
 							__( '%1$s selection now includes %2$d products (may impact performance)', 'smart-cycle-discounts' ),
 							ucfirst( $taxonomy_label ),
@@ -575,7 +573,7 @@ class SCD_Campaign_Health_Service {
 						),
 						'category' => 'products',
 					);
-					$penalty += 8;
+					$penalty             += 8;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
@@ -586,7 +584,7 @@ class SCD_Campaign_Health_Service {
 		// Track breakdown
 		$health['breakdown']['products'] = array(
 			'penalty' => $penalty,
-			'status' => $status,
+			'status'  => $status,
 		);
 
 		$health['score'] -= $penalty;
@@ -608,48 +606,48 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array     $campaign       Campaign data.
-	 * @param    array     $health         Health data array.
-	 * @param    string    $view_context   View context ('dashboard' or 'review').
+	 * @param    array  $campaign       Campaign data.
+	 * @param    array  $health         Health data array.
+	 * @param    string $view_context   View context ('dashboard' or 'review').
 	 * @return   array                     Updated health data.
 	 */
 	private function check_schedule( $campaign, $health, $view_context ) {
 		$penalty = 0;
-		$status = 'healthy';
-		$now = current_time( 'timestamp' ); // WordPress timezone-aware timestamp
+		$status  = 'healthy';
+		$now     = current_time( 'timestamp' ); // WordPress timezone-aware timestamp
 
 		$campaign_status = isset( $campaign['status'] ) ? $campaign['status'] : '';
-		$end_date = isset( $campaign['end_date'] ) ? $campaign['end_date'] : null;
-		$start_date = isset( $campaign['start_date'] ) ? $campaign['start_date'] : null;
-		$end_time_only = isset( $campaign['end_time'] ) ? $campaign['end_time'] : '23:59';
+		$end_date        = isset( $campaign['end_date'] ) ? $campaign['end_date'] : null;
+		$start_date      = isset( $campaign['start_date'] ) ? $campaign['start_date'] : null;
+		$end_time_only   = isset( $campaign['end_time'] ) ? $campaign['end_time'] : '23:59';
 		$start_time_only = isset( $campaign['start_time'] ) ? $campaign['start_time'] : '00:00';
 
 		// POST-CREATION ISSUE: Campaign expired but still active
 		if ( 'active' === $campaign_status && ! empty( $end_date ) ) {
-			$end_dt = scd_combine_date_time( $end_date, $end_time_only, wp_timezone_string() );
+			$end_dt        = scd_combine_date_time( $end_date, $end_time_only, wp_timezone_string() );
 			$end_timestamp = $end_dt ? $end_dt->getTimestamp() : false;
 
 			if ( $end_timestamp && $end_timestamp < $now ) {
 				$health['critical_issues'][] = array(
-					'code' => 'campaign_expired',
-					'message' => __( 'Campaign expired - deactivate or extend end date', 'smart-cycle-discounts' ),
+					'code'     => 'campaign_expired',
+					'message'  => __( 'Campaign expired - deactivate or extend end date', 'smart-cycle-discounts' ),
 					'category' => 'schedule',
 				);
-				$penalty += 25;
-				$status = 'critical';
+				$penalty                    += 25;
+				$status                      = 'critical';
 			} elseif ( $end_timestamp && $end_timestamp < ( $now + ( 3 * DAY_IN_SECONDS ) ) ) {
 				// Warning: Ending within 3 days
-				$days_left = ceil( ( $end_timestamp - $now ) / DAY_IN_SECONDS );
+				$days_left            = ceil( ( $end_timestamp - $now ) / DAY_IN_SECONDS );
 				$health['warnings'][] = array(
-					'code' => 'ending_soon',
-					'message' => sprintf(
+					'code'     => 'ending_soon',
+					'message'  => sprintf(
 						/* translators: %d: days until campaign ends */
 						_n( 'Ends in %d day', 'Ends in %d days', $days_left, 'smart-cycle-discounts' ),
 						$days_left
 					),
 					'category' => 'schedule',
 				);
-				$penalty += 5;
+				$penalty             += 5;
 				if ( 'critical' !== $status ) {
 					$status = 'warning';
 				}
@@ -658,16 +656,16 @@ class SCD_Campaign_Health_Service {
 
 		// POST-CREATION ISSUE: Scheduled campaign start date passed (should be activated)
 		if ( 'scheduled' === $campaign_status && ! empty( $start_date ) ) {
-			$start_dt = scd_combine_date_time( $start_date, $start_time_only, wp_timezone_string() );
+			$start_dt        = scd_combine_date_time( $start_date, $start_time_only, wp_timezone_string() );
 			$start_timestamp = $start_dt ? $start_dt->getTimestamp() : false;
 
 			if ( $start_timestamp && $start_timestamp < $now ) {
 				$health['warnings'][] = array(
-					'code' => 'start_date_passed',
-					'message' => __( 'Start date passed - activate campaign', 'smart-cycle-discounts' ),
+					'code'     => 'start_date_passed',
+					'message'  => __( 'Start date passed - activate campaign', 'smart-cycle-discounts' ),
 					'category' => 'schedule',
 				);
-				$penalty += 10;
+				$penalty             += 10;
 				if ( 'critical' !== $status ) {
 					$status = 'warning';
 				}
@@ -676,7 +674,7 @@ class SCD_Campaign_Health_Service {
 
 		// POST-CREATION ISSUE: No activity warning (dashboard only)
 		if ( 'dashboard' === $view_context && 'active' === $campaign_status && ! empty( $start_date ) ) {
-			$start_dt = scd_combine_date_time( $start_date, $start_time_only, wp_timezone_string() );
+			$start_dt        = scd_combine_date_time( $start_date, $start_time_only, wp_timezone_string() );
 			$start_timestamp = $start_dt ? $start_dt->getTimestamp() : false;
 
 			if ( $start_timestamp && $start_timestamp < ( $now - ( 7 * DAY_IN_SECONDS ) ) ) {
@@ -685,17 +683,17 @@ class SCD_Campaign_Health_Service {
 
 				// Warning: No activity detected
 				if ( 0 === $usage_count ) {
-					$days_active = floor( ( $now - $start_timestamp ) / DAY_IN_SECONDS );
+					$days_active          = floor( ( $now - $start_timestamp ) / DAY_IN_SECONDS );
 					$health['warnings'][] = array(
-						'code' => 'no_activity_detected',
-						'message' => sprintf(
+						'code'     => 'no_activity_detected',
+						'message'  => sprintf(
 							/* translators: %d: number of days campaign has been active */
 							_n( 'No discount usage in %d day - verify campaign is working correctly', 'No discount usage in %d days - verify campaign is working correctly', $days_active, 'smart-cycle-discounts' ),
 							$days_active
 						),
 						'category' => 'schedule',
 					);
-					$penalty += 8;
+					$penalty             += 8;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
@@ -706,7 +704,7 @@ class SCD_Campaign_Health_Service {
 		// Track breakdown
 		$health['breakdown']['schedule'] = array(
 			'penalty' => $penalty,
-			'status' => $status,
+			'status'  => $status,
 		);
 
 		$health['score'] -= $penalty;
@@ -725,57 +723,57 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array     $campaign       Campaign data.
-	 * @param    array     $health         Health data array.
-	 * @param    string    $view_context   View context ('dashboard' or 'review').
+	 * @param    array  $campaign       Campaign data.
+	 * @param    array  $health         Health data array.
+	 * @param    string $view_context   View context ('dashboard' or 'review').
 	 * @return   array                     Updated health data.
 	 */
 	private function check_discount_reasonableness( $campaign, $health, $view_context ) {
 		$penalty = 0;
-		$status = 'healthy';
+		$status  = 'healthy';
 
-		$discount_type = isset( $campaign['discount_type'] ) ? $campaign['discount_type'] : '';
+		$discount_type  = isset( $campaign['discount_type'] ) ? $campaign['discount_type'] : '';
 		$discount_value = isset( $campaign['discount_value'] ) ? floatval( $campaign['discount_value'] ) : 0;
 
 		// BUSINESS WARNING: Extremely high percentage discount
 		if ( 'percentage' === $discount_type && $discount_value >= 90 ) {
 			$health['critical_issues'][] = array(
-				'code' => 'extreme_discount',
-				'message' => sprintf(
+				'code'     => 'extreme_discount',
+				'message'  => sprintf(
 					/* translators: %d: discount percentage */
 					__( '%d%% discount is extremely high - may cause profit loss', 'smart-cycle-discounts' ),
 					$discount_value
 				),
 				'category' => 'discount',
 			);
-			$penalty += 20;
-			$status = 'critical';
+			$penalty                    += 20;
+			$status                      = 'critical';
 		} elseif ( 'percentage' === $discount_type && $discount_value >= 70 ) {
 			// BUSINESS WARNING: Very high discount
 			$health['warnings'][] = array(
-				'code' => 'very_high_discount',
-				'message' => sprintf(
+				'code'     => 'very_high_discount',
+				'message'  => sprintf(
 					/* translators: %d: discount percentage */
 					__( '%d%% discount is very high - verify intentional', 'smart-cycle-discounts' ),
 					$discount_value
 				),
 				'category' => 'discount',
 			);
-			$penalty += 10;
-			$status = 'warning';
+			$penalty             += 10;
+			$status               = 'warning';
 		} elseif ( 'percentage' === $discount_type && $discount_value < 5 && $discount_value > 0 ) {
 			// BUSINESS WARNING: Low discount
 			$health['warnings'][] = array(
-				'code' => 'low_discount',
-				'message' => sprintf(
+				'code'     => 'low_discount',
+				'message'  => sprintf(
 					/* translators: %d: discount percentage */
 					__( '%d%% discount may not be compelling', 'smart-cycle-discounts' ),
 					$discount_value
 				),
 				'category' => 'discount',
 			);
-			$penalty += 5;
-			$status = 'warning';
+			$penalty             += 5;
+			$status               = 'warning';
 		}
 
 		// POST-CREATION ISSUE: Fixed discount exceeds product price (if prices changed)
@@ -789,8 +787,8 @@ class SCD_Campaign_Health_Service {
 					$min_price = min( $prices );
 					if ( $discount_value > $min_price ) {
 						$health['critical_issues'][] = array(
-							'code' => 'fixed_exceeds_price',
-							'message' => sprintf(
+							'code'     => 'fixed_exceeds_price',
+							'message'  => sprintf(
 								/* translators: 1: fixed discount, 2: product price */
 								__( 'Fixed discount $%1$.2f exceeds product price $%2$.2f', 'smart-cycle-discounts' ),
 								$discount_value,
@@ -798,8 +796,8 @@ class SCD_Campaign_Health_Service {
 							),
 							'category' => 'discount',
 						);
-						$penalty += 20;
-						$status = 'critical';
+						$penalty                    += 20;
+						$status                      = 'critical';
 					}
 				}
 			}
@@ -813,7 +811,7 @@ class SCD_Campaign_Health_Service {
 				$current_prices = $this->get_product_prices( $product_ids, 50 );
 
 				if ( ! empty( $current_prices ) ) {
-					$current_avg = array_sum( $current_prices ) / count( $current_prices );
+					$current_avg  = array_sum( $current_prices ) / count( $current_prices );
 					$original_avg = floatval( $campaign['original_avg_price'] );
 
 					if ( $original_avg > 0 ) {
@@ -822,30 +820,30 @@ class SCD_Campaign_Health_Service {
 						// Warning: Significant price decrease (40%+ drop)
 						if ( $current_avg < $original_avg && $price_change_percent >= 40 ) {
 							$health['warnings'][] = array(
-								'code' => 'price_decreased_significantly',
-								'message' => sprintf(
+								'code'     => 'price_decreased_significantly',
+								'message'  => sprintf(
 									/* translators: %d: percentage decrease */
 									__( 'Product prices decreased %d%% since campaign creation - verify discount still appropriate', 'smart-cycle-discounts' ),
 									round( $price_change_percent )
 								),
 								'category' => 'discount',
 							);
-							$penalty += 8;
+							$penalty             += 8;
 							if ( 'critical' !== $status ) {
 								$status = 'warning';
 							}
 						} elseif ( $current_avg > $original_avg && $price_change_percent >= 40 ) {
 							// Warning: Significant price increase (40%+ increase)
 							$health['warnings'][] = array(
-								'code' => 'price_increased_significantly',
-								'message' => sprintf(
+								'code'     => 'price_increased_significantly',
+								'message'  => sprintf(
 									/* translators: %d: percentage increase */
 									__( 'Product prices increased %d%% since campaign creation - consider adjusting discount', 'smart-cycle-discounts' ),
 									round( $price_change_percent )
 								),
 								'category' => 'discount',
 							);
-							$penalty += 5;
+							$penalty             += 5;
 							if ( 'critical' !== $status ) {
 								$status = 'warning';
 							}
@@ -865,7 +863,7 @@ class SCD_Campaign_Health_Service {
 			if ( ! empty( $tiers ) && is_array( $tiers ) && count( $tiers ) >= 2 ) {
 				$prev_quantity = 0;
 				$prev_discount = 0;
-				$is_illogical = false;
+				$is_illogical  = false;
 
 				foreach ( $tiers as $tier ) {
 					$quantity = isset( $tier['quantity'] ) ? intval( $tier['quantity'] ) : 0;
@@ -883,11 +881,11 @@ class SCD_Campaign_Health_Service {
 				// BUSINESS WARNING: Illogical tier structure
 				if ( $is_illogical ) {
 					$health['warnings'][] = array(
-						'code' => 'tiered_illogical',
-						'message' => __( 'Tiered discounts should increase with quantity', 'smart-cycle-discounts' ),
+						'code'     => 'tiered_illogical',
+						'message'  => __( 'Tiered discounts should increase with quantity', 'smart-cycle-discounts' ),
 						'category' => 'discount',
 					);
-					$penalty += 8;
+					$penalty             += 8;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
@@ -897,16 +895,16 @@ class SCD_Campaign_Health_Service {
 
 		// BUSINESS WARNING: BOGO low value
 		if ( 'bogo' === $discount_type ) {
-			$buy_quantity = isset( $campaign['discount_config']['bogo']['buy_quantity'] ) ? intval( $campaign['discount_config']['bogo']['buy_quantity'] ) : 0;
-			$get_quantity = isset( $campaign['discount_config']['bogo']['get_quantity'] ) ? intval( $campaign['discount_config']['bogo']['get_quantity'] ) : 0;
+			$buy_quantity        = isset( $campaign['discount_config']['bogo']['buy_quantity'] ) ? intval( $campaign['discount_config']['bogo']['buy_quantity'] ) : 0;
+			$get_quantity        = isset( $campaign['discount_config']['bogo']['get_quantity'] ) ? intval( $campaign['discount_config']['bogo']['get_quantity'] ) : 0;
 			$discount_percentage = isset( $campaign['discount_config']['bogo']['discount_percentage'] ) ? intval( $campaign['discount_config']['bogo']['discount_percentage'] ) : 100;
 
 			if ( $buy_quantity >= 1 && $get_quantity >= 1 ) {
 				$effective_discount = ( $get_quantity * $discount_percentage ) / ( $buy_quantity + $get_quantity );
 				if ( $effective_discount < 15 ) {
 					$health['warnings'][] = array(
-						'code' => 'bogo_low_value',
-						'message' => sprintf(
+						'code'     => 'bogo_low_value',
+						'message'  => sprintf(
 							/* translators: 1: buy quantity, 2: get quantity, 3: effective discount percentage */
 							__( 'BOGO buy %1$d get %2$d = %3$d%% discount may be too low', 'smart-cycle-discounts' ),
 							$buy_quantity,
@@ -915,7 +913,7 @@ class SCD_Campaign_Health_Service {
 						),
 						'category' => 'discount',
 					);
-					$penalty += 5;
+					$penalty             += 5;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
@@ -936,30 +934,30 @@ class SCD_Campaign_Health_Service {
 				// BUSINESS WARNING: Threshold may be too high
 				if ( $first_threshold > 500 ) {
 					$health['warnings'][] = array(
-						'code' => 'threshold_too_high',
-						'message' => sprintf(
+						'code'     => 'threshold_too_high',
+						'message'  => sprintf(
 							/* translators: %s: threshold amount */
 							__( 'Spend $%s threshold may be too high', 'smart-cycle-discounts' ),
 							number_format( $first_threshold, 2 )
 						),
 						'category' => 'discount',
 					);
-					$penalty += 5;
+					$penalty             += 5;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
 				} elseif ( $first_threshold < 20 ) {
 					// BUSINESS WARNING: Threshold may be too low
 					$health['warnings'][] = array(
-						'code' => 'threshold_too_low',
-						'message' => sprintf(
+						'code'     => 'threshold_too_low',
+						'message'  => sprintf(
 							/* translators: %s: threshold amount */
 							__( 'Spend $%s threshold is very low - most orders may qualify', 'smart-cycle-discounts' ),
 							number_format( $first_threshold, 2 )
 						),
 						'category' => 'discount',
 					);
-					$penalty += 3;
+					$penalty             += 3;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
@@ -969,20 +967,20 @@ class SCD_Campaign_Health_Service {
 
 		// Usage limits checks
 		$usage_limit_per_customer = isset( $campaign['usage_limit_per_customer'] ) ? intval( $campaign['usage_limit_per_customer'] ) : 0;
-		$total_usage_limit = isset( $campaign['total_usage_limit'] ) ? intval( $campaign['total_usage_limit'] ) : 0;
+		$total_usage_limit        = isset( $campaign['total_usage_limit'] ) ? intval( $campaign['total_usage_limit'] ) : 0;
 
 		// Warning: Very low usage limit per customer
 		if ( $usage_limit_per_customer > 0 && $usage_limit_per_customer < 3 ) {
 			$health['warnings'][] = array(
-				'code' => 'usage_limit_very_low',
-				'message' => sprintf(
+				'code'     => 'usage_limit_very_low',
+				'message'  => sprintf(
 					/* translators: %d: usage limit */
 					__( 'Usage limit of %d per customer is very restrictive', 'smart-cycle-discounts' ),
 					$usage_limit_per_customer
 				),
 				'category' => 'discount',
 			);
-			$penalty += 3;
+			$penalty             += 3;
 			if ( 'critical' !== $status ) {
 				$status = 'warning';
 			}
@@ -991,15 +989,15 @@ class SCD_Campaign_Health_Service {
 		// Warning: Low total usage limit
 		if ( $total_usage_limit > 0 && $total_usage_limit < 50 ) {
 			$health['warnings'][] = array(
-				'code' => 'total_usage_low',
-				'message' => sprintf(
+				'code'     => 'total_usage_low',
+				'message'  => sprintf(
 					/* translators: %d: total usage limit */
 					__( 'Total usage limit of %d may be reached quickly', 'smart-cycle-discounts' ),
 					$total_usage_limit
 				),
 				'category' => 'discount',
 			);
-			$penalty += 3;
+			$penalty             += 3;
 			if ( 'critical' !== $status ) {
 				$status = 'warning';
 			}
@@ -1012,24 +1010,24 @@ class SCD_Campaign_Health_Service {
 			// Critical: Usage limit exhausted
 			if ( $usage_count >= $total_usage_limit ) {
 				$health['critical_issues'][] = array(
-					'code' => 'usage_limit_exhausted',
-					'message' => sprintf(
+					'code'     => 'usage_limit_exhausted',
+					'message'  => sprintf(
 						/* translators: %d: usage limit */
 						__( 'Usage limit reached (%d uses) - campaign no longer applying discounts', 'smart-cycle-discounts' ),
 						$total_usage_limit
 					),
 					'category' => 'discount',
 				);
-				$penalty += 25;
-				$status = 'critical';
+				$penalty                    += 25;
+				$status                      = 'critical';
 			} elseif ( $usage_count > 0 && $total_usage_limit > 0 ) {
 				// Warning: Nearly exhausted (90%+ used)
 				$usage_percentage = ( $usage_count / $total_usage_limit ) * 100;
 				if ( $usage_percentage >= 90 ) {
-					$remaining = $total_usage_limit - $usage_count;
+					$remaining            = $total_usage_limit - $usage_count;
 					$health['warnings'][] = array(
-						'code' => 'usage_limit_nearly_exhausted',
-						'message' => sprintf(
+						'code'     => 'usage_limit_nearly_exhausted',
+						'message'  => sprintf(
 							/* translators: 1: uses remaining, 2: total limit */
 							_n( 'Only %1$d use remaining (limit: %2$d)', 'Only %1$d uses remaining (limit: %2$d)', $remaining, 'smart-cycle-discounts' ),
 							$remaining,
@@ -1037,7 +1035,7 @@ class SCD_Campaign_Health_Service {
 						),
 						'category' => 'discount',
 					);
-					$penalty += 10;
+					$penalty             += 10;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
@@ -1046,22 +1044,22 @@ class SCD_Campaign_Health_Service {
 		}
 
 		// Application rules checks
-		$max_discount_amount = isset( $campaign['max_discount_amount'] ) ? floatval( $campaign['max_discount_amount'] ) : 0;
-		$minimum_quantity = isset( $campaign['minimum_quantity'] ) ? intval( $campaign['minimum_quantity'] ) : 0;
+		$max_discount_amount  = isset( $campaign['max_discount_amount'] ) ? floatval( $campaign['max_discount_amount'] ) : 0;
+		$minimum_quantity     = isset( $campaign['minimum_quantity'] ) ? intval( $campaign['minimum_quantity'] ) : 0;
 		$minimum_order_amount = isset( $campaign['minimum_order_amount'] ) ? floatval( $campaign['minimum_order_amount'] ) : 0;
 
 		// Warning: Max discount too low
 		if ( $max_discount_amount > 0 && $max_discount_amount < 10 ) {
 			$health['warnings'][] = array(
-				'code' => 'max_discount_low',
-				'message' => sprintf(
+				'code'     => 'max_discount_low',
+				'message'  => sprintf(
 					/* translators: %s: max discount amount */
 					__( 'Maximum discount $%s limits savings significantly', 'smart-cycle-discounts' ),
 					number_format( $max_discount_amount, 2 )
 				),
 				'category' => 'discount',
 			);
-			$penalty += 3;
+			$penalty             += 3;
 			if ( 'critical' !== $status ) {
 				$status = 'warning';
 			}
@@ -1070,15 +1068,15 @@ class SCD_Campaign_Health_Service {
 		// Warning: Minimum quantity too high
 		if ( $minimum_quantity > 5 ) {
 			$health['warnings'][] = array(
-				'code' => 'min_quantity_high',
-				'message' => sprintf(
+				'code'     => 'min_quantity_high',
+				'message'  => sprintf(
 					/* translators: %d: minimum quantity */
 					__( 'Minimum quantity %d may prevent single-item purchases', 'smart-cycle-discounts' ),
 					$minimum_quantity
 				),
 				'category' => 'discount',
 			);
-			$penalty += 5;
+			$penalty             += 5;
 			if ( 'critical' !== $status ) {
 				$status = 'warning';
 			}
@@ -1087,15 +1085,15 @@ class SCD_Campaign_Health_Service {
 		// Warning: Minimum order amount too high
 		if ( $minimum_order_amount > 100 ) {
 			$health['warnings'][] = array(
-				'code' => 'min_order_high',
-				'message' => sprintf(
+				'code'     => 'min_order_high',
+				'message'  => sprintf(
 					/* translators: %s: minimum order amount */
 					__( 'Minimum order $%s may be above average order value', 'smart-cycle-discounts' ),
 					number_format( $minimum_order_amount, 2 )
 				),
 				'category' => 'discount',
 			);
-			$penalty += 5;
+			$penalty             += 5;
 			if ( 'critical' !== $status ) {
 				$status = 'warning';
 			}
@@ -1104,7 +1102,7 @@ class SCD_Campaign_Health_Service {
 		// Track breakdown
 		$health['breakdown']['discount'] = array(
 			'penalty' => $penalty,
-			'status' => $status,
+			'status'  => $status,
 		);
 
 		$health['score'] -= $penalty;
@@ -1116,14 +1114,14 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $campaign    Campaign data.
-	 * @param    array    $health      Health data array.
-	 * @param    array    $context     Additional context data.
+	 * @param    array $campaign    Campaign data.
+	 * @param    array $health      Health data array.
+	 * @param    array $context     Additional context data.
 	 * @return   array                 Updated health data.
 	 */
 	private function check_coverage( $campaign, $health, $context, $view_context ) {
 		$penalty = 0;
-		$status = 'healthy';
+		$status  = 'healthy';
 
 		// Note: Product selection validation is handled by check_products() method.
 		// This method focuses on coverage percentage analysis only.
@@ -1133,23 +1131,23 @@ class SCD_Campaign_Health_Service {
 			$coverage_percentage = $context['coverage_data']['coverage_percentage'];
 			if ( $coverage_percentage < 50 && $coverage_percentage > 0 ) {
 				$health['warnings'][] = array(
-					'code' => 'low_coverage',
-					'message' => sprintf(
+					'code'     => 'low_coverage',
+					'message'  => sprintf(
 						/* translators: %d: coverage percentage */
 						__( 'Only %d%% of selected products will receive discounts', 'smart-cycle-discounts' ),
 						$coverage_percentage
 					),
 					'category' => 'coverage',
 				);
-				$penalty += 10;
-				$status = 'warning';
+				$penalty             += 10;
+				$status               = 'warning';
 			}
 		}
 
 		// Track breakdown
 		$health['breakdown']['coverage'] = array(
 			'penalty' => $penalty,
-			'status' => $status,
+			'status'  => $status,
 		);
 
 		$health['score'] -= $penalty;
@@ -1161,34 +1159,34 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $campaign    Campaign data.
-	 * @param    array    $health      Health data array.
-	 * @param    array    $context     Additional context data.
+	 * @param    array $campaign    Campaign data.
+	 * @param    array $health      Health data array.
+	 * @param    array $context     Additional context data.
 	 * @return   array                 Updated health data.
 	 */
 	private function check_stock_risk( $campaign, $health, $context, $view_context ) {
 		$penalty = 0;
-		$status = 'healthy';
+		$status  = 'healthy';
 
 		$campaign_status = isset( $campaign['status'] ) ? $campaign['status'] : '';
-		$discount_type = isset( $campaign['discount_type'] ) ? $campaign['discount_type'] : '';
-		$discount_value = isset( $campaign['discount_value'] ) ? floatval( $campaign['discount_value'] ) : 0;
+		$discount_type   = isset( $campaign['discount_type'] ) ? $campaign['discount_type'] : '';
+		$discount_value  = isset( $campaign['discount_value'] ) ? floatval( $campaign['discount_value'] ) : 0;
 
 		// Only check for high-discount active campaigns
 		if ( 'active' === $campaign_status && 'percentage' === $discount_type && $discount_value >= 50 ) {
 			$health['warnings'][] = array(
-				'code' => 'stock_depletion_risk',
-				'message' => __( 'High discount may cause rapid stock depletion', 'smart-cycle-discounts' ),
+				'code'     => 'stock_depletion_risk',
+				'message'  => __( 'High discount may cause rapid stock depletion', 'smart-cycle-discounts' ),
 				'category' => 'stock',
 			);
-			$penalty += 5;
-			$status = 'warning';
+			$penalty             += 5;
+			$status               = 'warning';
 		}
 
 		// Track breakdown
 		$health['breakdown']['stock'] = array(
 			'penalty' => $penalty,
-			'status' => $status,
+			'status'  => $status,
 		);
 
 		$health['score'] -= $penalty;
@@ -1200,14 +1198,14 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $campaign    Campaign data.
-	 * @param    array    $health      Health data array.
-	 * @param    array    $context     Additional context data.
+	 * @param    array $campaign    Campaign data.
+	 * @param    array $health      Health data array.
+	 * @param    array $context     Additional context data.
 	 * @return   array                 Updated health data.
 	 */
 	private function check_conflicts( $campaign, $health, $context, $view_context ) {
 		$penalty = 0;
-		$status = 'healthy';
+		$status  = 'healthy';
 
 		// Check if conflicts data provided in context
 		if ( isset( $context['conflicts_data']['has_conflicts'] ) && $context['conflicts_data']['has_conflicts'] ) {
@@ -1215,16 +1213,16 @@ class SCD_Campaign_Health_Service {
 
 			if ( $total_blocked > 0 ) {
 				$health['warnings'][] = array(
-					'code' => 'campaign_conflicts',
-					'message' => sprintf(
+					'code'     => 'campaign_conflicts',
+					'message'  => sprintf(
 						/* translators: %d: number of products blocked */
 						_n( '%d product blocked by higher-priority campaigns', '%d products blocked by higher-priority campaigns', $total_blocked, 'smart-cycle-discounts' ),
 						$total_blocked
 					),
 					'category' => 'conflicts',
 				);
-				$penalty += 10;
-				$status = 'warning';
+				$penalty             += 10;
+				$status               = 'warning';
 			}
 		} else {
 			// Smart conflict detection: check for actual product overlap with other campaigns
@@ -1234,9 +1232,9 @@ class SCD_Campaign_Health_Service {
 			}
 
 			global $wpdb;
-			$table_name = $wpdb->prefix . 'scd_campaigns';
-			$campaign_id = $campaign['id'];
-			$priority = intval( $campaign['priority'] );
+			$table_name     = $wpdb->prefix . 'scd_campaigns';
+			$campaign_id    = $campaign['id'];
+			$priority       = intval( $campaign['priority'] );
 			$selection_type = isset( $campaign['product_selection_type'] ) ? $campaign['product_selection_type'] : '';
 
 			// Get all other active/scheduled campaigns
@@ -1268,12 +1266,12 @@ class SCD_Campaign_Health_Service {
 				return $health;
 			}
 
-			$same_priority_overlaps = array();
+			$same_priority_overlaps   = array();
 			$higher_priority_overlaps = array();
-			$date_overlap_campaigns = array();
+			$date_overlap_campaigns   = array();
 
 			foreach ( $other_campaigns as $other ) {
-				$other_priority = intval( $other['priority'] );
+				$other_priority       = intval( $other['priority'] );
 				$other_selection_type = $other['product_selection_type'];
 
 				// Check if campaigns target overlapping products
@@ -1295,7 +1293,7 @@ class SCD_Campaign_Health_Service {
 
 						// Track for date overlap awareness message
 						$date_overlap_campaigns[] = array(
-							'name' => $other['name'],
+							'name'     => $other['name'],
 							'priority' => $other_priority,
 						);
 					}
@@ -1305,33 +1303,33 @@ class SCD_Campaign_Health_Service {
 			// Critical: Same priority with product overlap (ambiguous which one wins)
 			if ( ! empty( $same_priority_overlaps ) ) {
 				$health['critical_issues'][] = array(
-					'code' => 'same_priority_product_conflict',
-					'message' => sprintf(
+					'code'                  => 'same_priority_product_conflict',
+					'message'               => sprintf(
 						/* translators: 1: number of campaigns, 2: priority level */
 						_n( 'Conflicts with %1$d campaign at priority %2$d targeting the same products - change priority to resolve', '%1$d campaigns at priority %2$d target the same products - change priority to resolve', count( $same_priority_overlaps ), 'smart-cycle-discounts' ),
 						count( $same_priority_overlaps ),
 						$priority
 					),
-					'category' => 'conflicts',
+					'category'              => 'conflicts',
 					'conflicting_campaigns' => $same_priority_overlaps,
 				);
-				$penalty += 20;
-				$status = 'critical';
+				$penalty                    += 20;
+				$status                      = 'critical';
 			}
 
 			// Warning: Higher priority campaigns blocking this one
 			if ( ! empty( $higher_priority_overlaps ) ) {
 				$health['warnings'][] = array(
-					'code' => 'blocked_by_higher_priority',
-					'message' => sprintf(
+					'code'               => 'blocked_by_higher_priority',
+					'message'            => sprintf(
 						/* translators: %d: number of campaigns */
 						_n( '%d higher-priority campaign targets the same products and will take precedence', '%d higher-priority campaigns target the same products and will take precedence', count( $higher_priority_overlaps ), 'smart-cycle-discounts' ),
 						count( $higher_priority_overlaps )
 					),
-					'category' => 'conflicts',
+					'category'           => 'conflicts',
 					'blocking_campaigns' => $higher_priority_overlaps,
 				);
-				$penalty += 10;
+				$penalty             += 10;
 				if ( 'critical' !== $status ) {
 					$status = 'warning';
 				}
@@ -1339,18 +1337,21 @@ class SCD_Campaign_Health_Service {
 
 			// Info: Date overlap awareness (not necessarily a problem - priorities handle it)
 			if ( ! empty( $date_overlap_campaigns ) ) {
-				$campaign_names = array_map( function( $c ) {
-					return $c['name'];
-				}, $date_overlap_campaigns );
+				$campaign_names = array_map(
+					function ( $c ) {
+						return $c['name'];
+					},
+					$date_overlap_campaigns
+				);
 
 				$health['info'][] = array(
-					'code' => 'date_overlap_awareness',
-					'message' => sprintf(
+					'code'                  => 'date_overlap_awareness',
+					'message'               => sprintf(
 						/* translators: %d: number of campaigns */
 						_n( 'Runs simultaneously with %d other campaign on same products (priority determines which applies)', 'Runs simultaneously with %d other campaigns on same products (priority determines which applies)', count( $date_overlap_campaigns ), 'smart-cycle-discounts' ),
 						count( $date_overlap_campaigns )
 					),
-					'category' => 'conflicts',
+					'category'              => 'conflicts',
 					'overlapping_campaigns' => $campaign_names,
 				);
 				// No penalty for info messages
@@ -1360,7 +1361,7 @@ class SCD_Campaign_Health_Service {
 		// Track breakdown
 		$health['breakdown']['conflicts'] = array(
 			'penalty' => $penalty,
-			'status' => $status,
+			'status'  => $status,
 		);
 
 		$health['score'] -= $penalty;
@@ -1372,10 +1373,10 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array     $campaign1        First campaign data.
-	 * @param    array     $campaign2        Second campaign data.
-	 * @param    string    $type1            Selection type of first campaign.
-	 * @param    string    $type2            Selection type of second campaign.
+	 * @param    array  $campaign1        First campaign data.
+	 * @param    array  $campaign2        Second campaign data.
+	 * @param    string $type1            Selection type of first campaign.
+	 * @param    string $type2            Selection type of second campaign.
 	 * @return   bool                        True if campaigns overlap.
 	 */
 	private function check_product_overlap( $campaign1, $campaign2, $type1, $type2 ) {
@@ -1469,16 +1470,16 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $campaign1    First campaign data.
-	 * @param    array    $campaign2    Second campaign data.
+	 * @param    array $campaign1    First campaign data.
+	 * @param    array $campaign2    Second campaign data.
 	 * @return   bool                   True if date ranges overlap.
 	 */
 	private function check_date_overlap( $campaign1, $campaign2 ) {
 		// Get dates from both campaigns
 		$start1 = isset( $campaign1['start_date'] ) ? $campaign1['start_date'] : '';
-		$end1 = isset( $campaign1['end_date'] ) ? $campaign1['end_date'] : '';
+		$end1   = isset( $campaign1['end_date'] ) ? $campaign1['end_date'] : '';
 		$start2 = isset( $campaign2['start_date'] ) ? $campaign2['start_date'] : '';
-		$end2 = isset( $campaign2['end_date'] ) ? $campaign2['end_date'] : '';
+		$end2   = isset( $campaign2['end_date'] ) ? $campaign2['end_date'] : '';
 
 		// If any campaign has no dates, can't determine overlap
 		if ( empty( $start1 ) || empty( $start2 ) ) {
@@ -1494,11 +1495,11 @@ class SCD_Campaign_Health_Service {
 		// Both campaigns have start and end dates - check for overlap
 		// Overlap exists if: start1 <= end2 AND start2 <= end1
 		try {
-			$timezone = wp_timezone();
+			$timezone    = wp_timezone();
 			$start1_time = new DateTime( $start1, $timezone );
-			$end1_time = new DateTime( $end1, $timezone );
+			$end1_time   = new DateTime( $end1, $timezone );
 			$start2_time = new DateTime( $start2, $timezone );
-			$end2_time = new DateTime( $end2, $timezone );
+			$end2_time   = new DateTime( $end2, $timezone );
 
 			// Check if date ranges overlap
 			return ( $start1_time <= $end2_time ) && ( $start2_time <= $end1_time );
@@ -1516,9 +1517,9 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $campaign    Campaign data.
-	 * @param    array    $health      Current health analysis.
-	 * @param    array    $context     Additional context data.
+	 * @param    array $campaign    Campaign data.
+	 * @param    array $health      Current health analysis.
+	 * @param    array $context     Additional context data.
 	 * @return   array                 Array of recommendations.
 	 */
 	private function generate_recommendations( $campaign, $health, $context ) {
@@ -1526,16 +1527,16 @@ class SCD_Campaign_Health_Service {
 
 		// Generic campaign name recommendation
 		if ( isset( $campaign['name'] ) && ! empty( $campaign['name'] ) ) {
-			$name = trim( $campaign['name'] );
+			$name          = trim( $campaign['name'] );
 			$generic_names = array( 'test', 'new campaign', 'campaign', 'discount', 'sale', 'temp', 'untitled' );
-			$name_lower = strtolower( $name );
+			$name_lower    = strtolower( $name );
 
 			foreach ( $generic_names as $generic ) {
 				if ( $generic === $name_lower || 0 === strpos( $name_lower, $generic ) || 10 > strlen( $name ) ) {
 					$recommendations[] = array(
 						'category' => 'management',
 						'priority' => 'medium',
-						'message' => sprintf(
+						'message'  => sprintf(
 							/* translators: %s: campaign name */
 							__( 'Campaign name "%s" is too generic - use a descriptive name with timeframe', 'smart-cycle-discounts' ),
 							$name
@@ -1551,7 +1552,7 @@ class SCD_Campaign_Health_Service {
 			$recommendations[] = array(
 				'category' => 'management',
 				'priority' => 'low',
-				'message' => __( 'Add description to document campaign goals and expected outcomes', 'smart-cycle-discounts' ),
+				'message'  => __( 'Add description to document campaign goals and expected outcomes', 'smart-cycle-discounts' ),
 			);
 		}
 
@@ -1560,7 +1561,7 @@ class SCD_Campaign_Health_Service {
 			$recommendations[] = array(
 				'category' => 'timing',
 				'priority' => 'high',
-				'message' => __( 'Set a 7-14 day duration - limited-time offers create urgency', 'smart-cycle-discounts' ),
+				'message'  => __( 'Set a 7-14 day duration - limited-time offers create urgency', 'smart-cycle-discounts' ),
 			);
 		}
 
@@ -1570,7 +1571,7 @@ class SCD_Campaign_Health_Service {
 			$recommendations[] = array(
 				'category' => 'visibility',
 				'priority' => 'medium',
-				'message' => __( 'Enable product badge to highlight discounted items (increases visibility by 40%)', 'smart-cycle-discounts' ),
+				'message'  => __( 'Enable product badge to highlight discounted items (increases visibility by 40%)', 'smart-cycle-discounts' ),
 			);
 		}
 
@@ -1580,20 +1581,20 @@ class SCD_Campaign_Health_Service {
 			$recommendations[] = array(
 				'category' => 'protection',
 				'priority' => 'medium',
-				'message' => __( 'Set per-customer usage limits to prevent abuse', 'smart-cycle-discounts' ),
+				'message'  => __( 'Set per-customer usage limits to prevent abuse', 'smart-cycle-discounts' ),
 			);
 		}
 
 		// Minimum order recommendation for higher discounts
-		$discount_type = isset( $campaign['discount_type'] ) ? $campaign['discount_type'] : '';
+		$discount_type  = isset( $campaign['discount_type'] ) ? $campaign['discount_type'] : '';
 		$discount_value = isset( $campaign['discount_value'] ) ? floatval( $campaign['discount_value'] ) : 0;
-		$minimum_order = isset( $campaign['minimum_order_amount'] ) ? floatval( $campaign['minimum_order_amount'] ) : 0;
+		$minimum_order  = isset( $campaign['minimum_order_amount'] ) ? floatval( $campaign['minimum_order_amount'] ) : 0;
 
 		if ( 'percentage' === $discount_type && $discount_value >= 20 && 0 === $minimum_order ) {
 			$recommendations[] = array(
 				'category' => 'protection',
 				'priority' => 'medium',
-				'message' => __( 'Add minimum order amount to protect margins on high discounts', 'smart-cycle-discounts' ),
+				'message'  => __( 'Add minimum order amount to protect margins on high discounts', 'smart-cycle-discounts' ),
 			);
 		}
 
@@ -1603,17 +1604,17 @@ class SCD_Campaign_Health_Service {
 			$recommendations[] = array(
 				'category' => 'targeting',
 				'priority' => 'low',
-				'message' => __( 'Add conditions (e.g., customer role, cart value) for targeted discounts', 'smart-cycle-discounts' ),
+				'message'  => __( 'Add conditions (e.g., customer role, cart value) for targeted discounts', 'smart-cycle-discounts' ),
 			);
 		}
 
 		// Product organization recommendation
-		$selection_type = isset( $campaign['product_selection_type'] ) ? $campaign['product_selection_type' ] : '';
+		$selection_type = isset( $campaign['product_selection_type'] ) ? $campaign['product_selection_type'] : '';
 		if ( 'specific_products' === $selection_type ) {
 			$recommendations[] = array(
 				'category' => 'organization',
 				'priority' => 'low',
-				'message' => __( 'Use product tags for better organization and filtering of campaigns', 'smart-cycle-discounts' ),
+				'message'  => __( 'Use product tags for better organization and filtering of campaigns', 'smart-cycle-discounts' ),
 			);
 		}
 
@@ -1628,7 +1629,7 @@ class SCD_Campaign_Health_Service {
 					$recommendations[] = array(
 						'category' => 'timing',
 						'priority' => 'low',
-						'message' => __( 'Campaigns starting Monday-Wednesday see 15% higher engagement than weekend launches', 'smart-cycle-discounts' ),
+						'message'  => __( 'Campaigns starting Monday-Wednesday see 15% higher engagement than weekend launches', 'smart-cycle-discounts' ),
 					);
 				}
 			}
@@ -1648,7 +1649,7 @@ class SCD_Campaign_Health_Service {
 					$recommendations[] = array(
 						'category' => 'strategy',
 						'priority' => 'medium',
-						'message' => sprintf(
+						'message'  => sprintf(
 							/* translators: %s: average product price */
 							__( 'Products average $%s - consider tiered discount to encourage bulk purchases', 'smart-cycle-discounts' ),
 							number_format( $avg_price, 2 )
@@ -1661,7 +1662,7 @@ class SCD_Campaign_Health_Service {
 					$recommendations[] = array(
 						'category' => 'strategy',
 						'priority' => 'medium',
-						'message' => sprintf(
+						'message'  => sprintf(
 							/* translators: %s: average product price */
 							__( 'Low-priced products ($%s avg) - BOGO often outperforms percentage discounts', 'smart-cycle-discounts' ),
 							number_format( $avg_price, 2 )
@@ -1674,7 +1675,7 @@ class SCD_Campaign_Health_Service {
 					$recommendations[] = array(
 						'category' => 'strategy',
 						'priority' => 'medium',
-						'message' => __( 'High-value products - spend threshold discount rewards big spenders effectively', 'smart-cycle-discounts' ),
+						'message'  => __( 'High-value products - spend threshold discount rewards big spenders effectively', 'smart-cycle-discounts' ),
 					);
 				}
 			}
@@ -1683,16 +1684,16 @@ class SCD_Campaign_Health_Service {
 		// Recurring schedule recommendation for long campaigns
 		if ( ! empty( $campaign['start_date'] ) && ! empty( $campaign['end_date'] ) ) {
 			$start_timestamp = strtotime( $campaign['start_date'] );
-			$end_timestamp = strtotime( $campaign['end_date'] );
+			$end_timestamp   = strtotime( $campaign['end_date'] );
 			if ( $start_timestamp && $end_timestamp ) {
-				$duration_days = ( $end_timestamp - $start_timestamp ) / DAY_IN_SECONDS;
+				$duration_days    = ( $end_timestamp - $start_timestamp ) / DAY_IN_SECONDS;
 				$enable_recurring = isset( $campaign['enable_recurring'] ) ? $campaign['enable_recurring'] : false;
 
 				if ( $duration_days > 30 && ! $enable_recurring ) {
 					$recommendations[] = array(
 						'category' => 'management',
 						'priority' => 'low',
-						'message' => __( 'For ongoing promotions, use recurring schedule instead of long duration', 'smart-cycle-discounts' ),
+						'message'  => __( 'For ongoing promotions, use recurring schedule instead of long duration', 'smart-cycle-discounts' ),
 					);
 				}
 			}
@@ -1708,7 +1709,7 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $campaign    Campaign data.
+	 * @param    array $campaign    Campaign data.
 	 * @return   array                 Normalized product IDs array.
 	 */
 	private function normalize_product_ids( $campaign ) {
@@ -1738,8 +1739,8 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $product_ids    Array of product IDs.
-	 * @param    int      $limit          Maximum products to check (default 50).
+	 * @param    array $product_ids    Array of product IDs.
+	 * @param    int   $limit          Maximum products to check (default 50).
 	 * @return   array                    Array of prices.
 	 */
 	private function get_product_prices( $product_ids, $limit = 50 ) {
@@ -1772,28 +1773,28 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $campaign    Campaign data array.
+	 * @param    array $campaign    Campaign data array.
 	 * @return   array                 Coverage data with resolved product_ids.
 	 */
 	private function calculate_simple_coverage( $campaign ) {
 		$selection_type = isset( $campaign['product_selection_type'] ) ? $campaign['product_selection_type'] : 'all_products';
-		$product_ids = array();
+		$product_ids    = array();
 
 		// For "all_products" with category filter, get products in those categories
 		if ( 'all_products' === $selection_type ) {
 			$category_ids = isset( $campaign['category_ids'] ) ? $campaign['category_ids'] : array();
 			if ( is_string( $category_ids ) ) {
-				$decoded = json_decode( $category_ids, true );
+				$decoded      = json_decode( $category_ids, true );
 				$category_ids = ( null !== $decoded && is_array( $decoded ) ) ? $decoded : array();
 			}
 
 			if ( ! empty( $category_ids ) ) {
 				// Get products in these categories
-				$args = array(
-					'status' => 'publish',
-					'limit' => 100, // Limit for performance
+				$args        = array(
+					'status'   => 'publish',
+					'limit'    => 100, // Limit for performance
 					'category' => $category_ids,
-					'return' => 'ids',
+					'return'   => 'ids',
 				);
 				$product_ids = wc_get_products( $args );
 			}
@@ -1804,7 +1805,7 @@ class SCD_Campaign_Health_Service {
 		}
 
 		return array(
-			'product_ids' => $product_ids,
+			'product_ids'    => $product_ids,
 			'selection_type' => $selection_type,
 		);
 	}
@@ -1820,11 +1821,11 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $health    Health analysis data.
+	 * @param    array $health    Health analysis data.
 	 * @return   string              Status label.
 	 */
 	private function get_status_from_issues( $health ) {
-		$score = $health['score'];
+		$score        = $health['score'];
 		$has_critical = ! empty( $health['critical_issues'] );
 		$has_warnings = ! empty( $health['warnings'] );
 
@@ -1862,8 +1863,8 @@ class SCD_Campaign_Health_Service {
 	 * Used by dashboard to get overall health metrics across all campaigns.
 	 *
 	 * @since    1.0.0
-	 * @param    array     $campaigns    Array of campaign data.
-	 * @param    string    $mode         Analysis mode.
+	 * @param    array  $campaigns    Array of campaign data.
+	 * @param    string $mode         Analysis mode.
 	 * @return   array                   Aggregated health data.
 	 */
 	public function analyze_campaigns( $campaigns, $mode = 'standard' ) {
@@ -1871,33 +1872,61 @@ class SCD_Campaign_Health_Service {
 			return $this->get_empty_aggregate_health();
 		}
 
-		$total_score = 0;
-		$campaign_count = count( $campaigns );
+		$total_score         = 0;
+		$campaign_count      = count( $campaigns );
 		$all_critical_issues = array();
-		$all_warnings = array();
-		$categories_data = array(
-			'configuration' => array( 'healthy' => 0, 'warning' => 0, 'critical' => 0 ),
-			'products' => array( 'healthy' => 0, 'warning' => 0, 'critical' => 0 ),
-			'schedule' => array( 'healthy' => 0, 'warning' => 0, 'critical' => 0 ),
-			'discount' => array( 'healthy' => 0, 'warning' => 0, 'critical' => 0 ),
-			'coverage' => array( 'healthy' => 0, 'warning' => 0, 'critical' => 0 ),
-			'stock' => array( 'healthy' => 0, 'warning' => 0, 'critical' => 0 ),
-			'conflicts' => array( 'healthy' => 0, 'warning' => 0, 'critical' => 0 ),
+		$all_warnings        = array();
+		$categories_data     = array(
+			'configuration' => array(
+				'healthy'  => 0,
+				'warning'  => 0,
+				'critical' => 0,
+			),
+			'products'      => array(
+				'healthy'  => 0,
+				'warning'  => 0,
+				'critical' => 0,
+			),
+			'schedule'      => array(
+				'healthy'  => 0,
+				'warning'  => 0,
+				'critical' => 0,
+			),
+			'discount'      => array(
+				'healthy'  => 0,
+				'warning'  => 0,
+				'critical' => 0,
+			),
+			'coverage'      => array(
+				'healthy'  => 0,
+				'warning'  => 0,
+				'critical' => 0,
+			),
+			'stock'         => array(
+				'healthy'  => 0,
+				'warning'  => 0,
+				'critical' => 0,
+			),
+			'conflicts'     => array(
+				'healthy'  => 0,
+				'warning'  => 0,
+				'critical' => 0,
+			),
 		);
 
 		foreach ( $campaigns as $campaign ) {
-			$campaign_name = isset( $campaign['name'] ) ? $campaign['name'] : 'Unknown';
+			$campaign_name   = isset( $campaign['name'] ) ? $campaign['name'] : 'Unknown';
 			$campaign_status = isset( $campaign['status'] ) ? $campaign['status'] : 'unknown';
-			$campaign_id = isset( $campaign['id'] ) ? $campaign['id'] : 0;
+			$campaign_id     = isset( $campaign['id'] ) ? $campaign['id'] : 0;
 			error_log( sprintf( '🎯 DASHBOARD analyzing campaign: ID=%d, Name="%s", Status=%s', $campaign_id, $campaign_name, $campaign_status ) );
 
 			// Calculate coverage data to resolve products (same as campaigns list)
 			$coverage_data = $this->calculate_simple_coverage( $campaign );
 
 			// Pass context with coverage data to ensure consistent health analysis
-			$context = array(
+			$context  = array(
 				'coverage_data' => $coverage_data,
-				'view_context' => 'dashboard'
+				'view_context'  => 'dashboard',
 			);
 			$analysis = $this->analyze_health( $campaign, $mode, $context );
 
@@ -1906,23 +1935,23 @@ class SCD_Campaign_Health_Service {
 
 			// Get campaign info for issue context
 			$campaign_data = $this->normalize_campaign_data( $campaign );
-			$campaign_id = isset( $campaign_data['id'] ) ? $campaign_data['id'] : 0;
+			$campaign_id   = isset( $campaign_data['id'] ) ? $campaign_data['id'] : 0;
 			$campaign_name = isset( $campaign_data['name'] ) ? $campaign_data['name'] : __( 'Unknown Campaign', 'smart-cycle-discounts' );
 
 			// Collect issues (limit to prevent overload) and add campaign context
 			foreach ( $analysis['critical_issues'] as $issue ) {
 				if ( count( $all_critical_issues ) < 10 ) {
-					$issue['campaign_id'] = $campaign_id;
+					$issue['campaign_id']   = $campaign_id;
 					$issue['campaign_name'] = $campaign_name;
-					$all_critical_issues[] = $issue;
+					$all_critical_issues[]  = $issue;
 				}
 			}
 
 			foreach ( $analysis['warnings'] as $warning ) {
 				if ( count( $all_warnings ) < 10 ) {
-					$warning['campaign_id'] = $campaign_id;
+					$warning['campaign_id']   = $campaign_id;
 					$warning['campaign_name'] = $campaign_name;
-					$all_warnings[] = $warning;
+					$all_warnings[]           = $warning;
 					error_log( '📊 DASHBOARD: Added warning to aggregate: ' . $warning['code'] . ' for campaign ' . $campaign_name );
 				}
 			}
@@ -1932,7 +1961,7 @@ class SCD_Campaign_Health_Service {
 				foreach ( $analysis['breakdown'] as $category => $data ) {
 					$status = isset( $data['status'] ) ? $data['status'] : 'healthy';
 					if ( isset( $categories_data[ $category ][ $status ] ) ) {
-						$categories_data[ $category ][ $status ]++;
+						++$categories_data[ $category ][ $status ];
 					}
 				}
 			}
@@ -1940,10 +1969,10 @@ class SCD_Campaign_Health_Service {
 
 		// Deduplicate critical issues - group by code
 		$deduplicated_critical_issues = array();
-		$critical_groups = array();
+		$critical_groups              = array();
 
 		foreach ( $all_critical_issues as $issue ) {
-			$code = isset( $issue['code'] ) ? $issue['code'] : 'unknown';
+			$code    = isset( $issue['code'] ) ? $issue['code'] : 'unknown';
 			$message = isset( $issue['message'] ) ? $issue['message'] : '';
 
 			// Create unique key for this issue type
@@ -1951,7 +1980,7 @@ class SCD_Campaign_Health_Service {
 
 			if ( ! isset( $critical_groups[ $key ] ) ) {
 				$critical_groups[ $key ] = array(
-					'issue' => $issue,
+					'issue'     => $issue,
 					'campaigns' => array(),
 				);
 			}
@@ -1969,7 +1998,7 @@ class SCD_Campaign_Health_Service {
 			// For issues affecting multiple campaigns, append campaign list
 			if ( count( $group['campaigns'] ) > 1 ) {
 				$issue['affected_campaigns'] = $group['campaigns'];
-				$issue['campaign_name'] = sprintf(
+				$issue['campaign_name']      = sprintf(
 					/* translators: %d: number of campaigns */
 					_n( '%d campaign', '%d campaigns', count( $group['campaigns'] ), 'smart-cycle-discounts' ),
 					count( $group['campaigns'] )
@@ -1981,10 +2010,10 @@ class SCD_Campaign_Health_Service {
 
 		// Deduplicate warnings - group by code
 		$deduplicated_warnings = array();
-		$warning_groups = array();
+		$warning_groups        = array();
 
 		foreach ( $all_warnings as $warning ) {
-			$code = isset( $warning['code'] ) ? $warning['code'] : 'unknown';
+			$code    = isset( $warning['code'] ) ? $warning['code'] : 'unknown';
 			$message = isset( $warning['message'] ) ? $warning['message'] : '';
 
 			// Create unique key for this warning type
@@ -1992,7 +2021,7 @@ class SCD_Campaign_Health_Service {
 
 			if ( ! isset( $warning_groups[ $key ] ) ) {
 				$warning_groups[ $key ] = array(
-					'warning' => $warning,
+					'warning'   => $warning,
 					'campaigns' => array(),
 				);
 			}
@@ -2010,7 +2039,7 @@ class SCD_Campaign_Health_Service {
 			// For warnings affecting multiple campaigns, append campaign list
 			if ( count( $group['campaigns'] ) > 1 ) {
 				$warning['affected_campaigns'] = $group['campaigns'];
-				$warning['campaign_name'] = sprintf(
+				$warning['campaign_name']      = sprintf(
 					/* translators: %d: number of campaigns */
 					_n( '%d campaign', '%d campaigns', count( $group['campaigns'] ), 'smart-cycle-discounts' ),
 					count( $group['campaigns'] )
@@ -2029,20 +2058,20 @@ class SCD_Campaign_Health_Service {
 		}
 
 		$aggregate_health = array(
-			'score' => $average_score,
+			'score'           => $average_score,
 			'critical_issues' => $deduplicated_critical_issues,
-			'warnings' => $deduplicated_warnings,
+			'warnings'        => $deduplicated_warnings,
 		);
-		$overall_status = $this->get_status_from_issues( $aggregate_health );
+		$overall_status   = $this->get_status_from_issues( $aggregate_health );
 
 		return array(
-			'overall_status' => $overall_status,
-			'overall_score' => $average_score,
+			'overall_status'           => $overall_status,
+			'overall_score'            => $average_score,
 			'total_campaigns_analyzed' => $campaign_count,
-			'critical_issues' => $deduplicated_critical_issues,
-			'warnings' => $deduplicated_warnings,
-			'categories_data' => $categories_data,
-			'timestamp' => current_time( 'timestamp' ),
+			'critical_issues'          => $deduplicated_critical_issues,
+			'warnings'                 => $deduplicated_warnings,
+			'categories_data'          => $categories_data,
+			'timestamp'                => current_time( 'timestamp' ),
 		);
 	}
 
@@ -2055,21 +2084,49 @@ class SCD_Campaign_Health_Service {
 	 */
 	private function get_empty_aggregate_health() {
 		return array(
-			'overall_status' => 'excellent',
-			'overall_score' => 100,
+			'overall_status'           => 'excellent',
+			'overall_score'            => 100,
 			'total_campaigns_analyzed' => 0,
-			'critical_issues' => array(),
-			'warnings' => array(),
-			'categories_data' => array(
-				'configuration' => array( 'healthy' => 0, 'warning' => 0, 'critical' => 0 ),
-				'products' => array( 'healthy' => 0, 'warning' => 0, 'critical' => 0 ),
-				'schedule' => array( 'healthy' => 0, 'warning' => 0, 'critical' => 0 ),
-				'discount' => array( 'healthy' => 0, 'warning' => 0, 'critical' => 0 ),
-				'coverage' => array( 'healthy' => 0, 'warning' => 0, 'critical' => 0 ),
-				'stock' => array( 'healthy' => 0, 'warning' => 0, 'critical' => 0 ),
-				'conflicts' => array( 'healthy' => 0, 'warning' => 0, 'critical' => 0 ),
+			'critical_issues'          => array(),
+			'warnings'                 => array(),
+			'categories_data'          => array(
+				'configuration' => array(
+					'healthy'  => 0,
+					'warning'  => 0,
+					'critical' => 0,
+				),
+				'products'      => array(
+					'healthy'  => 0,
+					'warning'  => 0,
+					'critical' => 0,
+				),
+				'schedule'      => array(
+					'healthy'  => 0,
+					'warning'  => 0,
+					'critical' => 0,
+				),
+				'discount'      => array(
+					'healthy'  => 0,
+					'warning'  => 0,
+					'critical' => 0,
+				),
+				'coverage'      => array(
+					'healthy'  => 0,
+					'warning'  => 0,
+					'critical' => 0,
+				),
+				'stock'         => array(
+					'healthy'  => 0,
+					'warning'  => 0,
+					'critical' => 0,
+				),
+				'conflicts'     => array(
+					'healthy'  => 0,
+					'warning'  => 0,
+					'critical' => 0,
+				),
 			),
-			'timestamp' => current_time( 'timestamp' ),
+			'timestamp'                => current_time( 'timestamp' ),
 		);
 	}
 }

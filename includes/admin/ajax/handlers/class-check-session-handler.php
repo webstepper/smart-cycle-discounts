@@ -27,7 +27,7 @@ class SCD_Check_Session_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger    $logger    Logger instance (optional).
+	 * @param    SCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -47,7 +47,7 @@ class SCD_Check_Session_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle the request
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
@@ -57,10 +57,10 @@ class SCD_Check_Session_Handler extends SCD_Abstract_Ajax_Handler {
 			if ( ! $container ) {
 				throw new Exception( __( 'Service container not initialized', 'smart-cycle-discounts' ) );
 			}
-			
+
 			// Get wizard session service - Phase 2: Cookie-based session management
 			$session_service = $container->get( 'wizard_session' );
-			
+
 			// Get session data (service handles cookie-based session ID internally)
 			$session_data = $session_service->get_all_data();
 
@@ -73,11 +73,13 @@ class SCD_Check_Session_Handler extends SCD_Abstract_Ajax_Handler {
 				);
 			}
 
-			return $this->success( array(
-				'valid' => true,
-				// Step tracked via URL only - no current_step in session
-				'has_data' => ! empty( $session_data )
-			) );
+			return $this->success(
+				array(
+					'valid'    => true,
+					// Step tracked via URL only - no current_step in session
+					'has_data' => ! empty( $session_data ),
+				)
+			);
 
 		} catch ( Exception $e ) {
 			return $this->error(

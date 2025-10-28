@@ -62,9 +62,9 @@ class SCD_Debug_Console {
 	 * @since    1.0.0
 	 */
 	public function __construct() {
-		$this->debug_mode = defined( 'WP_DEBUG' ) && WP_DEBUG && 
-		                   defined( 'SCD_DEBUG_CONSOLE' ) && SCD_DEBUG_CONSOLE;
-		
+		$this->debug_mode = defined( 'WP_DEBUG' ) && WP_DEBUG &&
+							defined( 'SCD_DEBUG_CONSOLE' ) && SCD_DEBUG_CONSOLE;
+
 		if ( $this->debug_mode ) {
 			$this->logger = new SCD_Debug_Logger();
 			$this->init_hooks();
@@ -88,7 +88,7 @@ class SCD_Debug_Console {
 	 * Enqueue console assets.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $hook_suffix    Current page hook.
+	 * @param    string $hook_suffix    Current page hook.
 	 * @return   void
 	 */
 	public function enqueue_console_assets( string $hook_suffix ): void {
@@ -98,7 +98,7 @@ class SCD_Debug_Console {
 
 		wp_enqueue_script(
 			'scd-debug-console',
-			plugins_url( 'assets/js/utilities/debug-console.js', dirname( dirname( __FILE__ ) ) ),
+			plugins_url( 'assets/js/utilities/debug-console.js', dirname( __DIR__ ) ),
 			array( 'jquery' ),
 			'1.0.0',
 			true
@@ -106,17 +106,21 @@ class SCD_Debug_Console {
 
 		wp_enqueue_style(
 			'scd-debug-console',
-			plugins_url( 'assets/css/admin/debug-console.css', dirname( dirname( __FILE__ ) ) ),
+			plugins_url( 'assets/css/admin/debug-console.css', dirname( __DIR__ ) ),
 			array(),
 			'1.0.0'
 		);
 
-		wp_localize_script( 'scd-debug-console', 'SCD_Debug_Console', array(
-			'ajax_url' => admin_url( 'admin-ajax.php' ),
-			'nonce' => wp_create_nonce( 'scd_debug_console' ),
-			'enabled' => $this->debug_mode,
-			'buffer' => $this->console_buffer,
-		) );
+		wp_localize_script(
+			'scd-debug-console',
+			'SCD_Debug_Console',
+			array(
+				'ajax_url' => admin_url( 'admin-ajax.php' ),
+				'nonce'    => wp_create_nonce( 'scd_debug_console' ),
+				'enabled'  => $this->debug_mode,
+				'buffer'   => $this->console_buffer,
+			)
+		);
 	}
 
 	/**
@@ -162,7 +166,7 @@ class SCD_Debug_Console {
 	 */
 	private function execute_debug_code(): void {
 		$code = sanitize_textarea_field( $_POST['code'] ?? '' );
-		
+
 		if ( empty( $code ) ) {
 			wp_send_json_error( 'No code provided' );
 		}
@@ -183,14 +187,14 @@ class SCD_Debug_Console {
 
 		$result = array(
 			'executed' => false,
-			'output' => '',
-			'error' => '',
+			'output'   => '',
+			'error'    => '',
 		);
 
 		try {
 			// Start output buffering
 			ob_start();
-			
+
 			// Very basic security check
 			foreach ( $allowed_functions as $func ) {
 				if ( strpos( $code, $func ) === 0 ) {
@@ -199,13 +203,12 @@ class SCD_Debug_Console {
 					break;
 				}
 			}
-			
+
 			if ( ! $result['executed'] ) {
 				$result['error'] = 'Function not allowed for security reasons';
 			} else {
 				$result['output'] = ob_get_contents();
 			}
-			
 		} catch ( \Throwable $e ) {
 			$result['error'] = $e->getMessage();
 		} finally {
@@ -226,19 +229,21 @@ class SCD_Debug_Console {
 		$lines = max( 10, min( 500, $lines ) ); // Limit between 10-500 lines
 
 		$upload_dir = wp_upload_dir();
-		$log_file = $upload_dir['basedir'] . '/smart-cycle-discounts/logs/debug.log';
+		$log_file   = $upload_dir['basedir'] . '/smart-cycle-discounts/logs/debug.log';
 
 		if ( ! file_exists( $log_file ) ) {
 			wp_send_json_success( array( 'logs' => 'No debug logs found' ) );
 		}
 
 		$logs = $this->tail_file( $log_file, $lines );
-		
-		wp_send_json_success( array(
-			'logs' => $logs,
-			'file_size' => filesize( $log_file ),
-			'modified' => filemtime( $log_file ),
-		) );
+
+		wp_send_json_success(
+			array(
+				'logs'      => $logs,
+				'file_size' => filesize( $log_file ),
+				'modified'  => filemtime( $log_file ),
+			)
+		);
 	}
 
 	/**
@@ -249,7 +254,7 @@ class SCD_Debug_Console {
 	 */
 	private function clear_debug_logs(): void {
 		$upload_dir = wp_upload_dir();
-		$log_file = $upload_dir['basedir'] . '/smart-cycle-discounts/logs/debug.log';
+		$log_file   = $upload_dir['basedir'] . '/smart-cycle-discounts/logs/debug.log';
 
 		if ( file_exists( $log_file ) ) {
 			file_put_contents( $log_file, '' );
@@ -267,9 +272,9 @@ class SCD_Debug_Console {
 	 */
 	private function inspect_variable(): void {
 		$var_name = sanitize_text_field( $_POST['variable'] ?? '' );
-		
+
 		$result = array();
-		
+
 		switch ( $var_name ) {
 			case 'session_data':
 				$result = $_SESSION ?? array();
@@ -279,8 +284,8 @@ class SCD_Debug_Console {
 				break;
 			case 'active_campaigns':
 				global $wpdb;
-				$result = $wpdb->get_results( 
-					"SELECT * FROM {$wpdb->prefix}scd_campaigns WHERE deleted_at IS NULL LIMIT 10" 
+				$result = $wpdb->get_results(
+					"SELECT * FROM {$wpdb->prefix}scd_campaigns WHERE deleted_at IS NULL LIMIT 10"
 				);
 				break;
 			case 'debug_info':
@@ -301,16 +306,16 @@ class SCD_Debug_Console {
 	 */
 	private function get_system_debug_info(): array {
 		return array(
-			'php_version' => PHP_VERSION,
-			'wp_version' => get_bloginfo( 'version' ),
-			'memory_limit' => ini_get( 'memory_limit' ),
-			'memory_usage' => memory_get_usage( true ),
-			'peak_memory' => memory_get_peak_usage( true ),
-			'db_queries' => get_num_queries(),
+			'php_version'    => PHP_VERSION,
+			'wp_version'     => get_bloginfo( 'version' ),
+			'memory_limit'   => ini_get( 'memory_limit' ),
+			'memory_usage'   => memory_get_usage( true ),
+			'peak_memory'    => memory_get_peak_usage( true ),
+			'db_queries'     => get_num_queries(),
 			'plugins_loaded' => count( get_option( 'active_plugins', array() ) ),
-			'user_id' => get_current_user_id(),
+			'user_id'        => get_current_user_id(),
 			'current_screen' => get_current_screen()->id ?? 'unknown',
-			'debug_mode' => $this->debug_mode,
+			'debug_mode'     => $this->debug_mode,
 		);
 	}
 
@@ -385,17 +390,17 @@ class SCD_Debug_Console {
 	 * @return   bool    True if should show.
 	 */
 	private function should_show_console(): bool {
-		return $this->debug_mode && 
-		       current_user_can( 'manage_options' ) &&
-		       ( is_admin() || ( defined( 'SCD_DEBUG_FRONTEND' ) && SCD_DEBUG_FRONTEND ) );
+		return $this->debug_mode &&
+				current_user_can( 'manage_options' ) &&
+				( is_admin() || ( defined( 'SCD_DEBUG_FRONTEND' ) && SCD_DEBUG_FRONTEND ) );
 	}
 
 	/**
 	 * Get last N lines from file.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $file     File path.
-	 * @param    int       $lines    Number of lines.
+	 * @param    string $file     File path.
+	 * @param    int    $lines    Number of lines.
 	 * @return   string              File contents.
 	 */
 	private function tail_file( string $file, int $lines ): string {
@@ -424,8 +429,8 @@ class SCD_Debug_Console {
 	 * Add message to console buffer.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $message    Console message.
-	 * @param    string    $type       Message type.
+	 * @param    string $message    Console message.
+	 * @param    string $type       Message type.
 	 * @return   void
 	 */
 	public function add_console_message( string $message, string $type = 'info' ): void {
@@ -434,8 +439,8 @@ class SCD_Debug_Console {
 		}
 
 		$this->console_buffer[] = array(
-			'message' => $message,
-			'type' => $type,
+			'message'   => $message,
+			'type'      => $type,
 			'timestamp' => microtime( true ),
 		);
 	}
@@ -444,8 +449,8 @@ class SCD_Debug_Console {
 	 * Log debug message to console and file.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $message    Debug message.
-	 * @param    array     $context    Additional context.
+	 * @param    string $message    Debug message.
+	 * @param    array  $context    Additional context.
 	 * @return   void
 	 */
 	public function debug( string $message, array $context = array() ): void {
@@ -461,8 +466,8 @@ class SCD_Debug_Console {
 	 * Log info message to console and file.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $message    Info message.
-	 * @param    array     $context    Additional context.
+	 * @param    string $message    Info message.
+	 * @param    array  $context    Additional context.
 	 * @return   void
 	 */
 	public function info( string $message, array $context = array() ): void {
@@ -478,8 +483,8 @@ class SCD_Debug_Console {
 	 * Log warning to console and file.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $message    Warning message.
-	 * @param    array     $context    Additional context.
+	 * @param    string $message    Warning message.
+	 * @param    array  $context    Additional context.
 	 * @return   void
 	 */
 	public function warning( string $message, array $context = array() ): void {
@@ -495,8 +500,8 @@ class SCD_Debug_Console {
 	 * Log error to console and file.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $message    Error message.
-	 * @param    array     $context    Additional context.
+	 * @param    string $message    Error message.
+	 * @param    array  $context    Additional context.
 	 * @return   void
 	 */
 	public function error( string $message, array $context = array() ): void {

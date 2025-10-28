@@ -58,14 +58,14 @@ abstract class SCD_Notifications_Tab_Base {
 	 * Initialize tab.
 	 *
 	 * @since    1.0.0
-	 * @param    string                   $tab_slug  Tab slug.
-	 * @param    SCD_Notifications_Page   $page      Page instance.
-	 * @param    SCD_Logger               $logger    Logger instance.
+	 * @param    string                 $tab_slug  Tab slug.
+	 * @param    SCD_Notifications_Page $page      Page instance.
+	 * @param    SCD_Logger             $logger    Logger instance.
 	 */
 	public function __construct( string $tab_slug, SCD_Notifications_Page $page, SCD_Logger $logger ) {
 		$this->tab_slug = $tab_slug;
-		$this->page = $page;
-		$this->logger = $logger;
+		$this->page     = $page;
+		$this->logger   = $logger;
 
 		$this->init();
 	}
@@ -84,7 +84,7 @@ abstract class SCD_Notifications_Tab_Base {
 	 * Register sections and fields for this tab.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $current_tab    Current active tab.
+	 * @param    string $current_tab    Current active tab.
 	 * @return   void
 	 */
 	abstract public function register_sections( string $current_tab ): void;
@@ -93,7 +93,7 @@ abstract class SCD_Notifications_Tab_Base {
 	 * Render tab content.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $current_tab    Current active tab.
+	 * @param    string $current_tab    Current active tab.
 	 * @return   void
 	 */
 	abstract public function render_tab_content( string $current_tab ): void;
@@ -102,8 +102,8 @@ abstract class SCD_Notifications_Tab_Base {
 	 * Sanitize tab settings.
 	 *
 	 * @since    1.0.0
-	 * @param    array     $settings      All settings.
-	 * @param    string    $current_tab   Current tab.
+	 * @param    array  $settings      All settings.
+	 * @param    string $current_tab   Current tab.
 	 * @return   array                    Sanitized settings.
 	 */
 	public function sanitize_tab_settings( array $settings, string $current_tab ): array {
@@ -124,7 +124,7 @@ abstract class SCD_Notifications_Tab_Base {
 	 * Sanitize settings (to be implemented by child classes).
 	 *
 	 * @since    1.0.0
-	 * @param    array    $input    Raw input data.
+	 * @param    array $input    Raw input data.
 	 * @return   array              Sanitized data.
 	 */
 	protected function sanitize_settings( array $input ): array {
@@ -137,9 +137,9 @@ abstract class SCD_Notifications_Tab_Base {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    string    $id          Section ID.
-	 * @param    string    $title       Section title.
-	 * @param    string    $callback    Callback method name.
+	 * @param    string $id          Section ID.
+	 * @param    string $title       Section title.
+	 * @param    string $callback    Callback method name.
 	 * @return   void
 	 */
 	protected function add_section( string $id, string $title, string $callback ): void {
@@ -156,15 +156,15 @@ abstract class SCD_Notifications_Tab_Base {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    string    $id        Field ID.
-	 * @param    string    $title     Field title.
-	 * @param    string    $callback  Callback method name.
-	 * @param    string    $section   Section ID.
-	 * @param    array     $args      Field arguments.
+	 * @param    string $id        Field ID.
+	 * @param    string $title     Field title.
+	 * @param    string $callback  Callback method name.
+	 * @param    string $section   Section ID.
+	 * @param    array  $args      Field arguments.
 	 * @return   void
 	 */
 	protected function add_field( string $id, string $title, string $callback, string $section, array $args = array() ): void {
-		$args['field_id'] = $id;
+		$args['field_id']  = $id;
 		$args['label_for'] = $this->page->get_option_name() . '[notifications][' . $id . ']';
 
 		add_settings_field(
@@ -182,8 +182,8 @@ abstract class SCD_Notifications_Tab_Base {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    string    $field_id    Field ID.
-	 * @param    mixed     $default     Default value.
+	 * @param    string $field_id    Field ID.
+	 * @param    mixed  $default     Default value.
 	 * @return   mixed                  Field value.
 	 */
 	protected function get_value( string $field_id, $default = '' ) {
@@ -198,7 +198,7 @@ abstract class SCD_Notifications_Tab_Base {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    string    $field_id    Field ID.
+	 * @param    string $field_id    Field ID.
 	 * @return   string                 Field name.
 	 */
 	protected function get_field_name( string $field_id ): string {
@@ -210,15 +210,15 @@ abstract class SCD_Notifications_Tab_Base {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	protected function render_text_field( array $args ): void {
-		$field_id = $args['field_id'];
-		$value = $this->get_value( $field_id );
-		$class = isset( $args['class'] ) ? $args['class'] : 'regular-text';
+		$field_id    = $args['field_id'];
+		$value       = $this->get_value( $field_id );
+		$class       = isset( $args['class'] ) ? $args['class'] : 'regular-text';
 		$placeholder = isset( $args['placeholder'] ) ? $args['placeholder'] : '';
-		$disabled = isset( $args['disabled'] ) && $args['disabled'] ? ' disabled' : '';
+		$disabled    = isset( $args['disabled'] ) && $args['disabled'] ? ' disabled' : '';
 		$pro_feature = isset( $args['pro_feature'] ) && $args['pro_feature'];
 
 		printf(
@@ -246,14 +246,14 @@ abstract class SCD_Notifications_Tab_Base {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	protected function render_select_field( array $args ): void {
 		$field_id = $args['field_id'];
-		$value = $this->get_value( $field_id );
-		$options = isset( $args['options'] ) ? $args['options'] : array();
-		$class = isset( $args['class'] ) ? $args['class'] : '';
+		$value    = $this->get_value( $field_id );
+		$options  = isset( $args['options'] ) ? $args['options'] : array();
+		$class    = isset( $args['class'] ) ? $args['class'] : '';
 
 		printf(
 			'<select id="%s" name="%s" class="%s">',
@@ -284,30 +284,30 @@ abstract class SCD_Notifications_Tab_Base {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	protected function render_toggle_field( array $args ): void {
-		$field_id = $args['field_id'];
-		$value = $this->get_value( $field_id, false );
-		$checked = $value ? ' checked="checked"' : '';
-		$disabled = isset( $args['disabled'] ) && $args['disabled'] ? ' disabled' : '';
+		$field_id    = $args['field_id'];
+		$value       = $this->get_value( $field_id, false );
+		$checked     = $value ? ' checked="checked"' : '';
+		$disabled    = isset( $args['disabled'] ) && $args['disabled'] ? ' disabled' : '';
 		$pro_feature = isset( $args['pro_feature'] ) && $args['pro_feature'];
 
 		// Check for notification-specific PRO features
-		$notification_type = isset( $args['notification_type'] ) ? $args['notification_type'] : null;
+		$notification_type   = isset( $args['notification_type'] ) ? $args['notification_type'] : null;
 		$is_pro_notification = false;
-		$has_access = true;
+		$has_access          = true;
 
 		if ( $notification_type ) {
-			$feature_gate = $this->page->get_feature_gate();
+			$feature_gate        = $this->page->get_feature_gate();
 			$is_pro_notification = ! $feature_gate->can_send_notification( $notification_type );
-			$has_access = $feature_gate->can_send_notification( $notification_type );
+			$has_access          = $feature_gate->can_send_notification( $notification_type );
 
 			// Disable checkbox if PRO feature and user doesn't have access
 			if ( $is_pro_notification && ! $has_access ) {
 				$disabled = ' disabled';
-				$checked = ''; // Uncheck PRO features for free users
+				$checked  = ''; // Uncheck PRO features for free users
 			}
 		}
 
@@ -356,14 +356,14 @@ abstract class SCD_Notifications_Tab_Base {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	protected function render_textarea_field( array $args ): void {
 		$field_id = $args['field_id'];
-		$value = $this->get_value( $field_id );
-		$rows = isset( $args['rows'] ) ? $args['rows'] : 5;
-		$class = isset( $args['class'] ) ? $args['class'] : 'large-text';
+		$value    = $this->get_value( $field_id );
+		$rows     = isset( $args['rows'] ) ? $args['rows'] : 5;
+		$class    = isset( $args['class'] ) ? $args['class'] : 'large-text';
 
 		printf(
 			'<textarea id="%s" name="%s" rows="%d" class="%s">%s</textarea>',
@@ -385,8 +385,8 @@ abstract class SCD_Notifications_Tab_Base {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    string    $text    Tooltip text.
-	 * @param    array     $args    Optional tooltip arguments.
+	 * @param    string $text    Tooltip text.
+	 * @param    array  $args    Optional tooltip arguments.
 	 * @return   void
 	 */
 	protected function render_tooltip( string $text, array $args = array() ): void {
@@ -398,8 +398,8 @@ abstract class SCD_Notifications_Tab_Base {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    string    $text    Tooltip text.
-	 * @param    array     $args    Optional tooltip arguments.
+	 * @param    string $text    Tooltip text.
+	 * @param    array  $args    Optional tooltip arguments.
 	 * @return   string             Tooltip HTML.
 	 */
 	protected function get_tooltip( string $text, array $args = array() ): string {
@@ -411,10 +411,10 @@ abstract class SCD_Notifications_Tab_Base {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    string    $label     Label text.
-	 * @param    string    $field_id  Field ID.
-	 * @param    string    $tooltip   Tooltip text.
-	 * @param    array     $args      Optional tooltip arguments.
+	 * @param    string $label     Label text.
+	 * @param    string $field_id  Field ID.
+	 * @param    string $tooltip   Tooltip text.
+	 * @param    array  $args      Optional tooltip arguments.
 	 * @return   void
 	 */
 	protected function render_label_with_tooltip( string $label, string $field_id, string $tooltip, array $args = array() ): void {

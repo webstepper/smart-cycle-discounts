@@ -78,7 +78,7 @@ class SCD_Campaign_Expiration_Notices {
 	 * Check if campaign expiration is recent (within 24 hours).
 	 *
 	 * @since    1.0.0
-	 * @param    array    $campaign    Campaign data.
+	 * @param    array $campaign    Campaign data.
 	 * @return   bool                  True if recent.
 	 */
 	private function is_recent_expiration( $campaign ) {
@@ -94,11 +94,11 @@ class SCD_Campaign_Expiration_Notices {
 	 * Display notice for expired campaigns.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $expired_campaigns    Array of expired campaign data.
+	 * @param    array $expired_campaigns    Array of expired campaign data.
 	 * @return   void
 	 */
 	private function display_campaigns_expired_notice( $expired_campaigns ) {
-		$count = count( $expired_campaigns );
+		$count       = count( $expired_campaigns );
 		$expired_url = admin_url( 'admin.php?page=scd-campaigns&status=expired' );
 		?>
 		<div class="notice notice-info scd-expiration-notice">
@@ -107,15 +107,17 @@ class SCD_Campaign_Expiration_Notices {
 			</p>
 			<p>
 				<?php
-				echo esc_html( sprintf(
-					_n(
-						'%d campaign has automatically expired after reaching its end date.',
-						'%d campaigns have automatically expired after reaching their end dates.',
-						$count,
-						'smart-cycle-discounts'
-					),
-					$count
-				) );
+				echo esc_html(
+					sprintf(
+						_n(
+							'%d campaign has automatically expired after reaching its end date.',
+							'%d campaigns have automatically expired after reaching their end dates.',
+							$count,
+							'smart-cycle-discounts'
+						),
+						$count
+					)
+				);
 				?>
 			</p>
 			<?php if ( $count <= 5 ) : ?>

@@ -53,12 +53,12 @@ class SCD_Concurrent_Modification_Exception extends Exception {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    int         $campaign_id        Campaign ID.
-	 * @param    int         $expected_version   Expected version.
-	 * @param    int         $current_version    Current version.
-	 * @param    string      $message            Exception message.
-	 * @param    int         $code               Exception code.
-	 * @param    Exception   $previous           Previous exception.
+	 * @param    int       $campaign_id        Campaign ID.
+	 * @param    int       $expected_version   Expected version.
+	 * @param    int       $current_version    Current version.
+	 * @param    string    $message            Exception message.
+	 * @param    int       $code               Exception code.
+	 * @param    Exception $previous           Previous exception.
 	 */
 	public function __construct(
 		$campaign_id,
@@ -68,9 +68,9 @@ class SCD_Concurrent_Modification_Exception extends Exception {
 		$code = 0,
 		Exception $previous = null
 	) {
-		$this->campaign_id = $campaign_id;
+		$this->campaign_id      = $campaign_id;
 		$this->expected_version = $expected_version;
-		$this->current_version = $current_version;
+		$this->current_version  = $current_version;
 
 		if ( empty( $message ) ) {
 			$message = sprintf(

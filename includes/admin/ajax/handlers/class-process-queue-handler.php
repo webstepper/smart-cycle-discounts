@@ -39,7 +39,7 @@ class SCD_Process_Queue_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle the request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array                Response data.
 	 */
 	protected function handle( $request ) {
@@ -65,50 +65,63 @@ class SCD_Process_Queue_Handler extends SCD_Abstract_Ajax_Handler {
 
 			// Process pending emails
 			$processed = 0;
-			$failed = 0;
+			$failed    = 0;
 
 			// Get all pending actions from Action Scheduler
-			$pending_actions = $action_scheduler->get_actions( array(
-				'hook' => 'scd_process_email_queue',
-				'status' => ActionScheduler_Store::STATUS_PENDING,
-				'per_page' => 50,
-			) );
+			$pending_actions = $action_scheduler->get_actions(
+				array(
+					'hook'     => 'scd_process_email_queue',
+					'status'   => ActionScheduler_Store::STATUS_PENDING,
+					'per_page' => 50,
+				)
+			);
 
 			foreach ( $pending_actions as $action_id ) {
 				try {
 					// Run the action immediately
 					do_action( 'scd_process_email_queue' );
-					$processed++;
+					++$processed;
 				} catch ( Exception $e ) {
-					$failed++;
-					$logger->error( 'Failed to process queue action', array(
-						'action_id' => $action_id,
-						'error' => $e->getMessage(),
-					) );
+					++$failed;
+					$logger->error(
+						'Failed to process queue action',
+						array(
+							'action_id' => $action_id,
+							'error'     => $e->getMessage(),
+						)
+					);
 				}
 			}
 
-			$logger->info( 'Queue processed manually', array(
-				'processed' => $processed,
-				'failed' => $failed,
-			) );
+			$logger->info(
+				'Queue processed manually',
+				array(
+					'processed' => $processed,
+					'failed'    => $failed,
+				)
+			);
 
-			return $this->success( array(
-				'message' => sprintf(
+			return $this->success(
+				array(
+					'message'   => sprintf(
 					/* translators: %1$d: processed count, %2$d: failed count */
-					__( 'Processed %1$d email(s), %2$d failed', 'smart-cycle-discounts' ),
-					$processed,
-					$failed
-				),
-				'processed' => $processed,
-				'failed' => $failed,
-			) );
+						__( 'Processed %1$d email(s), %2$d failed', 'smart-cycle-discounts' ),
+						$processed,
+						$failed
+					),
+					'processed' => $processed,
+					'failed'    => $failed,
+				)
+			);
 
 		} catch ( Exception $e ) {
 			if ( isset( $logger ) ) {
-				$logger->error( 'Failed to process queue', array(
-					'error' => $e->getMessage(),
-				) );
+				$logger->error(
+					'Failed to process queue',
+					array(
+						'error' => $e->getMessage(),
+					)
+				);
 			}
 
 			return $this->error(

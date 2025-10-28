@@ -19,14 +19,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Provides common functionality for all sidebar implementations
  */
 abstract class SCD_Wizard_Sidebar_Base {
-	
+
 	/**
 	 * Get the sidebar content
 	 *
 	 * @return string HTML content
 	 */
 	abstract public function get_content();
-	
+
 	/**
 	 * Render the sidebar wrapper
 	 *
@@ -59,7 +59,7 @@ abstract class SCD_Wizard_Sidebar_Base {
 		<?php
 		return ob_get_clean();
 	}
-	
+
 	/**
 	 * Render sidebar sections
 	 * Override in child classes to add specific sections
@@ -67,7 +67,7 @@ abstract class SCD_Wizard_Sidebar_Base {
 	protected function render_sections() {
 		// To be implemented by child classes
 	}
-	
+
 	/**
 	 * Render the help footer
 	 */
@@ -79,15 +79,15 @@ abstract class SCD_Wizard_Sidebar_Base {
 		?>
 		<div class="scd-sidebar-footer">
 			<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-documentation' ) ); ?>"
-			   class="scd-sidebar-link"
-			   target="_blank">
+				class="scd-sidebar-link"
+				target="_blank">
 				<span class="dashicons dashicons-book"></span>
 				<?php esc_html_e( 'View Full Documentation', 'smart-cycle-discounts' ); ?>
 			</a>
 		</div>
 		<?php
 	}
-	
+
 	/**
 	 * Check if documentation page exists
 	 *
@@ -96,20 +96,20 @@ abstract class SCD_Wizard_Sidebar_Base {
 	private function has_documentation_page() {
 		// Check if documentation page is registered
 		global $submenu;
-		
+
 		if ( ! isset( $submenu['scd-campaigns'] ) ) {
 			return false;
 		}
-		
+
 		foreach ( $submenu['scd-campaigns'] as $item ) {
 			if ( isset( $item[2] ) && $item[2] === 'scd-documentation' ) {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * Render a help section
 	 *
@@ -124,17 +124,17 @@ abstract class SCD_Wizard_Sidebar_Base {
 
 		?>
 		<div id="<?php echo esc_attr( $section_id ); ?>"
-		     class="scd-sidebar-section"
-		     data-default-state="<?php echo esc_attr( $default_state ); ?>">
+			class="scd-sidebar-section"
+			data-default-state="<?php echo esc_attr( $default_state ); ?>">
 			<h4 class="scd-sidebar-section-header"
-			    tabindex="0"
-			    role="button"
-			    aria-expanded="true"
-			    aria-controls="<?php echo esc_attr( $section_id ); ?>-content">
+				tabindex="0"
+				role="button"
+				aria-expanded="true"
+				aria-controls="<?php echo esc_attr( $section_id ); ?>-content">
 				<button type="button"
-				        class="scd-sidebar-section-toggle"
-				        tabindex="-1"
-				        aria-hidden="true">
+						class="scd-sidebar-section-toggle"
+						tabindex="-1"
+						aria-hidden="true">
 					<span class="dashicons dashicons-arrow-down"></span>
 				</button>
 				<span class="scd-sidebar-section-icon dashicons dashicons-<?php echo esc_attr( $icon ); ?>"></span>

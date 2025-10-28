@@ -21,94 +21,100 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class SCD_Export_Handler extends SCD_Abstract_Analytics_Handler {
 
-    use SCD_License_Validation_Trait;
+	use SCD_License_Validation_Trait;
 
-    /**
-     * Export service instance.
-     *
-     * @since    1.0.0
-     * @var      SCD_Export_Service
-     */
-    private $export_service;
+	/**
+	 * Export service instance.
+	 *
+	 * @since    1.0.0
+	 * @var      SCD_Export_Service
+	 */
+	private $export_service;
 
-    /**
-     * Initialize the handler.
-     *
-     * @since    1.0.0
-     * @param    SCD_Metrics_Calculator    $metrics_calculator    Metrics calculator.
-     * @param    SCD_Logger                $logger                Logger instance.
-     * @param    SCD_Export_Service        $export_service        Export service.
-     */
-    public function __construct( $metrics_calculator, $logger, $export_service ) {
-        parent::__construct( $metrics_calculator, $logger );
-        $this->export_service = $export_service;
-    }
+	/**
+	 * Initialize the handler.
+	 *
+	 * @since    1.0.0
+	 * @param    SCD_Metrics_Calculator $metrics_calculator    Metrics calculator.
+	 * @param    SCD_Logger             $logger                Logger instance.
+	 * @param    SCD_Export_Service     $export_service        Export service.
+	 */
+	public function __construct( $metrics_calculator, $logger, $export_service ) {
+		parent::__construct( $metrics_calculator, $logger );
+		$this->export_service = $export_service;
+	}
 
-    /**
-     * Get required capability.
-     *
-     * @since    1.0.0
-     * @return   string    Required capability.
-     */
-    protected function get_required_capability() {
-        return 'scd_export_analytics';
-    }
+	/**
+	 * Get required capability.
+	 *
+	 * @since    1.0.0
+	 * @return   string    Required capability.
+	 */
+	protected function get_required_capability() {
+		return 'scd_export_analytics';
+	}
 
-    /**
-     * Handle the request.
-     *
-     * @since    1.0.0
-     * @param    array    $request    Request data.
-     * @return   array                Response data.
-     */
-    public function handle( $request ) {
-        // Verify request
-        $verification = $this->verify_request($request, 'scd_analytics_export');
-        if ( is_wp_error( $verification ) ) {
-            return $this->error(
-                $verification->get_error_message(),
-                $verification->get_error_code()
-            );
-        }
+	/**
+	 * Handle the request.
+	 *
+	 * @since    1.0.0
+	 * @param    array $request    Request data.
+	 * @return   array                Response data.
+	 */
+	public function handle( $request ) {
+		// Verify request
+		$verification = $this->verify_request( $request, 'scd_analytics_export' );
+		if ( is_wp_error( $verification ) ) {
+			return $this->error(
+				$verification->get_error_message(),
+				$verification->get_error_code()
+			);
+		}
 
-        // Check if user can export data (premium feature - critical tier)
-        $license_check = $this->validate_license( 'critical' );
-        if ( $this->license_validation_failed( $license_check ) ) {
-            return $this->license_error_response( $license_check );
-        }
+		// Check if user can export data (premium feature - critical tier)
+		$license_check = $this->validate_license( 'critical' );
+		if ( $this->license_validation_failed( $license_check ) ) {
+			return $this->license_error_response( $license_check );
+		}
 
-        // Sanitize inputs
-        $export_type = sanitize_text_field( isset( $request['export_type'] ) ? $request['export_type'] : 'overview' );
-        $format = sanitize_text_field( isset( $request['format'] ) ? $request['format'] : 'csv' );
-        $date_range = sanitize_text_field( isset( $request['date_range'] ) ? $request['date_range'] : '30days' );
+		// Sanitize inputs
+		$export_type = sanitize_text_field( isset( $request['export_type'] ) ? $request['export_type'] : 'overview' );
+		$format      = sanitize_text_field( isset( $request['format'] ) ? $request['format'] : 'csv' );
+		$date_range  = sanitize_text_field( isset( $request['date_range'] ) ? $request['date_range'] : '30days' );
 
-        try {
-            // Generate export using service
-            $export_result = $this->export_service->generate_export(
-                $export_type,
-                $format,
-                array(
-                    'date_range' => $date_range,
-                    'user_id' => get_current_user_id()
-                )
-            );
+		try {
+			// Generate export using service
+			$export_result = $this->export_service->generate_export(
+				$export_type,
+				$format,
+				array(
+					'date_range' => $date_range,
+					'user_id'    => get_current_user_id(),
+				)
+			);
 
-            $this->logger->info('Export generated', array(
-                'export_type' => $export_type,
-                'format' => $format
-            ));
+			$this->logger->info(
+				'Export generated',
+				array(
+					'export_type' => $export_type,
+					'format'      => $format,
+				)
+			);
 
-            return $this->success($export_result);
+			return $this->success( $export_result );
 
-        } catch (Exception $e) {
-            $this->logger->error('Export generation failed', array(
-                'error' => $e->getMessage()
-            ));
+		} catch ( Exception $e ) {
+			$this->logger->error(
+				'Export generation failed',
+				array(
+					'error' => $e->getMessage(),
+				)
+			);
 
-            return $this->error(
-                sprintf(__('Failed to generate export: %s', 'smart-cycle-discounts'), $e->getMessage()),
-                'export_generation_failed'
-            );
-        }
-    }
+			return $this->error(
+				sprintf( __( 'Failed to generate export: %s', 'smart-cycle-discounts' ), $e->getMessage() ),
+				'export_generation_failed'
+			);
+		}
+	}
 }

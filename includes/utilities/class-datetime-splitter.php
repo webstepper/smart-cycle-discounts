@@ -40,8 +40,8 @@ class SCD_DateTime_Splitter {
 	 * separate date and time components for form population.
 	 *
 	 * @since    1.0.0
-	 * @param    DateTime|null    $utc_datetime       DateTime object in UTC.
-	 * @param    string           $target_timezone    Target timezone identifier.
+	 * @param    DateTime|null $utc_datetime       DateTime object in UTC.
+	 * @param    string        $target_timezone    Target timezone identifier.
 	 * @return   array                                Array with 'date' and 'time' keys.
 	 */
 	public static function for_editing( ?DateTime $utc_datetime, string $target_timezone ): array {
@@ -69,10 +69,10 @@ class SCD_DateTime_Splitter {
 	 * formatted strings for display purposes.
 	 *
 	 * @since    1.0.0
-	 * @param    DateTime|null    $utc_datetime       DateTime object in UTC.
-	 * @param    string           $target_timezone    Target timezone identifier.
-	 * @param    string           $date_format        PHP date format for date (default: 'F j, Y').
-	 * @param    string           $time_format        PHP date format for time (default: 'g:i A').
+	 * @param    DateTime|null $utc_datetime       DateTime object in UTC.
+	 * @param    string        $target_timezone    Target timezone identifier.
+	 * @param    string        $date_format        PHP date format for date (default: 'F j, Y').
+	 * @param    string        $time_format        PHP date format for time (default: 'g:i A').
 	 * @return   array                                Array with 'date', 'time', and 'datetime' keys.
 	 */
 	public static function for_display(
@@ -109,8 +109,8 @@ class SCD_DateTime_Splitter {
 	 * for API consumers who may prefer separate values.
 	 *
 	 * @since    1.0.0
-	 * @param    DateTime|null    $utc_datetime       DateTime object in UTC.
-	 * @param    string           $target_timezone    Target timezone identifier.
+	 * @param    DateTime|null $utc_datetime       DateTime object in UTC.
+	 * @param    string        $target_timezone    Target timezone identifier.
 	 * @return   array                                Array with ISO and split values.
 	 */
 	public static function for_api( ?DateTime $utc_datetime, string $target_timezone ): array {

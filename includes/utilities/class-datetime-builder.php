@@ -83,15 +83,15 @@ class SCD_DateTime_Builder {
 	 * Create from user input.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $date        Date string (Y-m-d).
-	 * @param    string    $time        Time string (H:i or H:i:s).
-	 * @param    string    $timezone    Timezone identifier.
+	 * @param    string $date        Date string (Y-m-d).
+	 * @param    string $time        Time string (H:i or H:i:s).
+	 * @param    string $timezone    Timezone identifier.
 	 * @return   self                   Builder instance.
 	 */
 	public static function from_user_input( string $date, string $time, string $timezone ): self {
-		$builder = new self();
-		$builder->date = $date;
-		$builder->time = $time;
+		$builder           = new self();
+		$builder->date     = $date;
+		$builder->time     = $time;
 		$builder->timezone = $timezone;
 		return $builder;
 	}
@@ -197,7 +197,7 @@ class SCD_DateTime_Builder {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $date    Date string to validate.
+	 * @param    string $date    Date string to validate.
 	 * @return   bool               True if valid, false otherwise.
 	 */
 	private function validate_date( string $date ): bool {
@@ -219,7 +219,7 @@ class SCD_DateTime_Builder {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $time    Time string to validate.
+	 * @param    string $time    Time string to validate.
 	 * @return   bool               True if valid, false otherwise.
 	 */
 	private function validate_time( string $time ): bool {

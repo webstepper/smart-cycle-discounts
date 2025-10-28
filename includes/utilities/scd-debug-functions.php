@@ -73,8 +73,8 @@ if ( ! function_exists( 'scd_debug_wizard' ) ) {
 	 * Log wizard initialization.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step         Current step.
-	 * @param    array     $init_data    Initialization data.
+	 * @param    string $step         Current step.
+	 * @param    array  $init_data    Initialization data.
 	 * @return   void
 	 */
 	function scd_debug_wizard( string $step, array $init_data = array() ): void {
@@ -90,10 +90,10 @@ if ( ! function_exists( 'scd_debug_navigation' ) ) {
 	 * Log wizard navigation.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $from_step    Source step.
-	 * @param    string    $to_step      Target step.
-	 * @param    string    $action       Navigation action.
-	 * @param    array     $context      Additional context.
+	 * @param    string $from_step    Source step.
+	 * @param    string $to_step      Target step.
+	 * @param    string $action       Navigation action.
+	 * @param    array  $context      Additional context.
 	 * @return   void
 	 */
 	function scd_debug_navigation( string $from_step, string $to_step, string $action, array $context = array() ): void {
@@ -109,9 +109,9 @@ if ( ! function_exists( 'scd_debug_ajax' ) ) {
 	 * Log AJAX request.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $action       AJAX action.
-	 * @param    array     $params       Request parameters.
-	 * @param    string    $nonce        Nonce value.
+	 * @param    string $action       AJAX action.
+	 * @param    array  $params       Request parameters.
+	 * @param    string $nonce        Nonce value.
 	 * @return   void
 	 */
 	function scd_debug_ajax( string $action, array $params = array(), string $nonce = '' ): void {
@@ -127,10 +127,10 @@ if ( ! function_exists( 'scd_debug_ajax_response' ) ) {
 	 * Log AJAX response.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $action       AJAX action.
-	 * @param    mixed     $response     Response data.
-	 * @param    bool      $success      Success status.
-	 * @param    float     $duration     Request duration.
+	 * @param    string $action       AJAX action.
+	 * @param    mixed  $response     Response data.
+	 * @param    bool   $success      Success status.
+	 * @param    float  $duration     Request duration.
 	 * @return   void
 	 */
 	function scd_debug_ajax_response( string $action, $response, bool $success, float $duration ): void {
@@ -146,11 +146,11 @@ if ( ! function_exists( 'scd_debug_validation' ) ) {
 	 * Log validation process.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step         Step being validated.
-	 * @param    array     $data         Data being validated.
-	 * @param    array     $rules        Validation rules applied.
-	 * @param    bool      $valid        Validation result.
-	 * @param    array     $errors       Validation errors.
+	 * @param    string $step         Step being validated.
+	 * @param    array  $data         Data being validated.
+	 * @param    array  $rules        Validation rules applied.
+	 * @param    bool   $valid        Validation result.
+	 * @param    array  $errors       Validation errors.
 	 * @return   void
 	 */
 	function scd_debug_validation( string $step, array $data, array $rules, bool $valid, array $errors = array() ): void {
@@ -166,10 +166,10 @@ if ( ! function_exists( 'scd_debug_sanitization' ) ) {
 	 * Log sanitization process.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $field        Field being sanitized.
-	 * @param    mixed     $raw_value    Raw value.
-	 * @param    mixed     $clean_value  Sanitized value.
-	 * @param    string    $method       Sanitization method.
+	 * @param    string $field        Field being sanitized.
+	 * @param    mixed  $raw_value    Raw value.
+	 * @param    mixed  $clean_value  Sanitized value.
+	 * @param    string $method       Sanitization method.
 	 * @return   void
 	 */
 	function scd_debug_sanitization( string $field, $raw_value, $clean_value, string $method ): void {
@@ -185,11 +185,11 @@ if ( ! function_exists( 'scd_debug_database' ) ) {
 	 * Log database operation.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $operation    Operation type.
-	 * @param    string    $table        Table name.
-	 * @param    array     $data         Operation data.
-	 * @param    mixed     $result       Operation result.
-	 * @param    float     $duration     Operation duration.
+	 * @param    string $operation    Operation type.
+	 * @param    string $table        Table name.
+	 * @param    array  $data         Operation data.
+	 * @param    mixed  $result       Operation result.
+	 * @param    float  $duration     Operation duration.
 	 * @return   void
 	 */
 	function scd_debug_database( string $operation, string $table, array $data, $result, float $duration ): void {
@@ -205,11 +205,11 @@ if ( ! function_exists( 'scd_debug_persistence' ) ) {
 	 * Log persistence operation.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $action       Persistence action.
-	 * @param    string    $step         Step name.
-	 * @param    array     $data         Data being persisted.
-	 * @param    bool      $success      Success status.
-	 * @param    string    $message      Result message.
+	 * @param    string $action       Persistence action.
+	 * @param    string $step         Step name.
+	 * @param    array  $data         Data being persisted.
+	 * @param    bool   $success      Success status.
+	 * @param    string $message      Result message.
 	 * @return   void
 	 */
 	function scd_debug_persistence( string $action, string $step, array $data, bool $success, string $message = '' ): void {
@@ -225,10 +225,10 @@ if ( ! function_exists( 'scd_debug_interaction' ) ) {
 	 * Log user interaction.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $interaction  Interaction type.
-	 * @param    string    $element      Element identifier.
-	 * @param    mixed     $value        Interaction value.
-	 * @param    array     $context      Additional context.
+	 * @param    string $interaction  Interaction type.
+	 * @param    string $element      Element identifier.
+	 * @param    mixed  $value        Interaction value.
+	 * @param    array  $context      Additional context.
 	 * @return   void
 	 */
 	function scd_debug_interaction( string $interaction, string $element, $value = null, array $context = array() ): void {
@@ -244,9 +244,9 @@ if ( ! function_exists( 'scd_debug_error' ) ) {
 	 * Log error with full context.
 	 *
 	 * @since    1.0.0
-	 * @param    string         $message      Error message.
-	 * @param    \Throwable     $exception    Exception object.
-	 * @param    array          $context      Additional context.
+	 * @param    string     $message      Error message.
+	 * @param    \Throwable $exception    Exception object.
+	 * @param    array      $context      Additional context.
 	 * @return   void
 	 */
 	function scd_debug_error( string $message, \Throwable $exception, array $context = array() ): void {
@@ -262,9 +262,9 @@ if ( ! function_exists( 'scd_debug_performance' ) ) {
 	 * Log performance metrics.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $operation    Operation name.
-	 * @param    float     $duration     Duration in seconds.
-	 * @param    array     $metrics      Additional metrics.
+	 * @param    string $operation    Operation name.
+	 * @param    float  $duration     Duration in seconds.
+	 * @param    array  $metrics      Additional metrics.
 	 * @return   void
 	 */
 	function scd_debug_performance( string $operation, float $duration, array $metrics = array() ): void {

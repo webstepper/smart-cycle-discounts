@@ -34,9 +34,9 @@ class SCD_Campaign_Performance_Handler extends SCD_Abstract_Analytics_Handler {
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Metrics_Calculator     $metrics_calculator     Metrics calculator.
-	 * @param    SCD_Logger                 $logger                 Logger instance.
-	 * @param    SCD_Analytics_Collector    $analytics_collector    Analytics collector.
+	 * @param    SCD_Metrics_Calculator  $metrics_calculator     Metrics calculator.
+	 * @param    SCD_Logger              $logger                 Logger instance.
+	 * @param    SCD_Analytics_Collector $analytics_collector    Analytics collector.
 	 */
 	public function __construct( $metrics_calculator, $logger, $analytics_collector ) {
 		parent::__construct( $metrics_calculator, $logger );
@@ -57,7 +57,7 @@ class SCD_Campaign_Performance_Handler extends SCD_Abstract_Analytics_Handler {
 	 * Handle the request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array                Response data.
 	 */
 	public function handle( $request ) {
@@ -78,9 +78,9 @@ class SCD_Campaign_Performance_Handler extends SCD_Abstract_Analytics_Handler {
 
 		// Sanitize inputs
 		$date_range = sanitize_text_field( isset( $request['date_range'] ) ? $request['date_range'] : '30days' );
-		$dateRange = sanitize_text_field( isset( $request['dateRange'] ) ? $request['dateRange'] : $date_range );
-		$limit = isset( $request['limit'] ) ? absint( $request['limit'] ) : 10;
-		$metric = sanitize_text_field( isset( $request['metric'] ) ? $request['metric'] : 'revenue' );
+		$dateRange  = sanitize_text_field( isset( $request['dateRange'] ) ? $request['dateRange'] : $date_range );
+		$limit      = isset( $request['limit'] ) ? absint( $request['limit'] ) : 10;
+		$metric     = sanitize_text_field( isset( $request['metric'] ) ? $request['metric'] : 'revenue' );
 
 		try {
 			// Get campaign performance data from analytics collector
@@ -99,19 +99,24 @@ class SCD_Campaign_Performance_Handler extends SCD_Abstract_Analytics_Handler {
 				$values[] = isset( $campaign[ $metric ] ) ? $campaign[ $metric ] : 0;
 			}
 
-			return $this->success( array(
-				'campaigns' => $campaigns,
-				'labels' => $labels,
-				'values' => $values,
-				'metric' => $metric,
-				'date_range' => $dateRange,
-				'generated_at' => current_time( 'timestamp' )
-			) );
+			return $this->success(
+				array(
+					'campaigns'    => $campaigns,
+					'labels'       => $labels,
+					'values'       => $values,
+					'metric'       => $metric,
+					'date_range'   => $dateRange,
+					'generated_at' => current_time( 'timestamp' ),
+				)
+			);
 
 		} catch ( Exception $e ) {
-			$this->logger->error( 'Get campaign performance failed', array(
-				'error' => $e->getMessage()
-			) );
+			$this->logger->error(
+				'Get campaign performance failed',
+				array(
+					'error' => $e->getMessage(),
+				)
+			);
 
 			return $this->error(
 				sprintf( __( 'Failed to retrieve campaign performance: %s', 'smart-cycle-discounts' ), $e->getMessage() ),

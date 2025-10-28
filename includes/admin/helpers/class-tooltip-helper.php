@@ -30,15 +30,15 @@ class SCD_Tooltip_Helper {
 	 * Render tooltip icon with text.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $text    Tooltip text.
-	 * @param    array     $args    Optional arguments.
+	 * @param    string $text    Tooltip text.
+	 * @param    array  $args    Optional arguments.
 	 * @return   void
 	 */
 	public static function render( $text, $args = array() ) {
 		$defaults = array(
-			'icon' => 'dashicons-editor-help',
+			'icon'       => 'dashicons-editor-help',
 			'aria_label' => $text,
-			'class' => '',
+			'class'      => '',
 		);
 
 		$args = wp_parse_args( $args, $defaults );
@@ -56,8 +56,8 @@ class SCD_Tooltip_Helper {
 	 * Get tooltip HTML (returns instead of echoing).
 	 *
 	 * @since    1.0.0
-	 * @param    string    $text    Tooltip text.
-	 * @param    array     $args    Optional arguments.
+	 * @param    string $text    Tooltip text.
+	 * @param    array  $args    Optional arguments.
 	 * @return   string             Tooltip HTML.
 	 */
 	public static function get( $text, $args = array() ) {
@@ -70,10 +70,10 @@ class SCD_Tooltip_Helper {
 	 * Render field label with tooltip.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $label     Field label text.
-	 * @param    string    $for       Input ID.
-	 * @param    string    $tooltip   Tooltip text.
-	 * @param    array     $args      Optional tooltip arguments.
+	 * @param    string $label     Field label text.
+	 * @param    string $for       Input ID.
+	 * @param    string $tooltip   Tooltip text.
+	 * @param    array  $args      Optional tooltip arguments.
 	 * @return   void
 	 */
 	public static function render_label( $label, $for, $tooltip, $args = array() ) {
@@ -91,8 +91,8 @@ class SCD_Tooltip_Helper {
 	 * Useful for adding tooltips after form fields or buttons.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $text    Tooltip text.
-	 * @param    array     $args    Optional arguments.
+	 * @param    string $text    Tooltip text.
+	 * @param    array  $args    Optional arguments.
 	 * @return   void
 	 */
 	public static function render_inline( $text, $args = array() ) {
@@ -109,8 +109,8 @@ class SCD_Tooltip_Helper {
 	 * Get inline tooltip HTML.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $text    Tooltip text.
-	 * @param    array     $args    Optional arguments.
+	 * @param    string $text    Tooltip text.
+	 * @param    array  $args    Optional arguments.
 	 * @return   string             Tooltip HTML.
 	 */
 	public static function get_inline( $text, $args = array() ) {

@@ -36,7 +36,7 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger    $logger    Logger instance (optional).
+	 * @param    SCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -56,7 +56,7 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle the campaign health request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
@@ -71,7 +71,7 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		// Get coverage data
-		$coverage_handler = new SCD_Preview_Coverage_Handler();
+		$coverage_handler  = new SCD_Preview_Coverage_Handler();
 		$coverage_response = $coverage_handler->handle( $request );
 
 		if ( is_wp_error( $coverage_response ) ) {
@@ -82,7 +82,7 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		// Get conflicts data
-		$conflicts_handler = new SCD_Check_Conflicts_Handler();
+		$conflicts_handler  = new SCD_Check_Conflicts_Handler();
 		$conflicts_response = $conflicts_handler->handle( $request );
 
 		if ( is_wp_error( $conflicts_response ) ) {
@@ -94,10 +94,10 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 
 		// Calculate health score
 		$calculator = $this->_get_health_calculator( $state_service );
-		$health = $calculator->calculate( $coverage_data, $conflicts_data );
+		$health     = $calculator->calculate( $coverage_data, $conflicts_data );
 
 		// Add coverage and conflicts to response
-		$health['coverage'] = $coverage_data;
+		$health['coverage']  = $coverage_data;
 		$health['conflicts'] = $conflicts_data;
 
 		return $this->success( $health );
@@ -108,7 +108,7 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    SCD_Wizard_State_Service    $state_service    State service.
+	 * @param    SCD_Wizard_State_Service $state_service    State service.
 	 * @return   SCD_Campaign_Health_Calculator               Health calculator.
 	 */
 	private function _get_health_calculator( $state_service ) {
@@ -119,7 +119,7 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 		// Get health service from container if available
 		$health_service = null;
 		if ( class_exists( 'SmartCycleDiscounts' ) ) {
-			$plugin = SmartCycleDiscounts::get_instance();
+			$plugin    = SmartCycleDiscounts::get_instance();
 			$container = $plugin->get_container();
 			if ( $container && $container->has( 'campaign_health_service' ) ) {
 				$health_service = $container->get( 'campaign_health_service' );

@@ -46,22 +46,22 @@ class SCD_Validation_Rules {
 	 *
 	 * @since    1.0.0
 	 */
-	const DISCOUNT_TYPES         = array( 'percentage', 'fixed', 'bogo', 'tiered', 'bundle', 'spend_threshold' );
-	const PERCENTAGE_MIN         = 1;
-	const PERCENTAGE_MAX         = 100;
-	const PERCENTAGE_WARNING     = 50;
-	const FIXED_MIN              = 1;
-	const FIXED_MAX              = 1000000;
-	const FIXED_WARNING          = 1000;
-	const BOGO_BUY_MIN           = 1;
-	const BOGO_BUY_MAX           = 100;
-	const BOGO_GET_MIN           = 1;
-	const BOGO_GET_MAX           = 100;
-	const BOGO_DISCOUNT_DEFAULT  = 100;
-	const BUNDLE_SIZE_MIN        = 2;
-	const BUNDLE_SIZE_MAX        = 20;
-	const BUNDLE_DISCOUNT_MIN    = 0.01;
-	const BUNDLE_DISCOUNT_MAX    = 100;
+	const DISCOUNT_TYPES        = array( 'percentage', 'fixed', 'bogo', 'tiered', 'bundle', 'spend_threshold' );
+	const PERCENTAGE_MIN        = 1;
+	const PERCENTAGE_MAX        = 100;
+	const PERCENTAGE_WARNING    = 50;
+	const FIXED_MIN             = 1;
+	const FIXED_MAX             = 1000000;
+	const FIXED_WARNING         = 1000;
+	const BOGO_BUY_MIN          = 1;
+	const BOGO_BUY_MAX          = 100;
+	const BOGO_GET_MIN          = 1;
+	const BOGO_GET_MAX          = 100;
+	const BOGO_DISCOUNT_DEFAULT = 100;
+	const BUNDLE_SIZE_MIN       = 2;
+	const BUNDLE_SIZE_MAX       = 20;
+	const BUNDLE_DISCOUNT_MIN   = 0.01;
+	const BUNDLE_DISCOUNT_MAX   = 100;
 
 	/**
 	 * Product selection constants.
@@ -103,5 +103,4 @@ class SCD_Validation_Rules {
 	const SEARCH_PER_PAGE_MAX     = 100;
 	const SEARCH_PER_PAGE_DEFAULT = 50;
 	const SEARCH_CATEGORIES_MAX   = 50;
-
 }

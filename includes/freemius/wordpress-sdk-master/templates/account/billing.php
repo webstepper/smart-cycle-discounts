@@ -6,9 +6,9 @@
 	 * @since       1.2.0
 	 */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 	/**
 	 * @var array $VARS
@@ -23,31 +23,36 @@
 
 	$billing     = $fs->_fetch_billing();
 	$has_billing = ( $billing instanceof FS_Billing );
-	if ( ! $has_billing ) {
-		$billing = new FS_Billing();
-	}
+if ( ! $has_billing ) {
+	$billing = new FS_Billing();
+}
 ?>
 <!-- Billing -->
 <div class="postbox">
 	<div id="fs_billing">
-		<h3><span class="dashicons dashicons-portfolio"></span> <?php fs_esc_html_echo_inline( 'Billing', 'billing', $slug ) ?></h3>
-		<table id="fs_billing_address"<?php if ( $has_billing ) {
+		<h3><span class="dashicons dashicons-portfolio"></span> <?php fs_esc_html_echo_inline( 'Billing', 'billing', $slug ); ?></h3>
+		<table id="fs_billing_address"
+		<?php
+		if ( $has_billing ) {
 			echo ' class="fs-read-mode"';
-		} ?>>
+		}
+		?>
+		>
 			<tr>
-				<td><label><span><?php fs_esc_html_echo_inline( 'Business name', 'business-name', $slug ) ?>:</span> <input id="business_name" value="<?php echo esc_attr( $billing->business_name ) ?>" placeholder="<?php fs_esc_attr_echo_inline( 'Business name', 'business-name', $slug ) ?>"></label></td>
-				<td><label><span><?php fs_esc_html_echo_inline( 'Tax / VAT ID', 'tax-vat-id', $slug ) ?>:</span> <input id="tax_id" value="<?php echo esc_attr( $billing->tax_id ) ?>" placeholder="<?php fs_esc_attr_echo_inline( 'Tax / VAT ID', 'tax-vat-id', $slug ) ?>"></label></td>
+				<td><label><span><?php fs_esc_html_echo_inline( 'Business name', 'business-name', $slug ); ?>:</span> <input id="business_name" value="<?php echo esc_attr( $billing->business_name ); ?>" placeholder="<?php fs_esc_attr_echo_inline( 'Business name', 'business-name', $slug ); ?>"></label></td>
+				<td><label><span><?php fs_esc_html_echo_inline( 'Tax / VAT ID', 'tax-vat-id', $slug ); ?>:</span> <input id="tax_id" value="<?php echo esc_attr( $billing->tax_id ); ?>" placeholder="<?php fs_esc_attr_echo_inline( 'Tax / VAT ID', 'tax-vat-id', $slug ); ?>"></label></td>
 			</tr>
 			<tr>
-				<td><label><span><?php printf( fs_esc_html_inline( 'Address Line %d', 'address-line-n', $slug ), 1 ) ?>:</span> <input id="address_street" value="<?php echo esc_attr( $billing->address_street ) ?>" placeholder="<?php printf( fs_esc_attr_inline( 'Address Line %d', 'address-line-n', $slug ), 1 ) ?>"></label></td>
-				<td><label><span><?php printf( fs_esc_html_inline( 'Address Line %d', 'address-line-n', $slug ), 2 ) ?>:</span> <input id="address_apt" value="<?php echo esc_attr( $billing->address_apt ) ?>" placeholder="<?php printf( fs_esc_attr_inline( 'Address Line %d', 'address-line-n', $slug ), 2 ) ?>"></label></td>
+				<td><label><span><?php printf( fs_esc_html_inline( 'Address Line %d', 'address-line-n', $slug ), 1 ); ?>:</span> <input id="address_street" value="<?php echo esc_attr( $billing->address_street ); ?>" placeholder="<?php printf( fs_esc_attr_inline( 'Address Line %d', 'address-line-n', $slug ), 1 ); ?>"></label></td>
+				<td><label><span><?php printf( fs_esc_html_inline( 'Address Line %d', 'address-line-n', $slug ), 2 ); ?>:</span> <input id="address_apt" value="<?php echo esc_attr( $billing->address_apt ); ?>" placeholder="<?php printf( fs_esc_attr_inline( 'Address Line %d', 'address-line-n', $slug ), 2 ); ?>"></label></td>
 			</tr>
 			<tr>
-				<td><label><span><?php fs_esc_html_echo_inline( 'City', 'city', $slug ) ?> / <?php fs_esc_html_echo_inline( 'Town', 'town', $slug ) ?>:</span> <input id="address_city" value="<?php echo esc_attr( $billing->address_city ) ?>" placeholder="<?php fs_esc_attr_echo_inline( 'City', 'city', $slug ) ?> / <?php fs_esc_attr_echo_inline( 'Town', 'town', $slug ) ?>"></label></td>
-				<td><label><span><?php fs_esc_html_echo_inline( 'ZIP / Postal Code', 'zip-postal-code', $slug ) ?>:</span> <input id="address_zip" value="<?php echo esc_attr( $billing->address_zip ) ?>" placeholder="<?php fs_esc_attr_echo_inline( 'ZIP / Postal Code', 'zip-postal-code', $slug ) ?>"></label></td>
+				<td><label><span><?php fs_esc_html_echo_inline( 'City', 'city', $slug ); ?> / <?php fs_esc_html_echo_inline( 'Town', 'town', $slug ); ?>:</span> <input id="address_city" value="<?php echo esc_attr( $billing->address_city ); ?>" placeholder="<?php fs_esc_attr_echo_inline( 'City', 'city', $slug ); ?> / <?php fs_esc_attr_echo_inline( 'Town', 'town', $slug ); ?>"></label></td>
+				<td><label><span><?php fs_esc_html_echo_inline( 'ZIP / Postal Code', 'zip-postal-code', $slug ); ?>:</span> <input id="address_zip" value="<?php echo esc_attr( $billing->address_zip ); ?>" placeholder="<?php fs_esc_attr_echo_inline( 'ZIP / Postal Code', 'zip-postal-code', $slug ); ?>"></label></td>
 			</tr>
 			<tr>
-				<?php $countries = array(
+				<?php
+				$countries = array(
 					'AF' => 'Afghanistan',
 					'AX' => 'Aland Islands',
 					'AL' => 'Albania',
@@ -298,26 +303,32 @@
 					'YE' => 'Yemen',
 					'ZM' => 'Zambia',
 					'ZW' => 'Zimbabwe',
-				) ?>
-				<td><label><span><?php fs_esc_html_echo_inline( 'Country', 'country', $slug ) ?>:</span> <select id="address_country_code">
+				)
+				?>
+				<td><label><span><?php fs_esc_html_echo_inline( 'Country', 'country', $slug ); ?>:</span> <select id="address_country_code">
 							<?php if ( empty( $billing->address_country_code ) ) : ?>
-								<option value="" selected><?php fs_esc_html_echo_inline( 'Select Country', 'select-country', $slug ) ?></option>
+								<option value="" selected><?php fs_esc_html_echo_inline( 'Select Country', 'select-country', $slug ); ?></option>
 							<?php endif ?>
 							<?php foreach ( $countries as $code => $country ) : ?>
 								<option
-									value="<?php echo esc_attr( $code ) ?>" <?php selected( $billing->address_country_code, $code ) ?>><?php echo esc_html( $country ) ?></option>
+									value="<?php echo esc_attr( $code ); ?>" <?php selected( $billing->address_country_code, $code ); ?>><?php echo esc_html( $country ); ?></option>
 							<?php endforeach ?>
 						</select></label></td>
-				<td><label><span><?php fs_esc_html_echo_inline( 'State', 'state', $slug ) ?> / <?php fs_esc_html_echo_inline( 'Province', 'province', $slug ) ?>:</span>
-						<input id="address_state" value="<?php echo esc_attr( $billing->address_state ) ?>" placeholder="<?php fs_esc_html_echo_inline( 'State', 'state', $slug ) ?> / <?php fs_esc_html_echo_inline( 'Province', 'province', $slug ) ?>"></label></td>
+				<td><label><span><?php fs_esc_html_echo_inline( 'State', 'state', $slug ); ?> / <?php fs_esc_html_echo_inline( 'Province', 'province', $slug ); ?>:</span>
+						<input id="address_state" value="<?php echo esc_attr( $billing->address_state ); ?>" placeholder="<?php fs_esc_html_echo_inline( 'State', 'state', $slug ); ?> / <?php fs_esc_html_echo_inline( 'Province', 'province', $slug ); ?>"></label></td>
 			</tr>
 			<tr>
 				<td colspan="2">
 					<button
-						class="button"><?php echo esc_html( $has_billing ?
+						class="button">
+						<?php
+						echo esc_html(
+							$has_billing ?
 							$edit_text :
 							$update_text
-						) ?></button>
+						)
+						?>
+						</button>
 				</td>
 			</tr>
 		</table>
@@ -327,7 +338,7 @@
 <script type="text/javascript">
 	(function($){
 		var $billingAddress = $('#fs_billing_address'),
-		    $billingInputs = $billingAddress.find('input, select');
+			$billingInputs = $billingAddress.find('input, select');
 
 		var setPrevValues = function () {
 			$billingInputs.each(function () {
@@ -356,7 +367,7 @@
 			var isEditMode = !$billingAddress.hasClass('fs-read-mode');
 
 			$(this)
-				.html(isEditMode ? '<?php echo esc_js( $update_text ) ?>' : '<?php echo esc_js( $edit_text ) ?>')
+				.html(isEditMode ? '<?php echo esc_js( $update_text ); ?>' : '<?php echo esc_js( $edit_text ); ?>')
 				.toggleClass('button-primary');
 
 			if (isEditMode) {
@@ -377,12 +388,12 @@
 				});
 
 				$.ajax({
-					url    : <?php echo Freemius::ajax_url() ?>,
+					url    : <?php echo Freemius::ajax_url(); ?>,
 					method : 'POST',
 					data   : {
-						action   : <?php echo wp_json_encode( $fs->get_ajax_action( 'update_billing' ) ) ?>,
-						security : <?php echo wp_json_encode( $fs->get_ajax_security( 'update_billing' ) ) ?>,
-						module_id: <?php echo wp_json_encode( $fs->get_id() ) ?>,
+						action   : <?php echo wp_json_encode( $fs->get_ajax_action( 'update_billing' ) ); ?>,
+						security : <?php echo wp_json_encode( $fs->get_ajax_security( 'update_billing' ) ); ?>,
+						module_id: <?php echo wp_json_encode( $fs->get_id() ); ?>,
 						billing  : billing
 					},
 					success: function (resultObj) {
@@ -407,7 +418,7 @@
 
 				$billingAddress.toggleClass('fs-read-mode');
 				$billingAddress.find('.button')
-					.html('<?php echo esc_js( $update_text ) ?>')
+					.html('<?php echo esc_js( $update_text ); ?>')
 					.toggleClass('button-primary');
 			})
 			// If blured after editing only one field without changes, exit edit mode.
@@ -415,7 +426,7 @@
 				if (!isEditAllFieldsMode && !hasBillingChanged()) {
 					$billingAddress.toggleClass('fs-read-mode');
 					$billingAddress.find('.button')
-						.html('<?php echo esc_js( $edit_text ) ?>')
+						.html('<?php echo esc_js( $edit_text ); ?>')
 						.toggleClass('button-primary');
 				}
 			});

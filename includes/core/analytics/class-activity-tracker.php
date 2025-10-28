@@ -42,36 +42,36 @@ class SCD_Activity_Tracker {
 	 * Initialize the activity tracker.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager    $database_manager    Database manager.
-	 * @param    SCD_Logger              $logger              Logger instance.
+	 * @param    SCD_Database_Manager $database_manager    Database manager.
+	 * @param    SCD_Logger           $logger              Logger instance.
 	 */
 	public function __construct(
 		SCD_Database_Manager $database_manager,
 		SCD_Logger $logger
 	) {
 		$this->database_manager = $database_manager;
-		$this->logger = $logger;
+		$this->logger           = $logger;
 	}
 
 	/**
 	 * Get activities.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Query arguments.
+	 * @param    array $args    Query arguments.
 	 * @return   array             Activity data.
 	 */
 	public function get_activities( array $args = array() ): array {
 		$defaults = array(
-			'limit' => 20,
+			'limit'  => 20,
 			'offset' => 0,
-			'type' => 'all'
+			'type'   => 'all',
 		);
 
 		$args = array_merge( $defaults, $args );
 
 		try {
 			// Get activities from database
-			$query = $this->build_activity_query( $args );
+			$query   = $this->build_activity_query( $args );
 			$results = $this->database_manager->get_results( $query );
 
 			if ( empty( $results ) ) {
@@ -87,10 +87,13 @@ class SCD_Activity_Tracker {
 			return $activities;
 
 		} catch ( Exception $e ) {
-			$this->logger->error( 'Failed to get activities', array(
-				'args' => $args,
-				'error' => $e->getMessage()
-			) );
+			$this->logger->error(
+				'Failed to get activities',
+				array(
+					'args'  => $args,
+					'error' => $e->getMessage(),
+				)
+			);
 			return array();
 		}
 	}
@@ -100,14 +103,14 @@ class SCD_Activity_Tracker {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array     $args    Query arguments.
+	 * @param    array $args    Query arguments.
 	 * @return   string             SQL query.
 	 */
 	private function build_activity_query( array $args ): string {
 		global $wpdb;
 
 		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
-		$type_filter = '';
+		$type_filter     = '';
 
 		if ( 'all' !== $args['type'] ) {
 			$type_filter = $wpdb->prepare( ' AND type = %s', $args['type'] );
@@ -137,23 +140,23 @@ class SCD_Activity_Tracker {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    object    $row    Database row.
+	 * @param    object $row    Database row.
 	 * @return   array             Formatted activity.
 	 */
 	private function format_activity( $row ): array {
-		$type = isset( $row->activity_type ) ? sanitize_text_field( $row->activity_type ) : 'unknown';
+		$type      = isset( $row->activity_type ) ? sanitize_text_field( $row->activity_type ) : 'unknown';
 		$timestamp = isset( $row->timestamp ) ? strtotime( $row->timestamp ) : time();
 
 		return array(
-			'id' => isset( $row->campaign_id ) ? (int) $row->campaign_id : 0,
-			'type' => $type,
-			'icon' => $this->get_activity_icon( $type ),
-			'message' => $this->get_activity_description( $row ),
-			'time_ago' => human_time_diff( $timestamp, current_time( 'timestamp' ) ) . ' ' . __( 'ago', 'smart-cycle-discounts' ),
+			'id'        => isset( $row->campaign_id ) ? (int) $row->campaign_id : 0,
+			'type'      => $type,
+			'icon'      => $this->get_activity_icon( $type ),
+			'message'   => $this->get_activity_description( $row ),
+			'time_ago'  => human_time_diff( $timestamp, current_time( 'timestamp' ) ) . ' ' . __( 'ago', 'smart-cycle-discounts' ),
 			'timestamp' => $timestamp,
-			'meta' => array(
-				'status' => isset( $row->status ) ? sanitize_text_field( $row->status ) : 'unknown'
-			)
+			'meta'      => array(
+				'status' => isset( $row->status ) ? sanitize_text_field( $row->status ) : 'unknown',
+			),
 		);
 	}
 
@@ -162,7 +165,7 @@ class SCD_Activity_Tracker {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    object    $row    Database row.
+	 * @param    object $row    Database row.
 	 * @return   string            Activity description.
 	 */
 	private function get_activity_description( $row ): string {
@@ -203,7 +206,7 @@ class SCD_Activity_Tracker {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $type    Activity type.
+	 * @param    string $type    Activity type.
 	 * @return   string             Dashicons class.
 	 */
 	private function get_activity_icon( string $type ): string {

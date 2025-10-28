@@ -56,7 +56,7 @@ class SCD_Idempotency_Service {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Wizard_State_Service|null    $state_service    State service instance.
+	 * @param    SCD_Wizard_State_Service|null $state_service    State service instance.
 	 */
 	public function __construct( $state_service = null ) {
 		$this->state_service = $state_service;
@@ -69,9 +69,9 @@ class SCD_Idempotency_Service {
 	 * Supports both client-provided keys and auto-generation.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step        Step name.
-	 * @param    array     $data        Step data.
-	 * @param    int       $user_id     User ID.
+	 * @param    string $step        Step name.
+	 * @param    array  $data        Step data.
+	 * @param    int    $user_id     User ID.
 	 * @return   string                 Idempotency key.
 	 */
 	public function generate_key( $step, $data, $user_id ) {
@@ -93,9 +93,9 @@ class SCD_Idempotency_Service {
 	 * Generate idempotency key from parameters.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step        Step name.
-	 * @param    array     $data        Step data.
-	 * @param    int       $user_id     User ID.
+	 * @param    string $step        Step name.
+	 * @param    array  $data        Step data.
+	 * @param    int    $user_id     User ID.
 	 * @return   string                 Generated key.
 	 */
 	private function generate_key_from_params( $step, $data, $user_id ) {
@@ -103,7 +103,7 @@ class SCD_Idempotency_Service {
 		$session_id = $this->get_session_id();
 
 		// Use HMAC with WordPress salt for cryptographic security
-		$secret = wp_salt( 'nonce' );
+		$secret    = wp_salt( 'nonce' );
 		$data_json = wp_json_encode( $data );
 		$data_hash = hash_hmac( 'sha256', $data_json, $secret );
 
@@ -139,7 +139,7 @@ class SCD_Idempotency_Service {
 	 * Get cached response for idempotency key.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $key    Idempotency key.
+	 * @param    string $key    Idempotency key.
 	 * @return   array|null        Cached response or null.
 	 */
 	public function get_cached_response( $key ) {
@@ -148,7 +148,7 @@ class SCD_Idempotency_Service {
 		}
 
 		$cache_key = $this->get_cache_key( $key );
-		$cached = get_transient( $cache_key );
+		$cached    = get_transient( $cache_key );
 
 		if ( $cached && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			error_log( '[SCD Idempotency] Returning cached response for key: ' . $key );
@@ -161,9 +161,9 @@ class SCD_Idempotency_Service {
 	 * Cache response for idempotency key.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $key         Idempotency key.
-	 * @param    array     $response    Response to cache.
-	 * @param    int       $ttl         Time to live in seconds.
+	 * @param    string $key         Idempotency key.
+	 * @param    array  $response    Response to cache.
+	 * @param    int    $ttl         Time to live in seconds.
 	 * @return   bool                   Success status.
 	 */
 	public function cache_response( $key, $response, $ttl = null ) {
@@ -185,7 +185,7 @@ class SCD_Idempotency_Service {
 	 * Uses wp_cache_add for atomic operation - only succeeds if key doesn't exist.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $key    Idempotency key.
+	 * @param    string $key    Idempotency key.
 	 * @return   true|WP_Error|array    True if claimed, WP_Error if duplicate, array if completed.
 	 */
 	public function claim_request( $key ) {
@@ -227,7 +227,7 @@ class SCD_Idempotency_Service {
 	 * Clear cached response for key.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $key    Idempotency key.
+	 * @param    string $key    Idempotency key.
 	 * @return   bool              Success status.
 	 */
 	public function clear_cached_response( $key ) {
@@ -243,7 +243,7 @@ class SCD_Idempotency_Service {
 	 * Get cache key for idempotency key.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $key    Idempotency key.
+	 * @param    string $key    Idempotency key.
 	 * @return   string            Cache key.
 	 */
 	private function get_cache_key( $key ) {

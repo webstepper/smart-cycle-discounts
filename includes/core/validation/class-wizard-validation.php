@@ -34,8 +34,8 @@ class SCD_Wizard_Validation {
 	 * Validate wizard step data.
 	 *
 	 * @since    1.0.0
-	 * @param    array     $data    Data to validate.
-	 * @param    string    $step    Wizard step.
+	 * @param    array  $data    Data to validate.
+	 * @param    string $step    Wizard step.
 	 * @return   array|WP_Error      Sanitized data or error.
 	 */
 	public static function validate_step( array $data, $step ) {
@@ -54,7 +54,7 @@ class SCD_Wizard_Validation {
 	 * Check if step is valid.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step name.
+	 * @param    string $step    Step name.
 	 * @return   bool                Is valid.
 	 */
 	private static function is_valid_step( string $step ): bool {
@@ -65,7 +65,7 @@ class SCD_Wizard_Validation {
 	 * Create unknown step error.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step name.
+	 * @param    string $step    Step name.
 	 * @return   WP_Error           Error object.
 	 */
 	private static function create_unknown_step_error( string $step ): WP_Error {
@@ -93,8 +93,8 @@ class SCD_Wizard_Validation {
 	 * Delegates to SCD_Field_Definitions as single source of truth.
 	 *
 	 * @since    1.0.0
-	 * @param    array     $data    Data to sanitize.
-	 * @param    string    $step    Step name.
+	 * @param    array  $data    Data to sanitize.
+	 * @param    string $step    Step name.
 	 * @return   array|WP_Error     Sanitized data or error.
 	 */
 	public static function sanitize_step_data( array $data, $step ) {
@@ -118,11 +118,11 @@ class SCD_Wizard_Validation {
 	 * Validate complete campaign data.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $data    Complete campaign data.
+	 * @param    array $data    Complete campaign data.
 	 * @return   array|WP_Error     Validated data or error.
 	 */
 	public static function validate_complete_campaign( array $data ) {
-		$errors = new WP_Error();
+		$errors    = new WP_Error();
 		$validated = array();
 
 		$validated = self::validate_all_steps( $data, $errors );
@@ -138,13 +138,13 @@ class SCD_Wizard_Validation {
 	 * Validate all steps.
 	 *
 	 * @since    1.0.0
-	 * @param    array      $data      Campaign data.
-	 * @param    WP_Error   $errors    Error object.
+	 * @param    array    $data      Campaign data.
+	 * @param    WP_Error $errors    Error object.
 	 * @return   array                 Validated data.
 	 */
 	private static function validate_all_steps( array $data, WP_Error $errors ): array {
 		$validated = array();
-		$steps = array( 'basic', 'products', 'discounts', 'schedule' );
+		$steps     = array( 'basic', 'products', 'discounts', 'schedule' );
 
 		foreach ( $steps as $step ) {
 			$result = self::validate_single_step( $data, $step, $errors );
@@ -160,9 +160,9 @@ class SCD_Wizard_Validation {
 	 * Validate single step.
 	 *
 	 * @since    1.0.0
-	 * @param    array      $data      Campaign data.
-	 * @param    string     $step      Step name.
-	 * @param    WP_Error   $errors    Error object.
+	 * @param    array    $data      Campaign data.
+	 * @param    string   $step      Step name.
+	 * @param    WP_Error $errors    Error object.
 	 * @return   array|null            Validated data or null.
 	 */
 	private static function validate_single_step( array $data, string $step, WP_Error $errors ): ?array {
@@ -188,9 +188,9 @@ class SCD_Wizard_Validation {
 	 * Add step errors to main error object.
 	 *
 	 * @since    1.0.0
-	 * @param    WP_Error    $errors         Main error object.
-	 * @param    WP_Error    $step_errors    Step errors.
-	 * @param    string      $step           Step name.
+	 * @param    WP_Error $errors         Main error object.
+	 * @param    WP_Error $step_errors    Step errors.
+	 * @param    string   $step           Step name.
 	 * @return   void
 	 */
 	private static function add_step_errors( WP_Error $errors, WP_Error $step_errors, string $step ): void {
@@ -207,11 +207,11 @@ class SCD_Wizard_Validation {
 	 * Validate AJAX navigation data.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $data    Navigation data.
+	 * @param    array $data    Navigation data.
 	 * @return   array|WP_Error     Validated data or error.
 	 */
 	public static function validate_navigation( array $data ) {
-		$errors = new WP_Error();
+		$errors    = new WP_Error();
 		$validated = array();
 
 		self::validate_navigation_fields( $data, $validated, $errors );
@@ -225,9 +225,9 @@ class SCD_Wizard_Validation {
 	 * Validate navigation fields.
 	 *
 	 * @since    1.0.0
-	 * @param    array       $data         Navigation data.
-	 * @param    array       &$validated   Validated data.
-	 * @param    WP_Error    $errors       Error object.
+	 * @param    array    $data         Navigation data.
+	 * @param    array    &$validated   Validated data.
+	 * @param    WP_Error $errors       Error object.
 	 * @return   void
 	 */
 	private static function validate_navigation_fields( array $data, array &$validated, WP_Error $errors ): void {
@@ -237,13 +237,13 @@ class SCD_Wizard_Validation {
 				'choices' => array( 'next', 'previous', 'complete' ),
 				'error'   => 'invalid_navigation_action',
 			),
-			'current_step' => array(
+			'current_step'      => array(
 				'type' => 'key',
 			),
-			'target_step' => array(
+			'target_step'       => array(
 				'type' => 'key',
 			),
-			'launch_status' => array(
+			'launch_status'     => array(
 				'type'    => 'choice',
 				'choices' => array( 'active', 'draft' ),
 				'error'   => 'invalid_launch_status',
@@ -269,8 +269,8 @@ class SCD_Wizard_Validation {
 	 * Validate step data field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $data         Navigation data.
-	 * @param    array    &$validated   Validated data.
+	 * @param    array $data         Navigation data.
+	 * @param    array &$validated   Validated data.
 	 * @return   void
 	 */
 	private static function validate_step_data_field( array $data, array &$validated ): void {
@@ -293,8 +293,8 @@ class SCD_Wizard_Validation {
 	 * Validate request size.
 	 *
 	 * @since    1.0.0
-	 * @param    array       $data      Request data.
-	 * @param    WP_Error    $errors    Error object.
+	 * @param    array    $data      Request data.
+	 * @param    WP_Error $errors    Error object.
 	 * @return   void
 	 */
 	private static function validate_request_size( array $data, WP_Error $errors ): void {
@@ -317,8 +317,8 @@ class SCD_Wizard_Validation {
 	 * Validate cross-step dependencies.
 	 *
 	 * @since    1.0.0
-	 * @param    array       $validated    Validated data.
-	 * @param    WP_Error    $errors       Error object.
+	 * @param    array    $validated    Validated data.
+	 * @param    WP_Error $errors       Error object.
 	 * @return   WP_Error                  Updated errors.
 	 */
 	private static function validate_cross_step_dependencies( array $validated, WP_Error $errors ): WP_Error {
@@ -337,8 +337,8 @@ class SCD_Wizard_Validation {
 	 * daylight saving time transitions correctly.
 	 *
 	 * @since    1.0.0
-	 * @param    array       $validated    Validated data.
-	 * @param    WP_Error    $errors       Error object.
+	 * @param    array    $validated    Validated data.
+	 * @param    WP_Error $errors       Error object.
 	 * @return   void
 	 */
 	private static function validate_date_range( array $validated, WP_Error $errors ): void {
@@ -350,7 +350,7 @@ class SCD_Wizard_Validation {
 					// CRITICAL: Use wp_timezone() for consistent timezone handling across the plugin
 					$timezone = wp_timezone();
 					$end_date = new DateTime( $validated['schedule']['end_date'], $timezone );
-					$now = new DateTime( 'now', $timezone );
+					$now      = new DateTime( 'now', $timezone );
 
 					// Validate end_date is in the future
 					if ( $end_date < $now ) {
@@ -378,10 +378,10 @@ class SCD_Wizard_Validation {
 
 		try {
 			// CRITICAL: Use wp_timezone() for consistent timezone handling
-			$timezone = wp_timezone();
+			$timezone   = wp_timezone();
 			$start_date = new DateTime( $validated['schedule']['start_date'], $timezone );
-			$end_date = new DateTime( $validated['schedule']['end_date'], $timezone );
-			$now = new DateTime( 'now', $timezone );
+			$end_date   = new DateTime( $validated['schedule']['end_date'], $timezone );
+			$now        = new DateTime( 'now', $timezone );
 
 			// MEDIUM: Validate end after start
 			if ( $start_date >= $end_date ) {
@@ -399,12 +399,14 @@ class SCD_Wizard_Validation {
 			// MEDIUM: Validate maximum duration
 			$duration_days = $start_date->diff( $end_date )->days;
 			if ( $duration_days > SCD_Validation_Rules::SCHEDULE_MAX_DURATION_DAYS ) {
-				$errors->add( 'duration_too_long', sprintf(
-					__( 'Campaign duration cannot exceed %d days', 'smart-cycle-discounts' ),
-					SCD_Validation_Rules::SCHEDULE_MAX_DURATION_DAYS
-				) );
+				$errors->add(
+					'duration_too_long',
+					sprintf(
+						__( 'Campaign duration cannot exceed %d days', 'smart-cycle-discounts' ),
+						SCD_Validation_Rules::SCHEDULE_MAX_DURATION_DAYS
+					)
+				);
 			}
-
 		} catch ( Exception $e ) {
 			// MEDIUM: Log the error for debugging
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -418,8 +420,8 @@ class SCD_Wizard_Validation {
 	 * Validate product selection.
 	 *
 	 * @since    1.0.0
-	 * @param    array       $validated    Validated data.
-	 * @param    WP_Error    $errors       Error object.
+	 * @param    array    $validated    Validated data.
+	 * @param    WP_Error $errors       Error object.
 	 * @return   void
 	 */
 	private static function validate_product_selection( array $validated, WP_Error $errors ): void {
@@ -428,13 +430,13 @@ class SCD_Wizard_Validation {
 		}
 
 		$selection_type = $validated['products']['product_selection_type'];
-		$requirements = array(
+		$requirements   = array(
 			'specific_products' => array(
 				'field'   => 'product_ids',
 				'message' => __( 'Please select at least one product', 'smart-cycle-discounts' ),
 				'error'   => 'missing_product_ids',
 			),
-			'random_products' => array(
+			'random_products'   => array(
 				'field'   => 'random_count',
 				'message' => __( 'Please specify number of random products', 'smart-cycle-discounts' ),
 				'error'   => 'missing_random_count',
@@ -473,11 +475,11 @@ class SCD_Wizard_Validation {
 	 * so we skip step-by-step validation and validate the compiled fields directly.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $data    Compiled campaign data (flat structure).
+	 * @param    array $data    Compiled campaign data (flat structure).
 	 * @return   array|WP_Error     Validated data or error.
 	 */
 	public static function validate_compiled_campaign( array $data ) {
-		$errors = new WP_Error();
+		$errors    = new WP_Error();
 		$validated = array();
 
 		// Validate required campaign fields
@@ -502,11 +504,11 @@ class SCD_Wizard_Validation {
 	 * Some fields may be optional (not all fields need to be present for updates).
 	 *
 	 * @since    1.0.0
-	 * @param    array    $data    Update data.
+	 * @param    array $data    Update data.
 	 * @return   array|WP_Error     Validated data or error.
 	 */
 	public static function validate_campaign_update( array $data ) {
-		$errors = new WP_Error();
+		$errors    = new WP_Error();
 		$validated = array();
 
 		// Only validate fields that are present (partial updates allowed)
@@ -519,7 +521,7 @@ class SCD_Wizard_Validation {
 
 		if ( isset( $data['status'] ) ) {
 			$allowed_statuses = array( 'draft', 'scheduled', 'active', 'paused', 'expired', 'archived' );
-			$status = sanitize_key( $data['status'] );
+			$status           = sanitize_key( $data['status'] );
 			if ( ! in_array( $status, $allowed_statuses, true ) ) {
 				$errors->add( 'invalid_status', __( 'Invalid campaign status', 'smart-cycle-discounts' ) );
 			} else {
@@ -544,9 +546,9 @@ class SCD_Wizard_Validation {
 	 * Validate required campaign fields.
 	 *
 	 * @since    1.0.0
-	 * @param    array      $data         Campaign data.
-	 * @param    array      &$validated   Validated data.
-	 * @param    WP_Error   $errors       Error object.
+	 * @param    array    $data         Campaign data.
+	 * @param    array    &$validated   Validated data.
+	 * @param    WP_Error $errors       Error object.
 	 * @return   void
 	 */
 	private static function validate_required_campaign_fields( array $data, array &$validated, WP_Error $errors ): void {
@@ -574,9 +576,9 @@ class SCD_Wizard_Validation {
 	 * Validate discount configuration.
 	 *
 	 * @since    1.0.0
-	 * @param    array      $data         Campaign data.
-	 * @param    array      &$validated   Validated data.
-	 * @param    WP_Error   $errors       Error object.
+	 * @param    array    $data         Campaign data.
+	 * @param    array    &$validated   Validated data.
+	 * @param    WP_Error $errors       Error object.
 	 * @return   void
 	 */
 	private static function validate_discount_config( array $data, array &$validated, WP_Error $errors ): void {
@@ -610,9 +612,9 @@ class SCD_Wizard_Validation {
 	 * Validate product configuration.
 	 *
 	 * @since    1.0.0
-	 * @param    array      $data         Campaign data.
-	 * @param    array      &$validated   Validated data.
-	 * @param    WP_Error   $errors       Error object.
+	 * @param    array    $data         Campaign data.
+	 * @param    array    &$validated   Validated data.
+	 * @param    WP_Error $errors       Error object.
 	 * @return   void
 	 */
 	private static function validate_product_config( array $data, array &$validated, WP_Error $errors ): void {
@@ -638,9 +640,9 @@ class SCD_Wizard_Validation {
 	 * Validate schedule configuration.
 	 *
 	 * @since    1.0.0
-	 * @param    array      $data         Campaign data.
-	 * @param    array      &$validated   Validated data.
-	 * @param    WP_Error   $errors       Error object.
+	 * @param    array    $data         Campaign data.
+	 * @param    array    &$validated   Validated data.
+	 * @param    WP_Error $errors       Error object.
 	 * @return   void
 	 */
 	private static function validate_schedule_config( array $data, array &$validated, WP_Error $errors ): void {

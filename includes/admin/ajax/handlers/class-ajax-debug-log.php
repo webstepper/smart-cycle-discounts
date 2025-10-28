@@ -31,7 +31,7 @@ class SCD_Ajax_Debug_Log extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger    $logger    Logger instance (optional).
+	 * @param    SCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -51,7 +51,7 @@ class SCD_Ajax_Debug_Log extends SCD_Abstract_Ajax_Handler {
 	 * Handle the AJAX request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array                Response data.
 	 */
 	protected function handle( $request ) {
@@ -97,20 +97,23 @@ class SCD_Ajax_Debug_Log extends SCD_Abstract_Ajax_Handler {
 				continue;
 			}
 
-			$type = isset( $log['type'] ) ? $log['type'] : 'unknown';
-			$message = isset( $log['message'] ) ? $log['message'] : '';
-			$data = isset( $log['data'] ) ? $log['data'] : array();
-			$timestamp = isset( $log['timestamp'] ) ? $log['timestamp'] : '';
-			$elapsed = isset( $log['elapsed'] ) ? $log['elapsed'] : 0;
+			$type       = isset( $log['type'] ) ? $log['type'] : 'unknown';
+			$message    = isset( $log['message'] ) ? $log['message'] : '';
+			$data       = isset( $log['data'] ) ? $log['data'] : array();
+			$timestamp  = isset( $log['timestamp'] ) ? $log['timestamp'] : '';
+			$elapsed    = isset( $log['elapsed'] ) ? $log['elapsed'] : 0;
 			$request_id = isset( $log['request_id'] ) ? $log['request_id'] : '';
 
 			// Add metadata to context
-			$context = array_merge( $data, array(
-				'source' => 'javascript',
-				'js_timestamp' => $timestamp,
-				'js_elapsed_ms' => $elapsed,
-				'js_request_id' => $request_id,
-			) );
+			$context = array_merge(
+				$data,
+				array(
+					'source'        => 'javascript',
+					'js_timestamp'  => $timestamp,
+					'js_elapsed_ms' => $elapsed,
+					'js_request_id' => $request_id,
+				)
+			);
 
 			// Log based on type
 			switch ( $type ) {
@@ -124,7 +127,7 @@ class SCD_Ajax_Debug_Log extends SCD_Abstract_Ajax_Handler {
 
 				case 'wizard':
 					if ( function_exists( 'scd_debug_wizard' ) ) {
-						$step = isset( $data['step'] ) ? $data['step'] : 'unknown';
+						$step   = isset( $data['step'] ) ? $data['step'] : 'unknown';
 						$action = isset( $data['action'] ) ? $data['action'] : 'unknown';
 						scd_debug_wizard( $step, array_merge( array( 'js_action' => $action ), $context ) );
 					} else {
@@ -134,8 +137,8 @@ class SCD_Ajax_Debug_Log extends SCD_Abstract_Ajax_Handler {
 
 				case 'navigation':
 					if ( function_exists( 'scd_debug_navigation' ) ) {
-						$from_step = isset( $data['from_step'] ) ? $data['from_step'] : '';
-						$to_step = isset( $data['to_step'] ) ? $data['to_step'] : '';
+						$from_step  = isset( $data['from_step'] ) ? $data['from_step'] : '';
+						$to_step    = isset( $data['to_step'] ) ? $data['to_step'] : '';
 						$nav_action = isset( $data['nav_action'] ) ? $data['nav_action'] : '';
 						scd_debug_navigation( $from_step, $to_step, $nav_action, $context );
 					} else {
@@ -151,9 +154,9 @@ class SCD_Ajax_Debug_Log extends SCD_Abstract_Ajax_Handler {
 
 				case 'validation':
 					if ( function_exists( 'scd_debug_validation' ) ) {
-						$step = isset( $data['step'] ) ? $data['step'] : '';
+						$step   = isset( $data['step'] ) ? $data['step'] : '';
 						$fields = isset( $data['fields'] ) ? $data['fields'] : array();
-						$valid = isset( $data['valid'] ) ? $data['valid'] : false;
+						$valid  = isset( $data['valid'] ) ? $data['valid'] : false;
 						$errors = isset( $data['errors'] ) ? $data['errors'] : array();
 						scd_debug_validation( $step, array( 'fields' => $fields ), array(), $valid, $errors );
 					} else {
@@ -164,8 +167,8 @@ class SCD_Ajax_Debug_Log extends SCD_Abstract_Ajax_Handler {
 				case 'interaction':
 					if ( function_exists( 'scd_debug_interaction' ) ) {
 						$interaction = isset( $data['interaction'] ) ? $data['interaction'] : '';
-						$element = isset( $data['element'] ) ? $data['element'] : '';
-						$value = isset( $data['value'] ) ? $data['value'] : null;
+						$element     = isset( $data['element'] ) ? $data['element'] : '';
+						$value       = isset( $data['value'] ) ? $data['value'] : null;
 						scd_debug_interaction( $interaction, $element, $value, $context );
 					} else {
 						$debug_logger->debug( '[JS] ' . $message, $context );
@@ -174,9 +177,9 @@ class SCD_Ajax_Debug_Log extends SCD_Abstract_Ajax_Handler {
 
 				case 'performance':
 					if ( function_exists( 'scd_debug_performance' ) ) {
-						$operation = isset( $data['operation'] ) ? $data['operation'] : '';
+						$operation      = isset( $data['operation'] ) ? $data['operation'] : '';
 						$duration_value = isset( $data['duration'] ) ? $data['duration'] : 0;
-						$duration = $duration_value / 1000; // Convert to seconds
+						$duration       = $duration_value / 1000; // Convert to seconds
 						scd_debug_performance( $operation, $duration, $context );
 					} else {
 						$debug_logger->info( '[JS] ' . $message, $context );
@@ -188,16 +191,18 @@ class SCD_Ajax_Debug_Log extends SCD_Abstract_Ajax_Handler {
 					break;
 			}
 
-			$processed++;
+			++$processed;
 		}
 
-		return $this->success( array(
-			'processed' => $processed,
-			'message' => sprintf(
+		return $this->success(
+			array(
+				'processed' => $processed,
+				'message'   => sprintf(
 				/* translators: %d: number of log entries processed */
-				__( 'Processed %d log entries', 'smart-cycle-discounts' ),
-				$processed
+					__( 'Processed %d log entries', 'smart-cycle-discounts' ),
+					$processed
+				),
 			)
-		) );
+		);
 	}
 }

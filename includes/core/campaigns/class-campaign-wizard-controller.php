@@ -53,11 +53,11 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Initialize the controller.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Manager          $campaign_manager     Campaign manager.
-	 * @param    SCD_Admin_Capability_Manager  $capability_manager   Capability manager.
-	 * @param    SCD_Logger                    $logger               Logger instance.
-	 * @param    SCD_Wizard_State_Service      $session              Wizard session.
-	 * @param    SCD_Feature_Gate              $feature_gate         Feature gate service.
+	 * @param    SCD_Campaign_Manager         $campaign_manager     Campaign manager.
+	 * @param    SCD_Admin_Capability_Manager $capability_manager   Capability manager.
+	 * @param    SCD_Logger                   $logger               Logger instance.
+	 * @param    SCD_Wizard_State_Service     $session              Wizard session.
+	 * @param    SCD_Feature_Gate             $feature_gate         Feature gate service.
 	 */
 	public function __construct(
 		SCD_Campaign_Manager $campaign_manager,
@@ -67,7 +67,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 		SCD_Feature_Gate $feature_gate
 	) {
 		parent::__construct( $campaign_manager, $capability_manager, $logger );
-		$this->session = $session;
+		$this->session      = $session;
 		$this->feature_gate = $feature_gate;
 
 		// Use Step Registry for step definitions
@@ -102,7 +102,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 		// Check campaign limit for new campaigns (not for editing existing ones)
 		$intent = $this->get_intent();
 		if ( 'new' === $intent || 'continue' === $intent ) {
-			$session_data = $this->session->get_all_data();
+			$session_data    = $this->session->get_all_data();
 			$is_new_campaign = empty( $session_data ) || ! isset( $session_data['campaign_id'] );
 
 			if ( $is_new_campaign && ! $this->can_create_campaign() ) {
@@ -158,17 +158,19 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 
 		// Validate step access - prevent users from accessing steps they haven't completed
 		$requested_step = $this->get_current_step();
-		$allowed_step = $this->get_allowed_step( $requested_step );
+		$allowed_step   = $this->get_allowed_step( $requested_step );
 
 		// DEBUG: Log access control check
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			$completed = $this->session->get( 'completed_steps', array() );
-			error_log( sprintf(
-				'[SCD Wizard Access Control] Requested: %s | Allowed: %s | Completed steps: %s',
-				$requested_step,
-				$allowed_step,
-				implode( ', ', $completed )
-			) );
+			error_log(
+				sprintf(
+					'[SCD Wizard Access Control] Requested: %s | Allowed: %s | Completed steps: %s',
+					$requested_step,
+					$allowed_step,
+					implode( ', ', $completed )
+				)
+			);
 		}
 
 		if ( $requested_step !== $allowed_step ) {
@@ -178,7 +180,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			}
 
 			// Preserve intent parameter if present
-			$args = array();
+			$args   = array();
 			$intent = $this->get_intent();
 			if ( 'new' === $intent || 'edit' === $intent ) {
 				$args['intent'] = $intent;
@@ -195,7 +197,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Check if session is valid.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $session    Session data.
+	 * @param    array $session    Session data.
 	 * @return   bool                 Is valid.
 	 */
 	private function is_valid_session( array $session ): bool {
@@ -213,7 +215,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			$this->session->create();
 
 			// Preserve intent parameter if present
-			$args = array();
+			$args   = array();
 			$intent = $this->get_intent();
 			if ( 'new' === $intent || 'edit' === $intent ) {
 				$args['intent'] = $intent;
@@ -221,9 +223,12 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 
 			$this->redirect_to_wizard( 'basic', $args );
 		} catch ( Throwable $e ) {
-			$this->logger->error( 'Failed to create wizard session', array(
-				'error' => $e->getMessage()
-			) );
+			$this->logger->error(
+				'Failed to create wizard session',
+				array(
+					'error' => $e->getMessage(),
+				)
+			);
 
 			$this->redirect_with_message(
 				admin_url( 'admin.php?page=scd-campaigns' ),
@@ -237,22 +242,22 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Redirect to wizard step.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step      Step to redirect to.
-	 * @param    array     $args      Additional query arguments.
+	 * @param    string $step      Step to redirect to.
+	 * @param    array  $args      Additional query arguments.
 	 * @return   void
 	 */
 	private function redirect_to_wizard( string $step, array $args = array() ): void {
 		$defaults = array(
 			'page'   => 'scd-campaigns',
 			'action' => 'wizard',
-			'step'   => $step
+			'step'   => $step,
 		);
-		
-		$url = add_query_arg( 
-			array_merge( $defaults, $args ), 
-			admin_url( 'admin.php' ) 
+
+		$url = add_query_arg(
+			array_merge( $defaults, $args ),
+			admin_url( 'admin.php' )
 		);
-		
+
 		wp_safe_redirect( $url );
 		exit;
 	}
@@ -269,7 +274,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 		}
 
 		$current_step = $this->get_current_step();
-		$navigation = $this->get_navigation_direction();
+		$navigation   = $this->get_navigation_direction();
 
 		try {
 			if ( 'next' === $navigation && ! $this->validate_step_data( $current_step ) ) {
@@ -284,21 +289,21 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			}
 
 			$next_step = $this->get_next_step( $current_step, $navigation );
-			
+
 			if ( 'complete' === $next_step ) {
 				$this->complete_wizard();
 				return;
 			}
 
 			// Preserve intent parameter if present
-			$args = array( 'saved' => 1 );
+			$args   = array( 'saved' => 1 );
 			$intent = $this->get_intent();
 			if ( 'new' === $intent || 'edit' === $intent ) {
 				$args['intent'] = $intent;
 			}
 
 			$this->redirect_to_wizard( $next_step, $args );
-			
+
 		} catch ( Exception $e ) {
 			$this->handle_submission_error( $e, $current_step );
 		}
@@ -334,7 +339,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * 3. Cannot skip ahead to future steps
 	 *
 	 * @since    1.0.0
-	 * @param    string    $requested_step    Requested step.
+	 * @param    string $requested_step    Requested step.
 	 * @return   string                       Allowed step.
 	 */
 	private function get_allowed_step( string $requested_step ): string {
@@ -370,7 +375,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Get the furthest step user can access.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $completed_steps    Completed steps.
+	 * @param    array $completed_steps    Completed steps.
 	 * @return   string                       Furthest allowed step.
 	 */
 	private function get_furthest_allowed_step( array $completed_steps ): string {
@@ -410,18 +415,18 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Validate step data.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Current step.
+	 * @param    string $step    Current step.
 	 * @return   bool               Is valid.
 	 */
 	private function validate_step_data( string $step ): bool {
 		$validation_context = 'wizard_' . $step;
-		$validation_result = SCD_Validation::validate( $_POST, $validation_context );
-		
+		$validation_result  = SCD_Validation::validate( $_POST, $validation_context );
+
 		if ( is_wp_error( $validation_result ) ) {
 			$this->store_validation_errors( $validation_result );
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -429,7 +434,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Store validation errors in session.
 	 *
 	 * @since    1.0.0
-	 * @param    WP_Error    $validation_result    Validation errors.
+	 * @param    WP_Error $validation_result    Validation errors.
 	 * @return   void
 	 */
 	private function store_validation_errors( WP_Error $validation_result ): void {
@@ -437,7 +442,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 		foreach ( $validation_result->get_error_codes() as $code ) {
 			$errors[ $code ] = $validation_result->get_error_messages( $code );
 		}
-		
+
 		$this->session->set( 'errors', $errors );
 		$this->session->save();
 	}
@@ -446,12 +451,12 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Handle validation error.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Current step.
+	 * @param    string $step    Current step.
 	 * @return   void
 	 */
 	private function handle_validation_error( string $step ): void {
 		// Preserve intent parameter if present
-		$args = array( 'errors' => 1 );
+		$args   = array( 'errors' => 1 );
 		$intent = $this->get_intent();
 		if ( 'new' === $intent || 'edit' === $intent ) {
 			$args['intent'] = $intent;
@@ -464,7 +469,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Save step data.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Current step.
+	 * @param    string $step    Current step.
 	 * @return   void
 	 */
 	private function save_step_data( string $step ): void {
@@ -478,21 +483,24 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Handle submission error.
 	 *
 	 * @since    1.0.0
-	 * @param    Exception    $exception    Exception object.
-	 * @param    string       $step         Current step.
+	 * @param    Exception $exception    Exception object.
+	 * @param    string    $step         Current step.
 	 * @return   void
 	 */
 	private function handle_submission_error( Exception $exception, string $step ): void {
-		$this->logger->error( 'Wizard step submission failed', array(
-			'step'  => $step,
-			'error' => $exception->getMessage()
-		) );
-		
-		$this->add_notice( 
-			__( 'Failed to save data. Please try again.', 'smart-cycle-discounts' ), 
-			'error' 
+		$this->logger->error(
+			'Wizard step submission failed',
+			array(
+				'step'  => $step,
+				'error' => $exception->getMessage(),
+			)
 		);
-		
+
+		$this->add_notice(
+			__( 'Failed to save data. Please try again.', 'smart-cycle-discounts' ),
+			'error'
+		);
+
 		$session = $this->session->get_all_data();
 		$this->render( $session );
 	}
@@ -506,8 +514,8 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	private function complete_wizard(): void {
 		try {
 			$save_as_draft = $this->should_save_as_draft();
-			$creator = $this->get_campaign_creator();
-			$result = $creator->create_from_wizard( $this->session, $save_as_draft );
+			$creator       = $this->get_campaign_creator();
+			$result        = $creator->create_from_wizard( $this->session, $save_as_draft );
 
 			if ( ! $result['success'] ) {
 				throw new Exception( $result['error'] );
@@ -544,7 +552,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 		require_once SCD_INCLUDES_DIR . 'core/campaigns/class-campaign-compiler-service.php';
 
 		$repository = $this->get_campaign_repository();
-		$compiler = new SCD_Campaign_Compiler_Service( $repository );
+		$compiler   = new SCD_Campaign_Compiler_Service( $repository );
 
 		return new SCD_Campaign_Creator_Service(
 			$this->campaign_manager,
@@ -559,13 +567,16 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Handle completion error.
 	 *
 	 * @since    1.0.0
-	 * @param    Exception    $exception    Exception object.
+	 * @param    Exception $exception    Exception object.
 	 * @return   void
 	 */
 	private function handle_completion_error( Exception $exception ): void {
-		$this->logger->error( 'Wizard completion failed', array(
-			'error' => $exception->getMessage()
-		) );
+		$this->logger->error(
+			'Wizard completion failed',
+			array(
+				'error' => $exception->getMessage(),
+			)
+		);
 
 		$this->add_notice( $exception->getMessage(), 'error' );
 		$session = $this->session->get_all_data();
@@ -576,8 +587,8 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Get next step.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $current_step    Current step.
-	 * @param    string    $navigation      Navigation direction.
+	 * @param    string $current_step    Current step.
+	 * @param    string $navigation      Navigation direction.
 	 * @return   string                     Next step.
 	 */
 	private function get_next_step( string $current_step, string $navigation ): string {
@@ -595,7 +606,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			if ( 'review' === $current_step ) {
 				return 'complete';
 			}
-			
+
 			$next_index = $current_index + 1;
 			if ( $next_index < count( $this->steps ) ) {
 				return $this->steps[ $next_index ];
@@ -609,14 +620,14 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Render wizard step.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $session    Session data.
+	 * @param    array $session    Session data.
 	 * @return   void
 	 */
 	private function render( array $session ): void {
 		$current_step = $this->get_current_step();
-		$step_data = $this->get_step_data( $session, $current_step );
-		$errors = $this->session->get( 'errors', array() );
-		
+		$step_data    = $this->get_step_data( $session, $current_step );
+		$errors       = $this->session->get( 'errors', array() );
+
 		$this->render_wizard_wrapper( $session, $current_step, $step_data, $errors );
 	}
 
@@ -624,15 +635,15 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Get step data from session.
 	 *
 	 * @since    1.0.0
-	 * @param    array     $session        Session data.
-	 * @param    string    $current_step   Current step.
+	 * @param    array  $session        Session data.
+	 * @param    string $current_step   Current step.
 	 * @return   array                     Step data.
 	 */
 	private function get_step_data( array $session, string $current_step ): array {
 		if ( $this->is_fresh_session( $session ) ) {
 			return array();
 		}
-		
+
 		return $session['steps'][ $current_step ] ?? array();
 	}
 
@@ -640,23 +651,23 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Check if session is fresh.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $session    Session data.
+	 * @param    array $session    Session data.
 	 * @return   bool                 Is fresh session.
 	 */
 	private function is_fresh_session( array $session ): bool {
-		return empty( $session['steps'] ) || 
-		       empty( $session['session_id'] ) || 
-		       ! empty( $session['is_fresh'] );
+		return empty( $session['steps'] ) ||
+				empty( $session['session_id'] ) ||
+				! empty( $session['is_fresh'] );
 	}
 
 	/**
 	 * Render wizard wrapper.
 	 *
 	 * @since    1.0.0
-	 * @param    array     $session        Session data.
-	 * @param    string    $current_step   Current step.
-	 * @param    array     $step_data      Step data.
-	 * @param    array     $errors         Validation errors.
+	 * @param    array  $session        Session data.
+	 * @param    string $current_step   Current step.
+	 * @param    array  $step_data      Step data.
+	 * @param    array  $errors         Validation errors.
 	 * @return   void
 	 */
 	private function render_wizard_wrapper( array $session, string $current_step, array $step_data, array $errors ): void {
@@ -686,34 +697,34 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Render wizard header.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $session    Session data.
+	 * @param    array $session    Session data.
 	 * @return   void
 	 */
 	private function render_wizard_header( array $session ): void {
-		$is_edit_mode = ! empty( $session['campaign_id'] );
+		$is_edit_mode  = ! empty( $session['campaign_id'] );
 		$campaign_name = ! empty( $session['basic']['campaign_name'] ) ? $session['basic']['campaign_name'] : '';
 
 		?>
 		<div class="scd-wizard-header">
-			<?php if ( $is_edit_mode ): ?>
+			<?php if ( $is_edit_mode ) : ?>
 				<h1>
 					<?php esc_html_e( 'Edit Campaign', 'smart-cycle-discounts' ); ?>
-					<?php if ( $campaign_name ): ?>
+					<?php if ( $campaign_name ) : ?>
 						<span class="scd-campaign-name">: <?php echo esc_html( $campaign_name ); ?></span>
 					<?php endif; ?>
 				</h1>
-			<?php else: ?>
+			<?php else : ?>
 				<h1><?php esc_html_e( 'Create New Campaign', 'smart-cycle-discounts' ); ?></h1>
 			<?php endif; ?>
 
-			<?php if ( $is_edit_mode ): ?>
+			<?php if ( $is_edit_mode ) : ?>
 				<span class="scd-status-badge scd-status-edit">
 					<span class="dashicons dashicons-edit"></span>
 					<?php esc_html_e( 'Editing Mode', 'smart-cycle-discounts' ); ?>
 				</span>
 			<?php endif; ?>
 			
-			<?php if ( isset( $_GET['saved'] ) && '1' === $_GET['saved'] ): ?>
+			<?php if ( isset( $_GET['saved'] ) && '1' === $_GET['saved'] ) : ?>
 				<span class="scd-status-badge scd-status-saved">
 					<span class="dashicons dashicons-yes"></span>
 					<?php esc_html_e( 'Saved', 'smart-cycle-discounts' ); ?>
@@ -721,7 +732,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			<?php endif; ?>
 			
 			<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns' ) ); ?>" 
-			   class="button scd-exit-wizard">
+				class="button scd-exit-wizard">
 				<span class="dashicons dashicons-no-alt"></span>
 				<?php esc_html_e( 'Exit Wizard', 'smart-cycle-discounts' ); ?>
 			</a>
@@ -733,19 +744,19 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Render errors.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $errors    Validation errors.
+	 * @param    array $errors    Validation errors.
 	 * @return   void
 	 */
 	private function render_errors( array $errors ): void {
 		if ( empty( $errors ) ) {
 			return;
 		}
-		
+
 		?>
 		<div class="notice notice-error">
 			<ul>
-				<?php foreach ( $errors as $field => $messages ): ?>
-					<?php foreach ( $messages as $message ): ?>
+				<?php foreach ( $errors as $field => $messages ) : ?>
+					<?php foreach ( $messages as $message ) : ?>
 						<li><?php echo esc_html( $message ); ?></li>
 					<?php endforeach; ?>
 				<?php endforeach; ?>
@@ -758,13 +769,13 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Render wizard navigation.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $current_step    Current step.
+	 * @param    string $current_step    Current step.
 	 * @return   void
 	 */
 	private function render_wizard_navigation( string $current_step ): void {
 		$current_index = array_search( $current_step, $this->steps, true );
-		$progress = ( ( $current_index + 1 ) / count( $this->steps ) ) * 100;
-		
+		$progress      = ( ( $current_index + 1 ) / count( $this->steps ) ) * 100;
+
 		?>
 		<style>
 			.scd-wizard-navigation {
@@ -772,7 +783,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			}
 		</style>
 		<?php
-		
+
 		do_action( 'scd_wizard_render_navigation', $current_step );
 	}
 
@@ -780,12 +791,12 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Render session info script.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $session    Session data.
+	 * @param    array $session    Session data.
 	 * @return   void
 	 */
 	private function render_session_info_script( array $session ): void {
 		// Get PRO status for client-side feature gating
-		$is_premium = $this->feature_gate ? $this->feature_gate->is_premium() : false;
+		$is_premium  = $this->feature_gate ? $this->feature_gate->is_premium() : false;
 		$upgrade_url = $this->feature_gate ? $this->feature_gate->get_upgrade_url() : admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
 
 		?>
@@ -849,13 +860,13 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Render progress bar.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $current_step    Current step.
+	 * @param    string $current_step    Current step.
 	 * @return   void
 	 */
 	private function render_progress_bar( string $current_step ): void {
-		$step_labels = $this->get_step_labels();
+		$step_labels   = $this->get_step_labels();
 		$current_index = array_search( $current_step, $this->steps, true );
-		
+
 		?>
 		<div class="scd-wizard-progress">
 			<ul class="scd-wizard-steps">
@@ -869,25 +880,25 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Render progress steps.
 	 *
 	 * @since    1.0.0
-	 * @param    array     $step_labels     Step labels.
-	 * @param    string    $current_step    Current step.
-	 * @param    int       $current_index   Current step index.
+	 * @param    array  $step_labels     Step labels.
+	 * @param    string $current_step    Current step.
+	 * @param    int    $current_index   Current step index.
 	 * @return   void
 	 */
 	private function render_progress_steps( array $step_labels, string $current_step, int $current_index ): void {
 		$step_number = 1;
 
-		foreach ( $step_labels as $step => $label ):
+		foreach ( $step_labels as $step => $label ) :
 			$classes = $this->get_step_classes( $step, $current_step, $current_index );
 			?>
 			<li class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>"
-			    data-step="<?php echo esc_attr( $step_number ); ?>"
-			    data-step-name="<?php echo esc_attr( $step ); ?>"
-			    style="cursor: pointer;">
+				data-step="<?php echo esc_attr( $step_number ); ?>"
+				data-step-name="<?php echo esc_attr( $step ); ?>"
+				style="cursor: pointer;">
 				<span class="step-label"><?php echo esc_html( $label ); ?></span>
 			</li>
 			<?php
-			$step_number++;
+			++$step_number;
 		endforeach;
 	}
 
@@ -895,9 +906,9 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Get step classes.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step            Step identifier.
-	 * @param    string    $current_step    Current step.
-	 * @param    int       $current_index   Current step index.
+	 * @param    string $step            Step identifier.
+	 * @param    string $current_step    Current step.
+	 * @param    int    $current_index   Current step index.
 	 * @return   array                      Step classes.
 	 */
 	private function get_step_classes( string $step, string $current_step, int $current_index ): array {
@@ -927,26 +938,29 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 		$labels = SCD_Wizard_Step_Registry::get_step_labels();
 
 		// Translate labels
-		return array_map( function( $label ) {
-			return __( $label, 'smart-cycle-discounts' );
-		}, $labels );
+		return array_map(
+			function ( $label ) {
+				return __( $label, 'smart-cycle-discounts' );
+			},
+			$labels
+		);
 	}
 
 	/**
 	 * Render wizard step.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step         Current step.
-	 * @param    array     $step_data    Step data.
+	 * @param    string $step         Current step.
+	 * @param    array  $step_data    Step data.
 	 * @return   void
 	 */
 	private function render_step( string $step, array $step_data ): void {
 		$this->load_template_wrapper();
-		
+
 		if ( 'review' === $step ) {
 			$step_data = $this->get_review_step_data();
 		}
-		
+
 		$this->include_step_template( $step, $step_data );
 	}
 
@@ -978,14 +992,14 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Include step template.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step           Current step.
-	 * @param    array     $step_data      Step data.
+	 * @param    string $step           Current step.
+	 * @param    array  $step_data      Step data.
 	 * @return   void
 	 */
 	private function include_step_template( string $step, array $step_data ): void {
-		$view_file = SCD_PLUGIN_DIR . 'resources/views/admin/wizard/step-' . $step . '.php';
+		$view_file         = SCD_PLUGIN_DIR . 'resources/views/admin/wizard/step-' . $step . '.php';
 		$validation_errors = $this->session->get( 'errors', array() );
-		$feature_gate = $this->feature_gate;
+		$feature_gate      = $this->feature_gate;
 
 		if ( file_exists( $view_file ) ) {
 			include $view_file;
@@ -998,8 +1012,8 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Sanitize step data.
 	 *
 	 * @since    1.0.0
-	 * @param    array     $data    Raw POST data.
-	 * @param    string    $step    Current step.
+	 * @param    array  $data    Raw POST data.
+	 * @param    string $step    Current step.
 	 * @return   array              Sanitized data.
 	 */
 	private function sanitize_step_data( array $data, string $step ): array {
@@ -1018,7 +1032,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			throw new Exception( 'Campaign repository not available' );
 		}
 
-		$db_manager = new SCD_Database_Manager();
+		$db_manager    = new SCD_Database_Manager();
 		$cache_manager = new SCD_Cache_Manager();
 
 		return new SCD_Campaign_Repository( $db_manager, $cache_manager );
@@ -1043,9 +1057,11 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			return true;
 		}
 
-		$current_count = $repository->count( array(
-			'status__not' => 'deleted'
-		) );
+		$current_count = $repository->count(
+			array(
+				'status__not' => 'deleted',
+			)
+		);
 
 		// Check if user can create more campaigns
 		return $this->feature_gate->can_create_campaign( $current_count );
@@ -1059,8 +1075,8 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 */
 	private function render_campaign_limit_prompt(): void {
 		$campaign_limit = $this->feature_gate->get_campaign_limit();
-		$upgrade_url = function_exists( 'scd_get_upgrade_url' ) ? scd_get_upgrade_url() : admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
-		$trial_url = function_exists( 'scd_get_trial_url' ) ? scd_get_trial_url() : $upgrade_url;
+		$upgrade_url    = function_exists( 'scd_get_upgrade_url' ) ? scd_get_upgrade_url() : admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
+		$trial_url      = function_exists( 'scd_get_trial_url' ) ? scd_get_trial_url() : $upgrade_url;
 
 		?>
 		<div class="wrap scd-campaign-limit-reached">

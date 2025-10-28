@@ -64,9 +64,9 @@ class SCD_WC_Price_Integration {
 	 * Initialize price integration.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_WC_Discount_Query_Service       $discount_query    Discount query service.
-	 * @param    SCD_Customer_Usage_Manager|null     $usage_manager     Usage manager.
-	 * @param    object|null                         $logger            Logger.
+	 * @param    SCD_WC_Discount_Query_Service   $discount_query    Discount query service.
+	 * @param    SCD_Customer_Usage_Manager|null $usage_manager     Usage manager.
+	 * @param    object|null                     $logger            Logger.
 	 */
 	public function __construct(
 		SCD_WC_Discount_Query_Service $discount_query,
@@ -74,8 +74,8 @@ class SCD_WC_Price_Integration {
 		?object $logger = null
 	) {
 		$this->discount_query = $discount_query;
-		$this->usage_manager = $usage_manager;
-		$this->logger = $logger;
+		$this->usage_manager  = $usage_manager;
+		$this->logger         = $logger;
 	}
 
 	/**
@@ -102,8 +102,8 @@ class SCD_WC_Price_Integration {
 	 * Modify product price based on active discounts.
 	 *
 	 * @since    1.0.0
-	 * @param    string      $price      Original price.
-	 * @param    WC_Product  $product    Product object.
+	 * @param    string     $price      Original price.
+	 * @param    WC_Product $product    Product object.
 	 * @return   string                  Modified price.
 	 */
 	public function modify_product_price( $price, WC_Product $product ): string {
@@ -139,12 +139,15 @@ class SCD_WC_Price_Integration {
 					return strval( $discount_info['discounted_price'] );
 				}
 			}
-
 		} catch ( Exception $e ) {
-			$this->log( 'error', 'Failed to modify product price', array(
-				'product_id' => $product_id,
-				'error' => $e->getMessage()
-			) );
+			$this->log(
+				'error',
+				'Failed to modify product price',
+				array(
+					'product_id' => $product_id,
+					'error'      => $e->getMessage(),
+				)
+			);
 		}
 
 		return strval( $price );
@@ -154,8 +157,8 @@ class SCD_WC_Price_Integration {
 	 * Modify sale price based on active discounts.
 	 *
 	 * @since    1.0.0
-	 * @param    string      $sale_price    Original sale price.
-	 * @param    WC_Product  $product       Product object.
+	 * @param    string     $sale_price    Original sale price.
+	 * @param    WC_Product $product       Product object.
 	 * @return   string                     Modified sale price.
 	 */
 	public function modify_sale_price( $sale_price, WC_Product $product ): string {
@@ -170,7 +173,7 @@ class SCD_WC_Price_Integration {
 		}
 
 		try {
-			$product_id = $product->get_id();
+			$product_id    = $product->get_id();
 			$regular_price = floatval( $product->get_regular_price() );
 
 			if ( $regular_price > 0 && $this->discount_query->has_active_discount( $product_id ) ) {
@@ -180,12 +183,15 @@ class SCD_WC_Price_Integration {
 					return strval( $discount_info['discounted_price'] );
 				}
 			}
-
 		} catch ( Exception $e ) {
-			$this->log( 'error', 'Failed to modify sale price', array(
-				'product_id' => $product->get_id(),
-				'error' => $e->getMessage()
-			) );
+			$this->log(
+				'error',
+				'Failed to modify sale price',
+				array(
+					'product_id' => $product->get_id(),
+					'error'      => $e->getMessage(),
+				)
+			);
 		}
 
 		return strval( $sale_price );
@@ -195,8 +201,8 @@ class SCD_WC_Price_Integration {
 	 * Modify price HTML display.
 	 *
 	 * @since    1.0.0
-	 * @param    string      $html      Original price HTML.
-	 * @param    WC_Product  $product   Product object.
+	 * @param    string     $html      Original price HTML.
+	 * @param    WC_Product $product   Product object.
 	 * @return   string                 Modified price HTML.
 	 */
 	public function modify_price_html( string $html, WC_Product $product ): string {
@@ -207,7 +213,7 @@ class SCD_WC_Price_Integration {
 				$discount_info = $this->discount_query->get_discount_info( $product_id );
 
 				if ( $discount_info ) {
-					$regular_price = floatval( $product->get_regular_price() );
+					$regular_price    = floatval( $product->get_regular_price() );
 					$discounted_price = floatval( $discount_info['discounted_price'] );
 
 					if ( $regular_price > $discounted_price ) {
@@ -215,12 +221,15 @@ class SCD_WC_Price_Integration {
 					}
 				}
 			}
-
 		} catch ( Exception $e ) {
-			$this->log( 'error', 'Failed to modify price HTML', array(
-				'product_id' => $product->get_id(),
-				'error' => $e->getMessage()
-			) );
+			$this->log(
+				'error',
+				'Failed to modify price HTML',
+				array(
+					'product_id' => $product->get_id(),
+					'error'      => $e->getMessage(),
+				)
+			);
 		}
 
 		return $html;
@@ -230,7 +239,7 @@ class SCD_WC_Price_Integration {
 	 * Modify cart item prices before calculation.
 	 *
 	 * @since    1.0.0
-	 * @param    WC_Cart    $cart    Cart object.
+	 * @param    WC_Cart $cart    Cart object.
 	 * @return   void
 	 */
 	public function modify_cart_item_prices( WC_Cart $cart ): void {
@@ -254,9 +263,9 @@ class SCD_WC_Price_Integration {
 		// Process each cart item
 		foreach ( $cart->get_cart() as $cart_item_key => $cart_item ) {
 			try {
-				$product = $cart_item['data'];
+				$product    = $cart_item['data'];
 				$product_id = $product->get_id();
-				$quantity = isset( $cart_item['quantity'] ) ? absint( $cart_item['quantity'] ) : 1;
+				$quantity   = isset( $cart_item['quantity'] ) ? absint( $cart_item['quantity'] ) : 1;
 
 				// Get base price from database
 				$original_price = (float) get_post_meta( $product_id, '_regular_price', true );
@@ -271,10 +280,10 @@ class SCD_WC_Price_Integration {
 
 				// Build context
 				$context = array(
-					'quantity' => $quantity,
-					'cart_item' => $cart_item,
+					'quantity'      => $quantity,
+					'cart_item'     => $cart_item,
 					'cart_item_key' => $cart_item_key,
-					'cart_total' => floatval( $cart->get_subtotal() )
+					'cart_total'    => floatval( $cart->get_subtotal() ),
 				);
 
 				// Get discount
@@ -289,10 +298,10 @@ class SCD_WC_Price_Integration {
 
 						// Store metadata
 						WC()->cart->cart_contents[ $cart_item_key ]['scd_discount'] = array(
-							'original_price' => $original_price,
+							'original_price'   => $original_price,
 							'discounted_price' => $discounted_price,
-							'discount_amount' => $original_price - $discounted_price,
-							'campaign_id' => $discount_info['campaign_id'] ?? 0,
+							'discount_amount'  => $original_price - $discounted_price,
+							'campaign_id'      => $discount_info['campaign_id'] ?? 0,
 						);
 					}
 				} else {
@@ -302,13 +311,16 @@ class SCD_WC_Price_Integration {
 						unset( WC()->cart->cart_contents[ $cart_item_key ]['scd_discount'] );
 					}
 				}
-
 			} catch ( Exception $e ) {
-				$this->log( 'error', 'Failed to modify cart item price', array(
-					'cart_item_key' => $cart_item_key,
-					'product_id' => isset( $product_id ) ? $product_id : 0,
-					'error' => $e->getMessage()
-				) );
+				$this->log(
+					'error',
+					'Failed to modify cart item price',
+					array(
+						'cart_item_key' => $cart_item_key,
+						'product_id'    => isset( $product_id ) ? $product_id : 0,
+						'error'         => $e->getMessage(),
+					)
+				);
 			}
 		}
 
@@ -320,8 +332,8 @@ class SCD_WC_Price_Integration {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    WC_Product    $product        Product object.
-	 * @param    array         $discount_info  Discount information.
+	 * @param    WC_Product $product        Product object.
+	 * @param    array      $discount_info  Discount information.
 	 * @return   bool                          True if should apply.
 	 */
 	private function should_apply_discount( WC_Product $product, array $discount_info ): bool {
@@ -349,9 +361,9 @@ class SCD_WC_Price_Integration {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $level      Log level.
-	 * @param    string    $message    Message.
-	 * @param    array     $context    Context.
+	 * @param    string $level      Log level.
+	 * @param    string $message    Message.
+	 * @param    array  $context    Context.
 	 * @return   void
 	 */
 	private function log( string $level, string $message, array $context = array() ): void {

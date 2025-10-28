@@ -44,7 +44,7 @@ class SCD_Clear_License_Cache_Handler extends SCD_Abstract_Ajax_Handler {
 	public function __construct( $container, $logger ) {
 		parent::__construct( $logger );
 		$this->container = $container;
-		$this->logger = $logger;
+		$this->logger    = $logger;
 	}
 
 	/**
@@ -80,11 +80,11 @@ class SCD_Clear_License_Cache_Handler extends SCD_Abstract_Ajax_Handler {
 				// Get fresh status after clearing
 				$results['feature_gate_status_after_clear'] = array(
 					'is_premium' => $feature_gate->is_premium(),
-					'is_trial' => $feature_gate->is_trial(),
+					'is_trial'   => $feature_gate->is_trial(),
 				);
 			} else {
 				$results['feature_gate_cache_cleared'] = false;
-				$results['feature_gate_error'] = 'Feature Gate service not available or clear_cache method missing';
+				$results['feature_gate_error']         = 'Feature Gate service not available or clear_cache method missing';
 			}
 		} catch ( Exception $e ) {
 			$results['feature_gate_error'] = $e->getMessage();
@@ -98,7 +98,7 @@ class SCD_Clear_License_Cache_Handler extends SCD_Abstract_Ajax_Handler {
 
 		// 3. Clear any Freemius-specific transients
 		global $wpdb;
-		$transients_cleared = $wpdb->query(
+		$transients_cleared                     = $wpdb->query(
 			"DELETE FROM {$wpdb->options}
 			WHERE option_name LIKE '_transient_fs_%'
 			OR option_name LIKE '_transient_timeout_fs_%'"
@@ -107,10 +107,10 @@ class SCD_Clear_License_Cache_Handler extends SCD_Abstract_Ajax_Handler {
 
 		// 4. Get fresh Freemius status
 		if ( function_exists( 'scd_fs' ) && is_object( scd_fs() ) ) {
-			$freemius = scd_fs();
+			$freemius                               = scd_fs();
 			$results['freemius_status_after_clear'] = array(
-				'is_premium' => $freemius->is_premium(),
-				'is_trial' => $freemius->is_trial(),
+				'is_premium'    => $freemius->is_premium(),
+				'is_trial'      => $freemius->is_trial(),
 				'is_registered' => $freemius->is_registered(),
 			);
 
@@ -129,20 +129,27 @@ class SCD_Clear_License_Cache_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		// Log cache clear
-		$this->logger->flow( 'notice', 'LICENSE CACHE CLEARED', 'License cache manually cleared', array(
-			'user_id' => get_current_user_id(),
-			'results' => $results,
-		) );
+		$this->logger->flow(
+			'notice',
+			'LICENSE CACHE CLEARED',
+			'License cache manually cleared',
+			array(
+				'user_id' => get_current_user_id(),
+				'results' => $results,
+			)
+		);
 
-		return $this->success( array(
-			'message' => __( 'License cache cleared successfully', 'smart-cycle-discounts' ),
-			'results' => $results,
-			'timestamp' => current_time( 'mysql' ),
-			'next_steps' => array(
-				'1. Refresh the page to see if PRO features are now accessible',
-				'2. If still not working, check the debug info to verify license status',
-				'3. Contact Freemius support if license shows as inactive',
-			),
-		) );
+		return $this->success(
+			array(
+				'message'    => __( 'License cache cleared successfully', 'smart-cycle-discounts' ),
+				'results'    => $results,
+				'timestamp'  => current_time( 'mysql' ),
+				'next_steps' => array(
+					'1. Refresh the page to see if PRO features are now accessible',
+					'2. If still not working, check the debug info to verify license status',
+					'3. Contact Freemius support if license shows as inactive',
+				),
+			)
+		);
 	}
 }

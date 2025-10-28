@@ -47,13 +47,13 @@ class SCD_Log_Manager {
 	 * @var      array    $sensitive_patterns    Patterns to redact.
 	 */
 	private array $sensitive_patterns = array(
-		'password'      => '/(["\']?password["\']?\s*[:=]\s*["\'])([^"\']+)(["\'])/i',
-		'api_key'       => '/(["\']?api[_-]?key["\']?\s*[:=]\s*["\'])([^"\']+)(["\'])/i',
-		'token'         => '/(["\']?token["\']?\s*[:=]\s*["\'])([^"\']+)(["\'])/i',
-		'secret'        => '/(["\']?secret["\']?\s*[:=]\s*["\'])([^"\']+)(["\'])/i',
-		'email'         => '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/',
-		'ip_address'    => '/\b(?:\d{1,3}\.){3}\d{1,3}\b/',
-		'credit_card'   => '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/',
+		'password'    => '/(["\']?password["\']?\s*[:=]\s*["\'])([^"\']+)(["\'])/i',
+		'api_key'     => '/(["\']?api[_-]?key["\']?\s*[:=]\s*["\'])([^"\']+)(["\'])/i',
+		'token'       => '/(["\']?token["\']?\s*[:=]\s*["\'])([^"\']+)(["\'])/i',
+		'secret'      => '/(["\']?secret["\']?\s*[:=]\s*["\'])([^"\']+)(["\'])/i',
+		'email'       => '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/',
+		'ip_address'  => '/\b(?:\d{1,3}\.){3}\d{1,3}\b/',
+		'credit_card' => '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/',
 	);
 
 	/**
@@ -62,7 +62,7 @@ class SCD_Log_Manager {
 	 * @since    1.0.0
 	 */
 	public function __construct() {
-		$upload_dir = wp_upload_dir();
+		$upload_dir    = wp_upload_dir();
 		$this->log_dir = $upload_dir['basedir'] . '/smart-cycle-discounts/logs';
 	}
 
@@ -70,8 +70,8 @@ class SCD_Log_Manager {
 	 * Get log file contents.
 	 *
 	 * @since    1.0.0
-	 * @param    int       $lines       Number of lines to retrieve (0 for all).
-	 * @param    bool      $sanitize    Whether to sanitize sensitive data.
+	 * @param    int  $lines       Number of lines to retrieve (0 for all).
+	 * @param    bool $sanitize    Whether to sanitize sensitive data.
 	 * @return   string|WP_Error        Log contents or error.
 	 */
 	public function get_logs( int $lines = 100, bool $sanitize = true ) {
@@ -168,11 +168,11 @@ class SCD_Log_Manager {
 		// Count lines
 		if ( $stats['readable'] ) {
 			$line_count = 0;
-			$handle = fopen( $log_file, 'r' );
+			$handle     = fopen( $log_file, 'r' );
 			if ( $handle ) {
 				while ( ! feof( $handle ) ) {
 					fgets( $handle );
-					$line_count++;
+					++$line_count;
 				}
 				fclose( $handle );
 			}
@@ -180,7 +180,7 @@ class SCD_Log_Manager {
 		}
 
 		// Get rotated logs count
-		$rotated_logs = glob( $this->log_dir . '/*.log.*' );
+		$rotated_logs           = glob( $this->log_dir . '/*.log.*' );
 		$stats['rotated_count'] = is_array( $rotated_logs ) ? count( $rotated_logs ) : 0;
 
 		return $stats;
@@ -190,7 +190,7 @@ class SCD_Log_Manager {
 	 * Download log file.
 	 *
 	 * @since    1.0.0
-	 * @param    bool      $sanitize    Whether to sanitize sensitive data.
+	 * @param    bool $sanitize    Whether to sanitize sensitive data.
 	 * @return   void
 	 */
 	public function download_log( bool $sanitize = true ): void {
@@ -220,7 +220,7 @@ class SCD_Log_Manager {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $content    Log content to sanitize.
+	 * @param    string $content    Log content to sanitize.
 	 * @return   string                Sanitized content.
 	 */
 	private function sanitize_log_content( string $content ): string {
@@ -231,10 +231,14 @@ class SCD_Log_Manager {
 				$content = preg_replace( $pattern, '[EMAIL_REDACTED]', $content );
 			} elseif ( 'ip_address' === $name ) {
 				// Partially redact IP addresses (keep first two octets)
-				$content = preg_replace_callback( $pattern, function( $matches ) {
-					$parts = explode( '.', $matches[0] );
-					return $parts[0] . '.' . $parts[1] . '.xxx.xxx';
-				}, $content );
+				$content = preg_replace_callback(
+					$pattern,
+					function ( $matches ) {
+						$parts = explode( '.', $matches[0] );
+						return $parts[0] . '.' . $parts[1] . '.xxx.xxx';
+					},
+					$content
+				);
 			} elseif ( 'credit_card' === $name ) {
 				// Redact credit cards
 				$content = preg_replace( $pattern, '[CARD_REDACTED]', $content );
@@ -332,10 +336,10 @@ class SCD_Log_Manager {
 		$report[] = '';
 
 		// Log Files
-		$report[] = '=== Log Files ===';
+		$report[]  = '=== Log Files ===';
 		$log_stats = $this->get_log_stats();
-		$report[] = 'Plugin Log:';
-		$report[] = '  - Exists: ' . ( $log_stats['exists'] ? 'Yes' : 'No' );
+		$report[]  = 'Plugin Log:';
+		$report[]  = '  - Exists: ' . ( $log_stats['exists'] ? 'Yes' : 'No' );
 		if ( $log_stats['exists'] ) {
 			$report[] = '  - Size: ' . $log_stats['size_formatted'];
 			$report[] = '  - Last Modified: ' . gmdate( 'Y-m-d H:i:s', $log_stats['last_modified'] );
@@ -347,11 +351,11 @@ class SCD_Log_Manager {
 		$report[] = '';
 
 		// Active Plugins
-		$report[] = '=== Active Plugins ===';
+		$report[]       = '=== Active Plugins ===';
 		$active_plugins = get_option( 'active_plugins', array() );
 		foreach ( $active_plugins as $plugin ) {
 			$plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin );
-			$report[] = $plugin_data['Name'] . ' - Version: ' . $plugin_data['Version'];
+			$report[]    = $plugin_data['Name'] . ' - Version: ' . $plugin_data['Version'];
 		}
 		$report[] = '';
 

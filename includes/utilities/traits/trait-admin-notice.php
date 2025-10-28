@@ -57,9 +57,9 @@ trait SCD_Admin_Notice_Trait {
 	 * Show success notice.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $message       Notice message.
-	 * @param    boolean   $dismissible   Whether notice is dismissible.
-	 * @param    boolean   $persistent    Whether to store in transient.
+	 * @param    string  $message       Notice message.
+	 * @param    boolean $dismissible   Whether notice is dismissible.
+	 * @param    boolean $persistent    Whether to store in transient.
 	 * @return   void
 	 */
 	protected function show_success_notice( $message, $dismissible = true, $persistent = false ) {
@@ -70,9 +70,9 @@ trait SCD_Admin_Notice_Trait {
 	 * Show error notice.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $message       Notice message.
-	 * @param    boolean   $dismissible   Whether notice is dismissible.
-	 * @param    boolean   $persistent    Whether to store in transient.
+	 * @param    string  $message       Notice message.
+	 * @param    boolean $dismissible   Whether notice is dismissible.
+	 * @param    boolean $persistent    Whether to store in transient.
 	 * @return   void
 	 */
 	protected function show_error_notice( $message, $dismissible = true, $persistent = false ) {
@@ -83,9 +83,9 @@ trait SCD_Admin_Notice_Trait {
 	 * Show warning notice.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $message       Notice message.
-	 * @param    boolean   $dismissible   Whether notice is dismissible.
-	 * @param    boolean   $persistent    Whether to store in transient.
+	 * @param    string  $message       Notice message.
+	 * @param    boolean $dismissible   Whether notice is dismissible.
+	 * @param    boolean $persistent    Whether to store in transient.
 	 * @return   void
 	 */
 	protected function show_warning_notice( $message, $dismissible = true, $persistent = false ) {
@@ -96,9 +96,9 @@ trait SCD_Admin_Notice_Trait {
 	 * Show info notice.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $message       Notice message.
-	 * @param    boolean   $dismissible   Whether notice is dismissible.
-	 * @param    boolean   $persistent    Whether to store in transient.
+	 * @param    string  $message       Notice message.
+	 * @param    boolean $dismissible   Whether notice is dismissible.
+	 * @param    boolean $persistent    Whether to store in transient.
 	 * @return   void
 	 */
 	protected function show_info_notice( $message, $dismissible = true, $persistent = false ) {
@@ -109,9 +109,9 @@ trait SCD_Admin_Notice_Trait {
 	 * Add notice to queue for batch display.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $message       Notice message.
-	 * @param    string    $type          Notice type.
-	 * @param    boolean   $dismissible   Whether notice is dismissible.
+	 * @param    string  $message       Notice message.
+	 * @param    string  $type          Notice type.
+	 * @param    boolean $dismissible   Whether notice is dismissible.
 	 * @return   void
 	 */
 	protected function queue_notice( $message, $type = 'info', $dismissible = true ) {
@@ -120,10 +120,10 @@ trait SCD_Admin_Notice_Trait {
 		}
 
 		$this->notice_queue[] = array(
-			'message' => $message,
-			'type' => $type,
+			'message'     => $message,
+			'type'        => $type,
 			'dismissible' => $dismissible,
-			'timestamp' => time()
+			'timestamp'   => time(),
 		);
 	}
 
@@ -145,10 +145,10 @@ trait SCD_Admin_Notice_Trait {
 	 * Store notice in transient for display after redirect.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $message       Notice message.
-	 * @param    string    $type          Notice type.
-	 * @param    boolean   $dismissible   Whether notice is dismissible.
-	 * @param    int       $user_id       Optional user ID for user-specific notices.
+	 * @param    string  $message       Notice message.
+	 * @param    string  $type          Notice type.
+	 * @param    boolean $dismissible   Whether notice is dismissible.
+	 * @param    int     $user_id       Optional user ID for user-specific notices.
 	 * @return   void
 	 */
 	protected function store_persistent_notice( $message, $type = 'info', $dismissible = true, $user_id = 0 ) {
@@ -156,7 +156,7 @@ trait SCD_Admin_Notice_Trait {
 			$type = 'info';
 		}
 
-		$user_id = $user_id ?: get_current_user_id();
+		$user_id       = $user_id ?: get_current_user_id();
 		$transient_key = "scd_admin_notice_{$user_id}";
 
 		$notices = get_transient( $transient_key );
@@ -165,10 +165,10 @@ trait SCD_Admin_Notice_Trait {
 		}
 
 		$notices[] = array(
-			'message' => $message,
-			'type' => $type,
+			'message'     => $message,
+			'type'        => $type,
 			'dismissible' => $dismissible,
-			'timestamp' => time()
+			'timestamp'   => time(),
 		);
 
 		set_transient( $transient_key, $notices, HOUR_IN_SECONDS );
@@ -178,11 +178,11 @@ trait SCD_Admin_Notice_Trait {
 	 * Display and clear persistent notices.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $user_id    Optional user ID.
+	 * @param    int $user_id    Optional user ID.
 	 * @return   void
 	 */
 	protected function display_persistent_notices( $user_id = 0 ) {
-		$user_id = $user_id ?: get_current_user_id();
+		$user_id       = $user_id ?: get_current_user_id();
 		$transient_key = "scd_admin_notice_{$user_id}";
 
 		$notices = get_transient( $transient_key );
@@ -206,11 +206,11 @@ trait SCD_Admin_Notice_Trait {
 	 * Clear all persistent notices for user.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $user_id    Optional user ID.
+	 * @param    int $user_id    Optional user ID.
 	 * @return   void
 	 */
 	protected function clear_persistent_notices( $user_id = 0 ) {
-		$user_id = $user_id ?: get_current_user_id();
+		$user_id       = $user_id ?: get_current_user_id();
 		$transient_key = "scd_admin_notice_{$user_id}";
 		delete_transient( $transient_key );
 	}
@@ -220,10 +220,10 @@ trait SCD_Admin_Notice_Trait {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $message       Notice message.
-	 * @param    string    $type          Notice type.
-	 * @param    boolean   $dismissible   Whether notice is dismissible.
-	 * @param    boolean   $persistent    Whether to store in transient.
+	 * @param    string  $message       Notice message.
+	 * @param    string  $type          Notice type.
+	 * @param    boolean $dismissible   Whether notice is dismissible.
+	 * @param    boolean $persistent    Whether to store in transient.
 	 * @return   void
 	 */
 	private function add_admin_notice( $message, $type = 'info', $dismissible = true, $persistent = false ) {
@@ -236,9 +236,12 @@ trait SCD_Admin_Notice_Trait {
 			return;
 		}
 
-		add_action( 'admin_notices', function() use ( $message, $type, $dismissible ) {
-			$this->_render_single_notice( $message, $type, $dismissible );
-		} );
+		add_action(
+			'admin_notices',
+			function () use ( $message, $type, $dismissible ) {
+				$this->_render_single_notice( $message, $type, $dismissible );
+			}
+		);
 	}
 
 	/**
@@ -246,9 +249,9 @@ trait SCD_Admin_Notice_Trait {
 	 *
 	 * @since    1.0.0
 	 * @access   public
-	 * @param    string    $message       Notice message.
-	 * @param    string    $type          Notice type.
-	 * @param    boolean   $dismissible   Whether notice is dismissible.
+	 * @param    string  $message       Notice message.
+	 * @param    string  $type          Notice type.
+	 * @param    boolean $dismissible   Whether notice is dismissible.
 	 * @return   void
 	 */
 	public function _render_single_notice( $message, $type, $dismissible ) {
@@ -321,34 +324,34 @@ trait SCD_Admin_Notice_Trait {
 	 */
 	private function _get_allowed_notice_html() {
 		return array(
-			'a' => array(
-				'href' => array(),
-				'title' => array(),
-				'class' => array(),
+			'a'      => array(
+				'href'   => array(),
+				'title'  => array(),
+				'class'  => array(),
 				'target' => array(),
-				'rel' => array()
+				'rel'    => array(),
 			),
 			'strong' => array(),
-			'em' => array(),
-			'code' => array(
-				'class' => array()
+			'em'     => array(),
+			'code'   => array(
+				'class' => array(),
 			),
-			'br' => array(),
-			'p' => array(
-				'class' => array()
+			'br'     => array(),
+			'p'      => array(
+				'class' => array(),
 			),
-			'span' => array(
-				'class' => array()
+			'span'   => array(
+				'class' => array(),
 			),
-			'ul' => array(
-				'class' => array()
+			'ul'     => array(
+				'class' => array(),
 			),
-			'ol' => array(
-				'class' => array()
+			'ol'     => array(
+				'class' => array(),
 			),
-			'li' => array(
-				'class' => array()
-			)
+			'li'     => array(
+				'class' => array(),
+			),
 		);
 	}
 
@@ -359,19 +362,19 @@ trait SCD_Admin_Notice_Trait {
 	 * @return   boolean    True if user can see notices.
 	 */
 	protected function can_show_notices() {
-		return current_user_can( 'manage_options' ) || 
-			   current_user_can( 'edit_posts' ) || 
-			   current_user_can( 'manage_woocommerce' );
+		return current_user_can( 'manage_options' ) ||
+				current_user_can( 'edit_posts' ) ||
+				current_user_can( 'manage_woocommerce' );
 	}
 
 	/**
 	 * Add notice with action buttons.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $message    Notice message.
-	 * @param    array     $actions    Action buttons array.
-	 * @param    string    $type       Notice type.
-	 * @param    boolean   $dismissible Whether notice is dismissible.
+	 * @param    string  $message    Notice message.
+	 * @param    array   $actions    Action buttons array.
+	 * @param    string  $type       Notice type.
+	 * @param    boolean $dismissible Whether notice is dismissible.
 	 * @return   void
 	 */
 	protected function show_notice_with_actions( $message, $actions = array(), $type = 'info', $dismissible = true ) {
@@ -382,17 +385,17 @@ trait SCD_Admin_Notice_Trait {
 		$action_html = '';
 		if ( ! empty( $actions ) && is_array( $actions ) ) {
 			$action_buttons = array();
-			
+
 			foreach ( $actions as $action ) {
 				if ( ! isset( $action['text'] ) || ! isset( $action['url'] ) ) {
 					continue;
 				}
 
-				$button_class = isset( $action['primary'] ) && $action['primary'] ? 
+				$button_class = isset( $action['primary'] ) && $action['primary'] ?
 					'button button-primary' : 'button button-secondary';
-				
+
 				$target = isset( $action['target'] ) ? 'target="' . esc_attr( $action['target'] ) . '"' : '';
-				
+
 				$action_buttons[] = sprintf(
 					'<a href="%s" class="%s" %s>%s</a>',
 					esc_url( $action['url'] ),

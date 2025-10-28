@@ -77,9 +77,9 @@ class SCD_WC_Discount_Query_Service {
 	 * Initialize the discount query service.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Manager    $campaign_manager    Campaign manager instance.
-	 * @param    SCD_Discount_Engine     $discount_engine     Discount engine instance.
-	 * @param    object|null             $logger              Logger instance.
+	 * @param    SCD_Campaign_Manager $campaign_manager    Campaign manager instance.
+	 * @param    SCD_Discount_Engine  $discount_engine     Discount engine instance.
+	 * @param    object|null          $logger              Logger instance.
 	 */
 	public function __construct(
 		SCD_Campaign_Manager $campaign_manager,
@@ -87,8 +87,8 @@ class SCD_WC_Discount_Query_Service {
 		?object $logger = null
 	) {
 		$this->campaign_manager = $campaign_manager;
-		$this->discount_engine = $discount_engine;
-		$this->logger = $logger;
+		$this->discount_engine  = $discount_engine;
+		$this->logger           = $logger;
 	}
 
 	/**
@@ -97,7 +97,7 @@ class SCD_WC_Discount_Query_Service {
 	 * Uses request-level caching to avoid redundant lookups.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $product_id    Product ID.
+	 * @param    int $product_id    Product ID.
 	 * @return   bool                  True if has active discount.
 	 */
 	public function has_active_discount( int $product_id ): bool {
@@ -107,7 +107,7 @@ class SCD_WC_Discount_Query_Service {
 			return $this->cache[ $cache_key ];
 		}
 
-		$result = null !== $this->get_discount_info( $product_id );
+		$result                    = null !== $this->get_discount_info( $product_id );
 		$this->cache[ $cache_key ] = $result;
 
 		return $result;
@@ -125,8 +125,8 @@ class SCD_WC_Discount_Query_Service {
 	 * 6. Return formatted data
 	 *
 	 * @since    1.0.0
-	 * @param    int      $product_id    Product ID.
-	 * @param    array    $context       Context data (quantity, cart_item, etc).
+	 * @param    int   $product_id    Product ID.
+	 * @param    array $context       Context data (quantity, cart_item, etc).
 	 * @return   array|null               Discount info or null if no discount.
 	 */
 	public function get_discount_info( int $product_id, array $context = array() ): ?array {
@@ -157,7 +157,7 @@ class SCD_WC_Discount_Query_Service {
 			$discount_config = $this->build_discount_config( $campaign );
 
 			// Step 5: Calculate discount
-			$original_price = floatval( $product->get_regular_price() );
+			$original_price   = floatval( $product->get_regular_price() );
 			$discount_context = $this->build_discount_context( $product, $product_id, $context );
 
 			$result = $this->calculate_discount( $original_price, $discount_config, $discount_context, $campaign );
@@ -174,11 +174,15 @@ class SCD_WC_Discount_Query_Service {
 			return $discount_data;
 
 		} catch ( Exception $e ) {
-			$this->log( 'error', 'Failed to get discount info', array(
-				'product_id' => $product_id,
-				'error' => $e->getMessage(),
-				'trace' => $e->getTraceAsString()
-			) );
+			$this->log(
+				'error',
+				'Failed to get discount info',
+				array(
+					'product_id' => $product_id,
+					'error'      => $e->getMessage(),
+					'trace'      => $e->getTraceAsString(),
+				)
+			);
 			return null;
 		}
 	}
@@ -188,7 +192,7 @@ class SCD_WC_Discount_Query_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    int    $product_id    Product ID.
+	 * @param    int $product_id    Product ID.
 	 * @return   WC_Product|null       Product object or null.
 	 */
 	private function get_product( int $product_id ): ?WC_Product {
@@ -208,11 +212,11 @@ class SCD_WC_Discount_Query_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    WC_Product    $product    Product object.
+	 * @param    WC_Product $product    Product object.
 	 * @return   array                     Array of campaign objects.
 	 */
 	private function get_applicable_campaigns( WC_Product $product ): array {
-		$product_id = $product->get_id();
+		$product_id           = $product->get_id();
 		$product_ids_to_check = array( $product_id );
 
 		// For variations, check parent product too
@@ -246,22 +250,25 @@ class SCD_WC_Discount_Query_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $campaigns     Array of campaign objects.
-	 * @param    int      $product_id    Product ID (for logging).
+	 * @param    array $campaigns     Array of campaign objects.
+	 * @param    int   $product_id    Product ID (for logging).
 	 * @return   SCD_Campaign             Winning campaign.
 	 */
 	private function select_winning_campaign( array $campaigns, int $product_id ): SCD_Campaign {
 		// Sort by priority (highest first), then by ID (oldest first)
-		usort( $campaigns, function( $a, $b ) {
-			// First compare priority (higher priority wins)
-			$priority_diff = $b->get_priority() <=> $a->get_priority();
-			if ( 0 !== $priority_diff ) {
-				return $priority_diff;
-			}
+		usort(
+			$campaigns,
+			function ( $a, $b ) {
+				// First compare priority (higher priority wins)
+				$priority_diff = $b->get_priority() <=> $a->get_priority();
+				if ( 0 !== $priority_diff ) {
+					return $priority_diff;
+				}
 
-			// If same priority, older campaign wins (lower ID = created first)
-			return $a->get_id() <=> $b->get_id();
-		} );
+				// If same priority, older campaign wins (lower ID = created first)
+				return $a->get_id() <=> $b->get_id();
+			}
+		);
 
 		// Detect and log priority conflicts
 		if ( count( $campaigns ) > 1 ) {
@@ -276,33 +283,43 @@ class SCD_WC_Discount_Query_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $campaigns     Sorted campaigns array.
-	 * @param    int      $product_id    Product ID.
+	 * @param    array $campaigns     Sorted campaigns array.
+	 * @param    int   $product_id    Product ID.
 	 * @return   void
 	 */
 	private function detect_priority_conflicts( array $campaigns, int $product_id ): void {
 		$highest_priority = $campaigns[0]->get_priority();
 
-		$same_priority = array_filter( $campaigns, function( $c ) use ( $highest_priority ) {
-			return $c->get_priority() === $highest_priority;
-		} );
+		$same_priority = array_filter(
+			$campaigns,
+			function ( $c ) use ( $highest_priority ) {
+				return $c->get_priority() === $highest_priority;
+			}
+		);
 
 		if ( count( $same_priority ) > 1 ) {
-			$this->log( 'warning', 'Multiple campaigns with same priority for product', array(
-				'product_id' => $product_id,
-				'priority' => $highest_priority,
-				'campaigns' => array_map( function( $c ) {
-					return array(
-						'id' => $c->get_id(),
-						'name' => $c->get_name(),
-						'priority' => $c->get_priority()
-					);
-				}, $same_priority ),
-				'selected_campaign' => array(
-					'id' => $campaigns[0]->get_id(),
-					'name' => $campaigns[0]->get_name()
+			$this->log(
+				'warning',
+				'Multiple campaigns with same priority for product',
+				array(
+					'product_id'        => $product_id,
+					'priority'          => $highest_priority,
+					'campaigns'         => array_map(
+						function ( $c ) {
+							return array(
+								'id'       => $c->get_id(),
+								'name'     => $c->get_name(),
+								'priority' => $c->get_priority(),
+							);
+						},
+						$same_priority
+					),
+					'selected_campaign' => array(
+						'id'   => $campaigns[0]->get_id(),
+						'name' => $campaigns[0]->get_name(),
+					),
 				)
-			) );
+			);
 		}
 	}
 
@@ -311,14 +328,14 @@ class SCD_WC_Discount_Query_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    SCD_Campaign    $campaign    Campaign object.
+	 * @param    SCD_Campaign $campaign    Campaign object.
 	 * @return   array                        Discount configuration array.
 	 */
 	private function build_discount_config( SCD_Campaign $campaign ): array {
-		$discount_type = $campaign->get_discount_type();
+		$discount_type   = $campaign->get_discount_type();
 		$discount_config = array(
-			'type' => $discount_type,
-			'value' => $campaign->get_discount_value()
+			'type'  => $discount_type,
+			'value' => $campaign->get_discount_value(),
 		);
 
 		// For complex discount types, include full discount_rules
@@ -349,18 +366,18 @@ class SCD_WC_Discount_Query_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    WC_Product    $product       Product object.
-	 * @param    int           $product_id    Product ID.
-	 * @param    array         $context       Request context (quantity, cart_item, etc).
+	 * @param    WC_Product $product       Product object.
+	 * @param    int        $product_id    Product ID.
+	 * @param    array      $context       Request context (quantity, cart_item, etc).
 	 * @return   array                        Discount context array.
 	 */
 	private function build_discount_context( WC_Product $product, int $product_id, array $context ): array {
 		$discount_context = array_merge(
 			array(
-				'product' => $product,
-				'product_id' => $product_id,
+				'product'      => $product,
+				'product_id'   => $product_id,
 				'product_type' => $product->get_type(),
-				'quantity' => 1 // Default to 1 for product pages
+				'quantity'     => 1, // Default to 1 for product pages
 			),
 			$context // Override with passed context (e.g., cart quantity)
 		);
@@ -375,10 +392,10 @@ class SCD_WC_Discount_Query_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    float            $original_price      Original price.
-	 * @param    array            $discount_config     Discount configuration.
-	 * @param    array            $discount_context    Discount context.
-	 * @param    SCD_Campaign     $campaign            Campaign object (for logging).
+	 * @param    float        $original_price      Original price.
+	 * @param    array        $discount_config     Discount configuration.
+	 * @param    array        $discount_context    Discount context.
+	 * @param    SCD_Campaign $campaign            Campaign object (for logging).
 	 * @return   object|null                           Discount result or null on error.
 	 */
 	private function calculate_discount(
@@ -402,12 +419,16 @@ class SCD_WC_Discount_Query_Service {
 			return $result;
 
 		} catch ( Exception $e ) {
-			$this->log( 'error', 'Discount calculation exception', array(
-				'campaign_id' => $campaign->get_id(),
-				'discount_type' => $discount_config['type'] ?? 'unknown',
-				'error' => $e->getMessage(),
-				'trace' => $e->getTraceAsString()
-			) );
+			$this->log(
+				'error',
+				'Discount calculation exception',
+				array(
+					'campaign_id'   => $campaign->get_id(),
+					'discount_type' => $discount_config['type'] ?? 'unknown',
+					'error'         => $e->getMessage(),
+					'trace'         => $e->getTraceAsString(),
+				)
+			);
 
 			// Return null gracefully - don't break checkout for one failed discount
 			return null;
@@ -419,19 +440,19 @@ class SCD_WC_Discount_Query_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array           $discount_config    Discount configuration.
-	 * @param    SCD_Campaign    $campaign           Campaign object.
-	 * @param    object          $result             Discount calculation result.
+	 * @param    array        $discount_config    Discount configuration.
+	 * @param    SCD_Campaign $campaign           Campaign object.
+	 * @param    object       $result             Discount calculation result.
 	 * @return   array                               Formatted discount data.
 	 */
 	private function build_discount_data( array $discount_config, SCD_Campaign $campaign, object $result ): array {
 		$discount_data = array(
-			'type' => $discount_config['type'] ?? 'percentage',
-			'value' => $discount_config['value'] ?? 0,
-			'campaign_id' => $campaign->get_id(),
-			'discount_amount' => $result->get_discount_amount(),
+			'type'             => $discount_config['type'] ?? 'percentage',
+			'value'            => $discount_config['value'] ?? 0,
+			'campaign_id'      => $campaign->get_id(),
+			'discount_amount'  => $result->get_discount_amount(),
 			'discounted_price' => $result->get_discounted_price(),
-			'percentage' => $result->get_discount_percentage()
+			'percentage'       => $result->get_discount_percentage(),
 		);
 
 		// Add metadata if available (e.g., applicable tier for tiered discounts)
@@ -462,9 +483,9 @@ class SCD_WC_Discount_Query_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $level      Log level.
-	 * @param    string    $message    Log message.
-	 * @param    array     $context    Context data.
+	 * @param    string $level      Log level.
+	 * @param    string $message    Log message.
+	 * @param    array  $context    Context data.
 	 * @return   void
 	 */
 	private function log( string $level, string $message, array $context = array() ): void {

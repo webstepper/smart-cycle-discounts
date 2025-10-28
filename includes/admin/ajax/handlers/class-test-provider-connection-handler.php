@@ -40,7 +40,7 @@ class SCD_Test_Provider_Connection_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle the request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array                Response data.
 	 */
 	protected function handle( $request ) {
@@ -51,7 +51,7 @@ class SCD_Test_Provider_Connection_Handler extends SCD_Abstract_Ajax_Handler {
 			}
 
 			// Get provider type
-			$provider = isset( $request['provider'] ) ? sanitize_text_field( $request['provider'] ) : '';
+			$provider        = isset( $request['provider'] ) ? sanitize_text_field( $request['provider'] ) : '';
 			$valid_providers = array( 'wpmail', 'sendgrid', 'amazonses' );
 
 			if ( ! in_array( $provider, $valid_providers, true ) ) {
@@ -72,7 +72,7 @@ class SCD_Test_Provider_Connection_Handler extends SCD_Abstract_Ajax_Handler {
 
 			// Get from email and name with fallbacks
 			$from_email = isset( $settings['from_email'] ) ? sanitize_email( $settings['from_email'] ) : get_option( 'admin_email' );
-			$from_name = isset( $settings['from_name'] ) ? sanitize_text_field( $settings['from_name'] ) : get_bloginfo( 'name' );
+			$from_name  = isset( $settings['from_name'] ) ? sanitize_text_field( $settings['from_name'] ) : get_bloginfo( 'name' );
 
 			// Create provider instance
 			$provider_instance = $this->create_provider( $provider, $settings, $logger, $from_email, $from_name );
@@ -90,22 +90,30 @@ class SCD_Test_Provider_Connection_Handler extends SCD_Abstract_Ajax_Handler {
 				$stats = $provider_instance->get_stats();
 			}
 
-			$logger->info( 'Provider connection test successful', array(
-				'provider' => $provider,
-			) );
+			$logger->info(
+				'Provider connection test successful',
+				array(
+					'provider' => $provider,
+				)
+			);
 
-			return $this->success( array(
-				'message' => $this->get_success_message( $provider ),
-				'provider' => $provider,
-				'stats' => $stats,
-			) );
+			return $this->success(
+				array(
+					'message'  => $this->get_success_message( $provider ),
+					'provider' => $provider,
+					'stats'    => $stats,
+				)
+			);
 
 		} catch ( Exception $e ) {
 			if ( isset( $logger ) ) {
-				$logger->error( 'Provider connection test failed', array(
-					'provider' => isset( $provider ) ? $provider : 'unknown',
-					'error' => $e->getMessage(),
-				) );
+				$logger->error(
+					'Provider connection test failed',
+					array(
+						'provider' => isset( $provider ) ? $provider : 'unknown',
+						'error'    => $e->getMessage(),
+					)
+				);
 			}
 
 			return $this->error(
@@ -121,11 +129,11 @@ class SCD_Test_Provider_Connection_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string        $provider     Provider type.
-	 * @param    array         $settings     Provider settings.
-	 * @param    SCD_Logger    $logger       Logger instance.
-	 * @param    string        $from_email   From email address.
-	 * @param    string        $from_name    From name.
+	 * @param    string     $provider     Provider type.
+	 * @param    array      $settings     Provider settings.
+	 * @param    SCD_Logger $logger       Logger instance.
+	 * @param    string     $from_email   From email address.
+	 * @param    string     $from_name    From name.
 	 * @return   SCD_Email_Provider           Provider instance.
 	 * @throws   Exception                    If provider cannot be created.
 	 */
@@ -148,7 +156,7 @@ class SCD_Test_Provider_Connection_Handler extends SCD_Abstract_Ajax_Handler {
 				require_once SCD_INCLUDES_DIR . 'integrations/email/providers/class-amazonses-provider.php';
 				$access_key = isset( $settings['amazonses_access_key'] ) ? sanitize_text_field( $settings['amazonses_access_key'] ) : '';
 				$secret_key = isset( $settings['amazonses_secret_key'] ) ? sanitize_text_field( $settings['amazonses_secret_key'] ) : '';
-				$region = isset( $settings['amazonses_region'] ) ? sanitize_text_field( $settings['amazonses_region'] ) : 'us-east-1';
+				$region     = isset( $settings['amazonses_region'] ) ? sanitize_text_field( $settings['amazonses_region'] ) : 'us-east-1';
 
 				if ( empty( $access_key ) || empty( $secret_key ) ) {
 					throw new Exception( __( 'Amazon SES access and secret keys are required', 'smart-cycle-discounts' ) );
@@ -168,13 +176,13 @@ class SCD_Test_Provider_Connection_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $provider    Provider type.
+	 * @param    string $provider    Provider type.
 	 * @return   string                 Success message.
 	 */
 	private function get_success_message( $provider ) {
 		$messages = array(
-			'wpmail' => __( 'WordPress Mail is configured correctly and ready to use.', 'smart-cycle-discounts' ),
-			'sendgrid' => __( 'SendGrid connection successful! API key is valid and ready to send emails.', 'smart-cycle-discounts' ),
+			'wpmail'    => __( 'WordPress Mail is configured correctly and ready to use.', 'smart-cycle-discounts' ),
+			'sendgrid'  => __( 'SendGrid connection successful! API key is valid and ready to send emails.', 'smart-cycle-discounts' ),
 			'amazonses' => __( 'Amazon SES connection successful! Your AWS credentials are valid and SES is ready.', 'smart-cycle-discounts' ),
 		);
 
@@ -186,13 +194,13 @@ class SCD_Test_Provider_Connection_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $provider    Provider type.
+	 * @param    string $provider    Provider type.
 	 * @return   string                 Error message.
 	 */
 	private function get_provider_error_message( $provider ) {
 		$messages = array(
-			'wpmail' => __( 'WordPress Mail configuration check failed. Please verify your SMTP settings.', 'smart-cycle-discounts' ),
-			'sendgrid' => __( 'SendGrid connection failed. Please verify your API key is correct and has "Mail Send" permission.', 'smart-cycle-discounts' ),
+			'wpmail'    => __( 'WordPress Mail configuration check failed. Please verify your SMTP settings.', 'smart-cycle-discounts' ),
+			'sendgrid'  => __( 'SendGrid connection failed. Please verify your API key is correct and has "Mail Send" permission.', 'smart-cycle-discounts' ),
 			'amazonses' => __( 'Amazon SES connection failed. Please verify your AWS credentials, region, and that your SES account is configured correctly.', 'smart-cycle-discounts' ),
 		);
 

@@ -6,9 +6,9 @@
 	 * @since       1.1.7.3
 	 */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 	$fs_options      = FS_Options::instance( WP_FS__ACCOUNTS_OPTION_NAME, true );
 	$scheduled_crons = array();
@@ -17,7 +17,7 @@
 
 	$module_types = array(
 		WP_FS__MODULE_TYPE_PLUGIN,
-		WP_FS__MODULE_TYPE_THEME
+		WP_FS__MODULE_TYPE_THEME,
 	);
 
 	foreach ( $module_types as $module_type ) {
@@ -26,7 +26,7 @@
 			foreach ( $modules as $slug => $data ) {
 				if ( WP_FS__MODULE_TYPE_THEME === $module_type ) {
 					$current_theme = wp_get_theme();
-					$is_active = ( $current_theme->stylesheet === $data->file );
+					$is_active     = ( $current_theme->stylesheet === $data->file );
 				} else {
 					$is_active = is_plugin_active( $data->file );
 				}
@@ -44,28 +44,28 @@
 
 					if ( false !== $next_execution ) {
 						$scheduled_crons[ $slug ][] = array(
-							'name' => $fs->get_plugin_name(),
-							'slug' => $slug,
+							'name'        => $fs->get_plugin_name(),
+							'slug'        => $slug,
 							'module_type' => $fs->get_module_type(),
-							'type' => 'sync_cron',
-							'last' => $last_execution,
-							'next' => $next_execution,
+							'type'        => 'sync_cron',
+							'last'        => $last_execution,
+							'next'        => $next_execution,
 						);
 					}
 
 					$next_install_execution = $fs->next_install_sync();
 					$last_install_execution = $fs->last_install_sync();
 
-					if (false !== $next_install_execution ||
+					if ( false !== $next_install_execution ||
 						false !== $last_install_execution
 					) {
 						$scheduled_crons[ $slug ][] = array(
-							'name' => $fs->get_plugin_name(),
-							'slug' => $slug,
+							'name'        => $fs->get_plugin_name(),
+							'slug'        => $slug,
 							'module_type' => $fs->get_module_type(),
-							'type' => 'install_sync',
-							'last' => $last_install_execution,
-							'next' => $next_install_execution,
+							'type'        => 'install_sync',
+							'last'        => $last_install_execution,
+							'next'        => $next_install_execution,
 						);
 					}
 				}
@@ -74,26 +74,26 @@
 	}
 
 	$sec_text = fs_text_x_inline( 'sec', 'seconds' );
-?>
+	?>
 <?php if ( $is_fs_debug_page ) : ?>
 <h2>
-    <button class="fs-debug-table-toggle-button" aria-expanded="true">
-        <span class="fs-debug-table-toggle-icon">▼</span>
-    </button>
-    <?php fs_esc_html_echo_inline( 'Scheduled Crons' ) ?>
+	<button class="fs-debug-table-toggle-button" aria-expanded="true">
+		<span class="fs-debug-table-toggle-icon">▼</span>
+	</button>
+	<?php fs_esc_html_echo_inline( 'Scheduled Crons' ); ?>
 </h2>
 <?php else : ?>
-<h1><?php fs_esc_html_echo_inline( 'Scheduled Crons' ) ?></h1>
+<h1><?php fs_esc_html_echo_inline( 'Scheduled Crons' ); ?></h1>
 <?php endif ?>
 <table class="widefat fs-debug-table">
 	<thead>
 	<tr>
-		<th><?php fs_esc_html_echo_inline( 'Slug' ) ?></th>
-		<th><?php fs_esc_html_echo_inline( 'Module' ) ?></th>
-		<th><?php fs_esc_html_echo_inline( 'Module Type' ) ?></th>
-		<th><?php fs_esc_html_echo_inline( 'Cron Type' ) ?></th>
-		<th><?php fs_esc_html_echo_inline( 'Last' ) ?></th>
-		<th><?php fs_esc_html_echo_inline( 'Next' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Slug' ); ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Module' ); ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Module Type' ); ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Cron Type' ); ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Last' ); ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Next' ); ?></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -106,40 +106,48 @@
 	<?php foreach ( $scheduled_crons as $slug => $crons ) : ?>
 		<?php foreach ( $crons as $cron ) : ?>
 			<tr>
-				<td><?php echo $slug ?></td>
-				<td><?php echo $cron['name'] ?></td>
-				<td><?php echo $cron['module_type'] ?></td>
-				<td><?php echo $cron['type'] ?></td>
-				<td><?php
-						if ( is_numeric( $cron['last'] ) ) {
-							$diff       = abs( WP_FS__SCRIPT_START_TIME - $cron['last'] );
-							$human_diff = ( $diff < MINUTE_IN_SECONDS ) ?
-								$diff . ' ' . $sec_text :
-								human_time_diff( WP_FS__SCRIPT_START_TIME, $cron['last'] );
+				<td><?php echo $slug; ?></td>
+				<td><?php echo $cron['name']; ?></td>
+				<td><?php echo $cron['module_type']; ?></td>
+				<td><?php echo $cron['type']; ?></td>
+				<td>
+				<?php
+				if ( is_numeric( $cron['last'] ) ) {
+					$diff       = abs( WP_FS__SCRIPT_START_TIME - $cron['last'] );
+					$human_diff = ( $diff < MINUTE_IN_SECONDS ) ?
+						$diff . ' ' . $sec_text :
+						human_time_diff( WP_FS__SCRIPT_START_TIME, $cron['last'] );
 
-							echo esc_html( sprintf(
-								( ( WP_FS__SCRIPT_START_TIME < $cron['last'] ) ?
+					echo esc_html(
+						sprintf(
+							( ( WP_FS__SCRIPT_START_TIME < $cron['last'] ) ?
 									$in_x_text :
 									$x_ago_text ),
-								$human_diff
-							) );
-						}
-					?></td>
-				<td><?php
-						if ( is_numeric( $cron['next'] ) ) {
-							$diff       = abs( WP_FS__SCRIPT_START_TIME - $cron['next'] );
-							$human_diff = ( $diff < MINUTE_IN_SECONDS ) ?
-								$diff . ' ' . $sec_text :
-								human_time_diff( WP_FS__SCRIPT_START_TIME, $cron['next'] );
+							$human_diff
+						)
+					);
+				}
+				?>
+					</td>
+				<td>
+				<?php
+				if ( is_numeric( $cron['next'] ) ) {
+					$diff       = abs( WP_FS__SCRIPT_START_TIME - $cron['next'] );
+					$human_diff = ( $diff < MINUTE_IN_SECONDS ) ?
+						$diff . ' ' . $sec_text :
+						human_time_diff( WP_FS__SCRIPT_START_TIME, $cron['next'] );
 
-							echo esc_html( sprintf(
-								( ( WP_FS__SCRIPT_START_TIME < $cron['next'] ) ?
+					echo esc_html(
+						sprintf(
+							( ( WP_FS__SCRIPT_START_TIME < $cron['next'] ) ?
 									$in_x_text :
 									$x_ago_text ),
-								$human_diff
-							) );
-						}
-					?></td>
+							$human_diff
+						)
+					);
+				}
+				?>
+					</td>
 			</tr>
 		<?php endforeach ?>
 	<?php endforeach ?>

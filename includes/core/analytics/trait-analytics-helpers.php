@@ -32,7 +32,7 @@ trait SCD_Analytics_Helpers {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $date_range    Date range identifier (24hours, 7days, 30days, 90days).
+	 * @param    string $date_range    Date range identifier (24hours, 7days, 30days, 90days).
 	 * @return   array                    Array with start_date and end_date.
 	 */
 	private function get_date_range_conditions( $date_range ) {
@@ -57,7 +57,7 @@ trait SCD_Analytics_Helpers {
 
 		return array(
 			'start_date' => $start_date,
-			'end_date' => $end_date
+			'end_date'   => $end_date,
 		);
 	}
 }

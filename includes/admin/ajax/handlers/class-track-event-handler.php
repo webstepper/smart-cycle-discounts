@@ -30,7 +30,7 @@ class SCD_Track_Event_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger    $logger    Logger instance (optional).
+	 * @param    SCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -46,63 +46,65 @@ class SCD_Track_Event_Handler extends SCD_Abstract_Ajax_Handler {
 		return 'scd_track_event';
 	}
 
-    /**
-     * Handle track event request
-     *
-     * @since    1.0.0
-     * @param    array    $request    Request data
-     * @return   array                Response data
-     */
-    protected function handle( $request ) {
-        // Get the analytics collector instance
-        $container = SCD_Container::get_instance();
+	/**
+	 * Handle track event request
+	 *
+	 * @since    1.0.0
+	 * @param    array $request    Request data
+	 * @return   array                Response data
+	 */
+	protected function handle( $request ) {
+		// Get the analytics collector instance
+		$container = SCD_Container::get_instance();
 
-        if ( ! $container->has( 'analytics_collector' ) ) {
-            return $this->error(
-                __( 'Analytics service not available', 'smart-cycle-discounts' ),
-                'analytics_not_available',
-                503
-            );
-        }
+		if ( ! $container->has( 'analytics_collector' ) ) {
+			return $this->error(
+				__( 'Analytics service not available', 'smart-cycle-discounts' ),
+				'analytics_not_available',
+				503
+			);
+		}
 
-        $analytics_collector = $container->get( 'analytics_collector' );
+		$analytics_collector = $container->get( 'analytics_collector' );
 
-        // Extract event data from request
-        $event_type = isset( $request['event_type'] ) ? sanitize_text_field( $request['event_type'] ) : '';
-        $event_data = isset( $request['event_data'] ) ? $request['event_data'] : array();
-        $campaign_id_raw = isset( $request['campaign_id'] ) ? absint( $request['campaign_id'] ) : 0;
-        $campaign_id = $campaign_id_raw > 0 ? $campaign_id_raw : null;
-        $user_id_raw = isset( $request['user_id'] ) ? absint( $request['user_id'] ) : 0;
-        $user_id = $user_id_raw > 0 ? $user_id_raw : null;
+		// Extract event data from request
+		$event_type      = isset( $request['event_type'] ) ? sanitize_text_field( $request['event_type'] ) : '';
+		$event_data      = isset( $request['event_data'] ) ? $request['event_data'] : array();
+		$campaign_id_raw = isset( $request['campaign_id'] ) ? absint( $request['campaign_id'] ) : 0;
+		$campaign_id     = $campaign_id_raw > 0 ? $campaign_id_raw : null;
+		$user_id_raw     = isset( $request['user_id'] ) ? absint( $request['user_id'] ) : 0;
+		$user_id         = $user_id_raw > 0 ? $user_id_raw : null;
 
-        if ( empty( $event_type ) ) {
-            return $this->error(
-                __( 'Event type is required', 'smart-cycle-discounts' ),
-                'missing_event_type'
-            );
-        }
-        
-        // Call the track_event method
-        if ( method_exists( $analytics_collector, 'track_event' ) ) {
-            $result = $analytics_collector->track_event( $event_type, $event_data, $campaign_id, $user_id );
+		if ( empty( $event_type ) ) {
+			return $this->error(
+				__( 'Event type is required', 'smart-cycle-discounts' ),
+				'missing_event_type'
+			);
+		}
 
-            if ( $result ) {
-                return $this->success( array(
-                    'message' => __( 'Event tracked successfully', 'smart-cycle-discounts' ),
-                    'event_type' => $event_type
-                ) );
-            } else {
-                return $this->error(
-                    __( 'Failed to track event', 'smart-cycle-discounts' ),
-                    'tracking_failed'
-                );
-            }
-        }
+		// Call the track_event method
+		if ( method_exists( $analytics_collector, 'track_event' ) ) {
+			$result = $analytics_collector->track_event( $event_type, $event_data, $campaign_id, $user_id );
 
-        return $this->error(
-            __( 'Track event method not found', 'smart-cycle-discounts' ),
-            'method_not_found',
-            501
-        );
-    }
+			if ( $result ) {
+				return $this->success(
+					array(
+						'message'    => __( 'Event tracked successfully', 'smart-cycle-discounts' ),
+						'event_type' => $event_type,
+					)
+				);
+			} else {
+				return $this->error(
+					__( 'Failed to track event', 'smart-cycle-discounts' ),
+					'tracking_failed'
+				);
+			}
+		}
+
+		return $this->error(
+			__( 'Track event method not found', 'smart-cycle-discounts' ),
+			'method_not_found',
+			501
+		);
+	}
 }

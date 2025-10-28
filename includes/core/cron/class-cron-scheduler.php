@@ -63,13 +63,13 @@ class SCD_Cron_Scheduler {
 	 * Initialize the scheduler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger                         $logger                    Logger instance.
-	 * @param    SCD_Action_Scheduler_Service       $scheduler                 ActionScheduler service.
-	 * @param    SCD_Customer_Usage_Manager|null    $customer_usage_manager    Customer usage manager.
+	 * @param    SCD_Logger                      $logger                    Logger instance.
+	 * @param    SCD_Action_Scheduler_Service    $scheduler                 ActionScheduler service.
+	 * @param    SCD_Customer_Usage_Manager|null $customer_usage_manager    Customer usage manager.
 	 */
 	public function __construct( SCD_Logger $logger, SCD_Action_Scheduler_Service $scheduler, ?SCD_Customer_Usage_Manager $customer_usage_manager = null ) {
-		$this->logger = $logger;
-		$this->scheduler = $scheduler;
+		$this->logger                 = $logger;
+		$this->scheduler              = $scheduler;
 		$this->customer_usage_manager = $customer_usage_manager;
 	}
 
@@ -213,14 +213,20 @@ class SCD_Cron_Scheduler {
 				$session_service->cleanup_expired_sessions();
 			}
 
-			$this->logger->info( 'Expired sessions cleanup completed', array(
-				'records_cleaned' => $cleaned,
-			) );
+			$this->logger->info(
+				'Expired sessions cleanup completed',
+				array(
+					'records_cleaned' => $cleaned,
+				)
+			);
 
 		} catch ( Exception $e ) {
-			$this->logger->error( 'Failed to cleanup expired sessions', array(
-				'error' => $e->getMessage(),
-			) );
+			$this->logger->error(
+				'Failed to cleanup expired sessions',
+				array(
+					'error' => $e->getMessage(),
+				)
+			);
 		}
 	}
 
@@ -243,7 +249,7 @@ class SCD_Cron_Scheduler {
 
 			// Clean up old analytics data
 			global $wpdb;
-			$table_name = $wpdb->prefix . 'scd_analytics';
+			$table_name  = $wpdb->prefix . 'scd_analytics';
 			$cutoff_date = gmdate( 'Y-m-d H:i:s', strtotime( "-{$retention_days} days" ) );
 
 			$deleted = $wpdb->query(
@@ -253,15 +259,21 @@ class SCD_Cron_Scheduler {
 				)
 			);
 
-			$this->logger->info( 'Old analytics cleanup completed', array(
-				'records_deleted' => $deleted,
-				'retention_days'  => $retention_days,
-			) );
+			$this->logger->info(
+				'Old analytics cleanup completed',
+				array(
+					'records_deleted' => $deleted,
+					'retention_days'  => $retention_days,
+				)
+			);
 
 		} catch ( Exception $e ) {
-			$this->logger->error( 'Failed to cleanup old analytics', array(
-				'error' => $e->getMessage(),
-			) );
+			$this->logger->error(
+				'Failed to cleanup old analytics',
+				array(
+					'error' => $e->getMessage(),
+				)
+			);
 		}
 	}
 

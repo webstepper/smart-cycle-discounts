@@ -185,7 +185,7 @@ class SCD_License_Manager {
 
 		// Check if cache is still fresh
 		$cache_time = isset( $cache['timestamp'] ) ? $cache['timestamp'] : 0;
-		$cache_age = time() - $cache_time;
+		$cache_age  = time() - $cache_time;
 
 		if ( $this->cache_duration < $cache_age ) {
 			return null;
@@ -210,7 +210,7 @@ class SCD_License_Manager {
 		try {
 			// Check premium or trial status via Freemius
 			$is_premium = scd_fs()->is_premium();
-			$is_trial = scd_fs()->is_trial();
+			$is_trial   = scd_fs()->is_trial();
 
 			// Additional verification: check license object
 			if ( $is_premium || $is_trial ) {
@@ -247,7 +247,7 @@ class SCD_License_Manager {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    bool    $is_valid    Validation result to cache.
+	 * @param    bool $is_valid    Validation result to cache.
 	 * @return   void
 	 */
 	private function cache_validation( $is_valid ) {
@@ -289,7 +289,7 @@ class SCD_License_Manager {
 			return;
 		}
 
-		$last_check = get_option( $this->last_check_option, 0 );
+		$last_check       = get_option( $this->last_check_option, 0 );
 		$time_since_check = time() - $last_check;
 
 		// Run check if interval has elapsed
@@ -318,10 +318,13 @@ class SCD_License_Manager {
 
 		// Log result if logging is available
 		if ( function_exists( 'scd_log_info' ) ) {
-			scd_log_info( 'License health check completed', array(
-				'is_valid' => $is_valid,
-				'timestamp' => time(),
-			) );
+			scd_log_info(
+				'License health check completed',
+				array(
+					'is_valid'  => $is_valid,
+					'timestamp' => time(),
+				)
+			);
 		}
 
 		return $is_valid;
@@ -348,12 +351,12 @@ class SCD_License_Manager {
 		}
 
 		return array(
-			'is_active' => method_exists( $license, 'is_active' ) ? $license->is_active() : false,
+			'is_active'  => method_exists( $license, 'is_active' ) ? $license->is_active() : false,
 			'is_expired' => isset( $license->is_expired ) ? $license->is_expired : false,
 			'expiration' => isset( $license->expiration ) ? $license->expiration : null,
-			'is_trial' => scd_fs()->is_trial(),
+			'is_trial'   => scd_fs()->is_trial(),
 			'is_premium' => scd_fs()->is_premium(),
-			'plan_name' => scd_fs()->get_plan_name(),
+			'plan_name'  => scd_fs()->get_plan_name(),
 		);
 	}
 
@@ -364,7 +367,7 @@ class SCD_License_Manager {
 	 * @return   int    Days remaining until next check.
 	 */
 	public function get_days_until_next_check() {
-		$last_check = get_option( $this->last_check_option, 0 );
+		$last_check       = get_option( $this->last_check_option, 0 );
 		$time_since_check = time() - $last_check;
 		$time_until_check = $this->check_interval - $time_since_check;
 

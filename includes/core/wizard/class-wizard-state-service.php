@@ -95,7 +95,7 @@ class SCD_Wizard_State_Service {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    string|null    $session_id    Optional session ID to load.
+	 * @param    string|null $session_id    Optional session ID to load.
 	 */
 	public function __construct( $session_id = null ) {
 		// Use Step Registry for step definitions
@@ -108,7 +108,7 @@ class SCD_Wizard_State_Service {
 	 * Initialize session.
 	 *
 	 * @since    1.0.0
-	 * @param    string|null    $session_id    Session ID to load.
+	 * @param    string|null $session_id    Session ID to load.
 	 * @return   void
 	 */
 	private function initialize( $session_id = null ): void {
@@ -123,7 +123,7 @@ class SCD_Wizard_State_Service {
 	 * Initialize with specific intent.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $intent    Intent: 'new', 'continue', or 'edit'.
+	 * @param    string $intent    Intent: 'new', 'continue', or 'edit'.
 	 * @return   void
 	 */
 	public function initialize_with_intent( string $intent = 'continue' ): void {
@@ -156,7 +156,7 @@ class SCD_Wizard_State_Service {
 
 		// Check if we already have an edit session for this campaign
 		$existing_campaign_id = $this->get( 'campaign_id', 0 );
-		$is_edit_mode = $this->get( 'is_edit_mode', false );
+		$is_edit_mode         = $this->get( 'is_edit_mode', false );
 
 		if ( $existing_campaign_id === $campaign_id && $is_edit_mode ) {
 			// Already editing this campaign, keep existing session and change tracker
@@ -209,7 +209,7 @@ class SCD_Wizard_State_Service {
 	 */
 	private function mark_as_fresh(): void {
 		$this->data['is_fresh'] = true;
-		$this->dirty = true;
+		$this->dirty            = true;
 		$this->save();
 	}
 
@@ -235,7 +235,7 @@ class SCD_Wizard_State_Service {
 	 */
 	public function create(): string {
 		$this->session_id = $this->generate_session_id();
-		$this->data = $this->get_default_session_data();
+		$this->data       = $this->get_default_session_data();
 
 		$this->set_session_cookie();
 		$this->save();
@@ -274,18 +274,18 @@ class SCD_Wizard_State_Service {
 	 * Load session.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $session_id    Session ID.
+	 * @param    string $session_id    Session ID.
 	 * @return   bool                     Success status.
 	 */
 	public function load( string $session_id ): bool {
 		$this->session_id = sanitize_text_field( $session_id );
-		$data = $this->fetch_session_data();
+		$data             = $this->fetch_session_data();
 
 		if ( ! $this->is_valid_session_data( $data ) ) {
 			return false;
 		}
 
-		$this->data = $data;
+		$this->data  = $data;
 		$this->dirty = false;
 		$this->extend_session();
 
@@ -300,11 +300,11 @@ class SCD_Wizard_State_Service {
 	 */
 	private function load_from_cookie(): bool {
 		$session_id = $this->get_session_id_from_cookie();
-		
+
 		if ( ! $session_id ) {
 			return false;
 		}
-		
+
 		return $this->load( $session_id );
 	}
 
@@ -318,7 +318,7 @@ class SCD_Wizard_State_Service {
 		if ( ! isset( $_COOKIE[ self::COOKIE_NAME ] ) ) {
 			return null;
 		}
-		
+
 		return sanitize_text_field( $_COOKIE[ self::COOKIE_NAME ] );
 	}
 
@@ -336,7 +336,7 @@ class SCD_Wizard_State_Service {
 	 * Check if session data is valid.
 	 *
 	 * @since    1.0.0
-	 * @param    mixed    $data    Data to check.
+	 * @param    mixed $data    Data to check.
 	 * @return   bool              Is valid.
 	 */
 	private function is_valid_session_data( $data ): bool {
@@ -362,7 +362,7 @@ class SCD_Wizard_State_Service {
 	 * for a later attempt instead of silently failing.
 	 *
 	 * @since    1.0.0
-	 * @param    bool    $force    Force save without waiting for lock.
+	 * @param    bool $force    Force save without waiting for lock.
 	 * @return   bool              Success status.
 	 */
 	public function save( bool $force = false ): bool {
@@ -371,7 +371,7 @@ class SCD_Wizard_State_Service {
 		}
 
 		// Acquire lock using transient
-		$lock_key = 'scd_state_lock_' . $this->session_id;
+		$lock_key      = 'scd_state_lock_' . $this->session_id;
 		$lock_acquired = false;
 
 		if ( $force ) {
@@ -421,10 +421,12 @@ class SCD_Wizard_State_Service {
 
 		// Log for debugging
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( sprintf(
-				'[State Service] Lock not acquired, queuing save (queue size: %d)',
-				count( $this->deferred_saves )
-			) );
+			error_log(
+				sprintf(
+					'[State Service] Lock not acquired, queuing save (queue size: %d)',
+					count( $this->deferred_saves )
+				)
+			);
 		}
 
 		// Schedule a single deferred save attempt using WordPress shutdown hook
@@ -451,7 +453,7 @@ class SCD_Wizard_State_Service {
 		}
 
 		// Clear the deferred saves queue
-		$queue_size = count( $this->deferred_saves );
+		$queue_size           = count( $this->deferred_saves );
 		$this->deferred_saves = array();
 
 		// Try to save without lock contention
@@ -460,18 +462,22 @@ class SCD_Wizard_State_Service {
 
 		if ( $success ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf(
-					'[State Service] Deferred save succeeded (cleared %d queued saves)',
-					$queue_size
-				) );
+				error_log(
+					sprintf(
+						'[State Service] Deferred save succeeded (cleared %d queued saves)',
+						$queue_size
+					)
+				);
 			}
 		} else {
 			// Still couldn't save - log warning but don't retry infinitely
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf(
-					'[State Service] Deferred save failed (lost %d queued saves)',
-					$queue_size
-				) );
+				error_log(
+					sprintf(
+						'[State Service] Deferred save failed (lost %d queued saves)',
+						$queue_size
+					)
+				);
 			}
 		}
 	}
@@ -487,14 +493,16 @@ class SCD_Wizard_State_Service {
 	 */
 	private function process_deferred_saves(): void {
 		if ( ! empty( $this->deferred_saves ) ) {
-			$queue_size = count( $this->deferred_saves );
+			$queue_size           = count( $this->deferred_saves );
 			$this->deferred_saves = array();
 
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf(
-					'[State Service] Cleared %d deferred saves after successful save',
-					$queue_size
-				) );
+				error_log(
+					sprintf(
+						'[State Service] Cleared %d deferred saves after successful save',
+						$queue_size
+					)
+				);
 			}
 		}
 	}
@@ -516,10 +524,10 @@ class SCD_Wizard_State_Service {
 	 * @return   bool    Success status.
 	 */
 	private function persist_session_data(): bool {
-		return set_transient( 
-			self::TRANSIENT_PREFIX . $this->session_id, 
-			$this->data, 
-			self::SESSION_LIFETIME 
+		return set_transient(
+			self::TRANSIENT_PREFIX . $this->session_id,
+			$this->data,
+			self::SESSION_LIFETIME
 		);
 	}
 
@@ -530,8 +538,8 @@ class SCD_Wizard_State_Service {
 	 * In create mode: Stores full data in session.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step name.
-	 * @param    array     $data    Step data to save.
+	 * @param    string $step    Step name.
+	 * @param    array  $data    Step data to save.
 	 * @return   bool               Success status.
 	 */
 	public function save_step_data( string $step, array $data ): bool {
@@ -560,7 +568,7 @@ class SCD_Wizard_State_Service {
 
 		// Create mode: store full data in session
 		$existing_data = $this->get_step_data( $step );
-		$merged_data = array_merge( $existing_data, $data );
+		$merged_data   = array_merge( $existing_data, $data );
 		$this->set_step_data( $step, $merged_data );
 
 		return $this->save();
@@ -570,7 +578,7 @@ class SCD_Wizard_State_Service {
 	 * Check if step is valid.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step name.
+	 * @param    string $step    Step name.
 	 * @return   bool               Is valid.
 	 */
 	private function is_valid_step( string $step ): bool {
@@ -581,8 +589,8 @@ class SCD_Wizard_State_Service {
 	 * Prepare step data.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step name.
-	 * @param    array     $data    Step data.
+	 * @param    string $step    Step name.
+	 * @param    array  $data    Step data.
 	 * @return   void
 	 */
 	private function prepare_step_data( string $step, array &$data ): void {
@@ -595,18 +603,18 @@ class SCD_Wizard_State_Service {
 	 * Ensure value is array.
 	 *
 	 * @since    1.0.0
-	 * @param    mixed    $value    Value to check.
+	 * @param    mixed $value    Value to check.
 	 * @return   array              Array value.
 	 */
 	private function ensure_array( $value ): array {
 		if ( is_array( $value ) ) {
 			return $value;
 		}
-		
+
 		if ( is_string( $value ) ) {
 			return array_filter( explode( ',', $value ) );
 		}
-		
+
 		return array();
 	}
 
@@ -614,8 +622,8 @@ class SCD_Wizard_State_Service {
 	 * Set step data.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step name.
-	 * @param    array     $data    Step data.
+	 * @param    string $step    Step name.
+	 * @param    array  $data    Step data.
 	 * @return   void
 	 */
 	public function set_step_data( string $step, array $data ): void {
@@ -624,7 +632,7 @@ class SCD_Wizard_State_Service {
 		}
 
 		$this->data['steps'][ $step ] = $data;
-		$this->dirty = true;
+		$this->dirty                  = true;
 	}
 
 	/**
@@ -634,7 +642,7 @@ class SCD_Wizard_State_Service {
 	 * In create mode: Returns data from session.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step name.
+	 * @param    string $step    Step name.
 	 * @return   array              Step data.
 	 */
 	public function get_step_data( string $step ): array {
@@ -657,24 +665,24 @@ class SCD_Wizard_State_Service {
 	 * Mark step complete.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step name.
+	 * @param    string $step    Step name.
 	 * @return   bool               Success status.
 	 */
 	public function mark_step_complete( string $step ): bool {
 		$step = sanitize_key( $step );
-		
+
 		if ( ! $this->is_valid_step( $step ) ) {
 			return false;
 		}
-		
+
 		$this->ensure_completed_steps_array();
-		
+
 		if ( $this->is_step_complete( $step ) ) {
 			return true;
 		}
-		
+
 		$this->add_completed_step( $step );
-		
+
 		return $this->save();
 	}
 
@@ -694,7 +702,7 @@ class SCD_Wizard_State_Service {
 	 * Check if step is complete.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step name.
+	 * @param    string $step    Step name.
 	 * @return   bool               Is complete.
 	 */
 	private function is_step_complete( string $step ): bool {
@@ -705,20 +713,20 @@ class SCD_Wizard_State_Service {
 	 * Add completed step.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step name.
+	 * @param    string $step    Step name.
 	 * @return   void
 	 */
 	private function add_completed_step( string $step ): void {
 		$this->data['completed_steps'][] = $step;
-		$this->dirty = true;
+		$this->dirty                     = true;
 	}
 
 	/**
 	 * Get value.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $key       Data key.
-	 * @param    mixed     $default   Default value.
+	 * @param    string $key       Data key.
+	 * @param    mixed  $default   Default value.
 	 * @return   mixed                Value or default.
 	 */
 	public function get( string $key, $default = null ) {
@@ -729,13 +737,13 @@ class SCD_Wizard_State_Service {
 	 * Set value.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $key      Data key.
-	 * @param    mixed     $value    Data value.
+	 * @param    string $key      Data key.
+	 * @param    mixed  $value    Data value.
 	 * @return   void
 	 */
 	public function set( string $key, $value ): void {
 		$this->data[ $key ] = $value;
-		$this->dirty = true;
+		$this->dirty        = true;
 	}
 
 	/**
@@ -826,12 +834,12 @@ class SCD_Wizard_State_Service {
 	 */
 	public function get_progress(): array {
 		$completed_steps = $this->data['completed_steps'] ?? array();
-		$total_steps = count( $this->steps );
+		$total_steps     = count( $this->steps );
 		$completed_count = count( $completed_steps );
 
 		// Check if all required steps are completed (all steps except 'review')
 		$required_steps = array_diff( $this->steps, array( 'review' ) );
-		$can_complete = count( array_intersect( $required_steps, $completed_steps ) ) === count( $required_steps );
+		$can_complete   = count( array_intersect( $required_steps, $completed_steps ) ) === count( $required_steps );
 
 		return array(
 			'completed_steps' => $completed_steps,
@@ -846,15 +854,15 @@ class SCD_Wizard_State_Service {
 	 * Calculate percentage.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $completed    Completed count.
-	 * @param    int    $total        Total count.
+	 * @param    int $completed    Completed count.
+	 * @param    int $total        Total count.
 	 * @return   float                Percentage.
 	 */
 	private function calculate_percentage( int $completed, int $total ): float {
 		if ( 0 === $total ) {
 			return 0.0;
 		}
-		
+
 		return ( $completed / $total ) * 100;
 	}
 
@@ -912,7 +920,7 @@ class SCD_Wizard_State_Service {
 	 * Initialize change tracker.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $campaign_id    Campaign ID.
+	 * @param    int $campaign_id    Campaign ID.
 	 * @return   void
 	 */
 	private function initialize_change_tracker( int $campaign_id ): void {
@@ -986,8 +994,8 @@ class SCD_Wizard_State_Service {
 	 */
 	private function reset_instance_data(): void {
 		$this->session_id = null;
-		$this->data = array();
-		$this->dirty = false;
+		$this->data       = array();
+		$this->dirty      = false;
 	}
 
 
@@ -1023,7 +1031,7 @@ class SCD_Wizard_State_Service {
 		if ( ! $this->should_extend_session() ) {
 			return;
 		}
-		
+
 		$this->persist_session_data();
 		$this->set_session_cookie();
 	}
@@ -1048,7 +1056,7 @@ class SCD_Wizard_State_Service {
 		if ( ! $this->session_id ) {
 			return;
 		}
-		
+
 		setcookie(
 			self::COOKIE_NAME,
 			$this->session_id,
@@ -1086,7 +1094,7 @@ class SCD_Wizard_State_Service {
 			is_ssl(),
 			true
 		);
-		
+
 		unset( $_COOKIE[ self::COOKIE_NAME ] );
 	}
 
@@ -1136,14 +1144,14 @@ class Campaign_Data_Compiler {
 		'bogo_config',
 		'thresholds',
 		'recurrence_days',
-		'discount_rules'
+		'discount_rules',
 	);
 
 	/**
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $steps_data    Steps data.
+	 * @param    array $steps_data    Steps data.
 	 */
 	public function __construct( array $steps_data ) {
 		$this->steps_data = $steps_data;
@@ -1157,15 +1165,15 @@ class Campaign_Data_Compiler {
 	 */
 	public function compile(): array {
 		$compiled = array();
-		
+
 		foreach ( $this->steps_data as $step_name => $step_data ) {
 			if ( ! is_array( $step_data ) ) {
 				continue;
 			}
-			
+
 			$this->merge_step_data( $compiled, $step_data );
 		}
-		
+
 		return $compiled;
 	}
 
@@ -1173,8 +1181,8 @@ class Campaign_Data_Compiler {
 	 * Merge step data.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $compiled     Compiled data.
-	 * @param    array    $step_data    Step data.
+	 * @param    array $compiled     Compiled data.
+	 * @param    array $step_data    Step data.
 	 * @return   void
 	 */
 	private function merge_step_data( array &$compiled, array $step_data ): void {
@@ -1191,7 +1199,7 @@ class Campaign_Data_Compiler {
 	 * Check if field is array field.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $field    Field name.
+	 * @param    string $field    Field name.
 	 * @return   bool                Is array field.
 	 */
 	private function is_array_field( string $field ): bool {
@@ -1202,20 +1210,20 @@ class Campaign_Data_Compiler {
 	 * Merge array field.
 	 *
 	 * @since    1.0.0
-	 * @param    array     $compiled    Compiled data.
-	 * @param    string    $key         Field key.
-	 * @param    array     $value       Field value.
+	 * @param    array  $compiled    Compiled data.
+	 * @param    string $key         Field key.
+	 * @param    array  $value       Field value.
 	 * @return   void
 	 */
 	private function merge_array_field( array &$compiled, string $key, array $value ): void {
 		if ( ! isset( $compiled[ $key ] ) || ! is_array( $compiled[ $key ] ) ) {
 			$compiled[ $key ] = array();
 		}
-		
-		$compiled[ $key ] = array_values( 
-			array_unique( 
-				array_merge( $compiled[ $key ], $value ) 
-			) 
+
+		$compiled[ $key ] = array_values(
+			array_unique(
+				array_merge( $compiled[ $key ], $value )
+			)
 		);
 	}
 }

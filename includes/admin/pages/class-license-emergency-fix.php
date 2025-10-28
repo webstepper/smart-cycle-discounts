@@ -39,21 +39,21 @@ class SCD_License_Emergency_Fix {
 		}
 
 		// Get current status
-		$freemius_loaded = function_exists( 'scd_fs' ) && is_object( scd_fs() );
-		$freemius_is_premium = false;
-		$freemius_is_trial = false;
+		$freemius_loaded        = function_exists( 'scd_fs' ) && is_object( scd_fs() );
+		$freemius_is_premium    = false;
+		$freemius_is_trial      = false;
 		$freemius_is_registered = false;
 
 		if ( $freemius_loaded ) {
-			$freemius = scd_fs();
-			$freemius_is_premium = $freemius->is_premium();
-			$freemius_is_trial = $freemius->is_trial();
+			$freemius               = scd_fs();
+			$freemius_is_premium    = $freemius->is_premium();
+			$freemius_is_trial      = $freemius->is_trial();
 			$freemius_is_registered = $freemius->is_registered();
 		}
 
 		// Get Feature Gate status
-		$container = Smart_Cycle_Discounts::get_instance();
-		$feature_gate = null;
+		$container               = Smart_Cycle_Discounts::get_instance();
+		$feature_gate            = null;
 		$feature_gate_is_premium = false;
 
 		if ( $container ) {
@@ -198,7 +198,7 @@ class SCD_License_Emergency_Fix {
 
 		// 1. Clear Feature Gate cache
 		try {
-			$container = Smart_Cycle_Discounts::get_instance();
+			$container    = Smart_Cycle_Discounts::get_instance();
 			$feature_gate = Smart_Cycle_Discounts::get_service( 'feature_gate' );
 
 			if ( $feature_gate && method_exists( $feature_gate, 'clear_cache' ) ) {
@@ -221,7 +221,7 @@ class SCD_License_Emergency_Fix {
 			WHERE option_name LIKE '_transient_fs_%'
 			OR option_name LIKE '_transient_timeout_fs_%'"
 		);
-		$results[] = 'Freemius transients cleared: ' . $transients_cleared;
+		$results[]          = 'Freemius transients cleared: ' . $transients_cleared;
 
 		// 4. Trigger Freemius license sync if available
 		if ( function_exists( 'scd_fs' ) && is_object( scd_fs() ) ) {

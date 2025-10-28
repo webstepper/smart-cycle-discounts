@@ -39,8 +39,8 @@ class SCD_Load_Data_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Wizard_State_Service    $state_service    State service.
-	 * @param    SCD_Logger                  $logger           Logger instance (optional).
+	 * @param    SCD_Wizard_State_Service $state_service    State service.
+	 * @param    SCD_Logger               $logger           Logger instance (optional).
 	 */
 	public function __construct( $state_service, $logger = null ) {
 		parent::__construct( $logger );
@@ -61,19 +61,25 @@ class SCD_Load_Data_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle the load data request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
-		$step = sanitize_key( isset( $request['step'] ) ? $request['step'] : '' );
+		$step     = sanitize_key( isset( $request['step'] ) ? $request['step'] : '' );
 		$load_all = ! empty( $request['load_all'] );
 
 		// Debug: Log load request
 		if ( function_exists( 'scd_debug_persistence' ) ) {
-			scd_debug_persistence( 'load_request', $step ? $step : 'all', array(
-				'load_all' => $load_all,
-				'has_session' => $this->state_service->has_session(),
-			), true, 'Data load requested' );
+			scd_debug_persistence(
+				'load_request',
+				$step ? $step : 'all',
+				array(
+					'load_all'    => $load_all,
+					'has_session' => $this->state_service->has_session(),
+				),
+				true,
+				'Data load requested'
+			);
 		}
 
 		// Check if session exists
@@ -116,12 +122,14 @@ class SCD_Load_Data_Handler extends SCD_Abstract_Ajax_Handler {
 		// Get progress information
 		$progress = $this->state_service->get_progress();
 
-		return $this->success( array(
-			'data' => $data,
-			'progress' => $progress,
-			'session_age' => $this->state_service->get_session_age(),
-			'message' => __( 'Data loaded successfully', 'smart-cycle-discounts' )
-		) );
+		return $this->success(
+			array(
+				'data'        => $data,
+				'progress'    => $progress,
+				'session_age' => $this->state_service->get_session_age(),
+				'message'     => __( 'Data loaded successfully', 'smart-cycle-discounts' ),
+			)
+		);
 	}
 
 	/**
@@ -129,8 +137,8 @@ class SCD_Load_Data_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $step    Step name.
-	 * @param    array     $data    Step data.
+	 * @param    string $step    Step name.
+	 * @param    array  $data    Step data.
 	 * @return   array              Enriched step data.
 	 */
 	private function enrich_step_data( $step, $data ) {
@@ -147,7 +155,7 @@ class SCD_Load_Data_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array     $data    Products step data.
+	 * @param    array $data    Products step data.
 	 * @return   array              Enriched products data.
 	 */
 	private function enrich_products_data( $data ) {
@@ -164,10 +172,10 @@ class SCD_Load_Data_Handler extends SCD_Abstract_Ajax_Handler {
 				$category = get_term( (int) $cat_id, 'product_cat' );
 				if ( $category && ! is_wp_error( $category ) ) {
 					$category_data[] = array(
-						'id' => $category->term_id,
-						'name' => $category->name,
+						'id'    => $category->term_id,
+						'name'  => $category->name,
 						'count' => $category->count,
-						'level' => 0
+						'level' => 0,
 					);
 				}
 			}

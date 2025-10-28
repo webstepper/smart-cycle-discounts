@@ -32,7 +32,7 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 	 * Register settings sections and fields.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $current_tab    Current active tab.
+	 * @param    string $current_tab    Current active tab.
 	 * @return   void
 	 */
 	public function register_sections( string $current_tab ): void {
@@ -65,10 +65,10 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 			array(
 				'tooltip' => __( 'Control the verbosity of log messages. Higher levels provide more detail but generate larger log files.', 'smart-cycle-discounts' ),
 				'options' => array(
-					'error' => __( 'Error - Critical issues only', 'smart-cycle-discounts' ),
+					'error'   => __( 'Error - Critical issues only', 'smart-cycle-discounts' ),
 					'warning' => __( 'Warning - Errors and warnings', 'smart-cycle-discounts' ),
-					'info' => __( 'Info - General information', 'smart-cycle-discounts' ),
-					'debug' => __( 'Debug - Detailed debugging', 'smart-cycle-discounts' ),
+					'info'    => __( 'Info - General information', 'smart-cycle-discounts' ),
+					'debug'   => __( 'Debug - Detailed debugging', 'smart-cycle-discounts' ),
 				),
 			)
 		);
@@ -80,9 +80,9 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 			'scd_advanced_debug',
 			array(
 				'tooltip' => __( 'How long to keep log files before automatic cleanup. Set to 0 to keep logs indefinitely.', 'smart-cycle-discounts' ),
-				'min' => 0,
-				'max' => 365,
-				'suffix' => __( 'days', 'smart-cycle-discounts' ),
+				'min'     => 0,
+				'max'     => 365,
+				'suffix'  => __( 'days', 'smart-cycle-discounts' ),
 			)
 		);
 
@@ -120,7 +120,7 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 	 * Render debug mode field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_debug_mode_field( array $args ): void {
@@ -139,7 +139,7 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 	 * Render log level field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_log_level_field( array $args ): void {
@@ -150,7 +150,7 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 	 * Render log retention field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_log_retention_field( array $args ): void {
@@ -173,7 +173,7 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 	 * Render uninstall data field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_uninstall_data_field( array $args ): void {
@@ -192,18 +192,18 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 	 * Sanitize advanced settings.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $input    Raw input data.
+	 * @param    array $input    Raw input data.
 	 * @return   array              Sanitized data.
 	 */
 	protected function sanitize_settings( array $input ): array {
 		$sanitized = array();
 
 		// Debug settings
-		$debug_mode_enabled = isset( $input['enable_debug_mode'] ) && '1' === $input['enable_debug_mode'];
+		$debug_mode_enabled             = isset( $input['enable_debug_mode'] ) && '1' === $input['enable_debug_mode'];
 		$sanitized['enable_debug_mode'] = $debug_mode_enabled;
 
 		// Track when debug mode was enabled for auto-disable after 24 hours
-		$old_settings = $this->settings_manager->get_tab_settings( $this->tab_slug );
+		$old_settings      = $this->settings_manager->get_tab_settings( $this->tab_slug );
 		$was_debug_enabled = isset( $old_settings['enable_debug_mode'] ) && $old_settings['enable_debug_mode'];
 
 		if ( $debug_mode_enabled && ! $was_debug_enabled ) {
@@ -218,7 +218,7 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 		}
 
 		// Log level
-		$valid_levels = array( 'error', 'warning', 'info', 'debug' );
+		$valid_levels           = array( 'error', 'warning', 'info', 'debug' );
 		$sanitized['log_level'] = in_array( $input['log_level'] ?? '', $valid_levels, true )
 			? $input['log_level']
 			: 'error';

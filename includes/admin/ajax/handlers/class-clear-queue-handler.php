@@ -39,7 +39,7 @@ class SCD_Clear_Queue_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle the request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array                Response data.
 	 */
 	protected function handle( $request ) {
@@ -66,12 +66,14 @@ class SCD_Clear_Queue_Handler extends SCD_Abstract_Ajax_Handler {
 			// Clear completed actions older than 30 days
 			$thirty_days_ago = strtotime( '-30 days' );
 
-			$completed_actions = $action_scheduler->get_actions( array(
-				'hook' => 'scd_process_email_queue',
-				'status' => ActionScheduler_Store::STATUS_COMPLETE,
-				'date' => $thirty_days_ago,
-				'per_page' => 1000,
-			) );
+			$completed_actions = $action_scheduler->get_actions(
+				array(
+					'hook'     => 'scd_process_email_queue',
+					'status'   => ActionScheduler_Store::STATUS_COMPLETE,
+					'date'     => $thirty_days_ago,
+					'per_page' => 1000,
+				)
+			);
 
 			$cleared = 0;
 
@@ -79,33 +81,44 @@ class SCD_Clear_Queue_Handler extends SCD_Abstract_Ajax_Handler {
 				try {
 					// Delete the action
 					ActionScheduler::store()->delete_action( $action_id );
-					$cleared++;
+					++$cleared;
 				} catch ( Exception $e ) {
-					$logger->error( 'Failed to clear queue action', array(
-						'action_id' => $action_id,
-						'error' => $e->getMessage(),
-					) );
+					$logger->error(
+						'Failed to clear queue action',
+						array(
+							'action_id' => $action_id,
+							'error'     => $e->getMessage(),
+						)
+					);
 				}
 			}
 
-			$logger->info( 'Queue cleared', array(
-				'cleared' => $cleared,
-			) );
+			$logger->info(
+				'Queue cleared',
+				array(
+					'cleared' => $cleared,
+				)
+			);
 
-			return $this->success( array(
-				'message' => sprintf(
+			return $this->success(
+				array(
+					'message' => sprintf(
 					/* translators: %d: cleared count */
-					__( 'Cleared %d old queue item(s)', 'smart-cycle-discounts' ),
-					$cleared
-				),
-				'cleared' => $cleared,
-			) );
+						__( 'Cleared %d old queue item(s)', 'smart-cycle-discounts' ),
+						$cleared
+					),
+					'cleared' => $cleared,
+				)
+			);
 
 		} catch ( Exception $e ) {
 			if ( isset( $logger ) ) {
-				$logger->error( 'Failed to clear queue', array(
-					'error' => $e->getMessage(),
-				) );
+				$logger->error(
+					'Failed to clear queue',
+					array(
+						'error' => $e->getMessage(),
+					)
+				);
 			}
 
 			return $this->error(

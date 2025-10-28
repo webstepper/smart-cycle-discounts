@@ -54,49 +54,49 @@ class SCD_Field_Definitions {
 	 */
 	private static function define_basic_fields() {
 		self::$schemas['basic'] = array(
-			'name' => array(
-				'type'         => 'text',
-				'label'        => __( 'Campaign Name', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'min_length'   => 3,
-				'max_length'   => 255,
-				'default'      => '',
-				'sanitizer'    => 'sanitize_text_field',
-				'validator'    => array( __CLASS__, 'validate_text_length' ),
-				'attributes'   => array(
+			'name'        => array(
+				'type'        => 'text',
+				'label'       => __( 'Campaign Name', 'smart-cycle-discounts' ),
+				'required'    => true,
+				'min_length'  => 3,
+				'max_length'  => 255,
+				'default'     => '',
+				'sanitizer'   => 'sanitize_text_field',
+				'validator'   => array( __CLASS__, 'validate_text_length' ),
+				'attributes'  => array(
 					'placeholder' => __( 'Enter a descriptive campaign name', 'smart-cycle-discounts' ),
 				),
-				'description'  => __( 'A clear name helps you identify this campaign later', 'smart-cycle-discounts' ),
-				'field_name'   => 'name', // Maps to database column
+				'description' => __( 'A clear name helps you identify this campaign later', 'smart-cycle-discounts' ),
+				'field_name'  => 'name', // Maps to database column
 			),
 			'description' => array(
-				'type'         => 'textarea',
-				'label'        => __( 'Description', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'max_length'   => 1000,
-				'default'      => '',
-				'sanitizer'    => 'sanitize_textarea_field',
-				'validator'    => array( __CLASS__, 'validate_text_length' ),
-				'attributes'   => array(
-					'rows' => 4,
+				'type'       => 'textarea',
+				'label'      => __( 'Description', 'smart-cycle-discounts' ),
+				'required'   => false,
+				'max_length' => 1000,
+				'default'    => '',
+				'sanitizer'  => 'sanitize_textarea_field',
+				'validator'  => array( __CLASS__, 'validate_text_length' ),
+				'attributes' => array(
+					'rows'        => 4,
 					'placeholder' => __( 'Describe the purpose of this campaign (optional)', 'smart-cycle-discounts' ),
 				),
-				'field_name'   => 'description',
+				'field_name' => 'description',
 			),
-			'priority' => array(
-				'type'         => 'number',
-				'label'        => __( 'Priority', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'min'          => 1,
-				'max'          => 10,
-				'default'      => 5,
-				'sanitizer'    => 'absint',
-				'validator'    => array( __CLASS__, 'validate_number_range' ),
-				'attributes'   => array(
+			'priority'    => array(
+				'type'        => 'number',
+				'label'       => __( 'Priority', 'smart-cycle-discounts' ),
+				'required'    => true,
+				'min'         => 1,
+				'max'         => 10,
+				'default'     => 5,
+				'sanitizer'   => 'absint',
+				'validator'   => array( __CLASS__, 'validate_number_range' ),
+				'attributes'  => array(
 					'step' => 1,
 				),
-				'description'  => __( 'Lower numbers = higher priority (1 = highest, 10 = lowest)', 'smart-cycle-discounts' ),
-				'field_name'   => 'priority',
+				'description' => __( 'Lower numbers = higher priority (1 = highest, 10 = lowest)', 'smart-cycle-discounts' ),
+				'field_name'  => 'priority',
 			),
 		);
 	}
@@ -109,107 +109,107 @@ class SCD_Field_Definitions {
 	private static function define_products_fields() {
 		self::$schemas['products'] = array(
 			'product_selection_type' => array(
-				'type'         => 'radio',
-				'label'        => __( 'Product Selection Method', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'default'      => 'all_products',
-				'options'      => array(
+				'type'       => 'radio',
+				'label'      => __( 'Product Selection Method', 'smart-cycle-discounts' ),
+				'required'   => true,
+				'default'    => 'all_products',
+				'options'    => array(
 					'all_products'      => __( 'All Products', 'smart-cycle-discounts' ),
 					'random_products'   => __( 'Random Products', 'smart-cycle-discounts' ),
 					'specific_products' => __( 'Specific Products', 'smart-cycle-discounts' ),
 					'smart_selection'   => __( 'Smart Selection', 'smart-cycle-discounts' ),
 				),
-				'sanitizer'    => 'sanitize_text_field',
-				'validator'    => array( __CLASS__, 'validate_in_array' ),
-				'field_name'   => 'product_selection_type',
+				'sanitizer'  => 'sanitize_text_field',
+				'validator'  => array( __CLASS__, 'validate_in_array' ),
+				'field_name' => 'product_selection_type',
 			),
-			'category_ids' => array(
-				'type'         => 'complex',
-				'label'        => __( 'Categories', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'default'      => array( 'all' ),
-				'sanitizer'    => array( __CLASS__, 'sanitize_array_values' ),
-				'validator'    => array( __CLASS__, 'validate_category_ids' ),
-				'handler'      => 'SCD.Modules.Products.Picker',
-				'methods'      => array(
+			'category_ids'           => array(
+				'type'       => 'complex',
+				'label'      => __( 'Categories', 'smart-cycle-discounts' ),
+				'required'   => false,
+				'default'    => array( 'all' ),
+				'sanitizer'  => array( __CLASS__, 'sanitize_array_values' ),
+				'validator'  => array( __CLASS__, 'validate_category_ids' ),
+				'handler'    => 'SCD.Modules.Products.Picker',
+				'methods'    => array(
 					'collect'  => 'getCategoryIds',
 					'populate' => 'setCategoryIds',
 				),
-				'attributes'   => array(
+				'attributes' => array(
 					'multiple' => true,
-					'class' => 'scd-category-select',
+					'class'    => 'scd-category-select',
 				),
-				'field_name'   => 'category_ids',
+				'field_name' => 'category_ids',
 			),
-			'product_ids' => array(
-				'type'         => 'hidden',
-				'label'        => __( 'Products', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'default'      => '',
-				'sanitizer'    => array( __CLASS__, 'sanitize_product_ids_csv' ),
-				'validator'    => array( __CLASS__, 'validate_product_ids' ),
-				'selector'     => '#scd-product-ids-hidden',
-				'conditional'  => array(
+			'product_ids'            => array(
+				'type'        => 'hidden',
+				'label'       => __( 'Products', 'smart-cycle-discounts' ),
+				'required'    => true,
+				'default'     => '',
+				'sanitizer'   => array( __CLASS__, 'sanitize_product_ids_csv' ),
+				'validator'   => array( __CLASS__, 'validate_product_ids' ),
+				'selector'    => '#scd-product-ids-hidden',
+				'conditional' => array(
 					'field' => 'product_selection_type',
 					'value' => 'specific_products',
 				),
-				'field_name'   => 'product_ids',
+				'field_name'  => 'product_ids',
 			),
-			'random_count' => array(
-				'type'         => 'number',
-				'label'        => __( 'Random Product Count', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'min'          => 1,
-				'max'          => 100,
-				'default'      => 10,
-				'sanitizer'    => 'absint',
-				'validator'    => array( __CLASS__, 'validate_number_range' ),
-				'conditional'  => array(
+			'random_count'           => array(
+				'type'        => 'number',
+				'label'       => __( 'Random Product Count', 'smart-cycle-discounts' ),
+				'required'    => true,
+				'min'         => 1,
+				'max'         => 100,
+				'default'     => 10,
+				'sanitizer'   => 'absint',
+				'validator'   => array( __CLASS__, 'validate_number_range' ),
+				'conditional' => array(
 					'field' => 'product_selection_type',
 					'value' => 'random_products',
 				),
-				'field_name'   => 'random_count',
+				'field_name'  => 'random_count',
 			),
-			'smart_criteria' => array(
-				'type'         => 'radio',
-				'label'        => __( 'Smart Selection Criteria', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'default'      => '',
-				'options'      => array(
+			'smart_criteria'         => array(
+				'type'        => 'radio',
+				'label'       => __( 'Smart Selection Criteria', 'smart-cycle-discounts' ),
+				'required'    => true,
+				'default'     => '',
+				'options'     => array(
 					'best_sellers' => __( 'Best Sellers', 'smart-cycle-discounts' ),
 					'featured'     => __( 'Featured Products', 'smart-cycle-discounts' ),
 					'low_stock'    => __( 'Low Stock', 'smart-cycle-discounts' ),
 					'new_arrivals' => __( 'New Arrivals', 'smart-cycle-discounts' ),
 				),
-				'sanitizer'    => 'sanitize_text_field',
-				'validator'    => array( __CLASS__, 'validate_in_array' ),
-				'conditional'  => array(
+				'sanitizer'   => 'sanitize_text_field',
+				'validator'   => array( __CLASS__, 'validate_in_array' ),
+				'conditional' => array(
 					'field' => 'product_selection_type',
 					'value' => 'smart_selection',
 				),
-				'field_name'   => 'smart_criteria',
+				'field_name'  => 'smart_criteria',
 			),
-			'conditions' => array(
-				'type'         => 'nested_array',
-				'label'        => __( 'Product Conditions', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'default'      => array(),
-				'sanitizer'    => array( __CLASS__, 'sanitize_conditions' ),
-				'validator'    => array( __CLASS__, 'validate_conditions' ),
-				'field_name'   => 'conditions',
+			'conditions'             => array(
+				'type'       => 'nested_array',
+				'label'      => __( 'Product Conditions', 'smart-cycle-discounts' ),
+				'required'   => false,
+				'default'    => array(),
+				'sanitizer'  => array( __CLASS__, 'sanitize_conditions' ),
+				'validator'  => array( __CLASS__, 'validate_conditions' ),
+				'field_name' => 'conditions',
 			),
-			'conditions_logic' => array(
-				'type'         => 'radio',
-				'label'        => __( 'Conditions Logic', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'default'      => 'all',
-				'options'      => array(
+			'conditions_logic'       => array(
+				'type'       => 'radio',
+				'label'      => __( 'Conditions Logic', 'smart-cycle-discounts' ),
+				'required'   => false,
+				'default'    => 'all',
+				'options'    => array(
 					'all' => __( 'All conditions (AND)', 'smart-cycle-discounts' ),
 					'any' => __( 'Any condition (OR)', 'smart-cycle-discounts' ),
 				),
-				'sanitizer'    => 'sanitize_text_field',
-				'validator'    => array( __CLASS__, 'validate_in_array' ),
-				'field_name'   => 'conditions_logic',
+				'sanitizer'  => 'sanitize_text_field',
+				'validator'  => array( __CLASS__, 'validate_in_array' ),
+				'field_name' => 'conditions_logic',
 			),
 		);
 	}
@@ -221,312 +221,312 @@ class SCD_Field_Definitions {
 	 */
 	private static function define_discounts_fields() {
 		self::$schemas['discounts'] = array(
-			'discount_type' => array(
-				'type'         => 'select',
-				'label'        => __( 'Discount Type', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'default'      => 'percentage',
-				'options'      => array(
+			'discount_type'             => array(
+				'type'       => 'select',
+				'label'      => __( 'Discount Type', 'smart-cycle-discounts' ),
+				'required'   => true,
+				'default'    => 'percentage',
+				'options'    => array(
 					'percentage'      => __( 'Percentage Discount', 'smart-cycle-discounts' ),
-					'fixed'          => __( 'Fixed Amount', 'smart-cycle-discounts' ),
-					'tiered'         => __( 'Tiered Discount', 'smart-cycle-discounts' ),
-					'bogo'           => __( 'Buy One Get One', 'smart-cycle-discounts' ),
+					'fixed'           => __( 'Fixed Amount', 'smart-cycle-discounts' ),
+					'tiered'          => __( 'Tiered Discount', 'smart-cycle-discounts' ),
+					'bogo'            => __( 'Buy One Get One', 'smart-cycle-discounts' ),
 					'spend_threshold' => __( 'Spend Threshold', 'smart-cycle-discounts' ),
 				),
-				'sanitizer'    => 'sanitize_text_field',
-				'validator'    => array( __CLASS__, 'validate_in_array' ),
-				'field_name'   => 'discount_type',
+				'sanitizer'  => 'sanitize_text_field',
+				'validator'  => array( __CLASS__, 'validate_in_array' ),
+				'field_name' => 'discount_type',
 			),
 			'discount_value_percentage' => array(
-				'type'         => 'number',
-				'label'        => __( 'Percentage Value', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'min'          => SCD_Validation_Rules::PERCENTAGE_MIN,
-				'max'          => SCD_Validation_Rules::PERCENTAGE_MAX,
-				'default'      => 10,
-				'sanitizer'    => 'floatval',
-				'validator'    => array( __CLASS__, 'validate_percentage' ),
-				'conditional'  => array(
+				'type'        => 'number',
+				'label'       => __( 'Percentage Value', 'smart-cycle-discounts' ),
+				'required'    => true,
+				'min'         => SCD_Validation_Rules::PERCENTAGE_MIN,
+				'max'         => SCD_Validation_Rules::PERCENTAGE_MAX,
+				'default'     => 10,
+				'sanitizer'   => 'floatval',
+				'validator'   => array( __CLASS__, 'validate_percentage' ),
+				'conditional' => array(
 					'field' => 'discount_type',
 					'value' => 'percentage',
 				),
-				'attributes'   => array(
+				'attributes'  => array(
 					'step' => 0.01,
 				),
-				'field_name'   => 'discount_value_percentage',
+				'field_name'  => 'discount_value_percentage',
 			),
-			'discount_value_fixed' => array(
-				'type'         => 'number',
-				'label'        => __( 'Fixed Amount', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'min'          => SCD_Validation_Rules::FIXED_MIN,
-				'max'          => SCD_Validation_Rules::FIXED_MAX,
-				'default'      => 5,
-				'sanitizer'    => 'floatval',
-				'validator'    => array( __CLASS__, 'validate_number_range' ),
-				'conditional'  => array(
+			'discount_value_fixed'      => array(
+				'type'        => 'number',
+				'label'       => __( 'Fixed Amount', 'smart-cycle-discounts' ),
+				'required'    => true,
+				'min'         => SCD_Validation_Rules::FIXED_MIN,
+				'max'         => SCD_Validation_Rules::FIXED_MAX,
+				'default'     => 5,
+				'sanitizer'   => 'floatval',
+				'validator'   => array( __CLASS__, 'validate_number_range' ),
+				'conditional' => array(
 					'field' => 'discount_type',
 					'value' => 'fixed',
 				),
-				'attributes'   => array(
+				'attributes'  => array(
 					'step' => 0.01,
 				),
-				'field_name'   => 'discount_value_fixed',
+				'field_name'  => 'discount_value_fixed',
 			),
-			'tiers' => array(
-				'type'         => 'complex',
-				'label'        => __( 'Discount Tiers', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'default'      => array(),
-				'handler'      => 'tieredDiscount',
-				'methods'      => array(
+			'tiers'                     => array(
+				'type'        => 'complex',
+				'label'       => __( 'Discount Tiers', 'smart-cycle-discounts' ),
+				'required'    => true,
+				'default'     => array(),
+				'handler'     => 'tieredDiscount',
+				'methods'     => array(
 					'collect'  => 'getValue',
 					'populate' => 'setValue',
 				),
-				'sanitizer'    => array( __CLASS__, 'sanitize_tiers' ),
-				'validator'    => array( __CLASS__, 'validate_tiers' ),
-				'conditional'  => array(
+				'sanitizer'   => array( __CLASS__, 'sanitize_tiers' ),
+				'validator'   => array( __CLASS__, 'validate_tiers' ),
+				'conditional' => array(
 					'field' => 'discount_type',
 					'value' => 'tiered',
 				),
-				'field_name'   => 'tiers',
+				'field_name'  => 'tiers',
 			),
-			'bogo_config' => array(
-				'type'         => 'complex',
-				'label'        => __( 'BOGO Configuration', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'default'      => array(
-					'buy_quantity' => 1,
-					'get_quantity' => 1,
+			'bogo_config'               => array(
+				'type'        => 'complex',
+				'label'       => __( 'BOGO Configuration', 'smart-cycle-discounts' ),
+				'required'    => true,
+				'default'     => array(
+					'buy_quantity'     => 1,
+					'get_quantity'     => 1,
 					'discount_percent' => 100,
 				),
-				'handler'      => 'bogoDiscount',
-				'methods'      => array(
+				'handler'     => 'bogoDiscount',
+				'methods'     => array(
 					'collect'  => 'getValue',
 					'populate' => 'setValue',
 				),
-				'sanitizer'    => array( __CLASS__, 'sanitize_bogo_config' ),
-				'validator'    => array( __CLASS__, 'validate_bogo_config' ),
-				'conditional'  => array(
+				'sanitizer'   => array( __CLASS__, 'sanitize_bogo_config' ),
+				'validator'   => array( __CLASS__, 'validate_bogo_config' ),
+				'conditional' => array(
 					'field' => 'discount_type',
 					'value' => 'bogo',
 				),
-				'field_name'   => 'bogo_config',
+				'field_name'  => 'bogo_config',
 			),
-			'threshold_mode' => array(
-				'type'         => 'select',
-				'label'        => __( 'Threshold Mode', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'default'      => 'percentage',
-				'options'      => array(
+			'threshold_mode'            => array(
+				'type'        => 'select',
+				'label'       => __( 'Threshold Mode', 'smart-cycle-discounts' ),
+				'required'    => false,
+				'default'     => 'percentage',
+				'options'     => array(
 					'percentage' => __( 'Percentage Discounts', 'smart-cycle-discounts' ),
 					'fixed'      => __( 'Fixed Amount Off', 'smart-cycle-discounts' ),
 				),
-				'sanitizer'    => 'sanitize_text_field',
-				'validator'    => array( __CLASS__, 'validate_in_array' ),
-				'conditional'  => array(
+				'sanitizer'   => 'sanitize_text_field',
+				'validator'   => array( __CLASS__, 'validate_in_array' ),
+				'conditional' => array(
 					'field' => 'discount_type',
 					'value' => 'spend_threshold',
 				),
-				'field_name'   => 'threshold_mode',
+				'field_name'  => 'threshold_mode',
 			),
-			'thresholds' => array(
-				'type'         => 'complex',
-				'label'        => __( 'Spend Thresholds', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'default'      => array(),
-				'handler'      => 'spendThreshold',
-				'methods'      => array(
+			'thresholds'                => array(
+				'type'        => 'complex',
+				'label'       => __( 'Spend Thresholds', 'smart-cycle-discounts' ),
+				'required'    => true,
+				'default'     => array(),
+				'handler'     => 'spendThreshold',
+				'methods'     => array(
 					'collect'  => 'getValue',
 					'populate' => 'setValue',
 				),
-				'sanitizer'    => array( __CLASS__, 'sanitize_thresholds' ),
-				'validator'    => array( __CLASS__, 'validate_thresholds' ),
-				'conditional'  => array(
+				'sanitizer'   => array( __CLASS__, 'sanitize_thresholds' ),
+				'validator'   => array( __CLASS__, 'validate_thresholds' ),
+				'conditional' => array(
 					'field' => 'discount_type',
 					'value' => 'spend_threshold',
 				),
-				'field_name'   => 'thresholds',
+				'field_name'  => 'thresholds',
 			),
-			'usage_limit_per_customer' => array(
-				'type'         => 'number',
-				'label'        => __( 'Usage Limit Per Customer', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'min'          => 1,
-				'max'          => 999,
-				'default'      => '',
-				'sanitizer'    => 'absint',
-				'validator'    => array( __CLASS__, 'validate_number_range' ),
-				'field_name'   => 'usage_limit_per_customer',
+			'usage_limit_per_customer'  => array(
+				'type'       => 'number',
+				'label'      => __( 'Usage Limit Per Customer', 'smart-cycle-discounts' ),
+				'required'   => false,
+				'min'        => 1,
+				'max'        => 999,
+				'default'    => '',
+				'sanitizer'  => 'absint',
+				'validator'  => array( __CLASS__, 'validate_number_range' ),
+				'field_name' => 'usage_limit_per_customer',
 			),
-			'total_usage_limit' => array(
-				'type'         => 'number',
-				'label'        => __( 'Total Usage Limit', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'min'          => 1,
-				'max'          => 999999,
-				'default'      => '',
-				'sanitizer'    => 'absint',
-				'validator'    => array( __CLASS__, 'validate_number_range' ),
-				'field_name'   => 'total_usage_limit',
+			'total_usage_limit'         => array(
+				'type'       => 'number',
+				'label'      => __( 'Total Usage Limit', 'smart-cycle-discounts' ),
+				'required'   => false,
+				'min'        => 1,
+				'max'        => 999999,
+				'default'    => '',
+				'sanitizer'  => 'absint',
+				'validator'  => array( __CLASS__, 'validate_number_range' ),
+				'field_name' => 'total_usage_limit',
 			),
-			'lifetime_usage_cap' => array(
-				'type'         => 'number',
-				'label'        => __( 'Lifetime Usage Cap', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'min'          => 1,
-				'max'          => 999999,
-				'default'      => '',
-				'sanitizer'    => 'absint',
-				'validator'    => array( __CLASS__, 'validate_number_range' ),
-				'field_name'   => 'lifetime_usage_cap',
+			'lifetime_usage_cap'        => array(
+				'type'       => 'number',
+				'label'      => __( 'Lifetime Usage Cap', 'smart-cycle-discounts' ),
+				'required'   => false,
+				'min'        => 1,
+				'max'        => 999999,
+				'default'    => '',
+				'sanitizer'  => 'absint',
+				'validator'  => array( __CLASS__, 'validate_number_range' ),
+				'field_name' => 'lifetime_usage_cap',
 			),
-			'apply_to' => array(
-				'type'         => 'select',
-				'label'        => __( 'Apply To', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'default'      => 'per_item',
-				'options'      => array(
+			'apply_to'                  => array(
+				'type'       => 'select',
+				'label'      => __( 'Apply To', 'smart-cycle-discounts' ),
+				'required'   => true,
+				'default'    => 'per_item',
+				'options'    => array(
 					'per_item'   => __( 'Per Item', 'smart-cycle-discounts' ),
 					'cart_total' => __( 'Cart Total', 'smart-cycle-discounts' ),
 				),
-				'sanitizer'    => 'sanitize_text_field',
-				'validator'    => array( __CLASS__, 'validate_in_array' ),
-				'field_name'   => 'apply_to',
+				'sanitizer'  => 'sanitize_text_field',
+				'validator'  => array( __CLASS__, 'validate_in_array' ),
+				'field_name' => 'apply_to',
 			),
-			'max_discount_amount' => array(
-				'type'         => 'number',
-				'label'        => __( 'Maximum Discount Amount', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'min'          => 0.01,
-				'max'          => 9999999,
-				'default'      => '',
-				'sanitizer'    => 'floatval',
-				'validator'    => array( __CLASS__, 'validate_number_range' ),
-				'attributes'   => array(
+			'max_discount_amount'       => array(
+				'type'       => 'number',
+				'label'      => __( 'Maximum Discount Amount', 'smart-cycle-discounts' ),
+				'required'   => false,
+				'min'        => 0.01,
+				'max'        => 9999999,
+				'default'    => '',
+				'sanitizer'  => 'floatval',
+				'validator'  => array( __CLASS__, 'validate_number_range' ),
+				'attributes' => array(
 					'step' => 0.01,
 				),
-				'field_name'   => 'max_discount_amount',
+				'field_name' => 'max_discount_amount',
 			),
-			'minimum_quantity' => array(
-				'type'         => 'number',
-				'label'        => __( 'Minimum Quantity', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'min'          => 1,
-				'max'          => 999999,
-				'default'      => '',
-				'sanitizer'    => 'absint',
-				'validator'    => array( __CLASS__, 'validate_number_range' ),
-				'field_name'   => 'minimum_quantity',
+			'minimum_quantity'          => array(
+				'type'       => 'number',
+				'label'      => __( 'Minimum Quantity', 'smart-cycle-discounts' ),
+				'required'   => false,
+				'min'        => 1,
+				'max'        => 999999,
+				'default'    => '',
+				'sanitizer'  => 'absint',
+				'validator'  => array( __CLASS__, 'validate_number_range' ),
+				'field_name' => 'minimum_quantity',
 			),
-			'minimum_order_amount' => array(
-				'type'         => 'number',
-				'label'        => __( 'Minimum Order Amount', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'min'          => 0.01,
-				'max'          => 9999999,
-				'default'      => '',
-				'sanitizer'    => 'floatval',
-				'validator'    => array( __CLASS__, 'validate_number_range' ),
-				'attributes'   => array(
+			'minimum_order_amount'      => array(
+				'type'       => 'number',
+				'label'      => __( 'Minimum Order Amount', 'smart-cycle-discounts' ),
+				'required'   => false,
+				'min'        => 0.01,
+				'max'        => 9999999,
+				'default'    => '',
+				'sanitizer'  => 'floatval',
+				'validator'  => array( __CLASS__, 'validate_number_range' ),
+				'attributes' => array(
 					'step' => 0.01,
 				),
-				'field_name'   => 'minimum_order_amount',
+				'field_name' => 'minimum_order_amount',
 			),
-			'stack_with_others' => array(
-				'type'         => 'boolean',
-				'label'        => __( 'Stack With Other Discounts', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'default'      => false,
-				'sanitizer'    => 'rest_sanitize_boolean',
-				'validator'    => array( __CLASS__, 'validate_boolean' ),
-				'field_name'   => 'stack_with_others',
+			'stack_with_others'         => array(
+				'type'       => 'boolean',
+				'label'      => __( 'Stack With Other Discounts', 'smart-cycle-discounts' ),
+				'required'   => false,
+				'default'    => false,
+				'sanitizer'  => 'rest_sanitize_boolean',
+				'validator'  => array( __CLASS__, 'validate_boolean' ),
+				'field_name' => 'stack_with_others',
 			),
-			'allow_coupons' => array(
-				'type'         => 'boolean',
-				'label'        => __( 'Allow Coupons', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'default'      => true,
-				'sanitizer'    => 'rest_sanitize_boolean',
-				'validator'    => array( __CLASS__, 'validate_boolean' ),
-				'field_name'   => 'allow_coupons',
+			'allow_coupons'             => array(
+				'type'       => 'boolean',
+				'label'      => __( 'Allow Coupons', 'smart-cycle-discounts' ),
+				'required'   => false,
+				'default'    => true,
+				'sanitizer'  => 'rest_sanitize_boolean',
+				'validator'  => array( __CLASS__, 'validate_boolean' ),
+				'field_name' => 'allow_coupons',
 			),
-			'apply_to_sale_items' => array(
-				'type'         => 'boolean',
-				'label'        => __( 'Apply To Sale Items', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'default'      => true,
-				'sanitizer'    => 'rest_sanitize_boolean',
-				'validator'    => array( __CLASS__, 'validate_boolean' ),
-				'field_name'   => 'apply_to_sale_items',
+			'apply_to_sale_items'       => array(
+				'type'       => 'boolean',
+				'label'      => __( 'Apply To Sale Items', 'smart-cycle-discounts' ),
+				'required'   => false,
+				'default'    => true,
+				'sanitizer'  => 'rest_sanitize_boolean',
+				'validator'  => array( __CLASS__, 'validate_boolean' ),
+				'field_name' => 'apply_to_sale_items',
 			),
-			'badge_enabled' => array(
-				'type'         => 'boolean',
-				'label'        => __( 'Enable Badge', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'default'      => false,
-				'sanitizer'    => 'rest_sanitize_boolean',
-				'validator'    => array( __CLASS__, 'validate_boolean' ),
-				'field_name'   => 'badge_enabled',
+			'badge_enabled'             => array(
+				'type'       => 'boolean',
+				'label'      => __( 'Enable Badge', 'smart-cycle-discounts' ),
+				'required'   => false,
+				'default'    => false,
+				'sanitizer'  => 'rest_sanitize_boolean',
+				'validator'  => array( __CLASS__, 'validate_boolean' ),
+				'field_name' => 'badge_enabled',
 			),
-			'badge_text' => array(
-				'type'         => 'text',
-				'label'        => __( 'Badge Text', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'conditional'  => array(
+			'badge_text'                => array(
+				'type'        => 'text',
+				'label'       => __( 'Badge Text', 'smart-cycle-discounts' ),
+				'required'    => true,
+				'conditional' => array(
 					'field' => 'badge_enabled',
 					'value' => true,
 				),
-				'max_length'   => 50,
-				'default'      => '',
-				'sanitizer'    => 'sanitize_text_field',
-				'validator'    => array( __CLASS__, 'validate_text_length' ),
-				'field_name'   => 'badge_text',
+				'max_length'  => 50,
+				'default'     => '',
+				'sanitizer'   => 'sanitize_text_field',
+				'validator'   => array( __CLASS__, 'validate_text_length' ),
+				'field_name'  => 'badge_text',
 			),
-			'badge_bg_color' => array(
-				'type'         => 'text',
-				'label'        => __( 'Badge Background Color', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'conditional'  => array(
+			'badge_bg_color'            => array(
+				'type'        => 'text',
+				'label'       => __( 'Badge Background Color', 'smart-cycle-discounts' ),
+				'required'    => true,
+				'conditional' => array(
 					'field' => 'badge_enabled',
 					'value' => true,
 				),
-				'default'      => '#e74c3c',
-				'sanitizer'    => 'sanitize_hex_color',
-				'validator'    => array( __CLASS__, 'validate_hex_color' ),
-				'field_name'   => 'badge_bg_color',
+				'default'     => '#e74c3c',
+				'sanitizer'   => 'sanitize_hex_color',
+				'validator'   => array( __CLASS__, 'validate_hex_color' ),
+				'field_name'  => 'badge_bg_color',
 			),
-			'badge_text_color' => array(
-				'type'         => 'text',
-				'label'        => __( 'Badge Text Color', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'conditional'  => array(
+			'badge_text_color'          => array(
+				'type'        => 'text',
+				'label'       => __( 'Badge Text Color', 'smart-cycle-discounts' ),
+				'required'    => true,
+				'conditional' => array(
 					'field' => 'badge_enabled',
 					'value' => true,
 				),
-				'default'      => '#ffffff',
-				'sanitizer'    => 'sanitize_hex_color',
-				'validator'    => array( __CLASS__, 'validate_hex_color' ),
-				'field_name'   => 'badge_text_color',
+				'default'     => '#ffffff',
+				'sanitizer'   => 'sanitize_hex_color',
+				'validator'   => array( __CLASS__, 'validate_hex_color' ),
+				'field_name'  => 'badge_text_color',
 			),
-			'badge_position' => array(
-				'type'         => 'select',
-				'label'        => __( 'Badge Position', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'conditional'  => array(
+			'badge_position'            => array(
+				'type'        => 'select',
+				'label'       => __( 'Badge Position', 'smart-cycle-discounts' ),
+				'required'    => true,
+				'conditional' => array(
 					'field' => 'badge_enabled',
 					'value' => true,
 				),
-				'default'      => 'top-right',
-				'options'      => array(
+				'default'     => 'top-right',
+				'options'     => array(
 					'top-left'     => __( 'Top Left', 'smart-cycle-discounts' ),
 					'top-right'    => __( 'Top Right', 'smart-cycle-discounts' ),
 					'bottom-left'  => __( 'Bottom Left', 'smart-cycle-discounts' ),
 					'bottom-right' => __( 'Bottom Right', 'smart-cycle-discounts' ),
 				),
-				'sanitizer'    => 'sanitize_text_field',
-				'validator'    => array( __CLASS__, 'validate_in_array' ),
-				'field_name'   => 'badge_position',
+				'sanitizer'   => 'sanitize_text_field',
+				'validator'   => array( __CLASS__, 'validate_in_array' ),
+				'field_name'  => 'badge_position',
 			),
 		);
 	}
@@ -538,207 +538,207 @@ class SCD_Field_Definitions {
 	 */
 	private static function define_schedule_fields() {
 		self::$schemas['schedule'] = array(
-			'start_date' => array(
-				'type'         => 'date',
-				'label'        => __( 'Start Date', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'default'      => '',
-				'sanitizer'    => array( __CLASS__, 'sanitize_date' ),
-				'validator'    => array( __CLASS__, 'validate_datetime' ),
-				'attributes'   => array(
+			'start_date'          => array(
+				'type'       => 'date',
+				'label'      => __( 'Start Date', 'smart-cycle-discounts' ),
+				'required'   => true,
+				'default'    => '',
+				'sanitizer'  => array( __CLASS__, 'sanitize_date' ),
+				'validator'  => array( __CLASS__, 'validate_datetime' ),
+				'attributes' => array(
 					'min' => current_time( 'Y-m-d' ),
 				),
-				'field_name'   => 'start_date',
+				'field_name' => 'start_date',
 			),
-			'start_time' => array(
-				'type'         => 'time',
-				'label'        => __( 'Start Time', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'default'      => '00:00',
-				'sanitizer'    => 'sanitize_text_field',
-				'validator'    => array( __CLASS__, 'validate_time_format' ),
-				'field_name'   => 'start_time',
+			'start_time'          => array(
+				'type'       => 'time',
+				'label'      => __( 'Start Time', 'smart-cycle-discounts' ),
+				'required'   => true,
+				'default'    => '00:00',
+				'sanitizer'  => 'sanitize_text_field',
+				'validator'  => array( __CLASS__, 'validate_time_format' ),
+				'field_name' => 'start_time',
 			),
-			'end_date' => array(
-				'type'         => 'date',
-				'label'        => __( 'End Date', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'default'      => '',
-				'sanitizer'    => array( __CLASS__, 'sanitize_date' ),
-				'validator'    => array( __CLASS__, 'validate_end_date' ),
-				'field_name'   => 'end_date',
+			'end_date'            => array(
+				'type'       => 'date',
+				'label'      => __( 'End Date', 'smart-cycle-discounts' ),
+				'required'   => false,
+				'default'    => '',
+				'sanitizer'  => array( __CLASS__, 'sanitize_date' ),
+				'validator'  => array( __CLASS__, 'validate_end_date' ),
+				'field_name' => 'end_date',
 			),
-			'end_time' => array(
-				'type'         => 'time',
-				'label'        => __( 'End Time', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'default'      => '23:59',
-				'sanitizer'    => 'sanitize_text_field',
-				'validator'    => array( __CLASS__, 'validate_time_format' ),
-				'field_name'   => 'end_time',
+			'end_time'            => array(
+				'type'       => 'time',
+				'label'      => __( 'End Time', 'smart-cycle-discounts' ),
+				'required'   => false,
+				'default'    => '23:59',
+				'sanitizer'  => 'sanitize_text_field',
+				'validator'  => array( __CLASS__, 'validate_time_format' ),
+				'field_name' => 'end_time',
 			),
-			'timezone' => array(
-				'type'         => 'select',
-				'label'        => __( 'Timezone', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'default'      => wp_timezone_string(),
-				'options'      => wp_timezone_choice( wp_timezone_string() ),
-				'sanitizer'    => 'sanitize_text_field',
-				'validator'    => array( __CLASS__, 'validate_timezone' ),
-				'field_name'   => 'timezone',
+			'timezone'            => array(
+				'type'       => 'select',
+				'label'      => __( 'Timezone', 'smart-cycle-discounts' ),
+				'required'   => true,
+				'default'    => wp_timezone_string(),
+				'options'    => wp_timezone_choice( wp_timezone_string() ),
+				'sanitizer'  => 'sanitize_text_field',
+				'validator'  => array( __CLASS__, 'validate_timezone' ),
+				'field_name' => 'timezone',
 			),
-			'start_type' => array(
-				'type'         => 'radio',
-				'label'        => __( 'Start Type', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'default'      => 'immediate',
-				'options'      => array(
+			'start_type'          => array(
+				'type'       => 'radio',
+				'label'      => __( 'Start Type', 'smart-cycle-discounts' ),
+				'required'   => true,
+				'default'    => 'immediate',
+				'options'    => array(
 					'immediate' => __( 'Start Immediately', 'smart-cycle-discounts' ),
 					'scheduled' => __( 'Schedule Start', 'smart-cycle-discounts' ),
 				),
-				'sanitizer'    => 'sanitize_text_field',
-				'validator'    => array( __CLASS__, 'validate_in_array' ),
-				'field_name'   => 'start_type',
+				'sanitizer'  => 'sanitize_text_field',
+				'validator'  => array( __CLASS__, 'validate_in_array' ),
+				'field_name' => 'start_type',
 			),
-			'duration_seconds' => array(
-				'type'         => 'number',
-				'label'        => __( 'Campaign Duration (seconds)', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'min'          => 60,
-				'max'          => 31536000,
-				'default'      => 3600,
-				'sanitizer'    => 'absint',
-				'validator'    => array( __CLASS__, 'validate_number_range' ),
-				'conditional'  => array(
+			'duration_seconds'    => array(
+				'type'        => 'number',
+				'label'       => __( 'Campaign Duration (seconds)', 'smart-cycle-discounts' ),
+				'required'    => false,
+				'min'         => 60,
+				'max'         => 31536000,
+				'default'     => 3600,
+				'sanitizer'   => 'absint',
+				'validator'   => array( __CLASS__, 'validate_number_range' ),
+				'conditional' => array(
 					'field' => 'start_type',
 					'value' => 'immediate',
 				),
-				'field_name'   => 'duration_seconds',
+				'field_name'  => 'duration_seconds',
 			),
-			'enable_recurring' => array(
-				'type'         => 'checkbox',
-				'label'        => __( 'Enable Recurring Schedule', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'default'      => false,
-				'sanitizer'    => array( __CLASS__, 'sanitize_boolean' ),
-				'validator'    => array( __CLASS__, 'validate_boolean' ),
-				'field_name'   => 'enable_recurring',
+			'enable_recurring'    => array(
+				'type'       => 'checkbox',
+				'label'      => __( 'Enable Recurring Schedule', 'smart-cycle-discounts' ),
+				'required'   => false,
+				'default'    => false,
+				'sanitizer'  => array( __CLASS__, 'sanitize_boolean' ),
+				'validator'  => array( __CLASS__, 'validate_boolean' ),
+				'field_name' => 'enable_recurring',
 			),
-			'recurrence_pattern' => array(
-				'type'         => 'select',
-				'label'        => __( 'Recurrence Pattern', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'default'      => 'daily',
-				'options'      => array(
+			'recurrence_pattern'  => array(
+				'type'        => 'select',
+				'label'       => __( 'Recurrence Pattern', 'smart-cycle-discounts' ),
+				'required'    => false,
+				'default'     => 'daily',
+				'options'     => array(
 					'daily'   => __( 'Daily', 'smart-cycle-discounts' ),
 					'weekly'  => __( 'Weekly', 'smart-cycle-discounts' ),
 					'monthly' => __( 'Monthly', 'smart-cycle-discounts' ),
 				),
-				'sanitizer'    => 'sanitize_text_field',
-				'validator'    => array( __CLASS__, 'validate_in_array' ),
-				'conditional'  => array(
+				'sanitizer'   => 'sanitize_text_field',
+				'validator'   => array( __CLASS__, 'validate_in_array' ),
+				'conditional' => array(
 					'field' => 'enable_recurring',
 					'value' => true,
 				),
-				'field_name'   => 'recurrence_pattern',
+				'field_name'  => 'recurrence_pattern',
 			),
 			'recurrence_interval' => array(
-				'type'         => 'number',
-				'label'        => __( 'Recurrence Interval', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'min'          => 1,
-				'max'          => 365,
-				'default'      => 1,
-				'sanitizer'    => 'absint',
-				'validator'    => array( __CLASS__, 'validate_number_range' ),
-				'conditional'  => array(
+				'type'        => 'number',
+				'label'       => __( 'Recurrence Interval', 'smart-cycle-discounts' ),
+				'required'    => false,
+				'min'         => 1,
+				'max'         => 365,
+				'default'     => 1,
+				'sanitizer'   => 'absint',
+				'validator'   => array( __CLASS__, 'validate_number_range' ),
+				'conditional' => array(
 					'field' => 'enable_recurring',
 					'value' => true,
 				),
-				'field_name'   => 'recurrence_interval',
+				'field_name'  => 'recurrence_interval',
 			),
-			'recurrence_days' => array(
-				'type'         => 'array',
-				'label'        => __( 'Recurrence Days', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'default'      => array(),
-				'sanitizer'    => array( __CLASS__, 'sanitize_array_values' ),
-				'validator'    => array( __CLASS__, 'validate_recurrence_days' ),
-				'conditional'  => array(
+			'recurrence_days'     => array(
+				'type'        => 'array',
+				'label'       => __( 'Recurrence Days', 'smart-cycle-discounts' ),
+				'required'    => false,
+				'default'     => array(),
+				'sanitizer'   => array( __CLASS__, 'sanitize_array_values' ),
+				'validator'   => array( __CLASS__, 'validate_recurrence_days' ),
+				'conditional' => array(
 					'field' => 'recurrence_pattern',
 					'value' => 'weekly',
 				),
-				'field_name'   => 'recurrence_days',
+				'field_name'  => 'recurrence_days',
 			),
 			'recurrence_end_type' => array(
-				'type'         => 'radio',
-				'label'        => __( 'Recurrence End Type', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'default'      => 'never',
-				'options'      => array(
+				'type'        => 'radio',
+				'label'       => __( 'Recurrence End Type', 'smart-cycle-discounts' ),
+				'required'    => false,
+				'default'     => 'never',
+				'options'     => array(
 					'never' => __( 'Never', 'smart-cycle-discounts' ),
 					'after' => __( 'After', 'smart-cycle-discounts' ),
 					'on'    => __( 'On Date', 'smart-cycle-discounts' ),
 				),
-				'sanitizer'    => 'sanitize_text_field',
-				'validator'    => array( __CLASS__, 'validate_in_array' ),
-				'conditional'  => array(
+				'sanitizer'   => 'sanitize_text_field',
+				'validator'   => array( __CLASS__, 'validate_in_array' ),
+				'conditional' => array(
 					'field' => 'enable_recurring',
 					'value' => true,
 				),
-				'field_name'   => 'recurrence_end_type',
+				'field_name'  => 'recurrence_end_type',
 			),
-			'recurrence_count' => array(
-				'type'         => 'number',
-				'label'        => __( 'Recurrence Count', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'min'          => 1,
-				'max'          => 100,
-				'default'      => 10,
-				'sanitizer'    => 'absint',
-				'validator'    => array( __CLASS__, 'validate_number_range' ),
-				'conditional'  => array(
+			'recurrence_count'    => array(
+				'type'        => 'number',
+				'label'       => __( 'Recurrence Count', 'smart-cycle-discounts' ),
+				'required'    => false,
+				'min'         => 1,
+				'max'         => 100,
+				'default'     => 10,
+				'sanitizer'   => 'absint',
+				'validator'   => array( __CLASS__, 'validate_number_range' ),
+				'conditional' => array(
 					'field' => 'recurrence_end_type',
 					'value' => 'after',
 				),
-				'field_name'   => 'recurrence_count',
+				'field_name'  => 'recurrence_count',
 			),
 			'recurrence_end_date' => array(
-				'type'         => 'date',
-				'label'        => __( 'Recurrence End Date', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'default'      => '',
-				'sanitizer'    => array( __CLASS__, 'sanitize_date' ),
-				'validator'    => array( __CLASS__, 'validate_datetime' ),
-				'conditional'  => array(
+				'type'        => 'date',
+				'label'       => __( 'Recurrence End Date', 'smart-cycle-discounts' ),
+				'required'    => false,
+				'default'     => '',
+				'sanitizer'   => array( __CLASS__, 'sanitize_date' ),
+				'validator'   => array( __CLASS__, 'validate_datetime' ),
+				'conditional' => array(
 					'field' => 'recurrence_end_type',
 					'value' => 'on',
 				),
-				'field_name'   => 'recurrence_end_date',
+				'field_name'  => 'recurrence_end_date',
 			),
-			'rotation_enabled' => array(
-				'type'         => 'checkbox',
-				'label'        => __( 'Enable Product Rotation', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'default'      => false,
-				'sanitizer'    => array( __CLASS__, 'sanitize_boolean' ),
-				'validator'    => array( __CLASS__, 'validate_boolean' ),
-				'field_name'   => 'rotation_enabled',
+			'rotation_enabled'    => array(
+				'type'       => 'checkbox',
+				'label'      => __( 'Enable Product Rotation', 'smart-cycle-discounts' ),
+				'required'   => false,
+				'default'    => false,
+				'sanitizer'  => array( __CLASS__, 'sanitize_boolean' ),
+				'validator'  => array( __CLASS__, 'validate_boolean' ),
+				'field_name' => 'rotation_enabled',
 			),
-			'rotation_interval' => array(
-				'type'         => 'number',
-				'label'        => __( 'Rotation Interval (hours)', 'smart-cycle-discounts' ),
-				'required'     => false,
-				'min'          => 1,
-				'max'          => 168,
-				'default'      => 24,
-				'sanitizer'    => 'absint',
-				'validator'    => array( __CLASS__, 'validate_number_range' ),
-				'conditional'  => array(
+			'rotation_interval'   => array(
+				'type'        => 'number',
+				'label'       => __( 'Rotation Interval (hours)', 'smart-cycle-discounts' ),
+				'required'    => false,
+				'min'         => 1,
+				'max'         => 168,
+				'default'     => 24,
+				'sanitizer'   => 'absint',
+				'validator'   => array( __CLASS__, 'validate_number_range' ),
+				'conditional' => array(
 					'field' => 'rotation_enabled',
 					'value' => true,
 				),
-				'field_name'   => 'rotation_interval',
+				'field_name'  => 'rotation_interval',
 			),
 		);
 	}
@@ -751,17 +751,17 @@ class SCD_Field_Definitions {
 	private static function define_review_fields() {
 		self::$schemas['review'] = array(
 			'launch_option' => array(
-				'type'         => 'radio',
-				'label'        => __( 'Launch Option', 'smart-cycle-discounts' ),
-				'required'     => true,
-				'default'      => 'draft',
-				'options'      => array(
+				'type'       => 'radio',
+				'label'      => __( 'Launch Option', 'smart-cycle-discounts' ),
+				'required'   => true,
+				'default'    => 'draft',
+				'options'    => array(
 					'draft'  => __( 'Save as Draft', 'smart-cycle-discounts' ),
 					'active' => __( 'Launch Campaign', 'smart-cycle-discounts' ),
 				),
-				'sanitizer'    => 'sanitize_text_field',
-				'validator'    => array( __CLASS__, 'validate_in_array' ),
-				'field_name'   => 'launch_option',
+				'sanitizer'  => 'sanitize_text_field',
+				'validator'  => array( __CLASS__, 'validate_in_array' ),
+				'field_name' => 'launch_option',
 			),
 		);
 	}
@@ -816,11 +816,11 @@ class SCD_Field_Definitions {
 
 				// Basic field properties
 				$js_field = array(
-					'type'       => $field_schema['type'],
-					'required'   => isset( $field_schema['required'] ) ? $field_schema['required'] : false,
-					'default'    => isset( $field_schema['default'] ) ? $field_schema['default'] : '',
-					'fieldName'  => $field_key, // Snake case for form fields
-					'label'      => isset( $field_schema['label'] ) ? $field_schema['label'] : '', // Field label for error messages
+					'type'      => $field_schema['type'],
+					'required'  => isset( $field_schema['required'] ) ? $field_schema['required'] : false,
+					'default'   => isset( $field_schema['default'] ) ? $field_schema['default'] : '',
+					'fieldName' => $field_key, // Snake case for form fields
+					'label'     => isset( $field_schema['label'] ) ? $field_schema['label'] : '', // Field label for error messages
 				);
 
 				// Add validation rules
@@ -867,7 +867,7 @@ class SCD_Field_Definitions {
 
 		// Add condition types and operator mappings for products step
 		if ( isset( $js_schemas['products'] ) ) {
-			$js_schemas['products']['_conditionTypes'] = self::get_condition_types();
+			$js_schemas['products']['_conditionTypes']   = self::get_condition_types();
 			$js_schemas['products']['_operatorMappings'] = self::get_operator_mappings();
 		}
 
@@ -907,35 +907,35 @@ class SCD_Field_Definitions {
 			case 'text':
 				$html = self::render_text_field( $field_name, $value, $field, $attributes );
 				break;
-			
+
 			case 'textarea':
 				$html = self::render_textarea_field( $field_name, $value, $field, $attributes );
 				break;
-			
+
 			case 'number':
 				$html = self::render_number_field( $field_name, $value, $field, $attributes );
 				break;
-			
+
 			case 'select':
 				$html = self::render_select_field( $field_name, $value, $field, $attributes );
 				break;
-			
+
 			case 'select_multiple':
 				$html = self::render_select_multiple_field( $field_name, $value, $field, $attributes );
 				break;
-			
+
 			case 'radio':
 				$html = self::render_radio_field( $field_name, $value, $field, $attributes );
 				break;
-			
+
 			case 'checkbox':
 				$html = self::render_checkbox_field( $field_name, $value, $field, $attributes );
 				break;
-			
+
 			case 'datetime':
 				$html = self::render_datetime_field( $field_name, $value, $field, $attributes );
 				break;
-			
+
 			case 'complex':
 				// Complex fields are handled by JavaScript modules
 				$html = sprintf(
@@ -948,7 +948,7 @@ class SCD_Field_Definitions {
 
 		// Wrap in field container
 		$container_html = '<div class="form-field scd-field-' . esc_attr( $field_name ) . '">';
-		
+
 		// Add label
 		if ( ! empty( $field['label'] ) && 'checkbox' !== $field['type'] ) {
 			$container_html .= sprintf(
@@ -958,10 +958,10 @@ class SCD_Field_Definitions {
 				$field['required'] ? ' <span class="required">*</span>' : ''
 			);
 		}
-		
+
 		// Add field HTML
 		$container_html .= $html;
-		
+
 		// Add description
 		if ( ! empty( $field['description'] ) ) {
 			$container_html .= sprintf(
@@ -969,7 +969,7 @@ class SCD_Field_Definitions {
 				esc_html( $field['description'] )
 			);
 		}
-		
+
 		$container_html .= '</div>';
 
 		return $container_html;
@@ -979,13 +979,18 @@ class SCD_Field_Definitions {
 	 * Render text field
 	 */
 	private static function render_text_field( $name, $value, $schema, $attributes ) {
-		$attr_string = self::build_attributes( array_merge( $attributes, array(
-			'type'  => 'text',
-			'id'    => $name,
-			'name'  => $name,
-			'value' => $value,
-			'class' => 'regular-text',
-		) ) );
+		$attr_string = self::build_attributes(
+			array_merge(
+				$attributes,
+				array(
+					'type'  => 'text',
+					'id'    => $name,
+					'name'  => $name,
+					'value' => $value,
+					'class' => 'regular-text',
+				)
+			)
+		);
 
 		return sprintf( '<input %s />', $attr_string );
 	}
@@ -994,11 +999,16 @@ class SCD_Field_Definitions {
 	 * Render textarea field
 	 */
 	private static function render_textarea_field( $name, $value, $schema, $attributes ) {
-		$attr_string = self::build_attributes( array_merge( $attributes, array(
-			'id'    => $name,
-			'name'  => $name,
-			'class' => 'large-text',
-		) ) );
+		$attr_string = self::build_attributes(
+			array_merge(
+				$attributes,
+				array(
+					'id'    => $name,
+					'name'  => $name,
+					'class' => 'large-text',
+				)
+			)
+		);
 
 		return sprintf( '<textarea %s>%s</textarea>', $attr_string, esc_textarea( $value ) );
 	}
@@ -1007,16 +1017,21 @@ class SCD_Field_Definitions {
 	 * Render number field
 	 */
 	private static function render_number_field( $name, $value, $schema, $attributes ) {
-		$attr_string = self::build_attributes( array_merge( $attributes, array(
-			'type'  => 'number',
-			'id'    => $name,
-			'name'  => $name,
-			'value' => $value,
-			'class' => 'small-text',
-			'min'   => isset( $schema['min'] ) ? $schema['min'] : '',
-			'max'   => isset( $schema['max'] ) ? $schema['max'] : '',
-			'step'  => isset( $attributes['step'] ) ? $attributes['step'] : 1,
-		) ) );
+		$attr_string = self::build_attributes(
+			array_merge(
+				$attributes,
+				array(
+					'type'  => 'number',
+					'id'    => $name,
+					'name'  => $name,
+					'value' => $value,
+					'class' => 'small-text',
+					'min'   => isset( $schema['min'] ) ? $schema['min'] : '',
+					'max'   => isset( $schema['max'] ) ? $schema['max'] : '',
+					'step'  => isset( $attributes['step'] ) ? $attributes['step'] : 1,
+				)
+			)
+		);
 
 		return sprintf( '<input %s />', $attr_string );
 	}
@@ -1025,10 +1040,15 @@ class SCD_Field_Definitions {
 	 * Render select field
 	 */
 	private static function render_select_field( $name, $value, $schema, $attributes ) {
-		$attr_string = self::build_attributes( array_merge( $attributes, array(
-			'id'   => $name,
-			'name' => $name,
-		) ) );
+		$attr_string = self::build_attributes(
+			array_merge(
+				$attributes,
+				array(
+					'id'   => $name,
+					'name' => $name,
+				)
+			)
+		);
 
 		$html = sprintf( '<select %s>', $attr_string );
 
@@ -1052,11 +1072,16 @@ class SCD_Field_Definitions {
 	 * Render select multiple field
 	 */
 	private static function render_select_multiple_field( $name, $value, $schema, $attributes ) {
-		$attr_string = self::build_attributes( array_merge( $attributes, array(
-			'id'       => $name,
-			'name'     => $name . '[]',
-			'multiple' => 'multiple',
-		) ) );
+		$attr_string = self::build_attributes(
+			array_merge(
+				$attributes,
+				array(
+					'id'       => $name,
+					'name'     => $name . '[]',
+					'multiple' => 'multiple',
+				)
+			)
+		);
 
 		return sprintf( '<select %s></select>', $attr_string );
 	}
@@ -1069,7 +1094,7 @@ class SCD_Field_Definitions {
 
 		if ( isset( $schema['options'] ) ) {
 			foreach ( $schema['options'] as $option_value => $option_label ) {
-				$id = $name . '_' . $option_value;
+				$id    = $name . '_' . $option_value;
 				$html .= sprintf(
 					'<label><input type="radio" id="%s" name="%s" value="%s"%s /> %s</label><br/>',
 					esc_attr( $id ),
@@ -1088,12 +1113,17 @@ class SCD_Field_Definitions {
 	 * Render checkbox field
 	 */
 	private static function render_checkbox_field( $name, $value, $schema, $attributes ) {
-		$attr_string = self::build_attributes( array_merge( $attributes, array(
-			'type'  => 'checkbox',
-			'id'    => $name,
-			'name'  => $name,
-			'value' => '1',
-		) ) );
+		$attr_string = self::build_attributes(
+			array_merge(
+				$attributes,
+				array(
+					'type'  => 'checkbox',
+					'id'    => $name,
+					'name'  => $name,
+					'value' => '1',
+				)
+			)
+		);
 
 		$html = sprintf(
 			'<label><input %s%s /> %s</label>',
@@ -1109,13 +1139,18 @@ class SCD_Field_Definitions {
 	 * Render datetime field
 	 */
 	private static function render_datetime_field( $name, $value, $schema, $attributes ) {
-		$attr_string = self::build_attributes( array_merge( $attributes, array(
-			'type'  => 'datetime-local',
-			'id'    => $name,
-			'name'  => $name,
-			'value' => $value,
-			'class' => 'regular-text',
-		) ) );
+		$attr_string = self::build_attributes(
+			array_merge(
+				$attributes,
+				array(
+					'type'  => 'datetime-local',
+					'id'    => $name,
+					'name'  => $name,
+					'value' => $value,
+					'class' => 'regular-text',
+				)
+			)
+		);
 
 		return sprintf( '<input %s />', $attr_string );
 	}
@@ -1148,8 +1183,8 @@ class SCD_Field_Definitions {
 	 * @return array|WP_Error Sanitized data or error
 	 */
 	public static function validate( $step, $data ) {
-		$fields = self::get_step_fields( $step );
-		$errors = new WP_Error();
+		$fields    = self::get_step_fields( $step );
+		$errors    = new WP_Error();
 		$sanitized = array();
 
 		foreach ( $fields as $field_key => $field_schema ) {
@@ -1158,7 +1193,7 @@ class SCD_Field_Definitions {
 			if ( isset( $field_schema['conditional'] ) ) {
 				$condition_field = $field_schema['conditional']['field'];
 				$condition_value = $field_schema['conditional']['value'];
-				$actual_value = isset( $data[ $condition_field ] ) ? $data[ $condition_field ] : null;
+				$actual_value    = isset( $data[ $condition_field ] ) ? $data[ $condition_field ] : null;
 
 				// Handle boolean comparison with proper normalization
 				$condition_matches = false;
@@ -1273,12 +1308,12 @@ class SCD_Field_Definitions {
 	 * - This approach prevents duplicate sanitization and maintains data integrity
 	 *
 	 * @since    1.0.0
-	 * @param    array     $data    Raw step data from form submission
-	 * @param    string    $step    Step name
+	 * @param    array  $data    Raw step data from form submission
+	 * @param    string $step    Step name
 	 * @return   array|WP_Error     Sanitized data or error
 	 */
 	public static function sanitize_only( $data, $step ) {
-		$step = sanitize_key( $step );
+		$step   = sanitize_key( $step );
 		$fields = self::get_step_fields( $step );
 
 		if ( ! $fields ) {
@@ -1319,7 +1354,7 @@ class SCD_Field_Definitions {
 	 */
 	public static function validate_text_length( $value, $schema, $field_key ) {
 		if ( isset( $schema['min_length'] ) && strlen( $value ) < $schema['min_length'] ) {
-			return new WP_Error( 
+			return new WP_Error(
 				'min_length',
 				sprintf( __( 'Must be at least %d characters', 'smart-cycle-discounts' ), $schema['min_length'] )
 			);
@@ -1379,7 +1414,7 @@ class SCD_Field_Definitions {
 			return new WP_Error(
 				'invalid_percentage',
 				sprintf(
-					__( 'Percentage must be between %d and %d', 'smart-cycle-discounts' ),
+					__( 'Percentage must be between %1$d and %2$d', 'smart-cycle-discounts' ),
 					SCD_Validation_Rules::PERCENTAGE_MIN,
 					SCD_Validation_Rules::PERCENTAGE_MAX
 				)
@@ -1408,7 +1443,7 @@ class SCD_Field_Definitions {
 	 * Converts comma-separated product IDs from hidden field to array of integers.
 	 *
 	 * @since    1.0.0
-	 * @param    string|array    $value    CSV string or array of product IDs.
+	 * @param    string|array $value    CSV string or array of product IDs.
 	 * @return   array                     Array of sanitized product IDs.
 	 */
 	public static function sanitize_product_ids_csv( $value ) {
@@ -1445,7 +1480,7 @@ class SCD_Field_Definitions {
 	 * This is critical for proper date comparison in health checks and validations.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $value    Date value to sanitize.
+	 * @param    string $value    Date value to sanitize.
 	 * @return   string              Sanitized date in Y-m-d format, or empty string if invalid.
 	 */
 	public static function sanitize_date( $value ) {
@@ -1490,7 +1525,7 @@ class SCD_Field_Definitions {
 	 * Use sanitize_date() if you only need the date component.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $value    Datetime value to sanitize.
+	 * @param    string $value    Datetime value to sanitize.
 	 * @return   string              Sanitized datetime in Y-m-d H:i:s format, or empty string if invalid.
 	 */
 	public static function sanitize_datetime( $value ) {
@@ -1676,7 +1711,7 @@ class SCD_Field_Definitions {
 			return new WP_Error(
 				'deprecated_timezone',
 				sprintf(
-					__( 'Timezone "%s" is deprecated. Please use "%s" instead.', 'smart-cycle-discounts' ),
+					__( 'Timezone "%1$s" is deprecated. Please use "%2$s" instead.', 'smart-cycle-discounts' ),
 					$value,
 					$deprecated_map[ $value ]
 				)
@@ -1756,7 +1791,7 @@ class SCD_Field_Definitions {
 			if ( in_array( $tier['min_quantity'], $seen_quantities, true ) ) {
 				return new WP_Error(
 					'duplicate_tier_quantity',
-					sprintf( __( 'Tier %d: Duplicate quantity %d', 'smart-cycle-discounts' ), $index + 1, $tier['min_quantity'] )
+					sprintf( __( 'Tier %1$d: Duplicate quantity %2$d', 'smart-cycle-discounts' ), $index + 1, $tier['min_quantity'] )
 				);
 			}
 			$seen_quantities[] = $tier['min_quantity'];
@@ -1814,9 +1849,9 @@ class SCD_Field_Definitions {
 			);
 		}
 
-		if ( ! isset( $value['discount_percent'] ) || 
-			 $value['discount_percent'] < 0 || 
-			 $value['discount_percent'] > 100 ) {
+		if ( ! isset( $value['discount_percent'] ) ||
+			$value['discount_percent'] < 0 ||
+			$value['discount_percent'] > 100 ) {
 			return new WP_Error(
 				'invalid_discount_percent',
 				__( 'Discount percent must be between 0 and 100', 'smart-cycle-discounts' )
@@ -2009,9 +2044,12 @@ class SCD_Field_Definitions {
 		}
 
 		// Sort tiers by min_quantity in ascending order (normalization)
-		usort( $sanitized, function( $a, $b ) {
-			return $a['min_quantity'] - $b['min_quantity'];
-		} );
+		usort(
+			$sanitized,
+			function ( $a, $b ) {
+				return $a['min_quantity'] - $b['min_quantity'];
+			}
+		);
 
 		return $sanitized;
 	}
@@ -2022,8 +2060,8 @@ class SCD_Field_Definitions {
 	public static function sanitize_bogo_config( $value ) {
 		if ( ! is_array( $value ) ) {
 			return array(
-				'buy_quantity' => 1,
-				'get_quantity' => 1,
+				'buy_quantity'     => 1,
+				'get_quantity'     => 1,
 				'discount_percent' => 100,
 			);
 		}
@@ -2061,9 +2099,12 @@ class SCD_Field_Definitions {
 		}
 
 		// Sort thresholds by threshold amount in ascending order (normalization)
-		usort( $sanitized, function( $a, $b ) {
-			return $a['threshold'] <=> $b['threshold'];
-		} );
+		usort(
+			$sanitized,
+			function ( $a, $b ) {
+				return $a['threshold'] <=> $b['threshold'];
+			}
+		);
 
 		return $sanitized;
 	}
@@ -2076,56 +2117,56 @@ class SCD_Field_Definitions {
 	 */
 	public static function get_condition_types() {
 		return array(
-			'price_inventory' => array(
-				'label' => __( 'Price & Inventory', 'smart-cycle-discounts' ),
+			'price_inventory'    => array(
+				'label'   => __( 'Price & Inventory', 'smart-cycle-discounts' ),
 				'options' => array(
-					'price' => __( 'Regular Price', 'smart-cycle-discounts' ),
-					'sale_price' => __( 'Sale Price', 'smart-cycle-discounts' ),
-					'stock_quantity' => __( 'Stock Quantity', 'smart-cycle-discounts' ),
-					'stock_status' => __( 'Stock Status', 'smart-cycle-discounts' ),
+					'price'            => __( 'Regular Price', 'smart-cycle-discounts' ),
+					'sale_price'       => __( 'Sale Price', 'smart-cycle-discounts' ),
+					'stock_quantity'   => __( 'Stock Quantity', 'smart-cycle-discounts' ),
+					'stock_status'     => __( 'Stock Status', 'smart-cycle-discounts' ),
 					'low_stock_amount' => __( 'Low Stock Amount', 'smart-cycle-discounts' ),
 				),
 			),
 			'product_attributes' => array(
-				'label' => __( 'Product Attributes', 'smart-cycle-discounts' ),
+				'label'   => __( 'Product Attributes', 'smart-cycle-discounts' ),
 				'options' => array(
 					'weight' => __( 'Weight', 'smart-cycle-discounts' ),
 					'length' => __( 'Length', 'smart-cycle-discounts' ),
-					'width' => __( 'Width', 'smart-cycle-discounts' ),
+					'width'  => __( 'Width', 'smart-cycle-discounts' ),
 					'height' => __( 'Height', 'smart-cycle-discounts' ),
-					'sku' => __( 'SKU', 'smart-cycle-discounts' ),
+					'sku'    => __( 'SKU', 'smart-cycle-discounts' ),
 				),
 			),
-			'product_status' => array(
-				'label' => __( 'Product Status', 'smart-cycle-discounts' ),
+			'product_status'     => array(
+				'label'   => __( 'Product Status', 'smart-cycle-discounts' ),
 				'options' => array(
-					'featured' => __( 'Featured Product', 'smart-cycle-discounts' ),
-					'on_sale' => __( 'On Sale', 'smart-cycle-discounts' ),
-					'virtual' => __( 'Virtual Product', 'smart-cycle-discounts' ),
+					'featured'     => __( 'Featured Product', 'smart-cycle-discounts' ),
+					'on_sale'      => __( 'On Sale', 'smart-cycle-discounts' ),
+					'virtual'      => __( 'Virtual Product', 'smart-cycle-discounts' ),
 					'downloadable' => __( 'Downloadable', 'smart-cycle-discounts' ),
 					'product_type' => __( 'Product Type', 'smart-cycle-discounts' ),
 				),
 			),
-			'shipping_tax' => array(
-				'label' => __( 'Shipping & Tax', 'smart-cycle-discounts' ),
+			'shipping_tax'       => array(
+				'label'   => __( 'Shipping & Tax', 'smart-cycle-discounts' ),
 				'options' => array(
-					'tax_status' => __( 'Tax Status', 'smart-cycle-discounts' ),
-					'tax_class' => __( 'Tax Class', 'smart-cycle-discounts' ),
+					'tax_status'     => __( 'Tax Status', 'smart-cycle-discounts' ),
+					'tax_class'      => __( 'Tax Class', 'smart-cycle-discounts' ),
 					'shipping_class' => __( 'Shipping Class', 'smart-cycle-discounts' ),
 				),
 			),
-			'reviews_ratings' => array(
-				'label' => __( 'Reviews & Ratings', 'smart-cycle-discounts' ),
+			'reviews_ratings'    => array(
+				'label'   => __( 'Reviews & Ratings', 'smart-cycle-discounts' ),
 				'options' => array(
 					'average_rating' => __( 'Average Rating', 'smart-cycle-discounts' ),
-					'review_count' => __( 'Review Count', 'smart-cycle-discounts' ),
+					'review_count'   => __( 'Review Count', 'smart-cycle-discounts' ),
 				),
 			),
-			'sales_data' => array(
-				'label' => __( 'Sales Data', 'smart-cycle-discounts' ),
+			'sales_data'         => array(
+				'label'   => __( 'Sales Data', 'smart-cycle-discounts' ),
 				'options' => array(
-					'total_sales' => __( 'Total Sales', 'smart-cycle-discounts' ),
-					'date_created' => __( 'Date Created', 'smart-cycle-discounts' ),
+					'total_sales'   => __( 'Total Sales', 'smart-cycle-discounts' ),
+					'date_created'  => __( 'Date Created', 'smart-cycle-discounts' ),
 					'date_modified' => __( 'Date Modified', 'smart-cycle-discounts' ),
 				),
 			),
@@ -2141,49 +2182,49 @@ class SCD_Field_Definitions {
 	public static function get_operator_mappings() {
 		return array(
 			'boolean' => array(
-				'types' => array( 'featured', 'on_sale', 'virtual', 'downloadable' ),
+				'types'     => array( 'featured', 'on_sale', 'virtual', 'downloadable' ),
 				'operators' => array(
-					'=' => __( 'Is', 'smart-cycle-discounts' ),
+					'='  => __( 'Is', 'smart-cycle-discounts' ),
 					'!=' => __( 'Is not', 'smart-cycle-discounts' ),
 				),
 			),
 			'numeric' => array(
-				'types' => array( 'price', 'sale_price', 'stock_quantity', 'low_stock_amount', 'weight', 'length', 'width', 'height', 'average_rating', 'review_count', 'total_sales' ),
+				'types'     => array( 'price', 'sale_price', 'stock_quantity', 'low_stock_amount', 'weight', 'length', 'width', 'height', 'average_rating', 'review_count', 'total_sales' ),
 				'operators' => array(
-					'=' => __( 'Equals', 'smart-cycle-discounts' ),
+					'='  => __( 'Equals', 'smart-cycle-discounts' ),
 					'!=' => __( 'Not equals', 'smart-cycle-discounts' ),
-					'>' => __( 'Greater than', 'smart-cycle-discounts' ),
+					'>'  => __( 'Greater than', 'smart-cycle-discounts' ),
 					'>=' => __( 'Greater than or equal', 'smart-cycle-discounts' ),
-					'<' => __( 'Less than', 'smart-cycle-discounts' ),
+					'<'  => __( 'Less than', 'smart-cycle-discounts' ),
 					'<=' => __( 'Less than or equal', 'smart-cycle-discounts' ),
 				),
 			),
-			'text' => array(
-				'types' => array( 'sku', 'tax_class', 'shipping_class' ),
+			'text'    => array(
+				'types'     => array( 'sku', 'tax_class', 'shipping_class' ),
 				'operators' => array(
-					'=' => __( 'Equals', 'smart-cycle-discounts' ),
-					'!=' => __( 'Not equals', 'smart-cycle-discounts' ),
-					'contains' => __( 'Contains', 'smart-cycle-discounts' ),
+					'='            => __( 'Equals', 'smart-cycle-discounts' ),
+					'!='           => __( 'Not equals', 'smart-cycle-discounts' ),
+					'contains'     => __( 'Contains', 'smart-cycle-discounts' ),
 					'not_contains' => __( 'Does not contain', 'smart-cycle-discounts' ),
-					'starts_with' => __( 'Starts with', 'smart-cycle-discounts' ),
-					'ends_with' => __( 'Ends with', 'smart-cycle-discounts' ),
+					'starts_with'  => __( 'Starts with', 'smart-cycle-discounts' ),
+					'ends_with'    => __( 'Ends with', 'smart-cycle-discounts' ),
 				),
 			),
-			'select' => array(
-				'types' => array( 'stock_status', 'product_type', 'tax_status' ),
+			'select'  => array(
+				'types'     => array( 'stock_status', 'product_type', 'tax_status' ),
 				'operators' => array(
-					'=' => __( 'Is', 'smart-cycle-discounts' ),
+					'='  => __( 'Is', 'smart-cycle-discounts' ),
 					'!=' => __( 'Is not', 'smart-cycle-discounts' ),
 				),
 			),
-			'date' => array(
-				'types' => array( 'date_created', 'date_modified' ),
+			'date'    => array(
+				'types'     => array( 'date_created', 'date_modified' ),
 				'operators' => array(
-					'=' => __( 'On', 'smart-cycle-discounts' ),
+					'='  => __( 'On', 'smart-cycle-discounts' ),
 					'!=' => __( 'Not on', 'smart-cycle-discounts' ),
-					'>' => __( 'After', 'smart-cycle-discounts' ),
+					'>'  => __( 'After', 'smart-cycle-discounts' ),
 					'>=' => __( 'On or after', 'smart-cycle-discounts' ),
-					'<' => __( 'Before', 'smart-cycle-discounts' ),
+					'<'  => __( 'Before', 'smart-cycle-discounts' ),
 					'<=' => __( 'On or before', 'smart-cycle-discounts' ),
 				),
 			),
@@ -2197,21 +2238,21 @@ class SCD_Field_Definitions {
 	 * that would create impossible or invalid configurations.
 	 *
 	 * @since    1.0.0
-	 * @param    array       $data      Sanitized field data
-	 * @param    WP_Error    $errors    Error object to add errors to
+	 * @param    array    $data      Sanitized field data
+	 * @param    WP_Error $errors    Error object to add errors to
 	 * @return   void
 	 */
 	private static function validate_discounts_cross_fields( array $data, WP_Error $errors ) {
 		// Validation 1: Customer limit cannot exceed total limit
 		if ( isset( $data['usage_limit_per_customer'], $data['total_usage_limit'] ) ) {
 			$customer_limit = absint( $data['usage_limit_per_customer'] );
-			$total_limit = absint( $data['total_usage_limit'] );
+			$total_limit    = absint( $data['total_usage_limit'] );
 
 			if ( $customer_limit > 0 && $total_limit > 0 && $customer_limit > $total_limit ) {
 				$errors->add(
 					'usage_limits_conflict',
 					sprintf(
-						__( 'Customer limit (%d) cannot exceed total usage limit (%d). Customers would never reach their limit.', 'smart-cycle-discounts' ),
+						__( 'Customer limit (%1$d) cannot exceed total usage limit (%2$d). Customers would never reach their limit.', 'smart-cycle-discounts' ),
 						$customer_limit,
 						$total_limit
 					)
@@ -2222,13 +2263,13 @@ class SCD_Field_Definitions {
 		// Validation 2: Lifetime cap cannot be less than per-cycle total limit
 		if ( isset( $data['lifetime_usage_cap'], $data['total_usage_limit'] ) ) {
 			$lifetime_cap = absint( $data['lifetime_usage_cap'] );
-			$total_limit = absint( $data['total_usage_limit'] );
+			$total_limit  = absint( $data['total_usage_limit'] );
 
 			if ( $lifetime_cap > 0 && $total_limit > 0 && $lifetime_cap < $total_limit ) {
 				$errors->add(
 					'lifetime_cap_conflict',
 					sprintf(
-						__( 'Lifetime usage cap (%d) cannot be less than per-cycle total limit (%d). This creates an impossible configuration.', 'smart-cycle-discounts' ),
+						__( 'Lifetime usage cap (%1$d) cannot be less than per-cycle total limit (%2$d). This creates an impossible configuration.', 'smart-cycle-discounts' ),
 						$lifetime_cap,
 						$total_limit
 					)
@@ -2240,8 +2281,8 @@ class SCD_Field_Definitions {
 		// Only applies to percentage and fixed discount types (BOGO and tiered have different mechanics)
 		if ( isset( $data['discount_type'], $data['apply_to'], $data['minimum_quantity'] ) ) {
 			$discount_type = $data['discount_type'];
-			$apply_to = $data['apply_to'];
-			$min_quantity = absint( $data['minimum_quantity'] );
+			$apply_to      = $data['apply_to'];
+			$min_quantity  = absint( $data['minimum_quantity'] );
 
 			// Only validate for simple discount types where apply_to and minimum_quantity both apply
 			$simple_types = array( 'percentage', 'fixed' );
@@ -2260,8 +2301,8 @@ class SCD_Field_Definitions {
 	 * Ensures free users cannot submit advanced product filters (conditions).
 	 *
 	 * @since    1.0.0
-	 * @param    array       $data      Sanitized field data
-	 * @param    WP_Error    $errors    Error object to add errors to
+	 * @param    array    $data      Sanitized field data
+	 * @param    WP_Error $errors    Error object to add errors to
 	 * @return   void
 	 */
 	private static function validate_products_feature_gate( array $data, WP_Error $errors ) {
@@ -2275,7 +2316,7 @@ class SCD_Field_Definitions {
 			require_once SCD_PLUGIN_DIR . 'includes/bootstrap/class-service-container.php';
 		}
 
-		$container = SCD_Service_Container::get_instance();
+		$container    = SCD_Service_Container::get_instance();
 		$feature_gate = $container->get( 'feature_gate' );
 
 		if ( ! $feature_gate ) {
@@ -2298,8 +2339,8 @@ class SCD_Field_Definitions {
 	 * Ensures free users cannot submit premium discount types (tiered, bogo, spend_threshold).
 	 *
 	 * @since    1.0.0
-	 * @param    array       $data      Sanitized field data
-	 * @param    WP_Error    $errors    Error object to add errors to
+	 * @param    array    $data      Sanitized field data
+	 * @param    WP_Error $errors    Error object to add errors to
 	 * @return   void
 	 */
 	private static function validate_discounts_feature_gate( array $data, WP_Error $errors ) {
@@ -2321,7 +2362,7 @@ class SCD_Field_Definitions {
 			require_once SCD_PLUGIN_DIR . 'includes/bootstrap/class-service-container.php';
 		}
 
-		$container = SCD_Service_Container::get_instance();
+		$container    = SCD_Service_Container::get_instance();
 		$feature_gate = $container->get( 'feature_gate' );
 
 		if ( ! $feature_gate ) {

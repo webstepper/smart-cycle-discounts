@@ -38,8 +38,8 @@ class SCD_Session_Status_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Session_Service    $session_service    Session service instance (optional).
-	 * @param    SCD_Logger             $logger             Logger instance (optional).
+	 * @param    SCD_Session_Service $session_service    Session service instance (optional).
+	 * @param    SCD_Logger          $logger             Logger instance (optional).
 	 */
 	public function __construct( $session_service = null, $logger = null ) {
 		parent::__construct( $logger );
@@ -60,7 +60,7 @@ class SCD_Session_Status_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle the session status request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array                Response data.
 	 */
 	protected function handle( $request ) {
@@ -79,17 +79,17 @@ class SCD_Session_Status_Handler extends SCD_Abstract_Ajax_Handler {
 
 		if ( ! $expiration_info ) {
 			return array(
-				'success' => false,
+				'success'        => false,
 				'session_exists' => false,
-				'message' => __( 'No active session', 'smart-cycle-discounts' ),
+				'message'        => __( 'No active session', 'smart-cycle-discounts' ),
 			);
 		}
 
 		return array(
-			'success' => true,
-			'session_exists' => true,
+			'success'         => true,
+			'session_exists'  => true,
 			'expiration_info' => $expiration_info,
-			'message' => __( 'Session status retrieved', 'smart-cycle-discounts' ),
+			'message'         => __( 'Session status retrieved', 'smart-cycle-discounts' ),
 		);
 	}
 

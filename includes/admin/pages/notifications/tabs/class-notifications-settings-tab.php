@@ -33,7 +33,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Register settings sections and fields.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $current_tab    Current active tab.
+	 * @param    string $current_tab    Current active tab.
 	 * @return   void
 	 */
 	public function register_sections( string $current_tab ): void {
@@ -56,8 +56,8 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			array(
 				'tooltip' => __( 'Choose your email service provider. WordPress Mail works out of the box. For better deliverability, use SendGrid or Amazon SES.', 'smart-cycle-discounts' ),
 				'options' => array(
-					'wpmail' => __( 'WordPress Mail (Default)', 'smart-cycle-discounts' ),
-					'sendgrid' => __( 'SendGrid', 'smart-cycle-discounts' ),
+					'wpmail'    => __( 'WordPress Mail (Default)', 'smart-cycle-discounts' ),
+					'sendgrid'  => __( 'SendGrid', 'smart-cycle-discounts' ),
 					'amazonses' => __( 'Amazon SES', 'smart-cycle-discounts' ),
 				),
 			)
@@ -71,7 +71,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'scd_notifications_provider',
 			array(
 				'tooltip' => __( 'Get your API key from SendGrid dashboard. Free tier: 100 emails/day.', 'smart-cycle-discounts' ),
-				'class' => 'regular-text scd-provider-setting scd-provider-sendgrid',
+				'class'   => 'regular-text scd-provider-setting scd-provider-sendgrid',
 			)
 		);
 
@@ -83,7 +83,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'scd_notifications_provider',
 			array(
 				'tooltip' => __( 'Your AWS Access Key ID with SES permissions.', 'smart-cycle-discounts' ),
-				'class' => 'regular-text scd-provider-setting scd-provider-amazonses',
+				'class'   => 'regular-text scd-provider-setting scd-provider-amazonses',
 			)
 		);
 
@@ -94,7 +94,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'scd_notifications_provider',
 			array(
 				'tooltip' => __( 'Your AWS Secret Access Key.', 'smart-cycle-discounts' ),
-				'class' => 'regular-text scd-provider-setting scd-provider-amazonses',
+				'class'   => 'regular-text scd-provider-setting scd-provider-amazonses',
 			)
 		);
 
@@ -106,13 +106,13 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			array(
 				'tooltip' => __( 'AWS region where SES is configured.', 'smart-cycle-discounts' ),
 				'options' => array(
-					'us-east-1' => __( 'US East (N. Virginia)', 'smart-cycle-discounts' ),
-					'us-west-2' => __( 'US West (Oregon)', 'smart-cycle-discounts' ),
-					'eu-west-1' => __( 'EU (Ireland)', 'smart-cycle-discounts' ),
-					'eu-central-1' => __( 'EU (Frankfurt)', 'smart-cycle-discounts' ),
+					'us-east-1'      => __( 'US East (N. Virginia)', 'smart-cycle-discounts' ),
+					'us-west-2'      => __( 'US West (Oregon)', 'smart-cycle-discounts' ),
+					'eu-west-1'      => __( 'EU (Ireland)', 'smart-cycle-discounts' ),
+					'eu-central-1'   => __( 'EU (Frankfurt)', 'smart-cycle-discounts' ),
 					'ap-southeast-1' => __( 'Asia Pacific (Singapore)', 'smart-cycle-discounts' ),
 				),
-				'class' => 'scd-provider-setting scd-provider-amazonses',
+				'class'   => 'scd-provider-setting scd-provider-amazonses',
 			)
 		);
 
@@ -149,7 +149,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'render_additional_recipients_field',
 			'scd_notifications_config',
 			array(
-				'tooltip' => __( 'Add extra email addresses to receive notifications (comma-separated). Admin email is always included.', 'smart-cycle-discounts' ),
+				'tooltip'     => __( 'Add extra email addresses to receive notifications (comma-separated). Admin email is always included.', 'smart-cycle-discounts' ),
 				'placeholder' => 'manager@example.com, team@example.com',
 			)
 		);
@@ -273,7 +273,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Render tab content.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $current_tab    Current active tab.
+	 * @param    string $current_tab    Current active tab.
 	 * @return   void
 	 */
 	public function render_tab_content( string $current_tab ): void {
@@ -303,7 +303,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Render provider field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_provider_field( array $args ): void {
@@ -314,7 +314,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Render SendGrid API key field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_sendgrid_api_key_field( array $args ): void {
@@ -340,7 +340,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Render Amazon SES access key field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_amazonses_access_key_field( array $args ): void {
@@ -351,13 +351,13 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Render Amazon SES secret key field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_amazonses_secret_key_field( array $args ): void {
 		$field_id = $args['field_id'];
-		$value = $this->get_value( $field_id, '' );
-		$name = $this->get_field_name( $field_id );
+		$value    = $this->get_value( $field_id, '' );
+		$name     = $this->get_field_name( $field_id );
 
 		printf(
 			'<input type="password" id="%s" name="%s" value="%s" class="%s">',
@@ -372,7 +372,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Render Amazon SES region field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_amazonses_region_field( array $args ): void {
@@ -404,7 +404,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Render from email field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_from_email_field( array $args ): void {
@@ -415,7 +415,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Render from name field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_from_name_field( array $args ): void {
@@ -426,7 +426,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Render additional recipients field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_additional_recipients_field( array $args ): void {
@@ -442,7 +442,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Render test email field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_test_email_field( array $args ): void {
@@ -489,7 +489,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 */
 	public function render_pro_section(): void {
 		$feature_gate = $this->page->get_feature_gate();
-		$has_pro = $feature_gate->is_premium();
+		$has_pro      = $feature_gate->is_premium();
 
 		echo '<p class="scd-section-description">';
 		if ( $has_pro ) {
@@ -527,7 +527,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Render campaign started notification field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_notify_campaign_started_field( array $args ): void {
@@ -539,7 +539,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Render campaign ending notification field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_notify_campaign_ending_field( array $args ): void {
@@ -551,7 +551,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Render campaign ended notification field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_notify_campaign_ended_field( array $args ): void {
@@ -563,7 +563,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Render daily report notification field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_notify_daily_report_field( array $args ): void {
@@ -575,7 +575,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Render weekly report notification field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_notify_weekly_report_field( array $args ): void {
@@ -587,7 +587,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Render performance alert notification field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_notify_performance_alert_field( array $args ): void {
@@ -599,7 +599,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Render low stock alert notification field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_notify_low_stock_alert_field( array $args ): void {
@@ -611,7 +611,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Render milestone alert notification field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_notify_milestone_alert_field( array $args ): void {
@@ -623,7 +623,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Render error notification field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_notify_errors_field( array $args ): void {
@@ -635,14 +635,14 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * Sanitize notifications settings.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $input    Raw input data.
+	 * @param    array $input    Raw input data.
 	 * @return   array              Sanitized data.
 	 */
 	protected function sanitize_settings( array $input ): array {
 		$sanitized = array();
 
 		// Email provider
-		$valid_providers = array( 'wpmail', 'sendgrid', 'amazonses' );
+		$valid_providers             = array( 'wpmail', 'sendgrid', 'amazonses' );
 		$sanitized['email_provider'] = in_array( $input['email_provider'] ?? '', $valid_providers, true )
 			? $input['email_provider']
 			: 'wpmail';
@@ -661,7 +661,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			? sanitize_text_field( $input['amazonses_secret_key'] )
 			: '';
 
-		$valid_regions = array( 'us-east-1', 'us-west-2', 'eu-west-1', 'eu-central-1', 'ap-southeast-1' );
+		$valid_regions                 = array( 'us-east-1', 'us-west-2', 'eu-west-1', 'eu-central-1', 'ap-southeast-1' );
 		$sanitized['amazonses_region'] = in_array( $input['amazonses_region'] ?? '', $valid_regions, true )
 			? $input['amazonses_region']
 			: 'us-east-1';
@@ -690,11 +690,11 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 
 		// Notification types
 		$sanitized['notify_campaign_started'] = isset( $input['notify_campaign_started'] ) && '1' === $input['notify_campaign_started'];
-		$sanitized['notify_campaign_ending'] = isset( $input['notify_campaign_ending'] ) && '1' === $input['notify_campaign_ending'];
-		$sanitized['notify_campaign_ended'] = isset( $input['notify_campaign_ended'] ) && '1' === $input['notify_campaign_ended'];
-		$sanitized['notify_daily_report'] = isset( $input['notify_daily_report'] ) && '1' === $input['notify_daily_report'];
-		$sanitized['notify_weekly_report'] = isset( $input['notify_weekly_report'] ) && '1' === $input['notify_weekly_report'];
-		$sanitized['notify_errors'] = isset( $input['notify_errors'] ) && '1' === $input['notify_errors'];
+		$sanitized['notify_campaign_ending']  = isset( $input['notify_campaign_ending'] ) && '1' === $input['notify_campaign_ending'];
+		$sanitized['notify_campaign_ended']   = isset( $input['notify_campaign_ended'] ) && '1' === $input['notify_campaign_ended'];
+		$sanitized['notify_daily_report']     = isset( $input['notify_daily_report'] ) && '1' === $input['notify_daily_report'];
+		$sanitized['notify_weekly_report']    = isset( $input['notify_weekly_report'] ) && '1' === $input['notify_weekly_report'];
+		$sanitized['notify_errors']           = isset( $input['notify_errors'] ) && '1' === $input['notify_errors'];
 
 		return $sanitized;
 	}

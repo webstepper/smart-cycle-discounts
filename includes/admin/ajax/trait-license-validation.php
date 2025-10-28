@@ -38,7 +38,7 @@ trait SCD_License_Validation_Trait {
 	 * Suitable for: UI elements, convenience features, non-critical operations.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $feature_key    Optional feature key to check.
+	 * @param    string $feature_key    Optional feature key to check.
 	 * @return   true|WP_Error              True if valid, WP_Error if not.
 	 */
 	protected function validate_license_ui( $feature_key = '' ) {
@@ -145,8 +145,8 @@ trait SCD_License_Validation_Trait {
 	 * Selects validation tier based on operation type.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $tier           Validation tier: 'ui', 'logic', 'critical'.
-	 * @param    string    $feature_key    Optional feature key for UI-level check.
+	 * @param    string $tier           Validation tier: 'ui', 'logic', 'critical'.
+	 * @param    string $feature_key    Optional feature key for UI-level check.
 	 * @return   true|WP_Error              True if valid, WP_Error if not.
 	 */
 	protected function validate_license( $tier = 'logic', $feature_key = '' ) {
@@ -169,7 +169,7 @@ trait SCD_License_Validation_Trait {
 	 * Helper method to check if validation result is an error.
 	 *
 	 * @since    1.0.0
-	 * @param    mixed    $validation_result    Result from validate_license_*() method.
+	 * @param    mixed $validation_result    Result from validate_license_*() method.
 	 * @return   bool                           True if validation failed.
 	 */
 	protected function license_validation_failed( $validation_result ) {
@@ -182,7 +182,7 @@ trait SCD_License_Validation_Trait {
 	 * Converts WP_Error to AJAX error response.
 	 *
 	 * @since    1.0.0
-	 * @param    WP_Error    $error    Validation error.
+	 * @param    WP_Error $error    Validation error.
 	 * @return   array                 Error response array.
 	 */
 	protected function license_error_response( $error ) {

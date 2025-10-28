@@ -28,7 +28,7 @@ class SCD_Debug_Log_Handler {
 	 * Handle debug log write request
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data
+	 * @param    array $request    Request data
 	 * @return   array                Response data
 	 */
 	public function handle( $request = array() ) {
@@ -100,7 +100,7 @@ class SCD_Debug_Log_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $logs    Array of log entries
+	 * @param    array $logs    Array of log entries
 	 * @return   true|WP_Error     True on success, WP_Error on failure
 	 */
 	private function write_logs( $logs ) {
@@ -117,7 +117,7 @@ class SCD_Debug_Log_Handler {
 			$data      = isset( $log['data'] ) ? $log['data'] : null;
 
 			$log_line = sprintf(
-				"[%s] [%s] [%s] %s",
+				'[%s] [%s] [%s] %s',
 				$timestamp,
 				str_pad( $level, 5 ),
 				$category,
@@ -179,7 +179,7 @@ class SCD_Debug_Log_Handler {
 	 * Get debug log contents
 	 *
 	 * @since    1.0.0
-	 * @param    int    $lines    Number of lines to read (0 for all)
+	 * @param    int $lines    Number of lines to read (0 for all)
 	 * @return   string|WP_Error   Log contents or error
 	 */
 	public static function get_log( $lines = 0 ) {

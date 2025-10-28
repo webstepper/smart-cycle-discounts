@@ -39,7 +39,7 @@ class SCD_WC_Admin_Integration {
 	 * Initialize admin integration.
 	 *
 	 * @since    1.0.0
-	 * @param    object|null    $logger    Logger.
+	 * @param    object|null $logger    Logger.
 	 */
 	public function __construct( ?object $logger = null ) {
 		$this->logger = $logger;
@@ -71,19 +71,21 @@ class SCD_WC_Admin_Integration {
 
 		$exclude_from_discounts = get_post_meta( $post->ID, '_scd_exclude_from_discounts', true );
 
-		woocommerce_wp_checkbox( array(
-			'id' => '_scd_exclude_from_discounts',
-			'label' => __( 'Exclude from Smart Cycle Discounts', 'smart-cycle-discounts' ),
-			'description' => __( 'Check this to exclude this product from all Smart Cycle Discount campaigns.', 'smart-cycle-discounts' ),
-			'value' => $exclude_from_discounts
-		) );
+		woocommerce_wp_checkbox(
+			array(
+				'id'          => '_scd_exclude_from_discounts',
+				'label'       => __( 'Exclude from Smart Cycle Discounts', 'smart-cycle-discounts' ),
+				'description' => __( 'Check this to exclude this product from all Smart Cycle Discount campaigns.', 'smart-cycle-discounts' ),
+				'value'       => $exclude_from_discounts,
+			)
+		);
 	}
 
 	/**
 	 * Save product discount fields.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $post_id    Product ID.
+	 * @param    int $post_id    Product ID.
 	 * @return   void
 	 */
 	public function save_product_discount_fields( int $post_id ): void {
@@ -101,10 +103,14 @@ class SCD_WC_Admin_Integration {
 		$exclude_from_discounts = isset( $_POST['_scd_exclude_from_discounts'] ) ? 'yes' : 'no';
 		update_post_meta( $post_id, '_scd_exclude_from_discounts', $exclude_from_discounts );
 
-		$this->log( 'debug', 'Product discount fields saved', array(
-			'post_id' => $post_id,
-			'exclude_from_discounts' => $exclude_from_discounts
-		) );
+		$this->log(
+			'debug',
+			'Product discount fields saved',
+			array(
+				'post_id'                => $post_id,
+				'exclude_from_discounts' => $exclude_from_discounts,
+			)
+		);
 	}
 
 	/**
@@ -112,9 +118,9 @@ class SCD_WC_Admin_Integration {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $level      Level.
-	 * @param    string    $message    Message.
-	 * @param    array     $context    Context.
+	 * @param    string $level      Level.
+	 * @param    string $message    Message.
+	 * @param    array  $context    Context.
 	 * @return   void
 	 */
 	private function log( string $level, string $message, array $context = array() ): void {

@@ -48,12 +48,12 @@ class SCD_WC_Display_Integration {
 	 * Initialize display integration.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_WC_Discount_Query_Service    $discount_query    Discount query service.
-	 * @param    object|null                      $logger            Logger.
+	 * @param    SCD_WC_Discount_Query_Service $discount_query    Discount query service.
+	 * @param    object|null                   $logger            Logger.
 	 */
 	public function __construct( SCD_WC_Discount_Query_Service $discount_query, ?object $logger = null ) {
 		$this->discount_query = $discount_query;
-		$this->logger = $logger;
+		$this->logger         = $logger;
 	}
 
 	/**
@@ -139,12 +139,15 @@ class SCD_WC_Display_Integration {
 					}
 				}
 			}
-
 		} catch ( Exception $e ) {
-			$this->log( 'error', 'Failed to display product discount details', array(
-				'product_id' => $product_id,
-				'error' => $e->getMessage()
-			) );
+			$this->log(
+				'error',
+				'Failed to display product discount details',
+				array(
+					'product_id' => $product_id,
+					'error'      => $e->getMessage(),
+				)
+			);
 		}
 	}
 
@@ -153,8 +156,8 @@ class SCD_WC_Display_Integration {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    WC_Product    $product    Product object.
-	 * @param    string        $context    Display context.
+	 * @param    WC_Product $product    Product object.
+	 * @param    string     $context    Display context.
 	 * @return   void
 	 */
 	private function render_badge( WC_Product $product, string $context ): void {
@@ -171,13 +174,16 @@ class SCD_WC_Display_Integration {
 				$html = $this->get_badge_html( $discount_info, $context );
 				echo wp_kses_post( $html );
 			}
-
 		} catch ( Exception $e ) {
-			$this->log( 'error', 'Failed to render badge', array(
-				'product_id' => $product_id,
-				'context' => $context,
-				'error' => $e->getMessage()
-			) );
+			$this->log(
+				'error',
+				'Failed to render badge',
+				array(
+					'product_id' => $product_id,
+					'context'    => $context,
+					'error'      => $e->getMessage(),
+				)
+			);
 		}
 	}
 
@@ -186,8 +192,8 @@ class SCD_WC_Display_Integration {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array     $discount_info    Discount information.
-	 * @param    string    $context          Display context.
+	 * @param    array  $discount_info    Discount information.
+	 * @param    string $context          Display context.
 	 * @return   string                      Badge HTML.
 	 */
 	private function get_badge_html( array $discount_info, string $context ): string {
@@ -210,7 +216,7 @@ class SCD_WC_Display_Integration {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $discount_info    Discount information.
+	 * @param    array $discount_info    Discount information.
 	 * @return   string                     Details HTML.
 	 */
 	private function render_discount_details( array $discount_info ): string {
@@ -243,7 +249,7 @@ class SCD_WC_Display_Integration {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $discount_info    Discount information.
+	 * @param    array $discount_info    Discount information.
 	 * @return   string                     HTML.
 	 */
 	private function render_tiered_details( array $discount_info ): string {
@@ -255,7 +261,7 @@ class SCD_WC_Display_Integration {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $discount_info    Discount information.
+	 * @param    array $discount_info    Discount information.
 	 * @return   string                     HTML.
 	 */
 	private function render_bogo_details( array $discount_info ): string {
@@ -267,7 +273,7 @@ class SCD_WC_Display_Integration {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $discount_info    Discount information.
+	 * @param    array $discount_info    Discount information.
 	 * @return   string                     HTML.
 	 */
 	private function render_spend_threshold_details( array $discount_info ): string {
@@ -278,15 +284,15 @@ class SCD_WC_Display_Integration {
 	 * Display cart item price with discount strikethrough.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $price           Price HTML.
-	 * @param    array     $cart_item       Cart item data.
-	 * @param    string    $cart_item_key   Cart item key.
+	 * @param    string $price           Price HTML.
+	 * @param    array  $cart_item       Cart item data.
+	 * @param    string $cart_item_key   Cart item key.
 	 * @return   string                     Modified price HTML.
 	 */
 	public function display_cart_item_price( string $price, array $cart_item, string $cart_item_key ): string {
 		if ( isset( $cart_item['scd_discount'] ) ) {
-			$discount = $cart_item['scd_discount'];
-			$original = wc_price( $discount['original_price'] );
+			$discount   = $cart_item['scd_discount'];
+			$original   = wc_price( $discount['original_price'] );
 			$discounted = wc_price( $discount['discounted_price'] );
 
 			return sprintf( '<del>%s</del> <ins>%s</ins>', $original, $discounted );
@@ -299,9 +305,9 @@ class SCD_WC_Display_Integration {
 	 * Display cart item subtotal with discount strikethrough.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $subtotal        Subtotal HTML.
-	 * @param    array     $cart_item       Cart item data.
-	 * @param    string    $cart_item_key   Cart item key.
+	 * @param    string $subtotal        Subtotal HTML.
+	 * @param    array  $cart_item       Cart item data.
+	 * @param    string $cart_item_key   Cart item key.
 	 * @return   string                     Modified subtotal HTML.
 	 */
 	public function display_cart_item_subtotal( string $subtotal, array $cart_item, string $cart_item_key ): string {
@@ -309,10 +315,10 @@ class SCD_WC_Display_Integration {
 			$discount = $cart_item['scd_discount'];
 			$quantity = $cart_item['quantity'];
 
-			$original_total = $discount['original_price'] * $quantity;
+			$original_total   = $discount['original_price'] * $quantity;
 			$discounted_total = $discount['discounted_price'] * $quantity;
 
-			$original = wc_price( $original_total );
+			$original   = wc_price( $original_total );
 			$discounted = wc_price( $discounted_total );
 
 			return sprintf( '<del>%s</del> <ins>%s</ins>', $original, $discounted );
@@ -325,9 +331,9 @@ class SCD_WC_Display_Integration {
 	 * Maybe hide WooCommerce sale badge.
 	 *
 	 * @since    1.0.0
-	 * @param    string      $html      Badge HTML.
-	 * @param    WP_Post     $post      Post object.
-	 * @param    WC_Product  $product   Product object.
+	 * @param    string     $html      Badge HTML.
+	 * @param    WP_Post    $post      Post object.
+	 * @param    WC_Product $product   Product object.
 	 * @return   string                 Modified HTML.
 	 */
 	public function maybe_hide_sale_badge( string $html, $post, WC_Product $product ): string {
@@ -342,7 +348,7 @@ class SCD_WC_Display_Integration {
 	 * Add discount body class.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $classes    Body classes.
+	 * @param    array $classes    Body classes.
 	 * @return   array                Modified classes.
 	 */
 	public function add_discount_body_class( array $classes ): array {
@@ -361,9 +367,9 @@ class SCD_WC_Display_Integration {
 	 * Add discount post class.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $classes    Post classes.
-	 * @param    string   $class      Class string.
-	 * @param    int      $post_id    Post ID.
+	 * @param    array  $classes    Post classes.
+	 * @param    string $class      Class string.
+	 * @param    int    $post_id    Post ID.
 	 * @return   array                Modified classes.
 	 */
 	public function add_discount_post_class( array $classes, $class, int $post_id ): array {
@@ -381,9 +387,9 @@ class SCD_WC_Display_Integration {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $level      Level.
-	 * @param    string    $message    Message.
-	 * @param    array     $context    Context.
+	 * @param    string $level      Level.
+	 * @param    string $message    Message.
+	 * @param    array  $context    Context.
 	 * @return   void
 	 */
 	private function log( string $level, string $message, array $context = array() ): void {

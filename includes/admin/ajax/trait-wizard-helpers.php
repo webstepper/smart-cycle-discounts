@@ -50,10 +50,10 @@ trait SCD_Wizard_Helpers {
 	 */
 	private function _get_all_product_ids() {
 		$args = array(
-			'post_type' => 'product',
+			'post_type'      => 'product',
 			'posts_per_page' => -1,
-			'post_status' => 'publish',
-			'fields' => 'ids'
+			'post_status'    => 'publish',
+			'fields'         => 'ids',
 		);
 
 		return get_posts( $args );
@@ -64,7 +64,7 @@ trait SCD_Wizard_Helpers {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $category_ids    Category IDs.
+	 * @param    array $category_ids    Category IDs.
 	 * @return   array                     Array of product IDs.
 	 */
 	private function _get_products_in_categories( $category_ids ) {
@@ -73,17 +73,17 @@ trait SCD_Wizard_Helpers {
 		}
 
 		$args = array(
-			'post_type' => 'product',
+			'post_type'      => 'product',
 			'posts_per_page' => -1,
-			'post_status' => 'publish',
-			'fields' => 'ids',
-			'tax_query' => array(
+			'post_status'    => 'publish',
+			'fields'         => 'ids',
+			'tax_query'      => array(
 				array(
 					'taxonomy' => 'product_cat',
-					'field' => 'term_id',
-					'terms' => array_map( 'intval', $category_ids )
-				)
-			)
+					'field'    => 'term_id',
+					'terms'    => array_map( 'intval', $category_ids ),
+				),
+			),
 		);
 
 		return get_posts( $args );
@@ -94,7 +94,7 @@ trait SCD_Wizard_Helpers {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $products_data    Products data from wizard.
+	 * @param    array $products_data    Products data from wizard.
 	 * @return   array                      Array of product IDs.
 	 */
 	private function _get_product_ids( $products_data ) {
@@ -128,7 +128,7 @@ trait SCD_Wizard_Helpers {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    object|array    $campaign    Campaign object or array.
+	 * @param    object|array $campaign    Campaign object or array.
 	 * @return   array                        Array of product IDs.
 	 */
 	private function _get_campaign_products( $campaign ) {
@@ -190,9 +190,9 @@ trait SCD_Wizard_Helpers {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    float     $price             Original price.
-	 * @param    string    $discount_type     Discount type (percentage or fixed).
-	 * @param    float     $discount_value    Discount value.
+	 * @param    float  $price             Original price.
+	 * @param    string $discount_type     Discount type (percentage or fixed).
+	 * @param    float  $discount_value    Discount value.
 	 * @return   float                        Discounted price.
 	 */
 	private function _apply_discount( $price, $discount_type, $discount_value ) {
@@ -217,7 +217,7 @@ trait SCD_Wizard_Helpers {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $no_discount_message    Message to show if no discount configured.
+	 * @param    string $no_discount_message    Message to show if no discount configured.
 	 * @return   array|WP_Error                   Error array or data array with state_service, products_data, discounts_data, product_ids.
 	 */
 	private function _get_validated_wizard_state( $no_discount_message = '' ) {
@@ -231,7 +231,7 @@ trait SCD_Wizard_Helpers {
 		}
 
 		// Get step data
-		$products_data = $state_service->get_step_data( 'products' );
+		$products_data  = $state_service->get_step_data( 'products' );
 		$discounts_data = $state_service->get_step_data( 'discounts' );
 
 		if ( empty( $discounts_data ) || empty( $discounts_data['discount_type'] ) ) {

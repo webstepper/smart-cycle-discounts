@@ -35,12 +35,12 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	 * Calculate spend threshold discount.
 	 *
 	 * @since    1.0.0
-	 * @param    float    $original_price      Original price.
-	 * @param    array    $discount_config     Strategy configuration.
-	 * @param    array    $context            Additional context.
+	 * @param    float $original_price      Original price.
+	 * @param    array $discount_config     Strategy configuration.
+	 * @param    array $context            Additional context.
 	 * @return   SCD_Discount_Result         Calculation result.
 	 */
-	public function calculate_discount(float $original_price, array $discount_config, array $context = array()): SCD_Discount_Result {
+	public function calculate_discount( float $original_price, array $discount_config, array $context = array() ): SCD_Discount_Result {
 		try {
 			// CRITICAL: Defensive validation for NULL or invalid prices
 			if ( ! is_numeric( $original_price ) || $original_price < 0 ) {
@@ -52,44 +52,44 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 			}
 
 			// Validate configuration
-			$validation_errors = $this->validate_config($discount_config);
-			if (!empty($validation_errors)) {
-				return SCD_Discount_Result::no_discount($original_price, $this->get_strategy_id(), 'Invalid configuration');
+			$validation_errors = $this->validate_config( $discount_config );
+			if ( ! empty( $validation_errors ) ) {
+				return SCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'Invalid configuration' );
 			}
 
 			// Get thresholds
 			$thresholds = $discount_config['thresholds'] ?? array();
 
-			if (empty($thresholds)) {
-				return SCD_Discount_Result::no_discount($original_price, $this->get_strategy_id(), 'No thresholds configured');
+			if ( empty( $thresholds ) ) {
+				return SCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'No thresholds configured' );
 			}
 
 			// Get cart total from context
-			$cart_total = $this->get_cart_total($context);
+			$cart_total = $this->get_cart_total( $context );
 
 			// Find applicable threshold
-			$applicable_threshold = $this->find_applicable_threshold($thresholds, $cart_total);
+			$applicable_threshold = $this->find_applicable_threshold( $thresholds, $cart_total );
 
-			if (!$applicable_threshold) {
-				return SCD_Discount_Result::no_discount($original_price, $this->get_strategy_id(), 'No applicable threshold found');
+			if ( ! $applicable_threshold ) {
+				return SCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'No applicable threshold found' );
 			}
 
 			// Calculate discount based on threshold
-			$discounted_price = $this->calculate_threshold_discount($original_price, $applicable_threshold);
+			$discounted_price = $this->calculate_threshold_discount( $original_price, $applicable_threshold );
 
 			// Add threshold-specific metadata
 			$metadata = array(
-				'cart_total' => $cart_total,
-				'applicable_threshold' => $applicable_threshold,
-				'threshold_amount' => $applicable_threshold['threshold'],
-				'threshold_discount_type' => $applicable_threshold['discount_type'],
-				'threshold_discount_value' => $applicable_threshold['discount_value']
+				'cart_total'               => $cart_total,
+				'applicable_threshold'     => $applicable_threshold,
+				'threshold_amount'         => $applicable_threshold['threshold'],
+				'threshold_discount_type'  => $applicable_threshold['discount_type'],
+				'threshold_discount_value' => $applicable_threshold['discount_value'],
 			);
 
-			return new SCD_Discount_Result($original_price, $discounted_price, $this->get_strategy_id(), true, $metadata);
+			return new SCD_Discount_Result( $original_price, $discounted_price, $this->get_strategy_id(), true, $metadata );
 
-		} catch (Exception $e) {
-			return SCD_Discount_Result::no_discount($original_price, $this->get_strategy_id(), $e->getMessage());
+		} catch ( Exception $e ) {
+			return SCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), $e->getMessage() );
 		}
 	}
 
@@ -97,38 +97,38 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	 * Validate spend threshold configuration.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $discount_config    Configuration to validate.
+	 * @param    array $discount_config    Configuration to validate.
 	 * @return   array                       Validation errors (empty if valid).
 	 */
-	public function validate_config(array $discount_config): array {
+	public function validate_config( array $discount_config ): array {
 		$errors = array();
 
 		// Validate thresholds
-		if (!isset($discount_config['thresholds']) || !is_array($discount_config['thresholds'])) {
-			$errors[] = __('Thresholds configuration is required and must be an array', 'smart-cycle-discounts');
+		if ( ! isset( $discount_config['thresholds'] ) || ! is_array( $discount_config['thresholds'] ) ) {
+			$errors[] = __( 'Thresholds configuration is required and must be an array', 'smart-cycle-discounts' );
 		} else {
 			$thresholds = $discount_config['thresholds'];
 
-			if (empty($thresholds)) {
-				$errors[] = __('At least one threshold must be configured', 'smart-cycle-discounts');
+			if ( empty( $thresholds ) ) {
+				$errors[] = __( 'At least one threshold must be configured', 'smart-cycle-discounts' );
 			} else {
 				// HIGH: Prevent excessive threshold counts that impact performance
 				if ( count( $thresholds ) > 20 ) {
-					$errors[] = __('Maximum 20 thresholds allowed (performance limit)', 'smart-cycle-discounts');
+					$errors[] = __( 'Maximum 20 thresholds allowed (performance limit)', 'smart-cycle-discounts' );
 				}
 
-				foreach ($thresholds as $index => $threshold) {
-					$threshold_errors = $this->validate_threshold($threshold, $index);
-					$errors = array_merge($errors, $threshold_errors);
+				foreach ( $thresholds as $index => $threshold ) {
+					$threshold_errors = $this->validate_threshold( $threshold, $index );
+					$errors           = array_merge( $errors, $threshold_errors );
 				}
 
 				// Validate threshold amounts are in ascending order
-				$threshold_amounts = array_column($thresholds, 'threshold');
-				$sorted_amounts = $threshold_amounts;
-				sort($sorted_amounts);
+				$threshold_amounts = array_column( $thresholds, 'threshold' );
+				$sorted_amounts    = $threshold_amounts;
+				sort( $sorted_amounts );
 
-				if ($threshold_amounts !== $sorted_amounts) {
-					$errors[] = __('Threshold amounts must be in ascending order', 'smart-cycle-discounts');
+				if ( $threshold_amounts !== $sorted_amounts ) {
+					$errors[] = __( 'Threshold amounts must be in ascending order', 'smart-cycle-discounts' );
 				}
 			}
 		}
@@ -141,12 +141,12 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $threshold     Threshold configuration.
-	 * @param    int      $index        Threshold index.
+	 * @param    array $threshold     Threshold configuration.
+	 * @param    int   $index        Threshold index.
 	 * @return   array                  Validation errors.
 	 */
 	private function validate_threshold( array $threshold, int $index ): array {
-		$errors = array();
+		$errors          = array();
 		$threshold_label = sprintf( __( 'Threshold %d', 'smart-cycle-discounts' ), $index + 1 );
 
 		// Validate threshold amount
@@ -165,8 +165,8 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 		if ( ! isset( $threshold['discount_value'] ) || ! is_numeric( $threshold['discount_value'] ) ) {
 			$errors[] = sprintf( __( '%s: Discount value is required and must be numeric', 'smart-cycle-discounts' ), $threshold_label );
 		} else {
-			$discount_value = floatval( $threshold['discount_value'] );
-			$discount_type = $threshold['discount_type'] ?? '';
+			$discount_value   = floatval( $threshold['discount_value'] );
+			$discount_type    = $threshold['discount_type'] ?? '';
 			$threshold_amount = isset( $threshold['threshold'] ) ? floatval( $threshold['threshold'] ) : 0;
 
 			if ( $discount_value < 0 ) {
@@ -196,7 +196,7 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 			// Warning: Very low threshold amount
 			if ( $threshold_amount > 0 && $threshold_amount < 10 ) {
 				$errors[] = sprintf(
-					__( '%s: Threshold amount is very low (%s). Consider setting a higher threshold to encourage meaningful spending.', 'smart-cycle-discounts' ),
+					__( '%1$s: Threshold amount is very low (%2$s). Consider setting a higher threshold to encourage meaningful spending.', 'smart-cycle-discounts' ),
 					$threshold_label,
 					wc_price( $threshold_amount )
 				);
@@ -223,7 +223,7 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	 * @return   string    Human-readable strategy name.
 	 */
 	public function get_strategy_name(): string {
-		return __('Spend Threshold', 'smart-cycle-discounts');
+		return __( 'Spend Threshold', 'smart-cycle-discounts' );
 	}
 
 	/**
@@ -233,7 +233,7 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	 * @return   string    Strategy description.
 	 */
 	public function get_strategy_description(): string {
-		return __('Apply different discount rates based on cart total amount', 'smart-cycle-discounts');
+		return __( 'Apply different discount rates based on cart total amount', 'smart-cycle-discounts' );
 	}
 
 	/**
@@ -242,7 +242,7 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	 * CRITICAL FIX: Prevents float precision errors in currency calculations.
 	 *
 	 * @since    1.0.0
-	 * @param    float    $value    Value to round.
+	 * @param    float $value    Value to round.
 	 * @return   float             Rounded value.
 	 */
 	private function round_currency( float $value ): float {
@@ -253,10 +253,10 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	 * Check if strategy supports given context.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $context    Context to check.
+	 * @param    array $context    Context to check.
 	 * @return   bool                 True if strategy supports context.
 	 */
-	public function supports_context(array $context): bool {
+	public function supports_context( array $context ): bool {
 		// Spend threshold can work with or without cart total context
 		return true;
 	}
@@ -265,12 +265,12 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	 * Get minimum discount amount.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $discount_config    Discount configuration.
+	 * @param    array $discount_config    Discount configuration.
 	 * @return   float                        Minimum discount amount.
 	 */
-	public function get_minimum_discount(array $discount_config): float {
+	public function get_minimum_discount( array $discount_config ): float {
 		$thresholds = $discount_config['thresholds'] ?? array();
-		if (empty($thresholds)) {
+		if ( empty( $thresholds ) ) {
 			return 0.0;
 		}
 
@@ -290,12 +290,12 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	 * Get maximum discount amount.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $discount_config    Discount configuration.
+	 * @param    array $discount_config    Discount configuration.
 	 * @return   float                        Maximum discount amount.
 	 */
-	public function get_maximum_discount(array $discount_config): float {
+	public function get_maximum_discount( array $discount_config ): float {
 		$thresholds = $discount_config['thresholds'] ?? array();
-		if (empty($thresholds)) {
+		if ( empty( $thresholds ) ) {
 			return 0.0;
 		}
 
@@ -316,18 +316,18 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array     $context    Context data.
+	 * @param    array $context    Context data.
 	 * @return   float                 Cart total.
 	 */
-	private function get_cart_total(array $context): float {
+	private function get_cart_total( array $context ): float {
 		// Try to get cart total from context
-		if (isset($context['cart_total'])) {
-			return floatval($context['cart_total']);
+		if ( isset( $context['cart_total'] ) ) {
+			return floatval( $context['cart_total'] );
 		}
 
 		// Try to get from WooCommerce cart
-		if (function_exists('WC') && WC()->cart) {
-			return floatval(WC()->cart->get_subtotal());
+		if ( function_exists( 'WC' ) && WC()->cart ) {
+			return floatval( WC()->cart->get_subtotal() );
 		}
 
 		return 0.0;
@@ -338,21 +338,24 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $thresholds    Available thresholds.
-	 * @param    float    $cart_total    Cart total to match against.
+	 * @param    array $thresholds    Available thresholds.
+	 * @param    float $cart_total    Cart total to match against.
 	 * @return   array|null              Applicable threshold or null.
 	 */
-	private function find_applicable_threshold(array $thresholds, float $cart_total): ?array {
+	private function find_applicable_threshold( array $thresholds, float $cart_total ): ?array {
 		$applicable_threshold = null;
 
 		// Sort thresholds by amount in descending order to find the highest applicable threshold
-		usort($thresholds, function($a, $b) {
-			return floatval($b['threshold']) <=> floatval($a['threshold']);
-		});
+		usort(
+			$thresholds,
+			function ( $a, $b ) {
+				return floatval( $b['threshold'] ) <=> floatval( $a['threshold'] );
+			}
+		);
 
-		foreach ($thresholds as $threshold) {
-			$threshold_amount = floatval($threshold['threshold']);
-			if ($cart_total >= $threshold_amount) {
+		foreach ( $thresholds as $threshold ) {
+			$threshold_amount = floatval( $threshold['threshold'] );
+			if ( $cart_total >= $threshold_amount ) {
 				$applicable_threshold = $threshold;
 				break;
 			}
@@ -366,23 +369,23 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    float    $original_price    Original price.
-	 * @param    array    $threshold        Threshold configuration.
+	 * @param    float $original_price    Original price.
+	 * @param    array $threshold        Threshold configuration.
 	 * @return   float                      Discounted price.
 	 */
-	private function calculate_threshold_discount(float $original_price, array $threshold): float {
-		$discount_type = $threshold['discount_type'];
-		$discount_value = floatval($threshold['discount_value']);
+	private function calculate_threshold_discount( float $original_price, array $threshold ): float {
+		$discount_type  = $threshold['discount_type'];
+		$discount_value = floatval( $threshold['discount_value'] );
 
-		switch ($discount_type) {
+		switch ( $discount_type ) {
 			case 'percentage':
 				// CRITICAL FIX: Apply rounding to prevent float precision errors
-				$discount_amount = $this->round_currency( $original_price * ($discount_value / 100) );
-				return $this->round_currency( max(0, $original_price - $discount_amount) );
+				$discount_amount = $this->round_currency( $original_price * ( $discount_value / 100 ) );
+				return $this->round_currency( max( 0, $original_price - $discount_amount ) );
 
 			case 'fixed':
 				// CRITICAL FIX: Apply rounding to prevent float precision errors
-				return $this->round_currency( max(0, $original_price - $discount_value) );
+				return $this->round_currency( max( 0, $original_price - $discount_value ) );
 
 			default:
 				return $original_price;
@@ -393,23 +396,23 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	 * Get threshold description for display.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $threshold    Threshold configuration.
+	 * @param    array $threshold    Threshold configuration.
 	 * @return   string                 Threshold description.
 	 */
-	public function get_threshold_description(array $threshold): string {
+	public function get_threshold_description( array $threshold ): string {
 		$threshold_amount = $threshold['threshold'] ?? 0;
-		$discount_type = $threshold['discount_type'] ?? 'percentage';
-		$discount_value = $threshold['discount_value'] ?? 0;
+		$discount_type    = $threshold['discount_type'] ?? 'percentage';
+		$discount_value   = $threshold['discount_value'] ?? 0;
 
 		if ( 'percentage' === $discount_type ) {
 			return sprintf(
-				__( '%s%% off when cart total is %s or more', 'smart-cycle-discounts' ),
+				__( '%1$s%% off when cart total is %2$s or more', 'smart-cycle-discounts' ),
 				number_format( $discount_value, 1 ),
 				wc_price( $threshold_amount )
 			);
 		} else {
 			return sprintf(
-				__( '%s off when cart total is %s or more', 'smart-cycle-discounts' ),
+				__( '%1$s off when cart total is %2$s or more', 'smart-cycle-discounts' ),
 				wc_price( $discount_value ),
 				wc_price( $threshold_amount )
 			);
@@ -425,24 +428,24 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	public function get_config_schema(): array {
 		return array(
 			'thresholds' => array(
-				'type' => 'repeater',
-				'label' => __('Spend Thresholds', 'smart-cycle-discounts'),
-				'description' => __('Configure spend thresholds with discount values', 'smart-cycle-discounts'),
-				'fields' => array(
-					'threshold' => array(
-						'type' => 'number',
-						'label' => __('Cart Total Threshold', 'smart-cycle-discounts'),
-						'description' => __('Minimum cart total to qualify for this threshold', 'smart-cycle-discounts'),
-						'min' => 0,
-						'step' => 0.01,
-						'required' => true
+				'type'        => 'repeater',
+				'label'       => __( 'Spend Thresholds', 'smart-cycle-discounts' ),
+				'description' => __( 'Configure spend thresholds with discount values', 'smart-cycle-discounts' ),
+				'fields'      => array(
+					'threshold'      => array(
+						'type'        => 'number',
+						'label'       => __( 'Cart Total Threshold', 'smart-cycle-discounts' ),
+						'description' => __( 'Minimum cart total to qualify for this threshold', 'smart-cycle-discounts' ),
+						'min'         => 0,
+						'step'        => 0.01,
+						'required'    => true,
 					),
 					'discount_type'  => $this->get_discount_type_field_schema(),
-					'discount_value' => $this->get_discount_value_field_schema()
+					'discount_value' => $this->get_discount_value_field_schema(),
 				),
-				'min_items' => 1,
-				'required' => true
-			)
+				'min_items'   => 1,
+				'required'    => true,
+			),
 		);
 	}
 
@@ -455,41 +458,41 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	public function get_examples(): array {
 		return array(
 			array(
-				'title' => __('Percentage-Based Thresholds', 'smart-cycle-discounts'),
-				'description' => __('5% off orders over $50, 10% off orders over $100', 'smart-cycle-discounts'),
-				'config' => array(
+				'title'       => __( 'Percentage-Based Thresholds', 'smart-cycle-discounts' ),
+				'description' => __( '5% off orders over $50, 10% off orders over $100', 'smart-cycle-discounts' ),
+				'config'      => array(
 					'thresholds' => array(
 						array(
-							'threshold' => 50,
-							'discount_type' => 'percentage',
-							'discount_value' => 5.0
+							'threshold'      => 50,
+							'discount_type'  => 'percentage',
+							'discount_value' => 5.0,
 						),
 						array(
-							'threshold' => 100,
-							'discount_type' => 'percentage',
-							'discount_value' => 10.0
-						)
-					)
-				)
+							'threshold'      => 100,
+							'discount_type'  => 'percentage',
+							'discount_value' => 10.0,
+						),
+					),
+				),
 			),
 			array(
-				'title' => __('Fixed Amount Thresholds', 'smart-cycle-discounts'),
-				'description' => __('$5 off orders over $50, $15 off orders over $100', 'smart-cycle-discounts'),
-				'config' => array(
+				'title'       => __( 'Fixed Amount Thresholds', 'smart-cycle-discounts' ),
+				'description' => __( '$5 off orders over $50, $15 off orders over $100', 'smart-cycle-discounts' ),
+				'config'      => array(
 					'thresholds' => array(
 						array(
-							'threshold' => 50,
-							'discount_type' => 'fixed',
-							'discount_value' => 5.0
+							'threshold'      => 50,
+							'discount_type'  => 'fixed',
+							'discount_value' => 5.0,
 						),
 						array(
-							'threshold' => 100,
-							'discount_type' => 'fixed',
-							'discount_value' => 15.0
-						)
-					)
-				)
-			)
+							'threshold'      => 100,
+							'discount_type'  => 'fixed',
+							'discount_value' => 15.0,
+						),
+					),
+				),
+			),
 		);
 	}
 
@@ -497,30 +500,33 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	 * Get next threshold information for upselling.
 	 *
 	 * @since    1.0.0
-	 * @param    float    $current_total    Current cart total.
-	 * @param    array    $config          Strategy configuration.
+	 * @param    float $current_total    Current cart total.
+	 * @param    array $config          Strategy configuration.
 	 * @return   array|null                Next threshold info or null.
 	 */
-	public function get_next_threshold(float $current_total, array $config): ?array {
+	public function get_next_threshold( float $current_total, array $config ): ?array {
 		$thresholds = $config['thresholds'] ?? array();
-		if (empty($thresholds)) {
+		if ( empty( $thresholds ) ) {
 			return null;
 		}
 
 		// Sort thresholds by amount in ascending order
-		usort($thresholds, function($a, $b) {
-			return floatval($a['threshold']) <=> floatval($b['threshold']);
-		});
+		usort(
+			$thresholds,
+			function ( $a, $b ) {
+				return floatval( $a['threshold'] ) <=> floatval( $b['threshold'] );
+			}
+		);
 
-		foreach ($thresholds as $threshold) {
-			$threshold_amount = floatval($threshold['threshold']);
-			if ($current_total < $threshold_amount) {
+		foreach ( $thresholds as $threshold ) {
+			$threshold_amount = floatval( $threshold['threshold'] );
+			if ( $current_total < $threshold_amount ) {
 				return array(
-					'threshold' => $threshold_amount,
-					'discount_type' => $threshold['discount_type'],
-					'discount_value' => $threshold['discount_value'],
+					'threshold'         => $threshold_amount,
+					'discount_type'     => $threshold['discount_type'],
+					'discount_value'    => $threshold['discount_value'],
 					'additional_needed' => $threshold_amount - $current_total,
-					'description' => $this->get_threshold_description($threshold)
+					'description'       => $this->get_threshold_description( $threshold ),
 				);
 			}
 		}

@@ -43,7 +43,7 @@ class SCD_Migration_002_Timezone_Update implements SCD_Migration_Interface {
 	 * Initialize the migration.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager    $db    Database manager.
+	 * @param    SCD_Database_Manager $db    Database manager.
 	 */
 	public function __construct( SCD_Database_Manager $db ) {
 		$this->db = $db;
@@ -92,10 +92,13 @@ class SCD_Migration_002_Timezone_Update implements SCD_Migration_Interface {
 			if ( false !== $updated ) {
 				// Log the migration
 				if ( function_exists( 'scd_log_info' ) ) {
-					scd_log_info( 'Migration 002: Updated campaign timezones', array(
-						'campaigns_updated' => $updated,
-						'timezone' => $canonical_timezone,
-					) );
+					scd_log_info(
+						'Migration 002: Updated campaign timezones',
+						array(
+							'campaigns_updated' => $updated,
+							'timezone'          => $canonical_timezone,
+						)
+					);
 				}
 			} else {
 				throw new Exception( 'Failed to update campaign timezones' );

@@ -37,8 +37,8 @@ class SCD_Check_Campaign_Name_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Manager    $campaign_manager    Campaign manager instance.
-	 * @param    SCD_Logger              $logger              Logger instance.
+	 * @param    SCD_Campaign_Manager $campaign_manager    Campaign manager instance.
+	 * @param    SCD_Logger           $logger              Logger instance.
 	 */
 	public function __construct( $campaign_manager = null, $logger = null ) {
 		parent::__construct( $logger );
@@ -59,20 +59,22 @@ class SCD_Check_Campaign_Name_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle the check campaign name request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array                Response data.
 	 */
 	protected function handle( $request ) {
-		$name = $this->sanitize_text( $this->get_param( $request, 'name' ) );
+		$name       = $this->sanitize_text( $this->get_param( $request, 'name' ) );
 		$exclude_id = $this->sanitize_int( $this->get_param( $request, 'exclude_id' ) );
 
 		if ( empty( $name ) ) {
-			return $this->success( array(
-				'exists'      => true,
-				'unique'      => false,
-				'suggestions' => array(),
-				'message'     => __( 'Campaign name is required', 'smart-cycle-discounts' ),
-			) );
+			return $this->success(
+				array(
+					'exists'      => true,
+					'unique'      => false,
+					'suggestions' => array(),
+					'message'     => __( 'Campaign name is required', 'smart-cycle-discounts' ),
+				)
+			);
 		}
 
 		// Get campaign manager service
@@ -90,23 +92,25 @@ class SCD_Check_Campaign_Name_Handler extends SCD_Abstract_Ajax_Handler {
 			$suggestions = $this->generate_suggestions( $name, $exclude_id, $campaign_manager );
 		}
 
-		return $this->success( array(
-			'exists'      => $exists,
-			'unique'      => ! $exists,
-			'suggestions' => $suggestions,
-			'message'     => $exists
-				? __( 'A campaign with this name already exists', 'smart-cycle-discounts' )
-				: __( 'Campaign name is available', 'smart-cycle-discounts' ),
-		) );
+		return $this->success(
+			array(
+				'exists'      => $exists,
+				'unique'      => ! $exists,
+				'suggestions' => $suggestions,
+				'message'     => $exists
+					? __( 'A campaign with this name already exists', 'smart-cycle-discounts' )
+					: __( 'Campaign name is available', 'smart-cycle-discounts' ),
+			)
+		);
 	}
 
 	/**
 	 * Generate name suggestions.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $base_name         Base campaign name.
-	 * @param    int       $exclude_id        ID to exclude.
-	 * @param    mixed     $campaign_manager  Campaign manager instance.
+	 * @param    string $base_name         Base campaign name.
+	 * @param    int    $exclude_id        ID to exclude.
+	 * @param    mixed  $campaign_manager  Campaign manager instance.
 	 * @return   array                        Array of suggestions.
 	 */
 	private function generate_suggestions( $base_name, $exclude_id, $campaign_manager ) {

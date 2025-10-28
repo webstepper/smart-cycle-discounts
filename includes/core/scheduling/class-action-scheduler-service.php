@@ -53,7 +53,7 @@ class SCD_Action_Scheduler_Service {
 	 * Initialize the service.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger|null    $logger    Logger instance.
+	 * @param    SCD_Logger|null $logger    Logger instance.
 	 */
 	public function __construct( ?SCD_Logger $logger = null ) {
 		$this->logger = $logger;
@@ -73,18 +73,21 @@ class SCD_Action_Scheduler_Service {
 	 * Schedule a single action to run at a specific time.
 	 *
 	 * @since    1.0.0
-	 * @param    int       $timestamp    Unix timestamp when action should run.
-	 * @param    string    $hook         Action hook name.
-	 * @param    array     $args         Arguments to pass to the action.
-	 * @param    string    $group        Optional. Action group (defaults to plugin group).
+	 * @param    int    $timestamp    Unix timestamp when action should run.
+	 * @param    string $hook         Action hook name.
+	 * @param    array  $args         Arguments to pass to the action.
+	 * @param    string $group        Optional. Action group (defaults to plugin group).
 	 * @return   int|bool                Action ID on success, false on failure.
 	 */
 	public function schedule_single_action( int $timestamp, string $hook, array $args = array(), string $group = '' ): int|bool {
 		if ( ! $this->is_available() ) {
 			if ( $this->logger ) {
-				$this->logger->error( 'ActionScheduler not available', array(
-					'hook' => $hook,
-				) );
+				$this->logger->error(
+					'ActionScheduler not available',
+					array(
+						'hook' => $hook,
+					)
+				);
 			}
 			return false;
 		}
@@ -95,10 +98,13 @@ class SCD_Action_Scheduler_Service {
 			// Check if action already scheduled
 			if ( $this->is_action_scheduled( $hook, $args, $group ) ) {
 				if ( $this->logger ) {
-					$this->logger->debug( 'Action already scheduled', array(
-						'hook'      => $hook,
-						'timestamp' => gmdate( 'Y-m-d H:i:s', $timestamp ),
-					) );
+					$this->logger->debug(
+						'Action already scheduled',
+						array(
+							'hook'      => $hook,
+							'timestamp' => gmdate( 'Y-m-d H:i:s', $timestamp ),
+						)
+					);
 				}
 				return false;
 			}
@@ -106,22 +112,28 @@ class SCD_Action_Scheduler_Service {
 			$action_id = as_schedule_single_action( $timestamp, $hook, $args, $group );
 
 			if ( $this->logger ) {
-				$this->logger->info( 'Scheduled single action', array(
-					'action_id' => $action_id,
-					'hook'      => $hook,
-					'timestamp' => gmdate( 'Y-m-d H:i:s', $timestamp ),
-					'args'      => $args,
-				) );
+				$this->logger->info(
+					'Scheduled single action',
+					array(
+						'action_id' => $action_id,
+						'hook'      => $hook,
+						'timestamp' => gmdate( 'Y-m-d H:i:s', $timestamp ),
+						'args'      => $args,
+					)
+				);
 			}
 
 			return $action_id;
 
 		} catch ( Exception $e ) {
 			if ( $this->logger ) {
-				$this->logger->error( 'Failed to schedule action', array(
-					'hook'  => $hook,
-					'error' => $e->getMessage(),
-				) );
+				$this->logger->error(
+					'Failed to schedule action',
+					array(
+						'hook'  => $hook,
+						'error' => $e->getMessage(),
+					)
+				);
 			}
 			return false;
 		}
@@ -131,19 +143,22 @@ class SCD_Action_Scheduler_Service {
 	 * Schedule a recurring action.
 	 *
 	 * @since    1.0.0
-	 * @param    int       $timestamp    Unix timestamp for first occurrence.
-	 * @param    int       $interval     Interval in seconds between occurrences.
-	 * @param    string    $hook         Action hook name.
-	 * @param    array     $args         Arguments to pass to the action.
-	 * @param    string    $group        Optional. Action group (defaults to plugin group).
+	 * @param    int    $timestamp    Unix timestamp for first occurrence.
+	 * @param    int    $interval     Interval in seconds between occurrences.
+	 * @param    string $hook         Action hook name.
+	 * @param    array  $args         Arguments to pass to the action.
+	 * @param    string $group        Optional. Action group (defaults to plugin group).
 	 * @return   int|bool                Action ID on success, false on failure.
 	 */
 	public function schedule_recurring_action( int $timestamp, int $interval, string $hook, array $args = array(), string $group = '' ): int|bool {
 		if ( ! $this->is_available() ) {
 			if ( $this->logger ) {
-				$this->logger->error( 'ActionScheduler not available', array(
-					'hook' => $hook,
-				) );
+				$this->logger->error(
+					'ActionScheduler not available',
+					array(
+						'hook' => $hook,
+					)
+				);
 			}
 			return false;
 		}
@@ -154,10 +169,13 @@ class SCD_Action_Scheduler_Service {
 			// Check if action already scheduled
 			if ( $this->is_action_scheduled( $hook, $args, $group ) ) {
 				if ( $this->logger ) {
-					$this->logger->debug( 'Recurring action already scheduled', array(
-						'hook'     => $hook,
-						'interval' => $interval,
-					) );
+					$this->logger->debug(
+						'Recurring action already scheduled',
+						array(
+							'hook'     => $hook,
+							'interval' => $interval,
+						)
+					);
 				}
 				return false;
 			}
@@ -165,23 +183,29 @@ class SCD_Action_Scheduler_Service {
 			$action_id = as_schedule_recurring_action( $timestamp, $interval, $hook, $args, $group );
 
 			if ( $this->logger ) {
-				$this->logger->info( 'Scheduled recurring action', array(
-					'action_id' => $action_id,
-					'hook'      => $hook,
-					'timestamp' => gmdate( 'Y-m-d H:i:s', $timestamp ),
-					'interval'  => $interval,
-					'args'      => $args,
-				) );
+				$this->logger->info(
+					'Scheduled recurring action',
+					array(
+						'action_id' => $action_id,
+						'hook'      => $hook,
+						'timestamp' => gmdate( 'Y-m-d H:i:s', $timestamp ),
+						'interval'  => $interval,
+						'args'      => $args,
+					)
+				);
 			}
 
 			return $action_id;
 
 		} catch ( Exception $e ) {
 			if ( $this->logger ) {
-				$this->logger->error( 'Failed to schedule recurring action', array(
-					'hook'  => $hook,
-					'error' => $e->getMessage(),
-				) );
+				$this->logger->error(
+					'Failed to schedule recurring action',
+					array(
+						'hook'  => $hook,
+						'error' => $e->getMessage(),
+					)
+				);
 			}
 			return false;
 		}
@@ -191,11 +215,11 @@ class SCD_Action_Scheduler_Service {
 	 * Schedule a cron action (recurring with cron expression support).
 	 *
 	 * @since    1.0.0
-	 * @param    int       $timestamp    Unix timestamp for first occurrence.
-	 * @param    string    $schedule     Cron schedule name (hourly, daily, etc.).
-	 * @param    string    $hook         Action hook name.
-	 * @param    array     $args         Arguments to pass to the action.
-	 * @param    string    $group        Optional. Action group (defaults to plugin group).
+	 * @param    int    $timestamp    Unix timestamp for first occurrence.
+	 * @param    string $schedule     Cron schedule name (hourly, daily, etc.).
+	 * @param    string $hook         Action hook name.
+	 * @param    array  $args         Arguments to pass to the action.
+	 * @param    string $group        Optional. Action group (defaults to plugin group).
 	 * @return   int|bool                Action ID on success, false on failure.
 	 */
 	public function schedule_cron_action( int $timestamp, string $schedule, string $hook, array $args = array(), string $group = '' ): int|bool {
@@ -214,22 +238,28 @@ class SCD_Action_Scheduler_Service {
 			$action_id = as_schedule_cron_action( $timestamp, $schedule, $hook, $args, $group );
 
 			if ( $this->logger ) {
-				$this->logger->info( 'Scheduled cron action', array(
-					'action_id' => $action_id,
-					'hook'      => $hook,
-					'schedule'  => $schedule,
-					'args'      => $args,
-				) );
+				$this->logger->info(
+					'Scheduled cron action',
+					array(
+						'action_id' => $action_id,
+						'hook'      => $hook,
+						'schedule'  => $schedule,
+						'args'      => $args,
+					)
+				);
 			}
 
 			return $action_id;
 
 		} catch ( Exception $e ) {
 			if ( $this->logger ) {
-				$this->logger->error( 'Failed to schedule cron action', array(
-					'hook'  => $hook,
-					'error' => $e->getMessage(),
-				) );
+				$this->logger->error(
+					'Failed to schedule cron action',
+					array(
+						'hook'  => $hook,
+						'error' => $e->getMessage(),
+					)
+				);
 			}
 			return false;
 		}
@@ -239,9 +269,9 @@ class SCD_Action_Scheduler_Service {
 	 * Check if an action is scheduled.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $hook     Action hook name.
-	 * @param    array     $args     Arguments to check.
-	 * @param    string    $group    Optional. Action group.
+	 * @param    string $hook     Action hook name.
+	 * @param    array  $args     Arguments to check.
+	 * @param    string $group    Optional. Action group.
 	 * @return   bool                True if action is scheduled.
 	 */
 	public function is_action_scheduled( string $hook, array $args = array(), string $group = '' ): bool {
@@ -258,9 +288,9 @@ class SCD_Action_Scheduler_Service {
 	 * Get next scheduled time for an action.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $hook     Action hook name.
-	 * @param    array     $args     Arguments to check.
-	 * @param    string    $group    Optional. Action group.
+	 * @param    string $hook     Action hook name.
+	 * @param    array  $args     Arguments to check.
+	 * @param    string $group    Optional. Action group.
 	 * @return   int|bool            Unix timestamp or false if not scheduled.
 	 */
 	public function get_next_scheduled_action( string $hook, array $args = array(), string $group = '' ): int|bool {
@@ -285,9 +315,9 @@ class SCD_Action_Scheduler_Service {
 	 * Unschedule a specific action.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $hook     Action hook name.
-	 * @param    array     $args     Arguments to match.
-	 * @param    string    $group    Optional. Action group.
+	 * @param    string $hook     Action hook name.
+	 * @param    array  $args     Arguments to match.
+	 * @param    string $group    Optional. Action group.
 	 * @return   int|bool            Number of actions unscheduled, or false on failure.
 	 */
 	public function unschedule_action( string $hook, array $args = array(), string $group = '' ): int|bool {
@@ -307,21 +337,27 @@ class SCD_Action_Scheduler_Service {
 			}
 
 			if ( $this->logger && $unscheduled ) {
-				$this->logger->info( 'Unscheduled action', array(
-					'hook'        => $hook,
-					'args'        => $args,
-					'unscheduled' => $unscheduled,
-				) );
+				$this->logger->info(
+					'Unscheduled action',
+					array(
+						'hook'        => $hook,
+						'args'        => $args,
+						'unscheduled' => $unscheduled,
+					)
+				);
 			}
 
 			return $unscheduled;
 
 		} catch ( Exception $e ) {
 			if ( $this->logger ) {
-				$this->logger->error( 'Failed to unschedule action', array(
-					'hook'  => $hook,
-					'error' => $e->getMessage(),
-				) );
+				$this->logger->error(
+					'Failed to unschedule action',
+					array(
+						'hook'  => $hook,
+						'error' => $e->getMessage(),
+					)
+				);
 			}
 			return false;
 		}
@@ -331,8 +367,8 @@ class SCD_Action_Scheduler_Service {
 	 * Unschedule all actions for a hook.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $hook     Action hook name.
-	 * @param    string    $group    Optional. Action group.
+	 * @param    string $hook     Action hook name.
+	 * @param    string $group    Optional. Action group.
 	 * @return   int|bool            Number of actions unscheduled, or false on failure.
 	 */
 	public function unschedule_all_actions( string $hook, string $group = '' ): int|bool {
@@ -352,20 +388,26 @@ class SCD_Action_Scheduler_Service {
 			}
 
 			if ( $this->logger ) {
-				$this->logger->info( 'Unscheduled all actions for hook', array(
-					'hook'        => $hook,
-					'unscheduled' => $unscheduled,
-				) );
+				$this->logger->info(
+					'Unscheduled all actions for hook',
+					array(
+						'hook'        => $hook,
+						'unscheduled' => $unscheduled,
+					)
+				);
 			}
 
 			return $unscheduled;
 
 		} catch ( Exception $e ) {
 			if ( $this->logger ) {
-				$this->logger->error( 'Failed to unschedule all actions', array(
-					'hook'  => $hook,
-					'error' => $e->getMessage(),
-				) );
+				$this->logger->error(
+					'Failed to unschedule all actions',
+					array(
+						'hook'  => $hook,
+						'error' => $e->getMessage(),
+					)
+				);
 			}
 			return false;
 		}
@@ -375,8 +417,8 @@ class SCD_Action_Scheduler_Service {
 	 * Get all pending actions for a hook.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $hook     Action hook name.
-	 * @param    string    $group    Optional. Action group.
+	 * @param    string $hook     Action hook name.
+	 * @param    string $group    Optional. Action group.
 	 * @return   array               Array of action IDs.
 	 */
 	public function get_pending_actions( string $hook, string $group = '' ): array {
@@ -426,23 +468,29 @@ class SCD_Action_Scheduler_Service {
 			if ( is_array( $actions ) && ! empty( $actions ) ) {
 				foreach ( $actions as $action_id ) {
 					as_unschedule_action( '', array(), $this->action_group );
-					$cancelled++;
+					++$cancelled;
 				}
 			}
 
 			if ( $this->logger ) {
-				$this->logger->info( 'Cancelled all plugin actions', array(
-					'cancelled' => $cancelled,
-				) );
+				$this->logger->info(
+					'Cancelled all plugin actions',
+					array(
+						'cancelled' => $cancelled,
+					)
+				);
 			}
 
 			return $cancelled;
 
 		} catch ( Exception $e ) {
 			if ( $this->logger ) {
-				$this->logger->error( 'Failed to cancel plugin actions', array(
-					'error' => $e->getMessage(),
-				) );
+				$this->logger->error(
+					'Failed to cancel plugin actions',
+					array(
+						'error' => $e->getMessage(),
+					)
+				);
 			}
 			return 0;
 		}

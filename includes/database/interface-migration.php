@@ -28,19 +28,19 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 interface SCD_Migration_Interface {
 
-    /**
-     * Run the migration.
-     *
-     * @since    1.0.0
-     * @return   void
-     */
-    public function up(): void;
+	/**
+	 * Run the migration.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	public function up(): void;
 
-    /**
-     * Reverse the migration.
-     *
-     * @since    1.0.0
-     * @return   void
-     */
-    public function down(): void;
+	/**
+	 * Reverse the migration.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	public function down(): void;
 }

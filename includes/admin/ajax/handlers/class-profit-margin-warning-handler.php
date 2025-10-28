@@ -36,7 +36,7 @@ class SCD_Profit_Margin_Warning_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger    $logger    Logger instance (optional).
+	 * @param    SCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -56,7 +56,7 @@ class SCD_Profit_Margin_Warning_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle the profit margin warning request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
@@ -66,10 +66,12 @@ class SCD_Profit_Margin_Warning_Handler extends SCD_Abstract_Ajax_Handler {
 		if ( is_wp_error( $wizard_state ) ) {
 			// Handle specific error codes
 			if ( 'no_discount_configured' === $wizard_state->get_error_code() ) {
-				return $this->success( array(
-					'has_data' => false,
-					'message'  => $wizard_state->get_error_message(),
-				) );
+				return $this->success(
+					array(
+						'has_data' => false,
+						'message'  => $wizard_state->get_error_message(),
+					)
+				);
 			}
 			return $this->error(
 				$wizard_state->get_error_message(),
@@ -79,14 +81,16 @@ class SCD_Profit_Margin_Warning_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		// Extract validated data
-		$product_ids = $wizard_state['product_ids'];
+		$product_ids    = $wizard_state['product_ids'];
 		$discounts_data = $wizard_state['discounts_data'];
 
 		if ( empty( $product_ids ) ) {
-			return $this->success( array(
-				'has_data' => false,
-				'message' => __( 'Select products to see margin analysis', 'smart-cycle-discounts' )
-			) );
+			return $this->success(
+				array(
+					'has_data' => false,
+					'message'  => __( 'Select products to see margin analysis', 'smart-cycle-discounts' ),
+				)
+			);
 		}
 
 		// Analyze margins
@@ -100,17 +104,17 @@ class SCD_Profit_Margin_Warning_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $product_ids      Product IDs.
-	 * @param    array    $discounts_data   Discount configuration.
+	 * @param    array $product_ids      Product IDs.
+	 * @param    array $discounts_data   Discount configuration.
 	 * @return   array                      Margin analysis data.
 	 */
 	private function _analyze_margins( $product_ids, $discounts_data ) {
-		$discount_type = $discounts_data['discount_type'];
+		$discount_type  = $discounts_data['discount_type'];
 		$discount_value = isset( $discounts_data['discount_value'] ) ? floatval( $discounts_data['discount_value'] ) : 0;
 
-		$below_cost_products = array();
-		$total_estimated_loss = 0;
-		$products_with_cost = 0;
+		$below_cost_products   = array();
+		$total_estimated_loss  = 0;
+		$products_with_cost    = 0;
 		$products_without_cost = 0;
 
 		foreach ( $product_ids as $product_id ) {
@@ -134,9 +138,9 @@ class SCD_Profit_Margin_Warning_Handler extends SCD_Abstract_Ajax_Handler {
 
 			// Track products with/without cost
 			if ( $cost > 0 ) {
-				$products_with_cost++;
+				++$products_with_cost;
 			} else {
-				$products_without_cost++;
+				++$products_without_cost;
 				continue; // Skip products without cost data
 			}
 
@@ -145,14 +149,14 @@ class SCD_Profit_Margin_Warning_Handler extends SCD_Abstract_Ajax_Handler {
 
 			// Check if below cost
 			if ( $discounted_price < $cost ) {
-				$loss_per_unit = $cost - $discounted_price;
+				$loss_per_unit         = $cost - $discounted_price;
 				$below_cost_products[] = array(
-					'id' => $product_id,
-					'name' => $product->get_name(),
-					'cost' => $cost,
-					'regular_price' => $regular_price,
+					'id'               => $product_id,
+					'name'             => $product->get_name(),
+					'cost'             => $cost,
+					'regular_price'    => $regular_price,
 					'discounted_price' => $discounted_price,
-					'loss_per_unit' => $loss_per_unit
+					'loss_per_unit'    => $loss_per_unit,
 				);
 				$total_estimated_loss += $loss_per_unit;
 			}
@@ -161,14 +165,14 @@ class SCD_Profit_Margin_Warning_Handler extends SCD_Abstract_Ajax_Handler {
 		$has_warnings = ! empty( $below_cost_products );
 
 		return array(
-			'has_data' => true,
-			'has_warnings' => $has_warnings,
-			'products_with_cost' => $products_with_cost,
+			'has_data'              => true,
+			'has_warnings'          => $has_warnings,
+			'products_with_cost'    => $products_with_cost,
 			'products_without_cost' => $products_without_cost,
-			'below_cost_count' => count( $below_cost_products ),
-			'below_cost_products' => array_slice( $below_cost_products, 0, 5 ), // Sample first 5
-			'total_estimated_loss' => $total_estimated_loss,
-			'warning_message' => $has_warnings ? $this->_get_warning_message( count( $below_cost_products ), $total_estimated_loss ) : null
+			'below_cost_count'      => count( $below_cost_products ),
+			'below_cost_products'   => array_slice( $below_cost_products, 0, 5 ), // Sample first 5
+			'total_estimated_loss'  => $total_estimated_loss,
+			'warning_message'       => $has_warnings ? $this->_get_warning_message( count( $below_cost_products ), $total_estimated_loss ) : null,
 		);
 	}
 
@@ -177,7 +181,7 @@ class SCD_Profit_Margin_Warning_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    WC_Product    $product    Product object.
+	 * @param    WC_Product $product    Product object.
 	 * @return   float                     Product cost.
 	 */
 	private function _get_product_cost( $product ) {
@@ -193,7 +197,7 @@ class SCD_Profit_Margin_Warning_Handler extends SCD_Abstract_Ajax_Handler {
 			'_cost',
 			'_product_cost',
 			'cost',
-			'product_cost'
+			'product_cost',
 		);
 
 		foreach ( $cost_meta_keys as $meta_key ) {
@@ -211,8 +215,8 @@ class SCD_Profit_Margin_Warning_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    int       $count    Count of products below cost.
-	 * @param    float     $loss     Total estimated loss.
+	 * @param    int   $count    Count of products below cost.
+	 * @param    float $loss     Total estimated loss.
 	 * @return   string              Warning message.
 	 */
 	private function _get_warning_message( $count, $loss ) {

@@ -60,7 +60,7 @@ class SCD_Upgrade_Prompt_Manager {
 	 * Initialize the manager.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Feature_Gate    $feature_gate    Feature gate service.
+	 * @param    SCD_Feature_Gate $feature_gate    Feature gate service.
 	 */
 	public function __construct( SCD_Feature_Gate $feature_gate ) {
 		$this->feature_gate = $feature_gate;
@@ -89,9 +89,9 @@ class SCD_Upgrade_Prompt_Manager {
 
 		// Default promotional settings
 		$defaults = array(
-			'promotion' => true,
+			'promotion'     => true,
 			'discount_text' => __( 'Save 30%', 'smart-cycle-discounts' ),
-			'urgency_text' => __( 'Limited Time Offer - Ends Soon!', 'smart-cycle-discounts' ),
+			'urgency_text'  => __( 'Limited Time Offer - Ends Soon!', 'smart-cycle-discounts' ),
 		);
 
 		// Allow customization via filter
@@ -102,7 +102,7 @@ class SCD_Upgrade_Prompt_Manager {
 	 * Check if a banner has been dismissed by the user.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $banner_id    Banner identifier.
+	 * @param    string $banner_id    Banner identifier.
 	 * @return   bool                    True if dismissed.
 	 */
 	public function is_banner_dismissed( $banner_id = 'dashboard_analytics' ) {
@@ -111,8 +111,8 @@ class SCD_Upgrade_Prompt_Manager {
 		// If dismissed, check if enough time has passed to show again (30 days)
 		if ( $dismissed ) {
 			$dismissed_time = absint( $dismissed );
-			$time_elapsed = time() - $dismissed_time;
-			$reshow_after = 30 * DAY_IN_SECONDS; // 30 days
+			$time_elapsed   = time() - $dismissed_time;
+			$reshow_after   = 30 * DAY_IN_SECONDS; // 30 days
 
 			// If 30 days have passed, reset the dismissal
 			if ( $time_elapsed >= $reshow_after ) {
@@ -138,9 +138,11 @@ class SCD_Upgrade_Prompt_Manager {
 
 		// Capability check
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_send_json_error( array(
-				'message' => __( 'Insufficient permissions', 'smart-cycle-discounts' ),
-			) );
+			wp_send_json_error(
+				array(
+					'message' => __( 'Insufficient permissions', 'smart-cycle-discounts' ),
+				)
+			);
 		}
 
 		// Sanitize banner ID
@@ -149,9 +151,11 @@ class SCD_Upgrade_Prompt_Manager {
 		// Store dismissal with timestamp
 		update_user_meta( get_current_user_id(), 'scd_dismissed_upgrade_banner_' . $banner_id, time() );
 
-		wp_send_json_success( array(
-			'message' => __( 'Banner dismissed successfully', 'smart-cycle-discounts' ),
-		) );
+		wp_send_json_success(
+			array(
+				'message' => __( 'Banner dismissed successfully', 'smart-cycle-discounts' ),
+			)
+		);
 	}
 
 	/**
@@ -180,7 +184,7 @@ class SCD_Upgrade_Prompt_Manager {
 	 */
 	private function get_prompt_count() {
 		$transient_key = $this->transient_prefix . get_current_user_id();
-		$count = get_transient( $transient_key );
+		$count         = get_transient( $transient_key );
 
 		return $count ? absint( $count ) : 0;
 	}
@@ -193,7 +197,7 @@ class SCD_Upgrade_Prompt_Manager {
 	 */
 	private function increment_prompt_count() {
 		$transient_key = $this->transient_prefix . get_current_user_id();
-		$current = $this->get_prompt_count();
+		$current       = $this->get_prompt_count();
 
 		// Set transient for 24 hours
 		set_transient( $transient_key, $current + 1, DAY_IN_SECONDS );
@@ -203,7 +207,7 @@ class SCD_Upgrade_Prompt_Manager {
 	 * Record that a prompt was shown.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $context    Context where prompt was shown.
+	 * @param    string $context    Context where prompt was shown.
 	 * @return   void
 	 */
 	public function record_prompt_shown( $context = '' ) {
@@ -211,10 +215,13 @@ class SCD_Upgrade_Prompt_Manager {
 
 		// Log the event for analytics
 		if ( function_exists( 'scd_log_info' ) ) {
-			scd_log_info( 'Upgrade prompt shown', array(
-				'context' => $context,
-				'daily_count' => $this->get_prompt_count(),
-			) );
+			scd_log_info(
+				'Upgrade prompt shown',
+				array(
+					'context'     => $context,
+					'daily_count' => $this->get_prompt_count(),
+				)
+			);
 		}
 	}
 
@@ -222,9 +229,9 @@ class SCD_Upgrade_Prompt_Manager {
 	 * Get upgrade prompt HTML for a specific context.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $feature_name    Feature name to upgrade for.
-	 * @param    string    $context         Context ('inline', 'banner', 'modal', 'overlay').
-	 * @param    array     $args            Additional arguments.
+	 * @param    string $feature_name    Feature name to upgrade for.
+	 * @param    string $context         Context ('inline', 'banner', 'modal', 'overlay').
+	 * @param    array  $args            Additional arguments.
 	 * @return   string                     HTML for upgrade prompt.
 	 */
 	public function get_upgrade_prompt( $feature_name, $context = 'inline', $args = array() ) {
@@ -274,8 +281,8 @@ class SCD_Upgrade_Prompt_Manager {
 	 * Get banner-style upgrade prompt (compact notification style).
 	 *
 	 * @since    1.0.0
-	 * @param    string    $feature_name    Feature name.
-	 * @param    array     $args            Additional arguments.
+	 * @param    string $feature_name    Feature name.
+	 * @param    array  $args            Additional arguments.
 	 * @return   string                     Banner HTML.
 	 */
 	private function get_banner_prompt( $feature_name, $args = array() ) {
@@ -286,7 +293,7 @@ class SCD_Upgrade_Prompt_Manager {
 		}
 
 		$upgrade_url = $this->feature_gate->get_upgrade_url();
-		$trial_url = $this->feature_gate->get_trial_url();
+		$trial_url   = $this->feature_gate->get_trial_url();
 
 		$title = isset( $args['title'] ) ? esc_html( $args['title'] ) : sprintf(
 			/* translators: %s: feature name */
@@ -345,8 +352,8 @@ class SCD_Upgrade_Prompt_Manager {
 	 * Get inline upgrade prompt.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $feature_name    Feature name.
-	 * @param    array     $args            Additional arguments.
+	 * @param    string $feature_name    Feature name.
+	 * @param    array  $args            Additional arguments.
 	 * @return   string                     Inline prompt HTML.
 	 */
 	private function get_inline_prompt( $feature_name, $args = array() ) {
@@ -375,13 +382,13 @@ class SCD_Upgrade_Prompt_Manager {
 	 * Get modal upgrade prompt.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $feature_name    Feature name.
-	 * @param    array     $args            Additional arguments.
+	 * @param    string $feature_name    Feature name.
+	 * @param    array  $args            Additional arguments.
 	 * @return   string                     Modal HTML.
 	 */
 	private function get_modal_prompt( $feature_name, $args = array() ) {
 		$upgrade_url = $this->feature_gate->get_upgrade_url();
-		$trial_url = $this->feature_gate->get_trial_url();
+		$trial_url   = $this->feature_gate->get_trial_url();
 
 		$title = isset( $args['title'] ) ? esc_html( $args['title'] ) : sprintf(
 			/* translators: %s: feature name */
@@ -425,8 +432,8 @@ class SCD_Upgrade_Prompt_Manager {
 	 * Get overlay upgrade prompt (for blurred content).
 	 *
 	 * @since    1.0.0
-	 * @param    string    $feature_name    Feature name.
-	 * @param    array     $args            Additional arguments.
+	 * @param    string $feature_name    Feature name.
+	 * @param    array  $args            Additional arguments.
 	 * @return   string                     Overlay HTML.
 	 */
 	private function get_overlay_prompt( $feature_name, $args = array() ) {

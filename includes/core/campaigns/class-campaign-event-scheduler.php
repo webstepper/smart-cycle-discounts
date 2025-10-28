@@ -62,14 +62,14 @@ class SCD_Campaign_Event_Scheduler {
 	 * Initialize the event scheduler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Manager            $campaign_manager    Campaign Manager instance.
-	 * @param    SCD_Action_Scheduler_Service    $scheduler           ActionScheduler service.
-	 * @param    SCD_Logger|null                 $logger              Logger instance.
+	 * @param    SCD_Campaign_Manager         $campaign_manager    Campaign Manager instance.
+	 * @param    SCD_Action_Scheduler_Service $scheduler           ActionScheduler service.
+	 * @param    SCD_Logger|null              $logger              Logger instance.
 	 */
 	public function __construct( SCD_Campaign_Manager $campaign_manager, SCD_Action_Scheduler_Service $scheduler, ?SCD_Logger $logger = null ) {
 		$this->campaign_manager = $campaign_manager;
-		$this->scheduler = $scheduler;
-		$this->logger = $logger;
+		$this->scheduler        = $scheduler;
+		$this->logger           = $logger;
 	}
 
 	/**
@@ -78,7 +78,7 @@ class SCD_Campaign_Event_Scheduler {
 	 * Creates one-time WordPress cron events for campaign activation and deactivation.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $campaign_id    Campaign ID.
+	 * @param    int $campaign_id    Campaign ID.
 	 * @return   bool                   True on success, false on failure.
 	 */
 	public function schedule_campaign_events( int $campaign_id ): bool {
@@ -118,10 +118,13 @@ class SCD_Campaign_Event_Scheduler {
 
 		} catch ( Exception $e ) {
 			if ( $this->logger ) {
-				$this->logger->error( 'Failed to schedule campaign events', array(
-					'campaign_id' => $campaign_id,
-					'error'       => $e->getMessage(),
-				) );
+				$this->logger->error(
+					'Failed to schedule campaign events',
+					array(
+						'campaign_id' => $campaign_id,
+						'error'       => $e->getMessage(),
+					)
+				);
 			}
 			return false;
 		}
@@ -132,12 +135,12 @@ class SCD_Campaign_Event_Scheduler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    int         $campaign_id    Campaign ID.
-	 * @param    DateTime    $starts_at      Start datetime (UTC).
+	 * @param    int      $campaign_id    Campaign ID.
+	 * @param    DateTime $starts_at      Start datetime (UTC).
 	 * @return   bool                        True on success, false on failure.
 	 */
 	private function schedule_activation_event( int $campaign_id, DateTime $starts_at ): bool {
-		$hook = 'scd_activate_campaign';
+		$hook      = 'scd_activate_campaign';
 		$timestamp = $starts_at->getTimestamp();
 
 		// Only schedule if in the future (compare in UTC)
@@ -153,11 +156,14 @@ class SCD_Campaign_Event_Scheduler {
 		);
 
 		if ( false !== $result && $this->logger ) {
-			$this->logger->info( 'Scheduled campaign activation action', array(
-				'campaign_id' => $campaign_id,
-				'action_id'   => $result,
-				'timestamp'   => $starts_at->format( 'Y-m-d H:i:s' ) . ' UTC',
-			) );
+			$this->logger->info(
+				'Scheduled campaign activation action',
+				array(
+					'campaign_id' => $campaign_id,
+					'action_id'   => $result,
+					'timestamp'   => $starts_at->format( 'Y-m-d H:i:s' ) . ' UTC',
+				)
+			);
 		}
 
 		return false !== $result;
@@ -168,12 +174,12 @@ class SCD_Campaign_Event_Scheduler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    int         $campaign_id    Campaign ID.
-	 * @param    DateTime    $ends_at        End datetime (UTC).
+	 * @param    int      $campaign_id    Campaign ID.
+	 * @param    DateTime $ends_at        End datetime (UTC).
 	 * @return   bool                        True on success, false on failure.
 	 */
 	private function schedule_deactivation_event( int $campaign_id, DateTime $ends_at ): bool {
-		$hook = 'scd_deactivate_campaign';
+		$hook      = 'scd_deactivate_campaign';
 		$timestamp = $ends_at->getTimestamp();
 
 		// Only schedule if in the future (compare in UTC)
@@ -189,11 +195,14 @@ class SCD_Campaign_Event_Scheduler {
 		);
 
 		if ( false !== $result && $this->logger ) {
-			$this->logger->info( 'Scheduled campaign deactivation action', array(
-				'campaign_id' => $campaign_id,
-				'action_id'   => $result,
-				'timestamp'   => $ends_at->format( 'Y-m-d H:i:s' ) . ' UTC',
-			) );
+			$this->logger->info(
+				'Scheduled campaign deactivation action',
+				array(
+					'campaign_id' => $campaign_id,
+					'action_id'   => $result,
+					'timestamp'   => $ends_at->format( 'Y-m-d H:i:s' ) . ' UTC',
+				)
+			);
 		}
 
 		return false !== $result;
@@ -203,7 +212,7 @@ class SCD_Campaign_Event_Scheduler {
 	 * Clear all scheduled events for a campaign.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $campaign_id    Campaign ID.
+	 * @param    int $campaign_id    Campaign ID.
 	 * @return   void
 	 */
 	public function clear_campaign_events( int $campaign_id ): void {
@@ -226,41 +235,50 @@ class SCD_Campaign_Event_Scheduler {
 	 * Called by ActionScheduler at exact scheduled time.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $campaign_id    Campaign ID.
+	 * @param    int $campaign_id    Campaign ID.
 	 * @return   void
 	 */
 	public function handle_activation_event( int $campaign_id ): void {
 		try {
 			if ( $this->logger ) {
-				$this->logger->info( 'Processing scheduled campaign activation', array(
-					'campaign_id' => $campaign_id,
-					'time'        => gmdate( 'Y-m-d H:i:s' ),
-				) );
+				$this->logger->info(
+					'Processing scheduled campaign activation',
+					array(
+						'campaign_id' => $campaign_id,
+						'time'        => gmdate( 'Y-m-d H:i:s' ),
+					)
+				);
 			}
 
 			$result = $this->campaign_manager->activate( $campaign_id );
 
 			if ( is_wp_error( $result ) ) {
 				if ( $this->logger ) {
-					$this->logger->error( 'Failed to activate campaign', array(
-						'campaign_id' => $campaign_id,
-						'error'       => $result->get_error_message(),
-					) );
+					$this->logger->error(
+						'Failed to activate campaign',
+						array(
+							'campaign_id' => $campaign_id,
+							'error'       => $result->get_error_message(),
+						)
+					);
 				}
-			} else {
-				if ( $this->logger ) {
-					$this->logger->info( 'Campaign activated successfully', array(
-						'campaign_id' => $campaign_id,
-					) );
-				}
+			} elseif ( $this->logger ) {
+					$this->logger->info(
+						'Campaign activated successfully',
+						array(
+							'campaign_id' => $campaign_id,
+						)
+					);
 			}
-
 		} catch ( Exception $e ) {
 			if ( $this->logger ) {
-				$this->logger->error( 'Exception during campaign activation', array(
-					'campaign_id' => $campaign_id,
-					'error'       => $e->getMessage(),
-				) );
+				$this->logger->error(
+					'Exception during campaign activation',
+					array(
+						'campaign_id' => $campaign_id,
+						'error'       => $e->getMessage(),
+					)
+				);
 			}
 		}
 	}
@@ -271,41 +289,50 @@ class SCD_Campaign_Event_Scheduler {
 	 * Called by ActionScheduler at exact scheduled time.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $campaign_id    Campaign ID.
+	 * @param    int $campaign_id    Campaign ID.
 	 * @return   void
 	 */
 	public function handle_deactivation_event( int $campaign_id ): void {
 		try {
 			if ( $this->logger ) {
-				$this->logger->info( 'Processing scheduled campaign deactivation', array(
-					'campaign_id' => $campaign_id,
-					'time'        => gmdate( 'Y-m-d H:i:s' ),
-				) );
+				$this->logger->info(
+					'Processing scheduled campaign deactivation',
+					array(
+						'campaign_id' => $campaign_id,
+						'time'        => gmdate( 'Y-m-d H:i:s' ),
+					)
+				);
 			}
 
 			$result = $this->campaign_manager->expire( $campaign_id );
 
 			if ( is_wp_error( $result ) ) {
 				if ( $this->logger ) {
-					$this->logger->error( 'Failed to deactivate campaign', array(
-						'campaign_id' => $campaign_id,
-						'error'       => $result->get_error_message(),
-					) );
+					$this->logger->error(
+						'Failed to deactivate campaign',
+						array(
+							'campaign_id' => $campaign_id,
+							'error'       => $result->get_error_message(),
+						)
+					);
 				}
-			} else {
-				if ( $this->logger ) {
-					$this->logger->info( 'Campaign deactivated successfully', array(
-						'campaign_id' => $campaign_id,
-					) );
-				}
+			} elseif ( $this->logger ) {
+					$this->logger->info(
+						'Campaign deactivated successfully',
+						array(
+							'campaign_id' => $campaign_id,
+						)
+					);
 			}
-
 		} catch ( Exception $e ) {
 			if ( $this->logger ) {
-				$this->logger->error( 'Exception during campaign deactivation', array(
-					'campaign_id' => $campaign_id,
-					'error'       => $e->getMessage(),
-				) );
+				$this->logger->error(
+					'Exception during campaign deactivation',
+					array(
+						'campaign_id' => $campaign_id,
+						'error'       => $e->getMessage(),
+					)
+				);
 			}
 		}
 	}
@@ -328,19 +355,25 @@ class SCD_Campaign_Event_Scheduler {
 			$results = $this->campaign_manager->process_scheduled_campaigns();
 
 			if ( $this->logger && ( $results['activated'] > 0 || $results['expired'] > 0 ) ) {
-				$this->logger->info( 'Safety check caught missed events', array(
-					'activated' => $results['activated'],
-					'expired'   => $results['expired'],
-				) );
+				$this->logger->info(
+					'Safety check caught missed events',
+					array(
+						'activated' => $results['activated'],
+						'expired'   => $results['expired'],
+					)
+				);
 			}
 
 			return $results;
 
 		} catch ( Exception $e ) {
 			if ( $this->logger ) {
-				$this->logger->error( 'Safety check failed', array(
-					'error' => $e->getMessage(),
-				) );
+				$this->logger->error(
+					'Safety check failed',
+					array(
+						'error' => $e->getMessage(),
+					)
+				);
 			}
 
 			return array(

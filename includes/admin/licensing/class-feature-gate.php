@@ -38,54 +38,54 @@ class SCD_Feature_Gate {
 	 */
 	private $features = array(
 		// Dashboard features
-		'dashboard_advanced_stats' => 'pro',
-		'dashboard_custom_date_range' => 'pro',
-		'dashboard_export' => 'pro',
+		'dashboard_advanced_stats'           => 'pro',
+		'dashboard_custom_date_range'        => 'pro',
+		'dashboard_export'                   => 'pro',
 
 		// Analytics features
-		'analytics_page' => 'pro',
-		'analytics_detailed_metrics' => 'pro',
-		'analytics_traffic_breakdown' => 'pro',
-		'analytics_device_breakdown' => 'pro',
-		'analytics_geographic_data' => 'pro',
-		'analytics_funnel_analysis' => 'pro',
+		'analytics_page'                     => 'pro',
+		'analytics_detailed_metrics'         => 'pro',
+		'analytics_traffic_breakdown'        => 'pro',
+		'analytics_device_breakdown'         => 'pro',
+		'analytics_geographic_data'          => 'pro',
+		'analytics_funnel_analysis'          => 'pro',
 
 		// Campaign features
-		'campaigns_unlimited' => 'pro',
-		'campaigns_advanced_rotation' => 'pro',
-		'campaigns_geographic_restrictions' => 'pro',
-		'campaigns_customer_segments' => 'pro',
+		'campaigns_unlimited'                => 'pro',
+		'campaigns_advanced_rotation'        => 'pro',
+		'campaigns_geographic_restrictions'  => 'pro',
+		'campaigns_customer_segments'        => 'pro',
 		'campaigns_advanced_product_filters' => 'pro',
-		'campaigns_recurring' => 'pro',
+		'campaigns_recurring'                => 'pro',
 
 		// Discount types
-		'discount_type_tiered' => 'pro',
-		'discount_type_bogo' => 'pro',
-		'discount_type_spend_threshold' => 'pro',
+		'discount_type_tiered'               => 'pro',
+		'discount_type_bogo'                 => 'pro',
+		'discount_type_spend_threshold'      => 'pro',
 
 		// Email notification types (FREE = reactive, PRO = proactive)
-		'notification_campaign_started' => 'free',      // Reactive: after start
-		'notification_campaign_ending' => 'pro',        // Proactive: 24h warning
-		'notification_campaign_ended' => 'free',        // Reactive: after end
-		'notification_daily_report' => 'pro',           // Proactive: daily insights
-		'notification_weekly_report' => 'pro',          // Proactive: weekly insights
-		'notification_performance_alert' => 'pro',      // Proactive: smart alerts
-		'notification_low_stock_alert' => 'pro',        // Proactive: stock warnings
-		'notification_milestone_alert' => 'pro',        // Proactive: achievement notifications
+		'notification_campaign_started'      => 'free',      // Reactive: after start
+		'notification_campaign_ending'       => 'pro',        // Proactive: 24h warning
+		'notification_campaign_ended'        => 'free',        // Reactive: after end
+		'notification_daily_report'          => 'pro',           // Proactive: daily insights
+		'notification_weekly_report'         => 'pro',          // Proactive: weekly insights
+		'notification_performance_alert'     => 'pro',      // Proactive: smart alerts
+		'notification_low_stock_alert'       => 'pro',        // Proactive: stock warnings
+		'notification_milestone_alert'       => 'pro',        // Proactive: achievement notifications
 
 		// Email providers (all FREE)
-		'email_provider_wpmail' => 'free',
-		'email_provider_sendgrid' => 'free',
-		'email_provider_amazonses' => 'free',
+		'email_provider_wpmail'              => 'free',
+		'email_provider_sendgrid'            => 'free',
+		'email_provider_amazonses'           => 'free',
 
 		// Export features
-		'export_csv' => 'pro',
-		'export_json' => 'pro',
-		'export_scheduled_reports' => 'pro',
+		'export_csv'                         => 'pro',
+		'export_json'                        => 'pro',
+		'export_scheduled_reports'           => 'pro',
 
 		// Advanced features
-		'api_access' => 'pro',
-		'priority_support' => 'pro',
+		'api_access'                         => 'pro',
+		'priority_support'                   => 'pro',
 	);
 
 	/**
@@ -158,7 +158,7 @@ class SCD_Feature_Gate {
 	 * Check if a feature is available.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $feature_key    Feature identifier.
+	 * @param    string $feature_key    Feature identifier.
 	 * @return   bool                      True if feature is available.
 	 */
 	public function can_use_feature( $feature_key ) {
@@ -187,7 +187,7 @@ class SCD_Feature_Gate {
 	 * Get the required level for a feature.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $feature_key    Feature identifier.
+	 * @param    string $feature_key    Feature identifier.
 	 * @return   string                    Required level ('free' or 'pro').
 	 */
 	public function get_feature_level( $feature_key ) {
@@ -248,7 +248,7 @@ class SCD_Feature_Gate {
 	 * Check if user can use a specific discount type.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $discount_type    Discount type (tiered, bogo, spend_threshold).
+	 * @param    string $discount_type    Discount type (tiered, bogo, spend_threshold).
 	 * @return   bool                        True if user can use this discount type.
 	 */
 	public function can_use_discount_type( $discount_type ) {
@@ -300,7 +300,7 @@ class SCD_Feature_Gate {
 	 * Check if user can create more campaigns.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $current_count    Current campaign count.
+	 * @param    int $current_count    Current campaign count.
 	 * @return   bool                     True if user can create more campaigns.
 	 */
 	public function can_create_campaign( $current_count ) {
@@ -331,9 +331,14 @@ class SCD_Feature_Gate {
 	 * @return   array    Pro feature keys.
 	 */
 	public function get_pro_features() {
-		return array_keys( array_filter( $this->features, function( $level ) {
-			return 'pro' === $level;
-		} ) );
+		return array_keys(
+			array_filter(
+				$this->features,
+				function ( $level ) {
+					return 'pro' === $level;
+				}
+			)
+		);
 	}
 
 	/**
@@ -380,7 +385,7 @@ class SCD_Feature_Gate {
 	 * Check if notification type can be sent.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $notification_type    Notification type (campaign_started, campaign_ending, etc.).
+	 * @param    string $notification_type    Notification type (campaign_started, campaign_ending, etc.).
 	 * @return   bool                            True if notification can be sent.
 	 */
 	public function can_send_notification( $notification_type ) {
@@ -398,7 +403,7 @@ class SCD_Feature_Gate {
 		$notifications = array();
 		foreach ( $this->features as $feature_key => $level ) {
 			if ( strpos( $feature_key, 'notification_' ) === 0 ) {
-				$notification_type = str_replace( 'notification_', '', $feature_key );
+				$notification_type                   = str_replace( 'notification_', '', $feature_key );
 				$notifications[ $notification_type ] = $level;
 			}
 		}

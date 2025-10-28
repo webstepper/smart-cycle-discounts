@@ -29,114 +29,120 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class SCD_Migration_Manager {
 
-    /**
-     * Database manager instance.
-     *
-     * @since    1.0.0
-     * @access   private
-     * @var      SCD_Database_Manager    $db    Database manager.
-     */
-    private SCD_Database_Manager $db;
+	/**
+	 * Database manager instance.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      SCD_Database_Manager    $db    Database manager.
+	 */
+	private SCD_Database_Manager $db;
 
-    /**
-     * Migration directory path.
-     *
-     * @since    1.0.0
-     * @access   private
-     * @var      string    $migration_dir    Migration directory.
-     */
-    private string $migration_dir;
+	/**
+	 * Migration directory path.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      string    $migration_dir    Migration directory.
+	 */
+	private string $migration_dir;
 
-    /**
-     * Available migrations.
-     *
-     * @since    1.0.0
-     * @access   private
-     * @var      array    $migrations    Available migrations.
-     */
-    private array $migrations = array();
+	/**
+	 * Available migrations.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      array    $migrations    Available migrations.
+	 */
+	private array $migrations = array();
 
-    /**
-     * Initialize the migration manager.
-     *
-     * @since    1.0.0
-     * @param    SCD_Database_Manager    $db    Database manager.
-     */
-    public function __construct(SCD_Database_Manager $db) {
-        $this->db = $db;
-        $this->migration_dir = SCD_PLUGIN_DIR . 'includes/database/migrations/';
-        
-        $this->load_migrations();
-        $this->ensure_migrations_table();
-    }
+	/**
+	 * Initialize the migration manager.
+	 *
+	 * @since    1.0.0
+	 * @param    SCD_Database_Manager $db    Database manager.
+	 */
+	public function __construct( SCD_Database_Manager $db ) {
+		$this->db            = $db;
+		$this->migration_dir = SCD_PLUGIN_DIR . 'includes/database/migrations/';
 
-    /**
-     * Load available migrations.
-     *
-     * @since    1.0.0
-     * @access   private
-     * @return   void
-     */
-    private function load_migrations(): void {
-        if (!is_dir($this->migration_dir)) {
-            return;
-        }
+		$this->load_migrations();
+		$this->ensure_migrations_table();
+	}
 
-        $files = glob($this->migration_dir . '*.php');
-        
-        foreach ($files as $file) {
-            $filename = basename($file, '.php');
-            
-            // Extract migration number and name
-            if (preg_match('/^(\d+)-(.+)$/', $filename, $matches)) {
-                $this->migrations[$matches[1]] = array(
-                    'number' => $matches[1],
-                    'name' => $matches[2],
-                    'file' => $file,
-                    'class' => $this->get_migration_class_name($filename)
-                );
-            }
-        }
+	/**
+	 * Load available migrations.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   void
+	 */
+	private function load_migrations(): void {
+		if ( ! is_dir( $this->migration_dir ) ) {
+			return;
+		}
 
-        // Sort by migration number
-        ksort($this->migrations);
-    }
+		$files = glob( $this->migration_dir . '*.php' );
 
-    /**
-     * Get migration class name from filename.
-     *
-     * @since    1.0.0
-     * @access   private
-     * @param    string    $filename    Migration filename.
-     * @return   string                 Class name.
-     */
-    private function get_migration_class_name(string $filename): string {
-        // Convert filename to class name
-        $parts = explode('-', $filename);
-        $class_parts = array_map('ucfirst', array_map(function($part) {
-            return str_replace('_', ' ', $part);
-        }, $parts));
-        
-        return 'SCD_Migration_' . str_replace(' ', '_', implode('_', $class_parts));
-    }
+		foreach ( $files as $file ) {
+			$filename = basename( $file, '.php' );
 
-    /**
-     * Ensure migrations table exists.
-     *
-     * @since    1.0.0
-     * @access   private
-     * @return   void
-     */
-    private function ensure_migrations_table(): void {
-        if ($this->db->table_exists('migrations')) {
-            return;
-        }
+			// Extract migration number and name
+			if ( preg_match( '/^(\d+)-(.+)$/', $filename, $matches ) ) {
+				$this->migrations[ $matches[1] ] = array(
+					'number' => $matches[1],
+					'name'   => $matches[2],
+					'file'   => $file,
+					'class'  => $this->get_migration_class_name( $filename ),
+				);
+			}
+		}
 
-        $table_name = $this->db->get_table_name('migrations');
-        $charset_collate = $this->db->get_charset_collate();
+		// Sort by migration number
+		ksort( $this->migrations );
+	}
 
-        // Use raw SQL instead of dbDelta for reliability
-        $sql = "CREATE TABLE IF NOT EXISTS {$table_name} (
+	/**
+	 * Get migration class name from filename.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    string $filename    Migration filename.
+	 * @return   string                 Class name.
+	 */
+	private function get_migration_class_name( string $filename ): string {
+		// Convert filename to class name
+		$parts       = explode( '-', $filename );
+		$class_parts = array_map(
+			'ucfirst',
+			array_map(
+				function ( $part ) {
+					return str_replace( '_', ' ', $part );
+				},
+				$parts
+			)
+		);
+
+		return 'SCD_Migration_' . str_replace( ' ', '_', implode( '_', $class_parts ) );
+	}
+
+	/**
+	 * Ensure migrations table exists.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   void
+	 */
+	private function ensure_migrations_table(): void {
+		if ( $this->db->table_exists( 'migrations' ) ) {
+			return;
+		}
+
+		$table_name      = $this->db->get_table_name( 'migrations' );
+		$charset_collate = $this->db->get_charset_collate();
+
+		// Use raw SQL instead of dbDelta for reliability
+		$sql = "CREATE TABLE IF NOT EXISTS {$table_name} (
             id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
             migration varchar(255) NOT NULL,
             batch int(11) NOT NULL,
@@ -146,372 +152,400 @@ class SCD_Migration_Manager {
             KEY idx_batch (batch)
         ) {$charset_collate}";
 
-        $this->db->query($sql);
-    }
+		$this->db->query( $sql );
+	}
 
-    /**
-     * Run pending migrations.
-     *
-     * @since    1.0.0
-     * @return   array    Migration results.
-     */
-    public function migrate(): array {
-        $pending = $this->get_pending_migrations();
-        
-        if (empty($pending)) {
-            return array('status' => 'success', 'message' => 'No pending migrations.', 'migrations' => array());
-        }
+	/**
+	 * Run pending migrations.
+	 *
+	 * @since    1.0.0
+	 * @return   array    Migration results.
+	 */
+	public function migrate(): array {
+		$pending = $this->get_pending_migrations();
 
-        $batch = $this->get_next_batch_number();
-        $results = array();
+		if ( empty( $pending ) ) {
+			return array(
+				'status'     => 'success',
+				'message'    => 'No pending migrations.',
+				'migrations' => array(),
+			);
+		}
 
-        foreach ($pending as $migration) {
-            $result = $this->run_migration($migration, $batch);
-            $results[] = $result;
+		$batch   = $this->get_next_batch_number();
+		$results = array();
 
-            if (!$result['success']) {
-                break; // Stop on first failure
-            }
-        }
+		foreach ( $pending as $migration ) {
+			$result    = $this->run_migration( $migration, $batch );
+			$results[] = $result;
 
-        $has_failures = !empty(array_filter($results, fn($r) => !$r['success']));
+			if ( ! $result['success'] ) {
+				break; // Stop on first failure
+			}
+		}
 
-        return array(
-            'status' => $has_failures ? 'error' : 'success',
-            'message' => $has_failures ? 'One or more migrations failed to execute.' : 'All migrations executed successfully.',
-            'batch' => $batch,
-            'migrations' => $results
-        );
-    }
+		$has_failures = ! empty( array_filter( $results, fn( $r ) => ! $r['success'] ) );
 
-    /**
-     * Rollback migrations.
-     *
-     * @since    1.0.0
-     * @param    int    $steps    Number of batches to rollback.
-     * @return   array            Rollback results.
-     */
-    public function rollback(int $steps = 1): array {
-        $batches = $this->get_executed_batches();
-        
-        if (empty($batches)) {
-            return array('status' => 'success', 'message' => 'No migrations to rollback.', 'migrations' => array());
-        }
+		return array(
+			'status'     => $has_failures ? 'error' : 'success',
+			'message'    => $has_failures ? 'One or more migrations failed to execute.' : 'All migrations executed successfully.',
+			'batch'      => $batch,
+			'migrations' => $results,
+		);
+	}
 
-        $batches_to_rollback = array_slice($batches, -$steps);
-        $results = array();
+	/**
+	 * Rollback migrations.
+	 *
+	 * @since    1.0.0
+	 * @param    int $steps    Number of batches to rollback.
+	 * @return   array            Rollback results.
+	 */
+	public function rollback( int $steps = 1 ): array {
+		$batches = $this->get_executed_batches();
 
-        foreach ($batches_to_rollback as $batch) {
-            $migrations = $this->get_migrations_in_batch($batch);
-            
-            // Rollback in reverse order
-            foreach (array_reverse($migrations) as $migration_name) {
-                $migration = $this->migrations[$this->extract_migration_number($migration_name)] ?? null;
-                
-                if ($migration) {
-                    $result = $this->rollback_migration($migration);
-                    $results[] = $result;
-                    
-                    if (!$result['success']) {
-                        break 2; // Stop on first failure
-                    }
-                }
-            }
-        }
+		if ( empty( $batches ) ) {
+			return array(
+				'status'     => 'success',
+				'message'    => 'No migrations to rollback.',
+				'migrations' => array(),
+			);
+		}
 
-        return array(
-            'status' => empty(array_filter($results, fn($r) => !$r['success'])) ? 'success' : 'error',
-            'migrations' => $results
-        );
-    }
+		$batches_to_rollback = array_slice( $batches, -$steps );
+		$results             = array();
 
-    /**
-     * Get pending migrations.
-     *
-     * @since    1.0.0
-     * @return   array    Pending migrations.
-     */
-    public function get_pending_migrations(): array {
-        $executed = $this->get_executed_migrations();
-        $pending = array();
+		foreach ( $batches_to_rollback as $batch ) {
+			$migrations = $this->get_migrations_in_batch( $batch );
 
-        foreach ($this->migrations as $migration) {
-            if (!in_array($migration['number'] . '-' . $migration['name'], $executed)) {
-                $pending[] = $migration;
-            }
-        }
+			// Rollback in reverse order
+			foreach ( array_reverse( $migrations ) as $migration_name ) {
+				$migration = $this->migrations[ $this->extract_migration_number( $migration_name ) ] ?? null;
 
-        return $pending;
-    }
+				if ( $migration ) {
+					$result    = $this->rollback_migration( $migration );
+					$results[] = $result;
 
-    /**
-     * Get executed migrations.
-     *
-     * @since    1.0.0
-     * @return   array    Executed migration names.
-     */
-    public function get_executed_migrations(): array {
-        $table_name = $this->db->get_table_name('migrations');
-        
-        $results = $this->db->get_results(
-            "SELECT migration FROM $table_name ORDER BY id ASC"
-        );
+					if ( ! $result['success'] ) {
+						break 2; // Stop on first failure
+					}
+				}
+			}
+		}
 
-        return array_column($results, 'migration');
-    }
+		return array(
+			'status'     => empty( array_filter( $results, fn( $r ) => ! $r['success'] ) ) ? 'success' : 'error',
+			'migrations' => $results,
+		);
+	}
 
-    /**
-     * Run a single migration.
-     *
-     * @since    1.0.0
-     * @access   private
-     * @param    array    $migration    Migration data.
-     * @param    int      $batch        Batch number.
-     * @return   array                  Migration result.
-     */
-    private function run_migration(array $migration, int $batch): array {
-        try {
-            // Ensure interface is loaded
-            if (!interface_exists('SCD_Migration_Interface')) {
-                require_once $this->migration_dir . '/../interface-migration.php';
-            }
-            
-            require_once $migration['file'];
-            
-            if (!class_exists($migration['class'])) {
-                throw new Exception('Migration class ' . $migration['class'] . ' not found.');
-            }
+	/**
+	 * Get pending migrations.
+	 *
+	 * @since    1.0.0
+	 * @return   array    Pending migrations.
+	 */
+	public function get_pending_migrations(): array {
+		$executed = $this->get_executed_migrations();
+		$pending  = array();
 
-            $instance = new $migration['class']($this->db);
-            
-            if (!method_exists($instance, 'up')) {
-                throw new Exception('Migration ' . $migration['class'] . ' does not have an "up" method.');
-            }
+		foreach ( $this->migrations as $migration ) {
+			if ( ! in_array( $migration['number'] . '-' . $migration['name'], $executed ) ) {
+				$pending[] = $migration;
+			}
+		}
 
-            // Execute migration in transaction
-            $result = $this->db->transaction(function() use ($instance, $migration, $batch) {
-                $instance->up();
-                
-                // Record migration
-                return $this->db->insert('migrations', array(
-                    'migration' => $migration['number'] . '-' . $migration['name'], 'batch' => $batch
-                ));
-            });
+		return $pending;
+	}
 
-            if ($result === false) {
-                throw new Exception('Failed to execute migration ' . $migration['name'] . '.');
-            }
+	/**
+	 * Get executed migrations.
+	 *
+	 * @since    1.0.0
+	 * @return   array    Executed migration names.
+	 */
+	public function get_executed_migrations(): array {
+		$table_name = $this->db->get_table_name( 'migrations' );
 
-            return array(
-                'success' => true,
-                'migration' => $migration['name'],
-                'message' => 'Migration ' . $migration['name'] . ' executed successfully.'
-            );
+		$results = $this->db->get_results(
+			"SELECT migration FROM $table_name ORDER BY id ASC"
+		);
 
-        } catch (Exception $e) {
-            return array(
-                'success' => false,
-                'migration' => $migration['name'],
-                'message' => "Migration {$migration['name']} failed: " . $e->getMessage()
-            );
-        }
-    }
+		return array_column( $results, 'migration' );
+	}
 
-    /**
-     * Rollback a single migration.
-     *
-     * @since    1.0.0
-     * @access   private
-     * @param    array    $migration    Migration data.
-     * @return   array                  Rollback result.
-     */
-    private function rollback_migration(array $migration): array {
-        try {
-            require_once $migration['file'];
-            
-            if (!class_exists($migration['class'])) {
-                throw new Exception('Migration class ' . $migration['class'] . ' not found.');
-            }
+	/**
+	 * Run a single migration.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $migration    Migration data.
+	 * @param    int   $batch        Batch number.
+	 * @return   array                  Migration result.
+	 */
+	private function run_migration( array $migration, int $batch ): array {
+		try {
+			// Ensure interface is loaded
+			if ( ! interface_exists( 'SCD_Migration_Interface' ) ) {
+				require_once $this->migration_dir . '/../interface-migration.php';
+			}
 
-            $instance = new $migration['class']($this->db);
-            
-            if (!method_exists($instance, 'down')) {
-                throw new Exception('Migration ' . $migration['class'] . ' does not have a "down" method.');
-            }
+			require_once $migration['file'];
 
-            // Execute rollback in transaction
-            $result = $this->db->transaction(function() use ($instance, $migration) {
-                $instance->down();
-                
-                // Remove migration record
-                return $this->db->delete('migrations', array(
-                    'migration' => $migration['number'] . '-' . $migration['name']
-                ));
-            });
+			if ( ! class_exists( $migration['class'] ) ) {
+				throw new Exception( 'Migration class ' . $migration['class'] . ' not found.' );
+			}
 
-            if ($result === false) {
-                throw new Exception('Failed to rollback migration ' . $migration['name'] . '.');
-            }
+			$instance = new $migration['class']( $this->db );
 
-            return array(
-                'success' => true,
-                'migration' => $migration['name'],
-                'message' => 'Migration ' . $migration['name'] . ' rolled back successfully.'
-            );
+			if ( ! method_exists( $instance, 'up' ) ) {
+				throw new Exception( 'Migration ' . $migration['class'] . ' does not have an "up" method.' );
+			}
 
-        } catch (Exception $e) {
-            return array(
-                'success' => false,
-                'migration' => $migration['name'],
-                'message' => "Migration {$migration['name']} rollback failed: " . $e->getMessage()
-            );
-        }
-    }
+			// Execute migration in transaction
+			$result = $this->db->transaction(
+				function () use ( $instance, $migration, $batch ) {
+					$instance->up();
 
-    /**
-     * Get next batch number.
-     *
-     * @since    1.0.0
-     * @access   private
-     * @return   int    Next batch number.
-     */
-    private function get_next_batch_number(): int {
-        $table_name = $this->db->get_table_name('migrations');
-        
-        $result = $this->db->get_var(
-            "SELECT MAX(batch) FROM $table_name"
-        );
+					// Record migration
+					return $this->db->insert(
+						'migrations',
+						array(
+							'migration' => $migration['number'] . '-' . $migration['name'],
+							'batch'     => $batch,
+						)
+					);
+				}
+			);
 
-        return $result ? (int) $result + 1 : 1;
-    }
+			if ( $result === false ) {
+				throw new Exception( 'Failed to execute migration ' . $migration['name'] . '.' );
+			}
 
-    /**
-     * Get executed batches.
-     *
-     * @since    1.0.0
-     * @access   private
-     * @return   array    Executed batch numbers.
-     */
-    private function get_executed_batches(): array {
-        $table_name = $this->db->get_table_name('migrations');
-        
-        $results = $this->db->get_results(
-            "SELECT DISTINCT batch FROM $table_name ORDER BY batch DESC"
-        );
+			return array(
+				'success'   => true,
+				'migration' => $migration['name'],
+				'message'   => 'Migration ' . $migration['name'] . ' executed successfully.',
+			);
 
-        return array_column($results, 'batch');
-    }
+		} catch ( Exception $e ) {
+			return array(
+				'success'   => false,
+				'migration' => $migration['name'],
+				'message'   => "Migration {$migration['name']} failed: " . $e->getMessage(),
+			);
+		}
+	}
 
-    /**
-     * Get migrations in a specific batch.
-     *
-     * @since    1.0.0
-     * @access   private
-     * @param    int    $batch    Batch number.
-     * @return   array            Migration names in batch.
-     */
-    private function get_migrations_in_batch(int $batch): array {
-        $table_name = $this->db->get_table_name('migrations');
-        
-        $results = $this->db->get_results(
-            $this->db->prepare(
-                "SELECT migration FROM $table_name WHERE batch = %d ORDER BY id ASC",
-                $batch
-            )
-        );
+	/**
+	 * Rollback a single migration.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $migration    Migration data.
+	 * @return   array                  Rollback result.
+	 */
+	private function rollback_migration( array $migration ): array {
+		try {
+			require_once $migration['file'];
 
-        return array_column($results, 'migration');
-    }
+			if ( ! class_exists( $migration['class'] ) ) {
+				throw new Exception( 'Migration class ' . $migration['class'] . ' not found.' );
+			}
 
-    /**
-     * Extract migration number from migration name.
-     *
-     * @since    1.0.0
-     * @access   private
-     * @param    string    $migration_name    Migration name.
-     * @return   string                       Migration number.
-     */
-    private function extract_migration_number(string $migration_name): string {
-        $parts = explode('-', $migration_name, 2);
-        return $parts[0] ?? '';
-    }
+			$instance = new $migration['class']( $this->db );
 
-    /**
-     * Get migration status.
-     *
-     * @since    1.0.0
-     * @return   array    Migration status.
-     */
-    public function get_status(): array {
-        $total_migrations = count($this->migrations);
-        $executed_migrations = count($this->get_executed_migrations());
-        $pending_migrations = count($this->get_pending_migrations());
+			if ( ! method_exists( $instance, 'down' ) ) {
+				throw new Exception( 'Migration ' . $migration['class'] . ' does not have a "down" method.' );
+			}
 
-        return array(
-            'total' => $total_migrations,
-            'executed' => $executed_migrations,
-            'pending' => $pending_migrations,
-            'up_to_date' => $pending_migrations === 0,
-            'migrations' => array_map(function($migration) {
-                $migration_name = $migration['number'] . '-' . $migration['name'];
-                $executed = in_array($migration_name, $this->get_executed_migrations());
-                
-                return array(
-                    'name' => $migration['name'],
-                    'number' => $migration['number'],
-                    'executed' => $executed,
-                    'file' => basename($migration['file'])
-                );
-            }, $this->migrations)
-        );
-    }
+			// Execute rollback in transaction
+			$result = $this->db->transaction(
+				function () use ( $instance, $migration ) {
+					$instance->down();
 
-    /**
-     * Reset all migrations.
-     *
-     * @since    1.0.0
-     * @return   array    Reset results.
-     */
-    public function reset(): array {
-        $executed = $this->get_executed_migrations();
-        
-        if (empty($executed)) {
-            return array('status' => 'success', 'message' => 'No migrations to reset.');
-        }
+					// Remove migration record
+					return $this->db->delete(
+						'migrations',
+						array(
+							'migration' => $migration['number'] . '-' . $migration['name'],
+						)
+					);
+				}
+			);
 
-        // Rollback all migrations
-        $rollback_result = $this->rollback(count($this->get_executed_batches()));
-        
-        if ($rollback_result['status'] === 'success') {
-            return array('status' => 'success', 'message' => 'All migrations reset successfully.');
-        }
+			if ( $result === false ) {
+				throw new Exception( 'Failed to rollback migration ' . $migration['name'] . '.' );
+			}
 
-        return $rollback_result;
-    }
+			return array(
+				'success'   => true,
+				'migration' => $migration['name'],
+				'message'   => 'Migration ' . $migration['name'] . ' rolled back successfully.',
+			);
 
-    /**
-     * Fresh migration (reset and migrate).
-     *
-     * @since    1.0.0
-     * @return   array    Fresh migration results.
-     */
-    public function fresh(): array {
-        $reset_result = $this->reset();
-        
-        if ($reset_result['status'] !== 'success') {
-            return $reset_result;
-        }
+		} catch ( Exception $e ) {
+			return array(
+				'success'   => false,
+				'migration' => $migration['name'],
+				'message'   => "Migration {$migration['name']} rollback failed: " . $e->getMessage(),
+			);
+		}
+	}
 
-        return $this->migrate();
-    }
+	/**
+	 * Get next batch number.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   int    Next batch number.
+	 */
+	private function get_next_batch_number(): int {
+		$table_name = $this->db->get_table_name( 'migrations' );
 
-    /**
-     * Get available migrations.
-     *
-     * @since    1.0.0
-     * @return   array    Available migrations.
-     */
-    public function get_available_migrations(): array {
-        return $this->migrations;
-    }
+		$result = $this->db->get_var(
+			"SELECT MAX(batch) FROM $table_name"
+		);
+
+		return $result ? (int) $result + 1 : 1;
+	}
+
+	/**
+	 * Get executed batches.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   array    Executed batch numbers.
+	 */
+	private function get_executed_batches(): array {
+		$table_name = $this->db->get_table_name( 'migrations' );
+
+		$results = $this->db->get_results(
+			"SELECT DISTINCT batch FROM $table_name ORDER BY batch DESC"
+		);
+
+		return array_column( $results, 'batch' );
+	}
+
+	/**
+	 * Get migrations in a specific batch.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    int $batch    Batch number.
+	 * @return   array            Migration names in batch.
+	 */
+	private function get_migrations_in_batch( int $batch ): array {
+		$table_name = $this->db->get_table_name( 'migrations' );
+
+		$results = $this->db->get_results(
+			$this->db->prepare(
+				"SELECT migration FROM $table_name WHERE batch = %d ORDER BY id ASC",
+				$batch
+			)
+		);
+
+		return array_column( $results, 'migration' );
+	}
+
+	/**
+	 * Extract migration number from migration name.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    string $migration_name    Migration name.
+	 * @return   string                       Migration number.
+	 */
+	private function extract_migration_number( string $migration_name ): string {
+		$parts = explode( '-', $migration_name, 2 );
+		return $parts[0] ?? '';
+	}
+
+	/**
+	 * Get migration status.
+	 *
+	 * @since    1.0.0
+	 * @return   array    Migration status.
+	 */
+	public function get_status(): array {
+		$total_migrations    = count( $this->migrations );
+		$executed_migrations = count( $this->get_executed_migrations() );
+		$pending_migrations  = count( $this->get_pending_migrations() );
+
+		return array(
+			'total'      => $total_migrations,
+			'executed'   => $executed_migrations,
+			'pending'    => $pending_migrations,
+			'up_to_date' => $pending_migrations === 0,
+			'migrations' => array_map(
+				function ( $migration ) {
+					$migration_name = $migration['number'] . '-' . $migration['name'];
+					$executed = in_array( $migration_name, $this->get_executed_migrations() );
+
+					return array(
+						'name'     => $migration['name'],
+						'number'   => $migration['number'],
+						'executed' => $executed,
+						'file'     => basename( $migration['file'] ),
+					);
+				},
+				$this->migrations
+			),
+		);
+	}
+
+	/**
+	 * Reset all migrations.
+	 *
+	 * @since    1.0.0
+	 * @return   array    Reset results.
+	 */
+	public function reset(): array {
+		$executed = $this->get_executed_migrations();
+
+		if ( empty( $executed ) ) {
+			return array(
+				'status'  => 'success',
+				'message' => 'No migrations to reset.',
+			);
+		}
+
+		// Rollback all migrations
+		$rollback_result = $this->rollback( count( $this->get_executed_batches() ) );
+
+		if ( $rollback_result['status'] === 'success' ) {
+			return array(
+				'status'  => 'success',
+				'message' => 'All migrations reset successfully.',
+			);
+		}
+
+		return $rollback_result;
+	}
+
+	/**
+	 * Fresh migration (reset and migrate).
+	 *
+	 * @since    1.0.0
+	 * @return   array    Fresh migration results.
+	 */
+	public function fresh(): array {
+		$reset_result = $this->reset();
+
+		if ( $reset_result['status'] !== 'success' ) {
+			return $reset_result;
+		}
+
+		return $this->migrate();
+	}
+
+	/**
+	 * Get available migrations.
+	 *
+	 * @since    1.0.0
+	 * @return   array    Available migrations.
+	 */
+	public function get_available_migrations(): array {
+		return $this->migrations;
+	}
 }

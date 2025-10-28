@@ -71,7 +71,7 @@ class SCD_Wizard_Step_Registry {
 	 * Get label for specific step.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step identifier.
+	 * @param    string $step    Step identifier.
 	 * @return   string             Step label or empty string.
 	 */
 	public static function get_step_label( $step ) {
@@ -82,7 +82,7 @@ class SCD_Wizard_Step_Registry {
 	 * Check if step is valid.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step identifier to validate.
+	 * @param    string $step    Step identifier to validate.
 	 * @return   bool               True if valid step.
 	 */
 	public static function is_valid_step( $step ) {
@@ -93,7 +93,7 @@ class SCD_Wizard_Step_Registry {
 	 * Get next step.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $current_step    Current step identifier.
+	 * @param    string $current_step    Current step identifier.
 	 * @return   string                     Next step or 'complete' if at end.
 	 */
 	public static function get_next_step( $current_step ) {
@@ -120,7 +120,7 @@ class SCD_Wizard_Step_Registry {
 	 * Get previous step.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $current_step    Current step identifier.
+	 * @param    string $current_step    Current step identifier.
 	 * @return   string|null                Previous step or null if at start.
 	 */
 	public static function get_previous_step( $current_step ) {
@@ -137,7 +137,7 @@ class SCD_Wizard_Step_Registry {
 	 * Get step index.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step identifier.
+	 * @param    string $step    Step identifier.
 	 * @return   int|false          Zero-based index or false if not found.
 	 */
 	public static function get_step_index( $step ) {
@@ -178,7 +178,7 @@ class SCD_Wizard_Step_Registry {
 	 * Check if step is first step.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step identifier.
+	 * @param    string $step    Step identifier.
 	 * @return   bool               True if first step.
 	 */
 	public static function is_first_step( $step ) {
@@ -189,7 +189,7 @@ class SCD_Wizard_Step_Registry {
 	 * Check if step is last step.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step identifier.
+	 * @param    string $step    Step identifier.
 	 * @return   bool               True if last step.
 	 */
 	public static function is_last_step( $step ) {
@@ -200,7 +200,7 @@ class SCD_Wizard_Step_Registry {
 	 * Get progress percentage for a step.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Current step identifier.
+	 * @param    string $step    Current step identifier.
 	 * @return   float              Progress percentage (0-100).
 	 */
 	public static function get_progress_percentage( $step ) {

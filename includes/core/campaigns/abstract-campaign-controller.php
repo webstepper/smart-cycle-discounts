@@ -22,131 +22,134 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 abstract class SCD_Abstract_Campaign_Controller {
 
-    /**
-     * Campaign manager instance.
-     *
-     * @since    1.0.0
-     * @var      SCD_Campaign_Manager
-     */
-    protected $campaign_manager;
+	/**
+	 * Campaign manager instance.
+	 *
+	 * @since    1.0.0
+	 * @var      SCD_Campaign_Manager
+	 */
+	protected $campaign_manager;
 
-    /**
-     * Capability manager instance.
-     *
-     * @since    1.0.0
-     * @var      SCD_Admin_Capability_Manager
-     */
-    protected $capability_manager;
+	/**
+	 * Capability manager instance.
+	 *
+	 * @since    1.0.0
+	 * @var      SCD_Admin_Capability_Manager
+	 */
+	protected $capability_manager;
 
-    /**
-     * Logger instance.
-     *
-     * @since    1.0.0
-     * @var      SCD_Logger
-     */
-    protected $logger;
+	/**
+	 * Logger instance.
+	 *
+	 * @since    1.0.0
+	 * @var      SCD_Logger
+	 */
+	protected $logger;
 
-    /**
-     * Initialize the controller.
-     *
-     * @since    1.0.0
-     * @param    SCD_Campaign_Manager          $campaign_manager     Campaign manager.
-     * @param    SCD_Admin_Capability_Manager  $capability_manager   Capability manager.
-     * @param    SCD_Logger                    $logger               Logger instance.
-     */
-    public function __construct(
-        $campaign_manager,
-        $capability_manager,
-        $logger
-    ) {
-        $this->campaign_manager = $campaign_manager;
-        $this->capability_manager = $capability_manager;
-        $this->logger = $logger;
-    }
+	/**
+	 * Initialize the controller.
+	 *
+	 * @since    1.0.0
+	 * @param    SCD_Campaign_Manager         $campaign_manager     Campaign manager.
+	 * @param    SCD_Admin_Capability_Manager $capability_manager   Capability manager.
+	 * @param    SCD_Logger                   $logger               Logger instance.
+	 */
+	public function __construct(
+		$campaign_manager,
+		$capability_manager,
+		$logger
+	) {
+		$this->campaign_manager   = $campaign_manager;
+		$this->capability_manager = $capability_manager;
+		$this->logger             = $logger;
+	}
 
-    /**
-     * Check if user has required capability.
-     *
-     * @since    1.0.0
-     * @param    string    $capability    Required capability.
-     * @return   bool                     True if user has capability.
-     */
-    protected function check_capability( $capability ) {
-        return $this->capability_manager->current_user_can($capability);
-    }
+	/**
+	 * Check if user has required capability.
+	 *
+	 * @since    1.0.0
+	 * @param    string $capability    Required capability.
+	 * @return   bool                     True if user has capability.
+	 */
+	protected function check_capability( $capability ) {
+		return $this->capability_manager->current_user_can( $capability );
+	}
 
-    /**
-     * Add admin notice.
-     *
-     * @since    1.0.0
-     * @param    string    $message    Notice message.
-     * @param    string    $type       Notice type.
-     * @return   void
-     */
-    protected function add_notice( $message, $type = 'info' ) {
-        add_action('admin_notices', function() use ($message, $type) {
-            printf(
-                '<div class="notice notice-%s is-dismissible"><p>%s</p></div>',
-                esc_attr($type),
-                esc_html($message)
-            );
-        });
-    }
+	/**
+	 * Add admin notice.
+	 *
+	 * @since    1.0.0
+	 * @param    string $message    Notice message.
+	 * @param    string $type       Notice type.
+	 * @return   void
+	 */
+	protected function add_notice( $message, $type = 'info' ) {
+		add_action(
+			'admin_notices',
+			function () use ( $message, $type ) {
+				printf(
+					'<div class="notice notice-%s is-dismissible"><p>%s</p></div>',
+					esc_attr( $type ),
+					esc_html( $message )
+				);
+			}
+		);
+	}
 
-    /**
-     * Redirect with message.
-     *
-     * @since    1.0.0
-     * @param    string    $url        Redirect URL.
-     * @param    string    $message    Message.
-     * @param    string    $type       Message type.
-     * @return   void
-     */
-    protected function redirect_with_message( $url, $message, $type = 'success' ) {
-        $notices = get_transient( 'scd_admin_notices' ) ?: array();
-        $notices[] = array(
-            'message' => $message,
-            'type' => $type
-        );
-        set_transient( 'scd_admin_notices', $notices, 300 );
+	/**
+	 * Redirect with message.
+	 *
+	 * @since    1.0.0
+	 * @param    string $url        Redirect URL.
+	 * @param    string $message    Message.
+	 * @param    string $type       Message type.
+	 * @return   void
+	 */
+	protected function redirect_with_message( $url, $message, $type = 'success' ) {
+		$notices   = get_transient( 'scd_admin_notices' ) ?: array();
+		$notices[] = array(
+			'message' => $message,
+			'type'    => $type,
+		);
+		set_transient( 'scd_admin_notices', $notices, 300 );
 
-        wp_safe_redirect( $url );
-        exit;
-    }
+		wp_safe_redirect( $url );
+		exit;
+	}
 
-    /**
-     * Redirect with error message.
-     *
-     * @since    1.0.0
-     * @param    string    $message    Error message.
-     * @return   void
-     */
-    protected function redirect_with_error( $message ) {
-        $this->redirect_with_message(
-            wp_get_referer() ? wp_get_referer() : admin_url('admin.php?page=scd-campaigns'),
-            $message,
-            'error'
-        );
-    }
+	/**
+	 * Redirect with error message.
+	 *
+	 * @since    1.0.0
+	 * @param    string $message    Error message.
+	 * @return   void
+	 */
+	protected function redirect_with_error( $message ) {
+		$this->redirect_with_message(
+			wp_get_referer() ? wp_get_referer() : admin_url( 'admin.php?page=scd-campaigns' ),
+			$message,
+			'error'
+		);
+	}
 
-    /**
-     * Check if current user owns the campaign.
-     *
-     * @since    1.0.0
-     * @param    int    $campaign_id    Campaign ID.
-     * @return   bool                   True if user owns campaign.
-     */
-    protected function check_campaign_ownership( $campaign_id ) {
-        // Get campaign
-        $campaign = $this->campaign_manager->find($campaign_id);
-        if (!$campaign) {
-            return false;
-        }
+	/**
+	 * Check if current user owns the campaign.
+	 *
+	 * @since    1.0.0
+	 * @param    int $campaign_id    Campaign ID.
+	 * @return   bool                   True if user owns campaign.
+	 */
+	protected function check_campaign_ownership( $campaign_id ) {
+		// Get campaign
+		$campaign = $this->campaign_manager->find( $campaign_id );
+		if ( ! $campaign ) {
+			return false;
+		}
 
-        // Get campaign author
-        $author_id = $campaign->get_created_by();
+		// Get campaign author
+		$author_id = $campaign->get_created_by();
 
-        // Check if current user is the author
-        return $author_id === get_current_user_id();
-    }
+		// Check if current user is the author
+		return $author_id === get_current_user_id();
+	}
 }

@@ -40,7 +40,7 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger    $logger    Logger instance (optional).
+	 * @param    SCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -61,7 +61,7 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle the apply recommendation request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
@@ -99,12 +99,14 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 				return $this->handle_wp_error( $result );
 			}
 
-			return $this->success( array(
-				'message'           => __( 'Recommendation applied successfully', 'smart-cycle-discounts' ),
-				'recommendation_id' => $recommendation_id,
-				'action_type'       => $action_type,
-				'applied_changes'   => $result
-			) );
+			return $this->success(
+				array(
+					'message'           => __( 'Recommendation applied successfully', 'smart-cycle-discounts' ),
+					'recommendation_id' => $recommendation_id,
+					'action_type'       => $action_type,
+					'applied_changes'   => $result,
+				)
+			);
 
 		} catch ( Exception $e ) {
 			return $this->error(
@@ -119,8 +121,8 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $action_type    Action type.
-	 * @param    array     $action_data    Action data.
+	 * @param    string $action_type    Action type.
+	 * @param    array  $action_data    Action data.
 	 * @return   array|WP_Error            Applied changes or error.
 	 */
 	private function apply_action( $action_type, $action_data ) {
@@ -158,7 +160,7 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $data    Action data.
+	 * @param    array $data    Action data.
 	 * @return   array             Applied changes.
 	 */
 	private function change_discount_type( $data ) {
@@ -177,9 +179,12 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 			$existing_data = array();
 		}
 
-		$discount_data = array_merge( $existing_data, array(
-			'discount_type' => $discount_type
-		) );
+		$discount_data = array_merge(
+			$existing_data,
+			array(
+				'discount_type' => $discount_type,
+			)
+		);
 
 		// Add discount value if provided (for percentage or fixed)
 		if ( isset( $data['discount_value'] ) && $data['discount_value'] > 0 ) {
@@ -200,9 +205,9 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 			foreach ( $data['tiers'] as $tier ) {
 				if ( is_array( $tier ) ) {
 					$sanitized_tiers[] = array(
-						'min_quantity' => isset( $tier['quantity'] ) ? absint( $tier['quantity'] ) : ( isset( $tier['min_quantity'] ) ? absint( $tier['min_quantity'] ) : 0 ),
+						'min_quantity'   => isset( $tier['quantity'] ) ? absint( $tier['quantity'] ) : ( isset( $tier['min_quantity'] ) ? absint( $tier['min_quantity'] ) : 0 ),
 						'discount_value' => isset( $tier['discount'] ) ? floatval( $tier['discount'] ) : ( isset( $tier['discount_value'] ) ? floatval( $tier['discount_value'] ) : 0 ),
-						'discount_type' => isset( $tier['discount_type'] ) ? sanitize_text_field( $tier['discount_type'] ) : 'percentage'
+						'discount_type'  => isset( $tier['discount_type'] ) ? sanitize_text_field( $tier['discount_type'] ) : 'percentage',
 					);
 				}
 			}
@@ -223,10 +228,10 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 		$this->state_service->save_step_data( 'discount', $discount_data );
 
 		return array(
-			'step'          => 'discount',
-			'discount_type' => $discount_type,
+			'step'           => 'discount',
+			'discount_type'  => $discount_type,
 			'discount_value' => isset( $discount_data['discount_value_percentage'] ) ? $discount_data['discount_value_percentage'] : ( isset( $discount_data['discount_value_fixed'] ) ? $discount_data['discount_value_fixed'] : null ),
-			'tiers'         => isset( $discount_data['tiers'] ) ? $discount_data['tiers'] : null
+			'tiers'          => isset( $discount_data['tiers'] ) ? $discount_data['tiers'] : null,
 		);
 	}
 
@@ -235,7 +240,7 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $data    Action data.
+	 * @param    array $data    Action data.
 	 * @return   array             Applied changes.
 	 */
 	private function update_discount_value( $data ) {
@@ -262,7 +267,7 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 
 		return array(
 			'step'           => 'discount',
-			'discount_value' => $discount_value
+			'discount_value' => $discount_value,
 		);
 	}
 
@@ -271,7 +276,7 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $data    Action data.
+	 * @param    array $data    Action data.
 	 * @return   array             Applied changes.
 	 */
 	private function set_end_date( $data ) {
@@ -298,7 +303,7 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 
 		return array(
 			'step'     => 'schedule',
-			'end_date' => $end_date
+			'end_date' => $end_date,
 		);
 	}
 
@@ -307,7 +312,7 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $data    Action data.
+	 * @param    array $data    Action data.
 	 * @return   array             Applied changes.
 	 */
 	private function change_selection_type( $data ) {
@@ -333,8 +338,8 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 		$this->state_service->save_step_data( 'products', $products_data );
 
 		return array(
-			'step'                    => 'products',
-			'product_selection_type'  => $selection_type
+			'step'                   => 'products',
+			'product_selection_type' => $selection_type,
 		);
 	}
 }

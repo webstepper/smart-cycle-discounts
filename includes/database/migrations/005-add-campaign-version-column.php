@@ -40,7 +40,7 @@ class SCD_Migration_005_Add_Campaign_Version_Column {
 	 * Initialize the migration.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager    $db    Database manager.
+	 * @param    SCD_Database_Manager $db    Database manager.
 	 */
 	public function __construct( SCD_Database_Manager $db ) {
 		$this->db = $db;

@@ -63,13 +63,13 @@ class SCD_Tools_Page {
 	 * Initialize tools page.
 	 *
 	 * @since    1.0.0
-	 * @param    object                   $container      Container instance.
-	 * @param    SCD_Logger               $logger         Logger instance.
-	 * @param    SCD_Feature_Gate|null    $feature_gate   Feature gate instance.
+	 * @param    object                $container      Container instance.
+	 * @param    SCD_Logger            $logger         Logger instance.
+	 * @param    SCD_Feature_Gate|null $feature_gate   Feature gate instance.
 	 */
 	public function __construct( object $container, SCD_Logger $logger, ?SCD_Feature_Gate $feature_gate = null ) {
-		$this->container = $container;
-		$this->logger = $logger;
+		$this->container    = $container;
+		$this->logger       = $logger;
 		$this->feature_gate = $feature_gate;
 	}
 
@@ -113,7 +113,7 @@ class SCD_Tools_Page {
 	 * @return   void
 	 */
 	private function render_import_export_section(): void {
-		$can_export = $this->feature_gate ? $this->feature_gate->can_export_data() : false;
+		$can_export  = $this->feature_gate ? $this->feature_gate->can_export_data() : false;
 		$upgrade_url = function_exists( 'scd_get_upgrade_url' ) ? scd_get_upgrade_url() : admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
 		?>
 		<div class="scd-tools-section">
@@ -211,7 +211,7 @@ class SCD_Tools_Page {
 		global $wpdb;
 
 		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
-		$table_size = $wpdb->get_var( "SELECT ROUND(((data_length + index_length) / 1024 / 1024), 2) FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = '{$campaigns_table}'" );
+		$table_size      = $wpdb->get_var( "SELECT ROUND(((data_length + index_length) / 1024 / 1024), 2) FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = '{$campaigns_table}'" );
 
 		?>
 		<div class="scd-tools-section">
@@ -306,8 +306,8 @@ class SCD_Tools_Page {
 	 */
 	private function render_license_section(): void {
 		$freemius_loaded = function_exists( 'scd_fs' ) && is_object( scd_fs() );
-		$is_premium = $this->feature_gate ? $this->feature_gate->is_premium() : false;
-		$is_trial = $this->feature_gate ? $this->feature_gate->is_trial() : false;
+		$is_premium      = $this->feature_gate ? $this->feature_gate->is_premium() : false;
+		$is_trial        = $this->feature_gate ? $this->feature_gate->is_trial() : false;
 
 		?>
 		<div class="scd-tools-section">
@@ -410,7 +410,7 @@ class SCD_Tools_Page {
 	private function render_debug_section(): void {
 		require_once SCD_INCLUDES_DIR . 'utilities/class-log-manager.php';
 		$log_manager = new SCD_Log_Manager();
-		$log_stats = $log_manager->get_log_stats();
+		$log_stats   = $log_manager->get_log_stats();
 
 		?>
 		<div class="scd-tools-section">

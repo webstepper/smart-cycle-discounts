@@ -46,7 +46,7 @@ class SCD_Migration_004_Add_Activity_Log_Table implements SCD_Migration_Interfac
 	 * Initialize the migration.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager    $db    Database manager.
+	 * @param    SCD_Database_Manager $db    Database manager.
 	 */
 	public function __construct( SCD_Database_Manager $db ) {
 		$this->db = $db;
@@ -61,7 +61,7 @@ class SCD_Migration_004_Add_Activity_Log_Table implements SCD_Migration_Interfac
 	public function up(): void {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'scd_activity_log';
+		$table_name      = $wpdb->prefix . 'scd_activity_log';
 		$charset_collate = $wpdb->get_charset_collate();
 
 		// Check if table already exists
@@ -70,9 +70,12 @@ class SCD_Migration_004_Add_Activity_Log_Table implements SCD_Migration_Interfac
 		if ( $table_exists ) {
 			// Log that table already exists
 			if ( function_exists( 'scd_log_info' ) ) {
-				scd_log_info( 'Migration 004: Activity log table already exists', array(
-					'table' => $table_name,
-				) );
+				scd_log_info(
+					'Migration 004: Activity log table already exists',
+					array(
+						'table' => $table_name,
+					)
+				);
 			}
 			return;
 		}
@@ -92,7 +95,7 @@ class SCD_Migration_004_Add_Activity_Log_Table implements SCD_Migration_Interfac
 			KEY event_type_created (event_type, created_at)
 		) {$charset_collate};";
 
-		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 
 		// Verify table was created
@@ -101,17 +104,23 @@ class SCD_Migration_004_Add_Activity_Log_Table implements SCD_Migration_Interfac
 		if ( $table_created ) {
 			// Log successful creation
 			if ( function_exists( 'scd_log_info' ) ) {
-				scd_log_info( 'Migration 004: Activity log table created successfully', array(
-					'table' => $table_name,
-				) );
+				scd_log_info(
+					'Migration 004: Activity log table created successfully',
+					array(
+						'table' => $table_name,
+					)
+				);
 			}
 		} else {
 			// Log error
 			if ( function_exists( 'scd_log_error' ) ) {
-				scd_log_error( 'Migration 004: Failed to create activity log table', array(
-					'table' => $table_name,
-					'error' => $wpdb->last_error,
-				) );
+				scd_log_error(
+					'Migration 004: Failed to create activity log table',
+					array(
+						'table' => $table_name,
+						'error' => $wpdb->last_error,
+					)
+				);
 			}
 		}
 	}
@@ -135,9 +144,12 @@ class SCD_Migration_004_Add_Activity_Log_Table implements SCD_Migration_Interfac
 
 			// Log the drop
 			if ( function_exists( 'scd_log_info' ) ) {
-				scd_log_info( 'Migration 004 rollback: Activity log table dropped', array(
-					'table' => $table_name,
-				) );
+				scd_log_info(
+					'Migration 004 rollback: Activity log table dropped',
+					array(
+						'table' => $table_name,
+					)
+				);
 			}
 		}
 	}

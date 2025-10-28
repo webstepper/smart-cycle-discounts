@@ -36,7 +36,7 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger    $logger    Logger instance (optional).
+	 * @param    SCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -56,7 +56,7 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle the check conflicts request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
@@ -71,16 +71,18 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		// Get all step data
-		$basic_data = $state_service->get_step_data( 'basic' );
+		$basic_data    = $state_service->get_step_data( 'basic' );
 		$products_data = $state_service->get_step_data( 'products' );
 
 		if ( empty( $basic_data ) || empty( $products_data ) ) {
 			// No data to check yet
-			return $this->success( array(
-				'has_conflicts' => false,
-				'conflicts' => array(),
-				'total_conflicts' => 0
-			) );
+			return $this->success(
+				array(
+					'has_conflicts'   => false,
+					'conflicts'       => array(),
+					'total_conflicts' => 0,
+				)
+			);
 		}
 
 		// Get priority
@@ -88,18 +90,20 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 
 		// Get product selection
 		$selection_type = isset( $products_data['product_selection_type'] ) ? $products_data['product_selection_type'] : 'all_products';
-		$product_ids = isset( $products_data['product_ids'] ) ? $products_data['product_ids'] : array();
-		$category_ids = isset( $products_data['category_ids'] ) ? $products_data['category_ids'] : array();
+		$product_ids    = isset( $products_data['product_ids'] ) ? $products_data['product_ids'] : array();
+		$category_ids   = isset( $products_data['category_ids'] ) ? $products_data['category_ids'] : array();
 
 		// Get conflicting campaigns
 		$conflicts = $this->_find_conflicts( $priority, $selection_type, $product_ids, $category_ids );
 
-		return $this->success( array(
-			'has_conflicts' => ! empty( $conflicts ),
-			'conflicts' => $conflicts,
-			'total_conflicts' => count( $conflicts ),
-			'total_products_blocked' => $this->_count_blocked_products( $conflicts )
-		) );
+		return $this->success(
+			array(
+				'has_conflicts'          => ! empty( $conflicts ),
+				'conflicts'              => $conflicts,
+				'total_conflicts'        => count( $conflicts ),
+				'total_products_blocked' => $this->_count_blocked_products( $conflicts ),
+			)
+		);
 	}
 
 	/**
@@ -107,10 +111,10 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    int       $priority         Campaign priority.
-	 * @param    string    $selection_type   Product selection type.
-	 * @param    array     $product_ids      Selected product IDs.
-	 * @param    array     $category_ids     Selected category IDs.
+	 * @param    int    $priority         Campaign priority.
+	 * @param    string $selection_type   Product selection type.
+	 * @param    array  $product_ids      Selected product IDs.
+	 * @param    array  $category_ids     Selected category IDs.
 	 * @return   array                       Array of conflicts.
 	 */
 	private function _find_conflicts( $priority, $selection_type, $product_ids, $category_ids ) {
@@ -139,10 +143,10 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 
 			if ( $overlap_count > 0 ) {
 				$conflicts[] = array(
-					'id' => $campaign->get_id(),
-					'name' => $campaign->get_name(),
-					'priority' => $campaign_priority,
-					'overlap_count' => $overlap_count
+					'id'            => $campaign->get_id(),
+					'name'          => $campaign->get_name(),
+					'priority'      => $campaign_priority,
+					'overlap_count' => $overlap_count,
 				);
 			}
 		}
@@ -155,10 +159,10 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    object    $campaign         Existing campaign.
-	 * @param    string    $selection_type   New campaign selection type.
-	 * @param    array     $product_ids      New campaign product IDs.
-	 * @param    array     $category_ids     New campaign category IDs.
+	 * @param    object $campaign         Existing campaign.
+	 * @param    string $selection_type   New campaign selection type.
+	 * @param    array  $product_ids      New campaign product IDs.
+	 * @param    array  $category_ids     New campaign category IDs.
 	 * @return   int                         Number of overlapping products.
 	 */
 	private function _count_product_overlap( $campaign, $selection_type, $product_ids, $category_ids ) {
@@ -179,9 +183,9 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $selection_type   Selection type.
-	 * @param    array     $product_ids      Product IDs.
-	 * @param    array     $category_ids     Category IDs.
+	 * @param    string $selection_type   Selection type.
+	 * @param    array  $product_ids      Product IDs.
+	 * @param    array  $category_ids     Category IDs.
 	 * @return   array                       Array of product IDs.
 	 */
 	private function _get_selection_products( $selection_type, $product_ids, $category_ids ) {
@@ -201,7 +205,7 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $conflicts    Array of conflicts.
+	 * @param    array $conflicts    Array of conflicts.
 	 * @return   int                    Total blocked products.
 	 */
 	private function _count_blocked_products( $conflicts ) {

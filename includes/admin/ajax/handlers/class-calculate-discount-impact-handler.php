@@ -35,7 +35,7 @@ class SCD_Calculate_Discount_Impact_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger    $logger    Logger instance (optional).
+	 * @param    SCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -55,7 +55,7 @@ class SCD_Calculate_Discount_Impact_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle the calculate discount impact request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
@@ -68,10 +68,12 @@ class SCD_Calculate_Discount_Impact_Handler extends SCD_Abstract_Ajax_Handler {
 		if ( is_wp_error( $wizard_state ) ) {
 			// Handle specific error codes
 			if ( 'no_discount_configured' === $wizard_state->get_error_code() ) {
-				return $this->success( array(
-					'has_data' => false,
-					'message'  => $wizard_state->get_error_message(),
-				) );
+				return $this->success(
+					array(
+						'has_data' => false,
+						'message'  => $wizard_state->get_error_message(),
+					)
+				);
 			}
 			return $this->error(
 				$wizard_state->get_error_message(),
@@ -81,14 +83,16 @@ class SCD_Calculate_Discount_Impact_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		// Extract validated data
-		$product_ids = $wizard_state['product_ids'];
+		$product_ids    = $wizard_state['product_ids'];
 		$discounts_data = $wizard_state['discounts_data'];
 
 		if ( empty( $product_ids ) ) {
-			return $this->success( array(
-				'has_data' => false,
-				'message' => __( 'Select products to see impact', 'smart-cycle-discounts' )
-			) );
+			return $this->success(
+				array(
+					'has_data' => false,
+					'message'  => __( 'Select products to see impact', 'smart-cycle-discounts' ),
+				)
+			);
 		}
 
 		// Calculate impact
@@ -102,20 +106,20 @@ class SCD_Calculate_Discount_Impact_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $product_ids      Product IDs.
-	 * @param    array    $discounts_data   Discount configuration.
+	 * @param    array $product_ids      Product IDs.
+	 * @param    array $discounts_data   Discount configuration.
 	 * @return   array                      Impact data.
 	 */
 	private function _calculate_impact( $product_ids, $discounts_data ) {
-		$discount_type = $discounts_data['discount_type'];
+		$discount_type  = $discounts_data['discount_type'];
 		$discount_value = isset( $discounts_data['discount_value'] ) ? floatval( $discounts_data['discount_value'] ) : 0;
 
 		// Sample products for examples (max 5)
 		$sample_ids = array_slice( $product_ids, 0, 5 );
-		$examples = array();
+		$examples   = array();
 
 		// Calculate total revenue impact
-		$total_original = 0;
+		$total_original   = 0;
 		$total_discounted = 0;
 
 		foreach ( $product_ids as $product_id ) {
@@ -135,36 +139,36 @@ class SCD_Calculate_Discount_Impact_Handler extends SCD_Abstract_Ajax_Handler {
 
 			$discounted_price = $this->_apply_discount( $original_price, $discount_type, $discount_value );
 
-			$total_original += $original_price;
+			$total_original   += $original_price;
 			$total_discounted += $discounted_price;
 
 			// Add to examples if in sample
 			if ( in_array( $product_id, $sample_ids, true ) ) {
 				$examples[] = array(
-					'name' => $product->get_name(),
-					'original' => $original_price,
+					'name'       => $product->get_name(),
+					'original'   => $original_price,
 					'discounted' => $discounted_price,
-					'savings' => $original_price - $discounted_price
+					'savings'    => $original_price - $discounted_price,
 				);
 			}
 		}
 
 		$revenue_difference = $total_discounted - $total_original;
-		$percentage_impact = $total_original > 0 ? round( ( $revenue_difference / $total_original ) * 100 ) : 0;
+		$percentage_impact  = $total_original > 0 ? round( ( $revenue_difference / $total_original ) * 100 ) : 0;
 
 		return array(
-			'has_data' => true,
-			'discount_type' => $discount_type,
+			'has_data'       => true,
+			'discount_type'  => $discount_type,
 			'discount_value' => $discount_value,
-			'product_count' => count( $product_ids ),
-			'examples' => $examples,
-			'revenue' => array(
-				'original' => $total_original,
+			'product_count'  => count( $product_ids ),
+			'examples'       => $examples,
+			'revenue'        => array(
+				'original'   => $total_original,
 				'discounted' => $total_discounted,
 				'difference' => $revenue_difference,
-				'percentage' => $percentage_impact
+				'percentage' => $percentage_impact,
 			),
-			'warning' => $this->_get_warning( $discount_type, $discount_value, $percentage_impact )
+			'warning'        => $this->_get_warning( $discount_type, $discount_value, $percentage_impact ),
 		);
 	}
 
@@ -173,9 +177,9 @@ class SCD_Calculate_Discount_Impact_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $discount_type        Discount type.
-	 * @param    float     $discount_value       Discount value.
-	 * @param    int       $percentage_impact    Revenue impact percentage.
+	 * @param    string $discount_type        Discount type.
+	 * @param    float  $discount_value       Discount value.
+	 * @param    int    $percentage_impact    Revenue impact percentage.
 	 * @return   string|null                     Warning message or null.
 	 */
 	private function _get_warning( $discount_type, $discount_value, $percentage_impact ) {

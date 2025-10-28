@@ -6,9 +6,9 @@
 	 * @since       2.9.0
 	 */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 	/**
 	 * @var array    $VARS
@@ -18,9 +18,9 @@
 	$fs_checkout = FS_Checkout_Manager::instance();
 
 	$plugin_id = fs_request_get( 'plugin_id' );
-	if ( ! FS_Plugin::is_valid_id( $plugin_id ) ) {
-		$plugin_id = $fs->get_id();
-	}
+if ( ! FS_Plugin::is_valid_id( $plugin_id ) ) {
+	$plugin_id = $fs->get_id();
+}
 
 	$plan_id  = fs_request_get( 'plan_id' );
 	$licenses = fs_request_get( 'licenses' );
@@ -82,21 +82,23 @@
 
 			<div class="fs-checkout-process-redirect__content">
 				<p>
-					<?php echo wp_kses(
+					<?php
+					echo wp_kses(
 						sprintf(
 							fs_text_inline( 'Redirecting, please <a href="%1$s">click here</a> if you\'re stuck...' ),
 							esc_url( $redirect_url )
 						),
 						array( 'a' => array( 'href' => true ) )
-					); ?>
+					);
+					?>
 				</p>
 			</div>
 		</div>
 		<script type="text/javascript">
-            jQuery( document ).ready( function ( $ ) {
-            	$( '.fs-checkout-process-redirect .fs-ajax-loader' ).show();
-            	window.location.href = <?php echo wp_json_encode($redirect_url ); ?>;
-            });
+			jQuery( document ).ready( function ( $ ) {
+				$( '.fs-checkout-process-redirect .fs-ajax-loader' ).show();
+				window.location.href = <?php echo wp_json_encode( $redirect_url ); ?>;
+			});
 		</script>
 		<?php
 	}

@@ -92,15 +92,15 @@ class SCD_Notifications_Page {
 	 * Initialize notifications page.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger        $logger        Logger instance.
-	 * @param    object            $container     Container instance.
-	 * @param    SCD_Feature_Gate  $feature_gate  Feature gate instance.
+	 * @param    SCD_Logger       $logger        Logger instance.
+	 * @param    object           $container     Container instance.
+	 * @param    SCD_Feature_Gate $feature_gate  Feature gate instance.
 	 */
 	public function __construct( SCD_Logger $logger, object $container, SCD_Feature_Gate $feature_gate ) {
-		$this->logger = $logger;
-		$this->container = $container;
+		$this->logger       = $logger;
+		$this->container    = $container;
 		$this->feature_gate = $feature_gate;
-		$this->current_tab = $this->get_current_tab();
+		$this->current_tab  = $this->get_current_tab();
 	}
 
 	/**
@@ -127,31 +127,41 @@ class SCD_Notifications_Page {
 		// Initialize all tab classes from container
 		$tab_services = array(
 			'settings' => 'notifications_settings_tab',
-			'queue' => 'notifications_queue_tab',
+			'queue'    => 'notifications_queue_tab',
 		);
 
 		foreach ( $tab_services as $tab_slug => $service_id ) {
 			// Hook into register_settings to register sections
 			// Use closure with lazy loading to avoid circular dependency
-			add_action( 'scd_register_notifications_sections', function( $current_tab ) use ( $service_id, $tab_slug ) {
-				if ( $current_tab === $tab_slug && $this->container->has( $service_id ) ) {
-					$tab_instance = $this->container->get( $service_id );
-					if ( method_exists( $tab_instance, 'register_sections' ) ) {
-						$tab_instance->register_sections( $current_tab );
+			add_action(
+				'scd_register_notifications_sections',
+				function ( $current_tab ) use ( $service_id, $tab_slug ) {
+					if ( $current_tab === $tab_slug && $this->container->has( $service_id ) ) {
+						$tab_instance = $this->container->get( $service_id );
+						if ( method_exists( $tab_instance, 'register_sections' ) ) {
+							$tab_instance->register_sections( $current_tab );
+						}
 					}
-				}
-			}, 10, 1 );
+				},
+				10,
+				1
+			);
 
 			// Hook into render to show tab content
 			// Use closure with lazy loading to avoid circular dependency
-			add_action( 'scd_render_notifications_tab', function( $current_tab ) use ( $service_id, $tab_slug ) {
-				if ( $current_tab === $tab_slug && $this->container->has( $service_id ) ) {
-					$tab_instance = $this->container->get( $service_id );
-					if ( method_exists( $tab_instance, 'render_tab_content' ) ) {
-						$tab_instance->render_tab_content( $current_tab );
+			add_action(
+				'scd_render_notifications_tab',
+				function ( $current_tab ) use ( $service_id, $tab_slug ) {
+					if ( $current_tab === $tab_slug && $this->container->has( $service_id ) ) {
+						$tab_instance = $this->container->get( $service_id );
+						if ( method_exists( $tab_instance, 'render_tab_content' ) ) {
+							$tab_instance->render_tab_content( $current_tab );
+						}
 					}
-				}
-			}, 10, 1 );
+				},
+				10,
+				1
+			);
 		}
 
 		$this->logger->debug( 'Notification tab classes initialized' );
@@ -178,14 +188,14 @@ class SCD_Notifications_Page {
 	private function register_tabs(): void {
 		$this->tabs = array(
 			'settings' => array(
-				'title' => __( 'Settings', 'smart-cycle-discounts' ),
+				'title'    => __( 'Settings', 'smart-cycle-discounts' ),
 				'priority' => 10,
-				'icon' => 'dashicons-admin-settings',
+				'icon'     => 'dashicons-admin-settings',
 			),
-			'queue' => array(
-				'title' => __( 'Queue Status', 'smart-cycle-discounts' ),
+			'queue'    => array(
+				'title'    => __( 'Queue Status', 'smart-cycle-discounts' ),
 				'priority' => 20,
-				'icon' => 'dashicons-list-view',
+				'icon'     => 'dashicons-list-view',
 			),
 		);
 
@@ -193,9 +203,12 @@ class SCD_Notifications_Page {
 		$this->tabs = apply_filters( 'scd_notifications_tabs', $this->tabs );
 
 		// Sort tabs by priority
-		uasort( $this->tabs, function( $a, $b ) {
-			return $a['priority'] <=> $b['priority'];
-		} );
+		uasort(
+			$this->tabs,
+			function ( $a, $b ) {
+				return $a['priority'] <=> $b['priority'];
+			}
+		);
 	}
 
 	/**
@@ -210,7 +223,7 @@ class SCD_Notifications_Page {
 			'scd_notifications_group',
 			$this->option_name,
 			array(
-				'type' => 'array',
+				'type'              => 'array',
 				'sanitize_callback' => array( $this, 'sanitize_settings' ),
 			)
 		);
@@ -327,10 +340,10 @@ class SCD_Notifications_Page {
 
 		foreach ( $this->get_tabs() as $tab_slug => $tab_data ) {
 			$active_class = ( $this->current_tab === $tab_slug ) ? ' nav-tab-active' : '';
-			$tab_url = add_query_arg(
+			$tab_url      = add_query_arg(
 				array(
 					'page' => 'scd-notifications',
-					'tab' => $tab_slug,
+					'tab'  => $tab_slug,
 				),
 				admin_url( 'admin.php' )
 			);
@@ -351,7 +364,7 @@ class SCD_Notifications_Page {
 	 * Sanitize settings.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $input    Raw input data.
+	 * @param    array $input    Raw input data.
 	 * @return   array             Sanitized settings.
 	 */
 	public function sanitize_settings( array $input ): array {

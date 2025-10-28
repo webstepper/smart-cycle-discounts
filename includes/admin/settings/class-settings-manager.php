@@ -83,12 +83,12 @@ class SCD_Settings_Manager {
 	 * Initialize settings manager.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger   $logger       Logger instance.
-	 * @param    object       $container    Container instance.
+	 * @param    SCD_Logger $logger       Logger instance.
+	 * @param    object     $container    Container instance.
 	 */
 	public function __construct( SCD_Logger $logger, object $container ) {
-		$this->logger = $logger;
-		$this->container = $container;
+		$this->logger      = $logger;
+		$this->container   = $container;
 		$this->current_tab = $this->get_current_tab();
 	}
 
@@ -115,9 +115,9 @@ class SCD_Settings_Manager {
 	private function init_tab_classes(): void {
 		// Initialize all tab classes from container
 		$tab_services = array(
-			'general' => 'settings_general',
+			'general'     => 'settings_general',
 			'performance' => 'settings_performance',
-			'advanced' => 'settings_advanced',
+			'advanced'    => 'settings_advanced',
 		);
 
 		foreach ( $tab_services as $tab_slug => $service_id ) {
@@ -158,7 +158,7 @@ class SCD_Settings_Manager {
 	 */
 	public function maybe_migrate_settings(): void {
 		// Load migrator class
-		require_once dirname( __FILE__ ) . '/class-settings-migrator.php';
+		require_once __DIR__ . '/class-settings-migrator.php';
 
 		$migrator = new SCD_Settings_Migrator( $this->logger );
 
@@ -175,25 +175,31 @@ class SCD_Settings_Manager {
 
 		if ( $success ) {
 			// Show admin notice
-			add_action( 'admin_notices', function() {
-				echo '<div class="notice notice-success is-dismissible">';
-				echo '<p><strong>' . esc_html__( 'Smart Cycle Discounts:', 'smart-cycle-discounts' ) . '</strong> ';
-				echo esc_html__( 'Settings have been successfully migrated to the new format.', 'smart-cycle-discounts' );
-				echo '</p>';
-				echo '</div>';
-			} );
+			add_action(
+				'admin_notices',
+				function () {
+					echo '<div class="notice notice-success is-dismissible">';
+					echo '<p><strong>' . esc_html__( 'Smart Cycle Discounts:', 'smart-cycle-discounts' ) . '</strong> ';
+					echo esc_html__( 'Settings have been successfully migrated to the new format.', 'smart-cycle-discounts' );
+					echo '</p>';
+					echo '</div>';
+				}
+			);
 
 			// Note: We don't cleanup old settings immediately to allow rollback if needed
 			// Cleanup can be done manually or after verification period
 		} else {
 			// Migration failed - show error
-			add_action( 'admin_notices', function() {
-				echo '<div class="notice notice-error">';
-				echo '<p><strong>' . esc_html__( 'Smart Cycle Discounts:', 'smart-cycle-discounts' ) . '</strong> ';
-				echo esc_html__( 'Settings migration failed. Please check error logs for details.', 'smart-cycle-discounts' );
-				echo '</p>';
-				echo '</div>';
-			} );
+			add_action(
+				'admin_notices',
+				function () {
+					echo '<div class="notice notice-error">';
+					echo '<p><strong>' . esc_html__( 'Smart Cycle Discounts:', 'smart-cycle-discounts' ) . '</strong> ';
+					echo esc_html__( 'Settings migration failed. Please check error logs for details.', 'smart-cycle-discounts' );
+					echo '</p>';
+					echo '</div>';
+				}
+			);
 		}
 	}
 
@@ -206,20 +212,20 @@ class SCD_Settings_Manager {
 	 */
 	private function register_tabs(): void {
 		$this->tabs = array(
-			'general' => array(
-				'title' => __( 'General', 'smart-cycle-discounts' ),
+			'general'     => array(
+				'title'    => __( 'General', 'smart-cycle-discounts' ),
 				'priority' => 10,
-				'icon' => 'dashicons-admin-settings',
+				'icon'     => 'dashicons-admin-settings',
 			),
 			'performance' => array(
-				'title' => __( 'Performance', 'smart-cycle-discounts' ),
+				'title'    => __( 'Performance', 'smart-cycle-discounts' ),
 				'priority' => 15,
-				'icon' => 'dashicons-performance',
+				'icon'     => 'dashicons-performance',
 			),
-			'advanced' => array(
-				'title' => __( 'Advanced', 'smart-cycle-discounts' ),
+			'advanced'    => array(
+				'title'    => __( 'Advanced', 'smart-cycle-discounts' ),
 				'priority' => 20,
-				'icon' => 'dashicons-admin-generic',
+				'icon'     => 'dashicons-admin-generic',
 			),
 		);
 
@@ -227,9 +233,12 @@ class SCD_Settings_Manager {
 		$this->tabs = apply_filters( 'scd_settings_tabs', $this->tabs );
 
 		// Sort tabs by priority
-		uasort( $this->tabs, function( $a, $b ) {
-			return $a['priority'] <=> $b['priority'];
-		} );
+		uasort(
+			$this->tabs,
+			function ( $a, $b ) {
+				return $a['priority'] <=> $b['priority'];
+			}
+		);
 	}
 
 	/**
@@ -244,9 +253,9 @@ class SCD_Settings_Manager {
 			'scd_settings_group',
 			$this->option_name,
 			array(
-				'type' => 'array',
+				'type'              => 'array',
 				'sanitize_callback' => array( $this, 'sanitize_settings' ),
-				'default' => $this->get_default_settings(),
+				'default'           => $this->get_default_settings(),
 			)
 		);
 
@@ -351,10 +360,10 @@ class SCD_Settings_Manager {
 
 		foreach ( $this->get_tabs() as $tab_slug => $tab_data ) {
 			$active_class = ( $this->current_tab === $tab_slug ) ? ' nav-tab-active' : '';
-			$tab_url = add_query_arg(
+			$tab_url      = add_query_arg(
 				array(
 					'page' => 'scd-settings',
-					'tab' => $tab_slug,
+					'tab'  => $tab_slug,
 				),
 				admin_url( 'admin.php' )
 			);
@@ -375,7 +384,7 @@ class SCD_Settings_Manager {
 	 * Sanitize settings.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $input    Raw input data.
+	 * @param    array $input    Raw input data.
 	 * @return   array             Sanitized settings.
 	 */
 	public function sanitize_settings( array $input ): array {
@@ -431,12 +440,12 @@ class SCD_Settings_Manager {
 	 * Get settings for specific tab.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $tab    Tab slug.
+	 * @param    string $tab    Tab slug.
 	 * @return   array             Tab settings.
 	 */
 	public function get_tab_settings( string $tab ): array {
 		$all_settings = $this->get_settings();
-		$defaults = $this->get_default_settings();
+		$defaults     = $this->get_default_settings();
 
 		// Get tab settings, merge with tab-specific defaults
 		$tab_settings = isset( $all_settings[ $tab ] ) ? $all_settings[ $tab ] : array();
@@ -454,40 +463,40 @@ class SCD_Settings_Manager {
 	 */
 	private function get_default_settings(): array {
 		$defaults = array(
-			'general' => array(
+			'general'       => array(
 				'trash_retention_days' => 30,
-				'trash_auto_purge' => true,
+				'trash_auto_purge'     => true,
 			),
-			'performance' => array(
-				'campaign_cache_duration' => 3600,
-				'discount_cache_duration' => 1800,
-				'product_cache_duration' => 3600,
-				'enable_cache_warming' => true,
+			'performance'   => array(
+				'campaign_cache_duration'  => 3600,
+				'discount_cache_duration'  => 1800,
+				'product_cache_duration'   => 3600,
+				'enable_cache_warming'     => true,
 				'warm_on_campaign_changes' => true,
 			),
-			'advanced' => array(
-				'enable_debug_mode' => false,
+			'advanced'      => array(
+				'enable_debug_mode'     => false,
 				'debug_mode_enabled_at' => 0,
-				'log_level' => 'error',
-				'log_retention_days' => 7,
-				'uninstall_data' => false,
+				'log_level'             => 'error',
+				'log_retention_days'    => 7,
+				'uninstall_data'        => false,
 			),
 			// Notifications settings moved to separate page
 			'notifications' => array(
-				'email_provider' => 'wpmail',
-				'from_email' => get_option( 'admin_email' ),
-				'from_name' => get_bloginfo( 'name' ),
-				'additional_recipients' => '',
-				'sendgrid_api_key' => '',
-				'amazonses_access_key' => '',
-				'amazonses_secret_key' => '',
-				'amazonses_region' => 'us-east-1',
+				'email_provider'          => 'wpmail',
+				'from_email'              => get_option( 'admin_email' ),
+				'from_name'               => get_bloginfo( 'name' ),
+				'additional_recipients'   => '',
+				'sendgrid_api_key'        => '',
+				'amazonses_access_key'    => '',
+				'amazonses_secret_key'    => '',
+				'amazonses_region'        => 'us-east-1',
 				'notify_campaign_started' => true,
-				'notify_campaign_ending' => true,
-				'notify_campaign_ended' => true,
-				'notify_daily_report' => false,
-				'notify_weekly_report' => false,
-				'notify_errors' => true,
+				'notify_campaign_ending'  => true,
+				'notify_campaign_ended'   => true,
+				'notify_daily_report'     => false,
+				'notify_weekly_report'    => false,
+				'notify_errors'           => true,
 			),
 		);
 

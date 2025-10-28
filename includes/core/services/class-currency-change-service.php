@@ -51,11 +51,11 @@ class SCD_Currency_Change_Service {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    object    $campaign_repository    Campaign repository instance.
+	 * @param    object $campaign_repository    Campaign repository instance.
 	 */
 	public function __construct( $campaign_repository = null ) {
 		$this->campaign_repository = $campaign_repository;
-		$this->current_currency = get_woocommerce_currency();
+		$this->current_currency    = get_woocommerce_currency();
 	}
 
 	/**
@@ -77,8 +77,8 @@ class SCD_Currency_Change_Service {
 	 * Handle currency change event.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $old_value    Old currency code.
-	 * @param    string    $new_value    New currency code.
+	 * @param    string $old_value    Old currency code.
+	 * @param    string $new_value    New currency code.
 	 * @return   void
 	 */
 	public function handle_currency_change( $old_value, $new_value ) {
@@ -89,11 +89,13 @@ class SCD_Currency_Change_Service {
 
 		// Log currency change
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( sprintf(
-				'[SCD Currency Change] Currency changed from %s to %s',
-				$old_value,
-				$new_value
-			) );
+			error_log(
+				sprintf(
+					'[SCD Currency Change] Currency changed from %s to %s',
+					$old_value,
+					$new_value
+				)
+			);
 		}
 
 		// Get all active campaigns
@@ -117,7 +119,7 @@ class SCD_Currency_Change_Service {
 	 * Get campaigns affected by currency change.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $old_currency    Old currency code.
+	 * @param    string $old_currency    Old currency code.
 	 * @return   array                      Array of affected campaign objects.
 	 */
 	private function get_affected_campaigns( $old_currency ) {
@@ -149,8 +151,8 @@ class SCD_Currency_Change_Service {
 	 * Check if campaign needs review due to currency change.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign        Campaign object.
-	 * @param    string          $old_currency    Old currency code.
+	 * @param    SCD_Campaign $campaign        Campaign object.
+	 * @param    string       $old_currency    Old currency code.
 	 * @return   bool                             True if needs review.
 	 */
 	private function campaign_needs_review( $campaign, $old_currency ) {
@@ -181,9 +183,9 @@ class SCD_Currency_Change_Service {
 	 * Pause affected campaigns.
 	 *
 	 * @since    1.0.0
-	 * @param    array     $campaigns      Array of campaign objects.
-	 * @param    string    $old_currency   Old currency code.
-	 * @param    string    $new_currency   New currency code.
+	 * @param    array  $campaigns      Array of campaign objects.
+	 * @param    string $old_currency   Old currency code.
+	 * @param    string $new_currency   New currency code.
 	 * @return   int                       Number of campaigns paused.
 	 */
 	private function pause_affected_campaigns( $campaigns, $old_currency, $new_currency ) {
@@ -211,23 +213,27 @@ class SCD_Currency_Change_Service {
 				// Save through repository
 				try {
 					$this->campaign_repository->save( $campaign );
-					$paused_count++;
+					++$paused_count;
 
 					// Log the pause
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( sprintf(
-							'[SCD Currency Change] Paused campaign #%d (%s) - Discount type: %s',
-							$campaign->get_id(),
-							$campaign->get_name(),
-							$campaign->get_discount_type()
-						) );
+						error_log(
+							sprintf(
+								'[SCD Currency Change] Paused campaign #%d (%s) - Discount type: %s',
+								$campaign->get_id(),
+								$campaign->get_name(),
+								$campaign->get_discount_type()
+							)
+						);
 					}
 				} catch ( Exception $e ) {
-					error_log( sprintf(
-						'[SCD Currency Change] Failed to pause campaign #%d: %s',
-						$campaign->get_id(),
-						$e->getMessage()
-					) );
+					error_log(
+						sprintf(
+							'[SCD Currency Change] Failed to pause campaign #%d: %s',
+							$campaign->get_id(),
+							$e->getMessage()
+						)
+					);
 				}
 			}
 		}
@@ -239,9 +245,9 @@ class SCD_Currency_Change_Service {
 	 * Mark campaign for currency review.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign        Campaign object.
-	 * @param    string          $old_currency    Old currency code.
-	 * @param    string          $new_currency    New currency code.
+	 * @param    SCD_Campaign $campaign        Campaign object.
+	 * @param    string       $old_currency    Old currency code.
+	 * @param    string       $new_currency    New currency code.
 	 * @return   void
 	 */
 	private function mark_for_currency_review( $campaign, $old_currency, $new_currency ) {
@@ -256,7 +262,7 @@ class SCD_Currency_Change_Service {
 	 * Track campaign currency on creation/update.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Campaign object.
+	 * @param    SCD_Campaign $campaign    Campaign object.
 	 * @return   void
 	 */
 	public function track_campaign_currency( $campaign ) {
@@ -270,11 +276,13 @@ class SCD_Currency_Change_Service {
 			try {
 				$this->campaign_repository->save( $campaign );
 			} catch ( Exception $e ) {
-				error_log( sprintf(
-					'[SCD Currency Tracking] Failed to save currency metadata for campaign #%d: %s',
-					$campaign->get_id(),
-					$e->getMessage()
-				) );
+				error_log(
+					sprintf(
+						'[SCD Currency Tracking] Failed to save currency metadata for campaign #%d: %s',
+						$campaign->get_id(),
+						$e->getMessage()
+					)
+				);
 			}
 		}
 	}
@@ -283,9 +291,9 @@ class SCD_Currency_Change_Service {
 	 * Set admin notice for currency change.
 	 *
 	 * @since    1.0.0
-	 * @param    int       $paused_count    Number of campaigns paused.
-	 * @param    string    $old_currency    Old currency code.
-	 * @param    string    $new_currency    New currency code.
+	 * @param    int    $paused_count    Number of campaigns paused.
+	 * @param    string $old_currency    Old currency code.
+	 * @param    string $new_currency    New currency code.
 	 * @return   void
 	 */
 	private function set_currency_change_notice( $paused_count, $old_currency, $new_currency ) {
@@ -294,7 +302,7 @@ class SCD_Currency_Change_Service {
 			'paused_count' => $paused_count,
 			'old_currency' => $old_currency,
 			'new_currency' => $new_currency,
-			'timestamp' => time()
+			'timestamp'    => time(),
 		);
 
 		set_transient( 'scd_currency_change_notice', $notice_data, DAY_IN_SECONDS );
@@ -335,7 +343,7 @@ class SCD_Currency_Change_Service {
 	 * Clear currency review flag from campaign.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $campaign_id    Campaign ID.
+	 * @param    int $campaign_id    Campaign ID.
 	 * @return   bool                   True on success.
 	 */
 	public function clear_review_flag( $campaign_id ) {
@@ -360,11 +368,13 @@ class SCD_Currency_Change_Service {
 
 			return true;
 		} catch ( Exception $e ) {
-			error_log( sprintf(
-				'[SCD Currency Review] Failed to clear review flag for campaign #%d: %s',
-				$campaign_id,
-				$e->getMessage()
-			) );
+			error_log(
+				sprintf(
+					'[SCD Currency Review] Failed to clear review flag for campaign #%d: %s',
+					$campaign_id,
+					$e->getMessage()
+				)
+			);
 			return false;
 		}
 	}
@@ -373,7 +383,7 @@ class SCD_Currency_Change_Service {
 	 * Restore campaign to pre-currency-change status.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $campaign_id    Campaign ID.
+	 * @param    int $campaign_id    Campaign ID.
 	 * @return   bool                   True on success.
 	 */
 	public function restore_campaign_status( $campaign_id ) {
@@ -413,11 +423,13 @@ class SCD_Currency_Change_Service {
 
 			return false;
 		} catch ( Exception $e ) {
-			error_log( sprintf(
-				'[SCD Currency Review] Failed to restore campaign #%d: %s',
-				$campaign_id,
-				$e->getMessage()
-			) );
+			error_log(
+				sprintf(
+					'[SCD Currency Review] Failed to restore campaign #%d: %s',
+					$campaign_id,
+					$e->getMessage()
+				)
+			);
 			return false;
 		}
 	}

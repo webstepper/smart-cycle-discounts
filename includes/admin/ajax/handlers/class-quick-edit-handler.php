@@ -32,8 +32,8 @@ class SCD_Quick_Edit_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Manager    $campaign_manager    Campaign manager.
-	 * @param    SCD_Logger              $logger              Logger instance.
+	 * @param    SCD_Campaign_Manager $campaign_manager    Campaign manager.
+	 * @param    SCD_Logger           $logger              Logger instance.
 	 */
 	public function __construct( $campaign_manager, $logger = null ) {
 		parent::__construct( $logger );
@@ -54,7 +54,7 @@ class SCD_Quick_Edit_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle quick edit request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array                Response array.
 	 */
 	protected function handle( $request ) {
@@ -100,21 +100,26 @@ class SCD_Quick_Edit_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		// Log successful update
-		$this->log_info( 'Campaign quick edit successful', array(
-			'campaign_id'  => $campaign_id,
-			'updated_fields' => array_keys( $update_data ),
-		) );
+		$this->log_info(
+			'Campaign quick edit successful',
+			array(
+				'campaign_id'    => $campaign_id,
+				'updated_fields' => array_keys( $update_data ),
+			)
+		);
 
 		// Return success response
-		return $this->success( array(
-			'message'  => __( 'Campaign updated successfully.', 'smart-cycle-discounts' ),
-			'campaign' => array(
-				'id'       => $campaign_id,
-				'name'     => isset( $update_data['name'] ) ? $update_data['name'] : $campaign->get_name(),
-				'status'   => isset( $update_data['status'] ) ? $update_data['status'] : $campaign->get_status(),
-				'priority' => isset( $update_data['priority'] ) ? $update_data['priority'] : $campaign->get_priority(),
-			),
-		) );
+		return $this->success(
+			array(
+				'message'  => __( 'Campaign updated successfully.', 'smart-cycle-discounts' ),
+				'campaign' => array(
+					'id'       => $campaign_id,
+					'name'     => isset( $update_data['name'] ) ? $update_data['name'] : $campaign->get_name(),
+					'status'   => isset( $update_data['status'] ) ? $update_data['status'] : $campaign->get_status(),
+					'priority' => isset( $update_data['priority'] ) ? $update_data['priority'] : $campaign->get_priority(),
+				),
+			)
+		);
 	}
 
 	/**
@@ -122,7 +127,7 @@ class SCD_Quick_Edit_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array                Update data.
 	 */
 	private function prepare_update_data( $request ) {
@@ -138,7 +143,7 @@ class SCD_Quick_Edit_Handler extends SCD_Abstract_Ajax_Handler {
 
 		// Status
 		if ( isset( $request['status'] ) ) {
-			$status = sanitize_key( $request['status'] );
+			$status         = sanitize_key( $request['status'] );
 			$valid_statuses = array( 'draft', 'active', 'paused', 'scheduled', 'expired', 'archived' );
 			if ( in_array( $status, $valid_statuses, true ) ) {
 				$update_data['status'] = $status;

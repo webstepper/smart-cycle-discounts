@@ -39,8 +39,8 @@ class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Wizard_State_Service    $state_service    State service.
-	 * @param    SCD_Logger                  $logger           Logger instance (optional).
+	 * @param    SCD_Wizard_State_Service $state_service    State service.
+	 * @param    SCD_Logger               $logger           Logger instance (optional).
 	 */
 	public function __construct( $state_service, $logger = null ) {
 		parent::__construct( $logger );
@@ -61,7 +61,7 @@ class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle the get summary request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
@@ -81,12 +81,14 @@ class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
 		// Get progress
 		$progress = $this->state_service->get_progress();
 
-		return $this->success( array(
-			'summary' => $summary,
-			'progress' => $progress,
-			'can_complete' => $progress['can_complete'],
-			'message' => __( 'Summary loaded successfully', 'smart-cycle-discounts' )
-		) );
+		return $this->success(
+			array(
+				'summary'      => $summary,
+				'progress'     => $progress,
+				'can_complete' => $progress['can_complete'],
+				'message'      => __( 'Summary loaded successfully', 'smart-cycle-discounts' ),
+			)
+		);
 	}
 
 	/**
@@ -94,7 +96,7 @@ class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $steps    Step data.
+	 * @param    array $steps    Step data.
 	 * @return   array              Summary data.
 	 */
 	private function build_summary( $steps ) {
@@ -104,23 +106,23 @@ class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
 		if ( ! empty( $steps['basic'] ) ) {
 			$summary['basic'] = array(
 				'campaign_name' => isset( $steps['basic']['campaign_name'] ) ? $steps['basic']['campaign_name'] : __( 'Untitled Campaign', 'smart-cycle-discounts' ),
-				'description' => isset( $steps['basic']['description'] ) ? $steps['basic']['description'] : '',
-				'status' => isset( $steps['basic']['status'] ) ? $steps['basic']['status'] : 'draft',
-				'priority' => isset( $steps['basic']['priority'] ) ? $steps['basic']['priority'] : 10
+				'description'   => isset( $steps['basic']['description'] ) ? $steps['basic']['description'] : '',
+				'status'        => isset( $steps['basic']['status'] ) ? $steps['basic']['status'] : 'draft',
+				'priority'      => isset( $steps['basic']['priority'] ) ? $steps['basic']['priority'] : 10,
 			);
 		}
 
 		// Products information
 		if ( ! empty( $steps['products'] ) ) {
-			$product_ids = isset( $steps['products']['product_ids'] ) ? $steps['products']['product_ids'] : array();
+			$product_ids  = isset( $steps['products']['product_ids'] ) ? $steps['products']['product_ids'] : array();
 			$category_ids = isset( $steps['products']['category_ids'] ) ? $steps['products']['category_ids'] : array();
 
 			$summary['products'] = array(
 				'product_selection_type' => isset( $steps['products']['product_selection_type'] ) ? $steps['products']['product_selection_type'] : 'manual',
-				'product_count' => count( $product_ids ),
-				'product_ids' => $product_ids,
-				'category_count' => count( $category_ids ),
-				'category_ids' => $category_ids
+				'product_count'          => count( $product_ids ),
+				'product_ids'            => $product_ids,
+				'category_count'         => count( $category_ids ),
+				'category_ids'           => $category_ids,
 			);
 
 			// Load product names if available
@@ -132,23 +134,23 @@ class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
 		// Discount information
 		if ( ! empty( $steps['discounts'] ) ) {
 			$summary['discounts'] = array(
-				'discount_type' => isset( $steps['discounts']['discount_type'] ) ? $steps['discounts']['discount_type'] : 'percentage',
+				'discount_type'  => isset( $steps['discounts']['discount_type'] ) ? $steps['discounts']['discount_type'] : 'percentage',
 				'discount_value' => isset( $steps['discounts']['discount_value'] ) ? $steps['discounts']['discount_value'] : 0,
-				'enable_tiered' => ! empty( $steps['discounts']['enable_tiered'] ),
-				'tiers' => isset( $steps['discounts']['tiers'] ) ? $steps['discounts']['tiers'] : array(),
-				'badge_enabled' => ! empty( $steps['discounts']['badge_enabled'] ),
-				'badge_text' => isset( $steps['discounts']['badge_text'] ) ? $steps['discounts']['badge_text'] : ''
+				'enable_tiered'  => ! empty( $steps['discounts']['enable_tiered'] ),
+				'tiers'          => isset( $steps['discounts']['tiers'] ) ? $steps['discounts']['tiers'] : array(),
+				'badge_enabled'  => ! empty( $steps['discounts']['badge_enabled'] ),
+				'badge_text'     => isset( $steps['discounts']['badge_text'] ) ? $steps['discounts']['badge_text'] : '',
 			);
 		}
 
 		// Schedule information
 		if ( ! empty( $steps['schedule'] ) ) {
 			$summary['schedule'] = array(
-				'start_date' => isset( $steps['schedule']['start_date'] ) ? $steps['schedule']['start_date'] : '',
-				'end_date' => isset( $steps['schedule']['end_date'] ) ? $steps['schedule']['end_date'] : '',
+				'start_date'        => isset( $steps['schedule']['start_date'] ) ? $steps['schedule']['start_date'] : '',
+				'end_date'          => isset( $steps['schedule']['end_date'] ) ? $steps['schedule']['end_date'] : '',
 				'enable_time_limit' => ! empty( $steps['schedule']['enable_time_limit'] ),
-				'recurring' => ! empty( $steps['schedule']['recurring'] ),
-				'recurring_pattern' => isset( $steps['schedule']['recurring_pattern'] ) ? $steps['schedule']['recurring_pattern'] : ''
+				'recurring'         => ! empty( $steps['schedule']['recurring'] ),
+				'recurring_pattern' => isset( $steps['schedule']['recurring_pattern'] ) ? $steps['schedule']['recurring_pattern'] : '',
 			);
 
 			// Format dates for display
@@ -174,7 +176,7 @@ class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $product_ids    Product IDs.
+	 * @param    array $product_ids    Product IDs.
 	 * @return   array                    Product names.
 	 */
 	private function get_product_names( $product_ids ) {

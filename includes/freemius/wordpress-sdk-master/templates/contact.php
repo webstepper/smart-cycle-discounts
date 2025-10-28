@@ -7,11 +7,11 @@
 	 */
 
 	/**
-     * Update (October 9, 2024 by @swashata):
+	 * Update (October 9, 2024 by @swashata):
 	 *   Following request from the wp.org plugin review team, we have stopped
 	 *   embedding the contact form inside an i-frame for wp.org hosted free version
 	 *   of plugins. Now they will be opened in a new tab.
-     *
+	 *
 	 * Note for WordPress.org Theme/Plugin reviewer:
 	 *  Freemius is an SDK for plugin and theme developers. Since the core
 	 *  of the SDK is relevant both for plugins and themes, for obvious reasons,
@@ -39,9 +39,9 @@
 	 * @since 1.2.2
 	 */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 	wp_enqueue_script( 'jquery' );
 	wp_enqueue_script( 'json2' );
@@ -62,14 +62,14 @@
 		'id'   => $VARS['id'],
 		'page' => strtolower( $fs->get_text_inline( 'Contact', 'contact' ) ),
 	);
-	fs_require_once_template('secure-https-header.php', $view_params);
+	fs_require_once_template( 'secure-https-header.php', $view_params );
 
 	$has_tabs = $fs->_add_tabs_before_content();
 
 	if ( $has_tabs ) {
 		$query_params['tabs'] = 'true';
 	}
-?>
+	?>
 	<div id="fs_contact" class="wrap fs-section fs-full-size-wrapper">
 		<div id="fs_frame"></div>
 		<script type="text/javascript">
@@ -79,8 +79,8 @@
 					var
 					// Keep track of the i-frame height.
 					frame_height = 800,
-					base_url = '<?php echo WP_FS__ADDRESS ?>',
-					src = base_url + '/contact/?<?php echo http_build_query($query_params) ?>#' + encodeURIComponent(document.location.href),
+					base_url = '<?php echo WP_FS__ADDRESS; ?>',
+					src = base_url + '/contact/?<?php echo http_build_query( $query_params ); ?>#' + encodeURIComponent(document.location.href),
 
 					// Append the i-frame into the DOM.
 					frame = $('<i' + 'frame " src="' + src + '" width="100%" height="' + frame_height + 'px" scrolling="no" frameborder="0" style="background: transparent; width: 1px; min-width: 100%;"><\/i' + 'frame>')
@@ -99,6 +99,6 @@
 		</script>
 	</div>
 <?php
-	if ( $has_tabs ) {
-		$fs->_add_tabs_after_content();
-	}
+if ( $has_tabs ) {
+	$fs->_add_tabs_after_content();
+}

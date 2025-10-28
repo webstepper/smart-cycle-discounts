@@ -39,7 +39,7 @@ class SCD_Send_Test_Email_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle the request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array                Response data.
 	 */
 	protected function handle( $request ) {
@@ -53,7 +53,7 @@ class SCD_Send_Test_Email_Handler extends SCD_Abstract_Ajax_Handler {
 			$settings = isset( $request['settings'] ) ? $request['settings'] : array();
 
 			// Validate email provider
-			$provider = isset( $settings['email_provider'] ) ? $settings['email_provider'] : 'wpmail';
+			$provider        = isset( $settings['email_provider'] ) ? $settings['email_provider'] : 'wpmail';
 			$valid_providers = array( 'wpmail', 'sendgrid', 'amazonses' );
 
 			if ( ! in_array( $provider, $valid_providers, true ) ) {
@@ -95,8 +95,8 @@ class SCD_Send_Test_Email_Handler extends SCD_Abstract_Ajax_Handler {
 
 			// Send test email
 			$recipient = get_option( 'admin_email' );
-			$subject = __( 'Test Email from Smart Cycle Discounts', 'smart-cycle-discounts' );
-			$content = $this->get_test_email_content( $provider, $from_email, $from_name );
+			$subject   = __( 'Test Email from Smart Cycle Discounts', 'smart-cycle-discounts' );
+			$content   = $this->get_test_email_content( $provider, $from_email, $from_name );
 
 			$result = $provider_instance->send( $recipient, $subject, $content );
 
@@ -104,24 +104,32 @@ class SCD_Send_Test_Email_Handler extends SCD_Abstract_Ajax_Handler {
 				throw new Exception( __( 'Failed to send test email. Please check your email provider settings and logs.', 'smart-cycle-discounts' ) );
 			}
 
-			$logger->info( 'Test email sent successfully', array(
-				'provider' => $provider,
-				'recipient' => $recipient,
-			) );
+			$logger->info(
+				'Test email sent successfully',
+				array(
+					'provider'  => $provider,
+					'recipient' => $recipient,
+				)
+			);
 
-			return $this->success( array(
-				'message' => sprintf(
+			return $this->success(
+				array(
+					'message' => sprintf(
 					/* translators: %s: email address */
-					__( 'Test email sent successfully to %s', 'smart-cycle-discounts' ),
-					$recipient
-				),
-			) );
+						__( 'Test email sent successfully to %s', 'smart-cycle-discounts' ),
+						$recipient
+					),
+				)
+			);
 
 		} catch ( Exception $e ) {
 			if ( isset( $logger ) ) {
-				$logger->error( 'Failed to send test email', array(
-					'error' => $e->getMessage(),
-				) );
+				$logger->error(
+					'Failed to send test email',
+					array(
+						'error' => $e->getMessage(),
+					)
+				);
 			}
 
 			return $this->error(
@@ -137,11 +145,11 @@ class SCD_Send_Test_Email_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string        $provider     Provider type.
-	 * @param    array         $settings     Provider settings.
-	 * @param    SCD_Logger    $logger       Logger instance.
-	 * @param    string        $from_email   From email address.
-	 * @param    string        $from_name    From name.
+	 * @param    string     $provider     Provider type.
+	 * @param    array      $settings     Provider settings.
+	 * @param    SCD_Logger $logger       Logger instance.
+	 * @param    string     $from_email   From email address.
+	 * @param    string     $from_name    From name.
 	 * @return   SCD_Email_Provider           Provider instance.
 	 * @throws   Exception                    If provider cannot be created.
 	 */
@@ -164,7 +172,7 @@ class SCD_Send_Test_Email_Handler extends SCD_Abstract_Ajax_Handler {
 				require_once SCD_INCLUDES_DIR . 'integrations/email/providers/class-amazonses-provider.php';
 				$access_key = isset( $settings['amazonses_access_key'] ) ? sanitize_text_field( $settings['amazonses_access_key'] ) : '';
 				$secret_key = isset( $settings['amazonses_secret_key'] ) ? sanitize_text_field( $settings['amazonses_secret_key'] ) : '';
-				$region = isset( $settings['amazonses_region'] ) ? sanitize_text_field( $settings['amazonses_region'] ) : 'us-east-1';
+				$region     = isset( $settings['amazonses_region'] ) ? sanitize_text_field( $settings['amazonses_region'] ) : 'us-east-1';
 
 				if ( empty( $access_key ) || empty( $secret_key ) ) {
 					throw new Exception( __( 'Amazon SES access and secret keys are required', 'smart-cycle-discounts' ) );
@@ -184,15 +192,15 @@ class SCD_Send_Test_Email_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $provider     Provider name.
-	 * @param    string    $from_email   From email address.
-	 * @param    string    $from_name    From name.
+	 * @param    string $provider     Provider name.
+	 * @param    string $from_email   From email address.
+	 * @param    string $from_name    From name.
 	 * @return   string                  HTML content.
 	 */
 	private function get_test_email_content( $provider, $from_email, $from_name ) {
 		$provider_names = array(
-			'wpmail' => __( 'WordPress Mail', 'smart-cycle-discounts' ),
-			'sendgrid' => __( 'SendGrid', 'smart-cycle-discounts' ),
+			'wpmail'    => __( 'WordPress Mail', 'smart-cycle-discounts' ),
+			'sendgrid'  => __( 'SendGrid', 'smart-cycle-discounts' ),
 			'amazonses' => __( 'Amazon SES', 'smart-cycle-discounts' ),
 		);
 

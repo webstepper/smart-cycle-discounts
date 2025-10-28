@@ -46,27 +46,27 @@ class SCD_Modal_Component {
 	 * @var      array    $defaults    Default configuration.
 	 */
 	private array $defaults = array(
-		'id' => '',
-		'title' => '',
-		'content' => '',
-		'icon' => '',
-		'icon_type' => 'dashicons',
-		'buttons' => array(),
-		'classes' => array(),
-		'attributes' => array(),
-		'dismissible' => true,
-		'escape_content' => true
+		'id'             => '',
+		'title'          => '',
+		'content'        => '',
+		'icon'           => '',
+		'icon_type'      => 'dashicons',
+		'buttons'        => array(),
+		'classes'        => array(),
+		'attributes'     => array(),
+		'dismissible'    => true,
+		'escape_content' => true,
 	);
 
 	/**
 	 * Initialize the modal component.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $config    Modal configuration.
+	 * @param    array $config    Modal configuration.
 	 */
 	public function __construct( array $config ) {
 		$this->config = wp_parse_args( $config, $this->defaults );
-		
+
 		// Ensure ID is set
 		if ( empty( $this->config['id'] ) ) {
 			$this->config['id'] = 'scd-modal-' . wp_generate_uuid4();
@@ -104,36 +104,36 @@ class SCD_Modal_Component {
 	 * @return   void
 	 */
 	private function render_modal_html(): void {
-		$classes = array_merge( array( 'scd-modal' ), $this->config['classes'] );
+		$classes    = array_merge( array( 'scd-modal' ), $this->config['classes'] );
 		$attributes = $this->build_attributes( $this->config['attributes'] );
 		?>
 		<div id="<?php echo esc_attr( $this->config['id'] ); ?>" 
-		     class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>" 
-		     <?php echo $attributes; ?>
-		     style="display:none;">
+			class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>" 
+			<?php echo $attributes; ?>
+			style="display:none;">
 			<div class="scd-modal__overlay"></div>
 			<div class="scd-modal__container">
 				<div class="scd-modal__content">
-					<?php if ( $this->config['dismissible'] ): ?>
+					<?php if ( $this->config['dismissible'] ) : ?>
 						<button class="scd-modal__close" type="button" aria-label="<?php echo esc_attr__( 'Close modal', 'smart-cycle-discounts' ); ?>">
 							<span class="dashicons dashicons-no"></span>
 						</button>
 					<?php endif; ?>
 					
-					<?php if ( ! empty( $this->config['icon'] ) ): ?>
+					<?php if ( ! empty( $this->config['icon'] ) ) : ?>
 						<div class="scd-modal__icon">
 							<?php $this->render_icon(); ?>
 						</div>
 					<?php endif; ?>
 					
-					<?php if ( ! empty( $this->config['title'] ) ): ?>
+					<?php if ( ! empty( $this->config['title'] ) ) : ?>
 						<h2 class="scd-modal__title">
 							<?php echo esc_html( $this->config['title'] ); ?>
 						</h2>
 					<?php endif; ?>
 					
 					<div class="scd-modal__message">
-						<?php 
+						<?php
 						if ( $this->config['escape_content'] ) {
 							echo wp_kses_post( $this->config['content'] );
 						} else {
@@ -142,7 +142,7 @@ class SCD_Modal_Component {
 						?>
 					</div>
 					
-					<?php if ( ! empty( $this->config['buttons'] ) ): ?>
+					<?php if ( ! empty( $this->config['buttons'] ) ) : ?>
 						<div class="scd-modal__actions">
 							<?php $this->render_buttons(); ?>
 						</div>
@@ -165,23 +165,26 @@ class SCD_Modal_Component {
 			<span class="dashicons <?php echo esc_attr( $this->config['icon'] ); ?>"></span>
 			<?php
 		} elseif ( $this->config['icon_type'] === 'svg' ) {
-			echo wp_kses( $this->config['icon'], array(
-				'svg' => array(
-					'class' => true,
-					'aria-hidden' => true,
-					'aria-label' => true,
-					'role' => true,
-					'xmlns' => true,
-					'width' => true,
-					'height' => true,
-					'viewbox' => true,
-				),
-				'path' => array(
-					'd' => true,
-					'fill' => true,
-					'stroke' => true,
+			echo wp_kses(
+				$this->config['icon'],
+				array(
+					'svg'  => array(
+						'class'       => true,
+						'aria-hidden' => true,
+						'aria-label'  => true,
+						'role'        => true,
+						'xmlns'       => true,
+						'width'       => true,
+						'height'      => true,
+						'viewbox'     => true,
+					),
+					'path' => array(
+						'd'      => true,
+						'fill'   => true,
+						'stroke' => true,
+					),
 				)
-			) );
+			);
 		}
 	}
 
@@ -193,16 +196,19 @@ class SCD_Modal_Component {
 	 */
 	private function render_buttons(): void {
 		foreach ( $this->config['buttons'] as $button ) {
-			$button = wp_parse_args( $button, array(
-				'text' => '',
-				'type' => 'button',
-				'class' => 'button',
-				'id' => '',
-				'attributes' => array(),
-				'action' => ''
-			) );
+			$button = wp_parse_args(
+				$button,
+				array(
+					'text'       => '',
+					'type'       => 'button',
+					'class'      => 'button',
+					'id'         => '',
+					'attributes' => array(),
+					'action'     => '',
+				)
+			);
 
-			$classes = is_array( $button['class'] ) ? $button['class'] : array( $button['class'] );
+			$classes    = is_array( $button['class'] ) ? $button['class'] : array( $button['class'] );
 			$attributes = $this->build_attributes( $button['attributes'] );
 
 			if ( ! empty( $button['action'] ) ) {
@@ -210,9 +216,12 @@ class SCD_Modal_Component {
 			}
 			?>
 			<button type="<?php echo esc_attr( $button['type'] ); ?>"
-			        <?php if ( ! empty( $button['id'] ) ): ?>id="<?php echo esc_attr( $button['id'] ); ?>"<?php endif; ?>
-			        class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>"
-			        <?php echo $attributes; ?>>
+					<?php
+					if ( ! empty( $button['id'] ) ) :
+						?>
+						id="<?php echo esc_attr( $button['id'] ); ?>"<?php endif; ?>
+					class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>"
+					<?php echo $attributes; ?>>
 				<?php echo esc_html( $button['text'] ); ?>
 			</button>
 			<?php
@@ -227,11 +236,11 @@ class SCD_Modal_Component {
 	 */
 	private function render_modal_styles(): void {
 		static $styles_rendered = false;
-		
+
 		if ( $styles_rendered ) {
 			return;
 		}
-		
+
 		$styles_rendered = true;
 		?>
 		<style>
@@ -386,7 +395,7 @@ class SCD_Modal_Component {
 	 */
 	private function render_modal_scripts(): void {
 		static $base_scripts_rendered = false;
-		
+
 		if ( ! $base_scripts_rendered ) {
 			$base_scripts_rendered = true;
 			?>
@@ -465,12 +474,12 @@ class SCD_Modal_Component {
 	 * Build HTML attributes string.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $attributes    Attributes array.
+	 * @param    array $attributes    Attributes array.
 	 * @return   string                  Attributes string.
 	 */
 	private function build_attributes( array $attributes ): string {
 		$output = '';
-		
+
 		foreach ( $attributes as $key => $value ) {
 			if ( is_bool( $value ) ) {
 				if ( $value ) {
@@ -480,7 +489,7 @@ class SCD_Modal_Component {
 				$output .= ' ' . esc_attr( $key ) . '="' . esc_attr( $value ) . '"';
 			}
 		}
-		
+
 		return $output;
 	}
 
@@ -488,61 +497,61 @@ class SCD_Modal_Component {
 	 * Static factory method for common modal types.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $type      Modal type.
-	 * @param    array     $config    Additional configuration.
+	 * @param    string $type      Modal type.
+	 * @param    array  $config    Additional configuration.
 	 * @return   self                 Modal instance.
 	 */
 	public static function create( string $type, array $config = array() ): self {
 		$defaults = array();
-		
+
 		switch ( $type ) {
 			case 'confirm':
 				$defaults = array(
-					'icon' => 'dashicons-warning',
+					'icon'    => 'dashicons-warning',
 					'buttons' => array(
 						array(
-							'text' => __( 'Confirm', 'smart-cycle-discounts' ),
-							'class' => 'button button-primary',
-							'action' => 'confirm'
+							'text'   => __( 'Confirm', 'smart-cycle-discounts' ),
+							'class'  => 'button button-primary',
+							'action' => 'confirm',
 						),
 						array(
-							'text' => __( 'Cancel', 'smart-cycle-discounts' ),
-							'class' => 'button',
-							'action' => 'close'
-						)
-					)
+							'text'   => __( 'Cancel', 'smart-cycle-discounts' ),
+							'class'  => 'button',
+							'action' => 'close',
+						),
+					),
 				);
 				break;
-				
+
 			case 'error':
 				$defaults = array(
-					'icon' => 'dashicons-dismiss',
+					'icon'    => 'dashicons-dismiss',
 					'classes' => array( 'scd-modal--error' ),
 					'buttons' => array(
 						array(
-							'text' => __( 'OK', 'smart-cycle-discounts' ),
-							'class' => 'button button-primary',
-							'action' => 'close'
-						)
-					)
+							'text'   => __( 'OK', 'smart-cycle-discounts' ),
+							'class'  => 'button button-primary',
+							'action' => 'close',
+						),
+					),
 				);
 				break;
-				
+
 			case 'success':
 				$defaults = array(
-					'icon' => 'dashicons-yes-alt',
+					'icon'    => 'dashicons-yes-alt',
 					'classes' => array( 'scd-modal--success' ),
 					'buttons' => array(
 						array(
-							'text' => __( 'OK', 'smart-cycle-discounts' ),
-							'class' => 'button button-primary',
-							'action' => 'close'
-						)
-					)
+							'text'   => __( 'OK', 'smart-cycle-discounts' ),
+							'class'  => 'button button-primary',
+							'action' => 'close',
+						),
+					),
 				);
 				break;
 		}
-		
+
 		$config = wp_parse_args( $config, $defaults );
 		return new self( $config );
 	}

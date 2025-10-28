@@ -46,19 +46,19 @@ class SCD_Clear_Cache_Handler {
 	 * Initialize the handler
 	 *
 	 * @since    1.0.0
-	 * @param    object       $container    Container instance.
-	 * @param    SCD_Logger   $logger       Logger instance.
+	 * @param    object     $container    Container instance.
+	 * @param    SCD_Logger $logger       Logger instance.
 	 */
 	public function __construct( $container, $logger ) {
 		$this->container = $container;
-		$this->logger = $logger;
+		$this->logger    = $logger;
 	}
 
 	/**
 	 * Handle the request
 	 *
 	 * @since    1.0.0
-	 * @param    array    $data    Request data.
+	 * @param    array $data    Request data.
 	 * @return   array             Response data.
 	 */
 	public function handle( $data ) {
@@ -86,9 +86,9 @@ class SCD_Clear_Cache_Handler {
 
 			return array(
 				'success' => false,
-				'data' => array(
-					'message' => __( 'Cache manager not available', 'smart-cycle-discounts' )
-				)
+				'data'    => array(
+					'message' => __( 'Cache manager not available', 'smart-cycle-discounts' ),
+				),
 			);
 		}
 
@@ -106,15 +106,18 @@ class SCD_Clear_Cache_Handler {
 
 			if ( $result ) {
 				// Log the cache clear action
-				$this->logger->info( 'Cache cleared manually from Performance Settings', array(
-					'user_id' => get_current_user_id()
-				) );
+				$this->logger->info(
+					'Cache cleared manually from Performance Settings',
+					array(
+						'user_id' => get_current_user_id(),
+					)
+				);
 
 				return array(
 					'success' => true,
-					'data' => array(
-						'message' => __( 'Cache cleared successfully!', 'smart-cycle-discounts' )
-					)
+					'data'    => array(
+						'message' => __( 'Cache cleared successfully!', 'smart-cycle-discounts' ),
+					),
 				);
 			} else {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -123,9 +126,9 @@ class SCD_Clear_Cache_Handler {
 
 				return array(
 					'success' => false,
-					'data' => array(
-						'message' => __( 'Failed to clear cache', 'smart-cycle-discounts' )
-					)
+					'data'    => array(
+						'message' => __( 'Failed to clear cache', 'smart-cycle-discounts' ),
+					),
 				);
 			}
 		} catch ( Exception $e ) {
@@ -133,17 +136,20 @@ class SCD_Clear_Cache_Handler {
 				error_log( '[SCD Clear Cache] Exception caught: ' . $e->getMessage() );
 			}
 
-			$this->logger->error( 'Error clearing cache', array(
-				'error' => $e->getMessage(),
-				'trace' => $e->getTraceAsString()
-			) );
+			$this->logger->error(
+				'Error clearing cache',
+				array(
+					'error' => $e->getMessage(),
+					'trace' => $e->getTraceAsString(),
+				)
+			);
 
 			return array(
 				'success' => false,
-				'data' => array(
+				'data'    => array(
 					/* translators: %s: error message */
-					'message' => sprintf( __( 'Error clearing cache: %s', 'smart-cycle-discounts' ), esc_html( $e->getMessage() ) )
-				)
+					'message' => sprintf( __( 'Error clearing cache: %s', 'smart-cycle-discounts' ), esc_html( $e->getMessage() ) ),
+				),
 			);
 		}
 	}

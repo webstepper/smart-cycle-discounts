@@ -66,8 +66,8 @@ class SCD_Campaign_Cron_Diagnostic {
 		}
 
 		$campaigns_with_events = $this->get_campaigns_with_events();
-		$hook_status = $this->check_hook_registration();
-		$next_cron_run = $this->get_next_safety_check();
+		$hook_status           = $this->check_hook_registration();
+		$next_cron_run         = $this->get_next_safety_check();
 
 		?>
 		<div class="wrap">
@@ -87,13 +87,13 @@ class SCD_Campaign_Cron_Diagnostic {
 					<tr>
 						<th>Universal Event Listener:</th>
 						<td>
-							<?php if ( $hook_status['universal_listener'] ): ?>
+							<?php if ( $hook_status['universal_listener'] ) : ?>
 								<span style="color: green;">✅ Registered</span>
 								<p class="description">
 									The 'all' hook is catching campaign events. This means activation/deactivation
 									will work automatically for any campaign.
 								</p>
-							<?php else: ?>
+							<?php else : ?>
 								<span style="color: red;">❌ Not Registered</span>
 								<p class="description">
 									ERROR: The universal listener is not registered. Campaign events will not fire!
@@ -104,10 +104,10 @@ class SCD_Campaign_Cron_Diagnostic {
 					<tr>
 						<th>Next Safety Check:</th>
 						<td>
-							<?php if ( $next_cron_run ): ?>
+							<?php if ( $next_cron_run ) : ?>
 								<?php echo esc_html( human_time_diff( $next_cron_run ) ); ?> from now
 								<br><small><?php echo esc_html( date( 'Y-m-d H:i:s', $next_cron_run ) ); ?></small>
-							<?php else: ?>
+							<?php else : ?>
 								<span style="color: orange;">⚠️ Not scheduled</span>
 							<?php endif; ?>
 						</td>
@@ -118,9 +118,9 @@ class SCD_Campaign_Cron_Diagnostic {
 			<!-- Scheduled Campaign Events -->
 			<div class="card">
 				<h2>📅 Scheduled Campaign Events</h2>
-				<?php if ( empty( $campaigns_with_events ) ): ?>
+				<?php if ( empty( $campaigns_with_events ) ) : ?>
 					<p>No campaigns have scheduled activation/deactivation events.</p>
-				<?php else: ?>
+				<?php else : ?>
 					<table class="widefat striped">
 						<thead>
 							<tr>
@@ -132,13 +132,13 @@ class SCD_Campaign_Cron_Diagnostic {
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ( $campaigns_with_events as $event ): ?>
+							<?php foreach ( $campaigns_with_events as $event ) : ?>
 								<tr>
 									<td><?php echo esc_html( $event['campaign_id'] ); ?></td>
 									<td>
-										<?php if ( 'activate' === $event['type'] ): ?>
+										<?php if ( 'activate' === $event['type'] ) : ?>
 											<span style="color: green;">▶️ Activation</span>
-										<?php else: ?>
+										<?php else : ?>
 											<span style="color: red;">⏹️ Deactivation</span>
 										<?php endif; ?>
 									</td>
@@ -156,9 +156,9 @@ class SCD_Campaign_Cron_Diagnostic {
 										</small>
 									</td>
 									<td>
-										<?php if ( $event['timestamp'] > time() ): ?>
+										<?php if ( $event['timestamp'] > time() ) : ?>
 											<span style="color: blue;">⏳ Pending</span>
-										<?php else: ?>
+										<?php else : ?>
 											<span style="color: orange;">⚠️ Overdue</span>
 										<?php endif; ?>
 									</td>
@@ -204,9 +204,9 @@ class SCD_Campaign_Cron_Diagnostic {
 					<tr>
 						<th>DISABLE_WP_CRON:</th>
 						<td>
-							<?php if ( defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON ): ?>
+							<?php if ( defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON ) : ?>
 								<span style="color: green;">✅ Disabled (using real cron)</span>
-							<?php else: ?>
+							<?php else : ?>
 								<span style="color: blue;">ℹ️ Enabled (using WP-Cron)</span>
 							<?php endif; ?>
 						</td>
@@ -214,9 +214,9 @@ class SCD_Campaign_Cron_Diagnostic {
 					<tr>
 						<th>ALTERNATE_WP_CRON:</th>
 						<td>
-							<?php if ( defined( 'ALTERNATE_WP_CRON' ) && ALTERNATE_WP_CRON ): ?>
+							<?php if ( defined( 'ALTERNATE_WP_CRON' ) && ALTERNATE_WP_CRON ) : ?>
 								<span style="color: green;">✅ Enabled</span>
-							<?php else: ?>
+							<?php else : ?>
 								<span>ℹ️ Disabled</span>
 							<?php endif; ?>
 						</td>
@@ -227,8 +227,8 @@ class SCD_Campaign_Cron_Diagnostic {
 					</tr>
 				</table>
 
-				<?php if ( ! defined( 'DISABLE_WP_CRON' ) || ! DISABLE_WP_CRON ): ?>
-					<?php if ( $this->is_production_environment() ): ?>
+				<?php if ( ! defined( 'DISABLE_WP_CRON' ) || ! DISABLE_WP_CRON ) : ?>
+					<?php if ( $this->is_production_environment() ) : ?>
 						<div class="notice notice-warning inline">
 							<p>
 								<strong>⚠️ Recommendation for Production:</strong>
@@ -252,7 +252,7 @@ class SCD_Campaign_Cron_Diagnostic {
 	 * @return   array    Campaign events.
 	 */
 	private function get_campaigns_with_events(): array {
-		$crons = _get_cron_array();
+		$crons  = _get_cron_array();
 		$events = array();
 
 		if ( ! $crons ) {
@@ -284,9 +284,12 @@ class SCD_Campaign_Cron_Diagnostic {
 		}
 
 		// Sort by timestamp
-		usort( $events, function( $a, $b ) {
-			return $a['timestamp'] - $b['timestamp'];
-		} );
+		usort(
+			$events,
+			function ( $a, $b ) {
+				return $a['timestamp'] - $b['timestamp'];
+			}
+		);
 
 		return $events;
 	}
@@ -348,19 +351,21 @@ class SCD_Campaign_Cron_Diagnostic {
 			// Trigger the safety check
 			do_action( 'scd_update_campaign_status' );
 
-			wp_redirect( add_query_arg(
-				array(
-					'page'    => 'scd-cron-diagnostic',
-					'message' => 'safety_check_run',
-				),
-				admin_url( 'tools.php' )
-			) );
+			wp_redirect(
+				add_query_arg(
+					array(
+						'page'    => 'scd-cron-diagnostic',
+						'message' => 'safety_check_run',
+					),
+					admin_url( 'tools.php' )
+				)
+			);
 			exit;
 		}
 
 		if ( isset( $_POST['campaign_id'] ) && isset( $_POST['event_type'] ) ) {
 			$campaign_id = (int) $_POST['campaign_id'];
-			$event_type = sanitize_text_field( $_POST['event_type'] );
+			$event_type  = sanitize_text_field( $_POST['event_type'] );
 
 			// Trigger the event
 			if ( 'activate' === $event_type ) {
@@ -369,15 +374,17 @@ class SCD_Campaign_Cron_Diagnostic {
 				do_action( 'scd_deactivate_campaign_' . $campaign_id, $campaign_id );
 			}
 
-			wp_redirect( add_query_arg(
-				array(
-					'page'        => 'scd-cron-diagnostic',
-					'message'     => 'event_triggered',
-					'campaign_id' => $campaign_id,
-					'event_type'  => $event_type,
-				),
-				admin_url( 'tools.php' )
-			) );
+			wp_redirect(
+				add_query_arg(
+					array(
+						'page'        => 'scd-cron-diagnostic',
+						'message'     => 'event_triggered',
+						'campaign_id' => $campaign_id,
+						'event_type'  => $event_type,
+					),
+					admin_url( 'tools.php' )
+				)
+			);
 			exit;
 		}
 

@@ -58,24 +58,24 @@ class SCD_WPMail_Provider implements SCD_Email_Provider {
 	 * Initialize provider.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger    $logger        Logger instance.
-	 * @param    string        $from_email    From email address.
-	 * @param    string        $from_name     From name.
+	 * @param    SCD_Logger $logger        Logger instance.
+	 * @param    string     $from_email    From email address.
+	 * @param    string     $from_name     From name.
 	 */
 	public function __construct( SCD_Logger $logger, string $from_email = '', string $from_name = '' ) {
-		$this->logger = $logger;
+		$this->logger     = $logger;
 		$this->from_email = ! empty( $from_email ) ? $from_email : get_option( 'admin_email' );
-		$this->from_name = ! empty( $from_name ) ? $from_name : get_bloginfo( 'name' );
+		$this->from_name  = ! empty( $from_name ) ? $from_name : get_bloginfo( 'name' );
 	}
 
 	/**
 	 * Send email.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $to         Recipient email address.
-	 * @param    string    $subject    Email subject.
-	 * @param    string    $content    Email content (HTML).
-	 * @param    array     $headers    Optional. Email headers.
+	 * @param    string $to         Recipient email address.
+	 * @param    string $subject    Email subject.
+	 * @param    string $content    Email content (HTML).
+	 * @param    array  $headers    Optional. Email headers.
 	 * @return   bool                  True on success, false on failure.
 	 */
 	public function send( string $to, string $subject, string $content, array $headers = array() ): bool {
@@ -94,12 +94,15 @@ class SCD_WPMail_Provider implements SCD_Email_Provider {
 
 		// Development mode check - skip actual sending in local environments without mail server
 		if ( $this->is_local_development_without_mail() ) {
-			$this->logger->info( 'Development mode: Email simulated (not actually sent)', array(
-				'to' => $to,
-				'subject' => $subject,
-				'from' => $this->from_email,
-				'from_name' => $this->from_name,
-			) );
+			$this->logger->info(
+				'Development mode: Email simulated (not actually sent)',
+				array(
+					'to'        => $to,
+					'subject'   => $subject,
+					'from'      => $this->from_email,
+					'from_name' => $this->from_name,
+				)
+			);
 			return true;
 		}
 
@@ -107,15 +110,21 @@ class SCD_WPMail_Provider implements SCD_Email_Provider {
 		$result = wp_mail( $to, $subject, $content, $headers );
 
 		if ( $result ) {
-			$this->logger->debug( 'Email sent via wp_mail', array(
-				'to' => $to,
-				'subject' => $subject,
-			) );
+			$this->logger->debug(
+				'Email sent via wp_mail',
+				array(
+					'to'      => $to,
+					'subject' => $subject,
+				)
+			);
 		} else {
-			$this->logger->error( 'Failed to send email via wp_mail', array(
-				'to' => $to,
-				'subject' => $subject,
-			) );
+			$this->logger->error(
+				'Failed to send email via wp_mail',
+				array(
+					'to'      => $to,
+					'subject' => $subject,
+				)
+			);
 		}
 
 		return $result;
@@ -125,19 +134,19 @@ class SCD_WPMail_Provider implements SCD_Email_Provider {
 	 * Send batch of emails.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $emails    Array of email data.
+	 * @param    array $emails    Array of email data.
 	 * @return   array               Results array with success/failure status.
 	 */
 	public function send_batch( array $emails ): array {
 		$results = array(
 			'success' => 0,
-			'failed' => 0,
-			'total' => count( $emails ),
-			'errors' => array(),
+			'failed'  => 0,
+			'total'   => count( $emails ),
+			'errors'  => array(),
 		);
 
 		foreach ( $emails as $index => $email ) {
-			$to = $email['to'] ?? '';
+			$to      = $email['to'] ?? '';
 			$subject = $email['subject'] ?? '';
 			$content = $email['content'] ?? '';
 			$headers = $email['headers'] ?? array();
@@ -145,12 +154,12 @@ class SCD_WPMail_Provider implements SCD_Email_Provider {
 			$sent = $this->send( $to, $subject, $content, $headers );
 
 			if ( $sent ) {
-				$results['success']++;
+				++$results['success'];
 			} else {
-				$results['failed']++;
+				++$results['failed'];
 				$results['errors'][] = array(
 					'index' => $index,
-					'to' => $to,
+					'to'    => $to,
 					'error' => 'Failed to send via wp_mail',
 				);
 			}
@@ -199,9 +208,9 @@ class SCD_WPMail_Provider implements SCD_Email_Provider {
 	public function get_stats(): array {
 		// WordPress wp_mail() doesn't provide statistics
 		return array(
-			'provider' => $this->get_name(),
+			'provider'        => $this->get_name(),
 			'stats_available' => false,
-			'note' => __( 'WordPress mail does not provide delivery statistics. For analytics, use SendGrid or Amazon SES.', 'smart-cycle-discounts' ),
+			'note'            => __( 'WordPress mail does not provide delivery statistics. For analytics, use SendGrid or Amazon SES.', 'smart-cycle-discounts' ),
 		);
 	}
 
@@ -209,7 +218,7 @@ class SCD_WPMail_Provider implements SCD_Email_Provider {
 	 * Set from email address.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $from_email    From email address.
+	 * @param    string $from_email    From email address.
 	 * @return   void
 	 */
 	public function set_from_email( string $from_email ): void {
@@ -222,7 +231,7 @@ class SCD_WPMail_Provider implements SCD_Email_Provider {
 	 * Set from name.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $from_name    From name.
+	 * @param    string $from_name    From name.
 	 * @return   void
 	 */
 	public function set_from_name( string $from_name ): void {

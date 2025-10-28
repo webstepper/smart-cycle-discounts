@@ -41,9 +41,9 @@ class SCD_General_Settings extends SCD_Settings_Page_Base {
 	 * Initialize general settings.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Settings_Manager    $settings_manager  Settings manager.
-	 * @param    SCD_Logger              $logger            Logger instance.
-	 * @param    object                  $container         Container instance.
+	 * @param    SCD_Settings_Manager $settings_manager  Settings manager.
+	 * @param    SCD_Logger           $logger            Logger instance.
+	 * @param    object               $container         Container instance.
 	 */
 	public function __construct( SCD_Settings_Manager $settings_manager, SCD_Logger $logger, object $container ) {
 		parent::__construct( 'general', $settings_manager, $logger );
@@ -54,7 +54,7 @@ class SCD_General_Settings extends SCD_Settings_Page_Base {
 	 * Register settings sections and fields.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $current_tab    Current active tab.
+	 * @param    string $current_tab    Current active tab.
 	 * @return   void
 	 */
 	public function register_sections( string $current_tab ): void {
@@ -87,9 +87,9 @@ class SCD_General_Settings extends SCD_Settings_Page_Base {
 			'scd_general_trash',
 			array(
 				'tooltip' => __( 'How long deleted campaigns remain in trash before permanent deletion. Set to "Never" to disable automatic purging.', 'smart-cycle-discounts' ),
-				'min' => 1,
-				'max' => 365,
-				'suffix' => __( 'days', 'smart-cycle-discounts' ),
+				'min'     => 1,
+				'max'     => 365,
+				'suffix'  => __( 'days', 'smart-cycle-discounts' ),
 			)
 		);
 
@@ -119,7 +119,7 @@ class SCD_General_Settings extends SCD_Settings_Page_Base {
 	 * Render trash auto-purge field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_trash_auto_purge_field( array $args ): void {
@@ -130,7 +130,7 @@ class SCD_General_Settings extends SCD_Settings_Page_Base {
 	 * Render trash retention field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_trash_retention_field( array $args ): void {
@@ -141,14 +141,14 @@ class SCD_General_Settings extends SCD_Settings_Page_Base {
 	 * Render trash status field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_trash_status_field( array $args ): void {
 		// Get trash count
 		$trash_count = 0;
 		if ( $this->container->has( 'campaign_repository' ) ) {
-			$repository = $this->container->get( 'campaign_repository' );
+			$repository  = $this->container->get( 'campaign_repository' );
 			$trash_count = $repository->count_trashed();
 		}
 
@@ -178,7 +178,7 @@ class SCD_General_Settings extends SCD_Settings_Page_Base {
 	 * Sanitize general settings.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $input    Raw input data.
+	 * @param    array $input    Raw input data.
 	 * @return   array              Sanitized data.
 	 */
 	protected function sanitize_settings( array $input ): array {
@@ -189,7 +189,7 @@ class SCD_General_Settings extends SCD_Settings_Page_Base {
 
 		// Trash retention days
 		if ( isset( $input['trash_retention_days'] ) ) {
-			$days = absint( $input['trash_retention_days'] );
+			$days                              = absint( $input['trash_retention_days'] );
 			$sanitized['trash_retention_days'] = max( 1, min( 365, $days ) );
 		} else {
 			$sanitized['trash_retention_days'] = 30;

@@ -43,7 +43,7 @@ class SCD_Migration_006_Add_Foreign_Keys_Indexes implements SCD_Migration_Interf
 	 * Initialize the migration.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager    $db    Database manager.
+	 * @param    SCD_Database_Manager $db    Database manager.
 	 */
 	public function __construct( SCD_Database_Manager $db ) {
 		$this->db = $db;
@@ -71,7 +71,7 @@ class SCD_Migration_006_Add_Foreign_Keys_Indexes implements SCD_Migration_Interf
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    object    $wpdb    WordPress database object.
+	 * @param    object $wpdb    WordPress database object.
 	 * @return   void
 	 */
 	private function add_performance_indexes( $wpdb ): void {
@@ -176,7 +176,7 @@ class SCD_Migration_006_Add_Foreign_Keys_Indexes implements SCD_Migration_Interf
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    object    $wpdb    WordPress database object.
+	 * @param    object $wpdb    WordPress database object.
 	 * @return   void
 	 */
 	private function add_foreign_key_constraints( $wpdb ): void {
@@ -268,9 +268,9 @@ class SCD_Migration_006_Add_Foreign_Keys_Indexes implements SCD_Migration_Interf
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    object    $wpdb         WordPress database object.
-	 * @param    string    $table_name   Table name (with prefix).
-	 * @param    string    $index_name   Index name.
+	 * @param    object $wpdb         WordPress database object.
+	 * @param    string $table_name   Table name (with prefix).
+	 * @param    string $index_name   Index name.
 	 * @return   bool      True if index exists, false otherwise.
 	 */
 	private function index_exists( $wpdb, string $table_name, string $index_name ): bool {
@@ -289,9 +289,9 @@ class SCD_Migration_006_Add_Foreign_Keys_Indexes implements SCD_Migration_Interf
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    object    $wpdb         WordPress database object.
-	 * @param    string    $table_name   Table name (with prefix).
-	 * @param    string    $fk_name      Foreign key constraint name.
+	 * @param    object $wpdb         WordPress database object.
+	 * @param    string $table_name   Table name (with prefix).
+	 * @param    string $fk_name      Foreign key constraint name.
 	 * @return   bool      True if FK exists, false otherwise.
 	 */
 	private function foreign_key_exists( $wpdb, string $table_name, string $fk_name ): bool {
@@ -346,9 +346,9 @@ class SCD_Migration_006_Add_Foreign_Keys_Indexes implements SCD_Migration_Interf
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    object    $wpdb         WordPress database object.
-	 * @param    string    $table_name   Table name (with prefix).
-	 * @param    string    $fk_name      Foreign key name.
+	 * @param    object $wpdb         WordPress database object.
+	 * @param    string $table_name   Table name (with prefix).
+	 * @param    string $fk_name      Foreign key name.
 	 * @return   void
 	 */
 	private function drop_fk_if_exists( $wpdb, string $table_name, string $fk_name ): void {
@@ -362,9 +362,9 @@ class SCD_Migration_006_Add_Foreign_Keys_Indexes implements SCD_Migration_Interf
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    object    $wpdb         WordPress database object.
-	 * @param    string    $table_name   Table name (with prefix).
-	 * @param    string    $index_name   Index name.
+	 * @param    object $wpdb         WordPress database object.
+	 * @param    string $table_name   Table name (with prefix).
+	 * @param    string $index_name   Index name.
 	 * @return   void
 	 */
 	private function drop_index_if_exists( $wpdb, string $table_name, string $index_name ): void {

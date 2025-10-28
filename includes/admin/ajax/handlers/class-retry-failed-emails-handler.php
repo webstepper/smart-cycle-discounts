@@ -39,7 +39,7 @@ class SCD_Retry_Failed_Emails_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle the request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array                Response data.
 	 */
 	protected function handle( $request ) {
@@ -64,53 +64,68 @@ class SCD_Retry_Failed_Emails_Handler extends SCD_Abstract_Ajax_Handler {
 			$logger = $container->get( 'logger' );
 
 			// Get all failed actions from Action Scheduler
-			$failed_actions = $action_scheduler->get_actions( array(
-				'hook' => 'scd_process_email_queue',
-				'status' => ActionScheduler_Store::STATUS_FAILED,
-				'per_page' => 100,
-			) );
+			$failed_actions = $action_scheduler->get_actions(
+				array(
+					'hook'     => 'scd_process_email_queue',
+					'status'   => ActionScheduler_Store::STATUS_FAILED,
+					'per_page' => 100,
+				)
+			);
 
 			$retried = 0;
 
 			foreach ( $failed_actions as $action_id ) {
 				try {
 					// Reschedule the failed action
-					$action_scheduler->schedule_single( array(
-						'hook' => 'scd_process_email_queue',
-						'args' => array(),
-						'when' => time(),
-					) );
+					$action_scheduler->schedule_single(
+						array(
+							'hook' => 'scd_process_email_queue',
+							'args' => array(),
+							'when' => time(),
+						)
+					);
 
 					// Mark the old action as complete to prevent retry loops
 					// This is handled by Action Scheduler automatically
 
-					$retried++;
+					++$retried;
 				} catch ( Exception $e ) {
-					$logger->error( 'Failed to retry email action', array(
-						'action_id' => $action_id,
-						'error' => $e->getMessage(),
-					) );
+					$logger->error(
+						'Failed to retry email action',
+						array(
+							'action_id' => $action_id,
+							'error'     => $e->getMessage(),
+						)
+					);
 				}
 			}
 
-			$logger->info( 'Failed emails retried', array(
-				'retried' => $retried,
-			) );
+			$logger->info(
+				'Failed emails retried',
+				array(
+					'retried' => $retried,
+				)
+			);
 
-			return $this->success( array(
-				'message' => sprintf(
+			return $this->success(
+				array(
+					'message' => sprintf(
 					/* translators: %d: retry count */
-					__( 'Retried %d failed email(s)', 'smart-cycle-discounts' ),
-					$retried
-				),
-				'retried' => $retried,
-			) );
+						__( 'Retried %d failed email(s)', 'smart-cycle-discounts' ),
+						$retried
+					),
+					'retried' => $retried,
+				)
+			);
 
 		} catch ( Exception $e ) {
 			if ( isset( $logger ) ) {
-				$logger->error( 'Failed to retry emails', array(
-					'error' => $e->getMessage(),
-				) );
+				$logger->error(
+					'Failed to retry emails',
+					array(
+						'error' => $e->getMessage(),
+					)
+				);
 			}
 
 			return $this->error(

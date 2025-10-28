@@ -40,8 +40,8 @@ class SCD_Step_Data_Transformer {
 	 * Transform step data based on step type.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step name.
-	 * @param    array     $data    Raw data.
+	 * @param    string $step    Step name.
+	 * @param    array  $data    Raw data.
 	 * @return   array              Transformed data.
 	 */
 	public function transform( $step, $data ) {
@@ -65,22 +65,29 @@ class SCD_Step_Data_Transformer {
 	 * - Product conditions (UI format -> engine format)
 	 *
 	 * @since    1.0.0
-	 * @param    array    $data    Raw products data.
+	 * @param    array $data    Raw products data.
 	 * @return   array             Transformed data.
 	 */
 	private function transform_products_data( $data ) {
 		// Transform product_ids from string to array
 		if ( isset( $data['product_ids'] ) && is_string( $data['product_ids'] ) ) {
-			$product_ids = explode( ',', $data['product_ids'] );
-			$data['product_ids'] = array_values( array_filter( $product_ids, function( $id ) {
-				return '' !== $id && null !== $id && false !== $id;
-			} ) );
+			$product_ids         = explode( ',', $data['product_ids'] );
+			$data['product_ids'] = array_values(
+				array_filter(
+					$product_ids,
+					function ( $id ) {
+						return '' !== $id && null !== $id && false !== $id;
+					}
+				)
+			);
 
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf(
-					'[SCD Transformer] Converted product_ids from string to array - Count: %d',
-					count( $data['product_ids'] )
-				) );
+				error_log(
+					sprintf(
+						'[SCD Transformer] Converted product_ids from string to array - Count: %d',
+						count( $data['product_ids'] )
+					)
+				);
 			}
 		} elseif ( isset( $data['product_ids'] ) && is_array( $data['product_ids'] ) ) {
 			// Re-index array to ensure sequential keys
@@ -102,7 +109,7 @@ class SCD_Step_Data_Transformer {
 	 * Can be extended for other discount-specific transformations.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $data    Raw discounts data.
+	 * @param    array $data    Raw discounts data.
 	 * @return   array             Transformed data.
 	 */
 	private function transform_discounts_data( $data ) {
@@ -121,11 +128,11 @@ class SCD_Step_Data_Transformer {
 	 * Engine format: {property, operator, values[], mode}
 	 *
 	 * @since    1.0.0
-	 * @param    array    $ui_conditions    Conditions from UI.
+	 * @param    array $ui_conditions    Conditions from UI.
 	 * @return   array                      Conditions for engine.
 	 */
 	private function transform_conditions_for_engine( $ui_conditions ) {
-		$engine_conditions = array();
+		$engine_conditions      = array();
 		$this->condition_errors = array(
 			'invalid'  => array(),
 			'warnings' => array(),
@@ -185,12 +192,14 @@ class SCD_Step_Data_Transformer {
 			$engine_conditions[] = $engine_condition;
 
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf(
-					'[SCD Transformer] Transformed condition - Property: %s, Operator: %s, Values: %s',
-					$engine_condition['property'],
-					$engine_condition['operator'],
-					implode( ', ', $engine_condition['values'] )
-				) );
+				error_log(
+					sprintf(
+						'[SCD Transformer] Transformed condition - Property: %s, Operator: %s, Values: %s',
+						$engine_condition['property'],
+						$engine_condition['operator'],
+						implode( ', ', $engine_condition['values'] )
+					)
+				);
 			}
 		}
 
@@ -203,7 +212,7 @@ class SCD_Step_Data_Transformer {
 	 * Builds values array from 'value' and 'value2' fields.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $condition    Condition data.
+	 * @param    array $condition    Condition data.
 	 * @return   array                  Values array.
 	 */
 	private function extract_condition_values( $condition ) {

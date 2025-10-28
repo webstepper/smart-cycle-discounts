@@ -42,24 +42,24 @@ class SCD_Export_Service {
 	 * Initialize the export service.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Metrics_Calculator    $metrics_calculator    Metrics calculator.
-	 * @param    SCD_Logger                $logger                Logger instance.
+	 * @param    SCD_Metrics_Calculator $metrics_calculator    Metrics calculator.
+	 * @param    SCD_Logger             $logger                Logger instance.
 	 */
 	public function __construct(
 		SCD_Metrics_Calculator $metrics_calculator,
 		SCD_Logger $logger
 	) {
 		$this->metrics_calculator = $metrics_calculator;
-		$this->logger = $logger;
+		$this->logger             = $logger;
 	}
 
 	/**
 	 * Generate export.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $export_type    Type of export (overview, campaign, product).
-	 * @param    string    $format         Export format (csv, json, pdf).
-	 * @param    array     $options        Export options.
+	 * @param    string $export_type    Type of export (overview, campaign, product).
+	 * @param    string $format         Export format (csv, json, pdf).
+	 * @param    array  $options        Export options.
 	 * @return   array                     Export result with download URL.
 	 */
 	public function generate_export( string $export_type, string $format, array $options = array() ): array {
@@ -70,27 +70,33 @@ class SCD_Export_Service {
 			// Generate export file
 			$file_result = $this->create_export_file( $data, $format, $export_type );
 
-			$this->logger->info( 'Export generated successfully', array(
-				'export_type' => $export_type,
-				'format' => $format,
-				'file' => $file_result['filename']
-			) );
+			$this->logger->info(
+				'Export generated successfully',
+				array(
+					'export_type' => $export_type,
+					'format'      => $format,
+					'file'        => $file_result['filename'],
+				)
+			);
 
 			return array(
-				'success' => true,
+				'success'      => true,
 				'download_url' => $file_result['url'],
-				'filename' => $file_result['filename'],
-				'size' => $file_result['size'],
-				'format' => $format,
-				'generated_at' => current_time( 'timestamp' )
+				'filename'     => $file_result['filename'],
+				'size'         => $file_result['size'],
+				'format'       => $format,
+				'generated_at' => current_time( 'timestamp' ),
 			);
 
 		} catch ( Exception $e ) {
-			$this->logger->error( 'Export generation failed', array(
-				'export_type' => $export_type,
-				'format' => $format,
-				'error' => $e->getMessage()
-			) );
+			$this->logger->error(
+				'Export generation failed',
+				array(
+					'export_type' => $export_type,
+					'format'      => $format,
+					'error'       => $e->getMessage(),
+				)
+			);
 
 			throw $e;
 		}
@@ -101,8 +107,8 @@ class SCD_Export_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $export_type    Export type.
-	 * @param    array     $options        Export options.
+	 * @param    string $export_type    Export type.
+	 * @param    array  $options        Export options.
 	 * @return   array                     Export data.
 	 */
 	private function get_export_data( string $export_type, array $options ): array {
@@ -132,9 +138,9 @@ class SCD_Export_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array     $data           Export data.
-	 * @param    string    $format         Export format.
-	 * @param    string    $export_type    Export type.
+	 * @param    array  $data           Export data.
+	 * @param    string $format         Export format.
+	 * @param    string $export_type    Export type.
 	 * @return   array                     File information.
 	 */
 	private function create_export_file( array $data, string $format, string $export_type ): array {
@@ -148,8 +154,8 @@ class SCD_Export_Service {
 
 		// Generate filename
 		$timestamp = current_time( 'Y-m-d-H-i-s' );
-		$filename = "scd-export-{$export_type}-{$timestamp}.{$format}";
-		$filepath = $export_dir . '/' . $filename;
+		$filename  = "scd-export-{$export_type}-{$timestamp}.{$format}";
+		$filepath  = $export_dir . '/' . $filename;
 
 		// Generate content based on format
 		switch ( $format ) {
@@ -180,8 +186,8 @@ class SCD_Export_Service {
 		return array(
 			'filename' => $filename,
 			'filepath' => $filepath,
-			'url' => $url,
-			'size' => filesize( $filepath )
+			'url'      => $url,
+			'size'     => filesize( $filepath ),
 		);
 	}
 
@@ -190,7 +196,7 @@ class SCD_Export_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $data    Export data.
+	 * @param    array $data    Export data.
 	 * @return   string            CSV content.
 	 */
 	private function generate_csv( array $data ): string {
@@ -200,7 +206,7 @@ class SCD_Export_Service {
 		if ( ! empty( $data ) ) {
 			// Get headers from first row
 			$first_row = is_array( $data ) ? reset( $data ) : $data;
-			$headers = array();
+			$headers   = array();
 
 			if ( is_array( $first_row ) ) {
 				$headers = array_keys( $first_row );
@@ -231,7 +237,7 @@ class SCD_Export_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    mixed    $value    Value to escape.
+	 * @param    mixed $value    Value to escape.
 	 * @return   string             Escaped value.
 	 */
 	private function escape_csv_value( $value ): string {

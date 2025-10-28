@@ -31,10 +31,10 @@ interface SCD_Email_Provider {
 	 * Send email.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $to         Recipient email address.
-	 * @param    string    $subject    Email subject.
-	 * @param    string    $content    Email content (HTML).
-	 * @param    array     $headers    Optional. Email headers.
+	 * @param    string $to         Recipient email address.
+	 * @param    string $subject    Email subject.
+	 * @param    string $content    Email content (HTML).
+	 * @param    array  $headers    Optional. Email headers.
 	 * @return   bool                  True on success, false on failure.
 	 */
 	public function send( string $to, string $subject, string $content, array $headers = array() ): bool;
@@ -43,7 +43,7 @@ interface SCD_Email_Provider {
 	 * Send batch of emails.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $emails    Array of email data.
+	 * @param    array $emails    Array of email data.
 	 * @return   array               Results array with success/failure status.
 	 */
 	public function send_batch( array $emails ): array;

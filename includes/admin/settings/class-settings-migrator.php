@@ -65,7 +65,7 @@ class SCD_Settings_Migrator {
 	 * Initialize migrator.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger    $logger    Logger instance.
+	 * @param    SCD_Logger $logger    Logger instance.
 	 */
 	public function __construct( SCD_Logger $logger ) {
 		$this->logger = $logger;
@@ -107,7 +107,7 @@ class SCD_Settings_Migrator {
 			$unified_settings = get_option( 'scd_settings', array() );
 
 			// Migrate each tab
-			$unified_settings['general'] = $this->migrate_general_settings();
+			$unified_settings['general']  = $this->migrate_general_settings();
 			$unified_settings['advanced'] = $this->migrate_advanced_settings();
 
 			// Save unified settings
@@ -121,10 +121,13 @@ class SCD_Settings_Migrator {
 			return true;
 
 		} catch ( Exception $e ) {
-			$this->logger->error( 'Settings migration failed', array(
-				'error' => $e->getMessage(),
-				'trace' => $e->getTraceAsString()
-			) );
+			$this->logger->error(
+				'Settings migration failed',
+				array(
+					'error' => $e->getMessage(),
+					'trace' => $e->getTraceAsString(),
+				)
+			);
 
 			return false;
 		}
@@ -139,7 +142,7 @@ class SCD_Settings_Migrator {
 	 */
 	private function migrate_general_settings(): array {
 		return array(
-			'trash_auto_purge' => 'yes' === get_option( 'scd_trash_auto_purge', 'yes' ),
+			'trash_auto_purge'     => 'yes' === get_option( 'scd_trash_auto_purge', 'yes' ),
 			'trash_retention_days' => absint( get_option( 'scd_trash_retention_days', 30 ) ),
 		);
 	}
@@ -155,11 +158,11 @@ class SCD_Settings_Migrator {
 		$old_advanced = get_option( 'scd_advanced_settings', array() );
 
 		return array(
-			'enable_debug_mode' => isset( $old_advanced['enable_debug_mode'] ) ? (bool) $old_advanced['enable_debug_mode'] : false,
+			'enable_debug_mode'     => isset( $old_advanced['enable_debug_mode'] ) ? (bool) $old_advanced['enable_debug_mode'] : false,
 			'debug_mode_enabled_at' => isset( $old_advanced['debug_mode_enabled_at'] ) ? absint( $old_advanced['debug_mode_enabled_at'] ) : 0,
-			'log_level' => isset( $old_advanced['log_level'] ) ? sanitize_text_field( $old_advanced['log_level'] ) : 'error',
-			'log_retention_days' => isset( $old_advanced['log_retention_days'] ) ? absint( $old_advanced['log_retention_days'] ) : 7,
-			'uninstall_data' => isset( $old_advanced['uninstall_data'] ) ? (bool) $old_advanced['uninstall_data'] : false,
+			'log_level'             => isset( $old_advanced['log_level'] ) ? sanitize_text_field( $old_advanced['log_level'] ) : 'error',
+			'log_retention_days'    => isset( $old_advanced['log_retention_days'] ) ? absint( $old_advanced['log_retention_days'] ) : 7,
+			'uninstall_data'        => isset( $old_advanced['uninstall_data'] ) ? (bool) $old_advanced['uninstall_data'] : false,
 		);
 	}
 
@@ -171,15 +174,15 @@ class SCD_Settings_Migrator {
 	 */
 	public function backup_old_settings(): bool {
 		$old_settings = array(
-			'scd_advanced_settings' => get_option( 'scd_advanced_settings', array() ),
-			'scd_general_options' => get_option( 'scd_general_options', array() ),
-			'scd_campaign_options' => get_option( 'scd_campaign_options', array() ),
+			'scd_advanced_settings'    => get_option( 'scd_advanced_settings', array() ),
+			'scd_general_options'      => get_option( 'scd_general_options', array() ),
+			'scd_campaign_options'     => get_option( 'scd_campaign_options', array() ),
 			'scd_trash_retention_days' => get_option( 'scd_trash_retention_days', 30 ),
-			'scd_trash_auto_purge' => get_option( 'scd_trash_auto_purge', 'yes' ),
+			'scd_trash_auto_purge'     => get_option( 'scd_trash_auto_purge', 'yes' ),
 		);
 
 		$backup_option = 'scd_settings_backup_' . time();
-		$result = update_option( $backup_option, $old_settings );
+		$result        = update_option( $backup_option, $old_settings );
 
 		if ( $result ) {
 			$this->logger->info( 'Settings backup created', array( 'backup_option' => $backup_option ) );
@@ -219,11 +222,11 @@ class SCD_Settings_Migrator {
 	 */
 	public function get_migration_status(): array {
 		$migrated_version = get_option( $this->migration_version_key, '' );
-		$needs_migration = $this->needs_migration();
+		$needs_migration  = $this->needs_migration();
 
 		return array(
-			'needs_migration' => $needs_migration,
-			'current_version' => $this->current_version,
+			'needs_migration'  => $needs_migration,
+			'current_version'  => $this->current_version,
 			'migrated_version' => $migrated_version,
 			'has_old_settings' => ! empty( get_option( 'scd_advanced_settings', array() ) ) || ! empty( get_option( 'scd_general_options', array() ) ),
 			'has_new_settings' => ! empty( get_option( 'scd_settings', array() ) ),

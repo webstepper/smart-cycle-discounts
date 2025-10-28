@@ -77,8 +77,8 @@ class SCD_Currency_Change_Notices {
 	 * Display notice for safe currency change (no campaigns affected).
 	 *
 	 * @since    1.0.0
-	 * @param    string    $old_currency    Old currency code.
-	 * @param    string    $new_currency    New currency code.
+	 * @param    string $old_currency    Old currency code.
+	 * @param    string $new_currency    New currency code.
 	 * @return   void
 	 */
 	private function display_safe_currency_change_notice( $old_currency, $new_currency ) {
@@ -89,11 +89,13 @@ class SCD_Currency_Change_Notices {
 			</p>
 			<p>
 				<?php
-				echo esc_html( sprintf(
-					__( 'Your store currency has been changed from %1$s to %2$s. No active campaigns were affected because you only have percentage-based or BOGO discounts running.', 'smart-cycle-discounts' ),
-					$old_currency,
-					$new_currency
-				) );
+				echo esc_html(
+					sprintf(
+						__( 'Your store currency has been changed from %1$s to %2$s. No active campaigns were affected because you only have percentage-based or BOGO discounts running.', 'smart-cycle-discounts' ),
+						$old_currency,
+						$new_currency
+					)
+				);
 				?>
 			</p>
 		</div>
@@ -104,9 +106,9 @@ class SCD_Currency_Change_Notices {
 	 * Display notice for campaigns paused due to currency change.
 	 *
 	 * @since    1.0.0
-	 * @param    int       $paused_count    Number of campaigns paused.
-	 * @param    string    $old_currency    Old currency code.
-	 * @param    string    $new_currency    New currency code.
+	 * @param    int    $paused_count    Number of campaigns paused.
+	 * @param    string $old_currency    Old currency code.
+	 * @param    string $new_currency    New currency code.
 	 * @return   void
 	 */
 	private function display_campaigns_paused_notice( $paused_count, $old_currency, $new_currency ) {
@@ -118,17 +120,19 @@ class SCD_Currency_Change_Notices {
 			</p>
 			<p>
 				<?php
-				echo esc_html( sprintf(
-					_n(
-						'Your store currency has been changed from %1$s to %2$s. %3$d campaign with fixed discount amounts has been automatically paused for your review.',
-						'Your store currency has been changed from %1$s to %2$s. %3$d campaigns with fixed discount amounts have been automatically paused for your review.',
-						$paused_count,
-						'smart-cycle-discounts'
-					),
-					$old_currency,
-					$new_currency,
-					$paused_count
-				) );
+				echo esc_html(
+					sprintf(
+						_n(
+							'Your store currency has been changed from %1$s to %2$s. %3$d campaign with fixed discount amounts has been automatically paused for your review.',
+							'Your store currency has been changed from %1$s to %2$s. %3$d campaigns with fixed discount amounts have been automatically paused for your review.',
+							$paused_count,
+							'smart-cycle-discounts'
+						),
+						$old_currency,
+						$new_currency,
+						$paused_count
+					)
+				);
 				?>
 			</p>
 			<p>

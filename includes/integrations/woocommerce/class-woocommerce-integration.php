@@ -161,11 +161,11 @@ class SCD_WooCommerce_Integration {
 	 * Initialize the WooCommerce integration coordinator.
 	 *
 	 * @since    1.0.0
-	 * @param    object    $container    Container instance.
+	 * @param    object $container    Container instance.
 	 */
 	public function __construct( object $container ) {
 		$this->container = $container;
-		$this->logger = $container->has( 'logger' ) ? $container->get( 'logger' ) : null;
+		$this->logger    = $container->has( 'logger' ) ? $container->get( 'logger' ) : null;
 	}
 
 	/**
@@ -291,16 +291,24 @@ class SCD_WooCommerce_Integration {
 
 		} catch ( RuntimeException $e ) {
 			// Re-throw runtime exceptions (DI container issues)
-			$this->log( 'critical', 'Failed to initialize WooCommerce integration - missing dependencies', array(
-				'error' => $e->getMessage()
-			) );
+			$this->log(
+				'critical',
+				'Failed to initialize WooCommerce integration - missing dependencies',
+				array(
+					'error' => $e->getMessage(),
+				)
+			);
 			throw $e;
 
 		} catch ( Exception $e ) {
 			// Log other exceptions but don't halt execution
-			$this->log( 'error', 'Error initializing WooCommerce integration components', array(
-				'error' => $e->getMessage()
-			) );
+			$this->log(
+				'error',
+				'Error initializing WooCommerce integration components',
+				array(
+					'error' => $e->getMessage(),
+				)
+			);
 		}
 	}
 
@@ -412,9 +420,9 @@ class SCD_WooCommerce_Integration {
 	 */
 	public function get_status(): array {
 		return array(
-			'compatible' => $this->is_compatible,
-			'hpos_enabled' => $this->hpos_enabled,
-			'components_initialized' => null !== $this->discount_query
+			'compatible'             => $this->is_compatible,
+			'hpos_enabled'           => $this->hpos_enabled,
+			'components_initialized' => null !== $this->discount_query,
 		);
 	}
 
@@ -433,9 +441,9 @@ class SCD_WooCommerce_Integration {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $level      Level.
-	 * @param    string    $message    Message.
-	 * @param    array     $context    Context.
+	 * @param    string $level      Level.
+	 * @param    string $message    Message.
+	 * @param    array  $context    Context.
 	 * @return   void
 	 */
 	private function log( string $level, string $message, array $context = array() ): void {

@@ -68,24 +68,26 @@ class SCD_Freemius_Integration {
 
 		require_once SCD_PLUGIN_DIR . 'includes/freemius/wordpress-sdk-master/start.php';
 
-		$scd_fs = fs_dynamic_init( array(
-			'id'                  => '21228',
-			'slug'                => 'smart-cycle-discounts',
-			'type'                => 'plugin',
-			'public_key'          => 'pk_d44a278e714a7aa26a2cf4d13292b',
-			'is_premium'          => false,
-			'has_premium_version' => false,
-			'has_addons'          => false,
-			'has_paid_plans'      => true,
-			'menu'                => array(
-				'slug'           => 'smart-cycle-discounts',
-				'support'        => false,
-			),
-			'trial'               => array(
-				'days'               => 14,
-				'is_require_payment' => true,
-			),
-		) );
+		$scd_fs = fs_dynamic_init(
+			array(
+				'id'                  => '21228',
+				'slug'                => 'smart-cycle-discounts',
+				'type'                => 'plugin',
+				'public_key'          => 'pk_d44a278e714a7aa26a2cf4d13292b',
+				'is_premium'          => false,
+				'has_premium_version' => false,
+				'has_addons'          => false,
+				'has_paid_plans'      => true,
+				'menu'                => array(
+					'slug'    => 'smart-cycle-discounts',
+					'support' => false,
+				),
+				'trial'               => array(
+					'days'               => 14,
+					'is_require_payment' => true,
+				),
+			)
+		);
 
 		self::$freemius = $scd_fs;
 		self::setup_hooks();
@@ -127,15 +129,18 @@ class SCD_Freemius_Integration {
 	 * Handle actions after Freemius activation.
 	 *
 	 * @since    1.0.0
-	 * @param    WP_User    $user    WordPress user object.
+	 * @param    WP_User $user    WordPress user object.
 	 * @return   void
 	 */
 	public static function after_activation( $user ) {
 		if ( function_exists( 'scd_log_info' ) ) {
-			scd_log_info( 'Freemius account connected', array(
-				'user_id'    => $user->ID,
-				'user_email' => $user->user_email,
-			) );
+			scd_log_info(
+				'Freemius account connected',
+				array(
+					'user_id'    => $user->ID,
+					'user_email' => $user->user_email,
+				)
+			);
 		}
 
 		self::clear_feature_gate_cache();
@@ -151,9 +156,12 @@ class SCD_Freemius_Integration {
 		self::clear_feature_gate_cache();
 
 		if ( function_exists( 'scd_log_info' ) ) {
-			scd_log_info( 'Freemius plan changed', array(
-				'user_id' => get_current_user_id(),
-			) );
+			scd_log_info(
+				'Freemius plan changed',
+				array(
+					'user_id' => get_current_user_id(),
+				)
+			);
 		}
 
 		// Force immediate validation after plan change
@@ -175,9 +183,12 @@ class SCD_Freemius_Integration {
 		self::clear_feature_gate_cache();
 
 		if ( function_exists( 'scd_log_info' ) ) {
-			scd_log_info( 'Freemius trial started', array(
-				'user_id' => get_current_user_id(),
-			) );
+			scd_log_info(
+				'Freemius trial started',
+				array(
+					'user_id' => get_current_user_id(),
+				)
+			);
 		}
 
 		// Force immediate validation
@@ -188,16 +199,19 @@ class SCD_Freemius_Integration {
 			}
 		}
 
-		add_action( 'admin_notices', function() {
-			?>
+		add_action(
+			'admin_notices',
+			function () {
+				?>
 			<div class="notice notice-success is-dismissible">
 				<p>
 					<strong><?php esc_html_e( 'Smart Cycle Discounts Pro Trial Activated!', 'smart-cycle-discounts' ); ?></strong><br>
 					<?php esc_html_e( 'You now have access to all Pro features for 14 days. Explore advanced analytics, unlimited campaigns, and more!', 'smart-cycle-discounts' ); ?>
 				</p>
 			</div>
-			<?php
-		} );
+				<?php
+			}
+		);
 	}
 
 	/**
@@ -210,9 +224,12 @@ class SCD_Freemius_Integration {
 		self::clear_feature_gate_cache();
 
 		if ( function_exists( 'scd_log_info' ) ) {
-			scd_log_info( 'Freemius trial cancelled', array(
-				'user_id' => get_current_user_id(),
-			) );
+			scd_log_info(
+				'Freemius trial cancelled',
+				array(
+					'user_id' => get_current_user_id(),
+				)
+			);
 		}
 
 		// Force immediate validation
@@ -260,7 +277,7 @@ class SCD_Freemius_Integration {
 	 * Sync license information on account connection.
 	 *
 	 * @since    1.0.0
-	 * @param    WP_User    $user    WordPress user object.
+	 * @param    WP_User $user    WordPress user object.
 	 * @return   WP_User             Unchanged user object.
 	 */
 	public static function sync_license_on_connect( $user ) {
@@ -279,15 +296,18 @@ class SCD_Freemius_Integration {
 	 * Handle license activation limit reached.
 	 *
 	 * @since    1.0.0
-	 * @param    bool    $is_maxed    Whether license reached activation limit.
-	 * @param    object  $license     License object.
+	 * @param    bool   $is_maxed    Whether license reached activation limit.
+	 * @param    object $license     License object.
 	 * @return   bool                 Unchanged value.
 	 */
 	public static function handle_license_maxed( $is_maxed, $license ) {
 		if ( $is_maxed && function_exists( 'scd_log_warning' ) ) {
-			scd_log_warning( 'License activation limit reached', array(
-				'license_id' => isset( $license->id ) ? $license->id : 'unknown',
-			) );
+			scd_log_warning(
+				'License activation limit reached',
+				array(
+					'license_id' => isset( $license->id ) ? $license->id : 'unknown',
+				)
+			);
 		}
 
 		return $is_maxed;
@@ -297,8 +317,8 @@ class SCD_Freemius_Integration {
 	 * Filter Freemius admin notices.
 	 *
 	 * @since    1.0.0
-	 * @param    bool      $show    Whether to show notice.
-	 * @param    string    $type    Notice type.
+	 * @param    bool   $show    Whether to show notice.
+	 * @param    string $type    Notice type.
 	 * @return   bool               Filtered value.
 	 */
 	public static function filter_admin_notices( $show, $type ) {
@@ -407,7 +427,7 @@ class SCD_Freemius_Integration {
 				if ( isset( $license->is_free_localhost ) && $license->is_free_localhost ) {
 					// Verify paid plan assignment via plan_id and pricing_id
 					if ( isset( $license->plan_id ) && ! empty( $license->plan_id ) &&
-					     isset( $license->pricing_id ) && ! empty( $license->pricing_id ) ) {
+						isset( $license->pricing_id ) && ! empty( $license->pricing_id ) ) {
 						return true;
 					}
 				}

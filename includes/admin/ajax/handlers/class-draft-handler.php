@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Load required AJAX response class
 if ( ! class_exists( 'SCD_Ajax_Response' ) ) {
-	require_once dirname( dirname( __FILE__ ) ) . '/class-scd-ajax-response.php';
+	require_once dirname( __DIR__ ) . '/class-scd-ajax-response.php';
 }
 
 /**
@@ -100,27 +100,27 @@ class SCD_Draft_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Wizard_State_Service|null           $state_service       State service.
-	 * @param    SCD_Campaign_Manager|null               $campaign_manager    Campaign manager.
-	 * @param    SCD_Campaign_Compiler_Service|null      $compiler           Campaign compiler.
-	 * @param    SCD_Logger                              $logger             Logger.
-	 * @param    SCD_Audit_Logger|null                   $audit_logger       Audit logger.
-	 * @param    SCD_Feature_Gate|null                   $feature_gate       Feature gate.
+	 * @param    SCD_Wizard_State_Service|null      $state_service       State service.
+	 * @param    SCD_Campaign_Manager|null          $campaign_manager    Campaign manager.
+	 * @param    SCD_Campaign_Compiler_Service|null $compiler           Campaign compiler.
+	 * @param    SCD_Logger                         $logger             Logger.
+	 * @param    SCD_Audit_Logger|null              $audit_logger       Audit logger.
+	 * @param    SCD_Feature_Gate|null              $feature_gate       Feature gate.
 	 */
 	public function __construct( $state_service, $campaign_manager, $compiler, $logger, $audit_logger, $feature_gate = null ) {
-		$this->state_service = $state_service;
+		$this->state_service    = $state_service;
 		$this->campaign_manager = $campaign_manager;
-		$this->compiler = $compiler;
-		$this->logger = $logger;
-		$this->audit_logger = $audit_logger;
-		$this->feature_gate = $feature_gate;
+		$this->compiler         = $compiler;
+		$this->logger           = $logger;
+		$this->audit_logger     = $audit_logger;
+		$this->feature_gate     = $feature_gate;
 	}
 
 	/**
 	 * Handle the AJAX request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data (with snake_case keys from router).
+	 * @param    array $request    Request data (with snake_case keys from router).
 	 * @return   void
 	 */
 	public function handle( $request = array() ) {
@@ -139,28 +139,28 @@ class SCD_Draft_Handler {
 
 			// Validate the request using centralized validation
 			$validation_result = SCD_Validation::validate( $data, 'ajax_action' );
-			
+
 			if ( is_wp_error( $validation_result ) ) {
-				SCD_Ajax_Response::error( 
+				SCD_Ajax_Response::error(
 					$validation_result->get_error_message(),
 					'validation_failed',
 					array( 'errors' => SCD_Validation::extract_error_codes( $validation_result ) )
 				);
 				return;
 			}
-			
+
 			// Store validated data for use in other methods
 			$this->validated_data = $validation_result;
-			
+
 			// Check if this is a clear session request (from modal)
 			if ( isset( $this->validated_data['scd_action'] ) && 'clear_wizard_session' === $this->validated_data['scd_action'] ) {
 				$this->handle_clear_session();
 				return;
 			}
-			
+
 			// Get sub-action
-			$sub_action = isset( $this->validated_data['draft_action'] ) ? 
-						 $this->validated_data['draft_action'] : 'default';
+			$sub_action = isset( $this->validated_data['draft_action'] ) ?
+						$this->validated_data['draft_action'] : 'default';
 
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( '[Draft_Handler] sub_action: ' . $sub_action );
@@ -192,13 +192,15 @@ class SCD_Draft_Handler {
 					// Fallback to complete wizard for backward compatibility
 					$this->handle_complete_wizard();
 			}
-
 		} catch ( Exception $e ) {
-			$this->logger->error( 'Draft handler error', array(
-				'error' => $e->getMessage(),
-				'user_id' => get_current_user_id()
-			) );
-			
+			$this->logger->error(
+				'Draft handler error',
+				array(
+					'error'   => $e->getMessage(),
+					'user_id' => get_current_user_id(),
+				)
+			);
+
 			SCD_Ajax_Response::error( __( 'An error occurred. Please try again.', 'smart-cycle-discounts' ) );
 		}
 	}
@@ -231,11 +233,11 @@ class SCD_Draft_Handler {
 			}
 
 			$campaign_data = $this->validated_data['campaign_data'];
-			$steps = array( 'basic', 'products', 'discounts', 'schedule', 'review' );
+			$steps         = array( 'basic', 'products', 'discounts', 'schedule', 'review' );
 
 			foreach ( $steps as $step ) {
-				if ( isset( $campaign_data[$step] ) && is_array( $campaign_data[$step] ) ) {
-					$this->state_service->set_step_data( $step, $campaign_data[$step] );
+				if ( isset( $campaign_data[ $step ] ) && is_array( $campaign_data[ $step ] ) ) {
+					$this->state_service->set_step_data( $step, $campaign_data[ $step ] );
 				}
 			}
 
@@ -276,7 +278,7 @@ class SCD_Draft_Handler {
 			}
 
 			try {
-				$repository = $this->get_campaign_repository();
+				$repository     = $this->get_campaign_repository();
 				$this->compiler = new SCD_Campaign_Compiler_Service( $repository );
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					error_log( '[Draft_Handler] Compiler initialized successfully' );
@@ -329,11 +331,14 @@ class SCD_Draft_Handler {
 				error_log( '[Draft_Handler] EXCEPTION in handle_complete_wizard: ' . $e->getMessage() );
 				error_log( '[Draft_Handler] Exception trace: ' . $e->getTraceAsString() );
 			}
-			$this->logger->error( 'Exception in handle_complete_wizard', array(
-				'error' => $e->getMessage(),
-				'trace' => $e->getTraceAsString(),
-				'user_id' => get_current_user_id()
-			) );
+			$this->logger->error(
+				'Exception in handle_complete_wizard',
+				array(
+					'error'   => $e->getMessage(),
+					'trace'   => $e->getTraceAsString(),
+					'user_id' => get_current_user_id(),
+				)
+			);
 			SCD_Ajax_Response::error( __( 'Campaign creation failed. Please check the error log.', 'smart-cycle-discounts' ) );
 		}
 	}
@@ -363,7 +368,7 @@ class SCD_Draft_Handler {
 			}
 
 			try {
-				$repository = $this->get_campaign_repository();
+				$repository     = $this->get_campaign_repository();
 				$this->compiler = new SCD_Campaign_Compiler_Service( $repository );
 			} catch ( Exception $e ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -404,10 +409,10 @@ class SCD_Draft_Handler {
 	 */
 	private function handle_delete_draft() {
 		// Get draft type and ID from validated data
-		$draft_type = isset( $this->validated_data['draft_type'] ) ? 
-					 $this->validated_data['draft_type'] : 'campaign';
-		$draft_id = isset( $this->validated_data['draft_id'] ) ? 
-				   $this->validated_data['draft_id'] : '';
+		$draft_type = isset( $this->validated_data['draft_type'] ) ?
+					$this->validated_data['draft_type'] : 'campaign';
+		$draft_id   = isset( $this->validated_data['draft_id'] ) ?
+					$this->validated_data['draft_id'] : '';
 
 		if ( empty( $draft_id ) ) {
 			SCD_Ajax_Response::error( __( 'No draft specified.', 'smart-cycle-discounts' ) );
@@ -438,23 +443,31 @@ class SCD_Draft_Handler {
 		try {
 			// Clear the wizard session
 			$this->state_service->clear_session();
-			
+
 			// Log the action
-			$this->logger->info( 'Wizard session cleared for new campaign', array(
-				'user_id' => get_current_user_id()
-			) );
-			
-			SCD_Ajax_Response::success( array(
-				'message' => __( 'Session cleared successfully.', 'smart-cycle-discounts' ),
-				'cleared' => true
-			) );
-			
+			$this->logger->info(
+				'Wizard session cleared for new campaign',
+				array(
+					'user_id' => get_current_user_id(),
+				)
+			);
+
+			SCD_Ajax_Response::success(
+				array(
+					'message' => __( 'Session cleared successfully.', 'smart-cycle-discounts' ),
+					'cleared' => true,
+				)
+			);
+
 		} catch ( Exception $e ) {
-			$this->logger->error( 'Failed to clear wizard session', array(
-				'error' => $e->getMessage(),
-				'user_id' => get_current_user_id()
-			) );
-			
+			$this->logger->error(
+				'Failed to clear wizard session',
+				array(
+					'error'   => $e->getMessage(),
+					'user_id' => get_current_user_id(),
+				)
+			);
+
 			SCD_Ajax_Response::error( __( 'Failed to clear session.', 'smart-cycle-discounts' ) );
 		}
 	}
@@ -473,37 +486,37 @@ class SCD_Draft_Handler {
 
 		// Get draft campaigns from database
 		$args = array(
-			'status' => 'draft',
-			'orderby' => 'modified',
-			'order' => 'DESC',
+			'status'   => 'draft',
+			'orderby'  => 'modified',
+			'order'    => 'DESC',
 			'per_page' => 20,
-			'page' => isset( $this->validated_data['page'] ) ? $this->validated_data['page'] : 1
+			'page'     => isset( $this->validated_data['page'] ) ? $this->validated_data['page'] : 1,
 		);
 
 		$drafts = $this->campaign_manager->get_campaigns( $args );
-		
+
 		// Get current wizard session draft info
 		$session_draft = null;
 		if ( $this->state_service ) {
 			$draft_info = $this->state_service->get_draft_info();
 			if ( $draft_info && empty( $draft_info['is_expired'] ) ) {
 				$session_draft = array(
-					'id' => 'session',
-					'type' => 'session',
-					'name' => $draft_info['campaign_name'],
+					'id'           => 'session',
+					'type'         => 'session',
+					'name'         => $draft_info['campaign_name'],
 					'last_updated' => $draft_info['last_updated'],
-					'progress' => $this->state_service->get_progress()
+					'progress'     => $this->state_service->get_progress(),
 				);
 			}
 		}
 
 		// Format response
 		$response = array(
-			'drafts' => $this->format_drafts( $drafts ),
+			'drafts'        => $this->format_drafts( $drafts ),
 			'session_draft' => $session_draft,
-			'total' => $this->campaign_manager->count_campaigns( array( 'status' => 'draft' ) ),
-			'per_page' => 20,
-			'current_page' => $args['page']
+			'total'         => $this->campaign_manager->count_campaigns( array( 'status' => 'draft' ) ),
+			'per_page'      => 20,
+			'current_page'  => $args['page'],
 		);
 
 		SCD_Ajax_Response::success( $response );
@@ -517,7 +530,7 @@ class SCD_Draft_Handler {
 	 */
 	private function handle_preview_draft() {
 		$draft_id = isset( $this->validated_data['draft_id'] ) ? $this->validated_data['draft_id'] : '';
-		
+
 		if ( empty( $draft_id ) ) {
 			SCD_Ajax_Response::error( __( 'Invalid draft ID.', 'smart-cycle-discounts' ) );
 			return;
@@ -525,30 +538,34 @@ class SCD_Draft_Handler {
 
 		// Handle session draft preview
 		if ( $draft_id === 'session' && $this->state_service ) {
-			$data = $this->state_service->get_all_data();
+			$data     = $this->state_service->get_all_data();
 			$progress = $this->state_service->get_progress();
-			
-			SCD_Ajax_Response::success( array(
-				'draft_type' => 'session',
-				'data' => $data,
-				'progress' => $progress
-			) );
+
+			SCD_Ajax_Response::success(
+				array(
+					'draft_type' => 'session',
+					'data'       => $data,
+					'progress'   => $progress,
+				)
+			);
 			return;
 		}
 
 		// Handle database draft preview
 		if ( $this->campaign_manager ) {
 			$campaign = $this->campaign_manager->find( intval( $draft_id ) );
-			
+
 			if ( ! $campaign || $campaign->get_status() !== 'draft' ) {
 				SCD_Ajax_Response::error( __( 'Draft not found.', 'smart-cycle-discounts' ) );
 				return;
 			}
 
-			SCD_Ajax_Response::success( array(
-				'draft_type' => 'campaign',
-				'data' => $campaign->to_array()
-			) );
+			SCD_Ajax_Response::success(
+				array(
+					'draft_type' => 'campaign',
+					'data'       => $campaign->to_array(),
+				)
+			);
 		}
 	}
 
@@ -565,38 +582,46 @@ class SCD_Draft_Handler {
 		}
 
 		// Get draft info before deletion
-		$draft_info = $this->state_service->get_draft_info();
+		$draft_info    = $this->state_service->get_draft_info();
 		$campaign_name = isset( $draft_info['campaign_name'] ) ? $draft_info['campaign_name'] : __( 'Unnamed Draft', 'smart-cycle-discounts' );
 
 		// Clear the session
 		$this->state_service->clear_session();
 
 		// Log the action
-		$this->logger->info( 'Session draft discarded', array(
-			'campaign_name' => $campaign_name,
-			'user_id' => get_current_user_id()
-		) );
+		$this->logger->info(
+			'Session draft discarded',
+			array(
+				'campaign_name' => $campaign_name,
+				'user_id'       => get_current_user_id(),
+			)
+		);
 
 		if ( $this->audit_logger ) {
-			$this->audit_logger->log_event( 'draft_session_discarded', array(
-				'campaign_name' => $campaign_name,
-				'user_id' => get_current_user_id()
-			) );
+			$this->audit_logger->log_event(
+				'draft_session_discarded',
+				array(
+					'campaign_name' => $campaign_name,
+					'user_id'       => get_current_user_id(),
+				)
+			);
 		}
 
-		SCD_Ajax_Response::success( array(
-			'message' => sprintf(
-				__( 'Draft "%s" has been discarded.', 'smart-cycle-discounts' ),
-				esc_html( $campaign_name )
+		SCD_Ajax_Response::success(
+			array(
+				'message' => sprintf(
+					__( 'Draft "%s" has been discarded.', 'smart-cycle-discounts' ),
+					esc_html( $campaign_name )
+				),
 			)
-		) );
+		);
 	}
 
 	/**
 	 * Delete campaign draft.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $campaign_id    Campaign ID.
+	 * @param    int $campaign_id    Campaign ID.
 	 * @return   void
 	 */
 	private function delete_campaign_draft( $campaign_id ) {
@@ -612,7 +637,7 @@ class SCD_Draft_Handler {
 
 		// Get the campaign
 		$campaign = $this->campaign_manager->find( $campaign_id );
-		
+
 		if ( ! $campaign ) {
 			SCD_Ajax_Response::error( __( 'Draft campaign not found.', 'smart-cycle-discounts' ) );
 			return;
@@ -634,26 +659,34 @@ class SCD_Draft_Handler {
 		}
 
 		// Log the action
-		$this->logger->info( 'Draft campaign deleted', array(
-			'campaign_id' => $campaign_id,
-			'campaign_name' => $campaign_name,
-			'user_id' => get_current_user_id()
-		) );
+		$this->logger->info(
+			'Draft campaign deleted',
+			array(
+				'campaign_id'   => $campaign_id,
+				'campaign_name' => $campaign_name,
+				'user_id'       => get_current_user_id(),
+			)
+		);
 
 		if ( $this->audit_logger ) {
-			$this->audit_logger->log_event( 'draft_campaign_deleted', array(
-				'campaign_id' => $campaign_id,
-				'campaign_name' => $campaign_name,
-				'user_id' => get_current_user_id()
-			) );
+			$this->audit_logger->log_event(
+				'draft_campaign_deleted',
+				array(
+					'campaign_id'   => $campaign_id,
+					'campaign_name' => $campaign_name,
+					'user_id'       => get_current_user_id(),
+				)
+			);
 		}
 
-		SCD_Ajax_Response::success( array(
-			'message' => sprintf(
-				__( 'Draft campaign "%s" has been deleted.', 'smart-cycle-discounts' ),
-				esc_html( $campaign_name )
+		SCD_Ajax_Response::success(
+			array(
+				'message' => sprintf(
+					__( 'Draft campaign "%s" has been deleted.', 'smart-cycle-discounts' ),
+					esc_html( $campaign_name )
+				),
 			)
-		) );
+		);
 	}
 
 
@@ -661,7 +694,7 @@ class SCD_Draft_Handler {
 	 * Format drafts for response.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $drafts    Draft campaigns.
+	 * @param    array $drafts    Draft campaigns.
 	 * @return   array              Formatted drafts.
 	 */
 	private function format_drafts( $drafts ) {
@@ -672,35 +705,38 @@ class SCD_Draft_Handler {
 			if ( ! $draft ) {
 				continue;
 			}
-			
+
 			$formatted[] = array(
-				'id' => $draft->get_id(),
-				'type' => 'database',
-				'name' => $draft->get_name(),
-				'description' => $draft->get_description(),
-				'last_updated' => $draft->get_updated_at()->format('Y-m-d H:i:s'),
-				'created_date' => $draft->get_created_at()->format('Y-m-d H:i:s'),
-				'campaign_type' => 'standard',
-				'discount_type' => $draft->get_discount_type(),
+				'id'             => $draft->get_id(),
+				'type'           => 'database',
+				'name'           => $draft->get_name(),
+				'description'    => $draft->get_description(),
+				'last_updated'   => $draft->get_updated_at()->format( 'Y-m-d H:i:s' ),
+				'created_date'   => $draft->get_created_at()->format( 'Y-m-d H:i:s' ),
+				'campaign_type'  => 'standard',
+				'discount_type'  => $draft->get_discount_type(),
 				'discount_value' => $draft->get_discount_value(),
-				'product_count' => count( $draft->get_product_ids() ),
-				'is_complete' => $this->check_draft_complete( $draft ),
-				'edit_url' => add_query_arg( array(
-					'page' => 'scd-campaigns',
-					'action' => 'edit',
-					'campaign_id' => $draft->get_id()
-				), admin_url( 'admin.php' ) )
+				'product_count'  => count( $draft->get_product_ids() ),
+				'is_complete'    => $this->check_draft_complete( $draft ),
+				'edit_url'       => add_query_arg(
+					array(
+						'page'        => 'scd-campaigns',
+						'action'      => 'edit',
+						'campaign_id' => $draft->get_id(),
+					),
+					admin_url( 'admin.php' )
+				),
 			);
 		}
 
 		return $formatted;
 	}
-	
+
 	/**
 	 * Check if draft campaign is complete.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $draft    Draft campaign.
+	 * @param    SCD_Campaign $draft    Draft campaign.
 	 * @return   bool                      True if complete.
 	 */
 	private function check_draft_complete( $draft ) {
@@ -709,30 +745,30 @@ class SCD_Draft_Handler {
 		// 2. Product selection (either all products or specific products/categories)
 		// 3. Discount type and value
 		// 4. Schedule dates (optional for drafts)
-		
+
 		if ( empty( $draft->get_name() ) ) {
 			return false;
 		}
-		
+
 		if ( empty( $draft->get_discount_type() ) || $draft->get_discount_value() <= 0 ) {
 			return false;
 		}
-		
+
 		// Check product selection
 		$selection_type = $draft->get_product_selection_type();
 		if ( $selection_type === 'specific' ) {
-			$has_products = count( $draft->get_product_ids() ) > 0;
+			$has_products   = count( $draft->get_product_ids() ) > 0;
 			$has_categories = count( $draft->get_category_ids() ) > 0;
-			$has_tags = count( $draft->get_tag_ids() ) > 0;
-			
+			$has_tags       = count( $draft->get_tag_ids() ) > 0;
+
 			if ( ! $has_products && ! $has_categories && ! $has_tags ) {
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
-	
+
 	/**
 	 * Get campaign repository instance.
 	 *
@@ -772,7 +808,7 @@ class SCD_Draft_Handler {
 			}
 		}
 
-		$db_manager = new SCD_Database_Manager();
+		$db_manager    = new SCD_Database_Manager();
 		$cache_manager = new SCD_Cache_Manager();
 		return new SCD_Campaign_Repository( $db_manager, $cache_manager );
 	}

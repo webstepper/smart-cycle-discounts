@@ -100,17 +100,17 @@ class SCD_Campaign_Health_Calculator {
 	 * Initialize the calculator.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Wizard_State_Service         $state_service     State service instance.
-	 * @param    SCD_Campaign_Health_Service      $health_service    Optional health service instance.
+	 * @param    SCD_Wizard_State_Service    $state_service     State service instance.
+	 * @param    SCD_Campaign_Health_Service $health_service    Optional health service instance.
 	 */
 	public function __construct( $state_service, $health_service = null ) {
-		$this->state_service = $state_service;
+		$this->state_service  = $state_service;
 		$this->health_service = $health_service;
-		$this->campaign_data = array(
-			'basic' => $state_service->get_step_data( 'basic' ),
-			'products' => $state_service->get_step_data( 'products' ),
+		$this->campaign_data  = array(
+			'basic'     => $state_service->get_step_data( 'basic' ),
+			'products'  => $state_service->get_step_data( 'products' ),
 			'discounts' => $state_service->get_step_data( 'discounts' ),
-			'schedule' => $state_service->get_step_data( 'schedule' )
+			'schedule'  => $state_service->get_step_data( 'schedule' ),
 		);
 
 		// Initialize validation handler
@@ -124,36 +124,36 @@ class SCD_Campaign_Health_Calculator {
 	 * Calculate campaign health score and analysis.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $coverage_data    Coverage data from handler.
-	 * @param    array    $conflicts_data   Conflicts data from handler.
+	 * @param    array $coverage_data    Coverage data from handler.
+	 * @param    array $conflicts_data   Conflicts data from handler.
 	 * @return   array                      Health analysis.
 	 */
 	public function calculate( $coverage_data, $conflicts_data ) {
-		$this->coverage_data = $coverage_data;
+		$this->coverage_data  = $coverage_data;
 		$this->conflicts_data = $conflicts_data;
 
-		$score = 0;
+		$score     = 0;
 		$max_score = 100;
 
 		// 1. All required fields filled (20 points)
 		$fields_score = $this->_calculate_fields_score();
-		$score += $fields_score;
+		$score       += $fields_score;
 
 		// 2. No critical issues (30 points)
 		$critical_score = $this->_calculate_critical_score();
-		$score += $critical_score;
+		$score         += $critical_score;
 
 		// 3. Good coverage >70% (20 points)
 		$coverage_score = $this->_calculate_coverage_score();
-		$score += $coverage_score;
+		$score         += $coverage_score;
 
 		// 4. Reasonable discount <50% (15 points)
 		$discount_score = $this->_calculate_discount_score();
-		$score += $discount_score;
+		$score         += $discount_score;
 
 		// 5. No conflicts (15 points)
 		$conflict_score = $this->_calculate_conflict_score();
-		$score += $conflict_score;
+		$score         += $conflict_score;
 
 		// Get all issues
 		$critical_issues = $this->_get_critical_issues();
@@ -163,53 +163,53 @@ class SCD_Campaign_Health_Calculator {
 		$is_ready = empty( $critical_issues );
 
 		// Calculate enhanced data
-		$conflict_preview = $this->_get_conflict_preview();
+		$conflict_preview    = $this->_get_conflict_preview();
 		$enhanced_exclusions = $this->_get_enhanced_exclusions();
-		$stock_risk = $this->_assess_stock_risk();
+		$stock_risk          = $this->_assess_stock_risk();
 
 		return array(
-			'score' => min( $score, $max_score ),
-			'max_score' => $max_score,
-			'percentage' => round( ( min( $score, $max_score ) / $max_score ) * 100 ),
-			'status' => $this->_get_status_from_score( $score ),
-			'is_ready' => $is_ready,
-			'critical_issues' => $critical_issues,
-			'recommendations' => $recommendations,
-			'stock_risk' => $stock_risk,
-			'breakdown' => array(
-				'fields' => array(
-					'score' => $fields_score,
-					'max' => 20,
-					'label' => __( 'Required Fields Complete', 'smart-cycle-discounts' ),
-					'status' => 20 === $fields_score ? 'positive' : 'negative'
+			'score'               => min( $score, $max_score ),
+			'max_score'           => $max_score,
+			'percentage'          => round( ( min( $score, $max_score ) / $max_score ) * 100 ),
+			'status'              => $this->_get_status_from_score( $score ),
+			'is_ready'            => $is_ready,
+			'critical_issues'     => $critical_issues,
+			'recommendations'     => $recommendations,
+			'stock_risk'          => $stock_risk,
+			'breakdown'           => array(
+				'fields'    => array(
+					'score'  => $fields_score,
+					'max'    => 20,
+					'label'  => __( 'Required Fields Complete', 'smart-cycle-discounts' ),
+					'status' => 20 === $fields_score ? 'positive' : 'negative',
 				),
-				'critical' => array(
-					'score' => $critical_score,
-					'max' => 30,
-					'label' => __( 'No Critical Issues', 'smart-cycle-discounts' ),
-					'status' => 30 === $critical_score ? 'positive' : 'negative'
+				'critical'  => array(
+					'score'  => $critical_score,
+					'max'    => 30,
+					'label'  => __( 'No Critical Issues', 'smart-cycle-discounts' ),
+					'status' => 30 === $critical_score ? 'positive' : 'negative',
 				),
-				'coverage' => array(
-					'score' => $coverage_score,
-					'max' => 20,
-					'label' => __( 'Product Coverage', 'smart-cycle-discounts' ),
-					'status' => $coverage_score >= 15 ? 'positive' : 'negative'
+				'coverage'  => array(
+					'score'  => $coverage_score,
+					'max'    => 20,
+					'label'  => __( 'Product Coverage', 'smart-cycle-discounts' ),
+					'status' => $coverage_score >= 15 ? 'positive' : 'negative',
 				),
-				'discount' => array(
-					'score' => $discount_score,
-					'max' => 15,
-					'label' => __( 'Discount Reasonableness', 'smart-cycle-discounts' ),
-					'status' => $discount_score >= 10 ? 'positive' : 'negative'
+				'discount'  => array(
+					'score'  => $discount_score,
+					'max'    => 15,
+					'label'  => __( 'Discount Reasonableness', 'smart-cycle-discounts' ),
+					'status' => $discount_score >= 10 ? 'positive' : 'negative',
 				),
 				'conflicts' => array(
-					'score' => $conflict_score,
-					'max' => 15,
-					'label' => __( 'No Conflicts', 'smart-cycle-discounts' ),
-					'status' => 15 === $conflict_score ? 'positive' : 'negative'
-				)
+					'score'  => $conflict_score,
+					'max'    => 15,
+					'label'  => __( 'No Conflicts', 'smart-cycle-discounts' ),
+					'status' => 15 === $conflict_score ? 'positive' : 'negative',
+				),
 			),
-			'conflict_preview' => $conflict_preview,
-			'enhanced_exclusions' => $enhanced_exclusions
+			'conflict_preview'    => $conflict_preview,
+			'enhanced_exclusions' => $enhanced_exclusions,
 		);
 	}
 
@@ -222,20 +222,20 @@ class SCD_Campaign_Health_Calculator {
 	 */
 	private function _calculate_fields_score() {
 		$required_fields = array(
-			'basic' => array( 'name', 'priority' ),
-			'products' => array( 'product_selection_type' ),
+			'basic'     => array( 'name', 'priority' ),
+			'products'  => array( 'product_selection_type' ),
 			'discounts' => array( 'discount_type', 'discount_value' ),
-			'schedule' => array( 'start_type' )
+			'schedule'  => array( 'start_type' ),
 		);
 
 		$total_required = 0;
-		$filled = 0;
+		$filled         = 0;
 
 		foreach ( $required_fields as $step => $fields ) {
 			foreach ( $fields as $field ) {
-				$total_required++;
+				++$total_required;
 				if ( isset( $this->campaign_data[ $step ][ $field ] ) && ! empty( $this->campaign_data[ $step ][ $field ] ) ) {
-					$filled++;
+					++$filled;
 				}
 			}
 		}
@@ -340,7 +340,7 @@ class SCD_Campaign_Health_Calculator {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    int       $score    Health score.
+	 * @param    int $score    Health score.
 	 * @return   string              Status label.
 	 */
 	private function _get_status_from_score( $score ) {
@@ -369,9 +369,9 @@ class SCD_Campaign_Health_Calculator {
 		if ( ! empty( $this->validation_results['errors'] ) ) {
 			foreach ( $this->validation_results['errors'] as $error ) {
 				$issues[] = array(
-					'code' => $error['code'],
+					'code'    => $error['code'],
 					'message' => $error['message'],
-					'step' => isset( $error['step'] ) ? $error['step'] : ''
+					'step'    => isset( $error['step'] ) ? $error['step'] : '',
 				);
 			}
 		}
@@ -392,9 +392,9 @@ class SCD_Campaign_Health_Calculator {
 			if ( ! empty( $health_analysis['critical_issues'] ) ) {
 				foreach ( $health_analysis['critical_issues'] as $service_issue ) {
 					$issues[] = array(
-						'code' => isset( $service_issue['code'] ) ? $service_issue['code'] : 'validation_error',
+						'code'    => isset( $service_issue['code'] ) ? $service_issue['code'] : 'validation_error',
 						'message' => isset( $service_issue['message'] ) ? $service_issue['message'] : '',
-						'step' => $this->_map_issue_to_step( isset( $service_issue['code'] ) ? $service_issue['code'] : '' )
+						'step'    => $this->_map_issue_to_step( isset( $service_issue['code'] ) ? $service_issue['code'] : '' ),
 					);
 				}
 			}
@@ -402,12 +402,12 @@ class SCD_Campaign_Health_Calculator {
 
 		// Remove duplicates by code
 		$unique_issues = array();
-		$seen_codes = array();
+		$seen_codes    = array();
 
 		foreach ( $issues as $issue ) {
 			if ( ! in_array( $issue['code'], $seen_codes, true ) ) {
 				$unique_issues[] = $issue;
-				$seen_codes[] = $issue['code'];
+				$seen_codes[]    = $issue['code'];
 			}
 		}
 
@@ -423,21 +423,21 @@ class SCD_Campaign_Health_Calculator {
 	 */
 	private function _prepare_campaign_data_for_service() {
 		$start_date = isset( $this->campaign_data['schedule']['start_date'] ) ? $this->campaign_data['schedule']['start_date'] : null;
-		$end_date = isset( $this->campaign_data['schedule']['end_date'] ) ? $this->campaign_data['schedule']['end_date'] : null;
+		$end_date   = isset( $this->campaign_data['schedule']['end_date'] ) ? $this->campaign_data['schedule']['end_date'] : null;
 
 		return array(
-			'name' => isset( $this->campaign_data['basic']['name'] ) ? $this->campaign_data['basic']['name'] : '',
-			'description' => isset( $this->campaign_data['basic']['description'] ) ? $this->campaign_data['basic']['description'] : '',
-			'discount_type' => isset( $this->campaign_data['discounts']['discount_type'] ) ? $this->campaign_data['discounts']['discount_type'] : '',
-			'discount_value' => $this->_get_discount_value_for_service(),
+			'name'                   => isset( $this->campaign_data['basic']['name'] ) ? $this->campaign_data['basic']['name'] : '',
+			'description'            => isset( $this->campaign_data['basic']['description'] ) ? $this->campaign_data['basic']['description'] : '',
+			'discount_type'          => isset( $this->campaign_data['discounts']['discount_type'] ) ? $this->campaign_data['discounts']['discount_type'] : '',
+			'discount_value'         => $this->_get_discount_value_for_service(),
 			'product_selection_type' => isset( $this->campaign_data['products']['product_selection_type'] ) ? $this->campaign_data['products']['product_selection_type'] : '',
-			'selected_product_ids' => isset( $this->campaign_data['products']['selected_product_ids'] ) ? $this->campaign_data['products']['selected_product_ids'] : array(),
-			'start_date' => $start_date,
-			'end_date' => $end_date,
-			'start_time' => isset( $this->campaign_data['schedule']['start_time'] ) ? $this->campaign_data['schedule']['start_time'] : '00:00',
-			'end_time' => isset( $this->campaign_data['schedule']['end_time'] ) ? $this->campaign_data['schedule']['end_time'] : '23:59',
-			'start_type' => isset( $this->campaign_data['schedule']['start_type'] ) ? $this->campaign_data['schedule']['start_type'] : 'scheduled',
-			'status' => 'draft', // Wizard campaigns are not yet saved
+			'selected_product_ids'   => isset( $this->campaign_data['products']['selected_product_ids'] ) ? $this->campaign_data['products']['selected_product_ids'] : array(),
+			'start_date'             => $start_date,
+			'end_date'               => $end_date,
+			'start_time'             => isset( $this->campaign_data['schedule']['start_time'] ) ? $this->campaign_data['schedule']['start_time'] : '00:00',
+			'end_time'               => isset( $this->campaign_data['schedule']['end_time'] ) ? $this->campaign_data['schedule']['end_time'] : '23:59',
+			'start_type'             => isset( $this->campaign_data['schedule']['start_type'] ) ? $this->campaign_data['schedule']['start_type'] : 'scheduled',
+			'status'                 => 'draft', // Wizard campaigns are not yet saved
 		);
 	}
 
@@ -465,19 +465,19 @@ class SCD_Campaign_Health_Calculator {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $code    Issue code.
+	 * @param    string $code    Issue code.
 	 * @return   string             Step name.
 	 */
 	private function _map_issue_to_step( $code ) {
 		$step_mapping = array(
-			'missing_name' => 'basic',
-			'missing_discount' => 'discounts',
-			'missing_products' => 'products',
+			'missing_name'       => 'basic',
+			'missing_discount'   => 'discounts',
+			'missing_products'   => 'products',
 			'expired_but_active' => 'schedule',
-			'scheduled_past' => 'schedule',
-			'extreme_discount' => 'discounts',
+			'scheduled_past'     => 'schedule',
+			'extreme_discount'   => 'discounts',
 			'very_high_discount' => 'discounts',
-			'low_discount' => 'discounts',
+			'low_discount'       => 'discounts',
 		);
 
 		return isset( $step_mapping[ $code ] ) ? $step_mapping[ $code ] : '';
@@ -530,22 +530,22 @@ class SCD_Campaign_Health_Calculator {
 
 		// Discount Strategy Recommendations (plugin-actionable)
 		$discount_recommendations = $this->_get_discount_strategy_recommendations( $product_stats );
-		$recommendations = array_merge( $recommendations, $discount_recommendations );
+		$recommendations          = array_merge( $recommendations, $discount_recommendations );
 
 		// Timing Strategy Recommendations (plugin-actionable)
 		$timing_recommendations = $this->_get_timing_strategy_recommendations();
-		$recommendations = array_merge( $recommendations, $timing_recommendations );
+		$recommendations        = array_merge( $recommendations, $timing_recommendations );
 
 		// Product Selection Recommendations (plugin-actionable)
 		$product_recommendations = $this->_get_product_selection_recommendations( $product_stats );
-		$recommendations = array_merge( $recommendations, $product_recommendations );
+		$recommendations         = array_merge( $recommendations, $product_recommendations );
 
 		// Campaign Management Recommendations (plugin-actionable)
 		$management_recommendations = $this->_get_campaign_management_recommendations();
-		$recommendations = array_merge( $recommendations, $management_recommendations );
+		$recommendations            = array_merge( $recommendations, $management_recommendations );
 
 		// Discount Rules Warnings (configuration edge cases)
-		$rules_warnings = $this->_get_discount_rules_warnings();
+		$rules_warnings  = $this->_get_discount_rules_warnings();
 		$recommendations = array_merge( $recommendations, $rules_warnings );
 
 		// Add unique IDs to each recommendation for tracking
@@ -561,14 +561,14 @@ class SCD_Campaign_Health_Calculator {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $recommendation    Recommendation data.
+	 * @param    array $recommendation    Recommendation data.
 	 * @return   string                      Unique ID.
 	 */
 	private function _generate_recommendation_id( $recommendation ) {
 		$parts = array(
 			isset( $recommendation['category'] ) ? $recommendation['category'] : '',
 			isset( $recommendation['priority'] ) ? $recommendation['priority'] : '',
-			isset( $recommendation['message'] ) ? substr( $recommendation['message'], 0, 50 ) : ''
+			isset( $recommendation['message'] ) ? substr( $recommendation['message'], 0, 50 ) : '',
 		);
 
 		return md5( implode( '|', $parts ) );
@@ -585,23 +585,23 @@ class SCD_Campaign_Health_Calculator {
 		$product_ids = $this->_get_selected_product_ids();
 
 		$stats = array(
-			'count' => count( $product_ids ),
-			'min_price' => 0,
-			'max_price' => 0,
-			'avg_price' => 0,
-			'total_value' => 0,
+			'count'                => count( $product_ids ),
+			'min_price'            => 0,
+			'max_price'            => 0,
+			'avg_price'            => 0,
+			'total_value'          => 0,
 			'price_variance_ratio' => 0,
-			'has_stock_managed' => false,
-			'low_stock_count' => 0,
-			'out_of_stock_count' => 0,
-			'total_stock' => 0
+			'has_stock_managed'    => false,
+			'low_stock_count'      => 0,
+			'out_of_stock_count'   => 0,
+			'total_stock'          => 0,
 		);
 
 		if ( empty( $product_ids ) || ! class_exists( 'WooCommerce' ) ) {
 			return $stats;
 		}
 
-		$prices = array();
+		$prices       = array();
 		$stock_counts = array();
 
 		foreach ( $product_ids as $product_id ) {
@@ -619,14 +619,14 @@ class SCD_Campaign_Health_Calculator {
 			// Stock analysis
 			if ( $product->managing_stock() ) {
 				$stats['has_stock_managed'] = true;
-				$stock = $product->get_stock_quantity();
+				$stock                      = $product->get_stock_quantity();
 				if ( null !== $stock ) {
 					$stock_counts[] = intval( $stock );
 					if ( $stock < 5 ) {
-						$stats['low_stock_count']++;
+						++$stats['low_stock_count'];
 					}
 					if ( $stock < 1 ) {
-						$stats['out_of_stock_count']++;
+						++$stats['out_of_stock_count'];
 					}
 				}
 			}
@@ -634,9 +634,9 @@ class SCD_Campaign_Health_Calculator {
 
 		// Calculate price statistics
 		if ( ! empty( $prices ) ) {
-			$stats['min_price'] = min( $prices );
-			$stats['max_price'] = max( $prices );
-			$stats['avg_price'] = array_sum( $prices ) / count( $prices );
+			$stats['min_price']   = min( $prices );
+			$stats['max_price']   = max( $prices );
+			$stats['avg_price']   = array_sum( $prices ) / count( $prices );
 			$stats['total_value'] = array_sum( $prices );
 
 			if ( $stats['min_price'] > 0 ) {
@@ -657,12 +657,12 @@ class SCD_Campaign_Health_Calculator {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $product_stats    Product statistics.
+	 * @param    array $product_stats    Product statistics.
 	 * @return   array                      Recommendations array.
 	 */
 	private function _get_discount_strategy_recommendations( $product_stats ) {
 		$recommendations = array();
-		$discount_type = isset( $this->campaign_data['discounts']['discount_type'] ) ? $this->campaign_data['discounts']['discount_type'] : '';
+		$discount_type   = isset( $this->campaign_data['discounts']['discount_type'] ) ? $this->campaign_data['discounts']['discount_type'] : '';
 
 		// Get discount value
 		$discount_value = 0;
@@ -674,7 +674,7 @@ class SCD_Campaign_Health_Calculator {
 
 		// CRITICAL: Extremely high discount (90-99%)
 		if ( 'percentage' === $discount_type && $discount_value >= 90 && $discount_value < 100 && $product_stats['avg_price'] > 0 ) {
-			$avg_final = $product_stats['avg_price'] * ( ( 100 - $discount_value ) / 100 );
+			$avg_final            = $product_stats['avg_price'] * ( ( 100 - $discount_value ) / 100 );
 			$recommended_discount = 50;
 
 			$recommendations[] = array(
@@ -682,22 +682,22 @@ class SCD_Campaign_Health_Calculator {
 				'priority'    => 'critical',
 				'impact'      => __( 'Protect profit margins and brand value', 'smart-cycle-discounts' ),
 				'message'     => sprintf(
-					__( 'CRITICAL: %d%% discount is extremely high - a %s product becomes %s. This may cause significant profit loss and brand damage.', 'smart-cycle-discounts' ),
+					__( 'CRITICAL: %1$d%% discount is extremely high - a %2$s product becomes %3$s. This may cause significant profit loss and brand damage.', 'smart-cycle-discounts' ),
 					$discount_value,
 					$this->_format_price_plain( $product_stats['avg_price'] ),
 					$this->_format_price_plain( $avg_final )
 				),
 				'icon'        => 'warning',
 				'explanation' => sprintf(
-					__( 'A %d%% discount leaves only %d%% of revenue, which may not cover costs. Such extreme discounts can permanently damage brand perception, train customers to only buy at deep discounts, and signal desperation to the market.', 'smart-cycle-discounts' ),
+					__( 'A %1$d%% discount leaves only %2$d%% of revenue, which may not cover costs. Such extreme discounts can permanently damage brand perception, train customers to only buy at deep discounts, and signal desperation to the market.', 'smart-cycle-discounts' ),
 					$discount_value,
 					( 100 - $discount_value )
 				),
 				'action'      => array(
 					'type' => 'update_discount_value',
-					'data' => array( 'discount_value' => $recommended_discount )
+					'data' => array( 'discount_value' => $recommended_discount ),
 				),
-				'step'        => 'discount'
+				'step'        => 'discount',
 			);
 		}
 
@@ -710,7 +710,7 @@ class SCD_Campaign_Health_Calculator {
 				'priority'    => 'high',
 				'impact'      => __( 'Improve profit margins by 20-30%', 'smart-cycle-discounts' ),
 				'message'     => sprintf(
-					__( '%d%% discount is unusually high. Verify this is intentional and won\'t cause profit loss. Consider reducing to %d%%.', 'smart-cycle-discounts' ),
+					__( '%1$d%% discount is unusually high. Verify this is intentional and won\'t cause profit loss. Consider reducing to %2$d%%.', 'smart-cycle-discounts' ),
 					$discount_value,
 					$recommended_discount
 				),
@@ -721,9 +721,9 @@ class SCD_Campaign_Health_Calculator {
 				),
 				'action'      => array(
 					'type' => 'update_discount_value',
-					'data' => array( 'discount_value' => $recommended_discount )
+					'data' => array( 'discount_value' => $recommended_discount ),
 				),
-				'step'        => 'discount'
+				'step'        => 'discount',
 			);
 		}
 
@@ -736,7 +736,7 @@ class SCD_Campaign_Health_Calculator {
 				'priority'    => 'high',
 				'impact'      => __( 'Increase conversion rates significantly', 'smart-cycle-discounts' ),
 				'message'     => sprintf(
-					__( '%d%% discount may not be compelling enough to drive conversions. Consider increasing to at least %d%% for better results.', 'smart-cycle-discounts' ),
+					__( '%1$d%% discount may not be compelling enough to drive conversions. Consider increasing to at least %2$d%% for better results.', 'smart-cycle-discounts' ),
 					$discount_value,
 					$recommended_discount
 				),
@@ -744,9 +744,9 @@ class SCD_Campaign_Health_Calculator {
 				'explanation' => __( 'Research shows that discounts below 10% often fail to motivate purchase behavior because they don\'t overcome customer inertia. The "sweet spot" for percentage discounts that drive action is typically 15-30%.', 'smart-cycle-discounts' ),
 				'action'      => array(
 					'type' => 'update_discount_value',
-					'data' => array( 'discount_value' => $recommended_discount )
+					'data' => array( 'discount_value' => $recommended_discount ),
 				),
-				'step'        => 'discount'
+				'step'        => 'discount',
 			);
 		}
 
@@ -758,87 +758,96 @@ class SCD_Campaign_Health_Calculator {
 			$tier3 = max( 35, round( $discount_value * 0.85 ) );
 
 			$recommendations[] = array(
-				'category' => 'discount',
-				'priority' => 'high',
-				'impact' => __( 'Could improve margins by 20-30%', 'smart-cycle-discounts' ),
-				'message' => sprintf(
-					__( 'Switch to tiered pricing instead of flat %d%% - try: Buy 2 get %d%% off, Buy 3 get %d%% off, Buy 5+ get %d%% off. Same perceived value, better margins.', 'smart-cycle-discounts' ),
+				'category'    => 'discount',
+				'priority'    => 'high',
+				'impact'      => __( 'Could improve margins by 20-30%', 'smart-cycle-discounts' ),
+				'message'     => sprintf(
+					__( 'Switch to tiered pricing instead of flat %1$d%% - try: Buy 2 get %2$d%% off, Buy 3 get %3$d%% off, Buy 5+ get %4$d%% off. Same perceived value, better margins.', 'smart-cycle-discounts' ),
 					$discount_value,
 					$tier1,
 					$tier2,
 					$tier3
 				),
-				'icon' => 'chart',
+				'icon'        => 'chart',
 				'explanation' => sprintf(
 					__( 'Your current %d%% flat discount gives the same rate regardless of cart size. Tiered discounts reward higher quantities with better rates, encouraging customers to buy more while protecting your margins on smaller orders.', 'smart-cycle-discounts' ),
 					$discount_value
 				),
-				'action' => array(
+				'action'      => array(
 					'type' => 'change_discount_type',
 					'data' => array(
 						'discount_type' => 'tiered',
-						'tiers' => array(
-							array( 'quantity' => 2, 'discount' => $tier1 ),
-							array( 'quantity' => 3, 'discount' => $tier2 ),
-							array( 'quantity' => 5, 'discount' => $tier3 )
-						)
-					)
+						'tiers'         => array(
+							array(
+								'quantity' => 2,
+								'discount' => $tier1,
+							),
+							array(
+								'quantity' => 3,
+								'discount' => $tier2,
+							),
+							array(
+								'quantity' => 5,
+								'discount' => $tier3,
+							),
+						),
+					),
 				),
-				'step' => 'discount'
+				'step'        => 'discount',
 			);
 		}
 
 		// Recommendation: Fixed discount on wide price range
 		if ( 'fixed' === $discount_type && $discount_value > 0 && $product_stats['price_variance_ratio'] > 3.0 ) {
 			$recommendations[] = array(
-				'category' => 'discount',
-				'priority' => 'high',
-				'impact' => __( 'Improves customer experience consistency', 'smart-cycle-discounts' ),
-				'message' => sprintf(
-					__( 'Your price range (%s - %s) is too wide for a %s fixed discount. Switch to percentage discount or split into separate campaigns by price tier.', 'smart-cycle-discounts' ),
+				'category'    => 'discount',
+				'priority'    => 'high',
+				'impact'      => __( 'Improves customer experience consistency', 'smart-cycle-discounts' ),
+				'message'     => sprintf(
+					__( 'Your price range (%1$s - %2$s) is too wide for a %3$s fixed discount. Switch to percentage discount or split into separate campaigns by price tier.', 'smart-cycle-discounts' ),
 					$this->_format_price_plain( $product_stats['min_price'] ),
 					$this->_format_price_plain( $product_stats['max_price'] ),
 					$this->_format_price_plain( $discount_value )
 				),
-				'icon' => 'warning',
+				'icon'        => 'warning',
 				'explanation' => sprintf(
-					__( 'A %s fixed discount represents %d%% off your cheapest product but only %d%% off your most expensive. This creates an inconsistent customer experience. Percentage discounts provide fair value across all price points.', 'smart-cycle-discounts' ),
+					__( 'A %1$s fixed discount represents %2$d%% off your cheapest product but only %3$d%% off your most expensive. This creates an inconsistent customer experience. Percentage discounts provide fair value across all price points.', 'smart-cycle-discounts' ),
 					$this->_format_price_plain( $discount_value ),
 					round( ( $discount_value / $product_stats['min_price'] ) * 100 ),
 					round( ( $discount_value / $product_stats['max_price'] ) * 100 )
 				),
-				'action' => array(
+				'action'      => array(
 					'type' => 'change_discount_type',
 					'data' => array(
-						'discount_type' => 'percentage',
-						'discount_value' => round( ( $discount_value / $product_stats['avg_price'] ) * 100 )
-					)
+						'discount_type'  => 'percentage',
+						'discount_value' => round( ( $discount_value / $product_stats['avg_price'] ) * 100 ),
+					),
 				),
-				'step' => 'discount'
+				'step'        => 'discount',
 			);
 		}
 
 		// Recommendation: BOGO alternative for high-margin products
 		if ( 'percentage' === $discount_type && $discount_value >= 50 && $product_stats['avg_price'] < 50 && $product_stats['count'] > 5 ) {
 			$recommendations[] = array(
-				'category' => 'discount',
-				'priority' => 'medium',
-				'impact' => __( 'Could increase volume by 40%', 'smart-cycle-discounts' ),
-				'message' => sprintf(
+				'category'    => 'discount',
+				'priority'    => 'medium',
+				'impact'      => __( 'Could increase volume by 40%', 'smart-cycle-discounts' ),
+				'message'     => sprintf(
 					__( 'Consider "Buy 2 Get 1 Free" instead of %d%% off - similar perceived value but better for inventory turnover and margins.', 'smart-cycle-discounts' ),
 					$discount_value
 				),
-				'icon' => 'gift',
+				'icon'        => 'gift',
 				'explanation' => __( 'BOGO promotions encourage customers to buy more items per transaction. While a 50%% discount and BOGO offer similar economics, BOGO creates a perception of getting something free, which psychologically drives higher conversion and cart sizes.', 'smart-cycle-discounts' ),
-				'action' => array(
+				'action'      => array(
 					'type' => 'change_discount_type',
 					'data' => array(
 						'discount_type' => 'bogo',
-						'buy_quantity' => 2,
-						'get_quantity' => 1
-					)
+						'buy_quantity'  => 2,
+						'get_quantity'  => 1,
+					),
 				),
-				'step' => 'discount'
+				'step'        => 'discount',
 			);
 		}
 
@@ -846,27 +855,27 @@ class SCD_Campaign_Health_Calculator {
 		// Only for 30-70% discounts on products ≥€150 (products <€150 get tiered recommendation, avoiding duplication)
 		if ( 'percentage' === $discount_type && $discount_value > 30 && $discount_value < 70 && $product_stats['avg_price'] >= 150 ) {
 			$recommended_discount = min( 25, round( $discount_value * 0.7 ) );
-			$recommendations[] = array(
-				'category' => 'discount',
-				'priority' => 'high',
-				'impact' => __( 'Maintains brand value and margins', 'smart-cycle-discounts' ),
-				'message' => sprintf(
-					__( 'High-value products (avg %s) perform better with moderate discounts (15-25%%) and shorter campaigns. Consider reducing to %d%% to maintain brand perception.', 'smart-cycle-discounts' ),
+			$recommendations[]    = array(
+				'category'    => 'discount',
+				'priority'    => 'high',
+				'impact'      => __( 'Maintains brand value and margins', 'smart-cycle-discounts' ),
+				'message'     => sprintf(
+					__( 'High-value products (avg %1$s) perform better with moderate discounts (15-25%%) and shorter campaigns. Consider reducing to %2$d%% to maintain brand perception.', 'smart-cycle-discounts' ),
 					$this->_format_price_plain( $product_stats['avg_price'] ),
 					$recommended_discount
 				),
-				'icon' => 'star',
+				'icon'        => 'star',
 				'explanation' => sprintf(
 					__( 'Deep discounts (%d%%) on premium products can damage brand perception and train customers to wait for sales. Research shows luxury and high-value items maintain better long-term customer value with moderate discounts (15-25%%) that preserve brand integrity.', 'smart-cycle-discounts' ),
 					$discount_value
 				),
-				'action' => array(
+				'action'      => array(
 					'type' => 'update_discount_value',
 					'data' => array(
-						'discount_value' => $recommended_discount
-					)
+						'discount_value' => $recommended_discount,
+					),
 				),
-				'step' => 'discount'
+				'step'        => 'discount',
 			);
 		}
 
@@ -875,8 +884,8 @@ class SCD_Campaign_Health_Calculator {
 		$show_depth_warning = false;
 		if ( 'percentage' === $discount_type && $discount_value > 50 && $discount_value < 70 ) {
 			// Check if other specific recommendations will trigger
-			$has_tiered_rec = ( $product_stats['avg_price'] >= 50 && $product_stats['avg_price'] < 150 );
-			$has_bogo_rec = ( $product_stats['avg_price'] < 50 && $product_stats['count'] > 5 );
+			$has_tiered_rec    = ( $product_stats['avg_price'] >= 50 && $product_stats['avg_price'] < 150 );
+			$has_bogo_rec      = ( $product_stats['avg_price'] < 50 && $product_stats['count'] > 5 );
 			$has_expensive_rec = ( $product_stats['avg_price'] >= 150 );
 
 			// Only show depth warning if none of the specific recommendations apply
@@ -893,7 +902,7 @@ class SCD_Campaign_Health_Calculator {
 				'priority'    => 'high',
 				'impact'      => __( 'Could improve brand perception and margins by 15-20%', 'smart-cycle-discounts' ),
 				'message'     => sprintf(
-					__( 'Your %d%% discount is very deep - consider %d%% with stronger messaging ("Limited Stock" or "Final Hours") to maintain brand value while creating urgency.', 'smart-cycle-discounts' ),
+					__( 'Your %1$d%% discount is very deep - consider %2$d%% with stronger messaging ("Limited Stock" or "Final Hours") to maintain brand value while creating urgency.', 'smart-cycle-discounts' ),
 					$discount_value,
 					$recommended_discount
 				),
@@ -901,15 +910,15 @@ class SCD_Campaign_Health_Calculator {
 				'explanation' => __( 'Discounts over 50% can devalue your brand and train customers to only buy during extreme sales. Research shows 30-40% discounts with scarcity messaging often perform better than deeper discounts while protecting margins and brand equity.', 'smart-cycle-discounts' ),
 				'action'      => array(
 					'type' => 'update_discount_value',
-					'data' => array( 'discount_value' => $recommended_discount )
+					'data' => array( 'discount_value' => $recommended_discount ),
 				),
-				'step'        => 'discount'
+				'step'        => 'discount',
 			);
 		}
 
 		// HIGH: Fixed discount exceeds product prices (25-49% affected - recommendation; >=50% remains as error)
 		if ( 'fixed' === $discount_type && $discount_value > 0 && $product_stats['count'] > 0 ) {
-			$product_ids = $this->_get_selected_product_ids();
+			$product_ids    = $this->_get_selected_product_ids();
 			$product_prices = array();
 
 			foreach ( $product_ids as $product_id ) {
@@ -923,7 +932,7 @@ class SCD_Campaign_Health_Calculator {
 				$affected_count = 0;
 				foreach ( $product_prices as $price ) {
 					if ( $price > 0 && $discount_value >= $price ) {
-						$affected_count++;
+						++$affected_count;
 					}
 				}
 
@@ -932,7 +941,7 @@ class SCD_Campaign_Health_Calculator {
 
 					// Show recommendation for 25-49% affected (>=50% handled as critical error in validation)
 					if ( $percentage_affected >= 25 && $percentage_affected < 50 ) {
-						$min_price = min( $product_prices );
+						$min_price            = min( $product_prices );
 						$recommended_discount = max( 1, $min_price - 0.01 );
 
 						$recommendations[] = array(
@@ -940,7 +949,7 @@ class SCD_Campaign_Health_Calculator {
 							'priority'    => 'high',
 							'impact'      => __( 'Prevent giving products away for free', 'smart-cycle-discounts' ),
 							'message'     => sprintf(
-								__( 'Your %s fixed discount exceeds the price of %d products (%d%% of selection). These products will be given away for FREE.', 'smart-cycle-discounts' ),
+								__( 'Your %1$s fixed discount exceeds the price of %2$d products (%3$d%% of selection). These products will be given away for FREE.', 'smart-cycle-discounts' ),
 								$this->_format_price_plain( $discount_value ),
 								$affected_count,
 								round( $percentage_affected )
@@ -953,11 +962,11 @@ class SCD_Campaign_Health_Calculator {
 							'action'      => array(
 								'type' => 'change_discount_type',
 								'data' => array(
-									'discount_type' => 'percentage',
-									'discount_value' => 25
-								)
+									'discount_type'  => 'percentage',
+									'discount_value' => 25,
+								),
 							),
-							'step'        => 'discount'
+							'step'        => 'discount',
 						);
 					}
 				}
@@ -966,11 +975,11 @@ class SCD_Campaign_Health_Calculator {
 
 		// HIGH: BOGO insufficient stock
 		if ( 'bogo' === $discount_type ) {
-			$buy_quantity = isset( $this->campaign_data['discounts']['bogo_buy_quantity'] ) ? intval( $this->campaign_data['discounts']['bogo_buy_quantity'] ) : 1;
-			$get_quantity = isset( $this->campaign_data['discounts']['bogo_get_quantity'] ) ? intval( $this->campaign_data['discounts']['bogo_get_quantity'] ) : 1;
+			$buy_quantity      = isset( $this->campaign_data['discounts']['bogo_buy_quantity'] ) ? intval( $this->campaign_data['discounts']['bogo_buy_quantity'] ) : 1;
+			$get_quantity      = isset( $this->campaign_data['discounts']['bogo_get_quantity'] ) ? intval( $this->campaign_data['discounts']['bogo_get_quantity'] ) : 1;
 			$required_quantity = $buy_quantity + $get_quantity;
 
-			$product_ids = $this->_get_selected_product_ids();
+			$product_ids        = $this->_get_selected_product_ids();
 			$low_stock_products = array();
 
 			foreach ( $product_ids as $product_id ) {
@@ -982,15 +991,15 @@ class SCD_Campaign_Health_Calculator {
 							'id'       => $product_id,
 							'name'     => $product->get_name(),
 							'stock'    => $stock,
-							'required' => $required_quantity
+							'required' => $required_quantity,
 						);
 					}
 				}
 			}
 
 			if ( ! empty( $low_stock_products ) ) {
-				$count = count( $low_stock_products );
-				$sample = array_slice( $low_stock_products, 0, 3 );
+				$count        = count( $low_stock_products );
+				$sample       = array_slice( $low_stock_products, 0, 3 );
 				$product_list = array();
 
 				foreach ( $sample as $prod ) {
@@ -998,7 +1007,7 @@ class SCD_Campaign_Health_Calculator {
 				}
 
 				$message = sprintf(
-					__( 'Your "Buy %d Get %d" campaign includes %d product(s) with insufficient stock. Customers cannot complete the offer for these items.', 'smart-cycle-discounts' ),
+					__( 'Your "Buy %1$d Get %2$d" campaign includes %3$d product(s) with insufficient stock. Customers cannot complete the offer for these items.', 'smart-cycle-discounts' ),
 					$buy_quantity,
 					$get_quantity,
 					$count
@@ -1015,13 +1024,13 @@ class SCD_Campaign_Health_Calculator {
 					'message'     => $message,
 					'icon'        => 'warning',
 					'explanation' => sprintf(
-						__( 'BOGO offers require customers to purchase %d item(s) to receive %d free. Products with stock below %d units cannot fulfill this offer, leading to customer disappointment and potential refund requests.', 'smart-cycle-discounts' ),
+						__( 'BOGO offers require customers to purchase %1$d item(s) to receive %2$d free. Products with stock below %3$d units cannot fulfill this offer, leading to customer disappointment and potential refund requests.', 'smart-cycle-discounts' ),
 						$buy_quantity,
 						$get_quantity,
 						$required_quantity
 					),
 					'action'      => null,
-					'step'        => 'products'
+					'step'        => 'products',
 				);
 			}
 		}
@@ -1032,7 +1041,7 @@ class SCD_Campaign_Health_Calculator {
 
 			if ( ! empty( $tiers ) ) {
 				$product_ids = $this->_get_selected_product_ids();
-				$max_stock = 0;
+				$max_stock   = 0;
 
 				foreach ( $product_ids as $product_id ) {
 					$product = wc_get_product( $product_id );
@@ -1053,13 +1062,13 @@ class SCD_Campaign_Health_Calculator {
 							$discount_tier_value = isset( $tier['discount_value'] ) ? $tier['discount_value'] : 0;
 							$unreachable_tiers[] = array(
 								'threshold' => $threshold,
-								'discount'  => $discount_tier_value
+								'discount'  => $discount_tier_value,
 							);
 						}
 					}
 
 					if ( ! empty( $unreachable_tiers ) ) {
-						$count = count( $unreachable_tiers );
+						$count      = count( $unreachable_tiers );
 						$first_tier = $unreachable_tiers[0];
 
 						$recommendations[] = array(
@@ -1067,7 +1076,7 @@ class SCD_Campaign_Health_Calculator {
 							'priority'    => 'high',
 							'impact'      => __( 'Improve customer experience', 'smart-cycle-discounts' ),
 							'message'     => sprintf(
-								__( '%d discount tier(s) cannot be reached because the highest stock level is %d units. For example, %d%% off at %d items requires more stock than available.', 'smart-cycle-discounts' ),
+								__( '%1$d discount tier(s) cannot be reached because the highest stock level is %2$d units. For example, %3$d%% off at %4$d items requires more stock than available.', 'smart-cycle-discounts' ),
 								$count,
 								$max_stock,
 								$first_tier['discount'],
@@ -1079,7 +1088,7 @@ class SCD_Campaign_Health_Calculator {
 								$max_stock
 							),
 							'action'      => null,
-							'step'        => 'discount'
+							'step'        => 'discount',
 						);
 					}
 				}
@@ -1098,13 +1107,13 @@ class SCD_Campaign_Health_Calculator {
 	 */
 	private function _get_timing_strategy_recommendations() {
 		$recommendations = array();
-		$schedule = isset( $this->campaign_data['schedule'] ) ? $this->campaign_data['schedule'] : array();
-		$start_type = isset( $schedule['start_type'] ) ? $schedule['start_type'] : 'immediate';
-		$start_date = isset( $schedule['start_date'] ) ? $schedule['start_date'] : '';
-		$end_date = isset( $schedule['end_date'] ) ? $schedule['end_date'] : '';
+		$schedule        = isset( $this->campaign_data['schedule'] ) ? $this->campaign_data['schedule'] : array();
+		$start_type      = isset( $schedule['start_type'] ) ? $schedule['start_type'] : 'immediate';
+		$start_date      = isset( $schedule['start_date'] ) ? $schedule['start_date'] : '';
+		$end_date        = isset( $schedule['end_date'] ) ? $schedule['end_date'] : '';
 
 		// Calculate duration
-		$duration_days = null;
+		$duration_days      = null;
 		$campaign_tz_string = isset( $schedule['timezone'] ) ? $schedule['timezone'] : wp_timezone_string();
 
 		try {
@@ -1113,10 +1122,10 @@ class SCD_Campaign_Health_Calculator {
 			if ( ! empty( $start_date ) && ! empty( $end_date ) ) {
 				// Combine date and time if available
 				$start_time = isset( $schedule['start_time'] ) && ! empty( $schedule['start_time'] ) ? $schedule['start_time'] : '00:00';
-				$end_time = isset( $schedule['end_time'] ) && ! empty( $schedule['end_time'] ) ? $schedule['end_time'] : '23:59';
+				$end_time   = isset( $schedule['end_time'] ) && ! empty( $schedule['end_time'] ) ? $schedule['end_time'] : '23:59';
 
 				$start_dt = scd_combine_date_time( $start_date, $start_time, $campaign_tz_string );
-				$end_dt = scd_combine_date_time( $end_date, $end_time, $campaign_tz_string );
+				$end_dt   = scd_combine_date_time( $end_date, $end_time, $campaign_tz_string );
 
 				if ( ! $start_dt || ! $end_dt ) {
 					// Invalid date/time - skip duration calculation
@@ -1130,7 +1139,7 @@ class SCD_Campaign_Health_Calculator {
 				$now_dt = new DateTime( 'now', $campaign_tz );
 
 				$end_time = isset( $schedule['end_time'] ) && ! empty( $schedule['end_time'] ) ? $schedule['end_time'] : '23:59';
-				$end_dt = scd_combine_date_time( $end_date, $end_time, $campaign_tz_string );
+				$end_dt   = scd_combine_date_time( $end_date, $end_time, $campaign_tz_string );
 
 				if ( ! $end_dt ) {
 					// Invalid end date/time - skip duration calculation
@@ -1145,12 +1154,12 @@ class SCD_Campaign_Health_Calculator {
 			// Fallback to old behavior
 			if ( ! empty( $start_date ) && ! empty( $end_date ) ) {
 				$start_ts = strtotime( $start_date );
-				$end_ts = strtotime( $end_date );
+				$end_ts   = strtotime( $end_date );
 				if ( $start_ts && $end_ts && $end_ts > $start_ts ) {
 					$duration_days = ceil( ( $end_ts - $start_ts ) / DAY_IN_SECONDS );
 				}
 			} elseif ( 'immediate' === $start_type && ! empty( $end_date ) ) {
-				$now = current_time( 'timestamp' );
+				$now    = current_time( 'timestamp' );
 				$end_ts = strtotime( $end_date );
 				if ( $end_ts > $now ) {
 					$duration_days = ceil( ( $end_ts - $now ) / DAY_IN_SECONDS );
@@ -1169,20 +1178,20 @@ class SCD_Campaign_Health_Calculator {
 			}
 
 			$recommendations[] = array(
-				'category' => 'timing',
-				'priority' => 'high',
-				'impact' => __( 'Could increase conversion by 25%', 'smart-cycle-discounts' ),
-				'message' => __( 'Set a 7-14 day duration - limited-time offers create urgency and prevent discount fatigue. Most successful campaigns run 7-14 days.', 'smart-cycle-discounts' ),
-				'icon' => 'clock',
+				'category'    => 'timing',
+				'priority'    => 'high',
+				'impact'      => __( 'Could increase conversion by 25%', 'smart-cycle-discounts' ),
+				'message'     => __( 'Set a 7-14 day duration - limited-time offers create urgency and prevent discount fatigue. Most successful campaigns run 7-14 days.', 'smart-cycle-discounts' ),
+				'icon'        => 'clock',
 				'explanation' => __( 'Indefinite campaigns lack urgency, leading customers to delay purchases. Limited-time offers create FOMO (fear of missing out) which drives immediate action. Studies show 7-14 day campaigns achieve optimal balance between reach and urgency.', 'smart-cycle-discounts' ),
-				'action' => array(
+				'action'      => array(
 					'type' => 'set_end_date',
 					'data' => array(
-						'end_date' => $suggested_end_date,
-						'duration_days' => 14
-					)
+						'end_date'      => $suggested_end_date,
+						'duration_days' => 14,
+					),
 				),
-				'step' => 'schedule'
+				'step'        => 'schedule',
 			);
 		}
 
@@ -1198,27 +1207,27 @@ class SCD_Campaign_Health_Calculator {
 			}
 
 			$recommendations[] = array(
-				'category' => 'timing',
-				'priority' => 'medium',
-				'impact' => __( 'Optimizes conversion window', 'smart-cycle-discounts' ),
-				'message' => sprintf(
+				'category'    => 'timing',
+				'priority'    => 'medium',
+				'impact'      => __( 'Optimizes conversion window', 'smart-cycle-discounts' ),
+				'message'     => sprintf(
 					__( 'High-value items (%s avg) convert best with shorter campaigns (5-7 days) - longer durations reduce urgency.', 'smart-cycle-discounts' ),
 					$this->_format_price_plain( $product_stats['avg_price'] )
 				),
-				'icon' => 'target',
+				'icon'        => 'target',
 				'explanation' => sprintf(
-					__( 'Expensive purchases require research time, but extended campaigns (%d days) reduce urgency. For premium products averaging %s, a 5-7 day window provides enough consideration time while maintaining purchase urgency.', 'smart-cycle-discounts' ),
+					__( 'Expensive purchases require research time, but extended campaigns (%1$d days) reduce urgency. For premium products averaging %2$s, a 5-7 day window provides enough consideration time while maintaining purchase urgency.', 'smart-cycle-discounts' ),
 					$duration_days,
 					$this->_format_price_plain( $product_stats['avg_price'] )
 				),
-				'action' => array(
+				'action'      => array(
 					'type' => 'set_end_date',
 					'data' => array(
-						'end_date' => $suggested_end_date,
-						'duration_days' => 7
-					)
+						'end_date'      => $suggested_end_date,
+						'duration_days' => 7,
+					),
 				),
-				'step' => 'schedule'
+				'step'        => 'schedule',
 			);
 		}
 
@@ -1226,7 +1235,7 @@ class SCD_Campaign_Health_Calculator {
 		if ( ! empty( $start_date ) && null !== $duration_days ) {
 			try {
 				$start_time = isset( $schedule['start_time'] ) && ! empty( $schedule['start_time'] ) ? $schedule['start_time'] : '00:00';
-				$start_dt = scd_combine_date_time( $start_date, $start_time, $campaign_tz_string );
+				$start_dt   = scd_combine_date_time( $start_date, $start_time, $campaign_tz_string );
 
 				if ( ! $start_dt ) {
 					throw new Exception( 'Invalid start date/time' );
@@ -1245,13 +1254,13 @@ class SCD_Campaign_Health_Calculator {
 						'icon'        => 'calendar',
 						'explanation' => __( 'E-commerce data shows weekend shoppers (Friday-Sunday) have higher conversion rates and larger cart sizes. Starting campaigns Thursday evening captures both weekend warriors and deal hunters, maximizing impact for short campaigns.', 'smart-cycle-discounts' ),
 						'action'      => null, // Manual timing adjustment
-						'step'        => 'schedule'
+						'step'        => 'schedule',
 					);
 				}
 			} catch ( Exception $e ) {
 				// Fallback to old behavior
 				$start_timestamp = strtotime( $start_date );
-				$start_day = intval( date( 'N', $start_timestamp ) );
+				$start_day       = intval( date( 'N', $start_timestamp ) );
 
 				if ( $start_day >= 1 && $start_day <= 3 && $duration_days <= 7 ) {
 					$recommendations[] = array(
@@ -1262,152 +1271,151 @@ class SCD_Campaign_Health_Calculator {
 						'icon'        => 'calendar',
 						'explanation' => __( 'E-commerce data shows weekend shoppers (Friday-Sunday) have higher conversion rates and larger cart sizes. Starting campaigns Thursday evening captures both weekend warriors and deal hunters, maximizing impact for short campaigns.', 'smart-cycle-discounts' ),
 						'action'      => null,
-						'step'        => 'schedule'
+						'step'        => 'schedule',
 					);
 				}
 			}
 		}
 
+		// HIGH: Past start date
+		if ( 'immediate' !== $start_type && ! empty( $start_date ) ) {
+			// Get timezone from schedule data (defaults to WordPress timezone)
+			$campaign_tz_string = isset( $schedule['timezone'] ) ? $schedule['timezone'] : wp_timezone_string();
 
-	// HIGH: Past start date
-	if ( 'immediate' !== $start_type && ! empty( $start_date ) ) {
-		// Get timezone from schedule data (defaults to WordPress timezone)
-		$campaign_tz_string = isset( $schedule['timezone'] ) ? $schedule['timezone'] : wp_timezone_string();
+			// Check if we have separate date/time fields (from wizard)
+			$start_time = isset( $schedule['start_time'] ) && ! empty( $schedule['start_time'] ) ? $schedule['start_time'] : '00:00';
 
-		// Check if we have separate date/time fields (from wizard)
-		$start_time = isset( $schedule['start_time'] ) && ! empty( $schedule['start_time'] ) ? $schedule['start_time'] : '00:00';
+			try {
+				// Parse start time in campaign timezone
+				$campaign_tz = new DateTimeZone( $campaign_tz_string );
+				$start_dt    = scd_combine_date_time( $start_date, $start_time, $campaign_tz_string );
 
-		try {
-			// Parse start time in campaign timezone
-			$campaign_tz = new DateTimeZone( $campaign_tz_string );
-			$start_dt = scd_combine_date_time( $start_date, $start_time, $campaign_tz_string );
+				if ( ! $start_dt ) {
+					throw new Exception( 'Invalid start date/time' );
+				}
 
-			if ( ! $start_dt ) {
-				throw new Exception( 'Invalid start date/time' );
+				// Get current time in campaign timezone for fair comparison
+				$now_dt = new DateTime( 'now', $campaign_tz );
+
+				if ( $start_dt < $now_dt ) {
+					$recommendations[] = array(
+						'category'    => 'timing',
+						'priority'    => 'high',
+						'impact'      => __( 'Avoid unexpected immediate launch', 'smart-cycle-discounts' ),
+						'message'     => __( 'Campaign start date is in the past. It will start immediately when launched.', 'smart-cycle-discounts' ),
+						'icon'        => 'warning',
+						'explanation' => __( 'When you schedule a campaign for a date that has already passed, the system will start it immediately upon activation instead of waiting. This may not align with your planned marketing schedule or customer communications.', 'smart-cycle-discounts' ),
+						'action'      => null,
+						'step'        => 'schedule',
+					);
+				}
+			} catch ( Exception $e ) {
+				// Fallback: If datetime parsing fails, try simple date comparison
+				$start_datetime_str = $start_date . ' ' . $start_time;
+				$start_ts           = strtotime( $start_datetime_str );
+				$now                = current_time( 'timestamp' );
+
+				if ( $start_ts && $start_ts < $now ) {
+					$recommendations[] = array(
+						'category'    => 'timing',
+						'priority'    => 'high',
+						'impact'      => __( 'Avoid unexpected immediate launch', 'smart-cycle-discounts' ),
+						'message'     => __( 'Campaign start date is in the past. It will start immediately when launched.', 'smart-cycle-discounts' ),
+						'icon'        => 'warning',
+						'explanation' => __( 'When you schedule a campaign for a date that has already passed, the system will start it immediately upon activation instead of waiting. This may not align with your planned marketing schedule or customer communications.', 'smart-cycle-discounts' ),
+						'action'      => null,
+						'step'        => 'schedule',
+					);
+				}
 			}
+		}
 
-			// Get current time in campaign timezone for fair comparison
-			$now_dt = new DateTime( 'now', $campaign_tz );
+		// HIGH: Very short duration (<1 hour)
+		if ( null !== $duration_days ) {
+			$duration_hours = $duration_days * 24;
 
-			if ( $start_dt < $now_dt ) {
+			if ( $duration_hours < 1 ) {
+				$duration_minutes = round( $duration_hours * 60 );
+
 				$recommendations[] = array(
 					'category'    => 'timing',
 					'priority'    => 'high',
-					'impact'      => __( 'Avoid unexpected immediate launch', 'smart-cycle-discounts' ),
-					'message'     => __( 'Campaign start date is in the past. It will start immediately when launched.', 'smart-cycle-discounts' ),
+					'impact'      => __( 'Ensure customers have time to respond', 'smart-cycle-discounts' ),
+					'message'     => sprintf(
+						__( 'Campaign duration is only %d minutes. This may not give customers enough time to see and respond to your offer.', 'smart-cycle-discounts' ),
+						$duration_minutes
+					),
 					'icon'        => 'warning',
-					'explanation' => __( 'When you schedule a campaign for a date that has already passed, the system will start it immediately upon activation instead of waiting. This may not align with your planned marketing schedule or customer communications.', 'smart-cycle-discounts' ),
+					'explanation' => sprintf(
+						__( 'Marketing campaigns need time for customers to discover, consider, and act. A %d-minute window is too short for email notifications to be delivered, for customers to browse, and for conversions to occur. Consider at least 24-48 hours.', 'smart-cycle-discounts' ),
+						$duration_minutes
+					),
 					'action'      => null,
-					'step'        => 'schedule'
-				);
-			}
-		} catch ( Exception $e ) {
-			// Fallback: If datetime parsing fails, try simple date comparison
-			$start_datetime_str = $start_date . ' ' . $start_time;
-			$start_ts = strtotime( $start_datetime_str );
-			$now = current_time( 'timestamp' );
-
-			if ( $start_ts && $start_ts < $now ) {
-				$recommendations[] = array(
-					'category'    => 'timing',
-					'priority'    => 'high',
-					'impact'      => __( 'Avoid unexpected immediate launch', 'smart-cycle-discounts' ),
-					'message'     => __( 'Campaign start date is in the past. It will start immediately when launched.', 'smart-cycle-discounts' ),
-					'icon'        => 'warning',
-					'explanation' => __( 'When you schedule a campaign for a date that has already passed, the system will start it immediately upon activation instead of waiting. This may not align with your planned marketing schedule or customer communications.', 'smart-cycle-discounts' ),
-					'action'      => null,
-					'step'        => 'schedule'
+					'step'        => 'schedule',
 				);
 			}
 		}
-	}
 
-	// HIGH: Very short duration (<1 hour)
-	if ( null !== $duration_days ) {
-		$duration_hours = $duration_days * 24;
-
-		if ( $duration_hours < 1 ) {
-			$duration_minutes = round( $duration_hours * 60 );
-
+		// MEDIUM: Very long duration (>365 days)
+		if ( null !== $duration_days && $duration_days > 365 ) {
 			$recommendations[] = array(
 				'category'    => 'timing',
-				'priority'    => 'high',
-				'impact'      => __( 'Ensure customers have time to respond', 'smart-cycle-discounts' ),
+				'priority'    => 'medium',
+				'impact'      => __( 'Better campaign control and analysis', 'smart-cycle-discounts' ),
 				'message'     => sprintf(
-					__( 'Campaign duration is only %d minutes. This may not give customers enough time to see and respond to your offer.', 'smart-cycle-discounts' ),
-					$duration_minutes
+					__( 'Campaign runs for %d days. Consider breaking into shorter campaigns for better control and performance tracking.', 'smart-cycle-discounts' ),
+					round( $duration_days )
 				),
-				'icon'        => 'warning',
+				'icon'        => 'calendar',
 				'explanation' => sprintf(
-					__( 'Marketing campaigns need time for customers to discover, consider, and act. A %d-minute window is too short for email notifications to be delivered, for customers to browse, and for conversions to occur. Consider at least 24-48 hours.', 'smart-cycle-discounts' ),
-					$duration_minutes
+					__( 'Year-long campaigns (%d days) lack urgency and make it difficult to measure effectiveness or adjust strategy. Breaking into quarterly or seasonal campaigns allows you to test, learn, and optimize while maintaining customer interest.', 'smart-cycle-discounts' ),
+					round( $duration_days )
 				),
 				'action'      => null,
-				'step'        => 'schedule'
+				'step'        => 'schedule',
 			);
 		}
-	}
 
-	// MEDIUM: Very long duration (>365 days)
-	if ( null !== $duration_days && $duration_days > 365 ) {
-		$recommendations[] = array(
-			'category'    => 'timing',
-			'priority'    => 'medium',
-			'impact'      => __( 'Better campaign control and analysis', 'smart-cycle-discounts' ),
-			'message'     => sprintf(
-				__( 'Campaign runs for %d days. Consider breaking into shorter campaigns for better control and performance tracking.', 'smart-cycle-discounts' ),
-				round( $duration_days )
-			),
-			'icon'        => 'calendar',
-			'explanation' => sprintf(
-				__( 'Year-long campaigns (%d days) lack urgency and make it difficult to measure effectiveness or adjust strategy. Breaking into quarterly or seasonal campaigns allows you to test, learn, and optimize while maintaining customer interest.', 'smart-cycle-discounts' ),
-				round( $duration_days )
-			),
-			'action'      => null,
-			'step'        => 'schedule'
-		);
-	}
+		// HIGH: Schedule overlap with other campaigns
+		if ( ! empty( $start_date ) && ! empty( $end_date ) ) {
+			try {
+				$campaign_tz = new DateTimeZone( $campaign_tz_string );
 
-	// HIGH: Schedule overlap with other campaigns
-	if ( ! empty( $start_date ) && ! empty( $end_date ) ) {
-		try {
-			$campaign_tz = new DateTimeZone( $campaign_tz_string );
+				$start_datetime_str = $start_date;
+				$end_datetime_str   = $end_date;
 
-			$start_datetime_str = $start_date;
-			$end_datetime_str = $end_date;
+				if ( isset( $schedule['startTime'] ) && ! empty( $schedule['startTime'] ) ) {
+					$start_datetime_str = $start_date . ' ' . $schedule['startTime'];
+				}
+				if ( isset( $schedule['endTime'] ) && ! empty( $schedule['endTime'] ) ) {
+					$end_datetime_str = $end_date . ' ' . $schedule['endTime'];
+				}
 
-			if ( isset( $schedule['startTime'] ) && ! empty( $schedule['startTime'] ) ) {
-				$start_datetime_str = $start_date . ' ' . $schedule['startTime'];
-			}
-			if ( isset( $schedule['endTime'] ) && ! empty( $schedule['endTime'] ) ) {
-				$end_datetime_str = $end_date . ' ' . $schedule['endTime'];
-			}
+				$start_dt = new DateTime( $start_datetime_str, $campaign_tz );
+				$end_dt   = new DateTime( $end_datetime_str, $campaign_tz );
 
-			$start_dt = new DateTime( $start_datetime_str, $campaign_tz );
-			$end_dt = new DateTime( $end_datetime_str, $campaign_tz );
+				$start_ts = $start_dt->getTimestamp();
+				$end_ts   = $end_dt->getTimestamp();
 
-			$start_ts = $start_dt->getTimestamp();
-			$end_ts = $end_dt->getTimestamp();
-
-			$overlapping = $this->_check_schedule_overlap( $start_ts, $end_ts );
-
-			if ( ! empty( $overlapping ) ) {
-				$recommendations[] = $this->_build_overlap_recommendation( $overlapping );
-			}
-		} catch ( Exception $e ) {
-			// Fallback to old behavior
-			$start_ts = strtotime( $start_date );
-			$end_ts = strtotime( $end_date );
-
-			if ( $start_ts && $end_ts ) {
 				$overlapping = $this->_check_schedule_overlap( $start_ts, $end_ts );
 
 				if ( ! empty( $overlapping ) ) {
 					$recommendations[] = $this->_build_overlap_recommendation( $overlapping );
 				}
+			} catch ( Exception $e ) {
+				// Fallback to old behavior
+				$start_ts = strtotime( $start_date );
+				$end_ts   = strtotime( $end_date );
+
+				if ( $start_ts && $end_ts ) {
+					$overlapping = $this->_check_schedule_overlap( $start_ts, $end_ts );
+
+					if ( ! empty( $overlapping ) ) {
+						$recommendations[] = $this->_build_overlap_recommendation( $overlapping );
+					}
+				}
 			}
 		}
-	}
 
 		return $recommendations;
 	}
@@ -1417,49 +1425,49 @@ class SCD_Campaign_Health_Calculator {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $product_stats    Product statistics.
+	 * @param    array $product_stats    Product statistics.
 	 * @return   array                      Recommendations array.
 	 */
 	private function _get_product_selection_recommendations( $product_stats ) {
 		$recommendations = array();
-		$selection_type = isset( $this->campaign_data['products']['product_selection_type'] ) ? $this->campaign_data['products']['product_selection_type'] : '';
+		$selection_type  = isset( $this->campaign_data['products']['product_selection_type'] ) ? $this->campaign_data['products']['product_selection_type'] : '';
 
 		// Recommendation: Too many products
 		if ( $product_stats['count'] > 50 ) {
 			$recommendations[] = array(
-				'category' => 'products',
-				'priority' => 'medium',
-				'impact' => __( 'Improves promotional focus and tracking', 'smart-cycle-discounts' ),
-				'message' => sprintf(
+				'category'    => 'products',
+				'priority'    => 'medium',
+				'impact'      => __( 'Improves promotional focus and tracking', 'smart-cycle-discounts' ),
+				'message'     => sprintf(
 					__( 'With %d products selected, consider narrowing to your top 20-30 sellers for more focused promotion and easier performance tracking.', 'smart-cycle-discounts' ),
 					$product_stats['count']
 				),
-				'icon' => 'filter',
+				'icon'        => 'filter',
 				'explanation' => sprintf(
 					__( 'Campaigns with %d products dilute marketing focus and make performance tracking difficult. Customers also experience choice paralysis with too many options. Focusing on 20-30 top sellers creates clearer messaging and measurable results.', 'smart-cycle-discounts' ),
 					$product_stats['count']
 				),
-				'action' => null,
-				'step' => 'products'
+				'action'      => null,
+				'step'        => 'products',
 			);
 		}
 
 		// Recommendation: Random products
 		if ( 'random_products' === $selection_type ) {
 			$recommendations[] = array(
-				'category' => 'products',
-				'priority' => 'low',
-				'impact' => __( 'Enables better tracking and optimization', 'smart-cycle-discounts' ),
-				'message' => __( 'Random selection makes it difficult to track performance - switch to specific products or categories for data-driven optimization.', 'smart-cycle-discounts' ),
-				'icon' => 'eye',
+				'category'    => 'products',
+				'priority'    => 'low',
+				'impact'      => __( 'Enables better tracking and optimization', 'smart-cycle-discounts' ),
+				'message'     => __( 'Random selection makes it difficult to track performance - switch to specific products or categories for data-driven optimization.', 'smart-cycle-discounts' ),
+				'icon'        => 'eye',
 				'explanation' => __( 'Random product selection means you cannot track which products drove campaign success or measure ROI accurately. Specific product selection enables A/B testing, performance analysis, and data-driven campaign optimization over time.', 'smart-cycle-discounts' ),
-				'action' => array(
+				'action'      => array(
 					'type' => 'change_selection_type',
 					'data' => array(
-						'selection_type' => 'specific_products'
-					)
+						'selection_type' => 'specific_products',
+					),
 				),
-				'step' => 'products'
+				'step'        => 'products',
 			);
 		}
 
@@ -1473,73 +1481,72 @@ class SCD_Campaign_Health_Calculator {
 				'priority'    => 'medium',
 				'impact'      => __( 'Could increase average order value by 25-40%', 'smart-cycle-discounts' ),
 				'message'     => sprintf(
-					__( 'All %d products are in "%s" category - add complementary products from related categories to encourage exploration and increase cart size.', 'smart-cycle-discounts' ),
+					__( 'All %1$d products are in "%2$s" category - add complementary products from related categories to encourage exploration and increase cart size.', 'smart-cycle-discounts' ),
 					$product_stats['count'],
 					$category_name
 				),
 				'icon'        => 'products',
 				'explanation' => __( 'Single-category discounts limit discovery and cross-selling opportunities. Including complementary products (e.g., shoes + socks, laptops + accessories) increases average order value by 25-40% according to e-commerce studies.', 'smart-cycle-discounts' ),
 				'action'      => null, // Manual product selection
-				'step'        => 'products'
+				'step'        => 'products',
 			);
 		}
 
+		// HIGH: Products already on sale
+		$product_ids = $this->_get_selected_product_ids();
+		if ( ! empty( $product_ids ) ) {
+			$sale_products = array();
 
-	// HIGH: Products already on sale
-	$product_ids = $this->_get_selected_product_ids();
-	if ( ! empty( $product_ids ) ) {
-		$sale_products = array();
+			foreach ( $product_ids as $product_id ) {
+				$product = wc_get_product( $product_id );
+				if ( $product && $product->is_on_sale() ) {
+					$sale_products[] = $product_id;
+				}
+			}
 
-		foreach ( $product_ids as $product_id ) {
-			$product = wc_get_product( $product_id );
-			if ( $product && $product->is_on_sale() ) {
-				$sale_products[] = $product_id;
+			if ( ! empty( $sale_products ) ) {
+				$recommendations[] = array(
+					'category'    => 'products',
+					'priority'    => 'high',
+					'impact'      => __( 'Prevent discount conflicts', 'smart-cycle-discounts' ),
+					'message'     => sprintf(
+						__( '%d product(s) are already on sale. Campaign discount may not apply correctly or may stack unexpectedly.', 'smart-cycle-discounts' ),
+						count( $sale_products )
+					),
+					'icon'        => 'warning',
+					'explanation' => sprintf(
+						__( 'Products already on sale have sale prices set in WooCommerce. Your campaign discount may not override these prices, or may stack with them depending on your settings. This can cause confusion for customers and unexpected pricing. Review which products should be included.', 'smart-cycle-discounts' ),
+						count( $sale_products )
+					),
+					'action'      => null,
+					'step'        => 'products',
+				);
 			}
 		}
 
-		if ( ! empty( $sale_products ) ) {
-			$recommendations[] = array(
-				'category'    => 'products',
-				'priority'    => 'high',
-				'impact'      => __( 'Prevent discount conflicts', 'smart-cycle-discounts' ),
-				'message'     => sprintf(
-					__( '%d product(s) are already on sale. Campaign discount may not apply correctly or may stack unexpectedly.', 'smart-cycle-discounts' ),
-					count( $sale_products )
-				),
-				'icon'        => 'warning',
-				'explanation' => sprintf(
-					__( 'Products already on sale have sale prices set in WooCommerce. Your campaign discount may not override these prices, or may stack with them depending on your settings. This can cause confusion for customers and unexpected pricing. Review which products should be included.', 'smart-cycle-discounts' ),
-					count( $sale_products )
-				),
-				'action'      => null,
-				'step'        => 'products'
-			);
-		}
-	}
+		// MEDIUM: Low product coverage
+		if ( ! empty( $this->coverage_data ) ) {
+			$coverage_percentage = isset( $this->coverage_data['coverage_percentage'] ) ? $this->coverage_data['coverage_percentage'] : 0;
 
-	// MEDIUM: Low product coverage
-	if ( ! empty( $this->coverage_data ) ) {
-		$coverage_percentage = isset( $this->coverage_data['coverage_percentage'] ) ? $this->coverage_data['coverage_percentage'] : 0;
-
-		if ( $coverage_percentage < 50 && $coverage_percentage > 0 ) {
-			$recommendations[] = array(
-				'category'    => 'products',
-				'priority'    => 'medium',
-				'impact'      => __( 'Increase effective product reach', 'smart-cycle-discounts' ),
-				'message'     => sprintf(
-					__( 'Only %d%% of selected products will receive discounts. Low coverage reduces campaign effectiveness and customer engagement.', 'smart-cycle-discounts' ),
-					$coverage_percentage
-				),
-				'icon'        => 'warning',
-				'explanation' => sprintf(
-					__( 'With %d%% coverage, more than half of your products won\'t receive the discount. This can happen due to exclusions, stock issues, or conflicting campaigns. Low coverage reduces ROI and may confuse customers who expect discounts on more products. Review exclusions and conflicts to increase coverage.', 'smart-cycle-discounts' ),
-					$coverage_percentage
-				),
-				'action'      => null,
-				'step'        => 'products'
-			);
+			if ( $coverage_percentage < 50 && $coverage_percentage > 0 ) {
+				$recommendations[] = array(
+					'category'    => 'products',
+					'priority'    => 'medium',
+					'impact'      => __( 'Increase effective product reach', 'smart-cycle-discounts' ),
+					'message'     => sprintf(
+						__( 'Only %d%% of selected products will receive discounts. Low coverage reduces campaign effectiveness and customer engagement.', 'smart-cycle-discounts' ),
+						$coverage_percentage
+					),
+					'icon'        => 'warning',
+					'explanation' => sprintf(
+						__( 'With %d%% coverage, more than half of your products won\'t receive the discount. This can happen due to exclusions, stock issues, or conflicting campaigns. Low coverage reduces ROI and may confuse customers who expect discounts on more products. Review exclusions and conflicts to increase coverage.', 'smart-cycle-discounts' ),
+						$coverage_percentage
+					),
+					'action'      => null,
+					'step'        => 'products',
+				);
+			}
 		}
-	}
 
 		return $recommendations;
 	}
@@ -1572,7 +1579,7 @@ class SCD_Campaign_Health_Calculator {
 					$total_blocked
 				),
 				'action'      => null,
-				'step'        => 'basic'
+				'step'        => 'basic',
 			);
 		}
 
@@ -1580,8 +1587,8 @@ class SCD_Campaign_Health_Calculator {
 		$name = isset( $this->campaign_data['basic']['name'] ) ? trim( $this->campaign_data['basic']['name'] ) : '';
 		if ( ! empty( $name ) ) {
 			$generic_names = array( 'test', 'new campaign', 'campaign', 'discount', 'sale', 'temp', 'untitled' );
-			$name_lower = strtolower( $name );
-			$is_generic = false;
+			$name_lower    = strtolower( $name );
+			$is_generic    = false;
 
 			foreach ( $generic_names as $generic ) {
 				if ( $name_lower === $generic || strpos( $name_lower, $generic ) === 0 ) {
@@ -1597,20 +1604,20 @@ class SCD_Campaign_Health_Calculator {
 
 			if ( $is_generic ) {
 				$recommendations[] = array(
-					'category' => 'management',
-					'priority' => 'medium',
-					'impact' => __( 'Easier to track and reference', 'smart-cycle-discounts' ),
-					'message' => sprintf(
+					'category'    => 'management',
+					'priority'    => 'medium',
+					'impact'      => __( 'Easier to track and reference', 'smart-cycle-discounts' ),
+					'message'     => sprintf(
 						__( 'Campaign name "%s" is too generic. Use a descriptive name with timeframe or goal (e.g., "Spring Clearance 2025" vs "Sale") for easier tracking.', 'smart-cycle-discounts' ),
 						$name
 					),
-					'icon' => 'edit',
+					'icon'        => 'edit',
 					'explanation' => sprintf(
 						__( 'Generic names like "%s" make it hard to identify campaigns later when analyzing performance or planning future promotions. Descriptive names with timeframes (month/season/year) and goals (clearance/launch/holiday) create clear campaign history.', 'smart-cycle-discounts' ),
 						$name
 					),
-					'action' => null,
-					'step' => 'basic'
+					'action'      => null,
+					'step'        => 'basic',
 				);
 			}
 		}
@@ -1618,14 +1625,14 @@ class SCD_Campaign_Health_Calculator {
 		// Recommendation: Description
 		if ( empty( $this->campaign_data['basic']['description'] ) ) {
 			$recommendations[] = array(
-				'category' => 'management',
-				'priority' => 'low',
-				'impact' => __( 'Better campaign documentation', 'smart-cycle-discounts' ),
-				'message' => __( 'Add description documenting campaign goals, target audience, and expected outcomes - helps with future campaign planning and analysis.', 'smart-cycle-discounts' ),
-				'icon' => 'file-text',
+				'category'    => 'management',
+				'priority'    => 'low',
+				'impact'      => __( 'Better campaign documentation', 'smart-cycle-discounts' ),
+				'message'     => __( 'Add description documenting campaign goals, target audience, and expected outcomes - helps with future campaign planning and analysis.', 'smart-cycle-discounts' ),
+				'icon'        => 'file-text',
 				'explanation' => __( 'Campaign descriptions create institutional knowledge. When reviewing performance or planning new campaigns, documented goals (e.g., "Clear winter inventory, target repeat customers, expect 30% lift") provide context that helps you learn from past campaigns and improve future strategies.', 'smart-cycle-discounts' ),
-				'action' => null,
-				'step' => 'basic'
+				'action'      => null,
+				'step'        => 'basic',
 			);
 		}
 
@@ -1643,14 +1650,14 @@ class SCD_Campaign_Health_Calculator {
 	 * @return   array    Warnings array.
 	 */
 	private function _get_discount_rules_warnings() {
-		$warnings = array();
+		$warnings  = array();
 		$discounts = isset( $this->campaign_data['discounts'] ) ? $this->campaign_data['discounts'] : array();
 
 		// Extract discount rules fields
 		$usage_limit_per_customer = isset( $discounts['usage_limit_per_customer'] ) ? absint( $discounts['usage_limit_per_customer'] ) : 0;
-		$lifetime_usage_cap = isset( $discounts['lifetime_usage_cap'] ) ? absint( $discounts['lifetime_usage_cap'] ) : 0;
-		$apply_to_sale_items = isset( $discounts['apply_to_sale_items'] ) ? (bool) $discounts['apply_to_sale_items'] : false;
-		$stack_with_others = isset( $discounts['stack_with_others'] ) ? (bool) $discounts['stack_with_others'] : false;
+		$lifetime_usage_cap       = isset( $discounts['lifetime_usage_cap'] ) ? absint( $discounts['lifetime_usage_cap'] ) : 0;
+		$apply_to_sale_items      = isset( $discounts['apply_to_sale_items'] ) ? (bool) $discounts['apply_to_sale_items'] : false;
+		$stack_with_others        = isset( $discounts['stack_with_others'] ) ? (bool) $discounts['stack_with_others'] : false;
 
 		// MEDIUM: Customer limit exceeds lifetime cap
 		if ( $usage_limit_per_customer > 0 && $lifetime_usage_cap > 0 && $usage_limit_per_customer > $lifetime_usage_cap ) {
@@ -1659,13 +1666,13 @@ class SCD_Campaign_Health_Calculator {
 				'priority'    => 'medium',
 				'impact'      => __( 'Set realistic customer expectations', 'smart-cycle-discounts' ),
 				'message'     => sprintf(
-					__( 'Customer limit (%d uses) exceeds lifetime campaign cap (%d uses). The campaign will end before any customer reaches their personal limit.', 'smart-cycle-discounts' ),
+					__( 'Customer limit (%1$d uses) exceeds lifetime campaign cap (%2$d uses). The campaign will end before any customer reaches their personal limit.', 'smart-cycle-discounts' ),
 					$usage_limit_per_customer,
 					$lifetime_usage_cap
 				),
 				'icon'        => 'info',
 				'explanation' => sprintf(
-					__( 'Your lifetime cap limits total redemptions across all customers to %d. With individual customers allowed %d uses each, the campaign will end when total usage hits %d - meaning customers will never reach their %d-use personal limit. This configuration works if you want to be generous with per-customer limits while controlling total campaign cost, but consider lowering the customer limit to match realistic expectations (e.g., if you expect 10 customers, set customer limit to %d).', 'smart-cycle-discounts' ),
+					__( 'Your lifetime cap limits total redemptions across all customers to %1$d. With individual customers allowed %2$d uses each, the campaign will end when total usage hits %3$d - meaning customers will never reach their %4$d-use personal limit. This configuration works if you want to be generous with per-customer limits while controlling total campaign cost, but consider lowering the customer limit to match realistic expectations (e.g., if you expect 10 customers, set customer limit to %5$d).', 'smart-cycle-discounts' ),
 					$lifetime_usage_cap,
 					$usage_limit_per_customer,
 					$lifetime_usage_cap,
@@ -1713,7 +1720,7 @@ class SCD_Campaign_Health_Calculator {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    float    $price    Price to format.
+	 * @param    float $price    Price to format.
 	 * @return   string             Formatted price string.
 	 */
 	private function _format_price_plain( $price ) {
@@ -1721,10 +1728,10 @@ class SCD_Campaign_Health_Calculator {
 			return '$' . number_format( $price, 2 );
 		}
 
-		$currency_symbol = get_woocommerce_currency_symbol();
-		$decimal_separator = wc_get_price_decimal_separator();
+		$currency_symbol    = get_woocommerce_currency_symbol();
+		$decimal_separator  = wc_get_price_decimal_separator();
 		$thousand_separator = wc_get_price_thousand_separator();
-		$decimals = wc_get_price_decimals();
+		$decimals           = wc_get_price_decimals();
 
 		// Decode HTML entities (&#036; -> $)
 		$currency_symbol = html_entity_decode( $currency_symbol, ENT_QUOTES, 'UTF-8' );
@@ -1741,24 +1748,24 @@ class SCD_Campaign_Health_Calculator {
 	 */
 	private function _get_conflict_preview() {
 		$preview = array(
-			'has_conflicts' => false,
+			'has_conflicts'   => false,
 			'total_conflicts' => 0,
-			'conflicts' => array()
+			'conflicts'       => array(),
 		);
 
 		if ( empty( $this->conflicts_data ) || empty( $this->conflicts_data['has_conflicts'] ) ) {
 			return $preview;
 		}
 
-		$preview['has_conflicts'] = true;
+		$preview['has_conflicts']   = true;
 		$preview['total_conflicts'] = isset( $this->conflicts_data['total_products_blocked'] ) ? $this->conflicts_data['total_products_blocked'] : 0;
 
 		if ( ! empty( $this->conflicts_data['conflicts'] ) ) {
 			foreach ( $this->conflicts_data['conflicts'] as $conflict ) {
 				$preview['conflicts'][] = array(
-					'campaign_name' => isset( $conflict['name'] ) ? $conflict['name'] : __( 'Unknown Campaign', 'smart-cycle-discounts' ),
-					'priority' => isset( $conflict['priority'] ) ? $conflict['priority'] : 0,
-					'affected_products' => isset( $conflict['product_count'] ) ? $conflict['product_count'] : 0
+					'campaign_name'     => isset( $conflict['name'] ) ? $conflict['name'] : __( 'Unknown Campaign', 'smart-cycle-discounts' ),
+					'priority'          => isset( $conflict['priority'] ) ? $conflict['priority'] : 0,
+					'affected_products' => isset( $conflict['product_count'] ) ? $conflict['product_count'] : 0,
 				);
 			}
 		}
@@ -1782,9 +1789,9 @@ class SCD_Campaign_Health_Calculator {
 
 		foreach ( $this->coverage_data['exclusions'] as $exclusion ) {
 			$exclusions[] = array(
-				'label' => isset( $exclusion['label'] ) ? $exclusion['label'] : __( 'Unknown Reason', 'smart-cycle-discounts' ),
-				'count' => isset( $exclusion['count'] ) ? $exclusion['count'] : 0,
-				'reason' => isset( $exclusion['reason'] ) ? $exclusion['reason'] : 'general'
+				'label'  => isset( $exclusion['label'] ) ? $exclusion['label'] : __( 'Unknown Reason', 'smart-cycle-discounts' ),
+				'count'  => isset( $exclusion['count'] ) ? $exclusion['count'] : 0,
+				'reason' => isset( $exclusion['reason'] ) ? $exclusion['reason'] : 'general',
 			);
 		}
 
@@ -1800,10 +1807,10 @@ class SCD_Campaign_Health_Calculator {
 	 */
 	private function _assess_stock_risk() {
 		$risk_data = array(
-			'has_risk' => false,
-			'high_risk_count' => 0,
+			'has_risk'          => false,
+			'high_risk_count'   => 0,
 			'medium_risk_count' => 0,
-			'products' => array()
+			'products'          => array(),
 		);
 
 		$product_ids = $this->_get_selected_product_ids();
@@ -1813,7 +1820,7 @@ class SCD_Campaign_Health_Calculator {
 		}
 
 		// Get discount type to determine estimated demand
-		$discount_type = isset( $this->campaign_data['discounts']['discount_type'] ) ? $this->campaign_data['discounts']['discount_type'] : 'percentage';
+		$discount_type  = isset( $this->campaign_data['discounts']['discount_type'] ) ? $this->campaign_data['discounts']['discount_type'] : 'percentage';
 		$discount_value = 0;
 
 		if ( 'percentage' === $discount_type ) {
@@ -1846,7 +1853,7 @@ class SCD_Campaign_Health_Calculator {
 
 			// Estimate expected orders (conservative baseline: 5 orders, adjusted by demand multiplier)
 			$baseline_expected = 5;
-			$estimated_demand = ceil( $baseline_expected * $demand_multiplier );
+			$estimated_demand  = ceil( $baseline_expected * $demand_multiplier );
 
 			// Determine risk level
 			$risk_level = 'none';
@@ -1854,34 +1861,41 @@ class SCD_Campaign_Health_Calculator {
 			if ( $stock < $estimated_demand * 0.5 ) {
 				// Stock is less than 50% of estimated demand - HIGH RISK
 				$risk_level = 'high';
-				$risk_data['high_risk_count']++;
+				++$risk_data['high_risk_count'];
 				$risk_data['has_risk'] = true;
 			} elseif ( $stock < $estimated_demand ) {
 				// Stock is less than estimated demand - MEDIUM RISK
 				$risk_level = 'medium';
-				$risk_data['medium_risk_count']++;
+				++$risk_data['medium_risk_count'];
 				$risk_data['has_risk'] = true;
 			}
 
 			if ( 'none' !== $risk_level ) {
 				$risk_data['products'][] = array(
-					'id' => $product_id,
-					'name' => $product->get_name(),
-					'stock' => $stock,
+					'id'               => $product_id,
+					'name'             => $product->get_name(),
+					'stock'            => $stock,
 					'estimated_demand' => $estimated_demand,
-					'risk_level' => $risk_level
+					'risk_level'       => $risk_level,
 				);
 			}
 		}
 
 		// Sort by risk level (high first) and limit to top 10
 		if ( ! empty( $risk_data['products'] ) ) {
-			usort( $risk_data['products'], function( $a, $b ) {
-				$risk_order = array( 'high' => 1, 'medium' => 2, 'low' => 3 );
-				$a_val = isset( $risk_order[ $a['risk_level'] ] ) ? $risk_order[ $a['risk_level'] ] : 999;
-				$b_val = isset( $risk_order[ $b['risk_level'] ] ) ? $risk_order[ $b['risk_level'] ] : 999;
-				return $a_val - $b_val;
-			} );
+			usort(
+				$risk_data['products'],
+				function ( $a, $b ) {
+					$risk_order = array(
+						'high'   => 1,
+						'medium' => 2,
+						'low'    => 3,
+					);
+					$a_val      = isset( $risk_order[ $a['risk_level'] ] ) ? $risk_order[ $a['risk_level'] ] : 999;
+					$b_val      = isset( $risk_order[ $b['risk_level'] ] ) ? $risk_order[ $b['risk_level'] ] : 999;
+					return $a_val - $b_val;
+				}
+			);
 
 			$risk_data['products'] = array_slice( $risk_data['products'], 0, 10 );
 		}
@@ -1909,12 +1923,12 @@ class SCD_Campaign_Health_Calculator {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $product_stats    Product statistics.
+	 * @param    array $product_stats    Product statistics.
 	 * @return   array                      Array of unique category names.
 	 */
 	private function _get_unique_product_categories( $product_stats ) {
 		$product_ids = $this->_get_selected_product_ids();
-		$categories = array();
+		$categories  = array();
 
 		if ( empty( $product_ids ) || ! class_exists( 'WooCommerce' ) ) {
 			return $categories;
@@ -1937,8 +1951,8 @@ class SCD_Campaign_Health_Calculator {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    int    $start_timestamp    Start timestamp.
-	 * @param    int    $end_timestamp      End timestamp.
+	 * @param    int $start_timestamp    Start timestamp.
+	 * @param    int $end_timestamp      End timestamp.
 	 * @return   array                      Array of overlapping campaigns.
 	 */
 	private function _check_schedule_overlap( $start_timestamp, $end_timestamp ) {
@@ -1954,7 +1968,7 @@ class SCD_Campaign_Health_Calculator {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $overlapping    Array of overlapping campaigns.
+	 * @param    array $overlapping    Array of overlapping campaigns.
 	 * @return   array                    Recommendation array.
 	 */
 	private function _build_overlap_recommendation( $overlapping ) {
@@ -1975,6 +1989,4 @@ class SCD_Campaign_Health_Calculator {
 			'step'        => 'schedule',
 		);
 	}
-
 }
-

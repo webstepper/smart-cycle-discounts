@@ -16,11 +16,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 
 if ( ! class_exists( 'SCD_Campaign' ) ) {
-	require_once dirname( __FILE__ ) . '/class-campaign.php';
+	require_once __DIR__ . '/class-campaign.php';
 }
 
 if ( ! class_exists( 'SCD_Validation' ) ) {
-	require_once dirname( dirname( __FILE__ ) ) . '/validation/class-validation.php';
+	require_once dirname( __DIR__ ) . '/validation/class-validation.php';
 }
 
 /**
@@ -82,10 +82,10 @@ class SCD_Campaign_Manager {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    object|null    $repository    Campaign repository.
-	 * @param    object|null    $logger        Logger instance.
-	 * @param    object|null    $cache         Cache manager.
-	 * @param    object|null    $container     Service container.
+	 * @param    object|null $repository    Campaign repository.
+	 * @param    object|null $logger        Logger instance.
+	 * @param    object|null $cache         Cache manager.
+	 * @param    object|null $container     Service container.
 	 */
 	public function __construct(
 		?object $repository = null,
@@ -94,9 +94,9 @@ class SCD_Campaign_Manager {
 		?object $container = null
 	) {
 		$this->repository = $repository;
-		$this->logger = $logger;
-		$this->cache = $cache;
-		$this->container = $container;
+		$this->logger     = $logger;
+		$this->cache      = $cache;
+		$this->container  = $container;
 
 		// Listen to campaign activation hook to trigger compilation
 		add_action( 'scd_campaign_activated', array( $this, 'on_campaign_activated' ), 5, 1 );
@@ -116,9 +116,9 @@ class SCD_Campaign_Manager {
 	 * Log message.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $level      Log level.
-	 * @param    string    $message    Message.
-	 * @param    array     $context    Context data.
+	 * @param    string $level      Log level.
+	 * @param    string $message    Message.
+	 * @param    array  $context    Context data.
 	 * @return   void
 	 */
 	private function log( string $level, string $message, array $context = array() ): void {
@@ -131,7 +131,7 @@ class SCD_Campaign_Manager {
 	 * Create campaign.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $data    Campaign data.
+	 * @param    array $data    Campaign data.
 	 * @return   SCD_Campaign|WP_Error    Created campaign or error.
 	 */
 	public function create( array $data ): SCD_Campaign|WP_Error {
@@ -161,7 +161,7 @@ class SCD_Campaign_Manager {
 			// If campaign created as active and needs compilation, trigger activation hook
 			if ( 'active' === $campaign->get_status() ) {
 				$selection_type = $campaign->get_product_selection_type();
-				$metadata = $campaign->get_metadata();
+				$metadata       = $campaign->get_metadata();
 				$has_conditions = ! empty( $metadata['product_conditions'] );
 
 				// Trigger activation hook if campaign has dynamic product selection or conditions
@@ -178,19 +178,31 @@ class SCD_Campaign_Manager {
 				try {
 					$scheduler = $this->get_scheduler_service();
 					if ( $scheduler ) {
-						$this->log( 'debug', 'About to schedule campaign events', array(
-							'campaign_id' => $campaign->get_id(),
-						) );
+						$this->log(
+							'debug',
+							'About to schedule campaign events',
+							array(
+								'campaign_id' => $campaign->get_id(),
+							)
+						);
 
 						$success = $scheduler->schedule_campaign_events( $campaign->get_id() );
 						if ( ! $success ) {
-							$this->log( 'warning', 'Campaign created but event scheduling failed', array(
-								'campaign_id' => $campaign->get_id(),
-							) );
+							$this->log(
+								'warning',
+								'Campaign created but event scheduling failed',
+								array(
+									'campaign_id' => $campaign->get_id(),
+								)
+							);
 						} else {
-							$this->log( 'info', 'Campaign events scheduled successfully', array(
-								'campaign_id' => $campaign->get_id(),
-							) );
+							$this->log(
+								'info',
+								'Campaign events scheduled successfully',
+								array(
+									'campaign_id' => $campaign->get_id(),
+								)
+							);
 						}
 
 						// EDGE CASE FIX: Immediately check if scheduled time has already passed
@@ -198,32 +210,44 @@ class SCD_Campaign_Manager {
 						// then creates campaign at 19:00. Without this, campaign would be "dead" until next cron run.
 						// IMPORTANT: This runs REGARDLESS of whether scheduling succeeded or failed
 						$start_dt = $campaign->get_starts_at();
-						$this->log( 'debug', 'Edge case check starting', array(
-							'campaign_id' => $campaign->get_id(),
-							'has_start_dt' => ! empty( $start_dt ),
-						) );
+						$this->log(
+							'debug',
+							'Edge case check starting',
+							array(
+								'campaign_id'  => $campaign->get_id(),
+								'has_start_dt' => ! empty( $start_dt ),
+							)
+						);
 
 						if ( $start_dt ) {
 							try {
 								$campaign_tz = new DateTimeZone( $campaign->get_timezone() ?: wp_timezone_string() );
-								$now_dt = new DateTimeImmutable( 'now', $campaign_tz );
+								$now_dt      = new DateTimeImmutable( 'now', $campaign_tz );
 
-								$this->log( 'debug', 'Comparing times for edge case', array(
-									'campaign_id' => $campaign->get_id(),
-									'start_timestamp' => $start_dt->getTimestamp(),
-									'now_timestamp' => $now_dt->getTimestamp(),
-									'start_formatted' => $start_dt->format( 'Y-m-d H:i:s T' ),
-									'now_formatted' => $now_dt->format( 'Y-m-d H:i:s T' ),
-									'diff_seconds' => $start_dt->getTimestamp() - $now_dt->getTimestamp(),
-								) );
+								$this->log(
+									'debug',
+									'Comparing times for edge case',
+									array(
+										'campaign_id'     => $campaign->get_id(),
+										'start_timestamp' => $start_dt->getTimestamp(),
+										'now_timestamp'   => $now_dt->getTimestamp(),
+										'start_formatted' => $start_dt->format( 'Y-m-d H:i:s T' ),
+										'now_formatted'   => $now_dt->format( 'Y-m-d H:i:s T' ),
+										'diff_seconds'    => $start_dt->getTimestamp() - $now_dt->getTimestamp(),
+									)
+								);
 
 								// If scheduled time has already passed, activate immediately
 								if ( $start_dt <= $now_dt ) {
-									$this->log( 'info', 'Scheduled time has passed - activating campaign immediately', array(
-										'campaign_id' => $campaign->get_id(),
-										'scheduled_time' => $start_dt->format( 'Y-m-d H:i:s' ),
-										'current_time' => $now_dt->format( 'Y-m-d H:i:s' )
-									) );
+									$this->log(
+										'info',
+										'Scheduled time has passed - activating campaign immediately',
+										array(
+											'campaign_id'  => $campaign->get_id(),
+											'scheduled_time' => $start_dt->format( 'Y-m-d H:i:s' ),
+											'current_time' => $now_dt->format( 'Y-m-d H:i:s' ),
+										)
+									);
 
 									// Reload campaign to get fresh status before activation
 									// RACE CONDITION FIX: Check status again to prevent duplicate activation
@@ -233,52 +257,76 @@ class SCD_Campaign_Manager {
 
 										// Handle both success and "already active" gracefully
 										if ( ! is_wp_error( $activation_result ) ) {
-											$this->log( 'info', 'Campaign activated immediately after creation', array(
-												'campaign_id' => $campaign->get_id()
-											) );
+											$this->log(
+												'info',
+												'Campaign activated immediately after creation',
+												array(
+													'campaign_id' => $campaign->get_id(),
+												)
+											);
 
 											// Reload again to get updated status for return
 											$campaign = $this->repository->find( $campaign->get_id() );
 										} elseif ( 'cannot_activate' === $activation_result->get_error_code() ) {
 											// Campaign already activated by another process - this is OK
-											$this->log( 'debug', 'Campaign already activated by another process', array(
-												'campaign_id' => $campaign->get_id()
-											) );
+											$this->log(
+												'debug',
+												'Campaign already activated by another process',
+												array(
+													'campaign_id' => $campaign->get_id(),
+												)
+											);
 
 											// Reload to get current status
 											$campaign = $this->repository->find( $campaign->get_id() );
 										} else {
 											// Actual error occurred
-											$this->log( 'warning', 'Failed to activate campaign immediately', array(
-												'campaign_id' => $campaign->get_id(),
-												'error' => $activation_result->get_error_message()
-											) );
+											$this->log(
+												'warning',
+												'Failed to activate campaign immediately',
+												array(
+													'campaign_id' => $campaign->get_id(),
+													'error' => $activation_result->get_error_message(),
+												)
+											);
 										}
 									} elseif ( $reloaded_campaign && 'active' === $reloaded_campaign->get_status() ) {
 										// Campaign already active - another process beat us to it
-										$this->log( 'debug', 'Campaign already active - skipping activation', array(
-											'campaign_id' => $campaign->get_id()
-										) );
+										$this->log(
+											'debug',
+											'Campaign already active - skipping activation',
+											array(
+												'campaign_id' => $campaign->get_id(),
+											)
+										);
 										$campaign = $reloaded_campaign;
 									}
 								}
 							} catch ( Exception $e ) {
-								$this->log( 'warning', 'Failed to check if scheduled time passed', array(
-									'campaign_id' => $campaign->get_id(),
-									'error' => $e->getMessage()
-								) );
+								$this->log(
+									'warning',
+									'Failed to check if scheduled time passed',
+									array(
+										'campaign_id' => $campaign->get_id(),
+										'error'       => $e->getMessage(),
+									)
+								);
 							}
 						}
 					}
 				} catch ( Exception $e ) {
 					// Event scheduling failed, but campaign was created successfully
 					// The 15-minute safety fallback will catch this campaign
-					$this->log( 'error', 'Event scheduling threw exception - campaign created but scheduling failed', array(
-						'campaign_id' => $campaign->get_id(),
-						'error' => $e->getMessage(),
-						'file' => $e->getFile(),
-						'line' => $e->getLine()
-					) );
+					$this->log(
+						'error',
+						'Event scheduling threw exception - campaign created but scheduling failed',
+						array(
+							'campaign_id' => $campaign->get_id(),
+							'error'       => $e->getMessage(),
+							'file'        => $e->getFile(),
+							'line'        => $e->getLine(),
+						)
+					);
 				}
 			}
 
@@ -297,7 +345,7 @@ class SCD_Campaign_Manager {
 	 * This is more secure and testable than the old validation bypass flag approach.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $data    Data to validate.
+	 * @param    array $data    Data to validate.
 	 * @return   true|WP_Error     True or error.
 	 */
 	private function validate_data( array &$data ): bool|WP_Error {
@@ -323,13 +371,13 @@ class SCD_Campaign_Manager {
 	 * Determine validation context from data structure.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $data    Campaign data.
+	 * @param    array $data    Campaign data.
 	 * @return   string            Validation context.
 	 */
 	private function determine_validation_context( array $data ): string {
 		// Check for explicit context marker (set by trusted services)
 		if ( isset( $data['_validation_context'] ) ) {
-			$context = sanitize_key( $data['_validation_context'] );
+			$context          = sanitize_key( $data['_validation_context'] );
 			$allowed_contexts = array( 'campaign_compiled', 'campaign_update', 'campaign_complete' );
 			if ( in_array( $context, $allowed_contexts, true ) ) {
 				return $context;
@@ -353,7 +401,7 @@ class SCD_Campaign_Manager {
 	 * Prepare data for creation.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $data    Raw data.
+	 * @param    array $data    Raw data.
 	 * @return   array              Prepared data.
 	 */
 	private function prepare_data_for_creation( array $data ): array {
@@ -370,67 +418,83 @@ class SCD_Campaign_Manager {
 	 * Log validation error.
 	 *
 	 * @since    1.0.0
-	 * @param    WP_Error    $error    Validation error.
-	 * @param    array       $data     Campaign data.
+	 * @param    WP_Error $error    Validation error.
+	 * @param    array    $data     Campaign data.
 	 * @return   void
 	 */
 	private function log_validation_error( WP_Error $error, array $data ): void {
-		$this->log( 'error', 'Campaign validation failed', array(
-			'errors' => $error->get_error_messages(),
-			'data'   => $data,
-		) );
+		$this->log(
+			'error',
+			'Campaign validation failed',
+			array(
+				'errors' => $error->get_error_messages(),
+				'data'   => $data,
+			)
+		);
 	}
 
 	/**
 	 * Log save failure.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $data    Campaign data.
+	 * @param    array $data    Campaign data.
 	 * @return   void
 	 */
 	private function log_save_failure( array $data ): void {
-		$this->log( 'error', 'Campaign save failed', array(
-			'campaign_data' => $data,
-		) );
+		$this->log(
+			'error',
+			'Campaign save failed',
+			array(
+				'campaign_data' => $data,
+			)
+		);
 	}
 
 	/**
 	 * Log campaign created.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Created campaign.
+	 * @param    SCD_Campaign $campaign    Created campaign.
 	 * @return   void
 	 */
 	private function log_campaign_created( SCD_Campaign $campaign ): void {
-		$this->log( 'info', 'Campaign created', array(
-			'campaign_id'   => $campaign->get_id(),
-			'campaign_name' => $campaign->get_name(),
-			'status'        => $campaign->get_status(),
-			'created_by'    => $campaign->get_created_by(),
-		) );
+		$this->log(
+			'info',
+			'Campaign created',
+			array(
+				'campaign_id'   => $campaign->get_id(),
+				'campaign_name' => $campaign->get_name(),
+				'status'        => $campaign->get_status(),
+				'created_by'    => $campaign->get_created_by(),
+			)
+		);
 	}
 
 	/**
 	 * Handle creation error.
 	 *
 	 * @since    1.0.0
-	 * @param    Exception    $exception    Exception object.
-	 * @param    array        $data         Campaign data.
+	 * @param    Exception $exception    Exception object.
+	 * @param    array     $data         Campaign data.
 	 * @return   void
 	 */
 	private function handle_creation_error( Exception $exception, array $data ): void {
-		$this->log( 'error', 'Campaign creation failed', array(
-			'error' => $exception->getMessage(),
-			'data'  => $data,
-		) );
+		$this->log(
+			'error',
+			'Campaign creation failed',
+			array(
+				'error' => $exception->getMessage(),
+				'data'  => $data,
+			)
+		);
 	}
 
 	/**
 	 * Update campaign.
 	 *
 	 * @since    1.0.0
-	 * @param    int      $id      Campaign ID.
-	 * @param    array    $data    Updated data.
+	 * @param    int   $id      Campaign ID.
+	 * @param    array $data    Updated data.
 	 * @return   SCD_Campaign|WP_Error    Updated campaign or error.
 	 */
 	public function update( int $id, array $data ): SCD_Campaign|WP_Error {
@@ -494,7 +558,7 @@ class SCD_Campaign_Manager {
 	 * Get campaign for update.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $id    Campaign ID.
+	 * @param    int $id    Campaign ID.
 	 * @return   SCD_Campaign|WP_Error    Campaign or error.
 	 */
 	private function get_campaign_for_update( int $id ): SCD_Campaign|WP_Error {
@@ -509,8 +573,8 @@ class SCD_Campaign_Manager {
 	 * Validate update data.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $data    Update data.
-	 * @param    int      $id      Campaign ID.
+	 * @param    array $data    Update data.
+	 * @param    int   $id      Campaign ID.
 	 * @return   true|WP_Error     True or error.
 	 */
 	private function validate_update_data( array $data, int $id ): bool|WP_Error {
@@ -529,8 +593,8 @@ class SCD_Campaign_Manager {
 	 * Prepare data for update.
 	 *
 	 * @since    1.0.0
-	 * @param    array           $data       Raw data.
-	 * @param    SCD_Campaign    $campaign   Campaign object.
+	 * @param    array        $data       Raw data.
+	 * @param    SCD_Campaign $campaign   Campaign object.
 	 * @return   array                       Prepared data.
 	 */
 	private function prepare_data_for_update( array $data, SCD_Campaign $campaign ): array {
@@ -541,12 +605,12 @@ class SCD_Campaign_Manager {
 		// Handle timezone conversion for schedule updates
 		// If update includes separate date/time/timezone fields, combine and convert to UTC
 		if ( isset( $data['start_date'] ) && isset( $data['start_time'] ) && isset( $data['timezone'] ) ) {
-			$start_datetime = $data['start_date'] . ' ' . $data['start_time'];
+			$start_datetime    = $data['start_date'] . ' ' . $data['start_time'];
 			$data['starts_at'] = $this->convert_datetime_to_utc( $start_datetime, $data['timezone'] );
 		}
 
 		if ( isset( $data['end_date'] ) && isset( $data['end_time'] ) && isset( $data['timezone'] ) ) {
-			$end_datetime = $data['end_date'] . ' ' . $data['end_time'];
+			$end_datetime    = $data['end_date'] . ' ' . $data['end_time'];
 			$data['ends_at'] = $this->convert_datetime_to_utc( $end_datetime, $data['timezone'] );
 		}
 
@@ -559,8 +623,8 @@ class SCD_Campaign_Manager {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $datetime_str    Datetime string in campaign timezone.
-	 * @param    string    $timezone        Campaign timezone.
+	 * @param    string $datetime_str    Datetime string in campaign timezone.
+	 * @param    string $timezone        Campaign timezone.
 	 * @return   string                     Datetime string in UTC format (Y-m-d H:i:s).
 	 */
 	private function convert_datetime_to_utc( string $datetime_str, string $timezone ): string {
@@ -577,11 +641,14 @@ class SCD_Campaign_Manager {
 			// If conversion fails, log and return original string
 			// (will be parsed as UTC by Campaign entity)
 			if ( $this->logger ) {
-				$this->logger->warning( 'Timezone conversion failed', array(
-					'datetime' => $datetime_str,
-					'timezone' => $timezone,
-					'error'    => $e->getMessage(),
-				) );
+				$this->logger->warning(
+					'Timezone conversion failed',
+					array(
+						'datetime' => $datetime_str,
+						'timezone' => $timezone,
+						'error'    => $e->getMessage(),
+					)
+				);
 			}
 			return $datetime_str;
 		}
@@ -591,9 +658,9 @@ class SCD_Campaign_Manager {
 	 * Validate status transition.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign          Campaign object.
-	 * @param    string          $original_status   Original status.
-	 * @param    array           $data              Update data.
+	 * @param    SCD_Campaign $campaign          Campaign object.
+	 * @param    string       $original_status   Original status.
+	 * @param    array        $data              Update data.
 	 * @return   bool                               Is valid transition.
 	 */
 	private function validate_status_transition( SCD_Campaign $campaign, string $original_status, array $data ): bool {
@@ -608,8 +675,8 @@ class SCD_Campaign_Manager {
 	 * Create transition error.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $from    From status.
-	 * @param    string    $to      To status.
+	 * @param    string $from    From status.
+	 * @param    string $to      To status.
 	 * @return   WP_Error           Error object.
 	 */
 	private function create_transition_error( string $from, string $to ): WP_Error {
@@ -623,42 +690,50 @@ class SCD_Campaign_Manager {
 	 * Log update validation error.
 	 *
 	 * @since    1.0.0
-	 * @param    WP_Error    $error    Validation error.
-	 * @param    int         $id       Campaign ID.
-	 * @param    array       $data     Update data.
+	 * @param    WP_Error $error    Validation error.
+	 * @param    int      $id       Campaign ID.
+	 * @param    array    $data     Update data.
 	 * @return   void
 	 */
 	private function log_update_validation_error( WP_Error $error, int $id, array $data ): void {
-		$this->log( 'error', 'Campaign update validation failed', array(
-			'campaign_id' => $id,
-			'errors'      => $error->get_error_messages(),
-			'data'        => $data,
-		) );
+		$this->log(
+			'error',
+			'Campaign update validation failed',
+			array(
+				'campaign_id' => $id,
+				'errors'      => $error->get_error_messages(),
+				'data'        => $data,
+			)
+		);
 	}
 
 	/**
 	 * Log campaign updated.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign          Updated campaign.
-	 * @param    string          $original_status   Original status.
+	 * @param    SCD_Campaign $campaign          Updated campaign.
+	 * @param    string       $original_status   Original status.
 	 * @return   void
 	 */
 	private function log_campaign_updated( SCD_Campaign $campaign, string $original_status ): void {
-		$this->log( 'info', 'Campaign updated', array(
-			'campaign_id'    => $campaign->get_id(),
-			'campaign_name'  => $campaign->get_name(),
-			'updated_by'     => $campaign->get_updated_by(),
-			'status_changed' => $original_status !== $campaign->get_status(),
-		) );
+		$this->log(
+			'info',
+			'Campaign updated',
+			array(
+				'campaign_id'    => $campaign->get_id(),
+				'campaign_name'  => $campaign->get_name(),
+				'updated_by'     => $campaign->get_updated_by(),
+				'status_changed' => $original_status !== $campaign->get_status(),
+			)
+		);
 	}
 
 	/**
 	 * Trigger update hooks.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign          Updated campaign.
-	 * @param    string          $original_status   Original status.
+	 * @param    SCD_Campaign $campaign          Updated campaign.
+	 * @param    string       $original_status   Original status.
 	 * @return   void
 	 */
 	private function trigger_update_hooks( SCD_Campaign $campaign, string $original_status ): void {
@@ -673,24 +748,28 @@ class SCD_Campaign_Manager {
 	 * Handle update error.
 	 *
 	 * @since    1.0.0
-	 * @param    Exception    $exception    Exception object.
-	 * @param    int          $id           Campaign ID.
-	 * @param    array        $data         Update data.
+	 * @param    Exception $exception    Exception object.
+	 * @param    int       $id           Campaign ID.
+	 * @param    array     $data         Update data.
 	 * @return   void
 	 */
 	private function handle_update_error( Exception $exception, int $id, array $data ): void {
-		$this->log( 'error', 'Campaign update failed', array(
-			'campaign_id' => $id,
-			'error'       => $exception->getMessage(),
-			'data'        => $data,
-		) );
+		$this->log(
+			'error',
+			'Campaign update failed',
+			array(
+				'campaign_id' => $id,
+				'error'       => $exception->getMessage(),
+				'data'        => $data,
+			)
+		);
 	}
 
-    /**
+	/**
 	 * Delete campaign.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $id    Campaign ID.
+	 * @param    int $id    Campaign ID.
 	 * @return   bool|WP_Error    True or error.
 	 */
 	public function delete( int $id ): bool|WP_Error {
@@ -708,9 +787,13 @@ class SCD_Campaign_Manager {
 			if ( 'active' === $campaign->get_status() ) {
 				$campaign->set_status( 'paused' );
 				$this->repository->save( $campaign );
-				$this->log( 'info', 'Campaign deactivated before deletion', array(
-					'campaign_id' => $id,
-				) );
+				$this->log(
+					'info',
+					'Campaign deactivated before deletion',
+					array(
+						'campaign_id' => $id,
+					)
+				);
 			}
 
 			if ( ! $this->repository->delete( $id ) ) {
@@ -738,7 +821,7 @@ class SCD_Campaign_Manager {
 	 * Get campaign for deletion.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $id    Campaign ID.
+	 * @param    int $id    Campaign ID.
 	 * @return   SCD_Campaign|WP_Error    Campaign or error.
 	 */
 	private function get_campaign_for_deletion( int $id ): SCD_Campaign|WP_Error {
@@ -753,7 +836,7 @@ class SCD_Campaign_Manager {
 	 * Check if campaign can be deleted.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Campaign object.
+	 * @param    SCD_Campaign $campaign    Campaign object.
 	 * @return   bool                         Can delete.
 	 */
 	private function can_delete_campaign( SCD_Campaign $campaign ): bool {
@@ -766,37 +849,45 @@ class SCD_Campaign_Manager {
 	 * Log campaign deleted.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Deleted campaign.
+	 * @param    SCD_Campaign $campaign    Deleted campaign.
 	 * @return   void
 	 */
 	private function log_campaign_deleted( SCD_Campaign $campaign ): void {
-		$this->log( 'info', 'Campaign deleted', array(
-			'campaign_id'   => $campaign->get_id(),
-			'campaign_name' => $campaign->get_name(),
-			'deleted_by'    => get_current_user_id(),
-		) );
+		$this->log(
+			'info',
+			'Campaign deleted',
+			array(
+				'campaign_id'   => $campaign->get_id(),
+				'campaign_name' => $campaign->get_name(),
+				'deleted_by'    => get_current_user_id(),
+			)
+		);
 	}
 
 	/**
 	 * Handle deletion error.
 	 *
 	 * @since    1.0.0
-	 * @param    Exception    $exception    Exception object.
-	 * @param    int          $id           Campaign ID.
+	 * @param    Exception $exception    Exception object.
+	 * @param    int       $id           Campaign ID.
 	 * @return   void
 	 */
 	private function handle_deletion_error( Exception $exception, int $id ): void {
-		$this->log( 'error', 'Campaign deletion failed', array(
-			'campaign_id' => $id,
-			'error'       => $exception->getMessage(),
-		) );
+		$this->log(
+			'error',
+			'Campaign deletion failed',
+			array(
+				'campaign_id' => $id,
+				'error'       => $exception->getMessage(),
+			)
+		);
 	}
 
-    /**
+	/**
 	 * Activate campaign.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $id    Campaign ID.
+	 * @param    int $id    Campaign ID.
 	 * @return   bool|WP_Error    True or error.
 	 */
 	public function activate( int $id ): bool|WP_Error {
@@ -812,7 +903,7 @@ class SCD_Campaign_Manager {
 			}
 
 			$original_status = $campaign->get_status();
-			$update_result = $this->update_campaign_status( $campaign, 'active' );
+			$update_result   = $this->update_campaign_status( $campaign, 'active' );
 			if ( is_wp_error( $update_result ) ) {
 				return $update_result;
 			}
@@ -838,7 +929,7 @@ class SCD_Campaign_Manager {
 	 * Get campaign for status change.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $id    Campaign ID.
+	 * @param    int $id    Campaign ID.
 	 * @return   SCD_Campaign|WP_Error    Campaign or error.
 	 */
 	private function get_campaign_for_status_change( int $id ): SCD_Campaign|WP_Error {
@@ -853,7 +944,7 @@ class SCD_Campaign_Manager {
 	 * Validate activation.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Campaign to validate.
+	 * @param    SCD_Campaign $campaign    Campaign to validate.
 	 * @return   true|WP_Error               True or error.
 	 */
 	private function validate_activation( SCD_Campaign $campaign ): bool|WP_Error {
@@ -871,8 +962,8 @@ class SCD_Campaign_Manager {
 	 * Update campaign status.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Campaign object.
-	 * @param    string          $status      New status.
+	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    string       $status      New status.
 	 * @return   true|WP_Error               True or error.
 	 */
 	private function update_campaign_status( SCD_Campaign $campaign, string $status ): bool|WP_Error {
@@ -890,15 +981,19 @@ class SCD_Campaign_Manager {
 	 * Log campaign activated.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Activated campaign.
+	 * @param    SCD_Campaign $campaign    Activated campaign.
 	 * @return   void
 	 */
 	private function log_campaign_activated( SCD_Campaign $campaign ): void {
-		$this->log( 'info', 'Campaign activated', array(
-			'campaign_id'   => $campaign->get_id(),
-			'campaign_name' => $campaign->get_name(),
-			'activated_by'  => get_current_user_id(),
-		) );
+		$this->log(
+			'info',
+			'Campaign activated',
+			array(
+				'campaign_id'   => $campaign->get_id(),
+				'campaign_name' => $campaign->get_name(),
+				'activated_by'  => get_current_user_id(),
+			)
+		);
 	}
 
 	/**
@@ -915,7 +1010,7 @@ class SCD_Campaign_Manager {
 	 * Called when scd_campaign_activated hook fires.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Activated campaign.
+	 * @param    SCD_Campaign $campaign    Activated campaign.
 	 * @return   void
 	 */
 	public function on_campaign_activated( SCD_Campaign $campaign ): void {
@@ -935,8 +1030,8 @@ class SCD_Campaign_Manager {
 	 * Trigger activation hooks.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign          Activated campaign.
-	 * @param    string          $original_status   Original status.
+	 * @param    SCD_Campaign $campaign          Activated campaign.
+	 * @param    string       $original_status   Original status.
 	 * @return   void
 	 */
 	private function trigger_activation_hooks( SCD_Campaign $campaign, string $original_status ): void {
@@ -948,33 +1043,37 @@ class SCD_Campaign_Manager {
 	 * Handle activation error.
 	 *
 	 * @since    1.0.0
-	 * @param    Exception    $exception    Exception object.
-	 * @param    int          $id           Campaign ID.
+	 * @param    Exception $exception    Exception object.
+	 * @param    int       $id           Campaign ID.
 	 * @return   void
 	 */
 	private function handle_activation_error( Exception $exception, int $id ): void {
-		$this->log( 'error', 'Campaign activation failed', array(
-			'campaign_id' => $id,
-			'error'       => $exception->getMessage(),
-		) );
+		$this->log(
+			'error',
+			'Campaign activation failed',
+			array(
+				'campaign_id' => $id,
+				'error'       => $exception->getMessage(),
+			)
+		);
 	}
 
-    /**
+	/**
 	 * Pause campaign.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $id    Campaign ID.
+	 * @param    int $id    Campaign ID.
 	 * @return   bool|WP_Error    True or error.
 	 */
 	public function pause( int $id ): bool|WP_Error {
 		return $this->change_campaign_status( $id, 'paused' );
 	}
 
-    /**
+	/**
 	 * Archive campaign.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $id    Campaign ID.
+	 * @param    int $id    Campaign ID.
 	 * @return   bool|WP_Error    True or error.
 	 */
 	public function archive( int $id ): bool|WP_Error {
@@ -988,7 +1087,7 @@ class SCD_Campaign_Manager {
 	 * a campaign reaches its end date, but can also be called manually.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $id    Campaign ID.
+	 * @param    int $id    Campaign ID.
 	 * @return   bool|WP_Error    True or error.
 	 */
 	public function expire( int $id ): bool|WP_Error {
@@ -999,8 +1098,8 @@ class SCD_Campaign_Manager {
 	 * Change campaign status.
 	 *
 	 * @since    1.0.0
-	 * @param    int       $id        Campaign ID.
-	 * @param    string    $status    New status.
+	 * @param    int    $id        Campaign ID.
+	 * @param    string $status    New status.
 	 * @return   bool|WP_Error         True or error.
 	 */
 	private function change_campaign_status( int $id, string $status ): bool|WP_Error {
@@ -1015,7 +1114,7 @@ class SCD_Campaign_Manager {
 			}
 
 			$original_status = $campaign->get_status();
-			$update_result = $this->update_campaign_status( $campaign, $status );
+			$update_result   = $this->update_campaign_status( $campaign, $status );
 			if ( is_wp_error( $update_result ) ) {
 				return $update_result;
 			}
@@ -1035,8 +1134,8 @@ class SCD_Campaign_Manager {
 	 * Create status transition error.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $from    From status.
-	 * @param    string    $to      To status.
+	 * @param    string $from    From status.
+	 * @param    string $to      To status.
 	 * @return   WP_Error           Error object.
 	 */
 	private function create_status_transition_error( string $from, string $to ): WP_Error {
@@ -1050,28 +1149,32 @@ class SCD_Campaign_Manager {
 	 * Log status change.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Campaign object.
-	 * @param    string          $from        Original status.
-	 * @param    string          $to          New status.
+	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    string       $from        Original status.
+	 * @param    string       $to          New status.
 	 * @return   void
 	 */
 	private function log_status_change( SCD_Campaign $campaign, string $from, string $to ): void {
-		$this->log( 'info', sprintf( 'Campaign %s', $to ), array(
-			'campaign_id'   => $campaign->get_id(),
-			'campaign_name' => $campaign->get_name(),
-			$to . '_by'     => get_current_user_id(),
-			'from_status'   => $from,
-			'to_status'     => $to,
-		) );
+		$this->log(
+			'info',
+			sprintf( 'Campaign %s', $to ),
+			array(
+				'campaign_id'   => $campaign->get_id(),
+				'campaign_name' => $campaign->get_name(),
+				$to . '_by'     => get_current_user_id(),
+				'from_status'   => $from,
+				'to_status'     => $to,
+			)
+		);
 	}
 
 	/**
 	 * Trigger status change hooks.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Campaign object.
-	 * @param    string          $from        Original status.
-	 * @param    string          $to          New status.
+	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    string       $from        Original status.
+	 * @param    string       $to          New status.
 	 * @return   void
 	 */
 	private function trigger_status_change_hooks( SCD_Campaign $campaign, string $from, string $to ): void {
@@ -1083,24 +1186,28 @@ class SCD_Campaign_Manager {
 	 * Handle status change error.
 	 *
 	 * @since    1.0.0
-	 * @param    Exception    $exception    Exception object.
-	 * @param    int          $id           Campaign ID.
-	 * @param    string       $status       Target status.
+	 * @param    Exception $exception    Exception object.
+	 * @param    int       $id           Campaign ID.
+	 * @param    string    $status       Target status.
 	 * @return   void
 	 */
 	private function handle_status_change_error( Exception $exception, int $id, string $status ): void {
-		$this->log( 'error', sprintf( 'Campaign %s failed', $status ), array(
-			'campaign_id' => $id,
-			'error'       => $exception->getMessage(),
-		) );
+		$this->log(
+			'error',
+			sprintf( 'Campaign %s failed', $status ),
+			array(
+				'campaign_id' => $id,
+				'error'       => $exception->getMessage(),
+			)
+		);
 	}
 
 	/**
 	 * Duplicate campaign.
 	 *
 	 * @since    1.0.0
-	 * @param    int      $id      Campaign ID.
-	 * @param    array    $data    Override data.
+	 * @param    int   $id      Campaign ID.
+	 * @param    array $data    Override data.
 	 * @return   SCD_Campaign|WP_Error    Duplicated campaign or error.
 	 */
 	public function duplicate( int $id, array $data = array() ): SCD_Campaign|WP_Error {
@@ -1124,7 +1231,7 @@ class SCD_Campaign_Manager {
 	 * Get campaign for duplication.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $id    Campaign ID.
+	 * @param    int $id    Campaign ID.
 	 * @return   SCD_Campaign|WP_Error    Campaign or error.
 	 */
 	private function get_campaign_for_duplication( int $id ): SCD_Campaign|WP_Error {
@@ -1139,8 +1246,8 @@ class SCD_Campaign_Manager {
 	 * Prepare duplication data.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $original    Original campaign.
-	 * @param    array           $override    Override data.
+	 * @param    SCD_Campaign $original    Original campaign.
+	 * @param    array        $override    Override data.
 	 * @return   array                        Duplication data.
 	 */
 	private function prepare_duplication_data( SCD_Campaign $original, array $override ): array {
@@ -1157,7 +1264,7 @@ class SCD_Campaign_Manager {
 	 * Remove unique fields from data.
 	 *
 	 * @since    1.0.0
-	 * @param    array    &$data    Campaign data.
+	 * @param    array &$data    Campaign data.
 	 * @return   void
 	 */
 	private function remove_unique_fields( array &$data ): void {
@@ -1175,17 +1282,17 @@ class SCD_Campaign_Manager {
 	 * Reset performance metrics.
 	 *
 	 * @since    1.0.0
-	 * @param    array    &$data    Campaign data.
+	 * @param    array &$data    Campaign data.
 	 * @return   void
 	 */
 	private function reset_performance_metrics( array &$data ): void {
 		$metrics = array(
-			'products_count'     => 0,
-			'revenue_generated'  => 0.0,
-			'orders_count'       => 0,
-			'impressions_count'  => 0,
-			'clicks_count'       => 0,
-			'conversion_rate'    => 0.0,
+			'products_count'    => 0,
+			'revenue_generated' => 0.0,
+			'orders_count'      => 0,
+			'impressions_count' => 0,
+			'clicks_count'      => 0,
+			'conversion_rate'   => 0.0,
 		);
 
 		foreach ( $metrics as $key => $value ) {
@@ -1197,15 +1304,15 @@ class SCD_Campaign_Manager {
 	 * Set duplication defaults.
 	 *
 	 * @since    1.0.0
-	 * @param    array           &$data       Campaign data.
-	 * @param    SCD_Campaign    $original    Original campaign.
-	 * @param    array           $override    Override data.
+	 * @param    array        &$data       Campaign data.
+	 * @param    SCD_Campaign $original    Original campaign.
+	 * @param    array        $override    Override data.
 	 * @return   void
 	 */
 	private function set_duplication_defaults( array &$data, SCD_Campaign $original, array $override ): void {
-		$data['status'] = 'draft';
-		$data['name'] = $override['name'] ?? $original->get_name() . ' (Copy)';
-		$data['slug'] = $this->repository->get_unique_slug(
+		$data['status']     = 'draft';
+		$data['name']       = $override['name'] ?? $original->get_name() . ' (Copy)';
+		$data['slug']       = $this->repository->get_unique_slug(
 			$override['slug'] ?? sanitize_title( $data['name'] )
 		);
 		$data['created_by'] = get_current_user_id();
@@ -1214,29 +1321,33 @@ class SCD_Campaign_Manager {
 		// Clear schedule dates when duplicating
 		// This forces user to set new dates and prevents accidental activation with expired dates
 		$data['starts_at'] = null;
-		$data['ends_at'] = null;
+		$data['ends_at']   = null;
 	}
 
 	/**
 	 * Handle duplication error.
 	 *
 	 * @since    1.0.0
-	 * @param    Exception    $exception    Exception object.
-	 * @param    int          $id           Original ID.
+	 * @param    Exception $exception    Exception object.
+	 * @param    int       $id           Original ID.
 	 * @return   void
 	 */
 	private function handle_duplication_error( Exception $exception, int $id ): void {
-		$this->log( 'error', 'Campaign duplication failed', array(
-			'original_id' => $id,
-			'error'       => $exception->getMessage(),
-		) );
+		$this->log(
+			'error',
+			'Campaign duplication failed',
+			array(
+				'original_id' => $id,
+				'error'       => $exception->getMessage(),
+			)
+		);
 	}
 
 	/**
 	 * Get active campaigns.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $options    Query options.
+	 * @param    array $options    Query options.
 	 * @return   array               Active campaigns.
 	 */
 	public function get_active_campaigns( array $options = array() ): array {
@@ -1277,17 +1388,21 @@ class SCD_Campaign_Manager {
 
 		// CRITICAL: Distributed lock to prevent race conditions
 		// If two cron jobs run simultaneously, only one should process campaigns
-		$lock_key = 'scd_process_campaigns_lock';
-		$lock_value = time();
+		$lock_key     = 'scd_process_campaigns_lock';
+		$lock_value   = time();
 		$lock_timeout = 60; // 60 seconds - enough for processing but not too long if process crashes
 
 		// Try to acquire lock
 		if ( false !== get_transient( $lock_key ) ) {
 			// Another process is already running
 			$results['skipped'] = 'locked';
-			$this->log( 'debug', 'Campaign processing skipped - another process is running', array(
-				'lock_key' => $lock_key,
-			) );
+			$this->log(
+				'debug',
+				'Campaign processing skipped - another process is running',
+				array(
+					'lock_key' => $lock_key,
+				)
+			);
 			return $results;
 		}
 
@@ -1296,7 +1411,7 @@ class SCD_Campaign_Manager {
 
 		try {
 			// Use UTC timezone to match campaign dates (which are stored in UTC)
-			$now = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
+			$now     = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
 			$results = $this->activate_scheduled_campaigns( $results, $now );
 			$results = $this->expire_active_campaigns( $results, $now );
 
@@ -1336,8 +1451,8 @@ class SCD_Campaign_Manager {
 	 * we expire them directly for efficiency.
 	 *
 	 * @since    1.0.0
-	 * @param    array       $results    Results array.
-	 * @param    DateTime    $now        Current time.
+	 * @param    array    $results    Results array.
+	 * @param    DateTime $now        Current time.
 	 * @return   array                   Updated results.
 	 */
 	private function activate_scheduled_campaigns( array $results, DateTime $now ): array {
@@ -1362,8 +1477,8 @@ class SCD_Campaign_Manager {
 	 * Check if campaign should be activated.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Campaign object.
-	 * @param    DateTime        $now         Current time.
+	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    DateTime     $now         Current time.
 	 * @return   bool                         Should activate.
 	 */
 	private function should_activate_campaign( SCD_Campaign $campaign, DateTime $now ): bool {
@@ -1375,8 +1490,8 @@ class SCD_Campaign_Manager {
 	 * Process campaign activation.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Campaign object.
-	 * @param    array           $results     Results array.
+	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    array        $results     Results array.
 	 * @return   array                        Updated results.
 	 */
 	private function process_campaign_activation( SCD_Campaign $campaign, array $results ): array {
@@ -1388,7 +1503,7 @@ class SCD_Campaign_Manager {
 				'error'       => $result->get_error_message(),
 			);
 		} else {
-			$results['activated']++;
+			++$results['activated'];
 		}
 
 		return $results;
@@ -1401,14 +1516,14 @@ class SCD_Campaign_Manager {
 	 * is an absolute deadline regardless of whether it was paused by the user.
 	 *
 	 * @since    1.0.0
-	 * @param    array       $results    Results array.
-	 * @param    DateTime    $now        Current time.
+	 * @param    array    $results    Results array.
+	 * @param    DateTime $now        Current time.
 	 * @return   array                   Updated results.
 	 */
 	private function expire_active_campaigns( array $results, DateTime $now ): array {
 		// Get both active and paused campaigns for expiration check
-		$active = $this->repository->get_active();
-		$paused = $this->repository->get_paused();
+		$active             = $this->repository->get_active();
+		$paused             = $this->repository->get_paused();
 		$campaigns_to_check = array_merge( $active, $paused );
 
 		foreach ( $campaigns_to_check as $campaign ) {
@@ -1424,8 +1539,8 @@ class SCD_Campaign_Manager {
 	 * Check if campaign should be expired.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Campaign object.
-	 * @param    DateTime        $now         Current time.
+	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    DateTime     $now         Current time.
 	 * @return   bool                         Should expire.
 	 */
 	private function should_expire_campaign( SCD_Campaign $campaign, DateTime $now ): bool {
@@ -1437,8 +1552,8 @@ class SCD_Campaign_Manager {
 	 * Process campaign expiration.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Campaign object.
-	 * @param    array           $results     Results array.
+	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    array        $results     Results array.
 	 * @return   array                        Updated results.
 	 */
 	private function process_campaign_expiration( SCD_Campaign $campaign, array $results ): array {
@@ -1446,7 +1561,7 @@ class SCD_Campaign_Manager {
 		$campaign->set_updated_by( null ); // System action (auto-expiration)
 
 		if ( $this->repository->save( $campaign ) ) {
-			$results['expired']++;
+			++$results['expired'];
 
 			// Store expired campaign info for admin notice
 			$expired_campaigns = get_transient( 'scd_recently_expired_campaigns' );
@@ -1484,14 +1599,18 @@ class SCD_Campaign_Manager {
 	 * Handle processing error.
 	 *
 	 * @since    1.0.0
-	 * @param    Exception    $exception    Exception object.
-	 * @param    array        &$results     Results array.
+	 * @param    Exception $exception    Exception object.
+	 * @param    array     &$results     Results array.
 	 * @return   void
 	 */
 	private function handle_processing_error( Exception $exception, array &$results ): void {
-		$this->log( 'error', 'Scheduled campaign processing failed', array(
-			'error' => $exception->getMessage(),
-		) );
+		$this->log(
+			'error',
+			'Scheduled campaign processing failed',
+			array(
+				'error' => $exception->getMessage(),
+			)
+		);
 
 		$results['errors'][] = array(
 			'error' => $exception->getMessage(),
@@ -1502,7 +1621,7 @@ class SCD_Campaign_Manager {
 	 * Get campaigns.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Query arguments.
+	 * @param    array $args    Query arguments.
 	 * @return   array             Campaigns.
 	 */
 	public function get_campaigns( array $args = array() ): array {
@@ -1513,7 +1632,7 @@ class SCD_Campaign_Manager {
 	 * Count campaigns.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Query arguments.
+	 * @param    array $args    Query arguments.
 	 * @return   int               Campaign count.
 	 */
 	public function count_campaigns( array $args = array() ): int {
@@ -1598,18 +1717,18 @@ class SCD_Campaign_Manager {
 	 */
 	private function get_default_statistics(): array {
 		return array(
-			'total'                    => 0,
-			'active'                   => 0,
-			'scheduled'                => 0,
-			'paused'                   => 0,
-			'total_campaigns'          => 0,
-			'active_campaigns'         => 0,
-			'scheduled_campaigns'      => 0,
-			'paused_campaigns'         => 0,
-			'total_revenue'            => 0.0,
-			'total_savings'            => 0.0,
-			'total_orders'             => 0,
-			'average_conversion_rate'  => 0.0,
+			'total'                   => 0,
+			'active'                  => 0,
+			'scheduled'               => 0,
+			'paused'                  => 0,
+			'total_campaigns'         => 0,
+			'active_campaigns'        => 0,
+			'scheduled_campaigns'     => 0,
+			'paused_campaigns'        => 0,
+			'total_revenue'           => 0.0,
+			'total_savings'           => 0.0,
+			'total_orders'            => 0,
+			'average_conversion_rate' => 0.0,
 		);
 	}
 
@@ -1617,30 +1736,29 @@ class SCD_Campaign_Manager {
 	 * Add count statistics.
 	 *
 	 * @since    1.0.0
-	 * @param    array    &$stats    Statistics array.
+	 * @param    array &$stats    Statistics array.
 	 * @return   void
 	 */
 	private function add_count_statistics( array &$stats ): void {
-		$stats['total'] = $this->repository->count();
-		$stats['active'] = $this->repository->count( array( 'status' => 'active' ) );
+		$stats['total']     = $this->repository->count();
+		$stats['active']    = $this->repository->count( array( 'status' => 'active' ) );
 		$stats['scheduled'] = $this->repository->count( array( 'status' => 'scheduled' ) );
-		$stats['paused'] = $this->repository->count( array( 'status' => 'paused' ) );
-
+		$stats['paused']    = $this->repository->count( array( 'status' => 'paused' ) );
 	}
 
 	/**
 	 * Add performance statistics.
 	 *
 	 * @since    1.0.0
-	 * @param    array    &$stats    Statistics array.
+	 * @param    array &$stats    Statistics array.
 	 * @return   void
 	 */
 	private function add_performance_statistics( array &$stats ): void {
 		$performance_data = $this->repository->get_performance_summary();
 		if ( $performance_data && is_array( $performance_data ) ) {
-			$stats['total_revenue'] = floatval( $performance_data['total_revenue'] ?? 0 );
-			$stats['total_savings'] = floatval( $performance_data['total_savings'] ?? 0 );
-			$stats['total_orders'] = intval( $performance_data['total_orders'] ?? 0 );
+			$stats['total_revenue']           = floatval( $performance_data['total_revenue'] ?? 0 );
+			$stats['total_savings']           = floatval( $performance_data['total_savings'] ?? 0 );
+			$stats['total_orders']            = intval( $performance_data['total_orders'] ?? 0 );
 			$stats['average_conversion_rate'] = floatval( $performance_data['average_conversion_rate'] ?? 0 );
 		}
 	}
@@ -1649,20 +1767,24 @@ class SCD_Campaign_Manager {
 	 * Handle statistics error.
 	 *
 	 * @since    1.0.0
-	 * @param    Exception    $exception    Exception object.
+	 * @param    Exception $exception    Exception object.
 	 * @return   void
 	 */
 	private function handle_statistics_error( Exception $exception ): void {
-		$this->log( 'error', 'Failed to get campaign statistics', array(
-			'error' => $exception->getMessage(),
-		) );
+		$this->log(
+			'error',
+			'Failed to get campaign statistics',
+			array(
+				'error' => $exception->getMessage(),
+			)
+		);
 	}
 
 	/**
 	 * Find campaign by ID.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $id    Campaign ID.
+	 * @param    int $id    Campaign ID.
 	 * @return   SCD_Campaign|null    Campaign or null.
 	 */
 	public function find( int $id, bool $include_trashed = false ): ?SCD_Campaign {
@@ -1673,7 +1795,7 @@ class SCD_Campaign_Manager {
 	 * Find campaign by slug.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $slug    Campaign slug.
+	 * @param    string $slug    Campaign slug.
 	 * @return   SCD_Campaign|null    Campaign or null.
 	 */
 	public function find_by_slug( string $slug ): ?SCD_Campaign {
@@ -1684,7 +1806,7 @@ class SCD_Campaign_Manager {
 	 * Activate campaign alias.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $id    Campaign ID.
+	 * @param    int $id    Campaign ID.
 	 * @return   bool|WP_Error    True or error.
 	 */
 	public function activate_campaign( int $id ): bool|WP_Error {
@@ -1695,7 +1817,7 @@ class SCD_Campaign_Manager {
 	 * Deactivate campaign alias.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $id    Campaign ID.
+	 * @param    int $id    Campaign ID.
 	 * @return   bool|WP_Error    True or error.
 	 */
 	public function deactivate_campaign( int $id ): bool|WP_Error {
@@ -1706,7 +1828,7 @@ class SCD_Campaign_Manager {
 	 * Delete campaign alias.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $id    Campaign ID.
+	 * @param    int $id    Campaign ID.
 	 * @return   bool|WP_Error    True or error.
 	 */
 	public function delete_campaign( int $id ): bool|WP_Error {
@@ -1717,8 +1839,8 @@ class SCD_Campaign_Manager {
 	 * Check if campaign name exists.
 	 *
 	 * @since    1.0.0
-	 * @param    string     $name          Campaign name.
-	 * @param    int|null   $exclude_id    Exclude ID.
+	 * @param    string   $name          Campaign name.
+	 * @param    int|null $exclude_id    Exclude ID.
 	 * @return   bool                      Name exists.
 	 */
 	public function campaign_name_exists( string $name, ?int $exclude_id = null ): bool {
@@ -1744,8 +1866,8 @@ class SCD_Campaign_Manager {
 	 * Get name cache key.
 	 *
 	 * @since    1.0.0
-	 * @param    string     $name          Campaign name.
-	 * @param    int|null   $exclude_id    Exclude ID.
+	 * @param    string   $name          Campaign name.
+	 * @param    int|null $exclude_id    Exclude ID.
 	 * @return   string                    Cache key.
 	 */
 	private function get_name_cache_key( string $name, ?int $exclude_id ): string {
@@ -1756,23 +1878,23 @@ class SCD_Campaign_Manager {
 	 * Query if name exists.
 	 *
 	 * @since    1.0.0
-	 * @param    string     $name          Campaign name.
-	 * @param    int|null   $exclude_id    Exclude ID.
+	 * @param    string   $name          Campaign name.
+	 * @param    int|null $exclude_id    Exclude ID.
 	 * @return   bool                      Exists.
 	 */
 	private function query_name_exists( string $name, ?int $exclude_id ): bool {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'scd_campaigns';
 
-		$sql = "SELECT 1 FROM {$table_name} WHERE name = %s AND deleted_at IS NULL";
+		$sql    = "SELECT 1 FROM {$table_name} WHERE name = %s AND deleted_at IS NULL";
 		$params = array( $name );
 
 		if ( $exclude_id ) {
-			$sql .= " AND id != %d";
+			$sql     .= ' AND id != %d';
 			$params[] = $exclude_id;
 		}
 
-		$sql .= " LIMIT 1";
+		$sql .= ' LIMIT 1';
 
 		$wpdb->suppress_errors();
 		$exists = (bool) $wpdb->get_var( $wpdb->prepare( $sql, ...$params ) );
@@ -1785,8 +1907,8 @@ class SCD_Campaign_Manager {
 	 * Validate campaign data.
 	 *
 	 * @since    1.0.0
-	 * @param    array       $data    Campaign data.
-	 * @param    int|null    $id      Campaign ID.
+	 * @param    array    $data    Campaign data.
+	 * @param    int|null $id      Campaign ID.
 	 * @return   true|WP_Error        True or error.
 	 */
 	private function validate_campaign_data( array $data, ?int $id = null ): bool|WP_Error {
@@ -1835,9 +1957,9 @@ class SCD_Campaign_Manager {
 	 * 3. Start date is not in the past (for scheduled campaigns)
 	 *
 	 * @since    1.0.0
-	 * @param    array       $data       Campaign data.
-	 * @param    int|null    $id         Campaign ID (null for new campaigns).
-	 * @param    array       &$errors    Errors array.
+	 * @param    array    $data       Campaign data.
+	 * @param    int|null $id         Campaign ID (null for new campaigns).
+	 * @param    array    &$errors    Errors array.
 	 * @return   void
 	 */
 	private function validate_date_range( array $data, ?int $id, array &$errors ): void {
@@ -1850,7 +1972,7 @@ class SCD_Campaign_Manager {
 
 		// Parse dates in UTC timezone (matches database storage)
 		$starts_at = null;
-		$ends_at = null;
+		$ends_at   = null;
 
 		if ( ! empty( $data['starts_at'] ) ) {
 			$starts_at = is_string( $data['starts_at'] ) ? new DateTime( $data['starts_at'], new DateTimeZone( 'UTC' ) ) : $data['starts_at'];
@@ -1903,8 +2025,8 @@ class SCD_Campaign_Manager {
 	 * Validate priority.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $data       Campaign data.
-	 * @param    array    &$errors    Errors array.
+	 * @param    array $data       Campaign data.
+	 * @param    array &$errors    Errors array.
 	 * @return   void
 	 */
 	private function validate_priority( array $data, array &$errors ): void {
@@ -1917,8 +2039,8 @@ class SCD_Campaign_Manager {
 	 * Validate status.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $data       Campaign data.
-	 * @param    array    &$errors    Errors array.
+	 * @param    array $data       Campaign data.
+	 * @param    array &$errors    Errors array.
 	 * @return   void
 	 */
 	private function validate_status( array $data, array &$errors ): void {
@@ -1935,8 +2057,8 @@ class SCD_Campaign_Manager {
 	 * Prevents runtime errors when campaigns reference deleted/invalid data.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $data       Campaign data.
-	 * @param    array    &$errors    Errors array.
+	 * @param    array $data       Campaign data.
+	 * @param    array &$errors    Errors array.
 	 * @return   void
 	 */
 	private function validate_related_data( array $data, array &$errors ): void {
@@ -1949,7 +2071,7 @@ class SCD_Campaign_Manager {
 			}
 
 			// Separate numeric and non-numeric IDs
-			$numeric_ids = array();
+			$numeric_ids     = array();
 			$non_numeric_ids = array();
 
 			foreach ( $data['product_ids'] as $product_id ) {
@@ -1969,7 +2091,7 @@ class SCD_Campaign_Manager {
 
 				// Build safe query with proper placeholders
 				$placeholders = implode( ',', array_fill( 0, count( $numeric_ids ), '%d' ) );
-				$query = $wpdb->prepare(
+				$query        = $wpdb->prepare(
 					"SELECT ID FROM {$wpdb->posts} WHERE ID IN ($placeholders) AND post_type IN ('product', 'product_variation') AND post_status != 'trash'",
 					...$numeric_ids
 				);
@@ -1978,7 +2100,7 @@ class SCD_Campaign_Manager {
 				$existing_ids = $wpdb->get_col( $query );
 
 				// Find IDs that don't exist
-				$missing_ids = array_diff( $numeric_ids, array_map( 'intval', $existing_ids ) );
+				$missing_ids      = array_diff( $numeric_ids, array_map( 'intval', $existing_ids ) );
 				$invalid_products = array_merge( $invalid_products, $missing_ids );
 			}
 
@@ -1994,7 +2116,7 @@ class SCD_Campaign_Manager {
 		// Validate category IDs if present
 		if ( ! empty( $data['category_ids'] ) && is_array( $data['category_ids'] ) ) {
 			// Separate numeric and non-numeric IDs
-			$numeric_ids = array();
+			$numeric_ids     = array();
 			$non_numeric_ids = array();
 
 			foreach ( $data['category_ids'] as $category_id ) {
@@ -2014,7 +2136,7 @@ class SCD_Campaign_Manager {
 
 				// Build safe query with proper placeholders
 				$placeholders = implode( ',', array_fill( 0, count( $numeric_ids ), '%d' ) );
-				$query = $wpdb->prepare(
+				$query        = $wpdb->prepare(
 					"SELECT term_id FROM {$wpdb->term_taxonomy} WHERE term_id IN ($placeholders) AND taxonomy = 'product_cat'",
 					...$numeric_ids
 				);
@@ -2023,7 +2145,7 @@ class SCD_Campaign_Manager {
 				$existing_ids = $wpdb->get_col( $query );
 
 				// Find IDs that don't exist
-				$missing_ids = array_diff( $numeric_ids, array_map( 'intval', $existing_ids ) );
+				$missing_ids        = array_diff( $numeric_ids, array_map( 'intval', $existing_ids ) );
 				$invalid_categories = array_merge( $invalid_categories, $missing_ids );
 			}
 
@@ -2041,7 +2163,7 @@ class SCD_Campaign_Manager {
 	 * Set default values.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $data    Campaign data.
+	 * @param    array $data    Campaign data.
 	 * @return   array             Data with defaults.
 	 */
 	private function set_default_values( array $data ): array {
@@ -2067,14 +2189,17 @@ class SCD_Campaign_Manager {
 	 * When multiple campaigns apply to same product, campaign with priority 1 wins over priority 10.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $campaigns    Campaigns to sort.
+	 * @param    array $campaigns    Campaigns to sort.
 	 * @return   array                  Sorted campaigns.
 	 */
 	private function sort_campaigns_by_priority( array $campaigns ): array {
-		usort( $campaigns, function( $a, $b ) {
-			// FIXED: Ascending order - lower numbers first (1 = highest priority)
-			return $a->get_priority() <=> $b->get_priority();
-		} );
+		usort(
+			$campaigns,
+			function ( $a, $b ) {
+				// FIXED: Ascending order - lower numbers first (1 = highest priority)
+				return $a->get_priority() <=> $b->get_priority();
+			}
+		);
 
 		return $campaigns;
 	}
@@ -2086,12 +2211,12 @@ class SCD_Campaign_Manager {
 	 * this method resolves the actual product IDs and stores them in product_ids.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Campaign object.
+	 * @param    SCD_Campaign $campaign    Campaign object.
 	 * @return   void
 	 */
 	private function compile_product_selection( SCD_Campaign $campaign ): void {
 		$selection_type = $campaign->get_product_selection_type();
-		$metadata = $campaign->get_metadata();
+		$metadata       = $campaign->get_metadata();
 		$has_conditions = ! empty( $metadata['product_conditions'] );
 
 		// Determine if compilation is needed
@@ -2105,19 +2230,27 @@ class SCD_Campaign_Manager {
 		// BUT always recompile if conditions changed
 		$existing_products = $campaign->get_product_ids();
 		if ( ! empty( $existing_products ) && ! $has_conditions ) {
-			$this->log( 'info', 'Products already compiled, skipping recompilation', array(
-				'campaign_id'   => $campaign->get_id(),
-				'product_count' => count( $existing_products ),
-			) );
+			$this->log(
+				'info',
+				'Products already compiled, skipping recompilation',
+				array(
+					'campaign_id'   => $campaign->get_id(),
+					'product_count' => count( $existing_products ),
+				)
+			);
 			return;
 		}
 
 		// Check if product_selector is available
 		if ( ! $this->container || ! $this->container->has( 'product_selector' ) ) {
-			$this->log( 'warning', 'Product selector not available for compilation', array(
-				'campaign_id'    => $campaign->get_id(),
-				'selection_type' => $selection_type,
-			) );
+			$this->log(
+				'warning',
+				'Product selector not available for compilation',
+				array(
+					'campaign_id'    => $campaign->get_id(),
+					'selection_type' => $selection_type,
+				)
+			);
 			return;
 		}
 
@@ -2131,9 +2264,12 @@ class SCD_Campaign_Manager {
 			// Case 1: Handle campaigns with conditions (filter-based selection)
 			if ( $has_conditions && ! in_array( $selection_type, array( 'random_products', 'smart_selection' ), true ) ) {
 				// Clean category IDs (remove 'all' placeholder)
-				$clean_categories = array_filter( $category_ids, function( $id ) {
-					return 'all' !== $id && ! empty( $id );
-				} );
+				$clean_categories = array_filter(
+					$category_ids,
+					function ( $id ) {
+						return 'all' !== $id && ! empty( $id );
+					}
+				);
 
 				// Build criteria for Product Selector (use correct key names)
 				$criteria = array(
@@ -2145,14 +2281,18 @@ class SCD_Campaign_Manager {
 				// Select products using conditions
 				$selected_ids = $product_selector->select_products( $criteria );
 
-				$this->log( 'info', 'Products compiled from conditions', array(
-					'campaign_id'      => $campaign->get_id(),
-					'selection_type'   => $selection_type,
-					'conditions_count' => count( $conditions ),
-					'product_count'    => count( $selected_ids ),
-					'conditions'       => $conditions,
-					'selected_ids'     => $selected_ids,
-				) );
+				$this->log(
+					'info',
+					'Products compiled from conditions',
+					array(
+						'campaign_id'      => $campaign->get_id(),
+						'selection_type'   => $selection_type,
+						'conditions_count' => count( $conditions ),
+						'product_count'    => count( $selected_ids ),
+						'conditions'       => $conditions,
+						'selected_ids'     => $selected_ids,
+					)
+				);
 
 			} elseif ( 'random_products' === $selection_type ) {
 				// Get random_count from metadata or settings
@@ -2165,10 +2305,14 @@ class SCD_Campaign_Manager {
 					$conditions
 				);
 
-				$this->log( 'info', 'Random products compiled', array(
-					'campaign_id' => $campaign->get_id(),
-					'count'       => count( $selected_ids ),
-				) );
+				$this->log(
+					'info',
+					'Random products compiled',
+					array(
+						'campaign_id' => $campaign->get_id(),
+						'count'       => count( $selected_ids ),
+					)
+				);
 
 			} elseif ( 'smart_selection' === $selection_type ) {
 				// Get smart criteria
@@ -2181,11 +2325,15 @@ class SCD_Campaign_Manager {
 					$conditions
 				);
 
-				$this->log( 'info', 'Smart selection compiled', array(
-					'campaign_id' => $campaign->get_id(),
-					'count'       => count( $selected_ids ),
-					'criteria'    => $smart_criteria,
-				) );
+				$this->log(
+					'info',
+					'Smart selection compiled',
+					array(
+						'campaign_id' => $campaign->get_id(),
+						'count'       => count( $selected_ids ),
+						'criteria'    => $smart_criteria,
+					)
+				);
 			}
 
 			// Update campaign with selected product IDs
@@ -2195,39 +2343,54 @@ class SCD_Campaign_Manager {
 				// Save the campaign
 				$save_result = $this->repository->save( $campaign );
 				if ( ! $save_result ) {
-					$this->log( 'error', 'Failed to save compiled product selection', array(
-						'campaign_id' => $campaign->get_id(),
-					) );
+					$this->log(
+						'error',
+						'Failed to save compiled product selection',
+						array(
+							'campaign_id' => $campaign->get_id(),
+						)
+					);
 
 					// Debug output if WP_DEBUG is on
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					}
 				} else {
 					// Success - log it
-					$this->log( 'info', 'Successfully compiled and saved product selection', array(
-						'campaign_id'   => $campaign->get_id(),
-						'product_count' => count( $selected_ids ),
-						'product_ids'   => $selected_ids,
-					) );
+					$this->log(
+						'info',
+						'Successfully compiled and saved product selection',
+						array(
+							'campaign_id'   => $campaign->get_id(),
+							'product_count' => count( $selected_ids ),
+							'product_ids'   => $selected_ids,
+						)
+					);
 
 					// Debug output if WP_DEBUG is on
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					}
 				}
 			} else {
-				$this->log( 'warning', 'No products selected during compilation', array(
-					'campaign_id'    => $campaign->get_id(),
-					'selection_type' => $selection_type,
-					'category_ids'   => $category_ids,
-				) );
+				$this->log(
+					'warning',
+					'No products selected during compilation',
+					array(
+						'campaign_id'    => $campaign->get_id(),
+						'selection_type' => $selection_type,
+						'category_ids'   => $category_ids,
+					)
+				);
 
 			}
-
 		} catch ( Exception $e ) {
-			$this->log( 'error', 'Product selection compilation failed', array(
-				'campaign_id' => $campaign->get_id(),
-				'error'       => $e->getMessage(),
-			) );
+			$this->log(
+				'error',
+				'Product selection compilation failed',
+				array(
+					'campaign_id' => $campaign->get_id(),
+					'error'       => $e->getMessage(),
+				)
+			);
 		}
 	}
 
@@ -2235,36 +2398,40 @@ class SCD_Campaign_Manager {
 	 * Get active campaigns for specific product.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $product_id    Product ID.
+	 * @param    int $product_id    Product ID.
 	 * @return   array                 Active campaigns.
 	 */
 	public function get_active_campaigns_for_product( int $product_id ): array {
 		$cache_key = 'active_campaigns_product_' . $product_id;
 
-		return $this->cache->remember( $cache_key, function() use ( $product_id ) {
-			$active_campaigns = $this->get_active_campaigns();
-			if ( empty( $active_campaigns ) ) {
-				return array();
-			}
-
-			$product_terms = $this->fetch_product_terms( $product_id );
-			$applicable = array();
-
-			foreach ( $active_campaigns as $campaign ) {
-				if ( $this->evaluate_campaign_for_product( $campaign, $product_id, $product_terms ) ) {
-					$applicable[] = $campaign;
+		return $this->cache->remember(
+			$cache_key,
+			function () use ( $product_id ) {
+				$active_campaigns = $this->get_active_campaigns();
+				if ( empty( $active_campaigns ) ) {
+					return array();
 				}
-			}
 
-			return $this->sort_campaigns_by_priority( $applicable );
-		}, 300 ); // Cache for 5 minutes
+				$product_terms = $this->fetch_product_terms( $product_id );
+				$applicable    = array();
+
+				foreach ( $active_campaigns as $campaign ) {
+					if ( $this->evaluate_campaign_for_product( $campaign, $product_id, $product_terms ) ) {
+						$applicable[] = $campaign;
+					}
+				}
+
+				return $this->sort_campaigns_by_priority( $applicable );
+			},
+			300
+		); // Cache for 5 minutes
 	}
 
 	/**
 	 * Fetch product terms.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $product_id    Product ID.
+	 * @param    int $product_id    Product ID.
 	 * @return   array                 Product terms.
 	 */
 	private function fetch_product_terms( int $product_id ): array {
@@ -2280,8 +2447,8 @@ class SCD_Campaign_Manager {
 	 * Get product term IDs.
 	 *
 	 * @since    1.0.0
-	 * @param    int       $product_id    Product ID.
-	 * @param    string    $taxonomy      Taxonomy name.
+	 * @param    int    $product_id    Product ID.
+	 * @param    string $taxonomy      Taxonomy name.
 	 * @return   array                    Term IDs.
 	 */
 	private function get_product_term_ids( int $product_id, string $taxonomy ): array {
@@ -2293,13 +2460,13 @@ class SCD_Campaign_Manager {
 	 * Evaluate campaign for product.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign         Campaign object.
-	 * @param    int             $product_id       Product ID.
-	 * @param    array           $product_terms    Product terms.
+	 * @param    SCD_Campaign $campaign         Campaign object.
+	 * @param    int          $product_id       Product ID.
+	 * @param    array        $product_terms    Product terms.
 	 * @return   bool                              Matches product.
 	 */
 	private function evaluate_campaign_for_product( SCD_Campaign $campaign, int $product_id, array $product_terms ): bool {
-		$selection_type = $campaign->get_product_selection_type();
+		$selection_type      = $campaign->get_product_selection_type();
 		$campaign_categories = $this->clean_category_ids( $campaign->get_category_ids() );
 
 		switch ( $selection_type ) {
@@ -2338,21 +2505,24 @@ class SCD_Campaign_Manager {
 	 * Clean category IDs.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $category_ids    Category IDs.
+	 * @param    array $category_ids    Category IDs.
 	 * @return   array                     Cleaned IDs.
 	 */
 	private function clean_category_ids( array $category_ids ): array {
-		return array_filter( $category_ids, function( $id ) {
-			return 'all' !== $id;
-		} );
+		return array_filter(
+			$category_ids,
+			function ( $id ) {
+				return 'all' !== $id;
+			}
+		);
 	}
 
 	/**
 	 * Check category filter match.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $campaign_categories    Campaign categories.
-	 * @param    array    $product_categories     Product categories.
+	 * @param    array $campaign_categories    Campaign categories.
+	 * @param    array $product_categories     Product categories.
 	 * @return   bool                             Matches filter.
 	 */
 	private function matches_category_filter( array $campaign_categories, array $product_categories ): bool {
@@ -2367,7 +2537,7 @@ class SCD_Campaign_Manager {
 	 * Validate for activation.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Campaign to validate.
+	 * @param    SCD_Campaign $campaign    Campaign to validate.
 	 * @return   true|WP_Error               True or error.
 	 */
 	private function validate_for_activation( SCD_Campaign $campaign ): bool|WP_Error {
@@ -2389,31 +2559,35 @@ class SCD_Campaign_Manager {
 	 * Log activation validation.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Campaign object.
+	 * @param    SCD_Campaign $campaign    Campaign object.
 	 * @return   void
 	 */
 	private function log_activation_validation( SCD_Campaign $campaign ): void {
-		$this->log( 'debug', 'Campaign activation validation', array(
-			'campaign_id'             => $campaign->get_id(),
-			'campaign_name'           => $campaign->get_name(),
-			'settings'                => $campaign->get_settings(),
-			'discount_type'           => $campaign->get_discount_type(),
-			'discount_value'          => $campaign->get_discount_value(),
-			'product_selection_type'  => $campaign->get_product_selection_type(),
-		) );
+		$this->log(
+			'debug',
+			'Campaign activation validation',
+			array(
+				'campaign_id'            => $campaign->get_id(),
+				'campaign_name'          => $campaign->get_name(),
+				'settings'               => $campaign->get_settings(),
+				'discount_type'          => $campaign->get_discount_type(),
+				'discount_value'         => $campaign->get_discount_value(),
+				'product_selection_type' => $campaign->get_product_selection_type(),
+			)
+		);
 	}
 
 	/**
 	 * Validate discount configuration.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Campaign object.
-	 * @param    array           &$errors     Errors array.
+	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    array        &$errors     Errors array.
 	 * @return   void
 	 */
 	private function validate_discount_configuration( SCD_Campaign $campaign, array &$errors ): void {
-		$settings = $campaign->get_settings();
-		$discount_type = $settings['discount_type'] ?? $campaign->get_discount_type();
+		$settings       = $campaign->get_settings();
+		$discount_type  = $settings['discount_type'] ?? $campaign->get_discount_type();
 		$discount_value = $settings['discount_value'] ?? $campaign->get_discount_value();
 
 		if ( empty( $discount_type ) ) {
@@ -2429,19 +2603,23 @@ class SCD_Campaign_Manager {
 	 * Validate product selection.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Campaign object.
-	 * @param    array           &$errors     Errors array.
+	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    array        &$errors     Errors array.
 	 * @return   void
 	 */
 	private function validate_product_selection( SCD_Campaign $campaign, array &$errors ): void {
 		if ( ! $this->has_valid_product_selection( $campaign ) ) {
 			$errors['products'] = 'At least one product, category, tag must be selected, or campaign must apply to all products.';
 
-			$this->log( 'warning', 'Campaign activation failed - no product selection', array(
-				'campaign_id'             => $campaign->get_id(),
-				'product_selection_type'  => $campaign->get_product_selection_type(),
-				'settings'                => $campaign->get_settings(),
-			) );
+			$this->log(
+				'warning',
+				'Campaign activation failed - no product selection',
+				array(
+					'campaign_id'            => $campaign->get_id(),
+					'product_selection_type' => $campaign->get_product_selection_type(),
+					'settings'               => $campaign->get_settings(),
+				)
+			);
 		}
 	}
 
@@ -2449,11 +2627,11 @@ class SCD_Campaign_Manager {
 	 * Check valid product selection.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Campaign object.
+	 * @param    SCD_Campaign $campaign    Campaign object.
 	 * @return   bool                         Has selection.
 	 */
 	private function has_valid_product_selection( SCD_Campaign $campaign ): bool {
-		$settings = $campaign->get_settings();
+		$settings       = $campaign->get_settings();
 		$selection_type = $campaign->get_product_selection_type();
 
 		if ( 'all' === $selection_type || ! empty( $settings['applies_to_all'] ) ) {
@@ -2479,15 +2657,19 @@ class SCD_Campaign_Manager {
 	 * Log activation failure.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Campaign object.
-	 * @param    array           $errors      Errors array.
+	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    array        $errors      Errors array.
 	 * @return   void
 	 */
 	private function log_activation_failure( SCD_Campaign $campaign, array $errors ): void {
-		$this->log( 'error', 'Campaign activation validation failed', array(
-			'campaign_id' => $campaign->get_id(),
-			'errors'      => $errors,
-		) );
+		$this->log(
+			'error',
+			'Campaign activation validation failed',
+			array(
+				'campaign_id' => $campaign->get_id(),
+				'errors'      => $errors,
+			)
+		);
 	}
 
 	/**
@@ -2501,9 +2683,13 @@ class SCD_Campaign_Manager {
 			try {
 				return $this->container->get( 'campaign_event_scheduler' );
 			} catch ( Exception $e ) {
-				$this->log( 'warning', 'Could not get event scheduler service', array(
-					'error' => $e->getMessage()
-				) );
+				$this->log(
+					'warning',
+					'Could not get event scheduler service',
+					array(
+						'error' => $e->getMessage(),
+					)
+				);
 			}
 		}
 		return null;
@@ -2517,7 +2703,7 @@ class SCD_Campaign_Manager {
 	 * activating many campaigns.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $campaign_ids    Array of campaign IDs to activate.
+	 * @param    array $campaign_ids    Array of campaign IDs to activate.
 	 * @return   array                     Results with 'success' and 'failed' arrays.
 	 */
 	public function bulk_activate( array $campaign_ids ): array {
@@ -2569,10 +2755,14 @@ class SCD_Campaign_Manager {
 			do_action( 'scd_campaigns_bulk_activated', $results['success'] );
 		}
 
-		$this->log( 'info', 'Bulk campaign activation completed', array(
-			'success_count' => count( $results['success'] ),
-			'failed_count'  => count( $results['failed'] ),
-		) );
+		$this->log(
+			'info',
+			'Bulk campaign activation completed',
+			array(
+				'success_count' => count( $results['success'] ),
+				'failed_count'  => count( $results['failed'] ),
+			)
+		);
 
 		return $results;
 	}
@@ -2581,7 +2771,7 @@ class SCD_Campaign_Manager {
 	 * Bulk pause campaigns.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $campaign_ids    Array of campaign IDs to pause.
+	 * @param    array $campaign_ids    Array of campaign IDs to pause.
 	 * @return   array                     Results with 'success' and 'failed' arrays.
 	 */
 	public function bulk_pause( array $campaign_ids ): array {
@@ -2607,10 +2797,14 @@ class SCD_Campaign_Manager {
 			do_action( 'scd_campaigns_bulk_paused', $results['success'] );
 		}
 
-		$this->log( 'info', 'Bulk campaign pause completed', array(
-			'success_count' => count( $results['success'] ),
-			'failed_count'  => count( $results['failed'] ),
-		) );
+		$this->log(
+			'info',
+			'Bulk campaign pause completed',
+			array(
+				'success_count' => count( $results['success'] ),
+				'failed_count'  => count( $results['failed'] ),
+			)
+		);
 
 		return $results;
 	}
@@ -2619,7 +2813,7 @@ class SCD_Campaign_Manager {
 	 * Bulk delete campaigns.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $campaign_ids    Array of campaign IDs to delete.
+	 * @param    array $campaign_ids    Array of campaign IDs to delete.
 	 * @return   array                     Results with 'success' and 'failed' arrays.
 	 */
 	public function bulk_delete( array $campaign_ids ): array {
@@ -2641,10 +2835,14 @@ class SCD_Campaign_Manager {
 			do_action( 'scd_campaigns_bulk_deleted', $results['success'] );
 		}
 
-		$this->log( 'info', 'Bulk campaign deletion completed', array(
-			'success_count' => count( $results['success'] ),
-			'failed_count'  => count( $results['failed'] ),
-		) );
+		$this->log(
+			'info',
+			'Bulk campaign deletion completed',
+			array(
+				'success_count' => count( $results['success'] ),
+				'failed_count'  => count( $results['failed'] ),
+			)
+		);
 
 		return $results;
 	}

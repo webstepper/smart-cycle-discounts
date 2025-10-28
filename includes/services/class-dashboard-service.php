@@ -97,11 +97,11 @@ class SCD_Dashboard_Service {
 	 * Initialize the dashboard service.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Analytics_Dashboard       $analytics_dashboard    Analytics dashboard.
-	 * @param    SCD_Campaign_Repository       $campaign_repository    Campaign repository.
-	 * @param    SCD_Campaign_Health_Service   $health_service         Campaign health service.
-	 * @param    SCD_Feature_Gate              $feature_gate           Feature gate.
-	 * @param    SCD_Logger                    $logger                 Logger instance.
+	 * @param    SCD_Analytics_Dashboard     $analytics_dashboard    Analytics dashboard.
+	 * @param    SCD_Campaign_Repository     $campaign_repository    Campaign repository.
+	 * @param    SCD_Campaign_Health_Service $health_service         Campaign health service.
+	 * @param    SCD_Feature_Gate            $feature_gate           Feature gate.
+	 * @param    SCD_Logger                  $logger                 Logger instance.
 	 */
 	public function __construct(
 		SCD_Analytics_Dashboard $analytics_dashboard,
@@ -112,9 +112,9 @@ class SCD_Dashboard_Service {
 	) {
 		$this->analytics_dashboard = $analytics_dashboard;
 		$this->campaign_repository = $campaign_repository;
-		$this->health_service = $health_service;
-		$this->feature_gate = $feature_gate;
-		$this->logger = $logger;
+		$this->health_service      = $health_service;
+		$this->feature_gate        = $feature_gate;
+		$this->logger              = $logger;
 
 		// Register cache invalidation hooks
 		$this->register_cache_hooks();
@@ -127,22 +127,22 @@ class SCD_Dashboard_Service {
 	 * Implements 5-minute cache with automatic invalidation.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $options         Dashboard options {
+	 * @param    array $options         Dashboard options {
 	 *     @type string $date_range            Date range ('7days', '30days'). Default '30days'.
 	 *     @type bool   $include_suggestions   Include campaign suggestions. Default true.
 	 *     @type bool   $include_health        Include campaign health. Default true.
 	 *     @type bool   $include_activity      Include recent activity. Default true.
 	 * }
-	 * @param    bool     $force_refresh   Force cache refresh. Default false.
+	 * @param    bool  $force_refresh   Force cache refresh. Default false.
 	 * @return   array                     Dashboard data.
 	 */
 	public function get_dashboard_data( array $options = array(), bool $force_refresh = false ): array {
 		// Set defaults
 		$defaults = array(
-			'date_range'            => '30days',
-			'include_suggestions'   => true,
-			'include_health'        => true,
-			'include_activity'      => true,
+			'date_range'          => '30days',
+			'include_suggestions' => true,
+			'include_health'      => true,
+			'include_activity'    => true,
 		);
 
 		$options = array_merge( $defaults, $options );
@@ -154,18 +154,24 @@ class SCD_Dashboard_Service {
 		if ( ! $force_refresh ) {
 			$cached = $this->get_from_cache( $cache_key );
 			if ( false !== $cached ) {
-				$this->logger->debug( 'Dashboard data served from cache', array(
-					'cache_key' => $cache_key,
-				) );
+				$this->logger->debug(
+					'Dashboard data served from cache',
+					array(
+						'cache_key' => $cache_key,
+					)
+				);
 				return $cached;
 			}
 		}
 
 		// Cache miss - calculate fresh data
-		$this->logger->debug( 'Dashboard cache miss, calculating fresh data', array(
-			'cache_key' => $cache_key,
-			'force_refresh' => $force_refresh,
-		) );
+		$this->logger->debug(
+			'Dashboard cache miss, calculating fresh data',
+			array(
+				'cache_key'     => $cache_key,
+				'force_refresh' => $force_refresh,
+			)
+		);
 
 		$data = $this->calculate_dashboard_data( $options );
 
@@ -181,7 +187,7 @@ class SCD_Dashboard_Service {
 	 * This runs on cache miss. All expensive queries and calculations happen here.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $options    Dashboard options (already merged with defaults).
+	 * @param    array $options    Dashboard options (already merged with defaults).
 	 * @return   array                Dashboard data.
 	 */
 	private function calculate_dashboard_data( array $options ): array {
@@ -207,15 +213,15 @@ class SCD_Dashboard_Service {
 		$timeline_campaigns = $this->get_timeline_campaigns( 30 );
 
 		return array(
-			'metrics'              => $metrics,
-			'campaign_stats'       => $campaign_stats,
-			'top_campaigns'        => $top_campaigns,
-			'recent_activity'      => $recent_activity,
-			'campaign_health'      => $campaign_health,
-			'all_campaigns'        => $all_campaigns,
-			'timeline_campaigns'   => $timeline_campaigns,
-			'is_premium'           => $this->feature_gate->is_premium(),
-			'campaign_limit'       => $this->feature_gate->get_campaign_limit(),
+			'metrics'            => $metrics,
+			'campaign_stats'     => $campaign_stats,
+			'top_campaigns'      => $top_campaigns,
+			'recent_activity'    => $recent_activity,
+			'campaign_health'    => $campaign_health,
+			'all_campaigns'      => $all_campaigns,
+			'timeline_campaigns' => $timeline_campaigns,
+			'is_premium'         => $this->feature_gate->is_premium(),
+			'campaign_limit'     => $this->feature_gate->get_campaign_limit(),
 		);
 	}
 
@@ -248,7 +254,7 @@ class SCD_Dashboard_Service {
 
 		foreach ( $stats as $stat ) {
 			$status = $stat['status'];
-			$count = absint( $stat['count'] );
+			$count  = absint( $stat['count'] );
 
 			if ( isset( $result[ $status ] ) ) {
 				$result[ $status ] = $count;
@@ -264,18 +270,20 @@ class SCD_Dashboard_Service {
 	 * Get top campaigns by revenue.
 	 *
 	 * @since    1.0.0
-	 * @param    int       $limit         Number of campaigns to retrieve.
-	 * @param    string    $date_range    Date range.
+	 * @param    int    $limit         Number of campaigns to retrieve.
+	 * @param    string $date_range    Date range.
 	 * @return   array                    Top campaigns.
 	 */
 	private function get_top_campaigns( int $limit, string $date_range ): array {
 		// Get all active campaigns
-		$campaigns = $this->campaign_repository->find_all( array(
-			'status'  => 'active',
-			'orderby' => 'created_at',
-			'order'   => 'DESC',
-			'limit'   => $limit,
-		) );
+		$campaigns = $this->campaign_repository->find_all(
+			array(
+				'status'  => 'active',
+				'orderby' => 'created_at',
+				'order'   => 'DESC',
+				'limit'   => $limit,
+			)
+		);
 
 		if ( empty( $campaigns ) ) {
 			return array();
@@ -283,9 +291,9 @@ class SCD_Dashboard_Service {
 
 		// Convert campaign objects to arrays and get IDs
 		$campaign_data = array();
-		$campaign_ids = array();
+		$campaign_ids  = array();
 		foreach ( $campaigns as $campaign ) {
-			$campaign_ids[] = $campaign->get_id();
+			$campaign_ids[]  = $campaign->get_id();
 			$campaign_data[] = array(
 				'id'     => $campaign->get_id(),
 				'name'   => $campaign->get_name(),
@@ -325,7 +333,7 @@ class SCD_Dashboard_Service {
 	 * Get recent activity events.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $limit    Number of events to retrieve.
+	 * @param    int $limit    Number of events to retrieve.
 	 * @return   array            Recent activity events.
 	 */
 	private function get_recent_activity( int $limit ): array {
@@ -394,17 +402,35 @@ class SCD_Dashboard_Service {
 			'warnings'         => array(),
 			'success_messages' => array(),
 			'categories'       => array(
-				'configuration' => array( 'status' => 'healthy', 'count' => 0 ),
-				'coverage'      => array( 'status' => 'healthy', 'count' => 0 ),
-				'schedule'      => array( 'status' => 'healthy', 'count' => 0 ),
-				'discount'      => array( 'status' => 'healthy', 'count' => 0 ),
-				'stock'         => array( 'status' => 'healthy', 'count' => 0 ),
-				'conflicts'     => array( 'status' => 'healthy', 'count' => 0 ),
+				'configuration' => array(
+					'status' => 'healthy',
+					'count'  => 0,
+				),
+				'coverage'      => array(
+					'status' => 'healthy',
+					'count'  => 0,
+				),
+				'schedule'      => array(
+					'status' => 'healthy',
+					'count'  => 0,
+				),
+				'discount'      => array(
+					'status' => 'healthy',
+					'count'  => 0,
+				),
+				'stock'         => array(
+					'status' => 'healthy',
+					'count'  => 0,
+				),
+				'conflicts'     => array(
+					'status' => 'healthy',
+					'count'  => 0,
+				),
 			),
 			'quick_stats'      => array(
-				'total_analyzed'  => $aggregate_health['total_campaigns_analyzed'],
-				'issues_count'    => count( $aggregate_health['critical_issues'] ),
-				'warnings_count'  => count( $aggregate_health['warnings'] ),
+				'total_analyzed' => $aggregate_health['total_campaigns_analyzed'],
+				'issues_count'   => count( $aggregate_health['critical_issues'] ),
+				'warnings_count' => count( $aggregate_health['warnings'] ),
 			),
 		);
 
@@ -448,11 +474,14 @@ class SCD_Dashboard_Service {
 		}
 
 		// Check campaign limit
-		$active_campaigns = array_filter( $campaigns, function( $c ) {
-			return 'active' === $c['status'];
-		} );
-		$active_count = count( $active_campaigns );
-		$campaign_limit = $this->feature_gate->get_campaign_limit();
+		$active_campaigns = array_filter(
+			$campaigns,
+			function ( $c ) {
+				return 'active' === $c['status'];
+			}
+		);
+		$active_count     = count( $active_campaigns );
+		$campaign_limit   = $this->feature_gate->get_campaign_limit();
 
 		if ( 0 !== $campaign_limit && $active_count >= $campaign_limit ) {
 			$health['issues'][] = array(
@@ -463,7 +492,7 @@ class SCD_Dashboard_Service {
 					$campaign_limit
 				),
 			);
-			$health['status'] = 'critical';
+			$health['status']   = 'critical';
 		} elseif ( 0 !== $campaign_limit && $active_count >= ( $campaign_limit * 0.67 ) ) {
 			$health['warnings'][] = array(
 				'type'    => 'approaching_limit',
@@ -480,7 +509,7 @@ class SCD_Dashboard_Service {
 		}
 
 		// Recalculate quick stats after campaign limit checks
-		$health['quick_stats']['issues_count'] = count( $health['issues'] );
+		$health['quick_stats']['issues_count']   = count( $health['issues'] );
 		$health['quick_stats']['warnings_count'] = count( $health['warnings'] );
 
 		// Add success messages if everything is healthy
@@ -512,9 +541,18 @@ class SCD_Dashboard_Service {
 			'warnings'         => array(),
 			'success_messages' => array(),
 			'categories'       => array(
-				'configuration' => array( 'status' => 'healthy', 'count' => 0 ),
-				'schedule'      => array( 'status' => 'healthy', 'count' => 0 ),
-				'conflicts'     => array( 'status' => 'healthy', 'count' => 0 ),
+				'configuration' => array(
+					'status' => 'healthy',
+					'count'  => 0,
+				),
+				'schedule'      => array(
+					'status' => 'healthy',
+					'count'  => 0,
+				),
+				'conflicts'     => array(
+					'status' => 'healthy',
+					'count'  => 0,
+				),
 			),
 			'quick_stats'      => array(
 				'total_analyzed' => 0,
@@ -528,7 +566,7 @@ class SCD_Dashboard_Service {
 	 * Map service status to dashboard status.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $service_status    Status from health service.
+	 * @param    string $service_status    Status from health service.
 	 * @return   string                       Dashboard status.
 	 */
 	private function map_status_to_dashboard( string $service_status ): string {
@@ -546,12 +584,12 @@ class SCD_Dashboard_Service {
 	 * Map category data to dashboard category format.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $category_data    Category data from service.
+	 * @param    array $category_data    Category data from service.
 	 * @return   array                      Dashboard category format.
 	 */
 	private function map_category_status( array $category_data ): array {
 		$critical_count = isset( $category_data['critical'] ) ? $category_data['critical'] : 0;
-		$warning_count = isset( $category_data['warning'] ) ? $category_data['warning'] : 0;
+		$warning_count  = isset( $category_data['warning'] ) ? $category_data['warning'] : 0;
 
 		$status = 'healthy';
 		if ( $critical_count > 0 ) {
@@ -573,7 +611,7 @@ class SCD_Dashboard_Service {
 	 * Returns campaigns sorted by urgency with pre-computed display data.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $limit    Number of campaigns to retrieve.
+	 * @param    int $limit    Number of campaigns to retrieve.
 	 * @return   array            Recent campaigns prepared for display.
 	 */
 	public function get_recent_campaigns( int $limit = 5 ): array {
@@ -583,41 +621,47 @@ class SCD_Dashboard_Service {
 				'status' => array( 'active', 'scheduled', 'paused', 'draft' ),
 			),
 			array(
-				'order_by' => 'created_at',
+				'order_by'        => 'created_at',
 				'order_direction' => 'DESC',
-				'limit' => $limit * 2, // Get more to allow urgency sorting
+				'limit'           => $limit * 2, // Get more to allow urgency sorting
 			)
 		);
 
 		// Debug: Log what we found
-		$this->logger->debug( 'Dashboard Service: get_recent_campaigns()', array(
-			'campaigns_found' => count( $campaigns ),
-			'limit_requested' => $limit,
-		) );
+		$this->logger->debug(
+			'Dashboard Service: get_recent_campaigns()',
+			array(
+				'campaigns_found' => count( $campaigns ),
+				'limit_requested' => $limit,
+			)
+		);
 
 		// Pre-compute all display data
 		$prepared = array();
 		foreach ( $campaigns as $campaign ) {
 			// Convert Campaign object to array
 			$campaign_array = is_object( $campaign ) ? $campaign->to_array() : $campaign;
-			$prepared[] = $this->prepare_campaign_for_display( $campaign_array );
+			$prepared[]     = $this->prepare_campaign_for_display( $campaign_array );
 		}
 
 		// Sort by urgency (ending soon first)
-		usort( $prepared, function( $a, $b ) {
-			// Urgent campaigns first
-			if ( $a['is_urgent'] !== $b['is_urgent'] ) {
-				return $b['is_urgent'] <=> $a['is_urgent'];
-			}
+		usort(
+			$prepared,
+			function ( $a, $b ) {
+				// Urgent campaigns first
+				if ( $a['is_urgent'] !== $b['is_urgent'] ) {
+					return $b['is_urgent'] <=> $a['is_urgent'];
+				}
 
-			// Then by days remaining (ascending)
-			if ( isset( $a['days_until_end'], $b['days_until_end'] ) ) {
-				return $a['days_until_end'] <=> $b['days_until_end'];
-			}
+				// Then by days remaining (ascending)
+				if ( isset( $a['days_until_end'], $b['days_until_end'] ) ) {
+					return $a['days_until_end'] <=> $b['days_until_end'];
+				}
 
-			// Fall back to created date
-			return 0;
-		} );
+				// Fall back to created date
+				return 0;
+			}
+		);
 
 		// Return only requested limit after sorting
 		return array_slice( $prepared, 0, $limit );
@@ -630,7 +674,7 @@ class SCD_Dashboard_Service {
 	 * Returns campaigns with pre-calculated timeline positioning.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $days    Timeline range in days.
+	 * @param    int $days    Timeline range in days.
 	 * @return   array           Timeline campaigns with position data.
 	 */
 	public function get_timeline_campaigns( int $days = 30 ): array {
@@ -640,27 +684,27 @@ class SCD_Dashboard_Service {
 				'status' => array( 'active', 'scheduled' ),
 			),
 			array(
-				'order_by' => 'starts_at',
+				'order_by'        => 'starts_at',
 				'order_direction' => 'ASC',
-				'limit' => 10,
+				'limit'           => 10,
 			)
 		);
 
 		// Pre-calculate timeline positioning
-		$now = current_time( 'timestamp' );
+		$now            = current_time( 'timestamp' );
 		$timeline_start = $now;
-		$timeline_end = $now + ( $days * DAY_IN_SECONDS );
+		$timeline_end   = $now + ( $days * DAY_IN_SECONDS );
 
 		$prepared = array();
 		foreach ( $campaigns as $campaign ) {
 			// Convert Campaign object to array
-			$campaign_array = is_object( $campaign ) ? $campaign->to_array() : $campaign;
+			$campaign_array                      = is_object( $campaign ) ? $campaign->to_array() : $campaign;
 			$campaign_array['timeline_position'] = $this->calculate_timeline_position(
 				$campaign_array,
 				$timeline_start,
 				$timeline_end
 			);
-			$prepared[] = $campaign_array;
+			$prepared[]                          = $campaign_array;
 		}
 
 		return $prepared;
@@ -670,14 +714,14 @@ class SCD_Dashboard_Service {
 	 * Calculate timeline bar position and width.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $campaign         Campaign data.
-	 * @param    int      $timeline_start   Timeline start timestamp.
-	 * @param    int      $timeline_end     Timeline end timestamp.
+	 * @param    array $campaign         Campaign data.
+	 * @param    int   $timeline_start   Timeline start timestamp.
+	 * @param    int   $timeline_end     Timeline end timestamp.
 	 * @return   array                      Position data (left, width, formatted dates).
 	 */
 	private function calculate_timeline_position( array $campaign, int $timeline_start, int $timeline_end ): array {
 		$start_time = ! empty( $campaign['starts_at'] ) ? strtotime( $campaign['starts_at'] ) : $timeline_start;
-		$end_time = ! empty( $campaign['ends_at'] ) ? strtotime( $campaign['ends_at'] ) : $timeline_end;
+		$end_time   = ! empty( $campaign['ends_at'] ) ? strtotime( $campaign['ends_at'] ) : $timeline_end;
 
 		// Calculate left position (%)
 		$left_pos = 0;
@@ -689,7 +733,7 @@ class SCD_Dashboard_Service {
 		$width = 100;
 		if ( $end_time < $timeline_end ) {
 			$right_pos = ( ( $end_time - $timeline_start ) / ( $timeline_end - $timeline_start ) ) * 100;
-			$width = $right_pos - $left_pos;
+			$width     = $right_pos - $left_pos;
 		} else {
 			$width = 100 - $left_pos;
 		}
@@ -698,11 +742,11 @@ class SCD_Dashboard_Service {
 		$width = max( 2, $width );
 
 		return array(
-			'left' => round( $left_pos, 2 ),
-			'width' => round( $width, 2 ),
+			'left'                 => round( $left_pos, 2 ),
+			'width'                => round( $width, 2 ),
 			'start_date_formatted' => wp_date( 'M j', $start_time ),
-			'end_date_formatted' => wp_date( 'M j', $end_time ),
-			'date_range' => wp_date( 'M j', $start_time ) . ' - ' . wp_date( 'M j', $end_time ),
+			'end_date_formatted'   => wp_date( 'M j', $end_time ),
+			'date_range'           => wp_date( 'M j', $start_time ) . ' - ' . wp_date( 'M j', $end_time ),
 		);
 	}
 
@@ -712,7 +756,7 @@ class SCD_Dashboard_Service {
 	 * Pre-computes all display data so view template can be "dumb".
 	 *
 	 * @since    1.0.0
-	 * @param    array    $campaign    Campaign data array.
+	 * @param    array $campaign    Campaign data array.
 	 * @return   array                Campaign with all display fields added.
 	 */
 	private function prepare_campaign_for_display( array $campaign ): array {
@@ -735,36 +779,36 @@ class SCD_Dashboard_Service {
 	 * Calculate all time-related display data.
 	 *
 	 * @since    1.0.0
-	 * @param    array       $campaign    Campaign data.
-	 * @param    DateTime    $now         Current datetime object.
+	 * @param    array    $campaign    Campaign data.
+	 * @param    DateTime $now         Current datetime object.
 	 * @return   array                    Time data array.
 	 */
 	private function calculate_time_data( array $campaign, DateTime $now ): array {
 		$data = array(
-			'time_remaining_text' => '',
+			'time_remaining_text'   => '',
 			'time_until_start_text' => '',
-			'days_until_end' => null,
-			'days_until_start' => null,
+			'days_until_end'        => null,
+			'days_until_start'      => null,
 		);
 
 		// Active campaign - calculate time until end
 		if ( 'active' === $campaign['status'] && ! empty( $campaign['ends_at'] ) ) {
-			$end_date = new DateTime( $campaign['ends_at'], new DateTimeZone( 'UTC' ) );
+			$end_date     = new DateTime( $campaign['ends_at'], new DateTimeZone( 'UTC' ) );
 			$diff_seconds = $end_date->getTimestamp() - $now->getTimestamp();
 
 			if ( $diff_seconds > 0 ) {
-				$data['days_until_end'] = floor( $diff_seconds / DAY_IN_SECONDS );
+				$data['days_until_end']      = floor( $diff_seconds / DAY_IN_SECONDS );
 				$data['time_remaining_text'] = $this->format_time_remaining( $diff_seconds );
 			}
 		}
 
 		// Scheduled campaign - calculate time until start
 		if ( 'scheduled' === $campaign['status'] && ! empty( $campaign['starts_at'] ) ) {
-			$start_date = new DateTime( $campaign['starts_at'], new DateTimeZone( 'UTC' ) );
+			$start_date   = new DateTime( $campaign['starts_at'], new DateTimeZone( 'UTC' ) );
 			$diff_seconds = $start_date->getTimestamp() - $now->getTimestamp();
 
 			if ( $diff_seconds > 0 ) {
-				$data['days_until_start'] = floor( $diff_seconds / DAY_IN_SECONDS );
+				$data['days_until_start']      = floor( $diff_seconds / DAY_IN_SECONDS );
 				$data['time_until_start_text'] = $this->format_time_until_start( $diff_seconds );
 			}
 		}
@@ -776,13 +820,13 @@ class SCD_Dashboard_Service {
 	 * Format time remaining in human-readable format.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $seconds    Seconds remaining.
+	 * @param    int $seconds    Seconds remaining.
 	 * @return   string             Formatted time string.
 	 */
 	private function format_time_remaining( int $seconds ): string {
 		if ( $seconds < DAY_IN_SECONDS ) {
 			// Less than 1 day - show hours and minutes
-			$hours = floor( $seconds / HOUR_IN_SECONDS );
+			$hours   = floor( $seconds / HOUR_IN_SECONDS );
 			$minutes = floor( ( $seconds % HOUR_IN_SECONDS ) / MINUTE_IN_SECONDS );
 
 			if ( $hours > 0 ) {
@@ -814,7 +858,7 @@ class SCD_Dashboard_Service {
 	 * Format time until start in human-readable format.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $seconds    Seconds until start.
+	 * @param    int $seconds    Seconds until start.
 	 * @return   string             Formatted time string.
 	 */
 	private function format_time_until_start( int $seconds ): string {
@@ -841,32 +885,32 @@ class SCD_Dashboard_Service {
 	 * Calculate urgency flags.
 	 *
 	 * @since    1.0.0
-	 * @param    array       $campaign    Campaign data.
-	 * @param    DateTime    $now         Current datetime object.
+	 * @param    array    $campaign    Campaign data.
+	 * @param    DateTime $now         Current datetime object.
 	 * @return   array                    Urgency data array.
 	 */
 	private function calculate_urgency_data( array $campaign, DateTime $now ): array {
-		$is_ending_soon = false;
+		$is_ending_soon   = false;
 		$is_starting_soon = false;
 
 		// Check if ending soon (within 7 days)
 		if ( 'active' === $campaign['status'] && ! empty( $campaign['ends_at'] ) ) {
-			$end_date = new DateTime( $campaign['ends_at'], new DateTimeZone( 'UTC' ) );
-			$diff_days = ( $end_date->getTimestamp() - $now->getTimestamp() ) / DAY_IN_SECONDS;
+			$end_date       = new DateTime( $campaign['ends_at'], new DateTimeZone( 'UTC' ) );
+			$diff_days      = ( $end_date->getTimestamp() - $now->getTimestamp() ) / DAY_IN_SECONDS;
 			$is_ending_soon = $diff_days >= 0 && $diff_days <= 7;
 		}
 
 		// Check if starting soon (within 7 days)
 		if ( 'scheduled' === $campaign['status'] && ! empty( $campaign['starts_at'] ) ) {
-			$start_date = new DateTime( $campaign['starts_at'], new DateTimeZone( 'UTC' ) );
-			$diff_days = ( $start_date->getTimestamp() - $now->getTimestamp() ) / DAY_IN_SECONDS;
+			$start_date       = new DateTime( $campaign['starts_at'], new DateTimeZone( 'UTC' ) );
+			$diff_days        = ( $start_date->getTimestamp() - $now->getTimestamp() ) / DAY_IN_SECONDS;
 			$is_starting_soon = $diff_days >= 0 && $diff_days <= 7;
 		}
 
 		return array(
-			'is_ending_soon' => $is_ending_soon,
+			'is_ending_soon'   => $is_ending_soon,
 			'is_starting_soon' => $is_starting_soon,
-			'is_urgent' => $is_ending_soon || $is_starting_soon,
+			'is_urgent'        => $is_ending_soon || $is_starting_soon,
 		);
 	}
 
@@ -874,7 +918,7 @@ class SCD_Dashboard_Service {
 	 * Format status data for display.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $campaign    Campaign data.
+	 * @param    array $campaign    Campaign data.
 	 * @return   array                 Status data array.
 	 */
 	private function format_status_data( array $campaign ): array {
@@ -882,8 +926,8 @@ class SCD_Dashboard_Service {
 
 		return array(
 			'status_badge_class' => 'scd-status-' . $status,
-			'status_label' => ucfirst( $status ),
-			'status_icon' => $this->get_status_icon( $status ),
+			'status_label'       => ucfirst( $status ),
+			'status_icon'        => $this->get_status_icon( $status ),
 		);
 	}
 
@@ -891,16 +935,16 @@ class SCD_Dashboard_Service {
 	 * Get dashicon for status.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $status    Campaign status.
+	 * @param    string $status    Campaign status.
 	 * @return   string               Dashicon name.
 	 */
 	private function get_status_icon( string $status ): string {
 		$icons = array(
-			'active' => 'yes-alt',
+			'active'    => 'yes-alt',
 			'scheduled' => 'calendar-alt',
-			'paused' => 'controls-pause',
-			'draft' => 'edit',
-			'expired' => 'clock',
+			'paused'    => 'controls-pause',
+			'draft'     => 'edit',
+			'expired'   => 'clock',
 		);
 
 		return $icons[ $status ] ?? 'admin-generic';
@@ -910,11 +954,11 @@ class SCD_Dashboard_Service {
 	 * Generate cache key for dashboard data.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $options    Dashboard options.
+	 * @param    array $options    Dashboard options.
 	 * @return   string               Cache key.
 	 */
 	private function get_cache_key( array $options ): string {
-		$user_id = get_current_user_id();
+		$user_id      = get_current_user_id();
 		$options_hash = md5( wp_json_encode( $options ) );
 
 		return sprintf( 'dashboard_%d_%s', $user_id, $options_hash );
@@ -924,7 +968,7 @@ class SCD_Dashboard_Service {
 	 * Get data from cache.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $key    Cache key.
+	 * @param    string $key    Cache key.
 	 * @return   mixed             Cached data or false if not found.
 	 */
 	private function get_from_cache( string $key ) {
@@ -935,8 +979,8 @@ class SCD_Dashboard_Service {
 	 * Store data in cache.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $key     Cache key.
-	 * @param    array     $data    Data to cache.
+	 * @param    string $key     Cache key.
+	 * @param    array  $data    Data to cache.
 	 * @return   void
 	 */
 	private function store_in_cache( string $key, array $data ): void {
@@ -949,7 +993,7 @@ class SCD_Dashboard_Service {
 	 * Called when campaign data changes that affects this user's dashboard.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $user_id    User ID. Null for current user.
+	 * @param    int $user_id    User ID. Null for current user.
 	 * @return   void
 	 */
 	public function invalidate_cache( int $user_id = null ): void {
@@ -981,9 +1025,12 @@ class SCD_Dashboard_Service {
 			)
 		);
 
-		$this->logger->debug( 'Invalidated dashboard cache for user', array(
-			'user_id' => $user_id,
-		) );
+		$this->logger->debug(
+			'Invalidated dashboard cache for user',
+			array(
+				'user_id' => $user_id,
+			)
+		);
 	}
 
 	/**
@@ -1019,9 +1066,12 @@ class SCD_Dashboard_Service {
 			)
 		);
 
-		$this->logger->info( 'Invalidated all dashboard caches', array(
-			'transients_deleted' => $count,
-		) );
+		$this->logger->info(
+			'Invalidated all dashboard caches',
+			array(
+				'transients_deleted' => $count,
+			)
+		);
 	}
 
 	/**
@@ -1058,7 +1108,7 @@ class SCD_Dashboard_Service {
 	 * Invalidates cache for campaign owner and all admins.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign|int    $campaign    Campaign object or ID.
+	 * @param    SCD_Campaign|int $campaign    Campaign object or ID.
 	 * @return   void
 	 */
 	public function on_campaign_changed( $campaign ): void {
@@ -1071,19 +1121,24 @@ class SCD_Dashboard_Service {
 		}
 
 		// Invalidate for all admins (they can see all campaigns)
-		$admins = get_users( array(
-			'role' => 'administrator',
-			'fields' => 'ID',
-		) );
+		$admins = get_users(
+			array(
+				'role'   => 'administrator',
+				'fields' => 'ID',
+			)
+		);
 
 		foreach ( $admins as $admin_id ) {
 			$this->invalidate_cache( $admin_id );
 		}
 
-		$this->logger->debug( 'Invalidated dashboard cache for campaign change', array(
-			'campaign_id' => is_object( $campaign ) && method_exists( $campaign, 'get_id' ) ? $campaign->get_id() : $campaign,
-			'admins_affected' => count( $admins ),
-		) );
+		$this->logger->debug(
+			'Invalidated dashboard cache for campaign change',
+			array(
+				'campaign_id'     => is_object( $campaign ) && method_exists( $campaign, 'get_id' ) ? $campaign->get_id() : $campaign,
+				'admins_affected' => count( $admins ),
+			)
+		);
 	}
 
 	/**
@@ -1092,23 +1147,28 @@ class SCD_Dashboard_Service {
 	 * Used by wizard hooks that pass campaign ID instead of object.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $campaign_id    Campaign ID.
+	 * @param    int $campaign_id    Campaign ID.
 	 * @return   void
 	 */
 	public function on_campaign_changed_by_id( int $campaign_id ): void {
 		// Invalidate for all admins (they can see all campaigns)
-		$admins = get_users( array(
-			'role' => 'administrator',
-			'fields' => 'ID',
-		) );
+		$admins = get_users(
+			array(
+				'role'   => 'administrator',
+				'fields' => 'ID',
+			)
+		);
 
 		foreach ( $admins as $admin_id ) {
 			$this->invalidate_cache( $admin_id );
 		}
 
-		$this->logger->debug( 'Invalidated dashboard cache for campaign change (by ID)', array(
-			'campaign_id' => $campaign_id,
-			'admins_affected' => count( $admins ),
-		) );
+		$this->logger->debug(
+			'Invalidated dashboard cache for campaign change (by ID)',
+			array(
+				'campaign_id'     => $campaign_id,
+				'admins_affected' => count( $admins ),
+			)
+		);
 	}
 }

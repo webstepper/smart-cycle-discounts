@@ -76,26 +76,26 @@ class SCD_SendGrid_Provider implements SCD_Email_Provider {
 	 * Initialize provider.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger    $logger        Logger instance.
-	 * @param    string        $api_key       SendGrid API key.
-	 * @param    string        $from_email    From email address.
-	 * @param    string        $from_name     From name.
+	 * @param    SCD_Logger $logger        Logger instance.
+	 * @param    string     $api_key       SendGrid API key.
+	 * @param    string     $from_email    From email address.
+	 * @param    string     $from_name     From name.
 	 */
 	public function __construct( SCD_Logger $logger, string $api_key = '', string $from_email = '', string $from_name = '' ) {
-		$this->logger = $logger;
-		$this->api_key = $api_key;
+		$this->logger     = $logger;
+		$this->api_key    = $api_key;
 		$this->from_email = ! empty( $from_email ) ? $from_email : get_option( 'admin_email' );
-		$this->from_name = ! empty( $from_name ) ? $from_name : get_bloginfo( 'name' );
+		$this->from_name  = ! empty( $from_name ) ? $from_name : get_bloginfo( 'name' );
 	}
 
 	/**
 	 * Send email.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $to         Recipient email address.
-	 * @param    string    $subject    Email subject.
-	 * @param    string    $content    Email content (HTML).
-	 * @param    array     $headers    Optional. Email headers.
+	 * @param    string $to         Recipient email address.
+	 * @param    string $subject    Email subject.
+	 * @param    string $content    Email content (HTML).
+	 * @param    array  $headers    Optional. Email headers.
 	 * @return   bool                  True on success, false on failure.
 	 */
 	public function send( string $to, string $subject, string $content, array $headers = array() ): bool {
@@ -113,7 +113,7 @@ class SCD_SendGrid_Provider implements SCD_Email_Provider {
 		$payload = array(
 			'personalizations' => array(
 				array(
-					'to' => array(
+					'to'      => array(
 						array(
 							'email' => $to,
 						),
@@ -121,53 +121,65 @@ class SCD_SendGrid_Provider implements SCD_Email_Provider {
 					'subject' => $subject,
 				),
 			),
-			'from' => array(
+			'from'             => array(
 				'email' => $this->from_email,
-				'name' => $this->from_name,
+				'name'  => $this->from_name,
 			),
-			'content' => array(
+			'content'          => array(
 				array(
-					'type' => 'text/html',
+					'type'  => 'text/html',
 					'value' => $content,
 				),
 			),
 		);
 
 		// Make API request
-		$response = wp_remote_post( $this->api_endpoint, array(
-			'headers' => array(
-				'Authorization' => 'Bearer ' . $this->api_key,
-				'Content-Type' => 'application/json',
-			),
-			'body' => wp_json_encode( $payload ),
-			'timeout' => 30,
-		) );
+		$response = wp_remote_post(
+			$this->api_endpoint,
+			array(
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $this->api_key,
+					'Content-Type'  => 'application/json',
+				),
+				'body'    => wp_json_encode( $payload ),
+				'timeout' => 30,
+			)
+		);
 
 		// Handle response
 		if ( is_wp_error( $response ) ) {
-			$this->logger->error( 'SendGrid API request failed', array(
-				'error' => $response->get_error_message(),
-				'to' => $to,
-			) );
+			$this->logger->error(
+				'SendGrid API request failed',
+				array(
+					'error' => $response->get_error_message(),
+					'to'    => $to,
+				)
+			);
 			return false;
 		}
 
 		$status_code = wp_remote_retrieve_response_code( $response );
 
 		if ( 202 === $status_code ) {
-			$this->logger->debug( 'Email sent via SendGrid', array(
-				'to' => $to,
-				'subject' => $subject,
-			) );
+			$this->logger->debug(
+				'Email sent via SendGrid',
+				array(
+					'to'      => $to,
+					'subject' => $subject,
+				)
+			);
 			return true;
 		}
 
 		$body = wp_remote_retrieve_body( $response );
-		$this->logger->error( 'SendGrid API error', array(
-			'status_code' => $status_code,
-			'response' => $body,
-			'to' => $to,
-		) );
+		$this->logger->error(
+			'SendGrid API error',
+			array(
+				'status_code' => $status_code,
+				'response'    => $body,
+				'to'          => $to,
+			)
+		);
 
 		return false;
 	}
@@ -176,21 +188,21 @@ class SCD_SendGrid_Provider implements SCD_Email_Provider {
 	 * Send batch of emails.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $emails    Array of email data.
+	 * @param    array $emails    Array of email data.
 	 * @return   array               Results array with success/failure status.
 	 */
 	public function send_batch( array $emails ): array {
 		$results = array(
 			'success' => 0,
-			'failed' => 0,
-			'total' => count( $emails ),
-			'errors' => array(),
+			'failed'  => 0,
+			'total'   => count( $emails ),
+			'errors'  => array(),
 		);
 
 		// SendGrid allows batch sending, but for simplicity we'll send individually
 		// In production, you could optimize this to use SendGrid's batch API
 		foreach ( $emails as $index => $email ) {
-			$to = $email['to'] ?? '';
+			$to      = $email['to'] ?? '';
 			$subject = $email['subject'] ?? '';
 			$content = $email['content'] ?? '';
 			$headers = $email['headers'] ?? array();
@@ -198,12 +210,12 @@ class SCD_SendGrid_Provider implements SCD_Email_Provider {
 			$sent = $this->send( $to, $subject, $content, $headers );
 
 			if ( $sent ) {
-				$results['success']++;
+				++$results['success'];
 			} else {
-				$results['failed']++;
+				++$results['failed'];
 				$results['errors'][] = array(
 					'index' => $index,
-					'to' => $to,
+					'to'    => $to,
 					'error' => 'Failed to send via SendGrid',
 				);
 			}
@@ -244,17 +256,23 @@ class SCD_SendGrid_Provider implements SCD_Email_Provider {
 		}
 
 		// Test API key by making a validation request
-		$response = wp_remote_get( 'https://api.sendgrid.com/v3/scopes', array(
-			'headers' => array(
-				'Authorization' => 'Bearer ' . $this->api_key,
-			),
-			'timeout' => 10,
-		) );
+		$response = wp_remote_get(
+			'https://api.sendgrid.com/v3/scopes',
+			array(
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $this->api_key,
+				),
+				'timeout' => 10,
+			)
+		);
 
 		if ( is_wp_error( $response ) ) {
-			$this->logger->error( 'SendGrid config validation failed', array(
-				'error' => $response->get_error_message(),
-			) );
+			$this->logger->error(
+				'SendGrid config validation failed',
+				array(
+					'error' => $response->get_error_message(),
+				)
+			);
 			return false;
 		}
 
@@ -275,7 +293,7 @@ class SCD_SendGrid_Provider implements SCD_Email_Provider {
 		}
 
 		// Get stats for last 30 days
-		$end_date = gmdate( 'Y-m-d' );
+		$end_date   = gmdate( 'Y-m-d' );
 		$start_date = gmdate( 'Y-m-d', strtotime( '-30 days' ) );
 
 		$response = wp_remote_get(
@@ -289,9 +307,12 @@ class SCD_SendGrid_Provider implements SCD_Email_Provider {
 		);
 
 		if ( is_wp_error( $response ) ) {
-			$this->logger->error( 'Failed to fetch SendGrid stats', array(
-				'error' => $response->get_error_message(),
-			) );
+			$this->logger->error(
+				'Failed to fetch SendGrid stats',
+				array(
+					'error' => $response->get_error_message(),
+				)
+			);
 			return array();
 		}
 
@@ -310,13 +331,13 @@ class SCD_SendGrid_Provider implements SCD_Email_Provider {
 
 		// Aggregate stats from all days
 		$stats = array(
-			'provider' => $this->get_name(),
-			'period' => 'Last 30 days',
-			'requests' => 0,
-			'delivered' => 0,
-			'opens' => 0,
-			'clicks' => 0,
-			'bounces' => 0,
+			'provider'     => $this->get_name(),
+			'period'       => 'Last 30 days',
+			'requests'     => 0,
+			'delivered'    => 0,
+			'opens'        => 0,
+			'clicks'       => 0,
+			'bounces'      => 0,
 			'spam_reports' => 0,
 		);
 
@@ -326,11 +347,11 @@ class SCD_SendGrid_Provider implements SCD_Email_Provider {
 			}
 
 			foreach ( $day['stats'] as $metric ) {
-				$stats['requests'] += $metric['metrics']['requests'] ?? 0;
-				$stats['delivered'] += $metric['metrics']['delivered'] ?? 0;
-				$stats['opens'] += $metric['metrics']['unique_opens'] ?? 0;
-				$stats['clicks'] += $metric['metrics']['unique_clicks'] ?? 0;
-				$stats['bounces'] += $metric['metrics']['bounces'] ?? 0;
+				$stats['requests']     += $metric['metrics']['requests'] ?? 0;
+				$stats['delivered']    += $metric['metrics']['delivered'] ?? 0;
+				$stats['opens']        += $metric['metrics']['unique_opens'] ?? 0;
+				$stats['clicks']       += $metric['metrics']['unique_clicks'] ?? 0;
+				$stats['bounces']      += $metric['metrics']['bounces'] ?? 0;
 				$stats['spam_reports'] += $metric['metrics']['spam_reports'] ?? 0;
 			}
 		}
@@ -342,7 +363,7 @@ class SCD_SendGrid_Provider implements SCD_Email_Provider {
 	 * Set API key.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $api_key    SendGrid API key.
+	 * @param    string $api_key    SendGrid API key.
 	 * @return   void
 	 */
 	public function set_api_key( string $api_key ): void {
@@ -353,7 +374,7 @@ class SCD_SendGrid_Provider implements SCD_Email_Provider {
 	 * Set from email address.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $from_email    From email address.
+	 * @param    string $from_email    From email address.
 	 * @return   void
 	 */
 	public function set_from_email( string $from_email ): void {
@@ -366,7 +387,7 @@ class SCD_SendGrid_Provider implements SCD_Email_Provider {
 	 * Set from name.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $from_name    From name.
+	 * @param    string $from_name    From name.
 	 * @return   void
 	 */
 	public function set_from_name( string $from_name ): void {

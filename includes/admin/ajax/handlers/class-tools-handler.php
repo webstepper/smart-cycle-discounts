@@ -64,15 +64,25 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 		$operation = isset( $request['operation'] ) ? sanitize_text_field( $request['operation'] ) : '';
 
 		// Log request start
-		$this->logger->flow( 'info', 'AJAX START', 'Processing tools operation', array(
-			'operation' => $operation,
-			'user_id' => get_current_user_id()
-		) );
+		$this->logger->flow(
+			'info',
+			'AJAX START',
+			'Processing tools operation',
+			array(
+				'operation' => $operation,
+				'user_id'   => get_current_user_id(),
+			)
+		);
 
 		if ( empty( $operation ) ) {
-			$this->logger->flow( 'error', 'AJAX ERROR', 'No operation specified', array(
-				'_start_time' => $start_time
-			) );
+			$this->logger->flow(
+				'error',
+				'AJAX ERROR',
+				'No operation specified',
+				array(
+					'_start_time' => $start_time,
+				)
+			);
 			return $this->error( __( 'No operation specified', 'smart-cycle-discounts' ) );
 		}
 
@@ -85,10 +95,15 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 			case 'rebuild_cache':
 				return $this->handle_rebuild_cache( $start_time );
 			default:
-				$this->logger->flow( 'error', 'AJAX ERROR', 'Invalid operation', array(
-					'operation' => $operation,
-					'_start_time' => $start_time
-				) );
+				$this->logger->flow(
+					'error',
+					'AJAX ERROR',
+					'Invalid operation',
+					array(
+						'operation'   => $operation,
+						'_start_time' => $start_time,
+					)
+				);
 				return $this->error( __( 'Invalid operation', 'smart-cycle-discounts' ) );
 		}
 	}
@@ -114,18 +129,25 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 		$size_after = $wpdb->get_var( "SELECT data_length + index_length FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = '{$campaigns_table}'" );
 
 		// Log with performance metrics
-		$this->logger->flow( 'notice', 'DB OPTIMIZE', 'Database tables optimized', array(
-			'table' => 'scd_campaigns',
-			'size_before' => size_format( $size_before, 2 ),
-			'size_after' => size_format( $size_after, 2 ),
-			'user_id' => get_current_user_id(),
-			'_start_time' => $start_time,
-			'_include_memory' => true
-		) );
+		$this->logger->flow(
+			'notice',
+			'DB OPTIMIZE',
+			'Database tables optimized',
+			array(
+				'table'           => 'scd_campaigns',
+				'size_before'     => size_format( $size_before, 2 ),
+				'size_after'      => size_format( $size_after, 2 ),
+				'user_id'         => get_current_user_id(),
+				'_start_time'     => $start_time,
+				'_include_memory' => true,
+			)
+		);
 
-		return $this->success( array(
-			'message' => __( 'Database tables optimized successfully', 'smart-cycle-discounts' )
-		) );
+		return $this->success(
+			array(
+				'message' => __( 'Database tables optimized successfully', 'smart-cycle-discounts' ),
+			)
+		);
 	}
 
 	/**
@@ -150,29 +172,41 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 
 		// Check for database errors
 		if ( false === $deleted ) {
-			$this->logger->flow( 'error', 'DB ERROR', 'Failed to cleanup expired campaigns', array(
-				'error' => $wpdb->last_error,
-				'query' => $wpdb->last_query,
-				'_start_time' => $start_time
-			) );
+			$this->logger->flow(
+				'error',
+				'DB ERROR',
+				'Failed to cleanup expired campaigns',
+				array(
+					'error'       => $wpdb->last_error,
+					'query'       => $wpdb->last_query,
+					'_start_time' => $start_time,
+				)
+			);
 			return $this->error( __( 'Database error occurred', 'smart-cycle-discounts' ) );
 		}
 
 		// Log successful cleanup
-		$this->logger->flow( 'notice', 'CAMPAIGN DELETE', 'Expired campaigns cleaned up', array(
-			'deleted_count' => $deleted,
-			'user_id' => get_current_user_id(),
-			'_start_time' => $start_time,
-			'_include_memory' => true
-		) );
-
-		return $this->success( array(
-			'message' => sprintf(
-				/* translators: %d: number of campaigns deleted */
-				_n( '%d expired campaign deleted', '%d expired campaigns deleted', $deleted, 'smart-cycle-discounts' ),
-				$deleted
+		$this->logger->flow(
+			'notice',
+			'CAMPAIGN DELETE',
+			'Expired campaigns cleaned up',
+			array(
+				'deleted_count'   => $deleted,
+				'user_id'         => get_current_user_id(),
+				'_start_time'     => $start_time,
+				'_include_memory' => true,
 			)
-		) );
+		);
+
+		return $this->success(
+			array(
+				'message' => sprintf(
+				/* translators: %d: number of campaigns deleted */
+					_n( '%d expired campaign deleted', '%d expired campaigns deleted', $deleted, 'smart-cycle-discounts' ),
+					$deleted
+				),
+			)
+		);
 	}
 
 	/**
@@ -208,16 +242,23 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		// Log cache clear with details
-		$this->logger->flow( 'notice', 'CACHE CLEAR', 'Cache cleared and rebuilt', array(
-			'operations' => $operations,
-			'transients_deleted' => $deleted,
-			'user_id' => get_current_user_id(),
-			'_start_time' => $start_time,
-			'_include_memory' => true
-		) );
+		$this->logger->flow(
+			'notice',
+			'CACHE CLEAR',
+			'Cache cleared and rebuilt',
+			array(
+				'operations'         => $operations,
+				'transients_deleted' => $deleted,
+				'user_id'            => get_current_user_id(),
+				'_start_time'        => $start_time,
+				'_include_memory'    => true,
+			)
+		);
 
-		return $this->success( array(
-			'message' => __( 'Cache cleared and rebuilt successfully', 'smart-cycle-discounts' )
-		) );
+		return $this->success(
+			array(
+				'message' => __( 'Cache cleared and rebuilt successfully', 'smart-cycle-discounts' ),
+			)
+		);
 	}
 }

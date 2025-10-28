@@ -71,11 +71,11 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Wizard_State_Service      $state_service         State service (required).
-	 * @param    SCD_Logger|null               $logger                Logger instance.
-	 * @param    SCD_Feature_Gate|null         $feature_gate          Feature gate.
-	 * @param    SCD_Idempotency_Service       $idempotency_service   Idempotency service (required).
-	 * @param    SCD_Step_Data_Transformer     $transformer           Data transformer (required).
+	 * @param    SCD_Wizard_State_Service  $state_service         State service (required).
+	 * @param    SCD_Logger|null           $logger                Logger instance.
+	 * @param    SCD_Feature_Gate|null     $feature_gate          Feature gate.
+	 * @param    SCD_Idempotency_Service   $idempotency_service   Idempotency service (required).
+	 * @param    SCD_Step_Data_Transformer $transformer           Data transformer (required).
 	 */
 	public function __construct(
 		$state_service,
@@ -92,11 +92,11 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		$this->state_service = $state_service;
-		$this->feature_gate = $feature_gate;
+		$this->feature_gate  = $feature_gate;
 
 		// Create services if not injected
 		$this->idempotency_service = $idempotency_service ?: new SCD_Idempotency_Service( $state_service );
-		$this->transformer = $transformer ?: new SCD_Step_Data_Transformer();
+		$this->transformer         = $transformer ?: new SCD_Step_Data_Transformer();
 	}
 
 	/**
@@ -115,7 +115,7 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Clean orchestration - delegates everything to services.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array|WP_Error       Response data or error.
 	 */
 	protected function handle( $request ) {
@@ -144,7 +144,7 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 		$data = $this->extract_data( $request );
 
 		// Handle idempotency
-		$user_id = get_current_user_id();
+		$user_id         = get_current_user_id();
 		$idempotency_key = $this->idempotency_service->generate_key( $step, $data, $user_id );
 
 		// Check for cached response
@@ -197,7 +197,6 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 			if ( is_wp_error( $save_result ) ) {
 				return $save_result;
 			}
-
 		} catch ( Exception $e ) {
 			return $this->handle_save_exception( $e, $step );
 		}
@@ -232,7 +231,7 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Extract step from request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   string|WP_Error      Step name or error.
 	 */
 	private function extract_step( $request ) {
@@ -253,7 +252,7 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Extract data from request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array                Step data.
 	 */
 	private function extract_data( $request ) {
@@ -266,12 +265,12 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Validate request size.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $data    Request data.
+	 * @param    array $data    Request data.
 	 * @return   true|WP_Error     True if valid, error otherwise.
 	 */
 	private function validate_request_size( $data ) {
 		$request_size = strlen( serialize( $data ) );
-		$max_size = 102400; // 100KB
+		$max_size     = 102400; // 100KB
 
 		if ( $request_size > $max_size ) {
 			return new WP_Error(
@@ -295,8 +294,8 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Single validation path - no auto-save bypass for security.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step name.
-	 * @param    array     $data    Step data.
+	 * @param    string $step    Step name.
+	 * @param    array  $data    Step data.
 	 * @return   true|WP_Error      True if valid, error otherwise.
 	 */
 	private function validate_step_data( $step, $data ) {
@@ -318,8 +317,8 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Validate PRO features.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step name.
-	 * @param    array     $data    Step data.
+	 * @param    string $step    Step name.
+	 * @param    array  $data    Step data.
 	 * @return   true|WP_Error      True if valid, error otherwise.
 	 */
 	private function validate_pro_features( $step, $data ) {
@@ -348,8 +347,8 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Always enforces validation - removed auto-save bypass for security.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step name.
-	 * @param    array     $data    Step data.
+	 * @param    string $step    Step name.
+	 * @param    array  $data    Step data.
 	 * @return   true|WP_Error      True if valid, error otherwise.
 	 */
 	private function validate_full_save( $step, $data ) {
@@ -381,8 +380,8 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Process step data.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step name.
-	 * @param    array     $data    Raw data.
+	 * @param    string $step    Step name.
+	 * @param    array  $data    Raw data.
 	 * @return   array|WP_Error     Processed data or error.
 	 */
 	private function process_step_data( $step, $data ) {
@@ -431,9 +430,9 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Save data to state service.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step             Step name.
-	 * @param    array     $processed_data   Processed data.
-	 * @param    array     $request          Request data.
+	 * @param    string $step             Step name.
+	 * @param    array  $processed_data   Processed data.
+	 * @param    array  $request          Request data.
 	 * @return   true|WP_Error               True if successful, error otherwise.
 	 */
 	private function save_to_state( $step, $processed_data, $request ) {
@@ -467,14 +466,14 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Build response.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step             Step name.
-	 * @param    array     $processed_data   Processed data.
-	 * @param    array     $request          Request data.
+	 * @param    string $step             Step name.
+	 * @param    array  $processed_data   Processed data.
+	 * @param    array  $request          Request data.
 	 * @return   array                       Response array.
 	 */
 	private function build_response( $step, $processed_data, $request ) {
 		$next_step = SCD_Wizard_Step_Registry::get_next_step( $step );
-		$progress = $this->state_service ? $this->state_service->get_progress() : array(
+		$progress  = $this->state_service ? $this->state_service->get_progress() : array(
 			'completed_steps' => array(),
 			'total_steps'     => SCD_Wizard_Step_Registry::get_step_count(),
 			'percentage'      => 0,
@@ -493,8 +492,8 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle save exception.
 	 *
 	 * @since    1.0.0
-	 * @param    Exception    $e       Exception.
-	 * @param    string       $step    Step name.
+	 * @param    Exception $e       Exception.
+	 * @param    string    $step    Step name.
 	 * @return   WP_Error             Error response.
 	 */
 	private function handle_save_exception( $e, $step ) {
@@ -513,7 +512,10 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 			return new WP_Error(
 				'database_error',
 				__( 'Database temporarily unavailable. Please try again.', 'smart-cycle-discounts' ),
-				array( 'status' => 503, 'retry_after' => 30 )
+				array(
+					'status'      => 503,
+					'retry_after' => 30,
+				)
 			);
 		}
 
@@ -521,7 +523,10 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 		return new WP_Error(
 			'save_step_error',
 			$e->getMessage(),
-			array( 'step' => $step, 'status' => 500 )
+			array(
+				'step'   => $step,
+				'status' => 500,
+			)
 		);
 	}
 }

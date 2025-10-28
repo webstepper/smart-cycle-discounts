@@ -37,8 +37,8 @@ class SCD_Validation {
 	 * Validate data based on context.
 	 *
 	 * @since    1.0.0
-	 * @param    array     $data       Data to validate.
-	 * @param    string    $context    Validation context.
+	 * @param    array  $data       Data to validate.
+	 * @param    string $context    Validation context.
 	 * @return   array|WP_Error         Sanitized data or error.
 	 */
 	public static function validate( array $data, $context ) {
@@ -52,14 +52,17 @@ class SCD_Validation {
 	 * Route validation to appropriate handler.
 	 *
 	 * @since    1.0.0
-	 * @param    array     $data       Data to validate.
-	 * @param    string    $context    Validation context.
+	 * @param    array  $data       Data to validate.
+	 * @param    string $context    Validation context.
 	 * @return   array|WP_Error         Sanitized data or error.
 	 */
 	private static function route_validation( array $data, string $context ) {
 		// Map context patterns to handlers
 		$routes = array(
-			'wizard_' => array( 'handler' => 'handle_wizard_validation', 'prefix' => 7 ),
+			'wizard_' => array(
+				'handler' => 'handle_wizard_validation',
+				'prefix'  => 7,
+			),
 		);
 
 		// Check prefixed routes
@@ -72,12 +75,30 @@ class SCD_Validation {
 
 		// Check exact routes
 		$exact_routes = array(
-			'campaign_complete'          => array( 'class' => 'SCD_Wizard_Validation', 'method' => 'validate_complete_campaign' ),
-			'campaign_compiled'          => array( 'class' => 'SCD_Wizard_Validation', 'method' => 'validate_compiled_campaign' ),
-			'campaign_update'            => array( 'class' => 'SCD_Wizard_Validation', 'method' => 'validate_campaign_update' ),
-			'ajax_action'                => array( 'class' => 'SCD_AJAX_Validation', 'method' => 'validate' ),
-			'ajax_navigation'            => array( 'class' => 'SCD_Wizard_Validation', 'method' => 'validate_navigation' ),
-			'product_meta'               => array( 'class' => 'SCD_AJAX_Validation', 'method' => 'validate_product_meta' ),
+			'campaign_complete' => array(
+				'class'  => 'SCD_Wizard_Validation',
+				'method' => 'validate_complete_campaign',
+			),
+			'campaign_compiled' => array(
+				'class'  => 'SCD_Wizard_Validation',
+				'method' => 'validate_compiled_campaign',
+			),
+			'campaign_update'   => array(
+				'class'  => 'SCD_Wizard_Validation',
+				'method' => 'validate_campaign_update',
+			),
+			'ajax_action'       => array(
+				'class'  => 'SCD_AJAX_Validation',
+				'method' => 'validate',
+			),
+			'ajax_navigation'   => array(
+				'class'  => 'SCD_Wizard_Validation',
+				'method' => 'validate_navigation',
+			),
+			'product_meta'      => array(
+				'class'  => 'SCD_AJAX_Validation',
+				'method' => 'validate_product_meta',
+			),
 		);
 
 		if ( isset( $exact_routes[ $context ] ) ) {
@@ -95,8 +116,8 @@ class SCD_Validation {
 	 * Handle wizard validation.
 	 *
 	 * @since    1.0.0
-	 * @param    array     $data    Data to validate.
-	 * @param    string    $step    Wizard step.
+	 * @param    array  $data    Data to validate.
+	 * @param    string $step    Wizard step.
 	 * @return   array|WP_Error      Sanitized data or error.
 	 */
 	private static function handle_wizard_validation( array $data, string $step ) {
@@ -107,7 +128,7 @@ class SCD_Validation {
 	 * Create unknown context error.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $context    Context name.
+	 * @param    string $context    Context name.
 	 * @return   WP_Error               Error object.
 	 */
 	private static function create_unknown_context_error( string $context ): WP_Error {
@@ -116,7 +137,7 @@ class SCD_Validation {
 			sprintf( __( 'Unknown validation context: %s', 'smart-cycle-discounts' ), $context )
 		);
 	}
-	
+
 	/**
 	 * Load specialized validators.
 	 *
@@ -143,12 +164,12 @@ class SCD_Validation {
 
 		self::$validators_loaded = true;
 	}
-	
+
 	/**
 	 * Extract error codes from WP_Error.
 	 *
 	 * @since    1.0.0
-	 * @param    WP_Error    $wp_error    WordPress error object.
+	 * @param    WP_Error $wp_error    WordPress error object.
 	 * @return   array                    Array of errors.
 	 */
 	public static function extract_error_codes( $wp_error ): array {
@@ -205,13 +226,13 @@ class SCD_Validation {
 	 * Get step setting args.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step name.
+	 * @param    string $step    Step name.
 	 * @return   array              Setting args.
 	 */
 	private static function get_step_setting_args( string $step ): array {
 		return array(
 			'type'              => 'object',
-			'sanitize_callback' => function( $data ) use ( $step ) {
+			'sanitize_callback' => function ( $data ) use ( $step ) {
 				return self::sanitize_step_data( $data, $step );
 			},
 			'default'           => array(),
@@ -226,17 +247,21 @@ class SCD_Validation {
 	 * @return   void
 	 */
 	private static function register_campaign_meta(): void {
-		register_meta( 'post', 'scd_campaign_data', array(
-			'type'              => 'object',
-			'sanitize_callback' => array( __CLASS__, 'sanitize_campaign_data' ),
-			'auth_callback'     => function() {
-				return current_user_can( 'manage_woocommerce' );
-			},
-			'single'            => true,
-			'show_in_rest'      => false,
-		) );
+		register_meta(
+			'post',
+			'scd_campaign_data',
+			array(
+				'type'              => 'object',
+				'sanitize_callback' => array( __CLASS__, 'sanitize_campaign_data' ),
+				'auth_callback'     => function () {
+					return current_user_can( 'manage_woocommerce' );
+				},
+				'single'            => true,
+				'show_in_rest'      => false,
+			)
+		);
 	}
-	
+
 	/**
 	 * Register campaign field meta.
 	 *
@@ -260,19 +285,49 @@ class SCD_Validation {
 	private static function get_campaign_meta_fields(): array {
 		return array(
 			// Basic fields
-			'scd_campaign_name'        => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field' ),
-			'scd_campaign_description' => array( 'type' => 'string', 'sanitize' => 'sanitize_textarea_field' ),
-			'scd_campaign_priority'    => array( 'type' => 'integer', 'sanitize' => 'absint' ),
+			'scd_campaign_name'        => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+			),
+			'scd_campaign_description' => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_textarea_field',
+			),
+			'scd_campaign_priority'    => array(
+				'type'     => 'integer',
+				'sanitize' => 'absint',
+			),
 			// Discount fields
-			'scd_discount_type'        => array( 'type' => 'string', 'sanitize' => 'sanitize_key' ),
-			'scd_discount_value'       => array( 'type' => 'number', 'sanitize' => 'floatval' ),
+			'scd_discount_type'        => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_key',
+			),
+			'scd_discount_value'       => array(
+				'type'     => 'number',
+				'sanitize' => 'floatval',
+			),
 			// Product fields
-			'scd_selection_type'       => array( 'type' => 'string', 'sanitize' => 'sanitize_key' ),
-			'scd_product_ids'          => array( 'type' => 'array', 'sanitize' => 'sanitize_product_ids' ),
+			'scd_selection_type'       => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_key',
+			),
+			'scd_product_ids'          => array(
+				'type'     => 'array',
+				'sanitize' => 'sanitize_product_ids',
+			),
 			// Schedule fields
-			'scd_start_date'           => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field' ),
-			'scd_end_date'             => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field' ),
-			'scd_timezone'             => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field' ),
+			'scd_start_date'           => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+			),
+			'scd_end_date'             => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+			),
+			'scd_timezone'             => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+			),
 		);
 	}
 
@@ -280,16 +335,16 @@ class SCD_Validation {
 	 * Get meta args.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $config    Field configuration.
+	 * @param    array $config    Field configuration.
 	 * @return   array               Registration args.
 	 */
 	private static function get_meta_args( array $config ): array {
 		$args = array(
-			'type'              => $config['type'],
-			'auth_callback'     => function() {
+			'type'          => $config['type'],
+			'auth_callback' => function () {
 				return current_user_can( 'manage_woocommerce' );
 			},
-			'single'            => true,
+			'single'        => true,
 		);
 
 		if ( 'sanitize_product_ids' === $config['sanitize'] ) {
@@ -305,7 +360,7 @@ class SCD_Validation {
 	 * Sanitize product IDs.
 	 *
 	 * @since    1.0.0
-	 * @param    mixed    $product_ids    Product IDs to sanitize.
+	 * @param    mixed $product_ids    Product IDs to sanitize.
 	 * @return   array                    Sanitized IDs.
 	 */
 	public static function sanitize_product_ids( $product_ids ): array {
@@ -314,7 +369,7 @@ class SCD_Validation {
 		}
 		return array_map( 'absint', $product_ids );
 	}
-	
+
 	/**
 	 * Sanitize step data - WordPress Native Implementation
 	 *
@@ -327,7 +382,7 @@ class SCD_Validation {
 		self::load_validators();
 		return SCD_Wizard_Validation::sanitize_step_data( $data, $step );
 	}
-	
+
 	/**
 	 * Get JavaScript validation data - WordPress Native Implementation
 	 *
@@ -349,7 +404,7 @@ class SCD_Validation {
 	 */
 	private static function get_js_constants(): array {
 		return array(
-			'basic' => array(
+			'basic'     => array(
 				'CAMPAIGN_NAME_MIN'        => SCD_Validation_Rules::CAMPAIGN_NAME_MIN,
 				'CAMPAIGN_NAME_MAX'        => SCD_Validation_Rules::CAMPAIGN_NAME_MAX,
 				'CAMPAIGN_DESCRIPTION_MAX' => SCD_Validation_Rules::CAMPAIGN_DESCRIPTION_MAX,
@@ -357,19 +412,19 @@ class SCD_Validation {
 				'CAMPAIGN_PRIORITY_MAX'    => SCD_Validation_Rules::CAMPAIGN_PRIORITY_MAX,
 			),
 			'discounts' => array(
-				'PERCENTAGE_MIN'   => SCD_Validation_Rules::PERCENTAGE_MIN,
-				'PERCENTAGE_MAX'   => SCD_Validation_Rules::PERCENTAGE_MAX,
-				'FIXED_MIN'        => SCD_Validation_Rules::FIXED_MIN,
-				'FIXED_MAX'        => SCD_Validation_Rules::FIXED_MAX,
-				'BOGO_BUY_MIN'     => SCD_Validation_Rules::BOGO_BUY_MIN,
-				'BOGO_BUY_MAX'     => SCD_Validation_Rules::BOGO_BUY_MAX,
-				'BOGO_GET_MIN'     => SCD_Validation_Rules::BOGO_GET_MIN,
-				'BOGO_GET_MAX'     => SCD_Validation_Rules::BOGO_GET_MAX,
-				'BUNDLE_SIZE_MIN'  => SCD_Validation_Rules::BUNDLE_SIZE_MIN,
-				'BUNDLE_SIZE_MAX'  => SCD_Validation_Rules::BUNDLE_SIZE_MAX,
-				'DISCOUNT_TYPES'   => SCD_Validation_Rules::DISCOUNT_TYPES,
+				'PERCENTAGE_MIN'  => SCD_Validation_Rules::PERCENTAGE_MIN,
+				'PERCENTAGE_MAX'  => SCD_Validation_Rules::PERCENTAGE_MAX,
+				'FIXED_MIN'       => SCD_Validation_Rules::FIXED_MIN,
+				'FIXED_MAX'       => SCD_Validation_Rules::FIXED_MAX,
+				'BOGO_BUY_MIN'    => SCD_Validation_Rules::BOGO_BUY_MIN,
+				'BOGO_BUY_MAX'    => SCD_Validation_Rules::BOGO_BUY_MAX,
+				'BOGO_GET_MIN'    => SCD_Validation_Rules::BOGO_GET_MIN,
+				'BOGO_GET_MAX'    => SCD_Validation_Rules::BOGO_GET_MAX,
+				'BUNDLE_SIZE_MIN' => SCD_Validation_Rules::BUNDLE_SIZE_MIN,
+				'BUNDLE_SIZE_MAX' => SCD_Validation_Rules::BUNDLE_SIZE_MAX,
+				'DISCOUNT_TYPES'  => SCD_Validation_Rules::DISCOUNT_TYPES,
 			),
-			'products' => array(
+			'products'  => array(
 				'RANDOM_COUNT_MIN'               => SCD_Validation_Rules::RANDOM_COUNT_MIN,
 				'RANDOM_COUNT_MAX'               => SCD_Validation_Rules::RANDOM_COUNT_MAX,
 				'RANDOM_COUNT_WARNING_THRESHOLD' => SCD_Validation_Rules::RANDOM_COUNT_WARNING_THRESHOLD,
@@ -377,7 +432,7 @@ class SCD_Validation {
 				'PRODUCT_IDS_MAX'                => SCD_Validation_Rules::PRODUCT_IDS_MAX,
 				'SELECTION_TYPES'                => SCD_Validation_Rules::SELECTION_TYPES,
 			),
-			'schedule' => array(
+			'schedule'  => array(
 				'DATE_FORMAT'                => get_option( 'date_format' ),
 				'TIME_FORMAT'                => get_option( 'time_format' ),
 				'ROTATION_INTERVAL_MIN'      => SCD_Validation_Rules::ROTATION_INTERVAL_MIN,
@@ -435,8 +490,8 @@ class SCD_Validation {
 	private static function get_discount_messages(): array {
 		return array(
 			'type_required'            => __( 'Discount type is required', 'smart-cycle-discounts' ),
-			'percentage_range'         => sprintf( __( 'Percentage must be between %d and %d', 'smart-cycle-discounts' ), SCD_Validation_Rules::PERCENTAGE_MIN, SCD_Validation_Rules::PERCENTAGE_MAX ),
-			'fixed_range'              => sprintf( __( 'Fixed amount must be between %s and %s', 'smart-cycle-discounts' ), wc_price( SCD_Validation_Rules::FIXED_MIN ), wc_price( SCD_Validation_Rules::FIXED_MAX ) ),
+			'percentage_range'         => sprintf( __( 'Percentage must be between %1$d and %2$d', 'smart-cycle-discounts' ), SCD_Validation_Rules::PERCENTAGE_MIN, SCD_Validation_Rules::PERCENTAGE_MAX ),
+			'fixed_range'              => sprintf( __( 'Fixed amount must be between %1$s and %2$s', 'smart-cycle-discounts' ), wc_price( SCD_Validation_Rules::FIXED_MIN ), wc_price( SCD_Validation_Rules::FIXED_MAX ) ),
 			'value_required'           => __( 'Discount value is required', 'smart-cycle-discounts' ),
 			'bogo_buy_required'        => __( 'Buy quantity is required for BOGO discount', 'smart-cycle-discounts' ),
 			'bogo_get_required'        => __( 'Get quantity is required for BOGO discount', 'smart-cycle-discounts' ),
@@ -459,7 +514,7 @@ class SCD_Validation {
 			'products_required'     => __( 'At least one product must be selected', 'smart-cycle-discounts' ),
 			'categories_required'   => __( 'At least one category must be selected', 'smart-cycle-discounts' ),
 			'random_count_required' => __( 'Random product count is required', 'smart-cycle-discounts' ),
-			'random_count_range'    => sprintf( __( 'Random count must be between %d and %d', 'smart-cycle-discounts' ), SCD_Validation_Rules::RANDOM_COUNT_MIN, SCD_Validation_Rules::RANDOM_COUNT_MAX ),
+			'random_count_range'    => sprintf( __( 'Random count must be between %1$d and %2$d', 'smart-cycle-discounts' ), SCD_Validation_Rules::RANDOM_COUNT_MIN, SCD_Validation_Rules::RANDOM_COUNT_MAX ),
 			'too_many_products'     => sprintf( __( 'Maximum %d products allowed', 'smart-cycle-discounts' ), SCD_Validation_Rules::PRODUCT_IDS_MAX ),
 		);
 	}
@@ -478,10 +533,10 @@ class SCD_Validation {
 			'invalid_end_date'        => __( 'Invalid end date format', 'smart-cycle-discounts' ),
 			'invalid_timezone'        => __( 'Invalid timezone', 'smart-cycle-discounts' ),
 			'duration_too_long'       => sprintf( __( 'Schedule duration cannot exceed %d days', 'smart-cycle-discounts' ), SCD_Validation_Rules::SCHEDULE_MAX_DURATION_DAYS ),
-			'rotation_interval_range' => sprintf( __( 'Rotation interval must be between %d and %d hours', 'smart-cycle-discounts' ), SCD_Validation_Rules::ROTATION_INTERVAL_MIN, SCD_Validation_Rules::ROTATION_INTERVAL_MAX ),
+			'rotation_interval_range' => sprintf( __( 'Rotation interval must be between %1$d and %2$d hours', 'smart-cycle-discounts' ), SCD_Validation_Rules::ROTATION_INTERVAL_MIN, SCD_Validation_Rules::ROTATION_INTERVAL_MAX ),
 		);
 	}
-	
+
 	/**
 	 * Sanitize campaign data - WordPress Settings API callback
 	 *
@@ -490,7 +545,7 @@ class SCD_Validation {
 	 * @return   array          Sanitized data
 	 */
 	public static function sanitize_campaign_data( array $data ) {
-		$steps = array( 'basic', 'products', 'discounts', 'schedule' );
+		$steps     = array( 'basic', 'products', 'discounts', 'schedule' );
 		$sanitized = array();
 
 		foreach ( $steps as $step ) {

@@ -44,7 +44,7 @@ class SCD_Migration_003_Float_To_Decimal implements SCD_Migration_Interface {
 	 * Initialize the migration.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager    $db    Database manager.
+	 * @param    SCD_Database_Manager $db    Database manager.
 	 */
 	public function __construct( SCD_Database_Manager $db ) {
 		$this->db = $db;
@@ -63,26 +63,26 @@ class SCD_Migration_003_Float_To_Decimal implements SCD_Migration_Interface {
 
 		// Define tables and their currency columns that must be DECIMAL
 		$tables_to_check = array(
-			'scd_campaigns' => array(
-				'discount_value' => 'DECIMAL(10,4)',
+			'scd_campaigns'        => array(
+				'discount_value'    => 'DECIMAL(10,4)',
 				'revenue_generated' => 'DECIMAL(15,4)',
-				'conversion_rate' => 'DECIMAL(5,2)',
+				'conversion_rate'   => 'DECIMAL(5,2)',
 			),
 			'scd_active_discounts' => array(
-				'original_price' => 'DECIMAL(15,4)',
-				'discounted_price' => 'DECIMAL(15,4)',
-				'discount_amount' => 'DECIMAL(15,4)',
+				'original_price'      => 'DECIMAL(15,4)',
+				'discounted_price'    => 'DECIMAL(15,4)',
+				'discount_amount'     => 'DECIMAL(15,4)',
 				'discount_percentage' => 'DECIMAL(5,2)',
-				'revenue_generated' => 'DECIMAL(15,4)',
+				'revenue_generated'   => 'DECIMAL(15,4)',
 			),
-			'scd_analytics' => array(
-				'revenue' => 'DECIMAL(15,4)',
+			'scd_analytics'        => array(
+				'revenue'         => 'DECIMAL(15,4)',
 				'discount_amount' => 'DECIMAL(15,4)',
-				'cart_total' => 'DECIMAL(15,4)',
+				'cart_total'      => 'DECIMAL(15,4)',
 			),
-			'scd_customer_usage' => array(
+			'scd_customer_usage'   => array(
 				'total_discount_amount' => 'DECIMAL(15,4)',
-				'total_order_value' => 'DECIMAL(15,4)',
+				'total_order_value'     => 'DECIMAL(15,4)',
 			),
 		);
 
@@ -118,7 +118,7 @@ class SCD_Migration_003_Float_To_Decimal implements SCD_Migration_Interface {
 				// CRITICAL: Check if column is FLOAT or DOUBLE (both cause precision errors)
 				if ( strpos( $current_type, 'FLOAT' ) !== false || strpos( $current_type, 'DOUBLE' ) !== false ) {
 					// Convert FLOAT/DOUBLE to DECIMAL
-					$null_clause = ( $column_info['Null'] === 'YES' ) ? 'NULL' : 'NOT NULL';
+					$null_clause    = ( $column_info['Null'] === 'YES' ) ? 'NULL' : 'NOT NULL';
 					$default_clause = '';
 
 					if ( $column_info['Default'] !== null ) {
@@ -133,16 +133,19 @@ class SCD_Migration_003_Float_To_Decimal implements SCD_Migration_Interface {
 					$converted = $wpdb->query( $alter_sql );
 
 					if ( false !== $converted ) {
-						$columns_converted++;
+						++$columns_converted;
 
 						// Log the conversion
 						if ( function_exists( 'scd_log_info' ) ) {
-							scd_log_info( 'Migration 003: Converted FLOAT to DECIMAL', array(
-								'table' => $table_short_name,
-								'column' => $column_name,
-								'from_type' => $current_type,
-								'to_type' => $desired_type,
-							) );
+							scd_log_info(
+								'Migration 003: Converted FLOAT to DECIMAL',
+								array(
+									'table'     => $table_short_name,
+									'column'    => $column_name,
+									'from_type' => $current_type,
+									'to_type'   => $desired_type,
+								)
+							);
 						}
 					}
 				}
@@ -151,9 +154,12 @@ class SCD_Migration_003_Float_To_Decimal implements SCD_Migration_Interface {
 
 		// Log summary
 		if ( function_exists( 'scd_log_info' ) ) {
-			scd_log_info( 'Migration 003 completed', array(
-				'columns_converted' => $columns_converted,
-			) );
+			scd_log_info(
+				'Migration 003 completed',
+				array(
+					'columns_converted' => $columns_converted,
+				)
+			);
 		}
 	}
 

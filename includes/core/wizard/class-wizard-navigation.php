@@ -36,40 +36,40 @@ class SCD_Wizard_Navigation {
 	 * @var      array    $config    Navigation configuration.
 	 */
 	private $config = array(
-		'steps' => array(
-			'basic' => array(
-				'title' => 'Basic Information',
+		'steps'          => array(
+			'basic'     => array(
+				'title'    => 'Basic Information',
 				'position' => 1,
 			),
-			'products' => array(
-				'title' => 'Product Selection',
-				'position' => 2,
-				'can_proceed_without_save' => true
+			'products'  => array(
+				'title'                    => 'Product Selection',
+				'position'                 => 2,
+				'can_proceed_without_save' => true,
 			),
 			'discounts' => array(
-				'title' => 'Discount Configuration',
+				'title'    => 'Discount Configuration',
 				'position' => 3,
 			),
-			'schedule' => array(
-				'title' => 'Schedule & Rotation',
+			'schedule'  => array(
+				'title'    => 'Schedule & Rotation',
 				'position' => 4,
 			),
-			'review' => array(
-				'title' => 'Review & Launch',
+			'review'    => array(
+				'title'    => 'Review & Launch',
 				'position' => 5,
-			)
+			),
 		),
 		'button_classes' => array(
-			'previous' => 'button scd-nav-btn scd-nav-btn--previous',
-			'next' => 'button button-primary scd-nav-btn scd-nav-btn--next',
-			'complete' => 'button button-primary scd-nav-btn scd-nav-btn--complete',
-			'secondary' => 'button button-secondary scd-nav-btn scd-nav-btn--draft'
+			'previous'  => 'button scd-nav-btn scd-nav-btn--previous',
+			'next'      => 'button button-primary scd-nav-btn scd-nav-btn--next',
+			'complete'  => 'button button-primary scd-nav-btn scd-nav-btn--complete',
+			'secondary' => 'button button-secondary scd-nav-btn scd-nav-btn--draft',
 		),
-		'icons' => array(
+		'icons'          => array(
 			'previous' => 'dashicons-arrow-left-alt2',
-			'next' => 'dashicons-arrow-right-alt2',
-			'complete' => 'dashicons-yes-alt'
-		)
+			'next'     => 'dashicons-arrow-right-alt2',
+			'complete' => 'dashicons-yes-alt',
+		),
 	);
 
 	/**
@@ -85,7 +85,7 @@ class SCD_Wizard_Navigation {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Wizard_Manager    $wizard_manager    Wizard manager instance.
+	 * @param    SCD_Wizard_Manager $wizard_manager    Wizard manager instance.
 	 */
 	public function __construct( $wizard_manager = null ) {
 		$this->wizard_manager = $wizard_manager;
@@ -106,8 +106,8 @@ class SCD_Wizard_Navigation {
 	 * Render navigation.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $current_step    Current wizard step.
-	 * @param    int       $campaign_id     Campaign ID (0 for new).
+	 * @param    string $current_step    Current wizard step.
+	 * @param    int    $campaign_id     Campaign ID (0 for new).
 	 * @return   void
 	 */
 	public function render_navigation( $current_step, $campaign_id = 0 ) {
@@ -128,23 +128,23 @@ class SCD_Wizard_Navigation {
 	 * Get navigation data.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $current_step    Current step.
+	 * @param    string $current_step    Current step.
 	 * @return   array                      Navigation data.
 	 */
 	public function get_navigation_data( $current_step ) {
-		$steps = array_keys( $this->config['steps'] );
+		$steps         = array_keys( $this->config['steps'] );
 		$current_index = array_search( $current_step, $steps, true );
 
 		return array(
-			'current_step' => $current_step,
+			'current_step'  => $current_step,
 			'current_index' => $current_index,
-			'total_steps' => count( $steps ),
+			'total_steps'   => count( $steps ),
 			'previous_step' => $current_index > 0 ? $steps[ $current_index - 1 ] : null,
-			'next_step' => $current_index < count( $steps ) - 1 ? $steps[ $current_index + 1 ] : null,
-			'is_first' => $current_index === 0,
-			'is_last' => $current_index === count( $steps ) - 1,
-			'progress' => $this->wizard_manager ? $this->wizard_manager->get_progress() : array(),
-			'config' => $this->config
+			'next_step'     => $current_index < count( $steps ) - 1 ? $steps[ $current_index + 1 ] : null,
+			'is_first'      => $current_index === 0,
+			'is_last'       => $current_index === count( $steps ) - 1,
+			'progress'      => $this->wizard_manager ? $this->wizard_manager->get_progress() : array(),
+			'config'        => $this->config,
 		);
 	}
 
@@ -153,7 +153,7 @@ class SCD_Wizard_Navigation {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $nav_data    Navigation data.
+	 * @param    array $nav_data    Navigation data.
 	 * @return   void
 	 */
 	private function render_inline_navigation( $nav_data ) {

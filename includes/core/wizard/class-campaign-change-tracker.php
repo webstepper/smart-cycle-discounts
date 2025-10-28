@@ -72,13 +72,13 @@ class SCD_Campaign_Change_Tracker {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    int                          $campaign_id        Campaign ID.
-	 * @param    SCD_Wizard_State_Service     $session            Session service.
-	 * @param    SCD_Campaign_Manager|null    $campaign_manager   Campaign manager.
+	 * @param    int                       $campaign_id        Campaign ID.
+	 * @param    SCD_Wizard_State_Service  $session            Session service.
+	 * @param    SCD_Campaign_Manager|null $campaign_manager   Campaign manager.
 	 */
 	public function __construct( $campaign_id, $session, $campaign_manager = null ) {
-		$this->campaign_id = $campaign_id;
-		$this->session = $session;
+		$this->campaign_id      = $campaign_id;
+		$this->session          = $session;
 		$this->campaign_manager = $campaign_manager;
 
 		// Load existing changes from session
@@ -89,9 +89,9 @@ class SCD_Campaign_Change_Tracker {
 	 * Track a field change.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step     Step name.
-	 * @param    string    $field    Field name.
-	 * @param    mixed     $value    New value.
+	 * @param    string $step     Step name.
+	 * @param    string $field    Field name.
+	 * @param    mixed  $value    New value.
 	 * @return   void
 	 */
 	public function track( $step, $field, $value ) {
@@ -113,8 +113,8 @@ class SCD_Campaign_Change_Tracker {
 	 * Track multiple fields for a step.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step name.
-	 * @param    array     $data    Field => value pairs.
+	 * @param    string $step    Step name.
+	 * @param    array  $data    Field => value pairs.
 	 * @return   void
 	 */
 	public function track_step( $step, $data ) {
@@ -133,9 +133,9 @@ class SCD_Campaign_Change_Tracker {
 	 * Checks changes first, falls back to database.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step      Step name.
-	 * @param    string    $field     Field name.
-	 * @param    mixed     $default   Default value.
+	 * @param    string $step      Step name.
+	 * @param    string $field     Field name.
+	 * @param    mixed  $default   Default value.
 	 * @return   mixed                Current value.
 	 */
 	public function get( $step, $field, $default = null ) {
@@ -152,7 +152,7 @@ class SCD_Campaign_Change_Tracker {
 	 * Get all data for a step (merged changes + database).
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step name.
+	 * @param    string $step    Step name.
 	 * @return   array              Merged step data.
 	 */
 	public function get_step_data( $step ) {
@@ -251,7 +251,7 @@ class SCD_Campaign_Change_Tracker {
 
 		if ( ! $this->campaign_manager ) {
 			// Try to get from container
-			$container = Smart_Cycle_Discounts::get_instance();
+			$container              = Smart_Cycle_Discounts::get_instance();
 			$this->campaign_manager = $container::get_service( 'campaign_manager' );
 		}
 
@@ -267,9 +267,9 @@ class SCD_Campaign_Change_Tracker {
 	 * Get value from database.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step      Step name.
-	 * @param    string    $field     Field name.
-	 * @param    mixed     $default   Default value.
+	 * @param    string $step      Step name.
+	 * @param    string $field     Field name.
+	 * @param    mixed  $default   Default value.
 	 * @return   mixed                Database value or default.
 	 */
 	private function get_from_database( $step, $field, $default = null ) {
@@ -292,8 +292,8 @@ class SCD_Campaign_Change_Tracker {
 	 * Extract step data from campaign entity.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign    $campaign    Campaign entity.
-	 * @param    string          $step        Step name.
+	 * @param    SCD_Campaign $campaign    Campaign entity.
+	 * @param    string       $step        Step name.
 	 * @return   array                        Step data.
 	 */
 	private function extract_step_data_from_campaign( $campaign, $step ) {
@@ -318,33 +318,33 @@ class SCD_Campaign_Change_Tracker {
 
 			case 'discounts':
 				$discount_rules = $campaign->get_discount_rules() ?: array();
-				$discount_type = $campaign->get_discount_type();
+				$discount_type  = $campaign->get_discount_type();
 				$discount_value = $campaign->get_discount_value();
 
 				return array(
-					'discount_type'              => $discount_type,
-					'discount_value_percentage'  => 'percentage' === $discount_type ? $discount_value : '',
-					'discount_value_fixed'       => 'fixed' === $discount_type ? $discount_value : '',
-					'conditions'                 => $discount_rules['conditions'] ?? array(),
-					'conditions_logic'           => $discount_rules['conditions_logic'] ?? 'all',
-					'usage_limit_per_customer'   => $discount_rules['usage_limit_per_customer'] ?? '',
-					'total_usage_limit'          => $discount_rules['total_usage_limit'] ?? '',
-					'apply_to'                   => $discount_rules['apply_to'] ?? 'per_item',
-					'max_discount_amount'        => $discount_rules['max_discount_amount'] ?? '',
-					'minimum_quantity'           => $discount_rules['minimum_quantity'] ?? '',
-					'minimum_order_amount'       => $discount_rules['minimum_order_amount'] ?? '',
-					'stack_with_others'          => $discount_rules['stack_with_others'] ?? false,
-					'allow_coupons'              => $discount_rules['allow_coupons'] ?? false,
-					'apply_to_sale_items'        => $discount_rules['apply_to_sale_items'] ?? false,
+					'discount_type'             => $discount_type,
+					'discount_value_percentage' => 'percentage' === $discount_type ? $discount_value : '',
+					'discount_value_fixed'      => 'fixed' === $discount_type ? $discount_value : '',
+					'conditions'                => $discount_rules['conditions'] ?? array(),
+					'conditions_logic'          => $discount_rules['conditions_logic'] ?? 'all',
+					'usage_limit_per_customer'  => $discount_rules['usage_limit_per_customer'] ?? '',
+					'total_usage_limit'         => $discount_rules['total_usage_limit'] ?? '',
+					'apply_to'                  => $discount_rules['apply_to'] ?? 'per_item',
+					'max_discount_amount'       => $discount_rules['max_discount_amount'] ?? '',
+					'minimum_quantity'          => $discount_rules['minimum_quantity'] ?? '',
+					'minimum_order_amount'      => $discount_rules['minimum_order_amount'] ?? '',
+					'stack_with_others'         => $discount_rules['stack_with_others'] ?? false,
+					'allow_coupons'             => $discount_rules['allow_coupons'] ?? false,
+					'apply_to_sale_items'       => $discount_rules['apply_to_sale_items'] ?? false,
 				);
 
 			case 'schedule':
 				$starts_at = $campaign->get_starts_at();
-				$ends_at = $campaign->get_ends_at();
-				$timezone = $campaign->get_timezone();
+				$ends_at   = $campaign->get_ends_at();
+				$timezone  = $campaign->get_timezone();
 
 				$start_split = $starts_at ? SCD_DateTime_Splitter::for_editing( $starts_at, $timezone ) : array();
-				$end_split = $ends_at ? SCD_DateTime_Splitter::for_editing( $ends_at, $timezone ) : array();
+				$end_split   = $ends_at ? SCD_DateTime_Splitter::for_editing( $ends_at, $timezone ) : array();
 
 				return array(
 					'start_type' => $starts_at ? 'scheduled' : 'immediate',
@@ -364,7 +364,7 @@ class SCD_Campaign_Change_Tracker {
 	 * Extract changes for a specific step.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step name.
+	 * @param    string $step    Step name.
 	 * @return   array              Field => value pairs.
 	 */
 	private function extract_changes_for_step( $step ) {

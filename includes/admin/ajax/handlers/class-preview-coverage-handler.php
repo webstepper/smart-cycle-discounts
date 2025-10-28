@@ -35,7 +35,7 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger    $logger    Logger instance (optional).
+	 * @param    SCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -55,7 +55,7 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle the preview coverage request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
@@ -73,17 +73,19 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		// Get all step data
-		$basic_data = $state_service->get_step_data( 'basic' );
-		$products_data = $state_service->get_step_data( 'products' );
+		$basic_data     = $state_service->get_step_data( 'basic' );
+		$products_data  = $state_service->get_step_data( 'products' );
 		$discounts_data = $state_service->get_step_data( 'discounts' );
 
 		if ( empty( $products_data ) ) {
-			return $this->success( array(
-				'products_matched' => 0,
-				'products_discounted' => 0,
-				'coverage_percentage' => 0,
-				'exclusions' => array()
-			) );
+			return $this->success(
+				array(
+					'products_matched'    => 0,
+					'products_discounted' => 0,
+					'coverage_percentage' => 0,
+					'exclusions'          => array(),
+				)
+			);
 		}
 
 		// Calculate coverage
@@ -97,22 +99,22 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $basic_data       Basic campaign data.
-	 * @param    array    $products_data    Products selection data.
-	 * @param    array    $discounts_data   Discount configuration data.
+	 * @param    array $basic_data       Basic campaign data.
+	 * @param    array $products_data    Products selection data.
+	 * @param    array $discounts_data   Discount configuration data.
 	 * @return   array                      Coverage data.
 	 */
 	private function _calculate_coverage( $basic_data, $products_data, $discounts_data ) {
 		// Get matched products
 		$selection_type = isset( $products_data['product_selection_type'] ) ? $products_data['product_selection_type'] : 'all_products';
-		$product_ids = isset( $products_data['product_ids'] ) ? $products_data['product_ids'] : array();
-		$category_ids = isset( $products_data['category_ids'] ) ? $products_data['category_ids'] : array();
+		$product_ids    = isset( $products_data['product_ids'] ) ? $products_data['product_ids'] : array();
+		$category_ids   = isset( $products_data['category_ids'] ) ? $products_data['category_ids'] : array();
 
 		$matched_products = $this->_get_matched_products( $selection_type, $product_ids, $category_ids );
-		$total_matched = count( $matched_products );
+		$total_matched    = count( $matched_products );
 
 		// Track exclusions
-		$exclusions = array();
+		$exclusions        = array();
 		$excluded_products = array();
 
 		// Check for sale items exclusion
@@ -122,24 +124,24 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 			$sale_products = $this->_filter_sale_products( $matched_products );
 			if ( ! empty( $sale_products ) ) {
 				$excluded_products = array_merge( $excluded_products, $sale_products );
-				$exclusions[] = array(
+				$exclusions[]      = array(
 					'reason' => 'on_sale',
-					'label' => __( 'Products on sale', 'smart-cycle-discounts' ),
-					'count' => count( $sale_products )
+					'label'  => __( 'Products on sale', 'smart-cycle-discounts' ),
+					'count'  => count( $sale_products ),
 				);
 			}
 		}
 
 		// Check for campaign conflicts
-		$priority = isset( $basic_data['priority'] ) ? intval( $basic_data['priority'] ) : 5;
+		$priority            = isset( $basic_data['priority'] ) ? intval( $basic_data['priority'] ) : 5;
 		$conflicted_products = $this->_get_conflicted_products( $priority, $selection_type, $product_ids, $category_ids );
 
 		if ( ! empty( $conflicted_products ) ) {
 			$excluded_products = array_merge( $excluded_products, $conflicted_products );
-			$exclusions[] = array(
+			$exclusions[]      = array(
 				'reason' => 'conflicts',
-				'label' => __( 'Campaign conflicts', 'smart-cycle-discounts' ),
-				'count' => count( $conflicted_products )
+				'label'  => __( 'Campaign conflicts', 'smart-cycle-discounts' ),
+				'count'  => count( $conflicted_products ),
 			);
 		}
 
@@ -159,19 +161,19 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 		$coverage_percentage = $total_matched > 0 ? round( ( $products_discounted / $total_matched ) * 100 ) : 0;
 
 		// Get total products in store for context
-		$all_products = $this->_get_all_product_ids();
+		$all_products         = $this->_get_all_product_ids();
 		$total_store_products = count( $all_products );
 
 		return array(
-			'products_matched' => $total_matched,
-			'products_discounted' => $products_discounted,
-			'products_excluded' => count( $excluded_products ),
-			'coverage_percentage' => $coverage_percentage,
+			'products_matched'     => $total_matched,
+			'products_discounted'  => $products_discounted,
+			'products_excluded'    => count( $excluded_products ),
+			'coverage_percentage'  => $coverage_percentage,
 			'total_store_products' => $total_store_products,
-			'exclusions' => $exclusions,
-			'product_ids' => $matched_products,
-			'selection_type' => $selection_type,
-			'category_ids' => $category_ids
+			'exclusions'           => $exclusions,
+			'product_ids'          => $matched_products,
+			'selection_type'       => $selection_type,
+			'category_ids'         => $category_ids,
 		);
 	}
 
@@ -180,9 +182,9 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $selection_type   Selection type.
-	 * @param    array     $product_ids      Product IDs.
-	 * @param    array     $category_ids     Category IDs.
+	 * @param    string $selection_type   Selection type.
+	 * @param    array  $product_ids      Product IDs.
+	 * @param    array  $category_ids     Category IDs.
 	 * @return   array                       Array of product IDs.
 	 */
 	private function _get_matched_products( $selection_type, $product_ids, $category_ids ) {
@@ -213,7 +215,7 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $category_ids    Category IDs.
+	 * @param    array $category_ids    Category IDs.
 	 * @return   array                     Array of product IDs.
 	 */
 	private function _get_products_in_categories( $category_ids ) {
@@ -229,19 +231,19 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		$args = array(
-			'post_type' => 'product',
+			'post_type'      => 'product',
 			'posts_per_page' => -1,
-			'post_status' => 'publish',
-			'fields' => 'ids',
-			'tax_query' => array(
+			'post_status'    => 'publish',
+			'fields'         => 'ids',
+			'tax_query'      => array(
 				array(
-					'taxonomy' => 'product_cat',
-					'field' => 'term_id',
-					'terms' => array_map( 'intval', $category_ids ),
-					'operator' => 'IN',
-					'include_children' => false // Don't include subcategories
-				)
-			)
+					'taxonomy'         => 'product_cat',
+					'field'            => 'term_id',
+					'terms'            => array_map( 'intval', $category_ids ),
+					'operator'         => 'IN',
+					'include_children' => false, // Don't include subcategories
+				),
+			),
 		);
 
 		return get_posts( $args );
@@ -252,7 +254,7 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $product_ids    Product IDs to check.
+	 * @param    array $product_ids    Product IDs to check.
 	 * @return   array                    Product IDs on sale.
 	 */
 	private function _filter_sale_products( $product_ids ) {
@@ -273,10 +275,10 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    int       $priority         Campaign priority.
-	 * @param    string    $selection_type   Selection type.
-	 * @param    array     $product_ids      Product IDs.
-	 * @param    array     $category_ids     Category IDs.
+	 * @param    int    $priority         Campaign priority.
+	 * @param    string $selection_type   Selection type.
+	 * @param    array  $product_ids      Product IDs.
+	 * @param    array  $category_ids     Category IDs.
 	 * @return   array                       Array of conflicted product IDs.
 	 */
 	private function _get_conflicted_products( $priority, $selection_type, $product_ids, $category_ids ) {
@@ -319,7 +321,7 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    mixed    $id    Category ID to check.
+	 * @param    mixed $id    Category ID to check.
 	 * @return   bool            True if valid category ID.
 	 */
 	private function filter_valid_category_id( $id ) {

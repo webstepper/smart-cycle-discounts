@@ -39,10 +39,10 @@ class SCD_Queue_Status_Tab extends SCD_Notifications_Tab_Base {
 	 * Initialize tab.
 	 *
 	 * @since    1.0.0
-	 * @param    string                   $tab_slug   Tab slug.
-	 * @param    SCD_Notifications_Page   $page       Page instance.
-	 * @param    SCD_Logger               $logger     Logger instance.
-	 * @param    object                   $container  Container instance.
+	 * @param    string                 $tab_slug   Tab slug.
+	 * @param    SCD_Notifications_Page $page       Page instance.
+	 * @param    SCD_Logger             $logger     Logger instance.
+	 * @param    object                 $container  Container instance.
 	 */
 	public function __construct( string $tab_slug, SCD_Notifications_Page $page, SCD_Logger $logger, object $container ) {
 		$this->container = $container;
@@ -53,7 +53,7 @@ class SCD_Queue_Status_Tab extends SCD_Notifications_Tab_Base {
 	 * Register sections and fields for this tab.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $current_tab    Current active tab.
+	 * @param    string $current_tab    Current active tab.
 	 * @return   void
 	 */
 	public function register_sections( string $current_tab ): void {
@@ -80,7 +80,7 @@ class SCD_Queue_Status_Tab extends SCD_Notifications_Tab_Base {
 	 * Render tab content.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $current_tab    Current active tab.
+	 * @param    string $current_tab    Current active tab.
 	 * @return   void
 	 */
 	public function render_tab_content( string $current_tab ): void {
@@ -171,10 +171,10 @@ class SCD_Queue_Status_Tab extends SCD_Notifications_Tab_Base {
 
 			<?php
 			// Show email provider info
-			$email_settings = $email_manager->get_settings();
-			$provider_names = array(
-				'wpmail' => __( 'WordPress Mail', 'smart-cycle-discounts' ),
-				'sendgrid' => __( 'SendGrid', 'smart-cycle-discounts' ),
+			$email_settings   = $email_manager->get_settings();
+			$provider_names   = array(
+				'wpmail'    => __( 'WordPress Mail', 'smart-cycle-discounts' ),
+				'sendgrid'  => __( 'SendGrid', 'smart-cycle-discounts' ),
 				'amazonses' => __( 'Amazon SES', 'smart-cycle-discounts' ),
 			);
 			$current_provider = isset( $email_settings['email_provider'] ) ? $email_settings['email_provider'] : 'wpmail';

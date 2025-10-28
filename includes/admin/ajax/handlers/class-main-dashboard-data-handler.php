@@ -40,8 +40,8 @@ class SCD_Main_Dashboard_Data_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Dashboard_Service    $dashboard_service    Dashboard service instance.
-	 * @param    SCD_Logger               $logger               Logger instance.
+	 * @param    SCD_Dashboard_Service $dashboard_service    Dashboard service instance.
+	 * @param    SCD_Logger            $logger               Logger instance.
 	 */
 	public function __construct( $dashboard_service, $logger = null ) {
 		parent::__construct( $logger );
@@ -72,38 +72,43 @@ class SCD_Main_Dashboard_Data_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle the request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array                Response data.
 	 */
 	public function handle( $request ) {
 		try {
 			// Get dashboard data via service layer (clean, no reflection hack)
 			// Fixed 7-day range for free tier
-			$data = $this->dashboard_service->get_dashboard_data( array(
-				'date_range' => '7days',
-			) );
+			$data = $this->dashboard_service->get_dashboard_data(
+				array(
+					'date_range' => '7days',
+				)
+			);
 
 			// Return formatted response
 			return array(
 				'success' => true,
-				'data' => array(
-					'metrics' => isset( $data['metrics'] ) ? $data['metrics'] : array(),
+				'data'    => array(
+					'metrics'        => isset( $data['metrics'] ) ? $data['metrics'] : array(),
 					'campaign_stats' => isset( $data['campaign_stats'] ) ? $data['campaign_stats'] : array(),
-					'top_campaigns' => isset( $data['top_campaigns'] ) ? $data['top_campaigns'] : array(),
-					'is_premium' => isset( $data['is_premium'] ) ? $data['is_premium'] : false,
+					'top_campaigns'  => isset( $data['top_campaigns'] ) ? $data['top_campaigns'] : array(),
+					'is_premium'     => isset( $data['is_premium'] ) ? $data['is_premium'] : false,
 					'campaign_limit' => isset( $data['campaign_limit'] ) ? $data['campaign_limit'] : 3,
 				),
 			);
 
 		} catch ( Exception $e ) {
-			$this->logger->error( 'Get dashboard data failed', array(
-				'error' => $e->getMessage(),
-				'trace' => $e->getTraceAsString(),
-			) );
+			$this->logger->error(
+				'Get dashboard data failed',
+				array(
+					'error' => $e->getMessage(),
+					'trace' => $e->getTraceAsString(),
+				)
+			);
 
 			return array(
 				'success' => false,
-				'data' => array(
+				'data'    => array(
 					'message' => sprintf(
 						/* translators: %s: error message */
 						__( 'Failed to load dashboard data: %s', 'smart-cycle-discounts' ),
@@ -118,7 +123,7 @@ class SCD_Main_Dashboard_Data_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Verify the AJAX request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   bool|WP_Error         True if valid, WP_Error if invalid.
 	 */
 	protected function verify_request( $request ) {

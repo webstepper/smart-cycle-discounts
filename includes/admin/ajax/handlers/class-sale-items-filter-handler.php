@@ -36,7 +36,7 @@ class SCD_Sale_Items_Filter_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger    $logger    Logger instance (optional).
+	 * @param    SCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -56,7 +56,7 @@ class SCD_Sale_Items_Filter_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle the sale items filter request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
@@ -71,24 +71,28 @@ class SCD_Sale_Items_Filter_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		// Get step data
-		$products_data = $state_service->get_step_data( 'products' );
+		$products_data  = $state_service->get_step_data( 'products' );
 		$discounts_data = $state_service->get_step_data( 'discounts' );
 
 		if ( empty( $products_data ) ) {
-			return $this->success( array(
-				'has_data' => false,
-				'message' => __( 'Select products to see sale items impact', 'smart-cycle-discounts' )
-			) );
+			return $this->success(
+				array(
+					'has_data' => false,
+					'message'  => __( 'Select products to see sale items impact', 'smart-cycle-discounts' ),
+				)
+			);
 		}
 
 		// Get product IDs
 		$product_ids = $this->_get_product_ids( $products_data );
 
 		if ( empty( $product_ids ) ) {
-			return $this->success( array(
-				'has_data' => false,
-				'message' => __( 'No products selected', 'smart-cycle-discounts' )
-			) );
+			return $this->success(
+				array(
+					'has_data' => false,
+					'message'  => __( 'No products selected', 'smart-cycle-discounts' ),
+				)
+			);
 		}
 
 		// Get apply_to_sale_items setting
@@ -97,20 +101,22 @@ class SCD_Sale_Items_Filter_Handler extends SCD_Abstract_Ajax_Handler {
 		// Count sale items
 		$sale_items = $this->_count_sale_items( $product_ids );
 
-		$total_products = count( $product_ids );
-		$sale_count = count( $sale_items );
+		$total_products     = count( $product_ids );
+		$sale_count         = count( $sale_items );
 		$effective_coverage = $apply_to_sale_items ? $total_products : ( $total_products - $sale_count );
 
-		return $this->success( array(
-			'has_data' => true,
-			'apply_to_sale_items' => $apply_to_sale_items,
-			'total_products' => $total_products,
-			'sale_items_count' => $sale_count,
-			'excluded_count' => $apply_to_sale_items ? 0 : $sale_count,
-			'effective_coverage' => $effective_coverage,
-			'coverage_percentage' => $total_products > 0 ? round( ( $effective_coverage / $total_products ) * 100 ) : 0,
-			'has_sale_items' => $sale_count > 0
-		) );
+		return $this->success(
+			array(
+				'has_data'            => true,
+				'apply_to_sale_items' => $apply_to_sale_items,
+				'total_products'      => $total_products,
+				'sale_items_count'    => $sale_count,
+				'excluded_count'      => $apply_to_sale_items ? 0 : $sale_count,
+				'effective_coverage'  => $effective_coverage,
+				'coverage_percentage' => $total_products > 0 ? round( ( $effective_coverage / $total_products ) * 100 ) : 0,
+				'has_sale_items'      => $sale_count > 0,
+			)
+		);
 	}
 
 	/**
@@ -118,7 +124,7 @@ class SCD_Sale_Items_Filter_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $product_ids    Product IDs to check.
+	 * @param    array $product_ids    Product IDs to check.
 	 * @return   array                    Array of product IDs on sale.
 	 */
 	private function _count_sale_items( $product_ids ) {

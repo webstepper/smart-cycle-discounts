@@ -46,9 +46,9 @@ class SCD_Migration_001_Initial_Schema {
 	 * Initialize the migration.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager    $db    Database manager.
+	 * @param    SCD_Database_Manager $db    Database manager.
 	 */
-	public function __construct(SCD_Database_Manager $db) {
+	public function __construct( SCD_Database_Manager $db ) {
 		$this->db = $db;
 	}
 
@@ -77,11 +77,11 @@ class SCD_Migration_001_Initial_Schema {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $charset_collate    Charset collate.
+	 * @param    string $charset_collate    Charset collate.
 	 * @return   void
 	 */
 	private function create_campaigns_table( string $charset_collate ): void {
-		$table_name = $this->db->get_table_name('campaigns');
+		$table_name = $this->db->get_table_name( 'campaigns' );
 
 		$sql = "CREATE TABLE $table_name (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -156,7 +156,7 @@ class SCD_Migration_001_Initial_Schema {
 		) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		dbDelta($sql);
+		dbDelta( $sql );
 	}
 
 	/**
@@ -164,11 +164,11 @@ class SCD_Migration_001_Initial_Schema {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $charset_collate    Charset collate.
+	 * @param    string $charset_collate    Charset collate.
 	 * @return   void
 	 */
 	private function create_active_discounts_table( string $charset_collate ): void {
-		$table_name = $this->db->get_table_name('active_discounts');
+		$table_name = $this->db->get_table_name( 'active_discounts' );
 
 		$sql = "CREATE TABLE $table_name (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -215,7 +215,7 @@ class SCD_Migration_001_Initial_Schema {
 		) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		dbDelta($sql);
+		dbDelta( $sql );
 	}
 
 	/**
@@ -223,11 +223,11 @@ class SCD_Migration_001_Initial_Schema {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $charset_collate    Charset collate.
+	 * @param    string $charset_collate    Charset collate.
 	 * @return   void
 	 */
 	private function create_analytics_table( string $charset_collate ): void {
-		$table_name = $this->db->get_table_name('analytics');
+		$table_name = $this->db->get_table_name( 'analytics' );
 
 		$sql = "CREATE TABLE $table_name (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -284,7 +284,7 @@ class SCD_Migration_001_Initial_Schema {
 		) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		dbDelta($sql);
+		dbDelta( $sql );
 	}
 
 	/**
@@ -292,11 +292,11 @@ class SCD_Migration_001_Initial_Schema {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $charset_collate    Charset collate.
+	 * @param    string $charset_collate    Charset collate.
 	 * @return   void
 	 */
 	private function create_customer_usage_table( string $charset_collate ): void {
-		$table_name = $this->db->get_table_name('customer_usage');
+		$table_name = $this->db->get_table_name( 'customer_usage' );
 
 		$sql = "CREATE TABLE $table_name (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -327,7 +327,7 @@ class SCD_Migration_001_Initial_Schema {
 		) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		dbDelta($sql);
+		dbDelta( $sql );
 	}
 
 	/**
@@ -335,11 +335,11 @@ class SCD_Migration_001_Initial_Schema {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $charset_collate    Charset collate.
+	 * @param    string $charset_collate    Charset collate.
 	 * @return   void
 	 */
 	private function create_campaign_recurring_table( string $charset_collate ): void {
-		$table_name = $this->db->get_table_name('campaign_recurring');
+		$table_name = $this->db->get_table_name( 'campaign_recurring' );
 
 		$sql = "CREATE TABLE $table_name (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -364,7 +364,7 @@ class SCD_Migration_001_Initial_Schema {
 		) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		dbDelta($sql);
+		dbDelta( $sql );
 	}
 
 	/**
@@ -393,13 +393,13 @@ class SCD_Migration_001_Initial_Schema {
 			// Customer usage table foreign keys
 			$this->add_customer_usage_foreign_keys();
 
-		} catch (Exception $e) {
+		} catch ( Exception $e ) {
 			// Silently catch foreign key errors
 			// Don't output anything during activation to prevent "headers already sent" errors
 		}
 
 		// Re-enable error display
-		$wpdb->suppress_errors(false);
+		$wpdb->suppress_errors( false );
 	}
 
 	/**
@@ -411,16 +411,16 @@ class SCD_Migration_001_Initial_Schema {
 	 */
 	private function add_campaigns_foreign_keys(): void {
 		global $wpdb;
-		$table_name = $this->db->get_table_name('campaigns');
+		$table_name = $this->db->get_table_name( 'campaigns' );
 
 		// Foreign key for created_by (references wp_users)
-		if (!$this->foreign_key_exists($table_name, 'fk_campaigns_created_by')) {
+		if ( ! $this->foreign_key_exists( $table_name, 'fk_campaigns_created_by' ) ) {
 			$wpdb->query(
 				$wpdb->prepare(
-					"ALTER TABLE %i
+					'ALTER TABLE %i
 					ADD CONSTRAINT fk_campaigns_created_by
 					FOREIGN KEY (created_by) REFERENCES %i(ID)
-					ON DELETE RESTRICT ON UPDATE CASCADE",
+					ON DELETE RESTRICT ON UPDATE CASCADE',
 					$table_name,
 					$wpdb->users
 				)
@@ -428,13 +428,13 @@ class SCD_Migration_001_Initial_Schema {
 		}
 
 		// Foreign key for updated_by (references wp_users)
-		if (!$this->foreign_key_exists($table_name, 'fk_campaigns_updated_by')) {
+		if ( ! $this->foreign_key_exists( $table_name, 'fk_campaigns_updated_by' ) ) {
 			$wpdb->query(
 				$wpdb->prepare(
-					"ALTER TABLE %i
+					'ALTER TABLE %i
 					ADD CONSTRAINT fk_campaigns_updated_by
 					FOREIGN KEY (updated_by) REFERENCES %i(ID)
-					ON DELETE SET NULL ON UPDATE CASCADE",
+					ON DELETE SET NULL ON UPDATE CASCADE',
 					$table_name,
 					$wpdb->users
 				)
@@ -451,17 +451,17 @@ class SCD_Migration_001_Initial_Schema {
 	 */
 	private function add_active_discounts_foreign_keys(): void {
 		global $wpdb;
-		$table_name = $this->db->get_table_name('active_discounts');
-		$campaigns_table = $this->db->get_table_name('campaigns');
+		$table_name      = $this->db->get_table_name( 'active_discounts' );
+		$campaigns_table = $this->db->get_table_name( 'campaigns' );
 
 		// Foreign key for campaign_id
-		if (!$this->foreign_key_exists($table_name, 'fk_active_discounts_campaign_id')) {
+		if ( ! $this->foreign_key_exists( $table_name, 'fk_active_discounts_campaign_id' ) ) {
 			$wpdb->query(
 				$wpdb->prepare(
-					"ALTER TABLE %i
+					'ALTER TABLE %i
 					ADD CONSTRAINT fk_active_discounts_campaign_id
 					FOREIGN KEY (campaign_id) REFERENCES %i(id)
-					ON DELETE CASCADE ON UPDATE CASCADE",
+					ON DELETE CASCADE ON UPDATE CASCADE',
 					$table_name,
 					$campaigns_table
 				)
@@ -469,13 +469,13 @@ class SCD_Migration_001_Initial_Schema {
 		}
 
 		// Foreign key for product_id (references wp_posts)
-		if (!$this->foreign_key_exists($table_name, 'fk_active_discounts_product_id')) {
+		if ( ! $this->foreign_key_exists( $table_name, 'fk_active_discounts_product_id' ) ) {
 			$wpdb->query(
 				$wpdb->prepare(
-					"ALTER TABLE %i
+					'ALTER TABLE %i
 					ADD CONSTRAINT fk_active_discounts_product_id
 					FOREIGN KEY (product_id) REFERENCES %i(ID)
-					ON DELETE CASCADE ON UPDATE CASCADE",
+					ON DELETE CASCADE ON UPDATE CASCADE',
 					$table_name,
 					$wpdb->posts
 				)
@@ -483,13 +483,13 @@ class SCD_Migration_001_Initial_Schema {
 		}
 
 		// Foreign key for variation_id (references wp_posts)
-		if (!$this->foreign_key_exists($table_name, 'fk_active_discounts_variation_id')) {
+		if ( ! $this->foreign_key_exists( $table_name, 'fk_active_discounts_variation_id' ) ) {
 			$wpdb->query(
 				$wpdb->prepare(
-					"ALTER TABLE %i
+					'ALTER TABLE %i
 					ADD CONSTRAINT fk_active_discounts_variation_id
 					FOREIGN KEY (variation_id) REFERENCES %i(ID)
-					ON DELETE CASCADE ON UPDATE CASCADE",
+					ON DELETE CASCADE ON UPDATE CASCADE',
 					$table_name,
 					$wpdb->posts
 				)
@@ -506,17 +506,17 @@ class SCD_Migration_001_Initial_Schema {
 	 */
 	private function add_analytics_foreign_keys(): void {
 		global $wpdb;
-		$table_name = $this->db->get_table_name('analytics');
-		$campaigns_table = $this->db->get_table_name('campaigns');
+		$table_name      = $this->db->get_table_name( 'analytics' );
+		$campaigns_table = $this->db->get_table_name( 'campaigns' );
 
 		// Foreign key for campaign_id
-		if (!$this->foreign_key_exists($table_name, 'fk_analytics_campaign_id')) {
+		if ( ! $this->foreign_key_exists( $table_name, 'fk_analytics_campaign_id' ) ) {
 			$wpdb->query(
 				$wpdb->prepare(
-					"ALTER TABLE %i
+					'ALTER TABLE %i
 					ADD CONSTRAINT fk_analytics_campaign_id
 					FOREIGN KEY (campaign_id) REFERENCES %i(id)
-					ON DELETE CASCADE ON UPDATE CASCADE",
+					ON DELETE CASCADE ON UPDATE CASCADE',
 					$table_name,
 					$campaigns_table
 				)
@@ -533,17 +533,17 @@ class SCD_Migration_001_Initial_Schema {
 	 */
 	private function add_customer_usage_foreign_keys(): void {
 		global $wpdb;
-		$table_name = $this->db->get_table_name('customer_usage');
-		$campaigns_table = $this->db->get_table_name('campaigns');
+		$table_name      = $this->db->get_table_name( 'customer_usage' );
+		$campaigns_table = $this->db->get_table_name( 'campaigns' );
 
 		// Foreign key for campaign_id
-		if (!$this->foreign_key_exists($table_name, 'fk_customer_usage_campaign_id')) {
+		if ( ! $this->foreign_key_exists( $table_name, 'fk_customer_usage_campaign_id' ) ) {
 			$wpdb->query(
 				$wpdb->prepare(
-					"ALTER TABLE %i
+					'ALTER TABLE %i
 					ADD CONSTRAINT fk_customer_usage_campaign_id
 					FOREIGN KEY (campaign_id) REFERENCES %i(id)
-					ON DELETE CASCADE ON UPDATE CASCADE",
+					ON DELETE CASCADE ON UPDATE CASCADE',
 					$table_name,
 					$campaigns_table
 				)
@@ -551,13 +551,13 @@ class SCD_Migration_001_Initial_Schema {
 		}
 
 		// Foreign key for customer_id (references wp_users)
-		if (!$this->foreign_key_exists($table_name, 'fk_customer_usage_customer_id')) {
+		if ( ! $this->foreign_key_exists( $table_name, 'fk_customer_usage_customer_id' ) ) {
 			$wpdb->query(
 				$wpdb->prepare(
-					"ALTER TABLE %i
+					'ALTER TABLE %i
 					ADD CONSTRAINT fk_customer_usage_customer_id
 					FOREIGN KEY (customer_id) REFERENCES %i(ID)
-					ON DELETE SET NULL ON UPDATE CASCADE",
+					ON DELETE SET NULL ON UPDATE CASCADE',
 					$table_name,
 					$wpdb->users
 				)
@@ -570,22 +570,22 @@ class SCD_Migration_001_Initial_Schema {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $table_name        Table name.
-	 * @param    string    $constraint_name   Constraint name.
+	 * @param    string $table_name        Table name.
+	 * @param    string $constraint_name   Constraint name.
 	 * @return   bool                       True if exists.
 	 */
-	private function foreign_key_exists(string $table_name, string $constraint_name): bool {
+	private function foreign_key_exists( string $table_name, string $constraint_name ): bool {
 		$result = $this->db->get_var(
 			$this->db->prepare(
-				"SELECT COUNT(*) FROM information_schema.KEY_COLUMN_USAGE
+				'SELECT COUNT(*) FROM information_schema.KEY_COLUMN_USAGE
 				WHERE CONSTRAINT_SCHEMA = DATABASE()
 				AND TABLE_NAME = %s
-				AND CONSTRAINT_NAME = %s",
+				AND CONSTRAINT_NAME = %s',
 				$table_name,
 				$constraint_name
 			)
 		);
-		return !empty($result);
+		return ! empty( $result );
 	}
 
 	/**
@@ -603,17 +603,17 @@ class SCD_Migration_001_Initial_Schema {
 			'campaign_recurring',
 			'analytics',
 			'active_discounts',
-			'campaigns'
+			'campaigns',
 		);
 
-		foreach ($tables as $table) {
-			$table_name = $this->db->get_table_name($table);
+		foreach ( $tables as $table ) {
+			$table_name = $this->db->get_table_name( $table );
 
 			// Drop foreign keys first
-			$this->drop_foreign_keys($table_name);
+			$this->drop_foreign_keys( $table_name );
 
 			// Drop the table
-			$wpdb->query( $wpdb->prepare( "DROP TABLE IF EXISTS %i", $table_name ) );
+			$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table_name ) );
 		}
 	}
 
@@ -622,19 +622,19 @@ class SCD_Migration_001_Initial_Schema {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $table_name    Table name.
+	 * @param    string $table_name    Table name.
 	 * @return   void
 	 */
-	private function drop_foreign_keys(string $table_name): void {
+	private function drop_foreign_keys( string $table_name ): void {
 		global $wpdb;
 
 		// Get all foreign key constraints
-		$constraints = $this->get_foreign_key_constraints($table_name);
+		$constraints = $this->get_foreign_key_constraints( $table_name );
 
-		foreach ($constraints as $constraint) {
+		foreach ( $constraints as $constraint ) {
 			$wpdb->query(
 				$wpdb->prepare(
-					"ALTER TABLE %i DROP FOREIGN KEY %i",
+					'ALTER TABLE %i DROP FOREIGN KEY %i',
 					$table_name,
 					$constraint
 				)
@@ -647,25 +647,25 @@ class SCD_Migration_001_Initial_Schema {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $table_name    Table name.
+	 * @param    string $table_name    Table name.
 	 * @return   array                    Foreign key constraint names.
 	 */
-	private function get_foreign_key_constraints(string $table_name): array {
+	private function get_foreign_key_constraints( string $table_name ): array {
 		$constraints = array();
 
 		$results = $this->db->get_results(
 			$this->db->prepare(
-				"SELECT CONSTRAINT_NAME
+				'SELECT CONSTRAINT_NAME
 				FROM information_schema.KEY_COLUMN_USAGE
 				WHERE TABLE_SCHEMA = %s
 				AND TABLE_NAME = %s
-				AND REFERENCED_TABLE_NAME IS NOT NULL",
+				AND REFERENCED_TABLE_NAME IS NOT NULL',
 				DB_NAME,
 				$table_name
 			)
 		);
 
-		foreach ($results as $result) {
+		foreach ( $results as $result ) {
 			$constraints[] = $result->CONSTRAINT_NAME;
 		}
 

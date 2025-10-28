@@ -49,7 +49,7 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger    $logger    Logger instance (optional).
+	 * @param    SCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		$this->logger = $logger;
@@ -67,10 +67,10 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 * with security checks and exception handling.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data ($_POST or $_GET).
+	 * @param    array $request    Request data ($_POST or $_GET).
 	 * @return   array                Response array.
 	 */
-	public final function execute( $request = array() ) {
+	final public function execute( $request = array() ) {
 		try {
 			// Verify security (nonce + capability)
 			$verification = $this->verify_request( $request );
@@ -109,7 +109,7 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 * Subclasses must implement this method with their specific logic.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array                Response array.
 	 */
 	abstract protected function handle( $request );
@@ -135,7 +135,7 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    array          $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   true|WP_Error              True if valid, WP_Error otherwise.
 	 */
 	protected function verify_request( $request ) {
@@ -165,7 +165,7 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    array    $data    Response data.
+	 * @param    array $data    Response data.
 	 * @return   array             Success response array.
 	 */
 	protected function success( $data = array() ) {
@@ -180,19 +180,22 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    string    $message    Error message.
-	 * @param    string    $code       Error code.
-	 * @param    int       $status     HTTP status code.
+	 * @param    string $message    Error message.
+	 * @param    string $code       Error code.
+	 * @param    int    $status     HTTP status code.
 	 * @return   array                 Error response array.
 	 */
 	protected function error( $message, $code = 'error', $status = 400 ) {
 		// Log error
 		if ( $this->logger ) {
-			$this->logger->error( $message, array(
-				'code'   => $code,
-				'status' => $status,
-				'action' => $this->get_action_name(),
-			) );
+			$this->logger->error(
+				$message,
+				array(
+					'code'   => $code,
+					'status' => $status,
+					'action' => $this->get_action_name(),
+				)
+			);
 		}
 
 		return array(
@@ -214,7 +217,7 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    WP_Error    $error    WP_Error object.
+	 * @param    WP_Error $error    WP_Error object.
 	 * @return   array                 Error response array.
 	 */
 	protected function handle_wp_error( $error ) {
@@ -223,7 +226,7 @@ abstract class SCD_Abstract_Ajax_Handler {
 		}
 
 		$error_data = $error->get_error_data();
-		$status = 400;
+		$status     = 400;
 
 		// Extract status code if available
 		if ( is_array( $error_data ) && isset( $error_data['status'] ) ) {
@@ -232,12 +235,15 @@ abstract class SCD_Abstract_Ajax_Handler {
 
 		// Log error
 		if ( $this->logger ) {
-			$this->logger->error( $error->get_error_message(), array(
-				'code'        => $error->get_error_code(),
-				'status'      => $status,
-				'action'      => $this->get_action_name(),
-				'error_data'  => $error_data,
-			) );
+			$this->logger->error(
+				$error->get_error_message(),
+				array(
+					'code'       => $error->get_error_code(),
+					'status'     => $status,
+					'action'     => $this->get_action_name(),
+					'error_data' => $error_data,
+				)
+			);
 		}
 
 		return array(
@@ -255,19 +261,22 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    Exception    $e    Exception object.
+	 * @param    Exception $e    Exception object.
 	 * @return   array              Error response array.
 	 */
 	protected function handle_exception( $e ) {
 		// Log exception
 		if ( $this->logger ) {
-			$this->logger->critical( 'Handler exception: ' . $e->getMessage(), array(
-				'exception' => get_class( $e ),
-				'file'      => $e->getFile(),
-				'line'      => $e->getLine(),
-				'trace'     => $e->getTraceAsString(),
-				'action'    => $this->get_action_name(),
-			) );
+			$this->logger->critical(
+				'Handler exception: ' . $e->getMessage(),
+				array(
+					'exception' => get_class( $e ),
+					'file'      => $e->getFile(),
+					'line'      => $e->getLine(),
+					'trace'     => $e->getTraceAsString(),
+					'action'    => $this->get_action_name(),
+				)
+			);
 		}
 
 		// Generic error message for users (don't expose internal details)
@@ -302,8 +311,8 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string      $action    Action name.
-	 * @param    WP_Error    $error     Error object.
+	 * @param    string   $action    Action name.
+	 * @param    WP_Error $error     Error object.
 	 * @return   void
 	 */
 	private function log_security_failure( $action, $error ) {
@@ -311,13 +320,16 @@ abstract class SCD_Abstract_Ajax_Handler {
 			return;
 		}
 
-		$this->logger->warning( 'Security verification failed', array(
-			'action'      => $action,
-			'error_code'  => $error->get_error_code(),
-			'error_msg'   => $error->get_error_message(),
-			'user_id'     => get_current_user_id(),
-			'ip'          => SCD_Ajax_Security::get_client_ip(),
-		) );
+		$this->logger->warning(
+			'Security verification failed',
+			array(
+				'action'     => $action,
+				'error_code' => $error->get_error_code(),
+				'error_msg'  => $error->get_error_message(),
+				'user_id'    => get_current_user_id(),
+				'ip'         => SCD_Ajax_Security::get_client_ip(),
+			)
+		);
 	}
 
 	/**
@@ -327,8 +339,8 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    mixed     $value      Value to sanitize.
-	 * @param    string    $default    Default value if empty.
+	 * @param    mixed  $value      Value to sanitize.
+	 * @param    string $default    Default value if empty.
 	 * @return   string                Sanitized value.
 	 */
 	protected function sanitize_text( $value, $default = '' ) {
@@ -342,8 +354,8 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    mixed    $value      Value to sanitize.
-	 * @param    int      $default    Default value if empty.
+	 * @param    mixed $value      Value to sanitize.
+	 * @param    int   $default    Default value if empty.
 	 * @return   int                  Sanitized integer.
 	 */
 	protected function sanitize_int( $value, $default = 0 ) {
@@ -357,7 +369,7 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    mixed    $value    Value to sanitize.
+	 * @param    mixed $value    Value to sanitize.
 	 * @return   array              Array of integers.
 	 */
 	protected function sanitize_int_array( $value ) {
@@ -380,7 +392,7 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $ids    Array of IDs to filter.
+	 * @param    array $ids    Array of IDs to filter.
 	 * @return   array            Filtered array of valid IDs.
 	 */
 	private function filter_valid_ids( $ids ) {
@@ -400,8 +412,8 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    mixed    $value      Value to sanitize.
-	 * @param    bool     $default    Default value if not set.
+	 * @param    mixed $value      Value to sanitize.
+	 * @param    bool  $default    Default value if not set.
 	 * @return   bool                 Boolean value.
 	 */
 	protected function sanitize_bool( $value, $default = false ) {
@@ -419,9 +431,9 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    array     $request    Request array.
-	 * @param    string    $key        Parameter key.
-	 * @param    mixed     $default    Default value.
+	 * @param    array  $request    Request array.
+	 * @param    string $key        Parameter key.
+	 * @param    mixed  $default    Default value.
 	 * @return   mixed                 Parameter value or default.
 	 */
 	protected function get_param( $request, $key, $default = null ) {
@@ -435,8 +447,8 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    array    $request     Request array.
-	 * @param    array    $required    Required parameter keys.
+	 * @param    array $request     Request array.
+	 * @param    array $required    Required parameter keys.
 	 * @return   true|WP_Error         True if valid, WP_Error otherwise.
 	 */
 	protected function validate_required_params( $request, $required ) {
@@ -473,8 +485,8 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    string    $message    Log message.
-	 * @param    array     $context    Log context.
+	 * @param    string $message    Log message.
+	 * @param    array  $context    Log context.
 	 * @return   void
 	 */
 	protected function log_debug( $message, $context = array() ) {
@@ -491,8 +503,8 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    string    $message    Log message.
-	 * @param    array     $context    Log context.
+	 * @param    string $message    Log message.
+	 * @param    array  $context    Log context.
 	 * @return   void
 	 */
 	protected function log_info( $message, $context = array() ) {
@@ -509,8 +521,8 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    string    $message    Log message.
-	 * @param    array     $context    Log context.
+	 * @param    string $message    Log message.
+	 * @param    array  $context    Log context.
 	 * @return   void
 	 */
 	protected function log_warning( $message, $context = array() ) {
@@ -527,8 +539,8 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    string    $message    Log message.
-	 * @param    array     $context    Log context.
+	 * @param    string $message    Log message.
+	 * @param    array  $context    Log context.
 	 * @return   void
 	 */
 	protected function log_error( $message, $context = array() ) {

@@ -39,7 +39,7 @@ class SCD_Get_Product_Stats_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger    $logger    Logger instance (optional).
+	 * @param    SCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -59,7 +59,7 @@ class SCD_Get_Product_Stats_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Handle the get product stats request.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $request    Request data.
+	 * @param    array $request    Request data.
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
@@ -105,29 +105,39 @@ class SCD_Get_Product_Stats_Handler extends SCD_Abstract_Ajax_Handler {
 
 		// If still no product IDs, return empty stats
 		if ( empty( $product_ids ) ) {
-			return $this->success( array(
-				'stats' => array(
-					'total_products' => 0,
-					'categories' => array(),
-					'price_range' => array( 'min' => 0, 'max' => 0 ),
-					'stock_status' => array( 'in_stock' => 0, 'out_of_stock' => 0 ),
-					'types' => array(),
-					'average_price' => 0,
-					'total_value' => 0
-				),
-				'timestamp' => current_time( 'timestamp' )
-			) );
+			return $this->success(
+				array(
+					'stats'     => array(
+						'total_products' => 0,
+						'categories'     => array(),
+						'price_range'    => array(
+							'min' => 0,
+							'max' => 0,
+						),
+						'stock_status'   => array(
+							'in_stock'     => 0,
+							'out_of_stock' => 0,
+						),
+						'types'          => array(),
+						'average_price'  => 0,
+						'total_value'    => 0,
+					),
+					'timestamp' => current_time( 'timestamp' ),
+				)
+			);
 		}
 
 		// Delegate to service
 		$service = $this->get_product_service();
-		$stats = $service->get_product_stats( $product_ids );
+		$stats   = $service->get_product_stats( $product_ids );
 
-		return $this->success( array(
-			'stats' => $stats,
-			'product_ids' => $product_ids,
-			'timestamp' => current_time( 'timestamp' )
-		) );
+		return $this->success(
+			array(
+				'stats'       => $stats,
+				'product_ids' => $product_ids,
+				'timestamp'   => current_time( 'timestamp' ),
+			)
+		);
 	}
 
 	/**
@@ -135,7 +145,7 @@ class SCD_Get_Product_Stats_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    int    $id    Product ID to validate.
+	 * @param    int $id    Product ID to validate.
 	 * @return   bool          True if valid product ID.
 	 */
 	private function filter_valid_product_ids( $id ) {
@@ -148,15 +158,15 @@ class SCD_Get_Product_Stats_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    int    $campaign_id    Campaign ID.
+	 * @param    int $campaign_id    Campaign ID.
 	 * @return   array                  Product IDs.
 	 */
 	private function get_campaign_product_ids( $campaign_id ) {
 		// Try to use campaign repository to load campaign
 		if ( class_exists( 'SCD_Campaign_Repository' ) && class_exists( 'SCD_Database_Manager' ) && class_exists( 'SCD_Cache_Manager' ) ) {
-			$db_manager = new SCD_Database_Manager();
+			$db_manager    = new SCD_Database_Manager();
 			$cache_manager = new SCD_Cache_Manager();
-			$repository = new SCD_Campaign_Repository( $db_manager, $cache_manager );
+			$repository    = new SCD_Campaign_Repository( $db_manager, $cache_manager );
 
 			$campaign = $repository->get_by_id( $campaign_id );
 			if ( $campaign ) {

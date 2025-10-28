@@ -57,18 +57,18 @@ class SCD_WC_Cart_Message_Service {
 	 * Initialize cart message service.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_WC_Discount_Query_Service    $discount_query      Discount query service.
-	 * @param    SCD_Campaign_Manager             $campaign_manager    Campaign manager.
-	 * @param    object|null                      $logger              Logger.
+	 * @param    SCD_WC_Discount_Query_Service $discount_query      Discount query service.
+	 * @param    SCD_Campaign_Manager          $campaign_manager    Campaign manager.
+	 * @param    object|null                   $logger              Logger.
 	 */
 	public function __construct(
 		SCD_WC_Discount_Query_Service $discount_query,
 		SCD_Campaign_Manager $campaign_manager,
 		?object $logger = null
 	) {
-		$this->discount_query = $discount_query;
+		$this->discount_query   = $discount_query;
 		$this->campaign_manager = $campaign_manager;
-		$this->logger = $logger;
+		$this->logger           = $logger;
 	}
 
 	/**
@@ -100,11 +100,14 @@ class SCD_WC_Cart_Message_Service {
 					wc_print_notice( $message, 'notice' );
 				}
 			}
-
 		} catch ( Exception $e ) {
-			$this->log( 'error', 'Failed to display cart messages', array(
-				'error' => $e->getMessage()
-			) );
+			$this->log(
+				'error',
+				'Failed to display cart messages',
+				array(
+					'error' => $e->getMessage(),
+				)
+			);
 		}
 	}
 
@@ -122,9 +125,12 @@ class SCD_WC_Cart_Message_Service {
 			$product_id = $cart_item['data']->get_id();
 
 			if ( $this->discount_query->has_active_discount( $product_id ) ) {
-				$discount_info = $this->discount_query->get_discount_info( $product_id, array(
-					'quantity' => $cart_item['quantity']
-				) );
+				$discount_info = $this->discount_query->get_discount_info(
+					$product_id,
+					array(
+						'quantity' => $cart_item['quantity'],
+					)
+				);
 
 				if ( $discount_info && isset( $discount_info['metadata']['upsell_message'] ) ) {
 					$messages[] = $discount_info['metadata']['upsell_message'];
@@ -140,9 +146,9 @@ class SCD_WC_Cart_Message_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $level      Level.
-	 * @param    string    $message    Message.
-	 * @param    array     $context    Context.
+	 * @param    string $level      Level.
+	 * @param    string $message    Message.
+	 * @param    array  $context    Context.
 	 * @return   void
 	 */
 	private function log( string $level, string $message, array $context = array() ): void {

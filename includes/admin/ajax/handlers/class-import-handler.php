@@ -68,15 +68,25 @@ class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 		$import_data = isset( $request['import_data'] ) ? $request['import_data'] : '';
 
 		// Log request start
-		$this->logger->flow( 'info', 'AJAX START', 'Processing import request', array(
-			'data_size' => strlen( $import_data ),
-			'user_id' => get_current_user_id()
-		) );
+		$this->logger->flow(
+			'info',
+			'AJAX START',
+			'Processing import request',
+			array(
+				'data_size' => strlen( $import_data ),
+				'user_id'   => get_current_user_id(),
+			)
+		);
 
 		if ( empty( $import_data ) ) {
-			$this->logger->flow( 'error', 'AJAX ERROR', 'No import data provided', array(
-				'_start_time' => $start_time
-			) );
+			$this->logger->flow(
+				'error',
+				'AJAX ERROR',
+				'No import data provided',
+				array(
+					'_start_time' => $start_time,
+				)
+			);
 			return $this->error( __( 'No import data provided', 'smart-cycle-discounts' ) );
 		}
 
@@ -84,20 +94,30 @@ class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 		$data = json_decode( $import_data, true );
 
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			$this->logger->flow( 'error', 'AJAX ERROR', 'Invalid JSON data', array(
-				'json_error' => json_last_error_msg(),
-				'_start_time' => $start_time
-			) );
+			$this->logger->flow(
+				'error',
+				'AJAX ERROR',
+				'Invalid JSON data',
+				array(
+					'json_error'  => json_last_error_msg(),
+					'_start_time' => $start_time,
+				)
+			);
 			return $this->error( __( 'Invalid JSON data', 'smart-cycle-discounts' ) );
 		}
 
 		// Validate data structure
 		if ( ! isset( $data['type'] ) || ! isset( $data['data'] ) ) {
-			$this->logger->flow( 'error', 'AJAX ERROR', 'Invalid import file format', array(
-				'has_type' => isset( $data['type'] ),
-				'has_data' => isset( $data['data'] ),
-				'_start_time' => $start_time
-			) );
+			$this->logger->flow(
+				'error',
+				'AJAX ERROR',
+				'Invalid import file format',
+				array(
+					'has_type'    => isset( $data['type'] ),
+					'has_data'    => isset( $data['data'] ),
+					'_start_time' => $start_time,
+				)
+			);
 			return $this->error( __( 'Invalid import file format', 'smart-cycle-discounts' ) );
 		}
 
@@ -107,10 +127,15 @@ class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 		} elseif ( 'settings' === $data['type'] ) {
 			return $this->import_settings( $data['data'], $start_time );
 		} else {
-			$this->logger->flow( 'error', 'AJAX ERROR', 'Unknown import type', array(
-				'import_type' => $data['type'],
-				'_start_time' => $start_time
-			) );
+			$this->logger->flow(
+				'error',
+				'AJAX ERROR',
+				'Unknown import type',
+				array(
+					'import_type' => $data['type'],
+					'_start_time' => $start_time,
+				)
+			);
 			return $this->error( __( 'Unknown import type', 'smart-cycle-discounts' ) );
 		}
 	}
@@ -126,9 +151,9 @@ class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 		global $wpdb;
 
 		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
-		$imported = 0;
-		$failed = 0;
-		$errors = array();
+		$imported        = 0;
+		$failed          = 0;
+		$errors          = array();
 
 		foreach ( $campaigns as $campaign ) {
 			// Remove ID to create new campaigns
@@ -138,9 +163,9 @@ class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 			$result = $wpdb->insert( $campaigns_table, $campaign );
 
 			if ( $result ) {
-				$imported++;
+				++$imported;
 			} else {
-				$failed++;
+				++$failed;
 				// Only store first 3 errors to avoid bloating logs
 				if ( count( $errors ) < 3 ) {
 					$errors[] = $wpdb->last_error;
@@ -150,32 +175,44 @@ class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 
 		// Log import results
 		if ( $failed > 0 ) {
-			$this->logger->flow( 'warning', 'CAMPAIGN CREATE', 'Campaigns imported with errors', array(
-				'total' => count( $campaigns ),
-				'imported' => $imported,
-				'failed' => $failed,
-				'sample_errors' => $errors,
-				'user_id' => get_current_user_id(),
-				'_start_time' => $start_time,
-				'_include_memory' => true
-			) );
+			$this->logger->flow(
+				'warning',
+				'CAMPAIGN CREATE',
+				'Campaigns imported with errors',
+				array(
+					'total'           => count( $campaigns ),
+					'imported'        => $imported,
+					'failed'          => $failed,
+					'sample_errors'   => $errors,
+					'user_id'         => get_current_user_id(),
+					'_start_time'     => $start_time,
+					'_include_memory' => true,
+				)
+			);
 		} else {
-			$this->logger->flow( 'notice', 'CAMPAIGN CREATE', 'Campaigns imported successfully', array(
-				'total' => count( $campaigns ),
-				'imported' => $imported,
-				'user_id' => get_current_user_id(),
-				'_start_time' => $start_time,
-				'_include_memory' => true
-			) );
+			$this->logger->flow(
+				'notice',
+				'CAMPAIGN CREATE',
+				'Campaigns imported successfully',
+				array(
+					'total'           => count( $campaigns ),
+					'imported'        => $imported,
+					'user_id'         => get_current_user_id(),
+					'_start_time'     => $start_time,
+					'_include_memory' => true,
+				)
+			);
 		}
 
-		return $this->success( array(
-			'message' => sprintf(
+		return $this->success(
+			array(
+				'message' => sprintf(
 				/* translators: %d: number of campaigns imported */
-				_n( '%d campaign imported successfully', '%d campaigns imported successfully', $imported, 'smart-cycle-discounts' ),
-				$imported
+					_n( '%d campaign imported successfully', '%d campaigns imported successfully', $imported, 'smart-cycle-discounts' ),
+					$imported
+				),
 			)
-		) );
+		);
 	}
 
 	/**
@@ -197,23 +234,35 @@ class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 
 		// Log import results
 		if ( $result ) {
-			$this->logger->flow( 'notice', 'AJAX SUCCESS', 'Settings imported successfully', array(
-				'settings_count' => count( $settings ),
-				'merged_count' => count( $merged_settings ),
-				'user_id' => get_current_user_id(),
-				'_start_time' => $start_time,
-				'_include_memory' => true
-			) );
+			$this->logger->flow(
+				'notice',
+				'AJAX SUCCESS',
+				'Settings imported successfully',
+				array(
+					'settings_count'  => count( $settings ),
+					'merged_count'    => count( $merged_settings ),
+					'user_id'         => get_current_user_id(),
+					'_start_time'     => $start_time,
+					'_include_memory' => true,
+				)
+			);
 		} else {
-			$this->logger->flow( 'warning', 'AJAX SUCCESS', 'Settings import completed (no changes)', array(
-				'settings_count' => count( $settings ),
-				'user_id' => get_current_user_id(),
-				'_start_time' => $start_time
-			) );
+			$this->logger->flow(
+				'warning',
+				'AJAX SUCCESS',
+				'Settings import completed (no changes)',
+				array(
+					'settings_count' => count( $settings ),
+					'user_id'        => get_current_user_id(),
+					'_start_time'    => $start_time,
+				)
+			);
 		}
 
-		return $this->success( array(
-			'message' => __( 'Settings imported successfully', 'smart-cycle-discounts' )
-		) );
+		return $this->success(
+			array(
+				'message' => __( 'Settings imported successfully', 'smart-cycle-discounts' ),
+			)
+		);
 	}
 }

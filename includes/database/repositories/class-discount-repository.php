@@ -35,13 +35,13 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 	 * Initialize the repository.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager    $database_manager    Database manager (for DI compatibility, not used).
+	 * @param    SCD_Database_Manager $database_manager    Database manager (for DI compatibility, not used).
 	 */
 	public function __construct( SCD_Database_Manager $database_manager ) {
 		global $wpdb;
 		// Note: database_manager parameter is kept for DI container compatibility
 		// but not used. Base repository uses global $wpdb directly.
-		$this->table_name = $wpdb->prefix . 'scd_active_discounts';
+		$this->table_name  = $wpdb->prefix . 'scd_active_discounts';
 		$this->primary_key = 'id';
 		$this->date_fields = array( 'created_at', 'updated_at', 'starts_at', 'ends_at', 'applied_at' );
 		$this->json_fields = array( 'metadata', 'conditions' );
@@ -51,19 +51,19 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 	 * Find discounts by campaign ID.
 	 *
 	 * @since    1.0.0
-	 * @param    int      $campaign_id    Campaign ID.
-	 * @param    string   $status         Optional status filter.
+	 * @param    int    $campaign_id    Campaign ID.
+	 * @param    string $status         Optional status filter.
 	 * @return   array                    Array of discount records.
 	 */
 	public function find_by_campaign( $campaign_id, $status = '' ) {
 		$args = array(
-			'campaign_id' => $campaign_id
+			'campaign_id' => $campaign_id,
 		);
-		
+
 		if ( ! empty( $status ) ) {
 			$args['status'] = $status;
 		}
-		
+
 		return $this->find_all( $args );
 	}
 
@@ -71,19 +71,19 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 	 * Find discounts by product ID.
 	 *
 	 * @since    1.0.0
-	 * @param    int      $product_id    Product ID.
-	 * @param    string   $status        Optional status filter.
+	 * @param    int    $product_id    Product ID.
+	 * @param    string $status        Optional status filter.
 	 * @return   array                   Array of discount records.
 	 */
 	public function find_by_product( $product_id, $status = '' ) {
 		$args = array(
-			'product_id' => $product_id
+			'product_id' => $product_id,
 		);
-		
+
 		if ( ! empty( $status ) ) {
 			$args['status'] = $status;
 		}
-		
+
 		return $this->find_all( $args );
 	}
 
@@ -91,15 +91,15 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 	 * Find active discounts for a product.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $product_id    Product ID.
+	 * @param    int $product_id    Product ID.
 	 * @return   array                 Array of active discount records.
 	 */
 	public function find_active_for_product( $product_id ) {
 		$args = array(
-			'product_id' => $product_id,
-			'active_only' => true
+			'product_id'  => $product_id,
+			'active_only' => true,
 		);
-		
+
 		return $this->find_all( $args );
 	}
 
@@ -107,7 +107,7 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 	 * Find expired discounts.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $cutoff_date    Cutoff date for expiration.
+	 * @param    string $cutoff_date    Cutoff date for expiration.
 	 * @return   array                     Array of expired discount records.
 	 */
 	public function find_expired( $cutoff_date ) {
@@ -142,20 +142,20 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 	 * Get discount statistics.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $campaign_id    Optional campaign ID filter.
+	 * @param    int $campaign_id    Optional campaign ID filter.
 	 * @return   array                  Discount statistics.
 	 */
 	public function get_statistics( $campaign_id = 0 ) {
 		global $wpdb;
-		
-		$where_sql = '';
+
+		$where_sql    = '';
 		$where_values = array();
-		
+
 		if ( $campaign_id > 0 ) {
-			$where_sql = 'WHERE campaign_id = %d';
+			$where_sql      = 'WHERE campaign_id = %d';
 			$where_values[] = $campaign_id;
 		}
-		
+
 		$sql = "SELECT 
 					status,
 					COUNT(*) as count,
@@ -165,52 +165,52 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 				FROM {$this->table_name} 
 				{$where_sql}
 				GROUP BY status";
-		
+
 		if ( ! empty( $where_values ) ) {
 			$sql = $wpdb->prepare( $sql, $where_values );
 		}
-		
+
 		$results = $wpdb->get_results( $sql, ARRAY_A );
-		
+
 		$statistics = array(
-			'total_discounts' => 0,
-			'active_discounts' => 0,
-			'expired_discounts' => 0,
+			'total_discounts'      => 0,
+			'active_discounts'     => 0,
+			'expired_discounts'    => 0,
 			'total_discount_value' => 0.0,
-			'total_savings' => 0.0,
-			'average_discount' => 0.0,
-			'by_status' => array()
+			'total_savings'        => 0.0,
+			'average_discount'     => 0.0,
+			'by_status'            => array(),
 		);
-		
+
 		foreach ( $results as $row ) {
-			$status = $row['status'];
-			$count = intval( $row['count'] );
+			$status               = $row['status'];
+			$count                = intval( $row['count'] );
 			$total_discount_value = floatval( $row['total_discount_value'] );
-			$avg_discount_value = floatval( $row['avg_discount_value'] );
-			$total_savings = floatval( $row['total_savings'] );
-			
+			$avg_discount_value   = floatval( $row['avg_discount_value'] );
+			$total_savings        = floatval( $row['total_savings'] );
+
 			$statistics['by_status'][ $status ] = array(
-				'count' => $count,
+				'count'                => $count,
 				'total_discount_value' => $total_discount_value,
-				'avg_discount_value' => $avg_discount_value,
-				'total_savings' => $total_savings
+				'avg_discount_value'   => $avg_discount_value,
+				'total_savings'        => $total_savings,
 			);
-			
-			$statistics['total_discounts'] += $count;
+
+			$statistics['total_discounts']      += $count;
 			$statistics['total_discount_value'] += $total_discount_value;
-			$statistics['total_savings'] += $total_savings;
-			
+			$statistics['total_savings']        += $total_savings;
+
 			if ( 'active' === $status ) {
 				$statistics['active_discounts'] = $count;
 			} elseif ( 'expired' === $status ) {
 				$statistics['expired_discounts'] = $count;
 			}
 		}
-		
+
 		if ( $statistics['total_discounts'] > 0 ) {
 			$statistics['average_discount'] = $statistics['total_discount_value'] / $statistics['total_discounts'];
 		}
-		
+
 		return $statistics;
 	}
 
@@ -218,29 +218,29 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 	 * Bulk update discount status.
 	 *
 	 * @since    1.0.0
-	 * @param    array     $discount_ids    Array of discount IDs.
-	 * @param    string    $status          New status.
+	 * @param    array  $discount_ids    Array of discount IDs.
+	 * @param    string $status          New status.
 	 * @return   int                        Number of updated discounts.
 	 */
 	public function bulk_update_status( array $discount_ids, $status ) {
 		if ( empty( $discount_ids ) ) {
 			return 0;
 		}
-		
+
 		global $wpdb;
-		
+
 		$placeholders = implode( ',', array_fill( 0, count( $discount_ids ), '%d' ) );
-		$values = array_merge( array( $status, current_time( 'mysql' ) ), $discount_ids );
-		
+		$values       = array_merge( array( $status, current_time( 'mysql' ) ), $discount_ids );
+
 		$sql = $wpdb->prepare(
 			"UPDATE {$this->table_name} 
 			 SET status = %s, updated_at = %s 
 			 WHERE id IN ({$placeholders})",
 			$values
 		);
-		
+
 		$result = $wpdb->query( $sql );
-		
+
 		return false !== $result ? $result : 0;
 	}
 
@@ -252,7 +252,7 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 	 */
 	public function expire_old_discounts() {
 		global $wpdb;
-		
+
 		$sql = $wpdb->prepare(
 			"UPDATE {$this->table_name} 
 			 SET status = 'expired', updated_at = %s 
@@ -261,9 +261,9 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 			current_time( 'mysql' ),
 			current_time( 'mysql' )
 		);
-		
+
 		$result = $wpdb->query( $sql );
-		
+
 		return false !== $result ? $result : 0;
 	}
 
@@ -271,7 +271,7 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 	 * Delete discounts by campaign ID.
 	 *
 	 * @since    1.0.0
-	 * @param    int    $campaign_id    Campaign ID.
+	 * @param    int $campaign_id    Campaign ID.
 	 * @return   int|WP_Error           Number of deleted discounts or error.
 	 */
 	public function delete_by_campaign( $campaign_id ) {
@@ -308,8 +308,8 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    SCD_Query_Builder    $query_builder    Query builder instance.
-	 * @param    array               $args             Query arguments.
+	 * @param    SCD_Query_Builder $query_builder    Query builder instance.
+	 * @param    array             $args             Query arguments.
 	 * @return   void
 	 */
 	protected function apply_custom_where_conditions( $query_builder, $args ) {
@@ -317,32 +317,32 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 		if ( ! empty( $args['campaign_id'] ) ) {
 			$query_builder->where( 'campaign_id', '=', $args['campaign_id'] );
 		}
-		
+
 		// Product ID filter
 		if ( ! empty( $args['product_id'] ) ) {
 			$query_builder->where( 'product_id', '=', $args['product_id'] );
 		}
-		
+
 		// Customer ID filter
 		if ( ! empty( $args['customer_id'] ) ) {
 			$query_builder->where( 'customer_id', '=', $args['customer_id'] );
 		}
-		
+
 		// Order ID filter
 		if ( ! empty( $args['order_id'] ) ) {
 			$query_builder->where( 'order_id', '=', $args['order_id'] );
 		}
-		
+
 		// Discount type filter
 		if ( ! empty( $args['discount_type'] ) ) {
 			$query_builder->where( 'discount_type', '=', $args['discount_type'] );
 		}
-		
+
 		// Active discounts only
 		if ( isset( $args['active_only'] ) && $args['active_only'] ) {
 			$query_builder->where( 'status', '=', 'active' )
-						 ->where( 'starts_at', '<=', current_time( 'mysql' ) )
-						 ->where( 'ends_at', '>=', current_time( 'mysql' ) );
+						->where( 'starts_at', '<=', current_time( 'mysql' ) )
+						->where( 'ends_at', '>=', current_time( 'mysql' ) );
 		}
 	}
 
@@ -351,7 +351,7 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    array    $data    Data to prepare.
+	 * @param    array $data    Data to prepare.
 	 * @return   array             Prepared data.
 	 */
 	protected function prepare_data_for_database( array $data ) {
@@ -359,10 +359,19 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 
 		// Direct mappings
 		$direct_fields = array(
-			'campaign_id', 'product_id', 'customer_id', 'order_id',
-			'discount_type', 'discount_value', 'original_price',
-			'discounted_price', 'savings_amount', 'status',
-			'starts_at', 'ends_at', 'applied_at'
+			'campaign_id',
+			'product_id',
+			'customer_id',
+			'order_id',
+			'discount_type',
+			'discount_value',
+			'original_price',
+			'discounted_price',
+			'savings_amount',
+			'status',
+			'starts_at',
+			'ends_at',
+			'applied_at',
 		);
 
 		foreach ( $direct_fields as $field ) {
@@ -382,17 +391,24 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    array    $data    Raw database data.
+	 * @param    array $data    Raw database data.
 	 * @return   array             Prepared data.
 	 */
 	protected function prepare_item_output( array $data ) {
 		// Convert numeric fields using base class helpers
 		$numeric_fields = array(
-			'id', 'campaign_id', 'product_id', 'customer_id', 'order_id'
+			'id',
+			'campaign_id',
+			'product_id',
+			'customer_id',
+			'order_id',
 		);
 
 		$float_fields = array(
-			'discount_value', 'original_price', 'discounted_price', 'savings_amount'
+			'discount_value',
+			'original_price',
+			'discounted_price',
+			'savings_amount',
 		);
 
 		$data = $this->convert_to_int( $data, $numeric_fields );

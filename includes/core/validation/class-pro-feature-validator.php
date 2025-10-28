@@ -42,7 +42,7 @@ class SCD_PRO_Feature_Validator {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Feature_Gate    $feature_gate    Feature gate instance.
+	 * @param    SCD_Feature_Gate $feature_gate    Feature gate instance.
 	 */
 	public function __construct( $feature_gate ) {
 		$this->feature_gate = $feature_gate;
@@ -52,8 +52,8 @@ class SCD_PRO_Feature_Validator {
 	 * Validate PRO features for a wizard step.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $step    Step name.
-	 * @param    array     $data    Step data.
+	 * @param    string $step    Step name.
+	 * @param    array  $data    Step data.
 	 * @return   true|WP_Error      True if valid, WP_Error if PRO feature detected.
 	 */
 	public function validate_step( $step, $data ) {
@@ -75,7 +75,7 @@ class SCD_PRO_Feature_Validator {
 	 * This is the final validation before campaign creation.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $campaign_data    Complete campaign data.
+	 * @param    array $campaign_data    Complete campaign data.
 	 * @return   true|WP_Error              True if valid, WP_Error if PRO feature detected.
 	 */
 	public function validate_campaign( $campaign_data ) {
@@ -105,7 +105,7 @@ class SCD_PRO_Feature_Validator {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $data    Step data.
+	 * @param    array $data    Step data.
 	 * @return   true|WP_Error     True if valid, WP_Error if PRO feature detected.
 	 */
 	private function validate_discounts( $data ) {
@@ -121,7 +121,7 @@ class SCD_PRO_Feature_Validator {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $data    Data containing discount_type.
+	 * @param    array $data    Data containing discount_type.
 	 * @return   true|WP_Error     True if valid, WP_Error if PRO feature detected.
 	 */
 	private function validate_discount_type( $data ) {
@@ -130,7 +130,7 @@ class SCD_PRO_Feature_Validator {
 		}
 
 		$discount_type = $data['discount_type'];
-		$pro_types = array( 'tiered', 'bogo', 'spend_threshold' );
+		$pro_types     = array( 'tiered', 'bogo', 'spend_threshold' );
 
 		// If PRO discount type selected, verify user has access
 		if ( in_array( $discount_type, $pro_types, true ) ) {
@@ -143,9 +143,9 @@ class SCD_PRO_Feature_Validator {
 						$discount_type
 					),
 					array(
-						'status' => 403,
-						'feature' => 'discount_type_' . $discount_type,
-						'upgrade_url' => $this->feature_gate->get_upgrade_url()
+						'status'      => 403,
+						'feature'     => 'discount_type_' . $discount_type,
+						'upgrade_url' => $this->feature_gate->get_upgrade_url(),
 					)
 				);
 			}
@@ -159,7 +159,7 @@ class SCD_PRO_Feature_Validator {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $data    Step data.
+	 * @param    array $data    Step data.
 	 * @return   true|WP_Error     True if valid, WP_Error if PRO feature detected.
 	 */
 	private function validate_schedule( $data ) {
@@ -177,7 +177,7 @@ class SCD_PRO_Feature_Validator {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $data    Data containing enable_recurring.
+	 * @param    array $data    Data containing enable_recurring.
 	 * @return   true|WP_Error     True if valid, WP_Error if PRO feature detected.
 	 */
 	private function validate_recurring( $data ) {
@@ -188,9 +188,9 @@ class SCD_PRO_Feature_Validator {
 					'pro_feature_required',
 					__( 'Recurring campaigns require a PRO license.', 'smart-cycle-discounts' ),
 					array(
-						'status' => 403,
-						'feature' => 'campaigns_recurring',
-						'upgrade_url' => $this->feature_gate->get_upgrade_url()
+						'status'      => 403,
+						'feature'     => 'campaigns_recurring',
+						'upgrade_url' => $this->feature_gate->get_upgrade_url(),
 					)
 				);
 			}
@@ -204,7 +204,7 @@ class SCD_PRO_Feature_Validator {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $data    Step data.
+	 * @param    array $data    Step data.
 	 * @return   true|WP_Error     True if valid, WP_Error if PRO feature detected.
 	 */
 	private function validate_products( $data ) {
@@ -216,7 +216,7 @@ class SCD_PRO_Feature_Validator {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $data    Data containing use_advanced_filters.
+	 * @param    array $data    Data containing use_advanced_filters.
 	 * @return   true|WP_Error     True if valid, WP_Error if PRO feature detected.
 	 */
 	private function validate_advanced_filters( $data ) {
@@ -227,9 +227,9 @@ class SCD_PRO_Feature_Validator {
 					'pro_feature_required',
 					__( 'Advanced product filters require a PRO license.', 'smart-cycle-discounts' ),
 					array(
-						'status' => 403,
-						'feature' => 'campaigns_advanced_product_filters',
-						'upgrade_url' => $this->feature_gate->get_upgrade_url()
+						'status'      => 403,
+						'feature'     => 'campaigns_advanced_product_filters',
+						'upgrade_url' => $this->feature_gate->get_upgrade_url(),
 					)
 				);
 			}

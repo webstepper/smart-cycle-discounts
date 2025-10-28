@@ -23,7 +23,7 @@ class SCD_Console_Logger_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger    $logger    Logger instance (optional).
+	 * @param    SCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -50,42 +50,50 @@ class SCD_Console_Logger_Handler extends SCD_Abstract_Ajax_Handler {
 		$logs = isset( $request['logs'] ) ? $request['logs'] : '';
 
 		if ( empty( $logs ) ) {
-			return $this->success( array(
-				'logged' => 0
-			) );
+			return $this->success(
+				array(
+					'logged' => 0,
+				)
+			);
 		}
 
 		$decoded_logs = json_decode( stripslashes( $logs ), true );
 
 		if ( ! is_array( $decoded_logs ) ) {
-			return $this->success( array(
-				'logged' => 0,
-				'error' => __( 'Invalid log format', 'smart-cycle-discounts' )
-			) );
+			return $this->success(
+				array(
+					'logged' => 0,
+					'error'  => __( 'Invalid log format', 'smart-cycle-discounts' ),
+				)
+			);
 		}
 
 		$logged_count = 0;
 		foreach ( $decoded_logs as $log ) {
-			$level = isset( $log['level'] ) ? strtoupper( $log['level'] ) : 'LOG';
-			$message = isset( $log['message'] ) ? $log['message'] : '';
+			$level     = isset( $log['level'] ) ? strtoupper( $log['level'] ) : 'LOG';
+			$message   = isset( $log['message'] ) ? $log['message'] : '';
 			$timestamp = isset( $log['timestamp'] ) ? $log['timestamp'] : '';
 
-			error_log( sprintf(
-				'[SCD JS %s] %s | %s',
-				$level,
-				$timestamp,
-				$message
-			) );
-			$logged_count++;
+			error_log(
+				sprintf(
+					'[SCD JS %s] %s | %s',
+					$level,
+					$timestamp,
+					$message
+				)
+			);
+			++$logged_count;
 		}
 
-		return $this->success( array(
-			'logged' => $logged_count,
-			'message' => sprintf(
+		return $this->success(
+			array(
+				'logged'  => $logged_count,
+				'message' => sprintf(
 				/* translators: %d: number of log entries */
-				__( 'Logged %d console entries', 'smart-cycle-discounts' ),
-				$logged_count
+					__( 'Logged %d console entries', 'smart-cycle-discounts' ),
+					$logged_count
+				),
 			)
-		) );
+		);
 	}
 }

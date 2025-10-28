@@ -85,12 +85,12 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 	 * Initialize provider.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger    $logger        Logger instance.
-	 * @param    string        $access_key    AWS Access Key ID.
-	 * @param    string        $secret_key    AWS Secret Access Key.
-	 * @param    string        $region        AWS Region.
-	 * @param    string        $from_email    From email address.
-	 * @param    string        $from_name     From name.
+	 * @param    SCD_Logger $logger        Logger instance.
+	 * @param    string     $access_key    AWS Access Key ID.
+	 * @param    string     $secret_key    AWS Secret Access Key.
+	 * @param    string     $region        AWS Region.
+	 * @param    string     $from_email    From email address.
+	 * @param    string     $from_name     From name.
 	 */
 	public function __construct(
 		SCD_Logger $logger,
@@ -100,22 +100,22 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 		string $from_email = '',
 		string $from_name = ''
 	) {
-		$this->logger = $logger;
+		$this->logger     = $logger;
 		$this->access_key = $access_key;
 		$this->secret_key = $secret_key;
-		$this->region = $region;
+		$this->region     = $region;
 		$this->from_email = ! empty( $from_email ) ? $from_email : get_option( 'admin_email' );
-		$this->from_name = ! empty( $from_name ) ? $from_name : get_bloginfo( 'name' );
+		$this->from_name  = ! empty( $from_name ) ? $from_name : get_bloginfo( 'name' );
 	}
 
 	/**
 	 * Send email.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $to         Recipient email address.
-	 * @param    string    $subject    Email subject.
-	 * @param    string    $content    Email content (HTML).
-	 * @param    array     $headers    Optional. Email headers.
+	 * @param    string $to         Recipient email address.
+	 * @param    string $subject    Email subject.
+	 * @param    string $content    Email content (HTML).
+	 * @param    array  $headers    Optional. Email headers.
 	 * @return   bool                  True on success, false on failure.
 	 */
 	public function send( string $to, string $subject, string $content, array $headers = array() ): bool {
@@ -131,42 +131,51 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 
 		// Build SES API request parameters
 		$params = array(
-			'Action' => 'SendEmail',
-			'Source' => sprintf( '%s <%s>', $this->from_name, $this->from_email ),
+			'Action'                           => 'SendEmail',
+			'Source'                           => sprintf( '%s <%s>', $this->from_name, $this->from_email ),
 			'Destination.ToAddresses.member.1' => $to,
-			'Message.Subject.Data' => $subject,
-			'Message.Subject.Charset' => 'UTF-8',
-			'Message.Body.Html.Data' => $content,
-			'Message.Body.Html.Charset' => 'UTF-8',
+			'Message.Subject.Data'             => $subject,
+			'Message.Subject.Charset'          => 'UTF-8',
+			'Message.Body.Html.Data'           => $content,
+			'Message.Body.Html.Charset'        => 'UTF-8',
 		);
 
 		// Make signed API request
 		$response = $this->make_ses_request( $params );
 
 		if ( is_wp_error( $response ) ) {
-			$this->logger->error( 'Amazon SES API request failed', array(
-				'error' => $response->get_error_message(),
-				'to' => $to,
-			) );
+			$this->logger->error(
+				'Amazon SES API request failed',
+				array(
+					'error' => $response->get_error_message(),
+					'to'    => $to,
+				)
+			);
 			return false;
 		}
 
 		$status_code = wp_remote_retrieve_response_code( $response );
 
 		if ( 200 === $status_code ) {
-			$this->logger->debug( 'Email sent via Amazon SES', array(
-				'to' => $to,
-				'subject' => $subject,
-			) );
+			$this->logger->debug(
+				'Email sent via Amazon SES',
+				array(
+					'to'      => $to,
+					'subject' => $subject,
+				)
+			);
 			return true;
 		}
 
 		$body = wp_remote_retrieve_body( $response );
-		$this->logger->error( 'Amazon SES API error', array(
-			'status_code' => $status_code,
-			'response' => $body,
-			'to' => $to,
-		) );
+		$this->logger->error(
+			'Amazon SES API error',
+			array(
+				'status_code' => $status_code,
+				'response'    => $body,
+				'to'          => $to,
+			)
+		);
 
 		return false;
 	}
@@ -175,19 +184,19 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 	 * Send batch of emails.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $emails    Array of email data.
+	 * @param    array $emails    Array of email data.
 	 * @return   array               Results array with success/failure status.
 	 */
 	public function send_batch( array $emails ): array {
 		$results = array(
 			'success' => 0,
-			'failed' => 0,
-			'total' => count( $emails ),
-			'errors' => array(),
+			'failed'  => 0,
+			'total'   => count( $emails ),
+			'errors'  => array(),
 		);
 
 		foreach ( $emails as $index => $email ) {
-			$to = $email['to'] ?? '';
+			$to      = $email['to'] ?? '';
 			$subject = $email['subject'] ?? '';
 			$content = $email['content'] ?? '';
 			$headers = $email['headers'] ?? array();
@@ -195,12 +204,12 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 			$sent = $this->send( $to, $subject, $content, $headers );
 
 			if ( $sent ) {
-				$results['success']++;
+				++$results['success'];
 			} else {
-				$results['failed']++;
+				++$results['failed'];
 				$results['errors'][] = array(
 					'index' => $index,
-					'to' => $to,
+					'to'    => $to,
 					'error' => 'Failed to send via Amazon SES',
 				);
 			}
@@ -251,9 +260,12 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 		$response = $this->make_ses_request( $params );
 
 		if ( is_wp_error( $response ) ) {
-			$this->logger->error( 'Amazon SES config validation failed', array(
-				'error' => $response->get_error_message(),
-			) );
+			$this->logger->error(
+				'Amazon SES config validation failed',
+				array(
+					'error' => $response->get_error_message(),
+				)
+			);
 			return false;
 		}
 
@@ -285,7 +297,7 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 		}
 
 		$body = wp_remote_retrieve_body( $response );
-		$xml = simplexml_load_string( $body );
+		$xml  = simplexml_load_string( $body );
 
 		if ( false === $xml ) {
 			return array();
@@ -294,9 +306,9 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 		$result = $xml->GetSendQuotaResult;
 
 		return array(
-			'provider' => $this->get_name(),
-			'max_24_hour_send' => (string) $result->Max24HourSend,
-			'max_send_rate' => (string) $result->MaxSendRate,
+			'provider'           => $this->get_name(),
+			'max_24_hour_send'   => (string) $result->Max24HourSend,
+			'max_send_rate'      => (string) $result->MaxSendRate,
 			'sent_last_24_hours' => (string) $result->SentLast24Hours,
 		);
 	}
@@ -306,16 +318,16 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array    $params    Request parameters.
+	 * @param    array $params    Request parameters.
 	 * @return   array|WP_Error      Response or error.
 	 */
 	private function make_ses_request( array $params ) {
 		$endpoint = "https://email.{$this->region}.amazonaws.com/";
-		$host = "email.{$this->region}.amazonaws.com";
-		$service = 'ses';
+		$host     = "email.{$this->region}.amazonaws.com";
+		$service  = 'ses';
 
 		// Prepare request
-		$date = gmdate( 'Ymd\THis\Z' );
+		$date              = gmdate( 'Ymd\THis\Z' );
 		$params['Version'] = '2010-12-01';
 
 		// Build query string
@@ -326,15 +338,18 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 		$signature = $this->create_aws_signature( $query_string, $host, $date, $service );
 
 		// Make request
-		return wp_remote_post( $endpoint, array(
-			'body' => $query_string,
-			'headers' => array(
-				'Content-Type' => 'application/x-www-form-urlencoded',
-				'X-Amz-Date' => $date,
-				'Authorization' => $signature,
-			),
-			'timeout' => 30,
-		) );
+		return wp_remote_post(
+			$endpoint,
+			array(
+				'body'    => $query_string,
+				'headers' => array(
+					'Content-Type'  => 'application/x-www-form-urlencoded',
+					'X-Amz-Date'    => $date,
+					'Authorization' => $signature,
+				),
+				'timeout' => 30,
+			)
+		);
 	}
 
 	/**
@@ -342,15 +357,15 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string    $query_string    Query string.
-	 * @param    string    $host            Host.
-	 * @param    string    $date            Date.
-	 * @param    string    $service         Service name.
+	 * @param    string $query_string    Query string.
+	 * @param    string $host            Host.
+	 * @param    string $date            Date.
+	 * @param    string $service         Service name.
 	 * @return   string                     Authorization header.
 	 */
 	private function create_aws_signature( string $query_string, string $host, string $date, string $service ): string {
-		$algorithm = 'AWS4-HMAC-SHA256';
-		$date_stamp = substr( $date, 0, 8 );
+		$algorithm        = 'AWS4-HMAC-SHA256';
+		$date_stamp       = substr( $date, 0, 8 );
 		$credential_scope = "{$date_stamp}/{$this->region}/{$service}/aws4_request";
 
 		// Create canonical request
@@ -360,8 +375,8 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 		$string_to_sign = "{$algorithm}\n{$date}\n{$credential_scope}\n" . hash( 'sha256', $canonical_request );
 
 		// Calculate signing key
-		$k_date = hash_hmac( 'sha256', $date_stamp, 'AWS4' . $this->secret_key, true );
-		$k_region = hash_hmac( 'sha256', $this->region, $k_date, true );
+		$k_date    = hash_hmac( 'sha256', $date_stamp, 'AWS4' . $this->secret_key, true );
+		$k_region  = hash_hmac( 'sha256', $this->region, $k_date, true );
 		$k_service = hash_hmac( 'sha256', $service, $k_region, true );
 		$k_signing = hash_hmac( 'sha256', 'aws4_request', $k_service, true );
 
@@ -376,8 +391,8 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 	 * Set AWS credentials.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $access_key    AWS Access Key ID.
-	 * @param    string    $secret_key    AWS Secret Access Key.
+	 * @param    string $access_key    AWS Access Key ID.
+	 * @param    string $secret_key    AWS Secret Access Key.
 	 * @return   void
 	 */
 	public function set_credentials( string $access_key, string $secret_key ): void {
@@ -389,7 +404,7 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 	 * Set AWS region.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $region    AWS Region.
+	 * @param    string $region    AWS Region.
 	 * @return   void
 	 */
 	public function set_region( string $region ): void {
@@ -400,7 +415,7 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 	 * Set from email address.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $from_email    From email address.
+	 * @param    string $from_email    From email address.
 	 * @return   void
 	 */
 	public function set_from_email( string $from_email ): void {
@@ -413,7 +428,7 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 	 * Set from name.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $from_name    From name.
+	 * @param    string $from_name    From name.
 	 * @return   void
 	 */
 	public function set_from_name( string $from_name ): void {

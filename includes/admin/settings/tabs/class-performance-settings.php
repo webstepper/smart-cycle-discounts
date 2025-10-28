@@ -42,9 +42,9 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 	 * Initialize performance settings.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Settings_Manager    $settings_manager  Settings manager.
-	 * @param    SCD_Logger              $logger            Logger instance.
-	 * @param    object                  $container         Container instance.
+	 * @param    SCD_Settings_Manager $settings_manager  Settings manager.
+	 * @param    SCD_Logger           $logger            Logger instance.
+	 * @param    object               $container         Container instance.
 	 */
 	public function __construct( SCD_Settings_Manager $settings_manager, SCD_Logger $logger, object $container ) {
 		parent::__construct( 'performance', $settings_manager, $logger );
@@ -55,7 +55,7 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 	 * Register settings sections and fields.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $current_tab    Current active tab.
+	 * @param    string $current_tab    Current active tab.
 	 * @return   void
 	 */
 	public function register_sections( string $current_tab ): void {
@@ -77,9 +77,9 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 			'scd_performance_cache',
 			array(
 				'tooltip' => __( 'How long to cache campaign rules and settings. Lower = more fresh data, higher = better performance.', 'smart-cycle-discounts' ),
-				'min' => 300,
-				'max' => 86400,
-				'suffix' => __( 'seconds', 'smart-cycle-discounts' ),
+				'min'     => 300,
+				'max'     => 86400,
+				'suffix'  => __( 'seconds', 'smart-cycle-discounts' ),
 			)
 		);
 
@@ -90,9 +90,9 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 			'scd_performance_cache',
 			array(
 				'tooltip' => __( 'How long to cache discount calculation results. Recommended: 1800-3600 seconds.', 'smart-cycle-discounts' ),
-				'min' => 300,
-				'max' => 7200,
-				'suffix' => __( 'seconds', 'smart-cycle-discounts' ),
+				'min'     => 300,
+				'max'     => 7200,
+				'suffix'  => __( 'seconds', 'smart-cycle-discounts' ),
 			)
 		);
 
@@ -103,9 +103,9 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 			'scd_performance_cache',
 			array(
 				'tooltip' => __( 'How long to cache product eligibility checks. Recommended: 3600 seconds.', 'smart-cycle-discounts' ),
-				'min' => 300,
-				'max' => 86400,
-				'suffix' => __( 'seconds', 'smart-cycle-discounts' ),
+				'min'     => 300,
+				'max'     => 86400,
+				'suffix'  => __( 'seconds', 'smart-cycle-discounts' ),
 			)
 		);
 
@@ -178,7 +178,7 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 	 * Render campaign cache duration field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_campaign_cache_duration_field( array $args ): void {
@@ -192,7 +192,7 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 	 * Render discount cache duration field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_discount_cache_duration_field( array $args ): void {
@@ -206,7 +206,7 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 	 * Render product cache duration field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_product_cache_duration_field( array $args ): void {
@@ -229,7 +229,7 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 	 * Render enable cache warming field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_enable_cache_warming_field( array $args ): void {
@@ -243,7 +243,7 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 	 * Render warm on campaign changes field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_warm_on_campaign_changes_field( array $args ): void {
@@ -269,7 +269,7 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 	 * Render cache statistics field.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $args    Field arguments.
+	 * @param    array $args    Field arguments.
 	 * @return   void
 	 */
 	public function render_cache_statistics_field( array $args ): void {
@@ -350,7 +350,7 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 	 * Sanitize performance settings.
 	 *
 	 * @since    1.0.0
-	 * @param    array    $input    Raw input data.
+	 * @param    array $input    Raw input data.
 	 * @return   array              Sanitized data.
 	 */
 	protected function sanitize_settings( array $input ): array {
@@ -372,7 +372,7 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 			: 3600;
 
 		// Cache warming - explicitly set to false if not present
-		$sanitized['enable_cache_warming'] = isset( $input['enable_cache_warming'] ) && '1' === $input['enable_cache_warming'];
+		$sanitized['enable_cache_warming']     = isset( $input['enable_cache_warming'] ) && '1' === $input['enable_cache_warming'];
 		$sanitized['warm_on_campaign_changes'] = isset( $input['warm_on_campaign_changes'] ) && '1' === $input['warm_on_campaign_changes'];
 
 		return $sanitized;
