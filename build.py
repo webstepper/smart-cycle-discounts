@@ -88,8 +88,13 @@ def should_exclude(file_path, root_dir):
     if any(pattern in os.path.basename(file_path) for pattern in EXCLUDE_PATTERNS):
         return True
 
-    # Exclude root-level vendor directory (Composer), but keep resources/assets/vendor (frontend libs)
+    # Exclude root-level vendor directory (Composer), EXCEPT vendor/freemius/ (Freemius SDK)
+    # Keep resources/assets/vendor (frontend libs)
     if 'vendor' in parts and parts[0] == 'vendor':
+        # Allow vendor/freemius/ and its contents
+        if len(parts) > 1 and parts[1] == 'freemius':
+            return False
+        # Exclude all other vendor/ content
         return True
 
     # Exclude root-level specific files
