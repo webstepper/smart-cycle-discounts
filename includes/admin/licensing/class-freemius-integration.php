@@ -119,10 +119,6 @@ class SCD_Freemius_Integration {
 		// Admin notice filters
 		add_filter( 'fs_show_admin_notice', array( __CLASS__, 'filter_admin_notices' ), 10, 2 );
 		add_action( 'admin_notices', array( __CLASS__, 'upgrade_notices' ) );
-
-		// Customize pricing table display
-		self::$freemius->add_filter( 'templates/pricing.php', array( __CLASS__, 'remove_inherited_features_text' ) );
-		add_action( 'admin_head', array( __CLASS__, 'hide_inherited_features_css' ) );
 	}
 
 	/**
@@ -459,101 +455,5 @@ class SCD_Freemius_Integration {
 	 */
 	public static function get_instance() {
 		return self::$freemius;
-	}
-
-	/**
-	 * Remove "All X Features" text from Freemius pricing table.
-	 *
-	 * When features are inherited from lower tiers, Freemius shows
-	 * "All STARTER Features" or "All PROFESSIONAL Features" text.
-	 * This filter removes that text to display the full feature list
-	 * on all plans without the inheritance message.
-	 *
-	 * @since    1.0.0
-	 * @param    string $html    Pricing table HTML.
-	 * @return   string          Modified HTML without inheritance text.
-	 */
-	public static function remove_inherited_features_text( $html ) {
-		if ( empty( $html ) ) {
-			return $html;
-		}
-
-		// Remove "All [PLAN NAME] Features" text patterns
-		// Matches: "All STARTER Features", "All PROFESSIONAL Features", "All BUSINESS Features", etc.
-		$html = preg_replace(
-			'/<[^>]*class="[^"]*fs-inherited-features[^"]*"[^>]*>.*?All\s+[A-Z]+\s+Features.*?<\/[^>]+>/is',
-			'',
-			$html
-		);
-
-		// Fallback: Remove any remaining "All X Features" text regardless of wrapper
-		$html = preg_replace(
-			'/All\s+[A-Z]+\s+Features/i',
-			'',
-			$html
-		);
-
-		return $html;
-	}
-
-	/**
-	 * Hide "All X Features" text with CSS (backup method).
-	 *
-	 * This CSS approach ensures the text is hidden even if the HTML
-	 * filter doesn't catch it. Works as a reliable backup.
-	 *
-	 * @since    1.0.0
-	 * @return   void
-	 */
-	public static function hide_inherited_features_css() {
-		// Only load on Freemius pages
-		if ( ! function_exists( 'scd_fs' ) || ! scd_fs()->is_page_visible() ) {
-			return;
-		}
-
-		?>
-		<script type="text/javascript">
-			jQuery(document).ready(function($) {
-				// Function to remove "All X Features" text from pricing table
-				function removeInheritedText() {
-					// Target the exact structure: ul.fs-plan-features > li > span.fs-feature-title > strong
-					$('ul.fs-plan-features > li').each(function() {
-						var $li = $(this);
-						var $featureTitle = $li.find('span.fs-feature-title strong');
-
-						if ($featureTitle.length > 0) {
-							var text = $featureTitle.text().trim();
-							// Check if it matches "All STARTER Features", "All PROFESSIONAL Features", etc.
-							if (/^All\s+(STARTER|PROFESSIONAL|BUSINESS|PRO)\s+Features$/i.test(text)) {
-								// Remove the entire <li> element
-								$li.remove();
-							}
-						}
-					});
-				}
-
-				// Run immediately
-				removeInheritedText();
-
-				// Run again after delays (in case Freemius JS loads content)
-				setTimeout(removeInheritedText, 100);
-				setTimeout(removeInheritedText, 500);
-				setTimeout(removeInheritedText, 1000);
-
-				// Watch for DOM changes (when pricing table loads dynamically)
-				if (window.MutationObserver) {
-					var observer = new MutationObserver(function(mutations) {
-						removeInheritedText();
-					});
-
-					// Observe the body for any changes
-					observer.observe(document.body, {
-						childList: true,
-						subtree: true
-					});
-				}
-			});
-		</script>
-		<?php
 	}
 }
