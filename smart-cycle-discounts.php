@@ -47,15 +47,20 @@ if ( ! function_exists( 'scd_fs' ) ) {
 
 			$scd_fs = fs_dynamic_init(
 				array(
-					'id'             => '21492',
-					'slug'           => 'smart-cycle-discounts',
-					'type'           => 'plugin',
-					'public_key'     => 'pk_4adf9836495f54c692369525c1000',
-					'is_premium'     => false,
-					'has_addons'     => false,
-					'has_paid_plans' => false,
-					'is_live'        => true,
-					'menu'           => array(
+					'id'                  => '21492',
+					'slug'                => 'smart-cycle-discounts',
+					'type'                => 'plugin',
+					'public_key'          => 'pk_4adf9836495f54c692369525c1000',
+					'is_premium'          => true,
+					'premium_suffix'      => 'STARTER',
+					// If your plugin is a serviceware, set this option to false.
+					'has_premium_version' => true,
+					'has_addons'          => false,
+					'has_paid_plans'      => true,
+					// Automatically removed in the free version. If you're not using the
+					// auto-generated free version, delete this line before uploading to wp.org.
+					'wp_org_gatekeeper'   => 'OA7#BoRiBNqdf52FvzEf!!074aRLPs8fspif$7K1#4u4Csys1fQlCecVcUTOs2mcpeVHi#C2j9d09fOTvbC0HloPT7fFee5WdS3G',
+					'menu'                => array(
 						'slug'       => 'smart-cycle-discounts',
 						'first-path' => 'admin.php?page=smart-cycle-discounts',
 						'support'    => false,
