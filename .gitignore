@@ -2,7 +2,8 @@
 
 # Dependencies
 node_modules/
-vendor/
+vendor/*
+!vendor/freemius/
 
 # Build artifacts
 /assets/build/

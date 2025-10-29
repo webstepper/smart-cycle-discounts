@@ -25,10 +25,52 @@
  * @since 1.0.0
  */
 
-
 // Prevent direct access
 if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'Direct access denied.' );
+}
+
+// Create a helper function for easy SDK access.
+if ( ! function_exists( 'scd_fs' ) ) {
+	/**
+	 * Initialize Freemius SDK.
+	 *
+	 * @since 1.0.0
+	 * @return Freemius|null Freemius instance or null if not available.
+	 */
+	function scd_fs() {
+		global $scd_fs;
+
+		if ( ! isset( $scd_fs ) ) {
+			// Include Freemius SDK.
+			require_once dirname( __FILE__ ) . '/vendor/freemius/start.php';
+
+			$scd_fs = fs_dynamic_init(
+				array(
+					'id'             => '21492',
+					'slug'           => 'smart-cycle-discounts',
+					'type'           => 'plugin',
+					'public_key'     => 'pk_4adf9836495f54c692369525c1000',
+					'is_premium'     => false,
+					'has_addons'     => false,
+					'has_paid_plans' => false,
+					'is_live'        => true,
+					'menu'           => array(
+						'slug'       => 'smart-cycle-discounts',
+						'first-path' => 'admin.php?page=smart-cycle-discounts',
+						'support'    => false,
+					),
+				)
+			);
+		}
+
+		return $scd_fs;
+	}
+
+	// Init Freemius.
+	scd_fs();
+	// Signal that SDK was initiated.
+	do_action( 'scd_fs_loaded' );
 }
 
 // Plugin constants
@@ -327,26 +369,6 @@ add_action( 'wp_ajax_scd_ajax', 'scd_handle_ajax_request' );
 add_action( 'wp_ajax_nopriv_scd_ajax', 'scd_handle_ajax_request' );
 
 /**
- * Initialize Freemius SDK.
- *
- * @since 1.0.0
- * @return Freemius|null Freemius instance or null if not available.
- */
-function scd_fs() {
-	global $scd_fs;
-
-	if ( ! isset( $scd_fs ) ) {
-		// Load Freemius integration
-		require_once SCD_INCLUDES_DIR . 'admin/licensing/class-freemius-integration.php';
-
-		// Initialize Freemius
-		$scd_fs = SCD_Freemius_Integration::init();
-	}
-
-	return $scd_fs;
-}
-
-/**
  * Initialize the plugin.
  */
 function scd_init_plugin() {
@@ -365,18 +387,39 @@ function scd_init_plugin() {
 add_action( 'plugins_loaded', 'scd_init_plugin', 10 );
 
 /**
- * Initialize Freemius SDK.
- * Runs on 'init' hook to avoid translation loading warnings (WordPress 6.7+).
+ * Handle activation redirect to dashboard.
+ *
+ * Redirects to plugin dashboard after first-time activation.
+ * Skips redirect during bulk activations and reactivations.
+ *
+ * @since 1.0.0
  */
-function scd_init_freemius() {
-	if ( ! scd_check_requirements() ) {
+function scd_activation_redirect() {
+	// Only proceed if transient exists.
+	if ( ! get_transient( 'scd_activation_redirect' ) ) {
 		return;
 	}
 
-	// Initialize Freemius
-	scd_fs();
+	// Delete transient to prevent multiple redirects.
+	delete_transient( 'scd_activation_redirect' );
+
+	// Don't redirect if already on plugin page.
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checking current page, no form submission.
+	if ( isset( $_GET['page'] ) && false !== strpos( sanitize_text_field( wp_unslash( $_GET['page'] ) ), 'smart-cycle-discounts' ) ) {
+		return;
+	}
+
+	// Don't redirect during network activation.
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Core WordPress parameter during activation, no nonce available.
+	if ( is_network_admin() || isset( $_GET['activate-multi'] ) ) {
+		return;
+	}
+
+	// Redirect to plugin dashboard.
+	wp_safe_redirect( admin_url( 'admin.php?page=smart-cycle-discounts' ) );
+	exit;
 }
-add_action( 'init', 'scd_init_freemius', 1 );
+add_action( 'admin_init', 'scd_activation_redirect' );
 
 /**
  * CRITICAL: Ensure cart calculation hook is registered for WooCommerce Blocks (REST API).
