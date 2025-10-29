@@ -32,6 +32,9 @@ class SCD_Feature_Gate {
 	/**
 	 * Feature definitions (Free vs Pro).
 	 *
+	 * All paid plans (Starter, Professional, Business) get the same PRO features.
+	 * The only difference between paid tiers is the number of sites licensed.
+	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @var      array    $features    Feature access definitions.
@@ -86,6 +89,7 @@ class SCD_Feature_Gate {
 		// Advanced features
 		'api_access'                         => 'pro',
 		'priority_support'                   => 'pro',
+		'audit_logs'                         => 'pro',
 	);
 
 	/**
@@ -108,8 +112,9 @@ class SCD_Feature_Gate {
 	}
 
 	/**
-	 * Check if user has premium access.
+	 * Check if user has premium access (any paid plan).
 	 *
+	 * All paid plans (Starter, Professional, Business) have the same features.
 	 * Uses server-validated license check via License Manager for security.
 	 * Falls back to Freemius direct check if License Manager unavailable.
 	 *
@@ -156,6 +161,8 @@ class SCD_Feature_Gate {
 
 	/**
 	 * Check if a feature is available.
+	 *
+	 * All paid plans (Starter, Professional, Business) have access to the same PRO features.
 	 *
 	 * @since    1.0.0
 	 * @param    string $feature_key    Feature identifier.
