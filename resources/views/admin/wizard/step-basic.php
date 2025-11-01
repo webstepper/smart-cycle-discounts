@@ -26,7 +26,7 @@ scd_wizard_init_step_vars($step_data, $validation_errors);
 // Extract values with defaults handled by field schema
 $name = $step_data['name'] ?? '';
 $description = $step_data['description'] ?? '';
-$priority = $step_data['priority'] ?? 5;
+$priority = $step_data['priority'] ?? 3;
 
 // Debug logging
 if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -100,18 +100,13 @@ ob_start();
         'value' => intval($priority),
         'required' => true,
         'validation_errors' => $validation_errors,
-        'tooltip' => __('When multiple campaigns apply to the same product, the campaign with the highest priority (lowest number) takes precedence. Use priority levels to ensure your most important campaigns are applied first.', 'smart-cycle-discounts'),
+        'tooltip' => __('When multiple campaigns apply to the same product, the campaign with the highest priority number takes precedence. Higher priority campaigns always win conflicts.', 'smart-cycle-discounts'),
         'options' => array(
-            1 => __('1 - Highest Priority', 'smart-cycle-discounts'),
-            2 => __('2 - Very High Priority', 'smart-cycle-discounts'),
-            3 => __('3 - High Priority', 'smart-cycle-discounts'),
-            4 => __('4 - Above Normal Priority', 'smart-cycle-discounts'),
-            5 => __('5 - Normal Priority (Recommended)', 'smart-cycle-discounts'),
-            6 => __('6 - Below Normal Priority', 'smart-cycle-discounts'),
-            7 => __('7 - Low Priority', 'smart-cycle-discounts'),
-            8 => __('8 - Very Low Priority', 'smart-cycle-discounts'),
-            9 => __('9 - Lower Priority', 'smart-cycle-discounts'),
-            10 => __('10 - Lowest Priority', 'smart-cycle-discounts')
+            1 => __('1 - Fallback (Lowest Priority)', 'smart-cycle-discounts'),
+            2 => __('2 - Low Priority', 'smart-cycle-discounts'),
+            3 => __('3 - Normal Priority (Default)', 'smart-cycle-discounts'),
+            4 => __('4 - High Priority', 'smart-cycle-discounts'),
+            5 => __('5 - Critical (Highest Priority)', 'smart-cycle-discounts')
         )
     ));
     

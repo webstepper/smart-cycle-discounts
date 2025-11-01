@@ -324,15 +324,6 @@
 		 */
 		isLoaded: function( moduleName ) {
 			return 'loaded' === this.states[moduleName];
-		},
-
-		/**
-		 * Reset loader ( for testing )
-		 */
-		reset: function() {
-			this.modules = {};
-			this.states = {};
-			this.dependencies = {};
 		}
 	};
 

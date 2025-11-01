@@ -160,10 +160,21 @@ class SCD_Campaign_Change_Tracker {
 		$campaign = $this->load_campaign();
 		if ( ! $campaign ) {
 			// No campaign - return changes only
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( '[Change Tracker] Could not load campaign ' . $this->campaign_id . ' for step "' . $step . '"' );
+			}
 			return $this->extract_changes_for_step( $step );
 		}
 
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( '[Change Tracker] Loaded campaign ' . $this->campaign_id . ' (version ' . $campaign->get_version() . ') for step "' . $step . '"' );
+		}
+
 		$db_data = $this->extract_step_data_from_campaign( $campaign, $step );
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( '[Change Tracker] Extracted ' . count( $db_data ) . ' fields from database for step "' . $step . '"' );
+		}
 
 		// Merge changes on top
 		$step_changes = $this->extract_changes_for_step( $step );
@@ -306,12 +317,30 @@ class SCD_Campaign_Change_Tracker {
 				);
 
 			case 'products':
-				$metadata = $campaign->get_metadata();
+				$metadata    = $campaign->get_metadata();
+				$product_ids = $campaign->get_product_ids() ?: array();
+
+				// CRITICAL FIX: Filter out deleted products
+				$valid_product_ids = $this->filter_valid_products( $product_ids );
+				if ( count( $product_ids ) !== count( $valid_product_ids ) ) {
+					$removed_count = count( $product_ids ) - count( $valid_product_ids );
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						error_log(
+							sprintf(
+								'[Change Tracker] Filtered %d deleted product(s) from campaign %d',
+								$removed_count,
+								$campaign->get_id()
+							)
+						);
+					}
+				}
+
 				return array(
 					'product_selection_type' => $campaign->get_product_selection_type(),
-					'product_ids'            => $campaign->get_product_ids() ?: array(),
+					'product_ids'            => $valid_product_ids,
 					'category_ids'           => $campaign->get_category_ids() ?: array(),
 					'random_count'           => $metadata['random_count'] ?? 10,
+					'smart_criteria'         => $metadata['smart_criteria'] ?? '',
 					'conditions'             => $metadata['product_conditions'] ?? array(),
 					'conditions_logic'       => $metadata['product_conditions_logic'] ?? 'all',
 				);
@@ -320,39 +349,95 @@ class SCD_Campaign_Change_Tracker {
 				$discount_rules = $campaign->get_discount_rules() ?: array();
 				$discount_type  = $campaign->get_discount_type();
 				$discount_value = $campaign->get_discount_value();
+				$settings       = $campaign->get_settings() ?: array();
 
-				return array(
+				$data = array(
+					// Core discount fields
 					'discount_type'             => $discount_type,
-					'discount_value_percentage' => 'percentage' === $discount_type ? $discount_value : '',
-					'discount_value_fixed'      => 'fixed' === $discount_type ? $discount_value : '',
-					'conditions'                => $discount_rules['conditions'] ?? array(),
-					'conditions_logic'          => $discount_rules['conditions_logic'] ?? 'all',
+					'discount_value_percentage' => 'percentage' === $discount_type ? $discount_value : 10,
+					'discount_value_fixed'      => 'fixed' === $discount_type ? $discount_value : 5,
+					'tiers'                     => $discount_rules['tiers'] ?? array(),
+					'bogo_config'               => $discount_rules['bogo_config'] ?? array( 'buy_quantity' => 1, 'get_quantity' => 1, 'discount_percent' => 100 ),
+					// Spend threshold fields
+					'threshold_mode'            => $discount_rules['threshold_mode'] ?? 'percentage',
+					'thresholds'                => $discount_rules['thresholds'] ?? array(),
+					// Usage limits
 					'usage_limit_per_customer'  => $discount_rules['usage_limit_per_customer'] ?? '',
 					'total_usage_limit'         => $discount_rules['total_usage_limit'] ?? '',
+					'lifetime_usage_cap'        => $discount_rules['lifetime_usage_cap'] ?? '',
+					// Discount rules
 					'apply_to'                  => $discount_rules['apply_to'] ?? 'per_item',
 					'max_discount_amount'       => $discount_rules['max_discount_amount'] ?? '',
 					'minimum_quantity'          => $discount_rules['minimum_quantity'] ?? '',
 					'minimum_order_amount'      => $discount_rules['minimum_order_amount'] ?? '',
-					'stack_with_others'         => $discount_rules['stack_with_others'] ?? false,
-					'allow_coupons'             => $discount_rules['allow_coupons'] ?? false,
-					'apply_to_sale_items'       => $discount_rules['apply_to_sale_items'] ?? false,
+					'stack_with_others'         => $settings['stack_with_others'] ?? false,
+					'allow_coupons'             => $settings['allow_coupons'] ?? true,
+					'apply_to_sale_items'       => $settings['apply_to_sale_items'] ?? true,
+					// Badge settings
+					'badge_enabled'             => $settings['badge_enabled'] ?? false,
+					'badge_text'                => $settings['badge_text'] ?? '',
+					'badge_bg_color'            => $settings['badge_bg_color'] ?? '#e74c3c',
+					'badge_text_color'          => $settings['badge_text_color'] ?? '#ffffff',
+					'badge_position'            => $settings['badge_position'] ?? 'top-right',
 				);
+
+				return $data;
 
 			case 'schedule':
 				$starts_at = $campaign->get_starts_at();
 				$ends_at   = $campaign->get_ends_at();
 				$timezone  = $campaign->get_timezone();
+				$metadata  = $campaign->get_metadata();
 
 				$start_split = $starts_at ? SCD_DateTime_Splitter::for_editing( $starts_at, $timezone ) : array();
 				$end_split   = $ends_at ? SCD_DateTime_Splitter::for_editing( $ends_at, $timezone ) : array();
 
+				// Debug logging for schedule data extraction
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( '[Change Tracker] Extracting schedule data for campaign ' . $campaign->get_id() );
+					error_log( '[Change Tracker] - starts_at: ' . ( $starts_at ? $starts_at->format( 'Y-m-d H:i:s' ) : 'null' ) );
+					error_log( '[Change Tracker] - ends_at: ' . ( $ends_at ? $ends_at->format( 'Y-m-d H:i:s' ) : 'null' ) );
+					error_log( '[Change Tracker] - timezone: ' . $timezone );
+					error_log( '[Change Tracker] - end_date extracted: ' . ( $end_split['date'] ?? 'empty' ) );
+					error_log( '[Change Tracker] - end_time extracted: ' . ( $end_split['time'] ?? 'empty' ) );
+				}
+
+				// Extract exact date/time values from database (no fallbacks for edit mode)
+				$end_time = '';
+				if ( ! empty( $end_split['date'] ) ) {
+					$end_time = $end_split['time'] ?? '';
+				}
+
 				return array(
-					'start_type' => $starts_at ? 'scheduled' : 'immediate',
-					'start_date' => $start_split['date'] ?? '',
-					'start_time' => $start_split['time'] ?? '00:00',
-					'end_date'   => $end_split['date'] ?? '',
-					'end_time'   => $end_split['time'] ?? '23:59',
-					'timezone'   => $timezone,
+					// Date/Time fields
+					'start_date'          => $start_split['date'] ?? '',
+					'start_time'          => $start_split['time'] ?? '',
+					'end_date'            => $end_split['date'] ?? '',
+					'end_time'            => $end_time,
+					'timezone'            => $timezone,
+					// Start type fields
+					'start_type'          => $starts_at ? 'scheduled' : 'immediate',
+					'duration_seconds'    => $metadata['duration_seconds'] ?? 3600,
+					// Recurring fields
+					'enable_recurring'    => $metadata['enable_recurring'] ?? false,
+					'recurrence_pattern'  => $metadata['recurrence_pattern'] ?? 'daily',
+					'recurrence_interval' => $metadata['recurrence_interval'] ?? 1,
+					'recurrence_days'     => $metadata['recurrence_days'] ?? array(),
+					'recurrence_end_type' => $metadata['recurrence_end_type'] ?? 'never',
+					'recurrence_count'    => $metadata['recurrence_count'] ?? 10,
+					'recurrence_end_date' => $metadata['recurrence_end_date'] ?? '',
+					// Rotation fields
+					'rotation_enabled'    => $metadata['rotation_enabled'] ?? false,
+					'rotation_interval'   => $metadata['rotation_interval'] ?? 24,
+				);
+
+			case 'review':
+				// Map campaign status to launch_option for wizard
+				$status        = $campaign->get_status();
+				$launch_option = ( 'active' === $status ) ? 'active' : 'draft';
+
+				return array(
+					'launch_option' => $launch_option,
 				);
 
 			default:
@@ -367,7 +452,7 @@ class SCD_Campaign_Change_Tracker {
 	 * @param    string $step    Step name.
 	 * @return   array              Field => value pairs.
 	 */
-	private function extract_changes_for_step( $step ) {
+	public function extract_changes_for_step( $step ) {
 		if ( ! isset( $this->changes[ $step ] ) ) {
 			return array();
 		}
@@ -378,5 +463,28 @@ class SCD_Campaign_Change_Tracker {
 		}
 
 		return $step_data;
+	}
+
+	/**
+	 * Filter valid products (remove deleted products).
+	 *
+	 * @since    1.0.0
+	 * @param    array $product_ids    Product IDs to validate.
+	 * @return   array                    Valid product IDs.
+	 */
+	private function filter_valid_products( $product_ids ) {
+		if ( ! is_array( $product_ids ) || empty( $product_ids ) ) {
+			return array();
+		}
+
+		$valid_ids = array();
+		foreach ( $product_ids as $product_id ) {
+			$product = wc_get_product( $product_id );
+			if ( $product && $product->exists() ) {
+				$valid_ids[] = (int) $product_id;
+			}
+		}
+
+		return $valid_ids;
 	}
 }

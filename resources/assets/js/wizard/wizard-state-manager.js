@@ -325,44 +325,6 @@
 		},
 
 		/**
-		 * Undo state change
-		 */
-		undo: function() {
-			if ( this.canUndo() ) {
-				this.historyIndex--;
-				this.state = $.extend( true, {}, this.history[this.historyIndex] );
-				this.notifyListeners( this.state, this.history[this.historyIndex + 1], {} );
-				this.saveToStorage();
-			}
-		},
-
-		/**
-		 * Redo state change
-		 */
-		redo: function() {
-			if ( this.canRedo() ) {
-				this.historyIndex++;
-				this.state = $.extend( true, {}, this.history[this.historyIndex] );
-				this.notifyListeners( this.state, this.history[this.historyIndex - 1], {} );
-				this.saveToStorage();
-			}
-		},
-
-		/**
-		 * Check if can undo
-		 */
-		canUndo: function() {
-			return 0 < this.historyIndex;
-		},
-
-		/**
-		 * Check if can redo
-		 */
-		canRedo: function() {
-			return this.historyIndex < this.history.length - 1;
-		},
-
-		/**
 		 * Reset state
 		 * @param options
 		 */
@@ -612,36 +574,6 @@
 		 */
 		stopActivityTracking: function() {
 			$( document ).off( '.scd-activity' );
-		},
-
-		/**
-		 * Get activity status
-		 */
-		getActivityStatus: function() {
-			var lastActivity = new Date( this.state.lastActivityAt );
-			var now = new Date();
-			var inactiveMinutes = ( now - lastActivity ) / 1000 / 60;
-
-			return {
-				lastActivity: lastActivity,
-				inactiveMinutes: inactiveMinutes,
-				isActive: 5 > inactiveMinutes,
-				isIdle: 5 <= inactiveMinutes && 30 > inactiveMinutes,
-				isInactive: 30 <= inactiveMinutes
-			};
-		},
-
-		/**
-		 * Export state for debugging
-		 */
-		exportState: function() {
-			return {
-				state: this.state,
-				history: this.history,
-				historyIndex: this.historyIndex,
-				listeners: this.listeners.length,
-				activityStatus: this.getActivityStatus()
-			};
 		},
 
 		/**

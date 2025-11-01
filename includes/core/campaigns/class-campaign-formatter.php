@@ -353,7 +353,7 @@ class SCD_Campaign_Formatter {
 			'value' => $priority,
 			'label' => $this->get_priority_label( $priority ),
 			'class' => 'priority-' . $priority,
-			'stars' => str_repeat( '★', $priority ) . str_repeat( '☆', 10 - $priority ),
+			'stars' => str_repeat( '★', $priority ) . str_repeat( '☆', 5 - $priority ),
 		);
 	}
 
@@ -365,12 +365,16 @@ class SCD_Campaign_Formatter {
 	 * @return   string              Priority label.
 	 */
 	private function get_priority_label( int $priority ): string {
-		if ( $priority >= 8 ) {
+		if ( 5 === $priority ) {
+			return __( 'Critical', 'smart-cycle-discounts' );
+		} elseif ( 4 === $priority ) {
 			return __( 'High', 'smart-cycle-discounts' );
-		} elseif ( $priority >= 4 ) {
-			return __( 'Medium', 'smart-cycle-discounts' );
-		} else {
+		} elseif ( 3 === $priority ) {
+			return __( 'Normal', 'smart-cycle-discounts' );
+		} elseif ( 2 === $priority ) {
 			return __( 'Low', 'smart-cycle-discounts' );
+		} else {
+			return __( 'Fallback', 'smart-cycle-discounts' );
 		}
 	}
 

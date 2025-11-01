@@ -213,6 +213,40 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	}
 
 	/**
+	 * Find campaigns by metadata key/value.
+	 *
+	 * @since    1.0.0
+	 * @param    string $meta_key      Metadata key.
+	 * @param    string $meta_value    Metadata value.
+	 * @param    array  $options       Query options.
+	 * @return   array                   Array of campaigns.
+	 */
+	public function find_by_metadata( string $meta_key, string $meta_value, array $options = array() ): array {
+		global $wpdb;
+
+		// Sanitize meta_key to prevent SQL injection (only allow alphanumeric and underscores)
+		$meta_key = preg_replace( '/[^a-zA-Z0-9_]/', '', $meta_key );
+		if ( empty( $meta_key ) ) {
+			return array();
+		}
+
+		$order_by = $this->build_order_by_clause( $options );
+		$limit    = $this->build_limit_clause( $options );
+
+		// Query using JSON_EXTRACT for metadata (MySQL 5.7+)
+		// Meta key is sanitized above, meta value is prepared via %s placeholder
+		$query = $wpdb->prepare(
+			"SELECT * FROM {$this->table_name}
+			WHERE deleted_at IS NULL
+			AND JSON_EXTRACT(metadata, '$.{$meta_key}') = %s
+			{$order_by} {$limit}",
+			$meta_value
+		);
+
+		return $this->execute_and_hydrate( $query, array() );
+	}
+
+	/**
 	 * Get active campaigns.
 	 *
 	 * @since    1.0.0
@@ -1279,21 +1313,26 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 * @return   void
 	 */
 	private function clear_campaign_cache( SCD_Campaign $campaign ): void {
+		global $wpdb;
+
+		// Clear individual campaign caches
 		$this->cache->delete( "campaign_{$campaign->get_id()}" );
 		$this->cache->delete( "campaign_uuid_{$campaign->get_uuid()}" );
 		$this->cache->delete( "campaign_slug_{$campaign->get_slug()}" );
 
-		// Clear list caches
+		// Clear campaign list caches
 		$this->cache->delete( 'active_campaigns' );
 		$this->cache->delete( 'scheduled_campaigns' );
+		$this->cache->delete( 'paused_campaigns' );
+		wp_cache_delete( 'active_campaigns', 'scd' );
+		wp_cache_delete( 'scheduled_campaigns', 'scd' );
+		wp_cache_delete( 'paused_campaigns', 'scd' );
 
-		// Clear all active campaigns caches with different options
-		// This is a bit brute force but ensures all variations are cleared
-		global $wpdb;
+		// Clear transient-based campaign list caches
 		$wpdb->query(
 			$wpdb->prepare(
-				'DELETE FROM %i 
-                 WHERE option_name LIKE %s 
+				'DELETE FROM %i
+                 WHERE option_name LIKE %s
                  OR option_name LIKE %s',
 				$wpdb->options,
 				'_transient_scd_active_campaigns_%',
@@ -1301,20 +1340,39 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 			)
 		);
 
-		// Also clear from object cache
-		wp_cache_delete( 'active_campaigns', 'scd' );
+		// Clear product-specific campaign caches (both object cache and transients)
+		$product_ids = $campaign->get_product_ids();
+		if ( ! empty( $product_ids ) ) {
+			foreach ( $product_ids as $product_id ) {
+				// Clear object cache
+				wp_cache_delete( 'campaigns_by_product_' . $product_id, 'scd' );
+				wp_cache_delete( 'active_campaigns_product_' . $product_id, 'scd' );
 
-		// Clear any product-specific campaign caches
+				// Clear transient cache
+				delete_transient( 'scd_campaigns_by_product_' . $product_id );
+
+				// Clear WooCommerce product transients to force price recalculation
+				if ( function_exists( 'wc_delete_product_transients' ) ) {
+					wc_delete_product_transients( $product_id );
+				}
+			}
+		}
+
+		// Also bulk clear all product-specific transients (for condition-based campaigns)
 		$wpdb->query(
 			$wpdb->prepare(
-				'DELETE FROM %i 
-                 WHERE option_name LIKE %s 
+				'DELETE FROM %i
+                 WHERE option_name LIKE %s
                  OR option_name LIKE %s',
 				$wpdb->options,
 				'_transient_scd_campaigns_by_product_%',
 				'_transient_timeout_scd_campaigns_by_product_%'
 			)
 		);
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( '[Campaign Repository] Cleared all caches for campaign ' . $campaign->get_id() );
+		}
 	}
 
 	/**

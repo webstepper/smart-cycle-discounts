@@ -114,12 +114,32 @@ $approaching_limit = ! $is_premium && 0 !== $campaign_limit && $active_campaigns
 		</div>
 		<div class="scd-suggestions-layout">
 			<?php foreach ( $campaign_suggestions as $suggestion ) : ?>
-				<div class="scd-suggestion-card scd-suggestion-<?php echo esc_attr( $suggestion['category'] ); ?>">
+				<?php
+				// Check if campaign was created from this suggestion
+				$has_campaign = ! empty( $suggestion['has_campaign'] );
+				$campaign_data = $suggestion['campaign'] ?? array();
+				$card_class = $has_campaign ? 'scd-suggestion-card-used' : '';
+
+				// Smart urgency thresholds based on event category
+				$urgency_thresholds = array(
+					'major'    => 5,  // Major events: urgent 5 days before optimal window closes
+					'seasonal' => 3,  // Seasonal events: urgent 3 days before
+					'flexible' => 1,  // Flexible events: urgent only 1 day before (or never)
+				);
+				$urgency_threshold = $urgency_thresholds[ $suggestion['category'] ] ?? 3;
+				$is_urgent = $suggestion['days_left_in_window'] <= $urgency_threshold;
+				?>
+				<div class="scd-suggestion-card scd-suggestion-<?php echo esc_attr( $suggestion['category'] ); ?> <?php echo esc_attr( $card_class ); ?>">
 					<!-- Column 1: Campaign Details -->
 					<div class="scd-suggestion-col-1">
 						<div class="scd-column-header">
 							<h4><?php echo esc_html( $suggestion['name'] ); ?> <?php echo esc_html( $suggestion['icon'] ); ?></h4>
-							<?php if ( $suggestion['days_left_in_window'] <= 3 ) : ?>
+							<?php if ( $has_campaign ) : ?>
+								<span class="scd-suggestion-badge scd-badge-success">
+									<span class="dashicons dashicons-yes-alt"></span>
+									<?php esc_html_e( 'Campaign Created', 'smart-cycle-discounts' ); ?>
+								</span>
+							<?php elseif ( $is_urgent ) : ?>
 								<span class="scd-suggestion-badge scd-badge-urgent">
 									<span class="dashicons dashicons-warning"></span>
 									<?php esc_html_e( 'Urgent', 'smart-cycle-discounts' ); ?>
@@ -132,10 +152,12 @@ $approaching_limit = ! $is_premium && 0 !== $campaign_limit && $active_campaigns
 							<?php endif; ?>
 						</div>
 
-						<div class="scd-suggestion-timing">
-							<span class="dashicons dashicons-clock"></span>
-							<strong><?php echo esc_html( $suggestion['timing_message'] ); ?></strong>
-						</div>
+						<?php if ( ! $has_campaign ) : ?>
+							<div class="scd-suggestion-timing">
+								<span class="dashicons dashicons-clock"></span>
+								<strong><?php echo esc_html( $suggestion['timing_message'] ); ?></strong>
+							</div>
+						<?php endif; ?>
 
 						<div class="scd-suggestion-details-list">
 							<div class="scd-detail-item">
@@ -148,26 +170,66 @@ $approaching_limit = ! $is_premium && 0 !== $campaign_limit && $active_campaigns
 								</span>
 							</div>
 
-							<div class="scd-detail-item">
-								<span class="dashicons dashicons-tag"></span>
-								<span><strong><?php echo esc_html( $suggestion['suggested_discount'] ); ?></strong> discount</span>
-							</div>
-
-							<div class="scd-detail-item scd-detail-countdown">
-								<div class="scd-countdown-number"><?php echo esc_html( $suggestion['days_until'] ); ?></div>
-								<div class="scd-countdown-label">
-									<?php echo esc_html( _n( 'Day Away', 'Days Away', $suggestion['days_until'], 'smart-cycle-discounts' ) ); ?>
+							<?php if ( ! $has_campaign ) : ?>
+								<div class="scd-detail-item">
+									<span class="dashicons dashicons-tag"></span>
+									<span><strong><?php echo esc_html( $suggestion['suggested_discount'] ); ?></strong> discount</span>
 								</div>
+
+								<div class="scd-detail-item scd-detail-countdown">
+									<div class="scd-countdown-number"><?php echo esc_html( $suggestion['days_until'] ); ?></div>
+									<div class="scd-countdown-label">
+										<?php echo esc_html( _n( 'Day Away', 'Days Away', $suggestion['days_until'], 'smart-cycle-discounts' ) ); ?>
+									</div>
+								</div>
+							<?php endif; ?>
+						</div>
+
+						<?php if ( $has_campaign ) : ?>
+							<p class="scd-suggestion-campaign-info">
+								<strong><?php esc_html_e( 'Your campaign:', 'smart-cycle-discounts' ); ?></strong>
+								<?php echo esc_html( $campaign_data['name'] ?? '' ); ?>
+							</p>
+							<p class="scd-suggestion-campaign-status">
+								<span class="scd-status-badge scd-status-<?php echo esc_attr( $campaign_data['status'] ?? '' ); ?>">
+									<?php
+									$status_labels = array(
+										'active'    => __( 'Active', 'smart-cycle-discounts' ),
+										'scheduled' => __( 'Scheduled', 'smart-cycle-discounts' ),
+										'paused'    => __( 'Paused', 'smart-cycle-discounts' ),
+										'draft'     => __( 'Draft', 'smart-cycle-discounts' ),
+									);
+									$status = $campaign_data['status'] ?? '';
+									echo esc_html( $status_labels[ $status ] ?? ucfirst( $status ) );
+									?>
+								</span>
+								<?php if ( 'scheduled' === $status ) : ?>
+									<span class="scd-launch-info">
+										<?php
+										/* translators: %d: days until launch */
+										echo esc_html( sprintf( _n( '(launches in %d day)', '(launches in %d days)', $suggestion['days_until'], 'smart-cycle-discounts' ), $suggestion['days_until'] ) );
+										?>
+									</span>
+								<?php endif; ?>
+							</p>
+
+							<div class="scd-suggestion-action scd-suggestion-action-used">
+								<a href="<?php echo esc_url( $campaign_data['url'] ?? '#' ); ?>" class="button button-secondary">
+									<?php esc_html_e( 'View Campaign', 'smart-cycle-discounts' ); ?> →
+								</a>
+								<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns&action=wizard&intent=new&suggestion=' . $suggestion['id'] ) ); ?>" class="button button-link">
+									<?php esc_html_e( 'Create Another', 'smart-cycle-discounts' ); ?>
+								</a>
 							</div>
-						</div>
+						<?php else : ?>
+							<p class="scd-suggestion-description"><?php echo esc_html( $suggestion['description'] ); ?></p>
 
-						<p class="scd-suggestion-description"><?php echo esc_html( $suggestion['description'] ); ?></p>
-
-						<div class="scd-suggestion-action">
-							<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns&action=new&suggestion=' . $suggestion['id'] ) ); ?>" class="button button-primary">
-								<?php esc_html_e( 'Create Campaign', 'smart-cycle-discounts' ); ?> →
-							</a>
-						</div>
+							<div class="scd-suggestion-action">
+								<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns&action=wizard&intent=new&suggestion=' . $suggestion['id'] ) ); ?>" class="button button-primary">
+									<?php esc_html_e( 'Create Campaign', 'smart-cycle-discounts' ); ?> →
+								</a>
+							</div>
+						<?php endif; ?>
 					</div>
 
 					<!-- Column 2: Recommendations -->
@@ -642,7 +704,6 @@ $approaching_limit = ! $is_premium && 0 !== $campaign_limit && $active_campaigns
 									'draft'     => __( 'Draft', 'smart-cycle-discounts' ),
 								);
 								$status_label = isset( $status_labels[ $status ] ) ? $status_labels[ $status ] : ucfirst( $status );
-								?>
 								?>
 								<div class="scd-timeline-campaign">
 									<div class="scd-timeline-campaign-info">

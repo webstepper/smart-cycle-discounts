@@ -4,7 +4,6 @@
  *
  * Handles tools and maintenance utilities including:
  * - Import/Export functionality
- * - Backup and restore
  * - Database maintenance
  * - Cache management
  * - Log viewer and management
@@ -97,7 +96,6 @@ class SCD_Tools_Page {
 		$this->render_import_export_section();
 		$this->render_database_section();
 		$this->render_cache_section();
-		$this->render_license_section();
 		$this->render_debug_section();
 		$this->render_diagnostics_section();
 
@@ -297,108 +295,6 @@ class SCD_Tools_Page {
 		<?php
 	}
 
-	/**
-	 * Render license and feature status section.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @return   void
-	 */
-	private function render_license_section(): void {
-		$freemius_loaded = function_exists( 'scd_fs' ) && is_object( scd_fs() );
-		$is_premium      = $this->feature_gate ? $this->feature_gate->is_premium() : false;
-		$is_trial        = $this->feature_gate ? $this->feature_gate->is_trial() : false;
-
-		?>
-		<div class="scd-tools-section">
-			<h2>
-				<span class="dashicons dashicons-admin-network"></span>
-				<?php esc_html_e( 'License & Feature Status', 'smart-cycle-discounts' ); ?>
-			</h2>
-			<p class="description">
-				<?php esc_html_e( 'View your current license status and debug PRO feature access issues.', 'smart-cycle-discounts' ); ?>
-			</p>
-
-			<table class="form-table" role="presentation">
-				<tbody>
-					<tr>
-						<th scope="row"><?php esc_html_e( 'Current Status', 'smart-cycle-discounts' ); ?></th>
-						<td>
-							<div class="scd-license-status" style="margin-bottom: 10px;">
-								<p>
-									<strong><?php esc_html_e( 'License Type:', 'smart-cycle-discounts' ); ?></strong>
-									<?php if ( $is_trial ) : ?>
-										<span class="scd-license-badge scd-trial-badge" style="background: #ffb900; color: #fff; padding: 3px 8px; border-radius: 3px; font-weight: bold; margin-left: 5px;">
-											<?php esc_html_e( 'PRO TRIAL', 'smart-cycle-discounts' ); ?>
-										</span>
-									<?php elseif ( $is_premium ) : ?>
-										<span class="scd-license-badge scd-pro-badge" style="background: #46b450; color: #fff; padding: 3px 8px; border-radius: 3px; font-weight: bold; margin-left: 5px;">
-											<?php esc_html_e( 'PRO', 'smart-cycle-discounts' ); ?>
-										</span>
-									<?php else : ?>
-										<span class="scd-license-badge scd-free-badge" style="background: #999; color: #fff; padding: 3px 8px; border-radius: 3px; font-weight: bold; margin-left: 5px;">
-											<?php esc_html_e( 'FREE', 'smart-cycle-discounts' ); ?>
-										</span>
-									<?php endif; ?>
-								</p>
-								<p>
-									<strong><?php esc_html_e( 'Freemius SDK:', 'smart-cycle-discounts' ); ?></strong>
-									<?php if ( $freemius_loaded ) : ?>
-										<span class="dashicons dashicons-yes" style="color: #46b450;"></span>
-										<?php esc_html_e( 'Loaded', 'smart-cycle-discounts' ); ?>
-									<?php else : ?>
-										<span class="dashicons dashicons-no" style="color: #dc3232;"></span>
-										<?php esc_html_e( 'Not Loaded', 'smart-cycle-discounts' ); ?>
-									<?php endif; ?>
-								</p>
-							</div>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><?php esc_html_e( 'Troubleshooting', 'smart-cycle-discounts' ); ?></th>
-						<td>
-							<p class="description">
-								<?php esc_html_e( 'If you just upgraded to PRO but cannot access PRO features, try these debugging tools:', 'smart-cycle-discounts' ); ?>
-							</p>
-
-							<div class="scd-license-debug-actions" style="margin: 15px 0;">
-								<button type="button" class="button button-secondary scd-view-license-debug-btn">
-									<span class="dashicons dashicons-visibility"></span>
-									<?php esc_html_e( 'View License Debug Info', 'smart-cycle-discounts' ); ?>
-								</button>
-
-								<button type="button" class="button button-primary scd-clear-license-cache-btn" style="margin-left: 4px;">
-									<span class="dashicons dashicons-update"></span>
-									<?php esc_html_e( 'Clear License Cache', 'smart-cycle-discounts' ); ?>
-								</button>
-
-								<button type="button" class="button button-secondary scd-copy-debug-info-btn" style="margin-left: 4px; display: none;">
-									<span class="dashicons dashicons-clipboard"></span>
-									<?php esc_html_e( 'Copy Debug Info', 'smart-cycle-discounts' ); ?>
-								</button>
-							</div>
-
-							<div id="scd-license-debug-output" style="display:none; margin-top: 15px;">
-								<h4><?php esc_html_e( 'Debug Information:', 'smart-cycle-discounts' ); ?></h4>
-								<textarea readonly class="large-text code" rows="20" style="font-family: monospace; font-size: 12px;"></textarea>
-							</div>
-
-							<div class="notice notice-info inline" style="margin-top: 15px;">
-								<p>
-									<strong><?php esc_html_e( 'Still having issues?', 'smart-cycle-discounts' ); ?></strong><br>
-									<?php esc_html_e( '1. Click "View License Debug Info" to see your current license status', 'smart-cycle-discounts' ); ?><br>
-									<?php esc_html_e( '2. Click "Clear License Cache" to force a license status refresh', 'smart-cycle-discounts' ); ?><br>
-									<?php esc_html_e( '3. Refresh the page after clearing cache', 'smart-cycle-discounts' ); ?><br>
-									<?php esc_html_e( '4. If problem persists, copy debug info and contact support', 'smart-cycle-discounts' ); ?>
-								</p>
-							</div>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-		<?php
-	}
 
 	/**
 	 * Render log viewer section.

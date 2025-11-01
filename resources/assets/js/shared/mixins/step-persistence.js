@@ -401,6 +401,28 @@
 				step: this.stepName,
 				data: data
 			} ).done( function( response ) {
+				// Update wizard state manager with the saved data
+				// This ensures that when navigating back to this step, the updated data is used
+				// instead of the original data loaded from PHP on page load
+				if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.modules && window.SCD.Wizard.modules.stateManager ) {
+					var currentStepData = window.SCD.Wizard.modules.stateManager.get( 'stepData' ) || {};
+					currentStepData[self.stepName] = data;
+					window.SCD.Wizard.modules.stateManager.set( 'stepData', currentStepData );
+				}
+
+				// CRITICAL FIX: Update window.scdWizardData to prevent stale data from being re-used
+				// window.scdWizardData contains PHP-localized data from initial page load
+				// After save, this data becomes stale. We must update it with the latest saved data
+				// to ensure that any future step initializations use fresh data
+				if ( window.scdWizardData && window.scdWizardData.currentCampaign ) {
+					// Update the current campaign data with the saved step data
+					if ( ! window.scdWizardData.currentCampaign[self.stepName] ) {
+						window.scdWizardData.currentCampaign[self.stepName] = {};
+					}
+					// Deep copy to prevent reference issues
+					window.scdWizardData.currentCampaign[self.stepName] = $.extend( true, {}, data );
+				}
+
 				self.triggerCustomEvent( 'scd:' + self.stepName + ':saved', [ response ] );
 			} ).fail( function( xhr ) {
 				SCD.ErrorHandler.handleAjaxError( xhr, 'scd_save_step', { step: self.stepName } );
@@ -732,6 +754,7 @@
 				this._complexFieldRetries[handlerPath] = ( this._complexFieldRetries[handlerPath] || 0 ) + 1;
 
 				if ( this._complexFieldRetries[handlerPath] > maxRetries ) {
+					console.error( '[StepPersistence] Max retries reached for handler:', handlerPath );
 					// Clear the queue to prevent memory leaks
 					if ( this._complexFieldQueue && this._complexFieldQueue[handlerPath] ) {
 						delete this._complexFieldQueue[handlerPath];
@@ -766,6 +789,7 @@
 
 			var handler = this.getComplexFieldHandler( handlerPath );
 			if ( !handler ) {
+				console.error( '[StepPersistence] Could not get handler for:', handlerPath );
 				if ( window.scdDebugPersistence ) {
 				}
 				return;

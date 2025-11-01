@@ -59,6 +59,7 @@ class SCD_Autoloader {
 		'SCD_Menu_Manager'                 => 'admin/class-menu-manager.php',
 		'SCD_Admin_Manager'                => 'admin/class-admin-manager.php',
 		'SCD_Admin_Capability_Manager'     => 'admin/class-capability-manager.php',
+		'SCD_Notice_Suppressor'            => 'admin/class-notice-suppressor.php',
 
 		// Wizard classes
 		'SCD_Wizard_Manager'               => 'core/wizard/class-wizard-manager.php',
@@ -114,7 +115,6 @@ class SCD_Autoloader {
 		// Settings classes
 		'SCD_Settings_Manager'             => 'admin/settings/class-settings-manager.php',
 		'SCD_Settings_Page_Base'           => 'admin/settings/class-settings-page-base.php',
-		'SCD_Settings_Migrator'            => 'admin/settings/class-settings-migrator.php',
 		'SCD_General_Settings'             => 'admin/settings/tabs/class-general-settings.php',
 		'SCD_Performance_Settings'         => 'admin/settings/tabs/class-performance-settings.php',
 		'SCD_Advanced_Settings'            => 'admin/settings/tabs/class-advanced-settings.php',
@@ -194,7 +194,6 @@ class SCD_Autoloader {
 		'SCD_Recover_Session_Handler'      => 'admin/ajax/handlers/class-recover-session-handler.php',
 		'SCD_Health_Check_Handler'         => 'admin/ajax/handlers/class-health-check-handler.php',
 		'SCD_Campaign_Health_Handler'      => 'admin/ajax/handlers/class-campaign-health-handler.php',
-		'SCD_Campaign_Health_Calculator'   => 'core/wizard/class-campaign-health-calculator.php',
 		'SCD_Preview_Coverage_Handler'     => 'admin/ajax/handlers/class-preview-coverage-handler.php',
 		'SCD_Check_Conflicts_Handler'      => 'admin/ajax/handlers/class-check-conflicts-handler.php',
 		'SCD_Campaign_Validation_Handler'  => 'admin/ajax/handlers/class-campaign-validation-handler.php',

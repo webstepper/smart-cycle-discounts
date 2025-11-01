@@ -86,7 +86,7 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		// Get priority
-		$priority = isset( $basic_data['priority'] ) ? intval( $basic_data['priority'] ) : 5;
+		$priority = isset( $basic_data['priority'] ) ? intval( $basic_data['priority'] ) : 3;
 
 		// Get product selection
 		$selection_type = isset( $products_data['product_selection_type'] ) ? $products_data['product_selection_type'] : 'all_products';

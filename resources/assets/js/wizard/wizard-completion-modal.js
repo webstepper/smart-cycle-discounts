@@ -148,7 +148,6 @@
 				e.preventDefault();
 				var url = $( this ).attr( 'href' );
 				if ( url ) {
-					// Navigate directly (no beforeunload warning to suppress)
 					window.location.href = url;
 				}
 			} );
@@ -164,21 +163,26 @@
 				return;
 			}
 
+			// SINGLE SOURCE OF TRUTH: Wizard State Manager
+			var isEditMode = this.isEditMode();
+
 			// Set loading state
 			this.$modal
 				.removeClass( this.config.successClass + ' ' + this.config.errorClass )
 				.addClass( this.config.loadingClass + ' ' + this.config.activeClass )
 				.attr( 'aria-busy', 'true' );
 
-			// Update title
-			this.$modal.find( '.scd-completion-title' ).text( 'Creating Campaign...' );
+			// Update title based on mode
+			var loadingTitle = isEditMode ? 'Updating Campaign...' : 'Creating Campaign...';
+			this.$modal.find( '.scd-completion-title' ).text( loadingTitle );
 
 			// Clear message and actions
 			this.$modal.find( '.scd-completion-message' ).empty();
 			this.$modal.find( '.scd-completion-actions' ).empty();
 
 			// Update screen reader status
-			this.$modal.find( '.scd-completion-status' ).text( 'Creating campaign. Please wait.' );
+			var loadingStatus = isEditMode ? 'Updating campaign. Please wait.' : 'Creating campaign. Please wait.';
+			this.$modal.find( '.scd-completion-status' ).text( loadingStatus );
 
 			// Prevent body scroll
 			$( 'body' ).addClass( 'scd-completion-active' );
@@ -203,9 +207,19 @@
 			this.completionData = data;
 
 			var campaignName = data.campaignName || '';
-			var message = campaignName ?
-				'Campaign "' + campaignName + '" Successfully Created!' :
-				( data.message || 'Campaign Successfully Created!' );
+			var isEditMode = data.isEditMode || false;
+
+			// Build success message based on create vs. edit mode
+			var message;
+			if ( isEditMode ) {
+				message = campaignName ?
+					'Campaign "' + campaignName + '" Successfully Updated!' :
+					( data.message || 'Campaign Successfully Updated!' );
+			} else {
+				message = campaignName ?
+					'Campaign "' + campaignName + '" Successfully Created!' :
+					( data.message || 'Campaign Successfully Created!' );
+			}
 
 			var redirectUrl = data.redirectUrl;
 			var campaignId = data.campaignId;
@@ -227,14 +241,26 @@
 				// Update title
 				self.$modal.find( '.scd-completion-title' ).text( message );
 
-				// Add message
+				// Add message based on status
 				var statusMessage;
 				if ( 'active' === data.status ) {
-					statusMessage = 'Your campaign is now active and applying discounts.';
+					statusMessage = isEditMode ?
+						'Your changes have been saved and the campaign is now active.' :
+						'Your campaign is now active and applying discounts.';
 				} else if ( 'scheduled' === data.status ) {
-					statusMessage = 'Your campaign has been scheduled and will start automatically at the scheduled time.';
+					statusMessage = isEditMode ?
+						'Your changes have been saved and the campaign will start at the scheduled time.' :
+						'Your campaign has been scheduled and will start automatically at the scheduled time.';
+				} else if ( 'paused' === data.status ) {
+					statusMessage = 'Your campaign has been paused and is not currently active.';
+				} else if ( 'draft' === data.status ) {
+					statusMessage = isEditMode ?
+						'Your changes have been saved as a draft. Publish when ready to activate discounts.' :
+						'Your campaign has been saved as a draft. Publish when ready to activate discounts.';
 				} else {
-					statusMessage = 'Your campaign has been saved as a draft.';
+					statusMessage = isEditMode ?
+						'Your changes have been saved.' :
+						'Your campaign has been saved.';
 				}
 				self.$modal.find( '.scd-completion-message' ).text( statusMessage );
 
@@ -250,7 +276,6 @@
 				// Schedule redirect
 				if ( redirectUrl ) {
 					setTimeout( function() {
-						// Navigate directly (no beforeunload warning to suppress)
 						window.location.href = redirectUrl;
 					}, self.config.redirectDelay );
 				}
@@ -273,7 +298,10 @@
 			// Store data for retry
 			this.completionData = data;
 
-			var errorMessage = data.message || data.error || 'Failed to create campaign. Please try again.';
+			// SINGLE SOURCE OF TRUTH: Prefer data.isEditMode, fallback to State Manager
+			var isEditMode = data.isEditMode || this.isEditMode();
+
+			var errorMessage = data.message || data.error || ( isEditMode ? 'Failed to update campaign. Please try again.' : 'Failed to create campaign. Please try again.' );
 
 			// Transition to error state
 			setTimeout( function() {
@@ -282,8 +310,9 @@
 					.addClass( self.config.errorClass )
 					.attr( 'aria-busy', 'false' );
 
-				// Update title
-				self.$modal.find( '.scd-completion-title' ).text( 'Campaign Creation Failed' );
+				// Update title based on mode
+				var errorTitle = isEditMode ? 'Campaign Update Failed' : 'Campaign Creation Failed';
+				self.$modal.find( '.scd-completion-title' ).text( errorTitle );
 
 				// Add error message
 				self.$modal.find( '.scd-completion-message' ).text( errorMessage );
@@ -342,6 +371,21 @@
 
 			// Clear status
 			this.$modal.find( '.scd-completion-status' ).empty();
+		},
+
+		/**
+		 * Check if in edit mode (SINGLE SOURCE OF TRUTH)
+		 *
+		 * @since 1.0.0
+		 * @return {boolean} True if editing existing campaign
+		 */
+		isEditMode: function() {
+			// Get from Wizard State Manager - the ONLY source of truth
+			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.StateManager ) {
+				var wizardState = window.SCD.Wizard.StateManager.get();
+				return wizardState && ( wizardState.wizardMode === 'edit' || wizardState.campaignId > 0 );
+			}
+			return false;
 		},
 
 		/**

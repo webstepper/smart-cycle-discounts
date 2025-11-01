@@ -790,52 +790,6 @@
 	};
 
 	/**
-	 * Update validation state and emit events
-	 * Moved from validation-manager.js for UI state management
-	 * @param {string} stepName - Step name for wizard validation
-	 * @param {boolean} isValid - Validation result
-	 * @param {object} errors - Validation errors object
-	 */
-	SCD.Components.ValidationError.updateValidationState = function( stepName, isValid, errors ) {
-		// Update state manager if available
-		if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.StateManager ) {
-			window.SCD.Wizard.StateManager.set( {
-				isValid: isValid,
-				validationErrors: errors
-			}, { silent: true } );
-		}
-
-		// Emit validation event
-		if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.EventBus ) {
-			window.SCD.Wizard.EventBus.emit( 'validation:complete', {
-				step: stepName,
-				valid: isValid,
-				errors: errors
-			} );
-		}
-
-		// Trigger jQuery event for backward compatibility
-		$( document ).trigger( 'scd:validation:state:updated', {
-			step: stepName,
-			valid: isValid,
-			errors: errors
-		} );
-	};
-
-	/**
-	 * Clear validation for a form or container
-	 * Enhanced version that handles both error display and state
-	 * @param {jQuery} $container - Container to clear validation from
-	 */
-	SCD.Components.ValidationError.clearValidation = function( $container ) {
-		// Use existing clearAll method for display
-		this.clearAll( $container );
-
-		// Trigger event for state cleanup
-		$( document ).trigger( 'scd:validation:cleared', { container: $container } );
-	};
-
-	/**
 	 * Focus and scroll to first invalid field
 	 * @param {jQuery} $container - Container to search for errors
 	 * @param {object} [options={}] - Options for focus behavior

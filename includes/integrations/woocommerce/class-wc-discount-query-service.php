@@ -244,7 +244,7 @@ class SCD_WC_Discount_Query_Service {
 	 * Select winning campaign from multiple applicable campaigns.
 	 *
 	 * Priority Resolution:
-	 * 1. Highest priority value wins (100 beats 50)
+	 * 1. Highest priority value wins (5 beats 3, 3 beats 1)
 	 * 2. If same priority, oldest campaign wins (lower ID = created first)
 	 * 3. Logs warning if multiple campaigns have same priority
 	 *
@@ -453,6 +453,9 @@ class SCD_WC_Discount_Query_Service {
 			'discount_amount'  => $result->get_discount_amount(),
 			'discounted_price' => $result->get_discounted_price(),
 			'percentage'       => $result->get_discount_percentage(),
+			'campaign_data'    => array(
+				'max_uses_per_customer' => $campaign->get_setting( 'usage_limit', 0 ),
+			),
 		);
 
 		// Add metadata if available (e.g., applicable tier for tiered discounts)

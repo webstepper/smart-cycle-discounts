@@ -1,0 +1,485 @@
+/**
+ * Notifications Page Styles
+ *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/assets/css/admin
+ * @since      1.0.0
+ */
+
+/* ==========================================================================
+   Notifications Page Wrapper
+   ========================================================================== */
+
+.scd-notifications {
+	max-width: 1200px;
+}
+
+.scd-notifications h1 .dashicons {
+	font-size: 32px;
+	width: 32px;
+	height: 32px;
+	margin-right: 8px;
+	color: #2271b1;
+}
+
+/* ==========================================================================
+   Tab Navigation
+   ========================================================================== */
+
+.scd-notifications-tabs {
+	margin: 20px 0;
+	border-bottom: 1px solid #c3c4c7;
+}
+
+.scd-notifications-tabs .nav-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 14px;
+	padding: 10px 16px;
+}
+
+.scd-notifications-tabs .nav-tab .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+}
+
+/* ==========================================================================
+   Settings Form
+   ========================================================================== */
+
+.scd-notifications-form {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 20px;
+	margin-top: 20px;
+}
+
+.scd-notifications-form h2 {
+	margin-top: 0;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #e5e5e5;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.scd-notifications-form h2:not(:first-child) {
+	margin-top: 30px;
+	padding-top: 30px;
+	border-top: 1px solid #e5e5e5;
+}
+
+.scd-notifications-form h2 .dashicons {
+	color: #2271b1;
+}
+
+.scd-notifications-form .form-table {
+	margin-top: 20px;
+}
+
+.scd-notifications-form .form-table th {
+	width: 220px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.scd-notifications-form .form-table td {
+	padding: 15px 10px;
+}
+
+/* Field descriptions */
+.scd-notifications-form .form-table td p.description {
+	margin-top: 5px;
+	font-size: 13px;
+	color: #646970;
+	line-height: 1.6;
+}
+
+/* Field Tooltips */
+.scd-field-tooltip {
+	color: #646970;
+	cursor: help;
+	margin-left: 5px;
+}
+
+.scd-field-tooltip:hover {
+	color: #2271b1;
+}
+
+/* Section Descriptions */
+.scd-section-description {
+	color: #646970;
+	font-size: 13px;
+	line-height: 1.6;
+	margin: 0 0 20px 0;
+	padding: 12px;
+	background: #f6f7f7;
+	border-left: 4px solid #2271b1;
+	border-radius: 3px;
+}
+
+/* ==========================================================================
+   Form Fields
+   ========================================================================== */
+
+/* Text inputs */
+.scd-notifications-form input[type="text"],
+.scd-notifications-form input[type="email"],
+.scd-notifications-form input[type="url"],
+.scd-notifications-form input[type="number"],
+.scd-notifications-form input[type="password"] {
+	padding: 0 8px;
+	height: 30px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	font-size: 14px;
+	color: #1d2327;
+	background: #fff;
+	transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.scd-notifications-form input[type="text"]:hover,
+.scd-notifications-form input[type="email"]:hover,
+.scd-notifications-form input[type="url"]:hover,
+.scd-notifications-form input[type="number"]:hover,
+.scd-notifications-form input[type="password"]:hover {
+	border-color: #646970;
+}
+
+.scd-notifications-form input[type="text"]:focus,
+.scd-notifications-form input[type="email"]:focus,
+.scd-notifications-form input[type="url"]:focus,
+.scd-notifications-form input[type="number"]:focus,
+.scd-notifications-form input[type="password"]:focus {
+	outline: 2px solid transparent;
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+/* Select fields */
+.scd-notifications-form select {
+	padding: 0 8px;
+	height: 30px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	font-size: 14px;
+	color: #1d2327;
+	background: #fff;
+	transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.scd-notifications-form select:hover {
+	border-color: #646970;
+}
+
+.scd-notifications-form select:focus {
+	outline: 2px solid transparent;
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+/* Textarea fields */
+.scd-notifications-form textarea {
+	padding: 8px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	font-size: 14px;
+	color: #1d2327;
+	background: #fff;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	line-height: 1.6;
+	transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.scd-notifications-form textarea:hover {
+	border-color: #646970;
+}
+
+.scd-notifications-form textarea:focus {
+	outline: 2px solid transparent;
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+/* Toggle Switch */
+.scd-toggle-wrapper {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.scd-toggle {
+	position: relative;
+	display: inline-block;
+	width: 44px;
+	height: 24px;
+}
+
+.scd-toggle input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.scd-toggle-slider {
+	position: absolute;
+	cursor: pointer;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #c3c4c7;
+	transition: 0.3s;
+	border-radius: 24px;
+}
+
+.scd-toggle-slider:before {
+	position: absolute;
+	content: "";
+	height: 18px;
+	width: 18px;
+	left: 3px;
+	bottom: 3px;
+	background-color: white;
+	transition: 0.3s;
+	border-radius: 50%;
+}
+
+.scd-toggle input:checked + .scd-toggle-slider {
+	background-color: #2271b1;
+}
+
+.scd-toggle input:checked + .scd-toggle-slider:before {
+	transform: translateX( 20px );
+}
+
+.scd-toggle input:focus + .scd-toggle-slider {
+	box-shadow: 0 0 0 2px #fff, 0 0 0 4px #2271b1;
+}
+
+/* ==========================================================================
+   Submit Section
+   ========================================================================== */
+
+.scd-notifications-submit {
+	margin-top: 30px;
+	padding-top: 20px;
+	border-top: 1px solid #c3c4c7;
+	text-align: right;
+}
+
+.scd-notifications-submit .button-primary {
+	padding: 8px 24px;
+	height: auto;
+	font-size: 14px;
+}
+
+/* ==========================================================================
+   Admin Notices
+   ========================================================================== */
+
+.scd-notifications .notice {
+	margin: 0 0 20px 0;
+	padding: 12px;
+	border-left-width: 4px;
+	border-radius: 4px;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media screen and ( max-width: 782px ) {
+	.scd-notifications {
+		margin: 10px 10px 0 10px;
+	}
+
+	.scd-notifications-form {
+		padding: 15px;
+	}
+
+	.scd-notifications-tabs .nav-tab {
+		display: block;
+		margin-bottom: 5px;
+	}
+
+	.scd-notifications-form .form-table th,
+	.scd-notifications-form .form-table td {
+		display: block;
+		width: 100%;
+		padding: 10px 0;
+	}
+
+	.scd-notifications-form .form-table th {
+		padding-right: 0;
+		padding-bottom: 5px;
+	}
+}
+
+@media screen and ( max-width: 600px ) {
+	.scd-notifications h1 {
+		font-size: 20px;
+	}
+
+	.scd-notifications-form h2 {
+		font-size: 18px;
+	}
+
+	.scd-notifications-tabs .nav-tab {
+		padding: 8px 12px;
+		font-size: 13px;
+	}
+}
+
+/* ==========================================================================
+   Loading States
+   ========================================================================== */
+
+.scd-loading {
+	position: relative;
+	pointer-events: none;
+	opacity: 0.6;
+}
+
+.scd-loading::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 20px;
+	height: 20px;
+	margin-top: -10px;
+	margin-left: -10px;
+	border: 2px solid #2271b1;
+	border-top-color: transparent;
+	border-radius: 50%;
+	animation: scd-spin 0.6s linear infinite;
+}
+
+@keyframes scd-spin {
+	to {
+		transform: rotate( 360deg );
+	}
+}
+
+/* ==========================================================================
+   Performance Settings - Cache Statistics
+   ========================================================================== */
+
+.scd-cache-backend-info {
+	background: #f0f6fc;
+	border-left: 4px solid #2271b1;
+	padding: 12px;
+	margin-bottom: 20px;
+}
+
+.scd-cache-active-icon {
+	color: #00a32a;
+}
+
+.scd-cache-stats-table {
+	max-width: 600px;
+}
+
+.scd-cache-stats-label {
+	width: 200px;
+}
+
+.scd-status-enabled {
+	color: #00a32a;
+}
+
+.scd-status-disabled {
+	color: #d63638;
+}
+
+.scd-status-active {
+	color: #00a32a;
+}
+
+.scd-status-warning {
+	color: #dba617;
+}
+
+.scd-cache-clear-actions {
+	margin-top: 20px;
+}
+
+.scd-cache-clear-actions #scd-clear-cache-status {
+	margin-left: 10px;
+}
+
+/* ==========================================================================
+   Queue Status Tab Styles
+   ========================================================================== */
+
+.scd-queue-stats {
+	display: grid;
+	grid-template-columns: repeat( auto-fit, minmax( 200px, 1fr ) );
+	gap: 20px;
+	margin: 20px 0;
+}
+
+.scd-stat-box {
+	background: #fff;
+	border: 1px solid #ccd0d4;
+	border-radius: 4px;
+	padding: 20px;
+	display: flex;
+	align-items: center;
+	gap: 15px;
+}
+
+.scd-stat-box .dashicons {
+	font-size: 40px;
+	width: 40px;
+	height: 40px;
+	color: #646970;
+}
+
+.scd-stat-box.scd-stat-success .dashicons {
+	color: #00a32a;
+}
+
+.scd-stat-box.scd-stat-error .dashicons {
+	color: #d63638;
+}
+
+.scd-stat-content {
+	display: flex;
+	flex-direction: column;
+}
+
+.scd-stat-value {
+	font-size: 32px;
+	font-weight: 600;
+	line-height: 1;
+	color: #1d2327;
+}
+
+.scd-stat-label {
+	font-size: 13px;
+	color: #646970;
+	margin-top: 4px;
+}
+
+.scd-queue-info {
+	margin: 30px 0;
+}
+
+.scd-provider-info,
+.scd-queue-actions {
+	background: #fff;
+	border: 1px solid #ccd0d4;
+	border-radius: 4px;
+	padding: 20px;
+	margin: 20px 0;
+}
+
+.scd-provider-info h3,
+.scd-queue-actions h3 {
+	margin-top: 0;
+}

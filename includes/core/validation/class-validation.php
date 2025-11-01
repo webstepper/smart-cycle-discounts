@@ -476,7 +476,7 @@ class SCD_Validation {
 			'name_required'    => __( 'Campaign name is required', 'smart-cycle-discounts' ),
 			'name_too_short'   => __( 'Campaign name must be at least 3 characters', 'smart-cycle-discounts' ),
 			'name_too_long'    => __( 'Campaign name cannot exceed 255 characters', 'smart-cycle-discounts' ),
-			'priority_range'   => __( 'Priority must be between 1 and 10', 'smart-cycle-discounts' ),
+			'priority_range'   => __( 'Priority must be between 1 and 5', 'smart-cycle-discounts' ),
 			'description_long' => __( 'Description cannot exceed 1000 characters', 'smart-cycle-discounts' ),
 		);
 	}

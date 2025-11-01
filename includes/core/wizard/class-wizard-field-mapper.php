@@ -244,4 +244,39 @@ class SCD_Wizard_Field_Mapper {
 
 		return $required_fields[ $step ] ?? array();
 	}
+
+	/**
+	 * Transform wizard fields to entity fields
+	 *
+	 * Converts wizard-specific field names (discount_value_percentage, discount_value_fixed)
+	 * to the entity field name (discount_value) based on discount_type.
+	 *
+	 * @since  1.0.0
+	 * @param  array $wizard_data Wizard data with wizard-specific field names.
+	 * @return array Entity data with entity field names
+	 */
+	public static function transform_to_entity_fields( array $wizard_data ): array {
+		$entity_data = $wizard_data;
+
+		// Transform discount value fields based on discount type
+		if ( isset( $entity_data['discount_type'] ) ) {
+			$discount_type = $entity_data['discount_type'];
+
+			// For percentage discounts, use discount_value_percentage
+			if ( 'percentage' === $discount_type && isset( $entity_data['discount_value_percentage'] ) && '' !== $entity_data['discount_value_percentage'] ) {
+				$entity_data['discount_value'] = $entity_data['discount_value_percentage'];
+				unset( $entity_data['discount_value_percentage'] );
+				unset( $entity_data['discount_value_fixed'] );
+			}
+
+			// For fixed discounts, use discount_value_fixed
+			if ( 'fixed' === $discount_type && isset( $entity_data['discount_value_fixed'] ) && '' !== $entity_data['discount_value_fixed'] ) {
+				$entity_data['discount_value'] = $entity_data['discount_value_fixed'];
+				unset( $entity_data['discount_value_percentage'] );
+				unset( $entity_data['discount_value_fixed'] );
+			}
+		}
+
+		return $entity_data;
+	}
 }

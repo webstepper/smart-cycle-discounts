@@ -978,8 +978,30 @@
 		 * Show dismissed recommendations
 		 */
 		showDismissedRecommendations: function() {
-			if ( SCD.Shared && SCD.Shared.NotificationService ) { SCD.Shared.NotificationService.info( 'View dismissed recommendations feature - coming soon' ); }
+		var dismissed = this.getDismissedRecommendationElements();
+
+		if ( 0 === dismissed.length ) {
+			if ( SCD.Shared && SCD.Shared.NotificationService ) {
+				SCD.Shared.NotificationService.info( 'No dismissed recommendations found.' );
+			}
+			return;
+		}
+
+		// Create modal content
+		var modalContent = this.createDismissedRecommendationsModal( dismissed );
+
+		// Show modal
+		this.showModal( 'Dismissed Recommendations', modalContent );
 		},
+
+	/**
+	 * Get dismissed recommendation DOM elements
+	 *
+	 * @return {Array} Array of dismissed recommendation DOM elements
+	 */
+	getDismissedRecommendationElements: function() {
+		return $( '.scd-recommendation-item[data-dismissed="true"]' ).toArray();
+	},
 
 
 		/**

@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit; // Exit if accessed directly.
 }
 
 
@@ -68,6 +68,7 @@ class SCD_Campaign_State_Manager {
 	 * - active → paused: Temporarily stop campaign (can resume)
 	 * - active → expired: Campaign reaches end date
 	 * - paused → active: Resume paused campaign
+	 * - paused → scheduled: Reschedule paused campaign for future activation
 	 * - paused → draft: Edit paused campaign before resuming (valid: allows reconfiguration)
 	 * - scheduled → active: Auto-activation when start time reached
 	 * - scheduled → paused: Prevent activation before start (valid: user changed mind)
@@ -83,8 +84,8 @@ class SCD_Campaign_State_Manager {
 	 */
 	private const TRANSITION_RULES = array(
 		'draft'     => array( 'active', 'scheduled', 'archived' ),
-		'active'    => array( 'paused', 'expired', 'archived' ),
-		'paused'    => array( 'active', 'draft', 'expired', 'archived' ),
+		'active'    => array( 'paused', 'scheduled', 'expired', 'draft', 'archived' ),
+		'paused'    => array( 'active', 'scheduled', 'draft', 'expired', 'archived' ),
 		'scheduled' => array( 'active', 'paused', 'draft', 'archived' ),
 		'expired'   => array( 'draft', 'archived' ),
 		'archived'  => array( 'draft' ),
@@ -132,7 +133,7 @@ class SCD_Campaign_State_Manager {
 		}
 
 		if ( $from_state === $to_state ) {
-			return true; // No actual transition
+			return true; // No actual transition.
 		}
 
 		$allowed_transitions = self::TRANSITION_RULES[ $from_state ] ?? array();
@@ -151,11 +152,12 @@ class SCD_Campaign_State_Manager {
 	public function transition( SCD_Campaign $campaign, string $new_state, array $context = array() ) {
 		$current_state = $campaign->get_status();
 
-		// Validate transition
+		// Validate transition.
 		if ( ! $this->can_transition( $current_state, $new_state ) ) {
 			return new WP_Error(
 				'invalid_transition',
 				sprintf(
+					/* translators: 1: Current campaign status, 2: Target campaign status */
 					__( 'Cannot transition from %1$s to %2$s', 'smart-cycle-discounts' ),
 					$current_state,
 					$new_state
@@ -163,27 +165,27 @@ class SCD_Campaign_State_Manager {
 			);
 		}
 
-		// No-op if same state
+		// No-op if same state.
 		if ( $current_state === $new_state ) {
 			return true;
 		}
 
-		// Validate pre-conditions
+		// Validate pre-conditions.
 		$validation = $this->validate_transition_conditions( $campaign, $new_state );
 		if ( is_wp_error( $validation ) ) {
 			return $validation;
 		}
 
-		// Execute pre-transition hooks
+		// Execute pre-transition hooks.
 		$this->before_transition( $campaign, $current_state, $new_state, $context );
 
-		// Update state
+		// Update state.
 		$campaign->set_status( $new_state );
 		$campaign->set_updated_at( new DateTime( 'now', new DateTimeZone( 'UTC' ) ) );
 
-		// Set updated_by based on context
-		// System actions (auto_expired, auto_scheduled) set to NULL
-		// User actions set to current user ID
+		// Set updated_by based on context.
+		// System actions (auto_expired, auto_scheduled) set to NULL.
+		// User actions set to current user ID.
 		$is_system_action = isset( $context['reason'] ) && in_array(
 			$context['reason'],
 			array( 'auto_expired', 'auto_scheduled' ),
@@ -191,18 +193,18 @@ class SCD_Campaign_State_Manager {
 		);
 
 		if ( $is_system_action ) {
-			$campaign->set_updated_by( null ); // System action
+			$campaign->set_updated_by( null ); // System action.
 		} else {
-			$campaign->set_updated_by( get_current_user_id() ); // User action
+			$campaign->set_updated_by( get_current_user_id() ); // User action.
 		}
 
-		// Execute post-transition hooks
+		// Execute post-transition hooks.
 		$this->after_transition( $campaign, $current_state, $new_state, $context );
 
-		// Log transition
+		// Log transition.
 		$this->log_transition( $campaign, $current_state, $new_state, $context );
 
-		// Dispatch event
+		// Dispatch event.
 		$this->dispatch_transition_event( $campaign, $current_state, $new_state, $context );
 
 		return true;
@@ -211,6 +213,12 @@ class SCD_Campaign_State_Manager {
 	/**
 	 * Validate transition conditions.
 	 *
+	 * State Manager only validates STATUS TRANSITION RULES, not campaign data.
+	 * Campaign data validation is handled by:
+	 * - Wizard orchestrators (step-level validation)
+	 * - Campaign Compiler (compilation validation)
+	 * - Campaign Manager (final validation before save)
+	 *
 	 * @since    1.0.0
 	 * @param    SCD_Campaign $campaign     Campaign object.
 	 * @param    string       $new_state    Target state.
@@ -218,81 +226,43 @@ class SCD_Campaign_State_Manager {
 	 */
 	private function validate_transition_conditions( SCD_Campaign $campaign, string $new_state ) {
 		switch ( $new_state ) {
-			case 'active':
-				return $this->validate_activation( $campaign );
-
 			case 'scheduled':
-				return $this->validate_scheduling( $campaign );
+				// Only validate scheduling-specific requirements (date in future).
+				return $this->validate_scheduling_date( $campaign );
 
 			case 'expired':
+				// Only validate expiration logic (no future end date).
 				return $this->validate_expiration( $campaign );
 
 			default:
+				// All other transitions are allowed if the transition rule permits it.
 				return true;
 		}
 	}
 
 	/**
-	 * Validate campaign can be activated.
+	 * Validate campaign can be scheduled (date check only).
+	 *
+	 * State Manager ONLY validates that the start date is in the future.
+	 * Campaign data (products, discounts, etc.) is validated elsewhere.
 	 *
 	 * @since    1.0.0
 	 * @param    SCD_Campaign $campaign    Campaign object.
 	 * @return   bool|WP_Error                True if valid, WP_Error otherwise.
 	 */
-	private function validate_activation( SCD_Campaign $campaign ) {
-		// Check required fields
-		if ( empty( $campaign->get_name() ) ) {
-			return new WP_Error( 'missing_name', __( 'Campaign name is required', 'smart-cycle-discounts' ) );
-		}
-
-		if ( $campaign->get_discount_value() <= 0 ) {
-			return new WP_Error( 'invalid_discount', __( 'Discount value must be greater than 0', 'smart-cycle-discounts' ) );
-		}
-
-		// Check product selection
-		if ( $campaign->get_product_selection_type() !== 'all' ) {
-			$has_selection = false;
-
-			switch ( $campaign->get_product_selection_type() ) {
-				case 'individual':
-					$has_selection = ! empty( $campaign->get_product_ids() );
-					break;
-				case 'categories':
-					$has_selection = ! empty( $campaign->get_category_ids() );
-					break;
-				case 'tags':
-					$has_selection = ! empty( $campaign->get_tag_ids() );
-					break;
-			}
-
-			if ( ! $has_selection ) {
-				return new WP_Error( 'no_products', __( 'No products selected', 'smart-cycle-discounts' ) );
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Validate campaign can be scheduled.
-	 *
-	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
-	 * @return   bool|WP_Error                True if valid, WP_Error otherwise.
-	 */
-	private function validate_scheduling( SCD_Campaign $campaign ) {
+	private function validate_scheduling_date( SCD_Campaign $campaign ) {
 		$starts_at = $campaign->get_starts_at();
 
 		if ( ! $starts_at ) {
 			return new WP_Error( 'no_start_date', __( 'Start date is required for scheduling', 'smart-cycle-discounts' ) );
 		}
 
-		// Use UTC timezone to match campaign dates (which are stored in UTC)
+		// Use UTC timezone to match campaign dates (which are stored in UTC).
 		if ( $starts_at <= new DateTime( 'now', new DateTimeZone( 'UTC' ) ) ) {
 			return new WP_Error( 'past_start_date', __( 'Start date must be in the future', 'smart-cycle-discounts' ) );
 		}
 
-		return $this->validate_activation( $campaign );
+		return true;
 	}
 
 	/**
@@ -310,7 +280,7 @@ class SCD_Campaign_State_Manager {
 		$ends_at = $campaign->get_ends_at();
 		$now     = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
 
-		// If campaign has an end date in the future, warn user
+		// If campaign has an end date in the future, warn user.
 		if ( $ends_at && $ends_at > $now ) {
 			return new WP_Error(
 				'future_end_date',
@@ -318,8 +288,8 @@ class SCD_Campaign_State_Manager {
 			);
 		}
 
-		// Allow expiring campaigns without end dates (manual expiration)
-		// Allow expiring campaigns with past end dates
+		// Allow expiring campaigns without end dates (manual expiration).
+		// Allow expiring campaigns with past end dates.
 		return true;
 	}
 
@@ -334,10 +304,10 @@ class SCD_Campaign_State_Manager {
 	 * @return   void
 	 */
 	private function before_transition( SCD_Campaign $campaign, string $from_state, string $to_state, array $context ): void {
-		// Generic hook
+		// Generic hook.
 		do_action( 'scd_before_campaign_transition', $campaign, $from_state, $to_state, $context );
 
-		// Specific hook
+		// Specific hook.
 		do_action( "scd_before_campaign_{$from_state}_to_{$to_state}", $campaign, $context );
 	}
 
@@ -352,97 +322,37 @@ class SCD_Campaign_State_Manager {
 	 * @return   void
 	 */
 	private function after_transition( SCD_Campaign $campaign, string $from_state, string $to_state, array $context ): void {
-		// CRITICAL: Invalidate caches when transitioning to/from states that affect active campaign queries
-		$cache_affecting_states = array( 'active', 'paused', 'expired', 'scheduled' );
-		if ( in_array( $to_state, $cache_affecting_states, true ) || in_array( $from_state, $cache_affecting_states, true ) ) {
-			$this->invalidate_campaign_caches( $campaign );
-		}
+		// Note: Cache invalidation handled by Repository layer on save().
 
-		// State-specific actions
+		// State-specific actions.
 		switch ( $to_state ) {
 			case 'active':
-				// Schedule expiration check
+				// Schedule expiration check.
 				$this->schedule_expiration_check( $campaign );
 
-				// Schedule ending soon notification
+				// Schedule ending soon notification.
 				$this->schedule_ending_notification( $campaign );
 
-				// Fire campaign started notification hook
+				// Fire campaign started notification hook.
 				do_action( 'scd_campaign_started', $campaign->get_id() );
 				break;
 
 			case 'expired':
-				// Fire campaign ended notification hook
+				// Fire campaign ended notification hook.
 				do_action( 'scd_campaign_ended', $campaign->get_id() );
 				break;
 
 			case 'archived':
-				// Clean up scheduled tasks
+				// Clean up scheduled tasks.
 				$this->cleanup_scheduled_tasks( $campaign );
 				break;
 		}
 
-		// Generic hook
+		// Generic hook.
 		do_action( 'scd_after_campaign_transition', $campaign, $from_state, $to_state, $context );
 
-		// Specific hook
+		// Specific hook.
 		do_action( "scd_after_campaign_{$from_state}_to_{$to_state}", $campaign, $context );
-	}
-
-	/**
-	 * Invalidate all caches related to a campaign.
-	 *
-	 * This ensures that status changes are immediately reflected
-	 * in active campaign queries and product discount calculations.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @param    SCD_Campaign $campaign    Campaign object.
-	 * @return   void
-	 */
-	private function invalidate_campaign_caches( SCD_Campaign $campaign ): void {
-		// Get campaign repository to access cache clearing
-		global $wpdb;
-
-		// Clear individual campaign cache by ID
-		wp_cache_delete( 'campaign_' . $campaign->get_id(), 'scd' );
-		wp_cache_delete( 'campaign_uuid_' . $campaign->get_uuid(), 'scd' );
-		wp_cache_delete( 'campaign_slug_' . $campaign->get_slug(), 'scd' );
-
-		// Clear active campaigns cache (all variations)
-		wp_cache_delete( 'active_campaigns', 'scd' );
-		wp_cache_delete( 'scheduled_campaigns', 'scd' );
-		wp_cache_delete( 'paused_campaigns', 'scd' );
-
-		// Clear transient-based caches (used by cache manager)
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$wpdb->options}
-                 WHERE option_name LIKE %s
-                 OR option_name LIKE %s",
-				'_transient_scd_active_campaigns_%',
-				'_transient_timeout_scd_active_campaigns_%'
-			)
-		);
-
-		// Clear product-specific campaign caches
-		$product_ids = $campaign->get_product_ids();
-		if ( ! empty( $product_ids ) ) {
-			foreach ( $product_ids as $product_id ) {
-				wp_cache_delete( 'campaigns_by_product_' . $product_id, 'scd' );
-				wp_cache_delete( 'active_campaigns_product_' . $product_id, 'scd' );
-				delete_transient( 'scd_campaigns_by_product_' . $product_id );
-			}
-		}
-
-		// Clear WooCommerce product transients to force price recalculation
-		if ( function_exists( 'wc_delete_product_transients' ) ) {
-			if ( ! empty( $product_ids ) ) {
-				foreach ( $product_ids as $product_id ) {
-					wc_delete_product_transients( $product_id );
-				}
-			}
-		}
 	}
 
 	/**
@@ -541,11 +451,11 @@ class SCD_Campaign_State_Manager {
 	 */
 	public function auto_transition( SCD_Campaign $campaign ): bool {
 		$current_state = $campaign->get_status();
-		// Use UTC timezone to match campaign dates (which are stored in UTC)
+		// Use UTC timezone to match campaign dates (which are stored in UTC).
 		$now = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
 
-		// Check if should activate
-		if ( $current_state === 'scheduled' ) {
+		// Check if should activate.
+		if ( 'scheduled' === $current_state ) {
 			$starts_at = $campaign->get_starts_at();
 			if ( $starts_at && $starts_at <= $now ) {
 				$result = $this->transition( $campaign, 'active', array( 'reason' => 'auto_scheduled' ) );
@@ -553,8 +463,8 @@ class SCD_Campaign_State_Manager {
 			}
 		}
 
-		// Check if should expire
-		if ( in_array( $current_state, array( 'active', 'paused' ) ) ) {
+		// Check if should expire.
+		if ( in_array( $current_state, array( 'active', 'paused' ), true ) ) {
 			$ends_at = $campaign->get_ends_at();
 			if ( $ends_at && $ends_at <= $now ) {
 				$result = $this->transition( $campaign, 'expired', array( 'reason' => 'auto_expired' ) );
@@ -581,10 +491,10 @@ class SCD_Campaign_State_Manager {
 		$hook = 'scd_check_campaign_expiration';
 		$args = array( $campaign->get_id() );
 
-		// Clear any existing schedule
+		// Clear any existing schedule.
 		wp_clear_scheduled_hook( $hook, $args );
 
-		// Schedule new check
+		// Schedule new check.
 		wp_schedule_single_event( $ends_at->getTimestamp(), $hook, $args );
 	}
 
@@ -603,11 +513,11 @@ class SCD_Campaign_State_Manager {
 			return;
 		}
 
-		// Calculate notification time (24 hours before end date)
+		// Calculate notification time (24 hours before end date).
 		$notification_time = clone $ends_at;
 		$notification_time->modify( '-24 hours' );
 
-		// Only schedule if notification time is in the future
+		// Only schedule if notification time is in the future.
 		$now = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
 		if ( $notification_time <= $now ) {
 			return;
@@ -616,10 +526,10 @@ class SCD_Campaign_State_Manager {
 		$hook = 'scd_campaign_ending_notification';
 		$args = array( $campaign->get_id() );
 
-		// Clear any existing schedule
+		// Clear any existing schedule.
 		wp_clear_scheduled_hook( $hook, $args );
 
-		// Schedule notification
+		// Schedule notification.
 		wp_schedule_single_event( $notification_time->getTimestamp(), $hook, $args );
 	}
 
@@ -636,13 +546,13 @@ class SCD_Campaign_State_Manager {
 			return;
 		}
 
-		// Clear expiration check
+		// Clear expiration check.
 		wp_clear_scheduled_hook( 'scd_check_campaign_expiration', array( $campaign_id ) );
 
-		// Clear ending notification
+		// Clear ending notification.
 		wp_clear_scheduled_hook( 'scd_campaign_ending_notification', array( $campaign_id ) );
 
-		// Clear rotation tasks
+		// Clear rotation tasks.
 		wp_clear_scheduled_hook( 'scd_rotate_campaign_products', array( $campaign_id ) );
 	}
 

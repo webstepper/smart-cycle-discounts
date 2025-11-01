@@ -532,8 +532,8 @@ class SCD_Wizard_Validation {
 		// Validate other update fields as needed
 		if ( isset( $data['priority'] ) ) {
 			$priority = absint( $data['priority'] );
-			if ( $priority < 1 || $priority > 10 ) {
-				$errors->add( 'invalid_priority', __( 'Priority must be between 1 and 10', 'smart-cycle-discounts' ) );
+			if ( $priority < 1 || $priority > 5 ) {
+				$errors->add( 'invalid_priority', __( 'Priority must be between 1 and 5', 'smart-cycle-discounts' ) );
 			} else {
 				$validated['priority'] = $priority;
 			}

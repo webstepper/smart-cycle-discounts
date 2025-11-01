@@ -133,7 +133,7 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		// Check for campaign conflicts
-		$priority            = isset( $basic_data['priority'] ) ? intval( $basic_data['priority'] ) : 5;
+		$priority            = isset( $basic_data['priority'] ) ? intval( $basic_data['priority'] ) : 3;
 		$conflicted_products = $this->_get_conflicted_products( $priority, $selection_type, $product_ids, $category_ids );
 
 		if ( ! empty( $conflicted_products ) ) {

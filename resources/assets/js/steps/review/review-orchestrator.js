@@ -147,13 +147,14 @@
 
 		/**
 		 * Store launch option in wizard data
+		 * Note: Status is determined by the PHP compiler service based on launch_option and start_date.
+		 * We do NOT set status here to avoid race conditions and ensure single source of truth.
 		 */
 		storeLaunchOption: function() {
 			var launchOption = this.modules.state.getState().launchOption;
 
 			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.data ) {
 				window.SCD.Wizard.data.launchOption = launchOption;
-				window.SCD.Wizard.data.status = launchOption;
 			}
 
 			return launchOption;
@@ -177,17 +178,15 @@
 			// Call parent method from mixin first
 			var data = SCD.Mixins.StepPersistence.collectData.call( this );
 
-			// Add status field based on launchOption
-			if ( data.launchOption ) {
-				data.status = data.launchOption;
-			}
-
 			// Use state's toJSON for any additional complex data
 			if ( this.modules.state && 'function' === typeof this.modules.state.toJSON ) {
 				var stateData = this.modules.state.toJSON();
 				// Merge any additional state data that might be needed
 				data = $.extend( {}, stateData, data );
 			}
+
+			// Note: Status is determined by the PHP compiler service, not here
+			// The compiler uses launch_option + start_date to calculate the correct status
 
 			return data;
 		},

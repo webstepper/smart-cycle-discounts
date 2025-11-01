@@ -71,34 +71,6 @@
 		},
 
 		/**
-		 * Go to next step
-		 * Delegates to navigation service
-		 */
-		goToNextStep: function() {
-			var orchestrator = this.getOrchestrator();
-			if ( !orchestrator ) {return;}
-
-			var navigationService = orchestrator.modules && orchestrator.modules.navigationService;
-			if ( !navigationService ) {return;}
-
-			navigationService.navigateNext();
-		},
-
-		/**
-		 * Go to previous step
-		 * Delegates to navigation service
-		 */
-		goToPreviousStep: function() {
-			var orchestrator = this.getOrchestrator();
-			if ( !orchestrator ) {return;}
-
-			var navigationService = orchestrator.modules && orchestrator.modules.navigationService;
-			if ( !navigationService ) {return;}
-
-			navigationService.navigatePrevious();
-		},
-
-		/**
 		 * Go to specific step
 		 * Delegates to navigation service
 		 * @param stepName
@@ -183,33 +155,6 @@
 			}
 		},
 
-
-		/**
-		 * Show loader
-		 * Delegates to orchestrator
-		 */
-		showLoader: function() {
-			var orchestrator = this.getOrchestrator();
-			if ( !orchestrator ) {return;}
-
-			if ( 'function' === typeof orchestrator.setLoading ) {
-				orchestrator.setLoading( true );
-			}
-		},
-
-		/**
-		 * Hide loader
-		 * Delegates to orchestrator
-		 */
-		hideLoader: function() {
-			var orchestrator = this.getOrchestrator();
-			if ( !orchestrator ) {return;}
-
-			if ( 'function' === typeof orchestrator.setLoading ) {
-				orchestrator.setLoading( false );
-			}
-		},
-
 		/**
 		 * API Methods for Step Modules
 		 * These methods provide backward compatibility for step modules
@@ -277,20 +222,6 @@
 		},
 
 		/**
-		 * Mark wizard as having unsaved changes
-		 * Delegates to StateManager
-		 */
-		markAsChanged: function() {
-			var orchestrator = this.getOrchestrator();
-			if ( !orchestrator ) {return;}
-
-			var stateManager = orchestrator.modules && orchestrator.modules.stateManager;
-			if ( !stateManager ) {return;}
-
-			stateManager.set( { hasUnsavedChanges: true } );
-		},
-
-		/**
 		 * Save progress for a specific step
 		 * Delegates to persistence service
 		 * @param stepName
@@ -307,15 +238,6 @@
 			if ( stepOrchestrator && 'function' === typeof stepOrchestrator.saveStep ) {
 				return stepOrchestrator.saveStep();
 			}
-		},
-
-		/**
-		 * Navigate to a specific step
-		 * Delegates to navigation service
-		 * @param stepName
-		 */
-		navigateToStep: function( stepName ) {
-			this.goToStep( stepName );
 		},
 
 		/**
@@ -471,86 +393,12 @@
 		},
 
 		/**
-		 * Update state manager with step data from session
-		 * Extracted to reduce cognitive complexity
-		 */
-		updateStateManagerWithSteps: function( steps ) {
-			if ( !( window.SCD && window.SCD.Wizard && window.SCD.Wizard.StateManager ) ) {
-				return;
-			}
-
-			var allStepData = {};
-			for ( var stepName in steps ) {
-				if ( Object.prototype.hasOwnProperty.call( steps, stepName ) ) {
-					allStepData[stepName] = steps[stepName];
-
-					// Also store in wizard data
-					if ( !this.data ) {
-						this.data = {};
-					}
-					this.data[stepName] = steps[stepName];
-				}
-			}
-
-			// Update state manager with all step data at once
-			window.SCD.Wizard.StateManager.set( { stepData: allStepData } );
-		},
-
-		/**
-		 * Populate current step fields from session data
-		 * Extracted to reduce cognitive complexity
-		 */
-		populateCurrentStepFromSession: function( steps ) {
-			var currentStep = this.getCurrentStep();
-			if ( !steps[currentStep] ) {
-				return;
-			}
-
-			var orchestrator = this.getOrchestrator();
-			if ( !orchestrator ) {
-				return;
-			}
-
-			if ( orchestrator.stepOrchestrators && orchestrator.stepOrchestrators[currentStep] ) {
-				var stepOrchestrator = orchestrator.stepOrchestrators[currentStep];
-				if ( stepOrchestrator.populateFields ) {
-					stepOrchestrator.populateFields( steps[currentStep] );
-				}
-			} else {
-				// Step orchestrator might not be loaded yet, trigger a reload
-				orchestrator.loadCurrentStep();
-			}
-		},
-
-		/**
-		 * Update completed steps from session data
-		 * Extracted to reduce cognitive complexity
-		 */
-		updateCompletedStepsFromSession: function( completedSteps ) {
-			if ( !( window.SCD && window.SCD.Wizard && window.SCD.Wizard.StateManager ) ) {
-				return;
-			}
-
-			window.SCD.Wizard.StateManager.set( {
-				completedSteps: completedSteps
-			} );
-
-			// Update UI to reflect completed steps
-			if ( window.SCD.Wizard.Navigation &&
-			     window.SCD.Wizard.Navigation.updateCompletedSteps &&
-			     'function' === typeof window.SCD.Wizard.Navigation.updateCompletedSteps ) {
-				window.SCD.Wizard.Navigation.updateCompletedSteps( completedSteps );
-			}
-		},
-
-		/**
 		 * Load session data when continuing a draft
 		 */
 		loadSessionData: function() {
 			var self = this;
 
 		// Session data already loaded via PHP template - nothing to do
-		console.log( '[SCD Wizard] Session data loaded from PHP template' );
 		}
 	} );
 
@@ -572,36 +420,17 @@
 			// When continuing, we'll load data from session after orchestrator is ready
 			SCD.Wizard.data = {};
 			SCD.Wizard.loadFromSession = true;
-			if ( window.console && window.console.log ) {
-				console.log( '[SCD Wizard Init] Intent=continue, loadFromSession=true' );
-			}
 		} else if ( window.scdWizardData && window.scdWizardData.currentCampaign ) {
-			// UNCONDITIONAL DEBUG: Inspect scdWizardData structure
-			console.log( '[DEBUG] scdWizardData keys:', Object.keys( window.scdWizardData || {} ) );
-			console.log( '[DEBUG] scdWizardData.debugPersistence:', window.scdWizardData.debugPersistence );
-			console.log( '[DEBUG] Full scdWizardData object:', window.scdWizardData );
-
 			// Use pre-loaded data for editing existing campaigns
 			SCD.Wizard.data = window.scdWizardData.currentCampaign;
 
 			// Set debug flag if enabled
 			if ( window.scdWizardData.debugPersistence ) {
 				window.scdDebugPersistence = true;
-				console.log( '[DEBUG] Debug flag enabled!' );
-			} else {
-				console.log( '[DEBUG] Debug flag NOT enabled - value was:', window.scdWizardData.debugPersistence );
-			}
-
-			if ( window.console && window.console.log ) {
-				console.log( '[SCD Wizard Init] Loaded current_campaign data:', SCD.Wizard.data );
-				console.log( '[SCD Wizard Init] Basic data:', SCD.Wizard.data.basic );
 			}
 		} else {
 			// Fresh start
 			SCD.Wizard.data = {};
-			if ( window.console && window.console.log ) {
-				console.log( '[SCD Wizard Init] Fresh start, empty data' );
-			}
 		}
 
 		// Initialize wizard (handle race condition properly)

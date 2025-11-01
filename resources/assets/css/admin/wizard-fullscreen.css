@@ -66,90 +66,7 @@
     width: 100%;
 }
 
-/* Wizard Header */
-.scd-wizard-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.scd-wizard-header h1 {
-    margin: 0;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.scd-wizard-header h1 .scd-campaign-name {
-    color: #646970;
-    font-weight: 400;
-    font-size: 0.9em;
-}
-
-/* Exit Wizard Button */
-.scd-exit-wizard {
-    display: inline-flex !important;
-    align-items: center;
-    gap: 5px;
-    font-size: 13px !important;
-    padding: 4px 12px !important;
-    height: 30px !important;
-    line-height: 1.5 !important;
-}
-
-.scd-exit-wizard .dashicons {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-    margin-right: 3px;
-}
-
-.scd-exit-wizard:hover {
-    background: var(--scd-color-danger) !important;
-    border-color: var(--scd-color-danger) !important;
-    color: var(--scd-color-white) !important;
-}
-
-/* Status Badge - extends badge component from shared _components.css */
-.scd-status-badge {
-    /* Extends .scd-badge from components.css */
-    display: inline-flex;
-    align-items: center;
-    gap: var(--scd-spacing-xs);
-    margin: 0 auto;
-}
-
-.scd-status-new {
-    /* Extends .scd-badge--primary */
-    background-color: var(--scd-color-primary-bg);
-    color: var(--scd-color-primary);
-    border: 1px solid var(--scd-color-primary-light);
-}
-
-.scd-status-draft {
-    /* Extends .scd-badge--warning */
-    background-color: var(--scd-color-warning-bg);
-    color: var(--scd-color-warning-dark);
-    border: 1px solid var(--scd-color-warning-light);
-}
-
-.scd-status-edit {
-    /* Extends .scd-badge--info */
-    background-color: var(--scd-color-info-bg);
-    color: var(--scd-color-info-dark);
-    border: 1px solid var(--scd-color-info-light);
-}
-
-.scd-status-badge .dashicons {
-    width: 16px;
-    height: 16px;
-    font-size: 16px;
-}
+/* Old wizard header styles removed - now integrated into .scd-wizard-progress */
 
 /* Save Indicator */
 .scd-save-indicator {
@@ -191,16 +108,159 @@
 /* Spinning animation handled by shared/_utilities.css */
 
 /* ===== WIZARD PROGRESS BAR ===== */
-/* Main Progress Container */
+/* Main Progress Container - Unified header + progress */
 .scd-wizard-progress {
-    background: linear-gradient(to bottom, var(--scd-color-surface-light) 0%, var(--scd-color-background) 100%);
-    border-bottom: 1px solid var(--scd-color-border);
-    padding: 24px 40px;
-    position: relative;
+    background: var(--scd-color-background);
+    border: var(--scd-border-width) solid var(--scd-color-border);
+    border-radius: var(--scd-radius-lg);
+    padding: 0;
+    margin-bottom: var(--scd-spacing-lg);
     box-shadow: var(--scd-shadow-sm);
+    position: relative;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-/* Progress bar removed - only step indicators remain */
+.scd-wizard-progress:hover {
+    border-color: var(--scd-color-border-dark);
+    box-shadow: var(--scd-shadow-md);
+}
+
+/* Wizard Progress Header - Title and Exit Button */
+.scd-wizard-progress-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: calc(var(--scd-spacing-md) + 2px) var(--scd-spacing-xl);
+    background-color: var(--scd-color-surface);
+    border-bottom: var(--scd-border-width) solid var(--scd-color-border-light);
+    border-radius: calc(var(--scd-radius-lg) - 2px) calc(var(--scd-radius-lg) - 2px) 0 0;
+    box-shadow: 0 1px 3px var(--scd-shadow-gradient-light);
+    gap: var(--scd-spacing-lg);
+    flex-wrap: wrap;
+    min-height: 64px;
+}
+
+.scd-wizard-progress-title {
+    display: flex;
+    align-items: center;
+    gap: var(--scd-spacing-md);
+    flex: 1;
+    flex-wrap: wrap;
+}
+
+.scd-wizard-progress-title h1 {
+    margin: 0;
+    padding: 0;
+    font-size: 23px;
+    font-weight: 600;
+    color: var(--scd-color-text);
+    display: flex;
+    align-items: center;
+    gap: var(--scd-spacing-xs);
+    line-height: 1.4;
+    letter-spacing: -0.02em;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.scd-wizard-progress-title h1 .scd-campaign-name {
+    color: var(--scd-color-text-muted);
+    font-weight: 400;
+    font-size: 0.82em;
+    letter-spacing: 0;
+}
+
+/* Status Badges in Header - Minimalist & Elegant */
+.scd-wizard-progress-title .scd-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: var(--scd-radius-sm);
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    letter-spacing: 0.02em;
+}
+
+.scd-status-edit {
+    background-color: var(--scd-color-info-bg);
+    color: var(--scd-color-info-dark);
+    border: 1px solid var(--scd-color-border-light);
+}
+
+.scd-status-saved {
+    background-color: var(--scd-color-success-bg);
+    color: var(--scd-color-success-dark);
+    border: 1px solid var(--scd-color-border-light);
+}
+
+.scd-status-badge .dashicons {
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+    opacity: 0.85;
+}
+
+/* Exit Wizard Button */
+.scd-exit-wizard {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    padding: 7px 16px !important;
+    height: auto !important;
+    line-height: 1.4 !important;
+    white-space: nowrap;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+.scd-exit-wizard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.scd-exit-wizard:hover::before {
+    left: 100%;
+}
+
+.scd-exit-wizard .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scd-exit-wizard:hover {
+    background: var(--scd-color-danger) !important;
+    border-color: var(--scd-color-danger) !important;
+    color: var(--scd-color-white) !important;
+    box-shadow: 0 2px 6px rgba(215, 25, 33, 0.3);
+}
+
+.scd-exit-wizard:hover .dashicons {
+    transform: rotate(-90deg);
+}
+
+.scd-exit-wizard:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(215, 25, 33, 0.2), 0 2px 6px rgba(215, 25, 33, 0.3) !important;
+    border-color: var(--scd-color-danger) !important;
+}
+
+.scd-exit-wizard:active {
+    box-shadow: 0 1px 3px rgba(215, 25, 33, 0.4) !important;
+}
 
 /* Wizard Steps Container */
 .scd-wizard-steps {
@@ -209,7 +269,7 @@
     align-items: center;
     list-style: none;
     margin: 0;
-    padding: 0;
+    padding: var(--scd-spacing-xl) var(--scd-spacing-xl);
     position: relative;
     max-width: 800px;
     margin: 0 auto;
@@ -224,13 +284,20 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    cursor: default !important;
+}
+
+/* Step labels should not be clickable */
+.scd-wizard-steps li span.step-label {
+    cursor: default !important;
+    pointer-events: none;
 }
 
 /* Step Number Circle */
 .scd-wizard-steps li::before {
     content: attr(data-step);
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     background: var(--scd-color-surface);
     border: 2px solid var(--scd-color-border);
     border-radius: 50%;
@@ -241,68 +308,125 @@
     font-weight: 600;
     color: var(--scd-color-text-muted);
     margin-bottom: 8px;
-    transition: all 0.3s ease;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
 }
 
-/* Step Label */
+.scd-wizard-steps li:hover::before {
+    background: var(--scd-color-background);
+    border-color: var(--scd-color-border-dark);
+    color: var(--scd-color-text);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Step Label - Additional styles */
 .scd-wizard-steps li span.step-label {
     font-size: 13px;
     color: var(--scd-color-text-muted);
     font-weight: 500;
     white-space: nowrap;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: block;
     margin-top: 8px;
 }
 
+/* Hover effect when hovering over the circle - affects the label too */
+.scd-wizard-steps li::before:hover ~ span.step-label,
+.scd-wizard-steps li:hover span.step-label {
+    color: var(--scd-color-text);
+    font-weight: 600;
+}
+
 /* Completed Step Styling */
 .scd-wizard-steps li.completed::before {
-    background: var(--scd-wizard-success);
+    background: linear-gradient(135deg, var(--scd-wizard-success) 0%, #008a2e 100%);
     border-color: var(--scd-wizard-success);
     color: var(--scd-color-white);
     content: '✓';
     font-size: 16px;
+    box-shadow: 0 2px 6px rgba(0, 163, 42, 0.3);
+    animation: scd-step-complete 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes scd-step-complete {
+    0% {
+        transform: scale(0.8) rotate(-45deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.15);
+    }
+    100% {
+        transform: scale(1) rotate(0);
+        opacity: 1;
+    }
 }
 
 .scd-wizard-steps li.completed span.step-label {
     color: var(--scd-wizard-success);
+    font-weight: 600;
 }
 
 /* Active Step Styling - must come after completed to override */
 .scd-wizard-steps li.active::before,
 .scd-wizard-steps li.active.completed::before {
-    background: var(--scd-wizard-primary);
+    background: linear-gradient(135deg, var(--scd-wizard-primary) 0%, #135e96 100%);
     border-color: var(--scd-wizard-primary);
     color: var(--scd-color-white);
     content: attr(data-step);
     font-size: 14px;
-    /* No scale transform on active state */
-    box-shadow: 0 2px 4px var(--scd-shadow-primary);
+    box-shadow: 0 3px 8px rgba(34, 113, 177, 0.35), 0 0 0 4px rgba(34, 113, 177, 0.1);
+    animation: scd-step-pulse 2s ease-in-out infinite;
+}
+
+@keyframes scd-step-pulse {
+    0%, 100% {
+        box-shadow: 0 3px 8px rgba(34, 113, 177, 0.35), 0 0 0 4px rgba(34, 113, 177, 0.1);
+    }
+    50% {
+        box-shadow: 0 3px 12px rgba(34, 113, 177, 0.45), 0 0 0 6px rgba(34, 113, 177, 0.15);
+    }
 }
 
 .scd-wizard-steps li.active span.step-label,
 .scd-wizard-steps li.active.completed span.step-label {
     color: var(--scd-wizard-primary);
-    font-weight: 600;
+    font-weight: 700;
 }
 
-/* Connecting lines between steps - new approach */
+/* Connecting lines between steps - Enhanced */
 .scd-wizard-steps li:not(:last-child)::after {
     content: '';
     position: absolute;
-    top: 16px;
-    left: calc(50% + 16px); /* Start from edge of circle (16px = half of 32px circle width) */
-    right: calc(-50% + 16px); /* Extend to the next circle */
-    height: 2px;
-    background: var(--scd-color-border);
+    top: 18px;
+    left: calc(50% + 18px);
+    right: calc(-50% + 18px);
+    height: 3px;
+    background: linear-gradient(90deg, var(--scd-color-border-light) 0%, var(--scd-color-border) 100%);
     z-index: 0;
+    border-radius: 2px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
 }
 
-/* Active/completed line styling */
+/* Active/completed line styling with gradient animation */
 .scd-wizard-steps li.completed:not(:last-child)::after {
-    background: var(--scd-wizard-success);
+    background: linear-gradient(90deg, var(--scd-wizard-success) 0%, #008a2e 100%);
+    box-shadow: 0 1px 3px rgba(0, 163, 42, 0.2);
+    animation: scd-line-grow 0.5s ease-out;
+}
+
+@keyframes scd-line-grow {
+    from {
+        transform: scaleX(0);
+        transform-origin: left;
+    }
+    to {
+        transform: scaleX(1);
+    }
 }
 
 /* Remove the step labels and use data attributes */
@@ -325,26 +449,41 @@
 
 /* Responsive adjustments */
 @media (max-width: 782px) {
-    .scd-wizard-progress {
-        padding: 16px 20px;
+    .scd-wizard-progress-header {
+        padding: var(--scd-spacing-md);
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--scd-spacing-sm);
     }
-    
+
+    .scd-wizard-progress-title {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .scd-wizard-progress-title h1 {
+        font-size: 20px;
+    }
+
+    .scd-exit-wizard {
+        width: 100%;
+        justify-content: center;
+    }
+
     .scd-wizard-steps {
+        padding: var(--scd-spacing-lg) var(--scd-spacing-md);
         max-width: 100%;
     }
-    
+
     .scd-wizard-steps li span.step-label {
-        font-size: 12px;
+        font-size: 11px;
     }
-    
+
     .scd-wizard-steps li::before {
         width: 28px;
         height: 28px;
         font-size: 12px;
-    }
-    
-    .scd-progress-bar {
-        margin-bottom: 16px;
     }
 }
 
@@ -869,3 +1008,15 @@ body:has(.scd-wizard-page) #screen-meta {
     position: relative;
 }
 
+/* Accessibility - Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    .scd-wizard-progress,
+    .scd-status-badge,
+    .scd-exit-wizard,
+    .scd-wizard-steps li,
+    .scd-wizard-steps li::before,
+    .scd-wizard-steps li::after {
+        animation: none \!important;
+        transition: none \!important;
+    }
+}

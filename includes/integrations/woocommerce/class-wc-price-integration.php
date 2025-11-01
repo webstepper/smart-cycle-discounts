@@ -346,9 +346,18 @@ class SCD_WC_Price_Integration {
 		// Check customer usage limits if available
 		if ( $this->usage_manager && isset( $discount_info['campaign_id'] ) ) {
 			$campaign_id = $discount_info['campaign_id'];
-			$customer_id = get_current_user_id();
 
-			if ( $customer_id > 0 && ! $this->usage_manager->can_use_campaign( $customer_id, $campaign_id ) ) {
+			// Get campaign data for usage validation
+			$campaign_data = array();
+			if ( isset( $discount_info['campaign_data'] ) ) {
+				$campaign_data = $discount_info['campaign_data'];
+			}
+
+			// Validate customer usage
+			$validation_result = $this->usage_manager->validate_customer_usage( $campaign_id, $campaign_data );
+
+			// If validation failed, do not apply discount
+			if ( ! isset( $validation_result['valid'] ) || ! $validation_result['valid'] ) {
 				return false;
 			}
 		}

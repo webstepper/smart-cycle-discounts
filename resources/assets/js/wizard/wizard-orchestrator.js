@@ -60,7 +60,7 @@
 		this.isInternalNavigation = false; // Track wizard internal navigation
 		this.config = {
 			steps: [ 'basic', 'products', 'discounts', 'schedule', 'review' ],
-			sessionTimeout: 3600000
+			sessionTimeout: 7200000  // 2 hours - aligned with PHP SESSION_LIFETIME
 		};
 	};
 
@@ -89,7 +89,7 @@
 	WizardOrchestrator.prototype.getDefaultConfig = function() {
 		return $.extend( {}, SCD.Shared.BaseOrchestrator.prototype.getDefaultConfig.call( this ), {
 			steps: [ 'basic', 'products', 'discounts', 'schedule', 'review' ],
-			sessionTimeout: 3600000,
+			sessionTimeout: 7200000,  // 2 hours - aligned with PHP SESSION_LIFETIME
 			validateOnNavigation: true,
 			allowBackNavigation: true
 		} );
@@ -320,8 +320,23 @@
 			} );
 		}
 
-		// beforeunload warning removed - navigation saves handle data protection
-		// Navigation saves work perfectly without false warnings
+		// CRITICAL FIX: Add beforeunload warning for external navigation only
+		// Internal wizard navigation saves automatically, but browser close/crash needs warning
+		$( window ).on( 'beforeunload.wizard', function( e ) {
+			// Don't warn during internal navigation
+			if ( self.isInternalNavigation ) {
+				return undefined;
+			}
+
+			// Warn if there are unsaved changes
+			if ( self.modules.stateManager && self.modules.stateManager.get( 'hasUnsavedChanges' ) ) {
+				var message = 'You have unsaved changes. Are you sure you want to leave?';
+				e.returnValue = message;
+				return message;
+			}
+
+			return undefined;
+		} );
 
 		// Track form changes to set hasUnsavedChanges (for UI state only)
 		$( document ).on( 'change.wizard input.wizard', 'input, select, textarea', function( e ) {
@@ -487,8 +502,8 @@
 		var deferred = $.Deferred();
 
 		// Check if module loader exists and if the step loader is registered
-		var hasModuleLoader = window.SCD && window.SCD.ModuleLoader && window.SCD.ModuleLoader.has;
-		var hasStepLoader = hasModuleLoader && window.SCD.ModuleLoader.has( stepName + '-loader' );
+		var hasModuleLoader = window.SCD && window.SCD.ModuleLoader && window.SCD.ModuleLoader.isLoaded;
+		var hasStepLoader = hasModuleLoader && window.SCD.ModuleLoader.isLoaded( stepName + '-loader' );
 
 		if ( hasStepLoader ) {
 			window.SCD.ModuleLoader.load( stepName + '-loader', function() {
@@ -514,11 +529,26 @@
 	 * Extracted to reduce cognitive complexity
 	 */
 	WizardOrchestrator.prototype.getStepData = function( stepName ) {
-		// First check state manager (but only if it has non-empty data)
+		// CRITICAL: In edit mode, ALWAYS use wizard state manager's runtime data
+		// The state manager gets updated after each save, whereas window.scdWizardData
+		// contains stale data from initial page load
 		if ( this.modules.stateManager ) {
 			var state = this.modules.stateManager.get();
+
+			// Check if we're in edit mode
+			var isEditMode = state && ( state.wizardMode === 'edit' || state.campaignId );
+
 			if ( state && state.stepData && state.stepData[stepName] ) {
-				// Check if the data is actually non-empty (not just an empty object)
+				// In edit mode: Always return stepData from state manager (even if empty)
+				// This ensures we use runtime-updated data, not stale PHP data
+				if ( isEditMode ) {
+					if ( window.SCD && window.SCD.Debug ) {
+						window.SCD.Debug.log( '[WizardOrchestrator] Edit mode - using wizard state manager data for step:', stepName );
+					}
+					return state.stepData[stepName];
+				}
+
+				// In create mode: Only return if data is non-empty
 				var hasData = false;
 				if ( 'object' === typeof state.stepData[stepName] ) {
 					// Check if object has any own properties
@@ -534,11 +564,6 @@
 					return state.stepData[stepName];
 				}
 			}
-		}
-
-		// If no data in state manager, check wizard data
-		if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.data && window.SCD.Wizard.data[stepName] ) {
-			return window.SCD.Wizard.data[stepName];
 		}
 
 		return null;
@@ -657,6 +682,9 @@
 
 		// Delegate to navigation service
 		if ( this.modules.navigationService ) {
+			// Mark as internal navigation to suppress beforeunload warning
+			this.isInternalNavigation = true;
+
 			if ( 'next' === action ) {
 				this.modules.navigationService.navigateNext();
 			} else if ( 'prev' === action ) {
@@ -664,6 +692,12 @@
 			} else if ( targetStep ) {
 				this.modules.navigationService.navigateToStep( targetStep );
 			}
+
+			// Reset flag after navigation completes
+			var self = this;
+			setTimeout( function() {
+				self.isInternalNavigation = false;
+			}, 1000 );
 		}
 	};
 
@@ -673,6 +707,10 @@
 	 */
 	WizardOrchestrator.prototype.handleCompletionSuccess = function( response ) {
 		var campaignName = this.getCampaignName();
+
+		// Determine if we're in edit mode
+		var state = this.modules.stateManager ? this.modules.stateManager.get() : null;
+		var isEditMode = state && ( state.wizardMode === 'edit' || state.campaignId );
 
 		// Update state with completion data
 		if ( this.modules.stateManager ) {
@@ -686,7 +724,8 @@
 					campaignName: campaignName,
 					status: response.status || 'draft',
 					message: response.message,
-					redirectUrl: response.redirectUrl
+					redirectUrl: response.redirectUrl,
+					isEditMode: isEditMode
 				}
 			} );
 		}
@@ -697,7 +736,8 @@
 			campaignName: campaignName,
 			status: response.status || 'draft',
 			message: response.message,
-			redirectUrl: response.redirectUrl
+			redirectUrl: response.redirectUrl,
+			isEditMode: isEditMode
 		};
 
 		// Emit completion event for other components
@@ -749,6 +789,25 @@
 			saveAsDraft: saveAsDraft || false
 		};
 
+		// Check if saving active campaign as draft (requires confirmation)
+		if ( saveAsDraft && this.modules.stateManager ) {
+			var state = this.modules.stateManager.get();
+			var isEditMode = state && ( state.wizardMode === 'edit' || state.campaignId );
+			var currentStatus = state && state.currentCampaign ? state.currentCampaign.status : null;
+
+			// Confirm if converting active campaign to draft
+			if ( isEditMode && 'active' === currentStatus ) {
+				var confirmed = window.confirm(
+					'Saving as draft will deactivate your campaign and stop applying discounts. ' +
+					'You can republish it later. Continue?'
+				);
+
+				if ( ! confirmed ) {
+					return; // User cancelled
+				}
+			}
+		}
+
 		// Different validation for draft vs complete
 		var validationPromise = saveAsDraft ? this.validateBasicInfo() : this.validateAllSteps();
 
@@ -760,6 +819,18 @@
 						'Please complete all required fields' );
 				}
 
+				// CRITICAL FIX: Save current step data (review step with launch_option) BEFORE completing
+				// This ensures the radio button selection is persisted to the session
+				var currentStep = self.getCurrentStep();
+				if ( currentStep ) {
+					var stepOrchestrator = self.getStepInstance( currentStep );
+					if ( stepOrchestrator && 'function' === typeof stepOrchestrator.saveStep ) {
+						return stepOrchestrator.saveStep();
+					}
+				}
+				return Promise.resolve();
+				} )
+				.then( function() {
 				// Emit completing event for modal to show loading state
 				$( document ).trigger( 'scd:wizard:completing' );
 
@@ -802,26 +873,15 @@
 	};
 
 	/**
-	 * Get campaign name from form
+	 * Get campaign name from state manager (single source of truth)
 	 */
 	WizardOrchestrator.prototype.getCampaignName = function() {
-		// Try to get from state manager first
+		// Get from state manager (single source of truth)
 		if ( this.modules.stateManager ) {
 			var state = this.modules.stateManager.get();
 			if ( state && state.stepData && state.stepData.basic && state.stepData.basic.name ) {
 				return state.stepData.basic.name;
 			}
-		}
-
-		// Try to get from wizard data
-		if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.data && window.SCD.Wizard.data.name ) {
-			return window.SCD.Wizard.data.name;
-		}
-
-		// Fall back to DOM
-		var $field = $( '[name="name"]' );
-		if ( $field.length ) {
-			return $field.val() || '';
 		}
 
 		return '';
@@ -834,7 +894,6 @@
 	WizardOrchestrator.prototype.scheduleRedirect = function( _redirectUrl ) {
 		// Note: Redirect delay is now controlled by completion modal (3 seconds)
 		// This method is called immediately, modal handles the delay
-		// No beforeunload warning to suppress (removed with Smart Save system)
 	};
 
 	/**
@@ -843,22 +902,11 @@
 	WizardOrchestrator.prototype.validateBasicInfo = function() {
 		var deferred = $.Deferred();
 
-		// Check if basic step orchestrator exists
-		var basicOrchestrator = this.stepOrchestrators.basic;
-		if ( basicOrchestrator && 'function' === typeof basicOrchestrator.validateStep ) {
-			basicOrchestrator.validateStep()
-				.then( function( isValid ) {
-					deferred.resolve( isValid );
-				} )
-				.fail( function() {
-					deferred.resolve( false );
-				} );
-		} else {
-			// No basic orchestrator, check if we have campaign name field
-			var $field = $( '[name="name"]' );
-			var campaignName = $field.val();
-			deferred.resolve( campaignName && 0 < campaignName.trim().length );
-		}
+		// Get campaign name from wizard state (source of truth)
+		var basicData = this.getStepData( 'basic' );
+		var campaignName = basicData && basicData.name ? basicData.name : null;
+
+		deferred.resolve( campaignName && 0 < campaignName.trim().length );
 
 		return deferred.promise();
 	};
@@ -905,13 +953,10 @@
 		var stepDeferred = $.Deferred();
 		var stepData = null;
 
-		// Try to get step data from state manager
+		// Get step data from state manager (single source of truth)
 		if ( this.modules.stateManager && 'function' === typeof this.modules.stateManager.get ) {
 			var fullState = this.modules.stateManager.get();
 			stepData = fullState.stepData ? fullState.stepData[stepName] : null;
-		} else if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.data ) {
-			// Fallback to global wizard data
-			stepData = window.SCD.Wizard.data[stepName] || null;
 		}
 
 		// Basic validation - ensure required fields are present
@@ -1122,8 +1167,9 @@
 	 * Custom destroy
 	 */
 	WizardOrchestrator.prototype.onDestroy = function() {
-		// Unbind window events
+		// Unbind window events including beforeunload
 		$( window ).off( '.wizard' );
+		$( window ).off( 'beforeunload.wizard' );
 		$( document ).off( '.wizard' );
 
 		// Unbind specific navigation and wizard events

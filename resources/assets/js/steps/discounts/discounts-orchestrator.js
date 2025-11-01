@@ -544,51 +544,6 @@
 		 */
 
 		/**
-		 * Validate single field using centralized ValidationManager
-		 * @param fieldName
-		 * @param value
-		 */
-		validateField: function( fieldName, value ) {
-			// Use centralized validation if available
-			if ( window.SCD && window.SCD.ValidationManager ) {
-				var result = window.SCD.ValidationManager.validateField(
-					fieldName,
-					value,
-					{
-						stepId: 'discounts',
-						allValues: this.modules && this.modules.state ? this.modules.state.getState() : {},
-						visibilityMap: null
-					}
-				);
-				
-				// Show/clear errors based on result
-				if ( !result.ok ) {
-					// Convert new error format to expected format
-					var errorMessages = result.errors.map( function( error ) {
-						return error.message || error;
-					} );
-					this.showFieldError( fieldName, errorMessages );
-					return false;
-				} else {
-					this.clearFieldError( fieldName );
-				}
-			}
-			
-			// Additional custom validation for discount-specific fields
-			var discountType = this.getDiscountType();
-			
-			// Custom validation that supplements the centralized validation
-			if ( 'discount_value_percentage' === fieldName && 'percentage' === discountType ) {
-				if ( value && 100 < parseFloat( value ) ) {
-					this.showFieldError( fieldName, [ 'Percentage discount cannot exceed 100%' ] );
-					return false;
-				}
-			}
-			
-			return true;
-		},
-
-		/**
 		 * Toggle collapsible section
 		 * @param $section
 		 */
@@ -667,9 +622,6 @@
 				}
 				this.modules = {};
 			}
-
-			// Hide tooltips
-			this.hideTooltip();
 
 			// Remove tooltip handlers
 			if ( this.$container ) {

@@ -238,7 +238,7 @@ class SCD_Shortcodes {
 		}
 
 		// Get campaign products
-		$product_ids = $campaign->get_selected_products();
+		$product_ids = $campaign->get_product_ids();
 
 		if ( empty( $product_ids ) ) {
 			return '';

@@ -91,7 +91,6 @@
 | `class-get-summary-handler.php` | 199 |
 | `class-calculate-discount-impact-handler.php` | 192 |
 | `class-get-product-stats-handler.php` | 192 |
-| `class-license-debug-handler.php` | 187 |
 | `class-recover-session-handler.php` | 185 |
 | `class-load-data-handler.php` | 183 |
 | `class-quick-edit-handler.php` | 182 |
@@ -206,11 +205,10 @@
 
 | File Name | LOC |
 |-----------|----:|
-| `class-settings-manager.php` | 509 |
+| `class-settings-manager.php` | 457 |
 | `class-settings-page-base.php` | 440 |
-| `class-settings-migrator.php` | 232 |
 
-**Folder Total: 3 files, 1181 LOC**
+**Folder Total: 2 files, 897 LOC**
 
 ### 📁 `includes/admin/settings/tabs/`
 
@@ -409,10 +407,11 @@
 
 | File Name | LOC |
 |-----------|----:|
-| `class-campaign-health-calculator.php` | 1980 |
 | `class-wizard-state-service.php` | 1107 |
 | `class-wizard-manager.php` | 854 |
 | `class-campaign-change-tracker.php` | 382 |
+
+**Note**: `class-campaign-health-calculator.php` (1980 LOC) was removed. The wizard now uses the unified `SCD_Campaign_Health_Service` as the single source of truth for all health calculations.
 | `class-idempotency-service.php` | 252 |
 | `class-step-data-transformer.php` | 242 |
 | `class-wizard-field-mapper.php` | 237 |
@@ -1396,8 +1395,7 @@
 | 4 | `class-field-definitions.php` | PHP | 2330 |
 | 5 | `class-campaign-health-service.php` | PHP | 2075 |
 | 6 | `step-discounts.css` | CSS | 2060 |
-| 7 | `class-campaign-health-calculator.php` | PHP | 1980 |
-| 8 | `step-schedule.css` | CSS | 1734 |
+| 7 | `step-schedule.css` | CSS | 1734 |
 | 9 | `class-main-dashboard-page.php` | PHP | 1714 |
 | 10 | `fs-plugin-info-dialog.php` | PHP | 1691 |
 | 11 | `class-fs-clone-manager.php` | PHP | 1670 |

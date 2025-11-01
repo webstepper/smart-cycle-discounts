@@ -117,24 +117,6 @@
 		// Note: isValid and isDirty are now handled by StepPersistence mixin
 
 		/**
-		 * Get module instance
-		 * @param name
-		 */
-		getModule: function( name ) {
-			return SCD.Utils.get( this.modules, name );
-		},
-
-		/**
-		 * Check if step is ready
-		 */
-		isReady: function() {
-			return !SCD.Utils.isEmpty( this.modules ) &&
-					this.modules.state &&
-					this.modules.api &&
-					this.modules.fields;
-		},
-
-		/**
 		 * Custom cleanup hook
 		 * Called by BaseOrchestrator destroy
 		 */

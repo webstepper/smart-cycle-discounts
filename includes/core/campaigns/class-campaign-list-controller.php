@@ -360,7 +360,15 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 			$this->render_campaign_count();
 			?>
 
-			<?php if ( $this->check_capability( 'scd_create_campaigns' ) ) : ?>
+			<?php
+			// Check if viewing trash
+			$viewing_trash = isset( $_REQUEST['status'] ) && 'trash' === $_REQUEST['status'];
+
+			// Initialize draft info for later use
+			$draft_info = null;
+			?>
+
+			<?php if ( ! $viewing_trash && $this->check_capability( 'scd_create_campaigns' ) ) : ?>
 				<?php
 				// Check for draft
 				$draft_info = $this->wizard_state_service->get_draft_info();
@@ -395,18 +403,18 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 					</a>
 				<?php endif; ?>
 			<?php endif; ?>
-			
+
 			<hr class="wp-header-end">
-			
+
 			<?php
 			// Display draft notice if exists
 			if ( $draft_info && $this->check_capability( 'scd_create_campaigns' ) ) {
 				$this->render_draft_notice( $draft_info );
 			}
 			?>
-			
+
 			<?php $this->list_table->views(); ?>
-			
+
 			<form method="post">
 				<?php
 				$this->list_table->search_box( __( 'Search Campaigns', 'smart-cycle-discounts' ), 'campaign' );

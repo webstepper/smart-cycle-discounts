@@ -22,7 +22,7 @@ Smart Cycle Discounts revolutionizes WooCommerce discount management with intell
 * **Smart Product Rotation** - Automatically rotate discounts across random products daily/weekly
 * **Multiple Discount Types** - Percentage discounts, fixed amount reductions, or set custom sale prices
 * **Advanced Scheduling** - Set start/end dates, specific times, and timezone-aware scheduling
-* **Priority-Based System** - Control which campaigns take precedence with 1-10 priority levels
+* **Priority-Based System** - Control which campaigns take precedence with 1-5 priority levels
 * **Bulk Campaign Management** - Enable, disable, duplicate, or delete multiple campaigns at once
 * **Real-Time Product Search** - AJAX-powered search by product name, SKU, or ID with instant results
 * **HPOS Compatible** - Full support for WooCommerce High-Performance Order Storage
@@ -102,7 +102,7 @@ No. Smart Cycle Discounts uses optimized database queries, efficient caching, an
 
 = Can I have multiple campaigns running at the same time? =
 
-Yes! You can run multiple campaigns simultaneously. Use the Priority field (1-10) to control which campaign takes precedence when multiple campaigns affect the same product.
+Yes! You can run multiple campaigns simultaneously. Use the Priority field (1-5, where 5 is highest priority) to control which campaign takes precedence when multiple campaigns affect the same product.
 
 = What's the difference between "All Products", "Specific Products", and "Random Products"? =
 
@@ -131,7 +131,7 @@ Yes. On the Campaigns list page, use the "Duplicate" action to create a copy of 
 5. Campaign wizard - Step 5: Review & Confirm (preview all settings before creating)
 6. Campaigns list - Manage all campaigns with bulk actions (enable, disable, duplicate, delete)
 7. Product search - Real-time AJAX search by product name, SKU, or ID
-8. Campaign priority - Set priority levels 1-10 to control which discounts take precedence
+8. Campaign priority - Set priority levels 1-5 to control which discounts take precedence
 
 == Changelog ==
 
@@ -142,7 +142,7 @@ Yes. On the Campaigns list page, use the "Duplicate" action to create a copy of 
 * Smart product rotation system (daily/weekly)
 * Multiple discount types: Percentage, Fixed Amount, Custom Sale Price
 * Advanced scheduling with date/time/timezone support
-* Priority system (1-10) for campaign precedence
+* Priority system (1-5) for campaign precedence
 * AJAX-powered product search
 * Bulk campaign management (enable, disable, duplicate, delete)
 * Service container architecture with dependency injection

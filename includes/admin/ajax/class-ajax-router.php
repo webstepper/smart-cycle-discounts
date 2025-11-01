@@ -459,7 +459,6 @@ class SCD_Ajax_Router {
 			'clear_queue'                    => 'SCD_Clear_Queue_Handler',
 
 			// License/Debug handlers
-			'license_debug'                  => 'SCD_License_Debug_Handler',
 			'clear_license_cache'            => 'SCD_Clear_License_Cache_Handler',
 		);
 	}
@@ -545,7 +544,27 @@ class SCD_Ajax_Router {
 							return null;
 						}
 						// Initialize the state service with existing session from cookie
+						// CRITICAL FIX: Check if we're in edit mode by reading from existing session
+						// AJAX requests don't have $_GET params, so we check the session data
 						$state_service->initialize_with_intent( 'continue' );
+
+						// Now check if the session indicates edit mode
+						$campaign_id  = $state_service->get( 'campaign_id', 0 );
+						$is_edit_mode = $state_service->get( 'is_edit_mode', false );
+
+						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+							error_log( '[SCD AJAX Router] Session data: campaign_id=' . $campaign_id . ', is_edit_mode=' . ( $is_edit_mode ? 'yes' : 'no' ) );
+							error_log( '[SCD AJAX Router] All session data: ' . print_r( $state_service->get_all_data(), true ) );
+						}
+
+						// If we have a campaign_id, assume edit mode and initialize Change Tracker
+						// The presence of campaign_id means we're editing an existing campaign
+						if ( $campaign_id > 0 ) {
+							if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+								error_log( '[SCD AJAX Router] Detected edit mode - initializing Change Tracker for campaign ' . $campaign_id );
+							}
+							$state_service->initialize_with_intent( 'edit' );
+						}
 					} catch ( Exception $e ) {
 						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 							error_log( '[SCD Wizard:AJAX] Exception creating state service: ' . $e->getMessage() );
@@ -630,6 +649,43 @@ class SCD_Ajax_Router {
 					$state_service = new SCD_Wizard_State_Service();
 					// Initialize the state service with existing session from cookie
 					$state_service->initialize_with_intent( 'continue' );
+				}
+
+				$this->handler_instances[ $action ] = new $handler_class( $state_service );
+			} elseif ( 'SCD_Get_Summary_Handler' === $handler_class ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( '[SCD AJAX Router] ===== GET SUMMARY HANDLER DETECTED =====' );
+				}
+				// CRITICAL FIX: Get Summary handler requires state service with Change Tracker in edit mode
+				$container     = Smart_Cycle_Discounts::get_instance();
+				$state_service = $container::get_service( 'wizard_state' );
+
+				if ( ! $state_service ) {
+					// If service not available, create it
+					if ( ! class_exists( 'SCD_Wizard_State_Service' ) ) {
+						require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
+					}
+					$state_service = new SCD_Wizard_State_Service();
+					// Initialize the state service with existing session from cookie
+					$state_service->initialize_with_intent( 'continue' );
+				}
+
+				// CRITICAL: Always check if we're in edit mode and ensure Change Tracker is initialized
+				// This handles both fresh state service and container-provided service
+				$campaign_id  = $state_service->get( 'campaign_id', 0 );
+				$is_edit_mode = $state_service->get( 'is_edit_mode', false );
+
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( '[SCD AJAX Router:Get Summary] Session data: campaign_id=' . $campaign_id . ', is_edit_mode=' . ( $is_edit_mode ? 'yes' : 'no' ) );
+					error_log( '[SCD AJAX Router:Get Summary] Has change tracker: ' . ( $state_service->get_change_tracker() ? 'yes' : 'no' ) );
+				}
+
+				// If we have a campaign_id but no Change Tracker, initialize edit mode
+				if ( $campaign_id > 0 && ! $state_service->get_change_tracker() ) {
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						error_log( '[SCD AJAX Router:Get Summary] Detected edit mode without Change Tracker - initializing for campaign ' . $campaign_id );
+					}
+					$state_service->initialize_with_intent( 'edit' );
 				}
 
 				$this->handler_instances[ $action ] = new $handler_class( $state_service );
@@ -798,7 +854,6 @@ class SCD_Ajax_Router {
 						'SCD_Import_Handler' === $handler_class ||
 						'SCD_Tools_Handler' === $handler_class ||
 						'SCD_Clear_Cache_Handler' === $handler_class ||
-						'SCD_License_Debug_Handler' === $handler_class ||
 						'SCD_Clear_License_Cache_Handler' === $handler_class ) {
 				// Tools and debug handlers require container and logger
 				$container = Smart_Cycle_Discounts::get_instance();

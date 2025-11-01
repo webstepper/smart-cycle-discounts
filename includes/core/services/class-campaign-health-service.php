@@ -30,6 +30,44 @@ if ( ! defined( 'ABSPATH' ) ) {
 class SCD_Campaign_Health_Service {
 
 	/**
+	 * Health Score Thresholds
+	 */
+	const COVERAGE_EXCELLENT_THRESHOLD = 70;
+	const COVERAGE_GOOD_THRESHOLD      = 50;
+	const COVERAGE_FAIR_THRESHOLD      = 30;
+
+	const DISCOUNT_SWEET_SPOT_MAX      = 50;
+	const DISCOUNT_HIGH_THRESHOLD      = 70;
+	const DISCOUNT_VERY_HIGH_THRESHOLD = 90;
+
+	const LOW_STOCK_THRESHOLD = 10;
+
+	/**
+	 * Penalty Values
+	 */
+	const PENALTY_CRITICAL_ISSUE     = 15;
+	const PENALTY_HIGH_ISSUE         = 10;
+	const PENALTY_MEDIUM_ISSUE       = 5;
+	const PENALTY_DUPLICATE_NAME     = 10;
+	const PENALTY_EXCESSIVE_DISCOUNT = 10;
+
+	/**
+	 * Status Thresholds
+	 */
+	const STATUS_EXCELLENT_MIN = 80;
+	const STATUS_GOOD_MIN      = 60;
+	const STATUS_FAIR_MIN      = 40;
+
+	/**
+	 * Stock Risk Thresholds
+	 */
+	const STOCK_RISK_HIGH_MULTIPLIER   = 0.5; // Stock < 50% of estimated demand
+	const STOCK_RISK_MEDIUM_MULTIPLIER = 0.8; // Stock < 80% of estimated demand
+	const DISCOUNT_BOOST_PERCENTAGE    = 1.5; // 50% boost in sales from discounts
+	const DISCOUNT_BOOST_FIXED         = 1.3; // 30% boost for fixed discounts
+	const HISTORICAL_DAYS_LOOKBACK     = 30;  // Days to analyze for sales history
+
+	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
@@ -53,9 +91,24 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * Main entry point for health analysis. Accepts campaign as array or object.
 	 *
-	 * CONTEXT TYPES:
-	 * - 'dashboard': Only show issues that develop AFTER campaign creation (conflicts, deleted products, expired, etc.)
-	 * - 'review': Show validation-style warnings since user can still change things
+	 * CONTEXT TYPES & SCORE DIFFERENCES:
+	 *
+	 * 'review' (Wizard Review Step):
+	 * - Campaign is still being configured (not yet saved)
+	 * - Shows validation-style warnings user can fix
+	 * - More lenient scoring to encourage completion
+	 * - Typical score: 90-100 for well-configured campaigns
+	 * - Example: Score 97 = "Good configuration, minor recommendations"
+	 *
+	 * 'dashboard' (Campaigns List/Dashboard):
+	 * - Campaign is saved and may be active
+	 * - Shows post-creation issues (conflicts, stock changes, deleted products, usage patterns)
+	 * - More strict scoring reflecting real-world conditions
+	 * - Typical score: 80-95 after campaign runs for a while
+	 * - Example: Score 85 = "Healthy but has some warnings (conflicts, stock changes)"
+	 *
+	 * NOTE: It is NORMAL and EXPECTED for dashboard scores to be 10-15 points lower than
+	 * wizard scores due to real-world factors that develop after campaign creation.
 	 *
 	 * @since    1.0.0
 	 * @param    mixed  $campaign      Campaign data (array from DB or SCD_Campaign object).
@@ -147,10 +200,16 @@ class SCD_Campaign_Health_Service {
 			if ( isset( $campaign['product_ids'] ) && ! isset( $campaign['selected_product_ids'] ) ) {
 				// Decode JSON if it's a string
 				if ( is_string( $campaign['product_ids'] ) ) {
-					$decoded                          = json_decode( $campaign['product_ids'], true );
-					$campaign['selected_product_ids'] = ( null !== $decoded && is_array( $decoded ) ) ? $decoded : array();
+					$decoded = json_decode( $campaign['product_ids'], true );
+					if ( null !== $decoded && is_array( $decoded ) ) {
+						// FIXED: Preserve 0 as valid product ID (rare but possible)
+						// array_map ensures integers, doesn't filter out 0 like array_filter would
+						$campaign['selected_product_ids'] = array_map( 'intval', $decoded );
+					} else {
+						$campaign['selected_product_ids'] = array();
+					}
 				} else {
-					$campaign['selected_product_ids'] = $campaign['product_ids'];
+					$campaign['selected_product_ids'] = is_array( $campaign['product_ids'] ) ? $campaign['product_ids'] : array();
 				}
 			}
 
@@ -307,7 +366,10 @@ class SCD_Campaign_Health_Service {
 		if ( 'random' === $selection_type ) {
 			$random_count = isset( $campaign['random_count'] ) ? intval( $campaign['random_count'] ) : 0;
 			if ( $random_count > 0 ) {
-				$total_products = wp_count_posts( 'product' )->publish;
+				// IMPROVED: Safe error handling for wp_count_posts
+				$post_counts    = wp_count_posts( 'product' );
+				$total_products = isset( $post_counts->publish ) ? intval( $post_counts->publish ) : 0;
+
 				if ( $random_count > $total_products ) {
 					$health['critical_issues'][] = array(
 						'code'     => 'random_count_exceeds_total',
@@ -318,6 +380,8 @@ class SCD_Campaign_Health_Service {
 							$total_products
 						),
 						'category' => 'products',
+						'severity' => 'critical',
+						'step'     => 'products',
 					);
 					$penalty                    += 15;
 					$status                      = 'critical';
@@ -360,10 +424,20 @@ class SCD_Campaign_Health_Service {
 			$invalid_count     = 0;
 			foreach ( $unique_ids as $product_id ) {
 				$product = wc_get_product( $product_id );
-				if ( $product ) {
+				// IMPROVED: Check for WP_Error and NULL
+				if ( $product && ! is_wp_error( $product ) ) {
 					$valid_product_ids[] = $product_id;
 				} else {
 					++$invalid_count;
+					if ( is_wp_error( $product ) ) {
+						$this->logger->warning(
+							'WP_Error loading product for health check',
+							array(
+								'product_id' => $product_id,
+								'error'      => $product->get_error_message(),
+							)
+						);
+					}
 				}
 			}
 
@@ -394,16 +468,17 @@ class SCD_Campaign_Health_Service {
 
 				foreach ( $check_products as $product_id ) {
 					$product = wc_get_product( $product_id );
-					if ( ! $product ) {
+					// IMPROVED: Check for WP_Error
+					if ( ! $product || is_wp_error( $product ) ) {
 						continue;
 					}
 
-					// Stock analysis
+					// Stock analysis (FIXED: NULL stock bug - check for NULL before comparison)
 					if ( $product->managing_stock() ) {
 						$stock = $product->get_stock_quantity();
-						if ( $stock <= 0 ) {
+						if ( null !== $stock && $stock <= 0 ) {
 							++$out_of_stock_count;
-						} elseif ( $stock < 10 ) {
+						} elseif ( null !== $stock && $stock < self::LOW_STOCK_THRESHOLD ) {
 							++$low_stock_count;
 							// DEBUG: Log each low stock product
 							if ( 'dashboard' === $view_context ) {
@@ -594,10 +669,17 @@ class SCD_Campaign_Health_Service {
 	/**
 	 * Check schedule health.
 	 *
-	 * DASHBOARD CONTEXT: Only show issues that develop AFTER creation:
-	 * - Campaign expired but still active
-	 * - Scheduled start date passed (should be activated)
-	 * - Campaign ending soon
+	 * PHILOSOPHY: Only flag issues that users can and should act on.
+	 * Do NOT flag system-managed state transitions as health issues.
+	 *
+	 * CHECKS PERFORMED:
+	 * - Campaign ending soon (3 days) - Informational planning warning
+	 * - No activity detected (7+ days active) - Performance monitoring
+	 *
+	 * REMOVED ILLOGICAL CHECKS:
+	 * - "Campaign expired but still active" - Impossible due to wizard validation
+	 *   and cron auto-expiration. If it occurs, it's a system issue, not campaign health.
+	 * - "Start date passed for scheduled" - Expected behavior, cron handles transition.
 	 *
 	 * REVIEW CONTEXT: Wizard already validates schedule, no additional checks needed
 	 *
@@ -622,21 +704,19 @@ class SCD_Campaign_Health_Service {
 		$end_time_only   = isset( $campaign['end_time'] ) ? $campaign['end_time'] : '23:59';
 		$start_time_only = isset( $campaign['start_time'] ) ? $campaign['start_time'] : '00:00';
 
-		// POST-CREATION ISSUE: Campaign expired but still active
+		// REMOVED: "Campaign expired but still active" check
+		// Reason: This is IMPOSSIBLE due to wizard validation (prevents past end dates)
+		// and the scd_update_campaign_status cron job automatically expires campaigns.
+		// If this state occurs, it's a SYSTEM issue (cron not running), not a campaign health issue.
+		// Users cannot fix this - it requires checking WordPress cron health.
+		//
+		// KEPT: "Ending soon" warning - this is useful information for planning
 		if ( 'active' === $campaign_status && ! empty( $end_date ) ) {
 			$end_dt        = scd_combine_date_time( $end_date, $end_time_only, wp_timezone_string() );
 			$end_timestamp = $end_dt ? $end_dt->getTimestamp() : false;
 
-			if ( $end_timestamp && $end_timestamp < $now ) {
-				$health['critical_issues'][] = array(
-					'code'     => 'campaign_expired',
-					'message'  => __( 'Campaign expired - deactivate or extend end date', 'smart-cycle-discounts' ),
-					'category' => 'schedule',
-				);
-				$penalty                    += 25;
-				$status                      = 'critical';
-			} elseif ( $end_timestamp && $end_timestamp < ( $now + ( 3 * DAY_IN_SECONDS ) ) ) {
-				// Warning: Ending within 3 days
+			// Informational warning: Campaign ending within 3 days
+			if ( $end_timestamp && $end_timestamp < ( $now + ( 3 * DAY_IN_SECONDS ) ) && $end_timestamp >= $now ) {
 				$days_left            = ceil( ( $end_timestamp - $now ) / DAY_IN_SECONDS );
 				$health['warnings'][] = array(
 					'code'     => 'ending_soon',
@@ -654,23 +734,11 @@ class SCD_Campaign_Health_Service {
 			}
 		}
 
-		// POST-CREATION ISSUE: Scheduled campaign start date passed (should be activated)
-		if ( 'scheduled' === $campaign_status && ! empty( $start_date ) ) {
-			$start_dt        = scd_combine_date_time( $start_date, $start_time_only, wp_timezone_string() );
-			$start_timestamp = $start_dt ? $start_dt->getTimestamp() : false;
-
-			if ( $start_timestamp && $start_timestamp < $now ) {
-				$health['warnings'][] = array(
-					'code'     => 'start_date_passed',
-					'message'  => __( 'Start date passed - activate campaign', 'smart-cycle-discounts' ),
-					'category' => 'schedule',
-				);
-				$penalty             += 10;
-				if ( 'critical' !== $status ) {
-					$status = 'warning';
-				}
-			}
-		}
+		// REMOVED: "Start date passed" warning for scheduled campaigns
+		// Reason: This is EXPECTED behavior - scheduled campaigns automatically
+		// transition to 'active' status via cron when their start date arrives.
+		// Showing this as a warning is illogical and confusing to users.
+		// The scd_update_campaign_status cron job handles this transition automatically.
 
 		// POST-CREATION ISSUE: No activity warning (dashboard only)
 		if ( 'dashboard' === $view_context && 'active' === $campaign_status && ! empty( $start_date ) ) {
@@ -761,20 +829,9 @@ class SCD_Campaign_Health_Service {
 			);
 			$penalty             += 10;
 			$status               = 'warning';
-		} elseif ( 'percentage' === $discount_type && $discount_value < 5 && $discount_value > 0 ) {
-			// BUSINESS WARNING: Low discount
-			$health['warnings'][] = array(
-				'code'     => 'low_discount',
-				'message'  => sprintf(
-					/* translators: %d: discount percentage */
-					__( '%d%% discount may not be compelling', 'smart-cycle-discounts' ),
-					$discount_value
-				),
-				'category' => 'discount',
-			);
-			$penalty             += 5;
-			$status               = 'warning';
 		}
+		// REMOVED: Low discount penalty (<5%) - Valid business strategy, not unhealthy
+		// Small discounts (2-5%) are legitimate for customer loyalty, subtle promotions, etc.
 
 		// POST-CREATION ISSUE: Fixed discount exceeds product price (if prices changed)
 		if ( 'fixed' === $discount_type && $discount_value > 0 ) {
@@ -1168,25 +1225,60 @@ class SCD_Campaign_Health_Service {
 		$penalty = 0;
 		$status  = 'healthy';
 
-		$campaign_status = isset( $campaign['status'] ) ? $campaign['status'] : '';
-		$discount_type   = isset( $campaign['discount_type'] ) ? $campaign['discount_type'] : '';
-		$discount_value  = isset( $campaign['discount_value'] ) ? floatval( $campaign['discount_value'] ) : 0;
+		// Get product IDs
+		$product_ids = isset( $campaign['selected_product_ids'] ) ? $campaign['selected_product_ids'] : array();
 
-		// Only check for high-discount active campaigns
-		if ( 'active' === $campaign_status && 'percentage' === $discount_type && $discount_value >= 50 ) {
+		if ( empty( $product_ids ) ) {
+			// Track breakdown
+			$health['breakdown']['stock'] = array(
+				'penalty' => 0,
+				'status'  => 'healthy',
+			);
+			return $health;
+		}
+
+		// IMPROVED: Calculate real stock depletion risk
+		$stock_risk_data = $this->calculate_stock_risk( $product_ids, $campaign );
+
+		// Store stock risk data in context for AJAX response
+		if ( isset( $context['view_context'] ) && 'review' === $context['view_context'] ) {
+			$health['stock_risk'] = $stock_risk_data;
+		}
+
+		// Apply penalties based on risk level
+		if ( $stock_risk_data['high_risk_count'] > 0 ) {
 			$health['warnings'][] = array(
-				'code'     => 'stock_depletion_risk',
-				'message'  => __( 'High discount may cause rapid stock depletion', 'smart-cycle-discounts' ),
+				'code'     => 'high_stock_depletion_risk',
+				'message'  => sprintf(
+					/* translators: %d: number of products */
+					_n( '%d product at high risk of stockout during campaign', '%d products at high risk of stockout during campaign', $stock_risk_data['high_risk_count'], 'smart-cycle-discounts' ),
+					$stock_risk_data['high_risk_count']
+				),
 				'category' => 'stock',
 			);
-			$penalty             += 5;
+			$penalty             += self::PENALTY_HIGH_ISSUE;
 			$status               = 'warning';
+		}
+
+		if ( $stock_risk_data['medium_risk_count'] > 0 ) {
+			$health['info'][] = array(
+				'code'     => 'medium_stock_depletion_risk',
+				'message'  => sprintf(
+					/* translators: %d: number of products */
+					_n( '%d product may run low on stock during campaign', '%d products may run low on stock during campaign', $stock_risk_data['medium_risk_count'], 'smart-cycle-discounts' ),
+					$stock_risk_data['medium_risk_count']
+				),
+				'category' => 'stock',
+			);
+			$penalty         += self::PENALTY_MEDIUM_ISSUE;
 		}
 
 		// Track breakdown
 		$health['breakdown']['stock'] = array(
-			'penalty' => $penalty,
-			'status'  => $status,
+			'penalty'           => $penalty,
+			'status'            => $status,
+			'high_risk_count'   => $stock_risk_data['high_risk_count'],
+			'medium_risk_count' => $stock_risk_data['medium_risk_count'],
 		);
 
 		$health['score'] -= $penalty;
@@ -1286,8 +1378,8 @@ class SCD_Campaign_Health_Service {
 					if ( $has_date_overlap ) {
 						if ( $other_priority === $priority ) {
 							$same_priority_overlaps[] = $other['name'];
-						} elseif ( $other_priority < $priority ) {
-							// CRITICAL: Lower numbers = higher priority (e.g., priority 1 blocks priority 5)
+						} elseif ( $other_priority > $priority ) {
+							// Higher numbers = higher priority (e.g., priority 5 blocks priority 1)
 							$higher_priority_overlaps[] = $other['name'];
 						}
 
@@ -2072,6 +2164,223 @@ class SCD_Campaign_Health_Service {
 			'warnings'                 => $deduplicated_warnings,
 			'categories_data'          => $categories_data,
 			'timestamp'                => current_time( 'timestamp' ),
+		);
+	}
+
+	/**
+	 * Calculate average daily sales for a product.
+	 *
+	 * Uses WooCommerce HPOS-compatible wc_get_orders() API to calculate
+	 * sales velocity. Handles both simple products and variations.
+	 * Falls back gracefully to 0 if data is unavailable.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    int $product_id    Product ID.
+	 * @param    int $days          Number of days to look back.
+	 * @return   float                 Average daily sales.
+	 */
+	private function get_average_daily_sales( $product_id, $days = 30 ) {
+		// Validate inputs
+		if ( ! $product_id || $days <= 0 ) {
+			return 0;
+		}
+
+		// Check if WooCommerce is available
+		if ( ! function_exists( 'wc_get_orders' ) ) {
+			return 0;
+		}
+
+		try {
+			// Calculate date range (use gmdate for UTC consistency)
+			$date_from = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
+
+			// Use HPOS-compatible wc_get_orders API
+			$orders = wc_get_orders(
+				array(
+					'limit'        => -1,
+					'status'       => array( 'wc-completed', 'wc-processing' ),
+					'date_created' => '>' . $date_from,
+					'return'       => 'ids',
+				)
+			);
+
+			if ( empty( $orders ) ) {
+				return 0;
+			}
+
+			// Calculate total quantity sold
+			$total_quantity = 0;
+
+			foreach ( $orders as $order_id ) {
+				$order = wc_get_order( $order_id );
+				if ( ! $order ) {
+					continue;
+				}
+
+				// Check each order item
+				foreach ( $order->get_items() as $item ) {
+					$item_product_id   = $item->get_product_id();
+					$item_variation_id = $item->get_variation_id();
+
+					// Match product ID or variation ID
+					if ( $item_product_id === $product_id || $item_variation_id === $product_id ) {
+						$total_quantity += $item->get_quantity();
+					}
+				}
+			}
+
+			// Calculate average per day
+			return $total_quantity / $days;
+
+		} catch ( Exception $e ) {
+			// Log error but don't break the health check
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'SCD Health Service: Error calculating average daily sales - ' . $e->getMessage() );
+			}
+			return 0;
+		}
+	}
+
+	/**
+	 * Get campaign duration in days.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $campaign    Campaign data.
+	 * @return   int                   Duration in days (default 7 if no end date).
+	 */
+	private function get_campaign_duration_days( $campaign ) {
+		$start_date = isset( $campaign['start_date'] ) ? $campaign['start_date'] : null;
+		$end_date   = isset( $campaign['end_date'] ) ? $campaign['end_date'] : null;
+
+		if ( ! $end_date ) {
+			return 7; // Default 7 days if no end date
+		}
+
+		if ( ! $start_date ) {
+			$start_date = current_time( 'Y-m-d' );
+		}
+
+		$start = strtotime( $start_date );
+		$end   = strtotime( $end_date );
+
+		if ( false === $start || false === $end ) {
+			return 7;
+		}
+
+		$days = max( 1, ceil( ( $end - $start ) / DAY_IN_SECONDS ) );
+		return $days;
+	}
+
+	/**
+	 * Estimate discount boost factor on sales.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    string $discount_type     Discount type.
+	 * @param    float  $discount_value    Discount value.
+	 * @return   float                        Boost multiplier.
+	 */
+	private function estimate_discount_boost( $discount_type, $discount_value ) {
+		if ( 'percentage' === $discount_type ) {
+			// Higher discounts = bigger boost
+			if ( $discount_value >= self::DISCOUNT_VERY_HIGH_THRESHOLD ) {
+				return 2.0; // 100% boost for 90%+ discounts
+			} elseif ( $discount_value >= self::DISCOUNT_HIGH_THRESHOLD ) {
+				return self::DISCOUNT_BOOST_PERCENTAGE; // 50% boost for 70%+ discounts
+			} elseif ( $discount_value >= self::DISCOUNT_SWEET_SPOT_MAX ) {
+				return 1.3; // 30% boost for 50%+ discounts
+			} else {
+				return 1.2; // 20% boost for smaller discounts
+			}
+		} elseif ( 'fixed' === $discount_type ) {
+			return self::DISCOUNT_BOOST_FIXED; // 30% boost for fixed discounts
+		}
+
+		return 1.1; // 10% boost for BOGO/tiered
+	}
+
+	/**
+	 * Calculate stock depletion risk for products.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $product_ids          Product IDs to check.
+	 * @param    array $campaign             Campaign data.
+	 * @return   array                          Stock risk data.
+	 */
+	private function calculate_stock_risk( $product_ids, $campaign ) {
+		if ( empty( $product_ids ) ) {
+			return array(
+				'has_risk'          => false,
+				'high_risk_count'   => 0,
+				'medium_risk_count' => 0,
+				'products'          => array(),
+			);
+		}
+
+		$discount_type  = isset( $campaign['discount_type'] ) ? $campaign['discount_type'] : 'percentage';
+		$discount_value = isset( $campaign['discount_value'] ) ? floatval( $campaign['discount_value'] ) : 0;
+		$campaign_days  = $this->get_campaign_duration_days( $campaign );
+		$discount_boost = $this->estimate_discount_boost( $discount_type, $discount_value );
+
+		$high_risk_count   = 0;
+		$medium_risk_count = 0;
+		$risk_products     = array();
+
+		// Only check first 100 products for performance
+		$check_products = array_slice( $product_ids, 0, 100 );
+
+		foreach ( $check_products as $product_id ) {
+			$product = wc_get_product( $product_id );
+
+			if ( ! $product || is_wp_error( $product ) || ! $product->managing_stock() ) {
+				continue;
+			}
+
+			$stock = $product->get_stock_quantity();
+
+			if ( null === $stock || $stock <= 0 ) {
+				continue; // Already out of stock or not managing stock
+			}
+
+			// Calculate estimated demand
+			$avg_daily_sales  = $this->get_average_daily_sales( $product_id, self::HISTORICAL_DAYS_LOOKBACK );
+			$estimated_demand = $avg_daily_sales * $campaign_days * $discount_boost;
+
+			// Skip if no sales history
+			if ( $estimated_demand < 1 ) {
+				continue;
+			}
+
+			// Determine risk level
+			$risk_level = null;
+
+			if ( $stock < $estimated_demand * self::STOCK_RISK_HIGH_MULTIPLIER ) {
+				$risk_level = 'high';
+				++$high_risk_count;
+			} elseif ( $stock < $estimated_demand * self::STOCK_RISK_MEDIUM_MULTIPLIER ) {
+				$risk_level = 'medium';
+				++$medium_risk_count;
+			}
+
+			if ( $risk_level ) {
+				$risk_products[] = array(
+					'product_id'       => $product_id,
+					'name'             => $product->get_name(),
+					'stock'            => $stock,
+					'estimated_demand' => round( $estimated_demand ),
+					'risk_level'       => $risk_level,
+				);
+			}
+		}
+
+		return array(
+			'has_risk'          => $high_risk_count > 0 || $medium_risk_count > 0,
+			'high_risk_count'   => $high_risk_count,
+			'medium_risk_count' => $medium_risk_count,
+			'products'          => $risk_products,
 		);
 	}
 

@@ -328,7 +328,7 @@ $total_campaigns = $metadata['total_campaigns'] ?? 0;
         <div class="summary-grid">
             <div class="summary-card summary-card--revenue">
                 <div class="summary-value">
-                    <?php echo esc_html(wc_price($summary['total_revenue'] ?? 0)); ?>
+                    <?php echo wp_kses_post( wc_price( $summary['total_revenue'] ?? 0 ) ); ?>
                 </div>
                 <div class="summary-label">Total Revenue</div>
             </div>
@@ -349,7 +349,7 @@ $total_campaigns = $metadata['total_campaigns'] ?? 0;
             
             <div class="summary-card summary-card--aov">
                 <div class="summary-value">
-                    <?php echo esc_html(wc_price($summary['average_aov'] ?? 0)); ?>
+                    <?php echo wp_kses_post( wc_price( $summary['average_aov'] ?? 0 ) ); ?>
                 </div>
                 <div class="summary-label">Average Order Value</div>
             </div>
@@ -405,7 +405,7 @@ $total_campaigns = $metadata['total_campaigns'] ?? 0;
                         ?>
                     </td>
                     <td class="currency">
-                        <?php echo esc_html(wc_price($campaign['revenue'])); ?>
+                        <?php echo wp_kses_post( wc_price( $campaign['revenue'] ) ); ?>
                     </td>
                     <td>
                         <?php echo esc_html(number_format($campaign['conversions'])); ?>
@@ -417,7 +417,7 @@ $total_campaigns = $metadata['total_campaigns'] ?? 0;
                         <?php echo esc_html(number_format($campaign['conversion_rate'], 2)); ?>%
                     </td>
                     <td class="currency">
-                        <?php echo esc_html(wc_price($campaign['average_order_value'])); ?>
+                        <?php echo wp_kses_post( wc_price( $campaign['average_order_value'] ) ); ?>
                     </td>
                     <td class="percentage <?php echo $campaign['roi'] >= 0 ? 'percentage--positive' : 'percentage--negative'; ?>">
                         <?php echo esc_html(number_format($campaign['roi'], 2)); ?>%

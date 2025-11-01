@@ -65,18 +65,33 @@ class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
-		// Get all session data
-		$session_data = $this->state_service->get_all_data();
+		// Get step data (properly merges changes with database in edit mode)
+		$steps = array(
+			'basic'     => $this->state_service->get_step_data( 'basic' ),
+			'products'  => $this->state_service->get_step_data( 'products' ),
+			'discounts' => $this->state_service->get_step_data( 'discounts' ),
+			'schedule'  => $this->state_service->get_step_data( 'schedule' ),
+			'review'    => $this->state_service->get_step_data( 'review' ),
+		);
 
-		if ( empty( $session_data['steps'] ) ) {
+		// Check if we have any data
+		$has_data = false;
+		foreach ( $steps as $step_data ) {
+			if ( ! empty( $step_data ) ) {
+				$has_data = true;
+				break;
+			}
+		}
+
+		if ( ! $has_data ) {
 			return $this->error(
 				__( 'No campaign data found', 'smart-cycle-discounts' ),
 				'no_campaign_data'
 			);
 		}
 
-		// Build summary from saved steps
-		$summary = $this->build_summary( $session_data['steps'] );
+		// Build summary from step data
+		$summary = $this->build_summary( $steps );
 
 		// Get progress
 		$progress = $this->state_service->get_progress();
@@ -108,7 +123,7 @@ class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
 				'campaign_name' => isset( $steps['basic']['campaign_name'] ) ? $steps['basic']['campaign_name'] : __( 'Untitled Campaign', 'smart-cycle-discounts' ),
 				'description'   => isset( $steps['basic']['description'] ) ? $steps['basic']['description'] : '',
 				'status'        => isset( $steps['basic']['status'] ) ? $steps['basic']['status'] : 'draft',
-				'priority'      => isset( $steps['basic']['priority'] ) ? $steps['basic']['priority'] : 10,
+				'priority'      => isset( $steps['basic']['priority'] ) ? $steps['basic']['priority'] : 3,
 			);
 		}
 
@@ -133,9 +148,22 @@ class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
 
 		// Discount information
 		if ( ! empty( $steps['discounts'] ) ) {
+			$discount_type = isset( $steps['discounts']['discount_type'] ) ? $steps['discounts']['discount_type'] : 'percentage';
+
+			// Get discount value based on type (wizard uses separate fields)
+			$discount_value = 0;
+			if ( 'percentage' === $discount_type && isset( $steps['discounts']['discount_value_percentage'] ) ) {
+				$discount_value = $steps['discounts']['discount_value_percentage'];
+			} elseif ( 'fixed' === $discount_type && isset( $steps['discounts']['discount_value_fixed'] ) ) {
+				$discount_value = $steps['discounts']['discount_value_fixed'];
+			} elseif ( isset( $steps['discounts']['discount_value'] ) ) {
+				// Fallback to combined field if present
+				$discount_value = $steps['discounts']['discount_value'];
+			}
+
 			$summary['discounts'] = array(
-				'discount_type'  => isset( $steps['discounts']['discount_type'] ) ? $steps['discounts']['discount_type'] : 'percentage',
-				'discount_value' => isset( $steps['discounts']['discount_value'] ) ? $steps['discounts']['discount_value'] : 0,
+				'discount_type'  => $discount_type,
+				'discount_value' => $discount_value,
 				'enable_tiered'  => ! empty( $steps['discounts']['enable_tiered'] ),
 				'tiers'          => isset( $steps['discounts']['tiers'] ) ? $steps['discounts']['tiers'] : array(),
 				'badge_enabled'  => ! empty( $steps['discounts']['badge_enabled'] ),

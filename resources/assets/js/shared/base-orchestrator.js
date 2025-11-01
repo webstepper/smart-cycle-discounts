@@ -407,30 +407,6 @@
 		},
 
 		/**
-		 * Get or create module
-		 *
-		 * @param {string} name Module name
-		 * @param {Function} factory Module factory function
-		 * @returns {object} Module instance
-		 */
-		getModule: function( name, factory ) {
-			if ( !this.modules[name] && factory ) {
-				this.modules[name] = factory();
-			}
-			return this.modules[name];
-		},
-
-		/**
-		 * Register module
-		 *
-		 * @param {string} name Module name
-		 * @param {object} module Module instance
-		 */
-		registerModule: function( name, module ) {
-			this.modules[name] = module;
-		},
-
-		/**
 		 * Debounce utility
 		 *
 		 * @param {string} key Timer key
@@ -533,72 +509,6 @@
 			console.error( '[' + context + ']', error );
 		}
 	},
-
-	/**
-	 * Safe wrapper for ValidationError.show
-	 * Eliminates defensive checks when showing validation errors
-	 *
-	 * @param {jQuery} $field Field element
-	 * @param {string} message Error message
-	 */
-	safeValidationError: function( $field, message ) {
-		if ( window.SCD && window.SCD.ValidationError ) {
-			SCD.ValidationError.show( $field, message );
-		}
-	},
-
-	/**
-	 * Safe wrapper for ValidationError.clear
-	 * Eliminates defensive checks when clearing validation errors
-	 *
-	 * @param {jQuery} $field Field element
-	 */
-	safeValidationClear: function( $field ) {
-		if ( window.SCD && window.SCD.ValidationError ) {
-			SCD.ValidationError.clear( $field );
-		}
-	},
-
-	/**
-	 * Safe wrapper for ValidationError.clearAll
-	 *
-	 * @param {jQuery} $container Container element
-	 */
-	safeValidationClearAll: function( $container ) {
-		if ( window.SCD && window.SCD.ValidationError ) {
-			SCD.ValidationError.clearAll( $container || this.$container );
-		}
-	},
-
-	/**
-	 * Safe wrapper for ValidationError.showMultiple
-	 *
-	 * @param {object} errors Error object with field names as keys
-	 * @param {jQuery} $container Container element
-	 * @param {object} options Display options
-	 */
-	safeValidationShowMultiple: function( errors, $container, options ) {
-		if ( window.SCD && window.SCD.ValidationError && Object.keys( errors ).length > 0 ) {
-			SCD.ValidationError.showMultiple( errors, $container || this.$container, options );
-		}
-	},
-
-	/**
-	 * Enable/disable step
-	 *
-	 * @param {boolean} enabled Enable state
-	 */
-		setEnabled: function( enabled ) {
-			var $step = $( '#scd-step-' + this.stepName );
-
-			if ( enabled ) {
-				$step.find( 'input, select, textarea, button' ).prop( 'disabled', false );
-				$step.removeClass( 'disabled' );
-			} else {
-				$step.find( 'input, select, textarea, button' ).prop( 'disabled', true );
-				$step.addClass( 'disabled' );
-			}
-		},
 
 		/**
 		 * Show/hide loading state

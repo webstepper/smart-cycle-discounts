@@ -210,38 +210,6 @@
 		},
 
 		/**
-		 * Parse query string
-		 *
-		 * @param {string} queryString Query string to parse
-		 * @returns {object} Parsed parameters
-		 */
-		parseQueryString: function( queryString ) {
-			var params = {};
-			var queries = ( queryString || window.location.search.substring( 1 ) ).split( '&' );
-
-			for ( var i = 0; i < queries.length; i++ ) {
-				var pair = queries[i].split( '=' );
-				if ( pair[0] ) {
-					params[decodeURIComponent( pair[0] )] = decodeURIComponent( pair[1] || '' );
-				}
-			}
-
-			return params;
-		},
-
-		/**
-		 * Build query string from object
-		 *
-		 * @param {object} params Parameters object
-		 * @returns {string} Query string
-		 */
-		buildQueryString: function( params ) {
-			return Object.keys( params )
-				.map( function( key ) { return encodeURIComponent( key ) + '=' + encodeURIComponent( params[key] ); } )
-				.join( '&' );
-		},
-
-		/**
 		 * Check if value is empty ( null, undefined, empty string, empty array )
 		 *
 		 * @param {*} value Value to check
@@ -540,77 +508,6 @@
 			},
 
 			/**
-			 * Check if date is in the past
-			 *
-			 * @param {Date|string} date Date to check
-			 * @param {boolean} includeToday Include today as past
-			 * @returns {boolean} True if past
-			 */
-			isPast: function( date, includeToday ) {
-				includeToday = 'undefined' === typeof includeToday ? false : includeToday;
-				var dateObj = date instanceof Date ? date : new Date( date );
-				var today = new Date();
-				today.setHours( 0, 0, 0, 0 );
-				dateObj.setHours( 0, 0, 0, 0 );
-
-				return includeToday ? dateObj <= today : dateObj < today;
-			},
-
-			/**
-			 * Check if date is in the future
-			 *
-			 * @param {Date|string} date Date to check
-			 * @param {boolean} includeToday Include today as future
-			 * @returns {boolean} True if future
-			 */
-			isFuture: function( date, includeToday ) {
-				includeToday = 'undefined' === typeof includeToday ? false : includeToday;
-				var dateObj = date instanceof Date ? date : new Date( date );
-				var today = new Date();
-				today.setHours( 0, 0, 0, 0 );
-				dateObj.setHours( 0, 0, 0, 0 );
-
-				return includeToday ? dateObj >= today : dateObj > today;
-			},
-
-			/**
-			 * Check if date is today
-			 *
-			 * @param {Date|string} date Date to check
-			 * @returns {boolean} True if today
-			 */
-			isToday: function( date ) {
-				var dateObj = date instanceof Date ? date : new Date( date );
-				var today = new Date();
-
-				return dateObj.toDateString() === today.toDateString();
-			},
-
-			/**
-			 * Get start of day
-			 *
-			 * @param {Date|string} date Date
-			 * @returns {Date} Start of day
-			 */
-			startOfDay: function( date ) {
-				var dateObj = date instanceof Date ? new Date( date ) : new Date( date );
-				dateObj.setHours( 0, 0, 0, 0 );
-				return dateObj;
-			},
-
-			/**
-			 * Get end of day
-			 *
-			 * @param {Date|string} date Date
-			 * @returns {Date} End of day
-			 */
-			endOfDay: function( date ) {
-				var dateObj = date instanceof Date ? new Date( date ) : new Date( date );
-				dateObj.setHours( 23, 59, 59, 999 );
-				return dateObj;
-			},
-
-			/**
 			 * Format duration in human-readable format
 			 *
 			 * @param {number} milliseconds Duration in milliseconds
@@ -661,58 +558,6 @@
 		 * DOM Utilities Sub-object
 		 */
 		DOM: {
-			/**
-			 * Add class to element
-			 *
-			 * @param {HTMLElement|jQuery} element Element
-			 * @param {string} className Class name
-			 */
-			addClass: function( element, className ) {
-				var $el = $( element );
-				if ( $el.length ) {
-					$el.addClass( className );
-				}
-			},
-
-			/**
-			 * Remove class from element
-			 *
-			 * @param {HTMLElement|jQuery} element Element
-			 * @param {string} className Class name
-			 */
-			removeClass: function( element, className ) {
-				var $el = $( element );
-				if ( $el.length ) {
-					$el.removeClass( className );
-				}
-			},
-
-			/**
-			 * Toggle class on element
-			 *
-			 * @param {HTMLElement|jQuery} element Element
-			 * @param {string} className Class name
-			 * @param {boolean} force Force add/remove
-			 */
-			toggleClass: function( element, className, force ) {
-				var $el = $( element );
-				if ( $el.length ) {
-					$el.toggleClass( className, force );
-				}
-			},
-
-			/**
-			 * Check if element has class
-			 *
-			 * @param {HTMLElement|jQuery} element Element
-			 * @param {string} className Class name
-			 * @returns {boolean} Has class
-			 */
-			hasClass: function( element, className ) {
-				var $el = $( element );
-				return $el.length ? $el.hasClass( className ) : false;
-			},
-
 			/**
 			 * Set field state ( error, success, etc. )
 			 *
@@ -820,35 +665,6 @@
 				return formData;
 			},
 
-			/**
-			 * Set form data from object
-			 *
-			 * @param {HTMLElement|jQuery} form Form element
-			 * @param {object} data Data object
-			 */
-			setFormData: function( form, data ) {
-				var $form = $( form );
-				if ( !$form.length || !data ) {return;}
-
-				Object.keys( data ).forEach( function( key ) {
-					var value = data[key];
-					var $field = $form.find( '[name="' + key + '"]' );
-
-					if ( $field.length ) {
-						if ( $field.is( ':checkbox' ) || $field.is( ':radio' ) ) {
-							if ( Array.isArray( value ) ) {
-								value.forEach( function( val ) {
-									$field.filter( '[value="' + val + '"]' ).prop( 'checked', true );
-								}.bind( this ) );
-							} else {
-								$field.filter( '[value="' + value + '"]' ).prop( 'checked', true );
-							}
-						} else {
-							$field.val( value );
-						}
-					}
-				} );
-			}
 		},
 
 		/**
@@ -976,8 +792,6 @@
 		throttle: SCD.Shared.Utils.throttle,
 		deepClone: SCD.Shared.Utils.deepClone,
 		uniqueId: SCD.Shared.Utils.uniqueId,
-		parseQueryString: SCD.Shared.Utils.parseQueryString,
-		buildQueryString: SCD.Shared.Utils.buildQueryString,
 		safeJsonParse: SCD.Shared.Utils.safeJsonParse,
 		waitForElement: SCD.Shared.Utils.waitForElement,
 		Cache: SCD.Shared.Utils.Cache,

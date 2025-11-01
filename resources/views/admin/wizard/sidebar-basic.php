@@ -85,7 +85,7 @@ class SCD_Wizard_Sidebar_Basic extends SCD_Wizard_Sidebar_Base {
 		?>
 		<ul class="scd-sidebar-list">
 			<li><?php esc_html_e( 'Enter a descriptive campaign name for internal reference', 'smart-cycle-discounts' ); ?></li>
-			<li><?php esc_html_e( 'Set priority (1-10) to control which campaign applies first', 'smart-cycle-discounts' ); ?></li>
+			<li><?php esc_html_e( 'Set priority (1-5, where 5 is highest) to control which campaign applies first', 'smart-cycle-discounts' ); ?></li>
 			<li><?php esc_html_e( 'Add an optional description to remember campaign details', 'smart-cycle-discounts' ); ?></li>
 		</ul>
 		<?php
@@ -107,33 +107,39 @@ class SCD_Wizard_Sidebar_Basic extends SCD_Wizard_Sidebar_Base {
 
 				<div class="scd-priority-levels">
 					<div class="scd-priority-level scd-priority-high">
-						<div class="scd-priority-range">10</div>
+						<div class="scd-priority-range">5</div>
 						<div class="scd-priority-label"><?php esc_html_e( 'Critical', 'smart-cycle-discounts' ); ?></div>
-						<div class="scd-priority-use"><?php esc_html_e( 'VIP sales, urgent promotions', 'smart-cycle-discounts' ); ?></div>
+						<div class="scd-priority-use"><?php esc_html_e( 'VIP sales, exclusive offers (always wins)', 'smart-cycle-discounts' ); ?></div>
 					</div>
 
 					<div class="scd-priority-level scd-priority-medium-high">
-						<div class="scd-priority-range">7-9</div>
+						<div class="scd-priority-range">4</div>
 						<div class="scd-priority-label"><?php esc_html_e( 'High', 'smart-cycle-discounts' ); ?></div>
-						<div class="scd-priority-use"><?php esc_html_e( 'Flash sales, time-sensitive', 'smart-cycle-discounts' ); ?></div>
+						<div class="scd-priority-use"><?php esc_html_e( 'Flash sales, time-sensitive promotions', 'smart-cycle-discounts' ); ?></div>
 					</div>
 
 					<div class="scd-priority-level scd-priority-medium">
-						<div class="scd-priority-range">4-6</div>
-						<div class="scd-priority-label"><?php esc_html_e( 'Medium', 'smart-cycle-discounts' ); ?></div>
-						<div class="scd-priority-use"><?php esc_html_e( 'Regular campaigns, defaults', 'smart-cycle-discounts' ); ?></div>
+						<div class="scd-priority-range">3</div>
+						<div class="scd-priority-label"><?php esc_html_e( 'Normal', 'smart-cycle-discounts' ); ?></div>
+						<div class="scd-priority-use"><?php esc_html_e( 'Regular campaigns (default)', 'smart-cycle-discounts' ); ?></div>
 					</div>
 
 					<div class="scd-priority-level scd-priority-low">
-						<div class="scd-priority-range">1-3</div>
+						<div class="scd-priority-range">2</div>
 						<div class="scd-priority-label"><?php esc_html_e( 'Low', 'smart-cycle-discounts' ); ?></div>
-						<div class="scd-priority-use"><?php esc_html_e( 'Background, fallback discounts', 'smart-cycle-discounts' ); ?></div>
+						<div class="scd-priority-use"><?php esc_html_e( 'Category sales, ongoing discounts', 'smart-cycle-discounts' ); ?></div>
+					</div>
+
+					<div class="scd-priority-level scd-priority-low">
+						<div class="scd-priority-range">1</div>
+						<div class="scd-priority-label"><?php esc_html_e( 'Fallback', 'smart-cycle-discounts' ); ?></div>
+						<div class="scd-priority-use"><?php esc_html_e( 'Always-on background discounts (lowest)', 'smart-cycle-discounts' ); ?></div>
 					</div>
 				</div>
 
 				<p class="scd-priority-tip">
 					<span class="dashicons dashicons-lightbulb"></span>
-					<?php esc_html_e( 'Tip: Use priority 8+ for time-sensitive campaigns that should override regular discounts', 'smart-cycle-discounts' ); ?>
+					<?php esc_html_e( 'Tip: Use priority 5 for critical campaigns that must always override others', 'smart-cycle-discounts' ); ?>
 				</p>
 			</div>
 		</div>
@@ -150,7 +156,7 @@ class SCD_Wizard_Sidebar_Basic extends SCD_Wizard_Sidebar_Base {
 		?>
 		<ul class="scd-sidebar-tips">
 			<li><?php esc_html_e( 'Use clear, descriptive names to easily identify campaigns later', 'smart-cycle-discounts' ); ?></li>
-			<li><?php esc_html_e( 'Lower numbers mean higher priority when multiple campaigns overlap', 'smart-cycle-discounts' ); ?></li>
+			<li><?php esc_html_e( 'Higher numbers mean higher priority when multiple campaigns overlap', 'smart-cycle-discounts' ); ?></li>
 		</ul>
 		<?php
 		$this->render_section(

@@ -232,9 +232,9 @@ class SCD_Get_Active_Campaigns_Handler extends SCD_Abstract_Ajax_Handler {
 		$product_type = isset( $campaign['product_selection_type'] ) ? sanitize_text_field( $campaign['product_selection_type'] ) : '';
 
 		// High priority campaigns are more likely to conflict
-		if ( $priority >= 8 ) {
+		if ( $priority >= 5 ) {
 			$risk_factors += 2;
-		} elseif ( $priority >= 6 ) {
+		} elseif ( $priority >= 4 ) {
 			$risk_factors += 1;
 		}
 

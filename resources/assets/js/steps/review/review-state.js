@@ -15,7 +15,7 @@
 	SCD.Utils.registerModule( 'SCD.Modules.Review', 'State', function() {
 		// Define initial state
 		var initialState = {
-			launchOption: 'draft', // 'active' or 'draft'
+			launchOption: 'active', // 'active' or 'draft'
 			wizardData: null,
 			summaryData: {
 				basic: {},

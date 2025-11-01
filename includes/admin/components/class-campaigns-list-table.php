@@ -145,7 +145,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 
 			if ( $this->capability_manager->current_user_can( 'scd_delete_campaigns' ) ) {
 				$actions['delete_permanently'] = __( 'Delete Permanently', 'smart-cycle-discounts' );
-				$actions['empty_trash']        = __( 'Empty Trash', 'smart-cycle-discounts' );
 			}
 		} else {
 			// Normal view actions
@@ -585,14 +584,18 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 		$discount_type  = $campaign->get_discount_type();
 		$discount_value = $campaign->get_discount_value();
 
+		// Flag to track if discount_display contains HTML (from wc_price)
+		$discount_has_html = false;
+
 		switch ( $discount_type ) {
 			case 'percentage':
 				$discount_display = sprintf( '%s%%', number_format( $discount_value, 1 ) );
 				$discount_label   = __( 'Percentage', 'smart-cycle-discounts' );
 				break;
 			case 'fixed':
-				$discount_display = wc_price( $discount_value );
-				$discount_label   = __( 'Fixed Amount', 'smart-cycle-discounts' );
+				$discount_display  = wc_price( $discount_value );
+				$discount_has_html = true; // wc_price returns HTML
+				$discount_label    = __( 'Fixed Amount', 'smart-cycle-discounts' );
 				break;
 			case 'tiered':
 				$discount_rules = $campaign->get_discount_rules();
@@ -646,7 +649,15 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 				$discount_label   = '';
 		}
 
-		$output = sprintf( '<strong>%s</strong>', esc_html( $discount_display ) );
+		// Use appropriate escaping based on content type
+		if ( $discount_has_html ) {
+			// wc_price() returns safe HTML - use wp_kses_post()
+			$output = sprintf( '<strong>%s</strong>', wp_kses_post( $discount_display ) );
+		} else {
+			// Plain text - use esc_html()
+			$output = sprintf( '<strong>%s</strong>', esc_html( $discount_display ) );
+		}
+
 		if ( $discount_label ) {
 			$output .= sprintf( '<br><small>%s</small>', esc_html( $discount_label ) );
 		}
@@ -1232,27 +1243,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 							}
 						}
 						break;
-					case 'empty_trash':
-						// Empty trash - special handling (deletes ALL trashed campaigns)
-						if ( $this->capability_manager->current_user_can( 'scd_delete_campaigns' ) ) {
-							$repository        = $this->campaign_manager->get_repository();
-							$trashed_campaigns = $repository->find_trashed( array() );
-
-							foreach ( $trashed_campaigns as $trashed_campaign ) {
-								$trashed_id = $trashed_campaign->get_id();
-								$result     = $repository->force_delete( $trashed_id );
-
-								if ( $result ) {
-									++$processed;
-								} else {
-									$errors[] = sprintf(
-										__( 'Campaign ID %d: Failed to delete permanently', 'smart-cycle-discounts' ),
-										$trashed_id
-									);
-								}
-							}
-						}
-						break;
 					case 'stop_recurring':
 						if ( $this->capability_manager->current_user_can( 'scd_edit_campaigns' ) ) {
 							// Stop recurring for this campaign
@@ -1374,16 +1364,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 					),
 					$processed
 				);
-			case 'empty_trash':
-				return sprintf(
-					_n(
-						'Trash emptied: %d campaign permanently deleted.',
-						'Trash emptied: %d campaigns permanently deleted.',
-						$processed,
-						'smart-cycle-discounts'
-					),
-					$processed
-				);
 			case 'stop_recurring':
 				return sprintf(
 					_n(
@@ -1438,10 +1418,32 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			return;
 		}
 
+		// Check if viewing trash
+		$viewing_trash = isset( $_REQUEST['status'] ) && 'trash' === $_REQUEST['status'];
+
 		?>
 		<div class="alignleft actions">
 			<?php $this->status_filter_dropdown(); ?>
 			<?php submit_button( __( 'Filter', 'smart-cycle-discounts' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) ); ?>
+
+			<?php if ( $viewing_trash && $this->capability_manager->current_user_can( 'scd_delete_campaigns' ) ) : ?>
+				<?php
+				// Get trash count
+				$repository = $this->campaign_manager->get_repository();
+				if ( $repository ) {
+					$trash_count = $repository->count_trashed();
+					if ( $trash_count > 0 ) :
+						?>
+						<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=scd-campaigns&action=empty_trash' ), 'scd_empty_trash' ) ); ?>"
+							class="button"
+							onclick="return confirm('<?php echo esc_js( __( 'Are you sure you want to permanently delete all campaigns in the trash? This action cannot be undone.', 'smart-cycle-discounts' ) ); ?>');">
+							<?php echo esc_html__( 'Empty Trash', 'smart-cycle-discounts' ); ?>
+						</a>
+						<?php
+					endif;
+				}
+				?>
+			<?php endif; ?>
 		</div>
 		<?php
 	}
@@ -1600,7 +1602,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 								<label>
 									<span class="title"><?php echo esc_html__( 'Priority', 'smart-cycle-discounts' ); ?></span>
 									<span class="input-text-wrap">
-										<input type="number" name="priority" value="" min="1" max="100" />
+										<input type="number" name="priority" value="" min="1" max="5" />
 									</span>
 								</label>
 							</div>

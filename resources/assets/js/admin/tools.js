@@ -5,7 +5,7 @@
  * - Import/Export
  * - Database Maintenance
  * - Cache Management
- * - Debug Logs
+ * - Log Viewer
  * - System Diagnostics
  *
  * @package SmartCycleDiscounts
@@ -30,11 +30,6 @@
 
 		// Cache management handlers
 		$( '.scd-rebuild-cache-btn' ).on( 'click', handleRebuildCache );
-
-		// License debug handlers
-		$( '.scd-view-license-debug-btn' ).on( 'click', handleViewLicenseDebug );
-		$( '.scd-clear-license-cache-btn' ).on( 'click', handleClearLicenseCache );
-		$( '.scd-copy-debug-info-btn' ).on( 'click', handleCopyDebugInfo );
 
 		// Debug logs handlers
 		$( '.scd-view-logs-btn' ).on( 'click', handleViewLogs );
@@ -307,143 +302,6 @@
 				$button.html( originalText );
 			}
 		} );
-	}
-
-	/**
-	 * Handle view license debug info button click
-	 */
-	function handleViewLicenseDebug( e ) {
-		e.preventDefault();
-		var $button = $( this );
-
-		// Show loading state
-		$button.prop( 'disabled', true );
-		var originalText = $button.html();
-		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Loading...' );
-
-		// Make AJAX request
-		$.ajax( {
-			url: ajaxurl,
-			type: 'POST',
-			data: {
-				action: 'scd_license_debug',
-				nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || ''
-			},
-			success: function( response ) {
-				if ( response.success && response.data ) {
-					// Format debug info as readable JSON
-					var debugInfo = JSON.stringify( response.data.debug_info, null, 2 );
-
-					// Show debug info in textarea
-					var $output = $( '#scd-license-debug-output' );
-					$output.find( 'textarea' ).val( debugInfo );
-					$output.slideDown();
-
-					// Show copy button
-					$( '.scd-copy-debug-info-btn' ).fadeIn();
-
-					// Show helpful message based on status
-					var isPremium = response.data.debug_info.feature_gate && response.data.debug_info.feature_gate.is_premium;
-					var freemiusIsPremium = response.data.debug_info.freemius_status && response.data.debug_info.freemius_status.is_premium;
-
-					if ( freemiusIsPremium && ! isPremium ) {
-						showNotification( 'Freemius shows premium status but Feature Gate does not. Try clearing the license cache.', 'warning' );
-					} else if ( isPremium ) {
-						showNotification( 'License is active. PRO features should be available.', 'success' );
-					} else {
-						showNotification( 'Free license detected. Upgrade to access PRO features.', 'info' );
-					}
-				} else {
-					showNotification( response.data ? response.data.message : 'Failed to load license debug info', 'error' );
-				}
-			},
-			error: function() {
-				showNotification( 'Error loading license debug info. Please try again.', 'error' );
-			},
-			complete: function() {
-				$button.prop( 'disabled', false );
-				$button.html( originalText );
-			}
-		} );
-	}
-
-	/**
-	 * Handle clear license cache button click
-	 */
-	function handleClearLicenseCache( e ) {
-		e.preventDefault();
-		var $button = $( this );
-
-		// Show loading state
-		$button.prop( 'disabled', true );
-		var originalText = $button.html();
-		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Clearing...' );
-
-		// Make AJAX request
-		$.ajax( {
-			url: ajaxurl,
-			type: 'POST',
-			data: {
-				action: 'scd_clear_license_cache',
-				nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || ''
-			},
-			success: function( response ) {
-				if ( response.success ) {
-					showNotification( response.data.message || 'License cache cleared successfully', 'success' );
-
-					// Show results if available
-					if ( response.data.results ) {
-						var isPremium = response.data.results.feature_gate_status_after_clear && response.data.results.feature_gate_status_after_clear.is_premium;
-
-						if ( isPremium ) {
-							showNotification( 'PRO features are now available! Please refresh the page.', 'success' );
-							// Auto-refresh after 2 seconds
-							setTimeout( function() {
-								location.reload();
-							}, 2000 );
-						} else {
-							showNotification( 'Cache cleared but still showing free license. Check debug info or contact support.', 'warning' );
-						}
-					}
-				} else {
-					showNotification( response.data ? response.data.message : 'Failed to clear license cache', 'error' );
-				}
-			},
-			error: function() {
-				showNotification( 'Error clearing license cache. Please try again.', 'error' );
-			},
-			complete: function() {
-				$button.prop( 'disabled', false );
-				$button.html( originalText );
-			}
-		} );
-	}
-
-	/**
-	 * Handle copy debug info to clipboard button click
-	 */
-	function handleCopyDebugInfo( e ) {
-		e.preventDefault();
-		var $textarea = $( '#scd-license-debug-output textarea' );
-
-		// Check if debug info is loaded
-		if ( ! $textarea.val() ) {
-			showNotification( 'No debug info to copy. Please view license debug info first.', 'error' );
-			return;
-		}
-
-		// Select and copy
-		$textarea.select();
-		document.execCommand( 'copy' );
-
-		// Show feedback
-		var $button = $( this );
-		var originalText = $button.html();
-		$button.html( '<span class="dashicons dashicons-yes"></span> Copied!' );
-
-		setTimeout( function() {
-			$button.html( originalText );
-		}, 2000 );
 	}
 
 	/**

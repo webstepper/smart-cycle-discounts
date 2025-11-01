@@ -153,7 +153,7 @@ class SCD_Quick_Edit_Handler extends SCD_Abstract_Ajax_Handler {
 		// Priority
 		if ( isset( $request['priority'] ) ) {
 			$priority = $this->sanitize_int( $request['priority'] );
-			if ( $priority >= 1 && $priority <= 100 ) {
+			if ( $priority >= 1 && $priority <= 5 ) {
 				$update_data['priority'] = $priority;
 			}
 		}

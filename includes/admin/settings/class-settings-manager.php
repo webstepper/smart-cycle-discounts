@@ -143,64 +143,7 @@ class SCD_Settings_Manager {
 	 * @return   void
 	 */
 	private function add_hooks(): void {
-		add_action( 'admin_init', array( $this, 'maybe_migrate_settings' ), 5 ); // Run migration before settings registration
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
-	}
-
-	/**
-	 * Maybe migrate old settings to new format.
-	 *
-	 * Runs automatically on admin_init with priority 5 (before settings registration).
-	 * Only runs once per version using migration flag.
-	 *
-	 * @since    1.0.0
-	 * @return   void
-	 */
-	public function maybe_migrate_settings(): void {
-		// Load migrator class
-		require_once __DIR__ . '/class-settings-migrator.php';
-
-		$migrator = new SCD_Settings_Migrator( $this->logger );
-
-		// Check if migration is needed
-		if ( ! $migrator->needs_migration() ) {
-			return;
-		}
-
-		// Backup old settings first
-		$migrator->backup_old_settings();
-
-		// Run migration
-		$success = $migrator->migrate();
-
-		if ( $success ) {
-			// Show admin notice
-			add_action(
-				'admin_notices',
-				function () {
-					echo '<div class="notice notice-success is-dismissible">';
-					echo '<p><strong>' . esc_html__( 'Smart Cycle Discounts:', 'smart-cycle-discounts' ) . '</strong> ';
-					echo esc_html__( 'Settings have been successfully migrated to the new format.', 'smart-cycle-discounts' );
-					echo '</p>';
-					echo '</div>';
-				}
-			);
-
-			// Note: We don't cleanup old settings immediately to allow rollback if needed
-			// Cleanup can be done manually or after verification period
-		} else {
-			// Migration failed - show error
-			add_action(
-				'admin_notices',
-				function () {
-					echo '<div class="notice notice-error">';
-					echo '<p><strong>' . esc_html__( 'Smart Cycle Discounts:', 'smart-cycle-discounts' ) . '</strong> ';
-					echo esc_html__( 'Settings migration failed. Please check error logs for details.', 'smart-cycle-discounts' );
-					echo '</p>';
-					echo '</div>';
-				}
-			);
-		}
 	}
 
 	/**

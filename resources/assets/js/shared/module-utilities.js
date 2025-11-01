@@ -107,29 +107,6 @@
 	};
 
 	/**
-	 * Extend object utility
-	 *
-	 * Copies properties from source to target object
-	 *
-	 * @param {object} target - Target object
-	 * @param {object} source - Source object
-	 * @returns {object} Extended target object
-	 */
-	SCD.Utils.extend = function( target, source ) {
-		if ( !target || !source ) {
-			return target;
-		}
-
-		for ( var key in source ) {
-			if ( Object.prototype.hasOwnProperty.call( source, key ) ) {
-				target[key] = source[key];
-			}
-		}
-
-		return target;
-	};
-
-	/**
 	 * Safe property getter
 	 *
 	 * Safely gets nested object properties without throwing errors
@@ -163,7 +140,11 @@
 	/**
 	 * Extend objects (WordPress-compatible alternative to $.extend)
 	 *
+	 * Supports both 2-argument form: extend(target, source)
+	 * and variadic form: extend(target, source1, source2, ...)
+	 *
 	 * @param {object} target - Target object
+	 * @param {...object} sources - Source object(s) to merge
 	 * @returns {object} Extended object
 	 */
 	SCD.Utils.extend = function( target ) {

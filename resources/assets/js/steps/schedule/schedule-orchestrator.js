@@ -81,87 +81,111 @@
 			} );
 
 			// Date and time changes
-			this.$container.on( 'change', '#start_date, #end_date', function() {
-				var field = $( this ).attr( 'id' ).replace( '_date', '' );
+		// Real-time date validation using centralized validation methods
+		// Provides immediate feedback when user changes date fields
+		this.$container.on( 'change', '#start_date, #end_date', function() {
+			var field = $( this ).attr( 'id' ).replace( '_date', '' );
+			var $input = $( this );
+			var selectedDate = $input.val();
 
-				// Auto-select "Scheduled Start" when user interacts with start date
+			// Auto-select "Scheduled Start" when user interacts with start date
+			if ( 'start' === field ) {
+				var $scheduledRadio = $( 'input[name="start_type"][value="scheduled"]' );
+				if ( ! $scheduledRadio.is( ':checked' ) ) {
+					$scheduledRadio.prop( 'checked', true ).trigger( 'change' );
+				}
+			}
+
+			// Clear stale duration_seconds when user manually changes dates
+			if ( 'end' === field ) {
+				var $durationField = $( 'input[name="duration_seconds"]' );
+				if ( $durationField.length ) {
+					$durationField.remove();
+				}
+			}
+
+			// Real-time validation using centralized methods
+			if ( selectedDate ) {
+				var state = self.modules.state.getState();
+				var validation;
+
+				// Use centralized validation methods (single source of truth)
 				if ( 'start' === field ) {
-					var $scheduledRadio = $( 'input[name="start_type"][value="scheduled"]' );
-					if ( !$scheduledRadio.is( ':checked' ) ) {
-						$scheduledRadio.prop( 'checked', true ).trigger( 'change' );
-					}
+					validation = self._validateStartTime( selectedDate, state.startTime || '00:00' );
+				} else {
+					validation = self._validateEndTime( selectedDate, state.endTime || '23:59', state.startDate, state.startTime );
 				}
 
-				// FIX: Clear stale duration_seconds when user manually changes dates
-				// This ensures user's explicit end_date selection is respected
-				if ( 'end' === field ) {
-					var $durationField = $( 'input[name="duration_seconds"]' );
-					if ( $durationField.length ) {
-						$durationField.remove();
+				// Show validation errors with consistent messages (date-level only)
+				if ( ! validation.valid && validation.field === field + '_date' ) {
+					if ( window.SCD && window.SCD.ValidationError ) {
+						SCD.ValidationError.show( $input, validation.message );
 					}
-				}
-
-				self.handleDateChange( field, $( this ).val() );
-				self.updateDurationDisplay();
-			} );
-
-			// Time input change handler with validation
-			var validateAndHandleTimeChange = function( $input, field ) {
-				var selectedTime = $input.val();
-				var minTime = $input.attr( 'min' );
-
-				// Skip validation if time is empty
-				if ( !selectedTime ) {
+				} else {
+					// Valid date - clear any errors
 					if ( window.SCD && window.SCD.ValidationError ) {
 						SCD.ValidationError.clear( $input );
 					}
-					self.handleTimeChange( field, selectedTime );
-					self.updateDurationDisplay();
-					return;
 				}
+			}
 
-				// Clear stale duration_seconds when user manually changes end time
-				if ( 'end' === field ) {
-					var $durationField = $( 'input[name="duration_seconds"]' );
-					if ( $durationField.length ) {
-						$durationField.remove();
-					}
+			self.handleDateChange( field, selectedDate );
+			self.updateDurationDisplay();
+		} );
+
+
+
+		// Real-time time validation using centralized validation methods
+		// Provides immediate feedback when user changes time fields
+		this.$container.on( 'change', '#start_time, #end_time', function() {
+			var field = $( this ).attr( 'id' ).replace( '_time', '' );
+			var $input = $( this );
+			var selectedTime = $input.val();
+
+			// Skip validation if time is empty
+			if ( ! selectedTime ) {
+				if ( window.SCD && window.SCD.ValidationError ) {
+					SCD.ValidationError.clear( $input );
 				}
+				self.handleTimeChange( field, selectedTime );
+				self.updateDurationDisplay();
+				return;
+			}
 
-				// Validate time constraints - show error but don't auto-correct
-				if ( minTime && selectedTime < minTime ) {
-					var errorMessage = '';
-					if ( 'start' === field ) {
-						errorMessage = 'Start time cannot be in the past. Please select ' + minTime + ' or later.';
-					} else {
-						errorMessage = 'End time must be after start time (' + minTime + ' or later).';
-					}
-
-					if ( window.SCD && window.SCD.ValidationError ) {
-						SCD.ValidationError.show( $input, errorMessage );
-					}
-
-					self.handleTimeChange( field, selectedTime );
-					self.updateDurationDisplay();
-					return;
+			// Clear stale duration_seconds when user manually changes end time
+			if ( 'end' === field ) {
+				var $durationField = $( 'input[name="duration_seconds"]' );
+				if ( $durationField.length ) {
+					$durationField.remove();
 				}
+			}
 
+			// Get current state for validation context
+			var state = self.modules.state.getState();
+			var validation;
+
+			// Use centralized validation methods (single source of truth)
+			if ( 'start' === field ) {
+				validation = self._validateStartTime( state.startDate, selectedTime );
+			} else {
+				validation = self._validateEndTime( state.endDate, selectedTime, state.startDate, state.startTime );
+			}
+
+			// Show validation errors with consistent messages
+			if ( ! validation.valid ) {
+				if ( window.SCD && window.SCD.ValidationError ) {
+					SCD.ValidationError.show( $input, validation.message );
+				}
+			} else {
 				// Valid time - clear any errors
 				if ( window.SCD && window.SCD.ValidationError ) {
 					SCD.ValidationError.clear( $input );
 				}
+			}
 
-				self.handleTimeChange( field, selectedTime );
-				self.updateDurationDisplay();
-			};
-
-			// Only use 'change' event - fires when user commits a valid time (not while typing)
-			// This prevents validation from interfering with manual typing
-			this.$container.on( 'change', '#start_time, #end_time', function() {
-				var field = $( this ).attr( 'id' ).replace( '_time', '' );
-				var $input = $( this );
-				validateAndHandleTimeChange( $input, field );
-			} );
+			self.handleTimeChange( field, selectedTime );
+			self.updateDurationDisplay();
+		} );
 
 			// Start type changes
 			this.$container.on( 'change', 'input[name="start_type"]', function() {
@@ -1086,6 +1110,159 @@
 
 			return labels;
 		},
+
+
+	/* ===== CENTRALIZED VALIDATION METHODS ===== */
+
+	/**
+	 * Validate start date/time against current time
+	 * Single source of truth - used by both real-time handlers and validateStep()
+	 * @private
+	 * @param {string} startDate - Date in ISO format (YYYY-MM-DD)
+	 * @param {string} startTime - Time in HH:MM format
+	 * @return {object} Validation result {valid: boolean, field: string, message: string}
+	 */
+	_validateStartTime: function( startDate, startTime ) {
+		if ( ! startDate || ! startTime ) {
+			return { valid: true };
+		}
+
+		var now = new Date();
+		var currentDateStr = this.formatDateISO( now );
+		var currentTimeStr = this.formatTimeHHMM( now );
+
+		// Check if start date is in the past
+		if ( startDate < currentDateStr ) {
+			return {
+				valid: false,
+				field: 'start_date',
+				message: 'Campaign start date cannot be in the past'
+			};
+		}
+
+		// Check if start time is in the past (same day)
+		if ( startDate === currentDateStr && startTime < currentTimeStr ) {
+			return {
+				valid: false,
+				field: 'start_time',
+				message: 'Campaign start time cannot be in the past'
+			};
+		}
+
+		return { valid: true };
+	},
+
+	/**
+	 * Validate end date/time (checks both past validation and start/end ordering)
+	 * Single source of truth - used by both real-time handlers and validateStep()
+	 * @private
+	 * @param {string} endDate - Date in ISO format (YYYY-MM-DD)
+	 * @param {string} endTime - Time in HH:MM format
+	 * @param {string} startDate - Start date for comparison (optional)
+	 * @param {string} startTime - Start time for comparison (optional)
+	 * @return {object} Validation result {valid: boolean, field: string, message: string}
+	 */
+	_validateEndTime: function( endDate, endTime, startDate, startTime ) {
+		if ( ! endDate || ! endTime ) {
+			return { valid: true };
+		}
+
+		var now = new Date();
+		var currentDateStr = this.formatDateISO( now );
+		var currentTimeStr = this.formatTimeHHMM( now );
+
+		// CONTEXT 1: Check if end date is in the past
+		if ( endDate < currentDateStr ) {
+			return {
+				valid: false,
+				field: 'end_date',
+				message: 'Campaign end date cannot be in the past'
+			};
+		}
+
+		// CONTEXT 2: Check if end time is in the past (same day)
+		if ( endDate === currentDateStr && endTime < currentTimeStr ) {
+			return {
+				valid: false,
+				field: 'end_time',
+				message: 'Campaign end time cannot be in the past'
+			};
+		}
+
+		// CONTEXT 3: Check if end is before start (if start provided)
+		if ( startDate && endDate < startDate ) {
+			return {
+				valid: false,
+				field: 'end_date',
+				message: 'Campaign end date must be after start date'
+			};
+		}
+
+		// CONTEXT 4: Check if end time is before start time (same day)
+		if ( startDate && startTime && endDate === startDate && endTime <= startTime ) {
+			return {
+				valid: false,
+				field: 'end_time',
+				message: 'Campaign end time must be after start time'
+			};
+		}
+
+		return { valid: true };
+	},
+
+	/**
+	 * Validate schedule step before allowing navigation
+	 * Called by wizard orchestrator when user tries to proceed
+	 * Uses centralized validation methods for consistency
+	 * @return {jQuery.Deferred} Promise that resolves to true if valid, false if invalid
+	 */
+	validateStep: function() {
+		var errors = [];
+		var state = this.modules.state.getState();
+
+		// Validate start (if scheduled)
+		if ( 'scheduled' === state.startType && state.startDate ) {
+			var startValidation = this._validateStartTime( state.startDate, state.startTime || '00:00' );
+			if ( ! startValidation.valid ) {
+				errors.push( startValidation );
+			}
+		}
+
+		// Validate end
+		if ( state.endDate ) {
+			var endValidation = this._validateEndTime(
+				state.endDate,
+				state.endTime || '23:59',
+				state.startDate,
+				state.startTime
+			);
+			if ( ! endValidation.valid ) {
+				errors.push( endValidation );
+			}
+		}
+
+		// Show errors
+		if ( errors.length > 0 ) {
+			var self = this;
+			errors.forEach( function( error ) {
+				var $field = self.$container.find( '#' + error.field );
+				if ( $field.length && window.SCD && window.SCD.ValidationError ) {
+					SCD.ValidationError.show( $field, error.message );
+				}
+			} );
+
+			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
+				SCD.Shared.NotificationService.error(
+					'Please fix the schedule errors before proceeding',
+					5000
+				);
+			}
+		}
+
+		var deferred = $.Deferred();
+		deferred.resolve( 0 === errors.length );
+		return deferred.promise();
+	},
 
 		/**
 		 * Custom cleanup

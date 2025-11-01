@@ -356,11 +356,47 @@ class SCD_Campaign_Validation_Handler {
 		$discounts     = isset( $campaign_data['discounts'] ) ? $campaign_data['discounts'] : array();
 		$discount_type = isset( $discounts['discount_type'] ) ? $discounts['discount_type'] : 'percentage';
 
-		if ( 'percentage' === $discount_type ) {
-			// Check both possible field names for compatibility
-			$discount_value = isset( $discounts['discount_value_percentage'] ) ? floatval( $discounts['discount_value_percentage'] ) :
-								( isset( $discounts['discount_value'] ) ? floatval( $discounts['discount_value'] ) : 0 );
+		// CRITICAL FIX: Better discount value extraction with proper fallback chain
+		// In edit mode, the Change Tracker returns wizard-specific fields (discount_value_percentage/fixed)
+		// We need to check multiple possible field locations
+		$discount_value = 0;
 
+		if ( 'percentage' === $discount_type ) {
+			// Check wizard-specific field first (most common in edit mode)
+			if ( isset( $discounts['discount_value_percentage'] ) && '' !== $discounts['discount_value_percentage'] ) {
+				$discount_value = floatval( $discounts['discount_value_percentage'] );
+			} elseif ( isset( $discounts['discount_value'] ) && '' !== $discounts['discount_value'] ) {
+				// Fallback to entity field (less common but possible)
+				$discount_value = floatval( $discounts['discount_value'] );
+			}
+
+			// Debug logging for discount value extraction
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( '[Validation] Discount value extraction for percentage type:' );
+				error_log( '[Validation] - discount_value_percentage field: ' . ( isset( $discounts['discount_value_percentage'] ) ? $discounts['discount_value_percentage'] : 'not set' ) );
+				error_log( '[Validation] - discount_value field: ' . ( isset( $discounts['discount_value'] ) ? $discounts['discount_value'] : 'not set' ) );
+				error_log( '[Validation] - Final extracted value: ' . $discount_value );
+			}
+		} elseif ( 'fixed' === $discount_type ) {
+			// Check wizard-specific field first
+			if ( isset( $discounts['discount_value_fixed'] ) && '' !== $discounts['discount_value_fixed'] ) {
+				$discount_value = floatval( $discounts['discount_value_fixed'] );
+			} elseif ( isset( $discounts['discount_value'] ) && '' !== $discounts['discount_value'] ) {
+				// Fallback to entity field
+				$discount_value = floatval( $discounts['discount_value'] );
+			}
+
+			// Debug logging for discount value extraction
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( '[Validation] Discount value extraction for fixed type:' );
+				error_log( '[Validation] - discount_value_fixed field: ' . ( isset( $discounts['discount_value_fixed'] ) ? $discounts['discount_value_fixed'] : 'not set' ) );
+				error_log( '[Validation] - discount_value field: ' . ( isset( $discounts['discount_value'] ) ? $discounts['discount_value'] : 'not set' ) );
+				error_log( '[Validation] - Final extracted value: ' . $discount_value );
+			}
+		}
+
+		// Only run percentage validations for percentage discounts
+		if ( 'percentage' === $discount_type ) {
 			// Check: Discount > 70% but < 100% (high discount warning)
 			// Note: 100% is handled as critical error in edge case validation
 			if ( $discount_value > 70 && $discount_value < 100 ) {
@@ -403,7 +439,8 @@ class SCD_Campaign_Validation_Handler {
 			}
 
 			// Check: Discount = 0
-			if ( 0 === $discount_value ) {
+			// CRITICAL FIX: Only flag as error if truly zero after checking all possible sources
+			if ( 0 === $discount_value || 0.0 === $discount_value ) {
 				$errors[] = array(
 					'code'     => 'discount_zero',
 					'severity' => 'critical',
@@ -547,9 +584,13 @@ class SCD_Campaign_Validation_Handler {
 
 		// W1: Fixed discount exceeds product prices
 		if ( 'fixed' === $discount_type ) {
-			// Check both possible field names for compatibility
-			$discount_value = isset( $discounts['discount_value_fixed'] ) ? floatval( $discounts['discount_value_fixed'] ) :
-								( isset( $discounts['discount_value'] ) ? floatval( $discounts['discount_value'] ) : 0 );
+			// CRITICAL FIX: Check wizard-specific field first with proper empty string handling
+			$discount_value = 0;
+			if ( isset( $discounts['discount_value_fixed'] ) && '' !== $discounts['discount_value_fixed'] ) {
+				$discount_value = floatval( $discounts['discount_value_fixed'] );
+			} elseif ( isset( $discounts['discount_value'] ) && '' !== $discounts['discount_value'] ) {
+				$discount_value = floatval( $discounts['discount_value'] );
+			}
 
 			if ( $discount_value > 0 ) {
 				$product_prices = $this->_get_product_prices( $products );
@@ -662,9 +703,13 @@ class SCD_Campaign_Validation_Handler {
 
 		// W2: 100% percentage discount (critical error)
 		if ( 'percentage' === $discount_type ) {
-			// Check both possible field names for compatibility
-			$discount_value = isset( $discounts['discount_value_percentage'] ) ? floatval( $discounts['discount_value_percentage'] ) :
-								( isset( $discounts['discount_value'] ) ? floatval( $discounts['discount_value'] ) : 0 );
+			// CRITICAL FIX: Check wizard-specific field first with proper empty string handling
+			$discount_value = 0;
+			if ( isset( $discounts['discount_value_percentage'] ) && '' !== $discounts['discount_value_percentage'] ) {
+				$discount_value = floatval( $discounts['discount_value_percentage'] );
+			} elseif ( isset( $discounts['discount_value'] ) && '' !== $discounts['discount_value'] ) {
+				$discount_value = floatval( $discounts['discount_value'] );
+			}
 
 			if ( 100.0 === $discount_value || 100 === $discount_value ) {
 				$errors[] = array(

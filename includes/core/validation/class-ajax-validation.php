@@ -196,10 +196,10 @@ class SCD_AJAX_Validation {
 		// Validate custom priority
 		if ( isset( $data['scd_custom_priority'] ) ) {
 			$priority = absint( $data['scd_custom_priority'] );
-			if ( $priority >= 0 && $priority <= 100 ) {
+			if ( $priority >= 1 && $priority <= 5 ) {
 				$validated['scd_custom_priority'] = $priority;
 			} else {
-				$errors->add( 'invalid_priority', __( 'Priority must be between 0 and 100', 'smart-cycle-discounts' ) );
+				$errors->add( 'invalid_priority', __( 'Priority must be between 1 and 5', 'smart-cycle-discounts' ) );
 			}
 		}
 

@@ -258,7 +258,7 @@
 			// Update field values directly using jQuery
 			$( '[name="name"]' ).val( '' ).trigger( 'change' );
 			$( '[name="description"]' ).val( '' ).trigger( 'change' );
-			$( '[name="priority"]' ).val( 5 ).trigger( 'change' );
+			$( '[name="priority"]' ).val( 3 ).trigger( 'change' );
 
 			// Also reset using Utils.Fields if available for consistency
 			if ( window.SCD && window.SCD.Utils && window.SCD.Utils.Fields ) {
@@ -277,9 +277,13 @@
 				} ] );
 			}
 
-			// Clear all errors
-			$( '.error-message' ).remove();
-			$( '.error' ).removeClass( 'error' );
+			// Clear all errors using ValidationError component
+			if ( window.SCD && window.SCD.ValidationError ) {
+				var $container = $( '[name="name"]' ).closest( 'form' );
+				if ( $container.length ) {
+					window.SCD.ValidationError.clearAll( $container );
+				}
+			}
 		},
 
 		/**

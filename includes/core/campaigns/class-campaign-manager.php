@@ -30,13 +30,13 @@ if ( ! class_exists( 'SCD_Validation' ) ) {
  *
  * PRIORITY SYSTEM:
  * ===============
- * Lower numbers = Higher priority (1 = highest, 10 = lowest)
- * - Priority 1: Always wins conflicts (highest)
- * - Priority 5: Default/normal
- * - Priority 10: Gets blocked by everything (lowest)
+ * Higher numbers = Higher priority (5 = highest, 1 = lowest)
+ * - Priority 5: Always wins conflicts (critical)
+ * - Priority 3: Default/normal
+ * - Priority 1: Gets blocked by everything (fallback)
  *
  * When multiple campaigns apply to same product:
- * 1. Campaigns sorted ascending (1, 2, 3... 10)
+ * 1. Campaigns sorted descending (5, 4, 3, 2, 1)
  * 2. First campaign wins and applies discount
  * 3. Other campaigns blocked for that product
  *
@@ -530,6 +530,8 @@ class SCD_Campaign_Manager {
 			$this->log_campaign_updated( $campaign, $original_status );
 			$this->trigger_update_hooks( $campaign, $original_status );
 
+			// Note: Cache invalidation handled by Repository layer on save()
+
 			// Reschedule events for draft, scheduled, active, or paused campaigns
 			// Active campaigns MUST have deactivation events to expire properly
 			$new_status = $campaign->get_status();
@@ -577,9 +579,20 @@ class SCD_Campaign_Manager {
 	 * @param    int   $id      Campaign ID.
 	 * @return   true|WP_Error     True or error.
 	 */
-	private function validate_update_data( array $data, int $id ): bool|WP_Error {
+	private function validate_update_data( array &$data, int $id ): bool|WP_Error {
+		// CRITICAL FIX: Use context-aware validation just like create() does
+		// The update() method can receive either step-based data OR compiled flat data
+		// (e.g., from Complete Wizard Handler via compiler)
+		// We must use the same auto-detection logic as validate_data()
+
+		// Determine validation context based on data structure
+		$validation_context = $this->determine_validation_context( $data );
+
+		// Remove validation context marker from data
+		unset( $data['_validation_context'] );
+
 		if ( class_exists( 'SCD_Validation' ) ) {
-			$result = SCD_Validation::validate( $data, 'campaign_complete' );
+			$result = SCD_Validation::validate( $data, $validation_context );
 			if ( is_wp_error( $result ) ) {
 				$this->log_update_validation_error( $result, $id, $data );
 				return $result;
@@ -603,13 +616,15 @@ class SCD_Campaign_Manager {
 		}
 
 		// Handle timezone conversion for schedule updates
-		// If update includes separate date/time/timezone fields, combine and convert to UTC
-		if ( isset( $data['start_date'] ) && isset( $data['start_time'] ) && isset( $data['timezone'] ) ) {
+		// CRITICAL: Only combine date/time fields if starts_at/ends_at are NOT already set
+		// The Campaign Compiler already handles this when data comes from wizard
+		// This code path is for direct REST API or traditional form submissions
+		if ( ! isset( $data['starts_at'] ) && isset( $data['start_date'] ) && isset( $data['start_time'] ) && isset( $data['timezone'] ) ) {
 			$start_datetime    = $data['start_date'] . ' ' . $data['start_time'];
 			$data['starts_at'] = $this->convert_datetime_to_utc( $start_datetime, $data['timezone'] );
 		}
 
-		if ( isset( $data['end_date'] ) && isset( $data['end_time'] ) && isset( $data['timezone'] ) ) {
+		if ( ! isset( $data['ends_at'] ) && isset( $data['end_date'] ) && isset( $data['end_time'] ) && isset( $data['timezone'] ) ) {
 			$end_datetime    = $data['end_date'] . ' ' . $data['end_time'];
 			$data['ends_at'] = $this->convert_datetime_to_utc( $end_datetime, $data['timezone'] );
 		}
@@ -668,7 +683,13 @@ class SCD_Campaign_Manager {
 			return true;
 		}
 
-		return $campaign->can_transition_to( $data['status'] );
+		// CRITICAL: Don't use $campaign->can_transition_to() because $campaign was already
+		// mutated by fill() and has the NEW status. We need to check from ORIGINAL status.
+		$new_status = $data['status'];
+
+		// Get state manager to validate transition from original status
+		$state_manager = new SCD_Campaign_State_Manager( $this->logger, null );
+		return $state_manager->can_transition( $original_status, $new_status );
 	}
 
 	/**
@@ -2030,8 +2051,8 @@ class SCD_Campaign_Manager {
 	 * @return   void
 	 */
 	private function validate_priority( array $data, array &$errors ): void {
-		if ( isset( $data['priority'] ) && ( $data['priority'] < 1 || $data['priority'] > 10 ) ) {
-			$errors['priority'] = 'Priority must be between 1 and 10.';
+		if ( isset( $data['priority'] ) && ( $data['priority'] < 1 || $data['priority'] > 5 ) ) {
+			$errors['priority'] = 'Priority must be between 1 and 5.';
 		}
 	}
 
@@ -2169,7 +2190,7 @@ class SCD_Campaign_Manager {
 	private function set_default_values( array $data ): array {
 		$defaults = array(
 			'status'      => 'draft',
-			'priority'    => 5,
+			'priority'    => 3,
 			'settings'    => array(),
 			'metadata'    => array(),
 			'color_theme' => '#2271b1',
@@ -2185,8 +2206,8 @@ class SCD_Campaign_Manager {
 	/**
 	 * Sort campaigns by priority.
 	 *
-	 * PRIORITY LOGIC: Lower numbers = higher priority (1 = highest, 10 = lowest)
-	 * When multiple campaigns apply to same product, campaign with priority 1 wins over priority 10.
+	 * PRIORITY LOGIC: Higher numbers = higher priority (5 = highest, 1 = lowest)
+	 * When multiple campaigns apply to same product, campaign with priority 5 wins over priority 1.
 	 *
 	 * @since    1.0.0
 	 * @param    array $campaigns    Campaigns to sort.
@@ -2196,8 +2217,8 @@ class SCD_Campaign_Manager {
 		usort(
 			$campaigns,
 			function ( $a, $b ) {
-				// FIXED: Ascending order - lower numbers first (1 = highest priority)
-				return $a->get_priority() <=> $b->get_priority();
+				// Descending order - higher numbers first (5 = highest priority)
+				return $b->get_priority() <=> $a->get_priority();
 			}
 		);
 

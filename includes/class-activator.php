@@ -67,6 +67,9 @@ class SCD_Activator {
 
 			// Log activation
 			self::log_activation();
+
+			// Set redirect transient for first-time activation
+			self::set_activation_redirect();
 		} finally {
 			// Clean any output buffer
 			ob_end_clean();
@@ -556,5 +559,35 @@ class SCD_Activator {
 	private static function upgrade_to_1_0_0() {
 		// Perform any necessary upgrades for version 1.0.0
 		// This is a placeholder for future upgrade logic
+	}
+
+	/**
+	 * Set activation redirect transient.
+	 *
+	 * Sets a transient to trigger redirect to dashboard on first activation.
+	 * Prevents redirect during bulk activations and reactivations.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   void
+	 */
+	private static function set_activation_redirect() {
+		// Skip redirect if activating multiple plugins at once.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Core WordPress parameter during activation, no nonce available.
+		if ( isset( $_GET['activate-multi'] ) ) {
+			return;
+		}
+
+		// Only redirect on first activation (not reactivations).
+		// Check if plugin has been activated before.
+		$first_activation = get_option( 'scd_first_activation_done' );
+
+		if ( ! $first_activation ) {
+			// Set transient to trigger redirect (expires in 30 seconds).
+			set_transient( 'scd_activation_redirect', true, 30 );
+
+			// Mark that first activation has occurred.
+			add_option( 'scd_first_activation_done', true );
+		}
 	}
 }

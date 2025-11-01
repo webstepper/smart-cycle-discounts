@@ -892,9 +892,6 @@
 		 * @returns {void}
 		 */
 		destroy: function() {
-			// Hide tooltip
-			this.hideTooltip();
-
 			// Remove loading state
 			this.setLoading( false );
 

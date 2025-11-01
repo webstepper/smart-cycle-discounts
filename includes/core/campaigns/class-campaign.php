@@ -86,7 +86,7 @@ class SCD_Campaign {
 	 * @since    1.0.0
 	 * @var      int    $priority    Campaign priority.
 	 */
-	private int $priority = 5;
+	private int $priority = 3;
 
 	/**
 	 * Campaign settings.
@@ -348,21 +348,36 @@ class SCD_Campaign {
 	public function can_transition_to( string $to_status ): bool {
 		$current_status = $this->get_status();
 
-		// Define allowed status transitions
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( '[Campaign Model] can_transition_to() check: ' . $current_status . ' -> ' . $to_status );
+		}
+
+		// Define allowed status transitions (must match State Manager rules)
 		$allowed_transitions = array(
-			'draft'     => array( 'active', 'scheduled' ),
-			'scheduled' => array( 'active', 'paused', 'draft' ),
-			'active'    => array( 'paused', 'expired' ),
-			'paused'    => array( 'active', 'draft' ),
-			'expired'   => array( 'active', 'draft' ),
+			'draft'     => array( 'active', 'scheduled', 'archived' ),
+			'active'    => array( 'paused', 'expired', 'archived' ),
+			'paused'    => array( 'active', 'scheduled', 'draft', 'expired', 'archived' ),
+			'scheduled' => array( 'active', 'paused', 'draft', 'archived' ),
+			'expired'   => array( 'draft', 'archived' ),
+			'archived'  => array( 'draft' ),
 		);
 
 		// Check if transition is allowed
 		if ( ! isset( $allowed_transitions[ $current_status ] ) ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( '[Campaign Model] Transition DENIED: current_status not in rules: ' . $current_status );
+			}
 			return false;
 		}
 
-		return in_array( $to_status, $allowed_transitions[ $current_status ], true );
+		$result = in_array( $to_status, $allowed_transitions[ $current_status ], true );
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( '[Campaign Model] Transition ' . ( $result ? 'ALLOWED' : 'DENIED' ) . ': ' . $current_status . ' -> ' . $to_status );
+			error_log( '[Campaign Model] Allowed transitions from ' . $current_status . ': ' . implode( ', ', $allowed_transitions[ $current_status ] ) );
+		}
+
+		return $result;
 	}
 
 	public function get_priority(): int {
@@ -370,7 +385,7 @@ class SCD_Campaign {
 	}
 
 	public function set_priority( int $priority ): void {
-		$this->priority = max( 1, min( 10, $priority ) );
+		$this->priority = max( 1, min( 5, $priority ) );
 	}
 
 	public function get_settings(): array {
@@ -488,14 +503,6 @@ class SCD_Campaign {
 	public function set_product_ids( array $products ): void {
 		$this->product_ids = array_map( 'intval', $products );
 	}
-	// Legacy getter for backward compatibility
-	public function get_selected_products(): array {
-		return $this->get_product_ids();
-	}
-
-	public function set_selected_products( array $products ): void {
-		$this->set_product_ids( $products );
-	}
 
 	public function get_category_ids(): array {
 		return $this->category_ids;
@@ -505,30 +512,12 @@ class SCD_Campaign {
 		$this->category_ids = array_map( 'intval', $categories );
 	}
 
-	// Legacy getter for backward compatibility
-	public function get_selected_categories(): array {
-		return $this->get_category_ids();
-	}
-
-	public function set_selected_categories( array $categories ): void {
-		$this->set_category_ids( $categories );
-	}
-
 	public function get_tag_ids(): array {
 		return $this->tag_ids;
 	}
 
 	public function set_tag_ids( array $tags ): void {
 		$this->tag_ids = array_map( 'intval', $tags );
-	}
-
-	// Legacy getter for backward compatibility
-	public function get_selected_tags(): array {
-		return $this->get_tag_ids();
-	}
-
-	public function set_selected_tags( array $tags ): void {
-		$this->set_tag_ids( $tags );
 	}
 
 	public function get_discount_type(): string {
@@ -710,8 +699,8 @@ class SCD_Campaign {
 	 * impressions_count, etc.) exists in the database campaigns table but is managed
 	 * by the Analytics service, not the Campaign entity.
 	 *
-	 * This method exists for backward compatibility with the campaigns list table.
-	 * It returns metrics from metadata if stored there, otherwise empty array.
+	 * Returns metrics from metadata if stored there, otherwise empty array.
+	 * Used by campaigns list table to display performance data.
 	 *
 	 * @since    1.0.0
 	 * @return   array    Performance metrics from metadata or empty array.

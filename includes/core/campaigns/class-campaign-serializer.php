@@ -281,8 +281,8 @@ class SCD_Campaign_Serializer {
 			$errors['status'] = __( 'Invalid campaign status.', 'smart-cycle-discounts' );
 		}
 
-		if ( isset( $data['priority'] ) && ( $data['priority'] < 1 || $data['priority'] > 100 ) ) {
-			$errors['priority'] = __( 'Priority must be between 1 and 100.', 'smart-cycle-discounts' );
+		if ( isset( $data['priority'] ) && ( $data['priority'] < 1 || $data['priority'] > 5 ) ) {
+			$errors['priority'] = __( 'Priority must be between 1 and 5.', 'smart-cycle-discounts' );
 		}
 
 		// Validate date ranges

@@ -226,9 +226,8 @@
 	SCD.Modules.Review.Components.prototype.updateNavigationButton = function() {
 		var option = this.state.getState().launchOption;
 
-		// Detect edit mode: we're editing if current_campaign data exists
-		// PHP uses snake_case (current_campaign) which gets auto-converted to camelCase (currentCampaign)
-		var isEditMode = window.scdWizardData && ( window.scdWizardData.currentCampaign || window.scdWizardData.current_campaign );
+		// SINGLE SOURCE OF TRUTH: Wizard State Manager
+		var isEditMode = this.isEditMode();
 
 		// Button text based on mode and launch option
 		var buttonText;
@@ -255,6 +254,20 @@
 				this.elements.$completeButton.removeAttr( 'data-save-as-draft' );
 			}
 		}
+	};
+
+	/**
+	 * Check if in edit mode (SINGLE SOURCE OF TRUTH)
+	 *
+	 * @return {boolean} True if editing existing campaign
+	 */
+	SCD.Modules.Review.Components.prototype.isEditMode = function() {
+		// Get from Wizard State Manager - the ONLY source of truth
+		if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.StateManager ) {
+			var wizardState = window.SCD.Wizard.StateManager.get();
+			return wizardState && ( wizardState.wizardMode === 'edit' || wizardState.campaignId > 0 );
+		}
+		return false;
 	};
 
 	/* ===== SUMMARY METHODS ===== */

@@ -115,6 +115,10 @@ class SCD_Admin_Manager {
 		// Initialize components if they exist in container
 		// Note: capability_manager auto-initializes in __construct, no need to call init()
 
+		// Initialize notice suppressor to hide third-party promotional notices
+		$notice_suppressor = new SCD_Notice_Suppressor();
+		$notice_suppressor->init();
+
 		if ( $this->container->has( 'menu_manager' ) ) {
 			$menu_manager = $this->container->get( 'menu_manager' );
 			$menu_manager->set_admin( $this );
@@ -674,7 +678,7 @@ class SCD_Admin_Manager {
 	public function sanitize_campaign_settings( array $input ): array {
 		$sanitized = array();
 
-		$sanitized['default_priority']   = absint( $input['default_priority'] ?? 5 );
+		$sanitized['default_priority']   = absint( $input['default_priority'] ?? 3 );
 		$sanitized['auto_activate']      = ! empty( $input['auto_activate'] );
 		$sanitized['notification_email'] = sanitize_email( $input['notification_email'] ?? '' );
 
@@ -705,7 +709,7 @@ class SCD_Admin_Manager {
 	 */
 	private function get_default_campaign_settings(): array {
 		return array(
-			'default_priority'   => 5,
+			'default_priority'   => 3,
 			'auto_activate'      => false,
 			'notification_email' => get_option( 'admin_email' ),
 		);

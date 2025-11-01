@@ -632,12 +632,35 @@ class SCD_Asset_Localizer {
 			// Create state service - it will automatically load session from cookie
 			$state_service = new SCD_Wizard_State_Service();
 
+			// CRITICAL FIX: Initialize change tracker for edit mode
+			// The wizard controller calls initialize_with_intent() but Asset Localizer doesn't,
+			// so we need to manually ensure the change tracker is initialized if in edit mode
+			$intent = isset( $_GET['intent'] ) ? sanitize_text_field( $_GET['intent'] ) : '';
+			if ( 'edit' === $intent ) {
+				$state_service->initialize_with_intent( 'edit' );
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( '[Asset_Localizer] Initialized state service with edit intent' );
+				}
+			}
+
 			// Get all session data at once
 			$all_data     = $state_service->get_all_data();
 			$session_data = array();
 
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( '[Asset_Localizer] All data keys: ' . implode( ', ', array_keys( $all_data ) ) );
+				error_log( '[Asset_Localizer] Is edit mode: ' . ( isset( $all_data['is_edit_mode'] ) && $all_data['is_edit_mode'] ? 'yes' : 'no' ) );
+				error_log( '[Asset_Localizer] Campaign ID: ' . ( isset( $all_data['campaign_id'] ) ? $all_data['campaign_id'] : 'none' ) );
+				error_log( '[Asset_Localizer] Has steps array: ' . ( isset( $all_data['steps'] ) ? 'yes (' . count( $all_data['steps'] ) . ' steps)' : 'no' ) );
+			}
+
 			// Extract step data
-			if ( isset( $all_data['steps'] ) && is_array( $all_data['steps'] ) ) {
+			// In edit mode, steps array exists but is empty - we need to load from change tracker
+			$is_edit_mode = isset( $all_data['is_edit_mode'] ) && $all_data['is_edit_mode'];
+			$has_step_data = isset( $all_data['steps'] ) && is_array( $all_data['steps'] ) && ! empty( $all_data['steps'] );
+
+			if ( $has_step_data && ! $is_edit_mode ) {
+				// Create/continue mode: use session data
 				$session_data = $all_data['steps'];
 
 				// Include completed_steps for progress tracking
@@ -648,11 +671,25 @@ class SCD_Asset_Localizer {
 				// Fallback: try to get individual step data
 				$steps = array( 'basic', 'products', 'discounts', 'schedule', 'review' );
 
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					$is_edit_mode = isset( $all_data['is_edit_mode'] ) && $all_data['is_edit_mode'];
+					error_log( '[Asset_Localizer] Fallback loading step data. Is edit mode: ' . ( $is_edit_mode ? 'yes' : 'no' ) );
+				}
+
 				foreach ( $steps as $step ) {
 					$step_data = $state_service->get_step_data( $step );
+
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						error_log( '[Asset_Localizer] Step "' . $step . '" data: ' . ( ! empty( $step_data ) ? 'has data (' . count( $step_data ) . ' fields)' : 'empty' ) );
+					}
+
 					if ( ! empty( $step_data ) ) {
 						$session_data[ $step ] = $step_data;
 					}
+				}
+
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( '[Asset_Localizer] Total steps loaded: ' . count( $session_data ) );
 				}
 			}
 
@@ -663,8 +700,9 @@ class SCD_Asset_Localizer {
 			// Edit mode data loading is now handled by Change Tracker
 			// Data is loaded on-demand from database, not decomposed into session
 			if ( 'edit' === $intent && $campaign_id > 0 ) {
-				// Just store campaign ID - Change Tracker will handle the rest
-				$session_data['campaign_id'] = $campaign_id;
+				// Store campaign ID and edit mode flag for JavaScript detection
+				$session_data['campaign_id']   = $campaign_id;
+				$session_data['is_edit_mode'] = true;
 			}
 
 			// For products step, only load product IDs - not full product data
@@ -912,8 +950,8 @@ class SCD_Asset_Localizer {
 			'priority'               => array(
 				'required' => __( 'Priority is required', 'smart-cycle-discounts' ),
 				'min'      => __( 'Priority must be at least 1', 'smart-cycle-discounts' ),
-				'max'      => __( 'Priority cannot exceed 10', 'smart-cycle-discounts' ),
-				'invalid'  => __( 'Priority must be a number between 1 and 10', 'smart-cycle-discounts' ),
+				'max'      => __( 'Priority cannot exceed 5', 'smart-cycle-discounts' ),
+				'invalid'  => __( 'Priority must be a number between 1 and 5', 'smart-cycle-discounts' ),
 			),
 
 			// Basic step - Status
@@ -1211,7 +1249,7 @@ class SCD_Asset_Localizer {
 			'defaults' => array(
 				'enable_plugin'                => true,
 				'default_discount_type'        => 'percentage',
-				'default_priority'             => 5,
+				'default_priority'             => 3,
 				'enable_analytics'             => true,
 				'enable_logging'               => true,
 				'log_level'                    => 'info',

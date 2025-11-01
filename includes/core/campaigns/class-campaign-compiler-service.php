@@ -87,13 +87,16 @@ class SCD_Campaign_Compiler_Service {
 	 * Compile campaign data from wizard steps.
 	 *
 	 * @since    1.0.0
-	 * @param    array $steps_data    All steps data.
-	 * @return   array                   Compiled campaign data.
+	 * @param    array    $steps_data            All steps data.
+	 * @param    int|null $exclude_campaign_id   Campaign ID to exclude from duplicate checks (for editing).
+	 * @return   array                              Compiled campaign data.
 	 */
-	public function compile( array $steps_data ): array {
+	public function compile( array $steps_data, ?int $exclude_campaign_id = null ): array {
 		$compiled = array();
 
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		// Add campaign ID for edit mode detection
+		if ( $exclude_campaign_id ) {
+			$compiled['id'] = $exclude_campaign_id;
 		}
 
 		// Merge all step data
@@ -105,11 +108,6 @@ class SCD_Campaign_Compiler_Service {
 			// Include review step data for launch_option
 			$compiled = array_merge( $compiled, $step_data );
 
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			}
-		}
-
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 		}
 
 		// Add metadata
@@ -121,11 +119,13 @@ class SCD_Campaign_Compiler_Service {
 			$compiled['uuid'] = wp_generate_uuid4();
 		}
 
-		// Apply transformations
-		$compiled = $this->transform_campaign_data( $compiled );
-
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		// Apply field transformations using Wizard Field Mapper
+		if ( class_exists( 'SCD_Wizard_Field_Mapper' ) ) {
+			$compiled = SCD_Wizard_Field_Mapper::transform_to_entity_fields( $compiled );
 		}
+
+		// Apply other transformations (schedule, settings, etc.)
+		$compiled = $this->transform_campaign_data( $compiled );
 
 		return apply_filters( 'scd_wizard_compile_campaign_data', $compiled, $steps_data );
 	}
@@ -154,21 +154,22 @@ class SCD_Campaign_Compiler_Service {
 		}
 
 		// Smart criteria (if it's an array/complex)
-		if ( isset( $data['smart_criteria'] ) && is_array( $data['smart_criteria'] ) && ! empty( $data['smart_criteria'] ) ) {
+		if ( ! empty( $data['smart_criteria'] ) && is_array( $data['smart_criteria'] ) ) {
 			$data['metadata']['smart_criteria'] = $data['smart_criteria'];
 		}
 
+		// Initialize discount_rules once for all discount configurations
+		$data['discount_rules'] = $data['discount_rules'] ?? array();
+
 		// Tiered discounts (complex field) - now uses combined format
-		if ( isset( $data['tiers'] ) && ! empty( $data['tiers'] ) ) {
-			$data['discount_rules']              = $data['discount_rules'] ?? array();
+		if ( ! empty( $data['tiers'] ) ) {
 			$data['discount_rules']['tiers']     = $data['tiers'];
 			$data['discount_rules']['tier_mode'] = $data['tier_mode'] ?? 'percentage';
 			$data['discount_rules']['tier_type'] = $data['tier_type'] ?? 'quantity';
 		}
 
 		// Spend thresholds (complex field) - now uses combined format
-		if ( isset( $data['thresholds'] ) && ! empty( $data['thresholds'] ) ) {
-			$data['discount_rules']                   = $data['discount_rules'] ?? array();
+		if ( ! empty( $data['thresholds'] ) ) {
 			$data['discount_rules']['thresholds']     = $data['thresholds'];
 			$data['discount_rules']['threshold_mode'] = $data['threshold_mode'] ?? 'percentage';
 		}
@@ -247,6 +248,9 @@ class SCD_Campaign_Compiler_Service {
 					break;
 			}
 
+			// CRITICAL: Cast to float - Campaign class requires float type
+			$discount_value = (float) $discount_value;
+
 			$settings['discount_value'] = $discount_value;
 			// Ensure discount_value is also in main data array
 			$data['discount_value'] = $discount_value;
@@ -258,7 +262,7 @@ class SCD_Campaign_Compiler_Service {
 		$settings['tags']       = array();
 
 		// Store category filter in the campaign's category_ids field
-		if ( isset( $data['category_ids'] ) && is_array( $data['category_ids'] ) && ! empty( $data['category_ids'] ) ) {
+		if ( ! empty( $data['category_ids'] ) && is_array( $data['category_ids'] ) ) {
 			// Remove 'all' value if present - empty array means all categories
 			$category_ids = array_filter(
 				$data['category_ids'],
@@ -380,8 +384,9 @@ class SCD_Campaign_Compiler_Service {
 					// Get UTC datetime for database storage
 					$data['starts_at'] = $start_builder->to_mysql();
 
-					// Set start_date for schedule_configuration (in local timezone)
-					$data['start_date'] = $now_dt->format( 'Y-m-d H:i:s' );
+					// Set start_date and start_time separately (wizard expects separate fields)
+					$data['start_date'] = $current_date; // Y-m-d only
+					$data['start_time'] = $current_time; // H:i only
 				} catch ( Exception $e ) {
 					error_log( '[SCD Compiler] Exception building immediate start datetime: ' . $e->getMessage() );
 					error_log( '[SCD Compiler] Timezone: ' . var_export( $campaign_timezone, true ) );
@@ -411,9 +416,7 @@ class SCD_Campaign_Compiler_Service {
 
 					$data['ends_at'] = $end_builder->to_mysql();
 
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						error_log( 'SCD Compiler [Immediate]: Using user-selected end time.' );
-					}
 				} elseif ( isset( $data['duration_seconds'] ) && 0 < $data['duration_seconds'] ) {
 					// Fallback: Duration-based calculation (for backward compatibility with presets)
 					$duration_seconds = absint( $data['duration_seconds'] );
@@ -439,13 +442,11 @@ class SCD_Campaign_Compiler_Service {
 
 					$data['ends_at'] = $end_builder->to_mysql();
 
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						error_log( 'SCD Compiler [Immediate]: Using duration_seconds fallback. Duration: ' . $duration_seconds . 's (' . round( $duration_seconds / 3600, 2 ) . ' hours)' );
-					}
 				}
 			} else {
 				// SCHEDULED: Use DateTime Builder for type-safe date/time combination
-				if ( isset( $data['start_date'] ) && ! empty( $data['start_date'] ) ) {
+				if ( ! empty( $data['start_date'] ) ) {
 					$start_date = $data['start_date'];
 					$start_time = $data['start_time'] ?? '00:00';
 
@@ -477,7 +478,7 @@ class SCD_Campaign_Compiler_Service {
 				}
 
 				// Map end_date to ends_at (convert to UTC) - for scheduled campaigns
-				if ( isset( $data['end_date'] ) && ! empty( $data['end_date'] ) ) {
+				if ( ! empty( $data['end_date'] ) ) {
 					$end_date = $data['end_date'];
 					$end_time = $data['end_time'] ?? '23:59';
 
@@ -514,41 +515,52 @@ class SCD_Campaign_Compiler_Service {
 		}
 
 		// Map campaign status based on launch option and start time
+		// CRITICAL FIX: Respect user intent - launch_option is the PRIMARY decider
 		$launch_option = $data['launch_option'] ?? null;
 		$start_type    = $data['start_type'] ?? 'immediate';
 
 		// Check if campaign start time is in the future
 		$is_future_campaign = false;
-		if ( isset( $data['starts_at'] ) && ! empty( $data['starts_at'] ) ) {
+		if ( ! empty( $data['starts_at'] ) ) {
 			// Use DateTime for comparison (both in UTC)
 			$start_dt           = new DateTime( $data['starts_at'], new DateTimeZone( 'UTC' ) );
 			$now_dt             = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
 			$is_future_campaign = ( $start_dt > $now_dt );
-
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			}
 		}
 
-		// Set status based on start time and launch option
-		if ( $is_future_campaign ) {
-			// Future campaigns are ALWAYS 'scheduled', regardless of launch_option
-			$data['status'] = 'scheduled';
+		// Set status based on user intent and scheduling constraints
+		// PRIORITY ORDER:
+		// 1. User explicitly chose 'draft' → ALWAYS draft (allows reviewing future campaigns)
+		// 2. User chose 'active' + future start → 'scheduled' (physical constraint)
+		// 3. User chose 'active' + immediate start → 'active'
+		// 4. No choice → preserve existing status or default to 'draft'
 
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			}
-		} elseif ( $launch_option ) {
-			// Immediate or past campaigns follow launch_option
-			$data['status'] = ( 'active' === $launch_option ) ? 'active' : 'draft';
+		if ( 'draft' === $launch_option ) {
+			// PRIORITY 1: User wants draft - ALWAYS respect this choice
+			// This allows users to save future campaigns for review without scheduling
+			$data['status'] = 'draft';
 
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		} elseif ( 'active' === $launch_option ) {
+			// PRIORITY 2: User wants active, but physical constraints apply
+			if ( $is_future_campaign ) {
+				// Future campaigns cannot be immediately active - must be scheduled
+				$data['status'] = 'scheduled';
+			} else {
+				// Immediate start - activate now
+				$data['status'] = 'active';
 			}
 		} else {
+			// PRIORITY 3: No explicit choice - preserve existing or default
+			// When editing, preserve current status unless user made a choice
+			// When creating, default to 'draft' for safety
 			$data['status'] = $data['status'] ?? 'draft';
 		}
 
 		// Ensure campaign name is unique (including soft-deleted campaigns)
 		if ( isset( $data['name'] ) && $this->campaign_repository ) {
-			$data['name'] = $this->get_unique_campaign_name( $data['name'] );
+			// When editing, exclude current campaign from uniqueness check
+			$exclude_campaign_id = isset( $data['id'] ) ? (int) $data['id'] : null;
+			$data['name']        = $this->get_unique_campaign_name( $data['name'], $exclude_campaign_id );
 		}
 
 		// Generate slug - but strip the (N) suffix from name first to get base slug
@@ -580,15 +592,15 @@ class SCD_Campaign_Compiler_Service {
 	private function build_discount_configuration( array $data ): array {
 		$config = array(
 			'type'  => $data['discount_type'],
-			'value' => $data['discount_value'] ?? 0,
+			'value' => (float) ( $data['discount_value'] ?? 0 ),
 		);
 
 		switch ( $data['discount_type'] ) {
 			case 'percentage':
-				$config['percentage'] = $data['discount_value_percentage'] ?? $data['discount_value'];
+				$config['percentage'] = (float) ( $data['discount_value_percentage'] ?? $data['discount_value'] ?? 0 );
 				break;
 			case 'fixed':
-				$config['amount'] = $data['discount_value_fixed'] ?? $data['discount_value'];
+				$config['amount'] = (float) ( $data['discount_value_fixed'] ?? $data['discount_value'] ?? 0 );
 				break;
 			case 'bogo':
 				$config['buy_quantity']        = $data['bogo_buy_quantity'] ?? 1;
@@ -725,10 +737,8 @@ class SCD_Campaign_Compiler_Service {
 			$campaign = new SCD_Campaign( $compiled_data );
 
 			// Debug: Check validation before saving
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				$validation_errors = $campaign->validate();
-				if ( ! empty( $validation_errors ) ) {
-				}
+			if ( ! empty( $validation_errors ) ) {
 			}
 
 			if ( $this->campaign_repository->save( $campaign ) ) {
@@ -753,10 +763,11 @@ class SCD_Campaign_Compiler_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string $name    Original campaign name.
-	 * @return   string             Unique campaign name.
+	 * @param    string   $name                 Original campaign name.
+	 * @param    int|null $exclude_campaign_id  Campaign ID to exclude (for editing).
+	 * @return   string                            Unique campaign name.
 	 */
-	private function get_unique_campaign_name( string $name ): string {
+	private function get_unique_campaign_name( string $name, ?int $exclude_campaign_id = null ): string {
 		global $wpdb;
 		$table         = $wpdb->prefix . 'scd_campaigns';
 		$original_name = $name;
@@ -766,12 +777,23 @@ class SCD_Campaign_Compiler_Service {
 		// Keep checking until we find a unique name
 		while ( $counter <= $max_attempts ) {
 			// Check if name exists (including soft-deleted campaigns)
-			$exists = $wpdb->get_var(
-				$wpdb->prepare(
-					"SELECT COUNT(*) FROM {$table} WHERE name = %s",
-					$name
-				)
-			);
+			// Exclude current campaign when editing
+			if ( $exclude_campaign_id ) {
+				$exists = $wpdb->get_var(
+					$wpdb->prepare(
+						"SELECT COUNT(*) FROM {$table} WHERE name = %s AND id != %d",
+						$name,
+						$exclude_campaign_id
+					)
+				);
+			} else {
+				$exists = $wpdb->get_var(
+					$wpdb->prepare(
+						"SELECT COUNT(*) FROM {$table} WHERE name = %s",
+						$name
+					)
+				);
+			}
 
 			// Check for database errors
 			if ( $wpdb->last_error ) {
@@ -787,8 +809,6 @@ class SCD_Campaign_Compiler_Service {
 			$name = $original_name . ' (' . $counter . ')';
 
 			// Add debug logging
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			}
 		}
 
 		// If we exhausted all attempts, throw an exception

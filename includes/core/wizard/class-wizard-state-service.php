@@ -117,18 +117,32 @@ class SCD_Wizard_State_Service {
 		} else {
 			$this->load_from_cookie();
 		}
+
+		// CRITICAL FIX: Auto-initialize Change Tracker for edit mode sessions
+		// This ensures AJAX handlers have access to Change Tracker without needing to call initialize_with_intent()
+		// The session data already contains is_edit_mode and campaign_id from the initial page load
+		if ( $this->is_edit_mode() && ! $this->change_tracker ) {
+			$campaign_id = $this->get( 'campaign_id', 0 );
+			if ( $campaign_id ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( '[State Service] Auto-initializing Change Tracker for edit mode session (campaign ' . $campaign_id . ')' );
+				}
+				$this->initialize_change_tracker( $campaign_id );
+			}
+		}
 	}
 
 	/**
 	 * Initialize with specific intent.
 	 *
 	 * @since    1.0.0
-	 * @param    string $intent    Intent: 'new', 'continue', or 'edit'.
+	 * @param    string      $intent         Intent: 'new', 'continue', or 'edit'.
+	 * @param    string|null $suggestion_id  Optional suggestion ID for pre-fill.
 	 * @return   void
 	 */
-	public function initialize_with_intent( string $intent = 'continue' ): void {
+	public function initialize_with_intent( string $intent = 'continue', ?string $suggestion_id = null ): void {
 		if ( 'new' === $intent ) {
-			$this->start_fresh_session();
+			$this->start_fresh_session( $suggestion_id );
 		} elseif ( 'edit' === $intent ) {
 			$this->start_edit_session();
 		} elseif ( 'continue' === $intent && ! $this->has_session() ) {
@@ -145,11 +159,19 @@ class SCD_Wizard_State_Service {
 	 * @return   void
 	 */
 	private function start_edit_session(): void {
-		// Get campaign ID from URL
+		// Get campaign ID from URL (for page loads) or session (for AJAX requests)
 		$campaign_id = isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0;
 
+		// CRITICAL FIX: If no campaign ID in URL, check session (for AJAX requests)
 		if ( ! $campaign_id ) {
-			// No campaign ID provided, treat as new
+			$campaign_id = $this->get( 'campaign_id', 0 );
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( '[State Service] No campaign ID in URL, reading from session: ' . $campaign_id );
+			}
+		}
+
+		if ( ! $campaign_id ) {
+			// No campaign ID in URL or session, treat as new
 			$this->start_fresh_session();
 			return;
 		}
@@ -193,12 +215,18 @@ class SCD_Wizard_State_Service {
 	 * Start fresh session.
 	 *
 	 * @since    1.0.0
+	 * @param    string|null $suggestion_id  Optional suggestion ID for pre-fill.
 	 * @return   void
 	 */
-	private function start_fresh_session(): void {
+	private function start_fresh_session( ?string $suggestion_id = null ): void {
 		$this->clear_session();
 		$this->create();
 		$this->mark_as_fresh();
+
+		// Pre-fill wizard data from campaign suggestion
+		if ( $suggestion_id ) {
+			$this->prefill_from_suggestion( $suggestion_id );
+		}
 	}
 
 	/**
@@ -225,6 +253,112 @@ class SCD_Wizard_State_Service {
 			$this->dirty = true;
 			$this->save();
 		}
+	}
+
+	/**
+	 * Pre-fill wizard data from campaign suggestion.
+	 *
+	 * @since    1.0.0
+	 * @param    string $suggestion_id  Suggestion event ID.
+	 * @return   void
+	 */
+	private function prefill_from_suggestion( string $suggestion_id ): void {
+		// Load Campaign Suggestions Registry to get event data
+		require_once SCD_INCLUDES_DIR . 'core/campaigns/class-campaign-suggestions-registry.php';
+
+		// Get event definition directly from registry
+		$event = SCD_Campaign_Suggestions_Registry::get_event_by_id( $suggestion_id );
+
+		if ( ! $event ) {
+			return;
+		}
+
+		// Store suggestion ID for reference
+		$this->set( 'from_suggestion', $suggestion_id );
+
+		// Pre-fill basic step data
+		if ( ! isset( $this->data['steps'] ) ) {
+			$this->data['steps'] = array();
+		}
+
+		if ( ! isset( $this->data['steps']['basic'] ) ) {
+			$this->data['steps']['basic'] = array();
+		}
+
+		// Campaign name with specific date range (e.g., "Weekend Sale Nov 1-3, 2025")
+		$start_month = wp_date( 'M', $event['calculated_start_date'] );
+		$start_day   = wp_date( 'j', $event['calculated_start_date'] );
+		$end_month   = wp_date( 'M', $event['calculated_end_date'] );
+		$end_day     = wp_date( 'j', $event['calculated_end_date'] );
+		$year        = wp_date( 'Y', $event['calculated_start_date'] );
+
+		// Format: "Weekend Sale Nov 1-3, 2025" or "Valentine's Day Feb 7-14, 2025"
+		if ( $start_month === $end_month ) {
+			// Same month: "Nov 1-3, 2025"
+			$date_range = sprintf( '%s %d-%d, %s', $start_month, $start_day, $end_day, $year );
+		} else {
+			// Different months: "Nov 28 - Dec 1, 2025"
+			$date_range = sprintf( '%s %d - %s %d, %s', $start_month, $start_day, $end_month, $end_day, $year );
+		}
+
+		$this->data['steps']['basic']['name'] = $event['name'] . ' ' . $date_range;
+
+		// Priority based on event category (integer values 1-5)
+		// 1=Fallback, 2=Low, 3=Normal, 4=High, 5=Critical
+		$priority_map = array(
+			'major'    => 4,  // High priority for major events (Black Friday, Christmas, etc.)
+			'seasonal' => 3,  // Normal priority for seasonal sales
+			'ongoing'  => 3,  // Normal priority for ongoing campaigns
+			'flexible' => 2,  // Low priority for flexible/weekend sales
+		);
+		// Explicitly cast to integer to ensure proper type
+		$this->data['steps']['basic']['priority'] = (int) ( $priority_map[ $event['category'] ] ?? 3 );
+
+		// Pre-fill schedule step data
+		if ( ! isset( $this->data['steps']['schedule'] ) ) {
+			$this->data['steps']['schedule'] = array();
+		}
+
+		// Set to scheduled start (not immediate)
+		$this->data['steps']['schedule']['start_type'] = 'scheduled';
+
+		// Start and end dates (Y-m-d format for HTML date inputs)
+		$this->data['steps']['schedule']['start_date'] = wp_date( 'Y-m-d', $event['calculated_start_date'] );
+		$this->data['steps']['schedule']['end_date']   = wp_date( 'Y-m-d', $event['calculated_end_date'] );
+
+		// Set times to cover full day
+		$this->data['steps']['schedule']['start_time'] = '00:00';
+		$this->data['steps']['schedule']['end_time']   = '23:59';
+
+		// Pre-fill products step data with default (all products)
+		// This allows the Review step to display properly
+		if ( ! isset( $this->data['steps']['products'] ) ) {
+			$this->data['steps']['products'] = array();
+		}
+		$this->data['steps']['products']['product_selection_type'] = 'all_products';
+		$this->data['steps']['products']['selected_product_ids']   = array();
+
+		// Pre-fill discounts step data if available
+		if ( isset( $event['suggested_discount']['optimal'] ) ) {
+			if ( ! isset( $this->data['steps']['discounts'] ) ) {
+				$this->data['steps']['discounts'] = array();
+			}
+
+			$this->data['steps']['discounts']['discount_type']             = 'percentage';
+			// Cast to float for proper type - Campaign class requires float for discount_value
+			$this->data['steps']['discounts']['discount_value_percentage'] = (float) $event['suggested_discount']['optimal'];
+		}
+
+		// Mark steps as completed so user can navigate directly to Review
+		// This allows skipping to the final step since everything is pre-filled
+		$completed_steps = array( 'basic', 'schedule', 'products', 'discounts' );
+		$this->set( 'completed_steps', $completed_steps );
+
+		// Set flag to indicate this session was pre-filled from a suggestion
+		$this->set( 'prefilled_from_suggestion', true );
+
+		$this->dirty = true;
+		$this->save();
 	}
 
 	/**
@@ -553,15 +687,29 @@ class SCD_Wizard_State_Service {
 		$this->prepare_step_data( $step, $data );
 
 		// Edit mode: use Change Tracker (stores only deltas)
-		if ( $this->is_edit_mode() ) {
+		// Check both is_edit_mode flag AND presence of campaign_id
+		$campaign_id = $this->get( 'campaign_id' );
+		$is_edit     = $this->is_edit_mode() || $campaign_id;
+
+		if ( $is_edit ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( '[State Service] save_step_data - Edit mode detected for step: ' . $step );
+			}
+
 			if ( ! $this->change_tracker ) {
 				// Change tracker not initialized, fall back to session storage
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					error_log( '[State Service] Change tracker not initialized in edit mode, using session storage' );
 				}
 			} else {
-				// Track changes via Change Tracker
+				// Track changes via Change Tracker (session only)
+				// Database will be updated when user completes wizard via create_from_wizard()
 				$this->change_tracker->track_step( $step, $data );
+
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( '[State Service] Changes tracked in session for step: ' . $step );
+				}
+
 				return true;
 			}
 		}
@@ -648,14 +796,28 @@ class SCD_Wizard_State_Service {
 	public function get_step_data( string $step ): array {
 		$step = sanitize_key( $step );
 
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( '[State Service] get_step_data("' . $step . '") - is_edit_mode=' . ( $this->is_edit_mode() ? 'yes' : 'no' ) . ', has_change_tracker=' . ( $this->change_tracker ? 'yes' : 'no' ) );
+		}
+
 		// Edit mode: use Change Tracker (DB + deltas)
 		if ( $this->is_edit_mode() && $this->change_tracker ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( '[State Service] Delegating to change tracker for step "' . $step . '"' );
+			}
 			return $this->change_tracker->get_step_data( $step );
 		}
 
 		// Create mode: return from session
 		if ( ! isset( $this->data['steps'][ $step ] ) ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( '[State Service] No session data for step "' . $step . '" - returning empty array' );
+			}
 			return array();
+		}
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( '[State Service] Returning session data for step "' . $step . '" (' . count( $this->data['steps'][ $step ] ) . ' fields)' );
 		}
 
 		return $this->data['steps'][ $step ];
@@ -753,6 +915,34 @@ class SCD_Wizard_State_Service {
 	 * @return   array    Session data.
 	 */
 	public function get_all_data(): array {
+		// CRITICAL FIX: In edit mode, compile data from Change Tracker
+		// The session $this->data doesn't contain steps - they're in Change Tracker
+		if ( $this->is_edit_mode() && $this->change_tracker ) {
+			// Build steps data from Change Tracker
+			$steps_data = array();
+			foreach ( $this->steps as $step ) {
+				$step_data = $this->change_tracker->get_step_data( $step );
+
+				// Debug logging
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( '[State Service] get_all_data() - Step "' . $step . '" has ' . count( $step_data ) . ' fields' );
+				}
+
+				// CRITICAL: Include step even if empty - some steps might have optional fields
+				$steps_data[ $step ] = $step_data;
+			}
+
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( '[State Service] get_all_data() - Returning ' . count( $steps_data ) . ' steps in edit mode' );
+			}
+
+			// Return data structure expected by Complete Wizard Handler
+			return array_merge(
+				$this->data,
+				array( 'steps' => $steps_data )
+			);
+		}
+
 		return $this->data;
 	}
 

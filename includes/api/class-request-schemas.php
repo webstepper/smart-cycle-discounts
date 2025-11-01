@@ -65,10 +65,10 @@ class SCD_Request_Schemas {
 			'priority'    => array(
 				'type'              => 'integer',
 				'required'          => false,
-				'default'           => 5,
+				'default'           => 3,
 				'minimum'           => 1,
-				'maximum'           => 10,
-				'description'       => __( 'Campaign priority (1-10)', 'smart-cycle-discounts' ),
+				'maximum'           => 5,
+				'description'       => __( 'Campaign priority (1-5)', 'smart-cycle-discounts' ),
 				'sanitize_callback' => 'absint',
 			),
 		);

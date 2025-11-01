@@ -336,6 +336,99 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 	}
 
 	/**
+	 * Handle empty trash action.
+	 *
+	 * Permanently deletes all campaigns in the trash.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	public function handle_empty_trash() {
+		// Verify nonce
+		if ( ! wp_verify_nonce( isset( $_REQUEST['_wpnonce'] ) ? $_REQUEST['_wpnonce'] : '', 'scd_empty_trash' ) ) {
+			$this->redirect_with_error( __( 'Security check failed.', 'smart-cycle-discounts' ) );
+			return;
+		}
+
+		// Check capability
+		if ( ! $this->check_capability( 'scd_delete_campaigns' ) ) {
+			$this->redirect_with_error( __( 'You do not have permission to empty trash.', 'smart-cycle-discounts' ) );
+			return;
+		}
+
+		// Get all trashed campaigns
+		$repository        = $this->campaign_manager->get_repository();
+		$trashed_campaigns = $repository->find_trashed( array() );
+
+		if ( empty( $trashed_campaigns ) ) {
+			$this->redirect_with_message(
+				admin_url( 'admin.php?page=scd-campaigns&status=trash' ),
+				__( 'Trash is already empty.', 'smart-cycle-discounts' ),
+				'info'
+			);
+			return;
+		}
+
+		// Delete all trashed campaigns
+		$deleted_count = 0;
+		$errors        = array();
+
+		foreach ( $trashed_campaigns as $campaign ) {
+			$campaign_id = $campaign->get_id();
+
+			// Check ownership (users can only delete their own campaigns)
+			if ( ! $this->check_campaign_ownership( $campaign_id, true ) ) {
+				continue; // Skip campaigns user doesn't own
+			}
+
+			$result = $repository->force_delete( $campaign_id );
+
+			if ( $result ) {
+				++$deleted_count;
+			} else {
+				$errors[] = sprintf(
+					__( 'Failed to delete campaign ID %d', 'smart-cycle-discounts' ),
+					$campaign_id
+				);
+			}
+		}
+
+		// Redirect with appropriate message
+		if ( $deleted_count > 0 ) {
+			$message = sprintf(
+				_n(
+					'Trash emptied: %d campaign permanently deleted.',
+					'Trash emptied: %d campaigns permanently deleted.',
+					$deleted_count,
+					'smart-cycle-discounts'
+				),
+				$deleted_count
+			);
+
+			// Add error info if some deletions failed
+			if ( ! empty( $errors ) ) {
+				$message .= ' ' . sprintf(
+					_n(
+						'However, %d campaign could not be deleted.',
+						'However, %d campaigns could not be deleted.',
+						count( $errors ),
+						'smart-cycle-discounts'
+					),
+					count( $errors )
+				);
+			}
+
+			$this->redirect_with_message(
+				admin_url( 'admin.php?page=scd-campaigns&status=trash' ),
+				$message,
+				'success'
+			);
+		} else {
+			$this->redirect_with_error( __( 'No campaigns were deleted. You may not have permission to delete some campaigns.', 'smart-cycle-discounts' ) );
+		}
+	}
+
+	/**
 	 * Handle stop recurring action.
 	 *
 	 * @since    1.0.0

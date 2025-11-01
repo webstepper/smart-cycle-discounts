@@ -38,7 +38,7 @@ class SCD_Validation_Rules {
 	const CAMPAIGN_NAME_MAX        = 255;
 	const CAMPAIGN_DESCRIPTION_MAX = 1000;
 	const CAMPAIGN_PRIORITY_MIN    = 1;
-	const CAMPAIGN_PRIORITY_MAX    = 10;
+	const CAMPAIGN_PRIORITY_MAX    = 5;
 	const CAMPAIGN_NAME_PATTERN    = '/^[a-zA-Z0-9\s\-_&]+$/';
 
 	/**

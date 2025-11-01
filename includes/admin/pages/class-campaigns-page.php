@@ -204,6 +204,10 @@ class SCD_Campaigns_Page {
 				$this->get_action_handler()->handle_stop_recurring();
 				break;
 
+			case 'empty_trash':
+				$this->get_action_handler()->handle_empty_trash();
+				break;
+
 			case 'currency-review':
 				// Load currency review page
 				require_once SCD_INCLUDES_DIR . 'admin/pages/class-currency-review-page.php';

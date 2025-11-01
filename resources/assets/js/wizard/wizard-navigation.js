@@ -509,7 +509,6 @@
 				}
 
 				var redirectUrl = self.buildStepUrl( targetStep );
-				console.log( '[SCD Navigation] Building redirect URL for target:', targetStep, '→', redirectUrl );
 
 				// Build navigation response and return immediately
 				return {
@@ -564,20 +563,11 @@
 		 * @param {string} targetStep Target step name
 		 */
 		showSkeletonScreen: function( targetStep ) {
-			console.log( '[SCD Skeleton] Starting skeleton display for step:', targetStep );
-
 			var contentSkeleton = this.getSkeletonHTML( targetStep );
-			console.log( '[SCD Skeleton] Content skeleton length:', contentSkeleton.length );
-
 			var fullSkeleton = this.buildFullPageSkeleton( targetStep, contentSkeleton );
-			console.log( '[SCD Skeleton] Full skeleton length:', fullSkeleton.length );
-
 			var $wizardWrap = $( '.scd-wizard-wrap' ).first();
-			console.log( '[SCD Skeleton] Found wizard wrap elements:', $wizardWrap.length );
 
 			if ( $wizardWrap.length ) {
-				console.log( '[SCD Skeleton] Displaying skeleton...' );
-
 				// Add loading progress bar at top
 				$( 'body' ).append( '<div class="scd-loading-bar"></div>' );
 
@@ -585,8 +575,6 @@
 				$wizardWrap.addClass( 'scd-wizard-main--loading' );
 				$wizardWrap.html( fullSkeleton );
 				$wizardWrap.removeClass( 'scd-wizard-main--loading' );
-
-				console.log( '[SCD Skeleton] Skeleton displayed successfully' );
 			} else {
 				console.error( '[SCD Skeleton] No .scd-wizard-wrap element found!' );
 			}
@@ -828,9 +816,6 @@
 			// Server automatically converts snake_case to camelCase via SCD_AJAX_Response
 			// Use camelCase directly as received from server
 			if ( data.redirectUrl ) {
-				console.log( '[SCD Navigation] Redirecting to:', data.redirectUrl );
-				console.log( '[SCD Navigation] Current URL before redirect:', window.location.href );
-
 				// Show skeleton screen immediately for instant feedback
 				this.showSkeletonScreen( targetStep );
 
@@ -839,7 +824,6 @@
 
 				// Minimal delay for skeleton render, then redirect
 				setTimeout( function() {
-					console.log( '[SCD Navigation] Executing redirect now...' );
 					window.location.href = data.redirectUrl;
 				}, 100 );
 
@@ -970,7 +954,7 @@
 			var urlParams = new URLSearchParams( window.location.search );
 			var urlStep = urlParams.get( 'step' );
 
-			if ( urlStep && this.isValidStep( urlStep ) ) {
+			if ( urlStep && this.config.steps.indexOf( urlStep ) !== -1 ) {
 				return urlStep;
 			}
 
@@ -1008,17 +992,6 @@
 		},
 
 		/**
-		 * Check if step is valid
-		 *
-		 * @since 1.0.0
-		 * @param {string} step Step name to validate
-		 * @returns {boolean} True if valid step
-		 */
-		isValidStep: function( step ) {
-			return this.config.steps.indexOf( step ) !== -1;
-		},
-
-		/**
 		 * Collect step data from orchestrator
 		 *
 		 * All step orchestrators use StepPersistence mixin which provides collectData()
@@ -1035,9 +1008,6 @@
 				try {
 					var data = window.SCD.Wizard.Orchestrator.collectCurrentStepData();
 
-					if ( window.console && window.console.log ) {
-						console.log( '[SCD Navigation] Collected step data for save:', data );
-					}
 
 
 					return data && 'object' === typeof data ? data : {};
@@ -1050,9 +1020,6 @@
 			}
 
 			// Orchestrator not available
-			if ( window.console && window.console.warn ) {
-				console.warn( '[SCD Navigation] Wizard orchestrator not available for data collection' );
-			}
 			return {};
 		},
 

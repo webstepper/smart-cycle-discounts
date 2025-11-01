@@ -24,8 +24,11 @@ if ( ! current_user_can( 'manage_woocommerce' ) ) {
 // Initialize variables using shared function
 scd_wizard_init_step_vars( $step_data, $validation_errors );
 
-// Set default launch option
+// Set default launch option (default to 'active' - matches field definition)
 $launch_option = isset( $step_data['launch_option'] ) ? $step_data['launch_option'] : 'active';
+
+// Detect edit mode - check if we have a campaign ID in the wizard data
+$is_edit_mode = ! empty( $_GET['id'] ) || ( isset( $GLOBALS['scd_wizard_data']['campaign_id'] ) && $GLOBALS['scd_wizard_data']['campaign_id'] > 0 );
 
 // Prepare content
 ob_start();
@@ -138,6 +141,21 @@ ob_start();
 <!-- Launch Options -->
 <?php
 ob_start();
+
+// Get current campaign status if editing
+$current_status = '';
+if ( $is_edit_mode && isset( $GLOBALS['scd_wizard_data']['campaign']['status'] ) ) {
+	$current_status = $GLOBALS['scd_wizard_data']['campaign']['status'];
+}
+
+// Detect if campaign has future start date
+$has_future_start = false;
+if ( isset( $step_data['start_type'] ) && 'scheduled' === $step_data['start_type'] ) {
+	if ( ! empty( $step_data['start_date'] ) ) {
+		$start_date       = $step_data['start_date'];
+		$has_future_start = ( strtotime( $start_date ) > time() );
+	}
+}
 ?>
 <div class="scd-launch-container">
 	<div class="scd-launch-options">
@@ -148,8 +166,23 @@ ob_start();
 					<span class="dashicons dashicons-yes-alt"></span>
 				</div>
 				<div class="scd-launch-option-body">
-					<h4><?php esc_html_e( 'Launch Campaign', 'smart-cycle-discounts' ); ?></h4>
-					<p><?php esc_html_e( 'Activate immediately and make the discount available to customers', 'smart-cycle-discounts' ); ?></p>
+					<?php if ( $is_edit_mode ) : ?>
+						<h4><?php esc_html_e( 'Activate Campaign', 'smart-cycle-discounts' ); ?></h4>
+						<?php if ( 'draft' === $current_status ) : ?>
+							<p><?php esc_html_e( 'Save changes and activate this campaign to make it live', 'smart-cycle-discounts' ); ?></p>
+						<?php elseif ( 'scheduled' === $current_status ) : ?>
+							<p><?php esc_html_e( 'Save changes and keep campaign scheduled for future activation', 'smart-cycle-discounts' ); ?></p>
+						<?php else : ?>
+							<p><?php esc_html_e( 'Save changes and keep campaign active', 'smart-cycle-discounts' ); ?></p>
+						<?php endif; ?>
+					<?php else : ?>
+						<h4><?php esc_html_e( 'Launch Campaign', 'smart-cycle-discounts' ); ?></h4>
+						<?php if ( $has_future_start ) : ?>
+							<p><?php esc_html_e( 'Schedule campaign to activate automatically at the set start time', 'smart-cycle-discounts' ); ?></p>
+						<?php else : ?>
+							<p><?php esc_html_e( 'Activate immediately and make the discount available to customers now', 'smart-cycle-discounts' ); ?></p>
+						<?php endif; ?>
+					<?php endif; ?>
 				</div>
 				<div class="scd-launch-option-check">
 					<span class="dashicons dashicons-saved"></span>
@@ -164,8 +197,17 @@ ob_start();
 					<span class="dashicons dashicons-edit"></span>
 				</div>
 				<div class="scd-launch-option-body">
-					<h4><?php esc_html_e( 'Save as Draft', 'smart-cycle-discounts' ); ?></h4>
-					<p><?php esc_html_e( 'Save without activating. You can launch it later from the campaigns list', 'smart-cycle-discounts' ); ?></p>
+					<?php if ( $is_edit_mode ) : ?>
+						<h4><?php esc_html_e( 'Save as Draft', 'smart-cycle-discounts' ); ?></h4>
+						<?php if ( 'active' === $current_status || 'scheduled' === $current_status ) : ?>
+							<p><?php esc_html_e( 'Save changes and deactivate campaign (will stop running immediately)', 'smart-cycle-discounts' ); ?></p>
+						<?php else : ?>
+							<p><?php esc_html_e( 'Save changes without activating (campaign stays inactive)', 'smart-cycle-discounts' ); ?></p>
+						<?php endif; ?>
+					<?php else : ?>
+						<h4><?php esc_html_e( 'Save as Draft', 'smart-cycle-discounts' ); ?></h4>
+						<p><?php esc_html_e( 'Save for review without launching. You can activate it later from the campaigns list', 'smart-cycle-discounts' ); ?></p>
+					<?php endif; ?>
 				</div>
 				<div class="scd-launch-option-check">
 					<span class="dashicons dashicons-saved"></span>
@@ -176,21 +218,23 @@ ob_start();
 
 	<div class="scd-launch-info">
 		<span class="dashicons dashicons-info-outline"></span>
-		<span class="scd-launch-info-text" data-active="<?php esc_attr_e( 'This campaign will be activated and customers will be able to use the discount based on your schedule.', 'smart-cycle-discounts' ); ?>" data-draft="<?php esc_attr_e( 'This campaign will be saved but not activated. You can review and launch it anytime from the campaigns list.', 'smart-cycle-discounts' ); ?>">
-			<?php esc_html_e( 'This campaign will be activated and customers will be able to use the discount based on your schedule.', 'smart-cycle-discounts' ); ?>
+		<span class="scd-launch-info-text" data-active="<?php esc_attr_e( 'Campaign will be activated and customers can use the discount based on your schedule.', 'smart-cycle-discounts' ); ?>" data-draft="<?php esc_attr_e( 'Campaign will be saved as draft. No discounts will apply until you activate it.', 'smart-cycle-discounts' ); ?>">
+			<?php esc_html_e( 'Campaign will be activated and customers can use the discount based on your schedule.', 'smart-cycle-discounts' ); ?>
 		</span>
 	</div>
 </div>
 <?php
 $launch_content = ob_get_clean();
 
-scd_wizard_card( array(
-	'title'    => __( 'Launch Your Campaign', 'smart-cycle-discounts' ),
-	'subtitle' => __( 'Choose how you want to proceed', 'smart-cycle-discounts' ),
-	'icon'     => 'controls-play',
-	'content'  => $launch_content,
-	'class'    => 'scd-launch-section'
-) );
+scd_wizard_card(
+	array(
+		'title'    => $is_edit_mode ? __( 'Update Your Campaign', 'smart-cycle-discounts' ) : __( 'Launch Your Campaign', 'smart-cycle-discounts' ),
+		'subtitle' => __( 'Choose how you want to proceed', 'smart-cycle-discounts' ),
+		'icon'     => 'controls-play',
+		'content'  => $launch_content,
+		'class'    => 'scd-launch-section',
+	)
+);
 ?>
 
 <?php
@@ -198,20 +242,25 @@ scd_wizard_card( array(
 $content = ob_get_clean();
 
 // Render using template wrapper
-scd_wizard_render_step( array(
-	'title'       => __( 'Review & Launch', 'smart-cycle-discounts' ),
-	'description' => __( 'Campaign health check and validation', 'smart-cycle-discounts' ),
-	'content'     => $content,
-	'step'        => 'review'
-) );
+scd_wizard_render_step(
+	array(
+		'title'       => __( 'Review & Launch', 'smart-cycle-discounts' ),
+		'description' => __( 'Campaign health check and validation', 'smart-cycle-discounts' ),
+		'content'     => $content,
+		'step'        => 'review',
+	)
+);
 ?>
 
 <!-- Initialize state data for Review step -->
 <?php
-scd_wizard_state_script( 'review', array(
-	'launch_option' => $launch_option,
-	'all_data'      => $step_data
-) );
+scd_wizard_state_script(
+	'review',
+	array(
+		'launch_option' => $launch_option,
+		'all_data'      => $step_data,
+	)
+);
 ?>
 
 <style>

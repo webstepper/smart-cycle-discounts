@@ -100,7 +100,9 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 		}
 
 		// Check campaign limit for new campaigns (not for editing existing ones)
-		$intent = $this->get_intent();
+		$intent        = $this->get_intent();
+		$suggestion_id = $this->get_suggestion_id();
+
 		if ( 'new' === $intent || 'continue' === $intent ) {
 			$session_data    = $this->session->get_all_data();
 			$is_new_campaign = empty( $session_data ) || ! isset( $session_data['campaign_id'] );
@@ -111,7 +113,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			}
 		}
 
-		$this->session->initialize_with_intent( $intent );
+		$this->session->initialize_with_intent( $intent, $suggestion_id );
 
 		if ( 'POST' === $_SERVER['REQUEST_METHOD'] ) {
 			$this->handle_step_submission();
@@ -122,7 +124,17 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 		// The session already knows it's a new campaign from initialize_with_intent() above
 		// Keeping intent=new in URL causes redirect loops and function issues
 		if ( 'new' === $intent ) {
-			$this->redirect_to_wizard( 'basic' );
+			// Check if this session was pre-filled from a campaign suggestion
+			$session_data         = $this->session->get_all_data();
+			$prefilled_from_suggestion = $session_data['prefilled_from_suggestion'] ?? false;
+
+			if ( $prefilled_from_suggestion ) {
+				// Redirect to Review step since everything is pre-filled
+				$this->redirect_to_wizard( 'review' );
+			} else {
+				// Normal flow: start at Basic step
+				$this->redirect_to_wizard( 'basic' );
+			}
 			return;
 		}
 
@@ -137,6 +149,27 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 */
 	private function get_intent(): string {
 		return isset( $_GET['intent'] ) ? sanitize_text_field( $_GET['intent'] ) : 'continue';
+	}
+
+	/**
+	 * Get suggestion ID from request.
+	 *
+	 * @since    1.0.0
+	 * @return   string|null    Suggestion ID or null.
+	 */
+	private function get_suggestion_id(): ?string {
+		if ( ! isset( $_GET['suggestion'] ) ) {
+			return null;
+		}
+
+		$suggestion_id = sanitize_text_field( $_GET['suggestion'] );
+
+		// Validate suggestion ID format (alphanumeric and underscores only)
+		if ( ! preg_match( '/^[a-z0-9_]+$/', $suggestion_id ) ) {
+			return null;
+		}
+
+		return $suggestion_id;
 	}
 
 	/**
@@ -673,7 +706,6 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	private function render_wizard_wrapper( array $session, string $current_step, array $step_data, array $errors ): void {
 		?>
 		<div class="wrap scd-wizard-wrap scd-wizard-page">
-			<?php $this->render_wizard_header( $session ); ?>
 			<?php $this->render_progress_bar( $current_step ); ?>
 			<?php $this->render_errors( $errors ); ?>
 			
@@ -867,8 +899,50 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 		$step_labels   = $this->get_step_labels();
 		$current_index = array_search( $current_step, $this->steps, true );
 
+		// Get session data for header
+		$session_data  = $this->session->get_all_data();
+		$is_edit_mode  = ! empty( $session_data['campaign_id'] );
+		$campaign_name = ! empty( $session_data['basic']['campaign_name'] ) ? $session_data['basic']['campaign_name'] : '';
+
 		?>
 		<div class="scd-wizard-progress">
+			<!-- Wizard Header Content -->
+			<div class="scd-wizard-progress-header">
+				<div class="scd-wizard-progress-title">
+					<?php if ( $is_edit_mode ) : ?>
+						<h1>
+							<?php esc_html_e( 'Edit Campaign', 'smart-cycle-discounts' ); ?>
+							<?php if ( $campaign_name ) : ?>
+								<span class="scd-campaign-name">: <?php echo esc_html( $campaign_name ); ?></span>
+							<?php endif; ?>
+						</h1>
+					<?php else : ?>
+						<h1><?php esc_html_e( 'Create New Campaign', 'smart-cycle-discounts' ); ?></h1>
+					<?php endif; ?>
+
+					<?php if ( $is_edit_mode ) : ?>
+						<span class="scd-status-badge scd-status-edit">
+							<span class="dashicons dashicons-edit"></span>
+							<?php esc_html_e( 'Editing Mode', 'smart-cycle-discounts' ); ?>
+						</span>
+					<?php endif; ?>
+
+					<?php if ( isset( $_GET['saved'] ) && '1' === $_GET['saved'] ) : ?>
+						<span class="scd-status-badge scd-status-saved">
+							<span class="dashicons dashicons-yes"></span>
+							<?php esc_html_e( 'Saved', 'smart-cycle-discounts' ); ?>
+						</span>
+					<?php endif; ?>
+				</div>
+
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns' ) ); ?>"
+					class="button scd-exit-wizard">
+					<span class="dashicons dashicons-no-alt"></span>
+					<?php esc_html_e( 'Exit Wizard', 'smart-cycle-discounts' ); ?>
+				</a>
+			</div>
+
+			<!-- Step Progress Indicators -->
 			<ul class="scd-wizard-steps">
 				<?php $this->render_progress_steps( $step_labels, $current_step, $current_index ); ?>
 			</ul>

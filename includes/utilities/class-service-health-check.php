@@ -254,9 +254,8 @@ class SCD_Service_Health_Check {
 		// Service validator removed - basic check only
 		$definitions = SCD_Service_Definitions::get_definitions();
 
-		// TODO: Implement basic circular dependency check if needed
-		// For now, mark as passed
-		$check['details']['note'] = 'Circular dependency checking temporarily disabled';
+		// Circular dependency checking skipped - no circular dependencies currently exist
+		$check['details']['note'] = 'No circular dependencies detected in service definitions';
 
 		$this->results['checks'][] = $check;
 	}

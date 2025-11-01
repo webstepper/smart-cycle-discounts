@@ -231,15 +231,24 @@
 		if ( value === null || value === undefined ) {
 			return true;
 		}
-		
+
 		if ( 'string' === typeof value ) {
-			return 0 === value.trim().length;
+			var trimmed = value.trim();
+			// Empty string OR string "0" (treats numeric 0 as "no value")
+			// This allows optional number fields with min > 0 to pass validation
+			return 0 === trimmed.length || '0' === trimmed;
 		}
-		
+
 		if ( Array.isArray( value ) ) {
 			return 0 === value.length;
 		}
-		
+
+		// For numbers, treat 0 as empty (no value provided)
+		// This allows optional number fields with min > 0 to pass validation when empty
+		if ( 'number' === typeof value ) {
+			return 0 === value;
+		}
+
 		return false === value || '' === value;
 	};
 
@@ -561,56 +570,6 @@
 			
 			delete self.timers[fieldName];
 		}, this.config.debounceDelay );
-	};
-
-	/**
-	 * Attach validation to a form
-	 * @param {jQuery} $form - Form element
-	 * @param {string} context - Validation context
-	 */
-	ValidationManager.prototype.attachToForm = function( $form, context ) {
-		var self = this;
-		
-		if ( ! $form || ! $form.length ) {
-			return;
-		}
-		
-		// Prevent duplicate bindings
-		if ( $form.data( 'scd-validation-attached' ) ) {
-			return;
-		}
-		
-		$form.data( 'scd-validation-attached', true );
-		
-		// Real-time field validation
-		$form.on( 'blur', 'input:not([type="submit"]):not([type="button"]):not([type="radio"]):not([type="checkbox"]), select, textarea', function( e ) {
-			self.validateFieldDebounced( e.target, context );
-		} );
-		
-		// Radio and checkbox validation on change
-		$form.on( 'change', 'input[type="radio"], input[type="checkbox"]', function( e ) {
-			self.validateFieldDebounced( e.target, context );
-		} );
-		
-		// Clear validation on focus
-		$form.on( 'focus', 'input:not([type="submit"]):not([type="button"]), select, textarea', function() {
-			if ( window.SCD && window.SCD.ValidationError ) {
-				window.SCD.ValidationError.clear( $( this ) );
-			}
-		} );
-		
-		// Form submit validation
-		$form.on( 'submit', function( e ) {
-			var isValid = self.validateForm( $form, context );
-			if ( ! isValid ) {
-				e.preventDefault();
-				// Focus first error field
-				var $firstError = $form.find( '.has-error' ).first();
-				if ( $firstError.length ) {
-					$firstError.find( 'input, select, textarea' ).first().focus();
-				}
-			}
-		} );
 	};
 
 	/**
@@ -1014,37 +973,6 @@
 		return message;
 	};
 
-
-	/**
-	 * Clear validation state
-	 * @param {jQuery} $form - Form element
-	 */
-	ValidationManager.prototype.clearValidation = function( $form ) {
-		if ( window.SCD && window.SCD.ValidationError ) {
-			window.SCD.ValidationError.clearAll( $form );
-		}
-		this.validationState = {};
-	};
-
-	/**
-	 * Get form data
-	 * @param {jQuery} $form - Form element
-	 * @returns {object} Form data
-	 */
-	ValidationManager.prototype.getFormData = function( $form ) {
-		var data = {};
-		
-		if ( ! $form || ! $form.length ) {
-			return data;
-		}
-		
-		$form.serializeArray().forEach( function( item ) {
-			data[item.name] = item.value;
-		} );
-		
-		return data;
-	};
-	
 
 	// Create and expose instance
 	window.SCD.ValidationManager = new ValidationManager();

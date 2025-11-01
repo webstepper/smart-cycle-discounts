@@ -1673,9 +1673,10 @@ class SCD_Product_Selector {
 			$this->cache->flush();
 		}
 
-		// TODO: Optionally update campaigns to remove this product ID
-		// This could be implemented in a separate campaign cleanup service
-		// For now, the validate_and_filter_product_ids method will handle it on-demand
+		// Note: Campaigns are not automatically updated to remove this product ID.
+		// The validate_and_filter_product_ids method handles cleanup on-demand
+		// when campaigns are loaded. This approach prevents unnecessary database
+		// writes and allows for bulk cleanup operations.
 
 		/**
 		 * Fires after product deletion is handled.

@@ -276,8 +276,6 @@
 		setupGlobalHandlers: function() {
 			var self = this;
 
-			// beforeunload warning removed - navigation saves handle data protection
-			// Navigation saves work perfectly without false warnings
 
 			// Error handling
 			$( window ).on( 'error.' + this.namespaces.wizard, function( e ) {
@@ -361,72 +359,6 @@
 		 */
 		generateListenerId: function() {
 			return 'listener_' + Date.now() + '_' + Math.random().toString( 36 ).substr( 2, 9 );
-		},
-
-		/**
-		 * Wait for event
-		 * @param eventName
-		 * @param timeout
-		 */
-		waitFor: function( eventName, timeout ) {
-			timeout = timeout || 5000;
-
-			var deferred = $.Deferred();
-			var timeoutId;
-
-			// Setup listener
-			var unsubscribe = this.once( eventName, function( e, data ) {
-				clearTimeout( timeoutId );
-				deferred.resolve( data );
-			} );
-
-			// Setup timeout
-			timeoutId = setTimeout( function() {
-				unsubscribe();
-				deferred.reject( new Error( 'Event timeout: ' + eventName ) );
-			}, timeout );
-
-			return deferred.promise();
-		},
-
-		/**
-		 * Create event emitter for specific context
-		 * @param context
-		 */
-		createEmitter: function( context ) {
-			var self = this;
-
-			return {
-				emit: function( eventName, data ) {
-					return self.emit( eventName, data, { source: context } );
-				},
-				on: function( eventName, handler ) {
-					return self.on( eventName, handler, { namespace: context } );
-				},
-				once: function( eventName, handler ) {
-					return self.once( eventName, handler, { namespace: context } );
-				},
-				off: function( eventName, handler ) {
-					return self.off( eventName, handler, { namespace: context } );
-				}
-			};
-		},
-
-		/**
-		 * Export event data for debugging
-		 */
-		exportEventData: function() {
-			return {
-				events: Object.keys( this.events ).map( function( eventName ) {
-					return {
-						name: eventName,
-						listeners: this.events[eventName].length
-					};
-				}.bind( this ) ),
-				stats: this.stats,
-				history: this.history.slice( -20 ), // Last 20 events
-				namespaces: this.namespaces
-			};
 		}
 	};
 
