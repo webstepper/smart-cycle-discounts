@@ -152,23 +152,9 @@
 	box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.15),
 				0 4px 12px rgba(59, 130, 246, 0.25),
 				0 2px 6px rgba(0, 0, 0, 0.1);
-	animation: pulse-timeline-dot 3s ease-in-out infinite;
 	position: relative;
 }
 
-/* Inner dot for active state */
-.scd-timeline-dot--active::before {
-	content: '';
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
-	background: var(--wp-admin-theme-color, #2271B1);
-	box-shadow: 0 0 4px rgba(59, 130, 246, 0.5);
-}
 
 .scd-timeline-dot--future {
 	border-color: #BFDBFE;
@@ -200,6 +186,22 @@
 	transform: scale(1.2);
 	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3),
 				0 3px 12px rgba(0, 0, 0, 0.15);
+	position: relative;
+	animation: pulse-timeline-dot 3s ease-in-out infinite;
+}
+
+/* Inner dot appears on focused timeline item */
+.scd-timeline-item--focused .scd-timeline-dot::before {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--wp-admin-theme-color, #2271B1);
+	box-shadow: 0 0 4px rgba(59, 130, 246, 0.5);
 }
 
 .scd-timeline-item--focused .scd-timeline-label {
@@ -208,17 +210,15 @@
 	color: var(--wp-admin-theme-color, #2271B1);
 }
 
-/* Enhanced pulse animation */
+/* Enhanced pulse animation for focused dot */
 @keyframes pulse-timeline-dot {
 	0%, 100% {
-		box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.15),
-					0 4px 12px rgba(59, 130, 246, 0.25),
-					0 2px 6px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3),
+					0 3px 12px rgba(0, 0, 0, 0.15);
 	}
 	50% {
-		box-shadow: 0 0 0 9px rgba(59, 130, 246, 0.08),
-					0 4px 12px rgba(59, 130, 246, 0.35),
-					0 2px 6px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.15),
+					0 3px 12px rgba(0, 0, 0, 0.15);
 	}
 }
 
