@@ -122,20 +122,62 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 				<!-- Timeline Track -->
 				<div class="scd-planner-timeline">
 					<div class="scd-timeline-track">
-						<div class="scd-timeline-item">
-							<div class="scd-timeline-dot scd-timeline-dot--past" title="<?php esc_attr_e( 'Past Campaign', 'smart-cycle-discounts' ); ?>"></div>
-							<span class="scd-timeline-label"><?php esc_html_e( 'Past', 'smart-cycle-discounts' ); ?></span>
-						</div>
-						<div class="scd-timeline-segment scd-timeline-segment--past"></div>
-						<div class="scd-timeline-item">
-							<div class="scd-timeline-dot scd-timeline-dot--active" title="<?php esc_attr_e( 'Active Campaign', 'smart-cycle-discounts' ); ?>"></div>
-							<span class="scd-timeline-label scd-timeline-label--active"><?php esc_html_e( 'Active', 'smart-cycle-discounts' ); ?></span>
-						</div>
-						<div class="scd-timeline-segment scd-timeline-segment--active"></div>
-						<div class="scd-timeline-item">
-							<div class="scd-timeline-dot scd-timeline-dot--future" title="<?php esc_attr_e( 'Upcoming Campaign', 'smart-cycle-discounts' ); ?>"></div>
-							<span class="scd-timeline-label"><?php esc_html_e( 'Upcoming', 'smart-cycle-discounts' ); ?></span>
-						</div>
+						<?php
+						// Map campaigns by state for timeline items.
+						$campaigns_by_state = array();
+						foreach ( $campaigns as $campaign ) {
+							$campaigns_by_state[ $campaign['state'] ] = $campaign;
+						}
+
+						// Timeline states configuration.
+						$timeline_states = array(
+							'past'   => array(
+								'label' => __( 'Past', 'smart-cycle-discounts' ),
+								'title' => __( 'Past Campaign', 'smart-cycle-discounts' ),
+							),
+							'active' => array(
+								'label' => __( 'Active', 'smart-cycle-discounts' ),
+								'title' => __( 'Active Campaign', 'smart-cycle-discounts' ),
+							),
+							'future' => array(
+								'label' => __( 'Upcoming', 'smart-cycle-discounts' ),
+								'title' => __( 'Upcoming Campaign', 'smart-cycle-discounts' ),
+							),
+						);
+
+						$first = true;
+						foreach ( $timeline_states as $state => $state_config ) :
+							$campaign = $campaigns_by_state[ $state ] ?? null;
+
+							// Add segment before item (except for first).
+							if ( ! $first ) {
+								$segment_class = 'past' === $state ? 'past' : 'active';
+								?>
+								<div class="scd-timeline-segment scd-timeline-segment--<?php echo esc_attr( $segment_class ); ?>"></div>
+								<?php
+							}
+							$first = false;
+
+							// Timeline item with campaign data.
+							?>
+							<div class="scd-timeline-item scd-timeline-item--<?php echo esc_attr( $state ); ?>"
+								<?php if ( $campaign ) : ?>
+									data-campaign-id="<?php echo esc_attr( $campaign['id'] ); ?>"
+									data-state="<?php echo esc_attr( $state ); ?>"
+									data-is-major-event="<?php echo ! empty( $campaign['is_major_event'] ) ? '1' : '0'; ?>"
+									role="button"
+									tabindex="0"
+									aria-label="<?php echo esc_attr( sprintf( '%s - %s', $campaign['name'], $state_config['title'] ) ); ?>"
+								<?php endif; ?>>
+								<div class="scd-timeline-dot scd-timeline-dot--<?php echo esc_attr( $state ); ?>"
+									title="<?php echo esc_attr( $state_config['title'] ); ?>"></div>
+								<span class="scd-timeline-label <?php echo 'active' === $state ? 'scd-timeline-label--active' : ''; ?>">
+									<?php echo esc_html( $state_config['label'] ); ?>
+								</span>
+							</div>
+							<?php
+						endforeach;
+						?>
 					</div>
 				</div>
 

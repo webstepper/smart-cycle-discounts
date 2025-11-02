@@ -38,6 +38,12 @@
 			// Keyboard support for campaign cards
 			$( document ).on( 'keydown', '.scd-planner-card', this.handleCardKeydown.bind( this ) );
 
+			// Timeline item click (triggers card click)
+			$( document ).on( 'click', '.scd-timeline-item', this.handleTimelineItemClick.bind( this ) );
+
+			// Keyboard support for timeline items
+			$( document ).on( 'keydown', '.scd-timeline-item', this.handleTimelineItemKeydown.bind( this ) );
+
 			// Collapsible section toggles
 			$( document ).on( 'click', '.scd-insights-section-toggle', this.handleToggleClick.bind( this ) );
 
@@ -111,6 +117,43 @@
 			// Switch tab panels
 			$( '.scd-insights-tab-panel' ).removeClass( 'scd-insights-tab-panel--active' ).hide();
 			$( '#scd-tab-panel-' + tabId ).addClass( 'scd-insights-tab-panel--active' ).fadeIn( 200 );
+		},
+
+		/**
+		 * Handle timeline item click - triggers corresponding card click
+		 *
+		 * @param {Event} e Click event
+		 */
+		handleTimelineItemClick: function( e ) {
+			e.preventDefault();
+
+			var $timelineItem = $( e.currentTarget );
+			var campaignId = $timelineItem.data( 'campaign-id' );
+			var campaignState = $timelineItem.data( 'state' );
+
+			// Only proceed if timeline item has campaign data
+			if ( ! campaignId || ! campaignState ) {
+				return;
+			}
+
+			// Find and trigger click on corresponding card
+			var $correspondingCard = $( '.scd-planner-card[data-campaign-id="' + campaignId + '"]' );
+			if ( $correspondingCard.length ) {
+				$correspondingCard.trigger( 'click' );
+			}
+		},
+
+		/**
+		 * Handle keyboard navigation on timeline items
+		 *
+		 * @param {Event} e Keydown event
+		 */
+		handleTimelineItemKeydown: function( e ) {
+			// Only handle Enter and Space keys
+			if ( 13 === e.which || 32 === e.which ) {
+				e.preventDefault();
+				$( e.currentTarget ).trigger( 'click' );
+			}
 		},
 
 		/**

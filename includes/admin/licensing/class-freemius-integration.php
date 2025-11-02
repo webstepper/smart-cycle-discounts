@@ -33,9 +33,21 @@ class SCD_Freemius_Integration {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      Freemius    $freemius    Freemius SDK instance.
+	 * @var      Freemius|null    Freemius SDK instance.
 	 */
 	private static $freemius = null;
+
+	/**
+	 * Hidden Freemius admin notice types.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      array    Notice types to suppress.
+	 */
+	private static $hidden_notices = array(
+		'trial_promotion',
+		'promotion',
+	);
 
 	/**
 	 * Initialize Freemius SDK.
@@ -55,7 +67,7 @@ class SCD_Freemius_Integration {
 			return null;
 		}
 
-		// Disable Freemius debug/dev mode BEFORE loading SDK
+		// Disable Freemius debug/dev mode BEFORE loading SDK.
 		if ( ! defined( 'WP_FS__DEV_MODE' ) ) {
 			define( 'WP_FS__DEV_MODE', false );
 		}
@@ -66,7 +78,7 @@ class SCD_Freemius_Integration {
 			define( 'WP_FS__ECHO_DEBUG_SDK', false );
 		}
 
-		// Enable SSL certificate verification for security
+		// Enable SSL certificate verification for security.
 		if ( ! defined( 'FS_SDK__SSLVERIFY' ) ) {
 			define( 'FS_SDK__SSLVERIFY', true );
 		}
@@ -79,10 +91,10 @@ class SCD_Freemius_Integration {
 				'slug'           => 'smart-cycle-discounts',
 				'type'           => 'plugin',
 				'public_key'     => 'pk_4adf9836495f54c692369525c1000',
-				'is_premium'     => false, // This is the FREE version (can be upgraded)
+				'is_premium'     => false, // This is the FREE version (can be upgraded).
 				'has_addons'     => false,
-				'has_paid_plans' => true, // Plugin HAS paid plans available
-				'is_live'        => true, // Enable live mode (production)
+				'has_paid_plans' => true, // Plugin HAS paid plans available.
+				'is_live'        => true, // Enable live mode (production).
 				'menu'           => array(
 					'slug'       => 'smart-cycle-discounts',
 					'first-path' => 'admin.php?page=smart-cycle-discounts',
@@ -105,27 +117,26 @@ class SCD_Freemius_Integration {
 	 * @return   void
 	 */
 	private static function setup_hooks() {
-		// Disable Freemius debug mode
+		// Disable Freemius debug mode.
 		add_filter( 'fs_is_dev_mode', '__return_false' );
 		add_filter( 'fs_is_debug_mode', '__return_false' );
-
 		add_filter( 'fs_show_trial_as_pricing_option', '__return_false' );
 
-		// Ensure SSL verification is enabled for all Freemius API requests
+		// Ensure SSL verification is enabled for all Freemius API requests.
 		add_filter( 'http_request_args', array( __CLASS__, 'ensure_ssl_verification' ), 10, 2 );
 
-		// Account and license change hooks
+		// Account and license change hooks.
 		self::$freemius->add_action( 'after_account_connection', array( __CLASS__, 'after_activation' ) );
 		self::$freemius->add_action( 'after_premium_subscription_change', array( __CLASS__, 'after_plan_change' ) );
 		self::$freemius->add_action( 'after_trial_started', array( __CLASS__, 'after_trial_started' ) );
 		self::$freemius->add_action( 'after_trial_cancelled', array( __CLASS__, 'after_trial_cancelled' ) );
 		self::$freemius->add_action( 'after_account_plan_change', array( __CLASS__, 'after_plan_change' ) );
 
-		// License sync hooks for security
-		self::$freemius->add_filter( 'after_account_connection', array( __CLASS__, 'sync_license_on_connect' ) );
+		// License sync hooks for security.
+		self::$freemius->add_action( 'after_account_connection', array( __CLASS__, 'sync_license_on_connect' ) );
 		self::$freemius->add_filter( 'license_key_maxed', array( __CLASS__, 'handle_license_maxed' ), 10, 2 );
 
-		// Admin notice filters
+		// Admin notice filters.
 		add_filter( 'fs_show_admin_notice', array( __CLASS__, 'filter_admin_notices' ), 10, 2 );
 		add_action( 'admin_notices', array( __CLASS__, 'upgrade_notices' ) );
 	}
@@ -171,7 +182,7 @@ class SCD_Freemius_Integration {
 			);
 		}
 
-		// Force immediate validation after plan change
+		// Force immediate validation after plan change.
 		if ( class_exists( 'SCD_License_Manager' ) ) {
 			$license_manager = SCD_License_Manager::instance();
 			if ( method_exists( $license_manager, 'force_validation' ) ) {
@@ -179,23 +190,29 @@ class SCD_Freemius_Integration {
 			}
 		}
 
-		// Show upgrade success notice
-		add_action(
-			'admin_notices',
-			function () {
-				// Only show if user just upgraded to premium
-				if ( function_exists( 'scd_fs' ) && scd_fs()->is_premium() ) {
-					?>
-				<div class="notice notice-success is-dismissible">
-					<p>
-						<strong><?php esc_html_e( '🎉 Welcome to Smart Cycle Discounts Pro!', 'smart-cycle-discounts' ); ?></strong><br>
-						<?php esc_html_e( 'All Pro features are now active. You now have unlimited campaigns, advanced analytics, priority support, and more!', 'smart-cycle-discounts' ); ?>
-					</p>
-				</div>
-					<?php
-				}
-			}
-		);
+		// Show upgrade success notice.
+		add_action( 'admin_notices', array( __CLASS__, 'show_upgrade_success_notice' ) );
+	}
+
+	/**
+	 * Show upgrade success notice.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	public static function show_upgrade_success_notice() {
+		// Only show if user just upgraded to premium.
+		if ( ! function_exists( 'scd_fs' ) || ! scd_fs() || ! scd_fs()->is_premium() ) {
+			return;
+		}
+		?>
+		<div class="notice notice-success is-dismissible">
+			<p>
+				<strong><?php esc_html_e( '🎉 Welcome to Smart Cycle Discounts Pro!', 'smart-cycle-discounts' ); ?></strong><br>
+				<?php esc_html_e( 'All Pro features are now active. You now have unlimited campaigns, advanced analytics, priority support, and more!', 'smart-cycle-discounts' ); ?>
+			</p>
+		</div>
+		<?php
 	}
 
 	/**
@@ -216,7 +233,7 @@ class SCD_Freemius_Integration {
 			);
 		}
 
-		// Force immediate validation
+		// Force immediate validation.
 		if ( class_exists( 'SCD_License_Manager' ) ) {
 			$license_manager = SCD_License_Manager::instance();
 			if ( method_exists( $license_manager, 'force_validation' ) ) {
@@ -224,19 +241,24 @@ class SCD_Freemius_Integration {
 			}
 		}
 
-		add_action(
-			'admin_notices',
-			function () {
-				?>
-			<div class="notice notice-success is-dismissible">
-				<p>
-					<strong><?php esc_html_e( 'Smart Cycle Discounts Pro Trial Activated!', 'smart-cycle-discounts' ); ?></strong><br>
-					<?php esc_html_e( 'You now have access to all Pro features for 14 days. Explore advanced analytics, unlimited campaigns, and more!', 'smart-cycle-discounts' ); ?>
-				</p>
-			</div>
-				<?php
-			}
-		);
+		add_action( 'admin_notices', array( __CLASS__, 'show_trial_started_notice' ) );
+	}
+
+	/**
+	 * Show trial started notice.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	public static function show_trial_started_notice() {
+		?>
+		<div class="notice notice-success is-dismissible">
+			<p>
+				<strong><?php esc_html_e( 'Smart Cycle Discounts Pro Trial Activated!', 'smart-cycle-discounts' ); ?></strong><br>
+				<?php esc_html_e( 'You now have access to all Pro features for 14 days. Explore advanced analytics, unlimited campaigns, and more!', 'smart-cycle-discounts' ); ?>
+			</p>
+		</div>
+		<?php
 	}
 
 	/**
@@ -257,7 +279,7 @@ class SCD_Freemius_Integration {
 			);
 		}
 
-		// Force immediate validation
+		// Force immediate validation.
 		if ( class_exists( 'SCD_License_Manager' ) ) {
 			$license_manager = SCD_License_Manager::instance();
 			if ( method_exists( $license_manager, 'force_validation' ) ) {
@@ -274,7 +296,7 @@ class SCD_Freemius_Integration {
 	 * @return   void
 	 */
 	private static function clear_feature_gate_cache() {
-		// Clear Feature Gate cache
+		// Clear Feature Gate cache.
 		if ( class_exists( 'SCD_Feature_Gate' ) && function_exists( 'scd_get_instance' ) ) {
 			try {
 				$container = scd_get_instance()->get_container();
@@ -285,11 +307,19 @@ class SCD_Freemius_Integration {
 					}
 				}
 			} catch ( Exception $e ) {
-				// Silently fail - cache clearing is not critical
+				// Log cache clearing failure.
+				if ( function_exists( 'scd_log_warning' ) ) {
+					scd_log_warning(
+						'Failed to clear feature gate cache',
+						array(
+							'error' => $e->getMessage(),
+						)
+					);
+				}
 			}
 		}
 
-		// Clear License Manager cache
+		// Clear License Manager cache.
 		if ( class_exists( 'SCD_License_Manager' ) ) {
 			$license_manager = SCD_License_Manager::instance();
 			if ( method_exists( $license_manager, 'clear_validation_cache' ) ) {
@@ -303,10 +333,10 @@ class SCD_Freemius_Integration {
 	 *
 	 * @since    1.0.0
 	 * @param    WP_User $user    WordPress user object.
-	 * @return   WP_User             Unchanged user object.
+	 * @return   WP_User          Unchanged user object.
 	 */
 	public static function sync_license_on_connect( $user ) {
-		// Trigger immediate license validation
+		// Trigger immediate license validation.
 		if ( class_exists( 'SCD_License_Manager' ) ) {
 			$license_manager = SCD_License_Manager::instance();
 			if ( method_exists( $license_manager, 'force_validation' ) ) {
@@ -323,7 +353,7 @@ class SCD_Freemius_Integration {
 	 * @since    1.0.0
 	 * @param    bool   $is_maxed    Whether license reached activation limit.
 	 * @param    object $license     License object.
-	 * @return   bool                 Unchanged value.
+	 * @return   bool                Unchanged value.
 	 */
 	public static function handle_license_maxed( $is_maxed, $license ) {
 		if ( $is_maxed && function_exists( 'scd_log_warning' ) ) {
@@ -344,15 +374,10 @@ class SCD_Freemius_Integration {
 	 * @since    1.0.0
 	 * @param    bool   $show    Whether to show notice.
 	 * @param    string $type    Notice type.
-	 * @return   bool               Filtered value.
+	 * @return   bool            Filtered value.
 	 */
 	public static function filter_admin_notices( $show, $type ) {
-		$hidden_notices = array(
-			'trial_promotion',
-			'promotion',
-		);
-
-		if ( in_array( $type, $hidden_notices, true ) ) {
+		if ( in_array( $type, self::$hidden_notices, true ) ) {
 			return false;
 		}
 
@@ -367,7 +392,7 @@ class SCD_Freemius_Integration {
 	 * @since    1.0.0
 	 * @param    array  $args    HTTP request arguments.
 	 * @param    string $url     Request URL.
-	 * @return   array              Modified arguments.
+	 * @return   array           Modified arguments.
 	 */
 	public static function ensure_ssl_verification( $args, $url ) {
 		if ( false !== strpos( $url, 'api.freemius.com' ) ) {
@@ -393,7 +418,8 @@ class SCD_Freemius_Integration {
 			return;
 		}
 
-		$page = isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading GET parameter for display logic only.
+		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
 
 		if ( 'smart-cycle-discounts-account' === $page || 'smart-cycle-discounts-pricing' === $page ) {
 			return;
@@ -402,6 +428,11 @@ class SCD_Freemius_Integration {
 		$notice_shown = get_transient( 'scd_upgrade_notice_shown_' . get_current_user_id() );
 
 		if ( ! $notice_shown ) {
+			// Verify Freemius instance is available.
+			if ( ! self::$freemius || ! is_object( self::$freemius ) ) {
+				return;
+			}
+
 			?>
 			<div class="notice notice-info is-dismissible scd-upgrade-notice">
 				<p>
@@ -455,12 +486,12 @@ class SCD_Freemius_Integration {
 			return false;
 		}
 
-		// Check native Freemius premium status
+		// Check native Freemius premium status.
 		if ( self::$freemius->is_premium() || self::$freemius->is_trial() ) {
 			return true;
 		}
 
-		// Handle localhost licenses with paid plans
+		// Handle localhost licenses with paid plans.
 		// Freemius provides free localhost licenses for development that aren't
 		// flagged as "premium" even when linked to a paid plan. We check manually.
 		if ( self::$freemius->is_registered() ) {
@@ -468,7 +499,7 @@ class SCD_Freemius_Integration {
 
 			if ( $license && $license->is_active() ) {
 				if ( isset( $license->is_free_localhost ) && $license->is_free_localhost ) {
-					// Verify paid plan assignment via plan_id and pricing_id
+					// Verify paid plan assignment via plan_id and pricing_id.
 					if ( isset( $license->plan_id ) && ! empty( $license->plan_id ) &&
 						isset( $license->pricing_id ) && ! empty( $license->pricing_id ) ) {
 						return true;
