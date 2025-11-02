@@ -65,8 +65,8 @@
 .scd-planner-grid {
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
-	gap: 20px;
-	padding: 24px;
+	gap: 24px;
+	padding: 40px 24px 24px;
 	position: relative;
 }
 
@@ -74,32 +74,41 @@
 .scd-planner-grid::before {
 	content: '';
 	position: absolute;
-	top: 60px;
-	left: 15%;
-	right: 15%;
-	height: 4px;
-	background: linear-gradient(90deg,
+	top: 40px;
+	left: calc(16.67% + 10px);
+	right: calc(16.67% + 10px);
+	height: 3px;
+	background: linear-gradient(
+		90deg,
 		#9CA3AF 0%,
-		#9CA3AF 33%,
-		var(--wp-admin-theme-color, #2271B1) 33%,
-		var(--wp-admin-theme-color, #2271B1) 66%,
-		#D1D5DB 66%,
+		#9CA3AF 33.33%,
+		var(--wp-admin-theme-color, #2271B1) 33.33%,
+		var(--wp-admin-theme-color, #2271B1) 66.67%,
+		#D1D5DB 66.67%,
 		#D1D5DB 100%
 	);
 	z-index: 0;
-	border-radius: 4px;
+	border-radius: 2px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* Timeline progression arrows */
 .scd-planner-card:not(:last-child)::after {
 	content: '→';
 	position: absolute;
-	top: 48px;
-	right: -25px;
-	font-size: 24px;
+	top: 24px;
+	right: -30px;
+	font-size: 20px;
 	color: #9CA3AF;
-	z-index: 2;
-	font-weight: bold;
+	z-index: 3;
+	font-weight: 600;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+	transition: all 0.2s ease;
+}
+
+/* Arrow color for active to future transition */
+.scd-planner-card--active:not(:last-child)::after {
+	color: var(--wp-admin-theme-color, #2271B1);
 }
 
 /* ===========================
@@ -113,27 +122,35 @@
 	cursor: pointer;
 	position: relative;
 	z-index: 1;
+	transition: all 0.3s ease;
 }
 
-/* Timeline node dot */
+/* Timeline node dot - positioned to align with connecting line */
 .scd-planner-card::before {
 	content: '';
 	position: absolute;
-	top: -12px;
+	top: -28px;
 	left: 50%;
 	transform: translateX(-50%);
-	width: 20px;
-	height: 20px;
+	width: 16px;
+	height: 16px;
 	border-radius: 50%;
 	background: #FFFFFF;
-	border: 4px solid #D1D5DB;
+	border: 3px solid #D1D5DB;
 	z-index: 2;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+	transition: all 0.3s ease;
 }
 
 .scd-planner-card:hover {
 	border-color: #3B82F6;
 	box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.12));
+	transform: translateY(-2px);
+}
+
+.scd-planner-card:hover::before {
+	transform: translateX(-50%) scale(1.2);
+	box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
 }
 
 .scd-planner-card:focus {
@@ -163,12 +180,16 @@
 	background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
 	color: #FFFFFF;
 	box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+	border-color: #3B82F6;
 }
 
 .scd-planner-card--active::before {
 	border-color: var(--wp-admin-theme-color, #2271B1);
 	background: #FFFFFF;
-	box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+	box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25),
+				0 2px 8px rgba(0, 0, 0, 0.15);
+	width: 18px;
+	height: 18px;
 }
 
 /* Active Major Event - More prominent */
@@ -179,6 +200,23 @@
 
 .scd-planner-card--active:hover {
 	box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+	transform: translateY(-2px);
+}
+
+/* Subtle pulse animation for active dot */
+@keyframes pulse-dot {
+	0%, 100% {
+		box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25),
+					0 2px 8px rgba(0, 0, 0, 0.15);
+	}
+	50% {
+		box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.15),
+					0 2px 8px rgba(0, 0, 0, 0.15);
+	}
+}
+
+.scd-planner-card--active::before {
+	animation: pulse-dot 2s ease-in-out infinite;
 }
 
 .scd-planner-card--future {
@@ -187,8 +225,9 @@
 }
 
 .scd-planner-card--future::before {
-	border-color: #D1D5DB;
+	border-color: #93C5FD;
 	background: #FFFFFF;
+	border-style: solid;
 }
 
 /* Future Major Event */
@@ -600,12 +639,56 @@
 @media (max-width: 1024px) {
 	.scd-planner-grid {
 		gap: 16px;
+		padding: 36px 20px 20px;
+	}
+
+	/* Adjust timeline line for smaller spacing */
+	.scd-planner-grid::before {
+		left: calc(16.67% + 8px);
+		right: calc(16.67% + 8px);
+	}
+
+	.scd-planner-card:not(:last-child)::after {
+		right: -26px;
+		font-size: 18px;
+	}
+}
+
+@media (max-width: 900px) {
+	/* Tablet: 2 columns - show simplified timeline */
+	.scd-planner-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	/* Adjust line for 2-column layout */
+	.scd-planner-grid::before {
+		left: 25%;
+		right: 25%;
+	}
+
+	/* Hide third card's elements if it exists */
+	.scd-planner-card:nth-child(2)::after {
+		display: none;
 	}
 }
 
 @media (max-width: 768px) {
 	.scd-planner-grid {
 		grid-template-columns: 1fr;
+		padding: 24px;
+	}
+
+	/* Hide timeline elements on mobile - vertical stack doesn't need them */
+	.scd-planner-grid::before {
+		display: none;
+	}
+
+	.scd-planner-card:not(:last-child)::after {
+		display: none;
+	}
+
+	.scd-planner-card::before {
+		display: none;
 	}
 
 	.scd-planner-card--active {

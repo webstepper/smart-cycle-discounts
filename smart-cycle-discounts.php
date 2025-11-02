@@ -30,9 +30,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'Direct access denied.' );
 }
 
-// Security: Enable SSL certificate verification for Freemius API (BEFORE loading SDK)
+// Security: SSL certificate verification for Freemius API (BEFORE loading SDK)
+// Disable for local development environments to avoid certificate issues
 if ( ! defined( 'FS_SDK__SSLVERIFY' ) ) {
-	define( 'FS_SDK__SSLVERIFY', true );
+	$is_local = (
+		defined( 'WP_LOCAL_DEV' ) && WP_LOCAL_DEV || // Local dev flag
+		( defined( 'WP_DEBUG' ) && WP_DEBUG ) || // Debug mode
+		in_array( $_SERVER['HTTP_HOST'] ?? '', array( 'localhost', '127.0.0.1', '::1' ), true ) || // Localhost
+		preg_match( '/\.local$/', $_SERVER['HTTP_HOST'] ?? '' ) // .local domain
+	);
+	define( 'FS_SDK__SSLVERIFY', ! $is_local );
 }
 
 // Create a helper function for easy SDK access.
