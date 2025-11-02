@@ -71,94 +71,196 @@
 }
 
 /* ===========================
-   Timeline Track (New HTML Elements)
+   Timeline Track (Professional Design)
    =========================== */
 .scd-planner-timeline {
 	grid-column: 1 / -1;
-	height: 40px;
-	margin-bottom: 16px;
+	height: 60px;
+	margin-bottom: 20px;
 	position: relative;
+	background: linear-gradient(135deg, rgba(249, 250, 251, 0.5) 0%, rgba(243, 244, 246, 0.3) 100%);
+	border-radius: 8px;
+	padding: 0 16px;
+	display: flex;
+	align-items: center;
 }
 
 .scd-timeline-track {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	height: 100%;
-	padding: 0 calc(16.67% - 10px);
+	width: 100%;
 	position: relative;
 }
 
-/* Timeline Dots */
+/* Timeline Items (Dot + Label wrapper) */
+.scd-timeline-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	flex-shrink: 0;
+}
+
+/* Timeline Labels */
+.scd-timeline-label {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: #6B7280;
+	white-space: nowrap;
+	opacity: 0.8;
+	transition: all 0.3s ease;
+}
+
+.scd-timeline-label--active {
+	color: var(--wp-admin-theme-color, #2271B1);
+	opacity: 1;
+	font-size: 12px;
+}
+
+/* Timeline Dots - Enhanced Professional Style */
 .scd-timeline-dot {
-	width: 16px;
-	height: 16px;
+	width: 20px;
+	height: 20px;
 	border-radius: 50%;
 	background: #FFFFFF;
 	border: 3px solid #D1D5DB;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08),
+				0 1px 3px rgba(0, 0, 0, 0.12);
 	flex-shrink: 0;
-	z-index: 2;
+	z-index: 3;
 	position: relative;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .scd-timeline-dot--past {
 	border-color: #9CA3AF;
-	background: #F3F4F6;
+	background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+	opacity: 0.7;
 }
 
 .scd-timeline-dot--active {
+	width: 24px;
+	height: 24px;
 	border-color: var(--wp-admin-theme-color, #2271B1);
-	background: #FFFFFF;
-	box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2),
-				0 2px 6px rgba(0, 0, 0, 0.15);
-	animation: pulse-timeline-dot 2.5s ease-in-out infinite;
+	background: linear-gradient(135deg, #FFFFFF 0%, #EFF6FF 100%);
+	box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.15),
+				0 4px 12px rgba(59, 130, 246, 0.25),
+				0 2px 6px rgba(0, 0, 0, 0.1);
+	animation: pulse-timeline-dot 3s ease-in-out infinite;
 }
 
 .scd-timeline-dot--future {
-	border-color: #93C5FD;
-	background: #FFFFFF;
+	border-color: #BFDBFE;
+	background: linear-gradient(135deg, #FFFFFF 0%, #F0F9FF 100%);
+	opacity: 0.85;
 }
 
-/* Pulse animation for active dot */
+/* Hover effects for timeline items */
+.scd-timeline-item:hover .scd-timeline-dot {
+	transform: scale(1.15);
+	box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+}
+
+.scd-timeline-item:hover .scd-timeline-label {
+	opacity: 1;
+	color: #374151;
+}
+
+.scd-timeline-item:hover .scd-timeline-dot--active {
+	transform: scale(1.1);
+}
+
+.scd-timeline-item:hover .scd-timeline-label--active {
+	color: var(--wp-admin-theme-color, #2271B1);
+}
+
+/* Enhanced pulse animation */
 @keyframes pulse-timeline-dot {
 	0%, 100% {
-		box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2),
-					0 2px 6px rgba(0, 0, 0, 0.15);
+		box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.15),
+					0 4px 12px rgba(59, 130, 246, 0.25),
+					0 2px 6px rgba(0, 0, 0, 0.1);
 	}
 	50% {
-		box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.12),
-					0 2px 6px rgba(0, 0, 0, 0.15);
+		box-shadow: 0 0 0 9px rgba(59, 130, 246, 0.08),
+					0 4px 12px rgba(59, 130, 246, 0.35),
+					0 2px 6px rgba(0, 0, 0, 0.1);
 	}
 }
 
-/* Timeline Segments (connecting lines) */
+/* Timeline Segments (Enhanced connecting lines) */
 .scd-timeline-segment {
 	flex: 1;
-	height: 2px;
+	height: 3px;
 	position: relative;
+	margin: 0 8px;
+	border-radius: 2px;
+	background: linear-gradient(90deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.02) 100%);
+	overflow: hidden;
+}
+
+.scd-timeline-segment::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: linear-gradient(90deg, transparent 0%, transparent 100%);
+	transition: all 0.3s ease;
 }
 
 .scd-timeline-segment--past {
-	background: #9CA3AF;
+	background: linear-gradient(90deg, #9CA3AF 0%, #D1D5DB 100%);
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .scd-timeline-segment--active {
-	background: var(--wp-admin-theme-color, #2271B1);
+	background: linear-gradient(90deg, var(--wp-admin-theme-color, #2271B1) 0%, #3B82F6 100%);
+	box-shadow: 0 0 8px rgba(59, 130, 246, 0.3),
+				inset 0 1px 2px rgba(255, 255, 255, 0.3);
+	position: relative;
 }
 
-/* Timeline Arrows */
+/* Shimmer effect for active segment */
+.scd-timeline-segment--active::after {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: -100%;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+	animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+	0% {
+		left: -100%;
+	}
+	50%, 100% {
+		left: 100%;
+	}
+}
+
+/* Timeline Arrows - Professional Icons */
 .scd-timeline-arrow {
 	color: #9CA3AF;
-	font-size: 18px;
-	font-weight: 700;
+	font-size: 16px;
+	font-weight: 600;
 	line-height: 1;
-	margin: 0 4px;
 	flex-shrink: 0;
+	z-index: 2;
+	opacity: 0.6;
+	transition: all 0.3s ease;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .scd-timeline-arrow:last-of-type {
 	color: var(--wp-admin-theme-color, #2271B1);
+	opacity: 0.8;
 }
 
 /* ===========================
@@ -639,6 +741,26 @@
 	/* Tablet: 2 columns */
 	.scd-planner-grid {
 		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+@media (max-width: 900px) {
+	.scd-planner-timeline {
+		height: 50px;
+		padding: 0 12px;
+	}
+
+	.scd-timeline-label {
+		font-size: 10px;
+		letter-spacing: 0.3px;
+	}
+
+	.scd-timeline-label--active {
+		font-size: 11px;
+	}
+
+	.scd-timeline-arrow {
+		font-size: 14px;
 	}
 }
 
