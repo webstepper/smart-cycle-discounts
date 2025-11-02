@@ -127,13 +127,11 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 							<span class="scd-timeline-label"><?php esc_html_e( 'Past', 'smart-cycle-discounts' ); ?></span>
 						</div>
 						<div class="scd-timeline-segment scd-timeline-segment--past"></div>
-						<div class="scd-timeline-arrow">→</div>
 						<div class="scd-timeline-item">
 							<div class="scd-timeline-dot scd-timeline-dot--active" title="<?php esc_attr_e( 'Active Campaign', 'smart-cycle-discounts' ); ?>"></div>
 							<span class="scd-timeline-label scd-timeline-label--active"><?php esc_html_e( 'Active', 'smart-cycle-discounts' ); ?></span>
 						</div>
 						<div class="scd-timeline-segment scd-timeline-segment--active"></div>
-						<div class="scd-timeline-arrow">→</div>
 						<div class="scd-timeline-item">
 							<div class="scd-timeline-dot scd-timeline-dot--future" title="<?php esc_attr_e( 'Upcoming Campaign', 'smart-cycle-discounts' ); ?>"></div>
 							<span class="scd-timeline-label"><?php esc_html_e( 'Upcoming', 'smart-cycle-discounts' ); ?></span>
