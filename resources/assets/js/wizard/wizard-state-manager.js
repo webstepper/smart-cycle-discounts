@@ -463,7 +463,7 @@
 			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
 				window.SCD.Shared.NotificationService.warning(
 					'Your progress may not be saved locally. Server saves are still working.',
-					{ duration: 5000 }
+					{ duration: 3000 }
 				);
 			}
 

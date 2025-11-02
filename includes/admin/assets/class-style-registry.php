@@ -310,6 +310,18 @@ class SCD_Style_Registry {
 			)
 		);
 
+		// Timeline styles - weekly campaign timeline feature
+		$this->add_style(
+			'scd-timeline-styles',
+			array(
+				'src'      => 'resources/assets/css/admin/dashboard/timeline-styles.css',
+				'deps'     => array( 'scd-main-dashboard' ),
+				'pages'    => array( 'scd-dashboard' ),
+				'media'    => 'all',
+				'priority' => 16,
+			)
+		);
+
 		// Notification styles - loaded on all plugin pages
 		$this->add_style(
 			'scd-notifications',

@@ -2,9 +2,14 @@
 /**
  * Dashboard Service
  *
- * Centralized service for dashboard data operations.
- * Provides single source of truth for dashboard business logic,
- * eliminating the need for reflection API hacks.
+ * Orchestrator service for dashboard data operations.
+ * Coordinates dashboard data assembly by delegating to specialized sub-services:
+ * - Campaign Suggestions Service (event-based suggestions)
+ * - Campaign Display Service (display preparation)
+ * - Campaign Timeline Service (weekly timeline with major events)
+ * - Campaign Health Service (health monitoring)
+ *
+ * Provides caching layer and single source of truth for dashboard business logic.
  *
  * @link       https://smartcyclediscounts.com
  * @since      1.0.0
@@ -22,7 +27,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Dashboard Service Class
  *
- * Handles all dashboard data operations and business logic.
+ * Orchestrator for dashboard data operations. Delegates to specialized services:
+ * - Campaign Suggestions Service: Event-based suggestions with timing windows
+ * - Campaign Display Service: Campaign preparation for display
+ * - Campaign Timeline Service: Weekly timeline with dynamic major event integration
+ * - Campaign Health Service: Health monitoring and analysis
+ *
+ * Responsibilities:
+ * - Dashboard data assembly and orchestration
+ * - Campaign statistics and metrics
+ * - Caching layer (5-minute TTL with automatic invalidation)
+ * - Cache invalidation hooks
+ *
  * Used by both Page Controller and AJAX Handler.
  *
  * @since      1.0.0
@@ -94,27 +110,63 @@ class SCD_Dashboard_Service {
 	private SCD_Logger $logger;
 
 	/**
+	 * Campaign suggestions service instance.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      SCD_Campaign_Suggestions_Service    $suggestions_service    Campaign suggestions service.
+	 */
+	private SCD_Campaign_Suggestions_Service $suggestions_service;
+
+	/**
+	 * Campaign display service instance.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      SCD_Campaign_Display_Service    $display_service    Campaign display service.
+	 */
+	private SCD_Campaign_Display_Service $display_service;
+
+	/**
+	 * Campaign timeline service instance.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      SCD_Campaign_Timeline_Service    $timeline_service    Campaign timeline service.
+	 */
+	private SCD_Campaign_Timeline_Service $timeline_service;
+
+	/**
 	 * Initialize the dashboard service.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Analytics_Dashboard     $analytics_dashboard    Analytics dashboard.
-	 * @param    SCD_Campaign_Repository     $campaign_repository    Campaign repository.
-	 * @param    SCD_Campaign_Health_Service $health_service         Campaign health service.
-	 * @param    SCD_Feature_Gate            $feature_gate           Feature gate.
-	 * @param    SCD_Logger                  $logger                 Logger instance.
+	 * @param    SCD_Analytics_Dashboard          $analytics_dashboard    Analytics dashboard.
+	 * @param    SCD_Campaign_Repository          $campaign_repository    Campaign repository.
+	 * @param    SCD_Campaign_Health_Service      $health_service         Campaign health service.
+	 * @param    SCD_Feature_Gate                 $feature_gate           Feature gate.
+	 * @param    SCD_Logger                       $logger                 Logger instance.
+	 * @param    SCD_Campaign_Suggestions_Service $suggestions_service    Campaign suggestions service.
+	 * @param    SCD_Campaign_Display_Service     $display_service        Campaign display service.
+	 * @param    SCD_Campaign_Timeline_Service    $timeline_service       Campaign timeline service.
 	 */
 	public function __construct(
 		SCD_Analytics_Dashboard $analytics_dashboard,
 		SCD_Campaign_Repository $campaign_repository,
 		SCD_Campaign_Health_Service $health_service,
 		SCD_Feature_Gate $feature_gate,
-		SCD_Logger $logger
+		SCD_Logger $logger,
+		SCD_Campaign_Suggestions_Service $suggestions_service,
+		SCD_Campaign_Display_Service $display_service,
+		SCD_Campaign_Timeline_Service $timeline_service
 	) {
 		$this->analytics_dashboard = $analytics_dashboard;
 		$this->campaign_repository = $campaign_repository;
 		$this->health_service      = $health_service;
 		$this->feature_gate        = $feature_gate;
 		$this->logger              = $logger;
+		$this->suggestions_service = $suggestions_service;
+		$this->display_service     = $display_service;
+		$this->timeline_service    = $timeline_service;
 
 		// Register cache invalidation hooks
 		$this->register_cache_hooks();
@@ -209,8 +261,8 @@ class SCD_Dashboard_Service {
 		// Get recent campaigns with pre-computed display data (replaces view query)
 		$all_campaigns = $this->get_recent_campaigns( 5 );
 
-		// Get timeline campaigns with positioning data (replaces view query)
-		$timeline_campaigns = $this->get_timeline_campaigns( 30 );
+		// Get weekly timeline data (dynamic 3-card selection: past/active/future)
+		$timeline_data = $this->get_weekly_timeline_campaigns();
 
 		return array(
 			'metrics'            => $metrics,
@@ -219,7 +271,7 @@ class SCD_Dashboard_Service {
 			'recent_activity'    => $recent_activity,
 			'campaign_health'    => $campaign_health,
 			'all_campaigns'      => $all_campaigns,
-			'timeline_campaigns' => $timeline_campaigns,
+			'timeline_data'      => $timeline_data,
 			'is_premium'         => $this->feature_gate->is_premium(),
 			'campaign_limit'     => $this->feature_gate->get_campaign_limit(),
 		);
@@ -607,347 +659,14 @@ class SCD_Dashboard_Service {
 	/**
 	 * Get recent campaigns with display data.
 	 *
-	 * Replaces direct DB query in view (main-dashboard.php lines 655-673).
-	 * Returns campaigns sorted by urgency with pre-computed display data.
+	 * Delegates to Campaign Display Service.
 	 *
 	 * @since    1.0.0
 	 * @param    int $limit    Number of campaigns to retrieve.
 	 * @return   array            Recent campaigns prepared for display.
 	 */
 	public function get_recent_campaigns( int $limit = 5 ): array {
-		// Use repository layer with find_by() for multiple statuses
-		$campaigns = $this->campaign_repository->find_by(
-			array(
-				'status' => array( 'active', 'scheduled', 'paused', 'draft' ),
-			),
-			array(
-				'order_by'        => 'created_at',
-				'order_direction' => 'DESC',
-				'limit'           => $limit * 2, // Get more to allow urgency sorting
-			)
-		);
-
-		// Debug: Log what we found
-		$this->logger->debug(
-			'Dashboard Service: get_recent_campaigns()',
-			array(
-				'campaigns_found' => count( $campaigns ),
-				'limit_requested' => $limit,
-			)
-		);
-
-		// Pre-compute all display data
-		$prepared = array();
-		foreach ( $campaigns as $campaign ) {
-			// Convert Campaign object to array
-			$campaign_array = is_object( $campaign ) ? $campaign->to_array() : $campaign;
-			$prepared[]     = $this->prepare_campaign_for_display( $campaign_array );
-		}
-
-		// Sort by urgency (ending soon first)
-		usort(
-			$prepared,
-			function ( $a, $b ) {
-				// Urgent campaigns first
-				if ( $a['is_urgent'] !== $b['is_urgent'] ) {
-					return $b['is_urgent'] <=> $a['is_urgent'];
-				}
-
-				// Then by days remaining (ascending)
-				if ( isset( $a['days_until_end'], $b['days_until_end'] ) ) {
-					return $a['days_until_end'] <=> $b['days_until_end'];
-				}
-
-				// Fall back to created date
-				return 0;
-			}
-		);
-
-		// Return only requested limit after sorting
-		return array_slice( $prepared, 0, $limit );
-	}
-
-	/**
-	 * Get timeline campaigns with positioning data.
-	 *
-	 * Replaces direct DB query in view (main-dashboard.php lines 861-874).
-	 * Returns campaigns with pre-calculated timeline positioning.
-	 *
-	 * @since    1.0.0
-	 * @param    int $days    Timeline range in days.
-	 * @return   array           Timeline campaigns with position data.
-	 */
-	public function get_timeline_campaigns( int $days = 30 ): array {
-		// Use repository layer with find_by() for multiple statuses
-		$campaigns = $this->campaign_repository->find_by(
-			array(
-				'status' => array( 'active', 'scheduled' ),
-			),
-			array(
-				'order_by'        => 'starts_at',
-				'order_direction' => 'ASC',
-				'limit'           => 10,
-			)
-		);
-
-		// Pre-calculate timeline positioning
-		$now            = current_time( 'timestamp' );
-		$timeline_start = $now;
-		$timeline_end   = $now + ( $days * DAY_IN_SECONDS );
-
-		$prepared = array();
-		foreach ( $campaigns as $campaign ) {
-			// Convert Campaign object to array
-			$campaign_array                      = is_object( $campaign ) ? $campaign->to_array() : $campaign;
-			$campaign_array['timeline_position'] = $this->calculate_timeline_position(
-				$campaign_array,
-				$timeline_start,
-				$timeline_end
-			);
-			$prepared[]                          = $campaign_array;
-		}
-
-		return $prepared;
-	}
-
-	/**
-	 * Calculate timeline bar position and width.
-	 *
-	 * @since    1.0.0
-	 * @param    array $campaign         Campaign data.
-	 * @param    int   $timeline_start   Timeline start timestamp.
-	 * @param    int   $timeline_end     Timeline end timestamp.
-	 * @return   array                      Position data (left, width, formatted dates).
-	 */
-	private function calculate_timeline_position( array $campaign, int $timeline_start, int $timeline_end ): array {
-		$start_time = ! empty( $campaign['starts_at'] ) ? strtotime( $campaign['starts_at'] ) : $timeline_start;
-		$end_time   = ! empty( $campaign['ends_at'] ) ? strtotime( $campaign['ends_at'] ) : $timeline_end;
-
-		// Calculate left position (%)
-		$left_pos = 0;
-		if ( $start_time > $timeline_start ) {
-			$left_pos = ( ( $start_time - $timeline_start ) / ( $timeline_end - $timeline_start ) ) * 100;
-		}
-
-		// Calculate width (%)
-		$width = 100;
-		if ( $end_time < $timeline_end ) {
-			$right_pos = ( ( $end_time - $timeline_start ) / ( $timeline_end - $timeline_start ) ) * 100;
-			$width     = $right_pos - $left_pos;
-		} else {
-			$width = 100 - $left_pos;
-		}
-
-		// Minimum visible width
-		$width = max( 2, $width );
-
-		return array(
-			'left'                 => round( $left_pos, 2 ),
-			'width'                => round( $width, 2 ),
-			'start_date_formatted' => wp_date( 'M j', $start_time ),
-			'end_date_formatted'   => wp_date( 'M j', $end_time ),
-			'date_range'           => wp_date( 'M j', $start_time ) . ' - ' . wp_date( 'M j', $end_time ),
-		);
-	}
-
-	/**
-	 * Prepare campaign for display with all computed fields.
-	 *
-	 * Pre-computes all display data so view template can be "dumb".
-	 *
-	 * @since    1.0.0
-	 * @param    array $campaign    Campaign data array.
-	 * @return   array                Campaign with all display fields added.
-	 */
-	private function prepare_campaign_for_display( array $campaign ): array {
-		$now = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
-
-		// Time remaining calculations
-		$time_data = $this->calculate_time_data( $campaign, $now );
-
-		// Urgency checks
-		$urgency_data = $this->calculate_urgency_data( $campaign, $now );
-
-		// Status formatting
-		$status_data = $this->format_status_data( $campaign );
-
-		// Merge everything
-		return array_merge( $campaign, $time_data, $urgency_data, $status_data );
-	}
-
-	/**
-	 * Calculate all time-related display data.
-	 *
-	 * @since    1.0.0
-	 * @param    array    $campaign    Campaign data.
-	 * @param    DateTime $now         Current datetime object.
-	 * @return   array                    Time data array.
-	 */
-	private function calculate_time_data( array $campaign, DateTime $now ): array {
-		$data = array(
-			'time_remaining_text'   => '',
-			'time_until_start_text' => '',
-			'days_until_end'        => null,
-			'days_until_start'      => null,
-		);
-
-		// Active campaign - calculate time until end
-		if ( 'active' === $campaign['status'] && ! empty( $campaign['ends_at'] ) ) {
-			$end_date     = new DateTime( $campaign['ends_at'], new DateTimeZone( 'UTC' ) );
-			$diff_seconds = $end_date->getTimestamp() - $now->getTimestamp();
-
-			if ( $diff_seconds > 0 ) {
-				$data['days_until_end']      = floor( $diff_seconds / DAY_IN_SECONDS );
-				$data['time_remaining_text'] = $this->format_time_remaining( $diff_seconds );
-			}
-		}
-
-		// Scheduled campaign - calculate time until start
-		if ( 'scheduled' === $campaign['status'] && ! empty( $campaign['starts_at'] ) ) {
-			$start_date   = new DateTime( $campaign['starts_at'], new DateTimeZone( 'UTC' ) );
-			$diff_seconds = $start_date->getTimestamp() - $now->getTimestamp();
-
-			if ( $diff_seconds > 0 ) {
-				$data['days_until_start']      = floor( $diff_seconds / DAY_IN_SECONDS );
-				$data['time_until_start_text'] = $this->format_time_until_start( $diff_seconds );
-			}
-		}
-
-		return $data;
-	}
-
-	/**
-	 * Format time remaining in human-readable format.
-	 *
-	 * @since    1.0.0
-	 * @param    int $seconds    Seconds remaining.
-	 * @return   string             Formatted time string.
-	 */
-	private function format_time_remaining( int $seconds ): string {
-		if ( $seconds < DAY_IN_SECONDS ) {
-			// Less than 1 day - show hours and minutes
-			$hours   = floor( $seconds / HOUR_IN_SECONDS );
-			$minutes = floor( ( $seconds % HOUR_IN_SECONDS ) / MINUTE_IN_SECONDS );
-
-			if ( $hours > 0 ) {
-				return sprintf(
-					/* translators: 1: hours, 2: minutes */
-					_n( 'Ends in %1$d hour %2$d min', 'Ends in %1$d hours %2$d min', $hours, 'smart-cycle-discounts' ),
-					$hours,
-					$minutes
-				);
-			} else {
-				return sprintf(
-					/* translators: %d: minutes */
-					_n( 'Ends in %d minute', 'Ends in %d minutes', $minutes, 'smart-cycle-discounts' ),
-					$minutes
-				);
-			}
-		} else {
-			// Show days
-			$days = floor( $seconds / DAY_IN_SECONDS );
-			return sprintf(
-				/* translators: %d: days */
-				_n( 'Ends in %d day', 'Ends in %d days', $days, 'smart-cycle-discounts' ),
-				$days
-			);
-		}
-	}
-
-	/**
-	 * Format time until start in human-readable format.
-	 *
-	 * @since    1.0.0
-	 * @param    int $seconds    Seconds until start.
-	 * @return   string             Formatted time string.
-	 */
-	private function format_time_until_start( int $seconds ): string {
-		if ( $seconds < DAY_IN_SECONDS ) {
-			// Less than 1 day - show hours
-			$hours = floor( $seconds / HOUR_IN_SECONDS );
-			return sprintf(
-				/* translators: %d: hours */
-				_n( 'Starts in %d hour', 'Starts in %d hours', $hours, 'smart-cycle-discounts' ),
-				$hours
-			);
-		} else {
-			// Show days
-			$days = floor( $seconds / DAY_IN_SECONDS );
-			return sprintf(
-				/* translators: %d: days */
-				_n( 'Starts in %d day', 'Starts in %d days', $days, 'smart-cycle-discounts' ),
-				$days
-			);
-		}
-	}
-
-	/**
-	 * Calculate urgency flags.
-	 *
-	 * @since    1.0.0
-	 * @param    array    $campaign    Campaign data.
-	 * @param    DateTime $now         Current datetime object.
-	 * @return   array                    Urgency data array.
-	 */
-	private function calculate_urgency_data( array $campaign, DateTime $now ): array {
-		$is_ending_soon   = false;
-		$is_starting_soon = false;
-
-		// Check if ending soon (within 7 days)
-		if ( 'active' === $campaign['status'] && ! empty( $campaign['ends_at'] ) ) {
-			$end_date       = new DateTime( $campaign['ends_at'], new DateTimeZone( 'UTC' ) );
-			$diff_days      = ( $end_date->getTimestamp() - $now->getTimestamp() ) / DAY_IN_SECONDS;
-			$is_ending_soon = $diff_days >= 0 && $diff_days <= 7;
-		}
-
-		// Check if starting soon (within 7 days)
-		if ( 'scheduled' === $campaign['status'] && ! empty( $campaign['starts_at'] ) ) {
-			$start_date       = new DateTime( $campaign['starts_at'], new DateTimeZone( 'UTC' ) );
-			$diff_days        = ( $start_date->getTimestamp() - $now->getTimestamp() ) / DAY_IN_SECONDS;
-			$is_starting_soon = $diff_days >= 0 && $diff_days <= 7;
-		}
-
-		return array(
-			'is_ending_soon'   => $is_ending_soon,
-			'is_starting_soon' => $is_starting_soon,
-			'is_urgent'        => $is_ending_soon || $is_starting_soon,
-		);
-	}
-
-	/**
-	 * Format status data for display.
-	 *
-	 * @since    1.0.0
-	 * @param    array $campaign    Campaign data.
-	 * @return   array                 Status data array.
-	 */
-	private function format_status_data( array $campaign ): array {
-		$status = $campaign['status'];
-
-		return array(
-			'status_badge_class' => 'scd-status-' . $status,
-			'status_label'       => ucfirst( $status ),
-			'status_icon'        => $this->get_status_icon( $status ),
-		);
-	}
-
-	/**
-	 * Get dashicon for status.
-	 *
-	 * @since    1.0.0
-	 * @param    string $status    Campaign status.
-	 * @return   string               Dashicon name.
-	 */
-	private function get_status_icon( string $status ): string {
-		$icons = array(
-			'active'    => 'yes-alt',
-			'scheduled' => 'calendar-alt',
-			'paused'    => 'controls-pause',
-			'draft'     => 'edit',
-			'expired'   => 'clock',
-		);
-
-		return $icons[ $status ] ?? 'admin-generic';
+		return $this->display_service->get_recent_campaigns( $limit );
 	}
 
 	/**
@@ -1175,441 +894,642 @@ class SCD_Dashboard_Service {
 	/**
 	 * Get campaign suggestions based on upcoming seasonal events.
 	 *
-	 * Uses intelligent lead time calculations to show suggestions at optimal creation times.
+	 * Delegates to Campaign Suggestions Service.
 	 *
 	 * @since    1.0.0
 	 * @return   array    Array of campaign suggestions.
 	 */
 	public function get_campaign_suggestions(): array {
-		require_once SCD_INCLUDES_DIR . 'core/campaigns/class-campaign-suggestions-registry.php';
-		$all_events        = SCD_Campaign_Suggestions_Registry::get_event_definitions();
-		$qualifying_events = array();
+		return $this->suggestions_service->get_suggestions();
+	}
 
-		// Use WordPress timezone for user-facing date calculations
-		$current_year = intval( wp_date( 'Y' ) );
-		$now          = current_time( 'timestamp' );
-
-		foreach ( $all_events as $event ) {
-			// Calculate actual event date for this year
-			$event_date = $this->calculate_event_date( $event, $current_year );
-
-			// If event already passed this year, check next year
-			if ( $event_date < $now ) {
-				$event_date = $this->calculate_event_date( $event, $current_year + 1 );
-			}
-
-			// Calculate optimal creation window
-			$window = $this->calculate_suggestion_window( $event, $event_date );
-
-			// Check if we're currently in the optimal creation window
-			if ( $window['in_window'] ) {
-				$event['event_date'] = $event_date;
-				$event['window']     = $window;
-				$qualifying_events[] = $event;
-			}
-		}
-
-		// Smart filtering: Remove weekend_sale if major events are nearby
-		$qualifying_events = $this->filter_weekend_sale_by_major_events( $qualifying_events, $all_events, $current_year );
-
-		// No qualifying events
-		if ( empty( $qualifying_events ) ) {
-			return array();
-		}
-
-		// Sort by priority (higher first), then by days until optimal
-		usort(
-			$qualifying_events,
-			function ( $a, $b ) {
-				if ( $a['priority'] !== $b['priority'] ) {
-					return $b['priority'] - $a['priority'];
-				}
-				return $a['window']['days_until_optimal'] - $b['window']['days_until_optimal'];
-			}
-		);
-
-		// Smart display logic: 1 suggestion preferred, multiple only if windows overlap
-		$suggestions = $this->select_suggestions_by_overlap( $qualifying_events );
-
-		// Enrich suggestions with campaign data (if campaigns were created from suggestions)
-		$suggestions = $this->enrich_suggestions_with_campaigns( $suggestions );
-
-		// Filter out suggestions where events have already started
-		$suggestions = $this->filter_started_events( $suggestions );
-
-		return $suggestions;
+	/**
+	 * Get weekly timeline campaigns with dynamic selection.
+	 *
+	 * Delegates to Campaign Timeline Service.
+	 * Intelligently mixes major events and weekly campaigns based on priority.
+	 * Each position (past/active/future) shows the most relevant campaign.
+	 *
+	 * @since  1.0.0
+	 * @return array Timeline data with 3 selected campaigns.
+	 */
+	public function get_weekly_timeline_campaigns(): array {
+		return $this->timeline_service->get_weekly_timeline_campaigns();
 	}
 
 	/**
 	 * Get single event definition by ID.
+	 *
+	 * Delegates to Campaign Suggestions Service.
 	 *
 	 * @since    1.0.0
 	 * @param    string $event_id    Event ID (e.g., 'valentines', 'black_friday').
 	 * @return   array|null              Event definition or null if not found.
 	 */
 	public function get_event_by_id( string $event_id ): ?array {
-		require_once SCD_INCLUDES_DIR . 'core/campaigns/class-campaign-suggestions-registry.php';
-		return SCD_Campaign_Suggestions_Registry::get_event_by_id( $event_id );
+		return $this->suggestions_service->get_event_by_id( $event_id );
 	}
 
 	/**
-	 * Enrich suggestions with campaign data.
+	 * Get unified insights for a timeline campaign.
 	 *
-	 * Checks if campaigns were created from suggestions and adds campaign data to suggestions.
+	 * Returns structured insights data for displaying in timeline insights panel.
+	 * Creates comprehensive Why/How/When tab structure with rich data for BOTH
+	 * major events (from Campaign Suggestions Registry) AND weekly campaigns
+	 * (from Weekly Campaign Definitions).
 	 *
-	 * @since    1.0.0
-	 * @param    array $suggestions    Suggestions array.
-	 * @return   array                    Enriched suggestions with campaign data.
+	 * @since  1.0.0
+	 * @param  string $campaign_id     Campaign ID.
+	 * @param  string $state           Campaign state (past/active/future).
+	 * @param  bool   $is_major_event  Whether this is a major event.
+	 * @return array                   Insights data structure with 'tabs' key.
 	 */
-	private function enrich_suggestions_with_campaigns( array $suggestions ): array {
-		if ( empty( $suggestions ) ) {
-			return $suggestions;
-		}
+	public function get_unified_insights( string $campaign_id, string $state, bool $is_major_event ): array {
+		// If major event, get rich event data from Registry.
+		if ( $is_major_event ) {
+			$event = SCD_Campaign_Suggestions_Registry::get_event_by_id( $campaign_id );
 
-		// Get Campaign Repository
-		if ( ! $this->campaign_repository ) {
-			return $suggestions;
-		}
-
-		foreach ( $suggestions as &$suggestion ) {
-			// Query campaigns created from this suggestion (most recent first)
-			$campaigns = $this->campaign_repository->find_by_metadata(
-				'from_suggestion',
-				$suggestion['id'],
-				array(
-					'order_by' => 'created_at',
-					'order'    => 'DESC',
-					'limit'    => 1,
-				)
-			);
-
-			if ( ! empty( $campaigns ) && ! is_wp_error( $campaigns ) && is_array( $campaigns ) ) {
-				// Get the most recent campaign
-				$campaign = $campaigns[0];
-
-				// Verify it's a valid campaign object
-				if ( $campaign && is_object( $campaign ) && method_exists( $campaign, 'get_id' ) ) {
-					// Add campaign data to suggestion
-					$suggestion['has_campaign'] = true;
-					$suggestion['campaign']     = array(
-						'id'     => $campaign->get_id(),
-						'name'   => $campaign->get_name(),
-						'status' => $campaign->get_status(),
-						'url'    => admin_url( 'admin.php?page=scd-campaigns&action=edit&id=' . $campaign->get_id() ),
-					);
-				} else {
-					$suggestion['has_campaign'] = false;
-				}
-			} else {
-				$suggestion['has_campaign'] = false;
+			if ( $event ) {
+				return $this->build_event_insights( $event, $state );
 			}
 		}
 
-		return $suggestions;
+		// For weekly campaigns, get rich data from Weekly Definitions.
+		require_once SCD_INCLUDES_DIR . 'core/campaigns/class-weekly-campaign-definitions.php';
+		$weekly = SCD_Weekly_Campaign_Definitions::get_by_id( $campaign_id );
+
+		if ( $weekly ) {
+			return $this->build_weekly_event_insights( $weekly, $state );
+		}
+
+		// Fallback to basic structure if no data found.
+		return $this->build_weekly_insights( $campaign_id, $state );
 	}
 
 	/**
-	 * Filter out suggestions where events have already started.
+	 * Build comprehensive insights for major events with Why/How/When tabs.
 	 *
-	 * Once an event starts, the suggestion is no longer actionable.
-	 *
-	 * @since    1.0.0
-	 * @param    array $suggestions    Suggestions array.
-	 * @return   array                    Filtered suggestions.
+	 * @since  1.0.0
+	 * @param  array  $event  Event definition from Campaign Suggestions Registry.
+	 * @param  string $state  Campaign state (past/active/future).
+	 * @return array          Insights data structure.
 	 */
-	private function filter_started_events( array $suggestions ): array {
-		if ( empty( $suggestions ) ) {
-			return $suggestions;
-		}
-
-		$now = current_time( 'timestamp' );
-
-		$filtered = array_filter(
-			$suggestions,
-			function ( $suggestion ) use ( $now ) {
-				// Keep suggestions where event hasn't started yet
-				if ( isset( $suggestion['start_date'] ) ) {
-					$event_start = strtotime( $suggestion['start_date'] );
-					return $event_start > $now;
-				}
-				// Keep suggestions without start_date (shouldn't happen, but safe)
-				return true;
-			}
+	private function build_event_insights( array $event, string $state ): array {
+		$tabs = array(
+			$this->build_why_tab( $event, $state ),
+			$this->build_how_tab( $event, $state ),
+			$this->build_when_tab( $event, $state ),
 		);
-
-		// Re-index array to avoid gaps in keys
-		return array_values( $filtered );
-	}
-
-	/**
-	 * Calculate actual event date for a given year.
-	 *
-	 * @since    1.0.0
-	 * @param    array $event Event definition.
-	 * @param    int   $year  Year to calculate for.
-	 * @return   int          Event timestamp.
-	 */
-	private function calculate_event_date( array $event, int $year ): int {
-		// Check if this is a dynamic date calculation
-		if ( isset( $event['calculate_date'] ) && is_callable( $event['calculate_date'] ) ) {
-			return call_user_func( $event['calculate_date'], $year );
-		}
-
-		// Default: fixed date calculation
-		return mktime( 0, 0, 0, $event['month'], $event['day'], $year );
-	}
-
-	/**
-	 * Calculate optimal creation window for an event.
-	 *
-	 * @since    1.0.0
-	 * @param    array $event      Event definition.
-	 * @param    int   $event_date Event timestamp.
-	 * @return   array             Window data with timestamps and status.
-	 */
-	private function calculate_suggestion_window( array $event, int $event_date ): array {
-		$lead_time = $event['lead_time'];
-
-		// Calculate total lead time (base prep + inventory + marketing)
-		$total_lead_days  = $lead_time['base_prep'] + $lead_time['inventory'] + $lead_time['marketing'];
-		$flexibility_days = $lead_time['flexibility'];
-
-		// Optimal date is when campaign should ideally be created
-		$optimal_date = strtotime( "-{$total_lead_days} days", $event_date );
-
-		// Window is optimal date ± flexibility
-		$window_start = strtotime( "-{$flexibility_days} days", $optimal_date );
-		$window_end   = strtotime( "+{$flexibility_days} days", $optimal_date );
-
-		// Use WordPress timezone for user-facing calculations
-		$now                 = current_time( 'timestamp' );
-		$in_window           = ( $now >= $window_start && $now <= $window_end );
-		$days_until_optimal  = ceil( ( $optimal_date - $now ) / DAY_IN_SECONDS );
-		$days_until_event    = ceil( ( $event_date - $now ) / DAY_IN_SECONDS );
-		$days_left_in_window = $in_window ? ceil( ( $window_end - $now ) / DAY_IN_SECONDS ) : 0;
 
 		return array(
-			'optimal_date'        => $optimal_date,
-			'window_start'        => $window_start,
-			'window_end'          => $window_end,
-			'in_window'           => $in_window,
-			'days_until_optimal'  => abs( $days_until_optimal ),
-			'days_until_event'    => $days_until_event,
-			'days_left_in_window' => $days_left_in_window,
-			'total_lead_days'     => $total_lead_days,
+			'title' => $event['name'],
+			'icon'  => 'calendar-alt',
+			'tabs'  => $tabs,
 		);
 	}
 
 	/**
-	 * Check if two event windows overlap.
+	 * Build comprehensive insights for weekly campaigns with Why/How/When tabs.
 	 *
-	 * @since    1.0.0
-	 * @param    array $window1 First window data.
-	 * @param    array $window2 Second window data.
-	 * @return   bool           True if windows overlap.
-	 */
-	private function windows_overlap( array $window1, array $window2 ): bool {
-		return ! ( $window1['window_end'] < $window2['window_start'] || $window2['window_end'] < $window1['window_start'] );
-	}
-
-	/**
-	 * Select suggestions based on window overlap logic.
+	 * Uses rich data from Weekly Campaign Definitions to build the same comprehensive
+	 * tab structure as major events.
 	 *
-	 * @since    1.0.0
-	 * @param    array $qualifying_events Events that are in their creation windows.
-	 * @return   array                    Selected suggestions to display.
+	 * @since  1.0.0
+	 * @param  array  $weekly  Weekly campaign definition from Weekly Campaign Definitions.
+	 * @param  string $state   Campaign state (past/active/future).
+	 * @return array           Insights data structure.
 	 */
-	private function select_suggestions_by_overlap( array $qualifying_events ): array {
-		if ( empty( $qualifying_events ) ) {
-			return array();
-		}
-
-		// If only one event qualifies, show it
-		if ( 1 === count( $qualifying_events ) ) {
-			return array( $this->format_suggestion( $qualifying_events[0] ) );
-		}
-
-		// Multiple events qualify - check for overlaps
-		$suggestions = array( $qualifying_events[0] );
-
-		foreach ( array_slice( $qualifying_events, 1 ) as $event ) {
-			// Check if this event's window overlaps with any already selected
-			$has_overlap = false;
-			foreach ( $suggestions as $existing ) {
-				if ( $this->windows_overlap( $event['window'], $existing['window'] ) ) {
-					$has_overlap = true;
-					break;
-				}
-			}
-
-			// Only add if windows overlap
-			if ( $has_overlap ) {
-				$suggestions[] = $event;
-
-				// Maximum 3 suggestions
-				if ( count( $suggestions ) >= 3 ) {
-					break;
-				}
-			}
-		}
-
-		// Format all selected suggestions
-		return array_map( array( $this, 'format_suggestion' ), $suggestions );
-	}
-
-	/**
-	 * Format event data for display.
-	 *
-	 * @since    1.0.0
-	 * @param    array $event Event with window data.
-	 * @return   array        Formatted suggestion.
-	 */
-	private function format_suggestion( array $event ): array {
-		$start_date = strtotime( $event['start_offset'] . ' days', $event['event_date'] );
-		$end_date   = strtotime( '+' . $event['duration_days'] . ' days', $start_date );
-
-		// Format discount range
-		$discount       = $event['suggested_discount'];
-		$discount_range = $discount['min'] . '-' . $discount['max'] . '%';
-
-		$formatted = array(
-			'id'                  => $event['id'],
-			'name'                => $event['name'],
-			'icon'                => $event['icon'],
-			'category'            => $event['category'],
-			'start_date'          => wp_date( 'Y-m-d', $start_date ),
-			'end_date'            => wp_date( 'Y-m-d', $end_date ),
-			'days_until'          => $event['window']['days_until_event'],
-			'days_left_in_window' => $event['window']['days_left_in_window'],
-			'suggested_discount'  => $discount_range,
-			'optimal_discount'    => $discount['optimal'],
-			'description'         => $event['description'],
-			'timing_message'      => $this->get_timing_message( $event['window'] ),
+	private function build_weekly_event_insights( array $weekly, string $state ): array {
+		$tabs = array(
+			$this->build_weekly_why_tab( $weekly, $state ),
+			$this->build_weekly_how_tab( $weekly, $state ),
+			$this->build_weekly_when_tab( $weekly, $state ),
 		);
 
-		// Add recommendations if available
-		if ( isset( $event['recommendations'] ) && ! empty( $event['recommendations'] ) ) {
-			$formatted['recommendations'] = $event['recommendations'];
-		}
-
-		// Add rich data if available - randomly select 1 from each
-		if ( isset( $event['statistics'] ) && ! empty( $event['statistics'] ) ) {
-			$stat_keys                     = array_keys( $event['statistics'] );
-			$random_stat_key               = $stat_keys[ array_rand( $stat_keys ) ];
-			$formatted['random_statistic'] = array(
-				'label' => $random_stat_key,
-				'value' => $event['statistics'][ $random_stat_key ],
-			);
-			$formatted['statistics']       = $event['statistics'];
-		}
-
-		if ( isset( $event['tips'] ) && ! empty( $event['tips'] ) ) {
-			$formatted['random_tip'] = $event['tips'][ array_rand( $event['tips'] ) ];
-			$formatted['tips']       = $event['tips'];
-		}
-
-		if ( isset( $event['best_practices'] ) && ! empty( $event['best_practices'] ) ) {
-			$formatted['random_best_practice'] = $event['best_practices'][ array_rand( $event['best_practices'] ) ];
-			$formatted['best_practices']       = $event['best_practices'];
-		}
-
-		return $formatted;
+		return array(
+			'title' => $weekly['name'],
+			'icon'  => 'calendar-alt',
+			'tabs'  => $tabs,
+		);
 	}
 
 	/**
-	 * Get timing explanation message.
+	 * Build "Why This Opportunity?" tab - Market Intelligence.
 	 *
-	 * @since    1.0.0
-	 * @param    array $window Window data.
-	 * @return   string        Human-readable timing message.
+	 * @since  1.0.0
+	 * @param  array  $event  Event definition.
+	 * @param  string $state  Campaign state.
+	 * @return array          Tab data structure.
 	 */
-	private function get_timing_message( array $window ): string {
-		$days_left        = $window['days_left_in_window'];
-		$days_until_event = $window['days_until_event'];
+	private function build_why_tab( array $event, string $state ): array {
+		$sections = array();
 
-		// Show urgency based on days left
-		if ( $days_left <= 3 ) {
-			return sprintf(
-				__( 'Urgent: Only %d days left in optimal creation window!', 'smart-cycle-discounts' ),
-				$days_left
-			);
-		} elseif ( $days_left <= 7 ) {
-			return sprintf(
-				__( 'Create soon: %d days left in optimal window', 'smart-cycle-discounts' ),
-				$days_left
-			);
-		} else {
-			return sprintf(
-				__( 'Perfect timing: %1$d days until event, %2$d days left to create', 'smart-cycle-discounts' ),
-				$days_until_event,
-				$days_left
-			);
+		// Section 1: Event Description & Statistics.
+		$content = array(
+			array(
+				'type' => 'message',
+				'icon' => 'calendar-alt',
+				'text' => $event['description'],
+			),
+		);
+
+		if ( ! empty( $event['statistics'] ) ) {
+			foreach ( $event['statistics'] as $label => $value ) {
+				$content[] = array(
+					'type'  => 'stat',
+					'label' => ucwords( str_replace( '_', ' ', $label ) ),
+					'value' => $value,
+				);
+			}
 		}
+
+		$sections[] = array(
+			'heading'      => __( 'Market Opportunity', 'smart-cycle-discounts' ),
+			'icon'         => 'chart-bar',
+			'default_open' => true,
+			'content'      => $content,
+		);
+
+		return array(
+			'id'       => 'why',
+			'label'    => __( 'Why?', 'smart-cycle-discounts' ),
+			'icon'     => 'lightbulb',
+			'sections' => $sections,
+		);
 	}
 
 	/**
-	 * Filter out weekend_sale if major events are within 2 weeks.
+	 * Build "How to Execute?" tab - Execution Guide.
 	 *
-	 * @since    1.0.0
-	 * @param    array $qualifying_events Events that qualified for display.
-	 * @param    array $all_events        All event definitions.
-	 * @param    int   $current_year      Current year for date calculations.
-	 * @return   array                    Filtered qualifying events.
+	 * @since  1.0.0
+	 * @param  array  $event  Event definition.
+	 * @param  string $state  Campaign state.
+	 * @return array          Tab data structure.
 	 */
-	private function filter_weekend_sale_by_major_events( array $qualifying_events, array $all_events, int $current_year ): array {
-		// Check if weekend_sale is in qualifying events
-		$has_weekend_sale   = false;
-		$weekend_sale_index = -1;
-		$weekend_sale_date  = 0;
+	private function build_how_tab( array $event, string $state ): array {
+		$sections = array();
 
-		foreach ( $qualifying_events as $index => $event ) {
-			if ( 'weekend_sale' === $event['id'] ) {
-				$has_weekend_sale   = true;
-				$weekend_sale_index = $index;
-				$weekend_sale_date  = $event['event_date'];
+		// Section 1: Suggested Discount Range.
+		if ( ! empty( $event['suggested_discount'] ) ) {
+			$discount = $event['suggested_discount'];
+			$sections[] = array(
+				'heading'      => __( 'Suggested Discount Range', 'smart-cycle-discounts' ),
+				'icon'         => 'tag',
+				'default_open' => true,
+				'content'      => array(
+					array(
+						'type'  => 'stat',
+						'label' => __( 'Optimal Discount', 'smart-cycle-discounts' ),
+						'value' => $discount['optimal'] . '%',
+					),
+					array(
+						'type' => 'text',
+						'text' => sprintf(
+							/* translators: %1$d: minimum discount, %2$d: maximum discount */
+							__( 'Range: %1$d%% - %2$d%% based on industry performance', 'smart-cycle-discounts' ),
+							$discount['min'],
+							$discount['max']
+						),
+					),
+				),
+			);
+		}
+
+		// Section 2: Preparation Checklist.
+		if ( ! empty( $event['recommendations'] ) && ( 'active' === $state || 'future' === $state ) ) {
+			$checklist_items = array();
+			foreach ( $event['recommendations'] as $recommendation ) {
+				$checklist_items[] = array(
+					'type' => 'checklist_item',
+					'text' => $recommendation,
+				);
+			}
+
+			$sections[] = array(
+				'heading'      => __( 'Preparation Checklist', 'smart-cycle-discounts' ),
+				'icon'         => 'yes-alt',
+				'default_open' => false,
+				'content'      => $checklist_items,
+			);
+		}
+
+		// Section 3: Marketing Tips.
+		if ( ! empty( $event['tips'] ) ) {
+			$tip_items = array();
+			foreach ( $event['tips'] as $tip ) {
+				$tip_items[] = array(
+					'type' => 'tip',
+					'icon' => 'megaphone',
+					'text' => $tip,
+				);
+			}
+
+			$sections[] = array(
+				'heading'      => __( 'Marketing Tips', 'smart-cycle-discounts' ),
+				'icon'         => 'megaphone',
+				'default_open' => false,
+				'content'      => $tip_items,
+			);
+		}
+
+		// Section 4: CTA for active campaigns.
+		if ( 'active' === $state ) {
+			$sections[] = array(
+				'heading'      => __( 'Ready to Start?', 'smart-cycle-discounts' ),
+				'icon'         => 'admin-generic',
+				'default_open' => true,
+				'content'      => array(
+					array(
+						'type' => 'cta',
+						'url'  => admin_url( 'admin.php?page=scd-campaigns&action=wizard&intent=new&suggestion=' . $event['id'] ),
+						'text' => sprintf(
+							/* translators: %s: event name */
+							__( 'Create %s Campaign', 'smart-cycle-discounts' ),
+							$event['name']
+						),
+					),
+				),
+			);
+		}
+
+		return array(
+			'id'       => 'how',
+			'label'    => __( 'How?', 'smart-cycle-discounts' ),
+			'icon'     => 'admin-tools',
+			'sections' => $sections,
+		);
+	}
+
+	/**
+	 * Build "When to Launch?" tab - Launch Timeline.
+	 *
+	 * @since  1.0.0
+	 * @param  array  $event  Event definition.
+	 * @param  string $state  Campaign state.
+	 * @return array          Tab data structure.
+	 */
+	private function build_when_tab( array $event, string $state ): array {
+		$sections = array();
+
+		// Section 1: Best Practices.
+		if ( ! empty( $event['best_practices'] ) ) {
+			$practice_items = array();
+			foreach ( $event['best_practices'] as $practice ) {
+				$practice_items[] = array(
+					'type' => 'stat_text',
+					'icon' => 'star-filled',
+					'text' => $practice,
+				);
+			}
+
+			$sections[] = array(
+				'heading'      => __( 'Best Practices', 'smart-cycle-discounts' ),
+				'icon'         => 'star-filled',
+				'default_open' => true,
+				'content'      => $practice_items,
+			);
+		}
+
+		// Section 2: Timing Guidance.
+		if ( ! empty( $event['event_date'] ) ) {
+			$event_date = wp_date( 'F j, Y', $event['event_date'] );
+			$sections[] = array(
+				'heading'      => __( 'Launch Timeline', 'smart-cycle-discounts' ),
+				'icon'         => 'clock',
+				'default_open' => true,
+				'content'      => array(
+					array(
+						'type' => 'message',
+						'icon' => 'calendar',
+						'text' => sprintf(
+							/* translators: %s: event date */
+							__( 'Event Date: %s', 'smart-cycle-discounts' ),
+							$event_date
+						),
+					),
+					array(
+						'type' => 'text',
+						'text' => sprintf(
+							/* translators: %d: number of days */
+							__( 'Campaign Duration: %d days', 'smart-cycle-discounts' ),
+							$event['duration_days']
+						),
+					),
+				),
+			);
+		}
+
+		return array(
+			'id'       => 'when',
+			'label'    => __( 'When?', 'smart-cycle-discounts' ),
+			'icon'     => 'calendar',
+			'sections' => $sections,
+		);
+	}
+
+	/**
+	 * Build "Why This Opportunity?" tab for weekly campaigns.
+	 *
+	 * @since  1.0.0
+	 * @param  array  $weekly  Weekly campaign definition.
+	 * @param  string $state   Campaign state.
+	 * @return array           Tab data structure.
+	 */
+	private function build_weekly_why_tab( array $weekly, string $state ): array {
+		$sections = array();
+
+		// Section 1: Campaign Description & Psychology.
+		$content = array(
+			array(
+				'type' => 'message',
+				'icon' => 'calendar-alt',
+				'text' => $weekly['description'],
+			),
+		);
+
+		if ( ! empty( $weekly['psychology'] ) ) {
+			$content[] = array(
+				'type' => 'tip',
+				'icon' => 'admin-users',
+				'text' => __( 'Psychology: ', 'smart-cycle-discounts' ) . $weekly['psychology'],
+			);
+		}
+
+		$sections[] = array(
+			'heading'      => __( 'Market Opportunity', 'smart-cycle-discounts' ),
+			'icon'         => 'chart-bar',
+			'default_open' => true,
+			'content'      => $content,
+		);
+
+		// Section 2: Statistics.
+		if ( ! empty( $weekly['statistics'] ) ) {
+			$stat_content = array();
+			foreach ( $weekly['statistics'] as $label => $value ) {
+				$stat_content[] = array(
+					'type'  => 'stat',
+					'label' => ucwords( str_replace( '_', ' ', $label ) ),
+					'value' => $value,
+				);
+			}
+
+			$sections[] = array(
+				'heading'      => __( 'Performance Data', 'smart-cycle-discounts' ),
+				'icon'         => 'chart-line',
+				'default_open' => true,
+				'content'      => $stat_content,
+			);
+		}
+
+		// Section 3: Best For.
+		if ( ! empty( $weekly['best_for'] ) ) {
+			$best_for_content = array();
+			foreach ( $weekly['best_for'] as $item ) {
+				$best_for_content[] = array(
+					'type' => 'stat_text',
+					'icon' => 'yes',
+					'text' => $item,
+				);
+			}
+
+			$sections[] = array(
+				'heading'      => __( 'Best For', 'smart-cycle-discounts' ),
+				'icon'         => 'star-filled',
+				'default_open' => false,
+				'content'      => $best_for_content,
+			);
+		}
+
+		return array(
+			'id'       => 'why',
+			'label'    => __( 'Why?', 'smart-cycle-discounts' ),
+			'icon'     => 'lightbulb',
+			'sections' => $sections,
+		);
+	}
+
+	/**
+	 * Build "How to Execute?" tab for weekly campaigns.
+	 *
+	 * @since  1.0.0
+	 * @param  array  $weekly  Weekly campaign definition.
+	 * @param  string $state   Campaign state.
+	 * @return array           Tab data structure.
+	 */
+	private function build_weekly_how_tab( array $weekly, string $state ): array {
+		$sections = array();
+
+		// Section 1: Suggested Discount Range.
+		if ( ! empty( $weekly['suggested_discount'] ) ) {
+			$discount = $weekly['suggested_discount'];
+			$sections[] = array(
+				'heading'      => __( 'Suggested Discount Range', 'smart-cycle-discounts' ),
+				'icon'         => 'tag',
+				'default_open' => true,
+				'content'      => array(
+					array(
+						'type'  => 'stat',
+						'label' => __( 'Optimal Discount', 'smart-cycle-discounts' ),
+						'value' => $discount['optimal'] . '%',
+					),
+					array(
+						'type' => 'text',
+						'text' => sprintf(
+							/* translators: %1$d: minimum discount, %2$d: maximum discount */
+							__( 'Range: %1$d%% - %2$d%% based on weekly performance', 'smart-cycle-discounts' ),
+							$discount['min'],
+							$discount['max']
+						),
+					),
+				),
+			);
+		}
+
+		// Section 2: Recommendations Checklist.
+		if ( ! empty( $weekly['recommendations'] ) && ( 'active' === $state || 'future' === $state ) ) {
+			$checklist_items = array();
+			foreach ( $weekly['recommendations'] as $recommendation ) {
+				$checklist_items[] = array(
+					'type' => 'checklist_item',
+					'text' => $recommendation,
+				);
+			}
+
+			$sections[] = array(
+				'heading'      => __( 'Action Checklist', 'smart-cycle-discounts' ),
+				'icon'         => 'yes-alt',
+				'default_open' => true,
+				'content'      => $checklist_items,
+			);
+		}
+
+		// Section 3: CTA for active campaigns.
+		if ( 'active' === $state ) {
+			$sections[] = array(
+				'heading'      => __( 'Ready to Start?', 'smart-cycle-discounts' ),
+				'icon'         => 'admin-generic',
+				'default_open' => true,
+				'content'      => array(
+					array(
+						'type' => 'cta',
+						'url'  => admin_url( 'admin.php?page=scd-campaigns&action=wizard&intent=new&suggestion=' . $weekly['id'] ),
+						'text' => sprintf(
+							/* translators: %s: campaign name */
+							__( 'Create %s Campaign', 'smart-cycle-discounts' ),
+							$weekly['name']
+						),
+					),
+				),
+			);
+		}
+
+		return array(
+			'id'       => 'how',
+			'label'    => __( 'How?', 'smart-cycle-discounts' ),
+			'icon'     => 'admin-tools',
+			'sections' => $sections,
+		);
+	}
+
+	/**
+	 * Build "When to Launch?" tab for weekly campaigns.
+	 *
+	 * @since  1.0.0
+	 * @param  array  $weekly  Weekly campaign definition.
+	 * @param  string $state   Campaign state.
+	 * @return array           Tab data structure.
+	 */
+	private function build_weekly_when_tab( array $weekly, string $state ): array {
+		$sections = array();
+
+		// Section 1: Weekly Schedule.
+		if ( ! empty( $weekly['schedule'] ) ) {
+			$schedule = $weekly['schedule'];
+			$days     = array(
+				1 => __( 'Monday', 'smart-cycle-discounts' ),
+				2 => __( 'Tuesday', 'smart-cycle-discounts' ),
+				3 => __( 'Wednesday', 'smart-cycle-discounts' ),
+				4 => __( 'Thursday', 'smart-cycle-discounts' ),
+				5 => __( 'Friday', 'smart-cycle-discounts' ),
+				6 => __( 'Saturday', 'smart-cycle-discounts' ),
+				7 => __( 'Sunday', 'smart-cycle-discounts' ),
+			);
+
+			$start_day = $days[ $schedule['start_day'] ];
+			$end_day   = $days[ $schedule['end_day'] ];
+
+			$sections[] = array(
+				'heading'      => __( 'Weekly Schedule', 'smart-cycle-discounts' ),
+				'icon'         => 'clock',
+				'default_open' => true,
+				'content'      => array(
+					array(
+						'type' => 'message',
+						'icon' => 'calendar',
+						'text' => sprintf(
+							/* translators: %1$s: start day, %2$s: start time, %3$s: end day, %4$s: end time */
+							__( 'Runs every week from %1$s %2$s to %3$s %4$s', 'smart-cycle-discounts' ),
+							$start_day,
+							$schedule['start_time'],
+							$end_day,
+							$schedule['end_time']
+						),
+					),
+				),
+			);
+		}
+
+		// Section 2: Preparation Time.
+		if ( isset( $weekly['prep_time'] ) ) {
+			$prep_time = absint( $weekly['prep_time'] );
+			$sections[] = array(
+				'heading'      => __( 'Preparation', 'smart-cycle-discounts' ),
+				'icon'         => 'admin-tools',
+				'default_open' => true,
+				'content'      => array(
+					array(
+						'type' => 'stat_text',
+						'icon' => 'clock',
+						'text' => 0 === $prep_time
+							? __( 'Can be created day-of', 'smart-cycle-discounts' )
+							: sprintf(
+								/* translators: %d: number of days */
+								_n( 'Prepare %d day in advance', 'Prepare %d days in advance', $prep_time, 'smart-cycle-discounts' ),
+								$prep_time
+							),
+					),
+				),
+			);
+		}
+
+		return array(
+			'id'       => 'when',
+			'label'    => __( 'When?', 'smart-cycle-discounts' ),
+			'icon'     => 'calendar',
+			'sections' => $sections,
+		);
+	}
+
+	/**
+	 * Build basic insights for weekly campaigns.
+	 *
+	 * @since  1.0.0
+	 * @param  string $campaign_id  Campaign ID.
+	 * @param  string $state        Campaign state.
+	 * @return array                Insights data structure.
+	 */
+	private function build_weekly_insights( string $campaign_id, string $state ): array {
+		$title = '';
+		$icon  = 'info';
+
+		// State-specific title and icon.
+		switch ( $state ) {
+			case 'past':
+				$title = __( 'Campaign Results', 'smart-cycle-discounts' );
+				$icon  = 'chart-line';
 				break;
-			}
+			case 'active':
+				$title = __( 'Ready to Launch', 'smart-cycle-discounts' );
+				$icon  = 'star-filled';
+				break;
+			case 'future':
+				$title = __( 'Planning Ahead', 'smart-cycle-discounts' );
+				$icon  = 'calendar';
+				break;
 		}
 
-		// No weekend sale in qualifying events - nothing to filter
-		if ( ! $has_weekend_sale ) {
-			return $qualifying_events;
-		}
+		// Single tab for weekly campaigns.
+		$tabs = array(
+			array(
+				'id'       => 'overview',
+				'label'    => __( 'Overview', 'smart-cycle-discounts' ),
+				'icon'     => 'admin-generic',
+				'sections' => array(
+					array(
+						'heading'      => __( 'This Week\'s Opportunity', 'smart-cycle-discounts' ),
+						'icon'         => 'calendar',
+						'default_open' => true,
+						'content'      => array(
+							array(
+								'type' => 'message',
+								'icon' => 'calendar',
+								'text' => __( 'Create a targeted campaign for this week\'s sales opportunity', 'smart-cycle-discounts' ),
+							),
+							array(
+								'type' => 'tip',
+								'icon' => 'yes',
+								'text' => __( 'Weekend sales typically perform best with 10-15% discounts', 'smart-cycle-discounts' ),
+							),
+						),
+					),
+				),
+			),
+		);
 
-		// Check all events for major events within 2 weeks of the weekend
-		$two_weeks_seconds = 14 * DAY_IN_SECONDS;
-		$now               = current_time( 'timestamp' );
-
-		foreach ( $all_events as $event ) {
-			// Skip weekend_sale itself
-			if ( 'weekend_sale' === $event['id'] ) {
-				continue;
-			}
-
-			// Only check major events
-			if ( 'major' !== $event['category'] ) {
-				continue;
-			}
-
-			// Calculate event date
-			$event_date = $this->calculate_event_date( $event, $current_year );
-
-			// If event already passed this year, check next year
-			if ( $event_date < $now ) {
-				$event_date = $this->calculate_event_date( $event, $current_year + 1 );
-			}
-
-			// Calculate time difference between weekend and major event
-			$time_diff = abs( $weekend_sale_date - $event_date );
-
-			// If major event is within 2 weeks, remove weekend_sale
-			if ( $time_diff <= $two_weeks_seconds ) {
-				unset( $qualifying_events[ $weekend_sale_index ] );
-				return array_values( $qualifying_events );
-			}
-		}
-
-		// No major events nearby - weekend sale is safe to show
-		return $qualifying_events;
+		return array(
+			'title' => $title,
+			'icon'  => $icon,
+			'tabs'  => $tabs,
+		);
 	}
 }

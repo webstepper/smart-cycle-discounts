@@ -456,10 +456,10 @@
 
 			// Define error handling strategies by category
 			var errorConfigs = {
-				validation: { type: 'warning', duration: 5000 },
-				network: { type: 'error', duration: 8000 },
-				initialization: { type: 'error', duration: 10000 },
-				general: { type: 'error', duration: 5000 }
+				validation: { type: 'warning', duration: 3000 },
+				network: { type: 'error', duration: 3000 },
+				initialization: { type: 'error', duration: 3000 },
+				general: { type: 'error', duration: 3000 }
 			};
 
 			var config = errorConfigs[category] || errorConfigs.general;

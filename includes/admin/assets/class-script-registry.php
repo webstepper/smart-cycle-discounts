@@ -283,6 +283,17 @@ class SCD_Script_Registry {
 			)
 		);
 
+		// Timeline interactions - weekly campaign timeline feature
+		$this->add_script(
+			'scd-timeline-interactions',
+			array(
+				'src'      => 'resources/assets/js/admin/timeline-interactions.js',
+				'deps'     => array( 'jquery', 'scd-main-dashboard' ),
+				'pages'    => array( 'scd-dashboard' ),
+				'localize' => 'scdAdmin',
+			)
+		);
+
 		// Upgrade banner dismiss handler
 		$this->add_script(
 			'scd-upgrade-banner-dismiss',

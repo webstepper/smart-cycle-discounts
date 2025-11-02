@@ -112,6 +112,7 @@ class SCD_Ajax_Security {
 
 		// Dashboard actions
 		'scd_main_dashboard_data'            => 'scd_main_dashboard',
+		'scd_get_timeline_insights'          => 'scd_admin_nonce',
 
 		// Email/Notification actions
 		'scd_send_test_email'                => 'scd_admin_nonce',
@@ -197,6 +198,7 @@ class SCD_Ajax_Security {
 
 		// Dashboard actions
 		'scd_main_dashboard_data'            => 'scd_view_analytics',
+		'scd_get_timeline_insights'          => 'scd_view_analytics',
 
 		// Email/Notification actions - require admin capabilities
 		'scd_send_test_email'                => 'manage_options',
@@ -270,6 +272,7 @@ class SCD_Ajax_Security {
 
 		// Dashboard actions
 		'scd_main_dashboard_data'            => 30,
+		'scd_get_timeline_insights'          => 30,
 
 		// Discount API handlers
 		'scd_validate_discount_rules'        => 30,

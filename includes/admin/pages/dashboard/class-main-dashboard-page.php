@@ -159,7 +159,7 @@ class SCD_Main_Dashboard_Page {
 	/**
 	 * Get dashboard data.
 	 *
-	 * Uses Dashboard Service (PHASE 1 integration).
+	 * Uses Dashboard Service with caching.
 	 *
 	 * @since    1.0.0
 	 * @access   private
@@ -167,7 +167,7 @@ class SCD_Main_Dashboard_Page {
 	 * @return   array                    Dashboard data.
 	 */
 	private function get_dashboard_data( $date_range ): array {
-		// Get dashboard data from service (includes caching from PHASE 3)
+		// Get dashboard data from service (includes caching)
 		$dashboard_data = $this->dashboard_service->get_dashboard_data(
 			array(
 				'date_range' => $date_range,
@@ -176,6 +176,9 @@ class SCD_Main_Dashboard_Page {
 
 		// Add campaign suggestions from Dashboard Service
 		$dashboard_data['campaign_suggestions'] = $this->dashboard_service->get_campaign_suggestions();
+
+		// Add weekly timeline campaigns
+		$dashboard_data['timeline_data'] = $this->dashboard_service->get_weekly_timeline_campaigns();
 
 		return $dashboard_data;
 	}
@@ -583,14 +586,14 @@ class SCD_Main_Dashboard_Page {
 		$recent_activity      = $data['recent_activity'];
 		$campaign_health      = $data['campaign_health'];
 		$campaign_suggestions = $data['campaign_suggestions'];
-		$all_campaigns        = $data['all_campaigns'] ?? array(); // PHASE 2: Pre-computed campaign display data
-		$timeline_campaigns   = $data['timeline_campaigns'] ?? array(); // PHASE 2: Timeline positioning data
+		$timeline_data        = $data['timeline_data'] ?? array(); // Weekly timeline campaigns
 		$is_premium           = $data['is_premium'];
 		$campaign_limit       = $data['campaign_limit'];
 
-		// Pass feature gate and upgrade prompt manager to view
+		// Pass feature gate, upgrade prompt manager, and dashboard service to view
 		$feature_gate           = $this->feature_gate;
 		$upgrade_prompt_manager = $this->upgrade_prompt_manager;
+		$dashboard_service      = $this->dashboard_service;
 
 		// Load view template
 		$view_file = SCD_PLUGIN_DIR . 'resources/views/admin/pages/dashboard/main-dashboard.php';

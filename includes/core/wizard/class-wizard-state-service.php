@@ -258,16 +258,25 @@ class SCD_Wizard_State_Service {
 	/**
 	 * Pre-fill wizard data from campaign suggestion.
 	 *
+	 * Supports both major events (from Campaign Suggestions Registry)
+	 * and weekly campaigns (from Weekly Campaign Definitions).
+	 *
 	 * @since    1.0.0
 	 * @param    string $suggestion_id  Suggestion event ID.
 	 * @return   void
 	 */
 	private function prefill_from_suggestion( string $suggestion_id ): void {
-		// Load Campaign Suggestions Registry to get event data
-		require_once SCD_INCLUDES_DIR . 'core/campaigns/class-campaign-suggestions-registry.php';
+		$event = null;
 
-		// Get event definition directly from registry
+		// First, try to get from Campaign Suggestions Registry (major events)
+		require_once SCD_INCLUDES_DIR . 'core/campaigns/class-campaign-suggestions-registry.php';
 		$event = SCD_Campaign_Suggestions_Registry::get_event_by_id( $suggestion_id );
+
+		// If not found, try Weekly Campaign Definitions
+		if ( ! $event ) {
+			require_once SCD_INCLUDES_DIR . 'core/campaigns/class-weekly-campaign-definitions.php';
+			$event = SCD_Weekly_Campaign_Definitions::get_by_id( $suggestion_id );
+		}
 
 		if ( ! $event ) {
 			return;
@@ -285,50 +294,71 @@ class SCD_Wizard_State_Service {
 			$this->data['steps']['basic'] = array();
 		}
 
-		// Campaign name with specific date range (e.g., "Weekend Sale Nov 1-3, 2025")
-		$start_month = wp_date( 'M', $event['calculated_start_date'] );
-		$start_day   = wp_date( 'j', $event['calculated_start_date'] );
-		$end_month   = wp_date( 'M', $event['calculated_end_date'] );
-		$end_day     = wp_date( 'j', $event['calculated_end_date'] );
-		$year        = wp_date( 'Y', $event['calculated_start_date'] );
+		// Determine if this is a weekly campaign or major event
+		$is_weekly_campaign = isset( $event['schedule'] ) && isset( $event['schedule']['start_day'] );
 
-		// Format: "Weekend Sale Nov 1-3, 2025" or "Valentine's Day Feb 7-14, 2025"
-		if ( $start_month === $end_month ) {
-			// Same month: "Nov 1-3, 2025"
-			$date_range = sprintf( '%s %d-%d, %s', $start_month, $start_day, $end_day, $year );
+		if ( $is_weekly_campaign ) {
+			// Weekly campaign - use simple name (no date range needed as it's recurring)
+			$this->data['steps']['basic']['name'] = $event['name'];
+
+			// Weekly campaigns use recurring_weekly category, map to priority 3 (normal)
+			$this->data['steps']['basic']['priority'] = 3;
 		} else {
-			// Different months: "Nov 28 - Dec 1, 2025"
-			$date_range = sprintf( '%s %d - %s %d, %s', $start_month, $start_day, $end_month, $end_day, $year );
+			// Major event - include specific date range
+			$start_month = wp_date( 'M', $event['calculated_start_date'] );
+			$start_day   = wp_date( 'j', $event['calculated_start_date'] );
+			$end_month   = wp_date( 'M', $event['calculated_end_date'] );
+			$end_day     = wp_date( 'j', $event['calculated_end_date'] );
+			$year        = wp_date( 'Y', $event['calculated_start_date'] );
+
+			// Format: "Weekend Sale Nov 1-3, 2025" or "Valentine's Day Feb 7-14, 2025"
+			if ( $start_month === $end_month ) {
+				$date_range = sprintf( '%s %d-%d, %s', $start_month, $start_day, $end_day, $year );
+			} else {
+				$date_range = sprintf( '%s %d - %s %d, %s', $start_month, $start_day, $end_month, $end_day, $year );
+			}
+
+			$this->data['steps']['basic']['name'] = $event['name'] . ' ' . $date_range;
+
+			// Priority based on event category
+			$priority_map = array(
+				'major'    => 4,
+				'seasonal' => 3,
+				'ongoing'  => 3,
+				'flexible' => 2,
+			);
+			$this->data['steps']['basic']['priority'] = (int) ( $priority_map[ $event['category'] ] ?? 3 );
 		}
-
-		$this->data['steps']['basic']['name'] = $event['name'] . ' ' . $date_range;
-
-		// Priority based on event category (integer values 1-5)
-		// 1=Fallback, 2=Low, 3=Normal, 4=High, 5=Critical
-		$priority_map = array(
-			'major'    => 4,  // High priority for major events (Black Friday, Christmas, etc.)
-			'seasonal' => 3,  // Normal priority for seasonal sales
-			'ongoing'  => 3,  // Normal priority for ongoing campaigns
-			'flexible' => 2,  // Low priority for flexible/weekend sales
-		);
-		// Explicitly cast to integer to ensure proper type
-		$this->data['steps']['basic']['priority'] = (int) ( $priority_map[ $event['category'] ] ?? 3 );
 
 		// Pre-fill schedule step data
 		if ( ! isset( $this->data['steps']['schedule'] ) ) {
 			$this->data['steps']['schedule'] = array();
 		}
 
-		// Set to scheduled start (not immediate)
-		$this->data['steps']['schedule']['start_type'] = 'scheduled';
+		if ( $is_weekly_campaign ) {
+			// Weekly campaign - calculate this week's dates from schedule
+			$schedule = $event['schedule'];
+			$current_week_start = strtotime( 'this week Monday 00:00' );
 
-		// Start and end dates (Y-m-d format for HTML date inputs)
-		$this->data['steps']['schedule']['start_date'] = wp_date( 'Y-m-d', $event['calculated_start_date'] );
-		$this->data['steps']['schedule']['end_date']   = wp_date( 'Y-m-d', $event['calculated_end_date'] );
+			$start_day_offset = $schedule['start_day'] - 1; // Monday = 0
+			$end_day_offset   = $schedule['end_day'] - 1;
 
-		// Set times to cover full day
-		$this->data['steps']['schedule']['start_time'] = '00:00';
-		$this->data['steps']['schedule']['end_time']   = '23:59';
+			$start_timestamp = strtotime( "+{$start_day_offset} days {$schedule['start_time']}", $current_week_start );
+			$end_timestamp   = strtotime( "+{$end_day_offset} days {$schedule['end_time']}", $current_week_start );
+
+			$this->data['steps']['schedule']['start_type'] = 'scheduled';
+			$this->data['steps']['schedule']['start_date'] = wp_date( 'Y-m-d', $start_timestamp );
+			$this->data['steps']['schedule']['end_date']   = wp_date( 'Y-m-d', $end_timestamp );
+			$this->data['steps']['schedule']['start_time'] = $schedule['start_time'];
+			$this->data['steps']['schedule']['end_time']   = $schedule['end_time'];
+		} else {
+			// Major event - use pre-calculated dates
+			$this->data['steps']['schedule']['start_type'] = 'scheduled';
+			$this->data['steps']['schedule']['start_date'] = wp_date( 'Y-m-d', $event['calculated_start_date'] );
+			$this->data['steps']['schedule']['end_date']   = wp_date( 'Y-m-d', $event['calculated_end_date'] );
+			$this->data['steps']['schedule']['start_time'] = '00:00';
+			$this->data['steps']['schedule']['end_time']   = '23:59';
+		}
 
 		// Pre-fill products step data with default (all products)
 		// This allows the Review step to display properly

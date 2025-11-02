@@ -842,17 +842,57 @@ class SCD_Service_Definitions {
 				},
 			),
 
+			'campaign_suggestions_service' => array(
+				'class'        => 'SCD_Campaign_Suggestions_Service',
+				'singleton'    => true,
+				'dependencies' => array( 'campaign_repository', 'logger' ),
+				'factory'      => function ( $container ) {
+					return new SCD_Campaign_Suggestions_Service(
+						$container->get( 'campaign_repository' ),
+						$container->get( 'logger' )
+					);
+				},
+			),
+
+			'campaign_display_service'    => array(
+				'class'        => 'SCD_Campaign_Display_Service',
+				'singleton'    => true,
+				'dependencies' => array( 'campaign_repository', 'logger' ),
+				'factory'      => function ( $container ) {
+					return new SCD_Campaign_Display_Service(
+						$container->get( 'campaign_repository' ),
+						$container->get( 'logger' )
+					);
+				},
+			),
+
+			'campaign_timeline_service'   => array(
+				'class'        => 'SCD_Campaign_Timeline_Service',
+				'singleton'    => true,
+				'dependencies' => array( 'campaign_repository', 'campaign_suggestions_service', 'logger' ),
+				'factory'      => function ( $container ) {
+					return new SCD_Campaign_Timeline_Service(
+						$container->get( 'campaign_repository' ),
+						$container->get( 'campaign_suggestions_service' ),
+						$container->get( 'logger' )
+					);
+				},
+			),
+
 			'dashboard_service'           => array(
 				'class'        => 'SCD_Dashboard_Service',
 				'singleton'    => true,
-				'dependencies' => array( 'analytics_dashboard', 'campaign_repository', 'campaign_health_service', 'feature_gate', 'logger' ),
+				'dependencies' => array( 'analytics_dashboard', 'campaign_repository', 'campaign_health_service', 'feature_gate', 'logger', 'campaign_suggestions_service', 'campaign_display_service', 'campaign_timeline_service' ),
 				'factory'      => function ( $container ) {
 					return new SCD_Dashboard_Service(
 						$container->get( 'analytics_dashboard' ),
 						$container->get( 'campaign_repository' ),
 						$container->get( 'campaign_health_service' ),
 						$container->get( 'feature_gate' ),
-						$container->get( 'logger' )
+						$container->get( 'logger' ),
+						$container->get( 'campaign_suggestions_service' ),
+						$container->get( 'campaign_display_service' ),
+						$container->get( 'campaign_timeline_service' )
 					);
 				},
 			),

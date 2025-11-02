@@ -63,6 +63,16 @@ class SCD_Ajax_Router {
 	 * @since    1.0.0
 	 */
 	public function __construct() {
+		// Load AJAX security class (used by abstract handler and router)
+		if ( ! class_exists( 'SCD_Ajax_Security' ) ) {
+			require_once __DIR__ . '/class-ajax-security.php';
+		}
+
+		// Load abstract base class that all modern handlers extend
+		if ( ! class_exists( 'SCD_Abstract_Ajax_Handler' ) ) {
+			require_once __DIR__ . '/abstract-class-ajax-handler.php';
+		}
+
 		$this->register_handlers();
 	}
 
@@ -435,6 +445,7 @@ class SCD_Ajax_Router {
 
 			// Dashboard handlers
 			'main_dashboard_data'            => 'SCD_Main_Dashboard_Data_Handler',
+			'get_timeline_insights'          => 'SCD_Get_Timeline_Insights_Handler',
 
 			// Analytics handlers
 			'analytics_overview'             => 'SCD_Overview_Handler',
@@ -890,6 +901,22 @@ class SCD_Ajax_Router {
 				}
 
 				$this->handler_instances[ $action ] = $handler;
+			} elseif ( 'SCD_Get_Timeline_Insights_Handler' === $handler_class ) {
+				// Timeline insights handler requires dashboard service
+				$container = Smart_Cycle_Discounts::get_instance();
+				$dashboard_service = $container::get_service( 'dashboard_service' );
+
+				if ( ! $dashboard_service ) {
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						error_log( '[SCD AJAX Router] Dashboard service not available for timeline insights handler' );
+					}
+					return null;
+				}
+
+				// Get logger (optional)
+				$logger = $container::get_service( 'logger' );
+
+				$this->handler_instances[ $action ] = new $handler_class( $dashboard_service, $logger );
 			} else {
 				// Default instantiation for handlers without dependencies
 				try {

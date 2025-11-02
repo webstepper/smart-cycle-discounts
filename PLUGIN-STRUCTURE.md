@@ -872,11 +872,21 @@
 
 ### 📁 `includes/services/`
 
-| File Name | LOC |
-|-----------|----:|
-| `class-campaign-creator-service.php` | 673 |
+| File Name | LOC | Description |
+|-----------|----:|-------------|
+| `class-dashboard-service.php` | 903 | Dashboard orchestrator - coordinates dashboard data assembly, caching, and health monitoring |
+| `class-campaign-creator-service.php` | 673 | Campaign creation and management service |
+| `class-campaign-suggestions-service.php` | 527 | Event-based campaign suggestions with intelligent timing windows |
+| `class-campaign-display-service.php` | 419 | Campaign display preparation with computed fields (time remaining, urgency, status) |
 
-**Folder Total: 1 files, 673 LOC**
+**Folder Total: 4 files, 2,522 LOC**
+
+**Architecture Notes:**
+- **Dashboard Service** acts as orchestrator, delegating to specialized sub-services
+- **Campaign Suggestions Service** handles all seasonal event suggestions and timing calculations
+- **Campaign Display Service** prepares campaigns for UI display with pre-computed fields
+- Services follow Single Responsibility Principle for better testability and maintainability
+- All services registered in `includes/bootstrap/class-service-definitions.php`
 
 ### 📁 `includes/utilities/`
 

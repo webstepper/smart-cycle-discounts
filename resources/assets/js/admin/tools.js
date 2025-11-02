@@ -628,7 +628,7 @@
 	function showNotification( message, type ) {
 		// Use NotificationService if available
 		if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
-			window.SCD.Shared.NotificationService.show( message, type || 'info', 5000 );
+			window.SCD.Shared.NotificationService.show( message, type || 'info', 3000 );
 		} else {
 			// Fallback to alert
 			alert( message );

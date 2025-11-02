@@ -105,6 +105,7 @@ if ( function_exists( 'plugin_basename' ) ) {
 
 define( 'SCD_INCLUDES_DIR', SCD_PLUGIN_DIR . 'includes/' );
 define( 'SCD_TEMPLATES_DIR', SCD_PLUGIN_DIR . 'templates/' );
+define( 'SCD_VIEWS_DIR', SCD_PLUGIN_DIR . 'resources/views/' );
 define( 'SCD_ASSETS_URL', SCD_PLUGIN_URL . 'resources/assets/' );
 define( 'SCD_LANGUAGES_DIR', SCD_PLUGIN_DIR . 'languages/' );
 define( 'SCD_TEXT_DOMAIN', 'smart-cycle-discounts' );

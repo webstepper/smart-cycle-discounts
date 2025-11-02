@@ -110,13 +110,13 @@ $categories = isset( $campaign_health['categories'] ) ? $campaign_health['catego
 							<div class="scd-health-category-label"><?php echo esc_html( $category_label ); ?></div>
 							<div class="scd-health-category-status">
 								<?php if ( 'healthy' === $category_status ) : ?>
-									<span class="scd-badge scd-badge-success"><?php esc_html_e( 'Healthy', 'smart-cycle-discounts' ); ?></span>
+									<span class="scd-badge scd-badge--active"><?php esc_html_e( 'Healthy', 'smart-cycle-discounts' ); ?></span>
 								<?php elseif ( 'warning' === $category_status ) : ?>
-									<span class="scd-badge scd-badge-warning">
+									<span class="scd-badge scd-badge--draft">
 										<?php echo esc_html( sprintf( _n( '%d warning', '%d warnings', $category_count, 'smart-cycle-discounts' ), $category_count ) ); ?>
 									</span>
 								<?php else : ?>
-									<span class="scd-badge scd-badge-critical">
+									<span class="scd-badge scd-badge--expired">
 										<?php echo esc_html( sprintf( _n( '%d issue', '%d issues', $category_count, 'smart-cycle-discounts' ), $category_count ) ); ?>
 									</span>
 								<?php endif; ?>

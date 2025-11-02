@@ -524,6 +524,17 @@ class Smart_Cycle_Discounts {
 			$license_notices->init();
 		}
 
+		// Initialize upgrade prompt manager to register AJAX handlers
+		if ( $this->container->has( 'upgrade_prompt_manager' ) ) {
+			$this->container->get( 'upgrade_prompt_manager' );
+		}
+
+		// Initialize AJAX router to register AJAX action hooks
+		if ( $this->container->has( 'ajax_router' ) ) {
+			$ajax_router = $this->container->get( 'ajax_router' );
+			$ajax_router->init();
+		}
+
 		// Initialize admin manager to register its hooks
 		if ( $this->container->has( 'admin_manager' ) ) {
 			$admin_manager = $this->container->get( 'admin_manager' );

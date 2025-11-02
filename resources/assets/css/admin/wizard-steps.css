@@ -619,8 +619,7 @@
 	margin: var(--scd-spacing-sm, 8px) auto;
 }
 
-/* Status badges - minimalist */
-.scd-status-badge,
+/* Priority badge - minimalist */
 .scd-priority-badge {
 	display: inline-block;
 	padding: 2px var(--scd-spacing-xs, 6px);

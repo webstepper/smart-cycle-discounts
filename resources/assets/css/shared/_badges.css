@@ -13,7 +13,8 @@
    ========================================================================== */
 
 .scd-badge,
-.scd-status {
+.scd-status,
+.scd-status-badge {
     display: inline-flex;
     align-items: center;
     gap: var(--scd-spacing-xs);
@@ -48,59 +49,53 @@
 .scd-badge--active,
 .scd-status--active,
 .scd-status-badge--active {
-    background-color: var(--scd-color-success-bg, rgba(0, 163, 42, 0.05));
-    color: var(--scd-badge-active);
-    border: 1px solid var(--scd-color-success-light, rgba(0, 163, 42, 0.2));
+    background-color: var(--scd-color-success-bg, rgba(0, 163, 42, 0.25));
+    color: var(--scd-badge-active, #186a3b);
 }
 
 .scd-badge--active .dashicons,
 .scd-status--active .dashicons {
-    color: var(--scd-badge-active);
+    color: var(--scd-badge-active, #186a3b);
 }
 
 /* Inactive campaigns */
 .scd-badge--inactive,
 .scd-status--inactive,
 .scd-status-badge--inactive {
-    background-color: var(--scd-color-text-bg, rgba(100, 105, 112, 0.1));
-    color: var(--scd-badge-inactive);
-    border: 1px solid var(--scd-color-text-light, rgba(100, 105, 112, 0.2));
+    background-color: var(--scd-color-text-bg, rgba(100, 105, 112, 0.25));
+    color: var(--scd-badge-inactive, #566573);
 }
 
 /* Scheduled campaigns */
 .scd-badge--scheduled,
 .scd-status--scheduled,
 .scd-status-badge--scheduled {
-    background-color: var(--scd-color-info-bg, rgba(114, 174, 230, 0.1));
-    color: var(--scd-badge-scheduled);
-    border: 1px solid var(--scd-color-info-light, rgba(114, 174, 230, 0.2));
+    background-color: var(--scd-color-info-bg, rgba(114, 174, 230, 0.25));
+    color: var(--scd-badge-scheduled, #1a5276);
 }
 
 /* Expired campaigns */
 .scd-badge--expired,
 .scd-status--expired,
 .scd-status-badge--expired {
-    background-color: var(--scd-color-error-bg, rgba(214, 54, 56, 0.05));
-    color: var(--scd-badge-expired);
-    border: 1px solid var(--scd-color-error-light, rgba(214, 54, 56, 0.2));
+    background-color: var(--scd-color-error-bg, rgba(214, 54, 56, 0.25));
+    color: var(--scd-badge-expired, #a93226);
 }
 
 /* Draft campaigns */
 .scd-badge--draft,
 .scd-status--draft,
 .scd-status-badge--draft {
-    background-color: var(--scd-color-warning-bg, rgba(219, 166, 23, 0.05));
-    color: var(--scd-badge-draft);
-    border: 1px solid var(--scd-color-warning-light, rgba(219, 166, 23, 0.2));
+    background-color: var(--scd-color-warning-bg, rgba(219, 166, 23, 0.25));
+    color: var(--scd-badge-draft, #b9770e);
 }
 
 /* Paused campaigns */
 .scd-badge--paused,
 .scd-status--paused,
 .scd-status-badge--paused {
-    background-color: var(--scd-color-text-bg, rgba(100, 105, 112, 0.1));
-    color: var(--scd-badge-inactive);
-    border: 1px solid var(--scd-color-text-light, rgba(100, 105, 112, 0.2));
+    background-color: var(--scd-color-text-bg, rgba(100, 105, 112, 0.25));
+    color: var(--scd-badge-inactive, #566573);
 }
 
 /* ==========================================================================
@@ -113,23 +108,20 @@
 
 /* High performing */
 .scd-badge--high-performance {
-    background-color: var(--scd-color-success-bg, rgba(0, 163, 42, 0.05));
-    color: var(--scd-color-success);
-    border: 1px solid var(--scd-color-success-light, rgba(0, 163, 42, 0.2));
+    background-color: var(--scd-color-success-bg, rgba(0, 163, 42, 0.25));
+    color: var(--scd-color-success, #186a3b);
 }
 
 /* Medium performing */
 .scd-badge--medium-performance {
-    background-color: var(--scd-color-warning-bg, rgba(219, 166, 23, 0.05));
-    color: var(--scd-color-warning);
-    border: 1px solid var(--scd-color-warning-light, rgba(219, 166, 23, 0.2));
+    background-color: var(--scd-color-warning-bg, rgba(219, 166, 23, 0.25));
+    color: var(--scd-color-warning, #b9770e);
 }
 
 /* Low performing */
 .scd-badge--low-performance {
-    background-color: var(--scd-color-error-bg, rgba(214, 54, 56, 0.05));
-    color: var(--scd-color-danger);
-    border: 1px solid var(--scd-color-error-light, rgba(214, 54, 56, 0.2));
+    background-color: var(--scd-color-error-bg, rgba(214, 54, 56, 0.25));
+    color: var(--scd-color-danger, #a93226);
 }
 
 /* ==========================================================================
@@ -137,27 +129,23 @@
    ========================================================================== */
 
 .scd-badge--percentage {
-    background-color: var(--scd-color-accent-bg, rgba(56, 88, 233, 0.1));
-    color: var(--scd-color-accent);
-    border: 1px solid var(--scd-color-accent-light, rgba(56, 88, 233, 0.2));
+    background-color: var(--scd-color-accent-bg, rgba(56, 88, 233, 0.25));
+    color: var(--scd-color-accent, #2c3e99);
 }
 
 .scd-badge--fixed {
-    background-color: var(--scd-color-primary-bg, rgba(34, 113, 177, 0.05));
-    color: var(--scd-color-primary);
-    border: 1px solid var(--scd-color-primary-light, rgba(34, 113, 177, 0.2));
+    background-color: var(--scd-color-primary-bg, rgba(34, 113, 177, 0.25));
+    color: var(--scd-color-primary, #1a5276);
 }
 
 .scd-badge--bogo {
-    background-color: var(--scd-color-info-bg, rgba(114, 174, 230, 0.1));
-    color: var(--scd-color-secondary);
-    border: 1px solid var(--scd-color-info-light, rgba(114, 174, 230, 0.2));
+    background-color: var(--scd-color-info-bg, rgba(114, 174, 230, 0.25));
+    color: var(--scd-color-secondary, #1a5276);
 }
 
 .scd-badge--tiered {
-    background-color: var(--scd-color-warning-bg, rgba(219, 166, 23, 0.05));
-    color: var(--scd-color-warning);
-    border: 1px solid var(--scd-color-warning-light, rgba(219, 166, 23, 0.2));
+    background-color: var(--scd-color-warning-bg, rgba(219, 166, 23, 0.25));
+    color: var(--scd-color-warning, #b9770e);
 }
 
 /* ==========================================================================
@@ -231,7 +219,8 @@
    ========================================================================== */
 
 .scd-badge .dashicons,
-.scd-status .dashicons {
+.scd-status .dashicons,
+.scd-status-badge .dashicons {
     width: 14px;
     height: 14px;
     font-size: 14px;

@@ -22,7 +22,7 @@
 		 * Configuration
 		 */
 		config: {
-			defaultDuration: 5000,
+			defaultDuration: 3000,
 			fadeOutDuration: 300,
 			containerClass: 'scd-notifications-container',
 			containerId: 'scd-notifications-container'
@@ -379,7 +379,7 @@
 			this.hideAll();
 
 			// Unbind global events
-			$( document ).off( 'scd:notify scd:wizard:stepChange scd:session:expired' );
+			$( document ).off( 'scd:notify scd:wizard:stepChanged scd:session:expired' );
 
 			// Remove window listeners
 			if ( this.onlineHandler ) {
@@ -499,9 +499,18 @@
 				self.show( data.message, data.type, data.duration, data.options );
 			} );
 
-			// Clear notifications on certain events
-			$( document ).on( 'scd:wizard:stepChange', function() {
+			// Clear notifications and validation errors when wizard step changes
+			// This ensures users get a clean slate when moving between steps
+			$( document ).on( 'scd:wizard:stepChanged', function() {
 				self.hideAll();
+
+				// Also clear inline validation errors for fresh step state
+				if ( window.SCD && window.SCD.ValidationError ) {
+					var $wizardContainer = $( '.scd-wizard-content, .scd-wizard-wrapper' );
+					if ( $wizardContainer.length ) {
+						window.SCD.ValidationError.clearAll( $wizardContainer );
+					}
+				}
 			} );
 
 			// Handle session expiration
