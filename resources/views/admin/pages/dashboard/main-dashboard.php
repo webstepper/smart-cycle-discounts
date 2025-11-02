@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @var array                        $top_campaigns            Top campaigns by revenue
  * @var array                        $campaign_health          Campaign health data
  * @var array                        $campaign_suggestions     Campaign suggestions
- * @var array                        $timeline_data            Campaign Planner data (weekly + major event campaigns)
+ * @var array                        $planner_data            Campaign Planner data (weekly + major event campaigns)
  * @var bool                         $is_premium               Premium status
  * @var int                          $campaign_limit           Campaign limit
  * @var SCD_Feature_Gate             $feature_gate             Feature gate instance
@@ -99,18 +99,18 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 
 	<?php
 	// 3. CAMPAIGN PLANNER
-	$timeline_data = $timeline_data ?? array();
-	$campaigns     = $timeline_data['campaigns'] ?? array();
+	$planner_data = $planner_data ?? array();
+	$campaigns     = $planner_data['campaigns'] ?? array();
 
 	if ( ! empty( $campaigns ) ) :
 		?>
-		<div class="scd-campaign-timeline dashboard-section">
-			<div class="scd-timeline-header">
-				<div class="scd-timeline-header-content">
-					<div class="scd-timeline-header-icon">
+		<div class="scd-campaign-planner dashboard-section">
+			<div class="scd-planner-header">
+				<div class="scd-planner-header-content">
+					<div class="scd-planner-header-icon">
 						<span class="dashicons dashicons-calendar-alt"></span>
 					</div>
-					<div class="scd-timeline-header-text">
+					<div class="scd-planner-header-text">
 						<h2><?php esc_html_e( 'Campaign Planner', 'smart-cycle-discounts' ); ?></h2>
 						<p><?php esc_html_e( 'Smart suggestions for your next campaigns - weekly promotions + major events', 'smart-cycle-discounts' ); ?></p>
 					</div>
@@ -118,15 +118,15 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 			</div>
 
 			<!-- 3-Card Timeline Grid -->
-			<div class="scd-timeline-grid">
+			<div class="scd-planner-grid">
 				<?php
 				foreach ( $campaigns as $campaign ) :
 					$state          = $campaign['state'];
 					$is_major_event = ! empty( $campaign['is_major_event'] );
-					$state_class    = 'scd-timeline-card--' . $state;
+					$state_class    = 'scd-planner-card--' . $state;
 
 					if ( $is_major_event ) {
-						$state_class .= ' scd-timeline-card--major';
+						$state_class .= ' scd-planner-card--major';
 					}
 
 					$state_labels = array(
@@ -136,7 +136,7 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 					);
 					$state_label  = $state_labels[ $state ] ?? '';
 					?>
-					<div class="scd-timeline-card <?php echo esc_attr( $state_class ); ?>"
+					<div class="scd-planner-card <?php echo esc_attr( $state_class ); ?>"
 						role="button"
 						tabindex="0"
 						aria-label="<?php echo esc_attr( sprintf( '%s - %s', $campaign['name'], $state_label ) ); ?>"
@@ -145,17 +145,17 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 						data-is-major-event="<?php echo $is_major_event ? '1' : '0'; ?>">
 
 						<!-- Card Header -->
-						<div class="scd-timeline-card-header">
-							<div class="scd-timeline-card-title">
+						<div class="scd-planner-card-header">
+							<div class="scd-planner-card-title">
 								<h3>
 									<?php echo esc_html( $campaign['name'] ); ?>
-									<span class="scd-timeline-icon"><?php echo esc_html( $campaign['icon'] ); ?></span>
+									<span class="scd-planner-icon"><?php echo esc_html( $campaign['icon'] ); ?></span>
 								</h3>
 								<?php if ( $is_major_event ) : ?>
-									<span class="scd-timeline-major-badge"><?php esc_html_e( 'Major Event', 'smart-cycle-discounts' ); ?></span>
+									<span class="scd-planner-major-badge"><?php esc_html_e( 'Major Event', 'smart-cycle-discounts' ); ?></span>
 								<?php endif; ?>
 							</div>
-							<div class="scd-timeline-card-badge scd-badge-<?php echo esc_attr( $state ); ?>">
+							<div class="scd-planner-card-badge scd-badge-<?php echo esc_attr( $state ); ?>">
 								<?php
 								$badge_icons = array(
 									'past'   => 'clock',
@@ -170,14 +170,14 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 						</div>
 
 						<!-- Card Description -->
-						<div class="scd-timeline-card-content">
-							<p class="scd-timeline-card-description">
+						<div class="scd-planner-card-content">
+							<p class="scd-planner-card-description">
 								<?php echo esc_html( $campaign['description'] ); ?>
 							</p>
 
 							<?php if ( 'active' === $state ) : ?>
 								<!-- Active campaign - show discount -->
-								<div class="scd-timeline-card-discount">
+								<div class="scd-planner-card-discount">
 									<span class="dashicons dashicons-tag"></span>
 									<span>
 										<?php
@@ -197,7 +197,7 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 
 							<?php if ( ! empty( $campaign['statistics'] ) && 'future' === $state ) : ?>
 								<!-- Future campaign - show key stat -->
-								<div class="scd-timeline-card-stat">
+								<div class="scd-planner-card-stat">
 									<span class="dashicons dashicons-chart-line"></span>
 									<span><?php echo esc_html( reset( $campaign['statistics'] ) ); ?></span>
 								</div>
@@ -205,18 +205,18 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 						</div>
 
 						<!-- Card Actions -->
-						<div class="scd-timeline-card-actions">
+						<div class="scd-planner-card-actions">
 							<?php if ( 'active' === $state ) : ?>
-								<a href="<?php echo esc_url( $campaign['wizard_url'] ); ?>" class="button button-primary scd-timeline-create-cta">
+								<a href="<?php echo esc_url( $campaign['wizard_url'] ); ?>" class="button button-primary scd-planner-create-cta">
 									<?php echo $is_major_event ? esc_html__( '✨ Create Major Campaign', 'smart-cycle-discounts' ) : esc_html__( '⚡ Create Campaign', 'smart-cycle-discounts' ); ?>
 								</a>
 							<?php elseif ( 'future' === $state ) : ?>
-								<button type="button" class="button button-secondary scd-timeline-view-details">
+								<button type="button" class="button button-secondary scd-planner-view-details">
 									<span class="dashicons dashicons-visibility"></span>
 									<?php esc_html_e( 'View Details', 'smart-cycle-discounts' ); ?>
 								</button>
 							<?php else : ?>
-								<button type="button" class="button button-link scd-timeline-view-insights">
+								<button type="button" class="button button-link scd-planner-view-insights">
 									<?php esc_html_e( 'See What Happened', 'smart-cycle-discounts' ); ?>
 								</button>
 							<?php endif; ?>
@@ -226,7 +226,7 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 			</div>
 
 			<!-- Unified Insights Section (Bottom) -->
-			<div class="scd-timeline-insights">
+			<div class="scd-planner-insights">
 				<div class="scd-insights-content" role="tabpanel">
 					<?php
 					// Load default insights for active campaign.
@@ -244,7 +244,7 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 							'active',
 							! empty( $active_campaign['is_major_event'] )
 						);
-						require __DIR__ . '/partials/timeline-insights.php';
+						require __DIR__ . '/partials/planner-insights.php';
 					}
 					?>
 				</div>

@@ -121,8 +121,8 @@ foreach ( $sections as $section ) :
 
 					case 'timeline_header':
 						?>
-						<div class="scd-insights-timeline-header">
-							<span class="scd-timeline-days-badge"><?php echo esc_html( $item['days'] ); ?></span>
+						<div class="scd-insights-when-header">
+							<span class="scd-when-days-badge"><?php echo esc_html( $item['days'] ); ?></span>
 							<span><?php echo esc_html( $item['text'] ); ?></span>
 						</div>
 						<?php
@@ -130,7 +130,7 @@ foreach ( $sections as $section ) :
 
 					case 'timeline_section':
 						?>
-						<div class="scd-insights-timeline-section">
+						<div class="scd-insights-when-section">
 							<h5><?php echo esc_html( $item['heading'] ); ?></h5>
 							<ul>
 								<?php foreach ( $item['items'] as $timeline_item ) : ?>

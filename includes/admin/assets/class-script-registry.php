@@ -283,11 +283,11 @@ class SCD_Script_Registry {
 			)
 		);
 
-		// Timeline interactions - weekly campaign timeline feature
+		// Planner interactions - weekly campaign planner feature
 		$this->add_script(
-			'scd-timeline-interactions',
+			'scd-planner-interactions',
 			array(
-				'src'      => 'resources/assets/js/admin/timeline-interactions.js',
+				'src'      => 'resources/assets/js/admin/planner-interactions.js',
 				'deps'     => array( 'jquery', 'scd-main-dashboard' ),
 				'pages'    => array( 'scd-dashboard' ),
 				'localize' => 'scdAdmin',

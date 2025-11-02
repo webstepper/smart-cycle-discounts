@@ -310,11 +310,11 @@ class SCD_Style_Registry {
 			)
 		);
 
-		// Timeline styles - weekly campaign timeline feature
+		// Planner styles - weekly campaign planner feature
 		$this->add_style(
-			'scd-timeline-styles',
+			'scd-planner-styles',
 			array(
-				'src'      => 'resources/assets/css/admin/dashboard/timeline-styles.css',
+				'src'      => 'resources/assets/css/admin/dashboard/planner-styles.css',
 				'deps'     => array( 'scd-main-dashboard' ),
 				'pages'    => array( 'scd-dashboard' ),
 				'media'    => 'all',

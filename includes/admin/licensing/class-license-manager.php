@@ -48,22 +48,40 @@ class SCD_License_Manager {
 	private $validation_cache_option = 'scd_license_validation_cache';
 
 	/**
-	 * License check interval in seconds (default: 7 days).
+	 * License check interval in seconds (24 hours - industry standard).
+	 *
+	 * This ensures expired or revoked licenses are detected within 24 hours,
+	 * preventing unauthorized extended access to Pro features.
 	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @var      int
 	 */
-	private $check_interval = 604800; // 7 * DAY_IN_SECONDS
+	private $check_interval = 86400; // DAY_IN_SECONDS
 
 	/**
-	 * Validation cache duration for offline tolerance (default: 48 hours).
+	 * Validation cache duration for offline tolerance (24 hours).
+	 *
+	 * Balances performance with security. Allows plugin to function for 24 hours
+	 * even if Freemius API is temporarily unreachable.
 	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @var      int
 	 */
-	private $cache_duration = 172800; // 2 * DAY_IN_SECONDS
+	private $cache_duration = 86400; // DAY_IN_SECONDS
+
+	/**
+	 * Grace period after license expiration (3 days).
+	 *
+	 * Provides users time to renew without immediate feature lockout.
+	 * Applied explicitly after cache duration expires.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      int
+	 */
+	private $grace_period = 259200; // 3 * DAY_IN_SECONDS
 
 	/**
 	 * Singleton instance.
@@ -275,6 +293,9 @@ class SCD_License_Manager {
 	/**
 	 * Run periodic check if interval has elapsed.
 	 *
+	 * Enhanced to check on plugin dashboard/main pages for active admins,
+	 * ensuring fresh license status for users actively managing the plugin.
+	 *
 	 * @since    1.0.0
 	 * @return   void
 	 */
@@ -292,7 +313,17 @@ class SCD_License_Manager {
 		$last_check       = get_option( $this->last_check_option, 0 );
 		$time_since_check = time() - $last_check;
 
-		// Run check if interval has elapsed
+		// Priority check: On plugin pages, check more frequently (every hour)
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( $screen && false !== strpos( $screen->id, 'smart-cycle-discounts' ) ) {
+			// On plugin pages, check if more than 1 hour has passed
+			if ( HOUR_IN_SECONDS < $time_since_check ) {
+				$this->run_health_check();
+				return;
+			}
+		}
+
+		// Standard periodic check: Run if main interval has elapsed
 		if ( $this->check_interval < $time_since_check ) {
 			$this->run_health_check();
 		}

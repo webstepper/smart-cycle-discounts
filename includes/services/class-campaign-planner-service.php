@@ -1,14 +1,14 @@
 <?php
 /**
- * Campaign Timeline Service
+ * Campaign Planner Service
  *
- * Handles weekly campaign timeline logic including:
+ * Handles weekly campaign planner logic including:
  * - Combining weekly campaigns with major events
  * - Calculating campaign states (past/active/future)
- * - Selecting best campaign for each timeline position
+ * - Selecting best campaign for each planner position
  * - Applying priority-based selection rules
  *
- * Follows Single Responsibility Principle - focuses only on timeline logic.
+ * Follows Single Responsibility Principle - focuses only on planner logic.
  *
  * @link       https://smartcyclediscounts.com
  * @since      1.0.0
@@ -24,9 +24,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Campaign Timeline Service Class
+ * Campaign Planner Service Class
  *
- * Responsible for generating and managing the weekly campaign timeline
+ * Responsible for generating and managing the weekly campaign planner
  * with intelligent mixing of major events and weekly campaigns.
  *
  * @since      1.0.0
@@ -34,7 +34,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/services
  * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
  */
-class SCD_Campaign_Timeline_Service {
+class SCD_Campaign_Planner_Service {
 
 	/**
 	 * Campaign repository instance.
@@ -64,7 +64,7 @@ class SCD_Campaign_Timeline_Service {
 	private SCD_Logger $logger;
 
 	/**
-	 * Initialize the timeline service.
+	 * Initialize the planner service.
 	 *
 	 * @since    1.0.0
 	 * @param    SCD_Campaign_Repository          $campaign_repository    Campaign repository.
@@ -82,7 +82,7 @@ class SCD_Campaign_Timeline_Service {
 	}
 
 	/**
-	 * Get weekly timeline campaigns with dynamic selection.
+	 * Get weekly planner campaigns with dynamic selection.
 	 *
 	 * Intelligently mixes major events and weekly campaigns based on priority.
 	 * Each position (past/active/future) shows the most relevant campaign.
@@ -90,7 +90,7 @@ class SCD_Campaign_Timeline_Service {
 	 * @since  1.0.0
 	 * @return array Timeline data with 3 selected campaigns.
 	 */
-	public function get_weekly_timeline_campaigns(): array {
+	public function get_weekly_planner_campaigns(): array {
 		// Get all potential campaigns (weekly + major events).
 		$all_campaigns = $this->get_all_campaign_opportunities();
 
@@ -102,35 +102,35 @@ class SCD_Campaign_Timeline_Service {
 		}
 
 		// Select best campaign for each position.
-		$timeline = array(
+		$planner_positions = array(
 			'past'   => $this->get_best_campaign_for_position( $all_campaigns, 'past' ),
 			'active' => $this->get_best_campaign_for_position( $all_campaigns, 'active' ),
 			'future' => $this->get_best_campaign_for_position( $all_campaigns, 'future' ),
 		);
 
 		// Remove empty positions.
-		$timeline = array_filter( $timeline );
+		$planner_positions = array_filter( $planner_positions );
 
 		// Add wizard URLs.
-		foreach ( $timeline as $position => &$campaign ) {
+		foreach ( $planner_positions as $position => &$campaign ) {
 			if ( ! empty( $campaign ) ) {
 				$campaign['wizard_url'] = $this->get_wizard_url_for_campaign( $campaign );
 			}
 		}
 
 		$this->logger->debug(
-			'Campaign Timeline Service: get_weekly_timeline_campaigns()',
+			'Campaign Planner Service: get_weekly_planner_campaigns()',
 			array(
 				'total_opportunities' => count( $all_campaigns ),
-				'past_count'          => ! empty( $timeline['past'] ) ? 1 : 0,
-				'active_count'        => ! empty( $timeline['active'] ) ? 1 : 0,
-				'future_count'        => ! empty( $timeline['future'] ) ? 1 : 0,
+				'past_count'          => ! empty( $planner_positions['past'] ) ? 1 : 0,
+				'active_count'        => ! empty( $planner_positions['active'] ) ? 1 : 0,
+				'future_count'        => ! empty( $planner_positions['future'] ) ? 1 : 0,
 			)
 		);
 
 		return array(
 			'type'      => 'dynamic',
-			'campaigns' => array_values( $timeline ), // Re-index array.
+			'campaigns' => array_values( $planner_positions ), // Re-index array.
 		);
 	}
 

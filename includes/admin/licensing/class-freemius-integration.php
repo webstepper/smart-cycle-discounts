@@ -66,6 +66,11 @@ class SCD_Freemius_Integration {
 			define( 'WP_FS__ECHO_DEBUG_SDK', false );
 		}
 
+		// Enable SSL certificate verification for security (production)
+		if ( ! defined( 'FS_SDK__SSLVERIFY' ) ) {
+			define( 'FS_SDK__SSLVERIFY', true );
+		}
+
 		require_once SCD_PLUGIN_DIR . 'includes/freemius/wordpress-sdk-master/start.php';
 
 		$scd_fs = fs_dynamic_init(
@@ -74,9 +79,10 @@ class SCD_Freemius_Integration {
 				'slug'           => 'smart-cycle-discounts',
 				'type'           => 'plugin',
 				'public_key'     => 'pk_4adf9836495f54c692369525c1000',
-				'is_premium'     => false,
+				'is_premium'     => false, // This is the FREE version (can be upgraded)
 				'has_addons'     => false,
-				'has_paid_plans' => false,
+				'has_paid_plans' => true, // Plugin HAS paid plans available
+				'is_live'        => true, // Enable live mode (production)
 				'menu'           => array(
 					'slug'       => 'smart-cycle-discounts',
 					'first-path' => 'admin.php?page=smart-cycle-discounts',
@@ -104,6 +110,9 @@ class SCD_Freemius_Integration {
 		add_filter( 'fs_is_debug_mode', '__return_false' );
 
 		add_filter( 'fs_show_trial_as_pricing_option', '__return_false' );
+
+		// Ensure SSL verification is enabled for all Freemius API requests
+		add_filter( 'http_request_args', array( __CLASS__, 'ensure_ssl_verification' ), 10, 2 );
 
 		// Account and license change hooks
 		self::$freemius->add_action( 'after_account_connection', array( __CLASS__, 'after_activation' ) );
@@ -145,6 +154,8 @@ class SCD_Freemius_Integration {
 	/**
 	 * Handle actions after premium plan change.
 	 *
+	 * Clears caches, validates license, and shows success notice to user.
+	 *
 	 * @since    1.0.0
 	 * @return   void
 	 */
@@ -167,6 +178,24 @@ class SCD_Freemius_Integration {
 				$license_manager->force_validation();
 			}
 		}
+
+		// Show upgrade success notice
+		add_action(
+			'admin_notices',
+			function () {
+				// Only show if user just upgraded to premium
+				if ( function_exists( 'scd_fs' ) && scd_fs()->is_premium() ) {
+					?>
+				<div class="notice notice-success is-dismissible">
+					<p>
+						<strong><?php esc_html_e( '🎉 Welcome to Smart Cycle Discounts Pro!', 'smart-cycle-discounts' ); ?></strong><br>
+						<?php esc_html_e( 'All Pro features are now active. You now have unlimited campaigns, advanced analytics, priority support, and more!', 'smart-cycle-discounts' ); ?>
+					</p>
+				</div>
+					<?php
+				}
+			}
+		);
 	}
 
 	/**
@@ -328,6 +357,25 @@ class SCD_Freemius_Integration {
 		}
 
 		return $show;
+	}
+
+	/**
+	 * Ensure SSL certificate verification is enabled for Freemius API requests.
+	 *
+	 * Security measure: Always verify SSL certificates for production API calls.
+	 *
+	 * @since    1.0.0
+	 * @param    array  $args    HTTP request arguments.
+	 * @param    string $url     Request URL.
+	 * @return   array              Modified arguments.
+	 */
+	public static function ensure_ssl_verification( $args, $url ) {
+		// Only apply to Freemius API requests
+		if ( false !== strpos( $url, 'api.freemius.com' ) ) {
+			$args['sslverify'] = true;
+		}
+
+		return $args;
 	}
 
 	/**

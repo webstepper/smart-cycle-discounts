@@ -445,7 +445,7 @@ class SCD_Ajax_Router {
 
 			// Dashboard handlers
 			'main_dashboard_data'            => 'SCD_Main_Dashboard_Data_Handler',
-			'get_timeline_insights'          => 'SCD_Get_Timeline_Insights_Handler',
+			'get_planner_insights'          => 'SCD_Get_Planner_Insights_Handler',
 
 			// Analytics handlers
 			'analytics_overview'             => 'SCD_Overview_Handler',
@@ -901,14 +901,14 @@ class SCD_Ajax_Router {
 				}
 
 				$this->handler_instances[ $action ] = $handler;
-			} elseif ( 'SCD_Get_Timeline_Insights_Handler' === $handler_class ) {
+			} elseif ( 'SCD_Get_Planner_Insights_Handler' === $handler_class ) {
 				// Timeline insights handler requires dashboard service
 				$container = Smart_Cycle_Discounts::get_instance();
 				$dashboard_service = $container::get_service( 'dashboard_service' );
 
 				if ( ! $dashboard_service ) {
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( '[SCD AJAX Router] Dashboard service not available for timeline insights handler' );
+						error_log( '[SCD AJAX Router] Dashboard service not available for planner insights handler' );
 					}
 					return null;
 				}

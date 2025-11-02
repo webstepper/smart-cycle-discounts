@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
  */
-class SCD_Get_Timeline_Insights_Handler extends SCD_Abstract_Ajax_Handler {
+class SCD_Get_Planner_Insights_Handler extends SCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Dashboard service instance.
@@ -54,7 +54,7 @@ class SCD_Get_Timeline_Insights_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_get_timeline_insights';
+		return 'scd_get_planner_insights';
 	}
 
 	/**
@@ -111,7 +111,7 @@ class SCD_Get_Timeline_Insights_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		// Render insights HTML.
-		$view_file = SCD_VIEWS_DIR . 'admin/pages/dashboard/partials/timeline-insights.php';
+		$view_file = SCD_VIEWS_DIR . 'admin/pages/dashboard/partials/planner-insights.php';
 
 		if ( ! file_exists( $view_file ) ) {
 			return array(

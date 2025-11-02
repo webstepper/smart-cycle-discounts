@@ -3,7 +3,7 @@
  * Campaign Display Service
  *
  * Handles campaign display preparation including fetching recent campaigns,
- * timeline campaigns, and preparing campaigns with computed display fields.
+ * planner campaigns, and preparing campaigns with computed display fields.
  *
  * Extracted from Dashboard Service to follow Single Responsibility Principle.
  *

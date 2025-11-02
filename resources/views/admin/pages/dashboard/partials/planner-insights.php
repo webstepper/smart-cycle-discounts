@@ -58,7 +58,7 @@ $has_tabs          = ! empty( $insights_tabs );
 					<div class="scd-insights-sections">
 						<?php
 						$sections = $tab['sections'] ?? array();
-						require __DIR__ . '/timeline-insights-sections.php';
+						require __DIR__ . '/planner-insights-sections.php';
 						?>
 					</div>
 				</div>
@@ -69,7 +69,7 @@ $has_tabs          = ! empty( $insights_tabs );
 		<div class="scd-insights-sections">
 			<?php
 			$sections = $insights_sections;
-			require __DIR__ . '/timeline-insights-sections.php';
+			require __DIR__ . '/planner-insights-sections.php';
 			?>
 		</div>
 	<?php endif; ?>

@@ -177,8 +177,8 @@ class SCD_Main_Dashboard_Page {
 		// Add campaign suggestions from Dashboard Service
 		$dashboard_data['campaign_suggestions'] = $this->dashboard_service->get_campaign_suggestions();
 
-		// Add weekly timeline campaigns
-		$dashboard_data['timeline_data'] = $this->dashboard_service->get_weekly_timeline_campaigns();
+		// Add weekly planner campaigns
+		$dashboard_data['planner_data'] = $this->dashboard_service->get_weekly_planner_campaigns();
 
 		return $dashboard_data;
 	}
@@ -586,7 +586,7 @@ class SCD_Main_Dashboard_Page {
 		$recent_activity      = $data['recent_activity'];
 		$campaign_health      = $data['campaign_health'];
 		$campaign_suggestions = $data['campaign_suggestions'];
-		$timeline_data        = $data['timeline_data'] ?? array(); // Weekly timeline campaigns
+		$planner_data        = $data['planner_data'] ?? array(); // Weekly planner campaigns
 		$is_premium           = $data['is_premium'];
 		$campaign_limit       = $data['campaign_limit'];
 

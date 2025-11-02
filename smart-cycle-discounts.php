@@ -30,47 +30,26 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'Direct access denied.' );
 }
 
+// Security: Enable SSL certificate verification for Freemius API (BEFORE loading SDK)
+if ( ! defined( 'FS_SDK__SSLVERIFY' ) ) {
+	define( 'FS_SDK__SSLVERIFY', true );
+}
+
 // Create a helper function for easy SDK access.
 if ( ! function_exists( 'scd_fs' ) ) {
 	/**
-	 * Initialize Freemius SDK.
+	 * Get Freemius SDK instance.
+	 *
+	 * Initialization is handled by SCD_Freemius_Integration class
+	 * to ensure all hooks and configurations are properly registered.
 	 *
 	 * @since 1.0.0
 	 * @return Freemius|null Freemius instance or null if not available.
 	 */
 	function scd_fs() {
 		global $scd_fs;
-
-		if ( ! isset( $scd_fs ) ) {
-			// Include Freemius SDK.
-			require_once dirname( __FILE__ ) . '/vendor/freemius/start.php';
-
-			$scd_fs = fs_dynamic_init(
-				array(
-					'id'             => '21492',
-					'slug'           => 'smart-cycle-discounts',
-					'type'           => 'plugin',
-					'public_key'     => 'pk_4adf9836495f54c692369525c1000',
-					'is_premium'     => false,
-					'has_addons'     => false,
-					'has_paid_plans' => true,
-					'is_live'        => true,
-					'menu'           => array(
-						'slug'       => 'smart-cycle-discounts',
-						'first-path' => 'admin.php?page=smart-cycle-discounts',
-						'support'    => false,
-					),
-				)
-			);
-		}
-
 		return $scd_fs;
 	}
-
-	// Init Freemius.
-	scd_fs();
-	// Signal that SDK was initiated.
-	do_action( 'scd_fs_loaded' );
 }
 
 // Plugin constants
@@ -289,6 +268,12 @@ add_filter( 'cron_schedules', function( $schedules ) {
 
 	return $schedules;
 }, 10 );
+
+// Initialize Freemius SDK (after constants are defined, before other files load)
+if ( ! class_exists( 'SCD_Freemius_Integration' ) ) {
+	require_once SCD_INCLUDES_DIR . 'admin/licensing/class-freemius-integration.php';
+}
+SCD_Freemius_Integration::init();
 
 // Load requirements checker
 require_once SCD_INCLUDES_DIR . 'utilities/class-requirements-checker.php';

@@ -866,12 +866,12 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'campaign_timeline_service'   => array(
-				'class'        => 'SCD_Campaign_Timeline_Service',
+			'campaign_planner_service'   => array(
+				'class'        => 'SCD_Campaign_Planner_Service',
 				'singleton'    => true,
 				'dependencies' => array( 'campaign_repository', 'campaign_suggestions_service', 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Campaign_Timeline_Service(
+					return new SCD_Campaign_Planner_Service(
 						$container->get( 'campaign_repository' ),
 						$container->get( 'campaign_suggestions_service' ),
 						$container->get( 'logger' )
@@ -882,7 +882,7 @@ class SCD_Service_Definitions {
 			'dashboard_service'           => array(
 				'class'        => 'SCD_Dashboard_Service',
 				'singleton'    => true,
-				'dependencies' => array( 'analytics_dashboard', 'campaign_repository', 'campaign_health_service', 'feature_gate', 'logger', 'campaign_suggestions_service', 'campaign_display_service', 'campaign_timeline_service' ),
+				'dependencies' => array( 'analytics_dashboard', 'campaign_repository', 'campaign_health_service', 'feature_gate', 'logger', 'campaign_suggestions_service', 'campaign_display_service', 'campaign_planner_service' ),
 				'factory'      => function ( $container ) {
 					return new SCD_Dashboard_Service(
 						$container->get( 'analytics_dashboard' ),
@@ -892,7 +892,7 @@ class SCD_Service_Definitions {
 						$container->get( 'logger' ),
 						$container->get( 'campaign_suggestions_service' ),
 						$container->get( 'campaign_display_service' ),
-						$container->get( 'campaign_timeline_service' )
+						$container->get( 'campaign_planner_service' )
 					);
 				},
 			),

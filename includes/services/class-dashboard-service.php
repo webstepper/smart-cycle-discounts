@@ -6,7 +6,7 @@
  * Coordinates dashboard data assembly by delegating to specialized sub-services:
  * - Campaign Suggestions Service (event-based suggestions)
  * - Campaign Display Service (display preparation)
- * - Campaign Timeline Service (weekly timeline with major events)
+ * - Campaign Planner Service (weekly planner with major events)
  * - Campaign Health Service (health monitoring)
  *
  * Provides caching layer and single source of truth for dashboard business logic.
@@ -30,7 +30,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Orchestrator for dashboard data operations. Delegates to specialized services:
  * - Campaign Suggestions Service: Event-based suggestions with timing windows
  * - Campaign Display Service: Campaign preparation for display
- * - Campaign Timeline Service: Weekly timeline with dynamic major event integration
+ * - Campaign Planner Service: Weekly planner with dynamic major event integration
  * - Campaign Health Service: Health monitoring and analysis
  *
  * Responsibilities:
@@ -128,13 +128,13 @@ class SCD_Dashboard_Service {
 	private SCD_Campaign_Display_Service $display_service;
 
 	/**
-	 * Campaign timeline service instance.
+	 * Campaign planner service instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Timeline_Service    $timeline_service    Campaign timeline service.
+	 * @var      SCD_Campaign_Planner_Service    $planner_service    Campaign planner service.
 	 */
-	private SCD_Campaign_Timeline_Service $timeline_service;
+	private SCD_Campaign_Planner_Service $planner_service;
 
 	/**
 	 * Initialize the dashboard service.
@@ -147,7 +147,7 @@ class SCD_Dashboard_Service {
 	 * @param    SCD_Logger                       $logger                 Logger instance.
 	 * @param    SCD_Campaign_Suggestions_Service $suggestions_service    Campaign suggestions service.
 	 * @param    SCD_Campaign_Display_Service     $display_service        Campaign display service.
-	 * @param    SCD_Campaign_Timeline_Service    $timeline_service       Campaign timeline service.
+	 * @param    SCD_Campaign_Planner_Service    $planner_service       Campaign planner service.
 	 */
 	public function __construct(
 		SCD_Analytics_Dashboard $analytics_dashboard,
@@ -157,7 +157,7 @@ class SCD_Dashboard_Service {
 		SCD_Logger $logger,
 		SCD_Campaign_Suggestions_Service $suggestions_service,
 		SCD_Campaign_Display_Service $display_service,
-		SCD_Campaign_Timeline_Service $timeline_service
+		SCD_Campaign_Planner_Service $planner_service
 	) {
 		$this->analytics_dashboard = $analytics_dashboard;
 		$this->campaign_repository = $campaign_repository;
@@ -166,7 +166,7 @@ class SCD_Dashboard_Service {
 		$this->logger              = $logger;
 		$this->suggestions_service = $suggestions_service;
 		$this->display_service     = $display_service;
-		$this->timeline_service    = $timeline_service;
+		$this->planner_service     = $planner_service;
 
 		// Register cache invalidation hooks
 		$this->register_cache_hooks();
@@ -261,8 +261,8 @@ class SCD_Dashboard_Service {
 		// Get recent campaigns with pre-computed display data (replaces view query)
 		$all_campaigns = $this->get_recent_campaigns( 5 );
 
-		// Get weekly timeline data (dynamic 3-card selection: past/active/future)
-		$timeline_data = $this->get_weekly_timeline_campaigns();
+		// Get weekly planner data (dynamic 3-card selection: past/active/future)
+		$planner_data = $this->get_weekly_planner_campaigns();
 
 		return array(
 			'metrics'            => $metrics,
@@ -271,7 +271,7 @@ class SCD_Dashboard_Service {
 			'recent_activity'    => $recent_activity,
 			'campaign_health'    => $campaign_health,
 			'all_campaigns'      => $all_campaigns,
-			'timeline_data'      => $timeline_data,
+			'planner_data'      => $planner_data,
 			'is_premium'         => $this->feature_gate->is_premium(),
 			'campaign_limit'     => $this->feature_gate->get_campaign_limit(),
 		);
@@ -904,17 +904,17 @@ class SCD_Dashboard_Service {
 	}
 
 	/**
-	 * Get weekly timeline campaigns with dynamic selection.
+	 * Get weekly planner campaigns with dynamic selection.
 	 *
-	 * Delegates to Campaign Timeline Service.
+	 * Delegates to Campaign Planner Service.
 	 * Intelligently mixes major events and weekly campaigns based on priority.
 	 * Each position (past/active/future) shows the most relevant campaign.
 	 *
 	 * @since  1.0.0
-	 * @return array Timeline data with 3 selected campaigns.
+	 * @return array Planner data with 3 selected campaigns.
 	 */
-	public function get_weekly_timeline_campaigns(): array {
-		return $this->timeline_service->get_weekly_timeline_campaigns();
+	public function get_weekly_planner_campaigns(): array {
+		return $this->planner_service->get_weekly_planner_campaigns();
 	}
 
 	/**
@@ -931,9 +931,9 @@ class SCD_Dashboard_Service {
 	}
 
 	/**
-	 * Get unified insights for a timeline campaign.
+	 * Get unified insights for a planner campaign.
 	 *
-	 * Returns structured insights data for displaying in timeline insights panel.
+	 * Returns structured insights data for displaying in planner insights panel.
 	 * Creates comprehensive Why/How/When tab structure with rich data for BOTH
 	 * major events (from Campaign Suggestions Registry) AND weekly campaigns
 	 * (from Weekly Campaign Definitions).
