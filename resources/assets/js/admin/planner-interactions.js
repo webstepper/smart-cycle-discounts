@@ -64,6 +64,9 @@
 			var $activeCard = $( '.scd-planner-card[data-state="active"]' );
 			if ( $activeCard.length ) {
 				$activeCard.addClass( 'scd-planner-card--focused' );
+
+				// Also focus the active timeline item
+				$( '.scd-timeline-item--active' ).addClass( 'scd-timeline-item--focused' );
 			}
 		},
 
@@ -91,9 +94,12 @@
 				return;
 			}
 
-			// Update visual focus
+			// Update visual focus on cards
 			$( '.scd-planner-card' ).removeClass( 'scd-planner-card--focused' );
 			$card.addClass( 'scd-planner-card--focused' );
+
+			// Update visual focus on timeline items
+			this.updateTimelineFocus( campaignState );
 
 			// Load insights for this campaign
 			this.loadInsights( campaignId, campaignState, isMajorEvent );
@@ -257,6 +263,19 @@
 					}
 				}
 			} );
+		},
+
+		/**
+		 * Update timeline item focus to match card selection
+		 *
+		 * @param {string} state Campaign state (past/active/future)
+		 */
+		updateTimelineFocus: function( state ) {
+			// Remove focused class from all timeline items
+			$( '.scd-timeline-item' ).removeClass( 'scd-timeline-item--focused' );
+
+			// Add focused class to corresponding timeline item
+			$( '.scd-timeline-item--' + state ).addClass( 'scd-timeline-item--focused' );
 		},
 
 		/**
