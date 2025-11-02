@@ -66,47 +66,98 @@
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
 	gap: 24px;
-	padding: 32px 24px 24px;
+	padding: 24px;
 	position: relative;
 }
 
-/* Timeline connecting line */
-.scd-planner-grid::before {
-	content: '';
-	position: absolute;
-	top: 32px;
-	left: calc(16.67%);
-	right: calc(16.67%);
-	height: 2px;
-	background: linear-gradient(
-		90deg,
-		#9CA3AF 0%,
-		#9CA3AF 33.33%,
-		var(--wp-admin-theme-color, #2271B1) 33.33%,
-		var(--wp-admin-theme-color, #2271B1) 66.67%,
-		#D1D5DB 66.67%,
-		#D1D5DB 100%
-	);
-	z-index: 0;
-	border-radius: 1px;
+/* ===========================
+   Timeline Track (New HTML Elements)
+   =========================== */
+.scd-planner-timeline {
+	grid-column: 1 / -1;
+	height: 40px;
+	margin-bottom: 16px;
+	position: relative;
 }
 
-/* Timeline progression arrows */
-.scd-planner-card:not(:last-child)::after {
-	content: '→';
-	position: absolute;
-	top: 18px;
-	right: -26px;
-	font-size: 18px;
+.scd-timeline-track {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: 100%;
+	padding: 0 calc(16.67% - 10px);
+	position: relative;
+}
+
+/* Timeline Dots */
+.scd-timeline-dot {
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background: #FFFFFF;
+	border: 3px solid #D1D5DB;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	flex-shrink: 0;
+	z-index: 2;
+	position: relative;
+}
+
+.scd-timeline-dot--past {
+	border-color: #9CA3AF;
+	background: #F3F4F6;
+}
+
+.scd-timeline-dot--active {
+	border-color: var(--wp-admin-theme-color, #2271B1);
+	background: #FFFFFF;
+	box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2),
+				0 2px 6px rgba(0, 0, 0, 0.15);
+	animation: pulse-timeline-dot 2.5s ease-in-out infinite;
+}
+
+.scd-timeline-dot--future {
+	border-color: #93C5FD;
+	background: #FFFFFF;
+}
+
+/* Pulse animation for active dot */
+@keyframes pulse-timeline-dot {
+	0%, 100% {
+		box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2),
+					0 2px 6px rgba(0, 0, 0, 0.15);
+	}
+	50% {
+		box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.12),
+					0 2px 6px rgba(0, 0, 0, 0.15);
+	}
+}
+
+/* Timeline Segments (connecting lines) */
+.scd-timeline-segment {
+	flex: 1;
+	height: 2px;
+	position: relative;
+}
+
+.scd-timeline-segment--past {
+	background: #9CA3AF;
+}
+
+.scd-timeline-segment--active {
+	background: var(--wp-admin-theme-color, #2271B1);
+}
+
+/* Timeline Arrows */
+.scd-timeline-arrow {
 	color: #9CA3AF;
-	z-index: 3;
+	font-size: 18px;
 	font-weight: 700;
 	line-height: 1;
-	transition: all 0.2s ease;
+	margin: 0 4px;
+	flex-shrink: 0;
 }
 
-/* Arrow color for active to future transition */
-.scd-planner-card--active:not(:last-child)::after {
+.scd-timeline-arrow:last-of-type {
 	color: var(--wp-admin-theme-color, #2271B1);
 }
 
@@ -124,32 +175,10 @@
 	transition: all 0.3s ease;
 }
 
-/* Timeline node dot - positioned to align with connecting line */
-.scd-planner-card::before {
-	content: '';
-	position: absolute;
-	top: -25px;
-	left: 50%;
-	transform: translateX(-50%);
-	width: 14px;
-	height: 14px;
-	border-radius: 50%;
-	background: #FFFFFF;
-	border: 3px solid #D1D5DB;
-	z-index: 2;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-	transition: all 0.3s ease;
-}
-
 .scd-planner-card:hover {
 	border-color: #3B82F6;
 	box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.12));
 	transform: translateY(-2px);
-}
-
-.scd-planner-card:hover::before {
-	transform: translateX(-50%) scale(1.2);
-	box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
 }
 
 .scd-planner-card:focus {
@@ -163,11 +192,6 @@
 	background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
 }
 
-/* Timeline dots - state colors */
-.scd-planner-card--past::before {
-	border-color: #9CA3AF;
-	background: #F3F4F6;
-}
 
 /* Past Major Event */
 .scd-planner-card--past.scd-planner-card--major {
@@ -182,14 +206,6 @@
 	border-color: #3B82F6;
 }
 
-.scd-planner-card--active::before {
-	border-color: var(--wp-admin-theme-color, #2271B1);
-	background: #FFFFFF;
-	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2),
-				0 2px 6px rgba(0, 0, 0, 0.15);
-	width: 14px;
-	height: 14px;
-}
 
 /* Active Major Event - More prominent */
 .scd-planner-card--active.scd-planner-card--major {
@@ -202,31 +218,9 @@
 	transform: translateY(-2px);
 }
 
-/* Subtle pulse animation for active dot */
-@keyframes pulse-dot {
-	0%, 100% {
-		box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2),
-					0 2px 6px rgba(0, 0, 0, 0.15);
-	}
-	50% {
-		box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.12),
-					0 2px 6px rgba(0, 0, 0, 0.15);
-	}
-}
-
-.scd-planner-card--active::before {
-	animation: pulse-dot 2.5s ease-in-out infinite;
-}
-
 .scd-planner-card--future {
 	background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
 	border: 2px dashed #60A5FA;
-}
-
-.scd-planner-card--future::before {
-	border-color: #93C5FD;
-	background: #FFFFFF;
-	border-style: solid;
 }
 
 /* Future Major Event */
@@ -638,61 +632,23 @@
 @media (max-width: 1024px) {
 	.scd-planner-grid {
 		gap: 20px;
-		padding: 30px 20px 20px;
-	}
-
-	/* Adjust timeline line for smaller spacing */
-	.scd-planner-grid::before {
-		top: 30px;
-		left: calc(16.67%);
-		right: calc(16.67%);
-	}
-
-	.scd-planner-card::before {
-		top: -23px;
-	}
-
-	.scd-planner-card:not(:last-child)::after {
-		right: -24px;
-		font-size: 16px;
-		top: 17px;
 	}
 }
 
 @media (max-width: 900px) {
-	/* Tablet: 2 columns - show simplified timeline */
+	/* Tablet: 2 columns */
 	.scd-planner-grid {
 		grid-template-columns: repeat(2, 1fr);
-	}
-
-	/* Adjust line for 2-column layout */
-	.scd-planner-grid::before {
-		left: 25%;
-		right: 25%;
-	}
-
-	/* Hide third card's elements if it exists */
-	.scd-planner-card:nth-child(2)::after {
-		display: none;
 	}
 }
 
 @media (max-width: 768px) {
 	.scd-planner-grid {
 		grid-template-columns: 1fr;
-		padding: 24px;
 	}
 
-	/* Hide timeline elements on mobile - vertical stack doesn't need them */
-	.scd-planner-grid::before {
-		display: none;
-	}
-
-	.scd-planner-card:not(:last-child)::after {
-		display: none;
-	}
-
-	.scd-planner-card::before {
+	/* Hide timeline on mobile - vertical stack doesn't need it */
+	.scd-planner-timeline {
 		display: none;
 	}
 

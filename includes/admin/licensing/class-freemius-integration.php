@@ -66,15 +66,9 @@ class SCD_Freemius_Integration {
 			define( 'WP_FS__ECHO_DEBUG_SDK', false );
 		}
 
-		// SSL certificate verification (should already be defined in main file, but fallback here)
+		// Enable SSL certificate verification for security
 		if ( ! defined( 'FS_SDK__SSLVERIFY' ) ) {
-			$is_local = (
-				defined( 'WP_LOCAL_DEV' ) && WP_LOCAL_DEV ||
-				( defined( 'WP_DEBUG' ) && WP_DEBUG ) ||
-				in_array( $_SERVER['HTTP_HOST'] ?? '', array( 'localhost', '127.0.0.1', '::1' ), true ) ||
-				preg_match( '/\.local$/', $_SERVER['HTTP_HOST'] ?? '' )
-			);
-			define( 'FS_SDK__SSLVERIFY', ! $is_local );
+			define( 'FS_SDK__SSLVERIFY', true );
 		}
 
 		require_once SCD_PLUGIN_DIR . 'includes/freemius/wordpress-sdk-master/start.php';
@@ -368,7 +362,7 @@ class SCD_Freemius_Integration {
 	/**
 	 * Ensure SSL certificate verification for Freemius API requests.
 	 *
-	 * Security measure: Verify SSL certificates for production, disable for local dev.
+	 * Security measure: Always verify SSL certificates for API calls.
 	 *
 	 * @since    1.0.0
 	 * @param    array  $args    HTTP request arguments.
@@ -376,16 +370,8 @@ class SCD_Freemius_Integration {
 	 * @return   array              Modified arguments.
 	 */
 	public static function ensure_ssl_verification( $args, $url ) {
-		// Only apply to Freemius API requests
 		if ( false !== strpos( $url, 'api.freemius.com' ) ) {
-			// Use the same environment detection as FS_SDK__SSLVERIFY
-			$is_local = (
-				defined( 'WP_LOCAL_DEV' ) && WP_LOCAL_DEV ||
-				( defined( 'WP_DEBUG' ) && WP_DEBUG ) ||
-				in_array( $_SERVER['HTTP_HOST'] ?? '', array( 'localhost', '127.0.0.1', '::1' ), true ) ||
-				preg_match( '/\.local$/', $_SERVER['HTTP_HOST'] ?? '' )
-			);
-			$args['sslverify'] = ! $is_local;
+			$args['sslverify'] = true;
 		}
 
 		return $args;

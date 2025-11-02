@@ -119,6 +119,19 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 
 			<!-- 3-Card Timeline Grid -->
 			<div class="scd-planner-grid">
+				<!-- Timeline Track -->
+				<div class="scd-planner-timeline">
+					<div class="scd-timeline-track">
+						<div class="scd-timeline-dot scd-timeline-dot--past"></div>
+						<div class="scd-timeline-segment scd-timeline-segment--past"></div>
+						<div class="scd-timeline-arrow">→</div>
+						<div class="scd-timeline-dot scd-timeline-dot--active"></div>
+						<div class="scd-timeline-segment scd-timeline-segment--active"></div>
+						<div class="scd-timeline-arrow">→</div>
+						<div class="scd-timeline-dot scd-timeline-dot--future"></div>
+					</div>
+				</div>
+
 				<?php
 				foreach ( $campaigns as $campaign ) :
 					$state          = $campaign['state'];
