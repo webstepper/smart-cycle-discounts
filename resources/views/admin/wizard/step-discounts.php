@@ -5,7 +5,7 @@
  * Improved architecture with sidebar preview, contextual guidance,
  * and enhanced user experience
  *
- * @link       https://smartcyclediscounts.com
+ * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
  *
  * @package    SmartCycleDiscounts

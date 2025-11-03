@@ -5,7 +5,7 @@
  * Streamlined dashboard with clear visual hierarchy and action-oriented design.
  * Displays: health alerts, hero metrics, campaign planner, campaign overview, and quick actions.
  *
- * @link       https://smartcyclediscounts.com
+ * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
  *
  * @package    SmartCycleDiscounts

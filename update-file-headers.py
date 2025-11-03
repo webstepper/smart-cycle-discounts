@@ -18,7 +18,7 @@ AUTHOR_EMAIL = "contact@webstepper.io"
 COPYRIGHT_YEAR = "2025"
 LICENSE = "GPL-3.0-or-later"
 LICENSE_URL = "https://www.gnu.org/licenses/gpl-3.0.html"
-PLUGIN_URL = "https://smartcyclediscounts.com"
+PLUGIN_URL = "https://webstepper.io/wordpress-plugins/smart-cycle-discounts"
 
 def get_file_description(filepath):
     """Generate appropriate description based on file path and name."""

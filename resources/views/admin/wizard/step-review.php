@@ -4,7 +4,7 @@
  *
  * Displays campaign health check, validation, and impact analysis before launch.
  *
- * @link       https://smartcyclediscounts.com
+ * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
  *
  * @package    SmartCycleDiscounts

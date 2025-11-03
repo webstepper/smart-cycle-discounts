@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: Smart Cycle Discounts
- * Plugin URI: https://smartcyclediscounts.com
+ * Plugin URI: https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * Description: Revolutionary WooCommerce discount management with intelligent product rotation, multi-campaign organization, and advanced scheduling. Built with modern WordPress & WooCommerce standards.
  * Version: 1.0.0
  * Author: Smart Cycle Discounts
- * Author URI: https://smartcyclediscounts.com
+ * Author URI: https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * Text Domain: smart-cycle-discounts
  * Domain Path: /languages
  * Requires at least: 6.4
@@ -17,7 +17,7 @@
  * License: GPL v3 or later
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Network: false
- * Update URI: https://smartcyclediscounts.com/updates/
+ * Update URI: https://webstepper.io/wordpress-plugins/smart-cycle-discounts/updates/
  * Requires Plugins: woocommerce
  * 
  * @package SmartCycleDiscounts
@@ -672,8 +672,8 @@ function scd_plugin_meta_links( $links, $file ) {
 		
 		$translations = SCD_Translation_Handler::get_meta_links();
 		$meta_links = array(
-			'<a href="https://smartcyclediscounts.com/docs/" target="_blank">' . esc_html( $translations['documentation'] ) . '</a>',
-			'<a href="https://smartcyclediscounts.com/support/" target="_blank">' . esc_html( $translations['support'] ) . '</a>',
+			'<a href="https://webstepper.io/wordpress-plugins/smart-cycle-discounts/docs/" target="_blank">' . esc_html( $translations['documentation'] ) . '</a>',
+			'<a href="https://webstepper.io/wordpress-plugins/smart-cycle-discounts/support/" target="_blank">' . esc_html( $translations['support'] ) . '</a>',
 		);
 		
 		return array_merge( $links, $meta_links );
