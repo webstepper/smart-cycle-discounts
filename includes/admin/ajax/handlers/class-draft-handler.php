@@ -128,14 +128,10 @@ class SCD_Draft_Handler {
 			// NOTE: Draft operations are FREE (core freemium feature)
 			// PRO features are protected at campaign creation level (via feature gate)
 
-			// Use request data from router if available, otherwise fallback to $_POST
-			// Router converts camelCase to snake_case, so we need to use that data
+			// Use request data from router if available, otherwise fallback to $_POST.
+			// Router converts camelCase to snake_case, so we need to use that data.
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified by AJAX router before handler is called
 			$data = ! empty( $request ) ? $request : $_POST;
-
-			// Debug logging
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Draft_Handler] handle() called with request data: ' . print_r( $data, true ) );
-			}
 
 			// Validate the request using centralized validation
 			$validation_result = SCD_Validation::validate( $data, 'ajax_action' );
@@ -161,10 +157,6 @@ class SCD_Draft_Handler {
 			// Get sub-action
 			$sub_action = isset( $this->validated_data['draft_action'] ) ?
 						$this->validated_data['draft_action'] : 'default';
-
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Draft_Handler] sub_action: ' . $sub_action );
-			}
 
 			switch ( $sub_action ) {
 				case 'save':
@@ -212,15 +204,8 @@ class SCD_Draft_Handler {
 	 * @return   void
 	 */
 	private function handle_complete_wizard() {
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Draft_Handler] handle_complete_wizard() called' );
-		}
-
 		// Verify services are available
 		if ( ! $this->state_service ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Draft_Handler] ERROR: state_service is null' );
-			}
 			SCD_Ajax_Response::error( __( 'Service unavailable. Please try again.', 'smart-cycle-discounts' ) );
 			return;
 		}
@@ -228,10 +213,6 @@ class SCD_Draft_Handler {
 		// CRITICAL: If campaign_data is provided in request, save it to session first
 		// This handles edit mode where sessionStorage was cleared but we have fresh data
 		if ( isset( $this->validated_data['campaign_data'] ) && is_array( $this->validated_data['campaign_data'] ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Draft_Handler] Saving campaign_data to session before completing' );
-			}
-
 			$campaign_data = $this->validated_data['campaign_data'];
 			$steps         = array( 'basic', 'products', 'discounts', 'schedule', 'review' );
 
@@ -243,16 +224,9 @@ class SCD_Draft_Handler {
 
 			// Save the session
 			$this->state_service->save();
-
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Draft_Handler] Campaign data saved to session' );
-			}
 		}
 
 		if ( ! $this->campaign_manager ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Draft_Handler] ERROR: campaign_manager is null' );
-			}
 			SCD_Ajax_Response::error( __( 'Campaign manager service unavailable. Please try again.', 'smart-cycle-discounts' ) );
 			return;
 		}
@@ -262,17 +236,9 @@ class SCD_Draft_Handler {
 		$save_as_draft = isset( $this->validated_data['save_as_draft'] ) ?
 						(bool) $this->validated_data['save_as_draft'] : false;
 
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Draft_Handler] save_as_draft: ' . ( $save_as_draft ? 'true' : 'false' ) . ' (type: ' . gettype( $save_as_draft ) . ')' );
-		}
-
 		// CRITICAL: Ensure compiler is initialized before creating Campaign_Creator_Service
 		// Campaign_Creator_Service uses strict types and requires non-null compiler
 		if ( ! $this->compiler ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Draft_Handler] Initializing compiler' );
-			}
-
 			if ( ! class_exists( 'SCD_Campaign_Compiler_Service' ) ) {
 				require_once SCD_INCLUDES_DIR . 'core/campaigns/class-campaign-compiler-service.php';
 			}
@@ -280,14 +246,7 @@ class SCD_Draft_Handler {
 			try {
 				$repository     = $this->get_campaign_repository();
 				$this->compiler = new SCD_Campaign_Compiler_Service( $repository );
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[Draft_Handler] Compiler initialized successfully' );
-				}
 			} catch ( Exception $e ) {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[Draft_Handler] Failed to create compiler: ' . $e->getMessage() );
-					error_log( '[Draft_Handler] Compiler exception trace: ' . $e->getTraceAsString() );
-				}
 				SCD_Ajax_Response::error( __( 'Failed to initialize campaign compiler. Please try again.', 'smart-cycle-discounts' ) );
 				return;
 			}
@@ -296,10 +255,6 @@ class SCD_Draft_Handler {
 		// Use the centralized campaign creator service
 		if ( ! class_exists( 'SCD_Campaign_Creator_Service' ) ) {
 			require_once SCD_INCLUDES_DIR . 'services/class-campaign-creator-service.php';
-		}
-
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Draft_Handler] Creating Campaign_Creator_Service' );
 		}
 
 		try {
@@ -311,15 +266,7 @@ class SCD_Draft_Handler {
 				$this->feature_gate
 			);
 
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Draft_Handler] Calling create_from_wizard()' );
-			}
-
 			$result = $creator->create_from_wizard( $this->state_service, $save_as_draft );
-
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Draft_Handler] create_from_wizard() returned: ' . print_r( $result, true ) );
-			}
 
 			if ( $result['success'] ) {
 				SCD_Ajax_Response::success( $result );
@@ -327,10 +274,6 @@ class SCD_Draft_Handler {
 				SCD_Ajax_Response::error( $result['error'], isset( $result['code'] ) ? $result['code'] : 500 );
 			}
 		} catch ( Exception $e ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Draft_Handler] EXCEPTION in handle_complete_wizard: ' . $e->getMessage() );
-				error_log( '[Draft_Handler] Exception trace: ' . $e->getTraceAsString() );
-			}
 			$this->logger->error(
 				'Exception in handle_complete_wizard',
 				array(
@@ -371,9 +314,6 @@ class SCD_Draft_Handler {
 				$repository     = $this->get_campaign_repository();
 				$this->compiler = new SCD_Campaign_Compiler_Service( $repository );
 			} catch ( Exception $e ) {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[Draft_Handler] Failed to create compiler: ' . $e->getMessage() );
-				}
 				SCD_Ajax_Response::error( __( 'Failed to initialize campaign compiler. Please try again.', 'smart-cycle-discounts' ) );
 				return;
 			}
@@ -419,8 +359,8 @@ class SCD_Draft_Handler {
 			return;
 		}
 
-		// Handle based on type
-		if ( $draft_type === 'session' ) {
+		// Handle based on type.
+		if ( 'session' === $draft_type ) {
 			$this->delete_session_draft();
 		} else {
 			$this->delete_campaign_draft( intval( $draft_id ) );
@@ -536,8 +476,8 @@ class SCD_Draft_Handler {
 			return;
 		}
 
-		// Handle session draft preview
-		if ( $draft_id === 'session' && $this->state_service ) {
+		// Handle session draft preview.
+		if ( 'session' === $draft_id && $this->state_service ) {
 			$data     = $this->state_service->get_all_data();
 			$progress = $this->state_service->get_progress();
 
@@ -754,9 +694,9 @@ class SCD_Draft_Handler {
 			return false;
 		}
 
-		// Check product selection
+		// Check product selection.
 		$selection_type = $draft->get_product_selection_type();
-		if ( $selection_type === 'specific' ) {
+		if ( 'specific' === $selection_type ) {
 			$has_products   = count( $draft->get_product_ids() ) > 0;
 			$has_categories = count( $draft->get_category_ids() ) > 0;
 			$has_tags       = count( $draft->get_tag_ids() ) > 0;

@@ -101,13 +101,6 @@ class SCD_Ajax_Router {
 	public function route_request() {
 		$start_time = microtime( true );
 
-		// Add console debugging
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[SCD AJAX] ===== AJAX REQUEST START =====' );
-			error_log( '[SCD AJAX] POST data: ' . json_encode( $_POST ) );
-			error_log( '[SCD AJAX] REQUEST data: ' . json_encode( $_REQUEST ) );
-		}
-
 		// Get action from request
 		// Priority order (CRITICAL FIX):
 		// 1. Custom scdAction parameter (unified endpoint sends this)
@@ -116,30 +109,33 @@ class SCD_Ajax_Router {
 		//
 		// When called via unified endpoint (wp_ajax_scd_ajax), the WordPress 'action'
 		// parameter will always be 'scd_ajax', so we must check scdAction FIRST.
+		//
+		// NOTE: We must access $_POST/$_REQUEST here to determine the action BEFORE nonce verification
+		// because we need the action name to know which nonce to verify (chicken-and-egg problem).
+		// This is safe because: 1) immediately sanitized, 2) only used for routing, 3) nonce verified at line 165
+		// before any handler processes user data.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Action extracted for routing only, nonce verified below at line 165
 		$action = '';
 		if ( isset( $_POST['scdAction'] ) ) {
-			$action = sanitize_text_field( $_POST['scdAction'] );
+			$action = sanitize_text_field( wp_unslash( $_POST['scdAction'] ) );
 		} elseif ( isset( $_REQUEST['scdAction'] ) ) {
-			$action = sanitize_text_field( $_REQUEST['scdAction'] );
+			$action = sanitize_text_field( wp_unslash( $_REQUEST['scdAction'] ) );
 		} elseif ( isset( $_POST['scd_action'] ) ) {
-			$action = sanitize_text_field( $_POST['scd_action'] );
+			$action = sanitize_text_field( wp_unslash( $_POST['scd_action'] ) );
 		} elseif ( isset( $_REQUEST['scd_action'] ) ) {
-			$action = sanitize_text_field( $_REQUEST['scd_action'] );
+			$action = sanitize_text_field( wp_unslash( $_REQUEST['scd_action'] ) );
 		} elseif ( isset( $_POST['action'] ) ) {
-			$action = sanitize_text_field( $_POST['action'] );
+			$action = sanitize_text_field( wp_unslash( $_POST['action'] ) );
 		} elseif ( isset( $_REQUEST['action'] ) ) {
-			$action = sanitize_text_field( $_REQUEST['action'] );
+			$action = sanitize_text_field( wp_unslash( $_REQUEST['action'] ) );
 		}
 
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[SCD AJAX] Action extracted: ' . $action );
-		}
-
-		// Debug: Log AJAX request received
+		// Debug: Log AJAX request received (development only).
 		if ( function_exists( 'scd_debug_ajax' ) ) {
-			$nonce = isset( $_POST['nonce'] ) ? $_POST['nonce'] : ( isset( $_REQUEST['nonce'] ) ? $_REQUEST['nonce'] : '' );
+			$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : ( isset( $_REQUEST['nonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['nonce'] ) ) : '' );
 			scd_debug_ajax( $action ? $action : 'no_action', $_POST, $nonce );
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		if ( empty( $action ) ) {
 			// Debug: Log no action error
@@ -156,23 +152,8 @@ class SCD_Ajax_Router {
 		// Strip scd_ prefix for handler lookup if present
 		$handler_action = preg_replace( '/^scd_/', '', $action );
 
-		// Debug: Log before handler check
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[SCD AJAX Router] About to check handler existence' );
-			error_log( '[SCD AJAX Router] Handler action: ' . $handler_action );
-			error_log( '[SCD AJAX Router] Handlers array: ' . print_r( array_keys( $this->handlers ), true ) );
-		}
-
 		// Check if handler exists
 		if ( ! isset( $this->handlers[ $handler_action ] ) ) {
-			// Debug: Log invalid action with more details
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD AJAX Router] Invalid action requested' );
-				error_log( '[SCD AJAX Router] Original action: ' . $action );
-				error_log( '[SCD AJAX Router] Handler action after stripping: ' . $handler_action );
-				error_log( '[SCD AJAX Router] Available handlers: ' . print_r( array_keys( $this->handlers ), true ) );
-			}
-
 			if ( function_exists( 'scd_debug_ajax_response' ) ) {
 				scd_debug_ajax_response( $action, array( 'error' => 'Invalid action' ), false, microtime( true ) - $start_time );
 			}
@@ -183,25 +164,13 @@ class SCD_Ajax_Router {
 			);
 		}
 
-		// Centralized security validation - ensure we use full action name with scd_ prefix
+		// Centralized security validation - ensure we use full action name with scd_ prefix.
 		if ( class_exists( 'SCD_Ajax_Security' ) ) {
-			// Debug: Log security check start
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD AJAX Router] Starting security validation' );
-			}
+			// Security expects the full action name with scd_ prefix.
+			$full_action = 0 === strpos( $action, 'scd_' ) ? $action : 'scd_' . $action;
 
-			// Security expects the full action name with scd_ prefix
-			$full_action = strpos( $action, 'scd_' ) === 0 ? $action : 'scd_' . $action;
-
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD AJAX Router] Full action for security: ' . $full_action );
-			}
-
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification happens inside verify_ajax_request()
 			$security_check = SCD_Ajax_Security::verify_ajax_request( $full_action, $_POST );
-
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD AJAX Router] Security check result: ' . ( is_wp_error( $security_check ) ? 'FAILED - ' . $security_check->get_error_message() : 'PASSED' ) );
-			}
 
 			if ( is_wp_error( $security_check ) ) {
 				// Debug: Log security failure
@@ -221,27 +190,10 @@ class SCD_Ajax_Router {
 			}
 		}
 
-		// Debug: Log before handler instantiation
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[SCD AJAX Router] Security passed, getting handler instance' );
-		}
-
 		// Get or create handler instance
 		$handler = $this->get_handler_instance( $handler_action );
 
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[SCD AJAX Router] Handler action: ' . $handler_action );
-			error_log( '[SCD AJAX Router] Handler class: ' . ( isset( $this->handlers[ $handler_action ] ) ? $this->handlers[ $handler_action ] : 'not found' ) );
-			error_log( '[SCD AJAX Router] Handler instance: ' . ( $handler ? get_class( $handler ) : 'null' ) );
-		}
-
 		if ( ! $handler ) {
-			// Add more detailed error logging
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD AJAX Router] Handler initialization failed for action: ' . $handler_action );
-				error_log( '[SCD AJAX Router] Handler class expected: ' . ( isset( $this->handlers[ $handler_action ] ) ? $this->handlers[ $handler_action ] : 'not found' ) );
-			}
-
 			SCD_AJAX_Response::error(
 				'Handler initialization failed',
 				'handler_init_failed'
@@ -261,19 +213,17 @@ class SCD_Ajax_Router {
 				);
 			}
 
-			// Add extra error logging
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD AJAX Router] Executing handler: ' . get_class( $handler ) . ' for action: ' . $action );
-			}
-
-			// Prepare request data for handler
+			// Prepare request data for handler.
+			// Nonce already verified above at line 173.
+			// phpcs:disable WordPress.Security.NonceVerification.Missing
 			$request_data = array_merge(
-				$_POST,
+				$_POST, // Input data from form submission.
 				array(
 					'action' => $action,
-					'method' => $_SERVER['REQUEST_METHOD'],
+					'method' => isset( $_SERVER['REQUEST_METHOD'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : 'POST',
 				)
 			);
+			// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 			// Convert camelCase keys from JavaScript to snake_case for PHP
 			$request_data = self::camel_to_snake_keys( $request_data );
@@ -296,8 +246,8 @@ class SCD_Ajax_Router {
 				}
 			}
 
-			// Check if handler returned data
-			if ( $result !== null ) {
+			// Check if handler returned data.
+			if ( null !== $result ) {
 				$duration = microtime( true ) - $start_time;
 
 				if ( is_wp_error( $result ) ) {
@@ -360,15 +310,7 @@ class SCD_Ajax_Router {
 				);
 			}
 
-			// Additional error logging
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD AJAX Router] Exception caught: ' . $e->getMessage() );
-				error_log( '[SCD AJAX Router] Stack trace: ' . $e->getTraceAsString() );
-				error_log( '[SCD AJAX Router] Action: ' . $action );
-				error_log( '[SCD AJAX Router] Handler: ' . ( isset( $handler ) ? get_class( $handler ) : 'unknown' ) );
-			}
-
-			// Debug: Log error response
+			// Debug: Log error response.
 			if ( function_exists( 'scd_debug_ajax_response' ) ) {
 				scd_debug_ajax_response( $action, array( 'error' => $e->getMessage() ), false, microtime( true ) - $start_time );
 			}
@@ -445,7 +387,7 @@ class SCD_Ajax_Router {
 
 			// Dashboard handlers
 			'main_dashboard_data'            => 'SCD_Main_Dashboard_Data_Handler',
-			'get_planner_insights'          => 'SCD_Get_Planner_Insights_Handler',
+			'get_planner_insights'           => 'SCD_Get_Planner_Insights_Handler',
 
 			// Analytics handlers
 			'analytics_overview'             => 'SCD_Overview_Handler',
@@ -494,26 +436,12 @@ class SCD_Ajax_Router {
 		if ( ! class_exists( $handler_class ) ) {
 			$file = $this->get_handler_file( $handler_class );
 
-			// Debug logging
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD AJAX Router] Looking for handler file for class: ' . $handler_class );
-				error_log( '[SCD AJAX Router] Handler file path: ' . ( $file ? $file : 'not found' ) );
-			}
-
 			// Security: Only load file if it's properly validated
 			if ( $file && is_string( $file ) && file_exists( $file ) && is_readable( $file ) ) {
 				// Additional security check: Verify file extension
 				if ( substr( $file, -4 ) === '.php' ) {
-					// Log before requiring
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( '[SCD AJAX Router] Loading handler file: ' . $file );
-					}
 					require_once $file;
-				} elseif ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( '[SCD AJAX Router] Handler file does not have .php extension: ' . $file );
 				}
-			} elseif ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[SCD AJAX Router] Handler file not valid or not readable: ' . ( $file ? $file : 'null' ) );
 			}
 		}
 
@@ -529,9 +457,6 @@ class SCD_Ajax_Router {
 					// If service not available, create it
 					$class_path = SCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
 					if ( ! file_exists( $class_path ) ) {
-						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-							error_log( '[SCD Wizard:AJAX] State service class file not found: ' . $class_path );
-						}
 						return null;
 					}
 
@@ -540,18 +465,12 @@ class SCD_Ajax_Router {
 					}
 
 					if ( ! class_exists( 'SCD_Wizard_State_Service' ) ) {
-						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-							error_log( '[SCD Wizard:AJAX] State service class not available after require' );
-						}
 						return null;
 					}
 
 					try {
 						$state_service = new SCD_Wizard_State_Service();
 						if ( ! $state_service || ! method_exists( $state_service, 'initialize_with_intent' ) ) {
-							if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-								error_log( '[SCD Wizard:AJAX] Failed to instantiate state service or missing method' );
-							}
 							return null;
 						}
 						// Initialize the state service with existing session from cookie
@@ -560,35 +479,20 @@ class SCD_Ajax_Router {
 						$state_service->initialize_with_intent( 'continue' );
 
 						// Now check if the session indicates edit mode
-						$campaign_id  = $state_service->get( 'campaign_id', 0 );
-						$is_edit_mode = $state_service->get( 'is_edit_mode', false );
-
-						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-							error_log( '[SCD AJAX Router] Session data: campaign_id=' . $campaign_id . ', is_edit_mode=' . ( $is_edit_mode ? 'yes' : 'no' ) );
-							error_log( '[SCD AJAX Router] All session data: ' . print_r( $state_service->get_all_data(), true ) );
-						}
+						$campaign_id = $state_service->get( 'campaign_id', 0 );
 
 						// If we have a campaign_id, assume edit mode and initialize Change Tracker
 						// The presence of campaign_id means we're editing an existing campaign
 						if ( $campaign_id > 0 ) {
-							if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-								error_log( '[SCD AJAX Router] Detected edit mode - initializing Change Tracker for campaign ' . $campaign_id );
-							}
 							$state_service->initialize_with_intent( 'edit' );
 						}
 					} catch ( Exception $e ) {
-						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-							error_log( '[SCD Wizard:AJAX] Exception creating state service: ' . $e->getMessage() );
-						}
 						return null;
 					}
 				}
 
 				// Verify state service is valid before using
 				if ( ! $state_service ) {
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( '[SCD Wizard:AJAX] State service is null, cannot instantiate handler' );
-					}
 					return null;
 				}
 
@@ -604,9 +508,6 @@ class SCD_Ajax_Router {
 					$transformer         = $container::get_service( 'step_data_transformer' );
 				} catch ( Exception $e ) {
 					// Services will be created in handler constructor if not available
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( '[SCD AJAX] Optional services not available, will be created: ' . $e->getMessage() );
-					}
 				}
 
 				// Save_Step_Handler with all services
@@ -664,9 +565,6 @@ class SCD_Ajax_Router {
 
 				$this->handler_instances[ $action ] = new $handler_class( $state_service );
 			} elseif ( 'SCD_Get_Summary_Handler' === $handler_class ) {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[SCD AJAX Router] ===== GET SUMMARY HANDLER DETECTED =====' );
-				}
 				// CRITICAL FIX: Get Summary handler requires state service with Change Tracker in edit mode
 				$container     = Smart_Cycle_Discounts::get_instance();
 				$state_service = $container::get_service( 'wizard_state' );
@@ -683,19 +581,10 @@ class SCD_Ajax_Router {
 
 				// CRITICAL: Always check if we're in edit mode and ensure Change Tracker is initialized
 				// This handles both fresh state service and container-provided service
-				$campaign_id  = $state_service->get( 'campaign_id', 0 );
-				$is_edit_mode = $state_service->get( 'is_edit_mode', false );
-
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[SCD AJAX Router:Get Summary] Session data: campaign_id=' . $campaign_id . ', is_edit_mode=' . ( $is_edit_mode ? 'yes' : 'no' ) );
-					error_log( '[SCD AJAX Router:Get Summary] Has change tracker: ' . ( $state_service->get_change_tracker() ? 'yes' : 'no' ) );
-				}
+				$campaign_id = $state_service->get( 'campaign_id', 0 );
 
 				// If we have a campaign_id but no Change Tracker, initialize edit mode
 				if ( $campaign_id > 0 && ! $state_service->get_change_tracker() ) {
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( '[SCD AJAX Router:Get Summary] Detected edit mode without Change Tracker - initializing for campaign ' . $campaign_id );
-					}
 					$state_service->initialize_with_intent( 'edit' );
 				}
 
@@ -774,9 +663,6 @@ class SCD_Ajax_Router {
 				// Get metrics calculator (required for all analytics handlers)
 				$metrics_calculator = $container::get_service( 'metrics_calculator' );
 				if ( ! $metrics_calculator ) {
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( '[SCD AJAX Router] Metrics calculator service not available for analytics handler: ' . $handler_class );
-					}
 					SCD_AJAX_Response::error(
 						'service_unavailable',
 						__( 'Metrics calculator service not available', 'smart-cycle-discounts' )
@@ -804,9 +690,6 @@ class SCD_Ajax_Router {
 					// These handlers need analytics_collector
 					$analytics_collector = $container::get_service( 'analytics_collector' );
 					if ( ! $analytics_collector ) {
-						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-							error_log( '[SCD AJAX Router] Analytics collector service not available for: ' . $handler_class );
-						}
 						SCD_AJAX_Response::error(
 							'service_unavailable',
 							__( 'Analytics collector service not available', 'smart-cycle-discounts' )
@@ -819,9 +702,6 @@ class SCD_Ajax_Router {
 					// Activity feed handler needs activity_tracker
 					$activity_tracker = $container::get_service( 'activity_tracker' );
 					if ( ! $activity_tracker ) {
-						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-							error_log( '[SCD AJAX Router] Activity tracker service not available for: ' . $handler_class );
-						}
 						SCD_AJAX_Response::error(
 							'service_unavailable',
 							__( 'Activity tracker service not available', 'smart-cycle-discounts' )
@@ -834,9 +714,6 @@ class SCD_Ajax_Router {
 					// Export handler needs export_service
 					$export_service = $container::get_service( 'export_service' );
 					if ( ! $export_service ) {
-						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-							error_log( '[SCD AJAX Router] Export service not available for: ' . $handler_class );
-						}
 						SCD_AJAX_Response::error(
 							'service_unavailable',
 							__( 'Export service not available', 'smart-cycle-discounts' )
@@ -850,9 +727,6 @@ class SCD_Ajax_Router {
 					// Refresh cache handler needs cache_manager
 					$cache_manager = $container::get_service( 'cache_manager' );
 					if ( ! $cache_manager ) {
-						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-							error_log( '[SCD AJAX Router] Cache manager service not available for: ' . $handler_class );
-						}
 						SCD_AJAX_Response::error(
 							'service_unavailable',
 							__( 'Cache manager service not available', 'smart-cycle-discounts' )
@@ -894,22 +768,16 @@ class SCD_Ajax_Router {
 				$handler   = $container::get_service( 'main_dashboard_data_handler' );
 
 				if ( ! $handler ) {
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( '[SCD AJAX Router] Failed to get main_dashboard_data_handler from service container' );
-					}
 					return null;
 				}
 
 				$this->handler_instances[ $action ] = $handler;
 			} elseif ( 'SCD_Get_Planner_Insights_Handler' === $handler_class ) {
 				// Timeline insights handler requires dashboard service
-				$container = Smart_Cycle_Discounts::get_instance();
+				$container         = Smart_Cycle_Discounts::get_instance();
 				$dashboard_service = $container::get_service( 'dashboard_service' );
 
 				if ( ! $dashboard_service ) {
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( '[SCD AJAX Router] Dashboard service not available for planner insights handler' );
-					}
 					return null;
 				}
 
@@ -922,16 +790,11 @@ class SCD_Ajax_Router {
 				try {
 					$this->handler_instances[ $action ] = new $handler_class();
 				} catch ( Exception $e ) {
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( '[SCD AJAX Router] Failed to instantiate handler ' . $handler_class . ': ' . $e->getMessage() );
-					}
 					return null;
 				}
 			}
 
 			return $this->handler_instances[ $action ];
-		} elseif ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD AJAX Router] Handler class does not exist after loading: ' . $handler_class );
 		}
 
 		return null;
