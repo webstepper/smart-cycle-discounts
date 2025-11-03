@@ -186,9 +186,7 @@
 		// 5. Custom validation
 		if ( fieldDef && fieldDef.validate ) {
 			var customResult = fieldDef.validate( value, fieldDef, context.allValues );
-			// Handle both old format (valid property) and new format (ok property)
-			var isValid = customResult.ok !== undefined ? customResult.ok : customResult.valid;
-			if ( !isValid ) {
+			if ( !customResult.ok ) {
 				result.ok = false;
 				result.errors.push( {
 					code: 'custom',
@@ -294,9 +292,7 @@
 	/**
 	 * Helper: Evaluate condition for conditional field visibility
 	 *
-	 * Supports two formats:
-	 * 1. Structured format (from PHP field definitions): { field: 'fieldName', value: 'expectedValue' }
-	 * 2. Legacy flat format: { 'fieldName': 'expectedValue' }
+	 * Uses structured format from PHP field definitions: { field: 'fieldName', value: 'expectedValue' }
 	 *
 	 * @private
 	 * @since 1.0.0
@@ -305,71 +301,38 @@
 	 * @returns {boolean} True if condition is met
 	 */
 	ValidationManager.prototype._evaluateCondition = function( condition, allValues ) {
-		// Handle structured format: { field: 'fieldName', value: 'expectedValue' }
+		// Structured format: { field: 'fieldName', value: 'expectedValue' }
 		// This is the format from PHP field definitions after export_for_js conversion
-		if ( condition.field && condition.hasOwnProperty( 'value' ) ) {
-			var fieldName = condition.field;
-			var expectedValue = condition.value;
+		var fieldName = condition.field;
+		var expectedValue = condition.value;
 
-			// Try to get value with multiple naming conventions
-			// collectData() returns camelCase keys, but field definitions use snake_case
-			var actualValue = allValues[fieldName]; // Try original name first (snake_case from PHP)
+		// Try to get value with multiple naming conventions
+		// collectData() returns camelCase keys, but field definitions use snake_case
+		var actualValue = allValues[fieldName]; // Try original name first (snake_case from PHP)
 
-			// If not found, try snake_case conversion
-			if ( undefined === actualValue ) {
-				var htmlFieldName = window.SCD && window.SCD.Utils && window.SCD.Utils.camelToSnakeCase ?
-					window.SCD.Utils.camelToSnakeCase( fieldName ) : fieldName;
-				actualValue = allValues[htmlFieldName];
-			}
-
-			// Array of possible values
-			if ( Array.isArray( expectedValue ) ) {
-				return expectedValue.indexOf( actualValue ) !== -1;
-			}
-			// Boolean comparison with type coercion
-			else if ( 'boolean' === typeof expectedValue ) {
-				// Coerce actual value to boolean for comparison
-				// Handle checkbox values: '1', 1, true, 'true' -> true
-				// Handle: '0', 0, false, 'false', '', null, undefined -> false
-				var actualBoolean = !! actualValue && '0' !== actualValue && 'false' !== actualValue;
-				return actualBoolean === expectedValue;
-			}
-			// Single value - strict equality
-			else {
-				return actualValue === expectedValue;
-			}
+		// If not found, try snake_case conversion
+		if ( undefined === actualValue ) {
+			var htmlFieldName = window.SCD && window.SCD.Utils && window.SCD.Utils.camelToSnakeCase ?
+				window.SCD.Utils.camelToSnakeCase( fieldName ) : fieldName;
+			actualValue = allValues[htmlFieldName];
 		}
 
-		// Handle legacy flat format: { 'fieldName': 'expectedValue' }
-		// Iterate through all conditions (all must be true for AND logic)
-		for ( var field in condition ) {
-			if ( condition.hasOwnProperty( field ) ) {
-				var expectedValue = condition[field];
-				var actualValue = allValues[field];
-
-				// Array of possible values
-				if ( Array.isArray( expectedValue ) ) {
-					if ( expectedValue.indexOf( actualValue ) === -1 ) {
-						return false;
-					}
-				}
-				// Boolean comparison with type coercion
-				else if ( 'boolean' === typeof expectedValue ) {
-					// Coerce actual value to boolean for comparison
-					// Handle checkbox values: '1', 1, true, 'true' -> true
-					// Handle: '0', 0, false, 'false', '', null, undefined -> false
-					var actualBoolean = !! actualValue && '0' !== actualValue && 'false' !== actualValue;
-					if ( actualBoolean !== expectedValue ) {
-						return false;
-					}
-				}
-				// Single value - strict equality
-				else if ( actualValue !== expectedValue ) {
-					return false;
-				}
-			}
+		// Array of possible values
+		if ( Array.isArray( expectedValue ) ) {
+			return expectedValue.indexOf( actualValue ) !== -1;
 		}
-		return true;
+		// Boolean comparison with type coercion
+		else if ( 'boolean' === typeof expectedValue ) {
+			// Coerce actual value to boolean for comparison
+			// Handle checkbox values: '1', 1, true, 'true' -> true
+			// Handle: '0', 0, false, 'false', '', null, undefined -> false
+			var actualBoolean = !! actualValue && '0' !== actualValue && 'false' !== actualValue;
+			return actualBoolean === expectedValue;
+		}
+		// Single value - strict equality
+		else {
+			return actualValue === expectedValue;
+		}
 	};
 	
 	/**
@@ -870,12 +833,7 @@
 				return this.formatMessage( message, param );
 			}
 		}
-		
-		// Use localized messages if available (backward compatibility)
-		if ( window.scdValidationMessages && window.scdValidationMessages[key] ) {
-			return this.formatMessage( window.scdValidationMessages[key], param );
-		}
-		
+
 		// Fallback messages with machine codes
 		var messages = {
 			required: 'This field is required',

@@ -170,7 +170,8 @@ class SCD_Campaign_Planner_Service {
 	 * Get next upcoming campaign (for gap filling).
 	 *
 	 * Finds the soonest future campaign to fill the active slot when
-	 * no campaign is currently running.
+	 * no campaign is currently running. Prioritizes PROXIMITY over priority
+	 * to show what's coming NEXT.
 	 *
 	 * @since  1.0.0
 	 * @param  array $campaigns All campaign opportunities.
@@ -189,16 +190,18 @@ class SCD_Campaign_Planner_Service {
 			return null;
 		}
 
-		// Sort by: priority (major events first), then proximity (soonest first).
+		// Sort by: proximity FIRST (soonest), then priority (major events as tiebreaker).
+		// This ensures we show what's coming NEXT, not just what's most important.
 		usort(
 			$future_campaigns,
 			function ( $a, $b ) {
-				// Priority first (major events = 100, weekly = 10).
-				if ( $a['priority'] !== $b['priority'] ) {
-					return $b['priority'] - $a['priority'];
+				// Soonest to start (PROXIMITY FIRST for gap-filling).
+				$time_diff = $a['start_timestamp'] - $b['start_timestamp'];
+				if ( 0 !== $time_diff ) {
+					return $time_diff;
 				}
-				// Soonest to start.
-				return $a['start_timestamp'] - $b['start_timestamp'];
+				// If starting at same time, prioritize major events.
+				return $b['priority'] - $a['priority'];
 			}
 		);
 
