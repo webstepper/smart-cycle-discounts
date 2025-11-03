@@ -123,14 +123,19 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 				<div class="scd-planner-timeline">
 					<div class="scd-timeline-track">
 						<?php
-						// Map campaigns by state for timeline items.
-						$campaigns_by_state = array();
-						foreach ( $campaigns as $campaign ) {
-							$campaigns_by_state[ $campaign['state'] ] = $campaign;
-						}
+						// Map campaigns by POSITION (slot index) for smart timeline.
+						// Smart timeline always returns 3 campaigns in order:
+						// [0] = Slot 1 (PAST position) - most recently ended
+						// [1] = Slot 2 (ACTIVE/NEXT position) - current OR next upcoming
+						// [2] = Slot 3 (FUTURE position) - next after Slot 2
+						$campaigns_by_position = array(
+							'past'   => $campaigns[0] ?? null, // Slot 1
+							'active' => $campaigns[1] ?? null, // Slot 2 (ACTIVE/NEXT)
+							'future' => $campaigns[2] ?? null, // Slot 3
+						);
 
-						// Timeline states configuration.
-						$timeline_states = array(
+						// Timeline position configuration (UI labels).
+						$timeline_positions = array(
 							'past'   => array(
 								'label' => __( 'Past', 'smart-cycle-discounts' ),
 								'title' => __( 'Past Campaign', 'smart-cycle-discounts' ),
@@ -146,12 +151,12 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 						);
 
 						$first = true;
-						foreach ( $timeline_states as $state => $state_config ) :
-							$campaign = $campaigns_by_state[ $state ] ?? null;
+						foreach ( $timeline_positions as $position => $position_config ) :
+							$campaign = $campaigns_by_position[ $position ] ?? null;
 
 							// Add segment before item (except for first).
 							if ( ! $first ) {
-								$segment_class = 'past' === $state ? 'past' : 'active';
+								$segment_class = 'past' === $position ? 'past' : 'active';
 								?>
 								<div class="scd-timeline-segment scd-timeline-segment--<?php echo esc_attr( $segment_class ); ?>"></div>
 								<?php
@@ -159,20 +164,22 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 							$first = false;
 
 							// Timeline item with campaign data.
+							// NOTE: Uses POSITION class (timeline UI position), not campaign state.
 							?>
-							<div class="scd-timeline-item scd-timeline-item--<?php echo esc_attr( $state ); ?>"
+							<div class="scd-timeline-item scd-timeline-item--<?php echo esc_attr( $position ); ?>"
 								<?php if ( $campaign ) : ?>
 									data-campaign-id="<?php echo esc_attr( $campaign['id'] ); ?>"
-									data-state="<?php echo esc_attr( $state ); ?>"
+									data-position="<?php echo esc_attr( $position ); ?>"
+									data-state="<?php echo esc_attr( $campaign['state'] ); ?>"
 									data-is-major-event="<?php echo ! empty( $campaign['is_major_event'] ) ? '1' : '0'; ?>"
 									role="button"
 									tabindex="0"
-									aria-label="<?php echo esc_attr( sprintf( '%s - %s', $campaign['name'], $state_config['title'] ) ); ?>"
+									aria-label="<?php echo esc_attr( sprintf( '%s - %s', $campaign['name'], $position_config['title'] ) ); ?>"
 								<?php endif; ?>>
-								<div class="scd-timeline-dot scd-timeline-dot--<?php echo esc_attr( $state ); ?>"
-									title="<?php echo esc_attr( $state_config['title'] ); ?>"></div>
-								<span class="scd-timeline-label <?php echo 'active' === $state ? 'scd-timeline-label--active' : ''; ?>">
-									<?php echo esc_html( $state_config['label'] ); ?>
+								<div class="scd-timeline-dot scd-timeline-dot--<?php echo esc_attr( $position ); ?>"
+									title="<?php echo esc_attr( $position_config['title'] ); ?>"></div>
+								<span class="scd-timeline-label <?php echo 'active' === $position ? 'scd-timeline-label--active' : ''; ?>">
+									<?php echo esc_html( $position_config['label'] ); ?>
 								</span>
 							</div>
 							<?php
@@ -182,9 +189,13 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 				</div>
 
 				<?php
-				foreach ( $campaigns as $campaign ) :
+				// Map slot index to timeline position name.
+				$position_names = array( 'past', 'active', 'future' );
+
+				foreach ( $campaigns as $index => $campaign ) :
 					$state          = $campaign['state'];
 					$is_major_event = ! empty( $campaign['is_major_event'] );
+					$position       = $position_names[ $index ] ?? 'future'; // Slot 0=past, 1=active, 2=future
 
 					$state_labels = array(
 						'past'   => __( 'Ended', 'smart-cycle-discounts' ),
@@ -195,6 +206,7 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 					?>
 					<div class="scd-planner-card"
 						data-state="<?php echo esc_attr( $state ); ?>"
+						data-position="<?php echo esc_attr( $position ); ?>"
 						data-major-event="<?php echo $is_major_event ? 'true' : 'false'; ?>"
 						data-campaign-id="<?php echo esc_attr( $campaign['id'] ); ?>"
 						role="button"

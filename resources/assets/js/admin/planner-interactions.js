@@ -65,10 +65,11 @@
 				// Get campaign data
 				var campaignId = $defaultCard.data( 'campaign-id' );
 				var campaignState = $defaultCard.data( 'state' );
+				var campaignPosition = $defaultCard.data( 'position' );
 				var isMajorEvent = $defaultCard.data( 'major-event' ) === 'true';
 
-				// Update timeline focus to match
-				this.updateTimelineFocus( campaignState );
+				// Update timeline focus to match (use POSITION, not state)
+				this.updateTimelineFocus( campaignPosition );
 
 				// Load insights for the focused campaign
 				this.loadInsights( campaignId, campaignState, isMajorEvent );
@@ -89,6 +90,7 @@
 			var $card = $( e.currentTarget );
 			var campaignId = $card.data( 'campaign-id' );
 			var campaignState = $card.data( 'state' );
+			var campaignPosition = $card.data( 'position' );
 			var isMajorEvent = $card.data( 'major-event' ) === 'true';
 			// Don't reload if already focused
 			if ( $card.attr( 'data-focused' ) === 'true' ) {
@@ -97,8 +99,8 @@
 			// Update visual focus on cards
 			$( '.scd-planner-card' ).attr( 'data-focused', 'false' );
 			$card.attr( 'data-focused', 'true' );
-			// Update visual focus on timeline items
-			this.updateTimelineFocus( campaignState );
+			// Update visual focus on timeline items (use POSITION, not state)
+			this.updateTimelineFocus( campaignPosition );
 			// Load insights for this campaign
 			this.loadInsights( campaignId, campaignState, isMajorEvent );
 		},
@@ -230,13 +232,13 @@
 		/**
 		 * Update timeline item focus to match card selection
 		 *
-		 * @param {string} state Campaign state (past/active/future)
+		 * @param {string} position Timeline position (past/active/future)
 		 */
-		updateTimelineFocus: function( state ) {
+		updateTimelineFocus: function( position ) {
 			// Remove focused class from all timeline items
 			$( '.scd-timeline-item' ).removeClass( 'scd-timeline-item--focused' );
-			// Add focused class to corresponding timeline item
-			$( '.scd-timeline-item--' + state ).addClass( 'scd-timeline-item--focused' );
+			// Add focused class to corresponding timeline item by position
+			$( '.scd-timeline-item--' + position ).addClass( 'scd-timeline-item--focused' );
 		},
 		/**
 		 * Handle collapsible section toggle
