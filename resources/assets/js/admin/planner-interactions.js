@@ -47,14 +47,31 @@
 			$( document ).on( 'click', '.scd-planner-create-cta', this.handleCreateCampaign.bind( this ) );
 		},
 		/**
-		 * Initialize default focus on active campaign
+		 * Initialize default focus on Slot 2 (ACTIVE/NEXT campaign)
+		 *
+		 * The middle slot always contains the most relevant campaign:
+		 * - If a campaign is active: shows active campaign
+		 * - If no campaign active: shows next upcoming campaign
 		 */
 		initializeDefaultFocus: function() {
-			var $activeCard = $( '.scd-planner-card[data-state="active"]' );
-			if ( $activeCard.length ) {
-				$activeCard.attr( 'data-focused', 'true' );
-				// Also focus the active timeline item
-				$( '.scd-timeline-item--active' ).addClass( 'scd-timeline-item--focused' );
+			// Get all cards and focus on the second one (Slot 2 = ACTIVE/NEXT)
+			var $cards = $( '.scd-planner-card' );
+			var $defaultCard = $cards.eq( 1 ); // Index 1 = second card = Slot 2
+
+			if ( $defaultCard.length ) {
+				// Set focused state on card
+				$defaultCard.attr( 'data-focused', 'true' );
+
+				// Get campaign data
+				var campaignId = $defaultCard.data( 'campaign-id' );
+				var campaignState = $defaultCard.data( 'state' );
+				var isMajorEvent = $defaultCard.data( 'major-event' ) === 'true';
+
+				// Update timeline focus to match
+				this.updateTimelineFocus( campaignState );
+
+				// Load insights for the focused campaign
+				this.loadInsights( campaignId, campaignState, isMajorEvent );
 			}
 		},
 		/**

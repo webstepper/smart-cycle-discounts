@@ -715,44 +715,44 @@
 				details: {}
 			};
 
-			// Provide specific error messages based on error type
+			// Map textStatus and HTTP status to error codes using lookup
+			var errorCode = errorObj.code;
+			var errorMessage = errorObj.message;
+
 			if ( 'timeout' === textStatus ) {
-				errorObj.message = 'Server is taking too long to respond. Please try again.';
-				errorObj.code = 'timeout';
+				errorCode = 'timeout';
+				errorMessage = this.ERROR_MESSAGES.timeout;
 			} else if ( 'abort' === textStatus ) {
-				errorObj.message = 'Navigation was cancelled. Please try again.';
-				errorObj.code = 'abort';
+				errorCode = 'abort';
+				errorMessage = this.ERROR_MESSAGES.abort;
 			} else if ( xhr && 0 === xhr.status ) {
-				errorObj.message = 'Unable to connect to server. Please check your internet connection.';
-				errorObj.code = 'network_error';
+				errorCode = 'network_error';
+				errorMessage = this.ERROR_MESSAGES.network_error;
 			} else if ( xhr && xhr.status >= 500 ) {
-				errorObj.message = 'Server error occurred. Please try again in a moment.';
-				errorObj.code = 'server_error';
+				errorCode = 'server_error';
+				errorMessage = this.ERROR_MESSAGES.server_error;
 			} else if ( xhr && 403 === xhr.status ) {
-				errorObj.message = 'Permission denied. Please refresh the page and try again.';
-				errorObj.code = 'permission_denied';
+				errorCode = 'permission_denied';
+				errorMessage = this.ERROR_MESSAGES.permission_denied;
 			} else if ( xhr && 404 === xhr.status ) {
-				errorObj.message = 'Navigation endpoint not found. Please contact support.';
-				errorObj.code = 'not_found';
+				errorCode = 'not_found';
+				errorMessage = this.ERROR_MESSAGES.not_found;
 			}
+
+			errorObj.message = errorMessage;
+			errorObj.code = errorCode;
 
 			// Try to get specific error from server response
 			if ( xhr && xhr.responseJSON ) {
-				if ( xhr.responseJSON.data && xhr.responseJSON.data.message ) {
-					errorObj.message = xhr.responseJSON.data.message;
-					errorObj.code = xhr.responseJSON.data.code || errorObj.code;
-				} else if ( xhr.responseJSON.message ) {
-					errorObj.message = xhr.responseJSON.message;
-				}
+				errorObj.message = this.getNestedProp( xhr.responseJSON, 'data.message', errorMessage );
+				errorObj.code = this.getNestedProp( xhr.responseJSON, 'data.code', errorCode );
 				errorObj.details = xhr.responseJSON;
 			} else if ( xhr && xhr.responseText ) {
-				try {
-					var response = JSON.parse( xhr.responseText );
-					if ( response.data && response.data.message ) {
-						errorObj.message = response.data.message;
-						errorObj.code = response.data.code || errorObj.code;
-					}
-				} catch ( e ) {
+				var parsedResponse = this.tryParseJSON( xhr.responseText );
+				if ( parsedResponse ) {
+					errorObj.message = this.getNestedProp( parsedResponse, 'data.message', errorMessage );
+					errorObj.code = this.getNestedProp( parsedResponse, 'data.code', errorCode );
+				} else {
 					errorObj.details.responseText = xhr.responseText;
 				}
 			}
