@@ -479,39 +479,12 @@
 				return;
 			}
 
-			// Check if recommendations are enhanced (have category property)
-			if ( recommendations.length > 0 && recommendations[0].category ) {
-				this.renderEnhancedRecommendations( recommendations );
-			} else {
-				this.renderSimpleRecommendations( recommendations );
-			}
+			// All recommendations from PHP have category property (modern format)
+			this.renderEnhancedRecommendations( recommendations );
 		},
 
 		/**
-		 * Render simple recommendations (backward compatibility)
-		 *
-		 * @param {Array} recommendations Simple recommendations array
-		 */
-		renderSimpleRecommendations: function( recommendations ) {
-			var $section = $( '#scd-recommendations' );
-			var $list = $section.find( '.scd-recommendations-list' );
-
-			if ( ! $list.length ) {
-				$list = $( '<ul class="scd-recommendations-list"></ul>' );
-				$section.find( '.scd-recommendations-categories' ).replaceWith( $list );
-			}
-
-			$list.empty();
-
-			for ( var i = 0; i < recommendations.length; i++ ) {
-				$list.append( '<li>' + this.escapeHtml( recommendations[i] ) + '</li>' );
-			}
-
-			$section.show();
-		},
-
-		/**
-		 * Render enhanced recommendations with categories and all new capabilities
+		 * Render recommendations with categories and all capabilities
 		 *
 		 * @param {Array} recommendations Enhanced recommendations array
 		 */
@@ -904,12 +877,11 @@
 		 * @param {string} step Step name
 		 */
 		navigateToStep: function( step ) {
-			// Navigate using wizard navigation service
-			if ( typeof scdWizard !== 'undefined' && scdWizard.goToStep ) {
-				scdWizard.goToStep( step );
-			} else {
-				// Fallback: Show message if wizard not available
-				if ( SCD.Shared && SCD.Shared.NotificationService ) { SCD.Shared.NotificationService.info( 'Please navigate to the ' + step + ' step to make this change' ); }
+			// Navigate using modern wizard navigation API
+			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Navigation ) {
+				window.SCD.Wizard.Navigation.navigateToStep( step );
+			} else if ( SCD.Shared && SCD.Shared.NotificationService ) {
+				SCD.Shared.NotificationService.info( 'Please navigate to the ' + step + ' step to make this change' );
 			}
 		},
 
@@ -919,7 +891,7 @@
 		 * @return {Array} Dismissed recommendation IDs
 		 */
 		getDismissedRecommendations: function() {
-			var campaignId = typeof scdWizard !== 'undefined' && scdWizard.campaignId ? scdWizard.campaignId : 'new';
+			var campaignId = this._getCampaignId();
 			var key = 'scd_dismissed_' + campaignId;
 			var stored = localStorage.getItem( key );
 			return stored ? JSON.parse( stored ) : [];
@@ -931,7 +903,7 @@
 		 * @return {Array} Applied recommendation IDs
 		 */
 		getAppliedRecommendations: function() {
-			var campaignId = typeof scdWizard !== 'undefined' && scdWizard.campaignId ? scdWizard.campaignId : 'new';
+			var campaignId = this._getCampaignId();
 			var key = 'scd_applied_' + campaignId;
 			var stored = localStorage.getItem( key );
 			return stored ? JSON.parse( stored ) : [];
@@ -946,7 +918,7 @@
 			var dismissed = this.getDismissedRecommendations();
 			if ( dismissed.indexOf( id ) === -1 ) {
 				dismissed.push( id );
-				var campaignId = typeof scdWizard !== 'undefined' && scdWizard.campaignId ? scdWizard.campaignId : 'new';
+				var campaignId = this._getCampaignId();
 				localStorage.setItem( 'scd_dismissed_' + campaignId, JSON.stringify( dismissed ) );
 			}
 		},
@@ -960,7 +932,7 @@
 			var applied = this.getAppliedRecommendations();
 			if ( applied.indexOf( id ) === -1 ) {
 				applied.push( id );
-				var campaignId = typeof scdWizard !== 'undefined' && scdWizard.campaignId ? scdWizard.campaignId : 'new';
+				var campaignId = this._getCampaignId();
 				localStorage.setItem( 'scd_applied_' + campaignId, JSON.stringify( applied ) );
 			}
 		},
@@ -1139,6 +1111,30 @@
 					'pointer-events': ''
 				} );
 			}
+		},
+
+		/**
+		 * Get campaign ID for localStorage keys
+		 * Uses URL parameter or defaults to 'new' for new campaigns
+		 *
+		 * @private
+		 * @return {string|number} Campaign ID or 'new'
+		 */
+		_getCampaignId: function() {
+			// Try URL parameter
+			var urlParams = new URLSearchParams( window.location.search );
+			var urlId = urlParams.get( 'id' );
+			if ( urlId ) {
+				return urlId;
+			}
+
+			// Try scdWizardData
+			if ( window.scdWizardData && window.scdWizardData.campaign_id ) {
+				return window.scdWizardData.campaign_id;
+			}
+
+			// Default to 'new' for new campaigns
+			return 'new';
 		},
 
 		/**
