@@ -1,19 +1,13 @@
 /**
- * Base State Module
+ * Base State
  *
- * Reusable state management following the observer pattern.
- * Provides a foundation for all wizard step state management.
- *
- * Features:
- * - Proxy-based reactive state
- * - Subscription system for state changes
- * - Dirty state tracking
- * - JSON serialization/deserialization
- * - Undo/redo capability ( optional )
- *
- * @param $
- * @package SmartCycleDiscounts
- * @since 1.0.0
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/js/shared/base-state.js
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 ( function( $ ) {

@@ -1,11 +1,13 @@
 <?php
 /**
- * Export Service
- *
- * Generates exports of analytics data in various formats.
+ * Export Service Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/core/analytics
+ * @subpackage SmartCycleDiscounts/includes/core/analytics/class-export-service.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
  * @since      1.0.0
  */
 

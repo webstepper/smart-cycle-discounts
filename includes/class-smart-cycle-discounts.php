@@ -1,19 +1,17 @@
 <?php
 /**
- * The file that defines the core plugin class
- *
- * A class definition that includes attributes and functions used across both the
- * public-facing side of the site and the admin area.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Smart Cycle Discounts Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes
+ * @subpackage SmartCycleDiscounts/includes/class-smart-cycle-discounts.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -232,7 +230,6 @@ class Smart_Cycle_Discounts {
 		require_once SCD_INCLUDES_DIR . 'core/validation/class-validation.php';
 		require_once SCD_INCLUDES_DIR . 'utilities/traits/trait-admin-notice.php';
 		// Removed: class-input-sanitizer.php - Using Field_Definitions instead
-		require_once SCD_INCLUDES_DIR . 'security/interface-nonce-manager.php';
 		require_once SCD_INCLUDES_DIR . 'security/class-nonce-manager.php';
 		require_once SCD_INCLUDES_DIR . 'security/class-rate-limiter.php';
 		require_once SCD_INCLUDES_DIR . 'security/class-audit-logger.php';

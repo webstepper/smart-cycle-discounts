@@ -1,12 +1,13 @@
 /**
- * Product Selection Types Constants
+ * Product Selection Types
  *
- * Single source of truth for product selection types.
- * Matches PHP constants in SCD_Product_Selection_Types class.
- *
- * @param window
- * @package SmartCycleDiscounts
- * @since 1.0.0
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/js/constants/product-selection-types.js
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 ( function( window ) {

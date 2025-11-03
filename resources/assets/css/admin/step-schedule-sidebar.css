@@ -1,11 +1,13 @@
 /**
- * Schedule Step Sidebar Styles
- * WordPress 6.4+ Design System Implementation
+ * Step Schedule Sidebar
  *
- * Additional sidebar-specific styles for the schedule step
- * Common sidebar styles are in wizard-fullscreen.css
- *
- * Dependencies: scd-variables, scd-utilities, scd-components (loaded via WordPress deps)
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/css/admin/step-schedule-sidebar.css
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 /* ==========================================================================

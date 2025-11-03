@@ -1,19 +1,17 @@
 <?php
 /**
- * DateTime Splitter
- *
- * Converts stored datetime back to separate date/time components for editing.
- * Implements the Value Object pattern for datetime decomposition.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Datetime Splitter Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/utilities
+ * @subpackage SmartCycleDiscounts/includes/utilities/class-datetime-splitter.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly

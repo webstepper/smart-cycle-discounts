@@ -1,14 +1,14 @@
 <?php
 /**
- * AJAX Security Handler
- *
- * Centralized security management for all AJAX operations
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Ajax Security Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/security
+ * @subpackage SmartCycleDiscounts/includes/admin/ajax/class-ajax-security.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -112,7 +112,7 @@ class SCD_Ajax_Security {
 
 		// Dashboard actions
 		'scd_main_dashboard_data'            => 'scd_main_dashboard',
-		'scd_get_planner_insights'          => 'scd_admin_nonce',
+		'scd_get_planner_insights'           => 'scd_admin_nonce',
 
 		// Email/Notification actions
 		'scd_send_test_email'                => 'scd_admin_nonce',
@@ -198,7 +198,7 @@ class SCD_Ajax_Security {
 
 		// Dashboard actions
 		'scd_main_dashboard_data'            => 'scd_view_analytics',
-		'scd_get_planner_insights'          => 'scd_view_analytics',
+		'scd_get_planner_insights'           => 'scd_view_analytics',
 
 		// Email/Notification actions - require admin capabilities
 		'scd_send_test_email'                => 'manage_options',
@@ -272,7 +272,7 @@ class SCD_Ajax_Security {
 
 		// Dashboard actions
 		'scd_main_dashboard_data'            => 30,
-		'scd_get_planner_insights'          => 30,
+		'scd_get_planner_insights'           => 30,
 
 		// Discount API handlers
 		'scd_validate_discount_rules'        => 30,

@@ -1,14 +1,14 @@
 <?php
 /**
- * Campaign Cron Diagnostic Page
- *
- * Helps debug and verify campaign event scheduling.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Campaign Cron Diagnostic Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/pages
+ * @subpackage SmartCycleDiscounts/includes/admin/pages/class-campaign-cron-diagnostic.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);

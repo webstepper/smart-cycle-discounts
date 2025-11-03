@@ -1,16 +1,17 @@
 <?php
 /**
- * Menu manager
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Menu Manager Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin
+ * @subpackage SmartCycleDiscounts/includes/admin/class-menu-manager.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -339,7 +340,6 @@ class SCD_Menu_Manager {
 
 			// Debug logging
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD Menu Manager] ' . $key . ' page registered with hook suffix: ' . $hook_suffix );
 			}
 
 			// Add page-specific load actions
@@ -536,23 +536,12 @@ class SCD_Menu_Manager {
 	 * @return   void
 	 */
 	public function render_notifications_page(): void {
-		// IMMEDIATE debug output before anything else
-		if ( function_exists( 'error_log' ) ) {
-			error_log( '[SCD Menu] ========================================' );
-			error_log( '[SCD Menu] render_notifications_page() METHOD CALLED!' );
-			error_log( '[SCD Menu] Current screen: ' . ( function_exists( 'get_current_screen' ) && get_current_screen() ? get_current_screen()->id : 'unknown' ) );
-			error_log( '[SCD Menu] Has admin instance: ' . ( $this->admin ? 'YES (' . get_class( $this->admin ) . ')' : 'NO' ) );
-			error_log( '[SCD Menu] ========================================' );
-		}
-
 		// Use admin instance if available
 		if ( $this->admin && method_exists( $this->admin, 'render_notifications_page' ) ) {
-			error_log( '[SCD Menu] Calling admin->render_notifications_page()' );
 			$this->admin->render_notifications_page();
 			return;
 		}
 
-		error_log( '[SCD Menu] Admin instance not available, using fallback' );
 		$this->render_page_header( __( 'Email Notifications', 'smart-cycle-discounts' ) );
 
 		// Page content will be handled by the notifications page class

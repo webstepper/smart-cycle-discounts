@@ -1,12 +1,13 @@
 <?php
 /**
- * Add Campaign Version Column Migration
- *
- * Adds version column to campaigns table for optimistic locking support.
- * Prevents concurrent edit conflicts and data loss.
+ * 005 Add Campaign Version Column
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/database/migrations
+ * @subpackage SmartCycleDiscounts/includes/database/migrations/005-add-campaign-version-column.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
  * @since      1.0.0
  */
 

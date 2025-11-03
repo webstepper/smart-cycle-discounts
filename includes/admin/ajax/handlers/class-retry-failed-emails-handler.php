@@ -1,14 +1,14 @@
 <?php
 /**
- * Retry Failed Emails AJAX Handler
- *
- * Handles retrying failed email deliveries.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Retry Failed Emails Handler Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
+ * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers/class-retry-failed-emails-handler.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

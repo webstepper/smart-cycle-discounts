@@ -1,15 +1,14 @@
 <?php
 /**
- * Notifications Page
- *
- * Main controller for email notifications and email system management.
- * Manages tabs, registration, and rendering.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Notifications Page Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/pages/notifications
+ * @subpackage SmartCycleDiscounts/includes/admin/pages/notifications/class-notifications-page.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare( strict_types=1 );
@@ -285,9 +284,6 @@ class SCD_Notifications_Page {
 	 */
 	public function render(): void {
 		// Debug output
-		error_log( '[SCD Notifications] Render method called' );
-		error_log( '[SCD Notifications] Current tab: ' . $this->current_tab );
-		error_log( '[SCD Notifications] Tabs registered: ' . print_r( $this->get_tabs(), true ) );
 
 		// Check user permissions
 		if ( ! current_user_can( 'manage_options' ) ) {

@@ -1,20 +1,14 @@
 <?php
 /**
- * Case Converter Utility
- *
- * Converts array keys between snake_case (PHP/WordPress) and camelCase (JavaScript)
- * at the boundary between backend and frontend.
- *
- * This is the single source of truth for all case conversions in the plugin:
- * - AJAX requests: JavaScript camelCase → PHP snake_case
- * - AJAX responses: PHP snake_case → JavaScript camelCase
- * - Page load data: PHP snake_case → JavaScript camelCase
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Case Converter Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/utilities
+ * @subpackage SmartCycleDiscounts/includes/utilities/class-case-converter.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

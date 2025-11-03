@@ -1,12 +1,13 @@
 <?php
 /**
- * Theme Colors Utility
- *
- * Centralized theme color management for WordPress admin color schemes.
- * Single source of truth for theme colors across the plugin.
+ * Theme Colors Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage Utilities
+ * @subpackage SmartCycleDiscounts/includes/utilities/class-theme-colors.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
  * @since      1.0.0
  */
 

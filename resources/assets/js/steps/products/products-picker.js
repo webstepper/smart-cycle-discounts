@@ -1,17 +1,13 @@
 /**
- * Products Picker - Unified Category + Product Selection
+ * Products Picker
  *
- * Handles both category filtering and product selection in a single cohesive module.
- * Replaces the previous separate category-filter.js and products-tom-select.js files.
- *
- * Architecture:
- * - Category Select (TomSelect) - Filters the product pool
- * - Product Search (TomSelect) - Selects products from filtered pool
- * - Direct communication - No events between category/product (they're in same module)
- * - Caching - Unified cache for both categories and products
- *
- * @package SmartCycleDiscounts
- * @since 1.0.0
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/js/steps/products/products-picker.js
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 ( function( $ ) {
@@ -342,15 +338,12 @@
 				oldCategories = [ 'all' ];
 			}
 
-			console.log( '[ProductsPicker] Category change - new:', newCategories, 'old:', oldCategories );
 
 			// Check if there's an actual change
 			if ( ! this.hasCategoryChanges( newCategories, oldCategories ) ) {
-				console.log( '[ProductsPicker] No category changes, skipping' );
 				return;
 			}
 
-			console.log( '[ProductsPicker] Category changed, will reload products' );
 
 			// Update state
 			this.state.setState( { categoryIds: newCategories } );
@@ -425,18 +418,14 @@
 		 * @returns {void}
 		 */
 		handleProductChange: function( value ) {
-			console.log( '[ProductsPicker] handleProductChange called with:', value );
 			var productIds = Array.isArray( value ) ? value.map( String ) : [];
 			var previousProducts = this.state.getState().productIds || [];
 
-			console.log( '[ProductsPicker] Current:', productIds, 'Previous:', previousProducts );
 
 			if ( ! this.hasProductChanges( productIds, previousProducts ) ) {
-				console.log( '[ProductsPicker] No changes detected, skipping update' );
 				return;
 			}
 
-			console.log( '[ProductsPicker] Changes detected, updating state' );
 
 			// Store category data for selected products (critical for filtering)
 			var self = this;
@@ -458,7 +447,6 @@
 
 			// Update wizard state manager so changes persist when navigating
 			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.modules && window.SCD.Wizard.modules.stateManager ) {
-				console.log( '[ProductsPicker] Updating wizard state manager with product IDs:', productIds );
 				var currentStepData = window.SCD.Wizard.modules.stateManager.get( 'stepData' ) || {};
 				var productsStepData = currentStepData.products || {};
 				productsStepData.productIds = productIds;
@@ -717,10 +705,8 @@
 		 * @returns {Promise} Promise that resolves when restored
 		 */
 		restoreProducts: function( productIds ) {
-			console.log( '[ProductsPicker] restoreProducts called with:', productIds );
 
 			if ( ! this.productSelect || ! productIds || 0 === productIds.length ) {
-				console.log( '[ProductsPicker] Skipping restore - productSelect:', this.productSelect, 'productIds:', productIds );
 				return Promise.resolve();
 			}
 
@@ -728,12 +714,9 @@
 
 			// Try preloaded data first
 			var preloaded = this.getPreloadedProducts( productIds );
-			console.log( '[ProductsPicker] Preloaded products found:', preloaded.length, 'of', productIds.length );
 
 			if ( preloaded.length === productIds.length ) {
-				console.log( '[ProductsPicker] Using preloaded products, adding options...' );
 				this.addProductOptions( preloaded );
-				console.log( '[ProductsPicker] Setting TomSelect value to:', productIds );
 				this.productSelect.setValue( productIds, true );
 
 				// Sync state and hidden field (critical for form submission)
@@ -741,17 +724,13 @@
 				this.syncHiddenField( productIds );
 				this.syncProductSelect( productIds );
 
-				console.log( '[ProductsPicker] Restore complete (preloaded)' );
 				return Promise.resolve();
 			}
 
 			// Load from API
-			console.log( '[ProductsPicker] Loading products from API...' );
 			return this.api.getProductsByIds( productIds )
 				.then( function( response ) {
-					console.log( '[ProductsPicker] API response:', response );
 					var products = self.extractProducts( response );
-					console.log( '[ProductsPicker] Extracted products:', products );
 					self.addProductOptions( products );
 					self.productSelect.setValue( productIds, true );
 
@@ -759,7 +738,6 @@
 					self.state.setState( { productIds: productIds } );
 					self.syncHiddenField( productIds );
 					self.syncProductSelect( productIds );
-					console.log( '[ProductsPicker] Restore complete (API)' );
 				} )
 				.catch( function( error ) {
 					console.error( '[ProductsPicker] Restore failed:', error );
@@ -885,12 +863,10 @@
 				! window.scdWizardData.currentCampaign ||
 				! window.scdWizardData.currentCampaign.products ||
 				! window.scdWizardData.currentCampaign.products.selectedProductsData ) {
-				console.log( '[ProductsPicker] No preloaded products data available' );
 				return [];
 			}
 
 			var preloaded = window.scdWizardData.currentCampaign.products.selectedProductsData;
-			console.log( '[ProductsPicker] Found preloaded products data:', preloaded );
 			var idStrings = productIds.map( String );
 
 			return preloaded.filter( function( p ) {
@@ -1100,16 +1076,12 @@
 		 * @returns {Promise|void} Promise for products, void for categories
 		 */
 		setValue: function( field, value ) {
-			console.log( '[ProductsPicker] setValue called with field:', field, 'value:', value );
 
 			// If called with array of product IDs directly (from complex field population)
 			if ( Array.isArray( field ) ) {
-				console.log( '[ProductsPicker] Setting product IDs directly from array:', field );
 				if ( this.productSelect ) {
-					console.log( '[ProductsPicker] Product select ready, calling restoreProducts' );
 					return this.restoreProducts( field );
 				} else {
-					console.log( '[ProductsPicker] Product select not ready, pending restoration' );
 					this.pendingProducts = field;
 					return Promise.resolve();
 				}
@@ -1120,29 +1092,23 @@
 				var data = field;
 				var promises = [];
 
-				console.log( '[ProductsPicker] Setting object - categoryIds:', data.categoryIds, 'productIds:', data.productIds );
 
 				// Set categories
 				if ( data.categoryIds ) {
 					if ( this.categorySelect ) {
-						console.log( '[ProductsPicker] Setting categories via ensureCategoryOptionsLoaded' );
 						promises.push( this.ensureCategoryOptionsLoaded( data.categoryIds ).then( function() {
 							this.setCategoriesOnInstance( data.categoryIds );
 						}.bind( this ) ) );
 					} else {
-						console.log( '[ProductsPicker] Category select not ready, pending restoration' );
 						this.pendingCategories = data.categoryIds;
 					}
 				}
 
 				// Set products
 				if ( data.productIds && 0 < data.productIds.length ) {
-					console.log( '[ProductsPicker] Product IDs to set:', data.productIds );
 					if ( this.productSelect ) {
-						console.log( '[ProductsPicker] Product select ready, calling restoreProducts' );
 						promises.push( this.restoreProducts( data.productIds ) );
 					} else {
-						console.log( '[ProductsPicker] Product select not ready, pending restoration' );
 						this.pendingProducts = data.productIds;
 					}
 				}
@@ -1227,21 +1193,16 @@
 		 * @returns {Promise} Promise that resolves when set
 		 */
 		setCategoryIds: function( value ) {
-			console.log( '[ProductsPicker] setCategoryIds called with:', value );
 
 			if ( ! this.categorySelect ) {
-				console.log( '[ProductsPicker] Category select not ready, pending' );
 				this.pendingCategories = value;
 				return Promise.resolve();
 			}
 
 			// If empty array, treat as 'all' (default)
 			var categoriesToSet = value && value.length > 0 ? value : [ 'all' ];
-			console.log( '[ProductsPicker] Setting categories (normalized):', categoriesToSet );
 
-			console.log( '[ProductsPicker] Loading category options and setting value' );
 			return this.ensureCategoryOptionsLoaded( categoriesToSet ).then( function() {
-				console.log( '[ProductsPicker] Setting categories on instance:', categoriesToSet );
 				this.setCategoriesOnInstance( categoriesToSet );
 			}.bind( this ) );
 		},

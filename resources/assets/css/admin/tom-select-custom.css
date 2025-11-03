@@ -1,13 +1,13 @@
 /**
- * Tom Select Custom Styling
+ * Tom Select Custom
  *
- * Provides custom styling for Tom Select components to match
- * Smart Cycle Discounts UI design system.
- *
- * Dependencies: tom-select, scd-admin, scd-variables, scd-utilities, scd-components (loaded via WordPress deps)
- *
- * @package SmartCycleDiscounts
- * @since 1.0.0
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/css/admin/tom-select-custom.css
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 /* ==========================================================================

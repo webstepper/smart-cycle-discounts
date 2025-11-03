@@ -1,12 +1,13 @@
 /**
- * Discount Conditions Module
+ * Discounts Conditions
  *
- * Manages conditional rules for discount application including product,
- * category, user role, cart value, and other conditions.
- *
- * @param $
- * @package SmartCycleDiscounts
- * @since 1.0.0
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/js/steps/discounts/discounts-conditions.js
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 ( function( $ ) {

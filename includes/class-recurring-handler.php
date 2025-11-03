@@ -1,12 +1,14 @@
 <?php
 /**
- * Recurring Campaign Handler
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Recurring Handler Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes
+ * @subpackage SmartCycleDiscounts/includes/class-recurring-handler.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

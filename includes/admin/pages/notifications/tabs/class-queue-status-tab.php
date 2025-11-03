@@ -1,14 +1,14 @@
 <?php
 /**
- * Queue Status Tab
- *
- * Displays email queue status and management tools.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Queue Status Tab Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/pages/notifications/tabs
+ * @subpackage SmartCycleDiscounts/includes/admin/pages/notifications/tabs/class-queue-status-tab.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare( strict_types=1 );

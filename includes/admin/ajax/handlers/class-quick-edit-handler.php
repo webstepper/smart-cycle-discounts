@@ -1,11 +1,13 @@
 <?php
 /**
- * Quick Edit AJAX Handler
- *
- * Handles inline quick edit of campaigns.
+ * Quick Edit Handler Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
+ * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers/class-quick-edit-handler.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
  * @since      1.0.0
  */
 

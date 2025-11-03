@@ -1,19 +1,14 @@
 <?php
 /**
- * Tools Page
- *
- * Handles tools and maintenance utilities including:
- * - Import/Export functionality
- * - Database maintenance
- * - Cache management
- * - Log viewer and management
- * - System diagnostics
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Tools Page Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/pages
+ * @subpackage SmartCycleDiscounts/includes/admin/pages/class-tools-page.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare( strict_types=1 );
@@ -326,6 +321,9 @@ class SCD_Tools_Page {
 							<div class="scd-log-viewer-wrapper">
 								<p class="description">
 									<?php esc_html_e( 'View debug log contents. Sensitive information is automatically redacted.', 'smart-cycle-discounts' ); ?>
+									<br>
+									<strong><?php esc_html_e( 'Showing last 500 lines (~10-30 minutes).', 'smart-cycle-discounts' ); ?></strong>
+									<?php esc_html_e( 'Production mode logs errors only. Change log level in Settings > Advanced to see more detail.', 'smart-cycle-discounts' ); ?>
 								</p>
 
 								<div class="scd-log-stats" style="margin: 15px 0;">

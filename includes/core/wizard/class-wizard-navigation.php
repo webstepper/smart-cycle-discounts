@@ -1,17 +1,14 @@
 <?php
 /**
- * Wizard Navigation Component
- *
- * Handles navigation UI rendering for the campaign wizard.
- *
- * Note: AJAX navigation is handled by JavaScript (wizard-navigation.js)
- * which calls the save_step handler for validation and persistence.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Wizard Navigation Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/core/wizard
+ * @subpackage SmartCycleDiscounts/includes/core/wizard/class-wizard-navigation.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

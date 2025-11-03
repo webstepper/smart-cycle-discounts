@@ -1,18 +1,17 @@
 <?php
 /**
- * Translation Handler
- *
- * Handles deferred translation loading to prevent early text domain issues.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Translation Handler Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/core
+ * @subpackage SmartCycleDiscounts/includes/utilities/class-translation-handler.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly

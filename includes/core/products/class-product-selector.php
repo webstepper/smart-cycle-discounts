@@ -1,16 +1,17 @@
 <?php
 /**
- * Product Selector
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Product Selector Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/core/products
+ * @subpackage SmartCycleDiscounts/includes/core/products/class-product-selector.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -156,17 +157,11 @@ class SCD_Product_Selector {
 				$transformed_conditions = $this->transform_conditions_for_engine( $criteria['conditions'] );
 
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[Product Selector] Before applying conditions: ' . count( $product_ids ) . ' products' );
-					error_log( '[Product Selector] UI conditions: ' . print_r( $criteria['conditions'], true ) );
-					error_log( '[Product Selector] Transformed conditions: ' . print_r( $transformed_conditions, true ) );
-					error_log( '[Product Selector] Conditions logic: ' . $conditions_logic );
 				}
 
 				$product_ids = $this->condition_engine->apply_conditions( $product_ids, $transformed_conditions, $conditions_logic );
 
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[Product Selector] After applying conditions: ' . count( $product_ids ) . ' products' );
-					error_log( '[Product Selector] Filtered product IDs: ' . implode( ', ', $product_ids ) );
 				}
 			}
 

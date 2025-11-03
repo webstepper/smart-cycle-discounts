@@ -1,19 +1,17 @@
 <?php
 /**
- * Campaign model
- *
- * Pure data model with only properties and simple getters/setters.
- * Business logic moved to specialized service classes.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Campaign Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/database/models
+ * @subpackage SmartCycleDiscounts/includes/core/campaigns/class-campaign.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -349,7 +347,6 @@ class SCD_Campaign {
 		$current_status = $this->get_status();
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Campaign Model] can_transition_to() check: ' . $current_status . ' -> ' . $to_status );
 		}
 
 		// Define allowed status transitions (must match State Manager rules)
@@ -365,7 +362,6 @@ class SCD_Campaign {
 		// Check if transition is allowed
 		if ( ! isset( $allowed_transitions[ $current_status ] ) ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Campaign Model] Transition DENIED: current_status not in rules: ' . $current_status );
 			}
 			return false;
 		}
@@ -373,8 +369,6 @@ class SCD_Campaign {
 		$result = in_array( $to_status, $allowed_transitions[ $current_status ], true );
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Campaign Model] Transition ' . ( $result ? 'ALLOWED' : 'DENIED' ) . ': ' . $current_status . ' -> ' . $to_status );
-			error_log( '[Campaign Model] Allowed transitions from ' . $current_status . ': ' . implode( ', ', $allowed_transitions[ $current_status ] ) );
 		}
 
 		return $result;

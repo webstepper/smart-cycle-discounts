@@ -1,20 +1,13 @@
 /**
- * Shared UI Utilities
+ * Ui Utilities
  *
- * Common UI patterns following WordPress admin styles.
- * Provides consistent user interface components and behaviors.
- *
- * Features:
- * - WordPress admin notifications
- * - Loading states
- * - Modal dialogs
- * - Form enhancements
- * - Tooltips
- * - Progress indicators
- *
- * @param $
- * @package SmartCycleDiscounts
- * @since 1.0.0
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/js/admin/ui-utilities.js
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 ( function( $ ) {

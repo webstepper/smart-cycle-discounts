@@ -1,20 +1,14 @@
 <?php
 /**
- * Database Migration 006: Add Foreign Keys and Performance Indexes
- *
- * Adds foreign key constraints and performance indexes to improve data integrity
- * and query performance across the plugin's database schema.
- *
- * Changes:
- * - Adds foreign key constraints for referential integrity
- * - Adds indexes on frequently queried timestamp columns
- * - Adds indexes on foreign key columns for join performance
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * 006 Add Foreign Keys Indexes
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/database/migrations
+ * @subpackage SmartCycleDiscounts/includes/database/migrations/006-add-foreign-keys-indexes.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);

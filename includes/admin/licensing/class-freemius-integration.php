@@ -1,15 +1,14 @@
 <?php
 /**
- * Freemius Integration
- *
- * Handles Freemius SDK initialization and configuration.
- * Provides licensing, upgrades, and account management.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Freemius Integration Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/licensing
+ * @subpackage SmartCycleDiscounts/includes/admin/licensing/class-freemius-integration.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

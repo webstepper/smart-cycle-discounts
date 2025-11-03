@@ -1,14 +1,14 @@
 <?php
 /**
- * Profit Margin Warning Handler
- *
- * Handles AJAX requests for analyzing profit margins and warning about below-cost discounts.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Profit Margin Warning Handler Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
+ * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers/class-profit-margin-warning-handler.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

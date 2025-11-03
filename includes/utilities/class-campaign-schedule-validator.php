@@ -1,12 +1,13 @@
 <?php
 /**
- * Campaign Schedule Validator
- *
- * Validates campaign schedule overlaps and conflicts.
- * Single source of truth for schedule overlap detection.
+ * Campaign Schedule Validator Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage Utilities
+ * @subpackage SmartCycleDiscounts/includes/utilities/class-campaign-schedule-validator.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
  * @since      1.0.0
  */
 

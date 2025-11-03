@@ -2,14 +2,13 @@
 /**
  * Settings Page Base Class
  *
- * Abstract base class for all settings tab pages.
- * Provides common functionality and enforces consistent structure.
- *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/includes/admin/settings/class-settings-page-base.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://smartcyclediscounts.com
  * @since      1.0.0
- *
- * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/settings
  */
 
 declare( strict_types=1 );

@@ -1,18 +1,17 @@
 <?php
 /**
- * Service Definitions Registry
- *
- * Centralized service configurations to prevent constructor mismatches
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Service Definitions Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/core
+ * @subpackage SmartCycleDiscounts/includes/bootstrap/class-service-definitions.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -38,7 +37,7 @@ class SCD_Service_Definitions {
 	public static function get_definitions(): array {
 		return array(
 			// Core Services
-			'logger'                      => array(
+			'logger'                       => array(
 				'class'     => 'SCD_Logger',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
@@ -46,7 +45,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'action_scheduler'            => array(
+			'action_scheduler'             => array(
 				'class'        => 'SCD_Action_Scheduler_Service',
 				'singleton'    => true,
 				'dependencies' => array( 'logger' ),
@@ -57,7 +56,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'debug_logger'                => array(
+			'debug_logger'                 => array(
 				'class'     => 'SCD_Debug_Logger',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
@@ -66,7 +65,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'debug_console'               => array(
+			'debug_console'                => array(
 				'class'        => 'SCD_Debug_Console',
 				'singleton'    => true,
 				'dependencies' => array(),
@@ -76,7 +75,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'error_handler'               => array(
+			'error_handler'                => array(
 				'class'        => 'SCD_Error_Handler',
 				'singleton'    => true,
 				'dependencies' => array( 'logger' ),
@@ -85,7 +84,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'cache_manager'               => array(
+			'cache_manager'                => array(
 				'class'     => 'SCD_Cache_Manager',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
@@ -93,7 +92,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'database_manager'            => array(
+			'database_manager'             => array(
 				'class'     => 'SCD_Database_Manager',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
@@ -101,7 +100,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'security_manager'            => array(
+			'security_manager'             => array(
 				'class'        => 'SCD_Security_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'container' ),
@@ -112,7 +111,7 @@ class SCD_Service_Definitions {
 
 			// Campaign Model Services (New modular components)
 
-			'campaign.calculator'         => array(
+			'campaign.calculator'          => array(
 				'class'        => 'SCD_Campaign_Calculator',
 				'singleton'    => true,
 				'dependencies' => array( 'analytics_repository', 'product_selector' ),
@@ -124,7 +123,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'campaign.formatter'          => array(
+			'campaign.formatter'           => array(
 				'class'     => 'SCD_Campaign_Formatter',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
@@ -132,7 +131,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'campaign.state_manager'      => array(
+			'campaign.state_manager'       => array(
 				'class'        => 'SCD_Campaign_State_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'logger' ),
@@ -144,7 +143,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'campaign_health_service'     => array(
+			'campaign_health_service'      => array(
 				'class'        => 'SCD_Campaign_Health_Service',
 				'singleton'    => true,
 				'dependencies' => array( 'logger' ),
@@ -156,7 +155,7 @@ class SCD_Service_Definitions {
 			),
 
 			// Repository Services
-			'campaign_repository'         => array(
+			'campaign_repository'          => array(
 				'class'        => 'SCD_Campaign_Repository',
 				'singleton'    => true,
 				'dependencies' => array( 'database_manager', 'cache_manager' ),
@@ -168,7 +167,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'discount_repository'         => array(
+			'discount_repository'          => array(
 				'class'        => 'SCD_Discount_Repository',
 				'singleton'    => true,
 				'dependencies' => array( 'database_manager' ),
@@ -177,7 +176,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'analytics_repository'        => array(
+			'analytics_repository'         => array(
 				'class'        => 'SCD_Analytics_Repository',
 				'singleton'    => true,
 				'dependencies' => array( 'database_manager' ),
@@ -186,7 +185,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'customer_usage_repository'   => array(
+			'customer_usage_repository'    => array(
 				'class'        => 'SCD_Customer_Usage_Repository',
 				'singleton'    => true,
 				'dependencies' => array( 'database_manager', 'logger' ),
@@ -198,7 +197,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'session_service'             => array(
+			'session_service'              => array(
 				'class'     => 'SCD_Session_Service',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
@@ -207,7 +206,7 @@ class SCD_Service_Definitions {
 			),
 
 			// Business Logic Services
-			'campaign_manager'            => array(
+			'campaign_manager'             => array(
 				'class'        => 'SCD_Campaign_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'campaign_repository', 'logger', 'cache_manager', 'container' ),
@@ -221,7 +220,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'discount_engine'             => array(
+			'discount_engine'              => array(
 				'class'        => 'SCD_Discount_Engine',
 				'singleton'    => true,
 				'dependencies' => array( 'logger', 'cache_manager' ),
@@ -233,7 +232,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'customer_usage_manager'      => array(
+			'customer_usage_manager'       => array(
 				'class'        => 'SCD_Customer_Usage_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'customer_usage_repository', 'logger', 'session_service' ),
@@ -246,7 +245,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'cron_scheduler'              => array(
+			'cron_scheduler'               => array(
 				'class'        => 'SCD_Cron_Scheduler',
 				'singleton'    => true,
 				'dependencies' => array( 'logger', 'action_scheduler', 'customer_usage_manager' ),
@@ -259,7 +258,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'discount_applicator'         => array(
+			'discount_applicator'          => array(
 				'class'        => 'SCD_Discount_Applicator',
 				'singleton'    => true,
 				'dependencies' => array( 'discount_engine', 'logger' ),
@@ -271,7 +270,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'recurring_handler'           => array(
+			'recurring_handler'            => array(
 				'class'        => 'SCD_Recurring_Handler',
 				'singleton'    => true,
 				'dependencies' => array( 'container' ),
@@ -281,7 +280,7 @@ class SCD_Service_Definitions {
 			),
 
 			// Admin Services
-			'admin_manager'               => array(
+			'admin_manager'                => array(
 				'class'        => 'SCD_Admin_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'container' ),
@@ -290,7 +289,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'menu_manager'                => array(
+			'menu_manager'                 => array(
 				'class'        => 'SCD_Menu_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'capability_manager', 'logger' ),
@@ -302,7 +301,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'ajax_router'                 => array(
+			'ajax_router'                  => array(
 				'class'     => 'SCD_Ajax_Router',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
@@ -310,7 +309,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'admin_asset_manager'         => array(
+			'admin_asset_manager'          => array(
 				'class'        => 'SCD_Admin_Asset_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'logger' ),
@@ -323,7 +322,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'capability_manager'          => array(
+			'capability_manager'           => array(
 				'class'        => 'SCD_Admin_Capability_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'logger' ),
@@ -333,7 +332,7 @@ class SCD_Service_Definitions {
 			),
 
 			// Licensing Services
-			'feature_gate'                => array(
+			'feature_gate'                 => array(
 				'class'        => 'SCD_Feature_Gate',
 				'singleton'    => true,
 				'dependencies' => array(),
@@ -342,7 +341,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'license_manager'             => array(
+			'license_manager'              => array(
 				'class'        => 'SCD_License_Manager',
 				'singleton'    => true,
 				'dependencies' => array(),
@@ -352,7 +351,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'license_notices'             => array(
+			'license_notices'              => array(
 				'class'        => 'SCD_License_Notices',
 				'singleton'    => true,
 				'dependencies' => array(),
@@ -362,7 +361,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'upgrade_prompt_manager'      => array(
+			'upgrade_prompt_manager'       => array(
 				'class'        => 'SCD_Upgrade_Prompt_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'feature_gate' ),
@@ -373,7 +372,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'campaigns_page'              => array(
+			'campaigns_page'               => array(
 				'class'        => 'SCD_Campaigns_Page',
 				'singleton'    => true,
 				'dependencies' => array( 'campaign_manager', 'capability_manager', 'logger' ),
@@ -382,7 +381,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'tools_page'                  => array(
+			'tools_page'                   => array(
 				'class'        => 'SCD_Tools_Page',
 				'singleton'    => true,
 				'dependencies' => array( 'container', 'logger', 'feature_gate' ),
@@ -397,7 +396,7 @@ class SCD_Service_Definitions {
 			),
 
 			// Notifications Page Services
-			'notifications_page'          => array(
+			'notifications_page'           => array(
 				'class'        => 'SCD_Notifications_Page',
 				'singleton'    => true,
 				'dependencies' => array( 'logger', 'container', 'feature_gate' ),
@@ -411,7 +410,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'notifications_settings_tab'  => array(
+			'notifications_settings_tab'   => array(
 				'class'        => 'SCD_Notifications_Settings_Tab',
 				'singleton'    => true,
 				'dependencies' => array( 'notifications_page', 'logger' ),
@@ -426,7 +425,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'notifications_queue_tab'     => array(
+			'notifications_queue_tab'      => array(
 				'class'        => 'SCD_Queue_Status_Tab',
 				'singleton'    => true,
 				'dependencies' => array( 'notifications_page', 'logger', 'container' ),
@@ -443,7 +442,7 @@ class SCD_Service_Definitions {
 			),
 
 			// Settings Services
-			'settings_manager'            => array(
+			'settings_manager'             => array(
 				'class'        => 'SCD_Settings_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'logger', 'container' ),
@@ -453,7 +452,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'settings_general'            => array(
+			'settings_general'             => array(
 				'class'        => 'SCD_General_Settings',
 				'singleton'    => true,
 				'dependencies' => array( 'settings_manager', 'logger', 'container' ),
@@ -468,7 +467,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'settings_performance'        => array(
+			'settings_performance'         => array(
 				'class'        => 'SCD_Performance_Settings',
 				'singleton'    => true,
 				'dependencies' => array( 'settings_manager', 'logger' ),
@@ -483,7 +482,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'settings_advanced'           => array(
+			'settings_advanced'            => array(
 				'class'        => 'SCD_Advanced_Settings',
 				'singleton'    => true,
 				'dependencies' => array( 'settings_manager', 'logger' ),
@@ -499,7 +498,7 @@ class SCD_Service_Definitions {
 			),
 
 			// Campaign Page Services
-			'campaign_view_renderer'      => array(
+			'campaign_view_renderer'       => array(
 				'class'        => 'SCD_Campaign_View_Renderer',
 				'singleton'    => true,
 				'dependencies' => array( 'template_loader' ),
@@ -508,7 +507,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'campaign_list_controller'    => array(
+			'campaign_list_controller'     => array(
 				'class'        => 'SCD_Campaign_List_Controller',
 				'singleton'    => false,
 				'dependencies' => array( 'campaign_manager', 'capability_manager', 'logger', 'wizard_state_service', 'feature_gate' ),
@@ -523,7 +522,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'campaign_edit_controller'    => array(
+			'campaign_edit_controller'     => array(
 				'class'        => 'SCD_Campaign_Edit_Controller',
 				'singleton'    => false,
 				'dependencies' => array( 'campaign_manager', 'capability_manager', 'logger', 'campaign_view_renderer' ),
@@ -537,7 +536,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'campaign_wizard_controller'  => array(
+			'campaign_wizard_controller'   => array(
 				'class'        => 'SCD_Campaign_Wizard_Controller',
 				'singleton'    => false,
 				'dependencies' => array( 'campaign_manager', 'capability_manager', 'logger', 'wizard_state_service', 'feature_gate' ),
@@ -552,7 +551,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'campaign_action_handler'     => array(
+			'campaign_action_handler'      => array(
 				'class'        => 'SCD_Campaign_Action_Handler',
 				'singleton'    => false,
 				'dependencies' => array( 'campaign_manager', 'capability_manager', 'logger' ),
@@ -567,7 +566,7 @@ class SCD_Service_Definitions {
 
 			// Wizard Services
 
-			'wizard_state_service'        => array(
+			'wizard_state_service'         => array(
 				'class'     => 'SCD_Wizard_State_Service',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
@@ -579,7 +578,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'idempotency_service'         => array(
+			'idempotency_service'          => array(
 				'class'        => 'SCD_Idempotency_Service',
 				'singleton'    => false,
 				'dependencies' => array( 'wizard_state_service' ),
@@ -590,7 +589,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'step_data_transformer'       => array(
+			'step_data_transformer'        => array(
 				'class'     => 'SCD_Step_Data_Transformer',
 				'singleton' => false,
 				'factory'   => function ( $container ) {
@@ -598,7 +597,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'wizard_manager'              => array(
+			'wizard_manager'               => array(
 				'class'        => 'SCD_Wizard_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'wizard_state_service', 'security_manager', 'campaign_repository' ),
@@ -612,7 +611,7 @@ class SCD_Service_Definitions {
 			),
 
 			// Template Services
-			'template_loader'             => array(
+			'template_loader'              => array(
 				'class'        => 'SCD_Template_Loader',
 				'singleton'    => true,
 				'dependencies' => array(),
@@ -622,7 +621,7 @@ class SCD_Service_Definitions {
 			),
 
 			// Frontend Services
-			'frontend_manager'            => array(
+			'frontend_manager'             => array(
 				'class'        => 'SCD_Frontend_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'container' ),
@@ -631,7 +630,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'frontend_asset_manager'      => array(
+			'frontend_asset_manager'       => array(
 				'class'        => 'SCD_Frontend_Asset_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'logger' ),
@@ -644,7 +643,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'discount_display'            => array(
+			'discount_display'             => array(
 				'class'        => 'SCD_Discount_Display',
 				'singleton'    => true,
 				'dependencies' => array( 'discount_engine', 'campaign_manager' ),
@@ -656,7 +655,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'countdown_timer'             => array(
+			'countdown_timer'              => array(
 				'class'     => 'SCD_Countdown_Timer',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
@@ -664,7 +663,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'shortcodes'                  => array(
+			'shortcodes'                   => array(
 				'class'        => 'SCD_Shortcodes',
 				'singleton'    => true,
 				'dependencies' => array( 'discount_display', 'campaign_manager' ),
@@ -677,7 +676,7 @@ class SCD_Service_Definitions {
 			),
 
 			// Integration Services
-			'woocommerce_integration'     => array(
+			'woocommerce_integration'      => array(
 				'class'        => 'SCD_WooCommerce_Integration',
 				'singleton'    => true,
 				'dependencies' => array( 'container' ),
@@ -686,7 +685,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'integration_manager'         => array(
+			'integration_manager'          => array(
 				'class'        => 'SCD_Integration_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'container' ),
@@ -695,7 +694,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'email_manager'               => array(
+			'email_manager'                => array(
 				'class'        => 'SCD_Email_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'logger', 'campaign_manager', 'action_scheduler', 'feature_gate' ),
@@ -711,7 +710,7 @@ class SCD_Service_Definitions {
 			),
 
 			// API Services
-			'rest_api_manager'            => array(
+			'rest_api_manager'             => array(
 				'class'        => 'SCD_REST_API_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'container' ),
@@ -722,7 +721,7 @@ class SCD_Service_Definitions {
 
 			// Security Services
 
-			'nonce_manager'               => array(
+			'nonce_manager'                => array(
 				'class'     => 'SCD_Nonce_Manager',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
@@ -730,7 +729,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'rate_limiter'                => array(
+			'rate_limiter'                 => array(
 				'class'        => 'SCD_Rate_Limiter',
 				'singleton'    => true,
 				'dependencies' => array( 'cache_manager' ),
@@ -739,7 +738,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'audit_logger'                => array(
+			'audit_logger'                 => array(
 				'class'        => 'SCD_Audit_Logger',
 				'singleton'    => true,
 				'dependencies' => array( 'logger' ),
@@ -749,7 +748,7 @@ class SCD_Service_Definitions {
 			),
 
 			// Analytics Services
-			'analytics_collector'         => array(
+			'analytics_collector'          => array(
 				'class'        => 'SCD_Analytics_Collector',
 				'singleton'    => true,
 				'dependencies' => array( 'database_manager', 'cache_manager', 'logger' ),
@@ -762,7 +761,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'metrics_calculator'          => array(
+			'metrics_calculator'           => array(
 				'class'        => 'SCD_Metrics_Calculator',
 				'singleton'    => true,
 				'dependencies' => array( 'database_manager', 'cache_manager', 'logger' ),
@@ -775,7 +774,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'report_generator'            => array(
+			'report_generator'             => array(
 				'class'        => 'SCD_Report_Generator',
 				'singleton'    => true,
 				'dependencies' => array( 'analytics_repository', 'metrics_calculator' ),
@@ -787,7 +786,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'chart_renderer'              => array(
+			'chart_renderer'               => array(
 				'class'        => 'SCD_Chart_Renderer',
 				'singleton'    => true,
 				'dependencies' => array( 'logger' ),
@@ -798,7 +797,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'analytics_dashboard'         => array(
+			'analytics_dashboard'          => array(
 				'class'        => 'SCD_Analytics_Dashboard',
 				'singleton'    => true,
 				'dependencies' => array( 'database_manager', 'cache_manager', 'logger' ),
@@ -811,7 +810,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'analytics_page'              => array(
+			'analytics_page'               => array(
 				'class'        => 'SCD_Analytics_Page',
 				'singleton'    => true,
 				'dependencies' => array( 'analytics_collector', 'metrics_calculator', 'chart_renderer', 'logger' ),
@@ -825,7 +824,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'main_dashboard_page'         => array(
+			'main_dashboard_page'          => array(
 				'class'        => 'SCD_Main_Dashboard_Page',
 				'singleton'    => true,
 				'dependencies' => array( 'analytics_dashboard', 'campaign_repository', 'feature_gate', 'upgrade_prompt_manager', 'logger', 'campaign_health_service', 'dashboard_service' ),
@@ -854,7 +853,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'campaign_display_service'    => array(
+			'campaign_display_service'     => array(
 				'class'        => 'SCD_Campaign_Display_Service',
 				'singleton'    => true,
 				'dependencies' => array( 'campaign_repository', 'logger' ),
@@ -866,7 +865,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'campaign_planner_service'   => array(
+			'campaign_planner_service'     => array(
 				'class'        => 'SCD_Campaign_Planner_Service',
 				'singleton'    => true,
 				'dependencies' => array( 'campaign_repository', 'campaign_suggestions_service', 'logger' ),
@@ -879,7 +878,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'dashboard_service'           => array(
+			'dashboard_service'            => array(
 				'class'        => 'SCD_Dashboard_Service',
 				'singleton'    => true,
 				'dependencies' => array( 'analytics_dashboard', 'campaign_repository', 'campaign_health_service', 'feature_gate', 'logger', 'campaign_suggestions_service', 'campaign_display_service', 'campaign_planner_service' ),
@@ -897,7 +896,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'main_dashboard_data_handler' => array(
+			'main_dashboard_data_handler'  => array(
 				'class'        => 'SCD_Main_Dashboard_Data_Handler',
 				'singleton'    => false,
 				'dependencies' => array( 'dashboard_service', 'logger' ),
@@ -909,7 +908,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'activity_tracker'            => array(
+			'activity_tracker'             => array(
 				'class'        => 'SCD_Activity_Tracker',
 				'singleton'    => true,
 				'dependencies' => array( 'database_manager', 'logger' ),
@@ -921,7 +920,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'export_service'              => array(
+			'export_service'               => array(
 				'class'        => 'SCD_Export_Service',
 				'singleton'    => true,
 				'dependencies' => array( 'metrics_calculator', 'logger' ),
@@ -934,7 +933,7 @@ class SCD_Service_Definitions {
 			),
 
 			// Product Services
-			'condition_engine'            => array(
+			'condition_engine'             => array(
 				'class'        => 'SCD_Condition_Engine',
 				'singleton'    => true,
 				'dependencies' => array( 'logger', 'cache_manager' ),
@@ -946,7 +945,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'product_selector'            => array(
+			'product_selector'             => array(
 				'class'        => 'SCD_Product_Selector',
 				'singleton'    => true,
 				'dependencies' => array( 'database_manager', 'logger', 'cache_manager', 'condition_engine' ),
@@ -960,7 +959,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'product_filter'              => array(
+			'product_filter'               => array(
 				'class'        => 'SCD_Product_Filter',
 				'singleton'    => true,
 				'dependencies' => array( 'product_selector', 'logger' ),
@@ -974,7 +973,7 @@ class SCD_Service_Definitions {
 
 			// Campaign Services
 
-			'campaign_compiler'           => array(
+			'campaign_compiler'            => array(
 				'class'        => 'SCD_Campaign_Compiler_Service',
 				'singleton'    => true,
 				'dependencies' => array( 'campaign_repository' ),
@@ -985,7 +984,7 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'campaign_event_scheduler'    => array(
+			'campaign_event_scheduler'     => array(
 				'class'        => 'SCD_Campaign_Event_Scheduler',
 				'singleton'    => true,
 				'dependencies' => array( 'campaign_manager', 'action_scheduler', 'logger' ),
@@ -999,7 +998,7 @@ class SCD_Service_Definitions {
 			),
 
 			// Migration Services
-			'migration_manager'           => array(
+			'migration_manager'            => array(
 				'class'        => 'SCD_Migration_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'database_manager' ),
@@ -1009,7 +1008,7 @@ class SCD_Service_Definitions {
 			),
 
 			// Quality Services
-			'requirements_checker'        => array(
+			'requirements_checker'         => array(
 				'class'     => 'SCD_Requirements_Checker',
 				'singleton' => true,
 				'factory'   => function ( $container ) {

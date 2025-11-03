@@ -1,15 +1,14 @@
 <?php
 /**
- * ActionScheduler Service
- *
- * Provides a clean abstraction over WooCommerce ActionScheduler for reliable task scheduling.
- * ActionScheduler runs on WP-Cron but provides better reliability, retry logic, and monitoring.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Action Scheduler Service Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/core/scheduling
+ * @subpackage SmartCycleDiscounts/includes/core/scheduling/class-action-scheduler-service.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);

@@ -1,24 +1,13 @@
 /**
- * Smart Cycle Discounts - Validation Error Component
+ * Validation Error
  *
- * Unified error display component that provides consistent, accessible
- * error messaging throughout the plugin. Implements WCAG 2.1 AA standards
- * and integrates seamlessly with the ValidationManager system.
- *
- * Features:
- * - Consistent error display across all forms
- * - Full ARIA accessibility support
- * - Smooth animations and transitions
- * - Multiple error display modes
- * - Validation summary generation
- * - Screen reader compatibility
- * - High contrast mode support
- *
- * @param $
- * @package SmartCycleDiscounts
- * @since 1.0.0
- * @version 2.0.0 - Unified validation system
- * @author Smart Cycle Discounts Team
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/js/validation/validation-error.js
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 ( function( $ ) {

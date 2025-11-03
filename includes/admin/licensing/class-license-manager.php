@@ -1,15 +1,14 @@
 <?php
 /**
- * License Manager
- *
- * Handles server-side license validation and periodic health checks.
- * Integrates with Freemius SDK to provide secure license verification.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * License Manager Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/licensing
+ * @subpackage SmartCycleDiscounts/includes/admin/licensing/class-license-manager.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

@@ -1,15 +1,14 @@
 <?php
 /**
- * Tooltip Helper
- *
- * Provides consistent tooltip generation across the plugin.
- * Uses the shared tooltip component (scd-tooltips.js) for display.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Tooltip Helper Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/helpers
+ * @subpackage SmartCycleDiscounts/includes/admin/helpers/class-tooltip-helper.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

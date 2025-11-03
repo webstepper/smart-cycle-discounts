@@ -1,13 +1,13 @@
 <?php
 /**
- * Campaign Change Tracker
- *
- * Tracks changes to campaigns being edited in wizard.
- * Stores only deltas in session, not full campaign data.
- * Database remains source of truth.
+ * Campaign Change Tracker Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/core/wizard
+ * @subpackage SmartCycleDiscounts/includes/core/wizard/class-campaign-change-tracker.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
  * @since      1.0.0
  */
 
@@ -161,19 +161,16 @@ class SCD_Campaign_Change_Tracker {
 		if ( ! $campaign ) {
 			// No campaign - return changes only
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Change Tracker] Could not load campaign ' . $this->campaign_id . ' for step "' . $step . '"' );
 			}
 			return $this->extract_changes_for_step( $step );
 		}
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Change Tracker] Loaded campaign ' . $this->campaign_id . ' (version ' . $campaign->get_version() . ') for step "' . $step . '"' );
 		}
 
 		$db_data = $this->extract_step_data_from_campaign( $campaign, $step );
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Change Tracker] Extracted ' . count( $db_data ) . ' fields from database for step "' . $step . '"' );
 		}
 
 		// Merge changes on top
@@ -357,7 +354,11 @@ class SCD_Campaign_Change_Tracker {
 					'discount_value_percentage' => 'percentage' === $discount_type ? $discount_value : 10,
 					'discount_value_fixed'      => 'fixed' === $discount_type ? $discount_value : 5,
 					'tiers'                     => $discount_rules['tiers'] ?? array(),
-					'bogo_config'               => $discount_rules['bogo_config'] ?? array( 'buy_quantity' => 1, 'get_quantity' => 1, 'discount_percent' => 100 ),
+					'bogo_config'               => $discount_rules['bogo_config'] ?? array(
+						'buy_quantity'     => 1,
+						'get_quantity'     => 1,
+						'discount_percent' => 100,
+					),
 					// Spend threshold fields
 					'threshold_mode'            => $discount_rules['threshold_mode'] ?? 'percentage',
 					'thresholds'                => $discount_rules['thresholds'] ?? array(),
@@ -394,12 +395,6 @@ class SCD_Campaign_Change_Tracker {
 
 				// Debug logging for schedule data extraction
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[Change Tracker] Extracting schedule data for campaign ' . $campaign->get_id() );
-					error_log( '[Change Tracker] - starts_at: ' . ( $starts_at ? $starts_at->format( 'Y-m-d H:i:s' ) : 'null' ) );
-					error_log( '[Change Tracker] - ends_at: ' . ( $ends_at ? $ends_at->format( 'Y-m-d H:i:s' ) : 'null' ) );
-					error_log( '[Change Tracker] - timezone: ' . $timezone );
-					error_log( '[Change Tracker] - end_date extracted: ' . ( $end_split['date'] ?? 'empty' ) );
-					error_log( '[Change Tracker] - end_time extracted: ' . ( $end_split['time'] ?? 'empty' ) );
 				}
 
 				// Extract exact date/time values from database (no fallbacks for edit mode)

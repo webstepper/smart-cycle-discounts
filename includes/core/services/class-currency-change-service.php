@@ -1,19 +1,17 @@
 <?php
 /**
- * Currency Change Service
- *
- * Handles detection of store currency changes and manages campaign impacts.
- * Automatically pauses campaigns with fixed discount amounts when currency changes.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Currency Change Service Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/core/services
+ * @subpackage SmartCycleDiscounts/includes/core/services/class-currency-change-service.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -85,17 +83,6 @@ class SCD_Currency_Change_Service {
 		// Skip if currency hasn't actually changed
 		if ( $old_value === $new_value ) {
 			return;
-		}
-
-		// Log currency change
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log(
-				sprintf(
-					'[SCD Currency Change] Currency changed from %s to %s',
-					$old_value,
-					$new_value
-				)
-			);
 		}
 
 		// Get all active campaigns

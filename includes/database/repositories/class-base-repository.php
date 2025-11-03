@@ -2,18 +2,16 @@
 /**
  * Base Repository Class
  *
- * Abstract base class for all repository implementations.
- * Provides common CRUD operations using Template Method pattern.
- *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/includes/database/repositories/class-base-repository.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://smartcyclediscounts.com
  * @since      1.0.0
- *
- * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/database
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly

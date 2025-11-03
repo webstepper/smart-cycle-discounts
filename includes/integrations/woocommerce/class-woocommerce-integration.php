@@ -1,16 +1,14 @@
 <?php
 /**
- * WooCommerce Integration Coordinator
- *
- * Coordinates all WooCommerce sub-integrations following the coordinator pattern.
- * This class ONLY handles initialization and delegation - all functionality is
- * implemented in specialized sub-integration classes.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Woocommerce Integration Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/integrations/woocommerce
+ * @subpackage SmartCycleDiscounts/includes/integrations/woocommerce/class-woocommerce-integration.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
@@ -205,13 +203,7 @@ class SCD_WooCommerce_Integration {
 			return false;
 		}
 
-		$wc_version = defined( 'WC_VERSION' ) ? WC_VERSION : '0.0.0';
-
-		if ( version_compare( $wc_version, '3.0', '<' ) ) {
-			$this->log( 'error', 'WooCommerce version too old', array( 'version' => $wc_version ) );
-			return false;
-		}
-
+		// Version check handled by Requirements Checker (WC 8.0+ required)
 		$this->is_compatible = true;
 		return true;
 	}

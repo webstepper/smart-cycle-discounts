@@ -1,15 +1,14 @@
 <?php
 /**
- * Campaign Health Service
- *
- * Single source of truth for campaign health analysis across the plugin.
- * Provides unified health checking logic used by dashboard, list table, and wizard.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Campaign Health Service Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/core/services
+ * @subpackage SmartCycleDiscounts/includes/core/services/class-campaign-health-service.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -142,16 +141,12 @@ class SCD_Campaign_Health_Service {
 		// Mode-specific checks
 		if ( 'standard' === $mode || 'comprehensive' === $mode ) {
 			$health = $this->check_products( $campaign_data, $health, $context, $view_context );
-			error_log( '🔍 After check_products: ' . count( $health['warnings'] ) . ' warnings' );
 			if ( ! empty( $health['warnings'] ) ) {
-				error_log( '  Warning codes: ' . implode( ', ', array_column( $health['warnings'], 'code' ) ) );
 			}
 			$health = $this->check_coverage( $campaign_data, $health, $context, $view_context );
 			$health = $this->check_stock_risk( $campaign_data, $health, $context, $view_context );
 			$health = $this->check_conflicts( $campaign_data, $health, $context, $view_context );
-			error_log( '🔍 After all checks: ' . count( $health['warnings'] ) . ' warnings' );
 			if ( ! empty( $health['warnings'] ) ) {
-				error_log( '  Final warning codes: ' . implode( ', ', array_column( $health['warnings'], 'code' ) ) );
 			}
 		}
 
@@ -345,7 +340,6 @@ class SCD_Campaign_Health_Service {
 
 			if ( 'dashboard' === $view_context ) {
 				$campaign_id = isset( $campaign['id'] ) ? $campaign['id'] : 'unknown';
-				error_log( sprintf( '   ✅ Using pre-resolved product IDs from coverage_data: %d products', count( $product_ids ) ) );
 			}
 		} else {
 			// PRIORITY 2: Resolve product IDs ourselves (dashboard fallback)
@@ -356,9 +350,7 @@ class SCD_Campaign_Health_Service {
 		if ( 'dashboard' === $view_context ) {
 			$campaign_id   = isset( $campaign['id'] ) ? $campaign['id'] : 'unknown';
 			$campaign_name = isset( $campaign['name'] ) ? $campaign['name'] : 'unknown';
-			error_log( sprintf( '🔍 HEALTH CHECK [Dashboard] Campaign #%s "%s": selection_type=%s, product_count=%d', $campaign_id, $campaign_name, $selection_type, count( $product_ids ) ) );
 			if ( ! empty( $product_ids ) ) {
-				error_log( '   Product IDs: ' . implode( ', ', array_slice( $product_ids, 0, 5 ) ) . ( count( $product_ids ) > 5 ? '...' : '' ) );
 			}
 		}
 
@@ -409,7 +401,6 @@ class SCD_Campaign_Health_Service {
 				$product_ids = wc_get_products( $args );
 
 				if ( 'dashboard' === $view_context ) {
-					error_log( sprintf( '   📂 Resolved %d products from category filter (categories: %s)', count( $product_ids ), implode( ', ', $category_ids ) ) );
 				}
 			}
 		}
@@ -482,7 +473,6 @@ class SCD_Campaign_Health_Service {
 							++$low_stock_count;
 							// DEBUG: Log each low stock product
 							if ( 'dashboard' === $view_context ) {
-								error_log( sprintf( '   📦 Product #%d has low stock: %d units', $product_id, $stock ) );
 							}
 						}
 					} elseif ( ! $product->is_in_stock() ) {
@@ -498,7 +488,6 @@ class SCD_Campaign_Health_Service {
 				// DEBUG: Log stock analysis results
 				if ( 'dashboard' === $view_context ) {
 					$campaign_id = isset( $campaign['id'] ) ? $campaign['id'] : 'unknown';
-					error_log( sprintf( '   📊 Stock Analysis Results: out_of_stock=%d, low_stock=%d, draft=%d', $out_of_stock_count, $low_stock_count, $draft_count ) );
 				}
 
 				// Critical: All products out of stock
@@ -538,7 +527,6 @@ class SCD_Campaign_Health_Service {
 				if ( 'dashboard' === $view_context && $low_stock_count > 0 ) {
 					$campaign_name = isset( $campaign['name'] ) ? $campaign['name'] : 'Unknown';
 					$campaign_id   = isset( $campaign['id'] ) ? $campaign['id'] : 0;
-					error_log( sprintf( '🔔 LOW STOCK WARNING: Campaign ID=%d Name="%s" has %d products with low stock, view_context=%s', $campaign_id, $campaign_name, $low_stock_count, $view_context ) );
 					$health['warnings'][] = array(
 						'code'     => 'low_stock_products',
 						'message'  => sprintf(
@@ -2010,7 +1998,6 @@ class SCD_Campaign_Health_Service {
 			$campaign_name   = isset( $campaign['name'] ) ? $campaign['name'] : 'Unknown';
 			$campaign_status = isset( $campaign['status'] ) ? $campaign['status'] : 'unknown';
 			$campaign_id     = isset( $campaign['id'] ) ? $campaign['id'] : 0;
-			error_log( sprintf( '🎯 DASHBOARD analyzing campaign: ID=%d, Name="%s", Status=%s', $campaign_id, $campaign_name, $campaign_status ) );
 
 			// Calculate coverage data to resolve products (same as campaigns list)
 			$coverage_data = $this->calculate_simple_coverage( $campaign );
@@ -2044,7 +2031,6 @@ class SCD_Campaign_Health_Service {
 					$warning['campaign_id']   = $campaign_id;
 					$warning['campaign_name'] = $campaign_name;
 					$all_warnings[]           = $warning;
-					error_log( '📊 DASHBOARD: Added warning to aggregate: ' . $warning['code'] . ' for campaign ' . $campaign_name );
 				}
 			}
 
@@ -2144,9 +2130,7 @@ class SCD_Campaign_Health_Service {
 		// Calculate overall health using improved severity-based logic
 		$average_score = $campaign_count > 0 ? round( $total_score / $campaign_count ) : 100;
 
-		error_log( '📈 DASHBOARD RESULT: ' . count( $deduplicated_warnings ) . ' warnings after deduplication' );
 		if ( ! empty( $deduplicated_warnings ) ) {
-			error_log( '📋 Warning codes: ' . implode( ', ', array_column( $deduplicated_warnings, 'code' ) ) );
 		}
 
 		$aggregate_health = array(

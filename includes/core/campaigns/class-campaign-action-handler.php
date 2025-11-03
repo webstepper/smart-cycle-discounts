@@ -1,11 +1,13 @@
 <?php
 /**
- * Campaign Action Handler
- *
- * Handles campaign actions (delete, duplicate, activate, etc).
+ * Campaign Action Handler Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/pages/campaigns
+ * @subpackage SmartCycleDiscounts/includes/core/campaigns/class-campaign-action-handler.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
  * @since      1.0.0
  */
 

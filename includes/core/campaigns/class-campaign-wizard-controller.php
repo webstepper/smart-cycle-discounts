@@ -1,16 +1,17 @@
 <?php
 /**
- * Campaign Wizard Controller
- *
- * Handles the campaign creation wizard.
+ * Campaign Wizard Controller Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/pages/campaigns
+ * @subpackage SmartCycleDiscounts/includes/core/campaigns/class-campaign-wizard-controller.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
  * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -125,7 +126,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 		// Keeping intent=new in URL causes redirect loops and function issues
 		if ( 'new' === $intent ) {
 			// Check if this session was pre-filled from a campaign suggestion
-			$session_data         = $this->session->get_all_data();
+			$session_data              = $this->session->get_all_data();
 			$prefilled_from_suggestion = $session_data['prefilled_from_suggestion'] ?? false;
 
 			if ( $prefilled_from_suggestion ) {
@@ -193,24 +194,8 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 		$requested_step = $this->get_current_step();
 		$allowed_step   = $this->get_allowed_step( $requested_step );
 
-		// DEBUG: Log access control check
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			$completed = $this->session->get( 'completed_steps', array() );
-			error_log(
-				sprintf(
-					'[SCD Wizard Access Control] Requested: %s | Allowed: %s | Completed steps: %s',
-					$requested_step,
-					$allowed_step,
-					implode( ', ', $completed )
-				)
-			);
-		}
-
 		if ( $requested_step !== $allowed_step ) {
 			// Redirect to the correct step
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD Wizard Access Control] BLOCKING access - redirecting to: ' . $allowed_step );
-			}
 
 			// Preserve intent parameter if present
 			$args   = array();

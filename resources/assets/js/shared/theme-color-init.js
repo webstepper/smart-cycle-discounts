@@ -1,11 +1,13 @@
 /**
- * Theme Color Initialization
+ * Theme Color Init
  *
- * Initializes the theme color service and applies colors
- * to various components throughout the plugin.
- *
- * @package SmartCycleDiscounts
- * @since 1.0.0
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/js/shared/theme-color-init.js
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 // IMMEDIATE EXECUTION: Apply colors before DOM ready to prevent flash

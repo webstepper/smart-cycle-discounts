@@ -1,15 +1,17 @@
 <?php
 /**
- * Asset Localizer
+ * Asset Localizer Class
  *
- * Handles localization of JavaScript assets.
- *
- * @package SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/admin/assets
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/includes/admin/assets/class-asset-localizer.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -639,7 +641,6 @@ class SCD_Asset_Localizer {
 			if ( 'edit' === $intent ) {
 				$state_service->initialize_with_intent( 'edit' );
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[Asset_Localizer] Initialized state service with edit intent' );
 				}
 			}
 
@@ -648,15 +649,11 @@ class SCD_Asset_Localizer {
 			$session_data = array();
 
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Asset_Localizer] All data keys: ' . implode( ', ', array_keys( $all_data ) ) );
-				error_log( '[Asset_Localizer] Is edit mode: ' . ( isset( $all_data['is_edit_mode'] ) && $all_data['is_edit_mode'] ? 'yes' : 'no' ) );
-				error_log( '[Asset_Localizer] Campaign ID: ' . ( isset( $all_data['campaign_id'] ) ? $all_data['campaign_id'] : 'none' ) );
-				error_log( '[Asset_Localizer] Has steps array: ' . ( isset( $all_data['steps'] ) ? 'yes (' . count( $all_data['steps'] ) . ' steps)' : 'no' ) );
 			}
 
 			// Extract step data
 			// In edit mode, steps array exists but is empty - we need to load from change tracker
-			$is_edit_mode = isset( $all_data['is_edit_mode'] ) && $all_data['is_edit_mode'];
+			$is_edit_mode  = isset( $all_data['is_edit_mode'] ) && $all_data['is_edit_mode'];
 			$has_step_data = isset( $all_data['steps'] ) && is_array( $all_data['steps'] ) && ! empty( $all_data['steps'] );
 
 			if ( $has_step_data && ! $is_edit_mode ) {
@@ -673,14 +670,12 @@ class SCD_Asset_Localizer {
 
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					$is_edit_mode = isset( $all_data['is_edit_mode'] ) && $all_data['is_edit_mode'];
-					error_log( '[Asset_Localizer] Fallback loading step data. Is edit mode: ' . ( $is_edit_mode ? 'yes' : 'no' ) );
 				}
 
 				foreach ( $steps as $step ) {
 					$step_data = $state_service->get_step_data( $step );
 
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( '[Asset_Localizer] Step "' . $step . '" data: ' . ( ! empty( $step_data ) ? 'has data (' . count( $step_data ) . ' fields)' : 'empty' ) );
 					}
 
 					if ( ! empty( $step_data ) ) {
@@ -689,7 +684,6 @@ class SCD_Asset_Localizer {
 				}
 
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[Asset_Localizer] Total steps loaded: ' . count( $session_data ) );
 				}
 			}
 
@@ -701,7 +695,7 @@ class SCD_Asset_Localizer {
 			// Data is loaded on-demand from database, not decomposed into session
 			if ( 'edit' === $intent && $campaign_id > 0 ) {
 				// Store campaign ID and edit mode flag for JavaScript detection
-				$session_data['campaign_id']   = $campaign_id;
+				$session_data['campaign_id']  = $campaign_id;
 				$session_data['is_edit_mode'] = true;
 			}
 

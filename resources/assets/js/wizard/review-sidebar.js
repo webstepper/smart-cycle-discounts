@@ -1,10 +1,13 @@
 /**
- * Review Step Sidebar JavaScript
+ * Review Sidebar
  *
- * Handles quick edit links navigation for the review step sidebar.
- *
- * @package SmartCycleDiscounts
- * @since   1.0.0
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/js/wizard/review-sidebar.js
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 ( function( $ ) {
@@ -20,9 +23,9 @@
 
 			var step = $( this ).data( 'step' );
 
-			// Trigger wizard navigation
-			if ( window.SCD_WizardOrchestrator && window.SCD_WizardOrchestrator.navigateToStep ) {
-				window.SCD_WizardOrchestrator.navigateToStep( step );
+			// Use wizard facade's public API for navigation
+			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.goToStep ) {
+				window.SCD.Wizard.goToStep( step );
 			}
 		} );
 	}

@@ -1,16 +1,17 @@
 <?php
 /**
- * Spend Threshold Discount Strategy
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Spend Threshold Strategy Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/core/discounts/strategies
+ * @subpackage SmartCycleDiscounts/includes/core/discounts/strategies/class-spend-threshold-strategy.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly

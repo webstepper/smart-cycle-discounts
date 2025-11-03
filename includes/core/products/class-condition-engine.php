@@ -1,16 +1,17 @@
 <?php
 /**
- * Condition Engine
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Condition Engine Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/core/products
+ * @subpackage SmartCycleDiscounts/includes/core/products/class-condition-engine.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -421,59 +422,26 @@ class SCD_Condition_Engine {
 		$mode     = $condition['mode'] ?? 'include';
 
 		if ( ! isset( $this->supported_properties[ $property ] ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Condition Engine] ERROR: Property not found: ' . $property );
-			}
 			return $product_ids; // Return all products if property invalid
 		}
 
 		if ( ! isset( $this->supported_operators[ $operator ] ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Condition Engine] ERROR: Operator not found: ' . $operator );
-			}
 			return $product_ids; // Return all products if operator invalid
 		}
 
 		$property_config = $this->supported_properties[ $property ];
 		$operator_config = $this->supported_operators[ $operator ];
 
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Condition Engine] Applying condition: ' . $property . ' ' . $operator . ' ' . implode( ', ', $values ) );
-			error_log( '[Condition Engine] Property type: ' . $property_config['type'] );
-			error_log( '[Condition Engine] Operator symbol: ' . $operator_config['symbol'] );
-			error_log( '[Condition Engine] Mode: ' . $mode );
-		}
-
 		$filtered = array_filter(
 			$product_ids,
-			function ( $product_id ) use ( $property_config, $operator_config, $values, $mode, $property, $operator ) {
+			function ( $product_id ) use ( $property_config, $operator_config, $values, $mode ) {
 				$product_value = $this->get_product_property_value( $product_id, $property_config );
 				$result        = $this->evaluate_condition( $product_value, $operator_config, $values, $property_config['type'] );
-
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG && $product_id <= 85 ) { // Only log first few products
-					error_log(
-						sprintf(
-							'[Condition Engine] Product #%d: value=%s, condition=%s %s %s, result=%s, mode=%s, keep=%s',
-							$product_id,
-							$product_value,
-							$property,
-							$operator,
-							implode( ',', $values ),
-							$result ? 'TRUE' : 'FALSE',
-							$mode,
-							( $mode === 'exclude' ? ! $result : $result ) ? 'YES' : 'NO'
-						)
-					);
-				}
 
 				// If mode is exclude, invert the result
 				return $mode === 'exclude' ? ! $result : $result;
 			}
 		);
-
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Condition Engine] Filtered from ' . count( $product_ids ) . ' to ' . count( $filtered ) . ' products' );
-		}
 
 		return $filtered;
 	}
@@ -790,29 +758,16 @@ class SCD_Condition_Engine {
 	public function validate_condition( array $condition ): bool {
 		// Check required fields
 		if ( ! isset( $condition['property'], $condition['operator'], $condition['values'] ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Condition Engine] VALIDATION FAILED: Missing required fields' );
-				error_log( '[Condition Engine] Condition: ' . print_r( $condition, true ) );
-				error_log( '[Condition Engine] Has property: ' . ( isset( $condition['property'] ) ? 'YES' : 'NO' ) );
-				error_log( '[Condition Engine] Has operator: ' . ( isset( $condition['operator'] ) ? 'YES' : 'NO' ) );
-				error_log( '[Condition Engine] Has values: ' . ( isset( $condition['values'] ) ? 'YES' : 'NO' ) );
-			}
 			return false;
 		}
 
 		// Validate property
 		if ( ! isset( $this->supported_properties[ $condition['property'] ] ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Condition Engine] VALIDATION FAILED: Property not supported: ' . $condition['property'] );
-			}
 			return false;
 		}
 
 		// Validate operator
 		if ( ! isset( $this->supported_operators[ $condition['operator'] ] ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Condition Engine] VALIDATION FAILED: Operator not supported: ' . $condition['operator'] );
-			}
 			return false;
 		}
 
@@ -821,55 +776,28 @@ class SCD_Condition_Engine {
 
 		// Check if operator is compatible with property type
 		if ( ! in_array( $property_config['type'], $operator_config['types'] ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Condition Engine] VALIDATION FAILED: Operator incompatible with property type' );
-				error_log( '[Condition Engine] Property type: ' . $property_config['type'] );
-				error_log( '[Condition Engine] Operator types: ' . implode( ', ', $operator_config['types'] ) );
-			}
 			return false;
 		}
 
 		// Validate values count
 		if ( ! is_array( $condition['values'] ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Condition Engine] VALIDATION FAILED: values is not an array' );
-				error_log( '[Condition Engine] values type: ' . gettype( $condition['values'] ) );
-				error_log( '[Condition Engine] values content: ' . print_r( $condition['values'], true ) );
-			}
 			return false;
 		}
 
 		// Handle multiple values (value_count = -1)
 		if ( $operator_config['value_count'] === -1 ) {
 			if ( count( $condition['values'] ) < 1 ) {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[Condition Engine] VALIDATION FAILED: No values provided for multi-value operator' );
-				}
 				return false;
 			}
 		} elseif ( count( $condition['values'] ) !== $operator_config['value_count'] ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Condition Engine] VALIDATION FAILED: Wrong number of values' );
-				error_log( '[Condition Engine] Expected: ' . $operator_config['value_count'] );
-				error_log( '[Condition Engine] Received: ' . count( $condition['values'] ) );
-				error_log( '[Condition Engine] Values: ' . print_r( $condition['values'], true ) );
-			}
-				return false;
+			return false;
 		}
 
 		// Validate value types
 		foreach ( $condition['values'] as $value ) {
 			if ( $property_config['type'] === 'numeric' && ! is_numeric( $value ) ) {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[Condition Engine] VALIDATION FAILED: Non-numeric value for numeric property' );
-					error_log( '[Condition Engine] Value: ' . $value . ' (type: ' . gettype( $value ) . ')' );
-				}
 				return false;
 			}
-		}
-
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Condition Engine] VALIDATION PASSED for condition: ' . $condition['property'] . ' ' . $condition['operator'] . ' ' . implode( ', ', $condition['values'] ) );
 		}
 
 		return true;

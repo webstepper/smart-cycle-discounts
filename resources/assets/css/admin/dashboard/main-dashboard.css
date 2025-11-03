@@ -1,11 +1,13 @@
 /**
- * Main Dashboard Styles (Refactored)
+ * Main Dashboard
  *
- * Streamlined design with enhanced visual hierarchy and action-oriented layout.
- * Follows plugin design system with focus on clarity and usability.
- *
- * @package SmartCycleDiscounts
- * @since   1.0.0
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/css/admin/dashboard/main-dashboard.css
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 /* ==========================================================================
@@ -101,9 +103,8 @@
 }
 
 .scd-main-dashboard h3,
-.scd-health-title h3,
 .scd-subsection-title {
-	font-size: var(--font-lg) !important;
+	font-size: var(--font-xl) !important;
 	font-weight: 600 !important;
 	line-height: 1.3 !important;
 	margin: 0 0 var(--spacing-xs) 0 !important;
@@ -111,13 +112,6 @@
 
 .scd-main-dashboard h4,
 .scd-suggestion-header h4,
-.scd-campaign-card-title h4 {
-	font-size: var(--font-md) !important;
-	font-weight: 600 !important;
-	line-height: 1.4 !important;
-	margin: 0 !important;
-}
-
 .scd-main-dashboard h5,
 .scd-details-section h5 {
 	font-size: var(--font-base) !important;
@@ -152,8 +146,7 @@
 }
 
 /* Description text */
-.scd-suggestion-description,
-.scd-health-item-content {
+.scd-suggestion-description {
 	font-size: var(--font-base) !important;
 	line-height: 1.6 !important;
 	color: #4b5563 !important;
@@ -172,29 +165,10 @@
 	border-radius: 8px !important;
 }
 
-/* Hero stat cards */
-.scd-stat-card {
-	padding: var(--spacing-lg) !important;
-	border-radius: 8px !important;
-}
-
-/* Campaign cards */
-.scd-campaign-card {
-	padding: var(--spacing-md) !important;
-	margin-bottom: var(--spacing-md) !important;
-	border-radius: 8px !important;
-}
-
 /* Feature cards (right sidebar) */
 .scd-feature-card {
 	padding: var(--spacing-md) !important;
 	gap: var(--spacing-sm) !important;
-	border-radius: 8px !important;
-}
-
-/* Stat boxes */
-.scd-stat-box {
-	padding: var(--spacing-md) !important;
 	border-radius: 8px !important;
 }
 
@@ -778,12 +752,12 @@
 	color: #72aee6;
 }
 
-.scd-stat-content {
+.scd-stat-card .scd-stat-content {
 	flex: 1;
 	min-width: 0;
 }
 
-.scd-stat-label {
+.scd-stat-card .scd-stat-label {
 	font-size: var(--scd-font-size-small);
 	color: var(--scd-color-text-muted);
 	margin-bottom: var(--scd-spacing-xs);
@@ -792,7 +766,7 @@
 	letter-spacing: 0.5px;
 }
 
-.scd-stat-value {
+.scd-stat-card .scd-stat-value {
 	font-size: 32px;
 	font-weight: var(--scd-font-weight-bold);
 	color: var(--scd-color-text);
@@ -887,7 +861,7 @@
 
 .scd-suggestions-header-text h2 {
 	margin: 0 0 var(--spacing-xs) 0;
-	font-size: var(--scd-font-size-xxl);
+	font-size: var(--scd-font-size-xl);
 	font-weight: var(--scd-font-weight-semibold);
 	color: var(--scd-color-text);
 	line-height: 1.3;
@@ -1667,12 +1641,12 @@
 	font-size: 18px;
 }
 
-.scd-stat-content {
+.scd-stat-box .scd-stat-content {
 	flex: 1;
 	min-width: 0;
 }
 
-.scd-stat-value {
+.scd-stat-box .scd-stat-value {
 	font-size: var(--scd-font-size-base);
 	font-weight: var(--scd-font-weight-semibold);
 	color: var(--scd-color-text);
@@ -1680,7 +1654,7 @@
 	margin-bottom: var(--spacing-xs);
 }
 
-.scd-stat-label {
+.scd-stat-box .scd-stat-label {
 	font-size: var(--scd-font-size-small);
 	color: var(--scd-color-text-muted);
 	line-height: 1.3;

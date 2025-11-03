@@ -1,16 +1,17 @@
 <?php
 /**
- * Wizard Campaign Compiler
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Campaign Compiler Service Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/services
+ * @subpackage SmartCycleDiscounts/includes/core/campaigns/class-campaign-compiler-service.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -374,7 +375,6 @@ class SCD_Campaign_Compiler_Service {
 					);
 
 					if ( ! $start_builder->validate() ) {
-						error_log( '[SCD Compiler] Immediate start datetime validation failed: ' . implode( ', ', $start_builder->get_errors() ) );
 						throw new InvalidArgumentException(
 							__( 'Invalid immediate start date or time: ', 'smart-cycle-discounts' ) .
 							implode( ', ', $start_builder->get_errors() )
@@ -388,8 +388,6 @@ class SCD_Campaign_Compiler_Service {
 					$data['start_date'] = $current_date; // Y-m-d only
 					$data['start_time'] = $current_time; // H:i only
 				} catch ( Exception $e ) {
-					error_log( '[SCD Compiler] Exception building immediate start datetime: ' . $e->getMessage() );
-					error_log( '[SCD Compiler] Timezone: ' . var_export( $campaign_timezone, true ) );
 					throw $e;
 				}
 
@@ -415,8 +413,6 @@ class SCD_Campaign_Compiler_Service {
 					}
 
 					$data['ends_at'] = $end_builder->to_mysql();
-
-						error_log( 'SCD Compiler [Immediate]: Using user-selected end time.' );
 				} elseif ( isset( $data['duration_seconds'] ) && 0 < $data['duration_seconds'] ) {
 					// Fallback: Duration-based calculation (for backward compatibility with presets)
 					$duration_seconds = absint( $data['duration_seconds'] );
@@ -433,7 +429,6 @@ class SCD_Campaign_Compiler_Service {
 					);
 
 					if ( ! $end_builder->validate() ) {
-						error_log( '[SCD Compiler] Duration-based end datetime validation failed: ' . implode( ', ', $end_builder->get_errors() ) );
 						throw new InvalidArgumentException(
 							__( 'Invalid duration-based end date or time: ', 'smart-cycle-discounts' ) .
 							implode( ', ', $end_builder->get_errors() )
@@ -441,8 +436,6 @@ class SCD_Campaign_Compiler_Service {
 					}
 
 					$data['ends_at'] = $end_builder->to_mysql();
-
-						error_log( 'SCD Compiler [Immediate]: Using duration_seconds fallback. Duration: ' . $duration_seconds . 's (' . round( $duration_seconds / 3600, 2 ) . ' hours)' );
 				}
 			} else {
 				// SCHEDULED: Use DateTime Builder for type-safe date/time combination
@@ -459,7 +452,6 @@ class SCD_Campaign_Compiler_Service {
 						);
 
 						if ( ! $builder->validate() ) {
-							error_log( '[SCD Compiler] Start datetime validation failed: ' . implode( ', ', $builder->get_errors() ) );
 							throw new InvalidArgumentException(
 								__( 'Invalid start date or time: ', 'smart-cycle-discounts' ) .
 								implode( ', ', $builder->get_errors() )
@@ -469,10 +461,6 @@ class SCD_Campaign_Compiler_Service {
 						// Get UTC datetime for database storage
 						$data['starts_at'] = $builder->to_mysql();
 					} catch ( Exception $e ) {
-						error_log( '[SCD Compiler] Exception building start datetime: ' . $e->getMessage() );
-						error_log( '[SCD Compiler] Start date: ' . var_export( $start_date, true ) );
-						error_log( '[SCD Compiler] Start time: ' . var_export( $start_time, true ) );
-						error_log( '[SCD Compiler] Timezone: ' . var_export( $campaign_timezone, true ) );
 						throw $e;
 					}
 				}
@@ -491,7 +479,6 @@ class SCD_Campaign_Compiler_Service {
 						);
 
 						if ( ! $builder->validate() ) {
-							error_log( '[SCD Compiler] End datetime validation failed: ' . implode( ', ', $builder->get_errors() ) );
 							throw new InvalidArgumentException(
 								__( 'Invalid end date or time: ', 'smart-cycle-discounts' ) .
 								implode( ', ', $builder->get_errors() )
@@ -501,10 +488,6 @@ class SCD_Campaign_Compiler_Service {
 						// Get UTC datetime for database storage
 						$data['ends_at'] = $builder->to_mysql();
 					} catch ( Exception $e ) {
-						error_log( '[SCD Compiler] Exception building end datetime: ' . $e->getMessage() );
-						error_log( '[SCD Compiler] End date: ' . var_export( $end_date, true ) );
-						error_log( '[SCD Compiler] End time: ' . var_export( $end_time, true ) );
-						error_log( '[SCD Compiler] Timezone: ' . var_export( $campaign_timezone, true ) );
 						throw $e;
 					}
 				}

@@ -1,12 +1,13 @@
 <?php
 /**
- * Emergency License Fix Page
- *
- * Temporary admin page to manually clear license cache and sync Freemius status.
- * This bypasses AJAX and fixes the PRO feature access issue directly.
+ * License Emergency Fix Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/pages
+ * @subpackage SmartCycleDiscounts/includes/admin/pages/class-license-emergency-fix.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
  * @since      1.0.0
  */
 

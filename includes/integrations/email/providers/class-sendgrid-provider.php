@@ -1,15 +1,14 @@
 <?php
 /**
- * SendGrid Email Provider
- *
- * Email provider using SendGrid Web API v3.
- * Provides excellent deliverability, analytics, and tracking.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Sendgrid Provider Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/integrations/email/providers
+ * @subpackage SmartCycleDiscounts/includes/integrations/email/providers/class-sendgrid-provider.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare( strict_types=1 );

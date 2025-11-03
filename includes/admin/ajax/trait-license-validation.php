@@ -2,14 +2,13 @@
 /**
  * License Validation Trait
  *
- * Provides license validation methods for AJAX handlers.
- * Implements tiered validation for different security levels.
- *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/includes/admin/ajax/trait-license-validation.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://smartcyclediscounts.com
  * @since      1.0.0
- *
- * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/ajax
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

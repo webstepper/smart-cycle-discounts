@@ -1,12 +1,14 @@
 <?php
 /**
- * Product Service
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Product Service Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/services
+ * @subpackage SmartCycleDiscounts/includes/core/products/class-product-service.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -82,7 +84,6 @@ class SCD_Product_Service {
 
 		// Debug logging only when enabled
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
-			error_log( '[SCD Product Service] Product search: ' . $search . ', Page: ' . $page );
 		}
 
 		// Execute query
@@ -106,12 +107,9 @@ class SCD_Product_Service {
 
 		// Debug logging
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
-			error_log( '[SCD Product Service] Found posts: ' . $query->found_posts );
-			error_log( '[SCD Product Service] Products count: ' . count( $products ) );
 
 			// Check if any products exist in database
 			$total_products = wp_count_posts( 'product' );
-			error_log( '[SCD Product Service] Total products in DB: ' . print_r( $total_products, true ) );
 		}
 
 		// Ensure selected products are included if they match criteria
@@ -327,7 +325,6 @@ class SCD_Product_Service {
 
 			// Debug logging
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD Product Service] Filtering by categories: ' . json_encode( $categories ) );
 			}
 
 			// The IN operator already provides OR logic - products in ANY of the categories
@@ -366,18 +363,6 @@ class SCD_Product_Service {
 
 		// Get category IDs
 		$category_ids = $product->get_category_ids();
-
-		// Debug logging
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log(
-				sprintf(
-					'[SCD Product Service] Product ID %d (%s) has category_ids: %s',
-					$product->get_id(),
-					$product->get_name(),
-					json_encode( $category_ids )
-				)
-			);
-		}
 
 		return array(
 			'id'            => $product->get_id(),
@@ -450,9 +435,6 @@ class SCD_Product_Service {
 				if ( ! function_exists( 'wc_get_product' ) ) {
 					// Debug logging
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( '[SCD Product Service] WooCommerce function wc_get_product not found' );
-						error_log( '[SCD Product Service] WC_ABSPATH defined: ' . ( defined( 'WC_ABSPATH' ) ? 'yes - ' . WC_ABSPATH : 'no' ) );
-						error_log( '[SCD Product Service] WooCommerce class exists: ' . ( class_exists( 'WooCommerce' ) ? 'yes' : 'no' ) );
 					}
 
 					throw new Exception(

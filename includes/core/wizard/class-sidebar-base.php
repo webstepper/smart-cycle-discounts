@@ -1,11 +1,14 @@
 <?php
 /**
- * Base Sidebar Class
+ * Sidebar Base Class
  *
- * Abstract base class for all wizard sidebars
- *
- * @package SmartCycleDiscounts
- * @since   1.0.0
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/includes/core/wizard/class-sidebar-base.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 // Prevent direct access

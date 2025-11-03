@@ -2,14 +2,13 @@
 /**
  * Field Definitions Class
  *
- * Single source of truth for all field definitions, validation rules,
- * and rendering logic. Follows WordPress coding standards and DRY principles.
- *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/includes/core/validation/class-field-definitions.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://smartcyclediscounts.com
  * @since      1.0.0
- *
- * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/core/fields
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -1275,7 +1274,6 @@ class SCD_Field_Definitions {
 
 				if ( is_wp_error( $validation_result ) ) {
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( sprintf( '[SCD Validation] Field "%s" failed validation: %s (value: %s)', $field_key, $validation_result->get_error_message(), var_export( $value, true ) ) );
 					}
 					$errors->add( $field_key . '_invalid', $validation_result->get_error_message() );
 					continue;

@@ -1,18 +1,17 @@
 <?php
 /**
- * Currency Review Page
- *
- * Admin page for reviewing campaigns affected by currency changes.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Currency Review Page Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/pages
+ * @subpackage SmartCycleDiscounts/includes/admin/pages/class-currency-review-page.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly

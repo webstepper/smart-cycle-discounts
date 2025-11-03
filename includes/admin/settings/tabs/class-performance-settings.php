@@ -1,17 +1,14 @@
 <?php
 /**
- * Performance Settings Tab
- *
- * Handles performance and caching configuration including:
- * - Cache duration settings
- * - Cache warming configuration
- * - Cache statistics display
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Performance Settings Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/settings/tabs
+ * @subpackage SmartCycleDiscounts/includes/admin/settings/tabs/class-performance-settings.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare( strict_types=1 );

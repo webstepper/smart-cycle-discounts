@@ -1,16 +1,17 @@
 <?php
 /**
- * Class Autoloader
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Autoloader Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/core
+ * @subpackage SmartCycleDiscounts/includes/class-autoloader.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -256,7 +257,6 @@ class SCD_Autoloader {
 		'SCD_Time_Helpers'                 => 'utilities/class-time-helpers.php',
 		'SCD_Translation_Handler'          => 'utilities/class-translation-handler.php',
 		'SCD_Service_Health_Check'         => 'utilities/class-service-health-check.php',
-		'SCD_Factory_Helper'               => 'utilities/class-factory-helper.php',
 		'SCD_Requirements_Checker'         => 'utilities/class-requirements-checker.php',
 
 		// API classes

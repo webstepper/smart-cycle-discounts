@@ -1,19 +1,17 @@
 <?php
 /**
- * Wizard Field Mapper
- *
- * Maps form field names to standardized internal field names.
- * Eliminates the need for multiple fallbacks and ensures consistency.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Wizard Field Mapper Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/core/wizard
+ * @subpackage SmartCycleDiscounts/includes/core/wizard/class-wizard-field-mapper.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly

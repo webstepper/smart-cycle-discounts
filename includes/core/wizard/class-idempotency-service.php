@@ -1,12 +1,13 @@
 <?php
 /**
- * Idempotency Service
- *
- * Handles idempotent request processing to prevent duplicate operations.
- * Uses WordPress transients for caching and wp_cache for atomic locking.
+ * Idempotency Service Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/core/wizard
+ * @subpackage SmartCycleDiscounts/includes/core/wizard/class-idempotency-service.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
  * @since      1.0.0
  */
 
@@ -151,7 +152,6 @@ class SCD_Idempotency_Service {
 		$cached    = get_transient( $cache_key );
 
 		if ( $cached && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[SCD Idempotency] Returning cached response for key: ' . $key );
 		}
 
 		return $cached ? $cached : null;

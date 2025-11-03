@@ -1,32 +1,37 @@
 /**
- * Campaign Planner Styles
+ * Planner Styles
  *
- * @package SmartCycleDiscounts
- * @since   1.0.0
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/css/admin/dashboard/planner-styles.css
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 /* ===========================
-   Campaign Planner Container - Matches Dashboard Section Styling
+   Campaign Planner Container
    =========================== */
 .scd-campaign-planner {
-	background: linear-gradient(135deg, var(--scd-color-background, #FFFFFF) 0%, var(--scd-color-surface, #F9FAFB) 100%);
-	border: var(--border-width, 1px) solid var(--border-color, #E5E7EB);
-	border-radius: var(--border-radius, 8px);
-	box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.12));
-	margin-bottom: 24px;
+	background: #FFFFFF;
+	border: 1px solid #E5E7EB;
+	border-radius: 8px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+	margin-bottom: 20px;
 }
 
 .scd-campaign-planner:hover {
-	box-shadow: var(--shadow-hover-md, 0 6px 16px rgba(0, 0, 0, 0.16));
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .scd-planner-header {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	padding: 20px 24px;
-	border-bottom: 1px solid var(--scd-color-border-lighter, #F3F4F6);
-	background: linear-gradient(135deg, var(--scd-color-surface, #F9FAFB) 0%, var(--scd-color-background, #FFFFFF) 100%);
+	padding: 18px 20px;
+	border-bottom: 1px solid #E5E7EB;
+	background: #FAFBFC;
 }
 
 .scd-planner-header-content {
@@ -35,14 +40,10 @@
 	gap: 12px;
 }
 
-.scd-planner-header-icon {
-	flex-shrink: 0;
-}
-
 .scd-planner-header-icon .dashicons {
-	width: 32px;
-	height: 32px;
-	font-size: 32px;
+	width: 28px;
+	height: 28px;
+	font-size: 28px;
 	color: var(--wp-admin-theme-color, #2271B1);
 }
 
@@ -50,13 +51,14 @@
 	margin: 0 0 4px;
 	font-size: 18px;
 	font-weight: 600;
-	color: #1F2937;
+	color: #111827;
 }
 
 .scd-planner-header-text p {
 	margin: 0;
-	color: #6B7280;
+	color: #64748B;
 	font-size: 13px;
+	line-height: 1.4;
 }
 
 /* ===========================
@@ -65,21 +67,19 @@
 .scd-planner-grid {
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
-	gap: 24px;
-	padding: 24px;
+	gap: 20px;
+	padding: 20px;
 	position: relative;
 }
 
 /* ===========================
-   Timeline Track (Professional Design)
+   Timeline Track
    =========================== */
 .scd-planner-timeline {
 	grid-column: 1 / -1;
-	height: 60px;
-	margin-bottom: 8px;
+	height: 56px;
+	margin-bottom: 10px;
 	position: relative;
-	background: linear-gradient(135deg, rgba(249, 250, 251, 0.5) 0%, rgba(243, 244, 246, 0.3) 100%);
-	border-radius: 8px;
 	padding: 0 16px;
 	display: flex;
 	align-items: center;
@@ -92,7 +92,7 @@
 	position: relative;
 }
 
-/* Timeline Items (Dot + Label wrapper) */
+/* Timeline Items */
 .scd-timeline-item {
 	display: flex;
 	flex-direction: column;
@@ -102,19 +102,23 @@
 	cursor: pointer;
 	padding: 4px 8px;
 	border-radius: 6px;
-	transition: all 0.3s ease;
+	transition: background 0.2s ease;
+}
+
+.scd-timeline-item:hover {
+	background: rgba(59, 130, 246, 0.05);
 }
 
 /* Timeline Labels */
 .scd-timeline-label {
-	font-size: 11px;
+	font-size: 12px;
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
 	color: #6B7280;
 	white-space: nowrap;
-	opacity: 0.8;
-	transition: all 0.3s ease;
+	opacity: 0.75;
+	transition: opacity 0.2s ease;
 }
 
 .scd-timeline-label--active {
@@ -123,74 +127,62 @@
 	font-size: 12px;
 }
 
-/* Timeline Dots - Enhanced Professional Style */
+/* Timeline Dots */
 .scd-timeline-dot {
-	width: 20px;
-	height: 20px;
+	width: 18px;
+	height: 18px;
 	border-radius: 50%;
 	background: #FFFFFF;
 	border: 3px solid #D1D5DB;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08),
-				0 1px 3px rgba(0, 0, 0, 0.12);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 	flex-shrink: 0;
 	z-index: 3;
 	position: relative;
-	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	transition: box-shadow 0.2s ease;
 }
 
 .scd-timeline-dot--past {
 	border-color: #9CA3AF;
-	background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
-	opacity: 0.7;
+	background: #F3F4F6;
+	opacity: 0.6;
 }
 
 .scd-timeline-dot--active {
-	width: 24px;
-	height: 24px;
+	width: 22px;
+	height: 22px;
 	border-color: var(--wp-admin-theme-color, #2271B1);
-	background: linear-gradient(135deg, #FFFFFF 0%, #EFF6FF 100%);
-	box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.15),
-				0 4px 12px rgba(59, 130, 246, 0.25),
-				0 2px 6px rgba(0, 0, 0, 0.1);
-	position: relative;
+	background: #FFFFFF;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12),
+				0 2px 6px rgba(59, 130, 246, 0.2);
 }
-
 
 .scd-timeline-dot--future {
 	border-color: #BFDBFE;
-	background: linear-gradient(135deg, #FFFFFF 0%, #F0F9FF 100%);
-	opacity: 0.85;
+	background: #FFFFFF;
+	opacity: 0.8;
 }
 
-/* Hover effects for timeline items */
+/* Hover effects */
 .scd-timeline-item:hover .scd-timeline-dot {
-	transform: scale(1.15);
-	box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .scd-timeline-item:hover .scd-timeline-label {
 	opacity: 1;
-	color: #374151;
 }
 
 .scd-timeline-item:hover .scd-timeline-dot--active {
-	transform: scale(1.1);
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15),
+				0 2px 8px rgba(59, 130, 246, 0.25);
 }
 
-.scd-timeline-item:hover .scd-timeline-label--active {
-	color: var(--wp-admin-theme-color, #2271B1);
-}
-
-/* Focused state - indicates which campaign is currently selected */
+/* Focused state */
 .scd-timeline-item--focused .scd-timeline-dot {
-	transform: scale(1.2);
-	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3),
-				0 3px 12px rgba(0, 0, 0, 0.15);
-	position: relative;
+	box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2),
+				0 2px 8px rgba(59, 130, 246, 0.25);
 	animation: pulse-timeline-dot 3s ease-in-out infinite;
 }
 
-/* Inner dot appears on focused timeline item */
 .scd-timeline-item--focused .scd-timeline-dot::before {
 	content: '';
 	position: absolute;
@@ -210,53 +202,38 @@
 	color: var(--wp-admin-theme-color, #2271B1);
 }
 
-/* Enhanced pulse animation for focused dot */
 @keyframes pulse-timeline-dot {
 	0%, 100% {
-		box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3),
-					0 3px 12px rgba(0, 0, 0, 0.15);
+		box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2),
+					0 2px 8px rgba(59, 130, 246, 0.25);
 	}
 	50% {
-		box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.15),
-					0 3px 12px rgba(0, 0, 0, 0.15);
+		box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.12),
+					0 2px 8px rgba(59, 130, 246, 0.25);
 	}
 }
 
-/* Timeline Segments (Enhanced connecting lines) */
+/* Timeline Segments */
 .scd-timeline-segment {
 	flex: 1;
 	height: 3px;
 	position: relative;
 	margin: 0 8px;
 	border-radius: 2px;
-	background: linear-gradient(90deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.02) 100%);
+	background: #E5E7EB;
 	overflow: hidden;
 }
 
-.scd-timeline-segment::before {
-	content: '';
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background: linear-gradient(90deg, transparent 0%, transparent 100%);
-	transition: all 0.3s ease;
-}
-
 .scd-timeline-segment--past {
-	background: linear-gradient(90deg, #9CA3AF 0%, #D1D5DB 100%);
-	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+	background: #9CA3AF;
+	opacity: 0.5;
 }
 
 .scd-timeline-segment--active {
-	background: linear-gradient(90deg, var(--wp-admin-theme-color, #2271B1) 0%, #3B82F6 100%);
-	box-shadow: 0 0 8px rgba(59, 130, 246, 0.3),
-				inset 0 1px 2px rgba(255, 255, 255, 0.3);
-	position: relative;
+	background: var(--wp-admin-theme-color, #2271B1);
+	box-shadow: 0 0 6px rgba(59, 130, 246, 0.3);
 }
 
-/* Shimmer effect for active segment */
 .scd-timeline-segment--active::after {
 	content: '';
 	position: absolute;
@@ -277,99 +254,108 @@
 	}
 }
 
-
 /* ===========================
-   Campaign Planner Cards
+   Campaign Cards
    =========================== */
 .scd-planner-card {
 	background: #FFFFFF;
 	border: 2px solid #E5E7EB;
-	border-radius: 12px;
-	padding: 24px;
+	border-radius: 8px;
+	padding: 18px;
 	cursor: pointer;
 	position: relative;
 	z-index: 1;
-	transition: all 0.3s ease;
+	transition: all 0.2s ease;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .scd-planner-card:hover {
-	border-color: #3B82F6;
-	box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.12));
+	border-color: var(--wp-admin-theme-color, #2271B1);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .scd-planner-card:focus {
-	outline: 3px solid #3B82F6;
+	outline: 2px solid var(--wp-admin-theme-color, #2271B1);
 	outline-offset: 2px;
 }
 
-/* Card States */
-.scd-planner-card--past {
+/* ===========================
+   Card States (Data Attributes)
+   =========================== */
+
+/* Past State */
+.scd-planner-card[data-state="past"] {
+	opacity: 0.65;
+	background: #F9FAFB;
+	border-color: #E5E7EB;
+}
+
+.scd-planner-card[data-state="past"]:hover {
+	opacity: 0.8;
+}
+
+/* Past + Major Event */
+.scd-planner-card[data-state="past"][data-major-event="true"] {
 	opacity: 0.7;
-	background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+	background: #FFFBEB;
+	border-color: #FDE68A;
 }
 
-
-/* Past Major Event */
-.scd-planner-card--past.scd-planner-card--major {
-	opacity: 0.75;
-	background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
-}
-
-.scd-planner-card--active {
-	background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
-	color: #FFFFFF;
-	box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-	border-color: #3B82F6;
-}
-
-
-/* Active Major Event - More prominent */
-.scd-planner-card--active.scd-planner-card--major {
+/* Active State - Warm Orange Gradient */
+.scd-planner-card[data-state="active"] {
 	background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-	box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+	color: #FFFFFF;
+	box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+	border-color: #F59E0B;
 }
 
-.scd-planner-card--active:hover {
-	box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+.scd-planner-card[data-state="active"]:hover {
+	box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
 }
 
-.scd-planner-card--future {
-	background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+/* Active + Major Event */
+.scd-planner-card[data-state="active"][data-major-event="true"] {
+	background: linear-gradient(135deg, #F59E0B 0%, #DC2626 100%);
+	box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+}
+
+/* Future State */
+.scd-planner-card[data-state="future"] {
+	background: #F0F9FF;
 	border: 2px dashed #60A5FA;
 }
 
-/* Future Major Event */
-.scd-planner-card--future.scd-planner-card--major {
-	background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+.scd-planner-card[data-state="future"]:hover {
+	background: #E0F2FE;
+	border-color: #3B82F6;
+}
+
+/* Future + Major Event */
+.scd-planner-card[data-state="future"][data-major-event="true"] {
+	background: #FFFBEB;
 	border: 2px dashed #F59E0B;
 }
 
 /* Focused State */
-.scd-planner-card--focused {
-	border: 3px solid #3B82F6;
-	box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+.scd-planner-card[data-focused="true"] {
+	border: 2px solid var(--wp-admin-theme-color, #2271B1);
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15),
+				0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.scd-planner-card--active.scd-planner-card--focused {
-	border: 3px solid #FBBF24;
-	box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.2),
-				0 12px 32px rgba(59, 130, 246, 0.4);
+.scd-planner-card[data-state="active"][data-focused="true"] {
+	border: 2px solid #FBBF24;
+	box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2),
+				0 6px 16px rgba(245, 158, 11, 0.4);
 }
 
 /* ===========================
    Card Components
    =========================== */
 .scd-planner-card-header {
-	display: flex;
-	justify-content: space-between;
-	align-items: flex-start;
-	margin-bottom: 16px;
-	flex-wrap: wrap;
-	gap: 8px;
-}
-
-.scd-planner-card-title {
-	flex: 1;
+	position: relative;
+	margin-bottom: 14px;
+	padding-right: 110px;
 }
 
 .scd-planner-card-title h3 {
@@ -379,41 +365,41 @@
 	display: flex;
 	align-items: center;
 	gap: 8px;
+	line-height: 1.3;
+	color: #111827;
 }
 
-.scd-planner-card--active .scd-planner-card-title h3 {
+.scd-planner-card[data-state="active"] .scd-planner-card-title h3 {
 	color: #FFFFFF;
 }
 
 .scd-planner-icon {
-	font-size: 24px;
+	font-size: 20px;
+	line-height: 1;
 }
 
-.scd-planner-major-badge {
-	display: inline-block;
-	padding: 2px 8px;
-	font-size: 11px;
-	font-weight: 700;
-	text-transform: uppercase;
-	background: #F59E0B;
-	color: #FFFFFF;
-	border-radius: 4px;
-	letter-spacing: 0.5px;
-}
-
-.scd-planner-card--active .scd-planner-major-badge {
-	background: rgba(255, 255, 255, 0.3);
+/* Badges Container - Positioned Top-Right */
+.scd-planner-card-badges {
+	position: absolute;
+	top: 0;
+	right: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 6px;
+	z-index: 2;
 }
 
 .scd-planner-card-badge {
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
-	padding: 4px 12px;
-	border-radius: 16px;
+	padding: 4px 10px;
+	border-radius: 12px;
 	font-size: 12px;
 	font-weight: 600;
 	text-transform: uppercase;
+	letter-spacing: 0.3px;
 	flex-shrink: 0;
 }
 
@@ -428,27 +414,48 @@
 }
 
 .scd-badge-future {
-	background: #FFFFFF;
+	background: #EFF6FF;
 	color: #1E40AF;
+	border: 1px solid #BFDBFE;
 }
 
-.scd-planner-card--active .scd-badge-active {
-	background: rgba(255, 255, 255, 0.2);
+.scd-planner-card[data-state="active"] .scd-badge-active {
+	background: rgba(255, 255, 255, 0.25);
 	color: #FFFFFF;
+	border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Major Event Badge */
+.scd-badge-major {
+	background: #F59E0B;
+	color: #FFFFFF;
+	font-weight: 700;
+	text-transform: uppercase;
+	font-size: 10px;
+	letter-spacing: 0.5px;
+	padding: 2px 8px;
+	border-radius: 4px;
+	border: none;
+}
+
+.scd-planner-card[data-state="active"] .scd-badge-major {
+	background: rgba(255, 255, 255, 0.25);
+	color: #FFFFFF;
+	border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .scd-planner-card-content {
-	margin-bottom: 20px;
+	margin-bottom: 16px;
 }
 
 .scd-planner-card-description {
-	font-size: 14px;
-	line-height: 1.6;
+	font-size: 13px;
+	line-height: 1.5;
 	margin-bottom: 12px;
 	color: #4B5563;
 }
 
-.scd-planner-card--active .scd-planner-card-description {
+.scd-planner-card[data-state="active"] .scd-planner-card-description {
 	color: rgba(255, 255, 255, 0.95);
 }
 
@@ -456,14 +463,14 @@
 .scd-planner-card-stat {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	font-size: 14px;
+	gap: 6px;
+	font-size: 13px;
 	font-weight: 600;
 	color: #1F2937;
 }
 
-.scd-planner-card--active .scd-planner-card-discount,
-.scd-planner-card--active .scd-planner-card-stat {
+.scd-planner-card[data-state="active"] .scd-planner-card-discount,
+.scd-planner-card[data-state="active"] .scd-planner-card-stat {
 	color: #FFFFFF;
 }
 
@@ -475,6 +482,7 @@
 .scd-planner-card-actions .button {
 	flex: 1;
 	justify-content: center;
+	transition: all 0.2s ease;
 }
 
 .scd-planner-create-cta {
@@ -482,71 +490,93 @@
 }
 
 /* ===========================
-   Unified Insights Section
+   Insights Section
    =========================== */
 .scd-planner-insights {
-	background: linear-gradient(135deg, var(--scd-color-background, #FFFFFF) 0%, var(--scd-color-surface, #F9FAFB) 100%);
-	border: var(--border-width, 1px) solid var(--border-color, #E5E7EB);
-	border-radius: var(--border-radius, 8px);
+	background: #FFFFFF;
+	border: 1px solid #E5E7EB;
+	border-radius: 8px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 	overflow: hidden;
 }
 
-.scd-insights-tabs {
-	display: flex;
-	border-bottom: 2px solid #E5E7EB;
-	background: #F9FAFB;
-}
-
-.scd-insights-tab {
-	flex: 1;
+/* Insights Header */
+.scd-insights-header {
 	display: flex;
 	align-items: center;
-	justify-content: center;
-	gap: 8px;
+	gap: 10px;
+	margin-bottom: 14px;
+	padding-bottom: 12px;
+	border-bottom: 2px solid #E5E7EB;
+}
+
+.scd-insights-header .dashicons {
+	width: 28px;
+	height: 28px;
+	font-size: 28px;
+	color: var(--wp-admin-theme-color, #2271B1);
+	background: #EFF6FF;
+	border-radius: 6px;
+	padding: 5px;
+	flex-shrink: 0;
+}
+
+.scd-insights-header h3 {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 600;
+	color: #111827;
+}
+
+/* 3-Column Grid */
+.scd-insights-columns {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 16px;
+	background: #FAFBFC;
 	padding: 16px;
-	background: transparent;
-	border: none;
-	border-bottom: 3px solid transparent;
-	cursor: pointer;
-	font-size: 14px;
-	font-weight: 500;
-	color: #6B7280;
-	transition: all 0.2s ease;
 }
 
-.scd-insights-tab:hover {
-	background: #F3F4F6;
-	color: #1F2937;
+.scd-insights-column {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
 }
 
-.scd-insights-tab:focus {
-	outline: 2px solid #3B82F6;
-	outline-offset: -2px;
-}
-
-.scd-insights-tab--active {
+.scd-insights-column-header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 10px;
 	background: #FFFFFF;
-	color: #3B82F6;
-	border-bottom-color: #3B82F6;
+	border-left: 3px solid var(--wp-admin-theme-color, #2271B1);
+	border-radius: 4px;
+	margin-bottom: 4px;
 }
 
-.scd-insights-tab-panels {
-	background: #FFFFFF;
+.scd-insights-column-header .dashicons {
+	color: var(--wp-admin-theme-color, #2271B1);
+	font-size: 13px;
+	width: 13px;
+	height: 13px;
+	flex-shrink: 0;
 }
 
-.scd-insights-tab-panel {
-	padding: 24px;
-	min-height: 300px;
+.scd-insights-column-header h4 {
+	margin: 0;
+	font-size: 12px;
+	font-weight: 600;
+	color: #374151;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
 }
 
-.scd-insights-tab-panel--active {
-	display: block;
-}
-
+/* Insights Content */
 .scd-insights-content {
-	padding: 24px;
-	min-height: 300px;
+	padding: 16px;
+	min-height: 280px;
 	transition: opacity 0.2s ease;
+	position: relative;
 }
 
 .scd-insights-content.scd-insights-loading {
@@ -554,191 +584,91 @@
 	pointer-events: none;
 }
 
-.scd-insights-header {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	margin-bottom: 24px;
-}
-
-.scd-insights-header .dashicons {
+.scd-insights-content.scd-insights-loading::after {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
 	width: 32px;
 	height: 32px;
-	font-size: 32px;
-	color: #3B82F6;
+	border: 3px solid #E5E7EB;
+	border-top-color: var(--wp-admin-theme-color, #2271B1);
+	border-radius: 50%;
+	animation: scd-spin 0.6s linear infinite;
 }
 
-.scd-insights-header h3 {
-	margin: 0;
-	font-size: 20px;
-	color: #1F2937;
+@keyframes scd-spin {
+	to {
+		transform: translate(-50%, -50%) rotate(360deg);
+	}
 }
 
 /* ===========================
-   Insights Sections
+   Insights Content List
    =========================== */
-.scd-insights-sections {
+.scd-insights-content-list {
 	display: flex;
 	flex-direction: column;
-	gap: 16px;
+	gap: 8px;
+	padding: 0;
 }
 
-.scd-insights-section {
-	border: 1px solid #E5E7EB;
-	border-radius: 8px;
-	overflow: hidden;
-}
-
-.scd-insights-section-toggle {
-	width: 100%;
+/* Info Items */
+.scd-insights-info-item {
 	display: flex;
 	align-items: center;
-	gap: 12px;
-	padding: 16px;
-	background: #F9FAFB;
-	border: none;
-	cursor: pointer;
-	text-align: left;
-	transition: background 0.2s ease;
-}
-
-.scd-insights-section-toggle:hover {
-	background: #F3F4F6;
-}
-
-.scd-insights-section-toggle:focus {
-	outline: 2px solid #3B82F6;
-	outline-offset: -2px;
-	background: #EFF6FF;
-}
-
-.scd-insights-section--open .scd-insights-section-toggle {
-	background: #EFF6FF;
-}
-
-.scd-insights-section-heading {
-	font-size: 15px;
-	font-weight: 600;
-	color: #1F2937;
-}
-
-.scd-insights-section-content {
-	padding: 20px;
+	gap: 10px;
+	padding: 10px 12px;
+	min-height: 48px;
 	background: #FFFFFF;
+	border: 1px solid #E5E7EB;
+	border-left: 3px solid transparent;
+	border-radius: 6px;
+	transition: all 0.2s ease;
 }
 
-/* Insight Content Types */
-.scd-insights-message,
-.scd-insights-stat-text,
-.scd-insights-tip {
-	display: flex;
-	align-items: flex-start;
-	gap: 12px;
-	margin-bottom: 12px;
-	padding: 12px;
+.scd-insights-info-item:hover {
+	border-left-color: var(--wp-admin-theme-color, #2271B1);
 	background: #F9FAFB;
-	border-radius: 6px;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
-.scd-insights-stat {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: 12px;
-	background: #EFF6FF;
-	border-radius: 6px;
-	margin-bottom: 12px;
-}
-
-.scd-insights-stat-label {
-	font-weight: 600;
-	color: #1F2937;
-}
-
-.scd-insights-stat-value {
-	font-size: 18px;
-	font-weight: 700;
-	color: #3B82F6;
-}
-
-.scd-insights-checklist-item {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	padding: 10px;
-	margin-bottom: 8px;
-}
-
-.scd-insights-checklist-item input[type="checkbox"] {
-	margin: 0;
-}
-
-.scd-insights-cta {
-	margin-top: 16px;
-	padding-top: 16px;
-	border-top: 1px solid #E5E7EB;
-}
-
-.scd-insights-subheading {
+.scd-insights-info-item .dashicons {
+	color: var(--wp-admin-theme-color, #2271B1);
 	font-size: 16px;
-	font-weight: 600;
-	margin: 16px 0 12px;
-	color: #1F2937;
+	flex-shrink: 0;
 }
 
-.scd-insights-text {
-	line-height: 1.6;
-	color: #4B5563;
-	margin-bottom: 12px;
+.scd-insights-info-text {
+	font-size: 13px;
+	line-height: 1.5;
+	color: #374151;
+	flex: 1;
 }
 
-.scd-insights-button {
-	margin-bottom: 8px;
+/* CTA Section */
+.scd-insights-cta {
+	margin-top: 14px;
+	padding-top: 12px;
+	border-top: 2px solid #E5E7EB;
 }
 
-.scd-insights-when-header {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	padding: 16px;
-	background: #EFF6FF;
-	border-radius: 8px;
-	margin-bottom: 20px;
-}
-
-.scd-planner-days-badge {
-	display: inline-flex;
-	align-items: center;
+.scd-insights-cta-button {
+	width: 100%;
 	justify-content: center;
-	min-width: 48px;
-	height: 48px;
-	background: #3B82F6;
-	color: #FFFFFF;
-	border-radius: 50%;
-	font-size: 20px;
-	font-weight: 700;
-	padding: 0 8px;
-}
-
-.scd-insights-when-section {
-	margin-bottom: 20px;
-}
-
-.scd-insights-when-section h5 {
-	font-size: 15px;
+	padding: 8px 16px;
+	font-size: 13px;
 	font-weight: 600;
-	margin: 0 0 12px;
-	color: #1F2937;
+	background: var(--wp-admin-theme-color, #2271B1);
+	border-color: var(--wp-admin-theme-color, #2271B1);
+	transition: all 0.2s ease;
 }
 
-.scd-insights-when-section ul {
-	margin: 0;
-	padding-left: 24px;
-}
-
-.scd-insights-when-section li {
-	margin-bottom: 8px;
-	color: #4B5563;
+.scd-insights-cta-button:hover {
+	background: #1E40AF;
+	border-color: #1E40AF;
+	box-shadow: 0 2px 6px rgba(34, 113, 177, 0.25);
 }
 
 /* ===========================
@@ -746,63 +676,59 @@
    =========================== */
 @media (max-width: 1024px) {
 	.scd-planner-grid {
-		gap: 20px;
+		gap: 16px;
+		padding: 16px;
+	}
+
+	.scd-insights-columns {
+		grid-template-columns: repeat(2, 1fr);
+		gap: 14px;
+		padding: 14px;
+	}
+
+	.scd-insights-info-item {
+		padding: 9px 11px;
 	}
 }
 
 @media (max-width: 900px) {
-	/* Tablet: 2 columns */
 	.scd-planner-grid {
 		grid-template-columns: repeat(2, 1fr);
+		gap: 16px;
 	}
-}
 
-@media (max-width: 900px) {
 	.scd-planner-timeline {
-		height: 50px;
+		height: 52px;
 		padding: 0 12px;
 	}
 
 	.scd-timeline-label {
-		font-size: 10px;
-		letter-spacing: 0.3px;
-	}
-
-	.scd-timeline-label--active {
-		font-size: 11px;
+		font-size: 9px;
+		letter-spacing: 0.4px;
 	}
 }
 
 @media (max-width: 768px) {
 	.scd-planner-grid {
 		grid-template-columns: 1fr;
+		padding: 16px;
 	}
 
-	/* Hide timeline on mobile - vertical stack doesn't need it */
 	.scd-planner-timeline {
 		display: none;
 	}
 
-	.scd-planner-card--active {
-		transform: scale(1);
+	.scd-insights-columns {
+		grid-template-columns: 1fr;
+		gap: 14px;
+		padding: 14px;
 	}
 
-	.scd-planner-card--active:hover {
-		box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+	.scd-insights-column-header {
+		padding: 6px 10px;
 	}
 
-	.scd-insights-tabs {
-		flex-direction: column;
-	}
-
-	.scd-insights-tab {
-		border-bottom: 1px solid #E5E7EB;
-		border-left: 3px solid transparent;
-		justify-content: flex-start;
-	}
-
-	.scd-insights-tab--active {
-		border-bottom-color: #E5E7EB;
+	.scd-insights-info-item {
+		padding: 9px 11px;
 	}
 }
-

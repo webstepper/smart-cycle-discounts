@@ -1,25 +1,13 @@
 /**
- * Unified AJAX Service
+ * Ajax Service
  *
- * Centralized AJAX handling following WordPress patterns.
- * Consolidated from ajax-service.js and ajax-helper.js for consistency.
- *
- * Features:
- * - WordPress nonce handling with action mapping
- * - Progress tracking for uploads
- * - Request cancellation support (cancels stale search requests)
- * - Request deduplication (prevents duplicate in-flight requests)
- * - Idempotency key generation
- * - Error handler integration
- * - Batch request support
- * - File upload support
- * - Rate limiting with automatic queueing
- * - Concurrency limiting (max 5 simultaneous requests)
- * - 429 error handling with retry logic
- *
- * @param $
- * @package SmartCycleDiscounts
- * @since 1.0.0
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/js/admin/ajax-service.js
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 ( function( $ ) {
@@ -111,18 +99,6 @@
 			var concurrencyOK = this.rateLimitState.pendingRequests < maxConcurrent;
 			canMake = canMake && concurrencyOK;
 
-			if ( this.rateLimitConfig.debug ) {
-				console.log( '[AjaxService] Rate limit check:', {
-					recentRequests: recentRequests.length,
-					pendingRequests: this.rateLimitState.pendingRequests,
-					totalLoad: totalLoad,
-					maxRequests: maxRequests,
-					maxConcurrent: maxConcurrent,
-					concurrencyOK: concurrencyOK,
-					canMake: canMake,
-					queueLength: this.rateLimitState.queue.length
-				} );
-			}
 
 			return canMake;
 		},
@@ -146,7 +122,6 @@
 			this.rateLimitState.requestTimestamps.push( Date.now() );
 
 			if ( this.rateLimitConfig.debug ) {
-				console.log( '[AjaxService] Recorded request. Total in window:', this.rateLimitState.requestTimestamps.length );
 			}
 		},
 
@@ -172,7 +147,6 @@
 			} );
 
 			if ( this.rateLimitConfig.debug ) {
-				console.log( '[AjaxService] Added to queue. Queue length:', this.rateLimitState.queue.length );
 			}
 
 			// Trigger queue processing
@@ -197,7 +171,6 @@
 					// Still paused - schedule retry
 					var remainingPause = this.rateLimitState.pausedUntil - now;
 					if ( this.rateLimitConfig.debug ) {
-						console.log( '[AjaxService] Queue paused for', remainingPause, 'ms' );
 					}
 					return;
 				}
@@ -206,7 +179,6 @@
 				this.rateLimitState.paused = false;
 				this.rateLimitState.pausedUntil = 0;
 				if ( this.rateLimitConfig.debug ) {
-					console.log( '[AjaxService] Resuming queue processing' );
 				}
 			}
 
@@ -228,7 +200,6 @@
 				var queuedRequest = this.rateLimitState.queue.shift();
 
 				if ( this.rateLimitConfig.debug ) {
-					console.log( '[AjaxService] Processing queued request:', queuedRequest.action );
 				}
 
 				// Execute the request (slot already reserved)
@@ -334,7 +305,6 @@
 			// Check for duplicate in-flight request
 			if ( this.activeRequests[requestKey] ) {
 				if ( this.rateLimitConfig.debug ) {
-					console.log( '[AjaxService] Duplicate request detected, returning existing promise:', action );
 				}
 				// Return existing promise instead of making duplicate request
 				return this.activeRequests[requestKey].deferred.promise();
@@ -383,7 +353,6 @@
 				// Can't execute - release the reserved slot and queue instead
 				this.rateLimitState.pendingRequests--;
 				if ( this.rateLimitConfig.debug ) {
-					console.log( '[AjaxService] Rate limit reached. Queuing request:', action );
 				}
 				this.addToQueue( method, action, requestData, config, requestDeferred, requestKey );
 			}
@@ -734,7 +703,6 @@
 					var request = self.activeRequests[key];
 					if ( request && request.xhr && 'function' === typeof request.xhr.abort ) {
 						if ( self.rateLimitConfig.debug ) {
-							console.log( '[AjaxService] Cancelling stale request:', action );
 						}
 						request.xhr.abort();
 						// Reject the deferred

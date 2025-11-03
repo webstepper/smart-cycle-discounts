@@ -1,20 +1,14 @@
 <?php
 /**
- * Campaign Planner Service
- *
- * Handles weekly campaign planner logic including:
- * - Combining weekly campaigns with major events
- * - Calculating campaign states (past/active/future)
- * - Selecting best campaign for each planner position
- * - Applying priority-based selection rules
- *
- * Follows Single Responsibility Principle - focuses only on planner logic.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Campaign Planner Service Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/services
+ * @subpackage SmartCycleDiscounts/includes/services/class-campaign-planner-service.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
@@ -258,12 +252,19 @@ class SCD_Campaign_Planner_Service {
 				return 'active';
 			}
 
-			// Before start day.
+			// Handle week wraparound (e.g., Monday checking Weekend campaign that ended Sunday).
+			// If current day is early in week (Mon-Wed) and campaign STARTS late in week (Thu-Sun),
+			// the campaign is PAST (ended last week), not FUTURE.
 			if ( $current_day < $start_day ) {
+				// Early week (Mon-Wed) vs late week campaign start (Thu-Sun) = past week.
+				if ( $current_day <= 3 && $start_day >= 4 ) {
+					return 'past';
+				}
+				// Otherwise, campaign is in future (starts later this week).
 				return 'future';
 			}
 
-			// After end day.
+			// After end day (within same week).
 			return 'past';
 		}
 	}
@@ -309,14 +310,8 @@ class SCD_Campaign_Planner_Service {
 					}
 				);
 
-				// Only show past campaigns from last 30 days.
-				$thirty_days_ago = $now - ( 30 * DAY_IN_SECONDS );
-				$candidates      = array_filter(
-					$candidates,
-					function ( $campaign ) use ( $thirty_days_ago ) {
-						return $campaign['end_timestamp'] >= $thirty_days_ago;
-					}
-				);
+				// Timeline planner: Always show the most recent past campaign (no date filter).
+				// The sorting ensures we get the most recent one.
 				break;
 
 			case 'active':

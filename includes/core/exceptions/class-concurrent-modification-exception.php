@@ -1,11 +1,13 @@
 <?php
 /**
- * Concurrent Modification Exception
- *
- * Thrown when optimistic locking detects concurrent modifications.
+ * Concurrent Modification Exception Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/core/exceptions
+ * @subpackage SmartCycleDiscounts/includes/core/exceptions/class-concurrent-modification-exception.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
  * @since      1.0.0
  */
 

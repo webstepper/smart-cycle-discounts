@@ -1,15 +1,13 @@
 /**
- * CSS Utilities - Common Patterns & Helpers
- * WordPress 6.4+ Design System
- * 
- * Reusable utility classes to prevent duplication
- * Import after _variables.css
- * 
- * Usage Guidelines:
- * - Don't combine transform utilities (hover-lift, hover-scale) on same element
- * - Use transition utilities separately for flexibility  
- * - For form elements, prefer :disabled over .scd-disabled
- * - Avoid using generic element selectors to prevent WordPress conflicts
+ * _Utilities
+ *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/css/shared/_utilities.css
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 /* ==========================================================================

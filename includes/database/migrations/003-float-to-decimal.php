@@ -1,23 +1,17 @@
 <?php
 /**
- * Database Migration 003: FLOAT to DECIMAL Conversion
- *
- * CRITICAL FIX: Convert any FLOAT columns to DECIMAL for currency precision.
- * FLOAT type causes precision errors: 10.1 + 0.2 = 10.300000000000001
- * DECIMAL(15,4) ensures accurate currency calculations.
- *
- * This migration defensively checks all currency columns and converts
- * any FLOAT types to DECIMAL to prevent float precision errors.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * 003 Float To Decimal
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/database/migrations
+ * @subpackage SmartCycleDiscounts/includes/database/migrations/003-float-to-decimal.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly

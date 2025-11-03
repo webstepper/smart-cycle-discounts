@@ -1,17 +1,14 @@
 <?php
 /**
- * Campaign Display Service
- *
- * Handles campaign display preparation including fetching recent campaigns,
- * planner campaigns, and preparing campaigns with computed display fields.
- *
- * Extracted from Dashboard Service to follow Single Responsibility Principle.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Campaign Display Service Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/services
+ * @subpackage SmartCycleDiscounts/includes/services/class-campaign-display-service.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);

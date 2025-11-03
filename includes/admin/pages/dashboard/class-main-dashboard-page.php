@@ -1,19 +1,17 @@
 <?php
 /**
- * Main Dashboard Page Controller
- *
- * Handles the main dashboard page (Free tier) at page=smart-cycle-discounts.
- * Provides overview metrics, campaign status, and upgrade prompts for Pro features.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Main Dashboard Page Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/pages/dashboard
+ * @subpackage SmartCycleDiscounts/includes/admin/pages/dashboard/class-main-dashboard-page.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -586,7 +584,7 @@ class SCD_Main_Dashboard_Page {
 		$recent_activity      = $data['recent_activity'];
 		$campaign_health      = $data['campaign_health'];
 		$campaign_suggestions = $data['campaign_suggestions'];
-		$planner_data        = $data['planner_data'] ?? array(); // Weekly planner campaigns
+		$planner_data         = $data['planner_data'] ?? array(); // Weekly planner campaigns
 		$is_premium           = $data['is_premium'];
 		$campaign_limit       = $data['campaign_limit'];
 

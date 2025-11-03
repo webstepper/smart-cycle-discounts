@@ -1,21 +1,14 @@
 <?php
 /**
- * Dashboard Service
- *
- * Orchestrator service for dashboard data operations.
- * Coordinates dashboard data assembly by delegating to specialized sub-services:
- * - Campaign Suggestions Service (event-based suggestions)
- * - Campaign Display Service (display preparation)
- * - Campaign Planner Service (weekly planner with major events)
- * - Campaign Health Service (health monitoring)
- *
- * Provides caching layer and single source of truth for dashboard business logic.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Dashboard Service Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/services
+ * @subpackage SmartCycleDiscounts/includes/services/class-dashboard-service.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
@@ -147,7 +140,7 @@ class SCD_Dashboard_Service {
 	 * @param    SCD_Logger                       $logger                 Logger instance.
 	 * @param    SCD_Campaign_Suggestions_Service $suggestions_service    Campaign suggestions service.
 	 * @param    SCD_Campaign_Display_Service     $display_service        Campaign display service.
-	 * @param    SCD_Campaign_Planner_Service    $planner_service       Campaign planner service.
+	 * @param    SCD_Campaign_Planner_Service     $planner_service       Campaign planner service.
 	 */
 	public function __construct(
 		SCD_Analytics_Dashboard $analytics_dashboard,
@@ -265,15 +258,15 @@ class SCD_Dashboard_Service {
 		$planner_data = $this->get_weekly_planner_campaigns();
 
 		return array(
-			'metrics'            => $metrics,
-			'campaign_stats'     => $campaign_stats,
-			'top_campaigns'      => $top_campaigns,
-			'recent_activity'    => $recent_activity,
-			'campaign_health'    => $campaign_health,
-			'all_campaigns'      => $all_campaigns,
-			'planner_data'      => $planner_data,
-			'is_premium'         => $this->feature_gate->is_premium(),
-			'campaign_limit'     => $this->feature_gate->get_campaign_limit(),
+			'metrics'         => $metrics,
+			'campaign_stats'  => $campaign_stats,
+			'top_campaigns'   => $top_campaigns,
+			'recent_activity' => $recent_activity,
+			'campaign_health' => $campaign_health,
+			'all_campaigns'   => $all_campaigns,
+			'planner_data'    => $planner_data,
+			'is_premium'      => $this->feature_gate->is_premium(),
+			'campaign_limit'  => $this->feature_gate->get_campaign_limit(),
 		);
 	}
 
@@ -934,7 +927,7 @@ class SCD_Dashboard_Service {
 	 * Get unified insights for a planner campaign.
 	 *
 	 * Returns structured insights data for displaying in planner insights panel.
-	 * Creates comprehensive Why/How/When tab structure with rich data for BOTH
+	 * Creates comprehensive 3-column structure (Opportunity/Strategy/Timeline) with rich data for BOTH
 	 * major events (from Campaign Suggestions Registry) AND weekly campaigns
 	 * (from Weekly Campaign Definitions).
 	 *
@@ -942,7 +935,7 @@ class SCD_Dashboard_Service {
 	 * @param  string $campaign_id     Campaign ID.
 	 * @param  string $state           Campaign state (past/active/future).
 	 * @param  bool   $is_major_event  Whether this is a major event.
-	 * @return array                   Insights data structure with 'tabs' key.
+	 * @return array                   Insights data structure with 'tabs' key (3 columns).
 	 */
 	public function get_unified_insights( string $campaign_id, string $state, bool $is_major_event ): array {
 		// If major event, get rich event data from Registry.
@@ -967,7 +960,7 @@ class SCD_Dashboard_Service {
 	}
 
 	/**
-	 * Build comprehensive insights for major events with Why/How/When tabs.
+	 * Build comprehensive insights for major events with 3-column layout.
 	 *
 	 * @since  1.0.0
 	 * @param  array  $event  Event definition from Campaign Suggestions Registry.
@@ -976,9 +969,9 @@ class SCD_Dashboard_Service {
 	 */
 	private function build_event_insights( array $event, string $state ): array {
 		$tabs = array(
-			$this->build_why_tab( $event, $state ),
-			$this->build_how_tab( $event, $state ),
-			$this->build_when_tab( $event, $state ),
+			$this->build_opportunity_column( $event, $state ),
+			$this->build_strategy_column( $event, $state ),
+			$this->build_timeline_column( $event, $state ),
 		);
 
 		return array(
@@ -989,10 +982,10 @@ class SCD_Dashboard_Service {
 	}
 
 	/**
-	 * Build comprehensive insights for weekly campaigns with Why/How/When tabs.
+	 * Build comprehensive insights for weekly campaigns with 3-column layout.
 	 *
 	 * Uses rich data from Weekly Campaign Definitions to build the same comprehensive
-	 * tab structure as major events.
+	 * column structure as major events.
 	 *
 	 * @since  1.0.0
 	 * @param  array  $weekly  Weekly campaign definition from Weekly Campaign Definitions.
@@ -1001,9 +994,9 @@ class SCD_Dashboard_Service {
 	 */
 	private function build_weekly_event_insights( array $weekly, string $state ): array {
 		$tabs = array(
-			$this->build_weekly_why_tab( $weekly, $state ),
-			$this->build_weekly_how_tab( $weekly, $state ),
-			$this->build_weekly_when_tab( $weekly, $state ),
+			$this->build_weekly_opportunity_column( $weekly, $state ),
+			$this->build_weekly_strategy_column( $weekly, $state ),
+			$this->build_weekly_timeline_column( $weekly, $state ),
 		);
 
 		return array(
@@ -1014,395 +1007,409 @@ class SCD_Dashboard_Service {
 	}
 
 	/**
-	 * Build "Why This Opportunity?" tab - Market Intelligence.
+	 * Build "Opportunity" column - Market Intelligence.
+	 * Returns 3 randomly selected insights from available pool.
 	 *
 	 * @since  1.0.0
 	 * @param  array  $event  Event definition.
 	 * @param  string $state  Campaign state.
-	 * @return array          Tab data structure.
+	 * @return array          Column data structure.
 	 */
-	private function build_why_tab( array $event, string $state ): array {
-		$sections = array();
+	private function build_opportunity_column( array $event, string $state ): array {
+		$content_pool = array();
 
-		// Section 1: Event Description & Statistics.
-		$content = array(
-			array(
-				'type' => 'message',
-				'icon' => 'calendar-alt',
-				'text' => $event['description'],
-			),
+		// Add event description (high priority - weight 2x).
+		$content_pool[] = array(
+			'type'   => 'info',
+			'icon'   => 'calendar-alt',
+			'text'   => $event['description'],
+			'weight' => 2,
 		);
 
+		// Add statistics as insights.
 		if ( ! empty( $event['statistics'] ) ) {
 			foreach ( $event['statistics'] as $label => $value ) {
-				$content[] = array(
-					'type'  => 'stat',
-					'label' => ucwords( str_replace( '_', ' ', $label ) ),
-					'value' => $value,
+				$formatted_label = ucwords( str_replace( '_', ' ', $label ) );
+				$content_pool[]  = array(
+					'type'   => 'info',
+					'icon'   => $this->get_stat_icon( $label ),
+					'text'   => $formatted_label . ': ' . $value,
+					'weight' => 1,
 				);
 			}
 		}
 
-		$sections[] = array(
-			'heading'      => __( 'Market Opportunity', 'smart-cycle-discounts' ),
-			'icon'         => 'chart-bar',
-			'default_open' => true,
-			'content'      => $content,
-		);
+		// Randomly select 3 items from pool with weighted selection.
+		$selected_content = $this->weighted_random_select( $content_pool, 3 );
 
 		return array(
-			'id'       => 'why',
-			'label'    => __( 'Why?', 'smart-cycle-discounts' ),
-			'icon'     => 'lightbulb',
-			'sections' => $sections,
+			'id'      => 'opportunity',
+			'label'   => __( 'Opportunity', 'smart-cycle-discounts' ),
+			'icon'    => 'lightbulb',
+			'content' => $selected_content,
 		);
 	}
 
 	/**
-	 * Build "How to Execute?" tab - Execution Guide.
+	 * Build "Strategy" column - Execution Guide.
+	 * Returns 3 randomly selected strategy insights + CTA button.
 	 *
 	 * @since  1.0.0
 	 * @param  array  $event  Event definition.
 	 * @param  string $state  Campaign state.
-	 * @return array          Tab data structure.
+	 * @return array          Column data structure.
 	 */
-	private function build_how_tab( array $event, string $state ): array {
-		$sections = array();
+	private function build_strategy_column( array $event, string $state ): array {
+		$content_pool = array();
 
-		// Section 1: Suggested Discount Range.
+		// Add discount recommendations (high priority - weight 3x).
 		if ( ! empty( $event['suggested_discount'] ) ) {
-			$discount = $event['suggested_discount'];
-			$sections[] = array(
-				'heading'      => __( 'Suggested Discount Range', 'smart-cycle-discounts' ),
-				'icon'         => 'tag',
-				'default_open' => true,
-				'content'      => array(
-					array(
-						'type'  => 'stat',
-						'label' => __( 'Optimal Discount', 'smart-cycle-discounts' ),
-						'value' => $discount['optimal'] . '%',
-					),
-					array(
-						'type' => 'text',
-						'text' => sprintf(
-							/* translators: %1$d: minimum discount, %2$d: maximum discount */
-							__( 'Range: %1$d%% - %2$d%% based on industry performance', 'smart-cycle-discounts' ),
-							$discount['min'],
-							$discount['max']
-						),
-					),
+			$discount       = $event['suggested_discount'];
+			$content_pool[] = array(
+				'type'   => 'info',
+				'icon'   => 'tag',
+				'text'   => sprintf(
+					/* translators: %d: optimal discount percentage */
+					__( 'Optimal Discount: %d%%', 'smart-cycle-discounts' ),
+					$discount['optimal']
 				),
+				'weight' => 3,
+			);
+			$content_pool[] = array(
+				'type'   => 'info',
+				'icon'   => 'chart-line',
+				'text'   => sprintf(
+					/* translators: %1$d: minimum discount, %2$d: maximum discount */
+					__( 'Range: %1$d%% - %2$d%% based on industry performance', 'smart-cycle-discounts' ),
+					$discount['min'],
+					$discount['max']
+				),
+				'weight' => 2,
 			);
 		}
 
-		// Section 2: Preparation Checklist.
-		if ( ! empty( $event['recommendations'] ) && ( 'active' === $state || 'future' === $state ) ) {
-			$checklist_items = array();
+		// Add recommendations (medium priority - weight 2x).
+		if ( ! empty( $event['recommendations'] ) ) {
 			foreach ( $event['recommendations'] as $recommendation ) {
-				$checklist_items[] = array(
-					'type' => 'checklist_item',
-					'text' => $recommendation,
+				$content_pool[] = array(
+					'type'   => 'info',
+					'icon'   => 'yes-alt',
+					'text'   => $recommendation,
+					'weight' => 2,
 				);
 			}
-
-			$sections[] = array(
-				'heading'      => __( 'Preparation Checklist', 'smart-cycle-discounts' ),
-				'icon'         => 'yes-alt',
-				'default_open' => false,
-				'content'      => $checklist_items,
-			);
 		}
 
-		// Section 3: Marketing Tips.
+		// Add marketing tips (normal priority - weight 1x).
 		if ( ! empty( $event['tips'] ) ) {
-			$tip_items = array();
 			foreach ( $event['tips'] as $tip ) {
-				$tip_items[] = array(
-					'type' => 'tip',
-					'icon' => 'megaphone',
-					'text' => $tip,
+				$content_pool[] = array(
+					'type'   => 'info',
+					'icon'   => 'megaphone',
+					'text'   => $tip,
+					'weight' => 1,
 				);
 			}
-
-			$sections[] = array(
-				'heading'      => __( 'Marketing Tips', 'smart-cycle-discounts' ),
-				'icon'         => 'megaphone',
-				'default_open' => false,
-				'content'      => $tip_items,
-			);
 		}
 
-		// Section 4: CTA for active campaigns.
-		if ( 'active' === $state ) {
-			$sections[] = array(
-				'heading'      => __( 'Ready to Start?', 'smart-cycle-discounts' ),
-				'icon'         => 'admin-generic',
-				'default_open' => true,
-				'content'      => array(
-					array(
-						'type' => 'cta',
-						'url'  => admin_url( 'admin.php?page=scd-campaigns&action=wizard&intent=new&suggestion=' . $event['id'] ),
-						'text' => sprintf(
-							/* translators: %s: event name */
-							__( 'Create %s Campaign', 'smart-cycle-discounts' ),
-							$event['name']
-						),
-					),
-				),
-			);
-		}
+		// Randomly select 3 items from pool with weighted selection.
+		$selected_content = $this->weighted_random_select( $content_pool, 3 );
 
-		return array(
-			'id'       => 'how',
-			'label'    => __( 'How?', 'smart-cycle-discounts' ),
-			'icon'     => 'admin-tools',
-			'sections' => $sections,
-		);
-	}
-
-	/**
-	 * Build "When to Launch?" tab - Launch Timeline.
-	 *
-	 * @since  1.0.0
-	 * @param  array  $event  Event definition.
-	 * @param  string $state  Campaign state.
-	 * @return array          Tab data structure.
-	 */
-	private function build_when_tab( array $event, string $state ): array {
-		$sections = array();
-
-		// Section 1: Best Practices.
-		if ( ! empty( $event['best_practices'] ) ) {
-			$practice_items = array();
-			foreach ( $event['best_practices'] as $practice ) {
-				$practice_items[] = array(
-					'type' => 'stat_text',
-					'icon' => 'star-filled',
-					'text' => $practice,
-				);
-			}
-
-			$sections[] = array(
-				'heading'      => __( 'Best Practices', 'smart-cycle-discounts' ),
-				'icon'         => 'star-filled',
-				'default_open' => true,
-				'content'      => $practice_items,
-			);
-		}
-
-		// Section 2: Timing Guidance.
-		if ( ! empty( $event['event_date'] ) ) {
-			$event_date = wp_date( 'F j, Y', $event['event_date'] );
-			$sections[] = array(
-				'heading'      => __( 'Launch Timeline', 'smart-cycle-discounts' ),
-				'icon'         => 'clock',
-				'default_open' => true,
-				'content'      => array(
-					array(
-						'type' => 'message',
-						'icon' => 'calendar',
-						'text' => sprintf(
-							/* translators: %s: event date */
-							__( 'Event Date: %s', 'smart-cycle-discounts' ),
-							$event_date
-						),
-					),
-					array(
-						'type' => 'text',
-						'text' => sprintf(
-							/* translators: %d: number of days */
-							__( 'Campaign Duration: %d days', 'smart-cycle-discounts' ),
-							$event['duration_days']
-						),
-					),
-				),
-			);
-		}
-
-		return array(
-			'id'       => 'when',
-			'label'    => __( 'When?', 'smart-cycle-discounts' ),
-			'icon'     => 'calendar',
-			'sections' => $sections,
-		);
-	}
-
-	/**
-	 * Build "Why This Opportunity?" tab for weekly campaigns.
-	 *
-	 * @since  1.0.0
-	 * @param  array  $weekly  Weekly campaign definition.
-	 * @param  string $state   Campaign state.
-	 * @return array           Tab data structure.
-	 */
-	private function build_weekly_why_tab( array $weekly, string $state ): array {
-		$sections = array();
-
-		// Section 1: Campaign Description & Psychology.
-		$content = array(
-			array(
-				'type' => 'message',
-				'icon' => 'calendar-alt',
-				'text' => $weekly['description'],
+		// Add CTA button.
+		$selected_content[] = array(
+			'type' => 'cta',
+			'url'  => admin_url( 'admin.php?page=scd-campaigns&action=wizard&intent=new&suggestion=' . $event['id'] ),
+			'text' => sprintf(
+				/* translators: %s: event name */
+				__( 'Create %s Campaign', 'smart-cycle-discounts' ),
+				$event['name']
 			),
 		);
 
+		return array(
+			'id'      => 'strategy',
+			'label'   => __( 'Strategy', 'smart-cycle-discounts' ),
+			'icon'    => 'admin-tools',
+			'content' => $selected_content,
+		);
+	}
+
+	/**
+	 * Build "Timeline" column - Launch Timeline.
+	 * Returns 3 randomly selected timing insights from available pool.
+	 *
+	 * @since  1.0.0
+	 * @param  array  $event  Event definition.
+	 * @param  string $state  Campaign state.
+	 * @return array          Column data structure.
+	 */
+	private function build_timeline_column( array $event, string $state ): array {
+		$content_pool = array();
+
+		// Add event date (highest priority - weight 3x).
+		if ( ! empty( $event['event_date'] ) ) {
+			$event_date     = wp_date( 'F j, Y', $event['event_date'] );
+			$content_pool[] = array(
+				'type'   => 'info',
+				'icon'   => 'calendar',
+				'text'   => sprintf(
+					/* translators: %s: event date */
+					__( 'Event Date: %s', 'smart-cycle-discounts' ),
+					$event_date
+				),
+				'weight' => 3,
+			);
+		}
+
+		// Add campaign start date (high priority - weight 2x).
+		if ( ! empty( $event['calculated_start_date'] ) ) {
+			$start_date     = wp_date( 'F j, Y', $event['calculated_start_date'] );
+			$content_pool[] = array(
+				'type'   => 'info',
+				'icon'   => 'flag',
+				'text'   => sprintf(
+					/* translators: %s: start date */
+					__( 'Campaign Starts: %s', 'smart-cycle-discounts' ),
+					$start_date
+				),
+				'weight' => 2,
+			);
+		}
+
+		// Add campaign end date (high priority - weight 2x).
+		if ( ! empty( $event['calculated_end_date'] ) ) {
+			$end_date       = wp_date( 'F j, Y', $event['calculated_end_date'] );
+			$content_pool[] = array(
+				'type'   => 'info',
+				'icon'   => 'flag',
+				'text'   => sprintf(
+					/* translators: %s: end date */
+					__( 'Campaign Ends: %s', 'smart-cycle-discounts' ),
+					$end_date
+				),
+				'weight' => 2,
+			);
+		}
+
+		// Add duration (normal priority - weight 1x).
+		if ( ! empty( $event['duration_days'] ) ) {
+			$content_pool[] = array(
+				'type'   => 'info',
+				'icon'   => 'clock',
+				'text'   => sprintf(
+					/* translators: %d: number of days */
+					__( 'Duration: %d days', 'smart-cycle-discounts' ),
+					$event['duration_days']
+				),
+				'weight' => 1,
+			);
+		}
+
+		// Add lead time information (normal priority - weight 1x each).
+		if ( ! empty( $event['lead_time'] ) ) {
+			$lead_time = $event['lead_time'];
+
+			if ( ! empty( $lead_time['marketing'] ) ) {
+				$content_pool[] = array(
+					'type'   => 'info',
+					'icon'   => 'megaphone',
+					'text'   => sprintf(
+						/* translators: %d: number of weeks */
+						__( 'Start marketing %d weeks before', 'smart-cycle-discounts' ),
+						$lead_time['marketing']
+					),
+					'weight' => 1,
+				);
+			}
+
+			if ( ! empty( $lead_time['inventory'] ) ) {
+				$content_pool[] = array(
+					'type'   => 'info',
+					'icon'   => 'products',
+					'text'   => sprintf(
+						/* translators: %d: number of weeks */
+						__( 'Order inventory %d weeks ahead', 'smart-cycle-discounts' ),
+						$lead_time['inventory']
+					),
+					'weight' => 1,
+				);
+			}
+		}
+
+		// Add best practices (normal priority - weight 1x each).
+		if ( ! empty( $event['best_practices'] ) ) {
+			foreach ( $event['best_practices'] as $practice ) {
+				$content_pool[] = array(
+					'type'   => 'info',
+					'icon'   => 'star-filled',
+					'text'   => $practice,
+					'weight' => 1,
+				);
+			}
+		}
+
+		// Randomly select 3 items from pool with weighted selection.
+		$selected_content = $this->weighted_random_select( $content_pool, 3 );
+
+		return array(
+			'id'      => 'timeline',
+			'label'   => __( 'Timeline', 'smart-cycle-discounts' ),
+			'icon'    => 'calendar',
+			'content' => $selected_content,
+		);
+	}
+
+	/**
+	 * Build "Opportunity" column for weekly campaigns.
+	 * Returns 3 randomly selected insights from available pool.
+	 *
+	 * @since  1.0.0
+	 * @param  array  $weekly  Weekly campaign definition.
+	 * @param  string $state   Campaign state.
+	 * @return array           Column data structure.
+	 */
+	private function build_weekly_opportunity_column( array $weekly, string $state ): array {
+		$content_pool = array();
+
+		// Add campaign description (high priority - weight 2x).
+		$content_pool[] = array(
+			'type'   => 'info',
+			'icon'   => 'calendar-alt',
+			'text'   => $weekly['description'],
+			'weight' => 2,
+		);
+
+		// Add psychology insight.
 		if ( ! empty( $weekly['psychology'] ) ) {
-			$content[] = array(
-				'type' => 'tip',
-				'icon' => 'admin-users',
-				'text' => __( 'Psychology: ', 'smart-cycle-discounts' ) . $weekly['psychology'],
+			$content_pool[] = array(
+				'type'   => 'info',
+				'icon'   => 'admin-users',
+				'text'   => __( 'Psychology: ', 'smart-cycle-discounts' ) . $weekly['psychology'],
+				'weight' => 2,
 			);
 		}
 
-		$sections[] = array(
-			'heading'      => __( 'Market Opportunity', 'smart-cycle-discounts' ),
-			'icon'         => 'chart-bar',
-			'default_open' => true,
-			'content'      => $content,
-		);
-
-		// Section 2: Statistics.
+		// Add statistics as insights.
 		if ( ! empty( $weekly['statistics'] ) ) {
-			$stat_content = array();
 			foreach ( $weekly['statistics'] as $label => $value ) {
-				$stat_content[] = array(
-					'type'  => 'stat',
-					'label' => ucwords( str_replace( '_', ' ', $label ) ),
-					'value' => $value,
+				$formatted_label = ucwords( str_replace( '_', ' ', $label ) );
+				$content_pool[]  = array(
+					'type'   => 'info',
+					'icon'   => $this->get_stat_icon( $label ),
+					'text'   => $formatted_label . ': ' . $value,
+					'weight' => 1,
 				);
 			}
-
-			$sections[] = array(
-				'heading'      => __( 'Performance Data', 'smart-cycle-discounts' ),
-				'icon'         => 'chart-line',
-				'default_open' => true,
-				'content'      => $stat_content,
-			);
 		}
 
-		// Section 3: Best For.
+		// Add "best for" items.
 		if ( ! empty( $weekly['best_for'] ) ) {
-			$best_for_content = array();
 			foreach ( $weekly['best_for'] as $item ) {
-				$best_for_content[] = array(
-					'type' => 'stat_text',
-					'icon' => 'yes',
-					'text' => $item,
+				$content_pool[] = array(
+					'type'   => 'info',
+					'icon'   => 'yes',
+					'text'   => $item,
+					'weight' => 1,
 				);
 			}
-
-			$sections[] = array(
-				'heading'      => __( 'Best For', 'smart-cycle-discounts' ),
-				'icon'         => 'star-filled',
-				'default_open' => false,
-				'content'      => $best_for_content,
-			);
 		}
 
+		// Randomly select 3 items from pool with weighted selection.
+		$selected_content = $this->weighted_random_select( $content_pool, 3 );
+
 		return array(
-			'id'       => 'why',
-			'label'    => __( 'Why?', 'smart-cycle-discounts' ),
-			'icon'     => 'lightbulb',
-			'sections' => $sections,
+			'id'      => 'opportunity',
+			'label'   => __( 'Opportunity', 'smart-cycle-discounts' ),
+			'icon'    => 'lightbulb',
+			'content' => $selected_content,
 		);
 	}
 
 	/**
-	 * Build "How to Execute?" tab for weekly campaigns.
+	 * Build "Strategy" column for weekly campaigns.
+	 * Returns 3 randomly selected strategy insights + CTA button.
 	 *
 	 * @since  1.0.0
 	 * @param  array  $weekly  Weekly campaign definition.
 	 * @param  string $state   Campaign state.
-	 * @return array           Tab data structure.
+	 * @return array           Column data structure.
 	 */
-	private function build_weekly_how_tab( array $weekly, string $state ): array {
-		$sections = array();
+	private function build_weekly_strategy_column( array $weekly, string $state ): array {
+		$content_pool = array();
 
-		// Section 1: Suggested Discount Range.
+		// Add discount recommendations (high priority - weight 3x).
 		if ( ! empty( $weekly['suggested_discount'] ) ) {
-			$discount = $weekly['suggested_discount'];
-			$sections[] = array(
-				'heading'      => __( 'Suggested Discount Range', 'smart-cycle-discounts' ),
-				'icon'         => 'tag',
-				'default_open' => true,
-				'content'      => array(
-					array(
-						'type'  => 'stat',
-						'label' => __( 'Optimal Discount', 'smart-cycle-discounts' ),
-						'value' => $discount['optimal'] . '%',
-					),
-					array(
-						'type' => 'text',
-						'text' => sprintf(
-							/* translators: %1$d: minimum discount, %2$d: maximum discount */
-							__( 'Range: %1$d%% - %2$d%% based on weekly performance', 'smart-cycle-discounts' ),
-							$discount['min'],
-							$discount['max']
-						),
-					),
+			$discount       = $weekly['suggested_discount'];
+			$content_pool[] = array(
+				'type'   => 'info',
+				'icon'   => 'tag',
+				'text'   => sprintf(
+					/* translators: %d: optimal discount percentage */
+					__( 'Optimal Discount: %d%%', 'smart-cycle-discounts' ),
+					$discount['optimal']
 				),
+				'weight' => 3,
+			);
+			$content_pool[] = array(
+				'type'   => 'info',
+				'icon'   => 'chart-line',
+				'text'   => sprintf(
+					/* translators: %1$d: minimum discount, %2$d: maximum discount */
+					__( 'Range: %1$d%% - %2$d%% based on weekly performance', 'smart-cycle-discounts' ),
+					$discount['min'],
+					$discount['max']
+				),
+				'weight' => 2,
 			);
 		}
 
-		// Section 2: Recommendations Checklist.
-		if ( ! empty( $weekly['recommendations'] ) && ( 'active' === $state || 'future' === $state ) ) {
-			$checklist_items = array();
+		// Add recommendations (medium priority - weight 2x).
+		if ( ! empty( $weekly['recommendations'] ) ) {
 			foreach ( $weekly['recommendations'] as $recommendation ) {
-				$checklist_items[] = array(
-					'type' => 'checklist_item',
-					'text' => $recommendation,
+				$content_pool[] = array(
+					'type'   => 'info',
+					'icon'   => 'yes-alt',
+					'text'   => $recommendation,
+					'weight' => 2,
 				);
 			}
-
-			$sections[] = array(
-				'heading'      => __( 'Action Checklist', 'smart-cycle-discounts' ),
-				'icon'         => 'yes-alt',
-				'default_open' => true,
-				'content'      => $checklist_items,
-			);
 		}
 
-		// Section 3: CTA for active campaigns.
-		if ( 'active' === $state ) {
-			$sections[] = array(
-				'heading'      => __( 'Ready to Start?', 'smart-cycle-discounts' ),
-				'icon'         => 'admin-generic',
-				'default_open' => true,
-				'content'      => array(
-					array(
-						'type' => 'cta',
-						'url'  => admin_url( 'admin.php?page=scd-campaigns&action=wizard&intent=new&suggestion=' . $weekly['id'] ),
-						'text' => sprintf(
-							/* translators: %s: campaign name */
-							__( 'Create %s Campaign', 'smart-cycle-discounts' ),
-							$weekly['name']
-						),
-					),
-				),
-			);
-		}
+		// Randomly select 3 items from pool with weighted selection.
+		$selected_content = $this->weighted_random_select( $content_pool, 3 );
+
+		// Add CTA button.
+		$selected_content[] = array(
+			'type' => 'cta',
+			'url'  => admin_url( 'admin.php?page=scd-campaigns&action=wizard&intent=new&suggestion=' . $weekly['id'] ),
+			'text' => sprintf(
+				/* translators: %s: campaign name */
+				__( 'Create %s Campaign', 'smart-cycle-discounts' ),
+				$weekly['name']
+			),
+		);
 
 		return array(
-			'id'       => 'how',
-			'label'    => __( 'How?', 'smart-cycle-discounts' ),
-			'icon'     => 'admin-tools',
-			'sections' => $sections,
+			'id'      => 'strategy',
+			'label'   => __( 'Strategy', 'smart-cycle-discounts' ),
+			'icon'    => 'admin-tools',
+			'content' => $selected_content,
 		);
 	}
 
 	/**
-	 * Build "When to Launch?" tab for weekly campaigns.
+	 * Build "Timeline" column for weekly campaigns.
+	 * Uses weighted random selection to display 3 items from content pool.
 	 *
 	 * @since  1.0.0
 	 * @param  array  $weekly  Weekly campaign definition.
 	 * @param  string $state   Campaign state.
-	 * @return array           Tab data structure.
+	 * @return array           Column data structure.
 	 */
-	private function build_weekly_when_tab( array $weekly, string $state ): array {
-		$sections = array();
+	private function build_weekly_timeline_column( array $weekly, string $state ): array {
+		$content_pool = array();
 
-		// Section 1: Weekly Schedule.
+		// Add weekly schedule (highest priority - weight 3x).
 		if ( ! empty( $weekly['schedule'] ) ) {
 			$schedule = $weekly['schedule'];
 			$days     = array(
@@ -1418,55 +1425,125 @@ class SCD_Dashboard_Service {
 			$start_day = $days[ $schedule['start_day'] ];
 			$end_day   = $days[ $schedule['end_day'] ];
 
-			$sections[] = array(
-				'heading'      => __( 'Weekly Schedule', 'smart-cycle-discounts' ),
-				'icon'         => 'clock',
-				'default_open' => true,
-				'content'      => array(
-					array(
-						'type' => 'message',
-						'icon' => 'calendar',
-						'text' => sprintf(
-							/* translators: %1$s: start day, %2$s: start time, %3$s: end day, %4$s: end time */
-							__( 'Runs every week from %1$s %2$s to %3$s %4$s', 'smart-cycle-discounts' ),
-							$start_day,
-							$schedule['start_time'],
-							$end_day,
-							$schedule['end_time']
-						),
-					),
+			$content_pool[] = array(
+				'type'   => 'info',
+				'icon'   => 'calendar',
+				'text'   => sprintf(
+					/* translators: %1$s: start day, %2$s: start time, %3$s: end day, %4$s: end time */
+					__( 'Runs every week from %1$s %2$s to %3$s %4$s', 'smart-cycle-discounts' ),
+					$start_day,
+					$schedule['start_time'],
+					$end_day,
+					$schedule['end_time']
 				),
+				'weight' => 3,
+			);
+
+			// Add individual day breakdown (high priority - weight 2x).
+			$content_pool[] = array(
+				'type'   => 'info',
+				'icon'   => 'flag',
+				'text'   => sprintf(
+					/* translators: %1$s: start day, %2$s: start time */
+					__( 'Campaign starts: %1$s at %2$s', 'smart-cycle-discounts' ),
+					$start_day,
+					$schedule['start_time']
+				),
+				'weight' => 2,
+			);
+
+			$content_pool[] = array(
+				'type'   => 'info',
+				'icon'   => 'flag',
+				'text'   => sprintf(
+					/* translators: %1$s: end day, %2$s: end time */
+					__( 'Campaign ends: %1$s at %2$s', 'smart-cycle-discounts' ),
+					$end_day,
+					$schedule['end_time']
+				),
+				'weight' => 2,
+			);
+
+			// Calculate duration.
+			$duration_days = ( $schedule['end_day'] - $schedule['start_day'] );
+			if ( $duration_days < 0 ) {
+				$duration_days += 7; // Wrap around week.
+			}
+			if ( $duration_days > 0 ) {
+				$content_pool[] = array(
+					'type'   => 'info',
+					'icon'   => 'clock',
+					'text'   => sprintf(
+						/* translators: %d: number of days */
+						_n( 'Runs for %d day each week', 'Runs for %d days each week', $duration_days, 'smart-cycle-discounts' ),
+						$duration_days
+					),
+					'weight' => 1,
+				);
+			}
+		}
+
+		// Add preparation time (normal priority - weight 1x).
+		if ( isset( $weekly['prep_time'] ) ) {
+			$prep_time      = absint( $weekly['prep_time'] );
+			$content_pool[] = array(
+				'type'   => 'info',
+				'icon'   => 'admin-settings',
+				'text'   => 0 === $prep_time
+					? __( 'Can be created day-of', 'smart-cycle-discounts' )
+					: sprintf(
+						/* translators: %d: number of days */
+						_n( 'Prepare %d day in advance', 'Prepare %d days in advance', $prep_time, 'smart-cycle-discounts' ),
+						$prep_time
+					),
+				'weight' => 1,
 			);
 		}
 
-		// Section 2: Preparation Time.
-		if ( isset( $weekly['prep_time'] ) ) {
-			$prep_time = absint( $weekly['prep_time'] );
-			$sections[] = array(
-				'heading'      => __( 'Preparation', 'smart-cycle-discounts' ),
-				'icon'         => 'admin-tools',
-				'default_open' => true,
-				'content'      => array(
-					array(
-						'type' => 'stat_text',
-						'icon' => 'clock',
-						'text' => 0 === $prep_time
-							? __( 'Can be created day-of', 'smart-cycle-discounts' )
-							: sprintf(
-								/* translators: %d: number of days */
-								_n( 'Prepare %d day in advance', 'Prepare %d days in advance', $prep_time, 'smart-cycle-discounts' ),
-								$prep_time
-							),
-					),
-				),
+		// Add psychology timing insight (normal priority - weight 1x).
+		if ( ! empty( $weekly['psychology'] ) ) {
+			$content_pool[] = array(
+				'type'   => 'info',
+				'icon'   => 'lightbulb',
+				'text'   => $weekly['psychology'],
+				'weight' => 1,
 			);
 		}
+
+		// Add recurring nature highlight (normal priority - weight 1x).
+		$content_pool[] = array(
+			'type'   => 'info',
+			'icon'   => 'update',
+			'text'   => __( 'Repeats automatically every week', 'smart-cycle-discounts' ),
+			'weight' => 1,
+		);
+
+		// Add position-based timing advice (normal priority - weight 1x).
+		if ( ! empty( $weekly['position'] ) ) {
+			$position_texts = array(
+				'first'  => __( 'Best launched early in the week', 'smart-cycle-discounts' ),
+				'middle' => __( 'Peak engagement mid-week', 'smart-cycle-discounts' ),
+				'last'   => __( 'Capitalize on weekend browsing behavior', 'smart-cycle-discounts' ),
+			);
+
+			if ( isset( $position_texts[ $weekly['position'] ] ) ) {
+				$content_pool[] = array(
+					'type'   => 'info',
+					'icon'   => 'chart-area',
+					'text'   => $position_texts[ $weekly['position'] ],
+					'weight' => 1,
+				);
+			}
+		}
+
+		// Randomly select 3 items from pool with weighted selection.
+		$selected_content = $this->weighted_random_select( $content_pool, 3 );
 
 		return array(
-			'id'       => 'when',
-			'label'    => __( 'When?', 'smart-cycle-discounts' ),
-			'icon'     => 'calendar',
-			'sections' => $sections,
+			'id'      => 'timeline',
+			'label'   => __( 'Timeline', 'smart-cycle-discounts' ),
+			'icon'    => 'calendar',
+			'content' => $selected_content,
 		);
 	}
 
@@ -1531,5 +1608,106 @@ class SCD_Dashboard_Service {
 			'icon'  => $icon,
 			'tabs'  => $tabs,
 		);
+	}
+
+	/**
+	 * Get appropriate dashicon for a statistic based on its label.
+	 *
+	 * @since  1.0.0
+	 * @param  string $label Statistic label (snake_case).
+	 * @return string        Dashicon name (without 'dashicons-' prefix).
+	 */
+	private function get_stat_icon( string $label ): string {
+		// Map common statistic types to appropriate icons.
+		$icon_map = array(
+			'conversion_lift'  => 'chart-line',
+			'peak_time'        => 'clock',
+			'avg_order'        => 'money-alt',
+			'average_order'    => 'money-alt',
+			'order_value'      => 'money-alt',
+			'discount'         => 'tag',
+			'optimal_discount' => 'tag',
+			'conversion'       => 'chart-area',
+			'conversion_rate'  => 'chart-area',
+			'revenue'          => 'chart-bar',
+			'sales'            => 'cart',
+			'customers'        => 'groups',
+			'orders'           => 'clipboard',
+			'engagement'       => 'heart',
+			'traffic'          => 'admin-site',
+			'bounce_rate'      => 'undo',
+			'time_on_site'     => 'backup',
+			'repeat_purchase'  => 'update',
+			'margin'           => 'performance',
+		);
+
+		// Return mapped icon or default chart icon.
+		return $icon_map[ $label ] ?? 'chart-line';
+	}
+
+	/**
+	 * Weighted random selection from content pool.
+	 *
+	 * Selects N items from the pool with weighted probability.
+	 * Items with higher weights are more likely to be selected.
+	 *
+	 * @since  1.0.0
+	 * @param  array $pool  Array of items with 'weight' property.
+	 * @param  int   $count Number of items to select.
+	 * @return array        Selected items (without weight property).
+	 */
+	private function weighted_random_select( array $pool, int $count ): array {
+		if ( empty( $pool ) ) {
+			return array();
+		}
+
+		// If pool is smaller than requested count, return all items.
+		if ( count( $pool ) <= $count ) {
+			return array_map(
+				function ( $item ) {
+					unset( $item['weight'] );
+					return $item;
+				},
+				$pool
+			);
+		}
+
+		$selected       = array();
+		$remaining_pool = $pool;
+
+		for ( $i = 0; $i < $count; $i++ ) {
+			if ( empty( $remaining_pool ) ) {
+				break;
+			}
+
+			// Calculate total weight of remaining items.
+			$total_weight = array_sum( array_column( $remaining_pool, 'weight' ) );
+
+			// Generate random number between 0 and total weight.
+			$random = wp_rand( 0, $total_weight );
+
+			// Select item based on weighted probability.
+			$cumulative_weight = 0;
+			$selected_index    = 0;
+
+			foreach ( $remaining_pool as $index => $item ) {
+				$cumulative_weight += $item['weight'];
+				if ( $random <= $cumulative_weight ) {
+					$selected_index = $index;
+					break;
+				}
+			}
+
+			// Add selected item to results (remove weight).
+			$selected_item = $remaining_pool[ $selected_index ];
+			unset( $selected_item['weight'] );
+			$selected[] = $selected_item;
+
+			// Remove selected item from pool to avoid duplicates.
+			array_splice( $remaining_pool, $selected_index, 1 );
+			$remaining_pool = array_values( $remaining_pool ); // Re-index array.
+		}
+
+		return $selected;
 	}
 }

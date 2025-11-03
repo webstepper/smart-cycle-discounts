@@ -1,16 +1,17 @@
 <?php
 /**
- * Campaign repository
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Campaign Repository Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/database/repositories
+ * @subpackage SmartCycleDiscounts/includes/database/repositories/class-campaign-repository.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -427,23 +428,8 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 * @return   bool                         True on success, false on failure.
 	 */
 	public function save( SCD_Campaign $campaign ): bool {
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Campaign Repository] Starting save operation...' );
-			error_log( '[Campaign Repository] Campaign has ID: ' . ( $campaign->get_id() ? 'Yes (' . $campaign->get_id() . ')' : 'No (new campaign)' ) );
-		}
-
 		if ( ! $campaign->is_valid() ) {
-			// Add debug logging
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				$errors = $campaign->validate();
-				error_log( '[Campaign Repository] Campaign validation FAILED' );
-				error_log( '[Campaign Repository] Validation errors: ' . print_r( $errors, true ) );
-			}
 			return false;
-		}
-
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Campaign Repository] Campaign validation PASSED' );
 		}
 
 		// Wrap save operation in transaction for data integrity
@@ -451,17 +437,10 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 			function () use ( $campaign ) {
 				$data = $this->dehydrate( $campaign );
 
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( '[Campaign Repository] Dehydrated data: ' . json_encode( $data ) );
-				}
-
 				if ( $campaign->get_id() ) {
 					// Update existing campaign - verify ownership first
 					$existing = $this->find( $campaign->get_id() );
 					if ( ! $existing ) {
-						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-							error_log( '[Campaign Repository] UPDATE FAILED - campaign not found: ' . $campaign->get_id() );
-						}
 						return false;
 					}
 
@@ -472,9 +451,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 					// 2. User is an admin (has manage_options capability)
 					// 3. User is 0 (system operation like cron, which needs to activate/deactivate campaigns)
 					if ( $current_user_id !== 0 && $existing->get_created_by() !== $current_user_id && ! current_user_can( 'manage_options' ) ) {
-						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-							error_log( '[Campaign Repository] User ' . $current_user_id . ' attempted to update campaign ' . $campaign->get_id() . ' owned by ' . $existing->get_created_by() );
-						}
 						return false;
 					}
 
@@ -507,17 +483,8 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 						array( '%d', '%d' )
 					);
 
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-							error_log( '[Campaign Repository] Update result: ' . ( $result !== false ? 'Success' : 'Failed' ) );
-							error_log( '[Campaign Repository] Expected version: ' . $expected_version . ', New version: ' . $data['version'] );
-					}
-
 					// Check if update failed due to concurrent modification
 					if ( $result === 0 ) {
-						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-								error_log( '[Campaign Repository] UPDATE FAILED - Concurrent modification detected (version mismatch)' );
-						}
-
 						// Throw exception for concurrent modification
 						throw new SCD_Concurrent_Modification_Exception(
 							$campaign->get_id(),
@@ -531,19 +498,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 					$data['updated_at'] = gmdate( 'Y-m-d H:i:s' );
 					$data['version']    = 1;  // Initial version
 
-					// Debug logging before insert
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( '[Campaign Repository] Attempting INSERT with data: ' . json_encode( $data ) );
-						error_log( '[Campaign Repository] Table name: ' . $this->table_name );
-
-						// Check if table exists
-						if ( ! $this->db->table_exists( 'campaigns' ) ) {
-								error_log( '[Campaign Repository] WARNING: campaigns table does NOT exist!' );
-						} else {
-							error_log( '[Campaign Repository] Table exists: ' . $this->table_name );
-						}
-					}
-
 					$result = $this->db->insert(
 						'campaigns',
 						$data,
@@ -552,22 +506,11 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 
 					if ( $result ) {
 						$campaign->set_id( $result );
-						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-								error_log( '[Campaign Repository] INSERT SUCCESS - Campaign ID: ' . $result );
-						}
-					} elseif ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-								global $wpdb;
-								error_log( '[Campaign Repository] INSERT FAILED' );
-								error_log( '[Campaign Repository] Database error: ' . $wpdb->last_error );
-								error_log( '[Campaign Repository] Last query: ' . $wpdb->last_query );
 					}
 				}
 
 				if ( $result !== false ) {
 					$this->clear_campaign_cache( $campaign );
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( '[Campaign Repository] Save completed successfully' );
-					}
 					return true;
 				}
 
@@ -577,9 +520,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 
 		// Transaction returns false on failure, result on success
 		if ( $result === false ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Campaign Repository] Save FAILED - returning false' );
-			}
 			return false;
 		}
 
@@ -603,9 +543,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 		// Check ownership - only creator or admin can delete
 		$current_user_id = get_current_user_id();
 		if ( $campaign->get_created_by() !== $current_user_id && ! current_user_can( 'manage_options' ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Campaign Repository] User ' . $current_user_id . ' attempted to delete campaign ' . $id . ' owned by ' . $campaign->get_created_by() );
-			}
 			return false;
 		}
 
@@ -1369,10 +1306,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 				'_transient_timeout_scd_campaigns_by_product_%'
 			)
 		);
-
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Campaign Repository] Cleared all caches for campaign ' . $campaign->get_id() );
-		}
 	}
 
 	/**

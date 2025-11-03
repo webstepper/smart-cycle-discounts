@@ -1,14 +1,14 @@
 <?php
 /**
- * Campaign Health Handler
- *
- * Handles AJAX requests for calculating campaign health score.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Campaign Health Handler Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
+ * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers/class-campaign-health-handler.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -122,15 +122,15 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 
 		// Build response in expected format (snake_case, will be auto-converted to camelCase by AJAX layer)
 		$response = array(
-			'score'              => isset( $health_analysis['score'] ) ? $health_analysis['score'] : 100,
-			'percentage'         => min( 100, round( isset( $health_analysis['score'] ) ? $health_analysis['score'] : 100 ) ),
-			'status'             => isset( $health_analysis['status'] ) ? $health_analysis['status'] : 'excellent',
-			'is_ready'           => isset( $health_analysis['is_ready'] ) ? $health_analysis['is_ready'] : true,
-			'critical_issues'    => $critical_issues,
-			'recommendations'    => isset( $health_analysis['recommendations'] ) ? $health_analysis['recommendations'] : array(),
-			'conflict_preview'   => $this->_build_conflict_preview( $conflicts_data ),
-			'coverage'           => $coverage_data,
-			'stock_risk'         => $stock_risk, // IMPROVED: Now uses real data from health service
+			'score'            => isset( $health_analysis['score'] ) ? $health_analysis['score'] : 100,
+			'percentage'       => min( 100, round( isset( $health_analysis['score'] ) ? $health_analysis['score'] : 100 ) ),
+			'status'           => isset( $health_analysis['status'] ) ? $health_analysis['status'] : 'excellent',
+			'is_ready'         => isset( $health_analysis['is_ready'] ) ? $health_analysis['is_ready'] : true,
+			'critical_issues'  => $critical_issues,
+			'recommendations'  => isset( $health_analysis['recommendations'] ) ? $health_analysis['recommendations'] : array(),
+			'conflict_preview' => $this->_build_conflict_preview( $conflicts_data ),
+			'coverage'         => $coverage_data,
+			'stock_risk'       => $stock_risk, // IMPROVED: Now uses real data from health service
 		);
 
 		return $this->success( $response );
@@ -234,7 +234,7 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 
 			// Add step if not present (map from category)
 			if ( ! isset( $issue['step'] ) && isset( $issue['category'] ) ) {
-				$category     = $issue['category'];
+				$category      = $issue['category'];
 				$issue['step'] = isset( $category_to_step[ $category ] ) ? $category_to_step[ $category ] : 'basic';
 			}
 

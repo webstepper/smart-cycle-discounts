@@ -1,22 +1,17 @@
 <?php
 /**
- * Database Migration 002: Timezone Update
- *
- * EC-034 FIX: Update existing campaigns to have proper timezone values.
- * EC-001, EC-028 FIX: Ensure campaigns remember their creation timezone.
- *
- * This migration populates the timezone column for campaigns that have NULL values,
- * using the WordPress site timezone at the time this migration runs.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * 002 Timezone Update
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/database/migrations
+ * @subpackage SmartCycleDiscounts/includes/database/migrations/002-timezone-update.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly

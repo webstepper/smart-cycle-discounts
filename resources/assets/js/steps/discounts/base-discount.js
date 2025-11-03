@@ -1,11 +1,13 @@
 /**
- * Base Discount Type Interface
+ * Base Discount
  *
- * Defines the common interface that all discount types must implement using consolidated utilities
- *
- * @param $
- * @package SmartCycleDiscounts
- * @since 1.0.0
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/js/steps/discounts/base-discount.js
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 ( function( $ ) {

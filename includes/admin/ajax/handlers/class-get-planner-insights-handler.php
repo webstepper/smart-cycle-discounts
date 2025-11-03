@@ -1,12 +1,14 @@
 <?php
 /**
- * Get Campaign Planner Insights Handler
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Get Planner Insights Handler Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
+ * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers/class-get-planner-insights-handler.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Get Campaign Planner Insights Handler Class
  *
  * Handles retrieving insights for a specific Campaign Planner campaign.
- * Returns rendered HTML for the insights panel (Why/How/When tabs).
+ * Returns rendered HTML for the insights panel (3-column layout: Opportunity/Strategy/Timeline).
  *
  * @since      1.0.0
  * @package    SmartCycleDiscounts
@@ -60,7 +62,7 @@ class SCD_Get_Planner_Insights_Handler extends SCD_Abstract_Ajax_Handler {
 	/**
 	 * Handle the get Campaign Planner insights request.
 	 *
-	 * Returns rendered HTML for campaign insights panel (Why/How/When tabs).
+	 * Returns rendered HTML for campaign insights panel (3-column layout).
 	 *
 	 * @since    1.0.0
 	 * @param    array $request    Request data.

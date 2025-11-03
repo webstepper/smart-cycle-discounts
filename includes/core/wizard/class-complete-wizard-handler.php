@@ -1,12 +1,14 @@
 <?php
 /**
- * Complete Wizard Handler
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Complete Wizard Handler Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/core/wizard
+ * @subpackage SmartCycleDiscounts/includes/core/wizard/class-complete-wizard-handler.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -277,15 +279,6 @@ class SCD_Complete_Wizard_Handler {
 			$future_start = 'yes';
 		}
 
-		error_log(
-			sprintf(
-				'[Complete Wizard] Status transition: %s (old: %s, launch_option: %s, future_start: %s)',
-				isset( $campaign_data['status'] ) ? $campaign_data['status'] : 'null',
-				$old_status ? $old_status : 'new',
-				$launch_option,
-				$future_start
-			)
-		);
 	}
 
 	/**
@@ -306,17 +299,6 @@ class SCD_Complete_Wizard_Handler {
 		} else {
 			$this->log_debug( 'Creating new campaign with data: ' . wp_json_encode( $campaign_data ) );
 			$campaign = $campaign_manager->create( $campaign_data );
-		}
-
-		// Log detailed error information.
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Complete Wizard] Campaign result type: ' . gettype( $campaign ) );
-			if ( is_wp_error( $campaign ) ) {
-				error_log( '[Complete Wizard] WP_Error message: ' . $campaign->get_error_message() );
-				error_log( '[Complete Wizard] WP_Error codes: ' . print_r( $campaign->get_error_codes(), true ) );
-				error_log( '[Complete Wizard] WP_Error messages: ' . print_r( $campaign->get_error_messages(), true ) );
-				error_log( '[Complete Wizard] WP_Error data: ' . print_r( $campaign->get_error_data(), true ) );
-			}
 		}
 
 		// Handle errors.

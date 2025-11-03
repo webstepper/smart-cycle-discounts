@@ -1,15 +1,13 @@
 /**
- * Tools Page JavaScript
+ * Tools
  *
- * Handles all tools and maintenance functionality including:
- * - Import/Export
- * - Database Maintenance
- * - Cache Management
- * - Log Viewer
- * - System Diagnostics
- *
- * @package SmartCycleDiscounts
- * @since 1.0.0
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/js/admin/tools.js
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 ( function( $ ) {
@@ -324,7 +322,7 @@
 				action: 'scd_ajax',
 				scdAction: 'log_viewer',
 				log_action: 'view',
-				lines: 100,
+				lines: 500,
 				nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || ''
 			},
 			success: function( response ) {

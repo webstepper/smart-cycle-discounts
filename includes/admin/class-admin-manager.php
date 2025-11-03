@@ -1,16 +1,17 @@
 <?php
 /**
- * Admin manager
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Admin Manager Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin
+ * @subpackage SmartCycleDiscounts/includes/admin/class-admin-manager.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -243,15 +244,11 @@ class SCD_Admin_Manager {
 	 * @return   void
 	 */
 	public function render_notifications_page(): void {
-		error_log( '[SCD Admin] render_notifications_page called' );
-		error_log( '[SCD Admin] Has notifications_page service: ' . ( $this->container->has( 'notifications_page' ) ? 'YES' : 'NO' ) );
 
 		if ( $this->container->has( 'notifications_page' ) ) {
 			$notifications_page = $this->container->get( 'notifications_page' );
-			error_log( '[SCD Admin] Got notifications_page instance: ' . get_class( $notifications_page ) );
 			$notifications_page->render();
 		} else {
-			error_log( '[SCD Admin] ERROR: notifications_page service not found in container' );
 			echo '<div class="notice notice-error"><p>Error: Notifications page service not initialized.</p></div>';
 		}
 	}
@@ -463,11 +460,11 @@ class SCD_Admin_Manager {
 	 */
 	private function check_system_requirements(): void {
 		// Check PHP version
-		if ( version_compare( PHP_VERSION, '8.1', '<' ) ) {
+		if ( version_compare( PHP_VERSION, '8.0', '<' ) ) {
 			printf(
 				'<div class="notice notice-error"><p>%s</p></div>',
 				sprintf(
-					__( 'Smart Cycle Discounts requires PHP 8.1 or higher. You are running PHP %s.', 'smart-cycle-discounts' ),
+					__( 'Smart Cycle Discounts requires PHP 8.0 or higher. You are running PHP %s.', 'smart-cycle-discounts' ),
 					esc_html( PHP_VERSION )
 				)
 			);

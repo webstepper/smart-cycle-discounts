@@ -185,11 +185,6 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 				foreach ( $campaigns as $campaign ) :
 					$state          = $campaign['state'];
 					$is_major_event = ! empty( $campaign['is_major_event'] );
-					$state_class    = 'scd-planner-card--' . $state;
-
-					if ( $is_major_event ) {
-						$state_class .= ' scd-planner-card--major';
-					}
 
 					$state_labels = array(
 						'past'   => __( 'Ended', 'smart-cycle-discounts' ),
@@ -198,13 +193,13 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 					);
 					$state_label  = $state_labels[ $state ] ?? '';
 					?>
-					<div class="scd-planner-card <?php echo esc_attr( $state_class ); ?>"
+					<div class="scd-planner-card"
+						data-state="<?php echo esc_attr( $state ); ?>"
+						data-major-event="<?php echo $is_major_event ? 'true' : 'false'; ?>"
+						data-campaign-id="<?php echo esc_attr( $campaign['id'] ); ?>"
 						role="button"
 						tabindex="0"
-						aria-label="<?php echo esc_attr( sprintf( '%s - %s', $campaign['name'], $state_label ) ); ?>"
-						data-campaign-id="<?php echo esc_attr( $campaign['id'] ); ?>"
-						data-state="<?php echo esc_attr( $state ); ?>"
-						data-is-major-event="<?php echo $is_major_event ? '1' : '0'; ?>">
+						aria-label="<?php echo esc_attr( sprintf( '%s - %s', $campaign['name'], $state_label ) ); ?>">
 
 						<!-- Card Header -->
 						<div class="scd-planner-card-header">
@@ -213,21 +208,23 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 									<?php echo esc_html( $campaign['name'] ); ?>
 									<span class="scd-planner-icon"><?php echo esc_html( $campaign['icon'] ); ?></span>
 								</h3>
-								<?php if ( $is_major_event ) : ?>
-									<span class="scd-planner-major-badge"><?php esc_html_e( 'Major Event', 'smart-cycle-discounts' ); ?></span>
-								<?php endif; ?>
 							</div>
-							<div class="scd-planner-card-badge scd-badge-<?php echo esc_attr( $state ); ?>">
-								<?php
-								$badge_icons = array(
-									'past'   => 'clock',
-									'active' => 'star-filled',
-									'future' => 'calendar',
-								);
-								$badge_icon  = $badge_icons[ $state ] ?? 'info';
-								?>
-								<span class="dashicons dashicons-<?php echo esc_attr( $badge_icon ); ?>"></span>
-								<?php echo esc_html( $state_label ); ?>
+							<div class="scd-planner-card-badges">
+								<?php if ( $is_major_event ) : ?>
+									<span class="scd-planner-card-badge scd-badge-major"><?php esc_html_e( 'Major Event', 'smart-cycle-discounts' ); ?></span>
+								<?php endif; ?>
+								<span class="scd-planner-card-badge scd-badge-<?php echo esc_attr( $state ); ?>">
+									<?php
+									$badge_icons = array(
+										'past'   => 'clock',
+										'active' => 'star-filled',
+										'future' => 'calendar',
+									);
+									$badge_icon  = $badge_icons[ $state ] ?? 'info';
+									?>
+									<span class="dashicons dashicons-<?php echo esc_attr( $badge_icon ); ?>"></span>
+									<?php echo esc_html( $state_label ); ?>
+								</span>
 							</div>
 						</div>
 

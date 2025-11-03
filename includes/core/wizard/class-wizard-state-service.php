@@ -1,9 +1,13 @@
 <?php
 /**
- * Wizard State Service
+ * Wizard State Service Class
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/core/wizard
+ * @subpackage SmartCycleDiscounts/includes/core/wizard/class-wizard-state-service.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
  * @since      1.0.0
  */
 
@@ -124,9 +128,6 @@ class SCD_Wizard_State_Service {
 		if ( $this->is_edit_mode() && ! $this->change_tracker ) {
 			$campaign_id = $this->get( 'campaign_id', 0 );
 			if ( $campaign_id ) {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[State Service] Auto-initializing Change Tracker for edit mode session (campaign ' . $campaign_id . ')' );
-				}
 				$this->initialize_change_tracker( $campaign_id );
 			}
 		}
@@ -165,9 +166,6 @@ class SCD_Wizard_State_Service {
 		// CRITICAL FIX: If no campaign ID in URL, check session (for AJAX requests)
 		if ( ! $campaign_id ) {
 			$campaign_id = $this->get( 'campaign_id', 0 );
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[State Service] No campaign ID in URL, reading from session: ' . $campaign_id );
-			}
 		}
 
 		if ( ! $campaign_id ) {
@@ -182,16 +180,8 @@ class SCD_Wizard_State_Service {
 
 		if ( $existing_campaign_id === $campaign_id && $is_edit_mode ) {
 			// Already editing this campaign, keep existing session and change tracker
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[State Service] Reusing existing edit session for campaign ' . $campaign_id );
-			}
 			$this->initialize_change_tracker( $campaign_id );
 			return;
-		}
-
-		// Different campaign or not in edit mode - create new edit session
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[State Service] Creating new edit session for campaign ' . $campaign_id . ' (previous campaign: ' . $existing_campaign_id . ')' );
 		}
 
 		// Clear existing session and start fresh for editing
@@ -321,7 +311,7 @@ class SCD_Wizard_State_Service {
 			$this->data['steps']['basic']['name'] = $event['name'] . ' ' . $date_range;
 
 			// Priority based on event category
-			$priority_map = array(
+			$priority_map                             = array(
 				'major'    => 4,
 				'seasonal' => 3,
 				'ongoing'  => 3,
@@ -337,7 +327,7 @@ class SCD_Wizard_State_Service {
 
 		if ( $is_weekly_campaign ) {
 			// Weekly campaign - calculate this week's dates from schedule
-			$schedule = $event['schedule'];
+			$schedule           = $event['schedule'];
 			$current_week_start = strtotime( 'this week Monday 00:00' );
 
 			$start_day_offset = $schedule['start_day'] - 1; // Monday = 0
@@ -374,7 +364,7 @@ class SCD_Wizard_State_Service {
 				$this->data['steps']['discounts'] = array();
 			}
 
-			$this->data['steps']['discounts']['discount_type']             = 'percentage';
+			$this->data['steps']['discounts']['discount_type'] = 'percentage';
 			// Cast to float for proper type - Campaign class requires float for discount_value
 			$this->data['steps']['discounts']['discount_value_percentage'] = (float) $event['suggested_discount']['optimal'];
 		}
@@ -583,16 +573,6 @@ class SCD_Wizard_State_Service {
 		// Add current timestamp to deferred saves queue
 		$this->deferred_saves[] = time();
 
-		// Log for debugging
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log(
-				sprintf(
-					'[State Service] Lock not acquired, queuing save (queue size: %d)',
-					count( $this->deferred_saves )
-				)
-			);
-		}
-
 		// Schedule a single deferred save attempt using WordPress shutdown hook
 		// This runs after the current request completes
 		if ( ! has_action( 'shutdown', array( $this, 'attempt_deferred_save' ) ) ) {
@@ -622,28 +602,7 @@ class SCD_Wizard_State_Service {
 
 		// Try to save without lock contention
 		// Most concurrent saves should be complete by shutdown
-		$success = $this->save( false );
-
-		if ( $success ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log(
-					sprintf(
-						'[State Service] Deferred save succeeded (cleared %d queued saves)',
-						$queue_size
-					)
-				);
-			}
-		} else {
-			// Still couldn't save - log warning but don't retry infinitely
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log(
-					sprintf(
-						'[State Service] Deferred save failed (lost %d queued saves)',
-						$queue_size
-					)
-				);
-			}
-		}
+		$this->save( false );
 	}
 
 	/**
@@ -657,17 +616,7 @@ class SCD_Wizard_State_Service {
 	 */
 	private function process_deferred_saves(): void {
 		if ( ! empty( $this->deferred_saves ) ) {
-			$queue_size           = count( $this->deferred_saves );
 			$this->deferred_saves = array();
-
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log(
-					sprintf(
-						'[State Service] Cleared %d deferred saves after successful save',
-						$queue_size
-					)
-				);
-			}
 		}
 	}
 
@@ -721,27 +670,11 @@ class SCD_Wizard_State_Service {
 		$campaign_id = $this->get( 'campaign_id' );
 		$is_edit     = $this->is_edit_mode() || $campaign_id;
 
-		if ( $is_edit ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[State Service] save_step_data - Edit mode detected for step: ' . $step );
-			}
-
-			if ( ! $this->change_tracker ) {
-				// Change tracker not initialized, fall back to session storage
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[State Service] Change tracker not initialized in edit mode, using session storage' );
-				}
-			} else {
-				// Track changes via Change Tracker (session only)
-				// Database will be updated when user completes wizard via create_from_wizard()
-				$this->change_tracker->track_step( $step, $data );
-
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[State Service] Changes tracked in session for step: ' . $step );
-				}
-
-				return true;
-			}
+		if ( $is_edit && $this->change_tracker ) {
+			// Track changes via Change Tracker (session only)
+			// Database will be updated when user completes wizard via create_from_wizard()
+			$this->change_tracker->track_step( $step, $data );
+			return true;
 		}
 
 		// Create mode: store full data in session
@@ -826,28 +759,14 @@ class SCD_Wizard_State_Service {
 	public function get_step_data( string $step ): array {
 		$step = sanitize_key( $step );
 
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[State Service] get_step_data("' . $step . '") - is_edit_mode=' . ( $this->is_edit_mode() ? 'yes' : 'no' ) . ', has_change_tracker=' . ( $this->change_tracker ? 'yes' : 'no' ) );
-		}
-
 		// Edit mode: use Change Tracker (DB + deltas)
 		if ( $this->is_edit_mode() && $this->change_tracker ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[State Service] Delegating to change tracker for step "' . $step . '"' );
-			}
 			return $this->change_tracker->get_step_data( $step );
 		}
 
 		// Create mode: return from session
 		if ( ! isset( $this->data['steps'][ $step ] ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[State Service] No session data for step "' . $step . '" - returning empty array' );
-			}
 			return array();
-		}
-
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[State Service] Returning session data for step "' . $step . '" (' . count( $this->data['steps'][ $step ] ) . ' fields)' );
 		}
 
 		return $this->data['steps'][ $step ];
@@ -952,18 +871,8 @@ class SCD_Wizard_State_Service {
 			$steps_data = array();
 			foreach ( $this->steps as $step ) {
 				$step_data = $this->change_tracker->get_step_data( $step );
-
-				// Debug logging
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[State Service] get_all_data() - Step "' . $step . '" has ' . count( $step_data ) . ' fields' );
-				}
-
 				// CRITICAL: Include step even if empty - some steps might have optional fields
 				$steps_data[ $step ] = $step_data;
-			}
-
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[State Service] get_all_data() - Returning ' . count( $steps_data ) . ' steps in edit mode' );
 			}
 
 			// Return data structure expected by Complete Wizard Handler
@@ -1098,13 +1007,7 @@ class SCD_Wizard_State_Service {
 	public function compile_campaign_data(): array {
 		// Edit mode: use Change Tracker
 		if ( $this->is_edit_mode() && $this->change_tracker ) {
-			$compiled = $this->change_tracker->compile();
-
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Wizard State] Compiled from Change Tracker: ' . print_r( $compiled, true ) );
-			}
-
-			return $compiled;
+			return $this->change_tracker->compile();
 		}
 
 		// Create mode: compile from session
@@ -1112,18 +1015,8 @@ class SCD_Wizard_State_Service {
 			return array();
 		}
 
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Wizard State] Steps data before compilation: ' . print_r( $this->data['steps'], true ) );
-		}
-
 		$compiler = new Campaign_Data_Compiler( $this->data['steps'] );
-		$compiled = $compiler->compile();
-
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Wizard State] Compiled result: ' . print_r( $compiled, true ) );
-		}
-
-		return $compiled;
+		return $compiler->compile();
 	}
 
 	/**
@@ -1154,10 +1047,6 @@ class SCD_Wizard_State_Service {
 			$this,
 			null  // Campaign manager will be lazy-loaded
 		);
-
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[State Service] Change tracker initialized for campaign ' . $campaign_id );
-		}
 	}
 
 	/**

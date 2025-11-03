@@ -2,15 +2,16 @@
 /**
  * Script Registry Class
  *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/includes/admin/assets/class-script-registry.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://smartcyclediscounts.com
  * @since      1.0.0
- *
- * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/assets
  */
 
 declare(strict_types=1);
-
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -512,7 +513,6 @@ class SCD_Script_Registry {
 					'jquery',
 					'scd-i18n-polyfill',
 					'scd-module-loader',
-					'scd-step-bridge',
 					'scd-shared-utils', // Required for SCD.Utils.extend
 					'scd-shared-ajax-service',
 					'scd-shared-ui',
@@ -624,10 +624,6 @@ class SCD_Script_Registry {
 				'src'  => 'resources/assets/js/wizard/step-registry.js',
 				'deps' => array( 'jquery' ),
 			),
-			'scd-step-bridge'                 => array(
-				'src'  => 'resources/assets/js/wizard/step-bridge.js',
-				'deps' => array( 'jquery', 'scd-step-registry' ),
-			),
 			'scd-shared-notification-service' => array(
 				'src'  => 'resources/assets/js/admin/notification-service.js',
 				'deps' => array( 'jquery', 'scd-init-shared' ),
@@ -738,20 +734,10 @@ class SCD_Script_Registry {
 		);
 
 		$this->add_script(
-			'scd-analytics-theme-colors',
-			array(
-				'src'     => 'resources/assets/js/analytics/theme-color-init.js',
-				'deps'    => array( 'jquery', 'scd-theme-color-service' ),
-				'pages'   => array( 'scd-analytics' ),
-				'version' => '1.0.0',
-			)
-		);
-
-		$this->add_script(
 			'scd-analytics-dashboard',
 			array(
 				'src'      => 'resources/assets/js/analytics/analytics-dashboard.js',
-				'deps'     => array( 'jquery', 'chart-js', 'scd-shared-utils', 'scd-shared-ajax-service', 'scd-analytics-theme-colors' ),
+				'deps'     => array( 'jquery', 'chart-js', 'scd-shared-utils', 'scd-shared-ajax-service', 'scd-theme-color-init' ),
 				'pages'    => array( 'scd-analytics' ),
 				'localize' => 'scdAnalytics',
 			)

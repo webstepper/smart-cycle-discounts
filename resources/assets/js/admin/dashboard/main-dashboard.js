@@ -1,11 +1,13 @@
 /**
- * Main Dashboard JavaScript (Refactored)
+ * Main Dashboard
  *
- * Handles dashboard data loading and updates for streamlined UI.
- * Simplified to match new structure with fewer moving parts.
- *
- * @package SmartCycleDiscounts
- * @since   1.0.0
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/js/admin/dashboard/main-dashboard.js
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 ( function( $, window, document ) {

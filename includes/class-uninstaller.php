@@ -1,14 +1,14 @@
 <?php
 /**
- * Uninstall Handler for Smart Cycle Discounts
- *
- * Handles plugin uninstallation via Freemius hook.
- * This allows Freemius to track uninstall events properly.
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Uninstaller Class
  *
  * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/includes/class-uninstaller.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 // If this file is called directly, abort.

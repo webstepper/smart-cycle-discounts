@@ -1,12 +1,13 @@
 /**
- * Smart Cycle Discounts - Wizard Facade
+ * Wizard
  *
- * Thin facade that provides public API and delegates to the wizard orchestrator.
- * Maintains backward compatibility for existing code.
- *
- * @param $
- * @package SmartCycleDiscounts
- * @since 1.0.0
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/js/wizard/wizard.js
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 ( function( $ ) {
@@ -156,8 +157,10 @@
 		},
 
 		/**
-		 * API Methods for Step Modules
-		 * These methods provide backward compatibility for step modules
+		 * Public API Methods for Step Orchestrators
+		 *
+		 * Step modules use these methods to interact with wizard state, navigation,
+		 * and data persistence through a stable interface.
 		 */
 
 		/**

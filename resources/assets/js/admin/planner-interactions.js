@@ -1,25 +1,25 @@
 /**
- * Campaign Planner Interactions
+ * Planner Interactions
  *
- * Handles card focus switching, insights loading, and collapsible sections.
- *
- * @package SmartCycleDiscounts
- * @since   1.0.0
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/js/admin/planner-interactions.js
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 ( function( $, window, document ) {
 	'use strict';
-
 	/**
 	 * Track pending AJAX request to prevent race conditions
 	 */
 	var pendingRequest = null;
-
 	/**
 	 * Campaign Planner interactions module
 	 */
 	var PlannerInteractions = {
-
 		/**
 		 * Initialize
 		 */
@@ -27,49 +27,36 @@
 			this.bindEvents();
 			this.initializeDefaultFocus();
 		},
-
 		/**
 		 * Bind event handlers
 		 */
 		bindEvents: function() {
 			// Card click to focus
 			$( document ).on( 'click', '.scd-planner-card', this.handleCardClick.bind( this ) );
-
 			// Keyboard support for campaign cards
 			$( document ).on( 'keydown', '.scd-planner-card', this.handleCardKeydown.bind( this ) );
-
 			// Timeline item click (triggers card click)
 			$( document ).on( 'click', '.scd-timeline-item', this.handleTimelineItemClick.bind( this ) );
-
 			// Keyboard support for timeline items
 			$( document ).on( 'keydown', '.scd-timeline-item', this.handleTimelineItemKeydown.bind( this ) );
-
 			// Collapsible section toggles
 			$( document ).on( 'click', '.scd-insights-section-toggle', this.handleToggleClick.bind( this ) );
-
 			// Keyboard support for toggles
 			$( document ).on( 'keydown', '.scd-insights-section-toggle', this.handleToggleKeydown.bind( this ) );
-
 			// Create campaign CTA
 			$( document ).on( 'click', '.scd-planner-create-cta', this.handleCreateCampaign.bind( this ) );
-
-			// Tab switching (alternative to card click)
-			$( document ).on( 'click', '.scd-insights-tab', this.handleTabClick.bind( this ) );
 		},
-
 		/**
 		 * Initialize default focus on active campaign
 		 */
 		initializeDefaultFocus: function() {
 			var $activeCard = $( '.scd-planner-card[data-state="active"]' );
 			if ( $activeCard.length ) {
-				$activeCard.addClass( 'scd-planner-card--focused' );
-
+				$activeCard.attr( 'data-focused', 'true' );
 				// Also focus the active timeline item
 				$( '.scd-timeline-item--active' ).addClass( 'scd-timeline-item--focused' );
 			}
 		},
-
 		/**
 		 * Handle card click - switch focus and load insights
 		 *
@@ -81,50 +68,23 @@
 			if ( $target.is( 'button, a, input, select, textarea' ) || $target.closest( 'button, a' ).length ) {
 				return;
 			}
-
 			e.preventDefault();
-
 			var $card = $( e.currentTarget );
 			var campaignId = $card.data( 'campaign-id' );
 			var campaignState = $card.data( 'state' );
-			var isMajorEvent = $card.data( 'is-major-event' );
-
+			var isMajorEvent = $card.data( 'major-event' ) === 'true';
 			// Don't reload if already focused
-			if ( $card.hasClass( 'scd-planner-card--focused' ) ) {
+			if ( $card.attr( 'data-focused' ) === 'true' ) {
 				return;
 			}
-
 			// Update visual focus on cards
-			$( '.scd-planner-card' ).removeClass( 'scd-planner-card--focused' );
-			$card.addClass( 'scd-planner-card--focused' );
-
+			$( '.scd-planner-card' ).attr( 'data-focused', 'false' );
+			$card.attr( 'data-focused', 'true' );
 			// Update visual focus on timeline items
 			this.updateTimelineFocus( campaignState );
-
 			// Load insights for this campaign
 			this.loadInsights( campaignId, campaignState, isMajorEvent );
 		},
-
-		/**
-		 * Handle content-type tab click (Why/How/When switching)
-		 *
-		 * @param {Event} e Click event
-		 */
-		handleTabClick: function( e ) {
-			e.preventDefault();
-
-			var $tab = $( e.currentTarget );
-			var tabId = $tab.data( 'tab-id' );
-
-			// Update active tab
-			$( '.scd-insights-tab' ).removeClass( 'scd-insights-tab--active' ).attr( 'aria-selected', 'false' );
-			$tab.addClass( 'scd-insights-tab--active' ).attr( 'aria-selected', 'true' );
-
-			// Switch tab panels
-			$( '.scd-insights-tab-panel' ).removeClass( 'scd-insights-tab-panel--active' ).hide();
-			$( '#scd-tab-panel-' + tabId ).addClass( 'scd-insights-tab-panel--active' ).fadeIn( 200 );
-		},
-
 		/**
 		 * Handle timeline item click - triggers corresponding card click
 		 *
@@ -132,23 +92,19 @@
 		 */
 		handleTimelineItemClick: function( e ) {
 			e.preventDefault();
-
 			var $timelineItem = $( e.currentTarget );
 			var campaignId = $timelineItem.data( 'campaign-id' );
 			var campaignState = $timelineItem.data( 'state' );
-
 			// Only proceed if timeline item has campaign data
 			if ( ! campaignId || ! campaignState ) {
 				return;
 			}
-
 			// Find and trigger click on corresponding card
 			var $correspondingCard = $( '.scd-planner-card[data-campaign-id="' + campaignId + '"]' );
 			if ( $correspondingCard.length ) {
 				$correspondingCard.trigger( 'click' );
 			}
 		},
-
 		/**
 		 * Handle keyboard navigation on timeline items
 		 *
@@ -161,7 +117,6 @@
 				$( e.currentTarget ).trigger( 'click' );
 			}
 		},
-
 		/**
 		 * Handle keyboard navigation on campaign cards
 		 *
@@ -174,7 +129,6 @@
 				$( e.currentTarget ).trigger( 'click' );
 			}
 		},
-
 		/**
 		 * Handle keyboard navigation on collapsible toggles
 		 *
@@ -187,7 +141,6 @@
 				$( e.currentTarget ).trigger( 'click' );
 			}
 		},
-
 		/**
 		 * Load insights via AJAX
 		 *
@@ -197,27 +150,22 @@
 		 */
 		loadInsights: function( campaignId, campaignState, isMajorEvent ) {
 			var $insightsContent = $( '.scd-insights-content' );
-
 			// Abort previous request if still pending
 			if ( pendingRequest ) {
 				pendingRequest.abort();
 			}
-
 			// Show loading state
 			$insightsContent.addClass( 'scd-insights-loading' );
-
 			// Check if scdAdmin is available (localized data)
 			if ( typeof scdAdmin === 'undefined' || ! scdAdmin.ajaxUrl || ! scdAdmin.nonce ) {
 				console.error( 'scdAdmin data not properly configured' );
 				$insightsContent.removeClass( 'scd-insights-loading' );
-
 				// Show error message to user
 				if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
 					SCD.Shared.NotificationService.error( 'Configuration error. Please refresh the page.' );
 				}
 				return;
 			}
-
 			pendingRequest = $.ajax( {
 				url: scdAdmin.ajaxUrl,
 				method: 'POST',
@@ -240,8 +188,7 @@
 						} );
 					} else {
 						$insightsContent.removeClass( 'scd-insights-loading' );
-						console.error( 'Failed to load insights:', response );
-
+						console.error( '[SCD Planner] Failed to load insights:', response );
 						// Show error message to user
 						if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
 							var errorMsg = 'Failed to load campaign insights. Please try again.';
@@ -256,7 +203,6 @@
 					pendingRequest = null;
 					$insightsContent.removeClass( 'scd-insights-loading' );
 					console.error( 'AJAX error loading insights:', error );
-
 					// Show error message to user
 					if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
 						SCD.Shared.NotificationService.error( 'Network error loading insights. Please check your connection.' );
@@ -264,7 +210,6 @@
 				}
 			} );
 		},
-
 		/**
 		 * Update timeline item focus to match card selection
 		 *
@@ -273,11 +218,9 @@
 		updateTimelineFocus: function( state ) {
 			// Remove focused class from all timeline items
 			$( '.scd-timeline-item' ).removeClass( 'scd-timeline-item--focused' );
-
 			// Add focused class to corresponding timeline item
 			$( '.scd-timeline-item--' + state ).addClass( 'scd-timeline-item--focused' );
 		},
-
 		/**
 		 * Handle collapsible section toggle
 		 *
@@ -285,12 +228,10 @@
 		 */
 		handleToggleClick: function( e ) {
 			e.preventDefault();
-
 			var $toggle = $( e.currentTarget );
 			var $section = $toggle.closest( '.scd-insights-section' );
 			var $content = $section.find( '.scd-insights-section-content' );
 			var $icon = $toggle.find( '.dashicons' ).first();
-
 			if ( $content.is( ':visible' ) ) {
 				// Collapse
 				$content.slideUp( 300 );
@@ -305,7 +246,6 @@
 				$toggle.attr( 'aria-expanded', 'true' );
 			}
 		},
-
 		/**
 		 * Handle create campaign CTA click
 		 *
@@ -316,7 +256,6 @@
 			// Could add analytics tracking here if needed
 		}
 	};
-
 	/**
 	 * Initialize on document ready
 	 */
@@ -324,7 +263,23 @@
 		// Only initialize if Campaign Planner exists on page
 		if ( $( '.scd-planner-grid' ).length ) {
 			PlannerInteractions.init();
+			// Diagnostic: Check CSS loading and stat card elements
+			// Check if CSS is loaded by testing computed styles
+			var $firstStatCard = $( '.scd-insights-stat-card' ).first();
+			if ( $firstStatCard.length ) {
+				var bgColor = $firstStatCard.css( 'background' );
+				var borderRadius = $firstStatCard.css( 'border-radius' );
+				var padding = $firstStatCard.css( 'padding' );
+				var $icon = $firstStatCard.find( '.scd-insights-stat-card-icon' );
+				if ( $icon.length ) {
+					var iconBg = $icon.css( 'background' );
+					var iconWidth = $icon.css( 'width' );
+					var iconHeight = $icon.css( 'height' );
+				} else {
+				}
+			} else {
+			}
+		} else {
 		}
 	} );
-
 } )( jQuery, window, document );

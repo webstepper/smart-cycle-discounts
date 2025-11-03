@@ -1,13 +1,13 @@
 /**
- * Timeline Visualizer Module
+ * Timeline Visualizer
  *
- * Interactive timeline component for campaign schedule visualization
- *
- * @param $
- * @param window
- * @param document
- * @package SmartCycleDiscounts
- * @since 1.0.0
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/js/analytics/timeline-visualizer.js
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 ( function( $, window, document ) {

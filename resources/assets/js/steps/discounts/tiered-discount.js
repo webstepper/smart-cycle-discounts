@@ -1,11 +1,13 @@
 /**
- * Tiered Discount Type Module
+ * Tiered Discount
  *
- * Handles tiered discount configurations using consolidated utilities
- *
- * @param $
- * @package SmartCycleDiscounts
- * @since 1.0.0
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/js/steps/discounts/tiered-discount.js
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 ( function( $ ) {
@@ -128,7 +130,7 @@
 				percentageTiers: this._percentageTiers,
 				fixedTiers: this._fixedTiers,
 				tierType: 'quantity',
-				applyTo: 'per_item' // Default to per_item for backward compatibility
+				applyTo: 'per_item' // Default value for new campaigns
 			} );
 
 			// Show preview and render tiers
@@ -725,11 +727,11 @@
 				stateUpdate.tierType = 'quantity'; // Default
 			}
 
-			// Set applyTo from data if provided (NEW)
+			// Set applyTo from data if provided
 			if ( data.applyTo ) {
 				stateUpdate.applyTo = data.applyTo;
 			} else {
-				stateUpdate.applyTo = 'per_item'; // Default to per_item for backward compatibility
+				stateUpdate.applyTo = 'per_item'; // Default value when not specified in data
 			}
 
 			// Only update state if we have data

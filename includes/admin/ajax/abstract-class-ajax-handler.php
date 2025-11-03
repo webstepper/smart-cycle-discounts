@@ -1,22 +1,14 @@
 <?php
 /**
- * Abstract AJAX Handler
- *
- * Base class for all AJAX handlers providing centralized security,
- * error handling, logging, and response formatting.
- *
- * This class eliminates duplication of:
- * - Security verification (nonce + capability checks)
- * - Error and success response formatting
- * - Exception handling
- * - Debug logging
- * - WP_Error handling
- *
- * @link       https://smartcyclediscounts.com
- * @since      1.0.0
+ * Abstract Class Ajax Handler
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/includes/admin/ajax
+ * @subpackage SmartCycleDiscounts/includes/admin/ajax/abstract-class-ajax-handler.php
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://smartcyclediscounts.com
+ * @since      1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
