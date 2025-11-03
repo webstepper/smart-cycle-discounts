@@ -10,12 +10,12 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit; // Exit if accessed directly.
 }
 
-// Removed strict types for PHP compatibility
+// Removed strict types for PHP compatibility.
 
-// Load AJAX Response class
+// Load AJAX Response class.
 if ( ! class_exists( 'SCD_AJAX_Response' ) ) {
 	require_once __DIR__ . '/class-scd-ajax-response.php';
 }
@@ -63,12 +63,12 @@ class SCD_Ajax_Router {
 	 * @since    1.0.0
 	 */
 	public function __construct() {
-		// Load AJAX security class (used by abstract handler and router)
+		// Load AJAX security class (used by abstract handler and router).
 		if ( ! class_exists( 'SCD_Ajax_Security' ) ) {
 			require_once __DIR__ . '/class-ajax-security.php';
 		}
 
-		// Load abstract base class that all modern handlers extend
+		// Load abstract base class that all modern handlers extend.
 		if ( ! class_exists( 'SCD_Abstract_Ajax_Handler' ) ) {
 			require_once __DIR__ . '/abstract-class-ajax-handler.php';
 		}
@@ -83,12 +83,12 @@ class SCD_Ajax_Router {
 	 * @return   void
 	 */
 	public function init() {
-		// Register WordPress AJAX hooks for each handler
+		// Register WordPress AJAX hooks for each handler.
 		foreach ( $this->handlers as $action => $handler_class ) {
-			// Register for logged-in users
+			// Register for logged-in users.
 			add_action( 'wp_ajax_scd_' . $action, array( $this, 'route_request' ) );
-			// Register for logged-out users (if needed for specific actions)
-			// add_action( 'wp_ajax_nopriv_scd_' . $action, array( $this, 'route_request' ) );
+			// Register for logged-out users (if needed for specific actions).
+			// add_action( 'wp_ajax_nopriv_scd_' . $action, array( $this, 'route_request' ) ).
 		}
 	}
 
@@ -101,18 +101,18 @@ class SCD_Ajax_Router {
 	public function route_request() {
 		$start_time = microtime( true );
 
-		// Get action from request
-		// Priority order (CRITICAL FIX):
-		// 1. Custom scdAction parameter (unified endpoint sends this)
-		// 2. Custom scd_action parameter (backward compatibility)
-		// 3. WordPress standard 'action' parameter (only for direct hook calls)
+		// Get action from request.
+		// Priority order (CRITICAL FIX).
+		// 1. Custom scdAction parameter (unified endpoint sends this).
+		// 2. Custom scd_action parameter (backward compatibility).
+		// 3. WordPress standard action parameter (only for direct hook calls).
 		//
-		// When called via unified endpoint (wp_ajax_scd_ajax), the WordPress 'action'
+		// When called via unified endpoint (wp_ajax_scd_ajax), the WordPress action.
 		// parameter will always be 'scd_ajax', so we must check scdAction FIRST.
 		//
-		// NOTE: We must access $_POST/$_REQUEST here to determine the action BEFORE nonce verification
+		// NOTE: We must access $_POST/$_REQUEST here to determine the action BEFORE nonce verification.
 		// because we need the action name to know which nonce to verify (chicken-and-egg problem).
-		// This is safe because: 1) immediately sanitized, 2) only used for routing, 3) nonce verified at line 165
+		// This is safe because: 1) immediately sanitized, 2) only used for routing, 3) nonce verified at line 165.
 		// before any handler processes user data.
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Action extracted for routing only, nonce verified below at line 165
 		$action = '';
@@ -138,7 +138,7 @@ class SCD_Ajax_Router {
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		if ( empty( $action ) ) {
-			// Debug: Log no action error
+			// Debug: Log no action error.
 			if ( function_exists( 'scd_debug_ajax_response' ) ) {
 				scd_debug_ajax_response( 'no_action', array( 'error' => 'No action specified' ), false, microtime( true ) - $start_time );
 			}
@@ -149,10 +149,10 @@ class SCD_Ajax_Router {
 			);
 		}
 
-		// Strip scd_ prefix for handler lookup if present
+		// Strip scd_ prefix for handler lookup if present.
 		$handler_action = preg_replace( '/^scd_/', '', $action );
 
-		// Check if handler exists
+		// Check if handler exists.
 		if ( ! isset( $this->handlers[ $handler_action ] ) ) {
 			if ( function_exists( 'scd_debug_ajax_response' ) ) {
 				scd_debug_ajax_response( $action, array( 'error' => 'Invalid action' ), false, microtime( true ) - $start_time );
@@ -173,7 +173,7 @@ class SCD_Ajax_Router {
 			$security_check = SCD_Ajax_Security::verify_ajax_request( $full_action, $_POST );
 
 			if ( is_wp_error( $security_check ) ) {
-				// Debug: Log security failure
+				// Debug: Log security failure.
 				if ( function_exists( 'scd_debug_ajax_response' ) ) {
 					scd_debug_ajax_response(
 						$action,
@@ -190,7 +190,7 @@ class SCD_Ajax_Router {
 			}
 		}
 
-		// Get or create handler instance
+		// Get or create handler instance.
 		$handler = $this->get_handler_instance( $handler_action );
 
 		if ( ! $handler ) {
@@ -200,9 +200,9 @@ class SCD_Ajax_Router {
 			);
 		}
 
-		// Execute handler
+		// Execute handler.
 		try {
-			// Debug: Log handler execution start
+			// Debug: Log handler execution start.
 			if ( function_exists( 'scd_debug' ) && scd_debug() ) {
 				scd_debug()->info(
 					'AJAX handler execution start',
@@ -225,23 +225,23 @@ class SCD_Ajax_Router {
 			);
 			// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-			// Convert camelCase keys from JavaScript to snake_case for PHP
+			// Convert camelCase keys from JavaScript to snake_case for PHP.
 			$request_data = self::camel_to_snake_keys( $request_data );
 
-			// Call handler - check if it extends SCD_Abstract_Ajax_Handler
+			// Call handler - check if it extends SCD_Abstract_Ajax_Handler.
 			if ( is_a( $handler, 'SCD_Abstract_Ajax_Handler' ) ) {
-				// New base class - use execute() method with built-in security
+				// New base class - use execute() method with built-in security.
 				$result = $handler->execute( $request_data );
 			} else {
-				// Legacy handler - check if it expects parameters
+				// Legacy handler - check if it expects parameters.
 				$reflection = new ReflectionMethod( $handler, 'handle' );
 				$params     = $reflection->getParameters();
 
 				if ( count( $params ) > 0 ) {
-					// Handler expects request data
+					// Handler expects request data.
 					$result = $handler->handle( $request_data );
 				} else {
-					// Legacy handler without parameters
+					// Legacy handler without parameters.
 					$result = $handler->handle();
 				}
 			}
@@ -251,7 +251,7 @@ class SCD_Ajax_Router {
 				$duration = microtime( true ) - $start_time;
 
 				if ( is_wp_error( $result ) ) {
-					// Debug: Log WP_Error response
+					// Debug: Log WP_Error response.
 					if ( function_exists( 'scd_debug_ajax_response' ) ) {
 						scd_debug_ajax_response(
 							$action,
@@ -267,7 +267,7 @@ class SCD_Ajax_Router {
 					SCD_AJAX_Response::wp_error( $result );
 				} elseif ( is_array( $result ) ) {
 					if ( isset( $result['success'] ) && false === $result['success'] ) {
-						// Debug: Log error response
+						// Debug: Log error response.
 						if ( function_exists( 'scd_debug_ajax_response' ) ) {
 							scd_debug_ajax_response( $action, $result, false, $duration );
 						}
@@ -278,18 +278,18 @@ class SCD_Ajax_Router {
 							isset( $result['data'] ) ? $result['data'] : null
 						);
 					} else {
-						// Debug: Log success response
+						// Debug: Log success response.
 						if ( function_exists( 'scd_debug_ajax_response' ) ) {
 							scd_debug_ajax_response( $action, $result, true, $duration );
 						}
 
-						// CRITICAL FIX: Handlers already wrap responses with success/data structure
-						// Extract just the data to avoid double-wrapping in SCD_AJAX_Response
+						// CRITICAL FIX: Handlers already wrap responses with success/data structure.
+						// Extract just the data to avoid double-wrapping in SCD_AJAX_Response.
 						$response_data = isset( $result['data'] ) ? $result['data'] : $result;
 						SCD_AJAX_Response::success( $response_data );
 					}
 				} else {
-					// Debug: Log success response
+					// Debug: Log success response.
 					if ( function_exists( 'scd_debug_ajax_response' ) ) {
 						scd_debug_ajax_response( $action, $result, true, $duration );
 					}
@@ -298,7 +298,7 @@ class SCD_Ajax_Router {
 				}
 			}
 		} catch ( Exception $e ) {
-			// Debug: Log exception
+			// Debug: Log exception.
 			if ( function_exists( 'scd_debug_error' ) ) {
 				scd_debug_error(
 					'AJAX handler exception',
@@ -341,10 +341,10 @@ class SCD_Ajax_Router {
 	 */
 	private function register_handlers() {
 		$this->handlers = array(
-			// Wizard handlers
+			// Wizard handlers.
 			'save_step'                      => 'SCD_Save_Step_Handler',
 			'load_data'                      => 'SCD_Load_Data_Handler',
-			'load_session'                   => 'SCD_Load_Data_Handler', // Map load_session to same handler
+			'load_session'                   => 'SCD_Load_Data_Handler', // Map load_session to same handler.
 			'product_search'                 => 'SCD_Product_Search_Handler',
 			'get_summary'                    => 'SCD_Get_Summary_Handler',
 			'check_campaign_name'            => 'SCD_Check_Campaign_Name_Handler',
@@ -361,35 +361,35 @@ class SCD_Ajax_Router {
 			'profit_margin_warning'          => 'SCD_Profit_Margin_Warning_Handler',
 			'apply_recommendation'           => 'SCD_Apply_Recommendation_Handler',
 
-			// Campaign handlers
+			// Campaign handlers.
 			'get_active_campaigns'           => 'SCD_Get_Active_Campaigns_Handler',
 			'quick_edit'                     => 'SCD_Quick_Edit_Handler',
 
-			// Debug handlers
+			// Debug handlers.
 			'debug_log'                      => 'SCD_Ajax_Debug_Log',
 			'log_console'                    => 'SCD_Console_Logger_Handler',
 			'write_debug_log'                => 'SCD_Debug_Log_Handler',
 			'log_viewer'                     => 'SCD_Log_Viewer_Handler',
 
-			// Tools handlers
+			// Tools handlers.
 			'export'                         => 'SCD_Import_Export_Handler',
 			'import'                         => 'SCD_Import_Handler',
 			'database_maintenance'           => 'SCD_Tools_Handler',
 			'cache_management'               => 'SCD_Tools_Handler',
 			'clear_cache'                    => 'SCD_Clear_Cache_Handler',
 
-			// Draft handlers (consolidated)
+			// Draft handlers (consolidated).
 			'complete_wizard'                => 'SCD_Draft_Handler',
 			'save_draft'                     => 'SCD_Draft_Handler',
 			'delete_draft'                   => 'SCD_Draft_Handler',
 			'draft_list'                     => 'SCD_Draft_Handler',
 			'draft_preview'                  => 'SCD_Draft_Handler',
 
-			// Dashboard handlers
+			// Dashboard handlers.
 			'main_dashboard_data'            => 'SCD_Main_Dashboard_Data_Handler',
 			'get_planner_insights'           => 'SCD_Get_Planner_Insights_Handler',
 
-			// Analytics handlers
+			// Analytics handlers.
 			'analytics_overview'             => 'SCD_Overview_Handler',
 			'analytics_campaign_performance' => 'SCD_Campaign_Performance_Handler',
 			'analytics_revenue_trend'        => 'SCD_Revenue_Trend_Handler',
@@ -397,21 +397,21 @@ class SCD_Ajax_Router {
 			'analytics_activity_feed'        => 'SCD_Activity_Feed_Handler',
 			'analytics_export'               => 'SCD_Export_Handler',
 
-			// Event tracking
+			// Event tracking.
 			'track_event'                    => 'SCD_Track_Event_Handler',
 
-			// Discount API handlers
+			// Discount API handlers.
 			'validate_discount_rules'        => 'SCD_Discount_API_Handler',
 			'get_discount_preview'           => 'SCD_Discount_API_Handler',
 			'calculate_discount_impact'      => 'SCD_Discount_API_Handler',
 
-			// Email/Notification handlers
+			// Email/Notification handlers.
 			'send_test_email'                => 'SCD_Send_Test_Email_Handler',
 			'process_queue'                  => 'SCD_Process_Queue_Handler',
 			'retry_failed_emails'            => 'SCD_Retry_Failed_Emails_Handler',
 			'clear_queue'                    => 'SCD_Clear_Queue_Handler',
 
-			// License/Debug handlers
+			// License/Debug handlers.
 			'clear_license_cache'            => 'SCD_Clear_License_Cache_Handler',
 		);
 	}
@@ -425,36 +425,36 @@ class SCD_Ajax_Router {
 	 * @return   object|null           Handler instance or null
 	 */
 	private function get_handler_instance( $action ) {
-		// Check cache first
+		// Check cache first.
 		if ( isset( $this->handler_instances[ $action ] ) ) {
 			return $this->handler_instances[ $action ];
 		}
 
 		$handler_class = $this->handlers[ $action ];
 
-		// Load handler file if needed
+		// Load handler file if needed.
 		if ( ! class_exists( $handler_class ) ) {
 			$file = $this->get_handler_file( $handler_class );
 
-			// Security: Only load file if it's properly validated
+			// Security: Only load file if it is properly validated.
 			if ( $file && is_string( $file ) && file_exists( $file ) && is_readable( $file ) ) {
-				// Additional security check: Verify file extension
+				// Additional security check: Verify file extension.
 				if ( substr( $file, -4 ) === '.php' ) {
 					require_once $file;
 				}
 			}
 		}
 
-		// Create instance if class exists
+		// Create instance if class exists.
 		if ( class_exists( $handler_class ) ) {
-			// Special handling for handlers that require dependencies
+			// Special handling for handlers that require dependencies.
 			if ( 'SCD_Save_Step_Handler' === $handler_class ) {
-				// Get the services from the container
+				// Get the services from the container.
 				$container     = Smart_Cycle_Discounts::get_instance();
 				$state_service = $container::get_service( 'wizard_state' );
 
 				if ( ! $state_service ) {
-					// If service not available, create it
+					// If service not available, create it.
 					$class_path = SCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
 					if ( ! file_exists( $class_path ) ) {
 						return null;
@@ -473,16 +473,16 @@ class SCD_Ajax_Router {
 						if ( ! $state_service || ! method_exists( $state_service, 'initialize_with_intent' ) ) {
 							return null;
 						}
-						// Initialize the state service with existing session from cookie
-						// CRITICAL FIX: Check if we're in edit mode by reading from existing session
-						// AJAX requests don't have $_GET params, so we check the session data
+						// Initialize the state service with existing session from cookie.
+						// CRITICAL FIX: Check if we are in edit mode by reading from existing session.
+						// AJAX requests do not have $_GET params, so we check the session data.
 						$state_service->initialize_with_intent( 'continue' );
 
-						// Now check if the session indicates edit mode
+						// Now check if the session indicates edit mode.
 						$campaign_id = $state_service->get( 'campaign_id', 0 );
 
-						// If we have a campaign_id, assume edit mode and initialize Change Tracker
-						// The presence of campaign_id means we're editing an existing campaign
+						// If we have a campaign_id, assume edit mode and initialize Change Tracker.
+						// The presence of campaign_id means we are editing an existing campaign.
 						if ( $campaign_id > 0 ) {
 							$state_service->initialize_with_intent( 'edit' );
 						}
@@ -491,15 +491,15 @@ class SCD_Ajax_Router {
 					}
 				}
 
-				// Verify state service is valid before using
+				// Verify state service is valid before using.
 				if ( ! $state_service ) {
 					return null;
 				}
 
-				// Get feature gate for PRO feature validation
+				// Get feature gate for PRO feature validation.
 				$feature_gate = $container::get_service( 'feature_gate' );
 
-				// Get idempotency and transformer services
+				// Get idempotency and transformer services.
 				$idempotency_service = null;
 				$transformer         = null;
 
@@ -507,40 +507,40 @@ class SCD_Ajax_Router {
 					$idempotency_service = $container::get_service( 'idempotency_service' );
 					$transformer         = $container::get_service( 'step_data_transformer' );
 				} catch ( Exception $e ) {
-					// Services will be created in handler constructor if not available
+					// Services will be created in handler constructor if not available.
 				}
 
-				// Save_Step_Handler with all services
+				// Save_Step_Handler with all services.
 				$this->handler_instances[ $action ] = new $handler_class(
 					$state_service,
-					null,  // logger
+					null,  // logger.
 					$feature_gate,
 					$idempotency_service,
 					$transformer
 				);
 			} elseif ( 'SCD_Load_Data_Handler' === $handler_class ) {
-				// Load Data handler requires state service
+				// Load Data handler requires state service.
 				$container     = Smart_Cycle_Discounts::get_instance();
 				$state_service = $container::get_service( 'wizard_state' );
 
 				if ( ! $state_service ) {
-					// If service not available, create it
+					// If service not available, create it.
 					if ( ! class_exists( 'SCD_Wizard_State_Service' ) ) {
 						require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
 					}
 					$state_service = new SCD_Wizard_State_Service();
-					// Initialize the state service with existing session from cookie
+					// Initialize the state service with existing session from cookie.
 					$state_service->initialize_with_intent( 'continue' );
 				}
 
 				$this->handler_instances[ $action ] = new $handler_class( $state_service );
 			} elseif ( 'SCD_Session_Status_Handler' === $handler_class ) {
-				// Session Status handler requires session service
+				// Session Status handler requires session service.
 				$container       = Smart_Cycle_Discounts::get_instance();
 				$session_service = $container::get_service( 'session_service' );
 
 				if ( ! $session_service ) {
-					// If service not available, create it
+					// If service not available, create it.
 					if ( ! class_exists( 'SCD_Session_Service' ) ) {
 						require_once SCD_INCLUDES_DIR . 'utilities/class-session-service.php';
 					}
@@ -549,51 +549,51 @@ class SCD_Ajax_Router {
 
 				$this->handler_instances[ $action ] = new $handler_class( $session_service );
 			} elseif ( 'SCD_Apply_Recommendation_Handler' === $handler_class ) {
-				// Apply Recommendation handler requires state service
+				// Apply Recommendation handler requires state service.
 				$container     = Smart_Cycle_Discounts::get_instance();
 				$state_service = $container::get_service( 'wizard_state' );
 
 				if ( ! $state_service ) {
-					// If service not available, create it
+					// If service not available, create it.
 					if ( ! class_exists( 'SCD_Wizard_State_Service' ) ) {
 						require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
 					}
 					$state_service = new SCD_Wizard_State_Service();
-					// Initialize the state service with existing session from cookie
+					// Initialize the state service with existing session from cookie.
 					$state_service->initialize_with_intent( 'continue' );
 				}
 
 				$this->handler_instances[ $action ] = new $handler_class( $state_service );
 			} elseif ( 'SCD_Get_Summary_Handler' === $handler_class ) {
-				// CRITICAL FIX: Get Summary handler requires state service with Change Tracker in edit mode
+				// CRITICAL FIX: Get Summary handler requires state service with Change Tracker in edit mode.
 				$container     = Smart_Cycle_Discounts::get_instance();
 				$state_service = $container::get_service( 'wizard_state' );
 
 				if ( ! $state_service ) {
-					// If service not available, create it
+					// If service not available, create it.
 					if ( ! class_exists( 'SCD_Wizard_State_Service' ) ) {
 						require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
 					}
 					$state_service = new SCD_Wizard_State_Service();
-					// Initialize the state service with existing session from cookie
+					// Initialize the state service with existing session from cookie.
 					$state_service->initialize_with_intent( 'continue' );
 				}
 
-				// CRITICAL: Always check if we're in edit mode and ensure Change Tracker is initialized
-				// This handles both fresh state service and container-provided service
+				// CRITICAL: Always check if we are in edit mode and ensure Change Tracker is initialized.
+				// This handles both fresh state service and container-provided service.
 				$campaign_id = $state_service->get( 'campaign_id', 0 );
 
-				// If we have a campaign_id but no Change Tracker, initialize edit mode
+				// If we have a campaign_id but no Change Tracker, initialize edit mode.
 				if ( $campaign_id > 0 && ! $state_service->get_change_tracker() ) {
 					$state_service->initialize_with_intent( 'edit' );
 				}
 
 				$this->handler_instances[ $action ] = new $handler_class( $state_service );
 			} elseif ( 'SCD_Draft_Handler' === $handler_class ) {
-				// Draft handler requires multiple services
+				// Draft handler requires multiple services.
 				$container = Smart_Cycle_Discounts::get_instance();
 
-				// Get wizard state service
+				// Get wizard state service.
 				$state_service = $container::get_service( 'wizard_state' );
 				if ( ! $state_service ) {
 					if ( ! class_exists( 'SCD_Wizard_State_Service' ) ) {
@@ -602,7 +602,7 @@ class SCD_Ajax_Router {
 					$state_service = new SCD_Wizard_State_Service();
 				}
 
-				// Get campaign manager from container (required)
+				// Get campaign manager from container (required).
 				$campaign_manager = $container::get_service( 'campaign_manager' );
 				if ( ! $campaign_manager ) {
 					SCD_AJAX_Response::error(
@@ -612,7 +612,7 @@ class SCD_Ajax_Router {
 					return;
 				}
 
-				// Get campaign compiler
+				// Get campaign compiler.
 				$compiler = $container::get_service( 'campaign_compiler' );
 				if ( ! $compiler ) {
 					if ( ! class_exists( 'SCD_Campaign_Compiler_Service' ) ) {
@@ -621,7 +621,7 @@ class SCD_Ajax_Router {
 					$compiler = new SCD_Campaign_Compiler_Service();
 				}
 
-				// Get logger
+				// Get logger.
 				$logger = $container::get_service( 'logger' );
 				if ( ! $logger ) {
 					if ( ! class_exists( 'SCD_Logger' ) ) {
@@ -630,13 +630,13 @@ class SCD_Ajax_Router {
 					$logger = new SCD_Logger();
 				}
 
-				// Get audit logger (optional)
+				// Get audit logger (optional).
 				$audit_logger = $container::get_service( 'audit_logger' );
 				if ( ! $audit_logger && class_exists( 'SCD_Audit_Logger' ) ) {
 					$audit_logger = new SCD_Audit_Logger();
 				}
 
-				// Get feature gate
+				// Get feature gate.
 				$feature_gate = $container::get_service( 'feature_gate' );
 				if ( ! $feature_gate && class_exists( 'SCD_Feature_Gate' ) ) {
 					$feature_gate = new SCD_Feature_Gate();
@@ -657,10 +657,10 @@ class SCD_Ajax_Router {
 						strpos( $handler_class, 'SCD_Activity_Feed_Handler' ) !== false ||
 						strpos( $handler_class, 'SCD_Export_Handler' ) !== false ||
 						strpos( $handler_class, 'SCD_Refresh_Cache_Handler' ) !== false ) {
-				// Analytics handlers require metrics calculator, logger, and possibly other services
+				// Analytics handlers require metrics calculator, logger, and possibly other services.
 				$container = Smart_Cycle_Discounts::get_instance();
 
-				// Get metrics calculator (required for all analytics handlers)
+				// Get metrics calculator (required for all analytics handlers).
 				$metrics_calculator = $container::get_service( 'metrics_calculator' );
 				if ( ! $metrics_calculator ) {
 					SCD_AJAX_Response::error(
@@ -670,7 +670,7 @@ class SCD_Ajax_Router {
 					return null;
 				}
 
-				// Get logger (required for all analytics handlers)
+				// Get logger (required for all analytics handlers).
 				$logger = $container::get_service( 'logger' );
 				if ( ! $logger ) {
 					if ( ! class_exists( 'SCD_Logger' ) ) {
@@ -679,15 +679,15 @@ class SCD_Ajax_Router {
 					$logger = new SCD_Logger();
 				}
 
-				// Handle specific handler requirements
+				// Handle specific handler requirements.
 				if ( 'SCD_Overview_Handler' === $handler_class ) {
-					// Overview handler only needs metrics_calculator and logger
+					// Overview handler only needs metrics_calculator and logger.
 					$this->handler_instances[ $action ] = new $handler_class( $metrics_calculator, $logger );
 
 				} elseif ( 'SCD_Revenue_Trend_Handler' === $handler_class ||
 							'SCD_Campaign_Performance_Handler' === $handler_class ||
 							'SCD_Top_Products_Handler' === $handler_class ) {
-					// These handlers need analytics_collector
+					// These handlers need analytics_collector.
 					$analytics_collector = $container::get_service( 'analytics_collector' );
 					if ( ! $analytics_collector ) {
 						SCD_AJAX_Response::error(
@@ -699,7 +699,7 @@ class SCD_Ajax_Router {
 					$this->handler_instances[ $action ] = new $handler_class( $metrics_calculator, $logger, $analytics_collector );
 
 				} elseif ( 'SCD_Activity_Feed_Handler' === $handler_class ) {
-					// Activity feed handler needs activity_tracker
+					// Activity feed handler needs activity_tracker.
 					$activity_tracker = $container::get_service( 'activity_tracker' );
 					if ( ! $activity_tracker ) {
 						SCD_AJAX_Response::error(
@@ -711,7 +711,7 @@ class SCD_Ajax_Router {
 					$this->handler_instances[ $action ] = new $handler_class( $metrics_calculator, $logger, $activity_tracker );
 
 				} elseif ( 'SCD_Export_Handler' === $handler_class ) {
-					// Export handler needs export_service
+					// Export handler needs export_service.
 					$export_service = $container::get_service( 'export_service' );
 					if ( ! $export_service ) {
 						SCD_AJAX_Response::error(
@@ -724,7 +724,7 @@ class SCD_Ajax_Router {
 					$this->handler_instances[ $action ] = new $handler_class( $metrics_calculator, $logger, $export_service );
 
 				} elseif ( 'SCD_Refresh_Cache_Handler' === $handler_class ) {
-					// Refresh cache handler needs cache_manager
+					// Refresh cache handler needs cache_manager.
 					$cache_manager = $container::get_service( 'cache_manager' );
 					if ( ! $cache_manager ) {
 						SCD_AJAX_Response::error(
@@ -740,10 +740,10 @@ class SCD_Ajax_Router {
 						'SCD_Tools_Handler' === $handler_class ||
 						'SCD_Clear_Cache_Handler' === $handler_class ||
 						'SCD_Clear_License_Cache_Handler' === $handler_class ) {
-				// Tools and debug handlers require container and logger
+				// Tools and debug handlers require container and logger.
 				$container = Smart_Cycle_Discounts::get_instance();
 
-				// Get logger
+				// Get logger.
 				$logger = $container::get_service( 'logger' );
 				if ( ! $logger ) {
 					if ( ! class_exists( 'SCD_Logger' ) ) {
@@ -752,7 +752,7 @@ class SCD_Ajax_Router {
 					$logger = new SCD_Logger();
 				}
 
-				// Get feature gate for Import/Export Handler
+				// Get feature gate for Import/Export Handler.
 				if ( 'SCD_Import_Export_Handler' === $handler_class ) {
 					$feature_gate = $container::get_service( 'feature_gate' );
 					if ( ! $feature_gate && class_exists( 'SCD_Feature_Gate' ) ) {
@@ -763,7 +763,7 @@ class SCD_Ajax_Router {
 					$this->handler_instances[ $action ] = new $handler_class( $container, $logger );
 				}
 			} elseif ( 'SCD_Main_Dashboard_Data_Handler' === $handler_class ) {
-				// Main dashboard data handler requires dashboard page and logger from service container
+				// Main dashboard data handler requires dashboard page and logger from service container.
 				$container = Smart_Cycle_Discounts::get_instance();
 				$handler   = $container::get_service( 'main_dashboard_data_handler' );
 
@@ -773,7 +773,7 @@ class SCD_Ajax_Router {
 
 				$this->handler_instances[ $action ] = $handler;
 			} elseif ( 'SCD_Get_Planner_Insights_Handler' === $handler_class ) {
-				// Timeline insights handler requires dashboard service
+				// Timeline insights handler requires dashboard service.
 				$container         = Smart_Cycle_Discounts::get_instance();
 				$dashboard_service = $container::get_service( 'dashboard_service' );
 
@@ -781,12 +781,12 @@ class SCD_Ajax_Router {
 					return null;
 				}
 
-				// Get logger (optional)
+				// Get logger (optional).
 				$logger = $container::get_service( 'logger' );
 
 				$this->handler_instances[ $action ] = new $handler_class( $dashboard_service, $logger );
 			} else {
-				// Default instantiation for handlers without dependencies
+				// Default instantiation for handlers without dependencies.
 				try {
 					$this->handler_instances[ $action ] = new $handler_class();
 				} catch ( Exception $e ) {
@@ -809,20 +809,20 @@ class SCD_Ajax_Router {
 	 * @return   string|null                 File path or null
 	 */
 	private function get_handler_file( $handler_class ) {
-		// Security: Validate handler class name format
+		// Security: Validate handler class name format.
 		if ( ! preg_match( '/^SCD_[A-Za-z0-9_]+_Handler$/', $handler_class ) ) {
 			return null;
 		}
 
-		// Convert class name to file name
+		// Convert class name to file name.
 		$file_name = 'class-' . str_replace( '_', '-', strtolower( str_replace( 'SCD_', '', $handler_class ) ) ) . '.php';
 
-		// Security: Validate file name format (prevent directory traversal)
+		// Security: Validate file name format (prevent directory traversal).
 		if ( ! preg_match( '/^class-[a-z0-9-]+\.php$/', $file_name ) ) {
 			return null;
 		}
 
-		// Define allowed directories (absolute paths for security)
+		// Define allowed directories (absolute paths for security).
 		$allowed_dirs = array(
 			__DIR__ . '/handlers/',
 			__DIR__ . '/analytics/',
@@ -832,15 +832,15 @@ class SCD_Ajax_Router {
 			dirname( dirname( __DIR__ ) ) . '/core/analytics/',
 		);
 
-		// Check each allowed directory
+		// Check each allowed directory.
 		foreach ( $allowed_dirs as $dir ) {
 			$full_path = $dir . $file_name;
 
-			// Security: Use realpath to prevent directory traversal
+			// Security: Use realpath to prevent directory traversal.
 			$real_path = realpath( $full_path );
 			$real_dir  = realpath( $dir );
 
-			// Verify the file exists and is within the allowed directory
+			// Verify the file exists and is within the allowed directory.
 			if ( $real_path && $real_dir && strpos( $real_path, $real_dir ) === 0 && file_exists( $real_path ) ) {
 				return $real_path;
 			}
@@ -862,7 +862,7 @@ class SCD_Ajax_Router {
 	 * @return   mixed             Converted data.
 	 */
 	private static function camel_to_snake_keys( $data, $path = '' ) {
-		// Ensure utility class is loaded
+		// Ensure utility class is loaded.
 		if ( ! class_exists( 'SCD_Case_Converter' ) ) {
 			require_once SCD_PLUGIN_DIR . 'includes/utilities/class-case-converter.php';
 		}
