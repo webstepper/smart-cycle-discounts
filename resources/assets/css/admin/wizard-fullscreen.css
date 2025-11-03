@@ -759,18 +759,6 @@
     font-weight: 400;
 }
 
-/* Legacy h3 support - deprecated, use .scd-sidebar-header instead */
-.scd-sidebar-content h3:not(.scd-sidebar-header-title) {
-    margin: calc(var(--scd-spacing-lg, 20px) * -1) calc(var(--scd-spacing-lg, 20px) * -1) var(--scd-spacing-base, 16px);
-    padding: var(--scd-spacing-md, 12px) var(--scd-spacing-lg, 20px);
-    background: var(--scd-color-surface, #f6f7f7);
-    border-bottom: var(--scd-border-width) solid var(--scd-color-border-light, #e0e0e0);
-    font-size: var(--scd-font-size-medium, 14px);
-    font-weight: 600;
-    color: var(--scd-color-text, #1d2327);
-    line-height: 1.4;
-}
-
 /* Responsive adjustments for sidebar header */
 @media (max-width: 782px) {
     .scd-sidebar-header {

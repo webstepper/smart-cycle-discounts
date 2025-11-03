@@ -49,7 +49,7 @@ ob_start();
 	<div class="scd-health-score-card">
 		<div class="scd-health-score-header">
 			<div class="scd-health-score-label">
-				<h3><?php esc_html_e( 'Campaign Health Score', 'smart-cycle-discounts' ); ?></h3>
+				<h3 class="scd-section-title"><?php esc_html_e( 'Campaign Health Score', 'smart-cycle-discounts' ); ?></h3>
 				<p class="scd-health-score-subtitle"></p>
 			</div>
 			<div class="scd-health-score-value">
@@ -66,7 +66,7 @@ ob_start();
 	<div id="scd-health-factors" class="scd-health-factors-container" style="display: none;">
 		<div class="scd-health-factors-header">
 			<span class="dashicons dashicons-admin-generic"></span>
-			<h3><?php esc_html_e( 'Health Factors', 'smart-cycle-discounts' ); ?></h3>
+			<h3 class="scd-section-title"><?php esc_html_e( 'Health Factors', 'smart-cycle-discounts' ); ?></h3>
 			<p class="scd-health-factors-desc"><?php esc_html_e( 'Critical issues that must be fixed before launch', 'smart-cycle-discounts' ); ?></p>
 		</div>
 
@@ -87,7 +87,7 @@ ob_start();
 	<div id="scd-recommendations" class="scd-recommendations" style="display: none;">
 		<div class="scd-section-header">
 			<span class="dashicons dashicons-lightbulb"></span>
-			<h3><?php esc_html_e( 'Recommendations', 'smart-cycle-discounts' ); ?></h3>
+			<h3 class="scd-section-title"><?php esc_html_e( 'Recommendations', 'smart-cycle-discounts' ); ?></h3>
 			<p class="scd-section-desc"><?php esc_html_e( 'Actions to improve your campaign health and performance', 'smart-cycle-discounts' ); ?></p>
 		</div>
 		<div class="scd-recommendations-categories">
@@ -99,7 +99,7 @@ ob_start();
 	<div id="scd-conflict-preview" class="scd-conflict-preview" style="display: none;">
 		<div class="scd-section-header">
 			<span class="dashicons dashicons-warning"></span>
-			<h3><?php esc_html_e( 'Campaign Conflicts', 'smart-cycle-discounts' ); ?></h3>
+			<h3 class="scd-section-title"><?php esc_html_e( 'Campaign Conflicts', 'smart-cycle-discounts' ); ?></h3>
 			<p class="scd-section-desc"><?php esc_html_e( 'Other campaigns affecting the same products', 'smart-cycle-discounts' ); ?></p>
 		</div>
 		<div class="scd-conflicts-list">
@@ -111,7 +111,7 @@ ob_start();
 	<div class="scd-impact-analysis">
 		<div class="scd-section-header">
 			<span class="dashicons dashicons-chart-bar"></span>
-			<h3><?php esc_html_e( 'Campaign Impact Analysis', 'smart-cycle-discounts' ); ?></h3>
+			<h3 class="scd-section-title"><?php esc_html_e( 'Campaign Impact Analysis', 'smart-cycle-discounts' ); ?></h3>
 			<p class="scd-section-desc"><?php esc_html_e( 'Estimated reach and coverage of your campaign', 'smart-cycle-discounts' ); ?></p>
 		</div>
 		<div class="scd-impact-grid">
