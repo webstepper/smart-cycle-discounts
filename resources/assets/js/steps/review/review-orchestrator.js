@@ -197,7 +197,7 @@
 			// Add component-specific validation if needed
 			if ( this.modules.components && 'function' === typeof this.modules.components.validate ) {
 				var componentValidation = this.modules.components.validate();
-				if ( !componentValidation.ok && componentValidation.errors ) {
+				if ( !componentValidation.valid && componentValidation.errors ) {
 					for ( var i = 0; i < componentValidation.errors.length; i++ ) {
 						errors.push( componentValidation.errors[i] );
 					}
@@ -205,7 +205,7 @@
 			}
 
 			return {
-				ok: 0 === errors.length,
+				valid: 0 === errors.length,
 				errors: errors
 			};
 		},
@@ -273,7 +273,7 @@
 		 */
 		isValid: function() {
 			var validation = this.validateData( this.collectData() );
-			return validation.ok;
+			return validation.valid;
 		},
 
 		/**
