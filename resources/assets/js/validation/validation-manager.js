@@ -43,7 +43,6 @@
 		this.timers = {};
 		this.validationState = {};
 		
-		// Get localized constants if available
 		if ( window.scdValidationConstants ) {
 			if ( window.scdValidationConstants.timing ) {
 				this.config.debounceDelay = window.scdValidationConstants.timing.debounce_delay || 150;
@@ -76,7 +75,6 @@
 	 * @returns {object} { ok: boolean, clean: *, errors: Array<{code: string, message: string}> }
 	 */
 	ValidationManager.prototype.validateField = function( fieldName, value, context ) {
-		// Initialize context with defaults
 		context = $.extend( {
 			stepId: null,
 			allValues: {},
@@ -91,17 +89,15 @@
 			errors: []
 		};
 		
-		// Check visibility first - skip validation ONLY if field is EXPLICITLY false (hidden)
 		// CRITICAL FIX: Do NOT skip if undefined (field not in map) - that's fail-open!
 		// Only skip if visibility is explicitly set to false
 		if ( context.visibilityMap && context.visibilityMap[fieldName] === false ) {
 			return result; // Field is explicitly hidden, no validation needed
 		}
 
-		// Get field definition
 		var fieldDef = this._getFieldDefinition( fieldName, context );
 
-		// Fixed validation order: required → type → normalize → min/max → pattern → custom
+		// Validation order: required → type → normalize → min/max → pattern → custom
 
 		// 1. Required validation
 		var requiredResult = this._validateRequired( fieldName, value, fieldDef, context );
@@ -268,7 +264,6 @@
 			return result;
 		}
 
-		// Check if field is conditionally visible - skip validation if condition not met
 		if ( fieldDef.conditional ) {
 			var isVisible = this._evaluateCondition( fieldDef.conditional, context.allValues );
 			if ( ! isVisible ) {
@@ -277,7 +272,6 @@
 			}
 		}
 
-		// Check required
 		if ( this._isEmpty( value ) ) {
 			result.ok = false;
 			result.errors.push( {
@@ -489,12 +483,10 @@
 			return;
 		}
 		
-		// Clear existing timer
 		if ( this.timers[fieldName] ) {
 			clearTimeout( this.timers[fieldName] );
 		}
 		
-		// Set new timer
 		this.timers[fieldName] = setTimeout( function() {
 			// Build context object for pure validation
 			var validationContext = {
@@ -508,7 +500,6 @@
 			
 			// Handle UI updates separately (side effects)
 			if ( !result.ok && window.SCD && window.SCD.ValidationError ) {
-				// Show first error with safe message extraction
 				var errorMessage = result.errors[0] && result.errors[0].message ? 
 					result.errors[0].message : 
 					(result.errors[0] || 'Invalid value');
@@ -547,7 +538,6 @@
 			visibilityMap: this._computeVisibilityMap( $form )
 		};
 		
-		// Validate each field
 		$form.find( 'input:not([type="submit"]):not([type="button"]), select, textarea' ).each( function() {
 			var $field = $( this );
 			var fieldName = $field.attr( 'name' ) || $field.attr( 'id' );
@@ -608,7 +598,6 @@
 		// not in DOM. DOM state lags behind due to async updates.
 		// Use the existing collectComplexField() method that persistence already uses.
 		if ( window.SCD && window.SCD.FieldDefinitions ) {
-			// Get the step name from the form
 			var stepName = $form.data( 'step' ) || $form.closest( '[data-step]' ).data( 'step' );
 
 			if ( stepName ) {
@@ -618,7 +607,6 @@
 
 
 				if ( orchestrator && 'function' === typeof orchestrator.collectComplexField ) {
-					// Get field definitions for this step
 					var stepFields = window.SCD.FieldDefinitions.getStepFields( stepName ) || {};
 
 					// Collect complex fields using the SAME method as persistence
@@ -663,16 +651,13 @@
 			return visibilityMap;
 		}
 		
-		// Get current form values for condition evaluation
 		var formValues = this._collectFormValues( $form );
 		
-		// Check each field's visibility
 		$form.find( 'input, select, textarea' ).each( function() {
 			var $field = $( this );
 			var fieldName = $field.attr( 'name' ) || $field.attr( 'id' );
 			
 			if ( fieldName ) {
-				// Check if field is visible in DOM
 				var isVisible = $field.is( ':visible' );
 				
 				// Also check parent containers
@@ -683,7 +668,6 @@
 					}
 				}
 				
-				// Check field definition for conditional visibility
 				if ( isVisible && window.SCD && window.SCD.FieldDefinitions ) {
 					// Try to get field definition
 					var stepId = $form.data( 'step' ) || $form.closest( '[data-step]' ).data( 'step' );
@@ -748,7 +732,6 @@
 		};
 
 		
-		// Get field definitions for this step
 		if ( window.SCD && window.SCD.FieldDefinitions && window.SCD.FieldDefinitions.getStepFields ) {
 			var stepFields = window.SCD.FieldDefinitions.getStepFields( stepName );
 
@@ -759,7 +742,6 @@
 
 
 			if ( hasFields ) {
-				// Validate each field defined in the schema
 				for ( var fieldName in stepFields ) {
 					if ( stepFields.hasOwnProperty( fieldName ) ) {
 						// Convert to snake_case for HTML field lookup
@@ -922,7 +904,6 @@
 	};
 
 
-	// Create and expose instance
 	window.SCD.ValidationManager = new ValidationManager();
 	
 	// Trigger ready event

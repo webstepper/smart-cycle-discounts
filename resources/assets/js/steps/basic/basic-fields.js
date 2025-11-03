@@ -17,10 +17,8 @@
 	SCD.Utils.registerModule( 'SCD.Modules.Basic', 'Fields', function( state ) {
 		this.state = state;
 
-		// Initialize event manager
 		this.initEventManager();
 
-		// Initialize with dependency checks
 		if ( !SCD.Utils.ensureInitialized( this, {
 			'state': this.state
 		}, 'BasicFields' ) ) {
@@ -43,7 +41,6 @@
 		bindFieldEvents: function() {
 			var self = this;
 
-			// Get field selectors from field definitions (single source of truth)
 			var fieldDefs = SCD.FieldDefinitions.basic || {};
 
 			// Campaign name field
@@ -99,7 +96,6 @@
 				value: value
 			} ] );
 
-			// Check uniqueness for valid names
 			if ( 3 <= value.length ) {
 				this.checkNameUniqueness( value );
 			}
@@ -257,7 +253,6 @@
 		 * Reset all fields
 		 */
 		resetFields: function() {
-			// Update field values directly using jQuery
 			$( '[name="name"]' ).val( '' ).trigger( 'change' );
 			$( '[name="description"]' ).val( '' ).trigger( 'change' );
 			$( '[name="priority"]' ).val( 3 ).trigger( 'change' );
@@ -279,7 +274,6 @@
 				} ] );
 			}
 
-			// Clear all errors using ValidationError component
 			if ( window.SCD && window.SCD.ValidationError ) {
 				var $container = $( '[name="name"]' ).closest( 'form' );
 				if ( $container.length ) {

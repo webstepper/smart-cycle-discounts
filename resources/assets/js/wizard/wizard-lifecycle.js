@@ -145,7 +145,6 @@
 			// Execute before init hooks
 			this.executeHooks( 'beforeInit', this );
 
-			// Initialize in sequence
 			return this.initializeComponents( config )
 				.then( function() {
 					self.setPhase( self.phases.INITIALIZED );
@@ -169,7 +168,6 @@
 			// Sort components by dependencies and priority
 			var sortedComponents = this.sortComponentsByDependencies();
 
-			// Initialize sequentially
 			var initChain = $.Deferred().resolve();
 
 			sortedComponents.forEach( function( componentName ) {
@@ -207,7 +205,6 @@
 
 			var instance = component.instance;
 
-			// Check if component has init method
 			if ( instance && 'function' === typeof instance.init ) {
 				try {
 					var result = instance.init( config );
@@ -351,7 +348,6 @@
 				// Execute cleanup tasks
 				self.executeCleanupTasks();
 
-				// Clear registries
 				self.components = {};
 				self.hooks = {
 					beforeInit: [],
@@ -486,7 +482,6 @@
 		 * @param context
 		 */
 		handleError: function( error, context ) {
-			// Set error phase first
 			this.setPhase( this.phases.ERROR );
 
 			// Execute error hooks

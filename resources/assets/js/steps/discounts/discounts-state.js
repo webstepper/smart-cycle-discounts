@@ -90,17 +90,14 @@
 		this.lastSaved = null;
 		this.campaignId = ( window.scdWizardData && window.scdWizardData.current_campaign && window.scdWizardData.current_campaign.id ) || null;
 
-		// Initialize event manager
 		this.initEventManager();
 
 		// Setup discount type change monitoring
 		this._previousDiscountType = initialState.discountType;
 
-		// Load initial data
 		this.loadInitialData();
 	};
 
-	// Set up proper prototype chain
 	if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
 		SCD.Modules.Discounts.State.prototype = Object.create( SCD.Shared.BaseState.prototype );
 		SCD.Modules.Discounts.State.prototype.constructor = SCD.Modules.Discounts.State;
@@ -192,7 +189,6 @@
 		 * @param oldType
 		 */
 		_handleDiscountTypeChange: function( newType, oldType ) {
-			// Update discount value when type changes
 			this._updateDiscountValue();
 
 			// Trigger specific event for type change
@@ -264,13 +260,11 @@
 			this.errors = {};
 			var state = this.getState();
 
-			// Validate discount type
 			var validTypes = [ 'percentage', 'fixed', 'tiered', 'bogo', 'spend_threshold' ];
 			if ( -1 === validTypes.indexOf( state.discountType ) ) {
 				this.errors.discountType = 'Invalid discount type';
 			}
 
-			// Validate based on discount type
 			var config = this.getCurrentConfig();
 			switch ( state.discountType ) {
 				case 'percentage':
@@ -445,7 +439,6 @@
 				badgePosition: state.badgePosition
 			};
 
-			// Add type-specific data
 			switch ( state.discountType ) {
 				case 'percentage':
 					data.discountValuePercentage = config && config.value !== undefined ? config.value : discountValue;
@@ -596,7 +589,6 @@
 			// Apply all updates
 			this.setState( updates );
 
-			// Clear dirty flag since we're loading saved data
 			this.clearDirty();
 		},
 
@@ -612,7 +604,6 @@
 		 * Load initial data
 		 */
 		loadInitialData: function() {
-			// Check multiple sources for initial data
 			var sources = [
 				window.scdWizardData && window.scdWizardData.current_campaign && window.scdWizardData.current_campaign.discounts,
 				window.scdDiscountState,
@@ -641,7 +632,6 @@
 
 			this.setState( { isSaving: true } );
 
-			// Get current state data
 			var data = this.toJSON();
 
 			// Don't save if no discount type is selected
@@ -654,7 +644,6 @@
 				return deferred.promise();
 			}
 
-			// Store locally immediately
 			this.saveToStorage( data );
 
 			// Save to backend if API is available

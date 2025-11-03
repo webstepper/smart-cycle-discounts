@@ -38,7 +38,6 @@
 						return true; // Allow form submission
 					}
 
-					// Get selected campaigns
 					var selectedCampaigns = $( 'input[name="campaign[]"]:checked' );
 
 					if ( 0 === selectedCampaigns.length ) {
@@ -47,7 +46,6 @@
 						return false;
 					}
 
-					// Show confirmation for destructive actions
 					if ( self.requiresConfirmation( action ) ) {
 						e.preventDefault();
 						self.showConfirmation(
@@ -122,7 +120,6 @@
 		}
 	};
 
-	// Initialize when DOM is ready
 	$( document ).ready(
 		function () {
 			// Only initialize on campaigns list page

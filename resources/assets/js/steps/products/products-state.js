@@ -39,11 +39,9 @@
 			SCD.Shared.BaseState.call( this, initialState );
 		}
 
-		// Initialize event manager
 		this.initEventManager();
 	};
 
-	// Set up proper prototype chain
 	if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
 		SCD.Modules.Products.State.prototype = Object.create( SCD.Shared.BaseState.prototype );
 		SCD.Modules.Products.State.prototype.constructor = SCD.Modules.Products.State;

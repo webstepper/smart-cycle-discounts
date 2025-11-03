@@ -288,7 +288,6 @@
 				return '';
 			}
 
-			// Get the translated message
 			var message = 'function' === typeof messageFunc ? messageFunc() : messageFunc;
 
 			// Handle sprintf-style placeholders for wp.i18n

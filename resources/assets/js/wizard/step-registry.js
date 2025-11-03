@@ -58,7 +58,6 @@
 		try {
 			var instance = factory();
 
-			// Validate that factory returned a valid instance
 			if ( !instance || 'object' !== typeof instance ) {
 				throw new Error( 'Factory for step "' + stepName + '" must return an object, got: ' + typeof instance );
 			}

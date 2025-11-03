@@ -62,7 +62,6 @@
 		 * @param config
 		 */
 		init: function( wizard, config ) {
-			// Load wizard data for review
 			this.loadWizardData();
 		},
 
@@ -94,7 +93,6 @@
 				self.storeLaunchOption();
 			} );
 
-			// Update button text when state changes
 			this.bindCustomEvent( 'scd:review:state:changed', function( e, data ) {
 				if ( 'launchOption' === data.property ) {
 					if ( self.modules.components && 'function' === typeof self.modules.components.updateNavigationButton ) {
@@ -111,7 +109,6 @@
 		 * Handle step loaded
 		 */
 		onStepLoaded: function() {
-			// Initialize integrated components module
 			if ( this.modules.components && 'function' === typeof this.modules.components.init ) {
 				this.modules.components.init();
 			}
@@ -125,7 +122,6 @@
 		 * Load wizard data for review
 		 */
 		loadWizardData: function() {
-			// Load wizard data from modern pattern
 			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.data ) {
 				this.modules.state.setState( {
 					wizardData: window.SCD.Wizard.data
@@ -194,7 +190,6 @@
 			var validation = SCD.Mixins.StepPersistence.validateData.call( this, data );
 			var errors = validation.errors || [];
 
-			// Add component-specific validation if needed
 			if ( this.modules.components && 'function' === typeof this.modules.components.validate ) {
 				var componentValidation = this.modules.components.validate();
 				if ( !componentValidation.valid && componentValidation.errors ) {

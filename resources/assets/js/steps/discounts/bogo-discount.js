@@ -25,7 +25,6 @@
 		// Ready state tracking
 		this._ready = false;
 
-		// Initialize with dependency checks
 		if ( !SCD.Utils.ensureInitialized( this, {
 			'config': this.config
 		}, 'BogoDiscount' ) ) {
@@ -65,7 +64,6 @@
 		 */
 		setDefaults: function() {
 			// Don't set default BOGO rules - let user define them
-			// Show placeholder on initial load
 			var self = this;
 			setTimeout( function() {
 				if ( 'function' === typeof self.updatePreview ) {
@@ -128,13 +126,11 @@
 		setupBogoHandlers: function() {
 			var self = this;
 
-			// Add rule button
 			$( document ).off( 'click.bogo' ).on( 'click.bogo', '.scd-add-bogo-rule', function( e ) {
 				e.preventDefault();
 				self.addBogoRule();
 			} );
 
-			// Remove rule button
 			$( document ).on( 'click.bogo', '.scd-remove-bogo-rule', function( e ) {
 				e.preventDefault();
 				var index = $( this ).data( 'index' );
@@ -162,7 +158,6 @@
 
 			// Simple PHP template field handlers
 			$( document ).on( 'input.bogo change.bogo', '#bogo_buy_quantity, #bogo_get_quantity, #bogo_discount', function() {
-				// Update preview immediately
 				self.updatePreview();
 
 				// Also update the state for visual preview
@@ -170,7 +165,6 @@
 				var getQty = parseInt( $( '#bogo_get_quantity' ).val() ) || 1;
 				var discount = parseFloat( $( '#bogo_discount' ).val() ) || 100;
 
-				// Update state with simple BOGO config
 				self.state.setState( {
 					bogoConfig: {
 						rules: [ {
@@ -206,7 +200,6 @@
 
 			$container.html( html );
 
-			// Update add button state
 			var $addButton = $( '.scd-add-bogo-rule' );
 			if ( rules.length >= this.maxRules ) {
 				$addButton.prop( 'disabled', true ).text( 'Maximum rules reached' );
@@ -214,7 +207,6 @@
 				$addButton.prop( 'disabled', false ).text( 'Add BOGO Rule' );
 			}
 
-			// Update allow multiple checkbox
 			$( '[name="bogo_allow_multiple"]' ).prop( 'checked', false !== config.allowMultiple );
 		},
 
@@ -232,7 +224,6 @@
 				{ buy: 0, get: 0, discount: 0, label: 'Custom' }
 			];
 
-			// Check if current rule matches a preset
 			var selectedPreset = 'custom';
 			presetOptions.forEach( function( preset ) {
 				if ( preset.buy === rule.buyQuantity &&
@@ -452,7 +443,6 @@
 				errors.bogoRules = 'At least one BOGO rule is required';
 			} else {
 				rules.forEach( function( rule, index ) {
-					// Validate quantities
 					if ( !rule.buyQuantity || 0 >= rule.buyQuantity ) {
 						errors['bogo_' + ( index ) + '_buy'] = 'Rule ' + ( index + 1 ) + ': Invalid buy quantity';
 					}
@@ -461,12 +451,10 @@
 						errors['bogo_' + ( index ) + '_get'] = 'Rule ' + ( index + 1 ) + ': Invalid get quantity';
 					}
 
-					// Validate discount
 					if ( 0 > rule.discountPercent || 100 < rule.discountPercent ) {
 						errors['bogo_' + ( index ) + '_discount'] = 'Rule ' + ( index + 1 ) + ': Discount must be between 0-100%';
 					}
 
-					// Validate different products selection
 					if ( 'different' === rule.applyTo && ( !rule.getProducts || 0 === rule.getProducts.length ) ) {
 						errors['bogo_' + ( index ) + '_products'] = 'Rule ' + ( index + 1 ) + ': Select products for free items';
 					}
@@ -507,12 +495,10 @@
 			var $preview = $( '#bogo-preview .preview-text' );
 			if ( !$preview.length ) {return;}
 
-			// Get values from inputs
 			var buyQty = parseInt( $( '#bogo_buy_quantity' ).val() ) || 0;
 			var getQty = parseInt( $( '#bogo_get_quantity' ).val() ) || 0;
 			var discount = parseFloat( $( '#bogo_discount' ).val() );
 
-			// Check if we have valid values
 			if ( 0 < buyQty && 0 < getQty && !isNaN( discount ) ) {
 				var previewText = '';
 				if ( 100 === discount ) {
@@ -531,7 +517,6 @@
 		 * @param data
 		 */
 		loadData: function( data ) {
-			// Check for structured bogo_config first (preferred format)
 			// Data already converted to camelCase by server
 			if ( data.bogoConfig ) {
 				var config = data.bogoConfig;
@@ -553,7 +538,6 @@
 			var discount = data.bogoDiscount || data.discountPercent;
 
 			if ( buyQuantity || getQuantity || discount ) {
-				// Create a single simple rule
 				var rule = {
 					buyQuantity: parseInt( buyQuantity ) || 2,
 					getQuantity: parseInt( getQuantity ) || 1,
@@ -584,11 +568,9 @@
 				config = this.state.getState( 'bogoConfig' ) || { rules: [] };
 			}
 
-			// Update hidden DOM fields that StepPersistence will collect
 			var $bogoConfig = $( '#bogo_config' );
 			if ( $bogoConfig.length ) {
 				// Server will auto-convert camelCase to snake_case
-				// Update both jQuery data and DOM attribute for field definitions to collect
 				$bogoConfig.data( 'value', config );
 				$bogoConfig.attr( 'data-value', JSON.stringify( config ) );
 				$bogoConfig.trigger( 'change' );
@@ -694,7 +676,6 @@
 				if ( window.scdDebugDiscounts ) {
 				}
 
-				// Set form fields
 				if ( config.buy_quantity ) {
 					$( '#bogo_buy_quantity' ).val( config.buy_quantity );
 				}
@@ -705,14 +686,12 @@
 					$( '#bogo_discount' ).val( config.discount_percent );
 				}
 
-				// Update state
 				if ( this.state && 'function' === typeof this.state.setState ) {
 					this.state.setState( {
 						bogoConfig: config
 					} );
 				}
 
-				// Update preview
 				if ( 'function' === typeof this.updatePreview ) {
 					this.updatePreview();
 				}

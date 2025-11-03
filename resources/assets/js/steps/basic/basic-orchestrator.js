@@ -32,7 +32,6 @@
 		 */
 		initializeStep: function() {
 			try {
-				// Create step modules
 				this.modules.state = new SCD.Modules.Basic.State();
 				this.modules.api = new SCD.Modules.Basic.API();
 				this.modules.fields = new SCD.Modules.Basic.Fields( this.modules.state );
@@ -65,7 +64,6 @@
 			// Listen for field change events from the fields module
 			this.bindCustomEvent( 'scd:basic:field:changed', function( e, data ) {
 				if ( data && data.field && data.value !== undefined ) {
-					// Update state through orchestrator (single source of truth)
 					if ( self.modules.state ) {
 						// setData expects an object, not individual key/value
 						var update = {};
@@ -83,12 +81,10 @@
 		 * Handle step loaded
 		 */
 		onStepLoaded: function() {
-			// Initialize modules if not already done
 			if ( !this.modules || 0 === Object.keys( this.modules ).length ) {
 				this.initializeStep();
 			}
 
-			// Initialize fields module
 			if ( this.modules.fields && 'function' === typeof this.modules.fields.init ) {
 				this.modules.fields.init();
 			}

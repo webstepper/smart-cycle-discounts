@@ -82,7 +82,6 @@
 		 */
 		_notifySubscribers: function( changes ) {
 			this._subscribers.forEach( function( subscriber ) {
-				// Check if subscriber is interested in this property
 				if ( subscriber.filter ) {
 					var filters = Array.isArray( subscriber.filter ) ?
 						subscriber.filter : [ subscriber.filter ];
@@ -185,7 +184,6 @@
 			newState = 'undefined' === typeof newState ? {} : newState;
 			this._saveHistory();
 
-			// Clear current state
 			Object.keys( this._state ).forEach( function( key ) {
 				delete this._state[key];
 			}.bind( this ) );
@@ -243,10 +241,8 @@
 		 * @private
 		 */
 		_saveHistory: function() {
-			// Remove any states after current index
 			this._history = this._history.slice( 0, this._historyIndex + 1 );
 
-			// Add current state
 			this._history.push( this.toJSON() );
 
 			// Limit history size
@@ -341,20 +337,15 @@
 		 * Destroy state and cleanup
 		 */
 		destroy: function() {
-			// Clear all subscriptions
 			this.clearSubscriptions();
 
-			// Clear history
 			this._history = [];
 			this._historyIndex = -1;
 
-			// Clear proxy reference
 			this._proxy = null;
 
-			// Clear state
 			this._state = {};
 
-			// Remove jQuery event handlers
 			$( document ).off( 'scd:state:changed' );
 		}
 	};

@@ -21,7 +21,6 @@
 	// Register module using utility - eliminates boilerplate
 	if ( SCD.Utils && 'function' === typeof SCD.Utils.registerModule ) {
 		SCD.Utils.registerModule( 'SCD.Modules.Schedule', 'API', function() {
-			// Initialize with dependency checks
 			if ( SCD.Utils && 'function' === typeof SCD.Utils.ensureInitialized ) {
 				if ( !SCD.Utils.ensureInitialized( this, {
 					'SCD.Ajax': SCD.Ajax,

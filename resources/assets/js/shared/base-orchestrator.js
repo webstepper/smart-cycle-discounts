@@ -38,7 +38,6 @@
 		// Standard validation debounce delay - consistent across all steps
 		this.VALIDATION_DEBOUNCE = 150;
 
-		// Initialize modules if factories provided
 		if ( moduleFactories ) {
 			this.initializeModulesFromFactories();
 		}
@@ -62,7 +61,6 @@
 			this.wizard = wizard;
 			this.config = $.extend( {}, this.getDefaultConfig(), config );
 
-			// Initialize modules
 			this.initializeModules();
 
 			// Bind events
@@ -102,7 +100,6 @@
 				return;
 			}
 
-			// Initialize all modules - proper dependency injection is the solution
 			// Single-pass initialization only
 			for ( var moduleName in this._moduleFactories ) {
 				if ( Object.prototype.hasOwnProperty.call( this._moduleFactories, moduleName ) ) {
@@ -232,7 +229,6 @@
 			if ( result.valid ) {
 				deferred.resolve( true );
 			} else {
-				// Show validation errors if we have a method for it
 				if ( 'function' === typeof this.showErrors && result.errors ) {
 					// Convert array of errors to object format expected by showErrors
 					var errorObject = {};
@@ -322,12 +318,10 @@
 				var $field = $( this );
 				var fieldName = this.name || this.id;
 
-				// Clear existing timer
 				if ( self._validationTimers[fieldName] ) {
 					clearTimeout( self._validationTimers[fieldName] );
 				}
 
-				// Set new timer with standard debounce
 				self._validationTimers[fieldName] = setTimeout( function() {
 					self.validateFieldRealTime( $field );
 					delete self._validationTimers[fieldName];
@@ -384,7 +378,6 @@
 			var data = this.collectData();
 			this.wizard.saveProgress( this.stepName, data );
 
-			// Show save indicator
 			this.showSaveIndicator();
 		},
 
@@ -444,7 +437,6 @@
 
 			var config = errorConfigs[category] || errorConfigs.general;
 
-			// Show user-friendly error
 			this.showError( message, config.type, config.duration );
 
 			// Trigger error event
@@ -626,7 +618,6 @@
 		 * Cleanup and destroy - comprehensive memory leak prevention
 		 */
 		destroy: function() {
-			// Clear all validation timers first
 			for ( var timerId in this._validationTimers ) {
 				if ( Object.prototype.hasOwnProperty.call( this._validationTimers, timerId ) ) {
 					clearTimeout( this._validationTimers[timerId] );
@@ -635,7 +626,6 @@
 			}
 			this._validationTimers = {};
 
-			// Clear general timers
 			for ( var timerKey in this._timers ) {
 				if ( Object.prototype.hasOwnProperty.call( this._timers, timerKey ) ) {
 					clearTimeout( this._timers[timerKey] );
@@ -644,7 +634,6 @@
 			}
 			this._timers = {};
 
-			// Remove event listeners with namespace for better cleanup
 			if ( this.$container && this.$container.length ) {
 				this.$container.off( '.validation' );
 				this.$container.off( '.orchestrator' );
@@ -668,7 +657,6 @@
 			}
 			this.modules = {};
 
-			// Clear references
 			this.wizard = null;
 			this.config = null;
 			this.$container = null;
@@ -701,23 +689,19 @@
 	 * @returns {Function} Orchestrator constructor function
 	 */
 	SCD.Shared.BaseOrchestrator.createStep = function( stepName, customMethods ) {
-		// Validate parameters
 		if ( !stepName || 'string' !== typeof stepName ) {
 			throw new Error( 'Step name must be a non-empty string' );
 		}
 
 		customMethods = customMethods || {};
 
-		// Create constructor function
 		var OrchestratorClass = function() {
 			// Call parent constructor
 			SCD.Shared.BaseOrchestrator.call( this, stepName );
 
-			// Initialize step-specific properties
 			this.modules = {};
 		};
 
-		// Set up proper prototype chain
 		OrchestratorClass.prototype = Object.create( SCD.Shared.BaseOrchestrator.prototype );
 		OrchestratorClass.prototype.constructor = OrchestratorClass;
 
@@ -731,15 +715,12 @@
 			$.extend( OrchestratorClass.prototype, SCD.Mixins.StepPersistence );
 		}
 
-		// Add standard init method with common setup
 		var originalInit = customMethods.init;
 		customMethods.init = function( wizard, config ) {
-			// Initialize event manager if available and not already initialized
 			if ( !this._eventHandlers && 'function' === typeof this.initEventManager ) {
 				this.initEventManager();
 			}
 
-			// Set container reference with fallback
 			this.$container = $( '#scd-step-' + stepName );
 			if ( !this.$container.length ) {
 				this.$container = $( '.scd-wizard-step--' + stepName );
@@ -749,7 +730,6 @@
 			var self = this;
 			var parentPromise = SCD.Shared.BaseOrchestrator.prototype.init.call( this, wizard, config );
 
-			// Initialize persistence
 			this.initPersistence( stepName );
 
 			// Return promise for proper async handling
@@ -766,7 +746,6 @@
 			} );
 		};
 
-		// Add custom methods to prototype
 		$.extend( OrchestratorClass.prototype, customMethods );
 
 		// Auto-register factory if SCD.Steps.registerFactory is available
@@ -776,7 +755,6 @@
 			} );
 		}
 
-		// Initialize field definitions property
 		OrchestratorClass.fields = {};
 
 		// Auto-load field definitions when document is ready

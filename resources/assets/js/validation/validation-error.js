@@ -103,18 +103,15 @@
 			return;
 		}
 
-		// Clear any existing error message for this field first
 		this.clear( $field );
 
 		// Apply error styling (red border, ARIA attributes)
 		this._applyErrorStyling( $field );
 
-		// Create and insert inline error message
 		if ( message ) {
 			var $container = this._findContainer( $field );
 			var errorId = 'error-' + ( $field.attr( 'name' ) || $field.attr( 'id' ) || 'field' ).replace( /[^a-zA-Z0-9]/g, '-' );
 
-			// Create error message element safely to prevent XSS
 			var $errorMsg = $( '<div class="scd-field-error" id="' + errorId + '" role="alert"></div>' ).text( message );
 
 			// Insert error message after field (or after container based on position option)
@@ -171,7 +168,6 @@
 
 		var $container = this._findContainer( $field );
 
-		// Remove inline error message
 		var errorId = $field.attr( 'aria-describedby' );
 		if ( errorId ) {
 			$( '#' + errorId ).remove();
@@ -181,22 +177,18 @@
 		$field.siblings( '.scd-field-error' ).remove();
 		$container.find( '.scd-field-error' ).remove();
 
-		// Clear field error styling
 		$field
 			.attr( 'aria-invalid', 'false' )
 			.removeAttr( 'aria-describedby' )
 			.removeClass( 'error' );
 
-		// Remove any inline styles
 		$field.css( {
 			'border': '',
 			'background-color': ''
 		} );
 
-		// Clear container class
 		$container.removeClass( 'has-error' );
 
-		// Clear parent form-field
 		$field.closest( '.form-field' ).removeClass( 'has-error' );
 	},
 
@@ -240,17 +232,14 @@
 			// Debug logging
 			this._logDebug( 'showMultiple called', { errors: errors, context: $context, options: options } );
 
-			// Clear existing errors first if requested
 			if ( options.clearFirst ) {
 				this.clearAll( $context );
 			}
 
-			// Show each error
 			$.each( errors, function( fieldName, messages ) {
 				var $field = self._findField( fieldName, $context );
 
 				if ( $field.length ) {
-					// Get the first error message (messages can be string or array)
 					var message = Array.isArray( messages ) ? messages[0] : messages;
 
 					// Use the centralized show() method to display inline error with message
@@ -267,7 +256,6 @@
 				}
 			} );
 
-			// Create validation summary if requested
 			if ( options.showSummary ) {
 				this.showSummary( errors, $context, options );
 			}
@@ -338,10 +326,8 @@
 		 * @param {jQuery} $field - Field element
 		 */
 		_applyErrorStyling: function( $field ) {
-			// Add error class for styling
 			$field.addClass( 'error' );
 
-			// Set accessibility attributes
 			$field.attr( 'aria-invalid', 'true' );
 
 			// Also add error class to container for proper CSS targeting
@@ -423,12 +409,10 @@
 				self.clear( $( this ), options );
 			} );
 
-			// Clear validation notifications
 			if ( SCD.Shared && SCD.Shared.NotificationService ) {
 				SCD.Shared.NotificationService.dismiss( 'validation-errors' );
 			}
 
-			// Clear screen reader announcement area using cached element
 			if ( this._$announcer && this._$announcer.length ) {
 				this._$announcer.empty();
 			}
@@ -453,7 +437,6 @@
 			$.each( errors, function( fieldName, messages ) {
 				var messageArray = Array.isArray( messages ) ? messages : [ messages ];
 
-				// Cache field lookup for this summary
 				if ( ! fieldCache[fieldName] ) {
 					fieldCache[fieldName] = self._findField( fieldName, $context );
 				}
@@ -474,12 +457,10 @@
 			return;
 		}
 
-			// Create notification message with visible separators (NotificationService uses .text() which collapses newlines)
 			var notificationMessage = 1 === errorCount
 				? errorMessages[0]
 				: errorMessages.join( ' • ' );
 
-			// Show notification using the notification service
 			if ( SCD.Shared && SCD.Shared.NotificationService ) {
 				SCD.Shared.NotificationService.show( 
 					notificationMessage, 
@@ -516,7 +497,6 @@
 				} ) : 'This field';
 			}
 
-			// Check cache first
 			var cacheKey = fieldName || $field.attr( 'name' ) || $field.attr( 'id' );
 			if ( cacheKey && this._labelCache[cacheKey] ) {
 				return this._labelCache[cacheKey];
@@ -571,7 +551,6 @@
 				label = 'This field';
 			}
 
-			// Cache the result
 			if ( cacheKey ) {
 				this._labelCache[cacheKey] = label;
 			}
@@ -599,7 +578,6 @@
 			// Format announcement using internal method
 			var announcement = 'Error in ' + this._getFieldLabel( null, fieldName ) + ': ' + message;
 
-			// Update announcer (clear first to ensure re-announcement)
 			var $announcer = this._$announcer;
 			$announcer.empty();
 			// Use requestAnimationFrame to ensure DOM update
@@ -627,7 +605,6 @@
 		 * Sets up announcer and caches
 		 */
 		init: function() {
-			// Create and cache announcer element
 			if ( ! $( '#scd-validation-announcer' ).length ) {
 				this._$announcer = $( '<div id="scd-validation-announcer" class="screen-reader-text" aria-live="assertive" aria-atomic="true"></div>' );
 				$( 'body' ).append( this._$announcer );
@@ -635,7 +612,6 @@
 				this._$announcer = $( '#scd-validation-announcer' );
 			}
 
-			// Cache scroll container
 			this._$scrollContainer = $( 'html, body' );
 
 		},
@@ -645,32 +621,25 @@
 		 * Cleans up all resources, removes elements, clears caches and timeouts
 		 */
 		destroy: function() {
-			// Clear pending focus timeout
 			if ( this._pendingFocusTimeout ) {
 				this._clearTimeout( this._pendingFocusTimeout );
 				this._pendingFocusTimeout = null;
 			}
 
-			// Clear all active timeouts
 			this._clearAllTimeouts();
 
-			// Remove all error elements
 			$( '.scd-field-error, .field-error' ).remove();
 
-			// Remove validation announcer
 			if ( this._$announcer && this._$announcer.length ) {
 				this._$announcer.remove();
 			}
 			$( '#scd-validation-announcer' ).remove();
 
-			// Remove validation summary if present
 			$( '.scd-validation-summary' ).remove();
 
-			// Clear error styling from all fields
 			$( '.has-error' ).removeClass( 'has-error' );
 			$( '.scd-field-error-border' ).removeClass( 'scd-field-error-border' );
 
-			// Clear caches
 			this._labelCache = {};
 			this._$announcer = null;
 			this._$scrollContainer = null;
@@ -726,7 +695,6 @@
 		var messages = window.scdValidationMessages || {};
 		var message = messages[key];
 
-		// Get field label if provided
 		var fieldLabel = fieldName ? this.getFieldLabel( fieldName ) : 'This field';
 
 		// Minimal fallback for critical messages only
@@ -741,7 +709,6 @@
 		// Final fallback
 		message = message || key;
 
-		// Get template parameters (skip fieldName which is at index 1)
 		var templateArgs = Array.prototype.slice.call( arguments, 2 );
 
 		// Escape all template arguments to prevent XSS
@@ -810,7 +777,6 @@
 			}, options.animationDuration, function() {
 				// Focus the field after scroll completes
 				setTimeout( function() {
-					// Check if field is focusable
 					if ( $firstError.is( ':visible' ) && ! $firstError.is( ':disabled' ) ) {
 						$firstError.focus();
 
@@ -832,7 +798,7 @@
 	};
 
 	/**
-	 * Enhanced showMultiple that includes focus behavior
+	 * Extend showMultiple to include focus behavior on first error field
 	 */
 	var originalShowMultiple = SCD.Components.ValidationError.showMultiple;
 	SCD.Components.ValidationError.showMultiple = function( errors, $context, options ) {
@@ -843,7 +809,6 @@
 		if ( options && options.focusFirstError ) {
 			var self = this;
 
-			// Clear any pending focus timeout to prevent memory leak
 			if ( this._pendingFocusTimeout ) {
 				this._clearTimeout( this._pendingFocusTimeout );
 				this._pendingFocusTimeout = null;
@@ -857,7 +822,6 @@
 		}
 	};
 
-	// Initialize on document ready
 	$( document ).ready( function() {
 		SCD.Components.ValidationError.init();
 	} );

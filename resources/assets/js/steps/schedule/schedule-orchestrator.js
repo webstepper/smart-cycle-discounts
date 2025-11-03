@@ -32,7 +32,6 @@
 		 */
 		initializeStep: function() {
 			try {
-				// Create modules if they don't exist
 				if ( !this.modules.state ) {
 					this.modules.state = new SCD.Modules.Schedule.State();
 				}
@@ -59,12 +58,10 @@
 			this.setupDatePickers();
 			this.initializePresets();
 
-			// Set initial visual state
 			this.$container.find( 'input[name="start_type"]:checked' )
 				.closest( '.scd-radio-option' )
 				.addClass( 'scd-radio-option--selected' );
 
-			// Set initial time constraints
 			this.updateTimeConstraints();
 		},
 
@@ -74,7 +71,6 @@
 		onBindEvents: function() {
 			var self = this;
 
-			// Update time constraints when step is shown (in case time has passed)
 			$( document ).on( 'scd:step:shown', function( event, stepName ) {
 				if ( 'schedule' === stepName ) {
 					self.updateTimeConstraints();
@@ -97,7 +93,6 @@
 				}
 			}
 
-			// Clear stale duration_seconds when user manually changes dates
 			if ( 'end' === field ) {
 				var $durationField = $( 'input[name="duration_seconds"]' );
 				if ( $durationField.length ) {
@@ -117,7 +112,6 @@
 					validation = self._validateEndTime( selectedDate, state.endTime || '23:59', state.startDate, state.startTime );
 				}
 
-				// Show validation errors with consistent messages (date-level only)
 				if ( ! validation.valid && validation.field === field + '_date' ) {
 					if ( window.SCD && window.SCD.ValidationError ) {
 						SCD.ValidationError.show( $input, validation.message );
@@ -153,7 +147,6 @@
 				return;
 			}
 
-			// Clear stale duration_seconds when user manually changes end time
 			if ( 'end' === field ) {
 				var $durationField = $( 'input[name="duration_seconds"]' );
 				if ( $durationField.length ) {
@@ -161,7 +154,6 @@
 				}
 			}
 
-			// Get current state for validation context
 			var state = self.modules.state.getState();
 			var validation;
 
@@ -172,7 +164,6 @@
 				validation = self._validateEndTime( state.endDate, selectedTime, state.startDate, state.startTime );
 			}
 
-			// Show validation errors with consistent messages
 			if ( ! validation.valid ) {
 				if ( window.SCD && window.SCD.ValidationError ) {
 					SCD.ValidationError.show( $input, validation.message );
@@ -197,14 +188,11 @@
 				self.handleStartTypeChange( value );
 			} );
 
-			// Clear end date
 			this.$container.on( 'click', '.scd-clear-end-date', function( e ) {
 				e.preventDefault();
-				// Clear end date fields
 				$( '#end_date' ).val( '' );
 				$( '#end_date_display' ).val( '' );
 				$( '#end_time' ).val( self.getDefaultEndTime() );
-				// Update duration display
 				self.updateDurationDisplay();
 				// Trigger change event
 				$( '#end_date' ).trigger( 'change' );
@@ -310,7 +298,6 @@
 				}
 				$( document ).trigger( 'scd:schedule:' + field + ':changed', value );
 
-				// Update time constraints when date changes
 				this.updateTimeConstraints();
 			} catch ( error ) {
 			this.safeErrorHandle( error, 'schedule-date-change' );
@@ -332,7 +319,6 @@
 				}
 				$( document ).trigger( 'scd:schedule:' + field + '-time:changed', value );
 
-				// Update time constraints when time changes (affects end time constraint)
 				if ( 'start' === field ) {
 					this.updateTimeConstraints();
 				}
@@ -515,7 +501,6 @@
 		updateRecurrencePreview: function() {
 			var $preview = $( '#scd-recurrence-preview-text' );
 
-			// Check if state module is available
 			if ( !this.modules.state || 'function' !== typeof this.modules.state.getState ) {
 				$preview.html( '<em>Configure recurrence settings to see preview</em>' );
 				return;
@@ -531,7 +516,6 @@
 			// Build preview text
 			var text = 'Repeats every ' + state.recurrenceInterval + ' ';
 
-			// Add pattern
 			if ( 'daily' === state.recurrencePattern ) {
 				text += 1 === state.recurrenceInterval ? 'day' : 'days';
 			} else if ( 'weekly' === state.recurrencePattern ) {
@@ -545,7 +529,6 @@
 				text += 1 === state.recurrenceInterval ? 'month' : 'months';
 			}
 
-			// Add end condition
 			if ( 'after' === state.recurrenceEndType ) {
 				text += ', ' + state.recurrenceCount + ' ' + ( 1 === state.recurrenceCount ? 'time' : 'times' );
 			} else if ( 'on' === state.recurrenceEndType && state.recurrenceEndDate ) {
@@ -573,7 +556,6 @@
 		calculateNextOccurrences: function( count ) {
 			var occurrences = [];
 
-			// Check if state module is available
 			if ( !this.modules.state || 'function' !== typeof this.modules.state.getState ) {
 				return occurrences;
 			}
@@ -611,7 +593,6 @@
 		 */
 		applyPreset: function( preset ) {
 			try {
-				// Validate preset object
 				if ( !preset || !preset.duration || !preset.unit ) {
 					if ( window.console && window.console.error ) {
 						console.error( '[Schedule] Invalid preset object:', preset );
@@ -620,7 +601,6 @@
 					return;
 				}
 
-				// Validate preset duration is reasonable (5 minutes to 365 days)
 				var maxDurationSeconds = 365 * 24 * 60 * 60; // 1 year
 				var minDurationSeconds = 5 * 60; // 5 minutes (for testing purposes)
 				var calculatedSeconds = 0;
@@ -639,7 +619,6 @@
 					return;
 				}
 
-				// Validate duration range
 				if ( calculatedSeconds < minDurationSeconds || calculatedSeconds > maxDurationSeconds ) {
 					if ( window.console && window.console.error ) {
 						console.error( '[Schedule] Preset duration out of range:', calculatedSeconds );
@@ -651,7 +630,6 @@
 				var startDate, endDate, startTime, endTime, durationSeconds;
 				durationSeconds = calculatedSeconds;
 
-				// Get current schedule type selection
 				var startType = $( 'input[name="start_type"]:checked' ).val();
 
 				// Determine start date based on schedule type and existing values
@@ -692,7 +670,6 @@
 					endDate.setTime( endDate.getTime() + ( preset.duration * 60 * 60 * 1000 ) );
 				}
 
-				// Get end time
 				var existingEndTime = $( '#end_time' ).val();
 				endTime = existingEndTime || this.getDefaultEndTime();
 
@@ -707,15 +684,12 @@
 					durationSeconds: durationSeconds
 				};
 
-				// Update fields
 				this.updateDateTimeFields( dates );
 
-				// Update state
 				if ( this.modules.state && 'function' === typeof this.modules.state.setState ) {
 					this.modules.state.setState( dates );
 				}
 
-				// Update duration display
 				this.updateDurationDisplay();
 
 				// Scroll to schedule configuration section
@@ -741,15 +715,12 @@
 		 * @param dates
 		 */
 		updateDateTimeFields: function( dates ) {
-			// Update hidden date fields
 			if ( dates.startDate !== undefined ) {
 				$( '#start_date' ).val( dates.startDate );
-				// Update display field
 				$( '#start_date_display' ).val( dates.startDate );
 			}
 			if ( dates.endDate !== undefined ) {
 				$( '#end_date' ).val( dates.endDate );
-				// Update display field
 				$( '#end_date_display' ).val( dates.endDate );
 			}
 			if ( dates.startTime !== undefined ) {
@@ -759,7 +730,6 @@
 				$( '#end_time' ).val( dates.endTime );
 			}
 			if ( dates.durationSeconds !== undefined ) {
-				// Create or update hidden field for duration
 				var $durationField = $( 'input[name="duration_seconds"]' );
 				if ( !$durationField.length ) {
 					$( '<input>' ).attr( {
@@ -810,10 +780,8 @@
 				$( '#recurrence_end_date' ).prop( 'disabled', 'on' !== recurrenceEndType );
 			}
 
-			// Update recurrence preview
 			this.updateRecurrencePreview();
 
-			// Update duration display
 			this.updateDurationDisplay();
 		},
 
@@ -861,10 +829,8 @@
 							}
 						}
 
-						// Update the actual date field
 						$( '#' + field + '_date' ).val( dateText );
 						self.handleDateChange( field, dateText );
-						// Update duration display
 						self.updateDurationDisplay();
 					}
 				} );
@@ -952,7 +918,6 @@
 			// Call parent method from mixin - this is the single source of truth
 			var data = SCD.Mixins.StepPersistence.collectData.call( this );
 
-			// Add timezone from global data
 			if ( window.scdWizardData && window.scdWizardData.timezone ) {
 				data.timezone = window.scdWizardData.timezone;
 			}
@@ -1016,10 +981,8 @@
 					durationText = diffHours + ' hour' + ( 1 === diffHours ? '' : 's' );
 				}
 
-				// Update text
 				$durationText.text( durationText );
 
-				// Update hint based on duration
 				var hintText = '';
 				if ( 1 === diffDays ) {
 					hintText = 'Perfect for flash sales';
@@ -1040,7 +1003,6 @@
 					$( '#scd-duration-hint' ).hide();
 				}
 
-				// Show duration display
 				$durationDisplay.show();
 			} catch ( error ) {
 				// Silently fail - don't disrupt user experience
@@ -1121,7 +1083,6 @@
 		var currentDateStr = this.formatDateISO( now );
 		var currentTimeStr = this.formatTimeHHMM( now );
 
-		// Check if start date is in the past
 		if ( startDate < currentDateStr ) {
 			return {
 				valid: false,
@@ -1130,7 +1091,6 @@
 			};
 		}
 
-		// Check if start time is in the past (same day)
 		if ( startDate === currentDateStr && startTime < currentTimeStr ) {
 			return {
 				valid: false,
@@ -1210,7 +1170,6 @@
 		var errors = [];
 		var state = this.modules.state.getState();
 
-		// Validate start (if scheduled)
 		if ( 'scheduled' === state.startType && state.startDate ) {
 			var startValidation = this._validateStartTime( state.startDate, state.startTime || '00:00' );
 			if ( ! startValidation.valid ) {
@@ -1218,7 +1177,6 @@
 			}
 		}
 
-		// Validate end
 		if ( state.endDate ) {
 			var endValidation = this._validateEndTime(
 				state.endDate,
@@ -1231,7 +1189,6 @@
 			}
 		}
 
-		// Show errors
 		if ( errors.length > 0 ) {
 			var self = this;
 			errors.forEach( function( error ) {

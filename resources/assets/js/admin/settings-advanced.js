@@ -45,7 +45,6 @@
 			self.regenerateWebhookSecret();
 		} );
 
-		// Reset advanced settings
 		$( '#reset-advanced-settings' ).on( 'click', function() {
 			self.resetToDefaults();
 		} );
@@ -106,7 +105,6 @@
 		if ( confirm( this.config.strings.confirmReset ) ) {
 			var defaults = this.config.defaults || {};
 
-			// Reset all form fields to defaults
 			$( '#enable_rest_api' ).prop( 'checked', defaults.enable_rest_api );
 			$( '#api_rate_limit' ).val( defaults.api_rate_limit );
 			$( '#api_rate_limit_window' ).val( defaults.api_rate_limit_window );
@@ -134,7 +132,6 @@
 			$( '#enable_backup_restore' ).prop( 'checked', defaults.enable_backup_restore );
 			$( '#backup_frequency' ).val( defaults.backup_frequency );
 
-			// Update conditional fields
 			this.toggleConditionalFields();
 		}
 	};
@@ -159,7 +156,6 @@
 			}
 		} );
 
-		// Create and download JSON file
 		var dataStr = JSON.stringify( settings, null, 2 );
 		var dataBlob = new Blob( [ dataStr ], { type: 'application/json' } );
 		var url = URL.createObjectURL( dataBlob );
@@ -172,7 +168,6 @@
 		URL.revokeObjectURL( url );
 	};
 
-	// Initialize on document ready
 	$( document ).ready( function() {
 		new AdvancedSettingsManager();
 	} );

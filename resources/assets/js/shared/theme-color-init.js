@@ -44,7 +44,6 @@
 	// Wait for DOM ready
 	$( document ).ready( function() {
 
-		// Initialize theme color service
 		if ( window.SCD && window.SCD.Shared && window.SCD.Shared.ThemeColorService ) {
 			window.SCD.Shared.ThemeColorService.init();
 
@@ -125,7 +124,6 @@
 			Chart.defaults.color = colors.dark;
 			Chart.defaults.borderColor = colors.light;
 
-			// Update all active chart instances
 			Object.keys( Chart.instances ).forEach( function( chartId ) {
 				var chart = Chart.instances[chartId];
 				if ( chart && chart.data && chart.data.datasets ) {
@@ -135,7 +133,6 @@
 			} );
 		}
 
-		// Update analytics dashboard colors if present
 		if ( window.scdAnalytics ) {
 			window.scdAnalytics.chart_config = window.scdAnalytics.chart_config || {};
 			window.scdAnalytics.chart_config.colors = {

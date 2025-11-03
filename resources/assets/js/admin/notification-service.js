@@ -113,14 +113,11 @@
 				}
 			}
 
-			// Create notification
 			var notification = this.create( message, type, options );
 
-			// Store duration and start time for pause/resume functionality
 			notification.duration = duration;
 			notification.startedAt = Date.now();
 
-			// Add to container
 			this.addToContainer( notification );
 
 			// Setup auto-hide
@@ -128,7 +125,6 @@
 				this.scheduleHide( notification, duration );
 			}
 
-			// Store reference
 			if ( options.id ) {
 				this.notifications[options.id] = notification;
 			}
@@ -151,19 +147,16 @@
 				.attr( 'role', 'alert' )
 				.attr( 'aria-live', 'polite' );
 
-			// Add icon
 			$( '<span>' )
 				.addClass( 'scd-notification__icon' )
 				.attr( 'aria-hidden', 'true' )
 				.appendTo( $element );
 
-			// Add message - message already escaped in show()
 			$( '<span>' )
 				.addClass( 'scd-notification__message' )
 				.text( message )
 				.appendTo( $element );
 
-			// Add close button
 			var $closeButton = $( '<button>' )
 				.addClass( 'scd-notification__close' )
 				.attr( 'aria-label', 'Close notification' )
@@ -175,7 +168,6 @@
 
 			$closeButton.appendTo( $element );
 
-			// Add icon based on type
 			var iconClass = this.getIconClass( type );
 			if ( iconClass ) {
 				$element.find( '.scd-notification__icon' ).addClass( iconClass );
@@ -210,16 +202,13 @@
 			// FIX Bug #3: Escape message in update
 			message = this.escapeHtml( message );
 
-			// Update message
 			notification.$element.find( '.scd-notification__message' ).text( message );
 
-			// Update type if provided
 			if ( type ) {
 				notification.$element
 					.removeClass( 'scd-notification--info scd-notification--success scd-notification--warning scd-notification--error' )
 					.addClass( 'scd-notification--' + type );
 
-				// Update icon
 				var iconClass = this.getIconClass( type );
 				notification.$element.find( '.scd-notification__icon' )
 					.removeClass()
@@ -245,7 +234,6 @@
 			// CSS animation handles entrance (scdSlideDown - 200ms)
 			// Removed jQuery .hide().fadeIn() to prevent double animation conflict
 
-			// Set focus for accessibility after animation starts
 			setTimeout( function() {
 				notification.$element.attr( 'tabindex', '-1' ).trigger( 'focus' );
 			}, 50 ); // Small delay to prevent focus from interfering with animation
@@ -319,7 +307,6 @@
 				notification.timer = null;
 			}
 
-			// Add fade-out class for CSS animation
 			notification.$element.addClass( 'scd-notification--fade-out' );
 
 			// FIX Bug #4: Track fade timer
@@ -328,7 +315,6 @@
 				notification.$element.off();
 				notification.$element.remove();
 
-				// Remove from tracking
 				for ( var id in self.notifications ) {
 					if ( self.notifications[id] === notification ) {
 						delete self.notifications[id];
@@ -377,13 +363,11 @@
 		 * FIX Bug #5: Add destroy method for cleanup
 		 */
 		destroy: function() {
-			// Remove all notifications
 			this.hideAll();
 
 			// Unbind global events
 			$( document ).off( 'scd:notify scd:wizard:stepChanged scd:session:expired' );
 
-			// Remove window listeners
 			if ( this.onlineHandler ) {
 				window.removeEventListener( 'online', this.onlineHandler );
 				this.onlineHandler = null;
@@ -393,10 +377,8 @@
 				this.offlineHandler = null;
 			}
 
-			// Remove container
 			$( '#' + this.config.containerId ).remove();
 
-			// Reset flags
 			this.initialized = false;
 			this.containerInitialized = false;
 		},
@@ -501,7 +483,6 @@
 				self.show( data.message, data.type, data.duration, data.options );
 			} );
 
-			// Clear notifications and validation errors when wizard step changes
 			// This ensures users get a clean slate when moving between steps
 			$( document ).on( 'scd:wizard:stepChanged', function() {
 				self.hideAll();
@@ -560,7 +541,6 @@
 		}
 	};
 
-	// Initialize on ready
 	$( document ).ready( function() {
 		SCD.Shared.NotificationService.init();
 	} );

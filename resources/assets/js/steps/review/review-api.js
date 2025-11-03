@@ -15,7 +15,6 @@
 
 	// Register module using utility - eliminates boilerplate
 	SCD.Utils.registerModule( 'SCD.Modules.Review', 'API', function() {
-		// Initialize with dependency checks
 		if ( !SCD.Utils.ensureInitialized( this, {
 			'SCD.Ajax': SCD.Ajax,
 			'SCD.ErrorHandler': SCD.ErrorHandler

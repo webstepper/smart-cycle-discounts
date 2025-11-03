@@ -598,7 +598,6 @@
 	AnalyticsDashboard.prototype.updateMetricsCards = function( _metrics ) {
 		// This would update the metrics cards with real data
 		// For now, we'll just log the data
-		// Update metrics cards with data
 	};
 
 	/**
@@ -860,7 +859,6 @@
 			dataType: 'overview'
 		} ).done( function( response ) {
 			if ( response.success ) {
-				// Create download link
 				var link = document.createElement( 'a' );
 				// Server automatically converts snake_case to camelCase
 				link.href = response.data.fileUrl;
@@ -1014,7 +1012,6 @@
 		} ).format( value );
 	};
 
-	// Initialize dashboard when DOM is ready
 	$( document ).ready( function() {
 		new AnalyticsDashboard();
 	} );

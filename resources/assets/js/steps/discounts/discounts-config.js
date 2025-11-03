@@ -283,7 +283,6 @@
 		 * Initialize configuration
 		 */
 		init: function() {
-			// Load user preferences
 			this.loadPreferences();
 			
 			// Apply any server-side configuration
@@ -323,7 +322,6 @@
 		}
 	};
 	
-	// Initialize on document ready
 	$( document ).ready( function() {
 		if ( SCD.Modules.Discounts.Config ) {
 			SCD.Modules.Discounts.Config.init();

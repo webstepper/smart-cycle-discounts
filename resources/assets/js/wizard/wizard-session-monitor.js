@@ -62,15 +62,12 @@
         startMonitoring: function() {
             var self = this;
 
-            // Clear any existing timer
             if (this.timerId) {
                 clearInterval(this.timerId);
             }
 
-            // Check immediately
             this.checkSession();
 
-            // Check every minute
             this.timerId = setInterval(function() {
                 self.checkSession();
             }, this.CHECK_INTERVAL);
@@ -147,7 +144,6 @@
             var message = 'Your session will expire in ' + minutes + ' minute' + (minutes !== 1 ? 's' : '') + '. ';
             message += 'Save your progress to avoid losing data.';
 
-            // Show warning using NotificationService
             if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
                 window.SCD.Shared.NotificationService.warning(
                     'Session Expiration Warning: ' + message,
@@ -192,7 +188,6 @@
                 '</div>'
             ].join('\n');
 
-            // Add modal to page
             $('body').append(modalHTML);
 
             // Bind refresh button
@@ -220,7 +215,6 @@
                     // Session was extended by save, reset warning
                     self.warningShown = false;
 
-                    // Remove any existing warning notice
                     $('.scd-session-warning').fadeOut(function() {
                         $(this).remove();
                     });
@@ -235,7 +229,6 @@
         }
     };
 
-    // Initialize on document ready
     $(document).ready(function() {
         // Only initialize on wizard pages
         if ($('.scd-wizard-container').length > 0) {

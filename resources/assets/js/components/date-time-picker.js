@@ -41,16 +41,13 @@
 				return;
 			}
 
-			// Store callbacks
 			this.state.callbacks = {
 				onDateChange: options.onDateChange || function() {},
 				onTimeChange: options.onTimeChange || function() {}
 			};
 
-			// Get config reference
 			this.state.config = SCD.ModuleLoader['schedule-config'];
 
-			// Initialize date pickers if elements provided
 			if ( options.startDate ) {
 				this.initDatePicker( options.startDate, 'start' );
 			}
@@ -76,7 +73,6 @@
 			var self = this;
 			var pickerId = $element.attr( 'id' ) || 'picker-' + type;
 
-			// Store picker reference
 			this.state.pickers[pickerId] = {
 				element: $element,
 				type: type,
@@ -89,7 +85,6 @@
 				self.showCalendarPicker( $( this ), type );
 			} );
 
-			// Add calendar button if not present
 			if ( !$element.next( '.scd-calendar-icon' ).length ) {
 				var buttonLabel = 'start' === type ?
 					wp.i18n.__( 'Choose start date', 'smart-cycle-discounts' ) :
@@ -141,13 +136,11 @@
 		showFlatpickr: function( $element, type ) {
 			var self = this;
 
-			// Check if already initialized
 			if ( $element[0]._flatpickr ) {
 				$element[0]._flatpickr.open();
 				return;
 			}
 
-			// Get min/max dates
 			var constraints = this.getDateConstraints( type );
 
 			// Initialize Flatpickr
@@ -162,14 +155,12 @@
 					self.handleDateSelect( type, selectedDates[0] );
 				},
 				onReady: function( selectedDates, dateStr, instance ) {
-					// Add accessibility attributes to the input
 					var ariaLabel = 'start' === type ?
 						wp.i18n.__( 'Start date', 'smart-cycle-discounts' ) :
 						wp.i18n.__( 'End date', 'smart-cycle-discounts' );
 					instance.altInput.setAttribute( 'aria-label', ariaLabel );
 					instance.altInput.setAttribute( 'aria-describedby', type + '_date_format_hint' );
 
-					// Create format hint
 					var hint = document.createElement( 'span' );
 					hint.id = type + '_date_format_hint';
 					hint.className = 'screen-reader-text';
@@ -190,7 +181,6 @@
 		showNativePicker: function( $element, type ) {
 			var self = this;
 
-			// Create a hidden input for native picker
 			var hiddenId = $element.attr( 'id' ) + '-native';
 			var $hidden = $( '#' + hiddenId );
 
@@ -198,7 +188,6 @@
 				$hidden = $( '<input type="date" id="' + hiddenId + '" class="scd-hidden-date-input">' );
 				$element.after( $hidden );
 
-				// Set constraints
 				var constraints = this.getDateConstraints( type );
 				if ( constraints.minDate ) {
 					$hidden.attr( 'min', this.formatDateForInput( constraints.minDate ) );
@@ -229,13 +218,11 @@
 		showTimePicker: function( $element, type ) {
 			var self = this;
 
-			// Store trigger element for focus return
 			this.state.lastTriggerElement = $element;
 
 			// Close any existing pickers
 			this.closeTimePicker();
 
-			// Create picker dropdown
 			var $picker = this.createTimePicker( type );
 
 			// Position picker
@@ -284,11 +271,9 @@
 				'aria-describedby': pickerId + '-desc'
 			} );
 
-			// Add description
 			var description = wp.i18n.__( 'Use arrow keys to navigate options. Press Enter to select.', 'smart-cycle-discounts' );
 			$picker.append( '<div id="' + pickerId + '-desc" class="screen-reader-text">' + description + '</div>' );
 
-			// Add common times
 			var $commonTimes = $( '<div class="scd-time-picker-common" role="group"></div>' );
 			$commonTimes.attr( 'aria-label', wp.i18n.__( 'Common times', 'smart-cycle-discounts' ) );
 			var commonTimes = [
@@ -323,14 +308,12 @@
 			$commonTimes.attr( 'aria-labelledby', pickerId + '-common' );
 			$picker.append( $commonTimes );
 
-			// Add custom time selector
 			var $custom = this.createCustomTimeSelector( type );
 			$picker.append( '<h3 class="scd-time-picker-header" id="' + pickerId + '-custom">' +
                 wp.i18n.__( 'Custom Time', 'smart-cycle-discounts' ) + '</h3>' );
 			$custom.attr( 'aria-labelledby', pickerId + '-custom' );
 			$picker.append( $custom );
 
-			// Add close button
 			var $closeBtn = $( '<button type="button" class="scd-time-picker-close" aria-label="' +
                 wp.i18n.__( 'Close time picker', 'smart-cycle-discounts' ) + '">&times;</button>' );
 			var closeBtnSelf = this;
@@ -413,7 +396,6 @@
 					return;
 			}
 
-			// Update focus and tabindex
 			$options.attr( 'tabindex', '-1' );
 			$options.eq( newIndex ).attr( 'tabindex', '0' ).focus();
 		},
@@ -458,7 +440,6 @@
 				self.closeTimePicker();
 			} );
 
-			// Add keyboard handler for Enter key on selects
 			$custom.find( 'select' ).on( 'keydown', function( e ) {
 				if ( 'Enter' === e.key ) {
 					$applyBtn.click();
@@ -533,11 +514,9 @@
 			// Format date for hidden input
 			var dateValue = this.formatDateForInput( date );
 
-			// Update hidden field
 			var $hiddenField = $( '#' + type + '_date' );
 			$hiddenField.val( dateValue );
 
-			// Update display field
 			var $displayField = $( '#' + type + '_date_display' );
 			$displayField.val( this.formatDateForDisplay( date ) );
 			$displayField.data( 'date-value', dateValue );
@@ -555,7 +534,6 @@
 		 * @param {string} time Selected time
 		 */
 		handleTimeSelect: function( type, time ) {
-			// Update display field
 			var $displayField = $( '#' + type + '_time_display' );
 			$displayField.val( time );
 
@@ -647,7 +625,6 @@
 				}
 			}
 
-			// Update the display
 			if ( $displayElement && $displayElement.length ) {
 				$displayElement.val( displayDate );
 
@@ -656,7 +633,6 @@
 					$displayElement[0]._flatpickr.setDate( date, false );
 				}
 
-				// Update jQuery UI datepicker if initialized
 				if ( $displayElement.hasClass( 'hasDatepicker' ) ) {
 					$displayElement.datepicker( 'setDate', date );
 				}
@@ -718,7 +694,6 @@
 		 * Destroy module
 		 */
 		destroy: function() {
-			// Remove event handlers
 			$( document ).off( '.datepicker' );
 			$( document ).off( 'click.timepicker' );
 
@@ -738,7 +713,6 @@
 						$element.datepicker( 'destroy' );
 					}
 
-					// Remove event handlers
 					$element.off( '.datepicker' );
 				}
 			}
@@ -746,7 +720,6 @@
 			// Close any open pickers
 			this.closeTimePicker();
 
-			// Reset state
 			this.state = {
 				isInitialized: false,
 				pickers: {},

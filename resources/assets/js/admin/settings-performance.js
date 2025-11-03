@@ -34,7 +34,6 @@
 	PerformanceSettingsManager.prototype.bindEvents = function() {
 		var self = this;
 
-		// Clear cache button
 		$( '#scd-clear-cache-btn' ).on( 'click', function( e ) {
 			e.preventDefault();
 			self.clearCache();
@@ -78,10 +77,8 @@
 					$status.html( '<span style="color: #00a32a;"><span class="dashicons dashicons-yes-alt"></span> ' +
 						( response.data.message || 'Cache cleared successfully!' ) + '</span>' );
 
-					// Update cached entries count to 0
 					$( '#scd-cached-entries-count' ).html( '0 items' );
 
-					// Clear status after 3 seconds
 					setTimeout( function() {
 						$status.html( '' );
 					}, 3000 );
@@ -119,7 +116,6 @@
 		} );
 	};
 
-	// Initialize on document ready
 	$( document ).ready( function() {
 		new PerformanceSettingsManager();
 	} );

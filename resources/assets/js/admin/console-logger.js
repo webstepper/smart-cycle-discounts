@@ -13,7 +13,6 @@
 ( function() {
 	'use strict';
 
-	// Store original console methods
 	var originalLog = console.log;
 	var originalWarn = console.warn;
 	var originalError = console.error;

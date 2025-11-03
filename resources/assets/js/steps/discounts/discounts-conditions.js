@@ -181,13 +181,11 @@
 		setupEventHandlers: function() {
 			var self = this;
 
-			// Add condition button
 			$( document ).on( 'click.conditions', '.scd-add-condition', function( e ) {
 				e.preventDefault();
 				self.addCondition();
 			} );
 
-			// Remove condition button
 			$( document ).on( 'click.conditions', '.scd-remove-condition', function( e ) {
 				e.preventDefault();
 				var id = $( this ).data( 'condition-id' );
@@ -272,7 +270,6 @@
 
 			$container.html( html );
 
-			// Update add button state
 			var $addButton = $( '.scd-add-condition' );
 			if ( conditions.length >= this.maxConditions ) {
 				$addButton.prop( 'disabled', true ).text( 'Maximum conditions reached' );
@@ -280,7 +277,6 @@
 				$addButton.prop( 'disabled', false ).text( 'Add Condition' );
 			}
 
-			// Update logic selector
 			var logic = this.state.getState( 'conditionLogic' ) || 'all';
 			$( '[name="condition_logic"][value="' + logic + '"]' ).prop( 'checked', true );
 
@@ -532,7 +528,6 @@
 			var typeConfig = this.conditionTypes[newType];
 			if ( !typeConfig ) {return;}
 
-			// Update condition with new type and default operator
 			this.updateCondition( id, {
 				type: newType,
 				operator: typeConfig.operators[0],
@@ -567,7 +562,6 @@
 		 * Get user roles from WordPress
 		 */
 		getUserRoles: function() {
-			// Get from localized data or use defaults
 			var roles = window.scdDiscountStepData && window.scdDiscountStepData.userRoles || [
 				{ value: 'subscriber', label: 'Subscriber' },
 				{ value: 'customer', label: 'Customer' },
@@ -602,12 +596,10 @@
 					return;
 				}
 
-				// Validate value
 				if ( typeConfig.validate && !typeConfig.validate( condition.value ) ) {
 					errors['condition_' + index + '_value'] = 'Invalid value for ' + typeConfig.label;
 				}
 
-				// Check for empty values
 				if ( !condition.value ||
                     ( Array.isArray( condition.value ) && 0 === condition.value.length ) ||
                     ( 'string' === typeof condition.value && '' === condition.value.trim() ) ) {
@@ -615,7 +607,6 @@
 				}
 			} );
 
-			// Check for conflicting conditions
 			var productIncludes = conditions.filter( function( c ) { return 'product' === c.type && 'in_list' === c.operator; } );
 			var productExcludes = conditions.filter( function( c ) { return 'product' === c.type && 'not_in_list' === c.operator; } );
 

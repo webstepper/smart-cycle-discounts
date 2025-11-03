@@ -13,15 +13,12 @@
 ( function() {
 	'use strict';
 
-	// Check if wp.i18n already exists
 	if ( 'undefined' !== typeof wp && 'undefined' !== typeof wp.i18n ) {
 		return;
 	}
 
-	// Create wp namespace if it doesn't exist
 	window.wp = window.wp || {};
 
-	// Create basic i18n implementation
 	window.wp.i18n = {
 		/**
 		 * Translate string

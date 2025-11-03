@@ -108,7 +108,6 @@
 			this.renderImpact( data.coverage || {} );
 			this.renderStockRisk( data.stockRisk || {} );
 
-			// Update launch button state based on isReady
 			this.updateLaunchButton( data.isReady );
 		},
 
@@ -122,7 +121,6 @@
 			var percentage = data.percentage || 0;
 			var status = data.status || 'poor';
 
-			// Check for CRITICAL priority recommendations
 			var hasCritical = false;
 			if ( data.recommendations && data.recommendations.length > 0 ) {
 				for ( var i = 0; i < data.recommendations.length; i++ ) {
@@ -136,25 +134,21 @@
 			// Determine display status (critical overrides score-based status)
 			var displayStatus = hasCritical ? 'critical' : status;
 
-			// Update score number with color
 			$( '.scd-score-number' )
 				.text( score )
 				.removeClass( 'excellent good fair poor critical' )
 				.addClass( displayStatus );
 
-			// Update subtitle with color
 			var subtitle = this.getStatusText( status, data.isReady, hasCritical );
 			$( '.scd-health-score-subtitle' )
 				.text( subtitle )
 				.removeClass( 'excellent good fair poor critical' )
 				.addClass( displayStatus );
 
-			// Update card border color
 			$( '.scd-health-score-card' )
 				.removeClass( 'excellent good fair poor critical' )
 				.addClass( displayStatus );
 
-			// Update progress bar
 			$( '.scd-health-score-fill' )
 				.css( 'width', percentage + '%' )
 				.removeClass( 'excellent good fair poor critical' )
@@ -201,7 +195,6 @@
 		renderHealthFactors: function( criticalIssues ) {
 			var $container = $( '#scd-health-factors' );
 
-			// Show container if there are any issues
 			if ( criticalIssues && criticalIssues.length > 0 ) {
 				this.renderCriticalIssues( criticalIssues );
 				$container.show();
@@ -286,12 +279,10 @@
 			var coveragePercentage = coverage.coveragePercentage || 0;
 			var totalStoreProducts = coverage.totalStoreProducts || productsMatched;
 
-			// Update text values
 			$( '[data-metric="products_matched"]' ).text( productsMatched );
 			$( '[data-metric="products_discounted"]' ).text( productsDiscounted );
 			$( '[data-metric="coverage_percentage"]' ).text( coveragePercentage + '%' );
 
-			// Add progress bars with details
 			this.addProgressBar( 'products_matched', productsMatched, totalStoreProducts, 'of ' + totalStoreProducts + ' in store' );
 			this.addProgressBar( 'products_discounted', productsDiscounted, productsMatched, 'of ' + productsMatched + ' matched' );
 			this.addProgressBar( 'coverage_percentage', coveragePercentage, 100, '' );
@@ -308,7 +299,6 @@
 
 					var $item = $( '<div class="scd-exclusion-item"></div>' );
 
-					// Add icon based on reason
 					var icon = this.getExclusionIcon( exclusion.reason );
 					var label = $( '<span class="scd-exclusion-label"></span>' );
 					if ( icon ) {
@@ -323,7 +313,6 @@
 					$list.append( $item );
 				}
 
-				// Update header with total count
 				$( '#scd-exclusions h4' ).html( 'Excluded Products (' + totalExcluded + ')' );
 				$( '#scd-exclusions' ).show();
 			} else {
@@ -342,7 +331,6 @@
 		addProgressBar: function( metric, value, max, detail ) {
 			var $container = $( '[data-metric="' + metric + '"]' ).closest( '.scd-impact-item' );
 
-			// Remove existing progress bar and detail if any
 			$container.find( '.scd-progress-bar-container' ).remove();
 			$container.find( '.scd-impact-detail' ).remove();
 
@@ -363,14 +351,12 @@
 				}
 			}
 
-			// Add progress bar
 			var $progressContainer = $( '<div class="scd-progress-bar-container"></div>' );
 			var $progressBar = $( '<div class="scd-progress-bar ' + colorClass + '"></div>' );
 			$progressBar.css( 'width', percentage + '%' );
 			$progressContainer.append( $progressBar );
 			$container.append( $progressContainer );
 
-			// Add detail text
 			if ( detail ) {
 				var $detail = $( '<div class="scd-impact-detail">' + detail + '</div>' );
 				$container.append( $detail );
@@ -401,10 +387,8 @@
 		 * @param {Object} stockRisk Stock risk data
 		 */
 		renderStockRisk: function( stockRisk ) {
-			// Check if stock risk section exists
 			var $section = $( '#scd-stock-risk' );
 			if ( 0 === $section.length ) {
-				// Create stock risk section if it doesn't exist
 				$section = $( '<div id="scd-stock-risk" class="scd-stock-risk-section" style="display: none;"></div>' );
 				$section.insertAfter( '.scd-impact-analysis' );
 			}
@@ -494,7 +478,6 @@
 
 			$container.empty();
 
-			// Load dismissed and applied recommendations
 			var dismissedIds = this.getDismissedRecommendations();
 			var appliedIds = this.getAppliedRecommendations();
 
@@ -506,7 +489,6 @@
 				}
 			}
 
-			// Add counter header
 			this.renderRecommendationCounter( activeRecommendations.length, appliedIds.length, dismissedIds.length );
 
 			// Group by category
@@ -605,7 +587,6 @@
 		renderRecommendationItem: function( item ) {
 			var $item = $( '<div class="scd-recommendation-item" data-id="' + item.id + '"></div>' );
 
-			// Add priority class for color coding
 			if ( item.priority ) {
 				$item.addClass( 'priority-' + item.priority );
 			}
@@ -728,7 +709,6 @@
 			var $btn = $item.find( '.scd-apply-btn' );
 			var originalBtnText = $btn.text();
 
-			// Show loading state
 			$btn.prop( 'disabled', true ).html( '<span class="dashicons dashicons-update-alt" style="animation: scd-spin 1s infinite linear;"></span> Applying...' );
 
 			// Send AJAX request (via AjaxService to prevent rate limiting)
@@ -741,14 +721,11 @@
 						// Track as applied
 						this.markRecommendationApplied( item.id );
 
-						// Show success state on button
 						$btn.html( '<span class="dashicons dashicons-yes"></span> Applied!' ).css( 'background', '#00a32a' );
 
-						// Create descriptive success message
 						var successMessage = this.getApplySuccessMessage( item, response );
 						if ( SCD.Shared && SCD.Shared.NotificationService ) { SCD.Shared.NotificationService.success( successMessage ); }
 
-						// Add success styling to card
 						$item.css( {
 							'border-left': '4px solid #00a32a',
 							'background': '#f0f6fc'
@@ -775,7 +752,6 @@
 						}.bind( this ), 800 );
 
 					} else {
-						// Show error state (keep disabled)
 						$btn.html( '<span class="dashicons dashicons-warning"></span> Failed' )
 							.css( 'background', '#d63638' );
 
@@ -791,7 +767,6 @@
 						}, 2000 );
 					}
 				}.bind( this ) ).catch( function( error ) {
-					// Show error state (keep disabled)
 					$btn.html( '<span class="dashicons dashicons-warning"></span> Error' )
 						.css( 'background', '#d63638' );
 
@@ -820,7 +795,6 @@
 			var actionType = item.action.type;
 			var data = response.data || {};
 
-			// Create contextual messages based on action type
 			switch ( actionType ) {
 				case 'change_discount_type':
 					var discountType = data.discountType;
@@ -962,10 +936,8 @@
 			return;
 		}
 
-		// Create modal content
 		var modalContent = this.createDismissedRecommendationsModal( dismissed );
 
-		// Show modal
 		this.showModal( 'Dismissed Recommendations', modalContent );
 		},
 
@@ -1104,7 +1076,6 @@
 					.attr( 'aria-disabled', 'false' )
 					.removeAttr( 'title' );
 
-				// Remove disabled styling
 				$launchButton.css( {
 					'opacity': '',
 					'cursor': '',
@@ -1167,7 +1138,6 @@
 		}
 	};
 
-	// Initialize when document is ready
 	$( document ).ready( function() {
 		ReviewHealthCheck.init();
 	} );

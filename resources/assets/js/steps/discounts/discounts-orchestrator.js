@@ -38,10 +38,8 @@
 		init: function( wizard, config ) {
 			var self = this;
 
-			// Initialize custom properties
 			this.complexFieldHandlers = {};
 
-			// Initialize modules
 			this.initializeModules();
 
 			// Initialize UI components
@@ -190,7 +188,6 @@
 			// Discount value changes
 			this.bindDelegatedEvent( document, '#discount_value_percentage, #discount_value_fixed', 'input change', function() {
 				var $field = $( this );
-				// Clear error using ValidationError component
 				if ( window.SCD && window.SCD.ValidationError ) {
 					window.SCD.ValidationError.clear( $field );
 				}
@@ -199,7 +196,6 @@
 
 			// BOGO fields
 			this.bindDelegatedEvent( document, '#bogo_buy_quantity, #bogo_get_quantity, #bogo_discount', 'input change', function() {
-				// Clear error for bogo_config using ValidationError component
 				var $bogoField = $( '[name="bogo_config"]' );
 				if ( $bogoField.length && window.SCD && window.SCD.ValidationError ) {
 					window.SCD.ValidationError.clear( $bogoField );
@@ -210,7 +206,6 @@
 			// Tier management
 			this.bindDelegatedEvent( document, '.scd-add-tier', 'click', function( e ) {
 				e.preventDefault();
-				// Clear error for tiers using ValidationError component
 				var $tiersField = $( '[name="tiers"]' );
 				if ( $tiersField.length && window.SCD && window.SCD.ValidationError ) {
 					window.SCD.ValidationError.clear( $tiersField );
@@ -221,7 +216,6 @@
 			// Threshold management
 			this.bindDelegatedEvent( document, '.scd-add-threshold', 'click', function( e ) {
 				e.preventDefault();
-				// Clear error for thresholds using ValidationError component
 				var $thresholdsField = $( '[name="thresholds"]' );
 				if ( $thresholdsField.length && window.SCD && window.SCD.ValidationError ) {
 					window.SCD.ValidationError.clear( $thresholdsField );
@@ -265,7 +259,6 @@
 			// Listen for field change events from modules (single source of truth)
 			this.bindCustomEvent( 'scd:discounts:field:changed', function( event, data ) {
 				if ( data && data.field && data.value !== undefined ) {
-					// Update state through orchestrator
 					if ( self.modules.state ) {
 						self.modules.state.setData( data.field, data.value );
 					}
@@ -277,10 +270,8 @@
 		 * Initialize UI components
 		 */
 		initializeUI: function() {
-			// Initialize collapsible sections
 			this.initializeCollapsibles();
 
-			// Set initial discount type UI
 			var currentType = this.getDiscountType();
 			if ( currentType ) {
 				this.updateDiscountTypeUI( currentType );
@@ -303,9 +294,7 @@
 			// Discount type
 			var discountType = this.getPropertyValue( data, [ 'discountType' ] );
 			if ( discountType ) {
-				// Update field value directly using jQuery
 				$( '#discount_type' ).val( discountType );
-				// Clear all selections first, then select the correct one
 				$( '.scd-discount-type-card' ).removeClass( 'selected' );
 				$( '.scd-discount-type-card[data-type="' + discountType + '"]' ).addClass( 'selected' );
 
@@ -317,7 +306,6 @@
 					this.modules.typeRegistry.activateType( discountType );
 				}
 			} else {
-				// Initialize with default discount type if no saved data
 				if ( this.modules.state ) {
 					var currentType = this.getDiscountType();
 					if ( currentType ) {
@@ -334,9 +322,7 @@
 		handleDiscountTypeSelect: function( $card ) {
 			var discountType = $card.data( 'type' );
 
-			// Check if card is locked (PRO feature)
 			if ( $card.data( 'locked' ) === true || $card.attr( 'data-locked' ) === 'true' || $card.hasClass( 'scd-discount-type-card--locked' ) ) {
-				// Show overlay for locked PRO type but don't allow actual selection
 				var $detailsContainer = $( '#scd-discount-details-container' );
 				if ( $detailsContainer.length ) {
 					$detailsContainer.addClass( 'scd-pro-container--locked' );
@@ -345,17 +331,14 @@
 				return;
 			}
 
-			// Clear any errors
 			this.clearFieldError( 'discount_type' );
 
 			// Update UI
 			$( '.scd-discount-type-card' ).removeClass( 'selected' );
 			$card.addClass( 'selected' );
 
-			// Update field value directly using jQuery
 			$( '#discount_type' ).val( discountType ).trigger( 'change' );
 
-			// Update state
 			if ( this.modules.state ) {
 				this.modules.state.setState( { discountType: discountType } );
 			}
@@ -375,20 +358,16 @@
 		 * @param discountType
 		 */
 		updateDiscountTypeUI: function( discountType ) {
-			// Hide all strategy options using CSS class (not inline styles)
 			$( '.scd-strategy-options' ).removeClass( 'active' );
 
-			// Show selected strategy using CSS class (not inline styles)
 			if ( discountType ) {
 				$( '.scd-strategy-' + discountType ).addClass( 'active' );
 				$( '#discount-value-card' ).show();
 				$( '#discount-rules-card' ).removeClass( 'scd-hidden' ).show();
-				// Update field value directly using jQuery
 				$( '#discount_type' ).val( discountType );
 				$( '.scd-discount-type-card' ).removeClass( 'selected' );
 				$( '.scd-discount-type-card[data-type="' + discountType + '"]' ).addClass( 'selected' );
 
-				// Update discount details container for PRO types
 				// Only lock if the discount type card itself is locked (free user trying to use PRO type)
 				var proTypes = [ 'tiered', 'bogo', 'spend_threshold' ];
 				var $detailsContainer = $( '#scd-discount-details-container' );
@@ -418,13 +397,10 @@
 			var fieldName = $field.attr( 'name' );
 			var value = parseFloat( $field.val() ) || 0;
 
-			// Update state configuration - state module handles value synchronization
 			if ( this.modules.state ) {
-				// Update the config only - state._updateDiscountValue() will handle discountValue
 				this.modules.state.updateCurrentConfig( { value: value } );
 			}
 
-			// Validate field using real-time validation
 			if ( $field.length ) {
 				this.validateFieldRealTime( $field );
 			}
@@ -511,13 +487,11 @@
 				}
 			}
 
-			// Check for currently selected discount type card
 			var $selectedCard = $( '.scd-discount-type-card.selected' );
 			if ( $selectedCard.length ) {
 				return $selectedCard.data( 'type' );
 			}
 
-			// Check hidden field
 			var hiddenValue = $( '#discount_type' ).val();
 			if ( hiddenValue ) {
 				return hiddenValue;
@@ -625,7 +599,6 @@
 				this.modules = {};
 			}
 
-			// Remove tooltip handlers
 			if ( this.$container ) {
 				this.$container.find( '[data-tooltip]' ).off( '.scd-tooltip' );
 			}
@@ -635,7 +608,6 @@
 				this.unbindAllEvents();
 			}
 
-			// Clear references
 			this.$container = null;
 			this.initialized = false;
 

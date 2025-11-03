@@ -120,22 +120,18 @@
 		 * @param {Object} data Dashboard data
 		 */
 		updateDashboard: function( data ) {
-			// Update hero stats
 			if ( data.metrics ) {
 				this.updateHeroStats( data.metrics );
 			}
 
-			// Update campaign status summary
 			if ( data.campaign_stats ) {
 				this.updateCampaignStats( data.campaign_stats );
 			}
 
-			// Update top campaigns table
 			if ( data.top_campaigns ) {
 				this.updateTopCampaigns( data.top_campaigns );
 			}
 
-			// Show success notification
 			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
 				SCD.Shared.NotificationService.success( 'Dashboard updated successfully' );
 			}
@@ -148,17 +144,14 @@
 		 * @param {Object} metrics Metrics data
 		 */
 		updateHeroStats: function( metrics ) {
-			// Update revenue (use .html() to support potential HTML formatting)
 			if ( metrics.revenue !== undefined ) {
 				$( '#scd-stat-revenue' ).html( this.formatCurrency( metrics.revenue ) );
 			}
 
-			// Update active campaigns
 			if ( metrics.active !== undefined ) {
 				$( '#scd-stat-active-campaigns' ).text( metrics.active );
 			}
 
-			// Update conversions
 			if ( metrics.conversions !== undefined ) {
 				$( '#scd-stat-conversions' ).text( this.formatNumber( metrics.conversions ) );
 			}
@@ -177,13 +170,11 @@
 		 * @param {Object} stats Campaign status counts
 		 */
 		updateCampaignStats: function( stats ) {
-			// Update status counts in badges
 			var statuses = [ 'active', 'scheduled', 'paused', 'draft' ];
 
 			for ( var i = 0; i < statuses.length; i++ ) {
 				var status = statuses[i];
 				if ( stats[status] !== undefined ) {
-					// Update count in status badge
 					$( '.scd-status-badge.scd-status-' + status ).each( function() {
 						var $badge = $( this );
 						var currentText = $badge.text();
@@ -194,7 +185,6 @@
 				}
 			}
 
-			// Update total count
 			if ( stats.total !== undefined ) {
 				$( '.scd-status-total strong' ).next().text( stats.total );
 			}
@@ -213,7 +203,6 @@
 				return;
 			}
 
-			// Clear and rebuild table
 			$tbody.empty();
 
 			for ( var i = 0; i < campaigns.length; i++ ) {
@@ -360,7 +349,6 @@
 		}
 	};
 
-	// Initialize on document ready
 	$( document ).ready( function() {
 		// Only initialize if we're on the main dashboard page
 		if ( $( '.scd-main-dashboard' ).length > 0 ) {

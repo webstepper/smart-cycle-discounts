@@ -107,7 +107,6 @@
 
 		sessionStorage.removeItem( 'scd_wizard_state' );
 
-		// Clear any other SCD-related sessionStorage items
 		var keysToRemove = [];
 		for ( var i = 0; i < sessionStorage.length; i++ ) {
 			var key = sessionStorage.key( i );
@@ -131,7 +130,6 @@
 
 		this.config.nonce = window.scdWizardData.nonce || window.scdWizardData.wizard_nonce;
 
-		// Initialize state manager with data
 		if ( !  this.modules.stateManager ) {
 			return;
 		}
@@ -141,16 +139,13 @@
 			nonce: this.config.nonce
 		};
 
-		// Load completed steps if available
 		if ( window.scdWizardData.current_campaign && window.scdWizardData.current_campaign.completedSteps ) {
 			initData.completedSteps = window.scdWizardData.current_campaign.completedSteps;
 		}
 
-		// Check if we're in edit mode (URL has intent=edit or id parameter)
 		var urlParams = new URLSearchParams( window.location.search );
 		var isEditMode = urlParams.get( 'intent' ) === 'edit' || ( urlParams.get( 'id' ) && urlParams.get( 'intent' ) !== 'new' );
 
-		// Load step data from current campaign
 		// PHP uses snake_case (current_campaign) which gets auto-converted to camelCase (currentCampaign)
 		var currentCampaign = window.scdWizardData.currentCampaign || window.scdWizardData.current_campaign;
 
@@ -182,9 +177,7 @@
 				initData.stepData.review = $.extend( true, {}, currentCampaign.review );
 			}
 
-			// Load campaign ID ONLY if in edit mode
 			if ( isEditMode ) {
-				// Get campaign ID from currentCampaign or URL parameter
 				var campaignId = currentCampaign.campaignId || urlParams.get( 'id' );
 				if ( campaignId ) {
 					initData.campaignId = parseInt( campaignId, 10 );
@@ -218,7 +211,6 @@
 			return;
 		}
 
-		// Initialize lifecycle manager
 		if ( 'function' === typeof this.modules.lifecycleManager.init ) {
 			this.modules.lifecycleManager.init();
 		}
@@ -239,7 +231,6 @@
 	WizardOrchestrator.prototype.onInit = function() {
 		var self = this;
 
-		// Check if we're starting a new campaign
 		var urlParams = new URLSearchParams( window.location.search );
 		var intent = urlParams.get( 'intent' );
 
@@ -247,22 +238,17 @@
 		if ( 'new' === intent ) {
 			this.clearSessionStorage();
 
-			// Reset state manager to default state
 			if ( this.modules.stateManager ) {
 				this.modules.stateManager.reset( { keepStorage: false } );
 			}
 		}
 
-		// Initialize state from window data
 		this.initializeStateFromWindowData();
 
-		// Initialize and register lifecycle manager
 		this.initializeLifecycleManager();
 
-		// Initialize current step
 		this.loadCurrentStep()
 			.then( function() {
-				// Set lifecycle to ready
 				if ( self.modules.lifecycleManager ) {
 					self.modules.lifecycleManager.setPhase( 'ready' );
 				}
@@ -415,14 +401,12 @@
 			stepName = 'basic'; // Default to basic step
 		}
 
-		// Check if step orchestrator already loaded
 		if ( this.stepOrchestrators[stepName] ) {
 			this.initializeWizardStep( stepName );
 			deferred.resolve();
 			return deferred.promise();
 		}
 
-		// Check if step is available in registry
 		if ( !  ( window.SCD && window.SCD.Steps ) ) {
 			deferred.resolve();
 			return deferred.promise();
@@ -502,13 +486,11 @@
 		var self = this;
 		var deferred = $.Deferred();
 
-		// Check if module loader exists and if the step loader is registered
 		var hasModuleLoader = window.SCD && window.SCD.ModuleLoader && window.SCD.ModuleLoader.isLoaded;
 		var hasStepLoader = hasModuleLoader && window.SCD.ModuleLoader.isLoaded( stepName + '-loader' );
 
 		if ( hasStepLoader ) {
 			window.SCD.ModuleLoader.load( stepName + '-loader', function() {
-				// Check if loaded and create instance
 				if ( !  self.createStepInstanceFromFactory( stepName, deferred ) ) {
 					deferred.reject( new Error( 'Step not found after loading' ) );
 				}
@@ -536,7 +518,6 @@
 		if ( this.modules.stateManager ) {
 			var state = this.modules.stateManager.get();
 
-			// Check if we're in edit mode
 			var isEditMode = state && ( state.wizardMode === 'edit' || state.campaignId );
 
 			if ( state && state.stepData && state.stepData[stepName] ) {
@@ -552,7 +533,6 @@
 				// In create mode: Only return if data is non-empty
 				var hasData = false;
 				if ( 'object' === typeof state.stepData[stepName] ) {
-					// Check if object has any own properties
 					for ( var key in state.stepData[stepName] ) {
 						if ( Object.prototype.hasOwnProperty.call( state.stepData[stepName], key ) ) {
 							hasData = true;
@@ -604,7 +584,6 @@
 	 * @param stepName
 	 */
 	WizardOrchestrator.prototype.initializeWizardStep = function( stepName ) {
-		// Validate stepName
 		if ( !  stepName || 'string' !== typeof stepName ) {
 			return;
 		}
@@ -639,20 +618,16 @@
 	 * @param stepName
 	 */
 	WizardOrchestrator.prototype.updateStepUI = function( stepName ) {
-		// Update old navigation structure (if it exists)
 		$( '.scd-wizard-navigation .step' ).removeClass( 'active' );
 		$( '.scd-wizard-navigation .step[data-step="' + stepName + '"]' ).addClass( 'active' );
 
-		// Update new progress step indicators
 		// Only remove 'active' class, preserve 'completed' class
 		$( '.scd-wizard-steps li' ).removeClass( 'active' );
 		$( '.scd-wizard-steps li[data-step-name="' + stepName + '"]' ).addClass( 'active' );
 
-		// Update content
 		$( '.scd-wizard-step' ).removeClass( 'active' );
 		$( '#scd-step-' + stepName ).addClass( 'active' );
 
-		// Update progress
 		var currentIndex = this.config.steps.indexOf( stepName );
 		var progress = ( ( currentIndex + 1 ) / this.config.steps.length ) * 100;
 
@@ -694,7 +669,6 @@
 				this.modules.navigationService.navigateToStep( targetStep );
 			}
 
-			// Reset flag after navigation completes
 			var self = this;
 			setTimeout( function() {
 				self.isInternalNavigation = false;
@@ -713,7 +687,6 @@
 		var state = this.modules.stateManager ? this.modules.stateManager.get() : null;
 		var isEditMode = state && ( state.wizardMode === 'edit' || state.campaignId );
 
-		// Update state with completion data
 		if ( this.modules.stateManager ) {
 			this.modules.stateManager.set( {
 				isProcessing: false,
@@ -758,7 +731,6 @@
 	 * Extracted to reduce cognitive complexity
 	 */
 	WizardOrchestrator.prototype.handleCompletionError = function( error ) {
-		// Clear processing state on error
 		if ( this.modules.stateManager ) {
 			this.modules.stateManager.set( {
 				isProcessing: false,
@@ -767,7 +739,6 @@
 			} );
 		}
 
-		// Get error message
 		var errorMessage = error.message || error.error || 'An error occurred while creating the campaign.';
 
 		// Emit error event for modal
@@ -790,7 +761,6 @@
 			saveAsDraft: saveAsDraft || false
 		};
 
-		// Check if saving active campaign as draft (requires confirmation)
 		if ( saveAsDraft && this.modules.stateManager ) {
 			var state = this.modules.stateManager.get();
 			var isEditMode = state && ( state.wizardMode === 'edit' || state.campaignId );
@@ -835,7 +805,6 @@
 				// Emit completing event for modal to show loading state
 				$( document ).trigger( 'scd:wizard:completing' );
 
-				// Set processing state
 				if ( self.modules.stateManager ) {
 					self.modules.stateManager.set( {
 						isProcessing: true,
@@ -860,7 +829,6 @@
 	 * Retry completion after error
 	 */
 	WizardOrchestrator.prototype.retryCompletion = function() {
-		// Get the last attempted completion type from state
 		var saveAsDraft = false;
 		if ( this.modules.stateManager ) {
 			var completionData = this.modules.stateManager.get( 'completionData' );
@@ -877,7 +845,6 @@
 	 * Get campaign name from state manager (single source of truth)
 	 */
 	WizardOrchestrator.prototype.getCampaignName = function() {
-		// Get from state manager (single source of truth)
 		if ( this.modules.stateManager ) {
 			var state = this.modules.stateManager.get();
 			if ( state && state.stepData && state.stepData.basic && state.stepData.basic.name ) {
@@ -903,7 +870,6 @@
 	WizardOrchestrator.prototype.validateBasicInfo = function() {
 		var deferred = $.Deferred();
 
-		// Get campaign name from wizard state (source of truth)
 		var basicData = this.getStepData( 'basic' );
 		var campaignName = basicData && basicData.name ? basicData.name : null;
 
@@ -954,7 +920,6 @@
 		var stepDeferred = $.Deferred();
 		var stepData = null;
 
-		// Get step data from state manager (single source of truth)
 		if ( this.modules.stateManager && 'function' === typeof this.modules.stateManager.get ) {
 			var fullState = this.modules.stateManager.get();
 			stepData = fullState.stepData ? fullState.stepData[stepName] : null;
@@ -975,7 +940,6 @@
 		var deferred = $.Deferred();
 		var promises = [];
 
-		// Validate each step
 		this.config.steps.forEach( function( stepName ) {
 			var orchestrator = self.stepOrchestrators[stepName];
 			if ( orchestrator && 'function' === typeof orchestrator.validateStep ) {
@@ -1033,7 +997,6 @@
 	 */
 	WizardOrchestrator.prototype.handleValidationComplete = function( data ) {
 		if ( !  data.valid && data.errors ) {
-			// Show validation errors
 			var stepName = data.step || this.getCurrentStep();
 			var orchestrator = this.stepOrchestrators[stepName];
 
@@ -1048,7 +1011,6 @@
 	 * @param _data
 	 */
 	WizardOrchestrator.prototype.handleDataSaved = function( _data ) {
-		// Update state
 		if ( this.modules.stateManager ) {
 			this.modules.stateManager.set( {
 				hasUnsavedChanges: false,
@@ -1064,7 +1026,6 @@
 		// Stop timers
 		this.cleanup();
 
-		// Show error
 		this.showError( 'Your session has expired. Please refresh the page.', 'error', 0 );
 
 		// Disable UI
@@ -1186,7 +1147,6 @@
 			this.modules.navigationService.destroy();
 		}
 
-		// Clear references
 		this.stepOrchestrators = {};
 	};
 
@@ -1197,11 +1157,9 @@
 		maxWaitTime: 10000, // 10 seconds timeout - increased for slow connections
 		checkInterval: 250,  // Check every 250ms - reduced polling frequency
 
-		// Initialize service ready event listeners
 		init: function() {
 			var self = this;
 
-			// Check for already-loaded services before setting up listener
 			for ( var i = 0; i < self.requiredServices.length; i++ ) {
 				var serviceName = self.requiredServices[i];
 				if ( self.isServiceReady( serviceName ) && -1 === self.readyServices.indexOf( serviceName ) ) {
@@ -1217,7 +1175,6 @@
 			} );
 		},
 
-		// Check if EventBus is ready
 		// Extracted to reduce cognitive complexity
 		isEventBusReady: function() {
 			var windowCheck = !! ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.EventBus );
@@ -1225,7 +1182,6 @@
 			return windowCheck || localCheck;
 		},
 
-		// Check if BaseOrchestrator is ready
 		// Extracted to reduce cognitive complexity
 		isBaseOrchestratorReady: function() {
 			var windowCheck = !! ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseOrchestrator );
@@ -1233,7 +1189,6 @@
 			return windowCheck || localCheck;
 		},
 
-		// Check if a specific service is ready
 		isServiceReady: function( serviceName ) {
 			// First check if service was announced via event
 			if ( -1 !== this.readyServices.indexOf( serviceName ) ) {
@@ -1252,7 +1207,6 @@
 			}
 		},
 
-		// Check all services readiness
 		// Extracted to reduce cognitive complexity
 		checkAllServicesReady: function() {
 			var allReady = true;
@@ -1286,7 +1240,6 @@
 
 			console.error( '[SCD Wizard:Orchestrator] Service initialization timeout. Missing:', missingServices );
 
-			// Initialize anyway to prevent complete failure
 			if ( onSuccess ) {
 				onSuccess();
 			}
@@ -1307,7 +1260,6 @@
 					return;
 				}
 
-				// Check timeout
 				if ( Date.now() - startTime > self.maxWaitTime ) {
 					self.handleServiceTimeout( result.serviceStatus, onSuccess );
 					return;
@@ -1321,7 +1273,6 @@
 		}
 	};
 
-	// Create orchestrator when services are ready (ES5 compatible)
 	function createOrchestratorWhenReady() {
 		ServiceReadiness.waitForServices(
 			// Success callback
@@ -1339,7 +1290,6 @@
 	}
 
 	$( document ).ready( function() {
-		// Initialize service readiness system
 		ServiceReadiness.init();
 
 		// Use proper service readiness system instead of retry logic

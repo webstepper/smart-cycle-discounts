@@ -54,7 +54,6 @@
 			var namespacedEvents = [];
 			var i;
 
-			// Add namespace to prevent conflicts
 			for ( i = 0; i < eventTypes.length; i++ ) {
 				namespacedEvents.push( eventTypes[i] + '.' + this._moduleId );
 			}
@@ -96,7 +95,6 @@
 			var namespacedEvents = [];
 			var i;
 
-			// Add namespace to prevent conflicts
 			for ( i = 0; i < eventTypes.length; i++ ) {
 				namespacedEvents.push( eventTypes[i] + '.' + this._moduleId );
 			}
@@ -175,7 +173,6 @@
 			var namespacedEvents = [];
 			var i;
 
-			// Add namespace
 			for ( i = 0; i < eventTypes.length; i++ ) {
 				namespacedEvents.push( eventTypes[i] + '.' + this._moduleId );
 			}
@@ -185,7 +182,6 @@
 			// Unbind the event
 			$element.off( namespacedEventString );
 
-			// Remove from tracking
 			for ( i = this._eventHandlers.length - 1; 0 <= i; i-- ) {
 				var handler = this._eventHandlers[i];
 				if ( handler.element.is( $element ) && handler.events === namespacedEventString ) {
@@ -210,7 +206,6 @@
 				handler.element.off( handler.events );
 			}
 
-			// Clear tracking arrays
 			this._eventHandlers = [];
 			this._eventNamespaces = [];
 		},
@@ -260,7 +255,6 @@
 		}
 	};
 
-	// Create alias for backwards compatibility
 	SCD.EventManager = SCD.Mixins.EventManager;
 
 } )( jQuery );

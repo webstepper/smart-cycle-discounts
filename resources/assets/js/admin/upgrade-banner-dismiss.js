@@ -27,7 +27,6 @@
 			var bannerId = $banner.data( 'banner-id' );
 			var dismissNonce = $banner.data( 'dismiss-nonce' );
 
-			// Validate data
 			if ( ! bannerId || ! dismissNonce ) {
 				console.error( 'SCD: Missing banner ID or nonce for dismiss action' );
 				return;
@@ -48,18 +47,15 @@
 				},
 				success: function ( response ) {
 					if ( response.success ) {
-						// Remove banner from DOM after fade out
 						setTimeout( function () {
 							$banner.remove();
 						}, 200 );
 					} else {
-						// Show banner again if request failed
 						$banner.fadeIn( 200 );
 						console.error( 'SCD: Failed to dismiss banner:', response.data.message );
 					}
 				},
 				error: function ( xhr, status, error ) {
-					// Show banner again if request failed
 					$banner.fadeIn( 200 );
 					console.error( 'SCD: AJAX error dismissing banner:', error );
 				}
@@ -67,7 +63,6 @@
 		});
 	}
 
-	// Initialize when document is ready
 	$( document ).ready( function () {
 		initBannerDismiss();
 	});

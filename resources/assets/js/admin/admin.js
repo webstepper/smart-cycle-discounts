@@ -7,7 +7,6 @@
 ( function( $ ) {
 	'use strict';
 
-	// Create namespace
 	window.SCD = window.SCD || {};
 	window.SCD.Admin = window.SCD.Admin || {};
 
@@ -28,7 +27,6 @@
 		 * Initialize admin functionality
 		 */
 		init: function() {
-			// Check if we have required data
 			if ( ! window.scdAdmin ) {
 				return;
 			}
@@ -57,7 +55,6 @@
 		 * Initialize admin components
 		 */
 		initializeComponents: function() {
-			// Initialize any admin components
 			this.initConfirmDialogs();
 			this.initToggleFields();
 		},
@@ -74,10 +71,8 @@
 
 			if ( ! target ) {return;}
 
-			// Update active states
 			$tab.addClass( 'active' ).siblings().removeClass( 'active' );
 
-			// Show target content
 			$( target ).addClass( 'active' ).siblings( '.scd-tab-content' ).removeClass( 'active' );
 
 			// Save active tab to localStorage
@@ -394,7 +389,6 @@
 		}
 	};
 
-	// Initialize on document ready
 	$( document ).ready( function() {
 		SCD.Admin.init();
 	} );

@@ -26,7 +26,6 @@
 		$( '.scd-optimize-tables-btn' ).on( 'click', handleOptimizeTables );
 		$( '.scd-cleanup-expired-btn' ).on( 'click', handleCleanupExpired );
 
-		// Cache management handlers
 		$( '.scd-rebuild-cache-btn' ).on( 'click', handleRebuildCache );
 
 		// Debug logs handlers
@@ -49,7 +48,6 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		// Show loading state
 		$button.prop( 'disabled', true );
 		var originalText = $button.html();
 		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Exporting...' );
@@ -90,7 +88,6 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		// Show loading state
 		$button.prop( 'disabled', true );
 		var originalText = $button.html();
 		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Exporting...' );
@@ -138,7 +135,6 @@
 			return;
 		}
 
-		// Show loading state
 		$button.prop( 'disabled', true );
 		var originalText = $button.html();
 		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Importing...' );
@@ -186,7 +182,6 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		// Show loading state
 		$button.prop( 'disabled', true );
 		var originalText = $button.html();
 		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Optimizing...' );
@@ -231,7 +226,6 @@
 
 		// Confirmation is handled by onclick attribute
 
-		// Show loading state
 		$button.prop( 'disabled', true );
 		var originalText = $button.html();
 		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Cleaning...' );
@@ -270,7 +264,6 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		// Show loading state
 		$button.prop( 'disabled', true );
 		var originalText = $button.html();
 		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Rebuilding...' );
@@ -309,7 +302,6 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		// Show loading state
 		$button.prop( 'disabled', true );
 		var originalText = $button.html();
 		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Loading...' );
@@ -327,7 +319,6 @@
 			},
 			success: function( response ) {
 				if ( response.success && response.data ) {
-					// Show logs in textarea
 					var $modal = $( '#scd-log-viewer-modal' );
 					$modal.find( 'textarea' ).val( response.data.logs );
 					$modal.slideDown();
@@ -351,7 +342,6 @@
 	function handleDownloadLogs( e ) {
 		e.preventDefault();
 
-		// Create hidden form and submit
 		var form = $( '<form>', {
 			method: 'POST',
 			action: ajaxurl
@@ -379,7 +369,6 @@
 			return;
 		}
 
-		// Show loading state
 		$button.prop( 'disabled', true );
 		var originalText = $button.html();
 		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Clearing...' );
@@ -422,7 +411,6 @@
 		e.preventDefault();
 		var $textarea = $( '#scd-log-viewer-modal textarea' );
 
-		// Check if log is loaded
 		if ( ! $textarea.val() ) {
 			showNotification( 'No log data to copy. Please view the log first.', 'error' );
 			return;
@@ -432,7 +420,6 @@
 		$textarea.select();
 		document.execCommand( 'copy' );
 
-		// Show feedback
 		var $button = $( this );
 		var originalText = $button.html();
 		$button.html( '<span class="dashicons dashicons-yes"></span> Copied!' );
@@ -449,7 +436,6 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		// Show loading state
 		$button.prop( 'disabled', true );
 		var originalText = $button.html();
 		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Checking...' );
@@ -465,7 +451,6 @@
 			},
 			success: function( response ) {
 				if ( response.success && response.data ) {
-					// Show results
 					var $results = $( '#scd-health-check-results' );
 					$results.html( formatHealthCheckResults( response.data.results ) );
 					$results.slideDown();
@@ -490,7 +475,6 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		// Show loading state
 		$button.prop( 'disabled', true );
 		var originalText = $button.html();
 		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Generating...' );
@@ -507,12 +491,10 @@
 			},
 			success: function( response ) {
 				if ( response.success && response.data ) {
-					// Show report in textarea
 					var $reportContainer = $( '#scd-system-report' );
 					$reportContainer.find( 'textarea' ).val( response.data.report );
 					$reportContainer.slideDown();
 
-					// Show copy and download buttons
 					$( '.scd-copy-report-btn, .scd-download-report-btn' ).fadeIn();
 				} else {
 					showNotification( response.data ? response.data.message : 'Failed to generate report', 'error' );
@@ -539,7 +521,6 @@
 		$textarea.select();
 		document.execCommand( 'copy' );
 
-		// Show feedback
 		var $button = $( this );
 		var originalText = $button.html();
 		$button.html( '<span class="dashicons dashicons-yes"></span> Copied!' );
@@ -561,7 +542,6 @@
 			return;
 		}
 
-		// Create blob and download
 		var blob = new Blob( [ reportContent ], { type: 'text/plain' } );
 		var url = window.URL.createObjectURL( blob );
 		var timestamp = new Date().toISOString().replace( /[:.]/g, '-' ).slice( 0, -5 );
@@ -633,7 +613,6 @@
 		}
 	}
 
-	// Initialize on document ready
 	$( document ).ready( init );
 
 })( jQuery );

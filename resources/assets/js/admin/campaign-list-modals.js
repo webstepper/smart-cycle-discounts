@@ -64,16 +64,13 @@
 		 * @param {string} campaignName  Name of the campaign.
 		 */
 		showModal: function( sessionType, campaignName ) {
-			// Update modal message with campaign name
 			var message = '<p>' + window.scdCampaignListL10n.unsavedDraftText + ' <strong>' + campaignName + '</strong></p>' +
 			              '<p>' + window.scdCampaignListL10n.whatToDoText + '</p>';
 			$( '#scd-modal-message' ).html( message );
 
-			// Show draft action buttons
 			$( '.scd-save-btn' ).show();
 			$( '.scd-discard-btn' ).show();
 
-			// Show the modal using SCD Modal API
 			if ( typeof SCD !== 'undefined' && SCD.Modal ) {
 				SCD.Modal.show( 'scd-draft-conflict-modal' );
 			}
@@ -225,7 +222,6 @@
 	 * @since 1.0.0
 	 */
 	$( document ).ready( function() {
-		// Initialize modal handlers
 		SessionConflictModal.init();
 		ModalActions.init();
 	} );

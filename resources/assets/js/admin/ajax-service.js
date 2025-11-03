@@ -164,7 +164,6 @@
 				return;
 			}
 
-			// Check if paused (429 error)
 			if ( this.rateLimitState.paused ) {
 				var now = Date.now();
 				if ( now < this.rateLimitState.pausedUntil ) {
@@ -190,7 +189,6 @@
 				// Reserve a slot BEFORE checking (prevents race condition)
 				this.rateLimitState.pendingRequests++;
 
-				// Check if we can use the slot
 				if ( ! this.canMakeRequest() ) {
 					// Can't execute - release the slot and stop processing
 					this.rateLimitState.pendingRequests--;
@@ -302,7 +300,6 @@
 			// Generate request key for deduplication
 			var requestKey = this.generateRequestKey( action, data );
 
-			// Check for duplicate in-flight request
 			if ( this.activeRequests[requestKey] ) {
 				if ( this.rateLimitConfig.debug ) {
 				}
@@ -323,7 +320,6 @@
 				nonce: nonce
 			}, data );
 
-			// Add idempotency header if not disabled
 			if ( ! config.headers ) {
 				config.headers = {};
 			}
@@ -331,10 +327,8 @@
 				config.headers['X-Idempotency-Key'] = this.generateIdempotencyKey( action, data );
 			}
 
-			// Create request promise
 			var requestDeferred = $.Deferred();
 
-			// Store in activeRequests for deduplication
 			this.activeRequests[requestKey] = {
 				action: action,
 				deferred: requestDeferred,
@@ -345,7 +339,6 @@
 			// Multiple simultaneous requests would all see the same count otherwise
 			this.rateLimitState.pendingRequests++;
 
-			// Check rate limit - bypass if explicitly disabled
 			if ( config.bypassRateLimit || this.canMakeRequest() ) {
 				// Execute immediately (slot already reserved)
 				this.executeRequest( method, requestData, config, requestDeferred, requestKey );
@@ -378,7 +371,6 @@
 			// NOTE: pendingRequests already incremented by caller (request() or processQueue())
 			this.recordRequest();
 
-			// Show progress if callback provided
 			if ( config.onProgress ) {
 				config.onProgress( {
 					loaded: 0,
@@ -603,7 +595,6 @@
 		 * @returns {string} Nonce value
 		 */
 		getNonce: function( action ) {
-			// Check action mapping from centralized nonce configuration
 			var noncesObj = window.scdWizardData && window.scdWizardData.nonces;
 			if ( noncesObj && noncesObj.action_map && noncesObj.action_map[action] ) {
 				var nonceName = noncesObj.action_map[action];
@@ -643,7 +634,6 @@
 			var random = Math.random().toString( 36 ).substr( 2, 9 );
 			var dataStr = JSON.stringify( data || {} );
 
-			// Create a simple hash of the data
 			var hash = 0;
 			var i;
 			for ( i = 0; i < dataStr.length; i++ ) {
@@ -662,7 +652,6 @@
 		 * @returns {string} Request key
 		 */
 		generateRequestKey: function( action, data ) {
-			// Create deterministic key from action + data
 			var dataStr = JSON.stringify( data || {} );
 			var hash = 0;
 			var i;
@@ -772,7 +761,6 @@
 
 			// Handle authentication errors properly
 			$( document ).ajaxComplete( function( event, jqXHR ) {
-				// Check for 401 Unauthorized status
 				if ( 401 === jqXHR.status ) {
 					$( document ).trigger( 'scd:session:expired' );
 				}
@@ -816,15 +804,12 @@
 			options = options || {};
 			var formData = new FormData();
 
-			// Add file
 			formData.append( 'file', file );
 
-			// Add action and nonce for unified endpoint
 			formData.append( 'action', 'scd_ajax' );      // Always use unified endpoint
 			formData.append( 'scdAction', action );        // Router converts camelCase to snake_case
 			formData.append( 'nonce', this.getNonce( action ) );
 
-			// Add additional data
 			$.each( data, function( key, value ) {
 				formData.append( key, value );
 			} );
@@ -877,10 +862,8 @@
 		}
 	};
 
-	// Create alias for backward compatibility - available immediately
 	SCD.Ajax = SCD.Shared.AjaxService;
 
-	// Initialize on document ready
 	$( document ).ready( function() {
 		SCD.Ajax.init();
 	} );

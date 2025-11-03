@@ -22,7 +22,6 @@
 		this.config = SCD.Modules.Discounts.Config;
 		this.maxThresholds = 5;
 
-		// Get currency symbol (simpler approach)
 		this.currencySymbol = '$'; // Default
 		if ( window.scdDiscountStepData && window.scdDiscountStepData.currencySymbol ) {
 			this.currencySymbol = this.decodeHtmlEntity( window.scdDiscountStepData.currencySymbol );
@@ -37,7 +36,6 @@
 		this._percentageThresholds = [];
 		this._fixedThresholds = [];
 
-		// Initialize with dependency checks
 		if ( !SCD.Utils.ensureInitialized( this, {
 			'config': this.config
 		}, 'SpendThreshold' ) ) {
@@ -98,7 +96,6 @@
 		 * Set default values for spend threshold
 		 */
 		setDefaults: function() {
-			// Initialize internal state with defaults
 			this._percentageThresholds = [
 				{ threshold: 50, discount_value: 5, discount_type: 'percentage' },
 				{ threshold: 100, discount_value: 10, discount_type: 'percentage' }
@@ -109,14 +106,12 @@
 				{ threshold: 100, discount_value: 10, discount_type: 'fixed' }
 			];
 
-			// Update state from internal values
 			this.state.setState( {
 				thresholdMode: 'percentage',
 				percentageSpendThresholds: this._percentageThresholds,
 				fixedSpendThresholds: this._fixedThresholds
 			} );
 
-			// Show preview and render thresholds
 			this.renderThresholds();
 			this.updateInlinePreview();
 		},
@@ -148,7 +143,6 @@
 			// Trigger initial preview update
 			this.updateInlinePreview();
 
-			// Check progression on initial display
 			this.checkDiscountProgression();
 		},
 
@@ -201,14 +195,12 @@
 				self.updateInlinePreview();
 			} );
 
-			// Add threshold button
 			$( document ).on( 'click.spendthreshold', '.scd-strategy-spend_threshold .scd-add-threshold', function( e ) {
 				e.preventDefault();
 				var thresholdType = $( this ).data( 'threshold-type' );
 				self.addThreshold( thresholdType );
 			} );
 
-			// Remove threshold button
 			$( document ).on( 'click.spendthreshold', '.scd-strategy-spend_threshold .scd-remove-threshold', function( e ) {
 				e.preventDefault();
 				var $row = $( this ).closest( '.scd-threshold-row' );
@@ -235,7 +227,6 @@
 		 * @param thresholdType
 		 */
 		addThreshold: function( thresholdType ) {
-			// Get internal thresholds array
 			var thresholds = 'percentage' === thresholdType ? this._percentageThresholds : this._fixedThresholds;
 
 			if ( thresholds.length >= this.maxThresholds ) {
@@ -250,10 +241,8 @@
 			// Calculate smart default values
 			var newThreshold = this.calculateSmartProgression( thresholds, thresholdType );
 
-			// Update internal state
 			thresholds.push( newThreshold );
 
-			// Update component state
 			var thresholdsKey = 'percentage' === thresholdType ? 'percentageSpendThresholds' : 'fixedSpendThresholds';
 			var updatedState = {};
 			updatedState[thresholdsKey] = thresholds.slice(); // Clone array
@@ -309,14 +298,11 @@
 		 * @param thresholdType
 		 */
 		removeThreshold: function( index, thresholdType ) {
-			// Get internal thresholds array
 			var thresholds = 'percentage' === thresholdType ? this._percentageThresholds : this._fixedThresholds;
 
 			if ( thresholds[index] ) {
-				// Update internal state
 				thresholds.splice( index, 1 );
 
-				// Update component state
 				var thresholdsKey = 'percentage' === thresholdType ? 'percentageSpendThresholds' : 'fixedSpendThresholds';
 				var updatedState = {};
 				updatedState[thresholdsKey] = thresholds.slice(); // Clone array
@@ -336,14 +322,12 @@
 		 * @param thresholdType
 		 */
 		updateThreshold: function( index, field, value, thresholdType ) {
-			// Get internal thresholds array
 			var thresholds = 'percentage' === thresholdType ? this._percentageThresholds : this._fixedThresholds;
 
 			if ( !thresholds[index] ) {
 				return;
 			}
 
-			// Update the field - support both old and new field names
 			switch( field ) {
 				case 'threshold':
 				case 'amount':
@@ -355,7 +339,6 @@
 					break;
 			}
 
-			// Update component state
 			var thresholdsKey = 'percentage' === thresholdType ? 'percentageSpendThresholds' : 'fixedSpendThresholds';
 			var updatedState = {};
 			updatedState[thresholdsKey] = thresholds.slice(); // Clone array
@@ -430,7 +413,6 @@
 				html += '      </div>';
 				html += '    </div>';
 
-				// Remove button
 				html += '    <button type="button" class="scd-remove-threshold">Remove</button>';
 
 				html += '  </div>';
@@ -487,7 +469,6 @@
 			var thresholdsKey = 'percentage' === thresholdMode ? 'percentageSpendThresholds' : 'fixedSpendThresholds';
 			var thresholds = fullState[thresholdsKey] || [];
 
-			// Remove any existing warnings
 			$( '.scd-threshold-warning' ).remove();
 
 			if ( 2 > thresholds.length ) {return;}
@@ -499,7 +480,6 @@
 				return aAmount - bAmount;
 			} );
 
-			// Check if discounts increase with thresholds
 			var hasIssue = false;
 			for ( var i = 1; i < sortedThresholds.length; i++ ) {
 				var prevDiscount = sortedThresholds[i-1].discount_value || 0;
@@ -511,14 +491,12 @@
 				}
 			}
 
-			// Show warning if there's an issue
 			if ( hasIssue ) {
 				var warningHtml = '<div class="scd-tier-warning scd-threshold-warning">';
 				warningHtml += '<span class="dashicons dashicons-warning"></span>';
 				warningHtml += '<span class="warning-text">Tip: Higher spending thresholds usually have bigger discounts.</span>';
 				warningHtml += '</div>';
 
-				// Add warning to the active threshold list
 				var $activeList = 'percentage' === thresholdMode ? $( '#percentage-thresholds-list' ) : $( '#fixed-thresholds-list' );
 				$activeList.after( warningHtml );
 			}
@@ -536,16 +514,13 @@
 			var thresholdsKey = 'percentage' === thresholdMode ? 'percentageSpendThresholds' : 'fixedSpendThresholds';
 			var thresholds = fullState[thresholdsKey] || [];
 
-			// Check if at least one threshold exists
 			if ( 0 === thresholds.length ) {
 				errors.thresholds = [ 'At least one threshold is required' ];
 			}
 
-			// Validate each threshold
 			var amountsSeen = {};
 
 			thresholds.forEach( function( threshold, index ) {
-				// Check threshold amount
 				if ( !threshold.threshold || 0 >= threshold.threshold ) {
 					errors['threshold_' + index + '_threshold'] = [ 'Spend amount must be greater than 0' ];
 				} else if ( amountsSeen[threshold.threshold] ) {
@@ -554,7 +529,6 @@
 					amountsSeen[threshold.threshold] = true;
 				}
 
-				// Check discount value
 				if ( !threshold.discount_value || 0 >= threshold.discount_value ) {
 					errors['threshold_' + index + '_discount_value'] = [ 'Discount must be greater than 0' ];
 				}
@@ -608,10 +582,8 @@
 				var mode = data.thresholdMode || 'percentage';
 				stateUpdate.thresholdMode = mode;
 
-				// Store in combined format in state
 				stateUpdate.thresholds = normalizedThresholds;
 
-				// Update internal arrays for UI (still needed for rendering logic)
 				if ( 'percentage' === mode ) {
 					this._percentageThresholds = normalizedThresholds;
 					this._fixedThresholds = [];
@@ -622,7 +594,6 @@
 				hasData = true;
 			}
 
-			// Set threshold mode from data if provided
 			if ( data.thresholdMode ) {
 				stateUpdate.thresholdMode = data.thresholdMode;
 			}
@@ -647,7 +618,6 @@
 			var fullState = this.state.getState();
 			var thresholdMode = fullState.thresholdMode || 'percentage';
 
-			// Get thresholds from state (single source of truth)
 			var thresholds = fullState.thresholds || [];
 
 			// Sort thresholds by threshold
@@ -810,7 +780,6 @@
 			try {
 				var thresholds = [];
 
-				// Add percentage thresholds
 				if ( this._percentageThresholds && this._percentageThresholds.length ) {
 					this._percentageThresholds.forEach( function( threshold ) {
 						var amount = parseFloat( threshold.threshold ) || 0;
@@ -827,7 +796,6 @@
 					} );
 				}
 
-				// Add fixed thresholds
 				if ( this._fixedThresholds && this._fixedThresholds.length ) {
 					this._fixedThresholds.forEach( function( threshold ) {
 						var amount = parseFloat( threshold.threshold ) || 0;
@@ -849,7 +817,6 @@
 					return a.threshold - b.threshold;
 				} );
 
-				// Remove duplicates with same threshold (keep first occurrence)
 				var seen = {};
 				thresholds = thresholds.filter( function( threshold ) {
 					if ( seen[threshold.threshold] ) {
@@ -903,7 +870,6 @@
 					}
 				}.bind( this ) );
 
-				// Update state
 				if ( this.state && 'function' === typeof this.state.setState ) {
 					this.state.setState( {
 						percentageSpendThresholds: this._percentageThresholds,
@@ -916,7 +882,6 @@
 					this.renderThresholds();
 				}
 
-				// Update preview
 				if ( 'function' === typeof this.updateInlinePreview ) {
 					this.updateInlinePreview();
 				}

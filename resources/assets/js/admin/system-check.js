@@ -63,7 +63,6 @@
 
 			if ( productsOrchestrator ) {
 				var prodTestInstance = new productsOrchestrator();
-				// Check if instance is BaseOrchestrator
 				if ( ! ( SCD.Shared && SCD.Shared.BaseOrchestrator && prodTestInstance instanceof SCD.Shared.BaseOrchestrator ) ) {
 				}
 			}
@@ -74,7 +73,6 @@
 
 			if ( discountsOrchestrator ) {
 				var discTestInstance = new discountsOrchestrator();
-				// Check if instance is BaseOrchestrator
 				if ( ! ( SCD.Shared && SCD.Shared.BaseOrchestrator && discTestInstance instanceof SCD.Shared.BaseOrchestrator ) ) {
 				}
 			}
@@ -85,7 +83,6 @@
 
 			if ( scheduleOrchestrator ) {
 				var schedTestInstance = new scheduleOrchestrator();
-				// Check if instance is BaseOrchestrator
 				if ( ! ( SCD.Shared && SCD.Shared.BaseOrchestrator && schedTestInstance instanceof SCD.Shared.BaseOrchestrator ) ) {
 				}
 			}
@@ -167,7 +164,6 @@
 		}
 	} );
 
-	// Add to development tools
 	if ( window.scd ) {
 		window.scd.systemCheck = function() { return SCD.Shared.SystemCheck.runChecks(); };
 	}

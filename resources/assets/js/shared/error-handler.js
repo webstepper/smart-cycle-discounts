@@ -53,7 +53,6 @@
 		handle: function( error, context, severity, metadata ) {
 			var errorData = this._normalizeError( error, context, severity, metadata );
 
-			// Store error in log
 			this._logError( errorData );
 
 			// Console logging based on severity
@@ -62,7 +61,6 @@
 			// Trigger global error event
 			this._triggerErrorEvent( errorData );
 
-			// Show user notification for high severity errors
 			if ( errorData.severity === this.SEVERITY.HIGH || errorData.severity === this.SEVERITY.CRITICAL ) {
 				this._showUserNotification( errorData );
 			}
@@ -271,9 +269,7 @@
 		}
 	};
 
-	// Initialize error handler when DOM is ready
 	$( document ).ready( function() {
-		// Set up global error handler for uncaught JavaScript errors
 		window.onerror = function( message, source, lineno, colno, error ) {
 			SCD.ErrorHandler.handle(
 				error || new Error( message ),

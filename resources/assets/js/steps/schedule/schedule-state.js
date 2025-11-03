@@ -87,7 +87,6 @@
 		}
 	};
 
-	// Set up proper prototype chain
 	if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
 		SCD.Modules.Schedule.State.prototype = Object.create( SCD.Shared.BaseState.prototype );
 		SCD.Modules.Schedule.State.prototype.constructor = SCD.Modules.Schedule.State;
@@ -120,7 +119,6 @@
 				}
 			}
 
-			// Update validation state if errors changed
 			if ( updates && 'errors' in updates ) {
 				var state = this.getState();
 				var newUpdates = { isValid: 0 === Object.keys( state.errors ).length };
@@ -159,7 +157,6 @@
 			var start = new Date( state.startDate + ' ' + state.startTime );
 			var end = new Date( state.endDate + ' ' + state.endTime );
 
-			// Check for invalid dates
 			if ( isNaN( start.getTime() ) || isNaN( end.getTime() ) ) {
 				if ( SCD.Modules.Schedule.Debug ) {
 					SCD.Modules.Schedule.Debug.log( 'error', 'State', 'Invalid dates for duration calculation' );
@@ -298,7 +295,6 @@
 			// Apply updates
 			this.setState( updates );
 
-			// Clear dirty flag since we're loading saved data
 			this.clearDirty();
 			var lastSavedUpdate = { lastSaved: new Date() };
 			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
@@ -355,10 +351,8 @@
 				SCD.Modules.Schedule.Debug.log( 'warning', 'State', 'Resetting state to initial values' );
 			}
 
-			// Store original values for reset
 			var originalTimezone = ( window.scdWizardData && window.scdWizardData.timezone ) || 'UTC';
 
-			// Reset all values
 			var defaults = {
 				startDate: '',
 				endDate: '',

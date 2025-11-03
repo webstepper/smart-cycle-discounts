@@ -43,7 +43,6 @@
 			$( document ).on( 'click', '.scd-insights-section-toggle', this.handleToggleClick.bind( this ) );
 			// Keyboard support for toggles
 			$( document ).on( 'keydown', '.scd-insights-section-toggle', this.handleToggleKeydown.bind( this ) );
-			// Create campaign CTA
 			$( document ).on( 'click', '.scd-planner-create-cta', this.handleCreateCampaign.bind( this ) );
 		},
 		/**
@@ -54,24 +53,19 @@
 		 * - If no campaign active: shows next upcoming campaign
 		 */
 		initializeDefaultFocus: function() {
-			// Get all cards and focus on the second one (Slot 2 = ACTIVE/NEXT)
 			var $cards = $( '.scd-planner-card' );
 			var $defaultCard = $cards.eq( 1 ); // Index 1 = second card = Slot 2
 
 			if ( $defaultCard.length ) {
-				// Set focused state on card
 				$defaultCard.attr( 'data-focused', 'true' );
 
-				// Get campaign data
 				var campaignId = $defaultCard.data( 'campaign-id' );
 				var campaignState = $defaultCard.data( 'state' );
 				var campaignPosition = $defaultCard.data( 'position' );
-				var isMajorEvent = $defaultCard.data( 'major-event' ) === 'true';
+				var isMajorEvent = $defaultCard.attr( 'data-major-event' ) === 'true';
 
-				// Update timeline focus to match (use POSITION, not state)
 				this.updateTimelineFocus( campaignPosition );
 
-				// Load insights for the focused campaign (pass position)
 				this.loadInsights( campaignId, campaignState, isMajorEvent, campaignPosition );
 			}
 		},
@@ -91,17 +85,14 @@
 			var campaignId = $card.data( 'campaign-id' );
 			var campaignState = $card.data( 'state' );
 			var campaignPosition = $card.data( 'position' );
-			var isMajorEvent = $card.data( 'major-event' ) === 'true';
+			var isMajorEvent = $card.attr( 'data-major-event' ) === 'true';
 			// Don't reload if already focused
 			if ( $card.attr( 'data-focused' ) === 'true' ) {
 				return;
 			}
-			// Update visual focus on cards
 			$( '.scd-planner-card' ).attr( 'data-focused', 'false' );
 			$card.attr( 'data-focused', 'true' );
-			// Update visual focus on timeline items (use POSITION, not state)
 			this.updateTimelineFocus( campaignPosition );
-			// Load insights for this campaign (pass position)
 			this.loadInsights( campaignId, campaignState, isMajorEvent, campaignPosition );
 		},
 		/**
@@ -175,13 +166,10 @@
 			if ( pendingRequest ) {
 				pendingRequest.abort();
 			}
-			// Show loading state
 			$insightsContent.addClass( 'scd-insights-loading' );
-			// Check if scdAdmin is available (localized data)
 			if ( typeof scdAdmin === 'undefined' || ! scdAdmin.ajaxUrl || ! scdAdmin.nonce ) {
 				console.error( 'scdAdmin data not properly configured' );
 				$insightsContent.removeClass( 'scd-insights-loading' );
-				// Show error message to user
 				if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
 					SCD.Shared.NotificationService.error( 'Configuration error. Please refresh the page.' );
 				}
@@ -211,7 +199,6 @@
 					} else {
 						$insightsContent.removeClass( 'scd-insights-loading' );
 						console.error( '[SCD Planner] Failed to load insights:', response );
-						// Show error message to user
 						if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
 							var errorMsg = 'Failed to load campaign insights. Please try again.';
 							if ( response.error && response.error[0] && response.error[0].message ) {
@@ -225,7 +212,6 @@
 					pendingRequest = null;
 					$insightsContent.removeClass( 'scd-insights-loading' );
 					console.error( 'AJAX error loading insights:', error );
-					// Show error message to user
 					if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
 						SCD.Shared.NotificationService.error( 'Network error loading insights. Please check your connection.' );
 					}
@@ -238,9 +224,7 @@
 		 * @param {string} position Timeline position (past/active/future)
 		 */
 		updateTimelineFocus: function( position ) {
-			// Remove focused class from all timeline items
 			$( '.scd-timeline-item' ).removeClass( 'scd-timeline-item--focused' );
-			// Add focused class to corresponding timeline item by position
 			$( '.scd-timeline-item--' + position ).addClass( 'scd-timeline-item--focused' );
 		},
 		/**
@@ -286,7 +270,6 @@
 		if ( $( '.scd-planner-grid' ).length ) {
 			PlannerInteractions.init();
 			// Diagnostic: Check CSS loading and stat card elements
-			// Check if CSS is loaded by testing computed styles
 			var $firstStatCard = $( '.scd-insights-stat-card' ).first();
 			if ( $firstStatCard.length ) {
 				var bgColor = $firstStatCard.css( 'background' );

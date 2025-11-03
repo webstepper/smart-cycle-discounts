@@ -17,7 +17,6 @@
 	SCD.Utils.registerModule( 'SCD.Modules.Products', 'API', function( wizard ) {
 		this.wizard = wizard;
 
-		// Initialize with error handling check
 		if ( !SCD.Utils.ensureInitialized( this, {
 			'SCD.Ajax': SCD.Ajax,
 			'SCD.ErrorHandler': SCD.ErrorHandler
@@ -25,7 +24,6 @@
 			return;
 		}
 
-		// Initialize cache
 		this.cache = {
 			categories: null,
 			categoryTimestamp: 0,
@@ -33,10 +31,8 @@
 			productTimestamps: {}
 		};
 
-		// Cache duration in milliseconds (5 minutes)
 		this.cacheDuration = 5 * 60 * 1000;
 
-		// Store reference to bound internal search function
 		this.searchProductsInternalBound = this.searchProductsInternal.bind( this );
 
 		// Keep track of pending deferred for debounced searches
@@ -129,7 +125,6 @@
 				categories: categories
 			};
 
-			// Create cache key that includes categories
 			var cacheKey = JSON.stringify( {
 				search: data.search,
 				page: data.page,
@@ -138,7 +133,6 @@
 			} );
 			var now = Date.now();
 
-			// Check cache
 			if ( this.cache.products[cacheKey] &&
 				 this.cache.productTimestamps[cacheKey] &&
 				 ( now - this.cache.productTimestamps[cacheKey] ) < this.cacheDuration ) {
@@ -154,7 +148,6 @@
 
 			return window.SCD.Ajax.post( 'scd_product_search', data )
 				.done( function( response ) {
-					// Cache the response
 					self.cache.products[cacheKey] = response;
 					self.cache.productTimestamps[cacheKey] = now;
 				} );
@@ -303,17 +296,14 @@
 			parent: params.parent || 0
 		};
 
-		// Add product counts parameter if requested
 		if ( params.includeProductCounts ) {
 			data.includeProductCounts = true;
 		}
 
-		// Add ids parameter if provided
 		if ( params.ids && 0 < params.ids.length ) {
 			data.ids = params.ids;
 		}
 
-		// Check cache for empty search (all categories)
 		if ( ! data.search && 0 === data.parent ) {
 			var now = Date.now();
 			if ( this.cache.categories &&
@@ -325,7 +315,6 @@
 		var self = this;
 		return SCD.Ajax.post( 'scd_product_search', data )
 			.done( function( response ) {
-				// Cache all categories response
 				if ( !data.search && 0 === data.parent ) {
 					self.cache.categories = response;
 					self.cache.categoryTimestamp = Date.now();
@@ -366,7 +355,6 @@
 				productTimestamps: {}
 			};
 			
-			// Clear debounce timers
 			if ( this.debounceTimer ) {
 				clearTimeout( this.debounceTimer );
 				this.debounceTimer = null;
@@ -377,7 +365,6 @@
 				this.pendingSearch.reject( 'cancelled' );
 				this.pendingSearch = null;
 			}
-			// Clear category debounce timers
 			if ( this.categoryDebounceTimer ) {
 				clearTimeout( this.categoryDebounceTimer );
 				this.categoryDebounceTimer = null;
@@ -397,10 +384,8 @@
 		 * @returns {void}
 		 */
 		destroy: function() {
-			// Clear cache
 			this.clearCache();
 			
-			// Clear references
 			this.wizard = null;
 			this.searchProductsInternalBound = null;
 			this.debouncedDeferred = null;

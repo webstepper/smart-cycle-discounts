@@ -42,7 +42,6 @@
 				if ( window.scdWizardData && window.scdWizardData.plugin_url ) {
 					// Ensure proper URL construction with trailing slash handling
 					var pluginUrl = window.scdWizardData.plugin_url;
-					// Remove any trailing slash from plugin URL and add single slash before path
 					this.basePath = pluginUrl.replace( /\/$/, '' ) + '/resources/assets/js/steps/';
 				} else {
 					// Configuration error - plugin URL must be localized
@@ -73,13 +72,11 @@
 		 * @param {Function} callback Callback when loaded
 		 */
 		load: function( moduleName, callback ) {
-			// Check if already loaded
 			if ( 'loaded' === this.states[moduleName] ) {
 				if ( callback ) {callback( this.modules[moduleName] );}
 				return;
 			}
 
-			// Check if loading
 			if ( 'loading' === this.states[moduleName] ) {
 				// Wait for it to load
 				this.waitForModule( moduleName, callback );
@@ -92,7 +89,6 @@
 			// Determine module path
 			var modulePath = this.getModulePath( moduleName );
 
-			// Create script element
 			var script = document.createElement( 'script' );
 			script.type = 'text/javascript';
 			script.src = modulePath;
@@ -164,7 +160,6 @@
 				return;
 			}
 
-			// Load each module
 			var self = this;
 			for ( var i = 0; i < moduleNames.length; i++ ) {
 				( function( moduleName ) {
@@ -187,7 +182,6 @@
 		loadWithDependencies: function( moduleName, callback ) {
 			var deps = this.dependencies[moduleName] || [];
 
-			// Load dependencies first
 			var self = this;
 			this.loadModules( deps, function() {
 				// Then load the module
@@ -259,7 +253,6 @@
 		waitForModule: function( moduleName, callback ) {
 			var self = this;
 
-			// Check current state
 			if ( 'loaded' === this.states[moduleName] ) {
 				if ( callback ) {callback( this.modules[moduleName] );}
 				return;
@@ -274,12 +267,10 @@
 				waitingCallbacks[moduleName] = [];
 			}
 
-			// Add callback to waiting list
 			if ( callback ) {
 				waitingCallbacks[moduleName].push( callback );
 			}
 
-			// Set up one-time event listener for this module
 			if ( !this.moduleListeners || !this.moduleListeners[moduleName] ) {
 				this.moduleListeners = this.moduleListeners || {};
 				this.moduleListeners[moduleName] = true;

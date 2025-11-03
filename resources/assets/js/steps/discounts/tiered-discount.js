@@ -22,7 +22,6 @@
 		this.config = SCD.Modules.Discounts.Config;
 		this.maxTiers = 5;
 
-		// Get currency symbol (simpler approach)
 		this.currencySymbol = '$'; // Default
 		if ( window.scdDiscountStepData && window.scdDiscountStepData.currencySymbol ) {
 			this.currencySymbol = this.decodeHtmlEntity( window.scdDiscountStepData.currencySymbol );
@@ -37,7 +36,6 @@
 		this._percentageTiers = [];
 		this._fixedTiers = [];
 
-		// Initialize with dependency checks
 		if ( !SCD.Utils.ensureInitialized( this, {
 			'config': this.config
 		}, 'TieredDiscount' ) ) {
@@ -97,7 +95,6 @@
 		 * Set default values for tiered discount
 		 */
 		setDefaults: function() {
-			// Initialize internal state with defaults
 			this._percentageTiers = [
 				{
 					quantity: 5,
@@ -124,7 +121,6 @@
 				}
 			];
 
-			// Update state from internal values
 			this.state.setState( {
 				tierMode: 'percentage',
 				percentageTiers: this._percentageTiers,
@@ -133,7 +129,6 @@
 				applyTo: 'per_item' // Default value for new campaigns
 			} );
 
-			// Show preview and render tiers
 			this.renderTiers();
 			this.updateInlinePreview();
 		},
@@ -174,7 +169,6 @@
 					}
 				}
 
-				// Set initial empty messages
 				$( '#percentage-tiers-list' ).attr( 'data-empty-message', 'No percentage tiers added yet' );
 				$( '#fixed-tiers-list' ).attr( 'data-empty-message', 'No fixed amount tiers added yet' );
 
@@ -183,7 +177,6 @@
 				// Trigger initial preview update
 				this.updateInlinePreview();
 
-				// Check progression on initial display
 				this.checkDiscountProgression();
 			}
 		},
@@ -201,7 +194,6 @@
 		setupTierHandlers: function() {
 			var self = this;
 
-			// Remove any existing handlers first
 			$( '.scd-add-tier' ).off( 'click.tiered' );
 			$( document ).off( 'click.tiered', '.scd-remove-tier' );
 			$( document ).off( 'change.tiered', '[name="tier_type"]' );
@@ -234,7 +226,6 @@
 				self.updateInlinePreview();
 			} );
 
-			// Add tier button - now handles both types
 			$( '.scd-add-tier' ).on( 'click.tiered', function( e ) {
 				e.preventDefault();
 				e.stopPropagation();
@@ -243,7 +234,6 @@
 				return false;
 			} );
 
-			// Remove tier button - delegated since they're dynamic
 			$( document ).on( 'click.tiered', '.scd-remove-tier', function( e ) {
 				e.preventDefault();
 				e.stopPropagation();
@@ -300,7 +290,6 @@
 
 			$container.html( html );
 
-			// Update add button state for this mode
 			var $addButton = $( '.scd-add-tier[data-tier-type="' + mode + '"]' );
 			if ( tiers.length >= self.maxTiers ) {
 				$addButton.prop( 'disabled', true ).html( '<span class="dashicons dashicons-warning"></span> Maximum tiers reached' );
@@ -354,7 +343,6 @@
 			html += '</div>';
 			html += '</div>';
 
-			// Remove button
 			html += '<button type="button" class="scd-remove-tier" data-index="' + index + '">Remove</button>';
 			html += '</div>';
 			html += '</div>';
@@ -367,11 +355,9 @@
 		 * @param mode
 		 */
 		addTier: function( mode ) {
-			// Get the full state first
 			var fullState = this.state.getState();
 			var tierType = fullState.tierType || 'quantity';
 
-			// Get internal tiers array
 			var tiers = 'percentage' === mode ? this._percentageTiers : this._fixedTiers;
 
 			if ( tiers.length >= this.maxTiers ) {return;}
@@ -396,10 +382,8 @@
 			};
 			newTier['quantity' === tierType ? 'quantity' : 'value'] = nextThreshold;
 
-			// Update internal state
 			tiers.push( newTier );
 
-			// Update component state (config.tiers is the single source of truth)
 			var allTiers = this._percentageTiers.concat( this._fixedTiers );
 			this.state.setState( {
 				discountConfig: {
@@ -420,14 +404,11 @@
 		 * @param mode
 		 */
 		removeTier: function( index, mode ) {
-			// Get internal tiers array
 			var tiers = 'percentage' === mode ? this._percentageTiers : this._fixedTiers;
 
 			if ( 0 <= index && index < tiers.length ) {
-				// Update internal state
 				tiers.splice( index, 1 );
 
-				// Update component state
 				var tiersKey = 'percentage' === mode ? 'percentageTiers' : 'fixedTiers';
 				var updatedState = {};
 				updatedState[tiersKey] = tiers.slice(); // Clone array
@@ -474,7 +455,6 @@
 					break;
 			}
 
-			// Update component state (config.tiers is the single source of truth)
 			var allTiers = this._percentageTiers.concat( this._fixedTiers );
 			this.state.setState( {
 				discountConfig: {
@@ -484,7 +464,6 @@
 				}
 			} );
 
-			// Check for discount progression issues
 			this.checkDiscountProgression();
 		},
 
@@ -548,7 +527,6 @@
 			// Read from internal arrays (kept in sync with config.tiers)
 			var tiers = 'percentage' === tierMode ? this._percentageTiers : this._fixedTiers;
 
-			// Remove any existing warnings
 			$( '.scd-tier-warning' ).remove();
 
 			if ( 2 > tiers.length ) {return;}
@@ -560,7 +538,6 @@
 				return aThreshold - bThreshold;
 			} );
 
-			// Check if discounts increase with thresholds
 			var hasIssue = false;
 			for ( var i = 1; i < sortedTiers.length; i++ ) {
 				var prevDiscount = sortedTiers[i-1].discount || 0;
@@ -572,14 +549,12 @@
 				}
 			}
 
-			// Show warning if there's an issue
 			if ( hasIssue ) {
 				var warningHtml = '<div class="scd-tier-warning">';
 				warningHtml += '<span class="dashicons dashicons-warning"></span>';
 				warningHtml += '<span class="warning-text">Tip: Higher quantity tiers usually have bigger discounts.</span>';
 				warningHtml += '</div>';
 
-				// Add warning to the active tier list
 				var $activeList = 'percentage' === tierMode ? $( '#percentage-tiers-list' ) : $( '#fixed-tiers-list' );
 				$activeList.after( warningHtml );
 			}
@@ -600,25 +575,21 @@
 			if ( 0 === tiers.length ) {
 				errors.tiers = 'At least one tier is required';
 			} else {
-				// Validate each tier
 				var thresholds = [];
 
 				tiers.forEach( function( tier, index ) {
 					var threshold = tier.quantity || tier.value || 0;
 					var discount = tier.discount || 0;
 
-					// Check threshold
 					if ( 0 >= threshold ) {
 						errors['tier_' + ( index ) + '_threshold'] = 'Tier ' + ( index + 1 ) + ': Invalid threshold';
 					}
 
-					// Check for duplicate thresholds
 					if ( -1 !== thresholds.indexOf( threshold ) ) {
 						errors['tier_' + ( index ) + '_threshold'] = 'Tier ' + ( index + 1 ) + ': Duplicate threshold';
 					}
 					thresholds.push( threshold );
 
-					// Check discount
 					if ( 0 >= discount ) {
 						errors['tier_' + ( index ) + '_discount'] = 'Tier ' + ( index + 1 ) + ': Invalid discount value';
 					} else if ( 'percentage' === tier.type && 100 < discount ) {
@@ -626,7 +597,6 @@
 					}
 				} );
 
-				// Check if tiers are in ascending order
 				var sortedThresholds = thresholds.slice().sort( function( a, b ) { return a - b; } );
 				if ( JSON.stringify( thresholds ) !== JSON.stringify( sortedThresholds ) ) {
 					warnings.tier_order = 'Tiers should be in ascending order by threshold';
@@ -646,7 +616,6 @@
 		collectData: function() {
 			var fullState = this.state.getState();
 
-			// Get tiers from config (single source of truth)
 			var config = fullState.discountConfig && fullState.discountConfig.tiered;
 			var tiers = ( config && config.tiers ) || [];
 			var tierMode = fullState.tierMode || 'percentage';
@@ -695,7 +664,6 @@
 				var mode = data.tierMode || ( normalizedTiers[0] && normalizedTiers[0].type ) || 'percentage';
 				stateUpdate.tierMode = mode;
 
-				// Store in combined format in state (config.tiers)
 				stateUpdate.discountConfig = stateUpdate.discountConfig || {};
 				stateUpdate.discountConfig.tiered = stateUpdate.discountConfig.tiered || {};
 				stateUpdate.discountConfig.tiered.tiers = normalizedTiers;
@@ -704,7 +672,6 @@
 				var tierType = data.tierType || 'quantity';
 				stateUpdate.tierType = tierType;
 
-				// Update internal arrays for UI (still needed for rendering logic)
 				if ( 'percentage' === mode ) {
 					this._percentageTiers = normalizedTiers;
 					this._fixedTiers = [];
@@ -715,19 +682,16 @@
 				hasData = true;
 			}
 
-			// Set tier mode from data if provided
 			if ( data.tierMode ) {
 				stateUpdate.tierMode = data.tierMode;
 			}
 
-			// Set tier type if provided
 			if ( data.tierType ) {
 				stateUpdate.tierType = data.tierType;
 			} else {
 				stateUpdate.tierType = 'quantity'; // Default
 			}
 
-			// Set applyTo from data if provided
 			if ( data.applyTo ) {
 				stateUpdate.applyTo = data.applyTo;
 			} else {
@@ -945,7 +909,6 @@
 			try {
 				var tiers = [];
 
-				// Add percentage tiers
 				if ( this._percentageTiers && this._percentageTiers.length ) {
 					this._percentageTiers.forEach( function( tier ) {
 						tiers.push( {
@@ -957,7 +920,6 @@
 					} );
 				}
 
-				// Add fixed tiers
 				if ( this._fixedTiers && this._fixedTiers.length ) {
 					this._fixedTiers.forEach( function( tier ) {
 						tiers.push( {
@@ -1013,7 +975,6 @@
 					}
 				}.bind( this ) );
 
-				// Update state
 				if ( this.state && 'function' === typeof this.state.setState ) {
 					this.state.setState( {
 						percentageTiers: this._percentageTiers,
@@ -1026,7 +987,6 @@
 					this.renderTiers();
 				}
 
-				// Update preview
 				if ( 'function' === typeof this.updateInlinePreview ) {
 					this.updateInlinePreview();
 				}

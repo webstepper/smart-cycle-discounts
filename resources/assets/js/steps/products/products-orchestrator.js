@@ -50,10 +50,8 @@
 		init: function( wizard, config ) {
 			var self = this;
 
-			// Initialize custom properties
 			this._boundHandlers = {};
 
-			// Initialize modules (synchronous)
 			this.initializeModules();
 
 			// Initialize UI components (async) and wait for completion
@@ -62,7 +60,6 @@
 			// Return promise that resolves when UI is ready
 			return $.when( uiPromise ).then( function() {
 
-				// Set initial state
 				self._setInitialState();
 
 				// Expose globally for field definitions
@@ -94,7 +91,6 @@
 					this.modules.state.init();
 				}
 
-				// Load existing step data from wizard state manager (for edit mode)
 
 				if ( this.wizard && this.wizard.modules && this.wizard.modules.stateManager ) {
 					var stateManager = this.wizard.modules.stateManager;
@@ -143,7 +139,6 @@
 		initializeUI: function() {
 			var self = this;
 
-			// Initialize unified Picker (handles both category and product selection)
 			if ( this.modules.picker && 'function' === typeof this.modules.picker.init ) {
 				return this.modules.picker.init()
 					.then( function() {
@@ -225,14 +220,12 @@
 			// Unbind previous events to prevent duplicates
 			this.unbindEvents();
 
-			// Create bound handlers for proper cleanup
 			this._boundHandlers.selectionTypeChange = function() {
 				var selectedType = $( this ).val();
 
 				self.updateSectionVisibility( selectedType );
 				self.clearSelectionsForType( selectedType );
 
-				// Update state
 				if ( self.modules.state && 'function' === typeof self.modules.state.setState ) {
 					self.modules.state.setState( { productSelectionType: selectedType } );
 				}
@@ -261,14 +254,12 @@
 			};
 			this.$container.on( 'change.scd-products', '[name="conditions_logic"]', this._boundHandlers.conditionsLogicChange );
 
-			// Add condition button
 			this._boundHandlers.addCondition = function( e ) {
 				e.preventDefault();
 				self.handleAddCondition();
 			};
 			this.$container.on( 'click.scd-products', '.scd-add-condition', this._boundHandlers.addCondition );
 
-			// Remove condition button
 			this._boundHandlers.removeCondition = function( e ) {
 				e.preventDefault();
 				self.handleRemoveCondition( $( this ).closest( '.scd-condition-row' ) );
@@ -304,7 +295,6 @@
 				$( document ).off( 'scd:populate-nested-array', this._boundHandlers.populateNestedArray );
 			}
 
-			// Clear bound handlers
 			this._boundHandlers = {};
 		},
 
@@ -362,12 +352,10 @@
 				return;
 			}
 
-			// Hide all conditional sections first
 			this.$container.find( '.scd-random-count, .scd-specific-products, .scd-smart-criteria' ).each( function() {
 				$( this ).removeClass( 'scd-active-section' ).hide();
 			} );
 
-			// Show the appropriate section based on selection type
 			var sectionSelector = '';
 			switch ( selectionType ) {
 				case 'random_products':
@@ -471,7 +459,6 @@
 				categories = categories ? [ categories ] : [ 'all' ];
 			}
 
-			// Remove empty/invalid values
 			categories = categories.filter( function( cat ) {
 				return null !== cat && cat !== undefined && '' !== cat;
 			} ).map( String );
@@ -523,10 +510,8 @@
 			// Process categories with business logic
 			categories = this.processCategorySelection( categories );
 
-			// Update state
 			this.modules.state.setState( { categoryIds: categories } );
 
-			// Check if categories actually changed
 			var categoriesChanged = JSON.stringify( categories.slice().sort() ) !==
 									JSON.stringify( oldCategories.slice().sort() );
 
@@ -555,7 +540,6 @@
 				conditions: []
 			};
 
-			// Clear non-relevant fields based on selection type
 			switch ( selectionType ) {
 				case 'specific_products':
 					delete clearData.randomCount;
@@ -635,7 +619,6 @@
 				mode: 'include'
 			};
 
-			// Create new array to avoid mutation
 			var updatedConditions = currentConditions.slice();
 			updatedConditions.push( newCondition );
 			
@@ -663,7 +646,6 @@
 			var currentConditions = state.conditions || [];
 
 			if ( index < currentConditions.length ) {
-				// Create new array without the removed condition
 				var updatedConditions = [];
 				for ( var i = 0; i < currentConditions.length; i++ ) {
 					if ( i !== index ) {
@@ -686,10 +668,8 @@
 				return;
 			}
 
-			// Validate conditions is array
 			var validConditions = Array.isArray( conditions ) ? conditions : [];
 
-			// Update state with restored conditions
 			// State module will trigger UI re-render via existing mechanisms
 			this.modules.state.setState( { conditions: validConditions } );
 		}
@@ -758,10 +738,8 @@
 		_validateRandomProducts: function( data, errors ) {
 			var randomCount = parseInt( data.randomCount || 0, 10 );
 			
-			// Check conditions array
 			var hasConditions = data.conditions && Array.isArray( data.conditions ) && data.conditions.length > 0;
 			
-			// Check categories
 			var hasCategories = false;
 			if ( data.categoryIds && Array.isArray( data.categoryIds ) ) {
 				hasCategories = data.categoryIds.length > 0 && data.categoryIds[0] !== 'all';
@@ -791,7 +769,6 @@
 				productIds = [];
 			}
 
-			// Check for empty selection (matches server-side required validation)
 			if ( productIds.length === 0 ) {
 				errors.productIds = 'Please select at least one product';
 				return;
@@ -843,7 +820,6 @@
 		 * @private
 		 */
 		_setInitialState: function() {
-			// Get the current state to check what should be selected
 			var currentState = this.modules.state ? this.modules.state.getState() : {};
 			var selectedType = currentState.productSelectionType || 'all_products';
 
@@ -855,10 +831,8 @@
 				// Ensure the radio button is checked
 				$selectedInput.prop( 'checked', true );
 
-				// Update section visibility
 				this.updateSectionVisibility( selectedType );
 
-				// Update the parent card's selected state
 				$( '.scd-card-option' ).removeClass( 'scd-card-option--selected' );
 				$selectedInput.closest( '.scd-card-option' ).addClass( 'scd-card-option--selected' );
 			} else {
@@ -894,7 +868,6 @@
 		 * @returns {void}
 		 */
 		destroy: function() {
-			// Remove loading state
 			this.setLoading( false );
 
 			// Unbind events
@@ -917,10 +890,8 @@
 				this.modules = {};
 			}
 
-			// Clear reference
 			this.$container = null;
 
-			// Reset initialization flag
 			this.initialized = false;
 
 			// Call parent destroy

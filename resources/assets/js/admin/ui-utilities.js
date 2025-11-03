@@ -35,15 +35,12 @@
 				return null;
 			}
 
-			// Remove existing overlay
 			$target.find( '.scd-loading-overlay' ).remove();
 
-			// Add relative positioning if needed
 			if ( 'static' === $target.css( 'position' ) ) {
 				$target.css( 'position', 'relative' );
 			}
 
-			// Create overlay
 			var $overlay = $(
 				'<div class="scd-loading-overlay">' +
                     '<div class="scd-loading-content">' +
@@ -53,7 +50,6 @@
                 '</div>'
 			);
 
-			// Add to target
 			$target.append( $overlay );
 
 			// Fade in
@@ -148,7 +144,6 @@
 
 			var config = $.extend( {}, defaults, options );
 
-			// Create modal HTML
 			var $modal = $(
 				'<div class="scd-modal-overlay">' +
                     '<div class="scd-modal" style="width: ' + ( config.width ) + 'px; ' + ( 'auto' !== config.height ? 'height: ' + config.height + 'px;' : '' ) + '">' +
@@ -166,7 +161,6 @@
                 '</div>'
 			);
 
-			// Add buttons
 			if ( config.buttons.length ) {
 				var $footer = $modal.find( '.scd-modal-footer' );
 				config.buttons.forEach( function( button ) {
@@ -178,7 +172,6 @@
 				} );
 			}
 
-			// Add to body
 			$( 'body' ).append( $modal );
 
 			// Center modal
@@ -241,7 +234,7 @@
 			// WordPress uses title attribute for tooltips
 			$element.attr( 'title', content );
 
-			// Enhanced tooltip ( optional )
+			// Custom tooltip with hover delay (optional)
 			if ( config.enhanced ) {
 				var $tooltip = null;
 				var showTimeout = null;
@@ -258,7 +251,6 @@
                         '</div>'
 					);
 
-					// Set transition delay
 					$tempTooltip.css( 'transition-delay', config.delay + 'ms' );
 
 					// Position tooltip
@@ -334,7 +326,6 @@
 
 			var config = $.extend( {}, defaults, options );
 
-			// Create progress bar
 			var $progress = $(
 				'<div class="scd-progress-bar ' + ( config.animated ? 'animated' : '' ) + '">' +
                     ( config.label ? '<div class="scd-progress-label">' + this.escapeHtml( config.label ) + '</div>' : '' ) +
@@ -345,7 +336,6 @@
                 '</div>'
 			);
 
-			// Add to container
 			$( config.container ).append( $progress );
 
 			// API

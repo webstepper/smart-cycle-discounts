@@ -45,18 +45,15 @@
 
 			this.stepName = stepName;
 
-			// Initialize instance-level handler caches
 			// CRITICAL: These must be instance properties, not prototype properties
 			// to avoid sharing handlers between different step orchestrators
 			// Don't overwrite if already initialized (by custom init before initPersistence)
 			this._complexFieldHandlers = this._complexFieldHandlers || {};
 			this._complexFieldQueue = this._complexFieldQueue || {};
 
-			// Initialize state with field defaults if empty
 			if ( this.modules && this.modules.state ) {
 				var currentState = this.modules.state.getState();
 				if ( ( SCD.Utils && SCD.Utils.isEmpty && SCD.Utils.isEmpty( currentState ) ) || $.isEmptyObject( currentState ) ) {
-					// Get field defaults for this step
 					var fields = SCD.FieldDefinitions.getStepFields( stepName );
 					if ( fields ) {
 						var defaults = {};
@@ -108,12 +105,10 @@
 		 */
 		collectData: function() {
 			try {
-				// Check if field definitions are available
 				if ( ! this._hasFieldDefinitions() ) {
 					return this._createErrorResponse( 'Field definitions not available' );
 				}
 
-				// Get field definitions for this step
 				var fieldDefs = window.SCD.FieldDefinitions.getStepFields( this.stepName ) || {};
 
 				var data = {};
@@ -173,7 +168,6 @@
 			if ( window.scdDebugPersistence ) {
 			}
 			try {
-				// Check for data collection errors first
 				if ( data && data._error ) {
 					return {
 						valid: false,
@@ -184,7 +178,6 @@
 					};
 				}
 
-				// Check if ValidationManager is available
 				if ( !window.SCD || !window.SCD.ValidationManager ) {
 					if ( window.scdDebugPersistence ) {
 					}
@@ -274,7 +267,6 @@
 					} );
 				}
 
-				// Update state with recursion guard
 				// NOTE: Data from PHP uses snake_case, will be normalized by state import/setState
 				if ( this.modules && this.modules.state && !this._isUpdatingState ) {
 					this._isUpdatingState = true;
@@ -287,12 +279,10 @@
 					this._isUpdatingState = false;
 				}
 
-				// Check if field definitions are available
 				if ( !window.SCD || !window.SCD.FieldDefinitions || !window.SCD.FieldDefinitions.getStepFields ) {
 					return;
 				}
 
-				// Get field definitions for this step
 				var fieldDefs = window.SCD.FieldDefinitions.getStepFields( this.stepName );
 				if ( !fieldDefs ) {
 					return;
@@ -334,7 +324,6 @@
 					console.error( '[StepPersistence] Error populating fields for ' + this.stepName + ':', error );
 				}
 
-				// Show user-friendly error message
 				if ( 'function' === typeof this.showError ) {
 					this.showError( 'Failed to load saved ' + this.stepName + ' data.', 'error', 5000 );
 				}
@@ -380,7 +369,6 @@
 			var self = this;
 			var data = this.collectData();
 
-			// Check for data collection errors
 			if ( data && data._error ) {
 				var errors = [ { field: 'system', message: data._message || 'Failed to collect data' } ];
 				this.showErrors( errors );
@@ -400,7 +388,6 @@
 				step: this.stepName,
 				data: data
 			} ).done( function( response ) {
-				// Update wizard state manager with the saved data
 				// This ensures that when navigating back to this step, the updated data is used
 				// instead of the original data loaded from PHP on page load
 				if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.modules && window.SCD.Wizard.modules.stateManager ) {
@@ -414,7 +401,6 @@
 				// After save, this data becomes stale. We must update it with the latest saved data
 				// to ensure that any future step initializations use fresh data
 				if ( window.scdWizardData && window.scdWizardData.currentCampaign ) {
-					// Update the current campaign data with the saved step data
 					if ( ! window.scdWizardData.currentCampaign[self.stepName] ) {
 						window.scdWizardData.currentCampaign[self.stepName] = {};
 					}
@@ -440,7 +426,6 @@
 			try {
 				var data = this.collectData();
 
-				// Check for data collection errors first
 				if ( data && data._error ) {
 					var errors = [ { field: 'system', message: data._message || 'Failed to collect data' } ];
 					this.showValidationErrors( errors );
@@ -557,7 +542,6 @@
 		 */
 		reset: function() {
 			try {
-				// Get field defaults for this step
 				var fields = SCD.FieldDefinitions[this.stepName];
 				if ( !fields ) {
 					console.error( '[StepPersistence] Cannot reset - Field definitions not available for step:', this.stepName );
@@ -572,7 +556,6 @@
 					}
 				}
 
-				// Reset state with recursion guard
 				if ( this.modules && this.modules.state ) {
 					this._isUpdatingState = true;
 					this.modules.state.reset( defaults );
@@ -622,7 +605,6 @@
 				return null;
 			}
 
-			// Initialize if needed
 			this._complexFieldHandlers = this._complexFieldHandlers || {};
 
 			// Return from cache if already registered locally
@@ -634,10 +616,8 @@
 			// This connects to the registry we created in discounts-orchestrator.js
 			var handler = null;
 
-			// Check if current object (orchestrator) has the registry
 			if ( this.complexFieldHandlers && this.complexFieldHandlers[handlerPath] ) {
 				handler = this.complexFieldHandlers[handlerPath];
-				// Cache locally for future use
 				this._complexFieldHandlers[handlerPath] = handler;
 
 				if ( window.scdDebugPersistence ) {
@@ -709,7 +689,6 @@
 			if ( window.scdDebugPersistence ) {
 			}
 
-			// Initialize queue and retry tracking if needed
 			this._complexFieldQueue = this._complexFieldQueue || {};
 			this._complexFieldRetries = this._complexFieldRetries || {};
 
@@ -722,7 +701,6 @@
 				value: value
 			} );
 
-			// Initialize retry count
 			if ( !this._complexFieldRetries[handlerPath] ) {
 				this._complexFieldRetries[handlerPath] = 0;
 			}
@@ -747,13 +725,11 @@
 			}
 
 			if ( !this.isComplexFieldReady( handlerPath ) ) {
-				// Check retry limit
 				this._complexFieldRetries = this._complexFieldRetries || {};
 				this._complexFieldRetries[handlerPath] = ( this._complexFieldRetries[handlerPath] || 0 ) + 1;
 
 				if ( this._complexFieldRetries[handlerPath] > maxRetries ) {
 					console.error( '[StepPersistence] Max retries reached for handler:', handlerPath );
-					// Clear the queue to prevent memory leaks
 					if ( this._complexFieldQueue && this._complexFieldQueue[handlerPath] ) {
 						delete this._complexFieldQueue[handlerPath];
 					}
@@ -770,7 +746,6 @@
 				return;
 			}
 
-			// Reset retry count on success
 			if ( this._complexFieldRetries && this._complexFieldRetries[handlerPath] ) {
 				delete this._complexFieldRetries[handlerPath];
 			}
@@ -844,7 +819,6 @@
 		var conditionalFieldSnake = conditional.field; // Field name in snake_case (from PHP)
 		var conditionalValue = conditional.value;
 
-		// Get current value - check both collected data and state
 		var actualValue = null;
 
 		// Convert to camelCase for JavaScript data lookup (collected data uses camelCase keys)
@@ -868,7 +842,6 @@
 			}
 		}
 
-		// Check if conditional is met (with type coercion for booleans)
 		var conditionMatches = false;
 		if ( 'boolean' === typeof conditionalValue ) {
 			// Boolean comparison - coerce actual value to boolean
@@ -929,11 +902,9 @@
 				this.unbindCustomEvent( 'scd:wizard:validate-step' + this._persistenceNamespace );
 			}
 
-			// Reset flags
 			this._isUpdatingState = false;
 			this._persistenceNamespace = null;
 
-			// Clear complex field handlers and queues
 			this._complexFieldHandlers = {};
 			this._complexFieldQueue = {};
 		}

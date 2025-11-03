@@ -182,7 +182,6 @@
 				var settings = window.scdDiscountStepData;
 				var formatted = parseFloat( amount ).toFixed( settings.price_decimals );
 
-				// Add thousand separator
 				if ( settings.thousand_separator ) {
 					formatted = formatted.replace( /(\d)(?=(\d{3})+\.)/g, '$1' + settings.thousand_separator );
 				}
@@ -192,7 +191,6 @@
 					formatted = formatted.replace( '.', settings.decimal_separator );
 				}
 
-				// Add currency symbol
 				switch ( settings.currency_pos ) {
 					case 'left':
 						return settings.currency_symbol + formatted;
@@ -256,7 +254,6 @@
 			var observer = null;
 			var timeoutId = null;
 
-			// Check if element already exists
 			var $element = $( selector );
 			if ( 0 < $element.length ) {
 				callback( $element );
@@ -282,7 +279,6 @@
 					subtree: true
 				} );
 
-				// Set timeout
 				timeoutId = setTimeout( function() {
 					observer.disconnect();
 					// Element not found within timeout
@@ -572,7 +568,6 @@
 				var $field = $( field );
 				if ( !$field.length ) {return;}
 
-				// Remove all state classes
 				$field.removeClass( 'scd-field-error scd-field-success scd-field-warning' );
 
 				// Find or create message element
@@ -611,7 +606,6 @@
 				if ( show ) {
 					$el.addClass( 'scd-loading' );
 
-					// Add spinner if not exists
 					if ( !$el.find( '.scd-loading-spinner' ).length ) {
 						var $spinner = $( '<div class="scd-loading-spinner">' + '<span class="spinner is-active"></span>' + '<span class="scd-loading-text">' + message + '</span>' + '</div>' );
 						$el.append( $spinner );
@@ -679,7 +673,6 @@
 			 * @returns {*} Cached value or null
 			 */
 			get: function( key ) {
-				// Check memory cache first
 				if ( this._memoryCache && this._memoryCache[key] ) {
 					var memItem = this._memoryCache[key];
 					if ( memItem.expires > Date.now() ) {
@@ -688,7 +681,6 @@
 					delete this._memoryCache[key];
 				}
 
-				// Check localStorage if available
 				if ( window.localStorage ) {
 					try {
 						var stored = localStorage.getItem( 'scd_cache_' + key );
@@ -700,7 +692,6 @@
 								this._memoryCache[key] = parsed;
 								return parsed.data;
 							}
-							// Remove expired item
 							localStorage.removeItem( 'scd_cache_' + key );
 						}
 					} catch ( e ) {
@@ -723,11 +714,9 @@
 					expires: Date.now() + ttl
 				};
 
-				// Store in memory
 				this._memoryCache = this._memoryCache || {};
 				this._memoryCache[key] = item;
 
-				// Store in localStorage if available
 				if ( window.localStorage ) {
 					try {
 						localStorage.setItem( 'scd_cache_' + key, JSON.stringify( item ) );
@@ -742,12 +731,10 @@
 			 * @param {string} key Cache key
 			 */
 			remove: function( key ) {
-				// Remove from memory
 				if ( this._memoryCache ) {
 					delete this._memoryCache[key];
 				}
 
-				// Remove from localStorage
 				if ( window.localStorage ) {
 					try {
 						localStorage.removeItem( 'scd_cache_' + key );
@@ -761,13 +748,10 @@
 			 * Clear all cache
 			 */
 			clear: function() {
-				// Clear memory cache
 				this._memoryCache = {};
 
-				// Clear localStorage cache
 				if ( window.localStorage ) {
 					try {
-						// Remove all scd_cache_* keys
 						for ( var i = localStorage.length - 1; 0 <= i; i-- ) {
 							var key = localStorage.key( i );
 							if ( key && 0 === key.indexOf( 'scd_cache_' ) ) {
@@ -824,7 +808,6 @@
 			var parts = namespace.split( '.' );
 			var current = window;
 
-			// Create namespace if needed
 			for ( var i = 0; i < parts.length; i++ ) {
 				if ( !current[parts[i]] ) {
 					current[parts[i]] = {};
@@ -877,10 +860,8 @@
 			for ( var i = 0; i < parts.length; i++ ) {
 				if ( !current[parts[i]] ) {
 					if ( i === parts.length - 1 && factory ) {
-						// Create the module using factory
 						current[parts[i]] = factory();
 					} else {
-						// Create namespace
 						current[parts[i]] = {};
 					}
 				}
@@ -1185,7 +1166,6 @@
 						var prevDataValue = $field.attr( 'data-value' );
 						prev = SCD.Utils.safeJsonParse( prevDataValue, [] ) || [];
 						changed = !this.deepEqual( prev, next );
-						// Set both jQuery data and DOM attribute for proper persistence
 						$field.data( 'value', next );
 						$field.attr( 'data-value', JSON.stringify( next ) );
 						if ( changed ) {
@@ -1331,12 +1311,10 @@
 				var property = matches[2];
 				var value = $field.val();
 
-				// Initialize index object if needed
 				if ( !dataMap[index] ) {
 					dataMap[index] = {};
 				}
 
-				// Store value
 				dataMap[index][property] = value;
 			} );
 

@@ -57,7 +57,6 @@
 				console[ level ]( consoleMessage );
 			}
 
-			// Add to queue for server-side logging
 			this.logQueue.push( {
 				timestamp: new Date().toISOString(),
 				level: level,
@@ -88,7 +87,6 @@
 		 * Schedule a flush of the log queue
 		 */
 		scheduleFlush: function() {
-			// Clear existing timeout
 			if ( this.flushTimeout ) {
 				clearTimeout( this.flushTimeout );
 			}
@@ -131,7 +129,6 @@
 		}
 	};
 
-	// Initialize on document ready
 	$( document ).ready( function() {
 		SCD.DebugLogger.init();
 	} );

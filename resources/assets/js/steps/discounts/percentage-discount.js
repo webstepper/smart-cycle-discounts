@@ -21,7 +21,6 @@
 		this.type = 'percentage';
 		this.config = SCD.Modules.Discounts.Config;
 
-		// Initialize with dependency checks
 		if ( !SCD.Utils.ensureInitialized( this, {
 			'config': this.config
 		}, 'PercentageDiscount' ) ) {
@@ -48,7 +47,6 @@
 		 * Set default values for percentage discount
 		 */
 		setDefaults: function() {
-			// Show placeholder on initial load
 			this.updateInlinePreview();
 		},
 
@@ -63,7 +61,6 @@
 			var $field = $( this );
 			var value = parseFloat( $field.val() );
 
-		// Clear existing error using ValidationError component
 		if ( window.SCD && window.SCD.ValidationError ) {
 			window.SCD.ValidationError.clear( $field );
 		}
@@ -130,12 +127,10 @@
 		 * @param change
 		 */
 		handleStateChange: function( change ) {
-			// Check for discountConfig changes that affect percentage
 			if ( 'discountConfig' === change.property ) {
 				var newConfig = change.value;
 				var oldConfig = change.oldValue;
 
-				// Check if percentage value changed
 				var newValue = SCD.Utils.get( newConfig, 'percentage.value' );
 				var oldValue = SCD.Utils.get( oldConfig, 'percentage.value' );
 

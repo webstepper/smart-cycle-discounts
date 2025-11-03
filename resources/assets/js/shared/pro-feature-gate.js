@@ -11,7 +11,6 @@
 ( function( $ ) {
 	'use strict';
 
-	// Initialize namespace
 	window.SCD = window.SCD || {};
 	window.SCD.Shared = window.SCD.Shared || {};
 
@@ -34,7 +33,6 @@
 		 * @returns {object} { blocked: boolean, message: string, feature: string, upgradeUrl: string }
 		 */
 		check: function( step, formData ) {
-			// Check if user is premium (from localized config)
 			var isPremium = window.scdWizardConfig && window.scdWizardConfig.is_premium;
 
 			// If premium, allow all features
@@ -42,14 +40,11 @@
 				return { blocked: false };
 			}
 
-			// Get upgrade URL
 			var upgradeUrl = ( window.scdWizardConfig && window.scdWizardConfig.upgrade_url ) || '#';
 
-			// Check discounts step for PRO discount types
 			if ( 'discounts' === step && formData.discountType ) {
 				var proDiscountTypes = [ 'tiered', 'bogo', 'spend_threshold' ];
 				if ( -1 !== proDiscountTypes.indexOf( formData.discountType ) ) {
-					// Show modal
 					this.showModal( {
 						featureType: 'discount_type',
 						featureName: this.getDiscountTypeLabel( formData.discountType ),
@@ -68,9 +63,7 @@
 				}
 			}
 
-			// Check schedule step for recurring campaigns
 			if ( 'schedule' === step && formData.enable_recurring ) {
-				// Show modal
 				this.showModal( {
 					featureType: 'recurring_campaigns',
 					featureName: 'Recurring Campaigns',
@@ -88,9 +81,7 @@
 				};
 			}
 
-			// Check products step for advanced filters
 			if ( 'products' === step && formData.use_advanced_filters ) {
-				// Show modal
 				this.showModal( {
 					featureType: 'advanced_filters',
 					featureName: 'Advanced Product Filters',
@@ -132,11 +123,9 @@
 			// Populate modal content
 			$modal.find( '#scd-pro-feature-name' ).text( '"' + options.featureName + '"' );
 
-			// Show modal with fade-in animation
 			$modal.fadeIn( 200 );
 			$( 'body' ).addClass( 'scd-modal-open' );
 
-			// Set up focus trap
 			$modal.find( '.scd-modal-upgrade' ).focus();
 
 			// Handle upgrade button

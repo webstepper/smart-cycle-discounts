@@ -69,13 +69,11 @@
 			this.registerComputed( computed );
 		}
 
-		// Initialize event manager after setting up prototype
 		if ( this.initEventManager ) {
 			this.initEventManager();
 		}
 	} );
 
-	// Set up prototype chain FIRST
 	SCD.Modules.Review.State.prototype = Object.create( SCD.Shared.BaseState.prototype );
 	SCD.Modules.Review.State.prototype.constructor = SCD.Modules.Review.State;
 
@@ -114,7 +112,6 @@
 				newSummaryData[key] = currentSummary[key];
 			}
 		}
-		// Update the specific step
 		newSummaryData[step] = data;
 
 		this.setState( {

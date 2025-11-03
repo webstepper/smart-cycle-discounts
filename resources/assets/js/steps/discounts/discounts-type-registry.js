@@ -45,8 +45,6 @@
 
 			// No longer need to pre-initialize instances - handlers manage data now
 
-			// Initialize with current discount type
-			// Initialize with current discount type if set
 			var currentDiscountType = null;
 
 			if ( this.state && 'function' === typeof this.state.getState ) {
@@ -208,7 +206,6 @@
 				this.instances[this.activeType].deactivate();
 			}
 
-			// Check if type is registered
 			if ( !this.types[typeId] ) {
 
 				return;
@@ -217,18 +214,15 @@
 			// Strategy-specific options will be handled by the orchestrator
 
 			try {
-				// Check if we need to load the module
 				var typeConfig = this.types[typeId];
 				if ( this.lazyLoadEnabled && !typeConfig.class && typeConfig.metadata.modulePath ) {
 					// Loading state handled by orchestrator
 
-					// Load the module
 					this.loadTypeModule( typeId );
 
 					// Loading state handled by orchestrator
 				}
 
-				// Get or create instance
 				var instance = this.getInstance( typeId );
 				if ( instance ) {
 					instance.activate();
@@ -238,7 +232,6 @@
 
 				// Loading state handled by orchestrator
 
-				// Show error to user
 				if ( window.SCD.Shared && window.SCD.Shared.NotificationService ) {
 					SCD.Shared.NotificationService.error( 'Failed to load discount type. Please try again.' );
 				}
@@ -255,7 +248,6 @@
 				return this.instances[typeId];
 			}
 
-			// Get type configuration
 			var typeConfig = this.types[typeId];
 			if ( !typeConfig ) {
 				return null;
@@ -267,7 +259,6 @@
 				return null;
 			}
 
-			// Create new instance if class is available
 			if ( typeConfig.class ) {
 				try {
 				var instance = new typeConfig.class( this.state );
@@ -297,12 +288,10 @@
 				throw new Error( 'No module path defined for type ' + typeId );
 			}
 
-			// Check if already loading
 			if ( this.loadingPromises[typeId] ) {
 				return this.loadingPromises[typeId];
 			}
 
-			// Create loading promise
 			var self = this;
 			this.loadingPromises[typeId] = new Promise( function( resolve, reject ) {
 				var modulePath = self.getModulePath( typeConfig.metadata.modulePath );
@@ -312,7 +301,6 @@
 				script.async = true;
 
 				script.onload = function() {
-					// Get the class from the expected namespace
 					var className = self.getClassNameFromType( typeId );
 					var TypeClass = window.SCD.Modules.Discounts.Types[className];
 
@@ -478,7 +466,6 @@
 				}
 			} );
 
-			// Remove event listeners
 			$( document ).off( '.typeRegistry' );
 
 			this.instances = {};

@@ -11,7 +11,6 @@
 ( function( $ ) {
 	'use strict';
 
-	// Initialize namespace
 	window.SCD = window.SCD || {};
 	window.SCD.Wizard = window.SCD.Wizard || {};
 
@@ -57,10 +56,8 @@
 			var $wizardWrap = $( '.scd-wizard-wrap' ).first();
 
 			if ( $wizardWrap.length ) {
-				// Add loading progress bar at top
 				$( 'body' ).append( '<div class="scd-loading-bar"></div>' );
 
-				// Show skeleton immediately for instant feedback
 				$wizardWrap.addClass( 'scd-wizard-main--loading' );
 				$wizardWrap.html( fullSkeleton );
 				$wizardWrap.removeClass( 'scd-wizard-main--loading' );
@@ -127,10 +124,8 @@
 					classes += ' completed';
 				}
 
-				// Create skeleton circle for step number
 				var stepNumberSkeleton = '<div class="scd-skeleton-step-circle" style="width:32px;height:32px;border-radius:50%;margin-bottom:8px;background:linear-gradient(90deg,#f0f0f1 25%,#e8e9ea 50%,#f0f0f1 75%);background-size:200% 100%;animation:scd-skeleton-shimmer 1.8s ease-in-out infinite;"></div>';
 
-				// Create skeleton line for step label with varied widths for organic look
 				var labelWidths = [ '80px', '95px', '110px', '85px', '100px' ];
 				var labelWidth = labelWidths[i] || '90px';
 				var stepLabelSkeleton = '<div class="scd-skeleton-step-label" style="width:' + labelWidth + ';height:13px;margin-top:8px;border-radius:4px;background:linear-gradient(90deg,#f0f0f1 25%,#e8e9ea 50%,#f0f0f1 75%);background-size:200% 100%;animation:scd-skeleton-shimmer 1.8s ease-in-out infinite;animation-delay:' + ( i * 0.05 ) + 's;"></div>';

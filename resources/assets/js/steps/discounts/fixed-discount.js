@@ -23,7 +23,6 @@
 		this.currencySymbol = SCD.Utils.get( window, 'scdDiscountStepData.currencySymbol', '$' )
 		this.currencyPosition = SCD.Utils.get( window, 'scdDiscountStepData.currencyPos', 'left' );
 
-		// Initialize with dependency checks
 		if ( !SCD.Utils.ensureInitialized( this, {
 			'config': this.config
 		}, 'FixedDiscount' ) ) {
@@ -50,7 +49,6 @@
 		 * Set default values for fixed discount
 		 */
 		setDefaults: function() {
-			// Show placeholder on initial load
 			this.updateInlinePreview();
 		},
 
@@ -65,7 +63,6 @@
 			var $field = $( this );
 			var value = parseFloat( $field.val() );
 
-		// Clear existing error using ValidationError component
 		if ( window.SCD && window.SCD.ValidationError ) {
 			window.SCD.ValidationError.clear( $field );
 		}
@@ -147,7 +144,6 @@
 				errors.discountValueFixed = 'Please enter a valid amount';
 			}
 
-			// Check if minimum order amount is set
 			var minOrder = this.state.getState ?
 				parseFloat( this.state.getState( 'minimumOrderAmount' ) ) : 0;
 			if ( !isNaN( minOrder ) && 0 < minOrder && value >= minOrder ) {

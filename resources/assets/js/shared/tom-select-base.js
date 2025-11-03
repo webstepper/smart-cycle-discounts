@@ -64,8 +64,6 @@
 		this.config = $.extend( true, {}, this.getDefaultConfig(), config || {} );
 		this.instance = null;
 
-		// Validate configuration - warn about suboptimal combination
-		// Check for both boolean true and string values like 'focus'
 		var hasPreload = true === this.config.preload || ( 'string' === typeof this.config.preload && this.config.preload );
 		if ( hasPreload && true === this.config.openOnFocus ) {
 			if ( window.SCD && window.SCD.ErrorHandler ) {
@@ -94,7 +92,6 @@
 			isLoading: false
 		};
 
-		// Cache for performance
 		this.cache = {
 			loadedOptions: new Map(),
 			optionTimestamps: new Map()
@@ -187,21 +184,17 @@
 
 		var self = this;
 
-		// Create and store initialization promise
 		this._initPromise = new Promise( function( resolve, reject ) {
-			// Check if already initialized
 			if ( self._initialized ) {
 				resolve( self );
 				return;
 			}
 
-			// Check if TomSelect library is loaded
 			if ( 'undefined' === typeof TomSelect ) {
 				reject( new Error( 'TomSelect library not loaded' ) );
 				return;
 			}
 
-			// Check if element already has Tom Select - wait for cleanup
 			if ( self.element.tomselect ) {
 				self._handleError(
 					new Error( 'Tom Select already initialized on element - cleaning up' ),
@@ -249,7 +242,6 @@
 	 */
 	SCD.Shared.TomSelectBase.prototype._createInstance = function( resolve, reject ) {
 		try {
-			// Create new Tom Select instance
 			this.instance = new TomSelect( this.element, this.config );
 
 			// DEFENSIVE FIX: Monkey patch tom-select's search method to prevent undefined errors
@@ -338,7 +330,6 @@
 		options.forEach( function( option ) {
 			if ( option && option.value && !self.instance.options[option.value] ) {
 				self.instance.addOption( option );
-				// Cache the option
 				self.cache.loadedOptions.set( option.value, option );
 				self.cache.optionTimestamps.set( option.value, Date.now() );
 			}
@@ -389,7 +380,6 @@
 		// Use centralized ValidationError component
 		window.SCD.ValidationError.show( this.$element, message );
 
-		// Add error class to Tom Select wrapper
 		if ( this.instance.wrapper ) {
 			$( this.instance.wrapper ).addClass( 'error' );
 		}
@@ -410,7 +400,6 @@
 		// Use centralized ValidationError component
 		window.SCD.ValidationError.clear( this.$element );
 
-		// Remove error class from Tom Select wrapper
 		if ( this.instance.wrapper ) {
 			$( this.instance.wrapper ).removeClass( 'error' );
 		}
@@ -493,7 +482,6 @@
 		if ( this.instance && this.instance.control ) {
 			var self = this;
 
-			// Store reference to control for cleanup
 			this._clickControl = this.instance.control;
 
 			// Bind click handler directly to control element
@@ -532,7 +520,6 @@
 	 * @private
 	 */
 	SCD.Shared.TomSelectBase.prototype._handleChange = function( value ) {
-		// Clear validation errors when value changes
 		this.clearError();
 
 		this.onChange( value );
@@ -723,12 +710,10 @@
 			// Clean up existing footers and their event handlers
 			this._cleanupLoadMoreButton();
 
-			// Check if more pages available
 			if ( this.pagination.currentPage >= this.pagination.totalPages ) {
 				return;
 			}
 
-			// Create footer with load more button
 			var $footer = $(
 				'<div class="scd-tom-select-footer">' +
 					'<button type="button" class="scd-load-more-btn">' +
@@ -753,7 +738,6 @@
 
 			$footer.find( '.scd-load-more-btn' ).on( 'click', clickHandler );
 
-			// Store handler reference for cleanup
 			$footer.data( 'scd-click-handler', clickHandler );
 
 		} catch ( error ) {
@@ -775,13 +759,11 @@
 		var $footer = $dropdown.find( '.scd-tom-select-footer' );
 
 		if ( $footer.length ) {
-			// Remove event handler
 			var clickHandler = $footer.data( 'scd-click-handler' );
 			if ( clickHandler ) {
 				$footer.find( '.scd-load-more-btn' ).off( 'click', clickHandler );
 			}
 
-			// Remove element
 			$footer.remove();
 		}
 

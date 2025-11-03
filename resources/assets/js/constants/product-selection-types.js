@@ -16,7 +16,6 @@
 	window.SCD = window.SCD || {};
 	SCD.Constants = SCD.Constants || {};
 
-	// Check if constants are available from PHP localization
 	var localizedConstants = window.scdWizardData &&
                            window.scdWizardData.constants &&
                            window.scdWizardData.constants.productSelectionTypes || null;

@@ -114,7 +114,6 @@
 	SCD.Modules.Review.Components.prototype.initializeCollapsibles = function() {
 		var self = this;
 
-		// Add chevron icons to collapsible cards
 		this.elements.$collapsibleCards.each( function() {
 			var $card = $( this );
 			var $header = $card.find( '.scd-card__header' );
@@ -123,7 +122,6 @@
 				$header.append( '<span class="scd-card-toggle dashicons dashicons-arrow-down-alt2"></span>' );
 			}
 
-			// Initialize state
 			self.collapsibleStates[$card.attr( 'id' )] = false;
 		} );
 	};
@@ -188,7 +186,6 @@
 	 * @param value
 	 */
 	SCD.Modules.Review.Components.prototype.handleLaunchOptionChange = function( value ) {
-		// Update state
 		this.state.setState( { launchOption: value } );
 
 		// Update UI
@@ -264,7 +261,6 @@
 	 * @return {boolean} True if editing existing campaign
 	 */
 	SCD.Modules.Review.Components.prototype.isEditMode = function() {
-		// Get from Wizard State Manager - the ONLY source of truth
 		if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.StateManager ) {
 			var wizardState = window.SCD.Wizard.StateManager.get();
 			return wizardState && ( wizardState.wizardMode === 'edit' || wizardState.campaignId > 0 );
@@ -286,12 +282,10 @@
 	 * Initialize summary features
 	 */
 	SCD.Modules.Review.Components.prototype.initializeSummaryFeatures = function() {
-		// Add hover effects to summary grids
 		this.elements.$summaryGrids.find( '.scd-summary-row' )
 			.on( 'mouseenter', function() { $( this ).addClass( 'hover' ); } )
 			.on( 'mouseleave', function() { $( this ).removeClass( 'hover' ); } );
 
-		// Initialize tooltips if any
 		if ( $.fn.tooltip ) {
 			this.elements.$summaryContainer.find( '[data-tooltip]' ).tooltip();
 		}
@@ -364,12 +358,10 @@
 			return;
 		}
 
-		// Clear existing errors using ValidationError
 		if ( window.SCD && window.SCD.ValidationError ) {
 			window.SCD.ValidationError.clearAll( this.elements.$launchOptions.closest( 'form' ) );
 		}
 
-		// Show each error using ValidationError component
 		for ( var i = 0; i < errors.length; i++ ) {
 			var error = errors[i];
 			if ( 'launch_option' === error.field && this.elements.$launchOptions && this.elements.$launchOptions.length ) {
@@ -385,7 +377,6 @@
 	 * Reset components
 	 */
 	SCD.Modules.Review.Components.prototype.reset = function() {
-		// Reset launch option to default
 		if ( this.elements.$launchOptions ) {
 			this.elements.$launchOptions.filter( '[value="active"]' ).prop( 'checked', true ).trigger( 'change' );
 		}
@@ -399,7 +390,6 @@
 			}
 		} );
 
-		// Clear any error messages
 		$( '.scd-launch-option-error' ).remove();
 		$( '.scd-field-error' ).removeClass( 'scd-field-error' );
 	};
@@ -422,13 +412,11 @@
 			this.elements.$launchOptionLabels.off( 'click' );
 		}
 
-		// Clear references
 		this.elements = {};
 		this.state = null;
 		this.api = null;
 	};
 
-	// Create aliases for backward compatibility
 	SCD.Modules.Review.Summary = function( state, api ) {
 		return new SCD.Modules.Review.Components( state, api );
 	};

@@ -13,7 +13,6 @@
 ( function( $ ) {
 	'use strict';
 
-	// Create namespace
 	window.SCD = window.SCD || {};
 	SCD.Steps = SCD.Steps || {};
 
@@ -59,7 +58,6 @@
 				orchestrator.init();
 			}
 
-			// Load session data if continuing a draft
 			// Do this after a slight delay to ensure all services are ready
 			if ( this.loadFromSession ) {
 				var self = this;
@@ -132,7 +130,6 @@
 				var stepName = this.getCurrentStep();
 				var stepData = this.collectStepData();
 
-			// Get step orchestrator
 			var stepOrchestrator = orchestrator.getStepInstance( stepName );
 			if ( stepOrchestrator && 'function' === typeof stepOrchestrator.saveStep ) {
 				return stepOrchestrator.saveStep();
@@ -236,7 +233,6 @@
 				return $.Deferred().resolve().promise();
 			}
 
-			// Get step orchestrator
 			var stepOrchestrator = orchestrator.getStepInstance( stepName );
 			if ( stepOrchestrator && 'function' === typeof stepOrchestrator.saveStep ) {
 				return stepOrchestrator.saveStep();
@@ -252,7 +248,6 @@
 			var urlParams = new URLSearchParams( window.location.search );
 			var urlStep = urlParams.get( 'step' );
 
-			// Validate step
 			var validSteps = [ 'basic', 'products', 'discounts', 'schedule', 'review' ];
 			if ( urlStep && -1 !== validSteps.indexOf( urlStep ) ) {
 				return urlStep;
@@ -405,7 +400,6 @@
 		}
 	} );
 
-	// Initialize on ready
 	$( document ).ready( function() {
 		// Only initialize on wizard pages
 		if ( ! $( '.scd-wizard-page' ).length &&
@@ -414,11 +408,9 @@
 			return;
 		}
 
-		// Check if we're continuing a draft
 		var urlParams = new URLSearchParams( window.location.search );
 		var intent = urlParams.get( 'intent' );
 
-		// Initialize wizard data
 		if ( 'continue' === intent ) {
 			// When continuing, we'll load data from session after orchestrator is ready
 			SCD.Wizard.data = {};
@@ -427,7 +419,6 @@
 			// Use pre-loaded data for editing existing campaigns
 			SCD.Wizard.data = window.scdWizardData.currentCampaign;
 
-			// Set debug flag if enabled
 			if ( window.scdWizardData.debugPersistence ) {
 				window.scdDebugPersistence = true;
 			}
@@ -436,7 +427,6 @@
 			SCD.Wizard.data = {};
 		}
 
-		// Initialize wizard (handle race condition properly)
 		function initializeWizard() {
 			if ( ! SCD.Wizard.initialized ) {
 				SCD.Wizard.init();
@@ -444,7 +434,6 @@
 			}
 		}
 
-		// Check if orchestrator is already ready
 		if ( SCD.Wizard.Orchestrator ) {
 			// Orchestrator already exists - initialize immediately
 			initializeWizard();

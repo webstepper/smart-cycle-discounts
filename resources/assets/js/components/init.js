@@ -13,7 +13,6 @@
 ( function() {
 	'use strict';
 
-	// Create global namespaces if they don't exist
 	window.SCD = window.SCD || {};
 	window.SCD.Admin = window.SCD.Admin || {};
 	window.scdAdmin = window.scdAdmin || {
@@ -31,7 +30,6 @@
 
 	// Document ready handler
 	jQuery( document ).ready( function( $ ) {
-		// Initialize admin if not already initialized
 		if ( window.SCD && window.SCD.Admin && 'function' === typeof window.SCD.Admin.init ) {
 			window.SCD.Admin.init();
 		}

@@ -40,7 +40,6 @@
 			self.toggleConditionalFields();
 		} );
 
-		// Reset settings
 		$( '#reset-settings' ).on( 'click', function() {
 			self.resetToDefaults();
 		} );
@@ -71,7 +70,6 @@
 		if ( confirm( this.config.strings.confirmReset ) ) {
 			var defaults = this.config.defaults || {};
 
-			// Reset all form fields to defaults
 			$( '#enable_plugin' ).prop( 'checked', defaults.enable_plugin );
 			$( '#default_discount_type' ).val( defaults.default_discount_type );
 			$( '#default_priority' ).val( defaults.default_priority );
@@ -90,12 +88,10 @@
 			$( '#enable_debug_mode' ).prop( 'checked', defaults.enable_debug_mode );
 			$( '#cleanup_data_on_uninstall' ).prop( 'checked', defaults.cleanup_data_on_uninstall );
 
-			// Update conditional fields
 			this.toggleConditionalFields();
 		}
 	};
 
-	// Initialize on document ready
 	$( document ).ready( function() {
 		new GeneralSettingsManager();
 	} );

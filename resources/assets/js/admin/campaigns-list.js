@@ -63,7 +63,6 @@
 			// Close any open quick edit
 			this.closeQuickEdit();
 
-			// Get campaign data from row
 			var campaignName = $row.find( '.row-title' ).text().trim();
 			var campaignStatus = this.extractStatus( $row );
 			var campaignPriority = this.extractPriority( $row );
@@ -116,7 +115,6 @@
 			var $spinner = $form.find( '.spinner' );
 			var $error = $form.find( '.error' );
 
-			// Get form data
 			var data = {
 				action: 'scd_ajax',
 				scdAction: 'quick_edit',
@@ -130,7 +128,6 @@
 				end_date: $form.find( 'input[name="end_date"]' ).val()
 			};
 
-			// Show loading
 			$saveButton.prop( 'disabled', true );
 			$spinner.addClass( 'is-active' );
 			$error.hide();
@@ -214,7 +211,6 @@
 		}
 	};
 
-	// Initialize when DOM is ready
 	$( document ).ready( function() {
 		SCD_QuickEdit.init();
 	} );

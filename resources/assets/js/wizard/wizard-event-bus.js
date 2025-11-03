@@ -63,13 +63,10 @@
 		emit: function( eventName, data, options ) {
 			options = options || {};
 
-			// Add to history
 			this.addToHistory( 'emit', eventName, data );
 
-			// Update stats
 			this.stats.emitted++;
 
-			// Create event object
 			var eventData = $.extend( {
 				timestamp: new Date().toISOString(),
 				source: options.source || 'unknown',
@@ -99,7 +96,6 @@
 				return;
 			}
 
-			// Store in registry
 			if ( !this.events[eventName] ) {
 				this.events[eventName] = [];
 			}
@@ -159,7 +155,6 @@
 		off: function( eventName, handler, options ) {
 			options = options || {};
 
-			// Remove from registry
 			if ( this.events[eventName] ) {
 				this.events[eventName] = this.events[eventName].filter( function( listener ) {
 					return listener.handler !== handler;
@@ -186,19 +181,16 @@
 		offAll: function( eventName, options ) {
 			options = options || {};
 
-			// Remove from registry
 			if ( eventName ) {
 				delete this.events[eventName];
 			} else {
 				this.events = {};
 			}
 
-			// Remove jQuery listeners
 			var $target = options.target || $( document );
 			if ( eventName ) {
 				$target.off( this.getEventName( eventName, options.namespace ) );
 			} else {
-				// Remove all wizard events
 				for ( var ns in this.namespaces ) {
 					$target.off( '.' + this.namespaces[ns] );
 				}
@@ -223,7 +215,6 @@
 					// Call handler
 					listener.handler.call( null, { type: eventName }, data );
 
-					// Remove if once
 					if ( listener.once ) {
 						self.off( eventName, listener.handler );
 					}
@@ -252,11 +243,9 @@
 		cleanup: function( namespace ) {
 			var ns = this.namespaces[namespace] || namespace;
 
-			// Remove jQuery events
 			$( document ).off( '.' + ns );
 			$( window ).off( '.' + ns );
 
-			// Remove from registry
 			if ( namespace ) {
 				for ( var eventName in this.events ) {
 					this.events[eventName] = this.events[eventName].filter( function( listener ) {
@@ -333,7 +322,6 @@
 			} catch ( e ) {
 				var stack = e.stack || '';
 				var lines = stack.split( '\n' );
-				// Remove first 3 lines (Error, getCallStack, addToHistory)
 				return lines.slice( 3, 8 ).join( '\n' );
 			}
 		},

@@ -28,7 +28,6 @@
 		this.type = 'base'; // Override in child classes
 		this.initialized = false;
 
-		// Initialize event manager if available
 		if ( 'function' === typeof this.initEventManager ) {
 			this.initEventManager();
 		}

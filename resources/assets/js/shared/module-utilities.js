@@ -30,7 +30,6 @@
 		var current = window;
 		var i;
 
-		// Create namespace hierarchy
 		for ( i = 0; i < parts.length; i++ ) {
 			if ( 'undefined' === typeof current[parts[i]] ) {
 				current[parts[i]] = {};
@@ -65,7 +64,6 @@
 			var modulePath = pathOrContext;
 			var factory = factoryOrDeps;
 
-			// Get the module constructor
 			var ModuleConstructor = SCD.Utils.get( window, modulePath );
 
 			if ( 'function' === typeof ModuleConstructor ) {
@@ -80,12 +78,10 @@
 		var context = pathOrContext;
 		var dependencies = factoryOrDeps;
 
-		// Check if already initialized
 		if ( context.initialized ) {
 			return false;
 		}
 
-		// Check all dependencies
 		if ( dependencies ) {
 			var key;
 			for ( key in dependencies ) {

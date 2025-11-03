@@ -67,7 +67,6 @@
 				return this._pendingRequests[requestKey];
 			}
 
-			// Create and store request promise
 			var promise = SCD.Ajax.post( action, data, {
 				timeout: options.timeout || this.config.timeout
 			} ).fail( function( xhr, textStatus, errorThrown ) {
@@ -92,7 +91,6 @@
 				delete self._pendingRequests[requestKey];
 			} );
 
-			// Store as pending
 			this._pendingRequests[requestKey] = promise;
 
 			return promise;
@@ -164,30 +162,24 @@
 	 * @returns {Function} API constructor function
 	 */
 	SCD.Shared.BaseAPI.createAPI = function( stepName, customMethods ) {
-		// Validate parameters
 		if ( !stepName || 'string' !== typeof stepName ) {
 			throw new Error( 'Step name must be a non-empty string' );
 		}
 
 		customMethods = customMethods || {};
 
-		// Create constructor function
 		var APIClass = function( config ) {
 			// Call parent constructor
 			SCD.Shared.BaseAPI.call( this, config );
 
-			// Initialize step-specific properties
 			this.stepName = stepName;
 		};
 
-		// Set up proper prototype chain
 		APIClass.prototype = Object.create( SCD.Shared.BaseAPI.prototype );
 		APIClass.prototype.constructor = APIClass;
 
-		// Add custom methods to prototype
 		$.extend( APIClass.prototype, customMethods );
 
-		// Add convenience method for saving step data
 		if ( !customMethods.saveStepData ) {
 			APIClass.prototype.saveStepData = function( data ) {
 				return this.request( 'scd_save_step', {

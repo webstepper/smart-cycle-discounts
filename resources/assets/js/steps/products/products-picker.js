@@ -39,7 +39,6 @@
 		this.categorySelect = null;
 		this.productSelect = null;
 
-		// Cache for products and categories
 		this.cache = {
 			products: new Map(),
 			categories: new Map()
@@ -58,7 +57,6 @@
 		// Initialization state
 		this.initialized = false;
 
-		// Initialize event manager
 		this.initEventManager();
 	};
 
@@ -105,7 +103,6 @@
 				return Promise.resolve();
 			}
 
-			// Check if already initialized
 			if ( this.categorySelect ) {
 				return Promise.resolve();
 			}
@@ -149,7 +146,6 @@
 						$order: 0
 					} );
 
-					// Check for pending restoration
 					if ( self.pendingCategories ) {
 						var pendingIds = self.pendingCategories;
 						self.pendingCategories = null;
@@ -226,7 +222,6 @@
 				return Promise.resolve();
 			}
 
-			// Check if already initialized
 			if ( this.productSelect ) {
 				return Promise.resolve();
 			}
@@ -266,7 +261,6 @@
 				},
 
 				onDropdownOpen: function() {
-					// Load products when dropdown opens
 					if ( ! self.productSelect.instance.loading ) {
 						self.productSelect.instance.load( '' );
 					}
@@ -276,7 +270,6 @@
 			this.productSelect = new SCD.Shared.TomSelectBase( $select[0], config );
 
 			return this.productSelect.init().then( function() {
-				// Check for pending restoration
 				if ( self.pendingProducts ) {
 					var pendingIds = self.pendingProducts;
 					self.pendingProducts = null;
@@ -324,7 +317,6 @@
 		 */
 		processCategoryChange: function( _value ) {
 
-			// Get actual current values from TomSelect
 			var currentValues = this.categorySelect ? this.categorySelect.getValue() : [];
 			var newCategories = Array.isArray( currentValues ) ? currentValues : ( currentValues ? [ currentValues ] : [] );
 
@@ -332,20 +324,17 @@
 				newCategories = [ 'all' ];
 			}
 
-			// Get old categories from state, defaulting to ['all'] if empty
 			var oldCategories = this.state.getState().categoryIds;
 			if ( ! oldCategories || 0 === oldCategories.length ) {
 				oldCategories = [ 'all' ];
 			}
 
 
-			// Check if there's an actual change
 			if ( ! this.hasCategoryChanges( newCategories, oldCategories ) ) {
 				return;
 			}
 
 
-			// Update state
 			this.state.setState( { categoryIds: newCategories } );
 
 			// Sync with original select element for form submission
@@ -427,7 +416,6 @@
 			}
 
 
-			// Store category data for selected products (critical for filtering)
 			var self = this;
 			productIds.forEach( function( productId ) {
 				var product = self.cache.products.get( productId );
@@ -436,7 +424,6 @@
 				}
 			} );
 
-			// Update state (for UI reactivity)
 			this.state.setState( { productIds: productIds } );
 
 			// Sync to hidden field (single source of truth for form submission)
@@ -445,7 +432,6 @@
 			// Sync with TomSelect element (for TomSelect to track selections)
 			this.syncProductSelect( productIds );
 
-			// Update wizard state manager so changes persist when navigating
 			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.modules && window.SCD.Wizard.modules.stateManager ) {
 				var currentStepData = window.SCD.Wizard.modules.stateManager.get( 'stepData' ) || {};
 				var productsStepData = currentStepData.products || {};
@@ -480,7 +466,6 @@
 				// Filter currently selected products by new categories FIRST
 				var filtered = self.filterProductsByCategories( selected, categories );
 
-				// Show notification if products were removed
 				if ( filtered.length < selected.length ) {
 					var removedCount = selected.length - filtered.length;
 					if ( SCD.Shared && SCD.Shared.NotificationService ) {
@@ -492,7 +477,6 @@
 					}
 				}
 
-				// Clear search cache and reload with new category filter
 				var instance = self.productSelect.instance;
 
 				// CRITICAL: Clear selected items FIRST, then clear options
@@ -530,7 +514,6 @@
 					// This prevents flickering/bouncing when adding multiple options
 					instance.lock();
 
-					// Add new products to dropdown options (batched - no visual updates yet)
 					newProducts.forEach( function( product ) {
 						if ( ! instance.options[product.value] ) {
 							instance.addOption( product );
@@ -541,12 +524,10 @@
 					// DO NOT call restoreProducts() as it would re-add old products from cache
 					// Instead, directly set the filtered products on TomSelect instance
 					if ( 0 < filtered.length ) {
-						// Set filtered products on TomSelect (only if they're in the new options)
 						var validFiltered = filtered.filter( function( id ) {
 							return instance.options[id];
 						} );
 
-						// Set values while still locked (no visual update yet)
 						instance.setValue( validFiltered, true );
 
 						// Sync state and hidden field
@@ -587,7 +568,6 @@
 					return false;
 				}
 
-				// Check if product belongs to selected categories
 				return product.categoryIds.some( function( catId ) {
 					return -1 !== categories.indexOf( String( catId ) );
 				} );
@@ -615,7 +595,6 @@
 				.done( function( response ) {
 					var categories = self.extractCategories( response );
 
-					// Cache categories
 					categories.forEach( function( cat ) {
 						self.cache.categories.set( cat.value, cat );
 					} );
@@ -656,7 +635,6 @@
 				return;
 			}
 
-			// Get current category filter
 			var categories = this.getCurrentCategoryFilter();
 			var categoryFilter = this.isAllCategoriesSelected( categories ) ? [] : categories;
 
@@ -681,7 +659,6 @@
 							categoryIds: p.categoryIds || []
 						};
 
-						// Cache product data
 						self.cache.products.set( product.id, product );
 
 						return product;
@@ -727,7 +704,6 @@
 				return Promise.resolve();
 			}
 
-			// Load from API
 			return this.api.getProductsByIds( productIds )
 				.then( function( response ) {
 					var products = self.extractProducts( response );
@@ -772,7 +748,6 @@
 				// Cache
 				self.cache.products.set( option.id, option );
 
-				// Add to TomSelect
 				if ( ! self.productSelect.instance.options[option.id] ) {
 					self.productSelect.instance.addOption( option );
 				}
@@ -1093,7 +1068,6 @@
 				var promises = [];
 
 
-				// Set categories
 				if ( data.categoryIds ) {
 					if ( this.categorySelect ) {
 						promises.push( this.ensureCategoryOptionsLoaded( data.categoryIds ).then( function() {
@@ -1104,7 +1078,6 @@
 					}
 				}
 
-				// Set products
 				if ( data.productIds && 0 < data.productIds.length ) {
 					if ( this.productSelect ) {
 						promises.push( this.restoreProducts( data.productIds ) );
@@ -1225,15 +1198,12 @@
 				this.productSelect.instance.clear();
 			}
 
-			// Clear state
 			if ( this.state && 'function' === typeof this.state.setState ) {
 				this.state.setState( { productIds: [] } );
 			}
 
-			// Clear hidden field (single source of truth)
 			this.syncHiddenField( [] );
 
-			// Clear underlying select element
 			this.syncProductSelect( [] );
 		},
 
@@ -1244,7 +1214,6 @@
 		 * @returns {void}
 		 */
 		destroy: function() {
-			// Clear timers
 			clearTimeout( this.timers.categoryChange );
 			clearTimeout( this.timers.categoryReload );
 
@@ -1258,14 +1227,12 @@
 				this.productSelect = null;
 			}
 
-			// Clear cache
 			this.cache.products.clear();
 			this.cache.categories.clear();
 
 			// Unbind events
 			this.unbindAllEvents();
 
-			// Reset state
 			this.initialized = false;
 		}
 	} );

@@ -34,7 +34,6 @@
 				return;
 			}
 
-			// Load definitions from localized data
 			if ( window.scdAdmin && window.scdAdmin.scdFieldDefinitions ) {
 				definitions = window.scdAdmin.scdFieldDefinitions;
 				initialized = true;
@@ -125,7 +124,6 @@
 				required: fieldDef.required || false
 			};
 
-			// Add numeric rules
 			if ( 'undefined' !== typeof fieldDef.min ) {
 				rules.min = fieldDef.min;
 			}
@@ -133,7 +131,6 @@
 				rules.max = fieldDef.max;
 			}
 
-			// Add string length rules
 			if ( 'undefined' !== typeof fieldDef.minLength ) {
 				rules.minLength = fieldDef.minLength;
 			}
@@ -156,7 +153,6 @@
 		};
 	} )();
 
-	// Initialize on document ready
 	$( document ).ready( function() {
 		SCD.FieldDefinitions.init();
 	});

@@ -34,7 +34,6 @@
 			 * Bind frontend events
 			 */
 			bindEvents: function() {
-				// Update price display on variation change
 				$( document ).on( 'found_variation', '.variations_form', this.onVariationFound.bind( this ) );
 				$( document ).on( 'reset_data', '.variations_form', this.onVariationReset.bind( this ) );
 
@@ -51,7 +50,6 @@
 				$( '.scd-discount-badge' ).each( function() {
 					var $badge = $( this );
 
-					// Add animation class
 					$badge.addClass( 'scd-badge-animated' );
 				} );
 			},
@@ -79,7 +77,6 @@
 			startCountdown: function( $element, endTime ) {
 				var endDate = new Date( endTime ).getTime();
 
-				// Update timer every second
 				var timer = setInterval( function() {
 					var now = new Date().getTime();
 					var distance = endDate - now;
@@ -111,7 +108,6 @@
 					}
 				}, 1000 );
 
-				// Store timer reference for cleanup
 				$element.data( 'timer-id', timer );
 			},
 
@@ -147,7 +143,6 @@
 				var $form = $( event.target );
 				var $priceElement = $form.find( '.woocommerce-variation-price' );
 
-				// Update discount badge if present
 				if ( variation.scd_discount ) {
 					this.updateDiscountBadge( $priceElement, variation.scd_discount );
 				}
@@ -162,7 +157,6 @@
 				var $form = $( event.target );
 				var $priceElement = $form.find( '.woocommerce-variation-price' );
 
-				// Remove any dynamic discount badges
 				$priceElement.find( '.scd-discount-badge-dynamic' ).remove();
 			},
 
@@ -173,10 +167,8 @@
 			 * @param {object} discount Discount data
 			 */
 			updateDiscountBadge: function( $container, discount ) {
-				// Remove existing dynamic badge
 				$container.find( '.scd-discount-badge-dynamic' ).remove();
 
-				// Add new badge
 				if ( 'percentage' === discount.type ) {
 					var badge = '<span class="scd-discount-badge scd-discount-badge-dynamic">-' +
 						discount.value + '%</span>';
@@ -218,7 +210,6 @@
 			if ( $target.hasClass( 'scd-countdown-timer' ) ) {
 				SCDFrontend.stopCountdown( $target );
 			} else {
-				// Check for countdown timers in removed subtree
 				$target.find( '.scd-countdown-timer' ).each( function() {
 					SCDFrontend.stopCountdown( $( this ) );
 				} );

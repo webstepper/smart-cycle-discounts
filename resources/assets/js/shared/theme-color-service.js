@@ -70,7 +70,6 @@
 		 * Load theme colors from WordPress/WooCommerce
 		 */
 		loadColors: function() {
-			// Get colors from admin data
 			if ( window.scdAdmin && window.scdAdmin.colors ) {
 				this.colors = $.extend( {}, this.defaultColors, window.scdAdmin.colors );
 			} else {
@@ -138,7 +137,6 @@
 				return;
 			}
 
-			// Store mapping for reapplication
 			this.componentMappings[componentName] = mappings;
 
 			// Apply CSS variables for component

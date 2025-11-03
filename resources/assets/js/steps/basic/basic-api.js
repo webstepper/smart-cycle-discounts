@@ -32,7 +32,6 @@
 		this.stepName = 'basic';
 	};
 
-	// Set up proper prototype chain if BaseAPI is available
 	if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseAPI ) {
 		SCD.Modules.Basic.API.prototype = Object.create( SCD.Shared.BaseAPI.prototype );
 		SCD.Modules.Basic.API.prototype.constructor = SCD.Modules.Basic.API;

@@ -167,21 +167,17 @@
 			// SINGLE SOURCE OF TRUTH: Wizard State Manager
 			var isEditMode = this.isEditMode();
 
-			// Set loading state
 			this.$modal
 				.removeClass( this.config.successClass + ' ' + this.config.errorClass )
 				.addClass( this.config.loadingClass + ' ' + this.config.activeClass )
 				.attr( 'aria-busy', 'true' );
 
-			// Update title based on mode
 			var loadingTitle = isEditMode ? 'Updating Campaign...' : 'Creating Campaign...';
 			this.$modal.find( '.scd-completion-title' ).text( loadingTitle );
 
-			// Clear message and actions
 			this.$modal.find( '.scd-completion-message' ).empty();
 			this.$modal.find( '.scd-completion-actions' ).empty();
 
-			// Update screen reader status
 			var loadingStatus = isEditMode ? 'Updating campaign. Please wait.' : 'Creating campaign. Please wait.';
 			this.$modal.find( '.scd-completion-status' ).text( loadingStatus );
 
@@ -204,7 +200,6 @@
 
 			// Debug logging
 
-			// Store data for potential future use
 			this.completionData = data;
 
 			var campaignName = data.campaignName || '';
@@ -239,10 +234,8 @@
 					.addClass( self.config.successClass )
 					.attr( 'aria-busy', 'false' );
 
-				// Update title
 				self.$modal.find( '.scd-completion-title' ).text( message );
 
-				// Add message based on status
 				var statusMessage;
 				if ( 'active' === data.status ) {
 					statusMessage = isEditMode ?
@@ -265,13 +258,11 @@
 				}
 				self.$modal.find( '.scd-completion-message' ).text( statusMessage );
 
-				// Add view button if we have a URL
 				if ( viewUrl ) {
 					var viewButton = '<a href="' + viewUrl + '" class="button button-primary scd-completion-view">View Campaign</a>';
 					self.$modal.find( '.scd-completion-actions' ).html( viewButton );
 				}
 
-				// Update screen reader status
 				self.$modal.find( '.scd-completion-status' ).text( message + ' ' + statusMessage );
 
 				// Schedule redirect
@@ -296,7 +287,6 @@
 				return;
 			}
 
-			// Store data for retry
 			this.completionData = data;
 
 			// SINGLE SOURCE OF TRUTH: Prefer data.isEditMode, fallback to State Manager
@@ -311,19 +301,15 @@
 					.addClass( self.config.errorClass )
 					.attr( 'aria-busy', 'false' );
 
-				// Update title based on mode
 				var errorTitle = isEditMode ? 'Campaign Update Failed' : 'Campaign Creation Failed';
 				self.$modal.find( '.scd-completion-title' ).text( errorTitle );
 
-				// Add error message
 				self.$modal.find( '.scd-completion-message' ).text( errorMessage );
 
-				// Add action buttons
 				var buttons = '<button type="button" class="button button-primary scd-completion-retry">Retry</button>' +
 					'<button type="button" class="button scd-completion-cancel">Cancel</button>';
 				self.$modal.find( '.scd-completion-actions' ).html( buttons );
 
-				// Update screen reader status
 				self.$modal.find( '.scd-completion-status' ).text( 'Error: ' + errorMessage );
 			}, 300 );
 		},
@@ -339,16 +325,13 @@
 				return;
 			}
 
-			// Set retry flag
 			this.retryInProgress = true;
 
-			// Hide error state and show loading
 			this.showLoading();
 
 			// Trigger retry event for wizard orchestrator to handle
 			$( document ).trigger( 'scd:wizard:retry' );
 
-			// Reset flag after a delay (prevents rapid clicking)
 			var self = this;
 			setTimeout( function() {
 				self.retryInProgress = false;
@@ -370,7 +353,6 @@
 				.attr( 'aria-busy', 'false' );
 			$( 'body' ).removeClass( 'scd-completion-active' );
 
-			// Clear status
 			this.$modal.find( '.scd-completion-status' ).empty();
 		},
 
@@ -381,7 +363,6 @@
 		 * @return {boolean} True if editing existing campaign
 		 */
 		isEditMode: function() {
-			// Get from Wizard State Manager - the ONLY source of truth
 			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.StateManager ) {
 				var wizardState = window.SCD.Wizard.StateManager.get();
 				return wizardState && ( wizardState.wizardMode === 'edit' || wizardState.campaignId > 0 );

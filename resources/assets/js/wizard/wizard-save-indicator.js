@@ -46,10 +46,8 @@
 				return;
 			}
 
-			// Create indicator element
 			this.createIndicator();
 
-			// Cache jQuery elements
 			this.cacheElements();
 
 			// Bind events
@@ -62,18 +60,15 @@
 		 * Create indicator element
 		 */
 		createIndicator: function() {
-			// Check if indicator already exists
 			if ( 0 < $( this.config.indicatorSelector ).length ) {
 				return;
 			}
 
-			// Create new indicator
 			var indicatorHtml = '<div class="scd-save-indicator" style="display: none;">' +
 				'<span class="scd-save-icon"></span>' +
 				'<span class="scd-save-text"></span>' +
 				'</div>';
 
-			// Add to wizard header
 			var $header = $( '.scd-wizard-header' );
 			if ( 0 < $header.length ) {
 				$header.append( indicatorHtml );
@@ -128,18 +123,14 @@
 
 			this.clearHideTimeout();
 
-			// Update classes
 			this.$indicator
 				.removeClass( 'scd-save-success scd-save-error' )
 				.addClass( 'scd-save-saving' );
 
-			// Update icon
 			this.$icon.html( '<span class="dashicons dashicons-update scd-spin"></span>' );
 
-			// Update text
 			this.$text.text( this.getTranslation( 'saving', 'Saving...' ) );
 
-			// Show indicator
 			this.$indicator.stop( true, true ).fadeIn( this.config.fadeInDuration );
 		},
 
@@ -151,15 +142,12 @@
 				return;
 			}
 
-			// Update classes
 			this.$indicator
 				.removeClass( 'scd-save-saving scd-save-error' )
 				.addClass( 'scd-save-success' );
 
-			// Update icon
 			this.$icon.html( '<span class="dashicons dashicons-yes-alt"></span>' );
 
-			// Update text
 			this.$text.text( this.getTranslation( 'saved', 'Saved' ) );
 
 			// Auto hide after delay
@@ -174,15 +162,12 @@
 				return;
 			}
 
-			// Update classes
 			this.$indicator
 				.removeClass( 'scd-save-saving scd-save-success' )
 				.addClass( 'scd-save-error' );
 
-			// Update icon
 			this.$icon.html( '<span class="dashicons dashicons-dismiss"></span>' );
 
-			// Update text
 			this.$text.text( this.getTranslation( 'save_failed', 'Save failed' ) );
 
 			// Keep error visible longer
@@ -234,15 +219,12 @@
 		 * Destroy save indicator
 		 */
 		destroy: function() {
-			// Clear timeout
 			this.clearHideTimeout();
 
-			// Remove element
 			if ( this.$indicator ) {
 				this.$indicator.remove();
 			}
 
-			// Clear references
 			this.$indicator = null;
 			this.$icon = null;
 			this.$text = null;
@@ -250,9 +232,7 @@
 		}
 	};
 
-	// Initialize when document is ready
 	$( document ).ready( function() {
-		// Initialize save indicator if we're in wizard context
 		if ( 0 < $( '.scd-wizard-wrap' ).length ) {
 			SCD.Wizard.SaveIndicator.init();
 		}

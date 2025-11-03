@@ -216,7 +216,6 @@
 				throw new Error( 'Missing modules: ' + missingModules.join( ', ' ) );
 			}
 
-			// Check discount types
 			var requiredTypes = [
 				'BaseDiscount', 'PercentageDiscount', 'FixedDiscount',
 				'TieredDiscount', 'BogoDiscount', 'BundleDiscount'
@@ -309,7 +308,6 @@
 				// Activate type
 				registry.activateType( typeId );
 
-				// Set test data
 				switch ( typeId ) {
 					case 'percentage':
 						orchestrator.setState( { discountValuePercentage: 20 } );
@@ -447,10 +445,8 @@
 				conditionLogic: 'all'
 			} );
 
-			// Validate conditions
 			var validation = conditionsModule.validateConditions();
 
-			// Get summary
 			var summary = conditionsModule.getConditionSummary();
 
 			return {
@@ -542,7 +538,6 @@
 			}
 			metrics.validation = Date.now() - validationStart;
 
-			// Check memory usage
 			if ( performance.memory ) {
 				metrics.memoryUsed = Math.round( performance.memory.usedJSHeapSize / 1024 / 1024 ) + 'MB';
 			}

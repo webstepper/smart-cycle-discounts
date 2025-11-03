@@ -32,7 +32,6 @@
 	 * @param {boolean} config.logEnabled Enable console logging (default: true)
 	 */
 	SCD.Utils.createComplexFieldHandler = function( config ) {
-		// Validate required config
 		if ( !config || !config.handlerName || !config.namespace ) {
 			throw new Error( 'Complex field handler requires handlerName and namespace in config' );
 		}
@@ -67,7 +66,6 @@
 			// Internal state - no DOM dependency
 			var self = this;
 			
-			// Initialize properties based on config
 			this[config.propertyNames.percentageItems] = [];
 			this[config.propertyNames.fixedItems] = [];
 			this[config.propertyNames.mode] = 'percentage';
@@ -92,14 +90,12 @@
 				this.currencySymbol = doc.documentElement.textContent || '$';
 			}
 
-			// Store config for later use
 			this._config = config;
 
 			// Default values
 			this.defaults = config.defaults;
 		} );
 
-		// Create prototype
 		var HandlerClass = SCD.Utils.getNestedProperty( window, config.namespace + '.' + config.handlerName );
 		
 		HandlerClass.prototype = {
@@ -155,7 +151,6 @@
 					return;
 				}
 
-				// Validate and store
 				if ( Array.isArray( items ) ) {
 					this[this._config.propertyNames.percentageItems] = items.map( this._config.itemParser );
 					
@@ -183,7 +178,6 @@
 					return;
 				}
 
-				// Validate and store
 				if ( Array.isArray( items ) ) {
 					this[this._config.propertyNames.fixedItems] = items.map( this._config.itemParser );
 					
@@ -203,7 +197,6 @@
 				state[this._config.statePropertyNames.fixedItems] = this.getFixedItems();
 				state[this._config.statePropertyNames.mode] = this[this._config.propertyNames.mode];
 				
-				// Add additional properties if configured
 				if ( this._config.propertyNames.additionalProps ) {
 					var self = this;
 					_$.each( this._config.propertyNames.additionalProps, function( stateKey, propName ) {
@@ -223,25 +216,21 @@
 			updateState: function( updates ) {
 				var self = this;
 				
-				// Update percentage items
 				var percentageKey = this._config.statePropertyNames.percentageItems;
 				if ( updates[percentageKey] !== undefined ) {
 					this.setPercentageItems( updates[percentageKey] );
 				}
 				
-				// Update fixed items
 				var fixedKey = this._config.statePropertyNames.fixedItems;
 				if ( updates[fixedKey] !== undefined ) {
 					this.setFixedItems( updates[fixedKey] );
 				}
 				
-				// Update mode
 				var modeKey = this._config.statePropertyNames.mode;
 				if ( updates[modeKey] !== undefined ) {
 					this[this._config.propertyNames.mode] = updates[modeKey];
 				}
 				
-				// Update additional properties
 				if ( this._config.propertyNames.additionalProps ) {
 					_$.each( this._config.propertyNames.additionalProps, function( stateKey, propName ) {
 						var updateKey = self._config.statePropertyNames[stateKey];
@@ -253,7 +242,6 @@
 			}
 		};
 
-		// Add custom methods if provided
 		if ( config.customMethods ) {
 			_$.extend( HandlerClass.prototype, config.customMethods );
 		}

@@ -41,27 +41,22 @@
 				var orchestratorClass = config.orchestratorClass;
 				var deferred;
 
-				// Check if orchestrator is already loaded
 				if ( SCD.Steps[orchestratorProperty] ) {
 					deferred = $.Deferred();
 					deferred.resolve();
 					return deferred.promise();
 				}
 
-				// Check if orchestrator class exists
 				if ( !SCD.Steps[orchestratorClass] ) {
 					deferred = $.Deferred();
 					deferred.reject( new Error( orchestratorClass + ' not available' ) );
 					return deferred.promise();
 				}
 
-				// Create and initialize orchestrator
 				var orchestrator = new SCD.Steps[orchestratorClass]();
 
-				// Store orchestrator reference
 				SCD.Steps[orchestratorProperty] = orchestrator;
 
-				// Create the getter/setter for modern implementation
 				Object.defineProperty( SCD.Steps, stepName, {
 					get: function() {
 						return SCD.Steps[orchestratorProperty];
@@ -72,7 +67,6 @@
 					configurable: true
 				} );
 
-				// Initialize step if method exists
 				if ( 'function' === typeof orchestrator.initializeStep ) {
 					orchestrator.initializeStep();
 				}
@@ -106,7 +100,6 @@
 
 			// Also initialize on DOM ready if we're already on this step
 			$( document ).ready( function() {
-				// Check if we're on this step using configured selectors
 				var isOnStep = false;
 
 				if ( config.domSelectors && 0 < config.domSelectors.length ) {
@@ -138,13 +131,11 @@
 				return;
 			}
 
-			// Create loader functions for each configured step
 			for ( var stepName in SCD.Wizard.StepConfig ) {
 				if ( Object.prototype.hasOwnProperty.call( SCD.Wizard.StepConfig, stepName ) ) {
 					var config = SCD.Wizard.StepConfig[stepName];
 					var loaderName = 'load' + stepName.charAt( 0 ).toUpperCase() + stepName.slice( 1 );
 
-					// Create the loader function
 					SCD.Steps[loaderName] = this.createLoader( stepName, config );
 
 					// Register event handlers
@@ -154,7 +145,6 @@
 		}
 	};
 
-	// Initialize the factory when DOM is ready
 	$( document ).ready( function() {
 		if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.StepLoaderFactory ) {
 			SCD.Wizard.StepLoaderFactory.init();

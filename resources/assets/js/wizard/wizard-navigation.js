@@ -33,7 +33,6 @@
 		 * @since 1.0.0
 		 */
 		CLICK_DELAY: 100,
-		NAVIGATION_TIMEOUT: 3000,
 
 		/**
 		 * DOM selector constants
@@ -239,7 +238,6 @@
 				clearTimeout( this.navigationTimeout );
 			}
 
-			// Store clicked button for processing state
 			this.clickedButton = $button;
 
 			this.navigationTimeout = setTimeout( function() {
@@ -363,7 +361,6 @@
 			// This prevents the validation bypass bug
 			console.error( '[SCD Wizard:Navigation] Cannot validate - step orchestrator not loaded for: ' + stepName );
 
-			// Show error to user using NotificationService
 			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
 				window.SCD.Shared.NotificationService.error(
 					'Cannot proceed: Step validation system not ready. Please refresh the page and try again.',
@@ -469,7 +466,6 @@
 							self.setNavigationState( false );
 							return;
 						}
-						// Check for payload size errors
 						if ( xhr.responseText.indexOf( 'Input variables exceeded' ) !== -1 ) {
 							self.handleNavigationError( {
 								message: self.ERROR_MESSAGES.payload_too_large,
@@ -512,7 +508,6 @@
 				} ).promise();
 			}
 
-			// Validate we have main orchestrator
 			if ( ! window.SCD || ! window.SCD.Wizard || ! window.SCD.Wizard.Orchestrator ) {
 				console.error( '[SCD Navigation] Main orchestrator not available' );
 				return $.Deferred().reject( {
@@ -524,7 +519,6 @@
 				} ).promise();
 			}
 
-			// Get step orchestrator
 			var stepOrchestrator = window.SCD.Wizard.Orchestrator.getStepInstance( fromStep );
 			if ( ! stepOrchestrator ) {
 				console.error( '[SCD Navigation] Step orchestrator not found for step:', fromStep );
@@ -555,7 +549,6 @@
 
 			// Save via step orchestrator (navigation save - primary save mechanism)
 			return stepOrchestrator.saveStep().then( function( response ) {
-					// Clear save flag
 				self._saveInProgress = false;
 				self._savePromise = null;
 
@@ -581,7 +574,6 @@
 					}
 				};
 			} ).fail( function( error ) {
-					// Clear save flag on error
 				self._saveInProgress = false;
 				self._savePromise = null;
 
@@ -624,7 +616,6 @@
 		showSkeletonScreen: function( targetStep ) {
 			// Delegate to SkeletonTemplates service (loaded via dependencies)
 			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.SkeletonTemplates ) {
-				// Initialize with config if not already done
 				if ( this.config && this.config.steps ) {
 					window.SCD.Wizard.SkeletonTemplates.init( this.config );
 				}
@@ -650,20 +641,17 @@
 				data = response.data;
 			}
 
-			// Update completed steps if provided
 			if ( data.completedSteps && SCD.Wizard && SCD.Wizard.StateManager ) {
 				SCD.Wizard.StateManager.set( {
 					completedSteps: data.completedSteps
 				}, { silent: true } );
 
-				// Update step indicator UI with completed class
 				this.updateCompletedSteps( data.completedSteps );
 			}
 
 			// Server automatically converts snake_case to camelCase via SCD_AJAX_Response
 			// Use camelCase directly as received from server
 			if ( data.redirectUrl ) {
-				// Show skeleton screen immediately for instant feedback
 				this.showSkeletonScreen( targetStep );
 
 				// Prevent any navigation events from interfering
@@ -680,7 +668,6 @@
 					// Client-side navigation - update UI then re-enable buttons
 				this.updateURL( targetStep );
 
-				// Load the target step's orchestrator so it's available for next validation
 				if ( SCD.Wizard && SCD.Wizard.Orchestrator && SCD.Wizard.Orchestrator.loadCurrentStep ) {
 					SCD.Wizard.Orchestrator.loadCurrentStep()
 						.always( function() {
@@ -708,16 +695,9 @@
 		 * @returns {object} Normalized error object
 		 */
 		normalizeAjaxError: function( xhr, textStatus, _errorThrown ) {
-			var errorObj = {
-				message: 'Navigation failed. Please try again.',
-				code: 'ajax_error',
-				status: textStatus,
-				details: {}
-			};
-
-			// Map textStatus and HTTP status to error codes using lookup
-			var errorCode = errorObj.code;
-			var errorMessage = errorObj.message;
+			// Determine error code and message from error type
+			var errorCode = 'ajax_error';
+			var errorMessage = this.ERROR_MESSAGES.default;
 
 			if ( 'timeout' === textStatus ) {
 				errorCode = 'timeout';
@@ -739,8 +719,12 @@
 				errorMessage = this.ERROR_MESSAGES.not_found;
 			}
 
-			errorObj.message = errorMessage;
-			errorObj.code = errorCode;
+			var errorObj = {
+				message: errorMessage,
+				code: errorCode,
+				status: textStatus,
+				details: {}
+			};
 
 			// Try to get specific error from server response
 			if ( xhr && xhr.responseJSON ) {
@@ -772,9 +756,8 @@
 		 * @param {object} error Error object
 		 */
 		handleNavigationError: function( error ) {
-			var message = error.message || 'Navigation failed. Please try again.';
+			var message = error.message || this.ERROR_MESSAGES.default;
 
-			// Show retry message as info/warning, not error
 			var messageType = error.isRetrying ? 'warning' : 'error';
 
 
@@ -909,7 +892,6 @@
 			this.popstateHandler = function() {
 				var currentStep = self.getCurrentStep();
 
-				// Load step data from server before updating UI to ensure fresh data
 			if ( SCD.Wizard && SCD.Wizard.Orchestrator && SCD.Wizard.Orchestrator.loadCurrentStep ) {
 				SCD.Wizard.Orchestrator.loadCurrentStep()
 					.done( function() {
@@ -978,10 +960,8 @@
 				return;
 			}
 
-			// Remove all completed classes first
 			$( '.scd-wizard-steps li' ).removeClass( 'completed' );
 
-			// Add completed class to each completed step
 			for ( var i = 0; i < completedSteps.length; i++ ) {
 				var stepName = completedSteps[i];
 				$( '.scd-wizard-steps li[data-step-name="' + stepName + '"]' ).addClass( 'completed' );
@@ -1028,7 +1008,6 @@
 						var $text = $btn.find( '.scd-nav-btn__text' );
 						var $icon = $btn.find( '.dashicons' );
 
-						// Check if this is the clicked button
 						var isClickedButton = $clickedButton && $clickedButton.length && $btn.is( $clickedButton );
 
 						if ( isClickedButton ) {
@@ -1059,7 +1038,6 @@
 						}
 					} );
 
-					// Clear clicked button reference
 					this.clickedButton = null;
 				}
 			}

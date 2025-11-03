@@ -111,30 +111,25 @@
 				this.maxHistorySize = initialState.maxHistorySize;
 			}
 
-			// Check if intent is to start fresh OR if we're loading fresh edit data
 			var isEditMode = initialState && initialState.wizardMode === 'edit' && initialState.campaignId;
 			var isNewIntent = window.scdWizardSessionInfo && 'new' === window.scdWizardSessionInfo.intent;
 
 			if ( isNewIntent ) {
-				// Clear session storage when starting fresh
 				this.clearStorage();
 			} else if ( isEditMode ) {
 				// CRITICAL: When editing, don't load from sessionStorage
 				// The fresh campaign data from server should take precedence
-				// Clear old session data to prevent stale wizardMode/campaignId
 				this.clearStorage();
 				if ( window.SCD && window.SCD.Debug ) {
 					window.SCD.Debug.log( '[StateManager] Edit mode detected - using fresh campaign data from server, not sessionStorage' );
 				}
 			} else {
-				// Load from session storage if available (for new campaigns in progress)
 				this.loadFromStorage();
 			}
 
 			// Start activity tracking
 			this.startActivityTracking();
 
-			// Initialize history
 			this.addToHistory( this.state );
 
 			return this;
@@ -202,14 +197,12 @@
 				this.state = $.extend( true, {}, this.state, updates );
 			}
 
-			// Update timestamps
 			this.state.lastActivityAt = new Date().toISOString();
 			if ( updates.stepData && !options.silent ) {
 				this.state.hasUnsavedChanges = true;
 				this.state.isDirty = true;
 			}
 
-			// Add to history if not silent
 			if ( !options.silent && !options.skipHistory ) {
 				this.addToHistory( this.state );
 			}
@@ -279,7 +272,6 @@
 		 */
 		notifyListeners: function( newState, oldState, updates ) {
 			this.listeners.forEach( function( listener ) {
-				// Check if listener has filter
 				if ( listener.filter ) {
 					var shouldNotify = false;
 
@@ -312,10 +304,8 @@
 		 * @param state
 		 */
 		addToHistory: function( state ) {
-			// Remove any states after current index
 			this.history = this.history.slice( 0, this.historyIndex + 1 );
 
-			// Add new state
 			this.history.push( $.extend( true, {}, state ) );
 			this.historyIndex++;
 
@@ -354,11 +344,9 @@
 				skipHistory: true
 			} );
 
-			// Clear history
 			this.history = [ this.state ];
 			this.historyIndex = 0;
 
-			// Clear storage
 			if ( !options.keepStorage ) {
 				this.clearStorage();
 			}
@@ -368,7 +356,6 @@
 		 * Load state from storage
 		 */
 		loadFromStorage: function() {
-			// Check sessionStorage availability first
 			if ( !window.sessionStorage ) {
 				return;
 			}
@@ -385,7 +372,6 @@
 		 * Save state to storage
 		 */
 		saveToStorage: function() {
-			// Check sessionStorage availability first
 			if ( !window.sessionStorage ) {
 				this.handleStorageError( 'sessionStorage not available' );
 				this._storageDisabled = true;
@@ -396,7 +382,6 @@
 			// Safely serialize state with circular reference detection
 			var seen = [];
 			var stateString = JSON.stringify( this.state, function( key, value ) {
-				// Remove functions and undefined
 				if ( 'function' === typeof value || 'undefined' === typeof value ) {
 					return;
 				}
@@ -413,7 +398,6 @@
 
 			sessionStorage.setItem( 'scd_wizard_state', stateString );
 
-				// Clear any previous storage errors
 				this.clearStorageError();
 				this._storageDisabled = false;
 				return true;
@@ -435,7 +419,6 @@
 						// CRITICAL: Storage still full after cleanup
 						this._storageDisabled = true;
 
-						// Show persistent warning to user
 						if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
 							window.SCD.Shared.NotificationService.error(
 								'Storage full! Your data may be lost if you refresh. Please save your campaign immediately.',
@@ -470,7 +453,6 @@
 			}
 
 
-			// Set error state
 			this.storageError = {
 				message: message,
 				timestamp: Date.now()
@@ -496,20 +478,17 @@
 				return;
 			}
 
-			// Clear other SCD-related storage that might be old
 			var keysToRemove = [];
 			var i, key;
 
 			for ( i = 0; i < sessionStorage.length; i++ ) {
 				key = sessionStorage.key( i );
 
-				// Remove old SCD data except current state
 				if ( key && 0 === key.indexOf( 'scd_' ) && 'scd_wizard_state' !== key ) {
 					keysToRemove.push( key );
 				}
 			}
 
-			// Remove identified keys
 			for ( i = 0; i < keysToRemove.length; i++ ) {
 				sessionStorage.removeItem( keysToRemove[i] );
 			}
@@ -519,7 +498,6 @@
 		 * Clear storage
 		 */
 		clearStorage: function() {
-			// Check sessionStorage availability first
 			if ( !window.sessionStorage ) {
 				return;
 			}
@@ -585,14 +563,11 @@
 			// Stop activity tracking
 			this.stopActivityTracking();
 
-			// Clear history to free memory
 			this.history = [];
 			this.historyIndex = -1;
 
-			// Remove all listeners
 			this.listeners = [];
 
-			// Reset state
 			this.state = {};
 		}
 	};

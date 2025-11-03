@@ -92,15 +92,12 @@
 			'min-height': this.options.height + 'px'
 		} );
 
-		// Create canvas for timeline
 		this.canvas = $( '<canvas class="scd-timeline-canvas"></canvas>' );
 		this.container.append( this.canvas );
 
-		// Create tooltip
 		this.tooltip = $( '<div class="scd-timeline-tooltip" style="display: none;"></div>' );
 		this.container.append( this.tooltip );
 
-		// Create interaction layer
 		if ( this.options.enableInteraction ) {
 			this.interactionLayer = $( '<div class="scd-timeline-interaction"></div>' );
 			this.container.append( this.interactionLayer );
@@ -117,13 +114,10 @@
 			} );
 		}
 
-		// Set dimensions
 		this.updateDimensions();
 
-		// Get canvas context
 		this.ctx = this.canvas[0].getContext( '2d' );
 
-		// Store the scale ratio for later use
 		this.ratio = window.devicePixelRatio || 1;
 	};
 
@@ -150,7 +144,6 @@
 			innerHeight: Math.max( height - this.options.padding.top - this.options.padding.bottom, 40 )
 		};
 
-		// Update ratio
 		this.ratio = ratio;
 	};
 
@@ -201,7 +194,6 @@
 			return;
 		}
 
-		// Clear canvas
 		this.ctx.clearRect( 0, 0, this.canvas[0].width, this.canvas[0].height );
 
 		// Save context and scale for retina displays
@@ -519,7 +511,6 @@
 		var x = e.clientX - rect.left;
 		var y = e.clientY - rect.top;
 
-		// Check if clicking on markers
 		var startX = this.timeToX( new Date( this.state.startDate ) );
 		var endX = this.timeToX( new Date( this.state.endDate ) );
 		var markerY = this.options.padding.top + this.dimensions.innerHeight / 2;
@@ -574,7 +565,6 @@
 				}
 			}
 		} else if ( this.state.startDate && this.state.endDate ) {
-			// Update cursor based on hover
 			var startX = this.timeToX( new Date( this.state.startDate ) );
 			var endX = this.timeToX( new Date( this.state.endDate ) );
 			var markerY = this.options.padding.top + this.dimensions.innerHeight / 2;

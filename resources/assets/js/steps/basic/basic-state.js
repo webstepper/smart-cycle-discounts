@@ -23,7 +23,6 @@
 	 * Inherits from BaseState
 	 */
 	SCD.Modules.Basic.State = function() {
-		// Get initial state from field definitions
 		var initialState = {};
 		var fields = SCD.FieldDefinitions.basic;
 		if ( fields ) {
@@ -46,7 +45,6 @@
 		var self = this;
 		this.subscribe( function( changes ) {
 			if ( changes.property && window.SCD && window.SCD.ValidationManager ) {
-				// Validate using ValidationManager directly
 				var result = window.SCD.ValidationManager.validateField(
 					changes.property,
 					changes.newValue,
@@ -69,11 +67,9 @@
 		} );
 	};
 
-	// Set up proper prototype chain
 	SCD.Modules.Basic.State.prototype = Object.create( SCD.Shared.BaseState.prototype );
 	SCD.Modules.Basic.State.prototype.constructor = SCD.Modules.Basic.State;
 
-	// Add basic step specific methods
 	$.extend( SCD.Modules.Basic.State.prototype, {
 
 		/**
@@ -84,7 +80,6 @@
 			var validation = { valid: true, errors: {} };
 
 			if ( window.SCD && window.SCD.ValidationManager ) {
-				// Create a temporary form element with the data
 				var $form = $( '<form>' );
 				for ( var fieldName in state ) {
 					if ( Object.prototype.hasOwnProperty.call( state, fieldName ) ) {
