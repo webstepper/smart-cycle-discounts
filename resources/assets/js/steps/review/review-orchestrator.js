@@ -125,21 +125,10 @@
 		 * Load wizard data for review
 		 */
 		loadWizardData: function() {
-			// Try multiple sources for wizard data
-			var wizardData = null;
-
-			// Try SCD.Wizard.data first (modern pattern)
+			// Load wizard data from modern pattern
 			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.data ) {
-				wizardData = window.SCD.Wizard.data;
-			}
-			// Try scdWizardData (legacy pattern)
-			else if ( window.scdWizardData && window.scdWizardData.steps ) {
-				wizardData = window.scdWizardData.steps;
-			}
-
-			if ( wizardData ) {
 				this.modules.state.setState( {
-					wizardData: wizardData
+					wizardData: window.SCD.Wizard.data
 				} );
 
 				// Summary is now server-rendered, no need to update via JavaScript
@@ -208,7 +197,7 @@
 			// Add component-specific validation if needed
 			if ( this.modules.components && 'function' === typeof this.modules.components.validate ) {
 				var componentValidation = this.modules.components.validate();
-				if ( !componentValidation.valid && componentValidation.errors ) {
+				if ( !componentValidation.ok && componentValidation.errors ) {
 					for ( var i = 0; i < componentValidation.errors.length; i++ ) {
 						errors.push( componentValidation.errors[i] );
 					}
@@ -216,7 +205,7 @@
 			}
 
 			return {
-				valid: 0 === errors.length,
+				ok: 0 === errors.length,
 				errors: errors
 			};
 		},
@@ -284,7 +273,7 @@
 		 */
 		isValid: function() {
 			var validation = this.validateData( this.collectData() );
-			return validation.valid;
+			return validation.ok;
 		},
 
 		/**

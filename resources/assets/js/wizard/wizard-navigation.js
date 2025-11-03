@@ -81,6 +81,88 @@
 		popstateHandler: null,
 
 		/**
+		 * Helper: Safely get nested property
+		 *
+		 * @since 1.0.0
+		 * @param {object} obj Object to access
+		 * @param {string} path Dot-notation path (e.g., 'data.message')
+		 * @param {*} defaultValue Default value if path not found
+		 * @returns {*} Value at path or default
+		 */
+		getNestedProp: function( obj, path, defaultValue ) {
+			if ( ! obj || ! path ) {
+				return defaultValue;
+			}
+			var keys = path.split( '.' );
+			var result = obj;
+			for ( var i = 0; i < keys.length; i++ ) {
+				if ( null === result || 'undefined' === typeof result[keys[i]] ) {
+					return defaultValue;
+				}
+				result = result[keys[i]];
+			}
+			return result;
+		},
+
+		/**
+		 * Helper: Extract error from response
+		 *
+		 * @since 1.0.0
+		 * @param {object} response Server response
+		 * @returns {object} Error object {message, code, details}
+		 */
+		extractError: function( response ) {
+			return {
+				message: this.getNestedProp( response, 'data.message', 'Server returned an error' ),
+				code: this.getNestedProp( response, 'data.code', 'server_error' ),
+				details: response
+			};
+		},
+
+		/**
+		 * Helper: Try to parse JSON from potentially corrupted response
+		 *
+		 * @since 1.0.0
+		 * @param {string} responseText Response text that may contain PHP warnings
+		 * @returns {object|null} Parsed JSON or null
+		 */
+		tryParseJSON: function( responseText ) {
+			if ( ! responseText ) {
+				return null;
+			}
+			var jsonStartPos = responseText.indexOf( '{' );
+			if ( jsonStartPos > 0 ) {
+				try {
+					return JSON.parse( responseText.substring( jsonStartPos ) );
+				} catch ( e ) {
+					return null;
+				}
+			}
+			try {
+				return JSON.parse( responseText );
+			} catch ( e ) {
+				return null;
+			}
+		},
+
+		/**
+		 * Helper: Error message lookup
+		 *
+		 * @since 1.0.0
+		 */
+		ERROR_MESSAGES: {
+			timeout: 'Server is taking too long to respond. Please try again.',
+			abort: 'Navigation was cancelled. Please try again.',
+			network_error: 'Unable to connect to server. Please check your internet connection.',
+			server_error: 'Server error occurred. Please try again in a moment.',
+			permission_denied: 'Permission denied. Please refresh the page and try again.',
+			not_found: 'Navigation endpoint not found. Please contact support.',
+			payload_too_large: 'Too much data sent. Please save the current step first, then try navigation.',
+			network_retry: 'Connection issue detected, retrying...',
+			default: 'Navigation failed. Please try again.'
+		},
+
+		/**
 		 * Initialize navigation service
 		 *
 		 * @since 1.0.0
@@ -350,15 +432,8 @@
 			this.sendNavigationRequest( fromStep, targetStep, formData )
 				.done( function( response ) {
 					if ( false === response.success ) {
-						console.error( '[SCD Wizard:Navigation] Server returned error:', response );
-						console.error( '[SCD Wizard:Navigation] Error message:', response.data && response.data.message ? response.data.message : 'No message' );
-						console.error( '[SCD Wizard:Navigation] Error code:', response.data && response.data.code ? response.data.code : 'No code' );
-						console.error( '[SCD Wizard:Navigation] Error details:', response.data && response.data.errors ? response.data.errors : 'No details' );
-						var errorObj = {
-							message: response.data && response.data.message ? response.data.message : 'Server returned an error',
-							code: response.data && response.data.code ? response.data.code : 'server_error',
-							details: response
-						};
+						var errorObj = self.extractError( response );
+						console.error( '[SCD Wizard:Navigation] Server error:', errorObj.message, errorObj.code );
 						self.handleNavigationError( errorObj );
 						self.setNavigationState( false );
 						return;
@@ -374,49 +449,30 @@
 					var isNetworkError = xhr.status === 0 || xhr.status === 503 || 'timeout' === textStatus;
 
 					if ( isNetworkError && ! isRetry ) {
-						// Network issue on first attempt - retry once
-
-						// Show user we're retrying
+						// Network issue - retry once
 						self.handleNavigationError( {
-							message: 'Connection issue detected, retrying...',
+							message: self.ERROR_MESSAGES.network_retry,
 							code: 'network_retry',
 							isRetrying: true
 						} );
-
-						// Retry after brief delay
 						setTimeout( function() {
 							self.performNavigation( fromStep, targetStep, true );
 						}, 1000 );
 						return;
 					}
 
-					// Special handling for JSON parsing errors caused by PHP warnings/errors
+					// Handle JSON parsing errors from PHP warnings/errors
 					if ( 'parsererror' === textStatus && xhr.responseText ) {
-						var response = xhr.responseText;
-						// Try to extract JSON from response that may have PHP warnings/errors
-						var jsonStartPos = response.indexOf( '{' );
-						if ( jsonStartPos > 0 ) {
-							try {
-								var cleanJson = response.substring( jsonStartPos );
-								var parsedResponse = JSON.parse( cleanJson );
-								if ( parsedResponse && false === parsedResponse.success ) {
-									// Handle the actual error from the cleaned JSON
-									self.handleNavigationError( {
-										message: parsedResponse.data && parsedResponse.data.message ? parsedResponse.data.message : 'Server error occurred',
-										code: parsedResponse.data && parsedResponse.data.code ? parsedResponse.data.code : 'server_error'
-									} );
-									self.setNavigationState( false );
-									return;
-								}
-							} catch ( e ) {
-								// Fall through to normal error handling
-							}
+						var parsedResponse = self.tryParseJSON( xhr.responseText );
+						if ( parsedResponse && false === parsedResponse.success ) {
+							self.handleNavigationError( self.extractError( parsedResponse ) );
+							self.setNavigationState( false );
+							return;
 						}
-
-						// Check for specific PHP errors
-						if ( response.indexOf( 'Input variables exceeded' ) !== -1 ) {
+						// Check for payload size errors
+						if ( xhr.responseText.indexOf( 'Input variables exceeded' ) !== -1 ) {
 							self.handleNavigationError( {
-								message: 'Too much data sent. Please save the current step first, then try navigation.',
+								message: self.ERROR_MESSAGES.payload_too_large,
 								code: 'payload_too_large'
 							} );
 							self.setNavigationState( false );
