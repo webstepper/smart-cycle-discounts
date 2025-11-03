@@ -157,12 +157,6 @@
 					// Cache the response
 					self.cache.products[cacheKey] = response;
 					self.cache.productTimestamps[cacheKey] = now;
-				} )
-				.fail( function( xhr ) {
-					// Automatic error handling through ErrorHandler
-// 					if ( window.SCD && window.SCD.ErrorHandler ) {
-						// Automatic error handling via BaseAPI - removed: window.SCD.ErrorHandler.handleAjaxError( xhr, 'scd_product_search', data );
-// 					}
 				} );
 		},
 
@@ -236,12 +230,7 @@
 				return $.Deferred().reject( 'Ajax not available' ).promise();
 			}
 
-			return window.SCD.Ajax.get( 'scd_get_categories' )
-				.fail( function( xhr ) {
-// 					if ( window.SCD && window.SCD.ErrorHandler ) {
-						// Automatic error handling via BaseAPI - removed: window.SCD.ErrorHandler.handleAjaxError( xhr, 'scd_get_categories', {} );
-// 					}
-				} );
+			return window.SCD.Ajax.get( 'scd_get_categories' );
 		},
 
 		/**
@@ -360,10 +349,6 @@
 
 			return window.SCD.Ajax.post( 'scd_load_data', {
 				step: 'products'
-			} ).fail( function( xhr ) {
-// 				if ( window.SCD && window.SCD.ErrorHandler ) {
-					// Automatic error handling via BaseAPI - removed: window.SCD.ErrorHandler.handleAjaxError( xhr, 'scd_load_data', { step: 'products' } );
-// 				}
 			} );
 		},
 
