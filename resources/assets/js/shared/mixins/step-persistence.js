@@ -199,7 +199,7 @@
 				
 				// Convert ValidationManager format { ok: ..., errors: {...} } to orchestrator format { valid: ..., errors: [...] }
 				// This adapter layer maintains the public interface used by all orchestrators
-				var flatErrors = [];
+				var errors = [];
 				if ( !result.ok ) {
 					for ( var fieldName in result.errors ) {
 						if ( result.errors.hasOwnProperty( fieldName ) ) {
@@ -207,13 +207,13 @@
 							// Handle array of error objects with codes and messages
 							if ( Array.isArray( fieldErrors ) ) {
 								for ( var i = 0; i < fieldErrors.length; i++ ) {
-									flatErrors.push( {
+									errors.push( {
 										field: fieldName,
 										message: fieldErrors[i].message || fieldErrors[i]
 									} );
 								}
 							} else {
-								flatErrors.push( {
+								errors.push( {
 									field: fieldName,
 									message: fieldErrors.message || fieldErrors
 								} );
@@ -224,7 +224,7 @@
 
 				return {
 					valid: result.ok,
-					errors: flatErrors,
+					errors: errors,
 					clean: result.clean
 				};
 			} catch ( error ) {
