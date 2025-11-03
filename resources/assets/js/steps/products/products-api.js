@@ -33,7 +33,7 @@
 			productTimestamps: {}
 		};
 
-		// Cache duration in milliseconds (5 minutes) - using camelCase per CLAUDE.md
+		// Cache duration in milliseconds (5 minutes)
 		this.cacheDuration = 5 * 60 * 1000;
 
 		// Store reference to bound internal search function
@@ -81,7 +81,7 @@
 			// For searches with terms, use debounced version
 			var deferred = $.Deferred();
 
-			// Cancel any pending search - using camelCase per CLAUDE.md
+			// Cancel any pending search
 			if ( this.pendingSearch ) {
 				this.pendingSearch.reject( 'cancelled' );
 			}
@@ -268,7 +268,7 @@
 		// For searches with terms, use debounced version
 		var deferred = $.Deferred();
 
-		// Cancel any pending search - using camelCase per CLAUDE.md
+		// Cancel any pending search
 		if ( this.pendingCategorySearch ) {
 			this.pendingCategorySearch.reject( 'cancelled' );
 		}

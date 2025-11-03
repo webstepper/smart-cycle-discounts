@@ -815,9 +815,6 @@
 
 			// Update duration display
 			this.updateDurationDisplay();
-
-			// Trigger event (Note: mixin already triggers scd:schedule:populated, but keeping for backward compat)
-			$( document ).trigger( 'scd:schedule:populated', data );
 		},
 
 		// getSavedData method removed - data is provided by wizard orchestrator via populateFields
@@ -1091,15 +1088,7 @@
 				'thu': 'Thursday',
 				'fri': 'Friday',
 				'sat': 'Saturday',
-				'sun': 'Sunday',
-				// Legacy numeric format support
-				'0': 'Sunday',
-				'1': 'Monday',
-				'2': 'Tuesday',
-				'3': 'Wednesday',
-				'4': 'Thursday',
-				'5': 'Friday',
-				'6': 'Saturday'
+				'sun': 'Sunday'
 			};
 
 			var labels = [];

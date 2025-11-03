@@ -301,9 +301,6 @@
 					window.performance.mark( 'scd-event-' + e.type );
 				} );
 			}
-
-			// Debug mode logging - removed as per CLAUDE.md rules
-			// No console.debug statements allowed
 		},
 
 		/**

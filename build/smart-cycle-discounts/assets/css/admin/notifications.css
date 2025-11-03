@@ -1,0 +1,560 @@
+/**
+ * Notifications Page Styles
+ *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/assets/css/admin
+ * @since      1.0.0
+ */
+
+/* ==========================================================================
+   Notifications Page Wrapper
+   ========================================================================== */
+
+.scd-notifications {
+	max-width: 1200px;
+}
+
+.scd-notifications h1 .dashicons {
+	font-size: 32px;
+	width: 32px;
+	height: 32px;
+	margin-right: 8px;
+	color: #2271b1;
+}
+
+/* ==========================================================================
+   Tab Navigation
+   ========================================================================== */
+
+.scd-notifications-tabs {
+	margin: 20px 0;
+	border-bottom: 1px solid #c3c4c7;
+}
+
+.scd-notifications-tabs .nav-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 14px;
+	padding: 10px 16px;
+}
+
+.scd-notifications-tabs .nav-tab .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+}
+
+/* ==========================================================================
+   Settings Form
+   ========================================================================== */
+
+.scd-notifications-form {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 20px;
+	margin-top: 20px;
+}
+
+.scd-notifications-form h2 {
+	margin-top: 0;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #e5e5e5;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.scd-notifications-form h2 .dashicons {
+	color: #2271b1;
+}
+
+.scd-notifications-form .form-table {
+	margin-top: 20px;
+}
+
+.scd-notifications-form .form-table th {
+	width: 220px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.scd-notifications-form .form-table td {
+	padding: 15px 10px;
+}
+
+/* Field Tooltips */
+.scd-field-tooltip {
+	color: #646970;
+	cursor: help;
+	margin-left: 5px;
+}
+
+.scd-field-tooltip:hover {
+	color: #2271b1;
+}
+
+/* Section Descriptions */
+.scd-section-description {
+	color: #646970;
+	font-size: 13px;
+	line-height: 1.6;
+	margin: 0 0 20px 0;
+	padding: 12px;
+	background: #f6f7f7;
+	border-left: 4px solid #2271b1;
+	border-radius: 3px;
+}
+
+/* Toggle Switch */
+.scd-toggle-wrapper {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.scd-toggle-switch {
+	position: relative;
+	display: inline-block;
+	width: 44px;
+	height: 24px;
+}
+
+.scd-toggle-switch input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.scd-toggle-slider {
+	position: absolute;
+	cursor: pointer;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #c3c4c7;
+	transition: 0.3s;
+	border-radius: 24px;
+}
+
+.scd-toggle-slider:before {
+	position: absolute;
+	content: "";
+	height: 18px;
+	width: 18px;
+	left: 3px;
+	bottom: 3px;
+	background-color: white;
+	transition: 0.3s;
+	border-radius: 50%;
+}
+
+.scd-toggle-switch input:checked + .scd-toggle-slider {
+	background-color: #2271b1;
+}
+
+.scd-toggle-switch input:checked + .scd-toggle-slider:before {
+	transform: translateX( 20px );
+}
+
+.scd-toggle-switch input:focus + .scd-toggle-slider {
+	box-shadow: 0 0 0 2px #fff, 0 0 0 4px #2271b1;
+}
+
+/* ==========================================================================
+   Provider-Specific Fields
+   ========================================================================== */
+
+.scd-provider-setting {
+	transition: opacity 0.3s ease;
+}
+
+/* Test Email Button */
+#scd-test-email {
+	margin-top: 10px;
+}
+
+/* Test Connection Buttons */
+.scd-test-connection-btn {
+	vertical-align: middle;
+}
+
+.scd-test-connection-btn .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	vertical-align: middle;
+	margin-right: 4px;
+}
+
+/* Spinning animation for loading state */
+.dashicons.spin {
+	animation: scd-spin 0.8s linear infinite;
+}
+
+/* ==========================================================================
+   Queue Status Tab
+   ========================================================================== */
+
+.scd-queue-status {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 30px;
+	margin-top: 20px;
+}
+
+.scd-queue-stats {
+	display: grid;
+	grid-template-columns: repeat( auto-fit, minmax( 200px, 1fr ) );
+	gap: 20px;
+	margin: 30px 0;
+}
+
+.scd-stat-box {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 6px;
+	padding: 24px;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	transition: all 0.3s ease;
+}
+
+.scd-stat-box:hover {
+	box-shadow: 0 2px 8px rgba( 0, 0, 0, 0.1 );
+	transform: translateY( -2px );
+}
+
+.scd-stat-box .dashicons {
+	font-size: 44px;
+	width: 44px;
+	height: 44px;
+	color: #646970;
+	flex-shrink: 0;
+}
+
+.scd-stat-box.scd-stat-success .dashicons {
+	color: #00a32a;
+}
+
+.scd-stat-box.scd-stat-error .dashicons {
+	color: #d63638;
+}
+
+.scd-stat-content {
+	flex: 1;
+}
+
+.scd-stat-value {
+	display: block;
+	font-size: 36px;
+	font-weight: 700;
+	line-height: 1;
+	color: #1d2327;
+	margin-bottom: 6px;
+}
+
+.scd-stat-label {
+	display: block;
+	font-size: 13px;
+	color: #646970;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	font-weight: 600;
+}
+
+/* Queue Info */
+.scd-queue-info {
+	margin: 30px 0;
+}
+
+.scd-queue-info .description {
+	font-size: 14px;
+	line-height: 1.6;
+	color: #646970;
+}
+
+.scd-queue-info .notice {
+	margin: 15px 0;
+}
+
+/* Provider Info */
+.scd-provider-info {
+	background: #f6f7f7;
+	border: 1px solid #c3c4c7;
+	border-left: 4px solid #2271b1;
+	border-radius: 4px;
+	padding: 20px;
+	margin: 30px 0;
+}
+
+.scd-provider-info h3 {
+	margin-top: 0;
+	color: #1d2327;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.scd-provider-info p {
+	margin: 10px 0;
+	color: #3c434a;
+	font-size: 14px;
+}
+
+.scd-provider-info .dashicons {
+	color: #2271b1;
+}
+
+/* Queue Actions */
+.scd-queue-actions {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 20px;
+	margin: 20px 0;
+}
+
+.scd-queue-actions h3 {
+	margin-top: 0;
+	color: #1d2327;
+}
+
+.scd-queue-actions .button {
+	margin-right: 10px;
+	margin-bottom: 10px;
+}
+
+/* ==========================================================================
+   Submit Section
+   ========================================================================== */
+
+.scd-notifications-submit {
+	margin-top: 30px;
+	padding-top: 20px;
+	border-top: 1px solid #c3c4c7;
+	text-align: right;
+}
+
+.scd-notifications-submit .button-primary {
+	padding: 8px 24px;
+	height: auto;
+	font-size: 14px;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media screen and ( max-width: 782px ) {
+	.scd-queue-stats {
+		grid-template-columns: 1fr;
+	}
+
+	.scd-notifications-tabs .nav-tab {
+		display: block;
+		margin-bottom: 5px;
+	}
+
+	.scd-stat-box {
+		padding: 16px;
+	}
+
+	.scd-stat-value {
+		font-size: 28px;
+	}
+}
+
+@media screen and ( max-width: 600px ) {
+	.scd-notifications-form,
+	.scd-queue-status {
+		padding: 15px;
+	}
+
+	.scd-notifications-form h2 {
+		font-size: 18px;
+	}
+}
+
+/* ==========================================================================
+   Loading States
+   ========================================================================== */
+
+.scd-loading {
+	position: relative;
+	pointer-events: none;
+	opacity: 0.6;
+}
+
+.scd-loading::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 20px;
+	height: 20px;
+	margin-top: -10px;
+	margin-left: -10px;
+	border: 2px solid #2271b1;
+	border-top-color: transparent;
+	border-radius: 50%;
+	animation: scd-spin 0.6s linear infinite;
+}
+
+@keyframes scd-spin {
+	to {
+		transform: rotate( 360deg );
+	}
+}
+
+/* ==========================================================================
+   FREE/PRO Badges
+   ========================================================================== */
+
+.scd-free-badge,
+.scd-pro-badge {
+	display: inline-block;
+	padding: 4px 10px;
+	border-radius: 12px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+.scd-free-badge {
+	background: #d4edda;
+	color: #155724;
+	border: 1px solid #c3e6cb;
+}
+
+.scd-pro-badge {
+	background: linear-gradient( 135deg, #667eea 0%, #764ba2 100% );
+	color: #fff;
+	border: none;
+	box-shadow: 0 1px 3px rgba( 0, 0, 0, 0.2 );
+}
+
+.scd-pro-badge-locked {
+	background: linear-gradient( 135deg, #f0ad4e 0%, #ed9c28 100% );
+	animation: pulse-badge 2s ease-in-out infinite;
+}
+
+.scd-pro-badge-active {
+	background: linear-gradient( 135deg, #667eea 0%, #764ba2 100% );
+}
+
+@keyframes pulse-badge {
+	0%, 100% {
+		box-shadow: 0 1px 3px rgba( 0, 0, 0, 0.2 );
+	}
+	50% {
+		box-shadow: 0 1px 8px rgba( 240, 173, 78, 0.6 );
+	}
+}
+
+/* PRO Feature Locked State */
+.scd-pro-feature-locked {
+	opacity: 0.7;
+}
+
+.scd-pro-feature-locked .scd-toggle-slider {
+	cursor: not-allowed;
+	background-color: #dcdcde !important;
+}
+
+.scd-pro-feature-locked input:disabled + .scd-toggle-slider {
+	cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Upgrade Prompts
+   ========================================================================== */
+
+.scd-upgrade-prompt {
+	background: linear-gradient( 135deg, #f8f9fa 0%, #e9ecef 100% );
+	border: 2px solid #f0ad4e;
+	border-radius: 8px;
+	padding: 20px;
+	margin-top: 15px;
+	animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY( -10px );
+	}
+	to {
+		opacity: 1;
+		transform: translateY( 0 );
+	}
+}
+
+.scd-upgrade-message {
+	margin: 0 0 15px 0;
+	line-height: 1.6;
+}
+
+.scd-upgrade-message .dashicons {
+	vertical-align: middle;
+	margin-right: 8px;
+}
+
+.scd-upgrade-message strong {
+	font-size: 15px;
+	color: #1d2327;
+	display: block;
+	margin-bottom: 8px;
+}
+
+.scd-upgrade-prompt .button {
+	margin-right: 10px;
+	margin-bottom: 0;
+}
+
+.scd-upgrade-prompt .button-primary {
+	background: linear-gradient( 135deg, #667eea 0%, #764ba2 100% );
+	border: none;
+	box-shadow: 0 2px 4px rgba( 0, 0, 0, 0.1 );
+	transition: all 0.3s ease;
+}
+
+.scd-upgrade-prompt .button-primary:hover {
+	background: linear-gradient( 135deg, #5568d3 0%, #63408d 100% );
+	box-shadow: 0 4px 8px rgba( 0, 0, 0, 0.15 );
+	transform: translateY( -1px );
+}
+
+.scd-upgrade-prompt .button-secondary {
+	background: #fff;
+	border-color: #667eea;
+	color: #667eea;
+}
+
+.scd-upgrade-prompt .button-secondary:hover {
+	background: #f8f9fa;
+	border-color: #5568d3;
+	color: #5568d3;
+}
+
+/* Responsive adjustments */
+@media screen and ( max-width: 600px ) {
+	.scd-upgrade-prompt {
+		padding: 15px;
+	}
+
+	.scd-upgrade-prompt .button {
+		display: block;
+		width: 100%;
+		margin-right: 0;
+		margin-bottom: 10px;
+		text-align: center;
+	}
+}

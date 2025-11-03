@@ -209,23 +209,10 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 									<span class="scd-planner-icon"><?php echo esc_html( $campaign['icon'] ); ?></span>
 								</h3>
 							</div>
-							<div class="scd-planner-card-badges">
-								<?php if ( $is_major_event ) : ?>
-									<span class="scd-planner-card-badge scd-badge-major"><?php esc_html_e( 'Major Event', 'smart-cycle-discounts' ); ?></span>
-								<?php endif; ?>
-								<span class="scd-planner-card-badge scd-badge-<?php echo esc_attr( $state ); ?>">
-									<?php
-									$badge_icons = array(
-										'past'   => 'clock',
-										'active' => 'star-filled',
-										'future' => 'calendar',
-									);
-									$badge_icon  = $badge_icons[ $state ] ?? 'info';
-									?>
-									<span class="dashicons dashicons-<?php echo esc_attr( $badge_icon ); ?>"></span>
-									<?php echo esc_html( $state_label ); ?>
-								</span>
-							</div>
+							<?php
+							// Load badge partial
+							include plugin_dir_path( __FILE__ ) . 'partials/planner-card-badges.php';
+							?>
 						</div>
 
 						<!-- Card Description -->

@@ -120,7 +120,7 @@
 				return;
 			}
 
-			// Cancel any pending request - using camelCase per CLAUDE.md
+			// Cancel any pending request
 			if ( this.nameCheckRequest && this.nameCheckRequest.abort ) {
 				this.nameCheckRequest.abort();
 			}
@@ -292,7 +292,7 @@
 		 * Cleanup
 		 */
 		destroy: function() {
-			// Cancel any pending name check request - using camelCase per CLAUDE.md
+			// Cancel any pending name check request
 			if ( this.nameCheckRequest && this.nameCheckRequest.abort ) {
 				this.nameCheckRequest.abort();
 			}

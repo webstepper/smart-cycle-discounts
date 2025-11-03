@@ -26,11 +26,11 @@
 		// Constants
 		EVENT_PREFIX: 'scd:wizard:',
 
-		// Reference to the orchestrator (lazy loaded) - using camelCase per CLAUDE.md
+		// Reference to the orchestrator (lazy loaded)
 		orchestrator: null,
 
 		/**
-		 * Get orchestrator instance - renamed to camelCase per CLAUDE.md
+		 * Get orchestrator instance
 		 * @private
 		 */
 		getOrchestrator: function() {

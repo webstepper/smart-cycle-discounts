@@ -1238,7 +1238,6 @@
 
 		/**
 		 * Convert snake_case to camelCase
-		 * Per CLAUDE.md naming convention rules
 		 * Delegates to SCD.Utils.Fields for consistency
 		 * 
 		 * @param {string} str - String in snake_case
@@ -1261,7 +1260,6 @@
 
 		/**
 		 * Convert camelCase to snake_case
-		 * Per CLAUDE.md naming convention rules
 		 * Delegates to SCD.Utils.Fields for consistency
 		 * 
 		 * @param {string} str - String in camelCase

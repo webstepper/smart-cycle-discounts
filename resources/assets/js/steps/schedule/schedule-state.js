@@ -62,8 +62,7 @@
 			errors: {},
 			warnings: {},
 
-			// Change tracking - note: BaseState has _isDirty, we keep this for compatibility
-			isDirty: false,
+			// Change tracking
 			lastSaved: null,
 			originalState: null,
 
@@ -127,22 +126,6 @@
 				var newUpdates = { isValid: 0 === Object.keys( state.errors ).length };
 				if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
 					SCD.Shared.BaseState.prototype.setState.call( this, newUpdates, false );
-				}
-			}
-
-			// Emit jQuery events for compatibility
-			var self = this;
-			var state = this.getState();
-			if ( updates ) {
-				for ( var key in updates ) {
-					if ( Object.prototype.hasOwnProperty.call( updates, key ) ) {
-						$( document ).trigger( 'scd:schedule:state:changed', {
-							property: key,
-							value: state[key],
-							oldValue: undefined, // We don't track old values in this override
-							state: state
-						} );
-					}
 				}
 			}
 		},

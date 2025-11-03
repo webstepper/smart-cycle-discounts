@@ -297,21 +297,9 @@
 				var value = replacements.max || replacements.min;
 				if ( window.wp && wp.i18n && wp.i18n.sprintf ) {
 					return wp.i18n.sprintf( message, value );
-				} else {
-					// Fallback: simple string replacement
-					return message.replace( '%s', value );
 				}
-			}
-
-			// Legacy placeholder replacement for modern implementation
-			var placeholder;
-			for ( placeholder in replacements ) {
-				if ( Object.prototype.hasOwnProperty.call( replacements, placeholder ) ) {
-					message = message.replace(
-						new RegExp( '{' + placeholder + '}', 'g' ),
-						replacements[placeholder]
-					);
-				}
+				// Fallback: simple string replacement
+				return message.replace( '%s', value );
 			}
 
 			return message;
