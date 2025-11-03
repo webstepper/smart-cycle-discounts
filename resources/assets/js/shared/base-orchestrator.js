@@ -228,7 +228,7 @@
 
 			var result = this.validateData( data );
 
-			// Handle validation result - legacy format from validateData
+			// Handle validation result
 			if ( result.valid ) {
 				deferred.resolve( true );
 			} else {
@@ -408,34 +408,20 @@
 		 * @param {number} delay Delay in ms
 		 */
 		debounce: function( key, callback, delay ) {
-			// Use centralized debounce if available
-			if ( window.SCD && SCD.Utils && SCD.Utils.debounce ) {
-				// Create a debounced function for this key if not exists
-				if ( !this._debouncedFunctions ) {
-					this._debouncedFunctions = {};
-				}
+			// Use centralized debounce
+			if ( !this._debouncedFunctions ) {
+				this._debouncedFunctions = {};
+			}
 
-				if ( !this._debouncedFunctions[key] ) {
-					var self = this;
-					this._debouncedFunctions[key] = SCD.Utils.debounce( function() {
-						callback();
-						delete self._debouncedFunctions[key];
-					}, delay );
-				}
-
-				this._debouncedFunctions[key]();
-			} else {
-				// Fallback implementation
-				if ( this._timers[key] ) {
-					clearTimeout( this._timers[key] );
-				}
-
-				var orchestrator = this;
-				this._timers[key] = setTimeout( function() {
+			if ( !this._debouncedFunctions[key] ) {
+				var self = this;
+				this._debouncedFunctions[key] = SCD.Utils.debounce( function() {
 					callback();
-					delete orchestrator._timers[key];
+					delete self._debouncedFunctions[key];
 				}, delay );
 			}
+
+			this._debouncedFunctions[key]();
 		},
 
 		/**
@@ -738,8 +724,6 @@
 		// Extend with EventManager mixin BEFORE adding other methods
 		if ( SCD.Mixins && SCD.Mixins.EventManager ) {
 			$.extend( OrchestratorClass.prototype, SCD.Mixins.EventManager );
-		} else if ( SCD.EventManager ) {
-			$.extend( OrchestratorClass.prototype, SCD.EventManager );
 		}
 
 		// Mix in step persistence functionality
