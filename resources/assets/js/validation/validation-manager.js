@@ -534,22 +534,11 @@
 		// Set new timer
 		this.timers[fieldName] = setTimeout( function() {
 			// Build context object for pure validation
-			var validationContext;
-			if ( context && typeof context === 'object' ) {
-				// Already object format - use it but fill in missing values
-				validationContext = {
-					stepId: context.stepId || null,
-					allValues: context.allValues || self._collectFormValues( $field.closest( 'form' ) ),
-					visibilityMap: context.visibilityMap || self._computeVisibilityMap( $field.closest( 'form' ) )
-				};
-			} else {
-				// Legacy string format - convert
-				validationContext = {
-					stepId: context && typeof context === 'string' ? context.split( '.' )[1] : null,
-					allValues: self._collectFormValues( $field.closest( 'form' ) ),
-					visibilityMap: self._computeVisibilityMap( $field.closest( 'form' ) )
-				};
-			}
+			var validationContext = {
+				stepId: ( context && context.stepId ) || null,
+				allValues: ( context && context.allValues ) || self._collectFormValues( $field.closest( 'form' ) ),
+				visibilityMap: ( context && context.visibilityMap ) || self._computeVisibilityMap( $field.closest( 'form' ) )
+			};
 			
 			// Call pure validation
 			var result = self.validateField( fieldName, $field.val(), validationContext );

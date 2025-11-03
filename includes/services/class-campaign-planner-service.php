@@ -76,13 +76,18 @@ class SCD_Campaign_Planner_Service {
 	}
 
 	/**
-	 * Get weekly planner campaigns with dynamic selection.
+	 * Get weekly planner campaigns with smart 3-slot timeline.
 	 *
-	 * Intelligently mixes major events and weekly campaigns based on priority.
-	 * Each position (past/active/future) shows the most relevant campaign.
+	 * Always returns exactly 3 campaigns representing past, present, and future.
+	 * Intelligently fills gaps when no campaign is currently active.
+	 *
+	 * Timeline Structure:
+	 * - Slot 1 (PAST): Most recently ended campaign
+	 * - Slot 2 (ACTIVE/NEXT): Current campaign OR next upcoming if no active campaign
+	 * - Slot 3 (FUTURE): Next campaign after slot 2
 	 *
 	 * @since  1.0.0
-	 * @return array Timeline data with 3 selected campaigns.
+	 * @return array Timeline data with exactly 3 campaigns.
 	 */
 	public function get_weekly_planner_campaigns(): array {
 		// Get all potential campaigns (weekly + major events).
@@ -95,37 +100,162 @@ class SCD_Campaign_Planner_Service {
 			$campaign['start_timestamp'] = $this->get_campaign_start_timestamp( $campaign );
 		}
 
-		// Select best campaign for each position.
-		$planner_positions = array(
-			'past'   => $this->get_best_campaign_for_position( $all_campaigns, 'past' ),
-			'active' => $this->get_best_campaign_for_position( $all_campaigns, 'active' ),
-			'future' => $this->get_best_campaign_for_position( $all_campaigns, 'future' ),
-		);
+		// Build smart 3-slot timeline.
+		$timeline = $this->build_smart_timeline( $all_campaigns );
 
-		// Remove empty positions.
-		$planner_positions = array_filter( $planner_positions );
-
-		// Add wizard URLs.
-		foreach ( $planner_positions as $position => &$campaign ) {
+		// Add wizard URLs to all campaigns.
+		foreach ( $timeline as &$campaign ) {
 			if ( ! empty( $campaign ) ) {
 				$campaign['wizard_url'] = $this->get_wizard_url_for_campaign( $campaign );
 			}
 		}
 
 		$this->logger->debug(
-			'Campaign Planner Service: get_weekly_planner_campaigns()',
+			'Campaign Planner Service: Smart 3-Slot Timeline',
 			array(
 				'total_opportunities' => count( $all_campaigns ),
-				'past_count'          => ! empty( $planner_positions['past'] ) ? 1 : 0,
-				'active_count'        => ! empty( $planner_positions['active'] ) ? 1 : 0,
-				'future_count'        => ! empty( $planner_positions['future'] ) ? 1 : 0,
+				'slot_1_past'         => isset( $timeline[0] ) ? $timeline[0]['name'] . ' (' . $timeline[0]['state'] . ')' : 'empty',
+				'slot_2_active_next'  => isset( $timeline[1] ) ? $timeline[1]['name'] . ' (' . $timeline[1]['state'] . ')' : 'empty',
+				'slot_3_future'       => isset( $timeline[2] ) ? $timeline[2]['name'] . ' (' . $timeline[2]['state'] . ')' : 'empty',
 			)
 		);
 
 		return array(
-			'type'      => 'dynamic',
-			'campaigns' => array_values( $planner_positions ), // Re-index array.
+			'type'      => 'smart_timeline',
+			'campaigns' => $timeline,
 		);
+	}
+
+	/**
+	 * Build smart 3-slot timeline (always 3 campaigns).
+	 *
+	 * Implements intelligent gap-filling logic to ensure continuous timeline:
+	 * 1. PAST: Most recently ended campaign
+	 * 2. ACTIVE/NEXT: Current OR next upcoming (fills gaps)
+	 * 3. FUTURE: Next after active/next slot
+	 *
+	 * @since  1.0.0
+	 * @param  array $all_campaigns All campaign opportunities with calculated states.
+	 * @return array Exactly 3 campaigns for timeline display.
+	 */
+	private function build_smart_timeline( array $all_campaigns ): array {
+		$timeline = array();
+
+		// SLOT 1: PAST - Most recently ended campaign.
+		$past_campaign = $this->get_best_campaign_for_position( $all_campaigns, 'past' );
+		$timeline[]    = $past_campaign;
+
+		// SLOT 2: ACTIVE/NEXT - Current campaign OR next upcoming (gap filler).
+		$active_campaign = $this->get_best_campaign_for_position( $all_campaigns, 'active' );
+
+		if ( $active_campaign ) {
+			// Campaign currently running - show as active.
+			$timeline[] = $active_campaign;
+		} else {
+			// NO active campaign - fill gap with next upcoming campaign.
+			$next_campaign = $this->get_next_upcoming_campaign( $all_campaigns );
+			$timeline[]    = $next_campaign;
+		}
+
+		// SLOT 3: FUTURE - Next campaign after slot 2.
+		// Get the campaign ID from slot 2 to avoid duplication.
+		$slot_2_id      = isset( $timeline[1]['id'] ) ? $timeline[1]['id'] : null;
+		$future_campaign = $this->get_next_future_campaign( $all_campaigns, $slot_2_id );
+		$timeline[]     = $future_campaign;
+
+		return $timeline;
+	}
+
+	/**
+	 * Get next upcoming campaign (for gap filling).
+	 *
+	 * Finds the soonest future campaign to fill the active slot when
+	 * no campaign is currently running.
+	 *
+	 * @since  1.0.0
+	 * @param  array $campaigns All campaign opportunities.
+	 * @return array|null Next upcoming campaign, or null if none found.
+	 */
+	private function get_next_upcoming_campaign( array $campaigns ): ?array {
+		// Filter to only future campaigns.
+		$future_campaigns = array_filter(
+			$campaigns,
+			function ( $campaign ) {
+				return 'future' === $campaign['state'];
+			}
+		);
+
+		if ( empty( $future_campaigns ) ) {
+			return null;
+		}
+
+		// Sort by: priority (major events first), then proximity (soonest first).
+		usort(
+			$future_campaigns,
+			function ( $a, $b ) {
+				// Priority first (major events = 100, weekly = 10).
+				if ( $a['priority'] !== $b['priority'] ) {
+					return $b['priority'] - $a['priority'];
+				}
+				// Soonest to start.
+				return $a['start_timestamp'] - $b['start_timestamp'];
+			}
+		);
+
+		// Return the soonest upcoming campaign.
+		return reset( $future_campaigns );
+	}
+
+	/**
+	 * Get next future campaign after a given campaign.
+	 *
+	 * Finds the next upcoming campaign that's NOT the same as the
+	 * campaign in slot 2 (to avoid duplication).
+	 *
+	 * @since  1.0.0
+	 * @param  array       $campaigns      All campaign opportunities.
+	 * @param  string|null $exclude_id     Campaign ID to exclude (slot 2).
+	 * @return array|null Next future campaign, or null if none found.
+	 */
+	private function get_next_future_campaign( array $campaigns, ?string $exclude_id ): ?array {
+		$now = current_time( 'timestamp' );
+
+		// Filter to only future campaigns, excluding the one in slot 2.
+		$future_campaigns = array_filter(
+			$campaigns,
+			function ( $campaign ) use ( $exclude_id ) {
+				return 'future' === $campaign['state'] && $campaign['id'] !== $exclude_id;
+			}
+		);
+
+		if ( empty( $future_campaigns ) ) {
+			return null;
+		}
+
+		// Sort by: priority (major events first), then proximity (soonest first).
+		usort(
+			$future_campaigns,
+			function ( $a, $b ) {
+				// Priority first (major events = 100, weekly = 10).
+				if ( $a['priority'] !== $b['priority'] ) {
+					return $b['priority'] - $a['priority'];
+				}
+				// Soonest to start.
+				return $a['start_timestamp'] - $b['start_timestamp'];
+			}
+		);
+
+		// Only show future campaigns within 60 days.
+		$sixty_days_ahead = $now + ( 60 * DAY_IN_SECONDS );
+		$future_campaigns = array_filter(
+			$future_campaigns,
+			function ( $campaign ) use ( $sixty_days_ahead ) {
+				return $campaign['start_timestamp'] <= $sixty_days_ahead;
+			}
+		);
+
+		// Return the soonest upcoming campaign.
+		return ! empty( $future_campaigns ) ? reset( $future_campaigns ) : null;
 	}
 
 	/**
@@ -383,6 +513,8 @@ class SCD_Campaign_Planner_Service {
 	/**
 	 * Get campaign start timestamp.
 	 *
+	 * For weekly campaigns, calculates next occurrence (this week or next week).
+	 *
 	 * @since  1.0.0
 	 * @param  array $campaign Campaign data.
 	 * @return int Timestamp.
@@ -391,14 +523,42 @@ class SCD_Campaign_Planner_Service {
 		if ( ! empty( $campaign['is_major_event'] ) ) {
 			return $campaign['campaign_start'];
 		} else {
-			// Weekly campaigns - calculate start time for current week.
-			$current_week_start = strtotime( 'this week Monday 00:00' );
-			$schedule           = $campaign['schedule'];
-			$start_day          = $schedule['start_day'];
-			$start_time         = $schedule['start_time'];
+			// Weekly campaigns - calculate next occurrence.
+			$schedule   = $campaign['schedule'];
+			$start_day  = $schedule['start_day'];
+			$start_time = $schedule['start_time'];
 
-			$days_offset = $start_day - 1; // Monday = 0 offset.
-			return strtotime( "+{$days_offset} days {$start_time}", $current_week_start );
+			// If campaign is in 'future' state, use next occurrence.
+			// If campaign is in 'past' or 'active' state, use current/recent occurrence.
+			if ( 'future' === $campaign['state'] ) {
+				// Calculate next occurrence (could be this week or next week).
+				$current_day  = intval( current_time( 'N' ) );
+				$current_time = current_time( 'H:i' );
+
+				// Convert times to comparable integers.
+				$current_time_int = intval( str_replace( ':', '', $current_time ) );
+				$start_time_int   = intval( str_replace( ':', '', $start_time ) );
+
+				// Determine week offset.
+				if ( $current_day < $start_day || ( $current_day === $start_day && $current_time_int < $start_time_int ) ) {
+					// Campaign is later this week.
+					$week_offset = 0;
+				} else {
+					// Campaign has passed this week, use next week.
+					$week_offset = 1;
+				}
+
+				$base_monday = strtotime( 'this week Monday 00:00' );
+				$target_week = strtotime( "+{$week_offset} weeks", $base_monday );
+				$days_offset = $start_day - 1; // Monday = 0 offset.
+
+				return strtotime( "+{$days_offset} days {$start_time}", $target_week );
+			} else {
+				// For past/active campaigns, use current week occurrence.
+				$current_week_start = strtotime( 'this week Monday 00:00' );
+				$days_offset        = $start_day - 1;
+				return strtotime( "+{$days_offset} days {$start_time}", $current_week_start );
+			}
 		}
 	}
 
