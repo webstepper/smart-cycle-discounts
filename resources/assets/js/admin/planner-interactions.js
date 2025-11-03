@@ -71,8 +71,8 @@
 				// Update timeline focus to match (use POSITION, not state)
 				this.updateTimelineFocus( campaignPosition );
 
-				// Load insights for the focused campaign
-				this.loadInsights( campaignId, campaignState, isMajorEvent );
+				// Load insights for the focused campaign (pass position)
+				this.loadInsights( campaignId, campaignState, isMajorEvent, campaignPosition );
 			}
 		},
 		/**
@@ -101,8 +101,8 @@
 			$card.attr( 'data-focused', 'true' );
 			// Update visual focus on timeline items (use POSITION, not state)
 			this.updateTimelineFocus( campaignPosition );
-			// Load insights for this campaign
-			this.loadInsights( campaignId, campaignState, isMajorEvent );
+			// Load insights for this campaign (pass position)
+			this.loadInsights( campaignId, campaignState, isMajorEvent, campaignPosition );
 		},
 		/**
 		 * Handle timeline item click - triggers corresponding card click
@@ -163,12 +163,14 @@
 		/**
 		 * Load insights via AJAX
 		 *
-		 * @param {string}  campaignId     Campaign ID
-		 * @param {string}  campaignState  Campaign state (past/active/future)
-		 * @param {boolean} isMajorEvent   Is this a major event
+		 * @param {string}  campaignId       Campaign ID
+		 * @param {string}  campaignState    Campaign state (past/active/future)
+		 * @param {boolean} isMajorEvent     Is this a major event
+		 * @param {string}  campaignPosition Timeline position (past/active/future)
 		 */
-		loadInsights: function( campaignId, campaignState, isMajorEvent ) {
+		loadInsights: function( campaignId, campaignState, isMajorEvent, campaignPosition ) {
 			var $insightsContent = $( '.scd-insights-content' );
+
 			// Abort previous request if still pending
 			if ( pendingRequest ) {
 				pendingRequest.abort();
@@ -192,6 +194,7 @@
 					action: 'scd_get_planner_insights',
 					campaign_id: campaignId,
 					state: campaignState,
+					position: campaignPosition,
 					is_major_event: isMajorEvent ? '1' : '0',
 					nonce: scdAdmin.nonce
 				},
