@@ -534,7 +534,11 @@ class SCD_Script_Registry {
 			'scd-wizard-navigation',
 			array(
 				'src'       => 'resources/assets/js/wizard/wizard-navigation.js',
-				'deps'      => array( 'jquery' ),
+				'deps'      => array(
+					'jquery',
+					'scd-pro-feature-gate',
+					'scd-skeleton-templates',
+				),
 				'pages'     => array( 'scd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 				'localize'  => 'scdNavigation',
@@ -591,6 +595,30 @@ class SCD_Script_Registry {
 				'deps'      => array( 'jquery', 'scd-init-shared', 'scd-error-handler' ),
 				'pages'     => array( 'scd-campaigns', 'scd-analytics' ),
 				'condition' => array(), // No condition - load on both wizard and analytics pages
+				'in_footer' => false,
+			)
+		);
+
+		// Register PRO feature gate (independent service used by navigation and other modules)
+		$this->add_script(
+			'scd-pro-feature-gate',
+			array(
+				'src'       => 'resources/assets/js/shared/pro-feature-gate.js',
+				'deps'      => array( 'jquery' ),
+				'pages'     => array( 'scd-campaigns' ),
+				'condition' => array( 'action' => 'wizard' ),
+				'in_footer' => false,
+			)
+		);
+
+		// Register skeleton templates (independent service used by navigation)
+		$this->add_script(
+			'scd-skeleton-templates',
+			array(
+				'src'       => 'resources/assets/js/wizard/skeleton-templates.js',
+				'deps'      => array( 'jquery' ),
+				'pages'     => array( 'scd-campaigns' ),
+				'condition' => array( 'action' => 'wizard' ),
 				'in_footer' => false,
 			)
 		);

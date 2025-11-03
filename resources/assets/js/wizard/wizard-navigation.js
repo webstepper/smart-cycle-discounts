@@ -559,14 +559,36 @@
 		/**
 		 * Show skeleton loading screen
 		 *
-		 * Displays a skeleton placeholder while navigating to give instant feedback.
+		 * PHASE 2: Delegates to SkeletonTemplates service with fallback for safety.
 		 *
 		 * @since 1.0.0
 		 * @param {string} targetStep Target step name
 		 */
 		showSkeletonScreen: function( targetStep ) {
-			var contentSkeleton = this.getSkeletonHTML( targetStep );
-			var fullSkeleton = this.buildFullPageSkeleton( targetStep, contentSkeleton );
+			// Try new SkeletonTemplates service first
+			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.SkeletonTemplates ) {
+				// Initialize with config if not already done
+				if ( this.config && this.config.steps ) {
+					window.SCD.Wizard.SkeletonTemplates.init( this.config );
+				}
+				window.SCD.Wizard.SkeletonTemplates.render( targetStep );
+				return;
+			}
+
+			// Fallback: Use internal implementation if service not loaded
+			console.warn( '[SCD Navigation] SkeletonTemplates service not loaded, using fallback' );
+			this._showSkeletonScreenFallback( targetStep );
+		},
+
+		/**
+		 * Fallback skeleton screen (PHASE 2: Safety net during transition)
+		 *
+		 * @private
+		 * @param {string} targetStep Target step name
+		 */
+		_showSkeletonScreenFallback: function( targetStep ) {
+			var contentSkeleton = this._getSkeletonHTMLFallback( targetStep );
+			var fullSkeleton = this._buildFullPageSkeletonFallback( targetStep, contentSkeleton );
 			var $wizardWrap = $( '.scd-wizard-wrap' ).first();
 
 			if ( $wizardWrap.length ) {
@@ -582,7 +604,12 @@
 			}
 		},
 
-		buildFullPageSkeleton: function( targetStep, contentSkeleton ) {
+		/**
+		 * Fallback build full page skeleton (PHASE 2: Safety net during transition)
+		 *
+		 * @private
+		 */
+		_buildFullPageSkeletonFallback: function( targetStep, contentSkeleton ) {
 			var stepLabels = { 'basic': 'Campaign Setup', 'products': 'Product Selection', 'discounts': 'Discount Configuration', 'schedule': 'Schedule & Limits', 'review': 'Review & Launch' };
 			var currentIndex = this.config.steps.indexOf( targetStep );
 			var totalSteps = this.config.steps.length;
@@ -700,15 +727,13 @@
 		},
 
 		/**
-		 * Get skeleton HTML for a specific step
+		 * Fallback get skeleton HTML (PHASE 2: Safety net during transition)
 		 *
-		 * Returns appropriate skeleton structure based on target step.
-		 *
-		 * @since 1.0.0
+		 * @private
 		 * @param {string} stepName Step name
 		 * @returns {string} Skeleton HTML
 		 */
-		getSkeletonHTML: function( stepName ) {
+		_getSkeletonHTMLFallback: function( stepName ) {
 			// Helper to create wizard card skeleton matching actual .scd-card structure
 			var createCard = function( hasIcon, fields ) {
 				var c = '<div class="scd-card scd-wizard-card" style="padding:20px;margin-bottom:20px;border-radius:8px;"><div class="scd-card__header"><h3 class="scd-card__title" style="margin:0 0 8px 0;display:flex;align-items:center;">';
@@ -1245,8 +1270,8 @@
 	/**
 	 * Check if user is trying to use PRO features (client-side)
 	 *
-	 * Prevents field validation errors from showing for PRO features
-	 * by checking feature access before validation runs.
+	 * PHASE 2: Delegates to ProFeatureGate service with fallback for safety.
+	 * This ensures backward compatibility during transition.
 	 *
 	 * @since 1.0.0
 	 * @param {string} step Current step name
@@ -1254,6 +1279,25 @@
 	 * @returns {object} { blocked: boolean, message: string, feature: string, upgradeUrl: string }
 	 */
 	checkProFeatures: function( step, formData ) {
+		// Try new ProFeatureGate service first
+		if ( window.SCD && window.SCD.Shared && window.SCD.Shared.ProFeatureGate ) {
+			return window.SCD.Shared.ProFeatureGate.check( step, formData );
+		}
+
+		// Fallback: Use internal implementation if service not loaded
+		console.warn( '[SCD Navigation] ProFeatureGate service not loaded, using fallback' );
+		return this._checkProFeaturesFallback( step, formData );
+	},
+
+	/**
+	 * Fallback PRO feature check (PHASE 2: Safety net during transition)
+	 *
+	 * @private
+	 * @param {string} step Current step name
+	 * @param {object} formData Form data being validated
+	 * @returns {object} { blocked: boolean, message: string, feature: string, upgradeUrl: string }
+	 */
+	_checkProFeaturesFallback: function( step, formData ) {
 		// Check if user is premium (from localized config)
 		var isPremium = window.scdWizardConfig && window.scdWizardConfig.is_premium;
 
@@ -1266,14 +1310,13 @@
 		var upgradeUrl = ( window.scdWizardConfig && window.scdWizardConfig.upgrade_url ) || '#';
 
 		// Check discounts step for PRO discount types
-		// formData uses camelCase throughout (from StepPersistence mixin)
 		if ( 'discounts' === step && formData.discountType ) {
 			var proDiscountTypes = [ 'tiered', 'bogo', 'spend_threshold' ];
 			if ( -1 !== proDiscountTypes.indexOf( formData.discountType ) ) {
 				// Show modal
-				this.showProRequiredModal( {
+				this._showProRequiredModalFallback( {
 					featureType: 'discount_type',
-					featureName: this.getDiscountTypeLabel( formData.discountType ),
+					featureName: this._getDiscountTypeLabelFallback( formData.discountType ),
 					featureKey: 'discount_type_' + formData.discountType,
 					upgradeUrl: upgradeUrl,
 					configData: formData,
@@ -1291,15 +1334,15 @@
 
 		// Check schedule step for recurring campaigns
 		if ( 'schedule' === step && formData.enable_recurring ) {
-		// Show modal
-		this.showProRequiredModal( {
-			featureType: 'recurring_campaigns',
-			featureName: 'Recurring Campaigns',
-			featureKey: 'campaigns_recurring',
-			upgradeUrl: upgradeUrl,
-			configData: formData,
-			step: step
-		} );
+			// Show modal
+			this._showProRequiredModalFallback( {
+				featureType: 'recurring_campaigns',
+				featureName: 'Recurring Campaigns',
+				featureKey: 'campaigns_recurring',
+				upgradeUrl: upgradeUrl,
+				configData: formData,
+				step: step
+			} );
 
 			return {
 				blocked: true,
@@ -1311,15 +1354,15 @@
 
 		// Check products step for advanced filters
 		if ( 'products' === step && formData.use_advanced_filters ) {
-		// Show modal
-		this.showProRequiredModal( {
-			featureType: 'advanced_filters',
-			featureName: 'Advanced Product Filters',
-			featureKey: 'campaigns_advanced_product_filters',
-			upgradeUrl: upgradeUrl,
-			configData: formData,
-			step: step
-		} );
+			// Show modal
+			this._showProRequiredModalFallback( {
+				featureType: 'advanced_filters',
+				featureName: 'Advanced Product Filters',
+				featureKey: 'campaigns_advanced_product_filters',
+				upgradeUrl: upgradeUrl,
+				configData: formData,
+				step: step
+			} );
 
 			return {
 				blocked: true,
@@ -1334,14 +1377,12 @@
 	},
 
 	/**
-	 * Show PRO required modal
+	 * Fallback PRO required modal (PHASE 2: Safety net during transition)
 	 *
-	 * Displays modal dialog when free users attempt to use PRO features.
-	 *
-	 * @since 1.0.0
+	 * @private
 	 * @param {object} options Modal options
 	 */
-	showProRequiredModal: function( options ) {
+	_showProRequiredModalFallback: function( options ) {
 		var self = this;
 		var $modal = $( '#scd-pro-required-modal' );
 
@@ -1352,7 +1393,6 @@
 
 		// Populate modal content
 		$modal.find( '#scd-pro-feature-name' ).text( '"' + options.featureName + '"' );
-
 
 		// Show modal with fade-in animation
 		$modal.fadeIn( 200 );
@@ -1368,9 +1408,9 @@
 
 			// Track conversion attempt if analytics available
 			if ( window.gtag ) {
-				gtag( 'event', 'upgrade_attempt', {
-					'event_category': 'Pro_Feature',
-					'event_label': options.featureKey
+				window.gtag( 'event', 'upgrade_attempt', {
+					event_category: 'Pro_Feature',
+					event_label: options.featureKey
 				} );
 			}
 
@@ -1381,7 +1421,7 @@
 		// Handle change button
 		$modal.find( '.scd-modal-change' ).off( 'click' ).on( 'click', function() {
 			// Close modal
-			self.closeProModal();
+			self._closeProModalFallback();
 
 			// Scroll to and highlight the relevant selector
 			if ( 'discount_type' === options.featureType ) {
@@ -1403,17 +1443,17 @@
 		// Handle save as draft button
 		$modal.find( '.scd-modal-save-draft' ).off( 'click' ).on( 'click', function() {
 			// Close modal
-			self.closeProModal();
+			self._closeProModalFallback();
 
 			// Trigger save via orchestrator
 			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Orchestrator ) {
-				var currentStep = SCD.Wizard.StateManager.state.currentStep;
-				var stepOrchestrator = SCD.Wizard.Orchestrator.getStepInstance( currentStep );
+				var currentStep = window.SCD.Wizard.StateManager.state.currentStep;
+				var stepOrchestrator = window.SCD.Wizard.Orchestrator.getStepInstance( currentStep );
 
 				if ( stepOrchestrator && 'function' === typeof stepOrchestrator.saveStep ) {
 					stepOrchestrator.saveStep().done( function() {
 						if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
-							SCD.Shared.NotificationService.success( 'Draft saved! Upgrade anytime to activate this campaign.' );
+							window.SCD.Shared.NotificationService.success( 'Draft saved! Upgrade anytime to activate this campaign.' );
 						}
 					} );
 				}
@@ -1422,47 +1462,46 @@
 
 		// Handle close button
 		$modal.find( '.scd-modal-close' ).off( 'click' ).on( 'click', function() {
-			self.closeProModal();
+			self._closeProModalFallback();
 		} );
 
 		// Close on overlay click
 		$modal.find( '.scd-modal-overlay' ).off( 'click' ).on( 'click', function() {
-			self.closeProModal();
+			self._closeProModalFallback();
 		} );
 
 		// Close on ESC key
 		$( document ).off( 'keydown.scd-pro-modal' ).on( 'keydown.scd-pro-modal', function( e ) {
 			if ( 27 === e.keyCode ) {
-				self.closeProModal();
+				self._closeProModalFallback();
 			}
 		} );
 	},
 
 	/**
-	 * Close PRO required modal
+	 * Fallback close PRO modal (PHASE 2: Safety net during transition)
 	 *
-	 * @since 1.0.0
+	 * @private
 	 */
-	closeProModal: function() {
+	_closeProModalFallback: function() {
 		var $modal = $( '#scd-pro-required-modal' );
 		$modal.fadeOut( 200 );
 		$( 'body' ).removeClass( 'scd-modal-open' );
 		$( document ).off( 'keydown.scd-pro-modal' );
 	},
 
-
 	/**
-	 * Get human-readable discount type label
+	 * Fallback get discount type label (PHASE 2: Safety net during transition)
 	 *
-	 * @since 1.0.0
+	 * @private
 	 * @param {string} type Discount type key
 	 * @returns {string} Label
 	 */
-	getDiscountTypeLabel: function( type ) {
+	_getDiscountTypeLabelFallback: function( type ) {
 		var labels = {
-			'tiered': 'Tiered Discount',
-			'bogo': 'Buy One Get One',
-			'spend_threshold': 'Spend Threshold'
+			tiered: 'Tiered Discount',
+			bogo: 'Buy One Get One',
+			spend_threshold: 'Spend Threshold'
 		};
 		return labels[type] || type;
 	},

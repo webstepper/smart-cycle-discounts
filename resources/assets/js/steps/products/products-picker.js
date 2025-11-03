@@ -1117,26 +1117,6 @@
 				if ( 0 < promises.length ) {
 					return Promise.all( promises );
 				}
-				return;
-			}
-
-			// Field-specific access (legacy/internal use)
-			if ( 'categories' === field ) {
-				if ( this.categorySelect ) {
-					return this.ensureCategoryOptionsLoaded( value ).then( function() {
-						this.setCategoriesOnInstance( value );
-					}.bind( this ) );
-				} else {
-					// Store for later (before initialization)
-					this.pendingCategories = value;
-				}
-			} else if ( 'products' === field ) {
-				if ( this.productSelect ) {
-					return this.restoreProducts( value );
-				} else {
-					// Store for later (before initialization)
-					this.pendingProducts = value;
-				}
 			}
 		},
 
@@ -1144,25 +1124,13 @@
 		 * Complex field handler interface - Get value
 		 *
 		 * @since 1.0.0
-		 * @param {string} field - Field name ('categories' or 'products'), or undefined for all
-		 * @returns {Array|Object} Current value (array for specific field, object for all)
+		 * @returns {Object} Current value with categoryIds and productIds
 		 */
-		getValue: function( field ) {
-			// If no field specified, return object with both (for complex field handler)
-			if ( ! field ) {
-				return {
-					categoryIds: this.categorySelect ? this.categorySelect.getValue() : [ 'all' ],
-					productIds: this.productSelect ? this.productSelect.getValue() : []
-				};
-			}
-
-			// Field-specific access
-			if ( 'categories' === field ) {
-				return this.categorySelect ? this.categorySelect.getValue() : [ 'all' ];
-			} else if ( 'products' === field ) {
-				return this.productSelect ? this.productSelect.getValue() : [];
-			}
-			return [];
+		getValue: function() {
+			return {
+				categoryIds: this.categorySelect ? this.categorySelect.getValue() : [ 'all' ],
+				productIds: this.productSelect ? this.productSelect.getValue() : []
+			};
 		},
 
 		/**

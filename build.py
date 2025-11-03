@@ -255,7 +255,7 @@ def main():
     print(f"  Size: {format_size(zip_size)}")
     print()
 
-    # Clean up build directory (keep dist)
+    # Clean up temporary build directory
     print("Cleaning up temporary files...")
     shutil.rmtree(BUILD_DIR)
 
