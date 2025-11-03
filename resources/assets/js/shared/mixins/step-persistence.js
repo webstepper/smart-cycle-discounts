@@ -134,9 +134,6 @@
 						} else if ( window.SCD && window.SCD.Utils && window.SCD.Utils.Fields ) {
 							// Handle standard fields
 							data[fieldName] = window.SCD.Utils.Fields.getFieldValue( fieldName, fieldDef );
-						} else {
-							// Fallback if utils not available
-							data[fieldName] = fieldDef.default || null;
 						}
 					}
 				}
@@ -168,7 +165,7 @@
 		},
 
 		/**
-		 * Validate data using NEW pure ValidationManager
+		 * Validate data using pure ValidationManager
 		 * Uses the unified validation system with visibility awareness
 		 * @param data
 		 */
@@ -197,11 +194,12 @@
 					};
 				}
 
-				// Use new pure ValidationManager.validateStep method
+				// Use pure ValidationManager.validateStep method
 				var result = window.SCD.ValidationManager.validateStep( this.stepName, data );
 				
-				// Convert new format to legacy format for backward compatibility
-				var legacyErrors = [];
+				// Convert ValidationManager format { ok: ..., errors: {...} } to orchestrator format { valid: ..., errors: [...] }
+				// This adapter layer maintains the public interface used by all orchestrators
+				var flatErrors = [];
 				if ( !result.ok ) {
 					for ( var fieldName in result.errors ) {
 						if ( result.errors.hasOwnProperty( fieldName ) ) {
@@ -209,13 +207,13 @@
 							// Handle array of error objects with codes and messages
 							if ( Array.isArray( fieldErrors ) ) {
 								for ( var i = 0; i < fieldErrors.length; i++ ) {
-									legacyErrors.push( {
+									flatErrors.push( {
 										field: fieldName,
 										message: fieldErrors[i].message || fieldErrors[i]
 									} );
 								}
 							} else {
-								legacyErrors.push( {
+								flatErrors.push( {
 									field: fieldName,
 									message: fieldErrors.message || fieldErrors
 								} );
@@ -226,8 +224,8 @@
 
 				return {
 					valid: result.ok,
-					errors: legacyErrors,
-					clean: result.clean // NEW: provide clean data
+					errors: flatErrors,
+					clean: result.clean
 				};
 			} catch ( error ) {
 				if ( window.SCD && window.SCD.ErrorHandler ) {
@@ -546,7 +544,6 @@
 		 * Show validation errors (convenience alias)
 		 *
 		 * Delegates to showValidationErrors() for consistent error display.
-		 * Kept for backward compatibility with existing code.
 		 *
 		 * @param {Array|Object} errors - Validation errors
 		 */
