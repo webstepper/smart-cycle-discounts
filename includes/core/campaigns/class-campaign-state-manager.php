@@ -151,7 +151,6 @@ class SCD_Campaign_State_Manager {
 	public function transition( SCD_Campaign $campaign, string $new_state, array $context = array() ) {
 		$current_state = $campaign->get_status();
 
-		// Validate transition.
 		if ( ! $this->can_transition( $current_state, $new_state ) ) {
 			return new WP_Error(
 				'invalid_transition',
@@ -169,7 +168,6 @@ class SCD_Campaign_State_Manager {
 			return true;
 		}
 
-		// Validate pre-conditions.
 		$validation = $this->validate_transition_conditions( $campaign, $new_state );
 		if ( is_wp_error( $validation ) ) {
 			return $validation;
@@ -178,11 +176,9 @@ class SCD_Campaign_State_Manager {
 		// Execute pre-transition hooks.
 		$this->before_transition( $campaign, $current_state, $new_state, $context );
 
-		// Update state.
 		$campaign->set_status( $new_state );
 		$campaign->set_updated_at( new DateTime( 'now', new DateTimeZone( 'UTC' ) ) );
 
-		// Set updated_by based on context.
 		// System actions (auto_expired, auto_scheduled) set to NULL.
 		// User actions set to current user ID.
 		$is_system_action = isset( $context['reason'] ) && in_array(
@@ -453,7 +449,6 @@ class SCD_Campaign_State_Manager {
 		// Use UTC timezone to match campaign dates (which are stored in UTC).
 		$now = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
 
-		// Check if should activate.
 		if ( 'scheduled' === $current_state ) {
 			$starts_at = $campaign->get_starts_at();
 			if ( $starts_at && $starts_at <= $now ) {
@@ -462,7 +457,6 @@ class SCD_Campaign_State_Manager {
 			}
 		}
 
-		// Check if should expire.
 		if ( in_array( $current_state, array( 'active', 'paused' ), true ) ) {
 			$ends_at = $campaign->get_ends_at();
 			if ( $ends_at && $ends_at <= $now ) {
@@ -490,7 +484,6 @@ class SCD_Campaign_State_Manager {
 		$hook = 'scd_check_campaign_expiration';
 		$args = array( $campaign->get_id() );
 
-		// Clear any existing schedule.
 		wp_clear_scheduled_hook( $hook, $args );
 
 		// Schedule new check.
@@ -512,7 +505,6 @@ class SCD_Campaign_State_Manager {
 			return;
 		}
 
-		// Calculate notification time (24 hours before end date).
 		$notification_time = clone $ends_at;
 		$notification_time->modify( '-24 hours' );
 
@@ -525,7 +517,6 @@ class SCD_Campaign_State_Manager {
 		$hook = 'scd_campaign_ending_notification';
 		$args = array( $campaign->get_id() );
 
-		// Clear any existing schedule.
 		wp_clear_scheduled_hook( $hook, $args );
 
 		// Schedule notification.
@@ -545,13 +536,10 @@ class SCD_Campaign_State_Manager {
 			return;
 		}
 
-		// Clear expiration check.
 		wp_clear_scheduled_hook( 'scd_check_campaign_expiration', array( $campaign_id ) );
 
-		// Clear ending notification.
 		wp_clear_scheduled_hook( 'scd_campaign_ending_notification', array( $campaign_id ) );
 
-		// Clear rotation tasks.
 		wp_clear_scheduled_hook( 'scd_rotate_campaign_products', array( $campaign_id ) );
 	}
 

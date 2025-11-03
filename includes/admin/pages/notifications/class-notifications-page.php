@@ -123,7 +123,6 @@ class SCD_Notifications_Page {
 	 * @return   void
 	 */
 	private function init_tab_classes(): void {
-		// Initialize all tab classes from container
 		$tab_services = array(
 			'settings' => 'notifications_settings_tab',
 			'queue'    => 'notifications_queue_tab',
@@ -201,7 +200,6 @@ class SCD_Notifications_Page {
 		// Allow filtering of tabs
 		$this->tabs = apply_filters( 'scd_notifications_tabs', $this->tabs );
 
-		// Sort tabs by priority
 		uasort(
 			$this->tabs,
 			function ( $a, $b ) {
@@ -217,7 +215,6 @@ class SCD_Notifications_Page {
 	 * @return   void
 	 */
 	public function register_settings(): void {
-		// Register main settings option
 		register_setting(
 			'scd_notifications_group',
 			$this->option_name,
@@ -243,7 +240,6 @@ class SCD_Notifications_Page {
 	private function get_current_tab(): string {
 		$tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'settings';
 
-		// Validate tab exists
 		$valid_tabs = array( 'settings', 'queue' );
 		if ( ! in_array( $tab, $valid_tabs, true ) ) {
 			$tab = 'settings';
@@ -285,29 +281,23 @@ class SCD_Notifications_Page {
 	public function render(): void {
 		// Debug output
 
-		// Check user permissions
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'smart-cycle-discounts' ) );
 		}
 
-		// Render page wrapper
 		echo '<div class="wrap scd-notifications">';
 		echo '<h1><span class="dashicons dashicons-email"></span> ' . esc_html__( 'Email Notifications', 'smart-cycle-discounts' ) . '</h1>';
 
 		// Show admin notices
 		settings_errors( 'scd_notifications_messages' );
 
-		// Render tab navigation
 		$this->render_tab_navigation();
 
-		// Render active tab content
 		if ( 'settings' === $this->current_tab ) {
 			echo '<form method="post" action="options.php" class="scd-notifications-form">';
 
-			// Output security fields
 			settings_fields( 'scd_notifications_group' );
 
-			// Render tab content
 			do_action( 'scd_render_notifications_tab', $this->current_tab );
 
 			// Submit button
@@ -366,7 +356,6 @@ class SCD_Notifications_Page {
 	public function sanitize_settings( array $input ): array {
 		$sanitized = array();
 
-		// Get current settings
 		$current = get_option( $this->option_name, array() );
 
 		// Merge with current settings to preserve other sections

@@ -50,13 +50,11 @@ class SCD_BOGO_Strategy implements SCD_Discount_Strategy_Interface {
 				);
 			}
 
-			// Validate configuration
 			$validation_errors = $this->validate_config( $discount_config );
 			if ( ! empty( $validation_errors ) ) {
 				return SCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'Invalid configuration' );
 			}
 
-			// Get quantity from context
 			$quantity = intval( $context['quantity'] ?? 1 );
 			if ( $quantity < 1 ) {
 				return SCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'Quantity must be at least 1' );
@@ -85,7 +83,6 @@ class SCD_BOGO_Strategy implements SCD_Discount_Strategy_Interface {
 				$discount_per_item = $this->round_currency( $original_price * ( $get_discount_percentage / 100 ) );
 				$total_discount    = $this->round_currency( $discounted_items * $discount_per_item );
 
-				// Calculate average discount per item
 				$average_discount_per_item = $this->round_currency( $total_discount / $quantity );
 				$discounted_price          = $this->round_currency( $original_price - $average_discount_per_item );
 
@@ -130,7 +127,6 @@ class SCD_BOGO_Strategy implements SCD_Discount_Strategy_Interface {
 	public function validate_config( array $discount_config ): array {
 		$errors = array();
 
-		// Validate buy quantity with business logic limits
 		if ( ! isset( $discount_config['buy_quantity'] ) || ! is_numeric( $discount_config['buy_quantity'] ) ) {
 			$errors[] = __( 'Buy quantity is required and must be numeric', 'smart-cycle-discounts' );
 		} else {
@@ -144,7 +140,6 @@ class SCD_BOGO_Strategy implements SCD_Discount_Strategy_Interface {
 			}
 		}
 
-		// Validate get quantity with business logic limits
 		if ( ! isset( $discount_config['get_quantity'] ) || ! is_numeric( $discount_config['get_quantity'] ) ) {
 			$errors[] = __( 'Get quantity is required and must be numeric', 'smart-cycle-discounts' );
 		} else {
@@ -168,7 +163,6 @@ class SCD_BOGO_Strategy implements SCD_Discount_Strategy_Interface {
 			}
 		}
 
-		// Validate get discount percentage
 		if ( isset( $discount_config['get_discount_percentage'] ) ) {
 			$percentage = floatval( $discount_config['get_discount_percentage'] );
 			if ( $percentage < 0 || $percentage > 100 ) {
@@ -176,7 +170,6 @@ class SCD_BOGO_Strategy implements SCD_Discount_Strategy_Interface {
 			}
 		}
 
-		// Validate max applications
 		if ( isset( $discount_config['max_applications'] ) ) {
 			if ( ! is_numeric( $discount_config['max_applications'] ) || intval( $discount_config['max_applications'] ) < 1 ) {
 				$errors[] = __( 'Max applications must be a positive number', 'smart-cycle-discounts' );

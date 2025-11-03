@@ -102,7 +102,6 @@ class SCD_Campaign_Display_Service {
 			$prepared[]     = $this->prepare_campaign_for_display( $campaign_array );
 		}
 
-		// Sort by urgency (ending soon first).
 		usort(
 			$prepared,
 			function ( $a, $b ) {
@@ -121,7 +120,6 @@ class SCD_Campaign_Display_Service {
 			}
 		);
 
-		// Return only requested limit after sorting.
 		return array_slice( $prepared, 0, $limit );
 	}
 
@@ -270,14 +268,12 @@ class SCD_Campaign_Display_Service {
 		$is_ending_soon   = false;
 		$is_starting_soon = false;
 
-		// Check if ending soon (within 7 days).
 		if ( 'active' === $campaign['status'] && ! empty( $campaign['ends_at'] ) ) {
 			$end_date       = new DateTime( $campaign['ends_at'], new DateTimeZone( 'UTC' ) );
 			$diff_days      = ( $end_date->getTimestamp() - $now->getTimestamp() ) / DAY_IN_SECONDS;
 			$is_ending_soon = $diff_days >= 0 && $diff_days <= 7;
 		}
 
-		// Check if starting soon (within 7 days).
 		if ( 'scheduled' === $campaign['status'] && ! empty( $campaign['starts_at'] ) ) {
 			$start_date       = new DateTime( $campaign['starts_at'], new DateTimeZone( 'UTC' ) );
 			$diff_days        = ( $start_date->getTimestamp() - $now->getTimestamp() ) / DAY_IN_SECONDS;

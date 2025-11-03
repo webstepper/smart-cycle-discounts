@@ -294,7 +294,6 @@ trait SCD_Admin_Notice_Trait {
 			);
 		}
 
-		// Clear queue after rendering
 		$this->notice_queue = array();
 	}
 

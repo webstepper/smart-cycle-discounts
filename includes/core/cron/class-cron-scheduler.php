@@ -81,7 +81,6 @@ class SCD_Cron_Scheduler {
 	 * @return   void
 	 */
 	public function init(): void {
-		// Register action handlers
 		add_action( 'scd_cleanup_expired_sessions', array( $this, 'cleanup_expired_sessions' ) );
 		add_action( 'scd_cleanup_old_analytics', array( $this, 'cleanup_old_analytics' ) );
 
@@ -177,7 +176,6 @@ class SCD_Cron_Scheduler {
 			return;
 		}
 
-		// Clear all scheduled actions
 		$this->scheduler->unschedule_all_actions( 'scd_update_campaign_status' );
 		$this->scheduler->unschedule_all_actions( 'scd_cleanup_expired_sessions' );
 		$this->scheduler->unschedule_all_actions( 'scd_cleanup_wizard_sessions' );
@@ -239,7 +237,6 @@ class SCD_Cron_Scheduler {
 		try {
 			$this->logger->info( 'Starting old analytics cleanup' );
 
-			// Get retention period from settings (default 90 days)
 			$retention_days = intval( get_option( 'scd_analytics_retention_days', 90 ) );
 
 			if ( $retention_days <= 0 ) {
@@ -301,7 +298,6 @@ class SCD_Cron_Scheduler {
 		// Run analytics cleanup
 		try {
 			$this->cleanup_old_analytics();
-			// Get count from last query
 			global $wpdb;
 			$results['analytics_cleaned'] = $wpdb->rows_affected;
 		} catch ( Exception $e ) {

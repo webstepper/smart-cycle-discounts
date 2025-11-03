@@ -88,7 +88,6 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 			return;
 		}
 
-		// Initialize list table
 		$this->init_list_table();
 
 		// Handle bulk actions
@@ -97,7 +96,6 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 		// Enqueue required scripts
 		$this->enqueue_scripts();
 
-		// Render the page
 		$this->render();
 	}
 
@@ -132,7 +130,6 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 			return;
 		}
 
-		// Check nonce
 		if ( ! wp_verify_nonce( $_REQUEST['_wpnonce'] ?? '', 'bulk-campaigns' ) ) {
 			return;
 		}
@@ -266,7 +263,6 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 			wp_die( __( 'Security check failed.', 'smart-cycle-discounts' ) );
 		}
 
-		// Check capability
 		if ( ! $this->check_capability( 'scd_create_campaigns' ) ) {
 			wp_die( __( 'You do not have permission to discard drafts.', 'smart-cycle-discounts' ) );
 		}
@@ -274,10 +270,8 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 		// Discard the draft
 		$this->wizard_state_service->clear_session();
 
-		// Check if we have a redirect URL
 		if ( isset( $_GET['redirect'] ) ) {
 			$redirect_url = urldecode( $_GET['redirect'] );
-			// Validate the redirect URL is within our admin area
 			if ( strpos( $redirect_url, admin_url() ) === 0 ) {
 				wp_safe_redirect( $redirect_url );
 				exit;
@@ -362,20 +356,16 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 			?>
 
 			<?php
-			// Check if viewing trash
 			$viewing_trash = isset( $_REQUEST['status'] ) && 'trash' === $_REQUEST['status'];
 
-			// Initialize draft info for later use
 			$draft_info = null;
 			?>
 
 			<?php if ( ! $viewing_trash && $this->check_capability( 'scd_create_campaigns' ) ) : ?>
 				<?php
-				// Check for draft
 				$draft_info = $this->wizard_state_service->get_draft_info();
 				$has_draft  = $draft_info && empty( $draft_info['is_expired'] );
 
-				// Prepare data for JavaScript
 				if ( $has_draft ) {
 					$session_type  = 'draft';
 					$campaign_name = $draft_info['campaign_name'] ?? '';
@@ -424,7 +414,6 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 			</form>
 
 			<?php
-			// Output quick edit inline form template
 			if ( method_exists( $this->list_table, 'inline_edit' ) ) {
 				$this->list_table->inline_edit();
 			}
@@ -432,7 +421,6 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 		</div>
 		
 		<?php
-		// Render draft conflict modal if user can create campaigns
 		if ( $this->check_capability( 'scd_create_campaigns' ) ) {
 			$this->render_draft_conflict_modal();
 			$this->enqueue_modal_scripts();
@@ -503,10 +491,8 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	private function render_draft_conflict_modal(): void {
-		// Load modal component
 		require_once SCD_INCLUDES_DIR . 'admin/components/class-modal-component.php';
 
-		// Create modal configuration
 		$modal_config = array(
 			'id'             => 'scd-draft-conflict-modal',
 			'title'          => '<span id="scd-modal-title">' . esc_html__( 'Draft Campaign Exists', 'smart-cycle-discounts' ) . '</span>',
@@ -537,7 +523,6 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 			'escape_content' => false, // Already escaped above
 		);
 
-		// Create and render modal
 		$modal = new SCD_Modal_Component( $modal_config );
 		$modal->render();
 	}
@@ -554,7 +539,6 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 			return;
 		}
 
-		// Get current campaign count (exclude deleted campaigns)
 		$repository = $this->campaign_manager->get_repository();
 		if ( ! $repository ) {
 			return;

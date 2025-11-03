@@ -84,14 +84,11 @@ class SCD_Performance_Optimizer {
 		// Generate unique cache key
 		$cache_key = $key . '_' . md5( serialize( $key_data ) );
 
-		// Return cached value if exists
 		if ( isset( self::$memoized[ $cache_key ] ) ) {
-			// Update access time for LRU
 			self::$cache_access[ $cache_key ] = microtime( true );
 			return self::$memoized[ $cache_key ];
 		}
 
-		// Check if we need to evict old entries
 		if ( count( self::$memoized ) >= self::$max_cache_size ) {
 			self::evict_lru_entry();
 		}
@@ -165,7 +162,6 @@ class SCD_Performance_Optimizer {
 		// Generate new value
 		$value = call_user_func( $callback );
 
-		// Store in transient
 		set_transient( $key, $value, $expiration );
 
 		return $value;
@@ -226,7 +222,6 @@ class SCD_Performance_Optimizer {
 					ARRAY_A
 				);
 
-				// Build product => discount map
 				$discount_map = array();
 				foreach ( $results as $row ) {
 					$discount_map[ $row['product_id'] ] = array(
@@ -310,7 +305,6 @@ class SCD_Performance_Optimizer {
 	 * @return   array    Discount rules.
 	 */
 	private static function load_discount_rules(): array {
-		// Load from validation class if available
 		if ( class_exists( 'SCD_Validation' ) ) {
 			return array(
 				'discount_types' => SCD_Validation_Rules::DISCOUNT_TYPES,
@@ -377,13 +371,11 @@ class SCD_Performance_Optimizer {
 	 * @return   void
 	 */
 	public static function register_cleanup_hooks(): void {
-		// Clear cache periodically in long-running processes
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			// For WP-CLI commands, clear after each command
 			add_action( 'cli_init', array( __CLASS__, 'clear_memoized' ) );
 		}
 
-		// Clear cache on shutdown for memory management
 		register_shutdown_function( array( __CLASS__, 'clear_memoized' ) );
 
 		// Hook into WordPress cron to clear before scheduled tasks
@@ -416,7 +408,6 @@ class SCD_Performance_Optimizer {
 				// Batch load to avoid N+1 queries
 				$discounts = self::batch_load_product_discounts( $product_ids );
 
-				// Store in memoization for quick access
 				foreach ( $discounts as $product_id => $discount ) {
 					self::$memoized[ 'product_discount_' . $product_id ] = $discount;
 				}
@@ -426,7 +417,6 @@ class SCD_Performance_Optimizer {
 
 			} finally {
 				self::set_calculating( false );
-				// Clear product-specific memoization after calculation
 				self::clear_memoized( 'product_discount' );
 			}
 		};

@@ -199,7 +199,6 @@ class SCD_Analytics_Repository extends SCD_Base_Repository {
 			}
 		}
 
-		// Calculate rates
 		if ( $performance['impressions'] > 0 ) {
 			$performance['click_through_rate'] = ( $performance['clicks'] / $performance['impressions'] ) * 100;
 		}
@@ -244,17 +243,14 @@ class SCD_Analytics_Repository extends SCD_Base_Repository {
 
 		$where_sql = implode( ' AND ', $where_conditions );
 
-		// Calculate offset
 		$offset = ( $page - 1 ) * $per_page;
 
-		// Get total count
 		$count_sql   = $wpdb->prepare(
 			"SELECT COUNT(DISTINCT event_type) FROM {$this->table_name} WHERE {$where_sql}",
 			$where_values
 		);
 		$total_count = (int) $wpdb->get_var( $count_sql );
 
-		// Get paginated results
 		$sql = $wpdb->prepare(
 			"SELECT 
 				event_type,
@@ -270,7 +266,6 @@ class SCD_Analytics_Repository extends SCD_Base_Repository {
 
 		$results = $wpdb->get_results( $sql, ARRAY_A );
 
-		// Process results same as original method
 		$performance = array(
 			'impressions'        => 0,
 			'clicks'             => 0,
@@ -301,7 +296,6 @@ class SCD_Analytics_Repository extends SCD_Base_Repository {
 			}
 		}
 
-		// Calculate rates
 		if ( $performance['impressions'] > 0 ) {
 			$performance['click_through_rate'] = ( $performance['clicks'] / $performance['impressions'] ) * 100;
 		}
@@ -310,7 +304,6 @@ class SCD_Analytics_Repository extends SCD_Base_Repository {
 			$performance['conversion_rate'] = ( $performance['conversions'] / $performance['clicks'] ) * 100;
 		}
 
-		// Add pagination info
 		$total_pages = ceil( $total_count / $per_page );
 
 		return array(
@@ -585,7 +578,6 @@ class SCD_Analytics_Repository extends SCD_Base_Repository {
 	 * @return   array             Prepared data.
 	 */
 	protected function prepare_item_output( array $data ) {
-		// Convert numeric fields using base class helper
 		$numeric_fields = array(
 			'id',
 			'campaign_id',

@@ -41,7 +41,6 @@ class SCD_Theme_Color_Inline_Styles {
 	 * @since 1.0.0
 	 */
 	public function print_theme_color_styles(): void {
-		// Get theme colors directly
 		$colors = $this->get_theme_colors();
 
 		if ( empty( $colors ) ) {
@@ -81,7 +80,6 @@ class SCD_Theme_Color_Inline_Styles {
 
 		$css .= '}' . "\n";
 
-		// Add status badge styles
 		$css .= "\n" . '/* Status Badge Styles */' . "\n";
 		$css .= '.scd-status-badge {' . "\n";
 		$css .= '    display: inline-block;' . "\n";
@@ -117,7 +115,6 @@ class SCD_Theme_Color_Inline_Styles {
 		$css .= '    background-color: var(--scd-badge-draft);' . "\n";
 		$css .= '}' . "\n";
 
-		// Add draft notice styles
 		$css .= "\n" . '/* Draft Notice Styles */' . "\n";
 		$css .= '.scd-draft-notice {' . "\n";
 		$css .= '    display: flex;' . "\n";
@@ -150,7 +147,6 @@ class SCD_Theme_Color_Inline_Styles {
 		$css .= '    vertical-align: middle;' . "\n";
 		$css .= '}' . "\n";
 
-		// Add transition prevention during initial load
 		$css .= "\n" . '/* Prevent color transitions during initial load */' . "\n";
 		$css .= 'body:not(.scd-colors-loaded) * {' . "\n";
 		$css .= '    transition-duration: 0s !important;' . "\n";
@@ -278,7 +274,6 @@ class SCD_Theme_Color_Inline_Styles {
 		$colors             = SCD_Theme_Colors::get_theme_colors();
 		$admin_color_scheme = get_user_meta( get_current_user_id(), 'admin_color', true );
 
-		// Check for WooCommerce theme color customizations
 		$wc_colors = get_theme_mod( 'woocommerce_colors', array() );
 		if ( ! empty( $wc_colors ) ) {
 			if ( isset( $wc_colors['primary'] ) ) {
@@ -289,7 +284,6 @@ class SCD_Theme_Color_Inline_Styles {
 			}
 		}
 
-		// Check for theme support colors
 		if ( current_theme_supports( 'custom-colors' ) ) {
 			$theme_colors = get_theme_support( 'custom-colors' );
 			if ( is_array( $theme_colors ) && ! empty( $theme_colors[0] ) ) {
@@ -334,7 +328,6 @@ class SCD_Theme_Color_Inline_Styles {
 	private function adjust_color_brightness( string $color, int $percent ): string {
 		$color = str_replace( '#', '', $color );
 
-		// Convert to RGB
 		if ( strlen( $color ) === 3 ) {
 			$r = hexdec( substr( $color, 0, 1 ) . substr( $color, 0, 1 ) );
 			$g = hexdec( substr( $color, 1, 1 ) . substr( $color, 1, 1 ) );
@@ -350,7 +343,6 @@ class SCD_Theme_Color_Inline_Styles {
 		$g = max( 0, min( 255, $g + ( $g * $percent / 100 ) ) );
 		$b = max( 0, min( 255, $b + ( $b * $percent / 100 ) ) );
 
-		// Convert back to hex
 		return '#' . sprintf( '%02x%02x%02x', $r, $g, $b );
 	}
 }

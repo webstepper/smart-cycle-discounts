@@ -244,7 +244,6 @@ class SCD_Campaign_Suggestions_Registry {
 					$first_day_of_may = mktime( 0, 0, 0, 5, 1, $year );
 					$first_day_of_week = intval( gmdate( 'w', $first_day_of_may ) );
 
-					// Calculate days until first Sunday
 					$days_until_first_sunday = ( 0 === $first_day_of_week ) ? 0 : ( 7 - $first_day_of_week );
 
 					// 2nd Sunday is first Sunday + 7 days
@@ -316,7 +315,6 @@ class SCD_Campaign_Suggestions_Registry {
 					$first_day_of_june = mktime( 0, 0, 0, 6, 1, $year );
 					$first_day_of_week = intval( gmdate( 'w', $first_day_of_june ) );
 
-					// Calculate days until first Sunday
 					$days_until_first_sunday = ( 0 === $first_day_of_week ) ? 0 : ( 7 - $first_day_of_week );
 
 					// 3rd Sunday is first Sunday + 14 days (2 weeks)
@@ -569,7 +567,6 @@ class SCD_Campaign_Suggestions_Registry {
 					$first_day_of_september = mktime( 0, 0, 0, 9, 1, $year );
 					$first_day_of_week = intval( gmdate( 'w', $first_day_of_september ) );
 
-					// Calculate days until first Monday (Monday = 1)
 					$days_until_first_monday = ( 1 === $first_day_of_week ) ? 0 : ( ( 1 - $first_day_of_week + 7 ) % 7 );
 
 					$first_monday_day = 1 + $days_until_first_monday;
@@ -702,7 +699,6 @@ class SCD_Campaign_Suggestions_Registry {
 					$first_day_of_november = mktime( 0, 0, 0, 11, 1, $year );
 					$first_day_of_week = intval( gmdate( 'w', $first_day_of_november ) );
 
-					// Calculate days until first Thursday (Thursday = 4)
 					$days_until_first_thursday = ( 4 - $first_day_of_week + 7 ) % 7;
 					if ( 0 === $days_until_first_thursday && 4 !== $first_day_of_week ) {
 						$days_until_first_thursday = 7;
@@ -905,7 +901,6 @@ class SCD_Campaign_Suggestions_Registry {
 
 		foreach ( $all_events as $event ) {
 			if ( $event['id'] === $event_id ) {
-				// Calculate event date for current year.
 				$current_year = intval( wp_date( 'Y' ) );
 				$now          = time();
 				$event_date   = self::calculate_event_date( $event, $current_year );
@@ -917,7 +912,6 @@ class SCD_Campaign_Suggestions_Registry {
 
 				$event['event_date'] = $event_date;
 
-				// Calculate campaign start and end dates.
 				$start_date = strtotime( $event['start_offset'] . ' days', $event_date );
 				$end_date   = strtotime( '+' . $event['duration_days'] . ' days', $start_date );
 
@@ -940,7 +934,6 @@ class SCD_Campaign_Suggestions_Registry {
 	 * @return   int          Event timestamp.
 	 */
 	private static function calculate_event_date( array $event, int $year ): int {
-		// Check if this is a dynamic date calculation.
 		if ( isset( $event['calculate_date'] ) && is_callable( $event['calculate_date'] ) ) {
 			return call_user_func( $event['calculate_date'], $year );
 		}

@@ -278,7 +278,6 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			return;
 		}
 
-		// Render all settings sections and fields
 		// Note: settings_fields() is already called in the parent page (class-notifications-page.php:299)
 		// Only call do_settings_sections() here to avoid duplicate nonce fields
 		do_settings_sections( 'scd_notifications_' . $this->tab_slug );
@@ -443,7 +442,6 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * @return   void
 	 */
 	public function render_test_email_field( array $args ): void {
-		// Render tooltip using centralized system
 		if ( isset( $args['tooltip'] ) && ! empty( $args['tooltip'] ) ) {
 			echo ' ';
 			$this->render_tooltip( $args['tooltip'] );

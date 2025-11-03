@@ -245,7 +245,6 @@ class SCD_Campaigns_Controller {
 
 			$response = new WP_REST_Response( $data, 200 );
 
-			// Add pagination headers
 			$response->header( 'X-WP-Total', (string) $total );
 			$response->header( 'X-WP-TotalPages', (string) ceil( $total / $params['per_page'] ) );
 
@@ -583,7 +582,6 @@ class SCD_Campaigns_Controller {
 				);
 			}
 
-			// Get updated campaign or new campaign for duplicate
 			$updated_campaign = $action === 'duplicate' ?
 				$result->get_campaign() :
 				$this->campaign_manager->find( $campaign_id );
@@ -733,13 +731,11 @@ class SCD_Campaigns_Controller {
 			'created_by'     => $campaign->get_created_by(),
 		);
 
-		// Add computed fields
 		$data['is_active']      = $campaign->is_active();
 		$data['is_scheduled']   = $campaign->is_scheduled();
 		$data['is_expired']     = $campaign->is_expired();
 		$data['days_remaining'] = $campaign->get_days_remaining();
 
-		// Add performance metrics if embedded
 		if ( $embed && strpos( $embed, 'metrics' ) !== false ) {
 			$data['metrics'] = array(
 				'views'       => 0, // Would be calculated from analytics
@@ -749,7 +745,6 @@ class SCD_Campaigns_Controller {
 			);
 		}
 
-		// Filter fields if specified
 		if ( $fields ) {
 			$field_list = explode( ',', $fields );
 			$data       = array_intersect_key( $data, array_flip( $field_list ) );

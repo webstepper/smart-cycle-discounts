@@ -73,13 +73,11 @@ class SCD_Export_Handler extends SCD_Abstract_Analytics_Handler {
 			);
 		}
 
-		// Check if user can export data (premium feature - critical tier)
 		$license_check = $this->validate_license( 'critical' );
 		if ( $this->license_validation_failed( $license_check ) ) {
 			return $this->license_error_response( $license_check );
 		}
 
-		// Sanitize inputs
 		$export_type = sanitize_text_field( isset( $request['export_type'] ) ? $request['export_type'] : 'overview' );
 		$format      = sanitize_text_field( isset( $request['format'] ) ? $request['format'] : 'csv' );
 		$date_range  = sanitize_text_field( isset( $request['date_range'] ) ? $request['date_range'] : '30days' );

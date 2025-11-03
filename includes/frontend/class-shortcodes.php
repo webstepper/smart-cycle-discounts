@@ -238,7 +238,6 @@ class SCD_Shortcodes {
 			return '';
 		}
 
-		// Get campaign products
 		$product_ids = $campaign->get_product_ids();
 
 		if ( empty( $product_ids ) ) {
@@ -346,7 +345,6 @@ class SCD_Shortcodes {
 			return '';
 		}
 
-		// Get active campaign for this product
 		$campaigns       = $this->campaign_manager->get_active_campaigns();
 		$active_campaign = null;
 

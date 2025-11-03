@@ -49,7 +49,6 @@ class SCD_Clear_Queue_Handler extends SCD_Abstract_Ajax_Handler {
 				throw new Exception( __( 'You do not have permission to perform this action', 'smart-cycle-discounts' ) );
 			}
 
-			// Get container and action scheduler
 			$container = isset( $GLOBALS['scd_container'] ) ? $GLOBALS['scd_container'] : null;
 			if ( ! $container ) {
 				throw new Exception( __( 'Service container not initialized', 'smart-cycle-discounts' ) );
@@ -60,10 +59,8 @@ class SCD_Clear_Queue_Handler extends SCD_Abstract_Ajax_Handler {
 				throw new Exception( __( 'Action scheduler service not available', 'smart-cycle-discounts' ) );
 			}
 
-			// Get logger
 			$logger = $container->get( 'logger' );
 
-			// Clear completed actions older than 30 days
 			$thirty_days_ago = strtotime( '-30 days' );
 
 			$completed_actions = $action_scheduler->get_actions(
@@ -79,7 +76,6 @@ class SCD_Clear_Queue_Handler extends SCD_Abstract_Ajax_Handler {
 
 			foreach ( $completed_actions as $action_id ) {
 				try {
-					// Delete the action
 					ActionScheduler::store()->delete_action( $action_id );
 					++$cleared;
 				} catch ( Exception $e ) {

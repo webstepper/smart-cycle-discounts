@@ -66,18 +66,15 @@ class SCD_Campaign_Edit_Controller extends SCD_Abstract_Campaign_Controller {
 			wp_die( __( 'You do not have permission to edit campaigns.', 'smart-cycle-discounts' ) );
 		}
 
-		// Load campaign
 		$campaign = $this->campaign_manager->find( $campaign_id );
 		if ( ! $campaign ) {
 			wp_die( __( 'Campaign not found.', 'smart-cycle-discounts' ) );
 		}
 
-		// Check if user can edit this specific campaign
 		if ( ! $this->can_edit_campaign( $campaign ) ) {
 			wp_die( __( 'You do not have permission to edit this campaign.', 'smart-cycle-discounts' ) );
 		}
 
-		// Render edit form
 		$this->render( $campaign );
 	}
 
@@ -93,7 +90,6 @@ class SCD_Campaign_Edit_Controller extends SCD_Abstract_Campaign_Controller {
 			wp_die( __( 'Security check failed.', 'smart-cycle-discounts' ) );
 		}
 
-		// Check capability
 		if ( ! $this->check_capability( 'scd_edit_campaigns' ) ) {
 			wp_die( __( 'You do not have permission to save campaigns.', 'smart-cycle-discounts' ) );
 		}
@@ -112,7 +108,6 @@ class SCD_Campaign_Edit_Controller extends SCD_Abstract_Campaign_Controller {
 			}
 		}
 
-		// Validate data using unified validation
 		$validation_result = SCD_Validation::validate( $_POST, 'campaign_complete' );
 		if ( is_wp_error( $validation_result ) ) {
 			// Convert WP_Error to array format expected by handle_validation_errors
@@ -124,7 +119,6 @@ class SCD_Campaign_Edit_Controller extends SCD_Abstract_Campaign_Controller {
 			return;
 		}
 
-		// Save campaign
 		try {
 			$campaign_data = $this->prepare_campaign_data( $_POST );
 
@@ -173,12 +167,10 @@ class SCD_Campaign_Edit_Controller extends SCD_Abstract_Campaign_Controller {
 			return true;
 		}
 
-		// Check if user has general edit permission and owns the campaign
 		if ( $this->check_capability( 'scd_edit_campaigns' ) ) {
 			return $campaign->get_created_by() === $current_user_id;
 		}
 
-		// Check if user can edit own campaigns
 		if ( $this->check_capability( 'scd_edit_own_campaigns' ) ) {
 			return $campaign->get_created_by() === $current_user_id;
 		}
@@ -194,7 +186,6 @@ class SCD_Campaign_Edit_Controller extends SCD_Abstract_Campaign_Controller {
 	 * @return   array                  Prepared campaign data.
 	 */
 	private function prepare_campaign_data( array $post_data ): array {
-		// Sanitize campaign data using WordPress functions
 		$sanitized = array();
 
 		// Text fields
@@ -219,7 +210,6 @@ class SCD_Campaign_Edit_Controller extends SCD_Abstract_Campaign_Controller {
 		$sanitized['category_ids'] = isset( $post_data['category_ids'] ) ? array_map( 'absint', (array) $post_data['category_ids'] ) : array();
 		$sanitized['conditions']   = isset( $post_data['conditions'] ) ? (array) $post_data['conditions'] : array();
 
-		// Filter out empty values
 		$sanitized['product_ids']  = array_filter( $sanitized['product_ids'] );
 		$sanitized['category_ids'] = array_filter( $sanitized['category_ids'] );
 
@@ -264,7 +254,6 @@ class SCD_Campaign_Edit_Controller extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	private function render( ?SCD_Campaign $campaign ): void {
-		// Get form data if validation failed
 		$form_data = get_transient( 'scd_campaign_form_data' );
 		if ( $form_data ) {
 			delete_transient( 'scd_campaign_form_data' );

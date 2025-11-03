@@ -128,10 +128,8 @@ class SCD_Logger {
 		// Generate unique request ID for session tracking
 		$this->request_id = uniqid( 'scd_', true );
 
-		// Set max file size from constant
 		$this->max_file_size = defined( 'SCD_LOG_MAX_SIZE' ) ? SCD_LOG_MAX_SIZE : 10485760;
 
-		// Set minimum log level with priority: constant > database > default
 		$this->min_log_level = $this->determine_log_level();
 
 		$upload_dir = wp_upload_dir();
@@ -143,7 +141,6 @@ class SCD_Logger {
 
 		$this->log_file = $log_dir . '/plugin.log';
 
-		// Initialize default handlers based on context
 		$this->initialize_handlers();
 	}
 
@@ -176,7 +173,6 @@ class SCD_Logger {
 
 		// 3. Check if debug mode is enabled via toggle
 		if ( isset( $settings['advanced']['enable_debug_mode'] ) && $settings['advanced']['enable_debug_mode'] ) {
-			// Check if debug mode should be auto-disabled
 			$debug_enabled_at = isset( $settings['advanced']['debug_mode_enabled_at'] ) ? $settings['advanced']['debug_mode_enabled_at'] : 0;
 			if ( $debug_enabled_at > 0 ) {
 				$hours_elapsed = ( time() - $debug_enabled_at ) / HOUR_IN_SECONDS;
@@ -232,7 +228,6 @@ class SCD_Logger {
 			$this->add_handler( 'error_log', array( $this, 'handle_error_log' ) );
 		}
 
-		// Add database handler for wizard context
 		if ( 'wizard' === $this->context ) {
 			$this->add_handler( 'database', array( $this, 'handle_database_log' ) );
 		}
@@ -371,10 +366,8 @@ class SCD_Logger {
 			return;
 		}
 
-		// Add logger context to the log context
 		$context['logger_context'] = $this->context;
 
-		// Process through all handlers
 		foreach ( $this->handlers as $handler ) {
 			call_user_func( $handler, $level, $message, $context );
 		}
@@ -422,7 +415,6 @@ class SCD_Logger {
 
 		$table_name = $wpdb->prefix . 'scd_audit_logs';
 
-		// Check if table exists
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) !== $table_name ) {
 			return;
 		}
@@ -460,7 +452,6 @@ class SCD_Logger {
 			return false;
 		}
 
-		// Check if the message level meets the minimum configured level
 		$message_priority = isset( $this->level_priority[ $level ] ) ? $this->level_priority[ $level ] : 0;
 		$min_priority     = isset( $this->level_priority[ $this->min_log_level ] ) ? $this->level_priority[ $this->min_log_level ] : 4;
 
@@ -487,11 +478,9 @@ class SCD_Logger {
 		$level          = strtoupper( $level );
 		$context_prefix = strtoupper( $this->context );
 
-		// Build formatted message with session ID
 		$formatted = "[{$timestamp}] [{$this->request_id}] SCD.{$context_prefix}.{$level}: {$message}";
 
 		if ( ! empty( $context ) ) {
-			// Remove logger_context from display as it's already in the prefix
 			unset( $context['logger_context'], $context['request_id'] );
 			if ( ! empty( $context ) ) {
 				$formatted .= ' | ' . wp_json_encode( $context, JSON_UNESCAPED_SLASHES );
@@ -510,7 +499,6 @@ class SCD_Logger {
 	 * @return   void
 	 */
 	private function write_to_file( string $message ): void {
-		// Check if log rotation is needed
 		if ( file_exists( $this->log_file ) && filesize( $this->log_file ) > $this->max_file_size ) {
 			$this->rotate_log();
 		}
@@ -551,7 +539,6 @@ class SCD_Logger {
 			return;
 		}
 
-		// Sort by modification time (oldest first)
 		usort(
 			$old_logs,
 			function ( $a, $b ) {
@@ -565,7 +552,6 @@ class SCD_Logger {
 		foreach ( $old_logs as $log_file ) {
 			$file_age_days = ( $current_time - filemtime( $log_file ) ) / DAY_IN_SECONDS;
 
-			// Delete if older than max age (and max age is not 0)
 			if ( $max_age_days > 0 && $file_age_days > $max_age_days ) {
 				unlink( $log_file );
 			}
@@ -752,13 +738,10 @@ class SCD_Logger {
 	public function flow( string $level, string $flow, string $message, array $data = array() ): void {
 		$formatted_message = '[' . strtoupper( $flow ) . '] ' . $message;
 
-		// Add request ID for session tracking
 		$data['request_id'] = $this->request_id;
 
-		// Add timestamp for chronological ordering
 		$data['timestamp'] = microtime( true );
 
-		// Add performance metrics if available
 		if ( isset( $data['_start_time'] ) ) {
 			$duration            = microtime( true ) - $data['_start_time'];
 			$data['duration_ms'] = round( $duration * 1000, 2 );

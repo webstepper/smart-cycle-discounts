@@ -378,7 +378,6 @@ class SCD_Condition_Engine {
 				}
 			}
 
-			// Cache the result
 			if ( $this->cache ) {
 				$this->cache->set( $cache_key, $filtered_ids, 1800 ); // Cache for 30 minutes
 			}
@@ -756,17 +755,14 @@ class SCD_Condition_Engine {
 	 * @return   bool                   True if valid.
 	 */
 	public function validate_condition( array $condition ): bool {
-		// Check required fields
 		if ( ! isset( $condition['property'], $condition['operator'], $condition['values'] ) ) {
 			return false;
 		}
 
-		// Validate property
 		if ( ! isset( $this->supported_properties[ $condition['property'] ] ) ) {
 			return false;
 		}
 
-		// Validate operator
 		if ( ! isset( $this->supported_operators[ $condition['operator'] ] ) ) {
 			return false;
 		}
@@ -774,12 +770,10 @@ class SCD_Condition_Engine {
 		$property_config = $this->supported_properties[ $condition['property'] ];
 		$operator_config = $this->supported_operators[ $condition['operator'] ];
 
-		// Check if operator is compatible with property type
 		if ( ! in_array( $property_config['type'], $operator_config['types'] ) ) {
 			return false;
 		}
 
-		// Validate values count
 		if ( ! is_array( $condition['values'] ) ) {
 			return false;
 		}
@@ -793,7 +787,6 @@ class SCD_Condition_Engine {
 			return false;
 		}
 
-		// Validate value types
 		foreach ( $condition['values'] as $value ) {
 			if ( $property_config['type'] === 'numeric' && ! is_numeric( $value ) ) {
 				return false;
@@ -963,7 +956,6 @@ class SCD_Condition_Engine {
 	 */
 	public function clear_cache(): void {
 		if ( $this->cache ) {
-			// Clear cache using flush since we don't have delete_group
 			$this->cache->flush();
 			$this->logger->debug( 'Condition engine cache cleared' );
 		}

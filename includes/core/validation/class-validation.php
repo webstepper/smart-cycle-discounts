@@ -64,7 +64,6 @@ class SCD_Validation {
 			),
 		);
 
-		// Check prefixed routes
 		foreach ( $routes as $prefix => $config ) {
 			if ( 0 === strpos( $context, $prefix ) ) {
 				$type = substr( $context, $config['prefix'] );
@@ -72,7 +71,6 @@ class SCD_Validation {
 			}
 		}
 
-		// Check exact routes
 		$exact_routes = array(
 			'campaign_complete' => array(
 				'class'  => 'SCD_Wizard_Validation',

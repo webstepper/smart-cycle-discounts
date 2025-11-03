@@ -110,15 +110,12 @@ class SCD_Menu_Manager {
 	 * @return   void
 	 */
 	public function add_menus(): void {
-		// Register menu pages when we actually need them
 		if ( empty( $this->menu_pages ) ) {
 			$this->register_menu_pages();
 		}
 
-		// Add main menu page
 		$this->add_main_menu();
 
-		// Add submenu pages
 		$this->add_submenu_pages();
 
 		$this->logger->debug( 'Admin menus added' );
@@ -296,10 +293,8 @@ class SCD_Menu_Manager {
 			$main['position']
 		);
 
-		// Store hook suffix for later use
 		$this->menu_pages['main']['hook_suffix'] = $hook_suffix;
 
-		// Add page-specific actions
 		add_action( "load-{$hook_suffix}", array( $this, 'dashboard_page_load' ) );
 	}
 
@@ -313,7 +308,6 @@ class SCD_Menu_Manager {
 	private function add_submenu_pages(): void {
 		$parent_slug = 'smart-cycle-discounts';
 
-		// Process submenu pages in specific order
 		$ordered_keys = array( 'dashboard', 'campaigns', 'analytics', 'notifications', 'settings', 'tools' );
 
 		foreach ( $ordered_keys as $key ) {
@@ -335,14 +329,12 @@ class SCD_Menu_Manager {
 				$page['callback']
 			);
 
-			// Store hook suffix
 			$this->menu_pages[ $key ]['hook_suffix'] = $hook_suffix;
 
 			// Debug logging
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			}
 
-			// Add page-specific load actions
 			if ( method_exists( $this, $key . '_page_load' ) ) {
 				add_action( "load-{$hook_suffix}", array( $this, $key . '_page_load' ) );
 			}
@@ -368,7 +360,6 @@ class SCD_Menu_Manager {
 	 * @return   void
 	 */
 	public function dashboard_page_load(): void {
-		// Add screen options
 		add_screen_option(
 			'layout_columns',
 			array(
@@ -393,7 +384,6 @@ class SCD_Menu_Manager {
 	public function campaigns_page_load(): void {
 		// Bulk actions are handled by the campaigns list table itself
 
-		// Add screen options
 		$this->add_campaigns_screen_options();
 
 		do_action( 'scd_campaigns_page_load' );
@@ -406,7 +396,6 @@ class SCD_Menu_Manager {
 	 * @return   void
 	 */
 	public function analytics_page_load(): void {
-		// Add screen options for analytics
 		add_screen_option(
 			'per_page',
 			array(
@@ -607,10 +596,8 @@ class SCD_Menu_Manager {
 	 * @return   void
 	 */
 	public function render_license_fix_page(): void {
-		// Load the emergency fix class
 		require_once SCD_INCLUDES_DIR . 'admin/pages/class-license-emergency-fix.php';
 
-		// Render the page
 		SCD_License_Emergency_Fix::render();
 	}
 
@@ -627,7 +614,6 @@ class SCD_Menu_Manager {
 		echo '<div class="scd-page-header">';
 		echo '<h1 class="wp-heading-inline">' . esc_html( $title ) . '</h1>';
 
-		// Add page-specific action buttons
 		$this->render_page_actions();
 
 		echo '<hr class="wp-header-end">';
@@ -665,7 +651,6 @@ class SCD_Menu_Manager {
 	 * @return   void
 	 */
 	private function render_page_footer(): void {
-		// Add any common footer content
 		do_action( 'scd_admin_page_footer' );
 	}
 

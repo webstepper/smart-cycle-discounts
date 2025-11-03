@@ -101,17 +101,14 @@ class SCD_Service_Registry {
 			return false;
 		}
 
-		// Sort services by dependencies
 		$sorted_services = $this->sort_by_dependencies();
 
-		// Register services in dependency order
 		foreach ( $sorted_services as $service_id ) {
 			if ( ! $this->register_service( $service_id ) ) {
 				SCD_Log::error( 'Failed to register service', array( 'service_id' => $service_id ) );
 			}
 		}
 
-		// Register aliases
 		$this->register_aliases();
 
 		return empty( $this->errors );
@@ -139,7 +136,6 @@ class SCD_Service_Registry {
 		$definition = $this->definitions[ $service_id ];
 
 		try {
-			// Check if class exists
 			if ( ! class_exists( $definition['class'] ) ) {
 				// Try to load the class file for repositories
 				if ( strpos( $definition['class'], '_Repository' ) !== false ) {
@@ -151,7 +147,6 @@ class SCD_Service_Registry {
 					}
 				}
 
-				// Check again after attempting to load
 				if ( ! class_exists( $definition['class'] ) ) {
 					throw new Exception(
 						sprintf(
@@ -163,7 +158,6 @@ class SCD_Service_Registry {
 				}
 			}
 
-			// Register dependencies first
 			if ( isset( $definition['dependencies'] ) ) {
 				foreach ( $definition['dependencies'] as $dependency ) {
 					if ( $dependency !== 'container' && ! $this->register_service( $dependency ) ) {
@@ -177,7 +171,6 @@ class SCD_Service_Registry {
 				}
 			}
 
-			// Register the service
 			if ( isset( $definition['singleton'] ) && $definition['singleton'] ) {
 				$this->container->singleton( $service_id, $definition['factory'] );
 			} else {

@@ -49,10 +49,8 @@ class SCD_Send_Test_Email_Handler extends SCD_Abstract_Ajax_Handler {
 				throw new Exception( __( 'You do not have permission to perform this action', 'smart-cycle-discounts' ) );
 			}
 
-			// Get settings from request
 			$settings = isset( $request['settings'] ) ? $request['settings'] : array();
 
-			// Validate email provider
 			$provider        = isset( $settings['email_provider'] ) ? $settings['email_provider'] : 'wpmail';
 			$valid_providers = array( 'wpmail', 'sendgrid', 'amazonses' );
 
@@ -60,7 +58,6 @@ class SCD_Send_Test_Email_Handler extends SCD_Abstract_Ajax_Handler {
 				throw new Exception( __( 'Invalid email provider', 'smart-cycle-discounts' ) );
 			}
 
-			// Validate from email - use admin email as fallback if empty
 			$from_email = isset( $settings['from_email'] ) ? sanitize_email( $settings['from_email'] ) : '';
 			if ( empty( $from_email ) ) {
 				$from_email = get_option( 'admin_email' );
@@ -70,25 +67,20 @@ class SCD_Send_Test_Email_Handler extends SCD_Abstract_Ajax_Handler {
 				throw new Exception( __( 'Invalid from email address', 'smart-cycle-discounts' ) );
 			}
 
-			// Get from name - use site name as fallback if empty
 			$from_name = isset( $settings['from_name'] ) ? sanitize_text_field( $settings['from_name'] ) : '';
 			if ( empty( $from_name ) ) {
 				$from_name = get_bloginfo( 'name' );
 			}
 
-			// Get container
 			$container = isset( $GLOBALS['scd_container'] ) ? $GLOBALS['scd_container'] : null;
 			if ( ! $container ) {
 				throw new Exception( __( 'Service container not initialized', 'smart-cycle-discounts' ) );
 			}
 
-			// Get logger
 			$logger = $container->get( 'logger' );
 
-			// Create appropriate provider instance
 			$provider_instance = $this->create_provider( $provider, $settings, $logger, $from_email, $from_name );
 
-			// Validate provider configuration
 			if ( ! $provider_instance->validate_config() ) {
 				throw new Exception( __( 'Email provider configuration is invalid. Please check your settings.', 'smart-cycle-discounts' ) );
 			}
@@ -154,7 +146,6 @@ class SCD_Send_Test_Email_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @throws   Exception                    If provider cannot be created.
 	 */
 	private function create_provider( $provider, $settings, $logger, $from_email, $from_name ) {
-		// Load provider classes
 		require_once SCD_INCLUDES_DIR . 'integrations/email/interface-email-provider.php';
 
 		switch ( $provider ) {

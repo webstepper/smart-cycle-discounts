@@ -62,7 +62,6 @@ class SCD_Translation_Handler {
 			return $context ? _x( $default, $context, 'smart-cycle-discounts' ) : __( $default, 'smart-cycle-discounts' );
 		}
 
-		// Return default for early calls
 		return $default;
 	}
 

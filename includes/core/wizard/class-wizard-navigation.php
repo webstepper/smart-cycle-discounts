@@ -95,7 +95,6 @@ class SCD_Wizard_Navigation {
 	 * @return   void
 	 */
 	public function init() {
-		// Add hooks for navigation rendering
 		add_action( 'scd_wizard_render_navigation', array( $this, 'render_navigation' ), 10, 2 );
 	}
 
@@ -108,10 +107,8 @@ class SCD_Wizard_Navigation {
 	 * @return   void
 	 */
 	public function render_navigation( $current_step, $campaign_id = 0 ) {
-		// Get navigation data
 		$nav_data = $this->get_navigation_data( $current_step );
 
-		// Get template
 		$template_file = SCD_PLUGIN_DIR . 'resources/views/admin/wizard/wizard-navigation.php';
 
 		if ( file_exists( $template_file ) ) {

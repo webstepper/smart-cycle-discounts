@@ -144,7 +144,6 @@ class SCD_General_Settings extends SCD_Settings_Page_Base {
 	 * @return   void
 	 */
 	public function render_trash_status_field( array $args ): void {
-		// Get trash count
 		$trash_count = 0;
 		if ( $this->container->has( 'campaign_repository' ) ) {
 			$repository  = $this->container->get( 'campaign_repository' );

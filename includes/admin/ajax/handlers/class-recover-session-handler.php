@@ -67,7 +67,6 @@ class SCD_Recover_Session_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
-		// Get recovery data from request
 		$recovery_data = isset( $request['recovery_data'] ) ? $request['recovery_data'] : null;
 
 		if ( ! $recovery_data || ! is_array( $recovery_data ) ) {
@@ -78,7 +77,6 @@ class SCD_Recover_Session_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Validate recovery data structure
 		if ( ! isset( $recovery_data['steps'] ) || ! is_array( $recovery_data['steps'] ) ) {
 			return $this->error(
 				__( 'Recovery data is missing required information', 'smart-cycle-discounts' ),
@@ -96,13 +94,11 @@ class SCD_Recover_Session_Handler extends SCD_Abstract_Ajax_Handler {
 		$errors         = array();
 
 		foreach ( $recovery_data['steps'] as $step => $step_data ) {
-			// Validate step name
 			if ( ! in_array( $step, array( 'basic', 'products', 'discounts', 'schedule', 'review' ), true ) ) {
 				continue;
 			}
 
 			try {
-				// Save step data
 				$save_result = $new_state_service->save_step_data( $step, $step_data );
 
 				if ( $save_result ) {
@@ -128,7 +124,6 @@ class SCD_Recover_Session_Handler extends SCD_Abstract_Ajax_Handler {
 			}
 		}
 
-		// Check if any data was restored
 		if ( empty( $restored_steps ) ) {
 			return $this->error(
 				__( 'Failed to restore any session data', 'smart-cycle-discounts' ),
@@ -137,13 +132,11 @@ class SCD_Recover_Session_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Get the current or last completed step
 		$current_step = isset( $recovery_data['current_step'] ) ? $recovery_data['current_step'] : 'basic';
 		if ( ! in_array( $current_step, array( 'basic', 'products', 'discounts', 'schedule', 'review' ), true ) ) {
 			$current_step = 'basic';
 		}
 
-		// Build redirect URL to continue where user left off - Phase 2: No session_id in URL
 		$redirect_url = add_query_arg(
 			array(
 				'page'      => 'scd-campaigns',

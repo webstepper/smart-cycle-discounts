@@ -78,19 +78,16 @@ class SCD_PRO_Feature_Validator {
 	 * @return   true|WP_Error              True if valid, WP_Error if PRO feature detected.
 	 */
 	public function validate_campaign( $campaign_data ) {
-		// Validate discount type
 		$discount_validation = $this->validate_discount_type( $campaign_data );
 		if ( is_wp_error( $discount_validation ) ) {
 			return $discount_validation;
 		}
 
-		// Validate recurring campaigns
 		$recurring_validation = $this->validate_recurring( $campaign_data );
 		if ( is_wp_error( $recurring_validation ) ) {
 			return $recurring_validation;
 		}
 
-		// Validate advanced filters (if present)
 		$filters_validation = $this->validate_advanced_filters( $campaign_data );
 		if ( is_wp_error( $filters_validation ) ) {
 			return $filters_validation;
@@ -180,7 +177,6 @@ class SCD_PRO_Feature_Validator {
 	 * @return   true|WP_Error     True if valid, WP_Error if PRO feature detected.
 	 */
 	private function validate_recurring( $data ) {
-		// Check recurring campaigns
 		if ( isset( $data['enable_recurring'] ) && $data['enable_recurring'] ) {
 			if ( ! $this->feature_gate->can_use_recurring_campaigns() ) {
 				return new WP_Error(
@@ -219,7 +215,6 @@ class SCD_PRO_Feature_Validator {
 	 * @return   true|WP_Error     True if valid, WP_Error if PRO feature detected.
 	 */
 	private function validate_advanced_filters( $data ) {
-		// Check advanced product filters
 		if ( isset( $data['use_advanced_filters'] ) && $data['use_advanced_filters'] ) {
 			if ( ! $this->feature_gate->can_use_advanced_product_filters() ) {
 				return new WP_Error(

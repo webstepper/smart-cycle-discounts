@@ -129,7 +129,6 @@ class SCD_WC_Discount_Query_Service {
 	 * @return   array|null               Discount info or null if no discount.
 	 */
 	public function get_discount_info( int $product_id, array $context = array() ): ?array {
-		// Check request-level cache
 		$cache_key = 'discount_info_' . $product_id . '_' . md5( serialize( $context ) );
 
 		if ( isset( $this->cache[ $cache_key ] ) ) {
@@ -167,7 +166,6 @@ class SCD_WC_Discount_Query_Service {
 			// Step 6: Build response data
 			$discount_data = $this->build_discount_data( $discount_config, $campaign, $result );
 
-			// Cache and return
 			$this->cache[ $cache_key ] = $discount_data;
 
 			return $discount_data;
@@ -254,7 +252,6 @@ class SCD_WC_Discount_Query_Service {
 	 * @return   SCD_Campaign             Winning campaign.
 	 */
 	private function select_winning_campaign( array $campaigns, int $product_id ): SCD_Campaign {
-		// Sort by priority (highest first), then by ID (oldest first)
 		usort(
 			$campaigns,
 			function ( $a, $b ) {
@@ -410,7 +407,6 @@ class SCD_WC_Discount_Query_Service {
 				$discount_context
 			);
 
-			// Check if discount was actually applied
 			if ( ! $result || ! method_exists( $result, 'is_applied' ) || ! $result->is_applied() ) {
 				return null;
 			}
@@ -429,7 +425,6 @@ class SCD_WC_Discount_Query_Service {
 				)
 			);
 
-			// Return null gracefully - don't break checkout for one failed discount
 			return null;
 		}
 	}
@@ -457,7 +452,6 @@ class SCD_WC_Discount_Query_Service {
 			),
 		);
 
-		// Add metadata if available (e.g., applicable tier for tiered discounts)
 		if ( method_exists( $result, 'get_metadata' ) ) {
 			$metadata = $result->get_metadata();
 			if ( ! empty( $metadata ) ) {

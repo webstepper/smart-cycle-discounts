@@ -46,7 +46,6 @@ class SCD_Case_Converter {
 			return $data;
 		}
 
-		// Check if this is a numeric array (list) - preserve as-is but recurse into values
 		$is_list = array_keys( $data ) === range( 0, count( $data ) - 1 );
 		if ( $is_list ) {
 			$result = array();
@@ -59,7 +58,6 @@ class SCD_Case_Converter {
 		// Associative array - convert keys
 		$result = array();
 		foreach ( $data as $key => $value ) {
-			// Convert camelCase key to snake_case
 			// Uses negative lookbehind to avoid converting first character
 			$snake_key = strtolower( preg_replace( '/(?<!^)[A-Z]/', '_$0', $key ) );
 
@@ -89,7 +87,6 @@ class SCD_Case_Converter {
 			return $data;
 		}
 
-		// Check if this is a numeric array (list) - preserve as-is but recurse into values
 		$is_list = array_keys( $data ) === range( 0, count( $data ) - 1 );
 		if ( $is_list ) {
 			$result = array();
@@ -102,7 +99,6 @@ class SCD_Case_Converter {
 		// Associative array - convert keys
 		$result = array();
 		foreach ( $data as $key => $value ) {
-			// Convert snake_case key to camelCase
 			// Uses ucwords with underscore delimiter, then removes underscores and lowercases first char
 			$camel_key = lcfirst( str_replace( '_', '', ucwords( $key, '_' ) ) );
 

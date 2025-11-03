@@ -106,7 +106,6 @@ class SCD_Blocks_Manager {
 	 * @return   void
 	 */
 	public function init(): void {
-		// Check if Gutenberg is available
 		if ( ! function_exists( 'register_block_type' ) ) {
 			$this->logger->warning( 'Gutenberg blocks not available - WordPress version too old' );
 			return;
@@ -294,11 +293,9 @@ class SCD_Blocks_Manager {
 		foreach ( $this->blocks as $block_slug => $block_config ) {
 			$block_path = SCD_INCLUDES_DIR . "integrations/blocks/{$block_slug}/";
 
-			// Check if block.json exists
 			if ( file_exists( $block_path . 'block.json' ) ) {
 				register_block_type( $block_path );
 			} else {
-				// Register programmatically
 				register_block_type(
 					$block_config['name'],
 					array(
@@ -328,7 +325,6 @@ class SCD_Blocks_Manager {
 			'version'      => '1.0.0',
 		);
 
-		// Check if block assets exist before enqueueing
 		$block_js  = SCD_PLUGIN_DIR . 'assets/dist/js/blocks-editor.js';
 		$block_css = SCD_PLUGIN_DIR . 'assets/dist/css/blocks-editor.css';
 
@@ -382,7 +378,6 @@ class SCD_Blocks_Manager {
 	 * @return   void
 	 */
 	public function enqueue_block_assets(): void {
-		// Check if block assets exist before enqueueing
 		$block_css = SCD_PLUGIN_DIR . 'assets/dist/css/blocks.css';
 		$block_js  = SCD_PLUGIN_DIR . 'assets/dist/js/blocks.js';
 
@@ -448,7 +443,6 @@ class SCD_Blocks_Manager {
 
 		$attributes = wp_parse_args( $attributes, $defaults );
 
-		// Get campaign data
 		$campaign = null;
 		if ( $attributes['campaign_id'] > 0 ) {
 			$campaign = $this->campaign_manager->find( $attributes['campaign_id'] );
@@ -460,7 +454,6 @@ class SCD_Blocks_Manager {
 					'</div>';
 		}
 
-		// Get discounted products
 		$products = $this->get_campaign_products( $campaign, $attributes['max_products'] );
 
 		if ( empty( $products ) ) {
@@ -507,7 +500,6 @@ class SCD_Blocks_Manager {
 
 		$attributes = wp_parse_args( $attributes, $defaults );
 
-		// Get campaign data
 		$campaign = null;
 		if ( $attributes['campaign_id'] > 0 ) {
 			$campaign = $this->campaign_manager->find( $attributes['campaign_id'] );
@@ -543,7 +535,6 @@ class SCD_Blocks_Manager {
 
 		$attributes = wp_parse_args( $attributes, $defaults );
 
-		// Get products with discounts
 		$products = $this->get_discounted_products( $attributes );
 
 		if ( empty( $products ) ) {

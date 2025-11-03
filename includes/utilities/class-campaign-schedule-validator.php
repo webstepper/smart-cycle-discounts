@@ -56,7 +56,6 @@ class SCD_Campaign_Schedule_Validator {
 			$campaign_ends_at   = $campaign->get_ends_at();
 			$campaign_end       = $campaign_ends_at ? $campaign_ends_at->getTimestamp() : 0;
 
-			// Check if schedules overlap.
 			$overlaps = self::check_date_overlap(
 				$start_timestamp,
 				$end_timestamp,

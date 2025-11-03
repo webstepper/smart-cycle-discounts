@@ -341,7 +341,6 @@ class SCD_Chart_Renderer {
 			),
 		);
 
-		// Add type-specific options
 		if ( isset( $options['tension'] ) ) {
 			$chart_options['elements'] = array(
 				'line' => array(

@@ -63,7 +63,6 @@ class SCD_Campaign_Performance_Handler extends SCD_Abstract_Analytics_Handler {
 	 * @return   array                Response data.
 	 */
 	public function handle( $request ) {
-		// Check license (logic tier - analytics data is premium feature)
 		$license_check = $this->validate_license( 'logic' );
 		if ( $this->license_validation_failed( $license_check ) ) {
 			return $this->license_error_response( $license_check );
@@ -78,14 +77,12 @@ class SCD_Campaign_Performance_Handler extends SCD_Abstract_Analytics_Handler {
 			);
 		}
 
-		// Sanitize inputs
 		$date_range = sanitize_text_field( isset( $request['date_range'] ) ? $request['date_range'] : '30days' );
 		$dateRange  = sanitize_text_field( isset( $request['dateRange'] ) ? $request['dateRange'] : $date_range );
 		$limit      = isset( $request['limit'] ) ? absint( $request['limit'] ) : 10;
 		$metric     = sanitize_text_field( isset( $request['metric'] ) ? $request['metric'] : 'revenue' );
 
 		try {
-			// Get campaign performance data from analytics collector
 			$campaigns = $this->analytics_collector->get_campaign_performance(
 				array( 'date_range' => $dateRange ),
 				$limit,
@@ -93,7 +90,6 @@ class SCD_Campaign_Performance_Handler extends SCD_Abstract_Analytics_Handler {
 				'desc'
 			);
 
-			// Format data for chart display (labels and values)
 			$labels = array();
 			$values = array();
 			foreach ( $campaigns as $campaign ) {

@@ -283,7 +283,6 @@ class SCD_Campaign_Cron_Diagnostic {
 			}
 		}
 
-		// Sort by timestamp
 		usort(
 			$events,
 			function ( $a, $b ) {
@@ -303,7 +302,6 @@ class SCD_Campaign_Cron_Diagnostic {
 	private function check_hook_registration(): array {
 		global $wp_filter;
 
-		// Check if the 'all' hook has our intercept_campaign_events callback
 		$universal_listener = false;
 
 		if ( isset( $wp_filter['all'] ) ) {

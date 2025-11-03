@@ -81,7 +81,6 @@ class SCD_Campaign_Suggestions_Service {
 		$now          = current_time( 'timestamp' );
 
 		foreach ( $all_events as $event ) {
-			// Calculate actual event date for this year.
 			$event_date = $this->calculate_event_date( $event, $current_year );
 
 			// If event already passed this year, check next year.
@@ -89,10 +88,8 @@ class SCD_Campaign_Suggestions_Service {
 				$event_date = $this->calculate_event_date( $event, $current_year + 1 );
 			}
 
-			// Calculate optimal creation window.
 			$window = $this->calculate_suggestion_window( $event, $event_date );
 
-			// Check if we're currently in the optimal creation window.
 			if ( $window['in_window'] ) {
 				$event['event_date'] = $event_date;
 				$event['window']     = $window;
@@ -108,7 +105,6 @@ class SCD_Campaign_Suggestions_Service {
 			return array();
 		}
 
-		// Sort by priority (higher first), then by days until optimal.
 		usort(
 			$qualifying_events,
 			function ( $a, $b ) {
@@ -125,7 +121,6 @@ class SCD_Campaign_Suggestions_Service {
 		// Enrich suggestions with campaign data (if campaigns were created from suggestions).
 		$suggestions = $this->enrich_suggestions_with_campaigns( $suggestions );
 
-		// Filter out suggestions where events have already started.
 		$suggestions = $this->filter_started_events( $suggestions );
 
 		$this->logger->debug(
@@ -162,7 +157,6 @@ class SCD_Campaign_Suggestions_Service {
 	 * @return   int          Event timestamp.
 	 */
 	public function calculate_event_date( array $event, int $year ): int {
-		// Check if this is a dynamic date calculation.
 		if ( isset( $event['calculate_date'] ) && is_callable( $event['calculate_date'] ) ) {
 			return call_user_func( $event['calculate_date'], $year );
 		}
@@ -184,7 +178,6 @@ class SCD_Campaign_Suggestions_Service {
 	public function calculate_suggestion_window( array $event, int $event_date ): array {
 		$lead_time = $event['lead_time'];
 
-		// Calculate total lead time (base prep + inventory + marketing).
 		$total_lead_days  = $lead_time['base_prep'] + $lead_time['inventory'] + $lead_time['marketing'];
 		$flexibility_days = $lead_time['flexibility'];
 
@@ -227,7 +220,6 @@ class SCD_Campaign_Suggestions_Service {
 		$start_date = strtotime( $event['start_offset'] . ' days', $event['event_date'] );
 		$end_date   = strtotime( '+' . $event['duration_days'] . ' days', $start_date );
 
-		// Format discount range.
 		$discount       = $event['suggested_discount'];
 		$discount_range = $discount['min'] . '-' . $discount['max'] . '%';
 
@@ -246,12 +238,10 @@ class SCD_Campaign_Suggestions_Service {
 			'timing_message'      => $this->get_timing_message( $event['window'] ),
 		);
 
-		// Add recommendations if available.
 		if ( isset( $event['recommendations'] ) && ! empty( $event['recommendations'] ) ) {
 			$formatted['recommendations'] = $event['recommendations'];
 		}
 
-		// Add rich data if available - randomly select 1 from each.
 		if ( isset( $event['statistics'] ) && ! empty( $event['statistics'] ) ) {
 			$stat_keys                     = array_keys( $event['statistics'] );
 			$random_stat_key               = $stat_keys[ array_rand( $stat_keys ) ];
@@ -302,12 +292,10 @@ class SCD_Campaign_Suggestions_Service {
 			);
 
 			if ( ! empty( $campaigns ) && ! is_wp_error( $campaigns ) && is_array( $campaigns ) ) {
-				// Get the most recent campaign.
 				$campaign = $campaigns[0];
 
 				// Verify it's a valid campaign object.
 				if ( $campaign && is_object( $campaign ) && method_exists( $campaign, 'get_id' ) ) {
-					// Add campaign data to suggestion.
 					$suggestion['has_campaign'] = true;
 					$suggestion['campaign']     = array(
 						'id'     => $campaign->get_id(),
@@ -394,7 +382,6 @@ class SCD_Campaign_Suggestions_Service {
 		$suggestions = array( $qualifying_events[0] );
 
 		foreach ( array_slice( $qualifying_events, 1 ) as $event ) {
-			// Check if this event's window overlaps with any already selected.
 			$has_overlap = false;
 			foreach ( $suggestions as $existing ) {
 				if ( $this->windows_overlap( $event['window'], $existing['window'] ) ) {
@@ -414,7 +401,6 @@ class SCD_Campaign_Suggestions_Service {
 			}
 		}
 
-		// Format all selected suggestions.
 		return array_map( array( $this, 'format_suggestion' ), $suggestions );
 	}
 
@@ -466,7 +452,6 @@ class SCD_Campaign_Suggestions_Service {
 	 * @return   array                    Filtered qualifying events.
 	 */
 	private function filter_weekend_sale_by_major_events( array $qualifying_events, array $all_events, int $current_year ): array {
-		// Check if weekend_sale is in qualifying events.
 		$has_weekend_sale   = false;
 		$weekend_sale_index = -1;
 		$weekend_sale_date  = 0;
@@ -485,7 +470,6 @@ class SCD_Campaign_Suggestions_Service {
 			return $qualifying_events;
 		}
 
-		// Check all events for major events within 2 weeks of the weekend.
 		$two_weeks_seconds = 14 * DAY_IN_SECONDS;
 		$now               = current_time( 'timestamp' );
 
@@ -500,7 +484,6 @@ class SCD_Campaign_Suggestions_Service {
 				continue;
 			}
 
-			// Calculate event date.
 			$event_date = $this->calculate_event_date( $event, $current_year );
 
 			// If event already passed this year, check next year.
@@ -508,7 +491,6 @@ class SCD_Campaign_Suggestions_Service {
 				$event_date = $this->calculate_event_date( $event, $current_year + 1 );
 			}
 
-			// Calculate time difference between weekend and major event.
 			$time_diff = abs( $weekend_sale_date - $event_date );
 
 			// If major event is within 2 weeks, remove weekend_sale.

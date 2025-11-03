@@ -17,7 +17,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-// Load analytics helpers trait
 require_once SCD_PLUGIN_DIR . 'includes/core/analytics/trait-analytics-helpers.php';
 
 /**
@@ -137,10 +136,8 @@ class SCD_Metrics_Calculator {
 				'roas'            => 0, // Return on ad spend
 			);
 
-			// Calculate derived metrics
 			$metrics = $this->calculate_derived_metrics( $metrics );
 
-			// Cache for 30 minutes
 			if ( $use_cache ) {
 				$this->cache_manager->set( $cache_key, $metrics, 1800 );
 			}
@@ -193,10 +190,8 @@ class SCD_Metrics_Calculator {
 				'avg_roi'             => 0,
 			);
 
-			// Calculate derived metrics
 			$metrics = $this->calculate_overall_derived_metrics( $metrics );
 
-			// Cache for 1 hour
 			if ( $use_cache ) {
 				$this->cache_manager->set( $cache_key, $metrics, 3600 );
 			}
@@ -264,10 +259,8 @@ class SCD_Metrics_Calculator {
 				'campaign_performance'    => $this->get_product_campaign_performance( $product_id, $date_conditions ),
 			);
 
-			// Calculate derived metrics
 			$metrics = $this->calculate_product_derived_metrics( $metrics );
 
-			// Cache for 30 minutes
 			if ( $use_cache ) {
 				$this->cache_manager->set( $cache_key, $metrics, 1800 );
 			}
@@ -567,7 +560,6 @@ class SCD_Metrics_Calculator {
 		}
 
 		try {
-			// Get all active campaign IDs
 			$campaign_ids = $this->get_all_campaign_ids();
 
 			if ( empty( $campaign_ids ) ) {
@@ -584,7 +576,6 @@ class SCD_Metrics_Calculator {
 				}
 			}
 
-			// Cache for 30 minutes
 			if ( $use_cache ) {
 				$this->cache_manager->set( $cache_key, $campaigns_metrics, 1800 );
 			}

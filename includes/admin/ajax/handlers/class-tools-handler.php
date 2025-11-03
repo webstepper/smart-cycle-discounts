@@ -59,7 +59,6 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 	protected function handle( $request ) {
 		$start_time = microtime( true );
 
-		// Get the operation type
 		$operation = isset( $request['operation'] ) ? sanitize_text_field( $request['operation'] ) : '';
 
 		// Log request start
@@ -118,13 +117,11 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 
 		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
 
-		// Get table size before optimization
 		$size_before = $wpdb->get_var( "SELECT data_length + index_length FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = '{$campaigns_table}'" );
 
 		// Optimize table
 		$wpdb->query( "OPTIMIZE TABLE {$campaigns_table}" );
 
-		// Get table size after optimization
 		$size_after = $wpdb->get_var( "SELECT data_length + index_length FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = '{$campaigns_table}'" );
 
 		// Log with performance metrics
@@ -160,7 +157,6 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 
 		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
 
-		// Delete expired campaigns
 		$deleted = $wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$campaigns_table} WHERE status = %s AND end_date < %s",
@@ -169,7 +165,6 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 			)
 		);
 
-		// Check for database errors
 		if ( false === $deleted ) {
 			$this->logger->flow(
 				'error',
@@ -217,20 +212,17 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 	private function handle_rebuild_cache( $start_time ) {
 		$operations = array();
 
-		// Clear object cache if available
 		if ( function_exists( 'wp_cache_flush' ) ) {
 			wp_cache_flush();
 			$operations[] = 'object_cache';
 		}
 
-		// Delete all plugin transients
 		global $wpdb;
 		$deleted = $wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_scd_%' OR option_name LIKE '_transient_timeout_scd_%'" );
 		if ( false !== $deleted ) {
 			$operations[] = 'transients';
 		}
 
-		// Get cache manager and rebuild
 		if ( $this->container->has( 'cache_manager' ) ) {
 			$cache_manager = $this->container->get( 'cache_manager' );
 			// Trigger cache warming if method exists

@@ -68,7 +68,6 @@ class SCD_Template_Loader {
 			return '<!-- Template not found: ' . esc_html( $template ) . ' -->';
 		}
 
-		// Extract args to variables
 		if ( ! empty( $args ) ) {
 			extract( $args, EXTR_SKIP );
 		}
@@ -91,14 +90,12 @@ class SCD_Template_Loader {
 	 * @return   string|false           Template path or false if not found.
 	 */
 	public function locate_template( string $template ): string|false {
-		// Sanitize template name to prevent path traversal
 		$template = $this->sanitize_template_name( $template );
 
 		if ( empty( $template ) ) {
 			return false;
 		}
 
-		// Check theme directory first
 		$theme_template = locate_template(
 			array(
 				'smart-cycle-discounts/' . $template,
@@ -110,7 +107,6 @@ class SCD_Template_Loader {
 			return $theme_template;
 		}
 
-		// Check plugin templates directory
 		$plugin_template = $this->template_dir . $template;
 		if ( file_exists( $plugin_template ) ) {
 			return $plugin_template;
@@ -211,14 +207,11 @@ class SCD_Template_Loader {
 	 * @return   string                 Sanitized template name.
 	 */
 	private function sanitize_template_name( string $template ): string {
-		// Remove any path traversal attempts
 		$template = str_replace( array( '..', './', '..\\', '.\\' ), '', $template );
 
-		// Remove absolute paths
 		$template = ltrim( $template, '/' );
 		$template = ltrim( $template, '\\' );
 
-		// Remove any protocol handlers
 		$template = preg_replace( '#^[a-z]+://#i', '', $template );
 
 		// Only allow alphanumeric, hyphens, underscores, forward slashes, and dots

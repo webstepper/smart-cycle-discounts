@@ -56,14 +56,12 @@ class SCD_Product_Service {
 		$per_page = 50,
 		$selected = array()
 	) {
-		// Sanitize inputs
 		$search     = sanitize_text_field( $search );
 		$page       = absint( $page );
 		$per_page   = absint( $per_page );
 		$categories = array_map( 'absint', (array) $categories );
 		$selected   = array_map( 'absint', (array) $selected );
 
-		// Validate inputs
 		if ( $page < 1 ) {
 			$page = 1;
 		}
@@ -79,7 +77,6 @@ class SCD_Product_Service {
 			$search = substr( $search, 0, 200 );
 		}
 
-		// Build and execute query
 		$args = $this->build_search_query_args( $search, $categories, $page, $per_page );
 
 		// Debug logging only when enabled
@@ -108,7 +105,6 @@ class SCD_Product_Service {
 		// Debug logging
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
 
-			// Check if any products exist in database
 			$total_products = wp_count_posts( 'product' );
 		}
 
@@ -239,7 +235,6 @@ class SCD_Product_Service {
 			}
 		}
 
-		// Format categories
 		foreach ( $category_counts as $cat_id => $count ) {
 			$term = get_term( $cat_id, 'product_cat' );
 			if ( $term && ! is_wp_error( $term ) ) {
@@ -251,7 +246,6 @@ class SCD_Product_Service {
 			}
 		}
 
-		// Sort categories by count
 		usort(
 			$stats['categories'],
 			function ( $a, $b ) {
@@ -259,7 +253,6 @@ class SCD_Product_Service {
 			}
 		);
 
-		// Format product types
 		foreach ( $type_counts as $type => $count ) {
 			$stats['types'][] = array(
 				'type'  => $type,
@@ -268,7 +261,6 @@ class SCD_Product_Service {
 			);
 		}
 
-		// Calculate average price
 		if ( $stats['total_products'] > 0 && $total_price > 0 ) {
 			$stats['average_price'] = $total_price / $stats['total_products'];
 		}
@@ -308,17 +300,13 @@ class SCD_Product_Service {
 		);
 
 		// In WooCommerce 3.0+, visibility is handled via taxonomy, not meta
-		// Initialize tax_query
 		$args['tax_query'] = array();
 
-		// Add search term
 		if ( ! empty( $search ) ) {
 			$args['s'] = $search;
-			// Remove orderby for search to let relevance take precedence
 			$args['orderby'] = 'relevance';
 		}
 
-		// Add category filter
 		if ( ! empty( $categories ) ) {
 			// Ensure categories are integers
 			$categories = array_map( 'intval', $categories );
@@ -361,7 +349,6 @@ class SCD_Product_Service {
 			}
 		}
 
-		// Get category IDs
 		$category_ids = $product->get_category_ids();
 
 		return array(
@@ -394,7 +381,6 @@ class SCD_Product_Service {
 		$search,
 		$categories
 	) {
-		// Check search term
 		if ( ! empty( $search ) ) {
 			$searchable = strtolower( $product->get_name() . ' ' . $product->get_sku() );
 			if ( strpos( $searchable, strtolower( $search ) ) === false ) {
@@ -402,7 +388,6 @@ class SCD_Product_Service {
 			}
 		}
 
-		// Check categories
 		if ( ! empty( $categories ) ) {
 			$product_cats = $product->get_category_ids();
 			if ( ! array_intersect( $categories, $product_cats ) ) {
@@ -422,7 +407,6 @@ class SCD_Product_Service {
 	 */
 	private function ensure_woocommerce_loaded() {
 		try {
-			// Check if WooCommerce function exists
 			if ( ! function_exists( 'wc_get_product' ) ) {
 				// Try loading WooCommerce includes
 				if ( defined( 'WC_ABSPATH' ) ) {
@@ -431,7 +415,6 @@ class SCD_Product_Service {
 					include_once WC_ABSPATH . 'includes/wc-product-functions.php';
 				}
 
-				// Check again after loading
 				if ( ! function_exists( 'wc_get_product' ) ) {
 					// Debug logging
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {

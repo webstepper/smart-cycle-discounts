@@ -49,7 +49,6 @@ class SCD_Process_Queue_Handler extends SCD_Abstract_Ajax_Handler {
 				throw new Exception( __( 'You do not have permission to perform this action', 'smart-cycle-discounts' ) );
 			}
 
-			// Get container and action scheduler
 			$container = isset( $GLOBALS['scd_container'] ) ? $GLOBALS['scd_container'] : null;
 			if ( ! $container ) {
 				throw new Exception( __( 'Service container not initialized', 'smart-cycle-discounts' ) );
@@ -60,14 +59,11 @@ class SCD_Process_Queue_Handler extends SCD_Abstract_Ajax_Handler {
 				throw new Exception( __( 'Action scheduler service not available', 'smart-cycle-discounts' ) );
 			}
 
-			// Get logger
 			$logger = $container->get( 'logger' );
 
-			// Process pending emails
 			$processed = 0;
 			$failed    = 0;
 
-			// Get all pending actions from Action Scheduler
 			$pending_actions = $action_scheduler->get_actions(
 				array(
 					'hook'     => 'scd_process_email_queue',

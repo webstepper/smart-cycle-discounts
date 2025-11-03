@@ -18,7 +18,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-// Load the admin notice trait
 if ( defined( 'SCD_PLUGIN_DIR' ) ) {
 	require_once SCD_PLUGIN_DIR . 'includes/utilities/traits/trait-admin-notice.php';
 } else {
@@ -94,7 +93,6 @@ class SCD_Requirements_Checker {
 		$result = version_compare( PHP_VERSION, SCD_MIN_PHP_VERSION, '>=' );
 
 		if ( ! $result && is_admin() ) {
-			// Load translation handler if needed
 			if ( ! class_exists( 'SCD_Translation_Handler' ) ) {
 				require_once __DIR__ . '/class-translation-handler.php';
 			}
@@ -123,7 +121,6 @@ class SCD_Requirements_Checker {
 		$result = version_compare( get_bloginfo( 'version' ), SCD_MIN_WP_VERSION, '>=' );
 
 		if ( ! $result && is_admin() ) {
-			// Load translation handler if needed
 			if ( ! class_exists( 'SCD_Translation_Handler' ) ) {
 				require_once __DIR__ . '/class-translation-handler.php';
 			}
@@ -152,7 +149,6 @@ class SCD_Requirements_Checker {
 		// Use class_exists with false to prevent autoloading
 		if ( ! class_exists( 'WooCommerce', false ) ) {
 			if ( is_admin() && did_action( 'init' ) ) {
-				// Load translation handler if needed
 				if ( ! class_exists( 'SCD_Translation_Handler' ) ) {
 					require_once __DIR__ . '/class-translation-handler.php';
 				}
@@ -174,7 +170,6 @@ class SCD_Requirements_Checker {
 		$result = version_compare( WC_VERSION, SCD_MIN_WC_VERSION, '>=' );
 
 		if ( ! $result && is_admin() && did_action( 'init' ) ) {
-			// Load translation handler if needed
 			if ( ! class_exists( 'SCD_Translation_Handler' ) ) {
 				require_once __DIR__ . '/class-translation-handler.php';
 			}
@@ -234,13 +229,11 @@ class SCD_Requirements_Checker {
 	 * @return   void
 	 */
 	private function check_hpos_compatibility(): void {
-		// Check if HPOS feature is available without autoloading
 		if ( ! class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil', false ) ) {
 			$this->add_warning( 'WooCommerce HPOS feature detection not available. Plugin may not be fully compatible with newer WooCommerce versions.' );
 			return;
 		}
 
-		// Check if HPOS is enabled
 		if ( class_exists( '\Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController' ) ) {
 			try {
 				$controller = wc_get_container()->get(

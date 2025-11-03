@@ -122,12 +122,10 @@ class SCD_Customer_Usage_Repository {
 				return true;
 			}
 
-			// Check if blocked
 			if ( $usage['status'] === 'blocked' ) {
 				return false;
 			}
 
-			// Check usage limit
 			return $usage['usage_count'] < $max_uses_per_customer;
 		} catch ( Exception $e ) {
 			$this->logger->error(
@@ -151,14 +149,12 @@ class SCD_Customer_Usage_Repository {
 	 */
 	public function record_usage( array $usage_data ): int|false {
 		try {
-			// Check if record exists
 			$existing = $this->get_customer_usage(
 				intval( $usage_data['campaign_id'] ),
 				strval( $usage_data['customer_email'] )
 			);
 
 			if ( $existing ) {
-				// Update existing record
 				return $this->update_usage( $existing['id'], $usage_data );
 			} else {
 				// Insert new record
@@ -196,7 +192,6 @@ class SCD_Customer_Usage_Repository {
 
 		$data = wp_parse_args( $usage_data, $defaults );
 
-		// Format data for insertion
 		$insert_data = array(
 			'campaign_id'           => intval( $data['campaign_id'] ),
 			'customer_id'           => ! empty( $data['customer_id'] ) ? intval( $data['customer_id'] ) : null,
@@ -228,7 +223,6 @@ class SCD_Customer_Usage_Repository {
 	 * @return   int|false               Updated ID or false on failure.
 	 */
 	private function update_usage( int $id, array $usage_data ): int|false {
-		// Get existing record
 		$existing = $this->db->get_row(
 			$this->db->prepare( "SELECT * FROM {$this->table_name} WHERE id = %d", $id ),
 			ARRAY_A
@@ -238,7 +232,6 @@ class SCD_Customer_Usage_Repository {
 			return false;
 		}
 
-		// Parse order IDs
 		$existing_order_ids = ! empty( $existing['order_ids'] ) ?
 			json_decode( $existing['order_ids'], true ) : array();
 
@@ -247,7 +240,6 @@ class SCD_Customer_Usage_Repository {
 			$existing_order_ids   = array_unique( $existing_order_ids );
 		}
 
-		// Update data
 		$update_data = array(
 			'usage_count'           => intval( $existing['usage_count'] ) + 1,
 			'last_used_at'          => current_time( 'mysql' ),
@@ -258,7 +250,6 @@ class SCD_Customer_Usage_Repository {
 			'order_ids'             => wp_json_encode( $existing_order_ids ),
 		);
 
-		// Update optional fields if provided
 		if ( ! empty( $usage_data['session_id'] ) ) {
 			$update_data['session_id'] = sanitize_text_field( $usage_data['session_id'] );
 		}

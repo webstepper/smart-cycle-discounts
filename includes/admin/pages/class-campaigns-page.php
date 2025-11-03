@@ -211,7 +211,6 @@ class SCD_Campaigns_Page {
 				break;
 
 			case 'currency-review':
-				// Load currency review page
 				require_once SCD_INCLUDES_DIR . 'admin/pages/class-currency-review-page.php';
 				require_once SCD_INCLUDES_DIR . 'core/services/class-currency-change-service.php';
 				$currency_service     = new SCD_Currency_Change_Service( $this->container->get( 'campaign_repository' ) );

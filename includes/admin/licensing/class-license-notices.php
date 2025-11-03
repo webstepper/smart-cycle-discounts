@@ -77,11 +77,9 @@ class SCD_License_Notices {
 	 * @return   void
 	 */
 	private function show_expired_license_notice() {
-		// Check if user dismissed the notice
 		$user_id   = get_current_user_id();
 		$dismissed = get_user_meta( $user_id, 'scd_dismissed_expired_notice', true );
 
-		// Check if dismissed and not expired (3 days for critical notices)
 		if ( $dismissed && $dismissed > time() ) {
 			return;
 		}
@@ -129,7 +127,6 @@ class SCD_License_Notices {
 			wp_send_json_error( array( 'message' => 'Invalid nonce' ) );
 		}
 
-		// Check capability
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( array( 'message' => 'Insufficient permissions' ) );
 		}

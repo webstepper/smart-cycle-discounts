@@ -83,7 +83,6 @@ class SCD_WPMail_Provider implements SCD_Email_Provider {
 			return false;
 		}
 
-		// Build headers
 		$default_headers = array(
 			'Content-Type: text/html; charset=UTF-8',
 			sprintf( 'From: %s <%s>', $this->from_name, $this->from_email ),
@@ -268,12 +267,10 @@ class SCD_WPMail_Provider implements SCD_Email_Provider {
 	 * @return   bool    True if local development without mail.
 	 */
 	private function is_local_development_without_mail(): bool {
-		// Check for Local by Flywheel
 		if ( defined( 'WP_LOCAL_DEV' ) && WP_LOCAL_DEV ) {
 			return true;
 		}
 
-		// Check for common local development hostnames
 		$server_name = isset( $_SERVER['SERVER_NAME'] ) ? $_SERVER['SERVER_NAME'] : '';
 		$local_hosts = array( '.local', 'localhost', '127.0.0.1', '.test', '.dev' );
 
@@ -283,7 +280,6 @@ class SCD_WPMail_Provider implements SCD_Email_Provider {
 			}
 		}
 
-		// Check if WP_ENVIRONMENT_TYPE is set to 'local' or 'development'
 		if ( function_exists( 'wp_get_environment_type' ) ) {
 			$env_type = wp_get_environment_type();
 			if ( in_array( $env_type, array( 'local', 'development' ), true ) ) {

@@ -111,7 +111,6 @@ abstract class SCD_Notifications_Tab_Base {
 			return $settings;
 		}
 
-		// Sanitize this tab's settings
 		if ( isset( $settings['notifications'] ) && is_array( $settings['notifications'] ) ) {
 			$settings['notifications'] = $this->sanitize_settings( $settings['notifications'] );
 		}
@@ -293,7 +292,6 @@ abstract class SCD_Notifications_Tab_Base {
 		$disabled    = isset( $args['disabled'] ) && $args['disabled'] ? ' disabled' : '';
 		$pro_feature = isset( $args['pro_feature'] ) && $args['pro_feature'];
 
-		// Check for notification-specific PRO features
 		$notification_type   = isset( $args['notification_type'] ) ? $args['notification_type'] : null;
 		$is_pro_notification = false;
 		$has_access          = true;

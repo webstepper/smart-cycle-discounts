@@ -63,7 +63,6 @@ class SCD_Complete_Wizard_Handler {
 		if ( $state_service ) {
 			$this->state_service = $state_service;
 		} else {
-			// Create new instance if not provided.
 			if ( ! class_exists( 'SCD_Wizard_State_Service' ) ) {
 				require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
 			}
@@ -83,10 +82,8 @@ class SCD_Complete_Wizard_Handler {
 		try {
 			$this->log_debug( 'Starting campaign creation...' );
 
-			// Get and validate session data.
 			$steps_data = $this->get_validated_steps_data();
 
-			// Get required services.
 			$campaign_repository = $this->get_campaign_repository();
 			$campaign_manager    = $this->get_campaign_manager();
 
@@ -97,35 +94,28 @@ class SCD_Complete_Wizard_Handler {
 			// Compile wizard data into campaign data.
 			$campaign_data = $this->compile_campaign_data( $steps_data, $campaign_repository );
 
-			// Get and validate launch option.
 			$launch_option = $this->get_launch_option( $steps_data, $campaign_data );
 
-			// Get old status for transition validation.
 			$old_status = $this->get_old_campaign_status( $is_edit_mode, $campaign_id, $campaign_repository );
 
 			// Log status transition.
 			$this->log_status_transition( $campaign_data, $old_status, $launch_option );
 
-			// Set validation context.
 			$campaign_data['_validation_context'] = 'campaign_compiled';
 
 			$this->log_debug( 'Compiled campaign data: ' . wp_json_encode( $campaign_data ) );
 			$this->log_debug( 'Launch option: ' . $launch_option );
 
-			// Create or update campaign.
 			$campaign = $this->save_campaign( $campaign_manager, $is_edit_mode, $campaign_id, $campaign_data );
 
-			// Extract campaign details.
 			$campaign_id     = $campaign->get_id();
 			$campaign_status = $campaign->get_status();
 			$campaign_name   = $campaign->get_name();
 
 			$this->log_campaign_result( $is_edit_mode, $campaign_id, $campaign_name, $campaign_status );
 
-			// Clear wizard session.
 			$this->state_service->clear_session();
 
-			// Build response.
 			return $this->build_success_response( $is_edit_mode, $campaign_id, $campaign_name, $campaign_status );
 
 		} catch ( Exception $e ) {
@@ -214,7 +204,6 @@ class SCD_Complete_Wizard_Handler {
 	private function get_launch_option( $steps_data, $campaign_data ) {
 		$review_data = $this->state_service->get_step_data( 'review' );
 
-		// Clear fallback chain: review data → compiled data → default.
 		if ( isset( $review_data['launch_option'] ) && '' !== $review_data['launch_option'] ) {
 			$launch_option = $review_data['launch_option'];
 		} elseif ( isset( $campaign_data['launch_option'] ) && '' !== $campaign_data['launch_option'] ) {
@@ -223,7 +212,6 @@ class SCD_Complete_Wizard_Handler {
 			$launch_option = self::LAUNCH_ACTIVE;
 		}
 
-		// Validate that we have a valid launch option.
 		if ( ! isset( $launch_option ) || '' === $launch_option ) {
 			$this->log_debug( 'WARNING: launch_option is empty, defaulting to active' );
 			$launch_option = self::LAUNCH_ACTIVE;
@@ -431,7 +419,6 @@ class SCD_Complete_Wizard_Handler {
 			error_log( '[Complete Wizard] Trace: ' . $e->getTraceAsString() );
 		}
 
-		// Clear session even on failure to prevent stale data accumulation.
 		try {
 			$this->state_service->clear_session();
 			$this->log_debug( 'Session cleared after failure' );

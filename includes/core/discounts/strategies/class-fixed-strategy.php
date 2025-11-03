@@ -56,7 +56,6 @@ class SCD_Fixed_Strategy implements SCD_Discount_Strategy_Interface {
 			);
 		}
 
-		// Validate configuration
 		$errors = $this->validate_config( $discount_config );
 		if ( ! empty( $errors ) ) {
 			return SCD_Discount_Result::no_discount( $original_price, self::STRATEGY_ID, 'Invalid configuration' );
@@ -76,7 +75,6 @@ class SCD_Fixed_Strategy implements SCD_Discount_Strategy_Interface {
 		$min_price      = (float) ( $discount_config['min_price'] ?? 0 );
 		$max_percentage = (float) ( $discount_config['max_percentage'] ?? 0 );
 
-		// Check minimum price requirement
 		if ( $min_price > 0 && $original_price < $min_price ) {
 			return SCD_Discount_Result::no_discount(
 				$original_price,
@@ -99,7 +97,6 @@ class SCD_Fixed_Strategy implements SCD_Discount_Strategy_Interface {
 
 		$discounted_price = $this->round_currency( $original_price - $discount_amount );
 
-		// Check for minimum discounted price
 		$min_discounted_price = (float) ( $discount_config['min_discounted_price'] ?? 0 );
 		if ( $min_discounted_price > 0 && $discounted_price < $min_discounted_price ) {
 			$discounted_price = $this->round_currency( $min_discounted_price );
@@ -134,7 +131,6 @@ class SCD_Fixed_Strategy implements SCD_Discount_Strategy_Interface {
 	public function validate_config( array $discount_config ): array {
 		$errors = array();
 
-		// Check required amount field
 		if ( ! isset( $discount_config['amount'] ) ) {
 			$errors['amount'] = 'Fixed amount is required for fixed discount.';
 		} else {
@@ -148,7 +144,6 @@ class SCD_Fixed_Strategy implements SCD_Discount_Strategy_Interface {
 			}
 		}
 
-		// Validate minimum price
 		if ( isset( $discount_config['min_price'] ) ) {
 			$min_price = (float) $discount_config['min_price'];
 			if ( $min_price < 0 ) {
@@ -156,7 +151,6 @@ class SCD_Fixed_Strategy implements SCD_Discount_Strategy_Interface {
 			}
 		}
 
-		// Validate maximum percentage
 		if ( isset( $discount_config['max_percentage'] ) ) {
 			$max_percentage = (float) $discount_config['max_percentage'];
 			if ( $max_percentage < 0 ) {
@@ -166,7 +160,6 @@ class SCD_Fixed_Strategy implements SCD_Discount_Strategy_Interface {
 			}
 		}
 
-		// Validate minimum discounted price
 		if ( isset( $discount_config['min_discounted_price'] ) ) {
 			$min_discounted_price = (float) $discount_config['min_discounted_price'];
 			if ( $min_discounted_price < 0 ) {
@@ -174,7 +167,6 @@ class SCD_Fixed_Strategy implements SCD_Discount_Strategy_Interface {
 			}
 		}
 
-		// Check logical consistency
 		if ( isset( $discount_config['min_price'] ) && isset( $discount_config['min_discounted_price'] ) ) {
 			$min_price            = (float) $discount_config['min_price'];
 			$min_discounted_price = (float) $discount_config['min_discounted_price'];

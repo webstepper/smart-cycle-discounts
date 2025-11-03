@@ -52,10 +52,8 @@ class SCD_Migration_006_Add_Foreign_Keys_Indexes implements SCD_Migration_Interf
 	public function up(): void {
 		global $wpdb;
 
-		// Add indexes first (required before foreign keys)
 		$this->add_performance_indexes( $wpdb );
 
-		// Add foreign key constraints
 		// Note: InnoDB engine required for FK constraints
 		$this->add_foreign_key_constraints( $wpdb );
 	}

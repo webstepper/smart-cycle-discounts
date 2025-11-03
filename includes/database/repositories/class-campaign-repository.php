@@ -80,7 +80,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 		return $this->cache->remember(
 			$cache_key,
 			function () use ( $id, $include_trashed ) {
-				// Build query based on whether to include trashed campaigns
 				if ( $include_trashed ) {
 					$query = "SELECT * FROM {$this->table_name} WHERE id = %d";
 				} else {
@@ -112,7 +111,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 			return null;
 		}
 
-		// Check ownership
 		if ( $campaign->get_created_by() !== $user_id && ! current_user_can( 'manage_options' ) ) {
 			return null;
 		}
@@ -225,7 +223,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	public function find_by_metadata( string $meta_key, string $meta_value, array $options = array() ): array {
 		global $wpdb;
 
-		// Sanitize meta_key to prevent SQL injection (only allow alphanumeric and underscores)
 		$meta_key = preg_replace( '/[^a-zA-Z0-9_]/', '', $meta_key );
 		if ( empty( $meta_key ) ) {
 			return array();
@@ -278,7 +275,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 					$this->db->prepare( $query, $now, $now )
 				);
 
-				// Filter out null results
 				if ( ! is_array( $results ) ) {
 					return array();
 				}
@@ -319,7 +315,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 					$this->db->prepare( $query, $now )
 				);
 
-				// Filter out null results
 				if ( ! is_array( $results ) ) {
 					return array();
 				}
@@ -355,7 +350,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 			$this->db->prepare( $query, $now )
 		);
 
-		// Filter out null results
 		if ( ! is_array( $results ) ) {
 			return array();
 		}
@@ -389,7 +383,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 
 				$results = $this->db->get_results( $query );
 
-				// Filter out null results
 				if ( ! is_array( $results ) ) {
 					return array();
 				}
@@ -438,13 +431,11 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 				$data = $this->dehydrate( $campaign );
 
 				if ( $campaign->get_id() ) {
-					// Update existing campaign - verify ownership first
 					$existing = $this->find( $campaign->get_id() );
 					if ( ! $existing ) {
 						return false;
 					}
 
-					// Check ownership - only creator, admin, or system operations can update
 					$current_user_id = get_current_user_id();
 					// Allow updates if:
 					// 1. User is the creator
@@ -483,7 +474,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 						array( '%d', '%d' )
 					);
 
-					// Check if update failed due to concurrent modification
 					if ( $result === 0 ) {
 						// Throw exception for concurrent modification
 						throw new SCD_Concurrent_Modification_Exception(
@@ -493,7 +483,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 						);
 					}
 				} else {
-					// Create new campaign
 					$data['created_at'] = gmdate( 'Y-m-d H:i:s' );
 					$data['updated_at'] = gmdate( 'Y-m-d H:i:s' );
 					$data['version']    = 1;  // Initial version
@@ -540,7 +529,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 			return false;
 		}
 
-		// Check ownership - only creator or admin can delete
 		$current_user_id = get_current_user_id();
 		if ( $campaign->get_created_by() !== $current_user_id && ! current_user_can( 'manage_options' ) ) {
 			return false;
@@ -697,7 +685,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 			$this->db->prepare( $query, $cutoff_date )
 		);
 
-		// Filter out null results
 		if ( ! is_array( $results ) ) {
 			return array();
 		}
@@ -766,7 +753,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 * @return   bool                     True if slug exists.
 	 */
 	public function slug_exists( string $slug, ?int $exclude_id = null ): bool {
-		// Check for slug existence INCLUDING soft-deleted campaigns
 		// because the database UNIQUE constraint applies to all rows
 		$query  = "SELECT COUNT(*) FROM {$this->table_name} WHERE slug = %s";
 		$params = array( $slug );
@@ -797,7 +783,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 			return $slug;
 		}
 
-		// Extract base slug by removing trailing -number if present
 		$base_slug = preg_replace( '/-(\d+)$/', '', $slug );
 		$counter   = 2;
 
@@ -827,7 +812,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 
 		}
 
-		// Create campaign instance
 		$campaign = new SCD_Campaign( $campaign_data );
 
 		if ( ! $campaign->is_valid() ) {
@@ -838,7 +822,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 			return false;
 		}
 
-		// Save campaign
 		if ( $this->save( $campaign ) ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 
@@ -875,10 +858,8 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 		return $this->cache->remember(
 			$cache_key,
 			function () use ( $product_id ) {
-				// Get all active campaigns
 				$active_campaigns = $this->get_active_campaigns();
 
-				// Filter campaigns that can apply to this product
 				$applicable_campaigns = array();
 				foreach ( $active_campaigns as $campaign ) {
 					if ( $campaign->can_apply_to_product( $product_id ) ) {
@@ -961,7 +942,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 
 		$results = $this->db->get_results( $query );
 
-		// Filter out null results
 		if ( ! is_array( $results ) ) {
 			return array();
 		}
@@ -1048,7 +1028,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 			$this->db->prepare( $query, $min_priority, $max_priority )
 		);
 
-		// Filter out null results
 		if ( ! is_array( $results ) ) {
 			return array();
 		}
@@ -1073,7 +1052,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	public function get_conflicting_campaigns( SCD_Campaign $campaign ): array {
 		$conflicts = array();
 
-		// Get campaigns with overlapping date ranges
 		if ( $campaign->get_starts_at() && $campaign->get_ends_at() ) {
 			$query = "SELECT * FROM {$this->table_name} 
                      WHERE status IN ('active', 'scheduled')
@@ -1093,7 +1071,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 				$this->db->prepare( $query, $campaign_id, $start, $start, $end, $end, $start, $end )
 			);
 
-			// Filter out null results
 			if ( ! is_array( $results ) ) {
 				$conflicts = array();
 			} else {
@@ -1175,10 +1152,8 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	private function dehydrate( SCD_Campaign $campaign ): array {
 		$data = $campaign->to_array();
 
-		// Remove legacy duplicate fields - they're redundant with product_ids/category_ids/tag_ids
 		unset( $data['selected_products'], $data['selected_categories'], $data['selected_tags'] );
 
-		// Convert arrays to JSON
 		$json_fields = array(
 			'settings',
 			'metadata',
@@ -1252,12 +1227,10 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	private function clear_campaign_cache( SCD_Campaign $campaign ): void {
 		global $wpdb;
 
-		// Clear individual campaign caches
 		$this->cache->delete( "campaign_{$campaign->get_id()}" );
 		$this->cache->delete( "campaign_uuid_{$campaign->get_uuid()}" );
 		$this->cache->delete( "campaign_slug_{$campaign->get_slug()}" );
 
-		// Clear campaign list caches
 		$this->cache->delete( 'active_campaigns' );
 		$this->cache->delete( 'scheduled_campaigns' );
 		$this->cache->delete( 'paused_campaigns' );
@@ -1265,7 +1238,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 		wp_cache_delete( 'scheduled_campaigns', 'scd' );
 		wp_cache_delete( 'paused_campaigns', 'scd' );
 
-		// Clear transient-based campaign list caches
 		$wpdb->query(
 			$wpdb->prepare(
 				'DELETE FROM %i
@@ -1277,15 +1249,12 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 			)
 		);
 
-		// Clear product-specific campaign caches (both object cache and transients)
 		$product_ids = $campaign->get_product_ids();
 		if ( ! empty( $product_ids ) ) {
 			foreach ( $product_ids as $product_id ) {
-				// Clear object cache
 				wp_cache_delete( 'campaigns_by_product_' . $product_id, 'scd' );
 				wp_cache_delete( 'active_campaigns_product_' . $product_id, 'scd' );
 
-				// Clear transient cache
 				delete_transient( 'scd_campaigns_by_product_' . $product_id );
 
 				// Clear WooCommerce product transients to force price recalculation
@@ -1324,7 +1293,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 		$criteria = array();
 		$options  = array();
 
-		// Parse arguments into criteria and options
 		if ( isset( $args['status'] ) && ! empty( $args['status'] ) ) {
 			$criteria['status'] = $args['status'];
 		}
@@ -1356,7 +1324,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 			$counts[ $status ] = $this->count( array( 'status' => $status ) );
 		}
 
-		// Add total count
 		$counts['total'] = $this->count();
 
 		return $counts;
@@ -1407,12 +1374,10 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 		$where_clauses = array( 'deleted_at IS NULL' );
 		$where_values  = array();
 
-		// Add search conditions
 		$where_clauses[] = '(name LIKE %s OR description LIKE %s)';
 		$where_values[]  = '%' . $search_term . '%';
 		$where_values[]  = '%' . $search_term . '%';
 
-		// Add status filter if provided
 		if ( isset( $args['status'] ) && ! empty( $args['status'] ) ) {
 			$where_clauses[] = 'status = %s';
 			$where_values[]  = $args['status'];
@@ -1440,12 +1405,10 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 		$where_clauses = array( 'deleted_at IS NULL' );
 		$where_values  = array();
 
-		// Add search conditions
 		$where_clauses[] = '(name LIKE %s OR description LIKE %s)';
 		$where_values[]  = '%' . $search_term . '%';
 		$where_values[]  = '%' . $search_term . '%';
 
-		// Add status filter if provided
 		if ( isset( $criteria['status'] ) && ! empty( $criteria['status'] ) ) {
 			$where_clauses[] = 'status = %s';
 			$where_values[]  = $criteria['status'];
@@ -1471,7 +1434,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 * @return   void
 	 */
 	protected function apply_custom_where_conditions( $query_builder, $args ) {
-		// Add campaign-specific WHERE conditions
 		if ( ! empty( $args['name'] ) ) {
 			$query_builder->where( 'name', 'LIKE', '%' . $args['name'] . '%' );
 		}
@@ -1521,7 +1483,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 			$data['slug'] = sanitize_title( $data['name'] );
 		}
 
-		// Set default values
 		$data['priority'] = $data['priority'] ?? 0;
 		$data['status']   = $data['status'] ?? 'draft';
 

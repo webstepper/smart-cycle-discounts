@@ -88,14 +88,12 @@ class SCD_Frontend_Asset_Manager {
 		$this->version     = $version;
 		$this->logger      = $logger;
 
-		// Initialize script registry
 		if ( file_exists( SCD_PLUGIN_DIR . 'includes/frontend/assets/class-frontend-script-registry.php' ) ) {
 			require_once SCD_PLUGIN_DIR . 'includes/frontend/assets/class-frontend-script-registry.php';
 			$this->script_registry = new SCD_Frontend_Script_Registry( $version, SCD_PLUGIN_URL );
 			$this->script_registry->init();
 		}
 
-		// Initialize asset localizer
 		if ( file_exists( SCD_PLUGIN_DIR . 'includes/admin/assets/class-asset-localizer.php' ) ) {
 			require_once SCD_PLUGIN_DIR . 'includes/admin/assets/class-asset-localizer.php';
 			$this->asset_localizer = new SCD_Asset_Localizer();
@@ -153,11 +151,9 @@ class SCD_Frontend_Asset_Manager {
 		}
 
 		if ( $this->script_registry ) {
-			// Get scripts that should be loaded
 			$scripts = $this->script_registry->get_scripts_to_load();
 
 			foreach ( $scripts as $handle => $script ) {
-				// Register and enqueue the script
 				$src = $script['src'];
 				if ( ! filter_var( $src, FILTER_VALIDATE_URL ) ) {
 					$src = SCD_PLUGIN_URL . $src;
@@ -306,37 +302,30 @@ class SCD_Frontend_Asset_Manager {
 			return true;
 		}
 
-		// Load on shop page
 		if ( function_exists( 'is_shop' ) && is_shop() ) {
 			return true;
 		}
 
-		// Load on product pages
 		if ( function_exists( 'is_product' ) && is_product() ) {
 			return true;
 		}
 
-		// Load on cart page
 		if ( function_exists( 'is_cart' ) && is_cart() ) {
 			return true;
 		}
 
-		// Load on checkout page
 		if ( function_exists( 'is_checkout' ) && is_checkout() ) {
 			return true;
 		}
 
-		// Load on account page
 		if ( function_exists( 'is_account_page' ) && is_account_page() ) {
 			return true;
 		}
 
-		// Load on pages with shortcodes
 		if ( is_singular() && $this->has_plugin_shortcodes() ) {
 			return true;
 		}
 
-		// Load on pages with blocks
 		if ( is_singular() && $this->has_plugin_blocks() ) {
 			return true;
 		}

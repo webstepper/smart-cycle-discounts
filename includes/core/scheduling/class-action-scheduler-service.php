@@ -94,7 +94,6 @@ class SCD_Action_Scheduler_Service {
 		$group = ! empty( $group ) ? $group : $this->action_group;
 
 		try {
-			// Check if action already scheduled
 			if ( $this->is_action_scheduled( $hook, $args, $group ) ) {
 				if ( $this->logger ) {
 					$this->logger->debug(
@@ -165,7 +164,6 @@ class SCD_Action_Scheduler_Service {
 		$group = ! empty( $group ) ? $group : $this->action_group;
 
 		try {
-			// Check if action already scheduled
 			if ( $this->is_action_scheduled( $hook, $args, $group ) ) {
 				if ( $this->logger ) {
 					$this->logger->debug(
@@ -229,7 +227,6 @@ class SCD_Action_Scheduler_Service {
 		$group = ! empty( $group ) ? $group : $this->action_group;
 
 		try {
-			// Check if action already scheduled
 			if ( $this->is_action_scheduled( $hook, $args, $group ) ) {
 				return false;
 			}
@@ -302,7 +299,6 @@ class SCD_Action_Scheduler_Service {
 		$next_scheduled = as_next_scheduled_action( $hook, $args, $group );
 
 		// as_next_scheduled_action() can return null in some cases
-		// Convert null to false to match return type declaration
 		if ( null === $next_scheduled ) {
 			return false;
 		}
@@ -330,7 +326,6 @@ class SCD_Action_Scheduler_Service {
 			$unscheduled = as_unschedule_action( $hook, $args, $group );
 
 			// as_unschedule_action() can return null when no actions found
-			// Convert null to 0 (int) to match return type declaration
 			if ( null === $unscheduled ) {
 				$unscheduled = 0;
 			}
@@ -381,7 +376,6 @@ class SCD_Action_Scheduler_Service {
 			$unscheduled = as_unschedule_all_actions( $hook, array(), $group );
 
 			// as_unschedule_all_actions() can return null when no actions found
-			// Convert null to 0 (int) to match return type declaration
 			if ( null === $unscheduled ) {
 				$unscheduled = 0;
 			}
@@ -453,7 +447,6 @@ class SCD_Action_Scheduler_Service {
 		}
 
 		try {
-			// Get all pending actions in our group
 			$actions = as_get_scheduled_actions(
 				array(
 					'group'  => $this->action_group,

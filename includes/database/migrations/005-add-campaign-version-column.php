@@ -60,7 +60,6 @@ class SCD_Migration_005_Add_Campaign_Version_Column {
 
 		$table_name = $this->db->get_table_name( 'campaigns' );
 
-		// Check if column already exists
 		$column_exists = $wpdb->get_results(
 			$wpdb->prepare(
 				'SHOW COLUMNS FROM %s LIKE %s',
@@ -73,7 +72,6 @@ class SCD_Migration_005_Add_Campaign_Version_Column {
 			return; // Column already exists
 		}
 
-		// Add version column
 		// Default to 1 for new records
 		// NOT NULL ensures all campaigns have a version
 		$wpdb->query(
@@ -82,7 +80,6 @@ class SCD_Migration_005_Add_Campaign_Version_Column {
 			AFTER updated_at"
 		);
 
-		// Add index for optimistic locking queries
 		$wpdb->query(
 			"ALTER TABLE {$table_name}
 			ADD INDEX idx_campaign_version (id, version)"

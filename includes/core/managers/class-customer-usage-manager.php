@@ -85,7 +85,6 @@ class SCD_Customer_Usage_Manager {
 	 */
 	public function validate_customer_usage( int $campaign_id, array $campaign_data ): array {
 		try {
-			// Get customer email
 			$customer_email = $this->get_customer_email();
 
 			if ( ! $customer_email ) {
@@ -95,7 +94,6 @@ class SCD_Customer_Usage_Manager {
 				);
 			}
 
-			// Check if usage limits are configured
 			$max_uses = isset( $campaign_data['max_uses_per_customer'] ) ?
 				intval( $campaign_data['max_uses_per_customer'] ) : 0;
 
@@ -107,7 +105,6 @@ class SCD_Customer_Usage_Manager {
 				);
 			}
 
-			// Check customer usage
 			$can_use = $this->repository->can_customer_use_discount(
 				$campaign_id,
 				$customer_email,
@@ -161,16 +158,13 @@ class SCD_Customer_Usage_Manager {
 	 */
 	public function record_order_usage( int $order_id, WC_Order $order ): void {
 		try {
-			// Get order items
 			foreach ( $order->get_items() as $item ) {
-				// Check if item has discount applied
 				$campaign_id = $item->get_meta( '_scd_campaign_id' );
 
 				if ( ! $campaign_id ) {
 					continue;
 				}
 
-				// Get customer info from order
 				$customer_email = $order->get_billing_email();
 				$customer_id    = $order->get_customer_id();
 
@@ -178,12 +172,10 @@ class SCD_Customer_Usage_Manager {
 					continue;
 				}
 
-				// Calculate discount amount for this item
 				$original_price = floatval( $item->get_meta( '_scd_original_price', true ) );
 				$quantity       = max( 1, intval( $item->get_quantity() ) );
 				$item_total     = floatval( $item->get_total() );
 
-				// Validate we have proper values
 				if ( $original_price <= 0 || $item_total < 0 ) {
 					$this->logger->warning(
 						'Invalid price data for usage tracking',
@@ -246,7 +238,6 @@ class SCD_Customer_Usage_Manager {
 	 */
 	private function get_customer_email(): ?string {
 		try {
-			// Check if user is logged in
 			if ( is_user_logged_in() ) {
 				$user = wp_get_current_user();
 				if ( $user && $user->user_email ) {
@@ -256,7 +247,6 @@ class SCD_Customer_Usage_Manager {
 
 			// Check WooCommerce session
 			if ( function_exists( 'WC' ) && WC()->session ) {
-				// Get customer from session
 				$customer = WC()->customer;
 				if ( $customer && is_object( $customer ) ) {
 					$email = $customer->get_billing_email();
@@ -265,14 +255,12 @@ class SCD_Customer_Usage_Manager {
 					}
 				}
 
-				// Check session data
 				$billing_email = WC()->session->get( 'billing_email' );
 				if ( $billing_email ) {
 					return sanitize_email( $billing_email );
 				}
 			}
 
-			// Check if in checkout and email is provided
 			if ( is_checkout() && ! empty( $_POST['billing_email'] ) ) {
 				// Verify nonce if available
 				if ( isset( $_POST['woocommerce-process-checkout-nonce'] ) &&

@@ -99,20 +99,17 @@ class SCD_Discount_Applicator {
 		);
 
 		try {
-			// Get product
 			$product = wc_get_product( $product_id );
 			if ( ! $product ) {
 				$result['errors'][] = __( 'Product not found', 'smart-cycle-discounts' );
 				return $result;
 			}
 
-			// Check if product is eligible for discounts
 			if ( ! $this->is_product_eligible( $product, $context ) ) {
 				$result['errors'][] = __( 'Product is not eligible for discounts', 'smart-cycle-discounts' );
 				return $result;
 			}
 
-			// Get original price
 			$original_price = floatval( $product->get_regular_price() );
 			if ( 0 >= $original_price ) {
 				$result['errors'][] = __( 'Product has no valid price', 'smart-cycle-discounts' );
@@ -121,7 +118,6 @@ class SCD_Discount_Applicator {
 
 			$result['original_price'] = $original_price;
 
-			// Calculate discount
 			$calculation_context = array_merge(
 				$context,
 				array(
@@ -143,7 +139,6 @@ class SCD_Discount_Applicator {
 				$result['discount_applied'] = true;
 				$result['success']          = true;
 
-				// Cache the applied discount
 				$this->cache_applied_discount( $product_id, $discount_config, $calculation );
 
 				$this->logger->info(
@@ -262,7 +257,6 @@ class SCD_Discount_Applicator {
 
 			$result['original_price'] = $original_price;
 
-			// Calculate discount with cart context
 			$context = array(
 				'cart_item_key' => $cart_item_key,
 				'cart_item'     => $cart_item,
@@ -278,14 +272,12 @@ class SCD_Discount_Applicator {
 			);
 
 			if ( $calculation['valid'] && 0 < $calculation['discount_amount'] ) {
-				// Set the new price on the product
 				$product->set_price( $calculation['discounted_price'] );
 
 				$result['discounted_price'] = $calculation['discounted_price'];
 				$result['discount_amount']  = $calculation['discount_amount'];
 				$result['success']          = true;
 
-				// Store discount info in cart item
 				$cart_item['scd_discount_applied'] = true;
 				$cart_item['scd_discount_amount']  = $calculation['discount_amount'];
 				$cart_item['scd_original_price']   = $original_price;
@@ -337,7 +329,6 @@ class SCD_Discount_Applicator {
 				return false;
 			}
 
-			// Calculate discounted price
 			$calculation = $this->discount_engine->calculate_discount(
 				$original_price,
 				$discount_config,
@@ -348,7 +339,6 @@ class SCD_Discount_Applicator {
 			);
 
 			if ( $calculation['valid'] && 0 < $calculation['discount_amount'] ) {
-				// Update product prices
 				$product->set_price( $calculation['discounted_price'] );
 				$product->set_sale_price( $calculation['discounted_price'] );
 
@@ -385,13 +375,11 @@ class SCD_Discount_Applicator {
 	 * @return   bool                      True if eligible.
 	 */
 	public function is_product_eligible( WC_Product $product, array $context = array() ): bool {
-		// Check if product is excluded from discounts
 		$excluded = get_post_meta( $product->get_id(), '_scd_exclude_from_discounts', true );
 		if ( 'yes' === $excluded ) {
 			return false;
 		}
 
-		// Check product type eligibility
 		$allowed_types = apply_filters(
 			'scd_allowed_product_types',
 			array(
@@ -406,12 +394,10 @@ class SCD_Discount_Applicator {
 			return false;
 		}
 
-		// Check if product is purchasable
 		if ( ! $product->is_purchasable() ) {
 			return false;
 		}
 
-		// Check stock status
 		if ( ! $product->is_in_stock() ) {
 			return false;
 		}
@@ -449,7 +435,6 @@ class SCD_Discount_Applicator {
 	 * @return   bool                    True if applicable.
 	 */
 	public function is_rule_applicable( int $product_id, array $rule, array $context = array() ): bool {
-		// Check product inclusion/exclusion
 		if ( ! empty( $rule['include_products'] ) ) {
 			if ( ! in_array( $product_id, $rule['include_products'] ) ) {
 				return false;
@@ -462,7 +447,6 @@ class SCD_Discount_Applicator {
 			}
 		}
 
-		// Check category inclusion/exclusion
 		if ( ! empty( $rule['include_categories'] ) || ! empty( $rule['exclude_categories'] ) ) {
 			$product_categories = wp_get_post_terms( $product_id, 'product_cat', array( 'fields' => 'ids' ) );
 
@@ -479,7 +463,6 @@ class SCD_Discount_Applicator {
 			}
 		}
 
-		// Check minimum/maximum price
 		if ( isset( $rule['min_price'] ) || isset( $rule['max_price'] ) ) {
 			$product = wc_get_product( $product_id );
 			if ( $product ) {
@@ -495,7 +478,6 @@ class SCD_Discount_Applicator {
 			}
 		}
 
-		// Check quantity requirements (for cart context)
 		if ( isset( $rule['min_quantity'] ) && isset( $context['quantity'] ) ) {
 			if ( intval( $rule['min_quantity'] ) > intval( $context['quantity'] ) ) {
 				return false;
@@ -651,7 +633,6 @@ class SCD_Discount_Applicator {
 	 * @return   bool                 True if valid.
 	 */
 	public function validate_application_context( array $context ): bool {
-		// Add context validation logic here
 		return true;
 	}
 }

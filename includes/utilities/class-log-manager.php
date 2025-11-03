@@ -79,7 +79,6 @@ class SCD_Log_Manager {
 			return '';
 		}
 
-		// Check if file is readable
 		if ( ! is_readable( $log_file ) ) {
 			return new WP_Error(
 				'log_read_error',
@@ -87,7 +86,6 @@ class SCD_Log_Manager {
 			);
 		}
 
-		// Get log contents
 		$contents = '';
 		if ( 0 === $lines ) {
 			// Read entire file
@@ -104,7 +102,6 @@ class SCD_Log_Manager {
 			$contents = implode( '', array_slice( $file_lines, -$lines ) );
 		}
 
-		// Sanitize if requested
 		if ( $sanitize ) {
 			$contents = $this->sanitize_log_content( $contents );
 		}
@@ -177,7 +174,6 @@ class SCD_Log_Manager {
 			$stats['lines'] = $line_count;
 		}
 
-		// Get rotated logs count
 		$rotated_logs           = glob( $this->log_dir . '/*.log.*' );
 		$stats['rotated_count'] = is_array( $rotated_logs ) ? count( $rotated_logs ) : 0;
 
@@ -201,14 +197,12 @@ class SCD_Log_Manager {
 		// Generate filename with timestamp
 		$filename = 'scd-plugin-' . gmdate( 'Y-m-d-His' ) . '.log';
 
-		// Set headers for download
 		header( 'Content-Type: text/plain; charset=utf-8' );
 		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
 		header( 'Content-Length: ' . strlen( $log_contents ) );
 		header( 'Pragma: no-cache' );
 		header( 'Expires: 0' );
 
-		// Output sanitized content
 		echo $log_contents;
 		exit;
 	}

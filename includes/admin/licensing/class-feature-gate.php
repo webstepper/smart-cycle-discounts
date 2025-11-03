@@ -116,7 +116,6 @@ class SCD_Feature_Gate {
 	 * @return   bool    True if user has premium or trial access.
 	 */
 	public function is_premium() {
-		// Return cached result if available
 		if ( null !== $this->is_premium_cached ) {
 			return $this->is_premium_cached;
 		}

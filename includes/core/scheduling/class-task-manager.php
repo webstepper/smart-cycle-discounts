@@ -105,7 +105,6 @@ class SCD_Task_Manager {
 	 * @return   void
 	 */
 	private function schedule_task( string $key, array $task ): void {
-		// Load task class
 		$file_path = SCD_INCLUDES_DIR . 'scheduled-tasks/' . $task['file'];
 		if ( file_exists( $file_path ) ) {
 			require_once $file_path;
@@ -116,7 +115,6 @@ class SCD_Task_Manager {
 			wp_schedule_event( time(), $task['schedule'], $task['hook'] );
 		}
 
-		// Add action hook
 		add_action( $task['hook'], array( $this, 'execute_task_' . $key ) );
 	}
 

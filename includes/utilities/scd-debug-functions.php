@@ -289,7 +289,6 @@ if ( ! function_exists( 'scd_debug_end' ) ) {
 	}
 }
 
-// Register shutdown function to log request end
 if ( SCD_DEBUG ) {
 	register_shutdown_function( 'scd_debug_end' );
 }

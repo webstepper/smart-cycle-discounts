@@ -100,7 +100,6 @@ class SCD_Log_Viewer_Handler {
 					)
 				);
 
-				// Return error structure that router expects
 				return array(
 					'success' => false,
 					'message' => __( 'Invalid action', 'smart-cycle-discounts' ),

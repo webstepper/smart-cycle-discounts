@@ -65,7 +65,12 @@ class SCD_Autoloader {
 		// Wizard classes
 		'SCD_Wizard_Manager'               => 'core/wizard/class-wizard-manager.php',
 		'SCD_Wizard_Sidebar'               => 'core/wizard/class-wizard-sidebar.php',
-		'SCD_Sidebar_Base'                 => 'core/wizard/class-sidebar-base.php',
+		'SCD_Wizard_Sidebar_Base'          => 'core/wizard/class-sidebar-base.php',
+		'SCD_Wizard_Sidebar_Basic'         => 'core/wizard/sidebars/class-sidebar-basic.php',
+		'SCD_Wizard_Sidebar_Products'      => 'core/wizard/sidebars/class-sidebar-products.php',
+		'SCD_Wizard_Sidebar_Discounts'     => 'core/wizard/sidebars/class-sidebar-discounts.php',
+		'SCD_Wizard_Sidebar_Schedule'      => 'core/wizard/sidebars/class-sidebar-schedule.php',
+		'SCD_Wizard_Sidebar_Review'        => 'core/wizard/sidebars/class-sidebar-review.php',
 		'SCD_Session_Service'              => 'utilities/class-session-service.php',
 
 		// AJAX classes
@@ -94,7 +99,6 @@ class SCD_Autoloader {
 		// Manager classes
 		'SCD_Customer_Usage_Manager'       => 'core/managers/class-customer-usage-manager.php',
 
-		// Cache classes
 		'SCD_Cache_Manager'                => 'cache/class-cache-manager.php',
 
 		// Validation classes
@@ -322,7 +326,6 @@ class SCD_Autoloader {
 			return;
 		}
 
-		// Check class map first
 		if ( isset( self::$class_map[ $class_name ] ) ) {
 			$file = SCD_INCLUDES_DIR . self::$class_map[ $class_name ];
 			if ( file_exists( $file ) ) {
@@ -350,7 +353,6 @@ class SCD_Autoloader {
 		// Remove SCD_ prefix
 		$class = str_replace( 'SCD_', '', $class_name );
 
-		// Convert to lowercase with hyphens
 		$class = strtolower( str_replace( '_', '-', $class ) );
 
 		// Common paths to check
@@ -370,6 +372,8 @@ class SCD_Autoloader {
 			'core/scheduling/class-' . $class . '.php',
 			'core/cron/class-' . $class . '.php',
 			'core/managers/class-' . $class . '.php',
+			'core/wizard/class-' . $class . '.php',
+			'core/wizard/sidebars/class-' . $class . '.php',
 			'database/class-' . $class . '.php',
 			'database/models/class-' . $class . '.php',
 			'database/repositories/class-' . $class . '.php',

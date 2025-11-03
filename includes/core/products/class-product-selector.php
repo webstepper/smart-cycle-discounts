@@ -91,7 +91,6 @@ class SCD_Product_Selector {
 		add_action( 'before_delete_post', array( $this, 'handle_product_deletion' ), 10, 1 );
 		add_action( 'woocommerce_delete_product', array( $this, 'handle_product_deletion' ), 10, 1 );
 
-		// Add cache invalidation on product updates
 		add_action( 'save_post_product', array( $this, 'handle_product_update' ), 10, 1 );
 		add_action( 'woocommerce_update_product', array( $this, 'handle_product_update' ), 10, 1 );
 	}
@@ -259,7 +258,6 @@ class SCD_Product_Selector {
 				);
 			}
 
-			// Cache the result
 			if ( $this->cache ) {
 				$this->cache->set( $cache_key, $products, 1800 ); // Cache for 30 minutes
 			}
@@ -294,37 +292,30 @@ class SCD_Product_Selector {
 
 		$filtered_ids = $product_ids;
 
-		// Filter by price range
 		if ( isset( $criteria['price_min'] ) || isset( $criteria['price_max'] ) ) {
 			$filtered_ids = $this->filter_by_price_range( $filtered_ids, $criteria );
 		}
 
-		// Filter by categories
 		if ( ! empty( $criteria['categories'] ) ) {
 			$filtered_ids = $this->filter_by_categories( $filtered_ids, $criteria['categories'] );
 		}
 
-		// Filter by tags
 		if ( ! empty( $criteria['tags'] ) ) {
 			$filtered_ids = $this->filter_by_tags( $filtered_ids, $criteria['tags'] );
 		}
 
-		// Filter by stock status
 		if ( ! empty( $criteria['stock_status'] ) ) {
 			$filtered_ids = $this->filter_by_stock_status( $filtered_ids, $criteria['stock_status'] );
 		}
 
-		// Filter by product type
 		if ( ! empty( $criteria['product_type'] ) ) {
 			$filtered_ids = $this->filter_by_product_type( $filtered_ids, $criteria['product_type'] );
 		}
 
-		// Filter by featured status
 		if ( isset( $criteria['featured'] ) ) {
 			$filtered_ids = $this->filter_by_featured_status( $filtered_ids, $criteria['featured'] );
 		}
 
-		// Filter by sale status
 		if ( isset( $criteria['on_sale'] ) ) {
 			$filtered_ids = $this->filter_by_sale_status( $filtered_ids, $criteria['on_sale'] );
 		}
@@ -455,7 +446,6 @@ class SCD_Product_Selector {
 			$filtered_ids = $this->get_random_products( $filtered_ids, intval( $criteria['random_count'] ) );
 		}
 
-		// Filter by product type (for complex types)
 		if ( ! empty( $criteria['product_type'] ) ) {
 			$filtered_ids = array_filter(
 				$filtered_ids,
@@ -466,7 +456,6 @@ class SCD_Product_Selector {
 			);
 		}
 
-		// Filter by sale status
 		if ( isset( $criteria['on_sale'] ) ) {
 			$filtered_ids = array_filter(
 				$filtered_ids,
@@ -477,7 +466,6 @@ class SCD_Product_Selector {
 			);
 		}
 
-		// Filter by custom attributes
 		if ( ! empty( $criteria['attributes'] ) ) {
 			$filtered_ids = $this->filter_by_attributes( $filtered_ids, $criteria['attributes'] );
 		}
@@ -676,7 +664,6 @@ class SCD_Product_Selector {
 	 * @return   array                    Random product IDs.
 	 */
 	public function get_random_products( array $product_ids, int $count ): array {
-		// Validate count
 		if ( $count <= 0 ) {
 			$this->logger->warning(
 				'Random product count must be positive',
@@ -712,7 +699,6 @@ class SCD_Product_Selector {
 	 */
 	public function clear_cache(): void {
 		if ( $this->cache ) {
-			// Clear cache using flush since we don't have delete_group
 			// Or delete specific keys if we know them
 			$this->cache->flush();
 			$this->logger->debug( 'Product selector cache cleared' );
@@ -766,7 +752,6 @@ class SCD_Product_Selector {
 				continue;
 			}
 
-			// Check if product exists and is published
 			$post_status = get_post_status( $product_id );
 
 			if ( false === $post_status ) {
@@ -829,10 +814,8 @@ class SCD_Product_Selector {
 		);
 
 		try {
-			// Get total products
 			$stats['total_products'] = wp_count_posts( 'product' )->publish;
 
-			// Get in-stock products
 			$in_stock_query             = new WP_Query(
 				array(
 					'post_type'      => 'product',
@@ -850,7 +833,6 @@ class SCD_Product_Selector {
 			);
 			$stats['in_stock_products'] = $in_stock_query->found_posts;
 
-			// Get featured products
 			$featured_query             = new WP_Query(
 				array(
 					'post_type'      => 'product',
@@ -868,7 +850,6 @@ class SCD_Product_Selector {
 			);
 			$stats['featured_products'] = $featured_query->found_posts;
 
-			// Get categories and tags count
 			$stats['categories_count'] = wp_count_terms( 'product_cat' );
 			$stats['tags_count']       = wp_count_terms( 'product_tag' );
 
@@ -904,7 +885,6 @@ class SCD_Product_Selector {
 		}
 
 		try {
-			// Build query arguments using shared method
 			$query_args = $this->build_product_query_args( $category_ids, $conditions, $limit );
 
 			$query       = new WP_Query( $query_args );
@@ -915,7 +895,6 @@ class SCD_Product_Selector {
 				$product_ids = $this->condition_engine->apply_conditions( $product_ids, $conditions );
 			}
 
-			// Cache the result
 			if ( $this->cache ) {
 				$this->cache->set( $cache_key, $product_ids, 1800 );
 			}
@@ -972,14 +951,12 @@ class SCD_Product_Selector {
 			return array();
 		}
 
-		// Get all eligible products from categories
 		$all_products = $this->select_by_categories( $category_ids, $conditions );
 
 		if ( empty( $all_products ) ) {
 			return array();
 		}
 
-		// Return random selection
 		return $this->get_random_products( $all_products, $count );
 	}
 
@@ -1002,7 +979,6 @@ class SCD_Product_Selector {
 		}
 
 		try {
-			// Build query arguments using shared method (with reasonable limit for counting)
 			$query_args = $this->build_product_query_args( $category_ids, $conditions, 1000 );
 
 			$query       = new WP_Query( $query_args );
@@ -1015,7 +991,6 @@ class SCD_Product_Selector {
 
 			$count = count( $product_ids );
 
-			// Cache the result
 			if ( $this->cache ) {
 				$this->cache->set( $cache_key, $count, 1800 );
 			}
@@ -1058,7 +1033,6 @@ class SCD_Product_Selector {
 			),
 		);
 
-		// Add category filter if not 'all' and has specific categories
 		if ( ! in_array( 'all', $category_ids, true ) && ! empty( $category_ids ) ) {
 			$query_args['tax_query'] = array(
 				array(
@@ -1119,7 +1093,6 @@ class SCD_Product_Selector {
 				),
 			);
 
-			// Add category filter if specified
 			if ( ! empty( $category_ids ) && ! in_array( 'all', $category_ids ) ) {
 				$query_args['tax_query'] = array(
 					array(
@@ -1167,7 +1140,6 @@ class SCD_Product_Selector {
 				);
 			}
 
-			// Cache the result
 			if ( $this->cache ) {
 				$this->cache->set( $cache_key, $products, 900 ); // Cache for 15 minutes
 			}
@@ -1245,7 +1217,6 @@ class SCD_Product_Selector {
 				);
 			}
 
-			// Cache the result
 			if ( $this->cache ) {
 				$this->cache->set( $cache_key, $products, 1800 );
 			}
@@ -1328,7 +1299,6 @@ class SCD_Product_Selector {
 				}
 			}
 
-			// Cache the result
 			if ( $this->cache ) {
 				$this->cache->set( $cache_key, $hierarchy, 3600 );
 			}
@@ -1357,19 +1327,16 @@ class SCD_Product_Selector {
 	public function validate_selection_config( array $config ): array {
 		$errors = array();
 
-		// Validate selection type
 		if ( ! isset( $config['product_selection_type'] ) ) {
 			$errors[] = __( 'Product selection type is required.', 'smart-cycle-discounts' );
 		} elseif ( ! in_array( $config['product_selection_type'], array( 'all_products', 'random_products', 'specific_products', 'smart_selection' ) ) ) {
 			$errors[] = __( 'Invalid selection type.', 'smart-cycle-discounts' );
 		}
 
-		// Validate categories
 		if ( ! isset( $config['categories'] ) || ! is_array( $config['categories'] ) ) {
 			$errors[] = __( 'Categories selection is required.', 'smart-cycle-discounts' );
 		}
 
-		// Validate based on selection type
 		switch ( $config['product_selection_type'] ?? '' ) {
 			case 'random_products':
 				if ( ! isset( $config['random_count'] ) || ! is_numeric( $config['random_count'] ) || $config['random_count'] <= 0 ) {
@@ -1384,7 +1351,6 @@ class SCD_Product_Selector {
 				break;
 		}
 
-		// Validate conditions if present
 		if ( ! empty( $config['conditions'] ) && $this->condition_engine ) {
 			foreach ( $config['conditions'] as $condition ) {
 				if ( ! $this->condition_engine->validate_condition( $condition ) ) {
@@ -1422,7 +1388,6 @@ class SCD_Product_Selector {
 			$conditions       = $config['conditions'] ?? array();
 			$conditions_logic = $config['conditions_logic'] ?? 'all';
 
-			// Create criteria array that includes conditions_logic
 			$criteria = array(
 				'conditions'       => $conditions,
 				'conditions_logic' => $conditions_logic,
@@ -1467,7 +1432,6 @@ class SCD_Product_Selector {
 
 				case 'smart_selection':
 					$smart_criterion = $config['smart_criteria'] ?? '';
-					// Convert single criterion to array for processing
 					$criteria_array = $smart_criterion ? array( $smart_criterion ) : array();
 					$product_ids    = $this->select_by_smart_criteria( $criteria_array, $config['categories'] ?? array( 'all' ), $conditions );
 					break;
@@ -1609,7 +1573,6 @@ class SCD_Product_Selector {
 				continue;
 			}
 
-			// Build values array from value and value2
 			$values = array();
 			if ( isset( $condition['value'] ) && '' !== $condition['value'] ) {
 				$values[] = $condition['value'];
@@ -1663,7 +1626,6 @@ class SCD_Product_Selector {
 			)
 		);
 
-		// Clear product selection cache
 		if ( $this->cache ) {
 			$this->cache->flush();
 		}
@@ -1705,7 +1667,6 @@ class SCD_Product_Selector {
 			)
 		);
 
-		// Clear product selection cache to reflect updates
 		if ( $this->cache ) {
 			$this->cache->flush();
 		}

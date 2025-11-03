@@ -15,7 +15,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-// Load wizard helpers trait
 require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
 
 /**
@@ -62,7 +61,6 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 		// NOTE: Coverage preview is FREE - shows what WOULD be covered (exploration feature)
 		// License protection happens at campaign SAVE level (in save-step-handler)
 
-		// Get campaign data from state service
 		$state_service = $this->_get_state_service();
 		if ( ! $state_service ) {
 			return $this->error(
@@ -72,7 +70,6 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Get all step data
 		$basic_data     = $state_service->get_step_data( 'basic' );
 		$products_data  = $state_service->get_step_data( 'products' );
 		$discounts_data = $state_service->get_step_data( 'discounts' );
@@ -88,7 +85,6 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Calculate coverage
 		$coverage = $this->_calculate_coverage( $basic_data, $products_data, $discounts_data );
 
 		return $this->success( $coverage );
@@ -105,7 +101,6 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array                      Coverage data.
 	 */
 	private function _calculate_coverage( $basic_data, $products_data, $discounts_data ) {
-		// Get matched products
 		$selection_type = isset( $products_data['product_selection_type'] ) ? $products_data['product_selection_type'] : 'all_products';
 		$product_ids    = isset( $products_data['product_ids'] ) ? $products_data['product_ids'] : array();
 		$category_ids   = isset( $products_data['category_ids'] ) ? $products_data['category_ids'] : array();
@@ -117,7 +112,6 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 		$exclusions        = array();
 		$excluded_products = array();
 
-		// Check for sale items exclusion
 		$apply_to_sale_items = isset( $discounts_data['apply_to_sale_items'] ) ? (bool) $discounts_data['apply_to_sale_items'] : false;
 
 		if ( ! $apply_to_sale_items ) {
@@ -132,7 +126,6 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 			}
 		}
 
-		// Check for campaign conflicts
 		$priority            = isset( $basic_data['priority'] ) ? intval( $basic_data['priority'] ) : 3;
 		$conflicted_products = $this->_get_conflicted_products( $priority, $selection_type, $product_ids, $category_ids );
 
@@ -145,10 +138,8 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Remove duplicates
 		$excluded_products = array_unique( $excluded_products );
 
-		// Calculate final coverage
 		$products_discounted = $total_matched - count( $excluded_products );
 
 		// For random products, the "actually discounted" is limited by random_count
@@ -160,7 +151,6 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 
 		$coverage_percentage = $total_matched > 0 ? round( ( $products_discounted / $total_matched ) * 100 ) : 0;
 
-		// Get total products in store for context
 		$all_products         = $this->_get_all_product_ids();
 		$total_store_products = count( $all_products );
 
@@ -223,7 +213,6 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 			return array();
 		}
 
-		// Filter out 'all' if present
 		$category_ids = array_filter( $category_ids, array( $this, 'filter_valid_category_id' ) );
 
 		if ( empty( $category_ids ) ) {
@@ -282,7 +271,6 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array                       Array of conflicted product IDs.
 	 */
 	private function _get_conflicted_products( $priority, $selection_type, $product_ids, $category_ids ) {
-		// Get active campaigns with higher priority
 		$active_campaigns = $this->_get_active_campaigns();
 
 		if ( empty( $active_campaigns ) ) {
@@ -291,7 +279,6 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 
 		$conflicted = array();
 
-		// Get products from new campaign
 		$new_campaign_products = $this->_get_matched_products( $selection_type, $product_ids, $category_ids );
 
 		foreach ( $active_campaigns as $campaign ) {
@@ -302,7 +289,6 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 				continue;
 			}
 
-			// Get existing campaign products
 			$existing_products = $this->_get_campaign_products( $campaign );
 
 			// Find intersection

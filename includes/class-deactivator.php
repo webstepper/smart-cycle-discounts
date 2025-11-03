@@ -38,19 +38,16 @@ class SCD_Deactivator {
 	 * @since    1.0.0
 	 */
 	public static function deactivate(): void {
-		// Clear scheduled cron jobs
 		self::clear_cron_jobs();
 
 		// Deactivate all active campaigns
 		self::deactivate_campaigns();
 
-		// Clear cache
 		self::clear_cache();
 
 		// Flush rewrite rules
 		self::flush_rewrite_rules();
 
-		// Set deactivation timestamp
 		self::set_deactivation_timestamp();
 
 		// Log deactivation
@@ -104,12 +101,10 @@ class SCD_Deactivator {
 		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
 		$discounts_table = $wpdb->prefix . 'scd_active_discounts';
 
-		// Check if tables exist
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $campaigns_table ) ) !== $campaigns_table ) {
 			return;
 		}
 
-		// Update all active campaigns to paused status
 		$wpdb->update(
 			$campaigns_table,
 			array(
@@ -123,7 +118,6 @@ class SCD_Deactivator {
 			array( '%s' )
 		);
 
-		// Update all active discounts to paused status
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $discounts_table ) ) === $discounts_table ) {
 			$wpdb->update(
 				$discounts_table,
@@ -192,12 +186,10 @@ class SCD_Deactivator {
 			)
 		);
 
-		// Clear object cache if available
 		if ( function_exists( 'wp_cache_flush' ) ) {
 			wp_cache_flush();
 		}
 
-		// Clear file-based cache
 		$upload_dir = wp_upload_dir();
 		$cache_dir  = $upload_dir['basedir'] . '/smart-cycle-discounts/cache';
 
@@ -205,7 +197,6 @@ class SCD_Deactivator {
 			self::delete_directory_contents( $cache_dir );
 		}
 
-		// Clear any WooCommerce cache
 		if ( function_exists( 'wc_delete_product_transients' ) ) {
 			// This will be handled by WooCommerce's own cache clearing
 		}
@@ -252,14 +243,12 @@ class SCD_Deactivator {
 
 		// Log to WordPress debug log if enabled
 		if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
-			// Load logger if not already loaded
 			if ( ! class_exists( 'SCD_Log' ) ) {
 				require_once SCD_PLUGIN_DIR . 'includes/utilities/class-scd-log.php';
 			}
 			SCD_Log::info( 'Plugin Deactivated', $log_data );
 		}
 
-		// Store deactivation log in database
 		$logs   = get_option( 'scd_deactivation_logs', array() );
 		$logs[] = $log_data;
 
@@ -391,7 +380,6 @@ class SCD_Deactivator {
 			'manage_scd_settings',
 		);
 
-		// Remove capabilities from administrator role
 		$admin_role = get_role( 'administrator' );
 		if ( $admin_role ) {
 			foreach ( $capabilities as $capability ) {
@@ -399,7 +387,6 @@ class SCD_Deactivator {
 			}
 		}
 
-		// Remove capabilities from shop manager role
 		$shop_manager_role = get_role( 'shop_manager' );
 		if ( $shop_manager_role ) {
 			foreach ( $capabilities as $capability ) {
@@ -427,7 +414,6 @@ class SCD_Deactivator {
 		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
 
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $campaigns_table ) ) === $campaigns_table ) {
-			// Get campaign counts
 			$stats['campaigns_count'] = (int) $wpdb->get_var(
 				$wpdb->prepare(
 					'SELECT COUNT(*) FROM %i WHERE deleted_at IS NULL',
@@ -443,7 +429,6 @@ class SCD_Deactivator {
 				)
 			);
 
-			// Get revenue and orders totals
 			$totals = $wpdb->get_row(
 				$wpdb->prepare(
 					'SELECT SUM(revenue_generated) as total_revenue, SUM(orders_count) as total_orders 
@@ -512,7 +497,6 @@ class SCD_Deactivator {
 	 * @access   private
 	 */
 	private static function preserve_data(): void {
-		// Create a backup of important settings
 		$important_data = array(
 			'settings'       => get_option( 'scd_settings' ),
 			'version'        => get_option( 'scd_version' ),
@@ -530,12 +514,10 @@ class SCD_Deactivator {
 	 * @return   bool    True if temporary, false if permanent.
 	 */
 	private static function is_temporary_deactivation(): bool {
-		// Check if this is part of an update process
 		if ( defined( 'WP_INSTALLING' ) && WP_INSTALLING ) {
 			return true;
 		}
 
-		// Check if user is updating the plugin
 		if ( isset( $_GET['action'] ) && 'upgrade-plugin' === sanitize_text_field( wp_unslash( $_GET['action'] ) ) ) {
 			return true;
 		}

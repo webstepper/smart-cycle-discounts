@@ -351,7 +351,6 @@ class SCD_Wizard_Validation {
 					$end_date = new DateTime( $validated['schedule']['end_date'], $timezone );
 					$now      = new DateTime( 'now', $timezone );
 
-					// Validate end_date is in the future
 					if ( $end_date < $now ) {
 						$errors->add( 'end_date_past', __( 'End date must be in the future', 'smart-cycle-discounts' ) );
 					}
@@ -481,16 +480,12 @@ class SCD_Wizard_Validation {
 		$errors    = new WP_Error();
 		$validated = array();
 
-		// Validate required campaign fields
 		self::validate_required_campaign_fields( $data, $validated, $errors );
 
-		// Validate discount configuration
 		self::validate_discount_config( $data, $validated, $errors );
 
-		// Validate product configuration
 		self::validate_product_config( $data, $validated, $errors );
 
-		// Validate schedule configuration
 		self::validate_schedule_config( $data, $validated, $errors );
 
 		return $errors->has_errors() ? $errors : $validated;
@@ -528,7 +523,6 @@ class SCD_Wizard_Validation {
 			}
 		}
 
-		// Validate other update fields as needed
 		if ( isset( $data['priority'] ) ) {
 			$priority = absint( $data['priority'] );
 			if ( $priority < 1 || $priority > 5 ) {
@@ -625,7 +619,6 @@ class SCD_Wizard_Validation {
 
 		$validated['product_selection_type'] = sanitize_key( $data['product_selection_type'] );
 
-		// Validate based on selection type
 		if ( 'specific_products' === $validated['product_selection_type'] ) {
 			if ( empty( $data['product_ids'] ) || ! is_array( $data['product_ids'] ) ) {
 				$errors->add( 'missing_product_ids', __( 'Product IDs are required for specific products selection', 'smart-cycle-discounts' ) );

@@ -51,7 +51,6 @@ class SCD_Notice_Suppressor {
 			return;
 		}
 
-		// Remove all admin_notices hooks except WordPress core and our own
 		$this->remove_third_party_notice_hooks();
 	}
 
@@ -69,12 +68,10 @@ class SCD_Notice_Suppressor {
 			return false;
 		}
 
-		// Check if screen ID contains our plugin identifiers
 		if ( false !== strpos( $screen->id, 'smart-cycle-discounts' ) || false !== strpos( $screen->id, 'scd-' ) ) {
 			return true;
 		}
 
-		// Check query string parameters
 		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
 
 		if ( false !== strpos( $page, 'smart-cycle-discounts' ) || false !== strpos( $page, 'scd-' ) ) {
@@ -94,12 +91,10 @@ class SCD_Notice_Suppressor {
 	private function remove_third_party_notice_hooks() {
 		global $wp_filter;
 
-		// Check if admin_notices hook exists
 		if ( ! isset( $wp_filter['admin_notices'] ) ) {
 			return;
 		}
 
-		// Get all registered admin_notices callbacks
 		$notice_hooks = $wp_filter['admin_notices'];
 
 		// Whitelist: These are allowed to show notices
@@ -117,12 +112,10 @@ class SCD_Notice_Suppressor {
 			'Freemius',
 		);
 
-		// Iterate through each priority level
 		foreach ( $notice_hooks as $priority => $hooks ) {
 			foreach ( $hooks as $hook_name => $hook_data ) {
 				$should_remove = true;
 
-				// Extract callback information
 				$callback = $hook_data['function'];
 
 				// Determine callback identifier
@@ -136,7 +129,6 @@ class SCD_Notice_Suppressor {
 						$class_name = '';
 					}
 
-					// Check if class is in our whitelist
 					foreach ( $allowed_prefixes as $prefix ) {
 						if ( 0 === strpos( $class_name, $prefix ) ) {
 							$should_remove = false;
@@ -163,7 +155,6 @@ class SCD_Notice_Suppressor {
 					}
 				}
 
-				// Remove third-party notice
 				if ( $should_remove ) {
 					remove_action( 'admin_notices', $callback, $priority );
 				}

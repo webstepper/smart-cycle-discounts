@@ -139,7 +139,6 @@ class SCD_REST_API_Manager {
 	 * @return   void
 	 */
 	public function register_routes(): void {
-		// Register namespace
 		register_rest_route(
 			$this->namespace,
 			'',
@@ -150,7 +149,6 @@ class SCD_REST_API_Manager {
 			)
 		);
 
-		// Register all endpoints
 		foreach ( $this->endpoints as $endpoint ) {
 			$endpoint->register_routes();
 		}
@@ -171,7 +169,6 @@ class SCD_REST_API_Manager {
 	 * @return   void
 	 */
 	public function register_fields(): void {
-		// Add custom fields to WooCommerce products
 		register_rest_field(
 			'product',
 			'scd_discount_info',
@@ -309,7 +306,6 @@ class SCD_REST_API_Manager {
 		// Add API version header
 		$result->header( 'X-SCD-API-Version', $this->version );
 
-		// Add rate limit headers
 		if ( $this->rate_limiting_enabled ) {
 			$rate_limit_info = $this->get_rate_limit_info( $request );
 			$result->header( 'X-RateLimit-Limit', (string) $rate_limit_info['limit'] );
@@ -317,7 +313,6 @@ class SCD_REST_API_Manager {
 			$result->header( 'X-RateLimit-Reset', (string) $rate_limit_info['reset'] );
 		}
 
-		// Add caching headers for GET requests
 		if ( $request->get_method() === 'GET' ) {
 			$result->header( 'Cache-Control', 'public, max-age=300' );
 			$result->header( 'ETag', $this->generate_etag( $request, $result ) );
@@ -430,7 +425,6 @@ class SCD_REST_API_Manager {
 	 * @return   void
 	 */
 	private function register_core_endpoints(): void {
-		// Register core controllers
 		$core_endpoints = array(
 			'SCD_Campaigns_Controller',
 			'SCD_Discounts_Controller',
@@ -454,10 +448,8 @@ class SCD_REST_API_Manager {
 		$client_ip = $this->get_client_ip();
 		$user_id   = get_current_user_id();
 
-		// Create rate limit key
 		$rate_limit_key = 'scd_rate_limit_' . ( $user_id ?: $client_ip );
 
-		// Get current requests count
 		$current_requests = get_transient( $rate_limit_key ) ?: 0;
 		$rate_limit       = $this->get_rate_limit_for_request( $request );
 

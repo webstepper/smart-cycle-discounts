@@ -15,7 +15,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-// Load wizard helpers trait
 require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
 
 /**
@@ -62,7 +61,6 @@ class SCD_Calculate_Discount_Impact_Handler extends SCD_Abstract_Ajax_Handler {
 		// NOTE: Discount impact preview is FREE - shows what discount WOULD do (teaser feature)
 		// License protection happens at campaign SAVE level (in save-step-handler)
 
-		// Get validated wizard state using trait helper
 		$wizard_state = $this->_get_validated_wizard_state( __( 'Configure discount to see impact', 'smart-cycle-discounts' ) );
 
 		if ( is_wp_error( $wizard_state ) ) {
@@ -82,7 +80,6 @@ class SCD_Calculate_Discount_Impact_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Extract validated data
 		$product_ids    = $wizard_state['product_ids'];
 		$discounts_data = $wizard_state['discounts_data'];
 
@@ -95,7 +92,6 @@ class SCD_Calculate_Discount_Impact_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Calculate impact
 		$impact = $this->_calculate_impact( $product_ids, $discounts_data );
 
 		return $this->success( $impact );
@@ -118,7 +114,6 @@ class SCD_Calculate_Discount_Impact_Handler extends SCD_Abstract_Ajax_Handler {
 		$sample_ids = array_slice( $product_ids, 0, 5 );
 		$examples   = array();
 
-		// Calculate total revenue impact
 		$total_original   = 0;
 		$total_discounted = 0;
 
@@ -142,7 +137,6 @@ class SCD_Calculate_Discount_Impact_Handler extends SCD_Abstract_Ajax_Handler {
 			$total_original   += $original_price;
 			$total_discounted += $discounted_price;
 
-			// Add to examples if in sample
 			if ( in_array( $product_id, $sample_ids, true ) ) {
 				$examples[] = array(
 					'name'       => $product->get_name(),

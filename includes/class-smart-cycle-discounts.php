@@ -252,13 +252,12 @@ class Smart_Cycle_Discounts {
 		require_once SCD_INCLUDES_DIR . 'core/wizard/class-sidebar-base.php';
 		require_once SCD_INCLUDES_DIR . 'utilities/class-session-lock-service.php';
 
-		// Load Phase 1 & 2 services
+		// Load wizard services
 		require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-step-registry.php';
 		require_once SCD_INCLUDES_DIR . 'core/wizard/class-idempotency-service.php';
 		require_once SCD_INCLUDES_DIR . 'core/wizard/class-step-data-transformer.php';
 		require_once SCD_INCLUDES_DIR . 'core/wizard/class-campaign-change-tracker.php';
 
-		// Load exceptions
 		if ( ! class_exists( 'SCD_Concurrent_Modification_Exception' ) ) {
 			require_once SCD_INCLUDES_DIR . 'core/exceptions/class-concurrent-modification-exception.php';
 		}
@@ -283,7 +282,7 @@ class Smart_Cycle_Discounts {
 		require_once SCD_INCLUDES_DIR . 'core/discounts/class-discount-applicator.php';
 
 		/**
-		 * Load enhanced product selection components
+		 * Load product selection components
 		 */
 		require_once SCD_INCLUDES_DIR . 'core/products/class-product-selector.php';
 		require_once SCD_INCLUDES_DIR . 'core/products/class-product-filter.php';
@@ -318,7 +317,6 @@ class Smart_Cycle_Discounts {
 		require_once SCD_INCLUDES_DIR . 'admin/pages/class-campaigns-page.php';
 		require_once SCD_INCLUDES_DIR . 'admin/pages/dashboard/class-main-dashboard-page.php';
 
-		// Load list table class if in admin
 		if ( is_admin() ) {
 			require_once SCD_INCLUDES_DIR . 'admin/components/class-campaigns-list-table.php';
 		}
@@ -368,7 +366,6 @@ class Smart_Cycle_Discounts {
 	 * @access   private
 	 */
 	private function init_error_handling(): void {
-		// Load error handler class if not already loaded
 		if ( ! class_exists( 'SCD_Error_Handler' ) ) {
 			require_once SCD_PLUGIN_DIR . 'includes/utilities/class-error-handler.php';
 		}
@@ -390,10 +387,8 @@ class Smart_Cycle_Discounts {
 			require_once SCD_INCLUDES_DIR . 'bootstrap/class-container.php';
 		}
 
-		// Create the full dependency injection container
 		$this->container = new SCD_Container();
 
-		// Set static reference for global access
 		self::$static_container = $this->container;
 
 		// Also set in GLOBALS for AJAX handlers
@@ -415,14 +410,12 @@ class Smart_Cycle_Discounts {
 			require_once SCD_INCLUDES_DIR . 'cache/class-cache-manager.php';
 		}
 
-		// Initialize service registry to register all services
 		if ( ! class_exists( 'SCD_Service_Registry' ) ) {
 			require_once SCD_INCLUDES_DIR . 'bootstrap/class-service-registry.php';
 		}
 
 		$service_registry = new SCD_Service_Registry( $this->container );
 
-		// Register all services with validation and error handling
 		$result = $service_registry->register_all_services();
 
 		if ( ! $result ) {
@@ -454,7 +447,6 @@ class Smart_Cycle_Discounts {
 	 * @access   public
 	 */
 	public function handle_ajax_request(): void {
-		// Load the AJAX router and delegate to it
 		require_once SCD_INCLUDES_DIR . 'admin/ajax/class-ajax-router.php';
 
 		if ( class_exists( 'SCD_Ajax_Router' ) ) {
@@ -481,7 +473,6 @@ class Smart_Cycle_Discounts {
 	private function set_locale(): void {
 		$plugin_i18n = new SCD_i18n();
 
-		// Load translations on 'init' hook (WordPress 6.7+ requirement)
 		$this->loader->add_action( 'init', $plugin_i18n, 'load_plugin_textdomain' );
 	}
 
@@ -510,18 +501,15 @@ class Smart_Cycle_Discounts {
 	private function define_admin_hooks(): void {
 		$plugin_admin = new SCD_Admin( $this->get_plugin_name(), $this->get_version(), $this->container );
 
-		// Initialize license manager to register hooks for health checks
 		if ( $this->container->has( 'license_manager' ) ) {
 			$this->container->get( 'license_manager' );
 		}
 
-		// Initialize license notices to register admin notice hooks
 		if ( $this->container->has( 'license_notices' ) ) {
 			$license_notices = $this->container->get( 'license_notices' );
 			$license_notices->init();
 		}
 
-		// Initialize upgrade prompt manager to register AJAX handlers
 		if ( $this->container->has( 'upgrade_prompt_manager' ) ) {
 			$this->container->get( 'upgrade_prompt_manager' );
 		}
@@ -532,25 +520,21 @@ class Smart_Cycle_Discounts {
 			$ajax_router->init();
 		}
 
-		// Initialize admin manager to register its hooks
 		if ( $this->container->has( 'admin_manager' ) ) {
 			$admin_manager = $this->container->get( 'admin_manager' );
 			$admin_manager->init();
 		}
 
-		// Initialize analytics collector to register scheduled action handlers
 		if ( $this->container->has( 'analytics_collector' ) ) {
 			$analytics_collector = $this->container->get( 'analytics_collector' );
 			$analytics_collector->init();
 		}
 
-		// Initialize email manager to register notification hooks
 		if ( $this->container->has( 'email_manager' ) ) {
 			$email_manager = $this->container->get( 'email_manager' );
 			$email_manager->init();
 		}
 
-		// Initialize security headers
 		if ( $this->container->has( 'security_headers' ) ) {
 			$security_headers = $this->container->get( 'security_headers' );
 			$this->loader->add_action( 'init', $security_headers, 'set_headers' );
@@ -563,7 +547,6 @@ class Smart_Cycle_Discounts {
 			$menu_manager->set_admin( $plugin_admin );
 		}
 
-		// Initialize campaigns page to register its admin_post hooks early
 		if ( $this->container->has( 'campaigns_page' ) ) {
 			$this->container->get( 'campaigns_page' ); // This will instantiate it and run constructor
 		}
@@ -596,26 +579,21 @@ class Smart_Cycle_Discounts {
 				SCD_Log::warning( 'WooCommerce class not found' );
 		}
 
-		// Initialize currency change system
 		if ( $this->container->has( 'campaign_repository' ) ) {
 			$campaign_repository = $this->container->get( 'campaign_repository' );
 			$currency_service    = new SCD_Currency_Change_Service( $campaign_repository );
 			$currency_service->init();
 
-			// Initialize currency notices
 			$currency_notices = new SCD_Currency_Change_Notices();
 			$currency_notices->init();
 
-			// Initialize currency review page
 			$currency_review_page = new SCD_Currency_Review_Page( $currency_service );
 			$currency_review_page->init();
 		}
 
-		// Initialize campaign expiration notices
 		$expiration_notices = new SCD_Campaign_Expiration_Notices();
 		$expiration_notices->init();
 
-		// Initialize campaign cron diagnostic page (Tools > Campaign Cron)
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			require_once SCD_INCLUDES_DIR . 'admin/pages/class-campaign-cron-diagnostic.php';
 			$cron_diagnostic = new SCD_Campaign_Cron_Diagnostic();
@@ -830,7 +808,6 @@ class Smart_Cycle_Discounts {
 	 * @access   private
 	 */
 	private function run_update_procedures(): void {
-		// Check if database needs updating
 		$current_db_version = get_option( 'scd_db_version', '0.0.0' );
 		if ( version_compare( $current_db_version, SCD_DB_VERSION, '<' ) ) {
 			// Run database migrations
@@ -841,11 +818,9 @@ class Smart_Cycle_Discounts {
 				}
 			}
 
-			// Update database version
 			update_option( 'scd_db_version', SCD_DB_VERSION );
 		}
 
-		// Clear caches
 		if ( $this->container->has( 'cache_manager' ) ) {
 			$cache_manager = $this->container->get( 'cache_manager' );
 			if ( method_exists( $cache_manager, 'flush_all' ) ) {
@@ -951,16 +926,13 @@ class Smart_Cycle_Discounts {
 	 * @access   private
 	 */
 	private function setup_performance_optimizations(): void {
-		// Load performance bootstrapper
 		require_once SCD_INCLUDES_DIR . 'utilities/class-performance-bootstrapper.php';
 
-		// Initialize performance components
 		if ( class_exists( 'SCD_Performance_Bootstrapper' ) ) {
 			try {
 				$performance_bootstrapper = new SCD_Performance_Bootstrapper( $this->loader, $this->container );
 				$performance_bootstrapper->init();
 
-				// Store reference if needed
 				if ( ! $this->container->has( 'performance_bootstrapper' ) ) {
 					$this->container->instance( 'performance_bootstrapper', $performance_bootstrapper );
 				}
@@ -984,7 +956,6 @@ class Smart_Cycle_Discounts {
 			global $wpdb;
 			$table_name = $wpdb->prefix . 'scd_audit_logs';
 
-			// Check if audit log table exists
 			if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name ) {
 				// Clean up old logs (older than 30 days)
 				$deleted = $wpdb->query(
@@ -1052,7 +1023,6 @@ class Smart_Cycle_Discounts {
 	 * @return   void
 	 */
 	public function handle_dynamic_campaign_events( string $tag ) {
-		// Check if this is a campaign activation event
 		if ( preg_match( '/^scd_activate_campaign_(\d+)$/', $tag, $matches ) ) {
 			$campaign_id = absint( $matches[1] );
 			if ( $campaign_id > 0 && $this->container && $this->container->has( 'campaign_event_scheduler' ) ) {
@@ -1062,7 +1032,6 @@ class Smart_Cycle_Discounts {
 			return;
 		}
 
-		// Check if this is a campaign deactivation event
 		if ( preg_match( '/^scd_deactivate_campaign_(\d+)$/', $tag, $matches ) ) {
 			$campaign_id = absint( $matches[1] );
 			if ( $campaign_id > 0 && $this->container && $this->container->has( 'campaign_event_scheduler' ) ) {

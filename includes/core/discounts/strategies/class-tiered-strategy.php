@@ -54,19 +54,16 @@ class SCD_Tiered_Strategy implements SCD_Discount_Strategy_Interface {
 				);
 			}
 
-			// Validate configuration
 			$validation_errors = $this->validate_config( $discount_config );
 			if ( ! empty( $validation_errors ) ) {
 				return SCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'Invalid configuration: ' . implode( ', ', $validation_errors ) );
 			}
 
-			// Get tiers
 			$tiers = $discount_config['tiers'] ?? array();
 			if ( empty( $tiers ) ) {
 				return SCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'No tiers configured' );
 			}
 
-			// Get quantity from context
 			$quantity = isset( $context['quantity'] ) ? absint( $context['quantity'] ) : 1;
 			if ( 1 > $quantity ) {
 				$quantity = 1;
@@ -81,7 +78,6 @@ class SCD_Tiered_Strategy implements SCD_Discount_Strategy_Interface {
 			// Determine application mode (default to per_item for backward compatibility)
 			$apply_to = $discount_config['apply_to'] ?? 'per_item';
 
-			// Calculate discount based on application mode
 			if ( 'order_total' === $apply_to ) {
 				return $this->calculate_order_total_discount( $original_price, $applicable_tier, $quantity );
 			} else {
@@ -146,10 +142,8 @@ class SCD_Tiered_Strategy implements SCD_Discount_Strategy_Interface {
 		$discount_type  = $tier['discount_type'] ?? 'fixed';
 		$discount_value = floatval( $tier['discount_value'] ?? 0 );
 
-		// Calculate order subtotal
 		$order_subtotal = $this->round_currency( $original_price * $quantity );
 
-		// Calculate total discount amount
 		if ( 'percentage' === $discount_type ) {
 			// Percentage of order total
 			$total_discount = $this->round_currency( $order_subtotal * ( $discount_value / 100 ) );
@@ -158,7 +152,6 @@ class SCD_Tiered_Strategy implements SCD_Discount_Strategy_Interface {
 			$total_discount = $this->round_currency( min( $discount_value, $order_subtotal ) );
 		}
 
-		// Calculate final total and per-item price
 		$final_total               = $this->round_currency( max( 0, $order_subtotal - $total_discount ) );
 		$discounted_price_per_item = $this->round_currency( $final_total / $quantity );
 
@@ -186,13 +179,11 @@ class SCD_Tiered_Strategy implements SCD_Discount_Strategy_Interface {
 	public function validate_config( array $discount_config ): array {
 		$errors = array();
 
-		// Validate apply_to mode (default to per_item for backward compatibility)
 		$apply_to = $discount_config['apply_to'] ?? 'per_item';
 		if ( ! in_array( $apply_to, array( 'per_item', 'order_total' ), true ) ) {
 			$errors[] = __( 'Apply to must be either "per_item" or "order_total"', 'smart-cycle-discounts' );
 		}
 
-		// Validate tiers
 		if ( ! isset( $discount_config['tiers'] ) || ! is_array( $discount_config['tiers'] ) ) {
 			$errors[] = __( 'Tiers configuration is required and must be an array', 'smart-cycle-discounts' );
 		} else {
@@ -211,7 +202,6 @@ class SCD_Tiered_Strategy implements SCD_Discount_Strategy_Interface {
 					$errors      = array_merge( $errors, $tier_errors );
 				}
 
-				// Validate tier min_quantity values are in ascending order
 				$quantities = array();
 				foreach ( $tiers as $tier ) {
 					if ( isset( $tier['min_quantity'] ) ) {
@@ -247,7 +237,6 @@ class SCD_Tiered_Strategy implements SCD_Discount_Strategy_Interface {
 		$errors     = array();
 		$tier_label = sprintf( __( 'Tier %d', 'smart-cycle-discounts' ), $index + 1 );
 
-		// Validate min_quantity
 		if ( ! isset( $tier['min_quantity'] ) || ! is_numeric( $tier['min_quantity'] ) ) {
 			$errors[] = sprintf( __( '%s: Minimum quantity is required and must be numeric', 'smart-cycle-discounts' ), $tier_label );
 		} else {
@@ -262,12 +251,10 @@ class SCD_Tiered_Strategy implements SCD_Discount_Strategy_Interface {
 			}
 		}
 
-		// Validate discount type
 		if ( ! isset( $tier['discount_type'] ) || ! in_array( $tier['discount_type'], array( 'percentage', 'fixed' ), true ) ) {
 			$errors[] = sprintf( __( '%s: Discount type must be either "percentage" or "fixed"', 'smart-cycle-discounts' ), $tier_label );
 		}
 
-		// Validate discount value
 		if ( ! isset( $tier['discount_value'] ) || ! is_numeric( $tier['discount_value'] ) ) {
 			$errors[] = sprintf( __( '%s: Discount value is required and must be numeric', 'smart-cycle-discounts' ), $tier_label );
 		} else {
@@ -423,7 +410,6 @@ class SCD_Tiered_Strategy implements SCD_Discount_Strategy_Interface {
 	private function find_applicable_tier( array $tiers, float $value ): ?array {
 		$applicable_tier = null;
 
-		// Sort tiers by min_quantity in descending order to find the highest applicable tier
 		usort(
 			$tiers,
 			function ( $a, $b ) {
@@ -651,7 +637,6 @@ class SCD_Tiered_Strategy implements SCD_Discount_Strategy_Interface {
 			return false;
 		}
 
-		// Extract min_quantity values safely
 		$quantities = array();
 		foreach ( $tiers as $tier ) {
 			if ( isset( $tier['min_quantity'] ) && is_numeric( $tier['min_quantity'] ) ) {
@@ -683,7 +668,6 @@ class SCD_Tiered_Strategy implements SCD_Discount_Strategy_Interface {
 			return null;
 		}
 
-		// Sort tiers by min_quantity in ascending order
 		usort(
 			$tiers,
 			function ( $a, $b ) {

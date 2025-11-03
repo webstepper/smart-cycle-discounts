@@ -42,7 +42,6 @@ class SCD_Debug_Log_Handler {
 			);
 		}
 
-		// Check user capability
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return array(
 				'success' => false,
@@ -52,7 +51,6 @@ class SCD_Debug_Log_Handler {
 			);
 		}
 
-		// Get logs from request
 		$logs_json = isset( $request['logs'] ) ? $request['logs'] : '';
 		if ( empty( $logs_json ) ) {
 			return array(
@@ -104,10 +102,8 @@ class SCD_Debug_Log_Handler {
 	 * @return   true|WP_Error     True on success, WP_Error on failure
 	 */
 	private function write_logs( $logs ) {
-		// Get log file path
 		$log_file = SCD_PLUGIN_DIR . 'debug.log';
 
-		// Format log entries
 		$log_content = '';
 		foreach ( $logs as $log ) {
 			$timestamp = isset( $log['timestamp'] ) ? $log['timestamp'] : gmdate( 'Y-m-d H:i:s' );

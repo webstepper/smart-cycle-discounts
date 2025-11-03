@@ -85,7 +85,6 @@ class SCD_Currency_Change_Service {
 			return;
 		}
 
-		// Get all active campaigns
 		$affected_campaigns = $this->get_affected_campaigns( $old_value );
 
 		if ( empty( $affected_campaigns ) ) {
@@ -95,7 +94,6 @@ class SCD_Currency_Change_Service {
 		// Pause affected campaigns
 		$paused_count = $this->pause_affected_campaigns( $affected_campaigns, $old_value, $new_value );
 
-		// Set admin notice
 		$this->set_currency_change_notice( $paused_count, $old_value, $new_value );
 
 		// Fire action for extensibility
@@ -110,20 +108,17 @@ class SCD_Currency_Change_Service {
 	 * @return   array                      Array of affected campaign objects.
 	 */
 	private function get_affected_campaigns( $old_currency ) {
-		// Load repository if not provided
 		if ( ! $this->campaign_repository ) {
 			require_once SCD_INCLUDES_DIR . 'database/repositories/class-campaign-repository.php';
 			$this->campaign_repository = new SCD_Campaign_Repository();
 		}
 
-		// Get all non-draft campaigns
 		$campaigns = $this->campaign_repository->find_by_status( array( 'active', 'scheduled', 'paused' ) );
 
 		if ( empty( $campaigns ) ) {
 			return array();
 		}
 
-		// Filter to campaigns that need review
 		$affected = array();
 		foreach ( $campaigns as $campaign ) {
 			if ( $this->campaign_needs_review( $campaign, $old_currency ) ) {
@@ -143,7 +138,6 @@ class SCD_Currency_Change_Service {
 	 * @return   bool                             True if needs review.
 	 */
 	private function campaign_needs_review( $campaign, $old_currency ) {
-		// Check if campaign was created in old currency
 		$campaign_currency = $campaign->get_meta( 'currency_code' );
 		if ( $campaign_currency && $campaign_currency !== $old_currency ) {
 			// Campaign was created in different currency, doesn't need review
@@ -186,7 +180,6 @@ class SCD_Currency_Change_Service {
 				continue;
 			}
 
-			// Store original status for potential restoration
 			$original_status = $campaign->get_status();
 			$campaign->set_meta( 'pre_currency_change_status', $original_status );
 
@@ -197,7 +190,6 @@ class SCD_Currency_Change_Service {
 			if ( $campaign->can_transition_to( 'paused' ) ) {
 				$campaign->set_status( 'paused' );
 
-				// Save through repository
 				try {
 					$this->campaign_repository->save( $campaign );
 					++$paused_count;
@@ -253,12 +245,10 @@ class SCD_Currency_Change_Service {
 	 * @return   void
 	 */
 	public function track_campaign_currency( $campaign ) {
-		// Store current currency in campaign metadata
 		$current_currency = get_woocommerce_currency();
 		$campaign->set_meta( 'currency_code', $current_currency );
 		$campaign->set_meta( 'currency_symbol', get_woocommerce_currency_symbol() );
 
-		// Save if repository available
 		if ( $this->campaign_repository ) {
 			try {
 				$this->campaign_repository->save( $campaign );
@@ -284,7 +274,6 @@ class SCD_Currency_Change_Service {
 	 * @return   void
 	 */
 	private function set_currency_change_notice( $paused_count, $old_currency, $new_currency ) {
-		// Store notice in transient for display on next admin page load
 		$notice_data = array(
 			'paused_count' => $paused_count,
 			'old_currency' => $old_currency,
@@ -302,20 +291,17 @@ class SCD_Currency_Change_Service {
 	 * @return   array    Array of campaign objects.
 	 */
 	public function get_campaigns_needing_review() {
-		// Load repository if not provided
 		if ( ! $this->campaign_repository ) {
 			require_once SCD_INCLUDES_DIR . 'database/repositories/class-campaign-repository.php';
 			$this->campaign_repository = new SCD_Campaign_Repository();
 		}
 
-		// Get all campaigns (including paused)
 		$all_campaigns = $this->campaign_repository->find_all();
 
 		if ( empty( $all_campaigns ) ) {
 			return array();
 		}
 
-		// Filter to campaigns needing review
 		$needing_review = array();
 		foreach ( $all_campaigns as $campaign ) {
 			if ( $campaign->get_meta( 'requires_currency_review' ) ) {
@@ -334,7 +320,6 @@ class SCD_Currency_Change_Service {
 	 * @return   bool                   True on success.
 	 */
 	public function clear_review_flag( $campaign_id ) {
-		// Load repository if not provided
 		if ( ! $this->campaign_repository ) {
 			require_once SCD_INCLUDES_DIR . 'database/repositories/class-campaign-repository.php';
 			$this->campaign_repository = new SCD_Campaign_Repository();
@@ -347,7 +332,6 @@ class SCD_Currency_Change_Service {
 				return false;
 			}
 
-			// Clear review flags
 			$campaign->set_meta( 'requires_currency_review', false );
 
 			// Save
@@ -374,7 +358,6 @@ class SCD_Currency_Change_Service {
 	 * @return   bool                   True on success.
 	 */
 	public function restore_campaign_status( $campaign_id ) {
-		// Load repository if not provided
 		if ( ! $this->campaign_repository ) {
 			require_once SCD_INCLUDES_DIR . 'database/repositories/class-campaign-repository.php';
 			$this->campaign_repository = new SCD_Campaign_Repository();
@@ -387,7 +370,6 @@ class SCD_Currency_Change_Service {
 				return false;
 			}
 
-			// Get original status
 			$original_status = $campaign->get_meta( 'pre_currency_change_status' );
 
 			if ( ! $original_status ) {
@@ -398,7 +380,6 @@ class SCD_Currency_Change_Service {
 			if ( $campaign->can_transition_to( $original_status ) ) {
 				$campaign->set_status( $original_status );
 
-				// Clear review flags
 				$campaign->set_meta( 'requires_currency_review', false );
 				$campaign->set_meta( 'pre_currency_change_status', null );
 

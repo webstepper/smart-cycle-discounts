@@ -38,10 +38,8 @@ class SCD_Email_Provider_Factory {
 	 * @throws   Exception                   If provider cannot be created.
 	 */
 	public static function create( $provider, $settings, $logger, $from_email, $from_name ) {
-		// Load provider interface
 		require_once SCD_INCLUDES_DIR . 'integrations/email/interface-email-provider.php';
 
-		// Validate provider type
 		$valid_providers = array( 'wpmail', 'sendgrid', 'amazonses' );
 		if ( ! in_array( $provider, $valid_providers, true ) ) {
 			throw new Exception(
@@ -53,7 +51,6 @@ class SCD_Email_Provider_Factory {
 			);
 		}
 
-		// Create provider instance based on type
 		switch ( $provider ) {
 			case 'sendgrid':
 				return self::create_sendgrid_provider( $settings, $logger, $from_email, $from_name );

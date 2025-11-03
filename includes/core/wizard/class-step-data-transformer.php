@@ -169,7 +169,6 @@ class SCD_Step_Data_Transformer {
 				continue;
 			}
 
-			// Build values array from value and value2
 			$values = $this->extract_condition_values( $condition );
 
 			// Warn if no values provided

@@ -72,7 +72,6 @@ class SCD_Activity_Tracker {
 		$args = array_merge( $defaults, $args );
 
 		try {
-			// Get activities from database
 			$query   = $this->build_activity_query( $args );
 			$results = $this->database_manager->get_results( $query );
 
@@ -80,7 +79,6 @@ class SCD_Activity_Tracker {
 				return array();
 			}
 
-			// Format activities
 			$activities = array();
 			foreach ( $results as $row ) {
 				$activities[] = $this->format_activity( $row );
@@ -118,7 +116,6 @@ class SCD_Activity_Tracker {
 			$type_filter = $wpdb->prepare( ' AND type = %s', $args['type'] );
 		}
 
-		// Get recent campaign activities (created, updated, status changes)
 		$query = $wpdb->prepare(
 			"SELECT
 				id as campaign_id,

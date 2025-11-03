@@ -108,7 +108,6 @@ class SCD_Campaign_Formatter {
 	private function format_name( SCD_Campaign $campaign ): string {
 		$name = esc_html( $campaign->get_name() );
 
-		// Add status indicator if draft
 		if ( $campaign->get_status() === 'draft' ) {
 			$name .= ' <span class="status-indicator">' . __( '(Draft)', 'smart-cycle-discounts' ) . '</span>';
 		}
@@ -481,7 +480,6 @@ class SCD_Campaign_Formatter {
 	private function format_api_data( SCD_Campaign $campaign ): array {
 		$data = $campaign->to_array();
 
-		// Add formatted fields
 		$data['_formatted'] = array(
 			'status'   => $this->format_status( $campaign ),
 			'discount' => $this->format_discount( $campaign ),

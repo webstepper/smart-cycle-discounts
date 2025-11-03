@@ -179,7 +179,6 @@ class SCD_WooCommerce_Integration {
 			return;
 		}
 
-		// Initialize components
 		$this->init_components();
 
 		// Setup hooks immediately
@@ -244,14 +243,12 @@ class SCD_WooCommerce_Integration {
 				$this->log( 'warning', 'Customer usage manager not available in container' );
 			}
 
-			// Initialize discount query service (shared by all sub-integrations)
 			$this->discount_query = new SCD_WC_Discount_Query_Service(
 				$this->campaign_manager,
 				$this->discount_engine,
 				$this->logger
 			);
 
-			// Initialize sub-integrations with dependency injection
 			$this->price_integration = new SCD_WC_Price_Integration(
 				$this->discount_query,
 				$this->customer_usage_manager,
@@ -314,27 +311,22 @@ class SCD_WooCommerce_Integration {
 	 * @return   void
 	 */
 	private function setup_hooks(): void {
-		// Register price integration hooks
 		if ( $this->price_integration ) {
 			$this->price_integration->register_hooks();
 		}
 
-		// Register display hooks (skip during AJAX)
 		if ( ! wp_doing_ajax() && $this->display_integration ) {
 			$this->display_integration->register_hooks();
 		}
 
-		// Register cart message hooks (skip during AJAX)
 		if ( ! wp_doing_ajax() && $this->cart_message_service ) {
 			$this->cart_message_service->register_hooks();
 		}
 
-		// Register admin hooks
 		if ( is_admin() && $this->admin_integration ) {
 			$this->admin_integration->register_hooks();
 		}
 
-		// Register order tracking hooks
 		if ( $this->order_integration ) {
 			$this->order_integration->register_hooks();
 		}

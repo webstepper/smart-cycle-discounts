@@ -47,11 +47,9 @@ class SCD_Discount_API_Handler implements SCD_Ajax_Handler {
 	public function __construct() {
 		$container = SCD_Core_Container::get_instance();
 
-		// Get services
 		// Removed: validation_service - using consolidated SCD_Validation class instead
 		$this->state_service = $container->get( 'wizard.state_service' );
 
-		// Initialize discount engine if needed
 		if ( ! class_exists( 'SCD_Discount_Engine' ) ) {
 			require_once SCD_INCLUDES_DIR . 'core/discounts/class-discount-engine.php';
 		}
@@ -73,7 +71,6 @@ class SCD_Discount_API_Handler implements SCD_Ajax_Handler {
 			);
 		}
 
-		// Check permissions
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			return array(
 				'success' => false,
@@ -81,7 +78,6 @@ class SCD_Discount_API_Handler implements SCD_Ajax_Handler {
 			);
 		}
 
-		// Extract sub-action and validate with whitelist
 		$action = isset( $request['action'] ) ? sanitize_key( $request['action'] ) : '';
 		$action = str_replace( 'scd_', '', $action );
 
@@ -156,7 +152,6 @@ class SCD_Discount_API_Handler implements SCD_Ajax_Handler {
 			);
 		}
 
-		// Check discount engine availability
 		if ( ! $this->discount_engine ) {
 			return array(
 				'success' => false,
@@ -164,7 +159,6 @@ class SCD_Discount_API_Handler implements SCD_Ajax_Handler {
 			);
 		}
 
-		// Get sample product for preview
 		$sample_product = $this->get_sample_product();
 
 		if ( ! $sample_product ) {
@@ -181,7 +175,6 @@ class SCD_Discount_API_Handler implements SCD_Ajax_Handler {
 			1 // quantity
 		);
 
-		// Format preview data
 		$preview_data = $this->format_preview_data( $preview, $config );
 
 		return array(
@@ -203,7 +196,6 @@ class SCD_Discount_API_Handler implements SCD_Ajax_Handler {
 		$product_ids = isset( $request['product_ids'] ) && is_array( $request['product_ids'] ) ? $request['product_ids'] : array();
 		$config      = isset( $request['discount_config'] ) && is_array( $request['discount_config'] ) ? $request['discount_config'] : array();
 
-		// Get products from state if not provided
 		if ( empty( $product_ids ) && $this->state_service ) {
 			$products_data = $this->state_service->get_step_data( 'products' );
 			$product_ids   = isset( $products_data['product_ids'] ) && is_array( $products_data['product_ids'] ) ? $products_data['product_ids'] : array();
@@ -216,7 +208,6 @@ class SCD_Discount_API_Handler implements SCD_Ajax_Handler {
 			);
 		}
 
-		// Calculate impact across all products
 		$impact = $this->discount_engine->calculate_campaign_impact( $product_ids, $config );
 
 		return array(
@@ -246,13 +237,11 @@ class SCD_Discount_API_Handler implements SCD_Ajax_Handler {
 	private function get_warnings_for_rules( $rules ) {
 		$warnings = array();
 
-		// Check for high discounts with safe array access
 		if ( isset( $rules['discount_type'] ) && 'percentage' === $rules['discount_type'] &&
 			isset( $rules['discount_value'] ) && $rules['discount_value'] > 50 ) {
 			$warnings[] = __( 'High discount percentage may impact margins', 'smart-cycle-discounts' );
 		}
 
-		// Check for complex conditions
 		if ( ! empty( $rules['conditions'] ) && count( $rules['conditions'] ) > 3 ) {
 			$warnings[] = __( 'Complex conditions may confuse customers', 'smart-cycle-discounts' );
 		}
@@ -280,7 +269,6 @@ class SCD_Discount_API_Handler implements SCD_Ajax_Handler {
 			return $products[0];
 		}
 
-		// Return mock product
 		return (object) array(
 			'ID'            => 0,
 			'name'          => __( 'Sample Product', 'smart-cycle-discounts' ),

@@ -97,7 +97,6 @@ abstract class SCD_Wizard_Sidebar_Base {
 	 * @return bool
 	 */
 	private function has_documentation_page() {
-		// Check if documentation page is registered
 		global $submenu;
 
 		if ( ! isset( $submenu['scd-campaigns'] ) ) {

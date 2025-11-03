@@ -88,7 +88,6 @@ class SCD_Error_Handler {
 
 		$error_type = $this->error_types[ $errno ] ?? 'Unknown Error';
 
-		// Sanitize file path to remove sensitive information
 		$safe_file = $this->sanitize_file_path( $errfile );
 
 		$error_data = array(
@@ -100,7 +99,6 @@ class SCD_Error_Handler {
 
 		// Only include minimal context in development mode
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
-			// Filter out sensitive data from context
 			$safe_context = $this->sanitize_error_context( $errcontext );
 			if ( ! empty( $safe_context ) ) {
 				$error_data['context_keys'] = array_keys( $safe_context );
@@ -151,7 +149,6 @@ class SCD_Error_Handler {
 	 * @return   void
 	 */
 	public function handle_exception( Throwable $exception ): void {
-		// Sanitize file path
 		$safe_file = $this->sanitize_file_path( $exception->getFile() );
 
 		$error_data = array(
@@ -163,7 +160,6 @@ class SCD_Error_Handler {
 
 		// Only include stack trace in development mode
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
-			// Sanitize stack trace to remove sensitive data
 			$error_data['trace'] = $this->sanitize_stack_trace( $exception->getTrace() );
 		}
 
@@ -275,7 +271,6 @@ class SCD_Error_Handler {
 	 * @return   bool             True if error should be reported.
 	 */
 	public function should_report_error( int $errno ): bool {
-		// Check if error reporting is enabled for this error type
 		return (bool) ( error_reporting() & $errno );
 	}
 
@@ -298,7 +293,6 @@ class SCD_Error_Handler {
 	 * @return   string                  Sanitized file path.
 	 */
 	private function sanitize_file_path( string $file_path ): string {
-		// Remove absolute path up to plugin directory
 		if ( defined( 'SCD_PLUGIN_DIR' ) ) {
 			$file_path = str_replace( SCD_PLUGIN_DIR, 'SCD/', $file_path );
 		}
@@ -308,7 +302,6 @@ class SCD_Error_Handler {
 			$file_path = str_replace( ABSPATH, 'WP/', $file_path );
 		}
 
-		// Remove any remaining sensitive paths
 		$file_path = preg_replace( '/^.*\/plugins\//', 'plugins/', $file_path );
 
 		return $file_path;

@@ -219,7 +219,6 @@ class SCD_Discount {
 	 * @return   array    Validation result.
 	 */
 	public function validate(): array {
-		// Convert object to array for validation
 		$data = $this->to_array();
 
 		// Use centralized validation
@@ -323,7 +322,6 @@ class SCD_Discount {
 
 		$current_time = current_time( 'timestamp' );
 
-		// Check start date
 		if ( ! empty( $this->start_date ) ) {
 			$start_time = strtotime( $this->start_date );
 			if ( $start_time !== false && $current_time < $start_time ) {
@@ -331,7 +329,6 @@ class SCD_Discount {
 			}
 		}
 
-		// Check end date
 		if ( ! empty( $this->end_date ) ) {
 			$end_time = strtotime( $this->end_date );
 			if ( $end_time !== false && $current_time > $end_time ) {

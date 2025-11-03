@@ -105,7 +105,6 @@ abstract class SCD_Base_Repository {
 		$defaults = $this->get_default_query_args();
 		$args     = wp_parse_args( $args, $defaults );
 
-		// Build query using modular components
 		$query_builder = $this->create_query_builder();
 		$query_builder->select( '*' )
 					->from( $this->table_name );
@@ -241,10 +240,8 @@ abstract class SCD_Base_Repository {
 	public function create( array $data ) {
 		global $wpdb;
 
-		// Prepare data
 		$data = $this->prepare_data_for_database( $data );
 
-		// Set timestamps
 		if ( in_array( 'created_at', $this->date_fields, true ) ) {
 			$data['created_at'] = current_time( 'mysql' );
 		}
@@ -286,10 +283,8 @@ abstract class SCD_Base_Repository {
 	public function update( $id, array $data ) {
 		global $wpdb;
 
-		// Prepare data
 		$data = $this->prepare_data_for_database( $data );
 
-		// Update timestamp
 		if ( in_array( 'updated_at', $this->date_fields, true ) ) {
 			$data['updated_at'] = current_time( 'mysql' );
 		}
@@ -328,7 +323,6 @@ abstract class SCD_Base_Repository {
 	public function delete( $id ) {
 		global $wpdb;
 
-		// Check if soft delete is supported
 		if ( in_array( 'deleted_at', $this->date_fields, true ) ) {
 			return $this->soft_delete( $id );
 		}

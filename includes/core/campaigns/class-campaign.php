@@ -247,7 +247,6 @@ class SCD_Campaign {
 	 * @param    array $data    Initial data.
 	 */
 	public function __construct( array $data = array() ) {
-		// Set defaults
 		$this->uuid     = $this->generate_uuid();
 		$this->timezone = wp_timezone_string();
 		// Use UTC timezone for timestamps (consistent with how dates are stored)
@@ -268,7 +267,6 @@ class SCD_Campaign {
 	 * @return   void
 	 */
 	public function fill( array $data ): void {
-		// Set slug first if provided to prevent auto-generation from name
 		if ( isset( $data['slug'] ) ) {
 			$this->set_slug( $data['slug'] );
 			unset( $data['slug'] );
@@ -359,7 +357,6 @@ class SCD_Campaign {
 			'archived'  => array( 'draft' ),
 		);
 
-		// Check if transition is allowed
 		if ( ! isset( $allowed_transitions[ $current_status ] ) ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			}
@@ -445,10 +442,8 @@ class SCD_Campaign {
 	public function set_starts_at( $starts_at ): void {
 		if ( is_string( $starts_at ) ) {
 			// Dates from database are always in UTC (already stored as UTC)
-			// Parse as UTC to avoid double-conversion
 			$this->starts_at = new DateTime( $starts_at, new DateTimeZone( 'UTC' ) );
 		} elseif ( $starts_at instanceof DateTime ) {
-			// Convert to UTC if not already
 			$this->starts_at = clone $starts_at;
 			$this->starts_at->setTimezone( new DateTimeZone( 'UTC' ) );
 		} else {
@@ -463,10 +458,8 @@ class SCD_Campaign {
 	public function set_ends_at( $ends_at ): void {
 		if ( is_string( $ends_at ) ) {
 			// Dates from database are always in UTC (already stored as UTC)
-			// Parse as UTC to avoid double-conversion
 			$this->ends_at = new DateTime( $ends_at, new DateTimeZone( 'UTC' ) );
 		} elseif ( $ends_at instanceof DateTime ) {
-			// Convert to UTC if not already
 			$this->ends_at = clone $ends_at;
 			$this->ends_at->setTimezone( new DateTimeZone( 'UTC' ) );
 		} else {
@@ -652,7 +645,6 @@ class SCD_Campaign {
 	 * @return   array    Array of validation errors (empty if valid).
 	 */
 	public function validate(): array {
-		// Convert campaign data to step data format expected by validation
 		$step_data = array(
 			'campaign_name'          => $this->name,
 			'campaign_description'   => $this->description,
@@ -700,13 +692,11 @@ class SCD_Campaign {
 	 * @return   array    Performance metrics from metadata or empty array.
 	 */
 	public function get_performance_metrics(): array {
-		// Check if metrics are stored in metadata
 		$metadata = $this->get_metadata();
 		if ( isset( $metadata['performance_metrics'] ) && is_array( $metadata['performance_metrics'] ) ) {
 			return $metadata['performance_metrics'];
 		}
 
-		// Return empty array - campaigns list table will show "No data yet"
 		return array();
 	}
 }

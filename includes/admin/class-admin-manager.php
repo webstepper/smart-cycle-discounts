@@ -18,7 +18,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-// Load required files
 require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
 require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-scd-ajax-response.php';
 
@@ -113,10 +112,8 @@ class SCD_Admin_Manager {
 	 * @return   void
 	 */
 	private function init_components(): void {
-		// Initialize components if they exist in container
 		// Note: capability_manager auto-initializes in __construct, no need to call init()
 
-		// Initialize notice suppressor to hide third-party promotional notices
 		$notice_suppressor = new SCD_Notice_Suppressor();
 		$notice_suppressor->init();
 
@@ -154,7 +151,6 @@ class SCD_Admin_Manager {
 	 * @return   void
 	 */
 	public function admin_init(): void {
-		// Check user capabilities
 		if ( $this->container->has( 'capability_manager' ) ) {
 			$capability_manager = $this->container->get( 'capability_manager' );
 			if ( ! $capability_manager->current_user_can( 'manage_campaigns' ) ) {
@@ -162,10 +158,8 @@ class SCD_Admin_Manager {
 			}
 		}
 
-		// Register settings
 		$this->register_settings();
 
-		// Add meta boxes
 		$this->add_meta_boxes();
 
 		// Log if logger is available
@@ -195,7 +189,6 @@ class SCD_Admin_Manager {
 	 * @return   void
 	 */
 	public function admin_notices(): void {
-		// Check if we're on our admin pages
 		$screen = get_current_screen();
 		if ( ! $screen || ! $this->is_scd_admin_screen( $screen ) ) {
 			return;
@@ -359,7 +352,6 @@ class SCD_Admin_Manager {
 	 * @return   void
 	 */
 	private function add_meta_boxes(): void {
-		// Add meta boxes for campaign edit screen
 		add_action(
 			'add_meta_boxes',
 			function () {
@@ -415,12 +407,10 @@ class SCD_Admin_Manager {
 	 * @return   void
 	 */
 	private function display_notices(): void {
-		// Check user capabilities
 		if ( ! $this->can_show_notices() ) {
 			return;
 		}
 
-		// Check for transient notices
 		$notices = get_transient( 'scd_admin_notices' );
 		if ( $notices ) {
 			foreach ( $notices as $notice ) {
@@ -433,7 +423,6 @@ class SCD_Admin_Manager {
 			delete_transient( 'scd_admin_notices' );
 		}
 
-		// Check for persistent notices
 		$this->check_system_requirements();
 		$this->check_woocommerce_compatibility();
 	}
@@ -638,7 +627,6 @@ class SCD_Admin_Manager {
 	 * @return   void
 	 */
 	private function ajax_clear_cache(): void {
-		// Clear plugin cache
 		wp_cache_flush();
 
 		SCD_AJAX_Response::success(
@@ -720,10 +708,8 @@ class SCD_Admin_Manager {
 	 * @return   void
 	 */
 	public function render_campaign_settings_meta_box( WP_Post $post ): void {
-		// Add nonce field
 		wp_nonce_field( 'scd_campaign_meta_box', 'scd_campaign_meta_box_nonce' );
 
-		// Render meta box content
 		echo '<p>' . esc_html__( 'Campaign settings will be displayed here.', 'smart-cycle-discounts' ) . '</p>';
 	}
 

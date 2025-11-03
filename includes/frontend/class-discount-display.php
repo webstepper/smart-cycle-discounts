@@ -109,30 +109,25 @@ class SCD_Discount_Display {
 	private function get_product_discount( WC_Product $product ): ?array {
 		$product_id = $product->get_id();
 
-		// Get active campaigns for the product
 		$campaigns = $this->campaign_manager->get_active_campaigns_for_product( $product_id );
 
 		if ( empty( $campaigns ) ) {
 			return null;
 		}
 
-		// Get the highest priority campaign (first one)
 		$campaign = reset( $campaigns );
 
-		// Get original price
 		$original_price = (float) $product->get_regular_price();
 
 		if ( $original_price <= 0 ) {
 			return null;
 		}
 
-		// Get discount configuration from campaign
 		$discount_config = array(
 			'type'  => $campaign->get_discount_type(),
 			'value' => $campaign->get_discount_value(),
 		);
 
-		// Calculate discount
 		$result = $this->discount_engine->calculate_discount(
 			$original_price,
 			$discount_config,

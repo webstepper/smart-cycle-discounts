@@ -127,10 +127,8 @@ class SCD_Asset_Loader {
 			return;
 		}
 
-		// Load scripts
 		$this->load_scripts();
 
-		// Load styles
 		$this->load_styles();
 
 		// Setup lazy loading if needed
@@ -172,7 +170,6 @@ class SCD_Asset_Loader {
 		} elseif ( strpos( $hook, '_page_scd-' ) !== false ) {
 			// Fallback for any SCD page
 			$context['is_scd_page'] = true;
-			// Extract page name from hook
 			if ( preg_match( '/_page_scd-([a-z]+)/', $hook, $matches ) ) {
 				$context['page'] = 'scd-' . $matches[1];
 			}
@@ -262,7 +259,6 @@ class SCD_Asset_Loader {
 			return false;
 		}
 
-		// Check conditions
 		if ( ! empty( $script['condition'] ) ) {
 			foreach ( $script['condition'] as $key => $value ) {
 				// Special handling for null values in conditions (means the key should not be set)
@@ -291,7 +287,6 @@ class SCD_Asset_Loader {
 			return false;
 		}
 
-		// Check conditions
 		if ( ! empty( $style['condition'] ) ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG && strpos( $handle, 'step-basic' ) !== false ) {
 			}
@@ -341,7 +336,6 @@ class SCD_Asset_Loader {
 
 		wp_enqueue_script( $handle, $src, $deps, $ver, $in_footer );
 
-		// Add script attributes
 		if ( ! empty( $script['async'] ) ) {
 			wp_script_add_data( $handle, 'async', true );
 		}
@@ -401,7 +395,6 @@ class SCD_Asset_Loader {
 	 * @return void
 	 */
 	private function setup_lazy_loading(): void {
-		// Get lazy assets for current page
 		$lazy_scripts = array();
 		$lazy_styles  = array();
 
@@ -470,7 +463,6 @@ class SCD_Asset_Loader {
 			SCD_AJAX_Response::error( 'Invalid handles', 'invalid_parameter' );
 		}
 
-		// Sanitize handles array
 		$sanitized_handles = array_map( 'sanitize_key', $handles );
 		$loaded            = array();
 

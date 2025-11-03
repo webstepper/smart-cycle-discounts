@@ -122,7 +122,6 @@ class SCD_Campaign_Health_Service {
 		// Determine view context (dashboard vs review)
 		$view_context = isset( $context['view_context'] ) ? $context['view_context'] : 'dashboard';
 
-		// Initialize health analysis
 		$health = array(
 			'score'           => 100,
 			'status'          => 'excellent',
@@ -155,7 +154,6 @@ class SCD_Campaign_Health_Service {
 			$health['recommendations'] = $this->generate_recommendations( $campaign_data, $health, $context );
 		}
 
-		// Calculate final status
 		// IMPROVED LOGIC: Severity-based status with score as secondary metric
 		$health['score']    = max( 0, min( 100, $health['score'] ) );
 		$health['status']   = $this->get_status_from_issues( $health );
@@ -354,7 +352,6 @@ class SCD_Campaign_Health_Service {
 			}
 		}
 
-		// Check if random count exceeds total products (can happen if products deleted from catalog)
 		if ( 'random' === $selection_type ) {
 			$random_count = isset( $campaign['random_count'] ) ? intval( $campaign['random_count'] ) : 0;
 			if ( $random_count > 0 ) {
@@ -383,7 +380,6 @@ class SCD_Campaign_Health_Service {
 
 		// For "all_products" campaigns with category filters, get actual matching products for stock check
 		if ( 'all_products' === $selection_type && empty( $product_ids ) ) {
-			// Check if campaign has category filter
 			$category_ids = isset( $campaign['category_ids'] ) ? $campaign['category_ids'] : array();
 			if ( is_string( $category_ids ) ) {
 				$decoded      = json_decode( $category_ids, true );
@@ -391,7 +387,6 @@ class SCD_Campaign_Health_Service {
 			}
 
 			if ( ! empty( $category_ids ) ) {
-				// Get products in these categories (limit to 100 for performance)
 				$args        = array(
 					'status'   => 'publish',
 					'limit'    => 100,
@@ -405,12 +400,10 @@ class SCD_Campaign_Health_Service {
 			}
 		}
 
-		// Check specific products OR resolved all_products (from category filter)
 		if ( ! empty( $product_ids ) && ( 'specific_products' === $selection_type || 'all_products' === $selection_type ) ) {
 			$product_count = count( $product_ids );
 			$unique_ids    = array_unique( $product_ids );
 
-			// Check for products deleted from catalog (post-creation issue)
 			$valid_product_ids = array();
 			$invalid_count     = 0;
 			foreach ( $unique_ids as $product_id ) {
@@ -580,7 +573,6 @@ class SCD_Campaign_Health_Service {
 			}
 
 			if ( ! empty( $selected_ids ) ) {
-				// Get current product count from these categories/tags
 				$args = array(
 					'post_type'      => 'product',
 					'post_status'    => 'publish',
@@ -914,7 +906,6 @@ class SCD_Campaign_Health_Service {
 					$quantity = isset( $tier['quantity'] ) ? intval( $tier['quantity'] ) : 0;
 					$discount = isset( $tier['discount'] ) ? floatval( $tier['discount'] ) : 0;
 
-					// Check if discounts increase
 					if ( $prev_discount > 0 && $discount < $prev_discount ) {
 						$is_illogical = true;
 					}
@@ -1171,7 +1162,6 @@ class SCD_Campaign_Health_Service {
 		// Note: Product selection validation is handled by check_products() method.
 		// This method focuses on coverage percentage analysis only.
 
-		// Check coverage percentage if available in context
 		if ( isset( $context['coverage_data']['coverage_percentage'] ) ) {
 			$coverage_percentage = $context['coverage_data']['coverage_percentage'];
 			if ( $coverage_percentage < 50 && $coverage_percentage > 0 ) {
@@ -1213,7 +1203,6 @@ class SCD_Campaign_Health_Service {
 		$penalty = 0;
 		$status  = 'healthy';
 
-		// Get product IDs
 		$product_ids = isset( $campaign['selected_product_ids'] ) ? $campaign['selected_product_ids'] : array();
 
 		if ( empty( $product_ids ) ) {
@@ -1228,7 +1217,6 @@ class SCD_Campaign_Health_Service {
 		// IMPROVED: Calculate real stock depletion risk
 		$stock_risk_data = $this->calculate_stock_risk( $product_ids, $campaign );
 
-		// Store stock risk data in context for AJAX response
 		if ( isset( $context['view_context'] ) && 'review' === $context['view_context'] ) {
 			$health['stock_risk'] = $stock_risk_data;
 		}
@@ -1287,7 +1275,6 @@ class SCD_Campaign_Health_Service {
 		$penalty = 0;
 		$status  = 'healthy';
 
-		// Check if conflicts data provided in context
 		if ( isset( $context['conflicts_data']['has_conflicts'] ) && $context['conflicts_data']['has_conflicts'] ) {
 			$total_blocked = isset( $context['conflicts_data']['total_products_blocked'] ) ? $context['conflicts_data']['total_products_blocked'] : 0;
 
@@ -1317,7 +1304,6 @@ class SCD_Campaign_Health_Service {
 			$priority       = intval( $campaign['priority'] );
 			$selection_type = isset( $campaign['product_selection_type'] ) ? $campaign['product_selection_type'] : '';
 
-			// Get all other active/scheduled campaigns
 			$other_campaigns = $wpdb->get_results(
 				$wpdb->prepare(
 					"SELECT id, name, priority, product_selection_type, product_ids, category_ids, tag_ids, starts_at, ends_at
@@ -1354,7 +1340,6 @@ class SCD_Campaign_Health_Service {
 				$other_priority       = intval( $other['priority'] );
 				$other_selection_type = $other['product_selection_type'];
 
-				// Check if campaigns target overlapping products
 				$has_product_overlap = $this->check_product_overlap( $campaign, $other, $selection_type, $other_selection_type );
 
 				if ( $has_product_overlap ) {
@@ -1467,7 +1452,6 @@ class SCD_Campaign_Health_Service {
 
 		// Both specific products - check for intersection
 		if ( 'specific_products' === $type1 && 'specific_products' === $type2 ) {
-			// Check both field names (selected_product_ids for normalized data, product_ids for DB results)
 			$products1 = isset( $campaign1['selected_product_ids'] ) ? $campaign1['selected_product_ids'] : ( isset( $campaign1['product_ids'] ) ? $campaign1['product_ids'] : array() );
 			$products2 = isset( $campaign2['selected_product_ids'] ) ? $campaign2['selected_product_ids'] : ( isset( $campaign2['product_ids'] ) ? $campaign2['product_ids'] : array() );
 
@@ -1492,7 +1476,6 @@ class SCD_Campaign_Health_Service {
 
 		// Both categories - check for intersection
 		if ( 'categories' === $type1 && 'categories' === $type2 ) {
-			// Check both field names (selected_category_ids for normalized data, category_ids for DB results)
 			$cats1 = isset( $campaign1['selected_category_ids'] ) ? $campaign1['selected_category_ids'] : ( isset( $campaign1['category_ids'] ) ? $campaign1['category_ids'] : array() );
 			$cats2 = isset( $campaign2['selected_category_ids'] ) ? $campaign2['selected_category_ids'] : ( isset( $campaign2['category_ids'] ) ? $campaign2['category_ids'] : array() );
 
@@ -1517,7 +1500,6 @@ class SCD_Campaign_Health_Service {
 
 		// Both tags - check for intersection
 		if ( 'tags' === $type1 && 'tags' === $type2 ) {
-			// Check both field names (selected_tag_ids for normalized data, tag_ids for DB results)
 			$tags1 = isset( $campaign1['selected_tag_ids'] ) ? $campaign1['selected_tag_ids'] : ( isset( $campaign1['tag_ids'] ) ? $campaign1['tag_ids'] : array() );
 			$tags2 = isset( $campaign2['selected_tag_ids'] ) ? $campaign2['selected_tag_ids'] : ( isset( $campaign2['tag_ids'] ) ? $campaign2['tag_ids'] : array() );
 
@@ -1555,7 +1537,6 @@ class SCD_Campaign_Health_Service {
 	 * @return   bool                   True if date ranges overlap.
 	 */
 	private function check_date_overlap( $campaign1, $campaign2 ) {
-		// Get dates from both campaigns
 		$start1 = isset( $campaign1['start_date'] ) ? $campaign1['start_date'] : '';
 		$end1   = isset( $campaign1['end_date'] ) ? $campaign1['end_date'] : '';
 		$start2 = isset( $campaign2['start_date'] ) ? $campaign2['start_date'] : '';
@@ -1581,7 +1562,6 @@ class SCD_Campaign_Health_Service {
 			$start2_time = new DateTime( $start2, $timezone );
 			$end2_time   = new DateTime( $end2, $timezone );
 
-			// Check if date ranges overlap
 			return ( $start1_time <= $end2_time ) && ( $start2_time <= $end1_time );
 		} catch ( Exception $e ) {
 			// If date parsing fails, assume no overlap
@@ -1869,7 +1849,6 @@ class SCD_Campaign_Health_Service {
 			}
 
 			if ( ! empty( $category_ids ) ) {
-				// Get products in these categories
 				$args        = array(
 					'status'   => 'publish',
 					'limit'    => 100, // Limit for performance
@@ -1999,7 +1978,6 @@ class SCD_Campaign_Health_Service {
 			$campaign_status = isset( $campaign['status'] ) ? $campaign['status'] : 'unknown';
 			$campaign_id     = isset( $campaign['id'] ) ? $campaign['id'] : 0;
 
-			// Calculate coverage data to resolve products (same as campaigns list)
 			$coverage_data = $this->calculate_simple_coverage( $campaign );
 
 			// Pass context with coverage data to ensure consistent health analysis
@@ -2012,7 +1990,6 @@ class SCD_Campaign_Health_Service {
 			// Aggregate scores
 			$total_score += $analysis['score'];
 
-			// Get campaign info for issue context
 			$campaign_data = $this->normalize_campaign_data( $campaign );
 			$campaign_id   = isset( $campaign_data['id'] ) ? $campaign_data['id'] : 0;
 			$campaign_name = isset( $campaign_data['name'] ) ? $campaign_data['name'] : __( 'Unknown Campaign', 'smart-cycle-discounts' );
@@ -2053,7 +2030,6 @@ class SCD_Campaign_Health_Service {
 			$code    = isset( $issue['code'] ) ? $issue['code'] : 'unknown';
 			$message = isset( $issue['message'] ) ? $issue['message'] : '';
 
-			// Create unique key for this issue type
 			$key = $code . '|' . $message;
 
 			if ( ! isset( $critical_groups[ $key ] ) ) {
@@ -2069,7 +2045,6 @@ class SCD_Campaign_Health_Service {
 			}
 		}
 
-		// Build deduplicated list
 		foreach ( $critical_groups as $group ) {
 			$issue = $group['issue'];
 
@@ -2094,7 +2069,6 @@ class SCD_Campaign_Health_Service {
 			$code    = isset( $warning['code'] ) ? $warning['code'] : 'unknown';
 			$message = isset( $warning['message'] ) ? $warning['message'] : '';
 
-			// Create unique key for this warning type
 			$key = $code . '|' . $message;
 
 			if ( ! isset( $warning_groups[ $key ] ) ) {
@@ -2110,7 +2084,6 @@ class SCD_Campaign_Health_Service {
 			}
 		}
 
-		// Build deduplicated list
 		foreach ( $warning_groups as $group ) {
 			$warning = $group['warning'];
 
@@ -2127,7 +2100,6 @@ class SCD_Campaign_Health_Service {
 			$deduplicated_warnings[] = $warning;
 		}
 
-		// Calculate overall health using improved severity-based logic
 		$average_score = $campaign_count > 0 ? round( $total_score / $campaign_count ) : 100;
 
 		if ( ! empty( $deduplicated_warnings ) ) {
@@ -2165,18 +2137,15 @@ class SCD_Campaign_Health_Service {
 	 * @return   float                 Average daily sales.
 	 */
 	private function get_average_daily_sales( $product_id, $days = 30 ) {
-		// Validate inputs
 		if ( ! $product_id || $days <= 0 ) {
 			return 0;
 		}
 
-		// Check if WooCommerce is available
 		if ( ! function_exists( 'wc_get_orders' ) ) {
 			return 0;
 		}
 
 		try {
-			// Calculate date range (use gmdate for UTC consistency)
 			$date_from = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
 
 			// Use HPOS-compatible wc_get_orders API
@@ -2193,7 +2162,6 @@ class SCD_Campaign_Health_Service {
 				return 0;
 			}
 
-			// Calculate total quantity sold
 			$total_quantity = 0;
 
 			foreach ( $orders as $order_id ) {
@@ -2202,7 +2170,6 @@ class SCD_Campaign_Health_Service {
 					continue;
 				}
 
-				// Check each order item
 				foreach ( $order->get_items() as $item ) {
 					$item_product_id   = $item->get_product_id();
 					$item_variation_id = $item->get_variation_id();
@@ -2214,7 +2181,6 @@ class SCD_Campaign_Health_Service {
 				}
 			}
 
-			// Calculate average per day
 			return $total_quantity / $days;
 
 		} catch ( Exception $e ) {
@@ -2329,7 +2295,6 @@ class SCD_Campaign_Health_Service {
 				continue; // Already out of stock or not managing stock
 			}
 
-			// Calculate estimated demand
 			$avg_daily_sales  = $this->get_average_daily_sales( $product_id, self::HISTORICAL_DAYS_LOOKBACK );
 			$estimated_demand = $avg_daily_sales * $campaign_days * $discount_boost;
 

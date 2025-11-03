@@ -91,7 +91,6 @@ class SCD_Admin_Capability_Manager {
 	 * @return   void
 	 */
 	private function add_hooks(): void {
-		// Initialize capabilities after translations are loaded
 		add_action( 'init', array( $this, 'late_init' ), 1 );
 
 		// Map meta capabilities
@@ -383,7 +382,6 @@ class SCD_Admin_Capability_Manager {
 	 * @return   array                   Mapped capabilities.
 	 */
 	private function map_campaign_capabilities( array $caps, string $cap, int $user_id, array $args ): array {
-		// Get campaign ID from args
 		$campaign_id = isset( $args[0] ) ? (int) $args[0] : 0;
 
 		if ( ! $campaign_id ) {
@@ -420,7 +418,6 @@ class SCD_Admin_Capability_Manager {
 			return;
 		}
 
-		// Remove old capabilities
 		foreach ( $old_roles as $old_role ) {
 			if ( isset( $this->role_capabilities[ $old_role ] ) ) {
 				foreach ( $this->role_capabilities[ $old_role ] as $capability ) {
@@ -429,7 +426,6 @@ class SCD_Admin_Capability_Manager {
 			}
 		}
 
-		// Add new capabilities
 		if ( isset( $this->role_capabilities[ $role ] ) ) {
 			foreach ( $this->role_capabilities[ $role ] as $capability ) {
 				$user->add_cap( $capability );
@@ -503,7 +499,6 @@ class SCD_Admin_Capability_Manager {
 
 		$wp_role->add_cap( $capability );
 
-		// Update our mapping
 		if ( ! isset( $this->role_capabilities[ $role ] ) ) {
 			$this->role_capabilities[ $role ] = array();
 		}
@@ -540,7 +535,6 @@ class SCD_Admin_Capability_Manager {
 
 		$wp_role->remove_cap( $capability );
 
-		// Update our mapping
 		if ( isset( $this->role_capabilities[ $role ] ) ) {
 			$key = array_search( $capability, $this->role_capabilities[ $role ] );
 			if ( $key !== false ) {
@@ -673,7 +667,6 @@ class SCD_Admin_Capability_Manager {
 	 * @return   void
 	 */
 	private function ensure_capabilities_exist(): void {
-		// Check if capabilities are already added
 		$admin_role = get_role( 'administrator' );
 		if ( ! $admin_role || ! $admin_role->has_cap( 'scd_view_campaigns' ) ) {
 			// Capabilities not added yet, add them now

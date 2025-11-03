@@ -174,7 +174,6 @@ class SCD_Wizard_Manager {
 
 		$this->security = $security;
 
-		// Load sidebar manager
 		$this->load_sidebar_manager();
 
 		// Use provided repository or create default
@@ -214,6 +213,8 @@ class SCD_Wizard_Manager {
 	 */
 	private function load_sidebar_manager(): void {
 		require_once SCD_PLUGIN_DIR . 'includes/core/wizard/class-wizard-sidebar.php';
+
+		SCD_Wizard_Sidebar::set_dependency( 'review', $this->state_service );
 	}
 
 	/**
@@ -264,7 +265,6 @@ class SCD_Wizard_Manager {
 
 		// Phase 3: State service handles session creation via secure cookies
 
-		// Clear any existing session
 		if ( $this->state_service->has_session() ) {
 			try {
 				$this->state_service->clear_session();
@@ -297,7 +297,6 @@ class SCD_Wizard_Manager {
 			}
 		}
 
-		// Create new session using state service
 		$session_id = $this->state_service->create();
 
 		// Debug: Log session created
@@ -310,14 +309,12 @@ class SCD_Wizard_Manager {
 			);
 		}
 
-		// Initialize with default data
 		$initial_data = array(
 			'wizard_id'  => $session_id,
 			'created_at' => current_time( 'mysql' ),
 			'options'    => $options,
 		);
 
-		// Save initial data to meta step
 		try {
 			$this->state_service->save_step_data( '_meta', $initial_data );
 
@@ -406,7 +403,6 @@ class SCD_Wizard_Manager {
 	 * @return   array             Processing result.
 	 */
 	public function process_step( string $step, array $data ): array {
-		// Validate step
 		if ( ! $this->is_valid_step( $step ) ) {
 			return $this->error_response( 'Invalid step' );
 		}
@@ -416,11 +412,9 @@ class SCD_Wizard_Manager {
 			return $this->error_response( 'Security validation failed' );
 		}
 
-		// Extract actual step data (remove security fields)
 		$step_data = $data;
 		unset( $step_data['nonce'], $step_data['action'] );
 
-		// Validate step data using consolidated SCD_Validation class
 		$validation_context = 'wizard_' . $step;
 		$validation_result  = SCD_Validation::validate( $step_data, $validation_context );
 		if ( is_wp_error( $validation_result ) ) {
@@ -433,10 +427,8 @@ class SCD_Wizard_Manager {
 			return $this->error_response( 'Validation failed', $errors );
 		}
 
-		// Update step data with sanitized values
 		$step_data = $validation_result;
 
-		// Save step data
 		$this->save_step_data( $step, $step_data );
 
 		// Mark step as completed
@@ -548,7 +540,6 @@ class SCD_Wizard_Manager {
 	 * @return   array    Completion result.
 	 */
 	public function complete_wizard(): array {
-		// Get progress to check what's missing
 		$progress = $this->state_service->get_progress();
 
 		// Debug logging
@@ -556,7 +547,6 @@ class SCD_Wizard_Manager {
 
 		}
 
-		// Check if we have the minimum required data instead of strict completion
 		$all_data = $this->get_all_campaign_data();
 
 		// Debug: Log all campaign data
@@ -593,13 +583,11 @@ class SCD_Wizard_Manager {
 		$campaign_data  = $compiler->compile( $all_steps_data );
 
 		try {
-			// Validate compiled data
 			$validation_result = $compiler->validate_compiled_data( $campaign_data );
 			if ( ! $validation_result['valid'] ) {
 				return $this->error_response( 'Invalid campaign data', $validation_result['errors'] );
 			}
 
-			// Create campaign using compiler
 			$saved_campaign = $compiler->create_campaign( $campaign_data );
 
 			if ( ! $saved_campaign ) {
@@ -625,7 +613,6 @@ class SCD_Wizard_Manager {
 			// Session cleanup failure doesn't affect campaign creation success
 		}
 
-		// Get campaign ID safely
 		$campaign_id = null;
 		if ( is_object( $saved_campaign ) ) {
 			if ( method_exists( $saved_campaign, 'get_id' ) ) {
@@ -635,7 +622,6 @@ class SCD_Wizard_Manager {
 			}
 		}
 
-		// Get campaign UUID safely
 		$campaign_uuid = null;
 		if ( is_object( $saved_campaign ) ) {
 			if ( method_exists( $saved_campaign, 'get_uuid' ) ) {
@@ -663,7 +649,6 @@ class SCD_Wizard_Manager {
 	public function get_progress(): array {
 		$progress = $this->state_service->get_progress();
 
-		// Add additional info
 		$progress['progress_percentage'] = $progress['percentage'] ?? 0;
 		$progress['steps_info']          = $this->get_steps_info();
 
@@ -865,13 +850,11 @@ class SCD_Wizard_Manager {
 	 * @return   bool              True if valid.
 	 */
 	private function validate_security( array $data ): bool {
-		// Check nonce
 		$nonce = $data['nonce'] ?? '';
 		if ( ! wp_verify_nonce( $nonce, 'scd_wizard_nonce' ) ) {
 			return false;
 		}
 
-		// Check user capabilities
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			return false;
 		}

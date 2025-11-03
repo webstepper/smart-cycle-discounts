@@ -66,7 +66,6 @@ class SCD_Session_Status_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array                Response data.
 	 */
 	protected function handle( $request ) {
-		// Get session service
 		$session_service = $this->get_session_service();
 
 		if ( ! $session_service ) {
@@ -76,7 +75,6 @@ class SCD_Session_Status_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Get expiration info
 		$expiration_info = $session_service->get_expiration_info();
 
 		if ( ! $expiration_info ) {

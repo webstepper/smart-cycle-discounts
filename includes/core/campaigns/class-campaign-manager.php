@@ -355,7 +355,6 @@ class SCD_Campaign_Manager {
 		// Determine validation context based on data structure
 		$validation_context = $this->determine_validation_context( $data );
 
-		// Remove validation context marker from data
 		unset( $data['_validation_context'] );
 
 		// Apply context-specific validation
@@ -378,7 +377,6 @@ class SCD_Campaign_Manager {
 	 * @return   string            Validation context.
 	 */
 	private function determine_validation_context( array $data ): string {
-		// Check for explicit context marker (set by trusted services)
 		if ( isset( $data['_validation_context'] ) ) {
 			$context          = sanitize_key( $data['_validation_context'] );
 			$allowed_contexts = array( 'campaign_compiled', 'campaign_update', 'campaign_complete' );
@@ -544,7 +542,6 @@ class SCD_Campaign_Manager {
 					$scheduler->schedule_campaign_events( $campaign->get_id() );
 				}
 			} elseif ( in_array( $new_status, array( 'expired', 'archived' ), true ) ) {
-				// Clear all events for expired/archived campaigns
 				$scheduler = $this->get_scheduler_service();
 				if ( $scheduler ) {
 					$scheduler->clear_campaign_events( $campaign->get_id() );
@@ -591,7 +588,6 @@ class SCD_Campaign_Manager {
 		// Determine validation context based on data structure
 		$validation_context = $this->determine_validation_context( $data );
 
-		// Remove validation context marker from data
 		unset( $data['_validation_context'] );
 
 		if ( class_exists( 'SCD_Validation' ) ) {
@@ -647,13 +643,10 @@ class SCD_Campaign_Manager {
 	 */
 	private function convert_datetime_to_utc( string $datetime_str, string $timezone ): string {
 		try {
-			// Parse datetime in campaign timezone
 			$dt = new DateTime( $datetime_str, new DateTimeZone( $timezone ) );
 
-			// Convert to UTC
 			$dt->setTimezone( new DateTimeZone( 'UTC' ) );
 
-			// Return as string in MySQL format
 			return $dt->format( 'Y-m-d H:i:s' );
 		} catch ( Exception $e ) {
 			// If conversion fails, log and return original string
@@ -690,7 +683,6 @@ class SCD_Campaign_Manager {
 		// mutated by fill() and has the NEW status. We need to check from ORIGINAL status.
 		$new_status = $data['status'];
 
-		// Get state manager to validate transition from original status
 		$state_manager = new SCD_Campaign_State_Manager( $this->logger, null );
 		return $state_manager->can_transition( $original_status, $new_status );
 	}
@@ -824,7 +816,6 @@ class SCD_Campaign_Manager {
 				return new WP_Error( 'delete_failed', 'Failed to delete campaign.' );
 			}
 
-			// Clear any scheduled events for this campaign
 			$scheduler = $this->get_scheduler_service();
 			if ( $scheduler ) {
 				$scheduler->clear_campaign_events( $id );
@@ -1041,7 +1032,6 @@ class SCD_Campaign_Manager {
 		// Compile product selection for random_products and smart_selection
 		$this->compile_product_selection( $campaign );
 
-		// Clear campaign-related caches
 		if ( $this->cache ) {
 			$this->cache->delete( 'active_campaigns' );
 			$this->cache->delete( 'campaigns_list' );
@@ -1342,7 +1332,6 @@ class SCD_Campaign_Manager {
 		$data['created_by'] = get_current_user_id();
 		$data['updated_by'] = null;
 
-		// Clear schedule dates when duplicating
 		// This forces user to set new dates and prevents accidental activation with expired dates
 		$data['starts_at'] = null;
 		$data['ends_at']   = null;
@@ -1545,7 +1534,6 @@ class SCD_Campaign_Manager {
 	 * @return   array                   Updated results.
 	 */
 	private function expire_active_campaigns( array $results, DateTime $now ): array {
-		// Get both active and paused campaigns for expiration check
 		$active             = $this->repository->get_active();
 		$paused             = $this->repository->get_paused();
 		$campaigns_to_check = array_merge( $active, $paused );
@@ -1587,7 +1575,6 @@ class SCD_Campaign_Manager {
 		if ( $this->repository->save( $campaign ) ) {
 			++$results['expired'];
 
-			// Store expired campaign info for admin notice
 			$expired_campaigns = get_transient( 'scd_recently_expired_campaigns' );
 			if ( false === $expired_campaigns || ! is_array( $expired_campaigns ) ) {
 				$expired_campaigns = array();
@@ -1605,7 +1592,6 @@ class SCD_Campaign_Manager {
 				$expired_campaigns = array_slice( $expired_campaigns, -50 );
 			}
 
-			// Store for 24 hours
 			set_transient( 'scd_recently_expired_campaigns', $expired_campaigns, DAY_IN_SECONDS );
 
 			do_action( 'scd_campaign_expired', $campaign );
@@ -1991,10 +1977,8 @@ class SCD_Campaign_Manager {
 			return;
 		}
 
-		// Get current time in UTC
 		$now = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
 
-		// Parse dates in UTC timezone (matches database storage)
 		$starts_at = null;
 		$ends_at   = null;
 
@@ -2012,12 +1996,10 @@ class SCD_Campaign_Manager {
 			return; // Stop further validation if this basic check fails
 		}
 
-		// Get the target status (from data or existing campaign)
 		$target_status = null;
 		if ( ! empty( $data['status'] ) ) {
 			$target_status = $data['status'];
 		} elseif ( $id ) {
-			// Get existing campaign status
 			$existing_campaign = $this->find( $id );
 			if ( $existing_campaign ) {
 				$target_status = $existing_campaign->get_status();
@@ -2086,9 +2068,7 @@ class SCD_Campaign_Manager {
 	 * @return   void
 	 */
 	private function validate_related_data( array $data, array &$errors ): void {
-		// Validate product IDs if present
 		if ( ! empty( $data['product_ids'] ) && is_array( $data['product_ids'] ) ) {
-			// Check if WooCommerce is active
 			if ( ! function_exists( 'wc_get_product' ) ) {
 				// WooCommerce not active, skip validation
 				return;
@@ -2113,14 +2093,12 @@ class SCD_Campaign_Manager {
 			if ( ! empty( $numeric_ids ) ) {
 				global $wpdb;
 
-				// Build safe query with proper placeholders
 				$placeholders = implode( ',', array_fill( 0, count( $numeric_ids ), '%d' ) );
 				$query        = $wpdb->prepare(
 					"SELECT ID FROM {$wpdb->posts} WHERE ID IN ($placeholders) AND post_type IN ('product', 'product_variation') AND post_status != 'trash'",
 					...$numeric_ids
 				);
 
-				// Get all existing product IDs
 				$existing_ids = $wpdb->get_col( $query );
 
 				// Find IDs that don't exist
@@ -2137,7 +2115,6 @@ class SCD_Campaign_Manager {
 			}
 		}
 
-		// Validate category IDs if present
 		if ( ! empty( $data['category_ids'] ) && is_array( $data['category_ids'] ) ) {
 			// Separate numeric and non-numeric IDs
 			$numeric_ids     = array();
@@ -2158,14 +2135,12 @@ class SCD_Campaign_Manager {
 			if ( ! empty( $numeric_ids ) ) {
 				global $wpdb;
 
-				// Build safe query with proper placeholders
 				$placeholders = implode( ',', array_fill( 0, count( $numeric_ids ), '%d' ) );
 				$query        = $wpdb->prepare(
 					"SELECT term_id FROM {$wpdb->term_taxonomy} WHERE term_id IN ($placeholders) AND taxonomy = 'product_cat'",
 					...$numeric_ids
 				);
 
-				// Get all existing category IDs
 				$existing_ids = $wpdb->get_col( $query );
 
 				// Find IDs that don't exist
@@ -2265,7 +2240,6 @@ class SCD_Campaign_Manager {
 			return;
 		}
 
-		// Check if product_selector is available
 		if ( ! $this->container || ! $this->container->has( 'product_selector' ) ) {
 			$this->log(
 				'warning',
@@ -2295,7 +2269,6 @@ class SCD_Campaign_Manager {
 					}
 				);
 
-				// Build criteria for Product Selector (use correct key names)
 				$criteria = array(
 					'categories'       => ! empty( $clean_categories ) ? $clean_categories : array(),
 					'conditions'       => $conditions,
@@ -2319,7 +2292,6 @@ class SCD_Campaign_Manager {
 				);
 
 			} elseif ( 'random_products' === $selection_type ) {
-				// Get random_count from metadata or settings
 				$random_count = $metadata['random_count'] ?? $campaign->get_settings()['random_count'] ?? 5;
 
 				// Select random products
@@ -2339,7 +2311,6 @@ class SCD_Campaign_Manager {
 				);
 
 			} elseif ( 'smart_selection' === $selection_type ) {
-				// Get smart criteria
 				$smart_criteria = $metadata['smart_criteria'] ?? array();
 
 				// Select products based on smart criteria
@@ -2360,11 +2331,9 @@ class SCD_Campaign_Manager {
 				);
 			}
 
-			// Update campaign with selected product IDs
 			if ( ! empty( $selected_ids ) ) {
 				$campaign->set_product_ids( $selected_ids );
 
-				// Save the campaign
 				$save_result = $this->repository->save( $campaign );
 				if ( ! $save_result ) {
 					$this->log(
@@ -2495,7 +2464,6 @@ class SCD_Campaign_Manager {
 
 		switch ( $selection_type ) {
 			case 'all_products':
-				// Check if product_ids are populated (from condition-based compilation)
 				$product_ids = $campaign->get_product_ids();
 				if ( ! empty( $product_ids ) ) {
 					// Treat as specific_products if compiled with conditions
@@ -2511,7 +2479,6 @@ class SCD_Campaign_Manager {
 			case 'random_products':
 			case 'smart_selection':
 				// After compilation, these types have product_ids set
-				// Check if product_ids are populated (meaning compilation has run)
 				$product_ids = $campaign->get_product_ids();
 				if ( ! empty( $product_ids ) ) {
 					// Treat as specific_products if compiled
@@ -2741,7 +2708,6 @@ class SCD_Campaign_Manager {
 			'scd_campaign_activated' => array(),
 		);
 
-		// Store existing hook callbacks to restore later
 		foreach ( $remove_hooks as $hook_name => $callbacks ) {
 			global $wp_filter;
 			if ( isset( $wp_filter[ $hook_name ] ) ) {
@@ -2768,7 +2734,6 @@ class SCD_Campaign_Manager {
 				}
 			}
 
-			// Clear all campaign caches once at the end (more efficient than per-campaign)
 			wp_cache_delete( 'active_campaigns', 'scd' );
 			wp_cache_delete( 'scheduled_campaigns', 'scd' );
 			delete_transient( '_transient_scd_active_campaigns' );
@@ -2813,7 +2778,6 @@ class SCD_Campaign_Manager {
 			}
 		}
 
-		// Clear caches once
 		wp_cache_delete( 'active_campaigns', 'scd' );
 		wp_cache_delete( 'paused_campaigns', 'scd' );
 

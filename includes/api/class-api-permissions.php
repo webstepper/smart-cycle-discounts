@@ -154,12 +154,10 @@ class SCD_API_Permissions {
 		$route  = $request->get_route();
 		$method = $request->get_method();
 
-		// Check if endpoint is public
 		if ( $this->is_public_endpoint( $method, $route ) ) {
 			return true;
 		}
 
-		// Check if user is authenticated
 		$user_id = get_current_user_id();
 		if ( ! $user_id ) {
 			return new WP_Error(
@@ -169,14 +167,12 @@ class SCD_API_Permissions {
 			);
 		}
 
-		// Get required capability for endpoint
 		$required_capability = $this->get_required_capability( $method, $route );
 		if ( ! $required_capability ) {
 			// No specific capability required, but authentication is needed
 			return true;
 		}
 
-		// Check if user has required capability
 		if ( ! $this->capability_manager->current_user_can( $required_capability ) ) {
 			$this->logger->warning(
 				'API access denied',
@@ -195,7 +191,6 @@ class SCD_API_Permissions {
 			);
 		}
 
-		// Check resource-specific permissions
 		$resource_check = $this->check_resource_permissions( $request );
 		if ( is_wp_error( $resource_check ) ) {
 			return $resource_check;
@@ -329,13 +324,11 @@ class SCD_API_Permissions {
 	 * @return   bool                  True if allowed.
 	 */
 	public function validate_api_key_permissions( string $api_key, string $endpoint, string $method ): bool {
-		// Get user ID from API key
 		$user_id = $this->get_user_id_from_api_key( $api_key );
 		if ( ! $user_id ) {
 			return false;
 		}
 
-		// Check if user has required capability
 		$required_capability = $this->get_required_capability( $method, $endpoint );
 		if ( ! $required_capability ) {
 			return true; // No specific capability required
@@ -412,7 +405,6 @@ class SCD_API_Permissions {
 	 * @return   string|null          Required capability or null.
 	 */
 	private function get_required_capability( string $method, string $route ): ?string {
-		// Extract endpoint from route
 		$endpoint = $this->extract_endpoint_from_route( $route );
 
 		if ( ! $endpoint || ! isset( $this->api_capabilities[ $endpoint ] ) ) {
@@ -431,10 +423,8 @@ class SCD_API_Permissions {
 	 * @return   string|null         Endpoint name or null.
 	 */
 	private function extract_endpoint_from_route( string $route ): ?string {
-		// Remove namespace prefix
 		$route = preg_replace( '#^/scd/v1/?#', '', $route );
 
-		// Extract first path segment
 		$segments = explode( '/', trim( $route, '/' ) );
 		return $segments[0] ?? null;
 	}
@@ -452,7 +442,6 @@ class SCD_API_Permissions {
 		$method  = $request->get_method();
 		$user_id = get_current_user_id();
 
-		// Check for resource ID in route
 		if ( preg_match( '#/(\d+)(?:/|$)#', $route, $matches ) ) {
 			$resource_id = (int) $matches[1];
 
@@ -500,7 +489,6 @@ class SCD_API_Permissions {
 			);
 		}
 
-		// Get campaign to check ownership
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'scd_campaigns';
 
@@ -519,7 +507,6 @@ class SCD_API_Permissions {
 			);
 		}
 
-		// Check if user owns the campaign
 		if ( (int) $campaign_owner === $user_id ) {
 			return true;
 		}
@@ -556,7 +543,6 @@ class SCD_API_Permissions {
 			return false;
 		}
 
-		// Check each user's API keys
 		foreach ( $user_ids as $user_id ) {
 			$api_keys = get_user_meta( $user_id, 'scd_api_keys', true ) ?: array();
 

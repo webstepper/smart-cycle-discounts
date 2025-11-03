@@ -284,7 +284,6 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 			return array();
 		}
 
-		// Get send quota
 		$params = array(
 			'Action' => 'GetSendQuota',
 		);
@@ -325,15 +324,12 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 		$host     = "email.{$this->region}.amazonaws.com";
 		$service  = 'ses';
 
-		// Prepare request
 		$date              = gmdate( 'Ymd\THis\Z' );
 		$params['Version'] = '2010-12-01';
 
-		// Build query string
 		ksort( $params );
 		$query_string = http_build_query( $params, '', '&', PHP_QUERY_RFC3986 );
 
-		// Create signature
 		$signature = $this->create_aws_signature( $query_string, $host, $date, $service );
 
 		// Make request
@@ -367,13 +363,10 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 		$date_stamp       = substr( $date, 0, 8 );
 		$credential_scope = "{$date_stamp}/{$this->region}/{$service}/aws4_request";
 
-		// Create canonical request
 		$canonical_request = "POST\n/\n\ncontent-type:application/x-www-form-urlencoded\nhost:{$host}\nx-amz-date:{$date}\n\ncontent-type;host;x-amz-date\n" . hash( 'sha256', $query_string );
 
-		// Create string to sign
 		$string_to_sign = "{$algorithm}\n{$date}\n{$credential_scope}\n" . hash( 'sha256', $canonical_request );
 
-		// Calculate signing key
 		$k_date    = hash_hmac( 'sha256', $date_stamp, 'AWS4' . $this->secret_key, true );
 		$k_region  = hash_hmac( 'sha256', $this->region, $k_date, true );
 		$k_service = hash_hmac( 'sha256', $service, $k_region, true );
@@ -382,7 +375,6 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 		// Sign string
 		$signature = hash_hmac( 'sha256', $string_to_sign, $k_signing );
 
-		// Build authorization header
 		return "{$algorithm} Credential={$this->access_key}/{$credential_scope}, SignedHeaders=content-type;host;x-amz-date, Signature={$signature}";
 	}
 

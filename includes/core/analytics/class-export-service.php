@@ -66,7 +66,6 @@ class SCD_Export_Service {
 	 */
 	public function generate_export( string $export_type, string $format, array $options = array() ): array {
 		try {
-			// Get data based on export type
 			$data = $this->get_export_data( $export_type, $options );
 
 			// Generate export file
@@ -149,7 +148,6 @@ class SCD_Export_Service {
 		$upload_dir = wp_upload_dir();
 		$export_dir = $upload_dir['basedir'] . '/scd-exports';
 
-		// Create export directory if it doesn't exist
 		if ( ! file_exists( $export_dir ) ) {
 			wp_mkdir_p( $export_dir );
 		}
@@ -171,7 +169,6 @@ class SCD_Export_Service {
 
 			case 'pdf':
 				$content = $this->generate_pdf_html( $data, $export_type );
-				// Update filename extension to html for browser PDF printing
 				$filename = str_replace( '.pdf', '.html', $filename );
 				$filepath = str_replace( '.pdf', '.html', $filepath );
 				break;
@@ -205,9 +202,7 @@ class SCD_Export_Service {
 	private function generate_csv( array $data ): string {
 		$csv = '';
 
-		// Convert data to CSV format
 		if ( ! empty( $data ) ) {
-			// Get headers from first row
 			$first_row = is_array( $data ) ? reset( $data ) : $data;
 			$headers   = array();
 
@@ -219,10 +214,8 @@ class SCD_Export_Service {
 				$headers = array_keys( $data );
 			}
 
-			// Add headers
 			$csv .= implode( ',', array_map( array( $this, 'escape_csv_value' ), $headers ) ) . "\n";
 
-			// Add data rows
 			foreach ( $data as $row ) {
 				if ( is_array( $row ) ) {
 					$csv .= implode( ',', array_map( array( $this, 'escape_csv_value' ), array_values( $row ) ) ) . "\n";
@@ -250,7 +243,6 @@ class SCD_Export_Service {
 
 		$value = (string) $value;
 
-		// Escape quotes and wrap in quotes if needed
 		if ( false !== strpos( $value, ',' ) || false !== strpos( $value, '"' ) || false !== strpos( $value, "\n" ) ) {
 			$value = '"' . str_replace( '"', '""', $value ) . '"';
 		}
@@ -408,7 +400,6 @@ class SCD_Export_Service {
 			return '<p>No data available.</p>';
 		}
 
-		// Check if data is a list of rows or a single object
 		$first_item = is_array( $data ) ? reset( $data ) : $data;
 
 		if ( ! is_array( $first_item ) && ! is_object( $first_item ) ) {
@@ -420,7 +411,6 @@ class SCD_Export_Service {
 		$html  = '<table>';
 		$html .= '<thead><tr>';
 
-		// Get headers from first row
 		$headers = array();
 		if ( is_array( $first_item ) ) {
 			$headers = array_keys( $first_item );
@@ -435,7 +425,6 @@ class SCD_Export_Service {
 		$html .= '</tr></thead>';
 		$html .= '<tbody>';
 
-		// Add rows
 		foreach ( $data as $row ) {
 			$html .= '<tr>';
 

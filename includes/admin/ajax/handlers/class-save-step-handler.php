@@ -95,7 +95,6 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 		$this->state_service = $state_service;
 		$this->feature_gate  = $feature_gate;
 
-		// Create services if not injected
 		$this->idempotency_service = $idempotency_service ?: new SCD_Idempotency_Service( $state_service );
 		$this->transformer         = $transformer ?: new SCD_Step_Data_Transformer();
 	}
@@ -122,13 +121,11 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	protected function handle( $request ) {
 		$this->set_execution_limits();
 
-		// Extract and validate step
 		$step = $this->extract_step( $request );
 		if ( is_wp_error( $step ) ) {
 			return $step;
 		}
 
-		// Validate step is known
 		if ( ! SCD_Wizard_Step_Registry::is_valid_step( $step ) ) {
 			return new WP_Error(
 				'invalid_step',
@@ -141,14 +138,12 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Extract step data
 		$data = $this->extract_data( $request );
 
 		// Handle idempotency
 		$user_id         = get_current_user_id();
 		$idempotency_key = $this->idempotency_service->generate_key( $step, $data, $user_id );
 
-		// Check for cached response
 		$cached = $this->idempotency_service->get_cached_response( $idempotency_key );
 		if ( $cached ) {
 			return $cached;
@@ -172,7 +167,6 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Validate request size
 		$size_check = $this->validate_request_size( $data );
 		if ( is_wp_error( $size_check ) ) {
 			return $size_check;
@@ -181,13 +175,11 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 		// Transform data
 		$data = $this->transformer->transform( $step, $data );
 
-		// Validate step data (always strict - no auto-save bypass)
 		$validation_result = $this->validate_step_data( $step, $data );
 		if ( is_wp_error( $validation_result ) ) {
 			return $validation_result;
 		}
 
-		// Process and save
 		try {
 			$processed_data = $this->process_step_data( $step, $data );
 			if ( is_wp_error( $processed_data ) ) {
@@ -202,15 +194,12 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 			return $this->handle_save_exception( $e, $step );
 		}
 
-		// Build response
 		$response = $this->build_response( $step, $processed_data, $request );
 
-		// Add transformer errors if any
 		if ( $this->transformer->has_condition_errors() ) {
 			$response['condition_errors'] = $this->transformer->get_condition_errors();
 		}
 
-		// Cache response
 		$this->idempotency_service->cache_response( $idempotency_key, $response );
 
 		return $response;
@@ -388,7 +377,6 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	private function process_step_data( $step, $data ) {
 		$data_to_process = ! empty( $this->sanitized_data ) ? $this->sanitized_data : $data;
 
-		// Sanitize based on step
 		switch ( $step ) {
 			case 'basic':
 			case 'products':

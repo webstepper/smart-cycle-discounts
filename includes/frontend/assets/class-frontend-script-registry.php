@@ -245,7 +245,6 @@ class SCD_Frontend_Script_Registry {
 	 * @return bool True if has countdown timer.
 	 */
 	private function check_has_countdown_timer(): bool {
-		// Check for countdown timer shortcode or block
 		global $post;
 
 		if ( ! $post || ! $post->post_content ) {

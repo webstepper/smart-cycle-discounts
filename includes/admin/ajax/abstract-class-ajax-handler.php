@@ -46,7 +46,6 @@ abstract class SCD_Abstract_Ajax_Handler {
 	public function __construct( $logger = null ) {
 		$this->logger = $logger;
 
-		// Initialize default logger if not provided
 		if ( null === $this->logger && class_exists( 'SCD_Logger' ) ) {
 			$this->logger = new SCD_Logger( 'ajax' );
 		}
@@ -220,7 +219,6 @@ abstract class SCD_Abstract_Ajax_Handler {
 		$error_data = $error->get_error_data();
 		$status     = 400;
 
-		// Extract status code if available
 		if ( is_array( $error_data ) && isset( $error_data['status'] ) ) {
 			$status = $error_data['status'];
 		}

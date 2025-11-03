@@ -18,7 +18,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-// Load standardized response handler
 require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-scd-ajax-response.php';
 
 // Load AJAX security handler
@@ -100,12 +99,10 @@ class SCD_Analytics_Page {
 	 * @return   void
 	 */
 	public function render(): void {
-		// Check user capabilities
 		if ( ! current_user_can( 'scd_view_analytics' ) ) {
 			wp_die( __( 'You do not have sufficient permissions to access this page.', 'smart-cycle-discounts' ) );
 		}
 
-		// Check if user has premium access
 		$is_premium = function_exists( 'scd_is_premium' ) && scd_is_premium();
 
 		// Show upgrade prompt for free users
@@ -115,18 +112,14 @@ class SCD_Analytics_Page {
 		}
 
 		try {
-			// Get current date range
 			$date_range = $this->get_current_date_range();
 
-			// Get overview metrics
 			$overview_metrics = $this->get_overview_metrics( $date_range );
 
-			// Get campaigns data
 			$campaigns_data = $this->get_campaigns_data( $date_range );
 
 			// Assets are handled by the centralized asset management system
 
-			// Render the dashboard
 			$this->render_dashboard( $overview_metrics, $campaigns_data, $date_range );
 
 		} catch ( Exception $e ) {

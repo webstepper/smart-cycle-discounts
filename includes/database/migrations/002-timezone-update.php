@@ -58,7 +58,6 @@ class SCD_Migration_002_Timezone_Update implements SCD_Migration_Interface {
 		// EC-034 FIX: Get WordPress timezone as default for existing campaigns
 		$site_timezone = wp_timezone_string();
 
-		// Validate timezone
 		require_once SCD_INCLUDES_DIR . 'utilities/class-time-helpers.php';
 		$canonical_timezone = scd_get_canonical_timezone();
 
@@ -71,7 +70,6 @@ class SCD_Migration_002_Timezone_Update implements SCD_Migration_Interface {
 		);
 
 		if ( $null_count > 0 ) {
-			// Update campaigns with NULL or empty timezone
 			$updated = $wpdb->query(
 				$wpdb->prepare(
 					"UPDATE {$table_name}

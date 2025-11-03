@@ -270,7 +270,6 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 	 * @return   void
 	 */
 	public function render_cache_statistics_field( array $args ): void {
-		// Get cache manager
 		$cache_manager = null;
 		if ( $this->container->has( 'cache_manager' ) ) {
 			$cache_manager = $this->container->get( 'cache_manager' );
@@ -333,7 +332,6 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 		echo '</table>';
 		echo '</div>';
 
-		// Clear cache button
 		echo '<div class="scd-cache-clear-actions">';
 		echo '<button type="button" id="scd-clear-cache-btn" class="button button-secondary">';
 		echo '<span class="dashicons dashicons-trash"></span> ';
@@ -368,7 +366,6 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 			? max( 300, min( 86400, absint( $input['product_cache_duration'] ) ) )
 			: 3600;
 
-		// Cache warming - explicitly set to false if not present
 		$sanitized['enable_cache_warming']     = isset( $input['enable_cache_warming'] ) && '1' === $input['enable_cache_warming'];
 		$sanitized['warm_on_campaign_changes'] = isset( $input['warm_on_campaign_changes'] ) && '1' === $input['warm_on_campaign_changes'];
 

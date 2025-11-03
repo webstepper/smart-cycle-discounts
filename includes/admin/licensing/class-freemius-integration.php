@@ -61,7 +61,7 @@ class SCD_Freemius_Integration {
 			return $scd_fs;
 		}
 
-		if ( ! file_exists( SCD_PLUGIN_DIR . 'includes/freemius/wordpress-sdk-master/start.php' ) ) {
+		if ( ! file_exists( SCD_PLUGIN_DIR . 'vendor/freemius/start.php' ) ) {
 			add_action( 'admin_notices', array( __CLASS__, 'freemius_missing_notice' ) );
 			return null;
 		}
@@ -82,19 +82,22 @@ class SCD_Freemius_Integration {
 			define( 'FS_SDK__SSLVERIFY', true );
 		}
 
-		require_once SCD_PLUGIN_DIR . 'includes/freemius/wordpress-sdk-master/start.php';
+		require_once SCD_PLUGIN_DIR . 'vendor/freemius/start.php';
 
 		$scd_fs = fs_dynamic_init(
 			array(
-				'id'             => '21492',
-				'slug'           => 'smart-cycle-discounts',
-				'type'           => 'plugin',
-				'public_key'     => 'pk_4adf9836495f54c692369525c1000',
-				'is_premium'     => false, // This is the FREE version (can be upgraded).
-				'has_addons'     => false,
-				'has_paid_plans' => true, // Plugin HAS paid plans available.
-				'is_live'        => true, // Enable live mode (production).
-				'menu'           => array(
+				'id'                  => '21492',
+				'slug'                => 'smart-cycle-discounts',
+				'type'                => 'plugin',
+				'public_key'          => 'pk_4adf9836495f54c692369525c1000',
+				'is_premium'          => false, // This is the FREE version (can be upgraded).
+				'has_addons'          => false,
+				'has_paid_plans'      => true, // Plugin HAS paid plans available.
+				'is_live'             => true, // Enable live mode (production).
+				'is_org_compliant'    => true, // WordPress.org compliant - shows skip button, allows anonymous usage.
+				'anonymous_mode'      => true, // Allow plugin use without opt-in (WordPress.org requirement).
+				'opt_in'              => false, // Don't auto opt-in (user must explicitly choose).
+				'menu'                => array(
 					'slug'       => 'smart-cycle-discounts',
 					'first-path' => 'admin.php?page=smart-cycle-discounts',
 					'support'    => false,
@@ -485,7 +488,6 @@ class SCD_Freemius_Integration {
 			return false;
 		}
 
-		// Check native Freemius premium status.
 		if ( self::$freemius->is_premium() || self::$freemius->is_trial() ) {
 			return true;
 		}

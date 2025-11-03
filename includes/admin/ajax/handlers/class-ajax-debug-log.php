@@ -63,7 +63,6 @@ class SCD_Ajax_Debug_Log extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Get logs from request
 		$logs_json = isset( $request['logs'] ) ? $request['logs'] : '';
 		if ( empty( $logs_json ) ) {
 			return $this->error(
@@ -81,7 +80,6 @@ class SCD_Ajax_Debug_Log extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Get debug logger
 		$debug_logger = function_exists( 'scd_debug' ) ? scd_debug() : null;
 		if ( ! $debug_logger ) {
 			return $this->error(
@@ -90,7 +88,6 @@ class SCD_Ajax_Debug_Log extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Process each log entry
 		$processed = 0;
 		foreach ( $logs as $log ) {
 			if ( ! is_array( $log ) ) {
@@ -104,7 +101,6 @@ class SCD_Ajax_Debug_Log extends SCD_Abstract_Ajax_Handler {
 			$elapsed    = isset( $log['elapsed'] ) ? $log['elapsed'] : 0;
 			$request_id = isset( $log['request_id'] ) ? $log['request_id'] : '';
 
-			// Add metadata to context
 			$context = array_merge(
 				$data,
 				array(

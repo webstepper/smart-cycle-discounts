@@ -56,7 +56,6 @@ class SCD_Track_Event_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array                Response data
 	 */
 	protected function handle( $request ) {
-		// Get the analytics collector instance
 		$container = SCD_Container::get_instance();
 
 		if ( ! $container->has( 'analytics_collector' ) ) {
@@ -69,7 +68,6 @@ class SCD_Track_Event_Handler extends SCD_Abstract_Ajax_Handler {
 
 		$analytics_collector = $container->get( 'analytics_collector' );
 
-		// Extract event data from request
 		$event_type      = isset( $request['event_type'] ) ? sanitize_text_field( $request['event_type'] ) : '';
 		$event_data      = isset( $request['event_data'] ) ? $request['event_data'] : array();
 		$campaign_id_raw = isset( $request['campaign_id'] ) ? absint( $request['campaign_id'] ) : 0;

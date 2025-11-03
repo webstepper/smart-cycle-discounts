@@ -50,7 +50,6 @@ class SCD_DateTime_Splitter {
 			);
 		}
 
-		// Convert from UTC to target timezone
 		$local_datetime = clone $utc_datetime;
 		$local_datetime->setTimezone( new DateTimeZone( $target_timezone ) );
 

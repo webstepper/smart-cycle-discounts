@@ -112,7 +112,6 @@ class SCD_Settings_Manager {
 	 * @return   void
 	 */
 	private function init_tab_classes(): void {
-		// Initialize all tab classes from container
 		$tab_services = array(
 			'general'     => 'settings_general',
 			'performance' => 'settings_performance',
@@ -123,7 +122,6 @@ class SCD_Settings_Manager {
 			if ( $this->container->has( $service_id ) ) {
 				$tab_instance = $this->container->get( $service_id );
 
-				// Initialize the tab to register its filters/hooks
 				// The base class init() handles all hook registration
 				if ( method_exists( $tab_instance, 'init' ) ) {
 					$tab_instance->init();
@@ -174,7 +172,6 @@ class SCD_Settings_Manager {
 		// Allow filtering of tabs
 		$this->tabs = apply_filters( 'scd_settings_tabs', $this->tabs );
 
-		// Sort tabs by priority
 		uasort(
 			$this->tabs,
 			function ( $a, $b ) {
@@ -190,7 +187,6 @@ class SCD_Settings_Manager {
 	 * @return   void
 	 */
 	public function register_settings(): void {
-		// Register main settings option
 		register_setting(
 			'scd_settings_group',
 			$this->option_name,
@@ -217,7 +213,6 @@ class SCD_Settings_Manager {
 	private function get_current_tab(): string {
 		$tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'general';
 
-		// Validate tab exists
 		$valid_tabs = array( 'general', 'performance', 'advanced' );
 		if ( ! in_array( $tab, $valid_tabs, true ) ) {
 			$tab = 'general';
@@ -257,28 +252,22 @@ class SCD_Settings_Manager {
 	 * @return   void
 	 */
 	public function render_page(): void {
-		// Check user permissions
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'smart-cycle-discounts' ) );
 		}
 
-		// Render page wrapper
 		echo '<div class="wrap scd-settings">';
 		echo '<h1><span class="dashicons dashicons-admin-settings"></span> ' . esc_html( get_admin_page_title() ) . '</h1>';
 
 		// Show admin notices
 		settings_errors( 'scd_settings_messages' );
 
-		// Render tab navigation
 		$this->render_tab_navigation();
 
-		// Render active tab content
 		echo '<form method="post" action="options.php" class="scd-settings-form">';
 
-		// Output security fields
 		settings_fields( 'scd_settings_group' );
 
-		// Render tab content
 		do_action( 'scd_render_settings_tab', $this->current_tab );
 
 		// Submit button
@@ -332,7 +321,6 @@ class SCD_Settings_Manager {
 	public function sanitize_settings( array $input ): array {
 		$sanitized = array();
 
-		// Get current settings
 		$current = $this->get_settings();
 
 		// Detect which tab is being saved from the input structure
@@ -347,7 +335,6 @@ class SCD_Settings_Manager {
 			}
 		}
 
-		// Store raw input for active tab before merging
 		$raw_tab_input = isset( $input[ $active_tab ] ) ? $input[ $active_tab ] : array();
 
 		// Merge with current settings to preserve other tabs
@@ -389,7 +376,6 @@ class SCD_Settings_Manager {
 		$all_settings = $this->get_settings();
 		$defaults     = $this->get_default_settings();
 
-		// Get tab settings, merge with tab-specific defaults
 		$tab_settings = isset( $all_settings[ $tab ] ) ? $all_settings[ $tab ] : array();
 		$tab_defaults = isset( $defaults[ $tab ] ) ? $defaults[ $tab ] : array();
 

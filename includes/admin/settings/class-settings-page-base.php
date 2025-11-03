@@ -110,7 +110,6 @@ abstract class SCD_Settings_Page_Base {
 			return;
 		}
 
-		// Render sections using WordPress Settings API
 		do_settings_sections( 'scd-settings-' . $this->tab_slug );
 	}
 
@@ -184,7 +183,6 @@ abstract class SCD_Settings_Page_Base {
 	 * @return   void
 	 */
 	protected function add_field( string $id, string $title, string $callback, string $section, array $args = array() ): void {
-		// Add tab slug to args
 		$args['tab']       = $this->tab_slug;
 		$args['field_id']  = $id;
 		$args['label_for'] = $id; // Connect label to input
@@ -240,7 +238,6 @@ abstract class SCD_Settings_Page_Base {
 		$value    = $this->get_setting( $field_id, false );
 		$name     = $this->get_field_name( $field_id );
 
-		// Render tooltip using centralized system
 		if ( isset( $args['tooltip'] ) && ! empty( $args['tooltip'] ) ) {
 			echo ' ';
 			$this->render_tooltip( $args['tooltip'] );
@@ -281,13 +278,11 @@ abstract class SCD_Settings_Page_Base {
 			esc_attr( $placeholder )
 		);
 
-		// Render tooltip using centralized system
 		if ( isset( $args['tooltip'] ) && ! empty( $args['tooltip'] ) ) {
 			echo ' ';
 			$this->render_tooltip( $args['tooltip'] );
 		}
 
-		// Render additional description if provided (separate from tooltip)
 		if ( isset( $args['description'] ) ) {
 			echo '<p class="description">' . esc_html( $args['description'] ) . '</p>';
 		}
@@ -321,13 +316,11 @@ abstract class SCD_Settings_Page_Base {
 			esc_attr( $class )
 		);
 
-		// Render tooltip using centralized system
 		if ( isset( $args['tooltip'] ) && ! empty( $args['tooltip'] ) ) {
 			echo ' ';
 			$this->render_tooltip( $args['tooltip'] );
 		}
 
-		// Render suffix if provided
 		if ( isset( $args['suffix'] ) ) {
 			echo ' <span class="description">' . esc_html( $args['suffix'] ) . '</span>';
 		}
@@ -366,7 +359,6 @@ abstract class SCD_Settings_Page_Base {
 
 		echo '</select>';
 
-		// Render tooltip using centralized system
 		if ( isset( $args['tooltip'] ) && ! empty( $args['tooltip'] ) ) {
 			echo ' ';
 			$this->render_tooltip( $args['tooltip'] );
@@ -399,13 +391,11 @@ abstract class SCD_Settings_Page_Base {
 			esc_textarea( $value )
 		);
 
-		// Render tooltip using centralized system
 		if ( isset( $args['tooltip'] ) && ! empty( $args['tooltip'] ) ) {
 			echo ' ';
 			$this->render_tooltip( $args['tooltip'] );
 		}
 
-		// Render additional description if provided (separate from tooltip)
 		if ( isset( $args['description'] ) ) {
 			echo '<p class="description">' . esc_html( $args['description'] ) . '</p>';
 		}

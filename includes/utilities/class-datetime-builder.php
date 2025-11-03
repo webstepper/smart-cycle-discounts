@@ -103,17 +103,14 @@ class SCD_DateTime_Builder {
 	public function validate(): bool {
 		$this->errors = array();
 
-		// Validate date
 		if ( ! $this->validate_date( $this->date ) ) {
 			$this->errors['date'] = __( 'Invalid date format. Expected YYYY-MM-DD.', 'smart-cycle-discounts' );
 		}
 
-		// Validate time
 		if ( ! $this->validate_time( $this->time ) ) {
 			$this->errors['time'] = __( 'Invalid time format. Expected HH:MM.', 'smart-cycle-discounts' );
 		}
 
-		// Validate timezone
 		$canonical_tz = scd_validate_timezone( $this->timezone );
 		if ( false === $canonical_tz ) {
 			$this->errors['timezone'] = __( 'Invalid timezone identifier.', 'smart-cycle-discounts' );
@@ -199,10 +196,8 @@ class SCD_DateTime_Builder {
 	 * @return   bool               True if valid, false otherwise.
 	 */
 	private function validate_date( string $date ): bool {
-		// Parse with strict validation
 		$dt = DateTime::createFromFormat( '!Y-m-d', $date );
 
-		// Check format matches exactly (prevents date rollover)
 		if ( ! $dt || $dt->format( 'Y-m-d' ) !== $date ) {
 			return false;
 		}

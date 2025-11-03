@@ -15,7 +15,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-// Load wizard helpers trait
 require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
 
 /**
@@ -63,7 +62,6 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
-		// Get state service
 		$state_service = $this->_get_state_service();
 		if ( ! $state_service ) {
 			return $this->error(
@@ -73,25 +71,21 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Get coverage data
 		$coverage_handler  = new SCD_Preview_Coverage_Handler();
 		$coverage_response = $coverage_handler->handle( $request );
 
 		if ( is_wp_error( $coverage_response ) ) {
 			$coverage_data = array();
 		} else {
-			// Extract data from wrapped response
 			$coverage_data = isset( $coverage_response['data'] ) ? $coverage_response['data'] : array();
 		}
 
-		// Get conflicts data
 		$conflicts_handler  = new SCD_Check_Conflicts_Handler();
 		$conflicts_response = $conflicts_handler->handle( $request );
 
 		if ( is_wp_error( $conflicts_response ) ) {
 			$conflicts_data = array();
 		} else {
-			// Extract data from wrapped response
 			$conflicts_data = isset( $conflicts_response['data'] ) ? $conflicts_response['data'] : array();
 		}
 
@@ -112,7 +106,6 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 			isset( $health_analysis['critical_issues'] ) ? $health_analysis['critical_issues'] : array()
 		);
 
-		// Get stock risk data from health analysis (if available)
 		$stock_risk = isset( $health_analysis['stock_risk'] ) ? $health_analysis['stock_risk'] : array(
 			'has_risk'          => false,
 			'high_risk_count'   => 0,
@@ -120,7 +113,6 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 			'products'          => array(),
 		);
 
-		// Build response in expected format (snake_case, will be auto-converted to camelCase by AJAX layer)
 		$response = array(
 			'score'            => isset( $health_analysis['score'] ) ? $health_analysis['score'] : 100,
 			'percentage'       => min( 100, round( isset( $health_analysis['score'] ) ? $health_analysis['score'] : 100 ) ),
@@ -178,7 +170,6 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 		$discounts = $state_service->get_step_data( 'discounts' );
 		$schedule  = $state_service->get_step_data( 'schedule' );
 
-		// Get discount value based on type
 		$discount_type  = isset( $discounts['discount_type'] ) ? $discounts['discount_type'] : 'percentage';
 		$discount_value = 0;
 
@@ -227,12 +218,10 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 
 		$enhanced = array();
 		foreach ( $critical_issues as $issue ) {
-			// Add severity if not present (all critical issues are 'critical' severity)
 			if ( ! isset( $issue['severity'] ) ) {
 				$issue['severity'] = 'critical';
 			}
 
-			// Add step if not present (map from category)
 			if ( ! isset( $issue['step'] ) && isset( $issue['category'] ) ) {
 				$category      = $issue['category'];
 				$issue['step'] = isset( $category_to_step[ $category ] ) ? $category_to_step[ $category ] : 'basic';

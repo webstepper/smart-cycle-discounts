@@ -78,7 +78,6 @@ class SCD_Clear_License_Cache_Handler extends SCD_Abstract_Ajax_Handler {
 				$feature_gate->clear_cache();
 				$results['feature_gate_cache_cleared'] = true;
 
-				// Get fresh status after clearing
 				$results['feature_gate_status_after_clear'] = array(
 					'is_premium' => $feature_gate->is_premium(),
 					'is_trial'   => $feature_gate->is_trial(),

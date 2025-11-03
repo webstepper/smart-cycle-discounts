@@ -110,7 +110,6 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 				error_log( '[SCD Product Search Handler] Stack trace: ' . $e->getTraceAsString() );
 			}
 
-			// Return error response
 			return array(
 				'success' => false,
 				'message' => $e->getMessage(),
@@ -128,22 +127,18 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array               Response data.
 	 */
 	private function handle_search( $request ) {
-		// Extract and sanitize parameters
 		$search   = sanitize_text_field( isset( $request['search'] ) ? $request['search'] : '' );
 		$page     = max( 1, intval( isset( $request['page'] ) ? $request['page'] : 1 ) );
 		$per_page = max( SCD_Validation_Rules::SEARCH_PER_PAGE_MIN, min( SCD_Validation_Rules::SEARCH_PER_PAGE_MAX, intval( isset( $request['per_page'] ) ? $request['per_page'] : SCD_Validation_Rules::SEARCH_PER_PAGE_DEFAULT ) ) );
 
-		// Process categories
 		$categories = $this->process_categories( isset( $request['categories'] ) ? $request['categories'] : array() );
 
-		// Get selected products
 		$selected = array_map( 'intval', (array) ( isset( $request['selected'] ) ? $request['selected'] : array() ) );
 
 		// Delegate to service
 		try {
 			$service = $this->get_product_service();
 
-			// Add null check for service
 			if ( ! $service ) {
 				throw new Exception( 'Product Service not available' );
 			}
@@ -153,7 +148,6 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 			throw $e;
 		}
 
-		// Format response with standardized structure
 		return array(
 			'products'   => $results['products'],
 			'pagination' => array(
@@ -179,7 +173,6 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @throws   Exception           If too many products requested.
 	 */
 	private function handle_get_by_ids( $request ) {
-		// Get and validate product IDs
 		$product_ids = isset( $request['product_ids'] ) ? $request['product_ids'] : array();
 		if ( ! is_array( $product_ids ) ) {
 			$product_ids = array( $product_ids );
@@ -193,7 +186,6 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Sanitize product IDs with proper validation
 		$product_ids = array_map( 'intval', $product_ids );
 		$product_ids = array_filter( $product_ids, array( $this, 'filter_valid_product_ids' ) );
 
@@ -249,7 +241,6 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 			return array();
 		}
 
-		// Sanitize and filter valid category IDs
 		$categories = array_map( 'intval', $categories );
 		$filtered   = array_filter( $categories, array( $this, 'filter_valid_category_ids' ) );
 
@@ -313,12 +304,10 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array               Response data.
 	 */
 	private function handle_get_categories( $request ) {
-		// Extract and sanitize parameters
 		$search = sanitize_text_field( isset( $request['search'] ) ? $request['search'] : '' );
 		$parent = max( 0, intval( isset( $request['parent'] ) ? $request['parent'] : 0 ) );
 		$ids    = isset( $request['ids'] ) && is_array( $request['ids'] ) ? array_map( 'sanitize_text_field', $request['ids'] ) : array();
 
-		// Build query args for product categories
 		$args = array(
 			'taxonomy'   => 'product_cat',
 			'hide_empty' => false,
@@ -330,7 +319,6 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 
 		// If specific IDs requested, only fetch those
 		if ( ! empty( $ids ) ) {
-			// Filter out 'all' from IDs as it's not a real category
 			$numeric_ids = array_filter( $ids, array( $this, 'filter_numeric_category_ids' ) );
 
 			if ( ! empty( $numeric_ids ) ) {
@@ -410,7 +398,6 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 
 		foreach ( $categories as $category ) {
 			if ( $parent_id == $category->parent ) {
-				// Check if this category has children
 				$has_children = false;
 				foreach ( $categories as $check_cat ) {
 					if ( $category->term_id == $check_cat->parent ) {
@@ -447,10 +434,8 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array               Response data.
 	 */
 	private function handle_get_tags( $request ) {
-		// Extract and sanitize parameters
 		$search = sanitize_text_field( isset( $request['search'] ) ? $request['search'] : '' );
 
-		// Build query args for product tags
 		$args = array(
 			'taxonomy'   => 'product_tag',
 			'hide_empty' => false,

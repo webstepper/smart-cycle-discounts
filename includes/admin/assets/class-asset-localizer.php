@@ -18,7 +18,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-// Load required dependencies
 require_once SCD_INCLUDES_DIR . 'constants/class-scd-product-selection-types.php';
 
 /**
@@ -316,7 +315,6 @@ class SCD_Asset_Localizer {
 		} elseif ( is_array( $localize ) ) {
 			// Multiple objects
 			foreach ( $localize as $object_name ) {
-				// Validate that object_name is a string
 				if ( is_string( $object_name ) && ! empty( $object_name ) ) {
 					$this->localize_simple( $handle, $object_name );
 				}
@@ -381,7 +379,6 @@ class SCD_Asset_Localizer {
 		}
 
 		if ( ! empty( $this->data[ $object_name ] ) ) {
-			// Convert snake_case keys to camelCase for JavaScript
 			$localized_data = $this->snake_to_camel_keys( $this->data[ $object_name ] );
 			wp_localize_script( $handle, $object_name, $localized_data );
 		}
@@ -490,7 +487,6 @@ class SCD_Asset_Localizer {
 	private function get_wizard_data(): array {
 		// Phase 2: No session ID needed in JavaScript - handled by secure cookies
 
-		// Get nonces from security configuration
 		$nonces = array();
 
 		// Ensure security class is loaded
@@ -591,7 +587,6 @@ class SCD_Asset_Localizer {
 			'debug_persistence' => true,  // Enable debug logging for wizard
 		);
 
-		// Load current wizard session data
 		$session_data = $this->load_wizard_session_data();
 
 		if ( ! empty( $session_data ) ) {
@@ -615,7 +610,6 @@ class SCD_Asset_Localizer {
 		}
 
 		// Only load session data on wizard pages
-		// Check for both 'wizard' (new campaigns) and 'edit' (editing existing campaigns)
 		if ( ! isset( $_GET['action'] ) || ( $_GET['action'] !== 'wizard' && $_GET['action'] !== 'edit' ) ) {
 			return array();
 		}
@@ -626,12 +620,10 @@ class SCD_Asset_Localizer {
 		}
 
 		try {
-			// Load the wizard state service
 			if ( ! class_exists( 'SCD_Wizard_State_Service' ) ) {
 				require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
 			}
 
-			// Create state service - it will automatically load session from cookie
 			$state_service = new SCD_Wizard_State_Service();
 
 			// CRITICAL FIX: Initialize change tracker for edit mode
@@ -644,14 +636,12 @@ class SCD_Asset_Localizer {
 				}
 			}
 
-			// Get all session data at once
 			$all_data     = $state_service->get_all_data();
 			$session_data = array();
 
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			}
 
-			// Extract step data
 			// In edit mode, steps array exists but is empty - we need to load from change tracker
 			$is_edit_mode  = isset( $all_data['is_edit_mode'] ) && $all_data['is_edit_mode'];
 			$has_step_data = isset( $all_data['steps'] ) && is_array( $all_data['steps'] ) && ! empty( $all_data['steps'] );
@@ -687,14 +677,12 @@ class SCD_Asset_Localizer {
 				}
 			}
 
-			// Check if we're in edit mode and need to load campaign data
 			$campaign_id = isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0;
 			$intent      = isset( $_GET['intent'] ) ? sanitize_text_field( $_GET['intent'] ) : '';
 
 			// Edit mode data loading is now handled by Change Tracker
 			// Data is loaded on-demand from database, not decomposed into session
 			if ( 'edit' === $intent && $campaign_id > 0 ) {
-				// Store campaign ID and edit mode flag for JavaScript detection
 				$session_data['campaign_id']  = $campaign_id;
 				$session_data['is_edit_mode'] = true;
 			}
@@ -712,7 +700,6 @@ class SCD_Asset_Localizer {
 					$product_ids = array_slice( $product_ids, 0, 50 );
 					if ( ! empty( $product_ids ) ) {
 						$products = $this->load_products_by_selection( $selection_type, array( 'product_ids' => $product_ids ) );
-						// Store in products.selected_products_data for JavaScript access
 						$session_data['products']['selected_products_data'] = $products;
 					}
 				}
@@ -878,7 +865,6 @@ class SCD_Asset_Localizer {
 				continue;
 			}
 
-			// Get product category IDs - CRITICAL for category filtering to work
 			$category_ids       = array();
 			$product_categories = wp_get_post_terms( $product->get_id(), 'product_cat', array( 'fields' => 'ids' ) );
 			if ( ! is_wp_error( $product_categories ) && is_array( $product_categories ) ) {
@@ -897,7 +883,6 @@ class SCD_Asset_Localizer {
 			);
 		}
 
-		// Sort by name for better UX
 		usort(
 			$formatted,
 			function ( $a, $b ) {
@@ -1115,7 +1100,6 @@ class SCD_Asset_Localizer {
 			}
 		}
 
-		// Get field definitions if the class exists
 		if ( class_exists( 'SCD_Field_Definitions' ) && method_exists( 'SCD_Field_Definitions', 'export_for_js' ) ) {
 			return SCD_Field_Definitions::export_for_js();
 		}
@@ -1130,7 +1114,6 @@ class SCD_Asset_Localizer {
 	 * @return array Validation constants.
 	 */
 	private function get_validation_constants(): array {
-		// Get validation data from the centralized PHP validation class
 		$validation_data = array();
 
 		// Ensure the validation class is loaded
@@ -1141,7 +1124,6 @@ class SCD_Asset_Localizer {
 			}
 		}
 
-		// Get the PHP validation data if the class exists
 		if ( class_exists( 'SCD_Validation' ) && method_exists( 'SCD_Validation', 'get_js_data' ) ) {
 			$validation_data = SCD_Validation::get_js_data();
 		}
@@ -1352,7 +1334,6 @@ class SCD_Asset_Localizer {
 		$colors             = SCD_Theme_Colors::get_theme_colors();
 		$admin_color_scheme = get_user_meta( get_current_user_id(), 'admin_color', true );
 
-		// Check basic theme customizer colors
 		$theme_primary = get_theme_mod( 'primary_color' );
 		$theme_accent  = get_theme_mod( 'accent_color' );
 

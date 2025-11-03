@@ -90,23 +90,22 @@ class SCD_Campaign_Planner_Service {
 	 * @return array Timeline data with exactly 3 campaigns.
 	 */
 	public function get_weekly_planner_campaigns(): array {
-		// Get all potential campaigns (weekly + major events).
 		$all_campaigns = $this->get_all_campaign_opportunities();
 
-		// Calculate state and priority for each campaign.
 		foreach ( $all_campaigns as &$campaign ) {
 			$campaign['state']           = $this->calculate_campaign_state( $campaign );
 			$campaign['end_timestamp']   = $this->get_campaign_end_timestamp( $campaign );
 			$campaign['start_timestamp'] = $this->get_campaign_start_timestamp( $campaign );
 		}
 
-		// Build smart 3-slot timeline.
 		$timeline = $this->build_smart_timeline( $all_campaigns );
 
-		// Add wizard URLs to all campaigns.
 		foreach ( $timeline as &$campaign ) {
 			if ( ! empty( $campaign ) ) {
 				$campaign['wizard_url'] = $this->get_wizard_url_for_campaign( $campaign );
+				// Replace description with random insight from pools on each load.
+				$campaign['description'] = $this->get_random_insight( $campaign );
+				$campaign['random_stat'] = $this->get_random_stat( $campaign );
 			}
 		}
 
@@ -158,7 +157,6 @@ class SCD_Campaign_Planner_Service {
 		}
 
 		// SLOT 3: FUTURE - Next campaign after slot 2.
-		// Get the campaign ID from slot 2 to avoid duplication.
 		$slot_2_id      = isset( $timeline[1]['id'] ) ? $timeline[1]['id'] : null;
 		$future_campaign = $this->get_next_future_campaign( $all_campaigns, $slot_2_id );
 		$timeline[]     = $future_campaign;
@@ -178,7 +176,6 @@ class SCD_Campaign_Planner_Service {
 	 * @return array|null Next upcoming campaign, or null if none found.
 	 */
 	private function get_next_upcoming_campaign( array $campaigns ): ?array {
-		// Filter to only future campaigns.
 		$future_campaigns = array_filter(
 			$campaigns,
 			function ( $campaign ) {
@@ -190,7 +187,6 @@ class SCD_Campaign_Planner_Service {
 			return null;
 		}
 
-		// Sort by: proximity FIRST (soonest), then priority (major events as tiebreaker).
 		// This ensures we show what's coming NEXT, not just what's most important.
 		usort(
 			$future_campaigns,
@@ -205,7 +201,6 @@ class SCD_Campaign_Planner_Service {
 			}
 		);
 
-		// Return the soonest upcoming campaign.
 		return reset( $future_campaigns );
 	}
 
@@ -223,7 +218,6 @@ class SCD_Campaign_Planner_Service {
 	private function get_next_future_campaign( array $campaigns, ?string $exclude_id ): ?array {
 		$now = current_time( 'timestamp' );
 
-		// Filter to only future campaigns, excluding the one in slot 2.
 		$future_campaigns = array_filter(
 			$campaigns,
 			function ( $campaign ) use ( $exclude_id ) {
@@ -235,7 +229,6 @@ class SCD_Campaign_Planner_Service {
 			return null;
 		}
 
-		// Sort by: priority (major events first), then proximity (soonest first).
 		usort(
 			$future_campaigns,
 			function ( $a, $b ) {
@@ -257,7 +250,6 @@ class SCD_Campaign_Planner_Service {
 			}
 		);
 
-		// Return the soonest upcoming campaign.
 		return ! empty( $future_campaigns ) ? reset( $future_campaigns ) : null;
 	}
 
@@ -273,12 +265,10 @@ class SCD_Campaign_Planner_Service {
 	private function get_all_campaign_opportunities(): array {
 		$campaigns = array();
 
-		// Add weekly campaigns.
 		require_once SCD_INCLUDES_DIR . 'core/campaigns/class-weekly-campaign-definitions.php';
 		$weekly_campaigns = SCD_Weekly_Campaign_Definitions::get_definitions();
 		$campaigns        = array_merge( $campaigns, $weekly_campaigns );
 
-		// Add major events.
 		require_once SCD_INCLUDES_DIR . 'core/campaigns/class-campaign-suggestions-registry.php';
 		$major_events = SCD_Campaign_Suggestions_Registry::get_event_definitions();
 
@@ -286,7 +276,6 @@ class SCD_Campaign_Planner_Service {
 		$now          = current_time( 'timestamp' );
 
 		foreach ( $major_events as $event ) {
-			// Calculate event dates.
 			$event_date = $this->suggestions_service->calculate_event_date( $event, $current_year );
 
 			// If event passed this year, check next year.
@@ -294,17 +283,14 @@ class SCD_Campaign_Planner_Service {
 				$event_date = $this->suggestions_service->calculate_event_date( $event, $current_year + 1 );
 			}
 
-			// Calculate campaign start/end based on event.
 			$start_offset = isset( $event['start_offset'] ) ? $event['start_offset'] : 0;
 			$duration     = isset( $event['duration_days'] ) ? $event['duration_days'] : 7;
 
 			$campaign_start = strtotime( $start_offset . ' days', $event_date );
 			$campaign_end   = strtotime( '+' . $duration . ' days', $campaign_start );
 
-			// Calculate creation window.
 			$window = $this->suggestions_service->calculate_suggestion_window( $event, $event_date );
 
-			// Add major event as campaign opportunity.
 			$campaigns[] = array_merge(
 				$event,
 				array(
@@ -368,12 +354,10 @@ class SCD_Campaign_Planner_Service {
 			$start_time = $schedule['start_time'];
 			$end_time   = $schedule['end_time'];
 
-			// Convert times to comparable integers.
 			$current_time_int = intval( str_replace( ':', '', $current_time ) );
 			$start_time_int   = intval( str_replace( ':', '', $start_time ) );
 			$end_time_int     = intval( str_replace( ':', '', $end_time ) );
 
-			// Check if currently active.
 			if ( $current_day >= $start_day && $current_day <= $end_day ) {
 				// Same day - check time.
 				if ( $current_day === $start_day && $current_time_int < $start_time_int ) {
@@ -413,7 +397,6 @@ class SCD_Campaign_Planner_Service {
 	 * @return array|null Best campaign for position, or null if none.
 	 */
 	private function get_best_campaign_for_position( array $campaigns, string $position ): ?array {
-		// Filter campaigns by state.
 		$candidates = array_filter(
 			$campaigns,
 			function ( $campaign ) use ( $position ) {
@@ -430,7 +413,6 @@ class SCD_Campaign_Planner_Service {
 
 		switch ( $position ) {
 			case 'past':
-				// Sort by: priority (high first), then recency (most recent first).
 				usort(
 					$candidates,
 					function ( $a, $b ) {
@@ -448,7 +430,6 @@ class SCD_Campaign_Planner_Service {
 				break;
 
 			case 'active':
-				// Sort by: priority (high first), then in-window check.
 				usort(
 					$candidates,
 					function ( $a, $b ) {
@@ -463,7 +444,6 @@ class SCD_Campaign_Planner_Service {
 				break;
 
 			case 'future':
-				// Sort by: priority (high first), then proximity (soonest first).
 				usort(
 					$candidates,
 					function ( $a, $b ) {
@@ -487,7 +467,6 @@ class SCD_Campaign_Planner_Service {
 				break;
 		}
 
-		// Return first (best) candidate.
 		return ! empty( $candidates ) ? reset( $candidates ) : null;
 	}
 
@@ -534,11 +513,9 @@ class SCD_Campaign_Planner_Service {
 			// If campaign is in 'future' state, use next occurrence.
 			// If campaign is in 'past' or 'active' state, use current/recent occurrence.
 			if ( 'future' === $campaign['state'] ) {
-				// Calculate next occurrence (could be this week or next week).
 				$current_day  = intval( current_time( 'N' ) );
 				$current_time = current_time( 'H:i' );
 
-				// Convert times to comparable integers.
 				$current_time_int = intval( str_replace( ':', '', $current_time ) );
 				$start_time_int   = intval( str_replace( ':', '', $start_time ) );
 
@@ -575,8 +552,77 @@ class SCD_Campaign_Planner_Service {
 	private function get_wizard_url_for_campaign( array $campaign ): string {
 		$base_url = admin_url( 'admin.php?page=scd-campaigns&action=wizard&intent=new' );
 
-		// Add campaign suggestion parameter for wizard prefill.
 		$campaign_id = $campaign['id'];
 		return add_query_arg( 'suggestion', $campaign_id, $base_url );
+	}
+
+	/**
+	 * Get random insight from campaign's insight pools.
+	 *
+	 * Randomly selects one insight from the campaign's rich data pools
+	 * (best_for, statistics, recommendations, psychology) to display
+	 * as the card description on each page load.
+	 *
+	 * @since  1.0.0
+	 * @param  array $campaign Campaign data with insight pools.
+	 * @return string Random insight text.
+	 */
+	private function get_random_insight( array $campaign ): string {
+		$available_pools = array();
+
+		// Collect available insight pools.
+		if ( ! empty( $campaign['best_for'] ) && is_array( $campaign['best_for'] ) ) {
+			$available_pools['best_for'] = $campaign['best_for'];
+		}
+
+		if ( ! empty( $campaign['statistics'] ) && is_array( $campaign['statistics'] ) ) {
+			$available_pools['statistics'] = array_values( $campaign['statistics'] );
+		}
+
+		if ( ! empty( $campaign['recommendations'] ) && is_array( $campaign['recommendations'] ) ) {
+			$available_pools['recommendations'] = $campaign['recommendations'];
+		}
+
+		if ( ! empty( $campaign['psychology'] ) && is_string( $campaign['psychology'] ) ) {
+			$available_pools['psychology'] = array( $campaign['psychology'] );
+		}
+
+		// If no insights available, return original description.
+		if ( empty( $available_pools ) ) {
+			return isset( $campaign['description'] ) ? $campaign['description'] : '';
+		}
+
+		// Randomly select a pool.
+		$pool_keys    = array_keys( $available_pools );
+		$random_pool  = $pool_keys[ array_rand( $pool_keys ) ];
+		$selected_pool = $available_pools[ $random_pool ];
+
+		// Randomly select an item from the pool.
+		$random_insight = $selected_pool[ array_rand( $selected_pool ) ];
+
+		return $random_insight;
+	}
+
+	/**
+	 * Get random statistic from campaign's statistics pool.
+	 *
+	 * Randomly selects one statistic from the campaign's statistics array
+	 * to display as the card stat on each page load.
+	 *
+	 * @since  1.0.0
+	 * @param  array $campaign Campaign data with statistics pool.
+	 * @return string Random statistic text.
+	 */
+	private function get_random_stat( array $campaign ): string {
+		if ( empty( $campaign['statistics'] ) || ! is_array( $campaign['statistics'] ) ) {
+			return '';
+		}
+
+		$stats = array_values( $campaign['statistics'] );
+
+		// Randomly select one stat.
+		$random_stat = $stats[ array_rand( $stats ) ];
+
+		return $random_stat;
 	}
 }

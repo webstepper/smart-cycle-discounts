@@ -102,7 +102,6 @@ class SCD_Session_Lock {
 				return true;
 			}
 
-			// Check if existing lock is expired
 			$existing_lock = get_transient( $lock_key );
 			if ( $existing_lock && $this->is_lock_expired( $existing_lock ) ) {
 				// Try to clean up expired lock and acquire
@@ -175,7 +174,6 @@ class SCD_Session_Lock {
 			return false;
 		}
 
-		// Check if lock is expired
 		if ( $this->is_lock_expired( $lock_value ) ) {
 			$this->release_expired_lock( $lock_key, $lock_value );
 			return false;
@@ -238,7 +236,6 @@ class SCD_Session_Lock {
 		);
 
 		if ( $result ) {
-			// Set expiration
 			set_transient( $lock_key, $lock_value, $timeout );
 			return true;
 		}
@@ -301,7 +298,6 @@ class SCD_Session_Lock {
 		$lock_data = $this->parse_lock_value( $lock_value );
 		$lock_time = $lock_data['time'] ?? 0;
 
-		// Check if lock is older than timeout
 		return ( microtime( true ) - $lock_time ) > $this->lock_timeout;
 	}
 
@@ -346,7 +342,6 @@ class SCD_Session_Lock {
 		$prefix  = 'scd_lock_';
 		$cleaned = 0;
 
-		// Get all lock transients
 		$locks = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT option_name, option_value FROM {$wpdb->options} 
@@ -358,7 +353,6 @@ class SCD_Session_Lock {
 		foreach ( $locks as $lock ) {
 			$lock_key = str_replace( '_transient_', '', $lock->option_name );
 
-			// Parse and check if expired
 			$lock_data = json_decode( $lock->option_value, true );
 			if ( is_array( $lock_data ) && isset( $lock_data['time'] ) ) {
 				$lock_time = $lock_data['time'];
@@ -400,5 +394,4 @@ class SCD_Session_Lock {
 	}
 }
 
-// Register cleanup hook
 SCD_Session_Lock::register_cleanup_hook();

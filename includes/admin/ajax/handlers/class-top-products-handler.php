@@ -63,7 +63,6 @@ class SCD_Top_Products_Handler extends SCD_Abstract_Analytics_Handler {
 	 * @return   array                Response data.
 	 */
 	public function handle( $request ) {
-		// Check license (logic tier - analytics data is premium feature)
 		$license_check = $this->validate_license( 'logic' );
 		if ( $this->license_validation_failed( $license_check ) ) {
 			return $this->license_error_response( $license_check );
@@ -78,12 +77,10 @@ class SCD_Top_Products_Handler extends SCD_Abstract_Analytics_Handler {
 			);
 		}
 
-		// Sanitize inputs
 		$date_range = sanitize_text_field( isset( $request['date_range'] ) ? $request['date_range'] : '30days' );
 		$limit      = isset( $request['limit'] ) ? absint( $request['limit'] ) : 10;
 
 		try {
-			// Get top products data from analytics collector
 			$products_data = $this->analytics_collector->get_top_products_by_revenue(
 				$date_range,
 				$limit

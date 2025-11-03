@@ -60,13 +60,11 @@ class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 	protected function handle( $request ) {
 		$start_time = microtime( true );
 
-		// Check license (critical tier - import is sensitive operation)
 		$license_check = $this->validate_license( 'critical' );
 		if ( $this->license_validation_failed( $license_check ) ) {
 			return $this->license_error_response( $license_check );
 		}
 
-		// Get import data
 		$import_data = isset( $request['import_data'] ) ? $request['import_data'] : '';
 
 		// Log request start
@@ -108,7 +106,6 @@ class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 			return $this->error( __( 'Invalid JSON data', 'smart-cycle-discounts' ) );
 		}
 
-		// Validate data structure
 		if ( ! isset( $data['type'] ) || ! isset( $data['data'] ) ) {
 			$this->logger->flow(
 				'error',
@@ -225,13 +222,11 @@ class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return array Response data.
 	 */
 	private function import_settings( $settings, $start_time ) {
-		// Get current settings
 		$current_settings = get_option( 'scd_settings', array() );
 
 		// Merge with imported settings
 		$merged_settings = array_replace_recursive( $current_settings, $settings );
 
-		// Update settings
 		$result = update_option( 'scd_settings', $merged_settings );
 
 		// Log import results

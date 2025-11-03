@@ -89,7 +89,6 @@ class SCD_Reference_Data_Cache {
 		$cached        = get_transient( $transient_key );
 
 		if ( $cached !== false ) {
-			// Store in object cache for this request
 			if ( wp_using_ext_object_cache() ) {
 				wp_cache_set( $type, $cached, $this->cache_group, $cache_duration );
 			}
@@ -99,7 +98,6 @@ class SCD_Reference_Data_Cache {
 		// Generate fresh data
 		$data = $this->generate_with_lock( $type, $generator );
 
-		// Cache the data
 		$this->set( $type, $data, $cache_duration );
 
 		return $data;
@@ -115,12 +113,10 @@ class SCD_Reference_Data_Cache {
 	 * @return   bool                   True on success.
 	 */
 	public function set( string $type, $data, int $duration ): bool {
-		// Store in object cache
 		if ( wp_using_ext_object_cache() ) {
 			wp_cache_set( $type, $data, $this->cache_group, $duration );
 		}
 
-		// Store in transient
 		$transient_key = $this->get_transient_key( $type );
 		return set_transient( $transient_key, $data, $duration );
 	}
@@ -133,12 +129,10 @@ class SCD_Reference_Data_Cache {
 	 * @return   bool               True on success.
 	 */
 	public function delete( string $type ): bool {
-		// Delete from object cache
 		if ( wp_using_ext_object_cache() ) {
 			wp_cache_delete( $type, $this->cache_group );
 		}
 
-		// Delete transient
 		$transient_key = $this->get_transient_key( $type );
 		return delete_transient( $transient_key );
 	}
@@ -150,12 +144,10 @@ class SCD_Reference_Data_Cache {
 	 * @return   void
 	 */
 	public function clear_all(): void {
-		// Clear specific types
 		foreach ( array_keys( $this->cache_durations ) as $type ) {
 			$this->delete( $type );
 		}
 
-		// Clear any custom types with prefix
 		global $wpdb;
 		$wpdb->query(
 			$wpdb->prepare(
@@ -167,7 +159,6 @@ class SCD_Reference_Data_Cache {
 			)
 		);
 
-		// Clear object cache group
 		if ( wp_using_ext_object_cache() ) {
 			wp_cache_flush_group( $this->cache_group );
 		}
@@ -247,12 +238,10 @@ class SCD_Reference_Data_Cache {
 		);
 
 		foreach ( $preload_types as $type ) {
-			// Check if already cached
 			if ( get_transient( $this->get_transient_key( $type ) ) !== false ) {
 				continue;
 			}
 
-			// Get appropriate generator
 			$generator = $this->get_data_generator( $type );
 			if ( $generator ) {
 				try {

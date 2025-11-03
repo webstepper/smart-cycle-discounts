@@ -42,34 +42,26 @@ class SCD_Activator {
 		ob_start();
 
 		try {
-			// Check system requirements
 			self::check_requirements();
 
-			// Create database tables
 			self::create_database_tables();
 
-			// Set default options
 			self::set_default_options();
 
-			// Create necessary directories
 			self::create_directories();
 
-			// Set up cron jobs
 			self::setup_cron_jobs();
 
-			// Create default capabilities
 			self::create_capabilities();
 
 			// Flush rewrite rules
 			self::flush_rewrite_rules();
 
-			// Set activation timestamp
 			self::set_activation_timestamp();
 
 			// Log activation
 			self::log_activation();
 
-			// Set redirect transient for first-time activation
 			self::set_activation_redirect();
 		} finally {
 			// Clean any output buffer
@@ -87,7 +79,6 @@ class SCD_Activator {
 	private static function check_requirements() {
 		// Check PHP version
 		if ( version_compare( PHP_VERSION, SCD_MIN_PHP_VERSION, '<' ) ) {
-			// Load plugin.php if needed for deactivate_plugins
 			if ( ! function_exists( 'deactivate_plugins' ) ) {
 				require_once ABSPATH . 'wp-admin/includes/plugin.php';
 			}
@@ -105,7 +96,6 @@ class SCD_Activator {
 
 		// Check WordPress version
 		if ( version_compare( get_bloginfo( 'version' ), SCD_MIN_WP_VERSION, '<' ) ) {
-			// Load plugin.php if needed for deactivate_plugins
 			if ( ! function_exists( 'deactivate_plugins' ) ) {
 				require_once ABSPATH . 'wp-admin/includes/plugin.php';
 			}
@@ -121,8 +111,6 @@ class SCD_Activator {
 			);
 		}
 
-		// Check if WooCommerce is active
-		// Load plugin.php if needed for is_plugin_active
 		if ( ! function_exists( 'is_plugin_active' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
@@ -137,7 +125,6 @@ class SCD_Activator {
 
 		// Check WooCommerce version
 		if ( defined( 'WC_VERSION' ) && version_compare( WC_VERSION, SCD_MIN_WC_VERSION, '<' ) ) {
-			// Load plugin.php if needed for deactivate_plugins
 			if ( ! function_exists( 'deactivate_plugins' ) ) {
 				require_once ABSPATH . 'wp-admin/includes/plugin.php';
 			}
@@ -153,11 +140,9 @@ class SCD_Activator {
 			);
 		}
 
-		// Check required PHP extensions
 		$required_extensions = array( 'json', 'mbstring', 'openssl' );
 		foreach ( $required_extensions as $extension ) {
 			if ( ! extension_loaded( $extension ) ) {
-				// Load plugin.php if needed for deactivate_plugins
 				if ( ! function_exists( 'deactivate_plugins' ) ) {
 					require_once ABSPATH . 'wp-admin/includes/plugin.php';
 				}
@@ -185,7 +170,6 @@ class SCD_Activator {
 
 		// Use migration manager instead of hardcoded schema
 		try {
-			// Load required classes
 			if ( ! class_exists( 'SCD_Database_Manager' ) ) {
 				require_once SCD_PLUGIN_DIR . 'includes/database/class-database-manager.php';
 			}
@@ -193,13 +177,11 @@ class SCD_Activator {
 				require_once SCD_PLUGIN_DIR . 'includes/database/class-migration-manager.php';
 			}
 
-			// Initialize database manager
 			$db_manager = new SCD_Database_Manager( $wpdb );
 
 			// Clean up any partially-created tables from previous failed attempts
 			self::cleanup_partial_installation( $db_manager );
 
-			// Initialize migration manager
 			$migration_manager = new SCD_Migration_Manager( $db_manager );
 
 			// Run migrations
@@ -232,7 +214,6 @@ class SCD_Activator {
 					$error_msg .= '</ul>';
 				}
 
-				// Add system info for debugging
 				$error_msg .= '<h3>System Information:</h3><ul>';
 				$error_msg .= '<li>PHP Version: ' . PHP_VERSION . '</li>';
 				$error_msg .= '<li>WordPress Version: ' . get_bloginfo( 'version' ) . '</li>';
@@ -273,17 +254,14 @@ class SCD_Activator {
 	 * @return   void
 	 */
 	private static function cleanup_partial_installation( SCD_Database_Manager $db_manager ): void {
-		// Check if this looks like a partial installation
 		// (migrations table exists but is malformed, or has no executed migrations)
 		global $wpdb;
 
 		$table_name = $db_manager->get_table_name( 'migrations' );
 
-		// Check if migrations table exists
 		$table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) );
 
 		if ( $table_exists ) {
-			// Check if the table has the correct structure
 			$columns      = $wpdb->get_results( "SHOW COLUMNS FROM {$table_name}" );
 			$column_names = array_map( fn( $col ) => $col->Field, $columns );
 
@@ -339,7 +317,6 @@ class SCD_Activator {
 			}
 		}
 
-		// Add individual security feature flags for easier access
 		if ( ! get_option( 'scd_allow_api_key_via_get' ) ) {
 			add_option( 'scd_allow_api_key_via_get', false );
 		}
@@ -375,7 +352,6 @@ class SCD_Activator {
 				$htaccess_content = "Order deny,allow\nDeny from all\n";
 				file_put_contents( $dir . '/.htaccess', $htaccess_content );
 
-				// Create index.php file
 				file_put_contents( $dir . '/index.php', '<?php // Silence is golden' );
 			}
 		}
@@ -424,7 +400,6 @@ class SCD_Activator {
 			'manage_scd_settings',
 		);
 
-		// Add capabilities to administrator role
 		$admin_role = get_role( 'administrator' );
 		if ( $admin_role ) {
 			foreach ( $capabilities as $capability ) {
@@ -432,7 +407,6 @@ class SCD_Activator {
 			}
 		}
 
-		// Add limited capabilities to shop manager role
 		$shop_manager_role = get_role( 'shop_manager' );
 		if ( $shop_manager_role ) {
 			$shop_manager_caps = array(
@@ -454,7 +428,6 @@ class SCD_Activator {
 	 * @access   private
 	 */
 	private static function flush_rewrite_rules() {
-		// Add custom rewrite rules if needed
 		add_rewrite_rule(
 			'^scd-api/([^/]+)/?',
 			'index.php?scd_api_endpoint=$matches[1]',
@@ -495,7 +468,6 @@ class SCD_Activator {
 			'site_url'    => get_site_url(),
 		);
 
-		// Store activation log in database only
 		// Do not use SCD_Log during activation as it may produce output
 		$logs   = get_option( 'scd_activation_logs', array() );
 		$logs[] = $log_data;
@@ -531,7 +503,6 @@ class SCD_Activator {
 			// Run upgrade procedures
 			self::run_upgrade_procedures( $current_version );
 
-			// Update version
 			update_option( 'scd_version', SCD_VERSION );
 		}
 	}
@@ -580,11 +551,9 @@ class SCD_Activator {
 		}
 
 		// Only redirect on first activation (not reactivations).
-		// Check if plugin has been activated before.
 		$first_activation = get_option( 'scd_first_activation_done' );
 
 		if ( ! $first_activation ) {
-			// Set transient to trigger redirect (expires in 30 seconds).
 			set_transient( 'scd_activation_redirect', true, 30 );
 
 			// Mark that first activation has occurred.

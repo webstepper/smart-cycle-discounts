@@ -103,7 +103,6 @@ class SCD_Import_Export_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return array Response data.
 	 */
 	private function handle_export( $type, $start_time ) {
-		// Check if user can export data (premium feature)
 		if ( $this->feature_gate && ! $this->feature_gate->can_export_data() ) {
 			$this->logger->flow(
 				'warning',
@@ -186,7 +185,6 @@ class SCD_Import_Export_Handler extends SCD_Abstract_Ajax_Handler {
 
 		$campaigns = $wpdb->get_results( $query, ARRAY_A );
 
-		// Check for database errors
 		if ( null === $campaigns && ! empty( $wpdb->last_error ) ) {
 			$this->logger->flow(
 				'error',

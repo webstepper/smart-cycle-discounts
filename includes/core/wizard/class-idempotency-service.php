@@ -76,12 +76,10 @@ class SCD_Idempotency_Service {
 	 * @return   string                 Idempotency key.
 	 */
 	public function generate_key( $step, $data, $user_id ) {
-		// Check for client-provided idempotency key
 		$client_key = isset( $_SERVER['HTTP_X_IDEMPOTENCY_KEY'] )
 			? sanitize_text_field( $_SERVER['HTTP_X_IDEMPOTENCY_KEY'] )
 			: null;
 
-		// Validate client key format (32-64 alphanumeric + hyphens/underscores)
 		if ( $client_key && preg_match( '/^[a-zA-Z0-9_-]{32,64}$/', $client_key ) ) {
 			return $client_key;
 		}
@@ -100,7 +98,6 @@ class SCD_Idempotency_Service {
 	 * @return   string                 Generated key.
 	 */
 	private function generate_key_from_params( $step, $data, $user_id ) {
-		// Get session ID from state service
 		$session_id = $this->get_session_id();
 
 		// Use HMAC with WordPress salt for cryptographic security

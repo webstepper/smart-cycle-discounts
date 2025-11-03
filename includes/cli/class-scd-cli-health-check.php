@@ -78,14 +78,11 @@ class SCD_CLI_Health_Check {
 		WP_CLI::log( 'Running Smart Cycle Discounts service health check...' );
 
 		try {
-			// Get plugin instance
 			$plugin    = Smart_Cycle_Discounts::get_instance();
 			$container = $plugin->get_container();
 
-			// Create health check instance
 			require_once SCD_INCLUDES_DIR . 'utilities/class-service-health-check.php';
 
-			// Get the service registry
 			$registry = null;
 			if ( class_exists( 'SCD_Service_Registry' ) ) {
 				$registry = new SCD_Service_Registry( $container );
@@ -156,7 +153,6 @@ class SCD_CLI_Health_Check {
 		WP_CLI::log( sprintf( 'Status: %s', strtoupper( $results['status'] ) ) );
 		WP_CLI::log( sprintf( 'Timestamp: %s', $results['timestamp'] ) );
 
-		// Check results table
 		if ( ! empty( $results['checks'] ) ) {
 			$table_data = array();
 			foreach ( $results['checks'] as $check ) {
@@ -259,7 +255,6 @@ class SCD_CLI_Health_Check {
 	private function attempt_fixes( $results, $container ) {
 		$fixes_applied = 0;
 
-		// Clear cache if memory usage is high
 		if ( isset( $results['stats']['memory'] ) ) {
 			$memory_limit = $results['stats']['memory']['limit'];
 			$memory_peak  = $results['stats']['memory']['peak'];
@@ -355,5 +350,4 @@ class SCD_CLI_Health_Check {
 	}
 }
 
-// Register command
 WP_CLI::add_command( 'scd health-check', 'SCD_CLI_Health_Check' );

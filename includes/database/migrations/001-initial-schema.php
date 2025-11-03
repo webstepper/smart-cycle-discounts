@@ -59,14 +59,12 @@ class SCD_Migration_001_Initial_Schema {
 	public function up(): void {
 		$charset_collate = $this->db->get_charset_collate();
 
-		// Create all tables
 		$this->create_campaigns_table( $charset_collate );
 		$this->create_active_discounts_table( $charset_collate );
 		$this->create_analytics_table( $charset_collate );
 		$this->create_customer_usage_table( $charset_collate );
 		$this->create_campaign_recurring_table( $charset_collate );
 
-		// Add foreign key constraints
 		$this->add_all_foreign_keys();
 	}
 
@@ -624,7 +622,6 @@ class SCD_Migration_001_Initial_Schema {
 	private function drop_foreign_keys( string $table_name ): void {
 		global $wpdb;
 
-		// Get all foreign key constraints
 		$constraints = $this->get_foreign_key_constraints( $table_name );
 
 		foreach ( $constraints as $constraint ) {

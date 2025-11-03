@@ -161,7 +161,6 @@ class SCD_Dashboard_Service {
 		$this->display_service     = $display_service;
 		$this->planner_service     = $planner_service;
 
-		// Register cache invalidation hooks
 		$this->register_cache_hooks();
 	}
 
@@ -182,7 +181,6 @@ class SCD_Dashboard_Service {
 	 * @return   array                     Dashboard data.
 	 */
 	public function get_dashboard_data( array $options = array(), bool $force_refresh = false ): array {
-		// Set defaults
 		$defaults = array(
 			'date_range'          => '30days',
 			'include_suggestions' => true,
@@ -209,7 +207,6 @@ class SCD_Dashboard_Service {
 			}
 		}
 
-		// Cache miss - calculate fresh data
 		$this->logger->debug(
 			'Dashboard cache miss, calculating fresh data',
 			array(
@@ -220,7 +217,6 @@ class SCD_Dashboard_Service {
 
 		$data = $this->calculate_dashboard_data( $options );
 
-		// Store in cache
 		$this->store_in_cache( $cache_key, $data );
 
 		return $data;
@@ -236,25 +232,18 @@ class SCD_Dashboard_Service {
 	 * @return   array                Dashboard data.
 	 */
 	private function calculate_dashboard_data( array $options ): array {
-		// Get overview metrics from analytics dashboard (includes pre-calculated trends)
 		$metrics = $this->analytics_dashboard->get_dashboard_metrics( $options['date_range'], true );
 
-		// Get campaign status breakdown
 		$campaign_stats = $this->get_campaign_stats();
 
-		// Get top 3 campaigns (free tier limit)
 		$top_campaigns = $this->get_top_campaigns( 3, $options['date_range'] );
 
-		// Get recent activity (if requested)
 		$recent_activity = $options['include_activity'] ? $this->get_recent_activity( 5 ) : array();
 
-		// Get campaign health checks (if requested)
 		$campaign_health = $options['include_health'] ? $this->get_campaign_health() : $this->get_empty_health_structure();
 
-		// Get recent campaigns with pre-computed display data (replaces view query)
 		$all_campaigns = $this->get_recent_campaigns( 5 );
 
-		// Get weekly planner data (dynamic 3-card selection: past/active/future)
 		$planner_data = $this->get_weekly_planner_campaigns();
 
 		return array(
@@ -320,7 +309,6 @@ class SCD_Dashboard_Service {
 	 * @return   array                    Top campaigns.
 	 */
 	private function get_top_campaigns( int $limit, string $date_range ): array {
-		// Get all active campaigns
 		$campaigns = $this->campaign_repository->find_all(
 			array(
 				'status'  => 'active',
@@ -334,7 +322,6 @@ class SCD_Dashboard_Service {
 			return array();
 		}
 
-		// Convert campaign objects to arrays and get IDs
 		$campaign_data = array();
 		$campaign_ids  = array();
 		foreach ( $campaigns as $campaign ) {
@@ -346,7 +333,6 @@ class SCD_Dashboard_Service {
 			);
 		}
 
-		// Get batch metrics (this might fail if analytics table doesn't exist yet)
 		try {
 			$metrics = $this->analytics_dashboard->get_batch_campaign_metrics( $campaign_ids, $date_range );
 		} catch ( Exception $e ) {
@@ -386,7 +372,6 @@ class SCD_Dashboard_Service {
 
 		$table_name = $wpdb->prefix . 'scd_activity_log';
 
-		// Check if table exists
 		$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) === $table_name;
 
 		if ( ! $table_exists ) {
@@ -419,7 +404,6 @@ class SCD_Dashboard_Service {
 
 		$table_name = $wpdb->prefix . 'scd_campaigns';
 
-		// Get all active, scheduled, and paused campaigns
 		$campaigns = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT * FROM {$table_name}
@@ -518,7 +502,6 @@ class SCD_Dashboard_Service {
 			}
 		}
 
-		// Check campaign limit
 		$active_campaigns = array_filter(
 			$campaigns,
 			function ( $c ) {
@@ -557,7 +540,6 @@ class SCD_Dashboard_Service {
 		$health['quick_stats']['issues_count']   = count( $health['issues'] );
 		$health['quick_stats']['warnings_count'] = count( $health['warnings'] );
 
-		// Add success messages if everything is healthy
 		if ( 'success' === $health['status'] && empty( $health['warnings'] ) && ! empty( $campaigns ) ) {
 			$health['success_messages'][] = sprintf(
 				/* translators: %d: number of campaigns */
@@ -715,7 +697,6 @@ class SCD_Dashboard_Service {
 
 		global $wpdb;
 
-		// Delete all dashboard transients for this user
 		$pattern = $wpdb->esc_like( '_transient_' . self::CACHE_GROUP . '_dashboard_' . $user_id . '_' ) . '%';
 
 		$wpdb->query(
@@ -756,7 +737,6 @@ class SCD_Dashboard_Service {
 	public function invalidate_all_caches(): void {
 		global $wpdb;
 
-		// Delete all dashboard transients
 		$pattern = $wpdb->esc_like( '_transient_' . self::CACHE_GROUP . '_' ) . '%';
 
 		$count = $wpdb->query(
@@ -824,7 +804,6 @@ class SCD_Dashboard_Service {
 	 * @return   void
 	 */
 	public function on_campaign_changed( $campaign ): void {
-		// Get campaign owner if we have a campaign object
 		if ( is_object( $campaign ) && method_exists( $campaign, 'get_created_by' ) ) {
 			$owner_id = $campaign->get_created_by();
 			if ( $owner_id ) {
@@ -933,17 +912,17 @@ class SCD_Dashboard_Service {
 	 *
 	 * @since  1.0.0
 	 * @param  string $campaign_id     Campaign ID.
-	 * @param  string $state           Campaign state (past/active/future).
+	 * @param  string $position        Timeline position (past/active/future) - where campaign is displayed.
 	 * @param  bool   $is_major_event  Whether this is a major event.
 	 * @return array                   Insights data structure with 'tabs' key (3 columns).
 	 */
-	public function get_unified_insights( string $campaign_id, string $state, bool $is_major_event ): array {
+	public function get_unified_insights( string $campaign_id, string $position, bool $is_major_event ): array {
 		// If major event, get rich event data from Registry.
 		if ( $is_major_event ) {
 			$event = SCD_Campaign_Suggestions_Registry::get_event_by_id( $campaign_id );
 
 			if ( $event ) {
-				return $this->build_event_insights( $event, $state );
+				return $this->build_event_insights( $event, $position );
 			}
 		}
 
@@ -952,26 +931,26 @@ class SCD_Dashboard_Service {
 		$weekly = SCD_Weekly_Campaign_Definitions::get_by_id( $campaign_id );
 
 		if ( $weekly ) {
-			return $this->build_weekly_event_insights( $weekly, $state );
+			return $this->build_weekly_event_insights( $weekly, $position );
 		}
 
 		// Fallback to basic structure if no data found.
-		return $this->build_weekly_insights( $campaign_id, $state );
+		return $this->build_weekly_insights( $campaign_id, $position );
 	}
 
 	/**
 	 * Build comprehensive insights for major events with 3-column layout.
 	 *
 	 * @since  1.0.0
-	 * @param  array  $event  Event definition from Campaign Suggestions Registry.
-	 * @param  string $state  Campaign state (past/active/future).
-	 * @return array          Insights data structure.
+	 * @param  array  $event     Event definition from Campaign Suggestions Registry.
+	 * @param  string $position  Timeline position (past/active/future).
+	 * @return array             Insights data structure.
 	 */
-	private function build_event_insights( array $event, string $state ): array {
+	private function build_event_insights( array $event, string $position ): array {
 		$tabs = array(
-			$this->build_opportunity_column( $event, $state ),
-			$this->build_strategy_column( $event, $state ),
-			$this->build_timeline_column( $event, $state ),
+			$this->build_opportunity_column( $event, $position ),
+			$this->build_strategy_column( $event, $position ),
+			$this->build_timeline_column( $event, $position ),
 		);
 
 		return array(
@@ -988,15 +967,15 @@ class SCD_Dashboard_Service {
 	 * column structure as major events.
 	 *
 	 * @since  1.0.0
-	 * @param  array  $weekly  Weekly campaign definition from Weekly Campaign Definitions.
-	 * @param  string $state   Campaign state (past/active/future).
-	 * @return array           Insights data structure.
+	 * @param  array  $weekly    Weekly campaign definition from Weekly Campaign Definitions.
+	 * @param  string $position  Timeline position (past/active/future).
+	 * @return array             Insights data structure.
 	 */
-	private function build_weekly_event_insights( array $weekly, string $state ): array {
+	private function build_weekly_event_insights( array $weekly, string $position ): array {
 		$tabs = array(
-			$this->build_weekly_opportunity_column( $weekly, $state ),
-			$this->build_weekly_strategy_column( $weekly, $state ),
-			$this->build_weekly_timeline_column( $weekly, $state ),
+			$this->build_weekly_opportunity_column( $weekly, $position ),
+			$this->build_weekly_strategy_column( $weekly, $position ),
+			$this->build_weekly_timeline_column( $weekly, $position ),
 		);
 
 		return array(
@@ -1012,13 +991,12 @@ class SCD_Dashboard_Service {
 	 *
 	 * @since  1.0.0
 	 * @param  array  $event  Event definition.
-	 * @param  string $state  Campaign state.
+	 * @param  string $position  Timeline position.
 	 * @return array          Column data structure.
 	 */
-	private function build_opportunity_column( array $event, string $state ): array {
+	private function build_opportunity_column( array $event, string $position ): array {
 		$content_pool = array();
 
-		// Add event description (high priority - weight 2x).
 		$content_pool[] = array(
 			'type'   => 'info',
 			'icon'   => 'calendar-alt',
@@ -1026,7 +1004,6 @@ class SCD_Dashboard_Service {
 			'weight' => 2,
 		);
 
-		// Add statistics as insights.
 		if ( ! empty( $event['statistics'] ) ) {
 			foreach ( $event['statistics'] as $label => $value ) {
 				$formatted_label = ucwords( str_replace( '_', ' ', $label ) );
@@ -1056,13 +1033,12 @@ class SCD_Dashboard_Service {
 	 *
 	 * @since  1.0.0
 	 * @param  array  $event  Event definition.
-	 * @param  string $state  Campaign state.
+	 * @param  string $position  Timeline position.
 	 * @return array          Column data structure.
 	 */
-	private function build_strategy_column( array $event, string $state ): array {
+	private function build_strategy_column( array $event, string $position ): array {
 		$content_pool = array();
 
-		// Add discount recommendations (high priority - weight 3x).
 		if ( ! empty( $event['suggested_discount'] ) ) {
 			$discount       = $event['suggested_discount'];
 			$content_pool[] = array(
@@ -1088,7 +1064,6 @@ class SCD_Dashboard_Service {
 			);
 		}
 
-		// Add recommendations (medium priority - weight 2x).
 		if ( ! empty( $event['recommendations'] ) ) {
 			foreach ( $event['recommendations'] as $recommendation ) {
 				$content_pool[] = array(
@@ -1100,7 +1075,6 @@ class SCD_Dashboard_Service {
 			}
 		}
 
-		// Add marketing tips (normal priority - weight 1x).
 		if ( ! empty( $event['tips'] ) ) {
 			foreach ( $event['tips'] as $tip ) {
 				$content_pool[] = array(
@@ -1140,13 +1114,12 @@ class SCD_Dashboard_Service {
 	 *
 	 * @since  1.0.0
 	 * @param  array  $event  Event definition.
-	 * @param  string $state  Campaign state.
+	 * @param  string $position  Timeline position.
 	 * @return array          Column data structure.
 	 */
-	private function build_timeline_column( array $event, string $state ): array {
+	private function build_timeline_column( array $event, string $position ): array {
 		$content_pool = array();
 
-		// Add event date (highest priority - weight 3x).
 		if ( ! empty( $event['event_date'] ) ) {
 			$event_date     = wp_date( 'F j, Y', $event['event_date'] );
 			$content_pool[] = array(
@@ -1161,7 +1134,6 @@ class SCD_Dashboard_Service {
 			);
 		}
 
-		// Add campaign start date (high priority - weight 2x).
 		if ( ! empty( $event['calculated_start_date'] ) ) {
 			$start_date     = wp_date( 'F j, Y', $event['calculated_start_date'] );
 			$content_pool[] = array(
@@ -1176,7 +1148,6 @@ class SCD_Dashboard_Service {
 			);
 		}
 
-		// Add campaign end date (high priority - weight 2x).
 		if ( ! empty( $event['calculated_end_date'] ) ) {
 			$end_date       = wp_date( 'F j, Y', $event['calculated_end_date'] );
 			$content_pool[] = array(
@@ -1191,7 +1162,6 @@ class SCD_Dashboard_Service {
 			);
 		}
 
-		// Add duration (normal priority - weight 1x).
 		if ( ! empty( $event['duration_days'] ) ) {
 			$content_pool[] = array(
 				'type'   => 'info',
@@ -1205,7 +1175,6 @@ class SCD_Dashboard_Service {
 			);
 		}
 
-		// Add lead time information (normal priority - weight 1x each).
 		if ( ! empty( $event['lead_time'] ) ) {
 			$lead_time = $event['lead_time'];
 
@@ -1236,7 +1205,6 @@ class SCD_Dashboard_Service {
 			}
 		}
 
-		// Add best practices (normal priority - weight 1x each).
 		if ( ! empty( $event['best_practices'] ) ) {
 			foreach ( $event['best_practices'] as $practice ) {
 				$content_pool[] = array(
@@ -1265,13 +1233,12 @@ class SCD_Dashboard_Service {
 	 *
 	 * @since  1.0.0
 	 * @param  array  $weekly  Weekly campaign definition.
-	 * @param  string $state   Campaign state.
+	 * @param  string $position   Timeline position.
 	 * @return array           Column data structure.
 	 */
-	private function build_weekly_opportunity_column( array $weekly, string $state ): array {
+	private function build_weekly_opportunity_column( array $weekly, string $position ): array {
 		$content_pool = array();
 
-		// Add campaign description (high priority - weight 2x).
 		$content_pool[] = array(
 			'type'   => 'info',
 			'icon'   => 'calendar-alt',
@@ -1279,7 +1246,6 @@ class SCD_Dashboard_Service {
 			'weight' => 2,
 		);
 
-		// Add psychology insight.
 		if ( ! empty( $weekly['psychology'] ) ) {
 			$content_pool[] = array(
 				'type'   => 'info',
@@ -1289,7 +1255,6 @@ class SCD_Dashboard_Service {
 			);
 		}
 
-		// Add statistics as insights.
 		if ( ! empty( $weekly['statistics'] ) ) {
 			foreach ( $weekly['statistics'] as $label => $value ) {
 				$formatted_label = ucwords( str_replace( '_', ' ', $label ) );
@@ -1331,13 +1296,12 @@ class SCD_Dashboard_Service {
 	 *
 	 * @since  1.0.0
 	 * @param  array  $weekly  Weekly campaign definition.
-	 * @param  string $state   Campaign state.
+	 * @param  string $position   Timeline position.
 	 * @return array           Column data structure.
 	 */
-	private function build_weekly_strategy_column( array $weekly, string $state ): array {
+	private function build_weekly_strategy_column( array $weekly, string $position ): array {
 		$content_pool = array();
 
-		// Add discount recommendations (high priority - weight 3x).
 		if ( ! empty( $weekly['suggested_discount'] ) ) {
 			$discount       = $weekly['suggested_discount'];
 			$content_pool[] = array(
@@ -1363,7 +1327,6 @@ class SCD_Dashboard_Service {
 			);
 		}
 
-		// Add recommendations (medium priority - weight 2x).
 		if ( ! empty( $weekly['recommendations'] ) ) {
 			foreach ( $weekly['recommendations'] as $recommendation ) {
 				$content_pool[] = array(
@@ -1403,13 +1366,12 @@ class SCD_Dashboard_Service {
 	 *
 	 * @since  1.0.0
 	 * @param  array  $weekly  Weekly campaign definition.
-	 * @param  string $state   Campaign state.
+	 * @param  string $position   Timeline position.
 	 * @return array           Column data structure.
 	 */
-	private function build_weekly_timeline_column( array $weekly, string $state ): array {
+	private function build_weekly_timeline_column( array $weekly, string $position ): array {
 		$content_pool = array();
 
-		// Add weekly schedule (highest priority - weight 3x).
 		if ( ! empty( $weekly['schedule'] ) ) {
 			$schedule = $weekly['schedule'];
 			$days     = array(
@@ -1439,7 +1401,6 @@ class SCD_Dashboard_Service {
 				'weight' => 3,
 			);
 
-			// Add individual day breakdown (high priority - weight 2x).
 			$content_pool[] = array(
 				'type'   => 'info',
 				'icon'   => 'flag',
@@ -1464,7 +1425,6 @@ class SCD_Dashboard_Service {
 				'weight' => 2,
 			);
 
-			// Calculate duration.
 			$duration_days = ( $schedule['end_day'] - $schedule['start_day'] );
 			if ( $duration_days < 0 ) {
 				$duration_days += 7; // Wrap around week.
@@ -1483,7 +1443,6 @@ class SCD_Dashboard_Service {
 			}
 		}
 
-		// Add preparation time (normal priority - weight 1x).
 		if ( isset( $weekly['prep_time'] ) ) {
 			$prep_time      = absint( $weekly['prep_time'] );
 			$content_pool[] = array(
@@ -1500,7 +1459,6 @@ class SCD_Dashboard_Service {
 			);
 		}
 
-		// Add psychology timing insight (normal priority - weight 1x).
 		if ( ! empty( $weekly['psychology'] ) ) {
 			$content_pool[] = array(
 				'type'   => 'info',
@@ -1510,7 +1468,6 @@ class SCD_Dashboard_Service {
 			);
 		}
 
-		// Add recurring nature highlight (normal priority - weight 1x).
 		$content_pool[] = array(
 			'type'   => 'info',
 			'icon'   => 'update',
@@ -1518,7 +1475,6 @@ class SCD_Dashboard_Service {
 			'weight' => 1,
 		);
 
-		// Add position-based timing advice (normal priority - weight 1x).
 		if ( ! empty( $weekly['position'] ) ) {
 			$position_texts = array(
 				'first'  => __( 'Best launched early in the week', 'smart-cycle-discounts' ),
@@ -1552,15 +1508,15 @@ class SCD_Dashboard_Service {
 	 *
 	 * @since  1.0.0
 	 * @param  string $campaign_id  Campaign ID.
-	 * @param  string $state        Campaign state.
+	 * @param  string $position        Timeline position.
 	 * @return array                Insights data structure.
 	 */
-	private function build_weekly_insights( string $campaign_id, string $state ): array {
+	private function build_weekly_insights( string $campaign_id, string $position ): array {
 		$title = '';
 		$icon  = 'info';
 
-		// State-specific title and icon.
-		switch ( $state ) {
+		// Position-specific title and icon.
+		switch ( $position ) {
 			case 'past':
 				$title = __( 'Campaign Results', 'smart-cycle-discounts' );
 				$icon  = 'chart-line';
@@ -1641,7 +1597,6 @@ class SCD_Dashboard_Service {
 			'margin'           => 'performance',
 		);
 
-		// Return mapped icon or default chart icon.
 		return $icon_map[ $label ] ?? 'chart-line';
 	}
 
@@ -1680,7 +1635,6 @@ class SCD_Dashboard_Service {
 				break;
 			}
 
-			// Calculate total weight of remaining items.
 			$total_weight = array_sum( array_column( $remaining_pool, 'weight' ) );
 
 			// Generate random number between 0 and total weight.
@@ -1698,12 +1652,10 @@ class SCD_Dashboard_Service {
 				}
 			}
 
-			// Add selected item to results (remove weight).
 			$selected_item = $remaining_pool[ $selected_index ];
 			unset( $selected_item['weight'] );
 			$selected[] = $selected_item;
 
-			// Remove selected item from pool to avoid duplicates.
 			array_splice( $remaining_pool, $selected_index, 1 );
 			$remaining_pool = array_values( $remaining_pool ); // Re-index array.
 		}

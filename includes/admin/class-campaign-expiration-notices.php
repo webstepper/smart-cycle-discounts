@@ -54,14 +54,12 @@ class SCD_Campaign_Expiration_Notices {
 			return;
 		}
 
-		// Check for expired campaigns
 		$expired_campaigns = get_transient( 'scd_recently_expired_campaigns' );
 
 		if ( ! $expired_campaigns || ! is_array( $expired_campaigns ) ) {
 			return;
 		}
 
-		// Filter campaigns expired in the last 24 hours
 		$recent_expired = array_filter( $expired_campaigns, array( $this, 'is_recent_expiration' ) );
 
 		if ( empty( $recent_expired ) ) {
@@ -189,7 +187,6 @@ class SCD_Campaign_Expiration_Notices {
 			wp_die( 'Permission denied' );
 		}
 
-		// Delete transient
 		delete_transient( 'scd_recently_expired_campaigns' );
 
 		wp_send_json_success();

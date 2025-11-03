@@ -348,7 +348,6 @@ class SCD_Request_Schemas {
 		foreach ( $schema as $field => $rules ) {
 			$value = $data[ $field ] ?? null;
 
-			// Check required fields
 			if ( ! empty( $rules['required'] ) && ( $value === null || $value === '' ) ) {
 				$errors[ $field ] = sprintf( __( '%s is required', 'smart-cycle-discounts' ), $rules['description'] ?? $field );
 				continue;

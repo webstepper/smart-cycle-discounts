@@ -155,7 +155,6 @@ class SCD_Loader {
 			);
 		}
 
-		// Register actions
 		foreach ( $this->actions as $hook ) {
 			add_action(
 				$hook['hook'],
@@ -165,7 +164,6 @@ class SCD_Loader {
 			);
 		}
 
-		// Register filters
 		foreach ( $this->filters as $hook ) {
 			add_filter(
 				$hook['hook'],
@@ -187,7 +185,6 @@ class SCD_Loader {
 			}
 		}
 
-		// Register shortcodes
 		foreach ( $this->shortcodes as $hook ) {
 			add_shortcode(
 				$hook['hook'],

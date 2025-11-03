@@ -68,7 +68,6 @@ class SCD_Get_Product_Stats_Handler extends SCD_Abstract_Ajax_Handler {
 		// NOTE: Product stats is FREE - helps users during campaign setup (exploration feature)
 		// License protection happens at campaign SAVE level (in save-step-handler)
 
-		// Get product IDs from request with type validation
 		$product_ids = isset( $request['product_ids'] ) ? $request['product_ids'] : array();
 
 		// Security: Validate that product_ids is an array or can be converted to one
@@ -96,7 +95,6 @@ class SCD_Get_Product_Stats_Handler extends SCD_Abstract_Ajax_Handler {
 			}
 		}
 
-		// Sanitize product IDs with strict validation
 		$product_ids = array_map( 'intval', $product_ids );
 		$product_ids = array_filter( $product_ids, array( $this, 'filter_valid_product_ids' ) );
 
@@ -177,7 +175,6 @@ class SCD_Get_Product_Stats_Handler extends SCD_Abstract_Ajax_Handler {
 					return $campaign->get_product_ids();
 				}
 				// For other types, we can't get all product IDs efficiently
-				// Return empty array to avoid performance issues
 				return array();
 			}
 		}

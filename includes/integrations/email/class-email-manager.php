@@ -189,7 +189,6 @@ class SCD_Email_Manager {
 	 * @return   void
 	 */
 	private function load_settings(): void {
-		// Load from notifications settings tab
 		$all_settings           = get_option( 'scd_settings', array() );
 		$notifications_settings = isset( $all_settings['notifications'] ) ? $all_settings['notifications'] : array();
 
@@ -216,7 +215,6 @@ class SCD_Email_Manager {
 
 		$this->settings = wp_parse_args( $notifications_settings, $defaults );
 
-		// Initialize email provider
 		$this->init_provider();
 	}
 
@@ -495,7 +493,6 @@ class SCD_Email_Manager {
 	 * @return   void
 	 */
 	public function handle_daily_report_cron(): void {
-		// Get yesterday's date for the report
 		$date = date( 'Y-m-d', strtotime( 'yesterday' ) );
 
 		// Fire the scd_daily_report action
@@ -511,7 +508,6 @@ class SCD_Email_Manager {
 	 * @return   void
 	 */
 	public function handle_weekly_report_cron(): void {
-		// Get start of last week (Monday)
 		$week_start = date( 'Y-m-d', strtotime( 'last Monday -1 week' ) );
 
 		// Fire the scd_weekly_report action
@@ -790,7 +786,6 @@ class SCD_Email_Manager {
 
 		$this->email_queue[] = $email_data;
 
-		// Store in database for persistence
 		$this->save_email_queue();
 
 		$this->logger->debug(
@@ -845,7 +840,6 @@ class SCD_Email_Manager {
 			}
 		}
 
-		// Remove processed emails
 		$this->email_queue = array_filter(
 			$this->email_queue,
 			function ( $email ) {
@@ -1044,14 +1038,12 @@ class SCD_Email_Manager {
 	private function is_notification_enabled( string $notification ): bool {
 		$setting_key = 'notify_' . $notification;
 
-		// Check if setting is enabled
 		$is_setting_enabled = isset( $this->settings[ $setting_key ] ) && $this->settings[ $setting_key ];
 
 		if ( ! $is_setting_enabled ) {
 			return false;
 		}
 
-		// Check licensing - must have PRO for PRO notifications
 		if ( ! $this->feature_gate->can_send_notification( $notification ) ) {
 			$this->logger->debug(
 				'Notification blocked by licensing',
@@ -1076,7 +1068,6 @@ class SCD_Email_Manager {
 	private function get_default_recipients(): array {
 		$recipients = array( get_option( 'admin_email' ) );
 
-		// Add additional recipients from settings
 		if ( ! empty( $this->settings['additional_recipients'] ) ) {
 			$additional = array_map( 'trim', explode( ',', $this->settings['additional_recipients'] ) );
 			$recipients = array_merge( $recipients, $additional );
@@ -1377,7 +1368,6 @@ class SCD_Email_Manager {
 	public function update_settings( array $settings ): bool {
 		$this->settings = wp_parse_args( $settings, $this->settings );
 
-		// Update notifications settings in unified settings structure
 		$all_settings                  = get_option( 'scd_settings', array() );
 		$all_settings['notifications'] = $this->settings;
 

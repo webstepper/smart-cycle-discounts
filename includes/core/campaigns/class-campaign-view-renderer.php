@@ -166,7 +166,6 @@ class SCD_Campaign_View_Renderer {
 		</div>
 		
 		<?php
-		// Load additional sections via templates
 		$this->template_loader->get_template(
 			'admin/campaign-edit-products.php',
 			array(
@@ -327,7 +326,6 @@ class SCD_Campaign_View_Renderer {
 	 * @return   void
 	 */
 	private function render_recurring_info( SCD_Campaign $campaign ): void {
-		// Get container and recurring handler
 		$container = null;
 		if ( class_exists( 'SmartCycleDiscounts' ) ) {
 			$plugin    = SmartCycleDiscounts::get_instance();

@@ -63,7 +63,6 @@ class SCD_Quick_Edit_Handler extends SCD_Abstract_Ajax_Handler {
 		// NOTE: Quick edit is FREE (core freemium feature)
 		// Users can edit their own campaigns regardless of license
 
-		// Validate campaign ID
 		$campaign_id = $this->sanitize_int( $this->get_param( $request, 'campaign_id' ) );
 		if ( ! $campaign_id ) {
 			return $this->error(
@@ -72,7 +71,6 @@ class SCD_Quick_Edit_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Get campaign
 		$campaign = $this->campaign_manager->find( $campaign_id );
 		if ( ! $campaign ) {
 			return $this->error(
@@ -82,10 +80,8 @@ class SCD_Quick_Edit_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Prepare update data
 		$update_data = $this->prepare_update_data( $request );
 
-		// Validate update data
 		if ( empty( $update_data ) ) {
 			return $this->error(
 				__( 'No valid data to update.', 'smart-cycle-discounts' ),
@@ -93,7 +89,6 @@ class SCD_Quick_Edit_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Update campaign
 		$result = $this->campaign_manager->update( $campaign_id, $update_data );
 
 		// Handle update errors
@@ -110,7 +105,6 @@ class SCD_Quick_Edit_Handler extends SCD_Abstract_Ajax_Handler {
 			)
 		);
 
-		// Return success response
 		return $this->success(
 			array(
 				'message'  => __( 'Campaign updated successfully.', 'smart-cycle-discounts' ),
@@ -172,7 +166,6 @@ class SCD_Quick_Edit_Handler extends SCD_Abstract_Ajax_Handler {
 		// Start date
 		if ( isset( $request['start_date'] ) ) {
 			$start_date = $this->sanitize_text( $request['start_date'] );
-			// Validate date format to prevent XSS via malformed dates
 			if ( ! empty( $start_date ) && $this->is_valid_date_format( $start_date ) ) {
 				$update_data['start_date'] = $start_date;
 			}
@@ -181,7 +174,6 @@ class SCD_Quick_Edit_Handler extends SCD_Abstract_Ajax_Handler {
 		// End date
 		if ( isset( $request['end_date'] ) ) {
 			$end_date = $this->sanitize_text( $request['end_date'] );
-			// Validate date format to prevent XSS via malformed dates
 			if ( ! empty( $end_date ) && $this->is_valid_date_format( $end_date ) ) {
 				$update_data['end_date'] = $end_date;
 			}

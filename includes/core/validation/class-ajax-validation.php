@@ -60,7 +60,6 @@ class SCD_AJAX_Validation {
 		$errors    = new WP_Error();
 		$validated = array();
 
-		// Validate nonce - accept both scd_ajax_nonce and scd_wizard_nonce for wizard requests
 		$nonce_valid = false;
 		if ( isset( $data['nonce'] ) ) {
 			// Try wizard nonce first (used by wizard pages)
@@ -78,10 +77,8 @@ class SCD_AJAX_Validation {
 			return $errors;
 		}
 
-		// Validate action
 		$validated['scd_action'] = sanitize_key( $data['scd_action'] );
 
-		// Validate request size
 		if ( strlen( serialize( $data ) ) > SCD_Validation_Rules::MAX_REQUEST_SIZE ) {
 			$errors->add( 'request_too_large', __( 'Request data is too large', 'smart-cycle-discounts' ) );
 			return $errors;
@@ -100,7 +97,6 @@ class SCD_AJAX_Validation {
 				return $validated;
 
 			default:
-				// Check for draft_action as sub-action
 				if ( isset( $data['draft_action'] ) ) {
 					return self::validate_draft_action( $data, $validated );
 				}
@@ -170,19 +166,16 @@ class SCD_AJAX_Validation {
 		$errors    = new WP_Error();
 		$validated = array();
 
-		// Validate nonce
 		if ( ! isset( $data['scd_product_meta_nonce'] ) ||
 			! wp_verify_nonce( $data['scd_product_meta_nonce'], 'scd_product_meta' ) ) {
 			$errors->add( 'invalid_nonce', __( 'Security check failed', 'smart-cycle-discounts' ) );
 			return $errors;
 		}
 
-		// Validate product exclusion
 		if ( isset( $data['scd_exclude_from_discounts'] ) ) {
 			$validated['scd_exclude_from_discounts'] = rest_sanitize_boolean( $data['scd_exclude_from_discounts'] );
 		}
 
-		// Validate max discount percentage
 		if ( isset( $data['scd_max_discount_percentage'] ) ) {
 			$percentage = absint( $data['scd_max_discount_percentage'] );
 			if ( $percentage > 0 && $percentage <= 100 ) {
@@ -192,7 +185,6 @@ class SCD_AJAX_Validation {
 			}
 		}
 
-		// Validate custom priority
 		if ( isset( $data['scd_custom_priority'] ) ) {
 			$priority = absint( $data['scd_custom_priority'] );
 			if ( $priority >= 1 && $priority <= 5 ) {
@@ -215,7 +207,6 @@ class SCD_AJAX_Validation {
 	 * @return   array|WP_Error        Validated data or error
 	 */
 	private static function validate_draft_action( array $data, array $validated ) {
-		// Validate draft action
 		if ( isset( $data['draft_action'] ) ) {
 			$valid_actions = array( 'save', 'delete', 'list', 'preview', 'default', 'complete' );
 			$action        = sanitize_key( $data['draft_action'] );
@@ -229,7 +220,6 @@ class SCD_AJAX_Validation {
 			}
 		}
 
-		// Validate draft type
 		if ( isset( $data['draft_type'] ) ) {
 			$valid_types = array( 'session', 'campaign', 'database' );
 			$type        = sanitize_key( $data['draft_type'] );
@@ -238,17 +228,14 @@ class SCD_AJAX_Validation {
 			}
 		}
 
-		// Validate draft ID
 		if ( isset( $data['draft_id'] ) ) {
 			$validated['draft_id'] = sanitize_text_field( $data['draft_id'] );
 		}
 
-		// Validate page for list action
 		if ( isset( $data['page'] ) ) {
 			$validated['page'] = absint( $data['page'] );
 		}
 
-		// Validate save_as_draft option
 		if ( isset( $data['save_as_draft'] ) ) {
 			$validated['save_as_draft'] = rest_sanitize_boolean( $data['save_as_draft'] );
 		}

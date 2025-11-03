@@ -115,7 +115,6 @@ class SCD_Style_Registry {
 	 * @return void
 	 */
 	private function register_core_styles(): void {
-		// Register shared styles first (these need to load before admin.css)
 		// Theme colors - Must load first (no dependencies)
 		$this->add_style(
 			'scd-theme-colors',
@@ -675,7 +674,6 @@ class SCD_Style_Registry {
 	 * @return void
 	 */
 	public function add_style( string $handle, array $config ): void {
-		// Process the src path
 		if ( ! empty( $config['src'] ) && empty( $config['external'] ) ) {
 			$config['src'] = $this->get_style_path( $config['src'] );
 		}
@@ -746,7 +744,6 @@ class SCD_Style_Registry {
 			}
 		);
 
-		// Sort by priority
 		uasort(
 			$page_styles,
 			function ( $a, $b ) {
@@ -814,7 +811,6 @@ class SCD_Style_Registry {
 			return false;
 		}
 
-		// Check page match
 		$page_match = in_array( $page, $style['pages'], true ) ||
 						in_array( 'all', $style['pages'], true );
 
@@ -822,7 +818,6 @@ class SCD_Style_Registry {
 			return false;
 		}
 
-		// Check conditions
 		if ( ! empty( $style['condition'] ) ) {
 			foreach ( $style['condition'] as $key => $value ) {
 				if ( ! isset( $conditions[ $key ] ) || $conditions[ $key ] !== $value ) {

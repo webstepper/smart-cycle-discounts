@@ -66,14 +66,12 @@ class SCD_Campaign_Compiler_Service {
 	 * @return   array|null    Compiled campaign data or null if no session.
 	 */
 	public function compile_from_session(): ?array {
-		// Load the wizard state service if not already loaded
 		if ( ! class_exists( 'SCD_Wizard_State_Service' ) ) {
 			require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
 		}
 
 		$state_service = new SCD_Wizard_State_Service();
 
-		// Get session data
 		$session_data = $state_service->get_all_data();
 
 		if ( empty( $session_data ) ) {
@@ -95,7 +93,6 @@ class SCD_Campaign_Compiler_Service {
 	public function compile( array $steps_data, ?int $exclude_campaign_id = null ): array {
 		$compiled = array();
 
-		// Add campaign ID for edit mode detection
 		if ( $exclude_campaign_id ) {
 			$compiled['id'] = $exclude_campaign_id;
 		}
@@ -111,7 +108,6 @@ class SCD_Campaign_Compiler_Service {
 
 		}
 
-		// Add metadata
 		$compiled['created_by'] = get_current_user_id();
 		$compiled['created_at'] = current_time( 'mysql' );
 
@@ -149,7 +145,6 @@ class SCD_Campaign_Compiler_Service {
 		if ( isset( $data['conditions'] ) && is_array( $data['conditions'] ) ) {
 			$data['metadata']['product_conditions'] = $data['conditions'];
 			$data['metadata']['conditions_logic']   = $data['conditions_logic'] ?? 'all';
-			// Remove from main data as it's now in metadata
 			unset( $data['conditions'] );
 			unset( $data['conditions_logic'] );
 		}
@@ -159,7 +154,6 @@ class SCD_Campaign_Compiler_Service {
 			$data['metadata']['smart_criteria'] = $data['smart_criteria'];
 		}
 
-		// Initialize discount_rules once for all discount configurations
 		$data['discount_rules'] = $data['discount_rules'] ?? array();
 
 		// Tiered discounts (complex field) - now uses combined format
@@ -202,14 +196,12 @@ class SCD_Campaign_Compiler_Service {
 		if ( ! empty( $data['discount_rules'] ) && is_array( $data['discount_rules'] ) ) {
 			$discount_rules = $data['discount_rules'];
 
-			// Check if this is tiered discount configuration (now uses combined format)
 			if ( isset( $discount_rules['tiers'] ) && is_array( $discount_rules['tiers'] ) ) {
 				$data['tiers']     = $discount_rules['tiers'];
 				$data['tier_mode'] = $discount_rules['tier_mode'] ?? 'percentage';
 				$data['tier_type'] = $discount_rules['tier_type'] ?? 'quantity';
 			}
 
-			// Check if this is spend threshold discount configuration (now uses combined format)
 			if ( isset( $discount_rules['thresholds'] ) && is_array( $discount_rules['thresholds'] ) ) {
 				$data['thresholds']     = $discount_rules['thresholds'];
 				$data['threshold_mode'] = $discount_rules['threshold_mode'] ?? 'percentage';
@@ -228,10 +220,8 @@ class SCD_Campaign_Compiler_Service {
 	 * @return   array             Transformed data.
 	 */
 	private function transform_campaign_data( array $data ): array {
-		// Build settings array that campaign validation expects
 		$settings = array();
 
-		// Add discount settings
 		if ( isset( $data['discount_type'] ) ) {
 			$settings['discount_type'] = $data['discount_type'];
 
@@ -257,12 +247,10 @@ class SCD_Campaign_Compiler_Service {
 			$data['discount_value'] = $discount_value;
 		}
 
-		// Add product/category/tag settings
 		$settings['products']   = array();
 		$settings['categories'] = array();
 		$settings['tags']       = array();
 
-		// Store category filter in the campaign's category_ids field
 		if ( ! empty( $data['category_ids'] ) && is_array( $data['category_ids'] ) ) {
 			// Remove 'all' value if present - empty array means all categories
 			$category_ids = array_filter(
@@ -273,11 +261,9 @@ class SCD_Campaign_Compiler_Service {
 			);
 
 			if ( ! empty( $category_ids ) ) {
-				// Store in main data array for campaign model
 				$data['category_ids'] = array_map( 'intval', $category_ids );
 				// Also store in metadata for additional info if needed
 				$data['metadata']['category_ids'] = $data['category_ids'];
-				// Store in settings for validation
 				$settings['categories'] = $data['category_ids'];
 			} else {
 				// If only 'all' was present, set to empty array (means all categories)
@@ -306,7 +292,6 @@ class SCD_Campaign_Compiler_Service {
 					$settings['applies_to_all']      = false;
 					// Don't set products to 'all' - they will be compiled when campaign activates
 					$settings['products'] = array();
-					// Store random_count in both settings and metadata
 					$random_count             = $data['random_count'] ?? 5;
 					$settings['random_count'] = $random_count;
 					if ( ! isset( $data['metadata'] ) ) {
@@ -322,7 +307,6 @@ class SCD_Campaign_Compiler_Service {
 			}
 		}
 
-		// Add discount rules/restrictions to settings
 		if ( isset( $data['apply_to_sale_items'] ) ) {
 			$settings['apply_to_sale_items'] = (bool) $data['apply_to_sale_items'];
 		}
@@ -335,7 +319,6 @@ class SCD_Campaign_Compiler_Service {
 			$settings['stack_with_others'] = (bool) $data['stack_with_others'];
 		}
 
-		// Add the settings array to campaign data
 		$data['settings'] = $settings;
 
 		// Organize complex fields for JSON storage
@@ -345,7 +328,6 @@ class SCD_Campaign_Compiler_Service {
 		if ( isset( $data['discount_type'] ) ) {
 			$discount_config = $this->build_discount_configuration( $data );
 
-			// Store configuration in discount_rules field for Campaign model
 			$data['discount_rules'] = $discount_config;
 
 			// Also keep as discount_configuration for backward compatibility
@@ -362,7 +344,6 @@ class SCD_Campaign_Compiler_Service {
 				// IMMEDIATE: Use current server time (WordPress timezone)
 				// Single source of truth - server calculates both start and end times
 				try {
-					// Get current datetime in campaign timezone
 					$now_dt       = new DateTime( 'now', new DateTimeZone( $campaign_timezone ) );
 					$current_date = $now_dt->format( 'Y-m-d' );
 					$current_time = $now_dt->format( 'H:i' );
@@ -384,14 +365,12 @@ class SCD_Campaign_Compiler_Service {
 					// Get UTC datetime for database storage
 					$data['starts_at'] = $start_builder->to_mysql();
 
-					// Set start_date and start_time separately (wizard expects separate fields)
 					$data['start_date'] = $current_date; // Y-m-d only
 					$data['start_time'] = $current_time; // H:i only
 				} catch ( Exception $e ) {
 					throw $e;
 				}
 
-				// Calculate end time - PRIORITY: User's explicit end_date takes precedence
 				// FIX: User-selected end_date should be respected, not overridden by stale duration_seconds
 				if ( isset( $data['end_date'] ) && isset( $data['end_time'] ) && ! empty( $data['end_date'] ) ) {
 					// Use user's explicit end date/time selection (PRIMARY)
@@ -417,7 +396,6 @@ class SCD_Campaign_Compiler_Service {
 					// Fallback: Duration-based calculation (for backward compatibility with presets)
 					$duration_seconds = absint( $data['duration_seconds'] );
 
-					// Calculate end datetime by adding duration to start
 					$end_dt = clone $now_dt;
 					$end_dt->modify( '+' . $duration_seconds . ' seconds' );
 
@@ -493,7 +471,6 @@ class SCD_Campaign_Compiler_Service {
 				}
 			}
 
-			// Build schedule configuration
 			$data['schedule_configuration'] = $this->build_schedule_configuration( $data );
 		}
 
@@ -502,7 +479,6 @@ class SCD_Campaign_Compiler_Service {
 		$launch_option = $data['launch_option'] ?? null;
 		$start_type    = $data['start_type'] ?? 'immediate';
 
-		// Check if campaign start time is in the future
 		$is_future_campaign = false;
 		if ( ! empty( $data['starts_at'] ) ) {
 			// Use DateTime for comparison (both in UTC)
@@ -511,7 +487,6 @@ class SCD_Campaign_Compiler_Service {
 			$is_future_campaign = ( $start_dt > $now_dt );
 		}
 
-		// Set status based on user intent and scheduling constraints
 		// PRIORITY ORDER:
 		// 1. User explicitly chose 'draft' → ALWAYS draft (allows reviewing future campaigns)
 		// 2. User chose 'active' + future start → 'scheduled' (physical constraint)
@@ -600,7 +575,6 @@ class SCD_Campaign_Compiler_Service {
 					$config['tiers'] = $data['tiers'];
 				}
 
-				// Store tier mode and type
 				if ( ! empty( $data['tier_mode'] ) ) {
 					$config['tier_mode'] = $data['tier_mode'];
 				}
@@ -609,13 +583,11 @@ class SCD_Campaign_Compiler_Service {
 				// Handle threshold data from JavaScript which sends percentage_spend_thresholds and fixed_spend_thresholds
 				$config['thresholds'] = array();
 
-				// Check for percentage thresholds
 				if ( ! empty( $data['percentage_spend_thresholds'] ) && is_array( $data['percentage_spend_thresholds'] ) ) {
 					$config['thresholds']     = $data['percentage_spend_thresholds'];
 					$config['threshold_mode'] = 'percentage';
 				}
 
-				// Check for fixed thresholds (these would override percentage if both present)
 				if ( ! empty( $data['fixed_spend_thresholds'] ) && is_array( $data['fixed_spend_thresholds'] ) ) {
 					$config['thresholds']     = $data['fixed_spend_thresholds'];
 					$config['threshold_mode'] = 'fixed';
@@ -699,7 +671,6 @@ class SCD_Campaign_Compiler_Service {
 			throw new Exception( 'Campaign repository not available' );
 		}
 
-		// Extract product IDs if present - prioritize product_ids over legacy products key
 		$product_ids = $compiled_data['product_ids'] ?? array();
 		if ( empty( $product_ids ) && isset( $compiled_data['products'] ) && is_array( $compiled_data['products'] ) ) {
 			// Fallback to products key only if it contains actual product IDs (not 'all' or 'smart')
@@ -711,7 +682,6 @@ class SCD_Campaign_Compiler_Service {
 		// Use appropriate repository method
 		if ( method_exists( $this->campaign_repository, 'save_campaign_with_products' ) && ! empty( $product_ids ) ) {
 			$result = $this->campaign_repository->save_campaign_with_products( $compiled_data );
-			// Convert false to null to match return type
 			return false !== $result ? $result : null;
 		}
 
@@ -759,7 +729,6 @@ class SCD_Campaign_Compiler_Service {
 
 		// Keep checking until we find a unique name
 		while ( $counter <= $max_attempts ) {
-			// Check if name exists (including soft-deleted campaigns)
 			// Exclude current campaign when editing
 			if ( $exclude_campaign_id ) {
 				$exists = $wpdb->get_var(
@@ -778,7 +747,6 @@ class SCD_Campaign_Compiler_Service {
 				);
 			}
 
-			// Check for database errors
 			if ( $wpdb->last_error ) {
 				throw new Exception( 'Database error while checking campaign name uniqueness: ' . $wpdb->last_error );
 			}
@@ -791,7 +759,6 @@ class SCD_Campaign_Compiler_Service {
 			++$counter;
 			$name = $original_name . ' (' . $counter . ')';
 
-			// Add debug logging
 		}
 
 		// If we exhausted all attempts, throw an exception
@@ -812,7 +779,6 @@ class SCD_Campaign_Compiler_Service {
 	public function validate_compiled_data( array $compiled_data ): array {
 		$errors = array();
 
-		// Check required fields
 		$required_fields = array( 'name', 'discount_type', 'product_selection_type' );
 		foreach ( $required_fields as $field ) {
 			if ( empty( $compiled_data[ $field ] ) ) {
@@ -820,7 +786,6 @@ class SCD_Campaign_Compiler_Service {
 			}
 		}
 
-		// Validate campaign model if available
 		if ( class_exists( 'SCD_Campaign' ) ) {
 			$campaign     = new SCD_Campaign( $compiled_data );
 			$model_errors = $campaign->validate();

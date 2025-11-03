@@ -284,7 +284,6 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 			);
 		}
 
-		// Validate campaign ID
 		$campaign_id = absint( $campaign_id );
 		if ( $campaign_id < 1 ) {
 			return new WP_Error(
@@ -396,7 +395,6 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 	 * @return   array             Prepared data.
 	 */
 	protected function prepare_item_output( array $data ) {
-		// Convert numeric fields using base class helpers
 		$numeric_fields = array(
 			'id',
 			'campaign_id',

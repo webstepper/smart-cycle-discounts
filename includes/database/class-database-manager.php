@@ -151,7 +151,6 @@ class SCD_Database_Manager {
 		}
 
 		// wpdb->query can return bool(true) for some queries like CREATE TABLE
-		// Convert to int for consistency with return type
 		if ( $result === true ) {
 			return 0; // Return 0 for successful queries with no rows affected
 		}
@@ -470,7 +469,6 @@ class SCD_Database_Manager {
 	 * @return   int                      Row count.
 	 */
 	private function get_table_count( string $table_name ): int {
-		// Validate table name to prevent SQL injection
 		if ( ! preg_match( '/^[a-zA-Z0-9_]+$/', $table_name ) ) {
 			return 0;
 		}
@@ -494,7 +492,6 @@ class SCD_Database_Manager {
 
 		foreach ( $this->tables as $key => $table_name ) {
 			if ( $this->table_exists( $key ) ) {
-				// Validate table name
 				if ( preg_match( '/^[a-zA-Z0-9_]+$/', $table_name ) ) {
 					$result          = $this->wpdb->query( "OPTIMIZE TABLE `{$table_name}`" );
 					$results[ $key ] = $result !== false;
@@ -518,7 +515,6 @@ class SCD_Database_Manager {
 
 		foreach ( $this->tables as $key => $table_name ) {
 			if ( $this->table_exists( $key ) ) {
-				// Validate table name
 				if ( preg_match( '/^[a-zA-Z0-9_]+$/', $table_name ) ) {
 					$result          = $this->wpdb->query( "REPAIR TABLE `{$table_name}`" );
 					$results[ $key ] = $result !== false;

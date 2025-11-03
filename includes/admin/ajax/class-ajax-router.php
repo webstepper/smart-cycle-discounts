@@ -70,7 +70,6 @@ class SCD_Ajax_Router {
 			require_once __DIR__ . '/class-ajax-security.php';
 		}
 
-		// Load abstract base class that all modern handlers extend.
 		if ( ! class_exists( 'SCD_Abstract_Ajax_Handler' ) ) {
 			require_once __DIR__ . '/abstract-class-ajax-handler.php';
 		}
@@ -87,9 +86,7 @@ class SCD_Ajax_Router {
 	public function init() {
 		// Register WordPress AJAX hooks for each handler.
 		foreach ( $this->handlers as $action => $handler_class ) {
-			// Register for logged-in users.
 			add_action( 'wp_ajax_scd_' . $action, array( $this, 'route_request' ) );
-			// Register for logged-out users (if needed for specific actions).
 			// add_action( 'wp_ajax_nopriv_scd_' . $action, array( $this, 'route_request' ) ).
 		}
 	}
@@ -103,7 +100,6 @@ class SCD_Ajax_Router {
 	public function route_request() {
 		$start_time = microtime( true );
 
-		// Get action from request.
 		// Priority order (CRITICAL FIX).
 		// 1. Custom scdAction parameter (unified endpoint sends this).
 		// 2. Custom scd_action parameter (backward compatibility).
@@ -154,7 +150,6 @@ class SCD_Ajax_Router {
 		// Strip scd_ prefix for handler lookup if present.
 		$handler_action = preg_replace( '/^scd_/', '', $action );
 
-		// Check if handler exists.
 		if ( ! isset( $this->handlers[ $handler_action ] ) ) {
 			if ( function_exists( 'scd_debug_ajax_response' ) ) {
 				scd_debug_ajax_response( $action, array( 'error' => 'Invalid action' ), false, microtime( true ) - $start_time );
@@ -192,7 +187,6 @@ class SCD_Ajax_Router {
 			}
 		}
 
-		// Get or create handler instance.
 		$handler = $this->get_handler_instance( $handler_action );
 
 		if ( ! $handler ) {
@@ -215,7 +209,6 @@ class SCD_Ajax_Router {
 				);
 			}
 
-			// Prepare request data for handler.
 			// Nonce already verified above at line 173.
 			// phpcs:disable WordPress.Security.NonceVerification.Missing
 			$request_data = array_merge(
@@ -227,7 +220,6 @@ class SCD_Ajax_Router {
 			);
 			// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-			// Convert camelCase keys from JavaScript to snake_case for PHP.
 			$request_data = self::camel_to_snake_keys( $request_data );
 
 			// Call handler - check if it extends SCD_Abstract_Ajax_Handler.
@@ -248,7 +240,6 @@ class SCD_Ajax_Router {
 				}
 			}
 
-			// Check if handler returned data.
 			if ( null !== $result ) {
 				$duration = microtime( true ) - $start_time;
 
@@ -286,7 +277,6 @@ class SCD_Ajax_Router {
 						}
 
 						// CRITICAL FIX: Handlers already wrap responses with success/data structure.
-						// Extract just the data to avoid double-wrapping in SCD_AJAX_Response.
 						$response_data = isset( $result['data'] ) ? $result['data'] : $result;
 						SCD_AJAX_Response::success( $response_data );
 					}
@@ -427,14 +417,12 @@ class SCD_Ajax_Router {
 	 * @return   object|null           Handler instance or null
 	 */
 	private function get_handler_instance( $action ) {
-		// Check cache first.
 		if ( isset( $this->handler_instances[ $action ] ) ) {
 			return $this->handler_instances[ $action ];
 		}
 
 		$handler_class = $this->handlers[ $action ];
 
-		// Load handler file if needed.
 		if ( ! class_exists( $handler_class ) ) {
 			$file = $this->get_handler_file( $handler_class );
 
@@ -447,11 +435,9 @@ class SCD_Ajax_Router {
 			}
 		}
 
-		// Create instance if class exists.
 		if ( class_exists( $handler_class ) ) {
 			// Special handling for handlers that require dependencies.
 			if ( 'SCD_Save_Step_Handler' === $handler_class ) {
-				// Get the services from the container.
 				$container     = Smart_Cycle_Discounts::get_instance();
 				$state_service = $container::get_service( 'wizard_state' );
 
@@ -475,7 +461,6 @@ class SCD_Ajax_Router {
 						if ( ! $state_service || ! method_exists( $state_service, 'initialize_with_intent' ) ) {
 							return null;
 						}
-						// Initialize the state service with existing session from cookie.
 						// CRITICAL FIX: Check if we are in edit mode by reading from existing session.
 						// AJAX requests do not have $_GET params, so we check the session data.
 						$state_service->initialize_with_intent( 'continue' );
@@ -498,10 +483,8 @@ class SCD_Ajax_Router {
 					return null;
 				}
 
-				// Get feature gate for PRO feature validation.
 				$feature_gate = $container::get_service( 'feature_gate' );
 
-				// Get idempotency and transformer services.
 				$idempotency_service = null;
 				$transformer         = null;
 
@@ -531,7 +514,6 @@ class SCD_Ajax_Router {
 						require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
 					}
 					$state_service = new SCD_Wizard_State_Service();
-					// Initialize the state service with existing session from cookie.
 					$state_service->initialize_with_intent( 'continue' );
 				}
 
@@ -561,7 +543,6 @@ class SCD_Ajax_Router {
 						require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
 					}
 					$state_service = new SCD_Wizard_State_Service();
-					// Initialize the state service with existing session from cookie.
 					$state_service->initialize_with_intent( 'continue' );
 				}
 
@@ -577,7 +558,6 @@ class SCD_Ajax_Router {
 						require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
 					}
 					$state_service = new SCD_Wizard_State_Service();
-					// Initialize the state service with existing session from cookie.
 					$state_service->initialize_with_intent( 'continue' );
 				}
 
@@ -595,7 +575,6 @@ class SCD_Ajax_Router {
 				// Draft handler requires multiple services.
 				$container = Smart_Cycle_Discounts::get_instance();
 
-				// Get wizard state service.
 				$state_service = $container::get_service( 'wizard_state' );
 				if ( ! $state_service ) {
 					if ( ! class_exists( 'SCD_Wizard_State_Service' ) ) {
@@ -604,7 +583,6 @@ class SCD_Ajax_Router {
 					$state_service = new SCD_Wizard_State_Service();
 				}
 
-				// Get campaign manager from container (required).
 				$campaign_manager = $container::get_service( 'campaign_manager' );
 				if ( ! $campaign_manager ) {
 					SCD_AJAX_Response::error(
@@ -614,7 +592,6 @@ class SCD_Ajax_Router {
 					return;
 				}
 
-				// Get campaign compiler.
 				$compiler = $container::get_service( 'campaign_compiler' );
 				if ( ! $compiler ) {
 					if ( ! class_exists( 'SCD_Campaign_Compiler_Service' ) ) {
@@ -623,7 +600,6 @@ class SCD_Ajax_Router {
 					$compiler = new SCD_Campaign_Compiler_Service();
 				}
 
-				// Get logger.
 				$logger = $container::get_service( 'logger' );
 				if ( ! $logger ) {
 					if ( ! class_exists( 'SCD_Logger' ) ) {
@@ -632,13 +608,11 @@ class SCD_Ajax_Router {
 					$logger = new SCD_Logger();
 				}
 
-				// Get audit logger (optional).
 				$audit_logger = $container::get_service( 'audit_logger' );
 				if ( ! $audit_logger && class_exists( 'SCD_Audit_Logger' ) ) {
 					$audit_logger = new SCD_Audit_Logger();
 				}
 
-				// Get feature gate.
 				$feature_gate = $container::get_service( 'feature_gate' );
 				if ( ! $feature_gate && class_exists( 'SCD_Feature_Gate' ) ) {
 					$feature_gate = new SCD_Feature_Gate();
@@ -662,7 +636,6 @@ class SCD_Ajax_Router {
 				// Analytics handlers require metrics calculator, logger, and possibly other services.
 				$container = Smart_Cycle_Discounts::get_instance();
 
-				// Get metrics calculator (required for all analytics handlers).
 				$metrics_calculator = $container::get_service( 'metrics_calculator' );
 				if ( ! $metrics_calculator ) {
 					SCD_AJAX_Response::error(
@@ -672,7 +645,6 @@ class SCD_Ajax_Router {
 					return null;
 				}
 
-				// Get logger (required for all analytics handlers).
 				$logger = $container::get_service( 'logger' );
 				if ( ! $logger ) {
 					if ( ! class_exists( 'SCD_Logger' ) ) {
@@ -745,7 +717,6 @@ class SCD_Ajax_Router {
 				// Tools and debug handlers require container and logger.
 				$container = Smart_Cycle_Discounts::get_instance();
 
-				// Get logger.
 				$logger = $container::get_service( 'logger' );
 				if ( ! $logger ) {
 					if ( ! class_exists( 'SCD_Logger' ) ) {
@@ -754,7 +725,6 @@ class SCD_Ajax_Router {
 					$logger = new SCD_Logger();
 				}
 
-				// Get feature gate for Import/Export Handler.
 				if ( 'SCD_Import_Export_Handler' === $handler_class ) {
 					$feature_gate = $container::get_service( 'feature_gate' );
 					if ( ! $feature_gate && class_exists( 'SCD_Feature_Gate' ) ) {
@@ -783,7 +753,6 @@ class SCD_Ajax_Router {
 					return null;
 				}
 
-				// Get logger (optional).
 				$logger = $container::get_service( 'logger' );
 
 				$this->handler_instances[ $action ] = new $handler_class( $dashboard_service, $logger );
@@ -816,7 +785,6 @@ class SCD_Ajax_Router {
 			return null;
 		}
 
-		// Convert class name to file name.
 		$file_name = 'class-' . str_replace( '_', '-', strtolower( str_replace( 'SCD_', '', $handler_class ) ) ) . '.php';
 
 		// Security: Validate file name format (prevent directory traversal).
@@ -834,7 +802,6 @@ class SCD_Ajax_Router {
 			dirname( dirname( __DIR__ ) ) . '/core/analytics/',
 		);
 
-		// Check each allowed directory.
 		foreach ( $allowed_dirs as $dir ) {
 			$full_path = $dir . $file_name;
 

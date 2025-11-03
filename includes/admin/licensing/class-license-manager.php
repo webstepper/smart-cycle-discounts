@@ -124,7 +124,6 @@ class SCD_License_Manager {
 		// Daily cron to verify license health
 		add_action( 'scd_license_health_check', array( $this, 'run_health_check' ) );
 
-		// Clear cache when Freemius license changes
 		add_action( 'freemius_after_license_change', array( $this, 'clear_validation_cache' ) );
 
 		// Admin init for periodic checks
@@ -166,7 +165,6 @@ class SCD_License_Manager {
 	 * @return   bool    True if license is valid and active.
 	 */
 	public function is_license_valid() {
-		// Check if Freemius is available
 		if ( ! function_exists( 'scd_fs' ) || ! scd_fs() ) {
 			return false;
 		}
@@ -176,7 +174,6 @@ class SCD_License_Manager {
 			return false;
 		}
 
-		// Get cached validation result
 		$cached = $this->get_cached_validation();
 		if ( null !== $cached ) {
 			return $cached;
@@ -200,7 +197,6 @@ class SCD_License_Manager {
 			return null;
 		}
 
-		// Check if cache is still fresh
 		$cache_time = isset( $cache['timestamp'] ) ? $cache['timestamp'] : 0;
 		$cache_age  = time() - $cache_time;
 
@@ -225,7 +221,6 @@ class SCD_License_Manager {
 		}
 
 		try {
-			// Check premium or trial status via Freemius
 			$is_premium = scd_fs()->is_premium();
 			$is_trial   = scd_fs()->is_trial();
 
@@ -237,7 +232,6 @@ class SCD_License_Manager {
 				if ( $license && method_exists( $license, 'is_active' ) ) {
 					$is_active = $license->is_active();
 
-					// Cache and return result
 					$is_valid = $is_active && ( $is_premium || $is_trial );
 					$this->cache_validation( $is_valid );
 					return $is_valid;
@@ -337,13 +331,11 @@ class SCD_License_Manager {
 	 * @return   bool    Validation result.
 	 */
 	public function run_health_check() {
-		// Clear cache to force fresh validation
 		delete_option( $this->validation_cache_option );
 
 		// Perform validation
 		$is_valid = $this->validate_with_api();
 
-		// Update last check timestamp
 		update_option( $this->last_check_option, time(), false );
 
 		// Log result if logging is available
@@ -477,7 +469,6 @@ class SCD_License_Manager {
 	public static function cleanup_orphaned_user_meta() {
 		global $wpdb;
 
-		// Delete orphaned user meta from old upgrade notice system
 		$deleted = $wpdb->query(
 			"DELETE FROM {$wpdb->usermeta} WHERE meta_key = 'scd_dismissed_upgrade_notice'"
 		);

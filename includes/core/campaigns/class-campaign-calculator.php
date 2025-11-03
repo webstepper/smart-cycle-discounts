@@ -72,7 +72,6 @@ class SCD_Campaign_Calculator {
 			return 0.0;
 		}
 
-		// Get revenue from analytics
 		$revenue = $this->analytics_repository->get_campaign_revenue( $campaign_id );
 
 		return (float) $revenue;
@@ -161,7 +160,6 @@ class SCD_Campaign_Calculator {
 			return 0.0;
 		}
 
-		// Calculate how many free/discounted items
 		$sets      = floor( $quantity / ( $buy_quantity + $get_quantity ) );
 		$remainder = $quantity % ( $buy_quantity + $get_quantity );
 
@@ -190,7 +188,6 @@ class SCD_Campaign_Calculator {
 			return 0.0;
 		}
 
-		// Sort tiers by quantity threshold
 		usort(
 			$tiers,
 			function ( $a, $b ) {

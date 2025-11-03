@@ -374,7 +374,6 @@ class SCD_Discounts_Controller {
 
 			$response = new WP_REST_Response( $data, 200 );
 
-			// Add total count header
 			$response->header( 'X-WP-Total', (string) count( $data ) );
 
 			$this->logger->debug(
@@ -420,7 +419,6 @@ class SCD_Discounts_Controller {
 			$quantity    = (int) ( $request->get_param( 'quantity' ) ?: 1 );
 			$campaign_id = $request->get_param( 'campaign_id' ) ? (int) $request->get_param( 'campaign_id' ) : null;
 
-			// Get product
 			$product = wc_get_product( $product_id );
 			if ( ! $product ) {
 				return new WP_REST_Response(
@@ -433,7 +431,6 @@ class SCD_Discounts_Controller {
 				);
 			}
 
-			// Calculate discount
 			if ( $campaign_id ) {
 				$discount_result = $this->discount_engine->calculate_campaign_discount( $product, $campaign_id, $quantity );
 			} else {
@@ -579,13 +576,11 @@ class SCD_Discounts_Controller {
 			$original_price = (float) $request['original_price'];
 			$quantity       = (int) ( $request->get_param( 'quantity' ) ?: 1 );
 
-			// Create preview discount configuration
 			$discount_config = array(
 				'type'  => $discount_type,
 				'value' => $discount_value,
 			);
 
-			// Calculate preview
 			$preview_result = $this->discount_engine->preview_discount( $discount_config, $original_price, $quantity );
 
 			$data = array(
@@ -660,7 +655,6 @@ class SCD_Discounts_Controller {
 				);
 			}
 
-			// Get campaign discounts
 			$discounts = $this->discount_engine->get_campaign_discounts( $campaign_id );
 
 			$data = array(
@@ -720,7 +714,6 @@ class SCD_Discounts_Controller {
 			$product_id = (int) $request['product_id'];
 			$quantity   = (int) ( $request->get_param( 'quantity' ) ?: 1 );
 
-			// Get product
 			$product = wc_get_product( $product_id );
 			if ( ! $product ) {
 				return new WP_REST_Response(
@@ -746,7 +739,6 @@ class SCD_Discounts_Controller {
 				'calculated_at'  => current_time( 'mysql' ),
 			);
 
-			// Add cache headers for public endpoint
 			$response = new WP_REST_Response( $data, 200 );
 			$response->header( 'Cache-Control', 'public, max-age=300' ); // 5 minutes
 			$response->header( 'ETag', md5( serialize( $data ) ) );
@@ -794,13 +786,11 @@ class SCD_Discounts_Controller {
 			$discount_value = (float) $request['discount_value'];
 			$product_price  = (float) $request['product_price'];
 
-			// Build complete discount configuration for validation
 			$discount_config = array(
 				'type'  => $discount_type,
 				'value' => $discount_value,
 			);
 
-			// Add type-specific configuration from request
 			if ( $discount_type === 'tiered' && $request->has_param( 'tiers' ) ) {
 				$discount_config['tiers']     = $request['tiers'];
 				$discount_config['tier_type'] = $request['tier_type'] ?? 'quantity';
@@ -810,7 +800,6 @@ class SCD_Discounts_Controller {
 				$discount_config = array_merge( $discount_config, $request['bundle_config'] );
 			}
 
-			// Validate discount configuration
 			$validation_errors = $this->discount_engine->validate_discount_config( $discount_config );
 			$is_valid          = empty( $validation_errors );
 

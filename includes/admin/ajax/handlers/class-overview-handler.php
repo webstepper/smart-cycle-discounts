@@ -42,7 +42,6 @@ class SCD_Overview_Handler extends SCD_Abstract_Analytics_Handler {
 	 * @return   array                Response data.
 	 */
 	public function handle( $request ) {
-		// Check license (logic tier - analytics data is premium feature)
 		$license_check = $this->validate_license( 'logic' );
 		if ( $this->license_validation_failed( $license_check ) ) {
 			return $this->license_error_response( $license_check );
@@ -57,12 +56,10 @@ class SCD_Overview_Handler extends SCD_Abstract_Analytics_Handler {
 			);
 		}
 
-		// Sanitize inputs
 		$date_range = sanitize_text_field( isset( $request['date_range'] ) ? $request['date_range'] : '7days' );
 		$refresh    = filter_var( isset( $request['refresh'] ) ? $request['refresh'] : false, FILTER_VALIDATE_BOOLEAN );
 
 		try {
-			// Get metrics from calculator
 			$metrics = $this->metrics_calculator->calculate_overall_metrics( $date_range, ! $refresh );
 
 			$this->logger->debug(

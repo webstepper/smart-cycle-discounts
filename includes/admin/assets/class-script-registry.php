@@ -171,7 +171,6 @@ class SCD_Script_Registry {
 			)
 		);
 
-		// Initialize shared namespace - only for plugin admin pages
 		$this->add_script(
 			'scd-init-shared',
 			array(
@@ -611,7 +610,6 @@ class SCD_Script_Registry {
 			)
 		);
 
-		// Register skeleton templates (independent service used by navigation)
 		$this->add_script(
 			'scd-skeleton-templates',
 			array(
@@ -821,7 +819,6 @@ class SCD_Script_Registry {
 	 * @return void
 	 */
 	public function add_script( string $handle, array $config ): void {
-		// Process the src path
 		if ( ! empty( $config['src'] ) && empty( $config['external'] ) ) {
 			$config['src'] = $this->get_script_path( $config['src'] );
 		}
@@ -893,12 +890,10 @@ class SCD_Script_Registry {
 		$filtered_scripts = array_filter(
 			$this->scripts,
 			function ( $script ) use ( $page, $action ) {
-				// Check if script is for this page
 				if ( ! in_array( $page, $script['pages'], true ) ) {
 					return false;
 				}
 
-				// Check action conditions
 				if ( ! empty( $script['condition']['action'] ) ) {
 					if ( 'wizard' === $script['condition']['action'] ) {
 						return 'wizard' === $action;
@@ -976,7 +971,6 @@ class SCD_Script_Registry {
 	 * @return void
 	 */
 	private function register_discounts_step_modules(): void {
-		// Add config first (replaces constants, fields)
 		$this->add_script(
 			'scd-discounts-config',
 			array(
@@ -998,13 +992,10 @@ class SCD_Script_Registry {
 			'scd-discounts-orchestrator'  => 'discounts-orchestrator.js',
 		);
 
-		// Register the base step modules first
 		$this->register_step_module_group( 'discounts', $modules );
 
-		// Register discount type scripts after base modules
 		$this->register_discount_type_scripts();
 
-		// Register review sidebar script for quick edit links
 		$this->add_script(
 			'scd-review-sidebar',
 			array(
@@ -1099,7 +1090,6 @@ class SCD_Script_Registry {
 	 * @return void
 	 */
 	private function register_schedule_step_modules(): void {
-		// Register timeline visualizer separately
 		$this->add_script(
 			'scd-timeline-visualizer',
 			array(
@@ -1110,7 +1100,6 @@ class SCD_Script_Registry {
 			)
 		);
 
-		// Register date-time picker component
 		$this->add_script(
 			'scd-date-time-picker',
 			array(
@@ -1148,7 +1137,6 @@ class SCD_Script_Registry {
 
 		$this->register_step_module_group( 'review', $modules );
 
-		// Register review health check script for dynamic health analysis
 		$this->add_script(
 			'scd-review-health-check',
 			array(
@@ -1206,10 +1194,8 @@ class SCD_Script_Registry {
 		if ( strpos( $handle, '-orchestrator' ) !== false ) {
 			$base_deps = array( 'jquery', 'scd-shared-base-orchestrator', 'scd-shared-utils', 'scd-event-manager-mixin', 'scd-step-persistence', 'scd-step-registry' );
 
-			// Extract step name from handle (e.g., 'scd-basic-orchestrator' -> 'basic')
 			$step = str_replace( array( 'scd-', '-orchestrator' ), '', $handle );
 
-			// Add dependencies for all modules of this step
 			$step_modules = array(
 				'basic'     => array( 'scd-basic-state', 'scd-basic-api', 'scd-basic-fields' ),
 				'products'  => array( 'scd-constants-product-selection', 'scd-tom-select-base', 'scd-products-state', 'scd-products-api', 'scd-products-picker' ),
@@ -1247,7 +1233,6 @@ class SCD_Script_Registry {
 			return $base_deps;
 		}
 
-		// Check if this script requires utils
 		if ( in_array( $handle, $utils_required ) ) {
 			// Find base dependencies
 			$base_deps = array( 'jquery' );
@@ -1257,7 +1242,6 @@ class SCD_Script_Registry {
 					break;
 				}
 			}
-			// Add scd-shared-utils
 			if ( ! in_array( 'scd-shared-utils', $base_deps ) ) {
 				$base_deps[] = 'scd-shared-utils';
 			}

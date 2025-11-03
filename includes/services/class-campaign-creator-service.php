@@ -111,7 +111,6 @@ class SCD_Campaign_Creator_Service {
 		$is_update = false;
 
 		try {
-			// Validate capability.
 			if ( ! current_user_can( 'scd_create_campaigns' ) && ! current_user_can( 'manage_options' ) ) {
 				return $this->error_response(
 					__( 'You do not have permission to create campaigns.', 'smart-cycle-discounts' ),
@@ -119,13 +118,11 @@ class SCD_Campaign_Creator_Service {
 				);
 			}
 
-			// Get session data once and reuse.
 			$session_data    = $state_service->get_all_data();
 			$campaign_id     = isset( $session_data['campaign_id'] ) ? absint( $session_data['campaign_id'] ) : 0;
 			$is_new_campaign = ( 0 === $campaign_id );
 			$is_update       = ! $is_new_campaign;
 
-			// Validate wizard completion.
 			$progress = $state_service->get_progress();
 
 			if ( false === $save_as_draft && ! $progress['can_complete'] ) {
@@ -164,7 +161,6 @@ class SCD_Campaign_Creator_Service {
 				);
 			}
 
-			// Add suggestion metadata if campaign was created from a suggestion
 			if ( ! empty( $session_data['from_suggestion'] ) ) {
 				if ( ! isset( $campaign_data['metadata'] ) ) {
 					$campaign_data['metadata'] = array();
@@ -185,7 +181,6 @@ class SCD_Campaign_Creator_Service {
 					if ( 'draft' !== $current_status ) {
 						$state_manager = $this->get_state_manager();
 
-						// Validate transition is allowed.
 						if ( ! $state_manager->can_transition( $current_status, 'draft' ) ) {
 							return $this->error_response(
 								sprintf(
@@ -199,7 +194,6 @@ class SCD_Campaign_Creator_Service {
 					}
 				}
 
-				// Set status to draft - the update will handle the transition.
 				$campaign_data['status'] = 'draft';
 			} elseif ( ! isset( $campaign_data['status'] ) || empty( $campaign_data['status'] ) ) {
 				// Status not set by compiler - calculate based on campaign mode and dates.
@@ -216,10 +210,8 @@ class SCD_Campaign_Creator_Service {
 			}
 			// else: Status already set by compiler based on user's launch option - respect it.
 
-			// Set created_by metadata.
 			$campaign_data['created_by'] = absint( get_current_user_id() );
 
-			// Set validation context for compiled campaign data.
 			// This tells Campaign_Manager to use 'campaign_compiled' validation.
 			// instead of 'campaign_complete' (step-based) validation.
 			$campaign_data['_validation_context'] = 'campaign_compiled';
@@ -234,9 +226,7 @@ class SCD_Campaign_Creator_Service {
 				);
 			}
 
-			// Create or update the campaign.
 			if ( true === $is_update ) {
-				// Update existing campaign.
 				// Handle special case: active → scheduled requires intermediate paused state.
 				$existing_campaign    = $this->campaign_manager->find( $campaign_id );
 				$current_status       = $existing_campaign ? $existing_campaign->get_status() : null;
@@ -294,7 +284,6 @@ class SCD_Campaign_Creator_Service {
 								}
 							}
 
-							// Return error with clear message about actual state.
 							return $this->error_response(
 								sprintf(
 									/* translators: 1: current status, 2: error message */
@@ -306,7 +295,6 @@ class SCD_Campaign_Creator_Service {
 							);
 						}
 
-						// Save the transitioned campaign.
 						$repository = $this->campaign_manager->get_repository();
 						if ( ! $repository ) {
 							return $this->error_response(
@@ -333,7 +321,6 @@ class SCD_Campaign_Creator_Service {
 					}
 				}
 			} else {
-				// Create new campaign.
 				$campaign = $this->campaign_manager->create( $campaign_data );
 
 				if ( is_wp_error( $campaign ) ) {
@@ -385,7 +372,6 @@ class SCD_Campaign_Creator_Service {
 				}
 			}
 
-			// Clear wizard session.
 			try {
 				$state_service->clear_session();
 			} catch ( Exception $e ) {
@@ -446,7 +432,6 @@ class SCD_Campaign_Creator_Service {
 	 */
 	public function create_from_data( array $data ): array {
 		try {
-			// Validate capability.
 			if ( ! current_user_can( 'scd_create_campaigns' ) && ! current_user_can( 'manage_options' ) ) {
 				return $this->error_response(
 					__( 'You do not have permission to create campaigns.', 'smart-cycle-discounts' ),
@@ -461,7 +446,6 @@ class SCD_Campaign_Creator_Service {
 			// Always set created_by to current user (never trust input).
 			$data['created_by'] = absint( get_current_user_id() );
 
-			// Create the campaign.
 			$campaign = $this->campaign_manager->create( $data );
 
 			if ( is_wp_error( $campaign ) ) {
@@ -545,7 +529,6 @@ class SCD_Campaign_Creator_Service {
 	 */
 	public function duplicate_campaign( int $campaign_id ): array {
 		try {
-			// Validate capability.
 			if ( ! current_user_can( 'scd_create_campaigns' ) && ! current_user_can( 'manage_options' ) ) {
 				return $this->error_response(
 					__( 'You do not have permission to duplicate campaigns.', 'smart-cycle-discounts' ),
@@ -553,7 +536,6 @@ class SCD_Campaign_Creator_Service {
 				);
 			}
 
-			// Get original campaign.
 			$original = $this->campaign_manager->find( $campaign_id );
 			if ( ! $original ) {
 				return $this->error_response(
@@ -562,20 +544,17 @@ class SCD_Campaign_Creator_Service {
 				);
 			}
 
-			// Prepare duplicate data.
 			$duplicate_data = $original->to_array();
 			unset( $duplicate_data['id'] );
 			unset( $duplicate_data['uuid'] );
 			unset( $duplicate_data['created_at'] );
 			unset( $duplicate_data['updated_at'] );
 
-			// Update name and status.
 			/* translators: %s: original campaign name */
 			$duplicate_data['name']       = sprintf( __( '%s (Copy)', 'smart-cycle-discounts' ), $original->get_name() );
 			$duplicate_data['status']     = 'draft';
 			$duplicate_data['created_by'] = absint( get_current_user_id() );
 
-			// Create the duplicate.
 			$duplicate = $this->campaign_manager->create( $duplicate_data );
 
 			if ( is_wp_error( $duplicate ) ) {
@@ -786,7 +765,6 @@ class SCD_Campaign_Creator_Service {
 			return true;
 		}
 
-		// Create validator and validate complete campaign.
 		$validator = new SCD_PRO_Feature_Validator( $this->feature_gate );
 		$result    = $validator->validate_campaign( $campaign_data );
 
@@ -853,7 +831,6 @@ class SCD_Campaign_Creator_Service {
 			// Protected fields that must NEVER be overwritten by user input.
 			$protected_fields = array( 'id', 'uuid', 'created_at', 'created_by', 'version' );
 
-			// Get fresh data from database.
 			$fresh_data = $fresh_campaign->to_array();
 
 			// Merge user's changes over fresh data.
@@ -891,7 +868,6 @@ class SCD_Campaign_Creator_Service {
 					)
 				);
 
-				// Return user-friendly error.
 				return new WP_Error(
 					'concurrent_modification',
 					sprintf(

@@ -142,16 +142,13 @@ abstract class SCD_Abstract_Campaign_Controller {
 	 * @return   bool                   True if user owns campaign.
 	 */
 	protected function check_campaign_ownership( $campaign_id ) {
-		// Get campaign
 		$campaign = $this->campaign_manager->find( $campaign_id );
 		if ( ! $campaign ) {
 			return false;
 		}
 
-		// Get campaign author
 		$author_id = $campaign->get_created_by();
 
-		// Check if current user is the author
 		return $author_id === get_current_user_id();
 	}
 }

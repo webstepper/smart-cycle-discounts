@@ -54,16 +54,13 @@ class SCD_Check_Session_Handler extends SCD_Abstract_Ajax_Handler {
 	 */
 	protected function handle( $request ) {
 		try {
-			// Get container
 			$container = isset( $GLOBALS['scd_container'] ) ? $GLOBALS['scd_container'] : null;
 			if ( ! $container ) {
 				throw new Exception( __( 'Service container not initialized', 'smart-cycle-discounts' ) );
 			}
 
-			// Get wizard session service - Phase 2: Cookie-based session management
 			$session_service = $container->get( 'wizard_session' );
 
-			// Get session data (service handles cookie-based session ID internally)
 			$session_data = $session_service->get_all_data();
 
 			if ( ! $session_data ) {

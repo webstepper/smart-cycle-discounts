@@ -94,7 +94,6 @@ class SCD_Campaign_Validation_Handler {
 		$end_time          = isset( $schedule['end_time'] ) ? $schedule['end_time'] : '23:59';
 		$campaign_timezone = isset( $schedule['timezone'] ) ? $schedule['timezone'] : wp_timezone_string();
 
-		// Convert to timestamps for comparison using proper timezone handling
 		// CRITICAL: Combine date + time fields for accurate comparison
 		$timezone = new DateTimeZone( $campaign_timezone );
 		$now_dt   = new DateTime( 'now', $timezone );
@@ -362,7 +361,6 @@ class SCD_Campaign_Validation_Handler {
 		$discount_value = 0;
 
 		if ( 'percentage' === $discount_type ) {
-			// Check wizard-specific field first (most common in edit mode)
 			if ( isset( $discounts['discount_value_percentage'] ) && '' !== $discounts['discount_value_percentage'] ) {
 				$discount_value = floatval( $discounts['discount_value_percentage'] );
 			} elseif ( isset( $discounts['discount_value'] ) && '' !== $discounts['discount_value'] ) {
@@ -378,7 +376,6 @@ class SCD_Campaign_Validation_Handler {
 				error_log( '[Validation] - Final extracted value: ' . $discount_value );
 			}
 		} elseif ( 'fixed' === $discount_type ) {
-			// Check wizard-specific field first
 			if ( isset( $discounts['discount_value_fixed'] ) && '' !== $discounts['discount_value_fixed'] ) {
 				$discount_value = floatval( $discounts['discount_value_fixed'] );
 			} elseif ( isset( $discounts['discount_value'] ) && '' !== $discounts['discount_value'] ) {
@@ -486,7 +483,6 @@ class SCD_Campaign_Validation_Handler {
 	 * @return   array                       Array of product IDs on sale.
 	 */
 	private function _get_sale_products( $selection_type, $product_ids, $category_ids ) {
-		// Get products based on selection
 		$products = $this->_get_selected_products( $selection_type, $product_ids, $category_ids );
 
 		if ( empty( $products ) ) {
@@ -730,7 +726,6 @@ class SCD_Campaign_Validation_Handler {
 					$max_price = max( $product_prices );
 					$avg_price = array_sum( $product_prices ) / count( $product_prices );
 
-					// Calculate example final prices
 					$min_final = $min_price * ( ( 100 - $discount_value ) / 100 );
 					$avg_final = $avg_price * ( ( 100 - $discount_value ) / 100 );
 
@@ -852,7 +847,6 @@ class SCD_Campaign_Validation_Handler {
 				$product_stock = $this->_get_product_stock( $products );
 
 				if ( ! empty( $product_stock ) ) {
-					// Filter out null stock values
 					$valid_stock = array_filter(
 						$product_stock,
 						function ( $stock ) {
@@ -953,7 +947,6 @@ class SCD_Campaign_Validation_Handler {
 		$product_ids    = isset( $products['product_ids'] ) ? $products['product_ids'] : array();
 		$category_ids   = isset( $products['category_ids'] ) ? $products['category_ids'] : array();
 
-		// Get selected product IDs
 		$selected_ids = $this->_get_selected_products( $selection_type, $product_ids, $category_ids );
 
 		if ( empty( $selected_ids ) ) {
@@ -1000,7 +993,6 @@ class SCD_Campaign_Validation_Handler {
 		$product_ids    = isset( $products['product_ids'] ) ? $products['product_ids'] : array();
 		$category_ids   = isset( $products['category_ids'] ) ? $products['category_ids'] : array();
 
-		// Get selected product IDs
 		$selected_ids = $this->_get_selected_products( $selection_type, $product_ids, $category_ids );
 
 		if ( empty( $selected_ids ) ) {
@@ -1016,7 +1008,6 @@ class SCD_Campaign_Validation_Handler {
 				continue;
 			}
 
-			// Check if product manages stock
 			if ( $product->managing_stock() ) {
 				$stock_quantity              = $product->get_stock_quantity();
 				$stock_levels[ $product_id ] = null !== $stock_quantity ? intval( $stock_quantity ) : null;

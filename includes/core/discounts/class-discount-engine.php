@@ -186,7 +186,6 @@ class SCD_Discount_Engine {
 			return SCD_Discount_Result::no_discount( $original_price, $strategy_id, 'Strategy not found' );
 		}
 
-		// Check if strategy supports the context
 		if ( ! $strategy->supports_context( $context ) ) {
 			return SCD_Discount_Result::no_discount( $original_price, $strategy_id, 'Strategy does not support context' );
 		}
@@ -419,7 +418,6 @@ class SCD_Discount_Engine {
 		$strategies = array();
 
 		foreach ( $this->strategies as $strategy ) {
-			// Cache strategy methods for efficiency and add null checks
 			if ( ! $strategy ) {
 				continue;
 			}

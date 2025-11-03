@@ -29,7 +29,6 @@ class SCD_License_Emergency_Fix {
 	 * @return   void
 	 */
 	public static function render() {
-		// Check permissions
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'Insufficient permissions', 'smart-cycle-discounts' ) );
 		}
@@ -39,7 +38,6 @@ class SCD_License_Emergency_Fix {
 			self::clear_license_cache();
 		}
 
-		// Get current status
 		$freemius_loaded        = function_exists( 'scd_fs' ) && is_object( scd_fs() );
 		$freemius_is_premium    = false;
 		$freemius_is_trial      = false;

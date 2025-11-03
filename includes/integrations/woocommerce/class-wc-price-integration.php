@@ -242,7 +242,6 @@ class SCD_WC_Price_Integration {
 	 * @return   void
 	 */
 	public function modify_cart_item_prices( WC_Cart $cart ): void {
-		// Validate cart
 		if ( ! $cart || ! is_object( $cart ) || ! WC()->cart || ! is_object( WC()->cart ) ) {
 			return;
 		}
@@ -259,14 +258,12 @@ class SCD_WC_Price_Integration {
 
 		$calculating = true;
 
-		// Process each cart item
 		foreach ( $cart->get_cart() as $cart_item_key => $cart_item ) {
 			try {
 				$product    = $cart_item['data'];
 				$product_id = $product->get_id();
 				$quantity   = isset( $cart_item['quantity'] ) ? absint( $cart_item['quantity'] ) : 1;
 
-				// Get base price from database
 				$original_price = (float) get_post_meta( $product_id, '_regular_price', true );
 
 				if ( 0 >= $original_price ) {
@@ -277,7 +274,6 @@ class SCD_WC_Price_Integration {
 					continue;
 				}
 
-				// Build context
 				$context = array(
 					'quantity'      => $quantity,
 					'cart_item'     => $cart_item,
@@ -285,7 +281,6 @@ class SCD_WC_Price_Integration {
 					'cart_total'    => floatval( $cart->get_subtotal() ),
 				);
 
-				// Get discount
 				$discount_info = $this->discount_query->get_discount_info( $product_id, $context );
 
 				// Apply discount if eligible
@@ -295,7 +290,6 @@ class SCD_WC_Price_Integration {
 					if ( $discounted_price < $original_price && $discounted_price > 0 ) {
 						$product->set_price( $discounted_price );
 
-						// Store metadata
 						WC()->cart->cart_contents[ $cart_item_key ]['scd_discount'] = array(
 							'original_price'   => $original_price,
 							'discounted_price' => $discounted_price,
@@ -336,23 +330,19 @@ class SCD_WC_Price_Integration {
 	 * @return   bool                          True if should apply.
 	 */
 	private function should_apply_discount( WC_Product $product, array $discount_info ): bool {
-		// Check if product is excluded
 		$exclude = get_post_meta( $product->get_id(), '_scd_exclude_from_discounts', true );
 		if ( 'yes' === $exclude ) {
 			return false;
 		}
 
-		// Check customer usage limits if available
 		if ( $this->usage_manager && isset( $discount_info['campaign_id'] ) ) {
 			$campaign_id = $discount_info['campaign_id'];
 
-			// Get campaign data for usage validation
 			$campaign_data = array();
 			if ( isset( $discount_info['campaign_data'] ) ) {
 				$campaign_data = $discount_info['campaign_data'];
 			}
 
-			// Validate customer usage
 			$validation_result = $this->usage_manager->validate_customer_usage( $campaign_id, $campaign_data );
 
 			// If validation failed, do not apply discount

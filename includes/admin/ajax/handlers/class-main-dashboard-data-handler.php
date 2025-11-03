@@ -76,7 +76,6 @@ class SCD_Main_Dashboard_Data_Handler extends SCD_Abstract_Ajax_Handler {
 	 */
 	public function handle( $request ) {
 		try {
-			// Get dashboard data via service layer (clean, no reflection hack)
 			// Fixed 7-day range for free tier
 			$data = $this->dashboard_service->get_dashboard_data(
 				array(
@@ -84,7 +83,6 @@ class SCD_Main_Dashboard_Data_Handler extends SCD_Abstract_Ajax_Handler {
 				)
 			);
 
-			// Return formatted response
 			return array(
 				'success' => true,
 				'data'    => array(

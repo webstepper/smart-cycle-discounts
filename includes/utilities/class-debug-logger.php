@@ -73,7 +73,6 @@ class SCD_Debug_Logger extends SCD_Logger {
 		$this->request_id = uniqid( 'scd_', true );
 		$this->start_time = microtime( true );
 
-		// Add debug file handler (parent handles error_log based on SCD_LOG_TO_DEBUG_LOG)
 		$this->add_handler( 'debug_file', array( $this, 'handle_debug_file_log' ) );
 
 		// Log initialization only if debug level logging is enabled
@@ -164,7 +163,6 @@ class SCD_Debug_Logger extends SCD_Logger {
 	 * @return   void
 	 */
 	public function log_ajax_request( string $action, array $params = array(), string $nonce = '' ): void {
-		// Sanitize sensitive data
 		$safe_params = $this->sanitize_log_data( $params );
 
 		$context = array(
@@ -453,7 +451,6 @@ class SCD_Debug_Logger extends SCD_Logger {
 		$level      = strtoupper( $level );
 		$request_id = $context['request_id'] ?? $this->request_id;
 
-		// Remove request_id from context to avoid duplication
 		unset( $context['request_id'], $context['logger_context'] );
 
 		$formatted = "[{$timestamp}] [{$request_id}] SCD.DEBUG.{$level}: {$message}";
@@ -517,7 +514,6 @@ class SCD_Debug_Logger extends SCD_Logger {
 			return;
 		}
 
-		// Sort by modification time (oldest first)
 		usort(
 			$old_logs,
 			function ( $a, $b ) {
@@ -531,7 +527,6 @@ class SCD_Debug_Logger extends SCD_Logger {
 		foreach ( $old_logs as $log_file ) {
 			$file_age_days = ( $current_time - filemtime( $log_file ) ) / DAY_IN_SECONDS;
 
-			// Delete if older than max age (and max age is not 0)
 			if ( $max_age_days > 0 && $file_age_days > $max_age_days ) {
 				unlink( $log_file );
 			}
@@ -567,7 +562,6 @@ class SCD_Debug_Logger extends SCD_Logger {
 		if ( is_array( $data ) || is_object( $data ) ) {
 			$sanitized = array();
 			foreach ( (array) $data as $key => $value ) {
-				// Convert key to string for sensitive field check
 				if ( $this->is_sensitive_field( (string) $key ) ) {
 					$sanitized[ $key ] = '[REDACTED]';
 				} else {

@@ -51,14 +51,12 @@ class SCD_Currency_Change_Notices {
 			return;
 		}
 
-		// Check for notice data
 		$notice_data = get_transient( 'scd_currency_change_notice' );
 
 		if ( ! $notice_data ) {
 			return;
 		}
 
-		// Extract notice data
 		$paused_count = $notice_data['paused_count'] ?? 0;
 		$old_currency = $notice_data['old_currency'] ?? '';
 		$new_currency = $notice_data['new_currency'] ?? '';
@@ -196,7 +194,6 @@ class SCD_Currency_Change_Notices {
 			wp_die( 'Permission denied' );
 		}
 
-		// Delete transient
 		delete_transient( 'scd_currency_change_notice' );
 
 		wp_send_json_success();

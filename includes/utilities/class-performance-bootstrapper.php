@@ -124,7 +124,6 @@ class SCD_Performance_Bootstrapper {
 		// Initialize Performance Optimizer early
 		$this->loader->add_action( 'plugins_loaded', $this, 'init_performance_optimizer', 5 );
 
-		// Add performance monitoring
 		if ( get_option( 'scd_debug', false ) ) {
 			$this->loader->add_action( 'init', $this, 'start_performance_monitoring', 1 );
 			$this->loader->add_action( 'shutdown', $this, 'log_performance_report', 999 );
@@ -147,9 +146,7 @@ class SCD_Performance_Bootstrapper {
 	 * @return   void
 	 */
 	public function init_performance_optimizer(): void {
-		// Initialize static methods
 		if ( class_exists( 'SCD_Performance_Optimizer' ) ) {
-			// Set up any global performance optimizations
 			add_action(
 				'woocommerce_before_calculate_totals',
 				function () {

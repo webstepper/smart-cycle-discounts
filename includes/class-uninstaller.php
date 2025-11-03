@@ -40,7 +40,6 @@ class SCD_Uninstaller {
 	public static function uninstall() {
 		global $wpdb;
 
-		// Check if user wants to keep data on uninstall
 		$keep_data = get_option( 'scd_keep_data_on_uninstall', false );
 
 		if ( $keep_data ) {
@@ -105,12 +104,10 @@ class SCD_Uninstaller {
 	private static function drop_table_foreign_keys( $table_name ) {
 		global $wpdb;
 
-		// Check if table exists
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) !== $table_name ) {
 			return;
 		}
 
-		// Get all foreign keys for this table
 		$foreign_keys = $wpdb->get_results(
 			$wpdb->prepare(
 				'SELECT CONSTRAINT_NAME
@@ -140,7 +137,6 @@ class SCD_Uninstaller {
 	private static function delete_plugin_options() {
 		global $wpdb;
 
-		// Delete all options starting with 'scd_'
 		$wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
@@ -148,7 +144,6 @@ class SCD_Uninstaller {
 			)
 		);
 
-		// Delete specific options that might not follow the naming convention
 		$specific_options = array(
 			'scd_version',
 			'scd_db_version',
@@ -192,7 +187,6 @@ class SCD_Uninstaller {
 			'manage_scd_settings',
 		);
 
-		// Get all roles
 		$roles = array( 'administrator', 'shop_manager', 'editor' );
 
 		foreach ( $roles as $role_name ) {
@@ -225,7 +219,6 @@ class SCD_Uninstaller {
 		);
 
 		foreach ( $cron_hooks as $hook ) {
-			// Clear all scheduled instances
 			wp_clear_scheduled_hook( $hook );
 		}
 	}
@@ -282,7 +275,6 @@ class SCD_Uninstaller {
 	private static function clear_transients() {
 		global $wpdb;
 
-		// Delete all transients starting with 'scd_'
 		$wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options}
@@ -293,7 +285,6 @@ class SCD_Uninstaller {
 			)
 		);
 
-		// Clear site transients for multisite
 		if ( is_multisite() ) {
 			$wpdb->query(
 				$wpdb->prepare(
@@ -306,7 +297,6 @@ class SCD_Uninstaller {
 			);
 		}
 
-		// Clear object cache
 		if ( function_exists( 'wp_cache_flush' ) ) {
 			wp_cache_flush();
 		}
@@ -329,7 +319,6 @@ class SCD_Uninstaller {
 	 * @access   private
 	 */
 	private static function log_uninstall() {
-		// Create a final log entry before everything is deleted
 		$log_data = array(
 			'event'       => 'plugin_uninstalled',
 			'timestamp'   => current_time( 'mysql' ),

@@ -88,7 +88,6 @@ class SCD_Frontend_Manager {
 	 * @return   void
 	 */
 	public function init(): void {
-		// Initialize frontend asset manager if available
 		if ( $this->container->has( 'frontend_asset_manager' ) ) {
 			$this->asset_manager = $this->container->get( 'frontend_asset_manager' );
 			if ( $this->asset_manager && method_exists( $this->asset_manager, 'init' ) ) {

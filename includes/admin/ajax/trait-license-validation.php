@@ -47,7 +47,6 @@ trait SCD_License_Validation_Trait {
 			if ( $container && $container->has( 'feature_gate' ) ) {
 				$feature_gate = $container->get( 'feature_gate' );
 
-				// Check specific feature if provided
 				if ( ! empty( $feature_key ) ) {
 					if ( ! $feature_gate->can_use_feature( $feature_key ) ) {
 						return new WP_Error(

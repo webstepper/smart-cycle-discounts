@@ -206,13 +206,11 @@ class SCD_Campaign_Serializer {
 			}
 
 			if ( isset( $data['category_ids'] ) && is_array( $data['category_ids'] ) ) {
-				// Sanitize category IDs - preserve 'all' keyword, sanitize numeric IDs but keep as strings
 				$validated['category_ids'] = array_map(
 					function ( $id ) {
 						if ( 'all' === $id ) {
 							return 'all';
 						}
-						// Sanitize as int but return as string for JSON/Tom Select compatibility
 						return (string) absint( $id );
 					},
 					$data['category_ids']
@@ -245,7 +243,6 @@ class SCD_Campaign_Serializer {
 	public function validate( array $data, string $operation = 'create' ): array {
 		$errors = array();
 
-		// Validate required fields for creation
 		if ( $operation === 'create' ) {
 			if ( empty( $data['name'] ) ) {
 				$errors['name'] = __( 'Campaign name is required.', 'smart-cycle-discounts' );
@@ -260,7 +257,6 @@ class SCD_Campaign_Serializer {
 			}
 		}
 
-		// Validate field formats and values
 		if ( isset( $data['name'] ) && strlen( $data['name'] ) > SCD_Validation_Rules::CAMPAIGN_NAME_MAX ) {
 			$errors['name'] = sprintf(
 				__( 'Campaign name cannot exceed %d characters.', 'smart-cycle-discounts' ),
@@ -286,7 +282,6 @@ class SCD_Campaign_Serializer {
 			$errors['priority'] = __( 'Priority must be between 1 and 5.', 'smart-cycle-discounts' );
 		}
 
-		// Validate date ranges
 		if ( isset( $data['starts_at'] ) && isset( $data['ends_at'] ) ) {
 			$starts_at = $this->parse_datetime( $data['starts_at'] );
 			$ends_at   = $this->parse_datetime( $data['ends_at'] );
@@ -334,7 +329,6 @@ class SCD_Campaign_Serializer {
 			),
 		);
 
-		// Add conditional links based on campaign state
 		if ( $campaign->get_status() === 'draft' ) {
 			$links['activate'] = array(
 				'href'   => "{$base_url}/{$campaign_id}/activate",
@@ -471,7 +465,6 @@ class SCD_Campaign_Serializer {
 	 */
 	private function parse_datetime( string $datetime ): ?DateTime {
 		try {
-			// Parse in UTC timezone (matches database storage)
 			return new DateTime( $datetime, new DateTimeZone( 'UTC' ) );
 		} catch ( Exception $e ) {
 			$this->logger->warning(

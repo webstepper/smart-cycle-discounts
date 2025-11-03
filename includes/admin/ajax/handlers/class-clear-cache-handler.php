@@ -69,7 +69,6 @@ class SCD_Clear_Cache_Handler {
 			error_log( '[SCD Clear Cache] method_exists check: ' . ( method_exists( $this->container, 'get_service' ) ? 'true' : 'false' ) );
 		}
 
-		// Get cache manager via static service accessor
 		$cache_manager = null;
 		if ( method_exists( $this->container, 'get_service' ) ) {
 			$cache_manager = $this->container::get_service( 'cache_manager' );
@@ -92,7 +91,6 @@ class SCD_Clear_Cache_Handler {
 			);
 		}
 
-		// Clear the cache
 		try {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( '[SCD Clear Cache] Calling flush() method' );

@@ -56,7 +56,6 @@ class SCD_Migration_004_Add_Activity_Log_Table implements SCD_Migration_Interfac
 		$table_name      = $wpdb->prefix . 'scd_activity_log';
 		$charset_collate = $wpdb->get_charset_collate();
 
-		// Check if table already exists
 		$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) === $table_name;
 
 		if ( $table_exists ) {
@@ -128,7 +127,6 @@ class SCD_Migration_004_Add_Activity_Log_Table implements SCD_Migration_Interfac
 
 		$table_name = $wpdb->prefix . 'scd_activity_log';
 
-		// Check if table exists before dropping
 		$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) === $table_name;
 
 		if ( $table_exists ) {

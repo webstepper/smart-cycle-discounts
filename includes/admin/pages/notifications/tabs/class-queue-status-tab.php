@@ -88,14 +88,12 @@ class SCD_Queue_Status_Tab extends SCD_Notifications_Tab_Base {
 			return;
 		}
 
-		// Get email manager from integration manager
 		$email_manager = $this->get_email_manager();
 		if ( ! $email_manager ) {
 			echo '<div class="notice notice-error"><p>' . esc_html__( 'Email manager not available.', 'smart-cycle-discounts' ) . '</p></div>';
 			return;
 		}
 
-		// Get queue status from email manager
 		$queue_status = $email_manager->get_queue_status();
 
 		?>

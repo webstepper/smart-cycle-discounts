@@ -63,7 +63,6 @@ class SCD_Revenue_Trend_Handler extends SCD_Abstract_Analytics_Handler {
 	 * @return   array                Response data.
 	 */
 	public function handle( $request ) {
-		// Check license (logic tier - analytics data is premium feature)
 		$license_check = $this->validate_license( 'logic' );
 		if ( $this->license_validation_failed( $license_check ) ) {
 			return $this->license_error_response( $license_check );
@@ -78,20 +77,17 @@ class SCD_Revenue_Trend_Handler extends SCD_Abstract_Analytics_Handler {
 			);
 		}
 
-		// Sanitize inputs
 		$date_range  = sanitize_text_field( isset( $request['date_range'] ) ? $request['date_range'] : '30days' );
 		$granularity = sanitize_text_field( isset( $request['granularity'] ) ? $request['granularity'] : 'daily' );
 		$campaign_id = isset( $request['campaign_id'] ) ? absint( $request['campaign_id'] ) : 0;
 
 		try {
-			// Get trend data from analytics collector
 			$trend_data = $this->analytics_collector->get_revenue_trend(
 				$date_range,
 				$granularity,
 				$campaign_id
 			);
 
-			// Return data in format expected by frontend Chart.js
 			return $this->success(
 				array(
 					'labels'       => $trend_data['labels'],

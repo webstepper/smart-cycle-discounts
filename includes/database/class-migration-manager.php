@@ -88,7 +88,6 @@ class SCD_Migration_Manager {
 		foreach ( $files as $file ) {
 			$filename = basename( $file, '.php' );
 
-			// Extract migration number and name
 			if ( preg_match( '/^(\d+)-(.+)$/', $filename, $matches ) ) {
 				$this->migrations[ $matches[1] ] = array(
 					'number' => $matches[1],
@@ -99,7 +98,6 @@ class SCD_Migration_Manager {
 			}
 		}
 
-		// Sort by migration number
 		ksort( $this->migrations );
 	}
 
@@ -112,7 +110,6 @@ class SCD_Migration_Manager {
 	 * @return   string                 Class name.
 	 */
 	private function get_migration_class_name( string $filename ): string {
-		// Convert filename to class name
 		$parts       = explode( '-', $filename );
 		$class_parts = array_map(
 			'ucfirst',
@@ -365,7 +362,6 @@ class SCD_Migration_Manager {
 				function () use ( $instance, $migration ) {
 					$instance->down();
 
-					// Remove migration record
 					return $this->db->delete(
 						'migrations',
 						array(

@@ -18,10 +18,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-// Load standardized response handler
 require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-scd-ajax-response.php';
 
-// Load analytics helpers trait
 require_once SCD_PLUGIN_DIR . 'includes/core/analytics/trait-analytics-helpers.php';
 
 /**
@@ -304,7 +302,6 @@ class SCD_Analytics_Collector {
 		array $variation,
 		array $cart_item_data
 	): void {
-		// Check if this product has an active discount
 		$campaign_id = $this->get_active_campaign_for_product( $product_id );
 
 		if ( $campaign_id ) {
@@ -490,7 +487,6 @@ class SCD_Analytics_Collector {
 		$campaign_id = absint( $_POST['campaign_id'] ?? 0 );
 		$event_data  = $_POST['event_data'] ?? array();
 
-		// Sanitize event data
 		$sanitized_data = array();
 		foreach ( $event_data as $key => $value ) {
 			$sanitized_data[ sanitize_key( $key ) ] = sanitize_text_field( $value );
@@ -554,7 +550,6 @@ class SCD_Analytics_Collector {
 				'trends'      => $this->get_campaign_trends( $campaign_id, $date_conditions ),
 			);
 
-			// Cache for 1 hour
 			$this->cache_manager->set( $cache_key, $analytics_data, 3600 );
 
 			return $analytics_data;
@@ -648,12 +643,10 @@ class SCD_Analytics_Collector {
 		$campaigns = $wpdb->get_results( $query, ARRAY_A );
 
 		if ( empty( $campaigns ) ) {
-			// Cache null result for 5 minutes
 			$this->cache_manager->set( $cache_key, 0, 300 );
 			return null;
 		}
 
-		// Check each campaign to see if it includes this product
 		foreach ( $campaigns as $campaign ) {
 			// If campaign targets all products, return it
 			if ( 'all_products' === $campaign['product_selection_type'] ) {
@@ -690,21 +683,16 @@ class SCD_Analytics_Collector {
 	private function update_campaign_conversion_metrics( int $campaign_id, $order, $item ): void {
 		global $wpdb;
 
-		// Get current date and hour in UTC for aggregation
 		$date_recorded = gmdate( 'Y-m-d' );
 		$hour_recorded = (int) gmdate( 'H' );
 
-		// Calculate revenue for this item
 		$item_revenue    = (float) $item->get_total();
 		$discount_amount = (float) ( $item->get_subtotal() - $item->get_total() );
 
-		// Get customer ID
 		$customer_id = $order->get_customer_id();
 
-		// Check if this is a new customer for this campaign
 		$is_new_customer = $this->is_new_customer_for_campaign( $campaign_id, $customer_id );
 
-		// Update analytics table using INSERT ... ON DUPLICATE KEY UPDATE
 		// This aggregates metrics by campaign_id, date_recorded, and hour_recorded
 		$query = $wpdb->prepare(
 			"INSERT INTO {$this->analytics_table}
@@ -774,7 +762,6 @@ class SCD_Analytics_Collector {
 		global $wpdb;
 		$customer_usage_table = $wpdb->prefix . 'scd_customer_usage';
 
-		// Check if customer has used this campaign before
 		$usage_count = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM {$customer_usage_table}
@@ -797,13 +784,11 @@ class SCD_Analytics_Collector {
 	 */
 	private function invalidate_analytics_cache( ?int $campaign_id = null ): void {
 		if ( $campaign_id ) {
-			// Clear specific campaign analytics caches
 			$this->cache_manager->delete( "scd_analytics_campaign_{$campaign_id}_7days" );
 			$this->cache_manager->delete( "scd_analytics_campaign_{$campaign_id}_30days" );
 			$this->cache_manager->delete( "scd_analytics_campaign_{$campaign_id}_90days" );
 			$this->cache_manager->delete( "active_campaign_for_product_{$campaign_id}" );
 		} else {
-			// Clear all analytics caches - use flush for broader clearing
 			// Note: flush() clears all plugin caches, which may be too broad
 			// For now, just log that we would clear all analytics
 			$this->logger->debug( 'Analytics cache invalidation requested for all campaigns' );
@@ -860,13 +845,11 @@ class SCD_Analytics_Collector {
 		global $wpdb;
 
 		try {
-			// Get date range
 			$date_range      = $args['date_range'] ?? '30days';
 			$date_conditions = $this->get_date_range_conditions( $date_range );
 			$start_date      = $date_conditions['start_date'];
 			$end_date        = $date_conditions['end_date'];
 
-			// Get all campaigns
 			$campaigns_table = $wpdb->prefix . 'scd_campaigns';
 			$analytics_table = $this->analytics_table;
 
@@ -938,7 +921,6 @@ class SCD_Analytics_Collector {
 				return array();
 			}
 
-			// Format results for frontend
 			$formatted_campaigns = array();
 			foreach ( $results as $row ) {
 				// Calculate CTR
@@ -953,7 +935,6 @@ class SCD_Analytics_Collector {
 					$roi = ( ( $row['revenue'] - $row['total_discount'] ) / $row['total_discount'] ) * 100;
 				}
 
-				// Format status label
 				$status_label = ucfirst( $row['status'] );
 				if ( 'active' === $row['status'] ) {
 					$status_label = __( 'Active', 'smart-cycle-discounts' );
@@ -1009,7 +990,6 @@ class SCD_Analytics_Collector {
 		global $wpdb;
 
 		try {
-			// Get date range conditions
 			$date_conditions = $this->get_date_range_conditions( $date_range );
 			$start_date      = $date_conditions['start_date'];
 			$end_date        = $date_conditions['end_date'];
@@ -1064,7 +1044,6 @@ class SCD_Analytics_Collector {
 					break;
 			}
 
-			// Build the full query
 			$sql = "SELECT
                         {$select_date},
                         SUM(revenue) as total_revenue,
@@ -1076,11 +1055,9 @@ class SCD_Analytics_Collector {
                     GROUP BY {$group_by}
                     ORDER BY {$order_by}";
 
-			// Prepare and execute query
 			$prepared_sql = $wpdb->prepare( $sql, $where_values );
 			$results      = $wpdb->get_results( $prepared_sql, ARRAY_A );
 
-			// Format results for Chart.js
 			$labels = array();
 			$values = array();
 
@@ -1090,7 +1067,6 @@ class SCD_Analytics_Collector {
 					$values[] = floatval( $row['total_revenue'] );
 				}
 			} else {
-				// Return empty data structure if no results
 				$labels = $this->generate_empty_labels( $start_date, $end_date, $granularity );
 				$values = array_fill( 0, count( $labels ), 0.0 );
 			}
@@ -1155,7 +1131,6 @@ class SCD_Analytics_Collector {
 	private function aggregate_hourly_metrics(): void {
 		global $wpdb;
 
-		// Get the previous hour to aggregate
 		$current_hour  = date( 'Y-m-d H:00:00' );
 		$previous_hour = date( 'Y-m-d H:00:00', strtotime( '-1 hour' ) );
 		$hour_end      = date( 'Y-m-d H:59:59', strtotime( '-1 hour' ) );
@@ -1241,7 +1216,6 @@ class SCD_Analytics_Collector {
 	private function aggregate_daily_metrics(): void {
 		global $wpdb;
 
-		// Get yesterday's date
 		$yesterday = date( 'Y-m-d', strtotime( '-1 day' ) );
 
 		$hourly_table = $wpdb->prefix . 'scd_analytics_hourly';
@@ -1367,7 +1341,6 @@ class SCD_Analytics_Collector {
 	 * @return   void
 	 */
 	private function cleanup_old_data(): void {
-		// Remove analytics data older than 90 days
 		$cutoff_date = date( 'Y-m-d H:i:s', strtotime( '-90 days' ) );
 
 		global $wpdb;
@@ -1519,7 +1492,6 @@ class SCD_Analytics_Collector {
 		global $wpdb;
 
 		try {
-			// Get date range conditions
 			$date_conditions = $this->get_date_range_conditions( $date_range );
 			$start_date      = $date_conditions['start_date'];
 			$end_date        = $date_conditions['end_date'];
@@ -1570,7 +1542,6 @@ class SCD_Analytics_Collector {
 				);
 			}
 
-			// Format results
 			$products = array();
 			foreach ( $results as $row ) {
 				$products[] = array(

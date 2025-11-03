@@ -351,7 +351,6 @@ class SCD_Cache_Warming {
 
 			$execution_time = microtime( true ) - $start_time;
 
-			// Update statistics
 			$this->update_warming_stats( $strategy_name, $warmed, $execution_time );
 
 			return array(
@@ -579,7 +578,6 @@ class SCD_Cache_Warming {
 	public function schedule_warming( string $strategy, string $schedule = 'daily' ): bool {
 		$hook = "scd_cache_warm_up_{$strategy}";
 
-		// Clear existing schedule
 		wp_clear_scheduled_hook( $hook );
 
 		// Schedule new warming

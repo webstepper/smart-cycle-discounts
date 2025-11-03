@@ -52,20 +52,17 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 				);
 			}
 
-			// Validate configuration
 			$validation_errors = $this->validate_config( $discount_config );
 			if ( ! empty( $validation_errors ) ) {
 				return SCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'Invalid configuration' );
 			}
 
-			// Get thresholds
 			$thresholds = $discount_config['thresholds'] ?? array();
 
 			if ( empty( $thresholds ) ) {
 				return SCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'No thresholds configured' );
 			}
 
-			// Get cart total from context
 			$cart_total = $this->get_cart_total( $context );
 
 			// Find applicable threshold
@@ -75,10 +72,8 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 				return SCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'No applicable threshold found' );
 			}
 
-			// Calculate discount based on threshold
 			$discounted_price = $this->calculate_threshold_discount( $original_price, $applicable_threshold );
 
-			// Add threshold-specific metadata
 			$metadata = array(
 				'cart_total'               => $cart_total,
 				'applicable_threshold'     => $applicable_threshold,
@@ -104,7 +99,6 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	public function validate_config( array $discount_config ): array {
 		$errors = array();
 
-		// Validate thresholds
 		if ( ! isset( $discount_config['thresholds'] ) || ! is_array( $discount_config['thresholds'] ) ) {
 			$errors[] = __( 'Thresholds configuration is required and must be an array', 'smart-cycle-discounts' );
 		} else {
@@ -123,7 +117,6 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 					$errors           = array_merge( $errors, $threshold_errors );
 				}
 
-				// Validate threshold amounts are in ascending order
 				$threshold_amounts = array_column( $thresholds, 'threshold' );
 				$sorted_amounts    = $threshold_amounts;
 				sort( $sorted_amounts );
@@ -150,19 +143,16 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 		$errors          = array();
 		$threshold_label = sprintf( __( 'Threshold %d', 'smart-cycle-discounts' ), $index + 1 );
 
-		// Validate threshold amount
 		if ( ! isset( $threshold['threshold'] ) || ! is_numeric( $threshold['threshold'] ) ) {
 			$errors[] = sprintf( __( '%s: Threshold amount is required and must be numeric', 'smart-cycle-discounts' ), $threshold_label );
 		} elseif ( floatval( $threshold['threshold'] ) < 0 ) {
 			$errors[] = sprintf( __( '%s: Threshold amount must be non-negative', 'smart-cycle-discounts' ), $threshold_label );
 		}
 
-		// Validate discount type
 		if ( ! isset( $threshold['discount_type'] ) || ! in_array( $threshold['discount_type'], array( 'percentage', 'fixed' ), true ) ) {
 			$errors[] = sprintf( __( '%s: Discount type must be either "percentage" or "fixed"', 'smart-cycle-discounts' ), $threshold_label );
 		}
 
-		// Validate discount value
 		if ( ! isset( $threshold['discount_value'] ) || ! is_numeric( $threshold['discount_value'] ) ) {
 			$errors[] = sprintf( __( '%s: Discount value is required and must be numeric', 'smart-cycle-discounts' ), $threshold_label );
 		} else {
@@ -346,7 +336,6 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	private function find_applicable_threshold( array $thresholds, float $cart_total ): ?array {
 		$applicable_threshold = null;
 
-		// Sort thresholds by amount in descending order to find the highest applicable threshold
 		usort(
 			$thresholds,
 			function ( $a, $b ) {
@@ -511,7 +500,6 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 			return null;
 		}
 
-		// Sort thresholds by amount in ascending order
 		usort(
 			$thresholds,
 			function ( $a, $b ) {

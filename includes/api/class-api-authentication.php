@@ -190,7 +190,6 @@ class SCD_API_Authentication {
 				);
 			}
 
-			// Check token expiration
 			if ( isset( $payload['exp'] ) && time() > $payload['exp'] ) {
 				return new WP_Error(
 					'jwt_token_expired',
@@ -226,13 +225,11 @@ class SCD_API_Authentication {
 	 * @return   WP_User|WP_Error|null    User object, error, or null.
 	 */
 	public function authenticate_application_password() {
-		// Check if WordPress application passwords are available
 		if ( ! function_exists( 'wp_is_application_passwords_available' ) ||
 			! wp_is_application_passwords_available() ) {
 			return null;
 		}
 
-		// Get authorization header
 		$auth_header = $this->get_authorization_header();
 		if ( ! $auth_header || 0 !== strpos( $auth_header, 'Basic ' ) ) {
 			return null;
@@ -469,7 +466,6 @@ class SCD_API_Authentication {
 			return substr( $auth_header, 7 );
 		}
 
-		// Check query parameter only if explicitly allowed
 		if ( get_option( 'scd_allow_jwt_via_get', false ) || apply_filters( 'scd_allow_jwt_via_get', false ) ) {
 			return isset( $_GET['jwt'] ) ? sanitize_text_field( wp_unslash( $_GET['jwt'] ) ) : null;
 		}
@@ -485,13 +481,11 @@ class SCD_API_Authentication {
 	 * @return   string|null    API key or null.
 	 */
 	private function get_api_key(): ?string {
-		// Check header
 		$api_key = $_SERVER['HTTP_X_API_KEY'] ?? null;
 		if ( $api_key ) {
 			return $api_key;
 		}
 
-		// Check query parameter only if explicitly allowed
 		if ( get_option( 'scd_allow_api_key_via_get', false ) || apply_filters( 'scd_allow_api_key_via_get', false ) ) {
 			return isset( $_GET['api_key'] ) ? sanitize_text_field( wp_unslash( $_GET['api_key'] ) ) : null;
 		}
@@ -507,7 +501,6 @@ class SCD_API_Authentication {
 	 * @return   string|null    Authorization header or null.
 	 */
 	private function get_authorization_header(): ?string {
-		// Check different header variations
 		$headers = array(
 			'HTTP_AUTHORIZATION',
 			'REDIRECT_HTTP_AUTHORIZATION',
@@ -519,7 +512,6 @@ class SCD_API_Authentication {
 			}
 		}
 
-		// Check for Authorization header in getallheaders()
 		if ( function_exists( 'getallheaders' ) ) {
 			$headers = getallheaders();
 			if ( isset( $headers['Authorization'] ) ) {
@@ -555,13 +547,11 @@ class SCD_API_Authentication {
 			return false;
 		}
 
-		// Check each user's API keys
 		foreach ( $user_ids as $user_id ) {
 			$api_keys = get_user_meta( $user_id, 'scd_api_keys', true ) ?: array();
 
 			foreach ( $api_keys as $index => $stored_key ) {
 				if ( wp_check_password( $api_key, $stored_key['key_hash'] ) ) {
-					// Update usage statistics
 					$api_keys[ $index ]['last_used']   = current_time( 'mysql' );
 					$api_keys[ $index ]['usage_count'] = ( $api_keys[ $index ]['usage_count'] ?? 0 ) + 1;
 					update_user_meta( $user_id, 'scd_api_keys', $api_keys );

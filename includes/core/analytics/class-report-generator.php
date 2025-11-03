@@ -126,15 +126,12 @@ class SCD_Report_Generator {
 				)
 			);
 
-			// Validate report type
 			if ( ! $this->is_valid_report_type( $report_type ) ) {
 				throw new InvalidArgumentException( "Invalid report type: {$report_type}" );
 			}
 
-			// Validate and sanitize options
 			$options = $this->sanitize_report_options( $options );
 
-			// Check cache first
 			$cache_key     = $this->get_cache_key( $report_type, $options );
 			$cached_result = $this->cache_manager->get( $cache_key );
 
@@ -163,7 +160,6 @@ class SCD_Report_Generator {
 				'metadata'      => $report_data['metadata'] ?? array(),
 			);
 
-			// Cache the result
 			$this->cache_manager->set( $cache_key, $result, HOUR_IN_SECONDS );
 
 			$this->logger->info(
@@ -206,7 +202,6 @@ class SCD_Report_Generator {
 		$date_range   = $options['date_range'] ?? '30days';
 		$campaign_ids = $options['campaign_ids'] ?? array();
 
-		// Get campaigns
 		$campaigns = empty( $campaign_ids )
 			? $this->campaign_manager->get_campaigns( array( 'status' => 'active' ) )
 			: $this->campaign_manager->get_campaigns_by_ids( $campaign_ids );
@@ -276,16 +271,12 @@ class SCD_Report_Generator {
 	public function generate_analytics_overview_report( array $options = array() ): array {
 		$date_range = $options['date_range'] ?? '30days';
 
-		// Get overall metrics
 		$overall_metrics = $this->metrics_calculator->calculate_overall_metrics( $date_range );
 
-		// Get daily breakdown
 		$daily_metrics = $this->analytics_collector->get_daily_metrics( $date_range );
 
-		// Get top campaigns
 		$top_campaigns = $this->metrics_calculator->get_top_campaigns( $date_range, 10 );
 
-		// Get conversion funnel
 		$conversion_funnel = $this->metrics_calculator->get_conversion_funnel( $date_range );
 
 		return array(
@@ -380,7 +371,6 @@ class SCD_Report_Generator {
 				'status'      => 'active',
 			);
 
-			// Store in database (using transients for now)
 			$schedule_id = 'scd_scheduled_report_' . uniqid();
 			set_transient( $schedule_id, $scheduled_report, YEAR_IN_SECONDS );
 
@@ -457,7 +447,6 @@ class SCD_Report_Generator {
 		$upload_dir  = wp_upload_dir();
 		$reports_dir = $upload_dir['basedir'] . '/scd-reports';
 
-		// Create reports directory if it doesn't exist
 		if ( ! file_exists( $reports_dir ) ) {
 			wp_mkdir_p( $reports_dir );
 		}
@@ -655,23 +644,19 @@ class SCD_Report_Generator {
 	private function sanitize_report_options( array $options ): array {
 		$sanitized = array();
 
-		// Sanitize format
 		$sanitized['format'] = in_array( $options['format'] ?? 'json', $this->supported_formats, true )
 			? $options['format']
 			: 'json';
 
-		// Sanitize date range
 		$valid_ranges            = array( '24hours', '7days', '30days', '90days', 'custom' );
 		$sanitized['date_range'] = in_array( $options['date_range'] ?? '30days', $valid_ranges, true )
 			? $options['date_range']
 			: '30days';
 
-		// Sanitize campaign IDs
 		if ( isset( $options['campaign_ids'] ) && is_array( $options['campaign_ids'] ) ) {
 			$sanitized['campaign_ids'] = array_map( 'absint', $options['campaign_ids'] );
 		}
 
-		// Sanitize other options
 		$sanitized['force_refresh']    = ! empty( $options['force_refresh'] );
 		$sanitized['include_metadata'] = $options['include_metadata'] ?? true;
 

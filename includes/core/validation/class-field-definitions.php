@@ -827,7 +827,6 @@ class SCD_Field_Definitions {
 					'label'     => isset( $field_schema['label'] ) ? $field_schema['label'] : '', // Field label for error messages
 				);
 
-				// Add validation rules
 				if ( isset( $field_schema['min'] ) ) {
 					$js_field['min'] = $field_schema['min'];
 				}
@@ -844,7 +843,6 @@ class SCD_Field_Definitions {
 					$js_field['options'] = $field_schema['options'];
 				}
 
-				// Add handler information
 				if ( isset( $field_schema['handler'] ) ) {
 					$js_field['handler'] = $field_schema['handler'];
 					if ( isset( $field_schema['methods'] ) ) {
@@ -852,12 +850,10 @@ class SCD_Field_Definitions {
 					}
 				}
 
-				// Add selector (for hidden fields and custom selectors)
 				if ( isset( $field_schema['selector'] ) ) {
 					$js_field['selector'] = $field_schema['selector'];
 				}
 
-				// Add conditional information
 				if ( isset( $field_schema['conditional'] ) ) {
 					$js_field['conditional'] = array(
 						'field' => $field_schema['conditional']['field'], // Keep snake_case to match form field names
@@ -869,7 +865,6 @@ class SCD_Field_Definitions {
 			}
 		}
 
-		// Add condition types and operator mappings for products step
 		if ( isset( $js_schemas['products'] ) ) {
 			$js_schemas['products']['_conditionTypes']   = self::get_condition_types();
 			$js_schemas['products']['_operatorMappings'] = self::get_operator_mappings();
@@ -953,7 +948,6 @@ class SCD_Field_Definitions {
 		// Wrap in field container
 		$container_html = '<div class="form-field scd-field-' . esc_attr( $field_name ) . '">';
 
-		// Add label
 		if ( ! empty( $field['label'] ) && 'checkbox' !== $field['type'] ) {
 			$container_html .= sprintf(
 				'<label for="%s">%s%s</label>',
@@ -963,10 +957,8 @@ class SCD_Field_Definitions {
 			);
 		}
 
-		// Add field HTML
 		$container_html .= $html;
 
-		// Add description
 		if ( ! empty( $field['description'] ) ) {
 			$container_html .= sprintf(
 				'<p class="description">%s</p>',
@@ -1192,7 +1184,6 @@ class SCD_Field_Definitions {
 		$sanitized = array();
 
 		foreach ( $fields as $field_key => $field_schema ) {
-			// Check if field should be validated based on conditionals
 			$conditional_met = false;
 			if ( isset( $field_schema['conditional'] ) ) {
 				$condition_field = $field_schema['conditional']['field'];
@@ -1237,7 +1228,6 @@ class SCD_Field_Definitions {
 				$value = call_user_func( $field_schema['sanitizer'], $value );
 			}
 
-			// Check required - use isset() and !== to handle 0 values correctly
 			// Fields are required based on their 'required' flag
 			// Conditional only controls visibility, not required status
 			$is_required = ! empty( $field_schema['required'] );
@@ -1598,7 +1588,6 @@ class SCD_Field_Definitions {
 			);
 		}
 
-		// Check if 'all' is selected with other categories
 		if ( in_array( 'all', $value, true ) && count( $value ) > 1 ) {
 			return new WP_Error(
 				'invalid_selection',
@@ -1620,7 +1609,6 @@ class SCD_Field_Definitions {
 			);
 		}
 
-		// Validate each product ID
 		foreach ( $value as $product_id ) {
 			if ( ! is_numeric( $product_id ) || $product_id <= 0 ) {
 				return new WP_Error(
@@ -1688,12 +1676,10 @@ class SCD_Field_Definitions {
 		// LOW: Get valid timezones (excluding deprecated ones)
 		$valid_timezones = timezone_identifiers_list();
 
-		// Check if it's a valid timezone identifier
 		if ( in_array( $value, $valid_timezones, true ) ) {
 			return true;
 		}
 
-		// Check if it's a valid UTC offset format (e.g., '+00:00', '-05:00', 'UTC+3')
 		if ( preg_match( '/^(UTC)?[+-]\d{1,2}(:\d{2})?$/', $value ) ) {
 			return true;
 		}
@@ -1743,7 +1729,6 @@ class SCD_Field_Definitions {
 				);
 			}
 
-			// Validate condition structure
 			if ( empty( $condition['type'] ) || empty( $condition['operator'] ) ) {
 				return new WP_Error(
 					'incomplete_condition',
@@ -1775,7 +1760,6 @@ class SCD_Field_Definitions {
 				);
 			}
 
-			// Validate min_quantity is numeric and positive
 			if ( ! is_numeric( $tier['min_quantity'] ) ) {
 				return new WP_Error(
 					'invalid_tier_quantity_type',
@@ -1790,7 +1774,6 @@ class SCD_Field_Definitions {
 				);
 			}
 
-			// Check for duplicate quantities
 			if ( in_array( $tier['min_quantity'], $seen_quantities, true ) ) {
 				return new WP_Error(
 					'duplicate_tier_quantity',
@@ -1799,7 +1782,6 @@ class SCD_Field_Definitions {
 			}
 			$seen_quantities[] = $tier['min_quantity'];
 
-			// Validate discount value is numeric and positive
 			if ( ! is_numeric( $tier['discount_value'] ) ) {
 				return new WP_Error(
 					'invalid_tier_discount_type',
@@ -1814,7 +1796,6 @@ class SCD_Field_Definitions {
 				);
 			}
 
-			// Validate percentage doesn't exceed 100
 			if ( 'percentage' === $tier['discount_type'] && $tier['discount_value'] > 100 ) {
 				return new WP_Error(
 					'invalid_tier_percentage',
@@ -1837,7 +1818,6 @@ class SCD_Field_Definitions {
 			);
 		}
 
-		// Validate required fields
 		if ( ! isset( $value['buy_quantity'] ) || $value['buy_quantity'] < 1 ) {
 			return new WP_Error(
 				'invalid_buy_quantity',
@@ -1877,7 +1857,6 @@ class SCD_Field_Definitions {
 
 		$seen_thresholds = array();
 		foreach ( $value as $index => $threshold ) {
-			// Validate required fields
 			if ( ! isset( $threshold['threshold'] ) || ! isset( $threshold['discount_value'] ) ) {
 				return new WP_Error(
 					'incomplete_threshold',
@@ -1885,7 +1864,6 @@ class SCD_Field_Definitions {
 				);
 			}
 
-			// Validate threshold is positive
 			if ( $threshold['threshold'] <= 0 ) {
 				return new WP_Error(
 					'invalid_threshold_amount',
@@ -1893,7 +1871,6 @@ class SCD_Field_Definitions {
 				);
 			}
 
-			// Check for duplicate thresholds
 			if ( in_array( $threshold['threshold'], $seen_thresholds, true ) ) {
 				return new WP_Error(
 					'duplicate_threshold',
@@ -1902,7 +1879,6 @@ class SCD_Field_Definitions {
 			}
 			$seen_thresholds[] = $threshold['threshold'];
 
-			// Validate discount value
 			if ( $threshold['discount_value'] <= 0 ) {
 				return new WP_Error(
 					'invalid_discount_value',
@@ -1910,7 +1886,6 @@ class SCD_Field_Definitions {
 				);
 			}
 
-			// Validate percentage doesn't exceed 100
 			$discount_type = $threshold['discount_type'] ?? 'percentage';
 			if ( 'percentage' === $discount_type && $threshold['discount_value'] > 100 ) {
 				return new WP_Error(
@@ -2046,7 +2021,6 @@ class SCD_Field_Definitions {
 			}
 		}
 
-		// Sort tiers by min_quantity in ascending order (normalization)
 		usort(
 			$sanitized,
 			function ( $a, $b ) {
@@ -2101,7 +2075,6 @@ class SCD_Field_Definitions {
 			}
 		}
 
-		// Sort thresholds by threshold amount in ascending order (normalization)
 		usort(
 			$sanitized,
 			function ( $a, $b ) {
@@ -2309,12 +2282,10 @@ class SCD_Field_Definitions {
 	 * @return   void
 	 */
 	private static function validate_products_feature_gate( array $data, WP_Error $errors ) {
-		// Check if conditions (advanced filters) are present
 		if ( ! isset( $data['conditions'] ) || empty( $data['conditions'] ) ) {
 			return; // No advanced filters submitted
 		}
 
-		// Get feature gate instance from service container
 		if ( ! class_exists( 'SCD_Service_Container' ) ) {
 			require_once SCD_PLUGIN_DIR . 'includes/bootstrap/class-service-container.php';
 		}
@@ -2327,7 +2298,6 @@ class SCD_Field_Definitions {
 			return;
 		}
 
-		// Check if user can use advanced product filters
 		if ( ! $feature_gate->can_use_advanced_product_filters() ) {
 			$errors->add(
 				'advanced_filters_premium',
@@ -2347,7 +2317,6 @@ class SCD_Field_Definitions {
 	 * @return   void
 	 */
 	private static function validate_discounts_feature_gate( array $data, WP_Error $errors ) {
-		// Check if discount_type is present
 		if ( ! isset( $data['discount_type'] ) || empty( $data['discount_type'] ) ) {
 			return; // No discount type submitted
 		}
@@ -2360,7 +2329,6 @@ class SCD_Field_Definitions {
 			return;
 		}
 
-		// Get feature gate instance from service container
 		if ( ! class_exists( 'SCD_Service_Container' ) ) {
 			require_once SCD_PLUGIN_DIR . 'includes/bootstrap/class-service-container.php';
 		}
@@ -2373,7 +2341,6 @@ class SCD_Field_Definitions {
 			return;
 		}
 
-		// Check if user can use this discount type
 		if ( ! $feature_gate->can_use_discount_type( $discount_type ) ) {
 			$discount_type_labels = array(
 				'tiered'          => __( 'Volume Discounts', 'smart-cycle-discounts' ),

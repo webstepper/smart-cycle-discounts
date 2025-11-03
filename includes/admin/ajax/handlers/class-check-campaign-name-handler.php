@@ -79,10 +79,8 @@ class SCD_Check_Campaign_Name_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Get campaign manager service
 		$campaign_manager = $this->get_campaign_manager();
 
-		// Check if name exists using service layer
 		$exists = false;
 		if ( $campaign_manager && method_exists( $campaign_manager, 'campaign_name_exists' ) ) {
 			$exists = $campaign_manager->campaign_name_exists( $name, $exclude_id );
@@ -138,7 +136,6 @@ class SCD_Check_Campaign_Name_Handler extends SCD_Abstract_Ajax_Handler {
 			}
 		}
 
-		// Add date-based suggestion if needed
 		if ( count( $suggestions ) < 3 ) {
 			$date_suggestion = $base_name . ' - ' . date_i18n( 'M j' );
 			if ( ! $campaign_manager->campaign_name_exists( $date_suggestion, $exclude_id ) ) {

@@ -73,7 +73,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 		$this->campaign_manager   = $campaign_manager;
 		$this->capability_manager = $capability_manager;
 
-		// Get container instance
 		if ( class_exists( 'Smart_Cycle_Discounts' ) ) {
 			$plugin          = Smart_Cycle_Discounts::get_instance();
 			$this->container = $plugin->get_container();
@@ -136,7 +135,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	public function get_bulk_actions() {
 		$actions = array();
 
-		// Check if viewing trash
 		$viewing_trash = isset( $_REQUEST['status'] ) && 'trash' === $_REQUEST['status'];
 
 		if ( $viewing_trash ) {
@@ -174,7 +172,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * @return   void
 	 */
 	public function prepare_items() {
-		// Set up columns
 		$this->_column_headers = array(
 			$this->get_columns(),
 			array(),
@@ -184,15 +181,12 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 		// Handle bulk actions
 		$this->process_bulk_action();
 
-		// Get current page and per page settings
 		$current_page = $this->get_pagenum();
 		$per_page     = $this->get_items_per_page( 'scd_campaigns_per_page', 20 );
 
-		// Check if viewing trash
 		$viewing_trash = isset( $_REQUEST['status'] ) && 'trash' === $_REQUEST['status'];
 
 		if ( $viewing_trash ) {
-			// Get trashed campaigns directly from repository
 			$repository = $this->campaign_manager->get_repository();
 			$options    = array(
 				'limit'           => $per_page,
@@ -204,7 +198,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			$campaigns   = $repository->find_trashed( $options );
 			$total_items = $repository->count_trashed();
 		} else {
-			// Prepare query arguments for non-trash campaigns
 			$args = array(
 				'limit'   => $per_page,
 				'offset'  => ( $current_page - 1 ) * $per_page,
@@ -212,22 +205,18 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 				'order'   => sanitize_text_field( isset( $_REQUEST['order'] ) ? $_REQUEST['order'] : 'DESC' ),
 			);
 
-			// Add search filter
 			if ( ! empty( $_REQUEST['s'] ) ) {
 				$args['search'] = sanitize_text_field( $_REQUEST['s'] );
 			}
 
-			// Add status filter
 			if ( ! empty( $_REQUEST['status'] ) ) {
 				$args['status'] = sanitize_text_field( $_REQUEST['status'] );
 			}
 
-			// Get campaigns and total count
 			$campaigns   = $this->campaign_manager->get_campaigns( $args );
 			$total_items = $this->campaign_manager->count_campaigns( $args );
 		}
 
-		// Set items and pagination
 		$this->items = $campaigns;
 		$this->set_pagination_args(
 			array(
@@ -267,7 +256,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 		$campaign_id   = $campaign->get_id();
 		$campaign_name = esc_html( $campaign->get_name() );
 
-		// Check if campaign has recurring settings
 		$recurring_badge    = '';
 		$recurring_settings = null;
 		if ( isset( $this->container ) && $this->container->has( 'recurring_handler' ) ) {
@@ -275,7 +263,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			$recurring_settings = $recurring_handler->get_recurring_settings( $campaign_id );
 
 			if ( $recurring_settings ) {
-				// Check if this is a parent or child campaign
 				if ( empty( $recurring_settings['parent_campaign_id'] ) ) {
 					// Parent campaign with recurring enabled
 					if ( ! empty( $recurring_settings['is_active'] ) ) {
@@ -313,10 +300,8 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			}
 		}
 
-		// Build row actions
 		$actions = array();
 
-		// Check if campaign is in trash
 		$deleted_at = $campaign->get_deleted_at();
 		$is_trashed = null !== $deleted_at;
 
@@ -428,7 +413,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 				);
 			}
 
-			// Add stop recurring action for active recurring campaigns
 			if ( $recurring_settings && empty( $recurring_settings['parent_campaign_id'] ) && ! empty( $recurring_settings['is_active'] ) ) {
 				if ( $this->capability_manager->current_user_can( 'edit_campaign', $campaign_id ) ) {
 					$actions['stop_recurring'] = sprintf(
@@ -446,7 +430,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			}
 		}
 
-		// Build title with edit link
 		$title = $this->capability_manager->current_user_can( 'edit_campaign', $campaign_id )
 			? sprintf(
 				'<a href="%s" class="row-title"><strong>%s</strong></a>%s',
@@ -456,7 +439,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			)
 			: sprintf( '<strong>%s</strong>%s', esc_html( $campaign_name ), $recurring_badge );
 
-		// Add description if available
 		if ( $campaign->get_description() ) {
 			$title .= '<br><span class="description">' . esc_html( $campaign->get_description() ) . '</span>';
 		}
@@ -476,13 +458,11 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 		$status       = $campaign->get_status();
 		$status_label = ucfirst( $status );
 
-		// Add status-specific information
 		$status_info = '';
 		switch ( $status ) {
 			case 'scheduled':
 				$start_date = $campaign->get_starts_at();
 				if ( $start_date ) {
-					// Convert from UTC to WordPress timezone before displaying
 					$status_info = sprintf(
 						'<br><small>%s: %s</small>',
 						__( 'Starts', 'smart-cycle-discounts' ),
@@ -493,7 +473,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			case 'active':
 				$end_date = $campaign->get_ends_at();
 				if ( $end_date ) {
-					// Convert from UTC to WordPress timezone before displaying
 					$status_info = sprintf(
 						'<br><small>%s: %s</small>',
 						__( 'Ends', 'smart-cycle-discounts' ),
@@ -507,14 +486,12 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 					$now            = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
 					$time_remaining = $end_date->getTimestamp() - $now->getTimestamp();
 
-					// Calculate days remaining
 					$days_remaining = floor( $time_remaining / DAY_IN_SECONDS );
 
 					// Determine if expiring soon (< 7 days)
 					$is_expiring_soon = $days_remaining < 7 && $days_remaining >= 0;
 					$warning_class    = $is_expiring_soon ? ' scd-expiring-soon' : '';
 
-					// Format countdown message
 					if ( $days_remaining < 0 ) {
 						// Already past end date (will expire on next cron run)
 						$countdown_text = __( 'Expiring soon', 'smart-cycle-discounts' );
@@ -544,7 +521,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 						);
 					}
 
-					// Convert from UTC to WordPress timezone before displaying
 					$status_info = sprintf(
 						'<br><small class="%s">⏰ %s (%s)</small>',
 						esc_attr( $warning_class ),
@@ -556,7 +532,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			case 'expired':
 				$end_date = $campaign->get_ends_at();
 				if ( $end_date ) {
-					// Convert from UTC to WordPress timezone before displaying
 					$status_info = sprintf(
 						'<br><small>%s: %s</small>',
 						__( 'Ended', 'smart-cycle-discounts' ),
@@ -752,7 +727,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 				$output = '<span class="description">' . __( 'Not configured', 'smart-cycle-discounts' ) . '</span>';
 		}
 
-		// Add categories info if applicable
 		if ( ! empty( $category_ids ) && is_array( $category_ids ) ) {
 			$cat_count      = count( $category_ids );
 			$category_names = $this->get_category_names( $category_ids, 3 );
@@ -876,7 +850,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 		$output = '';
 
 		if ( $start_date ) {
-			// Convert from UTC to WordPress timezone before displaying
 			$output .= sprintf(
 				'<strong>%s:</strong> %s<br>',
 				__( 'Start', 'smart-cycle-discounts' ),
@@ -885,7 +858,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 		}
 
 		if ( $end_date ) {
-			// Convert from UTC to WordPress timezone before displaying
 			$output .= sprintf(
 				'<strong>%s:</strong> %s',
 				__( 'End', 'smart-cycle-discounts' ),
@@ -911,7 +883,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 */
 	public function column_performance( $item ) {
 		$campaign = $item;
-		// Get campaign performance metrics
 		$metrics = $campaign->get_performance_metrics();
 
 		if ( empty( $metrics ) ) {
@@ -959,12 +930,10 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 		$created_at = $campaign->get_created_at();
 		$created_by = $campaign->get_created_by();
 
-		// Convert string to DateTime if needed
 		if ( is_string( $created_at ) ) {
 			$created_at = new DateTime( $created_at );
 		}
 
-		// Convert from UTC to WordPress timezone before displaying
 		$output = sprintf(
 			'<strong>%s</strong><br>',
 			wp_date( 'M j, Y', $created_at->getTimestamp() )
@@ -1020,19 +989,16 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	public function column_health( $item ) {
 		$campaign = $item;
 
-		// Get health service from container
 		$health_service = null;
 		if ( isset( $this->container ) && $this->container->has( 'campaign_health_service' ) ) {
 			$health_service = $this->container->get( 'campaign_health_service' );
 		}
 
 		if ( $health_service ) {
-			// Calculate coverage data using existing coverage handler service
 			$coverage_data = array();
 			if ( class_exists( 'SCD_Preview_Coverage_Handler' ) ) {
 				$coverage_handler = new SCD_Preview_Coverage_Handler();
 
-				// Build campaign data array for coverage handler
 				$basic_data     = array(
 					'priority' => $campaign->get_priority(),
 				);
@@ -1053,7 +1019,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 				$coverage_data = $method->invoke( $coverage_handler, $basic_data, $products_data, $discounts_data );
 			}
 
-			// Build context array with coverage data
 			$context = array(
 				'coverage_data' => $coverage_data,
 				'view_context'  => 'dashboard',
@@ -1080,7 +1045,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			$health_issues = array();
 		}
 
-		// Get icon based on status
 		$health_icons = array(
 			'critical'  => '🔴',  // Critical issues - campaign broken
 			'excellent' => '🟢',
@@ -1168,7 +1132,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 				switch ( $action ) {
 					case 'activate':
 						if ( $this->capability_manager->current_user_can( 'scd_activate_campaigns' ) ) {
-							// Check if campaign is expired - skip with clear message
 							$campaign = $this->campaign_manager->find( $campaign_id );
 							if ( $campaign && 'expired' === $campaign->get_status() ) {
 								$errors[] = sprintf(
@@ -1295,7 +1258,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			if ( ! empty( $errors ) ) {
 				$redirect_args['error']       = 'bulk_action_error';
 				$redirect_args['error_count'] = count( $errors );
-				// Store errors in transient for display after redirect
 				set_transient( 'scd_bulk_action_errors_' . get_current_user_id(), $errors, 60 );
 			}
 
@@ -1420,7 +1382,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			return;
 		}
 
-		// Check if viewing trash
 		$viewing_trash = isset( $_REQUEST['status'] ) && 'trash' === $_REQUEST['status'];
 
 		?>
@@ -1430,7 +1391,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 
 			<?php if ( $viewing_trash && $this->capability_manager->current_user_can( 'scd_delete_campaigns' ) ) : ?>
 				<?php
-				// Get trash count
 				$repository = $this->campaign_manager->get_repository();
 				if ( $repository ) {
 					$trash_count = $repository->count_trashed();
@@ -1512,10 +1472,8 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 		$views          = array();
 		$current_status = isset( $_REQUEST['status'] ) ? $_REQUEST['status'] : '';
 
-		// Get status counts
 		$status_counts = $this->campaign_manager->get_status_counts();
 
-		// Get trash count
 		$repository  = $this->campaign_manager->get_repository();
 		$trash_count = $repository->count_trashed();
 

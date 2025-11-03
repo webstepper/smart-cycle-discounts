@@ -223,24 +223,20 @@ class SCD_Analytics_Data {
 	public function validate(): array {
 		$errors = array();
 
-		// Validate campaign ID
 		if ( ! isset( $this->campaign_id ) || $this->campaign_id <= 0 ) {
 			$errors[] = __( 'Campaign ID is required and must be positive', 'smart-cycle-discounts' );
 		}
 
-		// Validate event type
 		if ( ! isset( $this->event_type ) || empty( $this->event_type ) ) {
 			$errors[] = __( 'Event type is required', 'smart-cycle-discounts' );
 		} elseif ( ! in_array( $this->event_type, self::$valid_event_types ) ) {
 			$errors[] = __( 'Invalid event type', 'smart-cycle-discounts' );
 		}
 
-		// Validate product ID if provided
 		if ( isset( $this->product_id ) && $this->product_id <= 0 ) {
 			$errors[] = __( 'Product ID must be positive if provided', 'smart-cycle-discounts' );
 		}
 
-		// Validate user ID if provided
 		if ( isset( $this->user_id ) && $this->user_id <= 0 ) {
 			$errors[] = __( 'User ID must be positive if provided', 'smart-cycle-discounts' );
 		}
@@ -250,7 +246,6 @@ class SCD_Analytics_Data {
 			$errors[] = __( 'Invalid IP address format', 'smart-cycle-discounts' );
 		}
 
-		// Validate event timestamp if provided
 		if ( ! empty( $this->event_timestamp ) && strtotime( $this->event_timestamp ) === false ) {
 			$errors[] = __( 'Invalid event timestamp format', 'smart-cycle-discounts' );
 		}
@@ -716,7 +711,6 @@ class SCD_Analytics_Data {
 		$analytics->set_event_data( $event_data );
 		$analytics->set_event_timestamp( current_time( 'mysql' ) );
 
-		// Set context data if provided
 		if ( isset( $context['product_id'] ) ) {
 			$analytics->set_product_id( intval( $context['product_id'] ) );
 		}

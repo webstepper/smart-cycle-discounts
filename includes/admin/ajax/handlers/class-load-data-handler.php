@@ -84,7 +84,6 @@ class SCD_Load_Data_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Check if session exists
 		if ( ! $this->state_service->has_session() ) {
 			// Debug: Log no session found
 			if ( function_exists( 'scd_debug_persistence' ) ) {
@@ -97,7 +96,6 @@ class SCD_Load_Data_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Load data based on request
 		if ( $load_all ) {
 			$data = $this->state_service->get_all_data();
 		} elseif ( ! empty( $step ) ) {
@@ -121,7 +119,6 @@ class SCD_Load_Data_Handler extends SCD_Abstract_Ajax_Handler {
 			scd_debug_persistence( 'load_success', $step ? $step : 'all', $data, true, 'Data loaded from session' );
 		}
 
-		// Get progress information
 		$progress = $this->state_service->get_progress();
 
 		return $this->success(
@@ -182,7 +179,6 @@ class SCD_Load_Data_Handler extends SCD_Abstract_Ajax_Handler {
 				}
 			}
 
-			// Add category_data to the response
 			if ( ! empty( $category_data ) ) {
 				$data['category_data'] = $category_data;
 			}

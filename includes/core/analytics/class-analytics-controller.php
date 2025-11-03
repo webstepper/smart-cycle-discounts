@@ -617,7 +617,6 @@ class SCD_Analytics_Controller {
 			$data_type  = $request->get_param( 'data_type' ) ?: 'overview';
 			$date_range = $this->prepare_date_range( $request );
 
-			// Get data based on type
 			$export_data = match ( $data_type ) {
 				'overview' => $this->metrics_calculator->calculate_overall_metrics( $date_range ),
 				'campaigns' => $this->metrics_calculator->calculate_all_campaigns_metrics( $date_range ),

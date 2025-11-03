@@ -81,7 +81,6 @@ class SCD_Campaign_Change_Tracker {
 		$this->session          = $session;
 		$this->campaign_manager = $campaign_manager;
 
-		// Load existing changes from session
 		$this->changes = $session->get( 'changes', array() );
 	}
 
@@ -139,7 +138,6 @@ class SCD_Campaign_Change_Tracker {
 	 * @return   mixed                Current value.
 	 */
 	public function get( $step, $field, $default = null ) {
-		// Check changes first
 		if ( isset( $this->changes[ $step ][ $field ] ) ) {
 			return $this->changes[ $step ][ $field ]['value'];
 		}
@@ -156,7 +154,6 @@ class SCD_Campaign_Change_Tracker {
 	 * @return   array              Merged step data.
 	 */
 	public function get_step_data( $step ) {
-		// Load base data from database
 		$campaign = $this->load_campaign();
 		if ( ! $campaign ) {
 			// No campaign - return changes only
@@ -397,7 +394,6 @@ class SCD_Campaign_Change_Tracker {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				}
 
-				// Extract exact date/time values from database (no fallbacks for edit mode)
 				$end_time = '';
 				if ( ! empty( $end_split['date'] ) ) {
 					$end_time = $end_split['time'] ?? '';

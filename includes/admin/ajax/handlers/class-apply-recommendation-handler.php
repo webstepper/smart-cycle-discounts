@@ -65,12 +65,10 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
-		// Validate request data
 		if ( ! is_array( $request ) ) {
 			$request = array();
 		}
 
-		// Get required fields
 		$recommendation_id = isset( $request['recommendation_id'] ) ? sanitize_text_field( $request['recommendation_id'] ) : '';
 		$action_type       = isset( $request['action_type'] ) ? sanitize_text_field( $request['action_type'] ) : '';
 		$action_data       = isset( $request['action_data'] ) ? $request['action_data'] : array();
@@ -173,7 +171,6 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Get existing discount data to merge
 		$existing_data = $this->state_service->get_step_data( 'discount' );
 		if ( ! is_array( $existing_data ) ) {
 			$existing_data = array();
@@ -186,11 +183,9 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 			)
 		);
 
-		// Add discount value if provided (for percentage or fixed)
 		if ( isset( $data['discount_value'] ) && $data['discount_value'] > 0 ) {
 			$discount_value = floatval( $data['discount_value'] );
 
-			// Save with appropriate field name based on type
 			if ( 'percentage' === $discount_type ) {
 				$discount_data['discount_value_percentage'] = $discount_value;
 			} elseif ( 'fixed' === $discount_type ) {
@@ -198,9 +193,7 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 			}
 		}
 
-		// Add tiers if provided
 		if ( 'tiered' === $discount_type && isset( $data['tiers'] ) && is_array( $data['tiers'] ) ) {
-			// Sanitize tiers array
 			$sanitized_tiers = array();
 			foreach ( $data['tiers'] as $tier ) {
 				if ( is_array( $tier ) ) {
@@ -224,7 +217,6 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 			}
 		}
 
-		// Save to discount step
 		$this->state_service->save_step_data( 'discount', $discount_data );
 
 		return array(
@@ -253,7 +245,6 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Get current discount data
 		$discount_data = $this->state_service->get_step_data( 'discount' );
 
 		if ( ! is_array( $discount_data ) ) {
@@ -262,7 +253,6 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 
 		$discount_data['discount_value'] = $discount_value;
 
-		// Save to discount step
 		$this->state_service->save_step_data( 'discount', $discount_data );
 
 		return array(
@@ -289,7 +279,6 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Get current schedule data
 		$schedule_data = $this->state_service->get_step_data( 'schedule' );
 
 		if ( ! is_array( $schedule_data ) ) {
@@ -298,7 +287,6 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 
 		$schedule_data['end_date'] = $end_date;
 
-		// Save to schedule step
 		$this->state_service->save_step_data( 'schedule', $schedule_data );
 
 		return array(
@@ -325,7 +313,6 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Get current products data
 		$products_data = $this->state_service->get_step_data( 'products' );
 
 		if ( ! is_array( $products_data ) ) {
@@ -334,7 +321,6 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 
 		$products_data['product_selection_type'] = $selection_type;
 
-		// Save to products step
 		$this->state_service->save_step_data( 'products', $products_data );
 
 		return array(

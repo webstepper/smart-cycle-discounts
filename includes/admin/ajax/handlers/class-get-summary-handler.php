@@ -67,7 +67,6 @@ class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
-		// Get step data (properly merges changes with database in edit mode)
 		$steps = array(
 			'basic'     => $this->state_service->get_step_data( 'basic' ),
 			'products'  => $this->state_service->get_step_data( 'products' ),
@@ -76,7 +75,6 @@ class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
 			'review'    => $this->state_service->get_step_data( 'review' ),
 		);
 
-		// Check if we have any data
 		$has_data = false;
 		foreach ( $steps as $step_data ) {
 			if ( ! empty( $step_data ) ) {
@@ -92,10 +90,8 @@ class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Build summary from step data
 		$summary = $this->build_summary( $steps );
 
-		// Get progress
 		$progress = $this->state_service->get_progress();
 
 		return $this->success(
@@ -142,7 +138,6 @@ class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
 				'category_ids'           => $category_ids,
 			);
 
-			// Load product names if available
 			if ( ! empty( $summary['products']['product_ids'] ) && function_exists( 'wc_get_product' ) ) {
 				$summary['products']['product_names'] = $this->get_product_names( $summary['products']['product_ids'] );
 			}
@@ -152,7 +147,6 @@ class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
 		if ( ! empty( $steps['discounts'] ) ) {
 			$discount_type = isset( $steps['discounts']['discount_type'] ) ? $steps['discounts']['discount_type'] : 'percentage';
 
-			// Get discount value based on type (wizard uses separate fields)
 			$discount_value = 0;
 			if ( 'percentage' === $discount_type && isset( $steps['discounts']['discount_value_percentage'] ) ) {
 				$discount_value = $steps['discounts']['discount_value_percentage'];
@@ -183,7 +177,6 @@ class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
 				'recurring_pattern' => isset( $steps['schedule']['recurring_pattern'] ) ? $steps['schedule']['recurring_pattern'] : '',
 			);
 
-			// Format dates for display
 			if ( ! empty( $summary['schedule']['start_date'] ) ) {
 				$summary['schedule']['start_date_formatted'] = date_i18n(
 					get_option( 'date_format' ),

@@ -141,7 +141,6 @@ function scd_parse_time_string( string $time_str ) {
 		$ampm   = strtoupper( $matches[3] );
 
 		if ( $hour >= 1 && $hour <= 12 && $minute >= 0 && $minute <= 59 ) {
-			// Convert to 24-hour format
 			if ( $ampm === 'PM' && $hour !== 12 ) {
 				$hour += 12;
 			} elseif ( $ampm === 'AM' && $hour === 12 ) {
@@ -177,7 +176,6 @@ function scd_is_within_time_window( string $start_time, string $end_time, ?DateT
 		return false; // Invalid time format
 	}
 
-	// Create times for today
 	$today_start = $current->setTime( $start_parts['hour'], $start_parts['minute'], 0 );
 	$today_end   = $current->setTime( $end_parts['hour'], $end_parts['minute'], 0 );
 
@@ -216,7 +214,6 @@ function scd_next_allowed_time( string $start_time, string $end_time, ?DateTimeI
 		return $from;
 	}
 
-	// Calculate next window start
 	$next_start = $from->setTime( $start_parts['hour'], $start_parts['minute'], 0 );
 
 	// If we're past today's window start, move to tomorrow
@@ -256,7 +253,6 @@ function scd_validate_timezone( string $timezone ): string|false {
 	// Accept UTC offset formats (e.g., +04:00, -05:00, UTC+5, etc.)
 	// PHP's DateTimeZone accepts these formats
 	if ( preg_match( '/^[+-]\d{2}:\d{2}$/', $timezone ) || preg_match( '/^UTC[+-]\d{1,2}(:\d{2})?$/', $timezone ) ) {
-		// Validate that PHP can actually create a DateTimeZone from this
 		try {
 			new DateTimeZone( $timezone );
 			return $timezone; // Valid UTC offset
@@ -334,10 +330,8 @@ function scd_check_dst_transition( DateTimeImmutable $datetime ): array {
 		$info['is_transition_day'] = true;
 		$info['transition_time']   = $transitions[1]['ts'];
 
-		// Check if we're moving forward or back
 		if ( $transitions[1]['offset'] > $transitions[0]['offset'] ) {
 			$info['transition_type'] = 'spring_forward';
-			// Calculate lost hour
 			$lost_start        = new DateTimeImmutable( '@' . $transitions[1]['ts'], $tz );
 			$info['lost_hour'] = array(
 				'start'           => $lost_start->format( 'H:i' ),
@@ -346,7 +340,6 @@ function scd_check_dst_transition( DateTimeImmutable $datetime ): array {
 			);
 		} else {
 			$info['transition_type'] = 'fall_back';
-			// Calculate repeated hour
 			$repeat_start          = new DateTimeImmutable( '@' . $transitions[1]['ts'], $tz );
 			$info['repeated_hour'] = array(
 				'start'           => $repeat_start->modify( '-1 hour' )->format( 'H:i' ),
@@ -376,12 +369,10 @@ function scd_adjust_for_dst_transition( DateTimeImmutable $datetime, array $dst_
 	}
 
 	if ( 'spring_forward' === $dst_info['transition_type'] && $dst_info['lost_hour'] ) {
-		// Check if datetime falls in the lost hour
 		$time_str   = $datetime->format( 'H:i' );
 		$lost_start = $dst_info['lost_hour']['start'];
 		$lost_end   = $dst_info['lost_hour']['end'];
 
-		// Parse times for comparison
 		$time_parts  = scd_parse_time_string( $time_str );
 		$start_parts = scd_parse_time_string( $lost_start );
 		$end_parts   = scd_parse_time_string( $lost_end );
@@ -489,13 +480,11 @@ function scd_combine_date_time( string $date, string $time, ?string $timezone = 
 	try {
 		$tz = $timezone ? new DateTimeZone( $timezone ) : wp_timezone();
 
-		// Validate date format strictly
 		$date_obj = DateTime::createFromFormat( '!Y-m-d', $date, $tz );
 		if ( ! $date_obj || $date_obj->format( 'Y-m-d' ) !== $date ) {
 			return false;
 		}
 
-		// Validate and parse time
 		$time_parts = scd_parse_time_string( $time );
 		if ( false === $time_parts ) {
 			return false;

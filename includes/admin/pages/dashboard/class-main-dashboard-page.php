@@ -128,17 +128,14 @@ class SCD_Main_Dashboard_Page {
 	 * @return   void
 	 */
 	public function render(): void {
-		// Check user capabilities
 		if ( ! current_user_can( 'scd_view_analytics' ) ) {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'smart-cycle-discounts' ) );
 		}
 
 		try {
-			// Get dashboard data (free tier: 7 days, premium: 30 days)
 			$date_range     = $this->feature_gate->is_premium() ? '30days' : '7days';
 			$dashboard_data = $this->get_dashboard_data( $date_range );
 
-			// Load the view template
 			$this->render_view( $dashboard_data );
 
 		} catch ( Exception $e ) {
@@ -165,17 +162,14 @@ class SCD_Main_Dashboard_Page {
 	 * @return   array                    Dashboard data.
 	 */
 	private function get_dashboard_data( $date_range ): array {
-		// Get dashboard data from service (includes caching)
 		$dashboard_data = $this->dashboard_service->get_dashboard_data(
 			array(
 				'date_range' => $date_range,
 			)
 		);
 
-		// Add campaign suggestions from Dashboard Service
 		$dashboard_data['campaign_suggestions'] = $this->dashboard_service->get_campaign_suggestions();
 
-		// Add weekly planner campaigns
 		$dashboard_data['planner_data'] = $this->dashboard_service->get_weekly_planner_campaigns();
 
 		return $dashboard_data;
@@ -233,7 +227,6 @@ class SCD_Main_Dashboard_Page {
 	 * @return   array                    Top campaigns.
 	 */
 	private function get_top_campaigns( $limit, $date_range ): array {
-		// Get all active campaigns
 		$campaigns = $this->campaign_repository->find_all(
 			array(
 				'status'  => 'active',
@@ -247,7 +240,6 @@ class SCD_Main_Dashboard_Page {
 			return array();
 		}
 
-		// Convert campaign objects to arrays and get IDs
 		$campaign_data = array();
 		$campaign_ids  = array();
 		foreach ( $campaigns as $campaign ) {
@@ -259,7 +251,6 @@ class SCD_Main_Dashboard_Page {
 			);
 		}
 
-		// Get batch metrics (this might fail if analytics table doesn't exist yet)
 		try {
 			$metrics = $this->analytics_dashboard->get_batch_campaign_metrics( $campaign_ids, $date_range );
 		} catch ( Exception $e ) {
@@ -300,7 +291,6 @@ class SCD_Main_Dashboard_Page {
 
 		$table_name = $wpdb->prefix . 'scd_activity_log';
 
-		// Check if table exists
 		$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) === $table_name;
 
 		if ( ! $table_exists ) {
@@ -334,7 +324,6 @@ class SCD_Main_Dashboard_Page {
 
 		$table_name = $wpdb->prefix . 'scd_campaigns';
 
-		// Get all active, scheduled, and paused campaigns
 		$campaigns = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT * FROM {$table_name}
@@ -433,7 +422,6 @@ class SCD_Main_Dashboard_Page {
 			}
 		}
 
-		// Check campaign limit
 		$active_campaigns = array_filter(
 			$campaigns,
 			function ( $c ) {
@@ -472,7 +460,6 @@ class SCD_Main_Dashboard_Page {
 		$health['quick_stats']['issues_count']   = count( $health['issues'] );
 		$health['quick_stats']['warnings_count'] = count( $health['warnings'] );
 
-		// Add success messages if everything is healthy
 		if ( 'success' === $health['status'] && empty( $health['warnings'] ) && ! empty( $campaigns ) ) {
 			$health['success_messages'][] = sprintf(
 				/* translators: %d: number of campaigns */
@@ -577,7 +564,6 @@ class SCD_Main_Dashboard_Page {
 	 * @return   void
 	 */
 	private function render_view( $data ): void {
-		// Extract data for view
 		$metrics              = $data['metrics'];
 		$campaign_stats       = $data['campaign_stats'];
 		$top_campaigns        = $data['top_campaigns'];
@@ -593,7 +579,6 @@ class SCD_Main_Dashboard_Page {
 		$upgrade_prompt_manager = $this->upgrade_prompt_manager;
 		$dashboard_service      = $this->dashboard_service;
 
-		// Load view template
 		$view_file = SCD_PLUGIN_DIR . 'resources/views/admin/pages/dashboard/main-dashboard.php';
 
 		if ( file_exists( $view_file ) ) {

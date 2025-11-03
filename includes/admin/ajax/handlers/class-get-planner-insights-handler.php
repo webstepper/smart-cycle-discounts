@@ -69,12 +69,11 @@ class SCD_Get_Planner_Insights_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
-		// Sanitize inputs.
 		$campaign_id    = isset( $request['campaign_id'] ) ? sanitize_text_field( $request['campaign_id'] ) : '';
 		$state          = isset( $request['state'] ) ? sanitize_text_field( $request['state'] ) : 'active';
+		$position       = isset( $request['position'] ) ? sanitize_text_field( $request['position'] ) : $state;
 		$is_major_event = isset( $request['is_major_event'] ) && '1' === $request['is_major_event'];
 
-		// Validate campaign ID.
 		if ( empty( $campaign_id ) ) {
 			return array(
 				'success' => false,
@@ -82,12 +81,15 @@ class SCD_Get_Planner_Insights_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Validate state.
 		if ( ! in_array( $state, array( 'past', 'active', 'future' ), true ) ) {
 			return array(
 				'success' => false,
 				'message' => __( 'Invalid campaign state', 'smart-cycle-discounts' ),
 			);
+		}
+
+		if ( ! in_array( $position, array( 'past', 'active', 'future' ), true ) ) {
+			$position = $state; // Fallback to state if invalid.
 		}
 
 		// Log request.
@@ -97,13 +99,16 @@ class SCD_Get_Planner_Insights_Handler extends SCD_Abstract_Ajax_Handler {
 				array(
 					'campaign_id'    => $campaign_id,
 					'state'          => $state,
+					'position'       => $position,
 					'is_major_event' => $is_major_event,
 				)
 			);
 		}
 
-		// Get insights from service.
-		$insights_data = $this->dashboard_service->get_unified_insights( $campaign_id, $state, $is_major_event );
+		// Position = where campaign is displayed (past/active/future slots).
+		// State = actual campaign state (past/active/future).
+		// For gap-filled campaigns, position may differ from state.
+		$insights_data = $this->dashboard_service->get_unified_insights( $campaign_id, $position, $is_major_event );
 
 		if ( empty( $insights_data ) ) {
 			return array(
@@ -112,7 +117,6 @@ class SCD_Get_Planner_Insights_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Render insights HTML.
 		$view_file = SCD_VIEWS_DIR . 'admin/pages/dashboard/partials/planner-insights.php';
 
 		if ( ! file_exists( $view_file ) ) {
@@ -127,7 +131,6 @@ class SCD_Get_Planner_Insights_Handler extends SCD_Abstract_Ajax_Handler {
 			require $view_file;
 			$html = ob_get_clean();
 
-			// Return rendered HTML.
 			return array(
 				'success' => true,
 				'html'    => $html,

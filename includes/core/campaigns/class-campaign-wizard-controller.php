@@ -100,7 +100,6 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			wp_die( __( 'You do not have permission to create campaigns.', 'smart-cycle-discounts' ) );
 		}
 
-		// Check campaign limit for new campaigns (not for editing existing ones)
 		$intent        = $this->get_intent();
 		$suggestion_id = $this->get_suggestion_id();
 
@@ -125,7 +124,6 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 		// The session already knows it's a new campaign from initialize_with_intent() above
 		// Keeping intent=new in URL causes redirect loops and function issues
 		if ( 'new' === $intent ) {
-			// Check if this session was pre-filled from a campaign suggestion
 			$session_data              = $this->session->get_all_data();
 			$prefilled_from_suggestion = $session_data['prefilled_from_suggestion'] ?? false;
 
@@ -165,7 +163,6 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 
 		$suggestion_id = sanitize_text_field( $_GET['suggestion'] );
 
-		// Validate suggestion ID format (alphanumeric and underscores only)
 		if ( ! preg_match( '/^[a-z0-9_]+$/', $suggestion_id ) ) {
 			return null;
 		}
@@ -190,7 +187,6 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 		// Edit mode data loading is now handled by Change Tracker
 		// Data is loaded on-demand from database, not decomposed into session
 
-		// Validate step access - prevent users from accessing steps they haven't completed
 		$requested_step = $this->get_current_step();
 		$allowed_step   = $this->get_allowed_step( $requested_step );
 
@@ -373,7 +369,6 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			return $requested_step;
 		}
 
-		// Check if previous step is completed
 		$requested_index = array_search( $requested_step, $this->steps, true );
 		if ( false === $requested_index || 0 === $requested_index ) {
 			return 'basic';
@@ -831,12 +826,10 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 				upgrade_url: '<?php echo esc_js( $upgrade_url ); ?>'
 			};
 			
-			// Clear client storage for fresh sessions
 			if ( window.scdWizardSessionInfo.isFresh ) {
 				( function( $ ) {
 					'use strict';
 					
-					// Clear all SCD-related storage
 					['sessionStorage', 'localStorage'].forEach( function( storageType ) {
 						if ( window[storageType] ) {
 							var keysToRemove = [];
@@ -884,7 +877,6 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 		$step_labels   = $this->get_step_labels();
 		$current_index = array_search( $current_step, $this->steps, true );
 
-		// Get session data for header
 		$session_data  = $this->session->get_all_data();
 		$is_edit_mode  = ! empty( $session_data['campaign_id'] );
 		$campaign_name = ! empty( $session_data['basic']['campaign_name'] ) ? $session_data['basic']['campaign_name'] : '';
@@ -977,7 +969,6 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			$classes[] = 'active';
 		}
 
-		// Check if step is marked as complete in the state service
 		$completed_steps = $this->session->get( 'completed_steps', array() );
 		if ( in_array( $step, $completed_steps, true ) ) {
 			$classes[] = 'completed';
@@ -1109,7 +1100,6 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			return true;
 		}
 
-		// Get current campaign count (exclude deleted campaigns)
 		$repository = $this->campaign_manager->get_repository();
 		if ( ! $repository ) {
 			// If repository not available, allow creation (fail open)
@@ -1122,7 +1112,6 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			)
 		);
 
-		// Check if user can create more campaigns
 		return $this->feature_gate->can_create_campaign( $current_count );
 	}
 

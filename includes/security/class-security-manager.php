@@ -78,7 +78,6 @@ class SCD_Security_Manager {
 	 * @return   void
 	 */
 	public function init(): void {
-		// Get services from container - they're always available
 		// Removed: sanitizer - using consolidated SCD_Validation class instead
 		$this->nonce_manager = $this->container->get( 'nonce_manager' );
 		$this->rate_limiter  = $this->container->get( 'rate_limiter' );
@@ -92,12 +91,10 @@ class SCD_Security_Manager {
 	 * @return   bool                 True if valid.
 	 */
 	public function validate_request( array $request ): bool {
-		// Initialize components if not already done
 		if ( ! $this->nonce_manager || ! $this->rate_limiter ) {
 			$this->init();
 		}
 
-		// Validate nonce using standardized method
 		// For wizard requests, use the correct nonce action
 		$nonce_action = null;
 		if ( isset( $request['action'] ) && strpos( $request['action'], 'scd_wizard' ) === 0 ) {
@@ -108,7 +105,6 @@ class SCD_Security_Manager {
 			return false;
 		}
 
-		// Check rate limiting
 		if ( ! $this->rate_limiter->check_rate_limit() ) {
 			return false;
 		}

@@ -296,7 +296,6 @@ class SCD_Ajax_Security {
 
 		$config = array();
 
-		// Get unique nonce names
 		$unique_nonces = array_unique( array_values( self::$nonce_map ) );
 
 		// Generate nonces for each unique name
@@ -304,7 +303,6 @@ class SCD_Ajax_Security {
 			$config[ $nonce_name ] = wp_create_nonce( $nonce_name );
 		}
 
-		// Add action to nonce mapping for frontend
 		$config['action_map'] = self::$nonce_map;
 
 		// Add REST nonce separately
@@ -323,7 +321,6 @@ class SCD_Ajax_Security {
 	 * @return   true|WP_Error               True if valid, WP_Error otherwise
 	 */
 	public static function verify_ajax_request( $action, $request = array(), $check_size = true ) {
-		// Check if doing AJAX
 		if ( ! wp_doing_ajax() ) {
 			return new WP_Error(
 				'not_ajax',
@@ -332,7 +329,6 @@ class SCD_Ajax_Security {
 			);
 		}
 
-		// Check request size first (before expensive operations)
 		if ( $check_size ) {
 			$size_check = self::check_request_size( $request );
 			if ( is_wp_error( $size_check ) ) {
@@ -346,7 +342,6 @@ class SCD_Ajax_Security {
 			return $nonce_check;
 		}
 
-		// Check rate limit
 		$rate_check = self::check_rate_limit( $action );
 		if ( is_wp_error( $rate_check ) ) {
 			return $rate_check;
@@ -393,7 +388,6 @@ class SCD_Ajax_Security {
 	 * @return   true|WP_Error              True if valid, WP_Error otherwise
 	 */
 	private static function verify_nonce( $action, $request ) {
-		// Get expected nonce name for this action
 		$expected_nonce = self::$nonce_map[ $action ] ?? null;
 
 		if ( ! $expected_nonce ) {
@@ -407,7 +401,6 @@ class SCD_Ajax_Security {
 			);
 		}
 
-		// Get nonce from request
 		$nonce = $request['nonce'] ?? $request['_wpnonce'] ?? '';
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -450,7 +443,6 @@ class SCD_Ajax_Security {
 	 * @return   true|WP_Error              True if valid, WP_Error otherwise
 	 */
 	private static function verify_capability( $action ) {
-		// Get required capability
 		$required_capability = self::$capability_map[ $action ] ?? 'manage_options';
 
 		// Skip capability check for public endpoints
@@ -458,7 +450,6 @@ class SCD_Ajax_Security {
 			return true;
 		}
 
-		// Check if user is logged in
 		if ( ! is_user_logged_in() ) {
 			return new WP_Error(
 				'not_logged_in',
@@ -503,7 +494,6 @@ class SCD_Ajax_Security {
 	private static function check_request_size( $request ) {
 		$request_size = strlen( serialize( $request ) );
 
-		// Get the action to check for special cases
 		$action = isset( $request['scd_action'] ) ? $request['scd_action'] : '';
 
 		// Allow larger requests for complete_wizard action (500KB)
@@ -542,10 +532,8 @@ class SCD_Ajax_Security {
 	 * @return   true|WP_Error              True if allowed, WP_Error otherwise
 	 */
 	private static function check_rate_limit( $action ) {
-		// Get rate limit for action
 		$limit = self::$rate_limits[ $action ] ?? self::$rate_limits['default'];
 
-		// Create unique identifier combining user ID and IP for better limiting
 		$user_id = get_current_user_id();
 		$ip      = self::get_client_ip();
 
@@ -556,7 +544,6 @@ class SCD_Ajax_Security {
 
 		$transient_key = 'scd_rl_' . $identifier . '_' . $action;
 
-		// Get current request count
 		$requests     = get_transient( $transient_key ) ?: array();
 		$current_time = time();
 
@@ -568,7 +555,6 @@ class SCD_Ajax_Security {
 			}
 		);
 
-		// Check limit
 		if ( count( $requests ) >= $limit ) {
 			$retry_after = 60 - ( $current_time - min( $requests ) );
 
@@ -584,7 +570,6 @@ class SCD_Ajax_Security {
 			);
 		}
 
-		// Add current request
 		$requests[] = $current_time;
 		set_transient( $transient_key, $requests, 120 ); // 2 minute expiry
 
@@ -600,7 +585,6 @@ class SCD_Ajax_Security {
 	 * @return   true|WP_Error              True if valid, WP_Error otherwise
 	 */
 	private static function verify_public_request( $request ) {
-		// Check referrer
 		$referrer = wp_get_referer();
 		if ( ! $referrer || strpos( $referrer, home_url() ) !== 0 ) {
 			return new WP_Error(
@@ -610,7 +594,6 @@ class SCD_Ajax_Security {
 			);
 		}
 
-		// Check user agent
 		$user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
 		if ( empty( $user_agent ) || self::is_bot_user_agent( $user_agent ) ) {
 			return new WP_Error(

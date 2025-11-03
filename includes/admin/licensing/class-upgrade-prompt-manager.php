@@ -78,7 +78,6 @@ class SCD_Upgrade_Prompt_Manager {
 	 * @return   array    Promotional settings array.
 	 */
 	public function get_promotion_settings() {
-		// Check if promotion is active (can be controlled via filter)
 		// Default: true (enabled) - set to false to disable promotions
 		$is_active = apply_filters( 'scd_upgrade_promotion_active', true );
 
@@ -144,10 +143,8 @@ class SCD_Upgrade_Prompt_Manager {
 			);
 		}
 
-		// Sanitize banner ID
 		$banner_id = isset( $_POST['banner_id'] ) ? sanitize_text_field( wp_unslash( $_POST['banner_id'] ) ) : 'dashboard_analytics';
 
-		// Store dismissal with timestamp
 		update_user_meta( get_current_user_id(), 'scd_dismissed_upgrade_banner_' . $banner_id, time() );
 
 		wp_send_json_success(
@@ -169,7 +166,6 @@ class SCD_Upgrade_Prompt_Manager {
 			return false;
 		}
 
-		// Check daily limit
 		$prompt_count = $this->get_prompt_count();
 
 		return $prompt_count < $this->max_prompts_per_day;
@@ -198,7 +194,6 @@ class SCD_Upgrade_Prompt_Manager {
 		$transient_key = $this->transient_prefix . get_current_user_id();
 		$current       = $this->get_prompt_count();
 
-		// Set transient for 24 hours
 		set_transient( $transient_key, $current + 1, DAY_IN_SECONDS );
 	}
 
@@ -234,7 +229,6 @@ class SCD_Upgrade_Prompt_Manager {
 	 * @return   string                     HTML for upgrade prompt.
 	 */
 	public function get_upgrade_prompt( $feature_name, $context = 'inline', $args = array() ) {
-		// Check if this prompt should bypass the daily limit
 		// Dashboard banners and permanent UI elements should bypass the limit
 		$bypass_limit = isset( $args['bypass_limit'] ) && true === $args['bypass_limit'];
 
@@ -243,7 +237,6 @@ class SCD_Upgrade_Prompt_Manager {
 			return '';
 		}
 
-		// Build prompt based on context
 		$prompt_html = '';
 
 		switch ( $context ) {
@@ -285,7 +278,6 @@ class SCD_Upgrade_Prompt_Manager {
 	 * @return   string                     Banner HTML.
 	 */
 	private function get_banner_prompt( $feature_name, $args = array() ) {
-		// Check if banner is dismissed
 		$banner_id = isset( $args['banner_id'] ) ? $args['banner_id'] : 'dashboard_analytics';
 		if ( $this->is_banner_dismissed( $banner_id ) ) {
 			return '';

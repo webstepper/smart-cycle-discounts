@@ -18,7 +18,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-// Load required classes
 if ( ! class_exists( 'SCD_AJAX_Response' ) ) {
 	require_once SCD_INCLUDES_DIR . 'admin/ajax/class-scd-ajax-response.php';
 }
@@ -206,9 +205,7 @@ class SCD_Admin {
 	 * @return   bool    True if wizard should be initialized.
 	 */
 	private function is_wizard_context(): bool {
-		// Check if it's an AJAX request
 		if ( wp_doing_ajax() ) {
-			// Check if it's a wizard-related AJAX action
 			$action         = $_POST['scd_action'] ?? $_REQUEST['scd_action'] ?? '';
 			$wizard_actions = array(
 				'save_step',
@@ -222,7 +219,6 @@ class SCD_Admin {
 			return in_array( $action, $wizard_actions, true );
 		}
 
-		// Check if it's a wizard page
 		$page   = $_GET['page'] ?? '';
 		$action = $_GET['action'] ?? '';
 
@@ -237,7 +233,6 @@ class SCD_Admin {
 	 * @return   void
 	 */
 	private function init_wizard_navigation(): void {
-		// Initialize navigation through wizard manager to ensure single instance
 		$wizard_manager = $this->container->get( 'wizard_manager' );
 		// Navigation will be initialized through wizard manager when needed
 		$wizard_manager->get_navigation();
@@ -253,19 +248,16 @@ class SCD_Admin {
 		if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
 		}
 
-		// Load diagnostic tool if requested
 		if ( isset( $_GET['scd_db_check'] ) && current_user_can( 'manage_options' ) ) {
 			require_once SCD_PLUGIN_DIR . 'database/tools/database-diagnostic.php';
 			return;
 		}
 
-		// Check if wizard action is requested
 		if ( isset( $_GET['action'] ) && 'wizard' === sanitize_text_field( wp_unslash( $_GET['action'] ) ) ) {
 			$this->render_wizard();
 			return;
 		}
 
-		// Render campaigns page
 		try {
 			$campaigns_page = $this->container->get( 'campaigns_page' );
 			if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
@@ -294,7 +286,6 @@ class SCD_Admin {
 		if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
 		}
 
-		// Get wizard controller and handle request
 		try {
 			$wizard_controller = $this->container->get( 'campaign_wizard_controller' );
 			if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
@@ -320,7 +311,6 @@ class SCD_Admin {
 	 * @return   void
 	 */
 	public function render_analytics_page(): void {
-		// Render analytics page using container service
 		try {
 			$analytics_page = $this->container->get( 'analytics_page' );
 			$analytics_page->render();
@@ -347,7 +337,6 @@ class SCD_Admin {
 	 * @return   void
 	 */
 	public function render_settings_page(): void {
-		// Get settings manager from container
 		if ( ! $this->container->has( 'settings_manager' ) ) {
 			echo '<div class="wrap">';
 			echo '<h1>' . esc_html__( 'Settings', 'smart-cycle-discounts' ) . '</h1>';
@@ -381,7 +370,6 @@ class SCD_Admin {
 	 * @return   void
 	 */
 	public function render_tools_page(): void {
-		// Get tools page from container
 		if ( ! $this->container->has( 'tools_page' ) ) {
 			echo '<div class="wrap">';
 			echo '<h1>' . esc_html__( 'Tools & Maintenance', 'smart-cycle-discounts' ) . '</h1>';

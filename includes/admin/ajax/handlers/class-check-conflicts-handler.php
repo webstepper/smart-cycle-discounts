@@ -15,7 +15,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-// Load wizard helpers trait
 require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
 
 /**
@@ -60,7 +59,6 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
-		// Get campaign data from state service
 		$state_service = $this->_get_state_service();
 		if ( ! $state_service ) {
 			return $this->error(
@@ -70,7 +68,6 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Get all step data
 		$basic_data    = $state_service->get_step_data( 'basic' );
 		$products_data = $state_service->get_step_data( 'products' );
 
@@ -85,15 +82,12 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Get priority
 		$priority = isset( $basic_data['priority'] ) ? intval( $basic_data['priority'] ) : 3;
 
-		// Get product selection
 		$selection_type = isset( $products_data['product_selection_type'] ) ? $products_data['product_selection_type'] : 'all_products';
 		$product_ids    = isset( $products_data['product_ids'] ) ? $products_data['product_ids'] : array();
 		$category_ids   = isset( $products_data['category_ids'] ) ? $products_data['category_ids'] : array();
 
-		// Get conflicting campaigns
 		$conflicts = $this->_find_conflicts( $priority, $selection_type, $product_ids, $category_ids );
 
 		return $this->success(
@@ -118,7 +112,6 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array                       Array of conflicts.
 	 */
 	private function _find_conflicts( $priority, $selection_type, $product_ids, $category_ids ) {
-		// Get active campaigns
 		$active_campaigns = $this->_get_active_campaigns();
 
 		if ( empty( $active_campaigns ) ) {
@@ -130,7 +123,6 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 		foreach ( $active_campaigns as $campaign ) {
 			$campaign_priority = $campaign->get_priority();
 
-			// Check if this campaign would win based on priority (higher priority wins)
 			// If priorities are equal, older campaign (lower ID) wins
 			$would_lose = ( $campaign_priority > $priority );
 
@@ -138,7 +130,6 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 				continue;
 			}
 
-			// Check if products overlap
 			$overlap_count = $this->_count_product_overlap( $campaign, $selection_type, $product_ids, $category_ids );
 
 			if ( $overlap_count > 0 ) {
@@ -166,10 +157,8 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   int                         Number of overlapping products.
 	 */
 	private function _count_product_overlap( $campaign, $selection_type, $product_ids, $category_ids ) {
-		// Get existing campaign's products
 		$existing_products = $this->_get_campaign_products( $campaign );
 
-		// Get new campaign's products
 		$new_products = $this->_get_selection_products( $selection_type, $product_ids, $category_ids );
 
 		// Find intersection

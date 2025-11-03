@@ -170,7 +170,6 @@ trait SCD_Wizard_Helpers {
 	 * @return   array    Array of campaign objects.
 	 */
 	private function _get_active_campaigns() {
-		// Get campaign repository
 		if ( ! class_exists( 'Smart_Cycle_Discounts' ) ) {
 			return array();
 		}
@@ -180,7 +179,6 @@ trait SCD_Wizard_Helpers {
 			return array();
 		}
 
-		// Get active campaigns
 		$campaigns = $campaign_repository->get_active_campaigns();
 
 		return is_array( $campaigns ) ? $campaigns : array();
@@ -222,7 +220,6 @@ trait SCD_Wizard_Helpers {
 	 * @return   array|WP_Error                   Error array or data array with state_service, products_data, discounts_data, product_ids.
 	 */
 	private function _get_validated_wizard_state( $no_discount_message = '' ) {
-		// Get state service
 		$state_service = $this->_get_state_service();
 		if ( ! $state_service ) {
 			return new WP_Error(
@@ -231,7 +228,6 @@ trait SCD_Wizard_Helpers {
 			);
 		}
 
-		// Get step data
 		$products_data  = $state_service->get_step_data( 'products' );
 		$discounts_data = $state_service->get_step_data( 'discounts' );
 
@@ -243,7 +239,6 @@ trait SCD_Wizard_Helpers {
 			return new WP_Error( 'no_discount_configured', $no_discount_message );
 		}
 
-		// Get product IDs
 		$product_ids = $this->_get_product_ids( $products_data );
 
 		return array(

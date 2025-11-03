@@ -106,7 +106,6 @@ class SCD_Cache_Manager {
 		// Try transient cache
 		$value = get_transient( $cache_key );
 		if ( $value !== false ) {
-			// Store in object cache for faster access
 			wp_cache_set( $cache_key, $value, 'scd', $this->default_expiration );
 			return $value;
 		}
@@ -134,10 +133,8 @@ class SCD_Cache_Manager {
 
 		$cache_key = $this->get_cache_key( $key );
 
-		// Set in object cache
 		wp_cache_set( $cache_key, $value, 'scd', $expiration );
 
-		// Set in transient cache for persistence
 		return set_transient( $cache_key, $value, $expiration );
 	}
 
@@ -151,10 +148,8 @@ class SCD_Cache_Manager {
 	public function delete( string $key ): bool {
 		$cache_key = $this->get_cache_key( $key );
 
-		// Delete from object cache
 		wp_cache_delete( $cache_key, 'scd' );
 
-		// Delete from transient cache
 		return delete_transient( $cache_key );
 	}
 
@@ -189,10 +184,8 @@ class SCD_Cache_Manager {
 	public function flush(): bool {
 		global $wpdb;
 
-		// Clear object cache group
 		wp_cache_flush_group( 'scd' );
 
-		// Clear transients
 		$wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
@@ -240,7 +233,6 @@ class SCD_Cache_Manager {
 			return;
 		}
 
-		// Check if cache warming is enabled
 		$settings = get_option( 'scd_settings', array() );
 		if ( ! isset( $settings['performance']['enable_cache_warming'] ) || ! $settings['performance']['enable_cache_warming'] ) {
 			return;

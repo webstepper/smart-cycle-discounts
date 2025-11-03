@@ -82,7 +82,6 @@ class SCD_Analytics_Dashboard {
 		$this->cache_manager    = $cache_manager;
 		$this->logger           = $logger;
 
-		// Get analytics table name from database manager
 		global $wpdb;
 		$this->analytics_table = $wpdb->prefix . 'scd_analytics';
 	}
@@ -105,18 +104,15 @@ class SCD_Analytics_Dashboard {
 			}
 		}
 
-		// Check if analytics table exists
 		global $wpdb;
 		$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '{$this->analytics_table}'" ) === $this->analytics_table;
 
 		if ( ! $table_exists ) {
-			// Return empty metrics if table doesn't exist
 			$this->logger->debug( 'Analytics table does not exist yet', array( 'table' => $this->analytics_table ) );
 			return $this->get_empty_metrics();
 		}
 
 		try {
-			// Get date ranges for current and previous periods
 			$date_ranges = $this->get_date_ranges_for_period( $date_range );
 
 			// Query aggregated analytics table (uses impressions, clicks, conversions columns)
@@ -166,7 +162,6 @@ class SCD_Analytics_Dashboard {
 				'previous_impressions' => intval( $previous_metrics['previous_impressions'] ?? 0 ),
 			);
 
-			// Calculate average order value
 			$metrics['avg_order_value'] = $metrics['conversions'] > 0
 				? ( $metrics['revenue'] / $metrics['conversions'] )
 				: 0;
@@ -175,7 +170,6 @@ class SCD_Analytics_Dashboard {
 				return $this->get_empty_metrics();
 			}
 
-			// Calculate derived metrics
 			$metrics['conversion_rate'] = $metrics['impressions'] > 0
 				? ( $metrics['conversions'] / $metrics['impressions'] * 100 )
 				: 0;
@@ -184,7 +178,6 @@ class SCD_Analytics_Dashboard {
 				? ( $metrics['clicks'] / $metrics['impressions'] * 100 )
 				: 0;
 
-			// Calculate changes
 			$metrics['revenue_change'] = $metrics['previous_revenue'] > 0
 				? ( ( $metrics['revenue'] - $metrics['previous_revenue'] ) / $metrics['previous_revenue'] * 100 )
 				: 0;
@@ -202,10 +195,8 @@ class SCD_Analytics_Dashboard {
 				? ( ( $metrics['click_through_rate'] - $previous_ctr ) / $previous_ctr * 100 )
 				: 0;
 
-			// Get top performing campaigns in the same request
 			$metrics['top_campaigns'] = $this->get_top_campaigns_inline( $date_ranges, 5 );
 
-			// Cache the results
 			set_transient( $cache_key, $metrics, self::CACHE_TTL );
 
 			return $metrics;
@@ -292,7 +283,6 @@ class SCD_Analytics_Dashboard {
 		$date_ranges  = $this->get_date_ranges_for_period( $date_range );
 		$placeholders = implode( ',', array_fill( 0, count( $campaign_ids ), '%d' ) );
 
-		// Get all metrics for all campaigns in one query (using aggregated columns)
 		$prepare_args = array_merge( $campaign_ids, array( $date_ranges['current_start'], $date_ranges['current_end'] ) );
 
 		$query = $wpdb->prepare(
@@ -368,7 +358,6 @@ class SCD_Analytics_Dashboard {
 		$group_by           = $this->get_group_by_clause( $granularity );
 		$campaign_condition = $campaign_id ? $wpdb->prepare( 'AND campaign_id = %d', $campaign_id ) : '';
 
-		// Build metric selection based on type (using aggregated columns)
 		$metric_sql = match ( $metric ) {
 			'revenue' => 'SUM(revenue)',
 			'conversions' => 'SUM(conversions)',
@@ -378,7 +367,6 @@ class SCD_Analytics_Dashboard {
 			default => 'COUNT(*)'
 		};
 
-		// Build query with proper date filtering
 		if ( $campaign_id ) {
 			$query = $wpdb->prepare(
 				"SELECT
@@ -409,7 +397,6 @@ class SCD_Analytics_Dashboard {
 
 		$results = $wpdb->get_results( $query );
 
-		// Format for chart display
 		$labels = array();
 		$values = array();
 

@@ -61,7 +61,6 @@ class SCD_Get_Active_Campaigns_Handler extends SCD_Abstract_Ajax_Handler {
 		$table_name = $wpdb->prefix . 'scd_campaigns';
 		$exclude_id = isset( $request['exclude_id'] ) ? intval( $request['exclude_id'] ) : 0;
 
-		// Check cache first
 		$cache_key = 'scd_active_campaigns_' . $exclude_id;
 		$cached    = wp_cache_get( $cache_key, 'scd_campaigns' );
 
@@ -73,7 +72,6 @@ class SCD_Get_Active_Campaigns_Handler extends SCD_Abstract_Ajax_Handler {
 		// SECURITY: Use correct schema column names and prepared statements
 		// INDEX OPTIMIZATION: Migration 006 adds index on (status, schedule_start, schedule_end)
 
-		// Build base query with explicit column names (prevent SQL injection)
 		$query = "
             SELECT
                 id,
@@ -107,7 +105,6 @@ class SCD_Get_Active_Campaigns_Handler extends SCD_Abstract_Ajax_Handler {
 
 		$campaigns = $wpdb->get_results( $query, ARRAY_A );
 
-		// Process campaign data
 		$processed_campaigns = array();
 		foreach ( $campaigns as $campaign ) {
 			// SECURITY: Decode JSON safely with error handling
@@ -135,7 +132,6 @@ class SCD_Get_Active_Campaigns_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Calculate campaign statistics
 		$stats = array(
 			'total_active'          => $this->count_campaigns_by_status( $processed_campaigns, 'active' ),
 			'total_scheduled'       => $this->count_campaigns_by_status( $processed_campaigns, 'scheduled' ),
@@ -150,7 +146,6 @@ class SCD_Get_Active_Campaigns_Handler extends SCD_Abstract_Ajax_Handler {
 			'timestamp' => current_time( 'timestamp' ),
 		);
 
-		// Cache for 5 minutes
 		wp_cache_set( $cache_key, $response, 'scd_campaigns', 300 );
 
 		return $this->success( $response );

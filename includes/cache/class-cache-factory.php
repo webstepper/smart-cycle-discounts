@@ -38,7 +38,6 @@ class SCD_Cache_Factory {
 	 * @return   object             Cache instance.
 	 */
 	public static function create( string $type = 'transient' ): object {
-		// Return the main cache manager which handles both object cache and transients
 		return new SCD_Cache_Manager();
 	}
 

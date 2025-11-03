@@ -160,7 +160,6 @@ class SCD_Wizard_State_Service {
 	 * @return   void
 	 */
 	private function start_edit_session(): void {
-		// Get campaign ID from URL (for page loads) or session (for AJAX requests)
 		$campaign_id = isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0;
 
 		// CRITICAL FIX: If no campaign ID in URL, check session (for AJAX requests)
@@ -174,7 +173,6 @@ class SCD_Wizard_State_Service {
 			return;
 		}
 
-		// Check if we already have an edit session for this campaign
 		$existing_campaign_id = $this->get( 'campaign_id', 0 );
 		$is_edit_mode         = $this->get( 'is_edit_mode', false );
 
@@ -184,18 +182,15 @@ class SCD_Wizard_State_Service {
 			return;
 		}
 
-		// Clear existing session and start fresh for editing
 		$this->clear_session();
 		$this->create();
 
-		// Store campaign ID in session
 		$this->set( 'campaign_id', $campaign_id );
 		$this->set( 'is_edit_mode', true );
 
 		// Mark all steps as completed so user can navigate freely
 		$this->set( 'completed_steps', $this->steps );
 
-		// Initialize change tracker for this campaign
 		$this->initialize_change_tracker( $campaign_id );
 
 		$this->save();
@@ -272,7 +267,6 @@ class SCD_Wizard_State_Service {
 			return;
 		}
 
-		// Store suggestion ID for reference
 		$this->set( 'from_suggestion', $suggestion_id );
 
 		// Pre-fill basic step data
@@ -374,7 +368,6 @@ class SCD_Wizard_State_Service {
 		$completed_steps = array( 'basic', 'schedule', 'products', 'discounts' );
 		$this->set( 'completed_steps', $completed_steps );
 
-		// Set flag to indicate this session was pre-filled from a suggestion
 		$this->set( 'prefilled_from_suggestion', true );
 
 		$this->dirty = true;
@@ -546,7 +539,6 @@ class SCD_Wizard_State_Service {
 
 			if ( $success ) {
 				$this->dirty = false;
-				// Process any deferred saves after successful save
 				$this->process_deferred_saves();
 			}
 
@@ -570,7 +562,6 @@ class SCD_Wizard_State_Service {
 	 * @return   bool    Always returns false to indicate immediate save failed.
 	 */
 	private function queue_deferred_save(): bool {
-		// Add current timestamp to deferred saves queue
 		$this->deferred_saves[] = time();
 
 		// Schedule a single deferred save attempt using WordPress shutdown hook
@@ -596,7 +587,6 @@ class SCD_Wizard_State_Service {
 			return;
 		}
 
-		// Clear the deferred saves queue
 		$queue_size           = count( $this->deferred_saves );
 		$this->deferred_saves = array();
 
@@ -662,11 +652,9 @@ class SCD_Wizard_State_Service {
 			return false;
 		}
 
-		// Prepare data
 		$this->prepare_step_data( $step, $data );
 
 		// Edit mode: use Change Tracker (stores only deltas)
-		// Check both is_edit_mode flag AND presence of campaign_id
 		$campaign_id = $this->get( 'campaign_id' );
 		$is_edit     = $this->is_edit_mode() || $campaign_id;
 
@@ -677,7 +665,6 @@ class SCD_Wizard_State_Service {
 			return true;
 		}
 
-		// Create mode: store full data in session
 		$existing_data = $this->get_step_data( $step );
 		$merged_data   = array_merge( $existing_data, $data );
 		$this->set_step_data( $step, $merged_data );
@@ -764,7 +751,6 @@ class SCD_Wizard_State_Service {
 			return $this->change_tracker->get_step_data( $step );
 		}
 
-		// Create mode: return from session
 		if ( ! isset( $this->data['steps'][ $step ] ) ) {
 			return array();
 		}
@@ -867,7 +853,6 @@ class SCD_Wizard_State_Service {
 		// CRITICAL FIX: In edit mode, compile data from Change Tracker
 		// The session $this->data doesn't contain steps - they're in Change Tracker
 		if ( $this->is_edit_mode() && $this->change_tracker ) {
-			// Build steps data from Change Tracker
 			$steps_data = array();
 			foreach ( $this->steps as $step ) {
 				$step_data = $this->change_tracker->get_step_data( $step );
@@ -875,7 +860,6 @@ class SCD_Wizard_State_Service {
 				$steps_data[ $step ] = $step_data;
 			}
 
-			// Return data structure expected by Complete Wizard Handler
 			return array_merge(
 				$this->data,
 				array( 'steps' => $steps_data )
@@ -966,7 +950,6 @@ class SCD_Wizard_State_Service {
 		$total_steps     = count( $this->steps );
 		$completed_count = count( $completed_steps );
 
-		// Check if all required steps are completed (all steps except 'review')
 		$required_steps = array_diff( $this->steps, array( 'review' ) );
 		$can_complete   = count( array_intersect( $required_steps, $completed_steps ) ) === count( $required_steps );
 
@@ -1010,7 +993,6 @@ class SCD_Wizard_State_Service {
 			return $this->change_tracker->compile();
 		}
 
-		// Create mode: compile from session
 		if ( ! isset( $this->data['steps'] ) ) {
 			return array();
 		}
@@ -1041,7 +1023,6 @@ class SCD_Wizard_State_Service {
 			return;
 		}
 
-		// Create change tracker instance
 		$this->change_tracker = new SCD_Campaign_Change_Tracker(
 			$campaign_id,
 			$this,

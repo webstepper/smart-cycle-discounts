@@ -15,7 +15,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-// Load wizard helpers trait
 require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
 
 /**
@@ -60,7 +59,6 @@ class SCD_Profit_Margin_Warning_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
-		// Get validated wizard state using trait helper
 		$wizard_state = $this->_get_validated_wizard_state( __( 'Configure discount to see margin analysis', 'smart-cycle-discounts' ) );
 
 		if ( is_wp_error( $wizard_state ) ) {
@@ -80,7 +78,6 @@ class SCD_Profit_Margin_Warning_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Extract validated data
 		$product_ids    = $wizard_state['product_ids'];
 		$discounts_data = $wizard_state['discounts_data'];
 
@@ -123,10 +120,8 @@ class SCD_Profit_Margin_Warning_Handler extends SCD_Abstract_Ajax_Handler {
 				continue;
 			}
 
-			// Get cost (WooCommerce stores cost in _wc_cog_cost meta or similar)
 			$cost = $this->_get_product_cost( $product );
 
-			// Get regular price
 			$regular_price = floatval( $product->get_regular_price() );
 			if ( $regular_price <= 0 ) {
 				$regular_price = floatval( $product->get_price() );
@@ -144,10 +139,8 @@ class SCD_Profit_Margin_Warning_Handler extends SCD_Abstract_Ajax_Handler {
 				continue; // Skip products without cost data
 			}
 
-			// Calculate discounted price
 			$discounted_price = $this->_apply_discount( $regular_price, $discount_type, $discount_value );
 
-			// Check if below cost
 			if ( $discounted_price < $cost ) {
 				$loss_per_unit         = $cost - $discounted_price;
 				$below_cost_products[] = array(

@@ -168,7 +168,6 @@ class SCD_Product_Filter {
 			$categories = array_slice( $categories, 0, 100 );
 		}
 
-		// Get category IDs including children if specified
 		$category_ids = $categories;
 		if ( $include_children ) {
 			foreach ( $categories as $category_id ) {
@@ -274,12 +273,10 @@ class SCD_Product_Filter {
 					return false;
 				}
 
-				// Check stock status
 				if ( $product->get_stock_status() !== $stock_status ) {
 					return false;
 				}
 
-				// Check quantity if specified
 				if ( $min_quantity !== null || $max_quantity !== null ) {
 					$quantity = $product->get_stock_quantity();
 
@@ -459,7 +456,6 @@ class SCD_Product_Filter {
 		$min_sales = isset( $config['min_sales'] ) ? intval( $config['min_sales'] ) : 0;
 		$max_sales = isset( $config['max_sales'] ) ? intval( $config['max_sales'] ) : PHP_INT_MAX;
 
-		// Validate min/max sales values
 		if ( $min_sales < 0 ) {
 			$min_sales = 0;
 		}
@@ -672,7 +668,6 @@ class SCD_Product_Filter {
 	private function get_available_attributes( array $product_ids ): array {
 		$attributes = array();
 
-		// Get global attributes
 		$global_attributes = wc_get_attribute_taxonomies();
 		foreach ( $global_attributes as $attribute ) {
 			$taxonomy = wc_attribute_taxonomy_name( $attribute->attribute_name );
@@ -803,7 +798,6 @@ class SCD_Product_Filter {
 	private function get_product_sales_count( int $product_id, string $start_date, string $end_date ): int {
 		global $wpdb;
 
-		// Validate date formats (Y-m-d) to prevent SQL injection
 		if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $start_date ) || ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $end_date ) ) {
 			$this->logger->error(
 				'Invalid date format in sales count query',

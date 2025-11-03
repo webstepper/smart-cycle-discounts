@@ -16,7 +16,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-// Load required AJAX response class.
 if ( ! class_exists( 'SCD_Ajax_Response' ) ) {
 	require_once dirname( __DIR__ ) . '/class-scd-ajax-response.php';
 }
@@ -133,7 +132,6 @@ class SCD_Draft_Handler {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified by AJAX router before handler is called
 			$data = ! empty( $request ) ? $request : $_POST;
 
-			// Validate the request using centralized validation.
 			$validation_result = SCD_Validation::validate( $data, 'ajax_action' );
 
 			if ( is_wp_error( $validation_result ) ) {
@@ -145,16 +143,13 @@ class SCD_Draft_Handler {
 				return;
 			}
 
-			// Store validated data for use in other methods.
 			$this->validated_data = $validation_result;
 
-			// Check if this is a clear session request (from modal).
 			if ( isset( $this->validated_data['scd_action'] ) && 'clear_wizard_session' === $this->validated_data['scd_action'] ) {
 				$this->handle_clear_session();
 				return;
 			}
 
-			// Get sub-action.
 			$sub_action = isset( $this->validated_data['draft_action'] ) ?
 						$this->validated_data['draft_action'] : 'default';
 
@@ -222,7 +217,6 @@ class SCD_Draft_Handler {
 				}
 			}
 
-			// Save the session.
 			$this->state_service->save();
 		}
 
@@ -231,7 +225,6 @@ class SCD_Draft_Handler {
 			return;
 		}
 
-		// Check for save as draft option from validated data.
 		// Explicitly convert to boolean to ensure proper type (even though validation should handle this).
 		$save_as_draft = isset( $this->validated_data['save_as_draft'] ) ?
 						(bool) $this->validated_data['save_as_draft'] : false;
@@ -348,7 +341,6 @@ class SCD_Draft_Handler {
 	 * @return   void
 	 */
 	private function handle_delete_draft() {
-		// Get draft type and ID from validated data.
 		$draft_type = isset( $this->validated_data['draft_type'] ) ?
 					$this->validated_data['draft_type'] : 'campaign';
 		$draft_id   = isset( $this->validated_data['draft_id'] ) ?
@@ -381,7 +373,6 @@ class SCD_Draft_Handler {
 		}
 
 		try {
-			// Clear the wizard session.
 			$this->state_service->clear_session();
 
 			// Log the action.
@@ -424,7 +415,6 @@ class SCD_Draft_Handler {
 			return;
 		}
 
-		// Get draft campaigns from database.
 		$args = array(
 			'status'   => 'draft',
 			'orderby'  => 'modified',
@@ -435,7 +425,6 @@ class SCD_Draft_Handler {
 
 		$drafts = $this->campaign_manager->get_campaigns( $args );
 
-		// Get current wizard session draft info.
 		$session_draft = null;
 		if ( $this->state_service ) {
 			$draft_info = $this->state_service->get_draft_info();
@@ -450,7 +439,6 @@ class SCD_Draft_Handler {
 			}
 		}
 
-		// Format response.
 		$response = array(
 			'drafts'        => $this->format_drafts( $drafts ),
 			'session_draft' => $session_draft,
@@ -521,11 +509,9 @@ class SCD_Draft_Handler {
 			return;
 		}
 
-		// Get draft info before deletion.
 		$draft_info    = $this->state_service->get_draft_info();
 		$campaign_name = isset( $draft_info['campaign_name'] ) ? $draft_info['campaign_name'] : __( 'Unnamed Draft', 'smart-cycle-discounts' );
 
-		// Clear the session.
 		$this->state_service->clear_session();
 
 		// Log the action.
@@ -575,7 +561,6 @@ class SCD_Draft_Handler {
 			return;
 		}
 
-		// Get the campaign.
 		$campaign = $this->campaign_manager->find( $campaign_id );
 
 		if ( ! $campaign ) {
@@ -589,10 +574,8 @@ class SCD_Draft_Handler {
 			return;
 		}
 
-		// Store campaign name for message.
 		$campaign_name = $campaign->get_name();
 
-		// Delete the campaign.
 		if ( ! $this->campaign_manager->delete_campaign( $campaign_id ) ) {
 			SCD_Ajax_Response::error( __( 'Failed to delete draft campaign.', 'smart-cycle-discounts' ) );
 			return;
@@ -694,7 +677,6 @@ class SCD_Draft_Handler {
 			return false;
 		}
 
-		// Check product selection.
 		$selection_type = $draft->get_product_selection_type();
 		if ( 'specific' === $selection_type ) {
 			$has_products   = count( $draft->get_product_ids() ) > 0;

@@ -99,7 +99,6 @@ class SCD_AJAX_Response {
 	 * @return   void
 	 */
 	public static function wp_error( $error ) {
-		// Validate input is actually a WP_Error
 		if ( ! is_wp_error( $error ) ) {
 			self::error( 'Invalid error object', 'invalid_error' );
 			return;
@@ -161,10 +160,8 @@ class SCD_AJAX_Response {
 	 * @return   array                 Formatted response.
 	 */
 	private static function format_response( $success, $data = null, $error = null, $meta = array() ) {
-		// Store original data for filter
 		$original_data = $data;
 
-		// Convert data keys to camelCase for JavaScript
 		if ( null !== $data ) {
 			$data = self::snake_to_camel_keys( $data );
 		}
@@ -178,7 +175,6 @@ class SCD_AJAX_Response {
 			$response['error'] = $error;
 		}
 
-		// Add metadata if provided
 		if ( ! empty( $meta ) ) {
 			$response['meta'] = array_merge(
 				array(
@@ -207,7 +203,6 @@ class SCD_AJAX_Response {
 			header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ) );
 		}
 
-		// Sanitize response data
 		$response = self::sanitize_response_data( $response );
 
 		// Send JSON response

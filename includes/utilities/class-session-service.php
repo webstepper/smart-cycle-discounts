@@ -96,7 +96,6 @@ class SCD_Session_Service {
 	public function __construct( ?string $session_id = null ) {
 		$this->lock = new SCD_Session_Lock();
 
-		// Store instance globally for cleanup
 		$GLOBALS['scd_session_lock_instance'] = $this->lock;
 
 		if ( $session_id ) {
@@ -132,7 +131,6 @@ class SCD_Session_Service {
 			'version'       => 1, // Initialize version for optimistic locking
 		);
 
-		// Sanitize initial data
 		$this->data = $this->sanitize_data( $initial_data );
 
 		$this->save();
@@ -166,22 +164,18 @@ class SCD_Session_Service {
 				return false;
 			}
 
-			// Validate session ownership
 			if ( ! $this->validate_session_ownership( $data ) ) {
 				$this->cleanup_session( $session_id );
 				return false;
 			}
 
 			$this->session_id = $session_id;
-			// Sanitize loaded data
 			$this->data = $this->sanitize_data( $data );
 
-			// Initialize version if not present (for modern implementation)
 			if ( ! isset( $this->data['version'] ) ) {
 				$this->data['version'] = 1;
 			}
 
-			// Update last accessed time
 			$this->data['last_accessed'] = current_time( 'mysql' );
 			$this->save_internal(); // Use internal save to avoid double locking
 
@@ -231,10 +225,8 @@ class SCD_Session_Service {
 			return false;
 		}
 
-		// Sanitize data before saving
 		$this->data = $this->sanitize_data( $this->data );
 
-		// Check data size to prevent DOS attacks
 		$data_size = strlen( serialize( $this->data ) );
 		if ( $data_size > $this->max_data_size ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -270,7 +262,6 @@ class SCD_Session_Service {
 			$current_version = $current_data['version'] ?? 0;
 			$our_version     = $this->data['version'] ?? 1;
 
-			// Check if another process has updated the session
 			if ( $current_version > $our_version ) {
 				return new WP_Error(
 					'session_version_conflict',
@@ -345,10 +336,8 @@ class SCD_Session_Service {
 				$this->data = $this->sanitize_data( $current_data );
 			}
 
-			// Sanitize single value
 			$sanitized = $this->sanitize_data( array( $key => $value ) );
 
-			// Check size before setting
 			$test_data         = $this->data;
 			$test_data[ $key ] = $sanitized[ $key ] ?? $value;
 			$data_size         = strlen( serialize( $test_data ) );
@@ -433,10 +422,8 @@ class SCD_Session_Service {
 				$this->data = $this->sanitize_data( $current_data );
 			}
 
-			// Sanitize all incoming data
 			$sanitized_data = $this->sanitize_data( $data );
 
-			// Check size before merging
 			$test_data = array_merge( $this->data, $sanitized_data );
 			$data_size = strlen( serialize( $test_data ) );
 
@@ -521,7 +508,6 @@ class SCD_Session_Service {
 			'ip_address'    => $this->get_client_ip(),
 		);
 
-		// Sanitize reset data
 		$this->data = $this->sanitize_data( $reset_data );
 		$this->save();
 	}
@@ -591,12 +577,10 @@ class SCD_Session_Service {
 			return false;
 		}
 
-		// Check if session exists
 		if ( ! $this->exists( $this->session_id ) ) {
 			return false;
 		}
 
-		// Check session age
 		$created_at = $this->get( 'created_at' );
 		if ( $created_at ) {
 			$created_time = strtotime( $created_at );
@@ -697,7 +681,6 @@ class SCD_Session_Service {
 		$like_pattern     = $wpdb->esc_like( '_transient_' . $prefix ) . '%';
 		$not_like_pattern = $wpdb->esc_like( '_transient_timeout_' . $prefix ) . '%';
 
-		// Get all wizard transients
 		$transients = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT option_name FROM {$wpdb->options} 
@@ -711,7 +694,6 @@ class SCD_Session_Service {
 		foreach ( $transients as $transient ) {
 			$key = str_replace( '_transient_', '', $transient->option_name );
 
-			// Check if transient is expired
 			if ( get_transient( $key ) === false ) {
 				delete_transient( $key );
 				++$expired_count;
@@ -812,7 +794,6 @@ class SCD_Session_Service {
 			}
 		}
 
-		// Check session age
 		if ( isset( $data['created_at'] ) ) {
 			$created_time = strtotime( $data['created_at'] );
 			$session_age  = time() - $created_time;
@@ -823,7 +804,6 @@ class SCD_Session_Service {
 			}
 		}
 
-		// Validate user capabilities
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return false;
 		}
@@ -891,7 +871,6 @@ class SCD_Session_Service {
 	 * @return   bool             True if data is valid.
 	 */
 	private function validate_data_integrity( array $data ): bool {
-		// Check required fields
 		$required_fields = array( 'session_id', 'created_at', 'user_id' );
 
 		foreach ( $required_fields as $field ) {
@@ -900,7 +879,6 @@ class SCD_Session_Service {
 			}
 		}
 
-		// Validate data types
 		if ( ! is_string( $data['session_id'] ) || empty( $data['session_id'] ) ) {
 			return false;
 		}
@@ -909,7 +887,6 @@ class SCD_Session_Service {
 			return false;
 		}
 
-		// Validate timestamps
 		if ( ! strtotime( $data['created_at'] ) ) {
 			return false;
 		}
@@ -929,7 +906,6 @@ class SCD_Session_Service {
 		$sanitized = array();
 
 		foreach ( $data as $key => $value ) {
-			// Sanitize the key itself
 			$clean_key = sanitize_key( $key );
 
 			switch ( $clean_key ) {
@@ -940,7 +916,6 @@ class SCD_Session_Service {
 					break;
 
 				case 'ip_address':
-					// Validate and sanitize IP address
 					$ip                      = filter_var( $value, FILTER_VALIDATE_IP );
 					$sanitized[ $clean_key ] = $ip !== false ? $ip : '0.0.0.0';
 					break;
@@ -998,15 +973,12 @@ class SCD_Session_Service {
 	 */
 	private function sanitize_value( $value ) {
 		if ( is_string( $value ) ) {
-			// Check if it looks like a URL
 			if ( filter_var( $value, FILTER_VALIDATE_URL ) ) {
 				return esc_url_raw( $value );
 			}
-			// Check if it looks like an email
 			if ( is_email( $value ) ) {
 				return sanitize_email( $value );
 			}
-			// Check if it looks like HTML
 			if ( $value !== strip_tags( $value ) ) {
 				// Allow basic formatting tags
 				return wp_kses(

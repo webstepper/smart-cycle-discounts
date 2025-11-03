@@ -529,7 +529,6 @@ class SCD_Condition_Builder {
 				}
 			});
 
-			// Add new condition
 			$('.scd-add-condition').on('click', function() {
 				var template = $('#scd-condition-template').html();
 				var newCondition = template
@@ -541,7 +540,6 @@ class SCD_Condition_Builder {
 				conditionIndex++;
 			});
 
-			// Remove condition
 			$(document).on('click', '.scd-remove-condition', function() {
 				var $row = $(this).closest('.scd-condition-row');
 				$row.fadeOut(300, function() {
@@ -551,7 +549,6 @@ class SCD_Condition_Builder {
 				});
 			});
 
-			// Clear all conditions
 			$('.scd-clear-conditions').on('click', function() {
 				if (confirm('<?php echo esc_js( __( 'Are you sure you want to remove all conditions?', 'smart-cycle-discounts' ) ); ?>')) {
 					$('.scd-condition-row').fadeOut(300, function() {
@@ -570,12 +567,10 @@ class SCD_Condition_Builder {
 				var $values = $row.find('.scd-condition-value');
 				var property = $property.val();
 
-				// Reset operator and values
 				$operator.html('<option value=""><?php echo esc_js( __( 'Select Operator', 'smart-cycle-discounts' ) ); ?></option>');
 				$values.val('').prop('disabled', true);
 
 				if (property) {
-					// Load operators for this property
 					var operatorTemplate = $('#scd-operators-' + property).html();
 					if (operatorTemplate) {
 						$operator.html(operatorTemplate).prop('disabled', false);
@@ -597,7 +592,6 @@ class SCD_Condition_Builder {
 				var operator = $operator.val();
 				var valueCount = $operator.find('option:selected').data('value-count') || 1;
 
-				// Update value inputs based on operator
 				updateValueInputs($valueContainer, valueCount, $row.data('index'));
 
 				if (operator) {
@@ -706,7 +700,6 @@ class SCD_Condition_Builder {
 				}
 			}
 
-			// Initialize validation for existing conditions
 			$('.scd-condition-row').each(function() {
 				updateConditionValidation($(this));
 			});

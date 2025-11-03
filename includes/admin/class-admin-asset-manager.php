@@ -18,7 +18,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-// Load required dependencies
 require_once SCD_PLUGIN_DIR . 'includes/admin/assets/class-script-registry.php';
 require_once SCD_PLUGIN_DIR . 'includes/admin/assets/class-style-registry.php';
 require_once SCD_PLUGIN_DIR . 'includes/admin/assets/class-asset-loader.php';
@@ -113,7 +112,6 @@ class SCD_Admin_Asset_Manager {
 	 * @return   void
 	 */
 	public function init(): void {
-		// Initialize asset loading system
 		$this->init_asset_system();
 
 		$this->logger->debug( 'Admin asset manager initialized' );
@@ -126,15 +124,12 @@ class SCD_Admin_Asset_Manager {
 	 * @return   void
 	 */
 	private function init_asset_system(): void {
-		// Create registries with required parameters
 		$this->script_registry = new SCD_Script_Registry( $this->version, $this->plugin_url );
 		$this->style_registry  = new SCD_Style_Registry( $this->version, $this->plugin_url );
 
-		// Initialize registries to register all scripts and styles
 		$this->script_registry->init();
 		$this->style_registry->init();
 
-		// Create asset loader
 		$this->asset_loader = new SCD_Asset_Loader(
 			$this->script_registry,
 			$this->style_registry,
@@ -142,21 +137,17 @@ class SCD_Admin_Asset_Manager {
 			$this->plugin_url
 		);
 
-		// Create asset localizer with settings
 		$settings              = array(
 			'version'    => $this->version,
 			'plugin_url' => $this->plugin_url,
 		);
 		$this->asset_localizer = new SCD_Asset_Localizer( $settings );
 
-		// Initialize components
 		$this->asset_loader->init();
 		$this->asset_localizer->init();
 
-		// Add draft manager localization data
 		add_filter( 'scd_localize_scdDraftManager', array( $this, 'get_draft_manager_data' ) );
 
-		// Initialize theme color inline styles
 		$theme_color_styles = new SCD_Theme_Color_Inline_Styles();
 		$theme_color_styles->init();
 	}

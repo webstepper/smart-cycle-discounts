@@ -83,14 +83,12 @@ class SCD_Migration_003_Float_To_Decimal implements SCD_Migration_Interface {
 		foreach ( $tables_to_check as $table_short_name => $columns ) {
 			$table_name = $wpdb->prefix . $table_short_name;
 
-			// Check if table exists
 			$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) === $table_name;
 
 			if ( ! $table_exists ) {
 				continue; // Skip if table doesn't exist
 			}
 
-			// Get current column definitions
 			$table_columns = $wpdb->get_results( "SHOW COLUMNS FROM {$table_name}", ARRAY_A );
 
 			foreach ( $columns as $column_name => $desired_type ) {

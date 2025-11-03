@@ -117,7 +117,6 @@ class SCD_Service_Health_Check {
 		$check['details']['total_definitions']   = count( $definitions );
 		$check['details']['registered_services'] = count( $registered );
 
-		// Check for missing registrations
 		$missing = array_diff( array_keys( $definitions ), $registered );
 		if ( ! empty( $missing ) ) {
 			$check['status']                      = 'failed';

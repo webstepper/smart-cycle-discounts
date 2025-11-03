@@ -31,7 +31,6 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	public function handle_delete() {
-		// Get campaign ID
 		$campaign_id = isset( $_REQUEST['id'] ) ? absint( $_REQUEST['id'] ) : 0;
 		if ( ! $campaign_id ) {
 			$this->redirect_with_error( __( 'Invalid campaign ID.', 'smart-cycle-discounts' ) );
@@ -44,19 +43,16 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 			return;
 		}
 
-		// Check capability
 		if ( ! $this->check_capability( 'scd_delete_campaigns' ) ) {
 			$this->redirect_with_error( __( 'You do not have permission to delete campaigns.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
-		// Check campaign ownership
 		if ( ! $this->check_campaign_ownership( $campaign_id ) ) {
 			$this->redirect_with_error( __( 'You can only delete campaigns you created.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
-		// Delete campaign (soft delete - moves to trash)
 		$result = $this->campaign_manager->delete( $campaign_id );
 		if ( ! is_wp_error( $result ) && $result ) {
 			$this->redirect_with_message(
@@ -76,7 +72,6 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	public function handle_duplicate() {
-		// Get campaign ID
 		$campaign_id = isset( $_REQUEST['id'] ) ? absint( $_REQUEST['id'] ) : 0;
 		if ( ! $campaign_id ) {
 			$this->redirect_with_error( __( 'Invalid campaign ID.', 'smart-cycle-discounts' ) );
@@ -89,13 +84,11 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 			return;
 		}
 
-		// Check capability
 		if ( ! $this->check_capability( 'scd_create_campaigns' ) ) {
 			$this->redirect_with_error( __( 'You do not have permission to duplicate campaigns.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
-		// Check campaign ownership (user can only duplicate campaigns they created)
 		if ( ! $this->check_campaign_ownership( $campaign_id ) ) {
 			$this->redirect_with_error( __( 'You can only duplicate campaigns you created.', 'smart-cycle-discounts' ) );
 			return;
@@ -168,7 +161,6 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	private function handle_status_change( $new_status, $capability ) {
-		// Get campaign ID
 		$campaign_id = isset( $_REQUEST['id'] ) ? absint( $_REQUEST['id'] ) : 0;
 		if ( ! $campaign_id ) {
 			$this->redirect_with_error( __( 'Invalid campaign ID.', 'smart-cycle-discounts' ) );
@@ -186,19 +178,16 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 			return;
 		}
 
-		// Check capability
 		if ( ! $this->check_capability( $capability ) ) {
 			$this->redirect_with_error( __( 'You do not have permission to change campaign status.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
-		// Check campaign ownership
 		if ( ! $this->check_campaign_ownership( $campaign_id ) ) {
 			$this->redirect_with_error( __( 'You can only modify campaigns you created.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
-		// Update status using appropriate method
 		if ( 'active' === $new_status ) {
 			$result = $this->campaign_manager->activate( $campaign_id );
 		} elseif ( 'paused' === $new_status ) {
@@ -212,13 +201,11 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 				? __( 'Campaign activated successfully.', 'smart-cycle-discounts' )
 				: __( 'Campaign deactivated successfully.', 'smart-cycle-discounts' );
 
-			// Add expiration warning for paused campaigns with end dates
 			if ( 'paused' === $new_status ) {
 				$campaign = $this->campaign_manager->find( $campaign_id );
 				if ( $campaign ) {
 					$ends_at = $campaign->get_ends_at();
 					if ( $ends_at ) {
-						// Format the end date in WordPress timezone for display
 						$end_date_display = wp_date( 'F j, Y \a\t g:i A', $ends_at->getTimestamp() );
 						$message         .= ' ' . sprintf(
 							__( 'Note: This campaign will still expire on %s.', 'smart-cycle-discounts' ),
@@ -248,7 +235,6 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	public function handle_restore() {
-		// Get campaign ID
 		$campaign_id = isset( $_REQUEST['id'] ) ? absint( $_REQUEST['id'] ) : 0;
 		if ( ! $campaign_id ) {
 			$this->redirect_with_error( __( 'Invalid campaign ID.', 'smart-cycle-discounts' ) );
@@ -261,13 +247,11 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 			return;
 		}
 
-		// Check capability
 		if ( ! $this->check_capability( 'scd_edit_campaigns' ) ) {
 			$this->redirect_with_error( __( 'You do not have permission to restore campaigns.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
-		// Check campaign ownership (include trashed campaigns)
 		if ( ! $this->check_campaign_ownership( $campaign_id, true ) ) {
 			$this->redirect_with_error( __( 'You can only restore campaigns you created.', 'smart-cycle-discounts' ) );
 			return;
@@ -297,7 +281,6 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	public function handle_delete_permanently() {
-		// Get campaign ID
 		$campaign_id = isset( $_REQUEST['id'] ) ? absint( $_REQUEST['id'] ) : 0;
 		if ( ! $campaign_id ) {
 			$this->redirect_with_error( __( 'Invalid campaign ID.', 'smart-cycle-discounts' ) );
@@ -310,13 +293,11 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 			return;
 		}
 
-		// Check capability
 		if ( ! $this->check_capability( 'scd_delete_campaigns' ) ) {
 			$this->redirect_with_error( __( 'You do not have permission to delete campaigns.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
-		// Check campaign ownership (include trashed campaigns)
 		if ( ! $this->check_campaign_ownership( $campaign_id, true ) ) {
 			$this->redirect_with_error( __( 'You can only delete campaigns you created.', 'smart-cycle-discounts' ) );
 			return;
@@ -352,13 +333,11 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 			return;
 		}
 
-		// Check capability
 		if ( ! $this->check_capability( 'scd_delete_campaigns' ) ) {
 			$this->redirect_with_error( __( 'You do not have permission to empty trash.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
-		// Get all trashed campaigns
 		$repository        = $this->campaign_manager->get_repository();
 		$trashed_campaigns = $repository->find_trashed( array() );
 
@@ -371,14 +350,12 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 			return;
 		}
 
-		// Delete all trashed campaigns
 		$deleted_count = 0;
 		$errors        = array();
 
 		foreach ( $trashed_campaigns as $campaign ) {
 			$campaign_id = $campaign->get_id();
 
-			// Check ownership (users can only delete their own campaigns)
 			if ( ! $this->check_campaign_ownership( $campaign_id, true ) ) {
 				continue; // Skip campaigns user doesn't own
 			}
@@ -407,7 +384,6 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 				$deleted_count
 			);
 
-			// Add error info if some deletions failed
 			if ( ! empty( $errors ) ) {
 				$message .= ' ' . sprintf(
 					_n(
@@ -437,7 +413,6 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	public function handle_stop_recurring() {
-		// Get campaign ID
 		$campaign_id = isset( $_REQUEST['id'] ) ? absint( $_REQUEST['id'] ) : 0;
 		if ( ! $campaign_id ) {
 			$this->redirect_with_error( __( 'Invalid campaign ID.', 'smart-cycle-discounts' ) );
@@ -450,13 +425,11 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 			return;
 		}
 
-		// Check capability
 		if ( ! $this->check_capability( 'scd_edit_campaigns' ) ) {
 			$this->redirect_with_error( __( 'You do not have permission to edit campaigns.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
-		// Get container and stop recurring
 		$container = $this->get_container();
 		if ( $container && $container->has( 'database_manager' ) ) {
 			$db = $container->get( 'database_manager' );
@@ -529,13 +502,11 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 			return true;
 		}
 
-		// Get campaign to check ownership (include trashed if specified)
 		$campaign = $this->campaign_manager->find( $campaign_id, $include_trashed );
 		if ( ! $campaign ) {
 			return false;
 		}
 
-		// Check if current user created the campaign
 		return $campaign->get_created_by() === $current_user_id;
 	}
 }

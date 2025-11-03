@@ -53,7 +53,6 @@ class SCD_Currency_Review_Page {
 	 * @return   void
 	 */
 	public function init() {
-		// Add admin menu item conditionally
 		add_action( 'admin_menu', array( $this, 'add_currency_review_notice' ), 100 );
 
 		// Register AJAX handlers
@@ -67,13 +66,11 @@ class SCD_Currency_Review_Page {
 	 * @return   void
 	 */
 	public function add_currency_review_notice() {
-		// Load service if needed
 		if ( ! $this->currency_service ) {
 			require_once SCD_INCLUDES_DIR . 'core/services/class-currency-change-service.php';
 			$this->currency_service = new SCD_Currency_Change_Service();
 		}
 
-		// Check if there are campaigns needing review
 		$needing_review = $this->currency_service->get_campaigns_needing_review();
 
 		// If campaigns need review, add menu badge via JavaScript
@@ -94,7 +91,6 @@ class SCD_Currency_Review_Page {
 		?>
 		<script>
 		jQuery(document).ready(function($) {
-			// Add badge to campaigns menu item
 			$('a[href*="page=scd-campaigns"]').first().append(' <span class="update-plugins"><span class="plugin-count"><?php echo esc_js( $count ); ?></span></span>');
 		});
 		</script>
@@ -108,13 +104,11 @@ class SCD_Currency_Review_Page {
 	 * @return   void
 	 */
 	public function render_page() {
-		// Load service if needed
 		if ( ! $this->currency_service ) {
 			require_once SCD_INCLUDES_DIR . 'core/services/class-currency-change-service.php';
 			$this->currency_service = new SCD_Currency_Change_Service();
 		}
 
-		// Get campaigns needing review
 		$campaigns = $this->currency_service->get_campaigns_needing_review();
 
 		if ( empty( $campaigns ) ) {
@@ -122,11 +116,9 @@ class SCD_Currency_Review_Page {
 			return;
 		}
 
-		// Get current currency
 		$current_currency = get_woocommerce_currency();
 		$current_symbol   = get_woocommerce_currency_symbol();
 
-		// Render page
 		include SCD_PLUGIN_DIR . 'resources/views/admin/pages/currency-review.php';
 	}
 
@@ -168,7 +160,6 @@ class SCD_Currency_Review_Page {
 			wp_send_json_error( array( 'message' => __( 'Permission denied', 'smart-cycle-discounts' ) ) );
 		}
 
-		// Get action and campaign ID
 		$action      = isset( $_POST['review_action'] ) ? sanitize_text_field( $_POST['review_action'] ) : '';
 		$campaign_id = isset( $_POST['campaign_id'] ) ? intval( $_POST['campaign_id'] ) : 0;
 
@@ -176,7 +167,6 @@ class SCD_Currency_Review_Page {
 			wp_send_json_error( array( 'message' => __( 'Invalid campaign ID', 'smart-cycle-discounts' ) ) );
 		}
 
-		// Load service if needed
 		if ( ! $this->currency_service ) {
 			require_once SCD_INCLUDES_DIR . 'core/services/class-currency-change-service.php';
 			$this->currency_service = new SCD_Currency_Change_Service();
@@ -264,10 +254,8 @@ class SCD_Currency_Review_Page {
 				return false;
 			}
 
-			// Clear review flag first
 			$this->currency_service->clear_review_flag( $campaign_id );
 
-			// Set to draft status (archives effectively)
 			$campaign->set_status( 'draft' );
 			$campaign->set_meta( 'archived_from_currency_review', true );
 

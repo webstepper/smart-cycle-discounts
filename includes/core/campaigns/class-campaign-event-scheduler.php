@@ -82,7 +82,6 @@ class SCD_Campaign_Event_Scheduler {
 	 */
 	public function schedule_campaign_events( int $campaign_id ): bool {
 		try {
-			// Get campaign
 			$campaign = $this->campaign_manager->find( $campaign_id );
 			if ( ! $campaign ) {
 				return false;
@@ -95,7 +94,6 @@ class SCD_Campaign_Event_Scheduler {
 				return true;
 			}
 
-			// Clear any existing events first
 			$this->clear_campaign_events( $campaign_id );
 
 			// Schedule activation event (only for scheduled/draft campaigns)
@@ -215,13 +213,11 @@ class SCD_Campaign_Event_Scheduler {
 	 * @return   void
 	 */
 	public function clear_campaign_events( int $campaign_id ): void {
-		// Clear activation action
 		$this->scheduler->unschedule_action(
 			'scd_activate_campaign',
 			array( 'campaign_id' => $campaign_id )
 		);
 
-		// Clear deactivation action
 		$this->scheduler->unschedule_action(
 			'scd_deactivate_campaign',
 			array( 'campaign_id' => $campaign_id )

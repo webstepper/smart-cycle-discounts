@@ -129,7 +129,6 @@ class SCD_Container {
 	 * @return   void
 	 */
 	private function initialize_mock_services(): void {
-		// Create mock input validator
 		$this->mock_services['input_validator'] = new class() {
 			public function validate( array $data, array $rules = array() ): array {
 				return array(
@@ -139,14 +138,12 @@ class SCD_Container {
 			}
 		};
 
-		// Create mock sanitizer
 		$this->mock_services['sanitizer'] = new class() {
 			public function sanitize( $value, string $type = 'text' ) {
 				return is_string( $value ) ? sanitize_text_field( $value ) : $value;
 			}
 		};
 
-		// Create mock nonce manager with proper interface
 		$this->mock_services['nonce_manager'] = new class() {
 			public function verify( string $nonce, string $action ): bool {
 				return wp_verify_nonce( $nonce, $action ) !== false;
@@ -164,7 +161,6 @@ class SCD_Container {
 			}
 		};
 
-		// Create mock rate limiter
 		$this->mock_services['rate_limiter'] = new class() {
 			public function check( string $key, int $limit = 10 ): bool {
 				return true; // Always allow in mock
@@ -260,7 +256,6 @@ class SCD_Container {
 	 * @throws   Exception        If service cannot be resolved.
 	 */
 	public function get( string $id ): mixed {
-		// Check mock services first
 		if ( isset( $this->mock_services[ $id ] ) ) {
 			return $this->mock_services[ $id ];
 		}
@@ -300,12 +295,10 @@ class SCD_Container {
 	public function resolve( string $abstract, array $parameters = array() ): mixed {
 		$abstract = $this->get_alias( $abstract );
 
-		// Check for circular dependency
 		if ( isset( $this->building[ $abstract ] ) ) {
 			throw new Exception( "Circular dependency detected while resolving '{$abstract}'." );
 		}
 
-		// Return existing singleton instance
 		if ( isset( $this->instances[ $abstract ] ) && empty( $parameters ) ) {
 			return $this->instances[ $abstract ];
 		}
@@ -321,7 +314,6 @@ class SCD_Container {
 				$object = $this->resolve( $concrete, $parameters );
 			}
 
-			// Store singleton instance
 			if ( $this->is_shared( $abstract ) && empty( $parameters ) ) {
 				$this->instances[ $abstract ] = $object;
 			}

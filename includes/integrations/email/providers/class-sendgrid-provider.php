@@ -291,7 +291,6 @@ class SCD_SendGrid_Provider implements SCD_Email_Provider {
 			return array();
 		}
 
-		// Get stats for last 30 days
 		$end_date   = gmdate( 'Y-m-d' );
 		$start_date = gmdate( 'Y-m-d', strtotime( '-30 days' ) );
 

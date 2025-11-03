@@ -15,7 +15,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-// Load wizard helpers trait
 require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
 
 /**
@@ -60,7 +59,6 @@ class SCD_Sale_Items_Filter_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array               Response data.
 	 */
 	protected function handle( $request ) {
-		// Get state service
 		$state_service = $this->_get_state_service();
 		if ( ! $state_service ) {
 			return $this->error(
@@ -70,7 +68,6 @@ class SCD_Sale_Items_Filter_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Get step data
 		$products_data  = $state_service->get_step_data( 'products' );
 		$discounts_data = $state_service->get_step_data( 'discounts' );
 
@@ -83,7 +80,6 @@ class SCD_Sale_Items_Filter_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Get product IDs
 		$product_ids = $this->_get_product_ids( $products_data );
 
 		if ( empty( $product_ids ) ) {
@@ -95,7 +91,6 @@ class SCD_Sale_Items_Filter_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Get apply_to_sale_items setting
 		$apply_to_sale_items = isset( $discounts_data['apply_to_sale_items'] ) ? (bool) $discounts_data['apply_to_sale_items'] : false;
 
 		// Count sale items

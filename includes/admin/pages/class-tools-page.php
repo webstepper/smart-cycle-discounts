@@ -74,7 +74,6 @@ class SCD_Tools_Page {
 	 * @return   void
 	 */
 	public function render(): void {
-		// Check user permissions
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'smart-cycle-discounts' ) );
 		}
@@ -85,7 +84,6 @@ class SCD_Tools_Page {
 		// Show admin notices
 		settings_errors( 'scd_tools_messages' );
 
-		// Render tools sections
 		echo '<div class="scd-tools-container">';
 
 		$this->render_import_export_section();

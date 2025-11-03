@@ -89,17 +89,14 @@ class SCD_WC_Admin_Integration {
 	 * @return   void
 	 */
 	public function save_product_discount_fields( int $post_id ): void {
-		// Check permissions
 		if ( ! current_user_can( 'edit_post', $post_id ) ) {
 			return;
 		}
 
-		// Check nonce
 		if ( ! isset( $_POST['woocommerce_meta_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['woocommerce_meta_nonce'] ) ), 'woocommerce_save_data' ) ) {
 			return;
 		}
 
-		// Save field
 		$exclude_from_discounts = isset( $_POST['_scd_exclude_from_discounts'] ) ? 'yes' : 'no';
 		update_post_meta( $post_id, '_scd_exclude_from_discounts', $exclude_from_discounts );
 

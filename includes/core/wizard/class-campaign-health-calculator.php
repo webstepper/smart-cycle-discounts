@@ -113,7 +113,6 @@ class SCD_Campaign_Health_Calculator {
 			'schedule'  => $state_service->get_step_data( 'schedule' ),
 		);
 
-		// Initialize validation handler
 		$this->validation_handler = new SCD_Campaign_Validation_Handler();
 
 		// Run validation
@@ -155,14 +154,11 @@ class SCD_Campaign_Health_Calculator {
 		$conflict_score = $this->_calculate_conflict_score();
 		$score         += $conflict_score;
 
-		// Get all issues
 		$critical_issues = $this->_get_critical_issues();
 		$recommendations = $this->_get_enhanced_recommendations();
 
-		// Calculate readiness
 		$is_ready = empty( $critical_issues );
 
-		// Calculate enhanced data
 		$conflict_preview    = $this->_get_conflict_preview();
 		$enhanced_exclusions = $this->_get_enhanced_exclusions();
 		$stock_risk          = $this->_assess_stock_risk();
@@ -292,7 +288,6 @@ class SCD_Campaign_Health_Calculator {
 	private function _calculate_discount_score() {
 		$discount_type = isset( $this->campaign_data['discounts']['discount_type'] ) ? $this->campaign_data['discounts']['discount_type'] : 'percentage';
 
-		// Get discount value based on type (forms use separate fields)
 		$discount_value = 0;
 		if ( 'percentage' === $discount_type ) {
 			$discount_value = isset( $this->campaign_data['discounts']['discount_value_percentage'] ) ? floatval( $this->campaign_data['discounts']['discount_value_percentage'] ) : 0;
@@ -365,7 +360,6 @@ class SCD_Campaign_Health_Calculator {
 	private function _get_critical_issues() {
 		$issues = array();
 
-		// Get critical errors from validation handler (form-level validation)
 		if ( ! empty( $this->validation_results['errors'] ) ) {
 			foreach ( $this->validation_results['errors'] as $error ) {
 				$issues[] = array(
@@ -378,17 +372,14 @@ class SCD_Campaign_Health_Calculator {
 
 		// Use unified health service for configuration checks (business rules)
 		if ( $this->health_service ) {
-			// Prepare campaign data for health service
 			$campaign_for_service = $this->_prepare_campaign_data_for_service();
 
-			// Get health analysis from unified service with review context
 			$health_analysis = $this->health_service->analyze_health(
 				$campaign_for_service,
 				'comprehensive',
 				array( 'view_context' => 'review' )
 			);
 
-			// Add service critical issues with step mapping
 			if ( ! empty( $health_analysis['critical_issues'] ) ) {
 				foreach ( $health_analysis['critical_issues'] as $service_issue ) {
 					$issues[] = array(
@@ -400,7 +391,6 @@ class SCD_Campaign_Health_Calculator {
 			}
 		}
 
-		// Remove duplicates by code
 		$unique_issues = array();
 		$seen_codes    = array();
 
@@ -525,7 +515,6 @@ class SCD_Campaign_Health_Calculator {
 	private function _get_enhanced_recommendations() {
 		$recommendations = array();
 
-		// Get product analysis data
 		$product_stats = $this->_analyze_product_selection();
 
 		// Discount Strategy Recommendations (plugin-actionable)
@@ -548,7 +537,6 @@ class SCD_Campaign_Health_Calculator {
 		$rules_warnings  = $this->_get_discount_rules_warnings();
 		$recommendations = array_merge( $recommendations, $rules_warnings );
 
-		// Add unique IDs to each recommendation for tracking
 		foreach ( $recommendations as &$rec ) {
 			$rec['id'] = $this->_generate_recommendation_id( $rec );
 		}
@@ -632,7 +620,6 @@ class SCD_Campaign_Health_Calculator {
 			}
 		}
 
-		// Calculate price statistics
 		if ( ! empty( $prices ) ) {
 			$stats['min_price']   = min( $prices );
 			$stats['max_price']   = max( $prices );
@@ -644,7 +631,6 @@ class SCD_Campaign_Health_Calculator {
 			}
 		}
 
-		// Calculate stock statistics
 		if ( ! empty( $stock_counts ) ) {
 			$stats['total_stock'] = array_sum( $stock_counts );
 		}
@@ -664,7 +650,6 @@ class SCD_Campaign_Health_Calculator {
 		$recommendations = array();
 		$discount_type   = isset( $this->campaign_data['discounts']['discount_type'] ) ? $this->campaign_data['discounts']['discount_type'] : '';
 
-		// Get discount value
 		$discount_value = 0;
 		if ( 'percentage' === $discount_type ) {
 			$discount_value = isset( $this->campaign_data['discounts']['discount_value_percentage'] ) ? floatval( $this->campaign_data['discounts']['discount_value_percentage'] ) : 0;
@@ -883,7 +868,6 @@ class SCD_Campaign_Health_Calculator {
 		// Only show if more specific recommendations (tiered, BOGO, expensive products) don't apply
 		$show_depth_warning = false;
 		if ( 'percentage' === $discount_type && $discount_value > 50 && $discount_value < 70 ) {
-			// Check if other specific recommendations will trigger
 			$has_tiered_rec    = ( $product_stats['avg_price'] >= 50 && $product_stats['avg_price'] < 150 );
 			$has_bogo_rec      = ( $product_stats['avg_price'] < 50 && $product_stats['count'] > 5 );
 			$has_expensive_rec = ( $product_stats['avg_price'] >= 150 );
@@ -1112,7 +1096,6 @@ class SCD_Campaign_Health_Calculator {
 		$start_date      = isset( $schedule['start_date'] ) ? $schedule['start_date'] : '';
 		$end_date        = isset( $schedule['end_date'] ) ? $schedule['end_date'] : '';
 
-		// Calculate duration
 		$duration_days      = null;
 		$campaign_tz_string = isset( $schedule['timezone'] ) ? $schedule['timezone'] : wp_timezone_string();
 
@@ -1169,7 +1152,6 @@ class SCD_Campaign_Health_Calculator {
 
 		// Recommendation: Indefinite campaigns
 		if ( empty( $end_date ) ) {
-			// Calculate suggested end date (14 days from start or from now)
 			$suggested_end_date = '';
 			if ( ! empty( $start_date ) ) {
 				$suggested_end_date = date( 'Y-m-d', strtotime( $start_date . ' +14 days' ) );
@@ -1198,7 +1180,6 @@ class SCD_Campaign_Health_Calculator {
 		// Recommendation: Optimal duration for price point
 		$product_stats = $this->_analyze_product_selection();
 		if ( null !== $duration_days && $duration_days > 14 && $product_stats['avg_price'] > 100 ) {
-			// Calculate suggested shorter end date (7 days from start)
 			$suggested_end_date = '';
 			if ( ! empty( $start_date ) ) {
 				$suggested_end_date = date( 'Y-m-d', strtotime( $start_date . ' +7 days' ) );
@@ -1241,7 +1222,6 @@ class SCD_Campaign_Health_Calculator {
 					throw new Exception( 'Invalid start date/time' );
 				}
 
-				// Get day of week (1=Monday, 7=Sunday)
 				$start_day = intval( $start_dt->format( 'N' ) );
 
 				// Recommend weekend start for short campaigns starting mid-week
@@ -1279,14 +1259,11 @@ class SCD_Campaign_Health_Calculator {
 
 		// HIGH: Past start date
 		if ( 'immediate' !== $start_type && ! empty( $start_date ) ) {
-			// Get timezone from schedule data (defaults to WordPress timezone)
 			$campaign_tz_string = isset( $schedule['timezone'] ) ? $schedule['timezone'] : wp_timezone_string();
 
-			// Check if we have separate date/time fields (from wizard)
 			$start_time = isset( $schedule['start_time'] ) && ! empty( $schedule['start_time'] ) ? $schedule['start_time'] : '00:00';
 
 			try {
-				// Parse start time in campaign timezone
 				$campaign_tz = new DateTimeZone( $campaign_tz_string );
 				$start_dt    = scd_combine_date_time( $start_date, $start_time, $campaign_tz_string );
 
@@ -1294,7 +1271,6 @@ class SCD_Campaign_Health_Calculator {
 					throw new Exception( 'Invalid start date/time' );
 				}
 
-				// Get current time in campaign timezone for fair comparison
 				$now_dt = new DateTime( 'now', $campaign_tz );
 
 				if ( $start_dt < $now_dt ) {
@@ -1653,7 +1629,6 @@ class SCD_Campaign_Health_Calculator {
 		$warnings  = array();
 		$discounts = isset( $this->campaign_data['discounts'] ) ? $this->campaign_data['discounts'] : array();
 
-		// Extract discount rules fields
 		$usage_limit_per_customer = isset( $discounts['usage_limit_per_customer'] ) ? absint( $discounts['usage_limit_per_customer'] ) : 0;
 		$lifetime_usage_cap       = isset( $discounts['lifetime_usage_cap'] ) ? absint( $discounts['lifetime_usage_cap'] ) : 0;
 		$apply_to_sale_items      = isset( $discounts['apply_to_sale_items'] ) ? (bool) $discounts['apply_to_sale_items'] : false;
@@ -1819,7 +1794,6 @@ class SCD_Campaign_Health_Calculator {
 			return $risk_data;
 		}
 
-		// Get discount type to determine estimated demand
 		$discount_type  = isset( $this->campaign_data['discounts']['discount_type'] ) ? $this->campaign_data['discounts']['discount_type'] : 'percentage';
 		$discount_value = 0;
 
@@ -1881,7 +1855,6 @@ class SCD_Campaign_Health_Calculator {
 			}
 		}
 
-		// Sort by risk level (high first) and limit to top 10
 		if ( ! empty( $risk_data['products'] ) ) {
 			usort(
 				$risk_data['products'],
