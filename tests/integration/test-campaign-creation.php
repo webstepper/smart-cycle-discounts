@@ -288,4 +288,260 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 		$this->assertEquals( 'Test Campaign Old Field Name', $campaign->get_name() );
 		$this->assertEquals( 'percentage', $campaign->get_discount_type() );
 	}
+
+	/**
+	 * Data provider for all discount types.
+	 *
+	 * @return array Discount type configurations for parameterized testing.
+	 */
+	public function discount_types_provider() {
+		return array(
+			'percentage'      => array( 'percentage', array( 'discount_value_percentage' => 20 ) ),
+			'fixed'           => array( 'fixed', array( 'discount_value_fixed' => 15 ) ),
+			'tiered'          => array(
+				'tiered',
+				array(
+					'tiers' => array(
+						array( 'min_quantity' => 1, 'max_quantity' => 5, 'discount' => 10 ),
+						array( 'min_quantity' => 6, 'max_quantity' => 999, 'discount' => 20 ),
+					),
+				),
+			),
+			'bogo'            => array(
+				'bogo',
+				array(
+					'bogo_config' => array(
+						'buy_quantity'     => 1,
+						'get_quantity'     => 1,
+						'discount_percent' => 100,
+					),
+				),
+			),
+			'spend_threshold' => array(
+				'spend_threshold',
+				array(
+					'threshold_mode' => 'percentage',
+					'thresholds'     => array(
+						array( 'min_spend' => 50, 'discount' => 10 ),
+						array( 'min_spend' => 100, 'discount' => 20 ),
+					),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Test creating campaigns with all discount types.
+	 *
+	 * Parameterized test that verifies each discount type can be created successfully.
+	 *
+	 * @dataProvider discount_types_provider
+	 * @param string $discount_type Discount type identifier.
+	 * @param array  $discount_config Type-specific configuration.
+	 */
+	public function test_create_campaign_with_all_discount_types( $discount_type, $discount_config ) {
+		// Use data generator to get base campaign data
+		$campaign_data = Test_Campaign_Data_Generator::get_base_campaign_data(
+			array_merge(
+				array(
+					'name'           => "Test {$discount_type} Campaign",
+					'discount_type'  => $discount_type,
+					'discount_value' => 0, // Will be set by type-specific config
+				),
+				$discount_config
+			)
+		);
+
+		// Create campaign
+		$campaign = $this->campaign_manager->create( $campaign_data );
+
+		// Assert campaign created successfully
+		$this->assertNotInstanceOf(
+			'WP_Error',
+			$campaign,
+			"{$discount_type} campaign should be created without errors"
+		);
+
+		$this->assertInstanceOf(
+			'SCD_Campaign',
+			$campaign,
+			"{$discount_type} campaign should return Campaign object"
+		);
+
+		$this->assertGreaterThan( 0, $campaign->get_id(), "{$discount_type} campaign should have valid ID" );
+		$this->assertEquals( $discount_type, $campaign->get_discount_type(), 'Discount type should match' );
+	}
+
+	/**
+	 * Data provider for all product selection types.
+	 *
+	 * @return array Product selection configurations.
+	 */
+	public function product_selection_types_provider() {
+		return array(
+			'all_products'      => array( 'all_products', array() ),
+			'specific_products' => array( 'specific_products', array( 'product_ids' => array( 1, 2, 3 ) ) ),
+			'random_products'   => array( 'random_products', array( 'random_count' => 10 ) ),
+			'smart_selection'   => array( 'smart_selection', array( 'smart_criteria' => 'best_sellers' ) ),
+		);
+	}
+
+	/**
+	 * Test creating campaigns with all product selection types.
+	 *
+	 * @dataProvider product_selection_types_provider
+	 * @param string $selection_type Product selection type.
+	 * @param array  $selection_config Selection-specific configuration.
+	 */
+	public function test_create_campaign_with_all_product_selections( $selection_type, $selection_config ) {
+		$campaign_data = Test_Campaign_Data_Generator::get_percentage_discount_data(
+			array_merge(
+				array(
+					'name'                   => "Test {$selection_type} Campaign",
+					'product_selection_type' => $selection_type,
+				),
+				$selection_config
+			)
+		);
+
+		$campaign = $this->campaign_manager->create( $campaign_data );
+
+		$this->assertNotInstanceOf(
+			'WP_Error',
+			$campaign,
+			"{$selection_type} selection should work without errors"
+		);
+
+		$this->assertInstanceOf( 'SCD_Campaign', $campaign );
+		$this->assertEquals( $selection_type, $campaign->get_product_selection_type() );
+	}
+
+	/**
+	 * Test edge case: minimum percentage discount (0.01%).
+	 */
+	public function test_minimum_percentage_discount() {
+		$campaign_data = Test_Campaign_Data_Generator::get_minimum_percentage_discount();
+		$campaign      = $this->campaign_manager->create( $campaign_data );
+
+		$this->assertNotInstanceOf( 'WP_Error', $campaign, 'Minimum percentage (0.01%) should be valid' );
+		$this->assertEquals( 0.01, $campaign->get_discount_value() );
+	}
+
+	/**
+	 * Test edge case: maximum percentage discount (100%).
+	 */
+	public function test_maximum_percentage_discount() {
+		$campaign_data = Test_Campaign_Data_Generator::get_maximum_percentage_discount();
+		$campaign      = $this->campaign_manager->create( $campaign_data );
+
+		$this->assertNotInstanceOf( 'WP_Error', $campaign, 'Maximum percentage (100%) should be valid' );
+		$this->assertEquals( 100.0, $campaign->get_discount_value() );
+	}
+
+	/**
+	 * Test edge case: minimum fixed discount ($0.01).
+	 */
+	public function test_minimum_fixed_discount() {
+		$campaign_data = Test_Campaign_Data_Generator::get_minimum_fixed_discount();
+		$campaign      = $this->campaign_manager->create( $campaign_data );
+
+		$this->assertNotInstanceOf( 'WP_Error', $campaign, 'Minimum fixed amount ($0.01) should be valid' );
+		$this->assertEquals( 0.01, $campaign->get_discount_value() );
+	}
+
+	/**
+	 * Test campaign with all usage limits set.
+	 */
+	public function test_campaign_with_usage_limits() {
+		$campaign_data = Test_Campaign_Data_Generator::get_campaign_with_usage_limits();
+		$campaign      = $this->campaign_manager->create( $campaign_data );
+
+		$this->assertNotInstanceOf( 'WP_Error', $campaign, 'Campaign with usage limits should be created' );
+		$this->assertInstanceOf( 'SCD_Campaign', $campaign );
+	}
+
+	/**
+	 * Test campaign with minimum order requirements.
+	 */
+	public function test_campaign_with_minimums() {
+		$campaign_data = Test_Campaign_Data_Generator::get_campaign_with_minimums();
+		$campaign      = $this->campaign_manager->create( $campaign_data );
+
+		$this->assertNotInstanceOf( 'WP_Error', $campaign, 'Campaign with minimum requirements should be created' );
+		$this->assertInstanceOf( 'SCD_Campaign', $campaign );
+	}
+
+	/**
+	 * Test campaign with badge enabled.
+	 */
+	public function test_campaign_with_badge() {
+		$campaign_data = Test_Campaign_Data_Generator::get_campaign_with_badge();
+		$campaign      = $this->campaign_manager->create( $campaign_data );
+
+		$this->assertNotInstanceOf( 'WP_Error', $campaign, 'Campaign with badge should be created' );
+		$this->assertInstanceOf( 'SCD_Campaign', $campaign );
+	}
+
+	/**
+	 * Test stackable campaign.
+	 */
+	public function test_stackable_campaign() {
+		$campaign_data = Test_Campaign_Data_Generator::get_stackable_campaign();
+		$campaign      = $this->campaign_manager->create( $campaign_data );
+
+		$this->assertNotInstanceOf( 'WP_Error', $campaign, 'Stackable campaign should be created' );
+		$this->assertInstanceOf( 'SCD_Campaign', $campaign );
+	}
+
+	/**
+	 * Test campaign excluding sale items.
+	 */
+	public function test_campaign_excluding_sale_items() {
+		$campaign_data = Test_Campaign_Data_Generator::get_campaign_excluding_sale_items();
+		$campaign      = $this->campaign_manager->create( $campaign_data );
+
+		$this->assertNotInstanceOf( 'WP_Error', $campaign, 'Campaign excluding sale items should be created' );
+		$this->assertInstanceOf( 'SCD_Campaign', $campaign );
+	}
+
+	/**
+	 * Test campaign with max discount amount cap.
+	 */
+	public function test_campaign_with_max_discount_cap() {
+		$campaign_data = Test_Campaign_Data_Generator::get_campaign_with_max_discount_cap();
+		$campaign      = $this->campaign_manager->create( $campaign_data );
+
+		$this->assertNotInstanceOf( 'WP_Error', $campaign, 'Campaign with max discount cap should be created' );
+		$this->assertInstanceOf( 'SCD_Campaign', $campaign );
+	}
+
+	/**
+	 * Test that past date campaigns fail validation.
+	 */
+	public function test_past_date_campaign_fails() {
+		$campaign_data = Test_Campaign_Data_Generator::get_past_date_campaign();
+		$campaign      = $this->campaign_manager->create( $campaign_data );
+
+		// This should return WP_Error because start date is in the past
+		$this->assertInstanceOf(
+			'WP_Error',
+			$campaign,
+			'Campaign with past start date should fail validation'
+		);
+	}
+
+	/**
+	 * Test that invalid date ranges fail validation.
+	 */
+	public function test_invalid_date_range_fails() {
+		$campaign_data = Test_Campaign_Data_Generator::get_invalid_date_range_campaign();
+		$campaign      = $this->campaign_manager->create( $campaign_data );
+
+		// This should return WP_Error because end date is before start date
+		$this->assertInstanceOf(
+			'WP_Error',
+			$campaign,
+			'Campaign with end date before start date should fail validation'
+		);
+	}
 }
