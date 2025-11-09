@@ -175,14 +175,17 @@ tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 // Start up the WP testing environment.
 require $_tests_dir . '/includes/bootstrap.php';
 
+// Initialize the plugin BEFORE activation
+// The plugins_loaded hook may have already fired during WP bootstrap
+if ( function_exists( 'scd_init_plugin' ) ) {
+	scd_init_plugin();
+}
+
 // Activate the plugin after WordPress loads.
 // This creates database tables and runs activation hooks.
 if ( function_exists( 'scd_activate_plugin' ) ) {
 	scd_activate_plugin();
 }
-
-// NOTE: scd_init_plugin() is called automatically via plugins_loaded hook
-// (see smart-cycle-discounts.php line 376). No need to call it manually here.
 
 // Load step validator classes explicitly for tests (autoloader may not catch them)
 $validator_dir = dirname( __DIR__ ) . '/includes/core/validation/step-validators';
