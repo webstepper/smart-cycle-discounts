@@ -191,6 +191,12 @@ if ( ! class_exists( 'SCD_Container' ) ) {
 	require_once dirname( __DIR__ ) . '/includes/bootstrap/class-container.php';
 }
 
+// Load step validator classes explicitly for tests (autoloader may not catch them)
+$validator_dir = dirname( __DIR__ ) . '/includes/core/validation/step-validators';
+foreach ( glob( $validator_dir . '/class-*.php' ) as $validator_file ) {
+	require_once $validator_file;
+}
+
 // Load plugin test utilities if needed.
 if ( file_exists( __DIR__ . '/utilities/class-test-helpers.php' ) ) {
 	require_once __DIR__ . '/utilities/class-test-helpers.php';
