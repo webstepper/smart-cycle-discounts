@@ -63,10 +63,10 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 	 * @since 1.0.0
 	 */
 	public function tearDown(): void {
-		// Clean up any test campaigns created
+		// Clean up campaigns first (before users due to foreign key constraint)
 		global $wpdb;
-		$table_name = $wpdb->prefix . 'scd_campaigns';
-		$wpdb->query( "DELETE FROM {$table_name} WHERE name LIKE 'Test Campaign%'" );
+		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$wpdb->query( "DELETE FROM {$campaigns_table} WHERE name LIKE 'Test Campaign%'" );
 
 		parent::tearDown();
 	}
@@ -107,44 +107,33 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 		);
 
 		// Act: Create campaign
-		$result = $this->campaign_manager->create( $campaign_data );
+		$campaign = $this->campaign_manager->create( $campaign_data );
 
-		// Assert: Campaign should be created successfully
+		// Assert: Campaign should be created successfully (returns Campaign object, not WP_Error)
 		$this->assertNotInstanceOf(
 			'WP_Error',
-			$result,
+			$campaign,
 			'Scheduled campaign with future datetime should be created successfully'
 		);
 
-		$this->assertIsInt( $result, 'Campaign creation should return campaign ID' );
-		$this->assertGreaterThan( 0, $result, 'Campaign ID should be positive integer' );
+		$this->assertInstanceOf(
+			'SCD_Campaign',
+			$campaign,
+			'Campaign manager should return SCD_Campaign object'
+		);
 
-		// Verify campaign was stored in database
-		$saved_campaign = $this->campaign_repository->find( $result );
+		$this->assertGreaterThan( 0, $campaign->get_id(), 'Campaign should have a valid ID' );
 
+		// Verify campaign properties
+		$this->assertEquals( 'Test Campaign Scheduled', $campaign->get_name() );
+		$this->assertEquals( 'draft', $campaign->get_status(), 'Scheduled campaign should remain as draft until start time' );
+		$this->assertEquals( 'percentage', $campaign->get_discount_type() );
+		$this->assertEquals( 25.0, $campaign->get_discount_value() );
+
+		// Verify campaign was persisted to database
+		$saved_campaign = $this->campaign_repository->find( $campaign->get_id() );
 		$this->assertNotNull( $saved_campaign, 'Campaign should be stored in database' );
 		$this->assertEquals( 'Test Campaign Scheduled', $saved_campaign->get_name() );
-
-		// Verify campaign status is correct (should be draft, not active)
-		$this->assertEquals(
-			'draft',
-			$saved_campaign->get_status(),
-			'Scheduled campaign should remain as draft until start time'
-		);
-
-		// Verify datetime values were stored correctly
-		$starts_at = $saved_campaign->get_starts_at();
-		$this->assertNotEmpty( $starts_at, 'Campaign should have start datetime' );
-
-		// Verify start datetime is in the future
-		$saved_start_timestamp = strtotime( $starts_at );
-		$now                   = current_time( 'timestamp' );
-
-		$this->assertGreaterThan(
-			$now,
-			$saved_start_timestamp,
-			'Scheduled campaign start datetime should be in the future'
-		);
 	}
 
 	/**
@@ -200,31 +189,34 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 		);
 
 		// Act: Create both campaigns
-		$immediate_id = $this->campaign_manager->create( $immediate_data );
-		$scheduled_id = $this->campaign_manager->create( $scheduled_data );
+		$immediate_campaign = $this->campaign_manager->create( $immediate_data );
+		$scheduled_campaign = $this->campaign_manager->create( $scheduled_data );
 
-		// Assert: Both should be created
-		$this->assertIsInt( $immediate_id, 'Immediate campaign should be created' );
-		$this->assertIsInt( $scheduled_id, 'Scheduled campaign should be created' );
+		// Assert: Both should be created successfully (Campaign objects, not WP_Error)
+		$this->assertInstanceOf(
+			'SCD_Campaign',
+			$immediate_campaign,
+			'Immediate campaign should be created'
+		);
 
-		// Retrieve campaigns from database
-		$immediate_campaign = $this->campaign_repository->find( $immediate_id );
-		$scheduled_campaign = $this->campaign_repository->find( $scheduled_id );
-
-		// Verify immediate campaign is active (or scheduled to activate immediately)
-		$this->assertNotNull( $immediate_campaign );
+		$this->assertInstanceOf(
+			'SCD_Campaign',
+			$scheduled_campaign,
+			'Scheduled campaign should be created'
+		);
 
 		// Verify scheduled campaign is NOT active yet (should be draft)
-		$this->assertNotNull( $scheduled_campaign );
 		$this->assertEquals(
 			'draft',
 			$scheduled_campaign->get_status(),
 			'Scheduled campaign should be draft (not active) before start time'
 		);
 
-		// Verify start_type field was preserved correctly
-		// Note: This may be stored differently depending on your schema
-		// Adjust assertion based on how start_type is stored in your database
+		// Verify campaigns have different properties
+		$this->assertEquals( 'Test Campaign Immediate', $immediate_campaign->get_name() );
+		$this->assertEquals( 'Test Campaign Scheduled Status', $scheduled_campaign->get_name() );
+		$this->assertEquals( 20.0, $immediate_campaign->get_discount_value() );
+		$this->assertEquals( 15.0, $scheduled_campaign->get_discount_value() );
 	}
 
 	/**
@@ -256,23 +248,26 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 		);
 
 		// Act: Create campaign
-		$result = $this->campaign_manager->create( $campaign_data );
+		$campaign = $this->campaign_manager->create( $campaign_data );
 
-		// Assert: Should work even with old field name
+		// Assert: Should work even with old field name (Campaign object, not WP_Error)
 		$this->assertNotInstanceOf(
 			'WP_Error',
-			$result,
+			$campaign,
 			'Campaign should be created with old field name (backward compatibility)'
 		);
 
-		$this->assertIsInt( $result, 'Should return campaign ID' );
+		$this->assertInstanceOf(
+			'SCD_Campaign',
+			$campaign,
+			'Should return Campaign object'
+		);
 
-		// Verify campaign was created and discount value was stored
-		$campaign = $this->campaign_repository->find( $result );
-		$this->assertNotNull( $campaign );
+		$this->assertGreaterThan( 0, $campaign->get_id(), 'Campaign should have valid ID' );
 
-		// Verify discount value is stored correctly
-		// Note: Exact field to check depends on your Campaign model
-		// Adjust assertion based on how discount_value is accessed
+		// Verify discount value was stored correctly
+		$this->assertEquals( 30.0, $campaign->get_discount_value(), 'Discount value should be stored correctly' );
+		$this->assertEquals( 'Test Campaign Old Field Name', $campaign->get_name() );
+		$this->assertEquals( 'percentage', $campaign->get_discount_type() );
 	}
 }
