@@ -186,11 +186,8 @@ if ( function_exists( 'scd_activate_plugin' ) ) {
 	scd_activate_plugin();
 }
 
-// Initialize the plugin manually (normally happens on plugins_loaded hook).
-// This loads all plugin classes and makes them available for tests.
-if ( function_exists( 'scd_init_plugin' ) ) {
-	scd_init_plugin();
-}
+// NOTE: scd_init_plugin() is called automatically via plugins_loaded hook
+// (see smart-cycle-discounts.php line 376). No need to call it manually here.
 
 // Load step validator classes explicitly for tests (autoloader may not catch them)
 $validator_dir = dirname( __DIR__ ) . '/includes/core/validation/step-validators';
