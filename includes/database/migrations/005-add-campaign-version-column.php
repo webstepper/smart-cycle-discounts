@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/database/migrations/005-add-campaign-version-column.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -60,10 +60,10 @@ class SCD_Migration_005_Add_Campaign_Version_Column {
 
 		$table_name = $this->db->get_table_name( 'campaigns' );
 
+		// Check if version column exists (table name cannot be prepared, only values)
 		$column_exists = $wpdb->get_results(
 			$wpdb->prepare(
-				'SHOW COLUMNS FROM %s LIKE %s',
-				$table_name,
+				"SHOW COLUMNS FROM `{$table_name}` LIKE %s",
 				'version'
 			)
 		);

@@ -103,6 +103,7 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 			'end_time'                  => $end_time,
 			'start_type'                => 'scheduled', // Important: scheduled, not immediate
 			'timezone'                  => 'UTC',
+			'created_by'                => get_current_user_id(),
 		);
 
 		// Act: Create campaign
@@ -177,6 +178,7 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 			'end_time'                  => $end_time,
 			'start_type'                => 'immediate', // Activate now
 			'timezone'                  => 'UTC',
+			'created_by'                => get_current_user_id(),
 		);
 
 		// Campaign 2: Scheduled activation
@@ -194,6 +196,7 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 			'end_time'                  => $end_time,
 			'start_type'                => 'scheduled', // Schedule for future
 			'timezone'                  => 'UTC',
+			'created_by'                => get_current_user_id(),
 		);
 
 		// Act: Create both campaigns
@@ -249,6 +252,7 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 			'end_time'               => '23:59',
 			'start_type'             => 'scheduled',
 			'timezone'               => 'UTC',
+			'created_by'             => get_current_user_id(),
 		);
 
 		// Act: Create campaign
