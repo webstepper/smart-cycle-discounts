@@ -4,17 +4,17 @@
  * Plugin URI: https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * Description: Revolutionary WooCommerce discount management with intelligent product rotation, multi-campaign organization, and advanced scheduling. Built with modern WordPress & WooCommerce standards.
  * Version: 1.0.0
- * Author: Smart Cycle Discounts
- * Author URI: https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * Author: Webstepper
+ * Author URI: https://webstepper.io
  * Text Domain: smart-cycle-discounts
  * Domain Path: /languages
  * Requires at least: 6.4
- * Tested up to: 6.8
+ * Tested up to: 6.7
  * Requires PHP: 8.0
  * WC requires at least: 8.0
  * WC tested up to: 9.5
  * Woo: 8.0.0:9.5.0
- * License: GPL v3 or later
+ * License: GPLv3 or later
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Network: false
  * Update URI: https://webstepper.io/wordpress-plugins/smart-cycle-discounts/updates/
@@ -351,8 +351,9 @@ function scd_handle_ajax_request() {
 
 // Register AJAX hooks immediately after the handler function is defined
 // This ensures they're available when WordPress processes AJAX requests
+// SECURITY: Only authenticated users can access AJAX endpoints
+// Non-privileged hook removed per WordPress.org security requirements
 add_action( 'wp_ajax_scd_ajax', 'scd_handle_ajax_request' );
-add_action( 'wp_ajax_nopriv_scd_ajax', 'scd_handle_ajax_request' );
 
 /**
  * Initialize the plugin.
@@ -607,15 +608,17 @@ function scd_get_trial_url() {
 function scd_activate_plugin() {
 	// Load translation handler for activation messages
 	require_once SCD_INCLUDES_DIR . 'utilities/class-translation-handler.php';
-	
-	// Check requirements during activation
-	if ( ! scd_check_requirements() ) {
-		$messages = SCD_Translation_Handler::get_requirements_messages();
-		wp_die(
-			esc_html( $messages['activation_error'] ),
-			esc_html( $messages['activation_error_title'] ),
-			array( 'back_link' => true )
-		);
+
+	// Check requirements during activation (skip in test mode)
+	if ( ! defined( 'SCD_TESTING' ) || ! SCD_TESTING ) {
+		if ( ! scd_check_requirements() ) {
+			$messages = SCD_Translation_Handler::get_requirements_messages();
+			wp_die(
+				esc_html( $messages['activation_error'] ),
+				esc_html( $messages['activation_error_title'] ),
+				array( 'back_link' => true )
+			);
+		}
 	}
 
 	// Load activator class
