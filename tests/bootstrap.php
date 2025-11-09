@@ -60,6 +60,13 @@ function _mock_woocommerce() {
 		// Initialize WooCommerce instance.
 		$GLOBALS['woocommerce'] = new WooCommerce();
 	}
+
+	// Mock WooCommerce functions that the plugin uses.
+	if ( ! function_exists( 'get_woocommerce_currency' ) ) {
+		function get_woocommerce_currency() {
+			return 'USD';
+		}
+	}
 }
 
 // Create WooCommerce mock immediately, before WordPress loads.
