@@ -42,6 +42,7 @@ class Test_Schedule_Validator extends TestCase {
 			'end_date'   => $end_date,
 			'end_time'   => $end_time,
 			'start_type' => 'scheduled',
+			'status'     => 'draft', // Scheduled campaigns start as draft
 		);
 
 		$errors = new WP_Error();
@@ -85,6 +86,7 @@ class Test_Schedule_Validator extends TestCase {
 			'end_date'   => $end_date,
 			'end_time'   => $end_time,
 			'start_type' => 'scheduled',
+			'status'     => 'draft', // Scheduled campaigns start as draft
 		);
 
 		$errors = new WP_Error();
@@ -133,6 +135,7 @@ class Test_Schedule_Validator extends TestCase {
 			'end_date'   => $end_date,
 			'end_time'   => $end_time,
 			'start_type' => 'scheduled',
+			'status'     => 'draft', // Scheduled campaigns start as draft
 		);
 
 		$errors = new WP_Error();
