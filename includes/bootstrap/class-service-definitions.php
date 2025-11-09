@@ -173,31 +173,6 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'campaign_overview_panel'      => array(
-				'class'        => 'SCD_Campaign_Overview_Panel',
-				'singleton'    => true,
-				'dependencies' => array( 'campaign_repository', 'campaign.formatter', 'analytics_repository' ),
-				'factory'      => function ( $container ) {
-					return new SCD_Campaign_Overview_Panel(
-						$container->get( 'campaign_repository' ),
-						$container->get( 'campaign.formatter' ),
-						$container->get( 'analytics_repository' )
-					);
-				},
-			),
-
-			'campaign_overview_handler'    => array(
-				'class'        => 'SCD_Campaign_Overview_Handler',
-				'singleton'    => true,
-				'dependencies' => array( 'campaign_repository', 'campaign_overview_panel', 'logger' ),
-				'factory'      => function ( $container ) {
-					return new SCD_Campaign_Overview_Handler(
-						$container->get( 'campaign_repository' ),
-						$container->get( 'campaign_overview_panel' ),
-						$container->get( 'logger' )
-					);
-				},
-			),
 
 			// Repository Services
 			'campaign_repository'          => array(
@@ -239,17 +214,6 @@ class SCD_Service_Definitions {
 						$container->get( 'database_manager' ),
 						$container->get( 'logger' ),
 						$container->get( 'cache' )
-					);
-				},
-			),
-
-			'campaign_conditions_repository' => array(
-				'class'        => 'SCD_Campaign_Conditions_Repository',
-				'singleton'    => true,
-				'dependencies' => array( 'database_manager' ),
-				'factory'      => function ( $container ) {
-					return new SCD_Campaign_Conditions_Repository(
-						$container->get( 'database_manager' )
 					);
 				},
 			),
@@ -702,14 +666,23 @@ class SCD_Service_Definitions {
 				},
 			),
 
+			'discount_display_rules'       => array(
+				'class'     => 'SCD_Discount_Display_Rules',
+				'singleton' => true,
+				'factory'   => function ( $container ) {
+					return new SCD_Discount_Display_Rules();
+				},
+			),
+
 			'discount_display'             => array(
 				'class'        => 'SCD_Discount_Display',
 				'singleton'    => true,
-				'dependencies' => array( 'discount_engine', 'campaign_manager' ),
+				'dependencies' => array( 'discount_engine', 'campaign_manager', 'discount_display_rules' ),
 				'factory'      => function ( $container ) {
 					return new SCD_Discount_Display(
 						$container->get( 'discount_engine' ),
-						$container->get( 'campaign_manager' )
+						$container->get( 'campaign_manager' ),
+						$container->get( 'discount_display_rules' )
 					);
 				},
 			),
@@ -885,14 +858,14 @@ class SCD_Service_Definitions {
 			'analytics_page'               => array(
 				'class'        => 'SCD_Analytics_Page',
 				'singleton'    => true,
-				'dependencies' => array( 'analytics_collector', 'metrics_calculator', 'chart_renderer', 'logger', 'campaign_overview_panel' ),
+				'dependencies' => array( 'analytics_collector', 'metrics_calculator', 'chart_renderer', 'logger' ),
 				'factory'      => function ( $container ) {
 					return new SCD_Analytics_Page(
 						$container->get( 'analytics_collector' ),
 						$container->get( 'metrics_calculator' ),
 						$container->get( 'chart_renderer' ),
 						$container->get( 'logger' ),
-						$container->get( 'campaign_overview_panel' )
+						$container->get( )
 					);
 				},
 			),
