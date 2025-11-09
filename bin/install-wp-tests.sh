@@ -157,8 +157,13 @@ install_db() {
 	if [ $(mysql --user="$DB_USER" --password="$DB_PASS"$EXTRA --execute='show databases;' | grep ^$DB_NAME$) ]
 	then
 		echo "Reinstalling will delete the existing test database ($DB_NAME)"
-		read -p 'Are you sure you want to proceed? [y/N]: ' DELETE_EXISTING_DB
-		recreate_db $DELETE_EXISTING_DB
+		if [ -t 0 ]; then
+			read -p 'Are you sure you want to proceed? [y/N]: ' DELETE_EXISTING_DB
+			recreate_db $DELETE_EXISTING_DB
+		else
+			echo "Running in non-interactive mode, automatically recreating database"
+			recreate_db "y"
+		fi
 	else
 		create_db
 	fi
