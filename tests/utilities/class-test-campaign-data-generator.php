@@ -30,7 +30,7 @@ class Test_Campaign_Data_Generator {
 		$end_timestamp    = $future_timestamp + ( 7 * DAY_IN_SECONDS );
 
 		$defaults = array(
-			'name'                   => 'Test Campaign',
+			'name'                   => 'Test Campaign ' . uniqid(),
 			'description'            => 'Test campaign description',
 			'status'                 => 'draft',
 			'priority'               => 3,
