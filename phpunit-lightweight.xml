@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+	bootstrap="tests/bootstrap-lightweight.php"
+	backupGlobals="false"
+	colors="true"
+	convertErrorsToExceptions="true"
+	convertNoticesToExceptions="true"
+	convertWarningsToExceptions="true"
+	verbose="true"
+>
+	<testsuites>
+		<testsuite name="Smart Cycle Discounts Lightweight Tests">
+			<file>tests/unit/test-schedule-validator.php</file>
+			<file>tests/unit/test-field-collection.php</file>
+		</testsuite>
+	</testsuites>
+
+	<php>
+		<!-- PHP settings -->
+		<ini name="display_errors" value="1" />
+		<ini name="error_reporting" value="-1" />
+	</php>
+</phpunit>

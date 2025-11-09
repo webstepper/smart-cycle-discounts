@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+	bootstrap="vendor/autoload.php"
+	backupGlobals="false"
+	colors="true"
+	convertErrorsToExceptions="true"
+	convertNoticesToExceptions="true"
+	convertWarningsToExceptions="true"
+	verbose="true"
+>
+	<testsuites>
+		<testsuite name="Standalone Datetime Logic Tests">
+			<file>tests/unit/test-datetime-logic-standalone.php</file>
+		</testsuite>
+	</testsuites>
+
+	<php>
+		<!-- PHP settings -->
+		<ini name="display_errors" value="1" />
+		<ini name="error_reporting" value="-1" />
+	</php>
+</phpunit>
