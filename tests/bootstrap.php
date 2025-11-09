@@ -98,6 +98,12 @@ function _mock_woocommerce() {
 		}
 	}
 
+	if ( ! function_exists( 'get_woocommerce_price_format' ) ) {
+		function get_woocommerce_price_format() {
+			return '%1$s%2$s'; // Symbol before price (e.g., $10.00)
+		}
+	}
+
 	if ( ! function_exists( 'wc_format_decimal' ) ) {
 		function wc_format_decimal( $number, $decimals = '' ) {
 			$decimals = $decimals === '' ? wc_get_price_decimals() : absint( $decimals );
