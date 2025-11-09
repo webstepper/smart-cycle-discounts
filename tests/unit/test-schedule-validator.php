@@ -50,8 +50,9 @@ class Test_Schedule_Validator extends TestCase {
 		SCD_Schedule_Step_Validator::validate( $data, $errors );
 
 		// Assert: Should NOT have "past date" error
+		// Note: Error code is 'schedule_past_start_date', not 'schedule_past_dates'
 		$this->assertFalse(
-			$errors->get_error_code( 'schedule_past_dates' ),
+			$errors->get_error_code( 'schedule_past_start_date' ),
 			'Future datetime should not be rejected as past date'
 		);
 
@@ -92,15 +93,16 @@ class Test_Schedule_Validator extends TestCase {
 		SCD_Schedule_Step_Validator::validate( $data, $errors );
 
 		// Assert: Should have "past date" warning
+		// Note: Error code is 'schedule_past_start_date', not 'schedule_past_dates'
 		$error_codes = $errors->get_error_codes();
 		$this->assertContains(
-			'schedule_past_dates',
+			'schedule_past_start_date',
 			$error_codes,
 			'Past datetime should be detected and flagged'
 		);
 
 		// Verify error severity is 'warning' (not 'critical') to allow editing
-		$error_data = $errors->get_error_data( 'schedule_past_dates' );
+		$error_data = $errors->get_error_data( 'schedule_past_start_date' );
 		$this->assertIsArray( $error_data, 'Error data should be array' );
 		$this->assertArrayHasKey( 'severity', $error_data, 'Error should have severity' );
 		$this->assertEquals(

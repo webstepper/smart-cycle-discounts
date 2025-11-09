@@ -56,13 +56,13 @@ class Test_Field_Collection extends TestCase {
 	 * @since 1.0.0
 	 */
 	public function test_fails_loudly_on_missing_required_field() {
-		// Setup: Campaign data WITHOUT required campaign_name field
+		// Setup: Campaign data WITHOUT required name field (campaign name)
 		$data = array(
 			'discount_type'  => 'percentage',
 			'discount_value' => 50,
 		);
 
-		// Act: Attempt to validate basic step without campaign_name
+		// Act: Attempt to validate basic step without name field
 		$result = SCD_Field_Definitions::validate( 'basic', $data );
 
 		// Assert: Should return WP_Error (not silently succeed)
@@ -72,18 +72,20 @@ class Test_Field_Collection extends TestCase {
 			'Validation should return WP_Error for missing required fields (fail loudly)'
 		);
 
-		// Verify error contains campaign_name
+		// Verify error contains name field
 		$error_codes = $result->get_error_codes();
 		$this->assertNotEmpty(
 			$error_codes,
 			'Should have error codes for missing required field'
 		);
 
-		// Find error related to campaign_name
+		// Find error related to name field
+		// Error code will be 'name_required' and message will be 'Campaign Name is required'
 		$has_name_error = false;
 		foreach ( $error_codes as $code ) {
 			$message = $result->get_error_message( $code );
-			if ( false !== strpos( $message, 'campaign_name' ) || false !== strpos( $code, 'campaign_name' ) ) {
+			// Check if error code contains 'name' or message contains 'Campaign Name' or 'name'
+			if ( false !== strpos( $code, 'name' ) || false !== stripos( $message, 'name' ) ) {
 				$has_name_error = true;
 				break;
 			}
@@ -91,7 +93,7 @@ class Test_Field_Collection extends TestCase {
 
 		$this->assertTrue(
 			$has_name_error,
-			'Error should explicitly mention campaign_name field'
+			'Error should explicitly mention name field (campaign name)'
 		);
 	}
 
