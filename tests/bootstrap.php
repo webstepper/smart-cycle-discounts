@@ -43,6 +43,16 @@ function _manually_load_plugin() {
 // Load the plugin before loading WordPress test framework.
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 
+// Mock WooCommerce being active before WordPress loads.
+// This is required for the plugin's requirements check.
+tests_add_filter( 'option_active_plugins', function( $plugins ) {
+	if ( ! is_array( $plugins ) ) {
+		$plugins = array();
+	}
+	$plugins[] = 'woocommerce/woocommerce.php';
+	return $plugins;
+} );
+
 // Start up the WP testing environment.
 require $_tests_dir . '/includes/bootstrap.php';
 

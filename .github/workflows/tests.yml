@@ -27,7 +27,7 @@ jobs:
           coverage: none
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-progress
+        run: composer install --prefer-dist --no-progress --ignore-platform-reqs
 
       - name: Run standalone tests
         run: vendor/bin/phpunit --configuration phpunit-standalone.xml --verbose
@@ -64,7 +64,7 @@ jobs:
           coverage: none
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-progress
+        run: composer install --prefer-dist --no-progress --ignore-platform-reqs
 
       - name: Install Subversion
         run: sudo apt-get update && sudo apt-get install -y subversion
