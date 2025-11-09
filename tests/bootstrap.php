@@ -67,6 +67,37 @@ function _mock_woocommerce() {
 			return 'USD';
 		}
 	}
+
+	// Mock WooCommerce conditional tags.
+	if ( ! function_exists( 'is_shop' ) ) {
+		function is_shop() {
+			return false;
+		}
+	}
+
+	if ( ! function_exists( 'is_product' ) ) {
+		function is_product() {
+			return false;
+		}
+	}
+
+	if ( ! function_exists( 'is_cart' ) ) {
+		function is_cart() {
+			return false;
+		}
+	}
+
+	if ( ! function_exists( 'is_checkout' ) ) {
+		function is_checkout() {
+			return false;
+		}
+	}
+
+	if ( ! function_exists( 'is_account_page' ) ) {
+		function is_account_page() {
+			return false;
+		}
+	}
 }
 
 // Create WooCommerce mock immediately, before WordPress loads.
