@@ -359,9 +359,11 @@ add_action( 'wp_ajax_scd_ajax', 'scd_handle_ajax_request' );
  * Initialize the plugin.
  */
 function scd_init_plugin() {
-	// Check requirements first
-	if ( ! scd_check_requirements() ) {
-		return;
+	// Check requirements first (skip in test mode)
+	if ( ! defined( 'SCD_TESTING' ) || ! SCD_TESTING ) {
+		if ( ! scd_check_requirements() ) {
+			return;
+		}
 	}
 
 	// Load core files

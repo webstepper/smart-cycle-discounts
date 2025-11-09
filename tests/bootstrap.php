@@ -86,6 +86,12 @@ if ( function_exists( 'scd_activate_plugin' ) ) {
 	scd_activate_plugin();
 }
 
+// Initialize the plugin manually (normally happens on plugins_loaded hook).
+// This loads all plugin classes and makes them available for tests.
+if ( function_exists( 'scd_init_plugin' ) ) {
+	scd_init_plugin();
+}
+
 // Load plugin test utilities if needed.
 if ( file_exists( __DIR__ . '/utilities/class-test-helpers.php' ) ) {
 	require_once __DIR__ . '/utilities/class-test-helpers.php';
