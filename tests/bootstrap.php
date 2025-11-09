@@ -34,24 +34,41 @@ if ( ! file_exists( $_tests_dir . '/includes/functions.php' ) ) {
 require_once $_tests_dir . '/includes/functions.php';
 
 /**
+ * Mock WooCommerce for testing.
+ * The plugin requires WooCommerce to be active and loaded.
+ */
+function _mock_woocommerce() {
+	// Create minimal WooCommerce class to satisfy class_exists() checks.
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		class WooCommerce {
+			public $version = '8.0.0';
+
+			public function __construct() {
+				// Define WC constants that might be checked.
+				if ( ! defined( 'WC_VERSION' ) ) {
+					define( 'WC_VERSION', '8.0.0' );
+				}
+			}
+		}
+
+		// Initialize WooCommerce instance.
+		$GLOBALS['woocommerce'] = new WooCommerce();
+	}
+}
+
+/**
  * Manually load the plugin being tested.
  */
 function _manually_load_plugin() {
+	// Load WooCommerce mock first.
+	_mock_woocommerce();
+
+	// Then load plugin.
 	require dirname( __DIR__ ) . '/smart-cycle-discounts.php';
 }
 
 // Load the plugin before loading WordPress test framework.
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
-
-// Mock WooCommerce being active before WordPress loads.
-// This is required for the plugin's requirements check.
-tests_add_filter( 'option_active_plugins', function( $plugins ) {
-	if ( ! is_array( $plugins ) ) {
-		$plugins = array();
-	}
-	$plugins[] = 'woocommerce/woocommerce.php';
-	return $plugins;
-} );
 
 // Start up the WP testing environment.
 require $_tests_dir . '/includes/bootstrap.php';
