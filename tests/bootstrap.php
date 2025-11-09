@@ -68,6 +68,12 @@ function _mock_woocommerce() {
 		}
 	}
 
+	if ( ! function_exists( 'wc_price' ) ) {
+		function wc_price( $price, $args = array() ) {
+			return '$' . number_format( $price, 2 );
+		}
+	}
+
 	// Mock WooCommerce conditional tags.
 	if ( ! function_exists( 'is_shop' ) ) {
 		function is_shop() {
