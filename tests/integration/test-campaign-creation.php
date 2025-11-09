@@ -72,6 +72,22 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Clean up after all tests in this class.
+	 *
+	 * Ensures campaigns are deleted before users (foreign key constraint).
+	 *
+	 * @since 1.0.0
+	 */
+	public static function tearDownAfterClass(): void {
+		// Clean up any remaining test campaigns before WordPress deletes users
+		global $wpdb;
+		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$wpdb->query( "DELETE FROM {$campaigns_table} WHERE name LIKE 'Test Campaign%'" );
+
+		parent::tearDownAfterClass();
+	}
+
+	/**
 	 * Test creating a scheduled campaign with future datetime.
 	 *
 	 * This test verifies the datetime bug fix where scheduled campaigns
@@ -158,6 +174,7 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 			'description'               => 'Test immediate campaign',
 			'status'                    => 'draft',
 			'discount_type'             => 'percentage',
+			'discount_value'            => 20,
 			'discount_value_percentage' => 20,
 			'apply_to'                  => 'cart',
 			'product_selection_type'    => 'all_products',
@@ -176,6 +193,7 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 			'description'               => 'Test scheduled campaign status',
 			'status'                    => 'draft',
 			'discount_type'             => 'percentage',
+			'discount_value'            => 15,
 			'discount_value_percentage' => 15,
 			'apply_to'                  => 'cart',
 			'product_selection_type'    => 'all_products',
