@@ -50,14 +50,7 @@ class Test_Schedule_Validator extends TestCase {
 		// Act: Run validation
 		SCD_Schedule_Step_Validator::validate( $data, $errors );
 
-		// Assert: Should NOT have "past date" error
-		// Note: Error code is 'schedule_past_start_date', not 'schedule_past_dates'
-		$this->assertFalse(
-			$errors->get_error_code( 'schedule_past_start_date' ),
-			'Future datetime should not be rejected as past date'
-		);
-
-		// Verify no critical errors exist
+		// Assert: Should NOT have any validation errors
 		$error_codes = $errors->get_error_codes();
 		$this->assertEmpty(
 			$error_codes,
