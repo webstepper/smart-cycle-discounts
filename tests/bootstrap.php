@@ -193,6 +193,11 @@ foreach ( glob( $validator_dir . '/class-*.php' ) as $validator_file ) {
 	require_once $validator_file;
 }
 
+// Load test container helper (provides reliable Container access in tests).
+if ( file_exists( __DIR__ . '/utilities/class-test-container-helper.php' ) ) {
+	require_once __DIR__ . '/utilities/class-test-container-helper.php';
+}
+
 // Load plugin test utilities if needed.
 if ( file_exists( __DIR__ . '/utilities/class-test-helpers.php' ) ) {
 	require_once __DIR__ . '/utilities/class-test-helpers.php';

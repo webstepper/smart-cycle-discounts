@@ -49,8 +49,8 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 		// Initialize WordPress user with admin capabilities
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 
-		// Get service container
-		$this->container = SCD_Container::get_instance();
+		// Get service container using test helper (provides multiple fallback strategies)
+		$this->container = Test_Container_Helper::get_container();
 
 		// Get campaign manager and repository
 		$this->campaign_manager    = $this->container->get( 'campaign_manager' );
