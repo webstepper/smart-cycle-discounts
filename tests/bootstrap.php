@@ -165,12 +165,7 @@ _mock_woocommerce();
 function _manually_load_plugin() {
 	// WooCommerce mock is already loaded above.
 
-	// Load Container class BEFORE plugin loads (it needs this class)
-	if ( ! class_exists( 'SCD_Container' ) ) {
-		require_once dirname( __DIR__ ) . '/includes/bootstrap/class-container.php';
-	}
-
-	// Now load the plugin.
+	// Load the plugin - it will load Container through its normal initialization
 	require dirname( __DIR__ ) . '/smart-cycle-discounts.php';
 }
 
