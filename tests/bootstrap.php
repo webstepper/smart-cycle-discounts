@@ -30,6 +30,12 @@ if ( ! file_exists( $_tests_dir . '/includes/functions.php' ) ) {
 	exit( 1 );
 }
 
+// Define test mode constant before anything else loads.
+// This tells the plugin to skip certain checks during testing.
+if ( ! defined( 'SCD_TESTING' ) ) {
+	define( 'SCD_TESTING', true );
+}
+
 // Give access to tests_add_filter() function.
 require_once $_tests_dir . '/includes/functions.php';
 
@@ -56,14 +62,15 @@ function _mock_woocommerce() {
 	}
 }
 
+// Create WooCommerce mock immediately, before WordPress loads.
+_mock_woocommerce();
+
 /**
  * Manually load the plugin being tested.
  */
 function _manually_load_plugin() {
-	// Load WooCommerce mock first.
-	_mock_woocommerce();
-
-	// Then load plugin.
+	// WooCommerce mock is already loaded above.
+	// Just load the plugin.
 	require dirname( __DIR__ ) . '/smart-cycle-discounts.php';
 }
 
