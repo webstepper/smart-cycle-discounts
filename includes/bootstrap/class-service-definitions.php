@@ -864,8 +864,7 @@ class SCD_Service_Definitions {
 						$container->get( 'analytics_collector' ),
 						$container->get( 'metrics_calculator' ),
 						$container->get( 'chart_renderer' ),
-						$container->get( 'logger' ),
-						$container->get( )
+						$container->get( 'logger' )
 					);
 				},
 			),
