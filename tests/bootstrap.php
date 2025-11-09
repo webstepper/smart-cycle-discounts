@@ -80,6 +80,44 @@ function _mock_woocommerce() {
 		}
 	}
 
+	if ( ! function_exists( 'wc_get_price_decimal_separator' ) ) {
+		function wc_get_price_decimal_separator() {
+			return '.';
+		}
+	}
+
+	if ( ! function_exists( 'wc_get_price_thousand_separator' ) ) {
+		function wc_get_price_thousand_separator() {
+			return ',';
+		}
+	}
+
+	if ( ! function_exists( 'wc_get_price_decimals' ) ) {
+		function wc_get_price_decimals() {
+			return 2;
+		}
+	}
+
+	if ( ! function_exists( 'wc_format_decimal' ) ) {
+		function wc_format_decimal( $number, $decimals = '' ) {
+			$decimals = $decimals === '' ? wc_get_price_decimals() : absint( $decimals );
+			return number_format( (float) $number, $decimals, '.', '' );
+		}
+	}
+
+	if ( ! function_exists( 'wc_get_product' ) ) {
+		function wc_get_product( $product_id = false ) {
+			// Return false for test environment - tests should mock products
+			return false;
+		}
+	}
+
+	if ( ! function_exists( 'wc_format_sale_price' ) ) {
+		function wc_format_sale_price( $from, $to ) {
+			return '<del>' . wc_price( $from ) . '</del> <ins>' . wc_price( $to ) . '</ins>';
+		}
+	}
+
 	// Mock WooCommerce conditional tags.
 	if ( ! function_exists( 'is_shop' ) ) {
 		function is_shop() {
