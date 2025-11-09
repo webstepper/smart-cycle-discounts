@@ -74,6 +74,12 @@ function _mock_woocommerce() {
 		}
 	}
 
+	if ( ! function_exists( 'get_woocommerce_currency_symbol' ) ) {
+		function get_woocommerce_currency_symbol( $currency = '' ) {
+			return '$';
+		}
+	}
+
 	// Mock WooCommerce conditional tags.
 	if ( ! function_exists( 'is_shop' ) ) {
 		function is_shop() {
