@@ -104,9 +104,9 @@ class Test_Database_Schema extends WP_UnitTestCase {
 		// Product selection columns
 		$this->assertContains( 'product_selection_type', $column_names, 'Campaigns table should have product_selection_type column' );
 
-		// Schedule columns
-		$this->assertContains( 'start_date', $column_names, 'Campaigns table should have start_date column' );
-		$this->assertContains( 'end_date', $column_names, 'Campaigns table should have end_date column' );
+		// Schedule columns (correct column names)
+		$this->assertContains( 'starts_at', $column_names, 'Campaigns table should have starts_at column' );
+		$this->assertContains( 'ends_at', $column_names, 'Campaigns table should have ends_at column' );
 
 		// Audit columns
 		$this->assertContains( 'created_at', $column_names, 'Campaigns table should have created_at column' );
@@ -115,14 +115,14 @@ class Test_Database_Schema extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that discounts table exists.
+	 * Test that active_discounts table exists.
 	 *
-	 * Verifies that the discounts table was created.
+	 * Verifies that the active_discounts table was created.
 	 *
 	 * @since 1.0.0
 	 */
-	public function test_discounts_table_exists() {
-		$table_name = $this->wpdb->prefix . 'scd_discounts';
+	public function test_active_discounts_table_exists() {
+		$table_name = $this->wpdb->prefix . 'scd_active_discounts';
 
 		$table_exists = $this->wpdb->get_var(
 			$this->wpdb->prepare(
@@ -133,7 +133,7 @@ class Test_Database_Schema extends WP_UnitTestCase {
 
 		$this->assertNotNull(
 			$table_exists,
-			'Discounts table should exist in database'
+			'Active discounts table should exist in database'
 		);
 	}
 

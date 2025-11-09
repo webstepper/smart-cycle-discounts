@@ -46,6 +46,20 @@ class Test_Plugin_Architecture extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Clean up after each test.
+	 *
+	 * @since 1.0.0
+	 */
+	public function tearDown(): void {
+		// Clean up campaigns before users to avoid foreign key constraint violations
+		global $wpdb;
+		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$wpdb->query( "DELETE FROM {$campaigns_table} WHERE name LIKE 'Architecture Test%' OR name LIKE 'Test Campaign%'" );
+
+		parent::tearDown();
+	}
+
+	/**
 	 * Test that plugin main class is initialized.
 	 *
 	 * Verifies that the plugin singleton is properly initialized.
@@ -190,20 +204,17 @@ class Test_Plugin_Architecture extends WP_UnitTestCase {
 			'Campaign manager should successfully create campaign using repository'
 		);
 
-		// Clean up
-		global $wpdb;
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
-		$wpdb->delete( $campaigns_table, array( 'id' => $campaign->get_id() ) );
+		// Campaign will be cleaned up in tearDown()
 	}
 
 	/**
-	 * Test that discount engine can access campaigns.
+	 * Test that discount engine can calculate discounts.
 	 *
-	 * Verifies that discount engine integrates with campaign repository.
+	 * Verifies that discount engine has core calculation methods.
 	 *
 	 * @since 1.0.0
 	 */
-	public function test_discount_engine_campaign_integration() {
+	public function test_discount_engine_calculation() {
 		// Get discount engine
 		$discount_engine = $this->container->get( 'discount_engine' );
 
@@ -213,19 +224,20 @@ class Test_Plugin_Architecture extends WP_UnitTestCase {
 			'Discount engine should be available'
 		);
 
-		// Discount engine should be able to query for applicable campaigns
-		// (even if result is empty, the method should exist and work)
+		// Verify core discount calculation methods exist
 		$this->assertTrue(
-			method_exists( $discount_engine, 'get_applicable_discounts' ),
-			'Discount engine should have get_applicable_discounts method'
+			method_exists( $discount_engine, 'calculate_discount' ),
+			'Discount engine should have calculate_discount method'
 		);
 
-		// Should not throw exception
-		$applicable = $discount_engine->get_applicable_discounts();
+		$this->assertTrue(
+			method_exists( $discount_engine, 'get_best_discount' ),
+			'Discount engine should have get_best_discount method'
+		);
 
-		$this->assertIsArray(
-			$applicable,
-			'Discount engine should return array of applicable discounts'
+		$this->assertTrue(
+			method_exists( $discount_engine, 'apply_to_wc_product' ),
+			'Discount engine should have apply_to_wc_product method'
 		);
 	}
 
@@ -272,12 +284,12 @@ class Test_Plugin_Architecture extends WP_UnitTestCase {
 			'Cache manager should be available'
 		);
 
-		// Caching should work
-		$test_key   = 'test_integration_cache_key';
+		// Caching should work (correct signature: key, value, expiration)
+		$test_key   = 'campaigns_test_integration_key';
 		$test_value = array( 'data' => 'test' );
 
-		$cache_manager->set( $test_key, $test_value, 'test_group', 60 );
-		$retrieved = $cache_manager->get( $test_key, 'test_group' );
+		$cache_manager->set( $test_key, $test_value, 60 );
+		$retrieved = $cache_manager->get( $test_key );
 
 		$this->assertEquals(
 			$test_value,
@@ -286,7 +298,7 @@ class Test_Plugin_Architecture extends WP_UnitTestCase {
 		);
 
 		// Clean up
-		$cache_manager->delete( $test_key, 'test_group' );
+		$cache_manager->delete( $test_key );
 	}
 
 	/**

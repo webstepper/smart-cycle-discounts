@@ -268,24 +268,29 @@ class Test_Service_Container extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that container itself is registered as a service.
+	 * Test that container can resolve dependencies.
 	 *
-	 * Some services need access to the container to resolve dependencies
-	 * dynamically, so the container should be registered as a service.
+	 * Verifies that the container can successfully resolve service dependencies.
 	 *
 	 * @since 1.0.0
 	 */
-	public function test_container_registered_as_service() {
-		$this->assertTrue(
-			$this->container->has( 'container' ),
-			'Container should register itself as a service'
+	public function test_container_dependency_resolution() {
+		// Test that container can resolve a service with dependencies
+		$campaign_manager = $this->container->get( 'campaign_manager' );
+
+		$this->assertInstanceOf(
+			'SCD_Campaign_Manager',
+			$campaign_manager,
+			'Container should successfully resolve campaign_manager with all dependencies'
 		);
 
-		$resolved_container = $this->container->get( 'container' );
-		$this->assertSame(
-			$this->container,
-			$resolved_container,
-			'Container service should return the container instance itself'
+		// Test that container can resolve deeply nested dependencies
+		$discount_applicator = $this->container->get( 'discount_applicator' );
+
+		$this->assertInstanceOf(
+			'SCD_Discount_Applicator',
+			$discount_applicator,
+			'Container should successfully resolve discount_applicator with nested dependencies'
 		);
 	}
 

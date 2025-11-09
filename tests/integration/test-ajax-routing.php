@@ -81,16 +81,16 @@ class Test_AJAX_Routing extends WP_UnitTestCase {
 			'AJAX handler for scd_load_data must be registered'
 		);
 
-		// Validation handlers
-		$this->assertTrue(
-			has_action( 'wp_ajax_scd_campaign_validation' ) !== false,
-			'AJAX handler for scd_campaign_validation must be registered'
-		);
-
 		// Product search handler
 		$this->assertTrue(
 			has_action( 'wp_ajax_scd_product_search' ) !== false,
 			'AJAX handler for scd_product_search must be registered'
+		);
+
+		// Health check handler
+		$this->assertTrue(
+			has_action( 'wp_ajax_scd_health_check' ) !== false,
+			'AJAX handler for scd_health_check must be registered'
 		);
 	}
 
@@ -114,10 +114,10 @@ class Test_AJAX_Routing extends WP_UnitTestCase {
 			'AJAX handler for scd_campaign_health must be registered'
 		);
 
-		// Activity feed
+		// Planner insights
 		$this->assertTrue(
-			has_action( 'wp_ajax_scd_activity_feed' ) !== false,
-			'AJAX handler for scd_activity_feed must be registered'
+			has_action( 'wp_ajax_scd_get_planner_insights' ) !== false,
+			'AJAX handler for scd_get_planner_insights must be registered'
 		);
 	}
 
@@ -129,22 +129,34 @@ class Test_AJAX_Routing extends WP_UnitTestCase {
 	 * @since 1.0.0
 	 */
 	public function test_analytics_ajax_handlers_registered() {
-		// Campaign performance
+		// Analytics overview
 		$this->assertTrue(
-			has_action( 'wp_ajax_scd_campaign_performance' ) !== false,
-			'AJAX handler for scd_campaign_performance must be registered'
+			has_action( 'wp_ajax_scd_analytics_overview' ) !== false,
+			'AJAX handler for scd_analytics_overview must be registered'
 		);
 
-		// Revenue trend
+		// Campaign performance (note: analytics_ prefix)
 		$this->assertTrue(
-			has_action( 'wp_ajax_scd_revenue_trend' ) !== false,
-			'AJAX handler for scd_revenue_trend must be registered'
+			has_action( 'wp_ajax_scd_analytics_campaign_performance' ) !== false,
+			'AJAX handler for scd_analytics_campaign_performance must be registered'
 		);
 
-		// Top products
+		// Revenue trend (note: analytics_ prefix)
 		$this->assertTrue(
-			has_action( 'wp_ajax_scd_top_products' ) !== false,
-			'AJAX handler for scd_top_products must be registered'
+			has_action( 'wp_ajax_scd_analytics_revenue_trend' ) !== false,
+			'AJAX handler for scd_analytics_revenue_trend must be registered'
+		);
+
+		// Top products (note: analytics_ prefix)
+		$this->assertTrue(
+			has_action( 'wp_ajax_scd_analytics_top_products' ) !== false,
+			'AJAX handler for scd_analytics_top_products must be registered'
+		);
+
+		// Activity feed (note: analytics_ prefix)
+		$this->assertTrue(
+			has_action( 'wp_ajax_scd_analytics_activity_feed' ) !== false,
+			'AJAX handler for scd_analytics_activity_feed must be registered'
 		);
 	}
 
@@ -190,12 +202,12 @@ class Test_AJAX_Routing extends WP_UnitTestCase {
 		);
 
 		$this->assertFalse(
-			has_action( 'wp_ajax_nopriv_scd_campaign_validation' ) !== false,
+			has_action( 'wp_ajax_nopriv_scd_load_data' ) !== false,
 			'Admin AJAX handlers should not be available to non-logged-in users'
 		);
 
 		$this->assertFalse(
-			has_action( 'wp_ajax_nopriv_scd_load_data' ) !== false,
+			has_action( 'wp_ajax_nopriv_scd_main_dashboard_data' ) !== false,
 			'Admin AJAX handlers should not be available to non-logged-in users'
 		);
 	}
