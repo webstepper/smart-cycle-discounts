@@ -174,6 +174,11 @@ tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 // Start up the WP testing environment.
 require $_tests_dir . '/includes/bootstrap.php';
 
+// Ensure Container class is explicitly loaded BEFORE plugin functions are called
+if ( ! class_exists( 'SCD_Container' ) ) {
+	require_once dirname( __DIR__ ) . '/includes/bootstrap/class-container.php';
+}
+
 // Activate the plugin after WordPress loads.
 // This creates database tables and runs activation hooks.
 if ( function_exists( 'scd_activate_plugin' ) ) {
@@ -184,11 +189,6 @@ if ( function_exists( 'scd_activate_plugin' ) ) {
 // This loads all plugin classes and makes them available for tests.
 if ( function_exists( 'scd_init_plugin' ) ) {
 	scd_init_plugin();
-}
-
-// Ensure Container class is explicitly loaded and available for tests
-if ( ! class_exists( 'SCD_Container' ) ) {
-	require_once dirname( __DIR__ ) . '/includes/bootstrap/class-container.php';
 }
 
 // Load step validator classes explicitly for tests (autoloader may not catch them)
