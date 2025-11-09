@@ -46,6 +46,12 @@ tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 // Start up the WP testing environment.
 require $_tests_dir . '/includes/bootstrap.php';
 
+// Activate the plugin after WordPress loads.
+// This creates database tables and runs activation hooks.
+if ( function_exists( 'scd_activate_plugin' ) ) {
+	scd_activate_plugin();
+}
+
 // Load plugin test utilities if needed.
 if ( file_exists( __DIR__ . '/utilities/class-test-helpers.php' ) ) {
 	require_once __DIR__ . '/utilities/class-test-helpers.php';
