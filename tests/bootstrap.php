@@ -198,6 +198,11 @@ if ( file_exists( __DIR__ . '/utilities/class-test-container-helper.php' ) ) {
 	require_once __DIR__ . '/utilities/class-test-container-helper.php';
 }
 
+// Load test campaign data generator for parameterized tests.
+if ( file_exists( __DIR__ . '/utilities/class-test-campaign-data-generator.php' ) ) {
+	require_once __DIR__ . '/utilities/class-test-campaign-data-generator.php';
+}
+
 // Load plugin test utilities if needed.
 if ( file_exists( __DIR__ . '/utilities/class-test-helpers.php' ) ) {
 	require_once __DIR__ . '/utilities/class-test-helpers.php';
