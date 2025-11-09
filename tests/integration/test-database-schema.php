@@ -43,6 +43,20 @@ class Test_Database_Schema extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Clean up after each test.
+	 *
+	 * @since 1.0.0
+	 */
+	public function tearDown(): void {
+		// Clean up campaigns before users to avoid foreign key constraint violations
+		global $wpdb;
+		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$wpdb->query( "DELETE FROM {$campaigns_table}" );
+
+		parent::tearDown();
+	}
+
+	/**
 	 * Test that campaigns table exists.
 	 *
 	 * Verifies that the main campaigns table was created during activation.

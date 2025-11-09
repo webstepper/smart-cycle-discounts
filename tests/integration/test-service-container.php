@@ -85,7 +85,7 @@ class Test_Service_Container extends WP_UnitTestCase {
 
 		$this->assertTrue(
 			$this->container->has( 'cache' ),
-			'Cache service alias must be registered (backward compatibility)'
+			'Cache service must be registered (backward compatibility wrapper for cache_manager)'
 		);
 
 		// Security services
@@ -309,22 +309,23 @@ class Test_Service_Container extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that service aliases work correctly.
+	 * Test that backward compatibility services work correctly.
 	 *
-	 * Verifies that service aliases (like 'cache' pointing to 'cache_manager')
-	 * resolve to the same instance as the primary service name.
+	 * Verifies that backward compatibility services (like 'cache' wrapping 'cache_manager')
+	 * resolve to the same instance as the primary service.
 	 *
 	 * @since 1.0.0
 	 */
-	public function test_service_aliases_work() {
-		// 'cache' is an alias for 'cache_manager'
+	public function test_backward_compatibility_services_work() {
+		// 'cache' is a backward compatibility wrapper for 'cache_manager'
+		// Both should return the same singleton instance
 		$cache_manager = $this->container->get( 'cache_manager' );
-		$cache_alias   = $this->container->get( 'cache' );
+		$cache         = $this->container->get( 'cache' );
 
 		$this->assertSame(
 			$cache_manager,
-			$cache_alias,
-			'Service alias "cache" should resolve to same instance as "cache_manager"'
+			$cache,
+			'Backward compatibility service "cache" should resolve to same instance as "cache_manager"'
 		);
 	}
 }

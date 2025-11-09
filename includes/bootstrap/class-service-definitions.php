@@ -92,6 +92,25 @@ class SCD_Service_Definitions {
 				},
 			),
 
+			// Alias for backward compatibility
+			'cache'                        => array(
+				'class'        => 'SCD_Cache_Manager',
+				'singleton'    => true,
+				'dependencies' => array( 'cache_manager' ),
+				'factory'      => function ( $container ) {
+					return $container->get( 'cache_manager' );
+				},
+			),
+
+			'reference_data_cache'         => array(
+				'class'        => 'SCD_Reference_Data_Cache',
+				'singleton'    => true,
+				'dependencies' => array( 'cache_manager' ),
+				'factory'      => function ( $container ) {
+					return new SCD_Reference_Data_Cache( $container->get( 'cache_manager' ) );
+				},
+			),
+
 			'database_manager'             => array(
 				'class'     => 'SCD_Database_Manager',
 				'singleton' => true,
@@ -154,6 +173,32 @@ class SCD_Service_Definitions {
 				},
 			),
 
+			'campaign_overview_panel'      => array(
+				'class'        => 'SCD_Campaign_Overview_Panel',
+				'singleton'    => true,
+				'dependencies' => array( 'campaign_repository', 'campaign.formatter', 'analytics_repository' ),
+				'factory'      => function ( $container ) {
+					return new SCD_Campaign_Overview_Panel(
+						$container->get( 'campaign_repository' ),
+						$container->get( 'campaign.formatter' ),
+						$container->get( 'analytics_repository' )
+					);
+				},
+			),
+
+			'campaign_overview_handler'    => array(
+				'class'        => 'SCD_Campaign_Overview_Handler',
+				'singleton'    => true,
+				'dependencies' => array( 'campaign_repository', 'campaign_overview_panel', 'logger' ),
+				'factory'      => function ( $container ) {
+					return new SCD_Campaign_Overview_Handler(
+						$container->get( 'campaign_repository' ),
+						$container->get( 'campaign_overview_panel' ),
+						$container->get( 'logger' )
+					);
+				},
+			),
+
 			// Repository Services
 			'campaign_repository'          => array(
 				'class'        => 'SCD_Campaign_Repository',
@@ -188,11 +233,23 @@ class SCD_Service_Definitions {
 			'customer_usage_repository'    => array(
 				'class'        => 'SCD_Customer_Usage_Repository',
 				'singleton'    => true,
-				'dependencies' => array( 'database_manager', 'logger' ),
+				'dependencies' => array( 'database_manager', 'logger', 'cache' ),
 				'factory'      => function ( $container ) {
 					return new SCD_Customer_Usage_Repository(
 						$container->get( 'database_manager' ),
-						$container->get( 'logger' )
+						$container->get( 'logger' ),
+						$container->get( 'cache' )
+					);
+				},
+			),
+
+			'campaign_conditions_repository' => array(
+				'class'        => 'SCD_Campaign_Conditions_Repository',
+				'singleton'    => true,
+				'dependencies' => array( 'database_manager' ),
+				'factory'      => function ( $container ) {
+					return new SCD_Campaign_Conditions_Repository(
+						$container->get( 'database_manager' )
 					);
 				},
 			),
@@ -525,9 +582,10 @@ class SCD_Service_Definitions {
 			'campaign_edit_controller'     => array(
 				'class'        => 'SCD_Campaign_Edit_Controller',
 				'singleton'    => false,
-				'dependencies' => array( 'campaign_manager', 'capability_manager', 'logger', 'campaign_view_renderer' ),
+				'dependencies' => array( 'cache_manager', 'campaign_manager', 'capability_manager', 'logger', 'campaign_view_renderer' ),
 				'factory'      => function ( $container ) {
 					return new SCD_Campaign_Edit_Controller(
+						$container->get( 'cache_manager' ),
 						$container->get( 'campaign_manager' ),
 						$container->get( 'capability_manager' ),
 						$container->get( 'logger' ),
@@ -581,9 +639,10 @@ class SCD_Service_Definitions {
 			'idempotency_service'          => array(
 				'class'        => 'SCD_Idempotency_Service',
 				'singleton'    => false,
-				'dependencies' => array( 'wizard_state_service' ),
+				'dependencies' => array( 'cache_manager', 'wizard_state_service' ),
 				'factory'      => function ( $container ) {
 					return new SCD_Idempotency_Service(
+						$container->get( 'cache_manager' ),
 						$container->get( 'wizard_state_service' )
 					);
 				},
@@ -685,6 +744,15 @@ class SCD_Service_Definitions {
 				},
 			),
 
+			// Alias for interface-based dependency injection
+			'ecommerce_integration'        => array(
+				'class'     => 'SCD_WooCommerce_Integration',
+				'singleton' => true,
+				'factory'   => function ( $container ) {
+					return $container->get( 'woocommerce_integration' );
+				},
+			),
+
 			'integration_manager'          => array(
 				'class'        => 'SCD_Integration_Manager',
 				'singleton'    => true,
@@ -713,7 +781,7 @@ class SCD_Service_Definitions {
 			'rest_api_manager'             => array(
 				'class'        => 'SCD_REST_API_Manager',
 				'singleton'    => true,
-				'dependencies' => array( 'container' ),
+				'dependencies' => array( 'cache_manager', 'container' ),
 				'factory'      => function ( $container ) {
 					return new SCD_REST_API_Manager( $container );
 				},
@@ -751,12 +819,13 @@ class SCD_Service_Definitions {
 			'analytics_collector'          => array(
 				'class'        => 'SCD_Analytics_Collector',
 				'singleton'    => true,
-				'dependencies' => array( 'database_manager', 'cache_manager', 'logger' ),
+				'dependencies' => array( 'database_manager', 'cache_manager', 'logger', 'ecommerce_integration' ),
 				'factory'      => function ( $container ) {
 					return new SCD_Analytics_Collector(
 						$container->get( 'database_manager' ),
 						$container->get( 'cache_manager' ),
-						$container->get( 'logger' )
+						$container->get( 'logger' ),
+						$container->get( 'ecommerce_integration' )
 					);
 				},
 			),
@@ -777,11 +846,14 @@ class SCD_Service_Definitions {
 			'report_generator'             => array(
 				'class'        => 'SCD_Report_Generator',
 				'singleton'    => true,
-				'dependencies' => array( 'analytics_repository', 'metrics_calculator' ),
+				'dependencies' => array( 'analytics_collector', 'metrics_calculator', 'campaign_manager', 'cache_manager', 'logger' ),
 				'factory'      => function ( $container ) {
 					return new SCD_Report_Generator(
-						$container->get( 'analytics_repository' ),
-						$container->get( 'metrics_calculator' )
+						$container->get( 'analytics_collector' ),
+						$container->get( 'metrics_calculator' ),
+						$container->get( 'campaign_manager' ),
+						$container->get( 'cache_manager' ),
+						$container->get( 'logger' )
 					);
 				},
 			),
@@ -813,13 +885,14 @@ class SCD_Service_Definitions {
 			'analytics_page'               => array(
 				'class'        => 'SCD_Analytics_Page',
 				'singleton'    => true,
-				'dependencies' => array( 'analytics_collector', 'metrics_calculator', 'chart_renderer', 'logger' ),
+				'dependencies' => array( 'analytics_collector', 'metrics_calculator', 'chart_renderer', 'logger', 'campaign_overview_panel' ),
 				'factory'      => function ( $container ) {
 					return new SCD_Analytics_Page(
 						$container->get( 'analytics_collector' ),
 						$container->get( 'metrics_calculator' ),
 						$container->get( 'chart_renderer' ),
-						$container->get( 'logger' )
+						$container->get( 'logger' ),
+						$container->get( 'campaign_overview_panel' )
 					);
 				},
 			),
@@ -881,10 +954,11 @@ class SCD_Service_Definitions {
 			'dashboard_service'            => array(
 				'class'        => 'SCD_Dashboard_Service',
 				'singleton'    => true,
-				'dependencies' => array( 'analytics_dashboard', 'campaign_repository', 'campaign_health_service', 'feature_gate', 'logger', 'campaign_suggestions_service', 'campaign_display_service', 'campaign_planner_service' ),
+				'dependencies' => array( 'cache_manager', 'analytics_dashboard', 'campaign_repository', 'campaign_health_service', 'feature_gate', 'logger', 'campaign_suggestions_service', 'campaign_display_service', 'campaign_planner_service' ),
 				'factory'      => function ( $container ) {
 					return new SCD_Dashboard_Service(
-						$container->get( 'analytics_dashboard' ),
+						$container->get( 'cache_manager' ),
+					$container->get( 'analytics_dashboard' ),
 						$container->get( 'campaign_repository' ),
 						$container->get( 'campaign_health_service' ),
 						$container->get( 'feature_gate' ),
