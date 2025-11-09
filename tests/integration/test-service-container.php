@@ -43,6 +43,20 @@ class Test_Service_Container extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Clean up after each test.
+	 *
+	 * @since 1.0.0
+	 */
+	public function tearDown(): void {
+		// Clean up campaigns before users to avoid foreign key constraint violations
+		global $wpdb;
+		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$wpdb->query( "DELETE FROM {$campaigns_table}" );
+
+		parent::tearDown();
+	}
+
+	/**
 	 * Test that all core services are registered.
 	 *
 	 * Verifies that critical services required for plugin operation

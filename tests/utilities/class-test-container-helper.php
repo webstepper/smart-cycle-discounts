@@ -42,9 +42,16 @@ class Test_Container_Helper {
 			return SCD_Container::get_instance();
 		}
 
-		// Last resort: create new instance
+		// Last resort: create new instance with service definitions
 		if ( class_exists( 'SCD_Container' ) ) {
 			$container = new SCD_Container( false );
+
+			// Load service definitions if Service Registry is available
+			if ( class_exists( 'SCD_Service_Registry' ) ) {
+				$registry = new SCD_Service_Registry( $container );
+				$registry->register_all_services();
+			}
+
 			$GLOBALS['scd_container'] = $container;
 			return $container;
 		}
