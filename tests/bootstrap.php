@@ -186,6 +186,11 @@ if ( function_exists( 'scd_init_plugin' ) ) {
 	scd_init_plugin();
 }
 
+// Ensure Container class is explicitly loaded and available for tests
+if ( ! class_exists( 'SCD_Container' ) ) {
+	require_once dirname( __DIR__ ) . '/includes/bootstrap/class-container.php';
+}
+
 // Load plugin test utilities if needed.
 if ( file_exists( __DIR__ . '/utilities/class-test-helpers.php' ) ) {
 	require_once __DIR__ . '/utilities/class-test-helpers.php';
