@@ -36,6 +36,9 @@ EXCLUDE_PATTERNS = [
     '.gitignore',
     '.gitattributes',
 
+    # WordPress.org assets (uploaded separately to SVN, not in plugin ZIP)
+    '.wordpress-org',
+
     # CI/CD and development infrastructure
     '.github',
     'bin',
@@ -69,8 +72,9 @@ EXCLUDE_PATTERNS = [
     'composer.lock',
     'composer.phar',
 
-    # Source assets (compiled assets in /assets/ are included)
-    'resources/assets',  # Exclude source files (scss, vendor libs) - keep resources/views/
+    # Source assets (exclude SCSS source files, keep compiled CSS/JS)
+    'resources/assets/scss',  # Exclude SCSS source files - keep compiled CSS in resources/assets/css/
+    'assets',  # Empty legacy directory - actual assets are in resources/assets/
 
     # Vendor dependencies (exclude all except Freemius SDK)
     # IMPORTANT: Plugin uses vendor/freemius/start.php directly, not Composer autoloader
@@ -132,6 +136,7 @@ EXCLUDE_PATTERNS = [
 # Keep these specific files even if they match exclude patterns
 FORCE_INCLUDE = [
     'readme.txt',  # Required by WordPress.org
+    'LICENSE',     # GPL-3.0 license file (good practice to include)
 ]
 
 
