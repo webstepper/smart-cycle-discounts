@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/utilities/class-debug-console.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -23,6 +23,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Provides a browser-based debug console for real-time debugging
  * and inspection of plugin operations during development.
+ *
+ * PRODUCTION READY: Code execution (eval) has been disabled for WordPress.org compliance.
+ * The console still provides:
+ * - Log file viewer (read debug logs)
+ * - Variable inspector (predefined system info, wizard state, campaigns)
+ * - System information (PHP version, memory usage, query count)
+ *
+ * Activation Requirements:
+ * - Must define WP_DEBUG as true
+ * - Must define SCD_DEBUG_CONSOLE as true
+ * - User must have 'manage_options' capability
  *
  * @since      1.0.0
  * @package    SmartCycleDiscounts
@@ -99,7 +110,7 @@ class SCD_Debug_Console {
 
 		wp_enqueue_script(
 			'scd-debug-console',
-			plugins_url( 'assets/js/utilities/debug-console.js', dirname( __DIR__ ) ),
+			plugins_url( 'resources/assets/js/utilities/debug-console.js', dirname( __DIR__ ) ),
 			array( 'jquery' ),
 			'1.0.0',
 			true
@@ -107,7 +118,7 @@ class SCD_Debug_Console {
 
 		wp_enqueue_style(
 			'scd-debug-console',
-			plugins_url( 'assets/css/admin/debug-console.css', dirname( __DIR__ ) ),
+			plugins_url( 'resources/assets/css/admin/debug-console.css', dirname( __DIR__ ) ),
 			array(),
 			'1.0.0'
 		);
@@ -126,6 +137,11 @@ class SCD_Debug_Console {
 
 	/**
 	 * Handle console AJAX requests.
+	 *
+	 * NOTE: This handler intentionally bypasses the unified AJAX router because:
+	 * 1. Development-only debugging tool (not production feature)
+	 * 2. Direct, low-level operations (execute code, get logs, inspect variables)
+	 * 3. Performance-critical for debug operations
 	 *
 	 * @since    1.0.0
 	 * @return   void
@@ -162,6 +178,15 @@ class SCD_Debug_Console {
 	/**
 	 * Execute debug code safely.
 	 *
+	 * SECURITY NOTE: Code execution via eval() has been disabled for production release
+	 * to comply with WordPress.org plugin guidelines and security best practices.
+	 *
+	 * This functionality can be re-enabled in local development environments by uncommenting
+	 * the eval() block below, but should NEVER be enabled in production.
+	 *
+	 * Alternative: Use the Inspector tab to view predefined variables and system info,
+	 * or use the Logs tab to view debug logs.
+	 *
 	 * @since    1.0.0
 	 * @return   void
 	 */
@@ -172,6 +197,17 @@ class SCD_Debug_Console {
 			wp_send_json_error( 'No code provided' );
 		}
 
+		$result = array(
+			'executed' => false,
+			'output'   => '',
+			'error'    => __( 'Code execution is disabled in production builds for security compliance. Use the Inspector tab to view system information, or enable this feature locally by uncommenting the eval() block in class-debug-console.php.', 'smart-cycle-discounts' ),
+		);
+
+		/* DISABLED FOR PRODUCTION - WordPress.org Security Compliance
+		 *
+		 * Uncomment this block ONLY in local development environments.
+		 * NEVER enable eval() in production or WordPress.org releases.
+		 *
 		// Security: Only allow safe debug functions
 		$allowed_functions = array(
 			'scd_get_campaign',
@@ -215,6 +251,7 @@ class SCD_Debug_Console {
 		} finally {
 			ob_end_clean();
 		}
+		*/
 
 		wp_send_json_success( $result );
 	}

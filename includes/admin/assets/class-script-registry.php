@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/assets/class-script-registry.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/assets
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Script_Registry {
 
@@ -193,12 +193,91 @@ class SCD_Script_Registry {
 			)
 		);
 
+		// Icon helper - SVG icon generation for JavaScript
+		$this->add_script(
+			'scd-icon-helper',
+			array(
+				'src'      => 'resources/assets/js/shared/icon-helper.js',
+				'deps'     => array( 'jquery' ),
+				'pages'    => array( 'scd-campaigns', 'scd-analytics', 'scd-dashboard', 'scd-settings', 'scd-tools', 'scd-notifications' ),
+				'localize' => array(
+					'object_name' => 'scdIcons',
+					'data'        => array(
+						'paths' => SCD_Icon_Helper::get_all_icons(),
+					),
+				),
+			)
+		);
+
+		// Loader utility - unified loader system for consistent loading states
+		$this->add_script(
+			'scd-loader-utility',
+			array(
+				'src'      => 'resources/assets/js/shared/loader-utility.js',
+				'deps'     => array( 'jquery', 'scd-icon-helper' ),
+				'pages'    => array( 'scd-campaigns', 'scd-analytics', 'scd-dashboard' ),
+				'localize' => null,
+			)
+		);
+
 		// Debug logger - for wizard pages (file-based logging)
 		$this->add_script(
 			'scd-debug-logger',
 			array(
 				'src'       => 'resources/assets/js/shared/debug-logger.js',
 				'deps'      => array( 'jquery' ),
+				'pages'     => array( 'scd-campaigns' ),
+				'condition' => array( 'action' => 'wizard' ),
+				'localize'  => null,
+				'in_footer' => false,
+			)
+		);
+
+		// Module Registry - declarative module instantiation system
+		$this->add_script(
+			'scd-module-registry',
+			array(
+				'src'       => 'resources/assets/js/shared/module-registry.js',
+				'deps'      => array( 'jquery', 'scd-debug-logger' ),
+				'pages'     => array( 'scd-campaigns' ),
+				'condition' => array( 'action' => 'wizard' ),
+				'localize'  => null,
+				'in_footer' => false,
+			)
+		);
+
+		// Auto Events - convention-based event binding system
+		$this->add_script(
+			'scd-auto-events',
+			array(
+				'src'       => 'resources/assets/js/shared/auto-events.js',
+				'deps'      => array( 'jquery', 'scd-debug-logger' ),
+				'pages'     => array( 'scd-campaigns' ),
+				'condition' => array( 'action' => 'wizard' ),
+				'localize'  => null,
+				'in_footer' => false,
+			)
+		);
+
+		// Row Factory - dynamic row generation system
+		$this->add_script(
+			'scd-row-factory',
+			array(
+				'src'       => 'resources/assets/js/shared/row-factory.js',
+				'deps'      => array( 'jquery', 'scd-debug-logger', 'scd-icon-helper' ),
+				'pages'     => array( 'scd-campaigns' ),
+				'condition' => array( 'action' => 'wizard' ),
+				'localize'  => null,
+				'in_footer' => false,
+			)
+		);
+
+		// UI State Manager - declarative state-driven UI system
+		$this->add_script(
+			'scd-ui-state-manager',
+			array(
+				'src'       => 'resources/assets/js/shared/ui-state-manager.js',
+				'deps'      => array( 'jquery', 'scd-debug-logger' ),
 				'pages'     => array( 'scd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 				'localize'  => null,
@@ -277,7 +356,7 @@ class SCD_Script_Registry {
 			'scd-main-dashboard',
 			array(
 				'src'      => 'resources/assets/js/admin/dashboard/main-dashboard.js',
-				'deps'     => array( 'jquery' ),
+				'deps'     => array( 'jquery', 'scd-loader-utility' ),
 				'pages'    => array( 'scd-dashboard' ),
 				'localize' => 'scdDashboard',
 			)
@@ -304,6 +383,17 @@ class SCD_Script_Registry {
 			)
 		);
 
+		// Admin notices dismiss handler (campaign expiration, currency change, etc.)
+		$this->add_script(
+			'scd-admin-notices-dismiss',
+			array(
+				'src'      => 'resources/assets/js/admin/admin-notices-dismiss.js',
+				'deps'     => array( 'jquery' ),
+				'pages'    => array( 'scd-dashboard', 'scd-campaigns', 'scd-analytics', 'scd-settings', 'scd-tools', 'scd-notifications' ),
+				'localize' => 'scdAdminNotices',
+			)
+		);
+
 		// Settings tooltips removed - now using centralized scd-tooltips
 
 		// General settings page
@@ -322,7 +412,7 @@ class SCD_Script_Registry {
 		$this->add_script(
 			'scd-notifications-settings',
 			array(
-				'src'      => 'assets/js/admin/notifications-settings.js',
+				'src'      => 'resources/assets/js/admin/notifications-settings.js',
 				'deps'     => array( 'jquery' ),
 				'pages'    => array( 'scd-notifications' ),
 				'localize' => 'scdNotificationsL10n',
@@ -333,7 +423,7 @@ class SCD_Script_Registry {
 		$this->add_script(
 			'scd-queue-management',
 			array(
-				'src'       => 'assets/js/admin/queue-management.js',
+				'src'       => 'resources/assets/js/admin/queue-management.js',
 				'deps'      => array( 'jquery' ),
 				'pages'     => array( 'scd-notifications' ),
 				'condition' => array( 'tab' => 'queue' ),
@@ -377,6 +467,20 @@ class SCD_Script_Registry {
 			)
 		);
 
+		// Campaign overview panel
+		$this->add_script(
+			'scd-campaign-overview-panel',
+			array(
+				'src'       => 'resources/assets/js/admin/campaign-overview-panel.js',
+				'deps'      => array( 'jquery', 'scd-admin', 'scd-loader-utility' ),
+				'pages'     => array( 'scd-campaigns', 'scd-analytics' ),
+				// No action condition - loads on all actions for scd-campaigns page
+				// JS checks URL and only opens panel when action=view
+				'localize'  => 'scdOverviewPanel',
+				'in_footer' => true,
+			)
+		);
+
 		// Tools page
 		$this->add_script(
 			'scd-tools',
@@ -385,17 +489,6 @@ class SCD_Script_Registry {
 				'deps'     => array( 'jquery' ),
 				'pages'    => array( 'scd-tools' ),
 				'localize' => 'scdAdmin',
-			)
-		);
-
-		// Campaign management - only load on list view, not wizard
-		$this->add_script(
-			'scd-campaigns-list',
-			array(
-				'src'       => 'resources/assets/js/admin/campaigns-list.js',
-				'deps'      => array( 'jquery', 'scd-admin' ),
-				'pages'     => array( 'scd-campaigns' ),
-				'condition' => array( 'action' => null ), // Exclude wizard pages
 			)
 		);
 
@@ -449,7 +542,7 @@ class SCD_Script_Registry {
 			'scd-wizard-state-manager',
 			array(
 				'src'       => 'resources/assets/js/wizard/wizard-state-manager.js',
-				'deps'      => array( 'jquery', 'scd-wizard-event-bus' ),
+				'deps'      => array( 'jquery', 'scd-shared-base-state', 'scd-wizard-event-bus' ),
 				'pages'     => array( 'scd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 				'localize'  => null,
@@ -480,6 +573,7 @@ class SCD_Script_Registry {
 			'scd-wizard-event-bus',
 			'scd-wizard-state-manager',
 			'scd-validation-manager', // Direct dependency on ValidationManager
+			'scd-loader-utility', // Unified loader system for consistent loading states
 		);
 		if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
 			$wizard_orchestrator_deps[] = 'scd-debug-logger';
@@ -518,6 +612,7 @@ class SCD_Script_Registry {
 					'scd-shared-notification-service',
 					'scd-validation-error',
 					'scd-wizard-save-indicator',
+					'scd-wizard-session-monitor', // Session expiration monitoring
 					'scd-wizard-orchestrator',
 					'scd-tooltips', // Add tooltips as core dependency
 					'scd-sidebar-collapse', // Required for collapsible sidebar sections
@@ -550,7 +645,7 @@ class SCD_Script_Registry {
 			'scd-wizard-completion-modal',
 			array(
 				'src'       => 'resources/assets/js/wizard/wizard-completion-modal.js',
-				'deps'      => array( 'jquery' ),
+				'deps'      => array( 'jquery', 'scd-icon-helper' ),
 				'pages'     => array( 'scd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 				'localize'  => null,
@@ -563,7 +658,12 @@ class SCD_Script_Registry {
 			'scd-wizard-session-monitor',
 			array(
 				'src'       => 'resources/assets/js/wizard/wizard-session-monitor.js',
-				'deps'      => array( 'jquery' ),
+				'deps'      => array(
+					'jquery',
+					'scd-shared-ajax-service', // Required for session status checks
+					'scd-shared-notification-service', // Required for warnings/errors
+					'scd-wizard-event-bus', // Required for event communication
+				),
 				'pages'     => array( 'scd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 				'localize'  => null,
@@ -676,7 +776,7 @@ class SCD_Script_Registry {
 			),
 			'scd-wizard-save-indicator'       => array(
 				'src'  => 'resources/assets/js/wizard/wizard-save-indicator.js',
-				'deps' => array( 'jquery' ),
+				'deps' => array( 'jquery', 'scd-icon-helper' ),
 			),
 			'scd-field-definitions'           => array(
 				'src'  => 'resources/assets/js/shared/field-definitions.js',
@@ -684,10 +784,14 @@ class SCD_Script_Registry {
 			),
 			'scd-tom-select-base'             => array(
 				'src'  => 'resources/assets/js/shared/tom-select-base.js',
-				'deps' => array( 'jquery', 'tom-select', 'scd-shared-utils' ),
+				'deps' => array( 'jquery', 'tom-select', 'scd-shared-utils', 'scd-icon-helper' ),
 			),
 			'scd-sidebar-collapse'            => array(
 				'src'  => 'resources/assets/js/wizard/sidebar-collapse.js',
+				'deps' => array( 'jquery' ),
+			),
+			'scd-card-collapse'               => array(
+				'src'  => 'resources/assets/js/shared/card-collapse.js',
 				'deps' => array( 'jquery' ),
 			),
 		);
@@ -698,6 +802,7 @@ class SCD_Script_Registry {
 			$analytics_shared_modules = array(
 				'scd-module-utilities',
 				'scd-error-handler',
+				'scd-shared-notification-service',
 			);
 
 			if ( in_array( $handle, $analytics_shared_modules ) ) {
@@ -763,7 +868,7 @@ class SCD_Script_Registry {
 			'scd-analytics-dashboard',
 			array(
 				'src'      => 'resources/assets/js/analytics/analytics-dashboard.js',
-				'deps'     => array( 'jquery', 'chart-js', 'scd-shared-utils', 'scd-shared-ajax-service', 'scd-theme-color-init' ),
+				'deps'     => array( 'jquery', 'chart-js', 'scd-shared-utils', 'scd-loader-utility', 'scd-shared-ajax-service', 'scd-shared-notification-service', 'scd-theme-color-init' ),
 				'pages'    => array( 'scd-analytics' ),
 				'localize' => 'scdAnalytics',
 			)
@@ -793,7 +898,7 @@ class SCD_Script_Registry {
 		$this->add_script(
 			'scd-tooltips',
 			array(
-				'src'       => 'assets/js/scd-tooltips.js',
+				'src'       => 'resources/assets/js/scd-tooltips.js',
 				'deps'      => array( 'jquery' ),
 				'pages'     => array(
 					'smart-cycle-discounts',
@@ -802,6 +907,7 @@ class SCD_Script_Registry {
 					'scd-notifications',
 					'scd-settings',
 					'scd-tools',
+					'scd-dashboard',
 				),
 				'condition' => null,
 				'localize'  => null,
@@ -955,10 +1061,11 @@ class SCD_Script_Registry {
 	 */
 	private function register_products_step_modules(): void {
 		$modules = array(
-			'scd-products-state'        => 'products-state.js',
-			'scd-products-api'          => 'products-api.js',
-			'scd-products-picker'       => 'products-picker.js',
-			'scd-products-orchestrator' => 'products-orchestrator.js',
+			'scd-products-state'                => 'products-state.js',
+			'scd-products-api'                  => 'products-api.js',
+			'scd-products-picker'               => 'products-picker.js',
+			'scd-products-conditions-validator' => 'products-conditions-validator.js',
+			'scd-products-orchestrator'         => 'products-orchestrator.js',
 		);
 
 		$this->register_step_module_group( 'products', $modules );
@@ -996,11 +1103,12 @@ class SCD_Script_Registry {
 
 		$this->register_discount_type_scripts();
 
+		// Badge settings - for configuring discount badges
 		$this->add_script(
-			'scd-review-sidebar',
+			'scd-badge-settings',
 			array(
-				'src'       => 'resources/assets/js/wizard/review-sidebar.js',
-				'deps'      => array( 'jquery', 'scd-wizard-orchestrator' ),
+				'src'       => 'resources/assets/js/admin/badge-settings.js',
+				'deps'      => array( 'jquery', 'wp-color-picker' ),
 				'pages'     => array( 'scd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 				'localize'  => null,
@@ -1141,7 +1249,7 @@ class SCD_Script_Registry {
 			'scd-review-health-check',
 			array(
 				'src'       => 'resources/assets/js/wizard/review-health-check.js',
-				'deps'      => array( 'jquery', 'scd-admin' ),
+				'deps'      => array( 'jquery', 'scd-admin', 'scd-icon-helper' ),
 				'pages'     => array( 'scd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 				'localize'  => null,
@@ -1192,7 +1300,7 @@ class SCD_Script_Registry {
 
 		// Special handling for orchestrator modules - they need all their step modules
 		if ( strpos( $handle, '-orchestrator' ) !== false ) {
-			$base_deps = array( 'jquery', 'scd-shared-base-orchestrator', 'scd-shared-utils', 'scd-event-manager-mixin', 'scd-step-persistence', 'scd-step-registry' );
+			$base_deps = array( 'jquery', 'scd-shared-base-orchestrator', 'scd-module-registry', 'scd-shared-utils', 'scd-event-manager-mixin', 'scd-step-persistence', 'scd-step-registry' );
 
 			$step = str_replace( array( 'scd-', '-orchestrator' ), '', $handle );
 
@@ -1216,10 +1324,20 @@ class SCD_Script_Registry {
 			'scd-discount-type-fixed',
 		);
 
-		// Picker module needs tom-select library, base, and utilities
-		if ( $handle === 'scd-products-picker' ) {
-			return array( 'jquery', 'tom-select', 'scd-tom-select-base', 'scd-module-utilities', 'scd-event-manager-mixin', 'scd-error-handler' );
+		// Picker module needs tom-select library, base, utilities, and icon helper
+		if ( 'scd-products-picker' === $handle ) {
+			return array( 'jquery', 'tom-select', 'scd-tom-select-base', 'scd-module-utilities', 'scd-event-manager-mixin', 'scd-error-handler', 'scd-icon-helper' );
 		}
+
+		// Step modules that need icon helper
+		$modules_needing_icons = array(
+			'scd-products-orchestrator',
+			'scd-products-conditions-validator',
+			'scd-schedule-orchestrator',
+			'scd-review-components',
+			'scd-discount-type-tiered',
+			'scd-discount-type-spend-threshold',
+		);
 
 		// Products modules that need constants
 		$products_modules_with_constants = array(
@@ -1244,6 +1362,15 @@ class SCD_Script_Registry {
 			}
 			if ( ! in_array( 'scd-shared-utils', $base_deps ) ) {
 				$base_deps[] = 'scd-shared-utils';
+			}
+			return $base_deps;
+		}
+
+		// Add icon-helper to modules that use it
+		if ( in_array( $handle, $modules_needing_icons ) ) {
+			$base_deps = $this->get_base_deps_for_type( $handle, $dependency_map );
+			if ( ! in_array( 'scd-icon-helper', $base_deps ) ) {
+				$base_deps[] = 'scd-icon-helper';
 			}
 			return $base_deps;
 		}

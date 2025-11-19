@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/assets/class-style-registry.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -193,6 +193,25 @@ class SCD_Style_Registry {
 		);
 
 		$this->add_style(
+			'scd-loader',
+			array(
+				'src'      => 'resources/assets/css/shared/loader.css',
+				'deps'     => array( 'scd-variables' ),
+				'pages'    => array(
+					'smart-cycle-discounts',
+					'scd-campaigns',
+					'scd-analytics',
+					'scd-notifications',
+					'scd-settings',
+					'scd-tools',
+					'scd-dashboard',
+				),
+				'media'    => 'all',
+				'priority' => 4,
+			)
+		);
+
+		$this->add_style(
 			'scd-components',
 			array(
 				'src'      => 'resources/assets/css/shared/_components.css',
@@ -249,7 +268,7 @@ class SCD_Style_Registry {
 			'scd-admin',
 			array(
 				'src'      => 'resources/assets/css/admin/admin.css',
-				'deps'     => array( 'scd-variables', 'scd-utilities', 'scd-components', 'scd-forms', 'scd-buttons' ),
+				'deps'     => array( 'scd-variables', 'scd-utilities', 'scd-components', 'scd-forms', 'scd-buttons', 'scd-badges' ),
 				'pages'    => array( 'scd-campaigns', 'scd-analytics' ),
 				'media'    => 'all',
 				'priority' => 10,
@@ -338,7 +357,7 @@ class SCD_Style_Registry {
 		$this->add_style(
 			'scd-notifications-page',
 			array(
-				'src'      => 'assets/css/admin/notifications.css',
+				'src'      => 'resources/assets/css/admin/notifications-page.css',
 				'deps'     => array(),
 				'pages'    => array( 'scd-notifications' ),
 				'media'    => 'all',
@@ -427,6 +446,19 @@ class SCD_Style_Registry {
 			)
 		);
 
+		// Campaign overview panel styles
+		$this->add_style(
+			'scd-campaign-overview-panel',
+			array(
+				'src'       => 'resources/assets/css/admin/campaign-overview-panel.css',
+				'deps'      => array( 'scd-admin', 'scd-badges' ),
+				'pages'     => array( 'scd-campaigns', 'scd-analytics' ),
+				// No action condition - loads on all actions for scd-campaigns page
+				// Panel HTML is rendered on list view and action=view
+				'priority'  => 10,
+			)
+		);
+
 		// Note: Modal styles removed - not implemented yet
 	}
 
@@ -475,7 +507,7 @@ class SCD_Style_Registry {
 			'scd-pro-feature-modal',
 			array(
 				'src'       => 'resources/assets/css/admin/pro-feature-modal.css',
-				'deps'      => array( 'scd-admin', 'dashicons' ),
+				'deps'      => array( 'scd-admin' ),
 				'pages'     => array( 'scd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 			)
@@ -487,6 +519,17 @@ class SCD_Style_Registry {
 			array(
 				'src'       => 'resources/assets/css/admin/wizard-steps.css',
 				'deps'      => array( 'scd-admin' ),
+				'pages'     => array( 'scd-campaigns' ),
+				'condition' => array( 'action' => 'wizard' ),
+			)
+		);
+
+		// Wizard sidebar components (icon lists, tip cards, callouts, tables, etc.)
+		$this->add_style(
+			'scd-wizard-sidebar-components',
+			array(
+				'src'       => 'resources/assets/css/admin/wizard-sidebar-components.css',
+				'deps'      => array( 'scd-wizard-steps' ),
 				'pages'     => array( 'scd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 			)
@@ -546,6 +589,17 @@ class SCD_Style_Registry {
 			)
 		);
 
+		// Badge settings styles
+		$this->add_style(
+			'scd-badge-settings',
+			array(
+				'src'       => 'resources/assets/css/admin/badge-settings.css',
+				'deps'      => array( 'scd-admin', 'wp-color-picker' ),
+				'pages'     => array( 'scd-campaigns' ),
+				'condition' => array( 'action' => 'wizard' ),
+			)
+		);
+
 		$this->add_style(
 			'scd-wizard-step-schedule',
 			array(
@@ -560,57 +614,6 @@ class SCD_Style_Registry {
 			'scd-wizard-step-review',
 			array(
 				'src'       => 'resources/assets/css/admin/step-review.css',
-				'deps'      => array( 'scd-admin' ),
-				'pages'     => array( 'scd-campaigns' ),
-				'condition' => array( 'action' => 'wizard' ),
-			)
-		);
-
-		// Sidebar styles for each step
-		$this->add_style(
-			'scd-wizard-step-basic-sidebar',
-			array(
-				'src'       => 'resources/assets/css/admin/step-basic-sidebar.css',
-				'deps'      => array( 'scd-admin' ),
-				'pages'     => array( 'scd-campaigns' ),
-				'condition' => array( 'action' => 'wizard' ),
-			)
-		);
-
-		$this->add_style(
-			'scd-wizard-step-products-sidebar',
-			array(
-				'src'       => 'resources/assets/css/admin/step-products-sidebar.css',
-				'deps'      => array( 'scd-admin' ),
-				'pages'     => array( 'scd-campaigns' ),
-				'condition' => array( 'action' => 'wizard' ),
-			)
-		);
-
-		$this->add_style(
-			'scd-wizard-step-discounts-sidebar',
-			array(
-				'src'       => 'resources/assets/css/admin/step-discounts-sidebar.css',
-				'deps'      => array( 'scd-admin' ),
-				'pages'     => array( 'scd-campaigns' ),
-				'condition' => array( 'action' => 'wizard' ),
-			)
-		);
-
-		$this->add_style(
-			'scd-wizard-step-schedule-sidebar',
-			array(
-				'src'       => 'resources/assets/css/admin/step-schedule-sidebar.css',
-				'deps'      => array( 'scd-admin' ),
-				'pages'     => array( 'scd-campaigns' ),
-				'condition' => array( 'action' => 'wizard' ),
-			)
-		);
-
-		$this->add_style(
-			'scd-wizard-step-review-sidebar',
-			array(
-				'src'       => 'resources/assets/css/admin/step-review-sidebar.css',
 				'deps'      => array( 'scd-admin' ),
 				'pages'     => array( 'scd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
@@ -645,24 +648,7 @@ class SCD_Style_Registry {
 	 * @return void
 	 */
 	private function register_component_styles(): void {
-		// Tooltip styles - Global (available on all SCD pages)
-		$this->add_style(
-			'scd-tooltips',
-			array(
-				'src'       => 'resources/assets/css/admin/tooltips.css',
-				'deps'      => array( 'scd-components' ),
-				'pages'     => array(
-					'smart-cycle-discounts',
-					'scd-campaigns',
-					'scd-analytics',
-					'scd-notifications',
-					'scd-settings',
-					'scd-tools',
-				),
-				'condition' => null,
-				'priority'  => 15,
-			)
-		);
+		// Tooltip styles are now consolidated in shared/_components.css
 	}
 
 	/**
@@ -674,7 +660,8 @@ class SCD_Style_Registry {
 	 * @return void
 	 */
 	public function add_style( string $handle, array $config ): void {
-		if ( ! empty( $config['src'] ) && empty( $config['external'] ) ) {
+		// Skip get_style_path if src is a callable (dynamic source)
+		if ( ! empty( $config['src'] ) && empty( $config['external'] ) && ! is_callable( $config['src'] ) ) {
 			$config['src'] = $this->get_style_path( $config['src'] );
 		}
 

@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/services/class-dashboard-service.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -37,7 +37,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/services
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Dashboard_Service {
 
@@ -55,6 +55,16 @@ class SCD_Dashboard_Service {
 	 * @since    1.0.0
 	 */
 	const CACHE_TTL = 300;
+
+	/**
+	 * Cache manager instance.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      SCD_Cache_Manager    $cache    Cache manager.
+	 */
+	private SCD_Cache_Manager $cache;
+
 
 	/**
 	 * Analytics dashboard instance.
@@ -142,16 +152,15 @@ class SCD_Dashboard_Service {
 	 * @param    SCD_Campaign_Display_Service     $display_service        Campaign display service.
 	 * @param    SCD_Campaign_Planner_Service     $planner_service       Campaign planner service.
 	 */
-	public function __construct(
-		SCD_Analytics_Dashboard $analytics_dashboard,
+	public function __construct(SCD_Cache_Manager $cache, SCD_Analytics_Dashboard $analytics_dashboard,
 		SCD_Campaign_Repository $campaign_repository,
 		SCD_Campaign_Health_Service $health_service,
 		SCD_Feature_Gate $feature_gate,
 		SCD_Logger $logger,
 		SCD_Campaign_Suggestions_Service $suggestions_service,
 		SCD_Campaign_Display_Service $display_service,
-		SCD_Campaign_Planner_Service $planner_service
-	) {
+		SCD_Campaign_Planner_Service $planner_service) {
+		$this->cache = $cache;
 		$this->analytics_dashboard = $analytics_dashboard;
 		$this->campaign_repository = $campaign_repository;
 		$this->health_service      = $health_service;
@@ -196,7 +205,7 @@ class SCD_Dashboard_Service {
 		// Try cache first (unless force refresh)
 		if ( ! $force_refresh ) {
 			$cached = $this->get_from_cache( $cache_key );
-			if ( false !== $cached ) {
+			if ( null !== $cached ) {
 				$this->logger->debug(
 					'Dashboard data served from cache',
 					array(
@@ -271,10 +280,13 @@ class SCD_Dashboard_Service {
 		$table_name = $wpdb->prefix . 'scd_campaigns';
 
 		$stats = $wpdb->get_results(
-			"SELECT status, COUNT(*) as count
-			FROM {$table_name}
-			WHERE deleted_at IS NULL
-			GROUP BY status",
+			$wpdb->prepare(
+				"SELECT status, COUNT(*) as count
+				FROM %i
+				WHERE deleted_at IS NULL
+				GROUP BY status",
+				$table_name
+			),
 			ARRAY_A
 		);
 
@@ -372,7 +384,7 @@ class SCD_Dashboard_Service {
 
 		$table_name = $wpdb->prefix . 'scd_activity_log';
 
-		$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) === $table_name;
+		$table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name;
 
 		if ( ! $table_exists ) {
 			return array();
@@ -502,13 +514,14 @@ class SCD_Dashboard_Service {
 			}
 		}
 
-		$active_campaigns = array_filter(
-			$campaigns,
-			function ( $c ) {
-				return 'active' === $c['status'];
+		// Filter active campaigns - avoid closure for serialization compatibility.
+		$active_campaigns = array();
+		foreach ( $campaigns as $c ) {
+			if ( 'active' === $c['status'] ) {
+				$active_campaigns[] = $c;
 			}
-		);
-		$active_count     = count( $active_campaigns );
+		}
+		$active_count = count( $active_campaigns );
 		$campaign_limit   = $this->feature_gate->get_campaign_limit();
 
 		if ( 0 !== $campaign_limit && $active_count >= $campaign_limit ) {
@@ -666,7 +679,7 @@ class SCD_Dashboard_Service {
 	 * @return   mixed             Cached data or false if not found.
 	 */
 	private function get_from_cache( string $key ) {
-		return get_transient( self::CACHE_GROUP . '_' . $key );
+		return $this->cache->get( self::CACHE_GROUP . '_' . $key );
 	}
 
 	/**
@@ -678,7 +691,8 @@ class SCD_Dashboard_Service {
 	 * @return   void
 	 */
 	private function store_in_cache( string $key, array $data ): void {
-		set_transient( self::CACHE_GROUP . '_' . $key, $data, self::CACHE_TTL );
+		// Store dashboard data in transient cache.
+		$this->cache->set( self::CACHE_GROUP . '_' . $key, $data, self::CACHE_TTL );
 	}
 
 	/**
@@ -999,7 +1013,7 @@ class SCD_Dashboard_Service {
 
 		$content_pool[] = array(
 			'type'   => 'info',
-			'icon'   => 'calendar-alt',
+			'icon'   => 'info',
 			'text'   => $event['description'],
 			'weight' => 2,
 		);
@@ -1022,7 +1036,7 @@ class SCD_Dashboard_Service {
 		return array(
 			'id'      => 'opportunity',
 			'label'   => __( 'Opportunity', 'smart-cycle-discounts' ),
-			'icon'    => 'lightbulb',
+			'icon'    => 'trending-up',
 			'content' => $selected_content,
 		);
 	}
@@ -1043,7 +1057,7 @@ class SCD_Dashboard_Service {
 			$discount       = $event['suggested_discount'];
 			$content_pool[] = array(
 				'type'   => 'info',
-				'icon'   => 'tag',
+				'icon'   => 'percent',
 				'text'   => sprintf(
 					/* translators: %d: optimal discount percentage */
 					__( 'Optimal Discount: %d%%', 'smart-cycle-discounts' ),
@@ -1053,7 +1067,7 @@ class SCD_Dashboard_Service {
 			);
 			$content_pool[] = array(
 				'type'   => 'info',
-				'icon'   => 'chart-line',
+				'icon'   => 'chart-bar',
 				'text'   => sprintf(
 					/* translators: %1$d: minimum discount, %2$d: maximum discount */
 					__( 'Range: %1$d%% - %2$d%% based on industry performance', 'smart-cycle-discounts' ),
@@ -1068,7 +1082,7 @@ class SCD_Dashboard_Service {
 			foreach ( $event['recommendations'] as $recommendation ) {
 				$content_pool[] = array(
 					'type'   => 'info',
-					'icon'   => 'yes-alt',
+					'icon'   => 'check-circle',
 					'text'   => $recommendation,
 					'weight' => 2,
 				);
@@ -1079,7 +1093,7 @@ class SCD_Dashboard_Service {
 			foreach ( $event['tips'] as $tip ) {
 				$content_pool[] = array(
 					'type'   => 'info',
-					'icon'   => 'megaphone',
+					'icon'   => 'lightbulb',
 					'text'   => $tip,
 					'weight' => 1,
 				);
@@ -1103,7 +1117,7 @@ class SCD_Dashboard_Service {
 		return array(
 			'id'      => 'strategy',
 			'label'   => __( 'Strategy', 'smart-cycle-discounts' ),
-			'icon'    => 'admin-tools',
+			'icon'    => 'target',
 			'content' => $selected_content,
 		);
 	}
@@ -1138,7 +1152,7 @@ class SCD_Dashboard_Service {
 			$start_date     = wp_date( 'F j, Y', $event['calculated_start_date'] );
 			$content_pool[] = array(
 				'type'   => 'info',
-				'icon'   => 'flag',
+				'icon'   => 'play-circle',
 				'text'   => sprintf(
 					/* translators: %s: start date */
 					__( 'Campaign Starts: %s', 'smart-cycle-discounts' ),
@@ -1152,7 +1166,7 @@ class SCD_Dashboard_Service {
 			$end_date       = wp_date( 'F j, Y', $event['calculated_end_date'] );
 			$content_pool[] = array(
 				'type'   => 'info',
-				'icon'   => 'flag',
+				'icon'   => 'stop-circle',
 				'text'   => sprintf(
 					/* translators: %s: end date */
 					__( 'Campaign Ends: %s', 'smart-cycle-discounts' ),
@@ -1181,7 +1195,7 @@ class SCD_Dashboard_Service {
 			if ( ! empty( $lead_time['marketing'] ) ) {
 				$content_pool[] = array(
 					'type'   => 'info',
-					'icon'   => 'megaphone',
+					'icon'   => 'bullhorn',
 					'text'   => sprintf(
 						/* translators: %d: number of weeks */
 						__( 'Start marketing %d weeks before', 'smart-cycle-discounts' ),
@@ -1194,7 +1208,7 @@ class SCD_Dashboard_Service {
 			if ( ! empty( $lead_time['inventory'] ) ) {
 				$content_pool[] = array(
 					'type'   => 'info',
-					'icon'   => 'products',
+					'icon'   => 'box',
 					'text'   => sprintf(
 						/* translators: %d: number of weeks */
 						__( 'Order inventory %d weeks ahead', 'smart-cycle-discounts' ),
@@ -1209,7 +1223,7 @@ class SCD_Dashboard_Service {
 			foreach ( $event['best_practices'] as $practice ) {
 				$content_pool[] = array(
 					'type'   => 'info',
-					'icon'   => 'star-filled',
+					'icon'   => 'star',
 					'text'   => $practice,
 					'weight' => 1,
 				);
@@ -1618,13 +1632,13 @@ class SCD_Dashboard_Service {
 
 		// If pool is smaller than requested count, return all items.
 		if ( count( $pool ) <= $count ) {
-			return array_map(
-				function ( $item ) {
-					unset( $item['weight'] );
-					return $item;
-				},
-				$pool
-			);
+			// Remove weight property - avoid closure for serialization compatibility.
+			$result = array();
+			foreach ( $pool as $item ) {
+				unset( $item['weight'] );
+				$result[] = $item;
+			}
+			return $result;
 		}
 
 		$selected       = array();

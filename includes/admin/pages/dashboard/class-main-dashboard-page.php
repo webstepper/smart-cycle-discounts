@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/pages/dashboard/class-main-dashboard-page.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/pages/dashboard
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Main_Dashboard_Page {
 
@@ -188,10 +188,13 @@ class SCD_Main_Dashboard_Page {
 		$table_name = $wpdb->prefix . 'scd_campaigns';
 
 		$stats = $wpdb->get_results(
-			"SELECT status, COUNT(*) as count
-			FROM {$table_name}
-			WHERE deleted_at IS NULL
-			GROUP BY status",
+			$wpdb->prepare(
+				"SELECT status, COUNT(*) as count
+				FROM %i
+				WHERE deleted_at IS NULL
+				GROUP BY status",
+				$table_name
+			),
 			ARRAY_A
 		);
 
@@ -291,7 +294,7 @@ class SCD_Main_Dashboard_Page {
 
 		$table_name = $wpdb->prefix . 'scd_activity_log';
 
-		$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) === $table_name;
+		$table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name;
 
 		if ( ! $table_exists ) {
 			return array();
