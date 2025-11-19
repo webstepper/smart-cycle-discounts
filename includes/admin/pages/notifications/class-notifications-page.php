@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/pages/notifications/class-notifications-page.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -29,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/pages/notifications
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Notifications_Page {
 
@@ -111,8 +111,6 @@ class SCD_Notifications_Page {
 	public function init(): void {
 		$this->init_tab_classes();
 		$this->add_hooks();
-
-		$this->logger->debug( 'Notifications page initialized' );
 	}
 
 	/**
@@ -161,8 +159,6 @@ class SCD_Notifications_Page {
 				1
 			);
 		}
-
-		$this->logger->debug( 'Notification tab classes initialized' );
 	}
 
 	/**
@@ -188,12 +184,12 @@ class SCD_Notifications_Page {
 			'settings' => array(
 				'title'    => __( 'Settings', 'smart-cycle-discounts' ),
 				'priority' => 10,
-				'icon'     => 'dashicons-admin-settings',
+				'icon'     => 'admin-settings',
 			),
 			'queue'    => array(
 				'title'    => __( 'Queue Status', 'smart-cycle-discounts' ),
 				'priority' => 20,
-				'icon'     => 'dashicons-list-view',
+				'icon'     => 'list-view',
 			),
 		);
 
@@ -286,7 +282,7 @@ class SCD_Notifications_Page {
 		}
 
 		echo '<div class="wrap scd-notifications">';
-		echo '<h1><span class="dashicons dashicons-email"></span> ' . esc_html__( 'Email Notifications', 'smart-cycle-discounts' ) . '</h1>';
+		echo '<h1>' . SCD_Icon_Helper::get( 'email', array( 'size' => 16 ) ) . ' ' . esc_html__( 'Email Notifications', 'smart-cycle-discounts' ) . '</h1>';
 
 		// Show admin notices
 		settings_errors( 'scd_notifications_messages' );
@@ -334,11 +330,14 @@ class SCD_Notifications_Page {
 				admin_url( 'admin.php' )
 			);
 
+			$icon_name = str_replace( 'dashicons-', '', $tab_data['icon'] );
+			$icon_html = SCD_Icon_Helper::get( $icon_name, array( 'size' => 16 ) );
+
 			printf(
-				'<a href="%s" class="nav-tab%s"><span class="dashicons %s"></span> %s</a>',
+				'<a href="%s" class="nav-tab%s">%s %s</a>',
 				esc_url( $tab_url ),
 				esc_attr( $active_class ),
-				esc_attr( $tab_data['icon'] ),
+				$icon_html,
 				esc_html( $tab_data['title'] )
 			);
 		}

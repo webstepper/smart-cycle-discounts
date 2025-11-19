@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/steps/review/review-components.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -119,7 +119,8 @@
 			var $header = $card.find( '.scd-card__header' );
 
 			if ( !$header.find( '.scd-card-toggle' ).length ) {
-				$header.append( '<span class="scd-card-toggle dashicons dashicons-arrow-down-alt2"></span>' );
+				var arrowIcon = SCD.IconHelper ? SCD.IconHelper.get( 'arrow-down', { size: 16 } ) : '<span class="scd-icon scd-icon-arrow-down"></span>';
+				$header.append( '<span class="scd-card-toggle">' + arrowIcon + '</span>' );
 			}
 
 			self.collapsibleStates[$card.attr( 'id' )] = false;
@@ -153,7 +154,8 @@
 
 		$content.slideUp( 200 );
 		$card.addClass( 'scd-card-collapsed' );
-		$toggle.removeClass( 'dashicons-arrow-down-alt2' ).addClass( 'dashicons-arrow-right-alt2' );
+		var arrowRightIcon = SCD.IconHelper ? SCD.IconHelper.get( 'arrow-right', { size: 16 } ) : '<span class="scd-icon scd-icon-arrow-right"></span>';
+		$toggle.html( arrowRightIcon );
 	};
 
 	/**
@@ -166,7 +168,8 @@
 
 		$content.slideDown( 200 );
 		$card.removeClass( 'scd-card-collapsed' );
-		$toggle.removeClass( 'dashicons-arrow-right-alt2' ).addClass( 'dashicons-arrow-down-alt2' );
+		var arrowDownIcon = SCD.IconHelper ? SCD.IconHelper.get( 'arrow-down', { size: 16 } ) : '<span class="scd-icon scd-icon-arrow-down"></span>';
+		$toggle.html( arrowDownIcon );
 	};
 
 	/* ===== LAUNCH OPTIONS METHODS ===== */
@@ -262,7 +265,7 @@
 	 */
 	SCD.Modules.Review.Components.prototype.isEditMode = function() {
 		if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.StateManager ) {
-			var wizardState = window.SCD.Wizard.StateManager.get();
+			var wizardState = window.SCD.Wizard.StateManager.getInstance().get();
 			return wizardState && ( wizardState.wizardMode === 'edit' || wizardState.campaignId > 0 );
 		}
 		return false;

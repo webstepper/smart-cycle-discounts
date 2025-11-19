@@ -30,10 +30,15 @@ $progress = $nav_data['progress'] ?? array();
 $btn_classes = $config['button_classes'] ?? array();
 $icons = $config['icons'] ?? array();
 
+// Sanitize and validate query parameters
+// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only display logic, nonce checked on form submission
+$intent = isset( $_GET['intent'] ) ? sanitize_key( $_GET['intent'] ) : '';
+// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only display logic, nonce checked on form submission
+$campaign_id = isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0;
+
 // Detect edit mode - match JavaScript logic in wizard-orchestrator.js
 // Edit mode only if: intent=edit OR (id exists AND intent is NOT 'new')
-$is_edit_mode = ( isset( $_GET['intent'] ) && 'edit' === $_GET['intent'] )
-                || ( isset( $_GET['id'] ) && ! empty( $_GET['id'] ) && ( ! isset( $_GET['intent'] ) || 'new' !== $_GET['intent'] ) );
+$is_edit_mode = ( 'edit' === $intent ) || ( $campaign_id > 0 && 'new' !== $intent );
 $complete_button_text = $is_edit_mode ? __( 'Update Campaign', 'smart-cycle-discounts' ) : __( 'Create Campaign', 'smart-cycle-discounts' );
 ?>
 
@@ -47,15 +52,21 @@ $complete_button_text = $is_edit_mode ? __( 'Update Campaign', 'smart-cycle-disc
     <div class="scd-nav-container">
         <!-- Previous Button Section -->
         <div class="scd-nav-section scd-nav-section--left">
-            <?php if (!$is_first && $previous_step): ?>
-                <button type="button" 
-                        class="<?php echo esc_attr($btn_classes['previous']); ?>"
-                        data-action="previous"
-                        data-target="<?php echo esc_attr($previous_step); ?>"
-                        aria-label="<?php esc_attr_e('Go to previous step', 'smart-cycle-discounts'); ?>">
-                    <span class="dashicons <?php echo esc_attr($icons['previous']); ?>" aria-hidden="true"></span>
-                    <span class="scd-nav-btn__text"><?php esc_html_e('Previous', 'smart-cycle-discounts'); ?></span>
-                </button>
+            <?php if ( ! $is_first && $previous_step ): ?>
+                <?php
+                SCD_Button_Helper::render( array(
+                    'text'       => __( 'Previous', 'smart-cycle-discounts' ),
+                    'type'       => 'button',
+                    'icon'       => 'arrow-left',
+                    'icon_position' => 'left',
+                    'classes'    => (array) $btn_classes['previous'],
+                    'attributes' => array(
+                        'data-action' => 'previous',
+                        'data-target' => esc_attr( $previous_step ),
+                        'aria-label'  => __( 'Go to previous step', 'smart-cycle-discounts' ),
+                    ),
+                ) );
+                ?>
             <?php endif; ?>
         </div>
 
@@ -76,30 +87,46 @@ $complete_button_text = $is_edit_mode ? __( 'Update Campaign', 'smart-cycle-disc
 
         <!-- Next/Complete Button Section -->
         <div class="scd-nav-section scd-nav-section--right">
-            <!-- Autosave Indicator -->
-            <span class="scd-nav-status__autosave" style="display: none;" role="status" aria-live="polite">
-                <span class="dashicons dashicons-update" aria-hidden="true"></span>
-                <span class="scd-nav-status__autosave-text"><?php esc_html_e('Saving...', 'smart-cycle-discounts'); ?></span>
-            </span>
-
-            <?php if ($is_last): ?>
+            <?php if ( $is_last ): ?>
                 <!-- Complete Campaign Button -->
-                <button type="button"
-                        class="<?php echo esc_attr($btn_classes['complete']); ?>"
-                        data-action="complete"
-                        aria-label="<?php echo esc_attr( $is_edit_mode ? __( 'Complete wizard and update campaign', 'smart-cycle-discounts' ) : __( 'Complete wizard and create campaign', 'smart-cycle-discounts' ) ); ?>">
-                    <span class="dashicons <?php echo esc_attr($icons['complete']); ?>" aria-hidden="true"></span>
-                    <span class="scd-nav-btn__text"><?php echo esc_html( $complete_button_text ); ?></span>
-                </button>
-            <?php elseif ($next_step): ?>
-                <button type="button" 
-                        class="<?php echo esc_attr($btn_classes['next']); ?>"
-                        data-action="next"
-                        data-target="<?php echo esc_attr($next_step); ?>"
-                        aria-label="<?php esc_attr_e('Go to next step', 'smart-cycle-discounts'); ?>">
-                    <span class="scd-nav-btn__text"><?php esc_html_e('Next', 'smart-cycle-discounts'); ?></span>
-                    <span class="dashicons <?php echo esc_attr($icons['next']); ?>" aria-hidden="true"></span>
-                </button>
+                <?php
+                ob_start();
+                if ( class_exists( 'SCD_Loader_Helper' ) ) {
+                    echo SCD_Loader_Helper::button( 'scd-launch-loader', $is_edit_mode ? __( 'Updating...', 'smart-cycle-discounts' ) : __( 'Creating...', 'smart-cycle-discounts' ), false );
+                }
+                $loader_html = ob_get_clean();
+
+                SCD_Button_Helper::render( array(
+                    'text'       => $complete_button_text,
+                    'type'       => 'button',
+                    'icon'       => 'check',
+                    'icon_position' => 'left',
+                    'classes'    => (array) $btn_classes['complete'],
+                    'attributes' => array(
+                        'data-action' => 'complete',
+                        'aria-label'  => $is_edit_mode ? __( 'Complete wizard and update campaign', 'smart-cycle-discounts' ) : __( 'Complete wizard and create campaign', 'smart-cycle-discounts' ),
+                    ),
+                ) );
+
+                // Output loader HTML after button
+                // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Already escaped by SCD_Loader_Helper
+                echo $loader_html;
+                ?>
+            <?php elseif ( $next_step ): ?>
+                <?php
+                SCD_Button_Helper::render( array(
+                    'text'       => __( 'Next', 'smart-cycle-discounts' ),
+                    'type'       => 'button',
+                    'icon'       => 'arrow-right',
+                    'icon_position' => 'right',
+                    'classes'    => (array) $btn_classes['next'],
+                    'attributes' => array(
+                        'data-action' => 'next',
+                        'data-target' => esc_attr( $next_step ),
+                        'aria-label'  => __( 'Go to next step', 'smart-cycle-discounts' ),
+                    ),
+                ) );
+                ?>
             <?php endif; ?>
         </div>
     </div>

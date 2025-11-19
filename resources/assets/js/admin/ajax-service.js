@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/admin/ajax-service.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -595,6 +595,21 @@
 		 * @returns {string} Nonce value
 		 */
 		getNonce: function( action ) {
+			// Check analytics nonces first (for analytics_* and scd_analytics_* actions)
+			if ( action && action.indexOf( 'analytics' ) !== -1 && window.scdAnalytics ) {
+				if ( window.scdAnalytics.nonces && window.scdAnalytics.nonces.action_map && window.scdAnalytics.nonces.action_map[action] ) {
+					var analyticsNonceName = window.scdAnalytics.nonces.action_map[action];
+					if ( window.scdAnalytics.nonces[analyticsNonceName] ) {
+						return window.scdAnalytics.nonces[analyticsNonceName];
+					}
+				}
+				// Fallback to direct analytics nonce
+				if ( window.scdAnalytics.nonce ) {
+					return window.scdAnalytics.nonce;
+				}
+			}
+
+			// Check wizard nonces
 			var noncesObj = window.scdWizardData && window.scdWizardData.nonces;
 			if ( noncesObj && noncesObj.action_map && noncesObj.action_map[action] ) {
 				var nonceName = noncesObj.action_map[action];

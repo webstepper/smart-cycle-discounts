@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/api/class-request-schemas.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Request_Schemas {
 
@@ -97,7 +97,7 @@ class SCD_Request_Schemas {
 				'validate_callback' => function ( $value, $request ) {
 					$type = $request['discount_type'] ?? '';
 
-					if ( $type === 'percentage' ) {
+					if ( 'percentage' === $type ) {
 						$value = floatval( $value );
 						if ( $value < SCD_Validation_Rules::DISCOUNT_PERCENTAGE_MIN || $value > SCD_Validation_Rules::DISCOUNT_PERCENTAGE_MAX ) {
 							return new WP_Error(
@@ -109,7 +109,7 @@ class SCD_Request_Schemas {
 								)
 							);
 						}
-					} elseif ( $type === 'fixed' ) {
+					} elseif ( 'fixed' === $type ) {
 						$value = floatval( $value );
 						if ( $value < SCD_Validation_Rules::DISCOUNT_FIXED_MIN || $value > SCD_Validation_Rules::DISCOUNT_FIXED_MAX ) {
 							return new WP_Error(
@@ -128,7 +128,7 @@ class SCD_Request_Schemas {
 				'sanitize_callback' => function ( $value, $request ) {
 					$type = $request['discount_type'] ?? '';
 
-					if ( $type === 'percentage' && class_exists( 'SCD_Validation' ) ) {
+					if ( 'percentage' === $type && class_exists( 'SCD_Validation' ) ) {
 						return SCD_Validation_Rules::sanitize_percentage( $value );
 					}
 
@@ -348,13 +348,13 @@ class SCD_Request_Schemas {
 		foreach ( $schema as $field => $rules ) {
 			$value = $data[ $field ] ?? null;
 
-			if ( ! empty( $rules['required'] ) && ( $value === null || $value === '' ) ) {
+			if ( ! empty( $rules['required'] ) && ( null === $value || '' === $value ) ) {
 				$errors[ $field ] = sprintf( __( '%s is required', 'smart-cycle-discounts' ), $rules['description'] ?? $field );
 				continue;
 			}
 
 			// Skip validation for empty optional fields
-			if ( ! $rules['required'] && ( $value === null || $value === '' ) ) {
+			if ( ! $rules['required'] && ( null === $value || '' === $value ) ) {
 				continue;
 			}
 
@@ -417,7 +417,7 @@ class SCD_Request_Schemas {
 				break;
 
 			case 'integer':
-				if ( ! is_numeric( $value ) || intval( $value ) != $value ) {
+				if ( ! is_numeric( $value ) || $value !== intval( $value ) ) {
 					return new WP_Error( 'invalid_type', __( 'Must be an integer', 'smart-cycle-discounts' ) );
 				}
 				break;

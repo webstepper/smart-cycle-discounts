@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/steps/schedule/schedule-config.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -98,7 +98,6 @@
 		// Timing Configuration
 		timing: {
 			debounceDelay: 300,
-			autoSaveDelay: 2000,
 			feedbackDuration: 3000,
 			animationDuration: 300
 		},
@@ -129,31 +128,31 @@
 				flash: {
 					days: 1,
 					label: ( window.wp && wp.i18n && wp.i18n.__ ) ? wp.i18n.__( 'Flash Sale', 'smart-cycle-discounts' ) : 'Flash Sale',
-					icon: 'dashicons-performance',
+					icon: 'performance',
 					description: ( window.wp && wp.i18n && wp.i18n.__ ) ? wp.i18n.__( 'Quick 24-hour promotion for urgency', 'smart-cycle-discounts' ) : 'Quick 24-hour promotion for urgency'
 				},
 				weekend: {
 					days: 3,
 					label: ( window.wp && wp.i18n && wp.i18n.__ ) ? wp.i18n.__( 'Weekend Special', 'smart-cycle-discounts' ) : 'Weekend Special',
-					icon: 'dashicons-star-filled',
+					icon: 'star-filled',
 					description: ( window.wp && wp.i18n && wp.i18n.__ ) ? wp.i18n.__( 'Friday to Sunday promotion', 'smart-cycle-discounts' ) : 'Friday to Sunday promotion'
 				},
 				week: {
 					days: 7,
 					label: ( window.wp && wp.i18n && wp.i18n.__ ) ? wp.i18n.__( 'Weekly Campaign', 'smart-cycle-discounts' ) : 'Weekly Campaign',
-					icon: 'dashicons-calendar-alt',
+					icon: 'calendar',
 					description: ( window.wp && wp.i18n && wp.i18n.__ ) ? wp.i18n.__( 'Perfect for holidays and events', 'smart-cycle-discounts' ) : 'Perfect for holidays and events'
 				},
 				twoWeeks: {
 					days: 14,
 					label: ( window.wp && wp.i18n && wp.i18n.__ ) ? wp.i18n.__( 'Extended Sale', 'smart-cycle-discounts' ) : 'Extended Sale',
-					icon: 'dashicons-chart-line',
+					icon: 'chart-line',
 					description: ( window.wp && wp.i18n && wp.i18n.__ ) ? wp.i18n.__( 'Longer promotion period', 'smart-cycle-discounts' ) : 'Longer promotion period'
 				},
 				monthly: {
 					days: 30,
 					label: ( window.wp && wp.i18n && wp.i18n.__ ) ? wp.i18n.__( 'Seasonal Campaign', 'smart-cycle-discounts' ) : 'Seasonal Campaign',
-					icon: 'dashicons-palmtree',
+					icon: 'palmtree',
 					description: ( window.wp && wp.i18n && wp.i18n.__ ) ? wp.i18n.__( 'Month-long seasonal promotion', 'smart-cycle-discounts' ) : 'Month-long seasonal promotion'
 				}
 			}

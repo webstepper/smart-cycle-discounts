@@ -75,7 +75,7 @@ ob_start();
     <div class="scd-preset-grid" id="scd-preset-recommendations" role="group" aria-label="<?php esc_attr_e( 'Campaign duration presets', 'smart-cycle-discounts' ); ?>">
         <!-- Preset options will be populated by JavaScript -->
         <div class="scd-preset-loading">
-            <span class="scd-spinner scd-spinner--small"></span>
+            <span class="spinner is-active"></span>
             <?php esc_html_e( 'Loading recommendations...', 'smart-cycle-discounts' ); ?>
         </div>
     </div>
@@ -96,9 +96,11 @@ ob_start();
     ?>
     <!-- Start Type Selection Cards -->
     <div class="scd-form-section">
-        <h3 class="scd-section-title">
-            <?php esc_html_e( 'Campaign Start Type', 'smart-cycle-discounts' ); ?>
-        </h3>
+        <div class="scd-form-section-header">
+            <h3 class="scd-form-section-title">
+                <?php esc_html_e( 'Campaign Start Type', 'smart-cycle-discounts' ); ?>
+            </h3>
+        </div>
         <div class="scd-schedule-selection-cards">
             <label class="scd-card-option">
                 <input type="radio" 
@@ -107,7 +109,7 @@ ob_start();
                        <?php checked( $start_type, 'immediate' ); ?>>
                 <div class="scd-card__content">
                     <h4>
-                        <span class="dashicons dashicons-controls-play" aria-hidden="true"></span>
+                        <?php echo SCD_Icon_Helper::get( 'play', array( 'size' => 16 ) ); ?>
                         <?php esc_html_e( 'Start Immediately', 'smart-cycle-discounts' ); ?>
                     </h4>
                     <p><?php esc_html_e( 'Campaign begins as soon as it\'s launched. Perfect for urgent promotions or flash sales.', 'smart-cycle-discounts' ); ?></p>
@@ -120,7 +122,7 @@ ob_start();
                        <?php checked( $start_type, 'scheduled' ); ?>>
                 <div class="scd-card__content">
                     <h4>
-                        <span class="dashicons dashicons-calendar-alt" aria-hidden="true"></span>
+                        <?php echo SCD_Icon_Helper::get( 'calendar', array( 'size' => 16 ) ); ?>
                         <?php esc_html_e( 'Scheduled Start', 'smart-cycle-discounts' ); ?>
                     </h4>
                     <p><?php esc_html_e( 'Set a specific date and time to begin. Ideal for planned campaigns and seasonal promotions.', 'smart-cycle-discounts' ); ?></p>
@@ -130,12 +132,15 @@ ob_start();
     </div>
 
     <!-- Schedule Dates Section -->
-    <h4 class="scd-section-title">
-        <?php esc_html_e( 'Schedule Dates', 'smart-cycle-discounts' ); ?>
-    </h4>
+    <div class="scd-form-section">
+        <div class="scd-form-section-header">
+            <h4 class="scd-form-section-title">
+                <?php esc_html_e( 'Schedule Dates', 'smart-cycle-discounts' ); ?>
+            </h4>
+        </div>
 
     <!-- Start Date - Only visible when "scheduled" is selected -->
-    <div class="scd-scheduled-start-fields" style="display: <?php echo ( 'scheduled' === $start_type ) ? 'block' : 'none'; ?>;">
+    <div class="scd-scheduled-start-fields"<?php if ( 'immediate' === $start_type ) { echo ' style="display: none;"'; } ?>>
         <!-- Hidden actual input for form submission -->
         <input type="hidden"
                id="start_date"
@@ -156,13 +161,21 @@ ob_start();
                        placeholder="<?php esc_attr_e( 'Select date', 'smart-cycle-discounts' ); ?>"
                        readonly
                        value="<?php echo esc_attr( $start_date ); ?>"
-                       aria-describedby="start_date_help">
-                <button type="button"
-                        class="scd-calendar-icon"
-                        data-target="start_date_display"
-                        aria-label="<?php esc_attr_e( 'Choose start date', 'smart-cycle-discounts' ); ?>">
-                    <span class="dashicons dashicons-calendar-alt" aria-hidden="true"></span>
-                </button>
+                       aria-describedby="start_date_help"
+                       <?php if ( 'immediate' === $start_type ) { echo 'tabindex="-1"'; } ?>>
+                <?php
+                SCD_Button_Helper::icon(
+                    'calendar-alt',
+                    __( 'Choose start date', 'smart-cycle-discounts' ),
+                    array(
+                        'classes'    => array( 'scd-calendar-icon' ),
+                        'attributes' => array_merge(
+                            array( 'data-target' => 'start_date_display' ),
+                            'immediate' === $start_type ? array( 'tabindex' => '-1' ) : array()
+                        ),
+                    )
+                );
+                ?>
             </div>
 
             <!-- Time picker -->
@@ -173,23 +186,33 @@ ob_start();
                        name="start_time"
                        value="<?php echo esc_attr( $start_time ); ?>"
                        class="scd-time-picker <?php echo isset( $validation_errors['start_time'] ) ? 'scd-input--error' : ''; ?>"
-                       aria-label="<?php esc_attr_e( 'Start time', 'smart-cycle-discounts' ); ?>">
+                       aria-label="<?php esc_attr_e( 'Start time', 'smart-cycle-discounts' ); ?>"
+                       <?php if ( 'immediate' === $start_type ) { echo 'tabindex="-1"'; } ?>>
             </div>
         </div>
         <?php scd_wizard_field_errors( $validation_errors, 'start_date' ); ?>
-        <?php
-        $start_date_content = ob_get_clean();
+        <?php $start_date_content = ob_get_clean(); ?>
 
-        scd_wizard_table_field( array(
-            'label' => __( 'Start Date', 'smart-cycle-discounts' ) . ' <span class="scd-required-indicator" aria-label="' . esc_attr__( 'Required', 'smart-cycle-discounts' ) . '">*</span>',
-            'tooltip' => __( 'When your discount campaign begins. Recent dates (within 5 minutes) are allowed to account for clock differences and processing time.', 'smart-cycle-discounts' ),
-            'content' => $start_date_content
-        ) );
-        ?>
+        <!-- Modern flexbox field layout -->
+        <div class="scd-field-group">
+            <div class="scd-field-header">
+                <label class="scd-field-label" for="start_date_display">
+                    <?php esc_html_e( 'Start Date', 'smart-cycle-discounts' ); ?>
+                    <span class="scd-required-indicator" aria-label="<?php esc_attr_e( 'Required', 'smart-cycle-discounts' ); ?>">*</span>
+                </label>
+                <?php
+                SCD_Tooltip_Helper::render(
+                    __( 'When your discount campaign begins. Recent dates (within 5 minutes) are allowed to account for clock differences and processing time.', 'smart-cycle-discounts' )
+                );
+                ?>
+            </div>
+            <div class="scd-field-content">
+                <?php echo $start_date_content; ?>
+            </div>
+        </div>
     </div>
 
     <!-- End Date - Always visible -->
-    <div class="scd-form-section">
         <!-- Hidden actual input for form submission -->
         <input type="hidden"
                id="end_date"
@@ -211,12 +234,16 @@ ob_start();
                        readonly
                        value="<?php echo esc_attr( $end_date ); ?>"
                        aria-describedby="end_date_help">
-                <button type="button"
-                        class="scd-calendar-icon"
-                        data-target="end_date_display"
-                        aria-label="<?php esc_attr_e( 'Choose end date', 'smart-cycle-discounts' ); ?>">
-                    <span class="dashicons dashicons-calendar-alt" aria-hidden="true"></span>
-                </button>
+                <?php
+                SCD_Button_Helper::icon(
+                    'calendar-alt',
+                    __( 'Choose end date', 'smart-cycle-discounts' ),
+                    array(
+                        'classes'    => array( 'scd-calendar-icon' ),
+                        'attributes' => array( 'data-target' => 'end_date_display' ),
+                    )
+                );
+                ?>
             </div>
 
             <!-- Time picker -->
@@ -227,29 +254,45 @@ ob_start();
                        name="end_time"
                        value="<?php echo esc_attr( $end_time ); ?>"
                        class="scd-time-picker <?php echo isset( $validation_errors['end_time'] ) ? 'scd-input--error' : ''; ?>"
+                       placeholder="--:--"
+                       <?php echo empty( $end_date ) ? 'disabled' : ''; ?>
                        aria-label="<?php esc_attr_e( 'End time', 'smart-cycle-discounts' ); ?>">
             </div>
 
             <!-- Option to clear end date -->
-            <button type="button"
-                    class="scd-button scd-button--link scd-clear-end-date"
-                    aria-label="<?php esc_attr_e( 'Clear end date and time', 'smart-cycle-discounts' ); ?>"
-                    title="<?php esc_attr_e( 'Run indefinitely', 'smart-cycle-discounts' ); ?>">
-                <span class="dashicons dashicons-no-alt"></span>
-            </button>
+            <?php
+            SCD_Button_Helper::icon(
+                'no-alt',
+                __( 'Clear end date and time', 'smart-cycle-discounts' ),
+                array(
+                    'style'      => 'link',
+                    'classes'    => array( 'scd-button', 'scd-button--link', 'scd-clear-end-date' ),
+                    'attributes' => array( 'title' => __( 'Run indefinitely', 'smart-cycle-discounts' ) ),
+                )
+            );
+            ?>
         </div>
 
         <?php scd_wizard_field_errors( $validation_errors, 'end_date' ); ?>
-        <?php
-        $end_date_content = ob_get_clean();
+        <?php $end_date_content = ob_get_clean(); ?>
 
-        scd_wizard_table_field( array(
-            'label' => __( 'End Date', 'smart-cycle-discounts' ),
-            'tooltip' => __( 'When your discount campaign ends. Leave empty to run indefinitely', 'smart-cycle-discounts' ),
-            'content' => $end_date_content
-        ) );
-        ?>
-    </div>
+        <!-- Modern flexbox field layout -->
+        <div class="scd-field-group">
+            <div class="scd-field-header">
+                <label class="scd-field-label" for="end_date_display">
+                    <?php esc_html_e( 'End Date', 'smart-cycle-discounts' ); ?>
+                </label>
+                <?php
+                SCD_Tooltip_Helper::render(
+                    __( 'When your discount campaign ends. Leave empty to run indefinitely', 'smart-cycle-discounts' )
+                );
+                ?>
+            </div>
+            <div class="scd-field-content">
+                <?php echo $end_date_content; ?>
+            </div>
+        </div>
+    </div><!-- .scd-form-section (Schedule Dates) -->
     
     <!-- Duration Display -->
     <div id="scd-duration-display" 
@@ -257,14 +300,14 @@ ob_start();
          role="status"
          aria-live="polite">
         <div class="scd-duration-content">
-            <span class="dashicons dashicons-clock scd-duration-icon"></span>
+            <?php echo SCD_Icon_Helper::get( 'clock', array( 'size' => 16, 'class' => 'scd-duration-icon' ) ); ?>
             <span class="scd-duration-label"><?php esc_html_e( 'Duration:', 'smart-cycle-discounts' ); ?></span>
             <span id="scd-duration-text" class="scd-duration-value">
                 <?php esc_html_e( '7 days (168 hours)', 'smart-cycle-discounts' ); ?>
             </span>
         </div>
         <div id="scd-duration-hint" class="scd-duration-hint">
-            <span class="dashicons dashicons-lightbulb scd-hint-icon"></span>
+            <?php echo SCD_Icon_Helper::get( 'lightbulb', array( 'size' => 16, 'class' => 'scd-hint-icon' ) ); ?>
             <span class="scd-hint-text"><?php esc_html_e( 'Perfect for weekly promotions', 'smart-cycle-discounts' ); ?></span>
         </div>
     </div>
@@ -272,7 +315,7 @@ ob_start();
     <!-- Timezone indicator -->
     <div class="scd-timezone-indicator scd-timezone-indicator--prominent">
         <div class="scd-timezone-content">
-            <span class="dashicons dashicons-admin-site-alt3 scd-timezone-icon"></span>
+            <?php echo SCD_Icon_Helper::get( 'admin-site-alt3', array( 'size' => 16, 'class' => 'scd-timezone-icon' ) ); ?>
             <span class="scd-timezone-label"><?php esc_html_e( 'Campaign timezone:', 'smart-cycle-discounts' ); ?></span>
             <strong class="scd-timezone-value"><?php echo esc_html( $timezone ); ?></strong>
         </div>
@@ -346,19 +389,53 @@ ob_start();
             </span>
         </label>
     </div>
-    
+
+    <!-- Recurring Campaign Important Notice -->
+    <div id="scd-recurring-warning"
+         class="scd-recurring-warning scd-notice scd-notice-info"
+         style="display: <?php echo ( $enable_recurring ) ? 'block' : 'none'; ?>;"
+         role="alert">
+        <?php echo SCD_Icon_Helper::get( 'info', array( 'size' => 16 ) ); ?>
+        <div class="scd-notice-content">
+            <strong><?php esc_html_e( 'Important: Recurring Campaign Considerations', 'smart-cycle-discounts' ); ?></strong>
+            <p>
+                <?php
+                esc_html_e(
+                    'Recurring campaigns create future occurrences based on your current campaign configuration. For best results:',
+                    'smart-cycle-discounts'
+                );
+                ?>
+            </p>
+            <ul>
+                <li><?php esc_html_e( 'Keep recurring periods to 6 months or less to avoid issues with product and price changes', 'smart-cycle-discounts' ); ?></li>
+                <li><?php esc_html_e( 'Set an end date for your campaign (required for recurring campaigns)', 'smart-cycle-discounts' ); ?></li>
+                <li><?php esc_html_e( 'Review future occurrences if products, categories, or prices change significantly', 'smart-cycle-discounts' ); ?></li>
+            </ul>
+        </div>
+    </div>
+
     <!-- Recurring Options (hidden by default) -->
     <div id="scd-recurring-options"
          class="scd-recurring-options"
          style="display: <?php echo ( $enable_recurring ) ? 'block' : 'none'; ?>;"
          aria-hidden="<?php echo ( $enable_recurring ) ? 'false' : 'true'; ?>">
-        
-        <table class="form-table" style="margin-top: 24px;">
-            <tbody>
+
+        <!-- Repeat Every Field -->
+        <div class="scd-recurring-field-group">
+            <div class="scd-recurring-field-header">
+                <?php echo SCD_Icon_Helper::get( 'update', array( 'size' => 16, 'class' => 'scd-recurring-field-icon' ) ); ?>
+                <label for="recurrence_interval" class="scd-recurring-field-label">
+                    <?php esc_html_e( 'Repeat Every', 'smart-cycle-discounts' ); ?>
+                    <span class="scd-required-indicator" aria-label="<?php esc_attr_e( 'Required when recurring is enabled', 'smart-cycle-discounts' ); ?>">*</span>
+                </label>
                 <?php
-                // Recurrence Pattern field
-                ob_start();
+                SCD_Tooltip_Helper::render(
+                    __( 'How often the discount campaign repeats', 'smart-cycle-discounts' ),
+                    'scd-tooltip--right'
+                );
                 ?>
+            </div>
+            <div class="scd-recurring-field-content">
                 <div class="scd-recurrence-input-group">
                     <input type="number"
                            id="recurrence_interval"
@@ -366,13 +443,15 @@ ob_start();
                            value="<?php echo esc_attr( $recurrence_interval ); ?>"
                            min="1"
                            max="365"
-                           class="scd-input-small"
+                           class="scd-input-small scd-enhanced-input"
                            <?php if ( ! $can_use_recurring ): ?>disabled<?php endif; ?>
-                           aria-label="<?php esc_attr_e( 'Interval number', 'smart-cycle-discounts' ); ?>">
+                           aria-label="<?php esc_attr_e( 'Interval number', 'smart-cycle-discounts' ); ?>"
+                           aria-describedby="recurrence-pattern-help">
                     <select id="recurrence_pattern"
                             name="recurrence_pattern"
-                            class="scd-select-medium"
-                            <?php if ( ! $can_use_recurring ): ?>disabled<?php endif; ?>>
+                            class="scd-select-medium scd-enhanced-select"
+                            <?php if ( ! $can_use_recurring ): ?>disabled<?php endif; ?>
+                            aria-label="<?php esc_attr_e( 'Recurrence pattern', 'smart-cycle-discounts' ); ?>">
                         <option value="daily" <?php selected( $recurrence_pattern, 'daily' ); ?>>
                             <?php esc_html_e( 'Day(s)', 'smart-cycle-discounts' ); ?>
                         </option>
@@ -384,131 +463,169 @@ ob_start();
                         </option>
                     </select>
                 </div>
-                <?php
-                $recurrence_content = ob_get_clean();
+                <p id="recurrence-pattern-help" class="scd-field-help">
+                    <?php esc_html_e( 'Example: "2 Week(s)" means the campaign repeats every 2 weeks', 'smart-cycle-discounts' ); ?>
+                </p>
+            </div>
+        </div>
 
-                scd_wizard_table_field( array(
-                    'label' => __( 'Repeat Every', 'smart-cycle-discounts' ) . ' <span class="scd-required-indicator" aria-label="' . esc_attr__( 'Required when recurring is enabled', 'smart-cycle-discounts' ) . '">*</span>',
-                    'tooltip' => __( 'How often the discount campaign repeats', 'smart-cycle-discounts' ),
-                    'content' => $recurrence_content
-                ) );
-                ?>
-                
-                <!-- Days of Week (for weekly pattern) -->
-                <tr id="scd-weekly-options"
-                    class="scd-weekly-options"
-                    style="display: <?php echo ( 'weekly' === $recurrence_pattern ) ? 'table-row' : 'none'; ?>;">
-                    <?php
-                    ob_start();
-                    ?>
-                    <div class="scd-days-selector">
-                        <?php
-                        $days = array(
-                            'mon' => __( 'Mon', 'smart-cycle-discounts' ),
-                            'tue' => __( 'Tue', 'smart-cycle-discounts' ),
-                            'wed' => __( 'Wed', 'smart-cycle-discounts' ),
-                            'thu' => __( 'Thu', 'smart-cycle-discounts' ),
-                            'fri' => __( 'Fri', 'smart-cycle-discounts' ),
-                            'sat' => __( 'Sat', 'smart-cycle-discounts' ),
-                            'sun' => __( 'Sun', 'smart-cycle-discounts' )
-                        );
-                        $selected_days = (array) $recurrence_days;
-                        foreach ( $days as $value => $label ) : ?>
-                            <label class="scd-day-checkbox">
-                                <input type="checkbox"
-                                       name="recurrence_days[]"
-                                       value="<?php echo esc_attr( $value ); ?>"
-                                       <?php checked( in_array( $value, $selected_days, true ) ); ?>
-                                       <?php if ( ! $can_use_recurring ): ?>disabled<?php endif; ?>>
-                                <span class="scd-day-label"><?php echo esc_html( $label ); ?></span>
-                            </label>
-                        <?php endforeach; ?>
-                    </div>
-                    <?php
-                    $days_content = ob_get_clean();
 
-                    scd_wizard_table_field( array(
-                        'label' => __( 'On Days', 'smart-cycle-discounts' ),
-                        'tooltip' => __( 'Select which days of the week to run the campaign', 'smart-cycle-discounts' ),
-                        'content' => $days_content
-                    ) );
-                    ?>
-                </tr>
-                
-                <!-- End Condition -->
+        <!-- On Days Field (for weekly pattern) -->
+        <div id="scd-weekly-options"
+             class="scd-recurring-field-group scd-weekly-options"
+             style="display: <?php echo ( 'weekly' === $recurrence_pattern ) ? 'block' : 'none'; ?>;">
+            <div class="scd-recurring-field-header">
+                <?php echo SCD_Icon_Helper::get( 'calendar', array( 'size' => 16, 'class' => 'scd-recurring-field-icon' ) ); ?>
+                <label class="scd-recurring-field-label">
+                    <?php esc_html_e( 'On Days', 'smart-cycle-discounts' ); ?>
+                </label>
                 <?php
-                ob_start();
+                SCD_Tooltip_Helper::render(
+                    __( 'Select which days of the week to run the campaign', 'smart-cycle-discounts' ),
+                    'scd-tooltip--right'
+                );
                 ?>
-                <div class="scd-recurrence-end-options">
-                    <label class="scd-radio-inline">
+            </div>
+            <div class="scd-recurring-field-content">
+                <div class="scd-days-selector" role="group" aria-label="<?php esc_attr_e( 'Select days of the week', 'smart-cycle-discounts' ); ?>">
+                    <?php
+                    $days = array(
+                        'mon' => __( 'Mon', 'smart-cycle-discounts' ),
+                        'tue' => __( 'Tue', 'smart-cycle-discounts' ),
+                        'wed' => __( 'Wed', 'smart-cycle-discounts' ),
+                        'thu' => __( 'Thu', 'smart-cycle-discounts' ),
+                        'fri' => __( 'Fri', 'smart-cycle-discounts' ),
+                        'sat' => __( 'Sat', 'smart-cycle-discounts' ),
+                        'sun' => __( 'Sun', 'smart-cycle-discounts' )
+                    );
+                    $selected_days = (array) $recurrence_days;
+                    foreach ( $days as $value => $label ) : ?>
+                        <label class="scd-day-checkbox">
+                            <input type="checkbox"
+                                   name="recurrence_days[]"
+                                   value="<?php echo esc_attr( $value ); ?>"
+                                   <?php checked( in_array( $value, $selected_days, true ) ); ?>
+                                   <?php if ( ! $can_use_recurring ): ?>disabled<?php endif; ?>
+                                   aria-label="<?php echo esc_attr( $label ); ?>">
+                            <span class="scd-day-label"><?php echo esc_html( $label ); ?></span>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+                <p class="scd-field-help">
+                    <?php esc_html_e( 'Select one or more days for weekly recurring campaigns', 'smart-cycle-discounts' ); ?>
+                </p>
+            </div>
+        </div>
+
+
+        <!-- End Condition Field -->
+        <div class="scd-recurring-field-group">
+            <div class="scd-recurring-field-header">
+                <?php echo SCD_Icon_Helper::get( 'controls-skipforward', array( 'size' => 16, 'class' => 'scd-recurring-field-icon' ) ); ?>
+                <label class="scd-recurring-field-label">
+                    <?php esc_html_e( 'Ends', 'smart-cycle-discounts' ); ?>
+                </label>
+                <?php
+                SCD_Tooltip_Helper::render(
+                    __( 'When the recurring schedule should stop', 'smart-cycle-discounts' ),
+                    'scd-tooltip--right'
+                );
+                ?>
+            </div>
+            <div class="scd-recurring-field-content">
+                <div class="scd-recurrence-end-options" role="radiogroup" aria-label="<?php esc_attr_e( 'Recurrence end condition', 'smart-cycle-discounts' ); ?>">
+                    <label class="scd-radio-inline scd-end-option">
                         <input type="radio"
                                name="recurrence_end_type"
                                value="never"
                                <?php checked( $recurrence_end_type, 'never' ); ?>
-                               <?php if ( ! $can_use_recurring ): ?>disabled<?php endif; ?>>
-                        <?php esc_html_e( 'Never', 'smart-cycle-discounts' ); ?>
+                               <?php if ( ! $can_use_recurring ): ?>disabled<?php endif; ?>
+                               aria-describedby="recurrence-end-help">
+                        <span class="scd-radio-label-text">
+                            <?php echo SCD_Icon_Helper::get( 'infinity', array( 'size' => 16 ) ); ?>
+                            <?php esc_html_e( 'Never', 'smart-cycle-discounts' ); ?>
+                        </span>
                     </label>
 
-                    <label class="scd-radio-inline">
+                    <label class="scd-radio-inline scd-end-option">
                         <input type="radio"
                                name="recurrence_end_type"
                                value="after"
                                <?php checked( $recurrence_end_type, 'after' ); ?>
-                               <?php if ( ! $can_use_recurring ): ?>disabled<?php endif; ?>>
-                        <?php esc_html_e( 'After', 'smart-cycle-discounts' ); ?>
+                               <?php if ( ! $can_use_recurring ): ?>disabled<?php endif; ?>
+                               aria-describedby="recurrence-end-help">
+                        <span class="scd-radio-label-text">
+                            <?php echo SCD_Icon_Helper::get( 'marker', array( 'size' => 16 ) ); ?>
+                            <?php esc_html_e( 'After', 'smart-cycle-discounts' ); ?>
+                        </span>
                         <input type="number"
                                id="recurrence_count"
                                name="recurrence_count"
                                value="<?php echo esc_attr( $recurrence_count ); ?>"
                                min="1"
                                max="365"
-                               class="scd-input-tiny"
+                               class="scd-input-tiny scd-enhanced-input"
                                <?php disabled( $recurrence_end_type !== 'after' || ! $can_use_recurring ); ?>
                                aria-label="<?php esc_attr_e( 'Number of occurrences', 'smart-cycle-discounts' ); ?>">
-                        <?php esc_html_e( 'occurrences', 'smart-cycle-discounts' ); ?>
+                        <span class="scd-occurrence-suffix"><?php esc_html_e( 'occurrences', 'smart-cycle-discounts' ); ?></span>
                     </label>
 
-                    <label class="scd-radio-inline">
+                    <label class="scd-radio-inline scd-end-option">
                         <input type="radio"
                                name="recurrence_end_type"
                                value="on"
                                <?php checked( $recurrence_end_type, 'on' ); ?>
-                               <?php if ( ! $can_use_recurring ): ?>disabled<?php endif; ?>>
-                        <?php esc_html_e( 'On', 'smart-cycle-discounts' ); ?>
-                        <input type="date"
-                               id="recurrence_end_date"
-                               name="recurrence_end_date"
-                               value="<?php echo esc_attr( $recurrence_end_date ); ?>"
-                               min="<?php echo esc_attr( date( 'Y-m-d', strtotime( '+1 day' ) ) ); ?>"
-                               class="scd-input-date"
-                               <?php disabled( $recurrence_end_type !== 'on' || ! $can_use_recurring ); ?>
-                               aria-label="<?php esc_attr_e( 'End date', 'smart-cycle-discounts' ); ?>">
+                               <?php if ( ! $can_use_recurring ): ?>disabled<?php endif; ?>
+                               aria-describedby="recurrence-end-help">
+                        <span class="scd-radio-label-text">
+                            <?php echo SCD_Icon_Helper::get( 'calendar', array( 'size' => 16 ) ); ?>
+                            <?php esc_html_e( 'On', 'smart-cycle-discounts' ); ?>
+                        </span>
+                        <div class="scd-date-picker-wrapper">
+                            <input type="text"
+                                   id="recurrence_end_date"
+                                   name="recurrence_end_date"
+                                   class="scd-date-picker scd-input-date"
+                                   placeholder="<?php esc_attr_e( 'Select end date', 'smart-cycle-discounts' ); ?>"
+                                   readonly
+                                   value="<?php echo esc_attr( $recurrence_end_date ); ?>"
+                                   <?php disabled( $recurrence_end_type !== 'on' || ! $can_use_recurring ); ?>
+                                   aria-label="<?php esc_attr_e( 'Recurrence end date', 'smart-cycle-discounts' ); ?>">
+                            <?php
+                            SCD_Button_Helper::icon(
+                                'calendar-alt',
+                                __( 'Choose recurrence end date', 'smart-cycle-discounts' ),
+                                array(
+                                    'classes'    => array( 'scd-calendar-icon' ),
+                                    'attributes' => array( 'data-target' => 'recurrence_end_date' ),
+                                )
+                            );
+                            ?>
+                        </div>
                     </label>
                 </div>
-                <?php
-                $end_condition_content = ob_get_clean();
+                <p id="recurrence-end-help" class="scd-field-help">
+                    <?php esc_html_e( 'Choose when the recurring campaign should stop running', 'smart-cycle-discounts' ); ?>
+                </p>
+            </div>
+        </div>
 
-                scd_wizard_table_field( array(
-                    'label' => __( 'Ends', 'smart-cycle-discounts' ),
-                    'tooltip' => __( 'When the recurring schedule should stop', 'smart-cycle-discounts' ),
-                    'content' => $end_condition_content
-                ) );
-                ?>
-            </tbody>
-        </table>
-        
-        <!-- Connection to Schedule: Next Occurrences -->
-        <div class="scd-recurrence-preview">
+
+        <!-- Next Occurrences Preview -->
+        <div class="scd-recurrence-preview" role="region" aria-label="<?php esc_attr_e( 'Recurring campaign preview', 'smart-cycle-discounts' ); ?>">
             <div class="scd-preview-header">
-                <span class="dashicons dashicons-calendar"></span>
-                <strong><?php esc_html_e( 'Next Occurrences', 'smart-cycle-discounts' ); ?></strong>
+                <?php echo SCD_Icon_Helper::get( 'visibility', array( 'size' => 16, 'class' => 'scd-preview-icon' ) ); ?>
+                <h4 class="scd-preview-title"><?php esc_html_e( 'Next Occurrences Preview', 'smart-cycle-discounts' ); ?></h4>
             </div>
-            <div id="scd-recurrence-preview-text" class="scd-preview-text">
-                <em><?php esc_html_e( 'Configure recurrence settings to see preview', 'smart-cycle-discounts' ); ?></em>
+            <div id="scd-recurrence-preview-text" class="scd-preview-text" aria-live="polite">
+                <div class="scd-preview-empty">
+                    <?php echo SCD_Icon_Helper::get( 'calendar', array( 'size' => 16 ) ); ?>
+                    <p><?php esc_html_e( 'Configure recurrence settings above to see a preview of when your campaign will run', 'smart-cycle-discounts' ); ?></p>
+                </div>
             </div>
-            <div class="scd-preview-note">
-                <span class="dashicons dashicons-info"></span>
-                <?php esc_html_e( 'Each occurrence will use the same duration as configured above', 'smart-cycle-discounts' ); ?>
+            <div class="scd-preview-footer">
+                <?php echo SCD_Icon_Helper::get( 'info', array( 'size' => 16 ) ); ?>
+                <span class="scd-preview-footer-text"><?php esc_html_e( 'Each occurrence will use the same campaign duration as configured in your schedule', 'smart-cycle-discounts' ); ?></span>
             </div>
         </div>
     </div>
@@ -516,18 +633,18 @@ ob_start();
     </div><!-- .scd-pro-container -->
     <?php
     $recurring_content = ob_get_clean();
-    
-    // Create the card with the badge in the title
+
+    // Create the card with the optional indicator in the title
     ob_start();
     ?>
     <h2 id="scd-recurring-title" class="scd-card__title">
-        <span class="dashicons dashicons-backup" aria-hidden="true"></span>
+        <?php echo SCD_Icon_Helper::get( 'backup', array( 'size' => 16 ) ); ?>
         <?php esc_html_e( 'Recurring Schedule', 'smart-cycle-discounts' ); ?>
         <span class="scd-badge scd-badge--optional"><?php esc_html_e( 'Optional', 'smart-cycle-discounts' ); ?></span>
     </h2>
     <?php
     $title_html = ob_get_clean();
-    
+
     scd_wizard_card( array(
         'title' => $title_html,
         'subtitle' => __( 'Set up your discount to repeat automatically on a regular schedule.', 'smart-cycle-discounts' ),
@@ -554,7 +671,7 @@ ob_start();
          role="status"
          aria-live="polite"
          style="display: none;">
-        <span class="dashicons dashicons-update scd-spin" aria-hidden="true"></span>
+        <?php echo SCD_Icon_Helper::get( 'update', array( 'size' => 16, 'class' => 'scd-spin' ) ); ?>
         <span class="scd-save-text">
             <?php esc_html_e( 'Saving changes...', 'smart-cycle-discounts' ); ?>
         </span>

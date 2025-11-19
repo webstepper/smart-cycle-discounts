@@ -41,43 +41,23 @@ ob_start();
     <!-- Campaign Details Section -->
     <?php
     ob_start();
-    
-    // Campaign Name Field
+
+    // Campaign Name Field - Phase 2: Simplified syntax reading from field definitions
     scd_wizard_form_field(array(
-        'id' => 'campaign_name',
-        'name' => 'name',
-        'label' => __('Campaign Name', 'smart-cycle-discounts'),
-        'type' => 'text',
+        'step' => 'basic',
+        'field' => 'name',
         'value' => $name,
-        'placeholder' => __('e.g., Summer Sale 2024', 'smart-cycle-discounts'),
-        'required' => true,
-        'class' => 'regular-text scd-campaign-name-field',
-        'validation_errors' => $validation_errors,
-        'tooltip' => __('Give your campaign a clear, descriptive name that will help you identify it in your campaigns list.', 'smart-cycle-discounts'),
-        'attributes' => array(
-            'maxlength' => '100',
-            'autocomplete' => 'off'
-        )
+        'validation_errors' => $validation_errors
     ));
-    
-    // Campaign Description Field
+
+    // Campaign Description Field - Phase 2: Simplified syntax
     scd_wizard_form_field(array(
-        'id' => 'campaign_description',
-        'name' => 'description',
-        'label' => __('Description', 'smart-cycle-discounts'),
-        'type' => 'textarea',
+        'step' => 'basic',
+        'field' => 'description',
         'value' => $description,
-        'placeholder' => __('Optional internal notes about campaign goals, target audience, etc...', 'smart-cycle-discounts'),
-        'required' => false,
-        'class' => 'large-text',
-        'validation_errors' => $validation_errors,
-        'tooltip' => __('This description is for internal use only and will not be visible to customers. Use it to document strategy, goals, or special instructions for your team.', 'smart-cycle-discounts'),
-        'attributes' => array(
-            'rows' => '4',
-            'maxlength' => '1000'
-        )
+        'validation_errors' => $validation_errors
     ));
-    
+
     $details_content = ob_get_clean();
     
     scd_wizard_card(array(
@@ -91,31 +71,21 @@ ob_start();
     <!-- Campaign Priority Section -->
     <?php
     ob_start();
-    
+
+    // Priority Field - Phase 2: Simplified syntax
     scd_wizard_form_field(array(
-        'id' => 'campaign_priority',
-        'name' => 'priority',
-        'label' => __('Priority Level', 'smart-cycle-discounts'),
-        'type' => 'select',
+        'step' => 'basic',
+        'field' => 'priority',
         'value' => intval($priority),
-        'required' => true,
-        'validation_errors' => $validation_errors,
-        'tooltip' => __('When multiple campaigns apply to the same product, the campaign with the highest priority number takes precedence. Higher priority campaigns always win conflicts.', 'smart-cycle-discounts'),
-        'options' => array(
-            1 => __('1 - Fallback (Lowest Priority)', 'smart-cycle-discounts'),
-            2 => __('2 - Low Priority', 'smart-cycle-discounts'),
-            3 => __('3 - Normal Priority (Default)', 'smart-cycle-discounts'),
-            4 => __('4 - High Priority', 'smart-cycle-discounts'),
-            5 => __('5 - Critical (Highest Priority)', 'smart-cycle-discounts')
-        )
+        'validation_errors' => $validation_errors
     ));
-    
+
     $priority_content = ob_get_clean();
 
     scd_wizard_card(array(
         'title' => __('Campaign Priority', 'smart-cycle-discounts'),
-        'subtitle' => __('Set the priority level to control which campaign applies when multiple campaigns target the same products.', 'smart-cycle-discounts'),
         'icon' => 'sort',
+        'subtitle' => __('Set the priority level to control which campaign applies when multiple campaigns target the same products.', 'smart-cycle-discounts'),
         'content' => $priority_content
     ));
     ?>

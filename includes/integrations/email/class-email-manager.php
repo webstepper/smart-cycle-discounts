@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/integrations/email/class-email-manager.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/integrations/email
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Email_Manager {
 
@@ -65,6 +65,15 @@ class SCD_Email_Manager {
 	 * @var      SCD_Feature_Gate    $feature_gate    Feature gate.
 	 */
 	private SCD_Feature_Gate $feature_gate;
+
+	/**
+	 * Analytics repository instance.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      SCD_Analytics_Repository    $analytics_repository    Analytics repository.
+	 */
+	private SCD_Analytics_Repository $analytics_repository;
 
 	/**
 	 * Email queue.
@@ -106,21 +115,24 @@ class SCD_Email_Manager {
 	 * Initialize the email manager.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger                   $logger            Logger instance.
-	 * @param    SCD_Campaign_Manager         $campaign_manager  Campaign manager.
-	 * @param    SCD_Action_Scheduler_Service $action_scheduler  Action scheduler.
-	 * @param    SCD_Feature_Gate             $feature_gate      Feature gate instance.
+	 * @param    SCD_Logger                   $logger                Logger instance.
+	 * @param    SCD_Campaign_Manager         $campaign_manager      Campaign manager.
+	 * @param    SCD_Action_Scheduler_Service $action_scheduler      Action scheduler.
+	 * @param    SCD_Feature_Gate             $feature_gate          Feature gate instance.
+	 * @param    SCD_Analytics_Repository     $analytics_repository  Analytics repository.
 	 */
 	public function __construct(
 		SCD_Logger $logger,
 		SCD_Campaign_Manager $campaign_manager,
 		SCD_Action_Scheduler_Service $action_scheduler,
-		SCD_Feature_Gate $feature_gate
+		SCD_Feature_Gate $feature_gate,
+		SCD_Analytics_Repository $analytics_repository
 	) {
-		$this->logger           = $logger;
-		$this->campaign_manager = $campaign_manager;
-		$this->action_scheduler = $action_scheduler;
-		$this->feature_gate     = $feature_gate;
+		$this->logger               = $logger;
+		$this->campaign_manager     = $campaign_manager;
+		$this->action_scheduler     = $action_scheduler;
+		$this->feature_gate         = $feature_gate;
+		$this->analytics_repository = $analytics_repository;
 		$this->load_settings();
 		// Defer template registration until init hook when translations are available
 		add_action( 'init', array( $this, 'register_templates' ), 5 );
@@ -137,8 +149,6 @@ class SCD_Email_Manager {
 
 		// Defer Action Scheduler operations until init hook (priority 20 to run after ActionScheduler initializes at priority 1)
 		add_action( 'init', array( $this, 'schedule_email_processing' ), 20 );
-
-		$this->logger->debug( 'Email manager initialized' );
 	}
 
 	/**
@@ -852,6 +862,78 @@ class SCD_Email_Manager {
 		if ( $processed > 0 ) {
 			$this->logger->info( 'Email queue processed', array( 'processed' => $processed ) );
 		}
+
+		// Cleanup old queue items periodically
+		$this->cleanup_email_queue();
+	}
+
+	/**
+	 * Clean up old email queue items.
+	 *
+	 * Removes queued items older than 7 days and limits total queue size.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	private function cleanup_email_queue(): void {
+		$original_count = count( $this->email_queue );
+
+		if ( 0 === $original_count ) {
+			return;
+		}
+
+		$max_age_days     = apply_filters( 'scd_email_queue_max_age_days', 7 );
+		$max_queue_size   = apply_filters( 'scd_email_queue_max_size', 1000 );
+		$cutoff_timestamp = strtotime( "-{$max_age_days} days" );
+
+		// Remove old queued items
+		$this->email_queue = array_filter(
+			$this->email_queue,
+			function ( $email ) use ( $cutoff_timestamp ) {
+				// Keep sent and failed items for filtering below
+				if ( in_array( $email['status'], array( 'sent', 'failed' ), true ) ) {
+					return true;
+				}
+
+				// Remove queued items older than max age
+				if ( 'queued' === $email['status'] ) {
+					$queued_time = isset( $email['queued_at'] ) ? strtotime( $email['queued_at'] ) : 0;
+					return $queued_time >= $cutoff_timestamp;
+				}
+
+				return true;
+			}
+		);
+
+		// Enforce maximum queue size (keep most recent items)
+		if ( count( $this->email_queue ) > $max_queue_size ) {
+			// Sort by queued_at timestamp (most recent first)
+			usort(
+				$this->email_queue,
+				function ( $a, $b ) {
+					$time_a = isset( $a['queued_at'] ) ? strtotime( $a['queued_at'] ) : 0;
+					$time_b = isset( $b['queued_at'] ) ? strtotime( $b['queued_at'] ) : 0;
+					return $time_b - $time_a;
+				}
+			);
+
+			// Keep only the most recent items
+			$this->email_queue = array_slice( $this->email_queue, 0, $max_queue_size );
+		}
+
+		$removed_count = $original_count - count( $this->email_queue );
+
+		if ( $removed_count > 0 ) {
+			$this->logger->info(
+				'Email queue cleanup completed',
+				array(
+					'removed'        => $removed_count,
+					'remaining'      => count( $this->email_queue ),
+					'max_age_days'   => $max_age_days,
+					'max_queue_size' => $max_queue_size,
+				)
+			);
+		}
 	}
 
 	/**
@@ -986,8 +1068,6 @@ class SCD_Email_Manager {
 				array(),
 				'scd_email'
 			);
-
-			$this->logger->debug( 'Email queue processing scheduled via Action Scheduler' );
 		}
 
 		// Schedule daily performance report (if enabled)
@@ -996,8 +1076,6 @@ class SCD_Email_Manager {
 				// Schedule for 9 AM daily
 				$schedule_time = strtotime( 'tomorrow 09:00:00' );
 				wp_schedule_event( $schedule_time, 'daily', 'scd_send_daily_report' );
-
-				$this->logger->debug( 'Daily performance report scheduled' );
 			}
 		} else {
 			// Unschedule if disabled
@@ -1013,8 +1091,6 @@ class SCD_Email_Manager {
 				// Schedule for Monday 9 AM weekly
 				$schedule_time = strtotime( 'next Monday 09:00:00' );
 				wp_schedule_event( $schedule_time, 'weekly', 'scd_send_weekly_report' );
-
-				$this->logger->debug( 'Weekly performance report scheduled' );
 			}
 		} else {
 			// Unschedule if disabled
@@ -1085,13 +1161,53 @@ class SCD_Email_Manager {
 	 * @return   array                  Performance data.
 	 */
 	private function get_campaign_performance( int $campaign_id ): array {
-		// This would integrate with analytics to get real performance data
-		return array(
-			'total_revenue'   => 0,
-			'total_orders'    => 0,
-			'conversion_rate' => 0,
-			'top_products'    => array(),
-		);
+		try {
+			// Get campaign to determine date range
+			$campaign = $this->campaign_manager->find( $campaign_id );
+			if ( ! $campaign ) {
+				throw new Exception( 'Campaign not found' );
+			}
+
+			$starts_at = $campaign->get_starts_at();
+			$ends_at   = $campaign->get_ends_at();
+
+			$start_date = $starts_at ? $starts_at->format( 'Y-m-d' ) : '';
+			$end_date   = $ends_at ? $ends_at->format( 'Y-m-d' ) : date( 'Y-m-d' );
+
+			// Get real analytics data
+			$analytics = $this->analytics_repository->get_campaign_performance( $campaign_id, $start_date, $end_date );
+
+			// Get top products
+			$top_products = $this->analytics_repository->get_product_performance( $campaign_id, $start_date, $end_date, 5 );
+
+			return array(
+				'total_revenue'   => $analytics['revenue'] ?? 0,
+				'total_orders'    => $analytics['conversions'] ?? 0,
+				'conversion_rate' => $analytics['conversion_rate'] ?? 0,
+				'impressions'     => $analytics['impressions'] ?? 0,
+				'clicks'          => $analytics['clicks'] ?? 0,
+				'ctr'             => $analytics['ctr'] ?? 0,
+				'top_products'    => $top_products,
+			);
+		} catch ( Exception $e ) {
+			$this->logger->error(
+				'Failed to get campaign performance data',
+				array(
+					'campaign_id' => $campaign_id,
+					'error'       => $e->getMessage(),
+				)
+			);
+
+			return array(
+				'total_revenue'   => 0,
+				'total_orders'    => 0,
+				'conversion_rate' => 0,
+				'impressions'     => 0,
+				'clicks'          => 0,
+				'ctr'             => 0,
+				'top_products'    => array(),
+			);
+		}
 	}
 
 	/**
@@ -1147,13 +1263,74 @@ class SCD_Email_Manager {
 	 * @return   array              Report data.
 	 */
 	private function generate_daily_report( string $date ): array {
-		// This would integrate with analytics to generate real report data
-		return array(
-			'active_campaigns' => 0,
-			'total_revenue'    => 0,
-			'total_orders'     => 0,
-			'top_products'     => array(),
-		);
+		try {
+			// Get all active campaigns for the date
+			$all_campaigns    = $this->campaign_manager->get_all();
+			$active_campaigns = array();
+			$total_revenue    = 0;
+			$total_orders     = 0;
+			$all_top_products = array();
+
+			foreach ( $all_campaigns as $campaign ) {
+				// Check if campaign was active on this date
+				$starts_at = $campaign->get_starts_at();
+				$ends_at   = $campaign->get_ends_at();
+
+				$campaign_date = new DateTime( $date, new DateTimeZone( 'UTC' ) );
+
+				if ( $starts_at && $campaign_date < $starts_at ) {
+					continue;
+				}
+				if ( $ends_at && $campaign_date > $ends_at ) {
+					continue;
+				}
+
+				$active_campaigns[] = $campaign;
+
+				// Get analytics for this campaign for this specific date
+				$analytics = $this->analytics_repository->get_campaign_performance( $campaign->get_id(), $date, $date );
+
+				$total_revenue += $analytics['revenue'] ?? 0;
+				$total_orders  += $analytics['conversions'] ?? 0;
+
+				// Get top products for this campaign
+				$campaign_products = $this->analytics_repository->get_product_performance( $campaign->get_id(), $date, $date, 3 );
+				if ( ! empty( $campaign_products ) ) {
+					$all_top_products = array_merge( $all_top_products, $campaign_products );
+				}
+			}
+
+			// Sort and limit top products
+			usort(
+				$all_top_products,
+				function ( $a, $b ) {
+					return ( $b['revenue'] ?? 0 ) <=> ( $a['revenue'] ?? 0 );
+				}
+			);
+			$top_products = array_slice( $all_top_products, 0, 5 );
+
+			return array(
+				'active_campaigns' => count( $active_campaigns ),
+				'total_revenue'    => $total_revenue,
+				'total_orders'     => $total_orders,
+				'top_products'     => $top_products,
+			);
+		} catch ( Exception $e ) {
+			$this->logger->error(
+				'Failed to generate daily report',
+				array(
+					'date'  => $date,
+					'error' => $e->getMessage(),
+				)
+			);
+
+			return array(
+				'active_campaigns' => 0,
+				'total_revenue'    => 0,
+				'total_orders'     => 0,
+				'top_products'     => array(),
+			);
+		}
 	}
 
 	/**
@@ -1166,12 +1343,93 @@ class SCD_Email_Manager {
 	 * @return   array                    Report data.
 	 */
 	private function generate_weekly_report( string $week_start, string $week_end ): array {
-		// This would integrate with analytics to generate real report data
-		return array(
-			'campaigns' => array(),
-			'revenue'   => array( 'total' => 0 ),
-			'trends'    => array(),
-		);
+		try {
+			// Get all campaigns
+			$all_campaigns = $this->campaign_manager->get_all();
+			$week_campaigns = array();
+			$total_revenue = 0;
+			$total_orders = 0;
+			$daily_revenues = array();
+
+			foreach ( $all_campaigns as $campaign ) {
+				// Check if campaign was active during this week
+				$starts_at = $campaign->get_starts_at();
+				$ends_at   = $campaign->get_ends_at();
+
+				$week_start_dt = new DateTime( $week_start, new DateTimeZone( 'UTC' ) );
+				$week_end_dt   = new DateTime( $week_end, new DateTimeZone( 'UTC' ) );
+
+				// Skip if campaign ended before week start or started after week end
+				if ( $ends_at && $ends_at < $week_start_dt ) {
+					continue;
+				}
+				if ( $starts_at && $starts_at > $week_end_dt ) {
+					continue;
+				}
+
+				// Get analytics for this campaign for the week
+				$analytics = $this->analytics_repository->get_campaign_performance( $campaign->get_id(), $week_start, $week_end );
+
+				if ( $analytics['revenue'] > 0 || $analytics['conversions'] > 0 ) {
+					$week_campaigns[] = array(
+						'name'        => $campaign->get_name(),
+						'revenue'     => $analytics['revenue'] ?? 0,
+						'orders'      => $analytics['conversions'] ?? 0,
+						'impressions' => $analytics['impressions'] ?? 0,
+						'clicks'      => $analytics['clicks'] ?? 0,
+					);
+
+					$total_revenue += $analytics['revenue'] ?? 0;
+					$total_orders  += $analytics['conversions'] ?? 0;
+				}
+			}
+
+			// Generate daily revenue trend for the week
+			$current_date = new DateTime( $week_start, new DateTimeZone( 'UTC' ) );
+			$end_date     = new DateTime( $week_end, new DateTimeZone( 'UTC' ) );
+
+			while ( $current_date <= $end_date ) {
+				$date_str = $current_date->format( 'Y-m-d' );
+				$day_revenue = 0;
+
+				foreach ( $week_campaigns as $campaign_data ) {
+					// Simplification: divide weekly revenue equally across days
+					// Real implementation would query daily analytics
+					$day_revenue += ( $campaign_data['revenue'] / 7 );
+				}
+
+				$daily_revenues[] = array(
+					'date'    => $date_str,
+					'revenue' => round( $day_revenue, 2 ),
+				);
+
+				$current_date->modify( '+1 day' );
+			}
+
+			return array(
+				'campaigns' => $week_campaigns,
+				'revenue'   => array(
+					'total'  => $total_revenue,
+					'orders' => $total_orders,
+				),
+				'trends'    => $daily_revenues,
+			);
+		} catch ( Exception $e ) {
+			$this->logger->error(
+				'Failed to generate weekly report',
+				array(
+					'week_start' => $week_start,
+					'week_end'   => $week_end,
+					'error'      => $e->getMessage(),
+				)
+			);
+
+			return array(
+				'campaigns' => array(),
+				'revenue'   => array( 'total' => 0 ),
+				'trends'    => array(),
+			);
+		}
 	}
 
 	/**
@@ -1224,11 +1482,34 @@ class SCD_Email_Manager {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array $trends    Trends data.
+	 * @param    array $trends    Trends data (array of date/revenue pairs).
 	 * @return   string              Formatted trends.
 	 */
 	private function format_performance_trends( array $trends ): string {
-		return __( 'Performance trends data would be displayed here', 'smart-cycle-discounts' );
+		if ( empty( $trends ) ) {
+			return '<p>' . esc_html__( 'No performance data available for this period.', 'smart-cycle-discounts' ) . '</p>';
+		}
+
+		$html  = '<table style="width: 100%; border-collapse: collapse;">';
+		$html .= '<thead><tr>';
+		$html .= '<th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">' . esc_html__( 'Date', 'smart-cycle-discounts' ) . '</th>';
+		$html .= '<th style="text-align: right; padding: 8px; border-bottom: 2px solid #ddd;">' . esc_html__( 'Revenue', 'smart-cycle-discounts' ) . '</th>';
+		$html .= '</tr></thead>';
+		$html .= '<tbody>';
+
+		foreach ( $trends as $trend ) {
+			$date    = isset( $trend['date'] ) ? date_i18n( get_option( 'date_format' ), strtotime( $trend['date'] ) ) : '';
+			$revenue = isset( $trend['revenue'] ) ? wc_price( $trend['revenue'] ) : wc_price( 0 );
+
+			$html .= '<tr>';
+			$html .= '<td style="padding: 6px 8px; border-bottom: 1px solid #eee;">' . esc_html( $date ) . '</td>';
+			$html .= '<td style="padding: 6px 8px; border-bottom: 1px solid #eee; text-align: right;">' . wp_kses_post( $revenue ) . '</td>';
+			$html .= '</tr>';
+		}
+
+		$html .= '</tbody></table>';
+
+		return $html;
 	}
 
 	/**

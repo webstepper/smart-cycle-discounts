@@ -67,11 +67,11 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 		<?php esc_html_e( 'Dashboard', 'smart-cycle-discounts' ); ?>
 	</h1>
 
-	<?php if ( $is_premium ) : ?>
-		<span class="scd-pro-badge-header"><?php esc_html_e( 'PRO', 'smart-cycle-discounts' ); ?></span>
-	<?php endif; ?>
-
-	<hr class="wp-header-end">
+	<?php
+	if ( $is_premium ) {
+		echo SCD_Badge_Helper::pro_badge( __( 'Premium Version Active', 'smart-cycle-discounts' ) );
+	}
+	?>
 
 	<?php
 	// 1. SMART CAMPAIGN HEALTH WIDGET (PHASE 4: Extracted to Partial)
@@ -104,11 +104,11 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 
 	if ( ! empty( $campaigns ) ) :
 		?>
-		<div class="scd-campaign-planner dashboard-section">
+		<div class="scd-dashboard-section scd-campaign-planner">
 			<div class="scd-planner-header">
 				<div class="scd-planner-header-content">
 					<div class="scd-planner-header-icon">
-						<span class="dashicons dashicons-calendar-alt"></span>
+						<?php echo SCD_Icon_Helper::get( 'calendar', array( 'size' => 16 ) ); ?>
 					</div>
 					<div class="scd-planner-header-text">
 						<h2><?php esc_html_e( 'Campaign Planner', 'smart-cycle-discounts' ); ?></h2>
@@ -217,19 +217,28 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 						<div class="scd-planner-card-header">
 							<div class="scd-planner-card-title">
 								<h3>
-									<?php echo esc_html( $campaign['name'] ); ?>
 									<span class="scd-planner-icon"><?php echo esc_html( $campaign['icon'] ); ?></span>
+									<?php echo esc_html( $campaign['name'] ); ?>
 								</h3>
 							</div>
 							<div class="scd-planner-card-badges">
 								<?php if ( $is_major_event ) : ?>
-									<span class="scd-planner-card-badge scd-badge-major">
-										<span class="dashicons dashicons-awards"></span>
-										<?php esc_html_e( 'Major Event', 'smart-cycle-discounts' ); ?>
-									</span>
-								<?php endif; ?>
-								<span class="scd-planner-card-badge scd-badge-<?php echo esc_attr( $state ); ?>">
 									<?php
+									// Combined badge for major events showing both state and importance
+									$major_event_labels = array(
+										'past'   => __( 'Past Major Event', 'smart-cycle-discounts' ),
+										'active' => __( 'Active Major Event', 'smart-cycle-discounts' ),
+										'future' => __( 'Upcoming Major Event', 'smart-cycle-discounts' ),
+									);
+									$combined_label = $major_event_labels[ $state ] ?? __( 'Major Event', 'smart-cycle-discounts' );
+									?>
+									<span class="scd-planner-card-badge scd-badge-major scd-badge-combined scd-badge-major-<?php echo esc_attr( $state ); ?>">
+										<?php echo SCD_Icon_Helper::get( 'awards', array( 'size' => 16 ) ); ?>
+										<?php echo esc_html( $combined_label ); ?>
+									</span>
+								<?php else : ?>
+									<?php
+									// Regular state badge for non-major events
 									$badge_icons = array(
 										'past'   => 'clock',
 										'active' => 'star-filled',
@@ -237,22 +246,33 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 									);
 									$badge_icon  = $badge_icons[ $state ] ?? 'info';
 									?>
-									<span class="dashicons dashicons-<?php echo esc_attr( $badge_icon ); ?>"></span>
-									<?php echo esc_html( $state_label ); ?>
-								</span>
+									<span class="scd-planner-card-badge scd-badge-<?php echo esc_attr( $state ); ?>">
+										<?php echo SCD_Icon_Helper::get( $badge_icon, array( 'size' => 16 ) ); ?>
+										<?php echo esc_html( $state_label ); ?>
+									</span>
+								<?php endif; ?>
 							</div>
 						</div>
 
 						<!-- Card Description -->
 						<div class="scd-planner-card-content">
 							<p class="scd-planner-card-description">
-								<?php echo esc_html( $campaign['description'] ); ?>
+								<?php
+								$description = $campaign['description'];
+								// Check if description contains [PRO] marker and replace with badge helper
+								if ( false !== strpos( $description, '[PRO]' ) ) {
+									$description = str_replace( '[PRO]', '', $description );
+									echo wp_kses_post( $description ) . ' ' . SCD_Badge_Helper::pro_badge();
+								} else {
+									echo wp_kses_post( $description );
+								}
+								?>
 							</p>
 
 							<?php if ( 'active' === $state ) : ?>
 								<!-- Active campaign - show discount -->
 								<div class="scd-planner-card-discount">
-									<span class="dashicons dashicons-tag"></span>
+									<?php echo SCD_Icon_Helper::get( 'tag', array( 'size' => 20 ) ); ?>
 									<span>
 										<?php
 										$discount = $campaign['suggested_discount'];
@@ -269,11 +289,22 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 								</div>
 							<?php endif; ?>
 
-							<?php if ( ! empty( $campaign['statistics'] ) && 'future' === $state ) : ?>
-								<!-- Future campaign - show key stat -->
+							<?php if ( ! empty( $campaign['random_stat'] ) && 'future' === $state ) : ?>
+								<!-- Future campaign - show random stat -->
 								<div class="scd-planner-card-stat">
-									<span class="dashicons dashicons-chart-line"></span>
-									<span><?php echo esc_html( reset( $campaign['statistics'] ) ); ?></span>
+									<?php echo SCD_Icon_Helper::get( 'chart-line', array( 'size' => 20 ) ); ?>
+									<span>
+										<?php
+										$random_stat = $campaign['random_stat'];
+										// Check if stat contains [PRO] marker and replace with badge helper
+										if ( false !== strpos( $random_stat, '[PRO]' ) ) {
+											$random_stat = str_replace( '[PRO]', '', $random_stat );
+											echo wp_kses_post( $random_stat ) . ' ' . SCD_Badge_Helper::pro_badge();
+										} else {
+											echo wp_kses_post( $random_stat );
+										}
+										?>
+									</span>
 								</div>
 							<?php endif; ?>
 						</div>
@@ -281,18 +312,36 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 						<!-- Card Actions -->
 						<div class="scd-planner-card-actions">
 							<?php if ( 'active' === $state ) : ?>
-								<a href="<?php echo esc_url( $campaign['wizard_url'] ); ?>" class="button button-primary scd-planner-create-cta">
-									<?php echo $is_major_event ? esc_html__( '✨ Create Major Campaign', 'smart-cycle-discounts' ) : esc_html__( '⚡ Create Campaign', 'smart-cycle-discounts' ); ?>
-								</a>
+								<?php
+								SCD_Button_Helper::primary(
+									$is_major_event ? __( '✨ Create Major Campaign', 'smart-cycle-discounts' ) : __( '⚡ Create Campaign', 'smart-cycle-discounts' ),
+									array(
+										'href'    => esc_url( $campaign['wizard_url'] ),
+										'classes' => array( 'scd-planner-create-cta' ),
+									)
+								);
+								?>
 							<?php elseif ( 'future' === $state ) : ?>
-								<button type="button" class="button button-secondary scd-planner-view-details">
-									<span class="dashicons dashicons-visibility"></span>
-									<?php esc_html_e( 'View Details', 'smart-cycle-discounts' ); ?>
-								</button>
+								<?php
+								SCD_Button_Helper::secondary(
+									__( 'View Details', 'smart-cycle-discounts' ),
+									array(
+										'icon'    => 'visibility',
+										'classes' => array( 'scd-planner-view-details' ),
+									)
+								);
+								?>
 							<?php else : ?>
-								<button type="button" class="button button-link scd-planner-view-insights">
-									<?php esc_html_e( 'See What Happened', 'smart-cycle-discounts' ); ?>
-								</button>
+								<?php
+								SCD_Button_Helper::secondary(
+									__( 'Plan Next', 'smart-cycle-discounts' ),
+									array(
+										'icon'    => 'calendar-alt',
+										'href'    => esc_url( $campaign['wizard_url'] ),
+										'classes' => array( 'scd-planner-plan-next' ),
+									)
+								);
+								?>
 							<?php endif; ?>
 						</div>
 					</div>
@@ -333,13 +382,19 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 		?>
 		<div class="scd-dashboard-section scd-campaign-overview-empty">
 			<div class="scd-empty-state">
-				<span class="dashicons dashicons-megaphone"></span>
+				<?php echo SCD_Icon_Helper::get( 'megaphone', array( 'size' => 16 ) ); ?>
 				<h3><?php esc_html_e( 'Ready to Get Started?', 'smart-cycle-discounts' ); ?></h3>
 				<p><?php esc_html_e( 'Create your first discount campaign in 3 simple steps: choose products, set discount amount, and schedule dates.', 'smart-cycle-discounts' ); ?></p>
-				<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns&action=new' ) ); ?>" class="button button-primary button-large">
-					<span class="dashicons dashicons-plus-alt"></span>
-					<?php esc_html_e( 'Create Your First Campaign', 'smart-cycle-discounts' ); ?>
-				</a>
+				<?php
+				SCD_Button_Helper::primary(
+					__( 'Create Your First Campaign', 'smart-cycle-discounts' ),
+					array(
+						'size' => 'large',
+						'icon' => 'plus-alt',
+						'href' => admin_url( 'admin.php?page=scd-campaigns&action=new' ),
+					)
+				);
+				?>
 			</div>
 		</div>
 		<?php
@@ -361,15 +416,32 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 		?>
 		<div class="scd-dashboard-section scd-campaign-overview">
 			<div class="scd-section-header">
-				<h2><?php esc_html_e( 'Campaign Performance & Overview', 'smart-cycle-discounts' ); ?></h2>
+				<div class="scd-section-header-content">
+					<div class="scd-section-header-icon">
+						<?php echo SCD_Icon_Helper::get( 'chart-bar', array( 'size' => 16 ) ); ?>
+					</div>
+					<div class="scd-section-header-text">
+						<h2><?php esc_html_e( 'Campaign Performance & Overview', 'smart-cycle-discounts' ); ?></h2>
+						<p><?php esc_html_e( 'Track your campaign metrics and overall performance', 'smart-cycle-discounts' ); ?></p>
+					</div>
+				</div>
 				<div class="scd-section-header-actions">
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns&action=new' ) ); ?>" class="button button-primary">
-						<span class="dashicons dashicons-plus-alt"></span>
-						<?php esc_html_e( 'Create Campaign', 'smart-cycle-discounts' ); ?>
-					</a>
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns' ) ); ?>" class="button button-secondary">
-						<?php esc_html_e( 'View All', 'smart-cycle-discounts' ); ?>
-					</a>
+					<?php
+					SCD_Button_Helper::primary(
+						__( 'Create Campaign', 'smart-cycle-discounts' ),
+						array(
+							'icon' => 'plus-alt',
+							'href' => admin_url( 'admin.php?page=scd-campaigns&action=new' ),
+						)
+					);
+
+					SCD_Button_Helper::secondary(
+						__( 'View All', 'smart-cycle-discounts' ),
+						array(
+							'href' => admin_url( 'admin.php?page=scd-campaigns' ),
+						)
+					);
+					?>
 				</div>
 			</div>
 			<div class="scd-section-content">
@@ -390,7 +462,7 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 					<div class="scd-hero-stats">
 						<div class="scd-stat-card">
 							<div class="scd-stat-icon">
-								<span class="dashicons dashicons-chart-line"></span>
+								<?php echo SCD_Icon_Helper::get( 'chart-line', array( 'size' => 20 ) ); ?>
 							</div>
 							<div class="scd-stat-content">
 								<div class="scd-stat-label"><?php esc_html_e( 'Total Revenue', 'smart-cycle-discounts' ); ?></div>
@@ -417,7 +489,7 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 
 						<div class="scd-stat-card">
 							<div class="scd-stat-icon">
-								<span class="dashicons dashicons-megaphone"></span>
+								<?php echo SCD_Icon_Helper::get( 'megaphone', array( 'size' => 16 ) ); ?>
 							</div>
 							<div class="scd-stat-content">
 								<div class="scd-stat-label"><?php esc_html_e( 'Active Campaigns', 'smart-cycle-discounts' ); ?></div>
@@ -439,7 +511,7 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 
 						<div class="scd-stat-card">
 							<div class="scd-stat-icon">
-								<span class="dashicons dashicons-cart"></span>
+								<?php echo SCD_Icon_Helper::get( 'cart', array( 'size' => 20 ) ); ?>
 							</div>
 							<div class="scd-stat-content">
 								<div class="scd-stat-label"><?php esc_html_e( 'Conversions', 'smart-cycle-discounts' ); ?></div>
@@ -466,7 +538,7 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 
 						<div class="scd-stat-card">
 							<div class="scd-stat-icon">
-								<span class="dashicons dashicons-performance"></span>
+								<?php echo SCD_Icon_Helper::get( 'performance', array( 'size' => 20 ) ); ?>
 							</div>
 							<div class="scd-stat-content">
 								<div class="scd-stat-label"><?php esc_html_e( 'Click Rate', 'smart-cycle-discounts' ); ?></div>
@@ -601,13 +673,11 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 									<div class="scd-campaign-card-header">
 										<div class="scd-campaign-card-title">
 											<h4><?php echo esc_html( $campaign['name'] ); ?></h4>
-											<span class="scd-campaign-status-badge scd-status-<?php echo esc_attr( $campaign['status'] ); ?>">
-												<?php echo esc_html( ucfirst( $campaign['status'] ) ); ?>
-											</span>
+											<?php echo SCD_Badge_Helper::status_badge( $campaign['status'], ucfirst( $campaign['status'] ) ); ?>
 										</div>
 										<?php if ( $is_ending_soon || $is_starting_soon ) : ?>
 											<span class="scd-campaign-urgency-badge <?php echo $is_ending_soon ? 'scd-urgency-ending' : 'scd-urgency-starting'; ?>">
-												<span class="dashicons <?php echo $is_ending_soon ? 'dashicons-clock' : 'dashicons-calendar-alt'; ?>"></span>
+												<?php echo SCD_Icon_Helper::get( $is_ending_soon ? 'clock' : 'calendar', array( 'size' => 16 ) ); ?>
 												<?php
 												if ( $is_ending_soon ) {
 													echo esc_html( $end_time_text );
@@ -644,18 +714,33 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 									</div>
 
 									<div class="scd-campaign-card-footer">
-										<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns&action=edit&id=' . $campaign_id ) ); ?>" class="button button-small">
-											<?php esc_html_e( 'Edit', 'smart-cycle-discounts' ); ?>
-										</a>
-										<?php if ( 'active' === $campaign['status'] ) : ?>
-											<button class="button button-small scd-pause-campaign" data-campaign-id="<?php echo esc_attr( $campaign_id ); ?>">
-												<?php esc_html_e( 'Pause', 'smart-cycle-discounts' ); ?>
-											</button>
-										<?php elseif ( 'paused' === $campaign['status'] ) : ?>
-											<button class="button button-small scd-resume-campaign" data-campaign-id="<?php echo esc_attr( $campaign_id ); ?>">
-												<?php esc_html_e( 'Resume', 'smart-cycle-discounts' ); ?>
-											</button>
-										<?php endif; ?>
+										<?php
+										SCD_Button_Helper::link(
+											__( 'Edit', 'smart-cycle-discounts' ),
+											admin_url( 'admin.php?page=scd-campaigns&action=edit&id=' . $campaign_id ),
+											array( 'size' => 'small' )
+										);
+
+										if ( 'active' === $campaign['status'] ) :
+											SCD_Button_Helper::secondary(
+												__( 'Pause', 'smart-cycle-discounts' ),
+												array(
+													'size'       => 'small',
+													'classes'    => array( 'scd-pause-campaign' ),
+													'attributes' => array( 'data-campaign-id' => esc_attr( $campaign_id ) ),
+												)
+											);
+										elseif ( 'paused' === $campaign['status'] ) :
+											SCD_Button_Helper::secondary(
+												__( 'Resume', 'smart-cycle-discounts' ),
+												array(
+													'size'       => 'small',
+													'classes'    => array( 'scd-resume-campaign' ),
+													'attributes' => array( 'data-campaign-id' => esc_attr( $campaign_id ) ),
+												)
+											);
+										endif;
+										?>
 									</div>
 								</div>
 							<?php endforeach; ?>
@@ -663,10 +748,17 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 
 						<?php if ( count( $all_campaigns ) >= 5 ) : ?>
 							<div class="scd-campaigns-view-more">
-								<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns' ) ); ?>" class="button button-secondary button-large">
-									<?php esc_html_e( 'View All Campaigns', 'smart-cycle-discounts' ); ?>
-									<span class="dashicons dashicons-arrow-right-alt2"></span>
-								</a>
+								<?php
+								SCD_Button_Helper::secondary(
+									__( 'View All Campaigns', 'smart-cycle-discounts' ),
+									array(
+										'size'          => 'large',
+										'icon'          => 'arrow-right-alt2',
+										'icon_position' => 'right',
+										'href'          => admin_url( 'admin.php?page=scd-campaigns' ),
+									)
+								);
+								?>
 							</div>
 						<?php endif; ?>
 					</div>
@@ -702,30 +794,60 @@ $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaig
 		$primary_action_text = __( 'Create Your First Campaign', 'smart-cycle-discounts' );
 	}
 	?>
-	<div class="scd-quick-actions">
-		<h2 class="scd-quick-actions-title"><?php esc_html_e( 'Quick Actions', 'smart-cycle-discounts' ); ?></h2>
-		<div class="scd-action-buttons">
-			<a href="<?php echo esc_url( $primary_action_url ); ?>" class="button button-primary button-hero">
-				<span class="dashicons dashicons-<?php echo esc_attr( $primary_action_icon ); ?>"></span>
-				<?php echo esc_html( $primary_action_text ); ?>
-			</a>
-			<?php if ( $total_campaigns > 0 ) : ?>
-				<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns' ) ); ?>" class="button button-secondary button-large">
-					<span class="dashicons dashicons-list-view"></span>
-					<?php esc_html_e( 'View All Campaigns', 'smart-cycle-discounts' ); ?>
-				</a>
-			<?php endif; ?>
-			<?php if ( $is_premium ) : ?>
-				<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-analytics' ) ); ?>" class="button button-secondary button-large">
-					<span class="dashicons dashicons-chart-area"></span>
-					<?php esc_html_e( 'View Analytics', 'smart-cycle-discounts' ); ?>
-				</a>
-			<?php endif; ?>
+	<div class="scd-dashboard-section scd-quick-actions">
+		<div class="scd-section-header">
+			<div class="scd-section-header-content">
+				<div class="scd-section-header-icon">
+					<?php echo SCD_Icon_Helper::get( 'admin-tools', array( 'size' => 16 ) ); ?>
+				</div>
+				<div class="scd-section-header-text">
+					<h2><?php esc_html_e( 'Quick Actions', 'smart-cycle-discounts' ); ?></h2>
+					<p><?php esc_html_e( 'Get started with your most important tasks', 'smart-cycle-discounts' ); ?></p>
+				</div>
+			</div>
+		</div>
+		<div class="scd-section-content">
+			<div class="scd-action-buttons">
+			<?php
+			SCD_Button_Helper::primary(
+				$primary_action_text,
+				array(
+					'size' => 'hero',
+					'icon' => $primary_action_icon,
+					'href' => esc_url( $primary_action_url ),
+				)
+			);
+
+			if ( $total_campaigns > 0 ) :
+				SCD_Button_Helper::secondary(
+					__( 'View All Campaigns', 'smart-cycle-discounts' ),
+					array(
+						'size' => 'large',
+						'icon' => 'list-view',
+						'href' => admin_url( 'admin.php?page=scd-campaigns' ),
+					)
+				);
+			endif;
+
+			if ( $is_premium ) :
+				SCD_Button_Helper::secondary(
+					__( 'View Analytics', 'smart-cycle-discounts' ),
+					array(
+						'size' => 'large',
+						'icon' => 'chart-area',
+						'href' => admin_url( 'admin.php?page=scd-analytics' ),
+					)
+				);
+			endif;
+			?>
+			</div>
 		</div>
 	</div>
 
 	<!-- Loading Overlay -->
-	<div id="scd-dashboard-loading" class="scd-loading-overlay" style="display: none;">
-		<div class="scd-loading-spinner"></div>
-	</div>
+	<?php
+	if ( class_exists( 'SCD_Loader_Helper' ) ) {
+		SCD_Loader_Helper::render_container( 'scd-dashboard-loading', __( 'Loading dashboard...', 'smart-cycle-discounts' ), false );
+	}
+	?>
 </div>

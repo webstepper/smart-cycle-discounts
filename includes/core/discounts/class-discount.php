@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/discounts/class-discount.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/database/models
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Discount {
 
@@ -324,14 +324,14 @@ class SCD_Discount {
 
 		if ( ! empty( $this->start_date ) ) {
 			$start_time = strtotime( $this->start_date );
-			if ( $start_time !== false && $current_time < $start_time ) {
+			if ( false !== $start_time && $current_time < $start_time ) {
 				return false;
 			}
 		}
 
 		if ( ! empty( $this->end_date ) ) {
 			$end_time = strtotime( $this->end_date );
-			if ( $end_time !== false && $current_time > $end_time ) {
+			if ( false !== $end_time && $current_time > $end_time ) {
 				return false;
 			}
 		}
@@ -351,7 +351,7 @@ class SCD_Discount {
 		}
 
 		$end_time = strtotime( $this->end_date );
-		if ( $end_time === false ) {
+		if ( false === $end_time ) {
 			return false;
 		}
 

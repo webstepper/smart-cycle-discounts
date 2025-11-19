@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/integrations/class-integration-manager.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/integrations
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Integration_Manager {
 
@@ -78,19 +78,29 @@ class SCD_Integration_Manager {
 	 */
 	private function register_integrations(): void {
 		$this->integrations = array(
-			'woocommerce' => array(
+			'woocommerce'   => array(
 				'class'  => 'SCD_WooCommerce_Integration',
-				'file'   => 'includes/integrations/woocommerce/class-woocommerce-integration.php',
+				'file'   => 'woocommerce/class-woocommerce-integration.php',
 				'active' => class_exists( 'WooCommerce' ),
 			),
-			'blocks'      => array(
+			'blocks'        => array(
 				'class'  => 'SCD_Blocks_Manager',
-				'file'   => 'includes/integrations/blocks/class-blocks-manager.php',
+				'file'   => 'blocks/class-blocks-manager.php',
 				'active' => function_exists( 'register_block_type' ),
 			),
-			'email'       => array(
+			'email'         => array(
 				'class'  => 'SCD_Email_Manager',
-				'file'   => 'includes/integrations/email/class-email-manager.php',
+				'file'   => 'email/class-email-manager.php',
+				'active' => true,
+			),
+			'alert_monitor' => array(
+				'class'  => 'SCD_Alert_Monitor',
+				'file'   => 'email/class-alert-monitor.php',
+				'active' => true,
+			),
+			'privacy'       => array(
+				'class'  => 'SCD_Privacy_Integration',
+				'file'   => 'class-privacy-integration.php',
 				'active' => true,
 			),
 		);
@@ -167,12 +177,32 @@ class SCD_Integration_Manager {
 					return new SCD_Email_Manager(
 						$this->container->get( 'logger' ),
 						$this->container->get( 'campaign_manager' ),
-						$this->container->get( 'action_scheduler' )
+						$this->container->get( 'action_scheduler' ),
+						$this->container->get( 'feature_gate' ),
+						$this->container->get( 'analytics_repository' )
+					);
+
+				case 'SCD_Alert_Monitor':
+					// Reuse alert_monitor from container if available
+					if ( $this->container->has( 'alert_monitor' ) ) {
+						return $this->container->get( 'alert_monitor' );
+					}
+					// Fallback to creating new instance
+					return new SCD_Alert_Monitor(
+						$this->container->get( 'logger' ),
+						$this->container->get( 'campaign_manager' ),
+						$this->container->get( 'analytics_repository' ),
+						$this->container->get( 'action_scheduler' ),
+						$this->container->get( 'feature_gate' )
 					);
 
 				case 'SCD_WooCommerce_Integration':
 					// WooCommerce integration accepts container
 					return new SCD_WooCommerce_Integration( $this->container );
+
+				case 'SCD_Privacy_Integration':
+					// Privacy integration requires no dependencies
+					return new SCD_Privacy_Integration();
 
 				default:
 					// Default behavior: pass container

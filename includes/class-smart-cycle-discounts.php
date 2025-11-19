@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/class-smart-cycle-discounts.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -30,7 +30,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class Smart_Cycle_Discounts {
 
@@ -129,6 +129,9 @@ class Smart_Cycle_Discounts {
 		$this->init_campaign_event_hooks();  // Register campaign cron event hooks
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
+
+		// Clear license caches on plugin update
+		add_action( 'upgrader_process_complete', array( $this, 'on_plugin_update' ), 10, 2 );
 	}
 
 	/**
@@ -138,7 +141,7 @@ class Smart_Cycle_Discounts {
 	 * @return   Smart_Cycle_Discounts    The single instance.
 	 */
 	public static function get_instance(): Smart_Cycle_Discounts {
-		if ( self::$instance === null ) {
+		if ( null === self::$instance ) {
 			self::$instance = new self();
 		}
 		return self::$instance;
@@ -318,6 +321,7 @@ class Smart_Cycle_Discounts {
 		require_once SCD_INCLUDES_DIR . 'admin/pages/dashboard/class-main-dashboard-page.php';
 
 		if ( is_admin() ) {
+			require_once SCD_INCLUDES_DIR . 'admin/components/class-badge-helper.php';
 			require_once SCD_INCLUDES_DIR . 'admin/components/class-campaigns-list-table.php';
 		}
 
@@ -340,7 +344,10 @@ class Smart_Cycle_Discounts {
 		/**
 		 * Load integration classes
 		 */
+		require_once SCD_INCLUDES_DIR . 'integrations/interface-ecommerce-integration.php';
+		require_once SCD_INCLUDES_DIR . 'integrations/woocommerce/class-wc-analytics-integration.php';
 		require_once SCD_INCLUDES_DIR . 'integrations/woocommerce/class-woocommerce-integration.php';
+		require_once SCD_INCLUDES_DIR . 'integrations/class-privacy-integration.php';
 		require_once SCD_INCLUDES_DIR . 'integrations/class-integration-manager.php';
 
 		/**
@@ -535,6 +542,12 @@ class Smart_Cycle_Discounts {
 			$email_manager->init();
 		}
 
+		if ( $this->container->has( 'alert_monitor' ) ) {
+			$alert_monitor = $this->container->get( 'alert_monitor' );
+			// Alert Monitor schedules its own cron tasks via init hook
+			// No explicit init() call needed - schedules itself on 'init' hook
+		}
+
 		if ( $this->container->has( 'security_headers' ) ) {
 			$security_headers = $this->container->get( 'security_headers' );
 			$this->loader->add_action( 'init', $security_headers, 'set_headers' );
@@ -602,6 +615,7 @@ class Smart_Cycle_Discounts {
 
 		// Admin initialization
 		$this->loader->add_action( 'admin_init', $plugin_admin, 'admin_init' );
+
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
@@ -1039,6 +1053,60 @@ class Smart_Cycle_Discounts {
 				$scheduler->handle_deactivation_event( $campaign_id );
 			}
 			return;
+		}
+	}
+
+	/**
+	 * Handle plugin update completion.
+	 *
+	 * Clears license and feature caches when the plugin is updated
+	 * to ensure fresh validation with new code/configuration.
+	 *
+	 * @since    1.0.0
+	 * @param    object $upgrader    WP_Upgrader instance.
+	 * @param    array  $options     Update options.
+	 * @return   void
+	 */
+	public function on_plugin_update( $upgrader, $options ) {
+		// Only process plugin updates
+		if ( ! isset( $options['type'] ) || 'plugin' !== $options['type'] ) {
+			return;
+		}
+
+		// Only process this plugin's updates
+		if ( ! isset( $options['plugins'] ) || ! is_array( $options['plugins'] ) ) {
+			return;
+		}
+
+		// Check if our plugin was updated
+		foreach ( $options['plugins'] as $plugin ) {
+			if ( SCD_PLUGIN_BASENAME === $plugin ) {
+				// Clear license and feature caches
+				delete_option( 'scd_license_validation_cache' );
+				delete_option( 'scd_license_last_check' );
+				delete_transient( 'scd_license_status' );
+				delete_transient( 'scd_feature_gate_cache' );
+
+				// Force fresh validation
+				if ( class_exists( 'SCD_License_Manager' ) ) {
+					$license_manager = SCD_License_Manager::instance();
+					if ( method_exists( $license_manager, 'force_validation' ) ) {
+						$license_manager->force_validation();
+					}
+				}
+
+				// Log the cache clear
+				if ( function_exists( 'scd_log_info' ) ) {
+					scd_log_info(
+						'License caches cleared after plugin update',
+						array(
+							'version' => SCD_VERSION,
+						)
+					);
+				}
+
+				break;
+			}
 		}
 	}
 }

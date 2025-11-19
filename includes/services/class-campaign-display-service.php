@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/services/class-campaign-display-service.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/services
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Campaign_Display_Service {
 
@@ -102,22 +102,10 @@ class SCD_Campaign_Display_Service {
 			$prepared[]     = $this->prepare_campaign_for_display( $campaign_array );
 		}
 
+		// Sort by urgency and days remaining - avoid closure for serialization compatibility.
 		usort(
 			$prepared,
-			function ( $a, $b ) {
-				// Urgent campaigns first.
-				if ( $a['is_urgent'] !== $b['is_urgent'] ) {
-					return $b['is_urgent'] <=> $a['is_urgent'];
-				}
-
-				// Then by days remaining (ascending).
-				if ( isset( $a['days_until_end'], $b['days_until_end'] ) ) {
-					return $a['days_until_end'] <=> $b['days_until_end'];
-				}
-
-				// Fall back to created date.
-				return 0;
-			}
+			array( $this, 'compare_campaigns_by_urgency_and_days' )
 		);
 
 		return array_slice( $prepared, 0, $limit );
@@ -325,5 +313,29 @@ class SCD_Campaign_Display_Service {
 		);
 
 		return $icons[ $status ] ?? 'admin-generic';
+	}
+
+	/**
+	 * Compare campaigns by urgency and days remaining.
+	 * Used instead of closure for serialization compatibility.
+	 *
+	 * @since  1.0.0
+	 * @param  array $a First campaign.
+	 * @param  array $b Second campaign.
+	 * @return int Comparison result.
+	 */
+	private function compare_campaigns_by_urgency_and_days( array $a, array $b ): int {
+		// Urgent campaigns first.
+		if ( $a['is_urgent'] !== $b['is_urgent'] ) {
+			return $b['is_urgent'] <=> $a['is_urgent'];
+		}
+
+		// Then by days remaining (ascending).
+		if ( isset( $a['days_until_end'], $b['days_until_end'] ) ) {
+			return $a['days_until_end'] <=> $b['days_until_end'];
+		}
+
+		// Fall back to created date.
+		return 0;
 	}
 }

@@ -1,0 +1,176 @@
+SMART UI COMPONENT AUDIT REPORT
+================================================================================
+
+Context-aware analysis identifying TRUE refactoring candidates
+
+FORM FIELDS:
+  Refactorable: 79
+  Intentional: 19
+
+
+  resources/views/admin/wizard/step-discounts.php
+    Uses helper: False
+    Refactorable: 28
+    Intentional: 9
+    Examples:
+      Line 454: <input type="number"
+      Line 492: <input type="number"
+      Line 539: <input type="radio" name="apply_to" value="per_item" <?php checked(($step_data['
+
+  resources/views/admin/wizard/step-schedule.php
+    Uses helper: True
+    Refactorable: 14
+    Intentional: 3
+    Examples:
+      Line 104: <input type="radio"
+      Line 117: <input type="radio"
+      Line 153: <input type="text"
+
+  resources/views/admin/wizard/step-products.php
+    Uses helper: False
+    Refactorable: 13
+    Intentional: 1
+    Examples:
+      Line 194: <input type="radio"
+      Line 207: <input type="radio"
+      Line 224: <input type="number"
+
+  includes/admin/components/class-campaigns-list-table.php
+    Uses helper: False
+    Refactorable: 7
+    Intentional: 1
+    Examples:
+      Line 98: 'cb'          => '<input type="checkbox" />',
+      Line 241: '<input type="checkbox" name="campaign[]" value="%d" />',
+      Line 1479: <input type="text" name="name" class="ptitle" value="" />
+
+  resources/views/admin/pages/dashboard.php
+    Uses helper: False
+    Refactorable: 3
+    Intentional: 0
+    Examples:
+      Line 140: <input
+      Line 148: <input
+      Line 191: <input type="checkbox" id="scd-auto-refresh" />
+
+  includes/admin/components/class-condition-builder.php
+    Uses helper: False
+    Refactorable: 3
+    Intentional: 0
+    Examples:
+      Line 303: <input type="text"
+      Line 460: <input type="text"
+      Line 632: var input = '<input type="text" name="' + namePrefix + '[' + index + '][values][
+
+  includes/admin/settings/class-settings-page-base.php
+    Uses helper: False
+    Refactorable: 3
+    Intentional: 0
+    Examples:
+      Line 248: '<input type="checkbox" id="%s" name="%s" value="1" %s>',
+      Line 273: '<input type="text" id="%s" name="%s" value="%s" class="%s" placeholder="%s">',
+      Line 309: '<input type="number" id="%s" name="%s" value="%s" min="%s" max="%s" step="%s" c
+
+  resources/views/admin/wizard/step-review.php
+    Uses helper: False
+    Refactorable: 2
+    Intentional: 0
+    Examples:
+      Line 165: <input type="radio" name="launch_option" value="active" <?php checked( $launch_o
+      Line 196: <input type="radio" name="launch_option" value="draft" <?php checked( $launch_op
+
+  resources/views/admin/wizard/template-wrapper.php
+    Uses helper: True
+    Refactorable: 2
+    Intentional: 0
+    Examples:
+      Line 483: <input
+      Line 780: <input type="<?php echo esc_attr( $args['type'] ); ?>"
+
+  includes/admin/pages/notifications/class-notifications-tab-base.php
+    Uses helper: False
+    Refactorable: 2
+    Intentional: 0
+    Examples:
+      Line 223: '<input type="text" id="%s" name="%s" value="%s" class="%s" placeholder="%s"%s /
+      Line 314: <input type="checkbox"
+
+  includes/admin/pages/class-tools-page.php
+    Uses helper: False
+    Refactorable: 1
+    Intentional: 0
+    Examples:
+      Line 180: <input type="file" id="scd-import-file" accept=".json" class="regular-text">
+
+  includes/admin/pages/notifications/tabs/class-notifications-settings-tab.php
+    Uses helper: False
+    Refactorable: 1
+    Intentional: 0
+    Examples:
+      Line 359: '<input type="password" id="%s" name="%s" value="%s" class="%s">',
+
+
+TOOLTIPS:
+  Refactorable: 21
+
+
+  resources/views/admin/pages/dashboard/main-dashboard.php
+    Uses helper: False
+    Refactorable: 6
+
+  resources/views/admin/wizard/step-discounts.php
+    Uses helper: False
+    Refactorable: 4
+
+  resources/views/admin/wizard/step-products.php
+    Uses helper: False
+    Refactorable: 2
+
+  resources/views/admin/wizard/step-schedule.php
+    Uses helper: False
+    Refactorable: 2
+
+  resources/views/admin/pages/dashboard/partials/health-widget.php
+    Uses helper: False
+    Refactorable: 2
+
+  includes/admin/components/class-condition-builder.php
+    Uses helper: False
+    Refactorable: 2
+
+  resources/views/admin/wizard/step-review.php
+    Uses helper: False
+    Refactorable: 1
+
+  resources/views/admin/wizard/template-wrapper.php
+    Uses helper: True
+    Refactorable: 1
+
+  includes/admin/settings/tabs/class-performance-settings.php
+    Uses helper: False
+    Refactorable: 1
+
+
+BADGES:
+  Refactorable: 11
+
+
+  resources/views/admin/pages/dashboard/main-dashboard.php
+    Uses helper: True
+    Refactorable: 4
+
+  includes/admin/components/class-campaigns-list-table.php
+    Uses helper: True
+    Refactorable: 3
+
+  resources/views/admin/wizard/step-discounts.php
+    Uses helper: True
+    Refactorable: 2
+
+  resources/views/admin/wizard/step-schedule.php
+    Uses helper: False
+    Refactorable: 1
+
+  resources/views/admin/pages/currency-review.php
+    Uses helper: True
+    Refactorable: 1

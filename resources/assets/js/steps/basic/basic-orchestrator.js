@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/steps/basic/basic-orchestrator.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -23,55 +23,46 @@
 	 * Basic Orchestrator
 	 * Created using BaseOrchestrator.createStep() factory method
 	 * Inherits from BaseOrchestrator with EventManager and StepPersistence mixins
+	 *
+	 * Phase 2 Migration: Uses Module Registry for declarative module initialization
 	 */
 	SCD.Steps.BasicOrchestrator = SCD.Shared.BaseOrchestrator.createStep( 'basic', {
 
 		/**
 		 * Initialize step modules
 		 * Called by BaseOrchestrator's initializeModules
+		 *
+		 * Phase 2: Uses Module Registry for declarative initialization
 		 */
 		initializeStep: function() {
-			try {
-				this.modules.state = new SCD.Modules.Basic.State();
-				this.modules.api = new SCD.Modules.Basic.API();
-				this.modules.fields = new SCD.Modules.Basic.Fields( this.modules.state );
-			} catch ( error ) {
-				SCD.ErrorHandler.handle(
-					error,
-					'BasicOrchestrator.initializeStep',
-					SCD.ErrorHandler.SEVERITY.HIGH
-				);
-				throw error;
-			}
-		},
+			// Create module configuration using helper
+			var moduleConfig = SCD.Shared.ModuleRegistry.createStepConfig( 'basic' );
 
+			// Initialize all modules with automatic dependency injection
+			this.modules = SCD.Shared.ModuleRegistry.initialize( moduleConfig, this );
+		},
 
 		/**
 		 * Custom initialization hook
 		 * Called by BaseOrchestrator after standard init
+		 *
+		 * Phase 2: Bind auto events for convention-based event handling
 		 */
 		onInit: function() {
-			// Basic step specific initialization can go here if needed
+			// Bind auto events - convention-based event binding via data attributes
+			SCD.Shared.AutoEvents.bind( this.$container, this );
 		},
 
 		/**
 		 * Custom event binding hook
 		 * Called by BaseOrchestrator after standard event binding
+		 *
+		 * Phase 2: Field change events handled automatically by fields module
 		 */
 		onBindEvents: function() {
-			var self = this;
-
-			// Listen for field change events from the fields module
-			this.bindCustomEvent( 'scd:basic:field:changed', function( e, data ) {
-				if ( data && data.field && data.value !== undefined ) {
-					if ( self.modules.state ) {
-						// setData expects an object, not individual key/value
-						var update = {};
-						update[data.field] = data.value;
-						self.modules.state.setData( update );
-					}
-				}
-			} );
+			// Phase 2: No manual event binding needed
+			// Field module handles field changes automatically
+			// Auto Events handles UI interactions via data attributes
 		},
 
 		// Note: populateFields() is now handled entirely by StepPersistence mixin

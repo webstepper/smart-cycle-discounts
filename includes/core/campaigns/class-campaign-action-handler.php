@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/campaigns/class-campaign-action-handler.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -200,6 +200,34 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 			$message = 'active' === $new_status
 				? __( 'Campaign activated successfully.', 'smart-cycle-discounts' )
 				: __( 'Campaign deactivated successfully.', 'smart-cycle-discounts' );
+
+			// Add helpful information about campaign duration
+			if ( 'active' === $new_status ) {
+				$campaign = $this->campaign_manager->find( $campaign_id );
+				if ( $campaign ) {
+					$ends_at = $campaign->get_ends_at();
+					if ( $ends_at ) {
+						$now                  = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
+						$diff                 = $ends_at->getTimestamp() - $now->getTimestamp();
+						$hours_until_expiry   = $diff / 3600;
+						$end_date_display     = wp_date( 'F j, Y \a\t g:i A', $ends_at->getTimestamp() );
+
+						// Warn if expires within 24 hours
+						if ( $hours_until_expiry < 24 && $hours_until_expiry > 0 ) {
+							$message .= ' ' . sprintf(
+								__( 'Note: This campaign will expire soon on %s (in %s).', 'smart-cycle-discounts' ),
+								$end_date_display,
+								human_time_diff( $now->getTimestamp(), $ends_at->getTimestamp() )
+							);
+						} else {
+							$message .= ' ' . sprintf(
+								__( 'Campaign will run until %s.', 'smart-cycle-discounts' ),
+								$end_date_display
+							);
+						}
+					}
+				}
+			}
 
 			if ( 'paused' === $new_status ) {
 				$campaign = $this->campaign_manager->find( $campaign_id );

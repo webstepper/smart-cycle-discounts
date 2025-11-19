@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/licensing/class-freemius-integration.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/licensing
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Freemius_Integration {
 
@@ -90,7 +90,9 @@ class SCD_Freemius_Integration {
 				'slug'                => 'smart-cycle-discounts',
 				'type'                => 'plugin',
 				'public_key'          => 'pk_4adf9836495f54c692369525c1000',
-				'is_premium'          => false, // This is the FREE version (can be upgraded).
+				'is_premium'          => true, // This plugin contains premium features (freemium model).
+				'is_premium_only'     => false, // Works without a license - users unlock features by purchasing.
+				'has_premium_version' => false, // No separate premium plugin - single freemium plugin.
 				'has_addons'          => false,
 				'has_paid_plans'      => true, // Plugin HAS paid plans available.
 				'is_live'             => true, // Enable live mode (production).
@@ -102,6 +104,7 @@ class SCD_Freemius_Integration {
 					'first-path' => 'admin.php?page=smart-cycle-discounts',
 					'support'    => false,
 				),
+				'navigation'          => 'menu', // Show Freemius submenu items (Account, Contact, etc.).
 			)
 		);
 
@@ -132,10 +135,13 @@ class SCD_Freemius_Integration {
 		self::$freemius->add_action( 'after_premium_subscription_change', array( __CLASS__, 'after_plan_change' ) );
 		self::$freemius->add_action( 'after_trial_started', array( __CLASS__, 'after_trial_started' ) );
 		self::$freemius->add_action( 'after_trial_cancelled', array( __CLASS__, 'after_trial_cancelled' ) );
-		self::$freemius->add_action( 'after_account_plan_change', array( __CLASS__, 'after_plan_change' ) );
+		self::$freemius->add_action( 'after_trial_ended', array( __CLASS__, 'after_trial_ended' ) );
 
-		// License sync hooks for security.
-		self::$freemius->add_action( 'after_account_connection', array( __CLASS__, 'sync_license_on_connect' ) );
+		// License activation/deactivation (specific events with user notices).
+		self::$freemius->add_action( 'after_license_activation', array( __CLASS__, 'after_license_activated' ) );
+		self::$freemius->add_action( 'after_license_deactivation', array( __CLASS__, 'after_license_deactivated' ) );
+
+		// License monitoring for security.
 		self::$freemius->add_filter( 'license_key_maxed', array( __CLASS__, 'handle_license_maxed' ), 10, 2 );
 
 		// Admin notice filters.
@@ -162,6 +168,14 @@ class SCD_Freemius_Integration {
 		}
 
 		self::clear_feature_gate_cache();
+
+		// Force immediate validation after account connection.
+		if ( class_exists( 'SCD_License_Manager' ) ) {
+			$license_manager = SCD_License_Manager::instance();
+			if ( method_exists( $license_manager, 'force_validation' ) ) {
+				$license_manager->force_validation();
+			}
+		}
 	}
 
 	/**
@@ -210,7 +224,7 @@ class SCD_Freemius_Integration {
 		?>
 		<div class="notice notice-success is-dismissible">
 			<p>
-				<strong><?php esc_html_e( '🎉 Welcome to Smart Cycle Discounts Pro!', 'smart-cycle-discounts' ); ?></strong><br>
+				<strong><?php esc_html_e( 'Welcome to Smart Cycle Discounts Pro!', 'smart-cycle-discounts' ); ?></strong><br>
 				<?php esc_html_e( 'All Pro features are now active. You now have unlimited campaigns, advanced analytics, priority support, and more!', 'smart-cycle-discounts' ); ?>
 			</p>
 		</div>
@@ -266,6 +280,8 @@ class SCD_Freemius_Integration {
 	/**
 	 * Handle actions after trial cancelled.
 	 *
+	 * Fired when user manually cancels trial before it expires.
+	 *
 	 * @since    1.0.0
 	 * @return   void
 	 */
@@ -288,6 +304,150 @@ class SCD_Freemius_Integration {
 				$license_manager->force_validation();
 			}
 		}
+	}
+
+	/**
+	 * Handle actions after trial ended.
+	 *
+	 * Fired when trial period expires naturally (not manually cancelled).
+	 * Perfect opportunity for conversion messaging.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	public static function after_trial_ended() {
+		self::clear_feature_gate_cache();
+
+		if ( function_exists( 'scd_log_info' ) ) {
+			scd_log_info(
+				'Freemius trial ended',
+				array(
+					'user_id' => get_current_user_id(),
+				)
+			);
+		}
+
+		// Force immediate validation.
+		if ( class_exists( 'SCD_License_Manager' ) ) {
+			$license_manager = SCD_License_Manager::instance();
+			if ( method_exists( $license_manager, 'force_validation' ) ) {
+				$license_manager->force_validation();
+			}
+		}
+
+		// Show trial ended notice with upgrade CTA.
+		add_action( 'admin_notices', array( __CLASS__, 'show_trial_ended_notice' ) );
+	}
+
+	/**
+	 * Show trial ended notice with upgrade call-to-action.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	public static function show_trial_ended_notice() {
+		if ( ! self::$freemius || ! is_object( self::$freemius ) ) {
+			return;
+		}
+		?>
+		<div class="notice notice-warning is-dismissible">
+			<p>
+				<strong><?php esc_html_e( 'Smart Cycle Discounts Pro Trial Ended', 'smart-cycle-discounts' ); ?></strong><br>
+				<?php esc_html_e( 'Your 14-day Pro trial has expired. Upgrade now to continue using advanced analytics, unlimited campaigns, and priority support!', 'smart-cycle-discounts' ); ?>
+			</p>
+			<p>
+				<a href="<?php echo esc_url( self::$freemius->get_upgrade_url() ); ?>" class="button button-primary">
+					<?php esc_html_e( 'Upgrade to Pro', 'smart-cycle-discounts' ); ?>
+				</a>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=smart-cycle-discounts' ) ); ?>" class="button button-secondary">
+					<?php esc_html_e( 'Continue with Free', 'smart-cycle-discounts' ); ?>
+				</a>
+			</p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Handle actions after license activation.
+	 *
+	 * Fired when user manually enters and activates a license key.
+	 * Ensures immediate cache clear and feature unlock.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	public static function after_license_activated() {
+		self::clear_feature_gate_cache();
+
+		if ( function_exists( 'scd_log_info' ) ) {
+			scd_log_info(
+				'License key activated',
+				array(
+					'user_id' => get_current_user_id(),
+				)
+			);
+		}
+
+		// Force immediate validation after license activation.
+		if ( class_exists( 'SCD_License_Manager' ) ) {
+			$license_manager = SCD_License_Manager::instance();
+			if ( method_exists( $license_manager, 'force_validation' ) ) {
+				$license_manager->force_validation();
+			}
+		}
+
+		// Show activation success notice.
+		add_action( 'admin_notices', array( __CLASS__, 'show_license_activated_notice' ) );
+	}
+
+	/**
+	 * Handle actions after license deactivation.
+	 *
+	 * Fired when user deactivates their license key.
+	 * Ensures immediate cache clear and feature lock.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	public static function after_license_deactivated() {
+		self::clear_feature_gate_cache();
+
+		if ( function_exists( 'scd_log_info' ) ) {
+			scd_log_info(
+				'License key deactivated',
+				array(
+					'user_id' => get_current_user_id(),
+				)
+			);
+		}
+
+		// Force immediate validation after license deactivation.
+		if ( class_exists( 'SCD_License_Manager' ) ) {
+			$license_manager = SCD_License_Manager::instance();
+			if ( method_exists( $license_manager, 'force_validation' ) ) {
+				$license_manager->force_validation();
+			}
+		}
+	}
+
+	/**
+	 * Show license activated success notice.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	public static function show_license_activated_notice() {
+		if ( ! function_exists( 'scd_fs' ) || ! scd_fs() || ! scd_fs()->is_premium() ) {
+			return;
+		}
+		?>
+		<div class="notice notice-success is-dismissible">
+			<p>
+				<strong><?php esc_html_e( 'License Activated Successfully!', 'smart-cycle-discounts' ); ?></strong><br>
+				<?php esc_html_e( 'All Pro features are now available. Thank you for upgrading!', 'smart-cycle-discounts' ); ?>
+			</p>
+		</div>
+		<?php
 	}
 
 	/**
@@ -328,25 +488,30 @@ class SCD_Freemius_Integration {
 				$license_manager->clear_validation_cache();
 			}
 		}
-	}
 
-	/**
-	 * Sync license information on account connection.
-	 *
-	 * @since    1.0.0
-	 * @param    WP_User $user    WordPress user object.
-	 * @return   WP_User          Unchanged user object.
-	 */
-	public static function sync_license_on_connect( $user ) {
-		// Trigger immediate license validation.
-		if ( class_exists( 'SCD_License_Manager' ) ) {
-			$license_manager = SCD_License_Manager::instance();
-			if ( method_exists( $license_manager, 'force_validation' ) ) {
-				$license_manager->force_validation();
+		// Clear cache groups affected by license changes.
+		if ( function_exists( 'scd_get_instance' ) ) {
+			try {
+				$container = scd_get_instance()->get_container();
+				if ( $container && $container->has( 'cache' ) ) {
+					$cache = $container->get( 'cache' );
+					if ( method_exists( $cache, 'delete_group' ) ) {
+						$cache->delete_group( 'settings' );
+						$cache->delete_group( 'campaigns' );
+						$cache->delete_group( 'analytics' );
+					}
+				}
+			} catch ( Exception $e ) {
+				if ( function_exists( 'scd_log_warning' ) ) {
+					scd_log_warning(
+						'Failed to clear cache groups after license change',
+						array(
+							'error' => $e->getMessage(),
+						)
+					);
+				}
 			}
 		}
-
-		return $user;
 	}
 
 	/**

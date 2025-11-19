@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/products/class-condition-engine.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/products
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Condition_Engine {
 
@@ -60,6 +60,11 @@ class SCD_Condition_Engine {
 		// Price & Inventory
 		'price'            => array(
 			'type'     => 'numeric',
+			'label'    => 'Price',
+			'meta_key' => '_price', // Current effective price (what get_price() returns)
+		),
+		'regular_price'    => array(
+			'type'     => 'numeric',
 			'label'    => 'Regular Price',
 			'meta_key' => '_regular_price',
 		),
@@ -67,11 +72,6 @@ class SCD_Condition_Engine {
 			'type'     => 'numeric',
 			'label'    => 'Sale Price',
 			'meta_key' => '_sale_price',
-		),
-		'current_price'    => array(
-			'type'     => 'numeric',
-			'label'    => 'Current Price',
-			'meta_key' => '_price',
 		),
 		'stock_quantity'   => array(
 			'type'     => 'numeric',
@@ -190,23 +190,6 @@ class SCD_Condition_Engine {
 			'type'  => 'date',
 			'label' => 'Date Modified',
 			'field' => 'post_modified',
-		),
-
-		// Legacy mappings for backward compatibility
-		'product_name'     => array(
-			'type'  => 'text',
-			'label' => 'Product Name',
-			'field' => 'post_title',
-		),
-		'rating'           => array(
-			'type'     => 'numeric',
-			'label'    => 'Average Rating',
-			'meta_key' => '_wc_average_rating',
-		),
-		'regular_price'    => array(
-			'type'     => 'numeric',
-			'label'    => 'Regular Price',
-			'meta_key' => '_regular_price',
 		),
 	);
 
@@ -329,12 +312,19 @@ class SCD_Condition_Engine {
 			return $product_ids;
 		}
 
-		$cache_key = 'scd_condition_filter_' . md5( serialize( $product_ids ) . serialize( $conditions ) );
+		// Generate cache key with full condition content to prevent collisions
+		// Using md5 hash of serialized conditions ensures different conditions with same count don't collide
+		$conditions_hash = md5( serialize( $conditions ) );
+		$cache_key       = sprintf(
+			'products_conditions_%s_%s',
+			$logic,
+			$conditions_hash
+		);
 
 		// Try to get from cache first
 		if ( $this->cache ) {
 			$cached_result = $this->cache->get( $cache_key );
-			if ( $cached_result !== false && is_array( $cached_result ) ) {
+			if ( false !== $cached_result && is_array( $cached_result ) ) {
 				$this->logger->debug(
 					'Condition filtering retrieved from cache',
 					array(
@@ -363,12 +353,12 @@ class SCD_Condition_Engine {
 			} else {
 				// AND logic - products must match ALL conditions
 				$filtered_ids = $product_ids;
-				foreach ( $conditions as $condition ) {
-					if ( ! $this->validate_condition( $condition ) ) {
-						$this->logger->warning( 'Invalid condition skipped', array( 'condition' => $condition ) );
+						foreach ( $conditions as $condition ) {
+							if ( ! $this->validate_condition( $condition ) ) {
+								$this->logger->warning( 'Invalid condition skipped', array( 'condition' => $condition ) );
 						continue;
 					}
-
+		
 					$filtered_ids = $this->apply_single_condition( $filtered_ids, $condition );
 
 					// If no products remain, break early
@@ -379,9 +369,10 @@ class SCD_Condition_Engine {
 			}
 
 			if ( $this->cache ) {
-				$this->cache->set( $cache_key, $filtered_ids, 1800 ); // Cache for 30 minutes
+					$this->cache->set( $cache_key, $filtered_ids, 900 ); // Cache for 15 minutes - cleared on changes
 			}
 
+	
 			$this->logger->info(
 				'Conditions applied successfully',
 				array(
@@ -392,6 +383,9 @@ class SCD_Condition_Engine {
 			);
 
 		} catch ( Exception $e ) {
+			error_log( '[SCD] CONDITION_ENGINE - ERROR! Returning all products. Exception: ' . $e->getMessage() );
+			error_log( '[SCD] CONDITION_ENGINE - Exception trace: ' . $e->getTraceAsString() );
+
 			$this->logger->error(
 				'Condition application failed',
 				array(
@@ -402,7 +396,7 @@ class SCD_Condition_Engine {
 			return $product_ids; // Return original IDs on error
 		}
 
-		return $filtered_ids;
+			return $filtered_ids;
 	}
 
 	/**
@@ -415,32 +409,46 @@ class SCD_Condition_Engine {
 	 * @return   array                    Filtered product IDs.
 	 */
 	private function apply_single_condition( array $product_ids, array $condition ): array {
-		$property = $condition['property'];
-		$operator = $condition['operator'];
-		$values   = $condition['values'];
-		$mode     = $condition['mode'] ?? 'include';
+		// Use database format: condition_type, value, value2
+		$condition_type = $condition['condition_type'] ?? '';
+		$operator       = $this->normalize_operator( $condition['operator'] );
+		$value          = isset( $condition['value'] ) ? strval( $condition['value'] ) : '';
+		$value2         = isset( $condition['value2'] ) ? strval( $condition['value2'] ) : '';
+		$mode           = $condition['mode'] ?? 'include';
 
-		if ( ! isset( $this->supported_properties[ $property ] ) ) {
-			return $product_ids; // Return all products if property invalid
+
+		if ( ! isset( $this->supported_properties[ $condition_type ] ) ) {
+			return $product_ids;
 		}
 
 		if ( ! isset( $this->supported_operators[ $operator ] ) ) {
-			return $product_ids; // Return all products if operator invalid
+			return $product_ids;
 		}
 
-		$property_config = $this->supported_properties[ $property ];
+		$property_config = $this->supported_properties[ $condition_type ];
 		$operator_config = $this->supported_operators[ $operator ];
 
-		$filtered = array_filter(
+
+		$match_count = 0;
+		$filtered    = array_filter(
 			$product_ids,
-			function ( $product_id ) use ( $property_config, $operator_config, $values, $mode ) {
+			function ( $product_id ) use ( $property_config, $operator_config, $operator, $value, $value2, $mode, &$match_count, $condition_type ) {
 				$product_value = $this->get_product_property_value( $product_id, $property_config );
-				$result        = $this->evaluate_condition( $product_value, $operator_config, $values, $property_config['type'] );
+				$result        = $this->evaluate_condition( $product_value, $operator_config, $operator, $value, $value2, $property_config['type'] );
+
+				// Debug first 3 products
+				if ( $match_count < 3 ) {
+					}
+
+				if ( $result ) {
+					$match_count++;
+				}
 
 				// If mode is exclude, invert the result
 				return $mode === 'exclude' ? ! $result : $result;
 			}
 		);
+
 
 		return $filtered;
 	}
@@ -567,21 +575,21 @@ class SCD_Condition_Engine {
 	 * @param    string $type              Value type.
 	 * @return   bool                        True if condition matches.
 	 */
-	private function evaluate_condition( mixed $product_value, array $operator_config, array $condition_values, string $type ): bool {
+	private function evaluate_condition( mixed $product_value, array $operator_config, string $operator_name, string $value, string $value2, string $type ): bool {
 		$operator = $operator_config['symbol'];
 
 		switch ( $type ) {
 			case 'numeric':
-				return $this->evaluate_numeric_condition( $product_value, $operator, $condition_values );
+				return $this->evaluate_numeric_condition( $product_value, $operator, $value, $value2 );
 			case 'boolean':
-				return $this->evaluate_boolean_condition( $product_value, $operator, $condition_values );
+				return $this->evaluate_boolean_condition( $product_value, $operator, $value, $value2 );
 			case 'date':
-				return $this->evaluate_date_condition( $product_value, $operator, $condition_values );
+				return $this->evaluate_date_condition( $product_value, $operator, $value, $value2 );
 			case 'select':
-				return $this->evaluate_select_condition( $product_value, $operator, $condition_values );
+				return $this->evaluate_select_condition( $product_value, $operator, $value, $value2 );
 			case 'text':
 			default:
-				return $this->evaluate_text_condition( $product_value, $operator, $condition_values );
+				return $this->evaluate_text_condition( $product_value, $operator, $operator_name, $value, $value2 );
 		}
 	}
 
@@ -595,9 +603,9 @@ class SCD_Condition_Engine {
 	 * @param    array  $condition_values  Condition values.
 	 * @return   bool                        True if condition matches.
 	 */
-	private function evaluate_numeric_condition( float $product_value, string $operator, array $condition_values ): bool {
-		$value1 = floatval( $condition_values[0] ?? 0 );
-		$value2 = floatval( $condition_values[1] ?? 0 );
+	private function evaluate_numeric_condition( float $product_value, string $operator, string $value, string $value2 ): bool {
+		$value1 = floatval( $value );
+		$value2 = floatval( $value2 );
 
 		switch ( $operator ) {
 			case '=':
@@ -631,8 +639,8 @@ class SCD_Condition_Engine {
 	 * @param    array  $condition_values  Condition values.
 	 * @return   bool                        True if condition matches.
 	 */
-	private function evaluate_text_condition( string $product_value, string $operator, array $condition_values ): bool {
-		$search_value  = strval( $condition_values[0] ?? '' );
+	private function evaluate_text_condition( string $product_value, string $operator, string $operator_name, string $value, string $value2 ): bool {
+		$search_value  = strval( $value );
 		$product_value = strtolower( $product_value );
 		$search_value  = strtolower( $search_value );
 
@@ -642,16 +650,27 @@ class SCD_Condition_Engine {
 			case '!=':
 				return $product_value !== $search_value;
 			case 'LIKE':
-				// Handle different LIKE patterns based on context
-				if ( strpos( $search_value, '%' ) !== false ) {
-					// Custom pattern
+				// Use operator name to distinguish between different LIKE variants
+				if ( 'starts_with' === $operator_name ) {
+					// Check if product value starts with search value
+					return 0 === strpos( $product_value, $search_value );
+				} elseif ( 'ends_with' === $operator_name ) {
+					// Check if product value ends with search value
+					$search_length = strlen( $search_value );
+					return $search_length === 0 || substr( $product_value, -$search_length ) === $search_value;
+				} elseif ( strpos( $search_value, '%' ) !== false ) {
+					// Custom pattern with % wildcards
 					$pattern = str_replace( '%', '.*', preg_quote( $search_value, '/' ) );
 					return preg_match( '/^' . $pattern . '$/', $product_value ) === 1;
 				} else {
-					// Default contains
+					// Default: contains (substring search)
 					return strpos( $product_value, $search_value ) !== false;
 				}
 			case 'NOT LIKE':
+				// Use operator name for not_contains
+				if ( 'not_contains' === $operator_name ) {
+					return strpos( $product_value, $search_value ) === false;
+				}
 				return strpos( $product_value, $search_value ) === false;
 			default:
 				return false;
@@ -668,8 +687,8 @@ class SCD_Condition_Engine {
 	 * @param    array  $condition_values  Condition values.
 	 * @return   bool                        True if condition matches.
 	 */
-	private function evaluate_boolean_condition( int $product_value, string $operator, array $condition_values ): bool {
-		$expected_value = intval( $condition_values[0] ?? 0 );
+	private function evaluate_boolean_condition( int $product_value, string $operator, string $value, string $value2 ): bool {
+		$expected_value = intval( $value );
 
 		switch ( $operator ) {
 			case '=':
@@ -691,9 +710,9 @@ class SCD_Condition_Engine {
 	 * @param    array  $condition_values  Condition values (date strings).
 	 * @return   bool                        True if condition matches.
 	 */
-	private function evaluate_date_condition( int $product_value, string $operator, array $condition_values ): bool {
-		$value1 = strtotime( $condition_values[0] ?? '' ) ?: 0;
-		$value2 = strtotime( $condition_values[1] ?? '' ) ?: 0;
+	private function evaluate_date_condition( int $product_value, string $operator, string $value, string $value2 ): bool {
+		$value1 = strtotime( $value ) ?: 0;
+		$value2 = strtotime( $value2 ) ?: 0;
 
 		// Compare only dates, not times
 		$product_date = strtotime( date( 'Y-m-d', $product_value ) );
@@ -732,19 +751,65 @@ class SCD_Condition_Engine {
 	 * @param    array  $condition_values  Condition values.
 	 * @return   bool                        True if condition matches.
 	 */
-	private function evaluate_select_condition( string $product_value, string $operator, array $condition_values ): bool {
+	private function evaluate_select_condition( string $product_value, string $operator, string $value, string $value2 ): bool {
 		switch ( $operator ) {
 			case '=':
-				return $product_value === ( $condition_values[0] ?? '' );
+				return $product_value === $value;
 			case '!=':
-				return $product_value !== ( $condition_values[0] ?? '' );
+				return $product_value !== $value;
 			case 'IN':
-				return in_array( $product_value, $condition_values );
+				// Split comma-separated values if needed
+				$values = array_map( 'trim', explode( ',', $value ) );
+				return in_array( $product_value, $values );
 			case 'NOT IN':
-				return ! in_array( $product_value, $condition_values );
+				// Split comma-separated values if needed
+				$values = array_map( 'trim', explode( ',', $value ) );
+				return ! in_array( $product_value, $values );
 			default:
 				return false;
 		}
+	}
+
+	/**
+	 * Normalize operator from symbol to name.
+	 *
+	 * Converts operator symbols (>, <, =, etc.) to their named equivalents
+	 * (greater_than, less_than, equals, etc.) for consistency.
+	 *
+	 * @since    1.0.0
+	 * @param    string $operator    Operator symbol or name.
+	 * @return   string                 Normalized operator name.
+	 */
+	private function normalize_operator( string $operator ): string {
+		// First decode HTML entities (in case operator is stored as &lt; or &gt;)
+		$operator = html_entity_decode( $operator, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+
+		// Map of symbols to operator names
+		// Must match all operators in Field_Definitions::sanitize_conditions whitelist
+		$symbol_map = array(
+			'='            => 'equals',
+			'!='           => 'not_equals',
+			'>'            => 'greater_than',
+			'>='           => 'greater_than_equal',
+			'<'            => 'less_than',
+			'<='           => 'less_than_equal',
+			'between'      => 'between',
+			'not_between'  => 'not_between',
+			'in'           => 'in',
+			'not_in'       => 'not_in',
+			'contains'     => 'contains',
+			'not_contains' => 'not_contains',
+			'starts_with'  => 'starts_with',
+			'ends_with'    => 'ends_with',
+		);
+
+		// If it's a symbol, convert to name
+		if ( isset( $symbol_map[ $operator ] ) ) {
+			return $symbol_map[ $operator ];
+		}
+
+		// Already a name, return as-is
+		return $operator;
 	}
 
 	/**
@@ -755,40 +820,59 @@ class SCD_Condition_Engine {
 	 * @return   bool                   True if valid.
 	 */
 	public function validate_condition( array $condition ): bool {
-		if ( ! isset( $condition['property'], $condition['operator'], $condition['values'] ) ) {
+		// Use database format: condition_type, value, value2
+		$condition_type = $condition['condition_type'] ?? '';
+
+		if ( empty( $condition_type ) || ! isset( $condition['operator'] ) ) {
 			return false;
 		}
 
-		if ( ! isset( $this->supported_properties[ $condition['property'] ] ) ) {
+		if ( ! isset( $this->supported_properties[ $condition_type ] ) ) {
 			return false;
 		}
 
-		if ( ! isset( $this->supported_operators[ $condition['operator'] ] ) ) {
+		// Normalize operator (convert symbol to name if needed)
+		$operator = $this->normalize_operator( $condition['operator'] );
+
+		if ( ! isset( $this->supported_operators[ $operator ] ) ) {
 			return false;
 		}
 
-		$property_config = $this->supported_properties[ $condition['property'] ];
-		$operator_config = $this->supported_operators[ $condition['operator'] ];
+		$property_config = $this->supported_properties[ $condition_type ];
+		$operator_config = $this->supported_operators[ $operator ];
 
 		if ( ! in_array( $property_config['type'], $operator_config['types'] ) ) {
 			return false;
 		}
 
-		if ( ! is_array( $condition['values'] ) ) {
-			return false;
-		}
+		// Check if required values are provided (database format)
+		$value  = isset( $condition['value'] ) ? strval( $condition['value'] ) : '';
+		$value2 = isset( $condition['value2'] ) ? strval( $condition['value2'] ) : '';
 
-		// Handle multiple values (value_count = -1)
+		// Validate based on value_count
 		if ( $operator_config['value_count'] === -1 ) {
-			if ( count( $condition['values'] ) < 1 ) {
+			// Requires at least one value
+			if ( '' === $value ) {
 				return false;
 			}
-		} elseif ( count( $condition['values'] ) !== $operator_config['value_count'] ) {
-			return false;
+		} elseif ( $operator_config['value_count'] === 1 ) {
+			// Requires exactly one value
+			if ( '' === $value ) {
+				return false;
+			}
+		} elseif ( $operator_config['value_count'] === 2 ) {
+			// Requires exactly two values (e.g., BETWEEN)
+			if ( '' === $value || '' === $value2 ) {
+				return false;
+			}
 		}
 
-		foreach ( $condition['values'] as $value ) {
-			if ( $property_config['type'] === 'numeric' && ! is_numeric( $value ) ) {
+		// Validate value types for numeric properties
+		if ( $property_config['type'] === 'numeric' ) {
+			if ( '' !== $value && ! is_numeric( $value ) ) {
+				return false;
+			}
+			if ( '' !== $value2 && ! is_numeric( $value2 ) ) {
 				return false;
 			}
 		}
@@ -844,16 +928,24 @@ class SCD_Condition_Engine {
 				continue;
 			}
 
-			$property_config = $this->supported_properties[ $condition['property'] ];
+			// Standardized format: use 'type'
+			$property_type   = $condition['condition_type'] ?? null;
+			$property_config = $this->supported_properties[ $property_type ];
 
 			// Skip if property doesn't use meta_key (handled elsewhere)
 			if ( ! isset( $property_config['meta_key'] ) ) {
 				continue;
 			}
 
+			// Validate operator exists
+			if ( ! isset( $condition['operator'] ) || ! isset( $this->supported_operators[ $condition['operator'] ] ) ) {
+				continue;
+			}
+
 			$operator_config = $this->supported_operators[ $condition['operator'] ];
 			$meta_key        = $property_config['meta_key'];
-			$values          = $condition['values'];
+			$value           = $condition['value'] ?? '';
+			$value2          = $condition['value2'] ?? '';
 
 			$meta_condition = array(
 				'key'  => $meta_key,
@@ -862,43 +954,43 @@ class SCD_Condition_Engine {
 
 			switch ( $operator_config['symbol'] ) {
 				case '=':
-					$meta_condition['value']   = $values[0];
+					$meta_condition['value']   = $value;
 					$meta_condition['compare'] = '=';
 					break;
 				case '!=':
-					$meta_condition['value']   = $values[0];
+					$meta_condition['value']   = $value;
 					$meta_condition['compare'] = '!=';
 					break;
 				case '>':
-					$meta_condition['value']   = $values[0];
+					$meta_condition['value']   = $value;
 					$meta_condition['compare'] = '>';
 					break;
 				case '>=':
-					$meta_condition['value']   = $values[0];
+					$meta_condition['value']   = $value;
 					$meta_condition['compare'] = '>=';
 					break;
 				case '<':
-					$meta_condition['value']   = $values[0];
+					$meta_condition['value']   = $value;
 					$meta_condition['compare'] = '<';
 					break;
 				case '<=':
-					$meta_condition['value']   = $values[0];
+					$meta_condition['value']   = $value;
 					$meta_condition['compare'] = '<=';
 					break;
 				case 'BETWEEN':
-					$meta_condition['value']   = array( $values[0], $values[1] );
+					$meta_condition['value']   = array( $value, $value2 );
 					$meta_condition['compare'] = 'BETWEEN';
 					break;
 				case 'NOT BETWEEN':
-					$meta_condition['value']   = array( $values[0], $values[1] );
+					$meta_condition['value']   = array( $value, $value2 );
 					$meta_condition['compare'] = 'NOT BETWEEN';
 					break;
 				case 'LIKE':
-					$meta_condition['value']   = '%' . $values[0] . '%';
+					$meta_condition['value']   = '%' . $value . '%';
 					$meta_condition['compare'] = 'LIKE';
 					break;
 				case 'NOT LIKE':
-					$meta_condition['value']   = '%' . $values[0] . '%';
+					$meta_condition['value']   = '%' . $value . '%';
 					$meta_condition['compare'] = 'NOT LIKE';
 					break;
 			}
@@ -924,16 +1016,19 @@ class SCD_Condition_Engine {
 				continue;
 			}
 
-			$property_config = $this->supported_properties[ $condition['property'] ];
+			// Standardized format: use 'type'
+			$property_type   = $condition['condition_type'] ?? null;
+			$property_config = $this->supported_properties[ $property_type ];
 			$operator_config = $this->supported_operators[ $condition['operator'] ];
-			$values          = $condition['values'];
+			$value           = $condition['value'] ?? '';
+			$value2          = $condition['value2'] ?? '';
 
 			$summary = $property_config['label'] . ' ' . $operator_config['label'];
 
 			if ( $operator_config['value_count'] === 1 ) {
-				$summary .= ' ' . $values[0];
+				$summary .= ' ' . $value;
 			} elseif ( $operator_config['value_count'] === 2 ) {
-				$summary .= ' ' . $values[0] . ' and ' . $values[1];
+				$summary .= ' ' . $value . ' and ' . $value2;
 			}
 
 			$summaries[] = array(
@@ -941,7 +1036,8 @@ class SCD_Condition_Engine {
 				'summary'  => $summary,
 				'property' => $property_config['label'],
 				'operator' => $operator_config['label'],
-				'values'   => $values,
+				'value'    => $value,
+				'value2'   => $value2,
 			);
 		}
 

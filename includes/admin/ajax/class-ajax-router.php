@@ -223,6 +223,7 @@ class SCD_Ajax_Router {
 			$request_data = self::camel_to_snake_keys( $request_data );
 
 			// Call handler - check if it extends SCD_Abstract_Ajax_Handler.
+
 			if ( is_a( $handler, 'SCD_Abstract_Ajax_Handler' ) ) {
 				// New base class - use execute() method with built-in security.
 				$result = $handler->execute( $request_data );
@@ -241,6 +242,12 @@ class SCD_Ajax_Router {
 			}
 
 			if ( null !== $result ) {
+				if ( is_array( $result ) ) {
+					if ( isset( $result['success'] ) ) {
+					}
+					if ( isset( $result['message'] ) ) {
+					}
+				}
 				$duration = microtime( true ) - $start_time;
 
 				if ( is_wp_error( $result ) ) {
@@ -352,11 +359,12 @@ class SCD_Ajax_Router {
 			'sale_items_filter'              => 'SCD_Sale_Items_Filter_Handler',
 			'profit_margin_warning'          => 'SCD_Profit_Margin_Warning_Handler',
 			'apply_recommendation'           => 'SCD_Apply_Recommendation_Handler',
+			'occurrence_preview'             => 'SCD_Occurrence_Preview_Handler',
 
 			// Campaign handlers.
 			'get_active_campaigns'           => 'SCD_Get_Active_Campaigns_Handler',
-			'quick_edit'                     => 'SCD_Quick_Edit_Handler',
-
+			'campaign_overview'              => 'SCD_Campaign_Overview_Handler',
+			'get_campaign_products'          => 'SCD_Get_Campaign_Products_Handler',
 			// Debug handlers.
 			'debug_log'                      => 'SCD_Ajax_Debug_Log',
 			'log_console'                    => 'SCD_Console_Logger_Handler',
@@ -390,7 +398,8 @@ class SCD_Ajax_Router {
 			'analytics_export'               => 'SCD_Export_Handler',
 
 			// Event tracking.
-			'track_event'                    => 'SCD_Track_Event_Handler',
+			'track_impression'               => 'SCD_Track_Impression_Handler',
+			'track_click'                    => 'SCD_Track_Click_Handler',
 
 			// Discount API handlers.
 			'validate_discount_rules'        => 'SCD_Discount_API_Handler',
@@ -399,6 +408,7 @@ class SCD_Ajax_Router {
 
 			// Email/Notification handlers.
 			'send_test_email'                => 'SCD_Send_Test_Email_Handler',
+			'test_provider_connection'       => 'SCD_Test_Provider_Connection_Handler',
 			'process_queue'                  => 'SCD_Process_Queue_Handler',
 			'retry_failed_emails'            => 'SCD_Retry_Failed_Emails_Handler',
 			'clear_queue'                    => 'SCD_Clear_Queue_Handler',
@@ -626,13 +636,19 @@ class SCD_Ajax_Router {
 					$audit_logger,
 					$feature_gate
 				);
-			} elseif ( strpos( $handler_class, 'SCD_Overview_Handler' ) !== false ||
-						strpos( $handler_class, 'SCD_Revenue_Trend_Handler' ) !== false ||
-						strpos( $handler_class, 'SCD_Campaign_Performance_Handler' ) !== false ||
-						strpos( $handler_class, 'SCD_Top_Products_Handler' ) !== false ||
-						strpos( $handler_class, 'SCD_Activity_Feed_Handler' ) !== false ||
-						strpos( $handler_class, 'SCD_Export_Handler' ) !== false ||
-						strpos( $handler_class, 'SCD_Refresh_Cache_Handler' ) !== false ) {
+			} elseif ( in_array(
+				$handler_class,
+				array(
+					'SCD_Overview_Handler',
+					'SCD_Revenue_Trend_Handler',
+					'SCD_Campaign_Performance_Handler',
+					'SCD_Top_Products_Handler',
+					'SCD_Activity_Feed_Handler',
+					'SCD_Export_Handler',
+					'SCD_Refresh_Cache_Handler',
+				),
+				true
+			) ) {
 				// Analytics handlers require metrics calculator, logger, and possibly other services.
 				$container = Smart_Cycle_Discounts::get_instance();
 
@@ -756,6 +772,61 @@ class SCD_Ajax_Router {
 				$logger = $container::get_service( 'logger' );
 
 				$this->handler_instances[ $action ] = new $handler_class( $dashboard_service, $logger );
+		} elseif ( 'SCD_Campaign_Overview_Handler' === $handler_class ) {
+			// Campaign overview handler requires campaign repository and panel component.
+			$container = Smart_Cycle_Discounts::get_instance();
+
+			$handler   = $container::get_service( 'campaign_overview_handler' );
+
+			if ( ! $handler ) {
+				// Fallback: manually instantiate with dependencies.
+				$campaign_repository = $container::get_service( 'campaign_repository' );
+
+				$panel               = $container::get_service( 'campaign_overview_panel' );
+
+				$logger              = $container::get_service( 'logger' );
+
+				if ( ! $campaign_repository || ! $panel ) {
+					return null;
+				}
+
+				$handler = new $handler_class( $campaign_repository, $panel, $logger );
+			}
+
+			$this->handler_instances[ $action ] = $handler;
+		} elseif ( 'SCD_Get_Campaign_Products_Handler' === $handler_class ) {
+			// Get campaign products handler requires campaign repository.
+			$container           = Smart_Cycle_Discounts::get_instance();
+			$campaign_repository = $container::get_service( 'campaign_repository' );
+			$logger              = $container::get_service( 'logger' );
+
+			if ( ! $campaign_repository ) {
+				return null;
+			}
+
+			$this->handler_instances[ $action ] = new $handler_class( $campaign_repository, $logger );
+		} elseif ( 'SCD_Get_Active_Campaigns_Handler' === $handler_class ) {
+			// Get Active Campaigns handler requires cache manager.
+			$container     = Smart_Cycle_Discounts::get_instance();
+			$cache_manager = $container::get_service( 'cache_manager' );
+			$logger        = $container::get_service( 'logger' );
+
+			if ( ! $cache_manager ) {
+				return null;
+			}
+
+			$this->handler_instances[ $action ] = new $handler_class( $cache_manager, $logger );
+			} elseif ( 'SCD_Occurrence_Preview_Handler' === $handler_class ) {
+				// Occurrence Preview handler requires occurrence cache.
+				$container        = Smart_Cycle_Discounts::get_instance();
+				$occurrence_cache = $container::get_service( 'occurrence_cache' );
+				$logger           = $container::get_service( 'logger' );
+
+				if ( ! $occurrence_cache ) {
+					return null;
+				}
+
+				$this->handler_instances[ $action ] = new $handler_class( $occurrence_cache, $logger );
 			} else {
 				// Default instantiation for handlers without dependencies.
 				try {

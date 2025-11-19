@@ -287,10 +287,24 @@ class SCD_Schedule_Step_Validator {
 	 * @return   void
 	 */
 	private static function validate_recurrence( array $data, WP_Error $errors ) {
-		$is_recurring = isset( $data['is_recurring'] ) && 'yes' === $data['is_recurring'];
+		$is_recurring = ! empty( $data['enable_recurring'] );
 
 		if ( ! $is_recurring ) {
 			return; // No recurrence validation needed
+		}
+
+		// CRITICAL: Recurring campaigns MUST have a way to determine occurrence duration
+		// They need either an end_date OR duration_seconds to calculate how long each occurrence lasts
+		$has_end_date        = ! empty( $data['end_date'] );
+		$has_duration        = ! empty( $data['duration_seconds'] ) && $data['duration_seconds'] > 0;
+
+		if ( ! $has_end_date && ! $has_duration ) {
+			$errors->add(
+				'recurring_requires_duration',
+				__( 'Recurring campaigns must have an end date', 'smart-cycle-discounts' ),
+				array( 'severity' => 'critical' )
+			);
+			return; // Stop validation early - can't validate intervals without knowing duration
 		}
 
 		$recurrence_interval = isset( $data['recurrence_interval'] ) ? intval( $data['recurrence_interval'] ) : 0;
@@ -349,8 +363,63 @@ class SCD_Schedule_Step_Validator {
 			}
 		}
 
-		// Scenario 14-15: Occurrence count validation
+		// SAFEGUARD: Limit recurring campaign total duration to prevent data staleness issues
+		// Long-term recurring campaigns (6-12 months) face fundamental issues:
+		// - Products may be deleted
+		// - Categories reorganized
+		// - Prices change significantly
+		// - Store configuration changes
+		// See RECURRING-SYSTEM-ARCHITECTURAL-ANALYSIS.md for full analysis
 		$end_type = isset( $data['end_type'] ) ? $data['end_type'] : 'never';
+
+		// Calculate how far into the future the recurring campaign will run
+		$max_duration_months = 6; // Maximum 6 months recommended
+		$max_duration_days   = $max_duration_months * 30; // Approximate
+
+		if ( 'on_date' === $end_type && ! empty( $data['recurrence_end_date'] ) ) {
+			// Recurring ends on specific date - check duration from start to recurrence end
+			if ( ! empty( $data['start_date'] ) ) {
+				$start_time            = strtotime( $data['start_date'] );
+				$recurrence_end_time   = strtotime( $data['recurrence_end_date'] );
+				$recurring_duration_days = ( $recurrence_end_time - $start_time ) / DAY_IN_SECONDS;
+
+				if ( $recurring_duration_days > $max_duration_days ) {
+					$errors->add(
+						'recurring_duration_too_long',
+						sprintf(
+							/* translators: 1: Duration in months, 2: Maximum months */
+							__( 'Recurring campaigns longer than %2$d months may encounter issues with product deletions, category changes, and price fluctuations. Your campaign spans %1$d months. Consider creating shorter recurring periods or using multiple campaigns.', 'smart-cycle-discounts' ),
+							round( $recurring_duration_days / 30, 1 ),
+							$max_duration_months
+						),
+						array( 'severity' => 'warning' )
+					);
+				}
+			}
+		} elseif ( 'after_occurrences' === $end_type ) {
+			// Estimate duration based on occurrence count and interval
+			$occurrence_count = isset( $data['occurrence_count'] ) ? intval( $data['occurrence_count'] ) : 0;
+			if ( $occurrence_count > 0 && $cycle_seconds > 0 ) {
+				$estimated_duration_seconds = $occurrence_count * $cycle_seconds;
+				$estimated_duration_days    = $estimated_duration_seconds / DAY_IN_SECONDS;
+
+				if ( $estimated_duration_days > $max_duration_days ) {
+					$errors->add(
+						'recurring_duration_too_long',
+						sprintf(
+							/* translators: 1: Occurrences, 2: Duration in months, 3: Maximum months */
+							__( 'This recurring campaign with %1$d occurrences will run for approximately %2$d months. Campaigns longer than %3$d months may encounter issues with product deletions and price changes. Consider reducing the occurrence count or creating multiple shorter campaigns.', 'smart-cycle-discounts' ),
+							$occurrence_count,
+							round( $estimated_duration_days / 30, 1 ),
+							$max_duration_months
+						),
+						array( 'severity' => 'warning' )
+					);
+				}
+			}
+		}
+
+		// Scenario 14-15: Occurrence count validation
 		if ( 'after_occurrences' === $end_type ) {
 			$occurrence_count = isset( $data['occurrence_count'] ) ? intval( $data['occurrence_count'] ) : 0;
 
@@ -463,7 +532,7 @@ class SCD_Schedule_Step_Validator {
 		}
 
 		// Scenario 20: Rotation interval vs recurrence conflict
-		$is_recurring = isset( $data['is_recurring'] ) && 'yes' === $data['is_recurring'];
+		$is_recurring = ! empty( $data['enable_recurring'] );
 		if ( $is_recurring ) {
 			$recurrence_interval = isset( $data['recurrence_interval'] ) ? intval( $data['recurrence_interval'] ) : 0;
 			$recurrence_unit     = isset( $data['recurrence_unit'] ) ? $data['recurrence_unit'] : 'days';
@@ -709,7 +778,7 @@ class SCD_Schedule_Step_Validator {
 	 */
 	private static function validate_end_conditions( array $data, WP_Error $errors ) {
 		$end_type     = isset( $data['end_type'] ) ? $data['end_type'] : 'never';
-		$is_recurring = isset( $data['is_recurring'] ) && 'yes' === $data['is_recurring'];
+		$is_recurring = ! empty( $data['enable_recurring'] );
 
 		// Scenario 36: Invalid end_type
 		$valid_end_types = array( 'never', 'on_date', 'after_occurrences' );
@@ -763,7 +832,7 @@ class SCD_Schedule_Step_Validator {
 		$start_date   = isset( $data['start_date'] ) ? $data['start_date'] : '';
 		$end_date     = isset( $data['end_date'] ) ? $data['end_date'] : '';
 		$status       = isset( $data['status'] ) ? $data['status'] : 'active';
-		$is_recurring = isset( $data['is_recurring'] ) && 'yes' === $data['is_recurring'];
+		$is_recurring = ! empty( $data['enable_recurring'] );
 
 		if ( empty( $start_date ) || empty( $end_date ) ) {
 			return;
@@ -815,7 +884,7 @@ class SCD_Schedule_Step_Validator {
 		$start_date   = isset( $data['start_date'] ) ? $data['start_date'] : '';
 		$end_date     = isset( $data['end_date'] ) ? $data['end_date'] : '';
 		$has_rotation = isset( $data['enable_rotation'] ) && 'yes' === $data['enable_rotation'];
-		$is_recurring = isset( $data['is_recurring'] ) && 'yes' === $data['is_recurring'];
+		$is_recurring = ! empty( $data['enable_recurring'] );
 
 		if ( empty( $start_date ) || empty( $end_date ) ) {
 			return;

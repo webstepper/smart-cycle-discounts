@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/steps/products/products-picker.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -925,17 +925,28 @@
 		 * @returns {string} HTML
 		 */
 		renderProductOption: function( data, escape ) {
-			var image = data.image
-				? '<img src="' + escape( data.image ) + '" alt="">'
-				: '<span class="dashicons dashicons-format-image"></span>';
+			var hasImage = data.image;
+			var imageHtml = hasImage
+				? '<img src="' + escape( data.image ) + '" alt="' + escape( data.text ) + '" loading="lazy">'
+				: '<span class="product-image-placeholder">' + SCD.IconHelper.get( 'products', { size: 24 } ) + '</span>';
+
+			var priceHtml = data.price
+				? '<span class="product-price">' + data.price + '</span>'
+				: '';
+
+			var skuHtml = data.sku
+				? '<span class="product-sku" data-sku="' + escape( data.sku ) + '">' + escape( data.sku ) + '</span>'
+				: '';
 
 			return '<div class="scd-tom-select-product-option">' +
-				'<div class="product-image">' + image + '</div>' +
+				'<div class="product-image' + ( hasImage ? '' : ' no-image' ) + '">' +
+					imageHtml +
+				'</div>' +
 				'<div class="product-details">' +
-					'<div class="product-name">' + escape( data.text ) + '</div>' +
+					'<div class="product-name" title="' + escape( data.text ) + '">' + escape( data.text ) + '</div>' +
 					'<div class="product-meta">' +
-						( data.price || '' ) + ' ' +
-						( data.sku ? 'SKU: ' + escape( data.sku ) : '' ) +
+						priceHtml +
+						skuHtml +
 					'</div>' +
 				'</div>' +
 			'</div>';

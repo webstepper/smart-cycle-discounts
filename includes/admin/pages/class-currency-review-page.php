@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/pages/class-currency-review-page.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -20,6 +20,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Currency Review Page Class
+ *
+ * Provides an admin interface for reviewing campaigns that were automatically paused
+ * when the WooCommerce store currency changed. Campaigns with fixed discount amounts
+ * require manual review to ensure discount values are appropriate for the new currency.
+ *
+ * Example: A campaign with "$20 off" becomes "€20 off" when currency changes from USD
+ * to EUR. Since €20 ≠ $20 in value, the store owner must review and decide whether to:
+ * - Approve & Resume (keep the new currency amount)
+ * - Edit (adjust the discount value)
+ * - Archive (disable the campaign)
+ *
+ * This is a critical financial safety feature that prevents unintended discount amounts.
  *
  * @since      1.0.0
  * @package    SmartCycleDiscounts
@@ -145,6 +157,12 @@ class SCD_Currency_Review_Page {
 
 	/**
 	 * Handle AJAX review action.
+	 *
+	 * NOTE: This handler intentionally bypasses the unified AJAX router because:
+	 * 1. It's a critical financial safety feature (currency change protection)
+	 * 2. Uses consistent snake_case throughout (no conversion needed)
+	 * 3. Self-contained workflow with only 3 simple actions
+	 * 4. Reducing refactoring risk for business-critical functionality
 	 *
 	 * @since    1.0.0
 	 * @return   void

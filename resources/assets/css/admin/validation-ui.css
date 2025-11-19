@@ -11,11 +11,10 @@
  */
 
 /* Field States */
-.scd-field-wrapper,
-.scd-field-group {
+.scd-field-wrapper {
     position: relative;
-    margin-bottom: var(--scd-spacing-lg, 1.5rem);
-    transition: all var(--scd-transition-base, 0.2s) ease;
+    margin-bottom: var(--scd-spacing-lg);
+    transition: all var(--scd-transition-base) ease;
 }
 
 /* Required indicator styles handled by wizard-steps.css */
@@ -30,33 +29,33 @@
 .scd-wizard-page .scd-field-has-error input,
 .scd-wizard-page .scd-field-has-error select,
 .scd-wizard-page .scd-field-has-error textarea {
-    border-color: var(--scd-color-error, #d63638);
-    box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 2px) var(--scd-color-error, #d63638);
+    border-color: var(--scd-color-error);
+    box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--scd-color-error);
 }
 
 .scd-field-has-error:focus-within input,
 .scd-field-has-error:focus-within select,
 .scd-field-has-error:focus-within textarea {
-    box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 2px) var(--scd-color-error, #d63638);
+    box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--scd-color-error);
     outline: 2px solid transparent;
 }
 
 .scd-wizard-page .scd-field-has-success input,
 .scd-wizard-page .scd-field-has-success select,
 .scd-wizard-page .scd-field-has-success textarea {
-    border-color: var(--scd-color-success, #00a32a);
+    border-color: var(--scd-color-success);
 }
 
 
 .scd-field-has-success::after {
-    content: '\f147'; /* Checkmark */
-    font-family: dashicons;
+    content: '✓'; /* Checkmark */
     position: absolute;
-    right: var(--scd-spacing-sm, 0.5rem);
+    right: var(--scd-spacing-sm);
     top: 50%;
     transform: translateY(-50%);
-    color: var(--scd-color-success, #00a32a);
-    font-size: 20px;
+    color: var(--scd-color-success);
+    font-size: var(--scd-font-size-xxl);
+    font-weight: bold;
     animation: scd-fade-in 0.2s ease;
 }
 
@@ -69,34 +68,34 @@
 
 /* Validation Summary - WordPress 6.4+ Style */
 .scd-validation-summary {
-    margin: var(--scd-spacing-lg, 1.5rem) 0;
-    padding: var(--scd-spacing-md, 1rem);
+    margin: var(--scd-spacing-lg) 0;
+    padding: var(--scd-spacing-md);
     background-color: var(--scd-color-error-bg);
-    border: 1px solid var(--scd-color-error, #d63638);
+    border: 1px solid var(--scd-color-error);
     border-left-width: 4px;
-    border-radius: var(--scd-radius-md, 4px);
+    border-radius: var(--scd-radius-md);
     animation: scd-fade-in 0.2s ease;
-    box-shadow: var(--scd-shadow-sm, 0 1px 1px rgba(0, 0, 0, 0.04));
+    box-shadow: var(--scd-shadow-sm);
 }
 
 .scd-validation-summary__header {
     display: flex;
     align-items: center;
-    gap: var(--scd-spacing-md, 1rem);
-    margin-bottom: var(--scd-spacing-md, 1rem);
+    gap: var(--scd-spacing-md);
+    margin-bottom: var(--scd-spacing-md);
 }
 
-.scd-validation-summary__header .dashicons {
-    color: var(--scd-color-error, #d63638);
-    font-size: 24px;
+.scd-validation-summary__header .scd-icon {
+    color: var(--scd-color-error);
+    font-size: var(--scd-font-size-xxxl);
     flex-shrink: 0;
 }
 
 .scd-validation-summary__header h4 {
     margin: 0;
     font-size: 1rem;
-    font-weight: 600;
-    color: var(--scd-color-error, #d63638);
+    font-weight: var(--scd-font-weight-semibold);
+    color: var(--scd-color-error);
 }
 
 .scd-validation-summary__list {
@@ -106,70 +105,70 @@
 }
 
 .scd-validation-summary__list li {
-    margin-bottom: var(--scd-spacing-xs, 0.25rem);
-    color: var(--scd-color-text, #1d2327);
-    font-size: var(--scd-font-size-base, 13px);
+    margin-bottom: var(--scd-spacing-xs);
+    color: var(--scd-color-text);
+    font-size: var(--scd-font-size-base);
 }
 
 .scd-validation-summary__list a {
-    color: var(--scd-color-primary, #2271b1);
+    color: var(--scd-color-primary);
     text-decoration: none;
-    font-weight: 500;
+    font-weight: var(--scd-font-weight-medium);
 }
 
 .scd-validation-summary__list a:hover,
 .scd-validation-summary__list a:focus {
     text-decoration: underline;
-    color: var(--scd-color-primary-hover, #1e5e8e);
+    color: var(--scd-color-primary-hover);
 }
 
 /* Navigation Button States */
 .scd-wizard-page .scd-nav-btn--next.scd-btn--disabled {
     opacity: 0.3;
     cursor: not-allowed;
-    background-color: var(--scd-color-surface, #f6f7f7);
-    color: var(--scd-color-text-lighter, #8c8f94);
-    border-color: var(--scd-color-border, #c3c4c7);
+    background-color: var(--scd-color-surface);
+    color: var(--scd-color-text-lighter);
+    border-color: var(--scd-color-border);
 }
 
 .scd-wizard-page .scd-nav-btn--next.scd-btn--disabled:hover {
-    background-color: var(--scd-color-surface, #f6f7f7);
-    color: var(--scd-color-text-lighter, #8c8f94);
+    background-color: var(--scd-color-surface);
+    color: var(--scd-color-text-lighter);
     /* transform: none; removed for instant state change */
     box-shadow: none;
 }
 
 /* Inline Validation Notification */
 .scd-navigation-notice {
-    margin: var(--scd-spacing-md, 1rem) 0;
-    padding: var(--scd-spacing-md, 1rem);
+    margin: var(--scd-spacing-md) 0;
+    padding: var(--scd-spacing-md);
     position: relative;
-    border-radius: var(--scd-radius-md, 4px);
-    box-shadow: var(--scd-shadow-sm, 0 1px 1px rgba(0, 0, 0, 0.04));
+    border-radius: var(--scd-radius-md);
+    box-shadow: var(--scd-shadow-sm);
 }
 
 .scd-navigation-notice.notice-error {
     background-color: var(--scd-color-error-bg);
-    border: 1px solid var(--scd-color-error, #d63638);
+    border: 1px solid var(--scd-color-error);
     border-left-width: 4px;
 }
 
 .scd-navigation-notice .notice-dismiss {
     position: absolute;
-    top: var(--scd-spacing-xs, 0.25rem);
-    right: var(--scd-spacing-xs, 0.25rem);
+    top: var(--scd-spacing-xs);
+    right: var(--scd-spacing-xs);
     border: none;
     margin: 0;
-    padding: var(--scd-spacing-xs, 0.25rem);
+    padding: var(--scd-spacing-xs);
     background: none;
-    color: var(--scd-color-text-lighter, #8c8f94);
+    color: var(--scd-color-text-lighter);
     cursor: pointer;
-    transition: color var(--scd-transition-fast, 0.1s);
+    transition: color var(--scd-transition-fast);
 }
 
 .scd-navigation-notice .notice-dismiss:hover::before,
 .scd-navigation-notice .notice-dismiss:focus::before {
-    color: var(--scd-color-error, #d63638);
+    color: var(--scd-color-error);
 }
 
 .scd-navigation-notice .notice-dismiss::before {
@@ -179,9 +178,9 @@
     display: block;
     font: normal 16px/20px dashicons;
     speak: never;
-    height: 20px;
+    height: var(--scd-icon-medium);
     text-align: center;
-    width: 20px;
+    width: var(--scd-icon-medium);
 }
 
 /* Loading State for Validation */
@@ -194,11 +193,11 @@
     /* Extends spinner from shared _components.css */
     content: '';
     position: absolute;
-    right: var(--scd-spacing-sm, 0.5rem);
+    right: var(--scd-spacing-sm);
     top: 50%;
     transform: translateY(-50%);
-    width: 18px;
-    height: 18px;
+    width: var(--scd-icon-small);
+    height: var(--scd-icon-small);
     /* Spinner animation handled by shared/_utilities.css */
 }
 
@@ -215,14 +214,14 @@
 .scd-field-has-error select:focus,
 .scd-field-has-error textarea:focus {
     outline: 2px solid transparent;
-    box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 2px) var(--scd-color-error, #d63638);
+    box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--scd-color-error);
 }
 
 .scd-field-has-success input:focus,
 .scd-field-has-success select:focus,
 .scd-field-has-success textarea:focus {
     outline: 2px solid transparent;
-    box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 2px) var(--scd-color-success, #00a32a);
+    box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--scd-color-success);
 }
 
 /* High Contrast Mode Support */
@@ -251,8 +250,8 @@
 .scd-field-success {
     /* Extends .scd-alert--success from components.css */
     display: none;
-    margin-top: var(--scd-spacing-xs, 0.25rem);
-    font-size: var(--scd-font-size-small, 12px);
+    margin-top: var(--scd-spacing-xs);
+    font-size: var(--scd-font-size-small);
 }
 
 .scd-field-success.scd-success--visible {

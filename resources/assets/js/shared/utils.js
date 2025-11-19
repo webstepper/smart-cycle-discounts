@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/shared/utils.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -177,35 +177,44 @@
 		 * @returns {string} Formatted currency
 		 */
 		formatCurrency: function( amount ) {
-			// Use WooCommerce settings if available
-			if ( window.scdDiscountStepData ) {
-				var settings = window.scdDiscountStepData;
-				var formatted = parseFloat( amount ).toFixed( settings.price_decimals );
+			// Try wizard step data first, then analytics data
+			var settings = window.scdDiscountStepData || window.scdAnalytics;
 
-				if ( settings.thousand_separator ) {
-					formatted = formatted.replace( /(\d)(?=(\d{3})+\.)/g, '$1' + settings.thousand_separator );
+			// Use WooCommerce settings if available
+			// Note: scdAnalytics uses camelCase (from wp_localize_script), scdDiscountStepData uses snake_case
+			var currencySymbol = settings && ( settings.currency_symbol || settings.currencySymbol );
+			var currencyPos = settings && ( settings.currency_pos || settings.currencyPos );
+			var priceDecimals = settings && ( settings.price_decimals || settings.priceDecimals );
+			var decimalSeparator = settings && ( settings.decimal_separator || settings.decimalSeparator );
+			var thousandSeparator = settings && ( settings.thousand_separator || settings.thousandSeparator );
+
+			if ( currencySymbol ) {
+				var formatted = parseFloat( amount ).toFixed( priceDecimals || 2 );
+
+				if ( thousandSeparator ) {
+					formatted = formatted.replace( /(\d)(?=(\d{3})+\.)/g, '$1' + thousandSeparator );
 				}
 
 				// Replace decimal separator
-				if ( '.' !== settings.decimal_separator ) {
-					formatted = formatted.replace( '.', settings.decimal_separator );
+				if ( decimalSeparator && '.' !== decimalSeparator ) {
+					formatted = formatted.replace( '.', decimalSeparator );
 				}
 
-				switch ( settings.currency_pos ) {
+				switch ( currencyPos ) {
 					case 'left':
-						return settings.currency_symbol + formatted;
+						return currencySymbol + formatted;
 					case 'left_space':
-						return settings.currency_symbol + ' ' + formatted;
+						return currencySymbol + ' ' + formatted;
 					case 'right':
-						return formatted + settings.currency_symbol;
+						return formatted + currencySymbol;
 					case 'right_space':
-						return formatted + ' ' + settings.currency_symbol;
+						return formatted + ' ' + currencySymbol;
 					default:
-						return settings.currency_symbol + formatted;
+						return currencySymbol + formatted;
 				}
 			}
 
-			// Fallback
+			// Fallback to USD if no settings available
 			return '$' + parseFloat( amount ).toFixed( 2 );
 		},
 
@@ -587,32 +596,6 @@
 					if ( $message.length ) {
 						$message.hide();
 					}
-				}
-			},
-
-			/**
-			 * Show/hide loading indicator
-			 *
-			 * @param {HTMLElement|jQuery} element Element to show loading on
-			 * @param {boolean} show Show or hide
-			 * @param {string} message Loading message
-			 */
-			showLoading: function( element, show, message ) {
-				show = 'undefined' === typeof show ? true : show;
-				message = 'undefined' === typeof message ? 'Loading...' : message;
-				var $el = $( element );
-				if ( !$el.length ) {return;}
-
-				if ( show ) {
-					$el.addClass( 'scd-loading' );
-
-					if ( !$el.find( '.scd-loading-spinner' ).length ) {
-						var $spinner = $( '<div class="scd-loading-spinner">' + '<span class="spinner is-active"></span>' + '<span class="scd-loading-text">' + message + '</span>' + '</div>' );
-						$el.append( $spinner );
-					}
-				} else {
-					$el.removeClass( 'scd-loading' );
-					$el.find( '.scd-loading-spinner' ).remove();
 				}
 			},
 
@@ -1061,6 +1044,11 @@
 			var $field;
 			var arrayData;
 
+			// Handle nested_array type BEFORE field lookup (no single DOM element exists)
+			if ( 'nested_array' === fieldDef.type ) {
+				return this.collectNestedFormArray( fieldDef.field_name || this.toSnakeCase( fieldNameCamel ) );
+			}
+
 			// Use explicit selector if provided in field definition
 			if ( fieldDef.selector ) {
 				$field = $( fieldDef.selector );
@@ -1101,9 +1089,6 @@
 						return Array.isArray( arrayData ) ? arrayData.slice() : [];
 					}
 					return [];
-				case 'nested_array':
-					// Collect nested form arrays (e.g., conditions[0][mode], conditions[0][type])
-					return SCD.Utils.collectNestedFormArray( fieldDef.field_name || this.toSnakeCase( fieldNameCamel ) );
 				case 'radio':
 					// For radio buttons, filter to get only the checked one
 					return $field.filter( ':checked' ).val() || fieldDef.default;

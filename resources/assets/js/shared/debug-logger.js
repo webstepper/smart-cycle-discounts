@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/shared/debug-logger.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -51,10 +51,13 @@
 		log: function( level, category, message, data ) {
 			// Always log to console
 			var consoleMessage = '[' + category + '] ' + message;
+			// Fallback to console.log if specific method unavailable
+			var consoleMethod = console[ level ] && typeof console[ level ] === 'function' ? console[ level ] : console.log;
+
 			if ( data !== undefined ) {
-				console[ level ]( consoleMessage, data );
+				consoleMethod.call( console, consoleMessage, data );
 			} else {
-				console[ level ]( consoleMessage );
+				consoleMethod.call( console, consoleMessage );
 			}
 
 			this.logQueue.push( {

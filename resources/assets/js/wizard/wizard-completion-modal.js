@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/wizard/wizard-completion-modal.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -90,13 +90,15 @@
 		 * @since 1.0.0
 		 */
 		createModal: function() {
+			var successIcon = SCD.IconHelper ? SCD.IconHelper.check( { size: 48 } ) : '<span class="scd-icon scd-icon-check"></span>';
+			var errorIcon = SCD.IconHelper ? SCD.IconHelper.close( { size: 48 } ) : '<span class="scd-icon scd-icon-close"></span>';
+
 			var modalHTML =
 				'<div class="' + this.config.overlayClass + '" role="dialog" aria-modal="true" aria-labelledby="scd-completion-title" aria-busy="false">' +
 					'<div class="' + this.config.modalClass + '">' +
 						'<div class="scd-completion-icon-wrapper">' +
-							'<span class="dashicons dashicons-update scd-completion-icon scd-completion-icon--loading" aria-hidden="true"></span>' +
-							'<span class="dashicons dashicons-yes-alt scd-completion-icon scd-completion-icon--success" aria-hidden="true"></span>' +
-							'<span class="dashicons dashicons-dismiss scd-completion-icon scd-completion-icon--error" aria-hidden="true"></span>' +
+							'<span class="scd-completion-icon scd-completion-icon--success" aria-hidden="true">' + successIcon + '</span>' +
+							'<span class="scd-completion-icon scd-completion-icon--error" aria-hidden="true">' + errorIcon + '</span>' +
 						'</div>' +
 						'<h2 id="scd-completion-title" class="scd-completion-title"></h2>' +
 						'<p class="scd-completion-message"></p>' +
@@ -116,11 +118,6 @@
 		 */
 		bindEvents: function() {
 			var self = this;
-
-			// Listen for wizard completion start
-			$( document ).on( 'scd:wizard:completing', function() {
-				self.showLoading();
-			} );
 
 			// Listen for wizard completion success
 			$( document ).on( 'scd:wizard:completed', function( e, data ) {
@@ -152,37 +149,6 @@
 					window.location.href = url;
 				}
 			} );
-		},
-
-		/**
-		 * Show loading state
-		 *
-		 * @since 1.0.0
-		 */
-		showLoading: function() {
-			if ( ! this.$modal ) {
-				return;
-			}
-
-			// SINGLE SOURCE OF TRUTH: Wizard State Manager
-			var isEditMode = this.isEditMode();
-
-			this.$modal
-				.removeClass( this.config.successClass + ' ' + this.config.errorClass )
-				.addClass( this.config.loadingClass + ' ' + this.config.activeClass )
-				.attr( 'aria-busy', 'true' );
-
-			var loadingTitle = isEditMode ? 'Updating Campaign...' : 'Creating Campaign...';
-			this.$modal.find( '.scd-completion-title' ).text( loadingTitle );
-
-			this.$modal.find( '.scd-completion-message' ).empty();
-			this.$modal.find( '.scd-completion-actions' ).empty();
-
-			var loadingStatus = isEditMode ? 'Updating campaign. Please wait.' : 'Creating campaign. Please wait.';
-			this.$modal.find( '.scd-completion-status' ).text( loadingStatus );
-
-			// Prevent body scroll
-			$( 'body' ).addClass( 'scd-completion-active' );
 		},
 
 		/**
@@ -222,10 +188,14 @@
 			var viewUrl = redirectUrl;
 
 
-			// If we have a campaign ID, construct edit URL
+			// If we have a campaign ID but no redirect URL, construct view URL (fallback)
 			if ( campaignId && ! viewUrl ) {
-				viewUrl = '/wp-admin/admin.php?page=scd-campaigns&action=edit&id=' + campaignId;
+				viewUrl = '/wp-admin/admin.php?page=scd-campaigns&action=view&id=' + campaignId;
 			}
+
+			// Show the modal overlay with active class
+			self.$modal.addClass( self.config.activeClass );
+			$( 'body' ).addClass( 'scd-completion-active' );
 
 			// Transition to success state
 			setTimeout( function() {
@@ -294,6 +264,10 @@
 
 			var errorMessage = data.message || data.error || ( isEditMode ? 'Failed to update campaign. Please try again.' : 'Failed to create campaign. Please try again.' );
 
+			// Show the modal overlay with active class
+			self.$modal.addClass( self.config.activeClass );
+			$( 'body' ).addClass( 'scd-completion-active' );
+
 			// Transition to error state
 			setTimeout( function() {
 				self.$modal
@@ -327,7 +301,11 @@
 
 			this.retryInProgress = true;
 
-			this.showLoading();
+			// Hide modal and show fullscreen loader
+			this.hide();
+			if ( window.SCD && window.SCD.LoaderUtil ) {
+				SCD.LoaderUtil.show( 'scd-wizard-completion-loading' );
+			}
 
 			// Trigger retry event for wizard orchestrator to handle
 			$( document ).trigger( 'scd:wizard:retry' );
@@ -364,7 +342,7 @@
 		 */
 		isEditMode: function() {
 			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.StateManager ) {
-				var wizardState = window.SCD.Wizard.StateManager.get();
+				var wizardState = window.SCD.Wizard.StateManager.getInstance().get();
 				return wizardState && ( wizardState.wizardMode === 'edit' || wizardState.campaignId > 0 );
 			}
 			return false;
@@ -376,7 +354,7 @@
 		 * @since 1.0.0
 		 */
 		destroy: function() {
-			$( document ).off( 'scd:wizard:completing scd:wizard:completed scd:wizard:error' );
+			$( document ).off( 'scd:wizard:completed scd:wizard:error' );
 
 			if ( this.$modal ) {
 				this.$modal.off( 'click' );

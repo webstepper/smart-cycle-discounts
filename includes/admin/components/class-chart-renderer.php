@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/components/class-chart-renderer.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/components
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Chart_Renderer {
 
@@ -132,9 +132,10 @@ class SCD_Chart_Renderer {
 			'value'       => 0,
 			'change'      => 0,
 			'change_type' => 'neutral', // positive, negative, neutral
-			'icon'        => 'dashicons-chart-line',
+			'icon'        => 'chart-line',
 			'format'      => 'number', // number, currency, percentage
 			'description' => '',
+			'help_text'   => '', // Tooltip help text
 		);
 
 		$metric = wp_parse_args( $metric, $defaults );
@@ -161,12 +162,19 @@ class SCD_Chart_Renderer {
 		<div class="scd-metric-card <?php echo esc_attr( $card_type ); ?>">
 			<div class="scd-metric-card__header">
 				<div class="scd-metric-card__icon">
-					<span class="dashicons <?php echo esc_attr( $metric['icon'] ); ?>"></span>
+					<?php echo SCD_Icon_Helper::get( str_replace( 'dashicons-', '', $metric['icon'] ), array( 'size' => 20 ) ); ?>
 				</div>
 			</div>
 
 			<div class="scd-metric-card__title">
-				<?php echo esc_html( $metric['title'] ); ?>
+				<?php
+				echo esc_html( $metric['title'] );
+
+				// Add tooltip if help text provided
+				if ( ! empty( $metric['help_text'] ) && class_exists( 'SCD_Tooltip_Helper' ) ) {
+					SCD_Tooltip_Helper::render( $metric['help_text'] );
+				}
+				?>
 			</div>
 
 			<div class="scd-metric-card__value">
@@ -183,7 +191,7 @@ class SCD_Chart_Renderer {
 
 			<?php if ( $metric['change'] !== 0 ) : ?>
 				<div class="scd-metric-card__change <?php echo esc_attr( $change_class ); ?>">
-					<span class="dashicons <?php echo esc_attr( $change_icon ); ?>"></span>
+					<?php echo SCD_Icon_Helper::get( str_replace( 'dashicons-', '', $change_icon ), array( 'size' => 16 ) ); ?>
 					<?php echo esc_html( $this->format_change( $metric['change'] ) ); ?>
 				</div>
 			<?php endif; ?>
@@ -221,7 +229,14 @@ class SCD_Chart_Renderer {
 				<div class="scd-performance-item">
 					<div class="scd-performance-item__content">
 						<div class="scd-performance-item__label">
-							<?php echo esc_html( $metric['label'] ); ?>
+							<?php
+							echo esc_html( $metric['label'] );
+
+							// Add tooltip if help text provided
+							if ( ! empty( $metric['help_text'] ) && class_exists( 'SCD_Tooltip_Helper' ) ) {
+								SCD_Tooltip_Helper::render( $metric['help_text'] );
+							}
+							?>
 						</div>
 						<div class="scd-performance-item__value">
 							<?php
@@ -234,9 +249,9 @@ class SCD_Chart_Renderer {
 								echo esc_html( $formatted );
 							}
 							?>
-							<?php if ( isset( $metric['change'] ) && $metric['change'] != 0 ) : ?>
+							<?php if ( isset( $metric['change'] ) && 0 !== $metric['change'] ) : ?>
 								<span class="scd-performance-item__change <?php echo esc_attr( $this->get_change_class( $metric['change_type'] ?? 'neutral' ) ); ?>">
-									<span class="dashicons <?php echo esc_attr( $this->get_change_icon( $metric['change_type'] ?? 'neutral' ) ); ?>"></span>
+									<?php echo SCD_Icon_Helper::get( str_replace( 'dashicons-', '', $this->get_change_icon( $metric['change_type'] ?? 'neutral' ) ), array( 'size' => 16 ) ); ?>
 									<?php echo esc_html( $this->format_change( $metric['change'] ) ); ?>
 								</span>
 							<?php endif; ?>
@@ -273,22 +288,22 @@ class SCD_Chart_Renderer {
 			<?php if ( ! empty( $options['title'] ) ) : ?>
 				<h4 class="scd-chart-title"><?php echo esc_html( $options['title'] ); ?></h4>
 			<?php endif; ?>
-			
+
 			<div class="scd-chart-wrapper">
-				<canvas 
+				<canvas
 					id="<?php echo esc_attr( $chart_id ); ?>"
 					data-chart-config="<?php echo esc_attr( wp_json_encode( $chart_config ) ); ?>"
 					data-chart-type="<?php echo esc_attr( $type ); ?>"
 				></canvas>
 			</div>
-			
+
 			<div class="scd-chart-loading" style="display: none;">
 				<span class="spinner is-active"></span>
 				<span><?php esc_html_e( 'Loading chart data...', 'smart-cycle-discounts' ); ?></span>
 			</div>
-			
+
 			<div class="scd-chart-error" style="display: none;">
-				<span class="dashicons dashicons-warning"></span>
+				<?php echo SCD_Icon_Helper::get( 'warning', array( 'size' => 16 ) ); ?>
 				<span><?php esc_html_e( 'Failed to load chart data.', 'smart-cycle-discounts' ); ?></span>
 			</div>
 		</div>
@@ -431,11 +446,11 @@ class SCD_Chart_Renderer {
 	private function get_change_icon( string $type ): string {
 		switch ( $type ) {
 			case 'positive':
-				return 'dashicons-arrow-up-alt';
+				return 'arrow-up-alt';
 			case 'negative':
-				return 'dashicons-arrow-down-alt';
+				return 'arrow-down-alt';
 			default:
-				return 'dashicons-minus';
+				return 'minus';
 		}
 	}
 

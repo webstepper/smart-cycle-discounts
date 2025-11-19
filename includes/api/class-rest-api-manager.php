@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/api/class-rest-api-manager.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,9 +26,19 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/api
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_REST_API_Manager {
+
+	/**
+	 * Cache manager instance.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      SCD_Cache_Manager    $cache    Cache manager.
+	 */
+	private SCD_Cache_Manager $cache;
+
 
 	/**
 	 * API namespace.
@@ -99,7 +109,8 @@ class SCD_REST_API_Manager {
 	 * @since    1.0.0
 	 * @param    SCD_Container $container    Container instance.
 	 */
-	public function __construct( SCD_Container $container ) {
+	public function __construct(SCD_Cache_Manager $cache, SCD_Container $container) {
+		$this->cache = $cache;
 		$this->logger = $container->get( 'logger' );
 	}
 
@@ -112,8 +123,6 @@ class SCD_REST_API_Manager {
 	public function init(): void {
 		$this->add_hooks();
 		$this->register_core_endpoints();
-
-		$this->logger->debug( 'REST API manager initialized' );
 	}
 
 	/**
@@ -450,7 +459,7 @@ class SCD_REST_API_Manager {
 
 		$rate_limit_key = 'scd_rate_limit_' . ( $user_id ?: $client_ip );
 
-		$current_requests = get_transient( $rate_limit_key ) ?: 0;
+		$current_requests = $this->cache->get( $rate_limit_key ) ?: 0;
 		$rate_limit       = $this->get_rate_limit_for_request( $request );
 
 		if ( $current_requests >= $rate_limit['limit'] ) {
@@ -462,7 +471,7 @@ class SCD_REST_API_Manager {
 		}
 
 		// Increment counter
-		set_transient( $rate_limit_key, $current_requests + 1, $rate_limit['window'] );
+		$this->cache->set( $rate_limit_key, $current_requests + 1, $rate_limit['window'] );
 
 		return true;
 	}
@@ -494,7 +503,7 @@ class SCD_REST_API_Manager {
 		}
 
 		// Campaign creation
-		if ( strpos( $route, '/campaigns' ) !== false && $method === 'POST' ) {
+		if ( false !== strpos( $route, '/campaigns' ) && 'POST' === $method ) {
 			return array(
 				'limit'  => 20,
 				'window' => 3600,
@@ -502,7 +511,7 @@ class SCD_REST_API_Manager {
 		}
 
 		// Discount calculation endpoints - more restrictive
-		if ( strpos( $route, '/discounts/calculate/bulk' ) !== false ) {
+		if ( false !== strpos( $route, '/discounts/calculate/bulk' ) ) {
 			return array(
 				'limit'  => 10,
 				'window' => 300,
@@ -531,7 +540,7 @@ class SCD_REST_API_Manager {
 		}
 
 		// Public discount endpoint - stricter
-		if ( strpos( $route, '/discounts/best' ) !== false && $method === 'GET' ) {
+		if ( false !== strpos( $route, '/discounts/best' ) && 'GET' === $method ) {
 			return array(
 				'limit'  => 100,
 				'window' => 3600,
@@ -554,7 +563,7 @@ class SCD_REST_API_Manager {
 		$user_id        = get_current_user_id();
 		$rate_limit_key = 'scd_rate_limit_' . ( $user_id ?: $client_ip );
 
-		$current_requests = get_transient( $rate_limit_key ) ?: 0;
+		$current_requests = $this->cache->get( $rate_limit_key ) ?: 0;
 		$rate_limit       = $this->get_rate_limit_for_request( $request );
 
 		return array(

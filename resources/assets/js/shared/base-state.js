@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/shared/base-state.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -33,8 +33,13 @@
 		this._batchUpdates = null;
 		this._proxy = null;
 
-		this._createProxy();
-		this._saveHistory();
+		// Only call prototype methods if they exist (for child class .call() compatibility)
+		if ( this._createProxy ) {
+			this._createProxy();
+		}
+		if ( this._saveHistory ) {
+			this._saveHistory();
+		}
 	};
 
 	SCD.Shared.BaseState.prototype = {
@@ -227,11 +232,23 @@
 		/**
 		 * Load state from JSON
 		 *
-		 * @param {string} json JSON string
+		 * @param {string|object} json JSON string or object
 		 */
 		fromJSON: function( json ) {
-			// JSON.parse will throw if invalid - let it propagate
-			var data = JSON.parse( json );
+			var data;
+
+			// Handle both JSON strings and already-parsed objects
+			if ( 'string' === typeof json ) {
+				// JSON.parse will throw if invalid - let it propagate
+				data = JSON.parse( json );
+			} else if ( 'object' === typeof json && null !== json ) {
+				// Already an object, use as-is
+				data = json;
+			} else {
+				console.error( '[SCD] fromJSON received invalid data type:', typeof json );
+				return;
+			}
+
 			this.reset( data );
 		},
 

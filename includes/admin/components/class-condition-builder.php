@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/components/class-condition-builder.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/components
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Condition_Builder {
 
@@ -90,7 +90,7 @@ class SCD_Condition_Builder {
 						<span class="scd-condition-toggle">
 							<button type="button" class="button button-secondary scd-toggle-conditions" 
 									data-expanded="<?php echo empty( $args['conditions'] ) ? 'false' : 'true'; ?>">
-								<span class="dashicons dashicons-filter"></span>
+								<?php echo SCD_Icon_Helper::get( 'filter', array( 'size' => 16 ) ); ?>
 								<span class="scd-toggle-text">
 									<?php
 									echo empty( $args['conditions'] ) ?
@@ -115,13 +115,13 @@ class SCD_Condition_Builder {
 
 					<div class="scd-condition-actions">
 						<button type="button" class="button scd-add-condition">
-							<span class="dashicons dashicons-plus-alt"></span>
+							<?php echo SCD_Icon_Helper::get( 'add', array( 'size' => 16 ) ); ?>
 							<?php esc_html_e( 'Add Condition', 'smart-cycle-discounts' ); ?>
 						</button>
 
 						<?php if ( ! empty( $args['conditions'] ) ) : ?>
 						<button type="button" class="button button-secondary scd-clear-conditions">
-							<span class="dashicons dashicons-trash"></span>
+							<?php echo SCD_Icon_Helper::get( 'delete', array( 'size' => 16 ) ); ?>
 							<?php esc_html_e( 'Clear All', 'smart-cycle-discounts' ); ?>
 						</button>
 						<?php endif; ?>
@@ -190,9 +190,10 @@ class SCD_Condition_Builder {
 		$properties = $this->condition_engine->get_supported_properties();
 		$operators  = $this->condition_engine->get_supported_operators();
 
-		$selected_property = $condition['property'] ?? '';
+		$selected_property = $condition['condition_type'] ?? '';
 		$selected_operator = $condition['operator'] ?? '';
-		$condition_values  = $condition['values'] ?? array( '' );
+		$condition_value   = $condition['value'] ?? '';
+		$condition_value2  = $condition['value2'] ?? '';
 
 		ob_start();
 		?>
@@ -200,8 +201,8 @@ class SCD_Condition_Builder {
 			<div class="scd-condition-fields">
 				<!-- Property Dropdown -->
 				<div class="scd-condition-field scd-property-field">
-					<select name="<?php echo esc_attr( $name_prefix ); ?>array(<?php echo esc_attr( $index ); ?>)[property]" 
-							class="scd-condition-property" 
+					<select name="<?php echo esc_attr( $name_prefix ); ?>[<?php echo esc_attr( $index ); ?>][condition_type]"
+							class="scd-condition-type"
 							data-index="<?php echo esc_attr( $index ); ?>">
 						<option value=""><?php esc_html_e( 'Select Property', 'smart-cycle-discounts' ); ?></option>
 						<?php foreach ( $properties as $key => $property ) : ?>
@@ -216,7 +217,7 @@ class SCD_Condition_Builder {
 
 				<!-- Operator Dropdown -->
 				<div class="scd-condition-field scd-operator-field">
-					<select name="<?php echo esc_attr( $name_prefix ); ?>array(<?php echo esc_attr( $index ); ?>)[operator]" 
+					<select name="<?php echo esc_attr( $name_prefix ); ?>[<?php echo esc_attr( $index ); ?>][operator]" 
 							class="scd-condition-operator" 
 							data-index="<?php echo esc_attr( $index ); ?>"
 							<?php echo empty( $selected_property ) ? 'disabled' : ''; ?>>
@@ -227,7 +228,7 @@ class SCD_Condition_Builder {
 
 				<!-- Value Fields -->
 				<div class="scd-condition-field scd-value-field">
-					<?php echo $this->render_value_inputs( $condition_values, $selected_operator, $index, $name_prefix ); ?>
+					<?php echo $this->render_value_inputs( $condition_value, $condition_value2, $selected_operator, $index, $name_prefix ); ?>
 				</div>
 			</div>
 
@@ -235,7 +236,7 @@ class SCD_Condition_Builder {
 				<button type="button" class="button button-small scd-remove-condition" 
 						data-index="<?php echo esc_attr( $index ); ?>"
 						title="<?php esc_attr_e( 'Remove condition', 'smart-cycle-discounts' ); ?>">
-					<span class="dashicons dashicons-trash"></span>
+					<?php echo SCD_Icon_Helper::get( 'delete', array( 'size' => 16 ) ); ?>
 				</button>
 			</div>
 
@@ -286,31 +287,36 @@ class SCD_Condition_Builder {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array  $values          Condition values.
+	 * @param    string $value           Primary condition value.
+	 * @param    string $value2          Secondary condition value (for between operators).
 	 * @param    string $operator        Selected operator.
 	 * @param    int    $index           Condition index.
 	 * @param    string $name_prefix     Name prefix.
 	 * @return   string                     HTML output.
 	 */
-	private function render_value_inputs( array $values, string $operator, int $index, string $name_prefix ): string {
+	private function render_value_inputs( string $value, string $value2, string $operator, int $index, string $name_prefix ): string {
 		$operators   = $this->condition_engine->get_supported_operators();
 		$value_count = isset( $operators[ $operator ] ) ? $operators[ $operator ]['value_count'] : 1;
 
 		ob_start();
 		?>
 		<div class="scd-value-inputs" data-value-count="<?php echo esc_attr( $value_count ); ?>">
-			<?php for ( $i = 0; $i < $value_count; $i++ ) : ?>
-				<input type="text" 
-						name="<?php echo esc_attr( $name_prefix ); ?>array(<?php echo esc_attr( $index ); ?>)[values]array(<?php echo esc_attr( $i ); ?>)" 
-						class="scd-condition-value" 
-						value="<?php echo esc_attr( $values[ $i ] ?? '' ); ?>"
-						placeholder="<?php echo esc_attr( $this->get_value_placeholder( $operator, $i ) ); ?>"
+			<input type="text"
+					name="<?php echo esc_attr( $name_prefix ); ?>[<?php echo esc_attr( $index ); ?>][value]"
+					class="scd-condition-value"
+					value="<?php echo esc_attr( $value ); ?>"
+					placeholder="<?php echo esc_attr( $this->get_value_placeholder( $operator, 0 ) ); ?>"
+					<?php echo empty( $operator ) ? 'disabled' : ''; ?> />
+
+			<?php if ( $value_count === 2 ) : ?>
+				<span class="scd-value-separator"><?php esc_html_e( 'and', 'smart-cycle-discounts' ); ?></span>
+				<input type="text"
+						name="<?php echo esc_attr( $name_prefix ); ?>[<?php echo esc_attr( $index ); ?>][value2]"
+						class="scd-condition-value scd-condition-value-between"
+						value="<?php echo esc_attr( $value2 ); ?>"
+						placeholder="<?php echo esc_attr( $this->get_value_placeholder( $operator, 1 ) ); ?>"
 						<?php echo empty( $operator ) ? 'disabled' : ''; ?> />
-				
-				<?php if ( $value_count === 2 && $i === 0 ) : ?>
-					<span class="scd-value-separator"><?php esc_html_e( 'and', 'smart-cycle-discounts' ); ?></span>
-				<?php endif; ?>
-			<?php endfor; ?>
+			<?php endif; ?>
 		</div>
 		<?php
 		return ob_get_clean();
@@ -357,12 +363,12 @@ class SCD_Condition_Builder {
 
 		if ( $validation ) {
 			return '<div class="scd-validation-success">
-                        <span class="dashicons dashicons-yes-alt"></span>
+                        ' . SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ) . '
                         <span class="scd-validation-text">' . esc_html__( 'Valid condition', 'smart-cycle-discounts' ) . '</span>
                     </div>';
 		} else {
 			return '<div class="scd-validation-error">
-                        <span class="dashicons dashicons-warning"></span>
+                        ' . SCD_Icon_Helper::get( 'warning', array( 'size' => 16 ) ) . '
                         <span class="scd-validation-text">' . esc_html__( 'Invalid condition', 'smart-cycle-discounts' ) . '</span>
                     </div>';
 		}
@@ -432,8 +438,8 @@ class SCD_Condition_Builder {
 				<div class="scd-condition-fields">
 					<!-- Property Dropdown -->
 					<div class="scd-condition-field scd-property-field">
-						<select name="{{NAME_PREFIX}}[{{INDEX}}][property]" 
-								class="scd-condition-property" 
+						<select name="{{NAME_PREFIX}}[{{INDEX}}][condition_type]"
+								class="scd-condition-type"
 								data-index="{{INDEX}}">
 							<option value=""><?php esc_html_e( 'Select Property', 'smart-cycle-discounts' ); ?></option>
 							<?php foreach ( $properties as $key => $property ) : ?>
@@ -457,10 +463,10 @@ class SCD_Condition_Builder {
 					<!-- Value Fields -->
 					<div class="scd-condition-field scd-value-field">
 						<div class="scd-value-inputs" data-value-count="1">
-							<input type="text" 
-									name="{{NAME_PREFIX}}[{{INDEX}}][values][0]" 
-									class="scd-condition-value" 
-									placeholder="<?php esc_attr_e( 'Enter value', 'smart-cycle-discounts' ); ?>" 
+							<input type="text"
+									name="{{NAME_PREFIX}}[{{INDEX}}][value]"
+									class="scd-condition-value"
+									placeholder="<?php esc_attr_e( 'Enter value', 'smart-cycle-discounts' ); ?>"
 									disabled />
 						</div>
 					</div>
@@ -470,7 +476,7 @@ class SCD_Condition_Builder {
 					<button type="button" class="button button-small scd-remove-condition" 
 							data-index="{{INDEX}}"
 							title="<?php esc_attr_e( 'Remove condition', 'smart-cycle-discounts' ); ?>">
-						<span class="dashicons dashicons-trash"></span>
+						<?php echo SCD_Icon_Helper::get( 'delete', array( 'size' => 16 ) ); ?>
 					</button>
 				</div>
 
@@ -674,12 +680,12 @@ class SCD_Condition_Builder {
 				
 				if (isValid) {
 					$validation.html('<div class="scd-validation-success">' +
-						'<span class="dashicons dashicons-yes-alt"></span>' +
+						'<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>' +
 						'<span class="scd-validation-text"><?php echo esc_js( __( 'Valid condition', 'smart-cycle-discounts' ) ); ?></span>' +
 						'</div>');
 				} elseif (property || operator || values.length > 0) {
 					$validation.html('<div class="scd-validation-error">' +
-						'<span class="dashicons dashicons-warning"></span>' +
+						'<?php echo SCD_Icon_Helper::get( 'warning', array( 'size' => 16 ) ); ?>' +
 						'<span class="scd-validation-text"><?php echo esc_js( __( 'Incomplete condition', 'smart-cycle-discounts' ) ); ?></span>' +
 						'</div>');
 				} else {
@@ -721,7 +727,7 @@ class SCD_Condition_Builder {
 		$valid_conditions = array();
 
 		foreach ( $conditions as $index => $condition ) {
-			if ( empty( $condition['property'] ) && empty( $condition['operator'] ) && empty( array_filter( $condition['values'] ?? array() ) ) ) {
+			if ( empty( $condition['condition_type'] ) && empty( $condition['operator'] ) && empty( $condition['value'] ) ) {
 				// Skip empty conditions
 				continue;
 			}

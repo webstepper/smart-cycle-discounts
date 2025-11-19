@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/frontend/class-frontend-asset-manager.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/frontend
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Frontend_Asset_Manager {
 
@@ -226,7 +226,7 @@ class SCD_Frontend_Asset_Manager {
 			'nonce'              => wp_create_nonce( 'scd_frontend_nonce' ),
 			'rest_url'           => rest_url( 'scd/v1/' ),
 			'rest_nonce'         => wp_create_nonce( 'wp_rest' ),
-			'currency_symbol'    => get_woocommerce_currency_symbol(),
+			'currency_symbol'    => html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES | ENT_HTML5, 'UTF-8' ),
 			'currency_position'  => get_option( 'woocommerce_currency_pos' ),
 			'thousand_separator' => wc_get_price_thousand_separator(),
 			'decimal_separator'  => wc_get_price_decimal_separator(),

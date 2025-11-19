@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/utilities/class-session-service.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -29,7 +29,7 @@ require_once __DIR__ . '/class-session-lock-service.php';
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/services
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Session_Service {
 
@@ -160,7 +160,7 @@ class SCD_Session_Service {
 			$transient_key = $this->get_transient_key( $session_id );
 			$data          = get_transient( $transient_key );
 
-			if ( $data === false ) {
+			if ( false === $data ) {
 				return false;
 			}
 
@@ -258,7 +258,7 @@ class SCD_Session_Service {
 
 		// Optimistic locking: check current version before saving
 		$current_data = get_transient( $transient_key );
-		if ( $current_data !== false ) {
+		if ( false !== $current_data ) {
 			$current_version = $current_data['version'] ?? 0;
 			$our_version     = $this->data['version'] ?? 1;
 
@@ -332,7 +332,7 @@ class SCD_Session_Service {
 			// Reload data to ensure we have latest version
 			$transient_key = $this->get_transient_key( $this->session_id );
 			$current_data  = get_transient( $transient_key );
-			if ( $current_data !== false ) {
+			if ( false !== $current_data ) {
 				$this->data = $this->sanitize_data( $current_data );
 			}
 
@@ -374,10 +374,10 @@ class SCD_Session_Service {
 			$save_result        = $this->save_internal();
 
 			// If version conflict, retry once with fresh data
-			if ( is_wp_error( $save_result ) && $save_result->get_error_code() === 'session_version_conflict' ) {
+			if ( is_wp_error( $save_result ) && 'session_version_conflict' === $save_result->get_error_code() ) {
 				// Reload latest data
 				$fresh_data = get_transient( $transient_key );
-				if ( $fresh_data !== false ) {
+				if ( false !== $fresh_data ) {
 					$this->data         = $this->sanitize_data( $fresh_data );
 					$this->data[ $key ] = $sanitized[ $key ] ?? $value;
 					$save_result        = $this->save_internal();
@@ -418,7 +418,7 @@ class SCD_Session_Service {
 			// Reload data to ensure we have latest version
 			$transient_key = $this->get_transient_key( $this->session_id );
 			$current_data  = get_transient( $transient_key );
-			if ( $current_data !== false ) {
+			if ( false !== $current_data ) {
 				$this->data = $this->sanitize_data( $current_data );
 			}
 
@@ -547,14 +547,23 @@ class SCD_Session_Service {
 			return null;
 		}
 
-		$created_at = $this->get( 'created_at' );
-		if ( ! $created_at ) {
+		// Get transient timeout to determine actual expiration time
+		$transient_key     = $this->get_transient_key( $this->session_id );
+		$timeout_option    = '_transient_timeout_' . $transient_key;
+		$transient_timeout = get_option( $timeout_option );
+
+		if ( false === $transient_timeout ) {
+			// Transient doesn't exist or expired
 			return null;
 		}
 
 		$current_time   = time();
-		$expires_at     = $created_at + $this->expiration;
+		$expires_at     = (int) $transient_timeout;
 		$time_remaining = $expires_at - $current_time;
+
+		// Get created_at for metadata (convert MySQL datetime to timestamp)
+		$created_at_str = $this->get( 'created_at' );
+		$created_at     = $created_at_str ? strtotime( $created_at_str ) : $current_time;
 
 		return array(
 			'created_at'       => $created_at,
@@ -917,7 +926,7 @@ class SCD_Session_Service {
 
 				case 'ip_address':
 					$ip                      = filter_var( $value, FILTER_VALIDATE_IP );
-					$sanitized[ $clean_key ] = $ip !== false ? $ip : '0.0.0.0';
+					$sanitized[ $clean_key ] = false !== $ip ? $ip : '0.0.0.0';
 					break;
 
 				case 'user_id':

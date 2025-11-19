@@ -1,10 +1,14 @@
 /**
  * Wizard State Manager
  *
+ * Centralized state management for the campaign wizard using BaseState pattern.
+ * Extends SCD.Shared.BaseState for consistent state management with change tracking,
+ * subscribers, and history support.
+ *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/wizard/wizard-state-manager.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -17,18 +21,27 @@
 	window.SCD.Wizard = window.SCD.Wizard || {};
 
 	/**
-	 * State Manager
+	 * Wizard State Manager Constructor
 	 *
-	 * Manages all wizard state with persistence and change tracking
+	 * Extends BaseState for state management with wizard-specific functionality.
+	 * Implements singleton pattern - use getInstance() to access.
+	 *
+	 * @class SCD.Wizard.StateManager
+	 * @extends SCD.Shared.BaseState
 	 */
-	SCD.Wizard.StateManager = {
-		// Complete application state
-		state: {
-			// Session management - Session ID no longer needed (handled server-side via secure cookies)
+	SCD.Wizard.StateManager = function() {
+		// Return existing instance if already created (singleton pattern)
+		if ( SCD.Wizard.StateManager._instance ) {
+			return SCD.Wizard.StateManager._instance;
+		}
+
+		// Define initial state
+		var initialState = {
+			// Session management
 			sessionValid: true,
 			sessionVersion: 0,
 
-			// Navigation state - removed, URL is single source of truth
+			// Navigation state
 			stepHistory: [],
 			completedSteps: [],
 			visitedSteps: [],
@@ -71,47 +84,68 @@
 
 			// Feature flags
 			features: {
-				smartSave: true,  // Replaced autoSave with Smart Save
+				smartSave: true,
 				validation: true,
 				preview: true,
 				debug: window.scdWizardData && window.scdWizardData.debug
 			}
-		},
+		};
 
-		// State change listeners
-		listeners: [],
+		// Call BaseState constructor
+		if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
+			SCD.Shared.BaseState.call( this, initialState );
+		} else {
+			console.error( 'SCD.Shared.BaseState not found! Wizard state management will not work.' );
+			return;
+		}
 
-		// State history for undo/redo
-		history: [],
-		historyIndex: -1,
-		maxHistorySize: 50,
+		// Storage error tracking
+		this._storageDisabled = false;
+		this.storageError = null;
+
+		// Store singleton instance
+		SCD.Wizard.StateManager._instance = this;
+	};
+
+	// Inherit from BaseState
+	if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
+		SCD.Wizard.StateManager.prototype = Object.create( SCD.Shared.BaseState.prototype );
+		SCD.Wizard.StateManager.prototype.constructor = SCD.Wizard.StateManager;
+	}
+
+	// Extend prototype with wizard-specific methods
+	SCD.Utils.extend( SCD.Wizard.StateManager.prototype, {
 
 		/**
-		 * Initialize state manager
-		 * @param initialState
+		 * Initialize state manager with campaign data
+		 *
+		 * @since 1.0.0
+		 * @param {object} initialData - Initial wizard data
+		 * @returns {SCD.Wizard.StateManager} this
 		 */
-		init: function( initialState ) {
+		init: function( initialData ) {
+			if ( !initialData ) {
+				initialData = {};
+			}
+
 			// Merge with initial state
-			if ( initialState ) {
+			if ( initialData && Object.keys( initialData ).length > 0 ) {
 				// Deep merge most properties, but REPLACE stepData completely
 				// This prevents snake_case keys from PHP mixing with camelCase keys from JS
-				var stepData = initialState.stepData;
-				delete initialState.stepData;
+				var stepData = initialData.stepData;
+				delete initialData.stepData;
 
-				this.state = $.extend( true, {}, this.state, initialState );
+				var mergedState = $.extend( true, {}, this.getState(), initialData );
 
 				// Replace stepData instead of merging
 				if ( stepData ) {
-					this.state.stepData = $.extend( true, {}, stepData );
+					mergedState.stepData = $.extend( true, {}, stepData );
 				}
+
+				this.setState( mergedState, true ); // Silent update
 			}
 
-			// Allow configuration of history size
-			if ( initialState && initialState.maxHistorySize ) {
-				this.maxHistorySize = initialState.maxHistorySize;
-			}
-
-			var isEditMode = initialState && initialState.wizardMode === 'edit' && initialState.campaignId;
+			var isEditMode = initialData && initialData.wizardMode === 'edit' && initialData.campaignId;
 			var isNewIntent = window.scdWizardSessionInfo && 'new' === window.scdWizardSessionInfo.intent;
 
 			if ( isNewIntent ) {
@@ -130,23 +164,71 @@
 			// Start activity tracking
 			this.startActivityTracking();
 
-			this.addToHistory( this.state );
-
 			return this;
 		},
 
 		/**
-		 * Get state value
-		 * @param key
+		 * Override setState to add wizard-specific behavior
+		 *
+		 * @since 1.0.0
+		 * @param {object} updates - State updates
+		 * @param {boolean} batch - Batch update (skip notifications)
+		 * @returns {void}
+		 */
+		setState: function( updates, batch ) {
+			// Handle stepData specially to prevent key pollution
+			var stepData = null;
+			if ( updates.stepData ) {
+				stepData = updates.stepData;
+				delete updates.stepData;
+			}
+
+			// Call parent setState for normal updates
+			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
+				SCD.Shared.BaseState.prototype.setState.call( this, updates, batch );
+			}
+
+			// Handle stepData replacement
+			if ( stepData ) {
+				var currentState = this.getState();
+				currentState.stepData = $.extend( true, {}, currentState.stepData || {}, stepData );
+				this._state = currentState;
+
+				// Mark as dirty when stepData changes
+				if ( !batch ) {
+					SCD.Shared.BaseState.prototype.setState.call( this, {
+						hasUnsavedChanges: true,
+						isDirty: true
+					}, false );
+				}
+			}
+
+			// Update activity timestamp
+			this._state.lastActivityAt = new Date().toISOString();
+
+			// Persist to storage
+			if ( !batch ) {
+				this.saveToStorage();
+			}
+		},
+
+		/**
+		 * Get state value with dot notation support
+		 *
+		 * Extends BaseState.getState() with dot notation for nested access.
+		 *
+		 * @since 1.0.0
+		 * @param {string} key - State key (supports dot notation: 'stepData.basic.name')
+		 * @returns {*} State value
 		 */
 		get: function( key ) {
 			if ( !key ) {
-				return $.extend( true, {}, this.state );
+				return this.getState();
 			}
 
 			// Support dot notation
 			var keys = key.split( '.' );
-			var value = this.state;
+			var value = this.getState();
 
 			for ( var i = 0; i < keys.length; i++ ) {
 				if ( value && 'object' === typeof value && keys[i] in value ) {
@@ -165,68 +247,45 @@
 		},
 
 		/**
-		 * Set state value
-		 * @param updates
-		 * @param options
+		 * Set state value with dot notation support
+		 *
+		 * Convenience wrapper around setState() with additional features:
+		 * - Dot notation support: set('stepData.basic.name', 'value')
+		 * - Silent mode: set(updates, {silent: true}) for batch operations
+		 *
+		 * @since 1.0.0
+		 * @param {string|object} updates - Key (dot notation) or object of updates
+		 * @param {*} value - Value (if updates is a string key)
+		 * @param {object} options - Options: {silent: boolean} (if updates is a string key)
+		 * @returns {object} Updated state
 		 */
-		set: function( updates, options ) {
-			options = options || {};
-			var oldState = $.extend( true, {}, this.state );
-
+		set: function( updates, value, options ) {
 			// Handle single key-value or object
 			if ( 'string' === typeof updates ) {
 				var key = updates;
-				var value = arguments[1];
-				updates = {};
-				this.setNestedValue( updates, key, value );
-				options = arguments[2] || {};
-			}
-
-			// Merge updates, but REPLACE stepData to prevent key pollution
-			if ( updates.stepData ) {
-				var stepData = updates.stepData;
-				delete updates.stepData;
-
-				this.state = $.extend( true, {}, this.state, updates );
-
-				// Replace entire stepData object instead of deep merging
-				// This prevents snake_case/camelCase key conflicts
-				this.state.stepData = $.extend( true, {}, this.state.stepData || {}, stepData );
+				var updateObj = {};
+				this._setNestedValue( updateObj, key, value );
+				options = options || {};
+				this.setState( updateObj, options.silent );
 			} else {
-				// Normal deep merge for non-stepData updates
-				this.state = $.extend( true, {}, this.state, updates );
+				options = value || {};
+				this.setState( updates, options.silent );
 			}
 
-			this.state.lastActivityAt = new Date().toISOString();
-			if ( updates.stepData && !options.silent ) {
-				this.state.hasUnsavedChanges = true;
-				this.state.isDirty = true;
-			}
-
-			if ( !options.silent && !options.skipHistory ) {
-				this.addToHistory( this.state );
-			}
-
-			// Notify listeners if not silent
-			if ( !options.silent ) {
-				this.notifyListeners( this.state, oldState, updates );
-			}
-
-			// Persist to storage
-			if ( !options.skipStorage ) {
-				this.saveToStorage();
-			}
-
-			return this.state;
+			return this.getState();
 		},
 
 		/**
 		 * Set nested value using dot notation
-		 * @param obj
-		 * @param path
-		 * @param value
+		 *
+		 * @private
+		 * @since 1.0.0
+		 * @param {object} obj - Object to set value in
+		 * @param {string} path - Dot notation path
+		 * @param {*} value - Value to set
+		 * @returns {void}
 		 */
-		setNestedValue: function( obj, path, value ) {
+		_setNestedValue: function( obj, path, value ) {
 			var keys = path.split( '.' );
 			var current = obj;
 
@@ -241,90 +300,16 @@
 		},
 
 		/**
-		 * Subscribe to state changes
-		 * @param listener
-		 * @param filter
-		 */
-		subscribe: function( listener, filter ) {
-			if ( 'function' !== typeof listener ) {
-				return;
-			}
-
-			this.listeners.push( {
-				callback: listener,
-				filter: filter // Optional filter for specific state keys
-			} );
-
-			// Return unsubscribe function
-			var self = this;
-			return function() {
-				self.listeners = self.listeners.filter( function( l ) {
-					return l.callback !== listener;
-				} );
-			};
-		},
-
-		/**
-		 * Notify listeners of state change
-		 * @param newState
-		 * @param oldState
-		 * @param updates
-		 */
-		notifyListeners: function( newState, oldState, updates ) {
-			this.listeners.forEach( function( listener ) {
-				if ( listener.filter ) {
-					var shouldNotify = false;
-
-					if ( 'string' === typeof listener.filter ) {
-						shouldNotify = listener.filter in updates;
-					} else if ( Array.isArray( listener.filter ) ) {
-						shouldNotify = listener.filter.some( function( key ) {
-							return key in updates;
-						} );
-					}
-
-					if ( !shouldNotify ) {
-						return;
-					}
-				}
-
-				// Call listener
-				try {
-					listener.callback( newState, oldState, updates );
-				} catch ( error ) {
-					if ( window.SCD && window.SCD.Debug ) {
-						window.SCD.Debug.error( 'State listener error:', error );
-					}
-				}
-			} );
-		},
-
-		/**
-		 * Add state to history
-		 * @param state
-		 */
-		addToHistory: function( state ) {
-			this.history = this.history.slice( 0, this.historyIndex + 1 );
-
-			this.history.push( $.extend( true, {}, state ) );
-			this.historyIndex++;
-
-			// Limit history size
-			if ( this.history.length > this.maxHistorySize ) {
-				this.history.shift();
-				this.historyIndex--;
-			}
-		},
-
-		/**
-		 * Reset state
-		 * @param options
+		 * Reset state to defaults
+		 *
+		 * @since 1.0.0
+		 * @param {object} options - Reset options
+		 * @returns {void}
 		 */
 		reset: function( options ) {
 			options = options || {};
 
 			var defaultState = {
-				// Session ID no longer needed - managed server-side
 				stepHistory: [],
 				completedSteps: [],
 				visitedSteps: [],
@@ -339,13 +324,13 @@
 				}
 			};
 
-			this.set( defaultState, {
-				silent: options.silent,
-				skipHistory: true
-			} );
+			this.setState( defaultState, options.silent );
 
-			this.history = [ this.state ];
-			this.historyIndex = 0;
+			// Reset history
+			if ( this._history ) {
+				this._history = [ this.getState() ];
+				this._historyIndex = 0;
+			}
 
 			if ( !options.keepStorage ) {
 				this.clearStorage();
@@ -353,23 +338,34 @@
 		},
 
 		/**
-		 * Load state from storage
+		 * Load state from sessionStorage
+		 *
+		 * @since 1.0.0
+		 * @returns {void}
 		 */
 		loadFromStorage: function() {
 			if ( !window.sessionStorage ) {
 				return;
 			}
 
-			var stored = sessionStorage.getItem( 'scd_wizard_state' );
-			if ( stored ) {
-				var parsedState = JSON.parse( stored );
-				// Session validation now handled server-side
-				this.state = $.extend( true, {}, this.state, parsedState );
+			try {
+				var stored = sessionStorage.getItem( 'scd_wizard_state' );
+				if ( stored ) {
+					var parsedState = JSON.parse( stored );
+					this.setState( parsedState, true ); // Silent update
+				}
+			} catch ( e ) {
+				if ( window.SCD && window.SCD.Debug ) {
+					window.SCD.Debug.error( 'Failed to load state from storage:', e );
+				}
 			}
 		},
 
 		/**
-		 * Save state to storage
+		 * Save state to sessionStorage
+		 *
+		 * @since 1.0.0
+		 * @returns {boolean} Success status
 		 */
 		saveToStorage: function() {
 			if ( !window.sessionStorage ) {
@@ -379,24 +375,24 @@
 			}
 
 			try {
-			// Safely serialize state with circular reference detection
-			var seen = [];
-			var stateString = JSON.stringify( this.state, function( key, value ) {
-				if ( 'function' === typeof value || 'undefined' === typeof value ) {
-					return;
-				}
-				// Detect circular references
-				if ( 'object' === typeof value && null !== value ) {
-					if ( -1 !== seen.indexOf( value ) ) {
-						return '[Circular Reference]';
+				// Safely serialize state with circular reference detection
+				var seen = [];
+				var stateString = JSON.stringify( this.getState(), function( key, value ) {
+					if ( 'function' === typeof value || 'undefined' === typeof value ) {
+						return;
 					}
-					seen.push( value );
-				}
-				return value;
-			} );
-			seen = null; // Clear for garbage collection
+					// Detect circular references
+					if ( 'object' === typeof value && null !== value ) {
+						if ( -1 !== seen.indexOf( value ) ) {
+							return '[Circular Reference]';
+						}
+						seen.push( value );
+					}
+					return value;
+				} );
+				seen = null; // Clear for garbage collection
 
-			sessionStorage.setItem( 'scd_wizard_state', stateString );
+				sessionStorage.setItem( 'scd_wizard_state', stateString );
 
 				this.clearStorageError();
 				this._storageDisabled = false;
@@ -441,7 +437,10 @@
 
 		/**
 		 * Handle storage errors
-		 * @param message
+		 *
+		 * @since 1.0.0
+		 * @param {string} message - Error message
+		 * @returns {void}
 		 */
 		handleStorageError: function( message ) {
 			// Notify UI about storage failure
@@ -451,7 +450,6 @@
 					{ duration: 3000 }
 				);
 			}
-
 
 			this.storageError = {
 				message: message,
@@ -464,6 +462,9 @@
 
 		/**
 		 * Clear storage error state
+		 *
+		 * @since 1.0.0
+		 * @returns {void}
 		 */
 		clearStorageError: function() {
 			this.storageError = null;
@@ -472,6 +473,9 @@
 
 		/**
 		 * Clear old storage data to free up space
+		 *
+		 * @since 1.0.0
+		 * @returns {void}
 		 */
 		clearOldStorageData: function() {
 			if ( !window.sessionStorage ) {
@@ -496,6 +500,9 @@
 
 		/**
 		 * Clear storage
+		 *
+		 * @since 1.0.0
+		 * @returns {void}
 		 */
 		clearStorage: function() {
 			if ( !window.sessionStorage ) {
@@ -507,50 +514,53 @@
 				this.clearStorageError();
 			} catch ( e ) {
 				// Handle any storage errors silently
-				}
+			}
 		},
 
 		/**
 		 * Start activity tracking
+		 *
+		 * @since 1.0.0
+		 * @returns {void}
 		 */
 		startActivityTracking: function() {
 			var self = this;
 
 			// Track mouse/keyboard activity
 			var updateActivity = function() {
-				self.set( { lastActivityAt: new Date().toISOString() }, {
-					silent: true,
-					skipHistory: true
-				} );
+				self.setState( { lastActivityAt: new Date().toISOString() }, true ); // Silent update
 			};
 
 			// Native throttle implementation (no Underscore.js dependency)
-		var throttleTimer = null;
-		var lastRun = 0;
-		var throttledUpdate = function() {
-			var now = Date.now();
-			var timeSinceLastRun = now - lastRun;
+			var throttleTimer = null;
+			var lastRun = 0;
+			var throttledUpdate = function() {
+				var now = Date.now();
+				var timeSinceLastRun = now - lastRun;
 
-			if ( timeSinceLastRun >= 30000 ) {
-				lastRun = now;
-				updateActivity();
-			} else {
-				if ( throttleTimer ) {
-					clearTimeout( throttleTimer );
-				}
-				throttleTimer = setTimeout( function() {
-					lastRun = Date.now();
+				if ( timeSinceLastRun >= 30000 ) {
+					lastRun = now;
 					updateActivity();
-					throttleTimer = null;
-				}, 30000 - timeSinceLastRun );
-			}
-		};
+				} else {
+					if ( throttleTimer ) {
+						clearTimeout( throttleTimer );
+					}
+					throttleTimer = setTimeout( function() {
+						lastRun = Date.now();
+						updateActivity();
+						throttleTimer = null;
+					}, 30000 - timeSinceLastRun );
+				}
+			};
 
-		$( document ).on( 'mousemove.scd-activity keypress.scd-activity', throttledUpdate );
+			$( document ).on( 'mousemove.scd-activity keypress.scd-activity', throttledUpdate );
 		},
 
 		/**
 		 * Stop activity tracking
+		 *
+		 * @since 1.0.0
+		 * @returns {void}
 		 */
 		stopActivityTracking: function() {
 			$( document ).off( '.scd-activity' );
@@ -558,18 +568,35 @@
 
 		/**
 		 * Destroy state manager and cleanup
+		 *
+		 * @since 1.0.0
+		 * @returns {void}
 		 */
 		destroy: function() {
 			// Stop activity tracking
 			this.stopActivityTracking();
 
-			this.history = [];
-			this.historyIndex = -1;
+			// Clear singleton instance
+			SCD.Wizard.StateManager._instance = null;
 
-			this.listeners = [];
-
-			this.state = {};
+			// Call parent destroy if available
+			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState && SCD.Shared.BaseState.prototype.destroy ) {
+				SCD.Shared.BaseState.prototype.destroy.call( this );
+			}
 		}
+	} );
+
+	/**
+	 * Get singleton instance
+	 *
+	 * @since 1.0.0
+	 * @returns {SCD.Wizard.StateManager} Singleton instance
+	 */
+	SCD.Wizard.StateManager.getInstance = function() {
+		if ( !SCD.Wizard.StateManager._instance ) {
+			SCD.Wizard.StateManager._instance = new SCD.Wizard.StateManager();
+		}
+		return SCD.Wizard.StateManager._instance;
 	};
 
 } )( jQuery );

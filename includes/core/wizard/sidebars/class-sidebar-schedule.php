@@ -6,8 +6,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/wizard/sidebars
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -70,26 +70,41 @@ class SCD_Wizard_Sidebar_Schedule extends SCD_Wizard_Sidebar_Base {
 		// Timing Best Practices section
 		ob_start();
 		?>
-		<ul class="scd-sidebar-list">
+		<ul class="scd-icon-list">
 			<li>
-				<strong><?php esc_html_e( 'Launch Timing', 'smart-cycle-discounts' ); ?></strong> -
-				<?php esc_html_e( 'Start 1-2 hours before peak traffic', 'smart-cycle-discounts' ); ?>
+				<?php echo SCD_Icon_Helper::get( 'clock', array( 'size' => 16, 'class' => 'scd-list-icon' ) ); ?>
+				<div class="scd-list-content">
+					<strong><?php esc_html_e( 'Launch Timing', 'smart-cycle-discounts' ); ?></strong>
+					<span class="scd-list-description"><?php esc_html_e( 'Start 1-2 hours before peak traffic', 'smart-cycle-discounts' ); ?></span>
+				</div>
 			</li>
 			<li>
-				<strong><?php esc_html_e( 'Peak Hours', 'smart-cycle-discounts' ); ?></strong> -
-				<?php esc_html_e( '3-7 PM for flash sales and high visibility', 'smart-cycle-discounts' ); ?>
+				<?php echo SCD_Icon_Helper::get( 'chart-line', array( 'size' => 16, 'class' => 'scd-list-icon' ) ); ?>
+				<div class="scd-list-content">
+					<strong><?php esc_html_e( 'Peak Hours', 'smart-cycle-discounts' ); ?></strong>
+					<span class="scd-list-description"><?php esc_html_e( '3-7 PM for flash sales and high visibility', 'smart-cycle-discounts' ); ?></span>
+				</div>
 			</li>
 			<li>
-				<strong><?php esc_html_e( 'Best Days', 'smart-cycle-discounts' ); ?></strong> -
-				<?php esc_html_e( 'Monday-Thursday for regular, Friday for weekend kickoff', 'smart-cycle-discounts' ); ?>
+				<?php echo SCD_Icon_Helper::get( 'calendar', array( 'size' => 16, 'class' => 'scd-list-icon' ) ); ?>
+				<div class="scd-list-content">
+					<strong><?php esc_html_e( 'Best Days', 'smart-cycle-discounts' ); ?></strong>
+					<span class="scd-list-description"><?php esc_html_e( 'Monday-Thursday for regular, Friday for weekend kickoff', 'smart-cycle-discounts' ); ?></span>
+				</div>
 			</li>
 			<li>
-				<strong><?php esc_html_e( 'Testing', 'smart-cycle-discounts' ); ?></strong> -
-				<?php esc_html_e( 'Launch 9-11 AM with short duration first', 'smart-cycle-discounts' ); ?>
+				<?php echo SCD_Icon_Helper::get( 'welcome-learn-more', array( 'size' => 16, 'class' => 'scd-list-icon' ) ); ?>
+				<div class="scd-list-content">
+					<strong><?php esc_html_e( 'Testing', 'smart-cycle-discounts' ); ?></strong>
+					<span class="scd-list-description"><?php esc_html_e( 'Launch 9-11 AM with short duration first', 'smart-cycle-discounts' ); ?></span>
+				</div>
 			</li>
 			<li>
-				<strong><?php esc_html_e( 'Holidays', 'smart-cycle-discounts' ); ?></strong> -
-				<?php esc_html_e( 'Schedule well in advance for preparation', 'smart-cycle-discounts' ); ?>
+				<?php echo SCD_Icon_Helper::get( 'admin-site-alt3', array( 'size' => 16, 'class' => 'scd-list-icon' ) ); ?>
+				<div class="scd-list-content">
+					<strong><?php esc_html_e( 'Holidays', 'smart-cycle-discounts' ); ?></strong>
+					<span class="scd-list-description"><?php esc_html_e( 'Schedule well in advance for preparation', 'smart-cycle-discounts' ); ?></span>
+				</div>
 			</li>
 		</ul>
 		<?php
@@ -103,12 +118,40 @@ class SCD_Wizard_Sidebar_Schedule extends SCD_Wizard_Sidebar_Base {
 		// Campaign Duration Tips section
 		ob_start();
 		?>
-		<ul class="scd-sidebar-list">
-			<li><?php esc_html_e( 'Flash Sales: 24-48 hours for urgency', 'smart-cycle-discounts' ); ?></li>
-			<li><?php esc_html_e( 'Seasonal: 2-4 weeks for major events', 'smart-cycle-discounts' ); ?></li>
-			<li><?php esc_html_e( 'Clearance: Open-ended until stock depletes', 'smart-cycle-discounts' ); ?></li>
-			<li><?php esc_html_e( 'Weekly: Recurring for consistent promotions', 'smart-cycle-discounts' ); ?></li>
-		</ul>
+		<table class="scd-comparison-table">
+			<thead>
+				<tr>
+					<th><?php esc_html_e( 'Campaign', 'smart-cycle-discounts' ); ?></th>
+					<th><?php esc_html_e( 'Purpose', 'smart-cycle-discounts' ); ?></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td class="scd-comparison-type">
+						<strong><?php esc_html_e( 'Flash Sales', 'smart-cycle-discounts' ); ?></strong>
+					</td>
+					<td class="scd-comparison-benefit"><?php esc_html_e( 'Creates urgency', 'smart-cycle-discounts' ); ?></td>
+				</tr>
+				<tr>
+					<td class="scd-comparison-type">
+						<strong><?php esc_html_e( 'Seasonal', 'smart-cycle-discounts' ); ?></strong>
+					</td>
+					<td class="scd-comparison-benefit"><?php esc_html_e( 'Major events coverage', 'smart-cycle-discounts' ); ?></td>
+				</tr>
+				<tr>
+					<td class="scd-comparison-type">
+						<strong><?php esc_html_e( 'Clearance', 'smart-cycle-discounts' ); ?></strong>
+					</td>
+					<td class="scd-comparison-benefit"><?php esc_html_e( 'Until stock depletes', 'smart-cycle-discounts' ); ?></td>
+				</tr>
+				<tr>
+					<td class="scd-comparison-type">
+						<strong><?php esc_html_e( 'Weekly', 'smart-cycle-discounts' ); ?></strong>
+					</td>
+					<td class="scd-comparison-benefit"><?php esc_html_e( 'Consistent promotions', 'smart-cycle-discounts' ); ?></td>
+				</tr>
+			</tbody>
+		</table>
 		<?php
 		$this->render_section(
 			__( 'Duration Guidelines', 'smart-cycle-discounts' ),

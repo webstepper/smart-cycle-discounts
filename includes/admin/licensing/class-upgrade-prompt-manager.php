@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/licensing/class-upgrade-prompt-manager.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/licensing
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Upgrade_Prompt_Manager {
 
@@ -126,6 +126,11 @@ class SCD_Upgrade_Prompt_Manager {
 
 	/**
 	 * Handle AJAX request to dismiss upgrade banner.
+	 *
+	 * NOTE: This handler intentionally bypasses the unified AJAX router because:
+	 * 1. Simple fire-and-forget operation (dismiss user preference)
+	 * 2. Minimal data exchange (just banner_id)
+	 * 3. Performance-optimized for instant UI response
 	 *
 	 * @since    1.0.0
 	 * @return   void
@@ -305,11 +310,11 @@ class SCD_Upgrade_Prompt_Manager {
 		?>
 		<div class="scd-upgrade-banner scd-upgrade-banner-inline <?php echo esc_attr( $has_promotion ? 'scd-has-promotion' : '' ); ?>" data-banner-id="<?php echo esc_attr( $banner_id ); ?>" data-dismiss-nonce="<?php echo esc_attr( $dismiss_nonce ); ?>">
 			<button type="button" class="scd-banner-dismiss" aria-label="<?php esc_attr_e( 'Dismiss this notice', 'smart-cycle-discounts' ); ?>">
-				<span class="dashicons dashicons-no-alt"></span>
+				<?php echo SCD_Icon_Helper::get( 'no-alt', array( 'size' => 16 ) ); ?>
 			</button>
 			<div class="scd-upgrade-banner-content">
 				<div class="scd-upgrade-banner-left">
-					<span class="dashicons dashicons-info-outline scd-upgrade-icon"></span>
+					<?php echo SCD_Icon_Helper::get( 'info', array( 'size' => 16, 'class' => 'scd-upgrade-icon' ) ); ?>
 					<div class="scd-upgrade-text">
 						<strong><?php echo esc_html( $title ); ?></strong>
 						<?php if ( true === $has_promotion ) : ?>
@@ -327,7 +332,7 @@ class SCD_Upgrade_Prompt_Manager {
 							esc_html_e( 'Upgrade to Pro', 'smart-cycle-discounts' );
 						}
 						?>
-						<span class="dashicons dashicons-arrow-right-alt2"></span>
+						<?php echo SCD_Icon_Helper::get( 'arrow-right', array( 'size' => 16 ) ); ?>
 					</a>
 					<a href="<?php echo esc_url( $trial_url ); ?>" class="button scd-trial-btn">
 						<?php esc_html_e( 'Start Trial', 'smart-cycle-discounts' ); ?>
@@ -359,7 +364,7 @@ class SCD_Upgrade_Prompt_Manager {
 		ob_start();
 		?>
 		<div class="scd-upgrade-prompt-inline">
-			<span class="dashicons dashicons-lock"></span>
+			<?php echo SCD_Icon_Helper::get( 'lock', array( 'size' => 16 ) ); ?>
 			<span><?php echo $message; ?></span>
 			<a href="<?php echo esc_url( $upgrade_url ); ?>" class="button button-small">
 				<?php esc_html_e( 'Upgrade', 'smart-cycle-discounts' ); ?>
@@ -402,7 +407,7 @@ class SCD_Upgrade_Prompt_Manager {
 				<h2><?php echo $title; ?></h2>
 				<ul class="scd-feature-list">
 					<?php foreach ( $benefits as $benefit ) : ?>
-						<li><span class="dashicons dashicons-yes"></span> <?php echo esc_html( $benefit ); ?></li>
+						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php echo esc_html( $benefit ); ?></li>
 					<?php endforeach; ?>
 				</ul>
 				<div class="scd-modal-actions">
@@ -440,7 +445,7 @@ class SCD_Upgrade_Prompt_Manager {
 		?>
 		<div class="scd-upgrade-overlay">
 			<div class="scd-upgrade-overlay-content">
-				<span class="dashicons dashicons-lock"></span>
+				<?php echo SCD_Icon_Helper::get( 'lock', array( 'size' => 16 ) ); ?>
 				<h3><?php echo $message; ?></h3>
 				<a href="<?php echo esc_url( $upgrade_url ); ?>" class="button button-primary">
 					<?php esc_html_e( 'Upgrade to Pro', 'smart-cycle-discounts' ); ?>
@@ -451,15 +456,6 @@ class SCD_Upgrade_Prompt_Manager {
 		return ob_get_clean();
 	}
 
-	/**
-	 * Get pro badge HTML.
-	 *
-	 * @since    1.0.0
-	 * @return   string    Pro badge HTML.
-	 */
-	public function get_pro_badge() {
-		return '<span class="scd-pro-badge">' . esc_html__( 'PRO', 'smart-cycle-discounts' ) . '</span>';
-	}
 
 	/**
 	 * Reset prompt count for current user.

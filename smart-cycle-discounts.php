@@ -303,6 +303,9 @@ function scd_check_requirements() {
 
 /**
  * Load plugin text domain for internationalization.
+ *
+ * WordPress 6.7.0+ requires translations to be loaded at 'init' or later.
+ * Changed from 'plugins_loaded' to 'init' to comply with WP 6.7+ requirements.
  */
 function scd_load_textdomain() {
 	load_plugin_textdomain(
@@ -311,7 +314,7 @@ function scd_load_textdomain() {
 		dirname( plugin_basename( __FILE__ ) ) . '/languages/'
 	);
 }
-add_action( 'plugins_loaded', 'scd_load_textdomain' );
+add_action( 'init', 'scd_load_textdomain' );
 
 /**
  * Early AJAX handler function for immediate hook registration.

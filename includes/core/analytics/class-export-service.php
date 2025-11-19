@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/analytics/class-export-service.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -82,7 +82,7 @@ class SCD_Export_Service {
 
 			return array(
 				'success'      => true,
-				'download_url' => $file_result['url'],
+				'download_url' => $file_result['download_url'],
 				'filename'     => $file_result['filename'],
 				'size'         => $file_result['size'],
 				'format'       => $format,
@@ -113,11 +113,21 @@ class SCD_Export_Service {
 	 * @return   array                     Export data.
 	 */
 	private function get_export_data( string $export_type, array $options ): array {
-		$date_range = isset( $options['date_range'] ) ? $options['date_range'] : '30days';
+		$date_range  = isset( $options['date_range'] ) ? $options['date_range'] : '30days';
+		$campaign_id = isset( $options['campaign_id'] ) ? $options['campaign_id'] : null;
 
 		switch ( $export_type ) {
 			case 'overview':
-				return $this->metrics_calculator->calculate_overall_metrics( $date_range, false );
+				$metrics = $this->metrics_calculator->calculate_overall_metrics( $date_range, false );
+
+				// If campaign filter is active, get campaign-specific data
+				if ( $campaign_id && 'all' !== $campaign_id ) {
+					$campaign_metrics = $this->get_campaign_specific_metrics( (int) $campaign_id, $date_range );
+					$metrics = array_merge( $metrics, $campaign_metrics );
+				}
+
+				// Wrap in array to create a single row for CSV export
+				return array( $metrics );
 
 			case 'campaigns':
 				return $this->metrics_calculator->calculate_all_campaigns_metrics( $date_range, false );
@@ -130,8 +140,41 @@ class SCD_Export_Service {
 				return array();
 
 			default:
-				return $this->metrics_calculator->calculate_overall_metrics( $date_range, false );
+				// Wrap in array to create a single row for CSV export
+			return array( $this->metrics_calculator->calculate_overall_metrics( $date_range, false ) );
 		}
+	}
+
+	/**
+	 * Get campaign-specific metrics for export.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    int    $campaign_id    Campaign ID.
+	 * @param    string $date_range     Date range.
+	 * @return   array                     Campaign metrics.
+	 */
+	private function get_campaign_specific_metrics( int $campaign_id, string $date_range ): array {
+		global $wpdb;
+
+		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$campaign = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$campaigns_table} WHERE id = %d",
+				$campaign_id
+			),
+			ARRAY_A
+		);
+
+		if ( ! $campaign ) {
+			return array();
+		}
+
+		return array(
+			'filtered_campaign_id'   => $campaign_id,
+			'filtered_campaign_name' => $campaign['name'],
+			'filtered_campaign_status' => $campaign['status'],
+		);
 	}
 
 	/**
@@ -152,10 +195,12 @@ class SCD_Export_Service {
 			wp_mkdir_p( $export_dir );
 		}
 
-		// Generate filename
-		$timestamp = current_time( 'Y-m-d-H-i-s' );
-		$filename  = "scd-export-{$export_type}-{$timestamp}.{$format}";
-		$filepath  = $export_dir . '/' . $filename;
+		// Generate filename with store name
+		$timestamp  = current_time( 'Y-m-d-H-i-s' );
+		$store_name = sanitize_file_name( get_bloginfo( 'name' ) );
+		$store_name = strtolower( str_replace( ' ', '-', $store_name ) );
+		$filename   = "{$store_name}-analytics-{$export_type}-{$timestamp}.{$format}";
+		$filepath   = $export_dir . '/' . $filename;
 
 		// Generate content based on format
 		switch ( $format ) {
@@ -181,13 +226,13 @@ class SCD_Export_Service {
 		file_put_contents( $filepath, $content );
 
 		// Generate download URL
-		$url = $upload_dir['baseurl'] . '/scd-exports/' . $filename;
+		$download_url = $upload_dir['baseurl'] . '/scd-exports/' . $filename;
 
 		return array(
-			'filename' => $filename,
-			'filepath' => $filepath,
-			'url'      => $url,
-			'size'     => filesize( $filepath ),
+			'filename'     => $filename,
+			'filepath'     => $filepath,
+			'download_url' => $download_url,
+			'size'         => filesize( $filepath ),
 		);
 	}
 
@@ -202,6 +247,9 @@ class SCD_Export_Service {
 	private function generate_csv( array $data ): string {
 		$csv = '';
 
+		// Add metadata header
+		$csv .= $this->generate_csv_metadata();
+
 		if ( ! empty( $data ) ) {
 			$first_row = is_array( $data ) ? reset( $data ) : $data;
 			$headers   = array();
@@ -214,11 +262,20 @@ class SCD_Export_Service {
 				$headers = array_keys( $data );
 			}
 
-			$csv .= implode( ',', array_map( array( $this, 'escape_csv_value' ), $headers ) ) . "\n";
+			// Convert headers to human-readable format
+			$readable_headers = array_map( array( $this, 'format_header' ), $headers );
 
+			// Add column headers
+			$csv .= implode( ',', array_map( array( $this, 'escape_csv_value' ), $readable_headers ) ) . "\n";
+
+			// Add data rows
 			foreach ( $data as $row ) {
 				if ( is_array( $row ) ) {
-					$csv .= implode( ',', array_map( array( $this, 'escape_csv_value' ), array_values( $row ) ) ) . "\n";
+					$formatted_row = array();
+					foreach ( $row as $key => $value ) {
+						$formatted_row[] = $this->format_csv_value( $key, $value );
+					}
+					$csv .= implode( ',', array_map( array( $this, 'escape_csv_value' ), $formatted_row ) ) . "\n";
 				} elseif ( is_object( $row ) ) {
 					$csv .= implode( ',', array_map( array( $this, 'escape_csv_value' ), array_values( get_object_vars( $row ) ) ) ) . "\n";
 				}
@@ -248,6 +305,100 @@ class SCD_Export_Service {
 		}
 
 		return $value;
+	}
+
+	/**
+	 * Generate CSV metadata header.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   string    Metadata header rows.
+	 */
+	private function generate_csv_metadata(): string {
+		$csv = '';
+
+		// Report title
+		$csv .= 'Report,Smart Cycle Discounts - Analytics Export' . "\n";
+
+		// Export date and time
+		$csv .= 'Generated,' . current_time( 'Y-m-d H:i:s' ) . "\n";
+
+		// Currency
+		$csv .= 'Currency,' . get_woocommerce_currency() . "\n";
+
+		// Blank separator row
+		$csv .= "\n";
+
+		return $csv;
+	}
+
+	/**
+	 * Format header to human-readable.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    string $header    Snake_case header.
+	 * @return   string               Title Case header.
+	 */
+	private function format_header( string $header ): string {
+		// Special cases for better readability
+		$special_cases = array(
+			'avg_ctr'             => 'Avg CTR',
+			'avg_conversion_rate' => 'Avg Conversion Rate',
+			'avg_order_value'     => 'Avg Order Value',
+			'avg_roi'             => 'Avg ROI',
+			'ctr_change'          => 'CTR Change',
+			'aov_change'          => 'AOV Change',
+		);
+
+		if ( isset( $special_cases[ $header ] ) ) {
+			return $special_cases[ $header ];
+		}
+
+		// Convert snake_case to Title Case
+		return ucwords( str_replace( '_', ' ', $header ) );
+	}
+
+	/**
+	 * Format CSV value based on field type.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    string $key      Field key.
+	 * @param    mixed  $value    Field value.
+	 * @return   mixed               Formatted value.
+	 */
+	private function format_csv_value( string $key, $value ) {
+		// Handle period field (convert JSON to readable dates)
+		if ( 'period' === $key && is_array( $value ) ) {
+			if ( isset( $value['start_date'] ) && isset( $value['end_date'] ) ) {
+				return $value['start_date'] . ' to ' . $value['end_date'];
+			}
+		}
+
+		// Decode JSON if it's still encoded
+		if ( is_string( $value ) && $this->is_json( $value ) ) {
+			$decoded = json_decode( $value, true );
+			if ( isset( $decoded['start_date'] ) && isset( $decoded['end_date'] ) ) {
+				return $decoded['start_date'] . ' to ' . $decoded['end_date'];
+			}
+		}
+
+		// Keep numbers unformatted for Excel compatibility
+		return $value;
+	}
+
+	/**
+	 * Check if string is JSON.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    string $string    String to check.
+	 * @return   bool                 True if JSON.
+	 */
+	private function is_json( string $string ): bool {
+		json_decode( $string );
+		return json_last_error() === JSON_ERROR_NONE;
 	}
 
 	/**

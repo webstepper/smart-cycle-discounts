@@ -20,11 +20,11 @@
 	left: 0;
 	right: 0;
 	bottom: 0;
-	z-index: 999999;
+	z-index: var(--scd-z-modal);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding: 20px;
+	padding: var(--scd-padding-section);
 }
 
 .scd-modal-overlay {
@@ -34,7 +34,6 @@
 	right: 0;
 	bottom: 0;
 	background: rgba(0, 0, 0, 0.7);
-	backdrop-filter: blur(4px);
 	cursor: pointer;
 }
 
@@ -44,41 +43,46 @@
 
 .scd-modal-dialog {
 	position: relative;
-	z-index: 1;
+	z-index: var(--scd-z-base);
 	width: 100%;
 	max-width: 900px;
 }
 
+/* Note: Modal content styles below are shared pattern across:
+ * - pro-feature-modal.css (.scd-modal-content)
+ * - session-expiration-modal.css (.scd-expiration-warning-modal .scd-modal-content)
+ * - wizard-completion-modal.css (.scd-completion-modal)
+ * Minor variations exist for specific modal needs (sizing, shadows) */
 .scd-modal-content {
-	background: #fff;
-	border-radius: 8px;
-	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+	background: var(--scd-color-white);
+
+	/* Semi-transparent border */
+	border: 1px solid var(--scd-color-border);
+	border-radius: var(--scd-radius-lg);
+
+	/* Enhanced shadow for floating effect */
+	box-shadow:
+		0 8px 32px rgba(0, 0, 0, 0.12),
+		0 4px 16px rgba(0, 0, 0, 0.08),
+		inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
 	max-height: 90vh;
 	overflow-y: auto;
-	animation: scdModalSlideIn 0.3s ease-out;
+	animation: scd-modal-slide-in var(--scd-transition-slow) ease-out;
 }
 
-@keyframes scdModalSlideIn {
-	from {
-		opacity: 0;
-		transform: translateY(-30px) scale(0.95);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0) scale(1);
-	}
-}
+/* Note: @keyframes scd-modal-slide-in defined in shared/_utilities.css */
 
 /* ==========================================================================
    Modal Header
    ========================================================================== */
 
 .scd-modal-header {
-	padding: 24px 28px 20px;
-	border-bottom: 1px solid #dcdcde;
+	padding: var(--scd-padding-section) 28px 20px;
+	border-bottom: 1px solid var(--scd-color-border-lighter);
 	position: relative;
 	text-align: center;
-	background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+	background: linear-gradient(135deg, #f9fafb 0%, var(--scd-color-white) 100%);
 }
 
 .scd-modal-icon {
@@ -89,27 +93,27 @@
 	height: 40px;
 	margin: 0 auto 8px;
 	background: linear-gradient(135deg, #f0b849 0%, #f59e0b 100%);
-	border-radius: 50%;
-	box-shadow: 0 2px 8px rgba(240, 184, 73, 0.3);
+	border-radius: var(--scd-radius-full);
+	box-shadow: var(--scd-pro-modal-badge-shadow);
 }
 
-.scd-modal-icon .dashicons {
-	font-size: 24px;
-	width: 24px;
-	height: 24px;
-	color: #fff;
+.scd-modal-icon .scd-icon {
+	font-size: var(--scd-font-size-xxxl);
+	width: var(--scd-icon-large);
+	height: var(--scd-icon-large);
+	color: var(--scd-color-white);
 }
 
 .scd-modal-header h2 {
 	margin: 0;
-	font-size: 20px;
-	font-weight: 600;
-	color: #1d2327;
+	font-size: var(--scd-font-size-xxl);
+	font-weight: var(--scd-font-weight-semibold);
+	color: var(--scd-color-text);
 	line-height: 1.3;
 }
 
 .scd-modal-header h2 #scd-pro-feature-name {
-	color: #2271b1;
+	color: var(--scd-color-primary);
 }
 
 .scd-modal-close {
@@ -119,28 +123,28 @@
 	background: none;
 	border: none;
 	cursor: pointer;
-	padding: 4px;
-	color: #646970;
-	transition: color 0.2s;
+	padding: var(--scd-spacing-xs);
+	color: var(--scd-color-text-muted);
+	transition: color var(--scd-transition-base);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 }
 
 .scd-modal-close:hover {
-	color: #1d2327;
+	color: var(--scd-color-text);
 }
 
 .scd-modal-close:focus {
-	outline: 2px solid #2271b1;
+	outline: 2px solid var(--scd-color-primary);
 	outline-offset: 2px;
-	border-radius: 4px;
+	border-radius: var(--scd-radius-md);
 }
 
-.scd-modal-close .dashicons {
-	width: 20px;
-	height: 20px;
-	font-size: 20px;
+.scd-modal-close .scd-icon {
+	width: var(--scd-icon-medium);
+	height: var(--scd-icon-medium);
+	font-size: var(--scd-font-size-xxl);
 }
 
 /* ==========================================================================
@@ -148,7 +152,7 @@
    ========================================================================== */
 
 .scd-modal-body {
-	padding: 28px;
+	padding: var(--scd-padding-spacious);
 }
 
 .scd-modal-columns {
@@ -158,13 +162,12 @@
 	align-items: start;
 }
 
-.scd-section-title {
+/* Section titles use centralized .scd-form-section-title from _forms.css */
+.scd-modal-column-left .scd-form-section-title,
+.scd-modal-column-right .scd-form-section-title {
 	margin: 0 0 16px 0;
-	font-size: 16px;
-	font-weight: 600;
-	color: #1d2327;
-	padding-bottom: 8px;
-	border-bottom: 2px solid #f0f0f1;
+	padding-bottom: var(--scd-spacing-sm);
+	border-bottom: 2px solid var(--scd-color-surface-dark);
 }
 
 /* ==========================================================================
@@ -174,14 +177,14 @@
 .scd-modal-column-left {
 	display: flex;
 	flex-direction: column;
-	gap: 16px;
+	gap: var(--scd-gap-comfortable);
 }
 
 /* Compact Benefits Grid */
 .scd-benefits-compact {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
-	gap: 10px;
+	gap: var(--scd-gap-normal);
 }
 
 .scd-benefit-compact {
@@ -189,10 +192,10 @@
 	flex-direction: column;
 	align-items: center;
 	text-align: center;
-	padding: 14px 10px;
-	background: #f6f7f7;
-	border-radius: 6px;
-	transition: all 0.2s;
+	padding: var(--scd-padding-sm-large) 10px;
+	background: var(--scd-color-surface);
+	border-radius: var(--scd-radius-md);
+	transition: all var(--scd-transition-base);
 }
 
 .scd-benefit-compact:hover {
@@ -200,62 +203,62 @@
 	transform: translateY(-2px);
 }
 
-.scd-benefit-compact .dashicons {
+.scd-benefit-compact .scd-icon {
 	width: 30px;
-	height: 30px;
+	height: var(--scd-input-height);
 	font-size: 30px;
-	color: #2271b1;
+	color: var(--scd-color-primary);
 	margin-bottom: 6px;
 }
 
 .scd-benefit-compact strong {
-	font-size: 13px;
-	font-weight: 600;
-	color: #1d2327;
+	font-size: var(--scd-font-size-base);
+	font-weight: var(--scd-font-weight-semibold);
+	color: var(--scd-color-text);
 	line-height: 1.3;
 }
 
 /* Upgrade Box with Price */
 .scd-upgrade-box {
-	background: linear-gradient(135deg, #2271b1 0%, #135e96 100%);
-	border-radius: 8px;
-	padding: 20px;
+	background: linear-gradient(135deg, var(--scd-color-primary) 0%, var(--scd-color-primary-dark) 100%);
+	border-radius: var(--scd-radius-lg);
+	padding: var(--scd-padding-section);
 	text-align: center;
-	box-shadow: 0 4px 12px rgba(34, 113, 177, 0.3);
+	box-shadow: var(--scd-pro-modal-button-shadow);
 }
 
 .scd-price-wrapper {
-	margin-bottom: 16px;
+	margin-bottom: var(--scd-spacing-base);
 }
 
 .scd-price-original {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 8px;
-	margin-bottom: 8px;
+	gap: var(--scd-gap-tight);
+	margin-bottom: var(--scd-spacing-sm);
 }
 
 .scd-price-was {
-	font-size: 12px;
+	font-size: var(--scd-font-size-small);
 	color: rgba(255, 255, 255, 0.7);
-	font-weight: 500;
+	font-weight: var(--scd-font-weight-medium);
 }
 
 .scd-price-strike {
-	font-size: 18px;
-	color: rgba(255, 255, 255, 0.6);
+	font-size: var(--scd-font-size-xl);
+	color: var(--scd-overlay-white-medium);
 	text-decoration: line-through;
-	font-weight: 500;
+	font-weight: var(--scd-font-weight-medium);
 }
 
 .scd-savings-badge {
 	background: #10b981;
-	color: #fff;
-	font-size: 11px;
-	font-weight: 700;
+	color: var(--scd-color-white);
+	font-size: var(--scd-font-size-small);
+	font-weight: var(--scd-font-weight-bold);
 	padding: 3px 8px;
-	border-radius: 12px;
+	border-radius: var(--scd-radius-xl);
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
 }
@@ -264,84 +267,84 @@
 	display: flex;
 	align-items: baseline;
 	justify-content: center;
-	gap: 4px;
+	gap: var(--scd-gap-tight);
 }
 
 .scd-price-label {
-	font-size: 13px;
+	font-size: var(--scd-font-size-base);
 	color: rgba(255, 255, 255, 0.8);
-	font-weight: 500;
+	font-weight: var(--scd-font-weight-medium);
 }
 
 .scd-price-amount {
 	font-size: 38px;
-	font-weight: 700;
-	color: #fff;
+	font-weight: var(--scd-font-weight-bold);
+	color: var(--scd-color-white);
 	line-height: 1;
 }
 
 .scd-price-period {
 	font-size: 15px;
-	color: rgba(255, 255, 255, 0.9);
-	font-weight: 500;
+	color: var(--scd-overlay-white-heavy);
+	font-weight: var(--scd-font-weight-medium);
 }
 
 .scd-upgrade-box .scd-modal-upgrade {
 	width: 100%;
-	background: #fff;
-	color: #2271b1;
+	background: var(--scd-color-white);
+	color: var(--scd-color-primary);
 	border: none;
 	font-size: 15px;
-	font-weight: 600;
-	padding: 12px 20px;
+	font-weight: var(--scd-font-weight-semibold);
+	padding: var(--scd-padding-medium) 20px;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	gap: 8px;
-	transition: all 0.2s;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	gap: var(--scd-gap-tight);
+	transition: all var(--scd-transition-base);
+	box-shadow: var(--scd-shadow-sm);
 }
 
 .scd-upgrade-box .scd-modal-upgrade:hover {
-	background: #f0f0f1;
+	background: var(--scd-color-surface-dark);
 	transform: translateY(-2px);
-	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+	box-shadow: var(--scd-shadow-md);
 }
 
-.scd-upgrade-box .scd-modal-upgrade .dashicons {
-	width: 18px;
-	height: 18px;
-	font-size: 18px;
+.scd-upgrade-box .scd-modal-upgrade .scd-icon {
+	width: var(--scd-icon-small);
+	height: var(--scd-icon-small);
+	font-size: var(--scd-font-size-xl);
 	color: #f0b849;
 }
 
 .scd-trust-badges {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
-	gap: 6px;
+	gap: var(--scd-gap-tight);
 	margin-top: 10px;
 }
 
 .scd-trust-badge {
 	display: flex;
 	align-items: center;
-	gap: 6px;
-	font-size: 11px;
-	color: rgba(255, 255, 255, 0.95);
+	gap: var(--scd-gap-tight);
+	font-size: var(--scd-font-size-small);
+	color: var(--scd-overlay-white-heavy);
 	padding: 6px 8px;
-	background: rgba(255, 255, 255, 0.1);
-	border-radius: 4px;
-	transition: all 0.2s;
+	background: var(--scd-color-white);
+	border-radius: var(--scd-radius-md);
+	transition: all var(--scd-transition-base);
 }
 
 .scd-trust-badge:hover {
-	background: rgba(255, 255, 255, 0.15);
+	background: var(--scd-color-white);
 }
 
-.scd-trust-badge .dashicons {
+.scd-trust-badge .scd-icon {
 	width: 14px;
 	height: 14px;
-	font-size: 14px;
+	font-size: var(--scd-font-size-medium);
 	color: #10b981;
 	flex-shrink: 0;
 }
@@ -353,7 +356,7 @@
 .scd-modal-column-right {
 	display: flex;
 	flex-direction: column;
-	gap: 16px;
+	gap: var(--scd-gap-comfortable);
 }
 
 .scd-features-list {
@@ -365,22 +368,22 @@
 .scd-features-list li {
 	display: flex;
 	align-items: center;
-	gap: 10px;
+	gap: var(--scd-gap-normal);
 	padding: 9px 0;
-	font-size: 14px;
-	color: #1d2327;
-	border-bottom: 1px solid #f0f0f1;
+	font-size: var(--scd-font-size-medium);
+	color: var(--scd-color-text);
+	border-bottom: 1px solid var(--scd-color-surface-dark);
 }
 
 .scd-features-list li:last-child {
 	border-bottom: none;
 }
 
-.scd-features-list li .dashicons {
+.scd-features-list li .scd-icon {
 	flex-shrink: 0;
-	width: 18px;
-	height: 18px;
-	font-size: 18px;
+	width: var(--scd-icon-small);
+	height: var(--scd-icon-small);
+	font-size: var(--scd-font-size-xl);
 	color: #10b981;
 }
 
@@ -389,40 +392,40 @@
    ========================================================================== */
 
 .scd-modal-footer {
-	padding: 14px 28px 18px;
-	border-top: 1px solid #dcdcde;
+	padding: var(--scd-padding-sm-large) 28px 18px;
+	border-top: 1px solid var(--scd-color-border-lighter);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 16px;
+	gap: var(--scd-gap-comfortable);
 	background: #f9fafb;
 }
 
 .scd-modal-change {
-	padding: 10px 20px;
-	font-size: 14px;
+	padding: var(--scd-padding-small) 20px;
+	font-size: var(--scd-font-size-medium);
 }
 
 .scd-modal-save-draft {
-	color: #646970;
+	color: var(--scd-color-text-muted);
 	text-decoration: none;
-	font-size: 14px;
-	padding: 10px 16px;
+	font-size: var(--scd-font-size-medium);
+	padding: var(--scd-padding-small) 16px;
 	background: none;
 	border: none;
 	cursor: pointer;
-	transition: color 0.2s;
+	transition: color var(--scd-transition-base);
 }
 
 .scd-modal-save-draft:hover {
-	color: #2271b1;
+	color: var(--scd-color-primary);
 	text-decoration: underline;
 }
 
 .scd-modal-save-draft:focus {
-	outline: 2px solid #2271b1;
+	outline: 2px solid var(--scd-color-primary);
 	outline-offset: 2px;
-	border-radius: 4px;
+	border-radius: var(--scd-radius-md);
 }
 
 /* ==========================================================================
@@ -438,17 +441,10 @@ body.scd-modal-open {
    ========================================================================== */
 
 .scd-highlight-field {
-	animation: scdHighlightPulse 2s ease-in-out;
+	animation: scd-highlight-pulse 2s ease-in-out;
 }
 
-@keyframes scdHighlightPulse {
-	0%, 100% {
-		box-shadow: 0 0 0 0 rgba(34, 113, 177, 0);
-	}
-	50% {
-		box-shadow: 0 0 0 8px rgba(34, 113, 177, 0.3);
-	}
-}
+/* Note: @keyframes scd-highlight-pulse defined in shared/_utilities.css */
 
 /* ==========================================================================
    Responsive Design
@@ -457,7 +453,7 @@ body.scd-modal-open {
 @media screen and (max-width: 860px) {
 	.scd-modal-columns {
 		grid-template-columns: 1fr;
-		gap: 20px;
+		gap: var(--scd-gap-spacious);
 	}
 
 	.scd-modal-dialog {
@@ -471,60 +467,60 @@ body.scd-modal-open {
 
 @media screen and (max-width: 600px) {
 	.scd-modal {
-		padding: 12px;
+		padding: var(--scd-padding-medium);
 	}
 
 	.scd-modal-header {
-		padding: 16px 20px 12px;
+		padding: var(--scd-padding-large) 20px 12px;
 	}
 
 	.scd-modal-header h2 {
-		font-size: 18px;
+		font-size: var(--scd-font-size-xl);
 	}
 
 	.scd-modal-body {
-		padding: 20px 16px;
+		padding: var(--scd-padding-section) 16px;
 	}
 
 	.scd-modal-columns {
-		gap: 16px;
+		gap: var(--scd-gap-comfortable);
 	}
 
-	.scd-section-title {
+	.scd-form-section-title {
 		font-size: 15px;
-		margin-bottom: 12px;
+		margin-bottom: var(--scd-spacing-md);
 	}
 
 	.scd-benefits-compact {
 		grid-template-columns: 1fr 1fr;
-		gap: 8px;
+		gap: var(--scd-gap-tight);
 	}
 
 	.scd-benefit-compact {
-		padding: 10px 6px;
+		padding: var(--scd-padding-small) 6px;
 	}
 
-	.scd-benefit-compact .dashicons {
-		width: 24px;
-		height: 24px;
-		font-size: 24px;
+	.scd-benefit-compact .scd-icon {
+		width: var(--scd-icon-large);
+		height: var(--scd-icon-large);
+		font-size: var(--scd-font-size-xxxl);
 	}
 
 	.scd-benefit-compact strong {
-		font-size: 12px;
+		font-size: var(--scd-font-size-small);
 	}
 
 	.scd-upgrade-box {
-		padding: 16px;
+		padding: var(--scd-padding-large);
 	}
 
 	.scd-price-strike {
-		font-size: 16px;
+		font-size: var(--scd-font-size-large);
 	}
 
 	.scd-savings-badge {
 		font-size: 10px;
-		padding: 2px 6px;
+		padding: var(--scd-spacing-xxs) 6px;
 	}
 
 	.scd-price-amount {
@@ -532,16 +528,16 @@ body.scd-modal-open {
 	}
 
 	.scd-price-period {
-		font-size: 14px;
+		font-size: var(--scd-font-size-medium);
 	}
 
 	.scd-upgrade-box .scd-modal-upgrade {
-		font-size: 14px;
-		padding: 10px 16px;
+		font-size: var(--scd-font-size-medium);
+		padding: var(--scd-padding-small) 16px;
 	}
 
 	.scd-trust-badges {
-		gap: 6px;
+		gap: var(--scd-gap-tight);
 	}
 
 	.scd-trust-badge {
@@ -549,21 +545,21 @@ body.scd-modal-open {
 		padding: 5px 6px;
 	}
 
-	.scd-trust-badge .dashicons {
+	.scd-trust-badge .scd-icon {
 		width: 12px;
 		height: 12px;
-		font-size: 12px;
+		font-size: var(--scd-font-size-small);
 	}
 
 	.scd-features-list li {
-		font-size: 13px;
+		font-size: var(--scd-font-size-base);
 		padding: 6px 0;
 	}
 
 	.scd-modal-footer {
-		padding: 10px 16px 14px;
+		padding: var(--scd-padding-small) 16px 14px;
 		flex-direction: column;
-		gap: 8px;
+		gap: var(--scd-gap-tight);
 	}
 
 	.scd-modal-change,
@@ -580,22 +576,32 @@ body.scd-modal-open {
 /* Focus visible styles for keyboard navigation */
 .scd-modal-upgrade:focus-visible,
 .scd-modal-change:focus-visible {
-	outline: 2px solid #2271b1;
+	outline: 2px solid var(--scd-color-primary);
 	outline-offset: 2px;
 }
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
 	.scd-modal-overlay {
-		background: rgba(0, 0, 0, 0.85);
+		background: var(--scd-overlay-dark);
 	}
 
 	.scd-modal-content {
-		border: 2px solid #000;
+		border: 2px solid var(--scd-color-black);
 	}
 
 	.scd-upgrade-box {
-		border: 2px solid #2271b1;
+		border: 2px solid var(--scd-color-primary);
+	}
+}
+
+/* Browser fallback - no backdrop-filter support */
+	.scd-modal-content {
+		/* Slightly more opaque background when blur isn't available */
+		background: var(--scd-color-white);
+	}
+
+	.scd-modal-overlay {
 	}
 }
 
@@ -603,6 +609,7 @@ body.scd-modal-open {
 @media (prefers-reduced-motion: reduce) {
 	.scd-modal-content {
 		animation: none;
+		background: var(--scd-color-white);
 	}
 
 	.scd-benefit-compact:hover {
@@ -615,10 +622,9 @@ body.scd-modal-open {
 
 	.scd-highlight-field {
 		animation: none;
-		box-shadow: 0 0 0 4px rgba(34, 113, 177, 0.3);
+		box-shadow: var(--scd-modal-highlight-static);
 	}
 
 	.scd-modal-overlay {
-		backdrop-filter: none;
 	}
 }

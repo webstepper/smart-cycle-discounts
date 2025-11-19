@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/wizard/wizard-navigation.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -410,7 +410,7 @@
 		 * @param {string} targetStep Target step
 		 * @param {boolean} isRetry Whether this is a retry attempt
 		 */
-		performNavigation: function( fromStep, targetStep, isRetry, formData ) {
+		performNavigation: function( fromStep, targetStep, isRetry ) {
 			var self = this;
 
 			if ( SCD.Wizard && SCD.Wizard.Orchestrator ) {
@@ -418,6 +418,19 @@
 			}
 
 			this.setNavigationState( true );
+
+			// Check navigation direction
+			var fromIndex = this.config.steps.indexOf( fromStep );
+			var targetIndex = this.config.steps.indexOf( targetStep );
+			var isBackward = targetIndex < fromIndex;
+
+			// Skip save/validation when navigating backwards
+			if ( isBackward ) {
+				// Direct navigation without saving
+				var redirectUrl = this.buildStepUrl( targetStep );
+				window.location.href = redirectUrl;
+				return;
+			}
 
 			var formData = this.collectStepData( fromStep );
 
@@ -544,7 +557,7 @@
 				} ).promise();
 			}
 
-				// Mark save as in progress
+			// Mark save as in progress
 			this._saveInProgress = true;
 
 			// Save via step orchestrator (navigation save - primary save mechanism)
@@ -555,13 +568,14 @@
 				// Server validated and saved data
 				// Extract completed steps from progress
 				var completedSteps = [];
-				if ( response && response.progress && response.progress.completedSteps ) {
-					completedSteps = response.progress.completedSteps;
+				if ( response && response.progress && response.progress.completed_steps ) {
+					completedSteps = response.progress.completed_steps;
 				}
 
+				// Build URL for server-side navigation (full page reload)
+				// This is intentional - wizard uses server-rendered step content
 				var redirectUrl = self.buildStepUrl( targetStep );
 
-				// Build navigation response and return immediately
 				return {
 					success: true,
 					data: {
@@ -600,14 +614,10 @@
 					}
 				} ).promise();
 			} );
-
-			
 		},
 
 		/**
 		 * Show skeleton loading screen
-		 *
-		 * PHASE 3: Clean delegation to SkeletonTemplates service.
 		 * Delegates to centralized skeleton generation service.
 		 *
 		 * @since 1.0.0
@@ -642,14 +652,13 @@
 			}
 
 			if ( data.completedSteps && SCD.Wizard && SCD.Wizard.StateManager ) {
-				SCD.Wizard.StateManager.set( {
+				SCD.Wizard.StateManager.getInstance().set( {
 					completedSteps: data.completedSteps
 				}, { silent: true } );
 
 				this.updateCompletedSteps( data.completedSteps );
 			}
 
-			// Server automatically converts snake_case to camelCase via SCD_AJAX_Response
 			// Use camelCase directly as received from server
 			if ( data.redirectUrl ) {
 				this.showSkeletonScreen( targetStep );
@@ -657,10 +666,11 @@
 				// Prevent any navigation events from interfering
 				self.setNavigationState( true );
 
-				// Minimal delay for skeleton render, then redirect
+				// Delay to ensure session save completes before redirect
+				// Critical: Server must finish saving before new page request
 				setTimeout( function() {
 					window.location.href = data.redirectUrl;
-				}, 100 );
+				}, 300 );
 
 				// Nothing after this line will execute
 				return;
@@ -928,7 +938,7 @@
 
 			// Ensure completed steps UI is synced with current state
 			if ( SCD.Wizard && SCD.Wizard.StateManager ) {
-				var completedSteps = SCD.Wizard.StateManager.get( 'completedSteps' );
+				var completedSteps = SCD.Wizard.StateManager.getInstance().get( 'completedSteps' );
 				if ( completedSteps ) {
 					this.updateCompletedSteps( completedSteps );
 				}
@@ -956,7 +966,7 @@
 		 * @param {array} completedSteps Array of completed step names
 		 */
 		updateCompletedSteps: function( completedSteps ) {
-			if ( !  completedSteps || ! Array.isArray( completedSteps ) ) {
+			if ( ! completedSteps || ! Array.isArray( completedSteps ) ) {
 				return;
 			}
 
@@ -1002,19 +1012,23 @@
 					.prop( 'disabled', isNavigating );
 
 				if ( isNavigating ) {
-					// Show "Processing..." only on clicked button
+					// Show "Proceeding..." only on clicked button
 					$buttons.each( function() {
 						var $btn = $( this );
+						// Support both .scd-nav-btn__text and .scd-button-text classes
 						var $text = $btn.find( '.scd-nav-btn__text' );
-						var $icon = $btn.find( '.dashicons' );
+						if ( ! $text.length ) {
+							$text = $btn.find( '.scd-button-text' );
+						}
+						var $icon = $btn.find( '.scd-icon' );
 
 						var isClickedButton = $clickedButton && $clickedButton.length && $btn.is( $clickedButton );
 
 						if ( isClickedButton ) {
-							// Clicked button: show "Processing..." and hide icon
-							if ( $text.length && !$btn.data( self.DATA_KEYS.ORIGINAL_TEXT ) ) {
+							// Clicked button: show "Proceeding..." and hide icon
+							if ( $text.length && ! $btn.data( self.DATA_KEYS.ORIGINAL_TEXT ) ) {
 								$btn.data( self.DATA_KEYS.ORIGINAL_TEXT, $text.text() );
-								$text.text( 'Processing...' );
+								$text.text( 'Proceeding...' );
 							}
 							if ( $icon.length ) {
 								$icon.hide();
@@ -1026,8 +1040,12 @@
 					// Restore all buttons
 					$buttons.each( function() {
 						var $btn = $( this );
+						// Support both .scd-nav-btn__text and .scd-button-text classes
 						var $text = $btn.find( '.scd-nav-btn__text' );
-						var $icon = $btn.find( '.dashicons' );
+						if ( ! $text.length ) {
+							$text = $btn.find( '.scd-button-text' );
+						}
+						var $icon = $btn.find( '.scd-icon' );
 						var originalText = $btn.data( self.DATA_KEYS.ORIGINAL_TEXT );
 						if ( $text.length && originalText ) {
 							$text.text( originalText );
@@ -1067,8 +1085,6 @@
 
 	/**
 	 * Check if user is trying to use PRO features (client-side)
-	 *
-	 * PHASE 3: Clean delegation to ProFeatureGate service.
 	 * Delegates to centralized PRO feature detection service.
 	 *
 	 * @since 1.0.0

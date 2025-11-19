@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/assets/class-theme-color-inline-styles.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -80,40 +80,7 @@ class SCD_Theme_Color_Inline_Styles {
 
 		$css .= '}' . "\n";
 
-		$css .= "\n" . '/* Status Badge Styles */' . "\n";
-		$css .= '.scd-status-badge {' . "\n";
-		$css .= '    display: inline-block;' . "\n";
-		$css .= '    padding: 2px 8px;' . "\n";
-		$css .= '    font-size: 11px;' . "\n";
-		$css .= '    line-height: 1.4;' . "\n";
-		$css .= '    font-weight: 600;' . "\n";
-		$css .= '    text-transform: uppercase;' . "\n";
-		$css .= '    letter-spacing: 0.02em;' . "\n";
-		$css .= '    border-radius: 3px;' . "\n";
-		$css .= '    background-color: var(--scd-badge-inactive);' . "\n";
-		$css .= '    color: #fff;' . "\n";
-		$css .= '}' . "\n";
-
-		$css .= '.scd-status-badge--active {' . "\n";
-		$css .= '    background-color: var(--scd-badge-active);' . "\n";
-		$css .= '}' . "\n";
-
-		$css .= '.scd-status-badge--scheduled {' . "\n";
-		$css .= '    background-color: var(--scd-badge-scheduled);' . "\n";
-		$css .= '}' . "\n";
-
-		$css .= '.scd-status-badge--paused,' . "\n";
-		$css .= '.scd-status-badge--inactive {' . "\n";
-		$css .= '    background-color: var(--scd-badge-inactive);' . "\n";
-		$css .= '}' . "\n";
-
-		$css .= '.scd-status-badge--expired {' . "\n";
-		$css .= '    background-color: var(--scd-badge-expired);' . "\n";
-		$css .= '}' . "\n";
-
-		$css .= '.scd-status-badge--draft {' . "\n";
-		$css .= '    background-color: var(--scd-badge-draft);' . "\n";
-		$css .= '}' . "\n";
+		$css .= "\n" . '/* Badge styles are now in shared/_badges.css */' . "\n";
 
 		$css .= "\n" . '/* Draft Notice Styles */' . "\n";
 		$css .= '.scd-draft-notice {' . "\n";
@@ -157,7 +124,9 @@ class SCD_Theme_Color_Inline_Styles {
 		$css .= '<script>' . "\n";
 		$css .= 'document.addEventListener("DOMContentLoaded", function() {' . "\n";
 		$css .= '    setTimeout(function() {' . "\n";
-		$css .= '        document.body.classList.add("scd-colors-loaded");' . "\n";
+		$css .= '        if (document.body) {' . "\n";
+		$css .= '            document.body.classList.add("scd-colors-loaded");' . "\n";
+		$css .= '        }' . "\n";
 		$css .= '    }, 100);' . "\n";
 		$css .= '});' . "\n";
 		$css .= '</script>' . "\n";

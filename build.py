@@ -36,39 +36,66 @@ EXCLUDE_PATTERNS = [
     '.gitignore',
     '.gitattributes',
 
-    # Build and development
-    'build.py',
-    'update-file-headers.py',
+    # CI/CD and development infrastructure
+    '.github',
+    'bin',
+
+    # Build and development scripts
+    '*.py',  # All Python scripts (build.py, update-file-headers.py, css-variable-replacer.py)
+    '*.sh',  # All shell scripts (install-wp-tests.sh, verify-naming-conventions.sh)
     'build',
     'dist',
     'node_modules',
     '.claude',
 
+    # Development PHP files (not part of plugin runtime)
+    'abstract-testcase.php',
+    'check-jquery-ui-css.php',
+    'listener-loader.php',
+    'speed-trap-listener.php',
+    'test-*.php',  # Test PHP files (test-conditions-integration.js, test-recurring-integration.php, etc.)
+    'test-*.js',   # Test JavaScript files
+    'C:\\tmp\\*',  # Broken Windows path files/directories
+
     # Documentation (not needed in production)
+    # Note: *.md also excludes vendor/freemius/README.md (intentional - SDK docs not needed)
     '*.md',
-    'BUILD.md',
-    'CLAUDE.md',
-    'DASHBOARD-REFACTORING-PLAN.md',
-    'JAVASCRIPT-COMPATIBILITY.md',
-    'PLUGIN-STRUCTURE.md',
-    'SECURITY-AUDIT-REPORT.md',
-    'SECURITY-FIXES-REQUIRED.md',
-    'TESTING-GUIDE-CATEGORY-SYSTEM.md',
-    'WEEKLY-TIMELINE-IMPLEMENTATION-PLAN.md',
-    'FINAL-VERIFICATION-REPORT-*.md',
-    'plugin_structure_summary.txt',
+    '*.txt',  # All text files except readme.txt (kept via FORCE_INCLUDE)
     'docs',
 
     # Composer development files
+    # Note: composer.json also excludes vendor/freemius/composer.json (intentional - dev dependency info)
     'composer.json',
     'composer.lock',
     'composer.phar',
-    'vendor',
+
+    # Source assets (compiled assets in /assets/ are included)
+    'resources/assets',  # Exclude source files (scss, vendor libs) - keep resources/views/
+
+    # Vendor dependencies (exclude all except Freemius SDK)
+    # IMPORTANT: Plugin uses vendor/freemius/start.php directly, not Composer autoloader
+    'vendor/autoload.php',  # Not used in production (only in tests)
+    'vendor/bin',
+    'vendor/composer',
+    'vendor/dealerdirect',
+    'vendor/doctrine',
+    'vendor/myclabs',
+    'vendor/nikic',
+    'vendor/phar-io',
+    'vendor/phpcsstandards',
+    'vendor/phpunit',
+    'vendor/sebastian',
+    'vendor/squizlabs',
+    'vendor/theseer',
+    'vendor/wp-coding-standards',
+    'vendor/yoast',
+    # ✅ INCLUDED: vendor/freemius/ (production Freemius SDK loaded via vendor/freemius/start.php)
 
     # Tests
     'tests',
     'phpunit.xml',
     'phpunit.xml.dist',
+    'phpunit-*.xml',  # Additional phpunit config files (phpunit-lightweight.xml, phpunit-standalone.xml)
     '.phpunit.result.cache',
 
     # IDE and editor files
@@ -87,6 +114,16 @@ EXCLUDE_PATTERNS = [
     '*.bak',
     '*.swp',
     '*~',
+
+    # Screenshots and images (development/documentation only)
+    'Screenshot*',
+    'screenshot*',
+    '*.png',
+    '*.jpg',
+    '*.jpeg',
+    '*.gif',
+    '*.svg',
+    '*.ico',
 
     # Build artifacts
     '*.zip',
@@ -120,24 +157,30 @@ def should_exclude(path, base_path=''):
     rel_path = os.path.relpath(path, base_path) if base_path else path
     name = os.path.basename(path)
 
+    # Normalize path separators for consistent matching
+    rel_path_normalized = rel_path.replace('\\', '/')
+
     # Check force include list
     if name in FORCE_INCLUDE or rel_path in FORCE_INCLUDE:
         return False
 
     # Check exclude patterns
     for pattern in EXCLUDE_PATTERNS:
+        # Normalize pattern separators
+        pattern_normalized = pattern.replace('\\', '/')
+
         # Exact match
-        if name == pattern or rel_path == pattern:
+        if name == pattern or rel_path_normalized == pattern_normalized:
             return True
 
-        # Directory match
-        if pattern in rel_path.split(os.sep):
+        # Directory path prefix match (e.g., "resources/assets" excludes "resources/assets/css/admin.css")
+        if rel_path_normalized.startswith(pattern_normalized + '/') or pattern_normalized in rel_path_normalized.split('/'):
             return True
 
         # Wildcard pattern match
         if '*' in pattern:
             import fnmatch
-            if fnmatch.fnmatch(name, pattern) or fnmatch.fnmatch(rel_path, pattern):
+            if fnmatch.fnmatch(name, pattern) or fnmatch.fnmatch(rel_path_normalized, pattern_normalized):
                 return True
 
     return False

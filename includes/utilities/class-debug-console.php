@@ -110,7 +110,7 @@ class SCD_Debug_Console {
 
 		wp_enqueue_script(
 			'scd-debug-console',
-			plugins_url( 'resources/assets/js/utilities/debug-console.js', dirname( __DIR__ ) ),
+			SCD_PLUGIN_URL . 'resources/assets/js/utilities/debug-console.js',
 			array( 'jquery' ),
 			'1.0.0',
 			true
@@ -118,7 +118,7 @@ class SCD_Debug_Console {
 
 		wp_enqueue_style(
 			'scd-debug-console',
-			plugins_url( 'resources/assets/css/admin/debug-console.css', dirname( __DIR__ ) ),
+			SCD_PLUGIN_URL . 'resources/assets/css/admin/debug-console.css',
 			array(),
 			'1.0.0'
 		);

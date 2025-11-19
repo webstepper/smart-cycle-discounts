@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/pages/class-tools-page.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -109,10 +109,10 @@ class SCD_Tools_Page {
 		?>
 		<div class="scd-tools-section">
 			<h2>
-				<span class="dashicons dashicons-upload"></span>
+				<?php echo SCD_Icon_Helper::get( 'upload', array( 'size' => 16 ) ); ?>
 				<?php esc_html_e( 'Import & Export', 'smart-cycle-discounts' ); ?>
 				<?php if ( ! $can_export ) : ?>
-					<span class="scd-pro-badge"><?php esc_html_e( 'PRO', 'smart-cycle-discounts' ); ?></span>
+					<?php echo SCD_Badge_Helper::pro_badge(); ?>
 				<?php endif; ?>
 			</h2>
 			<p class="description">
@@ -124,9 +124,15 @@ class SCD_Tools_Page {
 					<p>
 						<strong><?php esc_html_e( 'Export functionality is available in Pro version', 'smart-cycle-discounts' ); ?></strong>
 						<?php esc_html_e( '- Upgrade to export your campaigns and settings for backup or migration.', 'smart-cycle-discounts' ); ?>
-						<a href="<?php echo esc_url( $upgrade_url ); ?>" class="button button-small button-primary">
-							<?php esc_html_e( 'Upgrade to Pro', 'smart-cycle-discounts' ); ?>
-						</a>
+						<?php
+						SCD_Button_Helper::primary(
+							__( 'Upgrade to Pro', 'smart-cycle-discounts' ),
+							array(
+								'size' => 'small',
+								'href' => esc_url( $upgrade_url ),
+							)
+						);
+						?>
 					</p>
 				</div>
 			<?php endif; ?>
@@ -140,15 +146,27 @@ class SCD_Tools_Page {
 								<?php esc_html_e( 'Export all campaigns to a JSON file for backup or migration purposes.', 'smart-cycle-discounts' ); ?>
 							</p>
 							<?php if ( $can_export ) : ?>
-								<button type="button" class="button button-secondary scd-export-campaigns-btn">
-									<span class="dashicons dashicons-download"></span>
-									<?php esc_html_e( 'Export Campaigns', 'smart-cycle-discounts' ); ?>
-								</button>
+								<?php
+								SCD_Button_Helper::secondary(
+									__( 'Export Campaigns', 'smart-cycle-discounts' ),
+									array(
+										'type'    => 'button',
+										'icon'    => 'download',
+										'classes' => array( 'scd-export-campaigns-btn' ),
+									)
+								);
+								?>
 							<?php else : ?>
-								<button type="button" class="button button-secondary" disabled="disabled">
-									<span class="dashicons dashicons-lock"></span>
-									<?php esc_html_e( 'Export Campaigns (Pro)', 'smart-cycle-discounts' ); ?>
-								</button>
+								<?php
+								SCD_Button_Helper::secondary(
+									__( 'Export Campaigns (Pro)', 'smart-cycle-discounts' ),
+									array(
+										'type'     => 'button',
+										'icon'     => 'lock',
+										'disabled' => true,
+									)
+								);
+								?>
 							<?php endif; ?>
 						</td>
 					</tr>
@@ -159,15 +177,27 @@ class SCD_Tools_Page {
 								<?php esc_html_e( 'Export all plugin settings to a JSON file for backup or transfer to another site.', 'smart-cycle-discounts' ); ?>
 							</p>
 							<?php if ( $can_export ) : ?>
-								<button type="button" class="button button-secondary scd-export-settings-btn">
-									<span class="dashicons dashicons-download"></span>
-									<?php esc_html_e( 'Export Settings', 'smart-cycle-discounts' ); ?>
-								</button>
+								<?php
+								SCD_Button_Helper::secondary(
+									__( 'Export Settings', 'smart-cycle-discounts' ),
+									array(
+										'type'    => 'button',
+										'icon'    => 'download',
+										'classes' => array( 'scd-export-settings-btn' ),
+									)
+								);
+								?>
 							<?php else : ?>
-								<button type="button" class="button button-secondary" disabled="disabled">
-									<span class="dashicons dashicons-lock"></span>
-									<?php esc_html_e( 'Export Settings (Pro)', 'smart-cycle-discounts' ); ?>
-								</button>
+								<?php
+								SCD_Button_Helper::secondary(
+									__( 'Export Settings (Pro)', 'smart-cycle-discounts' ),
+									array(
+										'type'     => 'button',
+										'icon'     => 'lock',
+										'disabled' => true,
+									)
+								);
+								?>
 							<?php endif; ?>
 						</td>
 					</tr>
@@ -178,10 +208,16 @@ class SCD_Tools_Page {
 								<?php esc_html_e( 'Import campaigns or settings from a previously exported JSON file.', 'smart-cycle-discounts' ); ?>
 							</p>
 							<input type="file" id="scd-import-file" accept=".json" class="regular-text">
-							<button type="button" class="button button-primary scd-import-data-btn">
-								<span class="dashicons dashicons-upload"></span>
-								<?php esc_html_e( 'Import File', 'smart-cycle-discounts' ); ?>
-							</button>
+							<?php
+							SCD_Button_Helper::primary(
+								__( 'Import File', 'smart-cycle-discounts' ),
+								array(
+									'type'    => 'button',
+									'icon'    => 'upload',
+									'classes' => array( 'scd-import-data-btn' ),
+								)
+							);
+							?>
 							<div class="scd-import-status" style="margin-top: 10px;"></div>
 						</td>
 					</tr>
@@ -202,12 +238,17 @@ class SCD_Tools_Page {
 		global $wpdb;
 
 		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
-		$table_size      = $wpdb->get_var( "SELECT ROUND(((data_length + index_length) / 1024 / 1024), 2) FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = '{$campaigns_table}'" );
+		$table_size      = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT ROUND(((data_length + index_length) / 1024 / 1024), 2) FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = %s',
+				$campaigns_table
+			)
+		);
 
 		?>
 		<div class="scd-tools-section">
 			<h2>
-				<span class="dashicons dashicons-database-export"></span>
+				<?php echo SCD_Icon_Helper::get( 'database-export', array( 'size' => 16 ) ); ?>
 				<?php esc_html_e( 'Database Maintenance', 'smart-cycle-discounts' ); ?>
 			</h2>
 			<p class="description">
@@ -226,10 +267,16 @@ class SCD_Tools_Page {
 								<strong><?php esc_html_e( 'Current size:', 'smart-cycle-discounts' ); ?></strong>
 								<?php echo esc_html( $table_size ? $table_size . ' MB' : __( 'Unknown', 'smart-cycle-discounts' ) ); ?>
 							</p>
-							<button type="button" class="button button-secondary scd-optimize-tables-btn">
-								<span class="dashicons dashicons-admin-tools"></span>
-								<?php esc_html_e( 'Optimize Now', 'smart-cycle-discounts' ); ?>
-							</button>
+							<?php
+							SCD_Button_Helper::secondary(
+								__( 'Optimize Now', 'smart-cycle-discounts' ),
+								array(
+									'type'    => 'button',
+									'icon'    => 'admin-tools',
+									'classes' => array( 'scd-optimize-tables-btn' ),
+								)
+							);
+							?>
 						</td>
 					</tr>
 					<tr>
@@ -238,10 +285,18 @@ class SCD_Tools_Page {
 							<p class="description">
 								<?php esc_html_e( 'Remove expired campaigns and old analytics data to reduce database size.', 'smart-cycle-discounts' ); ?>
 							</p>
-							<button type="button" class="button button-secondary scd-cleanup-expired-btn" onclick="return confirm('<?php echo esc_js( __( 'This will permanently delete expired campaigns and old data. Continue?', 'smart-cycle-discounts' ) ); ?>');">
-								<span class="dashicons dashicons-trash"></span>
-								<?php esc_html_e( 'Clean Up Now', 'smart-cycle-discounts' ); ?>
-							</button>
+							<?php
+							$confirm_message = esc_js( __( 'This will permanently delete expired campaigns and old data. Continue?', 'smart-cycle-discounts' ) );
+							SCD_Button_Helper::secondary(
+								__( 'Clean Up Now', 'smart-cycle-discounts' ),
+								array(
+									'type'       => 'button',
+									'icon'       => 'trash',
+									'classes'    => array( 'scd-cleanup-expired-btn' ),
+									'attributes' => array( 'onclick' => "return confirm('" . $confirm_message . "');" ),
+								)
+							);
+							?>
 						</td>
 					</tr>
 				</tbody>
@@ -261,7 +316,7 @@ class SCD_Tools_Page {
 		?>
 		<div class="scd-tools-section">
 			<h2>
-				<span class="dashicons dashicons-performance"></span>
+				<?php echo SCD_Icon_Helper::get( 'performance', array( 'size' => 20 ) ); ?>
 				<?php esc_html_e( 'Cache Management', 'smart-cycle-discounts' ); ?>
 			</h2>
 			<p class="description">
@@ -276,10 +331,16 @@ class SCD_Tools_Page {
 							<p class="description">
 								<?php esc_html_e( 'Clears all cached data (object cache, transients, campaign data) and rebuilds the cache for optimal performance.', 'smart-cycle-discounts' ); ?>
 							</p>
-							<button type="button" class="button button-primary scd-rebuild-cache-btn">
-								<span class="dashicons dashicons-update"></span>
-								<?php esc_html_e( 'Clear & Rebuild Cache', 'smart-cycle-discounts' ); ?>
-							</button>
+							<?php
+							SCD_Button_Helper::primary(
+								__( 'Clear & Rebuild Cache', 'smart-cycle-discounts' ),
+								array(
+									'type'    => 'button',
+									'icon'    => 'update',
+									'classes' => array( 'scd-rebuild-cache-btn' ),
+								)
+							);
+							?>
 						</td>
 					</tr>
 				</tbody>
@@ -304,7 +365,7 @@ class SCD_Tools_Page {
 		?>
 		<div class="scd-tools-section">
 			<h2>
-				<span class="dashicons dashicons-search"></span>
+				<?php echo SCD_Icon_Helper::get( 'search', array( 'size' => 16 ) ); ?>
 				<?php esc_html_e( 'Log Viewer', 'smart-cycle-discounts' ); ?>
 			</h2>
 			<p class="description">
@@ -337,23 +398,41 @@ class SCD_Tools_Page {
 								</div>
 
 								<div class="scd-log-actions" style="margin: 10px 0;">
-									<button type="button" class="button button-secondary scd-view-logs-btn">
-										<span class="dashicons dashicons-visibility"></span>
-										<?php esc_html_e( 'View Log', 'smart-cycle-discounts' ); ?>
-									</button>
-									<button type="button" class="button button-secondary scd-download-logs-btn" style="margin-left: 4px;">
-										<span class="dashicons dashicons-download"></span>
-										<?php esc_html_e( 'Download', 'smart-cycle-discounts' ); ?>
-									</button>
+									<?php
+									SCD_Button_Helper::secondary(
+										__( 'View Log', 'smart-cycle-discounts' ),
+										array(
+											'type'    => 'button',
+											'icon'    => 'visibility',
+											'classes' => array( 'scd-view-logs-btn' ),
+										)
+									);
+
+									SCD_Button_Helper::secondary(
+										__( 'Download', 'smart-cycle-discounts' ),
+										array(
+											'type'       => 'button',
+											'icon'       => 'download',
+											'classes'    => array( 'scd-download-logs-btn' ),
+											'attributes' => array( 'style' => 'margin-left: 4px;' ),
+										)
+									);
+									?>
 								</div>
 
 								<div id="scd-log-viewer-modal" style="display:none; margin-top: 15px;">
 									<textarea readonly class="large-text code" rows="20" style="font-family: monospace; font-size: 12px;"></textarea>
 									<div style="margin-top: 10px;">
-										<button type="button" class="button button-secondary scd-copy-log-btn">
-											<span class="dashicons dashicons-clipboard"></span>
-											<?php esc_html_e( 'Copy to Clipboard', 'smart-cycle-discounts' ); ?>
-										</button>
+										<?php
+										SCD_Button_Helper::secondary(
+											__( 'Copy to Clipboard', 'smart-cycle-discounts' ),
+											array(
+												'type'    => 'button',
+												'icon'    => 'clipboard',
+												'classes' => array( 'scd-copy-log-btn' ),
+											)
+										);
+										?>
 									</div>
 								</div>
 							</div>
@@ -365,10 +444,16 @@ class SCD_Tools_Page {
 							<p class="description">
 								<?php esc_html_e( 'Delete all log file contents. This action cannot be undone.', 'smart-cycle-discounts' ); ?>
 							</p>
-							<button type="button" class="button button-secondary scd-clear-logs-btn">
-								<span class="dashicons dashicons-trash"></span>
-								<?php esc_html_e( 'Clear Log', 'smart-cycle-discounts' ); ?>
-							</button>
+							<?php
+							SCD_Button_Helper::secondary(
+								__( 'Clear Log', 'smart-cycle-discounts' ),
+								array(
+									'type'    => 'button',
+									'icon'    => 'trash',
+									'classes' => array( 'scd-clear-logs-btn' ),
+								)
+							);
+							?>
 						</td>
 					</tr>
 				</tbody>
@@ -388,7 +473,7 @@ class SCD_Tools_Page {
 		?>
 		<div class="scd-tools-section">
 			<h2>
-				<span class="dashicons dashicons-admin-site"></span>
+				<?php echo SCD_Icon_Helper::get( 'admin-site', array( 'size' => 16 ) ); ?>
 				<?php esc_html_e( 'System Diagnostics', 'smart-cycle-discounts' ); ?>
 			</h2>
 			<p class="description">
@@ -403,10 +488,16 @@ class SCD_Tools_Page {
 							<p class="description">
 								<?php esc_html_e( 'Run a comprehensive health check to identify potential issues with the plugin configuration.', 'smart-cycle-discounts' ); ?>
 							</p>
-							<button type="button" class="button button-secondary scd-health-check-btn">
-								<span class="dashicons dashicons-heart"></span>
-								<?php esc_html_e( 'Run Health Check', 'smart-cycle-discounts' ); ?>
-							</button>
+							<?php
+							SCD_Button_Helper::secondary(
+								__( 'Run Health Check', 'smart-cycle-discounts' ),
+								array(
+									'type'    => 'button',
+									'icon'    => 'heart',
+									'classes' => array( 'scd-health-check-btn' ),
+								)
+							);
+							?>
 							<div id="scd-health-check-results" style="margin-top: 10px;"></div>
 						</td>
 					</tr>
@@ -416,18 +507,43 @@ class SCD_Tools_Page {
 							<p class="description">
 								<?php esc_html_e( 'Generate a detailed system report for troubleshooting and support purposes. This report can be shared with support to help diagnose issues.', 'smart-cycle-discounts' ); ?>
 							</p>
-							<button type="button" class="button button-secondary scd-generate-report-btn" data-action="generate">
-								<span class="dashicons dashicons-media-text"></span>
-								<?php esc_html_e( 'Generate Report', 'smart-cycle-discounts' ); ?>
-							</button>
-							<button type="button" class="button button-secondary scd-copy-report-btn" data-action="copy" style="display:none;">
-								<span class="dashicons dashicons-clipboard"></span>
-								<?php esc_html_e( 'Copy to Clipboard', 'smart-cycle-discounts' ); ?>
-							</button>
-							<button type="button" class="button button-secondary scd-download-report-btn" data-action="download" style="display:none;">
-								<span class="dashicons dashicons-download"></span>
-								<?php esc_html_e( 'Download Report', 'smart-cycle-discounts' ); ?>
-							</button>
+							<?php
+							SCD_Button_Helper::secondary(
+								__( 'Generate Report', 'smart-cycle-discounts' ),
+								array(
+									'type'       => 'button',
+									'icon'       => 'media-text',
+									'classes'    => array( 'scd-generate-report-btn' ),
+									'attributes' => array( 'data-action' => 'generate' ),
+								)
+							);
+
+							SCD_Button_Helper::secondary(
+								__( 'Copy to Clipboard', 'smart-cycle-discounts' ),
+								array(
+									'type'       => 'button',
+									'icon'       => 'clipboard',
+									'classes'    => array( 'scd-copy-report-btn' ),
+									'attributes' => array(
+										'data-action' => 'copy',
+										'style'       => 'display:none;',
+									),
+								)
+							);
+
+							SCD_Button_Helper::secondary(
+								__( 'Download Report', 'smart-cycle-discounts' ),
+								array(
+									'type'       => 'button',
+									'icon'       => 'download',
+									'classes'    => array( 'scd-download-report-btn' ),
+									'attributes' => array(
+										'data-action' => 'download',
+										'style'       => 'display:none;',
+									),
+								)
+							);
+							?>
 							<div id="scd-system-report" style="margin-top: 10px; display: none;">
 								<textarea readonly class="large-text code" rows="20" style="font-family: monospace; font-size: 12px;"></textarea>
 							</div>

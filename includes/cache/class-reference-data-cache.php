@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/cache/class-reference-data-cache.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -21,24 +21,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Reference Data Cache class.
  *
- * Manages caching of stable reference data using WordPress transients
- * and object cache when available.
+ * Thin wrapper around SCD_Cache_Manager for reference data caching.
+ * Uses cache manager as single source of truth with reference-specific defaults.
  *
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/cache
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Reference_Data_Cache {
 
 	/**
-	 * Cache group for object cache.
+	 * Cache manager instance.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      SCD_Cache_Manager    $cache    Cache manager.
+	 */
+	private SCD_Cache_Manager $cache;
+
+	/**
+	 * Cache group for reference data.
 	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @var      string    $cache_group    Cache group name.
 	 */
-	private string $cache_group = 'scd_reference';
+	private string $cache_group = 'reference';
 
 	/**
 	 * Default cache durations.
@@ -48,20 +57,63 @@ class SCD_Reference_Data_Cache {
 	 * @var      array    $cache_durations    Cache durations by type.
 	 */
 	private array $cache_durations = array(
-		'categories'       => 3600,        // 1 hour
-		'tags'             => 3600,              // 1 hour
-		'attributes'       => 3600,        // 1 hour
-		'tax_rates'        => 7200,         // 2 hours
-		'currencies'       => 86400,       // 24 hours
-		'countries'        => 86400,        // 24 hours
-		'states'           => 86400,           // 24 hours
-		'payment_methods'  => 3600,   // 1 hour
-		'shipping_methods' => 3600,  // 1 hour
-		'customer_groups'  => 1800,   // 30 minutes
-		'active_campaigns' => 300,   // 5 minutes
-		'discount_rules'   => 600,     // 10 minutes
-		'validation_rules' => 600,    // 10 minutes
+		'categories'       => 1800, // 30 minutes
+		'tags'             => 1800, // 30 minutes
+		'attributes'       => 1800, // 30 minutes
+		'tax_rates'        => 3600, // 1 hour (changes rarely)
+		'currencies'       => 3600, // 1 hour (stable data)
+		'countries'        => 3600, // 1 hour (stable data)
+		'states'           => 3600, // 1 hour (stable data)
+		'payment_methods'  => 1800, // 30 minutes
+		'shipping_methods' => 1800, // 30 minutes
+		'customer_groups'  => 900,  // 15 minutes
+		'active_campaigns' => 1800, // 30 minutes
+		'discount_rules'   => 1800, // 30 minutes
+		'validation_rules' => 1800, // 30 minutes
 	);
+
+	/**
+	 * Initialize the reference data cache.
+	 *
+	 * @since    1.0.0
+	 * @param    SCD_Cache_Manager $cache    Cache manager instance.
+	 */
+	public function __construct( SCD_Cache_Manager $cache ) {
+		$this->cache = $cache;
+		$this->load_cache_durations_from_settings();
+	}
+
+	/**
+	 * Load cache durations from settings.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   void
+	 */
+	private function load_cache_durations_from_settings(): void {
+		$settings = get_option( 'scd_settings', array() );
+
+		if ( isset( $settings['performance']['product_cache_duration'] ) ) {
+			$product_duration = (int) $settings['performance']['product_cache_duration'];
+
+			// Update all reference data cache durations to use product setting
+			$this->cache_durations = array(
+				'categories'       => $product_duration,
+				'tags'             => $product_duration,
+				'attributes'       => $product_duration,
+				'tax_rates'        => $product_duration,
+				'currencies'       => $product_duration,
+				'countries'        => $product_duration,
+				'states'           => $product_duration,
+				'payment_methods'  => $product_duration,
+				'shipping_methods' => $product_duration,
+				'customer_groups'  => $product_duration,
+				'active_campaigns' => $product_duration,
+				'discount_rules'   => $product_duration,
+				'validation_rules' => $product_duration,
+			);
+		}
+	}
 
 	/**
 	 * Get cached reference data.
@@ -73,34 +125,10 @@ class SCD_Reference_Data_Cache {
 	 * @return   mixed                  Cached or generated data.
 	 */
 	public function get( string $type, callable $generator, ?int $duration = null ): mixed {
-		// Determine cache duration
 		$cache_duration = $duration ?? $this->cache_durations[ $type ] ?? 3600;
+		$cache_key      = $this->get_cache_key( $type );
 
-		// Try object cache first (if available)
-		if ( wp_using_ext_object_cache() ) {
-			$cached = wp_cache_get( $type, $this->cache_group );
-			if ( $cached !== false ) {
-				return $cached;
-			}
-		}
-
-		// Try transient
-		$transient_key = $this->get_transient_key( $type );
-		$cached        = get_transient( $transient_key );
-
-		if ( $cached !== false ) {
-			if ( wp_using_ext_object_cache() ) {
-				wp_cache_set( $type, $cached, $this->cache_group, $cache_duration );
-			}
-			return $cached;
-		}
-
-		// Generate fresh data
-		$data = $this->generate_with_lock( $type, $generator );
-
-		$this->set( $type, $data, $cache_duration );
-
-		return $data;
+		return $this->cache->remember( $cache_key, $generator, $cache_duration );
 	}
 
 	/**
@@ -113,12 +141,8 @@ class SCD_Reference_Data_Cache {
 	 * @return   bool                   True on success.
 	 */
 	public function set( string $type, $data, int $duration ): bool {
-		if ( wp_using_ext_object_cache() ) {
-			wp_cache_set( $type, $data, $this->cache_group, $duration );
-		}
-
-		$transient_key = $this->get_transient_key( $type );
-		return set_transient( $transient_key, $data, $duration );
+		$cache_key = $this->get_cache_key( $type );
+		return $this->cache->set( $cache_key, $data, $duration );
 	}
 
 	/**
@@ -129,98 +153,30 @@ class SCD_Reference_Data_Cache {
 	 * @return   bool               True on success.
 	 */
 	public function delete( string $type ): bool {
-		if ( wp_using_ext_object_cache() ) {
-			wp_cache_delete( $type, $this->cache_group );
-		}
-
-		$transient_key = $this->get_transient_key( $type );
-		return delete_transient( $transient_key );
+		$cache_key = $this->get_cache_key( $type );
+		return $this->cache->delete( $cache_key );
 	}
 
 	/**
 	 * Clear all cached reference data.
 	 *
 	 * @since    1.0.0
-	 * @return   void
+	 * @return   bool    True on success.
 	 */
-	public function clear_all(): void {
-		foreach ( array_keys( $this->cache_durations ) as $type ) {
-			$this->delete( $type );
-		}
-
-		global $wpdb;
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$wpdb->options} 
-                WHERE option_name LIKE %s 
-                OR option_name LIKE %s",
-				'_transient_scd_ref_%',
-				'_transient_timeout_scd_ref_%'
-			)
-		);
-
-		if ( wp_using_ext_object_cache() ) {
-			wp_cache_flush_group( $this->cache_group );
-		}
+	public function clear_all(): bool {
+		return $this->cache->delete_group( $this->cache_group );
 	}
 
 	/**
-	 * Generate data with lock to prevent stampede.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @param    string   $type        Data type.
-	 * @param    callable $generator   Generator function.
-	 * @return   mixed                  Generated data.
-	 */
-	private function generate_with_lock( string $type, callable $generator ): mixed {
-		$lock_key      = "scd_ref_lock_{$type}";
-		$lock_duration = 30; // 30 seconds max generation time
-
-		// Try to acquire lock
-		$lock_acquired = set_transient( $lock_key, 1, $lock_duration );
-
-		if ( ! $lock_acquired ) {
-			// Another process is generating, wait and retry
-			$retries = 10;
-			while ( $retries > 0 && get_transient( $lock_key ) !== false ) {
-				usleep( 100000 ); // 100ms
-				--$retries;
-			}
-
-			// Try to get cached value again
-			$cached = get_transient( $this->get_transient_key( $type ) );
-			if ( $cached !== false ) {
-				return $cached;
-			}
-		}
-
-		try {
-			// Generate data
-			$data = call_user_func( $generator );
-
-			// Release lock
-			delete_transient( $lock_key );
-
-			return $data;
-
-		} catch ( Exception $e ) {
-			// Release lock on error
-			delete_transient( $lock_key );
-			throw $e;
-		}
-	}
-
-	/**
-	 * Get transient key for type.
+	 * Get cache key for type.
 	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @param    string $type    Data type.
-	 * @return   string             Transient key.
+	 * @return   string             Cache key.
 	 */
-	private function get_transient_key( string $type ): string {
-		return 'scd_ref_' . $type;
+	private function get_cache_key( string $type ): string {
+		return $this->cache->reference_key( $type );
 	}
 
 	/**
@@ -238,17 +194,12 @@ class SCD_Reference_Data_Cache {
 		);
 
 		foreach ( $preload_types as $type ) {
-			if ( get_transient( $this->get_transient_key( $type ) ) !== false ) {
-				continue;
-			}
-
 			$generator = $this->get_data_generator( $type );
 			if ( $generator ) {
 				try {
 					$this->get( $type, $generator );
 				} catch ( Exception $e ) {
 					// Log error but continue preloading
-
 				}
 			}
 		}

@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/services/class-campaign-suggestions-service.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/services
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Campaign_Suggestions_Service {
 
@@ -105,14 +105,10 @@ class SCD_Campaign_Suggestions_Service {
 			return array();
 		}
 
+		// Sort by priority, then by days until optimal - avoid closure for serialization compatibility.
 		usort(
 			$qualifying_events,
-			function ( $a, $b ) {
-				if ( $a['priority'] !== $b['priority'] ) {
-					return $b['priority'] - $a['priority'];
-				}
-				return $a['window']['days_until_optimal'] - $b['window']['days_until_optimal'];
-			}
+			array( $this, 'compare_suggestions_by_priority_and_timing' )
 		);
 
 		// Smart display logic: 1 suggestion preferred, multiple only if windows overlap.
@@ -157,12 +153,23 @@ class SCD_Campaign_Suggestions_Service {
 	 * @return   int          Event timestamp.
 	 */
 	public function calculate_event_date( array $event, int $year ): int {
+		// Handle new date_calculator string identifiers.
+		if ( isset( $event['date_calculator'] ) ) {
+			return SCD_Campaign_Suggestions_Registry::call_date_calculator( $event['date_calculator'], $year );
+		}
+
+		// Backward compatibility: handle old calculate_date closures.
 		if ( isset( $event['calculate_date'] ) && is_callable( $event['calculate_date'] ) ) {
 			return call_user_func( $event['calculate_date'], $year );
 		}
 
-		// Default: fixed date calculation.
-		return mktime( 0, 0, 0, $event['month'], $event['day'], $year );
+		// Default: fixed date calculation (for events with month/day).
+		if ( isset( $event['month'], $event['day'] ) ) {
+			return mktime( 0, 0, 0, $event['month'], $event['day'], $year );
+		}
+
+		// Fallback: return current time if no date info available.
+		return current_time( 'timestamp' );
 	}
 
 	/**
@@ -330,21 +337,22 @@ class SCD_Campaign_Suggestions_Service {
 
 		$now = current_time( 'timestamp' );
 
-		$filtered = array_filter(
-			$suggestions,
-			function ( $suggestion ) use ( $now ) {
-				// Keep suggestions where event hasn't started yet.
-				if ( isset( $suggestion['start_date'] ) ) {
-					$event_start = strtotime( $suggestion['start_date'] );
-					return $event_start > $now;
+		// Filter suggestions - avoid closure for serialization compatibility.
+		$filtered = array();
+		foreach ( $suggestions as $suggestion ) {
+			// Keep suggestions where event hasn't started yet.
+			if ( isset( $suggestion['start_date'] ) ) {
+				$event_start = strtotime( $suggestion['start_date'] );
+				if ( $event_start > $now ) {
+					$filtered[] = $suggestion;
 				}
+			} else {
 				// Keep suggestions without start_date (shouldn't happen, but safe).
-				return true;
+				$filtered[] = $suggestion;
 			}
-		);
+		}
 
-		// Re-index array to avoid gaps in keys.
-		return array_values( $filtered );
+		return $filtered;
 	}
 
 	/**
@@ -502,5 +510,21 @@ class SCD_Campaign_Suggestions_Service {
 
 		// No major events nearby - weekend sale is safe to show.
 		return $qualifying_events;
+	}
+
+	/**
+	 * Compare suggestions by priority and timing.
+	 * Used instead of closure for serialization compatibility.
+	 *
+	 * @since  1.0.0
+	 * @param  array $a First suggestion.
+	 * @param  array $b Second suggestion.
+	 * @return int Comparison result.
+	 */
+	private function compare_suggestions_by_priority_and_timing( array $a, array $b ): int {
+		if ( $a['priority'] !== $b['priority'] ) {
+			return $b['priority'] - $a['priority'];
+		}
+		return $a['window']['days_until_optimal'] - $b['window']['days_until_optimal'];
 	}
 }

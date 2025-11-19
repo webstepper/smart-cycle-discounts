@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/settings/tabs/class-performance-settings.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -63,7 +63,7 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 		// Cache Configuration Section
 		$this->add_section(
 			'scd_performance_cache',
-			'<span class="dashicons dashicons-performance"></span> ' . __( 'Cache Configuration', 'smart-cycle-discounts' ),
+			SCD_Icon_Helper::get( 'performance', array( 'size' => 20 ) ) . ' ' . __( 'Cache Configuration', 'smart-cycle-discounts' ),
 			'render_cache_section'
 		);
 
@@ -76,19 +76,6 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 				'tooltip' => __( 'How long to cache campaign rules and settings. Lower = more fresh data, higher = better performance.', 'smart-cycle-discounts' ),
 				'min'     => 300,
 				'max'     => 86400,
-				'suffix'  => __( 'seconds', 'smart-cycle-discounts' ),
-			)
-		);
-
-		$this->add_field(
-			'discount_cache_duration',
-			__( 'Discount Cache Duration', 'smart-cycle-discounts' ),
-			'render_discount_cache_duration_field',
-			'scd_performance_cache',
-			array(
-				'tooltip' => __( 'How long to cache discount calculation results. Recommended: 1800-3600 seconds.', 'smart-cycle-discounts' ),
-				'min'     => 300,
-				'max'     => 7200,
 				'suffix'  => __( 'seconds', 'smart-cycle-discounts' ),
 			)
 		);
@@ -109,7 +96,7 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 		// Cache Warming Section
 		$this->add_section(
 			'scd_performance_warming',
-			'<span class="dashicons dashicons-update"></span> ' . __( 'Cache Warming', 'smart-cycle-discounts' ),
+			SCD_Icon_Helper::get( 'update', array( 'size' => 16 ) ) . ' ' . __( 'Cache Warming', 'smart-cycle-discounts' ),
 			'render_warming_section'
 		);
 
@@ -136,7 +123,7 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 		// Cache Statistics Section
 		$this->add_section(
 			'scd_performance_stats',
-			'<span class="dashicons dashicons-chart-line"></span> ' . __( 'Cache Statistics', 'smart-cycle-discounts' ),
+			SCD_Icon_Helper::get( 'chart-line', array( 'size' => 20 ) ) . ' ' . __( 'Cache Statistics', 'smart-cycle-discounts' ),
 			'render_stats_section'
 		);
 
@@ -166,7 +153,7 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 		echo '<strong>' . esc_html__( 'Cache Backend:', 'smart-cycle-discounts' ) . '</strong> ';
 		echo esc_html( $cache_backend );
 		if ( wp_using_ext_object_cache() ) {
-			echo ' <span class="dashicons dashicons-yes-alt scd-cache-active-icon"></span>';
+			echo ' ' . SCD_Icon_Helper::get( 'check', array( 'size' => 16, 'class' => 'scd-cache-active-icon' ) );
 		}
 		echo '</div>';
 	}
@@ -182,20 +169,6 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 		$this->render_number_field( $args );
 		echo '<p class="description">';
 		echo esc_html__( 'Recommended: 3600 (1 hour). Higher values for high-traffic sites, lower for frequently updated campaigns.', 'smart-cycle-discounts' );
-		echo '</p>';
-	}
-
-	/**
-	 * Render discount cache duration field.
-	 *
-	 * @since    1.0.0
-	 * @param    array $args    Field arguments.
-	 * @return   void
-	 */
-	public function render_discount_cache_duration_field( array $args ): void {
-		$this->render_number_field( $args );
-		echo '<p class="description">';
-		echo esc_html__( 'Higher values improve cart performance but may show slightly outdated prices during sales.', 'smart-cycle-discounts' );
 		echo '</p>';
 	}
 
@@ -291,9 +264,9 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 		echo '<td class="scd-cache-stats-label"><strong>' . esc_html__( 'Cache Status', 'smart-cycle-discounts' ) . '</strong></td>';
 		echo '<td>';
 		if ( $stats['enabled'] ) {
-			echo '<span class="scd-status-enabled"><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'Enabled', 'smart-cycle-discounts' ) . '</span>';
+			echo '<span class="scd-status-enabled">' . SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ) . ' ' . esc_html__( 'Enabled', 'smart-cycle-discounts' ) . '</span>';
 		} else {
-			echo '<span class="scd-status-disabled"><span class="dashicons dashicons-dismiss"></span> ' . esc_html__( 'Disabled', 'smart-cycle-discounts' ) . '</span>';
+			echo '<span class="scd-status-disabled">' . SCD_Icon_Helper::get( 'close', array( 'size' => 16 ) ) . ' ' . esc_html__( 'Disabled', 'smart-cycle-discounts' ) . '</span>';
 		}
 		echo '</td>';
 		echo '</tr>';
@@ -303,9 +276,9 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 		echo '<td><strong>' . esc_html__( 'Object Cache', 'smart-cycle-discounts' ) . '</strong></td>';
 		echo '<td>';
 		if ( $stats['object_cache_available'] ) {
-			echo '<span class="scd-status-active"><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'Active (Redis/Memcached)', 'smart-cycle-discounts' ) . '</span>';
+			echo '<span class="scd-status-active">' . SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ) . ' ' . esc_html__( 'Active (Redis/Memcached)', 'smart-cycle-discounts' ) . '</span>';
 		} else {
-			echo '<span class="scd-status-warning"><span class="dashicons dashicons-info"></span> ' . esc_html__( 'Not available (using transients)', 'smart-cycle-discounts' ) . '</span>';
+			echo '<span class="scd-status-warning">' . SCD_Icon_Helper::get( 'info', array( 'size' => 16 ) ) . ' ' . esc_html__( 'Not available (using transients)', 'smart-cycle-discounts' ) . '</span>';
 		}
 		echo '</td>';
 		echo '</tr>';
@@ -333,10 +306,14 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 		echo '</div>';
 
 		echo '<div class="scd-cache-clear-actions">';
-		echo '<button type="button" id="scd-clear-cache-btn" class="button button-secondary">';
-		echo '<span class="dashicons dashicons-trash"></span> ';
-		echo esc_html__( 'Clear All Cache', 'smart-cycle-discounts' );
-		echo '</button>';
+		SCD_Button_Helper::secondary(
+			__( 'Clear All Cache', 'smart-cycle-discounts' ),
+			array(
+				'type'       => 'button',
+				'icon'       => 'trash',
+				'attributes' => array( 'id' => 'scd-clear-cache-btn' ),
+			)
+		);
 		echo '<span id="scd-clear-cache-status"></span>';
 		echo '</div>';
 	}
@@ -355,11 +332,6 @@ class SCD_Performance_Settings extends SCD_Settings_Page_Base {
 		$sanitized['campaign_cache_duration'] = isset( $input['campaign_cache_duration'] )
 			? max( 300, min( 86400, absint( $input['campaign_cache_duration'] ) ) )
 			: 3600;
-
-		// Discount cache duration
-		$sanitized['discount_cache_duration'] = isset( $input['discount_cache_duration'] )
-			? max( 300, min( 7200, absint( $input['discount_cache_duration'] ) ) )
-			: 1800;
 
 		// Product cache duration
 		$sanitized['product_cache_duration'] = isset( $input['product_cache_duration'] )

@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/campaigns/class-campaign-list-controller.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -388,8 +388,8 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 
 				<?php if ( $has_draft ) : ?>
 					<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns&action=wizard&intent=continue' ) ); ?>"
-						class="page-title-action button-secondary">
-						<span class="dashicons dashicons-edit"></span>
+						class="page-title-action">
+						<?php echo SCD_Icon_Helper::get( 'edit', array( 'size' => 16 ) ); ?>
 						<?php echo esc_html__( 'Continue Draft', 'smart-cycle-discounts' ); ?>
 					</a>
 				<?php endif; ?>
@@ -419,8 +419,11 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 			}
 			?>
 		</div>
-		
+
 		<?php
+		// Render campaign overview panel
+		$this->render_overview_panel();
+
 		if ( $this->check_capability( 'scd_create_campaigns' ) ) {
 			$this->render_draft_conflict_modal();
 			$this->enqueue_modal_scripts();
@@ -497,7 +500,7 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 			'id'             => 'scd-draft-conflict-modal',
 			'title'          => '<span id="scd-modal-title">' . esc_html__( 'Draft Campaign Exists', 'smart-cycle-discounts' ) . '</span>',
 			'content'        => '<div id="scd-modal-message"></div>',
-			'icon'           => 'dashicons-warning',
+			'icon'           => 'warning',
 			'classes'        => array( 'scd-modal__icon--warning' ),
 			'buttons'        => array(
 				array(
@@ -565,7 +568,7 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 		?>
 		<div class="notice <?php echo esc_attr( $notice_class ); ?> inline scd-campaign-limit-notice">
 			<p>
-				<span class="dashicons dashicons-info"></span>
+				<?php echo SCD_Icon_Helper::get( 'info', array( 'size' => 16 ) ); ?>
 				<strong>
 					<?php
 					printf(
@@ -622,5 +625,69 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 				'nonce'               => wp_create_nonce( 'scd_wizard_nonce' ),
 			)
 		);
+	}
+
+	/**
+	 * Render campaign overview panel.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	private function render_overview_panel(): void {
+		echo '<!-- SCD: render_overview_panel() called -->';
+
+		// Get panel component from container
+		try {
+			$plugin = Smart_Cycle_Discounts::get_instance();
+			echo '<!-- SCD: Plugin instance retrieved -->';
+
+			if ( ! $plugin ) {
+				echo '<!-- SCD: Plugin instance is null -->';
+				return;
+			}
+
+			if ( ! method_exists( $plugin, 'get_container' ) ) {
+				echo '<!-- SCD: get_container method does not exist -->';
+				return;
+			}
+
+			$container = $plugin->get_container();
+			echo '<!-- SCD: Container retrieved -->';
+
+			if ( ! $container ) {
+				echo '<!-- SCD: Container is null -->';
+				return;
+			}
+
+			if ( ! $container->has( 'campaign_overview_panel' ) ) {
+				echo '<!-- SCD: campaign_overview_panel service not found in container -->';
+				return;
+			}
+
+			echo '<!-- SCD: campaign_overview_panel service exists -->';
+
+			$panel = $container->get( 'campaign_overview_panel' );
+			echo '<!-- SCD: Panel instance retrieved -->';
+
+			if ( ! $panel ) {
+				echo '<!-- SCD: Panel instance is null -->';
+				return;
+			}
+
+			if ( ! method_exists( $panel, 'render' ) ) {
+				echo '<!-- SCD: render method does not exist on panel -->';
+				return;
+			}
+
+			echo '<!-- SCD: About to call panel->render() -->';
+			$panel->render();
+			echo '<!-- SCD: panel->render() completed -->';
+
+		} catch ( Exception $e ) {
+			echo '<!-- SCD: Exception caught: ' . esc_html( $e->getMessage() ) . ' -->';
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'SCD Campaign Overview Panel Error: ' . $e->getMessage() );
+			}
+		}
 	}
 }

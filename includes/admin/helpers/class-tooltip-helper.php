@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/helpers/class-tooltip-helper.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/helpers
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Tooltip_Helper {
 
@@ -35,19 +35,22 @@ class SCD_Tooltip_Helper {
 	 */
 	public static function render( $text, $args = array() ) {
 		$defaults = array(
-			'icon'       => 'dashicons-editor-help',
+			'icon'       => 'editor-help',
 			'aria_label' => $text,
 			'class'      => '',
 		);
 
 		$args = wp_parse_args( $args, $defaults );
 
+		$icon_name = str_replace( 'dashicons-', '', $args['icon'] );
+		$icon_html = SCD_Icon_Helper::get( $icon_name, array( 'size' => 16 ) );
+
 		printf(
-			'<span class="scd-field-helper %s" aria-label="%s" data-tooltip="%s" tabindex="0"><span class="dashicons %s"></span></span>',
+			'<span class="scd-field-helper %s" aria-label="%s" data-tooltip="%s" tabindex="0">%s</span>',
 			esc_attr( $args['class'] ),
 			esc_attr( $args['aria_label'] ),
 			esc_attr( $text ),
-			esc_attr( $args['icon'] )
+			$icon_html
 		);
 	}
 

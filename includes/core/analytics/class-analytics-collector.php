@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/analytics/class-analytics-collector.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -16,7 +16,6 @@ declare(strict_types=1);
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
-
 
 require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-scd-ajax-response.php';
 
@@ -30,7 +29,7 @@ require_once SCD_PLUGIN_DIR . 'includes/core/analytics/trait-analytics-helpers.p
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/analytics
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Analytics_Collector {
 
@@ -64,6 +63,15 @@ class SCD_Analytics_Collector {
 	private SCD_Logger $logger;
 
 	/**
+	 * E-commerce integration instance.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      SCD_Ecommerce_Integration    $ecommerce_integration    E-commerce integration.
+	 */
+	private SCD_Ecommerce_Integration $ecommerce_integration;
+
+	/**
 	 * Analytics table name.
 	 *
 	 * @since    1.0.0
@@ -72,40 +80,26 @@ class SCD_Analytics_Collector {
 	 */
 	private string $analytics_table;
 
-	/**
-	 * Event types for analytics tracking.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @var      array    $event_types    Supported event types.
-	 */
-	private array $event_types = array(
-		'campaign_view',
-		'discount_view',
-		'discount_click',
-		'cart_add',
-		'cart_remove',
-		'checkout_start',
-		'purchase_complete',
-		'campaign_impression',
-	);
 
 	/**
 	 * Initialize the analytics collector.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager $database_manager    Database manager.
-	 * @param    SCD_Cache_Manager    $cache_manager       Cache manager.
-	 * @param    SCD_Logger           $logger              Logger instance.
+	 * @param    SCD_Database_Manager      $database_manager       Database manager.
+	 * @param    SCD_Cache_Manager         $cache_manager          Cache manager.
+	 * @param    SCD_Logger                $logger                 Logger instance.
+	 * @param    SCD_Ecommerce_Integration $ecommerce_integration  E-commerce integration.
 	 */
 	public function __construct(
 		SCD_Database_Manager $database_manager,
 		SCD_Cache_Manager $cache_manager,
-		SCD_Logger $logger
+		SCD_Logger $logger,
+		SCD_Ecommerce_Integration $ecommerce_integration
 	) {
-		$this->database_manager = $database_manager;
-		$this->cache_manager    = $cache_manager;
-		$this->logger           = $logger;
+		$this->database_manager      = $database_manager;
+		$this->cache_manager         = $cache_manager;
+		$this->logger                = $logger;
+		$this->ecommerce_integration = $ecommerce_integration;
 
 		global $wpdb;
 		$this->analytics_table = $wpdb->prefix . 'scd_analytics';
@@ -122,8 +116,6 @@ class SCD_Analytics_Collector {
 		require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
 
 		$this->add_hooks();
-
-		$this->logger->debug( 'Analytics collector initialized' );
 	}
 
 	/**
@@ -134,80 +126,88 @@ class SCD_Analytics_Collector {
 	 * @return   void
 	 */
 	private function add_hooks(): void {
-		// WooCommerce hooks for tracking
-		add_action( 'woocommerce_add_to_cart', array( $this, 'track_cart_add' ), 10, 6 );
-		add_action( 'woocommerce_cart_item_removed', array( $this, 'track_cart_remove' ), 10, 2 );
-		add_action( 'woocommerce_checkout_order_processed', array( $this, 'track_purchase' ), 10, 3 );
-		add_action( 'woocommerce_thankyou', array( $this, 'track_purchase_complete' ), 10, 1 );
+		// Only register hooks if e-commerce platform is active
+		if ( ! $this->ecommerce_integration->is_active() ) {
+			// Log warning once per day (not on every request)
+			if ( ! get_transient( 'scd_woocommerce_warning_logged' ) ) {
+				$this->logger->warning(
+					'E-commerce platform is not active - analytics tracking disabled',
+					array(
+						'platform' => $this->ecommerce_integration->get_platform_name(),
+					)
+				);
+				set_transient( 'scd_woocommerce_warning_logged', true, DAY_IN_SECONDS );
+			}
+			return;
+		}
+
+		// Register order completion tracking using platform-agnostic integration
+		$this->ecommerce_integration->register_order_complete_hook( array( $this, 'track_purchase_complete' ) );
 
 		// Campaign tracking hooks
 		add_action( 'scd_campaign_activated', array( $this, 'track_campaign_activation' ), 10, 1 );
 		add_action( 'scd_campaign_deactivated', array( $this, 'track_campaign_deactivation' ), 10, 1 );
-		add_action( 'scd_discount_applied', array( $this, 'track_discount_application' ), 10, 3 );
 
-		// Frontend tracking hooks
-		add_action( 'wp_footer', array( $this, 'add_tracking_script' ) );
-		// AJAX tracking now handled by unified router
+		// AJAX tracking handled by specialized handlers (track-impression, track-click)
 
-		// Analytics aggregation disabled - main analytics table is already pre-aggregated
-		// @see includes/database/migrations/001-initial-schema.php
+		$this->logger->debug(
+			'Analytics hooks registered',
+			array(
+				'platform' => $this->ecommerce_integration->get_platform_name(),
+			)
+		);
 	}
 
+
 	/**
-	 * Track a generic analytics event.
+	 * Track campaign impression.
+	 *
+	 * Directly updates aggregated impressions count (no event-level storage).
+	 * Optimized for high-volume frontend tracking.
 	 *
 	 * @since    1.0.0
-	 * @param    string   $event_type     Event type.
-	 * @param    array    $event_data     Event data.
-	 * @param    int|null $campaign_id    Campaign ID.
-	 * @param    int|null $user_id        User ID.
-	 * @return   bool                      Success status.
+	 * @param    int   $campaign_id    Campaign ID.
+	 * @param    array $context        Additional context (product_id, source, etc.).
+	 * @return   bool                     Success status.
 	 */
-	public function track_event(
-		string $event_type,
-		array $event_data = array(),
-		?int $campaign_id = null,
-		?int $user_id = null
-	): bool {
-		if ( ! in_array( $event_type, $this->event_types ) ) {
-			$this->logger->warning(
-				'Invalid event type for analytics tracking',
-				array(
-					'event_type'  => $event_type,
-					'valid_types' => $this->event_types,
-				)
-			);
-			return false;
-		}
+	public function track_impression( int $campaign_id, array $context = array() ): bool {
+		global $wpdb;
 
 		try {
-			$analytics_data = array(
-				'event_type'   => $event_type,
-				'campaign_id'  => $campaign_id,
-				'user_id'      => $user_id ?: get_current_user_id(),
-				'session_id'   => $this->get_session_id(),
-				'event_data'   => wp_json_encode( $event_data ),
-				'user_agent'   => $_SERVER['HTTP_USER_AGENT'] ?? '',
-				'ip_address'   => $this->get_client_ip(),
-				'referrer'     => $_SERVER['HTTP_REFERER'] ?? '',
-				'page_url'     => $_SERVER['REQUEST_URI'] ?? '',
-				'timestamp'    => current_time( 'mysql', true ),
-				'date_created' => current_time( 'mysql' ),
+			$date_recorded = gmdate( 'Y-m-d' );
+			$hour_recorded = (int) gmdate( 'H' );
+			$product_id    = isset( $context['product_id'] ) ? absint( $context['product_id'] ) : 0;
+
+			// Track campaign-level impression
+			$query = $wpdb->prepare(
+				"INSERT INTO {$this->analytics_table}
+                (campaign_id, date_recorded, hour_recorded, impressions, created_at)
+                VALUES (%d, %s, %d, 1, %s)
+                ON DUPLICATE KEY UPDATE
+                    impressions = impressions + 1",
+				$campaign_id,
+				$date_recorded,
+				$hour_recorded,
+				gmdate( 'Y-m-d H:i:s' )
 			);
 
-			$result = $this->database_manager->insert( $this->analytics_table, $analytics_data );
+			$result = $wpdb->query( $query );
 
-			if ( $result ) {
+			// Track product-level impression if product_id provided
+			if ( $product_id > 0 ) {
+				$this->track_product_impression( $campaign_id, $product_id, $date_recorded, $hour_recorded );
+			}
+
+			if ( false !== $result ) {
 				$this->logger->debug(
-					'Analytics event tracked',
+					'Campaign impression tracked',
 					array(
-						'event_type'  => $event_type,
 						'campaign_id' => $campaign_id,
-						'event_data'  => $event_data,
+						'product_id'  => $product_id,
+						'platform'    => $this->ecommerce_integration->get_platform_name(),
 					)
 				);
 
-				// Invalidate relevant caches
 				$this->invalidate_analytics_cache( $campaign_id );
 
 				return true;
@@ -217,11 +217,10 @@ class SCD_Analytics_Collector {
 
 		} catch ( Exception $e ) {
 			$this->logger->error(
-				'Failed to track analytics event',
+				'Failed to track impression',
 				array(
-					'event_type' => $event_type,
-					'error'      => $e->getMessage(),
-					'event_data' => $event_data,
+					'campaign_id' => $campaign_id,
+					'error'       => $e->getMessage(),
 				)
 			);
 
@@ -230,174 +229,126 @@ class SCD_Analytics_Collector {
 	}
 
 	/**
-	 * Track campaign view.
-	 *
-	 * @since    1.0.0
-	 * @param    int   $campaign_id    Campaign ID.
-	 * @param    array $context        Additional context.
-	 * @return   bool                     Success status.
-	 */
-	public function track_campaign_view( int $campaign_id, array $context = array() ): bool {
-		return $this->track_event( 'campaign_view', $context, $campaign_id );
-	}
-
-	/**
-	 * Track discount view.
-	 *
-	 * @since    1.0.0
-	 * @param    int   $campaign_id    Campaign ID.
-	 * @param    int   $product_id     Product ID.
-	 * @param    array $discount_data  Discount data.
-	 * @return   bool                     Success status.
-	 */
-	public function track_discount_view( int $campaign_id, int $product_id, array $discount_data = array() ): bool {
-		$event_data = array_merge(
-			$discount_data,
-			array(
-				'product_id'       => $product_id,
-				'discount_amount'  => $discount_data['discount_amount'] ?? 0,
-				'original_price'   => $discount_data['original_price'] ?? 0,
-				'discounted_price' => $discount_data['discounted_price'] ?? 0,
-			)
-		);
-
-		return $this->track_event( 'discount_view', $event_data, $campaign_id );
-	}
-
-	/**
 	 * Track discount click.
+	 *
+	 * Directly updates aggregated clicks count (no event-level storage).
+	 * Optimized for high-volume frontend tracking.
 	 *
 	 * @since    1.0.0
 	 * @param    int    $campaign_id    Campaign ID.
-	 * @param    int    $product_id     Product ID.
-	 * @param    string $click_source   Click source (badge, banner, etc.).
+	 * @param    int    $product_id     Product ID (optional).
+	 * @param    string $click_source   Click source (optional).
 	 * @return   bool                     Success status.
 	 */
-	public function track_discount_click( int $campaign_id, int $product_id, string $click_source = '' ): bool {
-		$event_data = array(
-			'product_id'   => $product_id,
-			'click_source' => $click_source,
-		);
+	public function track_click( int $campaign_id, int $product_id = 0, string $click_source = '' ): bool {
+		global $wpdb;
 
-		return $this->track_event( 'discount_click', $event_data, $campaign_id );
-	}
+		try {
+			$date_recorded = gmdate( 'Y-m-d' );
+			$hour_recorded = (int) gmdate( 'H' );
 
-	/**
-	 * Track cart addition.
-	 *
-	 * @since    1.0.0
-	 * @param    string $cart_item_key    Cart item key.
-	 * @param    int    $product_id       Product ID.
-	 * @param    int    $quantity         Quantity.
-	 * @param    int    $variation_id     Variation ID.
-	 * @param    array  $variation        Variation data.
-	 * @param    array  $cart_item_data   Cart item data.
-	 * @return   void
-	 */
-	public function track_cart_add(
-		string $cart_item_key,
-		int $product_id,
-		int $quantity,
-		int $variation_id,
-		array $variation,
-		array $cart_item_data
-	): void {
-		$campaign_id = $this->get_active_campaign_for_product( $product_id );
-
-		if ( $campaign_id ) {
-			$event_data = array(
-				'product_id'    => $product_id,
-				'variation_id'  => $variation_id,
-				'quantity'      => $quantity,
-				'cart_item_key' => $cart_item_key,
-				'has_discount'  => true,
+			// Track campaign-level click
+			$query = $wpdb->prepare(
+				"INSERT INTO {$this->analytics_table}
+                (campaign_id, date_recorded, hour_recorded, clicks, created_at)
+                VALUES (%d, %s, %d, 1, %s)
+                ON DUPLICATE KEY UPDATE
+                    clicks = clicks + 1",
+				$campaign_id,
+				$date_recorded,
+				$hour_recorded,
+				gmdate( 'Y-m-d H:i:s' )
 			);
 
-			$this->track_event( 'cart_add', $event_data, $campaign_id );
-		}
-	}
+			$result = $wpdb->query( $query );
 
-	/**
-	 * Track cart removal.
-	 *
-	 * @since    1.0.0
-	 * @param    string $cart_item_key    Cart item key.
-	 * @param    object $cart             Cart object.
-	 * @return   void
-	 */
-	public function track_cart_remove( string $cart_item_key, $cart ): void {
-		if ( isset( $cart->cart_contents[ $cart_item_key ] ) ) {
-			$cart_item  = $cart->cart_contents[ $cart_item_key ];
-			$product_id = $cart_item['product_id'];
+			// Track product-level click if product_id provided
+			if ( $product_id > 0 ) {
+				$this->track_product_click( $campaign_id, $product_id, $date_recorded, $hour_recorded );
+			}
 
-			$campaign_id = $this->get_active_campaign_for_product( $product_id );
-
-			if ( $campaign_id ) {
-				$event_data = array(
-					'product_id'    => $product_id,
-					'quantity'      => $cart_item['quantity'],
-					'cart_item_key' => $cart_item_key,
+			if ( false !== $result ) {
+				$this->logger->debug(
+					'Campaign click tracked',
+					array(
+						'campaign_id'  => $campaign_id,
+						'product_id'   => $product_id,
+						'click_source' => $click_source,
+						'platform'     => $this->ecommerce_integration->get_platform_name(),
+					)
 				);
 
-				$this->track_event( 'cart_remove', $event_data, $campaign_id );
+				$this->invalidate_analytics_cache( $campaign_id );
+
+				return true;
 			}
+
+			return false;
+
+		} catch ( Exception $e ) {
+			$this->logger->error(
+				'Failed to track click',
+				array(
+					'campaign_id' => $campaign_id,
+					'error'       => $e->getMessage(),
+				)
+			);
+
+			return false;
 		}
 	}
 
 	/**
 	 * Track purchase completion.
 	 *
-	 * @since    1.0.0
-	 * @param    int    $order_id    Order ID.
-	 * @param    array  $posted      Posted data.
-	 * @param    object $order       Order object.
-	 * @return   void
-	 */
-	public function track_purchase( int $order_id, array $posted, $order ): void {
-		if ( ! $order ) {
-			return;
-		}
-
-		foreach ( $order->get_items() as $item_id => $item ) {
-			$product_id  = $item->get_product_id();
-			$campaign_id = $this->get_active_campaign_for_product( $product_id );
-
-			if ( $campaign_id ) {
-				$event_data = array(
-					'order_id'        => $order_id,
-					'product_id'      => $product_id,
-					'quantity'        => $item->get_quantity(),
-					'line_total'      => $item->get_total(),
-					'line_subtotal'   => $item->get_subtotal(),
-					'discount_amount' => $item->get_subtotal() - $item->get_total(),
-				);
-
-				$this->track_event( 'purchase_complete', $event_data, $campaign_id );
-			}
-		}
-	}
-
-	/**
-	 * Track purchase completion (thank you page).
+	 * Uses e-commerce integration to work with any platform (WooCommerce, EDD, etc.).
 	 *
 	 * @since    1.0.0
 	 * @param    int $order_id    Order ID.
 	 * @return   void
 	 */
 	public function track_purchase_complete( int $order_id ): void {
-		$order = wc_get_order( $order_id );
+		// Get order using platform-agnostic integration
+		$order = $this->ecommerce_integration->get_order( $order_id );
 
 		if ( ! $order ) {
+			$this->logger->warning(
+				'Order not found for analytics tracking',
+				array(
+					'order_id' => $order_id,
+					'platform' => $this->ecommerce_integration->get_platform_name(),
+				)
+			);
 			return;
 		}
 
-		// Track conversion for campaigns
-		foreach ( $order->get_items() as $item ) {
-			$product_id  = $item->get_product_id();
+		// Get order items using integration
+		$items = $this->ecommerce_integration->get_order_items( $order );
+
+		if ( empty( $items ) ) {
+			$this->logger->debug(
+				'No items found in order',
+				array( 'order_id' => $order_id )
+			);
+			return;
+		}
+
+		// Track conversion for each item's campaign
+		foreach ( $items as $item ) {
+			$product_id  = $this->ecommerce_integration->get_item_product_id( $item );
 			$campaign_id = $this->get_active_campaign_for_product( $product_id );
 
 			if ( $campaign_id ) {
 				$this->update_campaign_conversion_metrics( $campaign_id, $order, $item );
+
+				$this->logger->debug(
+					'Purchase tracked for campaign',
+					array(
+						'campaign_id' => $campaign_id,
+						'order_id'    => $order_id,
+						'product_id'  => $product_id,
+					)
+				);
 			}
 		}
 	}
@@ -448,161 +399,6 @@ class SCD_Analytics_Collector {
 
 		// Invalidate analytics cache for this campaign
 		$this->invalidate_analytics_cache( $campaign->get_id() );
-	}
-
-	/**
-	 * Track discount application.
-	 *
-	 * @since    1.0.0
-	 * @param    int   $campaign_id       Campaign ID.
-	 * @param    int   $product_id        Product ID.
-	 * @param    float $discount_amount   Discount amount.
-	 * @return   void
-	 */
-	public function track_discount_application( int $campaign_id, int $product_id, float $discount_amount ): void {
-		$event_data = array(
-			'product_id'      => $product_id,
-			'discount_amount' => $discount_amount,
-		);
-
-		$this->track_event( 'discount_view', $event_data, $campaign_id );
-	}
-
-	/**
-	 * Handle AJAX event tracking.
-	 *
-	 * @since    1.0.0
-	 * @return   void
-	 */
-	public function handle_track_event(): void {
-		// Security check using centralized handler
-		$result = SCD_Ajax_Security::verify_ajax_request( 'scd_track_event', $_POST );
-
-		if ( is_wp_error( $result ) ) {
-			SCD_AJAX_Response::wp_error( $result );
-			return;
-		}
-
-		$event_type  = sanitize_text_field( $_POST['event_type'] ?? '' );
-		$campaign_id = absint( $_POST['campaign_id'] ?? 0 );
-		$event_data  = $_POST['event_data'] ?? array();
-
-		$sanitized_data = array();
-		foreach ( $event_data as $key => $value ) {
-			$sanitized_data[ sanitize_key( $key ) ] = sanitize_text_field( $value );
-		}
-
-		$result = $this->track_event( $event_type, $sanitized_data, $campaign_id ?: null );
-
-		if ( $result ) {
-			SCD_AJAX_Response::success( array( 'message' => 'Event tracked successfully' ) );
-		} else {
-			SCD_AJAX_Response::error( 'event_tracking_failed', __( 'Failed to track event', 'smart-cycle-discounts' ) );
-		}
-	}
-
-	/**
-	 * Add tracking script to frontend.
-	 *
-	 * @since    1.0.0
-	 * @return   void
-	 */
-	public function add_tracking_script(): void {
-		if ( is_admin() ) {
-			return;
-		}
-
-		// Tracking is now handled by the centralized asset management system
-		// The script is registered as 'scd-analytics-tracking' and will be enqueued
-		// by the frontend asset manager with proper localization data
-	}
-
-	/**
-	 * Get analytics data for a campaign.
-	 *
-	 * @since    1.0.0
-	 * @param    int    $campaign_id    Campaign ID.
-	 * @param    string $date_range     Date range.
-	 * @param    array  $metrics        Specific metrics to retrieve.
-	 * @return   array                     Analytics data.
-	 */
-	public function get_campaign_analytics(
-		int $campaign_id,
-		string $date_range = '7days',
-		array $metrics = array()
-	): array {
-		$cache_key = "scd_analytics_campaign_{$campaign_id}_{$date_range}_" . md5( serialize( $metrics ) );
-
-		$cached_data = $this->cache_manager->get( $cache_key );
-		if ( $cached_data !== false ) {
-			return $cached_data;
-		}
-
-		try {
-			$date_conditions = $this->get_date_range_conditions( $date_range );
-
-			$analytics_data = array(
-				'campaign_id' => $campaign_id,
-				'date_range'  => $date_range,
-				'metrics'     => $this->calculate_campaign_metrics( $campaign_id, $date_conditions ),
-				'events'      => $this->get_campaign_events( $campaign_id, $date_conditions ),
-				'performance' => $this->get_campaign_performance( $campaign_id, $date_conditions ),
-				'trends'      => $this->get_campaign_trends( $campaign_id, $date_conditions ),
-			);
-
-			$this->cache_manager->set( $cache_key, $analytics_data, 3600 );
-
-			return $analytics_data;
-
-		} catch ( Exception $e ) {
-			$this->logger->error(
-				'Failed to get campaign analytics',
-				array(
-					'campaign_id' => $campaign_id,
-					'error'       => $e->getMessage(),
-				)
-			);
-
-			return array();
-		}
-	}
-
-	/**
-	 * Get session ID for tracking.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @return   string    Session ID.
-	 */
-	private function get_session_id(): string {
-		if ( ! session_id() ) {
-			session_start();
-		}
-		return session_id();
-	}
-
-	/**
-	 * Get client IP address.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @return   string    Client IP address.
-	 */
-	private function get_client_ip(): string {
-		$ip_keys = array( 'HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR' );
-
-		foreach ( $ip_keys as $key ) {
-			if ( array_key_exists( $key, $_SERVER ) === true ) {
-				foreach ( explode( ',', $_SERVER[ $key ] ) as $ip ) {
-					$ip = trim( $ip );
-					if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) !== false ) {
-						return $ip;
-					}
-				}
-			}
-		}
-
-		return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 	}
 
 	/**
@@ -673,11 +469,13 @@ class SCD_Analytics_Collector {
 	/**
 	 * Update campaign conversion metrics.
 	 *
+	 * Uses e-commerce integration for platform-agnostic order/item access.
+	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @param    int    $campaign_id    Campaign ID.
-	 * @param    object $order          Order object.
-	 * @param    object $item           Order item.
+	 * @param    mixed  $order          Order object (platform-specific).
+	 * @param    mixed  $item           Order item (platform-specific).
 	 * @return   void
 	 */
 	private function update_campaign_conversion_metrics( int $campaign_id, $order, $item ): void {
@@ -686,45 +484,72 @@ class SCD_Analytics_Collector {
 		$date_recorded = gmdate( 'Y-m-d' );
 		$hour_recorded = (int) gmdate( 'H' );
 
-		$item_revenue    = (float) $item->get_total();
-		$discount_amount = (float) ( $item->get_subtotal() - $item->get_total() );
+		// Use integration methods to get item data
+		$product_id      = $this->ecommerce_integration->get_item_product_id( $item );
+		$quantity        = $this->ecommerce_integration->get_item_quantity( $item );
+		$item_revenue    = $this->ecommerce_integration->get_item_total( $item );
+		$discount_amount = $this->ecommerce_integration->get_item_discount( $item );
 
-		$customer_id = $order->get_customer_id();
+		// Get product cost and calculate profit
+		$product_cost = $this->get_product_cost( $product_id, $quantity );
+		$profit       = $item_revenue - $product_cost;
+
+		// Get customer ID using integration
+		$customer_id = $this->ecommerce_integration->get_order_customer_id( $order );
 
 		$is_new_customer = $this->is_new_customer_for_campaign( $campaign_id, $customer_id );
 
-		// This aggregates metrics by campaign_id, date_recorded, and hour_recorded
+		// Track campaign-level aggregated metrics
 		$query = $wpdb->prepare(
 			"INSERT INTO {$this->analytics_table}
-            (campaign_id, date_recorded, hour_recorded, conversions, revenue, discount_given, unique_customers, created_at)
-            VALUES (%d, %s, %d, 1, %f, %f, %d, %s)
+            (campaign_id, date_recorded, hour_recorded, conversions, revenue, discount_given, product_cost, profit_margin, unique_customers, created_at)
+            VALUES (%d, %s, %d, 1, %f, %f, %f, %f, %d, %s)
             ON DUPLICATE KEY UPDATE
                 conversions = conversions + 1,
                 revenue = revenue + %f,
                 discount_given = discount_given + %f,
+                product_cost = product_cost + %f,
+                profit_margin = profit_margin + %f,
                 unique_customers = unique_customers + %d",
 			$campaign_id,
 			$date_recorded,
 			$hour_recorded,
 			$item_revenue,
 			$discount_amount,
+			$product_cost,
+			$profit,
 			$is_new_customer ? 1 : 0,
 			gmdate( 'Y-m-d H:i:s' ),
 			$item_revenue,
 			$discount_amount,
+			$product_cost,
+			$profit,
 			$is_new_customer ? 1 : 0
 		);
 
 		$result = $wpdb->query( $query );
+
+		// Track product-level metrics
+		$this->track_product_conversion(
+			$campaign_id,
+			$product_id,
+			$date_recorded,
+			$hour_recorded,
+			$item_revenue,
+			$discount_amount,
+			$product_cost,
+			$profit,
+			$quantity,
+			$is_new_customer
+		);
 
 		if ( false === $result ) {
 			$this->logger->error(
 				'Failed to update campaign conversion metrics',
 				array(
 					'campaign_id' => $campaign_id,
-					'order_id'    => $order->get_id(),
-					'item_id'     => $item->get_id(),
 					'error'       => $wpdb->last_error,
+					'platform'    => $this->ecommerce_integration->get_platform_name(),
 				)
 			);
 		} else {
@@ -732,14 +557,15 @@ class SCD_Analytics_Collector {
 				'Campaign conversion metrics updated',
 				array(
 					'campaign_id'  => $campaign_id,
-					'order_id'     => $order->get_id(),
+					'product_id'   => $product_id,
 					'revenue'      => $item_revenue,
 					'discount'     => $discount_amount,
+					'profit'       => $profit,
 					'new_customer' => $is_new_customer,
+					'platform'     => $this->ecommerce_integration->get_platform_name(),
 				)
 			);
 
-			// Invalidate analytics cache
 			$this->invalidate_analytics_cache( $campaign_id );
 		}
 	}
@@ -788,193 +614,10 @@ class SCD_Analytics_Collector {
 			$this->cache_manager->delete( "scd_analytics_campaign_{$campaign_id}_30days" );
 			$this->cache_manager->delete( "scd_analytics_campaign_{$campaign_id}_90days" );
 			$this->cache_manager->delete( "active_campaign_for_product_{$campaign_id}" );
-		} else {
-			// Note: flush() clears all plugin caches, which may be too broad
-			// For now, just log that we would clear all analytics
-			$this->logger->debug( 'Analytics cache invalidation requested for all campaigns' );
 		}
-	}
 
-	/**
-	 * Calculate campaign metrics.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @param    int   $campaign_id       Campaign ID.
-	 * @param    array $date_conditions   Date conditions.
-	 * @return   array                       Calculated metrics.
-	 */
-	private function calculate_campaign_metrics( int $campaign_id, array $date_conditions ): array {
-		// Placeholder for metrics calculation
-		return array(
-			'views'           => 0,
-			'clicks'          => 0,
-			'conversions'     => 0,
-			'revenue'         => 0,
-			'ctr'             => 0,
-			'conversion_rate' => 0,
-			'roi'             => 0,
-		);
-	}
-
-	/**
-	 * Get campaign events.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @param    int   $campaign_id       Campaign ID.
-	 * @param    array $date_conditions   Date conditions.
-	 * @return   array                       Campaign events.
-	 */
-	private function get_campaign_events( int $campaign_id, array $date_conditions ): array {
-		// Placeholder for events retrieval
-		return array();
-	}
-
-	/**
-	 * Get campaign performance (public method for handlers).
-	 *
-	 * @since    1.0.0
-	 * @param    array  $args        Query arguments with date_range.
-	 * @param    int    $limit       Number of campaigns to return.
-	 * @param    string $sort_by     Sort field.
-	 * @param    string $sort_order  Sort order (asc/desc).
-	 * @return   array                  Performance data.
-	 */
-	public function get_campaign_performance( array $args = array(), int $limit = 10, string $sort_by = 'revenue', string $sort_order = 'desc' ): array {
-		global $wpdb;
-
-		try {
-			$date_range      = $args['date_range'] ?? '30days';
-			$date_conditions = $this->get_date_range_conditions( $date_range );
-			$start_date      = $date_conditions['start_date'];
-			$end_date        = $date_conditions['end_date'];
-
-			$campaigns_table = $wpdb->prefix . 'scd_campaigns';
-			$analytics_table = $this->analytics_table;
-
-			// Build SQL query to get campaign performance
-			$sql = $wpdb->prepare(
-				"SELECT
-                    c.id,
-                    c.name,
-                    c.status,
-                    c.discount_type,
-                    c.discount_value,
-                    COALESCE( SUM( CASE WHEN a.event_type = 'purchase_complete' THEN a.order_total ELSE 0 END ), 0 ) as revenue,
-                    COALESCE( SUM( CASE WHEN a.event_type = 'purchase_complete' THEN 1 ELSE 0 END ), 0 ) as conversions,
-                    COALESCE( SUM( CASE WHEN a.event_type = 'campaign_impression' THEN 1 ELSE 0 END ), 0 ) as impressions,
-                    COALESCE( SUM( CASE WHEN a.event_type = 'discount_click' THEN 1 ELSE 0 END ), 0 ) as clicks,
-                    COALESCE( SUM( CASE WHEN a.event_type = 'purchase_complete' THEN a.discount_amount ELSE 0 END ), 0 ) as total_discount
-                FROM {$campaigns_table} c
-                LEFT JOIN {$analytics_table} a ON c.id = a.campaign_id
-                    AND a.date_recorded >= %s
-                    AND a.date_recorded <= %s
-                GROUP BY c.id
-                HAVING conversions > 0 OR impressions > 0 OR clicks > 0
-                ORDER BY %s %s
-                LIMIT %d",
-				$start_date,
-				$end_date,
-				$sort_by,
-				strtoupper( $sort_order ),
-				$limit
-			);
-
-			// Note: WordPress prepare() doesn't handle ORDER BY and LIMIT well, so we'll build those parts manually
-			$order_field = 'revenue'; // Default
-			if ( in_array( $sort_by, array( 'revenue', 'conversions', 'impressions', 'clicks' ), true ) ) {
-				$order_field = $sort_by;
-			}
-
-			$order_direction = 'DESC';
-			if ( in_array( strtoupper( $sort_order ), array( 'ASC', 'DESC' ), true ) ) {
-				$order_direction = strtoupper( $sort_order );
-			}
-
-			// Rebuild SQL without using prepare() for ORDER BY and LIMIT
-			$sql = "SELECT
-                    c.id,
-                    c.name,
-                    c.status,
-                    c.discount_type,
-                    c.discount_value,
-                    COALESCE( SUM( CASE WHEN a.event_type = 'purchase_complete' THEN a.order_total ELSE 0 END ), 0 ) as revenue,
-                    COALESCE( SUM( CASE WHEN a.event_type = 'purchase_complete' THEN 1 ELSE 0 END ), 0 ) as conversions,
-                    COALESCE( SUM( CASE WHEN a.event_type = 'campaign_impression' THEN 1 ELSE 0 END ), 0 ) as impressions,
-                    COALESCE( SUM( CASE WHEN a.event_type = 'discount_click' THEN 1 ELSE 0 END ), 0 ) as clicks,
-                    COALESCE( SUM( CASE WHEN a.event_type = 'purchase_complete' THEN a.discount_amount ELSE 0 END ), 0 ) as total_discount
-                FROM {$campaigns_table} c
-                LEFT JOIN {$analytics_table} a ON c.id = a.campaign_id
-                    AND a.date_recorded >= %s
-                    AND a.date_recorded <= %s
-                GROUP BY c.id
-                HAVING conversions > 0 OR impressions > 0 OR clicks > 0
-                ORDER BY {$order_field} {$order_direction}
-                LIMIT %d";
-
-			$sql = $wpdb->prepare( $sql, $start_date, $end_date, $limit );
-
-			$results = $wpdb->get_results( $sql, ARRAY_A );
-
-			if ( empty( $results ) ) {
-				return array();
-			}
-
-			$formatted_campaigns = array();
-			foreach ( $results as $row ) {
-				// Calculate CTR
-				$ctr = 0;
-				if ( $row['impressions'] > 0 ) {
-					$ctr = ( $row['clicks'] / $row['impressions'] ) * 100;
-				}
-
-				// Calculate ROI
-				$roi = 0;
-				if ( $row['total_discount'] > 0 ) {
-					$roi = ( ( $row['revenue'] - $row['total_discount'] ) / $row['total_discount'] ) * 100;
-				}
-
-				$status_label = ucfirst( $row['status'] );
-				if ( 'active' === $row['status'] ) {
-					$status_label = __( 'Active', 'smart-cycle-discounts' );
-				} elseif ( 'paused' === $row['status'] ) {
-					$status_label = __( 'Paused', 'smart-cycle-discounts' );
-				} elseif ( 'draft' === $row['status'] ) {
-					$status_label = __( 'Draft', 'smart-cycle-discounts' );
-				} elseif ( 'ended' === $row['status'] ) {
-					$status_label = __( 'Ended', 'smart-cycle-discounts' );
-				}
-
-				$formatted_campaigns[] = array(
-					'id'           => (int) $row['id'],
-					'name'         => $row['name'],
-					'status'       => $row['status'],
-					'status_label' => $status_label,
-					'revenue'      => (float) $row['revenue'],
-					'conversions'  => (int) $row['conversions'],
-					'impressions'  => (int) $row['impressions'],
-					'clicks'       => (int) $row['clicks'],
-					'ctr'          => round( $ctr, 2 ),
-					'roi'          => round( $roi, 2 ),
-					'edit_url'     => admin_url( 'admin.php?page=scd-campaigns&action=edit&id=' . $row['id'] ),
-					'view_url'     => admin_url( 'admin.php?page=scd-analytics&campaign_id=' . $row['id'] ),
-				);
-			}
-
-			return $formatted_campaigns;
-
-		} catch ( Exception $e ) {
-			$this->logger->error(
-				'Failed to get campaign performance',
-				array(
-					'error' => $e->getMessage(),
-					'trace' => $e->getTraceAsString(),
-				)
-			);
-
-			return array();
-		}
+		// Clear analytics cache using centralized invalidation
+		$this->cache_manager->invalidate_analytics();
 	}
 
 	/**
@@ -1105,295 +748,6 @@ class SCD_Analytics_Collector {
 	}
 
 	/**
-	 * Get campaign trends.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @param    int   $campaign_id       Campaign ID.
-	 * @param    array $date_conditions   Date conditions.
-	 * @return   array                       Trend data.
-	 */
-	private function get_campaign_trends( int $campaign_id, array $date_conditions ): array {
-		// Placeholder for trend data
-		return array();
-	}
-
-	/**
-	 * Aggregate hourly metrics.
-	 *
-	 * Aggregates the last hour's analytics events into hourly summary table.
-	 * This improves dashboard performance by pre-calculating metrics.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @return   void
-	 */
-	private function aggregate_hourly_metrics(): void {
-		global $wpdb;
-
-		$current_hour  = date( 'Y-m-d H:00:00' );
-		$previous_hour = date( 'Y-m-d H:00:00', strtotime( '-1 hour' ) );
-		$hour_end      = date( 'Y-m-d H:59:59', strtotime( '-1 hour' ) );
-
-		$analytics_table = $this->analytics_table;
-		$hourly_table    = $wpdb->prefix . 'scd_analytics_hourly';
-
-		// Aggregate data for each campaign
-		$sql = $wpdb->prepare(
-			"INSERT INTO {$hourly_table}
-            (campaign_id, date_recorded, hour_recorded, impressions, clicks, conversions,
-             revenue, discount_given, cart_adds, cart_removes, unique_visitors, created_at, updated_at)
-            SELECT
-                campaign_id,
-                DATE(%s) as date_recorded,
-                HOUR(%s) as hour_recorded,
-                SUM(CASE WHEN event_type = 'campaign_impression' THEN 1 ELSE 0 END) as impressions,
-                SUM(CASE WHEN event_type = 'discount_click' THEN 1 ELSE 0 END) as clicks,
-                SUM(CASE WHEN event_type = 'purchase_complete' THEN 1 ELSE 0 END) as conversions,
-                SUM(CASE WHEN event_type = 'purchase_complete' THEN
-                    CAST(JSON_UNQUOTE(JSON_EXTRACT(event_data, '$.line_total')) AS DECIMAL(10,2))
-                    ELSE 0 END) as revenue,
-                SUM(CASE WHEN event_type = 'purchase_complete' THEN
-                    CAST(JSON_UNQUOTE(JSON_EXTRACT(event_data, '$.discount_amount')) AS DECIMAL(10,2))
-                    ELSE 0 END) as discount_given,
-                SUM(CASE WHEN event_type = 'cart_add' THEN 1 ELSE 0 END) as cart_adds,
-                SUM(CASE WHEN event_type = 'cart_remove' THEN 1 ELSE 0 END) as cart_removes,
-                COUNT(DISTINCT user_id) as unique_visitors,
-                NOW() as created_at,
-                NOW() as updated_at
-            FROM {$analytics_table}
-            WHERE timestamp >= %s
-                AND timestamp < %s
-                AND campaign_id IS NOT NULL
-            GROUP BY campaign_id
-            ON DUPLICATE KEY UPDATE
-                impressions = VALUES(impressions),
-                clicks = VALUES(clicks),
-                conversions = VALUES(conversions),
-                revenue = VALUES(revenue),
-                discount_given = VALUES(discount_given),
-                cart_adds = VALUES(cart_adds),
-                cart_removes = VALUES(cart_removes),
-                unique_visitors = VALUES(unique_visitors),
-                updated_at = NOW()",
-			$previous_hour,
-			$previous_hour,
-			$previous_hour,
-			$hour_end
-		);
-
-		$result = $wpdb->query( $sql );
-
-		if ( $result === false ) {
-			$this->logger->error(
-				'Hourly aggregation query failed',
-				array(
-					'error' => $wpdb->last_error,
-					'hour'  => $previous_hour,
-				)
-			);
-		} else {
-			$this->logger->debug(
-				'Hourly aggregation completed',
-				array(
-					'hour'          => $previous_hour,
-					'rows_affected' => $result,
-				)
-			);
-		}
-	}
-
-	/**
-	 * Aggregate daily metrics.
-	 *
-	 * Aggregates yesterday's hourly data into daily summary table.
-	 * Also calculates advanced metrics like CTR, conversion rate, ROI.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @return   void
-	 */
-	private function aggregate_daily_metrics(): void {
-		global $wpdb;
-
-		$yesterday = date( 'Y-m-d', strtotime( '-1 day' ) );
-
-		$hourly_table = $wpdb->prefix . 'scd_analytics_hourly';
-		$daily_table  = $wpdb->prefix . 'scd_analytics_daily';
-
-		// Aggregate hourly data into daily summaries
-		$sql = $wpdb->prepare(
-			"INSERT INTO {$daily_table}
-            (campaign_id, date_recorded, impressions, clicks, conversions, revenue, discount_given,
-             cart_adds, cart_removes, unique_visitors, avg_order_value, click_through_rate,
-             conversion_rate, roi_percent, created_at, updated_at)
-            SELECT
-                campaign_id,
-                date_recorded,
-                SUM(impressions) as impressions,
-                SUM(clicks) as clicks,
-                SUM(conversions) as conversions,
-                SUM(revenue) as revenue,
-                SUM(discount_given) as discount_given,
-                SUM(cart_adds) as cart_adds,
-                SUM(cart_removes) as cart_removes,
-                MAX(unique_visitors) as unique_visitors,
-                CASE WHEN SUM(conversions) > 0
-                    THEN SUM(revenue) / SUM(conversions)
-                    ELSE 0
-                END as avg_order_value,
-                CASE WHEN SUM(impressions) > 0
-                    THEN (SUM(clicks) / SUM(impressions)) * 100
-                    ELSE 0
-                END as click_through_rate,
-                CASE WHEN SUM(clicks) > 0
-                    THEN (SUM(conversions) / SUM(clicks)) * 100
-                    ELSE 0
-                END as conversion_rate,
-                CASE WHEN SUM(discount_given) > 0
-                    THEN ((SUM(revenue) - SUM(discount_given)) / SUM(discount_given)) * 100
-                    ELSE 0
-                END as roi_percent,
-                NOW() as created_at,
-                NOW() as updated_at
-            FROM {$hourly_table}
-            WHERE date_recorded = %s
-            GROUP BY campaign_id, date_recorded
-            ON DUPLICATE KEY UPDATE
-                impressions = VALUES(impressions),
-                clicks = VALUES(clicks),
-                conversions = VALUES(conversions),
-                revenue = VALUES(revenue),
-                discount_given = VALUES(discount_given),
-                cart_adds = VALUES(cart_adds),
-                cart_removes = VALUES(cart_removes),
-                unique_visitors = VALUES(unique_visitors),
-                avg_order_value = VALUES(avg_order_value),
-                click_through_rate = VALUES(click_through_rate),
-                conversion_rate = VALUES(conversion_rate),
-                roi_percent = VALUES(roi_percent),
-                updated_at = NOW()",
-			$yesterday
-		);
-
-		$result = $wpdb->query( $sql );
-
-		if ( $result === false ) {
-			$this->logger->error(
-				'Daily aggregation query failed',
-				array(
-					'error' => $wpdb->last_error,
-					'date'  => $yesterday,
-				)
-			);
-		} else {
-			$this->logger->debug(
-				'Daily aggregation completed',
-				array(
-					'date'          => $yesterday,
-					'rows_affected' => $result,
-				)
-			);
-
-			// After successful daily aggregation, cleanup old hourly data (keep last 7 days)
-			$this->cleanup_old_hourly_data();
-		}
-	}
-
-	/**
-	 * Cleanup old hourly aggregation data.
-	 *
-	 * Removes hourly data older than 7 days since we have daily summaries.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @return   void
-	 */
-	private function cleanup_old_hourly_data(): void {
-		global $wpdb;
-
-		$hourly_table = $wpdb->prefix . 'scd_analytics_hourly';
-		$cutoff_date  = date( 'Y-m-d', strtotime( '-7 days' ) );
-
-		$deleted = $wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$hourly_table} WHERE date_recorded < %s",
-				$cutoff_date
-			)
-		);
-
-		if ( $deleted ) {
-			$this->logger->debug(
-				'Cleaned up old hourly data',
-				array(
-					'rows_deleted' => $deleted,
-					'cutoff_date'  => $cutoff_date,
-				)
-			);
-		}
-	}
-
-	/**
-	 * Cleanup old analytics data.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @return   void
-	 */
-	private function cleanup_old_data(): void {
-		$cutoff_date = date( 'Y-m-d H:i:s', strtotime( '-90 days' ) );
-
-		global $wpdb;
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$this->analytics_table} WHERE date_created < %s",
-				$cutoff_date
-			)
-		);
-	}
-
-	/**
-	 * Run hourly aggregation.
-	 *
-	 * @since    1.0.0
-	 * @return   void
-	 */
-	public function run_hourly_aggregation(): void {
-		try {
-			$this->aggregate_hourly_metrics();
-			$this->logger->info( 'Hourly analytics aggregation completed' );
-		} catch ( Exception $e ) {
-			$this->logger->error(
-				'Hourly analytics aggregation failed',
-				array(
-					'error' => $e->getMessage(),
-				)
-			);
-		}
-	}
-
-	/**
-	 * Run daily aggregation.
-	 *
-	 * @since    1.0.0
-	 * @return   void
-	 */
-	public function run_daily_aggregation(): void {
-		try {
-			$this->aggregate_daily_metrics();
-			$this->cleanup_old_data();
-			$this->logger->info( 'Daily analytics aggregation completed' );
-		} catch ( Exception $e ) {
-			$this->logger->error(
-				'Daily analytics aggregation failed',
-				array(
-					'error' => $e->getMessage(),
-				)
-			);
-		}
-	}
-
-	/**
 	 * Format chart label based on granularity.
 	 *
 	 * @since    1.0.0
@@ -1481,100 +835,325 @@ class SCD_Analytics_Collector {
 	}
 
 	/**
-	 * Get top products by discount revenue.
+	 * Track product-level impression.
 	 *
 	 * @since    1.0.0
-	 * @param    string $date_range    Date range (e.g., '30days', '7days').
+	 * @access   private
+	 * @param    int    $campaign_id     Campaign ID.
+	 * @param    int    $product_id      Product ID.
+	 * @param    string $date_recorded   Date recorded.
+	 * @param    int    $hour_recorded   Hour recorded.
+	 * @return   void
+	 */
+	private function track_product_impression( int $campaign_id, int $product_id, string $date_recorded, int $hour_recorded ): void {
+		global $wpdb;
+		$product_analytics_table = $wpdb->prefix . 'scd_product_analytics';
+
+		$query = $wpdb->prepare(
+			"INSERT INTO {$product_analytics_table}
+            (campaign_id, product_id, date_recorded, hour_recorded, impressions, created_at)
+            VALUES (%d, %d, %s, %d, 1, %s)
+            ON DUPLICATE KEY UPDATE
+                impressions = impressions + 1",
+			$campaign_id,
+			$product_id,
+			$date_recorded,
+			$hour_recorded,
+			gmdate( 'Y-m-d H:i:s' )
+		);
+
+		$wpdb->query( $query );
+	}
+
+	/**
+	 * Track product-level click.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    int    $campaign_id     Campaign ID.
+	 * @param    int    $product_id      Product ID.
+	 * @param    string $date_recorded   Date recorded.
+	 * @param    int    $hour_recorded   Hour recorded.
+	 * @return   void
+	 */
+	private function track_product_click( int $campaign_id, int $product_id, string $date_recorded, int $hour_recorded ): void {
+		global $wpdb;
+		$product_analytics_table = $wpdb->prefix . 'scd_product_analytics';
+
+		$query = $wpdb->prepare(
+			"INSERT INTO {$product_analytics_table}
+            (campaign_id, product_id, date_recorded, hour_recorded, clicks, created_at)
+            VALUES (%d, %d, %s, %d, 1, %s)
+            ON DUPLICATE KEY UPDATE
+                clicks = clicks + 1",
+			$campaign_id,
+			$product_id,
+			$date_recorded,
+			$hour_recorded,
+			gmdate( 'Y-m-d H:i:s' )
+		);
+
+		$wpdb->query( $query );
+	}
+
+	/**
+	 * Track product-level conversion.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    int    $campaign_id      Campaign ID.
+	 * @param    int    $product_id       Product ID.
+	 * @param    string $date_recorded    Date recorded.
+	 * @param    int    $hour_recorded    Hour recorded.
+	 * @param    float  $revenue          Revenue.
+	 * @param    float  $discount         Discount given.
+	 * @param    float  $cost             Product cost.
+	 * @param    float  $profit           Profit.
+	 * @param    int    $quantity         Quantity sold.
+	 * @param    bool   $is_new_customer  Is new customer.
+	 * @return   void
+	 */
+	private function track_product_conversion(
+		int $campaign_id,
+		int $product_id,
+		string $date_recorded,
+		int $hour_recorded,
+		float $revenue,
+		float $discount,
+		float $cost,
+		float $profit,
+		int $quantity,
+		bool $is_new_customer
+	): void {
+		global $wpdb;
+		$product_analytics_table = $wpdb->prefix . 'scd_product_analytics';
+
+		$query = $wpdb->prepare(
+			"INSERT INTO {$product_analytics_table}
+            (campaign_id, product_id, date_recorded, hour_recorded, conversions, revenue, discount_given, product_cost, profit, quantity_sold, unique_customers, created_at)
+            VALUES (%d, %d, %s, %d, 1, %f, %f, %f, %f, %d, %d, %s)
+            ON DUPLICATE KEY UPDATE
+                conversions = conversions + 1,
+                revenue = revenue + %f,
+                discount_given = discount_given + %f,
+                product_cost = product_cost + %f,
+                profit = profit + %f,
+                quantity_sold = quantity_sold + %d,
+                unique_customers = unique_customers + %d",
+			$campaign_id,
+			$product_id,
+			$date_recorded,
+			$hour_recorded,
+			$revenue,
+			$discount,
+			$cost,
+			$profit,
+			$quantity,
+			$is_new_customer ? 1 : 0,
+			gmdate( 'Y-m-d H:i:s' ),
+			$revenue,
+			$discount,
+			$cost,
+			$profit,
+			$quantity,
+			$is_new_customer ? 1 : 0
+		);
+
+		$wpdb->query( $query );
+	}
+
+	/**
+	 * Get product cost from WooCommerce.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    int $product_id    Product ID.
+	 * @param    int $quantity      Quantity.
+	 * @return   float               Total product cost.
+	 */
+	private function get_product_cost( int $product_id, int $quantity ): float {
+		if ( ! function_exists( 'wc_get_product' ) ) {
+			return 0.0;
+		}
+
+		$product = wc_get_product( $product_id );
+
+		if ( ! $product ) {
+			return 0.0;
+		}
+
+		// Get cost from WooCommerce Cost of Goods plugin or custom _cost meta
+		$cost_per_unit = (float) $product->get_meta( '_cost', true );
+
+		if ( ! $cost_per_unit || $cost_per_unit <= 0 ) {
+			// Try wc_cog_cost (Cost of Goods for WooCommerce plugin)
+			$cost_per_unit = (float) $product->get_meta( '_wc_cog_cost', true );
+		}
+
+		return $cost_per_unit * $quantity;
+	}
+
+	/**
+	 * Get top products by revenue.
+	 *
+	 * @since    1.0.0
+	 * @param    string $date_range    Date range (e.g., '30days', '7days', 'all').
 	 * @param    int    $limit         Number of products to return.
-	 * @return   array                    Top products data.
+	 * @return   array                  Array with 'products' and 'period' keys.
 	 */
 	public function get_top_products_by_revenue( string $date_range = '30days', int $limit = 10 ): array {
+		// Create analytics repository instance
+		$repository = new SCD_Analytics_Repository( $this->database_manager );
+
+		// Calculate date range
+		$dates = $this->parse_date_range( $date_range );
+
+		// Get product performance data from repository
+		$products = $repository->get_product_performance( 0, $dates['start'], $dates['end'], $limit );
+
+		return array(
+			'products'     => $products,
+			'period'       => $dates,
+			'generated_at' => current_time( 'timestamp' ),
+		);
+	}
+
+	/**
+	 * Get campaign performance data.
+	 *
+	 * @since    1.0.0
+	 * @param    array  $args      Query arguments (date_range, etc.).
+	 * @param    int    $limit     Number of campaigns to return.
+	 * @param    string $metric    Sort metric (revenue, clicks, conversions).
+	 * @param    string $order     Sort order (asc, desc).
+	 * @return   array              Campaign performance data.
+	 */
+	public function get_campaign_performance( array $args = array(), int $limit = 10, string $metric = 'revenue', string $order = 'desc' ): array {
 		global $wpdb;
 
-		try {
-			$date_conditions = $this->get_date_range_conditions( $date_range );
-			$start_date      = $date_conditions['start_date'];
-			$end_date        = $date_conditions['end_date'];
+		// Parse date range
+		$date_range = isset( $args['date_range'] ) ? $args['date_range'] : '30days';
+		$dates      = $this->parse_date_range( $date_range );
 
-			// Query to get top products from WooCommerce orders with discount campaigns
-			$orders_table         = $wpdb->prefix . 'wc_orders';
-			$order_items_table    = $wpdb->prefix . 'woocommerce_order_items';
-			$order_itemmeta_table = $wpdb->prefix . 'woocommerce_order_itemmeta';
-			$posts_table          = $wpdb->prefix . 'posts';
+		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
 
-			$query = $wpdb->prepare(
-				"SELECT
-                    p.ID as product_id,
-                    p.post_title as product_name,
-                    COUNT(DISTINCT oi.order_id) as order_count,
-                    SUM(oim_line_total.meta_value) as total_revenue,
-                    SUM(oim_line_total.meta_value - oim_line_subtotal.meta_value) as total_discount,
-                    AVG((oim_line_subtotal.meta_value - oim_line_total.meta_value) / NULLIF(oim_line_subtotal.meta_value, 0) * 100) as avg_discount_percent
-                FROM {$order_items_table} oi
-                INNER JOIN {$orders_table} o ON oi.order_id = o.id
-                INNER JOIN {$order_itemmeta_table} oim_product ON oi.order_item_id = oim_product.order_item_id
-                    AND oim_product.meta_key = '_product_id'
-                INNER JOIN {$posts_table} p ON oim_product.meta_value = p.ID
-                INNER JOIN {$order_itemmeta_table} oim_line_total ON oi.order_item_id = oim_line_total.order_item_id
-                    AND oim_line_total.meta_key = '_line_total'
-                INNER JOIN {$order_itemmeta_table} oim_line_subtotal ON oi.order_item_id = oim_line_subtotal.order_item_id
-                    AND oim_line_subtotal.meta_key = '_line_subtotal'
-                WHERE oi.order_item_type = 'line_item'
-                    AND o.date_created_gmt >= %s
-                    AND o.date_created_gmt <= %s
-                    AND o.status IN ('wc-completed', 'wc-processing')
-                    AND oim_line_total.meta_value < oim_line_subtotal.meta_value
-                GROUP BY p.ID, p.post_title
-                HAVING total_discount > 0
-                ORDER BY total_revenue DESC
-                LIMIT %d",
-				$start_date,
-				$end_date,
-				$limit
-			);
+		// Get campaign IDs
+		$campaign_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT id FROM {$campaigns_table}
+				WHERE status = 'active' OR status = 'completed'
+				ORDER BY created_at DESC"
+			)
+		);
 
-			$results = $wpdb->get_results( $query, ARRAY_A );
-
-			if ( empty( $results ) ) {
-				return array(
-					'products' => array(),
-					'period'   => $date_range,
-				);
-			}
-
-			$products = array();
-			foreach ( $results as $row ) {
-				$products[] = array(
-					'product_id'           => (int) $row['product_id'],
-					'name'                 => $row['product_name'],
-					'revenue'              => floatval( $row['total_revenue'] ),
-					'order_count'          => (int) $row['order_count'],
-					'total_discount'       => floatval( $row['total_discount'] ),
-					'avg_discount_percent' => round( floatval( $row['avg_discount_percent'] ), 1 ),
-					'revenue_per_order'    => round( floatval( $row['total_revenue'] ) / (int) $row['order_count'], 2 ),
-				);
-			}
-
-			return array(
-				'products'     => $products,
-				'period'       => $date_range,
-				'generated_at' => current_time( 'timestamp' ),
-			);
-
-		} catch ( Exception $e ) {
-			$this->logger->error(
-				'Failed to get top products by revenue',
-				array(
-					'error'      => $e->getMessage(),
-					'date_range' => $date_range,
-				)
-			);
-
-			return array(
-				'products' => array(),
-				'period'   => $date_range,
-				'error'    => $e->getMessage(),
-			);
+		if ( empty( $campaign_ids ) ) {
+			return array();
 		}
+
+		// Create analytics repository instance
+		$repository = new SCD_Analytics_Repository( $this->database_manager );
+		$results    = array();
+
+		foreach ( $campaign_ids as $campaign_id ) {
+			$data = $repository->get_campaign_performance( $campaign_id, $dates['start'], $dates['end'] );
+
+			if ( ! empty( $data ) ) {
+				// Get campaign details
+				$campaign = $wpdb->get_row(
+					$wpdb->prepare(
+						"SELECT name, status FROM {$campaigns_table} WHERE id = %d",
+						$campaign_id
+					)
+				);
+
+				// Calculate ROI (Return on Investment)
+				$revenue = isset( $data['revenue'] ) ? floatval( $data['revenue'] ) : 0;
+				$cost    = isset( $data['discount_given'] ) ? floatval( $data['discount_given'] ) : 0;
+				$roi     = $cost > 0 ? ( ( $revenue - $cost ) / $cost ) * 100 : 0;
+
+				// Build campaign URLs
+				$edit_url = add_query_arg(
+					array(
+						'page'   => 'scd-campaigns',
+						'action' => 'wizard',
+						'id'     => $campaign_id,
+					),
+					admin_url( 'admin.php' )
+				);
+
+				$view_url = add_query_arg(
+					array(
+						'page'        => 'scd-analytics',
+						'campaign_id' => $campaign_id,
+					),
+					admin_url( 'admin.php' )
+				);
+
+				$results[] = array_merge(
+					$data,
+					array(
+						'campaign_id'  => $campaign_id,
+						'name'         => $campaign ? $campaign->name : 'Unknown',
+						'status'       => $campaign ? $campaign->status : 'unknown',
+						'status_label' => $campaign ? ucfirst( $campaign->status ) : 'Unknown',
+						'roi'          => round( $roi, 2 ),
+						'edit_url'     => $edit_url,
+						'view_url'     => $view_url,
+					)
+				);
+			}
+		}
+
+		// Sort by metric
+		usort(
+			$results,
+			function ( $a, $b ) use ( $metric, $order ) {
+				$val_a = isset( $a[ $metric ] ) ? floatval( $a[ $metric ] ) : 0;
+				$val_b = isset( $b[ $metric ] ) ? floatval( $b[ $metric ] ) : 0;
+
+				if ( 'desc' === $order ) {
+					return $val_b <=> $val_a;
+				}
+				return $val_a <=> $val_b;
+			}
+		);
+
+		// Limit results
+		return array_slice( $results, 0, $limit );
 	}
+
+	/**
+	 * Parse date range string into start and end dates.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    string $date_range    Date range string (e.g., '30days', '7days', 'all').
+	 * @return   array                  Array with 'start' and 'end' keys.
+	 */
+	private function parse_date_range( string $date_range ): array {
+		$end_date = gmdate( 'Y-m-d' );
+
+		switch ( $date_range ) {
+			case '7days':
+				$start_date = gmdate( 'Y-m-d', strtotime( '-7 days' ) );
+				break;
+			case '30days':
+				$start_date = gmdate( 'Y-m-d', strtotime( '-30 days' ) );
+				break;
+			case '90days':
+				$start_date = gmdate( 'Y-m-d', strtotime( '-90 days' ) );
+				break;
+			case 'all':
+				$start_date = gmdate( 'Y-m-d', strtotime( '-1 year' ) );
+				break;
+			default:
+				$start_date = gmdate( 'Y-m-d', strtotime( '-30 days' ) );
+		}
+
+		return array(
+			'start' => $start_date,
+			'end'   => $end_date,
+		);
+	}
+
 }

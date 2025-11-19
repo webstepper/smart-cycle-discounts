@@ -20,13 +20,65 @@
     --scd-color-danger: #d63638;
     --scd-color-accent: #3858e9;
     --scd-color-info: #72aee6;
-    --scd-color-dark: #1d2327;
-    --scd-color-light: #f0f0f1;
-    --scd-color-muted: #646970;
-    
+    --scd-color-blue: #3B82F6;
+    --scd-color-blue-light: #DBEAFE;
+
+    /* Color alpha variations (for transparency effects) */
+    --scd-color-primary-alpha-3: rgba(34, 113, 177, 0.03);
+    --scd-color-primary-alpha-10: rgba(34, 113, 177, 0.1);
+    --scd-color-primary-alpha-15: rgba(34, 113, 177, 0.15);
+    --scd-color-primary-alpha-20: rgba(34, 113, 177, 0.2);
+    --scd-color-primary-alpha-25: rgba(34, 113, 177, 0.25);
+    --scd-color-primary-alpha-30: rgba(34, 113, 177, 0.3);
+    --scd-color-success-alpha-5: rgba(0, 163, 42, 0.05);
+    --scd-color-success-alpha-15: rgba(0, 163, 42, 0.15);
+    --scd-color-warning-alpha-15: rgba(219, 166, 23, 0.15);
+    --scd-color-warning-alpha-25: rgba(219, 166, 23, 0.25);
+    --scd-color-danger-alpha-15: rgba(214, 54, 56, 0.15);
+    --scd-color-danger-alpha-25: rgba(214, 54, 56, 0.25);
+    --scd-color-danger-alpha-30: rgba(214, 54, 56, 0.3);
+    --scd-color-info-alpha-15: rgba(114, 174, 230, 0.15);
+    --scd-color-info-alpha-25: rgba(114, 174, 230, 0.25);
+    --scd-color-info-alpha-30: rgba(114, 174, 230, 0.3);
+    --scd-color-accent-alpha-30: rgba(56, 88, 233, 0.3);
+    --scd-color-gold-alpha-20: rgba(228, 196, 65, 0.2);
+    --scd-color-gold-alpha-30: rgba(228, 196, 65, 0.3);
+    --scd-color-text-alpha-15: rgba(100, 105, 112, 0.15);
+    --scd-color-text-alpha-25: rgba(100, 105, 112, 0.25);
+    --scd-color-blue-alpha-15: rgba(59, 130, 246, 0.15);
+
+    /* Overlay colors (for backgrounds, borders, shadows) */
+    --scd-overlay-faint: rgba(0, 0, 0, 0.02);
+    --scd-overlay-subtle: rgba(0, 0, 0, 0.05);
+    --scd-overlay-border: rgba(0, 0, 0, 0.06);
+    --scd-overlay-light: rgba(0, 0, 0, 0.1);
+    --scd-overlay-medium: rgba(0, 0, 0, 0.3);
+    --scd-overlay-heavy: rgba(0, 0, 0, 0.5);
+    --scd-overlay-dark: rgba(0, 0, 0, 0.85);
+    --scd-overlay-white-light: rgba(255, 255, 255, 0.4);
+    --scd-overlay-white-medium: rgba(255, 255, 255, 0.6);
+    --scd-overlay-white-heavy: rgba(255, 255, 255, 0.95);
+
+    /* Neutral colors - WordPress defaults */
+    --scd-color-white: #fff;
+    --scd-color-text: #1d2327;
+    --scd-color-text-muted: #646970;
+    --scd-color-text-lighter: #999;
+    --scd-color-text-disabled: #a7aaad;
+    --scd-color-surface: #f6f7f7;
+    --scd-color-surface-dark: #f0f0f1;
+    --scd-color-border: #c3c4c7;
+    --scd-color-border-dark: #b4b9be;
+    --scd-color-border-light: #d0d0d0;
+
+    /* Semantic aliases */
+    --scd-color-dark: var(--scd-color-text);
+    --scd-color-light: var(--scd-color-surface-dark);
+    --scd-color-muted: var(--scd-color-text-muted);
+
     /* Color variations (auto-generated) */
     --scd-color-primary-light: #4d8fc4;
-    --scd-color-primary-dark: #1a5a8c;
+    --scd-color-primary-dark: #135e96;
     --scd-color-secondary-light: #8ebced;
     --scd-color-secondary-dark: #5991c5;
     --scd-color-success-light: #46b450;
@@ -37,7 +89,32 @@
     --scd-color-danger-dark: #a02222;
     --scd-color-accent-light: #5b7dff;
     --scd-color-accent-dark: #2148c0;
-    
+
+    /* Lighter background variations (semantic aliases for alpha-15) */
+    --scd-color-success-lighter: var(--scd-color-success-alpha-15);
+    --scd-color-warning-lighter: var(--scd-color-warning-alpha-15);
+    --scd-color-danger-lighter: var(--scd-color-danger-alpha-15);
+
+    /* Color-specific text and border aliases */
+    --scd-color-success-text: var(--scd-color-success-dark);
+    --scd-color-success-border: var(--scd-color-success);
+    --scd-color-warning-text: var(--scd-color-warning-dark);
+    --scd-color-warning-border: var(--scd-color-warning);
+    --scd-color-danger-text: var(--scd-color-danger-dark);
+    --scd-color-danger-border: var(--scd-color-danger);
+
+    /* Gray scale (WordPress standard gray values) */
+    --scd-color-gray-50: #f6f7f7;   /* Lightest */
+    --scd-color-gray-100: #f0f0f1;
+    --scd-color-gray-200: #dcdcde;
+    --scd-color-gray-300: #c3c4c7;
+    --scd-color-gray-400: #a7aaad;  /* Mid-gray */
+    --scd-color-gray-500: #8c8f94;
+    --scd-color-gray-600: #646970;
+    --scd-color-gray-700: #50575e;
+    --scd-color-gray-800: #3c434a;
+    --scd-color-gray-900: #1d2327;  /* Darkest */
+
     /* Component-specific mappings */
     /* Buttons */
     --scd-button-primary: var(--scd-color-primary);
@@ -54,6 +131,9 @@
     --scd-form-focus-shadow: rgba(34, 113, 177, 0.25);
     --scd-form-error: var(--scd-color-danger);
     --scd-form-success: var(--scd-color-success);
+    --scd-form-checked-bg: var(--scd-color-primary);
+    --scd-form-checked-border: var(--scd-color-primary);
+    --scd-form-toggle-on: var(--scd-color-primary);
     
     /* Alerts/Notifications */
     --scd-alert-info-bg: rgba(114, 174, 230, 0.1);
@@ -93,8 +173,8 @@
     
     /* Tables */
     --scd-table-hover: rgba(34, 113, 177, 0.05);
-    --scd-table-selected: rgba(34, 113, 177, 0.1);
-    --scd-table-border: #dcdcde;
+    --scd-table-selected: var(--scd-color-primary-alpha-10);
+    --scd-table-border: var(--scd-color-border-lighter);
     
     /* Loading states */
     --scd-loader-primary: var(--scd-color-primary);
@@ -106,14 +186,17 @@
     --scd-progress-success: var(--scd-color-success);
     --scd-progress-warning: var(--scd-color-warning);
     --scd-progress-danger: var(--scd-color-danger);
-    
+
     /* Additional colors needed by components */
-    --scd-color-white: #ffffff;
-    --scd-color-background-overlay: rgba(255, 255, 255, 0.9);
+    --scd-color-background-overlay: var(--scd-overlay-white-heavy);
     --scd-color-primary-bg: rgba(34, 113, 177, 0.05);
     --scd-color-success-bg: rgba(0, 163, 42, 0.05);
     --scd-color-warning-bg: rgba(219, 166, 23, 0.05);
     --scd-color-error-bg: rgba(214, 54, 56, 0.05);
+
+    /* WordPress standard notice backgrounds (exact WordPress colors) */
+    --scd-color-danger-bg-light: #fcf0f1;
+    --scd-color-warning-bg-light: #fcf9e8;
     
     /* Additional shadow definitions */
     --scd-shadow-success: rgba(0, 163, 42, 0.15);
@@ -122,24 +205,103 @@
     /* Overlay colors */
     --scd-color-overlay-light: rgba(255, 255, 255, 0.5);
     --scd-color-background-solid: rgba(255, 255, 255, 0.98);
-    
+    --scd-color-overlay-light-text: rgba(255, 255, 255, 0.8);
+
     /* Extended color variations */
-    --scd-color-text-disabled: #a7aaad;
     --scd-color-primary-light-bg: rgba(34, 113, 177, 0.08);
-    --scd-color-primary-light-border: rgba(34, 113, 177, 0.2);
-    --scd-color-surface-light: #fafafa;
-    --scd-shadow-primary: rgba(34, 113, 177, 0.3);
+    --scd-color-primary-light-border: var(--scd-color-primary-alpha-20);
     --scd-color-danger-light-border: rgba(214, 54, 56, 0.2);
     --scd-color-warning-light-border: rgba(219, 166, 23, 0.2);
-    
-    /* Additional colors for components */
-    --scd-shadow-inset: rgba(0, 0, 0, 0.07);
-    --scd-color-border-dark: #b4b9be;
-    --scd-color-overlay-light-text: rgba(255, 255, 255, 0.8);
+    --scd-color-surface-light: #fafafa;
     --scd-color-info-bg: #e8f5f9;
-    --scd-color-text-lighter: #999;
-    --scd-shadow-danger: rgba(220, 50, 50, 0.2);
-    --scd-color-primary-light: #00a0d2;
     --scd-color-danger-dark-bg: #3d1f1f;
-    --scd-color-danger-light: #ff6b6b;
+
+    /* Shadow definitions moved to _variables.css for centralization */
+}
+
+/* ==========================================================================
+   Dark Mode Theme
+   ========================================================================== */
+
+:root[data-scd-theme="dark"] {
+    /* Primary colors - adjusted for dark mode */
+    --scd-color-primary: #4a9eff;
+    --scd-color-secondary: #8ec5ff;
+    --scd-color-success: #46d369;
+    --scd-color-warning: #f4c542;
+    --scd-color-danger: #ff6b6b;
+    --scd-color-accent: #6b8aff;
+    --scd-color-info: #8ec5ff;
+
+    /* Neutral colors - inverted for dark mode */
+    --scd-color-white: #1a1d23;
+    --scd-color-text: #e4e6eb;
+    --scd-color-text-muted: #a8adb8;
+    --scd-color-text-lighter: #8a8f9a;
+    --scd-color-text-disabled: #6a6f7a;
+    --scd-color-surface: #252832;
+    --scd-color-surface-dark: #2d3139;
+    --scd-color-border: #3e4147;
+    --scd-color-border-dark: #4a4f57;
+    --scd-color-border-light: #363940;
+
+    /* Color variations (dark mode adjusted) */
+    --scd-color-primary-light: #6bb3ff;
+    --scd-color-primary-dark: #2a7fd9;
+    --scd-color-secondary-light: #a3d4ff;
+    --scd-color-secondary-dark: #6faee6;
+    --scd-color-success-light: #6ddf88;
+    --scd-color-success-dark: #2bb74a;
+    --scd-color-warning-light: #f7d46f;
+    --scd-color-warning-dark: #d9a825;
+    --scd-color-danger-light: #ff8a8a;
+    --scd-color-danger-dark: #e04e4e;
+    --scd-color-accent-light: #8aa5ff;
+    --scd-color-accent-dark: #4a6ed9;
+
+    /* Alpha variations (dark mode) */
+    --scd-color-primary-alpha-3: rgba(74, 158, 255, 0.03);
+    --scd-color-primary-alpha-10: rgba(74, 158, 255, 0.1);
+    --scd-color-primary-alpha-15: rgba(74, 158, 255, 0.15);
+    --scd-color-primary-alpha-20: rgba(74, 158, 255, 0.2);
+    --scd-color-primary-alpha-25: rgba(74, 158, 255, 0.25);
+    --scd-color-primary-alpha-30: rgba(74, 158, 255, 0.3);
+    --scd-color-success-alpha-5: rgba(70, 211, 105, 0.05);
+    --scd-color-success-alpha-15: rgba(70, 211, 105, 0.15);
+    --scd-color-warning-alpha-15: rgba(244, 197, 66, 0.15);
+    --scd-color-warning-alpha-25: rgba(244, 197, 66, 0.25);
+    --scd-color-danger-alpha-15: rgba(255, 107, 107, 0.15);
+    --scd-color-danger-alpha-25: rgba(255, 107, 107, 0.25);
+    --scd-color-danger-alpha-30: rgba(255, 107, 107, 0.3);
+
+    /* Overlay colors (dark mode) */
+    --scd-overlay-faint: rgba(255, 255, 255, 0.02);
+    --scd-overlay-subtle: rgba(255, 255, 255, 0.05);
+    --scd-overlay-border: rgba(255, 255, 255, 0.08);
+    --scd-overlay-light: rgba(255, 255, 255, 0.1);
+    --scd-overlay-medium: rgba(0, 0, 0, 0.4);
+    --scd-overlay-heavy: rgba(0, 0, 0, 0.7);
+    --scd-overlay-dark: rgba(0, 0, 0, 0.9);
+
+    /* Background variations */
+    --scd-color-background: var(--scd-color-white);
+    --scd-color-surface-light: #2a2d35;
+    --scd-color-primary-bg: rgba(74, 158, 255, 0.1);
+    --scd-color-success-bg: rgba(70, 211, 105, 0.1);
+    --scd-color-warning-bg: rgba(244, 197, 66, 0.1);
+    --scd-color-error-bg: rgba(255, 107, 107, 0.1);
+    --scd-color-danger-bg-light: rgba(255, 107, 107, 0.15);
+    --scd-color-warning-bg-light: rgba(244, 197, 66, 0.15);
+
+    /* Lighter background variations */
+    --scd-color-success-lighter: rgba(70, 211, 105, 0.15);
+    --scd-color-warning-lighter: rgba(244, 197, 66, 0.15);
+    --scd-color-danger-lighter: rgba(255, 107, 107, 0.15);
+
+    /* Gradients (dark mode) */
+    --scd-gradient-primary: linear-gradient(135deg, #4a9eff 0%, #2a7fd9 100%);
+    --scd-gradient-success: linear-gradient(135deg, #46d369 0%, #2bb74a 100%);
+    --scd-gradient-danger: linear-gradient(135deg, #ff6b6b 0%, #e04e4e 100%);
+    --scd-gradient-warning: linear-gradient(135deg, #f4c542 0%, #d9a825 100%);
+    --scd-gradient-surface: linear-gradient(to bottom, #1a1d23 0%, #252832 100%);
 }

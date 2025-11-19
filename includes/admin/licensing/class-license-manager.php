@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/licensing/class-license-manager.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/licensing
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_License_Manager {
 
@@ -123,8 +123,6 @@ class SCD_License_Manager {
 	private function setup_hooks() {
 		// Daily cron to verify license health
 		add_action( 'scd_license_health_check', array( $this, 'run_health_check' ) );
-
-		add_action( 'freemius_after_license_change', array( $this, 'clear_validation_cache' ) );
 
 		// Admin init for periodic checks
 		add_action( 'admin_init', array( $this, 'maybe_run_periodic_check' ) );

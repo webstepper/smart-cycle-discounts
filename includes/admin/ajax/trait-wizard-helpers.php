@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/trait-wizard-helpers.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -43,25 +43,146 @@ trait SCD_Wizard_Helpers {
 	}
 
 	/**
-	 * Get all product IDs.
+	 * Get all product IDs using chunked/batched loading.
+	 *
+	 * Loads products in batches to avoid memory exhaustion with large catalogs.
+	 * Uses WooCommerce API with caching for optimal performance and compatibility.
 	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @return   array    Array of product IDs.
 	 */
 	private function _get_all_product_ids() {
-		$args = array(
-			'post_type'      => 'product',
-			'posts_per_page' => -1,
-			'post_status'    => 'publish',
-			'fields'         => 'ids',
-		);
+		// Get cache manager
+		$cache_manager = null;
+		if ( class_exists( 'Smart_Cycle_Discounts' ) ) {
+			$plugin    = Smart_Cycle_Discounts::get_instance();
+			$container = $plugin->get_container();
+			if ( $container && $container->has( 'cache_manager' ) ) {
+				$cache_manager = $container->get( 'cache_manager' );
+			}
+		}
 
-		return get_posts( $args );
+		// Try cache first (15 minute cache for product IDs)
+		$cache_key = 'products_all_ids';
+		if ( $cache_manager ) {
+			$cached = $cache_manager->get( $cache_key );
+			if ( false !== $cached && is_array( $cached ) ) {
+				return $cached;
+			}
+		}
+
+		// Use chunked loading to avoid memory exhaustion
+		$all_product_ids = array();
+		$page            = 1;
+		$per_page        = 100; // Process 100 products at a time
+
+		if ( function_exists( 'wc_get_products' ) ) {
+			// Use WooCommerce API - respects visibility rules, HPOS compatible
+			while ( true ) {
+				$batch = wc_get_products(
+					array(
+						'limit'  => $per_page,
+						'page'   => $page,
+						'status' => 'publish',
+						'return' => 'ids',
+					)
+				);
+
+				if ( empty( $batch ) ) {
+					break; // No more products
+				}
+
+				$all_product_ids = array_merge( $all_product_ids, $batch );
+				$page++;
+
+				// Safety: Prevent infinite loops (max 10,000 products)
+				if ( $page > 100 ) {
+					break;
+				}
+			}
+		} else {
+			// Fallback using get_posts with chunking
+			while ( true ) {
+				$args = array(
+					'post_type'      => 'product',
+					'posts_per_page' => $per_page,
+					'post_status'    => 'publish',
+					'fields'         => 'ids',
+					'paged'          => $page,
+				);
+
+				$batch = get_posts( $args );
+
+				if ( empty( $batch ) ) {
+					break;
+				}
+
+				$all_product_ids = array_merge( $all_product_ids, $batch );
+				$page++;
+
+				// Safety: Prevent infinite loops
+				if ( $page > 100 ) {
+					break;
+				}
+			}
+		}
+
+		// Cache for 15 minutes
+		if ( $cache_manager ) {
+			$cache_manager->set( $cache_key, $all_product_ids, 900 );
+		}
+
+		return $all_product_ids;
 	}
 
 	/**
-	 * Get products in categories.
+	 * Get total published product count.
+	 *
+	 * Optimized method for getting product count without loading all IDs.
+	 * Much more memory efficient than loading and counting all products.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   int    Total number of published products.
+	 */
+	private function _get_total_product_count() {
+		// Get cache manager
+		$cache_manager = null;
+		if ( class_exists( 'Smart_Cycle_Discounts' ) ) {
+			$plugin    = Smart_Cycle_Discounts::get_instance();
+			$container = $plugin->get_container();
+			if ( $container && $container->has( 'cache_manager' ) ) {
+				$cache_manager = $container->get( 'cache_manager' );
+			}
+		}
+
+		// Try cache first
+		$cache_key = 'products_total_count';
+		if ( $cache_manager ) {
+			$cached = $cache_manager->get( $cache_key );
+			if ( false !== $cached ) {
+				return intval( $cached );
+			}
+		}
+
+		// Use wp_count_posts() - very efficient, just queries post count
+		$counts = wp_count_posts( 'product' );
+		$total  = isset( $counts->publish ) ? $counts->publish : 0;
+
+		// Cache for 15 minutes
+		if ( $cache_manager ) {
+			$cache_manager->set( $cache_key, $total, 900 );
+		}
+
+		return intval( $total );
+	}
+
+	/**
+	 * Get products in categories using chunked/batched loading.
+	 *
+	 * Loads products in batches to avoid memory exhaustion with large catalogs.
+	 * Uses WooCommerce API with caching for optimal performance and compatibility.
 	 *
 	 * @since    1.0.0
 	 * @access   private
@@ -73,21 +194,110 @@ trait SCD_Wizard_Helpers {
 			return array();
 		}
 
-		$args = array(
-			'post_type'      => 'product',
-			'posts_per_page' => -1,
-			'post_status'    => 'publish',
-			'fields'         => 'ids',
-			'tax_query'      => array(
-				array(
-					'taxonomy' => 'product_cat',
-					'field'    => 'term_id',
-					'terms'    => array_map( 'intval', $category_ids ),
-				),
-			),
+		// Filter out 'all' marker and non-numeric IDs
+		$category_ids = array_filter(
+			array_map( 'intval', $category_ids ),
+			function( $id ) {
+				return 0 < $id;
+			}
 		);
 
-		return get_posts( $args );
+		if ( empty( $category_ids ) ) {
+			return array();
+		}
+
+		// Get cache manager
+		$cache_manager = null;
+		if ( class_exists( 'Smart_Cycle_Discounts' ) ) {
+			$plugin    = Smart_Cycle_Discounts::get_instance();
+			$container = $plugin->get_container();
+			if ( $container && $container->has( 'cache_manager' ) ) {
+				$cache_manager = $container->get( 'cache_manager' );
+			}
+		}
+
+		// Generate cache key from category IDs
+		sort( $category_ids ); // Normalize order for consistent cache key
+		$cache_key = 'products_in_cats_' . md5( wp_json_encode( $category_ids ) );
+
+		// Try cache first (15 minute cache)
+		if ( $cache_manager ) {
+			$cached = $cache_manager->get( $cache_key );
+			if ( false !== $cached && is_array( $cached ) ) {
+				return $cached;
+			}
+		}
+
+		// Use chunked loading to avoid memory exhaustion
+		$all_product_ids = array();
+		$page            = 1;
+		$per_page        = 100; // Process 100 products at a time
+
+		if ( function_exists( 'wc_get_products' ) ) {
+			// Use WooCommerce API - respects visibility rules, HPOS compatible
+			while ( true ) {
+				$batch = wc_get_products(
+					array(
+						'limit'    => $per_page,
+						'page'     => $page,
+						'status'   => 'publish',
+						'category' => $category_ids,
+						'return'   => 'ids',
+					)
+				);
+
+				if ( empty( $batch ) ) {
+					break; // No more products
+				}
+
+				$all_product_ids = array_merge( $all_product_ids, $batch );
+				$page++;
+
+				// Safety: Prevent infinite loops (max 10,000 products)
+				if ( $page > 100 ) {
+					break;
+				}
+			}
+		} else {
+			// Fallback using get_posts with chunking
+			while ( true ) {
+				$args = array(
+					'post_type'      => 'product',
+					'posts_per_page' => $per_page,
+					'post_status'    => 'publish',
+					'fields'         => 'ids',
+					'paged'          => $page,
+					'tax_query'      => array(
+						array(
+							'taxonomy' => 'product_cat',
+							'field'    => 'term_id',
+							'terms'    => $category_ids,
+						),
+					),
+				);
+
+				$batch = get_posts( $args );
+
+				if ( empty( $batch ) ) {
+					break;
+				}
+
+				$all_product_ids = array_merge( $all_product_ids, $batch );
+				$page++;
+
+				// Safety: Prevent infinite loops
+				if ( $page > 100 ) {
+					break;
+				}
+			}
+		}
+
+		// Cache for 15 minutes
+		if ( $cache_manager ) {
+			$cache_manager->set( $cache_key, $all_product_ids, 900 );
+		}
+
+		return $all_product_ids;
 	}
 
 	/**

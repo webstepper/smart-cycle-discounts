@@ -384,9 +384,7 @@ $total_campaigns = $metadata['total_campaigns'] ?? 0;
                         <strong><?php echo esc_html($campaign['campaign_name']); ?></strong>
                     </td>
                     <td>
-                        <span class="status-badge status-badge--<?php echo esc_attr($campaign['status']); ?>">
-                            <?php echo esc_html(ucfirst($campaign['status'])); ?>
-                        </span>
+                        <?php echo SCD_Badge_Helper::status_badge( $campaign['status'], ucfirst( $campaign['status'] ) ); ?>
                     </td>
                     <td>
                         <?php 

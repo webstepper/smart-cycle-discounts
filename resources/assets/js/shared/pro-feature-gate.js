@@ -174,7 +174,7 @@
 
 				// Trigger save via orchestrator
 				if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Orchestrator ) {
-					var currentStep = window.SCD.Wizard.StateManager.state.currentStep;
+					var currentStep = window.SCD.Wizard.StateManager.getInstance().get('currentStep');
 					var stepOrchestrator = window.SCD.Wizard.Orchestrator.getStepInstance( currentStep );
 
 					if ( stepOrchestrator && 'function' === typeof stepOrchestrator.saveStep ) {

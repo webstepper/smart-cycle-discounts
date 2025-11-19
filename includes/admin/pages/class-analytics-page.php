@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/pages/class-analytics-page.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -16,7 +16,6 @@ declare(strict_types=1);
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
-
 
 require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-scd-ajax-response.php';
 
@@ -31,7 +30,7 @@ require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/pages
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Analytics_Page {
 
@@ -72,24 +71,36 @@ class SCD_Analytics_Page {
 	private SCD_Logger $logger;
 
 	/**
+	 * Campaign Overview Panel instance.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      SCD_Campaign_Overview_Panel    $overview_panel    Campaign Overview Panel.
+	 */
+	private SCD_Campaign_Overview_Panel $overview_panel;
+
+	/**
 	 * Initialize the analytics page.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Analytics_Collector $analytics_collector    Analytics collector.
-	 * @param    SCD_Metrics_Calculator  $metrics_calculator     Metrics calculator.
-	 * @param    SCD_Chart_Renderer      $chart_renderer         Chart renderer.
-	 * @param    SCD_Logger              $logger                 Logger instance.
+	 * @param    SCD_Analytics_Collector       $analytics_collector    Analytics collector.
+	 * @param    SCD_Metrics_Calculator        $metrics_calculator     Metrics calculator.
+	 * @param    SCD_Chart_Renderer            $chart_renderer         Chart renderer.
+	 * @param    SCD_Logger                    $logger                 Logger instance.
+	 * @param    SCD_Campaign_Overview_Panel   $overview_panel         Campaign Overview Panel.
 	 */
 	public function __construct(
 		SCD_Analytics_Collector $analytics_collector,
 		SCD_Metrics_Calculator $metrics_calculator,
 		SCD_Chart_Renderer $chart_renderer,
-		SCD_Logger $logger
+		SCD_Logger $logger,
+		SCD_Campaign_Overview_Panel $overview_panel
 	) {
 		$this->analytics_collector = $analytics_collector;
 		$this->metrics_calculator  = $metrics_calculator;
 		$this->chart_renderer      = $chart_renderer;
 		$this->logger              = $logger;
+		$this->overview_panel      = $overview_panel;
 	}
 
 	/**
@@ -114,13 +125,20 @@ class SCD_Analytics_Page {
 		try {
 			$date_range = $this->get_current_date_range();
 
-			$overview_metrics = $this->get_overview_metrics( $date_range );
+			// Check if user requested cache refresh
+			$refresh = isset( $_GET['refresh'] ) && '1' === $_GET['refresh'];
+
+			// Calculate metrics once (use cache unless refresh requested)
+			$full_metrics = $this->metrics_calculator->calculate_overall_metrics( $date_range, ! $refresh );
+
+			// Build overview metrics from full metrics
+			$overview_metrics = $this->build_overview_metrics( $full_metrics );
 
 			$campaigns_data = $this->get_campaigns_data( $date_range );
 
 			// Assets are handled by the centralized asset management system
 
-			$this->render_dashboard( $overview_metrics, $campaigns_data, $date_range );
+			$this->render_dashboard( $overview_metrics, $campaigns_data, $date_range, $full_metrics );
 
 		} catch ( Exception $e ) {
 			$this->logger->error(
@@ -143,83 +161,85 @@ class SCD_Analytics_Page {
 	 * @return   string    Date range.
 	 */
 	private function get_current_date_range(): string {
-		$date_range = sanitize_text_field( $_GET['date_range'] ?? '7days' );
+		$date_range = sanitize_text_field( $_GET['date_range'] ?? '30days' );
 
 		$valid_ranges = array( '24hours', '7days', '30days', '90days', 'custom' );
 
 		if ( ! in_array( $date_range, $valid_ranges ) ) {
-			$date_range = '7days';
+			$date_range = '30days';
 		}
 
 		return $date_range;
 	}
 
 	/**
-	 * Get overview metrics.
+	 * Build overview metrics from calculated data.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string $date_range    Date range.
-	 * @return   array                    Overview metrics.
+	 * @param    array $metrics    Calculated metrics data.
+	 * @return   array                Overview metrics.
 	 */
-	private function get_overview_metrics( string $date_range ): array {
+	private function build_overview_metrics( array $metrics ): array {
 		try {
-			$metrics = $this->metrics_calculator->calculate_overall_metrics( $date_range );
-
 			return array(
 				array(
 					'title'       => __( 'Total Revenue', 'smart-cycle-discounts' ),
 					'value'       => $metrics['total_revenue'] ?? 0,
 					'change'      => $metrics['revenue_change'] ?? 0,
 					'change_type' => $this->get_change_type( $metrics['revenue_change'] ?? 0 ),
-					'icon'        => 'dashicons-money-alt',
+					'icon'        => 'receipt',
 					'format'      => 'currency',
 					'description' => __( 'Revenue generated from discount campaigns', 'smart-cycle-discounts' ),
+					'help_text'   => __( 'Total revenue from orders where discounts were applied. Calculated as sum of order totals after discounts.', 'smart-cycle-discounts' ),
 				),
 				array(
 					'title'       => __( 'Conversions', 'smart-cycle-discounts' ),
 					'value'       => $metrics['total_conversions'] ?? 0,
 					'change'      => $metrics['conversions_change'] ?? 0,
 					'change_type' => $this->get_change_type( $metrics['conversions_change'] ?? 0 ),
-					'icon'        => 'dashicons-cart',
+					'icon'        => 'cart',
 					'format'      => 'number',
 					'description' => __( 'Number of successful purchases', 'smart-cycle-discounts' ),
+					'help_text'   => __( 'Total number of completed orders that used discount campaigns. Includes all order statuses except failed, cancelled, and pending.', 'smart-cycle-discounts' ),
 				),
 				array(
 					'title'       => __( 'Avg Order Value', 'smart-cycle-discounts' ),
 					'value'       => $metrics['avg_order_value'] ?? 0,
 					'change'      => $metrics['aov_change'] ?? 0,
 					'change_type' => $this->get_change_type( $metrics['aov_change'] ?? 0 ),
-					'icon'        => 'dashicons-chart-line',
+					'icon'        => 'chart-line',
 					'format'      => 'currency',
 					'description' => __( 'Average value per order with discount applied', 'smart-cycle-discounts' ),
+					'help_text'   => __( 'Average revenue per order calculated as Total Revenue divided by Conversions. Higher values indicate customers are purchasing more per transaction.', 'smart-cycle-discounts' ),
 				),
 				array(
 					'title'       => __( 'Click-through Rate', 'smart-cycle-discounts' ),
 					'value'       => $metrics['avg_ctr'] ?? 0,
 					'change'      => $metrics['ctr_change'] ?? 0,
 					'change_type' => $this->get_change_type( $metrics['ctr_change'] ?? 0 ),
-					'icon'        => 'dashicons-performance',
+					'icon'        => 'performance',
 					'format'      => 'percentage',
 					'description' => __( 'Percentage of clicks that led to purchases', 'smart-cycle-discounts' ),
+					'help_text'   => __( 'Percentage of discount impressions that resulted in completed orders. Calculated as (Conversions / Impressions) × 100. Higher rates indicate more effective campaigns.', 'smart-cycle-discounts' ),
 				),
 				array(
 					'title'       => __( 'Active Campaigns', 'smart-cycle-discounts' ),
 					'value'       => $metrics['active_campaigns'] ?? 0,
 					'change'      => $metrics['campaigns_change'] ?? 0,
 					'change_type' => $this->get_change_type( $metrics['campaigns_change'] ?? 0 ),
-					'icon'        => 'dashicons-megaphone',
+					'icon'        => 'megaphone',
 					'format'      => 'number',
 					'description' => __( 'Currently running discount campaigns', 'smart-cycle-discounts' ),
+					'help_text'   => __( 'Number of campaigns currently active and available to customers. This count includes campaigns that have started and not yet ended.', 'smart-cycle-discounts' ),
 				),
 			);
 
 		} catch ( Exception $e ) {
 			$this->logger->error(
-				'Failed to get overview metrics',
+				'Failed to build overview metrics',
 				array(
-					'error'      => $e->getMessage(),
-					'date_range' => $date_range,
+					'error' => $e->getMessage(),
 				)
 			);
 
@@ -278,11 +298,13 @@ class SCD_Analytics_Page {
 	 * @param    array  $overview_metrics    Overview metrics.
 	 * @param    array  $campaigns_data      Campaigns data.
 	 * @param    string $current_period      Current period.
+	 * @param    array  $full_metrics        Full metrics including discount and ROI data.
 	 * @return   void
 	 */
-	private function render_dashboard( array $overview_metrics, array $campaigns_data, string $current_period ): void {
-		// Pass chart renderer to template
+	private function render_dashboard( array $overview_metrics, array $campaigns_data, string $current_period, array $full_metrics = array() ): void {
+		// Pass chart renderer and metrics to template
 		$chart_renderer = $this->chart_renderer;
+		$overview_panel = $this->overview_panel;
 
 		// Include the dashboard template
 		include SCD_PLUGIN_DIR . 'resources/views/admin/pages/dashboard.php';
@@ -305,7 +327,7 @@ class SCD_Analytics_Page {
 
 			<div class="scd-upgrade-container">
 				<div class="scd-upgrade-content">
-					<span class="dashicons dashicons-chart-area scd-upgrade-icon"></span>
+					<?php echo SCD_Icon_Helper::get( 'chart-area', array( 'size' => 16, 'class' => 'scd-upgrade-icon' ) ); ?>
 					<h2><?php esc_html_e( 'Unlock Advanced Analytics with Pro', 'smart-cycle-discounts' ); ?></h2>
 
 					<p class="scd-upgrade-description">
@@ -313,23 +335,34 @@ class SCD_Analytics_Page {
 					</p>
 
 					<ul class="scd-feature-list">
-						<li><span class="dashicons dashicons-yes"></span> <?php esc_html_e( 'Custom date ranges and flexible reporting', 'smart-cycle-discounts' ); ?></li>
-						<li><span class="dashicons dashicons-yes"></span> <?php esc_html_e( 'Export data to CSV and JSON formats', 'smart-cycle-discounts' ); ?></li>
-						<li><span class="dashicons dashicons-yes"></span> <?php esc_html_e( 'Advanced metrics and performance charts', 'smart-cycle-discounts' ); ?></li>
-						<li><span class="dashicons dashicons-yes"></span> <?php esc_html_e( 'Geographic sales breakdown', 'smart-cycle-discounts' ); ?></li>
-						<li><span class="dashicons dashicons-yes"></span> <?php esc_html_e( 'Traffic source analysis', 'smart-cycle-discounts' ); ?></li>
-						<li><span class="dashicons dashicons-yes"></span> <?php esc_html_e( 'Customer lifetime value calculations', 'smart-cycle-discounts' ); ?></li>
-						<li><span class="dashicons dashicons-yes"></span> <?php esc_html_e( 'Conversion funnel analysis', 'smart-cycle-discounts' ); ?></li>
-						<li><span class="dashicons dashicons-yes"></span> <?php esc_html_e( 'Priority support', 'smart-cycle-discounts' ); ?></li>
+						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Custom date ranges and flexible reporting', 'smart-cycle-discounts' ); ?></li>
+						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Export data to CSV and JSON formats', 'smart-cycle-discounts' ); ?></li>
+						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Advanced metrics and performance charts', 'smart-cycle-discounts' ); ?></li>
+						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Geographic sales breakdown', 'smart-cycle-discounts' ); ?></li>
+						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Traffic source analysis', 'smart-cycle-discounts' ); ?></li>
+						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Customer lifetime value calculations', 'smart-cycle-discounts' ); ?></li>
+						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Conversion funnel analysis', 'smart-cycle-discounts' ); ?></li>
+						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Priority support', 'smart-cycle-discounts' ); ?></li>
 					</ul>
 
 					<div class="scd-upgrade-actions">
-						<a href="<?php echo esc_url( $upgrade_url ); ?>" class="button button-primary button-hero">
-							<?php esc_html_e( 'Upgrade to Pro', 'smart-cycle-discounts' ); ?>
-						</a>
-						<a href="<?php echo esc_url( $trial_url ); ?>" class="button button-secondary button-hero">
-							<?php esc_html_e( 'Start 14-Day Trial', 'smart-cycle-discounts' ); ?>
-						</a>
+						<?php
+						SCD_Button_Helper::primary(
+							__( 'Upgrade to Pro', 'smart-cycle-discounts' ),
+							array(
+								'size' => 'hero',
+								'href' => esc_url( $upgrade_url ),
+							)
+						);
+
+						SCD_Button_Helper::secondary(
+							__( 'Start 14-Day Trial', 'smart-cycle-discounts' ),
+							array(
+								'size' => 'hero',
+								'href' => esc_url( $trial_url ),
+							)
+						);
+						?>
 					</div>
 
 					<p class="scd-upgrade-note">
@@ -357,7 +390,7 @@ class SCD_Analytics_Page {
 						</div>
 					</div>
 					<div class="scd-preview-overlay">
-						<span class="dashicons dashicons-lock"></span>
+						<?php echo SCD_Icon_Helper::get( 'lock', array( 'size' => 16 ) ); ?>
 					</div>
 				</div>
 			</div>

@@ -25,7 +25,7 @@ defined('ABSPATH') || exit('Direct access denied.');
 $chart_renderer = $chart_renderer ?? new SCD_Chart_Renderer(new SCD_Logger());
 $overview_metrics = $overview_metrics ?? array();
 $campaigns_data = $campaigns_data ?? array();
-$current_period = $current_period ?? '7days';
+$current_period = $current_period ?? '30days';
 ?>
 
 <div class="wrap scd-analytics-dashboard">
@@ -35,11 +35,89 @@ $current_period = $current_period ?? '7days';
     
     <div class="scd-dashboard-header">
         <div class="scd-dashboard-controls">
+            <!-- Campaign Filter -->
+            <div class="scd-campaign-filter">
+                <label for="scd-campaign-filter" class="scd-filter-label">
+                    <?php echo SCD_Icon_Helper::get( 'megaphone', array( 'size' => 16 ) ); ?>
+                    <?php esc_html_e( 'Campaign:', 'smart-cycle-discounts' ); ?>
+                </label>
+                <select id="scd-campaign-filter" class="scd-campaign-select">
+                    <option value="all"><?php esc_html_e( 'All Campaigns', 'smart-cycle-discounts' ); ?></option>
+                    <?php
+                    // Get campaigns list
+                    global $wpdb;
+                    $campaigns_table = $wpdb->prefix . 'scd_campaigns';
+                    $campaigns = $wpdb->get_results(
+                        "SELECT id, name, status FROM {$campaigns_table}
+                        WHERE deleted_at IS NULL
+                        ORDER BY
+                            CASE
+                                WHEN status = 'active' THEN 1
+                                WHEN status = 'scheduled' THEN 2
+                                ELSE 3
+                            END,
+                            name ASC
+                        LIMIT 100"
+                    );
+
+                    if ( $campaigns ) {
+                        $current_status = '';
+                        foreach ( $campaigns as $campaign ) {
+                            // Group by status
+                            if ( $current_status !== $campaign->status ) {
+                                if ( $current_status !== '' ) {
+                                    echo '</optgroup>';
+                                }
+                                $status_label = ucfirst( $campaign->status );
+                                echo '<optgroup label="' . esc_attr( $status_label ) . '">';
+                                $current_status = $campaign->status;
+                            }
+
+                            $status_indicator = '';
+                            if ( 'active' === $campaign->status ) {
+                                $status_indicator = '● ';
+                            } elseif ( 'scheduled' === $campaign->status ) {
+                                $status_indicator = '○ ';
+                            }
+
+                            echo '<option value="' . esc_attr( $campaign->id ) . '">' .
+                                 esc_html( $status_indicator . $campaign->name ) .
+                                 '</option>';
+                        }
+                        if ( $current_status !== '' ) {
+                            echo '</optgroup>';
+                        }
+                    }
+                    ?>
+                </select>
+            </div>
+
             <div class="scd-date-range-selector">
+                <!-- Quick Date Filter Buttons -->
+                <div class="scd-quick-date-filters">
+                    <button type="button" class="scd-quick-date-btn" data-range="24hours" <?php echo ( '24hours' === $current_period ) ? 'aria-pressed="true"' : 'aria-pressed="false"'; ?>>
+                        <?php esc_html_e( 'Today', 'smart-cycle-discounts' ); ?>
+                    </button>
+                    <button type="button" class="scd-quick-date-btn" data-range="7days" <?php echo ( '7days' === $current_period ) ? 'aria-pressed="true"' : 'aria-pressed="false"'; ?>>
+                        <?php esc_html_e( 'Last 7 Days', 'smart-cycle-discounts' ); ?>
+                    </button>
+                    <button type="button" class="scd-quick-date-btn" data-range="30days" <?php echo ( '30days' === $current_period ) ? 'aria-pressed="true"' : 'aria-pressed="false"'; ?>>
+                        <?php esc_html_e( 'Last 30 Days', 'smart-cycle-discounts' ); ?>
+                    </button>
+                    <button type="button" class="scd-quick-date-btn" data-range="90days" <?php echo ( '90days' === $current_period ) ? 'aria-pressed="true"' : 'aria-pressed="false"'; ?>>
+                        <?php esc_html_e( 'Last 90 Days', 'smart-cycle-discounts' ); ?>
+                    </button>
+                    <button type="button" class="scd-quick-date-btn" data-range="custom" <?php echo ( 'custom' === $current_period ) ? 'aria-pressed="true"' : 'aria-pressed="false"'; ?>>
+                        <?php echo SCD_Icon_Helper::get( 'calendar', array( 'size' => 16 ) ); ?>
+                        <?php esc_html_e( 'Custom', 'smart-cycle-discounts' ); ?>
+                    </button>
+                </div>
+
+                <!-- Hidden select for backward compatibility -->
                 <label for="scd-date-range" class="screen-reader-text">
                     <?php esc_html_e('Select date range', 'smart-cycle-discounts'); ?>
                 </label>
-                <select id="scd-date-range" class="scd-date-range-select">
+                <select id="scd-date-range" class="scd-date-range-select" style="display: none;">
                     <option value="24hours" <?php selected($current_period, '24hours'); ?>>
                         <?php esc_html_e('Last 24 Hours', 'smart-cycle-discounts'); ?>
                     </option>
@@ -59,9 +137,21 @@ $current_period = $current_period ?? '7days';
             </div>
             
             <div class="scd-custom-date-range" style="display: none;">
-                <input type="date" id="scd-start-date" class="scd-date-input" />
+                <input
+                    type="date"
+                    id="scd-start-date"
+                    class="scd-date-input"
+                    max="<?php echo esc_attr( current_time( 'Y-m-d' ) ); ?>"
+                    aria-label="<?php esc_attr_e( 'Start date', 'smart-cycle-discounts' ); ?>"
+                />
                 <span class="scd-date-separator"><?php esc_html_e('to', 'smart-cycle-discounts'); ?></span>
-                <input type="date" id="scd-end-date" class="scd-date-input" />
+                <input
+                    type="date"
+                    id="scd-end-date"
+                    class="scd-date-input"
+                    max="<?php echo esc_attr( current_time( 'Y-m-d' ) ); ?>"
+                    aria-label="<?php esc_attr_e( 'End date', 'smart-cycle-discounts' ); ?>"
+                />
                 <button type="button" id="scd-apply-date-range" class="button">
                     <?php esc_html_e('Apply', 'smart-cycle-discounts'); ?>
                 </button>
@@ -69,15 +159,15 @@ $current_period = $current_period ?? '7days';
             
             <div class="scd-dashboard-actions">
                 <button type="button" id="scd-refresh-data" class="button">
-                    <span class="dashicons dashicons-update"></span>
+                    <?php echo SCD_Icon_Helper::get( 'update', array( 'size' => 16 ) ); ?>
                     <?php esc_html_e('Refresh', 'smart-cycle-discounts'); ?>
                 </button>
                 
                 <div class="scd-export-dropdown">
                     <button type="button" id="scd-export-toggle" class="button">
-                        <span class="dashicons dashicons-download"></span>
+                        <?php echo SCD_Icon_Helper::get( 'download', array( 'size' => 16 ) ); ?>
                         <?php esc_html_e('Export', 'smart-cycle-discounts'); ?>
-                        <span class="dashicons dashicons-arrow-down-alt2"></span>
+                        <?php echo SCD_Icon_Helper::get( 'arrow-down', array( 'size' => 16 ) ); ?>
                     </button>
                     <div class="scd-export-menu" style="display: none;">
                         <a href="#" data-format="csv" class="scd-export-link">
@@ -115,45 +205,50 @@ $current_period = $current_period ?? '7days';
                     'value' => 0,
                     'change' => 0,
                     'change_type' => 'neutral',
-                    'icon' => 'dashicons-money-alt',
+                    'icon' => 'receipt',
                     'format' => 'currency',
-                    'description' => __('Revenue generated from discount campaigns', 'smart-cycle-discounts')
+                    'description' => __('Revenue generated from discount campaigns', 'smart-cycle-discounts'),
+                    'help_text' => __('Total revenue from orders where discounts were applied. Calculated as sum of order totals after discounts.', 'smart-cycle-discounts')
                 ),
                 array(
                     'title' => __('Conversions', 'smart-cycle-discounts'),
                     'value' => 0,
                     'change' => 0,
                     'change_type' => 'neutral',
-                    'icon' => 'dashicons-cart',
+                    'icon' => 'cart',
                     'format' => 'number',
-                    'description' => __('Number of successful purchases', 'smart-cycle-discounts')
+                    'description' => __('Number of successful purchases', 'smart-cycle-discounts'),
+                    'help_text' => __('Total number of completed orders that used discount campaigns. Includes all order statuses except failed, cancelled, and pending.', 'smart-cycle-discounts')
                 ),
                 array(
                     'title' => __('Avg Order Value', 'smart-cycle-discounts'),
                     'value' => 0,
                     'change' => 0,
                     'change_type' => 'neutral',
-                    'icon' => 'dashicons-chart-line',
+                    'icon' => 'chart-line',
                     'format' => 'currency',
-                    'description' => __('Average value per order with discount applied', 'smart-cycle-discounts')
+                    'description' => __('Average value per order with discount applied', 'smart-cycle-discounts'),
+                    'help_text' => __('Average revenue per order calculated as Total Revenue divided by Conversions. Higher values indicate customers are purchasing more per transaction.', 'smart-cycle-discounts')
                 ),
                 array(
                     'title' => __('Click-through Rate', 'smart-cycle-discounts'),
                     'value' => 0,
                     'change' => 0,
                     'change_type' => 'neutral',
-                    'icon' => 'dashicons-performance',
+                    'icon' => 'performance',
                     'format' => 'percentage',
-                    'description' => __('Percentage of clicks that led to purchases', 'smart-cycle-discounts')
+                    'description' => __('Percentage of clicks that led to purchases', 'smart-cycle-discounts'),
+                    'help_text' => __('Percentage of discount impressions that resulted in completed orders. Calculated as (Conversions / Impressions) × 100. Higher rates indicate more effective campaigns.', 'smart-cycle-discounts')
                 ),
                 array(
                     'title' => __('Active Campaigns', 'smart-cycle-discounts'),
                     'value' => 0,
                     'change' => 0,
                     'change_type' => 'neutral',
-                    'icon' => 'dashicons-megaphone',
+                    'icon' => 'megaphone',
                     'format' => 'number',
-                    'description' => __('Currently running discount campaigns', 'smart-cycle-discounts')
+                    'description' => __('Currently running discount campaigns', 'smart-cycle-discounts'),
+                    'help_text' => __('Number of campaigns currently active and available to customers. This count includes campaigns that have started and not yet ended.', 'smart-cycle-discounts')
                 )
             );
 
@@ -174,19 +269,26 @@ $current_period = $current_period ?? '7days';
             <div class="scd-dashboard-col scd-dashboard-col--8">
                 <div class="scd-card scd-card--chart">
                     <div class="scd-card__header">
-                        <div class="scd-card__title-group">
-                            <h3 class="scd-card__title">
-                                <?php esc_html_e('Revenue Trend', 'smart-cycle-discounts'); ?>
-                            </h3>
-                            <p class="scd-card__subtitle">
-                                <?php esc_html_e('Track your revenue performance over time', 'smart-cycle-discounts'); ?>
-                            </p>
+                        <div class="scd-card__header-content">
+                            <?php echo SCD_Icon_Helper::get( 'chart-line', array( 'size' => 20 ) ); ?>
+                            <div class="scd-card__header-text">
+                                <h3 class="scd-card__title">
+                                    <?php
+                                    esc_html_e('Revenue Trend', 'smart-cycle-discounts');
+                                    if ( class_exists( 'SCD_Tooltip_Helper' ) ) {
+                                        SCD_Tooltip_Helper::render( __( 'Daily revenue generated from discount campaigns over the selected period. Use this to identify trends, peaks, and patterns in your campaign performance.', 'smart-cycle-discounts' ) );
+                                    }
+                                    ?>
+                                </h3>
+                                <p class="scd-card__subtitle">
+                                    <?php esc_html_e('Track your revenue performance over time', 'smart-cycle-discounts'); ?>
+                                </p>
+                            </div>
                         </div>
                         <div class="scd-card__actions">
                             <select id="scd-revenue-chart-type" class="scd-chart-type-selector">
                                 <option value="line"><?php esc_html_e('Line Chart', 'smart-cycle-discounts'); ?></option>
                                 <option value="bar"><?php esc_html_e('Bar Chart', 'smart-cycle-discounts'); ?></option>
-                                <option value="area"><?php esc_html_e('Area Chart', 'smart-cycle-discounts'); ?></option>
                             </select>
                         </div>
                     </div>
@@ -208,13 +310,21 @@ $current_period = $current_period ?? '7days';
             <div class="scd-dashboard-col scd-dashboard-col--4">
                 <div class="scd-card">
                     <div class="scd-card__header">
-                        <div class="scd-card__title-group">
-                            <h3 class="scd-card__title">
-                                <?php esc_html_e('Performance Summary', 'smart-cycle-discounts'); ?>
-                            </h3>
-                            <p class="scd-card__subtitle">
-                                <?php esc_html_e('Key metrics showing overall campaign effectiveness', 'smart-cycle-discounts'); ?>
-                            </p>
+                        <div class="scd-card__header-content">
+                            <?php echo SCD_Icon_Helper::get( 'dashboard', array( 'size' => 20 ) ); ?>
+                            <div class="scd-card__header-text">
+                                <h3 class="scd-card__title">
+                                    <?php
+                                    esc_html_e('Performance Summary', 'smart-cycle-discounts');
+                                    if ( class_exists( 'SCD_Tooltip_Helper' ) ) {
+                                        SCD_Tooltip_Helper::render( __( 'Consolidated view of key performance indicators across all campaigns. These metrics provide a quick snapshot of overall discount campaign effectiveness.', 'smart-cycle-discounts' ) );
+                                    }
+                                    ?>
+                                </h3>
+                                <p class="scd-card__subtitle">
+                                    <?php esc_html_e('Key metrics showing overall campaign effectiveness', 'smart-cycle-discounts'); ?>
+                                </p>
+                            </div>
                         </div>
                     </div>
                     <div class="scd-card__content">
@@ -226,31 +336,35 @@ $current_period = $current_period ?? '7days';
                                 'metrics' => array(
                                     array(
                                         'label' => __('Avg. Order Value', 'smart-cycle-discounts'),
-                                        'value' => 0,
+                                        'value' => $full_metrics['avg_order_value'] ?? 0,
                                         'format' => 'currency',
                                         'change' => 0,
-                                        'change_type' => 'neutral'
+                                        'change_type' => 'neutral',
+                                        'help_text' => __('Average revenue per order across all campaigns. Calculated as Total Revenue divided by Total Orders.', 'smart-cycle-discounts')
                                     ),
                                     array(
                                         'label' => __('Conversion Rate', 'smart-cycle-discounts'),
-                                        'value' => 0,
+                                        'value' => $full_metrics['avg_conversion_rate'] ?? 0,
                                         'format' => 'percentage',
                                         'change' => 0,
-                                        'change_type' => 'neutral'
+                                        'change_type' => 'neutral',
+                                        'help_text' => __('Percentage of discount views that resulted in completed purchases. Calculated as (Total Conversions / Total Impressions) × 100.', 'smart-cycle-discounts')
                                     ),
                                     array(
                                         'label' => __('Total Discounts', 'smart-cycle-discounts'),
-                                        'value' => 0,
+                                        'value' => $full_metrics['total_discount'] ?? 0,
                                         'format' => 'currency',
                                         'change' => 0,
-                                        'change_type' => 'neutral'
+                                        'change_type' => 'neutral',
+                                        'help_text' => __('Total amount of discounts given across all campaigns. This represents the total savings provided to customers.', 'smart-cycle-discounts')
                                     ),
                                     array(
                                         'label' => __('ROI', 'smart-cycle-discounts'),
-                                        'value' => 0,
+                                        'value' => $full_metrics['avg_roi'] ?? 0,
                                         'format' => 'percentage',
                                         'change' => 0,
-                                        'change_type' => 'neutral'
+                                        'change_type' => 'neutral',
+                                        'help_text' => __('Return on Investment showing the profitability of discount campaigns. Calculated as ((Revenue - Discount Cost) / Discount Cost) × 100. Negative values indicate campaigns cost more than they generated.', 'smart-cycle-discounts')
                                     )
                                 )
                             );
@@ -267,13 +381,21 @@ $current_period = $current_period ?? '7days';
             <div class="scd-dashboard-col scd-dashboard-col--12">
                 <div class="scd-card">
                     <div class="scd-card__header">
-                        <div class="scd-card__title-group">
-                            <h3 class="scd-card__title">
-                                <?php esc_html_e('Top Products by Discount Revenue', 'smart-cycle-discounts'); ?>
-                            </h3>
-                            <p class="scd-card__subtitle">
-                                <?php esc_html_e('Products generating the most revenue through discount campaigns', 'smart-cycle-discounts'); ?>
-                            </p>
+                        <div class="scd-card__header-content">
+                            <?php echo SCD_Icon_Helper::get( 'products', array( 'size' => 20 ) ); ?>
+                            <div class="scd-card__header-text">
+                                <h3 class="scd-card__title">
+                                    <?php
+                                    esc_html_e('Top Products by Discount Revenue', 'smart-cycle-discounts');
+                                    if ( class_exists( 'SCD_Tooltip_Helper' ) ) {
+                                        SCD_Tooltip_Helper::render( __( 'Identifies which products are most successful when discounted. Use this to focus promotional efforts on high-performing items and optimize discount strategies.', 'smart-cycle-discounts' ) );
+                                    }
+                                    ?>
+                                </h3>
+                                <p class="scd-card__subtitle">
+                                    <?php esc_html_e('Products generating the most revenue through discount campaigns', 'smart-cycle-discounts'); ?>
+                                </p>
+                            </div>
                         </div>
                         <div class="scd-card__actions">
                             <select id="scd-top-products-period" class="scd-metric-selector">
@@ -288,11 +410,46 @@ $current_period = $current_period ?? '7days';
                             <table class="scd-top-products-table">
                                 <thead>
                                     <tr>
-                                        <th class="scd-table-col-product"><?php esc_html_e('Product', 'smart-cycle-discounts'); ?></th>
-                                        <th class="scd-table-col-revenue"><?php esc_html_e('Revenue', 'smart-cycle-discounts'); ?></th>
-                                        <th class="scd-table-col-orders"><?php esc_html_e('Orders', 'smart-cycle-discounts'); ?></th>
-                                        <th class="scd-table-col-discount"><?php esc_html_e('Avg Discount', 'smart-cycle-discounts'); ?></th>
-                                        <th class="scd-table-col-trend"><?php esc_html_e('Trend', 'smart-cycle-discounts'); ?></th>
+                                        <th class="scd-table-col-product">
+                                            <?php
+                                            esc_html_e('Product', 'smart-cycle-discounts');
+                                            if ( class_exists( 'SCD_Tooltip_Helper' ) ) {
+                                                SCD_Tooltip_Helper::render( __( 'Product name with thumbnail image', 'smart-cycle-discounts' ) );
+                                            }
+                                            ?>
+                                        </th>
+                                        <th class="scd-table-col-revenue">
+                                            <?php
+                                            esc_html_e('Revenue', 'smart-cycle-discounts');
+                                            if ( class_exists( 'SCD_Tooltip_Helper' ) ) {
+                                                SCD_Tooltip_Helper::render( __( 'Total revenue generated from this product through discount campaigns', 'smart-cycle-discounts' ) );
+                                            }
+                                            ?>
+                                        </th>
+                                        <th class="scd-table-col-orders">
+                                            <?php
+                                            esc_html_e('Orders', 'smart-cycle-discounts');
+                                            if ( class_exists( 'SCD_Tooltip_Helper' ) ) {
+                                                SCD_Tooltip_Helper::render( __( 'Number of completed orders containing this product with discount applied', 'smart-cycle-discounts' ) );
+                                            }
+                                            ?>
+                                        </th>
+                                        <th class="scd-table-col-discount">
+                                            <?php
+                                            esc_html_e('Avg Discount', 'smart-cycle-discounts');
+                                            if ( class_exists( 'SCD_Tooltip_Helper' ) ) {
+                                                SCD_Tooltip_Helper::render( __( 'Average discount amount given per order for this product', 'smart-cycle-discounts' ) );
+                                            }
+                                            ?>
+                                        </th>
+                                        <th class="scd-table-col-trend">
+                                            <?php
+                                            esc_html_e('Trend', 'smart-cycle-discounts');
+                                            if ( class_exists( 'SCD_Tooltip_Helper' ) ) {
+                                                SCD_Tooltip_Helper::render( __( 'Performance trend compared to previous period - shows if sales are increasing or decreasing', 'smart-cycle-discounts' ) );
+                                            }
+                                            ?>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody id="scd-top-products-tbody">
@@ -315,13 +472,21 @@ $current_period = $current_period ?? '7days';
             <div class="scd-dashboard-col scd-dashboard-col--12">
                 <div class="scd-card">
                     <div class="scd-card__header">
-                        <div class="scd-card__title-group">
-                            <h3 class="scd-card__title">
-                                <?php esc_html_e('Top Performing Campaigns', 'smart-cycle-discounts'); ?>
-                            </h3>
-                            <p class="scd-card__subtitle">
-                                <?php esc_html_e('Campaigns generating the highest returns and engagement', 'smart-cycle-discounts'); ?>
-                            </p>
+                        <div class="scd-card__header-content">
+                            <?php echo SCD_Icon_Helper::get( 'megaphone', array( 'size' => 20 ) ); ?>
+                            <div class="scd-card__header-text">
+                                <h3 class="scd-card__title">
+                                    <?php
+                                    esc_html_e('Top Performing Campaigns', 'smart-cycle-discounts');
+                                    if ( class_exists( 'SCD_Tooltip_Helper' ) ) {
+                                        SCD_Tooltip_Helper::render( __( 'Shows your most successful discount campaigns ranked by revenue, conversions, and ROI. Use this to identify winning campaign strategies and replicate success.', 'smart-cycle-discounts' ) );
+                                    }
+                                    ?>
+                                </h3>
+                                <p class="scd-card__subtitle">
+                                    <?php esc_html_e('Campaigns generating the highest returns and engagement', 'smart-cycle-discounts'); ?>
+                                </p>
+                            </div>
                         </div>
                         <div class="scd-card__actions">
                             <a href="<?php echo esc_url(admin_url('admin.php?page=scd-campaigns')); ?>" class="button">
@@ -335,25 +500,60 @@ $current_period = $current_period ?? '7days';
                                 <thead>
                                     <tr>
                                         <th scope="col" class="manage-column">
-                                            <?php esc_html_e('Campaign', 'smart-cycle-discounts'); ?>
+                                            <?php
+                                            esc_html_e('Campaign', 'smart-cycle-discounts');
+                                            if ( class_exists( 'SCD_Tooltip_Helper' ) ) {
+                                                SCD_Tooltip_Helper::render( __( 'Campaign name and discount type', 'smart-cycle-discounts' ) );
+                                            }
+                                            ?>
                                         </th>
                                         <th scope="col" class="manage-column">
-                                            <?php esc_html_e('Status', 'smart-cycle-discounts'); ?>
+                                            <?php
+                                            esc_html_e('Status', 'smart-cycle-discounts');
+                                            if ( class_exists( 'SCD_Tooltip_Helper' ) ) {
+                                                SCD_Tooltip_Helper::render( __( 'Current campaign status: Active, Scheduled, Paused, or Expired', 'smart-cycle-discounts' ) );
+                                            }
+                                            ?>
                                         </th>
                                         <th scope="col" class="manage-column">
-                                            <?php esc_html_e('Revenue', 'smart-cycle-discounts'); ?>
+                                            <?php
+                                            esc_html_e('Revenue', 'smart-cycle-discounts');
+                                            if ( class_exists( 'SCD_Tooltip_Helper' ) ) {
+                                                SCD_Tooltip_Helper::render( __( 'Total revenue generated by this campaign after discounts were applied', 'smart-cycle-discounts' ) );
+                                            }
+                                            ?>
                                         </th>
                                         <th scope="col" class="manage-column">
-                                            <?php esc_html_e('Conversions', 'smart-cycle-discounts'); ?>
+                                            <?php
+                                            esc_html_e('Conversions', 'smart-cycle-discounts');
+                                            if ( class_exists( 'SCD_Tooltip_Helper' ) ) {
+                                                SCD_Tooltip_Helper::render( __( 'Number of completed orders that used this campaign\'s discount', 'smart-cycle-discounts' ) );
+                                            }
+                                            ?>
                                         </th>
                                         <th scope="col" class="manage-column">
-                                            <?php esc_html_e('CTR', 'smart-cycle-discounts'); ?>
+                                            <?php
+                                            esc_html_e('CTR', 'smart-cycle-discounts');
+                                            if ( class_exists( 'SCD_Tooltip_Helper' ) ) {
+                                                SCD_Tooltip_Helper::render( __( 'Click-through Rate: percentage of discount impressions that resulted in conversions', 'smart-cycle-discounts' ) );
+                                            }
+                                            ?>
                                         </th>
                                         <th scope="col" class="manage-column">
-                                            <?php esc_html_e('ROI', 'smart-cycle-discounts'); ?>
+                                            <?php
+                                            esc_html_e('ROI', 'smart-cycle-discounts');
+                                            if ( class_exists( 'SCD_Tooltip_Helper' ) ) {
+                                                SCD_Tooltip_Helper::render( __( 'Return on Investment: profitability of this campaign calculated as ((Revenue - Discount Cost) / Discount Cost) × 100', 'smart-cycle-discounts' ) );
+                                            }
+                                            ?>
                                         </th>
                                         <th scope="col" class="manage-column">
-                                            <?php esc_html_e('Actions', 'smart-cycle-discounts'); ?>
+                                            <?php
+                                            esc_html_e('Actions', 'smart-cycle-discounts');
+                                            if ( class_exists( 'SCD_Tooltip_Helper' ) ) {
+                                                SCD_Tooltip_Helper::render( __( 'Quick actions: View details, Edit campaign, or Pause/Resume', 'smart-cycle-discounts' ) );
+                                            }
+                                            ?>
                                         </th>
                                     </tr>
                                 </thead>
@@ -377,13 +577,21 @@ $current_period = $current_period ?? '7days';
             <div class="scd-dashboard-col scd-dashboard-col--12">
                 <div class="scd-card">
                     <div class="scd-card__header">
-                        <div class="scd-card__title-group">
-                            <h3 class="scd-card__title">
-                                <?php esc_html_e('Real-time Activity', 'smart-cycle-discounts'); ?>
-                            </h3>
-                            <p class="scd-card__subtitle">
-                                <?php esc_html_e('Live feed of discount applications and customer interactions', 'smart-cycle-discounts'); ?>
-                            </p>
+                        <div class="scd-card__header-content">
+                            <?php echo SCD_Icon_Helper::get( 'list-view', array( 'size' => 20 ) ); ?>
+                            <div class="scd-card__header-text">
+                                <h3 class="scd-card__title">
+                                    <?php
+                                    esc_html_e('Real-time Activity', 'smart-cycle-discounts');
+                                    if ( class_exists( 'SCD_Tooltip_Helper' ) ) {
+                                        SCD_Tooltip_Helper::render( __( 'Live stream of discount applications, conversions, and customer interactions as they happen. Updates automatically to show the most recent campaign activity.', 'smart-cycle-discounts' ) );
+                                    }
+                                    ?>
+                                </h3>
+                                <p class="scd-card__subtitle">
+                                    <?php esc_html_e('Live feed of discount applications and customer interactions', 'smart-cycle-discounts'); ?>
+                                </p>
+                            </div>
                         </div>
                         <div class="scd-card__actions">
                             <span class="scd-activity-status">
@@ -404,58 +612,84 @@ $current_period = $current_period ?? '7days';
             </div>
         </div>
     </div>
+
+    <!-- Loading Overlay -->
+    <?php
+    if ( class_exists( 'SCD_Loader_Helper' ) ) {
+        SCD_Loader_Helper::render_fullscreen( 'scd-dashboard-loading', __( 'Loading analytics...', 'smart-cycle-discounts' ), true );
+    }
+    ?>
 </div>
 
-<!-- Loading Overlay -->
-<div id="scd-dashboard-loading" class="scd-loading-overlay" style="display: none;">
-    <div class="scd-loading-content">
-        <span class="spinner is-active"></span>
-        <span class="scd-loading-text"><?php esc_html_e('Updating dashboard...', 'smart-cycle-discounts'); ?></span>
-    </div>
-</div>
+<!-- Export Modal - Centralized Component -->
+<?php
+// Build export form content
+ob_start();
+?>
+<form id="scd-export-form">
+	<div class="scd-form-group">
+		<label for="scd-export-format">
+			<?php esc_html_e( 'Export Format', 'smart-cycle-discounts' ); ?>
+		</label>
+		<select id="scd-export-format" name="format">
+			<option value="csv"><?php esc_html_e( 'CSV', 'smart-cycle-discounts' ); ?></option>
+			<option value="json"><?php esc_html_e( 'JSON', 'smart-cycle-discounts' ); ?></option>
+		</select>
+	</div>
 
-<!-- Export Modal -->
-<div id="scd-export-modal" class="scd-modal" style="display: none;">
-    <div class="scd-modal-content">
-        <div class="scd-modal-header">
-            <h3><?php esc_html_e('Export Analytics Data', 'smart-cycle-discounts'); ?></h3>
-            <button type="button" class="scd-modal-close">
-                <span class="dashicons dashicons-no-alt"></span>
-            </button>
-        </div>
-        <div class="scd-modal-body">
-            <form id="scd-export-form">
-                <div class="scd-form-group">
-                    <label for="scd-export-format">
-                        <?php esc_html_e('Export Format', 'smart-cycle-discounts'); ?>
-                    </label>
-                    <select id="scd-export-format" name="format">
-                        <option value="csv"><?php esc_html_e('CSV', 'smart-cycle-discounts'); ?></option>
-                        <option value="json"><?php esc_html_e('JSON', 'smart-cycle-discounts'); ?></option>
-                    </select>
-                </div>
-                
-                <div class="scd-form-group">
-                    <label for="scd-export-data-type">
-                        <?php esc_html_e('Data Type', 'smart-cycle-discounts'); ?>
-                    </label>
-                    <select id="scd-export-data-type" name="data_type">
-                        <option value="overview"><?php esc_html_e('Overview Metrics', 'smart-cycle-discounts'); ?></option>
-                        <option value="campaigns"><?php esc_html_e('Campaign Data', 'smart-cycle-discounts'); ?></option>
-                        <option value="events"><?php esc_html_e('Event Data', 'smart-cycle-discounts'); ?></option>
-                    </select>
-                </div>
-                
-                <div class="scd-form-actions">
-                    <button type="submit" class="button button-primary">
-                        <span class="dashicons dashicons-download"></span>
-                        <?php esc_html_e('Export Data', 'smart-cycle-discounts'); ?>
-                    </button>
-                    <button type="button" class="button scd-modal-close">
-                        <?php esc_html_e('Cancel', 'smart-cycle-discounts'); ?>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+	<div class="scd-form-group">
+		<label for="scd-export-data-type">
+			<?php esc_html_e( 'Data Type', 'smart-cycle-discounts' ); ?>
+		</label>
+		<select id="scd-export-data-type" name="data_type">
+			<option value="overview"><?php esc_html_e( 'Overview Metrics', 'smart-cycle-discounts' ); ?></option>
+			<option value="campaigns"><?php esc_html_e( 'Campaign Data', 'smart-cycle-discounts' ); ?></option>
+			<option value="events"><?php esc_html_e( 'Event Data', 'smart-cycle-discounts' ); ?></option>
+		</select>
+	</div>
+
+	<div class="scd-form-actions">
+		<?php
+		SCD_Button_Helper::primary(
+			__( 'Export Data', 'smart-cycle-discounts' ),
+			array(
+				'type'       => 'submit',
+				'icon'       => 'download',
+				'attributes' => array( 'form' => 'scd-export-form' ),
+			)
+		);
+
+		SCD_Button_Helper::secondary(
+			__( 'Cancel', 'smart-cycle-discounts' ),
+			array(
+				'classes' => array( 'scd-modal-close' ),
+			)
+		);
+		?>
+	</div>
+</form>
+<?php
+$export_form_content = ob_get_clean();
+
+// Render modal using centralized component
+if ( class_exists( 'SCD_Modal_Component' ) ) {
+	$export_modal = new SCD_Modal_Component(
+		array(
+			'id'          => 'scd-export-modal',
+			'title'       => __( 'Export Analytics Data', 'smart-cycle-discounts' ),
+			'content'     => $export_form_content,
+			'icon'        => 'download',
+			'dismissible' => true,
+			'classes'     => array( 'scd-export-modal' ),
+		)
+	);
+	$export_modal->render();
+}
+?>
+
+<?php
+// Render Campaign Overview Panel (must be outside .wrap for proper fixed positioning)
+if ( isset( $overview_panel ) && $overview_panel instanceof SCD_Campaign_Overview_Panel ) {
+    $overview_panel->render();
+}
+?>

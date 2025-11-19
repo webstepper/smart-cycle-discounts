@@ -330,7 +330,7 @@
 			// Main state change event
 			this.triggerCustomEvent( 'scd:discounts:state:changed', [ eventData ] );
 
-			// Also trigger wizard data changed for auto-save
+			// Also trigger wizard data changed event
 			this.triggerCustomEvent( 'scd:wizard:dataChanged', [] );
 		},
 
@@ -453,10 +453,10 @@
 					break;
 				case 'bogo':
 					data.bogoConfig = {
-						buyQuantity: config.buyQuantity,
-						getQuantity: config.getQuantity,
-						discountPercent: config.discountPercentage,
-						applyTo: config.applyTo
+						buyQuantity: ( config && config.buyQuantity ) || 1,
+						getQuantity: ( config && config.getQuantity ) || 1,
+						discountPercent: ( config && config.discountPercentage ) || 100,
+						applyTo: ( config && config.applyTo ) || 'cheapest'
 					};
 					break;
 				case 'spend_threshold':
@@ -484,12 +484,14 @@
 				return;
 			}
 
+
 			// Data already converted to camelCase by server
 			var updates = {};
 			var configUpdates = {};
 
 			// Map backend fields to state
-			var discountType = data.discountType;
+			// Check both camelCase (AJAX) and snake_case (localized data)
+			var discountType = data.discountType || data.discount_type;
 			if ( discountType ) {
 				updates.discountType = discountType;
 			}
@@ -498,15 +500,13 @@
 			if ( discountType ) {
 				switch ( discountType ) {
 					case 'percentage':
-						var percentageValue = data.discountValuePercentage !== undefined ?
-							data.discountValuePercentage : data.discountValue;
+						var percentageValue = data.discountValuePercentage || data.discount_value_percentage || data.discountValue || data.discount_value;
 						if ( percentageValue !== undefined ) {
 							configUpdates.percentage = { value: parseFloat( percentageValue ) || 0 };
 						}
 						break;
 					case 'fixed':
-						var fixedValue = data.discountValueFixed !== undefined ?
-							data.discountValueFixed : data.discountValue;
+						var fixedValue = data.discountValueFixed || data.discount_value_fixed || data.discountValue || data.discount_value;
 						if ( fixedValue !== undefined ) {
 							configUpdates.fixed = { value: parseFloat( fixedValue ) || 0 };
 						}
@@ -518,26 +518,32 @@
 								tiers: Array.isArray( tieredData ) ? tieredData : []
 							};
 						}
-						if ( data.tierMode ) {
-							updates.tierMode = data.tierMode;
+						if ( data.tierMode || data.tier_mode ) {
+							updates.tierMode = data.tierMode || data.tier_mode;
 						}
-						if ( data.tierType ) {
-							updates.tierType = data.tierType;
+						if ( data.tierType || data.tier_type ) {
+							updates.tierType = data.tierType || data.tier_type;
 						}
 						break;
 					case 'bogo':
-						if ( data.bogoBuyQuantity !== undefined ) {
+						// Check both formats:
+						// 1. Object format: data.bogoConfig or data.bogo_config
+						// 2. Individual fields: data.bogo_buy_quantity, etc.
+						var bogoData = data.bogoConfig || data.bogo_config;
+
+						if ( bogoData && 'object' === typeof bogoData ) {
+							// BOGO data is in grouped format, handle both camelCase and snake_case property names
 							configUpdates.bogo = {
-								buyQuantity: data.bogoBuyQuantity,
-								getQuantity: data.bogoGetQuantity || 1,
-								discountPercentage: data.bogoDiscount || data.bogoDiscountPercentage || 100,
-								applyTo: data.bogoApplyTo || 'cheapest'
+								buyQuantity: bogoData.buyQuantity || bogoData.buy_quantity || 1,
+								getQuantity: bogoData.getQuantity || bogoData.get_quantity || 1,
+								discountPercentage: bogoData.discountPercent || bogoData.discount_percent || bogoData.discountPercentage || 100,
+								applyTo: bogoData.applyTo || bogoData.apply_to || 'cheapest'
 							};
 						}
 						break;
 					case 'spend_threshold':
-						if ( data.thresholdMode ) {
-							updates.thresholdMode = data.thresholdMode;
+						if ( data.thresholdMode || data.threshold_mode ) {
+							updates.thresholdMode = data.thresholdMode || data.threshold_mode;
 						}
 						if ( data.thresholds ) {
 							updates.thresholds = Array.isArray( data.thresholds ) ? data.thresholds : [];
@@ -558,33 +564,54 @@
 				updates.discountConfig = $.extend( true, {}, currentConfig, configUpdates );
 			}
 
-			// Other fields
+			// Other fields - check both camelCase and snake_case
 			if ( data.conditions ) {updates.conditions = data.conditions;}
-			if ( data.conditionsLogic ) {updates.conditionsLogic = data.conditionsLogic;}
+			if ( data.conditionsLogic || data.conditions_logic ) {updates.conditionsLogic = data.conditionsLogic || data.conditions_logic;}
 
 			// Usage Limits
-			if ( data.usageLimitPerCustomer !== undefined ) {updates.usageLimitPerCustomer = data.usageLimitPerCustomer;}
-			if ( data.totalUsageLimit !== undefined ) {updates.totalUsageLimit = data.totalUsageLimit;}
-			if ( data.lifetimeUsageCap !== undefined ) {updates.lifetimeUsageCap = data.lifetimeUsageCap;}
-			if ( data.onePerOrder !== undefined ) {updates.onePerOrder = data.onePerOrder;}
+			var usageLimitPerCustomer = data.usageLimitPerCustomer !== undefined ? data.usageLimitPerCustomer : data.usage_limit_per_customer;
+			if ( usageLimitPerCustomer !== undefined ) {updates.usageLimitPerCustomer = usageLimitPerCustomer;}
+
+			var totalUsageLimit = data.totalUsageLimit !== undefined ? data.totalUsageLimit : data.total_usage_limit;
+			if ( totalUsageLimit !== undefined ) {updates.totalUsageLimit = totalUsageLimit;}
+
+			var lifetimeUsageCap = data.lifetimeUsageCap !== undefined ? data.lifetimeUsageCap : data.lifetime_usage_cap;
+			if ( lifetimeUsageCap !== undefined ) {updates.lifetimeUsageCap = lifetimeUsageCap;}
+
+			var onePerOrder = data.onePerOrder !== undefined ? data.onePerOrder : data.one_per_order;
+			if ( onePerOrder !== undefined ) {updates.onePerOrder = onePerOrder;}
 
 			// Application Rules
-			if ( data.applyTo !== undefined ) {updates.applyTo = data.applyTo;}
-			if ( data.maxDiscountAmount !== undefined ) {updates.maxDiscountAmount = data.maxDiscountAmount;}
-			if ( data.minimumQuantity !== undefined ) {updates.minimumQuantity = data.minimumQuantity;}
-			if ( data.minimumOrderAmount !== undefined ) {updates.minimumOrderAmount = data.minimumOrderAmount;}
+			var applyTo = data.applyTo !== undefined ? data.applyTo : data.apply_to;
+			if ( applyTo !== undefined ) {updates.applyTo = applyTo;}
+
+			var maxDiscountAmount = data.maxDiscountAmount !== undefined ? data.maxDiscountAmount : data.max_discount_amount;
+			if ( maxDiscountAmount !== undefined ) {updates.maxDiscountAmount = maxDiscountAmount;}
+
+			var minimumQuantity = data.minimumQuantity !== undefined ? data.minimumQuantity : data.minimum_quantity;
+			if ( minimumQuantity !== undefined ) {updates.minimumQuantity = minimumQuantity;}
+
+			var minimumOrderAmount = data.minimumOrderAmount !== undefined ? data.minimumOrderAmount : data.minimum_order_amount;
+			if ( minimumOrderAmount !== undefined ) {updates.minimumOrderAmount = minimumOrderAmount;}
 
 			// Combination Policy
-			if ( data.stackWithOthers !== undefined ) {updates.stackWithOthers = data.stackWithOthers;}
-			if ( data.allowCoupons !== undefined ) {updates.allowCoupons = data.allowCoupons;}
-			if ( data.applyToSaleItems !== undefined ) {updates.applyToSaleItems = data.applyToSaleItems;}
+			var stackWithOthers = data.stackWithOthers !== undefined ? data.stackWithOthers : data.stack_with_others;
+			if ( stackWithOthers !== undefined ) {updates.stackWithOthers = stackWithOthers;}
+
+			var allowCoupons = data.allowCoupons !== undefined ? data.allowCoupons : data.allow_coupons;
+			if ( allowCoupons !== undefined ) {updates.allowCoupons = allowCoupons;}
+
+			var applyToSaleItems = data.applyToSaleItems !== undefined ? data.applyToSaleItems : data.apply_to_sale_items;
+			if ( applyToSaleItems !== undefined ) {updates.applyToSaleItems = applyToSaleItems;}
 
 			// Badge settings
-			if ( data.badgeEnabled !== undefined ) {updates.badgeEnabled = data.badgeEnabled;}
-			if ( data.badgeText ) {updates.badgeText = data.badgeText;}
-			if ( data.badgeBgColor ) {updates.badgeBgColor = data.badgeBgColor;}
-			if ( data.badgeTextColor ) {updates.badgeTextColor = data.badgeTextColor;}
-			if ( data.badgePosition ) {updates.badgePosition = data.badgePosition;}
+			var badgeEnabled = data.badgeEnabled !== undefined ? data.badgeEnabled : data.badge_enabled;
+			if ( badgeEnabled !== undefined ) {updates.badgeEnabled = badgeEnabled;}
+
+			if ( data.badgeText || data.badge_text ) {updates.badgeText = data.badgeText || data.badge_text;}
+			if ( data.badgeBgColor || data.badge_bg_color ) {updates.badgeBgColor = data.badgeBgColor || data.badge_bg_color;}
+			if ( data.badgeTextColor || data.badge_text_color ) {updates.badgeTextColor = data.badgeTextColor || data.badge_text_color;}
+			if ( data.badgePosition || data.badge_position ) {updates.badgePosition = data.badgePosition || data.badge_position;}
 
 			// Apply all updates
 			this.setState( updates );

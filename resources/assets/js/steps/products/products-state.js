@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/steps/products/products-state.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -98,49 +98,7 @@
 		},
 
 		/**
-		 * Export state for backend (snake_case conversion)
-		 * Only exports relevant data based on selection type
-		 *
-		 * @since 1.0.0
-		 * @returns {object} Exported state data
-		 */
-		export: function() {
-			var state = this.getState();
-			var exportData = {
-				product_selection_type: state.productSelectionType
-			};
-
-			// Only save data relevant to the selected type
-			if ( 'specific_products' === state.productSelectionType ) {
-				// For specific products: save selected products and category filter
-				exportData.product_ids = state.productIds;
-				exportData.category_ids = state.categoryIds;
-
-			} else if ( 'random_products' === state.productSelectionType ) {
-				// For random products: save count, category filter, and conditions
-				exportData.random_count = state.randomCount;
-				exportData.category_ids = state.categoryIds;
-				exportData.conditions_logic = state.conditionsLogic;
-				exportData.conditions = state.conditions || [];
-
-			} else if ( 'all_products' === state.productSelectionType ) {
-				// For all products: save category filter and conditions
-				exportData.category_ids = state.categoryIds;
-				exportData.conditions_logic = state.conditionsLogic;
-				exportData.conditions = state.conditions || [];
-
-			} else if ( 'smart_selection' === state.productSelectionType ) {
-				// For smart selection: save criteria and category filter
-				exportData.smart_criteria = state.smartCriteria;
-				exportData.category_ids = state.categoryIds;
-			}
-
-			return exportData;
-		},
-
-		/**
 		 * toJSON for JSON.stringify and StepPersistence collectData()
-		 * Returns raw state - AJAX router will auto-convert camelCase to snake_case
 		 *
 		 * @since 1.0.0
 		 * @returns {object} Raw state data with camelCase keys
@@ -150,29 +108,28 @@
 		},
 
 		/**
-		 * Import state from backend (camelCase conversion)
+		 * Load state from saved data
+		 * Data is expected in camelCase (converted by field definitions system)
 		 *
 		 * @since 1.0.0
-		 * @param {object} data - Data from backend
+		 * @param {object} data - Data in camelCase format
 		 * @returns {void}
 		 */
-		import: function( data ) {
+		fromJSON: function( data ) {
 			if ( ! data || 'object' !== typeof data ) {
 				return;
 			}
 
-			// Convert snake_case to camelCase and normalize
 			var importData = {
-				productSelectionType: data.productSelectionType || data.product_selection_type || 'all_products',
-				productIds: this._normalizeArray( data.productIds || data.product_ids, [] ),
-				categoryIds: this._normalizeArray( data.categoryIds || data.category_ids, [ 'all' ] ),
-				randomCount: parseInt( data.randomCount || data.random_count, 10 ) || 10,
-				smartCriteria: data.smartCriteria || data.smart_criteria || '',
+				productSelectionType: data.productSelectionType || 'all_products',
+				productIds: this._normalizeArray( data.productIds, [] ),
+				categoryIds: this._normalizeArray( data.categoryIds, [ 'all' ] ),
+				randomCount: parseInt( data.randomCount, 10 ) || 10,
+				smartCriteria: data.smartCriteria || '',
 				conditions: Array.isArray( data.conditions ) ? data.conditions : [],
-				conditionsLogic: data.conditionsLogic || data.conditions_logic || 'all'
+				conditionsLogic: data.conditionsLogic || 'all'
 			};
 
-			// Apply state
 			this.setState( importData );
 		},
 

@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/steps/discounts/bogo-discount.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -157,13 +157,13 @@
 			} );
 
 			// Simple PHP template field handlers
-			$( document ).on( 'input.bogo change.bogo', '#bogo_buy_quantity, #bogo_get_quantity, #bogo_discount', function() {
+			$( document ).on( 'input.bogo change.bogo', '#bogo_buy_quantity, #bogo_get_quantity, #bogo_discount_percentage', function() {
 				self.updatePreview();
 
 				// Also update the state for visual preview
 				var buyQty = parseInt( $( '#bogo_buy_quantity' ).val() ) || 1;
 				var getQty = parseInt( $( '#bogo_get_quantity' ).val() ) || 1;
-				var discount = parseFloat( $( '#bogo_discount' ).val() ) || 100;
+				var discount = parseFloat( $( '#bogo_discount_percentage' ).val() ) || 100;
 
 				self.state.setState( {
 					bogoConfig: {
@@ -238,7 +238,7 @@
 
 			html += '<div class="scd-bogo-preset">';
 			html += '<label>Quick Select:</label>';
-			html += '<select class="scd-bogo-preset-select" data-index="' + index + '">';
+			html += '<select class="scd-bogo-preset-select scd-enhanced-select" data-index="' + index + '">';
 
 			presetOptions.forEach( function( preset ) {
 				var optionValue = preset.buy + '_' + preset.get + '_' + preset.discount;
@@ -253,23 +253,23 @@
 
 			html += '<div class="scd-field-group">';
 			html += '<label>Buy Quantity:</label>';
-			html += '<input type="number" class="scd-bogo-input" data-index="' + index + '" data-field="buyQuantity" value="' + ( rule.buyQuantity || 1 ) + '" min="1" step="1">';
+			html += '<input type="number" class="scd-bogo-input scd-enhanced-input" data-index="' + index + '" data-field="buyQuantity" value="' + ( rule.buyQuantity || 1 ) + '" min="1" step="1">';
 			html += '</div>';
 
 			html += '<div class="scd-field-group">';
 			html += '<label>Get Quantity:</label>';
-			html += '<input type="number" class="scd-bogo-input" data-index="' + index + '" data-field="getQuantity" value="' + ( rule.getQuantity || 1 ) + '" min="1" step="1">';
+			html += '<input type="number" class="scd-bogo-input scd-enhanced-input" data-index="' + index + '" data-field="getQuantity" value="' + ( rule.getQuantity || 1 ) + '" min="1" step="1">';
 			html += '</div>';
 
 			html += '<div class="scd-field-group">';
 			html += '<label>Discount on Free Items:</label>';
-			html += '<input type="number" class="scd-bogo-input" data-index="' + index + '" data-field="discountPercent" value="' + ( rule.discountPercent || 100 ) + '" min="0" max="100" step="1">';
+			html += '<input type="number" class="scd-bogo-input scd-enhanced-input" data-index="' + index + '" data-field="discountPercent" value="' + ( rule.discountPercent || 100 ) + '" min="0" max="100" step="1">';
 			html += '<span>%</span>';
 			html += '</div>';
 
 			html += '<div class="scd-field-group">';
 			html += '<label>Apply To:</label>';
-			html += '<select class="scd-bogo-apply-to" data-index="' + index + '">';
+			html += '<select class="scd-bogo-apply-to scd-enhanced-select" data-index="' + index + '">';
 			html += '<option value="same" ' + ( 'same' === rule.applyTo ? 'selected' : '' ) + '>Same Product</option>';
 			html += '<option value="different" ' + ( 'different' === rule.applyTo ? 'selected' : '' ) + '>Different Products</option>';
 			html += '</select>';
@@ -285,7 +285,7 @@
 				if ( rule.getProducts && 0 < rule.getProducts.length ) {
 					rule.getProducts.forEach( function( product ) {
 						html += '<span class="scd-selected-product" data-id="' + product.id + '">';
-						html += product.name;
+						html += this._escapeHtml( product.name );
 						html += '<button type="button" class="scd-remove-product" data-index="' + index + '" data-product-id="' + product.id + '">×</button>';
 						html += '</span>';
 					} );
@@ -497,7 +497,7 @@
 
 			var buyQty = parseInt( $( '#bogo_buy_quantity' ).val() ) || 0;
 			var getQty = parseInt( $( '#bogo_get_quantity' ).val() ) || 0;
-			var discount = parseFloat( $( '#bogo_discount' ).val() );
+			var discount = parseFloat( $( '#bogo_discount_percentage' ).val() );
 
 			if ( 0 < buyQty && 0 < getQty && !isNaN( discount ) ) {
 				var previewText = '';
@@ -529,30 +529,6 @@
 				} );
 				this.renderBogoRules();
 				return;
-			}
-
-			// Handle simple BOGO fields (template format)
-			// Data already converted to camelCase by server
-			var buyQuantity = data.bogoBuyQuantity || data.buyQuantity;
-			var getQuantity = data.bogoGetQuantity || data.getQuantity;
-			var discount = data.bogoDiscount || data.discountPercent;
-
-			if ( buyQuantity || getQuantity || discount ) {
-				var rule = {
-					buyQuantity: parseInt( buyQuantity ) || 2,
-					getQuantity: parseInt( getQuantity ) || 1,
-					discountPercent: parseFloat( discount ) || 100,
-					applyTo: 'same', // Simple BOGO always applies to same products
-					getProducts: []
-				};
-
-				this.state.setState( {
-					bogoConfig: {
-						rules: [ rule ],
-						allowMultiple: false
-					}
-				} );
-				this.renderBogoRules();
 			}
 
 			// Sync with DOM fields after loading to ensure persistence works
@@ -590,7 +566,7 @@
 					$getQty.val( rule.getQuantity ).trigger( 'change' );
 				}
 
-				var $discount = $( '#bogo_discount' );
+				var $discount = $( '#bogo_discount_percentage' );
 				if ( $discount.length && $discount.val() !== rule.discountPercent ) {
 					$discount.val( rule.discountPercent ).trigger( 'change' );
 				}
@@ -646,13 +622,10 @@
 		getValue: function() {
 			try {
 				var config = {
-					buy_quantity: parseInt( $( '#bogo_buy_quantity' ).val() ) || 1,
-					get_quantity: parseInt( $( '#bogo_get_quantity' ).val() ) || 1,
-					discount_percent: parseFloat( $( '#bogo_discount' ).val() ) || 100
+					buy_quantity: parseInt( $( '#bogo_buy_quantity' ).val() ) || 1,      // Use snake_case for PHP
+					get_quantity: parseInt( $( '#bogo_get_quantity' ).val() ) || 1,      // Use snake_case for PHP
+					discount_percent: parseFloat( $( '#bogo_discount_percentage' ).val() ) || 100  // Use snake_case for PHP
 				};
-
-				if ( window.scdDebugDiscounts ) {
-				}
 
 				return config;
 			} catch ( error ) {
@@ -663,40 +636,37 @@
 
 		/**
 		 * Set BOGO configuration from backend (complex field handler)
-		 * @param {object} config - BOGO configuration with snake_case keys
+		 * Accepts both camelCase (from Asset Localizer) and snake_case (raw PHP) property names
+		 * @param {object} config - BOGO configuration
 		 */
 		setValue: function( config ) {
-			try {
-				if ( !config || 'object' !== typeof config ) {
-					if ( window.scdDebugDiscounts ) {
+			// Accept both camelCase and snake_case property names
+			var buyQty = config.buyQuantity || config.buy_quantity;
+			var getQty = config.getQuantity || config.get_quantity;
+			var discount = config.discountPercent || config.discount_percent;
+
+			if ( buyQty ) {
+				$( '#bogo_buy_quantity' ).val( buyQty );
+			}
+			if ( getQty ) {
+				$( '#bogo_get_quantity' ).val( getQty );
+			}
+			if ( discount ) {
+				$( '#bogo_discount_percentage' ).val( discount );
+			}
+
+			if ( this.state && 'function' === typeof this.state.setState ) {
+				this.state.setState( {
+					bogoConfig: {
+						buyQuantity: parseInt( buyQty ) || 1,
+						getQuantity: parseInt( getQty ) || 1,
+						discountPercent: parseFloat( discount ) || 100
 					}
-					return;
-				}
+				} );
+			}
 
-				if ( window.scdDebugDiscounts ) {
-				}
-
-				if ( config.buy_quantity ) {
-					$( '#bogo_buy_quantity' ).val( config.buy_quantity );
-				}
-				if ( config.get_quantity ) {
-					$( '#bogo_get_quantity' ).val( config.get_quantity );
-				}
-				if ( config.discount_percent ) {
-					$( '#bogo_discount' ).val( config.discount_percent );
-				}
-
-				if ( this.state && 'function' === typeof this.state.setState ) {
-					this.state.setState( {
-						bogoConfig: config
-					} );
-				}
-
-				if ( 'function' === typeof this.updatePreview ) {
-					this.updatePreview();
-				}
-			} catch ( error ) {
-				console.error( '[BOGODiscount] setValue error:', error );
+			if ( 'function' === typeof this.updatePreview ) {
+				this.updatePreview();
 			}
 		},
 
@@ -706,6 +676,27 @@
 		 */
 		isReady: function() {
 			return true === this._ready;
+		},
+
+		/**
+		 * Escape HTML for safe output
+		 *
+		 * @since 1.0.0
+		 * @private
+		 * @param {string} text - Text to escape
+		 * @returns {string} Escaped text
+		 */
+		_escapeHtml: function( text ) {
+			var map = {
+				'&': '&amp;',
+				'<': '&lt;',
+				'>': '&gt;',
+				'"': '&quot;',
+				"'": '&#039;'
+			};
+			return String( text ).replace( /[&<>"']/g, function( m ) {
+				return map[m];
+			} );
 		},
 
 		/**

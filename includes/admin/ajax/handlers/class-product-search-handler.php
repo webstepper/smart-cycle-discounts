@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers/class-product-search-handler.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 
@@ -397,10 +397,10 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 		$hierarchy = array();
 
 		foreach ( $categories as $category ) {
-			if ( $parent_id == $category->parent ) {
+			if ( $category->parent === $parent_id ) {
 				$has_children = false;
 				foreach ( $categories as $check_cat ) {
-					if ( $category->term_id == $check_cat->parent ) {
+					if ( $check_cat->parent === $category->term_id ) {
 						$has_children = true;
 						break;
 					}

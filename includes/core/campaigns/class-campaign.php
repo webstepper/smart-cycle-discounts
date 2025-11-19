@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/campaigns/class-campaign.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/database/models
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Campaign {
 
@@ -151,6 +151,22 @@ class SCD_Campaign {
 	private string $timezone;
 
 	/**
+	 * Enable recurring flag.
+	 *
+	 * @since    1.0.0
+	 * @var      bool    $enable_recurring    Whether recurring schedule is enabled.
+	 */
+	private bool $enable_recurring = false;
+
+	/**
+	 * Recurring configuration.
+	 *
+	 * @since    1.1.0
+	 * @var      array    $recurring_config    Recurring campaign configuration.
+	 */
+	private array $recurring_config = array();
+
+	/**
 	 * Product selection type.
 	 *
 	 * @since    1.0.0
@@ -183,6 +199,57 @@ class SCD_Campaign {
 	private array $tag_ids = array();
 
 	/**
+	 * Product conditions.
+	 *
+	 * Array of conditions for filtering products (e.g., price > 100, stock < 10).
+	 * Each condition is stored as an array with: condition_type, operator, value, value2, mode, sort_order.
+	 *
+	 * @since    1.0.0
+	 * @var      array    $conditions    Product conditions.
+	 */
+	private array $conditions = array();
+
+	/**
+	 * Conditions logic.
+	 *
+	 * How multiple conditions are combined: 'all' (AND) or 'any' (OR).
+	 *
+	 * @since    1.0.0
+	 * @var      string    $conditions_logic    Conditions logic.
+	 */
+	private string $conditions_logic = 'all';
+
+	/**
+	 * Random product count.
+	 *
+	 * Number of products to randomly select when using random_products selection type.
+	 *
+	 * @since    1.0.0
+	 * @var      int    $random_product_count    Random product count.
+	 */
+	private int $random_product_count = 5;
+
+	/**
+	 * Compiled at timestamp.
+	 *
+	 * When product_ids were last compiled/calculated.
+	 *
+	 * @since    1.0.0
+	 * @var      DateTime|null    $compiled_at    Compilation timestamp.
+	 */
+	private ?DateTime $compiled_at = null;
+
+	/**
+	 * Compilation method.
+	 *
+	 * How product_ids were compiled: 'static', 'random', 'smart', 'conditional'.
+	 *
+	 * @since    1.0.0
+	 * @var      string|null    $compilation_method    Compilation method.
+	 */
+	private ?string $compilation_method = null;
+
+	/**
 	 * Discount type.
 	 *
 	 * @since    1.0.0
@@ -205,6 +272,46 @@ class SCD_Campaign {
 	 * @var      array    $discount_rules    Discount rules.
 	 */
 	private array $discount_rules = array();
+
+	/**
+	 * Badge enabled flag.
+	 *
+	 * @since    1.0.0
+	 * @var      bool    $badge_enabled    Whether badge display is enabled.
+	 */
+	private bool $badge_enabled = true;
+
+	/**
+	 * Badge text.
+	 *
+	 * @since    1.0.0
+	 * @var      string    $badge_text    Custom badge text or 'auto' for automatic.
+	 */
+	private string $badge_text = 'auto';
+
+	/**
+	 * Badge background color.
+	 *
+	 * @since    1.0.0
+	 * @var      string    $badge_bg_color    Badge background color (hex).
+	 */
+	private string $badge_bg_color = '#ff0000';
+
+	/**
+	 * Badge text color.
+	 *
+	 * @since    1.0.0
+	 * @var      string    $badge_text_color    Badge text color (hex).
+	 */
+	private string $badge_text_color = '#ffffff';
+
+	/**
+	 * Badge position.
+	 *
+	 * @since    1.0.0
+	 * @var      string    $badge_position    Badge position (top-left, top-right, etc).
+	 */
+	private string $badge_position = 'top-right';
 
 	/**
 	 * Created date.
@@ -278,6 +385,7 @@ class SCD_Campaign {
 				$this->$setter( $value );
 			}
 		}
+
 	}
 
 	// Simple getters and setters
@@ -344,9 +452,6 @@ class SCD_Campaign {
 	public function can_transition_to( string $to_status ): bool {
 		$current_status = $this->get_status();
 
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-		}
-
 		// Define allowed status transitions (must match State Manager rules)
 		$allowed_transitions = array(
 			'draft'     => array( 'active', 'scheduled', 'archived' ),
@@ -358,17 +463,10 @@ class SCD_Campaign {
 		);
 
 		if ( ! isset( $allowed_transitions[ $current_status ] ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			}
 			return false;
 		}
 
-		$result = in_array( $to_status, $allowed_transitions[ $current_status ], true );
-
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-		}
-
-		return $result;
+		return in_array( $to_status, $allowed_transitions[ $current_status ], true );
 	}
 
 	public function get_priority(): int {
@@ -475,6 +573,22 @@ class SCD_Campaign {
 		$this->timezone = $timezone;
 	}
 
+	public function get_enable_recurring(): bool {
+		return $this->enable_recurring;
+	}
+
+	public function set_enable_recurring( bool $enable_recurring ): void {
+		$this->enable_recurring = $enable_recurring;
+	}
+
+	public function get_recurring_config(): array {
+		return $this->recurring_config;
+	}
+
+	public function set_recurring_config( array $recurring_config ): void {
+		$this->recurring_config = $recurring_config;
+	}
+
 	public function get_product_selection_type(): string {
 		return $this->product_selection_type;
 	}
@@ -507,6 +621,93 @@ class SCD_Campaign {
 		$this->tag_ids = array_map( 'intval', $tags );
 	}
 
+	public function get_conditions(): array {
+		return $this->conditions;
+	}
+
+	public function set_conditions( array $conditions ): void {
+		error_log( '[SCD] CAMPAIGN - set_conditions() called with: ' . print_r( $conditions, true ) );
+		$this->conditions = $conditions;
+	}
+
+	public function get_conditions_logic(): string {
+		return $this->conditions_logic;
+	}
+
+	public function set_conditions_logic( string $logic ): void {
+		if ( ! in_array( $logic, array( 'all', 'any' ), true ) ) {
+			$logic = 'all';
+		}
+		$this->conditions_logic = $logic;
+	}
+
+	public function get_random_product_count(): int {
+		return $this->random_product_count;
+	}
+
+	public function set_random_product_count( int $count ): void {
+		$this->random_product_count = max( 1, $count );
+	}
+
+	public function get_compiled_at(): ?DateTime {
+		return $this->compiled_at;
+	}
+
+	public function set_compiled_at( $compiled_at ): void {
+		if ( is_string( $compiled_at ) && ! empty( $compiled_at ) ) {
+			$this->compiled_at = new DateTime( $compiled_at, new DateTimeZone( 'UTC' ) );
+		} elseif ( $compiled_at instanceof DateTime ) {
+			$this->compiled_at = clone $compiled_at;
+			$this->compiled_at->setTimezone( new DateTimeZone( 'UTC' ) );
+		} else {
+			$this->compiled_at = null;
+		}
+	}
+
+	public function get_compilation_method(): ?string {
+		return $this->compilation_method;
+	}
+
+	public function set_compilation_method( ?string $method ): void {
+		$valid_methods = array( 'static', 'random', 'smart', 'conditional' );
+		if ( null !== $method && ! in_array( $method, $valid_methods, true ) ) {
+			$method = 'static';
+		}
+		$this->compilation_method = $method;
+	}
+
+	/**
+	 * Check if campaign needs recompilation.
+	 *
+	 * @since    1.0.0
+	 * @return   bool    True if needs recompilation.
+	 */
+	public function needs_recompilation(): bool {
+		if ( ! $this->compiled_at ) {
+			return true;
+		}
+
+		if ( 'random_products' === $this->product_selection_type ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Mark campaign as compiled.
+	 *
+	 * Sets compiled_at timestamp and compilation_method.
+	 *
+	 * @since    1.0.0
+	 * @param    string $method    Compilation method used.
+	 * @return   void
+	 */
+	public function mark_compiled( string $method ): void {
+		$this->compiled_at        = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
+		$this->compilation_method = $method;
+	}
+
 	public function get_discount_type(): string {
 		return $this->discount_type;
 	}
@@ -529,6 +730,115 @@ class SCD_Campaign {
 
 	public function set_discount_rules( array $rules ): void {
 		$this->discount_rules = $rules;
+	}
+
+	/**
+	 * Check if badge is enabled.
+	 *
+	 * @since    1.0.0
+	 * @return   bool    True if badge enabled.
+	 */
+	public function is_badge_enabled(): bool {
+		return $this->badge_enabled;
+	}
+
+	/**
+	 * Set badge enabled flag.
+	 *
+	 * @since    1.0.0
+	 * @param    bool $enabled    Badge enabled flag.
+	 * @return   void
+	 */
+	public function set_badge_enabled( bool $enabled ): void {
+		$this->badge_enabled = $enabled;
+	}
+
+	/**
+	 * Get badge text.
+	 *
+	 * @since    1.0.0
+	 * @return   string    Badge text.
+	 */
+	public function get_badge_text(): string {
+		return $this->get_setting( 'badge_text', $this->badge_text );
+	}
+
+	/**
+	 * Set badge text.
+	 *
+	 * @since    1.0.0
+	 * @param    string $text    Badge text.
+	 * @return   void
+	 */
+	public function set_badge_text( string $text ): void {
+		$this->set_setting( 'badge_text', $text );
+		$this->badge_text = $text;
+	}
+
+	/**
+	 * Get badge background color.
+	 *
+	 * @since    1.0.0
+	 * @return   string    Badge background color.
+	 */
+	public function get_badge_bg_color(): string {
+		return $this->get_setting( 'badge_bg_color', $this->badge_bg_color );
+	}
+
+	/**
+	 * Set badge background color.
+	 *
+	 * @since    1.0.0
+	 * @param    string $color    Badge background color (hex).
+	 * @return   void
+	 */
+	public function set_badge_bg_color( string $color ): void {
+		$this->set_setting( 'badge_bg_color', $color );
+		$this->badge_bg_color = $color;
+	}
+
+	/**
+	 * Get badge text color.
+	 *
+	 * @since    1.0.0
+	 * @return   string    Badge text color.
+	 */
+	public function get_badge_text_color(): string {
+		return $this->get_setting( 'badge_text_color', $this->badge_text_color );
+	}
+
+	/**
+	 * Set badge text color.
+	 *
+	 * @since    1.0.0
+	 * @param    string $color    Badge text color (hex).
+	 * @return   void
+	 */
+	public function set_badge_text_color( string $color ): void {
+		$this->set_setting( 'badge_text_color', $color );
+		$this->badge_text_color = $color;
+	}
+
+	/**
+	 * Get badge position.
+	 *
+	 * @since    1.0.0
+	 * @return   string    Badge position.
+	 */
+	public function get_badge_position(): string {
+		return $this->get_setting( 'badge_position', $this->badge_position );
+	}
+
+	/**
+	 * Set badge position.
+	 *
+	 * @since    1.0.0
+	 * @param    string $position    Badge position.
+	 * @return   void
+	 */
+	public function set_badge_position( string $position ): void {
+		$this->set_setting( 'badge_position', $position );
+		$this->badge_position = $position;
 	}
 
 	public function get_created_at(): DateTime {
@@ -614,10 +924,17 @@ class SCD_Campaign {
 			'starts_at'              => $this->starts_at ? $this->starts_at->setTimezone( new DateTimeZone( 'UTC' ) )->format( 'Y-m-d H:i:s' ) : null,
 			'ends_at'                => $this->ends_at ? $this->ends_at->setTimezone( new DateTimeZone( 'UTC' ) )->format( 'Y-m-d H:i:s' ) : null,
 			'timezone'               => $this->timezone,
+			'enable_recurring'       => $this->enable_recurring,
+			'recurring_config'       => $this->recurring_config,
 			'product_selection_type' => $this->product_selection_type,
 			'product_ids'            => $this->product_ids,
 			'category_ids'           => $this->category_ids,
 			'tag_ids'                => $this->tag_ids,
+			'conditions'             => $this->conditions,
+			'conditions_logic'       => $this->conditions_logic,
+			'random_product_count'   => $this->random_product_count,
+			'compiled_at'            => $this->compiled_at ? $this->compiled_at->setTimezone( new DateTimeZone( 'UTC' ) )->format( 'Y-m-d H:i:s' ) : null,
+			'compilation_method'     => $this->compilation_method,
 			'discount_type'          => $this->discount_type,
 			'discount_value'         => $this->discount_value,
 			'discount_rules'         => $this->discount_rules,

@@ -11,93 +11,137 @@
  */
 
 /* ==========================================================================
-   Base Badge Styles
+   Base Badge Mixin (applied to all badge types)
    ========================================================================== */
 
-.scd-badge,
-.scd-status,
-.scd-status-badge {
+/* Campaign Status Badges */
+.scd-badge-status--active,
+.scd-badge-status--inactive,
+.scd-badge-status--scheduled,
+.scd-badge-status--expired,
+.scd-badge-status--draft,
+.scd-badge-status--paused,
+/* Health Check Badges */
+.scd-badge-health--healthy,
+.scd-badge-health--warning,
+.scd-badge-health--alert,
+.scd-badge-health--info,
+/* Performance Badges */
+.scd-badge--performance,
+.scd-badge--high-performance,
+.scd-badge--medium-performance,
+.scd-badge--low-performance,
+/* Discount Type Badges */
+.scd-badge--percentage,
+.scd-badge--fixed,
+.scd-badge--bogo,
+.scd-badge--tiered,
+/* Product Selection Badges */
+.scd-badge-product {
     display: inline-flex;
     align-items: center;
     gap: var(--scd-spacing-xs);
-    padding: 2px var(--scd-spacing-sm);
+    padding: var(--scd-spacing-xs) var(--scd-spacing-md);
     font-size: var(--scd-font-size-small);
     font-weight: var(--scd-font-weight-medium);
     line-height: 1.5;
     text-align: center;
     white-space: nowrap;
-    border-radius: var(--scd-radius-pill);
-    transition: all var(--scd-transition-fast) var(--scd-ease-in-out);
+    border-radius: var(--scd-radius-md); /* 6px - subtle rounded, not too circular */
+    transition: var(--scd-transition-all);
 }
 
-/* Badge sizes */
-.scd-badge--small,
-.scd-status--small {
-    padding: 1px var(--scd-spacing-xs);
-    font-size: 11px;
+/* ==========================================================================
+   Badge Size Variants
+   ========================================================================== */
+
+.scd-badge--sm {
+    padding: 2px var(--scd-spacing-sm);
+    font-size: var(--scd-font-size-small);
+    gap: var(--scd-spacing-xxs);
 }
 
-.scd-badge--large,
-.scd-status--large {
+.scd-badge--md {
     padding: var(--scd-spacing-xs) var(--scd-spacing-md);
     font-size: var(--scd-font-size-base);
 }
 
+.scd-badge--lg {
+    padding: var(--scd-spacing-sm) var(--scd-spacing-base);
+    font-size: var(--scd-font-size-medium);
+    gap: var(--scd-spacing-sm);
+}
+
 /* ==========================================================================
-   Campaign Status Badges - Theme colors
+   Campaign Status Badges
    ========================================================================== */
 
 /* Active campaigns */
-.scd-badge--active,
-.scd-status--active,
-.scd-status-badge--active {
-    background-color: var(--scd-color-success-bg, rgba(0, 163, 42, 0.25));
-    color: var(--scd-badge-active, #186a3b);
+.scd-badge-status--active {
+    background: var(--scd-color-success-lighter);
+    color: var(--scd-color-success);
 }
 
-.scd-badge--active .dashicons,
-.scd-status--active .dashicons {
-    color: var(--scd-badge-active, #186a3b);
+.scd-badge-status--active .scd-icon {
+    color: var(--scd-color-success);
 }
 
 /* Inactive campaigns */
-.scd-badge--inactive,
-.scd-status--inactive,
-.scd-status-badge--inactive {
-    background-color: var(--scd-color-text-bg, rgba(100, 105, 112, 0.25));
-    color: var(--scd-badge-inactive, #566573);
+.scd-badge-status--inactive {
+    background: var(--scd-color-text-alpha-15);
+    color: var(--scd-color-text-muted);
 }
 
 /* Scheduled campaigns */
-.scd-badge--scheduled,
-.scd-status--scheduled,
-.scd-status-badge--scheduled {
-    background-color: var(--scd-color-info-bg, rgba(114, 174, 230, 0.25));
-    color: var(--scd-badge-scheduled, #1a5276);
+.scd-badge-status--scheduled {
+    background: var(--scd-color-info-alpha-15);
+    color: var(--scd-color-primary);
 }
 
 /* Expired campaigns */
-.scd-badge--expired,
-.scd-status--expired,
-.scd-status-badge--expired {
-    background-color: var(--scd-color-error-bg, rgba(214, 54, 56, 0.25));
-    color: var(--scd-badge-expired, #a93226);
+.scd-badge-status--expired {
+    background: var(--scd-color-danger-lighter);
+    color: var(--scd-color-danger-dark);
 }
 
 /* Draft campaigns */
-.scd-badge--draft,
-.scd-status--draft,
-.scd-status-badge--draft {
-    background-color: var(--scd-color-warning-bg, rgba(219, 166, 23, 0.25));
-    color: var(--scd-badge-draft, #b9770e);
+.scd-badge-status--draft {
+    background: var(--scd-color-warning-lighter);
+    color: var(--scd-color-warning-dark);
 }
 
 /* Paused campaigns */
-.scd-badge--paused,
-.scd-status--paused,
-.scd-status-badge--paused {
-    background-color: var(--scd-color-text-bg, rgba(100, 105, 112, 0.25));
-    color: var(--scd-badge-inactive, #566573);
+.scd-badge-status--paused {
+    background: var(--scd-color-text-alpha-15);
+    color: var(--scd-color-text-muted);
+}
+
+/* ==========================================================================
+   Health Check Badges
+   ========================================================================== */
+
+/* Healthy / No issues */
+.scd-badge-health--healthy {
+    background: var(--scd-color-success-lighter);
+    color: var(--scd-color-success);
+}
+
+/* Warning / Attention needed */
+.scd-badge-health--warning {
+    background: var(--scd-color-warning-lighter);
+    color: var(--scd-color-warning-dark);
+}
+
+/* Alert / Critical issue */
+.scd-badge-health--alert {
+    background: var(--scd-color-danger-lighter);
+    color: var(--scd-color-danger-dark);
+}
+
+/* Info / Informational */
+.scd-badge-health--info {
+    background: var(--scd-color-info-alpha-15);
+    color: var(--scd-color-primary);
 }
 
 /* ==========================================================================
@@ -110,20 +154,20 @@
 
 /* High performing */
 .scd-badge--high-performance {
-    background-color: var(--scd-color-success-bg, rgba(0, 163, 42, 0.25));
-    color: var(--scd-color-success, #186a3b);
+    background: var(--scd-color-success-lighter);
+    color: var(--scd-color-success);
 }
 
 /* Medium performing */
 .scd-badge--medium-performance {
-    background-color: var(--scd-color-warning-bg, rgba(219, 166, 23, 0.25));
-    color: var(--scd-color-warning, #b9770e);
+    background: var(--scd-color-warning-lighter);
+    color: var(--scd-color-warning-dark);
 }
 
 /* Low performing */
 .scd-badge--low-performance {
-    background-color: var(--scd-color-error-bg, rgba(214, 54, 56, 0.25));
-    color: var(--scd-color-danger, #a93226);
+    background: var(--scd-color-danger-lighter);
+    color: var(--scd-color-danger-dark);
 }
 
 /* ==========================================================================
@@ -131,77 +175,98 @@
    ========================================================================== */
 
 .scd-badge--percentage {
-    background-color: var(--scd-color-accent-bg, rgba(56, 88, 233, 0.25));
-    color: var(--scd-color-accent, #2c3e99);
+    background-color: var(--scd-color-accent-bg);
+    color: var(--scd-color-accent);
 }
 
 .scd-badge--fixed {
-    background-color: var(--scd-color-primary-bg, rgba(34, 113, 177, 0.25));
-    color: var(--scd-color-primary, #1a5276);
+    background-color: var(--scd-color-primary-bg);
+    color: var(--scd-color-primary);
 }
 
 .scd-badge--bogo {
-    background-color: var(--scd-color-info-bg, rgba(114, 174, 230, 0.25));
-    color: var(--scd-color-secondary, #1a5276);
+    background-color: var(--scd-color-info-bg);
+    color: var(--scd-color-secondary);
 }
 
 .scd-badge--tiered {
-    background-color: var(--scd-color-warning-bg, rgba(219, 166, 23, 0.25));
-    color: var(--scd-color-warning, #b9770e);
+    background-color: var(--scd-color-warning-bg);
+    color: var(--scd-color-warning);
 }
 
 /* ==========================================================================
-   Badge Variants
+   Product Selection Badges
    ========================================================================== */
 
-/* Solid badges */
-.scd-badge--solid {
-    color: var(--scd-color-white, #fff);
+/* Base product badge */
+.scd-badge-product {
+    background-color: rgba(246, 248, 250, 1);
+    color: var(--scd-color-text);
+    border: 1px solid rgba(208, 215, 222, 1);
+    text-transform: none;
+    cursor: help;
+}
+
+.scd-badge-product:hover {
+    opacity: 0.85;
+}
+
+/* Empty/Pending state */
+.scd-badge-product--empty {
+    background-color: var(--scd-color-white);
+    border-style: dashed;
+    color: var(--scd-color-text-secondary);
+    font-style: italic;
+}
+
+.scd-badge-product--empty:hover {
+    opacity: 0.85;
+}
+
+/* ==========================================================================
+   PRO/FREE Feature Badges
+   ========================================================================== */
+
+.scd-pro-badge,
+.scd-free-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--scd-spacing-xs);
+    padding: var(--scd-spacing-xs) var(--scd-spacing-md);
+    font-size: var(--scd-font-size-small);
+    font-weight: var(--scd-font-weight-semibold);
+    line-height: 1.5;
+    text-align: center;
+    white-space: nowrap;
+    border-radius: var(--scd-radius-md); /* 6px - consistent with status badges */
+    transition: var(--scd-transition-all);
+    letter-spacing: 0.01em;
+}
+
+.scd-pro-badge {
+    background: var(--scd-color-warning);
+    color: var(--scd-color-white);
     border: none;
+    box-shadow: var(--scd-shadow-warning);
 }
 
-.scd-badge--solid.scd-badge--active {
-    background-color: var(--scd-badge-active);
+.scd-free-badge {
+    background: var(--scd-color-success-lighter);
+    color: var(--scd-color-success-dark);
+    border: 1px solid var(--scd-color-success);
+    box-shadow: none;
 }
 
-.scd-badge--solid.scd-badge--inactive {
-    background-color: var(--scd-badge-inactive);
-}
-
-.scd-badge--solid.scd-badge--scheduled {
-    background-color: var(--scd-badge-scheduled);
-}
-
-.scd-badge--solid.scd-badge--expired {
-    background-color: var(--scd-badge-expired);
-}
-
-.scd-badge--solid.scd-badge--draft {
-    background-color: var(--scd-badge-draft);
-}
-
-/* Outline badges */
-.scd-badge--outline {
-    background-color: transparent;
-    border-width: 2px;
-}
-
-.scd-badge--outline.scd-badge--active {
-    color: var(--scd-badge-active);
-    border-color: var(--scd-badge-active);
-}
-
-.scd-badge--outline.scd-badge--inactive {
-    color: var(--scd-badge-inactive);
-    border-color: var(--scd-badge-inactive);
-}
+/* ==========================================================================
+   Badge Variants (Reserved for future use)
+   ========================================================================== */
 
 /* Dot indicator */
 .scd-badge--with-dot::before {
     content: '';
     width: 6px;
     height: 6px;
-    border-radius: 50%;
+    border-radius: var(--scd-radius-full);
     background-color: currentColor;
     margin-right: var(--scd-spacing-xs);
 }
@@ -220,12 +285,19 @@
    Icon Support
    ========================================================================== */
 
-.scd-badge .dashicons,
-.scd-status .dashicons,
-.scd-status-badge .dashicons {
+.scd-badge-status--active .scd-icon,
+.scd-badge-status--inactive .scd-icon,
+.scd-badge-status--scheduled .scd-icon,
+.scd-badge-status--expired .scd-icon,
+.scd-badge-status--draft .scd-icon,
+.scd-badge-status--paused .scd-icon,
+.scd-badge-health--healthy .scd-icon,
+.scd-badge-health--warning .scd-icon,
+.scd-badge-health--alert .scd-icon,
+.scd-badge-health--info .scd-icon {
     width: 14px;
     height: 14px;
-    font-size: 14px;
+    font-size: var(--scd-font-size-medium);
     line-height: 1;
 }
 
@@ -233,20 +305,17 @@
    Interactive Badges
    ========================================================================== */
 
-.scd-badge--clickable,
-.scd-status--clickable {
+.scd-badge--clickable {
     cursor: pointer;
+    transition: var(--scd-transition-all);
 }
 
-.scd-badge--clickable:hover,
-.scd-status--clickable:hover {
-    /* transform: translateY(-1px); removed for instant state change */
-    box-shadow: var(--scd-shadow-sm);
+.scd-badge--clickable:hover {
+    opacity: 0.85;
 }
 
-.scd-badge--clickable:active,
-.scd-status--clickable:active {
-    /* transform: translateY(0); removed for instant state change */
+.scd-badge--clickable:active {
+    opacity: 0.9;
 }
 
 /* ==========================================================================
@@ -271,16 +340,11 @@
    ========================================================================== */
 
 .scd-badge--loading {
-    background: linear-gradient(
-        90deg,
-        var(--scd-color-surface) 25%,
-        var(--scd-color-surface-dark) 50%,
-        var(--scd-color-surface) 75%
-    );
+    background: var(--scd-gradient-shimmer);
     background-size: 200% 100%;
-    animation: scd-shimmer 1.2s ease-in-out infinite;
     color: transparent;
     min-width: 60px;
+    animation: scd-shimmer 1.5s ease-in-out infinite;
 }
 
 @keyframes scd-shimmer {

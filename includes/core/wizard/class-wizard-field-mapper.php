@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/wizard/class-wizard-field-mapper.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/wizard
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Wizard_Field_Mapper {
 
@@ -62,10 +62,7 @@ class SCD_Wizard_Field_Mapper {
 		'discount_tiers'            => 'tiers',
 		'tier_mode'                 => 'tier_mode',
 		'minimum_quantity'          => 'minimum_quantity',
-		'bogo_type'                 => 'bogo_type',
-		'bogo_buy_quantity'         => 'bogo_buy_quantity',
-		'bogo_get_quantity'         => 'bogo_get_quantity',
-		'spend_threshold'           => 'spend_threshold',
+		'bogo_config'               => 'bogo_config', // Grouped BOGO configuration object
 
 		// Discount step fields - Usage Limits
 		'usage_limit_per_customer'  => 'usage_limit_per_customer',
@@ -95,8 +92,6 @@ class SCD_Wizard_Field_Mapper {
 		'tiers'                     => 'tiers',
 		'tier_mode'                 => 'tier_mode',
 		'tier_type'                 => 'tier_type',
-		'bogo_discount_percentage'  => 'bogo_discount_percentage',
-		'bogo_apply_to'             => 'bogo_apply_to',
 		'threshold_mode'            => 'threshold_mode',
 		'thresholds'                => 'thresholds',
 
@@ -201,9 +196,6 @@ class SCD_Wizard_Field_Mapper {
 					'max_discount_amount',
 					'minimum_quantity',
 					'minimum_order_amount',
-					'bogo_buy_quantity',
-					'bogo_get_quantity',
-					'bogo_discount_percentage',
 				);
 				foreach ( $numeric_fields as $field ) {
 					if ( isset( $mapped_data[ $field ] ) && $mapped_data[ $field ] !== '' ) {

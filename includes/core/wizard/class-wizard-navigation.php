@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/wizard/class-wizard-navigation.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/wizard
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Wizard_Navigation {
 
@@ -57,15 +57,15 @@ class SCD_Wizard_Navigation {
 			),
 		),
 		'button_classes' => array(
-			'previous'  => 'button scd-nav-btn scd-nav-btn--previous',
-			'next'      => 'button button-primary scd-nav-btn scd-nav-btn--next',
-			'complete'  => 'button button-primary scd-nav-btn scd-nav-btn--complete',
-			'secondary' => 'button button-secondary scd-nav-btn scd-nav-btn--draft',
+			'previous'  => 'scd-button--secondary scd-nav-btn scd-nav-btn--previous',
+			'next'      => 'scd-button--primary scd-nav-btn scd-nav-btn--next',
+			'complete'  => 'scd-button--success scd-nav-btn scd-nav-btn--complete',
+			'secondary' => 'scd-button--secondary scd-nav-btn scd-nav-btn--draft',
 		),
 		'icons'          => array(
-			'previous' => 'dashicons-arrow-left-alt2',
-			'next'     => 'dashicons-arrow-right-alt2',
-			'complete' => 'dashicons-yes-alt',
+			'previous' => 'arrow-left',
+			'next'     => 'arrow-right',
+			'complete' => 'check',
 		),
 	);
 
@@ -135,7 +135,7 @@ class SCD_Wizard_Navigation {
 			'total_steps'   => count( $steps ),
 			'previous_step' => $current_index > 0 ? $steps[ $current_index - 1 ] : null,
 			'next_step'     => $current_index < count( $steps ) - 1 ? $steps[ $current_index + 1 ] : null,
-			'is_first'      => $current_index === 0,
+			'is_first'      => 0 === $current_index,
 			'is_last'       => $current_index === count( $steps ) - 1,
 			'progress'      => $this->wizard_manager ? $this->wizard_manager->get_progress() : array(),
 			'config'        => $this->config,
@@ -161,7 +161,7 @@ class SCD_Wizard_Navigation {
 								class="<?php echo esc_attr( $nav_data['config']['button_classes']['previous'] ); ?>"
 								data-action="previous"
 								data-target="<?php echo esc_attr( $nav_data['previous_step'] ); ?>">
-							<span class="dashicons <?php echo esc_attr( $nav_data['config']['icons']['previous'] ); ?>"></span>
+							<?php echo SCD_Icon_Helper::get( $nav_data['config']['icons']['previous'], array( 'size' => 16 ) ); ?>
 							<span class="scd-nav-btn__text"><?php esc_html_e( 'Previous', 'smart-cycle-discounts' ); ?></span>
 						</button>
 					<?php endif; ?>
@@ -182,10 +182,6 @@ class SCD_Wizard_Navigation {
 							);
 							?>
 						</span>
-						<span class="scd-nav-status__autosave" style="display: none;">
-							<span class="dashicons dashicons-saved"></span>
-							<?php esc_html_e( 'Saved', 'smart-cycle-discounts' ); ?>
-						</span>
 					</div>
 				</div>
 
@@ -195,7 +191,7 @@ class SCD_Wizard_Navigation {
 						<button type="button"
 								class="<?php echo esc_attr( $nav_data['config']['button_classes']['complete'] ); ?>"
 								data-action="complete">
-							<span class="dashicons <?php echo esc_attr( $nav_data['config']['icons']['complete'] ); ?>"></span>
+							<?php echo SCD_Icon_Helper::get( $nav_data['config']['icons']['complete'], array( 'size' => 16 ) ); ?>
 							<span class="scd-nav-btn__text"><?php esc_html_e( 'Create Campaign', 'smart-cycle-discounts' ); ?></span>
 						</button>
 					<?php else : ?>
@@ -204,7 +200,7 @@ class SCD_Wizard_Navigation {
 								data-action="next"
 								data-target="<?php echo esc_attr( $nav_data['next_step'] ); ?>">
 							<span class="scd-nav-btn__text"><?php esc_html_e( 'Next', 'smart-cycle-discounts' ); ?></span>
-							<span class="dashicons <?php echo esc_attr( $nav_data['config']['icons']['next'] ); ?>"></span>
+							<?php echo SCD_Icon_Helper::get( $nav_data['config']['icons']['next'], array( 'size' => 16 ) ); ?>
 						</button>
 					<?php endif; ?>
 				</div>

@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/pages/class-analytics-dashboard.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/analytics
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Analytics_Dashboard {
 
@@ -95,17 +95,19 @@ class SCD_Analytics_Dashboard {
 	 * @return   array                    Dashboard metrics.
 	 */
 	public function get_dashboard_metrics( string $date_range, bool $use_cache = true ): array {
-		$cache_key = 'scd_dashboard_metrics_' . $date_range;
+		$cache_key = $this->cache_manager->analytics_key( 'dashboard_metrics_' . $date_range );
 
 		if ( $use_cache ) {
-			$cached = get_transient( $cache_key );
-			if ( $cached !== false ) {
+			$cached = $this->cache_manager->get( $cache_key );
+			if ( null !== $cached ) {
 				return $cached;
 			}
 		}
 
 		global $wpdb;
-		$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '{$this->analytics_table}'" ) === $this->analytics_table;
+		$table_exists = $wpdb->get_var(
+			$wpdb->prepare( 'SHOW TABLES LIKE %s', $this->analytics_table )
+		) === $this->analytics_table;
 
 		if ( ! $table_exists ) {
 			$this->logger->debug( 'Analytics table does not exist yet', array( 'table' => $this->analytics_table ) );
@@ -197,7 +199,7 @@ class SCD_Analytics_Dashboard {
 
 			$metrics['top_campaigns'] = $this->get_top_campaigns_inline( $date_ranges, 5 );
 
-			set_transient( $cache_key, $metrics, self::CACHE_TTL );
+			$this->cache_manager->set( $cache_key, $metrics, self::CACHE_TTL );
 
 			return $metrics;
 
@@ -512,13 +514,11 @@ class SCD_Analytics_Dashboard {
 	 */
 	public function clear_cache( ?string $date_range = null ): void {
 		if ( $date_range ) {
-			delete_transient( 'scd_dashboard_metrics_' . $date_range );
+			$cache_key = $this->cache_manager->analytics_key( 'dashboard_metrics_' . $date_range );
+			$this->cache_manager->delete( $cache_key );
 		} else {
-			global $wpdb;
-			$wpdb->query(
-				"DELETE FROM {$wpdb->options} 
-                WHERE option_name LIKE '_transient_scd_dashboard_metrics_%'"
-			);
+			// Clear entire analytics group
+			$this->cache_manager->delete_group( 'analytics' );
 		}
 	}
 }

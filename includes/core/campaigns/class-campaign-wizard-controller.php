@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/campaigns/class-campaign-wizard-controller.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -143,11 +143,21 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	/**
 	 * Get intent from request.
 	 *
+	 * Validates against whitelist to prevent XSS attacks.
+	 *
 	 * @since    1.0.0
 	 * @return   string    Intent value.
 	 */
 	private function get_intent(): string {
-		return isset( $_GET['intent'] ) ? sanitize_text_field( $_GET['intent'] ) : 'continue';
+		$allowed_intents = array( 'new', 'continue', 'edit', 'duplicate' );
+		$intent          = isset( $_GET['intent'] ) ? sanitize_key( $_GET['intent'] ) : 'continue';
+
+		// Whitelist validation - only allow expected values
+		if ( ! in_array( $intent, $allowed_intents, true ) ) {
+			return 'continue';
+		}
+
+		return $intent;
 	}
 
 	/**
@@ -701,6 +711,15 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			</form>
 
 			<?php $this->render_pro_feature_modal(); ?>
+
+			<?php
+			// Completion loading overlay (shown before completion modal)
+			if ( class_exists( 'SCD_Loader_Helper' ) ) {
+				$is_edit_mode = ! empty( $session['campaign_id'] );
+				$loading_text = $is_edit_mode ? __( 'Updating campaign...', 'smart-cycle-discounts' ) : __( 'Creating campaign...', 'smart-cycle-discounts' );
+				SCD_Loader_Helper::render_fullscreen( 'scd-wizard-completion-loading', $loading_text, false );
+			}
+			?>
 		</div>
 		<?php
 	}
@@ -730,23 +749,17 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			<?php endif; ?>
 
 			<?php if ( $is_edit_mode ) : ?>
-				<span class="scd-status-badge scd-status-edit">
-					<span class="dashicons dashicons-edit"></span>
-					<?php esc_html_e( 'Editing Mode', 'smart-cycle-discounts' ); ?>
-				</span>
+				<?php echo SCD_Badge_Helper::health_badge( 'info', __( 'Editing Mode', 'smart-cycle-discounts' ) ); ?>
 			<?php endif; ?>
-			
+
 			<?php if ( isset( $_GET['saved'] ) && '1' === $_GET['saved'] ) : ?>
-				<span class="scd-status-badge scd-status-saved">
-					<span class="dashicons dashicons-yes"></span>
-					<?php esc_html_e( 'Saved', 'smart-cycle-discounts' ); ?>
-				</span>
+				<?php echo SCD_Badge_Helper::health_badge( 'healthy', __( 'Saved', 'smart-cycle-discounts' ) ); ?>
 			<?php endif; ?>
 			
-			<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns' ) ); ?>" 
+			<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns' ) ); ?>"
 				class="button scd-exit-wizard">
-				<span class="dashicons dashicons-no-alt"></span>
-				<?php esc_html_e( 'Exit Wizard', 'smart-cycle-discounts' ); ?>
+				<?php echo SCD_Icon_Helper::get( 'close', array( 'size' => 16 ) ); ?>
+				<span><?php esc_html_e( 'Exit Wizard', 'smart-cycle-discounts' ); ?></span>
 			</a>
 		</div>
 		<?php
@@ -817,7 +830,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 				isFresh: <?php echo $this->is_fresh_session( $session ) ? 'true' : 'false'; ?>,
 				hasSteps: <?php echo ! empty( $session['steps'] ) ? 'true' : 'false'; ?>,
 				sessionId: '<?php echo esc_js( substr( $session['session_id'] ?? '', 0, 8 ) ); ?>...',
-				intent: '<?php echo esc_js( $_GET['intent'] ?? 'continue' ); ?>'
+				intent: '<?php echo esc_js( $this->get_intent() ); ?>'
 			};
 
 			// Configuration for client-side feature gating
@@ -897,25 +910,15 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 						<h1><?php esc_html_e( 'Create New Campaign', 'smart-cycle-discounts' ); ?></h1>
 					<?php endif; ?>
 
-					<?php if ( $is_edit_mode ) : ?>
-						<span class="scd-status-badge scd-status-edit">
-							<span class="dashicons dashicons-edit"></span>
-							<?php esc_html_e( 'Editing Mode', 'smart-cycle-discounts' ); ?>
-						</span>
-					<?php endif; ?>
-
 					<?php if ( isset( $_GET['saved'] ) && '1' === $_GET['saved'] ) : ?>
-						<span class="scd-status-badge scd-status-saved">
-							<span class="dashicons dashicons-yes"></span>
-							<?php esc_html_e( 'Saved', 'smart-cycle-discounts' ); ?>
-						</span>
+						<?php echo SCD_Badge_Helper::health_badge( 'healthy', __( 'Saved', 'smart-cycle-discounts' ) ); ?>
 					<?php endif; ?>
 				</div>
 
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns' ) ); ?>"
 					class="button scd-exit-wizard">
-					<span class="dashicons dashicons-no-alt"></span>
-					<?php esc_html_e( 'Exit Wizard', 'smart-cycle-discounts' ); ?>
+					<?php echo SCD_Icon_Helper::get( 'close', array( 'size' => 16 ) ); ?>
+					<span><?php esc_html_e( 'Exit Wizard', 'smart-cycle-discounts' ); ?></span>
 				</a>
 			</div>
 
@@ -1132,18 +1135,18 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 
 			<div class="scd-upgrade-notice">
 				<div class="scd-upgrade-icon">
-					<span class="dashicons dashicons-info"></span>
+					<?php echo SCD_Icon_Helper::get( 'info', array( 'size' => 20 ) ); ?>
 				</div>
 				<div class="scd-upgrade-content">
 					<h2><?php echo esc_html( sprintf( __( 'You\'ve reached the %d campaign limit', 'smart-cycle-discounts' ), $campaign_limit ) ); ?></h2>
 					<p><?php esc_html_e( 'Upgrade to Pro to create unlimited campaigns and unlock advanced features:', 'smart-cycle-discounts' ); ?></p>
 
 					<ul class="scd-feature-list">
-						<li><span class="dashicons dashicons-yes"></span> <?php esc_html_e( 'Unlimited active campaigns', 'smart-cycle-discounts' ); ?></li>
-						<li><span class="dashicons dashicons-yes"></span> <?php esc_html_e( 'Advanced analytics and reporting', 'smart-cycle-discounts' ); ?></li>
-						<li><span class="dashicons dashicons-yes"></span> <?php esc_html_e( 'Export campaign data to CSV/JSON', 'smart-cycle-discounts' ); ?></li>
-						<li><span class="dashicons dashicons-yes"></span> <?php esc_html_e( 'Customer segmentation targeting', 'smart-cycle-discounts' ); ?></li>
-						<li><span class="dashicons dashicons-yes"></span> <?php esc_html_e( 'Priority email support', 'smart-cycle-discounts' ); ?></li>
+						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Unlimited active campaigns', 'smart-cycle-discounts' ); ?></li>
+						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Advanced analytics and reporting', 'smart-cycle-discounts' ); ?></li>
+						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Export campaign data to CSV/JSON', 'smart-cycle-discounts' ); ?></li>
+						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Customer segmentation targeting', 'smart-cycle-discounts' ); ?></li>
+						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Priority email support', 'smart-cycle-discounts' ); ?></li>
 					</ul>
 
 					<div class="scd-upgrade-actions">

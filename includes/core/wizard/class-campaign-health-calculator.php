@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/wizard/class-campaign-health-calculator.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -391,6 +391,18 @@ class SCD_Campaign_Health_Calculator {
 			}
 		}
 
+		// Discount Rules Critical Errors (mathematically impossible configurations)
+		$discount_rules_errors = $this->_get_discount_rules_critical_errors();
+		foreach ( $discount_rules_errors as $error ) {
+			$issues[] = $error;
+		}
+
+		// Filter Conditions Critical Errors (impossible filter logic)
+		$filter_conditions_errors = $this->_get_filter_conditions_critical_errors();
+		foreach ( $filter_conditions_errors as $error ) {
+			$issues[] = $error;
+		}
+
 		$unique_issues = array();
 		$seen_codes    = array();
 
@@ -460,14 +472,23 @@ class SCD_Campaign_Health_Calculator {
 	 */
 	private function _map_issue_to_step( $code ) {
 		$step_mapping = array(
-			'missing_name'       => 'basic',
-			'missing_discount'   => 'discounts',
-			'missing_products'   => 'products',
-			'expired_but_active' => 'schedule',
-			'scheduled_past'     => 'schedule',
-			'extreme_discount'   => 'discounts',
-			'very_high_discount' => 'discounts',
-			'low_discount'       => 'discounts',
+			'missing_name'                     => 'basic',
+			'missing_discount'                 => 'discounts',
+			'missing_products'                 => 'products',
+			'expired_but_active'               => 'schedule',
+			'scheduled_past'                   => 'schedule',
+			'extreme_discount'                 => 'discounts',
+			'very_high_discount'               => 'discounts',
+			'low_discount'                     => 'discounts',
+			'all_products_on_sale_excluded'    => 'discounts',
+			'spend_threshold_impossible'       => 'discounts',
+			'minimum_order_extreme'            => 'discounts',
+			'empty_categories_selected'        => 'products',
+			'filter_between_inverted_range'    => 'products',
+			'filter_same_property_contradiction' => 'products',
+			'filter_numeric_range_impossible'  => 'products',
+			'filter_include_exclude_contradiction' => 'products',
+			'filter_stock_status_contradiction' => 'products',
 		);
 
 		return isset( $step_mapping[ $code ] ) ? $step_mapping[ $code ] : '';
@@ -959,8 +980,9 @@ class SCD_Campaign_Health_Calculator {
 
 		// HIGH: BOGO insufficient stock
 		if ( 'bogo' === $discount_type ) {
-			$buy_quantity      = isset( $this->campaign_data['discounts']['bogo_buy_quantity'] ) ? intval( $this->campaign_data['discounts']['bogo_buy_quantity'] ) : 1;
-			$get_quantity      = isset( $this->campaign_data['discounts']['bogo_get_quantity'] ) ? intval( $this->campaign_data['discounts']['bogo_get_quantity'] ) : 1;
+			$bogo_config       = isset( $this->campaign_data['discounts']['bogo_config'] ) && is_array( $this->campaign_data['discounts']['bogo_config'] ) ? $this->campaign_data['discounts']['bogo_config'] : array();
+			$buy_quantity      = isset( $bogo_config['buy_quantity'] ) ? intval( $bogo_config['buy_quantity'] ) : 1;
+			$get_quantity      = isset( $bogo_config['get_quantity'] ) ? intval( $bogo_config['get_quantity'] ) : 1;
 			$required_quantity = $buy_quantity + $get_quantity;
 
 			$product_ids        = $this->_get_selected_product_ids();
@@ -1468,9 +1490,13 @@ class SCD_Campaign_Health_Calculator {
 			);
 		}
 
-		// HIGH: Products already on sale
-		$product_ids = $this->_get_selected_product_ids();
-		if ( ! empty( $product_ids ) ) {
+		// HIGH: Products already on sale (only when apply_to_sale_items is enabled)
+		// Note: When apply_to_sale_items is disabled, _get_discount_rules_warnings() handles it
+		$product_ids           = $this->_get_selected_product_ids();
+		$discounts             = isset( $this->campaign_data['discounts'] ) ? $this->campaign_data['discounts'] : array();
+		$apply_to_sale_items   = isset( $discounts['apply_to_sale_items'] ) ? (bool) $discounts['apply_to_sale_items'] : true;
+
+		if ( ! empty( $product_ids ) && $apply_to_sale_items ) {
 			$sale_products = array();
 
 			foreach ( $product_ids as $product_id ) {
@@ -1486,14 +1512,17 @@ class SCD_Campaign_Health_Calculator {
 					'priority'    => 'high',
 					'impact'      => __( 'Prevent discount conflicts', 'smart-cycle-discounts' ),
 					'message'     => sprintf(
-						__( '%d product(s) are already on sale. Campaign discount may not apply correctly or may stack unexpectedly.', 'smart-cycle-discounts' ),
+						/* translators: %d: number of products */
+						_n(
+							'%d product is already on sale. Campaign discount will stack with the existing sale price.',
+							'%d products are already on sale. Campaign discount will stack with existing sale prices.',
+							count( $sale_products ),
+							'smart-cycle-discounts'
+						),
 						count( $sale_products )
 					),
 					'icon'        => 'warning',
-					'explanation' => sprintf(
-						__( 'Products already on sale have sale prices set in WooCommerce. Your campaign discount may not override these prices, or may stack with them depending on your settings. This can cause confusion for customers and unexpected pricing. Review which products should be included.', 'smart-cycle-discounts' ),
-						count( $sale_products )
-					),
+					'explanation' => __( 'Products already on sale have reduced prices in WooCommerce. Your campaign discount will stack on top of these sale prices (double-discounting). This can erode margins quickly. For example: a $100 product on 20% sale ($80) with an additional 25% campaign discount becomes $60 - a total 40% off. Review the Discount Rules section if you want to exclude sale items instead.', 'smart-cycle-discounts' ),
 					'action'      => null,
 					'step'        => 'products',
 				);
@@ -1687,7 +1716,918 @@ class SCD_Campaign_Health_Calculator {
 			);
 		}
 
+		// MEDIUM: Sale items excluded but MOST products on sale (>50% but not 100%)
+		// Note: 100% on sale is now a CRITICAL ERROR that blocks campaign save
+		$product_selection_type = isset( $this->campaign_data['products']['product_selection_type'] ) ?
+			$this->campaign_data['products']['product_selection_type'] : '';
+
+		if ( 'specific_products' === $product_selection_type && ! $apply_to_sale_items ) {
+			$product_ids = $this->_get_selected_product_ids();
+
+			if ( ! empty( $product_ids ) && class_exists( 'WooCommerce' ) ) {
+				$sale_product_count = 0;
+				$total_products     = count( $product_ids );
+
+				foreach ( $product_ids as $product_id ) {
+					$product = wc_get_product( $product_id );
+					if ( $product && $product->is_on_sale() ) {
+						++$sale_product_count;
+					}
+				}
+
+				// MEDIUM: Most selected products are on sale (>50% but NOT 100%)
+				// 100% case is handled as CRITICAL error that blocks save
+				if ( $sale_product_count > 0 && $sale_product_count > ( $total_products / 2 ) && $sale_product_count < $total_products ) {
+					$percentage_on_sale = round( ( $sale_product_count / $total_products ) * 100 );
+
+					$warnings[] = array(
+						'category'    => 'discount',
+						'priority'    => 'medium',
+						'impact'      => __( 'Campaign effectiveness severely reduced', 'smart-cycle-discounts' ),
+						'message'     => sprintf(
+							/* translators: 1: number of sale products, 2: total products, 3: percentage */
+							__( '%1$d of %2$d selected products (%3$d%%) are on sale, but "Apply to Sale Items" is disabled. Most products will not receive the campaign discount.', 'smart-cycle-discounts' ),
+							$sale_product_count,
+							$total_products,
+							$percentage_on_sale
+						),
+						'icon'        => 'info',
+						'explanation' => sprintf(
+							/* translators: %d: percentage of products on sale */
+							__( 'Over half of your selected products (%d%%) are currently on sale, but your discount rules exclude sale items. This significantly reduces campaign reach and effectiveness. Consider enabling "Apply to Sale Items" in discount rules or removing products that are currently on sale from your selection.', 'smart-cycle-discounts' ),
+							$percentage_on_sale
+						),
+						'action'      => array(
+							'type' => 'enable_sale_items',
+							'data' => array( 'apply_to_sale_items' => true ),
+						),
+						'step'        => 'discounts',
+					);
+				}
+			}
+		}
+
+		// HIGH: minimum_quantity with insufficient stock
+		$minimum_quantity = isset( $discounts['minimum_quantity'] ) ? absint( $discounts['minimum_quantity'] ) : 0;
+
+		if ( $minimum_quantity > 0 && ! empty( $product_ids ) && class_exists( 'WooCommerce' ) ) {
+			$products_below_minimum = array();
+
+			foreach ( $product_ids as $product_id ) {
+				$product = wc_get_product( $product_id );
+				if ( $product && $product->managing_stock() ) {
+					$stock = $product->get_stock_quantity();
+					if ( null !== $stock && $stock < $minimum_quantity ) {
+						$products_below_minimum[] = array(
+							'name'  => $product->get_name(),
+							'stock' => $stock,
+						);
+					}
+				}
+			}
+
+			if ( ! empty( $products_below_minimum ) ) {
+				$count = count( $products_below_minimum );
+
+				$warnings[] = array(
+					'category'    => 'discount',
+					'priority'    => 'high',
+					'impact'      => __( 'Campaign cannot apply to affected products', 'smart-cycle-discounts' ),
+					'message'     => sprintf(
+						/* translators: 1: number of products, 2: minimum quantity */
+						_n(
+							'%1$d product has stock below the minimum quantity requirement of %2$d. Customers cannot trigger the discount for this product.',
+							'%1$d products have stock below the minimum quantity requirement of %2$d. Customers cannot trigger the discount for these products.',
+							$count,
+							'smart-cycle-discounts'
+						),
+						$count,
+						$minimum_quantity
+					),
+					'icon'        => 'warning',
+					'explanation' => sprintf(
+						/* translators: 1: minimum quantity, 2: number of affected products */
+						__( 'Your discount requires customers to purchase at least %1$d of a product. However, %2$d product(s) have insufficient stock to meet this requirement. Customers physically cannot buy enough quantity to trigger the discount, making the campaign ineffective for these items. Either increase stock levels or reduce the minimum quantity requirement.', 'smart-cycle-discounts' ),
+						$minimum_quantity,
+						$count
+					),
+					'action'      => null,
+					'step'        => 'discounts',
+				);
+			}
+		}
+
+		// HIGH: max_discount_amount making discount ineffective
+		$max_discount_amount = isset( $discounts['max_discount_amount'] ) ? floatval( $discounts['max_discount_amount'] ) : 0;
+		$discount_type       = isset( $discounts['discount_type'] ) ? $discounts['discount_type'] : '';
+		$discount_value      = 0;
+
+		if ( 'percentage' === $discount_type ) {
+			$discount_value = isset( $discounts['discount_value_percentage'] ) ? floatval( $discounts['discount_value_percentage'] ) : 0;
+		}
+
+		if ( $max_discount_amount > 0 && 'percentage' === $discount_type && $discount_value > 0 && ! empty( $product_ids ) && class_exists( 'WooCommerce' ) ) {
+			$avg_price            = 0;
+			$total_price          = 0;
+			$products_with_prices = 0;
+
+			foreach ( $product_ids as $product_id ) {
+				$product = wc_get_product( $product_id );
+				if ( $product ) {
+					$price = floatval( $product->get_price() );
+					if ( $price > 0 ) {
+						$total_price += $price;
+						++$products_with_prices;
+					}
+				}
+			}
+
+			if ( $products_with_prices > 0 ) {
+				$avg_price                 = $total_price / $products_with_prices;
+				$advertised_discount       = ( $avg_price * $discount_value ) / 100;
+				$actual_discount           = min( $advertised_discount, $max_discount_amount );
+				$effective_discount_percent = ( $actual_discount / $avg_price ) * 100;
+
+				// Warning if cap reduces effective discount by more than 50%
+				if ( $advertised_discount > 0 && $actual_discount < ( $advertised_discount / 2 ) ) {
+					$warnings[] = array(
+						'category'    => 'discount',
+						'priority'    => 'high',
+						'impact'      => __( 'Misleading discount advertising', 'smart-cycle-discounts' ),
+						'message'     => sprintf(
+							/* translators: 1: advertised percentage, 2: effective percentage, 3: max amount */
+							__( 'Your %1$d%% discount is capped at %3$s, resulting in only %2$d%% effective discount on average-priced products. This may mislead customers who expect the advertised %4$d%% savings.', 'smart-cycle-discounts' ),
+							round( $discount_value ),
+							round( $effective_discount_percent ),
+							$this->_format_price_plain( $max_discount_amount ),
+							round( $discount_value )
+						),
+						'icon'        => 'warning',
+						'explanation' => sprintf(
+							/* translators: 1: advertised discount, 2: actual discount, 3: percentage difference */
+							__( 'The maximum discount cap significantly reduces actual savings. For example, on a product where customers expect %1$s off, they will only receive %2$s off - a %3$d%% reduction in expected savings. This creates a poor customer experience and potential trust issues. Consider either raising the cap or reducing the advertised percentage to match realistic savings.', 'smart-cycle-discounts' ),
+							$this->_format_price_plain( $advertised_discount ),
+							$this->_format_price_plain( $actual_discount ),
+							round( ( 1 - ( $actual_discount / $advertised_discount ) ) * 100 )
+						),
+						'action'      => null,
+						'step'        => 'discounts',
+					);
+				}
+			}
+		}
+
+		// HIGH: minimum_order_amount unattainable with product prices
+		$minimum_order_amount = isset( $discounts['minimum_order_amount'] ) ? floatval( $discounts['minimum_order_amount'] ) : 0;
+
+		if ( $minimum_order_amount > 0 && ! empty( $product_ids ) && class_exists( 'WooCommerce' ) ) {
+			$avg_price            = 0;
+			$total_price          = 0;
+			$products_with_prices = 0;
+
+			foreach ( $product_ids as $product_id ) {
+				$product = wc_get_product( $product_id );
+				if ( $product ) {
+					$price = floatval( $product->get_price() );
+					if ( $price > 0 ) {
+						$total_price += $price;
+						++$products_with_prices;
+					}
+				}
+			}
+
+			if ( $products_with_prices > 0 ) {
+				$avg_price       = $total_price / $products_with_prices;
+				$products_needed = ceil( $minimum_order_amount / $avg_price );
+
+				// Warning if customer needs to buy more than 20 products (unrealistic for most campaigns)
+				if ( $products_needed > 20 ) {
+					$warnings[] = array(
+						'category'    => 'discount',
+						'priority'    => 'high',
+						'impact'      => __( 'Campaign threshold too high for target products', 'smart-cycle-discounts' ),
+						'message'     => sprintf(
+							/* translators: 1: minimum amount, 2: average price, 3: number of products needed */
+							__( 'Minimum order amount of %1$s requires customers to purchase approximately %3$d products at %2$s average price. This threshold is unrealistically high and most customers will not reach it.', 'smart-cycle-discounts' ),
+							$this->_format_price_plain( $minimum_order_amount ),
+							$this->_format_price_plain( $avg_price ),
+							$products_needed
+						),
+						'icon'        => 'warning',
+						'explanation' => sprintf(
+							/* translators: 1: products needed, 2: minimum amount */
+							__( 'Requiring customers to buy %1$d+ products to reach the %2$s minimum is impractical for most shopping scenarios. This threshold will prevent the vast majority of customers from qualifying for the discount, making the campaign ineffective. Consider either lowering the minimum order amount or targeting higher-priced products.', 'smart-cycle-discounts' ),
+							$products_needed,
+							$this->_format_price_plain( $minimum_order_amount )
+						),
+						'action'      => null,
+						'step'        => 'discounts',
+					);
+				}
+			}
+		}
+
+		// MEDIUM: minimum_order_amount with weak fixed discount
+		if ( $minimum_order_amount > 0 && 'fixed' === $discount_type && ! empty( $product_ids ) ) {
+			$fixed_discount_value = isset( $discounts['discount_value_fixed'] ) ? floatval( $discounts['discount_value_fixed'] ) : 0;
+
+			if ( $fixed_discount_value > 0 ) {
+				$savings_percentage = ( $fixed_discount_value / $minimum_order_amount ) * 100;
+
+				// Warning if savings is less than 10% of minimum order
+				if ( $savings_percentage < 10 ) {
+					$warnings[] = array(
+						'category'    => 'discount',
+						'priority'    => 'medium',
+						'impact'      => __( 'Poor value proposition reduces conversions', 'smart-cycle-discounts' ),
+						'message'     => sprintf(
+							/* translators: 1: minimum order amount, 2: discount amount, 3: savings percentage */
+							__( 'Customers must spend %1$s to save only %2$s (%3$d%% savings). This weak value proposition is unlikely to motivate purchases or change buying behavior.', 'smart-cycle-discounts' ),
+							$this->_format_price_plain( $minimum_order_amount ),
+							$this->_format_price_plain( $fixed_discount_value ),
+							round( $savings_percentage )
+						),
+						'icon'        => 'info',
+						'explanation' => sprintf(
+							/* translators: 1: savings percentage */
+							__( 'A %1$d%% savings rate typically does not overcome customer inertia or justify the effort of reaching a minimum threshold. Research shows effective minimum-order promotions offer 15-25%% savings to drive behavior change. Consider either increasing the discount amount or lowering the minimum order threshold to create a more compelling offer.', 'smart-cycle-discounts' ),
+							round( $savings_percentage )
+						),
+						'action'      => null,
+						'step'        => 'discounts',
+					);
+				}
+			}
+		}
+
+		// MEDIUM: total_usage_limit too restrictive
+		$total_usage_limit = isset( $discounts['total_usage_limit'] ) ? absint( $discounts['total_usage_limit'] ) : 0;
+		$schedule          = isset( $this->campaign_data['schedule'] ) ? $this->campaign_data['schedule'] : array();
+		$start_date        = isset( $schedule['start_date'] ) ? $schedule['start_date'] : '';
+		$end_date          = isset( $schedule['end_date'] ) ? $schedule['end_date'] : '';
+
+		if ( $total_usage_limit > 0 && $total_usage_limit <= 20 && ! empty( $end_date ) ) {
+			$duration_days = null;
+
+			try {
+				$campaign_tz_string = isset( $schedule['timezone'] ) ? $schedule['timezone'] : wp_timezone_string();
+				$start_time         = isset( $schedule['start_time'] ) && ! empty( $schedule['start_time'] ) ? $schedule['start_time'] : '00:00';
+				$end_time           = isset( $schedule['end_time'] ) && ! empty( $schedule['end_time'] ) ? $schedule['end_time'] : '23:59';
+
+				if ( ! empty( $start_date ) ) {
+					$start_dt = scd_combine_date_time( $start_date, $start_time, $campaign_tz_string );
+					$end_dt   = scd_combine_date_time( $end_date, $end_time, $campaign_tz_string );
+
+					if ( $start_dt && $end_dt && $end_dt > $start_dt ) {
+						$duration_days = ceil( ( $end_dt->getTimestamp() - $start_dt->getTimestamp() ) / DAY_IN_SECONDS );
+					}
+				} else {
+					// Immediate start
+					$campaign_tz = new DateTimeZone( $campaign_tz_string );
+					$now_dt      = new DateTime( 'now', $campaign_tz );
+					$end_dt      = scd_combine_date_time( $end_date, $end_time, $campaign_tz_string );
+
+					if ( $end_dt && $end_dt > $now_dt ) {
+						$duration_days = ceil( ( $end_dt->getTimestamp() - $now_dt->getTimestamp() ) / DAY_IN_SECONDS );
+					}
+				}
+			} catch ( Exception $e ) {
+				// Fallback: Use simple date comparison
+				if ( ! empty( $start_date ) ) {
+					$start_ts = strtotime( $start_date );
+					$end_ts   = strtotime( $end_date );
+					if ( $start_ts && $end_ts && $end_ts > $start_ts ) {
+						$duration_days = ceil( ( $end_ts - $start_ts ) / DAY_IN_SECONDS );
+					}
+				} else {
+					$now    = current_time( 'timestamp' );
+					$end_ts = strtotime( $end_date );
+					if ( $end_ts > $now ) {
+						$duration_days = ceil( ( $end_ts - $now ) / DAY_IN_SECONDS );
+					}
+				}
+			}
+
+			// Warning if campaign runs for 7+ days with very low usage limit
+			if ( null !== $duration_days && $duration_days >= 7 ) {
+				$warnings[] = array(
+					'category'    => 'discount',
+					'priority'    => 'medium',
+					'impact'      => __( 'Campaign exhausts too quickly', 'smart-cycle-discounts' ),
+					'message'     => sprintf(
+						/* translators: 1: usage limit, 2: campaign duration in days */
+						_n(
+							'Campaign limited to %1$d total use over %2$d day. It may exhaust within hours, leaving most customers unable to participate.',
+							'Campaign limited to %1$d total uses over %2$d days. It may exhaust within hours, leaving most customers unable to participate.',
+							$total_usage_limit,
+							'smart-cycle-discounts'
+						),
+						$total_usage_limit,
+						$duration_days
+					),
+					'icon'        => 'clock',
+					'explanation' => sprintf(
+						/* translators: 1: usage limit, 2: duration in days */
+						__( 'A %1$d-use limit over %2$d days means the campaign could end after just %3$d customer(s) - potentially within the first few hours of launch. This creates a poor experience for customers who see the promotion but cannot access it. For campaigns lasting a week or more, consider a higher usage limit (50-100+ uses) or remove the limit entirely to ensure availability throughout the campaign period.', 'smart-cycle-discounts' ),
+						$total_usage_limit,
+						$duration_days,
+						$total_usage_limit
+					),
+					'action'      => null,
+					'step'        => 'discounts',
+				);
+			}
+		}
+
+		// HIGH: Tiered discount with overlapping quantity ranges
+		if ( 'tiered' === $discount_type ) {
+			$tiers = isset( $discounts['tiers'] ) ? $discounts['tiers'] : array();
+
+			if ( count( $tiers ) > 1 ) {
+				$overlaps = array();
+
+				// Check each tier against all others for overlaps
+				for ( $i = 0; $i < count( $tiers ); ++$i ) {
+					for ( $j = $i + 1; $j < count( $tiers ); ++$j ) {
+						$tier1_min = isset( $tiers[ $i ]['min_quantity'] ) ? absint( $tiers[ $i ]['min_quantity'] ) : 0;
+						$tier1_max = isset( $tiers[ $i ]['max_quantity'] ) ? absint( $tiers[ $i ]['max_quantity'] ) : PHP_INT_MAX;
+						$tier2_min = isset( $tiers[ $j ]['min_quantity'] ) ? absint( $tiers[ $j ]['min_quantity'] ) : 0;
+						$tier2_max = isset( $tiers[ $j ]['max_quantity'] ) ? absint( $tiers[ $j ]['max_quantity'] ) : PHP_INT_MAX;
+
+						// Check if ranges overlap
+						if ( ! ( $tier1_max < $tier2_min || $tier2_max < $tier1_min ) ) {
+							$overlaps[] = array(
+								'tier1' => $i + 1,
+								'tier2' => $j + 1,
+								'range' => sprintf(
+									'%d-%d overlaps with %d-%d',
+									$tier1_min,
+									$tier1_max === PHP_INT_MAX ? 999 : $tier1_max,
+									$tier2_min,
+									$tier2_max === PHP_INT_MAX ? 999 : $tier2_max
+								),
+							);
+						}
+					}
+				}
+
+				if ( ! empty( $overlaps ) ) {
+					$warnings[] = array(
+						'category'    => 'discount',
+						'priority'    => 'high',
+						'impact'      => __( 'Ambiguous tier selection logic', 'smart-cycle-discounts' ),
+						'message'     => sprintf(
+							/* translators: %d: number of overlaps */
+							_n(
+								'%d tier has overlapping quantity ranges. When a customer\'s quantity matches multiple tiers, the discount calculation becomes ambiguous.',
+								'%d tiers have overlapping quantity ranges. When a customer\'s quantity matches multiple tiers, the discount calculation becomes ambiguous.',
+								count( $overlaps ),
+								'smart-cycle-discounts'
+							),
+							count( $overlaps )
+						),
+						'icon'        => 'warning',
+						'explanation' => sprintf(
+							/* translators: %s: overlap details */
+							__( 'Overlapping tiers: %s. Ensure each quantity range is exclusive. For example: Tier 1 (1-5), Tier 2 (6-10), Tier 3 (11+). This prevents confusion about which discount applies when a customer buys a quantity that matches multiple tiers.', 'smart-cycle-discounts' ),
+							implode( '; ', array_column( $overlaps, 'range' ) )
+						),
+						'action'      => null,
+						'step'        => 'discounts',
+					);
+				}
+			}
+		}
+
+		// HIGH: Random products count exceeds available products
+		if ( 'random_products' === $product_selection_type && class_exists( 'WooCommerce' ) ) {
+			$random_count  = isset( $this->campaign_data['products']['random_count'] ) ? absint( $this->campaign_data['products']['random_count'] ) : 0;
+			$category_ids  = isset( $this->campaign_data['products']['category_ids'] ) ? $this->campaign_data['products']['category_ids'] : array();
+
+			if ( $random_count > 0 && ! empty( $category_ids ) && ! empty( $product_ids ) ) {
+				$available_count = count( $product_ids );
+
+				if ( $random_count > $available_count ) {
+					$warnings[] = array(
+						'category'    => 'discount',
+						'priority'    => 'high',
+						'impact'      => __( 'Requested quantity not available', 'smart-cycle-discounts' ),
+						'message'     => sprintf(
+							/* translators: 1: requested count, 2: available count */
+							__( 'Random selection requests %1$d products, but only %2$d products are available in the selected categories. Campaign will select all %3$d available products instead of the requested %4$d.', 'smart-cycle-discounts' ),
+							$random_count,
+							$available_count,
+							$available_count,
+							$random_count
+						),
+						'icon'        => 'info',
+						'explanation' => sprintf(
+							/* translators: 1: available count, 2: requested count */
+							__( 'The selected categories only contain %1$d eligible products, which is less than your requested %2$d. The system will select all available products, but this means your campaign covers fewer products than intended. Consider selecting additional categories or reducing the random product count to %3$d.', 'smart-cycle-discounts' ),
+							$available_count,
+							$random_count,
+							$available_count
+						),
+						'action'      => null,
+						'step'        => 'products',
+					);
+				}
+			}
+		}
+
+		// HIGH: Tiered discount with gaps between quantity ranges
+		if ( 'tiered' === $discount_type ) {
+			$tiers = isset( $discounts['tiers'] ) ? $discounts['tiers'] : array();
+
+			if ( count( $tiers ) > 1 ) {
+				// Sort tiers by min_quantity
+				usort(
+					$tiers,
+					function ( $a, $b ) {
+						$a_min = isset( $a['min_quantity'] ) ? absint( $a['min_quantity'] ) : 0;
+						$b_min = isset( $b['min_quantity'] ) ? absint( $b['min_quantity'] ) : 0;
+						return $a_min - $b_min;
+					}
+				);
+
+				$gaps = array();
+
+				// Check for gaps between consecutive tiers
+				for ( $i = 0; $i < count( $tiers ) - 1; ++$i ) {
+					$current_max = isset( $tiers[ $i ]['max_quantity'] ) ? absint( $tiers[ $i ]['max_quantity'] ) : PHP_INT_MAX;
+					$next_min    = isset( $tiers[ $i + 1 ]['min_quantity'] ) ? absint( $tiers[ $i + 1 ]['min_quantity'] ) : 0;
+
+					// Gap exists if next tier starts more than 1 unit after current tier ends
+					if ( $current_max < PHP_INT_MAX && $next_min > $current_max + 1 ) {
+						$gaps[] = array(
+							'start' => $current_max + 1,
+							'end'   => $next_min - 1,
+						);
+					}
+				}
+
+				if ( ! empty( $gaps ) ) {
+					$gap_ranges = array_map(
+						function ( $gap ) {
+							return sprintf( '%d-%d', $gap['start'], $gap['end'] );
+						},
+						$gaps
+					);
+
+					$warnings[] = array(
+						'category'    => 'discount',
+						'priority'    => 'high',
+						'impact'      => __( 'Some quantities excluded from all tiers', 'smart-cycle-discounts' ),
+						'message'     => sprintf(
+							/* translators: %s: gap ranges */
+							__( 'Gaps detected between tier quantity ranges: %s. Customers purchasing quantities in these ranges will not receive any discount.', 'smart-cycle-discounts' ),
+							implode( ', ', $gap_ranges )
+						),
+						'icon'        => 'warning',
+						'explanation' => sprintf(
+							/* translators: %s: gap ranges */
+							__( 'Your tier configuration has gaps where no tier applies. For example, if Tier 1 covers 1-5 and Tier 2 covers 10-15, customers buying 6-9 items get no discount. Gap ranges: %s. Consider extending tier ranges to eliminate gaps, ensuring every quantity gets a discount.', 'smart-cycle-discounts' ),
+							implode( ', ', $gap_ranges )
+						),
+						'action'      => null,
+						'step'        => 'discounts',
+					);
+				}
+			}
+		}
+
 		return $warnings;
+	}
+
+	/**
+	 * Get discount rules critical errors that block campaign save.
+	 *
+	 * Checks for mathematically impossible or fundamentally broken configurations
+	 * that would result in a campaign that can NEVER work.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   array    Critical errors array.
+	 */
+	private function _get_discount_rules_critical_errors() {
+		$errors      = array();
+		$discounts   = isset( $this->campaign_data['discounts'] ) ? $this->campaign_data['discounts'] : array();
+		$product_ids = $this->_get_selected_product_ids();
+
+		$discount_type               = isset( $discounts['discount_type'] ) ? $discounts['discount_type'] : '';
+		$product_selection_type      = isset( $this->campaign_data['products']['product_selection_type'] ) ? $this->campaign_data['products']['product_selection_type'] : '';
+		$apply_to_sale_items         = isset( $discounts['apply_to_sale_items'] ) ? (bool) $discounts['apply_to_sale_items'] : true;
+		$minimum_order_amount        = isset( $discounts['minimum_order_amount'] ) ? floatval( $discounts['minimum_order_amount'] ) : 0;
+
+		// CRITICAL: All products on sale + apply_to_sale_items disabled (100% blocked)
+		if ( 'specific_products' === $product_selection_type && ! $apply_to_sale_items && ! empty( $product_ids ) && class_exists( 'WooCommerce' ) ) {
+			$sale_product_count = 0;
+			$total_products     = count( $product_ids );
+
+			foreach ( $product_ids as $product_id ) {
+				$product = wc_get_product( $product_id );
+				if ( $product && $product->is_on_sale() ) {
+					++$sale_product_count;
+				}
+			}
+
+			// Block if ALL products are on sale
+			if ( $sale_product_count === $total_products && $total_products > 0 ) {
+				$errors[] = array(
+					'code'    => 'all_products_on_sale_excluded',
+					'message' => sprintf(
+						/* translators: %d: number of products */
+						_n(
+							'Campaign is blocked: The selected product is on sale, but "Apply to Sale Items" is disabled. This campaign will never apply discounts to any products.',
+							'Campaign is blocked: All %d selected products are on sale, but "Apply to Sale Items" is disabled. This campaign will never apply discounts to any products.',
+							$total_products,
+							'smart-cycle-discounts'
+						),
+						$total_products
+					),
+					'step'    => 'discounts',
+				);
+			}
+		}
+
+		// CRITICAL: Spend threshold exceeds maximum possible cart total
+		if ( 'spend_threshold' === $discount_type && ! empty( $product_ids ) && class_exists( 'WooCommerce' ) ) {
+			$thresholds = isset( $discounts['thresholds'] ) ? $discounts['thresholds'] : array();
+
+			if ( ! empty( $thresholds ) ) {
+				// Calculate maximum possible cart total (sum of all product prices)
+				$max_cart_total       = 0;
+				$products_with_prices = 0;
+
+				foreach ( $product_ids as $product_id ) {
+					$product = wc_get_product( $product_id );
+					if ( $product ) {
+						$price = floatval( $product->get_price() );
+						if ( $price > 0 ) {
+							$max_cart_total += $price;
+							++$products_with_prices;
+						}
+					}
+				}
+
+				if ( $products_with_prices > 0 ) {
+					// Get minimum threshold required
+					$min_threshold = PHP_FLOAT_MAX;
+					foreach ( $thresholds as $threshold ) {
+						$threshold_amount = floatval( $threshold['threshold'] ?? 0 );
+						if ( $threshold_amount > 0 && $threshold_amount < $min_threshold ) {
+							$min_threshold = $threshold_amount;
+						}
+					}
+
+					// Block if even the lowest threshold exceeds maximum cart total
+					if ( $min_threshold < PHP_FLOAT_MAX && $max_cart_total > 0 && $min_threshold > $max_cart_total ) {
+						$errors[] = array(
+							'code'    => 'spend_threshold_impossible',
+							'message' => sprintf(
+								/* translators: 1: threshold amount, 2: maximum cart total */
+								__( 'Campaign is blocked: The minimum spend threshold of %1$s exceeds the maximum possible cart total of %2$s. Customers can never reach this threshold even by purchasing all selected products.', 'smart-cycle-discounts' ),
+								$this->_format_price_plain( $min_threshold ),
+								$this->_format_price_plain( $max_cart_total )
+							),
+							'step'    => 'discounts',
+						);
+					}
+				}
+			}
+		}
+
+		// CRITICAL: minimum_order_amount requiring 30+ products (extreme unrealistic threshold)
+		if ( $minimum_order_amount > 0 && ! empty( $product_ids ) && class_exists( 'WooCommerce' ) ) {
+			$avg_price            = 0;
+			$total_price          = 0;
+			$products_with_prices = 0;
+
+			foreach ( $product_ids as $product_id ) {
+				$product = wc_get_product( $product_id );
+				if ( $product ) {
+					$price = floatval( $product->get_price() );
+					if ( $price > 0 ) {
+						$total_price += $price;
+						++$products_with_prices;
+					}
+				}
+			}
+
+			if ( $products_with_prices > 0 ) {
+				$avg_price       = $total_price / $products_with_prices;
+				$products_needed = ceil( $minimum_order_amount / $avg_price );
+
+				// Block if customer needs to buy more than 30 products (extreme threshold)
+				if ( $products_needed > 30 ) {
+					$errors[] = array(
+						'code'    => 'minimum_order_extreme',
+						'message' => sprintf(
+							/* translators: 1: minimum amount, 2: average price, 3: number of products needed */
+							__( 'Campaign is blocked: Minimum order amount of %1$s requires customers to purchase approximately %3$d products at %2$s average price. This threshold is unrealistically high - no customer will reach it. Reduce the minimum order amount or select higher-priced products.', 'smart-cycle-discounts' ),
+							$this->_format_price_plain( $minimum_order_amount ),
+							$this->_format_price_plain( $avg_price ),
+							$products_needed
+						),
+						'step'    => 'discounts',
+					);
+				}
+			}
+		}
+
+		// CRITICAL: Categories selected but contain zero products
+		if ( in_array( $product_selection_type, array( 'categories', 'random_products' ), true ) && class_exists( 'WooCommerce' ) ) {
+			$category_ids = isset( $this->campaign_data['products']['category_ids'] ) ? $this->campaign_data['products']['category_ids'] : array();
+
+			if ( ! empty( $category_ids ) && empty( $product_ids ) ) {
+				// Get category names for better error message
+				$category_names = array();
+				foreach ( $category_ids as $cat_id ) {
+					$term = get_term( $cat_id, 'product_cat' );
+					if ( $term && ! is_wp_error( $term ) ) {
+						$category_names[] = $term->name;
+					}
+				}
+
+				$errors[] = array(
+					'code'    => 'empty_categories_selected',
+					'message' => sprintf(
+						/* translators: 1: number of categories, 2: comma-separated category names */
+						_n(
+							'Campaign is blocked: The selected category "%2$s" contains zero products. Select categories with products or add products to this category.',
+							'Campaign is blocked: The selected categories (%2$s) contain zero products. Select categories with products or add products to these categories.',
+							count( $category_names ),
+							'smart-cycle-discounts'
+						),
+						count( $category_names ),
+						implode( ', ', array_slice( $category_names, 0, 3 ) ) . ( count( $category_names ) > 3 ? '...' : '' )
+					),
+					'step'    => 'products',
+				);
+			}
+		}
+
+		return $errors;
+	}
+
+	/**
+	 * Get filter conditions critical errors.
+	 *
+	 * Backup validation for filter contradictions that bypass client-side validation.
+	 * Most validation happens at save time in class-field-definitions.php.
+	 * This only catches edge cases where validation was bypassed (API, imports, etc).
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   array    Critical errors array.
+	 */
+	private function _get_filter_conditions_critical_errors() {
+		$errors = array();
+
+		$products = isset( $this->campaign_data['products'] ) ? $this->campaign_data['products'] : array();
+
+		$conditions = isset( $products['conditions'] ) ? $products['conditions'] : array();
+		$logic      = isset( $products['conditions_logic'] ) ? $products['conditions_logic'] : 'all';
+
+		// Skip if no conditions or OR logic (OR allows contradictions)
+		if ( empty( $conditions ) || 'any' === $logic ) {
+			return $errors;
+		}
+
+		// 1. Check for BETWEEN inverted ranges
+		foreach ( $conditions as $index => $condition ) {
+			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
+
+			if ( in_array( $operator, array( 'between', 'not_between' ), true ) ) {
+				$val1 = floatval( isset( $condition['value'] ) ? $condition['value'] : 0 );
+				$val2 = floatval( isset( $condition['value2'] ) ? $condition['value2'] : 0 );
+
+				if ( $val1 > $val2 ) {
+					$property_label = $this->_get_condition_property_label( $condition );
+
+					$errors[] = array(
+						'code'    => 'filter_between_inverted_range',
+						/* translators: 1: Property label, 2: Operator, 3: First value, 4: Second value */
+						'message' => sprintf(
+							__( 'Campaign is blocked: Filter condition "%1$s %2$s %3$s and %4$s" is impossible (first value greater than second). No products can match this range.', 'smart-cycle-discounts' ),
+							$property_label,
+							$operator,
+							$val1,
+							$val2
+						),
+						'step'    => 'products',
+					);
+				}
+			}
+		}
+
+		// 2. Check for same property with different equals values (AND logic)
+		$property_equals_map = array();
+		foreach ( $conditions as $condition ) {
+			$property = $condition['condition_type'] ?? '';
+			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
+
+			if ( 'equals' === $operator && ! empty( $property ) ) {
+				if ( isset( $property_equals_map[ $property ] ) && $property_equals_map[ $property ] !== $value ) {
+					$property_label = $this->_get_condition_property_label( $condition );
+
+					$errors[] = array(
+						'code'    => 'filter_same_property_contradiction',
+						/* translators: 1: Property label, 2: First value, 3: Second value */
+						'message' => sprintf(
+							__( 'Campaign is blocked: Filter conditions require "%1$s" to equal both "%2$s" AND "%3$s" simultaneously. This is mathematically impossible. No products can match.', 'smart-cycle-discounts' ),
+							$property_label,
+							$property_equals_map[ $property ],
+							$value
+						),
+						'step'    => 'products',
+					);
+				}
+				$property_equals_map[ $property ] = $value;
+			}
+		}
+
+		// 3. Check for contradictory numeric ranges
+		$numeric_conditions = $this->_group_numeric_conditions( $conditions );
+
+		foreach ( $numeric_conditions as $property => $property_conditions ) {
+			$overall_min = PHP_FLOAT_MIN;
+			$overall_max = PHP_FLOAT_MAX;
+
+			foreach ( $property_conditions as $condition ) {
+				$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
+				$value    = floatval( isset( $condition['value'] ) ? $condition['value'] : 0 );
+
+				if ( 'greater_than' === $operator || '>' === $operator ) {
+					$overall_min = max( $overall_min, $value + 0.01 );
+				} elseif ( 'greater_than_equal' === $operator || '>=' === $operator ) {
+					$overall_min = max( $overall_min, $value );
+				} elseif ( 'less_than' === $operator || '<' === $operator ) {
+					$overall_max = min( $overall_max, $value - 0.01 );
+				} elseif ( 'less_than_equal' === $operator || '<=' === $operator ) {
+					$overall_max = min( $overall_max, $value );
+				} elseif ( 'between' === $operator ) {
+					$value2      = floatval( isset( $condition['value2'] ) ? $condition['value2'] : 0 );
+					$overall_min = max( $overall_min, $value );
+					$overall_max = min( $overall_max, $value2 );
+				}
+			}
+
+			if ( $overall_min > $overall_max ) {
+				$property_label = $this->_get_condition_property_label( $property_conditions[0] );
+
+				$errors[] = array(
+					'code'    => 'filter_numeric_range_impossible',
+					/* translators: 1: Property label, 2: Minimum value, 3: Maximum value */
+					'message' => sprintf(
+						__( 'Campaign is blocked: Filter conditions require "%1$s" to be greater than %2$s AND less than %3$s simultaneously. This range is impossible. No products can match.', 'smart-cycle-discounts' ),
+						$property_label,
+						number_format( $overall_min, 2 ),
+						number_format( $overall_max, 2 )
+					),
+					'step'    => 'products',
+				);
+			}
+		}
+
+		// 4. Check for include/exclude same condition
+		$condition_signatures = array();
+		foreach ( $conditions as $condition ) {
+			$property = $condition['condition_type'] ?? '';
+			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
+			$mode     = isset( $condition['mode'] ) ? $condition['mode'] : 'include';
+
+			$signature = $property . '_' . $operator . '_' . $value;
+
+			if ( isset( $condition_signatures[ $signature ] ) && $condition_signatures[ $signature ] !== $mode ) {
+				$property_label = $this->_get_condition_property_label( $condition );
+
+				$errors[] = array(
+					'code'    => 'filter_include_exclude_contradiction',
+					/* translators: 1: Property label, 2: Operator, 3: Value */
+					'message' => sprintf(
+						__( 'Campaign is blocked: Filter conditions both INCLUDE and EXCLUDE products where "%1$s %2$s %3$s". This contradiction means no products can match.', 'smart-cycle-discounts' ),
+						$property_label,
+						$operator,
+						$value
+					),
+					'step'    => 'products',
+				);
+			}
+			$condition_signatures[ $signature ] = $mode;
+		}
+
+		// 5. Check for stock status contradictions
+		$has_stock_qty_positive = false;
+		$stock_status_value     = null;
+
+		foreach ( $conditions as $condition ) {
+			$property = $condition['condition_type'] ?? '';
+			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
+
+			if ( 'stock_quantity' === $property ) {
+				if ( in_array( $operator, array( 'greater_than', '>', 'greater_than_equal', '>=' ), true ) ) {
+					if ( floatval( $value ) > 0 ) {
+						$has_stock_qty_positive = true;
+					}
+				}
+			}
+
+			if ( 'stock_status' === $property && 'equals' === $operator ) {
+				$stock_status_value = $value;
+			}
+		}
+
+		if ( $has_stock_qty_positive && 'outofstock' === $stock_status_value ) {
+			$errors[] = array(
+				'code'    => 'filter_stock_status_contradiction',
+				'message' => __( 'Campaign is blocked: Filter conditions require products to have positive stock quantity AND be out of stock simultaneously. This is a WooCommerce impossibility. No products can match.', 'smart-cycle-discounts' ),
+				'step'    => 'products',
+			);
+		}
+
+		return $errors;
+	}
+
+	/**
+	 * Get condition property label for display.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array|string $condition    Condition array or property name.
+	 * @return   string                        Human-readable property label.
+	 */
+	private function _get_condition_property_label( $condition ) {
+		if ( is_array( $condition ) ) {
+			$property = $condition['condition_type'] ?? '';
+		} else {
+			$property = $condition;
+		}
+
+		$labels = array(
+			'price'            => __( 'Price', 'smart-cycle-discounts' ),
+			'sale_price'       => __( 'Sale Price', 'smart-cycle-discounts' ),
+			'current_price'    => __( 'Current Price', 'smart-cycle-discounts' ),
+			'stock_quantity'   => __( 'Stock Quantity', 'smart-cycle-discounts' ),
+			'stock_status'     => __( 'Stock Status', 'smart-cycle-discounts' ),
+			'weight'           => __( 'Weight', 'smart-cycle-discounts' ),
+			'length'           => __( 'Length', 'smart-cycle-discounts' ),
+			'width'            => __( 'Width', 'smart-cycle-discounts' ),
+			'height'           => __( 'Height', 'smart-cycle-discounts' ),
+			'sku'              => __( 'SKU', 'smart-cycle-discounts' ),
+			'featured'         => __( 'Featured', 'smart-cycle-discounts' ),
+			'on_sale'          => __( 'On Sale', 'smart-cycle-discounts' ),
+			'product_type'     => __( 'Product Type', 'smart-cycle-discounts' ),
+			'average_rating'   => __( 'Average Rating', 'smart-cycle-discounts' ),
+			'review_count'     => __( 'Review Count', 'smart-cycle-discounts' ),
+			'total_sales'      => __( 'Total Sales', 'smart-cycle-discounts' ),
+			'date_created'     => __( 'Date Created', 'smart-cycle-discounts' ),
+			'date_modified'    => __( 'Date Modified', 'smart-cycle-discounts' ),
+		);
+
+		return isset( $labels[ $property ] ) ? $labels[ $property ] : ucwords( str_replace( '_', ' ', $property ) );
+	}
+
+	/**
+	 * Group numeric conditions by property.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $conditions    All conditions.
+	 * @return   array                   Conditions grouped by property.
+	 */
+	private function _group_numeric_conditions( $conditions ) {
+		$numeric_properties = array(
+			'price',
+			'sale_price',
+			'current_price',
+			'stock_quantity',
+			'weight',
+			'length',
+			'width',
+			'height',
+			'average_rating',
+			'review_count',
+			'total_sales',
+		);
+
+		$grouped = array();
+
+		foreach ( $conditions as $condition ) {
+			$property = $condition['condition_type'] ?? '';
+
+			if ( in_array( $property, $numeric_properties, true ) ) {
+				if ( ! isset( $grouped[ $property ] ) ) {
+					$grouped[ $property ] = array();
+				}
+				$grouped[ $property ][] = $condition;
+			}
+		}
+
+		return $grouped;
 	}
 
 	/**

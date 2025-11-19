@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/utilities/class-performance-optimizer.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/performance
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Performance_Optimizer {
 
@@ -79,7 +79,7 @@ class SCD_Performance_Optimizer {
 	public static function memoize( string $key, callable $callback, array $args = array(), array $cache_data = null ) {
 		// Use cache_data for key if provided, otherwise use args
 		// This allows separating the cache key from the actual function arguments
-		$key_data = $cache_data !== null ? $cache_data : $args;
+		$key_data = null !== $cache_data ? $cache_data : $args;
 
 		// Generate unique cache key
 		$cache_key = $key . '_' . md5( serialize( $key_data ) );
@@ -109,12 +109,12 @@ class SCD_Performance_Optimizer {
 	 * @return   void
 	 */
 	public static function clear_memoized( ?string $key = null ): void {
-		if ( $key === null ) {
+		if ( null === $key ) {
 			self::$memoized     = array();
 			self::$cache_access = array();
 		} else {
 			foreach ( array_keys( self::$memoized ) as $cache_key ) {
-				if ( strpos( $cache_key, $key . '_' ) === 0 ) {
+				if ( 0 === strpos( $cache_key, $key . '_' ) ) {
 					unset( self::$memoized[ $cache_key ] );
 					unset( self::$cache_access[ $cache_key ] );
 				}
@@ -136,7 +136,7 @@ class SCD_Performance_Optimizer {
 		// Find the least recently used key
 		$lru_key = array_search( min( self::$cache_access ), self::$cache_access );
 
-		if ( $lru_key !== false ) {
+		if ( false !== $lru_key ) {
 			unset( self::$memoized[ $lru_key ] );
 			unset( self::$cache_access[ $lru_key ] );
 		}
@@ -155,7 +155,7 @@ class SCD_Performance_Optimizer {
 		// Try to get from transient
 		$value = get_transient( $key );
 
-		if ( $value !== false ) {
+		if ( false !== $value ) {
 			return $value;
 		}
 

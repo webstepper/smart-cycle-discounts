@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/steps/schedule/schedule-orchestrator.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -27,24 +27,12 @@
 	SCD.Steps.ScheduleOrchestrator = SCD.Shared.BaseOrchestrator.createStep( 'schedule', {
 
 		/**
-		 * Initialize step modules
+		 * Initialize step modules using Module Registry
 		 * Called by BaseOrchestrator's initializeModules
 		 */
 		initializeStep: function() {
-			try {
-				if ( !this.modules.state ) {
-					this.modules.state = new SCD.Modules.Schedule.State();
-				}
-
-				if ( !this.modules.api ) {
-					this.modules.api = new SCD.Modules.Schedule.API();
-				}
-
-				// Validation is handled by ValidationManager through step-persistence mixin
-			} catch ( error ) {
-				this.safeErrorHandle( error, 'schedule-orchestrator-init-step', SCD.ErrorHandler.SEVERITY.HIGH );
-				this.showError( 'Failed to initialize schedule components. Please refresh the page.', 'error', 10000 );
-			}
+			var moduleConfig = SCD.Shared.ModuleRegistry.createStepConfig( 'schedule' );
+			this.modules = SCD.Shared.ModuleRegistry.initialize( moduleConfig, this );
 		},
 
 		/**
@@ -62,7 +50,14 @@
 				.closest( '.scd-radio-option' )
 				.addClass( 'scd-radio-option--selected' );
 
-			this.updateTimeConstraints();
+			// Initialize clear button visibility based on end_date value
+			var endDate = $( '#end_date' ).val();
+			var $clearButton = this.$container.find( '.scd-clear-end-date' );
+			if ( endDate ) {
+				$clearButton.show();
+			} else {
+				$clearButton.hide();
+			}
 		},
 
 		/**
@@ -71,113 +66,119 @@
 		onBindEvents: function() {
 			var self = this;
 
-			$( document ).on( 'scd:step:shown', function( event, stepName ) {
-				if ( 'schedule' === stepName ) {
-					self.updateTimeConstraints();
+			// Date field changes
+			this.$container.on( 'change', '#start_date, #end_date', function() {
+				var field = $( this ).attr( 'id' ).replace( '_date', '' );
+				var $input = $( this );
+				var selectedDate = $input.val();
+
+				// Auto-select "Scheduled Start" when user interacts with start date
+				if ( 'start' === field ) {
+					var $scheduledRadio = $( 'input[name="start_type"][value="scheduled"]' );
+					if ( ! $scheduledRadio.is( ':checked' ) ) {
+						$scheduledRadio.prop( 'checked', true ).trigger( 'change' );
+					}
 				}
+
+				// Handle end date changes - enable/disable time field
+				if ( 'end' === field ) {
+					$( 'input[name="duration_seconds"]' ).remove();
+
+					var $endTime = $( '#end_time' );
+					if ( selectedDate ) {
+						// End date set - enable time field with default value
+						$endTime.prop( 'disabled', false );
+						if ( ! $endTime.val() ) {
+							$endTime.val( '23:59' );
+						}
+					} else {
+						// End date cleared - disable and clear time field
+						$endTime.prop( 'disabled', true ).val( '' );
+					}
+
+					// Validate recurring requirements when end_date changes
+					var enableRecurring = $( '#enable_recurring' ).prop( 'checked' );
+					var durationSeconds = $( 'input[name="duration_seconds"]' ).val();
+					var recurringValidation = self._validateRecurring( enableRecurring, selectedDate, durationSeconds );
+
+					// Show/hide clear button based on whether date is selected
+					var $clearButton = self.$container.find( '.scd-clear-end-date' );
+					if ( selectedDate ) {
+						$clearButton.show();
+					} else {
+						$clearButton.hide();
+					}
+
+					// Show error at end of row, but apply red border to date field
+					if ( ! recurringValidation.valid ) {
+						self._showOrClearValidation( recurringValidation, $( '#end_time' ) );
+						// Apply error styling to date field
+						$( '#end_date_display' ).addClass( 'error' ).attr( 'aria-invalid', 'true' );
+						// Open calendar to help user fix the issue
+						$( '#end_date_display' ).datepicker( 'show' );
+					} else {
+						self._showOrClearValidation( recurringValidation, $( '#end_time' ) );
+						// Clear error styling from date field
+						$( '#end_date_display' ).removeClass( 'error' ).attr( 'aria-invalid', 'false' );
+					}
+				}
+
+				// Validate if date is entered
+				if ( selectedDate ) {
+					var startDate = $( '#start_date' ).val();
+					var startTime = $( '#start_time' ).val() || '00:00';
+					var endDate = $( '#end_date' ).val();
+					var endTime = $( '#end_time' ).val() || '23:59';
+
+					var validation = ( 'start' === field )
+						? self._validateStartTime( startDate, startTime )
+						: self._validateEndTime( endDate, endTime, startDate, startTime );
+
+					self._showOrClearValidation( validation, $input );
+				}
+
+				self.handleDateChange( field, selectedDate );
+				self.updateDurationDisplay();
 			} );
 
-			// Date and time changes
-		// Real-time date validation using centralized validation methods
-		// Provides immediate feedback when user changes date fields
-		this.$container.on( 'change', '#start_date, #end_date', function() {
-			var field = $( this ).attr( 'id' ).replace( '_date', '' );
-			var $input = $( this );
-			var selectedDate = $input.val();
+			// Time field changes - validate on blur (when user finishes typing)
+			this.$container.on( 'blur', '#start_time, #end_time', function() {
+				var field = $( this ).attr( 'id' ).replace( '_time', '' );
+				var $input = $( this );
+				var selectedTime = $input.val();
 
-			// Auto-select "Scheduled Start" when user interacts with start date
-			if ( 'start' === field ) {
-				var $scheduledRadio = $( 'input[name="start_type"][value="scheduled"]' );
-				if ( ! $scheduledRadio.is( ':checked' ) ) {
-					$scheduledRadio.prop( 'checked', true ).trigger( 'change' );
-				}
-			}
-
-			if ( 'end' === field ) {
-				var $durationField = $( 'input[name="duration_seconds"]' );
-				if ( $durationField.length ) {
-					$durationField.remove();
-				}
-			}
-
-			// Real-time validation using centralized methods
-			if ( selectedDate ) {
-				var state = self.modules.state.getState();
-				var validation;
-
-				// Use centralized validation methods (single source of truth)
-				if ( 'start' === field ) {
-					validation = self._validateStartTime( selectedDate, state.startTime || '00:00' );
-				} else {
-					validation = self._validateEndTime( selectedDate, state.endTime || '23:59', state.startDate, state.startTime );
-				}
-
-				if ( ! validation.valid && validation.field === field + '_date' ) {
-					if ( window.SCD && window.SCD.ValidationError ) {
-						SCD.ValidationError.show( $input, validation.message );
-					}
-				} else {
-					// Valid date - clear any errors
+				if ( ! selectedTime ) {
 					if ( window.SCD && window.SCD.ValidationError ) {
 						SCD.ValidationError.clear( $input );
 					}
+					return;
 				}
-			}
 
-			self.handleDateChange( field, selectedDate );
-			self.updateDurationDisplay();
-		} );
-
-
-
-		// Real-time time validation using centralized validation methods
-		// Provides immediate feedback when user changes time fields
-		this.$container.on( 'change', '#start_time, #end_time', function() {
-			var field = $( this ).attr( 'id' ).replace( '_time', '' );
-			var $input = $( this );
-			var selectedTime = $input.val();
-
-			// Skip validation if time is empty
-			if ( ! selectedTime ) {
-				if ( window.SCD && window.SCD.ValidationError ) {
-					SCD.ValidationError.clear( $input );
+				// Remove duration field when user manually changes end time
+				if ( 'end' === field ) {
+					$( 'input[name="duration_seconds"]' ).remove();
 				}
+
+				// Validate with current DOM values
+				var startDate = $( '#start_date' ).val();
+				var startTime = $( '#start_time' ).val();
+				var endDate = $( '#end_date' ).val();
+				var endTime = $( '#end_time' ).val();
+
+				var validation = ( 'start' === field )
+					? self._validateStartTime( startDate, startTime )
+					: self._validateEndTime( endDate, endTime, startDate, startTime );
+
+				self._showOrClearValidation( validation, $input );
+			} );
+
+			// Time field changes - update state on change
+			this.$container.on( 'change', '#start_time, #end_time', function() {
+				var field = $( this ).attr( 'id' ).replace( '_time', '' );
+				var selectedTime = $( this ).val();
 				self.handleTimeChange( field, selectedTime );
 				self.updateDurationDisplay();
-				return;
-			}
-
-			if ( 'end' === field ) {
-				var $durationField = $( 'input[name="duration_seconds"]' );
-				if ( $durationField.length ) {
-					$durationField.remove();
-				}
-			}
-
-			var state = self.modules.state.getState();
-			var validation;
-
-			// Use centralized validation methods (single source of truth)
-			if ( 'start' === field ) {
-				validation = self._validateStartTime( state.startDate, selectedTime );
-			} else {
-				validation = self._validateEndTime( state.endDate, selectedTime, state.startDate, state.startTime );
-			}
-
-			if ( ! validation.valid ) {
-				if ( window.SCD && window.SCD.ValidationError ) {
-					SCD.ValidationError.show( $input, validation.message );
-				}
-			} else {
-				// Valid time - clear any errors
-				if ( window.SCD && window.SCD.ValidationError ) {
-					SCD.ValidationError.clear( $input );
-				}
-			}
-
-			self.handleTimeChange( field, selectedTime );
-			self.updateDurationDisplay();
-		} );
+			} );
 
 			// Start type changes
 			this.$container.on( 'change', 'input[name="start_type"]', function() {
@@ -192,7 +193,7 @@
 				e.preventDefault();
 				$( '#end_date' ).val( '' );
 				$( '#end_date_display' ).val( '' );
-				$( '#end_time' ).val( self.getDefaultEndTime() );
+				$( '#end_time' ).prop( 'disabled', true ).val( '' );
 				self.updateDurationDisplay();
 				// Trigger change event
 				$( '#end_date' ).trigger( 'change' );
@@ -216,12 +217,35 @@
 			this.$container.on( 'change', '#enable_recurring', function() {
 				var isChecked = $( this ).prop( 'checked' );
 				var $recurringOptions = $( '#scd-recurring-options' );
+				var $recurringWarning = $( '#scd-recurring-warning' );
+
+				// Toggle recurring options and warning
 				$recurringOptions.toggle( isChecked );
 				$recurringOptions.attr( 'aria-hidden', !isChecked );
+				$recurringWarning.toggle( isChecked );
+
 				if ( self.modules.state && 'function' === typeof self.modules.state.setState ) {
 					self.modules.state.setState( { enableRecurring: isChecked } );
 				}
 				self.updateRecurrencePreview();
+
+				// Validate recurring requirements (end_date or duration)
+				var endDate = $( '#end_date' ).val();
+				var durationSeconds = $( 'input[name="duration_seconds"]' ).val();
+				var validation = self._validateRecurring( isChecked, endDate, durationSeconds );
+
+				// Show error at end of row, but apply red border to date field
+				if ( ! validation.valid ) {
+					self._showOrClearValidation( validation, $( '#end_time' ) );
+					// Apply error styling to date field
+					$( '#end_date_display' ).addClass( 'error' ).attr( 'aria-invalid', 'true' );
+					// Open calendar to help user fix the issue
+					$( '#end_date_display' ).datepicker( 'show' );
+				} else {
+					self._showOrClearValidation( validation, $( '#end_time' ) );
+					// Clear error styling from date field
+					$( '#end_date_display' ).removeClass( 'error' ).attr( 'aria-invalid', 'false' );
+				}
 			} );
 
 			// Recurrence pattern
@@ -297,10 +321,8 @@
 					this.modules.state.setState( stateUpdate );
 				}
 				$( document ).trigger( 'scd:schedule:' + field + ':changed', value );
-
-				this.updateTimeConstraints();
 			} catch ( error ) {
-			this.safeErrorHandle( error, 'schedule-date-change' );
+				this.safeErrorHandle( error, 'schedule-date-change' );
 				this.showError( 'Failed to update date. Please check your input.', 'error', 5000 );
 			}
 		},
@@ -318,105 +340,9 @@
 					this.modules.state.setState( stateUpdate );
 				}
 				$( document ).trigger( 'scd:schedule:' + field + '-time:changed', value );
-
-				if ( 'start' === field ) {
-					this.updateTimeConstraints();
-				}
 			} catch ( error ) {
-			this.safeErrorHandle( error, 'schedule-time-change' );
+				this.safeErrorHandle( error, 'schedule-time-change' );
 				this.showError( 'Failed to update time. Please check your input.', 'error', 5000 );
-			}
-		},
-
-		/**
-		 * Update time input constraints to prevent past time selection
-		 *
-		 * Dynamically sets min attribute on time inputs based on:
-		 * - Current time (if date is today)
-		 * - Start time (for end time if same day)
-		 */
-		updateTimeConstraints: function() {
-			var $startDate = $( '#start_date' );
-			var $startTime = $( '#start_time' );
-			var $endDate = $( '#end_date' );
-			var $endTime = $( '#end_time' );
-
-			if ( !$startDate.length || !$startTime.length ) {
-				return;
-			}
-
-			var startDateValue = $startDate.val();
-			var startTimeValue = $startTime.val();
-			var endDateValue = $endDate.val();
-
-			var now = new Date();
-			var todayStr = this.formatDateISO( now );
-			var currentTimeStr = this.formatTimeHHMM( now );
-
-			// Constraint 1: If start_date is today, set start_time min to current time
-			if ( startDateValue === todayStr ) {
-				$startTime.attr( 'min', currentTimeStr );
-
-				if ( startTimeValue && startTimeValue < currentTimeStr ) {
-					if ( window.SCD && window.SCD.ValidationError ) {
-						SCD.ValidationError.show(
-							$startTime,
-							'Start time cannot be in the past. Please select ' + currentTimeStr + ' or later.'
-						);
-					}
-				} else {
-					if ( window.SCD && window.SCD.ValidationError ) {
-						SCD.ValidationError.clear( $startTime );
-					}
-				}
-			} else {
-				$startTime.removeAttr( 'min' );
-				if ( window.SCD && window.SCD.ValidationError ) {
-					SCD.ValidationError.clear( $startTime );
-				}
-			}
-
-			// Constraint 2: If end_date is same as start_date, end_time must be after start_time
-			if ( endDateValue && startDateValue && endDateValue === startDateValue && startTimeValue ) {
-				var minEndTime = this.addMinutesToTime( startTimeValue, 1 );
-				$endTime.attr( 'min', minEndTime );
-
-				var endTimeValue = $endTime.val();
-				if ( endTimeValue && endTimeValue <= startTimeValue ) {
-					if ( window.SCD && window.SCD.ValidationError ) {
-						SCD.ValidationError.show(
-							$endTime,
-							'End time must be after start time (' + minEndTime + ' or later).'
-						);
-					}
-				} else {
-					if ( window.SCD && window.SCD.ValidationError ) {
-						SCD.ValidationError.clear( $endTime );
-					}
-				}
-			} else if ( endDateValue && endDateValue === todayStr && !startDateValue ) {
-				// Immediate start with today's end date
-				$endTime.attr( 'min', currentTimeStr );
-
-				var endTimeValue = $endTime.val();
-				if ( endTimeValue && endTimeValue < currentTimeStr ) {
-					if ( window.SCD && window.SCD.ValidationError ) {
-						SCD.ValidationError.show(
-							$endTime,
-							'End time cannot be in the past. Please select ' + currentTimeStr + ' or later.'
-						);
-					}
-				} else {
-					if ( window.SCD && window.SCD.ValidationError ) {
-						SCD.ValidationError.clear( $endTime );
-					}
-				}
-			} else {
-				// Different dates - no constraint needed
-				$endTime.removeAttr( 'min' );
-				if ( window.SCD && window.SCD.ValidationError ) {
-					SCD.ValidationError.clear( $endTime );
-				}
 			}
 		},
 
@@ -482,8 +408,13 @@
 
 				if ( 'scheduled' === startType ) {
 					$startDateRow.show();
+					// Re-enable fields and restore tabindex when showing
+					$startDateRow.find( 'input, button' ).removeAttr( 'tabindex' );
+					$startDateRow.find( '#start_time' ).prop( 'disabled', false );
 				} else {
 					$startDateRow.hide();
+					// Set tabindex to -1 for hidden fields to remove from tab order
+					$startDateRow.find( 'input, button' ).attr( 'tabindex', '-1' );
 				}
 
 				if ( this.modules.state && 'function' === typeof this.modules.state.setState ) {
@@ -492,8 +423,8 @@
 				$( document ).trigger( 'scd:schedule:start-type:changed', startType );
 			} catch ( error ) {
 				this.safeErrorHandle( error, 'schedule-start-type-change' );
-		}
-	},
+			}
+		},
 
 		/**
 		 * Update recurrence preview
@@ -692,24 +623,13 @@
 
 				this.updateDurationDisplay();
 
-				// Scroll to schedule configuration section
-				var $scheduleSection = $( '.scd-scheduled-start-fields' ).closest( '.scd-card' );
-				if ( 0 === $scheduleSection.length ) {
-					$scheduleSection = $( '#end_date' ).closest( '.scd-card' );
-				}
-				if ( $scheduleSection.length ) {
-					$( 'html, body' ).animate( {
-						scrollTop: $scheduleSection.offset().top - 100
-					}, 500 );
-				}
-
 				// Emit event
 				$( document ).trigger( 'scd:schedule:preset:applied', preset );
 			} catch ( error ) {
 				this.safeErrorHandle( error, 'schedule-apply-preset' );
 				this.showError( 'Failed to apply preset. Please try again.', 'error', 5000 );
-		}
-	},
+			}
+		},
 		/**
 		 * Update date and time fields
 		 * @param dates
@@ -785,8 +705,6 @@
 			this.updateDurationDisplay();
 		},
 
-		// getSavedData method removed - data is provided by wizard orchestrator via populateFields
-
 		/**
 		 * Set loading state
 		 * @param loading
@@ -804,7 +722,7 @@
 				return;
 			}
 
-			var $dateInputs = this.$container.find( '#start_date_display, #end_date_display' );
+			var $dateInputs = this.$container.find( '#start_date_display, #end_date_display, #recurrence_end_date' );
 
 			$dateInputs.each( function() {
 				var $input = $( this );
@@ -819,7 +737,19 @@
 					showAnim: '',
 					duration: 0,
 					onSelect: function( dateText ) {
-						var field = $input.attr( 'id' ).replace( '_date_display', '' );
+						var inputId = $input.attr( 'id' );
+
+						// Handle recurrence_end_date (no _display suffix)
+						if ( 'recurrence_end_date' === inputId ) {
+							$input.val( dateText ).trigger( 'change' );
+							if ( self.modules.state && 'function' === typeof self.modules.state.setState ) {
+								self.modules.state.setState( { recurrence_end_date: dateText } );
+							}
+							return;
+						}
+
+						// Handle regular date fields (start_date_display, end_date_display)
+						var field = inputId.replace( '_date_display', '' );
 
 						// Auto-select "Scheduled Start" when user picks a start date
 						if ( 'start' === field ) {
@@ -829,7 +759,8 @@
 							}
 						}
 
-						$( '#' + field + '_date' ).val( dateText );
+						// Update hidden field and trigger change event for dependent logic
+						$( '#' + field + '_date' ).val( dateText ).trigger( 'change' );
 						self.handleDateChange( field, dateText );
 						self.updateDurationDisplay();
 					}
@@ -867,11 +798,12 @@
 					'aria-label': preset.label
 				} );
 
+				var iconHtml = SCD.IconHelper ? SCD.IconHelper.get( preset.icon || 'clock', { size: 20 } ) : '<span class="scd-icon scd-icon-' + ( preset.icon || 'clock' ) + '"></span>';
 				$button.append(
 					$( '<span>', {
-						'class': 'scd-timeline-preset__icon dashicons ' + ( preset.icon || 'dashicons-clock' ),
+						'class': 'scd-timeline-preset__icon',
 						'aria-hidden': 'true'
-					} ),
+					} ).html( iconHtml ),
 					$( '<span>', {
 						'class': 'scd-timeline-preset__duration',
 						'text': preset.days + ' days'
@@ -906,10 +838,6 @@
 			$( document ).trigger( 'scd:schedule:presets:loaded', presets );
 		},
 
-		// Note: collectData is now handled by StepPersistence mixin
-		// The mixin uses field definitions to automatically collect all fields
-		// We override it only if we need to handle special cases
-
 		/**
 		 * Collect data - overrides mixin to handle special cases
 		 * @override
@@ -924,12 +852,6 @@
 
 			return data;
 		},
-
-		// Note: validateData is now handled by StepPersistence mixin
-		// The mixin uses field definitions for automatic validation
-		// Business logic validation is handled by the PHP unified validator
-
-		// Note: showErrors() is inherited from StepPersistence mixin
 
 		/**
 		 * Get default end time
@@ -1064,7 +986,59 @@
 		},
 
 
-	/* ===== CENTRALIZED VALIDATION METHODS ===== */
+	/**
+	 * Show or clear validation based on result
+	 *
+	 * Centralizes error display logic to avoid duplication.
+	 * Shows error on the correct field (from validation.field) or clears current field error.
+	 *
+	 * @private
+	 * @param {object} validation - Validation result {valid: boolean, field: string, message: string}
+	 * @param {jQuery} $input - Current input field being validated
+	 * @return {void}
+	 */
+	_showOrClearValidation: function( validation, $input ) {
+		if ( ! window.SCD || ! window.SCD.ValidationError ) {
+			return;
+		}
+
+		if ( ! validation.valid ) {
+			var $errorField = this.$container.find( '#' + validation.field );
+			if ( $errorField.length ) {
+				SCD.ValidationError.show( $errorField, validation.message );
+			}
+		} else {
+			SCD.ValidationError.clear( $input );
+		}
+	},
+
+	/**
+	 * Validate recurring campaign requirements
+	 * Single source of truth - used by both real-time handlers and validateStep()
+	 * @private
+	 * @param {boolean} enableRecurring - Whether recurring is enabled
+	 * @param {string} endDate - End date value
+	 * @param {number} durationSeconds - Duration in seconds
+	 * @return {object} Validation result {valid: boolean, field: string, message: string}
+	 */
+	_validateRecurring: function( enableRecurring, endDate, durationSeconds ) {
+		if ( ! enableRecurring ) {
+			return { valid: true };
+		}
+
+		var hasEndDate = endDate && '' !== endDate;
+		var hasDuration = durationSeconds && durationSeconds > 0;
+
+		if ( ! hasEndDate && ! hasDuration ) {
+			return {
+				valid: false,
+				field: 'end_time', // Error at end of row, matching start_time error position
+				message: 'Recurring campaigns must have an end date'
+			};
+		}
+
+		return { valid: true };
+	},
 
 	/**
 	 * Validate start date/time against current time
@@ -1189,21 +1163,43 @@
 			}
 		}
 
+		// Validate recurring campaigns require an end date or duration
+		var recurringValidation = this._validateRecurring(
+			state.enableRecurring,
+			state.endDate,
+			state.durationSeconds
+		);
+		if ( ! recurringValidation.valid ) {
+			errors.push( recurringValidation );
+		}
+
 		if ( errors.length > 0 ) {
-			var self = this;
+			// Convert errors array to object format for ValidationError.showMultiple
+			var errorObject = {};
 			errors.forEach( function( error ) {
-				var $field = self.$container.find( '#' + error.field );
-				if ( $field.length && window.SCD && window.SCD.ValidationError ) {
-					SCD.ValidationError.show( $field, error.message );
-				}
+				errorObject[error.field] = error.message;
 			} );
 
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
-				SCD.Shared.NotificationService.error(
-					'Please fix the schedule errors before proceeding',
-					5000
-				);
+			// Use wizard validation pattern - handles inline errors and auto-scroll to field
+			if ( window.SCD && window.SCD.ValidationError ) {
+				SCD.ValidationError.showMultiple( errorObject, this.$container, {
+					clearFirst: true,
+					showSummary: false, // No banner for single field errors - just scroll to field
+					focusFirstError: true
+				} );
+
+				// If recurring validation error, apply red border to date field and open calendar
+				if ( errorObject.end_time && ! recurringValidation.valid ) {
+					$( '#end_date_display' ).addClass( 'error' ).attr( 'aria-invalid', 'true' );
+					// Small delay to ensure error display is complete before opening calendar
+					setTimeout( function() {
+						$( '#end_date_display' ).datepicker( 'show' );
+					}, 100 );
+				}
 			}
+		} else {
+			// Clear any error styling from date field when validation passes
+			$( '#end_date_display' ).removeClass( 'error' ).attr( 'aria-invalid', 'false' );
 		}
 
 		var deferred = $.Deferred();

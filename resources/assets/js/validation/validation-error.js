@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/validation/validation-error.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -259,6 +259,20 @@
 			if ( options.showSummary ) {
 				this.showSummary( errors, $context, options );
 			}
+
+			// Auto-focus first error if requested
+			if ( options.focusFirstError ) {
+				if ( this._pendingFocusTimeout ) {
+					this._clearTimeout( this._pendingFocusTimeout );
+					this._pendingFocusTimeout = null;
+				}
+
+				// Small delay to ensure DOM updates are complete
+				this._pendingFocusTimeout = this._setTimeout( function() {
+					self._pendingFocusTimeout = null;
+					self.focusFirstError( $context );
+				}, 50 );
+			}
 		},
 
 		/**
@@ -276,12 +290,6 @@
 			// If not found by name, try by ID
 			if ( ! $field.length ) {
 				$field = $context.find( '#' + this.escapeSelector( fieldName ) );
-			}
-
-			// Also handle snake_case to camelCase conversion
-			if ( ! $field.length && window.SCD && window.SCD.Utils && window.SCD.Utils.snakeToCamelCase ) {
-				var camelFieldName = window.SCD.Utils.snakeToCamelCase( fieldName );
-				$field = $context.find( '[name="' + this.escapeSelector( camelFieldName ) + '"]' );
 			}
 
 			return $field;
@@ -312,11 +320,7 @@
 		 * @param {*} data - Optional data to log
 		 */
 		_logDebug: function( message, data ) {
-			if ( window.scdDebugPersistence ) {
-				if ( data ) {
-				} else {
-				}
-			}
+			// Debug logging intentionally removed for production
 		},
 
 		/**
@@ -444,7 +448,8 @@
 
 				$.each( messageArray, function( index, message ) {
 					errorCount++;
-					var fieldLabel = self._getFieldLabel( $field, fieldName );
+					// Use public getFieldLabel which handles all fallback logic
+					var fieldLabel = SCD.Components.ValidationError.getFieldLabel( $field.length ? $field : fieldName, fieldName );
 					errorMessages.push( fieldLabel + ': ' + message );
 				} );
 			} );
@@ -479,22 +484,16 @@
 		},
 
 		/**
-		 * Get field label for error messages
-		 * Uses cache to avoid repeated DOM lookups
+		 * Get field label from DOM with caching
+		 * Returns empty string if no label found (caller handles formatting)
 		 * @private
 		 * @param {jQuery} $field Field element
-		 * @param {string} fieldName Field name fallback
-		 * @returns {string} Field label
+		 * @param {string} fieldName Field name for cache key
+		 * @returns {string} Field label or empty string
 		 */
 		_getFieldLabel: function( $field, fieldName ) {
-			// Ensure fieldName is a string
-			fieldName = fieldName || '';
-
 			if ( ! $field || ! $field.length ) {
-				// Format field name if no field element
-				return fieldName ? fieldName.replace( /_/g, ' ' ).replace( /\b\w/g, function( l ) {
-					return l.toUpperCase();
-				} ) : 'This field';
+				return '';
 			}
 
 			var cacheKey = fieldName || $field.attr( 'name' ) || $field.attr( 'id' );
@@ -504,7 +503,7 @@
 
 			var label = '';
 
-			// Try to find associated label
+			// Try to find associated label by ID
 			var fieldId = $field.attr( 'id' );
 			if ( fieldId ) {
 				var $label = $( 'label[for="' + fieldId + '"]' );
@@ -531,7 +530,7 @@
 				}
 			}
 
-			// Use placeholder as last resort
+			// Try placeholder
 			if ( ! label ) {
 				var placeholder = $field.attr( 'placeholder' );
 				if ( placeholder ) {
@@ -539,19 +538,8 @@
 				}
 			}
 
-			// Format field name
-			if ( ! label && fieldName ) {
-				label = fieldName.replace( /_/g, ' ' ).replace( /\b\w/g, function( l ) {
-					return l.toUpperCase();
-				} );
-			}
-
-			// Final fallback
-			if ( ! label ) {
-				label = 'This field';
-			}
-
-			if ( cacheKey ) {
+			// Cache the result
+			if ( label && cacheKey ) {
 				this._labelCache[cacheKey] = label;
 			}
 
@@ -575,8 +563,8 @@
 				}
 			}
 
-			// Format announcement using internal method
-			var announcement = 'Error in ' + this._getFieldLabel( null, fieldName ) + ': ' + message;
+			// Format announcement using public method which handles all fallback logic
+			var announcement = 'Error in ' + SCD.Components.ValidationError.getFieldLabel( fieldName ) + ': ' + message;
 
 			var $announcer = this._$announcer;
 			$announcer.empty();
@@ -795,31 +783,6 @@
 		}
 
 		return false;
-	};
-
-	/**
-	 * Extend showMultiple to include focus behavior on first error field
-	 */
-	var originalShowMultiple = SCD.Components.ValidationError.showMultiple;
-	SCD.Components.ValidationError.showMultiple = function( errors, $context, options ) {
-		// Call original method
-		originalShowMultiple.call( this, errors, $context, options );
-
-		// Auto-focus first error if requested
-		if ( options && options.focusFirstError ) {
-			var self = this;
-
-			if ( this._pendingFocusTimeout ) {
-				this._clearTimeout( this._pendingFocusTimeout );
-				this._pendingFocusTimeout = null;
-			}
-
-			// Small delay to ensure DOM updates are complete
-			this._pendingFocusTimeout = this._setTimeout( function() {
-				self._pendingFocusTimeout = null;
-				self.focusFirstError( $context );
-			}, 50 );
-		}
 	};
 
 	$( document ).ready( function() {

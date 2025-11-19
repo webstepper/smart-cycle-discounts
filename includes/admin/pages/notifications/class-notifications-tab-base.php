@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/pages/notifications/class-notifications-tab-base.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -230,7 +230,7 @@ abstract class SCD_Notifications_Tab_Base {
 		);
 
 		if ( $pro_feature && ! $this->page->get_feature_gate()->is_enabled( 'premium_email_providers' ) ) {
-			echo ' <span class="scd-pro-badge">' . esc_html__( 'PRO', 'smart-cycle-discounts' ) . '</span>';
+			echo ' ' . SCD_Badge_Helper::pro_badge();
 		}
 
 		if ( isset( $args['tooltip'] ) && ! empty( $args['tooltip'] ) ) {
@@ -325,19 +325,15 @@ abstract class SCD_Notifications_Tab_Base {
 			</label>
 
 			<?php if ( $is_pro_notification ) : ?>
-				<?php if ( ! $has_access ) : ?>
-					<span class="scd-pro-badge scd-pro-badge-locked" title="<?php esc_attr_e( 'Upgrade to PRO to unlock this notification', 'smart-cycle-discounts' ); ?>">
-						<?php esc_html_e( 'PRO', 'smart-cycle-discounts' ); ?>
-					</span>
-				<?php else : ?>
-					<span class="scd-pro-badge scd-pro-badge-active" title="<?php esc_attr_e( 'PRO Feature', 'smart-cycle-discounts' ); ?>">
-						<?php esc_html_e( 'PRO', 'smart-cycle-discounts' ); ?>
-					</span>
-				<?php endif; ?>
+				<?php
+				if ( ! $has_access ) {
+					echo SCD_Badge_Helper::pro_badge( __( 'Upgrade to PRO to unlock this notification', 'smart-cycle-discounts' ) );
+				} else {
+					echo SCD_Badge_Helper::pro_badge( __( 'PRO Feature', 'smart-cycle-discounts' ) );
+				}
+				?>
 			<?php else : ?>
-				<span class="scd-free-badge" title="<?php esc_attr_e( 'Free Feature', 'smart-cycle-discounts' ); ?>">
-					<?php esc_html_e( 'FREE', 'smart-cycle-discounts' ); ?>
-				</span>
+				<?php echo SCD_Badge_Helper::free_badge(); ?>
 			<?php endif; ?>
 		</div>
 		<?php

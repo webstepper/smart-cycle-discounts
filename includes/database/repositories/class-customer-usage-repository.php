@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/database/repositories/class-customer-usage-repository.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/database/repositories
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Customer_Usage_Repository {
 
@@ -58,15 +58,26 @@ class SCD_Customer_Usage_Repository {
 	private string $table_name;
 
 	/**
+	 * Cache manager instance.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      SCD_Cache_Manager|null    $cache    Cache manager.
+	 */
+	private ?SCD_Cache_Manager $cache = null;
+
+	/**
 	 * Initialize the repository.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager $db        Database manager.
-	 * @param    SCD_Logger           $logger    Logger instance.
+	 * @param    SCD_Database_Manager   $db        Database manager.
+	 * @param    SCD_Logger             $logger    Logger instance.
+	 * @param    SCD_Cache_Manager|null $cache     Cache manager (optional).
 	 */
-	public function __construct( SCD_Database_Manager $db, SCD_Logger $logger ) {
+	public function __construct( SCD_Database_Manager $db, SCD_Logger $logger, ?SCD_Cache_Manager $cache = null ) {
 		$this->db         = $db;
 		$this->logger     = $logger;
+		$this->cache      = $cache;
 		$this->table_name = $this->db->get_table_name( 'customer_usage' );
 	}
 
@@ -210,6 +221,10 @@ class SCD_Customer_Usage_Repository {
 
 		$result = $this->db->insert( $this->table_name, $insert_data );
 
+		if ( $result && $this->cache ) {
+			$this->cache->invalidate_analytics();
+		}
+
 		return $result ? $this->db->insert_id : false;
 	}
 
@@ -267,6 +282,10 @@ class SCD_Customer_Usage_Repository {
 			$update_data,
 			array( 'id' => $id )
 		);
+
+		if ( $result !== false && $this->cache ) {
+			$this->cache->invalidate_analytics();
+		}
 
 		return $result !== false ? $id : false;
 	}
@@ -410,6 +429,68 @@ class SCD_Customer_Usage_Repository {
 				)
 			);
 			return array();
+		}
+	}
+
+	/**
+	 * Get total usage count for a campaign (per cycle).
+	 *
+	 * @since    1.0.0
+	 * @param    int $campaign_id    Campaign ID.
+	 * @return   int                    Total usage count.
+	 */
+	public function get_campaign_total_usage( int $campaign_id ): int {
+		try {
+			$count = $this->db->get_var(
+				$this->db->prepare(
+					"SELECT SUM(usage_count) FROM {$this->table_name}
+                    WHERE campaign_id = %d",
+					$campaign_id
+				)
+			);
+
+			return $count ? intval( $count ) : 0;
+		} catch ( Exception $e ) {
+			$this->logger->error(
+				'Failed to get campaign total usage',
+				array(
+					'campaign_id' => $campaign_id,
+					'error'       => $e->getMessage(),
+				)
+			);
+			return 0;
+		}
+	}
+
+	/**
+	 * Get lifetime usage count for a campaign (across all cycles).
+	 *
+	 * This counts all historical usage regardless of cycle.
+	 *
+	 * @since    1.0.0
+	 * @param    int $campaign_id    Campaign ID.
+	 * @return   int                    Lifetime usage count.
+	 */
+	public function get_campaign_lifetime_usage( int $campaign_id ): int {
+		try {
+			$count = $this->db->get_var(
+				$this->db->prepare(
+					"SELECT SUM(usage_count) FROM {$this->table_name}
+                    WHERE campaign_id = %d",
+					$campaign_id
+				)
+			);
+
+			return $count ? intval( $count ) : 0;
+		} catch ( Exception $e ) {
+			$this->logger->error(
+				'Failed to get campaign lifetime usage',
+				array(
+					'campaign_id' => $campaign_id,
+					'error'       => $e->getMessage(),
+				)
+			);
+			return 0;
 		}
 	}
 

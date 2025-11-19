@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/utilities/class-time-helpers.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -40,7 +40,7 @@ function scd_parse_local( string $datetime_str, string $format = 'Y-m-d H:i:s' )
 		// EC-011 FIX: Use strict date validation with '!' prefix
 		$datetime = DateTimeImmutable::createFromFormat( '!' . $format, $datetime_str, $wp_timezone );
 
-		if ( $datetime === false ) {
+		if ( false === $datetime ) {
 			// Try general parsing as fallback
 			$datetime = new DateTimeImmutable( $datetime_str, $wp_timezone );
 		} else {
@@ -141,9 +141,9 @@ function scd_parse_time_string( string $time_str ) {
 		$ampm   = strtoupper( $matches[3] );
 
 		if ( $hour >= 1 && $hour <= 12 && $minute >= 0 && $minute <= 59 ) {
-			if ( $ampm === 'PM' && $hour !== 12 ) {
+			if ( 'PM' === $ampm && 12 !== $hour ) {
 				$hour += 12;
-			} elseif ( $ampm === 'AM' && $hour === 12 ) {
+			} elseif ( 'AM' === $ampm && 12 === $hour ) {
 				$hour = 0;
 			}
 
@@ -172,7 +172,7 @@ function scd_is_within_time_window( string $start_time, string $end_time, ?DateT
 	$start_parts = scd_parse_time_string( $start_time );
 	$end_parts   = scd_parse_time_string( $end_time );
 
-	if ( $start_parts === false || $end_parts === false ) {
+	if ( false === $start_parts || false === $end_parts ) {
 		return false; // Invalid time format
 	}
 
@@ -205,7 +205,7 @@ function scd_next_allowed_time( string $start_time, string $end_time, ?DateTimeI
 	$start_parts = scd_parse_time_string( $start_time );
 	$end_parts   = scd_parse_time_string( $end_time );
 
-	if ( $start_parts === false || $end_parts === false ) {
+	if ( false === $start_parts || false === $end_parts ) {
 		return false;
 	}
 

@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/components/class-modal-component.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/components
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Modal_Component {
 
@@ -51,7 +51,7 @@ class SCD_Modal_Component {
 		'title'          => '',
 		'content'        => '',
 		'icon'           => '',
-		'icon_type'      => 'dashicons',
+		'icon_type'      => 'svg',
 		'buttons'        => array(),
 		'classes'        => array(),
 		'attributes'     => array(),
@@ -117,7 +117,7 @@ class SCD_Modal_Component {
 				<div class="scd-modal__content">
 					<?php if ( $this->config['dismissible'] ) : ?>
 						<button class="scd-modal__close" type="button" aria-label="<?php echo esc_attr__( 'Close modal', 'smart-cycle-discounts' ); ?>">
-							<span class="dashicons dashicons-no"></span>
+							<?php echo SCD_Icon_Helper::get( 'close', array( 'size' => 16 ) ); ?>
 						</button>
 					<?php endif; ?>
 					
@@ -162,9 +162,8 @@ class SCD_Modal_Component {
 	 */
 	private function render_icon(): void {
 		if ( $this->config['icon_type'] === 'dashicons' ) {
-			?>
-			<span class="dashicons <?php echo esc_attr( $this->config['icon'] ); ?>"></span>
-			<?php
+			$icon_name = str_replace( 'dashicons-', '', $this->config['icon'] );
+			echo SCD_Icon_Helper::get( $icon_name, array( 'size' => 16 ) );
 		} elseif ( $this->config['icon_type'] === 'svg' ) {
 			echo wp_kses(
 				$this->config['icon'],
@@ -508,7 +507,7 @@ class SCD_Modal_Component {
 		switch ( $type ) {
 			case 'confirm':
 				$defaults = array(
-					'icon'    => 'dashicons-warning',
+					'icon'    => 'warning',
 					'buttons' => array(
 						array(
 							'text'   => __( 'Confirm', 'smart-cycle-discounts' ),
@@ -526,7 +525,7 @@ class SCD_Modal_Component {
 
 			case 'error':
 				$defaults = array(
-					'icon'    => 'dashicons-dismiss',
+					'icon'    => 'dismiss',
 					'classes' => array( 'scd-modal--error' ),
 					'buttons' => array(
 						array(
@@ -540,7 +539,7 @@ class SCD_Modal_Component {
 
 			case 'success':
 				$defaults = array(
-					'icon'    => 'dashicons-yes-alt',
+					'icon'    => 'yes-alt',
 					'classes' => array( 'scd-modal--success' ),
 					'buttons' => array(
 						array(

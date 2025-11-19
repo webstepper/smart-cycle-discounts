@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/utilities/class-translation-handler.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Translation_Handler {
 
@@ -137,7 +137,7 @@ class SCD_Translation_Handler {
 			),
 			'woocommerce_missing'    => self::get(
 				'requirement_woocommerce_missing',
-				'Smart Cycle Discounts requires WooCommerce to be installed and activated.'
+				'<strong>Smart Cycle Discounts</strong> requires WooCommerce to be installed and activated. <a href="' . esc_url( admin_url( 'plugin-install.php?s=woocommerce&tab=search&type=term' ) ) . '" class="button button-primary">Install WooCommerce</a>'
 			),
 			'woocommerce_version'    => self::get(
 				'requirement_woocommerce_version',

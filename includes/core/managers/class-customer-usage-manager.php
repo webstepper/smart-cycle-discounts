@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/managers/class-customer-usage-manager.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/managers
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Customer_Usage_Manager {
 
@@ -408,6 +408,50 @@ class SCD_Customer_Usage_Manager {
 				'total_savings'        => 0.0,
 				'campaigns'            => array(),
 			);
+		}
+	}
+
+	/**
+	 * Get total usage count for a campaign (per cycle).
+	 *
+	 * @since    1.0.0
+	 * @param    int $campaign_id    Campaign ID.
+	 * @return   int                    Total usage count.
+	 */
+	public function get_total_usage( int $campaign_id ): int {
+		try {
+			return $this->repository->get_campaign_total_usage( $campaign_id );
+		} catch ( Exception $e ) {
+			$this->logger->error(
+				'Failed to get campaign total usage',
+				array(
+					'campaign_id' => $campaign_id,
+					'error'       => $e->getMessage(),
+				)
+			);
+			return 0;
+		}
+	}
+
+	/**
+	 * Get lifetime usage count for a campaign (across all cycles).
+	 *
+	 * @since    1.0.0
+	 * @param    int $campaign_id    Campaign ID.
+	 * @return   int                    Lifetime usage count.
+	 */
+	public function get_lifetime_usage( int $campaign_id ): int {
+		try {
+			return $this->repository->get_campaign_lifetime_usage( $campaign_id );
+		} catch ( Exception $e ) {
+			$this->logger->error(
+				'Failed to get campaign lifetime usage',
+				array(
+					'campaign_id' => $campaign_id,
+					'error'       => $e->getMessage(),
+				)
+			);
+			return 0;
 		}
 	}
 

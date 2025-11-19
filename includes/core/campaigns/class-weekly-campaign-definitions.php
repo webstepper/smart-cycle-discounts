@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/campaigns/class-weekly-campaign-definitions.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -71,11 +71,15 @@ class SCD_Weekly_Campaign_Definitions {
 					__( 'Feature "New This Week" product collections prominently', 'smart-cycle-discounts' ),
 					__( 'Use goal-oriented messaging ("Start Strong", "Begin Fresh")', 'smart-cycle-discounts' ),
 					__( 'Launch new products on Monday for maximum visibility', 'smart-cycle-discounts' ),
-					__( 'Schedule campaign to auto-activate Monday 8AM every week', 'smart-cycle-discounts' ),
+					__( 'Schedule campaign to auto-activate Monday 8AM every week [PRO]', 'smart-cycle-discounts' ),
+					__( 'Use product rotation to showcase new launches weekly [PRO]', 'smart-cycle-discounts' ),
+					__( 'Send Monday morning motivation emails to drive early engagement [PRO]', 'smart-cycle-discounts' ),
+					__( 'Use advanced filters to segment by business and productivity categories [PRO]', 'smart-cycle-discounts' ),
 					__( 'Create "Monday Motivation" themed bundles', 'smart-cycle-discounts' ),
 					__( 'Optimize homepage for fresh start psychology', 'smart-cycle-discounts' ),
 					__( 'Schedule social media posts 7-9AM Monday', 'smart-cycle-discounts' ),
 					__( 'Feature productivity-focused products first', 'smart-cycle-discounts' ),
+					__( 'Track Monday launch performance trends with detailed analytics [PRO]', 'smart-cycle-discounts' ),
 					__( 'Use countdown timers ending Monday midnight', 'smart-cycle-discounts' ),
 					__( 'Target "new week, new goals" search keywords', 'smart-cycle-discounts' ),
 				),
@@ -125,9 +129,14 @@ class SCD_Weekly_Campaign_Definitions {
 					__( 'Post to social media Wednesday 11AM-1PM', 'smart-cycle-discounts' ),
 					__( 'Set max uses per customer to spread deals across more shoppers', 'smart-cycle-discounts' ),
 					__( 'Optimize for mobile checkout (58% traffic)', 'smart-cycle-discounts' ),
+					__( 'Schedule campaign to auto-activate Wednesday 10AM every week [PRO]', 'smart-cycle-discounts' ),
+					__( 'Use product rotation to keep impulse offers fresh throughout campaign [PRO]', 'smart-cycle-discounts' ),
+					__( 'Set spend threshold discounts to encourage larger treat baskets [PRO]', 'smart-cycle-discounts' ),
+					__( 'Send lunch-time browsing alerts (Wed 11AM-1PM) [PRO]', 'smart-cycle-discounts' ),
+					__( 'Use advanced filters to segment by price range ($20-50 sweet spot) [PRO]', 'smart-cycle-discounts' ),
 					__( 'Create impulse-friendly product displays', 'smart-cycle-discounts' ),
-					__( 'Schedule campaign to auto-activate Wednesday 10AM every week', 'smart-cycle-discounts' ),
 					__( 'Feature "Mid-Week Pick-Me-Up" collections', 'smart-cycle-discounts' ),
+					__( 'Track mid-week impulse buying patterns with detailed analytics [PRO]', 'smart-cycle-discounts' ),
 					__( 'Use countdown ending Thursday 11:59PM', 'smart-cycle-discounts' ),
 					__( 'Promote stress-relief and relaxation products', 'smart-cycle-discounts' ),
 				),
@@ -177,7 +186,12 @@ class SCD_Weekly_Campaign_Definitions {
 					__( 'Add prominent countdown timer "Ends Sunday 11:59PM"', 'smart-cycle-discounts' ),
 					__( 'Use smart product selection to feature high-value items', 'smart-cycle-discounts' ),
 					__( 'Begin promotion Thursday evening on social media', 'smart-cycle-discounts' ),
-					__( 'Schedule campaign to auto-activate Friday 7PM every week', 'smart-cycle-discounts' ),
+					__( 'Schedule campaign to auto-activate Friday 7PM every week [PRO]', 'smart-cycle-discounts' ),
+					__( 'Use tiered discounts to reward larger weekend purchases [PRO]', 'smart-cycle-discounts' ),
+					__( 'Set up BOGO discounts for family bundle deals [PRO]', 'smart-cycle-discounts' ),
+					__( 'Use product rotation to keep weekend offers fresh across 3 days [PRO]', 'smart-cycle-discounts' ),
+					__( 'Use advanced filters to segment family-friendly products [PRO]', 'smart-cycle-discounts' ),
+					__( 'Send automated email notifications Friday morning for weekend deals [PRO]', 'smart-cycle-discounts' ),
 					__( 'Create "Weekend Only" exclusive product collections', 'smart-cycle-discounts' ),
 					__( 'Feature higher-value items prominently', 'smart-cycle-discounts' ),
 					__( 'Use urgency messaging ("This Weekend Only")', 'smart-cycle-discounts' ),

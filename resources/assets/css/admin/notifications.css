@@ -14,27 +14,7 @@
    ANIMATIONS
    ========================================================================== */
 
-@keyframes scdSlideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes scdSlideUp {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-}
+/* Note: @keyframes scd-slide-down and scd-slide-up defined in shared/_utilities.css */
 
 /* ==========================================================================
    BASE NOTIFICATION CONTAINER
@@ -45,14 +25,14 @@
     top: 32px; /* WordPress admin bar */
     left: 0;
     right: 0;
-    z-index: 999900; /* WordPress-safe: below admin bar (99999) but above modals */
+    z-index: var(--scd-z-notification); /* WordPress-safe: below admin bar (99999) but above modals */
     pointer-events: none;
-    padding: 0 var(--scd-spacing-lg, 1.5rem);
+    padding: 0 var(--scd-spacing-lg);
 }
 
 /* Admin bar adjustments */
 body:not(.admin-bar) #scd-notifications-container {
-    top: var(--scd-spacing-lg, 1.5rem);
+    top: var(--scd-spacing-lg);
 }
 
 /* ==========================================================================
@@ -64,29 +44,34 @@ body:not(.admin-bar) #scd-notifications-container {
     position: relative;
     display: flex;
     align-items: flex-start;
-    gap: var(--scd-spacing-md, 1rem);
-    
+    gap: var(--scd-spacing-md);
+
     /* Sizing */
-    margin: 0 auto var(--scd-spacing-md, 1rem);
+    margin: 0 auto var(--scd-spacing-md);
     max-width: 600px;
     width: 100%;
-    padding: var(--scd-spacing-md, 1rem) 3rem var(--scd-spacing-md, 1rem) var(--scd-spacing-md, 1rem);
-    
-    /* Appearance */
-    background-color: var(--scd-color-background, #fff);
-    border: 1px solid var(--scd-color-border, #c3c4c7);
+    padding: var(--scd-spacing-md) 3rem var(--scd-spacing-md) var(--scd-spacing-md);
+
+    background: var(--scd-color-white);
+
+    /* Borders */
+    border: 1px solid var(--scd-color-border);
     border-left-width: 4px;
-    border-left-color: var(--scd-color-info, #2271b1);
-    border-radius: var(--scd-radius-md, 4px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    
+    border-left-color: var(--scd-color-info);
+    border-radius: var(--scd-radius-md);
+
+    /* Shadow */
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.08),
+        0 2px 8px rgba(0, 0, 0, 0.05);
+
     /* Typography */
-    font-size: var(--scd-font-size-base, 13px);
-    line-height: var(--scd-line-height, 1.4);
-    
+    font-size: var(--scd-font-size-base);
+    line-height: var(--scd-line-height);
+
     /* Interaction */
     pointer-events: auto;
-    animation: scdSlideDown 0.2s ease-out;
+	animation: scd-slide-down 0.2s ease-out;
 }
 
 /* ==========================================================================
@@ -94,19 +79,23 @@ body:not(.admin-bar) #scd-notifications-container {
    ========================================================================== */
 
 .scd-notification--success {
-    border-left-color: var(--scd-color-success, #00a32a);
+    border-left-color: var(--scd-color-success);
+    background: rgba(212, 237, 218, 0.8);
 }
 
 .scd-notification--error {
-    border-left-color: var(--scd-color-error, #d63638);
+    border-left-color: var(--scd-color-error);
+    background: rgba(248, 215, 218, 0.8);
 }
 
 .scd-notification--warning {
-    border-left-color: var(--scd-color-warning, #dba617);
+    border-left-color: var(--scd-color-warning);
+    background: rgba(255, 243, 205, 0.8);
 }
 
 .scd-notification--info {
-    border-left-color: var(--scd-color-info, #2271b1);
+    border-left-color: var(--scd-color-info);
+    background: rgba(207, 234, 255, 0.8);
 }
 
 /* ==========================================================================
@@ -117,38 +106,38 @@ body:not(.admin-bar) #scd-notifications-container {
 .scd-notification__message {
     flex: 1;
     margin: 0;
-    color: var(--scd-color-text, #1d2327);
-    font-weight: 400;
-    line-height: var(--scd-line-height, 1.4);
+    color: var(--scd-color-text);
+    font-weight: var(--scd-font-weight-normal);
+    line-height: var(--scd-line-height);
 }
 
 /* Inline links within notifications */
 .scd-notification__message .scd-notification-link,
 .scd-notification-link {
-    color: var(--scd-color-primary, #2271b1);
+    color: var(--scd-color-primary);
     text-decoration: underline;
-    font-weight: 600;
-    transition: color var(--scd-transition-fast, 0.1s) ease;
+    font-weight: var(--scd-font-weight-semibold);
+    transition: color var(--scd-transition-fast) ease;
 }
 
 .scd-notification__message .scd-notification-link:hover,
 .scd-notification-link:hover {
-    color: var(--scd-color-primary-dark, #135e96);
+    color: var(--scd-color-primary-dark);
     text-decoration: underline;
 }
 
 .scd-notification__message .scd-notification-link:focus,
 .scd-notification-link:focus {
     outline: 2px solid transparent;
-    box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 2px) var(--scd-color-primary, #2271b1);
-    border-radius: var(--scd-radius-sm, 2px);
+    box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--scd-color-primary);
+    border-radius: var(--scd-radius-sm);
 }
 
 /* Close button */
 .scd-notification__close {
     position: absolute;
-    top: var(--scd-spacing-sm, 0.5rem);
-    right: var(--scd-spacing-sm, 0.5rem);
+    top: var(--scd-spacing-sm);
+    right: var(--scd-spacing-sm);
     
     /* Reset button styles */
     background: none;
@@ -156,31 +145,31 @@ body:not(.admin-bar) #scd-notifications-container {
     cursor: pointer;
     
     /* Size and alignment */
-    width: 24px;
-    height: 24px;
+    width: var(--scd-icon-large);
+    height: var(--scd-icon-large);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--scd-spacing-xs, 0.25rem);
+    padding: var(--scd-spacing-xs);
     
     /* Typography */
-    font-size: 20px;
+    font-size: var(--scd-font-size-xxl);
     line-height: 1;
-    color: var(--scd-color-text-lighter, #8c8f94);
+    color: var(--scd-color-text-lighter);
     
     /* Appearance */
-    border-radius: var(--scd-radius-sm, 2px);
-    transition: all var(--scd-transition-fast, 0.1s) ease;
+    border-radius: var(--scd-radius-sm);
+    transition: all var(--scd-transition-fast) ease;
 }
 
 .scd-notification__close:hover {
-    color: var(--scd-color-text, #1d2327);
-    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--scd-color-text);
+    background-color: var(--scd-overlay-faint);
 }
 
 .scd-notification__close:focus {
     outline: 2px solid transparent;
-    box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 2px) var(--scd-color-primary, #2271b1);
+    box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--scd-color-primary);
 }
 
 /* ==========================================================================
@@ -189,16 +178,16 @@ body:not(.admin-bar) #scd-notifications-container {
 
 .scd-notification__icon {
     flex-shrink: 0;
-    width: 20px;
-    height: 20px;
+    width: var(--scd-icon-medium);
+    height: var(--scd-icon-medium);
 }
 
 /* Auto-generated icons via pseudo-elements */
 .scd-notification::before {
     content: '';
     display: inline-block;
-    width: 20px;
-    height: 20px;
+    width: var(--scd-icon-medium);
+    height: var(--scd-icon-medium);
     flex-shrink: 0;
     background-size: contain;
     background-repeat: no-repeat;
@@ -227,46 +216,46 @@ body:not(.admin-bar) #scd-notifications-container {
 
 /* Notifications with actions */
 .scd-notification--with-action {
-    padding-bottom: var(--scd-spacing-lg, 1.5rem);
+    padding-bottom: var(--scd-spacing-lg);
 }
 
 .scd-notification__actions {
     display: flex;
-    gap: var(--scd-spacing-sm, 0.5rem);
-    margin-top: var(--scd-spacing-md, 1rem);
+    gap: var(--scd-spacing-sm);
+    margin-top: var(--scd-spacing-md);
 }
 
 .scd-notification__action {
     display: inline-flex;
     align-items: center;
-    padding: var(--scd-spacing-xs, 0.25rem) var(--scd-spacing-sm, 0.5rem);
+    padding: var(--scd-spacing-xs) var(--scd-spacing-sm);
     
     /* Typography */
-    font-size: var(--scd-font-size-small, 12px);
-    font-weight: 500;
+    font-size: var(--scd-font-size-small);
+    font-weight: var(--scd-font-weight-medium);
     text-decoration: none;
     
     /* Appearance */
-    color: var(--scd-color-primary, #2271b1);
+    color: var(--scd-color-primary);
     background: none;
-    border: 1px solid var(--scd-color-primary, #2271b1);
-    border-radius: var(--scd-radius-sm, 2px);
+    border: 1px solid var(--scd-color-primary);
+    border-radius: var(--scd-radius-sm);
     
     /* Interaction */
     cursor: pointer;
-    transition: all var(--scd-transition-fast, 0.1s) ease;
+    transition: all var(--scd-transition-fast) ease;
 }
 
 .scd-notification__action:hover,
 .scd-notification__action:focus {
-    background-color: var(--scd-color-primary, #2271b1);
-    color: var(--scd-color-white, #fff);
+    background-color: var(--scd-color-primary);
+    color: var(--scd-color-white);
     text-decoration: none;
 }
 
 /* Fade out animation */
 .scd-notification--fade-out {
-    animation: scdSlideUp 0.2s ease-out forwards;
+	animation: scd-slide-out-up 0.2s ease-out forwards;
 }
 
 /* ==========================================================================
@@ -279,17 +268,17 @@ body:not(.admin-bar) #scd-notifications-container {
     top: 60px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 9999;
+    z-index: var(--scd-z-notification);
     margin: 0 !important;
     max-width: 500px;
     min-width: 300px;
     width: auto !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    box-shadow: var(--scd-notification-important-shadow) !important;
 }
 
 /* Stacked notifications */
 .scd-notification + .scd-notification {
-    margin-top: calc(var(--scd-spacing-md, 1rem) * -1);
+    margin-top: calc(var(--scd-spacing-md) * -1);
 }
 
 /* ==========================================================================
@@ -302,7 +291,7 @@ body:not(.admin-bar) #scd-notifications-container {
     }
     
     #scd-notifications-container {
-        padding: 0 var(--scd-spacing-md, 1rem);
+        padding: 0 var(--scd-spacing-md);
     }
     
     .scd-validation-notification {
@@ -312,15 +301,54 @@ body:not(.admin-bar) #scd-notifications-container {
 }
 
 /* ==========================================================================
-   ACCESSIBILITY IMPROVEMENTS
    ========================================================================== */
+
+/* Browser fallback - no backdrop-filter support */
+    .scd-notification {
+        /* More opaque backgrounds when blur isn't available */
+        background: var(--scd-color-white);
+    }
+
+    .scd-notification--success {
+        background: rgba(212, 237, 218, 0.95);
+    }
+
+    .scd-notification--error {
+        background: rgba(248, 215, 218, 0.95);
+    }
+
+    .scd-notification--warning {
+        background: rgba(255, 243, 205, 0.95);
+    }
+
+    .scd-notification--info {
+        background: rgba(207, 234, 255, 0.95);
+    }
+}
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
     .scd-notification {
         animation: none;
+        background: var(--scd-color-white);
     }
-    
+
+    .scd-notification--success {
+        background: rgba(212, 237, 218, 0.95);
+    }
+
+    .scd-notification--error {
+        background: rgba(248, 215, 218, 0.95);
+    }
+
+    .scd-notification--warning {
+        background: rgba(255, 243, 205, 0.95);
+    }
+
+    .scd-notification--info {
+        background: rgba(207, 234, 255, 0.95);
+    }
+
     .scd-notification--fade-out {
         animation: none;
         opacity: 0;
@@ -333,23 +361,27 @@ body:not(.admin-bar) #scd-notifications-container {
         border-width: 2px;
         border-style: solid;
     }
-    
+
     .scd-notification--success {
-        border-color: var(--scd-color-success, #00a32a);
+        border-color: var(--scd-color-success);
+        background: rgba(212, 237, 218, 0.95);
     }
-    
+
     .scd-notification--error {
-        border-color: var(--scd-color-error, #d63638);
+        border-color: var(--scd-color-error);
+        background: rgba(248, 215, 218, 0.95);
     }
-    
+
     .scd-notification--warning {
-        border-color: var(--scd-color-warning, #dba617);
+        border-color: var(--scd-color-warning);
+        background: rgba(255, 243, 205, 0.95);
     }
-    
+
     .scd-notification--info {
-        border-color: var(--scd-color-info, #2271b1);
+        border-color: var(--scd-color-info);
+        background: rgba(207, 234, 255, 0.95);
     }
-    
+
     .scd-notification__close:focus {
         outline: 3px solid;
         outline-offset: 2px;

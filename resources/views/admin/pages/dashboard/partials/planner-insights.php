@@ -23,7 +23,7 @@ $insights_tabs  = $insights_data['tabs'] ?? array();
 
 <div class="scd-insights-wrapper">
 	<div class="scd-insights-header">
-		<span class="dashicons dashicons-<?php echo esc_attr( $insights_icon ); ?>"></span>
+		<?php echo SCD_Icon_Helper::get( $insights_icon, array( 'size' => 16 ) ); ?>
 		<h3><?php echo esc_html( $insights_title ); ?></h3>
 	</div>
 
@@ -34,7 +34,7 @@ $insights_tabs  = $insights_data['tabs'] ?? array();
 				<div class="scd-insights-column">
 					<!-- Column Header -->
 					<div class="scd-insights-column-header">
-						<span class="dashicons dashicons-<?php echo esc_attr( $tab['icon'] ?? 'info' ); ?>"></span>
+						<?php echo SCD_Icon_Helper::get( $tab['icon'] ?? 'info', array( 'size' => 16 ) ); ?>
 						<h4><?php echo esc_html( $tab['label'] ?? '' ); ?></h4>
 					</div>
 
@@ -53,10 +53,20 @@ $insights_tabs  = $insights_data['tabs'] ?? array();
 								$cta_item = $item;
 							else :
 								// Render info item.
+								$text = $item['text'] ?? '';
+								$is_pro = false !== strpos( $text, '[PRO]' );
+								$item_class = $is_pro ? 'scd-insights-pro-info-item' : 'scd-insights-info-item';
+								$item_icon = $is_pro ? 'lock' : ( $item['icon'] ?? 'info' );
 								?>
-								<div class="scd-insights-info-item">
-									<span class="dashicons dashicons-<?php echo esc_attr( $item['icon'] ?? 'info' ); ?>"></span>
-									<span class="scd-insights-info-text"><?php echo esc_html( $item['text'] ?? '' ); ?></span>
+								<div class="<?php echo esc_attr( $item_class ); ?>"<?php echo $is_pro ? ' title="' . esc_attr__( 'PRO Feature - Upgrade to unlock', 'smart-cycle-discounts' ) . '"' : ''; ?>>
+									<?php echo SCD_Icon_Helper::get( $item_icon, array( 'size' => 16 ) ); ?>
+									<span class="scd-insights-info-text">
+										<?php
+										// Remove [PRO] marker from text
+										$text = str_replace( '[PRO]', '', $text );
+										echo wp_kses_post( $text );
+										?>
+									</span>
 								</div>
 								<?php
 							endif;
@@ -67,9 +77,15 @@ $insights_tabs  = $insights_data['tabs'] ?? array();
 					<!-- Column CTA (Separate Section) -->
 					<?php if ( $cta_item ) : ?>
 						<div class="scd-insights-cta">
-							<a href="<?php echo esc_url( $cta_item['url'] ?? '#' ); ?>" class="button button-primary scd-insights-cta-button">
-								<?php echo esc_html( $cta_item['text'] ?? __( 'Take Action', 'smart-cycle-discounts' ) ); ?>
-							</a>
+							<?php
+							SCD_Button_Helper::primary(
+								$cta_item['text'] ?? __( 'Take Action', 'smart-cycle-discounts' ),
+								array(
+									'href'    => esc_url( $cta_item['url'] ?? '#' ),
+									'classes' => array( 'scd-insights-cta-button' ),
+								)
+							);
+							?>
 						</div>
 					<?php endif; ?>
 				</div>

@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/validation/validation-manager.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -207,12 +207,9 @@
 		if ( ! context.stepId || ! window.SCD || ! window.SCD.FieldDefinitions || ! window.SCD.FieldDefinitions.getField ) {
 			return null;
 		}
-		
-		// Convert fieldName to camelCase for field definitions lookup
-		var camelCaseName = window.SCD.Utils && window.SCD.Utils.snakeToCamelCase ? 
-			window.SCD.Utils.snakeToCamelCase( fieldName ) : fieldName;
-			
-		return window.SCD.FieldDefinitions.getField( context.stepId, camelCaseName );
+
+		// Field names in JavaScript layer are already in camelCase
+		return window.SCD.FieldDefinitions.getField( context.stepId, fieldName );
 	};
 
 	/**
@@ -300,16 +297,15 @@
 		var fieldName = condition.field;
 		var expectedValue = condition.value;
 
-		// Try to get value with multiple naming conventions
-		// collectData() returns camelCase keys, but field definitions use snake_case
-		var actualValue = allValues[fieldName]; // Try original name first (snake_case from PHP)
+		// CRITICAL FIX: Convert field name from snake_case to camelCase
+		// Conditional field names come from PHP in snake_case (e.g., 'discount_type')
+		// But allValues uses camelCase keys (e.g., 'discountType')
+		var camelCaseFieldName = window.SCD && window.SCD.Utils && window.SCD.Utils.Fields
+			? window.SCD.Utils.Fields.toCamelCase( fieldName )
+			: fieldName;
 
-		// If not found, try snake_case conversion
-		if ( undefined === actualValue ) {
-			var htmlFieldName = window.SCD && window.SCD.Utils && window.SCD.Utils.camelToSnakeCase ?
-				window.SCD.Utils.camelToSnakeCase( fieldName ) : fieldName;
-			actualValue = allValues[htmlFieldName];
-		}
+		// Get value from allValues object (JavaScript layer uses camelCase)
+		var actualValue = allValues[camelCaseFieldName];
 
 		// Array of possible values
 		if ( Array.isArray( expectedValue ) ) {
@@ -616,16 +612,12 @@
 
 							// Only process complex fields
 							if ( 'complex' === fieldDef.type ) {
-								// Convert to snake_case for HTML field names
-								var htmlFieldName = window.SCD.Utils && window.SCD.Utils.camelToSnakeCase
-									? window.SCD.Utils.camelToSnakeCase( fieldName )
-									: fieldName;
-
 								// Use the SAME collectComplexField method as persistence
 								var complexValue = orchestrator.collectComplexField( fieldDef );
 
+								// Store with camelCase key (JavaScript layer convention)
 								if ( complexValue !== null && complexValue !== undefined ) {
-									values[htmlFieldName] = complexValue;
+									values[fieldName] = complexValue;
 								}
 							}
 						}
@@ -672,8 +664,8 @@
 					// Try to get field definition
 					var stepId = $form.data( 'step' ) || $form.closest( '[data-step]' ).data( 'step' );
 					if ( stepId ) {
-						var camelCaseName = SCD.Utils.snakeToCamelCase ? SCD.Utils.snakeToCamelCase( fieldName ) : fieldName;
-						var fieldDef = window.SCD.FieldDefinitions.getField( stepId, camelCaseName );
+						// Field names in JavaScript layer are already in camelCase
+						var fieldDef = window.SCD.FieldDefinitions.getField( stepId, fieldName );
 
 						if ( fieldDef && fieldDef.conditional ) {
 							isVisible = this._evaluateCondition( fieldDef.conditional, formValues );
@@ -744,24 +736,19 @@
 			if ( hasFields ) {
 				for ( var fieldName in stepFields ) {
 					if ( stepFields.hasOwnProperty( fieldName ) ) {
-						// Convert to snake_case for HTML field lookup
-						var htmlFieldName = SCD.Utils.camelToSnakeCase ?
-							SCD.Utils.camelToSnakeCase( fieldName ) : fieldName;
+						// JavaScript layer uses camelCase
+						var value = validationContext.allValues[fieldName];
 
-						var value = validationContext.allValues[htmlFieldName];
-
-
-						var fieldResult = this.validateField( htmlFieldName, value, validationContext );
-
+						var fieldResult = this.validateField( fieldName, value, validationContext );
 
 						if ( !fieldResult.ok ) {
 							stepResult.ok = false;
-							stepResult.errors[htmlFieldName] = fieldResult.errors;
-							console.error( '[ValidationManager] - VALIDATION FAILED for', htmlFieldName, ':', fieldResult.errors );
+							stepResult.errors[fieldName] = fieldResult.errors;
+							console.error( '[ValidationManager] - VALIDATION FAILED for', fieldName, ':', fieldResult.errors );
 						}
 
 						// Always store clean value
-						stepResult.clean[htmlFieldName] = fieldResult.clean;
+						stepResult.clean[fieldName] = fieldResult.clean;
 					}
 				}
 			} else {
@@ -881,7 +868,15 @@
 				// Complex fields should preserve their original value
 				// They handle their own sanitization internally
 				return value;
-				
+
+			case 'nested_array':
+				// Nested array fields (e.g., conditions) should preserve their array value
+				// They are already collected and structured correctly
+				if ( Array.isArray( value ) ) {
+					return value;
+				}
+				return [];
+
 			default:
 				return String( value ).trim();
 		}

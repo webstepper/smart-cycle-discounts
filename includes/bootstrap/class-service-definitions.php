@@ -165,10 +165,11 @@ class SCD_Service_Definitions {
 			'campaign_health_service'      => array(
 				'class'        => 'SCD_Campaign_Health_Service',
 				'singleton'    => true,
-				'dependencies' => array( 'logger' ),
+				'dependencies' => array( 'logger', 'recurring_handler' ),
 				'factory'      => function ( $container ) {
 					return new SCD_Campaign_Health_Service(
-						$container->get( 'logger' )
+						$container->get( 'logger' ),
+						$container->get( 'recurring_handler' )
 					);
 				},
 			),
@@ -186,6 +187,18 @@ class SCD_Service_Definitions {
 					);
 				},
 			),
+
+		'campaign_conditions_repository' => array(
+			'class'        => 'SCD_Campaign_Conditions_Repository',
+			'singleton'    => true,
+			'dependencies' => array( 'database_manager' ),
+			'factory'      => function ( $container ) {
+				require_once SCD_INCLUDES_DIR . 'database/repositories/class-campaign-conditions-repository.php';
+				return new SCD_Campaign_Conditions_Repository(
+					$container->get( 'database_manager' )
+				);
+			},
+		),
 
 			'discount_repository'          => array(
 				'class'        => 'SCD_Discount_Repository',
@@ -266,6 +279,18 @@ class SCD_Service_Definitions {
 				},
 			),
 
+			'discount_rules_enforcer'      => array(
+				'class'        => 'SCD_Discount_Rules_Enforcer',
+				'singleton'    => true,
+				'dependencies' => array( 'customer_usage_manager', 'logger' ),
+				'factory'      => function ( $container ) {
+					return new SCD_Discount_Rules_Enforcer(
+						$container->get( 'customer_usage_manager' ),
+						$container->get( 'logger' )
+					);
+				},
+			),
+
 			'cron_scheduler'               => array(
 				'class'        => 'SCD_Cron_Scheduler',
 				'singleton'    => true,
@@ -286,6 +311,18 @@ class SCD_Service_Definitions {
 				'factory'      => function ( $container ) {
 					return new SCD_Discount_Applicator(
 						$container->get( 'discount_engine' ),
+						$container->get( 'logger' )
+					);
+				},
+			),
+
+			'occurrence_cache'             => array(
+				'class'        => 'SCD_Occurrence_Cache',
+				'singleton'    => true,
+				'dependencies' => array( 'logger' ),
+				'factory'      => function ( $container ) {
+					require_once SCD_INCLUDES_DIR . 'core/campaigns/class-occurrence-cache.php';
+					return new SCD_Occurrence_Cache(
 						$container->get( 'logger' )
 					);
 				},
@@ -738,12 +775,28 @@ class SCD_Service_Definitions {
 			'email_manager'                => array(
 				'class'        => 'SCD_Email_Manager',
 				'singleton'    => true,
-				'dependencies' => array( 'logger', 'campaign_manager', 'action_scheduler', 'feature_gate' ),
+				'dependencies' => array( 'logger', 'campaign_manager', 'action_scheduler', 'feature_gate', 'analytics_repository' ),
 				'factory'      => function ( $container ) {
 					require_once SCD_INCLUDES_DIR . 'integrations/email/class-email-manager.php';
 					return new SCD_Email_Manager(
 						$container->get( 'logger' ),
 						$container->get( 'campaign_manager' ),
+						$container->get( 'action_scheduler' ),
+						$container->get( 'feature_gate' ),
+						$container->get( 'analytics_repository' )
+					);
+				},
+			),
+
+			'alert_monitor'                => array(
+				'class'        => 'SCD_Alert_Monitor',
+				'singleton'    => true,
+				'dependencies' => array( 'logger', 'campaign_manager', 'analytics_repository', 'action_scheduler', 'feature_gate' ),
+				'factory'      => function ( $container ) {
+					return new SCD_Alert_Monitor(
+						$container->get( 'logger' ),
+						$container->get( 'campaign_manager' ),
+						$container->get( 'analytics_repository' ),
 						$container->get( 'action_scheduler' ),
 						$container->get( 'feature_gate' )
 					);
@@ -855,16 +908,32 @@ class SCD_Service_Definitions {
 				},
 			),
 
+			'campaign_overview_panel'      => array(
+				'class'        => 'SCD_Campaign_Overview_Panel',
+				'singleton'    => true,
+				'dependencies' => array( 'campaign_repository', 'campaign.formatter', 'analytics_repository', 'recurring_handler', 'product_selector' ),
+				'factory'      => function ( $container ) {
+					return new SCD_Campaign_Overview_Panel(
+						$container->get( 'campaign_repository' ),
+						$container->get( 'campaign.formatter' ),
+						$container->get( 'analytics_repository' ),
+						$container->get( 'recurring_handler' ),
+						$container->get( 'product_selector' )
+					);
+				},
+			),
+
 			'analytics_page'               => array(
 				'class'        => 'SCD_Analytics_Page',
 				'singleton'    => true,
-				'dependencies' => array( 'analytics_collector', 'metrics_calculator', 'chart_renderer', 'logger' ),
+				'dependencies' => array( 'analytics_collector', 'metrics_calculator', 'chart_renderer', 'logger', 'campaign_overview_panel' ),
 				'factory'      => function ( $container ) {
 					return new SCD_Analytics_Page(
 						$container->get( 'analytics_collector' ),
 						$container->get( 'metrics_calculator' ),
 						$container->get( 'chart_renderer' ),
-						$container->get( 'logger' )
+						$container->get( 'logger' ),
+						$container->get( 'campaign_overview_panel' )
 					);
 				},
 			),
@@ -974,6 +1043,59 @@ class SCD_Service_Definitions {
 					return new SCD_Export_Service(
 						$container->get( 'metrics_calculator' ),
 						$container->get( 'logger' )
+					);
+				},
+			),
+
+			// Analytics AJAX Handlers
+			'activity_feed_handler'        => array(
+				'class'        => 'SCD_Activity_Feed_Handler',
+				'singleton'    => false,
+				'dependencies' => array( 'metrics_calculator', 'logger', 'activity_tracker' ),
+				'factory'      => function ( $container ) {
+					return new SCD_Activity_Feed_Handler(
+						$container->get( 'metrics_calculator' ),
+						$container->get( 'logger' ),
+						$container->get( 'activity_tracker' )
+					);
+				},
+			),
+
+			'campaign_performance_handler' => array(
+				'class'        => 'SCD_Campaign_Performance_Handler',
+				'singleton'    => false,
+				'dependencies' => array( 'metrics_calculator', 'logger', 'analytics_collector' ),
+				'factory'      => function ( $container ) {
+					return new SCD_Campaign_Performance_Handler(
+						$container->get( 'metrics_calculator' ),
+						$container->get( 'logger' ),
+						$container->get( 'analytics_collector' )
+					);
+				},
+			),
+
+			'revenue_trend_handler'        => array(
+				'class'        => 'SCD_Revenue_Trend_Handler',
+				'singleton'    => false,
+				'dependencies' => array( 'metrics_calculator', 'logger', 'analytics_collector' ),
+				'factory'      => function ( $container ) {
+					return new SCD_Revenue_Trend_Handler(
+						$container->get( 'metrics_calculator' ),
+						$container->get( 'logger' ),
+						$container->get( 'analytics_collector' )
+					);
+				},
+			),
+
+			'top_products_handler'         => array(
+				'class'        => 'SCD_Top_Products_Handler',
+				'singleton'    => false,
+				'dependencies' => array( 'metrics_calculator', 'logger', 'analytics_collector' ),
+				'factory'      => function ( $container ) {
+					return new SCD_Top_Products_Handler(
+						$container->get( 'metrics_calculator' ),
+						$container->get( 'logger' ),
+						$container->get( 'analytics_collector' )
 					);
 				},
 			),

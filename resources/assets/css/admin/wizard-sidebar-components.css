@@ -1,0 +1,507 @@
+/**
+ * Wizard Sidebar Components
+ *
+ * Visual components for wizard step sidebars providing enhanced
+ * user guidance through icons, cards, tables, and callouts.
+ *
+ * Components:
+ * - Icon lists with dashicons
+ * - Tip cards (success/warning/info themes)
+ * - Callouts (warning/danger alerts)
+ * - Comparison tables
+ * - Do/Don't example grids
+ * - Checklist cards
+ *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/css/admin
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @since      1.0.0
+ */
+
+/* ==========================================================================
+   Icon Lists
+   ========================================================================== */
+
+.scd-icon-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.scd-icon-list > li {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--scd-spacing-sm);
+	padding: var(--scd-spacing-sm) 0;
+	border-bottom: 1px solid var(--scd-color-border);
+}
+
+.scd-icon-list > li:last-child {
+	border-bottom: none;
+}
+
+/* Icon containers - shared flexbox centering pattern (24px × 24px) */
+/* NOTE: Utility classes (.scd-icon-container--md) available in _utilities.css for new components */
+.scd-list-icon,
+.scd-tip-icon,
+.scd-callout-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 24px;
+	height: 24px;
+}
+
+/* Icons inherit size from inline styles (Icon_Helper generates width/height) */
+.scd-list-icon .scd-icon,
+.scd-tip-icon .scd-icon,
+.scd-callout-icon .scd-icon {
+	/* Size set by Icon_Helper inline styles - don't override */
+}
+
+/* Specific icon colors */
+.scd-list-icon {
+	color: var(--scd-color-primary);
+}
+
+.scd-list-content {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: var(--scd-spacing-xs);
+}
+
+.scd-list-content strong {
+	display: block;
+	color: var(--scd-color-text);
+	font-weight: var(--scd-font-weight-semibold);
+}
+
+.scd-list-description {
+	display: block;
+	color: var(--scd-color-text-secondary);
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+/* ==========================================================================
+   Tip Cards
+   ========================================================================== */
+
+.scd-tip-cards {
+	display: flex;
+	flex-direction: column;
+	gap: var(--scd-spacing-md);
+}
+
+.scd-tip-card {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--scd-spacing-sm);
+	padding: var(--scd-spacing-md);
+	background: var(--scd-color-background);
+	border-left: 3px solid var(--scd-color-primary);
+	border-radius: var(--scd-radius-sm);
+}
+
+.scd-tip-card--success {
+	border-left-color: #46b450;
+	background: rgba(70, 180, 80, 0.05);
+}
+
+.scd-tip-card--warning {
+	border-left-color: #ffb900;
+	background: rgba(255, 185, 0, 0.05);
+}
+
+.scd-tip-card--info {
+	border-left-color: #00a0d2;
+	background: rgba(0, 160, 210, 0.05);
+}
+
+/* Tip icon colors - sizing inherited from combined selector above */
+.scd-tip-card--success .scd-tip-icon {
+	color: #46b450;
+}
+
+.scd-tip-card--warning .scd-tip-icon {
+	color: #ffb900;
+}
+
+.scd-tip-card--info .scd-tip-icon {
+	color: #00a0d2;
+}
+
+.scd-tip-content {
+	flex: 1;
+}
+
+.scd-tip-content strong {
+	display: block;
+	margin-bottom: var(--scd-spacing-xs);
+	color: var(--scd-color-text);
+	font-weight: var(--scd-font-weight-semibold);
+	font-size: 13px;
+}
+
+.scd-tip-content p {
+	margin: 0;
+	color: var(--scd-color-text-secondary);
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+/* ==========================================================================
+   Callouts (Warning/Danger)
+   ========================================================================== */
+
+.scd-callouts {
+	display: flex;
+	flex-direction: column;
+	gap: var(--scd-spacing-md);
+}
+
+.scd-callout {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--scd-spacing-sm);
+	padding: var(--scd-spacing-md);
+	background: var(--scd-color-background);
+	border-left: 3px solid var(--scd-color-warning);
+	border-radius: var(--scd-radius-sm);
+}
+
+.scd-callout--warning {
+	border-left-color: #ffb900;
+	background: rgba(255, 185, 0, 0.05);
+}
+
+.scd-callout--danger {
+	border-left-color: #dc3232;
+	background: rgba(220, 50, 50, 0.05);
+}
+
+/* Callout icon colors - sizing inherited from combined selector above */
+.scd-callout--warning .scd-callout-icon {
+	color: #ffb900;
+}
+
+.scd-callout--danger .scd-callout-icon {
+	color: #dc3232;
+}
+
+.scd-callout-content {
+	flex: 1;
+}
+
+.scd-callout-content h4 {
+	margin: 0 0 var(--scd-spacing-xs) 0;
+	color: var(--scd-color-text);
+	font-weight: var(--scd-font-weight-semibold);
+	font-size: 13px;
+}
+
+.scd-callout-content p {
+	margin: 0;
+	color: var(--scd-color-text-secondary);
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+/* ==========================================================================
+   Comparison Table
+   ========================================================================== */
+
+.scd-comparison-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+.scd-comparison-table thead th {
+	padding: var(--scd-spacing-sm);
+	background: var(--scd-color-background);
+	border-bottom: 2px solid var(--scd-color-border);
+	text-align: center;
+	vertical-align: middle;
+	font-weight: var(--scd-font-weight-semibold);
+	color: var(--scd-color-text);
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.scd-comparison-table tbody tr {
+	border-bottom: 1px solid var(--scd-color-border);
+}
+
+.scd-comparison-table tbody tr:last-child {
+	border-bottom: none;
+}
+
+.scd-comparison-table tbody td {
+	padding: var(--scd-spacing-md) var(--scd-spacing-sm);
+	vertical-align: middle;
+	text-align: center;
+}
+
+.scd-comparison-type {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: var(--scd-font-weight-semibold);
+	color: var(--scd-color-text);
+}
+
+.scd-comparison-value {
+	color: var(--scd-color-text);
+	font-weight: var(--scd-font-weight-medium);
+}
+
+.scd-comparison-benefit {
+	color: var(--scd-color-text-secondary);
+	font-size: 12px;
+}
+
+/* ==========================================================================
+   Do/Don't Grid
+   ========================================================================== */
+
+.scd-do-dont-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: var(--scd-spacing-md);
+	margin: var(--scd-spacing-md) 0;
+}
+
+/* Always stack vertically in sidebar - narrow space */
+
+.scd-do-card,
+.scd-dont-card {
+	border-radius: var(--scd-radius-sm);
+	padding: var(--scd-spacing-md);
+	background: var(--scd-color-background);
+}
+
+.scd-do-card {
+	border-left: 3px solid #46b450;
+	background: rgba(70, 180, 80, 0.05);
+}
+
+.scd-dont-card {
+	border-left: 3px solid #dc3232;
+	background: rgba(220, 50, 50, 0.05);
+}
+
+.scd-card-header {
+	display: flex;
+	align-items: center;
+	gap: var(--scd-spacing-xs);
+	margin-bottom: var(--scd-spacing-md);
+}
+
+.scd-do-card .scd-card-header {
+	color: #46b450;
+}
+
+.scd-dont-card .scd-card-header {
+	color: #dc3232;
+}
+
+.scd-card-header .scd-icon {
+	width: var(--scd-icon-medium);
+	height: var(--scd-icon-medium);
+	font-size: var(--scd-icon-medium);
+}
+
+.scd-card-header strong {
+	font-size: 14px;
+	font-weight: var(--scd-font-weight-semibold);
+}
+
+.scd-card-content {
+	display: flex;
+	flex-direction: column;
+	gap: var(--scd-spacing-sm);
+}
+
+.scd-example-item {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--scd-spacing-xs);
+	margin: 0;
+	padding: var(--scd-spacing-xs);
+	font-size: 13px;
+	line-height: 1.5;
+	color: var(--scd-color-text-secondary);
+}
+
+.scd-example-icon {
+	flex-shrink: 0;
+	width: var(--scd-icon-small);
+	height: var(--scd-icon-small);
+	font-size: var(--scd-icon-small);
+	margin-top: 2px;
+}
+
+.scd-do-card .scd-example-icon {
+	color: #46b450;
+}
+
+.scd-dont-card .scd-example-icon {
+	color: #dc3232;
+}
+
+/* ==========================================================================
+   Checklist Cards
+   ========================================================================== */
+
+.scd-checklist-cards {
+	display: flex;
+	flex-direction: column;
+	gap: var(--scd-spacing-sm);
+}
+
+.scd-checklist-card {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--scd-spacing-sm);
+	padding: var(--scd-spacing-md);
+	background: var(--scd-color-background);
+	border: 1px solid var(--scd-color-border);
+	border-radius: var(--scd-radius-sm);
+	transition: all var(--scd-transition-base) ease;
+}
+
+.scd-checklist-card:hover {
+	border-color: var(--scd-color-primary);
+}
+
+/* Checklist icon - 32px circular (lg size) */
+/* NOTE: Inherits flexbox centering, see combined selector at top */
+.scd-checklist-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 32px;
+	height: 32px;
+	background: var(--scd-color-primary);
+	color: #fff;
+	border-radius: var(--scd-radius-full);
+}
+
+.scd-checklist-icon .scd-icon {
+	width: var(--scd-icon-medium);
+	height: var(--scd-icon-medium);
+	font-size: var(--scd-icon-medium);
+}
+
+.scd-checklist-content {
+	flex: 1;
+}
+
+.scd-checklist-content h4 {
+	margin: 0 0 var(--scd-spacing-xs) 0;
+	color: var(--scd-color-text);
+	font-weight: var(--scd-font-weight-semibold);
+	font-size: 13px;
+}
+
+.scd-checklist-content p {
+	margin: 0;
+	color: var(--scd-color-text-secondary);
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+/* ==========================================================================
+   Interactive Enhancements
+   ========================================================================== */
+
+/* Icon Lists - Interactive */
+.scd-icon-list > li {
+	transition: all var(--scd-transition-base) ease;
+}
+
+.scd-icon-list > li:hover {
+	background: var(--scd-color-background);
+	padding-left: var(--scd-spacing-sm);
+	padding-right: var(--scd-spacing-sm);
+	margin-left: calc(var(--scd-spacing-sm) * -1);
+	margin-right: calc(var(--scd-spacing-sm) * -1);
+	border-radius: var(--scd-radius-sm);
+}
+
+/* Tip Cards - Interactive */
+.scd-tip-card {
+	box-shadow: var(--scd-input-shadow);
+	transition: all var(--scd-transition-base) ease;
+}
+
+.scd-tip-card:hover {
+	box-shadow: var(--scd-shadow-sm);
+	transform: translateY(-1px);
+}
+
+/* Callouts - Interactive */
+.scd-callout {
+	box-shadow: var(--scd-input-shadow);
+	transition: all var(--scd-transition-base) ease;
+}
+
+.scd-callout:hover {
+	box-shadow: var(--scd-shadow-sm);
+	transform: translateY(-1px);
+}
+
+/* Comparison Table - Interactive */
+.scd-comparison-table thead th {
+	box-shadow: var(--scd-shadow-sm);
+}
+
+.scd-comparison-table tbody tr {
+	transition: background-color var(--scd-transition-base) ease;
+}
+
+.scd-comparison-table tbody tr:hover {
+	background-color: var(--scd-color-background);
+}
+
+/* Do/Don't Cards - Interactive */
+.scd-do-card,
+.scd-dont-card {
+	box-shadow: var(--scd-input-shadow);
+	transition: all var(--scd-transition-base) ease;
+}
+
+.scd-do-card:hover,
+.scd-dont-card:hover {
+	box-shadow: var(--scd-shadow-sm);
+	transform: translateY(-1px);
+}
+
+/* Checklist Cards - Interactive */
+.scd-checklist-card {
+	box-shadow: var(--scd-input-shadow);
+}
+
+.scd-checklist-card:hover {
+	box-shadow: var(--scd-shadow-sm);
+	transform: translateY(-1px);
+}
+
+/* Disable transforms on reduced motion */
+@media (prefers-reduced-motion: reduce) {
+	.scd-tip-card:hover,
+	.scd-callout:hover,
+	.scd-do-card:hover,
+	.scd-dont-card:hover,
+	.scd-checklist-card:hover {
+		transform: none;
+	}
+}

@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/campaigns/class-campaign-serializer.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/api/serializers
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Campaign_Serializer {
 
@@ -65,21 +65,26 @@ class SCD_Campaign_Serializer {
 			$include_split_datetime = isset( $context['include_split_datetime'] ) ? $context['include_split_datetime'] : false;
 
 			$data = array(
-				'id'             => $campaign->get_id(),
-				'uuid'           => $campaign->get_uuid(),
-				'name'           => $campaign->get_name(),
-				'slug'           => $campaign->get_slug(),
-				'description'    => $campaign->get_description(),
-				'status'         => $campaign->get_status(),
-				'priority'       => $campaign->get_priority(),
-				'discount_type'  => $campaign->get_discount_type(),
-				'discount_value' => $campaign->get_discount_value(),
-				'starts_at'      => $campaign->get_starts_at() ? $campaign->get_starts_at()->format( 'c' ) : null,
-				'ends_at'        => $campaign->get_ends_at() ? $campaign->get_ends_at()->format( 'c' ) : null,
-				'timezone'       => $campaign->get_timezone(),
-				'created_at'     => $campaign->get_created_at()->format( 'c' ),
-				'updated_at'     => $campaign->get_updated_at()->format( 'c' ),
-				'_links'         => $this->generate_links( $campaign ),
+				'id'                => $campaign->get_id(),
+				'uuid'              => $campaign->get_uuid(),
+				'name'              => $campaign->get_name(),
+				'slug'              => $campaign->get_slug(),
+				'description'       => $campaign->get_description(),
+				'status'            => $campaign->get_status(),
+				'priority'          => $campaign->get_priority(),
+				'discount_type'     => $campaign->get_discount_type(),
+				'discount_value'    => $campaign->get_discount_value(),
+				'starts_at'         => $campaign->get_starts_at() ? $campaign->get_starts_at()->format( 'c' ) : null,
+				'ends_at'           => $campaign->get_ends_at() ? $campaign->get_ends_at()->format( 'c' ) : null,
+				'timezone'          => $campaign->get_timezone(),
+				'created_at'        => $campaign->get_created_at()->format( 'c' ),
+				'updated_at'        => $campaign->get_updated_at()->format( 'c' ),
+				'badge_enabled'     => $campaign->is_badge_enabled(),
+				'badge_text'        => $campaign->get_badge_text(),
+				'badge_bg_color'    => $campaign->get_badge_bg_color(),
+				'badge_text_color'  => $campaign->get_badge_text_color(),
+				'badge_position'    => $campaign->get_badge_position(),
+				'_links'            => $this->generate_links( $campaign ),
 			);
 
 			// Include separated date/time for UI convenience
@@ -215,6 +220,27 @@ class SCD_Campaign_Serializer {
 					},
 					$data['category_ids']
 				);
+			}
+
+			// Badge settings
+			if ( isset( $data['badge_enabled'] ) ) {
+				$validated['badge_enabled'] = rest_sanitize_boolean( $data['badge_enabled'] );
+			}
+
+			if ( isset( $data['badge_text'] ) ) {
+				$validated['badge_text'] = sanitize_text_field( $data['badge_text'] );
+			}
+
+			if ( isset( $data['badge_bg_color'] ) ) {
+				$validated['badge_bg_color'] = sanitize_hex_color( $data['badge_bg_color'] );
+			}
+
+			if ( isset( $data['badge_text_color'] ) ) {
+				$validated['badge_text_color'] = sanitize_hex_color( $data['badge_text_color'] );
+			}
+
+			if ( isset( $data['badge_position'] ) ) {
+				$validated['badge_position'] = sanitize_text_field( $data['badge_position'] );
 			}
 
 			return $validated;

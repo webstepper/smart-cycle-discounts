@@ -80,7 +80,7 @@ body.admin-color-sunrise {
 
 /* Modern Color Scheme (WordPress 5.7+) */
 body.admin-color-modern {
-  --wp-admin-theme-color: #3858e9;
+  --wp-admin-theme-color: var(--scd-color-accent);
   --wp-admin-theme-color-darker-10: #2145e6;
   --wp-admin-theme-color-darker-20: #1832e3;
   --wp-admin-theme-color-lighter-10: #4e6dec;
@@ -105,25 +105,10 @@ body.admin-color-modern {
 
 .scd-wizard-step--schedule .button-primary:focus,
 .scd-wizard-step--schedule .scd-btn--primary:focus {
-  box-shadow: 0 0 0 1px #fff, 0 0 0 3px var(--wp-admin-theme-color);
+  box-shadow: 0 0 0 1px var(--scd-color-white), 0 0 0 3px var(--wp-admin-theme-color);
 }
 
-/* Timeline preset active state */
-.scd-timeline-preset.scd-timeline-preset--active {
-  border-color: var(--wp-admin-theme-color);
-  background-color: var(--wp-admin-theme-color);
-  color: #fff;
-}
-
-.scd-timeline-preset:hover {
-  border-color: var(--wp-admin-theme-color);
-  box-shadow: inset 0 0 0 1px var(--wp-admin-theme-color);
-}
-
-.scd-timeline-preset:focus {
-  outline: 2px solid var(--wp-admin-theme-color);
-  outline-offset: 2px;
-}
+/* Timeline preset hover/focus states handled by step-schedule.css */
 
 /* Date picker highlights */
 .ui-datepicker .ui-state-hover,
@@ -136,7 +121,7 @@ body.admin-color-modern {
 .ui-datepicker .ui-widget-content .ui-state-active {
   background: var(--wp-admin-theme-color);
   border-color: var(--wp-admin-theme-color);
-  color: #fff;
+  color: var(--scd-color-white);
 }
 
 /* Form focus states */
@@ -180,7 +165,7 @@ body.admin-color-modern {
 
 @media (prefers-contrast: high) {
   .scd-wizard-step--schedule {
-    --scd-border-color: #000;
+    --scd-border-color: var(--scd-color-black);
     --scd-gray-200: #ccc;
   }
   
@@ -195,14 +180,4 @@ body.admin-color-modern {
    Reduced Motion Support
    ========================================================================== */
 
-@media (prefers-reduced-motion: reduce) {
-  .scd-wizard-step--schedule * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-  
-  .scd-wizard-step--schedule .scd-spinner {
-    animation: none;
-  }
-}
+/* Reduced-motion handled globally by _variables.css CSS variables */

@@ -11,252 +11,278 @@
  */
 
 /* ==========================================================================
-   Base Button Styles
+   Base Button Styles - Modern & Accessible
    ========================================================================== */
 
 .scd-button,
 .scd-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--scd-spacing-xs);
-    padding: 0 var(--scd-spacing-md);
-    height: var(--scd-button-height);
-    font-size: var(--scd-font-size-base);
-    font-weight: var(--scd-font-weight-normal);
-    line-height: 1;
-    text-align: center;
-    text-decoration: none;
-    white-space: nowrap;
-    cursor: pointer;
-    border: var(--scd-border-width) solid transparent;
-    border-radius: var(--scd-radius-md);
-    transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--scd-gap-tight);
+	padding: 0 var(--scd-padding-medium);
+	height: var(--scd-button-height);
+	margin: 0;
+	font-family: inherit;
+	font-size: var(--scd-font-size-base);
+	font-weight: var(--scd-font-weight-medium);
+	line-height: 1;
+	text-align: center;
+	text-decoration: none;
+	white-space: nowrap;
+	cursor: pointer;
+	border: 1px solid transparent;
+	border-radius: var(--scd-radius-lg);
+	background: var(--scd-color-surface);
+	color: var(--scd-color-text);
+	transition: all var(--scd-transition-fast) ease;
+	box-sizing: border-box;
+	vertical-align: middle;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+}
+
+.scd-button:hover,
+.scd-btn:hover {
+	filter: brightness(0.92);
+}
+
+.scd-button:focus,
+.scd-btn:focus {
+	outline: 2px solid var(--scd-color-primary);
+	outline-offset: 2px;
+	box-shadow: none;
+}
+
+.scd-button:active,
+.scd-btn:active {
+	box-shadow: none;
 }
 
 /* Button sizes */
 .scd-button--large,
 .scd-btn-lg {
-    height: var(--scd-button-height-large);
-    padding: 0 var(--scd-spacing-lg);
-    font-size: var(--scd-font-size-medium);
+	height: var(--scd-button-height-large);
+	padding: 0 var(--scd-spacing-xl);
+	font-size: var(--scd-font-size-medium);
 }
 
 .scd-button--small,
 .scd-btn-sm {
-    height: 26px;
-    padding: 0 var(--scd-spacing-sm);
-    font-size: var(--scd-font-size-small);
+	height: var(--scd-input-height);
+	padding: 0 var(--scd-spacing-md);
+	font-size: var(--scd-font-size-small);
 }
 
 /* ==========================================================================
-   Primary Button - Uses theme primary color
+   Primary Button - Bold & Confident
    ========================================================================== */
 
 .scd-button--primary,
 .scd-btn-primary,
 .button-primary.scd-themed {
-    background-color: var(--scd-button-primary);
-    border-color: var(--scd-button-primary);
-    color: var(--scd-color-white, #fff);
+	background: var(--scd-color-primary);
+	border-color: var(--scd-color-primary);
+	color: var(--scd-color-white);
+	font-weight: var(--scd-font-weight-semibold);
+	transition: var(--scd-transition-colors);
 }
 
 .scd-button--primary:hover,
 .scd-btn-primary:hover,
 .button-primary.scd-themed:hover {
-    background-color: var(--scd-button-primary-hover);
-    border-color: var(--scd-button-primary-hover);
-    color: var(--scd-color-white, #fff);
+	filter: brightness(0.92);
 }
 
 .scd-button--primary:focus,
 .scd-btn-primary:focus,
 .button-primary.scd-themed:focus {
-    background-color: var(--scd-button-primary-hover);
-    border-color: var(--scd-button-primary);
-    box-shadow: 0 0 0 1px var(--scd-color-white, #fff), 0 0 0 3px var(--scd-button-primary);
-    outline: none;
+	outline: 2px solid var(--scd-color-primary);
+	outline-offset: 2px;
+	box-shadow: var(--scd-ring-focus);
 }
 
 .scd-button--primary:active,
 .scd-btn-primary:active,
 .button-primary.scd-themed:active {
-    background-color: var(--scd-button-primary-hover);
-    border-color: var(--scd-button-primary-hover);
-    transform: translateY(1px);
+	filter: brightness(0.88);
 }
 
 /* ==========================================================================
-   Secondary Button - Uses theme secondary color
+   Secondary Button - Subtle & Professional
    ========================================================================== */
 
 .scd-button--secondary,
 .scd-btn-secondary,
 .button-secondary.scd-themed {
-    background-color: var(--scd-button-secondary);
-    border-color: var(--scd-button-secondary);
-    color: var(--scd-color-white, #fff);
+	background: var(--scd-color-background);
+	border-color: var(--scd-color-border);
+	color: var(--scd-color-text);
+	transition: var(--scd-transition-colors);
 }
 
 .scd-button--secondary:hover,
 .scd-btn-secondary:hover,
 .button-secondary.scd-themed:hover {
-    background-color: var(--scd-button-secondary-hover);
-    border-color: var(--scd-button-secondary-hover);
-    color: var(--scd-color-white, #fff);
+	filter: brightness(0.92);
 }
 
 .scd-button--secondary:focus,
 .scd-btn-secondary:focus,
 .button-secondary.scd-themed:focus {
-    background-color: var(--scd-button-secondary-hover);
-    border-color: var(--scd-button-secondary);
-    box-shadow: 0 0 0 1px var(--scd-color-white, #fff), 0 0 0 3px var(--scd-button-secondary);
-    outline: none;
+	outline: 2px solid var(--scd-color-primary);
+	outline-offset: 2px;
+	border-color: var(--scd-color-primary);
+	box-shadow: var(--scd-ring-focus);
 }
 
 /* ==========================================================================
-   Success Button - Uses theme success color
+   Success Button - Positive & Affirming
    ========================================================================== */
 
 .scd-button--success,
 .scd-btn-success {
-    background-color: var(--scd-button-success);
-    border-color: var(--scd-button-success);
-    color: var(--scd-color-white, #fff);
+	background: var(--scd-color-success);
+	border-color: var(--scd-color-success);
+	color: var(--scd-color-white);
+	font-weight: var(--scd-font-weight-semibold);
+	transition: var(--scd-transition-colors);
 }
 
 .scd-button--success:hover,
 .scd-btn-success:hover {
-    background-color: var(--scd-button-success-hover);
-    border-color: var(--scd-button-success-hover);
-    color: var(--scd-color-white, #fff);
+	filter: brightness(0.92);
 }
 
 .scd-button--success:focus,
 .scd-btn-success:focus {
-    background-color: var(--scd-button-success-hover);
-    border-color: var(--scd-button-success);
-    box-shadow: 0 0 0 1px var(--scd-color-white, #fff), 0 0 0 3px var(--scd-button-success);
-    outline: none;
+	outline: 2px solid var(--scd-color-success);
+	outline-offset: 2px;
+	box-shadow: var(--scd-ring-success);
 }
 
 /* ==========================================================================
-   Danger Button - Uses theme danger color
+   Danger Button - Clear & Cautious
    ========================================================================== */
 
 .scd-button--danger,
 .scd-btn-danger,
 .button-link-delete.scd-themed {
-    background-color: var(--scd-button-danger);
-    border-color: var(--scd-button-danger);
-    color: var(--scd-color-white, #fff);
+	background: var(--scd-color-danger);
+	border-color: var(--scd-color-danger);
+	color: var(--scd-color-white);
+	font-weight: var(--scd-font-weight-semibold);
+	transition: var(--scd-transition-colors);
 }
 
 .scd-button--danger:hover,
 .scd-btn-danger:hover,
 .button-link-delete.scd-themed:hover {
-    background-color: var(--scd-button-danger-hover);
-    border-color: var(--scd-button-danger-hover);
-    color: var(--scd-color-white, #fff);
+	filter: brightness(0.92);
 }
 
 .scd-button--danger:focus,
 .scd-btn-danger:focus,
 .button-link-delete.scd-themed:focus {
-    background-color: var(--scd-button-danger-hover);
-    border-color: var(--scd-button-danger);
-    box-shadow: 0 0 0 1px var(--scd-color-white, #fff), 0 0 0 3px var(--scd-button-danger);
-    outline: none;
+	outline: 2px solid var(--scd-color-danger);
+	outline-offset: 2px;
+	box-shadow: var(--scd-ring-danger);
 }
 
 /* ==========================================================================
-   Ghost/Outline Buttons - Theme-aware borders
+   Ghost/Outline Buttons - Minimal & Clean
    ========================================================================== */
 
 .scd-button--ghost,
 .scd-btn-ghost {
-    background-color: transparent;
-    border-color: var(--scd-color-border);
-    color: var(--scd-color-text);
+	background: transparent;
+	border-color: var(--scd-color-border);
+	color: var(--scd-color-text);
 }
 
 .scd-button--ghost:hover,
 .scd-btn-ghost:hover {
-    background-color: var(--scd-color-surface);
-    border-color: var(--scd-color-border-dark);
+	background: var(--scd-color-primary-alpha-10);
+	border-color: var(--scd-color-border);
 }
 
 .scd-button--ghost-primary {
-    border-color: var(--scd-button-primary);
-    color: var(--scd-button-primary);
+	border-color: var(--scd-color-primary);
+	color: var(--scd-color-primary);
+	background: transparent;
 }
 
 .scd-button--ghost-primary:hover {
-    background-color: var(--scd-button-primary);
-    color: var(--scd-color-white, #fff);
+	background: var(--scd-color-primary-alpha-10);
 }
 
 /* ==========================================================================
-   Link Buttons - Theme-aware text colors
+   Link Buttons - Simple & Accessible
    ========================================================================== */
 
 .scd-button--link,
 .scd-btn-link {
-    background: none;
-    border: none;
-    color: var(--scd-color-primary);
-    text-decoration: underline;
-    padding: 0;
-    height: auto;
+	background: transparent;
+	border: none;
+	color: var(--scd-color-primary);
+	text-decoration: none;
+	padding: var(--scd-spacing-xs) 8px;
+	height: auto;
+	font-weight: var(--scd-font-weight-medium);
+	box-shadow: none;
 }
 
 .scd-button--link:hover,
 .scd-btn-link:hover {
-    color: var(--scd-color-primary-dark);
-    text-decoration: none;
+	text-decoration: underline;
+	filter: brightness(0.85);
 }
 
 .scd-button--link:focus,
 .scd-btn-link:focus {
-    box-shadow: none;
-    outline: 2px solid var(--scd-color-primary);
-    outline-offset: 2px;
+	outline: 2px solid var(--scd-color-primary);
+	outline-offset: 2px;
+	box-shadow: none;
 }
 
 /* ==========================================================================
-   Button States
+   Button States - Clear Feedback
    ========================================================================== */
 
 .scd-button:disabled,
 .scd-button--disabled,
 .scd-btn:disabled,
 .scd-btn-disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+	opacity: 0.5;
+	cursor: not-allowed;
+	box-shadow: none !important;
+	pointer-events: none;
 }
 
 .scd-button--loading,
 .scd-btn-loading {
-    color: transparent;
-    position: relative;
-    pointer-events: none;
+	color: transparent;
+	position: relative;
+	pointer-events: none;
+	cursor: wait;
 }
 
 .scd-button--loading::after,
 .scd-btn-loading::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 16px;
-    height: 16px;
-    margin: -8px 0 0 -8px;
-    border: 2px solid currentColor;
-    border-radius: 50%;
-    border-right-color: transparent;
-    animation: scd-spin 0.75s linear infinite;
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: var(--scd-icon-small);
+	height: var(--scd-icon-small);
+	margin: calc(var(--scd-icon-small) / -2) 0 0 calc(var(--scd-icon-small) / -2);
+	border: 2px solid currentColor;
+	border-radius: var(--scd-radius-full);
+	border-top-color: transparent;
+	animation: scd-spin 1s linear infinite;
 }
+
 
 /* ==========================================================================
    Button Groups
@@ -277,50 +303,72 @@
 }
 
 .scd-button-group--attached .scd-button:first-child {
-    border-radius: var(--scd-radius-md) 0 0 var(--scd-radius-md);
+    border-radius: var(--scd-radius-lg) 0 0 var(--scd-radius-lg);
 }
 
 .scd-button-group--attached .scd-button:last-child {
-    border-radius: 0 var(--scd-radius-md) var(--scd-radius-md) 0;
+    border-radius: 0 var(--scd-radius-lg) var(--scd-radius-lg) 0;
 }
 
 /* ==========================================================================
-   Icon Support
+   Icon Support - SVG Icons for Perfect Alignment
    ========================================================================== */
 
-/* WordPress handles dashicon alignment and sizing */
+/* SVG icons - flexbox handles alignment automatically */
+.scd-button .scd-icon,
+.scd-btn .scd-icon {
+	flex-shrink: 0;
+	width: var(--scd-icon-small);
+	height: var(--scd-icon-small);
+	vertical-align: middle; /* Fallback for non-flex contexts */
+}
+
+.scd-button--small .scd-icon,
+.scd-btn-sm .scd-icon {
+	width: 14px;
+	height: 14px;
+}
+
+.scd-button--large .scd-icon,
+.scd-btn-lg .scd-icon {
+	width: var(--scd-icon-medium);
+	height: var(--scd-icon-medium);
+}
 
 .scd-button--icon-only,
 .scd-btn-icon {
-    width: var(--scd-button-height);
-    padding: 0;
+	width: var(--scd-button-icon-size);
+	height: var(--scd-button-icon-size);
+	min-width: var(--scd-button-icon-size);
+	padding: 0;
+	gap: 0;
 }
 
-/* ==========================================================================
-   WordPress Admin Integration
-   ========================================================================== */
-
-/* Apply theme colors to WordPress buttons when opted-in */
-.scd-themed-buttons .button-primary,
-.scd-themed-buttons .wp-core-ui .button-primary {
-    background: var(--scd-button-primary);
-    border-color: var(--scd-button-primary);
+.scd-button--icon-only.scd-button--small,
+.scd-btn-icon.scd-btn-sm {
+	width: var(--scd-button-icon-size-small);
+	height: var(--scd-button-icon-size-small);
+	min-width: var(--scd-button-icon-size-small);
 }
 
-.scd-themed-buttons .button-primary:hover,
-.scd-themed-buttons .wp-core-ui .button-primary:hover {
-    background: var(--scd-button-primary-hover);
-    border-color: var(--scd-button-primary-hover);
+.scd-button--icon-only.scd-button--large,
+.scd-btn-icon.scd-btn-lg {
+	width: var(--scd-button-icon-size-large);
+	height: var(--scd-button-icon-size-large);
+	min-width: var(--scd-button-icon-size-large);
 }
 
-.scd-themed-buttons .button-secondary,
-.scd-themed-buttons .wp-core-ui .button-secondary {
-    color: var(--scd-color-primary);
-    border-color: var(--scd-color-primary);
+/* Common navigation button properties - override WordPress defaults */
+.wp-core-ui .scd-nav-btn--previous,
+.wp-core-ui .scd-nav-btn--next,
+.wp-core-ui .scd-nav-btn--complete {
+	transition: var(--scd-transition-colors);
+	font-size: var(--scd-font-size-medium);
+	font-weight: normal;
+	padding: var(--scd-spacing-base) var(--scd-spacing-xl);
 }
 
-.scd-themed-buttons .button-secondary:hover,
-.scd-themed-buttons .wp-core-ui .button-secondary:hover {
-    border-color: var(--scd-color-primary-dark);
-    color: var(--scd-color-primary-dark);
+/* Complete button - extra horizontal padding */
+.wp-core-ui .scd-nav-btn--complete {
+	padding: var(--scd-spacing-base) var(--scd-spacing-xxl);
 }

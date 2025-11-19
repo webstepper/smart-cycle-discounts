@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/integrations/woocommerce/class-wc-display-integration.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -163,15 +163,12 @@ class SCD_WC_Display_Integration {
 	private function render_badge( WC_Product $product, string $context ): void {
 		$product_id = $product->get_id();
 
-		if ( ! $this->discount_query->has_active_discount( $product_id ) ) {
-			return;
-		}
-
 		try {
-			$discount_info = $this->discount_query->get_discount_info( $product_id );
+			// Get campaign badge info (works even when discount doesn't apply at quantity=1)
+			$badge_info = $this->discount_query->get_campaign_badge_info( $product_id );
 
-			if ( $discount_info ) {
-				$html = $this->get_badge_html( $discount_info, $context );
+			if ( $badge_info ) {
+				$html = $this->get_badge_html( $badge_info, $context );
 				echo wp_kses_post( $html );
 			}
 		} catch ( Exception $e ) {
@@ -192,23 +189,101 @@ class SCD_WC_Display_Integration {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array  $discount_info    Discount information.
-	 * @param    string $context          Display context.
-	 * @return   string                      Badge HTML.
+	 * @param    array  $badge_info    Badge information from campaign.
+	 * @param    string $context       Display context.
+	 * @return   string                   Badge HTML.
 	 */
-	private function get_badge_html( array $discount_info, string $context ): string {
-		$percentage = isset( $discount_info['percentage'] ) ? absint( $discount_info['percentage'] ) : 0;
+	private function get_badge_html( array $badge_info, string $context ): string {
+		$type = $badge_info['type'] ?? 'percentage';
+		$text = '';
 
-		if ( $percentage > 0 ) {
-			$class = 'scd-discount-badge scd-discount-badge--' . esc_attr( $context );
-			return sprintf(
-				'<span class="%s">%s</span>',
-				esc_attr( $class ),
-				sprintf( __( 'Save %d%%', 'smart-cycle-discounts' ), $percentage )
-			);
+		switch ( $type ) {
+			case 'bogo':
+				$buy_qty     = $badge_info['buy_quantity'] ?? 1;
+				$get_qty     = $badge_info['get_quantity'] ?? 1;
+				$get_percent = $badge_info['get_discount_percentage'] ?? 100;
+
+				if ( 100 === $get_percent ) {
+					if ( 1 === $buy_qty && 1 === $get_qty ) {
+						$text = __( 'Buy 1 Get 1 Free', 'smart-cycle-discounts' );
+					} else {
+						$text = sprintf(
+							/* translators: 1: buy quantity, 2: get quantity */
+							__( 'Buy %1$d Get %2$d Free', 'smart-cycle-discounts' ),
+							$buy_qty,
+							$get_qty
+						);
+					}
+				} else {
+					$text = sprintf(
+						/* translators: 1: buy quantity, 2: get quantity, 3: discount percentage */
+						__( 'Buy %1$d Get %2$d at %3$d%% Off', 'smart-cycle-discounts' ),
+						$buy_qty,
+						$get_qty,
+						absint( $get_percent )
+					);
+				}
+				break;
+
+			case 'tiered':
+				$text = __( 'Volume Discounts', 'smart-cycle-discounts' );
+				break;
+
+			case 'fixed':
+				$value = $badge_info['value'] ?? 0;
+				if ( $value > 0 ) {
+					$text = sprintf(
+						/* translators: %s: discount amount */
+						__( 'Save %s', 'smart-cycle-discounts' ),
+						wc_price( $value )
+					);
+				}
+				break;
+
+			case 'percentage':
+			default:
+				$percentage = absint( $badge_info['value'] ?? 0 );
+				if ( $percentage > 0 ) {
+					$text = sprintf(
+						/* translators: %d: discount percentage */
+						__( 'Save %d%%', 'smart-cycle-discounts' ),
+						$percentage
+					);
+				}
+				break;
 		}
 
-		return '';
+		if ( empty( $text ) ) {
+			return '';
+		}
+
+		// Get badge styling from campaign settings
+		$bg_color   = $badge_info['badge_bg_color'] ?? '#ff0000';
+		$text_color = $badge_info['badge_text_color'] ?? '#ffffff';
+		$position   = $badge_info['badge_position'] ?? 'top-right';
+
+		// Build CSS classes
+		$classes = array(
+			'scd-discount-badge',
+			'scd-badge-' . esc_attr( $context ),
+			'scd-badge-' . esc_attr( $type ),
+			'scd-badge-position-' . esc_attr( $position ),
+		);
+
+		// Build inline styles
+		$styles = sprintf(
+			'background-color: %s; color: %s;',
+			esc_attr( $bg_color ),
+			esc_attr( $text_color )
+		);
+
+		return sprintf(
+			'<span class="%s" style="%s" data-discount-type="%s">%s</span>',
+			esc_attr( implode( ' ', $classes ) ),
+			esc_attr( $styles ),
+			esc_attr( $type ),
+			esc_html( $text )
+		);
 	}
 
 	/**

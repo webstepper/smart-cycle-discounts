@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/steps/products/products-orchestrator.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -60,6 +60,11 @@
 			// Return promise that resolves when UI is ready
 			return $.when( uiPromise ).then( function() {
 
+				// CRITICAL: Bind events before setting initial state
+				// This ensures the 'scd:populate-nested-array' handler is registered
+				// BEFORE populateFields() is called by the wizard
+				self.bindEvents();
+
 				self._setInitialState();
 
 				// Expose globally for field definitions
@@ -67,8 +72,6 @@
 
 				return self;
 			} ).fail( function( error ) {
-				console.error('[Products] ========== INIT FAILED ==========');
-				console.error('[Products] Initialization error:', error);
 				// Handle initialization errors
 				this.safeErrorHandle( error, 'ProductsOrchestrator.init', SCD.ErrorHandler.SEVERITY.CRITICAL );
 				throw error;
@@ -76,56 +79,56 @@
 		},
 
 		/**
-		 * Initialize modules (State, API, Selector, Filter, CategoryFilter, TomSelect)
+		 * Initialize modules (State, API, Picker, ConditionsValidator)
+		 *
+		 * Uses Module Registry for declarative initialization with post-init hooks
 		 *
 		 * @since 1.0.0
 		 * @private
 		 * @returns {void}
 		 */
 		initializeModules: function() {
+			var self = this;
 
-			// State management module (required) - Pure data storage, no business logic
-			if ( ! this.modules.state && SCD.Modules.Products.State ) {
-				this.modules.state = new SCD.Modules.Products.State();
-				if ( 'function' === typeof this.modules.state.init ) {
-					this.modules.state.init();
-				}
-
-
-				if ( this.wizard && this.wizard.modules && this.wizard.modules.stateManager ) {
-					var stateManager = this.wizard.modules.stateManager;
-					var allStepData = stateManager.get( 'stepData' );
-
-					var stepData = allStepData ? allStepData.products : null;
-
-					if ( stepData && 'function' === typeof this.modules.state.setState ) {
-						this.modules.state.setState( stepData );
-					} else {
+			if ( Object.keys( this.modules ).length === 0 ) {
+				// Use Module Registry for declarative module initialization
+				var moduleConfig = SCD.Shared.ModuleRegistry.createStepConfig( 'products', {
+					picker: {
+						class: 'SCD.Modules.Products.Picker',
+						deps: ['state', 'api']
+					},
+					conditionsValidator: {
+						class: 'SCD.Modules.Products.ConditionsValidator',
+					deps: ['state'],
+					autoInit: false // Requires manual init with $container argument
 					}
-				} else {
-				}
+				} );
 
-				// Register state instance for complex field handling
+				this.modules = SCD.Shared.ModuleRegistry.initialize( moduleConfig, this );
+
+				// Post-initialization: Register complex field handlers
 				if ( 'function' === typeof this.registerComplexFieldHandler ) {
 					this.registerComplexFieldHandler( 'products.state', this.modules.state );
-				}
-			}
-
-			// API module (required)
-			if ( ! this.modules.api && SCD.Modules.Products.API ) {
-				this.modules.api = new SCD.Modules.Products.API( {
-					ajaxUrl: window.scdAjax && window.scdAjax.ajaxUrl || '',
-					nonce: window.scdAjax && window.scdAjax.nonce || ''
-				} );
-			}
-
-			// Unified Picker module (replaces CategoryFilter + TomSelect)
-			if ( ! this.modules.picker && SCD.Modules.Products.Picker ) {
-				this.modules.picker = new SCD.Modules.Products.Picker( this.modules.state, this.modules.api );
-				// Register instance for complex field handling
-				if ( 'function' === typeof this.registerComplexFieldHandler ) {
 					this.registerComplexFieldHandler( 'SCD.Modules.Products.Picker', this.modules.picker );
 				}
+
+				// Post-initialization: Initialize ConditionsValidator
+				if ( this.modules.conditionsValidator && 'function' === typeof this.modules.conditionsValidator.init ) {
+					this.modules.conditionsValidator.init( this.$container );
+				}
+			}
+
+			// CRITICAL: Register state subscriber AFTER module init
+			// This runs on EVERY initializeModules call to ensure subscriber is present
+			// when navigating back to this step
+			if ( this.modules.state && 'function' === typeof this.modules.state.subscribe ) {
+				this.modules.state.subscribe( function( changes ) {
+					// Only re-render if conditions changed
+					if ( changes && 'conditions' === changes.property ) {
+						self.renderConditions( changes.newValue );
+						self.updateConditionsSummary( changes.newValue );
+					}
+				} );
 			}
 		},
 
@@ -145,7 +148,6 @@
 						return self;
 					} )
 					.catch( function( error ) {
-						console.error('[Products] Picker initialization FAILED:', error);
 						SCD.ErrorHandler.handle( error, 'products-init-picker', SCD.ErrorHandler.SEVERITY.HIGH );
 						throw error;
 					} );
@@ -183,8 +185,6 @@
 			}
 			// Fallback
 			return {
-				autoSave: true,
-				autoSaveDelay: 2000,
 				validateOnChange: true,
 				enableUndo: false
 			};
@@ -249,7 +249,10 @@
 			// Conditions logic change
 			this._boundHandlers.conditionsLogicChange = function() {
 				if ( self.modules.state && 'function' === typeof self.modules.state.setState ) {
-					self.modules.state.setState( { conditionsLogic: $( this ).val() } );
+					var logic = $( this ).val();
+				self.modules.state.setState( { conditionsLogic: logic } );
+				// Update data-logic attribute for AND/OR badges
+				$( '#scd-conditions-list' ).attr( 'data-logic', logic );
 				}
 			};
 			this.$container.on( 'change.scd-products', '[name="conditions_logic"]', this._boundHandlers.conditionsLogicChange );
@@ -300,7 +303,7 @@
 
 		/**
 		 * Bind custom events from modules
-		 * 
+		 *
 		 * @since 1.0.0
 		 * @private
 		 * @returns {void}
@@ -308,7 +311,40 @@
 		_bindModuleEvents: function() {
 			var self = this;
 
-			// Note: Conditions are handled directly by PHP template and field definitions
+			// NOTE: State subscriber for conditions is now registered in initializeModules()
+			// This ensures it's active BEFORE any setState() calls, preventing missed renders
+
+			// Condition field change handlers
+			this._boundHandlers.conditionTypeChange = function() {
+				var $row = $( this ).closest( '.scd-condition-row' );
+				var index = parseInt( $row.data( 'index' ), 10 );
+				var newType = $( this ).val();
+				self.handleConditionTypeChange( index, newType, $row );
+			};
+			this.$container.on( 'change.scd-products', '.scd-condition-type', this._boundHandlers.conditionTypeChange );
+
+			this._boundHandlers.conditionOperatorChange = function() {
+				var $row = $( this ).closest( '.scd-condition-row' );
+				var index = parseInt( $row.data( 'index' ), 10 );
+				var newOperator = $( this ).val();
+				self.handleConditionOperatorChange( index, newOperator, $row );
+			};
+			this.$container.on( 'change.scd-products', '.scd-condition-operator', this._boundHandlers.conditionOperatorChange );
+
+			this._boundHandlers.conditionModeChange = function() {
+				var $row = $( this ).closest( '.scd-condition-row' );
+				var index = parseInt( $row.data( 'index' ), 10 );
+				var newMode = $( this ).val();
+				self.handleConditionModeChange( index, newMode );
+			};
+			this.$container.on( 'change.scd-products', '.scd-condition-mode', this._boundHandlers.conditionModeChange );
+
+			this._boundHandlers.conditionValueChange = function() {
+				var $row = $( this ).closest( '.scd-condition-row' );
+				var index = parseInt( $row.data( 'index' ), 10 );
+				self.handleConditionValueChange( index, $row );
+			};
+			this.$container.on( 'input.scd-products change.scd-products', '.scd-condition-value', this._boundHandlers.conditionValueChange );
 
 			// Product selection events
 			if ( 'function' === typeof this.bindCustomEvent ) {
@@ -407,7 +443,6 @@
 
 		/**
 		 * Update products list display
-		 * Moved from products-selector.js (deleted in Phase 2)
 		 *
 		 * @since 1.0.0
 		 * @returns {void}
@@ -426,6 +461,177 @@
 			// Update UI count display
 			this.$container.find( '.scd-selected-count' ).text( count );
 		},
+
+		/**
+		 * Render all condition rows
+		 *
+		 * @since 1.0.0
+		 * @param {Array} conditions - Array of condition objects
+		 * @returns {void}
+		 */
+		renderConditions: function( conditions ) {
+			var $list = this.$container.find( '#scd-conditions-list' );
+			if ( ! $list || ! $list.length ) {
+				return;
+			}
+
+			// Clear existing rows
+			$list.empty();
+
+			// Render each condition
+			if ( conditions && conditions.length > 0 ) {
+				for ( var i = 0; i < conditions.length; i++ ) {
+					var $row = this.renderConditionRow( i, conditions[i] );
+					$list.append( $row );
+				}
+			} else {
+			}
+		},
+
+		/**
+		 * Render a single condition row
+		 *
+		 * @since 1.0.0
+		 * @param {number} index - Condition index
+		 * @param {object} condition - Condition data
+		 * @returns {jQuery} Rendered row element
+		 */
+		renderConditionRow: function( index, condition ) {
+			var conditionTypes = window.scdProductsState && window.scdProductsState.condition_types || {};
+			var operatorMappings = window.scdProductsState && window.scdProductsState.operator_mappings || {};
+
+			var conditionType = condition.conditionType || '';
+			var conditionMode = condition.mode || 'include';
+			var conditionOperator = condition.operator || '';
+			var conditionValue = condition.value || '';
+			var conditionValue2 = condition.value2 || '';
+
+			// Get operators for this condition type
+			var operators = this._getOperatorsForType( conditionType, operatorMappings );
+			var hasType = '' !== conditionType;
+			var hasOperator = '' !== conditionOperator;
+			var isBetween = 'between' === conditionOperator || 'not_between' === conditionOperator;
+
+			// Build row HTML
+			var $row = $( '<div class="scd-condition-row" data-index="' + index + '"></div>' );
+
+			// Build fields container
+			var $fields = $( '<div class="scd-condition-fields"></div>' );
+
+			// Mode select
+			var $mode = $( '<select name="conditions[' + index + '][mode]" class="scd-condition-mode scd-enhanced-select" data-index="' + index + '"></select>' );
+			$mode.append( '<option value="include"' + ( 'include' === conditionMode ? ' selected' : '' ) + '>Include</option>' );
+			$mode.append( '<option value="exclude"' + ( 'exclude' === conditionMode ? ' selected' : '' ) + '>Exclude</option>' );
+			$fields.append( $mode );
+
+			// Type select
+			var $type = $( '<select name="conditions[' + index + '][type]" class="scd-condition-type scd-enhanced-select" data-index="' + index + '"></select>' );
+			$type.append( '<option value="">Select condition type</option>' );
+			for ( var groupKey in conditionTypes ) {
+				if ( conditionTypes.hasOwnProperty( groupKey ) ) {
+					var group = conditionTypes[groupKey];
+					var $optgroup = $( '<optgroup label="' + this._escapeHtml( group.label ) + '"></optgroup>' );
+					for ( var optValue in group.options ) {
+						if ( group.options.hasOwnProperty( optValue ) ) {
+							var optLabel = group.options[optValue];
+							var selected = conditionType === optValue ? ' selected' : '';
+							$optgroup.append( '<option value="' + this._escapeHtml( optValue ) + '"' + selected + '>' + this._escapeHtml( optLabel ) + '</option>' );
+						}
+					}
+					$type.append( $optgroup );
+				}
+			}
+			$fields.append( $type );
+
+			// Operator select
+			var $operator = $( '<select name="conditions[' + index + '][operator]" class="scd-condition-operator scd-enhanced-select" data-index="' + index + '"' + ( ! hasType ? ' disabled' : '' ) + '></select>' );
+			$operator.append( '<option value="">Select operator</option>' );
+			if ( hasType && operators ) {
+				for ( var opValue in operators ) {
+					if ( operators.hasOwnProperty( opValue ) ) {
+						var opLabel = operators[opValue];
+						var opSelected = conditionOperator === opValue ? ' selected' : '';
+						$operator.append( '<option value="' + this._escapeHtml( opValue ) + '"' + opSelected + '>' + this._escapeHtml( opLabel ) + '</option>' );
+					}
+				}
+			}
+			$fields.append( $operator );
+
+			// Value wrapper
+			var $valueWrapper = $( '<div class="scd-condition-value-wrapper" data-index="' + index + '"></div>' );
+
+			// Value input
+			var $value = $( '<input type="text" name="conditions[' + index + '][value]" class="scd-condition-value scd-condition-value-single scd-enhanced-input" value="' + this._escapeHtml( conditionValue ) + '" placeholder="Enter value"' + ( ! hasOperator ? ' disabled' : '' ) + ' />' );
+			$valueWrapper.append( $value );
+
+			// Separator and value2 for "between" operators
+			var $separator = $( '<span class="scd-condition-value-separator' + ( isBetween ? '' : ' scd-hidden' ) + '">and</span>' );
+			$valueWrapper.append( $separator );
+
+			var $value2 = $( '<input type="text" name="conditions[' + index + '][value2]" class="scd-condition-value scd-condition-value-between scd-enhanced-input' + ( isBetween ? '' : ' scd-hidden' ) + '" value="' + this._escapeHtml( conditionValue2 ) + '" placeholder="Max value"' + ( ! hasOperator ? ' disabled' : '' ) + ' />' );
+			$valueWrapper.append( $value2 );
+
+			$fields.append( $valueWrapper );
+			$row.append( $fields );
+
+			// Actions
+			var $actions = $( '<div class="scd-condition-actions"></div>' );
+			var trashIcon = SCD.IconHelper ? SCD.IconHelper.get( 'trash', { size: 16 } ) : '<span class="scd-icon scd-icon-trash"></span>';
+			var $removeBtn = $( '<button type="button" class="button scd-remove-condition" title="Remove this condition">' + trashIcon + '</button>' );
+			$actions.append( $removeBtn );
+			$row.append( $actions );
+
+			return $row;
+		},
+
+		/**
+		 * Get operators for a condition type
+		 *
+		 * @since 1.0.0
+		 * @private
+		 * @param {string} conditionType - Condition type
+		 * @param {object} operatorMappings - Operator mappings from field definitions
+		 * @returns {object} Operators for the type
+		 */
+		_getOperatorsForType: function( conditionType, operatorMappings ) {
+			if ( ! conditionType || ! operatorMappings ) {
+				return {};
+			}
+
+			// Iterate through operator mappings to find the one that includes this type
+			for ( var mappingKey in operatorMappings ) {
+				if ( operatorMappings.hasOwnProperty( mappingKey ) ) {
+					var mapping = operatorMappings[mappingKey];
+					if ( mapping.types && -1 !== mapping.types.indexOf( conditionType ) ) {
+						return mapping.operators || {};
+					}
+				}
+			}
+
+			// Default to numeric operators if type not found
+			return operatorMappings.numeric && operatorMappings.numeric.operators ? operatorMappings.numeric.operators : {};
+		},
+
+		/**
+		 * Escape HTML for safe output
+		 *
+		 * @since 1.0.0
+		 * @private
+		 * @param {string} text - Text to escape
+		 * @returns {string} Escaped text
+		 */
+		_escapeHtml: function( text ) {
+			var map = {
+				'&': '&amp;',
+				'<': '&lt;',
+				'>': '&gt;',
+				'"': '&quot;',
+				"'": '&#039;'
+			};
+			return String( text ).replace( /[&<>"']/g, function( m ) {
+				return map[m];
+			} );
+		}
 
 	} );
 
@@ -549,6 +755,7 @@
 				case 'random_products':
 					delete clearData.productIds;
 					delete clearData.smartCriteria;
+					delete clearData.conditions; // Don't clear conditions - this type uses them!
 					clearData.randomCount = 10; // Default
 					break;
 				case 'smart_selection':
@@ -560,6 +767,7 @@
 					delete clearData.productIds;
 					delete clearData.randomCount;
 					delete clearData.smartCriteria;
+					delete clearData.conditions; // Don't clear conditions - this type uses them!
 					break;
 			}
 
@@ -612,7 +820,7 @@
 			var state = this.modules.state.getState();
 			var currentConditions = state.conditions || [];
 			var newCondition = {
-				type: '',
+				conditionType: '',
 				operator: '',
 				value: '',
 				value2: '',
@@ -672,6 +880,136 @@
 
 			// State module will trigger UI re-render via existing mechanisms
 			this.modules.state.setState( { conditions: validConditions } );
+		},
+
+		/**
+		 * Handle condition type change
+		 *
+		 * @since 1.0.0
+		 * @param {number} index - Condition index
+		 * @param {string} newType - New condition type
+		 * @param {jQuery} $row - Condition row element
+		 * @returns {void}
+		 */
+		handleConditionTypeChange: function( index, newType, $row ) {
+			if ( ! this.modules.state ) {
+				return;
+			}
+
+			var state = this.modules.state.getState();
+			var conditions = state.conditions || [];
+			if ( index >= conditions.length ) {
+				return;
+			}
+
+			// Update condition in state - reset operator and values when conditionType changes
+			var updatedConditions = conditions.slice();
+			updatedConditions[index] = {
+				conditionType: newType,
+				operator: '',
+				value: '',
+				value2: '',
+				mode: updatedConditions[index].mode || 'include'
+			};
+
+			this.modules.state.setState( { conditions: updatedConditions } );
+		},
+
+		/**
+		 * Handle condition operator change
+		 *
+		 * @since 1.0.0
+		 * @param {number} index - Condition index
+		 * @param {string} newOperator - New operator
+		 * @param {jQuery} $row - Condition row element
+		 * @returns {void}
+		 */
+		handleConditionOperatorChange: function( index, newOperator, $row ) {
+			if ( ! this.modules.state ) {
+				return;
+			}
+
+			var state = this.modules.state.getState();
+			var conditions = state.conditions || [];
+			if ( index >= conditions.length ) {
+				return;
+			}
+
+			// Update condition operator
+			var updatedConditions = conditions.slice();
+			updatedConditions[index] = $.extend( {}, updatedConditions[index], {
+				operator: newOperator
+			} );
+
+			// If switching away from "between", clear value2
+			var isBetween = 'between' === newOperator || 'not_between' === newOperator;
+			if ( ! isBetween ) {
+				updatedConditions[index].value2 = '';
+			}
+
+			this.modules.state.setState( { conditions: updatedConditions } );
+		},
+
+		/**
+		 * Handle condition mode change (include/exclude)
+		 *
+		 * @since 1.0.0
+		 * @param {number} index - Condition index
+		 * @param {string} newMode - New mode
+		 * @returns {void}
+		 */
+		handleConditionModeChange: function( index, newMode ) {
+			if ( ! this.modules.state ) {
+				return;
+			}
+
+			var state = this.modules.state.getState();
+			var conditions = state.conditions || [];
+			if ( index >= conditions.length ) {
+				return;
+			}
+
+			// Update condition mode
+			var updatedConditions = conditions.slice();
+			updatedConditions[index] = $.extend( {}, updatedConditions[index], {
+				mode: newMode
+			} );
+
+			this.modules.state.setState( { conditions: updatedConditions } );
+		},
+
+		/**
+		 * Handle condition value change
+		 *
+		 * @since 1.0.0
+		 * @param {number} index - Condition index
+		 * @param {jQuery} $row - Condition row element
+		 * @returns {void}
+		 */
+		handleConditionValueChange: function( index, $row ) {
+			if ( ! this.modules.state ) {
+				return;
+			}
+
+			var state = this.modules.state.getState();
+			var conditions = state.conditions || [];
+			if ( index >= conditions.length ) {
+				return;
+			}
+
+			// Get values from inputs
+			var value = $row.find( '.scd-condition-value-single' ).val() || '';
+			var value2 = $row.find( '.scd-condition-value-between' ).val() || '';
+
+			// Update condition values
+			var updatedConditions = conditions.slice();
+			updatedConditions[index] = $.extend( {}, updatedConditions[index], {
+				value: value,
+				value2: value2
+			} );
+
+			// Use batch update to avoid re-render on every keystroke
+			this.modules.state.setState( { conditions: updatedConditions }, true );
 		}
 	} );
 
@@ -682,8 +1020,35 @@
 	$.extend( SCD.Steps.ProductsOrchestrator.prototype, {
 
 		/**
+		 * Collect complex field data (for conditions)
+		 *
+		 * Called by StepPersistence.collectData() for fields with type 'complex'.
+		 * The conditions field is defined as 'complex' type in PHP and needs
+		 * special handling because it's stored in state, not in form fields.
+		 *
+		 * @since 1.0.0
+		 * @param {object} fieldDef Field definition
+		 * @returns {*} Field value
+		 */
+		collectComplexField: function( fieldDef ) {
+			// Handle conditions field - get from state
+			if ( 'conditions' === fieldDef.fieldName ) {
+				if ( this.modules && this.modules.state ) {
+					var state = this.modules.state.getState();
+					var conditions = state.conditions || [];
+					return conditions;
+				}
+				return [];
+			}
+
+			// Handle other complex fields using default behavior
+			// (fallback to empty array for unknown complex fields)
+			return [];
+		},
+
+		/**
 		 * Custom validation for the products step
-		 * 
+		 *
 		 * @since 1.0.0
 		 * @param {object} data Optional data to validate
 		 * @returns {object} Validation result
@@ -792,6 +1157,35 @@
 			if ( 'low_stock' === smartCriteria && 'all' === categoryIds[0] ) {
 				// Warning only - not an error
 			}
+		},
+
+		/**
+		 * Validate step for navigation
+		 * Called by wizard-navigation.js before allowing navigation to next step
+		 *
+		 * @since 1.0.0
+		 * @returns {Promise} Promise that resolves to boolean (true = valid, false = invalid)
+		 */
+		validateStep: function() {
+			var isValid = true;
+
+			// Validate filter conditions if conditions validator is available
+			if ( this.modules.conditionsValidator && 'function' === typeof this.modules.conditionsValidator.validateAllConditions ) {
+				isValid = this.modules.conditionsValidator.validateAllConditions();
+
+				// Show notification if validation failed
+				if ( ! isValid ) {
+					if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
+						window.SCD.Shared.NotificationService.error(
+							'Please fix the validation errors in your product filters before proceeding.',
+							5000
+						);
+					}
+				}
+			}
+
+			// Return promise that resolves to validation result
+			return $.Deferred().resolve( isValid ).promise();
 		}
 	} );
 
@@ -862,8 +1256,152 @@
 	$.extend( SCD.Steps.ProductsOrchestrator.prototype, {
 
 		/**
+		 * Update conditions summary panel
+		 *
+		 * @since 1.0.0
+		 * @param {Array} conditions Current conditions array
+		 * @returns {void}
+		 */
+		updateConditionsSummary: function( conditions ) {
+			var $summary = $( '.scd-conditions-summary' );
+			if ( ! $summary.length ) {
+				return;
+			}
+
+			conditions = conditions || [];
+			var conditionCount = conditions.length;
+
+			// Show/hide summary panel
+			if ( conditionCount > 0 ) {
+				$summary.show();
+			} else {
+				$summary.hide();
+				return;
+			}
+
+			// Update logic display
+			var logic = $( '[name="conditions_logic"]:checked' ).val() || 'all';
+			var logicText = 'all' === logic ? 'AND (all must match)' : 'OR (any can match)';
+			$summary.find( '.scd-summary-logic-value' ).text( logicText );
+
+			// Update condition count
+			$summary.find( '.scd-condition-count' ).text( conditionCount );
+
+			// Get condition types and operator mappings
+			var conditionTypes = window.scdProductsState && window.scdProductsState.condition_types || {};
+			var operatorMappings = window.scdProductsState && window.scdProductsState.operator_mappings || {};
+
+			// Build summary list
+			var $summaryList = $summary.find( '.scd-summary-list' );
+			$summaryList.empty();
+
+			for ( var i = 0; i < conditions.length; i++ ) {
+				var cond = conditions[i];
+				var typeLabel = this._getConditionTypeLabel( cond.type, conditionTypes );
+				var operatorLabel = this._getOperatorLabel( cond.operator, operatorMappings );
+				var mode = cond.mode || 'include';
+
+				var summaryText = typeLabel + ' ' + operatorLabel;
+
+				if ( cond.value ) {
+					summaryText += ' <span class="scd-summary-value">' + this._escapeHtml( cond.value ) + '</span>';
+				}
+
+				if ( cond.value2 && -1 !== [ 'between', 'not_between' ].indexOf( cond.operator ) ) {
+					summaryText += ' and <span class="scd-summary-value">' + this._escapeHtml( cond.value2 ) + '</span>';
+				}
+
+				var iconName = 'include' === mode ? 'check' : 'close';
+				var iconHtml = SCD.IconHelper ? SCD.IconHelper.get( iconName, { size: 16 } ) : '<span class="scd-icon scd-icon-' + iconName + '"></span>';
+				var modeClass = 'include' === mode ? 'summary-include' : 'summary-exclude';
+
+				var $li = $( '<li>' )
+					.addClass( modeClass )
+					.html( iconHtml + '<span class="scd-summary-item-text">' + summaryText + '</span>' );
+
+				$summaryList.append( $li );
+			}
+
+			// Show warning if at limit
+			var $warning = $summary.find( '.scd-summary-warning' );
+			if ( conditionCount >= 20 ) {
+				if ( ! $warning.length ) {
+					var warningIcon = SCD.IconHelper ? SCD.IconHelper.warning( { size: 16 } ) : '<span class="scd-icon scd-icon-warning"></span>';
+					$warning = $( '<div class="scd-summary-warning">' + warningIcon + '<span>Maximum condition limit reached (20). Remove conditions to add more.</span></div>' );
+					$summary.find( '.scd-summary-count' ).after( $warning );
+				}
+			} else {
+				$warning.remove();
+			}
+
+			// Bind toggle handler if not already bound
+			var $toggleBtn = $summary.find( '.scd-toggle-summary' );
+			if ( ! $toggleBtn.data( 'bound' ) ) {
+				$toggleBtn.data( 'bound', true ).on( 'click.scd-summary', function() {
+					$summary.toggleClass( 'collapsed' );
+				} );
+			}
+		},
+
+		/**
+		 * Get condition type label
+		 *
+		 * @since 1.0.0
+		 * @param {string} type Condition type
+		 * @param {object} conditionTypes Condition types object
+		 * @returns {string} Type label
+		 */
+		_getConditionTypeLabel: function( type, conditionTypes ) {
+			for ( var groupKey in conditionTypes ) {
+				var group = conditionTypes[groupKey];
+				if ( group.options && group.options[type] ) {
+					return group.options[type];
+				}
+			}
+			return type;
+		},
+
+		/**
+		 * Get operator label
+		 *
+		 * @since 1.0.0
+		 * @param {string} operator Operator value
+		 * @param {object} operatorMappings Operator mappings object
+		 * @returns {string} Operator label
+		 */
+		_getOperatorLabel: function( operator, operatorMappings ) {
+			for ( var category in operatorMappings ) {
+				var operators = operatorMappings[category];
+				if ( operators && operators[operator] ) {
+					return operators[operator];
+				}
+			}
+			return operator;
+		},
+
+		/**
+		 * Escape HTML for safe display
+		 *
+		 * @since 1.0.0
+		 * @param {string} text Text to escape
+		 * @returns {string} Escaped text
+		 */
+		_escapeHtml: function( text ) {
+			var map = {
+				'&': '&amp;',
+				'<': '&lt;',
+				'>': '&gt;',
+				'"': '&quot;',
+				"'": '&#039;'
+			};
+			return String( text ).replace( /[&<>"']/g, function( m ) {
+				return map[m];
+			} );
+		},
+
+		/**
 		 * Clean up when leaving step
-		 * 
+		 *
 		 * @since 1.0.0
 		 * @returns {void}
 		 */

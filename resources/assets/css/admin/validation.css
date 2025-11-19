@@ -25,7 +25,7 @@ textarea.error {
     border-width: 2px;
     box-shadow: 0 0 0 1px var(--scd-color-danger);
     background-color: var(--scd-alert-danger-bg) !important;
-    color: var(--scd-color-text, #1d2327) !important; /* Ensure text is always readable */
+    color: var(--scd-color-text) !important; /* Ensure text is always readable */
 }
 
 /* Focus state for error fields */
@@ -80,7 +80,7 @@ textarea.error:focus {
 
 .form-table .has-error th {
     color: var(--scd-color-danger);
-    font-weight: 600;
+    font-weight: var(--scd-font-weight-semibold);
 }
 
 /* ==========================================================================
@@ -112,11 +112,11 @@ textarea.error:focus {
     position: static;
     width: auto;
     height: auto;
-    padding: 8px 16px;
+    padding: var(--scd-padding-small) 16px;
     background: var(--scd-color-primary);
     color: var(--scd-color-white);
     text-decoration: none;
-    border-radius: 3px;
+    border-radius: var(--scd-radius-sm);
     display: inline-block;
     margin: 10px 0;
 }

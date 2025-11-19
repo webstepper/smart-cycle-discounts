@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/campaigns/class-campaign-edit-controller.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -44,12 +44,11 @@ class SCD_Campaign_Edit_Controller extends SCD_Abstract_Campaign_Controller {
 	 * @param    SCD_Logger                   $logger               Logger instance.
 	 * @param    SCD_Campaign_View_Renderer   $view_renderer        View renderer.
 	 */
-	public function __construct(
-		SCD_Campaign_Manager $campaign_manager,
+	public function __construct(SCD_Cache_Manager $cache, SCD_Campaign_Manager $campaign_manager,
 		SCD_Admin_Capability_Manager $capability_manager,
 		SCD_Logger $logger,
-		SCD_Campaign_View_Renderer $view_renderer
-	) {
+		SCD_Campaign_View_Renderer $view_renderer) {
+		$this->cache = $cache;
 		parent::__construct( $campaign_manager, $capability_manager, $logger );
 		$this->view_renderer = $view_renderer;
 	}
@@ -235,7 +234,7 @@ class SCD_Campaign_Edit_Controller extends SCD_Abstract_Campaign_Controller {
 		}
 
 		// Preserve form data
-		set_transient( 'scd_campaign_form_data', $_POST, 60 );
+		$this->cache->set( 'scd_campaign_form_data', $_POST, 60 );
 
 		// Redirect back to edit page
 		$url = $campaign_id
@@ -254,9 +253,9 @@ class SCD_Campaign_Edit_Controller extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	private function render( ?SCD_Campaign $campaign ): void {
-		$form_data = get_transient( 'scd_campaign_form_data' );
+		$form_data = $this->cache->get( 'scd_campaign_form_data' );
 		if ( $form_data ) {
-			delete_transient( 'scd_campaign_form_data' );
+			$this->cache->delete( 'scd_campaign_form_data' );
 		}
 
 		$this->view_renderer->render_edit_form( $campaign, $form_data ?: array() );

@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/class-menu-manager.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Menu_Manager {
 
@@ -89,7 +89,6 @@ class SCD_Menu_Manager {
 	 */
 	public function init(): void {
 		// Don't register menu pages here - wait until add_menus() is called
-		$this->logger->debug( 'Menu manager initialized' );
 	}
 
 	/**
@@ -264,7 +263,7 @@ class SCD_Menu_Manager {
 
 		// Add PRO badge for free users
 		if ( ! function_exists( 'scd_is_premium' ) || ! scd_is_premium() ) {
-			$title .= ' <span class="scd-pro-badge">PRO</span>';
+			$title .= ' ' . SCD_Badge_Helper::pro_badge();
 		}
 
 		return $title;

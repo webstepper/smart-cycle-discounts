@@ -45,8 +45,13 @@ class SCD_Uninstaller {
 	public static function uninstall() {
 		global $wpdb;
 
-		// Check if user wants to keep data on uninstall
-		$keep_data = get_option( 'scd_keep_data_on_uninstall', false );
+		// Check if user wants to remove data on uninstall
+		// Settings are stored in scd_settings array under ['advanced']['uninstall_data']
+		// uninstall_data = true means REMOVE data (delete everything)
+		// uninstall_data = false means KEEP data (preserve campaigns and settings)
+		$settings = get_option( 'scd_settings', array() );
+		$remove_data = isset( $settings['advanced']['uninstall_data'] ) && $settings['advanced']['uninstall_data'];
+		$keep_data = ! $remove_data;
 
 		if ( $keep_data ) {
 			// User wants to keep data, just clear transients and caches

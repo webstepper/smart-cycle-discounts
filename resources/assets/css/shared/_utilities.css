@@ -55,12 +55,12 @@
 
 /* Note: Don't combine hover transform utilities on the same element */
 .scd-hover-lift:hover {
-    /* transform: translateY(-1px); removed for instant state change */
-    box-shadow: var(--scd-shadow-md);
+    box-shadow: var(--scd-hover-lift-shadow);
+    transform: var(--scd-hover-lift-transform);
 }
 
 .scd-hover-scale:hover {
-    /* transform: scale(1.02); removed for instant state change */
+    transform: var(--scd-hover-scale-transform);
 }
 
 /* ==========================================================================
@@ -78,7 +78,7 @@
 /* Apply transition utilities separately for flexibility */
 .scd-card-base:hover {
     border-color: var(--scd-color-border-dark);
-    box-shadow: var(--scd-shadow-md);
+    box-shadow: var(--scd-card-hover-shadow);
 }
 
 /* ==========================================================================
@@ -140,19 +140,18 @@
 .scd-button-base:hover:not(:disabled) {
     background: var(--scd-color-surface);
     border-color: var(--scd-color-border-dark);
-    /* transform: translateY(-1px); removed for instant state change */
-    box-shadow: var(--scd-shadow-sm);
+    box-shadow: var(--scd-button-hover-shadow);
+    transform: var(--scd-button-hover-transform);
 }
 
 .scd-button-base:active:not(:disabled) {
-    /* transform: translateY(0); removed for instant state change */
     box-shadow: none;
+    transform: var(--scd-button-active-transform);
 }
 
 .scd-button-base:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    /* transform: none; removed for instant state change */
 }
 
 /* ==========================================================================
@@ -232,7 +231,7 @@
     pointer-events: none;
     position: relative;
     opacity: 0.5;
-    transition: opacity var(--scd-transition-base) var(--scd-ease-in-out);
+    transition: var(--scd-disabled-transition);
 }
 
 .scd-disabled::after {
@@ -246,11 +245,11 @@
         45deg,
         transparent,
         transparent 10px,
-        rgba(0, 0, 0, 0.02) 10px,
-        rgba(0, 0, 0, 0.02) 20px
+        var(--scd-overlay-faint) 10px,
+        var(--scd-overlay-faint) 20px
     );
     border-radius: inherit;
-    z-index: 10;
+    z-index: var(--scd-z-dropdown);
 }
 
 /* Removed scd-disabled-notice - not used anywhere */
@@ -320,72 +319,234 @@
 
 /* Screen reader only - standard accessible hiding pattern */
 .scd-sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border-width: 0;
 }
 
 /* Focus within */
 .scd-focus-within:focus-within {
-    box-shadow: var(--scd-shadow-focus);
+	box-shadow: var(--scd-focus-within-shadow);
+}
+
+/* ==========================================================================
+   Common Pattern Utilities
+   ========================================================================== */
+
+/* List reset - removes default list styling */
+.scd-list-reset {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+/* Hidden input - for custom radio/checkbox designs */
+.scd-input-hidden {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+/* Position utilities */
+.scd-relative {
+	position: relative;
+}
+
+.scd-absolute {
+	position: absolute;
+}
+
+/* Width utilities */
+.scd-full-width {
+	width: 100%;
+}
+
+/* Shadow utilities */
+.scd-shadow-none {
+	box-shadow: none !important;
 }
 
 /* ==========================================================================
    Animation Utilities
    ========================================================================== */
 
+/* Spin animation - for loading spinners */
 @keyframes scd-spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+	from { transform: rotate(0deg); }
+	to { transform: rotate(360deg); }
 }
 
+/* Fade in animation */
 @keyframes scd-fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+	from { opacity: 0; }
+	to { opacity: 1; }
 }
 
+/* Slide up animation - enter from bottom */
 @keyframes scd-slide-up {
-    from { 
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to { 
-        opacity: 1;
-        transform: translateY(0);
-    }
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
+/* Slide down animation - enter from top */
 @keyframes scd-slide-down {
-    from { 
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to { 
-        opacity: 1;
-        transform: translateY(0);
-    }
+	from {
+		opacity: 0;
+		transform: translateY(-10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
-.scd-animate-spin {
-    animation: scd-spin 1s linear infinite;
+/* Slide out up animation - exit moving up */
+@keyframes scd-slide-out-up {
+	from {
+		opacity: 1;
+		transform: translateY(0);
+	}
+	to {
+		opacity: 0;
+		transform: translateY(-10px);
+	}
 }
 
+/* Slide in from left animation */
+@keyframes scd-slide-in-left {
+	from {
+		opacity: 0;
+		transform: translateX(-20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+/* Modal slide in animation */
+@keyframes scd-modal-slide-in {
+	from {
+		opacity: 0;
+		transform: translateY(-20px) scale(0.95);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+/* Error pulse animation - for error states */
+@keyframes scd-error-pulse {
+	0%, 100% {
+		box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+	}
+	50% {
+		box-shadow: 0 0 0 8px rgba(220, 38, 38, 0);
+	}
+}
+
+/* Highlight fade animation - for temporary highlights */
+@keyframes scd-highlight-fade {
+	0% {
+		background-color: rgba(59, 130, 246, 0.15);
+	}
+	100% {
+		background-color: transparent;
+	}
+}
+
+/* Checkmark pop animation - success states */
+@keyframes scd-checkmark-pop {
+	0% {
+		transform: scale(0);
+		opacity: 0;
+	}
+	50% {
+		transform: scale(1.2);
+	}
+	100% {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+/* Error shake animation - error states */
+@keyframes scd-error-shake {
+	0%, 100% {
+		transform: translateX(0);
+	}
+	10%, 30%, 50%, 70%, 90% {
+		transform: translateX(-8px);
+	}
+	20%, 40%, 60%, 80% {
+		transform: translateX(8px);
+	}
+}
+
+/* Shake animation - for field validation errors (simpler version) */
+@keyframes scd-shake {
+	0%, 100% {
+		transform: translateX(0);
+	}
+	10%, 30%, 50%, 70%, 90% {
+		transform: translateX(-4px);
+	}
+	20%, 40%, 60%, 80% {
+		transform: translateX(4px);
+	}
+}
+
+/* Success burst animation - completion states */
+@keyframes scd-success-burst {
+	0% {
+		transform: scale(0.8);
+		opacity: 0;
+	}
+	50% {
+		transform: scale(1.1);
+		opacity: 1;
+	}
+	100% {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+/* Highlight pulse animation - PRO features */
+@keyframes scd-highlight-pulse {
+	0%, 100% {
+		box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+	}
+	50% {
+		box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+	}
+}
+
+/* Animation utility classes */
 .scd-animate-fade-in {
-    animation: scd-fade-in var(--scd-transition-base) var(--scd-ease-out);
+	animation: var(--scd-animation-fade-in);
 }
 
 .scd-animate-slide-up {
-    animation: scd-slide-up var(--scd-transition-base) var(--scd-ease-out);
+	animation: var(--scd-animation-slide-up);
 }
 
 .scd-animate-slide-down {
-    animation: scd-slide-down var(--scd-transition-base) var(--scd-ease-out);
+	animation: var(--scd-animation-slide-down);
 }
 
 /* ==========================================================================
@@ -460,12 +621,6 @@
     margin-bottom: var(--scd-spacing-xs);
 }
 
-.scd-form-help {
-    color: var(--scd-color-text-muted);
-    font-size: var(--scd-font-size-small);
-    margin-top: var(--scd-spacing-xs);
-}
-
 /* Toggle switch styles moved to shared/_forms.css to avoid duplication */
 
 /* Chart components - removed, use specific chart styles */
@@ -473,3 +628,102 @@
 /* Email templates - removed, use inline styles for emails */
 
 /* WordPress handles dashicon alignment - removed custom fixes as per user feedback */
+
+/* ==========================================================================
+   Icon Container Utilities - Flexbox Centering for Icons
+   ========================================================================== */
+
+/* Base icon container - centers content */
+.scd-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* Circular variant */
+.scd-icon-container--circular {
+    border-radius: var(--scd-radius-full);
+}
+
+/* Size variants */
+.scd-icon-container--xs {
+    width: 16px;
+    height: 16px;
+}
+
+.scd-icon-container--sm {
+    width: 20px;
+    height: 20px;
+}
+
+.scd-icon-container--md {
+    width: 24px;
+    height: 24px;
+}
+
+.scd-icon-container--lg {
+    width: 32px;
+    height: 32px;
+}
+
+.scd-icon-container--xl {
+    width: 40px;
+    height: 40px;
+}
+
+.scd-icon-container--xxl {
+    width: 48px;
+    height: 48px;
+}
+
+/* ==========================================================================
+   SVG Icon Base Styles & Sizing Utilities
+   ========================================================================== */
+
+/* Base SVG Icon Styles - Prevent Flash/Jump on Load */
+.scd-icon {
+    display: inline-block;
+    vertical-align: middle;
+    /* Size set by Icon_Helper inline styles (default 20px) - don't override */
+    flex-shrink: 0;
+    fill: currentColor;
+    /* Smooth rotation for collapse/expand animations */
+    transition: transform var(--scd-transition-base) var(--scd-ease-in-out);
+    /* Fix alignment in flexbox containers */
+    align-self: center;
+}
+
+/* Prevent icon size changes during load */
+button .scd-icon,
+a .scd-icon,
+.scd-button .scd-icon {
+    margin: 0;
+    padding: 0;
+}
+
+/* Small SVG icons (16px) - use Icon_Helper with size=>16 instead */
+.scd-icon-sm,
+.scd-icon--sm .scd-icon {
+    width: var(--scd-icon-small);
+    height: var(--scd-icon-small);
+}
+
+/* Medium SVG icons (20px) - default size */
+.scd-icon-md,
+.scd-icon--md .scd-icon {
+    width: var(--scd-icon-medium);
+    height: var(--scd-icon-medium);
+}
+
+/* Large SVG icons (24px) */
+.scd-icon-lg,
+.scd-icon--lg .scd-icon {
+    width: var(--scd-icon-large);
+    height: var(--scd-icon-large);
+}
+
+/* Spinner Animation - uses @keyframes scd-spin defined in Animation Utilities section */
+.scd-icon-spin {
+    animation: scd-spin 1s linear infinite;
+}

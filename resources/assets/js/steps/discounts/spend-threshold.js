@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/steps/discounts/spend-threshold.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -97,13 +97,13 @@
 		 */
 		setDefaults: function() {
 			this._percentageThresholds = [
-				{ threshold: 50, discount_value: 5, discount_type: 'percentage' },
-				{ threshold: 100, discount_value: 10, discount_type: 'percentage' }
+				{ threshold: 50, discountValue: 5, discountType: 'percentage' },
+				{ threshold: 100, discountValue: 10, discountType: 'percentage' }
 			];
 
 			this._fixedThresholds = [
-				{ threshold: 50, discount_value: 5, discount_type: 'fixed' },
-				{ threshold: 100, discount_value: 10, discount_type: 'fixed' }
+				{ threshold: 50, discountValue: 5, discountType: 'fixed' },
+				{ threshold: 100, discountValue: 10, discountType: 'fixed' }
 			];
 
 			this.state.setState( {
@@ -265,13 +265,13 @@
 				// First threshold defaults
 				return {
 					threshold: 50,
-					discount_value: 5,
-					discount_type: type
+					discountValue: 5,
+					discountType: type
 				};
 			}
 
 			var lastAmount = lastThreshold.threshold || 0;
-			var lastDiscount = lastThreshold.discount_value || 0;
+			var lastDiscount = lastThreshold.discountValue || 0;
 
 			// Simple progression: double the amount, increase discount
 			var nextAmount = Math.min( lastAmount * 2, 500 ); // Cap at 500
@@ -287,8 +287,8 @@
 
 			return {
 				threshold: nextAmount,
-				discount_value: nextDiscount,
-				discount_type: type
+				discountValue: nextDiscount,
+				discountType: type
 			};
 		},
 
@@ -335,7 +335,7 @@
 					break;
 				case 'discount_value':
 				case 'discount':
-					thresholds[index].discount_value = parseFloat( value ) || 0;
+					thresholds[index].discountValue = parseFloat( value ) || 0;
 					break;
 			}
 
@@ -349,7 +349,73 @@
 		},
 
 		/**
+		 * Get Row Factory configuration for spend threshold rows
+		 * Phase 3: Declarative row configuration using Row Factory
+		 * @param thresholdMode
+		 */
+		getSpendThresholdRowConfig: function( thresholdMode ) {
+			var discountPlaceholder = 'percentage' === thresholdMode ? '10' : '5.00';
+			var discountMax = 'percentage' === thresholdMode ? 100 : null;
+
+			return {
+				rowClass: 'scd-threshold-row',
+				dataAttributes: { 'threshold-type': thresholdMode },
+				fields: [
+					{
+						type: 'number',
+						name: 'threshold',
+						label: 'Spend Amount',
+						min: 0.01,
+						step: 0.01,
+						placeholder: '100.00',
+						class: 'scd-threshold-input scd-enhanced-input',
+						dataAttributes: { field: 'threshold' },
+						prefix: this.currencySymbol
+					},
+					{
+						type: 'number',
+						name: 'discount_value',
+						label: 'Discount Value',
+						min: 0.01,
+						max: discountMax,
+						step: 0.01,
+						placeholder: discountPlaceholder,
+						class: 'scd-threshold-input scd-enhanced-input',
+						dataAttributes: { field: 'discount_value' },
+						prefix: 'percentage' === thresholdMode ? '%' : this.currencySymbol
+					}
+				],
+				removeButton: {
+					enabled: true,
+					label: 'Remove',
+					class: 'scd-remove-threshold',
+					showLabel: true
+				}
+			};
+		},
+
+		/**
+		 * Render a single threshold row
+		 * Phase 3: Uses Row Factory for declarative row generation
+		 * @param threshold
+		 * @param index
+		 * @param thresholdMode
+		 */
+		renderThresholdRow: function( threshold, index, thresholdMode ) {
+			var rowData = {
+				threshold: threshold.threshold || '',
+				discount_value: threshold.discountValue || ''
+			};
+
+			var config = this.getSpendThresholdRowConfig( thresholdMode );
+			var $row = SCD.Shared.RowFactory.create( config, rowData, index );
+
+			return $row[0].outerHTML;
+		},
+
+		/**
 		 * Render thresholds UI
+		 * Phase 3: Uses Row Factory helper for row generation
 		 */
 		renderThresholds: function() {
 			var fullState = this.state.getState();
@@ -374,49 +440,11 @@
 				return ( a.threshold || 0 ) - ( b.threshold || 0 );
 			} );
 
-			// Build HTML using WordPress admin patterns
-			sortedThresholds.forEach( function( threshold, _sortedIndex ) {
+			// Build HTML using Row Factory
+			sortedThresholds.forEach( function( threshold ) {
 				// Find original index
 				var originalIndex = thresholds.indexOf( threshold );
-
-				html += '<div class="scd-threshold-row" data-index="' + originalIndex + '" data-threshold-type="' + thresholdMode + '">';
-				html += '  <div class="scd-threshold-fields">';
-
-				// Spend amount field
-				html += '    <div class="scd-field-group">';
-				html += '      <label>Spend Amount:</label>';
-				html += '      <div class="scd-input-with-prefix">';
-				html += '        <span class="scd-input-prefix">' + self.currencySymbol + '</span>';
-				html += '        <input type="number" class="scd-threshold-input" data-field="threshold" ';
-				html += '               name="' + thresholdMode + '_spend_thresholds[' + originalIndex + '][threshold]" ';
-				html += '               value="' + ( threshold.threshold || '' ) + '" min="0.01" step="0.01" placeholder="100.00">';
-				html += '      </div>';
-				html += '    </div>';
-
-				// Discount value field
-				html += '    <div class="scd-field-group">';
-				html += '      <label>Discount Value:</label>';
-				html += '      <div class="scd-input-with-prefix">';
-
-				if ( 'percentage' === thresholdMode ) {
-					html += '        <span class="scd-input-prefix">%</span>';
-					html += '        <input type="number" class="scd-threshold-input" data-field="discount_value" ';
-					html += '               name="' + thresholdMode + '_spend_thresholds[' + originalIndex + '][discount_value]" ';
-					html += '               value="' + ( threshold.discount_value || '' ) + '" min="0.01" max="100" step="0.01" placeholder="10">';
-				} else {
-					html += '        <span class="scd-input-prefix">' + self.currencySymbol + '</span>';
-					html += '        <input type="number" class="scd-threshold-input" data-field="discount_value" ';
-					html += '               name="' + thresholdMode + '_spend_thresholds[' + originalIndex + '][discount_value]" ';
-					html += '               value="' + ( threshold.discount_value || '' ) + '" min="0.01" step="0.01" placeholder="5.00">';
-				}
-
-				html += '      </div>';
-				html += '    </div>';
-
-				html += '    <button type="button" class="scd-remove-threshold">Remove</button>';
-
-				html += '  </div>';
-				html += '</div>';
+				html += self.renderThresholdRow( threshold, originalIndex, thresholdMode );
 			} );
 
 			$container.html( html );
@@ -451,9 +479,9 @@
 				previewText += 'Spend ' + self.currencySymbol + threshold.threshold + ' or more';
 
 				if ( 'percentage' === thresholdMode ) {
-					previewText += ' → ' + threshold.discount_value + '% off';
+					previewText += ' → ' + threshold.discountValue + '% off';
 				} else {
-					previewText += ' → ' + self.currencySymbol + threshold.discount_value + ' off';
+					previewText += ' → ' + self.currencySymbol + threshold.discountValue + ' off';
 				}
 			} );
 
@@ -482,8 +510,8 @@
 
 			var hasIssue = false;
 			for ( var i = 1; i < sortedThresholds.length; i++ ) {
-				var prevDiscount = sortedThresholds[i-1].discount_value || 0;
-				var currDiscount = sortedThresholds[i].discount_value || 0;
+				var prevDiscount = sortedThresholds[i-1].discountValue || 0;
+				var currDiscount = sortedThresholds[i].discountValue || 0;
 
 				if ( currDiscount <= prevDiscount ) {
 					hasIssue = true;
@@ -492,8 +520,9 @@
 			}
 
 			if ( hasIssue ) {
+				var warningIcon = SCD.IconHelper ? SCD.IconHelper.warning( { size: 16 } ) : '<span class="scd-icon scd-icon-warning"></span>';
 				var warningHtml = '<div class="scd-tier-warning scd-threshold-warning">';
-				warningHtml += '<span class="dashicons dashicons-warning"></span>';
+				warningHtml += warningIcon;
 				warningHtml += '<span class="warning-text">Tip: Higher spending thresholds usually have bigger discounts.</span>';
 				warningHtml += '</div>';
 
@@ -529,11 +558,11 @@
 					amountsSeen[threshold.threshold] = true;
 				}
 
-				if ( !threshold.discount_value || 0 >= threshold.discount_value ) {
+				if ( !threshold.discountValue || 0 >= threshold.discountValue ) {
 					errors['threshold_' + index + '_discount_value'] = [ 'Discount must be greater than 0' ];
 				}
 
-				if ( 'percentage' === thresholdMode && 100 < threshold.discount_value ) {
+				if ( 'percentage' === thresholdMode && 100 < threshold.discountValue ) {
 					errors['threshold_' + index + '_discount_value'] = [ 'Percentage cannot exceed 100%' ];
 				}
 			} );
@@ -547,14 +576,21 @@
 
 		/**
 		 * Get configuration data
+		 *
+		 * Reads from the correct state property based on current mode.
 		 */
 		getData: function() {
 			var fullState = this.state.getState();
 			var thresholdMode = fullState.thresholdMode || 'percentage';
 
+			// Read from mode-specific state property
+			var thresholdsKey = 'percentage' === thresholdMode ?
+				'percentageSpendThresholds' : 'fixedSpendThresholds';
+			var thresholds = fullState[thresholdsKey] || [];
+
 			return {
 				thresholdMode: thresholdMode,
-				thresholds: fullState.thresholds || []
+				thresholds: thresholds
 			};
 		},
 
@@ -573,21 +609,22 @@
 					data.thresholds.map( function( threshold ) {
 						return {
 							threshold: threshold.threshold || 0,
-							discount_value: threshold.discountValue || 0,
-							discount_type: threshold.discountType || 'percentage'
+							discountValue: threshold.discountValue || threshold.discount_value || 0,
+							discountType: threshold.discountType || threshold.discount_type || 'percentage'
 						};
 					} ) : [];
 
 				// Determine mode from threshold data or explicit mode
-				var mode = data.thresholdMode || 'percentage';
+				var mode = data.thresholdMode || data.threshold_mode || 'percentage';
 				stateUpdate.thresholdMode = mode;
 
-				stateUpdate.thresholds = normalizedThresholds;
-
+				// Update mode-specific state property (not generic 'thresholds')
 				if ( 'percentage' === mode ) {
+					stateUpdate.percentageSpendThresholds = normalizedThresholds;
 					this._percentageThresholds = normalizedThresholds;
 					this._fixedThresholds = [];
 				} else {
+					stateUpdate.fixedSpendThresholds = normalizedThresholds;
 					this._fixedThresholds = normalizedThresholds;
 					this._percentageThresholds = [];
 				}
@@ -613,12 +650,17 @@
 
 		/**
 		 * Collect spend threshold data
+		 *
+		 * Reads from the correct state property based on current mode.
 		 */
 		collectData: function() {
 			var fullState = this.state.getState();
 			var thresholdMode = fullState.thresholdMode || 'percentage';
 
-			var thresholds = fullState.thresholds || [];
+			// Read from mode-specific state property
+			var thresholdsKey = 'percentage' === thresholdMode ?
+				'percentageSpendThresholds' : 'fixedSpendThresholds';
+			var thresholds = fullState[thresholdsKey] || [];
 
 			// Sort thresholds by threshold
 			var sortedThresholds = thresholds.slice().sort( function( a, b ) {
@@ -658,8 +700,8 @@
 
 			if ( 1 === sortedThresholds.length ) {
 				var discount = 'percentage' === thresholdMode ?
-					firstThreshold.discount_value + '%' :
-					this.currencySymbol + firstThreshold.discount_value;
+					firstThreshold.discountValue + '%' :
+					this.currencySymbol + firstThreshold.discountValue;
 				return 'Spend ' + this.currencySymbol + firstThreshold.threshold + '+ → ' + discount + ' off';
 			} else {
 				return '' + ( sortedThresholds.length ) + ' spend thresholds: ' + this.currencySymbol + firstThreshold.threshold + ' to ' + this.currencySymbol + lastThreshold.threshold + '';
@@ -681,8 +723,8 @@
 				thresholds: thresholds.map( function( threshold ) {
 					return {
 						threshold: threshold.threshold || 0,
-						discount_value: threshold.discount_value || 0,
-						discount_type: thresholdMode
+						discountValue: threshold.discountValue || 0,
+						discountType: thresholdMode
 					};
 				} )
 			};
@@ -774,61 +816,76 @@
 		/**
 		 * Get consolidated threshold data for backend (complex field handler)
 		 * Combines percentage and fixed thresholds into single array with type property
-		 * @return {Array} Consolidated thresholds array
+		 *
+		 * NOTE: Returns camelCase property names (JavaScript standard).
+		 * AJAX Router automatically converts camelCase to snake_case for PHP backend.
+		 *
+		 * @return {Array} Consolidated thresholds array with camelCase properties (spendAmount, discountValue, discountType)
 		 */
 		getValue: function() {
+			console.log( '[SpendThreshold] getValue() called' );
+			console.log( '[SpendThreshold] _percentageThresholds:', this._percentageThresholds );
+			console.log( '[SpendThreshold] _fixedThresholds:', this._fixedThresholds );
+
 			try {
 				var thresholds = [];
 
 				if ( this._percentageThresholds && this._percentageThresholds.length ) {
+					console.log( '[SpendThreshold] Processing', this._percentageThresholds.length, 'percentage thresholds' );
 					this._percentageThresholds.forEach( function( threshold ) {
 						var amount = parseFloat( threshold.threshold ) || 0;
-						var discount = parseFloat( threshold.discount_value ) || 0;
+						var discount = parseFloat( threshold.discountValue ) || 0;
 
 						// Only include thresholds with valid amounts and discounts
 						if ( amount > 0 && discount > 0 ) {
-							thresholds.push( {
-								threshold: amount,
-								discount_value: discount,
-								discount_type: 'percentage'
-							} );
+							var thresholdObj = {
+								spendAmount: amount,
+								discountValue: discount,
+								discountType: 'percentage'
+							};
+							console.log( '[SpendThreshold] Adding percentage threshold:', thresholdObj );
+							thresholds.push( thresholdObj );
 						}
 					} );
 				}
 
 				if ( this._fixedThresholds && this._fixedThresholds.length ) {
+					console.log( '[SpendThreshold] Processing', this._fixedThresholds.length, 'fixed thresholds' );
 					this._fixedThresholds.forEach( function( threshold ) {
 						var amount = parseFloat( threshold.threshold ) || 0;
-						var discount = parseFloat( threshold.discount_value ) || 0;
+						var discount = parseFloat( threshold.discountValue ) || 0;
 
 						// Only include thresholds with valid amounts and discounts
 						if ( amount > 0 && discount > 0 ) {
-							thresholds.push( {
-								threshold: amount,
-								discount_value: discount,
-								discount_type: 'fixed'
-							} );
+							var thresholdObj = {
+								spendAmount: amount,
+								discountValue: discount,
+								discountType: 'fixed'
+							};
+							console.log( '[SpendThreshold] Adding fixed threshold:', thresholdObj );
+							thresholds.push( thresholdObj );
 						}
 					} );
 				}
 
-				// Sort thresholds by threshold in ascending order
+				// Sort thresholds by spendAmount in ascending order
 				thresholds.sort( function( a, b ) {
-					return a.threshold - b.threshold;
+					return a.spendAmount - b.spendAmount;
 				} );
 
+				// Remove duplicates - check BOTH amount and type
 				var seen = {};
 				thresholds = thresholds.filter( function( threshold ) {
-					if ( seen[threshold.threshold] ) {
+					var key = threshold.spendAmount + '_' + threshold.discountType;
+					if ( seen[key] ) {
 						return false;
 					}
-					seen[threshold.threshold] = true;
+					seen[key] = true;
 					return true;
 				} );
 
-				if ( window.scdDebugDiscounts ) {
-				}
 
+				console.log( '[SpendThreshold] getValue() returning:', thresholds );
 				return thresholds;
 			} catch ( error ) {
 				console.error( '[SpendThreshold] getValue error:', error );
@@ -839,31 +896,22 @@
 		/**
 		 * Set threshold data from backend (complex field handler)
 		 * Splits consolidated array into percentage and fixed thresholds
+		 *
 		 * @param {Array} thresholds - Consolidated thresholds array from backend
 		 */
 		setValue: function( thresholds ) {
 			try {
-				if ( !thresholds || !Array.isArray( thresholds ) ) {
-					if ( window.scdDebugDiscounts ) {
-					}
-					return;
-				}
-
-				if ( window.scdDebugDiscounts ) {
-				}
-
-				// Split into percentage and fixed arrays
 				this._percentageThresholds = [];
 				this._fixedThresholds = [];
 
 				thresholds.forEach( function( threshold ) {
 					var thresholdObj = {
-						threshold: threshold.threshold,
-						discount_value: threshold.discount_value,
-						discount_type: threshold.discount_type
+						threshold: threshold.spend_amount || threshold.spendAmount,
+						discountValue: threshold.discount_value || threshold.discountValue,
+						discountType: threshold.discount_type || threshold.discountType
 					};
 
-					if ( 'percentage' === threshold.discount_type ) {
+					if ( 'percentage' === ( threshold.discount_type || threshold.discountType ) ) {
 						this._percentageThresholds.push( thresholdObj );
 					} else {
 						this._fixedThresholds.push( thresholdObj );

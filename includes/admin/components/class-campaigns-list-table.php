@@ -63,6 +63,15 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	private $container;
 
 	/**
+	 * Row actions cache for current rendering cycle.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      array    $row_actions_cache    Campaign ID => actions array mapping.
+	 */
+	private $row_actions_cache = array();
+
+	/**
 	 * Initialize the list table.
 	 *
 	 * @since    1.0.0
@@ -95,16 +104,12 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 */
 	public function get_columns() {
 		$columns = array(
-			'cb'          => '<input type="checkbox" />',
-			'name'        => __( 'Campaign Name', 'smart-cycle-discounts' ),
-			'discount'    => __( 'Discount', 'smart-cycle-discounts' ),
-			'products'    => __( 'Products', 'smart-cycle-discounts' ),
-			'status'      => __( 'Status', 'smart-cycle-discounts' ),
-			'schedule'    => __( 'Schedule', 'smart-cycle-discounts' ),
-			'priority'    => __( 'Priority', 'smart-cycle-discounts' ),
-			'health'      => __( 'Health', 'smart-cycle-discounts' ),
-			'performance' => __( 'Performance', 'smart-cycle-discounts' ),
-			'created'     => __( 'Created', 'smart-cycle-discounts' ),
+			'cb'       => '<input type="checkbox" />',
+			'name'     => __( 'Campaign Name', 'smart-cycle-discounts' ),
+			'status'   => __( 'Status', 'smart-cycle-discounts' ),
+			'schedule' => __( 'Schedule', 'smart-cycle-discounts' ),
+			'health'   => __( 'Health', 'smart-cycle-discounts' ),
+			'actions'  => __( 'Actions', 'smart-cycle-discounts' ),
 		);
 
 		return apply_filters( 'scd_campaigns_list_table_columns', $columns );
@@ -120,9 +125,8 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 		return array(
 			'name'     => array( 'name', false ),
 			'status'   => array( 'status', false ),
-			'created'  => array( 'created_at', true ),
 			'schedule' => array( 'start_date', false ),
-			'priority' => array( 'priority', false ),
+			'health'   => array( 'health_score', false ),
 		);
 	}
 
@@ -363,26 +367,39 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 				// Show activate for draft, scheduled, and paused campaigns only
 				// Expired campaigns should not be reactivated directly
 				elseif ( in_array( $status, array( 'draft', 'scheduled', 'paused' ), true ) ) {
-					$actions['activate'] = sprintf(
-						'<a href="%s">%s</a>',
-						esc_url(
-							wp_nonce_url(
-								admin_url( 'admin.php?page=scd-campaigns&action=activate&id=' . $campaign_id ),
-								'scd-campaign-action-activate-' . $campaign_id
-							)
-						),
-						__( 'Activate', 'smart-cycle-discounts' )
-					);
-				}
-			}
+					// Check if end date has passed
+					$ends_at    = $campaign->get_ends_at();
+					$is_expired = false;
+					if ( $ends_at ) {
+						$now        = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
+						$is_expired = ( $ends_at <= $now );
+					}
 
-			// Quick Edit action - not available for expired campaigns
-			if ( $this->capability_manager->current_user_can( 'edit_campaign', $campaign_id ) && 'expired' !== $status ) {
-				$actions['inline hide-if-no-js'] = sprintf(
-					'<button type="button" class="button-link editinline" data-campaign-id="%d">%s</button>',
-					$campaign_id,
-					__( 'Quick Edit', 'smart-cycle-discounts' )
-				);
+					if ( $is_expired ) {
+						// Show disabled activate button with tooltip for expired campaigns
+						$end_date_display = wp_date( 'F j, Y g:i A', $ends_at->getTimestamp() );
+						$actions['activate'] = sprintf(
+							'<span class="disabled" title="%s" style="color: #a0a5aa; cursor: not-allowed;">%s</span>',
+							esc_attr( sprintf(
+								__( 'Cannot activate: End date has passed (%s). Please edit the campaign to set a future end date.', 'smart-cycle-discounts' ),
+								$end_date_display
+							) ),
+							__( 'Activate', 'smart-cycle-discounts' )
+						);
+					} else {
+						// Show normal activate button
+						$actions['activate'] = sprintf(
+							'<a href="%s">%s</a>',
+							esc_url(
+								wp_nonce_url(
+									admin_url( 'admin.php?page=scd-campaigns&action=activate&id=' . $campaign_id ),
+									'scd-campaign-action-activate-' . $campaign_id
+								)
+							),
+							__( 'Activate', 'smart-cycle-discounts' )
+						);
+					}
+				}
 			}
 
 			if ( $this->capability_manager->current_user_can( 'scd_create_campaigns' ) ) {
@@ -443,7 +460,10 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			$title .= '<br><span class="description">' . esc_html( $campaign->get_description() ) . '</span>';
 		}
 
-		return $title . $this->row_actions( $actions );
+		// Store row actions in cache for access in column_actions
+		$this->row_actions_cache[ $campaign_id ] = $actions;
+
+		return $title;
 	}
 
 	/**
@@ -454,99 +474,10 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * @return   string                       Status column HTML.
 	 */
 	public function column_status( $item ) {
-		$campaign     = $item;
-		$status       = $campaign->get_status();
-		$status_label = ucfirst( $status );
+		$campaign = $item;
+		$status   = $campaign->get_status();
 
-		$status_info = '';
-		switch ( $status ) {
-			case 'scheduled':
-				$start_date = $campaign->get_starts_at();
-				if ( $start_date ) {
-					$status_info = sprintf(
-						'<br><small>%s: %s</small>',
-						__( 'Starts', 'smart-cycle-discounts' ),
-						wp_date( 'M j, Y g:i A', $start_date->getTimestamp() )
-					);
-				}
-				break;
-			case 'active':
-				$end_date = $campaign->get_ends_at();
-				if ( $end_date ) {
-					$status_info = sprintf(
-						'<br><small>%s: %s</small>',
-						__( 'Ends', 'smart-cycle-discounts' ),
-						wp_date( 'M j, Y g:i A', $end_date->getTimestamp() )
-					);
-				}
-				break;
-			case 'paused':
-				$end_date = $campaign->get_ends_at();
-				if ( $end_date ) {
-					$now            = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
-					$time_remaining = $end_date->getTimestamp() - $now->getTimestamp();
-
-					$days_remaining = floor( $time_remaining / DAY_IN_SECONDS );
-
-					// Determine if expiring soon (< 7 days)
-					$is_expiring_soon = $days_remaining < 7 && $days_remaining >= 0;
-					$warning_class    = $is_expiring_soon ? ' scd-expiring-soon' : '';
-
-					if ( $days_remaining < 0 ) {
-						// Already past end date (will expire on next cron run)
-						$countdown_text = __( 'Expiring soon', 'smart-cycle-discounts' );
-					} elseif ( $days_remaining === 0 ) {
-						$hours_remaining = floor( $time_remaining / HOUR_IN_SECONDS );
-						if ( $hours_remaining > 0 ) {
-							$countdown_text = sprintf(
-								_n( 'Expires in %d hour', 'Expires in %d hours', $hours_remaining, 'smart-cycle-discounts' ),
-								$hours_remaining
-							);
-						} else {
-							// Less than 1 hour remaining
-							$minutes_remaining = floor( $time_remaining / MINUTE_IN_SECONDS );
-							if ( $minutes_remaining > 0 ) {
-								$countdown_text = sprintf(
-									_n( 'Expires in %d minute', 'Expires in %d minutes', $minutes_remaining, 'smart-cycle-discounts' ),
-									$minutes_remaining
-								);
-							} else {
-								$countdown_text = __( 'Expires very soon', 'smart-cycle-discounts' );
-							}
-						}
-					} else {
-						$countdown_text = sprintf(
-							_n( 'Expires in %d day', 'Expires in %d days', $days_remaining, 'smart-cycle-discounts' ),
-							$days_remaining
-						);
-					}
-
-					$status_info = sprintf(
-						'<br><small class="%s">⏰ %s (%s)</small>',
-						esc_attr( $warning_class ),
-						esc_html( $countdown_text ),
-						wp_date( 'M j, Y', $end_date->getTimestamp() )
-					);
-				}
-				break;
-			case 'expired':
-				$end_date = $campaign->get_ends_at();
-				if ( $end_date ) {
-					$status_info = sprintf(
-						'<br><small>%s: %s</small>',
-						__( 'Ended', 'smart-cycle-discounts' ),
-						wp_date( 'M j, Y g:i A', $end_date->getTimestamp() )
-					);
-				}
-				break;
-		}
-
-		return sprintf(
-			'<span class="scd-status-badge scd-status-badge--%s">%s</span>%s',
-			esc_attr( $status ),
-			esc_html( $status_label ),
-			$status_info
-		);
+		return SCD_Badge_Helper::status_badge( $status );
 	}
 
 	/**
@@ -556,91 +487,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * @param    SCD_Campaign $campaign    Campaign object.
 	 * @return   string                       Discount column HTML.
 	 */
-	public function column_discount( $item ) {
-		$campaign       = $item;
-		$discount_type  = $campaign->get_discount_type();
-		$discount_value = $campaign->get_discount_value();
-
-		// Flag to track if discount_display contains HTML (from wc_price)
-		$discount_has_html = false;
-
-		switch ( $discount_type ) {
-			case 'percentage':
-				$discount_display = sprintf( '%s%%', number_format( $discount_value, 1 ) );
-				$discount_label   = __( 'Percentage', 'smart-cycle-discounts' );
-				break;
-			case 'fixed':
-				$discount_display  = wc_price( $discount_value );
-				$discount_has_html = true; // wc_price returns HTML
-				$discount_label    = __( 'Fixed Amount', 'smart-cycle-discounts' );
-				break;
-			case 'tiered':
-				$discount_rules = $campaign->get_discount_rules();
-				$tiers          = isset( $discount_rules['tiers'] ) ? $discount_rules['tiers'] : array();
-				$tier_mode      = isset( $discount_rules['tier_mode'] ) ? $discount_rules['tier_mode'] : 'percentage';
-
-				if ( ! empty( $tiers ) ) {
-					$tier_count       = count( $tiers );
-					$discount_display = sprintf(
-						_n( '%d tier', '%d tiers', $tier_count, 'smart-cycle-discounts' ),
-						$tier_count
-					);
-					$discount_label   = __( 'Volume Discount', 'smart-cycle-discounts' );
-				} else {
-					$discount_display = __( 'Not configured', 'smart-cycle-discounts' );
-					$discount_label   = '';
-				}
-				break;
-			case 'bogo':
-				$discount_rules = $campaign->get_discount_rules();
-				$buy_qty        = isset( $discount_rules['buy_quantity'] ) ? $discount_rules['buy_quantity'] : 1;
-				$get_qty        = isset( $discount_rules['get_quantity'] ) ? $discount_rules['get_quantity'] : 1;
-				$bogo_discount  = isset( $discount_rules['discount'] ) ? $discount_rules['discount'] : 100;
-
-				$discount_display = sprintf(
-					__( 'Buy %1$d Get %2$d', 'smart-cycle-discounts' ),
-					$buy_qty,
-					$get_qty
-				);
-				$discount_label   = sprintf( '%s%% off', number_format( $bogo_discount, 0 ) );
-				break;
-			case 'spend_threshold':
-				$discount_rules = $campaign->get_discount_rules();
-				$thresholds     = isset( $discount_rules['thresholds'] ) ? $discount_rules['thresholds'] : array();
-				$threshold_mode = isset( $discount_rules['threshold_mode'] ) ? $discount_rules['threshold_mode'] : 'percentage';
-
-				if ( ! empty( $thresholds ) ) {
-					$threshold_count  = count( $thresholds );
-					$discount_display = sprintf(
-						_n( '%d threshold', '%d thresholds', $threshold_count, 'smart-cycle-discounts' ),
-						$threshold_count
-					);
-					$discount_label   = __( 'Spend Threshold', 'smart-cycle-discounts' );
-				} else {
-					$discount_display = __( 'Not configured', 'smart-cycle-discounts' );
-					$discount_label   = '';
-				}
-				break;
-			default:
-				$discount_display = __( 'Not configured', 'smart-cycle-discounts' );
-				$discount_label   = '';
-		}
-
-		// Use appropriate escaping based on content type
-		if ( $discount_has_html ) {
-			// wc_price() returns safe HTML - use wp_kses_post()
-			$output = sprintf( '<strong>%s</strong>', wp_kses_post( $discount_display ) );
-		} else {
-			// Plain text - use esc_html()
-			$output = sprintf( '<strong>%s</strong>', esc_html( $discount_display ) );
-		}
-
-		if ( $discount_label ) {
-			$output .= sprintf( '<br><small>%s</small>', esc_html( $discount_label ) );
-		}
-
-		return $output;
-	}
 
 	/**
 	 * Render products column.
@@ -649,101 +495,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * @param    SCD_Campaign $campaign    Campaign object.
 	 * @return   string                       Products column HTML.
 	 */
-	public function column_products( $item ) {
-		$campaign       = $item;
-		$selection_type = $campaign->get_product_selection_type();
-		$product_ids    = $campaign->get_product_ids();
-		$category_ids   = $campaign->get_category_ids();
-
-		$output = '';
-
-		switch ( $selection_type ) {
-			case 'all_products':
-				$output = '<strong>' . __( 'All Products', 'smart-cycle-discounts' ) . '</strong>';
-				break;
-
-			case 'specific_products':
-				$count = is_array( $product_ids ) ? count( $product_ids ) : 0;
-				if ( $count > 0 ) {
-					$product_names = $this->get_product_names( $product_ids, 3 );
-					$output        = sprintf(
-						'<strong>%d</strong> %s',
-						$count,
-						_n( 'Product', 'Products', $count, 'smart-cycle-discounts' )
-					);
-					if ( ! empty( $product_names['display'] ) ) {
-						$output .= '<br><small>' . esc_html( $product_names['display'] ) . '</small>';
-					}
-				} else {
-					$output = '<span class="description">' . __( 'No products selected', 'smart-cycle-discounts' ) . '</span>';
-				}
-				break;
-
-			case 'random_products':
-				$metadata     = $campaign->get_metadata();
-				$random_count = $metadata['random_count'] ?? 0;
-				$actual_count = is_array( $product_ids ) ? count( $product_ids ) : 0;
-
-				if ( $actual_count > 0 ) {
-					$product_names = $this->get_product_names( $product_ids, 3 );
-					$output        = sprintf(
-						'<strong>%d</strong> %s<br><small>%s</small>',
-						$actual_count,
-						_n( 'Random Product', 'Random Products', $actual_count, 'smart-cycle-discounts' ),
-						__( 'Selected', 'smart-cycle-discounts' )
-					);
-					if ( ! empty( $product_names['display'] ) ) {
-						$output .= '<br><small>' . esc_html( $product_names['display'] ) . '</small>';
-					}
-				} else {
-					$output = sprintf(
-						'<strong>%d</strong> %s<br><small class="description">%s</small>',
-						$random_count,
-						_n( 'Random Product', 'Random Products', $random_count, 'smart-cycle-discounts' ),
-						__( 'Not compiled yet', 'smart-cycle-discounts' )
-					);
-				}
-				break;
-
-			case 'smart_selection':
-				$count = is_array( $product_ids ) ? count( $product_ids ) : 0;
-				if ( $count > 0 ) {
-					$product_names = $this->get_product_names( $product_ids, 3 );
-					$output        = sprintf(
-						'<strong>%d</strong> %s<br><small>%s</small>',
-						$count,
-						_n( 'Product', 'Products', $count, 'smart-cycle-discounts' ),
-						__( 'Smart Selection', 'smart-cycle-discounts' )
-					);
-					if ( ! empty( $product_names['display'] ) ) {
-						$output .= '<br><small>' . esc_html( $product_names['display'] ) . '</small>';
-					}
-				} else {
-					$output = '<strong>' . __( 'Smart Selection', 'smart-cycle-discounts' ) . '</strong><br><small class="description">' . __( 'Not compiled yet', 'smart-cycle-discounts' ) . '</small>';
-				}
-				break;
-
-			default:
-				$output = '<span class="description">' . __( 'Not configured', 'smart-cycle-discounts' ) . '</span>';
-		}
-
-		if ( ! empty( $category_ids ) && is_array( $category_ids ) ) {
-			$cat_count      = count( $category_ids );
-			$category_names = $this->get_category_names( $category_ids, 3 );
-			$output        .= sprintf(
-				'<br><strong>%d</strong> %s',
-				$cat_count,
-				_n( 'Category', 'Categories', $cat_count, 'smart-cycle-discounts' )
-			);
-			if ( ! empty( $category_names['display'] ) ) {
-				$output .= '<br><small>' . esc_html( $category_names['display'] ) . '</small>';
-			}
-		} elseif ( 'all_products' !== $selection_type && empty( $category_ids ) ) {
-			$output .= '<br><small>' . __( 'All Categories', 'smart-cycle-discounts' ) . '</small>';
-		}
-
-		return $output;
-	}
 
 	/**
 	 * Get product names for display.
@@ -881,42 +632,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * @param    SCD_Campaign $campaign    Campaign object.
 	 * @return   string                       Performance column HTML.
 	 */
-	public function column_performance( $item ) {
-		$campaign = $item;
-		$metrics = $campaign->get_performance_metrics();
-
-		if ( empty( $metrics ) ) {
-			return '<span class="description">' . __( 'No data yet', 'smart-cycle-discounts' ) . '</span>';
-		}
-
-		$output = '';
-
-		if ( isset( $metrics['total_revenue'] ) ) {
-			$output .= sprintf(
-				'<strong>%s:</strong> %s<br>',
-				__( 'Revenue', 'smart-cycle-discounts' ),
-				wc_price( $metrics['total_revenue'] )
-			);
-		}
-
-		if ( isset( $metrics['total_orders'] ) ) {
-			$output .= sprintf(
-				'<strong>%s:</strong> %s<br>',
-				__( 'Orders', 'smart-cycle-discounts' ),
-				number_format( $metrics['total_orders'] )
-			);
-		}
-
-		if ( isset( $metrics['conversion_rate'] ) ) {
-			$output .= sprintf(
-				'<strong>%s:</strong> %s%%',
-				__( 'Conversion', 'smart-cycle-discounts' ),
-				number_format( $metrics['conversion_rate'], 1 )
-			);
-		}
-
-		return $output ? $output : '<span class="description">' . __( 'No data yet', 'smart-cycle-discounts' ) . '</span>';
-	}
 
 	/**
 	 * Render created column.
@@ -925,38 +640,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * @param    SCD_Campaign $campaign    Campaign object.
 	 * @return   string                       Created column HTML.
 	 */
-	public function column_created( $item ) {
-		$campaign   = $item;
-		$created_at = $campaign->get_created_at();
-		$created_by = $campaign->get_created_by();
-
-		if ( is_string( $created_at ) ) {
-			$created_at = new DateTime( $created_at );
-		}
-
-		$output = sprintf(
-			'<strong>%s</strong><br>',
-			wp_date( 'M j, Y', $created_at->getTimestamp() )
-		);
-
-		$output .= sprintf(
-			'<small>%s</small><br>',
-			wp_date( 'g:i A', $created_at->getTimestamp() )
-		);
-
-		if ( $created_by ) {
-			$user = get_user_by( 'id', $created_by );
-			if ( $user ) {
-				$output .= sprintf(
-					'<small>%s: %s</small>',
-					__( 'by', 'smart-cycle-discounts' ),
-					esc_html( $user->display_name )
-				);
-			}
-		}
-
-		return $output;
-	}
 
 	/**
 	 * Render priority column.
@@ -965,17 +648,6 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * @param    SCD_Campaign $campaign    Campaign object.
 	 * @return   string                       Priority column HTML.
 	 */
-	public function column_priority( $item ) {
-		$campaign = $item;
-		$priority = $campaign->get_priority();
-
-		return sprintf(
-			'<span class="scd-priority-badge scd-priority-%d" title="%s">%d</span>',
-			$priority,
-			esc_attr( sprintf( __( 'Priority: %d', 'smart-cycle-discounts' ), $priority ) ),
-			$priority
-		);
-	}
 
 	/**
 	 * Render health column.
@@ -1072,6 +744,169 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			$icon,
 			$health_score
 		);
+	}
+
+	/**
+	 * Render actions column.
+	 *
+	 * @since    1.0.0
+	 * @param    SCD_Campaign $item    Campaign object.
+	 * @return   string                  Actions column HTML.
+	 */
+	public function column_actions( $item ) {
+		$campaign    = $item;
+		$campaign_id = $campaign->get_id();
+		$status      = $campaign->get_status();
+
+		$buttons = array();
+
+		// Get row actions from cache (generated in column_name)
+		$row_actions = isset( $this->row_actions_cache[ $campaign_id ] ) ? $this->row_actions_cache[ $campaign_id ] : array();
+
+		$deleted_at = $campaign->get_deleted_at();
+		$is_trashed = null !== $deleted_at;
+
+		// View Details button (opens Campaign Overview Panel)
+		$view_icon = class_exists( 'SCD_Icon_Helper' )
+			? SCD_Icon_Helper::get( 'visibility', array( 'size' => 20, 'aria_hidden' => true ) )
+			: '';
+
+		$buttons['view'] = sprintf(
+			'<button type="button" class="scd-button scd-button--primary scd-button--icon-only scd-view-campaign" data-campaign-id="%d" title="%s" aria-label="%s">%s</button>',
+			$campaign_id,
+			esc_attr__( 'View campaign details', 'smart-cycle-discounts' ),
+			esc_attr__( 'View Details', 'smart-cycle-discounts' ),
+			$view_icon
+		);
+
+		// Convert row actions to icon-only buttons
+		foreach ( $row_actions as $action => $link ) {
+			$icon        = '';
+			$title       = '';
+			$url         = '';
+			$classes     = 'scd-button scd-button--secondary scd-button--icon-only';
+			$confirm_msg = '';
+
+			switch ( $action ) {
+				case 'edit':
+					$icon    = 'edit';
+					$title   = __( 'Edit', 'smart-cycle-discounts' );
+					$classes = 'scd-button scd-button--primary scd-button--icon-only';
+					// Extract URL from link and decode HTML entities
+					preg_match( '/href=["\']([^"\']+)["\']/', $link, $matches );
+					$url = isset( $matches[1] ) ? html_entity_decode( $matches[1], ENT_QUOTES, 'UTF-8' ) : '';
+					break;
+
+				case 'activate':
+					$icon  = 'play';
+					$title = __( 'Activate', 'smart-cycle-discounts' );
+					// Check if this is a disabled button (span) or active link (a)
+					if ( strpos( $link, '<span class="disabled"' ) !== false ) {
+						// Disabled button - extract tooltip from title attribute
+						preg_match( '/title=["\']([^"\']+)["\']/', $link, $title_matches );
+						if ( isset( $title_matches[1] ) ) {
+							$title = html_entity_decode( $title_matches[1], ENT_QUOTES, 'UTF-8' );
+						}
+						$url = ''; // No URL for disabled buttons
+					} else {
+						// Active link - extract URL
+						preg_match( '/href=["\']([^"\']+)["\']/', $link, $matches );
+						$url = isset( $matches[1] ) ? html_entity_decode( $matches[1], ENT_QUOTES, 'UTF-8' ) : '';
+					}
+					break;
+
+				case 'deactivate':
+					$icon  = 'pause';
+					$title = __( 'Pause', 'smart-cycle-discounts' );
+					preg_match( '/href=["\']([^"\']+)["\']/', $link, $matches );
+					$url = isset( $matches[1] ) ? html_entity_decode( $matches[1], ENT_QUOTES, 'UTF-8' ) : '';
+					break;
+
+				case 'duplicate':
+					$icon  = 'copy';
+					$title = __( 'Duplicate', 'smart-cycle-discounts' );
+					preg_match( '/href=["\']([^"\']+)["\']/', $link, $matches );
+					$url = isset( $matches[1] ) ? html_entity_decode( $matches[1], ENT_QUOTES, 'UTF-8' ) : '';
+					break;
+
+				case 'delete':
+					$icon  = 'delete';
+					$title = __( 'Move to Trash', 'smart-cycle-discounts' );
+					preg_match( '/href=["\']([^"\']+)["\']/', $link, $matches );
+					$url = isset( $matches[1] ) ? html_entity_decode( $matches[1], ENT_QUOTES, 'UTF-8' ) : '';
+					preg_match( '/confirm\([\'"]([^"\']+)[\'"]\)/', $link, $confirm_matches );
+					if ( isset( $confirm_matches[1] ) ) {
+						$confirm_msg = $confirm_matches[1];
+					}
+					break;
+
+				case 'restore':
+					$icon  = 'undo';
+					$title = __( 'Restore', 'smart-cycle-discounts' );
+					preg_match( '/href=["\']([^"\']+)["\']/', $link, $matches );
+					$url = isset( $matches[1] ) ? html_entity_decode( $matches[1], ENT_QUOTES, 'UTF-8' ) : '';
+					break;
+
+				case 'delete_permanently':
+					$icon  = 'delete';
+					$title = __( 'Delete Permanently', 'smart-cycle-discounts' );
+					preg_match( '/href=["\']([^"\']+)["\']/', $link, $matches );
+					$url = isset( $matches[1] ) ? html_entity_decode( $matches[1], ENT_QUOTES, 'UTF-8' ) : '';
+					preg_match( '/confirm\([\'"]([^"\']+)[\'"]\)/', $link, $confirm_matches );
+					if ( isset( $confirm_matches[1] ) ) {
+						$confirm_msg = $confirm_matches[1];
+					}
+					break;
+
+				case 'stop_recurring':
+					$icon  = 'repeat';
+					$title = __( 'Stop Recurring', 'smart-cycle-discounts' );
+					preg_match( '/href=["\']([^"\']+)["\']/', $link, $matches );
+					$url = isset( $matches[1] ) ? html_entity_decode( $matches[1], ENT_QUOTES, 'UTF-8' ) : '';
+					preg_match( '/confirm\([\'"]([^"\']+)[\'"]\)/', $link, $confirm_matches );
+					if ( isset( $confirm_matches[1] ) ) {
+						$confirm_msg = $confirm_matches[1];
+					}
+					break;
+
+				default:
+					continue 2; // Skip unknown actions
+			}
+
+			// Get SVG icon
+			$icon_html = class_exists( 'SCD_Icon_Helper' ) && SCD_Icon_Helper::has_icon( $icon )
+				? SCD_Icon_Helper::get( $icon, array( 'size' => 20, 'aria_hidden' => true ) )
+				: '';
+
+			if ( $url ) {
+				// Build onclick handler with optional confirmation
+				// Note: URL has been decoded from HTML entities, now escape for JavaScript context
+				$onclick_handler = $confirm_msg
+					? sprintf( 'if(confirm(\'%s\')) window.location.href=\'%s\'', esc_js( $confirm_msg ), esc_js( $url ) )
+					: sprintf( 'window.location.href=\'%s\'', esc_js( $url ) );
+
+				// Render as button that navigates to URL
+				$buttons[ $action ] = sprintf(
+					'<button type="button" class="%s" onclick="%s" title="%s" aria-label="%s">%s</button>',
+					esc_attr( $classes ),
+					$onclick_handler,
+					esc_attr( $title ),
+					esc_attr( $title ),
+					$icon_html
+				);
+			} elseif ( 'activate' === $action && ! $url ) {
+				// Render disabled activate button (for expired campaigns)
+				$buttons[ $action ] = sprintf(
+					'<button type="button" class="%s" disabled="disabled" title="%s" aria-label="%s" style="opacity: 0.5; cursor: not-allowed;">%s</button>',
+					esc_attr( $classes ),
+					esc_attr( $title ),
+					esc_attr( $title ),
+					$icon_html
+				);
+			}
+		}
+
+		return '<div class="scd-actions-column">' . implode( ' ', $buttons ) . '</div>';
 	}
 
 	/**
@@ -1525,87 +1360,5 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 		return $views;
 	}
 
-	/**
-	 * Output quick edit inline form.
-	 *
-	 * @since    1.0.0
-	 * @return   void
-	 */
-	public function inline_edit() {
-		?>
-		<table style="display: none">
-			<tbody id="scd-quick-edit">
-				<tr id="scd-quick-edit-row" class="inline-edit-row inline-edit-row-campaign quick-edit-row quick-edit-row-campaign inline-edit-campaign" style="display: none">
-					<td colspan="<?php echo esc_attr( $this->get_column_count() ); ?>" class="colspanchange">
-						<fieldset class="inline-edit-col-left">
-							<legend class="inline-edit-legend"><?php echo esc_html__( 'Quick Edit', 'smart-cycle-discounts' ); ?></legend>
-							<div class="inline-edit-col">
-								<label>
-									<span class="title"><?php echo esc_html__( 'Name', 'smart-cycle-discounts' ); ?></span>
-									<span class="input-text-wrap">
-										<input type="text" name="name" class="ptitle" value="" />
-									</span>
-								</label>
-
-								<label>
-									<span class="title"><?php echo esc_html__( 'Status', 'smart-cycle-discounts' ); ?></span>
-									<span class="input-text-wrap">
-										<select name="status">
-											<option value="draft"><?php echo esc_html__( 'Draft', 'smart-cycle-discounts' ); ?></option>
-											<option value="active"><?php echo esc_html__( 'Active', 'smart-cycle-discounts' ); ?></option>
-											<option value="paused"><?php echo esc_html__( 'Paused', 'smart-cycle-discounts' ); ?></option>
-											<option value="scheduled"><?php echo esc_html__( 'Scheduled', 'smart-cycle-discounts' ); ?></option>
-										</select>
-									</span>
-								</label>
-
-								<label>
-									<span class="title"><?php echo esc_html__( 'Priority', 'smart-cycle-discounts' ); ?></span>
-									<span class="input-text-wrap">
-										<input type="number" name="priority" value="" min="1" max="5" />
-									</span>
-								</label>
-							</div>
-						</fieldset>
-
-						<fieldset class="inline-edit-col-right">
-							<div class="inline-edit-col">
-								<label>
-									<span class="title"><?php echo esc_html__( 'Discount Value', 'smart-cycle-discounts' ); ?></span>
-									<span class="input-text-wrap">
-										<input type="number" name="discount_value" value="" step="0.01" min="0" />
-									</span>
-								</label>
-
-								<label>
-									<span class="title"><?php echo esc_html__( 'Start Date', 'smart-cycle-discounts' ); ?></span>
-									<span class="input-text-wrap">
-										<input type="datetime-local" name="start_date" value="" />
-									</span>
-								</label>
-
-								<label>
-									<span class="title"><?php echo esc_html__( 'End Date', 'smart-cycle-discounts' ); ?></span>
-									<span class="input-text-wrap">
-										<input type="datetime-local" name="end_date" value="" />
-									</span>
-								</label>
-							</div>
-						</fieldset>
-
-						<div class="inline-edit-save submit">
-							<button type="button" class="button button-primary save"><?php echo esc_html__( 'Update', 'smart-cycle-discounts' ); ?></button>
-							<button type="button" class="button cancel"><?php echo esc_html__( 'Cancel', 'smart-cycle-discounts' ); ?></button>
-							<span class="spinner"></span>
-							<input type="hidden" name="campaign_id" value="" />
-							<?php wp_nonce_field( 'scd_quick_edit', 'nonce' ); ?>
-							<span class="error" style="display:none;color:red;margin-left:10px;"></span>
-						</div>
-					</td>
-				</tr>
-			</tbody>
-		</table>
-		<?php
-	}
 }
 

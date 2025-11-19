@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/campaigns/class-campaign-compiler-service.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/services
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Campaign_Compiler_Service {
 
@@ -97,6 +97,13 @@ class SCD_Campaign_Compiler_Service {
 			$compiled['id'] = $exclude_campaign_id;
 		}
 
+		// Debug: Check if products step has conditions
+		if ( isset( $steps_data['products']['conditions'] ) ) {
+			error_log( '[SCD] COMPILER - Products step has conditions: ' . print_r( $steps_data['products']['conditions'], true ) );
+		} else {
+			error_log( '[SCD] COMPILER - Products step has NO conditions' );
+		}
+
 		// Merge all step data
 		foreach ( $steps_data as $step => $step_data ) {
 			if ( $step === '_meta' ) {
@@ -124,6 +131,13 @@ class SCD_Campaign_Compiler_Service {
 		// Apply other transformations (schedule, settings, etc.)
 		$compiled = $this->transform_campaign_data( $compiled );
 
+		// Debug: Check conditions after transformation
+		if ( isset( $compiled['conditions'] ) ) {
+			error_log( '[SCD] COMPILER - Compiled data has conditions: ' . print_r( $compiled['conditions'], true ) );
+		} else {
+			error_log( '[SCD] COMPILER - Compiled data has NO conditions' );
+		}
+
 		return apply_filters( 'scd_wizard_compile_campaign_data', $compiled, $steps_data );
 	}
 
@@ -141,13 +155,9 @@ class SCD_Campaign_Compiler_Service {
 			$data['metadata'] = array();
 		}
 
-		// Product conditions (complex field)
-		if ( isset( $data['conditions'] ) && is_array( $data['conditions'] ) ) {
-			$data['metadata']['product_conditions'] = $data['conditions'];
-			$data['metadata']['conditions_logic']   = $data['conditions_logic'] ?? 'all';
-			unset( $data['conditions'] );
-			unset( $data['conditions_logic'] );
-		}
+		// Product conditions - Keep as top-level field (saved to conditions repository)
+		// conditions_logic - Keep as top-level field (saved to dedicated column)
+		// random_product_count - Keep as top-level field (saved to dedicated column)
 
 		// Smart criteria (if it's an array/complex)
 		if ( ! empty( $data['smart_criteria'] ) && is_array( $data['smart_criteria'] ) ) {
@@ -176,7 +186,8 @@ class SCD_Campaign_Compiler_Service {
 	 * Format campaign data for wizard editing.
 	 *
 	 * Transforms saved campaign data (with discount_rules) back to the format
-	 * expected by the JavaScript wizard (now uses combined format for tiers/thresholds).
+	 * expected by the JavaScript wizard. Extracts all discount rules fields from
+	 * JSON storage into individual wizard fields.
 	 *
 	 * @since    1.0.0
 	 * @param    SCD_Campaign|array $campaign    Campaign object or array.
@@ -196,16 +207,91 @@ class SCD_Campaign_Compiler_Service {
 		if ( ! empty( $data['discount_rules'] ) && is_array( $data['discount_rules'] ) ) {
 			$discount_rules = $data['discount_rules'];
 
+			// Usage Limits
+			if ( isset( $discount_rules['usage_limit_per_customer'] ) ) {
+				$data['usage_limit_per_customer'] = $discount_rules['usage_limit_per_customer'];
+			}
+			if ( isset( $discount_rules['total_usage_limit'] ) ) {
+				$data['total_usage_limit'] = $discount_rules['total_usage_limit'];
+			}
+			if ( isset( $discount_rules['lifetime_usage_cap'] ) ) {
+				$data['lifetime_usage_cap'] = $discount_rules['lifetime_usage_cap'];
+			}
+
+			// Application Rules
+			if ( isset( $discount_rules['apply_to'] ) ) {
+				$data['apply_to'] = $discount_rules['apply_to'];
+			}
+			if ( isset( $discount_rules['max_discount_amount'] ) ) {
+				$data['max_discount_amount'] = $discount_rules['max_discount_amount'];
+			}
+			if ( isset( $discount_rules['minimum_quantity'] ) ) {
+				$data['minimum_quantity'] = $discount_rules['minimum_quantity'];
+			}
+			if ( isset( $discount_rules['minimum_order_amount'] ) ) {
+				$data['minimum_order_amount'] = $discount_rules['minimum_order_amount'];
+			}
+
+			// Combination Policy
+			if ( isset( $discount_rules['stack_with_others'] ) ) {
+				$data['stack_with_others'] = $discount_rules['stack_with_others'];
+			}
+			if ( isset( $discount_rules['allow_coupons'] ) ) {
+				$data['allow_coupons'] = $discount_rules['allow_coupons'];
+			}
+			if ( isset( $discount_rules['apply_to_sale_items'] ) ) {
+				$data['apply_to_sale_items'] = $discount_rules['apply_to_sale_items'];
+			}
+
+			// Badge Settings
+			if ( isset( $discount_rules['badge'] ) && is_array( $discount_rules['badge'] ) ) {
+				$badge_config                = $discount_rules['badge'];
+				$data['badge_enabled']       = $badge_config['enabled'] ?? false;
+				$data['badge_text']          = $badge_config['text'] ?? '';
+				$data['badge_bg_color']      = $badge_config['bg_color'] ?? '#ff0000';
+				$data['badge_text_color']    = $badge_config['text_color'] ?? '#ffffff';
+				$data['badge_position']      = $badge_config['position'] ?? 'top-right';
+			}
+
+			// BOGO Configuration - keep in grouped format
+			if ( isset( $data['discount_type'] ) && 'bogo' === $data['discount_type'] ) {
+				if ( isset( $discount_rules['bogo_config'] ) && is_array( $discount_rules['bogo_config'] ) ) {
+					$data['bogo_config'] = $discount_rules['bogo_config'];
+				}
+			}
+
+			// Tiered Discount Configuration
 			if ( isset( $discount_rules['tiers'] ) && is_array( $discount_rules['tiers'] ) ) {
 				$data['tiers']     = $discount_rules['tiers'];
 				$data['tier_mode'] = $discount_rules['tier_mode'] ?? 'percentage';
 				$data['tier_type'] = $discount_rules['tier_type'] ?? 'quantity';
 			}
 
+			// Spend Threshold Configuration
 			if ( isset( $discount_rules['thresholds'] ) && is_array( $discount_rules['thresholds'] ) ) {
 				$data['thresholds']     = $discount_rules['thresholds'];
 				$data['threshold_mode'] = $discount_rules['threshold_mode'] ?? 'percentage';
 			}
+		}
+
+		// Extract recurring configuration for wizard
+		if ( ! empty( $data['enable_recurring'] ) ) {
+			$data['enable_recurring'] = true;
+
+			// If recurring fields are loaded from JOIN, they're already flat
+			// Just ensure they exist (repository loads them via JOIN)
+			if ( ! isset( $data['recurrence_pattern'] ) && ! empty( $data['recurring_config'] ) && is_array( $data['recurring_config'] ) ) {
+				// Recurring config stored in metadata - extract it
+				$recurring = $data['recurring_config'];
+				$data['recurrence_pattern']  = $recurring['recurrence_pattern'] ?? 'daily';
+				$data['recurrence_interval'] = $recurring['recurrence_interval'] ?? 1;
+				$data['recurrence_days']     = $recurring['recurrence_days'] ?? '';
+				$data['recurrence_end_type'] = $recurring['recurrence_end_type'] ?? 'never';
+				$data['recurrence_count']    = $recurring['recurrence_count'] ?? null;
+				$data['recurrence_end_date'] = $recurring['recurrence_end_date'] ?? null;
+			}
+		} else {
+			$data['enable_recurring'] = false;
 		}
 
 		return $data;
@@ -292,12 +378,10 @@ class SCD_Campaign_Compiler_Service {
 					$settings['applies_to_all']      = false;
 					// Don't set products to 'all' - they will be compiled when campaign activates
 					$settings['products'] = array();
-					$random_count             = $data['random_count'] ?? 5;
-					$settings['random_count'] = $random_count;
-					if ( ! isset( $data['metadata'] ) ) {
-						$data['metadata'] = array();
-					}
-					$data['metadata']['random_count'] = $random_count;
+					// Use random_product_count (dedicated column) instead of random_count
+					$random_product_count             = $data['random_product_count'] ?? $data['random_count'] ?? 5;
+					$data['random_product_count']     = (int) $random_product_count;
+					$settings['random_count']         = $random_product_count;
 					break;
 				case 'smart_selection':
 					$data['applies_to_all_products'] = false;
@@ -474,6 +558,26 @@ class SCD_Campaign_Compiler_Service {
 			$data['schedule_configuration'] = $this->build_schedule_configuration( $data );
 		}
 
+		// Transform recurring campaign data
+		if ( ! empty( $data['enable_recurring'] ) ) {
+			$data['enable_recurring'] = 1;
+
+			// Extract recurring configuration from wizard data
+			$recurring_config = array(
+				'recurrence_pattern'  => $data['recurrence_pattern'] ?? 'daily',
+				'recurrence_interval' => isset( $data['recurrence_interval'] ) ? (int) $data['recurrence_interval'] : 1,
+				'recurrence_days'     => $data['recurrence_days'] ?? '',
+				'recurrence_end_type' => $data['recurrence_end_type'] ?? 'never',
+				'recurrence_count'    => isset( $data['recurrence_count'] ) ? (int) $data['recurrence_count'] : null,
+				'recurrence_end_date' => $data['recurrence_end_date'] ?? null,
+			);
+
+			// Store in metadata for repository to process
+			$data['recurring_config'] = $recurring_config;
+		} else {
+			$data['enable_recurring'] = 0;
+		}
+
 		// Map campaign status based on launch option and start time
 		// CRITICAL FIX: Respect user intent - launch_option is the PRIMARY decider
 		$launch_option = $data['launch_option'] ?? null;
@@ -561,9 +665,13 @@ class SCD_Campaign_Compiler_Service {
 				$config['amount'] = (float) ( $data['discount_value_fixed'] ?? $data['discount_value'] ?? 0 );
 				break;
 			case 'bogo':
-				$config['buy_quantity']        = $data['bogo_buy_quantity'] ?? 1;
-				$config['get_quantity']        = $data['bogo_get_quantity'] ?? 1;
-				$config['discount_percentage'] = $data['bogo_discount_percentage'] ?? 100;
+				// BOGO configuration is already in grouped format
+				$config['bogo_config'] = array(
+					'buy_quantity'     => $data['bogo_config']['buy_quantity'] ?? 1,
+					'get_quantity'     => $data['bogo_config']['get_quantity'] ?? 1,
+					'discount_percent' => $data['bogo_config']['discount_percent'] ?? $data['bogo_config']['discount_percentage'] ?? 100,
+					'apply_to'         => $data['bogo_config']['apply_to'] ?? 'cheapest',
+				);
 				break;
 			case 'bundle':
 				$config['bundle_size']  = $data['bundle_size'] ?? 2;
@@ -603,11 +711,55 @@ class SCD_Campaign_Compiler_Service {
 		// Badge configuration
 		if ( ! empty( $data['badge_enabled'] ) ) {
 			$config['badge'] = array(
-				'enabled'  => true,
-				'text'     => $data['badge_text'] ?? '',
-				'position' => $data['badge_position'] ?? 'top-right',
-				'style'    => $data['badge_style'] ?? 'default',
+				'enabled'    => true,
+				'text'       => $data['badge_text'] ?? '',
+				'bg_color'   => $data['badge_bg_color'] ?? '#ff0000',
+				'text_color' => $data['badge_text_color'] ?? '#ffffff',
+				'position'   => $data['badge_position'] ?? 'top-right',
 			);
+		}
+
+		// Usage limits
+		if ( isset( $data['usage_limit_per_customer'] ) && $data['usage_limit_per_customer'] > 0 ) {
+			$config['usage_limit_per_customer'] = intval( $data['usage_limit_per_customer'] );
+		}
+
+		if ( isset( $data['total_usage_limit'] ) && $data['total_usage_limit'] > 0 ) {
+			$config['total_usage_limit'] = intval( $data['total_usage_limit'] );
+		}
+
+		if ( isset( $data['lifetime_usage_cap'] ) && $data['lifetime_usage_cap'] > 0 ) {
+			$config['lifetime_usage_cap'] = intval( $data['lifetime_usage_cap'] );
+		}
+
+		// Application rules
+		if ( isset( $data['apply_to'] ) && in_array( $data['apply_to'], array( 'per_item', 'cart_total' ), true ) ) {
+			$config['apply_to'] = $data['apply_to'];
+		}
+
+		if ( isset( $data['minimum_quantity'] ) && $data['minimum_quantity'] > 0 ) {
+			$config['minimum_quantity'] = intval( $data['minimum_quantity'] );
+		}
+
+		if ( isset( $data['minimum_order_amount'] ) && $data['minimum_order_amount'] > 0 ) {
+			$config['minimum_order_amount'] = floatval( $data['minimum_order_amount'] );
+		}
+
+		if ( isset( $data['max_discount_amount'] ) && $data['max_discount_amount'] > 0 ) {
+			$config['max_discount_amount'] = floatval( $data['max_discount_amount'] );
+		}
+
+		// Combination policy
+		if ( isset( $data['apply_to_sale_items'] ) ) {
+			$config['apply_to_sale_items'] = (bool) $data['apply_to_sale_items'];
+		}
+
+		if ( isset( $data['allow_coupons'] ) ) {
+			$config['allow_coupons'] = (bool) $data['allow_coupons'];
+		}
+
+		if ( isset( $data['stack_with_others'] ) ) {
+			$config['stack_with_others'] = (bool) $data['stack_with_others'];
 		}
 
 		return $config;
@@ -688,11 +840,6 @@ class SCD_Campaign_Compiler_Service {
 		// For repositories without save_campaign_with_products, create and save campaign
 		if ( class_exists( 'SCD_Campaign' ) ) {
 			$campaign = new SCD_Campaign( $compiled_data );
-
-			// Debug: Check validation before saving
-				$validation_errors = $campaign->validate();
-			if ( ! empty( $validation_errors ) ) {
-			}
 
 			if ( $this->campaign_repository->save( $campaign ) ) {
 				// If campaign is being created as active AND requires compilation, trigger it

@@ -65,9 +65,9 @@
 /* Unavailable Card State - Professional styling */
 .scd-card--unavailable {
     position: relative;
-    background: linear-gradient(to bottom, #fafafa, #f7f7f7) !important;
-    border-color: #e5e5e5 !important;
-    color: #888 !important;
+    background: linear-gradient(to bottom, var(--scd-color-surface), var(--scd-color-surface)) !important;
+    border-color: var(--scd-color-border-light) !important;
+    color: var(--scd-color-text-muted) !important;
     pointer-events: none !important;
     user-select: none !important;
 }
@@ -80,20 +80,20 @@
         45deg,
         transparent,
         transparent 10px,
-        rgba(0, 0, 0, 0.02) 10px,
-        rgba(0, 0, 0, 0.02) 20px
+        var(--scd-overlay-faint) 10px,
+        var(--scd-overlay-faint) 20px
     );
     border-radius: inherit;
     pointer-events: none;
-    z-index: 1;
+    z-index: var(--scd-z-base);
 }
 
 .scd-card--unavailable .scd-card__title {
-    color: #888 !important;
+    color: var(--scd-color-text-muted) !important;
 }
 
 .scd-card--unavailable .scd-card__subtitle {
-    color: #999 !important;
+    color: var(--scd-color-text-light) !important;
 }
 
 /* Disable all interactive elements within unavailable cards */
@@ -101,9 +101,9 @@
 .scd-card--unavailable select,
 .scd-card--unavailable button,
 .scd-card--unavailable textarea {
-    background-color: #f5f5f5 !important;
-    color: #999 !important;
-    border-color: #e5e5e5 !important;
+    background-color: var(--scd-color-surface) !important;
+    color: var(--scd-color-text-light) !important;
+    border-color: var(--scd-color-border-light) !important;
     cursor: not-allowed !important;
     opacity: 0.7 !important;
     pointer-events: none !important;
@@ -111,8 +111,8 @@
 
 /* Override any hover states */
 .scd-card--unavailable:hover {
-    background: linear-gradient(to bottom, #fafafa, #f7f7f7) !important;
-    border-color: #e5e5e5 !important;
+    background: linear-gradient(to bottom, var(--scd-color-surface), var(--scd-color-surface)) !important;
+    border-color: var(--scd-color-border-light) !important;
     transform: none !important;
     box-shadow: none !important;
 }
@@ -124,15 +124,15 @@
     position: absolute;
     top: var(--scd-spacing-sm);
     right: var(--scd-spacing-sm);
-    padding: 4px 12px;
-    background: #888;
+    padding: var(--scd-spacing-xs) 12px;
+    background: var(--scd-color-text-muted);
     color: white;
-    font-size: 11px;
-    font-weight: 600;
+    font-size: var(--scd-font-size-small);
+    font-weight: var(--scd-font-weight-semibold);
     letter-spacing: 0.5px;
     border-radius: var(--scd-radius-sm);
     text-transform: uppercase;
-    z-index: 10;
+    z-index: var(--scd-z-dropdown);
 }
 
 /* Ensure badge shows when no header exists */
@@ -168,14 +168,14 @@
 
 /* Skeleton Header */
 .scd-skeleton-header {
-	height: 32px;
+	height: var(--scd-button-height-large);
 	background: linear-gradient(90deg,
-		#f0f0f1 25%,
-		#e8e9ea 50%,
-		#f0f0f1 75%);
+		var(--scd-color-surface-dark) 25%,
+		var(--scd-color-border-light) 50%,
+		var(--scd-color-surface-dark) 75%);
 	background-size: 200% 100%;
 	animation: scd-skeleton-shimmer 1.8s ease-in-out infinite;
-	border-radius: 8px;
+	border-radius: var(--scd-radius-lg);
 	margin-bottom: var(--scd-spacing-lg);
 	width: 60%;
 }
@@ -190,19 +190,19 @@
 	min-height: 150px;
 	width: 100%;
 	box-sizing: border-box;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+	box-shadow: var(--scd-skeleton-card-shadow);
 }
 
 /* Skeleton Lines */
 .scd-skeleton-line {
 	height: 16px;
 	background: linear-gradient(90deg,
-		#f0f0f1 25%,
-		#e8e9ea 50%,
-		#f0f0f1 75%);
+		var(--scd-color-surface-dark) 25%,
+		var(--scd-color-border-light) 50%,
+		var(--scd-color-surface-dark) 75%);
 	background-size: 200% 100%;
 	animation: scd-skeleton-shimmer 1.8s ease-in-out infinite;
-	border-radius: 6px;
+	border-radius: var(--scd-radius-md);
 	margin-bottom: var(--scd-spacing-md);
 }
 
@@ -224,12 +224,12 @@
 
 /* Skeleton Field (form input placeholder) - matches actual input height */
 .scd-skeleton-field {
-	min-height: 40px;
-	height: 40px;
+	min-height: var(--scd-input-height-large);
+	height: var(--scd-input-height-large);
 	background: linear-gradient(90deg,
-		#f0f0f1 25%,
-		#e8e9ea 50%,
-		#f0f0f1 75%);
+		var(--scd-color-surface-dark) 25%,
+		var(--scd-color-border-light) 50%,
+		var(--scd-color-surface-dark) 75%);
 	background-size: 200% 100%;
 	animation: scd-skeleton-shimmer 1.8s ease-in-out infinite;
 	border-radius: var(--scd-radius-md);
@@ -237,7 +237,7 @@
 }
 
 .scd-skeleton-field--small {
-	height: 32px;
+	height: var(--scd-button-height-large);
 	width: 50%;
 }
 
@@ -247,12 +247,12 @@
 
 /* Skeleton Button */
 .scd-skeleton-button {
-	height: 36px;
+	height: var(--scd-button-height);
 	width: 120px;
 	background: linear-gradient(90deg,
-		#f0f0f1 25%,
-		#e8e9ea 50%,
-		#f0f0f1 75%);
+		var(--scd-color-surface-dark) 25%,
+		var(--scd-color-border-light) 50%,
+		var(--scd-color-surface-dark) 75%);
 	background-size: 200% 100%;
 	animation: scd-skeleton-shimmer 1.8s ease-in-out infinite;
 	border-radius: var(--scd-radius-md);
@@ -274,12 +274,12 @@
 	width: 48px;
 	height: 48px;
 	background: linear-gradient(90deg,
-		#f0f0f1 25%,
-		#e8e9ea 50%,
-		#f0f0f1 75%);
+		var(--scd-color-surface-dark) 25%,
+		var(--scd-color-border-light) 50%,
+		var(--scd-color-surface-dark) 75%);
 	background-size: 200% 100%;
 	animation: scd-skeleton-shimmer 1.8s ease-in-out infinite;
-	border-radius: 50%;
+	border-radius: var(--scd-radius-full);
 	display: inline-block;
 	margin-right: var(--scd-spacing-md);
 }
@@ -295,14 +295,14 @@
 .scd-skeleton-grid-item {
 	height: 180px;
 	background: linear-gradient(90deg,
-		#f0f0f1 25%,
-		#e8e9ea 50%,
-		#f0f0f1 75%);
+		var(--scd-color-surface-dark) 25%,
+		var(--scd-color-border-light) 50%,
+		var(--scd-color-surface-dark) 75%);
 	background-size: 200% 100%;
 	animation: scd-skeleton-shimmer 1.8s ease-in-out infinite;
 	border-radius: var(--scd-radius-lg);
 	border: var(--scd-border-width) solid var(--scd-color-border);
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+	box-shadow: var(--scd-skeleton-grid-item-shadow);
 }
 
 /* Fade transition for smooth appearance */
@@ -311,7 +311,7 @@
 .scd-wizard-wrap.scd-wizard-main--loading {
 	opacity: 0.6;
 	pointer-events: none;
-	transition: opacity 0.2s ease-in-out;
+	transition: opacity var(--scd-transition-base) ease-in-out;
 }
 
 /* Ensure skeleton cards render at full width when loaded via JavaScript */
@@ -324,7 +324,7 @@
 
 /* Skeleton progress steps styling */
 .scd-wizard-progress .scd-skeleton-line {
-	background: linear-gradient(90deg, #e8e8e8 25%, #d8d8d8 50%, #e8e8e8 75%);
+	background: linear-gradient(90deg, var(--scd-color-border-light) 25%, var(--scd-color-border) 50%, var(--scd-color-border-light) 75%);
 	background-size: 200% 100%;
 	animation: scd-skeleton-shimmer 2s ease-in-out infinite;
 	border-radius: var(--scd-radius-sm);
@@ -392,11 +392,11 @@
 	top: 0;
 	left: 0;
 	height: 3px;
-	background: linear-gradient(to right, #0073aa, #00a0d2, #0073aa);
+	background: linear-gradient(to right, var(--scd-color-info-dark), var(--scd-color-info), var(--scd-color-info-dark));
 	background-size: 200% 100%;
 	animation: scd-loading-bar-slide 0.8s ease-out forwards;
-	z-index: 999999;
-	box-shadow: 0 0 10px rgba(0, 115, 170, 0.5);
+	z-index: var(--scd-z-modal);
+	box-shadow: var(--scd-shadow-progress-glow);
 }
 
 @keyframes scd-loading-bar-slide {
@@ -429,26 +429,26 @@
 /* WordPress handles dashicon alignment and sizing */
 
 /* Dashicon styling in card headers - Uses WordPress admin color schemes */
-.scd-card__header .dashicons,
-.scd-card__title .dashicons {
-    color: var(--wp-admin-theme-color, #2271b1); /* Uses WordPress admin color scheme */
+.scd-card__header .scd-icon,
+.scd-card__title .scd-icon {
+    color: var(--wp-admin-theme-color); /* Uses WordPress admin color scheme */
     margin-right: 8px;
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
+    font-size: var(--scd-font-size-xxl);
+    width: var(--scd-icon-medium);
+    height: var(--scd-icon-medium);
     vertical-align: middle;
 }
 
 /* Hover state for interactive cards */
-.scd-card:hover .scd-card__header .dashicons,
-.scd-card:hover .scd-card__title .dashicons {
-    color: var(--wp-admin-theme-color-darker-10, #135e96); /* Darker shade on hover */
+.scd-card:hover .scd-card__header .scd-icon,
+.scd-card:hover .scd-card__title .scd-icon {
+    color: var(--wp-admin-theme-color-darker-10); /* Darker shade on hover */
 }
 
 /* Focus state for accessibility */
-.scd-card:focus-within .scd-card__header .dashicons,
-.scd-card:focus-within .scd-card__title .dashicons {
-    color: var(--wp-admin-theme-color-darker-20, #0a4b78); /* Even darker for focus */
+.scd-card:focus-within .scd-card__header .scd-icon,
+.scd-card:focus-within .scd-card__title .scd-icon {
+    color: var(--wp-admin-theme-color-darker-20); /* Even darker for focus */
 }
 
 /* Responsive styles for card header */
@@ -500,9 +500,9 @@
     top: var(--scd-spacing-md);
     right: var(--scd-spacing-md);
     margin: 0;
-    width: 20px;
-    height: 20px;
-    z-index: 2;
+    width: var(--scd-icon-medium);
+    height: var(--scd-icon-medium);
+    z-index: var(--scd-z-base);
 }
 
 .scd-card-option .scd-card__content {
@@ -555,6 +555,182 @@
     border-top: var(--scd-border-width) solid var(--scd-color-border-light);
 }
 
+/* Card Header Components */
+.scd-card__header-content {
+    display: flex;
+    align-items: center;
+    gap: var(--scd-spacing-md);
+    flex: 1;
+}
+
+.scd-card__header-text {
+    flex: 1;
+}
+
+.scd-card__icon {
+    flex-shrink: 0;
+    font-size: var(--scd-font-size-xxl);
+    color: var(--wp-admin-theme-color);
+}
+
+.scd-card__actions {
+    display: flex;
+    gap: var(--scd-spacing-sm);
+    margin-left: auto;
+}
+
+.scd-card__toggle {
+    flex-shrink: 0;
+    padding: var(--scd-spacing-xs);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--scd-color-text-muted);
+    transition: transform var(--scd-transition-base), color var(--scd-transition-base);
+}
+
+.scd-card__toggle:hover {
+    color: var(--scd-color-text);
+}
+
+.scd-card--collapsible .scd-card__header {
+    cursor: pointer;
+}
+
+.scd-card--collapsed .scd-card__content,
+.scd-card--collapsed .scd-card__footer {
+    display: none;
+}
+
+.scd-card--collapsed .scd-card__toggle {
+    transform: rotate(-90deg);
+}
+
+/* Card Variant: Stat */
+.scd-card--stat {
+    text-align: center;
+}
+
+.scd-stat-value {
+    font-size: var(--scd-font-size-xxxl);
+    font-weight: var(--scd-font-weight-bold);
+    color: var(--scd-color-text);
+    line-height: 1.2;
+    margin-bottom: var(--scd-spacing-xs);
+}
+
+.scd-stat-label {
+    font-size: var(--scd-font-size-base);
+    color: var(--scd-color-text-muted);
+    font-weight: var(--scd-font-weight-normal);
+}
+
+/* Card Variant: Metric */
+.scd-card--metric {
+    position: relative;
+}
+
+.scd-metric-value {
+    font-size: var(--scd-font-size-xxl);
+    font-weight: var(--scd-font-weight-semibold);
+    color: var(--scd-color-text);
+    line-height: 1.2;
+    margin-bottom: var(--scd-spacing-xs);
+}
+
+.scd-metric-label {
+    font-size: var(--scd-font-size-base);
+    color: var(--scd-color-text-muted);
+    margin-bottom: var(--scd-spacing-sm);
+}
+
+.scd-metric-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--scd-spacing-xs);
+    font-size: var(--scd-font-size-small);
+    font-weight: var(--scd-font-weight-medium);
+    padding: var(--scd-spacing-xs) var(--scd-spacing-sm);
+    border-radius: var(--scd-radius-sm);
+}
+
+.scd-metric-trend--up {
+    color: var(--scd-color-success);
+    background-color: var(--scd-color-success-bg);
+}
+
+.scd-metric-trend--down {
+    color: var(--scd-color-danger);
+    background-color: var(--scd-color-danger-bg);
+}
+
+.scd-metric-trend--neutral {
+    color: var(--scd-color-text-muted);
+    background-color: var(--scd-color-surface);
+}
+
+/* Card Variant: Summary */
+.scd-card--summary .scd-summary-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.scd-summary-list {
+    margin: 0;
+    padding: 0;
+}
+
+.scd-summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--scd-spacing-sm) 0;
+    border-bottom: var(--scd-border-width) solid var(--scd-color-border-light);
+}
+
+.scd-summary-item:last-child {
+    border-bottom: none;
+}
+
+.scd-summary-label {
+    font-weight: var(--scd-font-weight-medium);
+    color: var(--scd-color-text-muted);
+    margin: 0;
+}
+
+.scd-summary-value {
+    font-weight: var(--scd-font-weight-semibold);
+    color: var(--scd-color-text);
+    margin: 0;
+    margin-left: var(--scd-spacing-md);
+}
+
+/* Card Variant: Highlight */
+.scd-card--highlight {
+    border-left-width: 4px;
+}
+
+.scd-card--highlight.scd-card--info {
+    border-left-color: var(--scd-color-info);
+    background-color: var(--scd-color-info-bg);
+}
+
+.scd-card--highlight.scd-card--success {
+    border-left-color: var(--scd-color-success);
+    background-color: var(--scd-color-success-bg);
+}
+
+.scd-card--highlight.scd-card--warning {
+    border-left-color: var(--scd-color-warning);
+    background-color: var(--scd-color-warning-bg);
+}
+
+.scd-card--highlight.scd-card--danger {
+    border-left-color: var(--scd-color-danger);
+    background-color: var(--scd-color-danger-bg);
+}
+
 /* ==========================================================================
    Button Styles - Moved to shared/_buttons.css to avoid duplication
    ========================================================================== */
@@ -572,30 +748,8 @@
    ========================================================================== */
 
 /* ==========================================================================
-   Loading States
+   Loading States - Skeleton Screens
    ========================================================================== */
-
-.scd-spinner {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--scd-color-border);
-    border-top-color: var(--scd-color-primary);
-    border-radius: 50%;
-    animation: scd-spin 0.8s linear infinite;
-}
-
-.scd-spinner--small {
-    width: 14px;
-    height: 14px;
-    border-width: 2px;
-}
-
-.scd-spinner--large {
-    width: 32px;
-    height: 32px;
-    border-width: 3px;
-}
 
 .scd-skeleton {
     background: linear-gradient(
@@ -676,17 +830,17 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: var(--scd-icon-small, 18px);
-    height: var(--scd-icon-small, 18px);
+    width: var(--scd-icon-small);
+    height: var(--scd-icon-small);
     cursor: help;
-    margin-left: var(--scd-gap-tight, 8px);
+    margin-left: var(--scd-gap-tight);
 }
 
-.scd-field-helper .dashicons {
-    font-size: var(--scd-icon-small, 18px);
-    width: var(--scd-icon-small, 18px);
-    height: var(--scd-icon-small, 18px);
-    color: var(--scd-color-text-muted, #646970);
+.scd-field-helper .scd-icon {
+    font-size: var(--scd-icon-small);
+    width: var(--scd-icon-small);
+    height: var(--scd-icon-small);
+    color: var(--scd-color-text-muted);
     opacity: 0.7;
 }
 
@@ -698,28 +852,28 @@
     width: 100%;
     height: 100%;
     pointer-events: none;
-    z-index: 99999;
+    z-index: var(--scd-z-notification);
 }
 
 /* Tooltip Styles - Enhanced to match discounts step */
 .scd-tooltip {
     position: absolute; /* Use absolute positioning within container */
-    background: var(--scd-color-text, #1d2327);
-    color: var(--scd-color-white, #fff);
-    padding: 12px 16px;
-    border-radius: 8px;
-    font-size: 13px;
+    background: var(--scd-color-text);
+    color: var(--scd-color-white);
+    padding: var(--scd-padding-medium) 16px;
+    border-radius: var(--scd-radius-lg);
+    font-size: var(--scd-font-size-base);
     line-height: 1.5;
     max-width: 320px;
     word-wrap: break-word;
     box-shadow:
-        0 4px 20px var(--scd-shadow-lg-alpha, rgba(0,0,0,0.15)),
-        0 1px 3px var(--scd-shadow-md-alpha, rgba(0,0,0,0.2));
+        0 4px 20px var(--scd-shadow-lg-alpha),
+        0 1px 3px var(--scd-shadow-md-alpha);
     opacity: 0;
-    transition: opacity 0.15s ease-out;
+    transition: opacity var(--scd-transition-fast) ease-out;
     pointer-events: none;
-    border: 1px solid var(--scd-shadow-border, rgba(0,0,0,0.1));
-    z-index: 100000;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: var(--scd-z-overlay);
 }
 
 /* Arrow pointing to trigger element */
@@ -727,14 +881,14 @@
     content: '';
     position: absolute;
     bottom: -6px;
-    left: calc(50% + var(--arrow-offset, 0px));
+    left: calc(50% + var(--arrow-offset));
     transform: translateX(-50%);
     width: 0;
     height: 0;
     border-left: 6px solid transparent;
     border-right: 6px solid transparent;
-    border-top: 6px solid var(--scd-color-text, #1d2327);
-    filter: drop-shadow(0 2px 4px var(--scd-shadow-sm-alpha, rgba(0,0,0,0.1)));
+    border-top: 6px solid var(--scd-color-text);
+    filter: drop-shadow(0 2px 4px var(--scd-shadow-sm-alpha));
 }
 
 .scd-tooltip.show {
@@ -745,9 +899,9 @@
 .scd-tooltip.tooltip-bottom:before {
     top: -6px;
     bottom: auto;
-    left: calc(50% + var(--arrow-offset, 0px));
+    left: calc(50% + var(--arrow-offset));
     border-top: none;
-    border-bottom: 6px solid var(--scd-color-text, #1d2327);
+    border-bottom: 6px solid var(--scd-color-text);
 }
 
 /* Right position variant */
@@ -762,9 +916,31 @@
     right: auto;
     transform: translateY(-50%);
     border: none;
-    border-right: 6px solid var(--scd-color-text, #1d2327);
+    border-right: 6px solid var(--scd-color-text);
     border-top: 6px solid transparent;
     border-bottom: 6px solid transparent;
+}
+
+/* Tooltip trigger - help cursor for elements with tooltips */
+[data-tooltip] {
+    cursor: help;
+    position: relative;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .is-dark-theme .scd-tooltip {
+        background: var(--scd-color-text);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .is-dark-theme .scd-tooltip:before {
+        border-top-color: var(--scd-color-text);
+    }
+
+    .is-dark-theme .scd-tooltip.tooltip-bottom:before {
+        border-bottom-color: var(--scd-color-text);
+    }
 }
 
 /* Ensure wpcontent has proper positioning context */

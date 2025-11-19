@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/services/class-campaign-health-service.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/services
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Campaign_Health_Service {
 
@@ -42,20 +42,32 @@ class SCD_Campaign_Health_Service {
 	const LOW_STOCK_THRESHOLD = 10;
 
 	/**
-	 * Penalty Values
+	 * Penalty Values - Severity-based scoring system
+	 *
+	 * CRITICAL_SEVERE: Campaign-breaking issues (deleted products, impossible config)
+	 * CRITICAL_STANDARD: Critical but recoverable (invalid IDs, draft products)
+	 * HIGH: Significant issues (very high discounts, out-of-stock)
+	 * MEDIUM_HIGH: Medium-severity concerns (price changes, stock warnings)
+	 * MEDIUM: Minor configuration issues (low stock, small concerns)
+	 * LOW: Cosmetic/best practice suggestions (generic names)
 	 */
-	const PENALTY_CRITICAL_ISSUE     = 15;
-	const PENALTY_HIGH_ISSUE         = 10;
-	const PENALTY_MEDIUM_ISSUE       = 5;
-	const PENALTY_DUPLICATE_NAME     = 10;
-	const PENALTY_EXCESSIVE_DISCOUNT = 10;
+	const PENALTY_CRITICAL_SEVERE   = 25;
+	const PENALTY_CRITICAL_STANDARD = 15;
+	const PENALTY_HIGH              = 10;
+	const PENALTY_MEDIUM_HIGH       = 8;
+	const PENALTY_MEDIUM            = 5;
+	const PENALTY_LOW               = 3;
 
 	/**
 	 * Status Thresholds
+	 *
+	 * These thresholds determine the campaign status badge based on health score.
+	 * Note: Campaigns with critical issues always get 'critical' status regardless of score.
+	 * Campaigns with warnings are capped at 'good' status to prevent false excellent ratings.
 	 */
-	const STATUS_EXCELLENT_MIN = 80;
-	const STATUS_GOOD_MIN      = 60;
-	const STATUS_FAIR_MIN      = 40;
+	const STATUS_EXCELLENT_MIN = 90;
+	const STATUS_GOOD_MIN      = 70;
+	const STATUS_FAIR_MIN      = 50;
 
 	/**
 	 * Stock Risk Thresholds
@@ -67,6 +79,32 @@ class SCD_Campaign_Health_Service {
 	const HISTORICAL_DAYS_LOOKBACK     = 30;  // Days to analyze for sales history
 
 	/**
+	 * Product Analysis Limits
+	 *
+	 * Limits for batch processing to prevent performance issues.
+	 */
+	const PRODUCT_CHECK_LIMIT   = 100; // Maximum products to check for stock/status
+	const PRICE_ANALYSIS_LIMIT  = 50;  // Maximum products to analyze for pricing
+
+	/**
+	 * Proportional Penalty Thresholds
+	 *
+	 * Percentage thresholds for scaling penalties based on impact.
+	 */
+	const IMPACT_CRITICAL_THRESHOLD = 75; // 75%+ affected = full penalty
+	const IMPACT_HIGH_THRESHOLD     = 50; // 50-74% affected = 75% penalty
+	const IMPACT_MEDIUM_THRESHOLD   = 25; // 25-49% affected = 50% penalty
+	// < 25% affected = 25% penalty
+
+	/**
+	 * Pagination Limits
+	 *
+	 * Limits for chunked product loading to prevent memory exhaustion.
+	 */
+	const PAGINATION_PER_PAGE = 100; // Products per page when chunking
+	const PAGINATION_MAX_PAGES = 100; // Safety limit for maximum pages
+
+	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
@@ -76,13 +114,114 @@ class SCD_Campaign_Health_Service {
 	private $logger;
 
 	/**
+	 * Recurring handler instance.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      SCD_Recurring_Handler    $recurring_handler    Recurring handler instance.
+	 */
+	private $recurring_handler;
+
+	/**
 	 * Initialize the service.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger    Logger instance.
+	 * @param    SCD_Logger             $logger              Logger instance.
+	 * @param    SCD_Recurring_Handler  $recurring_handler   Recurring handler instance.
 	 */
-	public function __construct( $logger ) {
-		$this->logger = $logger;
+	public function __construct( $logger, $recurring_handler ) {
+		$this->logger            = $logger;
+		$this->recurring_handler = $recurring_handler;
+	}
+
+	/**
+	 * Apply penalty with immediate score clamping.
+	 *
+	 * Prevents negative scores during calculation and tracks penalty breakdown.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array  $health    Health data array (passed by reference).
+	 * @param    int    $penalty   Penalty amount to apply.
+	 * @param    string $category  Category for breakdown tracking.
+	 * @return   void
+	 */
+	private function apply_penalty( &$health, $penalty, $category = '' ) {
+		$health['score'] -= $penalty;
+		$health['score']  = max( 0, $health['score'] ); // Clamp immediately
+
+		// Track penalty breakdown by category
+		if ( $category ) {
+			if ( ! isset( $health['breakdown'][ $category ] ) ) {
+				$health['breakdown'][ $category ] = array(
+					'penalty' => 0,
+					'status'  => 'healthy',
+				);
+			}
+			$health['breakdown'][ $category ]['penalty'] += $penalty;
+		}
+	}
+
+	/**
+	 * Calculate proportional penalty based on impact percentage.
+	 *
+	 * Scales penalty from 25% to 100% based on percentage of items affected.
+	 * Uses threshold-based scaling for predictable results.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    int $affected_count   Number of items affected.
+	 * @param    int $total_count      Total number of items.
+	 * @param    int $base_penalty     Base penalty amount.
+	 * @return   int                      Scaled penalty amount.
+	 */
+	private function calculate_proportional_penalty( $affected_count, $total_count, $base_penalty ) {
+		if ( $total_count === 0 || $affected_count === 0 ) {
+			return 0;
+		}
+
+		$percentage = ( $affected_count / $total_count ) * 100;
+
+		// Threshold-based scaling
+		if ( $percentage >= self::IMPACT_CRITICAL_THRESHOLD ) {
+			return $base_penalty; // Full penalty (75%+ affected)
+		} elseif ( $percentage >= self::IMPACT_HIGH_THRESHOLD ) {
+			return (int) ( $base_penalty * 0.75 ); // 75% of penalty (50-74% affected)
+		} elseif ( $percentage >= self::IMPACT_MEDIUM_THRESHOLD ) {
+			return (int) ( $base_penalty * 0.5 ); // 50% of penalty (25-49% affected)
+		} else {
+			return (int) ( $base_penalty * 0.25 ); // 25% of penalty (<25% affected)
+		}
+	}
+
+	/**
+	 * Calculate logarithmic penalty for multiple similar issues.
+	 *
+	 * Uses logarithmic scaling to apply diminishing returns for multiple
+	 * instances of the same issue type.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    int $issue_count    Number of similar issues.
+	 * @param    int $base_penalty   Base penalty for single issue.
+	 * @return   int                    Scaled penalty with diminishing returns.
+	 */
+	private function calculate_logarithmic_penalty( $issue_count, $base_penalty ) {
+		if ( $issue_count <= 0 ) {
+			return 0;
+		}
+
+		if ( $issue_count === 1 ) {
+			return $base_penalty;
+		}
+
+		// Logarithmic scaling: log2(n + 1) * base_penalty
+		// 1 issue = 1x penalty
+		// 2 issues = 1.58x penalty
+		// 5 issues = 2.58x penalty
+		// 10 issues = 3.46x penalty
+		$multiplier = log( $issue_count + 1, 2 );
+		return (int) ( $base_penalty * $multiplier );
 	}
 
 	/**
@@ -135,23 +274,44 @@ class SCD_Campaign_Health_Service {
 		// Run health checks
 		$health = $this->check_configuration( $campaign_data, $health, $view_context );
 		$health = $this->check_schedule( $campaign_data, $health, $view_context );
+		$health = $this->check_recurring( $campaign_data, $health, $view_context );
 		$health = $this->check_discount_reasonableness( $campaign_data, $health, $view_context );
+		$health = $this->check_cross_step_validation( $campaign_data, $health, $view_context );
 
 		// Mode-specific checks
 		if ( 'standard' === $mode || 'comprehensive' === $mode ) {
 			$health = $this->check_products( $campaign_data, $health, $context, $view_context );
-			if ( ! empty( $health['warnings'] ) ) {
-			}
 			$health = $this->check_coverage( $campaign_data, $health, $context, $view_context );
 			$health = $this->check_stock_risk( $campaign_data, $health, $context, $view_context );
 			$health = $this->check_conflicts( $campaign_data, $health, $context, $view_context );
-			if ( ! empty( $health['warnings'] ) ) {
-			}
 		}
 
 		// Generate recommendations for comprehensive mode OR review context
 		if ( 'comprehensive' === $mode || 'review' === $view_context ) {
 			$health['recommendations'] = $this->generate_recommendations( $campaign_data, $health, $context );
+		}
+
+		// PRACTICAL INTELLIGENCE FEATURES (comprehensive mode only)
+		if ( 'comprehensive' === $mode ) {
+			// Multi-dimensional risk assessment
+			$health['risk_assessment'] = $this->assess_multi_dimensional_risk( $campaign_data, $context );
+
+			// Smart benchmarking against historical campaigns
+			$performance_data = isset( $context['performance_data'] ) ? $context['performance_data'] : array();
+			$health['benchmark'] = $this->get_smart_benchmark( $campaign_data, $context, $performance_data );
+
+			// Statistical performance forecasting
+			$health['forecast'] = $this->generate_performance_forecast( $campaign_data, $context );
+
+			// Historical pattern analysis
+			$health['pattern_analysis'] = $this->analyze_historical_patterns( $campaign_data, $context );
+
+			// Merge pattern-based recommendations with existing recommendations
+			if ( ! empty( $health['pattern_analysis']['recommendations'] ) ) {
+				foreach ( $health['pattern_analysis']['recommendations'] as $pattern_rec ) {
+					$health['recommendations'][] = $pattern_rec['message'];
+				}
+			}
 		}
 
 		// IMPROVED LOGIC: Severity-based status with score as secondary metric
@@ -264,7 +424,7 @@ class SCD_Campaign_Health_Service {
 						),
 						'category' => 'configuration',
 					);
-					$penalty             += 3;
+					$penalty             += self::PENALTY_LOW;
 					$status               = 'warning';
 					break;
 				}
@@ -287,7 +447,7 @@ class SCD_Campaign_Health_Service {
 						),
 						'category' => 'configuration',
 					);
-					$penalty             += 3;
+					$penalty             += self::PENALTY_LOW;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
@@ -344,12 +504,18 @@ class SCD_Campaign_Health_Service {
 			$product_ids = $this->normalize_product_ids( $campaign );
 		}
 
-		// DEBUG: Log product IDs for dashboard
-		if ( 'dashboard' === $view_context ) {
+		// Log product IDs for dashboard debugging if needed
+		if ( 'dashboard' === $view_context && ! empty( $product_ids ) ) {
 			$campaign_id   = isset( $campaign['id'] ) ? $campaign['id'] : 'unknown';
 			$campaign_name = isset( $campaign['name'] ) ? $campaign['name'] : 'unknown';
-			if ( ! empty( $product_ids ) ) {
-			}
+			$this->logger->debug(
+				'Health check analyzing products',
+				array(
+					'campaign_id'   => $campaign_id,
+					'campaign_name' => $campaign_name,
+					'product_count' => count( $product_ids ),
+				)
+			);
 		}
 
 		if ( 'random' === $selection_type ) {
@@ -372,7 +538,7 @@ class SCD_Campaign_Health_Service {
 						'severity' => 'critical',
 						'step'     => 'products',
 					);
-					$penalty                    += 15;
+					$penalty += self::PENALTY_CRITICAL_STANDARD;
 					$status                      = 'critical';
 				}
 			}
@@ -389,14 +555,11 @@ class SCD_Campaign_Health_Service {
 			if ( ! empty( $category_ids ) ) {
 				$args        = array(
 					'status'   => 'publish',
-					'limit'    => 100,
+					'limit'    => self::PRODUCT_CHECK_LIMIT,
 					'category' => $category_ids,
 					'return'   => 'ids',
 				);
 				$product_ids = wc_get_products( $args );
-
-				if ( 'dashboard' === $view_context ) {
-				}
 			}
 		}
 
@@ -426,6 +589,13 @@ class SCD_Campaign_Health_Service {
 			}
 
 			if ( $invalid_count > 0 ) {
+				// SMART PENALTY: Scale based on percentage of products deleted
+				$proportional_penalty = $this->calculate_proportional_penalty(
+					$invalid_count,
+					$product_count,
+					self::PENALTY_CRITICAL_STANDARD
+				);
+
 				$health['critical_issues'][] = array(
 					'code'     => 'products_deleted_from_catalog',
 					'message'  => sprintf(
@@ -435,8 +605,8 @@ class SCD_Campaign_Health_Service {
 					),
 					'category' => 'products',
 				);
-				$penalty                    += 15;
-				$status                      = 'critical';
+				$penalty += $proportional_penalty;
+				$status   = 'critical';
 			}
 
 			// Use valid IDs for stock checks
@@ -445,7 +615,7 @@ class SCD_Campaign_Health_Service {
 
 			if ( $product_count > 0 ) {
 				// Analyze stock status (can change after creation)
-				$check_products     = array_slice( $product_ids, 0, 100 );
+				$check_products     = array_slice( $product_ids, 0, self::PRODUCT_CHECK_LIMIT );
 				$out_of_stock_count = 0;
 				$low_stock_count    = 0;
 				$draft_count        = 0;
@@ -464,12 +634,9 @@ class SCD_Campaign_Health_Service {
 							++$out_of_stock_count;
 						} elseif ( null !== $stock && $stock < self::LOW_STOCK_THRESHOLD ) {
 							++$low_stock_count;
-							// DEBUG: Log each low stock product
-							if ( 'dashboard' === $view_context ) {
-							}
 						}
 					} elseif ( ! $product->is_in_stock() ) {
-							++$out_of_stock_count;
+						++$out_of_stock_count;
 					}
 
 					// Product status (can change after creation)
@@ -478,48 +645,73 @@ class SCD_Campaign_Health_Service {
 					}
 				}
 
-				// DEBUG: Log stock analysis results
+				// Log stock analysis results for debugging
 				if ( 'dashboard' === $view_context ) {
 					$campaign_id = isset( $campaign['id'] ) ? $campaign['id'] : 'unknown';
+					$this->logger->debug(
+						'Stock analysis complete',
+						array(
+							'campaign_id'        => $campaign_id,
+							'out_of_stock_count' => $out_of_stock_count,
+							'low_stock_count'    => $low_stock_count,
+							'draft_count'        => $draft_count,
+							'checked_products'   => count( $check_products ),
+						)
+					);
 				}
 
-				// Critical: All products out of stock
-				if ( $out_of_stock_count === count( $check_products ) && $out_of_stock_count > 0 ) {
-					$health['critical_issues'][] = array(
-						'code'     => 'all_products_out_of_stock',
-						'message'  => sprintf(
-							/* translators: %d: number of products */
-							__( 'All %d products are out of stock', 'smart-cycle-discounts' ),
-							$product_count
-						),
-						'category' => 'products',
-					);
-					$penalty                    += 25;
-					$status                      = 'critical';
-				} elseif ( $out_of_stock_count > count( $check_products ) / 2 && $out_of_stock_count > 0 ) {
-					// Warning: Most products out of stock
+				// SMART PENALTY: Stock issues with proportional penalties
+				if ( $out_of_stock_count > 0 ) {
 					$out_of_stock_percent = round( ( $out_of_stock_count / count( $check_products ) ) * 100 );
-					$health['warnings'][] = array(
-						'code'     => 'most_products_out_of_stock',
-						'message'  => sprintf(
-							/* translators: 1: number out of stock, 2: total, 3: percentage */
-							__( '%1$d of %2$d products (%3$d%%) out of stock', 'smart-cycle-discounts' ),
+
+					// All products out of stock = critical
+					if ( $out_of_stock_count === count( $check_products ) ) {
+						$health['critical_issues'][] = array(
+							'code'     => 'all_products_out_of_stock',
+							'message'  => sprintf(
+								/* translators: %d: number of products */
+								__( 'All %d products are out of stock', 'smart-cycle-discounts' ),
+								$product_count
+							),
+							'category' => 'products',
+						);
+						$penalty += self::PENALTY_CRITICAL_SEVERE;
+						$status   = 'critical';
+					} else {
+						// Proportional penalty based on percentage out of stock
+						$proportional_penalty = $this->calculate_proportional_penalty(
 							$out_of_stock_count,
 							count( $check_products ),
-							$out_of_stock_percent
-						),
-						'category' => 'products',
-					);
-					$penalty             += 10;
-					if ( 'critical' !== $status ) {
-						$status = 'warning';
+							self::PENALTY_HIGH
+						);
+
+						$health['warnings'][] = array(
+							'code'     => 'products_out_of_stock',
+							'message'  => sprintf(
+								/* translators: 1: number out of stock, 2: total, 3: percentage */
+								__( '%1$d of %2$d products (%3$d%%) out of stock', 'smart-cycle-discounts' ),
+								$out_of_stock_count,
+								count( $check_products ),
+								$out_of_stock_percent
+							),
+							'category' => 'products',
+						);
+						$penalty += $proportional_penalty;
+						if ( 'critical' !== $status ) {
+							$status = 'warning';
+						}
 					}
 				}
 
 				// Warning: Low stock (only on dashboard - actionable)
+				// SMART PENALTY: Proportional to percentage of products with low stock
 				if ( 'dashboard' === $view_context && $low_stock_count > 0 ) {
-					$campaign_name = isset( $campaign['name'] ) ? $campaign['name'] : 'Unknown';
-					$campaign_id   = isset( $campaign['id'] ) ? $campaign['id'] : 0;
+					$proportional_penalty = $this->calculate_proportional_penalty(
+						$low_stock_count,
+						count( $check_products ),
+						self::PENALTY_MEDIUM
+					);
+
 					$health['warnings'][] = array(
 						'code'     => 'low_stock_products',
 						'message'  => sprintf(
@@ -529,7 +721,7 @@ class SCD_Campaign_Health_Service {
 						),
 						'category' => 'products',
 					);
-					$penalty             += 5;
+					$penalty += $proportional_penalty;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
@@ -546,7 +738,7 @@ class SCD_Campaign_Health_Service {
 						),
 						'category' => 'products',
 					);
-					$penalty             += 8;
+					$penalty += self::PENALTY_MEDIUM_HIGH;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
@@ -573,33 +765,92 @@ class SCD_Campaign_Health_Service {
 			}
 
 			if ( ! empty( $selected_ids ) ) {
-				$args = array(
-					'post_type'      => 'product',
-					'post_status'    => 'publish',
-					'posts_per_page' => -1,
-					'fields'         => 'ids',
-				);
+				// Use chunked loading to avoid memory exhaustion
+				$current_products = array();
+				$page             = 1;
+				$per_page         = self::PAGINATION_PER_PAGE;
 
-				if ( 'categories' === $selection_type ) {
-					$args['tax_query'] = array(
-						array(
-							'taxonomy' => 'product_cat',
-							'field'    => 'term_id',
-							'terms'    => $selected_ids,
-						),
-					);
+				if ( function_exists( 'wc_get_products' ) ) {
+					// Use WooCommerce API with chunking
+					while ( true ) {
+						if ( 'categories' === $selection_type ) {
+							$batch = wc_get_products(
+								array(
+									'limit'    => $per_page,
+									'page'     => $page,
+									'status'   => 'publish',
+									'category' => $selected_ids,
+									'return'   => 'ids',
+								)
+							);
+						} else {
+							$batch = wc_get_products(
+								array(
+									'limit'  => $per_page,
+									'page'   => $page,
+									'status' => 'publish',
+									'tag'    => $selected_ids,
+									'return' => 'ids',
+								)
+							);
+						}
+
+						if ( empty( $batch ) ) {
+							break;
+						}
+
+						$current_products = array_merge( $current_products, $batch );
+						$page++;
+
+						if ( $page > self::PAGINATION_MAX_PAGES ) {
+							break; // Safety limit
+						}
+					}
 				} else {
-					$args['tax_query'] = array(
-						array(
-							'taxonomy' => 'product_tag',
-							'field'    => 'term_id',
-							'terms'    => $selected_ids,
-						),
-					);
+					// Fallback with chunking
+					while ( true ) {
+						$args = array(
+							'post_type'      => 'product',
+							'post_status'    => 'publish',
+							'posts_per_page' => $per_page,
+							'fields'         => 'ids',
+							'paged'          => $page,
+						);
+
+						if ( 'categories' === $selection_type ) {
+							$args['tax_query'] = array(
+								array(
+									'taxonomy' => 'product_cat',
+									'field'    => 'term_id',
+									'terms'    => $selected_ids,
+								),
+							);
+						} else {
+							$args['tax_query'] = array(
+								array(
+									'taxonomy' => 'product_tag',
+									'field'    => 'term_id',
+									'terms'    => $selected_ids,
+								),
+							);
+						}
+
+						$batch = get_posts( $args );
+
+						if ( empty( $batch ) ) {
+							break;
+						}
+
+						$current_products = array_merge( $current_products, $batch );
+						$page++;
+
+						if ( $page > self::PAGINATION_MAX_PAGES ) {
+							break; // Safety limit
+						}
+					}
 				}
 
-				$current_products = get_posts( $args );
-				$current_count    = count( $current_products );
+				$current_count = count( $current_products );
 
 				// Critical: Selection resulted in zero products
 				if ( 0 === $current_count ) {
@@ -613,7 +864,7 @@ class SCD_Campaign_Health_Service {
 						),
 						'category' => 'products',
 					);
-					$penalty                    += 25;
+					$penalty += self::PENALTY_CRITICAL_SEVERE;
 					$status                      = 'critical';
 				} elseif ( $current_count > 500 ) {
 					// Warning: Selection expanded to too many products
@@ -628,7 +879,7 @@ class SCD_Campaign_Health_Service {
 						),
 						'category' => 'products',
 					);
-					$penalty             += 8;
+					$penalty += self::PENALTY_MEDIUM_HIGH;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
@@ -707,7 +958,7 @@ class SCD_Campaign_Health_Service {
 					),
 					'category' => 'schedule',
 				);
-				$penalty             += 5;
+				$penalty += self::PENALTY_MEDIUM;
 				if ( 'critical' !== $status ) {
 					$status = 'warning';
 				}
@@ -741,7 +992,7 @@ class SCD_Campaign_Health_Service {
 						),
 						'category' => 'schedule',
 					);
-					$penalty             += 8;
+					$penalty += self::PENALTY_MEDIUM_HIGH;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
@@ -751,6 +1002,193 @@ class SCD_Campaign_Health_Service {
 
 		// Track breakdown
 		$health['breakdown']['schedule'] = array(
+			'penalty' => $penalty,
+			'status'  => $status,
+		);
+
+		$health['score'] -= $penalty;
+		return $health;
+	}
+
+	/**
+	 * Check recurring campaign health.
+	 *
+	 * DASHBOARD CONTEXT: Post-creation recurring issues:
+	 * - Recurring enabled but no next occurrence scheduled
+	 * - Inactive recurring campaigns
+	 * - Past end date but recurring still active
+	 * - Occurrence cache integrity issues
+	 * - Last occurrence failed with error
+	 *
+	 * REVIEW CONTEXT: Pre-creation validation:
+	 * - Recurring pattern conflicts with schedule duration
+	 * - Recurring enabled with indefinite end date (should be caught by wizard)
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array  $campaign       Campaign data.
+	 * @param    array  $health         Health data array.
+	 * @param    string $view_context   View context ('dashboard' or 'review').
+	 * @return   array                     Updated health data.
+	 */
+	private function check_recurring( $campaign, $health, $view_context ) {
+		$penalty = 0;
+		$status  = 'healthy';
+
+		// Skip if recurring not enabled
+		if ( empty( $campaign['enable_recurring'] ) ) {
+			$health['breakdown']['recurring'] = array(
+				'penalty' => 0,
+				'status'  => 'healthy',
+			);
+			return $health;
+		}
+
+		$campaign_id = isset( $campaign['id'] ) ? intval( $campaign['id'] ) : 0;
+
+		// Can't check recurring data without campaign ID (new campaigns in review)
+		if ( 0 === $campaign_id ) {
+			$health['breakdown']['recurring'] = array(
+				'penalty' => 0,
+				'status'  => 'healthy',
+			);
+			return $health;
+		}
+
+		// Get recurring settings from database
+		$recurring_settings = $this->recurring_handler->get_recurring_settings( $campaign_id );
+
+		// CRITICAL: Recurring enabled but no settings in database
+		if ( ! $recurring_settings ) {
+			$health['critical_issues'][] = array(
+				'code'     => 'recurring_settings_missing',
+				'message'  => __( 'Recurring is enabled but configuration is missing - resave campaign to fix', 'smart-cycle-discounts' ),
+				'category' => 'recurring',
+			);
+			$penalty                    += self::PENALTY_CRITICAL_STANDARD;
+			$status                      = 'critical';
+
+			$health['breakdown']['recurring'] = array(
+				'penalty' => $penalty,
+				'status'  => $status,
+			);
+			$health['score']                 -= $penalty;
+			return $health;
+		}
+
+		// Dashboard-specific checks (post-creation issues)
+		if ( 'dashboard' === $view_context ) {
+			$is_parent   = empty( $recurring_settings['parent_campaign_id'] );
+			$is_active   = ! empty( $recurring_settings['is_active'] );
+			$next_occur  = isset( $recurring_settings['next_occurrence_date'] ) ? $recurring_settings['next_occurrence_date'] : null;
+			$last_error  = isset( $recurring_settings['last_error'] ) ? $recurring_settings['last_error'] : '';
+			$retry_count = isset( $recurring_settings['retry_count'] ) ? intval( $recurring_settings['retry_count'] ) : 0;
+
+			// Check 1: Active recurring parent with no next occurrence
+			if ( $is_parent && $is_active && empty( $next_occur ) ) {
+				$end_date = isset( $recurring_settings['recurrence_end_date'] ) ? $recurring_settings['recurrence_end_date'] : null;
+
+				// If no end date, this is a critical issue
+				if ( empty( $end_date ) ) {
+					$health['critical_issues'][] = array(
+						'code'     => 'recurring_no_next_occurrence',
+						'message'  => __( 'Recurring campaign has no next occurrence scheduled - check occurrence cache', 'smart-cycle-discounts' ),
+						'category' => 'recurring',
+					);
+					$penalty += self::PENALTY_CRITICAL_STANDARD;
+					$status   = 'critical';
+				} else {
+					// Has end date - might have naturally ended
+					$end_timestamp = strtotime( $end_date );
+					$now           = current_time( 'timestamp' );
+
+					if ( $end_timestamp >= $now ) {
+						// End date is future but no next occurrence - this is a problem
+						$health['warnings'][] = array(
+							'code'     => 'recurring_schedule_gap',
+							'message'  => __( 'Recurring schedule has gaps - no next occurrence scheduled before end date', 'smart-cycle-discounts' ),
+							'category' => 'recurring',
+						);
+						$penalty += self::PENALTY_HIGH;
+						if ( 'critical' !== $status ) {
+							$status = 'warning';
+						}
+					}
+				}
+			}
+
+			// Check 2: Inactive recurring campaign warning
+			if ( $is_parent && ! $is_active ) {
+				$health['info'][] = array(
+					'code'     => 'recurring_stopped',
+					'message'  => __( 'Recurring schedule has been stopped - future occurrences will not be created', 'smart-cycle-discounts' ),
+					'category' => 'recurring',
+				);
+				// Info only, no penalty for user-initiated stop
+			}
+
+			// Check 3: Last occurrence failed with error
+			if ( ! empty( $last_error ) && $retry_count > 0 ) {
+				$health['warnings'][] = array(
+					'code'     => 'recurring_occurrence_failed',
+					'message'  => sprintf(
+						/* translators: 1: error message, 2: retry count */
+						__( 'Last occurrence failed: %1$s (Retries: %2$d)', 'smart-cycle-discounts' ),
+						$last_error,
+						$retry_count
+					),
+					'category' => 'recurring',
+				);
+				$penalty += self::PENALTY_MEDIUM_HIGH;
+				if ( 'critical' !== $status ) {
+					$status = 'warning';
+				}
+			}
+
+			// Check 4: Recurring end date passed but still marked active
+			if ( $is_parent && $is_active ) {
+				$end_date = isset( $recurring_settings['recurrence_end_date'] ) ? $recurring_settings['recurrence_end_date'] : null;
+
+				if ( ! empty( $end_date ) ) {
+					$end_timestamp = strtotime( $end_date . ' 23:59:59' );
+					$now           = current_time( 'timestamp' );
+
+					if ( $end_timestamp < $now ) {
+						$health['warnings'][] = array(
+							'code'     => 'recurring_ended_but_active',
+							'message'  => __( 'Recurring end date has passed but schedule is still marked active - will stop after final occurrence', 'smart-cycle-discounts' ),
+							'category' => 'recurring',
+						);
+						$penalty += self::PENALTY_MEDIUM;
+						if ( 'critical' !== $status ) {
+							$status = 'warning';
+						}
+					}
+				}
+			}
+
+			// Check 5: Recurrence count limit reached
+			if ( $is_parent && $is_active ) {
+				$recurrence_count = isset( $recurring_settings['recurrence_count'] ) ? intval( $recurring_settings['recurrence_count'] ) : 0;
+				$occurrence_num   = isset( $recurring_settings['occurrence_number'] ) ? intval( $recurring_settings['occurrence_number'] ) : 0;
+
+				if ( $recurrence_count > 0 && $occurrence_num >= $recurrence_count ) {
+					$health['info'][] = array(
+						'code'     => 'recurring_count_limit_reached',
+						'message'  => sprintf(
+							/* translators: %d: maximum occurrence count */
+							__( 'Recurring limit reached (%d occurrences) - no more instances will be created', 'smart-cycle-discounts' ),
+							$recurrence_count
+						),
+						'category' => 'recurring',
+					);
+					// Info only - this is expected behavior
+				}
+			}
+		}
+
+		// Track breakdown
+		$health['breakdown']['recurring'] = array(
 			'penalty' => $penalty,
 			'status'  => $status,
 		);
@@ -794,7 +1232,7 @@ class SCD_Campaign_Health_Service {
 				),
 				'category' => 'discount',
 			);
-			$penalty                    += 20;
+			$penalty += self::PENALTY_CRITICAL_SEVERE;
 			$status                      = 'critical';
 		} elseif ( 'percentage' === $discount_type && $discount_value >= 70 ) {
 			// BUSINESS WARNING: Very high discount
@@ -807,7 +1245,7 @@ class SCD_Campaign_Health_Service {
 				),
 				'category' => 'discount',
 			);
-			$penalty             += 10;
+			$penalty += self::PENALTY_HIGH;
 			$status               = 'warning';
 		}
 		// REMOVED: Low discount penalty (<5%) - Valid business strategy, not unhealthy
@@ -818,7 +1256,7 @@ class SCD_Campaign_Health_Service {
 			$product_ids = $this->normalize_product_ids( $campaign );
 
 			if ( ! empty( $product_ids ) ) {
-				$prices = $this->get_product_prices( $product_ids, 50 );
+				$prices = $this->get_product_prices( $product_ids, self::PRICE_ANALYSIS_LIMIT );
 
 				if ( ! empty( $prices ) ) {
 					$min_price = min( $prices );
@@ -833,7 +1271,7 @@ class SCD_Campaign_Health_Service {
 							),
 							'category' => 'discount',
 						);
-						$penalty                    += 20;
+						$penalty += self::PENALTY_CRITICAL_SEVERE;
 						$status                      = 'critical';
 					}
 				}
@@ -845,7 +1283,7 @@ class SCD_Campaign_Health_Service {
 			$product_ids = $this->normalize_product_ids( $campaign );
 
 			if ( ! empty( $product_ids ) ) {
-				$current_prices = $this->get_product_prices( $product_ids, 50 );
+				$current_prices = $this->get_product_prices( $product_ids, self::PRICE_ANALYSIS_LIMIT );
 
 				if ( ! empty( $current_prices ) ) {
 					$current_avg  = array_sum( $current_prices ) / count( $current_prices );
@@ -854,33 +1292,25 @@ class SCD_Campaign_Health_Service {
 					if ( $original_avg > 0 ) {
 						$price_change_percent = abs( ( ( $current_avg - $original_avg ) / $original_avg ) * 100 );
 
-						// Warning: Significant price decrease (40%+ drop)
-						if ( $current_avg < $original_avg && $price_change_percent >= 40 ) {
+						// SMART PENALTY: Both price increases and decreases are equally concerning
+						// Unified threshold (40%+) with equal severity
+						if ( $price_change_percent >= 40 ) {
+							$direction = $current_avg > $original_avg ? 'increased' : 'decreased';
+							$advice    = $current_avg > $original_avg ? 'consider adjusting discount' : 'verify discount still appropriate';
+
 							$health['warnings'][] = array(
-								'code'     => 'price_decreased_significantly',
+								'code'     => 'price_changed_significantly',
 								'message'  => sprintf(
-									/* translators: %d: percentage decrease */
-									__( 'Product prices decreased %d%% since campaign creation - verify discount still appropriate', 'smart-cycle-discounts' ),
-									round( $price_change_percent )
+									/* translators: 1: direction (increased/decreased), 2: percentage, 3: advice */
+									__( 'Product prices %1$s %2$d%% since campaign creation - %3$s', 'smart-cycle-discounts' ),
+									$direction,
+									round( $price_change_percent ),
+									$advice
 								),
 								'category' => 'discount',
 							);
-							$penalty             += 8;
-							if ( 'critical' !== $status ) {
-								$status = 'warning';
-							}
-						} elseif ( $current_avg > $original_avg && $price_change_percent >= 40 ) {
-							// Warning: Significant price increase (40%+ increase)
-							$health['warnings'][] = array(
-								'code'     => 'price_increased_significantly',
-								'message'  => sprintf(
-									/* translators: %d: percentage increase */
-									__( 'Product prices increased %d%% since campaign creation - consider adjusting discount', 'smart-cycle-discounts' ),
-									round( $price_change_percent )
-								),
-								'category' => 'discount',
-							);
-							$penalty             += 5;
+							// Equal penalty for both directions - both affect campaign effectiveness
+							$penalty += self::PENALTY_MEDIUM_HIGH;
 							if ( 'critical' !== $status ) {
 								$status = 'warning';
 							}
@@ -921,7 +1351,7 @@ class SCD_Campaign_Health_Service {
 						'message'  => __( 'Tiered discounts should increase with quantity', 'smart-cycle-discounts' ),
 						'category' => 'discount',
 					);
-					$penalty             += 8;
+					$penalty += self::PENALTY_MEDIUM_HIGH;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
@@ -949,7 +1379,7 @@ class SCD_Campaign_Health_Service {
 						),
 						'category' => 'discount',
 					);
-					$penalty             += 5;
+					$penalty += self::PENALTY_MEDIUM;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
@@ -978,7 +1408,7 @@ class SCD_Campaign_Health_Service {
 						),
 						'category' => 'discount',
 					);
-					$penalty             += 5;
+					$penalty += self::PENALTY_MEDIUM;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
@@ -993,7 +1423,7 @@ class SCD_Campaign_Health_Service {
 						),
 						'category' => 'discount',
 					);
-					$penalty             += 3;
+					$penalty += self::PENALTY_LOW;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
@@ -1016,7 +1446,7 @@ class SCD_Campaign_Health_Service {
 				),
 				'category' => 'discount',
 			);
-			$penalty             += 3;
+			$penalty += self::PENALTY_LOW;
 			if ( 'critical' !== $status ) {
 				$status = 'warning';
 			}
@@ -1033,7 +1463,7 @@ class SCD_Campaign_Health_Service {
 				),
 				'category' => 'discount',
 			);
-			$penalty             += 3;
+			$penalty += self::PENALTY_LOW;
 			if ( 'critical' !== $status ) {
 				$status = 'warning';
 			}
@@ -1054,7 +1484,7 @@ class SCD_Campaign_Health_Service {
 					),
 					'category' => 'discount',
 				);
-				$penalty                    += 25;
+				$penalty += self::PENALTY_CRITICAL_SEVERE;
 				$status                      = 'critical';
 			} elseif ( $usage_count > 0 && $total_usage_limit > 0 ) {
 				// Warning: Nearly exhausted (90%+ used)
@@ -1071,7 +1501,7 @@ class SCD_Campaign_Health_Service {
 						),
 						'category' => 'discount',
 					);
-					$penalty             += 10;
+					$penalty += self::PENALTY_HIGH;
 					if ( 'critical' !== $status ) {
 						$status = 'warning';
 					}
@@ -1095,7 +1525,7 @@ class SCD_Campaign_Health_Service {
 				),
 				'category' => 'discount',
 			);
-			$penalty             += 3;
+			$penalty += self::PENALTY_LOW;
 			if ( 'critical' !== $status ) {
 				$status = 'warning';
 			}
@@ -1112,7 +1542,7 @@ class SCD_Campaign_Health_Service {
 				),
 				'category' => 'discount',
 			);
-			$penalty             += 5;
+			$penalty += self::PENALTY_MEDIUM;
 			if ( 'critical' !== $status ) {
 				$status = 'warning';
 			}
@@ -1129,7 +1559,7 @@ class SCD_Campaign_Health_Service {
 				),
 				'category' => 'discount',
 			);
-			$penalty             += 5;
+			$penalty += self::PENALTY_MEDIUM;
 			if ( 'critical' !== $status ) {
 				$status = 'warning';
 			}
@@ -1142,6 +1572,97 @@ class SCD_Campaign_Health_Service {
 		);
 
 		$health['score'] -= $penalty;
+		return $health;
+	}
+
+	/**
+	 * Check cross-step validation.
+	 *
+	 * Validates compatibility and consistency across wizard steps using
+	 * the centralized Campaign_Cross_Validator. This catches integration
+	 * issues that span multiple steps (discounts + products, discounts + schedule, etc.).
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array  $campaign       Campaign data.
+	 * @param    array  $health         Health data array.
+	 * @param    string $view_context   View context (dashboard or review).
+	 * @return   array                     Updated health data.
+	 */
+	private function check_cross_step_validation( $campaign, $health, $view_context ) {
+		// Load the cross-validator
+		if ( ! class_exists( 'SCD_Campaign_Cross_Validator' ) ) {
+			require_once SCD_INCLUDES_DIR . 'core/validation/class-campaign-cross-validator.php';
+		}
+
+		// DOUBLE-COUNTING PREVENTION: Track which issues have already been penalized
+		$already_penalized = array();
+		foreach ( $health['critical_issues'] as $issue ) {
+			if ( isset( $issue['code'] ) ) {
+				$already_penalized[] = $issue['code'];
+			}
+		}
+		foreach ( $health['warnings'] as $issue ) {
+			if ( isset( $issue['code'] ) ) {
+				$already_penalized[] = $issue['code'];
+			}
+		}
+
+		// Create a WP_Error object to collect validation errors
+		$errors = new WP_Error();
+
+		// Run cross-step validation
+		SCD_Campaign_Cross_Validator::validate( $campaign, $errors );
+
+		// Convert WP_Error to health issues
+		if ( $errors->has_errors() ) {
+			$error_codes = $errors->get_error_codes();
+
+			foreach ( $error_codes as $code ) {
+				// SKIP if this issue was already penalized in previous checks
+				if ( in_array( $code, $already_penalized, true ) ) {
+					continue;
+				}
+
+				$messages = $errors->get_error_messages( $code );
+				$data     = $errors->get_error_data( $code );
+				$severity = isset( $data['severity'] ) ? $data['severity'] : 'warning';
+
+				foreach ( $messages as $message ) {
+					// Map severity to health issue type
+					switch ( $severity ) {
+						case 'critical':
+							$health['critical_issues'][] = array(
+								'code'     => $code,
+								'message'  => $message,
+								'category' => 'cross_step',
+							);
+							$health['score'] -= self::PENALTY_CRITICAL_STANDARD;
+							break;
+
+						case 'warning':
+							$health['warnings'][] = array(
+								'code'     => $code,
+								'message'  => $message,
+								'category' => 'cross_step',
+							);
+							$health['score'] -= self::PENALTY_MEDIUM;
+							break;
+
+						case 'info':
+						default:
+							$health['info'][] = array(
+								'code'     => $code,
+								'message'  => $message,
+								'category' => 'cross_step',
+							);
+							// Info messages don't reduce score
+							break;
+					}
+				}
+			}
+		}
+
 		return $health;
 	}
 
@@ -1174,7 +1695,7 @@ class SCD_Campaign_Health_Service {
 					),
 					'category' => 'coverage',
 				);
-				$penalty             += 10;
+				$penalty += self::PENALTY_HIGH;
 				$status               = 'warning';
 			}
 		}
@@ -1288,7 +1809,7 @@ class SCD_Campaign_Health_Service {
 					),
 					'category' => 'conflicts',
 				);
-				$penalty             += 10;
+				$penalty += self::PENALTY_HIGH;
 				$status               = 'warning';
 			}
 		} else {
@@ -1378,7 +1899,7 @@ class SCD_Campaign_Health_Service {
 					'category'              => 'conflicts',
 					'conflicting_campaigns' => $same_priority_overlaps,
 				);
-				$penalty                    += 20;
+				$penalty += self::PENALTY_CRITICAL_STANDARD;
 				$status                      = 'critical';
 			}
 
@@ -1394,7 +1915,7 @@ class SCD_Campaign_Health_Service {
 					'category'           => 'conflicts',
 					'blocking_campaigns' => $higher_priority_overlaps,
 				);
-				$penalty             += 10;
+				$penalty += self::PENALTY_HIGH;
 				if ( 'critical' !== $status ) {
 					$status = 'warning';
 				}
@@ -1626,7 +2147,7 @@ class SCD_Campaign_Health_Service {
 		}
 
 		// Badge recommendation
-		$badge_enabled = isset( $campaign['badge_enabled'] ) ? $campaign['badge_enabled'] : false;
+		$badge_enabled = isset( $campaign['badge_enabled'] ) ? $campaign['badge_enabled'] : true;
 		if ( ! $badge_enabled ) {
 			$recommendations[] = array(
 				'category' => 'visibility',
@@ -1699,7 +2220,7 @@ class SCD_Campaign_Health_Service {
 		$product_ids = $this->normalize_product_ids( $campaign );
 
 		if ( count( $product_ids ) > 0 && count( $product_ids ) <= 50 ) {
-			$prices = $this->get_product_prices( $product_ids, 50 );
+			$prices = $this->get_product_prices( $product_ids, self::PRICE_ANALYSIS_LIMIT );
 
 			if ( ! empty( $prices ) ) {
 				$avg_price = array_sum( $prices ) / count( $prices );
@@ -1875,8 +2396,9 @@ class SCD_Campaign_Health_Service {
 	 * IMPROVED LOGIC:
 	 * - Status determined by WORST issue severity (critical > warning > none)
 	 * - Score used as secondary metric within same severity level
-	 * - Critical issues force "critical" or "poor" status
+	 * - Critical issues force "critical" status
 	 * - Prevents minor issues from hiding critical problems
+	 * - Uses defined constants for consistency
 	 *
 	 * @since    1.0.0
 	 * @access   private
@@ -1888,16 +2410,16 @@ class SCD_Campaign_Health_Service {
 		$has_critical = ! empty( $health['critical_issues'] );
 		$has_warnings = ! empty( $health['warnings'] );
 
-		// CRITICAL issues = Always poor/critical (campaign is broken)
+		// CRITICAL issues = Always critical status (campaign is broken)
 		if ( $has_critical ) {
 			return 'critical';
 		}
 
 		// WARNINGS only = Score-based but capped at "good" (can't be excellent with warnings)
 		if ( $has_warnings ) {
-			if ( $score >= 70 ) {
+			if ( $score >= self::STATUS_GOOD_MIN ) {
 				return 'good';
-			} elseif ( $score >= 50 ) {
+			} elseif ( $score >= self::STATUS_FAIR_MIN ) {
 				return 'fair';
 			} else {
 				return 'poor';
@@ -1905,11 +2427,11 @@ class SCD_Campaign_Health_Service {
 		}
 
 		// NO issues = Score-based (excellent possible)
-		if ( $score >= 90 ) {
+		if ( $score >= self::STATUS_EXCELLENT_MIN ) {
 			return 'excellent';
-		} elseif ( $score >= 70 ) {
+		} elseif ( $score >= self::STATUS_GOOD_MIN ) {
 			return 'good';
-		} elseif ( $score >= 50 ) {
+		} elseif ( $score >= self::STATUS_FAIR_MIN ) {
 			return 'fair';
 		} else {
 			return 'poor';
@@ -2102,8 +2624,6 @@ class SCD_Campaign_Health_Service {
 
 		$average_score = $campaign_count > 0 ? round( $total_score / $campaign_count ) : 100;
 
-		if ( ! empty( $deduplicated_warnings ) ) {
-		}
 
 		$aggregate_health = array(
 			'score'           => $average_score,
@@ -2386,5 +2906,1224 @@ class SCD_Campaign_Health_Service {
 			),
 			'timestamp'                => current_time( 'timestamp' ),
 		);
+	}
+
+	/**
+	 * ========================================================================
+	 * PRACTICAL INTELLIGENCE FEATURES
+	 * ========================================================================
+	 * Statistical analysis and pattern recognition without AI/ML
+	 */
+
+	/**
+	 * Assess multi-dimensional risk for campaign.
+	 *
+	 * Analyzes 5 key risk dimensions using statistical methods and historical data.
+	 *
+	 * @since    1.0.0
+	 * @param    array $campaign    Campaign data.
+	 * @param    array $context     Additional context (analytics_repo, campaign_repo).
+	 * @return   array                 Risk assessment data.
+	 */
+	public function assess_multi_dimensional_risk( $campaign, $context = array() ) {
+		$risk_assessment = array(
+			'overall_risk_level' => 'low',
+			'overall_risk_score' => 100,
+			'dimensions'         => array(),
+		);
+
+		// 1. Profit Margin Risk
+		$risk_assessment['dimensions']['profit_margin'] = $this->assess_profit_margin_risk( $campaign, $context );
+
+		// 2. Inventory Risk
+		$risk_assessment['dimensions']['inventory'] = $this->assess_inventory_risk( $campaign, $context );
+
+		// 3. Market Timing Risk
+		$risk_assessment['dimensions']['market_timing'] = $this->assess_market_timing_risk( $campaign, $context );
+
+		// 4. Competitive Risk
+		$risk_assessment['dimensions']['competitive'] = $this->assess_competitive_risk( $campaign, $context );
+
+		// 5. Execution Risk
+		$risk_assessment['dimensions']['execution'] = $this->assess_execution_risk( $campaign, $context );
+
+		// Calculate overall risk
+		$total_score    = 0;
+		$dimension_count = 0;
+		foreach ( $risk_assessment['dimensions'] as $dimension ) {
+			$total_score += $dimension['score'];
+			$dimension_count++;
+		}
+
+		$risk_assessment['overall_risk_score'] = $dimension_count > 0 ? round( $total_score / $dimension_count ) : 100;
+
+		// Determine overall risk level
+		if ( $risk_assessment['overall_risk_score'] >= 80 ) {
+			$risk_assessment['overall_risk_level'] = 'low';
+		} elseif ( $risk_assessment['overall_risk_score'] >= 60 ) {
+			$risk_assessment['overall_risk_level'] = 'medium';
+		} elseif ( $risk_assessment['overall_risk_score'] >= 40 ) {
+			$risk_assessment['overall_risk_level'] = 'high';
+		} else {
+			$risk_assessment['overall_risk_level'] = 'critical';
+		}
+
+		return $risk_assessment;
+	}
+
+	/**
+	 * Assess profit margin risk.
+	 *
+	 * Analyzes risk of discount eroding profit margins below acceptable levels.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $campaign    Campaign data.
+	 * @param    array $context     Additional context.
+	 * @return   array                 Profit margin risk assessment.
+	 */
+	private function assess_profit_margin_risk( $campaign, $context ) {
+		$risk = array(
+			'level'   => 'low',
+			'score'   => 100,
+			'factors' => array(),
+		);
+
+		$discount_type  = isset( $campaign['discount_type'] ) ? $campaign['discount_type'] : '';
+		$discount_value = isset( $campaign['discount_value'] ) ? floatval( $campaign['discount_value'] ) : 0;
+
+		// Fixed discount risk (harder to assess without knowing product prices)
+		if ( 'fixed' === $discount_type ) {
+			// Get product prices if available
+			$product_ids = $this->normalize_product_ids( $campaign );
+			if ( ! empty( $product_ids ) ) {
+				$prices        = $this->get_product_prices( $product_ids, self::PRICE_ANALYSIS_LIMIT );
+				$low_price_count = 0;
+				$total_products  = count( $prices );
+
+				foreach ( $prices as $price ) {
+					// If fixed discount is more than 50% of product price, flag it
+					if ( $discount_value > ( $price * 0.5 ) ) {
+						$low_price_count++;
+					}
+				}
+
+				if ( $total_products > 0 ) {
+					$risk_percentage = ( $low_price_count / $total_products ) * 100;
+
+					if ( $risk_percentage > 50 ) {
+						$risk['level']     = 'high';
+						$risk['score']     = 40;
+						$risk['factors'][] = sprintf(
+							'Fixed discount of %s affects %d%% of products (>50%% of their price)',
+							wc_price( $discount_value ),
+							round( $risk_percentage )
+						);
+					} elseif ( $risk_percentage > 25 ) {
+						$risk['level']     = 'medium';
+						$risk['score']     = 65;
+						$risk['factors'][] = sprintf(
+							'Fixed discount of %s affects %d%% of products (>50%% of their price)',
+							wc_price( $discount_value ),
+							round( $risk_percentage )
+						);
+					}
+				}
+			} else {
+				// All products - high risk with fixed discount
+				$risk['level']     = 'medium';
+				$risk['score']     = 60;
+				$risk['factors'][] = 'Fixed discount applied to all products - difficult to assess margin impact';
+			}
+		} elseif ( 'percentage' === $discount_type ) {
+			// Percentage discount risk assessment
+			if ( $discount_value >= 50 ) {
+				$risk['level']     = 'high';
+				$risk['score']     = 35;
+				$risk['factors'][] = sprintf( '%d%% discount may significantly erode profit margins', $discount_value );
+			} elseif ( $discount_value >= 30 ) {
+				$risk['level']     = 'medium';
+				$risk['score']     = 70;
+				$risk['factors'][] = sprintf( '%d%% discount is substantial - monitor margin impact', $discount_value );
+			} else {
+				$risk['factors'][] = sprintf( '%d%% discount is within safe range for most products', $discount_value );
+			}
+		}
+
+		// Check if campaign targets low-margin products (if we have that data)
+		// This would require product metadata/categories analysis in future enhancement
+
+		if ( empty( $risk['factors'] ) ) {
+			$risk['factors'][] = 'Discount level appears safe for profit margins';
+		}
+
+		return $risk;
+	}
+
+	/**
+	 * Assess inventory risk.
+	 *
+	 * Analyzes risk of running out of stock during campaign.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $campaign    Campaign data.
+	 * @param    array $context     Additional context.
+	 * @return   array                 Inventory risk assessment.
+	 */
+	private function assess_inventory_risk( $campaign, $context ) {
+		$risk = array(
+			'level'   => 'low',
+			'score'   => 100,
+			'factors' => array(),
+		);
+
+		$product_ids = $this->normalize_product_ids( $campaign );
+
+		if ( empty( $product_ids ) || 'all_products' === ( isset( $campaign['product_selection_type'] ) ? $campaign['product_selection_type'] : '' ) ) {
+			$risk['factors'][] = 'All products selected - inventory risk distributed across entire catalog';
+			return $risk;
+		}
+
+		// Check stock levels for specific products
+		$low_stock_count  = 0;
+		$out_of_stock_count = 0;
+		$total_checked    = 0;
+
+		foreach ( $product_ids as $product_id ) {
+			$product = wc_get_product( $product_id );
+			if ( ! $product ) {
+				continue;
+			}
+
+			$total_checked++;
+			$stock_quantity = $product->get_stock_quantity();
+
+			if ( null === $stock_quantity ) {
+				// Stock management disabled - skip
+				continue;
+			}
+
+			if ( 0 === $stock_quantity ) {
+				$out_of_stock_count++;
+			} elseif ( $stock_quantity <= self::LOW_STOCK_THRESHOLD ) {
+				$low_stock_count++;
+			}
+		}
+
+		if ( $total_checked > 0 ) {
+			$out_of_stock_percentage = ( $out_of_stock_count / $total_checked ) * 100;
+			$low_stock_percentage    = ( $low_stock_count / $total_checked ) * 100;
+
+			if ( $out_of_stock_percentage > 20 ) {
+				$risk['level']     = 'critical';
+				$risk['score']     = 20;
+				$risk['factors'][] = sprintf( '%d%% of products are out of stock', round( $out_of_stock_percentage ) );
+			} elseif ( $out_of_stock_percentage > 5 ) {
+				$risk['level']     = 'high';
+				$risk['score']     = 50;
+				$risk['factors'][] = sprintf( '%d%% of products are out of stock', round( $out_of_stock_percentage ) );
+			}
+
+			if ( $low_stock_percentage > 30 ) {
+				$current_score = $risk['score'];
+				$risk['score'] = min( $current_score, 60 );
+				if ( 'low' === $risk['level'] ) {
+					$risk['level'] = 'medium';
+				}
+				$risk['factors'][] = sprintf( '%d%% of products have low stock (≤%d units)', round( $low_stock_percentage ), self::LOW_STOCK_THRESHOLD );
+			} elseif ( $low_stock_percentage > 10 ) {
+				$current_score = $risk['score'];
+				$risk['score'] = min( $current_score, 80 );
+				$risk['factors'][] = sprintf( '%d%% of products have low stock (≤%d units)', round( $low_stock_percentage ), self::LOW_STOCK_THRESHOLD );
+			}
+		}
+
+		if ( empty( $risk['factors'] ) ) {
+			$risk['factors'][] = 'Product inventory levels appear healthy';
+		}
+
+		return $risk;
+	}
+
+	/**
+	 * Assess market timing risk.
+	 *
+	 * Analyzes whether campaign timing aligns with market conditions and seasonality.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $campaign    Campaign data.
+	 * @param    array $context     Additional context.
+	 * @return   array                 Market timing risk assessment.
+	 */
+	private function assess_market_timing_risk( $campaign, $context ) {
+		$risk = array(
+			'level'   => 'low',
+			'score'   => 100,
+			'factors' => array(),
+		);
+
+		$start_date = isset( $campaign['start_date'] ) ? $campaign['start_date'] : '';
+
+		if ( empty( $start_date ) ) {
+			$risk['factors'][] = 'No start date set - unable to assess timing';
+			return $risk;
+		}
+
+		$start_timestamp = strtotime( $start_date );
+		$start_month     = (int) date( 'n', $start_timestamp );
+		$start_day       = (int) date( 'j', $start_timestamp );
+
+		// Check for major shopping seasons
+		$is_peak_season = false;
+		$season_name    = '';
+
+		// Black Friday / Cyber Monday (last week of November)
+		if ( 11 === $start_month && $start_day >= 22 ) {
+			$is_peak_season = true;
+			$season_name    = 'Black Friday / Cyber Monday';
+		}
+		// Christmas season (December 1-25)
+		elseif ( 12 === $start_month && $start_day <= 25 ) {
+			$is_peak_season = true;
+			$season_name    = 'Christmas shopping season';
+		}
+		// Back to School (August 1-31)
+		elseif ( 8 === $start_month ) {
+			$is_peak_season = true;
+			$season_name    = 'Back to School season';
+		}
+		// Valentine's Day (Feb 1-14)
+		elseif ( 2 === $start_month && $start_day <= 14 ) {
+			$is_peak_season = true;
+			$season_name    = 'Valentine\'s Day season';
+		}
+		// Mother's Day / Father's Day (May/June)
+		elseif ( 5 === $start_month || 6 === $start_month ) {
+			$is_peak_season = true;
+			$season_name    = 'Mother\'s/Father\'s Day season';
+		}
+
+		if ( $is_peak_season ) {
+			$risk['factors'][] = sprintf( 'Campaign scheduled during %s - expect high competition', $season_name );
+			// Note: Not necessarily a risk, but something to be aware of
+		}
+
+		// Check for slow retail months (typically January after holidays)
+		if ( 1 === $start_month ) {
+			$risk['factors'][] = 'January is typically a slow retail month - campaign may perform below average';
+			$risk['score']     = 85; // Minor impact
+		}
+
+		// Check day of week (if we can determine it)
+		$day_of_week = (int) date( 'N', $start_timestamp ); // 1 (Monday) to 7 (Sunday)
+
+		// Starting on weekend might be strategic for B2C
+		if ( 6 === $day_of_week || 7 === $day_of_week ) {
+			$risk['factors'][] = 'Campaign starts on weekend - good timing for consumer products';
+		}
+
+		if ( empty( $risk['factors'] ) ) {
+			$risk['factors'][] = 'Campaign timing appears neutral - no significant seasonal factors detected';
+		}
+
+		return $risk;
+	}
+
+	/**
+	 * Assess competitive risk.
+	 *
+	 * Analyzes risk from overlapping campaigns competing for same products/customers.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $campaign    Campaign data.
+	 * @param    array $context     Additional context.
+	 * @return   array                 Competitive risk assessment.
+	 */
+	private function assess_competitive_risk( $campaign, $context ) {
+		$risk = array(
+			'level'   => 'low',
+			'score'   => 100,
+			'factors' => array(),
+		);
+
+		// Check for overlapping campaigns (use existing conflict detection)
+		if ( ! empty( $context['conflicts_data'] ) && ! empty( $context['conflicts_data']['conflicts'] ) ) {
+			$conflict_count = count( $context['conflicts_data']['conflicts'] );
+
+			if ( $conflict_count > 5 ) {
+				$risk['level']     = 'high';
+				$risk['score']     = 50;
+				$risk['factors'][] = sprintf( '%d overlapping campaigns detected - high internal competition', $conflict_count );
+			} elseif ( $conflict_count > 2 ) {
+				$risk['level']     = 'medium';
+				$risk['score']     = 70;
+				$risk['factors'][] = sprintf( '%d overlapping campaigns detected - moderate internal competition', $conflict_count );
+			} elseif ( $conflict_count > 0 ) {
+				$risk['score']     = 85;
+				$risk['factors'][] = sprintf( '%d overlapping campaign(s) detected', $conflict_count );
+			}
+		}
+
+		// Check campaign saturation (how many campaigns running in same timeframe)
+		// This could be enhanced with campaign repository queries
+
+		if ( empty( $risk['factors'] ) ) {
+			$risk['factors'][] = 'No significant campaign conflicts detected';
+		}
+
+		return $risk;
+	}
+
+	/**
+	 * Assess execution risk.
+	 *
+	 * Analyzes risk based on campaign complexity and operational challenges.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $campaign    Campaign data.
+	 * @param    array $context     Additional context.
+	 * @return   array                 Execution risk assessment.
+	 */
+	private function assess_execution_risk( $campaign, $context ) {
+		$risk = array(
+			'level'   => 'low',
+			'score'   => 100,
+			'factors' => array(),
+		);
+
+		$complexity_score = 0;
+
+		// Complex discount types
+		$discount_type = isset( $campaign['discount_type'] ) ? $campaign['discount_type'] : '';
+		if ( in_array( $discount_type, array( 'bogo', 'tiered', 'spend_threshold' ), true ) ) {
+			$complexity_score += 2;
+			$risk['factors'][] = sprintf( '%s discount type requires careful monitoring', ucfirst( str_replace( '_', ' ', $discount_type ) ) );
+		}
+
+		// Product selection complexity
+		$product_selection_type = isset( $campaign['product_selection_type'] ) ? $campaign['product_selection_type'] : '';
+		if ( 'random_products' === $product_selection_type ) {
+			$complexity_score += 2;
+			$risk['factors'][] = 'Random product selection requires rotation management';
+		}
+
+		// Filter conditions complexity
+		$metadata = isset( $campaign['metadata'] ) ? $campaign['metadata'] : array();
+		if ( is_string( $metadata ) ) {
+			$metadata = json_decode( $metadata, true );
+		}
+
+		if ( ! empty( $metadata['filter_conditions'] ) ) {
+			$filter_count = is_array( $metadata['filter_conditions'] ) ? count( $metadata['filter_conditions'] ) : 0;
+			if ( $filter_count > 5 ) {
+				$complexity_score += 3;
+				$risk['factors'][] = sprintf( '%d filter conditions increase campaign complexity', $filter_count );
+			} elseif ( $filter_count > 2 ) {
+				$complexity_score += 1;
+			}
+		}
+
+		// Recurring campaigns add complexity
+		if ( ! empty( $metadata['schedule'] ) ) {
+			$schedule = $metadata['schedule'];
+			if ( isset( $schedule['recurrence_enabled'] ) && $schedule['recurrence_enabled'] ) {
+				$complexity_score += 2;
+				$risk['factors'][] = 'Recurring schedule requires ongoing monitoring';
+			}
+		}
+
+		// Usage limits complexity
+		if ( ! empty( $metadata['usage_limits'] ) ) {
+			$complexity_score += 1;
+		}
+
+		// Determine risk level based on complexity
+		if ( $complexity_score >= 8 ) {
+			$risk['level'] = 'high';
+			$risk['score'] = 55;
+		} elseif ( $complexity_score >= 5 ) {
+			$risk['level'] = 'medium';
+			$risk['score'] = 75;
+		} elseif ( $complexity_score >= 3 ) {
+			$risk['score'] = 85;
+		}
+
+		if ( empty( $risk['factors'] ) ) {
+			$risk['factors'][] = 'Campaign configuration is straightforward to execute';
+		}
+
+		return $risk;
+	}
+
+	/**
+	 * Get smart benchmark data comparing campaign to historical performance.
+	 *
+	 * Uses statistical analysis to compare against similar past campaigns.
+	 *
+	 * @since    1.0.0
+	 * @param    array $campaign           Campaign data.
+	 * @param    array $context            Additional context (analytics_repo, campaign_repo).
+	 * @param    array $performance_data   Actual performance data (for completed campaigns).
+	 * @return   array                        Benchmark comparison data.
+	 */
+	public function get_smart_benchmark( $campaign, $context = array(), $performance_data = array() ) {
+		$benchmark = array(
+			'has_historical_data' => false,
+			'similar_campaigns'   => array(),
+			'percentile_ranking'  => array(),
+			'performance_vs_avg'  => array(),
+			'insights'            => array(),
+		);
+
+		// Need campaign repository to find similar campaigns
+		if ( empty( $context['campaign_repo'] ) ) {
+			$benchmark['insights'][] = 'Historical comparison unavailable - no campaign repository provided';
+			return $benchmark;
+		}
+
+		// Find similar campaigns for comparison
+		$similar_campaigns = $this->find_similar_campaigns( $campaign, $context );
+
+		if ( empty( $similar_campaigns ) ) {
+			$benchmark['insights'][] = 'No similar historical campaigns found for comparison';
+			return $benchmark;
+		}
+
+		$benchmark['has_historical_data'] = true;
+		$benchmark['similar_campaigns']   = array(
+			'count'             => count( $similar_campaigns ),
+			'date_range'        => $this->get_campaigns_date_range( $similar_campaigns ),
+			'discount_type'     => isset( $campaign['discount_type'] ) ? $campaign['discount_type'] : 'unknown',
+			'selection_type'    => isset( $campaign['product_selection_type'] ) ? $campaign['product_selection_type'] : 'unknown',
+		);
+
+		// Calculate aggregate statistics from similar campaigns
+		$stats = $this->calculate_aggregate_statistics( $similar_campaigns, $context );
+
+		// If we have performance data for current campaign, calculate percentile ranking
+		if ( ! empty( $performance_data ) ) {
+			$benchmark['percentile_ranking'] = $this->calculate_performance_percentile(
+				$performance_data,
+				$stats
+			);
+
+			$benchmark['performance_vs_avg'] = array(
+				'revenue' => array(
+					'current'    => isset( $performance_data['revenue'] ) ? $performance_data['revenue'] : 0,
+					'average'    => $stats['avg_revenue'],
+					'percentile' => isset( $benchmark['percentile_ranking']['revenue'] ) ? $benchmark['percentile_ranking']['revenue'] : 50,
+				),
+				'conversion_rate' => array(
+					'current'    => isset( $performance_data['conversion_rate'] ) ? $performance_data['conversion_rate'] : 0,
+					'average'    => $stats['avg_conversion_rate'],
+					'percentile' => isset( $benchmark['percentile_ranking']['conversion_rate'] ) ? $benchmark['percentile_ranking']['conversion_rate'] : 50,
+				),
+			);
+
+			// Generate insights based on percentile performance
+			$revenue_percentile = isset( $benchmark['percentile_ranking']['revenue'] ) ? $benchmark['percentile_ranking']['revenue'] : 50;
+			if ( $revenue_percentile >= 75 ) {
+				$benchmark['insights'][] = sprintf(
+					'Outstanding performance - revenue in top %d%% of similar campaigns',
+					100 - $revenue_percentile
+				);
+			} elseif ( $revenue_percentile >= 50 ) {
+				$benchmark['insights'][] = 'Above average performance compared to similar campaigns';
+			} elseif ( $revenue_percentile >= 25 ) {
+				$benchmark['insights'][] = 'Below average performance - review optimization opportunities';
+			} else {
+				$benchmark['insights'][] = sprintf(
+					'Underperforming - revenue in bottom %d%% of similar campaigns',
+					$revenue_percentile
+				);
+			}
+		} else {
+			// No performance data yet - provide expected performance based on historical data
+			$benchmark['expected_performance'] = array(
+				'revenue' => array(
+					'conservative' => $stats['percentile_25_revenue'],
+					'likely'       => $stats['avg_revenue'],
+					'optimistic'   => $stats['percentile_75_revenue'],
+				),
+				'conversion_rate' => array(
+					'conservative' => $stats['percentile_25_conversion'],
+					'likely'       => $stats['avg_conversion_rate'],
+					'optimistic'   => $stats['percentile_75_conversion'],
+				),
+			);
+
+			$benchmark['insights'][] = sprintf(
+				'Based on %d similar campaigns, expected revenue range: %s - %s',
+				count( $similar_campaigns ),
+				wc_price( $stats['percentile_25_revenue'] ),
+				wc_price( $stats['percentile_75_revenue'] )
+			);
+		}
+
+		// Success rate of similar campaigns
+		if ( isset( $stats['success_rate'] ) ) {
+			$benchmark['insights'][] = sprintf(
+				'Similar campaigns have %.1f%% success rate (health score ≥80)',
+				$stats['success_rate']
+			);
+		}
+
+		return $benchmark;
+	}
+
+	/**
+	 * Find similar campaigns for benchmarking.
+	 *
+	 * Uses similarity scoring based on discount type, selection type, and product characteristics.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $campaign    Campaign data.
+	 * @param    array $context     Additional context.
+	 * @return   array                 Array of similar campaigns.
+	 */
+	private function find_similar_campaigns( $campaign, $context ) {
+		if ( empty( $context['campaign_repo'] ) ) {
+			return array();
+		}
+
+		$campaign_repo = $context['campaign_repo'];
+
+		// Get all completed campaigns
+		$all_campaigns = $campaign_repo->find_by(
+			array(
+				'status' => 'completed',
+			),
+			array(
+				'limit' => 100,
+				'order' => 'DESC',
+			)
+		);
+
+		if ( empty( $all_campaigns ) ) {
+			return array();
+		}
+
+		$similar_campaigns  = array();
+		$discount_type      = isset( $campaign['discount_type'] ) ? $campaign['discount_type'] : '';
+		$selection_type     = isset( $campaign['product_selection_type'] ) ? $campaign['product_selection_type'] : '';
+
+		foreach ( $all_campaigns as $historical_campaign ) {
+			$similarity_score = 0;
+
+			// Same discount type (most important) = 50 points
+			if ( $historical_campaign->get_discount_type() === $discount_type ) {
+				$similarity_score += 50;
+			}
+
+			// Same product selection type = 30 points
+			if ( $historical_campaign->get_product_selection_type() === $selection_type ) {
+				$similarity_score += 30;
+			}
+
+			// Similar discount value range = 20 points
+			$campaign_discount   = isset( $campaign['discount_value'] ) ? floatval( $campaign['discount_value'] ) : 0;
+			$historical_discount = $historical_campaign->get_discount_value();
+
+			if ( 'percentage' === $discount_type ) {
+				// Within 10 percentage points
+				if ( abs( $campaign_discount - $historical_discount ) <= 10 ) {
+					$similarity_score += 20;
+				} elseif ( abs( $campaign_discount - $historical_discount ) <= 20 ) {
+					$similarity_score += 10;
+				}
+			} else {
+				// Within 50% of value for fixed/other types
+				$lower_bound = $campaign_discount * 0.5;
+				$upper_bound = $campaign_discount * 1.5;
+				if ( $historical_discount >= $lower_bound && $historical_discount <= $upper_bound ) {
+					$similarity_score += 20;
+				}
+			}
+
+			// Include campaigns with similarity score >= 50 (at least matching discount type)
+			if ( $similarity_score >= 50 ) {
+				$similar_campaigns[] = $historical_campaign;
+			}
+		}
+
+		return $similar_campaigns;
+	}
+
+	/**
+	 * Calculate aggregate statistics from similar campaigns.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $campaigns    Array of SCD_Campaign objects.
+	 * @param    array $context      Additional context (analytics_repo).
+	 * @return   array                  Aggregate statistics.
+	 */
+	private function calculate_aggregate_statistics( $campaigns, $context ) {
+		$stats = array(
+			'count'                    => count( $campaigns ),
+			'avg_revenue'              => 0,
+			'avg_conversion_rate'      => 0,
+			'percentile_25_revenue'    => 0,
+			'percentile_75_revenue'    => 0,
+			'percentile_25_conversion' => 0,
+			'percentile_75_conversion' => 0,
+			'success_rate'             => 0,
+		);
+
+		if ( empty( $campaigns ) ) {
+			return $stats;
+		}
+
+		$revenues         = array();
+		$conversion_rates = array();
+		$successful_count = 0;
+
+		// Need analytics repository to get performance data
+		$analytics_repo = isset( $context['analytics_repo'] ) ? $context['analytics_repo'] : null;
+
+		foreach ( $campaigns as $campaign ) {
+			if ( $analytics_repo ) {
+				$performance = $analytics_repo->get_campaign_performance( $campaign->get_id() );
+
+				if ( ! empty( $performance ) ) {
+					$revenue = isset( $performance['total_revenue'] ) ? floatval( $performance['total_revenue'] ) : 0;
+					$conversion = isset( $performance['conversion_rate'] ) ? floatval( $performance['conversion_rate'] ) : 0;
+
+					$revenues[]         = $revenue;
+					$conversion_rates[] = $conversion;
+
+					// Count successful campaigns (revenue > 0 and conversion > average)
+					if ( $revenue > 0 && $conversion > 2.0 ) {
+						$successful_count++;
+					}
+				}
+			}
+		}
+
+		// Calculate averages
+		if ( ! empty( $revenues ) ) {
+			$stats['avg_revenue'] = array_sum( $revenues ) / count( $revenues );
+
+			// Sort for percentile calculations
+			sort( $revenues );
+			$count_25_index = (int) floor( count( $revenues ) * 0.25 );
+			$count_75_index = (int) floor( count( $revenues ) * 0.75 );
+
+			$stats['percentile_25_revenue'] = $revenues[ $count_25_index ];
+			$stats['percentile_75_revenue'] = $revenues[ $count_75_index ];
+		}
+
+		if ( ! empty( $conversion_rates ) ) {
+			$stats['avg_conversion_rate'] = array_sum( $conversion_rates ) / count( $conversion_rates );
+
+			sort( $conversion_rates );
+			$count_25_index = (int) floor( count( $conversion_rates ) * 0.25 );
+			$count_75_index = (int) floor( count( $conversion_rates ) * 0.75 );
+
+			$stats['percentile_25_conversion'] = $conversion_rates[ $count_25_index ];
+			$stats['percentile_75_conversion'] = $conversion_rates[ $count_75_index ];
+		}
+
+		// Calculate success rate
+		if ( count( $campaigns ) > 0 ) {
+			$stats['success_rate'] = ( $successful_count / count( $campaigns ) ) * 100;
+		}
+
+		return $stats;
+	}
+
+	/**
+	 * Calculate performance percentile ranking.
+	 *
+	 * Determines where current performance ranks among historical campaigns.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $performance_data    Current campaign performance.
+	 * @param    array $stats               Aggregate statistics from similar campaigns.
+	 * @return   array                         Percentile rankings.
+	 */
+	private function calculate_performance_percentile( $performance_data, $stats ) {
+		$percentiles = array();
+
+		// Revenue percentile
+		if ( isset( $performance_data['revenue'] ) && isset( $stats['avg_revenue'] ) ) {
+			$current_revenue = floatval( $performance_data['revenue'] );
+			$avg_revenue     = $stats['avg_revenue'];
+			$p25_revenue     = $stats['percentile_25_revenue'];
+			$p75_revenue     = $stats['percentile_75_revenue'];
+
+			if ( $current_revenue >= $p75_revenue ) {
+				// Top quartile
+				$percentiles['revenue'] = 75 + ( ( $current_revenue - $p75_revenue ) / max( $p75_revenue, 1 ) ) * 25;
+				$percentiles['revenue'] = min( 99, $percentiles['revenue'] );
+			} elseif ( $current_revenue >= $avg_revenue ) {
+				// Above average
+				$percentiles['revenue'] = 50 + ( ( $current_revenue - $avg_revenue ) / max( $p75_revenue - $avg_revenue, 1 ) ) * 25;
+			} elseif ( $current_revenue >= $p25_revenue ) {
+				// Below average
+				$percentiles['revenue'] = 25 + ( ( $current_revenue - $p25_revenue ) / max( $avg_revenue - $p25_revenue, 1 ) ) * 25;
+			} else {
+				// Bottom quartile
+				$percentiles['revenue'] = ( $current_revenue / max( $p25_revenue, 1 ) ) * 25;
+			}
+		}
+
+		// Conversion rate percentile
+		if ( isset( $performance_data['conversion_rate'] ) && isset( $stats['avg_conversion_rate'] ) ) {
+			$current_conversion = floatval( $performance_data['conversion_rate'] );
+			$avg_conversion     = $stats['avg_conversion_rate'];
+			$p25_conversion     = $stats['percentile_25_conversion'];
+			$p75_conversion     = $stats['percentile_75_conversion'];
+
+			if ( $current_conversion >= $p75_conversion ) {
+				$percentiles['conversion_rate'] = 75 + ( ( $current_conversion - $p75_conversion ) / max( $p75_conversion, 0.1 ) ) * 25;
+				$percentiles['conversion_rate'] = min( 99, $percentiles['conversion_rate'] );
+			} elseif ( $current_conversion >= $avg_conversion ) {
+				$percentiles['conversion_rate'] = 50 + ( ( $current_conversion - $avg_conversion ) / max( $p75_conversion - $avg_conversion, 0.1 ) ) * 25;
+			} elseif ( $current_conversion >= $p25_conversion ) {
+				$percentiles['conversion_rate'] = 25 + ( ( $current_conversion - $p25_conversion ) / max( $avg_conversion - $p25_conversion, 0.1 ) ) * 25;
+			} else {
+				$percentiles['conversion_rate'] = ( $current_conversion / max( $p25_conversion, 0.1 ) ) * 25;
+			}
+		}
+
+		return $percentiles;
+	}
+
+	/**
+	 * Get date range for array of campaigns.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $campaigns    Array of SCD_Campaign objects.
+	 * @return   array                  Date range (earliest, latest).
+	 */
+	private function get_campaigns_date_range( $campaigns ) {
+		if ( empty( $campaigns ) ) {
+			return array(
+				'earliest' => null,
+				'latest'   => null,
+			);
+		}
+
+		$earliest = null;
+		$latest   = null;
+
+		foreach ( $campaigns as $campaign ) {
+			$start_date = $campaign->get_starts_at();
+			if ( $start_date ) {
+				$timestamp = $start_date->getTimestamp();
+
+				if ( null === $earliest || $timestamp < $earliest ) {
+					$earliest = $timestamp;
+				}
+				if ( null === $latest || $timestamp > $latest ) {
+					$latest = $timestamp;
+				}
+			}
+		}
+
+		return array(
+			'earliest' => $earliest ? date( 'Y-m-d', $earliest ) : null,
+			'latest'   => $latest ? date( 'Y-m-d', $latest ) : null,
+		);
+	}
+
+	/**
+	 * Generate statistical performance forecast for campaign.
+	 *
+	 * Predicts expected performance based on historical patterns and statistical analysis.
+	 *
+	 * @since    1.0.0
+	 * @param    array $campaign    Campaign data.
+	 * @param    array $context     Additional context (analytics_repo, campaign_repo).
+	 * @return   array                 Performance forecast.
+	 */
+	public function generate_performance_forecast( $campaign, $context = array() ) {
+		$forecast = array(
+			'confidence_level'  => 'low',
+			'data_points'       => 0,
+			'revenue_forecast'  => array(),
+			'conversion_forecast' => array(),
+			'factors'           => array(),
+			'methodology'       => 'statistical_analysis',
+		);
+
+		// Get historical data from similar campaigns
+		$benchmark_data = $this->get_smart_benchmark( $campaign, $context );
+
+		if ( ! $benchmark_data['has_historical_data'] ) {
+			$forecast['factors'][] = 'Insufficient historical data for statistical forecast';
+			return $forecast;
+		}
+
+		$similar_count = $benchmark_data['similar_campaigns']['count'];
+		$forecast['data_points'] = $similar_count;
+
+		// Confidence level based on sample size
+		if ( $similar_count >= 20 ) {
+			$forecast['confidence_level'] = 'high';
+		} elseif ( $similar_count >= 10 ) {
+			$forecast['confidence_level'] = 'medium';
+		}
+
+		// Use expected performance from benchmark
+		if ( ! empty( $benchmark_data['expected_performance'] ) ) {
+			$expected = $benchmark_data['expected_performance'];
+
+			$forecast['revenue_forecast'] = array(
+				'pessimistic' => $expected['revenue']['conservative'],
+				'realistic'   => $expected['revenue']['likely'],
+				'optimistic'  => $expected['revenue']['optimistic'],
+				'range'       => $expected['revenue']['optimistic'] - $expected['revenue']['conservative'],
+			);
+
+			$forecast['conversion_forecast'] = array(
+				'pessimistic' => $expected['conversion_rate']['conservative'],
+				'realistic'   => $expected['conversion_rate']['likely'],
+				'optimistic'  => $expected['conversion_rate']['optimistic'],
+				'range'       => $expected['conversion_rate']['optimistic'] - $expected['conversion_rate']['conservative'],
+			);
+		}
+
+		// Apply adjustment factors based on campaign characteristics
+		$forecast = $this->apply_forecast_adjustments( $forecast, $campaign, $context );
+
+		// Add methodology explanation
+		$forecast['factors'][] = sprintf(
+			'Forecast based on %d similar historical campaigns',
+			$similar_count
+		);
+
+		$forecast['factors'][] = 'Percentile method: 25th (pessimistic), 50th (realistic), 75th (optimistic)';
+
+		return $forecast;
+	}
+
+	/**
+	 * Apply adjustments to forecast based on campaign-specific factors.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $forecast    Base forecast.
+	 * @param    array $campaign    Campaign data.
+	 * @param    array $context     Additional context.
+	 * @return   array                 Adjusted forecast.
+	 */
+	private function apply_forecast_adjustments( $forecast, $campaign, $context ) {
+		$adjustment_factor = 1.0;
+
+		// Seasonal adjustment
+		$start_date = isset( $campaign['start_date'] ) ? $campaign['start_date'] : '';
+		if ( ! empty( $start_date ) ) {
+			$start_month = (int) date( 'n', strtotime( $start_date ) );
+
+			// Peak shopping months get positive adjustment
+			if ( in_array( $start_month, array( 11, 12 ), true ) ) {
+				$adjustment_factor *= 1.15; // 15% boost for Nov/Dec
+				$forecast['factors'][] = 'Seasonal boost applied: Holiday shopping season (+15%)';
+			} elseif ( in_array( $start_month, array( 8 ), true ) ) {
+				$adjustment_factor *= 1.08; // 8% boost for Back to School
+				$forecast['factors'][] = 'Seasonal boost applied: Back to school season (+8%)';
+			} elseif ( in_array( $start_month, array( 1 ), true ) ) {
+				$adjustment_factor *= 0.92; // 8% reduction for January
+				$forecast['factors'][] = 'Seasonal adjustment: Post-holiday slowdown (-8%)';
+			}
+		}
+
+		// Competition adjustment
+		if ( ! empty( $context['conflicts_data'] ) && ! empty( $context['conflicts_data']['conflicts'] ) ) {
+			$conflict_count = count( $context['conflicts_data']['conflicts'] );
+			if ( $conflict_count > 5 ) {
+				$adjustment_factor *= 0.85; // 15% reduction for high competition
+				$forecast['factors'][] = 'Competition adjustment: High internal competition (-15%)';
+			} elseif ( $conflict_count > 2 ) {
+				$adjustment_factor *= 0.92; // 8% reduction for moderate competition
+				$forecast['factors'][] = 'Competition adjustment: Moderate competition (-8%)';
+			}
+		}
+
+		// Apply adjustments to revenue forecast
+		if ( ! empty( $forecast['revenue_forecast'] ) ) {
+			$forecast['revenue_forecast']['pessimistic'] *= $adjustment_factor;
+			$forecast['revenue_forecast']['realistic']   *= $adjustment_factor;
+			$forecast['revenue_forecast']['optimistic']  *= $adjustment_factor;
+			$forecast['revenue_forecast']['range']       = $forecast['revenue_forecast']['optimistic'] - $forecast['revenue_forecast']['pessimistic'];
+		}
+
+		return $forecast;
+	}
+
+	/**
+	 * Analyze historical patterns for campaign configuration.
+	 *
+	 * Identifies patterns in successful vs unsuccessful campaigns.
+	 *
+	 * @since    1.0.0
+	 * @param    array $campaign    Campaign data.
+	 * @param    array $context     Additional context (campaign_repo, analytics_repo).
+	 * @return   array                 Pattern analysis results.
+	 */
+	public function analyze_historical_patterns( $campaign, $context = array() ) {
+		$analysis = array(
+			'patterns_found'   => false,
+			'success_patterns' => array(),
+			'failure_patterns' => array(),
+			'recommendations'  => array(),
+			'sample_size'      => 0,
+		);
+
+		if ( empty( $context['campaign_repo'] ) || empty( $context['analytics_repo'] ) ) {
+			return $analysis;
+		}
+
+		$campaign_repo  = $context['campaign_repo'];
+		$analytics_repo = $context['analytics_repo'];
+
+		// Get completed campaigns
+		$completed_campaigns = $campaign_repo->find_by(
+			array(
+				'status' => 'completed',
+			),
+			array(
+				'limit' => 100,
+			)
+		);
+
+		if ( empty( $completed_campaigns ) ) {
+			return $analysis;
+		}
+
+		$analysis['sample_size'] = count( $completed_campaigns );
+		$analysis['patterns_found'] = true;
+
+		// Categorize campaigns by performance
+		$high_performers = array();
+		$low_performers  = array();
+
+		foreach ( $completed_campaigns as $completed_campaign ) {
+			$performance = $analytics_repo->get_campaign_performance( $completed_campaign->get_id() );
+
+			if ( empty( $performance ) ) {
+				continue;
+			}
+
+			$revenue    = isset( $performance['total_revenue'] ) ? floatval( $performance['total_revenue'] ) : 0;
+			$conversion = isset( $performance['conversion_rate'] ) ? floatval( $performance['conversion_rate'] ) : 0;
+
+			// Classify as high or low performer
+			if ( $revenue > 1000 && $conversion > 3.0 ) {
+				$high_performers[] = array(
+					'campaign'    => $completed_campaign,
+					'performance' => $performance,
+				);
+			} elseif ( $revenue < 100 || $conversion < 1.0 ) {
+				$low_performers[] = array(
+					'campaign'    => $completed_campaign,
+					'performance' => $performance,
+				);
+			}
+		}
+
+		// Analyze patterns in high performers
+		if ( ! empty( $high_performers ) ) {
+			$analysis['success_patterns'] = $this->extract_common_patterns( $high_performers, 'success' );
+		}
+
+		// Analyze patterns in low performers
+		if ( ! empty( $low_performers ) ) {
+			$analysis['failure_patterns'] = $this->extract_common_patterns( $low_performers, 'failure' );
+		}
+
+		// Generate recommendations based on patterns
+		$analysis['recommendations'] = $this->generate_pattern_based_recommendations(
+			$campaign,
+			$analysis['success_patterns'],
+			$analysis['failure_patterns']
+		);
+
+		return $analysis;
+	}
+
+	/**
+	 * Extract common patterns from campaign group.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array  $campaign_group    Array of campaigns with performance data.
+	 * @param    string $group_type        'success' or 'failure'.
+	 * @return   array                        Common patterns found.
+	 */
+	private function extract_common_patterns( $campaign_group, $group_type ) {
+		$patterns = array(
+			'discount_types'    => array(),
+			'selection_types'   => array(),
+			'avg_discount'      => 0,
+			'common_day_of_week' => null,
+			'avg_duration_days' => 0,
+		);
+
+		if ( empty( $campaign_group ) ) {
+			return $patterns;
+		}
+
+		$discount_type_counts  = array();
+		$selection_type_counts = array();
+		$discount_values       = array();
+		$day_of_week_counts    = array();
+		$durations             = array();
+
+		foreach ( $campaign_group as $item ) {
+			$campaign = $item['campaign'];
+
+			// Track discount types
+			$discount_type = $campaign->get_discount_type();
+			if ( ! isset( $discount_type_counts[ $discount_type ] ) ) {
+				$discount_type_counts[ $discount_type ] = 0;
+			}
+			$discount_type_counts[ $discount_type ]++;
+
+			// Track selection types
+			$selection_type = $campaign->get_product_selection_type();
+			if ( ! isset( $selection_type_counts[ $selection_type ] ) ) {
+				$selection_type_counts[ $selection_type ] = 0;
+			}
+			$selection_type_counts[ $selection_type ]++;
+
+			// Track discount values
+			$discount_values[] = $campaign->get_discount_value();
+
+			// Track start day of week
+			$start_date = $campaign->get_starts_at();
+			if ( $start_date ) {
+				$day_of_week = (int) $start_date->format( 'N' );
+				if ( ! isset( $day_of_week_counts[ $day_of_week ] ) ) {
+					$day_of_week_counts[ $day_of_week ] = 0;
+				}
+				$day_of_week_counts[ $day_of_week ]++;
+			}
+
+			// Track duration
+			$start = $campaign->get_starts_at();
+			$end   = $campaign->get_ends_at();
+			if ( $start && $end ) {
+				$duration = $end->diff( $start )->days;
+				$durations[] = $duration;
+			}
+		}
+
+		// Identify most common patterns
+		arsort( $discount_type_counts );
+		$patterns['discount_types'] = array_slice( $discount_type_counts, 0, 3, true );
+
+		arsort( $selection_type_counts );
+		$patterns['selection_types'] = array_slice( $selection_type_counts, 0, 3, true );
+
+		if ( ! empty( $discount_values ) ) {
+			$patterns['avg_discount'] = array_sum( $discount_values ) / count( $discount_values );
+		}
+
+		if ( ! empty( $day_of_week_counts ) ) {
+			arsort( $day_of_week_counts );
+			$patterns['common_day_of_week'] = key( $day_of_week_counts );
+		}
+
+		if ( ! empty( $durations ) ) {
+			$patterns['avg_duration_days'] = array_sum( $durations ) / count( $durations );
+		}
+
+		return $patterns;
+	}
+
+	/**
+	 * Generate recommendations based on pattern analysis.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $campaign           Current campaign data.
+	 * @param    array $success_patterns   Patterns from successful campaigns.
+	 * @param    array $failure_patterns   Patterns from failed campaigns.
+	 * @return   array                        Pattern-based recommendations.
+	 */
+	private function generate_pattern_based_recommendations( $campaign, $success_patterns, $failure_patterns ) {
+		$recommendations = array();
+
+		if ( empty( $success_patterns ) ) {
+			return $recommendations;
+		}
+
+		// Discount type recommendation
+		if ( ! empty( $success_patterns['discount_types'] ) ) {
+			$current_type = isset( $campaign['discount_type'] ) ? $campaign['discount_type'] : '';
+			$best_type    = key( $success_patterns['discount_types'] );
+
+			if ( $current_type !== $best_type ) {
+				$recommendations[] = array(
+					'type'    => 'discount_type',
+					'message' => sprintf(
+						'Consider using %s discount - it has been most successful in similar campaigns',
+						$best_type
+					),
+					'priority' => 'medium',
+				);
+			}
+		}
+
+		// Discount value recommendation
+		if ( isset( $success_patterns['avg_discount'] ) ) {
+			$current_value = isset( $campaign['discount_value'] ) ? floatval( $campaign['discount_value'] ) : 0;
+			$optimal_value = $success_patterns['avg_discount'];
+
+			$difference_pct = abs( ( $current_value - $optimal_value ) / max( $optimal_value, 1 ) ) * 100;
+
+			if ( $difference_pct > 30 ) {
+				$recommendations[] = array(
+					'type'    => 'discount_value',
+					'message' => sprintf(
+						'Successful campaigns typically use %.1f%% discount (you have %.1f%%)',
+						$optimal_value,
+						$current_value
+					),
+					'priority' => 'medium',
+				);
+			}
+		}
+
+		// Start day recommendation
+		if ( isset( $success_patterns['common_day_of_week'] ) ) {
+			$optimal_day = $success_patterns['common_day_of_week'];
+			$day_names = array( 1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday', 7 => 'Sunday' );
+
+			$recommendations[] = array(
+				'type'    => 'start_timing',
+				'message' => sprintf(
+					'Successful campaigns often start on %s - consider this for optimal performance',
+					$day_names[ $optimal_day ]
+				),
+				'priority' => 'low',
+			);
+		}
+
+		// Duration recommendation
+		if ( isset( $success_patterns['avg_duration_days'] ) ) {
+			$optimal_duration = round( $success_patterns['avg_duration_days'] );
+
+			$recommendations[] = array(
+				'type'    => 'duration',
+				'message' => sprintf(
+					'Successful campaigns typically run for %d days',
+					$optimal_duration
+				),
+				'priority' => 'low',
+			);
+		}
+
+		return $recommendations;
 	}
 }

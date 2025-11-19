@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/class-autoloader.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/core
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Autoloader {
 
@@ -103,6 +103,12 @@ class SCD_Autoloader {
 
 		// Validation classes
 		'SCD_Validation'                   => 'core/validation/class-validation.php',
+		'SCD_Condition_Validator'          => 'core/validation/class-condition-validator.php',
+		'SCD_Products_Step_Validator'      => 'core/validation/step-validators/class-products-step-validator.php',
+		'SCD_Discounts_Step_Validator'     => 'core/validation/step-validators/class-discounts-step-validator.php',
+		'SCD_Schedule_Step_Validator'      => 'core/validation/step-validators/class-schedule-step-validator.php',
+		'SCD_Campaign_Cross_Validator'     => 'core/validation/class-campaign-cross-validator.php',
+		'SCD_Discount_Rules_Enforcer'      => 'core/validation/class-discount-rules-enforcer.php',
 
 		// Domain model classes for validation
 		'SCD_Schedule'                     => 'core/scheduling/class-schedule.php',
@@ -142,15 +148,18 @@ class SCD_Autoloader {
 		'SCD_WooCommerce_Integration'      => 'integrations/woocommerce/class-woocommerce-integration.php',
 
 		// WooCommerce sub-integrations (Phase 2 & 3)
+		'SCD_WC_Discount_Map_Service'      => 'integrations/woocommerce/class-wc-discount-map-service.php',
 		'SCD_WC_Discount_Query_Service'    => 'integrations/woocommerce/class-wc-discount-query-service.php',
 		'SCD_WC_Price_Integration'         => 'integrations/woocommerce/class-wc-price-integration.php',
 		'SCD_WC_Display_Integration'       => 'integrations/woocommerce/class-wc-display-integration.php',
 		'SCD_WC_Cart_Message_Service'      => 'integrations/woocommerce/class-wc-cart-message-service.php',
 		'SCD_WC_Admin_Integration'         => 'integrations/woocommerce/class-wc-admin-integration.php',
 		'SCD_WC_Order_Integration'         => 'integrations/woocommerce/class-wc-order-integration.php',
+		'SCD_WC_Coupon_Restriction'        => 'integrations/woocommerce/class-wc-coupon-restriction.php',
 
 		'SCD_Blocks_Manager'               => 'integrations/blocks/class-blocks-manager.php',
 		'SCD_Email_Manager'                => 'integrations/email/class-email-manager.php',
+		'SCD_Alert_Monitor'                => 'integrations/email/class-alert-monitor.php',
 		'SCD_Email_Provider'               => 'integrations/email/interface-email-provider.php',
 		'SCD_WPMail_Provider'              => 'integrations/email/providers/class-wpmail-provider.php',
 		'SCD_SendGrid_Provider'            => 'integrations/email/providers/class-sendgrid-provider.php',
@@ -189,10 +198,11 @@ class SCD_Autoloader {
 		'SCD_Export_Service'               => 'core/analytics/class-export-service.php',
 
 		// AJAX Handlers
-		'SCD_Save_Step_Handler'            => 'admin/ajax/handlers/class-save-step-handler.php',
-		'SCD_Load_Data_Handler'            => 'admin/ajax/handlers/class-load-data-handler.php',
-		'SCD_Product_Search_Handler'       => 'admin/ajax/handlers/class-product-search-handler.php',
-		'SCD_Clear_Cache_Handler'          => 'admin/ajax/handlers/class-clear-cache-handler.php',
+		'SCD_Save_Step_Handler'               => 'admin/ajax/handlers/class-save-step-handler.php',
+		'SCD_Load_Data_Handler'               => 'admin/ajax/handlers/class-load-data-handler.php',
+		'SCD_Product_Search_Handler'          => 'admin/ajax/handlers/class-product-search-handler.php',
+		'SCD_Clear_Cache_Handler'             => 'admin/ajax/handlers/class-clear-cache-handler.php',
+		'SCD_Test_Provider_Connection_Handler' => 'admin/ajax/handlers/class-test-provider-connection-handler.php',
 		'SCD_Get_Summary_Handler'          => 'admin/ajax/handlers/class-get-summary-handler.php',
 		'SCD_Check_Campaign_Name_Handler'  => 'admin/ajax/handlers/class-check-campaign-name-handler.php',
 		'SCD_Get_Product_Stats_Handler'    => 'admin/ajax/handlers/class-get-product-stats-handler.php',
@@ -220,6 +230,7 @@ class SCD_Autoloader {
 		'SCD_Wizard_State_Service'         => 'core/wizard/class-wizard-state-service.php',
 		'SCD_Campaign_Compiler_Service'    => 'core/campaigns/class-campaign-compiler-service.php',
 		'SCD_Campaign_Health_Service'      => 'core/services/class-campaign-health-service.php',
+		'SCD_Campaign_Summary_Service'     => 'services/class-campaign-summary-service.php',
 		'SCD_Session_Lock'                 => 'utilities/class-session-lock-service.php',
 		'SCD_Service_Definitions'          => 'bootstrap/class-service-definitions.php',
 
@@ -242,6 +253,7 @@ class SCD_Autoloader {
 		// Frontend classes
 		'SCD_Frontend_Manager'             => 'frontend/class-frontend-manager.php',
 		'SCD_Discount_Display'             => 'frontend/class-discount-display.php',
+		'SCD_Discount_Display_Rules'       => 'frontend/class-discount-display-rules.php',
 		'SCD_Countdown_Timer'              => 'frontend/class-countdown-timer.php',
 		'SCD_Shortcodes'                   => 'frontend/class-shortcodes.php',
 		'SCD_Template_Loader'              => 'frontend/class-template-loader.php',
@@ -262,6 +274,10 @@ class SCD_Autoloader {
 		'SCD_Translation_Handler'          => 'utilities/class-translation-handler.php',
 		'SCD_Service_Health_Check'         => 'utilities/class-service-health-check.php',
 		'SCD_Requirements_Checker'         => 'utilities/class-requirements-checker.php',
+
+		// Constant classes
+		'SCD_Schedule_Field_Names'         => 'constants/class-scd-schedule-field-names.php',
+		'SCD_Product_Selection_Types'      => 'constants/class-scd-product-selection-types.php',
 
 		// API classes
 		'SCD_REST_API_Manager'             => 'api/class-rest-api-manager.php',
@@ -285,8 +301,14 @@ class SCD_Autoloader {
 
 		// Additional helpers
 		'SCD_Tooltip_Helper'               => 'admin/helpers/class-tooltip-helper.php',
+		'SCD_Icon_Helper'                  => 'admin/helpers/class-icon-helper.php',
+		'SCD_Button_Helper'                => 'admin/helpers/class-button-helper.php',
+		'SCD_Card_Helper'                  => 'admin/helpers/class-card-helper.php',
 		'SCD_Chart_Renderer'               => 'admin/components/class-chart-renderer.php',
 		'SCD_Condition_Builder'            => 'admin/components/class-condition-builder.php',
+		'SCD_Badge_Helper'                 => 'admin/components/class-badge-helper.php',
+		'SCD_Campaign_Overview_Panel'      => 'admin/components/class-campaign-overview-panel.php',
+		'SCD_Modal_Component'              => 'admin/components/class-modal-component.php',
 		'SCD_Cache_Warming'                => 'cache/class-cache-warming.php',
 		'SCD_Cache_Factory'                => 'cache/class-cache-factory.php',
 		'SCD_Task_Manager'                 => 'core/scheduling/class-task-manager.php',
@@ -322,7 +344,7 @@ class SCD_Autoloader {
 	 */
 	public static function autoload( string $class_name ): void {
 		// Only handle our plugin classes
-		if ( strpos( $class_name, 'SCD_' ) !== 0 ) {
+		if ( 0 !== strpos( $class_name, 'SCD_' ) ) {
 			return;
 		}
 
@@ -365,6 +387,7 @@ class SCD_Autoloader {
 			'admin/pages/campaigns/class-' . $class . '.php',
 			'admin/pages/campaigns/abstract-' . $class . '.php',
 			'admin/tables/class-' . $class . '.php',
+			'constants/class-' . $class . '.php',
 			'core/class-' . $class . '.php',
 			'core/campaigns/class-' . $class . '.php',
 			'core/discounts/class-' . $class . '.php',
@@ -411,11 +434,11 @@ class SCD_Autoloader {
 	 * @return   bool                     True if can be autoloaded.
 	 */
 	public static function can_autoload( string $class_name ): bool {
-		if ( strpos( $class_name, 'SCD_' ) !== 0 ) {
+		if ( 0 !== strpos( $class_name, 'SCD_' ) ) {
 			return false;
 		}
 
 		return isset( self::$class_map[ $class_name ] ) ||
-				self::get_file_path_from_class( $class_name ) !== null;
+				null !== self::get_file_path_from_class( $class_name );
 	}
 }

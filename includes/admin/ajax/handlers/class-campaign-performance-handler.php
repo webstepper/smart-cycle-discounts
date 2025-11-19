@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers/class-campaign-performance-handler.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -51,7 +51,7 @@ class SCD_Campaign_Performance_Handler extends SCD_Abstract_Analytics_Handler {
 	 * @since    1.0.0
 	 * @return   string    Required capability.
 	 */
-	protected function get_required_capability() {
+	protected function get_required_capability(): string {
 		return 'scd_view_analytics';
 	}
 
@@ -62,7 +62,7 @@ class SCD_Campaign_Performance_Handler extends SCD_Abstract_Analytics_Handler {
 	 * @param    array $request    Request data.
 	 * @return   array                Response data.
 	 */
-	public function handle( $request ) {
+	public function handle( array $request ): array {
 		$license_check = $this->validate_license( 'logic' );
 		if ( $this->license_validation_failed( $license_check ) ) {
 			return $this->license_error_response( $license_check );
@@ -77,14 +77,14 @@ class SCD_Campaign_Performance_Handler extends SCD_Abstract_Analytics_Handler {
 			);
 		}
 
-		$date_range = sanitize_text_field( isset( $request['date_range'] ) ? $request['date_range'] : '30days' );
-		$dateRange  = sanitize_text_field( isset( $request['dateRange'] ) ? $request['dateRange'] : $date_range );
+		$date_range = isset( $request['dateRange'] ) ? sanitize_text_field( $request['dateRange'] ) :
+			( isset( $request['date_range'] ) ? sanitize_text_field( $request['date_range'] ) : '30days' );
 		$limit      = isset( $request['limit'] ) ? absint( $request['limit'] ) : 10;
 		$metric     = sanitize_text_field( isset( $request['metric'] ) ? $request['metric'] : 'revenue' );
 
 		try {
 			$campaigns = $this->analytics_collector->get_campaign_performance(
-				array( 'date_range' => $dateRange ),
+				array( 'date_range' => $date_range ),
 				$limit,
 				$metric,
 				'desc'
@@ -103,7 +103,7 @@ class SCD_Campaign_Performance_Handler extends SCD_Abstract_Analytics_Handler {
 					'labels'       => $labels,
 					'values'       => $values,
 					'metric'       => $metric,
-					'date_range'   => $dateRange,
+					'date_range'   => $date_range,
 					'generated_at' => current_time( 'timestamp' ),
 				)
 			);

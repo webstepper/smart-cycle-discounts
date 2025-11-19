@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers/class-session-status-handler.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Session_Status_Handler extends SCD_Abstract_Ajax_Handler {
 
@@ -69,17 +69,20 @@ class SCD_Session_Status_Handler extends SCD_Abstract_Ajax_Handler {
 		$session_service = $this->get_session_service();
 
 		if ( ! $session_service ) {
+			// Service not available - this is an actual error
 			return array(
-				'success' => false,
-				'message' => __( 'Session service not available', 'smart-cycle-discounts' ),
+				'success'        => false,
+				'session_exists' => false,
+				'message'        => __( 'Session service not available', 'smart-cycle-discounts' ),
 			);
 		}
 
 		$expiration_info = $session_service->get_expiration_info();
 
 		if ( ! $expiration_info ) {
+			// No session - this is a valid state (e.g., fresh wizard load)
 			return array(
-				'success'        => false,
+				'success'        => true,
 				'session_exists' => false,
 				'message'        => __( 'No active session', 'smart-cycle-discounts' ),
 			);

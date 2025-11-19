@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/steps/discounts/discounts-config.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -66,7 +66,6 @@
 			// Timing Constants
 			timing: {
 				debounceDelay: 300,
-				autoSaveDelay: 2000,
 				previewUpdateDelay: 500,
 				validationDelay: 150,
 				animationDuration: 200
@@ -77,31 +76,31 @@
 				percentage: {
 					id: 'percentage',
 					label: 'Percentage Discount',
-					icon: 'dashicons-tag',
+					icon: 'tag',
 					description: 'Discount by a percentage of the original price'
 				},
 				fixed: {
 					id: 'fixed',
 					label: 'Fixed Amount',
-					icon: 'dashicons-money-alt',
+					icon: 'money',
 					description: 'Discount by a fixed amount'
 				},
 				tiered: {
 					id: 'tiered',
 					label: 'Tiered Discount',
-					icon: 'dashicons-chart-bar',
+					icon: 'chart-bar',
 					description: 'Different discounts based on quantity or amount'
 				},
 				bogo: {
 					id: 'bogo',
 					label: 'Buy One Get One',
-					icon: 'dashicons-products',
+					icon: 'products',
 					description: 'Buy X Get Y deals'
 				},
 				spend_threshold: {
 					id: 'spend_threshold',
 					label: 'Spend Threshold',
-					icon: 'dashicons-cart',
+					icon: 'cart',
 					description: 'Discounts based on cart total'
 				}
 			}
@@ -115,8 +114,6 @@
 		runtime: {
 			// Behavior settings
 			behavior: {
-				autoSave: true,
-				autoSaveDelay: 2000,
 				validateOnChange: true,
 				validateOnBlur: true,
 				showPreview: true,
@@ -205,7 +202,7 @@
 			// Default structures
 			structures: {
 				tier: {
-					minQuantity: 1,
+					minQuantity: 2,
 					discountValue: 0,
 					discountType: 'percentage'
 				},

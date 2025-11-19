@@ -101,8 +101,14 @@ class SCD_Campaign_Manager {
 		$this->cache      = $cache;
 		$this->container  = $container;
 
+		// Debug: Log Campaign_Manager instantiation
+		error_log( '[SCD] CAMPAIGN_MANAGER - Constructor called, registering scd_campaign_activated hook listener, instance ID: ' . spl_object_id( $this ) );
+
 		// Listen to campaign activation hook to trigger compilation
 		add_action( 'scd_campaign_activated', array( $this, 'on_campaign_activated' ), 5, 1 );
+
+		// Debug: Verify hook was registered
+		error_log( '[SCD] CAMPAIGN_MANAGER - Hook registered successfully' );
 	}
 
 	/**
@@ -146,6 +152,13 @@ class SCD_Campaign_Manager {
 
 			$data = $this->prepare_data_for_creation( $data );
 
+			// Debug: Check conditions before creating Campaign entity
+			if ( isset( $data['conditions'] ) ) {
+				error_log( '[SCD] CAMPAIGN_MANAGER - Creating campaign with conditions: ' . print_r( $data['conditions'], true ) );
+			} else {
+				error_log( '[SCD] CAMPAIGN_MANAGER - Creating campaign WITHOUT conditions in data' );
+			}
+
 			$campaign = new SCD_Campaign( $data );
 
 			$errors = $campaign->validate();
@@ -161,15 +174,41 @@ class SCD_Campaign_Manager {
 			$this->log_campaign_created( $campaign );
 			do_action( 'scd_campaign_created', $campaign );
 
+			// Fire generic save hook for features that need access to campaign data (recurring, etc.)
+			do_action( 'scd_campaign_saved', $campaign->get_id(), $data );
+
+			// Debug: Log campaign status unconditionally
+			error_log( '[SCD] CAMPAIGN_MANAGER - Campaign created with status: ' . $campaign->get_status() . ', ID: ' . $campaign->get_id() );
+
 			// If campaign created as active and needs compilation, trigger activation hook
 			if ( 'active' === $campaign->get_status() ) {
 				$selection_type = $campaign->get_product_selection_type();
-				$metadata       = $campaign->get_metadata();
-				$has_conditions = ! empty( $metadata['product_conditions'] );
+				// Get conditions from Campaign object (loaded from conditions table)
+				$conditions     = $campaign->get_conditions();
+				$has_conditions = ! empty( $conditions );
+
+				// Debug: Log activation check details
+				error_log( '[SCD] CAMPAIGN_MANAGER - Inside active status check, selection_type: ' . $selection_type . ', has_conditions: ' . ( $has_conditions ? 'YES' : 'NO' ) );
+				error_log( '[SCD] CAMPAIGN_MANAGER - Conditions array: ' . print_r( $conditions, true ) );
+
+				$this->log(
+					'debug',
+					'Checking if activation hook should fire',
+					array(
+						'campaign_id'    => $campaign->get_id(),
+						'status'         => $campaign->get_status(),
+						'selection_type' => $selection_type,
+						'has_conditions' => $has_conditions,
+					)
+				);
 
 				// Trigger activation hook if campaign has dynamic product selection or conditions
 				if ( in_array( $selection_type, array( 'random_products', 'smart_selection' ), true ) || $has_conditions ) {
+					error_log( '[SCD] CAMPAIGN_MANAGER - FIRING scd_campaign_activated hook for campaign ' . $campaign->get_id() );
+					$this->log( 'debug', 'Firing scd_campaign_activated hook', array( 'campaign_id' => $campaign->get_id() ) );
 					do_action( 'scd_campaign_activated', $campaign );
+				} else {
+					error_log( '[SCD] CAMPAIGN_MANAGER - NOT firing activation hook - selection_type: ' . $selection_type . ', has_conditions: ' . ( $has_conditions ? 'YES' : 'NO' ) );
 				}
 			}
 
@@ -529,7 +568,27 @@ class SCD_Campaign_Manager {
 			}
 
 			$this->log_campaign_updated( $campaign, $original_status );
-			$this->trigger_update_hooks( $campaign, $original_status );
+			$this->trigger_update_hooks( $campaign, $original_status, $data );
+
+			// Check if activation hook should fire (campaign became active or is active with conditions)
+			$new_status         = $campaign->get_status();
+			$became_active      = 'active' === $new_status && $original_status !== 'active';
+			$is_active          = 'active' === $new_status;
+			$selection_type     = $campaign->get_product_selection_type();
+			$conditions         = $campaign->get_conditions();
+			$has_conditions     = ! empty( $conditions );
+			$needs_compilation  = in_array( $selection_type, array( 'random_products', 'smart_selection' ), true ) || $has_conditions;
+
+			// Debug: Log update activation check
+			error_log( '[SCD] CAMPAIGN_MANAGER - Update activation check - became_active: ' . ( $became_active ? 'YES' : 'NO' ) . ', is_active: ' . ( $is_active ? 'YES' : 'NO' ) . ', needs_compilation: ' . ( $needs_compilation ? 'YES' : 'NO' ) );
+
+			// Trigger activation hook if campaign became active or is active and needs compilation
+			if ( $became_active || ( $is_active && $needs_compilation ) ) {
+				error_log( '[SCD] CAMPAIGN_MANAGER - FIRING scd_campaign_activated hook after update for campaign ' . $campaign->get_id() . ', from instance ID: ' . spl_object_id( $this ) );
+				$this->log( 'debug', 'Firing scd_campaign_activated hook after update', array( 'campaign_id' => $campaign->get_id() ) );
+				do_action( 'scd_campaign_activated', $campaign );
+				error_log( '[SCD] CAMPAIGN_MANAGER - Hook fired, checking if listeners were called...' );
+			}
 
 			// Note: Cache invalidation handled by Repository layer on save()
 
@@ -752,8 +811,11 @@ class SCD_Campaign_Manager {
 	 * @param    string       $original_status   Original status.
 	 * @return   void
 	 */
-	private function trigger_update_hooks( SCD_Campaign $campaign, string $original_status ): void {
+	private function trigger_update_hooks( SCD_Campaign $campaign, string $original_status ,  array $data = array() ): void {
 		do_action( 'scd_campaign_updated', $campaign, $original_status );
+
+		// Fire generic save hook for features that need access to campaign data (recurring, etc.)
+		do_action( 'scd_campaign_saved', $campaign->get_id(), $data );
 
 		if ( $original_status !== $campaign->get_status() ) {
 			do_action( 'scd_campaign_status_changed', $campaign, $original_status, $campaign->get_status() );
@@ -810,6 +872,32 @@ class SCD_Campaign_Manager {
 						'campaign_id' => $id,
 					)
 				);
+			}
+
+			// If recurring parent, cascade delete occurrences and instances
+			if ( $campaign->get_enable_recurring() ) {
+				try {
+					$recurring_handler = $this->container->get( 'recurring_handler' );
+					$deleted_instances = $recurring_handler->delete_parent_occurrences( $id );
+					$this->log(
+						'info',
+						'Deleted recurring occurrences',
+						array(
+							'campaign_id'       => $id,
+							'deleted_instances' => $deleted_instances,
+						)
+					);
+				} catch ( Exception $e ) {
+					$this->log(
+						'error',
+						'Failed to delete recurring occurrences',
+						array(
+							'campaign_id' => $id,
+							'error'       => $e->getMessage(),
+						)
+					);
+					// Continue with deletion even if recurring cleanup fails
+				}
 			}
 
 			if ( ! $this->repository->delete( $id ) ) {
@@ -982,12 +1070,30 @@ class SCD_Campaign_Manager {
 	 * @return   true|WP_Error               True or error.
 	 */
 	private function update_campaign_status( SCD_Campaign $campaign, string $status ): bool|WP_Error {
+		$original_status = $campaign->get_status();
+
+		// Use atomic status update to prevent race conditions
+		// Only updates if current status hasn't changed
+		$updated = $this->repository->update_status_atomic(
+			$campaign->get_id(),
+			$status,
+			$original_status
+		);
+
+		if ( ! $updated ) {
+			return new WP_Error(
+				'status_changed',
+				sprintf(
+					'Cannot update campaign status to %s. Current status is not %s (modified by another process).',
+					$status,
+					$original_status
+				)
+			);
+		}
+
+		// Update the campaign object to reflect new status
 		$campaign->set_status( $status );
 		$campaign->set_updated_by( get_current_user_id() );
-
-		if ( ! $this->repository->save( $campaign ) ) {
-			return new WP_Error( 'save_failed', sprintf( 'Failed to %s campaign.', $status ) );
-		}
 
 		return true;
 	}
@@ -1029,14 +1135,24 @@ class SCD_Campaign_Manager {
 	 * @return   void
 	 */
 	public function on_campaign_activated( SCD_Campaign $campaign ): void {
+		// Debug: Log that this method is being called
+		error_log( '[SCD] CAMPAIGN_MANAGER - on_campaign_activated() called for campaign ' . $campaign->get_id() );
+
 		// Compile product selection for random_products and smart_selection
 		$this->compile_product_selection( $campaign );
 
 		if ( $this->cache ) {
-			$this->cache->delete( 'active_campaigns' );
+			// Clear active campaigns list cache (with proper campaigns_ prefix)
+			$this->cache->delete( 'campaigns_active' );
 			$this->cache->delete( 'campaigns_list' );
-			// Also clear the specific campaign cache
-			$this->cache->delete( 'active_campaigns_product_' . $campaign->get_id() );
+
+			// Clear product-specific cache for this campaign's products
+			$product_ids = $campaign->get_product_ids();
+			if ( ! empty( $product_ids ) ) {
+				foreach ( $product_ids as $product_id ) {
+					$this->cache->delete( 'products_active_campaigns_' . $product_id );
+				}
+			}
 		}
 	}
 
@@ -2172,7 +2288,7 @@ class SCD_Campaign_Manager {
 			'settings'    => array(),
 			'metadata'    => array(),
 			'color_theme' => '#2271b1',
-			'icon'        => 'dashicons-tag',
+			'icon'        => 'tag',
 			'timezone'    => wp_timezone_string(),
 			'created_by'  => get_current_user_id(),
 		);
@@ -2216,19 +2332,44 @@ class SCD_Campaign_Manager {
 	private function compile_product_selection( SCD_Campaign $campaign ): void {
 		$selection_type = $campaign->get_product_selection_type();
 		$metadata       = $campaign->get_metadata();
-		$has_conditions = ! empty( $metadata['product_conditions'] );
+
+		// Get conditions from Campaign object (loaded from conditions table)
+		$conditions       = $campaign->get_conditions();
+		$conditions_logic = $campaign->get_conditions_logic();
+		$has_conditions   = ! empty( $conditions );
+
+		// Debug: Unconditional logging
+		error_log( '[SCD] CAMPAIGN_MANAGER - compile_product_selection() called for campaign ' . $campaign->get_id() . ', selection_type: ' . $selection_type . ', has_conditions: ' . ( $has_conditions ? 'YES' : 'NO' ) );
+
+		$this->log(
+			'debug',
+			'compile_product_selection called',
+			array(
+				'campaign_id'      => $campaign->get_id(),
+				'selection_type'   => $selection_type,
+				'has_conditions'   => $has_conditions,
+				'conditions_count' => count( $conditions ),
+				'conditions_logic' => $conditions_logic,
+			)
+		);
 
 		// Determine if compilation is needed
 		$needs_random_selection = in_array( $selection_type, array( 'random_products', 'smart_selection' ), true );
 
+		error_log( '[SCD] CAMPAIGN_MANAGER - Compilation check: needs_random=' . ( $needs_random_selection ? 'YES' : 'NO' ) . ', has_conditions=' . ( $has_conditions ? 'YES' : 'NO' ) );
+
 		if ( ! $needs_random_selection && ! $has_conditions ) {
+			error_log( '[SCD] CAMPAIGN_MANAGER - EARLY EXIT: No compilation needed (no random selection, no conditions)' );
 			return; // No compilation needed
 		}
 
 		// Skip if products are already compiled (don't re-select on reactivation)
 		// BUT always recompile if conditions changed
 		$existing_products = $campaign->get_product_ids();
+		error_log( '[SCD] CAMPAIGN_MANAGER - Existing products: ' . ( ! empty( $existing_products ) ? count( $existing_products ) : '0' ) );
+
 		if ( ! empty( $existing_products ) && ! $has_conditions ) {
+			error_log( '[SCD] CAMPAIGN_MANAGER - EARLY EXIT: Products already compiled, skipping recompilation' );
 			$this->log(
 				'info',
 				'Products already compiled, skipping recompilation',
@@ -2240,7 +2381,13 @@ class SCD_Campaign_Manager {
 			return;
 		}
 
+		error_log( '[SCD] CAMPAIGN_MANAGER - Checking for product_selector service, container exists: ' . ( $this->container ? 'YES' : 'NO' ) );
+		if ( $this->container ) {
+			error_log( '[SCD] CAMPAIGN_MANAGER - Container has product_selector: ' . ( $this->container->has( 'product_selector' ) ? 'YES' : 'NO' ) );
+		}
+
 		if ( ! $this->container || ! $this->container->has( 'product_selector' ) ) {
+			error_log( '[SCD] CAMPAIGN_MANAGER - EARLY EXIT: Product selector not available' );
 			$this->log(
 				'warning',
 				'Product selector not available for compilation',
@@ -2252,11 +2399,11 @@ class SCD_Campaign_Manager {
 			return;
 		}
 
+		error_log( '[SCD] CAMPAIGN_MANAGER - Passed all checks, proceeding to compilation...' );
+
 		try {
 			$product_selector = $this->container->get( 'product_selector' );
 			$category_ids     = $campaign->get_category_ids();
-			$conditions       = $metadata['product_conditions'] ?? array();
-			$conditions_logic = $metadata['conditions_logic'] ?? 'all';
 			$selected_ids     = array();
 
 			// Case 1: Handle campaigns with conditions (filter-based selection)
@@ -2395,7 +2542,8 @@ class SCD_Campaign_Manager {
 	 * @return   array                 Active campaigns.
 	 */
 	public function get_active_campaigns_for_product( int $product_id ): array {
-		$cache_key = 'active_campaigns_product_' . $product_id;
+		// Use proper cache key with products_ prefix
+		$cache_key = 'products_active_campaigns_' . $product_id;
 
 		return $this->cache->remember(
 			$cache_key,
@@ -2535,6 +2683,19 @@ class SCD_Campaign_Manager {
 		$errors = array();
 
 		$this->log_activation_validation( $campaign );
+
+		// Validate end date is in the future
+		$ends_at = $campaign->get_ends_at();
+		if ( $ends_at ) {
+			$now = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
+			if ( $ends_at <= $now ) {
+				$errors['ends_at'] = sprintf(
+					__( 'Cannot activate campaign with past end date (%s). Please edit the campaign and set a future end date.', 'smart-cycle-discounts' ),
+					wp_date( 'F j, Y g:i A', $ends_at->getTimestamp() )
+				);
+			}
+		}
+
 		$this->validate_discount_configuration( $campaign, $errors );
 		$this->validate_product_selection( $campaign, $errors );
 

@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/services/class-campaign-planner-service.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/services
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Campaign_Planner_Service {
 
@@ -176,29 +176,22 @@ class SCD_Campaign_Planner_Service {
 	 * @return array|null Next upcoming campaign, or null if none found.
 	 */
 	private function get_next_upcoming_campaign( array $campaigns ): ?array {
-		$future_campaigns = array_filter(
-			$campaigns,
-			function ( $campaign ) {
-				return 'future' === $campaign['state'];
+		// Filter future campaigns - avoid closure for serialization compatibility.
+		$future_campaigns = array();
+		foreach ( $campaigns as $campaign ) {
+			if ( 'future' === $campaign['state'] ) {
+				$future_campaigns[] = $campaign;
 			}
-		);
+		}
 
 		if ( empty( $future_campaigns ) ) {
 			return null;
 		}
 
-		// This ensures we show what's coming NEXT, not just what's most important.
+		// Sort by start timestamp, then priority - avoid closure for serialization compatibility.
 		usort(
 			$future_campaigns,
-			function ( $a, $b ) {
-				// Soonest to start (PROXIMITY FIRST for gap-filling).
-				$time_diff = $a['start_timestamp'] - $b['start_timestamp'];
-				if ( 0 !== $time_diff ) {
-					return $time_diff;
-				}
-				// If starting at same time, prioritize major events.
-				return $b['priority'] - $a['priority'];
-			}
+			array( $this, 'compare_campaigns_by_start_then_priority' )
 		);
 
 		return reset( $future_campaigns );
@@ -218,39 +211,34 @@ class SCD_Campaign_Planner_Service {
 	private function get_next_future_campaign( array $campaigns, ?string $exclude_id ): ?array {
 		$now = current_time( 'timestamp' );
 
-		$future_campaigns = array_filter(
-			$campaigns,
-			function ( $campaign ) use ( $exclude_id ) {
-				return 'future' === $campaign['state'] && $campaign['id'] !== $exclude_id;
+		// Filter future campaigns - avoid closure for serialization compatibility.
+		$future_campaigns = array();
+		foreach ( $campaigns as $campaign ) {
+			if ( 'future' === $campaign['state'] && $campaign['id'] !== $exclude_id ) {
+				$future_campaigns[] = $campaign;
 			}
-		);
+		}
 
 		if ( empty( $future_campaigns ) ) {
 			return null;
 		}
 
+		// Sort by priority, then start - avoid closure for serialization compatibility.
 		usort(
 			$future_campaigns,
-			function ( $a, $b ) {
-				// Priority first (major events = 100, weekly = 10).
-				if ( $a['priority'] !== $b['priority'] ) {
-					return $b['priority'] - $a['priority'];
-				}
-				// Soonest to start.
-				return $a['start_timestamp'] - $b['start_timestamp'];
-			}
+			array( $this, 'compare_campaigns_by_priority_then_start' )
 		);
 
-		// Only show future campaigns within 60 days.
+		// Only show future campaigns within 60 days - avoid closure for serialization compatibility.
 		$sixty_days_ahead = $now + ( 60 * DAY_IN_SECONDS );
-		$future_campaigns = array_filter(
-			$future_campaigns,
-			function ( $campaign ) use ( $sixty_days_ahead ) {
-				return $campaign['start_timestamp'] <= $sixty_days_ahead;
+		$filtered         = array();
+		foreach ( $future_campaigns as $campaign ) {
+			if ( $campaign['start_timestamp'] <= $sixty_days_ahead ) {
+				$filtered[] = $campaign;
 			}
-		);
+		}
 
-		return ! empty( $future_campaigns ) ? reset( $future_campaigns ) : null;
+		return ! empty( $filtered ) ? reset( $filtered ) : null;
 	}
 
 	/**
@@ -397,32 +385,26 @@ class SCD_Campaign_Planner_Service {
 	 * @return array|null Best campaign for position, or null if none.
 	 */
 	private function get_best_campaign_for_position( array $campaigns, string $position ): ?array {
-		$candidates = array_filter(
-			$campaigns,
-			function ( $campaign ) use ( $position ) {
-				return $campaign['state'] === $position;
+		// Filter by position - avoid closure for serialization compatibility.
+		$candidates = array();
+		foreach ( $campaigns as $campaign ) {
+			if ( $campaign['state'] === $position ) {
+				$candidates[] = $campaign;
 			}
-		);
+		}
 
 		if ( empty( $candidates ) ) {
 			return null;
 		}
 
-		// Apply position-specific sorting.
+		// Apply position-specific sorting - avoid closures for serialization compatibility.
 		$now = current_time( 'timestamp' );
 
 		switch ( $position ) {
 			case 'past':
 				usort(
 					$candidates,
-					function ( $a, $b ) {
-						// Priority first.
-						if ( $a['priority'] !== $b['priority'] ) {
-							return $b['priority'] - $a['priority'];
-						}
-						// Most recently ended.
-						return $b['end_timestamp'] - $a['end_timestamp'];
-					}
+					array( $this, 'compare_campaigns_by_priority_then_end' )
 				);
 
 				// Timeline planner: Always show the most recent past campaign (no date filter).
@@ -432,38 +414,25 @@ class SCD_Campaign_Planner_Service {
 			case 'active':
 				usort(
 					$candidates,
-					function ( $a, $b ) {
-						// Priority first.
-						if ( $a['priority'] !== $b['priority'] ) {
-							return $b['priority'] - $a['priority'];
-						}
-						// If both major events, neither gets precedence.
-						return 0;
-					}
+					array( $this, 'compare_campaigns_by_priority_only' )
 				);
 				break;
 
 			case 'future':
 				usort(
 					$candidates,
-					function ( $a, $b ) {
-						// Priority first.
-						if ( $a['priority'] !== $b['priority'] ) {
-							return $b['priority'] - $a['priority'];
-						}
-						// Soonest to start.
-						return $a['start_timestamp'] - $b['start_timestamp'];
-					}
+					array( $this, 'compare_campaigns_by_priority_then_start' )
 				);
 
-				// Only show future campaigns within 60 days.
+				// Only show future campaigns within 60 days - avoid closure for serialization compatibility.
 				$sixty_days_ahead = $now + ( 60 * DAY_IN_SECONDS );
-				$candidates       = array_filter(
-					$candidates,
-					function ( $campaign ) use ( $sixty_days_ahead ) {
-						return $campaign['start_timestamp'] <= $sixty_days_ahead;
+				$filtered         = array();
+				foreach ( $candidates as $campaign ) {
+					if ( $campaign['start_timestamp'] <= $sixty_days_ahead ) {
+						$filtered[] = $campaign;
 					}
-				);
+				}
+				$candidates = $filtered;
 				break;
 		}
 
@@ -600,6 +569,11 @@ class SCD_Campaign_Planner_Service {
 		// Randomly select an item from the pool.
 		$random_insight = $selected_pool[ array_rand( $selected_pool ) ];
 
+		// Strip PRO marker for PRO users (show badge only to FREE users for promotional purposes).
+		if ( scd_is_license_valid() ) {
+			$random_insight = str_replace( ' [PRO]', '', $random_insight );
+		}
+
 		return $random_insight;
 	}
 
@@ -623,6 +597,84 @@ class SCD_Campaign_Planner_Service {
 		// Randomly select one stat.
 		$random_stat = $stats[ array_rand( $stats ) ];
 
+		// Strip PRO marker for PRO users (show badge only to FREE users for promotional purposes).
+		if ( scd_is_license_valid() ) {
+			$random_stat = str_replace( ' [PRO]', '', $random_stat );
+		}
+
 		return $random_stat;
+	}
+
+	/**
+	 * Compare campaigns by start timestamp, then priority.
+	 * Used instead of closure for serialization compatibility.
+	 *
+	 * @since  1.0.0
+	 * @param  array $a First campaign.
+	 * @param  array $b Second campaign.
+	 * @return int Comparison result.
+	 */
+	private function compare_campaigns_by_start_then_priority( array $a, array $b ): int {
+		// Soonest to start (PROXIMITY FIRST for gap-filling).
+		$time_diff = $a['start_timestamp'] - $b['start_timestamp'];
+		if ( 0 !== $time_diff ) {
+			return $time_diff;
+		}
+		// If starting at same time, prioritize major events.
+		return $b['priority'] - $a['priority'];
+	}
+
+	/**
+	 * Compare campaigns by priority, then start timestamp.
+	 * Used instead of closure for serialization compatibility.
+	 *
+	 * @since  1.0.0
+	 * @param  array $a First campaign.
+	 * @param  array $b Second campaign.
+	 * @return int Comparison result.
+	 */
+	private function compare_campaigns_by_priority_then_start( array $a, array $b ): int {
+		// Priority first (major events = 100, weekly = 10).
+		if ( $a['priority'] !== $b['priority'] ) {
+			return $b['priority'] - $a['priority'];
+		}
+		// Soonest to start.
+		return $a['start_timestamp'] - $b['start_timestamp'];
+	}
+
+	/**
+	 * Compare campaigns by priority, then end timestamp.
+	 * Used instead of closure for serialization compatibility.
+	 *
+	 * @since  1.0.0
+	 * @param  array $a First campaign.
+	 * @param  array $b Second campaign.
+	 * @return int Comparison result.
+	 */
+	private function compare_campaigns_by_priority_then_end( array $a, array $b ): int {
+		// Priority first.
+		if ( $a['priority'] !== $b['priority'] ) {
+			return $b['priority'] - $a['priority'];
+		}
+		// Most recently ended.
+		return $b['end_timestamp'] - $a['end_timestamp'];
+	}
+
+	/**
+	 * Compare campaigns by priority only.
+	 * Used instead of closure for serialization compatibility.
+	 *
+	 * @since  1.0.0
+	 * @param  array $a First campaign.
+	 * @param  array $b Second campaign.
+	 * @return int Comparison result.
+	 */
+	private function compare_campaigns_by_priority_only( array $a, array $b ): int {
+		// Priority first.
+		if ( $a['priority'] !== $b['priority'] ) {
+			return $b['priority'] - $a['priority'];
+		}
+		// If both major events, neither gets precedence.
+		return 0;
 	}
 }

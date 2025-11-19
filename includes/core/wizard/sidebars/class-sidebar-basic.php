@@ -6,8 +6,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/wizard/sidebars
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -52,32 +52,52 @@ class SCD_Wizard_Sidebar_Basic extends SCD_Wizard_Sidebar_Base {
 				<?php esc_html_e( 'Use descriptive names to easily identify and manage your campaigns.', 'smart-cycle-discounts' ); ?>
 			</p>
 
-			<div class="scd-naming-do">
-				<p class="scd-naming-label">
-					<span class="dashicons dashicons-yes-alt"></span>
-					<?php esc_html_e( 'Good Examples:', 'smart-cycle-discounts' ); ?>
-				</p>
-				<ul class="scd-naming-examples">
-					<li><?php esc_html_e( '"Summer Sale 2025 - 20% Off"', 'smart-cycle-discounts' ); ?></li>
-					<li><?php esc_html_e( '"BOGO Women\'s Shoes"', 'smart-cycle-discounts' ); ?></li>
-					<li><?php esc_html_e( '"Flash Sale - Electronics 50%"', 'smart-cycle-discounts' ); ?></li>
-				</ul>
-			</div>
+			<div class="scd-do-dont-grid">
+				<div class="scd-do-card">
+					<div class="scd-card-header">
+						<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
+						<strong><?php esc_html_e( 'Do', 'smart-cycle-discounts' ); ?></strong>
+					</div>
+					<div class="scd-card-content">
+						<p class="scd-example-item">
+							<?php echo SCD_Icon_Helper::get( 'tag', array( 'size' => 16, 'class' => 'scd-example-icon' ) ); ?>
+							<?php esc_html_e( 'Summer Sale 2025 - 20% Off', 'smart-cycle-discounts' ); ?>
+						</p>
+						<p class="scd-example-item">
+							<?php echo SCD_Icon_Helper::get( 'products', array( 'size' => 16, 'class' => 'scd-example-icon' ) ); ?>
+							<?php esc_html_e( 'BOGO Women\'s Shoes', 'smart-cycle-discounts' ); ?>
+						</p>
+						<p class="scd-example-item">
+							<?php echo SCD_Icon_Helper::get( 'superhero', array( 'size' => 16, 'class' => 'scd-example-icon' ) ); ?>
+							<?php esc_html_e( 'Flash Sale - Electronics 50%', 'smart-cycle-discounts' ); ?>
+						</p>
+					</div>
+				</div>
 
-			<div class="scd-naming-dont">
-				<p class="scd-naming-label">
-					<span class="dashicons dashicons-dismiss"></span>
-					<?php esc_html_e( 'Avoid:', 'smart-cycle-discounts' ); ?>
-				</p>
-				<ul class="scd-naming-examples">
-					<li><?php esc_html_e( 'Generic: "Sale1", "Campaign"', 'smart-cycle-discounts' ); ?></li>
-					<li><?php esc_html_e( 'Special characters: "@#$%"', 'smart-cycle-discounts' ); ?></li>
-					<li><?php esc_html_e( 'Vague: "Discount", "Promo"', 'smart-cycle-discounts' ); ?></li>
-				</ul>
+				<div class="scd-dont-card">
+					<div class="scd-card-header">
+						<?php echo SCD_Icon_Helper::get( 'close', array( 'size' => 16 ) ); ?>
+						<strong><?php esc_html_e( 'Don\'t', 'smart-cycle-discounts' ); ?></strong>
+					</div>
+					<div class="scd-card-content">
+						<p class="scd-example-item">
+							<?php echo SCD_Icon_Helper::get( 'warning', array( 'size' => 16, 'class' => 'scd-example-icon' ) ); ?>
+							<?php esc_html_e( 'Generic: "Sale1", "Campaign"', 'smart-cycle-discounts' ); ?>
+						</p>
+						<p class="scd-example-item">
+							<?php echo SCD_Icon_Helper::get( 'warning', array( 'size' => 16, 'class' => 'scd-example-icon' ) ); ?>
+							<?php esc_html_e( 'Special characters: "@#$%"', 'smart-cycle-discounts' ); ?>
+						</p>
+						<p class="scd-example-item">
+							<?php echo SCD_Icon_Helper::get( 'warning', array( 'size' => 16, 'class' => 'scd-example-icon' ) ); ?>
+							<?php esc_html_e( 'Vague: "Discount", "Promo"', 'smart-cycle-discounts' ); ?>
+						</p>
+					</div>
+				</div>
 			</div>
 
 			<div class="scd-naming-tip">
-				<span class="dashicons dashicons-lightbulb"></span>
+				<?php echo SCD_Icon_Helper::get( 'lightbulb', array( 'size' => 16 ) ); ?>
 				<p><?php esc_html_e( 'Include discount type and amount for quick reference', 'smart-cycle-discounts' ); ?></p>
 			</div>
 		</div>

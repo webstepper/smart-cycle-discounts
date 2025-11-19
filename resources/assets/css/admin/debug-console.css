@@ -358,16 +358,7 @@
 
 /* Animation */
 .scd-debug-console {
-    animation: scdSlideUp 0.3s ease-out;
+	animation: scd-slide-up 0.3s ease-out;
 }
 
-@keyframes scdSlideUp {
-    from {
-        transform: translateY(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
+/* Note: @keyframes scd-slide-up defined in shared/_utilities.css */

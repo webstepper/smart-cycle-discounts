@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/campaigns/class-campaign-formatter.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -160,15 +160,15 @@ class SCD_Campaign_Formatter {
 	 */
 	private function get_status_icon( string $status ): string {
 		$icons = array(
-			'draft'     => 'dashicons-edit',
-			'active'    => 'dashicons-yes-alt',
-			'paused'    => 'dashicons-controls-pause',
-			'scheduled' => 'dashicons-clock',
-			'expired'   => 'dashicons-dismiss',
-			'archived'  => 'dashicons-archive',
+			'draft'     => 'edit',
+			'active'    => 'check',
+			'paused'    => 'pause',
+			'scheduled' => 'schedule',
+			'expired'   => 'close',
+			'archived'  => 'archive',
 		);
 
-		return $icons[ $status ] ?? 'dashicons-marker';
+		return $icons[ $status ] ?? 'tag';
 	}
 
 	/**

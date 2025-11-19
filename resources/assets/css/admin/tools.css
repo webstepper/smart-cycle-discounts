@@ -16,7 +16,7 @@
 
 .scd-tools-page {
 	max-width: 1200px;
-	margin: 20px 20px 0 0;
+	margin: var(--scd-spacing-lg) 20px 0 0;
 }
 
 .scd-tools-page h1 {
@@ -31,37 +31,37 @@
    ========================================================================== */
 
 .scd-tools-section {
-	background: #fff;
-	border: 1px solid #c3c4c7;
-	border-radius: 4px;
-	padding: 24px;
+	background: var(--scd-color-white);
+	border: 1px solid var(--scd-color-border);
+	border-radius: var(--scd-radius-md);
+	padding: var(--scd-padding-section);
 	margin-bottom: 24px;
-	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+	box-shadow: var(--scd-tools-card-shadow);
 }
 
 .scd-tools-section h2 {
 	margin: 0 0 16px;
-	padding-bottom: 12px;
-	border-bottom: 1px solid #dcdcde;
-	font-size: 18px;
-	font-weight: 600;
-	color: #1d2327;
+	padding-bottom: var(--scd-spacing-md);
+	border-bottom: 1px solid var(--scd-color-border-lighter);
+	font-size: var(--scd-font-size-xl);
+	font-weight: var(--scd-font-weight-semibold);
+	color: var(--scd-color-text);
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	gap: var(--scd-gap-tight);
 }
 
-.scd-tools-section h2 .dashicons {
-	font-size: 24px;
-	width: 24px;
-	height: 24px;
-	color: #2271b1;
+.scd-tools-section h2 .scd-icon {
+	font-size: var(--scd-font-size-xxxl);
+	width: var(--scd-icon-large);
+	height: var(--scd-icon-large);
+	color: var(--scd-color-primary);
 }
 
 .scd-tools-section .description {
-	color: #646970;
-	font-size: 13px;
-	margin-bottom: 20px;
+	color: var(--scd-color-text-muted);
+	font-size: var(--scd-font-size-base);
+	margin-bottom: var(--scd-spacing-lg);
 }
 
 /* ==========================================================================
@@ -73,18 +73,18 @@
 }
 
 .scd-tools-section .form-table th {
-	padding: 20px 10px 20px 0;
+	padding: var(--scd-padding-section) 10px 20px 0;
 	width: 200px;
-	font-weight: 600;
-	color: #1d2327;
+	font-weight: var(--scd-font-weight-semibold);
+	color: var(--scd-color-text);
 }
 
 .scd-tools-section .form-table td {
-	padding: 20px 10px;
+	padding: var(--scd-padding-section) 10px;
 }
 
 .scd-tools-section .form-table tr {
-	border-bottom: 1px solid #f0f0f1;
+	border-bottom: 1px solid var(--scd-color-border-lighter);
 }
 
 .scd-tools-section .form-table tr:last-child {
@@ -103,29 +103,18 @@
 .scd-tools-section .button {
 	display: inline-flex;
 	align-items: center;
-	gap: 6px;
-	min-height: 32px;
+	gap: var(--scd-gap-tight);
+	min-height: var(--scd-button-height-large);
 	padding: 0 12px;
 }
 
-.scd-tools-section .button .dashicons {
-	font-size: 16px;
+.scd-tools-section .button .scd-icon {
+	font-size: var(--scd-font-size-large);
 	width: 16px;
 	height: 16px;
 }
 
-.scd-tools-section .button .dashicons-spin {
-	animation: rotation 2s infinite linear;
-}
-
-@keyframes rotation {
-	from {
-		transform: rotate(0deg);
-	}
-	to {
-		transform: rotate(359deg);
-	}
-}
+/* Spinner animation now handled by shared/_utilities.css .scd-icon-spin */
 
 /* ==========================================================================
    Log Viewer
@@ -136,20 +125,20 @@
 }
 
 .scd-log-stats {
-	background: #f6f7f7;
-	border-left: 4px solid #2271b1;
-	padding: 12px;
+	background: var(--scd-color-surface);
+	border-left: 4px solid var(--scd-color-primary);
+	padding: var(--scd-padding-medium);
 	margin: 15px 0;
-	font-size: 13px;
+	font-size: var(--scd-font-size-base);
 	line-height: 1.6;
 }
 
 .scd-log-stats code {
-	background: #fff;
-	padding: 2px 6px;
-	border-radius: 3px;
+	background: var(--scd-color-white);
+	padding: var(--scd-spacing-xxs) 6px;
+	border-radius: var(--scd-radius-sm);
 	font-family: Consolas, Monaco, monospace;
-	font-size: 12px;
+	font-size: var(--scd-font-size-small);
 }
 
 .scd-log-actions {
@@ -157,36 +146,36 @@
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: 8px;
+	gap: var(--scd-gap-tight);
 }
 
 .scd-log-actions label {
 	margin: 0;
-	font-weight: 600;
+	font-weight: var(--scd-font-weight-semibold);
 }
 
 .scd-log-actions select {
 	min-width: 150px;
-	height: 32px;
+	height: var(--scd-button-height-large);
 }
 
 #scd-log-viewer-modal {
 	margin-top: 15px;
-	padding: 15px;
-	background: #f6f7f7;
-	border: 1px solid #dcdcde;
-	border-radius: 4px;
+	padding: var(--scd-padding-compact);
+	background: var(--scd-color-surface);
+	border: 1px solid var(--scd-color-border-lighter);
+	border-radius: var(--scd-radius-md);
 }
 
 #scd-log-viewer-modal textarea {
 	width: 100%;
 	font-family: Consolas, Monaco, monospace;
-	font-size: 12px;
-	background: #1d2327;
-	color: #f0f0f1;
+	font-size: var(--scd-font-size-small);
+	background: var(--scd-color-text);
+	color: var(--scd-color-surface-dark);
 	border: none;
-	padding: 12px;
-	border-radius: 3px;
+	padding: var(--scd-padding-medium);
+	border-radius: var(--scd-radius-sm);
 	line-height: 1.6;
 }
 
@@ -196,21 +185,21 @@
 
 #scd-system-report {
 	margin-top: 10px;
-	padding: 15px;
-	background: #f6f7f7;
-	border: 1px solid #dcdcde;
-	border-radius: 4px;
+	padding: var(--scd-padding-compact);
+	background: var(--scd-color-surface);
+	border: 1px solid var(--scd-color-border-lighter);
+	border-radius: var(--scd-radius-md);
 }
 
 #scd-system-report textarea {
 	width: 100%;
 	font-family: Consolas, Monaco, monospace;
-	font-size: 12px;
-	background: #fff;
-	color: #1d2327;
-	border: 1px solid #dcdcde;
-	padding: 12px;
-	border-radius: 3px;
+	font-size: var(--scd-font-size-small);
+	background: var(--scd-color-white);
+	color: var(--scd-color-text);
+	border: 1px solid var(--scd-color-border-lighter);
+	padding: var(--scd-padding-medium);
+	border-radius: var(--scd-radius-sm);
 	line-height: 1.6;
 }
 
@@ -223,17 +212,17 @@
 }
 
 .scd-health-check-results .notice {
-	margin: 8px 0;
-	padding: 12px;
+	margin: var(--scd-spacing-sm) 0;
+	padding: var(--scd-padding-medium);
 }
 
 .scd-health-check-results .notice p {
 	margin: 0;
-	font-size: 13px;
+	font-size: var(--scd-font-size-base);
 }
 
 .scd-health-check-results .notice strong {
-	color: #1d2327;
+	color: var(--scd-color-text);
 }
 
 /* ==========================================================================
@@ -242,23 +231,23 @@
 
 .scd-import-status {
 	margin-top: 10px;
-	padding: 10px;
-	border-radius: 4px;
+	padding: var(--scd-padding-small);
+	border-radius: var(--scd-radius-md);
 	display: none;
 }
 
 .scd-import-status.success {
 	display: block;
 	background: #d7f0d7;
-	border-left: 4px solid #00a32a;
-	color: #1d2327;
+	border-left: 4px solid var(--scd-color-success);
+	color: var(--scd-color-text);
 }
 
 .scd-import-status.error {
 	display: block;
 	background: #f8d7da;
-	border-left: 4px solid #d63638;
-	color: #1d2327;
+	border-left: 4px solid var(--scd-color-danger);
+	color: var(--scd-color-text);
 }
 
 /* ==========================================================================
@@ -267,14 +256,14 @@
 
 @media screen and (max-width: 782px) {
 	.scd-tools-section {
-		padding: 16px;
+		padding: var(--scd-padding-large);
 	}
 
 	.scd-tools-section .form-table th,
 	.scd-tools-section .form-table td {
 		display: block;
 		width: 100%;
-		padding: 12px 0;
+		padding: var(--scd-padding-medium) 0;
 	}
 
 	.scd-tools-section .form-table th {

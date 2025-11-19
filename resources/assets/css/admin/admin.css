@@ -19,6 +19,13 @@
    Base Styles
    ========================================================================== */
 
+/* Critical: Prevent SVG Icon Flash on Load */
+.scd-icon {
+    display: inline-block !important;
+    vertical-align: middle !important;
+    flex-shrink: 0 !important;
+}
+
 .scd-admin-page * {
     box-sizing: border-box;
 }
@@ -26,7 +33,7 @@
 /* Admin Page Container */
 .scd-admin-page {
     margin: 0;
-    padding: 20px 20px 0 2px;
+    padding: var(--scd-padding-section) 20px 0 2px;
     font-family: var(--scd-font-family);
     font-size: var(--scd-font-size-base);
     line-height: var(--scd-line-height-base);
@@ -136,75 +143,8 @@
     color: var(--scd-color-text);
 }
 
-/* Notification System - Modern Toast Style */
-.scd-notification {
-    position: fixed;
-    top: 46px;
-    right: 20px;
-    max-width: 360px;
-    padding: var(--scd-spacing-md) var(--scd-spacing-base);
-    background: var(--scd-color-background);
-    border: var(--scd-border-width) solid var(--scd-color-border);
-    border-left-width: var(--scd-border-width-accent);
-    border-radius: var(--scd-radius-md);
-    box-shadow: var(--scd-shadow-lg);
-    z-index: var(--scd-z-notification);
-    display: flex;
-    align-items: flex-start;
-    gap: var(--scd-spacing-md);
-}
 
-.scd-notification--success {
-    border-left-color: var(--scd-color-success);
-}
-
-.scd-notification--error {
-    border-left-color: var(--scd-color-error);
-}
-
-.scd-notification--warning {
-    border-left-color: var(--scd-color-warning);
-}
-
-.scd-notification--info {
-    border-left-color: var(--scd-color-info);
-}
-
-.scd-notification__message {
-    flex: 1;
-    font-size: var(--scd-font-size-base);
-    line-height: var(--scd-line-height-base);
-}
-
-.scd-notification__close {
-    background: none;
-    border: none;
-    cursor: pointer;
-    opacity: 0.6;
-    padding: var(--scd-spacing-xs);
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity var(--scd-transition-fast);
-    margin: -4px -4px 0 0;
-}
-
-.scd-notification__close:hover {
-    opacity: 1;
-}
-
-.scd-notification--fade-out {
-    animation: scdFadeOut 0.3s ease-out forwards;
-}
-
-@keyframes scdFadeOut {
-    to {
-        opacity: 0;
-        transform: translateX(20px);
-    }
-}
+/* Notification System: Defined in shared/_components.css */
 
 /* Validation Messages */
 .scd-validation-errors {
@@ -232,56 +172,46 @@
     color: var(--scd-color-error);
 }
 
-/* Form Field Validation States */
+/* Form Field Validation States - Flat Design (border-only) */
 .scd-wizard-step input,
 .scd-wizard-step textarea,
 .scd-wizard-step select {
-    transition: border-color var(--scd-transition-fast) ease-in-out,
-                box-shadow var(--scd-transition-fast) ease-in-out;
+    transition: border-color var(--scd-transition-fast) ease-in-out;
 }
 
 .scd-wizard-step input.error,
 .scd-wizard-step textarea.error,
 .scd-wizard-step select.error {
     border-color: var(--scd-color-danger);
-    box-shadow: 0 0 0 1px var(--scd-color-danger);
 }
 
 .scd-wizard-step input.error:focus,
 .scd-wizard-step textarea.error:focus,
 .scd-wizard-step select.error:focus {
     border-color: var(--scd-color-danger);
-    box-shadow: 0 0 0 var(--scd-border-width-focus) var(--scd-color-danger);
-    outline: 2px solid transparent;
-    outline-offset: 0;
+    outline: none;
 }
 
 .scd-wizard-step input.warning,
 .scd-wizard-step textarea.warning {
     border-color: var(--scd-color-warning);
-    box-shadow: 0 0 0 1px var(--scd-color-warning);
 }
 
 .scd-wizard-step input.warning:focus,
 .scd-wizard-step textarea.warning:focus {
     border-color: var(--scd-color-warning);
-    box-shadow: 0 0 0 var(--scd-border-width-focus) var(--scd-color-warning);
-    outline: 2px solid transparent;
-    outline-offset: 0;
+    outline: none;
 }
 
 .scd-wizard-step input.success,
 .scd-wizard-step textarea.success {
     border-color: var(--scd-color-success);
-    box-shadow: 0 0 0 1px var(--scd-color-success);
 }
 
 .scd-wizard-step input.success:focus,
 .scd-wizard-step textarea.success:focus {
     border-color: var(--scd-color-success);
-    box-shadow: 0 0 0 var(--scd-border-width-focus) var(--scd-color-success);
-    outline: 2px solid transparent;
-    outline-offset: 0;
+    outline: none;
 }
 
 /* Validation Messages */
@@ -305,19 +235,10 @@
 /* Validation message animation */
 .error-message,
 .warning-message {
-    animation: scdValidationFadeIn var(--scd-transition-base) ease-out;
+	animation: scd-fade-in var(--scd-transition-base) ease-out;
 }
 
-@keyframes scdValidationFadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-2px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+/* Note: @keyframes scd-fade-in defined in shared/_utilities.css */
 
 /* ==========================================================================
    Wizard Styles
@@ -456,7 +377,7 @@
 
 @media screen and (max-width: 782px) {
     .scd-admin-page {
-        padding: 10px;
+        padding: var(--scd-padding-small);
     }
     
     .scd-wizard-content {
@@ -476,7 +397,7 @@
 @media print {
     .scd-admin-page {
         padding: 0;
-        background: var(--scd-color-white, #fff);
+        background: var(--scd-color-white);
     }
     
     .scd-button,

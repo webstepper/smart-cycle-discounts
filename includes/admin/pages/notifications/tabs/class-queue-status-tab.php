@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/pages/notifications/tabs/class-queue-status-tab.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -102,7 +102,7 @@ class SCD_Queue_Status_Tab extends SCD_Notifications_Tab_Base {
 
 			<div class="scd-queue-stats">
 				<div class="scd-stat-box">
-					<span class="dashicons dashicons-clock"></span>
+					<?php echo SCD_Icon_Helper::get( 'clock', array( 'size' => 16 ) ); ?>
 					<div class="scd-stat-content">
 						<span class="scd-stat-value"><?php echo absint( $queue_status['queued'] ); ?></span>
 						<span class="scd-stat-label"><?php esc_html_e( 'Queued', 'smart-cycle-discounts' ); ?></span>
@@ -110,7 +110,7 @@ class SCD_Queue_Status_Tab extends SCD_Notifications_Tab_Base {
 				</div>
 
 				<div class="scd-stat-box scd-stat-success">
-					<span class="dashicons dashicons-yes-alt"></span>
+					<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 					<div class="scd-stat-content">
 						<span class="scd-stat-value"><?php echo absint( $queue_status['sent'] ); ?></span>
 						<span class="scd-stat-label"><?php esc_html_e( 'Sent', 'smart-cycle-discounts' ); ?></span>
@@ -118,7 +118,7 @@ class SCD_Queue_Status_Tab extends SCD_Notifications_Tab_Base {
 				</div>
 
 				<div class="scd-stat-box scd-stat-error">
-					<span class="dashicons dashicons-dismiss"></span>
+					<?php echo SCD_Icon_Helper::get( 'close', array( 'size' => 16 ) ); ?>
 					<div class="scd-stat-content">
 						<span class="scd-stat-value"><?php echo absint( $queue_status['failed'] ); ?></span>
 						<span class="scd-stat-label"><?php esc_html_e( 'Failed', 'smart-cycle-discounts' ); ?></span>
@@ -126,7 +126,7 @@ class SCD_Queue_Status_Tab extends SCD_Notifications_Tab_Base {
 				</div>
 
 				<div class="scd-stat-box">
-					<span class="dashicons dashicons-email"></span>
+					<?php echo SCD_Icon_Helper::get( 'email', array( 'size' => 16 ) ); ?>
 					<div class="scd-stat-content">
 						<span class="scd-stat-value"><?php echo absint( $queue_status['total'] ); ?></span>
 						<span class="scd-stat-label"><?php esc_html_e( 'Total', 'smart-cycle-discounts' ); ?></span>
@@ -181,7 +181,7 @@ class SCD_Queue_Status_Tab extends SCD_Notifications_Tab_Base {
 			<div class="scd-provider-info">
 				<h3><?php esc_html_e( 'Current Email Provider', 'smart-cycle-discounts' ); ?></h3>
 				<p>
-					<span class="dashicons dashicons-email-alt"></span>
+					<?php echo SCD_Icon_Helper::get( 'email', array( 'size' => 16 ) ); ?>
 					<strong><?php echo esc_html( $provider_names[ $current_provider ] ?? $current_provider ); ?></strong>
 				</p>
 				<p class="description">
@@ -198,17 +198,17 @@ class SCD_Queue_Status_Tab extends SCD_Notifications_Tab_Base {
 				</p>
 
 				<button type="button" id="scd-process-queue" class="button button-primary" <?php disabled( $queue_status['queued'], 0 ); ?>>
-					<span class="dashicons dashicons-controls-play"></span>
+					<?php echo SCD_Icon_Helper::get( 'play', array( 'size' => 16 ) ); ?>
 					<?php esc_html_e( 'Process Queue Now', 'smart-cycle-discounts' ); ?>
 				</button>
 
 				<button type="button" id="scd-retry-failed" class="button button-secondary" <?php disabled( $queue_status['failed'], 0 ); ?>>
-					<span class="dashicons dashicons-update"></span>
+					<?php echo SCD_Icon_Helper::get( 'update', array( 'size' => 16 ) ); ?>
 					<?php esc_html_e( 'Retry Failed Emails', 'smart-cycle-discounts' ); ?>
 				</button>
 
 				<button type="button" id="scd-clear-queue" class="button button-secondary">
-					<span class="dashicons dashicons-trash"></span>
+					<?php echo SCD_Icon_Helper::get( 'delete', array( 'size' => 16 ) ); ?>
 					<?php esc_html_e( 'Clear Old Queue Items', 'smart-cycle-discounts' ); ?>
 				</button>
 

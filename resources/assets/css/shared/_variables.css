@@ -1,6 +1,11 @@
 /**
  * _Variables
  *
+ * Global CSS Custom Properties (Variables)
+ *
+ * Defines all custom properties used throughout the plugin for consistent styling.
+ * Respects WordPress admin color schemes for seamless integration.
+ *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/css/shared/_variables.css
  * @author     Webstepper.io <contact@webstepper.io>
@@ -17,38 +22,35 @@
        Colors - WordPress 6.4+ Palette
        ========================================================================== */
     
-    /* Color aliases - referencing theme colors defined in _theme-colors.css */
+    /* Color aliases - all base colors defined in _theme-colors.css */
     --scd-color-primary-darker: var(--scd-color-primary-dark);
     --scd-color-primary-lighter: var(--scd-color-secondary);
     --scd-color-error: var(--scd-color-danger);
     --scd-color-error-dark: var(--scd-color-danger-dark);
     --scd-color-error-light: var(--scd-color-danger-light);
-    
-    /* Neutral Colors */
-    --scd-color-white: #fff;
     --scd-color-black: #000;
-    --scd-color-text: #1d2327;
-    --scd-color-text-muted: #646970;
-    --scd-color-text-lighter: #8c8f94;
-    --scd-color-text-disabled: #a7aaad;
-    
-    /* Background Colors */
-    --scd-color-background: #fff;
-    --scd-color-surface: #f6f7f7;
-    --scd-color-surface-dark: #f0f0f1;
-    
-    /* Border Colors */
-    --scd-color-border: #c3c4c7;
-    --scd-color-border-dark: #8c8f94;
-    --scd-color-border-light: #e0e0e0;
-    --scd-color-border-lighter: #f0f0f1;
-    
-    /* Semantic Background Colors */
-    --scd-color-primary-bg: rgba(34, 113, 177, 0.05);
-    --scd-color-success-bg: rgba(0, 163, 42, 0.05);
-    --scd-color-error-bg: rgba(214, 54, 56, 0.05);
-    --scd-color-warning-bg: rgba(219, 166, 23, 0.05);
-    
+    --scd-color-background: var(--scd-color-white);
+    --scd-color-border-lighter: var(--scd-color-surface-dark);
+    --scd-color-border-subtle: rgba(0, 0, 0, 0.06);
+
+    /* ==========================================================================
+       Shadow Color Tokens - RGB Values for rgba() Usage
+       ========================================================================== */
+
+    /* Semantic shadow colors (RGB format without alpha) */
+    --scd-shadow-color-neutral: 0, 0, 0;
+    --scd-shadow-color-primary: 34, 113, 177;
+    --scd-shadow-color-planner: 59, 130, 246;
+    --scd-shadow-color-danger: 214, 54, 56;
+    --scd-shadow-color-error: 204, 29, 32;
+    --scd-shadow-color-success: 0, 163, 42;
+    --scd-shadow-color-warning: 245, 158, 11;
+    --scd-shadow-color-accent: 56, 88, 233;
+    --scd-shadow-color-pro-badge: 240, 184, 73;
+    --scd-shadow-color-white: 255, 255, 255;
+
+    /* Usage Example: box-shadow: 0 2px 4px rgba(var(--scd-shadow-color-primary), 0.25); */
+
     /* ==========================================================================
        Typography
        ========================================================================== */
@@ -58,13 +60,19 @@
     --scd-font-family-mono: Consolas, Monaco, monospace;
     
     /* Font Sizes */
-    --scd-font-size-small: 11px;
+    --scd-font-size-small: 12px; /* WCAG AA compliant minimum */
     --scd-font-size-base: 13px;
     --scd-font-size-medium: 14px;
+    --scd-font-size-medium-large: 15px;
     --scd-font-size-large: 16px;
     --scd-font-size-xl: 18px;
     --scd-font-size-xxl: 20px;
     --scd-font-size-xxxl: 24px;
+
+    /* Icon Sizes - SVG and Dashicons */
+    --scd-icon-small: 16px;
+    --scd-icon-medium: 20px;
+    --scd-icon-large: 24px;
     
     /* Font Weights */
     --scd-font-weight-normal: 400;
@@ -80,7 +88,8 @@
     /* ==========================================================================
        Spacing - 8px Grid System
        ========================================================================== */
-    
+
+    --scd-spacing-xxs: 2px;
     --scd-spacing-xs: 4px;
     --scd-spacing-sm: 8px;
     --scd-spacing-md: 12px;
@@ -89,6 +98,28 @@
     --scd-spacing-xl: 24px;
     --scd-spacing-xxl: 32px;
     --scd-spacing-xxxl: 40px;
+
+    /* Gap Spacing - WordPress 20px Baseline */
+    --scd-gap-tight: 8px;
+    --scd-gap-sm-medium: 10px;
+    --scd-gap-normal: 12px;
+    --scd-gap-comfortable: 16px;
+    --scd-gap-spacious: 20px;
+    --scd-gap-large: 24px;
+    --scd-gap-xl: 32px;
+
+    /* Padding Presets - WordPress Core
+     * All values are single (apply to all sides)
+     * Compose them in usage for multi-directional padding
+     * Example: padding: var(--scd-padding-small) var(--scd-padding-medium);
+     */
+    --scd-padding-small: 8px;
+    --scd-padding-sm-large: 10px;
+    --scd-padding-compact: 12px;
+    --scd-padding-medium: 14px;
+    --scd-padding-large: 16px;
+    --scd-padding-section: 20px;
+    --scd-padding-spacious: 24px;
     
     /* ==========================================================================
        Layout
@@ -100,62 +131,160 @@
     --scd-container-lg: 1200px;
     --scd-container-xl: 1400px;
     
-    /* Component Heights */
+    /* Component Heights - WordPress Core */
     --scd-input-height: 30px;
-    --scd-input-height-large: 36px;
-    --scd-button-height: 32px;
-    --scd-button-height-large: 36px;
-    
+    --scd-input-height-large: 50px;
+    --scd-button-height: 30px;
+    --scd-button-height-large: 32px;
+    --scd-button-icon-size: 36px;
+    --scd-button-icon-size-small: 30px;
+    --scd-button-icon-size-large: 44px;
+
+    /* Navigation - WordPress Compact */
+    --scd-nav-button-width: 100px;
+    --scd-nav-button-width-complete: 180px; /* Fits both "Create Campaign" and "Update Campaign" without jump */
+    --scd-nav-height: 60px;
+    --scd-nav-height-mobile: 56px;
+    --scd-nav-container-height-mobile: 30px;
+    --scd-nav-progress-height: 0;
+    --scd-nav-shadow-gradient-height: 0;
+
+    /* WordPress Admin Menu Widths */
+    --scd-wp-admin-menu-width: 160px;
+    --scd-wp-admin-menu-width-folded: 36px;
+
+    /* Sidebar Widths */
+    --scd-sidebar-width: 360px;
+    --scd-sidebar-width-tablet: 300px;
+    --scd-sidebar-width-small: 200px;
+
+    /* Badge & Special Component Sizes */
+    --scd-checkbox-size: 16px;
+    --scd-badge-number-width: 44px;
+    --scd-badge-number-width-mobile: 36px;
+    --scd-priority-badge-min-width: 28px;
+
+    /* List Styling */
+    --scd-list-bullet-offset: -12px;
+
+    /* Input Styling - WordPress Core */
+    --scd-input-max-width: 25em;
+    --scd-input-border-radius: var(--scd-radius-md);
+
+    /* Form Field Sizes */
+    --scd-form-field-width-small: 200px;
+    --scd-form-field-width-medium: 400px;
+    --scd-form-field-width-large: 600px;
+    --scd-form-field-width-full: 100%;
+
+    /* Form Field Spacing */
+    --scd-form-field-gap: var(--scd-spacing-lg);
+    --scd-form-field-label-gap: var(--scd-spacing-sm);
+    --scd-form-field-horizontal-label-width: 150px;
+
     /* ==========================================================================
        Borders & Radius
        ========================================================================== */
-    
+
     /* Border Width */
     --scd-border-width: 1px;
     --scd-border-width-thick: 2px;
     --scd-border-width-focus: 2px;
     --scd-border-width-accent: 4px;
-    
+    --scd-border-width-accent-thin: 3px;
+
     /* Border Radius */
-    --scd-radius-sm: 2px;
-    --scd-radius-md: 4px;
+    --scd-radius-sm: 4px;
+    --scd-radius-custom: 6px;  /* Buttons - Modern, softer appearance */
+    --scd-radius-md: 6px;
     --scd-radius-lg: 8px;
     --scd-radius-xl: 12px;
     --scd-radius-full: 50%;
     --scd-radius-pill: 100px;
-    
+
     /* ==========================================================================
-       Shadows
+       Shadows - Material Design Inspired (Professional & Refined)
        ========================================================================== */
-    
-    --scd-shadow-sm: 0 1px 1px rgba(0, 0, 0, 0.04);
-    --scd-shadow-md: 0 1px 3px rgba(0, 0, 0, 0.04);
-    --scd-shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.1);
-    --scd-shadow-xl: 0 2px 8px rgba(0, 0, 0, 0.15);
-    --scd-shadow-focus: 0 0 0 var(--scd-border-width-focus) var(--scd-color-primary);
-    
+
+    /* Box Shadows - Optimized for visibility and depth perception */
+    --scd-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.10), 0 1px 2px rgba(0, 0, 0, 0.06);
+    --scd-shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+    --scd-shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
+    --scd-shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.10);
+    --scd-shadow-inset: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+    --scd-shadow-glow: 0 0 12px rgba(34, 113, 177, 0.25);
+
+    /* Semantic Colored Shadows - For colored buttons and alerts */
+    --scd-shadow-primary: 0 2px 8px rgba(34, 113, 177, 0.15);
+    --scd-shadow-success: 0 2px 8px rgba(0, 163, 42, 0.15);
+    --scd-shadow-danger: 0 2px 8px rgba(214, 54, 56, 0.15);
+    --scd-shadow-warning: 0 2px 8px rgba(219, 166, 23, 0.20);
+
+    /* Focus & Selection Rings */
+    --scd-ring-focus: 0 0 0 2px rgba(34, 113, 177, 0.25);
+    --scd-ring-success: 0 0 0 2px rgba(0, 163, 42, 0.25);
+    --scd-ring-danger: 0 0 0 2px rgba(214, 54, 56, 0.25);
+    --scd-ring-warning: 0 0 0 2px rgba(219, 166, 23, 0.25);
+
+    /* ==========================================================================
+       Gradients - Subtle depth and visual interest
+       ========================================================================== */
+
+    /* Background Gradients */
+    --scd-gradient-primary: linear-gradient(135deg, var(--scd-color-primary) 0%, var(--scd-color-primary-dark) 100%);
+    --scd-gradient-success: linear-gradient(135deg, var(--scd-color-success) 0%, var(--scd-color-success-dark) 100%);
+    --scd-gradient-danger: linear-gradient(135deg, var(--scd-color-danger) 0%, var(--scd-color-danger-dark) 100%);
+    --scd-gradient-warning: linear-gradient(135deg, var(--scd-color-warning) 0%, var(--scd-color-warning-dark) 100%);
+    --scd-gradient-surface: linear-gradient(to bottom, var(--scd-color-white) 0%, var(--scd-color-surface) 100%);
+
+    /* Shimmer Gradient (for loading states) */
+    --scd-gradient-shimmer: linear-gradient(
+        90deg,
+        var(--scd-color-surface) 25%,
+        var(--scd-color-surface-dark) 50%,
+        var(--scd-color-surface) 75%
+    );
+
+    /* ==========================================================================
+       Micro-interactions - Transforms & Transitions
+       ========================================================================== */
+
+    /* Transform values */
+    --scd-transform-lift: translateY(-2px);
+    --scd-transform-lift-subtle: translateY(-1px);
+    --scd-transform-scale-up: scale(1.02);
+    --scd-transform-scale-down: scale(0.98);
+
+    /* Transition presets */
+    --scd-transition-all: all var(--scd-transition-base) ease;
+    --scd-transition-colors: background-color var(--scd-transition-fast) ease,
+                             border-color var(--scd-transition-fast) ease,
+                             color var(--scd-transition-fast) ease;
+    --scd-transition-shadow: box-shadow var(--scd-transition-base) ease;
+    --scd-transition-transform: transform var(--scd-transition-fast) ease;
+
     /* ==========================================================================
        Z-Index Scale
        ========================================================================== */
-    
+
     --scd-z-base: 1;
     --scd-z-dropdown: 100;
     --scd-z-sticky: 200;
-    --scd-z-overlay: 300;
-    --scd-z-modal: 1000;
+    --scd-z-overlay: 100000;        /* Modal/dialog overlays (above WP admin bar) */
+    --scd-z-modal: 999999;          /* Modal dialogs (above WP admin bar at 99999) */
     --scd-z-popover: 1100;
     --scd-z-tooltip: 1200;
-    --scd-z-notification: 9999;
+    --scd-z-notification: 9999;     /* Below WP admin bar, above content */
     
     /* ==========================================================================
        Animation & Transitions
        ========================================================================== */
-    
+
     /* Durations */
-    --scd-transition-fast: 0.1s;
-    --scd-transition-base: 0.2s;
-    --scd-transition-slow: 0.3s;
-    --scd-transition-slower: 0.5s;
+    --scd-transition-fast: 150ms;
+    --scd-transition-base: 200ms;
+    --scd-transition-slow: 300ms;
+    --scd-transition-slower: 400ms;
     
     /* Easing */
     --scd-ease-in: ease-in;
@@ -176,12 +305,14 @@
 }
 
 /* ==========================================================================
-   Dark Mode Support (if needed in future)
+   Automatic Dark Mode Support
    ========================================================================== */
 
 @media (prefers-color-scheme: dark) {
-    :root {
-        /* Dark mode overrides can go here */
+    :root:not([data-scd-theme="light"]) {
+        /* Automatically apply dark theme if user prefers dark mode */
+        /* Dark mode colors are defined in _theme-colors.css */
+        /* Users can override by setting data-scd-theme="light" on :root */
     }
 }
 

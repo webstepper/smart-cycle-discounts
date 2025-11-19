@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/wizard/class-wizard-manager.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/components
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Wizard_Manager {
 
@@ -158,15 +158,15 @@ class SCD_Wizard_Manager {
 			scd_debug_wizard(
 				'constructor',
 				array(
-					'state_service_provided'       => $state_service !== null,
-					'security_provided'            => $security !== null,
-					'campaign_repository_provided' => $campaign_repository !== null,
+					'state_service_provided'       => null !== $state_service,
+					'security_provided'            => null !== $security,
+					'campaign_repository_provided' => null !== $campaign_repository,
 				)
 			);
 		}
 
 		// Use provided state service or create new one
-		if ( $state_service === null ) {
+		if ( null === $state_service ) {
 			require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
 			$state_service = new SCD_Wizard_State_Service();
 		}
@@ -177,7 +177,7 @@ class SCD_Wizard_Manager {
 		$this->load_sidebar_manager();
 
 		// Use provided repository or create default
-		if ( $campaign_repository === null ) {
+		if ( null === $campaign_repository ) {
 			// Try to create default repository
 			if ( class_exists( 'SCD_Campaign_Repository' ) ) {
 				$db_manager          = new SCD_Database_Manager();
@@ -436,9 +436,6 @@ class SCD_Wizard_Manager {
 
 		// Determine next step
 		$next_step = $this->get_next_step( $step );
-
-		// Auto-save progress
-		$this->auto_save();
 
 		return $this->success_response(
 			array(
@@ -731,7 +728,7 @@ class SCD_Wizard_Manager {
 		$step_keys     = array_keys( $this->steps );
 		$current_index = array_search( $current_step, $step_keys );
 
-		if ( $current_index !== false && $current_index < count( $step_keys ) - 1 ) {
+		if ( false !== $current_index && $current_index < count( $step_keys ) - 1 ) {
 			return $step_keys[ $current_index + 1 ];
 		}
 
@@ -812,18 +809,6 @@ class SCD_Wizard_Manager {
 	private function all_steps_completed(): bool {
 		$progress = $this->state_service->get_progress();
 		return $progress['can_complete'] ?? false;
-	}
-
-	/**
-	 * Auto-save wizard progress.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @return   void
-	 */
-	private function auto_save(): void {
-		// State service auto-saves with each operation
-		// This method kept for modern implementation
 	}
 
 	/**

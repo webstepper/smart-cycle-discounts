@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/products/class-product-filter.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/products
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Product_Filter {
 
@@ -277,19 +277,19 @@ class SCD_Product_Filter {
 					return false;
 				}
 
-				if ( $min_quantity !== null || $max_quantity !== null ) {
+				if ( null !== $min_quantity || null !== $max_quantity ) {
 					$quantity = $product->get_stock_quantity();
 
-					if ( $quantity === null ) {
+					if ( null === $quantity ) {
 						// Product doesn't track quantity
-						return $stock_status === 'instock';
+						return 'instock' === $stock_status;
 					}
 
-					if ( $min_quantity !== null && $quantity < $min_quantity ) {
+					if ( null !== $min_quantity && $quantity < $min_quantity ) {
 						return false;
 					}
 
-					if ( $max_quantity !== null && $quantity > $max_quantity ) {
+					if ( null !== $max_quantity && $quantity > $max_quantity ) {
 						return false;
 					}
 				}
@@ -347,7 +347,7 @@ class SCD_Product_Filter {
 					}
 				}
 
-				return $operator === 'OR' ? $matches > 0 : $matches === $total_attributes;
+				return 'OR' === $operator ? $matches > 0 : $matches === $total_attributes;
 			}
 		);
 	}

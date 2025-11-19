@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/integrations/woocommerce/class-wc-price-integration.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -60,6 +60,15 @@ class SCD_WC_Price_Integration {
 	private ?object $logger;
 
 	/**
+	 * Recursion prevention flag.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      bool    $processing    Whether currently processing a price modification.
+	 */
+	private bool $processing = false;
+
+	/**
 	 * Initialize price integration.
 	 *
 	 * @since    1.0.0
@@ -106,6 +115,11 @@ class SCD_WC_Price_Integration {
 	 * @return   string                  Modified price.
 	 */
 	public function modify_product_price( $price, WC_Product $product ): string {
+		// Prevent infinite recursion
+		if ( $this->processing ) {
+			return strval( $price );
+		}
+
 		$product_id = $product->get_id();
 
 		// Skip in admin
@@ -128,6 +142,9 @@ class SCD_WC_Price_Integration {
 			return strval( $price );
 		}
 
+		// Set processing flag to prevent recursion
+		$this->processing = true;
+
 		try {
 			$regular_price = floatval( $product->get_regular_price() );
 
@@ -135,6 +152,7 @@ class SCD_WC_Price_Integration {
 				$discount_info = $this->discount_query->get_discount_info( $product_id, array( 'quantity' => 1 ) );
 
 				if ( $discount_info ) {
+					$this->processing = false;
 					return strval( $discount_info['discounted_price'] );
 				}
 			}
@@ -149,6 +167,7 @@ class SCD_WC_Price_Integration {
 			);
 		}
 
+		$this->processing = false;
 		return strval( $price );
 	}
 
@@ -161,6 +180,11 @@ class SCD_WC_Price_Integration {
 	 * @return   string                     Modified sale price.
 	 */
 	public function modify_sale_price( $sale_price, WC_Product $product ): string {
+		// Prevent infinite recursion
+		if ( $this->processing ) {
+			return strval( $sale_price );
+		}
+
 		// Never modify during cart calculations
 		if ( did_action( 'woocommerce_before_calculate_totals' ) && ! did_action( 'woocommerce_after_calculate_totals' ) ) {
 			return strval( $sale_price );
@@ -171,6 +195,9 @@ class SCD_WC_Price_Integration {
 			return strval( $sale_price );
 		}
 
+		// Set processing flag to prevent recursion
+		$this->processing = true;
+
 		try {
 			$product_id    = $product->get_id();
 			$regular_price = floatval( $product->get_regular_price() );
@@ -179,6 +206,7 @@ class SCD_WC_Price_Integration {
 				$discount_info = $this->discount_query->get_discount_info( $product_id, array( 'quantity' => 1 ) );
 
 				if ( $discount_info ) {
+					$this->processing = false;
 					return strval( $discount_info['discounted_price'] );
 				}
 			}
@@ -193,6 +221,7 @@ class SCD_WC_Price_Integration {
 			);
 		}
 
+		$this->processing = false;
 		return strval( $sale_price );
 	}
 
@@ -205,6 +234,14 @@ class SCD_WC_Price_Integration {
 	 * @return   string                 Modified price HTML.
 	 */
 	public function modify_price_html( string $html, WC_Product $product ): string {
+		// Prevent infinite recursion
+		if ( $this->processing ) {
+			return $html;
+		}
+
+		// Set processing flag to prevent recursion
+		$this->processing = true;
+
 		try {
 			$product_id = $product->get_id();
 
@@ -231,6 +268,7 @@ class SCD_WC_Price_Integration {
 			);
 		}
 
+		$this->processing = false;
 		return $html;
 	}
 
@@ -287,7 +325,7 @@ class SCD_WC_Price_Integration {
 				if ( $discount_info && $this->should_apply_discount( $product, $discount_info ) ) {
 					$discounted_price = (float) $discount_info['discounted_price'];
 
-					if ( $discounted_price < $original_price && $discounted_price > 0 ) {
+					if ( $original_price > $discounted_price && 0 < $discounted_price ) {
 						$product->set_price( $discounted_price );
 
 						WC()->cart->cart_contents[ $cart_item_key ]['scd_discount'] = array(

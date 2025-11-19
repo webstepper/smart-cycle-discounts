@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/wizard/review-health-check.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -24,6 +24,11 @@
 		init: function() {
 			if ( ! $( '#scd-health-container' ).length ) {
 				return;
+			}
+
+			// Disable navigation immediately on review step to prevent clicks during initial load
+			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Navigation ) {
+				window.SCD.Wizard.Navigation.setNavigationState( true );
 			}
 
 			this.loadHealthData();
@@ -70,6 +75,11 @@
 			$( '#scd-health-loading' ).show();
 			$( '#scd-health-container' ).hide();
 
+			// Disable navigation during AJAX + animation using existing navigation system
+			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Navigation ) {
+				window.SCD.Wizard.Navigation.setNavigationState( true );
+			}
+
 			// Use AjaxService to prevent rate limiting
 			SCD.Ajax.post( 'campaign_health', {} ).then( function( response ) {
 				// AjaxService resolves with response.data directly, so check for valid health data
@@ -92,6 +102,13 @@
 			} ).always( function() {
 				$( '#scd-health-loading' ).hide();
 				$( '#scd-health-container' ).show();
+
+				// Re-enable navigation after health score animation completes (300ms CSS transition)
+				setTimeout( function() {
+					if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Navigation ) {
+						window.SCD.Wizard.Navigation.setNavigationState( false );
+					}
+				}, 300 );
 			} );
 		},
 
@@ -263,8 +280,16 @@
 				'low': 'LOW'
 			};
 
+			var healthModifiers = {
+				'critical': 'alert',
+				'high': 'alert',
+				'medium': 'warning',
+				'low': 'info'
+			};
+
 			var label = labels[severity] || severity.toUpperCase();
-			return '<span class="scd-severity-badge ' + severity + '">' + label + '</span>';
+			var modifier = healthModifiers[severity] || 'info';
+			return '<span class="scd-badge-health--' + modifier + '">' + label + '</span>';
 		},
 
 		/**
@@ -299,10 +324,11 @@
 
 					var $item = $( '<div class="scd-exclusion-item"></div>' );
 
-					var icon = this.getExclusionIcon( exclusion.reason );
+					var iconName = this.getExclusionIcon( exclusion.reason );
 					var label = $( '<span class="scd-exclusion-label"></span>' );
-					if ( icon ) {
-						label.append( '<span class="dashicons dashicons-' + icon + '"></span>' );
+					if ( iconName ) {
+						var iconHtml = SCD.IconHelper ? SCD.IconHelper.get( iconName, { size: 16 } ) : '<span class="scd-icon scd-icon-' + iconName + '"></span>';
+						label.append( iconHtml );
 					}
 					label.append( this.escapeHtml( exclusion.label || '' ) );
 
@@ -367,7 +393,7 @@
 		 * Get icon for exclusion reason
 		 *
 		 * @param {string} reason Exclusion reason
-		 * @return {string} Dashicons icon name
+		 * @return {string} Icon name
 		 */
 		getExclusionIcon: function( reason ) {
 			var icons = {
@@ -400,8 +426,9 @@
 			}
 
 			// Build stock risk HTML
+			var warningIcon = SCD.IconHelper ? SCD.IconHelper.warning( { size: 20 } ) : '<span class="scd-icon scd-icon-warning"></span>';
 			var html = '<div class="scd-section-header">';
-			html += '<span class="dashicons dashicons-warning"></span>';
+			html += warningIcon;
 			html += '<h3>Stock Depletion Risk</h3>';
 			html += '<p class="scd-section-desc">Products that may sell out during this campaign</p>';
 			html += '</div>';
@@ -426,10 +453,12 @@
 				for ( var i = 0; i < stockRisk.products.length; i++ ) {
 					var product = stockRisk.products[i];
 					var riskClass = product.riskLevel === 'high' ? 'scd-risk-high' : 'scd-risk-medium';
+					var riskIconName = product.riskLevel === 'high' ? 'warning' : 'info';
+					var riskIcon = SCD.IconHelper ? SCD.IconHelper.get( riskIconName, { size: 16 } ) : '<span class="scd-icon scd-icon-' + riskIconName + '"></span>';
 
 					html += '<div class="scd-stock-risk-item ' + riskClass + '">';
 					html += '<div class="scd-risk-product-name">';
-					html += '<span class="dashicons dashicons-' + ( product.riskLevel === 'high' ? 'warning' : 'info' ) + '"></span>';
+					html += riskIcon;
 					html += this.escapeHtml( product.name );
 					html += '</div>';
 					html += '<div class="scd-risk-details">';
@@ -440,8 +469,9 @@
 				}
 				html += '</div>';
 
+				var lightbulbIcon = SCD.IconHelper ? SCD.IconHelper.get( 'lightbulb', { size: 16 } ) : '<span class="scd-icon scd-icon-lightbulb"></span>';
 				html += '<div class="scd-stock-risk-note">';
-				html += '<span class="dashicons dashicons-lightbulb"></span>';
+				html += lightbulbIcon;
 				html += '<p>Consider restocking these items before launching your campaign to avoid customer disappointment.</p>';
 				html += '</div>';
 			}
@@ -521,8 +551,9 @@
 
 				var $category = $( '<div class="scd-recommendation-category ' + cat + '"></div>' );
 
+				var iconHtml = SCD.IconHelper ? SCD.IconHelper.get( categoryData.icon, { size: 16 } ) : '<span class="scd-icon scd-icon-' + categoryData.icon + '"></span>';
 				var $title = $( '<div class="scd-recommendation-category-title"></div>' );
-				$title.append( '<span class="dashicons dashicons-' + categoryData.icon + '"></span>' );
+				$title.append( iconHtml );
 				$title.append( '<span>' + categoryData.title + ' (' + categoryData.items.length + ')</span>' );
 				$category.append( $title );
 
@@ -709,19 +740,22 @@
 			var $btn = $item.find( '.scd-apply-btn' );
 			var originalBtnText = $btn.text();
 
-			$btn.prop( 'disabled', true ).html( '<span class="dashicons dashicons-update-alt" style="animation: scd-spin 1s infinite linear;"></span> Applying...' );
+			if ( window.SCD && window.SCD.LoaderUtil ) {
+				SCD.LoaderUtil.showButton( $btn, 'Applying...' );
+			}
 
 			// Send AJAX request (via AjaxService to prevent rate limiting)
 			SCD.Ajax.post( 'apply_recommendation', {
-				recommendation_id: item.id,
-				action_type: item.action.type,
-				action_data: item.action.data
+				recommendationId: item.id,
+				actionType: item.action.type,
+				actionData: item.action.data
 			} ).then( function( response ) {
 					if ( response.success ) {
 						// Track as applied
 						this.markRecommendationApplied( item.id );
 
-						$btn.html( '<span class="dashicons dashicons-yes"></span> Applied!' ).css( 'background', '#00a32a' );
+						var checkIcon = SCD.IconHelper ? SCD.IconHelper.check( { size: 16 } ) : '<span class="scd-icon scd-icon-check"></span>';
+						$btn.html( checkIcon + ' Applied!' ).css( 'background', '#00a32a' );
 
 						var successMessage = this.getApplySuccessMessage( item, response );
 						if ( SCD.Shared && SCD.Shared.NotificationService ) { SCD.Shared.NotificationService.success( successMessage ); }
@@ -752,7 +786,8 @@
 						}.bind( this ), 800 );
 
 					} else {
-						$btn.html( '<span class="dashicons dashicons-warning"></span> Failed' )
+						var warningIcon = SCD.IconHelper ? SCD.IconHelper.warning( { size: 16 } ) : '<span class="scd-icon scd-icon-warning"></span>';
+						$btn.html( warningIcon + ' Failed' )
 							.css( 'background', '#d63638' );
 
 						var errorMessage = response.data && response.data.message
@@ -767,7 +802,8 @@
 						}, 2000 );
 					}
 				}.bind( this ) ).catch( function( error ) {
-					$btn.html( '<span class="dashicons dashicons-warning"></span> Error' )
+					var errorIcon = SCD.IconHelper ? SCD.IconHelper.warning( { size: 16 } ) : '<span class="scd-icon scd-icon-warning"></span>';
+					$btn.html( errorIcon + ' Error' )
 						.css( 'background', '#d63638' );
 
 					var errorMessage = 'Error applying recommendation';
@@ -968,8 +1004,15 @@
 				'low': 'LOW'
 			};
 
+			var healthModifiers = {
+				'high': 'alert',
+				'medium': 'warning',
+				'low': 'info'
+			};
+
 			var label = labels[priority] || priority.toUpperCase();
-			return '<span class="scd-priority-badge ' + priority + '">' + label + '</span>';
+			var modifier = healthModifiers[priority] || 'info';
+			return '<span class="scd-badge-health--' + modifier + '">' + label + '</span>';
 		},
 
 		/**

@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/shared/tom-select-base.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -714,10 +714,11 @@
 				return;
 			}
 
+			var arrowIcon = SCD.IconHelper ? SCD.IconHelper.get( 'arrow-down', { size: 16 } ) : '<span class="scd-icon scd-icon-arrow-down"></span>';
 			var $footer = $(
 				'<div class="scd-tom-select-footer">' +
 					'<button type="button" class="scd-load-more-btn">' +
-						'<span class="dashicons dashicons-arrow-down-alt2"></span> ' +
+						arrowIcon + ' ' +
 						'Load More' +
 					'</button>' +
 				'</div>'

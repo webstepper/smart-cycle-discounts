@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/settings/class-settings-manager.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -29,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/settings
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Settings_Manager {
 
@@ -79,6 +79,15 @@ class SCD_Settings_Manager {
 	private string $current_tab;
 
 	/**
+	 * Cache manager instance.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      SCD_Cache_Manager|null    $cache    Cache manager.
+	 */
+	private ?SCD_Cache_Manager $cache = null;
+
+	/**
 	 * Initialize settings manager.
 	 *
 	 * @since    1.0.0
@@ -89,6 +98,11 @@ class SCD_Settings_Manager {
 		$this->logger      = $logger;
 		$this->container   = $container;
 		$this->current_tab = $this->get_current_tab();
+
+		// Get cache manager if available
+		if ( $container->has( 'cache' ) ) {
+			$this->cache = $container->get( 'cache' );
+		}
 	}
 
 	/**
@@ -100,8 +114,6 @@ class SCD_Settings_Manager {
 	public function init(): void {
 		$this->init_tab_classes();
 		$this->add_hooks();
-
-		$this->logger->debug( 'Settings manager initialized' );
 	}
 
 	/**
@@ -128,8 +140,6 @@ class SCD_Settings_Manager {
 				}
 			}
 		}
-
-		$this->logger->debug( 'Tab classes initialized' );
 	}
 
 	/**
@@ -155,17 +165,17 @@ class SCD_Settings_Manager {
 			'general'     => array(
 				'title'    => __( 'General', 'smart-cycle-discounts' ),
 				'priority' => 10,
-				'icon'     => 'dashicons-admin-settings',
+				'icon'     => 'admin-settings',
 			),
 			'performance' => array(
 				'title'    => __( 'Performance', 'smart-cycle-discounts' ),
 				'priority' => 15,
-				'icon'     => 'dashicons-performance',
+				'icon'     => 'performance',
 			),
 			'advanced'    => array(
 				'title'    => __( 'Advanced', 'smart-cycle-discounts' ),
 				'priority' => 20,
-				'icon'     => 'dashicons-admin-generic',
+				'icon'     => 'admin-generic',
 			),
 		);
 
@@ -257,7 +267,7 @@ class SCD_Settings_Manager {
 		}
 
 		echo '<div class="wrap scd-settings">';
-		echo '<h1><span class="dashicons dashicons-admin-settings"></span> ' . esc_html( get_admin_page_title() ) . '</h1>';
+		echo '<h1>' . SCD_Icon_Helper::get( 'admin-settings', array( 'size' => 16 ) ) . ' ' . esc_html( get_admin_page_title() ) . '</h1>';
 
 		// Show admin notices
 		settings_errors( 'scd_settings_messages' );
@@ -299,11 +309,14 @@ class SCD_Settings_Manager {
 				admin_url( 'admin.php' )
 			);
 
+			$icon_name = str_replace( 'dashicons-', '', $tab_data['icon'] );
+			$icon_html = SCD_Icon_Helper::get( $icon_name, array( 'size' => 16 ) );
+
 			printf(
-				'<a href="%s" class="nav-tab%s"><span class="dashicons %s"></span> %s</a>',
+				'<a href="%s" class="nav-tab%s">%s %s</a>',
 				esc_url( $tab_url ),
 				esc_attr( $active_class ),
-				esc_attr( $tab_data['icon'] ),
+				$icon_html,
 				esc_html( $tab_data['title'] )
 			);
 		}
@@ -346,6 +359,17 @@ class SCD_Settings_Manager {
 
 		// Log settings update
 		$this->logger->info( 'Settings updated', array( 'tab' => $active_tab ) );
+
+		// Clear cache after settings save
+		if ( $this->cache ) {
+			$this->cache->delete_group( 'settings' );
+
+			// If performance settings changed, clear all caches
+			if ( 'performance' === $active_tab ) {
+				$this->cache->flush();
+				$this->logger->info( 'All caches cleared after performance settings update' );
+			}
+		}
 
 		return $sanitized;
 	}
@@ -397,7 +421,6 @@ class SCD_Settings_Manager {
 			),
 			'performance'   => array(
 				'campaign_cache_duration'  => 3600,
-				'discount_cache_duration'  => 1800,
 				'product_cache_duration'   => 3600,
 				'enable_cache_warming'     => true,
 				'warm_on_campaign_changes' => true,

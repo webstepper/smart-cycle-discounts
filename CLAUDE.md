@@ -157,6 +157,181 @@ options: {
 // NOT: 'allProducts': 'All Products'      // ❌ Wrong
 ```
 
+### 🔄 Automatic Case Conversion System
+
+**CRITICAL: The plugin has automatic bidirectional case conversion. NEVER add manual conversions!**
+
+#### Inbound: JavaScript → PHP (AJAX Router)
+
+**Location**: `includes/admin/ajax/class-ajax-router.php` (line 223)
+
+```php
+// AUTOMATIC CONVERSION - NO MANUAL MAPPING NEEDED
+$request_data = self::camel_to_snake_keys( $request_data );
+// Delegates to: SCD_Case_Converter::camel_to_snake( $data );
+```
+
+**What It Does:**
+- ALL AJAX requests automatically convert camelCase → snake_case
+- Runs BEFORE any handler processes the data
+- Recursive: converts nested arrays and objects
+
+**Example Data Flow:**
+```javascript
+// 1. JavaScript sends (camelCase):
+$.post(ajaxurl, {
+    campaignName: 'Summer Sale',
+    productIds: [1, 2, 3],
+    discountType: 'percentage',
+    tiers: [
+        { minQuantity: 5, discountValue: 10 },
+        { minQuantity: 10, discountValue: 20 }
+    ]
+});
+
+// 2. AJAX Router automatically converts to (snake_case):
+// {
+//     campaign_name: 'Summer Sale',
+//     product_ids: [1, 2, 3],
+//     discount_type: 'percentage',
+//     tiers: [
+//         { min_quantity: 5, discount_value: 10 },
+//         { min_quantity: 10, discount_value: 20 }
+//     ]
+// }
+
+// 3. Handler receives snake_case data:
+public function handle( array $request_data ) {
+    $campaign_name = $request_data['campaign_name'];  // ✅ Already converted
+    $tiers = $request_data['tiers'];  // ✅ Nested arrays converted too
+}
+```
+
+#### Outbound: PHP → JavaScript (Asset Localizer)
+
+**Location**: `includes/admin/assets/class-asset-localizer.php` (lines 423-424)
+
+```php
+// AUTOMATIC CONVERSION - NO MANUAL MAPPING NEEDED
+$localized_data = $this->snake_to_camel_keys( $this->data[ $object_name ] );
+wp_localize_script( $handle, $object_name, $localized_data );
+// Delegates to: SCD_Case_Converter::snake_to_camel( $data );
+```
+
+**What It Does:**
+- ALL `wp_localize_script()` data automatically converts snake_case → camelCase
+- Runs BEFORE data reaches JavaScript
+- Recursive: converts nested arrays and objects
+
+**Example Data Flow:**
+```php
+// 1. PHP prepares data (snake_case):
+$wizard_data = array(
+    'campaign_id' => 123,
+    'product_selection_type' => 'specific_products',
+    'discount_rules' => array(
+        'discount_type' => 'tiered',
+        'tiers' => array(
+            array( 'min_quantity' => 5, 'discount_value' => 10 ),
+            array( 'min_quantity' => 10, 'discount_value' => 20 )
+        )
+    )
+);
+
+// 2. Asset Localizer automatically converts to (camelCase):
+// window.scdWizardData = {
+//     campaignId: 123,
+//     productSelectionType: 'specific_products',
+//     discountRules: {
+//         discountType: 'tiered',
+//         tiers: [
+//             { minQuantity: 5, discountValue: 10 },
+//             { minQuantity: 10, discountValue: 20 }
+//         ]
+//     }
+// };
+
+// 3. JavaScript receives camelCase data:
+var campaignId = window.scdWizardData.campaignId;  // ✅ Already converted
+var tiers = window.scdWizardData.discountRules.tiers;  // ✅ Nested objects converted
+```
+
+#### ⚠️ WHEN NOT TO ADD MANUAL CONVERSIONS
+
+**❌ NEVER DO THIS - Redundant Manual Mapping:**
+```php
+// ❌ WRONG: AJAX Router already did this conversion
+public function handle( array $request_data ) {
+    // Manual conversion is REDUNDANT - data is already in snake_case!
+    $mapped_data = array();
+    foreach ( $request_data['tiers'] as $tier ) {
+        $mapped_data[] = array(
+            'min_quantity' => $tier['minQuantity'] ?? $tier['min_quantity'],  // UNNECESSARY
+            'discount_value' => $tier['discountValue'] ?? $tier['discount_value']  // UNNECESSARY
+        );
+    }
+}
+```
+
+**✅ CORRECT: Trust the Auto-Conversion:**
+```php
+// ✅ CORRECT: Data is already in snake_case from AJAX Router
+public function handle( array $request_data ) {
+    // Use data directly - it's already converted!
+    $tiers = $request_data['tiers'];
+    foreach ( $tiers as $tier ) {
+        $min_qty = $tier['min_quantity'];  // ✅ Already snake_case
+        $discount = $tier['discount_value'];  // ✅ Already snake_case
+    }
+}
+```
+
+#### Legitimate Transformations (Not Case Conversion)
+
+**Some transformations are architectural, not case-related:**
+
+```php
+// ✅ CORRECT: Flattening nested structures (architectural transformation)
+if ( 'bogo' === $discount_type && isset( $discount_rules['bogo_config'] ) ) {
+    $bogo_config = $discount_rules['bogo_config'];
+    $discount_config = array_merge(
+        $discount_config,
+        array(
+            'buy_quantity' => $bogo_config['buy_quantity'] ?? 1,
+            'get_quantity' => $bogo_config['get_quantity'] ?? 1,
+            'get_discount_percentage' => $bogo_config['discount_percent'] ?? 100,  // Field name mapping
+        )
+    );
+}
+```
+
+**Why This Is OK:**
+- Not case conversion (already snake_case)
+- Flattens nested `bogo_config` object to flat structure
+- Maps `discount_percent` (DB) → `get_discount_percentage` (strategy) - different field names
+
+#### Utility Class Reference
+
+**Location**: `includes/utilities/class-case-converter.php`
+
+```php
+// Bidirectional conversion utility
+class SCD_Case_Converter {
+    // JavaScript → PHP (used by AJAX Router)
+    public static function camel_to_snake( $data );
+
+    // PHP → JavaScript (used by Asset Localizer)
+    public static function snake_to_camel( $data );
+}
+```
+
+#### Summary: Trust the System
+
+1. **JavaScript → PHP**: AJAX Router converts ALL incoming data automatically
+2. **PHP → JavaScript**: Asset Localizer converts ALL outgoing data automatically
+3. **Your Code**: Use data as-is, it's already in the correct case
+4. **Manual Conversions**: Only add for architectural transformations (structure, field mapping), NEVER for case
+
 ### Notification System
 
 **ALWAYS use `SCD.Shared.NotificationService` for user notifications:**
@@ -263,10 +438,72 @@ Component modules have `showError()` methods that internally delegate to `Valida
 - **Prefix Convention**: `SCD_` for PHP classes, `scd_` for functions/hooks, `scd-` for assets
 - **Service Container**: Dependency injection throughout
 - **Asset Management**: Admin_Asset_Manager, Script_Registry, Style_Registry
+- **Theme Management**: SCD_Theme_Manager for centralized theme operations
 - **Modular Wizard**: Each step has state management, API, and orchestrator
 - **MVC Pattern**: Separate views from business logic
 - **Singleton Main Class**: Single initialization point
 - **HPOS Compatibility**: Modern WooCommerce support
+
+### Theme Management System
+
+**SCD_Theme_Manager** (`includes/utilities/class-theme-manager.php`) - Centralized theme management
+
+**Always use Theme_Manager for theme operations. Never access settings directly.**
+
+```php
+// ✅ CORRECT: Get current theme
+$theme = SCD_Theme_Manager::get_current_theme();
+
+// ✅ CORRECT: Check if theme is valid
+if ( SCD_Theme_Manager::is_valid_theme( $theme ) ) {
+    // Do something
+}
+
+// ✅ CORRECT: Get theme dropdown options
+$options = SCD_Theme_Manager::get_theme_options();
+
+// ✅ CORRECT: Get default theme
+$default = SCD_Theme_Manager::get_default_theme();
+
+// ✅ CORRECT: Get body class
+$class = SCD_Theme_Manager::get_theme_body_class();
+
+// ✅ CORRECT: Get CSS filename with validation
+$filename = SCD_Theme_Manager::get_validated_theme_filename( $theme );
+
+// ❌ WRONG: Direct settings access
+$settings = get_option( 'scd_settings', array() );
+$theme = $settings['general']['admin_theme'] ?? 'classic';  // Don't do this!
+
+// ❌ WRONG: Hardcoded theme names
+if ( 'classic' === $theme ) { }  // Use constants instead
+
+// ✅ CORRECT: Use constants
+if ( SCD_Theme_Manager::THEME_CLASSIC === $theme ) { }
+```
+
+**Available Constants:**
+- `SCD_Theme_Manager::THEME_CLASSIC` - Classic theme identifier
+- `SCD_Theme_Manager::THEME_ENHANCED` - Enhanced theme identifier
+- `SCD_Theme_Manager::DEFAULT_THEME` - Default theme (classic)
+
+**Extensibility:**
+```php
+// Add custom theme via filter
+add_filter( 'scd_available_themes', function( $themes ) {
+    $themes['custom'] = array(
+        'label'       => 'Custom Theme',
+        'description' => 'My custom theme',
+        'file'        => 'theme-custom.css',
+    );
+    return $themes;
+} );
+
+// Override default theme
+add_filter( 'scd_default_theme', function( $default ) {
+    return 'enhanced';
+} );
+```
 
 ### File Organization:
 ```

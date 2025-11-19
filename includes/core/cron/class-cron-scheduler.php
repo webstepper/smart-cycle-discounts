@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/cron/class-cron-scheduler.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/cron
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Cron_Scheduler {
 
@@ -83,6 +83,7 @@ class SCD_Cron_Scheduler {
 	public function init(): void {
 		add_action( 'scd_cleanup_expired_sessions', array( $this, 'cleanup_expired_sessions' ) );
 		add_action( 'scd_cleanup_old_analytics', array( $this, 'cleanup_old_analytics' ) );
+		add_action( 'scd_warm_cache', array( $this, 'warm_cache_task' ) );
 
 		// Schedule events on activation
 		$this->schedule_events();
@@ -158,6 +159,20 @@ class SCD_Cron_Scheduler {
 			$this->logger->info( 'Scheduled old analytics cleanup (weekly)' );
 		}
 
+		// Schedule cache warming - runs hourly if enabled in settings
+		$settings = get_option( 'scd_settings', array() );
+		if ( isset( $settings['performance']['enable_cache_warming'] ) && $settings['performance']['enable_cache_warming'] ) {
+			if ( ! $this->scheduler->is_action_scheduled( 'scd_warm_cache' ) ) {
+				$this->scheduler->schedule_recurring_action(
+					time(),
+					HOUR_IN_SECONDS,
+					'scd_warm_cache',
+					array()
+				);
+				$this->logger->info( 'Scheduled cache warming (hourly)' );
+			}
+		}
+
 		// Analytics aggregation disabled - main analytics table is already pre-aggregated
 		// No need for additional hourly/daily aggregation layers
 		// @see includes/database/migrations/001-initial-schema.php for aggregated analytics table structure
@@ -181,6 +196,7 @@ class SCD_Cron_Scheduler {
 		$this->scheduler->unschedule_all_actions( 'scd_cleanup_wizard_sessions' );
 		$this->scheduler->unschedule_all_actions( 'scd_cleanup_audit_logs' );
 		$this->scheduler->unschedule_all_actions( 'scd_cleanup_old_analytics' );
+		$this->scheduler->unschedule_all_actions( 'scd_warm_cache' );
 		$this->scheduler->unschedule_all_actions( 'scd_analytics_hourly_aggregation' );
 		$this->scheduler->unschedule_all_actions( 'scd_analytics_daily_aggregation' );
 
@@ -222,6 +238,46 @@ class SCD_Cron_Scheduler {
 				'Failed to cleanup expired sessions',
 				array(
 					'error' => $e->getMessage(),
+				)
+			);
+		}
+	}
+
+	/**
+	 * Warm cache task.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	public function warm_cache_task(): void {
+		try {
+			$this->logger->info( 'Starting cache warming' );
+
+			// Get cache manager from container
+			$container = Smart_Cycle_Discounts::get_instance();
+			if ( ! $container || ! method_exists( $container, 'get_service' ) ) {
+				$this->logger->error( 'Container not available for cache warming' );
+				return;
+			}
+
+			$cache_manager = $container::get_service( 'cache_manager' );
+
+			if ( ! $cache_manager || ! method_exists( $cache_manager, 'warm_cache' ) ) {
+				$this->logger->error( 'Cache manager not available for cache warming' );
+				return;
+			}
+
+			// Execute cache warming
+			$cache_manager->warm_cache();
+
+			$this->logger->info( 'Cache warming completed successfully' );
+
+		} catch ( Exception $e ) {
+			$this->logger->error(
+				'Failed to warm cache',
+				array(
+					'error' => $e->getMessage(),
+					'trace' => $e->getTraceAsString(),
 				)
 			);
 		}

@@ -113,9 +113,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 							</small>
 						</td>
 						<td>
-							<span class="scd-status-badge scd-status-paused">
-								<?php esc_html_e( 'Paused for Review', 'smart-cycle-discounts' ); ?>
-							</span>
+							<?php echo SCD_Badge_Helper::status_badge( 'paused', __( 'Paused for Review', 'smart-cycle-discounts' ) ); ?>
 						</td>
 						<td class="scd-review-actions">
 							<button type="button"
@@ -161,7 +159,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	font-size: 12px;
 }
 
-.scd-status-badge {
+.scd-badge-status {
 	display: inline-block;
 	padding: 3px 8px;
 	border-radius: 3px;
@@ -169,7 +167,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	font-weight: 600;
 }
 
-.scd-status-paused {
+.scd-badge-status--paused {
 	background: #ff9800;
 	color: #fff;
 }

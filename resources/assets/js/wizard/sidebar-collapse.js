@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/wizard/sidebar-collapse.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -33,16 +33,16 @@
 			// Handle header clicks (entire header is clickable)
 			$( document ).on( 'click', '.scd-sidebar-section-header', function( e ) {
 				e.preventDefault();
-				var $toggle = $( this ).find( '.scd-sidebar-section-toggle' );
-				SidebarCollapse.toggleSection( $toggle );
+				var $header = $( this );
+				SidebarCollapse.toggleSection( $header );
 			} );
 
 			// Handle keyboard accessibility (Enter/Space on header)
 			$( document ).on( 'keydown', '.scd-sidebar-section-header', function( e ) {
 				if ( 13 === e.which || 32 === e.which ) { // Enter or Space
 					e.preventDefault();
-					var $toggle = $( this ).find( '.scd-sidebar-section-toggle' );
-					SidebarCollapse.toggleSection( $toggle );
+					var $header = $( this );
+					SidebarCollapse.toggleSection( $header );
 				}
 			} );
 		},
@@ -50,21 +50,20 @@
 		/**
 		 * Toggle section open/closed
 		 *
-		 * @param {jQuery} $toggle Toggle button element
+		 * @param {jQuery} $header Section header element
 		 */
-		toggleSection: function( $toggle ) {
-			var $section = $toggle.closest( '.scd-sidebar-section' );
+		toggleSection: function( $header ) {
+			var $section = $header.closest( '.scd-sidebar-section' );
 			var sectionId = $section.attr( 'id' );
-			var $header = $section.find( '.scd-sidebar-section-header' );
 			var $content = $section.find( '.scd-sidebar-section-content' );
-			var $icon = $toggle.find( '.dashicons' );
+			var $icon = $header.find( '.scd-sidebar-section-icon' );
 
 			// Toggle collapsed state
 			if ( $section.hasClass( 'collapsed' ) ) {
 				// Expand
 				$section.removeClass( 'collapsed' );
 				$content.slideDown( 200 );
-				$icon.removeClass( 'dashicons-arrow-right' ).addClass( 'dashicons-arrow-down' );
+				$icon.css( 'transform', 'rotate(0deg)' );
 				$header.attr( 'aria-expanded', 'true' );
 
 				this.saveState( sectionId, 'open' );
@@ -72,7 +71,7 @@
 				// Collapse
 				$section.addClass( 'collapsed' );
 				$content.slideUp( 200 );
-				$icon.removeClass( 'dashicons-arrow-down' ).addClass( 'dashicons-arrow-right' );
+				$icon.css( 'transform', 'rotate(-90deg)' );
 				$header.attr( 'aria-expanded', 'false' );
 
 				this.saveState( sectionId, 'collapsed' );
@@ -89,6 +88,7 @@
 				var $section = $( this );
 				var sectionId = $section.attr( 'id' );
 				var $header = $section.find( '.scd-sidebar-section-header' );
+				var $icon = $header.find( '.scd-sidebar-section-icon' );
 				var savedState = self.getState( sectionId );
 				var defaultState = $section.data( 'default-state' ) || 'open';
 
@@ -99,13 +99,13 @@
 					// Apply collapsed state without animation on page load
 					$section.addClass( 'collapsed' );
 					$section.find( '.scd-sidebar-section-content' ).hide();
-					$section.find( '.dashicons' ).removeClass( 'dashicons-arrow-down' ).addClass( 'dashicons-arrow-right' );
+					$icon.css( 'transform', 'rotate(-90deg)' );
 					$header.attr( 'aria-expanded', 'false' );
 				} else {
 					// Ensure expanded state
 					$section.removeClass( 'collapsed' );
 					$section.find( '.scd-sidebar-section-content' ).show();
-					$section.find( '.dashicons' ).removeClass( 'dashicons-arrow-right' ).addClass( 'dashicons-arrow-down' );
+					$icon.css( 'transform', 'rotate(0deg)' );
 					$header.attr( 'aria-expanded', 'true' );
 				}
 			} );

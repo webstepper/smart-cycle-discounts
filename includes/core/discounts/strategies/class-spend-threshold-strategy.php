@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/discounts/strategies/class-spend-threshold-strategy.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/discounts/strategies
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 
@@ -77,7 +77,7 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 			$metadata = array(
 				'cart_total'               => $cart_total,
 				'applicable_threshold'     => $applicable_threshold,
-				'threshold_amount'         => $applicable_threshold['threshold'],
+				'threshold_amount'         => $applicable_threshold['spend_amount'],
 				'threshold_discount_type'  => $applicable_threshold['discount_type'],
 				'threshold_discount_value' => $applicable_threshold['discount_value'],
 			);
@@ -117,7 +117,7 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 					$errors           = array_merge( $errors, $threshold_errors );
 				}
 
-				$threshold_amounts = array_column( $thresholds, 'threshold' );
+				$threshold_amounts = array_column( $thresholds, 'spend_amount' );
 				$sorted_amounts    = $threshold_amounts;
 				sort( $sorted_amounts );
 
@@ -143,9 +143,9 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 		$errors          = array();
 		$threshold_label = sprintf( __( 'Threshold %d', 'smart-cycle-discounts' ), $index + 1 );
 
-		if ( ! isset( $threshold['threshold'] ) || ! is_numeric( $threshold['threshold'] ) ) {
+		if ( ! isset( $threshold['spend_amount'] ) || ! is_numeric( $threshold['spend_amount'] ) ) {
 			$errors[] = sprintf( __( '%s: Threshold amount is required and must be numeric', 'smart-cycle-discounts' ), $threshold_label );
-		} elseif ( floatval( $threshold['threshold'] ) < 0 ) {
+		} elseif ( floatval( $threshold['spend_amount'] ) < 0 ) {
 			$errors[] = sprintf( __( '%s: Threshold amount must be non-negative', 'smart-cycle-discounts' ), $threshold_label );
 		}
 
@@ -158,7 +158,7 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 		} else {
 			$discount_value   = floatval( $threshold['discount_value'] );
 			$discount_type    = $threshold['discount_type'] ?? '';
-			$threshold_amount = isset( $threshold['threshold'] ) ? floatval( $threshold['threshold'] ) : 0;
+			$threshold_amount = isset( $threshold['spend_amount'] ) ? floatval( $threshold['spend_amount'] ) : 0;
 
 			if ( $discount_value < 0 ) {
 				$errors[] = sprintf( __( '%s: Discount value must be non-negative', 'smart-cycle-discounts' ), $threshold_label );
@@ -339,12 +339,12 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 		usort(
 			$thresholds,
 			function ( $a, $b ) {
-				return floatval( $b['threshold'] ) <=> floatval( $a['threshold'] );
+				return floatval( $b['spend_amount'] ) <=> floatval( $a['spend_amount'] );
 			}
 		);
 
 		foreach ( $thresholds as $threshold ) {
-			$threshold_amount = floatval( $threshold['threshold'] );
+			$threshold_amount = floatval( $threshold['spend_amount'] );
 			if ( $cart_total >= $threshold_amount ) {
 				$applicable_threshold = $threshold;
 				break;
@@ -390,7 +390,7 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	 * @return   string                 Threshold description.
 	 */
 	public function get_threshold_description( array $threshold ): string {
-		$threshold_amount = $threshold['threshold'] ?? 0;
+		$threshold_amount = $threshold['spend_amount'] ?? 0;
 		$discount_type    = $threshold['discount_type'] ?? 'percentage';
 		$discount_value   = $threshold['discount_value'] ?? 0;
 
@@ -422,7 +422,7 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 				'label'       => __( 'Spend Thresholds', 'smart-cycle-discounts' ),
 				'description' => __( 'Configure spend thresholds with discount values', 'smart-cycle-discounts' ),
 				'fields'      => array(
-					'threshold'      => array(
+					'spend_amount'   => array(
 						'type'        => 'number',
 						'label'       => __( 'Cart Total Threshold', 'smart-cycle-discounts' ),
 						'description' => __( 'Minimum cart total to qualify for this threshold', 'smart-cycle-discounts' ),
@@ -453,12 +453,12 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 				'config'      => array(
 					'thresholds' => array(
 						array(
-							'threshold'      => 50,
+							'spend_amount'      => 50,
 							'discount_type'  => 'percentage',
 							'discount_value' => 5.0,
 						),
 						array(
-							'threshold'      => 100,
+							'spend_amount'      => 100,
 							'discount_type'  => 'percentage',
 							'discount_value' => 10.0,
 						),
@@ -471,12 +471,12 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 				'config'      => array(
 					'thresholds' => array(
 						array(
-							'threshold'      => 50,
+							'spend_amount'      => 50,
 							'discount_type'  => 'fixed',
 							'discount_value' => 5.0,
 						),
 						array(
-							'threshold'      => 100,
+							'spend_amount'      => 100,
 							'discount_type'  => 'fixed',
 							'discount_value' => 15.0,
 						),
@@ -503,12 +503,12 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 		usort(
 			$thresholds,
 			function ( $a, $b ) {
-				return floatval( $a['threshold'] ) <=> floatval( $b['threshold'] );
+				return floatval( $a['spend_amount'] ) <=> floatval( $b['spend_amount'] );
 			}
 		);
 
 		foreach ( $thresholds as $threshold ) {
-			$threshold_amount = floatval( $threshold['threshold'] );
+			$threshold_amount = floatval( $threshold['spend_amount'] );
 			if ( $current_total < $threshold_amount ) {
 				return array(
 					'threshold'         => $threshold_amount,

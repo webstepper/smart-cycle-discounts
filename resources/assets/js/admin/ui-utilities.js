@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/admin/ui-utilities.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -21,54 +21,62 @@
 	 */
 	SCD.Shared.UI = {
 
-		/**
-		 * Show loading overlay
-		 *
-		 * @param {string|jQuery} target Target element selector or jQuery object
-		 * @param {string} message Loading message
-		 * @returns {jQuery} Overlay element
-		 */
-		showLoading: function( target, message ) {
-			message = message || 'Loading...';
-			var $target = $( target );
-			if ( ! $target.length ) {
-				return null;
-			}
+	/**
+	 * Show loading overlay
+	 *
+	 * Delegates to centralized LoaderUtil for consistent loading UX.
+	 *
+	 * @param {string|jQuery} target Target element selector or jQuery object
+	 * @param {string} message Loading message
+	 * @returns {jQuery} Overlay element
+	 */
+	showLoading: function( target, message ) {
+		// Delegate to centralized LoaderUtil
+		if ( window.SCD && window.SCD.LoaderUtil ) {
+			return SCD.LoaderUtil.showOverlay( target, message );
+		}
 
-			$target.find( '.scd-loading-overlay' ).remove();
+		// Fallback for backward compatibility (should never reach here)
+		message = message || 'Loading...';
+		var $target = $( target );
+		if ( ! $target.length ) {
+			return null;
+		}
 
-			if ( 'static' === $target.css( 'position' ) ) {
-				$target.css( 'position', 'relative' );
-			}
+		var $overlay = $(
+			'<div class="scd-loading-overlay">' +
+                '<div class="scd-loading-content">' +
+                    '<span class="spinner is-active"></span>' +
+                    '<span class="scd-loading-text">' + this.escapeHtml( message ) + '</span>' +
+                '</div>' +
+            '</div>'
+		);
 
-			var $overlay = $(
-				'<div class="scd-loading-overlay">' +
-                    '<div class="scd-loading-content">' +
-                        '<span class="spinner is-active"></span>' +
-                        '<span class="scd-loading-text">' + ( this.escapeHtml( message ) ) + '</span>' +
-                    '</div>' +
-                '</div>'
-			);
+		$target.append( $overlay );
+		$overlay.hide().fadeIn( 200 );
+		return $overlay;
+	},
 
-			$target.append( $overlay );
+	/**
+	 * Hide loading overlay
+	 *
+	 * Delegates to centralized LoaderUtil for consistent loading UX.
+	 *
+	 * @param {string|jQuery} target Target element
+	 */
+	hideLoading: function( target ) {
+		// Delegate to centralized LoaderUtil
+		if ( window.SCD && window.SCD.LoaderUtil ) {
+			SCD.LoaderUtil.hideOverlay( target );
+			return;
+		}
 
-			// Fade in
-			$overlay.hide().fadeIn( 200 );
-
-			return $overlay;
-		},
-
-		/**
-		 * Hide loading overlay
-		 *
-		 * @param {string|jQuery} target Target element
-		 */
-		hideLoading: function( target ) {
-			var $target = $( target );
-			$target.find( '.scd-loading-overlay' ).fadeOut( 200, function() {
-				$( this ).remove();
-			} );
-		},
+		// Fallback for backward compatibility (should never reach here)
+		var $target = $( target );
+		$target.find( '.scd-loading-overlay' ).fadeOut( 200, function() {
+			$( this ).remove();
+		} );
+	},
 
 		/**
 		 * Show confirmation dialog
@@ -150,7 +158,7 @@
                         '<div class="scd-modal-header">' +
                             '<h2>' + ( this.escapeHtml( config.title ) ) + '</h2>' +
                             '<button type="button" class="scd-modal-close" aria-label="Close">' +
-                                '<span class="dashicons dashicons-no"></span>' +
+                                ( SCD.IconHelper ? SCD.IconHelper.close( { size: 20 } ) : '<span class="scd-icon scd-icon-close"></span>' ) +
                             '</button>' +
                         '</div>' +
                         '<div class="scd-modal-content">' +
@@ -390,15 +398,18 @@
 		 */
 		inlineNotice: function( message, type ) {
 			type = type || 'info';
-			var icons = {
-				success: 'yes-alt',
+			var iconNames = {
+				success: 'check',
 				error: 'warning',
 				warning: 'info',
-				info: 'info-outline'
+				info: 'info'
 			};
 
+			var iconName = iconNames[type] || 'info';
+			var icon = SCD.IconHelper ? SCD.IconHelper.get( iconName, { size: 16 } ) : '<span class="scd-icon scd-icon-' + iconName + '"></span>';
+
 			return '<div class="scd-inline-notice scd-inline-notice-' + ( type ) + '">' +
-                    '<span class="dashicons dashicons-' + ( icons[type] || 'info-outline' ) + '"></span>' +
+                    icon +
                     '<span>' + ( this.escapeHtml( message ) ) + '</span>' +
                 '</div>';
 		},

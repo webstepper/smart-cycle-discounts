@@ -1,11 +1,15 @@
 <?php
 /**
- * 001 Initial Schema
+ * 001 Initial Schema (Consolidated)
+ *
+ * Consolidated migration including all schema changes from migrations 001-009.
+ * Since no users exist yet, this combines all incremental migrations into a single
+ * initial schema for cleaner installation.
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/database/migrations/001-initial-schema.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -19,17 +23,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 
 /**
- * Initial Schema Migration
+ * Consolidated Initial Schema Migration
  *
- * Creates all database tables for the Smart Cycle Discounts plugin.
- * Includes campaigns, active_discounts, analytics, customer_usage, and campaign_recurring tables.
+ * Creates all database tables with final schema including:
+ * - All base tables (campaigns, active_discounts, analytics, customer_usage, campaign_recurring)
+ * - Activity log table (migration 004)
+ * - Campaign conditions table (migration 007)
+ * - Product analytics table (migration 007)
+ * - Recurring cache table (migration 009)
+ * - All column additions from migrations 005, 007, 009
+ * - All indexes from migration 006
+ * - All foreign keys
+ * - DECIMAL column types for monetary values (migration 003)
  *
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/database/migrations
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Migration_001_Initial_Schema {
+class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 
 	/**
 	 * Database manager instance.
@@ -64,12 +76,18 @@ class SCD_Migration_001_Initial_Schema {
 		$this->create_analytics_table( $charset_collate );
 		$this->create_customer_usage_table( $charset_collate );
 		$this->create_campaign_recurring_table( $charset_collate );
+		$this->create_activity_log_table( $charset_collate );
+		$this->create_campaign_conditions_table( $charset_collate );
+		$this->create_product_analytics_table( $charset_collate );
+		$this->create_recurring_cache_table( $charset_collate );
 
 		$this->add_all_foreign_keys();
 	}
 
 	/**
 	 * Create campaigns table.
+	 *
+	 * Includes all columns from migrations 001, 005, 007, and 009.
 	 *
 	 * @since    1.0.0
 	 * @access   private
@@ -84,19 +102,25 @@ class SCD_Migration_001_Initial_Schema {
 			uuid char(36) NOT NULL,
 			name varchar(255) NOT NULL,
 			slug varchar(255) NOT NULL,
+			campaign_type varchar(20) NOT NULL DEFAULT 'standard' COMMENT 'standard or recurring (migration 009)',
 			description longtext,
 			status enum('draft','scheduled','active','paused','expired','archived') DEFAULT 'draft',
+			enable_recurring tinyint(1) NOT NULL DEFAULT 0,
 			priority tinyint(3) unsigned DEFAULT 3,
 			settings longtext,
 			metadata longtext,
 			template_id varchar(100) DEFAULT NULL,
 			color_theme varchar(7) DEFAULT '#2271b1',
-			icon varchar(100) DEFAULT 'dashicons-tag',
+			icon varchar(100) DEFAULT 'tag',
 
 			product_selection_type enum('all_products','random_products','specific_products','smart_selection') DEFAULT 'all_products',
 			product_ids longtext COMMENT 'JSON array of product IDs',
 			category_ids longtext COMMENT 'JSON array of category IDs',
 			tag_ids longtext COMMENT 'JSON array of tag IDs',
+			conditions_logic varchar(3) DEFAULT 'all' COMMENT 'Logic for combining conditions: all (AND) or any (OR) (migration 007)',
+			random_product_count int(11) unsigned DEFAULT 5 COMMENT 'Number of random products to select (migration 007)',
+			compiled_at datetime DEFAULT NULL COMMENT 'Timestamp when product_ids were last compiled (migration 007)',
+			compilation_method varchar(20) DEFAULT NULL COMMENT 'Method used for compilation: static, random, smart, conditional (migration 007)',
 
 			rotation_enabled tinyint(1) DEFAULT 0,
 			rotation_interval int(11) unsigned DEFAULT 24 COMMENT 'Hours between rotations',
@@ -105,7 +129,7 @@ class SCD_Migration_001_Initial_Schema {
 			last_rotation_at datetime DEFAULT NULL,
 
 			discount_rules longtext COMMENT 'JSON configuration for discount rules',
-			discount_value decimal(10,4) DEFAULT 0.0000,
+			discount_value decimal(10,4) DEFAULT 0.0000 COMMENT 'DECIMAL for precision (migration 003)',
 			discount_type enum('percentage','fixed','bogo','tiered','spend_threshold') DEFAULT 'percentage',
 
 			usage_limits longtext COMMENT 'JSON configuration for usage limits',
@@ -121,25 +145,35 @@ class SCD_Migration_001_Initial_Schema {
 			timezone varchar(50) DEFAULT 'UTC',
 
 			products_count int(11) unsigned DEFAULT 0,
-			revenue_generated decimal(15,4) DEFAULT 0.0000,
+			revenue_generated decimal(15,4) DEFAULT 0.0000 COMMENT 'DECIMAL for precision (migration 003)',
 			orders_count int(11) unsigned DEFAULT 0,
 			impressions_count int(11) unsigned DEFAULT 0,
 			clicks_count int(11) unsigned DEFAULT 0,
-			conversion_rate decimal(5,2) DEFAULT 0.00,
+			conversion_rate decimal(5,2) DEFAULT 0.00 COMMENT 'DECIMAL for precision (migration 003)',
+
+			baseline_revenue decimal(15,4) DEFAULT 0.0000,
+			baseline_orders int(11) unsigned DEFAULT 0,
+			baseline_customers int(11) unsigned DEFAULT 0,
+			baseline_period_start datetime DEFAULT NULL,
+			baseline_period_end datetime DEFAULT NULL,
 
 			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			version int(11) unsigned NOT NULL DEFAULT 1 COMMENT 'Optimistic locking version (migration 005)',
 			deleted_at datetime DEFAULT NULL,
 			PRIMARY KEY (id),
 			UNIQUE KEY unique_uuid (uuid),
 			UNIQUE KEY unique_slug (slug),
 			KEY idx_name (name),
 			KEY idx_status (status),
+			KEY idx_campaign_type (campaign_type),
 			KEY idx_priority (priority),
 			KEY idx_created_by (created_by),
 			KEY idx_updated_by (updated_by),
 			KEY idx_template_id (template_id),
 			KEY idx_schedule (starts_at, ends_at),
+			KEY idx_compiled_at (compiled_at),
+			KEY idx_campaign_version (id, version),
 			KEY idx_performance (revenue_generated, orders_count),
 			KEY idx_engagement (impressions_count, clicks_count),
 			KEY idx_created_at (created_at),
@@ -170,10 +204,10 @@ class SCD_Migration_001_Initial_Schema {
 			campaign_id bigint(20) unsigned NOT NULL,
 			product_id bigint(20) unsigned NOT NULL,
 			variation_id bigint(20) unsigned DEFAULT NULL,
-			original_price decimal(15,4) NOT NULL,
-			discounted_price decimal(15,4) NOT NULL,
-			discount_amount decimal(15,4) NOT NULL,
-			discount_percentage decimal(5,2) DEFAULT NULL,
+			original_price decimal(15,4) NOT NULL COMMENT 'DECIMAL for precision (migration 003)',
+			discounted_price decimal(15,4) NOT NULL COMMENT 'DECIMAL for precision (migration 003)',
+			discount_amount decimal(15,4) NOT NULL COMMENT 'DECIMAL for precision (migration 003)',
+			discount_percentage decimal(5,2) DEFAULT NULL COMMENT 'DECIMAL for precision (migration 003)',
 			discount_type enum('percentage','fixed','bogo','tiered','spend_threshold') NOT NULL,
 			discount_rules longtext,
 			conditions longtext,
@@ -183,7 +217,7 @@ class SCD_Migration_001_Initial_Schema {
 			status enum('active','paused','expired','removed') DEFAULT 'active',
 			priority tinyint(3) unsigned DEFAULT 3,
 			application_count int(11) unsigned DEFAULT 0,
-			revenue_generated decimal(15,4) DEFAULT 0.0000,
+			revenue_generated decimal(15,4) DEFAULT 0.0000 COMMENT 'DECIMAL for precision (migration 003)',
 			last_applied_at datetime DEFAULT NULL,
 			stock_quantity int(11) DEFAULT NULL,
 			max_applications int(11) DEFAULT NULL,
@@ -201,6 +235,7 @@ class SCD_Migration_001_Initial_Schema {
 			KEY idx_priority (priority),
 			KEY idx_discount_type (discount_type),
 			KEY idx_validity (valid_from, valid_until),
+			KEY idx_validity_period (valid_from, valid_until),
 			KEY idx_performance (revenue_generated, application_count),
 			KEY idx_last_applied (last_applied_at),
 			KEY idx_active_discounts (status, valid_from, valid_until),
@@ -231,8 +266,10 @@ class SCD_Migration_001_Initial_Schema {
 			impressions int(11) unsigned DEFAULT 0,
 			clicks int(11) unsigned DEFAULT 0,
 			conversions int(11) unsigned DEFAULT 0,
-			revenue decimal(15,4) DEFAULT 0.0000,
-			discount_given decimal(15,4) DEFAULT 0.0000,
+			revenue decimal(15,4) DEFAULT 0.0000 COMMENT 'DECIMAL for precision (migration 003)',
+			discount_given decimal(15,4) DEFAULT 0.0000 COMMENT 'DECIMAL for precision (migration 003)',
+			cart_total decimal(15,4) DEFAULT 0.0000 COMMENT 'DECIMAL for precision (migration 003)',
+			product_cost decimal(15,4) DEFAULT 0.0000,
 			profit_margin decimal(15,4) DEFAULT 0.0000,
 			products_shown int(11) unsigned DEFAULT 0,
 			products_clicked int(11) unsigned DEFAULT 0,
@@ -300,8 +337,8 @@ class SCD_Migration_001_Initial_Schema {
 			usage_count int(11) unsigned NOT NULL DEFAULT 1,
 			first_used_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			last_used_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			total_discount_amount decimal(15,4) DEFAULT 0.0000,
-			total_order_value decimal(15,4) DEFAULT 0.0000,
+			total_discount_amount decimal(15,4) DEFAULT 0.0000 COMMENT 'DECIMAL for precision (migration 003)',
+			total_order_value decimal(15,4) DEFAULT 0.0000 COMMENT 'DECIMAL for precision (migration 003)',
 			order_ids longtext,
 			session_id varchar(255) DEFAULT NULL,
 			ip_address varchar(45) DEFAULT NULL,
@@ -327,6 +364,8 @@ class SCD_Migration_001_Initial_Schema {
 	/**
 	 * Create campaign_recurring table.
 	 *
+	 * Includes enhancements from migration 009.
+	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @param    string $charset_collate    Charset collate.
@@ -347,12 +386,16 @@ class SCD_Migration_001_Initial_Schema {
 			recurrence_end_date date DEFAULT NULL,
 			occurrence_number int(11) NOT NULL DEFAULT 1,
 			next_occurrence_date datetime DEFAULT NULL,
+			last_run_at datetime DEFAULT NULL COMMENT 'Last run timestamp (migration 009)',
+			last_error text DEFAULT NULL COMMENT 'Last error message (migration 009)',
+			retry_count int(11) NOT NULL DEFAULT 0 COMMENT 'Retry attempt count (migration 009)',
 			is_active tinyint(1) NOT NULL DEFAULT 1,
 			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			PRIMARY KEY (id),
 			UNIQUE KEY unique_campaign_recurring (campaign_id),
 			KEY idx_parent_campaign (parent_campaign_id),
+			KEY idx_parent (parent_campaign_id),
 			KEY idx_next_occurrence (next_occurrence_date, is_active),
 			KEY idx_active_recurring (is_active, recurrence_end_type)
 		) $charset_collate;";
@@ -362,7 +405,156 @@ class SCD_Migration_001_Initial_Schema {
 	}
 
 	/**
+	 * Create activity_log table.
+	 *
+	 * From migration 004.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    string $charset_collate    Charset collate.
+	 * @return   void
+	 */
+	private function create_activity_log_table( string $charset_collate ): void {
+		$table_name = $this->db->get_wpdb()->prefix . 'scd_activity_log';
+
+		$sql = "CREATE TABLE $table_name (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			event_type varchar(50) NOT NULL,
+			event_data longtext,
+			campaign_id bigint(20) unsigned DEFAULT NULL,
+			user_id bigint(20) unsigned DEFAULT NULL,
+			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY  (id),
+			KEY event_type (event_type),
+			KEY campaign_id (campaign_id),
+			KEY user_id (user_id),
+			KEY created_at (created_at),
+			KEY event_type_created (event_type, created_at)
+		) $charset_collate;";
+
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		dbDelta( $sql );
+	}
+
+	/**
+	 * Create campaign_conditions table.
+	 *
+	 * From migration 007 (refactor).
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    string $charset_collate    Charset collate.
+	 * @return   void
+	 */
+	private function create_campaign_conditions_table( string $charset_collate ): void {
+		$table_name = $this->db->get_table_name( 'campaign_conditions' );
+
+		$sql = "CREATE TABLE $table_name (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			campaign_id bigint(20) unsigned NOT NULL,
+			condition_type varchar(50) NOT NULL COMMENT 'price, stock, category, tag, attribute, sale_status',
+			operator varchar(10) NOT NULL COMMENT '>, <, =, >=, <=, between, in, not_in',
+			value varchar(255) NOT NULL COMMENT 'Primary condition value',
+			value2 varchar(255) DEFAULT NULL COMMENT 'Secondary value for between operator',
+			mode enum('include', 'exclude') DEFAULT 'include' COMMENT 'Include or exclude matching products',
+			sort_order int(11) unsigned DEFAULT 0 COMMENT 'Order for UI display',
+			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			PRIMARY KEY (id),
+			KEY idx_campaign_id (campaign_id),
+			KEY idx_condition_type (condition_type),
+			KEY idx_mode (mode),
+			KEY idx_sort_order (sort_order)
+		) $charset_collate;";
+
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		dbDelta( $sql );
+	}
+
+	/**
+	 * Create product_analytics table.
+	 *
+	 * From migration 007 (product analytics).
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    string $charset_collate    Charset collate.
+	 * @return   void
+	 */
+	private function create_product_analytics_table( string $charset_collate ): void {
+		$table_name = $this->db->get_wpdb()->prefix . 'scd_product_analytics';
+
+		$sql = "CREATE TABLE $table_name (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			campaign_id bigint(20) unsigned NOT NULL,
+			product_id bigint(20) unsigned NOT NULL,
+			date_recorded date NOT NULL,
+			hour_recorded tinyint(2) unsigned DEFAULT NULL,
+			impressions int(11) unsigned DEFAULT 0,
+			clicks int(11) unsigned DEFAULT 0,
+			conversions int(11) unsigned DEFAULT 0,
+			revenue decimal(15,4) DEFAULT 0.0000,
+			discount_given decimal(15,4) DEFAULT 0.0000,
+			product_cost decimal(15,4) DEFAULT 0.0000,
+			profit decimal(15,4) DEFAULT 0.0000,
+			quantity_sold int(11) unsigned DEFAULT 0,
+			unique_customers int(11) unsigned DEFAULT 0,
+			returning_customers int(11) unsigned DEFAULT 0,
+			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			PRIMARY KEY (id),
+			UNIQUE KEY unique_campaign_product_date_hour (campaign_id, product_id, date_recorded, hour_recorded),
+			KEY idx_campaign_id (campaign_id),
+			KEY idx_product_id (product_id),
+			KEY idx_date_recorded (date_recorded),
+			KEY idx_campaign_product (campaign_id, product_id),
+			KEY idx_date_range (date_recorded, campaign_id)
+		) $charset_collate;";
+
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		dbDelta( $sql );
+	}
+
+	/**
+	 * Create recurring_cache table.
+	 *
+	 * From migration 009.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    string $charset_collate    Charset collate.
+	 * @return   void
+	 */
+	private function create_recurring_cache_table( string $charset_collate ): void {
+		$table_name = $this->db->get_wpdb()->prefix . 'scd_recurring_cache';
+
+		$sql = "CREATE TABLE $table_name (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			parent_campaign_id bigint(20) unsigned NOT NULL,
+			occurrence_number int(11) unsigned NOT NULL,
+			occurrence_start datetime NOT NULL,
+			occurrence_end datetime NOT NULL,
+			status varchar(20) NOT NULL DEFAULT 'pending',
+			instance_id bigint(20) unsigned DEFAULT NULL,
+			created_at datetime NOT NULL,
+			scheduled_at datetime DEFAULT NULL,
+			completed_at datetime DEFAULT NULL,
+			error_message text DEFAULT NULL,
+			PRIMARY KEY  (id),
+			UNIQUE KEY unique_occurrence (parent_campaign_id, occurrence_number),
+			KEY idx_parent_status (parent_campaign_id, status),
+			KEY idx_start_date (occurrence_start),
+			KEY idx_instance (instance_id)
+		) $charset_collate;";
+
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		dbDelta( $sql );
+	}
+
+	/**
 	 * Add all foreign key constraints.
+	 *
+	 * Includes FKs from migrations 001, 006, 007, and 009.
 	 *
 	 * @since    1.0.0
 	 * @access   private
@@ -386,6 +578,15 @@ class SCD_Migration_001_Initial_Schema {
 
 			// Customer usage table foreign keys
 			$this->add_customer_usage_foreign_keys();
+
+			// Campaign recurring table foreign key
+			$this->add_campaign_recurring_foreign_keys();
+
+			// Campaign conditions table foreign key (migration 007)
+			$this->add_campaign_conditions_foreign_keys();
+
+			// Recurring cache table foreign key (migration 009)
+			$this->add_recurring_cache_foreign_keys();
 
 		} catch ( Exception $e ) {
 			// Silently catch foreign key errors
@@ -560,6 +761,91 @@ class SCD_Migration_001_Initial_Schema {
 	}
 
 	/**
+	 * Add foreign keys for campaign_recurring table.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   void
+	 */
+	private function add_campaign_recurring_foreign_keys(): void {
+		global $wpdb;
+		$table_name      = $this->db->get_table_name( 'campaign_recurring' );
+		$campaigns_table = $this->db->get_table_name( 'campaigns' );
+
+		// Foreign key for campaign_id
+		if ( ! $this->foreign_key_exists( $table_name, 'fk_campaign_recurring_campaign' ) ) {
+			$wpdb->query(
+				$wpdb->prepare(
+					'ALTER TABLE %i
+					ADD CONSTRAINT fk_campaign_recurring_campaign
+					FOREIGN KEY (campaign_id) REFERENCES %i(id)
+					ON DELETE CASCADE ON UPDATE CASCADE',
+					$table_name,
+					$campaigns_table
+				)
+			);
+		}
+	}
+
+	/**
+	 * Add foreign keys for campaign_conditions table.
+	 *
+	 * From migration 007.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   void
+	 */
+	private function add_campaign_conditions_foreign_keys(): void {
+		global $wpdb;
+		$table_name      = $this->db->get_table_name( 'campaign_conditions' );
+		$campaigns_table = $this->db->get_table_name( 'campaigns' );
+
+		// Foreign key for campaign_id
+		if ( ! $this->foreign_key_exists( $table_name, 'fk_campaign_conditions_campaign' ) ) {
+			$wpdb->query(
+				$wpdb->prepare(
+					'ALTER TABLE %i
+					ADD CONSTRAINT fk_campaign_conditions_campaign
+					FOREIGN KEY (campaign_id) REFERENCES %i(id)
+					ON DELETE CASCADE ON UPDATE CASCADE',
+					$table_name,
+					$campaigns_table
+				)
+			);
+		}
+	}
+
+	/**
+	 * Add foreign keys for recurring_cache table.
+	 *
+	 * From migration 009.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   void
+	 */
+	private function add_recurring_cache_foreign_keys(): void {
+		global $wpdb;
+		$table_name      = $wpdb->prefix . 'scd_recurring_cache';
+		$campaigns_table = $this->db->get_table_name( 'campaigns' );
+
+		// Foreign key for parent_campaign_id
+		if ( ! $this->foreign_key_exists( $table_name, 'fk_cache_parent' ) ) {
+			$wpdb->query(
+				$wpdb->prepare(
+					'ALTER TABLE %i
+					ADD CONSTRAINT fk_cache_parent
+					FOREIGN KEY (parent_campaign_id) REFERENCES %i(id)
+					ON DELETE CASCADE',
+					$table_name,
+					$campaigns_table
+				)
+			);
+		}
+	}
+
+	/**
 	 * Check if a foreign key exists.
 	 *
 	 * @since    1.0.0
@@ -593,6 +879,10 @@ class SCD_Migration_001_Initial_Schema {
 
 		// Drop tables in reverse order (respecting foreign key dependencies)
 		$tables = array(
+			'recurring_cache',
+			'product_analytics',
+			'campaign_conditions',
+			'activity_log',
 			'customer_usage',
 			'campaign_recurring',
 			'analytics',
@@ -601,7 +891,12 @@ class SCD_Migration_001_Initial_Schema {
 		);
 
 		foreach ( $tables as $table ) {
-			$table_name = $this->db->get_table_name( $table );
+			// Handle tables with full prefix vs get_table_name
+			if ( in_array( $table, array( 'recurring_cache', 'product_analytics', 'activity_log' ), true ) ) {
+				$table_name = $wpdb->prefix . 'scd_' . $table;
+			} else {
+				$table_name = $this->db->get_table_name( $table );
+			}
 
 			// Drop foreign keys first
 			$this->drop_foreign_keys( $table_name );

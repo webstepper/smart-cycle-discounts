@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/shared/mixins/step-persistence.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -109,6 +109,13 @@
 					return this._createErrorResponse( 'Field definitions not available' );
 				}
 
+				// Verify required dependencies are loaded (fail loudly if missing)
+				if ( ! window.SCD || ! window.SCD.Utils || ! window.SCD.Utils.Fields ) {
+					console.error( '[StepPersistence] CRITICAL: SCD.Utils.Fields not loaded for step:', this.stepName );
+					console.error( '[StepPersistence] This indicates a script dependency issue. Check script-registry.php.' );
+					return this._createErrorResponse( 'Required dependencies (SCD.Utils.Fields) not loaded. Cannot collect field data.' );
+				}
+
 				var fieldDefs = window.SCD.FieldDefinitions.getStepFields( this.stepName ) || {};
 
 				var data = {};
@@ -118,16 +125,16 @@
 					if ( Object.prototype.hasOwnProperty.call( fieldDefs, fieldName ) ) {
 						var fieldDef = fieldDefs[fieldName];
 
-					// Skip fields that don't meet their conditional visibility requirements
-					if ( ! this._isFieldVisible( fieldDef, data ) ) {
-						continue;
-					}
+						// Skip fields that don't meet their conditional visibility requirements
+						if ( ! this._isFieldVisible( fieldDef, data ) ) {
+							continue;
+						}
 
 						if ( 'complex' === fieldDef.type ) {
 							// Handle complex fields using handler
 							data[fieldName] = this.collectComplexField( fieldDef );
-						} else if ( window.SCD && window.SCD.Utils && window.SCD.Utils.Fields ) {
-							// Handle standard fields
+						} else {
+							// SCD.Utils.Fields is guaranteed to be loaded (verified above)
 							data[fieldName] = window.SCD.Utils.Fields.getFieldValue( fieldName, fieldDef );
 						}
 					}
@@ -147,10 +154,8 @@
 					}
 				}
 
-				// Return sanitized field data from Form Fields
-				// All data now comes from form fields (including hidden fields for complex widgets)
-				// State module is used for UI reactivity only - NOT as a data source
-				// Server will auto-convert camelCase to snake_case
+				// Return sanitized field data in camelCase format
+				// AJAX router will automatically convert camelCase to snake_case for PHP backend
 				return sanitizedData;
 			} catch ( error ) {
 				console.error( '[StepPersistence] Error collecting data:', error );
@@ -267,12 +272,12 @@
 					} );
 				}
 
-				// NOTE: Data from PHP uses snake_case, will be normalized by state import/setState
+				// Load data into state module (data is already in camelCase from field definitions)
 				if ( this.modules && this.modules.state && !this._isUpdatingState ) {
 					this._isUpdatingState = true;
-					// Use import() if available (for enriched data loading), otherwise setState()
-					if ( 'function' === typeof this.modules.state.import ) {
-						this.modules.state.import( data );
+					// Use fromJSON() if available (for custom data normalization), otherwise setState()
+					if ( 'function' === typeof this.modules.state.fromJSON ) {
+						this.modules.state.fromJSON( data );
 					} else {
 						this.modules.state.setState( data );
 					}
@@ -290,9 +295,17 @@
 
 				// Populate each field from definitions
 				for ( var fieldName in fieldDefs ) {
-					if ( Object.prototype.hasOwnProperty.call( fieldDefs, fieldName ) && Object.prototype.hasOwnProperty.call( data, fieldName ) ) {
-						var fieldDef = fieldDefs[fieldName];
+					if ( ! Object.prototype.hasOwnProperty.call( fieldDefs, fieldName ) ) {
+						continue;
+					}
 
+					var fieldDef = fieldDefs[fieldName];
+
+					// Data from Asset Localizer uses camelCase keys (snake_to_camel_keys conversion)
+					// So prefer camelCase key (fieldName) for data lookups, fall back to snake_case if needed
+					var dataKey = Object.prototype.hasOwnProperty.call( data, fieldName ) ? fieldName : ( fieldDef.fieldName || fieldName );
+
+					if ( Object.prototype.hasOwnProperty.call( data, dataKey ) ) {
 						// Skip fields that don't meet their conditional visibility requirements
 						if ( ! this._isFieldVisible( fieldDef, data ) ) {
 							continue;
@@ -300,10 +313,10 @@
 
 						if ( 'complex' === fieldDef.type ) {
 							// Handle complex fields using handler
-							this.populateComplexField( fieldDef, data[fieldName] );
+							this.populateComplexField( fieldDef, data[dataKey] );
 						} else if ( window.SCD && window.SCD.Utils && window.SCD.Utils.Fields ) {
 							// Handle standard fields
-							window.SCD.Utils.Fields.setFieldValue( fieldName, data[fieldName], fieldDef );
+							window.SCD.Utils.Fields.setFieldValue( fieldName, data[dataKey], fieldDef );
 						}
 					}
 				}
@@ -602,6 +615,7 @@
 		 */
 		getComplexFieldHandler: function( handlerPath ) {
 			if ( !handlerPath || 'string' !== typeof handlerPath ) {
+				console.warn( '[StepPersistence] getComplexFieldHandler - invalid handlerPath:', handlerPath );
 				return null;
 			}
 
@@ -619,9 +633,6 @@
 			if ( this.complexFieldHandlers && this.complexFieldHandlers[handlerPath] ) {
 				handler = this.complexFieldHandlers[handlerPath];
 				this._complexFieldHandlers[handlerPath] = handler;
-
-				if ( window.scdDebugPersistence ) {
-				}
 			}
 
 			return handler;
@@ -644,32 +655,20 @@
 		 */
 		collectComplexField: function( fieldDef ) {
 			if ( !fieldDef || !fieldDef.handler ) {
+				console.warn( '[StepPersistence] collectComplexField - no fieldDef or handler' );
 				return fieldDef && fieldDef.default || null;
 			}
 
-			if ( window.scdDebugPersistence ) {
-			}
 			var handler = this.getComplexFieldHandler( fieldDef.handler );
-			if ( window.scdDebugPersistence ) {
-			}
-			
 			var methodName = fieldDef.methods && fieldDef.methods.collect || 'getValue';
-			if ( window.scdDebugPersistence ) {
-			}
 
 			if ( handler && 'function' === typeof handler[methodName] ) {
 				try {
-					var result = handler[methodName]();
-					if ( window.scdDebugPersistence ) {
-					}
-					return result;
+					return handler[methodName]();
 				} catch ( e ) {
 					console.error( '[StepPersistence] Error collecting complex field:', e );
 					return fieldDef.default || null;
 				}
-			}
-
-			if ( window.scdDebugPersistence ) {
 			}
 			return fieldDef.default || null;
 		},
@@ -681,13 +680,11 @@
 		 */
 		populateComplexField: function( fieldDef, value ) {
 			if ( !fieldDef || !fieldDef.handler ) {
+				console.warn( '[StepPersistence] populateComplexField - no fieldDef or handler' );
 				return;
 			}
 
 			var handlerPath = fieldDef.handler;
-
-			if ( window.scdDebugPersistence ) {
-			}
 
 			this._complexFieldQueue = this._complexFieldQueue || {};
 			this._complexFieldRetries = this._complexFieldRetries || {};
@@ -705,9 +702,6 @@
 				this._complexFieldRetries[handlerPath] = 0;
 			}
 
-			if ( window.scdDebugPersistence ) {
-			}
-
 			// Try to populate immediately if ready
 			this._processComplexFieldQueue( handlerPath );
 		},
@@ -720,9 +714,6 @@
 		_processComplexFieldQueue: function( handlerPath ) {
 			var self = this;
 			var maxRetries = 50; // 50 retries * 100ms = 5 seconds max wait
-
-			if ( window.scdDebugPersistence ) {
-			}
 
 			if ( !this.isComplexFieldReady( handlerPath ) ) {
 				this._complexFieldRetries = this._complexFieldRetries || {};
@@ -737,8 +728,6 @@
 					return;
 				}
 
-				if ( window.scdDebugPersistence ) {
-				}
 				// Try again later
 				setTimeout( function() {
 					self._processComplexFieldQueue( handlerPath );
@@ -750,25 +739,15 @@
 				delete this._complexFieldRetries[handlerPath];
 			}
 
-			if ( window.scdDebugPersistence ) {
-			}
-
 			var queue = this._complexFieldQueue[handlerPath];
 			if ( !queue || 0 === queue.length ) {
-				if ( window.scdDebugPersistence ) {
-				}
 				return;
 			}
 
 			var handler = this.getComplexFieldHandler( handlerPath );
 			if ( !handler ) {
 				console.error( '[StepPersistence] Could not get handler for:', handlerPath );
-				if ( window.scdDebugPersistence ) {
-				}
 				return;
-			}
-
-			if ( window.scdDebugPersistence ) {
 			}
 
 			// Process all queued items
@@ -776,15 +755,14 @@
 				var item = queue.shift();
 				var methodName = item.fieldDef.methods && item.fieldDef.methods.populate || 'setValue';
 
-				if ( window.scdDebugPersistence ) {
-				}
-
 				if ( 'function' === typeof handler[methodName] ) {
 					try {
 						handler[methodName]( item.value );
 					} catch ( e ) {
 						console.error( '[StepPersistence] Error populating complex field:', e );
 					}
+				} else {
+					console.error( '[StepPersistence] Handler method not found:', methodName );
 				}
 			}
 		},
@@ -816,12 +794,14 @@
 		}
 
 		var conditional = fieldDef.conditional;
-		var conditionalFieldSnake = conditional.field; // Field name in snake_case (from PHP)
+		// Conditional field names come from PHP in snake_case (e.g., 'product_selection_type')
+		// But JavaScript data uses camelCase keys, so we need to convert for lookup
+		var conditionalFieldSnake = conditional.field;
 		var conditionalValue = conditional.value;
 
 		var actualValue = null;
 
-		// Convert to camelCase for JavaScript data lookup (collected data uses camelCase keys)
+		// Convert to camelCase for JavaScript data lookup
 		var conditionalFieldName = window.SCD && window.SCD.Utils && window.SCD.Utils.Fields
 			? window.SCD.Utils.Fields.toCamelCase( conditionalFieldSnake )
 			: conditionalFieldSnake;
@@ -832,10 +812,12 @@
 		}
 		// Fall back to state (for collectData when data is being built)
 		else if ( this.modules && this.modules.state ) {
-			actualValue = this.modules.state.getData( conditionalFieldSnake );
+			// State uses camelCase keys (JavaScript layer)
+			actualValue = this.modules.state.getData( conditionalFieldName );
 		}
 		// Finally check DOM (for collectData early execution)
 		else {
+			// DOM uses snake_case (WordPress forms use snake_case field names)
 			var $field = $( '[name="' + conditionalFieldSnake + '"]' );
 			if ( $field.length ) {
 				actualValue = $field.val();

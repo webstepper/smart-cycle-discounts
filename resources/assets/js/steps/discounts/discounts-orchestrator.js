@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/steps/discounts/discounts-orchestrator.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -53,27 +53,23 @@
 		 * Initialize modules
 		 */
 		initializeModules: function() {
-			// State module
-			if ( !this.modules.state ) {
-				this.modules.state = new SCD.Modules.Discounts.State();
-				if ( 'function' === typeof this.modules.state.init ) {
-					this.modules.state.init();
-				}
-			}
+			// Use Module Registry for state and api
+			if ( !this.modules.state || !this.modules.api ) {
+				var moduleConfig = SCD.Shared.ModuleRegistry.createStepConfig( 'discounts' );
+				this.modules = SCD.Shared.ModuleRegistry.initialize( moduleConfig, this );
 
-			// API module
-			if ( !this.modules.api ) {
-				this.modules.api = new SCD.Modules.Discounts.API();
-				if ( 'function' === typeof this.modules.api.init ) {
-					this.modules.api.init();
-				}
-				// Connect API to state
-				if ( this.modules.state && 'function' === typeof this.modules.state.setApi ) {
+				// Post-initialization: Connect API to state
+				if ( this.modules.state && this.modules.api && 'function' === typeof this.modules.state.setApi ) {
 					this.modules.state.setApi( this.modules.api );
 				}
 			}
 
+			// Setup event-driven handler registration BEFORE initializing type registry
+			// This ensures we catch the instance creation event
+			this.setupComplexFieldHandlerRegistration();
+
 			// Type registry for discount type modules
+			// Manual initialization to control timing (must be after event handler setup)
 			if ( !this.modules.typeRegistry ) {
 				this.modules.typeRegistry = new SCD.Modules.Discounts.TypeRegistry( this.modules.state );
 				if ( 'function' === typeof this.modules.typeRegistry.init ) {
@@ -83,11 +79,13 @@
 				// Complex fields like tiers/bogo_config/thresholds are managed by discount type modules through state
 			}
 
-			// Setup event-driven handler registration to avoid race conditions
-			this.setupComplexFieldHandlerRegistration();
-
-			// Register handlers for any already-initialized instances
-			this.registerExistingHandlers();
+			// CRITICAL FIX: Register handlers for instances that were created during typeRegistry.init()
+			// Use requestAnimationFrame to ensure registration happens after event loop completes
+			// This catches instances that were created before our event listener was fully set up
+			var self = this;
+			requestAnimationFrame( function() {
+				self.registerExistingHandlers();
+			} );
 		},
 
 		/**
@@ -106,44 +104,75 @@
 
 		/**
 		 * Register handler for a specific discount type
+		 * Only complex types (tiered, bogo, spend_threshold) need registration
+		 * Simple types (percentage, fixed) are silently skipped
 		 * @param {string} typeId - Type identifier
 		 * @param {object} instance - Discount type instance
 		 */
 		registerHandlerForType: function( typeId, instance ) {
-			var handlerName = null;
+			var handlerName = this.getHandlerNameForType( typeId );
 
-			switch ( typeId ) {
-				case 'tiered':
-					handlerName = 'tieredDiscount';
-					break;
-				case 'bogo':
-					handlerName = 'bogoDiscount';
-					break;
-				case 'spend_threshold':
-					handlerName = 'spendThreshold';
-					break;
+			// handlerName is null for simple types (percentage, fixed) - this is expected
+			if ( ! handlerName ) {
+				return; // Simple types don't need complex field handler registration
 			}
 
-			if ( handlerName && instance ) {
+			if ( instance ) {
 				this.registerComplexFieldHandler( handlerName, instance );
+			} else {
+				// Only warn if this is a complex type that should have an instance
+				console.warn( '[DiscountsOrchestrator] Cannot register complex field handler - missing instance:', { typeId: typeId, handlerName: handlerName } );
 			}
 		},
 
 		/**
 		 * Register handlers for already-initialized type instances
+		 * Enhanced with retry logic to handle race conditions
 		 */
 		registerExistingHandlers: function() {
-			if ( !this.modules.typeRegistry || !this.modules.typeRegistry.instances ) {
+			if ( !this.modules.typeRegistry ) {
+				console.warn( '[DiscountsOrchestrator] Cannot register existing handlers - typeRegistry not initialized' );
+				return;
+			}
+
+			var instances = this.modules.typeRegistry.instances;
+			if ( !instances || 0 === Object.keys( instances ).length ) {
+				// No instances exist yet - this is normal on initial page load
+				// Handlers will be registered via event when instances are created
 				return;
 			}
 
 			var self = this;
-			var instances = this.modules.typeRegistry.instances;
 			Object.keys( instances ).forEach( function( typeId ) {
 				if ( instances[typeId] ) {
-					self.registerHandlerForType( typeId, instances[typeId] );
+					// Check if handler is already registered to avoid duplicates
+					var handlerName = self.getHandlerNameForType( typeId );
+					if ( handlerName && ! self.complexFieldHandlers[handlerName] ) {
+						self.registerHandlerForType( typeId, instances[typeId] );
+					}
 				}
 			} );
+		},
+
+		/**
+		 * Get handler name for a discount type ID
+		 * Only returns names for complex types that require getValue/setValue handlers
+		 * @param {string} typeId - Type identifier (tiered, bogo, spend_threshold)
+		 * @returns {string|null} Handler name or null (null for simple types like percentage, fixed)
+		 */
+		getHandlerNameForType: function( typeId ) {
+			// Only return handler names for complex types that need getValue/setValue
+			// Simple types (percentage, fixed) don't need complex field handler registration
+			switch ( typeId ) {
+				case 'tiered':
+					return 'tieredDiscount';
+				case 'bogo':
+					return 'bogoDiscount';
+				case 'spend_threshold':
+					return 'spendThreshold';
+				default:
+					return null;
+			}
 		},
 
 		/**
@@ -154,6 +183,9 @@
 		registerComplexFieldHandler: function( name, handler ) {
 			if ( handler && 'function' === typeof handler.getValue ) {
 				this.complexFieldHandlers[name] = handler;
+				console.log( '[DiscountsOrchestrator] Successfully registered complex field handler:', name );
+			} else {
+				console.warn( '[DiscountsOrchestrator] Failed to register handler - missing getValue:', name );
 			}
 		},
 
@@ -195,7 +227,7 @@
 			} );
 
 			// BOGO fields
-			this.bindDelegatedEvent( document, '#bogo_buy_quantity, #bogo_get_quantity, #bogo_discount', 'input change', function() {
+			this.bindDelegatedEvent( document, '#bogo_buy_quantity, #bogo_get_quantity, #bogo_discount_percentage', 'input change', function() {
 				var $bogoField = $( '[name="bogo_config"]' );
 				if ( $bogoField.length && window.SCD && window.SCD.ValidationError ) {
 					window.SCD.ValidationError.clear( $bogoField );
@@ -291,8 +323,14 @@
 			// All standard fields and complex fields are populated by parent method
 			// Only handle discount type UI updates
 
-			// Discount type
-			var discountType = this.getPropertyValue( data, [ 'discountType' ] );
+			// Discount type - check both camelCase and snake_case for safety
+			var discountType = this.getPropertyValue( data, [ 'discountType' ] ) || this.getPropertyValue( data, [ 'discount_type' ] );
+
+			// If still not found, check state (which should have been set by fromJSON)
+			if ( ! discountType && this.modules.state ) {
+				discountType = this.modules.state.getData( 'discountType' );
+			}
+
 			if ( discountType ) {
 				$( '#discount_type' ).val( discountType );
 				$( '.scd-discount-type-card' ).removeClass( 'selected' );
@@ -306,6 +344,7 @@
 					this.modules.typeRegistry.activateType( discountType );
 				}
 			} else {
+				// Fallback: use DOM value if available
 				if ( this.modules.state ) {
 					var currentType = this.getDiscountType();
 					if ( currentType ) {
@@ -368,6 +407,9 @@
 				$( '.scd-discount-type-card' ).removeClass( 'selected' );
 				$( '.scd-discount-type-card[data-type="' + discountType + '"]' ).addClass( 'selected' );
 
+				// Update conditional rule visibility based on discount type
+				this.updateConditionalRuleVisibility( discountType );
+
 				// Only lock if the discount type card itself is locked (free user trying to use PRO type)
 				var proTypes = [ 'tiered', 'bogo', 'spend_threshold' ];
 				var $detailsContainer = $( '#scd-discount-details-container' );
@@ -387,6 +429,52 @@
 					}
 				}
 			}
+		},
+
+		/**
+		 * Update conditional rule visibility based on discount type
+		 *
+		 * Hides/shows discount rules based on logical compatibility:
+		 * - apply_to: Hidden for Fixed and BOGO (doesn't apply)
+		 * - minimum_quantity: Hidden for BOGO (has its own buy_quantity)
+		 * - minimum_order_amount: Hidden for Spend Threshold (redundant)
+		 *
+		 * @param {string} discountType - Current discount type
+		 */
+		updateConditionalRuleVisibility: function( discountType ) {
+			var self = this;
+
+			// Get all conditional rule rows
+			var $conditionalRules = $( '.scd-conditional-rule[data-hide-for-types]' );
+
+			// Show all rules first
+			$conditionalRules.removeClass( 'scd-rule-hidden' ).show();
+
+			// Hide rules based on discount type
+			$conditionalRules.each( function() {
+				var $row = $( this );
+				var hideForTypes = $row.data( 'hide-for-types' );
+
+				if ( !hideForTypes ) {
+					return;
+				}
+
+				// Convert to array if string
+				var typesToHide = 'string' === typeof hideForTypes
+					? hideForTypes.split( ',' ).map( function( type ) { return type.trim(); } )
+					: hideForTypes;
+
+				// Check if current type should hide this rule
+				if ( -1 !== typesToHide.indexOf( discountType ) ) {
+					$row.addClass( 'scd-rule-hidden' ).hide();
+
+					// Clear the field value when hiding to avoid conflicts
+					var $input = $row.find( 'input, select' );
+					if ( $input.length ) {
+						$input.val( '' );
+					}
+				}
+			} );
 		},
 
 		/**
@@ -413,7 +501,7 @@
 			var config = {
 				buyQuantity: parseInt( $( '#bogo_buy_quantity' ).val() ) || 1,
 				getQuantity: parseInt( $( '#bogo_get_quantity' ).val() ) || 1,
-				discountPercentage: parseFloat( $( '#bogo_discount' ).val() ) || 100
+				discountPercentage: parseFloat( $( '#bogo_discount_percentage' ).val() ) || 100
 			};
 
 			if ( this.modules.state ) {

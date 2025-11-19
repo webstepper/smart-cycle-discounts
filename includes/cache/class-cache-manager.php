@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/cache/class-cache-manager.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,9 +26,26 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/cache
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Cache_Manager {
+
+	/**
+	 * Valid cache groups for key validation.
+	 *
+	 * All cache keys MUST start with one of these group names.
+	 * This ensures delete_group() works correctly.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      array    $valid_groups    Valid cache groups.
+	 */
+	private array $valid_groups = array(
+		'campaigns',
+		'products',
+		'analytics',
+		'reference',
+	);
 
 	/**
 	 * Cache prefix for all plugin cache keys.
@@ -46,7 +63,7 @@ class SCD_Cache_Manager {
 	 * @access   private
 	 * @var      int    $default_expiration    Default expiration.
 	 */
-	private int $default_expiration = 3600; // 1 hour
+	private int $default_expiration = 1800; // 30 minutes
 
 	/**
 	 * Whether caching is enabled.
@@ -58,6 +75,15 @@ class SCD_Cache_Manager {
 	private bool $enabled = true;
 
 	/**
+	 * Cache version for invalidation.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      string    $cache_version    Cache version.
+	 */
+	private string $cache_version = '';
+
+	/**
 	 * Initialize the cache manager.
 	 *
 	 * @since    1.0.0
@@ -65,6 +91,7 @@ class SCD_Cache_Manager {
 	public function __construct() {
 		$this->enabled = $this->is_cache_enabled();
 		$this->load_settings();
+		$this->cache_version = $this->get_cache_version();
 	}
 
 	/**
@@ -78,8 +105,106 @@ class SCD_Cache_Manager {
 		$settings = get_option( 'scd_settings', array() );
 
 		if ( isset( $settings['performance']['campaign_cache_duration'] ) ) {
-			$this->default_expiration = (int) $settings['performance']['campaign_cache_duration'];
+			$duration                 = (int) $settings['performance']['campaign_cache_duration'];
+			$this->default_expiration = max( 900, $duration ); // Minimum 15 minutes
 		}
+	}
+
+	/**
+	 * Build a properly-formatted cache key for campaigns group.
+	 *
+	 * @since    1.0.0
+	 * @param    string $suffix    Key suffix (e.g., 'campaign_97', 'all_active').
+	 * @return   string               Properly-formatted cache key.
+	 */
+	public function campaigns_key( string $suffix ): string {
+		return 'campaigns_' . $suffix;
+	}
+
+	/**
+	 * Build a properly-formatted cache key for products group.
+	 *
+	 * @since    1.0.0
+	 * @param    string $suffix    Key suffix (e.g., 'active_campaigns_84').
+	 * @return   string               Properly-formatted cache key.
+	 */
+	public function products_key( string $suffix ): string {
+		return 'products_' . $suffix;
+	}
+
+	/**
+	 * Build a properly-formatted cache key for analytics group.
+	 *
+	 * @since    1.0.0
+	 * @param    string $suffix    Key suffix.
+	 * @return   string               Properly-formatted cache key.
+	 */
+	public function analytics_key( string $suffix ): string {
+		return 'analytics_' . $suffix;
+	}
+
+	/**
+	 * Build a properly-formatted cache key for reference group.
+	 *
+	 * @since    1.0.0
+	 * @param    string $suffix    Key suffix.
+	 * @return   string               Properly-formatted cache key.
+	 */
+	public function reference_key( string $suffix ): string {
+		return 'reference_' . $suffix;
+	}
+
+	/**
+	 * Validate cache key follows naming convention.
+	 *
+	 * Ensures cache key starts with a valid group prefix.
+	 * Logs warning in debug mode if invalid.
+	 *
+	 * @since    1.0.0
+	 * @param    string $key    Cache key to validate.
+	 * @return   bool              True if valid, false otherwise.
+	 */
+	private function validate_key( string $key ): bool {
+		foreach ( $this->valid_groups as $group ) {
+			if ( 0 === strpos( $key, $group . '_' ) ) {
+				return true;
+			}
+		}
+
+		// Log warning in debug mode
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			$valid_prefixes = array_map( function( $g ) { return $g . '_'; }, $this->valid_groups );
+			error_log(
+				sprintf(
+					'[SCD Cache] WARNING: Invalid cache key "%s" - must start with one of: %s',
+					$key,
+					implode( ', ', $valid_prefixes )
+				)
+			);
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get cache key group.
+	 *
+	 * Extracts the group name from a cache key.
+	 *
+	 * @since    1.0.0
+	 * @param    string $key    Cache key.
+	 * @return   string|null       Group name or null if invalid.
+	 */
+	private function get_key_group( string $key ): ?string {
+		$parts = explode( '_', $key, 2 );
+		$group = isset( $parts[0] ) ? $parts[0] : null;
+
+		// Validate it's a real group
+		if ( $group && in_array( $group, $this->valid_groups, true ) ) {
+			return $group;
+		}
+
+		return null;
 	}
 
 	/**
@@ -97,16 +222,21 @@ class SCD_Cache_Manager {
 
 		$cache_key = $this->get_cache_key( $key );
 
-		// Try object cache first
-		$value = wp_cache_get( $cache_key, 'scd' );
-		if ( $value !== false ) {
-			return $value;
+		// Try object cache first (if available)
+		if ( wp_using_ext_object_cache() ) {
+			$value = wp_cache_get( $cache_key, 'scd' );
+			if ( false !== $value ) {
+				return $value;
+			}
 		}
 
-		// Try transient cache
+		// Try transient cache (primary storage)
 		$value = get_transient( $cache_key );
-		if ( $value !== false ) {
-			wp_cache_set( $cache_key, $value, 'scd', $this->default_expiration );
+		if ( false !== $value ) {
+			// Populate object cache for next request (if available)
+			if ( wp_using_ext_object_cache() ) {
+				wp_cache_set( $cache_key, $value, 'scd', $this->default_expiration );
+			}
 			return $value;
 		}
 
@@ -127,15 +257,24 @@ class SCD_Cache_Manager {
 			return false;
 		}
 
-		if ( $expiration === 0 ) {
+		// Validate key follows naming convention
+		$this->validate_key( $key );
+
+		if ( 0 === $expiration ) {
 			$expiration = $this->default_expiration;
 		}
 
 		$cache_key = $this->get_cache_key( $key );
 
-		wp_cache_set( $cache_key, $value, 'scd', $expiration );
+		// Set in transient (primary storage)
+		$result = set_transient( $cache_key, $value, $expiration );
 
-		return set_transient( $cache_key, $value, $expiration );
+		// Also set in object cache if available (for fast access)
+		if ( wp_using_ext_object_cache() ) {
+			wp_cache_set( $cache_key, $value, 'scd', $expiration );
+		}
+
+		return $result;
 	}
 
 	/**
@@ -163,9 +302,12 @@ class SCD_Cache_Manager {
 	 * @return   mixed                     Cached or generated value.
 	 */
 	public function remember( string $key, callable $callback, int $expiration = 0 ): mixed {
+		// Validate key follows naming convention
+		$this->validate_key( $key );
+
 		$value = $this->get( $key );
 
-		if ( $value !== null ) {
+		if ( null !== $value ) {
 			return $value;
 		}
 
@@ -262,16 +404,15 @@ class SCD_Cache_Manager {
 
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $campaigns_table ) ) === $campaigns_table ) {
 			$active_campaigns = $wpdb->get_results(
-				"SELECT * FROM $campaigns_table WHERE status = 'active' AND deleted_at IS NULL LIMIT 10"
+				$wpdb->prepare(
+					"SELECT * FROM {$campaigns_table} WHERE status = %s AND deleted_at IS NULL LIMIT %d",
+					'active',
+					10
+				)
 			);
 
 			if ( $active_campaigns ) {
-				// Use campaign cache duration from settings
-				$settings = get_option( 'scd_settings', array() );
-				$duration = isset( $settings['performance']['campaign_cache_duration'] )
-					? (int) $settings['performance']['campaign_cache_duration']
-					: 3600;
-				$this->set( 'active_campaigns', $active_campaigns, $duration );
+				$this->set( 'campaigns_active_campaigns', $active_campaigns, 1800 ); // 30 minutes
 			}
 		}
 	}
@@ -286,7 +427,7 @@ class SCD_Cache_Manager {
 	private function warm_settings_cache(): void {
 		$settings = get_option( 'scd_settings', array() );
 		if ( ! empty( $settings ) ) {
-			$this->set( 'plugin_settings', $settings, 7200 ); // 2 hours
+			$this->set( 'settings_plugin_settings', $settings, 3600 ); // 1 hour (settings rarely change)
 		}
 	}
 
@@ -311,25 +452,20 @@ class SCD_Cache_Manager {
 		);
 
 		if ( $featured_products ) {
-			// Use product cache duration from settings
-			$settings = get_option( 'scd_settings', array() );
-			$duration = isset( $settings['performance']['product_cache_duration'] )
-				? (int) $settings['performance']['product_cache_duration']
-				: 3600;
-			$this->set( 'featured_products', $featured_products, $duration );
+			$this->set( 'products_featured_products', $featured_products, 900 ); // 15 minutes
 		}
 	}
 
 	/**
-	 * Get cache key with prefix.
+	 * Get cache key with prefix and version.
 	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @param    string $key    Original key.
-	 * @return   string            Prefixed key.
+	 * @return   string            Prefixed and versioned key.
 	 */
 	private function get_cache_key( string $key ): string {
-		return $this->cache_prefix . $key;
+		return $this->cache_prefix . $this->cache_version . '_' . $key;
 	}
 
 	/**
@@ -422,5 +558,210 @@ class SCD_Cache_Manager {
 	 */
 	public function decrement( string $key, int $offset = 1 ): int|false {
 		return $this->increment( $key, -$offset );
+	}
+
+	/**
+	 * Warm up cache with multiple keys.
+	 *
+	 * @since    1.0.0
+	 * @param    array  $cache_keys    Array of cache keys and their callbacks.
+	 * @param    string $group         Optional cache group for logging.
+	 * @return   int                      Number of keys warmed.
+	 */
+	public function warm_up( array $cache_keys, string $group = '' ): int {
+		if ( ! $this->enabled ) {
+			return 0;
+		}
+
+		$warmed = 0;
+
+		foreach ( $cache_keys as $key => $callback ) {
+			if ( ! is_callable( $callback ) ) {
+				continue;
+			}
+
+			try {
+				$this->remember( $key, $callback );
+				++$warmed;
+			} catch ( Exception $e ) {
+				// Log error but continue warming other keys
+				continue;
+			}
+		}
+
+		return $warmed;
+	}
+
+	/**
+	 * Delete all cache entries in a group.
+	 *
+	 * @since    1.0.0
+	 * @param    string $group    Cache group name.
+	 * @return   bool                True on success.
+	 */
+	public function delete_group( string $group ): bool {
+		global $wpdb;
+
+		// Clear object cache group
+		if ( wp_using_ext_object_cache() ) {
+			wp_cache_flush_group( 'scd_' . $group );
+		}
+
+		// Clear transients matching group pattern
+		$pattern = $this->cache_prefix . $this->cache_version . '_' . $group . '%';
+
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->options}
+				WHERE option_name LIKE %s
+				OR option_name LIKE %s",
+				'_transient_' . $pattern,
+				'_transient_timeout_' . $pattern
+			)
+		);
+
+		return true;
+	}
+
+	/**
+	 * Get current cache version.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   string    Cache version.
+	 */
+	private function get_cache_version(): string {
+		$version = get_option( 'scd_cache_version', '' );
+
+		if ( empty( $version ) ) {
+			$version = 'v1';
+			update_option( 'scd_cache_version', $version, false );
+		}
+
+		return $version;
+	}
+
+	/**
+	 * Bump cache version to invalidate all caches.
+	 *
+	 * @since    1.0.0
+	 * @return   bool    True on success.
+	 */
+	public function bump_cache_version(): bool {
+		$new_version = 'v' . time();
+		$result      = update_option( 'scd_cache_version', $new_version, false );
+
+		if ( $result ) {
+			$this->cache_version = $new_version;
+
+			// Clear object cache immediately
+			if ( wp_using_ext_object_cache() ) {
+				wp_cache_flush_group( 'scd' );
+			}
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Invalidate campaign-related caches.
+	 *
+	 * Call this when:
+	 * - Campaign is created/updated/deleted
+	 * - Campaign status changes
+	 * - Campaign is compiled
+	 *
+	 * @since    1.0.0
+	 * @param    int|null $campaign_id    Specific campaign ID (optional).
+	 * @return   void
+	 */
+	public function invalidate_campaign( ?int $campaign_id = null ): void {
+		// Always clear the campaigns group
+		$this->delete_group( 'campaigns' );
+
+		// If specific campaign, also clear product lookups
+		// (products may have been added/removed from this campaign)
+		if ( $campaign_id ) {
+			$this->delete_group( 'products' );
+		}
+
+		// Log invalidation for debugging
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log(
+				sprintf(
+					'[SCD Cache] Invalidated campaign cache%s',
+					$campaign_id ? " for campaign {$campaign_id}" : ''
+				)
+			);
+		}
+	}
+
+	/**
+	 * Invalidate product-related caches.
+	 *
+	 * Call this when:
+	 * - Product is updated
+	 * - Product price changes
+	 * - Product categories/tags change
+	 *
+	 * @since    1.0.0
+	 * @param    int|null $product_id    Specific product ID (optional).
+	 * @return   void
+	 */
+	public function invalidate_product( ?int $product_id = null ): void {
+		if ( $product_id ) {
+			// Clear specific product discount lookups
+			$this->delete( $this->products_key( 'active_campaigns_' . $product_id ) );
+			$this->delete( $this->products_key( 'discount_info_' . $product_id ) );
+
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( "[SCD Cache] Invalidated cache for product {$product_id}" );
+			}
+		} else {
+			// Clear entire products group
+			$this->delete_group( 'products' );
+
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( '[SCD Cache] Invalidated all product caches' );
+			}
+		}
+	}
+
+	/**
+	 * Invalidate analytics-related caches.
+	 *
+	 * Call this when:
+	 * - Analytics data is updated
+	 * - Reports are regenerated
+	 * - Activity logs change
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	public function invalidate_analytics(): void {
+		$this->delete_group( 'analytics' );
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( '[SCD Cache] Invalidated analytics cache' );
+		}
+	}
+
+	/**
+	 * Invalidate all plugin caches.
+	 *
+	 * Call this when:
+	 * - Running migrations
+	 * - Major plugin updates
+	 * - Manual cache flush requested
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	public function invalidate_all(): void {
+		$this->flush();
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( '[SCD Cache] Flushed all plugin caches' );
+		}
 	}
 }

@@ -40,7 +40,7 @@ $button_icon = isset( $button_args['icon'] ) ? $button_args['icon'] : 'star-fill
 		<ul class="scd-pro-feature-unavailable__features">
 			<?php foreach ( $features as $feature ) : ?>
 				<li>
-					<span class="dashicons dashicons-yes-alt"></span>
+					<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 					<?php echo esc_html( $feature ); ?>
 				</li>
 			<?php endforeach; ?>
@@ -49,7 +49,7 @@ $button_icon = isset( $button_args['icon'] ) ? $button_args['icon'] : 'star-fill
 
 	<a href="<?php echo esc_url( $upgrade_url ); ?>" class="button button-primary button-<?php echo esc_attr( $button_size ); ?>">
 		<?php if ( ! empty( $button_icon ) ) : ?>
-			<span class="dashicons dashicons-<?php echo esc_attr( $button_icon ); ?>"></span>
+			<?php echo SCD_Icon_Helper::get( $button_icon, array( 'size' => 16 ) ); ?>
 		<?php endif; ?>
 		<?php echo esc_html( $button_text ); ?>
 	</a>

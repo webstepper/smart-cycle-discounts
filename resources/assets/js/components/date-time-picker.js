@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/components/date-time-picker.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -90,8 +90,9 @@
 					wp.i18n.__( 'Choose start date', 'smart-cycle-discounts' ) :
 					wp.i18n.__( 'Choose end date', 'smart-cycle-discounts' );
 
+				var calendarIcon = SCD.IconHelper ? SCD.IconHelper.get( 'calendar', { size: 16 } ) : '<span class="scd-icon scd-icon-calendar"></span>';
 				var $button = $( '<button type="button" class="scd-calendar-icon" data-target="' + pickerId + '">' +
-                    '<span class="dashicons dashicons-calendar-alt" aria-hidden="true"></span>' +
+                    calendarIcon +
                     '<span class="screen-reader-text">' + buttonLabel + '</span>' +
                     '</button>' );
 

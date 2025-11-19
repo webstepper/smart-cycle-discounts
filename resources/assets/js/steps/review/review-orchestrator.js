@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/steps/review/review-orchestrator.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -27,32 +27,17 @@
 	SCD.Steps.ReviewOrchestrator = SCD.Shared.BaseOrchestrator.createStep( 'review', {
 
 		/**
-		 * Initialize step modules
+		 * Initialize step modules using Module Registry
 		 * Called by BaseOrchestrator's initializeModules
 		 */
 		initializeStep: function() {
-			try {
-				// Only create modules if they don't already exist
-				if ( !this.modules.state ) {
-					this.modules.state = new SCD.Modules.Review.State();
+			var moduleConfig = SCD.Shared.ModuleRegistry.createStepConfig( 'review', {
+				components: {
+					class: 'SCD.Modules.Review.Components',
+					deps: ['state', 'api']
 				}
-
-				if ( !this.modules.api ) {
-					this.modules.api = new SCD.Modules.Review.API();
-				}
-
-				if ( !this.modules.components ) {
-					this.modules.components = new SCD.Modules.Review.Components( this.modules.state, this.modules.api );
-					this.modules.components.init();
-				}
-			} catch ( error ) {
-				SCD.ErrorHandler.handle(
-					error,
-					'ReviewOrchestrator.initializeStep',
-					SCD.ErrorHandler.SEVERITY.HIGH
-				);
-				throw error;
-			}
+			} );
+			this.modules = SCD.Shared.ModuleRegistry.initialize( moduleConfig, this );
 		},
 
 		/**
@@ -102,9 +87,6 @@
 			} );
 		},
 
-		// loadInitialData method removed - data population is handled by wizard orchestrator
-		// which calls populateFields() directly with saved data from scdWizardData.currentCampaign
-
 		/**
 		 * Handle step loaded
 		 */
@@ -112,8 +94,6 @@
 			if ( this.modules.components && 'function' === typeof this.modules.components.init ) {
 				this.modules.components.init();
 			}
-
-			// Data loading is handled in init() method
 
 			this.triggerCustomEvent( 'scd:review:ready', [ this.modules ] );
 		},
@@ -126,8 +106,6 @@
 				this.modules.state.setState( {
 					wizardData: window.SCD.Wizard.data
 				} );
-
-				// Summary is now server-rendered, no need to update via JavaScript
 			}
 		},
 
@@ -147,16 +125,6 @@
 		},
 
 		/**
-		 * Set loading state
-		 * @param loading
-		 */
-	// Note: setLoading() is inherited from BaseOrchestrator
-
-		// Note: collectData is now handled by StepPersistence mixin
-		// The mixin uses field definitions to automatically collect all fields
-		// We override it to handle special cases
-
-		/**
 		 * Collect data - overrides mixin to handle special cases
 		 * @override
 		 */
@@ -171,15 +139,8 @@
 				data = $.extend( {}, stateData, data );
 			}
 
-			// Note: Status is determined by the PHP compiler service, not here
-			// The compiler uses launch_option + start_date to calculate the correct status
-
 			return data;
 		},
-
-		// Note: validateData is now handled by StepPersistence mixin
-		// The mixin uses field definitions for automatic validation
-		// We can still override if we need additional business logic validation
 
 		/**
 		 * Validate data - overrides mixin to add business logic validation
@@ -206,21 +167,11 @@
 		},
 
 		/**
-		 * Show validation errors using ValidationError component
-		 * Required for consistent error display across all steps
-		 * @param errors
-		 */
-	// Note: showErrors() is inherited from StepPersistence mixin
-
-		/**
 		 * Custom logic after field population
 		 * Called by StepPersistence mixin after standard field population
 		 * @param {object} savedData - Populated data
 		 */
 		onPopulateFieldsComplete: function( savedData ) {
-			// Summary is now server-rendered, UI components handle their own state
-			// All fields are populated by parent method
-
 			// Only handle UI-specific updates
 			var launchOption = this.getPropertyValue( savedData, [ 'launchOption' ] );
 			if ( launchOption && this.modules.components && 'function' === typeof this.modules.components.updateNavigationButton ) {

@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/database/class-database-manager.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/database
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Database_Manager {
 
@@ -80,12 +80,13 @@ class SCD_Database_Manager {
 	 */
 	private function setup_table_names(): void {
 		$this->tables = array(
-			'campaigns'          => $this->wpdb->prefix . 'scd_campaigns',
-			'active_discounts'   => $this->wpdb->prefix . 'scd_active_discounts',
-			'analytics'          => $this->wpdb->prefix . 'scd_analytics',
-			'customer_usage'     => $this->wpdb->prefix . 'scd_customer_usage',
-			'campaign_recurring' => $this->wpdb->prefix . 'scd_campaign_recurring',
-			'migrations'         => $this->wpdb->prefix . 'scd_migrations',
+			'campaigns'            => $this->wpdb->prefix . 'scd_campaigns',
+			'campaign_conditions'  => $this->wpdb->prefix . 'scd_campaign_conditions',
+			'active_discounts'     => $this->wpdb->prefix . 'scd_active_discounts',
+			'analytics'            => $this->wpdb->prefix . 'scd_analytics',
+			'customer_usage'       => $this->wpdb->prefix . 'scd_customer_usage',
+			'campaign_recurring'   => $this->wpdb->prefix . 'scd_campaign_recurring',
+			'migrations'           => $this->wpdb->prefix . 'scd_migrations',
 		);
 	}
 
@@ -134,6 +135,46 @@ class SCD_Database_Manager {
 	}
 
 	/**
+	 * Get columns for a table.
+	 *
+	 * @since    1.0.0
+	 * @param    string $table_name    Full table name (with prefix).
+	 * @return   array                    Array of column names.
+	 */
+	public function get_columns( string $table_name ): array {
+		// Validate table name against whitelist to prevent SQL injection
+		if ( ! in_array( $table_name, $this->tables, true ) ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( '[SCD_Database] Invalid table name requested: ' . $table_name );
+			}
+			return array();
+		}
+
+		$columns = array();
+
+		// Use INFORMATION_SCHEMA for safer column lookup
+		$results = $this->wpdb->get_results(
+			$this->wpdb->prepare(
+				'SELECT COLUMN_NAME
+				FROM INFORMATION_SCHEMA.COLUMNS
+				WHERE TABLE_SCHEMA = %s
+				AND TABLE_NAME = %s
+				ORDER BY ORDINAL_POSITION',
+				DB_NAME,
+				$table_name
+			)
+		);
+
+		if ( ! empty( $results ) ) {
+			foreach ( $results as $column ) {
+				$columns[] = $column->COLUMN_NAME;
+			}
+		}
+
+		return $columns;
+	}
+
+	/**
 	 * Execute a query.
 	 *
 	 * @since    1.0.0
@@ -150,12 +191,17 @@ class SCD_Database_Manager {
 			scd_debug_database( 'query', 'custom', array( 'query' => $query ), $result, $duration );
 		}
 
-		// wpdb->query can return bool(true) for some queries like CREATE TABLE
-		if ( $result === true ) {
-			return 0; // Return 0 for successful queries with no rows affected
+		// Handle wpdb->query return types correctly
+		// Returns: int (rows affected), false (error), or true (DDL success)
+		if ( false === $result ) {
+			return false; // Error
 		}
 
-		return $result;
+		if ( true === $result ) {
+			return 1; // DDL success (CREATE, ALTER, DROP) - return 1, not 0
+		}
+
+		return (int) $result; // Affected rows
 	}
 
 	/**

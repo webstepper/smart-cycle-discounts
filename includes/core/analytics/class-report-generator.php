@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/analytics/class-report-generator.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/analytics
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Report_Generator {
 
@@ -135,7 +135,7 @@ class SCD_Report_Generator {
 			$cache_key     = $this->get_cache_key( $report_type, $options );
 			$cached_result = $this->cache_manager->get( $cache_key );
 
-			if ( $cached_result !== null && ! ( $options['force_refresh'] ?? false ) ) {
+			if ( null !== $cached_result && ! ( $options['force_refresh'] ?? false ) ) {
 				$this->logger->debug( 'Returning cached report', array( 'cache_key' => $cache_key ) );
 				return $cached_result;
 			}
@@ -372,7 +372,7 @@ class SCD_Report_Generator {
 			);
 
 			$schedule_id = 'scd_scheduled_report_' . uniqid();
-			set_transient( $schedule_id, $scheduled_report, YEAR_IN_SECONDS );
+			$this->cache_manager->set( $schedule_id, $scheduled_report, YEAR_IN_SECONDS );
 
 			// Schedule the first run
 			wp_schedule_single_event(
@@ -495,7 +495,7 @@ class SCD_Report_Generator {
 	private function generate_csv_file( array $report_data, string $file_path ): void {
 		$handle = fopen( $file_path, 'w' );
 
-		if ( $handle === false ) {
+		if ( false === $handle ) {
 			throw new RuntimeException( "Cannot create CSV file: {$file_path}" );
 		}
 
@@ -538,11 +538,11 @@ class SCD_Report_Generator {
 	private function generate_json_file( array $report_data, string $file_path ): void {
 		$json_data = wp_json_encode( $report_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE );
 
-		if ( $json_data === false ) {
+		if ( false === $json_data ) {
 			throw new RuntimeException( 'Failed to encode report data as JSON' );
 		}
 
-		if ( file_put_contents( $file_path, $json_data ) === false ) {
+		if ( false === file_put_contents( $file_path, $json_data ) ) {
 			throw new RuntimeException( "Cannot write JSON file: {$file_path}" );
 		}
 	}

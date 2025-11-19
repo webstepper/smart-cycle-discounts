@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers/class-get-active-campaigns-handler.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -24,18 +24,29 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Get_Active_Campaigns_Handler extends SCD_Abstract_Ajax_Handler {
+
+	/**
+	 * Cache manager instance.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      SCD_Cache_Manager    $cache    Cache manager.
+	 */
+	private SCD_Cache_Manager $cache;
 
 	/**
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger    Logger instance (optional).
+	 * @param    SCD_Cache_Manager $cache     Cache manager instance.
+	 * @param    SCD_Logger        $logger    Logger instance (optional).
 	 */
-	public function __construct( $logger = null ) {
+	public function __construct( SCD_Cache_Manager $cache, $logger = null ) {
 		parent::__construct( $logger );
+		$this->cache = $cache;
 	}
 
 	/**
@@ -62,9 +73,9 @@ class SCD_Get_Active_Campaigns_Handler extends SCD_Abstract_Ajax_Handler {
 		$exclude_id = isset( $request['exclude_id'] ) ? intval( $request['exclude_id'] ) : 0;
 
 		$cache_key = 'scd_active_campaigns_' . $exclude_id;
-		$cached    = wp_cache_get( $cache_key, 'scd_campaigns' );
+		$cached    = $this->cache->get( $cache_key );
 
-		if ( false !== $cached ) {
+		if ( null !== $cached ) {
 			return $this->success( $cached );
 		}
 
@@ -81,7 +92,8 @@ class SCD_Get_Active_Campaigns_Handler extends SCD_Abstract_Ajax_Handler {
                 status,
                 priority,
                 product_selection_type,
-                product_selection_data
+                product_selection_data,
+                enable_recurring
             FROM {$table_name}
             WHERE status IN ('active', 'scheduled', 'draft')
             AND (schedule_end IS NULL OR schedule_end >= NOW())
@@ -127,7 +139,7 @@ class SCD_Get_Active_Campaigns_Handler extends SCD_Abstract_Ajax_Handler {
 				'categories'             => isset( $product_data['categories'] ) && is_array( $product_data['categories'] ) ? $product_data['categories'] : array(),
 				'product_ids'            => isset( $product_data['product_ids'] ) && is_array( $product_data['product_ids'] ) ? $product_data['product_ids'] : array(),
 				'duration_days'          => $this->calculate_duration_days( $campaign['schedule_start'], $campaign['schedule_end'] ),
-				'is_recurring'           => $this->is_recurring( intval( $campaign['id'] ) ),
+				'is_recurring'           => ! empty( $campaign['enable_recurring'] ),
 				'overlap_risk'           => $this->calculate_overlap_risk( $campaign ),
 			);
 		}
@@ -146,7 +158,7 @@ class SCD_Get_Active_Campaigns_Handler extends SCD_Abstract_Ajax_Handler {
 			'timestamp' => current_time( 'timestamp' ),
 		);
 
-		wp_cache_set( $cache_key, $response, 'scd_campaigns', 300 );
+		$this->cache->set( $cache_key, $response, 300 );
 
 		return $this->success( $response );
 	}
@@ -191,27 +203,6 @@ class SCD_Get_Active_Campaigns_Handler extends SCD_Abstract_Ajax_Handler {
 		return $diff->days;
 	}
 
-	/**
-	 * Check if campaign is recurring
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @param    int $campaign_id    Campaign ID.
-	 * @return   bool                   True if recurring.
-	 */
-	private function is_recurring( $campaign_id ) {
-		global $wpdb;
-
-		$meta_table = $wpdb->prefix . 'scd_campaign_meta';
-		$recurring  = $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT meta_value FROM {$meta_table} WHERE campaign_id = %d AND meta_key = 'recurring'",
-				$campaign_id
-			)
-		);
-
-		return '1' === $recurring || 'true' === $recurring;
-	}
 
 	/**
 	 * Calculate overlap risk score

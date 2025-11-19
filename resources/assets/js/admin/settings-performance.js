@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/admin/settings-performance.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -62,7 +62,7 @@
 
 		// Disable button and show loading
 		$button.prop( 'disabled', true );
-		$status.html( '<span class="dashicons dashicons-update-alt spin"></span> Clearing cache...' );
+		$status.html( SCD.IconHelper.spinner( { size: 16 } ) + ' Clearing cache...' );
 
 		// AJAX request
 		$.ajax( {
@@ -74,7 +74,7 @@
 			},
 			success: function( response ) {
 				if ( response.success ) {
-					$status.html( '<span style="color: #00a32a;"><span class="dashicons dashicons-yes-alt"></span> ' +
+					$status.html( '<span style="color: #00a32a;">' + SCD.IconHelper.check( { size: 16 } ) + ' ' +
 						( response.data.message || 'Cache cleared successfully!' ) + '</span>' );
 
 					$( '#scd-cached-entries-count' ).html( '0 items' );
@@ -83,12 +83,12 @@
 						$status.html( '' );
 					}, 3000 );
 				} else {
-					$status.html( '<span style="color: #d63638;"><span class="dashicons dashicons-dismiss"></span> ' +
+					$status.html( '<span style="color: #d63638;">' + SCD.IconHelper.close( { size: 16 } ) + ' ' +
 						( response.data && response.data.message ? response.data.message : 'Failed to clear cache' ) + '</span>' );
 				}
 			},
 			error: function( xhr, status, error ) {
-				$status.html( '<span style="color: #d63638;"><span class="dashicons dashicons-dismiss"></span> Error: ' +
+				$status.html( '<span style="color: #d63638;">' + SCD.IconHelper.close( { size: 16 } ) + ' Error: ' +
 					error + '</span>' );
 			},
 			complete: function() {

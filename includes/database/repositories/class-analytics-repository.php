@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/database/repositories/class-analytics-repository.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -28,7 +28,7 @@ require_once SCD_INCLUDES_DIR . 'database/repositories/class-base-repository.php
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/database
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Analytics_Repository extends SCD_Base_Repository {
 
@@ -131,10 +131,13 @@ class SCD_Analytics_Repository extends SCD_Base_Repository {
 	/**
 	 * Get campaign performance statistics.
 	 *
+	 * Queries aggregated metrics from the analytics table.
+	 * The analytics table stores pre-aggregated data by campaign/date/hour.
+	 *
 	 * @since    1.0.0
 	 * @param    int    $campaign_id    Campaign ID.
-	 * @param    string $start_date     Optional start date.
-	 * @param    string $end_date       Optional end date.
+	 * @param    string $start_date     Optional start date (Y-m-d format).
+	 * @param    string $end_date       Optional end date (Y-m-d format).
 	 * @return   array                     Performance statistics.
 	 */
 	public function get_campaign_performance( $campaign_id, $start_date = '', $end_date = '' ) {
@@ -144,70 +147,70 @@ class SCD_Analytics_Repository extends SCD_Base_Repository {
 		$where_values     = array( $campaign_id );
 
 		if ( ! empty( $start_date ) ) {
-			$where_conditions[] = 'event_timestamp >= %s';
+			$where_conditions[] = 'date_recorded >= %s';
 			$where_values[]     = $start_date;
 		}
 
 		if ( ! empty( $end_date ) ) {
-			$where_conditions[] = 'event_timestamp <= %s';
+			$where_conditions[] = 'date_recorded <= %s';
 			$where_values[]     = $end_date;
 		}
 
 		$where_sql = implode( ' AND ', $where_conditions );
 
+		// Query aggregated metrics directly from columns
 		$sql = $wpdb->prepare(
-			"SELECT 
-				event_type,
-				COUNT(*) as count,
-				SUM(CASE WHEN event_type = 'discount_applied' THEN CAST(JSON_EXTRACT(event_data, '$.savings_amount') AS DECIMAL(10,2)) ELSE 0 END) as total_savings,
-				AVG(CASE WHEN event_type = 'discount_applied' THEN CAST(JSON_EXTRACT(event_data, '$.discount_value') AS DECIMAL(5,2)) ELSE NULL END) as avg_discount_value
-			 FROM {$this->table_name} 
-			 WHERE {$where_sql}
-			 GROUP BY event_type",
+			"SELECT
+				SUM(impressions) as total_impressions,
+				SUM(clicks) as total_clicks,
+				SUM(conversions) as total_conversions,
+				SUM(revenue) as total_revenue,
+				SUM(discount_given) as total_discount,
+				SUM(unique_customers) as total_customers
+			 FROM {$this->table_name}
+			 WHERE {$where_sql}",
 			$where_values
 		);
 
-		$results = $wpdb->get_results( $sql, ARRAY_A );
+		$result = $wpdb->get_row( $sql, ARRAY_A );
 
-		$performance = array(
-			'impressions'        => 0,
-			'clicks'             => 0,
-			'conversions'        => 0,
-			'revenue'            => 0.0,
-			'total_savings'      => 0.0,
-			'avg_discount_value' => 0.0,
-			'click_through_rate' => 0.0,
-			'conversion_rate'    => 0.0,
+		if ( ! $result ) {
+			return array(
+				'impressions'        => 0,
+				'clicks'             => 0,
+				'conversions'        => 0,
+				'revenue'            => 0.0,
+				'discount_given'     => 0.0,
+				'avg_order_value'    => 0.0,
+				'ctr'                => 0.0,
+				'conversion_rate'    => 0.0,
+				'roi'                => 0.0,
+			);
+		}
+
+		$impressions  = (int) ( $result['total_impressions'] ?? 0 );
+		$clicks       = (int) ( $result['total_clicks'] ?? 0 );
+		$conversions  = (int) ( $result['total_conversions'] ?? 0 );
+		$revenue      = (float) ( $result['total_revenue'] ?? 0.0 );
+		$discount     = (float) ( $result['total_discount'] ?? 0.0 );
+
+		// Calculate derived metrics
+		$ctr             = $impressions > 0 ? ( $clicks / $impressions ) * 100 : 0.0;
+		$conversion_rate = $clicks > 0 ? ( $conversions / $clicks ) * 100 : 0.0;
+		$avg_order       = $conversions > 0 ? $revenue / $conversions : 0.0;
+		$roi             = $discount > 0 ? ( ( $revenue - $discount ) / $discount ) * 100 : 0.0;
+
+		return array(
+			'impressions'     => $impressions,
+			'clicks'          => $clicks,
+			'conversions'     => $conversions,
+			'revenue'         => round( $revenue, 2 ),
+			'discount_given'  => round( $discount, 2 ),
+			'avg_order_value' => round( $avg_order, 2 ),
+			'ctr'             => round( $ctr, 2 ),
+			'conversion_rate' => round( $conversion_rate, 2 ),
+			'roi'             => round( $roi, 2 ),
 		);
-
-		foreach ( $results as $row ) {
-			$event_type = $row['event_type'];
-			$count      = intval( $row['count'] );
-
-			switch ( $event_type ) {
-				case 'impression':
-					$performance['impressions'] = $count;
-					break;
-				case 'click':
-					$performance['clicks'] = $count;
-					break;
-				case 'discount_applied':
-					$performance['conversions']        = $count;
-					$performance['total_savings']      = floatval( $row['total_savings'] );
-					$performance['avg_discount_value'] = floatval( $row['avg_discount_value'] );
-					break;
-			}
-		}
-
-		if ( $performance['impressions'] > 0 ) {
-			$performance['click_through_rate'] = ( $performance['clicks'] / $performance['impressions'] ) * 100;
-		}
-
-		if ( $performance['clicks'] > 0 ) {
-			$performance['conversion_rate'] = ( $performance['conversions'] / $performance['clicks'] ) * 100;
-		}
-
-		return $performance;
 	}
 
 	/**
@@ -315,67 +318,6 @@ class SCD_Analytics_Repository extends SCD_Base_Repository {
 				'total_pages'  => $total_pages,
 			),
 		);
-	}
-
-	/**
-	 * Get product performance statistics.
-	 *
-	 * @since    1.0.0
-	 * @param    int    $product_id    Product ID.
-	 * @param    string $start_date    Optional start date.
-	 * @param    string $end_date      Optional end date.
-	 * @return   array                    Product performance statistics.
-	 */
-	public function get_product_performance( $product_id, $start_date = '', $end_date = '' ) {
-		global $wpdb;
-
-		$where_conditions = array( 'product_id = %d' );
-		$where_values     = array( $product_id );
-
-		if ( ! empty( $start_date ) ) {
-			$where_conditions[] = 'event_timestamp >= %s';
-			$where_values[]     = $start_date;
-		}
-
-		if ( ! empty( $end_date ) ) {
-			$where_conditions[] = 'event_timestamp <= %s';
-			$where_values[]     = $end_date;
-		}
-
-		$where_sql = implode( ' AND ', $where_conditions );
-
-		$sql = $wpdb->prepare(
-			"SELECT 
-				event_type,
-				COUNT(*) as count,
-				AVG(CASE WHEN event_type = 'discount_applied' THEN CAST(JSON_EXTRACT(event_data, '$.discount_value') AS DECIMAL(5,2)) ELSE NULL END) as avg_discount
-			 FROM {$this->table_name} 
-			 WHERE {$where_sql}
-			 GROUP BY event_type",
-			$where_values
-		);
-
-		$results = $wpdb->get_results( $sql, ARRAY_A );
-
-		$performance = array(
-			'total_views'           => 0,
-			'discount_applications' => 0,
-			'avg_discount_value'    => 0.0,
-		);
-
-		foreach ( $results as $row ) {
-			$event_type = $row['event_type'];
-			$count      = intval( $row['count'] );
-
-			if ( 'product_view' === $event_type ) {
-				$performance['total_views'] = $count;
-			} elseif ( 'discount_applied' === $event_type ) {
-				$performance['discount_applications'] = $count;
-				$performance['avg_discount_value']    = floatval( $row['avg_discount'] );
-			}
-		}
-
-		return $performance;
 	}
 
 	/**
@@ -607,5 +549,266 @@ class SCD_Analytics_Repository extends SCD_Base_Repository {
 	 */
 	public function get_table_name() {
 		return $this->table_name;
+	}
+
+	/**
+	 * Get product-level performance analytics.
+	 *
+	 * @since    1.0.0
+	 * @param    int    $campaign_id    Campaign ID.
+	 * @param    string $start_date     Start date (optional).
+	 * @param    string $end_date       End date (optional).
+	 * @param    int    $limit          Limit results (default 10).
+	 * @return   array                   Product performance data.
+	 */
+	public function get_product_performance( $campaign_id, $start_date = '', $end_date = '', $limit = 10 ) {
+		global $wpdb;
+		$product_analytics_table = $wpdb->prefix . 'scd_product_analytics';
+
+		$where_sql    = array();
+		$where_values = array();
+
+		// Only filter by campaign if a specific campaign is requested (non-zero)
+		if ( $campaign_id > 0 ) {
+			$where_sql[]    = 'campaign_id = %d';
+			$where_values[] = $campaign_id;
+		}
+
+		if ( ! empty( $start_date ) ) {
+			$where_sql[]    = 'date_recorded >= %s';
+			$where_values[] = $start_date;
+		}
+
+		if ( ! empty( $end_date ) ) {
+			$where_sql[]    = 'date_recorded <= %s';
+			$where_values[] = $end_date;
+		}
+
+		$where_clause = ! empty( $where_sql ) ? 'WHERE ' . implode( ' AND ', $where_sql ) : '';
+
+		$sql = $wpdb->prepare(
+			"SELECT
+				product_id,
+				SUM(impressions) as total_impressions,
+				SUM(clicks) as total_clicks,
+				SUM(conversions) as total_conversions,
+				SUM(revenue) as total_revenue,
+				SUM(discount_given) as total_discount,
+				SUM(product_cost) as total_cost,
+				SUM(profit) as total_profit,
+				SUM(quantity_sold) as total_quantity,
+				SUM(unique_customers) as total_customers,
+				CASE
+					WHEN SUM(impressions) > 0 THEN (SUM(clicks) / SUM(impressions)) * 100
+					ELSE 0
+				END as ctr,
+				CASE
+					WHEN SUM(clicks) > 0 THEN (SUM(conversions) / SUM(clicks)) * 100
+					ELSE 0
+				END as conversion_rate,
+				CASE
+					WHEN SUM(product_cost) > 0 THEN ((SUM(profit) / SUM(product_cost)) * 100)
+					ELSE 0
+				END as profit_margin_pct
+			FROM {$product_analytics_table}
+			{$where_clause}
+			GROUP BY product_id
+			ORDER BY total_revenue DESC
+			LIMIT %d",
+			array_merge( $where_values, array( $limit ) )
+		);
+
+		$results = $wpdb->get_results( $sql, ARRAY_A );
+
+		// Format results with product names
+		$formatted = array();
+		foreach ( $results as $row ) {
+			$product_id = (int) $row['product_id'];
+
+			// Get product name from WooCommerce
+			$product_name = 'Unknown Product';
+			if ( function_exists( 'wc_get_product' ) ) {
+				$product = wc_get_product( $product_id );
+				if ( $product ) {
+					$product_name = $product->get_name();
+				}
+			}
+
+			// Calculate average discount percentage
+			$total_revenue       = (float) $row['total_revenue'];
+			$total_discount      = (float) $row['total_discount'];
+			$avg_discount_percent = $total_revenue > 0 ? ( $total_discount / $total_revenue ) * 100 : 0;
+
+			$formatted[] = array(
+				'product_id'           => $product_id,
+				'name'                 => $product_name,
+				'impressions'          => (int) $row['total_impressions'],
+				'clicks'               => (int) $row['total_clicks'],
+				'conversions'          => (int) $row['total_conversions'],
+				'order_count'          => (int) $row['total_conversions'], // Alias for JavaScript compatibility
+				'revenue'              => round( $total_revenue, 2 ),
+				'discount_given'       => round( $total_discount, 2 ),
+				'avg_discount_percent' => round( $avg_discount_percent, 2 ),
+				'cost'                 => round( (float) $row['total_cost'], 2 ),
+				'profit'               => round( (float) $row['total_profit'], 2 ),
+				'quantity_sold'        => (int) $row['total_quantity'],
+				'unique_customers'     => (int) $row['total_customers'],
+				'ctr'                  => round( (float) $row['ctr'], 2 ),
+				'conversion_rate'      => round( (float) $row['conversion_rate'], 2 ),
+				'profit_margin_pct'    => round( (float) $row['profit_margin_pct'], 2 ),
+				'trend'                => 'neutral', // TODO: Calculate actual trend based on historical data
+			);
+		}
+
+		return $formatted;
+	}
+
+	/**
+	 * Get customer retention rate for a campaign.
+	 *
+	 * @since    1.0.0
+	 * @param    int $campaign_id    Campaign ID.
+	 * @param    int $days           Days to check for repeat purchase (default 30).
+	 * @return   array                Retention metrics.
+	 */
+	public function get_customer_retention_rate( $campaign_id, $days = 30 ) {
+		global $wpdb;
+		$customer_usage_table = $wpdb->prefix . 'scd_customer_usage';
+		$cutoff_date          = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
+
+		// Get customers who used the campaign
+		$total_customers = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(DISTINCT customer_id)
+				FROM {$customer_usage_table}
+				WHERE campaign_id = %d
+				AND customer_id > 0
+				AND first_used_at >= %s",
+				$campaign_id,
+				$cutoff_date
+			)
+		);
+
+		// Get customers who made repeat purchases
+		$repeat_customers = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(DISTINCT customer_id)
+				FROM {$customer_usage_table}
+				WHERE campaign_id = %d
+				AND customer_id > 0
+				AND usage_count > 1
+				AND first_used_at >= %s",
+				$campaign_id,
+				$cutoff_date
+			)
+		);
+
+		$retention_rate = $total_customers > 0 ? ( $repeat_customers / $total_customers ) * 100 : 0;
+
+		return array(
+			'total_customers'  => (int) $total_customers,
+			'repeat_customers' => (int) $repeat_customers,
+			'retention_rate'   => round( $retention_rate, 2 ),
+			'period_days'      => $days,
+		);
+	}
+
+	/**
+	 * Get baseline comparison for a campaign.
+	 *
+	 * Compares performance during campaign vs pre-campaign baseline period.
+	 *
+	 * @since    1.0.0
+	 * @param    int $campaign_id    Campaign ID.
+	 * @return   array                Baseline comparison data.
+	 */
+	public function get_baseline_comparison( $campaign_id ) {
+		global $wpdb;
+		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+
+		// Get campaign dates
+		$campaign = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT
+					starts_at,
+					ends_at,
+					baseline_revenue,
+					baseline_orders,
+					baseline_customers
+				FROM {$campaigns_table}
+				WHERE id = %d",
+				$campaign_id
+			),
+			ARRAY_A
+		);
+
+		if ( ! $campaign || ! $campaign['starts_at'] ) {
+			return array(
+				'has_baseline'  => false,
+				'message'       => __( 'Campaign dates not set', 'smart-cycle-discounts' ),
+			);
+		}
+
+		$campaign_start = $campaign['starts_at'];
+		$campaign_end   = $campaign['ends_at'] ? $campaign['ends_at'] : gmdate( 'Y-m-d H:i:s' );
+
+		// Calculate campaign duration in days
+		$duration_days = max( 1, (int) ( ( strtotime( $campaign_end ) - strtotime( $campaign_start ) ) / DAY_IN_SECONDS ) );
+
+		// Get baseline period (same duration before campaign start)
+		$baseline_end   = gmdate( 'Y-m-d H:i:s', strtotime( $campaign_start ) - 1 );
+		$baseline_start = gmdate( 'Y-m-d H:i:s', strtotime( $campaign_start ) - ( $duration_days * DAY_IN_SECONDS ) );
+
+		// Get campaign performance
+		$campaign_perf = $this->get_campaign_performance( $campaign_id, $campaign_start, $campaign_end );
+
+		// Get baseline from stored values or calculate
+		$baseline_revenue   = (float) ( $campaign['baseline_revenue'] ?? 0 );
+		$baseline_orders    = (int) ( $campaign['baseline_orders'] ?? 0 );
+		$baseline_customers = (int) ( $campaign['baseline_customers'] ?? 0 );
+
+		// Calculate incremental impact
+		$incremental_revenue   = $campaign_perf['revenue'] - $baseline_revenue;
+		$incremental_orders    = $campaign_perf['conversions'] - $baseline_orders;
+		$incremental_customers = $campaign_perf['unique_customers'] - $baseline_customers;
+
+		// Calculate lift percentages
+		$revenue_lift   = $baseline_revenue > 0 ? ( ( $incremental_revenue / $baseline_revenue ) * 100 ) : 0;
+		$orders_lift    = $baseline_orders > 0 ? ( ( $incremental_orders / $baseline_orders ) * 100 ) : 0;
+		$customers_lift = $baseline_customers > 0 ? ( ( $incremental_customers / $baseline_customers ) * 100 ) : 0;
+
+		return array(
+			'has_baseline'          => true,
+			'baseline_period'       => array(
+				'start' => $baseline_start,
+				'end'   => $baseline_end,
+				'days'  => $duration_days,
+			),
+			'campaign_period'       => array(
+				'start' => $campaign_start,
+				'end'   => $campaign_end,
+				'days'  => $duration_days,
+			),
+			'baseline_metrics'      => array(
+				'revenue'   => round( $baseline_revenue, 2 ),
+				'orders'    => $baseline_orders,
+				'customers' => $baseline_customers,
+			),
+			'campaign_metrics'      => array(
+				'revenue'   => round( $campaign_perf['revenue'], 2 ),
+				'orders'    => $campaign_perf['conversions'],
+				'customers' => $campaign_perf['unique_customers'],
+			),
+			'incremental_impact'    => array(
+				'revenue'   => round( $incremental_revenue, 2 ),
+				'orders'    => $incremental_orders,
+				'customers' => $incremental_customers,
+			),
+			'lift_percentages'      => array(
+				'revenue'   => round( $revenue_lift, 2 ),
+				'orders'    => round( $orders_lift, 2 ),
+				'customers' => round( $customers_lift, 2 ),
+			),
+		);
 	}
 }

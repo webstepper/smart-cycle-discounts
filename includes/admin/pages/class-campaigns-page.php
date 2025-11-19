@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/pages/class-campaigns-page.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -176,6 +176,12 @@ class SCD_Campaigns_Page {
 					}
 					throw $e;
 				}
+				break;
+
+			case 'view':
+				// Show campaigns list with overview panel open
+				// The JavaScript will detect action=view in URL and open the panel
+				$this->get_list_controller()->handle();
 				break;
 
 			case 'delete':

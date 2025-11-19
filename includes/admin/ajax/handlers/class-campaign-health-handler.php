@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers/class-campaign-health-handler.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -25,7 +25,7 @@ require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 
@@ -151,7 +151,23 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 			require_once SCD_INCLUDES_DIR . 'core/services/class-campaign-health-service.php';
 		}
 
-		return new SCD_Campaign_Health_Service( $this->logger );
+		// Get recurring handler from container or create new instance
+		$recurring_handler = null;
+		$container         = null;
+		if ( class_exists( 'SmartCycleDiscounts' ) ) {
+			$plugin    = SmartCycleDiscounts::get_instance();
+			$container = $plugin->get_container();
+			if ( $container && $container->has( 'recurring_handler' ) ) {
+				$recurring_handler = $container->get( 'recurring_handler' );
+			}
+		}
+
+		// If still null, create new instance
+		if ( null === $recurring_handler && null !== $container && class_exists( 'SCD_Recurring_Handler' ) ) {
+			$recurring_handler = new SCD_Recurring_Handler( $container );
+		}
+
+		return new SCD_Campaign_Health_Service( $this->logger, $recurring_handler );
 	}
 
 	/**

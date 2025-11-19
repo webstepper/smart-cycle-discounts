@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/integrations/woocommerce/class-woocommerce-integration.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -33,7 +33,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/integrations/woocommerce
  */
-class SCD_WooCommerce_Integration {
+class SCD_WooCommerce_Integration implements SCD_Ecommerce_Integration {
 
 	/**
 	 * Container instance.
@@ -79,6 +79,17 @@ class SCD_WooCommerce_Integration {
 	 * @var      SCD_Customer_Usage_Manager|null    $customer_usage_manager    Customer usage manager.
 	 */
 	private ?SCD_Customer_Usage_Manager $customer_usage_manager = null;
+
+	/**
+	 * Discount map service instance.
+	 *
+	 * Provides efficient bulk product-to-campaign mapping.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      SCD_WC_Discount_Map_Service|null    $discount_map_service    Discount map service.
+	 */
+	private ?SCD_WC_Discount_Map_Service $discount_map_service = null;
 
 	/**
 	 * Discount query service instance.
@@ -136,6 +147,15 @@ class SCD_WooCommerce_Integration {
 	 * @var      SCD_WC_Order_Integration|null    $order_integration    Order integration.
 	 */
 	private ?SCD_WC_Order_Integration $order_integration = null;
+
+	/**
+	 * Coupon restriction instance.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      SCD_WC_Coupon_Restriction|null    $coupon_restriction    Coupon restriction.
+	 */
+	private ?SCD_WC_Coupon_Restriction $coupon_restriction = null;
 
 	/**
 	 * WooCommerce compatibility status.
@@ -243,10 +263,30 @@ class SCD_WooCommerce_Integration {
 				$this->log( 'warning', 'Customer usage manager not available in container' );
 			}
 
+			// Get discount rules enforcer from container
+			if ( ! $this->container->has( 'discount_rules_enforcer' ) ) {
+				throw new RuntimeException(
+					'SCD_Discount_Rules_Enforcer not registered in service container. Check includes/bootstrap/class-service-definitions.php'
+				);
+			}
+			$rules_enforcer = $this->container->get( 'discount_rules_enforcer' );
+
+			// Get cache manager if available
+			$cache_manager = $this->container->has( 'cache_manager' ) ? $this->container->get( 'cache_manager' ) : null;
+
+			// Create discount map service for efficient bulk product lookups
+			$this->discount_map_service = new SCD_WC_Discount_Map_Service(
+				$this->campaign_manager,
+				$cache_manager,
+				$this->logger
+			);
+
 			$this->discount_query = new SCD_WC_Discount_Query_Service(
 				$this->campaign_manager,
 				$this->discount_engine,
-				$this->logger
+				$this->logger,
+				$rules_enforcer,
+				$this->discount_map_service
 			);
 
 			$this->price_integration = new SCD_WC_Price_Integration(
@@ -273,6 +313,11 @@ class SCD_WooCommerce_Integration {
 			$this->order_integration = new SCD_WC_Order_Integration(
 				$this->discount_query,
 				$this->customer_usage_manager,
+				$this->logger
+			);
+
+			$this->coupon_restriction = new SCD_WC_Coupon_Restriction(
+				$this->campaign_manager,
 				$this->logger
 			);
 
@@ -311,6 +356,12 @@ class SCD_WooCommerce_Integration {
 	 * @return   void
 	 */
 	private function setup_hooks(): void {
+		// Initialize discount map very early, before any product price queries
+		// wp action fires after plugins loaded but before template/query setup
+		if ( ! is_admin() && ! wp_doing_ajax() && $this->discount_map_service ) {
+			add_action( 'wp', array( $this, 'init_discount_map' ), 1 );
+		}
+
 		if ( $this->price_integration ) {
 			$this->price_integration->register_hooks();
 		}
@@ -331,11 +382,31 @@ class SCD_WooCommerce_Integration {
 			$this->order_integration->register_hooks();
 		}
 
+		if ( $this->coupon_restriction ) {
+			$this->coupon_restriction->register_hooks();
+		}
+
 		// WooCommerce compatibility hooks
 		add_action( 'woocommerce_init', array( $this, 'on_woocommerce_init' ) );
 		add_action( 'before_woocommerce_init', array( $this, 'declare_compatibility' ) );
 
 		$this->log( 'debug', 'WooCommerce hooks delegated to sub-integrations successfully' );
+	}
+
+	/**
+	 * Initialize discount map for efficient bulk product lookups.
+	 *
+	 * Called on template_redirect hook to prepare discount mappings
+	 * before products are loaded on shop/archive pages.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	public function init_discount_map(): void {
+		if ( $this->discount_map_service ) {
+			$this->discount_map_service->init_map();
+			$this->log( 'debug', 'Discount map initialized for page request' );
+		}
 	}
 
 	/**
@@ -434,5 +505,221 @@ class SCD_WooCommerce_Integration {
 		if ( $this->logger && method_exists( $this->logger, $level ) ) {
 			$this->logger->$level( '[WC_Integration] ' . $message, $context );
 		}
+	}
+
+	// ============================================================================
+	// SCD_Ecommerce_Integration Interface Implementation
+	// ============================================================================
+
+	/**
+	 * Get platform name.
+	 *
+	 * @since    1.0.0
+	 * @return   string    Platform name.
+	 */
+	public function get_platform_name() {
+		return 'woocommerce';
+	}
+
+	/**
+	 * Check if platform is active.
+	 *
+	 * @since    1.0.0
+	 * @return   bool    True if platform is active.
+	 */
+	public function is_active() {
+		return $this->is_compatible;
+	}
+
+	/**
+	 * Get order by ID.
+	 *
+	 * @since    1.0.0
+	 * @param    int $order_id    Order ID.
+	 * @return   object|null      Order object or null if not found.
+	 */
+	public function get_order( $order_id ) {
+		return wc_get_order( $order_id );
+	}
+
+	/**
+	 * Get order items.
+	 *
+	 * @since    1.0.0
+	 * @param    object $order    Order object.
+	 * @return   array            Array of order items.
+	 */
+	public function get_order_items( $order ) {
+		return $order->get_items();
+	}
+
+	/**
+	 * Get item product ID.
+	 *
+	 * @since    1.0.0
+	 * @param    mixed $item    Order item.
+	 * @return   int            Product ID.
+	 */
+	public function get_item_product_id( $item ) {
+		return $item->get_product_id();
+	}
+
+	/**
+	 * Get item total.
+	 *
+	 * @since    1.0.0
+	 * @param    mixed $item    Order item.
+	 * @return   float          Item total.
+	 */
+	public function get_item_total( $item ) {
+		return (float) $item->get_total();
+	}
+
+	/**
+	 * Get item subtotal (before discount).
+	 *
+	 * @since    1.0.0
+	 * @param    mixed $item    Order item.
+	 * @return   float          Item subtotal.
+	 */
+	public function get_item_subtotal( $item ) {
+		return (float) $item->get_subtotal();
+	}
+
+	/**
+	 * Get item discount amount.
+	 *
+	 * @since    1.0.0
+	 * @param    mixed $item    Order item.
+	 * @return   float          Discount amount.
+	 */
+	public function get_item_discount( $item ) {
+		return (float) ( $item->get_subtotal() - $item->get_total() );
+	}
+
+	/**
+	 * Get item quantity.
+	 *
+	 * @since    1.0.0
+	 * @param    mixed $item    Order item.
+	 * @return   int            Quantity.
+	 */
+	public function get_item_quantity( $item ) {
+		return (int) $item->get_quantity();
+	}
+
+	/**
+	 * Get order customer ID.
+	 *
+	 * @since    1.0.0
+	 * @param    object $order    Order object.
+	 * @return   int              Customer/user ID.
+	 */
+	public function get_order_customer_id( $order ) {
+		return (int) $order->get_customer_id();
+	}
+
+	/**
+	 * Get order total.
+	 *
+	 * @since    1.0.0
+	 * @param    object $order    Order object.
+	 * @return   float            Order total.
+	 */
+	public function get_order_total( $order ) {
+		return (float) $order->get_total();
+	}
+
+	/**
+	 * Get campaign ID from order item.
+	 *
+	 * @since    1.0.0
+	 * @param    mixed $item    Order item.
+	 * @return   int|null       Campaign ID or null.
+	 */
+	public function get_item_campaign_id( $item ) {
+		$campaign_id = $item->get_meta( '_scd_campaign_id', true );
+		return $campaign_id ? (int) $campaign_id : null;
+	}
+
+	/**
+	 * Set campaign ID on order item.
+	 *
+	 * @since    1.0.0
+	 * @param    mixed $item          Order item.
+	 * @param    int   $campaign_id   Campaign ID.
+	 * @return   void
+	 */
+	public function set_item_campaign_id( $item, $campaign_id ) {
+		$item->add_meta_data( '_scd_campaign_id', $campaign_id, true );
+		$item->save_meta_data();
+	}
+
+	/**
+	 * Register order completion hook.
+	 *
+	 * @since    1.0.0
+	 * @param    callable $callback    Callback function.
+	 * @return   void
+	 */
+	public function register_order_complete_hook( $callback ) {
+		add_action( 'woocommerce_order_status_completed', $callback, 10, 1 );
+	}
+
+	/**
+	 * Get product price.
+	 *
+	 * @since    1.0.0
+	 * @param    int $product_id    Product ID.
+	 * @return   float              Product price.
+	 */
+	public function get_product_price( $product_id ) {
+		$product = wc_get_product( $product_id );
+		return $product ? (float) $product->get_price() : 0.0;
+	}
+
+	/**
+	 * Check if product exists.
+	 *
+	 * @since    1.0.0
+	 * @param    int $product_id    Product ID.
+	 * @return   bool               True if product exists.
+	 */
+	public function product_exists( $product_id ) {
+		$product = wc_get_product( $product_id );
+		return $product && is_a( $product, 'WC_Product' );
+	}
+
+	/**
+	 * Get discount info for a product.
+	 * Delegates to the discount query service.
+	 *
+	 * @since    1.0.0
+	 * @param    int   $product_id    Product ID.
+	 * @param    array $context       Context information (e.g., quantity, product).
+	 * @return   array|null           Discount info or null if no discount.
+	 */
+	public function get_discount_info( $product_id, $context = array() ) {
+		if ( ! $this->discount_query ) {
+			return null;
+		}
+
+		return $this->discount_query->get_discount_info( $product_id, $context );
+	}
+
+	/**
+	 * Get campaign badge info for a product.
+	 * Delegates to the discount query service.
+	 *
+	 * @since    1.0.0
+	 * @param    int $product_id    Product ID.
+	 * @return   array|null         Badge info or null if no campaigns.
+	 */
+	public function get_campaign_badge_info( $product_id ) {
+		if ( ! $this->discount_query ) {
+			return null;
+		}
+
+		return $this->discount_query->get_campaign_badge_info( $product_id );
 	}
 }

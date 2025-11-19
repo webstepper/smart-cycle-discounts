@@ -203,7 +203,10 @@ function scd_wizard_state_script( $step_name, $saved_data, $additional_data = ar
 		} elseif ( is_numeric( $value ) ) {
 			return $value; // Numbers are safe
 		} else {
-			return sanitize_text_field( $value ); // Sanitize all strings
+			// Sanitize strings for safe output
+			// wp_json_encode() with JSON_HEX flags provides sufficient escaping for JavaScript context
+			// Operators are validated via whitelist in Field_Definitions, no decode needed
+			return sanitize_text_field( $value );
 		}
 	};
 
@@ -276,21 +279,34 @@ function scd_wizard_card( $args ) {
 		<div class="scd-card__header">
 			<h3 class="scd-card__title">
 				<?php if ( $args['icon'] ): ?>
-					<span class="dashicons dashicons-<?php echo esc_attr( $args['icon'] ); ?>"></span>
+					<?php echo SCD_Icon_Helper::get( $args['icon'], array( 'size' => 16 ) ); ?>
 				<?php endif; ?>
 				<?php 
-				// Check if title contains badge HTML
-				if ( strpos( $args['title'], 'scd-badge' ) !== false ) {
-					// Allow safe HTML for badges while preventing XSS
+				// Check if title contains badge or indicator HTML
+				if ( false !== strpos( $args['title'], 'scd-badge' ) || false !== strpos( $args['title'], 'scd-optional-indicator' ) || false !== strpos( $args['title'], 'scd-required-indicator' ) ) {
+					// Allow safe HTML for badges, indicators, and SVG icons while preventing XSS
 					echo wp_kses( $args['title'], array(
 						'span' => array(
-							'class' => array(),
 							'aria-hidden' => array(),
+							'class' => array(),
+							'aria-label' => array(),
 							'id' => array()
 						),
-						'h2' => array(
+						'svg' => array(
 							'class' => array(),
-							'id' => array()
+							'width' => array(),
+							'height' => array(),
+							'viewBox' => array(),
+							'fill' => array(),
+							'xmlns' => array(),
+							'aria-hidden' => array(),
+							'aria-label' => array(),
+							'role' => array(),
+							'style' => array()
+						),
+						'path' => array(
+							'd' => array(),
+							'fill' => array()
 						)
 					) );
 				} else {
@@ -323,13 +339,15 @@ function scd_wizard_card( $args ) {
 
 /**
  * Generate form field with all wrappers
- * 
+ *
  * @since 1.0.0
  * @param array $args {
  *     Arguments for the form field
- * 
- *     @type string $id Field ID
- *     @type string $name Field name
+ *
+ *     @type string $step Step identifier (e.g., 'basic', 'products') - if provided with field, reads from field definitions
+ *     @type string $field Field key from field definitions (e.g., 'name', 'description')
+ *     @type string $id Field ID (auto-generated from field if not provided)
+ *     @type string $name Field name (auto-generated from field if not provided)
  *     @type string $label Field label
  *     @type string $type Input type (default: 'text')
  *     @type string $value Field value
@@ -345,10 +363,12 @@ function scd_wizard_card( $args ) {
  */
 function scd_wizard_form_field( $args ) {
 	$defaults = array(
+		'step'              => '',
+		'field'             => '',
 		'id'                => '',
 		'name'              => '',
 		'label'             => '',
-		'type'              => 'text',
+		'type'              => '',
 		'value'             => '',
 		'placeholder'       => '',
 		'required'          => false,
@@ -359,22 +379,90 @@ function scd_wizard_form_field( $args ) {
 		'attributes'        => array(),
 		'options'           => array()
 	);
-	
+
 	$args = wp_parse_args( $args, $defaults );
+
+	// If step and field are provided, read from field definitions
+	if ( ! empty( $args['step'] ) && ! empty( $args['field'] ) && class_exists( 'SCD_Field_Definitions' ) ) {
+		$field_def = SCD_Field_Definitions::get_field( $args['step'], $args['field'] );
+
+		if ( ! empty( $field_def ) ) {
+			// Map field definition properties to template args
+			$field_mapping = array(
+				'type'        => 'type',
+				'label'       => 'label',
+				'required'    => 'required',
+				'default'     => 'value',
+				'description' => 'description',
+				'field_name'  => 'name',
+				'options'     => 'options',
+				'tooltip'     => 'tooltip'
+			);
+
+			// Build field definition args (these become defaults)
+			$def_args = array();
+			foreach ( $field_mapping as $def_key => $arg_key ) {
+				if ( isset( $field_def[ $def_key ] ) ) {
+					$def_args[ $arg_key ] = $field_def[ $def_key ];
+				}
+			}
+
+			// Extract attributes if present
+			if ( isset( $field_def['attributes'] ) && is_array( $field_def['attributes'] ) ) {
+				// Merge with provided attributes (provided takes precedence)
+				$provided_attrs = isset( $args['attributes'] ) && is_array( $args['attributes'] ) ? $args['attributes'] : array();
+				$def_args['attributes'] = array_merge( $field_def['attributes'], $provided_attrs );
+				// Extract placeholder from attributes if present
+				if ( isset( $field_def['attributes']['placeholder'] ) && empty( $args['placeholder'] ) ) {
+					$def_args['placeholder'] = $field_def['attributes']['placeholder'];
+				}
+			}
+			elseif ( isset( $args['attributes'] ) && is_array( $args['attributes'] ) ) {
+				// Use provided attributes if no field definition attributes
+				$def_args['attributes'] = $args['attributes'];
+			}
+
+			// Auto-generate ID if not provided (use field_name from definition or field key)
+			if ( empty( $args['id'] ) ) {
+				$def_args['id'] = ! empty( $field_def['field_name'] ) ? $field_def['field_name'] : $args['field'];
+			}
+
+			// Merge: field definitions as base, provided args override
+			$args = array_merge( $def_args, array_filter( $args, function( $value ) {
+				// Keep provided values that are not empty strings or empty arrays
+				return $value !== '' && $value !== array();
+			} ) );
+		}
+	}
 	
 	// Validate required parameters
 	if ( empty( $args['id'] ) || empty( $args['name'] ) ) {
 		return;
 	}
+
+	// Fallback: if type is still empty, default to 'text'
+	if ( empty( $args['type'] ) ) {
+		$args['type'] = 'text';
+	}
 	
 	// Build attributes string
 	$attr_string = '';
-	foreach ( $args['attributes'] as $attr => $val ) {
-		$attr_string .= sprintf( ' %s="%s"', esc_attr( $attr ), esc_attr( $val ) );
+	if ( ! empty( $args['attributes'] ) && is_array( $args['attributes'] ) ) {
+		foreach ( $args['attributes'] as $attr => $val ) {
+			$attr_string .= sprintf( ' %s="%s"', esc_attr( $attr ), esc_attr( $val ) );
+		}
 	}
 	
 	$has_error = isset( $args['validation_errors'][$args['name']] );
 	$field_classes = array();
+
+	// Apply appropriate enhanced styling class based on field type
+	if ( 'select' === $args['type'] ) {
+		$field_classes[] = 'scd-enhanced-select';
+	} else {
+		$field_classes[] = 'scd-enhanced-input'; // For text, number, email, textarea, etc.
+	}
+
 	if ( ! empty( $args['class'] ) ) {
 		$field_classes[] = sanitize_html_class( $args['class'] );
 	}
@@ -383,77 +471,63 @@ function scd_wizard_form_field( $args ) {
 	}
 	$field_class_string = implode( ' ', $field_classes );
 	?>
-	<div class="form-field">
+	<div class="scd-form-field">
 		<label for="<?php echo esc_attr( $args['id'] ); ?>">
 			<?php echo esc_html( $args['label'] ); ?>
 			<?php if ( $args['required'] ): ?>
 				<span class="required">*</span>
 			<?php endif; ?>
-			<?php if ( $args['tooltip'] ): ?>
+			<?php if ( ! empty( $args['tooltip'] ) ): ?>
 				<?php scd_wizard_field_helper( $args['tooltip'] ); ?>
 			<?php endif; ?>
 		</label>
-		<div class="scd-field-container">
-			<div class="scd-input-wrapper">
-				<?php if ( 'textarea' === $args['type'] ): ?>
-					<textarea
-						id="<?php echo esc_attr( $args['id'] ); ?>"
-						name="<?php echo esc_attr( $args['name'] ); ?>"
-						class="<?php echo esc_attr( $field_class_string ); ?>"
-						placeholder="<?php echo esc_attr( $args['placeholder'] ); ?>"
-						<?php echo $args['required'] ? 'aria-required="true"' : ''; ?>
-						<?php
-						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Already escaped in construction (line 373)
-						echo $attr_string;
-						?>
-					><?php echo esc_textarea( $args['value'] ); ?></textarea>
-				<?php elseif ( 'select' === $args['type'] && ! empty( $args['options'] ) ): ?>
-					<select
-						id="<?php echo esc_attr( $args['id'] ); ?>"
-						name="<?php echo esc_attr( $args['name'] ); ?>"
-						class="<?php echo esc_attr( $field_class_string ); ?>"
-						<?php echo $args['required'] ? 'aria-required="true"' : ''; ?>
-						<?php
-						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Already escaped in construction (line 373)
-						echo $attr_string;
-						?>
-					>
-						<?php foreach ( $args['options'] as $opt_value => $opt_label ): ?>
-							<option value="<?php echo esc_attr( $opt_value ); ?>" <?php selected( $args['value'], $opt_value ); ?>>
-								<?php echo esc_html( $opt_label ); ?>
-							</option>
-						<?php endforeach; ?>
-					</select>
-				<?php else: ?>
-					<input
-						type="<?php echo esc_attr( $args['type'] ); ?>"
-						id="<?php echo esc_attr( $args['id'] ); ?>"
-						name="<?php echo esc_attr( $args['name'] ); ?>"
-						value="<?php echo esc_attr( $args['value'] ); ?>"
-						class="<?php echo esc_attr( $field_class_string ); ?>"
-						placeholder="<?php echo esc_attr( $args['placeholder'] ); ?>"
-						<?php echo $args['required'] ? 'aria-required="true"' : ''; ?>
-						<?php
-						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Already escaped in construction (line 373)
-						echo $attr_string;
-						?>
-					/>
-				<?php endif; ?>
-				
-				<?php if ( 'hidden' !== $args['type'] ): ?>
-					<span class="scd-field-status">
-						<span class="scd-field-valid dashicons dashicons-yes-alt" style="display: none;" aria-hidden="true"></span>
-						<span class="scd-field-invalid dashicons dashicons-dismiss" style="display: none;" aria-hidden="true"></span>
-					</span>
-				<?php endif; ?>
-			</div>
-			
-			<?php if ( ! empty( $args['description'] ) ): ?>
-				<p class="description"><?php echo esc_html( $args['description'] ); ?></p>
-			<?php endif; ?>
-			
-			<?php scd_wizard_field_errors( $args['validation_errors'], $args['name'] ); ?>
-		</div>
+
+		<?php if ( 'textarea' === $args['type'] ): ?>
+			<textarea
+				id="<?php echo esc_attr( $args['id'] ); ?>"
+				name="<?php echo esc_attr( $args['name'] ); ?>"
+				class="<?php echo esc_attr( $field_class_string ); ?>"
+				placeholder="<?php echo esc_attr( $args['placeholder'] ); ?>"
+				<?php echo $args['required'] ? 'aria-required="true"' : ''; ?>
+				<?php
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Already escaped in construction (line 373)
+				echo $attr_string;
+				?>
+			><?php echo esc_textarea( $args['value'] ); ?></textarea>
+		<?php elseif ( 'select' === $args['type'] && ! empty( $args['options'] ) ): ?>
+			<select
+				id="<?php echo esc_attr( $args['id'] ); ?>"
+				name="<?php echo esc_attr( $args['name'] ); ?>"
+				class="<?php echo esc_attr( $field_class_string ); ?>"
+				<?php echo $args['required'] ? 'aria-required="true"' : ''; ?>
+				<?php
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Already escaped in construction (line 373)
+				echo $attr_string;
+				?>
+			>
+				<?php foreach ( $args['options'] as $opt_value => $opt_label ): ?>
+					<option value="<?php echo esc_attr( $opt_value ); ?>" <?php selected( $args['value'], $opt_value ); ?>>
+						<?php echo esc_html( $opt_label ); ?>
+					</option>
+				<?php endforeach; ?>
+			</select>
+		<?php else: ?>
+			<input
+				type="<?php echo esc_attr( $args['type'] ); ?>"
+				id="<?php echo esc_attr( $args['id'] ); ?>"
+				name="<?php echo esc_attr( $args['name'] ); ?>"
+				value="<?php echo esc_attr( $args['value'] ); ?>"
+				class="<?php echo esc_attr( $field_class_string ); ?>"
+				placeholder="<?php echo esc_attr( $args['placeholder'] ?? '' ); ?>"
+				<?php echo $args['required'] ? 'aria-required="true"' : ''; ?>
+				<?php
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Already escaped in construction (line 373)
+				echo $attr_string;
+				?>
+			/>
+		<?php endif; ?>
+
+		<?php scd_wizard_field_errors( $args['validation_errors'] ?? array(), $args['name'] ); ?>
 	</div>
 	<?php
 }
@@ -624,7 +698,7 @@ function scd_wizard_field_helper( $tooltip, $args = array() ) {
 
 /**
  * Generate loading indicator
- * 
+ *
  * @since 1.0.0
  * @param string $id Element ID
  * @param string $text Loading text (default: 'Loading...')
@@ -634,14 +708,110 @@ function scd_wizard_loading_indicator( $id, $text = '' ) {
 	if ( empty( $id ) ) {
 		return;
 	}
-	
+
 	if ( empty( $text ) ) {
 		$text = __( 'Loading...', 'smart-cycle-discounts' );
 	}
 	?>
 	<div id="<?php echo esc_attr( $id ); ?>" class="scd-loading-overlay" style="display: none;" role="status">
-		<div class="scd-spinner" aria-hidden="true"></div>
+		<span class="spinner is-active" aria-hidden="true"></span>
 		<span class="scd-loading-text"><?php echo esc_html( $text ); ?></span>
 	</div>
+	<?php
+}
+
+/**
+ * Generate enhanced form field with wrapper and suffix
+ *
+ * Creates a beautifully styled form field with optional icon, tooltip, and suffix label.
+ * Uses the enhanced field pattern from the discount rules section for consistency.
+ *
+ * @since 1.0.0
+ * @param array $args {
+ *     Arguments for the enhanced form field
+ *
+ *     @type string $id Field ID (required)
+ *     @type string $name Field name (required)
+ *     @type string $label Field label (required)
+ *     @type string $type Input type (default: 'text')
+ *     @type string $value Field value
+ *     @type string $placeholder Placeholder text
+ *     @type bool $required Is field required (default: false)
+ *     @type string $icon Dashicon name without 'dashicons-' prefix (optional)
+ *     @type string $tooltip Tooltip text (optional)
+ *     @type string $suffix Suffix text displayed after input (e.g., 'uses per cycle', 'minutes')
+ *     @type string $min Minimum value for number inputs
+ *     @type string $max Maximum value for number inputs
+ *     @type string $step Step value for number inputs (e.g., '1', '0.01')
+ *     @type string $class Additional CSS classes
+ * }
+ * @return void
+ */
+function scd_wizard_enhanced_field( $args ) {
+	$defaults = array(
+		'id'          => '',
+		'name'        => '',
+		'label'       => '',
+		'type'        => 'text',
+		'value'       => '',
+		'placeholder' => '',
+		'required'    => false,
+		'icon'        => '',
+		'tooltip'     => '',
+		'suffix'      => '',
+		'min'         => '',
+		'max'         => '',
+		'step'        => '',
+		'class'       => ''
+	);
+
+	$args = wp_parse_args( $args, $defaults );
+
+	// Validate required parameters
+	if ( empty( $args['id'] ) || empty( $args['name'] ) || empty( $args['label'] ) ) {
+		return;
+	}
+	?>
+	<tr>
+		<th scope="row">
+			<label for="<?php echo esc_attr( $args['id'] ); ?>">
+				<?php if ( $args['icon'] ): ?>
+					<span class="scd-label-icon" title="<?php echo esc_attr( $args['label'] ); ?>">
+						<?php echo SCD_Icon_Helper::get( $args['icon'], array( 'size' => 16 ) ); ?>
+					</span>
+				<?php endif; ?>
+				<?php echo esc_html( $args['label'] ); ?>
+				<?php if ( $args['required'] ): ?>
+					<span class="required">*</span>
+				<?php endif; ?>
+				<?php if ( $args['tooltip'] ): ?>
+					<span class="scd-field-helper" data-tooltip="<?php echo esc_attr( $args['tooltip'] ); ?>">
+						<?php echo SCD_Icon_Helper::get( 'editor-help', array( 'size' => 16 ) ); ?>
+					</span>
+				<?php endif; ?>
+			</label>
+		</th>
+		<td>
+			<?php if ( $args['suffix'] ): ?>
+				<div class="scd-input-wrapper">
+			<?php endif; ?>
+
+			<input type="<?php echo esc_attr( $args['type'] ); ?>"
+			       id="<?php echo esc_attr( $args['id'] ); ?>"
+			       name="<?php echo esc_attr( $args['name'] ); ?>"
+			       value="<?php echo esc_attr( $args['value'] ); ?>"
+			       <?php if ( $args['min'] !== '' ): ?>min="<?php echo esc_attr( $args['min'] ); ?>"<?php endif; ?>
+			       <?php if ( $args['max'] !== '' ): ?>max="<?php echo esc_attr( $args['max'] ); ?>"<?php endif; ?>
+			       <?php if ( $args['step'] !== '' ): ?>step="<?php echo esc_attr( $args['step'] ); ?>"<?php endif; ?>
+			       class="scd-enhanced-input <?php echo esc_attr( $args['class'] ); ?>"
+			       placeholder="<?php echo esc_attr( $args['placeholder'] ); ?>"
+			       <?php echo $args['required'] ? 'required aria-required="true"' : ''; ?>>
+
+			<?php if ( $args['suffix'] ): ?>
+				<span class="scd-field-suffix"><?php echo esc_html( $args['suffix'] ); ?></span>
+				</div>
+			<?php endif; ?>
+		</td>
+	</tr>
 	<?php
 }

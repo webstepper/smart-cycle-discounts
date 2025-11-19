@@ -28,7 +28,9 @@ scd_wizard_init_step_vars( $step_data, $validation_errors );
 $launch_option = isset( $step_data['launch_option'] ) ? $step_data['launch_option'] : 'active';
 
 // Detect edit mode - check if we have a campaign ID in the wizard data
-$is_edit_mode = ! empty( $_GET['id'] ) || ( isset( $GLOBALS['scd_wizard_data']['campaign_id'] ) && $GLOBALS['scd_wizard_data']['campaign_id'] > 0 );
+// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only display logic, nonce checked on form submission
+$campaign_id_from_get = isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0;
+$is_edit_mode = $campaign_id_from_get > 0 || ( isset( $GLOBALS['scd_wizard_data']['campaign_id'] ) && $GLOBALS['scd_wizard_data']['campaign_id'] > 0 );
 
 // Prepare content
 ob_start();
@@ -38,7 +40,7 @@ ob_start();
 
 <!-- Health Check Loading State -->
 <div id="scd-health-loading" class="scd-health-loading">
-	<div class="scd-loading-spinner"></div>
+	<span class="spinner is-active"></span>
 	<p><?php esc_html_e( 'Analyzing campaign configuration...', 'smart-cycle-discounts' ); ?></p>
 </div>
 
@@ -49,7 +51,7 @@ ob_start();
 	<div class="scd-health-score-card">
 		<div class="scd-health-score-header">
 			<div class="scd-health-score-label">
-				<h3 class="scd-section-title"><?php esc_html_e( 'Campaign Health Score', 'smart-cycle-discounts' ); ?></h3>
+				<h3 class="scd-form-section-title"><?php esc_html_e( 'Campaign Health Score', 'smart-cycle-discounts' ); ?></h3>
 				<p class="scd-health-score-subtitle"></p>
 			</div>
 			<div class="scd-health-score-value">
@@ -65,15 +67,15 @@ ob_start();
 	<!-- Health Factors Section (Critical Issues) -->
 	<div id="scd-health-factors" class="scd-health-factors-container" style="display: none;">
 		<div class="scd-health-factors-header">
-			<span class="dashicons dashicons-admin-generic"></span>
-			<h3 class="scd-section-title"><?php esc_html_e( 'Health Factors', 'smart-cycle-discounts' ); ?></h3>
+			<?php echo SCD_Icon_Helper::get( 'admin-generic', array( 'size' => 16 ) ); ?>
+			<h3 class="scd-form-section-title"><?php esc_html_e( 'Health Factors', 'smart-cycle-discounts' ); ?></h3>
 			<p class="scd-health-factors-desc"><?php esc_html_e( 'Critical issues that must be fixed before launch', 'smart-cycle-discounts' ); ?></p>
 		</div>
 
 		<!-- Critical Issues Section -->
 		<div id="scd-critical-issues" class="scd-issues-section scd-critical-issues" style="display: none;">
 			<div class="scd-issues-header">
-				<span class="dashicons dashicons-warning"></span>
+				<?php echo SCD_Icon_Helper::get( 'warning', array( 'size' => 16 ) ); ?>
 				<h4><?php esc_html_e( 'Critical Issues', 'smart-cycle-discounts' ); ?></h4>
 				<span class="scd-issues-count">0</span>
 			</div>
@@ -86,8 +88,8 @@ ob_start();
 	<!-- Recommendations Section -->
 	<div id="scd-recommendations" class="scd-recommendations" style="display: none;">
 		<div class="scd-section-header">
-			<span class="dashicons dashicons-lightbulb"></span>
-			<h3 class="scd-section-title"><?php esc_html_e( 'Recommendations', 'smart-cycle-discounts' ); ?></h3>
+			<?php echo SCD_Icon_Helper::get( 'lightbulb', array( 'size' => 16 ) ); ?>
+			<h3 class="scd-form-section-title"><?php esc_html_e( 'Recommendations', 'smart-cycle-discounts' ); ?></h3>
 			<p class="scd-section-desc"><?php esc_html_e( 'Actions to improve your campaign health and performance', 'smart-cycle-discounts' ); ?></p>
 		</div>
 		<div class="scd-recommendations-categories">
@@ -98,8 +100,8 @@ ob_start();
 	<!-- Conflict Preview -->
 	<div id="scd-conflict-preview" class="scd-conflict-preview" style="display: none;">
 		<div class="scd-section-header">
-			<span class="dashicons dashicons-warning"></span>
-			<h3 class="scd-section-title"><?php esc_html_e( 'Campaign Conflicts', 'smart-cycle-discounts' ); ?></h3>
+			<?php echo SCD_Icon_Helper::get( 'warning', array( 'size' => 16 ) ); ?>
+			<h3 class="scd-form-section-title"><?php esc_html_e( 'Campaign Conflicts', 'smart-cycle-discounts' ); ?></h3>
 			<p class="scd-section-desc"><?php esc_html_e( 'Other campaigns affecting the same products', 'smart-cycle-discounts' ); ?></p>
 		</div>
 		<div class="scd-conflicts-list">
@@ -110,8 +112,8 @@ ob_start();
 	<!-- Campaign Impact Analysis -->
 	<div class="scd-impact-analysis">
 		<div class="scd-section-header">
-			<span class="dashicons dashicons-chart-bar"></span>
-			<h3 class="scd-section-title"><?php esc_html_e( 'Campaign Impact Analysis', 'smart-cycle-discounts' ); ?></h3>
+			<?php echo SCD_Icon_Helper::get( 'chart-bar', array( 'size' => 20 ) ); ?>
+			<h3 class="scd-form-section-title"><?php esc_html_e( 'Campaign Impact Analysis', 'smart-cycle-discounts' ); ?></h3>
 			<p class="scd-section-desc"><?php esc_html_e( 'Estimated reach and coverage of your campaign', 'smart-cycle-discounts' ); ?></p>
 		</div>
 		<div class="scd-impact-grid">
@@ -163,7 +165,7 @@ if ( isset( $step_data['start_type'] ) && 'scheduled' === $step_data['start_type
 			<input type="radio" name="launch_option" value="active" <?php checked( $launch_option, 'active' ); ?>>
 			<div class="scd-launch-option-card">
 				<div class="scd-launch-option-icon">
-					<span class="dashicons dashicons-yes-alt"></span>
+					<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 				</div>
 				<div class="scd-launch-option-body">
 					<?php if ( $is_edit_mode ) : ?>
@@ -185,7 +187,7 @@ if ( isset( $step_data['start_type'] ) && 'scheduled' === $step_data['start_type
 					<?php endif; ?>
 				</div>
 				<div class="scd-launch-option-check">
-					<span class="dashicons dashicons-saved"></span>
+					<?php echo SCD_Icon_Helper::get( 'saved', array( 'size' => 16 ) ); ?>
 				</div>
 			</div>
 		</label>
@@ -194,7 +196,7 @@ if ( isset( $step_data['start_type'] ) && 'scheduled' === $step_data['start_type
 			<input type="radio" name="launch_option" value="draft" <?php checked( $launch_option, 'draft' ); ?>>
 			<div class="scd-launch-option-card">
 				<div class="scd-launch-option-icon">
-					<span class="dashicons dashicons-edit"></span>
+					<?php echo SCD_Icon_Helper::get( 'edit', array( 'size' => 16 ) ); ?>
 				</div>
 				<div class="scd-launch-option-body">
 					<?php if ( $is_edit_mode ) : ?>
@@ -210,14 +212,14 @@ if ( isset( $step_data['start_type'] ) && 'scheduled' === $step_data['start_type
 					<?php endif; ?>
 				</div>
 				<div class="scd-launch-option-check">
-					<span class="dashicons dashicons-saved"></span>
+					<?php echo SCD_Icon_Helper::get( 'saved', array( 'size' => 16 ) ); ?>
 				</div>
 			</div>
 		</label>
 	</div>
 
 	<div class="scd-launch-info">
-		<span class="dashicons dashicons-info-outline"></span>
+		<?php echo SCD_Icon_Helper::get( 'info', array( 'size' => 16 ) ); ?>
 		<span class="scd-launch-info-text" data-active="<?php esc_attr_e( 'Campaign will be activated and customers can use the discount based on your schedule.', 'smart-cycle-discounts' ); ?>" data-draft="<?php esc_attr_e( 'Campaign will be saved as draft. No discounts will apply until you activate it.', 'smart-cycle-discounts' ); ?>">
 			<?php esc_html_e( 'Campaign will be activated and customers can use the discount based on your schedule.', 'smart-cycle-discounts' ); ?>
 		</span>
@@ -268,21 +270,6 @@ scd_wizard_state_script(
 .scd-health-loading {
 	text-align: center;
 	padding: 60px 20px;
-}
-
-.scd-loading-spinner {
-	width: 50px;
-	height: 50px;
-	border: 4px solid #f3f3f3;
-	border-top: 4px solid #2271b1;
-	border-radius: 50%;
-	animation: scd-spin 1s linear infinite;
-	margin: 0 auto 20px;
-}
-
-@keyframes scd-spin {
-	0% { transform: rotate(0deg); }
-	100% { transform: rotate(360deg); }
 }
 
 .scd-health-score-card {
@@ -696,7 +683,7 @@ scd_wizard_state_script(
 }
 
 /* Priority Badges */
-.scd-priority-badge {
+.scd-badge.scd-priority-badge {
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
@@ -718,21 +705,6 @@ scd_wizard_state_script(
 @keyframes scd-pulse {
 	0%, 100% { opacity: 1; }
 	50% { opacity: 0.85; }
-}
-
-.scd-priority-badge.high {
-	background: #d63638;
-	color: #fff;
-}
-
-.scd-priority-badge.medium {
-	background: #dba617;
-	color: #fff;
-}
-
-.scd-priority-badge.low {
-	background: #2271b1;
-	color: #fff;
 }
 
 /* Recommendations Categories */

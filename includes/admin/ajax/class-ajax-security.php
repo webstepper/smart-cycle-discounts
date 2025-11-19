@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/class-ajax-security.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -28,7 +28,7 @@ if ( ! class_exists( 'SCD_Validation' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/security
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Ajax_Security {
 
@@ -90,9 +90,7 @@ class SCD_Ajax_Security {
 
 		// Campaign actions
 		'scd_get_active_campaigns'           => 'scd_campaign_nonce',
-
-		// Public tracking (special handling)
-		'scd_track_event'                    => 'scd_public_tracking_nonce',
+		'scd_campaign_overview'              => 'scd_admin_nonce',
 
 		// WooCommerce integration
 		'scd_apply_discount'                 => 'scd_discount_nonce',
@@ -176,9 +174,7 @@ class SCD_Ajax_Security {
 
 		// Campaign actions - require campaign management
 		'scd_get_active_campaigns'           => 'scd_manage_campaigns',
-
-		// Public tracking - no capability required
-		'scd_track_event'                    => '',
+		'scd_campaign_overview'              => 'scd_view_campaigns',
 
 		// WooCommerce integration - no capability for public discount application
 		'scd_apply_discount'                 => '',
@@ -217,7 +213,6 @@ class SCD_Ajax_Security {
 	 */
 	private static $rate_limits = array(
 		// Strict limits for public endpoints
-		'scd_track_event'                    => 30,
 		'scd_apply_discount'                 => 20,
 
 		// Discount actions
@@ -351,14 +346,6 @@ class SCD_Ajax_Security {
 		$capability_check = self::verify_capability( $action );
 		if ( is_wp_error( $capability_check ) ) {
 			return $capability_check;
-		}
-
-		// Additional checks for public endpoints
-		if ( $action === 'scd_track_event' ) {
-			$public_check = self::verify_public_request( $request );
-			if ( is_wp_error( $public_check ) ) {
-				return $public_check;
-			}
 		}
 
 		// Verify request signature if provided (for sensitive operations)
@@ -497,7 +484,7 @@ class SCD_Ajax_Security {
 		$action = isset( $request['scd_action'] ) ? $request['scd_action'] : '';
 
 		// Allow larger requests for complete_wizard action (500KB)
-		if ( $action === 'complete_wizard' ) {
+		if ( 'complete_wizard' === $action ) {
 			$max_size = apply_filters( 'scd_ajax_max_request_size_complete_wizard', 512000 );
 		} else {
 			$max_size = apply_filters( 'scd_ajax_max_request_size', SCD_Validation_Rules::MAX_REQUEST_SIZE );

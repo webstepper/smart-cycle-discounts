@@ -259,15 +259,39 @@ class SCD_Discounts_Step_Validator {
 			);
 		}
 
-		// Rule 6: Unrealistic minimum order amount
-		if ( $minimum_order_amount > 10000 ) {
+		// Rule 6: Minimum order amount cannot exceed maximum
+		if ( $minimum_order_amount > SCD_Validation_Rules::MINIMUM_ORDER_AMOUNT_MAX ) {
+			$errors->add(
+				'minimum_order_amount_exceeds_maximum',
+				sprintf(
+					/* translators: %s: maximum minimum order amount */
+					__( 'Minimum order amount cannot exceed $%s. For higher minimums, please contact support.', 'smart-cycle-discounts' ),
+					number_format( SCD_Validation_Rules::MINIMUM_ORDER_AMOUNT_MAX, 2 )
+				)
+			);
+		}
+
+		// Rule 7: Max discount amount cannot exceed maximum
+		if ( $max_discount > SCD_Validation_Rules::MAX_DISCOUNT_AMOUNT_MAX ) {
+			$errors->add(
+				'max_discount_amount_exceeds_maximum',
+				sprintf(
+					/* translators: %s: maximum discount cap amount */
+					__( 'Maximum discount cap cannot exceed $%s. For higher caps, please contact support.', 'smart-cycle-discounts' ),
+					number_format( SCD_Validation_Rules::MAX_DISCOUNT_AMOUNT_MAX, 2 )
+				)
+			);
+		}
+
+		// Rule 8: Very high minimum order amount (warning)
+		if ( $minimum_order_amount > 10000 && $minimum_order_amount <= SCD_Validation_Rules::MINIMUM_ORDER_AMOUNT_MAX ) {
 			// Very high minimum order - probably a mistake
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( sprintf( 'SCD: Minimum order amount is $%s. This is very high and may prevent most customers from qualifying.', number_format( $minimum_order_amount, 2 ) ) );
 			}
 		}
 
-		// Rule 7: Both minimum quantity AND minimum order amount (overly restrictive)
+		// Rule 9: Both minimum quantity AND minimum order amount (overly restrictive)
 		if ( $minimum_quantity > 1 && $minimum_order_amount > 0 ) {
 			// Having both restrictions might be too strict
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -311,9 +335,11 @@ class SCD_Discounts_Step_Validator {
 	 * @return   void
 	 */
 	private static function validate_bogo_rules( array $data, WP_Error $errors ) {
-		$buy_quantity = isset( $data['bogo_buy_quantity'] ) ? absint( $data['bogo_buy_quantity'] ) : 1;
-		$get_quantity = isset( $data['bogo_get_quantity'] ) ? absint( $data['bogo_get_quantity'] ) : 1;
-		$discount_pct = isset( $data['bogo_discount_percentage'] ) ? floatval( $data['bogo_discount_percentage'] ) : 100;
+		// Extract from grouped bogo_config structure
+		$bogo_config   = isset( $data['bogo_config'] ) && is_array( $data['bogo_config'] ) ? $data['bogo_config'] : array();
+		$buy_quantity  = isset( $bogo_config['buy_quantity'] ) ? absint( $bogo_config['buy_quantity'] ) : 1;
+		$get_quantity  = isset( $bogo_config['get_quantity'] ) ? absint( $bogo_config['get_quantity'] ) : 1;
+		$discount_pct  = isset( $bogo_config['discount_percent'] ) ? floatval( $bogo_config['discount_percent'] ) : 100;
 
 		// Rule 1: Buy quantity must be at least 1
 		if ( $buy_quantity < 1 ) {
@@ -408,7 +434,7 @@ class SCD_Discounts_Step_Validator {
 			$tier_num = $index + 1;
 
 			// Validate required fields
-			if ( ! isset( $tier['min'] ) || ! isset( $tier['discount'] ) ) {
+			if ( ! isset( $tier['min_quantity'] ) || ! isset( $tier['discount_value'] ) ) {
 				$errors->add(
 					'tiered_incomplete_tier',
 					sprintf(
@@ -420,8 +446,8 @@ class SCD_Discounts_Step_Validator {
 				continue;
 			}
 
-			$threshold = floatval( $tier['min'] );
-			$discount  = floatval( $tier['discount'] );
+			$threshold = floatval( $tier['min_quantity'] );
+			$discount  = floatval( $tier['discount_value'] );
 
 			// Threshold must be ascending
 			if ( $threshold <= $previous_threshold && $index > 0 ) {
@@ -483,22 +509,22 @@ class SCD_Discounts_Step_Validator {
 			);
 		}
 
-		// Rule 4: First tier should start at reasonable value (not 0 or negative)
-		if ( ! empty( $tiers ) && isset( $tiers[0]['min'] ) ) {
-			$first_threshold = floatval( $tiers[0]['min'] );
-			if ( $first_threshold <= 0 ) {
-				// Starting at 0 or negative is unusual
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( sprintf( 'SCD: First tier starts at %s. Consider starting at 1 or higher for clearer tier structure.', $first_threshold ) );
-				}
+		// Rule 4: First tier must start at minimum quantity of 2 (volume discount)
+		if ( ! empty( $tiers ) && isset( $tiers[0]['min_quantity'] ) ) {
+			$first_threshold = floatval( $tiers[0]['min_quantity'] );
+			if ( $first_threshold < 2 ) {
+				$errors->add(
+					'tiered_invalid_first_threshold',
+					__( 'Minimum quantity must be at least 2 for volume discounts. For single-item discounts, use Percentage or Fixed discount types instead.', 'smart-cycle-discounts' )
+				);
 			}
 		}
 
 		// Rule 5: Unrealistic threshold jumps
 		if ( count( $tiers ) > 1 ) {
 			for ( $i = 1; $i < count( $tiers ); $i++ ) {
-				$prev_threshold = floatval( $tiers[ $i - 1 ]['min'] );
-				$curr_threshold = floatval( $tiers[ $i ]['min'] );
+				$prev_threshold = floatval( $tiers[ $i - 1 ]['min_quantity'] );
+				$curr_threshold = floatval( $tiers[ $i ]['min_quantity'] );
 				$jump           = $curr_threshold - $prev_threshold;
 
 				// If jump is more than 100x the previous threshold, it's probably unrealistic
@@ -524,7 +550,7 @@ class SCD_Discounts_Step_Validator {
 
 		// Rule 7: Large gaps between tiers (optional warning)
 		if ( count( $tiers ) > 1 ) {
-			$total_span = floatval( $tiers[ count( $tiers ) - 1 ]['min'] ) - floatval( $tiers[0]['min'] );
+			$total_span = floatval( $tiers[ count( $tiers ) - 1 ]['min_quantity'] ) - floatval( $tiers[0]['min_quantity'] );
 			$avg_span   = $total_span / ( count( $tiers ) - 1 );
 
 			foreach ( $tiers as $index => $tier ) {
@@ -532,8 +558,8 @@ class SCD_Discounts_Step_Validator {
 					continue; // Skip first tier
 				}
 
-				$prev_threshold = floatval( $tiers[ $index - 1 ]['min'] );
-				$curr_threshold = floatval( $tier['min'] );
+				$prev_threshold = floatval( $tiers[ $index - 1 ]['min_quantity'] );
+				$curr_threshold = floatval( $tier['min_quantity'] );
 				$gap            = $curr_threshold - $prev_threshold;
 
 				// If gap is more than 3x average, there's a large gap
@@ -549,12 +575,12 @@ class SCD_Discounts_Step_Validator {
 		// Rule 8: Fixed discount exceeding threshold value (negative price)
 		if ( 'fixed' === $tier_mode ) {
 			foreach ( $tiers as $index => $tier ) {
-				if ( ! isset( $tier['min'] ) || ! isset( $tier['discount'] ) ) {
+				if ( ! isset( $tier['min_quantity'] ) || ! isset( $tier['discount_value'] ) ) {
 					continue;
 				}
 
-				$threshold = floatval( $tier['min'] );
-				$discount  = floatval( $tier['discount'] );
+				$threshold = floatval( $tier['min_quantity'] );
+				$discount  = floatval( $tier['discount_value'] );
 
 				// Fixed discount can't exceed threshold (would give negative price)
 				if ( $discount >= $threshold && $threshold > 0 ) {
@@ -604,7 +630,7 @@ class SCD_Discounts_Step_Validator {
 			$threshold_num = $index + 1;
 
 			// Validate required fields
-			if ( ! isset( $threshold['spend'] ) || ! isset( $threshold['discount'] ) ) {
+			if ( ! isset( $threshold['spend_amount'] ) || ! isset( $threshold['discount_value'] ) ) {
 				$errors->add(
 					'threshold_incomplete',
 					sprintf(
@@ -616,8 +642,8 @@ class SCD_Discounts_Step_Validator {
 				continue;
 			}
 
-			$spend_amount = floatval( $threshold['spend'] );
-			$discount     = floatval( $threshold['discount'] );
+			$spend_amount = floatval( $threshold['spend_amount'] );
+			$discount     = floatval( $threshold['discount_value'] );
 
 			// Spend amounts must be ascending
 			if ( $spend_amount <= $previous_amount && $index > 0 ) {
@@ -672,7 +698,7 @@ class SCD_Discounts_Step_Validator {
 
 		// Rule 4: Spend threshold less than minimum order amount
 		if ( $min_order_amount > 0 && ! empty( $thresholds ) ) {
-			$first_threshold = floatval( $thresholds[0]['spend'] );
+			$first_threshold = floatval( $thresholds[0]['spend_amount'] );
 			if ( $first_threshold < $min_order_amount ) {
 				$errors->add(
 					'threshold_below_minimum_order',
@@ -729,8 +755,10 @@ class SCD_Discounts_Step_Validator {
 		// Rule 7: Unrealistic threshold jumps
 		if ( count( $thresholds ) > 1 ) {
 			for ( $i = 1; $i < count( $thresholds ); $i++ ) {
-				$prev_amount = floatval( $thresholds[ $i - 1 ]['spend'] );
-				$curr_amount = floatval( $thresholds[ $i ]['spend'] );
+				// Support both old format (spend) and new format (threshold)
+				$spend_field = isset( $thresholds[ $i ]['threshold'] ) ? 'threshold' : 'spend';
+				$prev_amount = floatval( $thresholds[ $i - 1 ][ $spend_field ] );
+				$curr_amount = floatval( $thresholds[ $i ][ $spend_field ] );
 				$jump        = $curr_amount - $prev_amount;
 
 				// If jump is more than 100x the previous amount, it's probably unrealistic
@@ -906,7 +934,7 @@ class SCD_Discounts_Step_Validator {
 			$discount_value = floatval( $data['discount_value'] );
 		}
 
-		// Rule 1: Zero discount value
+		// Rule 1: Zero or negative discount value
 		if ( 0 === $discount_value || $discount_value < 0 ) {
 			$errors->add(
 				'discount_value_zero',
@@ -914,7 +942,19 @@ class SCD_Discounts_Step_Validator {
 			);
 		}
 
-		// Rule 2: Very small discounts (probably not worth it)
+		// Rule 2: Percentage cannot exceed 100%
+		if ( 'percentage' === $discount_type && $discount_value > SCD_Validation_Rules::PERCENTAGE_MAX ) {
+			$errors->add(
+				'discount_percentage_exceeds_maximum',
+				sprintf(
+					/* translators: %d: maximum percentage */
+					__( 'Discount percentage cannot exceed %d%%. A discount over 100%% is not mathematically valid.', 'smart-cycle-discounts' ),
+					SCD_Validation_Rules::PERCENTAGE_MAX
+				)
+			);
+		}
+
+		// Rule 3: Very small discounts (probably not worth it)
 		if ( 'percentage' === $discount_type && $discount_value > 0 && $discount_value < 1 ) {
 			// Less than 1% discount
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -929,7 +969,7 @@ class SCD_Discounts_Step_Validator {
 			}
 		}
 
-		// Rule 3: Percentage over 50% (profit margin warning)
+		// Rule 4: Percentage over 50% (profit margin warning)
 		if ( 'percentage' === $discount_type && $discount_value > SCD_Validation_Rules::PERCENTAGE_WARNING ) {
 			// Over 50% discount - check profit margins
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -937,9 +977,21 @@ class SCD_Discounts_Step_Validator {
 			}
 		}
 
-		// Rule 4: Unrealistic fixed discount
-		if ( 'fixed' === $discount_type && $discount_value > SCD_Validation_Rules::FIXED_WARNING ) {
-			// Very large fixed discount
+		// Rule 5: Fixed discount cannot exceed maximum
+		if ( 'fixed' === $discount_type && $discount_value > SCD_Validation_Rules::FIXED_MAX ) {
+			$errors->add(
+				'discount_fixed_exceeds_maximum',
+				sprintf(
+					/* translators: %s: maximum fixed discount amount */
+					__( 'Fixed discount amount cannot exceed $%s. For larger discounts, please contact support.', 'smart-cycle-discounts' ),
+					number_format( SCD_Validation_Rules::FIXED_MAX, 2 )
+				)
+			);
+		}
+
+		// Rule 6: Very large fixed discount warning
+		if ( 'fixed' === $discount_type && $discount_value > SCD_Validation_Rules::FIXED_WARNING && $discount_value <= SCD_Validation_Rules::FIXED_MAX ) {
+			// Very large fixed discount (warning only)
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( sprintf( 'SCD: Fixed discount is $%s. This is a very large discount. Verify this amount is correct.', number_format( $discount_value, 2 ) ) );
 			}

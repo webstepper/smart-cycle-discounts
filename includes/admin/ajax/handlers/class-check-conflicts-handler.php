@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers/class-check-conflicts-handler.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -25,7 +25,7 @@ require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 
@@ -88,16 +88,56 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 		$product_ids    = isset( $products_data['product_ids'] ) ? $products_data['product_ids'] : array();
 		$category_ids   = isset( $products_data['category_ids'] ) ? $products_data['category_ids'] : array();
 
-		$conflicts = $this->_find_conflicts( $priority, $selection_type, $product_ids, $category_ids );
+		// Get campaign ID if editing (to exclude from conflicts)
+		$editing_campaign_id = $state_service->get( 'campaign_id', 0 );
 
-		return $this->success(
-			array(
-				'has_conflicts'          => ! empty( $conflicts ),
-				'conflicts'              => $conflicts,
-				'total_conflicts'        => count( $conflicts ),
-				'total_products_blocked' => $this->_count_blocked_products( $conflicts ),
-			)
+		// Get cache manager for conflict caching
+		$cache_manager = null;
+		if ( class_exists( 'Smart_Cycle_Discounts' ) ) {
+			$plugin    = Smart_Cycle_Discounts::get_instance();
+			$container = $plugin->get_container();
+			if ( $container && $container->has( 'cache_manager' ) ) {
+				$cache_manager = $container->get( 'cache_manager' );
+			}
+		}
+
+		// Generate cache key based on input parameters
+		$cache_key_params = array(
+			'priority'       => $priority,
+			'selection_type' => $selection_type,
+			'product_ids'    => $product_ids,
+			'category_ids'   => $category_ids,
+			'editing_id'     => $editing_campaign_id,
 		);
+		$cache_key = 'campaigns_conflicts_' . md5( wp_json_encode( $cache_key_params ) );
+
+		// Try to get cached conflicts first
+		$cached_result = null;
+		if ( $cache_manager ) {
+			$cached_result = $cache_manager->get( $cache_key );
+		}
+
+		if ( $cached_result && is_array( $cached_result ) ) {
+			// Use cached data
+			return $this->success( $cached_result );
+		}
+
+		// Cache miss - find conflicts
+		$conflicts = $this->_find_conflicts( $priority, $selection_type, $product_ids, $category_ids, $editing_campaign_id );
+
+		$result = array(
+			'has_conflicts'          => ! empty( $conflicts ),
+			'conflicts'              => $conflicts,
+			'total_conflicts'        => count( $conflicts ),
+			'total_products_blocked' => $this->_count_blocked_products( $conflicts ),
+		);
+
+		// Cache for 5 minutes
+		if ( $cache_manager ) {
+			$cache_manager->set( $cache_key, $result, 300 );
+		}
+
+		return $this->success( $result );
 	}
 
 	/**
@@ -105,13 +145,14 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    int    $priority         Campaign priority.
-	 * @param    string $selection_type   Product selection type.
-	 * @param    array  $product_ids      Selected product IDs.
-	 * @param    array  $category_ids     Selected category IDs.
-	 * @return   array                       Array of conflicts.
+	 * @param    int    $priority              Campaign priority.
+	 * @param    string $selection_type        Product selection type.
+	 * @param    array  $product_ids           Selected product IDs.
+	 * @param    array  $category_ids          Selected category IDs.
+	 * @param    int    $editing_campaign_id   ID of campaign being edited (0 if new).
+	 * @return   array                            Array of conflicts.
 	 */
-	private function _find_conflicts( $priority, $selection_type, $product_ids, $category_ids ) {
+	private function _find_conflicts( $priority, $selection_type, $product_ids, $category_ids, $editing_campaign_id = 0 ) {
 		$active_campaigns = $this->_get_active_campaigns();
 
 		if ( empty( $active_campaigns ) ) {
@@ -121,10 +162,17 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 		$conflicts = array();
 
 		foreach ( $active_campaigns as $campaign ) {
+			// Skip the campaign being edited (can't conflict with itself)
+			if ( $editing_campaign_id && $campaign->get_id() === $editing_campaign_id ) {
+				continue;
+			}
+
 			$campaign_priority = $campaign->get_priority();
 
-			// If priorities are equal, older campaign (lower ID) wins
-			$would_lose = ( $campaign_priority > $priority );
+			// Check if new campaign would be blocked:
+			// 1. Existing campaign has HIGHER priority (bigger number) → new loses
+			// 2. Equal priorities → conflict (older campaign wins, but we're creating new so warn user)
+			$would_lose = ( $campaign_priority >= $priority );
 
 			if ( ! $would_lose ) {
 				continue;
@@ -178,12 +226,37 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array                       Array of product IDs.
 	 */
 	private function _get_selection_products( $selection_type, $product_ids, $category_ids ) {
-		if ( 'all_products' === $selection_type ) {
+		// When 'all_products' or 'random_products', use category_ids to get products
+		if ( 'all_products' === $selection_type || 'random_products' === $selection_type ) {
+			// If categories are specified, get products from those categories
+			if ( ! empty( $category_ids ) && is_array( $category_ids ) ) {
+				// Filter out 'all' marker if present
+				$category_ids = array_filter( $category_ids, function( $id ) {
+					return 'all' !== $id;
+				} );
+
+				if ( ! empty( $category_ids ) ) {
+					return $this->_get_products_in_categories( $category_ids );
+				}
+			}
+
+			// No specific categories = all products in store
 			return $this->_get_all_product_ids();
 		} elseif ( 'specific_products' === $selection_type ) {
 			return is_array( $product_ids ) ? array_map( 'intval', $product_ids ) : array();
-		} elseif ( 'categories' === $selection_type ) {
-			return $this->_get_products_in_categories( $category_ids );
+		} elseif ( 'smart_selection' === $selection_type ) {
+			// Smart selection uses category_ids as base
+			if ( ! empty( $category_ids ) && is_array( $category_ids ) ) {
+				$category_ids = array_filter( $category_ids, function( $id ) {
+					return 'all' !== $id;
+				} );
+
+				if ( ! empty( $category_ids ) ) {
+					return $this->_get_products_in_categories( $category_ids );
+				}
+			}
+
+			return $this->_get_all_product_ids();
 		}
 
 		return array();

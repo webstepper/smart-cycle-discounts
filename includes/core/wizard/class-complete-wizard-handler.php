@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/wizard/class-complete-wizard-handler.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/wizard
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Complete_Wizard_Handler {
 
@@ -332,9 +332,14 @@ class SCD_Complete_Wizard_Handler {
 	 */
 	private function build_success_response( $is_edit_mode, $campaign_id, $campaign_name, $campaign_status ) {
 		$message_param = $is_edit_mode ? 'campaign_updated' : 'campaign_created';
-		$redirect_url  = add_query_arg(
+
+		// Always show overview panel after wizard completion (both create and edit)
+		// Consistent behavior, user can close panel if they want
+		$redirect_url = add_query_arg(
 			array(
 				'page'    => 'scd-campaigns',
+				'action'  => 'view',
+				'id'      => $campaign_id,
 				'message' => $message_param,
 			),
 			admin_url( 'admin.php' )

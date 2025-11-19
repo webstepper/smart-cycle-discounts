@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers/class-export-handler.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -52,7 +52,7 @@ class SCD_Export_Handler extends SCD_Abstract_Analytics_Handler {
 	 * @since    1.0.0
 	 * @return   string    Required capability.
 	 */
-	protected function get_required_capability() {
+	protected function get_required_capability(): string {
 		return 'scd_export_analytics';
 	}
 
@@ -63,7 +63,7 @@ class SCD_Export_Handler extends SCD_Abstract_Analytics_Handler {
 	 * @param    array $request    Request data.
 	 * @return   array                Response data.
 	 */
-	public function handle( $request ) {
+	public function handle( array $request ): array {
 		// Verify request
 		$verification = $this->verify_request( $request, 'scd_analytics_export' );
 		if ( is_wp_error( $verification ) ) {
@@ -81,16 +81,25 @@ class SCD_Export_Handler extends SCD_Abstract_Analytics_Handler {
 		$export_type = sanitize_text_field( isset( $request['export_type'] ) ? $request['export_type'] : 'overview' );
 		$format      = sanitize_text_field( isset( $request['format'] ) ? $request['format'] : 'csv' );
 		$date_range  = sanitize_text_field( isset( $request['date_range'] ) ? $request['date_range'] : '30days' );
+		$campaign_id = isset( $request['campaign_id'] ) ? sanitize_text_field( $request['campaign_id'] ) : 'all';
 
 		try {
+			// Build export options
+			$options = array(
+				'date_range' => $date_range,
+				'user_id'    => get_current_user_id(),
+			);
+
+			// Add campaign filter if provided
+			if ( $campaign_id && 'all' !== $campaign_id ) {
+				$options['campaign_id'] = $campaign_id;
+			}
+
 			// Generate export using service
 			$export_result = $this->export_service->generate_export(
 				$export_type,
 				$format,
-				array(
-					'date_range' => $date_range,
-					'user_id'    => get_current_user_id(),
-				)
+				$options
 			);
 
 			$this->logger->info(

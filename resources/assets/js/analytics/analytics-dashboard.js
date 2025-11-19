@@ -67,9 +67,30 @@
 	AnalyticsDashboard.prototype.bindEvents = function() {
 		var self = this;
 
+		// Quick date filter buttons
+		$( '.scd-quick-date-btn' ).on( 'click', function( e ) {
+			var $btn = $( e.currentTarget );
+			var range = $btn.data( 'range' );
+
+			// Update button states
+			$( '.scd-quick-date-btn' ).attr( 'aria-pressed', 'false' );
+			$btn.attr( 'aria-pressed', 'true' );
+
+			// Update dropdown to match
+			$( '#scd-date-range' ).val( range );
+
+			// Handle the date range change
+			self.handleDateRangeChange( range );
+		} );
+
 		// Date range selector
 		$( '#scd-date-range' ).on( 'change', function( e ) {
-			self.handleDateRangeChange( e.target.value );
+			// Update quick button states when dropdown changes
+			var value = e.target.value;
+			$( '.scd-quick-date-btn' ).attr( 'aria-pressed', 'false' );
+			$( '.scd-quick-date-btn[data-range="' + value + '"]' ).attr( 'aria-pressed', 'true' );
+
+			self.handleDateRangeChange( value );
 		} );
 
 		// Custom date range
@@ -414,8 +435,8 @@
 		this.makeAjaxRequest( 'analytics_overview', {
 			dateRange: this.config.currentPeriod
 		} ).done( function( response ) {
-			if ( response.success && response.data ) {
-				self.updateMetricsCards( response.data.overview || response.data );
+			// SCD.Ajax.post automatically unwraps the response.data
+			if ( response && response.overview ) {
 			}
 			deferred.resolve();
 		} ).fail( function() {
@@ -433,13 +454,14 @@
 		var deferred = $.Deferred();
 
 		this.makeAjaxRequest( 'analytics_revenue_trend', {
-			date_range: this.config.currentPeriod || '30days',
+			dateRange: this.config.currentPeriod || '30days',
 			granularity: 'daily'
 		} ).done( function( response ) {
-			if ( response.success && self.charts['revenue-trend'] ) {
+			// SCD.Ajax.post automatically unwraps the response.data
+			if ( response && response.labels && self.charts['revenue-trend'] ) {
 				var chart = self.charts['revenue-trend'];
-				chart.data.labels = response.data.labels;
-				chart.data.datasets[0].data = response.data.values;
+				chart.data.labels = response.labels;
+				chart.data.datasets[0].data = response.values;
 				chart.update();
 			}
 			deferred.resolve();
@@ -461,10 +483,11 @@
 			dateRange: this.config.currentPeriod,
 			metric: $( '#scd-campaign-metric' ).val() || 'revenue'
 		} ).done( function( response ) {
-			if ( response.success && self.charts['campaign-performance'] ) {
+			// SCD.Ajax.post automatically unwraps the response.data
+			if ( response && response.labels && self.charts['campaign-performance'] ) {
 				var chart = self.charts['campaign-performance'];
-				chart.data.labels = response.data.labels;
-				chart.data.datasets[0].data = response.data.values;
+				chart.data.labels = response.labels;
+				chart.data.datasets[0].data = response.values;
 				chart.update();
 			}
 			deferred.resolve();
@@ -485,11 +508,12 @@
 		var period = dateRange || $( '#scd-top-products-period' ).val() || '30days';
 
 		this.makeAjaxRequest( 'analytics_top_products', {
-			date_range: period,
+			dateRange: period,
 			limit: 10
 		} ).done( function( response ) {
-			if ( response.success && response.data ) {
-				self.updateTopProductsTable( response.data.products || [] );
+			// SCD.Ajax.post automatically unwraps the response.data
+			if ( response && response.products ) {
+				self.updateTopProductsTable( response.products );
 			}
 			deferred.resolve();
 		} ).fail( function() {
@@ -537,7 +561,7 @@
 						self.formatNumber( product.order_count ) +
 					'</td>' +
 					'<td class="scd-table-col-discount">' +
-						product.avg_discount_percent.toFixed( 1 ) + '%' +
+						( product.avg_discount_percent || 0 ).toFixed( 1 ) + '%' +
 					'</td>' +
 					'<td class="scd-table-col-trend">' +
 						'<span class="' + trendClass + '">' + trendIcon + '</span>' +
@@ -559,8 +583,9 @@
 			dateRange: this.config.currentPeriod,
 			limit: 10
 		} ).done( function( response ) {
-			if ( response.success && response.data ) {
-				self.updateTopCampaignsTable( response.data.campaigns || [] );
+			// SCD.Ajax.post automatically unwraps the response.data
+			if ( response && response.campaigns ) {
+				self.updateTopCampaignsTable( response.campaigns );
 			}
 			deferred.resolve();
 		} ).fail( function() {
@@ -580,8 +605,9 @@
 		this.makeAjaxRequest( 'analytics_activity_feed', {
 			limit: 20
 		} ).done( function( response ) {
-			if ( response.success && response.data ) {
-				self.updateActivityFeed( response.data.activities || [] );
+			// SCD.Ajax.post automatically unwraps the response.data
+			if ( response && response.activities ) {
+				self.updateActivityFeed( response.activities );
 			}
 			deferred.resolve();
 		} ).fail( function() {
@@ -589,15 +615,6 @@
 		} );
 
 		return deferred.promise();
-	};
-
-	/**
-	 * Update metrics cards
-	 * @param {*} _metrics - Metrics data (unused)
-	 */
-	AnalyticsDashboard.prototype.updateMetricsCards = function( _metrics ) {
-		// This would update the metrics cards with real data
-		// For now, we'll just log the data
 	};
 
 	/**
@@ -626,14 +643,17 @@
                     '<td>' +
                         '<strong>' + self.escapeHtml( campaign.name ) + '</strong>' +
                         '<div class="row-actions">' +
+                            '<span class="view">' +
+                                '<a href="#" class="scd-view-campaign" data-campaign-id="' + campaign.campaignId + '">View</a> | ' +
+                            '</span>' +
                             '<span class="edit">' +
-                                '<a href="' + campaign.edit_url + '">Edit</a>' +
+                                '<a href="' + campaign.editUrl + '">Edit</a>' +
                             '</span>' +
                         '</div>' +
                     '</td>' +
                     '<td>' +
                         '<span class="scd-status scd-status--' + campaign.status + '">' +
-                            self.escapeHtml( campaign.status_label ) +
+                            self.escapeHtml( campaign.statusLabel ) +
                         '</span>' +
                     '</td>' +
                     '<td>' + self.formatCurrency( campaign.revenue ) + '</td>' +
@@ -641,9 +661,9 @@
                     '<td>' + self.formatPercentage( campaign.ctr ) + '</td>' +
                     '<td>' + self.formatPercentage( campaign.roi ) + '</td>' +
                     '<td>' +
-                        '<a href="' + campaign.view_url + '" class="button button-small">' +
+                        '<button type="button" class="button button-small scd-view-campaign" data-campaign-id="' + campaign.campaignId + '">' +
                             'View Details' +
-                        '</a>' +
+                        '</button>' +
                     '</td>' +
                 '</tr>'
 			);
@@ -670,10 +690,15 @@
 		}
 
 		$.each( activities, function( index, activity ) {
+			// Convert dashicon class to icon name
+			var iconClass = activity.icon || '';
+			var iconName = iconClass.replace( 'dashicons-', '' ).replace( 'dashicons', 'info' ) || 'info';
+			var icon = SCD.IconHelper ? SCD.IconHelper.get( iconName, { size: 16 } ) : '<span class="scd-icon scd-icon-' + iconName + '"></span>';
+
 			var item = $(
 				'<div class="scd-activity-item">' +
                     '<div class="scd-activity-icon">' +
-                        '<span class="dashicons ' + activity.icon + '"></span>' +
+                        icon +
                     '</div>' +
                     '<div class="scd-activity-content">' +
                         '<div class="scd-activity-message">' +
@@ -853,26 +878,46 @@
 
 		this.showLoading();
 
-		this.makeAjaxRequest( 'analytics_export', {
+		// Build request data with current filters
+		var requestData = {
 			format: format,
 			dateRange: this.config.currentPeriod,
-			dataType: 'overview'
-		} ).done( function( response ) {
-			if ( response.success ) {
+			exportType: 'overview'
+		};
+
+		// Add campaign filter if active
+		if ( this.currentCampaignId && 'all' !== this.currentCampaignId ) {
+			requestData.campaignId = this.currentCampaignId;
+		}
+
+		this.makeAjaxRequest( 'analytics_export', requestData ).done( function( response ) {
+			// Response is wrapped in data key by handler
+			var exportData = response.data || response;
+
+			if ( exportData && exportData.downloadUrl ) {
+				// Trigger download
 				var link = document.createElement( 'a' );
-				// Server automatically converts snake_case to camelCase
-				link.href = response.data.fileUrl;
-				link.download = response.data.filename;
+				link.href = exportData.downloadUrl;
+				link.download = exportData.filename || 'analytics-export.' + format;
 				document.body.appendChild( link );
 				link.click();
 				document.body.removeChild( link );
 
-				SCD.Shared.NotificationService.success( self.config.strings.exportSuccess );
+				// Use plugin's localized notification strings
+				SCD.Shared.NotificationService.success(
+					self.config.strings.exportSuccess || 'Export completed successfully'
+				);
 			} else {
-				SCD.Shared.NotificationService.error( self.config.strings.exportError );
+				// Use plugin's localized notification strings
+				SCD.Shared.NotificationService.error(
+					self.config.strings.exportError || 'Export failed. Please try again.'
+				);
 			}
-		} ).fail( function() {
-			SCD.Shared.NotificationService.error( self.config.strings.exportError );
+		} ).fail( function( error ) {
+			// Use plugin's localized notification strings with error message if available
+			SCD.Shared.NotificationService.error(
+				( error && error.message ) || self.config.strings.exportError || 'Export failed. Please try again.'
+			);
 		} ).always( function() {
 			self.hideLoading();
 		} );
@@ -954,6 +999,17 @@
 		$( '#scd-dashboard-loading' ).hide();
 	};
 
+	/**
+	 * Show error notification
+	 * @param {string} message Error message
+	 */
+	AnalyticsDashboard.prototype.showError = function( message ) {
+		if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
+			SCD.Shared.NotificationService.error( message );
+		} else {
+			console.error( 'Analytics Dashboard Error:', message );
+		}
+	};
 
 	/**
 	 * Update last updated time

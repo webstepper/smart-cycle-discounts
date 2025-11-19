@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/shared/error-handler.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -199,16 +199,18 @@
 			}
 
 			// Only log in debug mode or for critical errors
+			var safeConsole = console[logMethod] && typeof console[logMethod] === 'function' ? console[logMethod] : console.log;
+
 			if ( window.scdWizardData && window.scdWizardData.debug ) {
-				console[logMethod]( prefix, '[' + errorData.context + ']', errorData.message );
+				safeConsole.call( console, prefix, '[' + errorData.context + ']', errorData.message );
 				if ( errorData.stack ) {
-					console[logMethod]( errorData.stack );
+					safeConsole.call( console, errorData.stack );
 				}
 				if ( errorData.metadata && ( !SCD.Utils || !SCD.Utils.isEmpty || !SCD.Utils.isEmpty( errorData.metadata ) ) ) {
-					console[logMethod]( 'Metadata:', errorData.metadata );
+					safeConsole.call( console, 'Metadata:', errorData.metadata );
 				}
 			} else if ( errorData.severity === this.SEVERITY.CRITICAL ) {
-				console[logMethod]( prefix, errorData.message );
+				safeConsole.call( console, prefix, errorData.message );
 			}
 		},
 

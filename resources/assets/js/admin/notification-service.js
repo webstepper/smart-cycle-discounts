@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/admin/notification-service.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -147,11 +147,7 @@
 				.attr( 'role', 'alert' )
 				.attr( 'aria-live', 'polite' );
 
-			$( '<span>' )
-				.addClass( 'scd-notification__icon' )
-				.attr( 'aria-hidden', 'true' )
-				.appendTo( $element );
-
+		// Message element (icon provided by CSS ::before pseudo-element)
 			$( '<span>' )
 				.addClass( 'scd-notification__message' )
 				.text( message )
@@ -162,16 +158,11 @@
 				.attr( 'aria-label', 'Close notification' )
 				.attr( 'type', 'button' );
 
-			$( '<span>' )
-				.addClass( 'dashicons dashicons-dismiss' )
-				.appendTo( $closeButton );
+			$closeButton.html( SCD.IconHelper.close( { size: 16 } ) );
 
 			$closeButton.appendTo( $element );
 
-			var iconClass = this.getIconClass( type );
-			if ( iconClass ) {
-				$element.find( '.scd-notification__icon' ).addClass( iconClass );
-			}
+		// Icon styling handled by CSS ::before pseudo-elements (see notifications.css:208-222)
 
 			var notification = {
 				id: id,
@@ -209,11 +200,6 @@
 					.removeClass( 'scd-notification--info scd-notification--success scd-notification--warning scd-notification--error' )
 					.addClass( 'scd-notification--' + type );
 
-				var iconClass = this.getIconClass( type );
-				notification.$element.find( '.scd-notification__icon' )
-					.removeClass()
-					.addClass( 'scd-notification__icon' )
-					.addClass( iconClass );
 			}
 
 			// Flash to indicate update using CSS animation
@@ -389,7 +375,7 @@
 		 * @param options
 		 */
 		success: function( message, options ) {
-			return this.show( message, 'success', null, options );
+			return this.show( message, 'success', undefined, options );
 		},
 
 		/**
@@ -398,7 +384,7 @@
 		 * @param options
 		 */
 		error: function( message, options ) {
-			return this.show( message, 'error', null, options );
+			return this.show( message, 'error', undefined, options );
 		},
 
 		/**
@@ -407,7 +393,7 @@
 		 * @param options
 		 */
 		warning: function( message, options ) {
-			return this.show( message, 'warning', null, options );
+			return this.show( message, 'warning', undefined, options );
 		},
 
 		/**
@@ -416,7 +402,7 @@
 		 * @param options
 		 */
 		info: function( message, options ) {
-			return this.show( message, 'info', null, options );
+			return this.show( message, 'info', undefined, options );
 		},
 
 		/**
@@ -439,20 +425,6 @@
 			return message || 'An error occurred';
 		},
 
-		/**
-		 * Get icon class for notification type
-		 * @param type
-		 */
-		getIconClass: function( type ) {
-			var icons = {
-				'success': 'dashicons dashicons-yes-alt',
-				'error': 'dashicons dashicons-warning',
-				'warning': 'dashicons dashicons-info',
-				'info': 'dashicons dashicons-info-outline'
-			};
-
-			return icons[type] || icons['info'];
-		},
 
 		/**
 		 * FIX Bug #3: Escape HTML to prevent XSS
@@ -489,7 +461,7 @@
 
 				// Also clear inline validation errors for fresh step state
 				if ( window.SCD && window.SCD.ValidationError ) {
-					var $wizardContainer = $( '.scd-wizard-content, .scd-wizard-wrapper' );
+					var $wizardContainer = $( '.scd-wizard-content, .scd-wizard-wrap' );
 					if ( $wizardContainer.length ) {
 						window.SCD.ValidationError.clearAll( $wizardContainer );
 					}

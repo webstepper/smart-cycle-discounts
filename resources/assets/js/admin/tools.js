@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/admin/tools.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -48,9 +48,9 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		$button.prop( 'disabled', true );
-		var originalText = $button.html();
-		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Exporting...' );
+		if ( window.SCD && window.SCD.LoaderUtil ) {
+			SCD.LoaderUtil.showButton( $button, 'Exporting...' );
+		}
 
 		// Make AJAX request
 		$.ajax( {
@@ -59,7 +59,7 @@
 			data: {
 				action: 'scd_ajax',
 				scdAction: 'export',
-				export_type: 'campaigns',
+				exportType: 'campaigns',
 				nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || ''
 			},
 			success: function( response ) {
@@ -75,8 +75,9 @@
 				showNotification( 'Error exporting campaigns. Please try again.', 'error' );
 			},
 			complete: function() {
-				$button.prop( 'disabled', false );
-				$button.html( originalText );
+				if ( window.SCD && window.SCD.LoaderUtil ) {
+					SCD.LoaderUtil.hideButton( $button );
+				}
 			}
 		} );
 	}
@@ -88,9 +89,9 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		$button.prop( 'disabled', true );
-		var originalText = $button.html();
-		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Exporting...' );
+		if ( window.SCD && window.SCD.LoaderUtil ) {
+			SCD.LoaderUtil.showButton( $button, 'Exporting...' );
+		}
 
 		// Make AJAX request
 		$.ajax( {
@@ -99,7 +100,7 @@
 			data: {
 				action: 'scd_ajax',
 				scdAction: 'export',
-				export_type: 'settings',
+				exportType: 'settings',
 				nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || ''
 			},
 			success: function( response ) {
@@ -115,8 +116,9 @@
 				showNotification( 'Error exporting settings. Please try again.', 'error' );
 			},
 			complete: function() {
-				$button.prop( 'disabled', false );
-				$button.html( originalText );
+				if ( window.SCD && window.SCD.LoaderUtil ) {
+					SCD.LoaderUtil.hideButton( $button );
+				}
 			}
 		} );
 	}
@@ -127,6 +129,7 @@
 	function handleImportData( e ) {
 		e.preventDefault();
 		var $button = $( this );
+		var originalText = $button.html();
 		var $fileInput = $( '#scd-import-file' );
 		var file = $fileInput[ 0 ].files[ 0 ];
 
@@ -135,9 +138,12 @@
 			return;
 		}
 
-		$button.prop( 'disabled', true );
-		var originalText = $button.html();
-		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Importing...' );
+		if ( window.SCD && window.SCD.LoaderUtil ) {
+			SCD.LoaderUtil.showButton( $button, 'Importing...' );
+		} else {
+			$button.prop( 'disabled', true );
+			$button.html( 'Importing...' );
+		}
 
 		// Read file content
 		var reader = new FileReader();
@@ -149,7 +155,7 @@
 				data: {
 					action: 'scd_ajax',
 					scdAction: 'import',
-					import_data: event.target.result,
+					importData: event.target.result,
 					nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || ''
 				},
 				success: function( response ) {
@@ -167,8 +173,12 @@
 					showNotification( 'Error importing data. Please try again.', 'error' );
 				},
 				complete: function() {
-					$button.prop( 'disabled', false );
-					$button.html( originalText );
+					if ( window.SCD && window.SCD.LoaderUtil ) {
+						SCD.LoaderUtil.hideButton( $button, originalText );
+					} else {
+						$button.prop( 'disabled', false );
+						$button.html( originalText );
+					}
 				}
 			} );
 		};
@@ -182,9 +192,9 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		$button.prop( 'disabled', true );
-		var originalText = $button.html();
-		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Optimizing...' );
+		if ( window.SCD && window.SCD.LoaderUtil ) {
+			SCD.LoaderUtil.showButton( $button, 'Optimizing...' );
+		}
 
 		// Make AJAX request
 		$.ajax( {
@@ -211,8 +221,9 @@
 				showNotification( 'Error optimizing tables. Please try again.', 'error' );
 			},
 			complete: function() {
-				$button.prop( 'disabled', false );
-				$button.html( originalText );
+				if ( window.SCD && window.SCD.LoaderUtil ) {
+					SCD.LoaderUtil.hideButton( $button );
+				}
 			}
 		} );
 	}
@@ -226,9 +237,9 @@
 
 		// Confirmation is handled by onclick attribute
 
-		$button.prop( 'disabled', true );
-		var originalText = $button.html();
-		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Cleaning...' );
+		if ( window.SCD && window.SCD.LoaderUtil ) {
+			SCD.LoaderUtil.showButton( $button, 'Cleaning...' );
+		}
 
 		// Make AJAX request
 		$.ajax( {
@@ -251,8 +262,9 @@
 				showNotification( 'Error cleaning up data. Please try again.', 'error' );
 			},
 			complete: function() {
-				$button.prop( 'disabled', false );
-				$button.html( originalText );
+				if ( window.SCD && window.SCD.LoaderUtil ) {
+					SCD.LoaderUtil.hideButton( $button );
+				}
 			}
 		} );
 	}
@@ -264,9 +276,9 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		$button.prop( 'disabled', true );
-		var originalText = $button.html();
-		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Rebuilding...' );
+		if ( window.SCD && window.SCD.LoaderUtil ) {
+			SCD.LoaderUtil.showButton( $button, 'Rebuilding...' );
+		}
 
 		// Make AJAX request
 		$.ajax( {
@@ -289,8 +301,9 @@
 				showNotification( 'Error rebuilding cache. Please try again.', 'error' );
 			},
 			complete: function() {
-				$button.prop( 'disabled', false );
-				$button.html( originalText );
+				if ( window.SCD && window.SCD.LoaderUtil ) {
+					SCD.LoaderUtil.hideButton( $button );
+				}
 			}
 		} );
 	}
@@ -302,9 +315,9 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		$button.prop( 'disabled', true );
-		var originalText = $button.html();
-		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Loading...' );
+		if ( window.SCD && window.SCD.LoaderUtil ) {
+			SCD.LoaderUtil.showButton( $button, 'Loading...' );
+		}
 
 		// Make AJAX request
 		$.ajax( {
@@ -313,7 +326,7 @@
 			data: {
 				action: 'scd_ajax',
 				scdAction: 'log_viewer',
-				log_action: 'view',
+				logAction: 'view',
 				lines: 500,
 				nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || ''
 			},
@@ -330,8 +343,9 @@
 				showNotification( 'Error loading logs. Please try again.', 'error' );
 			},
 			complete: function() {
-				$button.prop( 'disabled', false );
-				$button.html( originalText );
+				if ( window.SCD && window.SCD.LoaderUtil ) {
+					SCD.LoaderUtil.hideButton( $button );
+				}
 			}
 		} );
 	}
@@ -349,7 +363,7 @@
 
 		form.append( $( '<input>', { type: 'hidden', name: 'action', value: 'scd_ajax' } ) );
 		form.append( $( '<input>', { type: 'hidden', name: 'scdAction', value: 'log_viewer' } ) );
-		form.append( $( '<input>', { type: 'hidden', name: 'log_action', value: 'download' } ) );
+		form.append( $( '<input>', { type: 'hidden', name: 'logAction', value: 'download' } ) );
 		form.append( $( '<input>', { type: 'hidden', name: 'nonce', value: ( window.scdAdmin && window.scdAdmin.nonce ) || '' } ) );
 
 		$( 'body' ).append( form );
@@ -369,9 +383,9 @@
 			return;
 		}
 
-		$button.prop( 'disabled', true );
-		var originalText = $button.html();
-		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Clearing...' );
+		if ( window.SCD && window.SCD.LoaderUtil ) {
+			SCD.LoaderUtil.showButton( $button, 'Clearing...' );
+		}
 
 		// Make AJAX request
 		$.ajax( {
@@ -380,7 +394,7 @@
 			data: {
 				action: 'scd_ajax',
 				scdAction: 'log_viewer',
-				log_action: 'clear',
+				logAction: 'clear',
 				nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || ''
 			},
 			success: function( response ) {
@@ -398,8 +412,9 @@
 				showNotification( 'Error clearing logs. Please try again.', 'error' );
 			},
 			complete: function() {
-				$button.prop( 'disabled', false );
-				$button.html( originalText );
+				if ( window.SCD && window.SCD.LoaderUtil ) {
+					SCD.LoaderUtil.hideButton( $button );
+				}
 			}
 		} );
 	}
@@ -422,7 +437,7 @@
 
 		var $button = $( this );
 		var originalText = $button.html();
-		$button.html( '<span class="dashicons dashicons-yes"></span> Copied!' );
+		$button.html( SCD.IconHelper.check( { size: 16 } ) + ' Copied!' );
 
 		setTimeout( function() {
 			$button.html( originalText );
@@ -436,9 +451,9 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		$button.prop( 'disabled', true );
-		var originalText = $button.html();
-		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Checking...' );
+		if ( window.SCD && window.SCD.LoaderUtil ) {
+			SCD.LoaderUtil.showButton( $button, 'Checking...' );
+		}
 
 		// Make AJAX request
 		$.ajax( {
@@ -462,8 +477,9 @@
 				showNotification( 'Error running health check. Please try again.', 'error' );
 			},
 			complete: function() {
-				$button.prop( 'disabled', false );
-				$button.html( originalText );
+				if ( window.SCD && window.SCD.LoaderUtil ) {
+					SCD.LoaderUtil.hideButton( $button );
+				}
 			}
 		} );
 	}
@@ -475,9 +491,9 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		$button.prop( 'disabled', true );
-		var originalText = $button.html();
-		$button.html( '<span class="dashicons dashicons-update dashicons-spin"></span> Generating...' );
+		if ( window.SCD && window.SCD.LoaderUtil ) {
+			SCD.LoaderUtil.showButton( $button, 'Generating...' );
+		}
 
 		// Make AJAX request
 		$.ajax( {
@@ -486,7 +502,7 @@
 			data: {
 				action: 'scd_ajax',
 				scdAction: 'log_viewer',
-				log_action: 'system_report',
+				logAction: 'system_report',
 				nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || ''
 			},
 			success: function( response ) {
@@ -504,8 +520,9 @@
 				showNotification( 'Error generating report. Please try again.', 'error' );
 			},
 			complete: function() {
-				$button.prop( 'disabled', false );
-				$button.html( originalText );
+				if ( window.SCD && window.SCD.LoaderUtil ) {
+					SCD.LoaderUtil.hideButton( $button );
+				}
 			}
 		} );
 	}
@@ -523,7 +540,7 @@
 
 		var $button = $( this );
 		var originalText = $button.html();
-		$button.html( '<span class="dashicons dashicons-yes"></span> Copied!' );
+		$button.html( SCD.IconHelper.check( { size: 16 } ) + ' Copied!' );
 
 		setTimeout( function() {
 			$button.html( originalText );

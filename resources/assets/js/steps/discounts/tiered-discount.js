@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/steps/discounts/tiered-discount.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -292,62 +292,85 @@
 
 			var $addButton = $( '.scd-add-tier[data-tier-type="' + mode + '"]' );
 			if ( tiers.length >= self.maxTiers ) {
-				$addButton.prop( 'disabled', true ).html( '<span class="dashicons dashicons-warning"></span> Maximum tiers reached' );
+				$addButton.prop( 'disabled', true ).html( SCD.IconHelper.warning( { size: 16 } ) + ' Maximum tiers reached' );
 			} else {
 				var buttonText = 'percentage' === mode ? 'Add Percentage Tier' : 'Add Fixed Amount Tier';
-				$addButton.prop( 'disabled', false ).html( '<span class="dashicons dashicons-plus-alt2"></span> ' + buttonText );
+				$addButton.prop( 'disabled', false ).html( SCD.IconHelper.get( 'plus', { size: 16 } ) + ' ' + buttonText );
 			}
 		},
 
 		/**
+		 * Get Row Factory configuration for tiered discount rows
+		 * Phase 3: Declarative row configuration using Row Factory
+		 * @param tierType
+		 * @param mode
+		 */
+		getTieredRowConfig: function( tierType, mode ) {
+			var thresholdLabel = 'quantity' === tierType ? 'Minimum Quantity' : 'Minimum Order Value';
+			var thresholdPlaceholder = 'quantity' === tierType ? 'e.g., 5' : 'e.g., 50.00';
+			var discountPlaceholder = 'percentage' === mode ? 'e.g., 10' : 'e.g., 5.00';
+
+			return {
+				rowClass: 'scd-tier-row',
+				dataAttributes: { mode: mode },
+				fields: [
+					{
+						type: 'number',
+						name: 'threshold',
+						label: thresholdLabel,
+						min: 'quantity' === tierType ? 2 : 0.01,
+						step: 'quantity' === tierType ? 1 : 0.01,
+						placeholder: thresholdPlaceholder,
+						class: 'scd-tier-input scd-tier-threshold scd-enhanced-input',
+						dataAttributes: { field: 'threshold' },
+						suffix: 'value' === tierType ? this.currencySymbol : ''
+					},
+					{
+						type: 'number',
+						name: 'discount',
+						label: 'Discount Value',
+						min: 0,
+						step: 0.01,
+						placeholder: discountPlaceholder,
+						class: 'scd-tier-input scd-tier-discount scd-enhanced-input',
+						dataAttributes: { field: 'discount' }
+					}
+				],
+				removeButton: {
+					enabled: true,
+					label: 'Remove',
+					class: 'scd-remove-tier',
+					showLabel: true
+				}
+			};
+		},
+
+		/**
 		 * Render a single tier row
+		 * Phase 3: Uses Row Factory for declarative row generation
 		 * @param tier
 		 * @param index
 		 * @param tierType
 		 * @param mode
 		 */
 		renderTierRow: function( tier, index, tierType, mode ) {
-			var thresholdLabel = 'quantity' === tierType ? 'Minimum Quantity' : 'Minimum Order Value';
-			var thresholdPlaceholder = 'quantity' === tierType ? 'e.g., 5' : 'e.g., 50.00';
+			var rowData = {
+				threshold: tier.quantity || tier.value || '',
+				discount: tier.discount || ''
+			};
 
-			var html = '<div class="scd-tier-row" data-index="' + index + '" data-mode="' + mode + '">';
-			html += '<div class="scd-tier-fields">';
+			var config = this.getTieredRowConfig( tierType, mode );
+			var $row = SCD.Shared.RowFactory.create( config, rowData, index );
 
-			// Threshold field
-			html += '<div class="scd-field-group">';
-			html += '<label>' + thresholdLabel + ':</label>';
-			html += '<input type="number" class="scd-tier-input scd-tier-threshold" ';
-			html += 'data-index="' + index + '" data-field="threshold" ';
-			html += 'value="' + ( tier.quantity || tier.value || '' ) + '" ';
-			html += 'min="1" step="' + ( 'quantity' === tierType ? '1' : '0.01' ) + '" ';
-			html += 'placeholder="' + thresholdPlaceholder + '">';
-			if ( 'value' === tierType ) {
-				html += '<span class="scd-currency">' + this.currencySymbol + '</span>';
+			// Add currency prefix for discount field
+			var $discountWrapper = $row.find( '[data-field="discount"]' ).closest( '.scd-field-group' );
+			if ( $discountWrapper.length ) {
+				var prefix = 'percentage' === mode ? '%' : this.currencySymbol;
+				$discountWrapper.find( '.scd-input-wrapper' ).addClass( 'scd-input-with-prefix' );
+				$discountWrapper.find( '.scd-input-wrapper' ).prepend( '<span class="scd-input-prefix">' + prefix + '</span>' );
 			}
-			html += '</div>';
 
-			// No discount type field needed - it's determined by the mode
-
-			// Discount value field
-			html += '<div class="scd-field-group">';
-			html += '<label>Discount Value:</label>';
-			html += '<div class="scd-input-with-prefix">';
-			html += '<span class="scd-input-prefix">';
-			html += 'percentage' === mode ? '%' : this.currencySymbol;
-			html += '</span>';
-			html += '<input type="number" class="scd-tier-input scd-tier-discount" ';
-			html += 'data-index="' + index + '" data-field="discount" ';
-			html += 'value="' + ( tier.discount || '' ) + '" ';
-			html += 'min="0" step="0.01" ';
-			html += 'placeholder="' + ( 'percentage' === mode ? 'e.g., 10' : 'e.g., 5.00' ) + '">';
-			html += '</div>';
-			html += '</div>';
-
-			html += '<button type="button" class="scd-remove-tier" data-index="' + index + '">Remove</button>';
-			html += '</div>';
-			html += '</div>';
-
-			return html;
+			return $row[0].outerHTML;
 		},
 
 		/**
@@ -551,7 +574,7 @@
 
 			if ( hasIssue ) {
 				var warningHtml = '<div class="scd-tier-warning">';
-				warningHtml += '<span class="dashicons dashicons-warning"></span>';
+				warningHtml += SCD.IconHelper.warning( { size: 16 } );
 				warningHtml += '<span class="warning-text">Tip: Higher quantity tiers usually have bigger discounts.</span>';
 				warningHtml += '</div>';
 
@@ -649,7 +672,6 @@
 			// Handle combined tiers format (single source of truth)
 			if ( !hasData && data.tiers ) {
 				// Normalize tier objects
-				// Data already converted to camelCase by server
 				var normalizedTiers = Array.isArray( data.tiers ) ?
 					data.tiers.map( function( tier ) {
 						return {
@@ -736,9 +758,16 @@
 
 			if ( 1 === sortedTiers.length ) {
 				var threshold = firstTier.quantity || firstTier.value;
-				return '' + ( firstTier.discount ) + '' + ( 'percentage' === firstTier.type ? '%' : ' ' + this.currencySymbol ) + ' off for ' + ( threshold ) + '+ ' + ( 'quantity' === tierType ? 'items' : '' ) + '';
+				var discountText = firstTier.discount;
+				var symbol = 'percentage' === firstTier.type ? '%' : ' ' + this.currencySymbol;
+				var itemsText = 'quantity' === tierType ? 'items' : '';
+				return discountText + symbol + ' off for ' + threshold + '+ ' + itemsText;
 			} else {
-				return '' + ( sortedTiers.length ) + ' tiers: ' + ( firstTier.discount ) + '' + ( 'percentage' === firstTier.type ? '%' : this.currencySymbol ) + ' to ' + ( lastTier.discount ) + '' + ( 'percentage' === lastTier.type ? '%' : this.currencySymbol ) + ' off';
+				var firstDiscount = firstTier.discount;
+				var firstSymbol = 'percentage' === firstTier.type ? '%' : this.currencySymbol;
+				var lastDiscount = lastTier.discount;
+				var lastSymbol = 'percentage' === lastTier.type ? '%' : this.currencySymbol;
+				return sortedTiers.length + ' tiers: ' + firstDiscount + firstSymbol + ' to ' + lastDiscount + lastSymbol + ' off';
 			}
 		},
 
@@ -906,34 +935,40 @@
 		 * @return {Array} Consolidated tiers array
 		 */
 		getValue: function() {
+			console.log( '[TieredDiscount] getValue() called' );
+			console.log( '[TieredDiscount] _percentageTiers:', this._percentageTiers );
+			console.log( '[TieredDiscount] _fixedTiers:', this._fixedTiers );
+
 			try {
 				var tiers = [];
 
 				if ( this._percentageTiers && this._percentageTiers.length ) {
+					console.log( '[TieredDiscount] Processing', this._percentageTiers.length, 'percentage tiers' );
 					this._percentageTiers.forEach( function( tier ) {
-						tiers.push( {
-							min_quantity: parseInt( tier.quantity || tier.value ) || 0,
-							max_quantity: 0, // Not used in current implementation
-							discount_value: parseFloat( tier.discount ) || 0,
-							discount_type: 'percentage'
-						} );
+						var tierObj = {
+							minQuantity: parseInt( tier.quantity || tier.value ) || 0,
+							discountValue: parseFloat( tier.discount ) || 0,
+							discountType: 'percentage'
+						};
+						console.log( '[TieredDiscount] Adding percentage tier:', tierObj );
+						tiers.push( tierObj );
 					} );
 				}
 
 				if ( this._fixedTiers && this._fixedTiers.length ) {
+					console.log( '[TieredDiscount] Processing', this._fixedTiers.length, 'fixed tiers' );
 					this._fixedTiers.forEach( function( tier ) {
-						tiers.push( {
-							min_quantity: parseInt( tier.quantity || tier.value ) || 0,
-							max_quantity: 0, // Not used in current implementation
-							discount_value: parseFloat( tier.discount ) || 0,
-							discount_type: 'fixed'
-						} );
+						var tierObj = {
+							minQuantity: parseInt( tier.quantity || tier.value ) || 0,
+							discountValue: parseFloat( tier.discount ) || 0,
+							discountType: 'fixed'
+						};
+						console.log( '[TieredDiscount] Adding fixed tier:', tierObj );
+						tiers.push( tierObj );
 					} );
 				}
 
-				if ( window.scdDebugDiscounts ) {
-				}
-
+				console.log( '[TieredDiscount] getValue() returning:', tiers );
 				return tiers;
 			} catch ( error ) {
 				console.error( '[TieredDiscount] getValue error:', error );
@@ -944,18 +979,17 @@
 		/**
 		 * Set tier data from backend (complex field handler)
 		 * Splits consolidated array into percentage and fixed tiers
+		 * Accepts both camelCase (from Asset Localizer) and snake_case (raw PHP) property names
 		 * @param {Array} tiers - Consolidated tiers array from backend
 		 */
 		setValue: function( tiers ) {
+			console.log( '[TieredDiscount] setValue() called with:', tiers );
+
 			try {
 				if ( !tiers || !Array.isArray( tiers ) ) {
-					if ( window.scdDebugDiscounts ) {
-					}
 					return;
 				}
 
-				if ( window.scdDebugDiscounts ) {
-				}
 
 				// Split into percentage and fixed arrays
 				this._percentageTiers = [];
@@ -963,12 +997,12 @@
 
 				tiers.forEach( function( tier ) {
 					var tierObj = {
-						quantity: tier.minQuantity,
-						discount: tier.discountValue,
-						type: tier.discountType
+						quantity: parseInt( tier.min_quantity || tier.minQuantity ) || 0,
+						discount: parseFloat( tier.discount_value || tier.discountValue ) || 0,
+						type: tier.discount_type || tier.discountType
 					};
 
-					if ( 'percentage' === tier.discountType ) {
+					if ( 'percentage' === tierObj.type ) {
 						this._percentageTiers.push( tierObj );
 					} else {
 						this._fixedTiers.push( tierObj );

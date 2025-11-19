@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/bootstrap/class-container.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -33,7 +33,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Container {
 
@@ -110,6 +110,15 @@ class SCD_Container {
 	private array $mock_services = array();
 
 	/**
+	 * Static container instance.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      SCD_Container|null    $static_instance    Static container instance.
+	 */
+	private static ?SCD_Container $static_instance = null;
+
+	/**
 	 * Constructor - Initialize container with optional mock mode.
 	 *
 	 * @since    1.0.0
@@ -119,6 +128,31 @@ class SCD_Container {
 		if ( $use_mocks ) {
 			$this->initialize_mock_services();
 		}
+
+		// Store static reference for global access
+		self::$static_instance = $this;
+	}
+
+	/**
+	 * Get the static container instance.
+	 *
+	 * @since    1.0.0
+	 * @return   SCD_Container    The container instance.
+	 * @throws   RuntimeException    If container not initialized.
+	 */
+	public static function get_instance(): SCD_Container {
+		if ( null === self::$static_instance ) {
+			// Try to get from global if available
+			if ( isset( $GLOBALS['scd_container'] ) && $GLOBALS['scd_container'] instanceof SCD_Container ) {
+				self::$static_instance = $GLOBALS['scd_container'];
+				return self::$static_instance;
+			}
+
+			// Fallback: create mock container
+			self::$static_instance = new self( true );
+		}
+
+		return self::$static_instance;
 	}
 
 	/**
@@ -454,11 +488,11 @@ class SCD_Container {
 		$name = $type->getName();
 
 		if ( ! is_null( $class = $parameter->getDeclaringClass() ) ) {
-			if ( $name === 'self' ) {
+			if ( 'self' === $name ) {
 				return $class->getName();
 			}
 
-			if ( $name === 'parent' && $parent = $class->getParentClass() ) {
+			if ( 'parent' === $name && $parent = $class->getParentClass() ) {
 				return $parent->getName();
 			}
 		}
@@ -491,7 +525,7 @@ class SCD_Container {
 	 */
 	protected function get_closure( string $abstract, mixed $concrete ): Closure {
 		return function ( $container, $parameters = array() ) use ( $abstract, $concrete ) {
-			if ( $abstract == $concrete ) {
+			if ( $abstract === $concrete ) {
 				return $container->build( $concrete, $parameters );
 			}
 
@@ -632,7 +666,7 @@ class SCD_Container {
 		}
 
 		foreach ( $this->aliases as $alias => $abstract ) {
-			if ( $abstract == $searched ) {
+			if ( $searched === $abstract ) {
 				unset( $this->aliases[ $alias ] );
 			}
 		}

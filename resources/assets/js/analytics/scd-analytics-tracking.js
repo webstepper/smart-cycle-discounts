@@ -1,10 +1,13 @@
 /**
  * Scd Analytics Tracking
  *
+ * Optimized analytics tracking using Beacon API and Intersection Observer.
+ * Provides non-blocking, high-performance tracking for impressions and clicks.
+ *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/analytics/scd-analytics-tracking.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -15,91 +18,189 @@
 
 	window.SCDAnalytics = {
 		/**
-		 * Track analytics event
-		 *
-		 * @param {string} eventType Event type to track
-		 * @param {number} campaignId Campaign ID
-		 * @param {object} eventData Event data object
+		 * Tracked impressions cache (prevents duplicate tracking)
 		 */
-		trackEvent: function( eventType, campaignId, eventData ) {
-			if ( window.scdAnalyticsTracking ) {
-				$.ajax( {
-					url: window.scdAnalyticsTracking.ajaxUrl,
-					type: 'POST',
-					data: {
-						action: 'scd_track_event',
-						event_type: eventType,
-						campaign_id: campaignId,
-						event_data: eventData || {},
-						nonce: window.scdAnalyticsTracking.nonce,
-						tracking_token: window.scdAnalyticsTracking.trackingToken
-					},
-					dataType: 'json'
-				} );
-			}
-		},
+		trackedImpressions: {},
 
 		/**
-		 * Track discount view
+		 * Send tracking data using Beacon API or fallback to AJAX
 		 *
-		 * @param {number} campaignId Campaign ID
-		 * @param {number} productId Product ID
-		 * @param {object} discountData Discount data
+		 * @param {string} action AJAX action name
+		 * @param {object} data   Data to send
+		 * @return {boolean}        Success status
 		 */
-		trackDiscountView: function( campaignId, productId, discountData ) {
-			var eventData = {
-				product_id: productId
-			};
+		sendBeacon: function( action, data ) {
+			if ( ! window.scdAnalyticsTracking ) {
+				return false;
+			}
 
-			// ES5 compatible way to merge objects
-			for ( var key in discountData ) {
-				if ( Object.prototype.hasOwnProperty.call( discountData, key ) ) {
-					eventData[key] = discountData[key];
+			// Prepare data for Beacon API
+			var beaconData = new FormData();
+			beaconData.append( 'action', action );
+			beaconData.append( 'nonce', window.scdAnalyticsTracking.nonce );
+
+			// Add all data properties
+			for ( var key in data ) {
+				if ( Object.prototype.hasOwnProperty.call( data, key ) ) {
+					beaconData.append( key, data[key] );
 				}
 			}
 
-			this.trackEvent( 'discount_view', campaignId, eventData );
+			// Try Beacon API first (non-blocking)
+			if ( navigator.sendBeacon ) {
+				var success = navigator.sendBeacon(
+					window.scdAnalyticsTracking.ajaxUrl,
+					beaconData
+				);
+
+				if ( success ) {
+					return true;
+				}
+			}
+
+			// Fallback to AJAX if Beacon API fails or not available
+			$.ajax( {
+				url: window.scdAnalyticsTracking.ajaxUrl,
+				type: 'POST',
+				data: {
+					action: action,
+					campaignId: data.campaignId,
+					productId: data.productId,
+					source: data.source,
+					nonce: window.scdAnalyticsTracking.nonce
+				},
+				async: true,
+				cache: false
+			} );
+
+			return true;
+		},
+
+		/**
+		 * Track campaign impression
+		 *
+		 * Uses aggregated storage for high-volume tracking.
+		 *
+		 * @param {number} campaignId Campaign ID
+		 * @param {number} productId  Product ID (optional)
+		 * @param {string} source     Source (optional)
+		 */
+		trackImpression: function( campaignId, productId, source ) {
+			// Prevent duplicate impressions for same campaign
+			var cacheKey = 'c' + campaignId + '_p' + ( productId || 0 );
+			if ( this.trackedImpressions[cacheKey] ) {
+				return;
+			}
+
+			this.trackedImpressions[cacheKey] = true;
+
+			this.sendBeacon( 'scd_track_impression', {
+				campaignId: campaignId,
+				productId: productId || 0,
+				source: source || 'unknown'
+			} );
 		},
 
 		/**
 		 * Track discount click
 		 *
-		 * @param {number} campaignId Campaign ID
-		 * @param {number} productId Product ID
+		 * Uses aggregated storage for high-volume tracking.
+		 *
+		 * @param {number} campaignId  Campaign ID
+		 * @param {number} productId   Product ID (optional)
 		 * @param {string} clickSource Click source
 		 */
-		trackDiscountClick: function( campaignId, productId, clickSource ) {
-			this.trackEvent( 'discount_click', campaignId, {
-				product_id: productId,
-				click_source: clickSource || 'unknown'
+		trackClick: function( campaignId, productId, clickSource ) {
+			this.sendBeacon( 'scd_track_click', {
+				campaignId: campaignId,
+				productId: productId || 0,
+				source: clickSource || 'unknown'
+			} );
+		},
+
+		/**
+		 * Setup Intersection Observer for impression tracking
+		 *
+		 * Tracks when discount elements become visible in viewport.
+		 */
+		setupImpressionObserver: function() {
+			// Check for Intersection Observer support
+			if ( ! window.IntersectionObserver ) {
+				// Fallback: track all elements immediately
+				this.trackAllVisibleElements();
+				return;
+			}
+
+			var self = this;
+
+			var observerOptions = {
+				root: null, // viewport
+				rootMargin: '50px', // trigger slightly before entering viewport
+				threshold: 0.5 // element must be at least 50% visible
+			};
+
+			var observer = new IntersectionObserver( function( entries ) {
+				entries.forEach( function( entry ) {
+					if ( entry.isIntersecting ) {
+						var $element = $( entry.target );
+						var campaignId = parseInt( $element.data( 'campaign-id' ), 10 );
+						var productId = parseInt( $element.data( 'product-id' ), 10 ) || 0;
+						var source = $element.hasClass( 'scd-discount-badge' ) ? 'badge' : 'banner';
+
+						if ( campaignId ) {
+							self.trackImpression( campaignId, productId, source );
+						}
+
+						// Stop observing this element
+						observer.unobserve( entry.target );
+					}
+				} );
+			}, observerOptions );
+
+			// Observe all discount elements
+			$( '.scd-discount-badge, .scd-discount-banner' ).each( function() {
+				observer.observe( this );
+			} );
+		},
+
+		/**
+		 * Fallback: Track all visible elements immediately
+		 *
+		 * Used when Intersection Observer is not supported.
+		 */
+		trackAllVisibleElements: function() {
+			var self = this;
+
+			$( '.scd-discount-badge, .scd-discount-banner' ).each( function() {
+				var $element = $( this );
+				var campaignId = parseInt( $element.data( 'campaign-id' ), 10 );
+				var productId = parseInt( $element.data( 'product-id' ), 10 ) || 0;
+				var source = $element.hasClass( 'scd-discount-badge' ) ? 'badge' : 'banner';
+
+				if ( campaignId ) {
+					self.trackImpression( campaignId, productId, source );
+				}
 			} );
 		}
 	};
 
-	// Auto-track discount views on page load
+	// Initialize tracking on document ready
 	$( document ).ready( function() {
-		$( '.scd-discount-badge, .scd-discount-banner' ).each( function() {
-			var $element = $( this );
-			var campaignId = $element.data( 'campaign-id' );
-			var productId = $element.data( 'product-id' );
-
-			if ( campaignId && productId ) {
-				window.SCDAnalytics.trackDiscountView( campaignId, productId, {
-					element_type: $element.hasClass( 'scd-discount-badge' ) ? 'badge' : 'banner'
-				} );
-			}
-		} );
+		// Setup impression tracking using Intersection Observer
+		window.SCDAnalytics.setupImpressionObserver();
 	} );
 
 	// Track discount clicks
-	$( document ).on( 'click', '.scd-discount-badge, .scd-discount-banner', function() {
+	$( document ).on( 'click', '.scd-discount-badge, .scd-discount-banner, [data-scd-campaign-id]', function( e ) {
 		var $element = $( this );
-		var campaignId = $element.data( 'campaign-id' );
-		var productId = $element.data( 'product-id' );
-		var clickSource = $element.hasClass( 'scd-discount-badge' ) ? 'badge' : 'banner';
+		var campaignId = parseInt( $element.data( 'campaign-id' ) || $element.data( 'scd-campaign-id' ), 10 );
+		var productId = parseInt( $element.data( 'product-id' ) || $element.data( 'scd-product-id' ), 10 ) || 0;
+		var clickSource = $element.data( 'click-source' ) || (
+			$element.hasClass( 'scd-discount-badge' ) ? 'badge' : 'banner'
+		);
 
-		if ( campaignId && productId ) {
-			window.SCDAnalytics.trackDiscountClick( campaignId, productId, clickSource );
+		if ( campaignId ) {
+			window.SCDAnalytics.trackClick( campaignId, productId, clickSource );
 		}
 	} );
 

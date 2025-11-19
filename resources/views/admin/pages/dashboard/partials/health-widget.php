@@ -19,20 +19,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Prepare health widget variables
 $health_status = $campaign_health['status'];
-$health_icon = 'success' === $health_status ? 'yes-alt' : ( 'warning' === $health_status ? 'warning' : 'dismiss' );
+$health_icon_name = 'success' === $health_status ? 'check' : ( 'warning' === $health_status ? 'warning' : 'close' );
 $health_class = 'scd-health-' . $health_status;
 $quick_stats = isset( $campaign_health['quick_stats'] ) ? $campaign_health['quick_stats'] : array( 'total_analyzed' => 0, 'issues_count' => 0, 'warnings_count' => 0 );
 $categories = isset( $campaign_health['categories'] ) ? $campaign_health['categories'] : array();
 ?>
 
-<div class="scd-campaign-health-widget <?php echo esc_attr( $health_class ); ?>" id="scd-health-widget">
-	<div class="scd-health-header">
-		<div class="scd-health-header-left">
-			<div class="scd-health-icon">
-				<span class="dashicons dashicons-<?php echo esc_attr( $health_icon ); ?>"></span>
+<div class="scd-dashboard-section scd-campaign-health-widget <?php echo esc_attr( $health_class ); ?>" id="scd-health-widget">
+	<div class="scd-section-header">
+		<div class="scd-section-header-content">
+			<div class="scd-section-header-icon">
+				<?php echo SCD_Icon_Helper::get( $health_icon_name, array( 'size' => 16 ) ); ?>
 			</div>
-			<div class="scd-health-title">
-				<h3>
+			<div class="scd-section-header-text">
+				<h2>
 					<?php
 					if ( 'success' === $health_status ) {
 						esc_html_e( 'Campaign Health: All Systems Running Smoothly', 'smart-cycle-discounts' );
@@ -42,8 +42,8 @@ $categories = isset( $campaign_health['categories'] ) ? $campaign_health['catego
 						esc_html_e( 'Campaign Health: Critical Issues', 'smart-cycle-discounts' );
 					}
 					?>
-				</h3>
-				<div class="scd-health-subtitle">
+				</h2>
+				<p>
 					<?php
 					echo esc_html(
 						sprintf(
@@ -59,12 +59,12 @@ $categories = isset( $campaign_health['categories'] ) ? $campaign_health['catego
 						<span class="scd-health-divider">•</span>
 						<span class="scd-health-stat-warning"><?php echo esc_html( $quick_stats['warnings_count'] ); ?> <?php esc_html_e( 'warnings', 'smart-cycle-discounts' ); ?></span>
 					</span>
-				</div>
+				</p>
 			</div>
 		</div>
 	</div>
-
-	<div class="scd-health-content">
+	<div class="scd-section-content">
+		<div class="scd-health-content">
 		<!-- Quick Health Categories -->
 		<?php if ( ! empty( $categories ) && $quick_stats['total_analyzed'] > 0 ) : ?>
 			<div class="scd-health-categories">
@@ -104,21 +104,17 @@ $categories = isset( $campaign_health['categories'] ) ? $campaign_health['catego
 					?>
 					<div class="scd-health-category scd-health-category-<?php echo esc_attr( $category_status ); ?>">
 						<div class="scd-health-category-icon">
-							<span class="dashicons dashicons-<?php echo esc_attr( $category_icon ); ?>"></span>
+							<?php echo SCD_Icon_Helper::get( $category_icon, array( 'size' => 16 ) ); ?>
 						</div>
 						<div class="scd-health-category-content">
 							<div class="scd-health-category-label"><?php echo esc_html( $category_label ); ?></div>
 							<div class="scd-health-category-status">
 								<?php if ( 'healthy' === $category_status ) : ?>
-									<span class="scd-badge scd-badge--active"><?php esc_html_e( 'Healthy', 'smart-cycle-discounts' ); ?></span>
+									<?php echo SCD_Badge_Helper::health_badge( 'healthy', __( 'Healthy', 'smart-cycle-discounts' ) ); ?>
 								<?php elseif ( 'warning' === $category_status ) : ?>
-									<span class="scd-badge scd-badge--draft">
-										<?php echo esc_html( sprintf( _n( '%d warning', '%d warnings', $category_count, 'smart-cycle-discounts' ), $category_count ) ); ?>
-									</span>
+									<?php echo SCD_Badge_Helper::health_badge( 'warning', sprintf( _n( '%d warning', '%d warnings', $category_count, 'smart-cycle-discounts' ), $category_count ) ); ?>
 								<?php else : ?>
-									<span class="scd-badge scd-badge--expired">
-										<?php echo esc_html( sprintf( _n( '%d issue', '%d issues', $category_count, 'smart-cycle-discounts' ), $category_count ) ); ?>
-									</span>
+									<?php echo SCD_Badge_Helper::health_badge( 'alert', sprintf( _n( '%d issue', '%d issues', $category_count, 'smart-cycle-discounts' ), $category_count ) ); ?>
 								<?php endif; ?>
 							</div>
 						</div>
@@ -135,14 +131,14 @@ $categories = isset( $campaign_health['categories'] ) ? $campaign_health['catego
 				</p>
 			<?php else : ?>
 				<p class="scd-health-success-message">
-					<span class="dashicons dashicons-yes-alt"></span>
+					<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 					<?php esc_html_e( 'All campaigns are configured correctly and running as expected. Great work!', 'smart-cycle-discounts' ); ?>
 				</p>
 				<?php if ( ! empty( $campaign_health['success_messages'] ) ) : ?>
 					<div class="scd-health-details">
 						<?php foreach ( $campaign_health['success_messages'] as $message ) : ?>
 							<div class="scd-health-detail-item">
-								<span class="dashicons dashicons-yes"></span>
+								<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 								<span><?php echo esc_html( $message ); ?></span>
 							</div>
 						<?php endforeach; ?>
@@ -155,23 +151,33 @@ $categories = isset( $campaign_health['categories'] ) ? $campaign_health['catego
 		<?php if ( ! empty( $campaign_health['issues'] ) ) : ?>
 			<div class="scd-health-issues">
 				<div class="scd-health-section-title">
-					<span class="dashicons dashicons-warning"></span>
+					<?php echo SCD_Icon_Helper::get( 'warning', array( 'size' => 16 ) ); ?>
 					<?php esc_html_e( 'Critical Issues', 'smart-cycle-discounts' ); ?>
 				</div>
 				<?php foreach ( $campaign_health['issues'] as $issue ) : ?>
 					<div class="scd-health-item scd-health-critical">
 						<div class="scd-health-item-content">
-							<span class="dashicons dashicons-warning"></span>
+							<?php echo SCD_Icon_Helper::get( 'warning', array( 'size' => 16 ) ); ?>
 							<span><?php echo esc_html( $issue['message'] ); ?></span>
 						</div>
 						<?php if ( isset( $issue['campaign_id'] ) ) : ?>
-							<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns&action=edit&id=' . $issue['campaign_id'] ) ); ?>" class="button button-small">
-								<?php esc_html_e( 'Fix Now', 'smart-cycle-discounts' ); ?>
-							</a>
+							<?php
+							SCD_Button_Helper::link(
+								__( 'Fix Now', 'smart-cycle-discounts' ),
+								admin_url( 'admin.php?page=scd-campaigns&action=edit&id=' . $issue['campaign_id'] ),
+								array( 'size' => 'small' )
+							);
+							?>
 						<?php elseif ( 'limit_reached' === $issue['type'] ) : ?>
-							<a href="<?php echo esc_url( $feature_gate->get_upgrade_url() ); ?>" class="button button-primary button-small">
-								<?php esc_html_e( 'Upgrade', 'smart-cycle-discounts' ); ?>
-							</a>
+							<?php
+							SCD_Button_Helper::primary(
+								__( 'Upgrade', 'smart-cycle-discounts' ),
+								array(
+									'size' => 'small',
+									'href' => esc_url( $feature_gate->get_upgrade_url() ),
+								)
+							);
+							?>
 						<?php endif; ?>
 					</div>
 				<?php endforeach; ?>
@@ -182,27 +188,38 @@ $categories = isset( $campaign_health['categories'] ) ? $campaign_health['catego
 		<?php if ( ! empty( $campaign_health['warnings'] ) ) : ?>
 			<div class="scd-health-warnings">
 				<div class="scd-health-section-title">
-					<span class="dashicons dashicons-info"></span>
+					<?php echo SCD_Icon_Helper::get( 'info', array( 'size' => 16 ) ); ?>
 					<?php esc_html_e( 'Warnings', 'smart-cycle-discounts' ); ?>
 				</div>
 				<?php foreach ( $campaign_health['warnings'] as $warning ) : ?>
 					<div class="scd-health-item scd-health-warning">
 						<div class="scd-health-item-content">
-							<span class="dashicons dashicons-info"></span>
+							<?php echo SCD_Icon_Helper::get( 'info', array( 'size' => 16 ) ); ?>
 							<span><?php echo esc_html( $warning['message'] ); ?></span>
 						</div>
 						<?php if ( isset( $warning['campaign_id'] ) && in_array( $warning['type'], array( 'ending_soon', 'scheduled_past' ), true ) ) : ?>
-							<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns&action=edit&id=' . $warning['campaign_id'] ) ); ?>" class="button button-small">
-								<?php esc_html_e( 'Review', 'smart-cycle-discounts' ); ?>
-							</a>
+							<?php
+							SCD_Button_Helper::link(
+								__( 'Review', 'smart-cycle-discounts' ),
+								admin_url( 'admin.php?page=scd-campaigns&action=edit&id=' . $warning['campaign_id'] ),
+								array( 'size' => 'small' )
+							);
+							?>
 						<?php elseif ( 'approaching_limit' === $warning['type'] ) : ?>
-							<a href="<?php echo esc_url( $feature_gate->get_upgrade_url() ); ?>" class="button button-secondary button-small">
-								<?php esc_html_e( 'Learn More', 'smart-cycle-discounts' ); ?>
-							</a>
+							<?php
+							SCD_Button_Helper::secondary(
+								__( 'Learn More', 'smart-cycle-discounts' ),
+								array(
+									'size' => 'small',
+									'href' => esc_url( $feature_gate->get_upgrade_url() ),
+								)
+							);
+							?>
 						<?php endif; ?>
 					</div>
 				<?php endforeach; ?>
 			</div>
 		<?php endif; ?>
+		</div>
 	</div>
 </div>

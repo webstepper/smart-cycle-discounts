@@ -11,122 +11,116 @@
  */
 
 /* ==========================================================================
-   Priority Badge
+   Priority Badge - Refined
    ========================================================================== */
 
 .scd-priority-badge {
 	display: inline-block;
-	padding: 4px 10px;
-	border-radius: 3px;
-	font-weight: 600;
-	font-size: 13px;
+	padding: var(--scd-spacing-xxs) var(--scd-padding-small);
+	border-radius: var(--scd-radius-md);
+	font-weight: var(--scd-font-weight-semibold);
+	font-size: var(--scd-font-size-small);
 	text-align: center;
-	min-width: 32px;
-	background: #f0f0f1;
-	color: #50575e;
-	border: 1px solid #dcdcde;
+	text-transform: uppercase;
+	letter-spacing: 0.025em;
+	line-height: 1.4;
+	min-width: 40px;
 }
 
-.scd-priority-badge.scd-priority-1 {
-	background: #d63638;
-	color: #fff;
-	border-color: #d63638;
-}
-
-.scd-priority-badge.scd-priority-2 {
-	background: #d63638;
-	color: #fff;
-	border-color: #d63638;
-	opacity: 0.9;
-}
-
-.scd-priority-badge.scd-priority-3 {
-	background: #f0ad4e;
-	color: #fff;
-	border-color: #f0ad4e;
-}
-
-.scd-priority-badge.scd-priority-4 {
-	background: #5bc0de;
-	color: #fff;
-	border-color: #5bc0de;
-}
-
+/* Priority 5 - Critical (Red like expired) */
 .scd-priority-badge.scd-priority-5 {
-	background: #2271b1;
-	color: #fff;
-	border-color: #2271b1;
+	background-color: var(--scd-color-danger-alpha-25);
+	color: var(--scd-color-danger-dark);
 }
 
-.scd-priority-badge.scd-priority-6,
-.scd-priority-badge.scd-priority-7,
-.scd-priority-badge.scd-priority-8,
-.scd-priority-badge.scd-priority-9,
-.scd-priority-badge.scd-priority-10 {
-	background: #50575e;
-	color: #fff;
-	border-color: #50575e;
+/* Priority 4 - High (Orange like draft/warning) */
+.scd-priority-badge.scd-priority-4 {
+	background-color: var(--scd-color-warning-alpha-25);
+	color: var(--scd-color-warning-dark);
+}
+
+/* Priority 3 - Normal (Blue like scheduled) */
+.scd-priority-badge.scd-priority-3 {
+	background-color: var(--scd-color-info-alpha-25);
+	color: var(--scd-color-primary-dark);
+}
+
+/* Priority 2 - Low (Light gray) */
+.scd-priority-badge.scd-priority-2 {
+	background-color: var(--scd-color-text-alpha-15);
+	color: var(--scd-color-text-muted);
+}
+
+/* Priority 1 - Fallback (Gray) */
+.scd-priority-badge.scd-priority-1 {
+	background-color: var(--scd-color-text-alpha-25);
+	color: var(--scd-color-text-muted);
 }
 
 /* ==========================================================================
-   Health Indicator
+   Health Indicator - Refined
    ========================================================================== */
 
 .scd-health-indicator {
 	display: inline-flex;
 	align-items: center;
-	gap: 6px;
-	font-size: 14px;
-	padding: 4px 8px;
-	border-radius: 4px;
-	transition: transform 0.2s ease,
-	            box-shadow 0.2s ease;
+	gap: var(--scd-spacing-xs);
+	font-size: var(--scd-font-size-small);
+	font-weight: var(--scd-font-weight-medium);
+	padding: var(--scd-spacing-xs) var(--scd-spacing-md);
+	border-radius: var(--scd-radius-lg);
+	line-height: 1.5;
+	text-align: center;
+	white-space: nowrap;
+	box-shadow: var(--scd-shadow-md);
+	transition: var(--scd-transition-all);
 }
 
 .scd-health-indicator:hover {
 	transform: translateY(-1px);
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	box-shadow: var(--scd-shadow-lg);
 }
 
 .scd-health-indicator strong {
-	font-weight: 600;
-	font-size: 13px;
+	font-weight: var(--scd-font-weight-semibold);
+	font-size: var(--scd-font-size-small);
+	letter-spacing: -0.01em;
 }
 
 .scd-health-indicator.scd-health-excellent {
-	background: #e7f7ed;
-	color: #00a32a;
+	background: var(--scd-color-success-lighter);
+	color: var(--scd-color-success);
 }
 
 .scd-health-indicator.scd-health-excellent strong {
-	color: #007017;
+	color: var(--scd-color-success-dark);
 }
 
 .scd-health-indicator.scd-health-good {
-	background: #fcf9e8;
-	color: #b58500;
+	background: var(--scd-color-warning-lighter);
+	color: var(--scd-color-warning-dark);
 }
 
 .scd-health-indicator.scd-health-good strong {
-	color: #8a6500;
+	color: var(--scd-color-warning-text);
 }
 
 .scd-health-indicator.scd-health-fair {
-	background: #fef3ec;
-	color: #c85d0c;
+	background: var(--scd-color-warning-lighter);
+	color: var(--scd-color-warning-dark);
 }
 
 .scd-health-indicator.scd-health-fair strong {
-	color: #a54909;
+	color: var(--scd-color-warning-dark);
 }
 
 .scd-health-indicator.scd-health-poor {
-	background: #fcf0f1;
-	color: #d63638;
+	background: var(--scd-color-danger-lighter);
+	color: var(--scd-color-danger);
 }
 
 .scd-health-indicator.scd-health-poor strong {
-	color: #b32d2e;
+	color: var(--scd-color-danger);
 }
 
 /* ==========================================================================
@@ -134,19 +128,19 @@
    ========================================================================== */
 
 .scd-performance-metrics {
-	font-size: 12px;
+	font-size: var(--scd-font-size-small);
 	line-height: 1.6;
 }
 
 .scd-performance-metrics strong {
 	display: inline-block;
 	min-width: 70px;
-	color: #50575e;
-	font-weight: 600;
+	color: var(--scd-color-text-lighter);
+	font-weight: var(--scd-font-weight-semibold);
 }
 
 .scd-performance-metrics .description {
-	color: #8c8f94;
+	color: var(--scd-color-text-lighter);
 	font-style: normal;
 }
 
@@ -154,80 +148,412 @@
    Products Column
    ========================================================================== */
 
-.wp-list-table .column-products small {
-	color: #646970;
-	line-height: 1.5;
-	display: block;
-	margin-top: 4px;
-}
-
-.wp-list-table .column-products small strong {
-	color: #1d2327;
-}
-
 /* ==========================================================================
-   Table Column Widths
+   Table Row Styling - Refined & Optimized
    ========================================================================== */
 
-.wp-list-table .column-priority {
-	width: 80px;
-	text-align: center;
+/* Base table improvements */
+.toplevel_page_scd-campaigns .wp-list-table,
+.wp-list-table.campaigns {
+	border: 1px solid var(--scd-color-border-light);
+	border-radius: var(--scd-radius-md);
+	box-shadow: var(--scd-shadow-sm);
+	background: var(--scd-color-white);
+	overflow: hidden;
 }
 
-.wp-list-table .column-health {
-	width: 120px;
-	text-align: center;
+/* Table header - refined spacing */
+.toplevel_page_scd-campaigns .wp-list-table thead th,
+.wp-list-table.campaigns thead th {
+	background: var(--scd-color-surface);
+	border-bottom: 1px solid var(--scd-color-border-light);
+	font-weight: var(--scd-font-weight-semibold);
+	color: var(--scd-color-text-secondary);
+	padding: var(--scd-padding-small) 12px;
+	text-transform: uppercase;
+	font-size: var(--scd-font-size-small);
+	letter-spacing: 0.025em;
+	line-height: 1.5;
 }
 
-.wp-list-table .column-performance {
-	width: 140px;
+/* First header cell */
+.toplevel_page_scd-campaigns .wp-list-table thead th:first-child,
+.wp-list-table.campaigns thead th:first-child {
+	padding-left: 16px;
 }
 
-.wp-list-table .column-discount {
-	width: 120px;
+/* Row styling - optimized spacing with fixed height */
+.toplevel_page_scd-campaigns .wp-list-table tbody tr,
+.wp-list-table.campaigns tbody tr {
+	background: var(--scd-color-white);
+	border-bottom: 1px solid var(--scd-color-surface);
+	transition: background-color var(--scd-transition-fast) ease, box-shadow var(--scd-transition-fast) ease;
+	height: 68px;
 }
 
-.wp-list-table .column-products {
-	width: 150px;
+/* Alternating row colors - subtle */
+.toplevel_page_scd-campaigns .wp-list-table tbody tr:nth-child(even),
+.wp-list-table.campaigns tbody tr:nth-child(even) {
+	background: var(--scd-color-surface);
 }
 
-.wp-list-table .column-status {
-	width: 130px;
+/* Hover effect - refined */
+.toplevel_page_scd-campaigns .wp-list-table tbody tr:hover,
+.wp-list-table.campaigns tbody tr:hover {
+	background: var(--scd-color-primary-alpha-3);
+	cursor: pointer;
+	transition: background-color var(--scd-transition-fast) ease;
 }
 
-.wp-list-table .column-schedule {
-	width: 160px;
+.toplevel_page_scd-campaigns .wp-list-table tbody tr:nth-child(even):hover,
+.wp-list-table.campaigns tbody tr:nth-child(even):hover {
+	background: var(--scd-color-primary-alpha-10);
 }
 
-.wp-list-table .column-created {
-	width: 140px;
+/* Cell padding - refined vertical rhythm */
+.toplevel_page_scd-campaigns .wp-list-table td,
+.wp-list-table.campaigns td {
+	padding: var(--scd-padding-medium);
+	vertical-align: middle;
+	line-height: 1.5;
+	font-size: var(--scd-font-size-base);
+	max-height: 68px;
+	overflow: hidden;
+}
+
+/* First cell */
+.toplevel_page_scd-campaigns .wp-list-table td:first-child,
+.wp-list-table.campaigns td:first-child {
+	padding-left: 16px;
+}
+
+/* Campaign name cell - refined typography with text limiting */
+.toplevel_page_scd-campaigns .wp-list-table .column-name,
+.wp-list-table.campaigns .column-name {
+	font-weight: var(--scd-font-weight-medium);
+	max-height: 68px;
+	overflow: hidden;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+}
+
+.toplevel_page_scd-campaigns .wp-list-table .column-name .row-title,
+.wp-list-table.campaigns .column-name .row-title {
+	font-size: var(--scd-font-size-medium);
+	font-weight: var(--scd-font-weight-semibold);
+	color: var(--scd-color-text);
+	line-height: 1.5;
+	transition: color var(--scd-transition-fast) ease;
+	display: inline;
+}
+
+.toplevel_page_scd-campaigns .wp-list-table .column-name .row-title:hover,
+.wp-list-table.campaigns .column-name .row-title:hover {
+	color: var(--wp-admin-theme-color);
+}
+
+/* Name column wrapper - allow multi-line layout */
+.toplevel_page_scd-campaigns .wp-list-table .column-name strong,
+.wp-list-table.campaigns .column-name strong {
+	display: block;
+	line-height: 1.5;
+	margin-bottom: 2px;
+}
+
+/* Title on its own line */
+.toplevel_page_scd-campaigns .wp-list-table .column-name strong .row-title,
+.wp-list-table.campaigns .column-name strong .row-title {
+	display: inline;
+}
+
+.toplevel_page_scd-campaigns .wp-list-table .column-name .description,
+.wp-list-table.campaigns .column-name .description {
+	color: var(--scd-color-text-secondary);
+	font-size: var(--scd-font-size-small);
+	line-height: 1.45;
+	display: block;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Row actions - allow natural wrapping */
+.toplevel_page_scd-campaigns .wp-list-table .row-actions,
+.wp-list-table.campaigns .row-actions {
+	color: var(--scd-color-text-secondary);
+	font-size: var(--scd-font-size-small);
+	line-height: 1.6;
+	position: static;
+	padding: 0;
+	margin: var(--scd-spacing-xxs) 0 0 0;
+	visibility: hidden;
+	display: block;
+}
+
+/* Show row actions inline after title */
+.toplevel_page_scd-campaigns .wp-list-table .column-name,
+.wp-list-table.campaigns .column-name {
+	position: relative;
+}
+
+.toplevel_page_scd-campaigns .wp-list-table tr:hover .row-actions,
+.wp-list-table.campaigns tr:hover .row-actions {
+	visibility: visible;
+}
+
+.toplevel_page_scd-campaigns .wp-list-table .row-actions span,
+.wp-list-table.campaigns .row-actions span {
+	display: inline;
+}
+
+.toplevel_page_scd-campaigns .wp-list-table .row-actions a,
+.wp-list-table.campaigns .row-actions a {
+	text-decoration: none;
+}
+
+.toplevel_page_scd-campaigns .wp-list-table .row-actions a:hover,
+.wp-list-table.campaigns .row-actions a:hover {
+	/* Use default WordPress hover styling */
+}
+
+/* Status-based row highlighting - refined borders */
+.toplevel_page_scd-campaigns .wp-list-table tbody tr[data-status="active"],
+.wp-list-table.campaigns tbody tr[data-status="active"] {
+	border-left: 3px solid var(--wp-admin-theme-color);
+	padding-left: 0;
+}
+
+.toplevel_page_scd-campaigns .wp-list-table tbody tr[data-status="active"] td:first-child,
+.wp-list-table.campaigns tbody tr[data-status="active"] td:first-child {
+	padding-left: 13px;
+}
+
+.toplevel_page_scd-campaigns .wp-list-table tbody tr[data-status="expired"],
+.wp-list-table.campaigns tbody tr[data-status="expired"] {
+	opacity: 0.65;
+	background: var(--scd-color-surface);
+}
+
+.toplevel_page_scd-campaigns .wp-list-table tbody tr[data-status="expired"]:hover,
+.wp-list-table.campaigns tbody tr[data-status="expired"]:hover {
+	opacity: 0.8;
+	background: var(--scd-color-border-light);
+}
+
+.toplevel_page_scd-campaigns .wp-list-table tbody tr[data-status="draft"],
+.wp-list-table.campaigns tbody tr[data-status="draft"] {
+	border-left: 3px solid var(--scd-color-warning);
+	padding-left: 0;
+}
+
+.toplevel_page_scd-campaigns .wp-list-table tbody tr[data-status="draft"] td:first-child,
+.wp-list-table.campaigns tbody tr[data-status="draft"] td:first-child {
+	padding-left: 13px;
+}
+
+/* Text styling - refined hierarchy with text limiting */
+.toplevel_page_scd-campaigns .wp-list-table td strong,
+.wp-list-table.campaigns td strong {
+	color: var(--scd-color-text);
+	font-weight: var(--scd-font-weight-semibold);
+	font-size: var(--scd-font-size-base);
+}
+
+/* Exception for name column - handled separately */
+.toplevel_page_scd-campaigns .wp-list-table .column-name strong,
+.wp-list-table.campaigns .column-name strong {
+	color: var(--scd-color-text);
+}
+
+.toplevel_page_scd-campaigns .wp-list-table td small,
+.wp-list-table.campaigns td small {
+	color: var(--scd-color-text-secondary);
+	font-size: var(--scd-font-size-small);
+	line-height: 1.5;
+	display: block;
+	margin-top: 2px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Checkbox column - optimized */
+.toplevel_page_scd-campaigns .wp-list-table .check-column,
+.wp-list-table.campaigns .check-column {
+	padding: var(--scd-padding-medium) 8px 12px 16px;
+	width: 2.2em;
+}
+
+.toplevel_page_scd-campaigns .wp-list-table .check-column input[type="checkbox"],
+.wp-list-table.campaigns .check-column input[type="checkbox"] {
+	margin: 0;
+	vertical-align: middle;
 }
 
 /* ==========================================================================
-   Responsive Adjustments
+   Table Column Widths - Equalized
+   ========================================================================== */
+
+/* Use table-layout fixed for equal column distribution */
+.toplevel_page_scd-campaigns .wp-list-table,
+.wp-list-table.campaigns {
+	table-layout: fixed;
+	width: 100%;
+}
+
+/* Checkbox column - fixed small width */
+.toplevel_page_scd-campaigns .wp-list-table .column-cb,
+.wp-list-table.campaigns .column-cb {
+	width: 40px;
+	vertical-align: middle;
+}
+
+/* Name column - larger for primary content */
+.toplevel_page_scd-campaigns .wp-list-table .column-name,
+.wp-list-table.campaigns .column-name {
+	width: 30%;
+	min-width: 200px;
+	vertical-align: middle;
+}
+
+/* Status column - medium width, left aligned */
+.toplevel_page_scd-campaigns .wp-list-table .column-status,
+.wp-list-table.campaigns .column-status {
+	width: 12%;
+	min-width: 100px;
+	text-align: left;
+	vertical-align: middle;
+	padding-left: 8px !important;
+	padding-right: 8px !important;
+}
+
+/* Schedule column - medium width, left aligned */
+.toplevel_page_scd-campaigns .wp-list-table .column-schedule,
+.wp-list-table.campaigns .column-schedule {
+	width: 18%;
+	min-width: 140px;
+	text-align: left;
+	vertical-align: middle;
+	overflow: hidden;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+}
+
+/* Health column - compact, left aligned */
+.toplevel_page_scd-campaigns .wp-list-table .column-health,
+.wp-list-table.campaigns .column-health {
+	width: 12%;
+	min-width: 100px;
+	text-align: left;
+	vertical-align: middle;
+	padding-left: 8px !important;
+	padding-right: 8px !important;
+}
+
+/* Actions column - wider for icon buttons */
+.toplevel_page_scd-campaigns .wp-list-table .column-actions,
+.wp-list-table.campaigns .column-actions {
+	width: 28%;
+	min-width: 220px;
+	text-align: end;
+	vertical-align: middle;
+	padding-right: 12px !important;
+}
+
+/* ==========================================================================
+   Responsive Adjustments - Optimized
    ========================================================================== */
 
 @media screen and (max-width: 1280px) {
-	.wp-list-table .column-created {
+	/* Hide schedule column on smaller screens */
+	.toplevel_page_scd-campaigns .wp-list-table .column-schedule,
+	.wp-list-table.campaigns .column-schedule {
 		display: none;
+	}
+
+	/* Redistribute widths */
+	.toplevel_page_scd-campaigns .wp-list-table .column-name,
+	.wp-list-table.campaigns .column-name {
+		width: 35%;
+	}
+
+	.toplevel_page_scd-campaigns .wp-list-table .column-status,
+	.wp-list-table.campaigns .column-status {
+		width: 18%;
+	}
+
+	.toplevel_page_scd-campaigns .wp-list-table .column-health,
+	.wp-list-table.campaigns .column-health {
+		width: 15%;
+	}
+
+	.toplevel_page_scd-campaigns .wp-list-table .column-actions,
+	.wp-list-table.campaigns .column-actions {
+		width: 32%;
 	}
 }
 
-@media screen and (max-width: 1024px) {
-	.wp-list-table .column-performance {
-		display: none;
+
+/* Badge alignment in cells */
+.wp-list-table td .scd-priority-badge,
+.wp-list-table td .scd-health-indicator {
+	vertical-align: middle;
+}
+
+/* Recurring badges alignment */
+.scd-recurring-badge {
+	display: inline-block;
+	padding: var(--scd-spacing-xxs) 6px;
+	margin-left: var(--scd-spacing-xs);
+	border-radius: var(--scd-radius-sm);
+	font-size: var(--scd-font-size-small);
+	line-height: 1.4;
+	vertical-align: middle;
+	white-space: nowrap;
+	max-width: 120px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* Keep description visible even without hover */
+.toplevel_page_scd-campaigns .wp-list-table .column-name .description,
+.wp-list-table.campaigns .column-name .description {
+	opacity: 1;
+}
+
+/* ==========================================================================
+   Expandable Row Styles
+   ========================================================================== */
+
+/* Row expansion state */
+.wp-list-table.campaigns tbody tr {
+	cursor: pointer;
+	transition: background-color var(--scd-transition-base);
+}
+
+	.scd-actions-section .button {
+		text-align: center;
 	}
 }
 
+/* ==========================================================================
+   Actions Column
+   ========================================================================== */
+
+.scd-actions-column {
+	display: flex;
+	gap: var(--scd-spacing-xs);
+	align-items: center;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+}
+
+/* Responsive: Stack buttons vertically on mobile */
 @media screen and (max-width: 782px) {
-	.wp-list-table .column-priority,
-	.wp-list-table .column-health {
-		display: none;
-	}
-
-	.scd-health-indicator,
-	.scd-priority-badge {
-		font-size: 12px;
-		padding: 3px 6px;
+	.scd-actions-column {
+		gap: var(--scd-spacing-sm);
+		flex-wrap: wrap;
+		justify-content: flex-start;
 	}
 }

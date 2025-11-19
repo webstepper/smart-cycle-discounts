@@ -100,11 +100,11 @@ class SCD_Products_Step_Validator {
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
 
 			if ( in_array( $operator, array( 'between', 'not_between' ), true ) ) {
-				$val1 = floatval( isset( $condition['values'][0] ) ? $condition['values'][0] : 0 );
-				$val2 = floatval( isset( $condition['values'][1] ) ? $condition['values'][1] : 0 );
+				$val1 = floatval( isset( $condition['value'] ) ? $condition['value'] : 0 );
+				$val2 = floatval( isset( $condition['value2'] ) ? $condition['value2'] : 0 );
 
 				if ( $val1 > $val2 ) {
-					$property = isset( $condition['property'] ) ? $condition['property'] : '';
+					$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 					$errors->add(
 						'filter_between_inverted_range',
 						sprintf(
@@ -122,9 +122,9 @@ class SCD_Products_Step_Validator {
 		// Validation 2: Same property with different equals values
 		$property_equals_map = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'equals' === $operator && ! empty( $property ) ) {
 				if ( isset( $property_equals_map[ $property ] ) && $property_equals_map[ $property ] !== $value ) {
@@ -146,7 +146,7 @@ class SCD_Products_Step_Validator {
 		// Validation 3: Contradictory numeric ranges (price < 10 AND price > 20)
 		$numeric_ranges_full = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
 
 			if ( ! in_array( $property, $numeric_properties, true ) ) {
@@ -160,7 +160,7 @@ class SCD_Products_Step_Validator {
 				);
 			}
 
-			$value = floatval( isset( $condition['values'][0] ) ? $condition['values'][0] : 0 );
+			$value = floatval( isset( $condition['value'] ) ? $condition['value'] : 0 );
 
 			if ( 'greater_than' === $operator ) {
 				$numeric_ranges_full[ $property ]['min'] = max( $numeric_ranges_full[ $property ]['min'], $value + 0.01 );
@@ -171,7 +171,7 @@ class SCD_Products_Step_Validator {
 			} elseif ( 'less_than_equal' === $operator ) {
 				$numeric_ranges_full[ $property ]['max'] = min( $numeric_ranges_full[ $property ]['max'], $value );
 			} elseif ( 'between' === $operator ) {
-				$value2 = floatval( isset( $condition['values'][1] ) ? $condition['values'][1] : 0 );
+				$value2 = floatval( isset( $condition['value2'] ) ? $condition['value2'] : 0 );
 				$numeric_ranges_full[ $property ]['min'] = max( $numeric_ranges_full[ $property ]['min'], min( $value, $value2 ) );
 				$numeric_ranges_full[ $property ]['max'] = min( $numeric_ranges_full[ $property ]['max'], max( $value, $value2 ) );
 			}
@@ -195,9 +195,9 @@ class SCD_Products_Step_Validator {
 		// Validation 4: Include/exclude same condition
 		$condition_signatures = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 			$mode     = isset( $condition['mode'] ) ? $condition['mode'] : 'include';
 
 			$signature = $property . '_' . $operator . '_' . $value;
@@ -220,12 +220,12 @@ class SCD_Products_Step_Validator {
 		// Validation 6: Non-overlapping BETWEEN ranges
 		$between_ranges = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
 
 			if ( 'between' === $operator && ! empty( $property ) ) {
-				$val1 = floatval( isset( $condition['values'][0] ) ? $condition['values'][0] : 0 );
-				$val2 = floatval( isset( $condition['values'][1] ) ? $condition['values'][1] : 0 );
+				$val1 = floatval( isset( $condition['value'] ) ? $condition['value'] : 0 );
+				$val2 = floatval( isset( $condition['value2'] ) ? $condition['value2'] : 0 );
 
 				if ( ! isset( $between_ranges[ $property ] ) ) {
 					$between_ranges[ $property ] = array();
@@ -269,14 +269,14 @@ class SCD_Products_Step_Validator {
 		$range_constraints = array();
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
 
 			if ( ! in_array( $property, $numeric_properties, true ) ) {
 				continue;
 			}
 
-			$value = floatval( isset( $condition['values'][0] ) ? $condition['values'][0] : 0 );
+			$value = floatval( isset( $condition['value'] ) ? $condition['value'] : 0 );
 
 			if ( 'equals' === $operator ) {
 				if ( ! isset( $equals_values[ $property ] ) ) {
@@ -300,7 +300,7 @@ class SCD_Products_Step_Validator {
 				} elseif ( 'less_than_equal' === $operator ) {
 					$range_constraints[ $property ]['max'] = min( $range_constraints[ $property ]['max'], $value );
 				} elseif ( 'between' === $operator ) {
-					$value2 = floatval( isset( $condition['values'][1] ) ? $condition['values'][1] : 0 );
+					$value2 = floatval( isset( $condition['value2'] ) ? $condition['value2'] : 0 );
 					$range_constraints[ $property ]['min'] = max( $range_constraints[ $property ]['min'], min( $value, $value2 ) );
 					$range_constraints[ $property ]['max'] = min( $range_constraints[ $property ]['max'], max( $value, $value2 ) );
 				}
@@ -333,14 +333,14 @@ class SCD_Products_Step_Validator {
 		$lte_values = array();
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
 
 			if ( ! in_array( $property, $numeric_properties, true ) ) {
 				continue;
 			}
 
-			$value = floatval( isset( $condition['values'][0] ) ? $condition['values'][0] : 0 );
+			$value = floatval( isset( $condition['value'] ) ? $condition['value'] : 0 );
 
 			if ( 'greater_than_equal' === $operator ) {
 				if ( ! isset( $gte_values[ $property ] ) ) {
@@ -377,14 +377,14 @@ class SCD_Products_Step_Validator {
 
 		// Validation 9: Negative values for positive-only properties
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
 
 			if ( ! in_array( $property, $positive_properties, true ) ) {
 				continue;
 			}
 
-			$value = floatval( isset( $condition['values'][0] ) ? $condition['values'][0] : 0 );
+			$value = floatval( isset( $condition['value'] ) ? $condition['value'] : 0 );
 
 			if ( in_array( $operator, array( 'equals', 'less_than', 'less_than_equal' ), true ) && $value < 0 ) {
 				$errors->add(
@@ -403,7 +403,7 @@ class SCD_Products_Step_Validator {
 		$regular_conditions = array();
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 
 			if ( 'sale_price' === $property ) {
 				$sale_conditions[] = $condition;
@@ -414,11 +414,11 @@ class SCD_Products_Step_Validator {
 
 		foreach ( $sale_conditions as $sale_cond ) {
 			$sale_op  = isset( $sale_cond['operator'] ) ? $sale_cond['operator'] : '';
-			$sale_val = floatval( isset( $sale_cond['values'][0] ) ? $sale_cond['values'][0] : 0 );
+			$sale_val = floatval( isset( $sale_cond['value'] ) ? $sale_cond['value'] : 0 );
 
 			foreach ( $regular_conditions as $reg_cond ) {
 				$reg_op  = isset( $reg_cond['operator'] ) ? $reg_cond['operator'] : '';
-				$reg_val = floatval( isset( $reg_cond['values'][0] ) ? $reg_cond['values'][0] : 0 );
+				$reg_val = floatval( isset( $reg_cond['value'] ) ? $reg_cond['value'] : 0 );
 
 				// Sale price greater than regular price violation
 				if ( in_array( $sale_op, array( 'greater_than', 'greater_than_equal' ), true ) &&
@@ -441,14 +441,14 @@ class SCD_Products_Step_Validator {
 		// Validation 12: Date range contradictions
 		$date_ranges = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
 
 			if ( ! in_array( $property, array( 'date_created', 'date_modified' ), true ) ) {
 				continue;
 			}
 
-			$value = isset( $condition['values'][0] ) ? strtotime( $condition['values'][0] ) : false;
+			$value = isset( $condition['value'] ) ? strtotime( $condition['value'] ) : false;
 
 			if ( ! $value ) {
 				continue;
@@ -466,7 +466,7 @@ class SCD_Products_Step_Validator {
 			} elseif ( in_array( $operator, array( 'less_than', 'less_than_equal' ), true ) ) {
 				$date_ranges[ $property ]['max'] = min( $date_ranges[ $property ]['max'], $value );
 			} elseif ( 'between' === $operator ) {
-				$value2 = isset( $condition['values'][1] ) ? strtotime( $condition['values'][1] ) : false;
+				$value2 = isset( $condition['value2'] ) ? strtotime( $condition['value2'] ) : false;
 				if ( $value2 ) {
 					$date_ranges[ $property ]['min'] = max( $date_ranges[ $property ]['min'], $value );
 					$date_ranges[ $property ]['max'] = min( $date_ranges[ $property ]['max'], $value2 );
@@ -495,9 +495,9 @@ class SCD_Products_Step_Validator {
 		// Validation 13: Text pattern conflicts (equals vs starts_with)
 		$text_patterns = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( in_array( $operator, array( 'equals', 'starts_with', 'ends_with' ), true ) && ! empty( $property ) && ! empty( $value ) ) {
 				if ( ! isset( $text_patterns[ $property ] ) ) {
@@ -544,14 +544,14 @@ class SCD_Products_Step_Validator {
 		$boolean_properties = array( 'featured', 'on_sale', 'virtual', 'downloadable' );
 		$boolean_values     = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
 
 			if ( ! in_array( $property, $boolean_properties, true ) || 'equals' !== $operator ) {
 				continue;
 			}
 
-			$value = isset( $condition['values'][0] ) ? intval( $condition['values'][0] ) : 0;
+			$value = isset( $condition['value'] ) ? intval( $condition['value'] ) : 0;
 
 			if ( ! isset( $boolean_values[ $property ] ) ) {
 				$boolean_values[ $property ] = array();
@@ -577,9 +577,10 @@ class SCD_Products_Step_Validator {
 		// Validation 15: IN/NOT_IN complete negation (type IN [simple, variable] AND type NOT_IN [simple, variable, grouped])
 		$in_not_in_checks = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$values   = isset( $condition['values'] ) ? $condition['values'] : array();
+			$value_str = isset( $condition['value'] ) ? $condition['value'] : '';
+		$values    = ! empty( $value_str ) ? array_map( 'trim', explode( ',', $value_str ) ) : array();
 
 			if ( ! in_array( $operator, array( 'in', 'not_in' ), true ) || empty( $property ) || empty( $values ) ) {
 				continue;
@@ -627,9 +628,10 @@ class SCD_Products_Step_Validator {
 
 		$enum_exclusions = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$values   = isset( $condition['values'] ) ? $condition['values'] : array();
+			$value_str = isset( $condition['value'] ) ? $condition['value'] : '';
+		$values    = ! empty( $value_str ) ? array_map( 'trim', explode( ',', $value_str ) ) : array();
 
 			if ( ! isset( $enum_definitions[ $property ] ) ) {
 				continue;
@@ -639,8 +641,8 @@ class SCD_Products_Step_Validator {
 				$enum_exclusions[ $property ] = array();
 			}
 
-			if ( 'not_equals' === $operator && ! empty( $values[0] ) ) {
-				$enum_exclusions[ $property ][] = $values[0];
+			if ( 'not_equals' === $operator && ! empty( $value_str ) ) {
+				$enum_exclusions[ $property ][] = $value_str;
 			} elseif ( 'not_in' === $operator ) {
 				$enum_exclusions[ $property ] = array_merge( $enum_exclusions[ $property ], $values );
 			}
@@ -667,15 +669,15 @@ class SCD_Products_Step_Validator {
 		// Validation 17: NOT_BETWEEN overlapping coverage creating impossible range
 		$not_between_ranges = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
 
 			if ( 'not_between' !== $operator || ! in_array( $property, $numeric_properties, true ) ) {
 				continue;
 			}
 
-			$value1 = floatval( isset( $condition['values'][0] ) ? $condition['values'][0] : 0 );
-			$value2 = floatval( isset( $condition['values'][1] ) ? $condition['values'][1] : 0 );
+			$value1 = floatval( isset( $condition['value'] ) ? $condition['value'] : 0 );
+			$value2 = floatval( isset( $condition['value2'] ) ? $condition['value2'] : 0 );
 
 			if ( ! isset( $not_between_ranges[ $property ] ) ) {
 				$not_between_ranges[ $property ] = array();
@@ -729,18 +731,18 @@ class SCD_Products_Step_Validator {
 		$date_modified_max = null;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
 
 			if ( 'date_created' === $property ) {
-				$value = isset( $condition['values'][0] ) ? strtotime( $condition['values'][0] ) : false;
+				$value = isset( $condition['value'] ) ? strtotime( $condition['value'] ) : false;
 				if ( $value && in_array( $operator, array( 'greater_than', 'greater_than_equal' ), true ) ) {
 					if ( null === $date_created_min || $value > $date_created_min ) {
 						$date_created_min = $value;
 					}
 				}
 			} elseif ( 'date_modified' === $property ) {
-				$value = isset( $condition['values'][0] ) ? strtotime( $condition['values'][0] ) : false;
+				$value = isset( $condition['value'] ) ? strtotime( $condition['value'] ) : false;
 				if ( $value && in_array( $operator, array( 'less_than', 'less_than_equal' ), true ) ) {
 					if ( null === $date_modified_max || $value < $date_modified_max ) {
 						$date_modified_max = $value;
@@ -766,9 +768,9 @@ class SCD_Products_Step_Validator {
 		$physical_properties_required = array();
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : null;
+			$value    = isset( $condition['value'] ) ? $condition['value'] : null;
 
 			// Check if virtual = true is required
 			if ( 'virtual' === $property && 'equals' === $operator && 1 === intval( $value ) ) {
@@ -802,9 +804,10 @@ class SCD_Products_Step_Validator {
 		// Validation 20: EQUALS with NOT_IN containing that value (property = X AND property NOT_IN [X, Y, Z])
 		$equals_not_in_checks = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$values   = isset( $condition['values'] ) ? $condition['values'] : array();
+			$value_str = isset( $condition['value'] ) ? $condition['value'] : '';
+		$values    = ! empty( $value_str ) ? array_map( 'trim', explode( ',', $value_str ) ) : array();
 
 			if ( empty( $property ) ) {
 				continue;
@@ -817,8 +820,8 @@ class SCD_Products_Step_Validator {
 				);
 			}
 
-			if ( 'equals' === $operator && ! empty( $values[0] ) ) {
-				$equals_not_in_checks[ $property ]['equals'][] = $values[0];
+			if ( 'equals' === $operator && ! empty( $value_str ) ) {
+				$equals_not_in_checks[ $property ]['equals'][] = $value_str;
 			} elseif ( 'not_in' === $operator && ! empty( $values ) ) {
 				$equals_not_in_checks[ $property ]['not_in'] = array_merge( $equals_not_in_checks[ $property ]['not_in'], $values );
 			}
@@ -846,15 +849,15 @@ class SCD_Products_Step_Validator {
 		// Validation 21: Rating bounds violation (ratings are 0-5 scale in WooCommerce)
 		$rating_properties = array( 'average_rating', 'rating' );
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
 
 			if ( ! in_array( $property, $rating_properties, true ) ) {
 				continue;
 			}
 
-			$value1 = floatval( isset( $condition['values'][0] ) ? $condition['values'][0] : 0 );
-			$value2 = floatval( isset( $condition['values'][1] ) ? $condition['values'][1] : 0 );
+			$value1 = floatval( isset( $condition['value'] ) ? $condition['value'] : 0 );
+			$value2 = floatval( isset( $condition['value2'] ) ? $condition['value2'] : 0 );
 
 			// Check for values outside 0-5 range
 			if ( in_array( $operator, array( 'equals', 'greater_than', 'greater_than_equal' ), true ) ) {
@@ -906,9 +909,9 @@ class SCD_Products_Step_Validator {
 		$stock_quantity_constraints = array();
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : null;
+			$value    = isset( $condition['value'] ) ? $condition['value'] : null;
 
 			if ( 'stock_status' === $property && 'equals' === $operator ) {
 				$stock_status_value = $value;
@@ -965,9 +968,9 @@ class SCD_Products_Step_Validator {
 		// Validation 23: Text EQUALS with incompatible text operators (equals 'X' but contains/starts_with/ends_with 'Y')
 		$text_equals_checks = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( empty( $property ) || empty( $value ) ) {
 				continue;
@@ -1053,7 +1056,7 @@ class SCD_Products_Step_Validator {
 		// Validation 24: EQUALS with NOT_BETWEEN excluding the equals value
 		$equals_not_between_checks = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
 
 			if ( ! in_array( $property, $numeric_properties, true ) || empty( $property ) ) {
@@ -1068,11 +1071,11 @@ class SCD_Products_Step_Validator {
 			}
 
 			if ( 'equals' === $operator ) {
-				$value = floatval( isset( $condition['values'][0] ) ? $condition['values'][0] : 0 );
+				$value = floatval( isset( $condition['value'] ) ? $condition['value'] : 0 );
 				$equals_not_between_checks[ $property ]['equals'][] = $value;
 			} elseif ( 'not_between' === $operator ) {
-				$value1 = floatval( isset( $condition['values'][0] ) ? $condition['values'][0] : 0 );
-				$value2 = floatval( isset( $condition['values'][1] ) ? $condition['values'][1] : 0 );
+				$value1 = floatval( isset( $condition['value'] ) ? $condition['value'] : 0 );
+				$value2 = floatval( isset( $condition['value2'] ) ? $condition['value2'] : 0 );
 				$equals_not_between_checks[ $property ]['not_between'][] = array(
 					'min' => min( $value1, $value2 ),
 					'max' => max( $value1, $value2 ),
@@ -1110,9 +1113,9 @@ class SCD_Products_Step_Validator {
 		$stock_quantity_min     = null;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? floatval( $condition['values'][0] ) : 0;
+			$value    = isset( $condition['value'] ) ? floatval( $condition['value'] ) : 0;
 
 			if ( 'low_stock_amount' === $property && 'equals' === $operator ) {
 				$low_stock_amount_value = $value;
@@ -1142,10 +1145,11 @@ class SCD_Products_Step_Validator {
 		// Validation 26: IN operator with empty array
 		foreach ( $conditions as $condition ) {
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$values   = isset( $condition['values'] ) ? $condition['values'] : array();
+			$value_str = isset( $condition['value'] ) ? $condition['value'] : '';
+		$values    = ! empty( $value_str ) ? array_map( 'trim', explode( ',', $value_str ) ) : array();
 
 			if ( 'in' === $operator && empty( $values ) ) {
-				$property = isset( $condition['property'] ) ? $condition['property'] : '';
+				$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 				$errors->add(
 					'filter_in_empty_array',
 					sprintf(
@@ -1160,9 +1164,9 @@ class SCD_Products_Step_Validator {
 		// Validation 27: Multiple NOT_EQUALS exhausting all enum values
 		$not_equals_values = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'not_equals' === $operator && ! empty( $property ) && ! empty( $value ) ) {
 				if ( ! isset( $not_equals_values[ $property ] ) ) {
@@ -1201,9 +1205,9 @@ class SCD_Products_Step_Validator {
 		// Validation 28: Multiple STARTS_WITH conflicts
 		$starts_with_values = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'starts_with' === $operator && ! empty( $property ) && ! empty( $value ) ) {
 				if ( ! isset( $starts_with_values[ $property ] ) ) {
@@ -1245,9 +1249,9 @@ class SCD_Products_Step_Validator {
 		// Validation 29: Multiple ENDS_WITH conflicts
 		$ends_with_values = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'ends_with' === $operator && ! empty( $property ) && ! empty( $value ) ) {
 				if ( ! isset( $ends_with_values[ $property ] ) ) {
@@ -1297,9 +1301,9 @@ class SCD_Products_Step_Validator {
 		$sale_price_constraints = array();
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : null;
+			$value    = isset( $condition['value'] ) ? $condition['value'] : null;
 
 			if ( 'on_sale' === $property && 'equals' === $operator ) {
 				$on_sale_status = intval( $value );
@@ -1346,9 +1350,9 @@ class SCD_Products_Step_Validator {
 		$physical_properties = array();
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : null;
+			$value    = isset( $condition['value'] ) ? $condition['value'] : null;
 
 			if ( 'downloadable' === $property && 'equals' === $operator ) {
 				$downloadable_status = intval( $value );
@@ -1377,11 +1381,11 @@ class SCD_Products_Step_Validator {
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
 
 			if ( 'between' === $operator ) {
-				$value1 = floatval( isset( $condition['values'][0] ) ? $condition['values'][0] : 0 );
-				$value2 = floatval( isset( $condition['values'][1] ) ? $condition['values'][1] : 0 );
+				$value1 = floatval( isset( $condition['value'] ) ? $condition['value'] : 0 );
+				$value2 = floatval( isset( $condition['value2'] ) ? $condition['value2'] : 0 );
 
 				if ( $value1 === $value2 ) {
-					$property = isset( $condition['property'] ) ? $condition['property'] : '';
+					$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 					$errors->add(
 						'filter_between_identical_values',
 						sprintf(
@@ -1400,9 +1404,9 @@ class SCD_Products_Step_Validator {
 		$rating_constraints       = array();
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? floatval( $condition['values'][0] ) : 0;
+			$value    = isset( $condition['value'] ) ? floatval( $condition['value'] ) : 0;
 
 			if ( 'review_count' === $property ) {
 				$review_count_constraints[] = array(
@@ -1449,7 +1453,7 @@ class SCD_Products_Step_Validator {
 
 		// Validation 34: Negative BETWEEN ranges for positive properties
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
 
 			if ( ! in_array( $property, $positive_properties, true ) ) {
@@ -1457,8 +1461,8 @@ class SCD_Products_Step_Validator {
 			}
 
 			if ( 'between' === $operator ) {
-				$value1 = floatval( isset( $condition['values'][0] ) ? $condition['values'][0] : 0 );
-				$value2 = floatval( isset( $condition['values'][1] ) ? $condition['values'][1] : 0 );
+				$value1 = floatval( isset( $condition['value'] ) ? $condition['value'] : 0 );
+				$value2 = floatval( isset( $condition['value2'] ) ? $condition['value2'] : 0 );
 
 				$min_val = min( $value1, $value2 );
 				$max_val = max( $value1, $value2 );
@@ -1481,9 +1485,9 @@ class SCD_Products_Step_Validator {
 		// Validation 35: CONTAINS substring conflicts
 		$contains_values = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'contains' === $operator && ! empty( $property ) && ! empty( $value ) ) {
 				if ( ! isset( $contains_values[ $property ] ) ) {
@@ -1517,9 +1521,10 @@ class SCD_Products_Step_Validator {
 		// Validation 36: Multiple IN operations with no overlap
 		$in_operations = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$values   = isset( $condition['values'] ) ? $condition['values'] : array();
+			$value_str = isset( $condition['value'] ) ? $condition['value'] : '';
+		$values    = ! empty( $value_str ) ? array_map( 'trim', explode( ',', $value_str ) ) : array();
 
 			if ( 'in' === $operator && ! empty( $property ) && ! empty( $values ) ) {
 				if ( ! isset( $in_operations[ $property ] ) ) {
@@ -1561,9 +1566,9 @@ class SCD_Products_Step_Validator {
 		// Validation 37: NOT_CONTAINS conflicting with CONTAINS (substring containment)
 		$text_contains_not_contains = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( in_array( $operator, array( 'contains', 'not_contains' ), true ) && ! empty( $property ) && ! empty( $value ) ) {
 				if ( ! isset( $text_contains_not_contains[ $property ] ) ) {
@@ -1604,9 +1609,9 @@ class SCD_Products_Step_Validator {
 		// Validation 38: STARTS_WITH + ENDS_WITH combined length impossibility
 		$starts_ends_combined = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( in_array( $operator, array( 'starts_with', 'ends_with' ), true ) && ! empty( $property ) && ! empty( $value ) ) {
 				if ( ! isset( $starts_ends_combined[ $property ] ) ) {
@@ -1679,9 +1684,9 @@ class SCD_Products_Step_Validator {
 		$shipping_required = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : null;
+			$value    = isset( $condition['value'] ) ? $condition['value'] : null;
 
 			if ( 'virtual' === $property && 'equals' === $operator && 1 === intval( $value ) ) {
 				$virtual_required = true;
@@ -1707,10 +1712,11 @@ class SCD_Products_Step_Validator {
 		$external_url_required = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : null;
-			$values   = isset( $condition['values'] ) ? $condition['values'] : array();
+			$value    = isset( $condition['value'] ) ? $condition['value'] : null;
+			$value_str = isset( $condition['value'] ) ? $condition['value'] : '';
+		$values    = ! empty( $value_str ) ? array_map( 'trim', explode( ',', $value_str ) ) : array();
 
 			if ( 'product_type' === $property ) {
 				if ( 'equals' === $operator && 'external' === $value ) {
@@ -1740,9 +1746,9 @@ class SCD_Products_Step_Validator {
 		$date_created_min = null;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : null;
+			$value    = isset( $condition['value'] ) ? $condition['value'] : null;
 
 			if ( 'total_sales' === $property ) {
 				if ( in_array( $operator, array( 'greater_than', 'greater_than_equal' ), true ) ) {
@@ -1782,9 +1788,9 @@ class SCD_Products_Step_Validator {
 		$backorders_value = null;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : null;
+			$value    = isset( $condition['value'] ) ? $condition['value'] : null;
 
 			if ( 'stock_status' === $property && 'equals' === $operator ) {
 				$stock_status_value = $value;
@@ -1804,9 +1810,9 @@ class SCD_Products_Step_Validator {
 		// Validation 44: Catalog visibility contradictions
 		$visibility_values = array();
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'catalog_visibility' === $property && 'equals' === $operator && ! empty( $value ) ) {
 				$visibility_values[] = $value;
@@ -1831,9 +1837,9 @@ class SCD_Products_Step_Validator {
 		$visibility_hidden = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : null;
+			$value    = isset( $condition['value'] ) ? $condition['value'] : null;
 
 			if ( 'featured' === $property && 'equals' === $operator && 1 === intval( $value ) ) {
 				$featured_required = true;
@@ -1856,9 +1862,9 @@ class SCD_Products_Step_Validator {
 		$stock_fields_required = array();
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : null;
+			$value    = isset( $condition['value'] ) ? $condition['value'] : null;
 
 			if ( 'manage_stock' === $property && 'equals' === $operator && 0 === intval( $value ) ) {
 				$manage_stock_disabled = true;
@@ -1888,9 +1894,9 @@ class SCD_Products_Step_Validator {
 		$max_purchase_quantity = null;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? floatval( $condition['values'][0] ) : 0;
+			$value    = isset( $condition['value'] ) ? floatval( $condition['value'] ) : 0;
 
 			if ( 'min_purchase_quantity' === $property ) {
 				if ( in_array( $operator, array( 'equals', 'greater_than', 'greater_than_equal' ), true ) ) {
@@ -1924,9 +1930,9 @@ class SCD_Products_Step_Validator {
 		$tax_class_specified = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : null;
+			$value    = isset( $condition['value'] ) ? $condition['value'] : null;
 
 			if ( 'tax_status' === $property && 'equals' === $operator && 'none' === $value ) {
 				$tax_status_none = true;
@@ -1951,9 +1957,9 @@ class SCD_Products_Step_Validator {
 		$weight_zero_or_empty = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? floatval( $condition['values'][0] ) : 0;
+			$value    = isset( $condition['value'] ) ? floatval( $condition['value'] ) : 0;
 
 			// Check for dimension requirements
 			if ( in_array( $property, array( 'length', 'width', 'height' ), true ) ) {
@@ -1986,10 +1992,11 @@ class SCD_Products_Step_Validator {
 		$simple_only_fields = array();
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : null;
-			$values   = isset( $condition['values'] ) ? $condition['values'] : array();
+			$value    = isset( $condition['value'] ) ? $condition['value'] : null;
+			$value_str = isset( $condition['value'] ) ? $condition['value'] : '';
+		$values    = ! empty( $value_str ) ? array_map( 'trim', explode( ',', $value_str ) ) : array();
 
 			if ( 'product_type' === $property ) {
 				if ( 'equals' === $operator && 'variable' === $value ) {
@@ -2019,10 +2026,10 @@ class SCD_Products_Step_Validator {
 		// Validation 51: NOT_EQUALS with empty value (always true)
 		foreach ( $conditions as $condition ) {
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : null;
+			$value    = isset( $condition['value'] ) ? $condition['value'] : null;
 
 			if ( 'not_equals' === $operator && ( '' === $value || null === $value ) ) {
-				$property = isset( $condition['property'] ) ? $condition['property'] : '';
+				$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 				$errors->add(
 					'filter_not_equals_empty',
 					sprintf(
@@ -2036,9 +2043,9 @@ class SCD_Products_Step_Validator {
 
 		// Validation 52: EQUALS with empty string for required fields
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : null;
+			$value    = isset( $condition['value'] ) ? $condition['value'] : null;
 
 			// Check for equals empty on fields that typically shouldn't be empty
 			if ( 'equals' === $operator && '' === $value ) {
@@ -2061,10 +2068,11 @@ class SCD_Products_Step_Validator {
 		$price_constraints_specified = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : null;
-			$values   = isset( $condition['values'] ) ? $condition['values'] : array();
+			$value    = isset( $condition['value'] ) ? $condition['value'] : null;
+			$value_str = isset( $condition['value'] ) ? $condition['value'] : '';
+		$values    = ! empty( $value_str ) ? array_map( 'trim', explode( ',', $value_str ) ) : array();
 
 			if ( 'product_type' === $property ) {
 				if ( 'equals' === $operator && 'grouped' === $value ) {
@@ -2094,9 +2102,9 @@ class SCD_Products_Step_Validator {
 		$rating_required = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : null;
+			$value    = isset( $condition['value'] ) ? $condition['value'] : null;
 
 			if ( 'reviews_allowed' === $property && 'equals' === $operator && 0 === intval( $value ) ) {
 				$reviews_disabled = true;
@@ -2119,10 +2127,11 @@ class SCD_Products_Step_Validator {
 		// Validation 56: NOT_IN with empty array (matches all products - always true)
 		foreach ( $conditions as $condition ) {
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$values   = isset( $condition['values'] ) ? $condition['values'] : array();
+			$value_str = isset( $condition['value'] ) ? $condition['value'] : '';
+		$values    = ! empty( $value_str ) ? array_map( 'trim', explode( ',', $value_str ) ) : array();
 
 			if ( 'not_in' === $operator && empty( $values ) ) {
-				$property = isset( $condition['property'] ) ? $condition['property'] : '';
+				$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 				$errors->add(
 					'filter_not_in_empty_array',
 					sprintf(
@@ -2137,9 +2146,9 @@ class SCD_Products_Step_Validator {
 		// Validation 57: Date in future (created/modified after current time)
 		$current_time = current_time( 'timestamp' );
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : null;
+			$value    = isset( $condition['value'] ) ? $condition['value'] : null;
 
 			if ( in_array( $property, array( 'date_created', 'date_modified' ), true ) ) {
 				$timestamp = strtotime( $value );
@@ -2158,7 +2167,7 @@ class SCD_Products_Step_Validator {
 							);
 						}
 					} elseif ( 'between' === $operator ) {
-						$value2 = isset( $condition['values'][1] ) ? $condition['values'][1] : null;
+						$value2 = isset( $condition['value2'] ) ? $condition['value2'] : null;
 						$timestamp2 = strtotime( $value2 );
 						if ( $timestamp2 && $timestamp2 > $current_time ) {
 							$errors->add(
@@ -2178,9 +2187,9 @@ class SCD_Products_Step_Validator {
 
 		// Validation 58: Negative stock quantity (WooCommerce doesn't allow negative stock)
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? floatval( $condition['values'][0] ) : 0;
+			$value    = isset( $condition['value'] ) ? floatval( $condition['value'] ) : 0;
 
 			if ( 'stock_quantity' === $property ) {
 				if ( 'equals' === $operator && $value < 0 ) {
@@ -2198,7 +2207,7 @@ class SCD_Products_Step_Validator {
 						__( 'Filter condition requires stock quantity less than zero. WooCommerce does not support negative stock quantities.', 'smart-cycle-discounts' )
 					);
 				} elseif ( 'between' === $operator ) {
-					$value2 = isset( $condition['values'][1] ) ? floatval( $condition['values'][1] ) : 0;
+					$value2 = isset( $condition['value2'] ) ? floatval( $condition['value2'] ) : 0;
 					if ( max( $value, $value2 ) < 0 ) {
 						$errors->add(
 							'filter_stock_quantity_negative',
@@ -2220,9 +2229,9 @@ class SCD_Products_Step_Validator {
 		$max_qty = null;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : null;
+			$value    = isset( $condition['value'] ) ? $condition['value'] : null;
 
 			if ( 'sold_individually' === $property && 'equals' === $operator && 1 === intval( $value ) ) {
 				$sold_individually = true;
@@ -2277,9 +2286,9 @@ class SCD_Products_Step_Validator {
 		$less_than_values = array();
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? floatval( $condition['values'][0] ) : 0;
+			$value    = isset( $condition['value'] ) ? floatval( $condition['value'] ) : 0;
 
 			if ( ! in_array( $property, $numeric_properties, true ) || empty( $property ) ) {
 				continue;
@@ -2347,9 +2356,9 @@ class SCD_Products_Step_Validator {
 
 		// Validation 62: Zero price warning (might be data error or intentional free product)
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? floatval( $condition['values'][0] ) : 0;
+			$value    = isset( $condition['value'] ) ? floatval( $condition['value'] ) : 0;
 
 			if ( in_array( $property, array( 'price', 'current_price', 'regular_price' ), true ) ) {
 				if ( 'equals' === $operator && $value === 0.0 ) {
@@ -2379,9 +2388,9 @@ class SCD_Products_Step_Validator {
 		);
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? floatval( $condition['values'][0] ) : 0;
+			$value    = isset( $condition['value'] ) ? floatval( $condition['value'] ) : 0;
 
 			if ( isset( $unrealistic_thresholds[ $property ] ) ) {
 				$threshold = $unrealistic_thresholds[ $property ];
@@ -2404,12 +2413,12 @@ class SCD_Products_Step_Validator {
 
 		// Validation 64: Extremely broad BETWEEN ranges
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
 
 			if ( 'between' === $operator && in_array( $property, $numeric_properties, true ) ) {
-				$val1 = floatval( isset( $condition['values'][0] ) ? $condition['values'][0] : 0 );
-				$val2 = floatval( isset( $condition['values'][1] ) ? $condition['values'][1] : 0 );
+				$val1 = floatval( isset( $condition['value'] ) ? $condition['value'] : 0 );
+				$val2 = floatval( isset( $condition['value2'] ) ? $condition['value2'] : 0 );
 				$min_val = min( $val1, $val2 );
 				$max_val = max( $val1, $val2 );
 				$range = $max_val - $min_val;
@@ -2435,9 +2444,9 @@ class SCD_Products_Step_Validator {
 
 		// Validation 65: Product name too short (likely data quality issue)
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'name' === $property && 'equals' === $operator ) {
 				if ( strlen( trim( $value ) ) < 2 ) {
@@ -2456,10 +2465,11 @@ class SCD_Products_Step_Validator {
 		// Validation 66: Too many IN/NOT_IN values (performance warning)
 		foreach ( $conditions as $condition ) {
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$values   = isset( $condition['values'] ) ? $condition['values'] : array();
+			$value_str = isset( $condition['value'] ) ? $condition['value'] : '';
+		$values    = ! empty( $value_str ) ? array_map( 'trim', explode( ',', $value_str ) ) : array();
 
 			if ( in_array( $operator, array( 'in', 'not_in' ), true ) && count( $values ) > 100 ) {
-				$property = isset( $condition['property'] ) ? $condition['property'] : '';
+				$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 				$errors->add(
 					'filter_too_many_in_values',
 					sprintf(
@@ -2480,9 +2490,9 @@ class SCD_Products_Step_Validator {
 		$has_sale_date_constraint = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'on_sale' === $property && 'equals' === $operator ) {
 				$on_sale_status = filter_var( $value, FILTER_VALIDATE_BOOLEAN );
@@ -2490,20 +2500,20 @@ class SCD_Products_Step_Validator {
 
 			if ( 'sale_price_dates_from' === $property && in_array( $operator, array( 'less_than', 'less_than_or_equal', 'between' ), true ) ) {
 				$has_sale_date_constraint = true;
-				if ( 'between' === $operator && isset( $condition['values'][1] ) ) {
+				if ( 'between' === $operator && isset( $condition['value2'] ) ) {
 					$sale_dates_from[] = array(
-						'min' => $condition['values'][0],
-						'max' => $condition['values'][1],
+						'min' => $condition['value'],
+						'max' => $condition['value2'],
 					);
 				}
 			}
 
 			if ( 'sale_price_dates_to' === $property && in_array( $operator, array( 'greater_than', 'greater_than_or_equal', 'between' ), true ) ) {
 				$has_sale_date_constraint = true;
-				if ( 'between' === $operator && isset( $condition['values'][1] ) ) {
+				if ( 'between' === $operator && isset( $condition['value2'] ) ) {
 					$sale_dates_to[] = array(
-						'min' => $condition['values'][0],
-						'max' => $condition['values'][1],
+						'min' => $condition['value'],
+						'max' => $condition['value2'],
 					);
 				}
 			}
@@ -2521,23 +2531,23 @@ class SCD_Products_Step_Validator {
 		$sale_dates_from_max = null;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'date_created' === $property ) {
 				if ( 'greater_than' === $operator || 'greater_than_or_equal' === $operator ) {
 					$date_created_min = $value;
-				} elseif ( 'between' === $operator && isset( $condition['values'][1] ) ) {
-					$date_created_min = $condition['values'][0];
+				} elseif ( 'between' === $operator && isset( $condition['value2'] ) ) {
+					$date_created_min = $condition['value'];
 				}
 			}
 
 			if ( 'sale_price_dates_from' === $property ) {
 				if ( 'less_than' === $operator || 'less_than_or_equal' === $operator ) {
 					$sale_dates_from_max = $value;
-				} elseif ( 'between' === $operator && isset( $condition['values'][1] ) ) {
-					$sale_dates_from_max = $condition['values'][1];
+				} elseif ( 'between' === $operator && isset( $condition['value2'] ) ) {
+					$sale_dates_from_max = $condition['value2'];
 				}
 			}
 		}
@@ -2562,17 +2572,17 @@ class SCD_Products_Step_Validator {
 		$is_new_product  = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'stock_quantity' === $property ) {
 				if ( 'less_than' === $operator || 'less_than_or_equal' === $operator ) {
 					$stock_qty_max = $value;
 				} elseif ( 'equals' === $operator ) {
 					$stock_qty_max = $value;
-				} elseif ( 'between' === $operator && isset( $condition['values'][1] ) ) {
-					$stock_qty_max = $condition['values'][1];
+				} elseif ( 'between' === $operator && isset( $condition['value2'] ) ) {
+					$stock_qty_max = $condition['value2'];
 				}
 			}
 
@@ -2581,8 +2591,8 @@ class SCD_Products_Step_Validator {
 					$total_sales_min = $value;
 				} elseif ( 'equals' === $operator ) {
 					$total_sales_min = $value;
-				} elseif ( 'between' === $operator && isset( $condition['values'][1] ) ) {
-					$total_sales_min = $condition['values'][0];
+				} elseif ( 'between' === $operator && isset( $condition['value2'] ) ) {
+					$total_sales_min = $condition['value'];
 				}
 			}
 
@@ -2613,9 +2623,9 @@ class SCD_Products_Step_Validator {
 		$rating_is_zero       = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'review_count' === $property && 'equals' === $operator && 0 == $value ) {
 				$review_count_is_zero = true;
@@ -2638,9 +2648,9 @@ class SCD_Products_Step_Validator {
 		$current_less_than_regular = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'on_sale' === $property && 'equals' === $operator && ! filter_var( $value, FILTER_VALIDATE_BOOLEAN ) ) {
 				$on_sale_is_false = true;
@@ -2652,9 +2662,9 @@ class SCD_Products_Step_Validator {
 		$regular_price_min = null;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'current_price' === $property || 'price' === $property ) {
 				if ( 'less_than' === $operator || 'less_than_or_equal' === $operator ) {
@@ -2685,12 +2695,13 @@ class SCD_Products_Step_Validator {
 		$has_exact_price  = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$values   = isset( $condition['values'] ) ? $condition['values'] : array();
+			$value_str = isset( $condition['value'] ) ? $condition['value'] : '';
+		$values    = ! empty( $value_str ) ? array_map( 'trim', explode( ',', $value_str ) ) : array();
 
 			if ( 'product_type' === $property ) {
-				if ( 'equals' === $operator && 'variable' === $values[0] ) {
+				if ( 'equals' === $operator && 'variable' === $value_str ) {
 					$is_variable_type = true;
 				} elseif ( 'in' === $operator && in_array( 'variable', $values, true ) ) {
 					$is_variable_type = true;
@@ -2714,9 +2725,9 @@ class SCD_Products_Step_Validator {
 		$has_low_stock_constraint = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'manage_stock' === $property && 'equals' === $operator && ! filter_var( $value, FILTER_VALIDATE_BOOLEAN ) ) {
 				$manage_stock_disabled = true;
@@ -2739,9 +2750,9 @@ class SCD_Products_Step_Validator {
 		$stock_qty_min      = null;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'backorders_allowed' === $property && 'equals' === $operator && filter_var( $value, FILTER_VALIDATE_BOOLEAN ) ) {
 				$backorders_enabled = true;
@@ -2750,8 +2761,8 @@ class SCD_Products_Step_Validator {
 			if ( 'stock_quantity' === $property ) {
 				if ( 'greater_than' === $operator || 'greater_than_or_equal' === $operator ) {
 					$stock_qty_min = $value;
-				} elseif ( 'between' === $operator && isset( $condition['values'][0] ) ) {
-					$stock_qty_min = $condition['values'][0];
+				} elseif ( 'between' === $operator && isset( $condition['value'] ) ) {
+					$stock_qty_min = $condition['value'];
 				}
 			}
 		}
@@ -2772,17 +2783,17 @@ class SCD_Products_Step_Validator {
 		$sale_date_to_max   = null;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'sale_price_dates_from' === $property ) {
 				if ( 'greater_than' === $operator || 'greater_than_or_equal' === $operator ) {
 					$sale_date_from_min = $value;
 				} elseif ( 'equals' === $operator ) {
 					$sale_date_from_min = $value;
-				} elseif ( 'between' === $operator && isset( $condition['values'][0] ) ) {
-					$sale_date_from_min = $condition['values'][0];
+				} elseif ( 'between' === $operator && isset( $condition['value'] ) ) {
+					$sale_date_from_min = $condition['value'];
 				}
 			}
 
@@ -2791,8 +2802,8 @@ class SCD_Products_Step_Validator {
 					$sale_date_to_max = $value;
 				} elseif ( 'equals' === $operator ) {
 					$sale_date_to_max = $value;
-				} elseif ( 'between' === $operator && isset( $condition['values'][1] ) ) {
-					$sale_date_to_max = $condition['values'][1];
+				} elseif ( 'between' === $operator && isset( $condition['value2'] ) ) {
+					$sale_date_to_max = $condition['value2'];
 				}
 			}
 		}
@@ -2816,10 +2827,11 @@ class SCD_Products_Step_Validator {
 		$has_stock_constraints  = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$values   = isset( $condition['values'] ) ? $condition['values'] : array();
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value_str = isset( $condition['value'] ) ? $condition['value'] : '';
+		$values    = ! empty( $value_str ) ? array_map( 'trim', explode( ',', $value_str ) ) : array();
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'product_type' === $property ) {
 				if ( 'equals' === $operator && in_array( $value, array( 'external', 'grouped' ), true ) ) {
@@ -2849,9 +2861,9 @@ class SCD_Products_Step_Validator {
 		$has_sale_price        = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'regular_price' === $property && 'equals' === $operator && 0 == $value ) {
 				$regular_price_is_zero = true;
@@ -2879,9 +2891,9 @@ class SCD_Products_Step_Validator {
 		$sale_price_is_zero = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'sale_price_dates_from' === $property ) {
 				$has_sale_date_from = true;
@@ -2912,17 +2924,17 @@ class SCD_Products_Step_Validator {
 		$date_modified_max = null;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'date_created' === $property ) {
 				if ( 'greater_than' === $operator || 'greater_than_or_equal' === $operator ) {
 					$date_created_min = $value;
 				} elseif ( 'equals' === $operator ) {
 					$date_created_min = $value;
-				} elseif ( 'between' === $operator && isset( $condition['values'][0] ) ) {
-					$date_created_min = $condition['values'][0];
+				} elseif ( 'between' === $operator && isset( $condition['value'] ) ) {
+					$date_created_min = $condition['value'];
 				}
 			}
 
@@ -2931,8 +2943,8 @@ class SCD_Products_Step_Validator {
 					$date_modified_max = $value;
 				} elseif ( 'equals' === $operator ) {
 					$date_modified_max = $value;
-				} elseif ( 'between' === $operator && isset( $condition['values'][1] ) ) {
-					$date_modified_max = $condition['values'][1];
+				} elseif ( 'between' === $operator && isset( $condition['value2'] ) ) {
+					$date_modified_max = $condition['value2'];
 				}
 			}
 		}
@@ -2957,9 +2969,9 @@ class SCD_Products_Step_Validator {
 		$sale_end_date_past = null;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'on_sale' === $property && 'equals' === $operator && filter_var( $value, FILTER_VALIDATE_BOOLEAN ) ) {
 				$on_sale_is_true = true;
@@ -2996,9 +3008,9 @@ class SCD_Products_Step_Validator {
 		$current_equals_regular = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'on_sale' === $property && 'equals' === $operator && filter_var( $value, FILTER_VALIDATE_BOOLEAN ) ) {
 				$on_sale_true = true;
@@ -3010,9 +3022,9 @@ class SCD_Products_Step_Validator {
 		$regular_price_value = null;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( ( 'current_price' === $property || 'price' === $property ) && 'equals' === $operator ) {
 				$current_price_value = $value;
@@ -3036,9 +3048,9 @@ class SCD_Products_Step_Validator {
 
 		// Validation 82: Negative dimensions enhancement (catch all negative dimension scenarios)
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( in_array( $property, array( 'length', 'width', 'height', 'weight' ), true ) ) {
 				// Check for any operator with negative value
@@ -3065,7 +3077,7 @@ class SCD_Products_Step_Validator {
 					);
 				} elseif ( 'between' === $operator ) {
 					$val1 = floatval( $value );
-					$val2 = isset( $condition['values'][1] ) ? floatval( $condition['values'][1] ) : 0;
+					$val2 = isset( $condition['value2'] ) ? floatval( $condition['value2'] ) : 0;
 					if ( $val1 < 0 ) {
 						$errors->add(
 							'filter_dimension_between_negative',
@@ -3086,11 +3098,11 @@ class SCD_Products_Step_Validator {
 		$boolean_properties = array( 'featured', 'on_sale', 'virtual', 'downloadable', 'manage_stock', 'sold_individually', 'reviews_allowed', 'purchasable', 'taxable' );
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
 
 			if ( in_array( $property, $boolean_properties, true ) && 'not_equals' === $operator ) {
-				$value = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+				$value = isset( $condition['value'] ) ? $condition['value'] : '';
 				$inverted_value = filter_var( $value, FILTER_VALIDATE_BOOLEAN ) ? 'false' : 'true';
 
 				$errors->add(
@@ -3108,9 +3120,9 @@ class SCD_Products_Step_Validator {
 
 		// Validation 84: STARTS_WITH/ENDS_WITH with empty strings (matches all products)
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( in_array( $operator, array( 'starts_with', 'ends_with' ), true ) && '' === trim( $value ) ) {
 				$errors->add(
@@ -3128,8 +3140,9 @@ class SCD_Products_Step_Validator {
 		// Validation 85: IN operator with single value (should use equals for efficiency)
 		foreach ( $conditions as $condition ) {
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$values   = isset( $condition['values'] ) ? $condition['values'] : array();
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$value_str = isset( $condition['value'] ) ? $condition['value'] : '';
+		$values    = ! empty( $value_str ) ? array_map( 'trim', explode( ',', $value_str ) ) : array();
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 
 			if ( 'in' === $operator && 1 === count( $values ) ) {
 				$errors->add(
@@ -3149,9 +3162,9 @@ class SCD_Products_Step_Validator {
 		$virtual_is_false      = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'downloadable' === $property && 'equals' === $operator && filter_var( $value, FILTER_VALIDATE_BOOLEAN ) ) {
 				$downloadable_required = true;
@@ -3174,9 +3187,9 @@ class SCD_Products_Step_Validator {
 		$has_tax_class     = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'taxable' === $property && 'equals' === $operator && ! filter_var( $value, FILTER_VALIDATE_BOOLEAN ) ) {
 				$taxable_is_false = true;
@@ -3204,9 +3217,10 @@ class SCD_Products_Step_Validator {
 		);
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$values   = isset( $condition['values'] ) ? $condition['values'] : array();
+			$value_str = isset( $condition['value'] ) ? $condition['value'] : '';
+		$values    = ! empty( $value_str ) ? array_map( 'trim', explode( ',', $value_str ) ) : array();
 
 			if ( 'not_in' === $operator && isset( $enum_definitions[ $property ] ) ) {
 				$all_enum_values = $enum_definitions[ $property ];
@@ -3232,11 +3246,11 @@ class SCD_Products_Step_Validator {
 		// Validation 89: BETWEEN with identical min/max (should use equals)
 		foreach ( $conditions as $condition ) {
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 
 			if ( 'between' === $operator ) {
-				$val1 = isset( $condition['values'][0] ) ? $condition['values'][0] : null;
-				$val2 = isset( $condition['values'][1] ) ? $condition['values'][1] : null;
+				$val1 = isset( $condition['value'] ) ? $condition['value'] : null;
+				$val2 = isset( $condition['value2'] ) ? $condition['value2'] : null;
 
 				if ( null !== $val1 && null !== $val2 && $val1 == $val2 ) {
 					$errors->add(
@@ -3259,9 +3273,9 @@ class SCD_Products_Step_Validator {
 		$on_sale_is_true = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'purchasable' === $property && 'equals' === $operator && ! filter_var( $value, FILTER_VALIDATE_BOOLEAN ) ) {
 				$purchasable_is_false = true;
@@ -3292,9 +3306,9 @@ class SCD_Products_Step_Validator {
 		$review_count_required = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'reviews_allowed' === $property && 'equals' === $operator && ! filter_var( $value, FILTER_VALIDATE_BOOLEAN ) ) {
 				$reviews_not_allowed = true;
@@ -3323,9 +3337,9 @@ class SCD_Products_Step_Validator {
 		$not_contains_values = array();
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'contains' === $operator && ! empty( $value ) ) {
 				if ( ! isset( $contains_values[ $property ] ) ) {
@@ -3368,9 +3382,9 @@ class SCD_Products_Step_Validator {
 		$sale_start_date = null;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'on_sale' === $property && 'equals' === $operator && filter_var( $value, FILTER_VALIDATE_BOOLEAN ) ) {
 				$on_sale_true = true;
@@ -3408,9 +3422,9 @@ class SCD_Products_Step_Validator {
 		$manage_stock_enabled = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'min_purchase_quantity' === $property ) {
 				if ( 'equals' === $operator || 'greater_than' === $operator || 'greater_than_or_equal' === $operator ) {
@@ -3450,9 +3464,9 @@ class SCD_Products_Step_Validator {
 		$has_shipping_class = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'weight' === $property && 'equals' === $operator && 0 == $value ) {
 				$weight_is_zero = true;
@@ -3475,9 +3489,9 @@ class SCD_Products_Step_Validator {
 		$has_weight = false;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'virtual' === $property && 'equals' === $operator && filter_var( $value, FILTER_VALIDATE_BOOLEAN ) ) {
 				$virtual_required = true;
@@ -3504,9 +3518,9 @@ class SCD_Products_Step_Validator {
 		$stock_qty = null;
 
 		foreach ( $conditions as $condition ) {
-			$property = isset( $condition['property'] ) ? $condition['property'] : '';
+			$property = isset( $condition['condition_type'] ) ? $condition['condition_type'] : '';
 			$operator = isset( $condition['operator'] ) ? $condition['operator'] : '';
-			$value    = isset( $condition['values'][0] ) ? $condition['values'][0] : '';
+			$value    = isset( $condition['value'] ) ? $condition['value'] : '';
 
 			if ( 'low_stock_amount' === $property ) {
 				if ( 'equals' === $operator || 'less_than' === $operator || 'less_than_or_equal' === $operator ) {

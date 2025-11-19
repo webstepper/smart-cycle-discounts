@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/wizard/class-campaign-change-tracker.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -157,18 +157,10 @@ class SCD_Campaign_Change_Tracker {
 		$campaign = $this->load_campaign();
 		if ( ! $campaign ) {
 			// No campaign - return changes only
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			}
 			return $this->extract_changes_for_step( $step );
 		}
 
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-		}
-
 		$db_data = $this->extract_step_data_from_campaign( $campaign, $step );
-
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-		}
 
 		// Merge changes on top
 		$step_changes = $this->extract_changes_for_step( $step );
@@ -329,14 +321,27 @@ class SCD_Campaign_Change_Tracker {
 					}
 				}
 
+				// Load conditions from repository (new architecture)
+				$conditions = array();
+				if ( class_exists( 'Smart_Cycle_Discounts' ) ) {
+					try {
+						$conditions_repo = Smart_Cycle_Discounts::get_service( 'campaign_conditions_repository' );
+						if ( $conditions_repo ) {
+							$conditions = $conditions_repo->get_conditions_for_campaign( $campaign->get_id() );
+						}
+					} catch ( Exception $e ) {
+						// Fallback to empty array
+					}
+				}
+
 				return array(
 					'product_selection_type' => $campaign->get_product_selection_type(),
 					'product_ids'            => $valid_product_ids,
 					'category_ids'           => $campaign->get_category_ids() ?: array(),
-					'random_count'           => $metadata['random_count'] ?? 10,
+					'random_product_count'   => $campaign->get_random_product_count(),
 					'smart_criteria'         => $metadata['smart_criteria'] ?? '',
-					'conditions'             => $metadata['product_conditions'] ?? array(),
-					'conditions_logic'       => $metadata['product_conditions_logic'] ?? 'all',
+					'conditions'             => $conditions,
+					'conditions_logic'       => $campaign->get_conditions_logic(),
 				);
 
 			case 'discounts':
@@ -345,17 +350,27 @@ class SCD_Campaign_Change_Tracker {
 				$discount_value = $campaign->get_discount_value();
 				$settings       = $campaign->get_settings() ?: array();
 
+				// Extract BOGO config as grouped object to match frontend field definition
+				$bogo_config = $discount_rules['bogo_config'] ?? array();
+
+				// Ensure bogo_config has default values if empty
+				if ( empty( $bogo_config ) ) {
+					$bogo_config = array(
+						'buy_quantity'     => 1,
+						'get_quantity'     => 1,
+						'discount_percent' => 100,
+						'apply_to'         => 'cheapest',
+					);
+				}
+
 				$data = array(
 					// Core discount fields
 					'discount_type'             => $discount_type,
 					'discount_value_percentage' => 'percentage' === $discount_type ? $discount_value : 10,
 					'discount_value_fixed'      => 'fixed' === $discount_type ? $discount_value : 5,
 					'tiers'                     => $discount_rules['tiers'] ?? array(),
-					'bogo_config'               => $discount_rules['bogo_config'] ?? array(
-						'buy_quantity'     => 1,
-						'get_quantity'     => 1,
-						'discount_percent' => 100,
-					),
+					// BOGO config - keep as grouped object to match frontend complex field
+					'bogo_config'               => $bogo_config,
 					// Spend threshold fields
 					'threshold_mode'            => $discount_rules['threshold_mode'] ?? 'percentage',
 					'thresholds'                => $discount_rules['thresholds'] ?? array(),
@@ -372,9 +387,9 @@ class SCD_Campaign_Change_Tracker {
 					'allow_coupons'             => $settings['allow_coupons'] ?? true,
 					'apply_to_sale_items'       => $settings['apply_to_sale_items'] ?? true,
 					// Badge settings
-					'badge_enabled'             => $settings['badge_enabled'] ?? false,
-					'badge_text'                => $settings['badge_text'] ?? '',
-					'badge_bg_color'            => $settings['badge_bg_color'] ?? '#e74c3c',
+					'badge_enabled'             => $settings['badge_enabled'] ?? true,
+					'badge_text'                => $settings['badge_text'] ?? 'auto',
+					'badge_bg_color'            => $settings['badge_bg_color'] ?? '#ff0000',
 					'badge_text_color'          => $settings['badge_text_color'] ?? '#ffffff',
 					'badge_position'            => $settings['badge_position'] ?? 'top-right',
 				);
@@ -390,9 +405,6 @@ class SCD_Campaign_Change_Tracker {
 				$start_split = $starts_at ? SCD_DateTime_Splitter::for_editing( $starts_at, $timezone ) : array();
 				$end_split   = $ends_at ? SCD_DateTime_Splitter::for_editing( $ends_at, $timezone ) : array();
 
-				// Debug logging for schedule data extraction
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				}
 
 				$end_time = '';
 				if ( ! empty( $end_split['date'] ) ) {

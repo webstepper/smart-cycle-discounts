@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/api/endpoints/class-discounts-controller.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/api/controllers
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Discounts_Controller {
 
@@ -791,12 +791,12 @@ class SCD_Discounts_Controller {
 				'value' => $discount_value,
 			);
 
-			if ( $discount_type === 'tiered' && $request->has_param( 'tiers' ) ) {
+			if ( 'tiered' === $discount_type && $request->has_param( 'tiers' ) ) {
 				$discount_config['tiers']     = $request['tiers'];
 				$discount_config['tier_type'] = $request['tier_type'] ?? 'quantity';
-			} elseif ( $discount_type === 'bogo' && $request->has_param( 'bogo_config' ) ) {
+			} elseif ( 'bogo' === $discount_type && $request->has_param( 'bogo_config' ) ) {
 				$discount_config = array_merge( $discount_config, $request['bogo_config'] );
-			} elseif ( $discount_type === 'bundle' && $request->has_param( 'bundle_config' ) ) {
+			} elseif ( 'bundle' === $discount_type && $request->has_param( 'bundle_config' ) ) {
 				$discount_config = array_merge( $discount_config, $request['bundle_config'] );
 			}
 
@@ -805,10 +805,10 @@ class SCD_Discounts_Controller {
 
 			// Additional validation for price limits
 			$warnings = array();
-			if ( $discount_type === 'fixed' && $discount_value > $product_price ) {
+			if ( 'fixed' === $discount_type && $discount_value > $product_price ) {
 				$warnings[] = __( 'Fixed discount exceeds product price', 'smart-cycle-discounts' );
 			}
-			if ( $discount_type === 'percentage' && $discount_value > 50 ) {
+			if ( 'percentage' === $discount_type && $discount_value > 50 ) {
 				$warnings[] = __( 'Large discount percentage - please verify', 'smart-cycle-discounts' );
 			}
 

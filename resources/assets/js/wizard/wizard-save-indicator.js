@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/wizard/wizard-save-indicator.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -19,7 +19,7 @@
 	/**
 	 * Save Indicator Module
 	 *
-	 * Shows visual feedback when the wizard auto-saves
+	 * Shows visual feedback when the wizard saves via Smart Save
 	 */
 	SCD.Wizard.SaveIndicator = {
 		// Configuration
@@ -127,7 +127,7 @@
 				.removeClass( 'scd-save-success scd-save-error' )
 				.addClass( 'scd-save-saving' );
 
-			this.$icon.html( '<span class="dashicons dashicons-update scd-spin"></span>' );
+			this.$icon.html( SCD.IconHelper.spinner( { size: 16 } ) );
 
 			this.$text.text( this.getTranslation( 'saving', 'Saving...' ) );
 
@@ -146,7 +146,7 @@
 				.removeClass( 'scd-save-saving scd-save-error' )
 				.addClass( 'scd-save-success' );
 
-			this.$icon.html( '<span class="dashicons dashicons-yes-alt"></span>' );
+			this.$icon.html( SCD.IconHelper.check( { size: 16 } ) );
 
 			this.$text.text( this.getTranslation( 'saved', 'Saved' ) );
 
@@ -166,7 +166,7 @@
 				.removeClass( 'scd-save-saving scd-save-success' )
 				.addClass( 'scd-save-error' );
 
-			this.$icon.html( '<span class="dashicons dashicons-dismiss"></span>' );
+			this.$icon.html( SCD.IconHelper.close( { size: 16 } ) );
 
 			this.$text.text( this.getTranslation( 'save_failed', 'Save failed' ) );
 

@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers/class-preview-coverage-handler.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -25,7 +25,7 @@ require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 	use SCD_Wizard_Helpers;
@@ -85,7 +85,45 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
+		// Get cache manager for coverage caching
+		$cache_manager = null;
+		if ( class_exists( 'Smart_Cycle_Discounts' ) ) {
+			$plugin    = Smart_Cycle_Discounts::get_instance();
+			$container = $plugin->get_container();
+			if ( $container && $container->has( 'cache_manager' ) ) {
+				$cache_manager = $container->get( 'cache_manager' );
+			}
+		}
+
+		// Generate cache key based on input parameters to avoid expensive recalculation
+		$cache_key_params = array(
+			'selection_type' => isset( $products_data['product_selection_type'] ) ? $products_data['product_selection_type'] : 'all_products',
+			'product_ids'    => isset( $products_data['product_ids'] ) ? $products_data['product_ids'] : array(),
+			'category_ids'   => isset( $products_data['category_ids'] ) ? $products_data['category_ids'] : array(),
+			'priority'       => isset( $basic_data['priority'] ) ? $basic_data['priority'] : 3,
+			'apply_sale'     => isset( $discounts_data['apply_to_sale_items'] ) ? $discounts_data['apply_to_sale_items'] : false,
+			'random_count'   => isset( $products_data['random_count'] ) ? $products_data['random_count'] : 0,
+		);
+		$cache_key = 'campaigns_coverage_' . md5( wp_json_encode( $cache_key_params ) );
+
+		// Try to get cached coverage first
+		$cached_coverage = null;
+		if ( $cache_manager ) {
+			$cached_coverage = $cache_manager->get( $cache_key );
+		}
+
+		if ( $cached_coverage && is_array( $cached_coverage ) ) {
+			// Use cached data - no expensive WooCommerce queries needed
+			return $this->success( $cached_coverage );
+		}
+
+		// Cache miss - calculate coverage (expensive)
 		$coverage = $this->_calculate_coverage( $basic_data, $products_data, $discounts_data );
+
+		// Cache for 5 minutes (wizard data can change, but caching reduces repeated calculations)
+		if ( $cache_manager ) {
+			$cache_manager->set( $cache_key, $coverage, 300 );
+		}
 
 		return $this->success( $coverage );
 	}
@@ -149,10 +187,10 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 			$products_discounted = min( $random_count, $products_discounted );
 		}
 
-		$coverage_percentage = $total_matched > 0 ? round( ( $products_discounted / $total_matched ) * 100 ) : 0;
+		$coverage_percentage = 0 < $total_matched ? round( ( $products_discounted / $total_matched ) * 100 ) : 0;
 
-		$all_products         = $this->_get_all_product_ids();
-		$total_store_products = count( $all_products );
+		// Use optimized count method instead of loading all product IDs
+		$total_store_products = $this->_get_total_product_count();
 
 		return array(
 			'products_matched'     => $total_matched,
@@ -187,11 +225,18 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 			return $this->_get_all_product_ids();
 		} elseif ( 'specific_products' === $selection_type ) {
 			return is_array( $product_ids ) ? array_map( 'intval', $product_ids ) : array();
-		} elseif ( 'categories' === $selection_type ) {
-			return $this->_get_products_in_categories( $category_ids );
 		} elseif ( 'random_products' === $selection_type ) {
 			// For random products, get all products from selected categories
-			return $this->_get_products_in_categories( $category_ids );
+			if ( ! empty( $category_ids ) && is_array( $category_ids ) ) {
+				return $this->_get_products_in_categories( $category_ids );
+			}
+			return $this->_get_all_product_ids();
+		} elseif ( 'smart_selection' === $selection_type ) {
+			// For smart selection, use categories as base if specified
+			if ( ! empty( $category_ids ) && is_array( $category_ids ) ) {
+				return $this->_get_products_in_categories( $category_ids );
+			}
+			return $this->_get_all_product_ids();
 		}
 
 		return array();
@@ -284,8 +329,10 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 		foreach ( $active_campaigns as $campaign ) {
 			$campaign_priority = $campaign->get_priority();
 
-			// Only check campaigns with higher priority (higher value wins)
-			if ( $campaign_priority <= $priority ) {
+			// Check campaigns with higher OR equal priority (both block new campaign's products)
+			// Higher value = higher priority (5 beats 3)
+			// Equal priority = older campaign wins (but we're creating new, so it will be blocked)
+			if ( $priority > $campaign_priority ) {
 				continue;
 			}
 

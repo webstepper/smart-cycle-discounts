@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/products/class-product-selector.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/products
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Product_Selector {
 
@@ -86,13 +86,19 @@ class SCD_Product_Selector {
 		$this->cache            = $cache;
 		$this->condition_engine = $condition_engine;
 
-		// HIGH PRIORITY FIX: Add cleanup hook for deleted products
-		// When a product is deleted, invalidate cache and clean up campaigns
+		// Invalidate cache when products are deleted or updated
 		add_action( 'before_delete_post', array( $this, 'handle_product_deletion' ), 10, 1 );
 		add_action( 'woocommerce_delete_product', array( $this, 'handle_product_deletion' ), 10, 1 );
-
 		add_action( 'save_post_product', array( $this, 'handle_product_update' ), 10, 1 );
 		add_action( 'woocommerce_update_product', array( $this, 'handle_product_update' ), 10, 1 );
+
+		// Invalidate cache when categories/tags are modified
+		add_action( 'created_product_cat', array( $this, 'handle_taxonomy_change' ), 10, 1 );
+		add_action( 'edited_product_cat', array( $this, 'handle_taxonomy_change' ), 10, 1 );
+		add_action( 'delete_product_cat', array( $this, 'handle_taxonomy_change' ), 10, 1 );
+		add_action( 'created_product_tag', array( $this, 'handle_taxonomy_change' ), 10, 1 );
+		add_action( 'edited_product_tag', array( $this, 'handle_taxonomy_change' ), 10, 1 );
+		add_action( 'delete_product_tag', array( $this, 'handle_taxonomy_change' ), 10, 1 );
 	}
 
 	/**
@@ -103,12 +109,34 @@ class SCD_Product_Selector {
 	 * @return   array                 Selected product IDs.
 	 */
 	public function select_products( array $criteria ): array {
-		$cache_key = 'scd_product_selection_' . md5( serialize( $criteria ) );
+		// Generate cache key that includes ALL criteria that affect results
+		// Must include: conditions, categories, tags, price range, stock, featured, include/exclude IDs, operators, etc.
+		$cache_parts = array(
+			'type'              => $criteria['product_selection_type'] ?? 'all',
+			'categories'        => $criteria['categories'] ?? array(),
+			'category_operator' => $criteria['category_operator'] ?? 'IN',
+			'tags'              => $criteria['tags'] ?? array(),
+			'tag_operator'      => $criteria['tag_operator'] ?? 'IN',
+			'stock_status'      => $criteria['stock_status'] ?? '',
+			'featured'          => $criteria['featured'] ?? null,
+			'price_min'         => $criteria['price_min'] ?? null,
+			'price_max'         => $criteria['price_max'] ?? null,
+			'exclude_ids'       => $criteria['exclude_ids'] ?? array(),
+			'include_ids'       => $criteria['include_ids'] ?? array(),
+			'conditions'        => $criteria['conditions'] ?? array(),
+			'conditions_logic'  => $criteria['conditions_logic'] ?? 'all',
+			'limit'             => $criteria['limit'] ?? 0,
+			'orderby'           => $criteria['orderby'] ?? '',
+			'order'             => $criteria['order'] ?? 'ASC',
+		);
+
+		// Generate unique hash for this exact combination of criteria
+		$cache_key = 'products_selection_' . md5( serialize( $cache_parts ) );
 
 		// Try to get from cache first
 		if ( $this->cache ) {
 			$cached_result = $this->cache->get( $cache_key );
-			if ( $cached_result !== false && is_array( $cached_result ) ) {
+			if ( false !== $cached_result && is_array( $cached_result ) ) {
 				$this->logger->debug( 'Product selection retrieved from cache', array( 'criteria' => $criteria ) );
 				return $cached_result;
 			}
@@ -117,14 +145,10 @@ class SCD_Product_Selector {
 		$product_ids = array();
 
 		try {
-			// CRITICAL FIX: Increased from 500 to 5000 for large stores
-			// Original 500 limit prevented "All Products" selection in stores with 500+ products
-			// New limit of 5000 handles most WooCommerce stores
-			// For stores with 5000+ products, consider implementing pagination
 			$query_args = array(
 				'post_type'      => 'product',
 				'post_status'    => 'publish',
-				'posts_per_page' => 5000, // Increased limit for large stores
+				'posts_per_page' => 5000,
 				'fields'         => 'ids',
 				'meta_query'     => array(),
 				'tax_query'      => array(),
@@ -135,9 +159,8 @@ class SCD_Product_Selector {
 
 			// Apply conditions to query if condition engine is available
 			if ( ! empty( $criteria['conditions'] ) && $this->condition_engine ) {
-				$conditions_logic       = $criteria['conditions_logic'] ?? 'all';
-				$transformed_conditions = $this->transform_conditions_for_engine( $criteria['conditions'] );
-				$meta_query             = $this->condition_engine->build_meta_query( $transformed_conditions, $conditions_logic );
+				$conditions_logic = $criteria['conditions_logic'] ?? 'all';
+				$meta_query       = $this->condition_engine->build_meta_query( $criteria['conditions'], $conditions_logic );
 				if ( ! empty( $meta_query ) && count( $meta_query ) > 1 ) {
 					$query_args['meta_query'] = array_merge( $query_args['meta_query'], $meta_query );
 				}
@@ -152,23 +175,13 @@ class SCD_Product_Selector {
 
 			// Apply post-query conditions if condition engine is available
 			if ( ! empty( $criteria['conditions'] ) && $this->condition_engine ) {
-				$conditions_logic       = $criteria['conditions_logic'] ?? 'all';
-				$transformed_conditions = $this->transform_conditions_for_engine( $criteria['conditions'] );
-
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				}
-
-				$product_ids = $this->condition_engine->apply_conditions( $product_ids, $transformed_conditions, $conditions_logic );
-
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				}
+				$conditions_logic = $criteria['conditions_logic'] ?? 'all';
+				$product_ids      = $this->condition_engine->apply_conditions( $product_ids, $criteria['conditions'], $conditions_logic );
 			}
 
-			// HIGH PRIORITY FIX: Reduced cache from 1 hour to 15 minutes
-			// Stock status changes frequently, 1 hour was too long
-			// 15 minutes balances performance with data freshness
+			// Cache for 15 minutes - cleared when campaigns change
 			if ( $this->cache ) {
-				$this->cache->set( $cache_key, $product_ids, 900 ); // Cache for 15 minutes
+				$this->cache->set( $cache_key, $product_ids, 900 );
 			}
 
 			$this->logger->info(
@@ -652,7 +665,7 @@ class SCD_Product_Selector {
 	/**
 	 * Get random products from selection.
 	 *
-	 * CRITICAL FIX: array_rand() returns different types based on count parameter.
+	 * Note: array_rand() returns different types based on count parameter.
 	 * - count > 1: Returns array of keys
 	 * - count = 1: Returns single integer key (NOT an array)
 	 *
@@ -679,9 +692,8 @@ class SCD_Product_Selector {
 			return $product_ids;
 		}
 
-		// CRITICAL FIX: Handle count=1 separately
-		// array_rand($arr, 1) returns INT, not ARRAY
-		if ( $count === 1 ) {
+		// Handle single selection: array_rand() returns int for count=1
+		if ( 1 === $count ) {
 			$random_key = array_rand( $product_ids, 1 );
 			return array( $product_ids[ $random_key ] );
 		}
@@ -708,7 +720,7 @@ class SCD_Product_Selector {
 	/**
 	 * Validate and filter product IDs to ensure they exist.
 	 *
-	 * CRITICAL FIX: Prevents NULL products from deleted/invalid IDs.
+	 * Prevents NULL products from deleted/invalid IDs.
 	 * Filters out:
 	 * - Non-existent product IDs
 	 * - Zero or negative IDs
@@ -869,13 +881,14 @@ class SCD_Product_Selector {
 	 * Select products by categories with enhanced logic.
 	 *
 	 * @since    1.0.0
-	 * @param    array $category_ids    Category IDs ('all' for all categories).
-	 * @param    array $conditions      Optional conditions to apply.
-	 * @param    int   $limit           Optional limit for results.
+	 * @param    array  $category_ids      Category IDs ('all' for all categories).
+	 * @param    array  $conditions        Optional conditions to apply.
+	 * @param    int    $limit             Optional limit for results.
+	 * @param    string $conditions_logic  Optional logic for conditions ('all' or 'any'). Default 'all'.
 	 * @return   array                     Selected product IDs.
 	 */
-	public function select_by_categories( array $category_ids, array $conditions = array(), int $limit = 0 ): array {
-		$cache_key = 'scd_category_selection_' . md5( serialize( $category_ids ) . serialize( $conditions ) . $limit );
+	public function select_by_categories( array $category_ids, array $conditions = array(), int $limit = 0, string $conditions_logic = 'all' ): array {
+		$cache_key = 'scd_category_selection_' . md5( serialize( $category_ids ) . serialize( $conditions ) . $limit . $conditions_logic );
 
 		if ( $this->cache ) {
 			$cached_result = $this->cache->get( $cache_key );
@@ -892,7 +905,7 @@ class SCD_Product_Selector {
 
 			// Apply post-query conditions if condition engine is available
 			if ( ! empty( $conditions ) && $this->condition_engine ) {
-				$product_ids = $this->condition_engine->apply_conditions( $product_ids, $conditions );
+				$product_ids = $this->condition_engine->apply_conditions( $product_ids, $conditions, $conditions_logic );
 			}
 
 			if ( $this->cache ) {
@@ -926,32 +939,34 @@ class SCD_Product_Selector {
 	 * Select products by criteria.
 	 *
 	 * @since    1.0.0
-	 * @param    array $criteria    Criteria array with categories, conditions, limit, order.
+	 * @param    array $criteria    Criteria array with categories, conditions, limit, order, conditions_logic.
 	 * @return   array                 Selected product IDs.
 	 */
 	private function select_by_criteria( array $criteria ): array {
-		$categories = $criteria['categories'] ?? array( 'all' );
-		$conditions = $criteria['conditions'] ?? array();
-		$limit      = $criteria['limit'] ?? 0;
+		$categories       = $criteria['categories'] ?? array( 'all' );
+		$conditions       = $criteria['conditions'] ?? array();
+		$limit            = $criteria['limit'] ?? 0;
+		$conditions_logic = $criteria['conditions_logic'] ?? 'all';
 
-		return $this->select_by_categories( $categories, $conditions, $limit );
+		return $this->select_by_categories( $categories, $conditions, $limit, $conditions_logic );
 	}
 
 	/**
 	 * Select random products from categories.
 	 *
 	 * @since    1.0.0
-	 * @param    array $category_ids    Category IDs ('all' for all categories).
-	 * @param    int   $count           Number of products to select.
-	 * @param    array $conditions      Optional conditions to apply.
+	 * @param    array  $category_ids      Category IDs ('all' for all categories).
+	 * @param    int    $count             Number of products to select.
+	 * @param    array  $conditions        Optional conditions to apply.
+	 * @param    string $conditions_logic  Optional logic for conditions ('all' or 'any'). Default 'all'.
 	 * @return   array                     Random product IDs.
 	 */
-	public function select_random_by_categories( array $category_ids, int $count, array $conditions = array() ): array {
+	public function select_random_by_categories( array $category_ids, int $count, array $conditions = array(), string $conditions_logic = 'all' ): array {
 		if ( $count <= 0 ) {
 			return array();
 		}
 
-		$all_products = $this->select_by_categories( $category_ids, $conditions );
+		$all_products = $this->select_by_categories( $category_ids, $conditions, 0, $conditions_logic );
 
 		if ( empty( $all_products ) ) {
 			return array();
@@ -964,12 +979,13 @@ class SCD_Product_Selector {
 	 * Get product count by categories.
 	 *
 	 * @since    1.0.0
-	 * @param    array $category_ids    Category IDs ('all' for all categories).
-	 * @param    array $conditions      Optional conditions to apply.
+	 * @param    array  $category_ids      Category IDs ('all' for all categories).
+	 * @param    array  $conditions        Optional conditions to apply.
+	 * @param    string $conditions_logic  Optional logic for conditions ('all' or 'any'). Default 'all'.
 	 * @return   int                       Product count.
 	 */
-	public function get_product_count_by_categories( array $category_ids, array $conditions = array() ): int {
-		$cache_key = 'scd_category_count_' . md5( serialize( $category_ids ) . serialize( $conditions ) );
+	public function get_product_count_by_categories( array $category_ids, array $conditions = array(), string $conditions_logic = 'all' ): int {
+		$cache_key = 'scd_category_count_' . md5( serialize( $category_ids ) . serialize( $conditions ) . $conditions_logic );
 
 		if ( $this->cache ) {
 			$cached_result = $this->cache->get( $cache_key );
@@ -986,7 +1002,7 @@ class SCD_Product_Selector {
 
 			// Apply post-query conditions if condition engine is available
 			if ( ! empty( $conditions ) && $this->condition_engine ) {
-				$product_ids = $this->condition_engine->apply_conditions( $product_ids, $conditions );
+				$product_ids = $this->condition_engine->apply_conditions( $product_ids, $conditions, $conditions_logic );
 			}
 
 			$count = count( $product_ids );
@@ -1292,7 +1308,7 @@ class SCD_Product_Selector {
 
 			// Second pass: build hierarchy
 			foreach ( $category_map as $category ) {
-				if ( $category['parent'] == 0 ) {
+				if ( 0 === $category['parent'] ) {
 					$hierarchy[] = $category;
 				} elseif ( isset( $category_map[ $category['parent'] ] ) ) {
 						$category_map[ $category['parent'] ]['children'][] = $category;
@@ -1406,8 +1422,7 @@ class SCD_Product_Selector {
 					break;
 
 				case 'specific_products':
-					// CRITICAL FIX: Validate product existence before using
-					// Previously, deleted products created NULL values causing crashes
+				// Validate product existence to prevent null values
 					$raw_product_ids = $config['product_ids'];
 					$product_ids     = $this->validate_and_filter_product_ids( $raw_product_ids );
 
@@ -1537,77 +1552,9 @@ class SCD_Product_Selector {
 	}
 
 	/**
-	 * Transform conditions from UI format to engine format.
-	 *
-	 * UI format: {type, operator, value, value2, mode}
-	 * Engine format: {property, operator, values[], mode}
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @param    array $ui_conditions    Conditions from UI.
-	 * @return   array                      Conditions for engine.
-	 */
-	private function transform_conditions_for_engine( array $ui_conditions ): array {
-		$engine_conditions = array();
-
-		foreach ( $ui_conditions as $condition ) {
-			// Skip if not an array
-			if ( ! is_array( $condition ) ) {
-				continue;
-			}
-
-			// Skip if already in engine format (has 'property' field)
-			if ( isset( $condition['property'] ) ) {
-				$engine_conditions[] = $condition;
-				continue;
-			}
-
-			// Skip if missing required UI fields
-			if ( ! isset( $condition['type'], $condition['operator'] ) ) {
-				$this->logger->warning(
-					'Skipping invalid condition - missing type or operator',
-					array(
-						'condition' => $condition,
-					)
-				);
-				continue;
-			}
-
-			$values = array();
-			if ( isset( $condition['value'] ) && '' !== $condition['value'] ) {
-				$values[] = $condition['value'];
-			}
-			if ( isset( $condition['value2'] ) && '' !== $condition['value2'] ) {
-				$values[] = $condition['value2'];
-			}
-
-			// Transform to engine format
-			$engine_condition = array(
-				'property' => $condition['type'],
-				'operator' => $condition['operator'],
-				'values'   => $values,
-				'mode'     => $condition['mode'] ?? 'include',
-			);
-
-			$engine_conditions[] = $engine_condition;
-
-			$this->logger->debug(
-				'Transformed condition',
-				array(
-					'from' => $condition,
-					'to'   => $engine_condition,
-				)
-			);
-		}
-
-		return $engine_conditions;
-	}
-
-	/**
 	 * Handle product deletion.
 	 *
-	 * HIGH PRIORITY FIX: Clean up campaigns when products are deleted.
-	 * This prevents orphaned product IDs in campaigns.
+	 * Clean up campaigns when products are deleted to prevent orphaned product IDs.
 	 *
 	 * @since    1.0.0
 	 * @param    int $product_id    Product ID being deleted.
@@ -1647,7 +1594,8 @@ class SCD_Product_Selector {
 	/**
 	 * Handle product update.
 	 *
-	 * HIGH PRIORITY FIX: Invalidate cache when products are updated.
+	 *
+	 * Invalidate cache when products are updated.
 	 * Stock status, price, and other attributes may have changed.
 	 *
 	 * @since    1.0.0
@@ -1678,5 +1626,42 @@ class SCD_Product_Selector {
 		 * @param int $product_id The product ID that was updated.
 		 */
 		do_action( 'scd_product_updated', $product_id );
+	}
+
+	/**
+	 * Handle taxonomy (category/tag) changes.
+	 *
+	 * Invalidate cache when product categories or tags are created, edited, or deleted.
+	 *
+	 * @since    1.0.0
+	 * @param    int $term_id    Term ID.
+	 * @return   void
+	 */
+	public function handle_taxonomy_change( int $term_id ): void {
+		$this->logger->info(
+			'Product taxonomy changed, invalidating caches',
+			array(
+				'term_id' => $term_id,
+			)
+		);
+
+		if ( $this->cache ) {
+			$this->cache->invalidate_product();
+
+			// Clear reference data cache for categories/tags
+			if ( class_exists( 'SCD_Reference_Data_Cache' ) ) {
+				$ref_cache = new SCD_Reference_Data_Cache();
+				$ref_cache->delete( 'categories' );
+				$ref_cache->delete( 'tags' );
+			}
+		}
+
+		/**
+		 * Fires after taxonomy change is handled.
+		 *
+		 * @since 1.0.0
+		 * @param int $term_id The term ID that was changed.
+		 */
+		do_action( 'scd_taxonomy_changed', $term_id );
 	}
 }

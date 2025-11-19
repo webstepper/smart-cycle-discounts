@@ -32,6 +32,7 @@
 	padding: 18px 20px;
 	border-bottom: 1px solid #E5E7EB;
 	background: #FAFBFC;
+	border-radius: var(--scd-radius-lg) var(--scd-radius-lg) 0 0;
 }
 
 .scd-planner-header-content {
@@ -301,22 +302,26 @@
 	border-color: #FDE68A;
 }
 
-/* Active State - Warm Orange Gradient */
+/* Active State - Light Blue Tones */
 .scd-planner-card[data-state="active"] {
-	background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-	color: #FFFFFF;
-	box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-	border-color: #F59E0B;
+	background: #E0F2FE;
+	color: #0C4A6E;
+	box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2);
+	border-color: #7DD3FC;
+	border-width: 2px;
 }
 
 .scd-planner-card[data-state="active"]:hover {
-	box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+	background: #BAE6FD;
+	box-shadow: 0 6px 16px rgba(56, 189, 248, 0.3);
+	border-color: #38BDF8;
 }
 
 /* Active + Major Event */
 .scd-planner-card[data-state="active"][data-major-event="true"] {
-	background: linear-gradient(135deg, #F59E0B 0%, #DC2626 100%);
-	box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+	background: #DBEAFE;
+	box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+	border-color: #60A5FA;
 }
 
 /* Future State */
@@ -344,18 +349,25 @@
 }
 
 .scd-planner-card[data-state="active"][data-focused="true"] {
-	border: 2px solid #FBBF24;
-	box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2),
-				0 6px 16px rgba(245, 158, 11, 0.4);
+	border: 2px solid #38BDF8;
+	box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25),
+				0 6px 16px rgba(56, 189, 248, 0.35);
 }
 
 /* ===========================
    Card Components
    =========================== */
 .scd-planner-card-header {
-	position: relative;
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
 	margin-bottom: 14px;
-	padding-right: 110px;
+}
+
+.scd-planner-card-title {
+	flex: 1;
+	min-width: 0;
 }
 
 .scd-planner-card-title h3 {
@@ -370,24 +382,23 @@
 }
 
 .scd-planner-card[data-state="active"] .scd-planner-card-title h3 {
-	color: #FFFFFF;
+	color: #0C4A6E;
+	font-weight: 700;
 }
 
 .scd-planner-icon {
 	font-size: 20px;
 	line-height: 1;
+	flex-shrink: 0;
 }
 
-/* Badges Container - Positioned Top-Right */
+/* Badges Container - Flex Item */
 .scd-planner-card-badges {
-	position: absolute;
-	top: 0;
-	right: 0;
 	display: flex;
 	flex-direction: column;
 	align-items: flex-end;
 	gap: 6px;
-	z-index: 2;
+	flex-shrink: 0;
 }
 
 .scd-planner-card-badge {
@@ -401,43 +412,68 @@
 	text-transform: uppercase;
 	letter-spacing: 0.3px;
 	flex-shrink: 0;
+	transition: all 0.2s ease;
 }
 
+/* Ensure consistent icon sizing in badges */
+.scd-planner-card-badge .scd-icon {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+	flex-shrink: 0;
+}
+
+/* State Badges (for non-major events) - Tinted badge style */
 .scd-badge-past {
-	background: #F3F4F6;
-	color: #6B7280;
-	border: 1px solid #E5E7EB;
+	background: var(--scd-color-text-alpha-15);
+	color: var(--scd-color-text-muted);
+	border: none;
 }
 
 .scd-badge-active {
-	background: #FEF3C7;
-	color: #92400E;
-	border: 1px solid #FDE68A;
+	background: var(--scd-color-warning-lighter);
+	color: var(--scd-color-warning-dark);
+	border: none;
 }
 
 .scd-badge-future {
-	background: #EFF6FF;
-	color: #1E40AF;
-	border: 1px solid #BFDBFE;
+	background: var(--scd-color-info-alpha-15);
+	color: var(--scd-color-primary);
+	border: none;
 }
 
+/* State-specific badge overrides on active cards */
 .scd-planner-card[data-state="active"] .scd-badge-active {
-	background: rgba(255, 255, 255, 0.25);
-	color: #FFFFFF;
-	border: 1px solid rgba(255, 255, 255, 0.3);
+	background: var(--scd-color-primary-dark);
+	color: var(--scd-color-white);
+	border: none;
+	font-weight: 700;
 }
 
-/* Major Event Badge */
-.scd-badge-major {
-	background: #F59E0B;
-	color: #FFFFFF;
-	border: 1px solid #D97706;
+/* Combined Major Event Badges */
+.scd-badge-combined {
+	font-weight: 700;
 }
 
-.scd-planner-card[data-state="active"] .scd-badge-major {
-	background: rgba(255, 255, 255, 0.25);
-	color: #FFFFFF;
-	border: 1px solid rgba(255, 255, 255, 0.3);
+/* Past Major Event */
+.scd-badge-major-past {
+	background: var(--scd-color-muted);
+	color: var(--scd-color-white);
+	border: none;
+}
+
+/* Active Major Event */
+.scd-badge-major-active {
+	background: var(--scd-color-primary-dark);
+	color: var(--scd-color-white);
+	border: none;
+}
+
+/* Future Major Event */
+.scd-badge-major-future {
+	background: var(--scd-color-warning);
+	color: var(--scd-color-white);
+	border: none;
 }
 
 .scd-planner-card-content {
@@ -452,7 +488,8 @@
 }
 
 .scd-planner-card[data-state="active"] .scd-planner-card-description {
-	color: rgba(255, 255, 255, 0.95);
+	color: #075985;
+	font-weight: 500;
 }
 
 .scd-planner-card-discount,
@@ -467,7 +504,8 @@
 
 .scd-planner-card[data-state="active"] .scd-planner-card-discount,
 .scd-planner-card[data-state="active"] .scd-planner-card-stat {
-	color: #FFFFFF;
+	color: #0C4A6E;
+	font-weight: 700;
 }
 
 .scd-planner-card-actions {
@@ -542,27 +580,23 @@
 .scd-insights-column-header {
 	display: flex;
 	align-items: center;
-	gap: 6px;
-	padding: 6px 10px;
-	background: #FFFFFF;
-	border-left: 3px solid var(--wp-admin-theme-color, #2271B1);
-	border-radius: 4px;
-	margin-bottom: 4px;
+	gap: 10px;
+	padding: 10px 14px;
+	background: var(--scd-color-primary-alpha-15);
+	border-radius: var(--scd-radius-md);
+	margin-bottom: 8px;
 }
 
-.scd-insights-column-header .dashicons {
-	color: var(--wp-admin-theme-color, #2271B1);
-	font-size: 13px;
-	width: 13px;
-	height: 13px;
-	flex-shrink: 0;
+.scd-insights-column-header .scd-icon {
+	color: var(--scd-color-primary);
+	font-size: 16px;
 }
 
 .scd-insights-column-header h4 {
 	margin: 0;
-	font-size: 12px;
-	font-weight: 600;
-	color: #374151;
+	font-size: var(--scd-font-size-small);
+	font-weight: var(--scd-font-weight-semibold);
+	color: var(--scd-color-primary);
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
 }
@@ -594,11 +628,7 @@
 	animation: scd-spin 0.6s linear infinite;
 }
 
-@keyframes scd-spin {
-	to {
-		transform: translate(-50%, -50%) rotate(360deg);
-	}
-}
+/* Note: @keyframes scd-spin defined in shared/_utilities.css */
 
 /* ===========================
    Insights Content List
@@ -611,29 +641,41 @@
 }
 
 /* Info Items */
-.scd-insights-info-item {
+.scd-insights-info-item,
+.scd-insights-pro-info-item {
 	display: flex;
 	align-items: center;
-	gap: 10px;
-	padding: 10px 12px;
+	gap: 12px;
+	padding: 12px 16px;
 	min-height: 48px;
-	background: #FFFFFF;
-	border: 1px solid #E5E7EB;
-	border-left: 3px solid transparent;
-	border-radius: 6px;
-	transition: all 0.2s ease;
+	background: var(--scd-color-white);
+	border: 1px solid var(--scd-color-border);
+	border-radius: var(--scd-radius-md);
+	transition: background-color var(--scd-transition-base) ease;
 }
 
 .scd-insights-info-item:hover {
-	border-left-color: var(--wp-admin-theme-color, #2271B1);
-	background: #F9FAFB;
-	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+	background: var(--scd-color-surface);
 }
 
-.scd-insights-info-item .dashicons {
-	color: var(--wp-admin-theme-color, #2271B1);
-	font-size: 16px;
-	flex-shrink: 0;
+.scd-insights-pro-info-item {
+	background: var(--scd-color-warning-lighter);
+	border-color: var(--scd-color-warning-light);
+	cursor: help;
+}
+
+.scd-insights-pro-info-item:hover {
+	background: rgba(244, 197, 66, 0.25);
+}
+
+.scd-insights-info-item .scd-icon,
+.scd-insights-pro-info-item .scd-icon {
+	color: var(--scd-color-primary);
+	font-size: 20px;
+}
+
+.scd-insights-pro-info-item .scd-icon {
+	color: var(--scd-color-warning);
 }
 
 .scd-insights-info-text {

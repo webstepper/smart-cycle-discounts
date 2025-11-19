@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/analytics/class-analytics-controller.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/api/controllers
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Analytics_Controller {
 
@@ -509,9 +509,9 @@ class SCD_Analytics_Controller {
 				'labels'      => $this->generate_chart_labels( $granularity, $date_range ),
 				'metadata'    => array(
 					'total_points' => count( $chart_data ),
-					'max_value'    => max( $chart_data ),
-					'min_value'    => min( $chart_data ),
-					'average'      => array_sum( $chart_data ) / count( $chart_data ),
+					'max_value'    => ! empty( $chart_data ) ? max( $chart_data ) : 0,
+					'min_value'    => ! empty( $chart_data ) ? min( $chart_data ) : 0,
+					'average'      => ! empty( $chart_data ) ? array_sum( $chart_data ) / count( $chart_data ) : 0,
 				),
 			);
 
@@ -621,7 +621,6 @@ class SCD_Analytics_Controller {
 				'overview' => $this->metrics_calculator->calculate_overall_metrics( $date_range ),
 				'campaigns' => $this->metrics_calculator->calculate_all_campaigns_metrics( $date_range ),
 				'products' => $this->metrics_calculator->calculate_all_products_metrics( $date_range ),
-				'events' => $this->analytics_collector->get_events( $date_range ),
 				default => array()
 			};
 
@@ -709,6 +708,8 @@ class SCD_Analytics_Controller {
 	/**
 	 * Calculate trends for metrics.
 	 *
+	 * Compares current period metrics with previous period to calculate percentage changes.
+	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @param    array  $metrics      Current metrics.
@@ -716,14 +717,97 @@ class SCD_Analytics_Controller {
 	 * @return   array                   Trend data.
 	 */
 	private function calculate_trends( array $metrics, string $date_range ): array {
-		// This would calculate percentage changes compared to previous period
-		// For now, return placeholder data
-		return array(
-			'revenue_change'     => '+12.5%',
-			'conversions_change' => '+8.3%',
-			'clicks_change'      => '+15.7%',
-			'views_change'       => '+5.2%',
+		try {
+			// Get previous period metrics for comparison
+			$previous_period = $this->get_previous_period_range( $date_range );
+			$previous_metrics = $this->metrics_calculator->calculate_overall_metrics( $previous_period, true );
+
+			// Calculate percentage changes
+			return array(
+				'revenue_change'     => $this->calculate_percentage_change(
+					$previous_metrics['total_revenue'] ?? 0,
+					$metrics['total_revenue'] ?? 0
+				),
+				'conversions_change' => $this->calculate_percentage_change(
+					$previous_metrics['total_conversions'] ?? 0,
+					$metrics['total_conversions'] ?? 0
+				),
+				'clicks_change'      => $this->calculate_percentage_change(
+					$previous_metrics['total_clicks'] ?? 0,
+					$metrics['total_clicks'] ?? 0
+				),
+				'views_change'       => $this->calculate_percentage_change(
+					$previous_metrics['total_impressions'] ?? 0,
+					$metrics['total_impressions'] ?? 0
+				),
+			);
+		} catch ( Exception $e ) {
+			$this->logger->error(
+				'Failed to calculate trends',
+				array(
+					'error'      => $e->getMessage(),
+					'date_range' => $date_range,
+				)
+			);
+
+			// Return neutral trends on error
+			return array(
+				'revenue_change'     => '0%',
+				'conversions_change' => '0%',
+				'clicks_change'      => '0%',
+				'views_change'       => '0%',
+			);
+		}
+	}
+
+	/**
+	 * Calculate percentage change between two values.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    float $old_value    Previous value.
+	 * @param    float $new_value    Current value.
+	 * @return   string                 Formatted percentage change (e.g., '+12.5%', '-8.3%').
+	 */
+	private function calculate_percentage_change( float $old_value, float $new_value ): string {
+		if ( 0 === $old_value ) {
+			if ( 0 === $new_value ) {
+				return '0%';
+			}
+			// If old is 0 but new has value, it's infinite growth - show as 100%
+			return '+100%';
+		}
+
+		$change = ( ( $new_value - $old_value ) / $old_value ) * 100;
+		$formatted = number_format( abs( $change ), 1 );
+
+		if ( $change > 0 ) {
+			return '+' . $formatted . '%';
+		} elseif ( $change < 0 ) {
+			return '-' . $formatted . '%';
+		}
+
+		return '0%';
+	}
+
+	/**
+	 * Get previous period date range for comparison.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    string $date_range    Current date range.
+	 * @return   string                   Previous period date range.
+	 */
+	private function get_previous_period_range( string $date_range ): string {
+		// Map current range to equivalent previous period
+		$range_map = array(
+			'24hours' => 'previous_24hours',
+			'7days'   => 'previous_7days',
+			'30days'  => 'previous_30days',
+			'90days'  => 'previous_90days',
 		);
+
+		return $range_map[ $date_range ] ?? 'previous_7days';
 	}
 
 	/**
@@ -790,8 +874,19 @@ class SCD_Analytics_Controller {
 	 * @return   int    Active campaigns count.
 	 */
 	private function get_active_campaigns_count(): int {
-		// This would query the database for active campaigns
-		return 0; // Placeholder
+		global $wpdb;
+
+		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$count           = $wpdb->get_var(
+			"SELECT COUNT(*)
+			FROM {$campaigns_table}
+			WHERE status = 'active'
+			AND deleted_at IS NULL
+			AND ( starts_at IS NULL OR starts_at <= NOW() )
+			AND ( ends_at IS NULL OR ends_at >= NOW() )"
+		);
+
+		return (int) ( $count ?? 0 );
 	}
 
 	/**
@@ -802,27 +897,133 @@ class SCD_Analytics_Controller {
 	 * @return   array    Current hour stats.
 	 */
 	private function get_current_hour_stats(): array {
-		// This would get statistics for the current hour
+		global $wpdb;
+
+		$analytics_table = $wpdb->prefix . 'scd_analytics';
+		$current_hour    = date( 'Y-m-d H:00:00' );
+		$now             = current_time( 'mysql' );
+
+		$stats = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT
+					COALESCE(SUM(impressions), 0) as views,
+					COALESCE(SUM(clicks), 0) as clicks,
+					COALESCE(SUM(conversions), 0) as conversions,
+					COALESCE(SUM(revenue), 0) as revenue
+				FROM {$analytics_table}
+				WHERE date_recorded BETWEEN %s AND %s",
+				$current_hour,
+				$now
+			),
+			ARRAY_A
+		);
+
 		return array(
-			'views'       => 0,
-			'clicks'      => 0,
-			'conversions' => 0,
-			'revenue'     => 0.0,
+			'views'       => (int) ( $stats['views'] ?? 0 ),
+			'clicks'      => (int) ( $stats['clicks'] ?? 0 ),
+			'conversions' => (int) ( $stats['conversions'] ?? 0 ),
+			'revenue'     => (float) ( $stats['revenue'] ?? 0.0 ),
 		);
 	}
 
 	/**
 	 * Generate chart labels.
 	 *
+	 * Generates date/time labels based on granularity and date range.
+	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    string $granularity    Chart granularity.
+	 * @param    string $granularity    Chart granularity (hourly, daily, weekly, monthly).
 	 * @param    string $date_range     Date range.
 	 * @return   array                     Chart labels.
 	 */
 	private function generate_chart_labels( string $granularity, string $date_range ): array {
-		// This would generate appropriate labels based on granularity and date range
-		return array(); // Placeholder
+		$labels = array();
+
+		// Get date range conditions
+		$date_conditions = $this->get_date_range_conditions_from_string( $date_range );
+		$start           = strtotime( $date_conditions['start_date'] );
+		$end             = strtotime( $date_conditions['end_date'] );
+
+		switch ( $granularity ) {
+			case 'hourly':
+				$current = $start;
+				while ( $current <= $end ) {
+					$labels[] = date( 'H:00', $current );
+					$current  = strtotime( '+1 hour', $current );
+				}
+				break;
+
+			case 'daily':
+				$current = $start;
+				while ( $current <= $end ) {
+					$labels[] = date( 'M j', $current );
+					$current  = strtotime( '+1 day', $current );
+				}
+				break;
+
+			case 'weekly':
+				$current = $start;
+				while ( $current <= $end ) {
+					$labels[] = date( 'M j', $current );
+					$current  = strtotime( '+1 week', $current );
+				}
+				break;
+
+			case 'monthly':
+				$current = $start;
+				while ( $current <= $end ) {
+					$labels[] = date( 'M Y', $current );
+					$current  = strtotime( '+1 month', $current );
+				}
+				break;
+
+			default:
+				// Default to daily
+				$current = $start;
+				while ( $current <= $end ) {
+					$labels[] = date( 'M j', $current );
+					$current  = strtotime( '+1 day', $current );
+				}
+		}
+
+		return $labels;
+	}
+
+	/**
+	 * Get date range conditions from string.
+	 *
+	 * Helper method to get date range conditions without requiring trait.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    string $date_range    Date range.
+	 * @return   array                    Date conditions.
+	 */
+	private function get_date_range_conditions_from_string( string $date_range ): array {
+		$end_date = current_time( 'mysql' );
+
+		switch ( $date_range ) {
+			case '24hours':
+				$start_date = date( 'Y-m-d H:i:s', strtotime( '-24 hours' ) );
+				break;
+			case '7days':
+				$start_date = date( 'Y-m-d H:i:s', strtotime( '-7 days' ) );
+				break;
+			case '30days':
+				$start_date = date( 'Y-m-d H:i:s', strtotime( '-30 days' ) );
+				break;
+			case '90days':
+				$start_date = date( 'Y-m-d H:i:s', strtotime( '-90 days' ) );
+				break;
+			default:
+				$start_date = date( 'Y-m-d H:i:s', strtotime( '-7 days' ) );
+		}
+
+		return array(
+			'start_date' => $start_date,
+			'end_date'   => $end_date,
+		);
 	}
 
 	/**

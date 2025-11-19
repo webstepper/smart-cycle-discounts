@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/class-admin-manager.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -29,7 +29,7 @@ require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-scd-ajax-response.php';
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Admin_Manager {
 
@@ -66,12 +66,6 @@ class SCD_Admin_Manager {
 
 		$this->add_hooks();
 		$this->init_components();
-
-		// Log if logger is available
-		if ( $this->container->has( 'logger' ) ) {
-			$logger = $this->container->get( 'logger' );
-			$logger->debug( 'Admin manager initialized' );
-		}
 	}
 
 	/**
@@ -161,12 +155,6 @@ class SCD_Admin_Manager {
 		$this->register_settings();
 
 		$this->add_meta_boxes();
-
-		// Log if logger is available
-		if ( $this->container->has( 'logger' ) ) {
-			$logger = $this->container->get( 'logger' );
-			$logger->debug( 'Admin initialized for current user' );
-		}
 	}
 
 	/**

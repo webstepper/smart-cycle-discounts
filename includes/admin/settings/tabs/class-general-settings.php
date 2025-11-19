@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/settings/tabs/class-general-settings.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/settings/tabs
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_General_Settings extends SCD_Settings_Page_Base {
 
@@ -65,7 +65,7 @@ class SCD_General_Settings extends SCD_Settings_Page_Base {
 		// Trash Management Section
 		$this->add_section(
 			'scd_general_trash',
-			'<span class="dashicons dashicons-trash"></span> ' . __( 'Trash Management', 'smart-cycle-discounts' ),
+			SCD_Icon_Helper::get( 'delete', array( 'size' => 16 ) ) . ' ' . __( 'Trash Management', 'smart-cycle-discounts' ),
 			'render_trash_section'
 		);
 
@@ -159,13 +159,20 @@ class SCD_General_Settings extends SCD_Settings_Page_Base {
 		echo '</span>';
 
 		if ( 0 < $trash_count ) {
-			echo ' <button type="button" class="button button-secondary scd-empty-trash-btn" onclick="return confirm(\'' . esc_js( __( 'Are you sure you want to permanently delete all trashed campaigns? This cannot be undone.', 'smart-cycle-discounts' ) ) . '\');">';
-			echo '<span class="dashicons dashicons-trash"></span> ';
-			echo esc_html__( 'Empty Trash Now', 'smart-cycle-discounts' );
-			echo '</button>';
+			echo ' ';
+			$confirm_message = esc_js( __( 'Are you sure you want to permanently delete all trashed campaigns? This cannot be undone.', 'smart-cycle-discounts' ) );
+			SCD_Button_Helper::secondary(
+				__( 'Empty Trash Now', 'smart-cycle-discounts' ),
+				array(
+					'type'       => 'button',
+					'icon'       => 'trash',
+					'classes'    => array( 'scd-empty-trash-btn' ),
+					'attributes' => array( 'onclick' => "return confirm('" . $confirm_message . "');" ),
+				)
+			);
 		} else {
 			echo ' <span class="scd-trash-empty">';
-			echo '<span class="dashicons dashicons-yes-alt"></span> ';
+			echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ) . ' ';
 			echo esc_html__( 'Trash is empty', 'smart-cycle-discounts' );
 			echo '</span>';
 		}

@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/shared/base-orchestrator.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -85,8 +85,6 @@
 		 */
 		getDefaultConfig: function() {
 			return {
-				autoSave: true,
-				autoSaveDelay: 2000,
 				validateOnChange: true,
 				enableUndo: false
 			};
@@ -145,17 +143,6 @@
 		 * Bind common events
 		 */
 		bindEvents: function() {
-			var self = this;
-
-			// Auto-save functionality
-			if ( this.config.autoSave ) {
-				this.bindEvent( 'change', '#scd-step-' + this.stepName + ' input, #scd-step-' + this.stepName + ' select, #scd-step-' + this.stepName + ' textarea', function() {
-					self.debounce( 'autoSave', function() {
-						self.autoSave();
-					}, self.config.autoSaveDelay );
-				} );
-			}
-
 			// Real-time validation with standard debounce
 			this.setupFieldValidation();
 
@@ -367,31 +354,6 @@
 			// If ValidationManager not available, skip validation rather than using deprecated methods
 		},
 
-		/**
-		 * Auto-save functionality
-		 */
-		autoSave: function() {
-			if ( !this.wizard || !this.wizard.saveProgress ) {
-				return;
-			}
-
-			var data = this.collectData();
-			this.wizard.saveProgress( this.stepName, data );
-
-			this.showSaveIndicator();
-		},
-
-		/**
-		 * Show save indicator
-		 */
-		showSaveIndicator: function() {
-			var $indicator = $( '<div class="scd-save-indicator">Saved</div>' );
-			$( 'body' ).append( $indicator );
-
-			setTimeout( function() {
-				$indicator.fadeOut( function() { $indicator.remove(); } );
-			}, 2000 );
-		},
 
 		/**
 		 * Debounce utility
@@ -482,31 +444,34 @@
 		}
 	},
 
-		/**
-		 * Show/hide loading state
-		 *
-		 * @param {boolean} loading Loading state
-		 * @param {string} message Optional loading message
-		 */
-		setLoading: function( loading, message ) {
-			message = message || 'Loading...';
-			var $step = $( '#scd-step-' + this.stepName );
+	/**
+	 * Set loading state
+	 *
+	 * Delegates to centralized LoaderUtil for consistent loading UX.
+	 *
+	 * @param {boolean} loading - Loading state
+	 * @param {string} message - Loading message
+	 */
+	setLoading: function( loading, message ) {
+		var $step = $( '#scd-step-' + this.stepName );
 
-			if ( loading ) {
-				$step.addClass( 'loading' );
+		if ( loading ) {
+			$step.addClass( 'loading' );
 
-				if ( !$step.find( '.scd-loading-overlay' ).length ) {
-					$step.append( '' +
-                        '<div class="scd-loading-overlay">' +
-                            '<div class="scd-loading-spinner"></div>' +
-                            '<div class="scd-loading-message">' + message + '</div>' +
-                        '</div>' );
-				}
-			} else {
-				$step.removeClass( 'loading' );
-				$step.find( '.scd-loading-overlay' ).remove();
+			// Delegate to centralized LoaderUtil
+			if ( window.SCD && window.SCD.LoaderUtil ) {
+				SCD.LoaderUtil.showOverlay( $step, message );
 			}
-		},
+		} else {
+			$step.removeClass( 'loading' );
+
+			// Delegate to centralized LoaderUtil
+			if ( window.SCD && window.SCD.LoaderUtil ) {
+				SCD.LoaderUtil.hideOverlay( $step );
+			}
+		}
+	},
+
 
 		/**
 		 * Get step state

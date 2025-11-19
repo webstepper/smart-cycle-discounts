@@ -39,33 +39,23 @@ $selected_categories = is_array( $selected_categories ) ? $selected_categories :
 $product_ids = is_array( $product_ids ) ? $product_ids : array();
 $conditions = is_array( $conditions ) ? $conditions : array();
 
-// Transform conditions from engine format to UI format for display
-// Engine format: {property, operator, values[], mode}
-// UI format: {type, operator, value, value2, mode}
+// Normalize conditions to ensure all required fields are present
+// Database format: {condition_type, operator, value, value2, mode}
 $conditions = array_map( function( $condition ) {
 	if ( ! is_array( $condition ) ) {
 		return $condition;
 	}
 
-	// Already in UI format (has 'type' field)
-	if ( isset( $condition['type'] ) ) {
-		return $condition;
-	}
-
-	// Convert from engine format to UI format
-	if ( isset( $condition['property'] ) ) {
-		$ui_condition = array(
-			'type' => $condition['property'],
-			'operator' => isset( $condition['operator'] ) ? $condition['operator'] : '',
-			'mode' => isset( $condition['mode'] ) ? $condition['mode'] : 'include',
+	// Database format (standard format used throughout the system)
+	// Ensure all required fields are present with defaults
+	if ( isset( $condition['condition_type'] ) ) {
+		return array(
+			'condition_type' => $condition['condition_type'],
+			'operator'       => isset( $condition['operator'] ) ? $condition['operator'] : '',
+			'mode'           => isset( $condition['mode'] ) ? $condition['mode'] : 'include',
+			'value'          => isset( $condition['value'] ) ? $condition['value'] : '',
+			'value2'         => isset( $condition['value2'] ) ? $condition['value2'] : '',
 		);
-
-		// Convert values array back to value/value2
-		$values = isset( $condition['values'] ) && is_array( $condition['values'] ) ? $condition['values'] : array();
-		$ui_condition['value'] = isset( $values[0] ) ? $values[0] : '';
-		$ui_condition['value2'] = isset( $values[1] ) ? $values[1] : '';
-
-		return $ui_condition;
 	}
 
 	return $condition;
@@ -142,22 +132,17 @@ ob_start();
 	<?php
 	ob_start();
 	?>
-	<div class="form-field">
+	<div class="scd-form-field scd-form-field--full">
 		<label for="scd-campaign-categories">
 			<?php esc_html_e( 'Categories', 'smart-cycle-discounts' ); ?>
-			<span class="scd-field-helper" aria-label="<?php esc_attr_e( 'Filter products by category. Select multiple categories to include products from any of them.', 'smart-cycle-discounts' ); ?>" data-tooltip="<?php esc_attr_e( 'Filter products by category. Select multiple categories to include products from any of them.', 'smart-cycle-discounts' ); ?>">
-				<span class="dashicons dashicons-editor-help"></span>
-			</span>
+			<?php SCD_Tooltip_Helper::render( __( 'Filter products by category. Select multiple categories to include products from any of them.', 'smart-cycle-discounts' ) ); ?>
 		</label>
-		<select id="scd-campaign-categories" 
-				name="category_ids[]" 
-				multiple="multiple" 
+		<select id="scd-campaign-categories"
+				name="category_ids[]"
+				multiple="multiple"
 				class="scd-category-select">
 			<!-- Categories will be loaded via AJAX -->
 		</select>
-		<p class="description">
-			<?php esc_html_e( 'Products will be selected from these categories', 'smart-cycle-discounts' ); ?>
-		</p>
 	</div>
 	<?php
 	$category_content = ob_get_clean();
@@ -204,17 +189,15 @@ ob_start();
 			<div class="scd-random-count">
 				<label for="scd-random-count">
 					<?php esc_html_e( 'Number of products:', 'smart-cycle-discounts' ); ?>
-					<span class="scd-field-helper" aria-label="<?php esc_attr_e( 'Specify how many random products to select from the chosen categories.', 'smart-cycle-discounts' ); ?>" data-tooltip="<?php esc_attr_e( 'Specify how many random products to select from the chosen categories.', 'smart-cycle-discounts' ); ?>">
-						<span class="dashicons dashicons-editor-help"></span>
-					</span>
+					<?php SCD_Tooltip_Helper::render( __('Specify how many random products to select from the chosen categories.', 'smart-cycle-discounts') ); ?>
 				</label>
-				<input type="number" 
+				<input type="number"
 					   id="scd-random-count"
-					   name="random_count" 
-					   value="<?php echo esc_attr( $random_count ); ?>" 
-					   min="1" 
+					   name="random_count"
+					   value="<?php echo esc_attr( $random_count ); ?>"
+					   min="1"
 					   max="100"
-					   class="small-text">
+					   class="scd-enhanced-input scd-input-small">
 			</div>
 		</div>
 		
@@ -234,9 +217,7 @@ ob_start();
 				<div class="scd-product-search-container">
 					<label for="scd-product-search">
 						<?php esc_html_e( 'Search and select products:', 'smart-cycle-discounts' ); ?>
-						<span class="scd-field-helper" aria-label="<?php esc_attr_e( 'Search for specific products by name, SKU, or ID. You can select multiple products.', 'smart-cycle-discounts' ); ?>" data-tooltip="<?php esc_attr_e( 'Search for specific products by name, SKU, or ID. You can select multiple products.', 'smart-cycle-discounts' ); ?>">
-							<span class="dashicons dashicons-editor-help"></span>
-						</span>
+						<?php SCD_Tooltip_Helper::render( __('Search for specific products by name, SKU, or ID. You can select multiple products.', 'smart-cycle-discounts') ); ?>
 					</label>
 					<!-- Hidden field stores actual product IDs (single source of truth) -->
 					<input type="hidden"
@@ -280,9 +261,7 @@ ob_start();
 			<div class="scd-smart-criteria">
 				<div class="scd-smart-label">
 					<?php esc_html_e( 'Select products based on:', 'smart-cycle-discounts' ); ?>
-					<span class="scd-field-helper" aria-label="<?php esc_attr_e( 'Automatically select products based on predefined criteria like best sellers, featured products, or inventory levels.', 'smart-cycle-discounts' ); ?>" data-tooltip="<?php esc_attr_e( 'Automatically select products based on predefined criteria like best sellers, featured products, or inventory levels.', 'smart-cycle-discounts' ); ?>">
-						<span class="dashicons dashicons-editor-help"></span>
-					</span>
+					<?php SCD_Tooltip_Helper::render( __('Automatically select products based on predefined criteria like best sellers, featured products, or inventory levels.', 'smart-cycle-discounts') ); ?>
 				</div>
 				<div class="scd-smart-options">
 					<label class="scd-smart-option">
@@ -291,7 +270,7 @@ ob_start();
 							   value="best_sellers" 
 							   <?php checked( $smart_criteria, 'best_sellers' ); ?>>
 						<div class="scd-smart-option-content">
-							<span class="dashicons dashicons-chart-line"></span>
+							<?php echo SCD_Icon_Helper::get( 'chart-line', array( 'size' => 20 ) ); ?>
 							<div class="scd-smart-option-text">
 								<strong><?php esc_html_e( 'Best Sellers', 'smart-cycle-discounts' ); ?></strong>
 								<span><?php esc_html_e( 'Top performing products by sales', 'smart-cycle-discounts' ); ?></span>
@@ -304,7 +283,7 @@ ob_start();
 							   value="featured"
 							   <?php checked( $smart_criteria, 'featured' ); ?>>
 						<div class="scd-smart-option-content">
-							<span class="dashicons dashicons-star-filled"></span>
+							<?php echo SCD_Icon_Helper::get( 'star-filled', array( 'size' => 16 ) ); ?>
 							<div class="scd-smart-option-text">
 								<strong><?php esc_html_e( 'Featured Products', 'smart-cycle-discounts' ); ?></strong>
 								<span><?php esc_html_e( 'Hand-picked showcase products', 'smart-cycle-discounts' ); ?></span>
@@ -317,7 +296,7 @@ ob_start();
 							   value="low_stock"
 							   <?php checked( $smart_criteria, 'low_stock' ); ?>>
 						<div class="scd-smart-option-content">
-							<span class="dashicons dashicons-warning"></span>
+							<?php echo SCD_Icon_Helper::get( 'warning', array( 'size' => 16 ) ); ?>
 							<div class="scd-smart-option-text">
 								<strong><?php esc_html_e( 'Low Stock', 'smart-cycle-discounts' ); ?></strong>
 								<span><?php esc_html_e( 'Products with 10 or fewer items in stock', 'smart-cycle-discounts' ); ?></span>
@@ -330,7 +309,7 @@ ob_start();
 							   value="new_arrivals"
 							   <?php checked( $smart_criteria, 'new_arrivals' ); ?>>
 						<div class="scd-smart-option-content">
-							<span class="dashicons dashicons-calendar-alt"></span>
+							<?php echo SCD_Icon_Helper::get( 'calendar', array( 'size' => 16 ) ); ?>
 							<div class="scd-smart-option-text">
 								<strong><?php esc_html_e( 'New Arrivals', 'smart-cycle-discounts' ); ?></strong>
 								<span><?php esc_html_e( 'Recently added products (last 30 days)', 'smart-cycle-discounts' ); ?></span>
@@ -384,6 +363,7 @@ ob_start();
 			<div class="scd-conditions-logic">
 				<span class="scd-logic-label">
 					<?php esc_html_e( 'Filter products that match', 'smart-cycle-discounts' ); ?>
+					<?php SCD_Tooltip_Helper::render( __('Choose whether products must meet all criteria or just one to be included', 'smart-cycle-discounts') ); ?>
 				</span>
 				<div class="scd-logic-selector" role="radiogroup" aria-label="<?php esc_attr_e( 'Condition matching logic', 'smart-cycle-discounts' ); ?>">
 					<label class="scd-logic-option">
@@ -408,9 +388,6 @@ ob_start();
 						</span>
 					</label>
 				</div>
-				<span class="scd-field-helper" aria-label="<?php esc_attr_e( 'Choose whether products must meet all criteria or just one to be included', 'smart-cycle-discounts' ); ?>" data-tooltip="<?php esc_attr_e( 'Choose whether products must meet all criteria or just one to be included', 'smart-cycle-discounts' ); ?>">
-					<span class="dashicons dashicons-editor-help"></span>
-				</span>
 			</div>
 		</fieldset>
 
@@ -431,73 +408,85 @@ ob_start();
 			$has_operator = ! empty( $condition_operator );
 			$is_between = in_array( $condition_operator, array( 'between', 'not_between' ), true );
 			?>
-			<div class="scd-condition-row" data-index="<?php echo esc_attr( $index ); ?>">
-				<div class="scd-condition-fields">
-					<select name="conditions[<?php echo esc_attr( $index ); ?>][mode]" 
-							class="scd-condition-mode" 
-							data-index="<?php echo esc_attr( $index ); ?>">
-						<option value="include" <?php selected( $condition_mode, 'include' ); ?>>
-							<?php esc_html_e( 'Include', 'smart-cycle-discounts' ); ?>
-						</option>
-						<option value="exclude" <?php selected( $condition_mode, 'exclude' ); ?>>
-							<?php esc_html_e( 'Exclude', 'smart-cycle-discounts' ); ?>
-						</option>
-					</select>
-                    
-                    <select name="conditions[<?php echo esc_attr( $index ); ?>][type]" 
-                            class="scd-condition-type" 
-                            data-index="<?php echo esc_attr( $index ); ?>">
-                        <option value=""><?php esc_html_e( 'Select condition type', 'smart-cycle-discounts' ); ?></option>
-                        <?php foreach ( $condition_types as $group_key => $group ) : ?>
-                            <optgroup label="<?php echo esc_attr( $group['label'] ); ?>">
-                                <?php foreach ( $group['options'] as $value => $label ) : ?>
-                                    <option value="<?php echo esc_attr( $value ); ?>" <?php selected( $condition_type, $value ); ?>>
-                                        <?php echo esc_html( $label ); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </optgroup>
-                        <?php endforeach; ?>
-                    </select>
-                    
-                    <select name="conditions[<?php echo esc_attr( $index ); ?>][operator]" 
-                            class="scd-condition-operator" 
-                            data-index="<?php echo esc_attr( $index ); ?>"
-                            <?php echo ( ! $has_type ) ? 'disabled="disabled"' : ''; ?>>
-                        <option value=""><?php esc_html_e( 'Select operator', 'smart-cycle-discounts' ); ?></option>
-                        <?php if ( $has_type ) : ?>
-                            <?php foreach ( $operators as $op_value => $op_label ) : ?>
-                                <option value="<?php echo esc_attr( $op_value ); ?>" <?php selected( $condition_operator, $op_value ); ?>>
-                                    <?php echo esc_html( $op_label ); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </select>
-                    
-                    <div class="scd-condition-value-wrapper" data-index="<?php echo esc_attr( $index ); ?>">
-                        <input type="text" 
-                               name="conditions[<?php echo esc_attr( $index ); ?>][value]" 
-                               class="scd-condition-value scd-condition-value-single" 
-                               value="<?php echo esc_attr( $condition_value ); ?>"
-                               placeholder="<?php esc_attr_e( 'Enter value', 'smart-cycle-discounts' ); ?>"
-                               <?php echo ( ! $has_operator ) ? 'disabled="disabled"' : ''; ?>>
-                        <span class="scd-condition-value-separator<?php echo $is_between ? '' : ' scd-hidden'; ?>">
-                            <?php esc_html_e( 'and', 'smart-cycle-discounts' ); ?>
-                        </span>
-                        <input type="text" 
-                               name="conditions[<?php echo esc_attr( $index ); ?>][value2]" 
-                               value="<?php echo esc_attr( $condition_value2 ); ?>"
-                               placeholder="<?php esc_attr_e( 'Max value', 'smart-cycle-discounts' ); ?>"
-                               class="scd-condition-value scd-condition-value-between<?php echo $is_between ? '' : ' scd-hidden'; ?>"
-                               <?php echo ( ! $has_operator ) ? 'disabled="disabled"' : ''; ?>>
-                    </div>
-                </div>
-                
-                <div class="scd-condition-actions">
-                    <button type="button" class="button scd-remove-condition" title="<?php esc_attr_e( 'Remove this condition', 'smart-cycle-discounts' ); ?>">
-                        <span class="dashicons dashicons-trash"></span>
-                    </button>
-                </div>
-            </div>
+			<div class="scd-condition-wrapper" data-index="<?php echo esc_attr( $index ); ?>">
+				<div class="scd-condition-row">
+					<div class="scd-condition-fields">
+						<select name="conditions[<?php echo esc_attr( $index ); ?>][mode]"
+								class="scd-condition-mode scd-enhanced-select"
+								data-index="<?php echo esc_attr( $index ); ?>">
+							<option value="include" <?php selected( $condition_mode, 'include' ); ?>>
+								<?php esc_html_e( 'Include', 'smart-cycle-discounts' ); ?>
+							</option>
+							<option value="exclude" <?php selected( $condition_mode, 'exclude' ); ?>>
+								<?php esc_html_e( 'Exclude', 'smart-cycle-discounts' ); ?>
+							</option>
+						</select>
+
+						<select name="conditions[<?php echo esc_attr( $index ); ?>][type]"
+								class="scd-condition-type scd-enhanced-select"
+								data-index="<?php echo esc_attr( $index ); ?>">
+							<option value=""><?php esc_html_e( 'Select condition type', 'smart-cycle-discounts' ); ?></option>
+							<?php foreach ( $condition_types as $group_key => $group ) : ?>
+								<optgroup label="<?php echo esc_attr( $group['label'] ); ?>">
+									<?php foreach ( $group['options'] as $value => $label ) : ?>
+										<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $condition_type, $value ); ?>>
+											<?php echo esc_html( $label ); ?>
+										</option>
+									<?php endforeach; ?>
+								</optgroup>
+							<?php endforeach; ?>
+						</select>
+
+						<select name="conditions[<?php echo esc_attr( $index ); ?>][operator]"
+								class="scd-condition-operator scd-enhanced-select"
+								data-index="<?php echo esc_attr( $index ); ?>"
+								<?php echo ( ! $has_type ) ? 'disabled="disabled"' : ''; ?>>
+							<option value=""><?php esc_html_e( 'Select operator', 'smart-cycle-discounts' ); ?></option>
+							<?php if ( $has_type ) : ?>
+								<?php foreach ( $operators as $op_value => $op_label ) : ?>
+									<option value="<?php echo esc_attr( $op_value ); ?>" <?php selected( $condition_operator, $op_value ); ?>>
+										<?php echo esc_html( $op_label ); ?>
+									</option>
+								<?php endforeach; ?>
+							<?php endif; ?>
+						</select>
+
+						<div class="scd-condition-value-wrapper" data-index="<?php echo esc_attr( $index ); ?>">
+							<input type="text"
+								   name="conditions[<?php echo esc_attr( $index ); ?>][value]"
+								   class="scd-condition-value scd-condition-value-single scd-enhanced-input"
+								   value="<?php echo esc_attr( $condition_value ); ?>"
+								   placeholder="<?php esc_attr_e( 'Enter value', 'smart-cycle-discounts' ); ?>"
+								   <?php echo ( ! $has_operator ) ? 'disabled="disabled"' : ''; ?>>
+							<span class="scd-condition-value-separator<?php echo $is_between ? '' : ' scd-hidden'; ?>">
+								<?php esc_html_e( 'and', 'smart-cycle-discounts' ); ?>
+							</span>
+							<input type="text"
+								   name="conditions[<?php echo esc_attr( $index ); ?>][value2]"
+								   value="<?php echo esc_attr( $condition_value2 ); ?>"
+								   placeholder="<?php esc_attr_e( 'Max value', 'smart-cycle-discounts' ); ?>"
+								   class="scd-condition-value scd-condition-value-between scd-enhanced-input<?php echo $is_between ? '' : ' scd-hidden'; ?>"
+								   <?php echo ( ! $has_operator ) ? 'disabled="disabled"' : ''; ?>>
+						</div>
+					</div>
+
+					<div class="scd-condition-actions">
+						<?php
+						SCD_Button_Helper::icon(
+							'trash',
+							__( 'Remove this condition', 'smart-cycle-discounts' ),
+							array(
+								'style'   => 'secondary',
+								'classes' => array( 'scd-remove-condition' ),
+							)
+						);
+						?>
+					</div>
+				</div>
+
+				<!-- Inline validation error container - now outside flex row -->
+				<div class="scd-condition-error-container"></div>
+			</div>
             <?php
 		};
         
@@ -513,16 +502,54 @@ ob_start();
 
 		<!-- Condition Actions -->
 		<div class="scd-condition-actions-wrapper">
-			<button type="button" class="button scd-add-condition">
-				<span class="dashicons dashicons-plus-alt"></span>
-				<?php esc_html_e( 'Add Condition', 'smart-cycle-discounts' ); ?>
-			</button>
+			<?php
+			SCD_Button_Helper::secondary(
+				__( 'Add Condition', 'smart-cycle-discounts' ),
+				array(
+					'icon'    => 'plus-alt',
+					'classes' => array( 'scd-add-condition' ),
+				)
+			);
+			?>
 
 			<div class="scd-condition-help">
 				<p class="description">
-					<span class="dashicons dashicons-info"></span>
+					<?php echo SCD_Icon_Helper::get( 'info', array( 'size' => 16 ) ); ?>
 					<?php esc_html_e( 'Conditions are automatically applied as you create them', 'smart-cycle-discounts' ); ?>
 				</p>
+			</div>
+		</div>
+
+		<!-- Conditions Summary Panel -->
+		<div class="scd-conditions-summary scd-hidden" role="region" aria-label="<?php esc_attr_e( 'Active Filters Summary', 'smart-cycle-discounts' ); ?>">
+			<div class="scd-summary-header">
+				<h4>
+					<?php echo SCD_Icon_Helper::get( 'filter', array( 'size' => 16 ) ); ?>
+					<?php esc_html_e( 'Active Filters', 'smart-cycle-discounts' ); ?>
+				</h4>
+				<?php
+				SCD_Button_Helper::icon(
+					'arrow-up-alt2',
+					__( 'Toggle summary', 'smart-cycle-discounts' ),
+					array(
+						'style'   => 'link',
+						'classes' => array( 'scd-toggle-summary' ),
+					)
+				);
+				?>
+			</div>
+			<div class="scd-summary-content">
+				<div class="scd-summary-logic">
+					<strong><?php esc_html_e( 'Logic:', 'smart-cycle-discounts' ); ?></strong>
+					<span class="scd-summary-logic-value"></span>
+				</div>
+				<div class="scd-summary-conditions">
+					<ul class="scd-summary-list" role="list"></ul>
+				</div>
+				<div class="scd-summary-count">
+					<span class="scd-condition-count">0</span>
+					<span><?php esc_html_e( 'conditions active', 'smart-cycle-discounts' ); ?></span>
+				</div>
 			</div>
 		</div>
 		</div><!-- .scd-pro-background -->
@@ -530,25 +557,17 @@ ob_start();
 	<?php
 	$conditions_content = ob_get_clean();
 
-	// Create the card with the badge in the title
+	// Create the card with the optional badge in the title
 	ob_start();
 	?>
-	<h2 class="scd-card__title">
-		<span class="dashicons dashicons-filter" aria-hidden="true"></span>
+		<?php echo SCD_Icon_Helper::get( 'filter', array( 'size' => 16 ) ); ?>
 		<?php esc_html_e( 'Advanced Filters', 'smart-cycle-discounts' ); ?>
-		<?php if ( ! $can_use_filters ) : ?>
-			<span class="scd-badge scd-badge--pro">
-				🔒 <?php esc_html_e( 'PRO', 'smart-cycle-discounts' ); ?>
-			</span>
-		<?php else : ?>
-			<span class="scd-badge scd-badge--info"><?php esc_html_e( 'Optional', 'smart-cycle-discounts' ); ?></span>
-		<?php endif; ?>
-	</h2>
+		<span class="scd-badge scd-badge--optional"><?php esc_html_e( 'Optional', 'smart-cycle-discounts' ); ?></span>
 	<?php
-	$title_html = ob_get_clean();
+	$filters_title = ob_get_clean();
 
 	scd_wizard_card( array(
-		'title' => $title_html,
+		'title' => $filters_title,
 		'subtitle' => $can_use_filters
 			? esc_html__( 'Add conditions to filter products based on specific criteria', 'smart-cycle-discounts' )
 			: esc_html__( 'Upgrade to Pro to unlock advanced product filtering capabilities', 'smart-cycle-discounts' ),

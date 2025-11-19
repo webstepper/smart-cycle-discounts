@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/wizard/class-sidebar-base.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -45,7 +45,7 @@ abstract class SCD_Wizard_Sidebar_Base {
 				<?php if ( ! empty( $title ) ) : ?>
 					<div class="scd-sidebar-header">
 						<h3 class="scd-sidebar-header-title">
-							<span class="dashicons dashicons-info-outline"></span>
+							<?php echo SCD_Icon_Helper::get( 'info', array( 'size' => 16 ) ); ?>
 							<?php echo esc_html( $title ); ?>
 						</h3>
 						<?php if ( ! empty( $description ) ) : ?>
@@ -84,7 +84,7 @@ abstract class SCD_Wizard_Sidebar_Base {
 			<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-documentation' ) ); ?>"
 				class="scd-sidebar-link"
 				target="_blank">
-				<span class="dashicons dashicons-book"></span>
+				<?php echo SCD_Icon_Helper::get( 'book', array( 'size' => 16 ) ); ?>
 				<?php esc_html_e( 'View Full Documentation', 'smart-cycle-discounts' ); ?>
 			</a>
 		</div>
@@ -133,13 +133,7 @@ abstract class SCD_Wizard_Sidebar_Base {
 				role="button"
 				aria-expanded="true"
 				aria-controls="<?php echo esc_attr( $section_id ); ?>-content">
-				<button type="button"
-						class="scd-sidebar-section-toggle"
-						tabindex="-1"
-						aria-hidden="true">
-					<span class="dashicons dashicons-arrow-down"></span>
-				</button>
-				<span class="scd-sidebar-section-icon dashicons dashicons-<?php echo esc_attr( $icon ); ?>"></span>
+				<?php echo SCD_Icon_Helper::get( $icon, array( 'size' => 16, 'class' => 'scd-sidebar-section-icon' ) ); ?>
 				<span class="scd-sidebar-section-title"><?php echo esc_html( $title ); ?></span>
 			</h4>
 			<div id="<?php echo esc_attr( $section_id ); ?>-content" class="scd-sidebar-section-content">

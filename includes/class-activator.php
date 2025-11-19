@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/class-activator.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Activator {
 
@@ -58,6 +58,9 @@ class SCD_Activator {
 			self::flush_rewrite_rules();
 
 			self::set_activation_timestamp();
+
+			// Clear license and feature caches (ensures fresh validation after updates)
+			self::clear_license_caches();
 
 			// Log activation
 			self::log_activation();
@@ -559,5 +562,25 @@ class SCD_Activator {
 			// Mark that first activation has occurred.
 			add_option( 'scd_first_activation_done', true );
 		}
+	}
+
+	/**
+	 * Clear license and feature gate caches.
+	 *
+	 * Ensures fresh license validation after plugin updates/reactivations.
+	 * Prevents stale cached data from causing feature access issues.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   void
+	 */
+	private static function clear_license_caches() {
+		// Clear License Manager caches
+		delete_option( 'scd_license_validation_cache' );
+		delete_option( 'scd_license_last_check' );
+
+		// Clear transient-based caches
+		delete_transient( 'scd_license_status' );
+		delete_transient( 'scd_feature_gate_cache' );
 	}
 }

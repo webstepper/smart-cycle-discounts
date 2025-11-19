@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/admin/dashboard/main-dashboard.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -175,7 +175,7 @@
 			for ( var i = 0; i < statuses.length; i++ ) {
 				var status = statuses[i];
 				if ( stats[status] !== undefined ) {
-					$( '.scd-status-badge.scd-status-' + status ).each( function() {
+					$( '.scd-badge-status--' + status ).each( function() {
 						var $badge = $( this );
 						var currentText = $badge.text();
 						// Replace number while keeping label
@@ -210,7 +210,7 @@
 				var row = '<tr>' +
 					'<td>' +
 					'<strong>' + this.escapeHtml( campaign.name ) + '</strong>' +
-					'<span class="scd-campaign-status scd-status-' + this.escapeHtml( campaign.status ) + '">' +
+					'<span class="scd-badge-status--' + this.escapeHtml( campaign.status ) + '">' +
 					this.escapeHtml( this.capitalizeFirst( campaign.status ) ) +
 					'</span>' +
 					'</td>' +
@@ -232,7 +232,9 @@
 		 */
 		showLoading: function() {
 			this.isLoading = true;
-			$( '#scd-dashboard-loading' ).fadeIn( 200 );
+			if ( window.SCD && window.SCD.LoaderUtil ) {
+				SCD.LoaderUtil.show( 'scd-dashboard-loading', { fade: true } );
+			}
 		},
 
 		/**
@@ -242,7 +244,9 @@
 		 */
 		hideLoading: function() {
 			this.isLoading = false;
-			$( '#scd-dashboard-loading' ).fadeOut( 200 );
+			if ( window.SCD && window.SCD.LoaderUtil ) {
+				SCD.LoaderUtil.hide( 'scd-dashboard-loading', { fade: true } );
+			}
 		},
 
 		/**
@@ -315,12 +319,12 @@
 				// Close details
 				$details.slideUp( 300 );
 				$button.removeClass( 'scd-active' );
-				$button.find( 'span:not(.dashicons)' ).text( 'Show More Details' );
+				$button.find( 'span:not(.scd-icon)' ).text( 'Show More Details' );
 			} else {
 				// Open details
 				$details.slideDown( 300 );
 				$button.addClass( 'scd-active' );
-				$button.find( 'span:not(.dashicons)' ).text( 'Show Less Details' );
+				$button.find( 'span:not(.scd-icon)' ).text( 'Show Less Details' );
 			}
 		},
 

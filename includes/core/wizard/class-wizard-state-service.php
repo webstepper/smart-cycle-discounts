@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/wizard/class-wizard-state-service.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -38,7 +38,7 @@ class SCD_Wizard_State_Service {
 	 * Session lifetime in seconds (2 hours).
 	 *
 	 * Based on last activity (updated_at), not creation time.
-	 * Auto-save runs every 30 seconds, keeping active sessions alive.
+	 * Manual saves update session activity, keeping active sessions alive.
 	 * Should be longer than JavaScript sessionTimeout (1 hour).
 	 *
 	 * @since    1.0.0
@@ -320,15 +320,24 @@ class SCD_Wizard_State_Service {
 		}
 
 		if ( $is_weekly_campaign ) {
-			// Weekly campaign - calculate this week's dates from schedule
+			// Weekly campaign - calculate next occurrence (this week or next week)
 			$schedule           = $event['schedule'];
 			$current_week_start = strtotime( 'this week Monday 00:00' );
 
 			$start_day_offset = $schedule['start_day'] - 1; // Monday = 0
 			$end_day_offset   = $schedule['end_day'] - 1;
 
+			// Calculate this week's timestamps
 			$start_timestamp = strtotime( "+{$start_day_offset} days {$schedule['start_time']}", $current_week_start );
 			$end_timestamp   = strtotime( "+{$end_day_offset} days {$schedule['end_time']}", $current_week_start );
+
+			// If campaign start has already passed, use next week instead
+			$now = current_time( 'timestamp' );
+			if ( $start_timestamp < $now ) {
+				$next_week_start = strtotime( 'next week Monday 00:00' );
+				$start_timestamp = strtotime( "+{$start_day_offset} days {$schedule['start_time']}", $next_week_start );
+				$end_timestamp   = strtotime( "+{$end_day_offset} days {$schedule['end_time']}", $next_week_start );
+			}
 
 			$this->data['steps']['schedule']['start_type'] = 'scheduled';
 			$this->data['steps']['schedule']['start_date'] = wp_date( 'Y-m-d', $start_timestamp );
@@ -409,6 +418,7 @@ class SCD_Wizard_State_Service {
 	private function get_default_session_data(): array {
 		return array(
 			'session_id'      => $this->session_id,
+			'user_id'         => get_current_user_id(), // Bind session to user
 			'created_at'      => time(),
 			'updated_at'      => time(),
 			'steps'           => array(),
@@ -429,6 +439,22 @@ class SCD_Wizard_State_Service {
 		$data             = $this->fetch_session_data();
 
 		if ( ! $this->is_valid_session_data( $data ) ) {
+			return false;
+		}
+
+		// SECURITY: Validate session belongs to current user
+		$session_user_id = isset( $data['user_id'] ) ? (int) $data['user_id'] : 0;
+		$current_user_id = get_current_user_id();
+
+		if ( $session_user_id !== $current_user_id ) {
+			// Session hijacking attempt - reject the session
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( sprintf(
+					'[SCD_Security] Session hijacking attempt detected. Session user: %d, Current user: %d',
+					$session_user_id,
+					$current_user_id
+				) );
+			}
 			return false;
 		}
 
@@ -649,6 +675,7 @@ class SCD_Wizard_State_Service {
 		$step = sanitize_key( $step );
 
 		if ( ! $this->is_valid_step( $step ) ) {
+			error_log( '[SCD] save_step_data: Invalid step: ' . $step );
 			return false;
 		}
 
@@ -661,6 +688,7 @@ class SCD_Wizard_State_Service {
 		if ( $is_edit && $this->change_tracker ) {
 			// Track changes via Change Tracker (session only)
 			// Database will be updated when user completes wizard via create_from_wizard()
+			error_log( '[SCD] save_step_data: Using Change Tracker for step: ' . $step . ' (edit mode)' );
 			$this->change_tracker->track_step( $step, $data );
 			return true;
 		}
@@ -669,7 +697,11 @@ class SCD_Wizard_State_Service {
 		$merged_data   = array_merge( $existing_data, $data );
 		$this->set_step_data( $step, $merged_data );
 
-		return $this->save();
+		error_log( '[SCD] save_step_data: Saving step data for: ' . $step );
+		$save_result = $this->save();
+		error_log( '[SCD] save_step_data: Save result: ' . ( $save_result ? 'SUCCESS' : 'FAILED' ) );
+
+		return $save_result;
 	}
 
 	/**
@@ -769,18 +801,34 @@ class SCD_Wizard_State_Service {
 		$step = sanitize_key( $step );
 
 		if ( ! $this->is_valid_step( $step ) ) {
+			error_log( '[SCD] mark_step_complete: Invalid step: ' . $step );
 			return false;
 		}
 
 		$this->ensure_completed_steps_array();
 
 		if ( $this->is_step_complete( $step ) ) {
+			error_log( '[SCD] mark_step_complete: Step already complete: ' . $step );
 			return true;
 		}
 
 		$this->add_completed_step( $step );
+		error_log( '[SCD] mark_step_complete: Added step: ' . $step . ' | Completed steps: ' . implode( ', ', $this->data['completed_steps'] ) );
 
-		return $this->save();
+		// Force immediate save for navigation - bypass lock to prevent deferred save
+		// Critical: Must persist before client redirects to next step
+		$save_result = $this->save( true );
+		error_log( '[SCD] mark_step_complete: Save result: ' . ( $save_result ? 'SUCCESS' : 'FAILED' ) );
+
+		// Verify it was actually saved
+		$verification = get_transient( self::TRANSIENT_PREFIX . $this->session_id );
+		if ( $verification ) {
+			error_log( '[SCD] mark_step_complete: Verification - completed_steps in transient: ' . implode( ', ', $verification['completed_steps'] ?? array() ) );
+		} else {
+			error_log( '[SCD] mark_step_complete: Verification FAILED - transient not found!' );
+		}
+
+		return $save_result;
 	}
 
 	/**
@@ -953,6 +1001,8 @@ class SCD_Wizard_State_Service {
 		$required_steps = array_diff( $this->steps, array( 'review' ) );
 		$can_complete   = count( array_intersect( $required_steps, $completed_steps ) ) === count( $required_steps );
 
+		error_log( '[SCD] get_progress: Completed steps: ' . implode( ', ', $completed_steps ) . ' | Count: ' . $completed_count );
+
 		return array(
 			'completed_steps' => $completed_steps,
 			'total_steps'     => $total_steps,
@@ -1093,7 +1143,7 @@ class SCD_Wizard_State_Service {
 	 * Check if expired.
 	 *
 	 * Checks expiration based on last activity (updated_at) not creation time.
-	 * This ensures active sessions with auto-save don't expire.
+	 * This ensures active sessions with saves don't expire.
 	 *
 	 * @since    1.0.0
 	 * @return   bool    Is expired.

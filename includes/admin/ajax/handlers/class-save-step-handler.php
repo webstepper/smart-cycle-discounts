@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers/class-save-step-handler.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -119,9 +119,14 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array|WP_Error       Response data or error.
 	 */
 	protected function handle( $request ) {
+		error_log( '[SCD] Save Step Handler: Request received' );
+		error_log( '[SCD] Request data: ' . print_r( $request, true ) );
+
 		$this->set_execution_limits();
 
 		$step = $this->extract_step( $request );
+		error_log( '[SCD] Extracted step: ' . ( is_wp_error( $step ) ? 'ERROR: ' . $step->get_error_message() : $step ) );
+
 		if ( is_wp_error( $step ) ) {
 			return $step;
 		}
@@ -172,33 +177,34 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 			return $size_check;
 		}
 
-		// Transform data
-		$data = $this->transformer->transform( $step, $data );
-
+		error_log( '[SCD] About to validate step: ' . $step );
 		$validation_result = $this->validate_step_data( $step, $data );
 		if ( is_wp_error( $validation_result ) ) {
+			error_log( '[SCD] Validation FAILED: ' . $validation_result->get_error_message() );
 			return $validation_result;
 		}
+		error_log( '[SCD] Validation PASSED for step: ' . $step );
 
 		try {
+			error_log( '[SCD] Processing step data for: ' . $step );
 			$processed_data = $this->process_step_data( $step, $data );
 			if ( is_wp_error( $processed_data ) ) {
+				error_log( '[SCD] Process step data FAILED: ' . $processed_data->get_error_message() );
 				return $processed_data;
 			}
 
+			error_log( '[SCD] Saving to state for: ' . $step );
 			$save_result = $this->save_to_state( $step, $processed_data, $request );
 			if ( is_wp_error( $save_result ) ) {
+				error_log( '[SCD] Save to state FAILED: ' . $save_result->get_error_message() );
 				return $save_result;
 			}
+			error_log( '[SCD] Save to state SUCCESS for: ' . $step );
 		} catch ( Exception $e ) {
 			return $this->handle_save_exception( $e, $step );
 		}
 
 		$response = $this->build_response( $step, $processed_data, $request );
-
-		if ( $this->transformer->has_condition_errors() ) {
-			$response['condition_errors'] = $this->transformer->get_condition_errors();
-		}
 
 		$this->idempotency_service->cache_response( $idempotency_key, $response );
 
@@ -246,9 +252,19 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array                Step data.
 	 */
 	private function extract_data( $request ) {
-		return isset( $request['data'] ) ? $request['data'] : (
+		$data = isset( $request['data'] ) ? $request['data'] : (
 			isset( $request['step_data'] ) ? $request['step_data'] : array()
 		);
+
+		// Debug: Check if conditions are present in raw request data
+		if ( isset( $data['conditions'] ) ) {
+			error_log( '[SCD] CONDITIONS FOUND in extract_data: ' . count( $data['conditions'] ) . ' conditions' );
+			error_log( '[SCD] Conditions data: ' . print_r( $data['conditions'], true ) );
+		} else {
+			error_log( '[SCD] NO CONDITIONS in extract_data for step data' );
+		}
+
+		return $data;
 	}
 
 	/**
@@ -377,12 +393,27 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	private function process_step_data( $step, $data ) {
 		$data_to_process = ! empty( $this->sanitized_data ) ? $this->sanitized_data : $data;
 
+		// Debug: Check conditions before processing
+		if ( 'products' === $step ) {
+			error_log( '[SCD] process_step_data - BEFORE sanitization:' );
+			error_log( '[SCD] Conditions present: ' . ( isset( $data_to_process['conditions'] ) ? 'YES (' . count( $data_to_process['conditions'] ) . ')' : 'NO' ) );
+		}
+
 		switch ( $step ) {
 			case 'basic':
 			case 'products':
 			case 'discounts':
 			case 'schedule':
 				$sanitized = SCD_Validation::sanitize_step_data( $data_to_process, $step );
+
+				// Debug: Check conditions after sanitization
+				if ( 'products' === $step ) {
+					error_log( '[SCD] process_step_data - AFTER sanitization:' );
+					error_log( '[SCD] Conditions present: ' . ( isset( $sanitized['conditions'] ) ? 'YES (' . count( $sanitized['conditions'] ) . ')' : 'NO' ) );
+					if ( isset( $sanitized['conditions'] ) ) {
+						error_log( '[SCD] Sanitized conditions: ' . print_r( $sanitized['conditions'], true ) );
+					}
+				}
 
 				// Strip PRO features for free users (server-side safeguard)
 				if ( 'schedule' === $step && $this->feature_gate && ! $this->feature_gate->can_use_recurring_campaigns() ) {
@@ -433,6 +464,15 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 
 			if ( ! $this->state_service ) {
 				throw new Exception( 'State service unavailable' );
+			}
+
+			// Debug: Check conditions before saving to state
+			if ( 'products' === $step ) {
+				error_log( '[SCD] save_to_state - BEFORE saving to state service:' );
+				error_log( '[SCD] Conditions present: ' . ( isset( $processed_data['conditions'] ) ? 'YES (' . count( $processed_data['conditions'] ) . ')' : 'NO' ) );
+				if ( isset( $processed_data['conditions'] ) ) {
+					error_log( '[SCD] Processed conditions to save: ' . print_r( $processed_data['conditions'], true ) );
+				}
 			}
 
 			$save_result = $this->state_service->save_step_data( $step, $processed_data );

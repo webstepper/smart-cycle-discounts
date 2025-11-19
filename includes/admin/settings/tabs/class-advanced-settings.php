@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/settings/tabs/class-advanced-settings.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -41,7 +41,7 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 		// Logging Configuration Section
 		$this->add_section(
 			'scd_advanced_debug',
-			'<span class="dashicons dashicons-admin-tools"></span> ' . __( 'Logging Configuration', 'smart-cycle-discounts' ),
+			SCD_Icon_Helper::get( 'admin-tools', array( 'size' => 16 ) ) . ' ' . __( 'Logging Configuration', 'smart-cycle-discounts' ),
 			'render_debug_section'
 		);
 
@@ -87,7 +87,7 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 		// Uninstall Section
 		$this->add_section(
 			'scd_advanced_uninstall',
-			'<span class="dashicons dashicons-trash"></span> ' . __( 'Uninstall Options', 'smart-cycle-discounts' ),
+			SCD_Icon_Helper::get( 'delete', array( 'size' => 16 ) ) . ' ' . __( 'Uninstall Options', 'smart-cycle-discounts' ),
 			'render_uninstall_section'
 		);
 
@@ -126,10 +126,7 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 
 		$enabled = $this->get_setting( 'enable_debug_mode', false );
 		if ( $enabled ) {
-			echo ' <span class="scd-status-badge scd-status-badge--warning">';
-			echo '<span class="dashicons dashicons-warning"></span> ';
-			echo esc_html__( 'Active', 'smart-cycle-discounts' );
-			echo '</span>';
+			echo ' ' . SCD_Badge_Helper::health_badge( 'warning', __( 'Active', 'smart-cycle-discounts' ) );
 		}
 	}
 

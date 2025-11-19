@@ -16,12 +16,17 @@
 
 .scd-wizard-form .ts-wrapper {
 	position: relative;
-	z-index: 1000; /* Normal stacking context */
+	z-index: var(--scd-z-modal);
+	width: 100%;
 }
 
 .scd-wizard-form .ts-wrapper.multi .ts-control {
 	min-height: calc(var(--scd-input-height-large) + 2px);
 	padding: var(--scd-spacing-xs) var(--scd-spacing-sm);
+}
+
+.scd-wizard-form .ts-wrapper.multi.has-items .ts-control {
+	padding: var(--scd-spacing-xs) var(--scd-spacing-sm) calc(var(--scd-spacing-xs) - 3px);
 }
 
 /* ==========================================================================
@@ -32,13 +37,12 @@
 	background-color: var(--scd-color-background);
 	border: 1px solid var(--scd-color-border);
 	border-radius: var(--scd-radius-md);
-	box-shadow: inset 0 1px 2px var(--scd-shadow-inset);
 	color: var(--scd-color-text);
 	font-size: var(--scd-font-size-medium);
 	line-height: var(--scd-line-height-base);
 	padding: calc(var(--scd-spacing-sm) - 2px) calc(var(--scd-spacing-sm) + 2px);
-	transition: border-color var(--scd-transition-base) ease-in-out,
-	            box-shadow var(--scd-transition-base) ease-in-out;
+	transition: border-color var(--scd-transition-base) ease;
+	box-shadow: none !important;
 }
 
 .scd-wizard-form .ts-control:hover {
@@ -47,8 +51,7 @@
 
 .scd-wizard-form .ts-wrapper.focus .ts-control {
 	border-color: var(--scd-color-primary);
-	box-shadow: 0 0 0 1px var(--scd-color-primary);
-	outline: 2px solid transparent;
+	outline: none;
 }
 
 .scd-wizard-form .ts-control > input {
@@ -66,7 +69,7 @@
    ========================================================================== */
 
 .scd-wizard-form .ts-control > .item {
-	background-color: var(--scd-color-surface);
+	background-color: var(--scd-color-background);
 	border: 1px solid var(--scd-color-border);
 	border-radius: var(--scd-radius-sm);
 	color: var(--scd-color-text);
@@ -103,7 +106,7 @@
 }
 
 /* ==========================================================================
-   Dropdown
+   Dropdown Container
    ========================================================================== */
 
 .scd-wizard-form .ts-dropdown,
@@ -112,20 +115,29 @@ body > .ts-dropdown {
 	border: 1px solid var(--scd-color-border);
 	border-radius: 0 0 var(--scd-radius-md) var(--scd-radius-md);
 	border-top: 0;
-	box-shadow: var(--scd-shadow-sm);
 	margin-top: -1px;
 	max-height: 300px;
 	overflow-x: hidden;
 	overflow-y: auto;
-	z-index: 9999; /* Below WordPress admin bar (99999) but above content */
+	z-index: var(--scd-z-notification);
 }
 
-/* Dropdown Options */
+/* ==========================================================================
+   Dropdown Options - Base Styling
+   ========================================================================== */
+
 .scd-wizard-form .ts-dropdown .option,
 body > .ts-dropdown .option {
+	border-bottom: 1px solid var(--scd-color-border-subtle);
 	color: var(--scd-color-text);
 	cursor: pointer;
 	padding: var(--scd-spacing-sm) var(--scd-spacing-md);
+	transition: background-color var(--scd-transition-fast) ease;
+}
+
+.scd-wizard-form .ts-dropdown .option:last-child,
+body > .ts-dropdown .option:last-child {
+	border-bottom: none;
 }
 
 .scd-wizard-form .ts-dropdown .option:hover,
@@ -137,8 +149,10 @@ body > .ts-dropdown .option.active {
 
 .scd-wizard-form .ts-dropdown .option.selected,
 body > .ts-dropdown .option.selected {
-	background-color: var(--scd-color-info-bg);
+	background-color: var(--scd-color-surface);
+	border-left: 3px solid var(--scd-color-primary);
 	font-weight: var(--scd-font-weight-semibold);
+	padding-left: calc(var(--scd-spacing-md) - 3px);
 }
 
 /* Checkbox Plugin Support */
@@ -150,23 +164,19 @@ body > .ts-dropdown .option input[type="checkbox"] {
 /* No Results State */
 .scd-wizard-form .ts-dropdown .no-results,
 body > .ts-dropdown .no-results {
+	border-bottom: none;
 	color: var(--scd-color-text-muted);
 	padding: var(--scd-spacing-md);
 	text-align: center;
 }
 
 /* ==========================================================================
-   Category Display
+   Category Options
    ========================================================================== */
 
-/* Category Option Layout */
-.scd-tom-select-option {
-	align-items: center;
-	display: flex;
-}
-
-.scd-tom-select-option .option-text {
-	flex: 1;
+/* Category Option Container */
+.scd-wizard-form .ts-dropdown .option .category-option,
+body > .ts-dropdown .option .category-option {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
@@ -174,78 +184,70 @@ body > .ts-dropdown .no-results {
 .scd-wizard-form .ts-dropdown .option .category-count,
 body > .ts-dropdown .option .category-count {
 	color: var(--scd-color-text-lighter);
+	font-size: var(--scd-font-size-small);
 	opacity: 0.8;
 }
 
-/* Hierarchical Indentation */
-.scd-wizard-form .ts-dropdown .category-option,
-body > .ts-dropdown .category-option {
-	padding-left: var(--scd-spacing-md);
-}
-
-.scd-wizard-form .ts-dropdown .category-option.level-1,
-body > .ts-dropdown .category-option.level-1 {
-	padding-left: calc(var(--scd-spacing-md) + var(--scd-spacing-lg));
-}
-
-.scd-wizard-form .ts-dropdown .category-option.level-2,
-body > .ts-dropdown .category-option.level-2 {
-	padding-left: calc(var(--scd-spacing-md) + (var(--scd-spacing-lg) * 2));
-}
-
-.scd-wizard-form .ts-dropdown .category-option.level-3,
-body > .ts-dropdown .category-option.level-3 {
-	padding-left: calc(var(--scd-spacing-md) + (var(--scd-spacing-lg) * 3));
-}
-
-.scd-wizard-form .ts-dropdown .category-option.level-4,
-body > .ts-dropdown .category-option.level-4 {
-	padding-left: calc(var(--scd-spacing-md) + (var(--scd-spacing-lg) * 4));
-}
-
 /* ==========================================================================
-   Product Display
+   Product Options
    ========================================================================== */
+
+/* Product Option Container - Remove default option padding for products */
+.scd-wizard-form .ts-dropdown .option:has(.scd-tom-select-product-option),
+body > .ts-dropdown .option:has(.scd-tom-select-product-option) {
+	padding: 0;
+}
 
 /* Product Option Layout */
 .scd-tom-select-product-option {
+	align-items: center;
 	display: flex;
 	gap: var(--scd-spacing-md);
-	padding: var(--scd-spacing-xs) 0;
+	padding: var(--scd-spacing-sm) var(--scd-spacing-md);
 }
 
-/* Product Thumbnail */
+/* Product Image Container */
 .scd-tom-select-product-option .product-image {
+	background: var(--scd-color-surface);
+	border: 1px solid var(--scd-color-border-light);
+	border-radius: var(--scd-radius-sm);
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	flex-shrink: 0;
 	height: var(--scd-spacing-xxxl);
 	width: var(--scd-spacing-xxxl);
+	overflow: hidden;
 }
 
+/* Product Image */
 .scd-tom-select-product-option .product-image img {
-	border-radius: var(--scd-radius-sm);
+	display: block;
 	height: 100%;
-	object-fit: cover;
 	width: 100%;
+	object-fit: cover;
 }
 
-/* No Image Placeholder */
+/* Image Placeholder */
 .scd-tom-select-product-option .product-image.no-image {
-	align-items: center;
-	background-color: var(--scd-color-surface);
-	border: 1px solid var(--scd-color-border);
-	border-radius: var(--scd-radius-sm);
-	color: var(--scd-color-text-lighter);
-	display: flex;
-	font-size: var(--scd-font-size-xxl);
-	justify-content: center;
+	background: linear-gradient(135deg, var(--scd-color-surface) 0%, var(--scd-color-surface-light) 100%);
 }
 
-/* Product Information */
+.scd-tom-select-product-option .product-image-placeholder {
+	color: var(--scd-color-text-lighter);
+	opacity: 0.5;
+}
+
+/* Product Details Container */
 .scd-tom-select-product-option .product-details {
+	display: flex;
+	flex-direction: column;
 	flex: 1;
+	gap: calc(var(--scd-spacing-xs) / 2);
 	min-width: 0;
 }
 
+/* Product Name */
 .scd-tom-select-product-option .product-name {
 	color: var(--scd-color-text);
 	font-size: var(--scd-font-size-medium);
@@ -256,22 +258,38 @@ body > .ts-dropdown .category-option.level-4 {
 	white-space: nowrap;
 }
 
+/* Product Meta Row */
 .scd-tom-select-product-option .product-meta {
+	align-items: center;
 	color: var(--scd-color-text-muted);
+	display: flex;
+	flex-wrap: wrap;
 	font-size: var(--scd-font-size-small);
+	gap: var(--scd-spacing-sm);
 	line-height: 1.4;
-	margin-top: calc(var(--scd-spacing-xs) / 2);
 }
 
+/* Product Price */
 .scd-tom-select-product-option .product-price {
+	color: var(--scd-color-text);
 	font-weight: var(--scd-font-weight-semibold);
 }
 
+/* Product SKU */
 .scd-tom-select-product-option .product-sku {
-	margin-left: var(--scd-spacing-sm);
+	color: var(--scd-color-text-lighter);
+	font-family: 'Courier New', Consolas, Monaco, monospace;
+	font-size: var(--scd-font-size-small);
 }
 
-/* Selected Product Item */
+.scd-tom-select-product-option .product-sku::before {
+	content: 'SKU: ';
+	color: var(--scd-color-text-muted);
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	font-weight: normal;
+}
+
+/* Selected Product Item (in tag) */
 .scd-tom-select-product-item {
 	align-items: center;
 	display: flex;
@@ -307,7 +325,7 @@ body > .ts-dropdown.loading-more::after {
    ========================================================================== */
 
 .scd-wizard-form .ts-wrapper .clear-button {
-	background: var(--scd-color-surface);
+	background: var(--scd-color-background);
 	border: 1px solid var(--scd-color-border);
 	border-radius: var(--scd-radius-sm);
 	cursor: pointer;
@@ -320,7 +338,7 @@ body > .ts-dropdown.loading-more::after {
 	right: var(--scd-spacing-sm);
 	top: 50%;
 	transform: translateY(-50%);
-	transition: opacity var(--scd-transition-base);
+	transition: opacity var(--scd-transition-base) ease;
 	z-index: var(--scd-z-base);
 }
 
@@ -329,7 +347,8 @@ body > .ts-dropdown.loading-more::after {
 }
 
 .scd-wizard-form .ts-wrapper.has-items .clear-button:hover {
-	background: var(--scd-color-border-light);
+	background: var(--scd-color-surface);
+	border-color: var(--scd-color-border-dark);
 	opacity: 1;
 }
 
@@ -354,8 +373,8 @@ body > .ts-dropdown.loading-more::after {
    ========================================================================== */
 
 .scd-tom-select-footer {
-	background-color: var(--scd-color-surface-light);
-	border-top: 1px solid var(--scd-color-border-light);
+	background-color: var(--scd-color-surface);
+	border-top: 1px solid var(--scd-color-border);
 	bottom: 0;
 	padding: var(--scd-spacing-sm);
 	position: sticky;
@@ -386,8 +405,8 @@ body > .ts-dropdown.loading-more::after {
 	opacity: 0.6;
 }
 
-.scd-tom-select-footer .scd-load-more-products .dashicons,
-.scd-tom-select-footer .scd-load-more-btn .dashicons {
+.scd-tom-select-footer .scd-load-more-products .scd-icon,
+.scd-tom-select-footer .scd-load-more-btn .scd-icon {
 	font-size: var(--scd-font-size-large);
 	line-height: 1;
 	margin-right: var(--scd-spacing-xs);
@@ -433,11 +452,15 @@ body > .ts-dropdown.loading-more::after {
 	}
 
 	.scd-tom-select-product-option {
-		gap: calc(var(--scd-spacing-sm) + 2px);
+		gap: var(--scd-spacing-sm);
 	}
 
 	.scd-tom-select-product-option .product-image {
 		height: var(--scd-button-height-large);
 		width: var(--scd-button-height-large);
+	}
+
+	.scd-tom-select-product-option .product-name {
+		font-size: var(--scd-font-size-base);
 	}
 }

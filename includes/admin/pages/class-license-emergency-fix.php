@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/pages/class-license-emergency-fix.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -84,10 +84,10 @@ class SCD_License_Emergency_Fix {
 					<th><?php esc_html_e( 'Freemius Loaded:', 'smart-cycle-discounts' ); ?></th>
 					<td>
 						<?php if ( $freemius_loaded ) : ?>
-							<span class="dashicons dashicons-yes" style="color: #46b450;"></span>
+							<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 							<strong style="color: #46b450;"><?php esc_html_e( 'YES', 'smart-cycle-discounts' ); ?></strong>
 						<?php else : ?>
-							<span class="dashicons dashicons-no" style="color: #dc3232;"></span>
+							<?php echo SCD_Icon_Helper::get( 'close', array( 'size' => 16 ) ); ?>
 							<strong style="color: #dc3232;"><?php esc_html_e( 'NO', 'smart-cycle-discounts' ); ?></strong>
 						<?php endif; ?>
 					</td>
@@ -96,10 +96,10 @@ class SCD_License_Emergency_Fix {
 					<th><?php esc_html_e( 'Freemius Registered:', 'smart-cycle-discounts' ); ?></th>
 					<td>
 						<?php if ( $freemius_is_registered ) : ?>
-							<span class="dashicons dashicons-yes" style="color: #46b450;"></span>
+							<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 							<strong style="color: #46b450;"><?php esc_html_e( 'YES', 'smart-cycle-discounts' ); ?></strong>
 						<?php else : ?>
-							<span class="dashicons dashicons-no" style="color: #dc3232;"></span>
+							<?php echo SCD_Icon_Helper::get( 'close', array( 'size' => 16 ) ); ?>
 							<strong style="color: #dc3232;"><?php esc_html_e( 'NO', 'smart-cycle-discounts' ); ?></strong>
 						<?php endif; ?>
 					</td>
@@ -108,10 +108,10 @@ class SCD_License_Emergency_Fix {
 					<th><?php esc_html_e( 'Freemius is_premium():', 'smart-cycle-discounts' ); ?></th>
 					<td>
 						<?php if ( $freemius_is_premium ) : ?>
-							<span class="dashicons dashicons-yes" style="color: #46b450;"></span>
+							<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 							<strong style="color: #46b450;"><?php esc_html_e( 'TRUE', 'smart-cycle-discounts' ); ?></strong>
 						<?php else : ?>
-							<span class="dashicons dashicons-no" style="color: #dc3232;"></span>
+							<?php echo SCD_Icon_Helper::get( 'close', array( 'size' => 16 ) ); ?>
 							<strong style="color: #dc3232;"><?php esc_html_e( 'FALSE', 'smart-cycle-discounts' ); ?></strong>
 						<?php endif; ?>
 					</td>
@@ -120,10 +120,10 @@ class SCD_License_Emergency_Fix {
 					<th><?php esc_html_e( 'Freemius is_trial():', 'smart-cycle-discounts' ); ?></th>
 					<td>
 						<?php if ( $freemius_is_trial ) : ?>
-							<span class="dashicons dashicons-yes" style="color: #46b450;"></span>
+							<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 							<strong style="color: #46b450;"><?php esc_html_e( 'TRUE', 'smart-cycle-discounts' ); ?></strong>
 						<?php else : ?>
-							<span class="dashicons dashicons-no" style="color: #999;"></span>
+							<?php echo SCD_Icon_Helper::get( 'close', array( 'size' => 16 ) ); ?>
 							<strong style="color: #999;"><?php esc_html_e( 'FALSE', 'smart-cycle-discounts' ); ?></strong>
 						<?php endif; ?>
 					</td>
@@ -132,10 +132,10 @@ class SCD_License_Emergency_Fix {
 					<th><?php esc_html_e( 'Feature Gate is_premium():', 'smart-cycle-discounts' ); ?></th>
 					<td>
 						<?php if ( $feature_gate_is_premium ) : ?>
-							<span class="dashicons dashicons-yes" style="color: #46b450;"></span>
+							<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 							<strong style="color: #46b450;"><?php esc_html_e( 'TRUE', 'smart-cycle-discounts' ); ?></strong>
 						<?php else : ?>
-							<span class="dashicons dashicons-no" style="color: #dc3232;"></span>
+							<?php echo SCD_Icon_Helper::get( 'close', array( 'size' => 16 ) ); ?>
 							<strong style="color: #dc3232;"><?php esc_html_e( 'FALSE', 'smart-cycle-discounts' ); ?></strong>
 						<?php endif; ?>
 					</td>
@@ -173,7 +173,7 @@ class SCD_License_Emergency_Fix {
 				<?php wp_nonce_field( 'scd_clear_license_cache' ); ?>
 				<p>
 					<button type="submit" name="scd_clear_license_cache" class="button button-primary button-large">
-						<span class="dashicons dashicons-update"></span>
+						<?php echo SCD_Icon_Helper::get( 'update', array( 'size' => 16 ) ); ?>
 						<?php esc_html_e( 'Clear License Cache Now', 'smart-cycle-discounts' ); ?>
 					</button>
 				</p>

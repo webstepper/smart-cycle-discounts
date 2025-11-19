@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/analytics/class-activity-tracker.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -211,19 +211,19 @@ class SCD_Activity_Tracker {
 	private function get_activity_icon( string $type ): string {
 		switch ( $type ) {
 			case 'campaign_created':
-				return 'dashicons-plus-alt';
+				return 'add';
 			case 'campaign_updated':
-				return 'dashicons-edit';
+				return 'edit';
 			case 'campaign_activated':
-				return 'dashicons-yes';
+				return 'check';
 			case 'campaign_deactivated':
-				return 'dashicons-no-alt';
+				return 'no-alt';
 			case 'discount_applied':
-				return 'dashicons-tickets-alt';
+				return 'tag';
 			case 'order_completed':
-				return 'dashicons-cart';
+				return 'cart';
 			default:
-				return 'dashicons-info';
+				return 'info';
 		}
 	}
 }

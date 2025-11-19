@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/campaigns/class-campaign-suggestions-registry.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -48,13 +48,15 @@ class SCD_Campaign_Suggestions_Registry {
 				'recommendations'    => array(
 					__( 'Analyze last year\'s Valentine\'s Day performance data', 'smart-cycle-discounts' ),
 					__( 'Set up gift guides segmented by price points', 'smart-cycle-discounts' ),
-					__( 'Create tiered discount rules (spend $50 get 15%, spend $100 get 25%)', 'smart-cycle-discounts' ),
+					__( 'Use tiered discounts to incentivize larger purchases [PRO]', 'smart-cycle-discounts' ),
 					__( 'Set discount priority to ensure Valentine\'s offers override other campaigns', 'smart-cycle-discounts' ),
 					__( 'Create couples bundles from complementary products', 'smart-cycle-discounts' ),
-					__( 'Enable product rotation to keep offers fresh throughout campaign', 'smart-cycle-discounts' ),
+					__( 'Enable product rotation to keep offers fresh throughout campaign [PRO]', 'smart-cycle-discounts' ),
+					__( 'Use BOGO discounts for couple gift sets [PRO]', 'smart-cycle-discounts' ),
 					__( 'Plan "Gifts for Him" and "Gifts for Her" categories', 'smart-cycle-discounts' ),
 					__( 'Schedule campaign to start 7 days before Valentine\'s Day', 'smart-cycle-discounts' ),
 					__( 'Optimize product pages for gift-giving keywords', 'smart-cycle-discounts' ),
+					__( 'Target customer segments for VIP early access [PRO]', 'smart-cycle-discounts' ),
 					__( 'Prepare last-minute gift section for procrastinators', 'smart-cycle-discounts' ),
 				),
 				'suggested_discount' => array(
@@ -84,7 +86,7 @@ class SCD_Campaign_Suggestions_Registry {
 				'best_practices'     => array(
 					__( 'Launch 7-10 days before Valentine\'s Day', 'smart-cycle-discounts' ),
 					__( 'Create last-minute gift section 2 days before', 'smart-cycle-discounts' ),
-					__( 'Use performance-based rotation to prioritize top converting products', 'smart-cycle-discounts' ),
+					__( 'Use performance-based rotation to prioritize top converting products [PRO]', 'smart-cycle-discounts' ),
 					__( 'Bundle complementary gifts (flowers + chocolate)', 'smart-cycle-discounts' ),
 					__( 'Set campaign end time to 11:59PM on Valentine\'s Day', 'smart-cycle-discounts' ),
 					__( 'Offer gift cards as backup for procrastinators', 'smart-cycle-discounts' ),
@@ -98,26 +100,7 @@ class SCD_Campaign_Suggestions_Registry {
 				'icon'               => '🐰',
 				'duration_days'      => 7,
 				'start_offset'       => -7,
-				'calculate_date'     => function ( $year ) {
-					// Easter calculation using Computus algorithm
-					// Easter is the first Sunday after the first full moon after March 21
-					$a = $year % 19;
-					$b = intval( $year / 100 );
-					$c = $year % 100;
-					$d = intval( $b / 4 );
-					$e = $b % 4;
-					$f = intval( ( $b + 8 ) / 25 );
-					$g = intval( ( $b - $f + 1 ) / 3 );
-					$h = ( 19 * $a + $b - $d - $g + 15 ) % 30;
-					$i = intval( $c / 4 );
-					$k = $c % 4;
-					$l = ( 32 + 2 * $e + 2 * $i - $h - $k ) % 7;
-					$m = intval( ( $a + 11 * $h + 22 * $l ) / 451 );
-					$month = intval( ( $h + $l - 7 * $m + 114 ) / 31 );
-					$day = ( ( $h + $l - 7 * $m + 114 ) % 31 ) + 1;
-
-					return mktime( 0, 0, 0, $month, $day, $year );
-				},
+				'date_calculator'    => 'easter',
 				'lead_time'          => array(
 					'base_prep'   => 2,
 					'inventory'   => 3,
@@ -127,9 +110,10 @@ class SCD_Campaign_Suggestions_Registry {
 				'recommendations'    => array(
 					__( 'Analyze which products performed best last Easter', 'smart-cycle-discounts' ),
 					__( 'Create family-oriented product bundles and collections', 'smart-cycle-discounts' ),
-					__( 'Set up age-segmented gift guides for different audiences', 'smart-cycle-discounts' ),
+					__( 'Use advanced product filters to segment by age groups [PRO]', 'smart-cycle-discounts' ),
 					__( 'Configure gift wrapping and delivery services', 'smart-cycle-discounts' ),
 					__( 'Plan spring-themed visual merchandising updates', 'smart-cycle-discounts' ),
+					__( 'Set up BOGO discounts for family bundle deals [PRO]', 'smart-cycle-discounts' ),
 					__( 'Prepare countdown promotions (2 weeks, 1 week, 3 days)', 'smart-cycle-discounts' ),
 					__( 'Optimize site for "Easter gifts" search queries', 'smart-cycle-discounts' ),
 					__( 'Schedule inventory review 2 weeks before holiday', 'smart-cycle-discounts' ),
@@ -239,18 +223,7 @@ class SCD_Campaign_Suggestions_Registry {
 				'icon'               => '👩',
 				'duration_days'      => 7,
 				'start_offset'       => -7,
-				'calculate_date'     => function ( $year ) {
-					// Mother's Day is 2nd Sunday in May
-					$first_day_of_may = mktime( 0, 0, 0, 5, 1, $year );
-					$first_day_of_week = intval( gmdate( 'w', $first_day_of_may ) );
-
-					$days_until_first_sunday = ( 0 === $first_day_of_week ) ? 0 : ( 7 - $first_day_of_week );
-
-					// 2nd Sunday is first Sunday + 7 days
-					$second_sunday_day = 1 + $days_until_first_sunday + 7;
-
-					return mktime( 0, 0, 0, 5, $second_sunday_day, $year );
-				},
+				'date_calculator'    => 'mothers_day',
 				'lead_time'          => array(
 					'base_prep'   => 2,
 					'inventory'   => 3,
@@ -298,8 +271,8 @@ class SCD_Campaign_Suggestions_Registry {
 					__( 'Offer gift wrapping and personalization', 'smart-cycle-discounts' ),
 					__( 'Create tiered gift guides by budget', 'smart-cycle-discounts' ),
 					__( 'Promote last-minute digital gift cards', 'smart-cycle-discounts' ),
-					__( 'Set up recurring campaign template for next year\'s event', 'smart-cycle-discounts' ),
-					__( 'Use random product rotation to showcase variety throughout campaign', 'smart-cycle-discounts' ),
+					__( 'Set up recurring campaign template for next year\'s event [PRO]', 'smart-cycle-discounts' ),
+					__( 'Use random product rotation to showcase variety throughout campaign [PRO]', 'smart-cycle-discounts' ),
 				),
 				'priority'           => 70,
 			),
@@ -310,18 +283,7 @@ class SCD_Campaign_Suggestions_Registry {
 				'icon'               => '👨',
 				'duration_days'      => 7,
 				'start_offset'       => -7,
-				'calculate_date'     => function ( $year ) {
-					// Father's Day is 3rd Sunday in June
-					$first_day_of_june = mktime( 0, 0, 0, 6, 1, $year );
-					$first_day_of_week = intval( gmdate( 'w', $first_day_of_june ) );
-
-					$days_until_first_sunday = ( 0 === $first_day_of_week ) ? 0 : ( 7 - $first_day_of_week );
-
-					// 3rd Sunday is first Sunday + 14 days (2 weeks)
-					$third_sunday_day = 1 + $days_until_first_sunday + 14;
-
-					return mktime( 0, 0, 0, 6, $third_sunday_day, $year );
-				},
+				'date_calculator'    => 'fathers_day',
 				'lead_time'          => array(
 					'base_prep'   => 2,
 					'inventory'   => 3,
@@ -367,10 +329,10 @@ class SCD_Campaign_Suggestions_Registry {
 				'best_practices'     => array(
 					__( 'Launch campaign 7-10 days before Father\'s Day', 'smart-cycle-discounts' ),
 					__( 'Create interest-based gift guides (golfer, griller, etc)', 'smart-cycle-discounts' ),
-					__( 'Use sequential rotation to cycle through interest categories', 'smart-cycle-discounts' ),
+					__( 'Use sequential rotation to cycle through interest categories [PRO]', 'smart-cycle-discounts' ),
 					__( 'Promote digital gift cards for last-minute shoppers', 'smart-cycle-discounts' ),
-					__( 'Create recurring campaign template for next year', 'smart-cycle-discounts' ),
-					__( 'Set max 5 concurrent products for focused promotion', 'smart-cycle-discounts' ),
+					__( 'Create recurring campaign template for next year [PRO]', 'smart-cycle-discounts' ),
+					__( 'Set max 5 concurrent products for focused promotion [PRO]', 'smart-cycle-discounts' ),
 				),
 				'priority'           => 70,
 			),
@@ -394,9 +356,9 @@ class SCD_Campaign_Suggestions_Registry {
 					__( 'Identify seasonal products to feature prominently', 'smart-cycle-discounts' ),
 					__( 'Update homepage with summer-themed visuals', 'smart-cycle-discounts' ),
 					__( 'Create summer-oriented product bundles', 'smart-cycle-discounts' ),
-					__( 'Plan tiered discount structure for spring clearance', 'smart-cycle-discounts' ),
+					__( 'Use tiered discounts for progressive spring clearance [PRO]', 'smart-cycle-discounts' ),
 					__( 'Prepare mid-summer clearance pricing strategy', 'smart-cycle-discounts' ),
-					__( 'Configure free shipping thresholds for summer', 'smart-cycle-discounts' ),
+					__( 'Set spend threshold discounts to increase average order value [PRO]', 'smart-cycle-discounts' ),
 					__( 'Set up vacation/travel-focused collections', 'smart-cycle-discounts' ),
 					__( 'Optimize product pages for summer search terms', 'smart-cycle-discounts' ),
 					__( 'Schedule email campaigns for seasonal transition', 'smart-cycle-discounts' ),
@@ -455,7 +417,8 @@ class SCD_Campaign_Suggestions_Registry {
 					__( 'Create complementary product bundles for entertaining', 'smart-cycle-discounts' ),
 					__( 'Set up extended 4-day weekend sale (Fri-Mon)', 'smart-cycle-discounts' ),
 					__( 'Configure patriotic-themed visual merchandising', 'smart-cycle-discounts' ),
-					__( 'Prepare flash deals and hourly promotions', 'smart-cycle-discounts' ),
+					__( 'Use geographic restrictions to target US customers only [PRO]', 'smart-cycle-discounts' ),
+					__( 'Set up email notifications for flash deals and hourly promotions [PRO]', 'smart-cycle-discounts' ),
 					__( 'Optimize shipping cutoffs for holiday delivery', 'smart-cycle-discounts' ),
 					__( 'Schedule social media posts for peak engagement times', 'smart-cycle-discounts' ),
 					__( 'Create urgency with countdown timers', 'smart-cycle-discounts' ),
@@ -514,8 +477,8 @@ class SCD_Campaign_Suggestions_Registry {
 				'recommendations'    => array(
 					__( 'Analyze which products appeal to students/parents', 'smart-cycle-discounts' ),
 					__( 'Create age-segmented product bundles', 'smart-cycle-discounts' ),
-					__( 'Set up early-bird discount tier (start late July)', 'smart-cycle-discounts' ),
-					__( 'Configure bulk purchase discounts for families', 'smart-cycle-discounts' ),
+					__( 'Use tiered discounts for bulk purchases (buy more, save more) [PRO]', 'smart-cycle-discounts' ),
+					__( 'Use advanced filters to segment by grade levels and subjects [PRO]', 'smart-cycle-discounts' ),
 					__( 'Plan 2-week campaign structure (Aug 1-14)', 'smart-cycle-discounts' ),
 					__( 'Optimize category pages for back-to-school keywords', 'smart-cycle-discounts' ),
 					__( 'Schedule weekly email campaigns with fresh deals', 'smart-cycle-discounts' ),
@@ -562,17 +525,7 @@ class SCD_Campaign_Suggestions_Registry {
 				'icon'               => '💼',
 				'duration_days'      => 3,
 				'start_offset'       => -1,
-				'calculate_date'     => function ( $year ) {
-					// Labor Day is the 1st Monday in September
-					$first_day_of_september = mktime( 0, 0, 0, 9, 1, $year );
-					$first_day_of_week = intval( gmdate( 'w', $first_day_of_september ) );
-
-					$days_until_first_monday = ( 1 === $first_day_of_week ) ? 0 : ( ( 1 - $first_day_of_week + 7 ) % 7 );
-
-					$first_monday_day = 1 + $days_until_first_monday;
-
-					return mktime( 0, 0, 0, 9, $first_monday_day, $year );
-				},
+				'date_calculator'    => 'labor_day',
 				'lead_time'          => array(
 					'base_prep'   => 2,
 					'inventory'   => 3,
@@ -643,10 +596,11 @@ class SCD_Campaign_Suggestions_Registry {
 				'recommendations'    => array(
 					__( 'Analyze last year\'s Halloween top-performing products', 'smart-cycle-discounts' ),
 					__( 'Plan themed product bundles and party packages', 'smart-cycle-discounts' ),
-					__( 'Create tiered pricing for early vs last-minute shoppers', 'smart-cycle-discounts' ),
+					__( 'Use tiered discounts for early-bird vs last-minute shoppers [PRO]', 'smart-cycle-discounts' ),
 					__( 'Set up October 25th "Last Chance" promotional push', 'smart-cycle-discounts' ),
 					__( 'Schedule Nov 1st clearance pricing (50-75% off)', 'smart-cycle-discounts' ),
-					__( 'Use inventory-based rotation to prioritize in-stock items', 'smart-cycle-discounts' ),
+					__( 'Use inventory-based rotation to prioritize in-stock items [PRO]', 'smart-cycle-discounts' ),
+					__( 'Use advanced filters to segment by costume sizes and themes [PRO]', 'smart-cycle-discounts' ),
 					__( 'Schedule multiple campaigns (2 weeks, 1 week, last day) with increasing discounts', 'smart-cycle-discounts' ),
 					__( 'Optimize category pages for Halloween keywords', 'smart-cycle-discounts' ),
 					__( 'Create Halloween-themed visual merchandising', 'smart-cycle-discounts' ),
@@ -693,25 +647,7 @@ class SCD_Campaign_Suggestions_Registry {
 				'icon'               => '🛍️',
 				'duration_days'      => 4,
 				'start_offset'       => 0,
-				'calculate_date'     => function ( $year ) {
-					// Black Friday is the Friday after Thanksgiving
-					// Thanksgiving is the 4th Thursday in November
-					$first_day_of_november = mktime( 0, 0, 0, 11, 1, $year );
-					$first_day_of_week = intval( gmdate( 'w', $first_day_of_november ) );
-
-					$days_until_first_thursday = ( 4 - $first_day_of_week + 7 ) % 7;
-					if ( 0 === $days_until_first_thursday && 4 !== $first_day_of_week ) {
-						$days_until_first_thursday = 7;
-					}
-
-					// 4th Thursday is first Thursday + 21 days (3 weeks)
-					$fourth_thursday_day = 1 + $days_until_first_thursday + 21;
-
-					// Black Friday is the day after (Friday)
-					$black_friday_day = $fourth_thursday_day + 1;
-
-					return mktime( 0, 0, 0, 11, $black_friday_day, $year );
-				},
+				'date_calculator'    => 'black_friday',
 				'lead_time'          => array(
 					'base_prep'   => 2,
 					'inventory'   => 3,
@@ -719,16 +655,16 @@ class SCD_Campaign_Suggestions_Registry {
 					'flexibility' => 5,
 				),
 				'recommendations'    => array(
-					__( 'Monitor campaign analytics to adjust discount levels in real-time', 'smart-cycle-discounts' ),
-					__( 'Use performance-based rotation to prioritize top converting products', 'smart-cycle-discounts' ),
+					__( 'Track detailed analytics to adjust strategy in real-time [PRO]', 'smart-cycle-discounts' ),
+					__( 'Use performance-based rotation to prioritize top converting products [PRO]', 'smart-cycle-discounts' ),
 					__( 'Load test checkout flow and payment processing', 'smart-cycle-discounts' ),
 					__( 'Schedule additional customer support coverage', 'smart-cycle-discounts' ),
-					__( 'Schedule 4 separate campaigns (Thursday, Friday, Saturday, Monday)', 'smart-cycle-discounts' ),
+					__( 'Run unlimited campaigns for multiple doorbusters and flash deals [PRO]', 'smart-cycle-discounts' ),
 					__( 'Set higher campaign priority to ensure Black Friday deals override others', 'smart-cycle-discounts' ),
-					__( 'Set up early VIP access (24 hours before)', 'smart-cycle-discounts' ),
-					__( 'Plan hourly flash sales for sustained engagement', 'smart-cycle-discounts' ),
+					__( 'Target VIP customer segments for 24-hour early access [PRO]', 'smart-cycle-discounts' ),
+					__( 'Set up email notifications for hourly flash deal alerts [PRO]', 'smart-cycle-discounts' ),
 					__( 'Optimize server capacity for traffic surge', 'smart-cycle-discounts' ),
-					__( 'Create tiered discount structure (spend thresholds)', 'smart-cycle-discounts' ),
+					__( 'Use tiered discounts to drive higher average order values [PRO]', 'smart-cycle-discounts' ),
 				),
 				'suggested_discount' => array(
 					'min'     => 30,
@@ -749,7 +685,7 @@ class SCD_Campaign_Suggestions_Registry {
 					__( 'Use countdown timers throughout the site', 'smart-cycle-discounts' ),
 					__( 'Bundle complementary products strategically', 'smart-cycle-discounts' ),
 					__( 'Extend through Cyber Monday for 4-day event', 'smart-cycle-discounts' ),
-					__( 'Use inventory-based rotation to automatically pause out-of-stock items', 'smart-cycle-discounts' ),
+					__( 'Use inventory-based rotation to automatically pause out-of-stock items [PRO]', 'smart-cycle-discounts' ),
 					__( 'Create separate "VIP Early Access" campaign starting 24 hours before', 'smart-cycle-discounts' ),
 					__( 'Optimize mobile experience (54% of traffic)', 'smart-cycle-discounts' ),
 					__( 'Track campaign analytics hourly, adjust strategy as needed', 'smart-cycle-discounts' ),
@@ -759,7 +695,7 @@ class SCD_Campaign_Suggestions_Registry {
 					__( 'Offer tiered discounts (spend more, save more)', 'smart-cycle-discounts' ),
 					__( 'Create VIP early access campaign starting 24 hours before main event', 'smart-cycle-discounts' ),
 					__( 'Ensure mobile checkout is fully optimized', 'smart-cycle-discounts' ),
-					__( 'Enable inventory-based rotation to automatically feature available stock', 'smart-cycle-discounts' ),
+					__( 'Enable inventory-based rotation to automatically feature available stock [PRO]', 'smart-cycle-discounts' ),
 					__( 'Prepare customer service for 4x normal volume', 'smart-cycle-discounts' ),
 				),
 				'priority'           => 100,
@@ -786,10 +722,13 @@ class SCD_Campaign_Suggestions_Registry {
 					__( 'Configure gift wrapping and messaging services', 'smart-cycle-discounts' ),
 					__( 'Plan extended customer service coverage', 'smart-cycle-discounts' ),
 					__( 'Test and promote gift card functionality', 'smart-cycle-discounts' ),
-					__( 'Create budget-tiered gift collections ($25/$50/$100)', 'smart-cycle-discounts' ),
+					__( 'Use tiered discounts for budget gift collections ($25/$50/$100) [PRO]', 'smart-cycle-discounts' ),
+					__( 'Set up BOGO deals for popular gift bundle combinations [PRO]', 'smart-cycle-discounts' ),
+					__( 'Use advanced filters to segment by age groups and interests [PRO]', 'smart-cycle-discounts' ),
+					__( 'Target loyal customer segments with exclusive early offers [PRO]', 'smart-cycle-discounts' ),
 					__( 'Prepare last-minute gift section (Dec 20+)', 'smart-cycle-discounts' ),
 					__( 'Schedule progressive discount strategy (increase weekly)', 'smart-cycle-discounts' ),
-					__( 'Plan email sequence (weekly through Dec 23)', 'smart-cycle-discounts' ),
+					__( 'Set up automated email notifications for daily deals [PRO]', 'smart-cycle-discounts' ),
 				),
 				'suggested_discount' => array(
 					'min'     => 20,
@@ -934,11 +873,135 @@ class SCD_Campaign_Suggestions_Registry {
 	 * @return   int          Event timestamp.
 	 */
 	private static function calculate_event_date( array $event, int $year ): int {
-		if ( isset( $event['calculate_date'] ) && is_callable( $event['calculate_date'] ) ) {
-			return call_user_func( $event['calculate_date'], $year );
+		if ( isset( $event['date_calculator'] ) ) {
+			return self::call_date_calculator( $event['date_calculator'], $year );
 		}
 
 		// Default: fixed date calculation.
 		return mktime( 0, 0, 0, $event['month'], $event['day'], $year );
+	}
+
+	/**
+	 * Call appropriate date calculator method.
+	 *
+	 * @since    1.0.0
+	 * @param    string $calculator Calculator name.
+	 * @param    int    $year       Year.
+	 * @return   int                Timestamp.
+	 */
+	public static function call_date_calculator( string $calculator, int $year ): int {
+		switch ( $calculator ) {
+			case 'easter':
+				return self::calculate_easter_date( $year );
+			case 'mothers_day':
+				return self::calculate_mothers_day( $year );
+			case 'fathers_day':
+				return self::calculate_fathers_day( $year );
+			case 'labor_day':
+				return self::calculate_labor_day( $year );
+			case 'black_friday':
+				return self::calculate_black_friday( $year );
+			default:
+				return 0;
+		}
+	}
+
+	/**
+	 * Calculate Easter date using Computus algorithm.
+	 *
+	 * @since    1.0.0
+	 * @param    int $year Year.
+	 * @return   int       Timestamp.
+	 */
+	private static function calculate_easter_date( int $year ): int {
+		$a     = $year % 19;
+		$b     = intval( $year / 100 );
+		$c     = $year % 100;
+		$d     = intval( $b / 4 );
+		$e     = $b % 4;
+		$f     = intval( ( $b + 8 ) / 25 );
+		$g     = intval( ( $b - $f + 1 ) / 3 );
+		$h     = ( 19 * $a + $b - $d - $g + 15 ) % 30;
+		$i     = intval( $c / 4 );
+		$k     = $c % 4;
+		$l     = ( 32 + 2 * $e + 2 * $i - $h - $k ) % 7;
+		$m     = intval( ( $a + 11 * $h + 22 * $l ) / 451 );
+		$month = intval( ( $h + $l - 7 * $m + 114 ) / 31 );
+		$day   = ( ( $h + $l - 7 * $m + 114 ) % 31 ) + 1;
+
+		return mktime( 0, 0, 0, $month, $day, $year );
+	}
+
+	/**
+	 * Calculate Mother's Day (2nd Sunday in May).
+	 *
+	 * @since    1.0.0
+	 * @param    int $year Year.
+	 * @return   int       Timestamp.
+	 */
+	private static function calculate_mothers_day( int $year ): int {
+		$first_day_of_may  = mktime( 0, 0, 0, 5, 1, $year );
+		$first_day_of_week = intval( gmdate( 'w', $first_day_of_may ) );
+
+		$days_until_first_sunday = ( 0 === $first_day_of_week ) ? 0 : ( 7 - $first_day_of_week );
+		$second_sunday_day       = 1 + $days_until_first_sunday + 7;
+
+		return mktime( 0, 0, 0, 5, $second_sunday_day, $year );
+	}
+
+	/**
+	 * Calculate Father's Day (3rd Sunday in June).
+	 *
+	 * @since    1.0.0
+	 * @param    int $year Year.
+	 * @return   int       Timestamp.
+	 */
+	private static function calculate_fathers_day( int $year ): int {
+		$first_day_of_june = mktime( 0, 0, 0, 6, 1, $year );
+		$first_day_of_week = intval( gmdate( 'w', $first_day_of_june ) );
+
+		$days_until_first_sunday = ( 0 === $first_day_of_week ) ? 0 : ( 7 - $first_day_of_week );
+		$third_sunday_day        = 1 + $days_until_first_sunday + 14;
+
+		return mktime( 0, 0, 0, 6, $third_sunday_day, $year );
+	}
+
+	/**
+	 * Calculate Labor Day (1st Monday in September).
+	 *
+	 * @since    1.0.0
+	 * @param    int $year Year.
+	 * @return   int       Timestamp.
+	 */
+	private static function calculate_labor_day( int $year ): int {
+		$first_day_of_september = mktime( 0, 0, 0, 9, 1, $year );
+		$first_day_of_week      = intval( gmdate( 'w', $first_day_of_september ) );
+
+		$days_until_first_monday = ( 1 === $first_day_of_week ) ? 0 : ( ( 1 - $first_day_of_week + 7 ) % 7 );
+		$first_monday_day        = 1 + $days_until_first_monday;
+
+		return mktime( 0, 0, 0, 9, $first_monday_day, $year );
+	}
+
+	/**
+	 * Calculate Black Friday (Friday after Thanksgiving).
+	 *
+	 * @since    1.0.0
+	 * @param    int $year Year.
+	 * @return   int       Timestamp.
+	 */
+	private static function calculate_black_friday( int $year ): int {
+		$first_day_of_november = mktime( 0, 0, 0, 11, 1, $year );
+		$first_day_of_week     = intval( gmdate( 'w', $first_day_of_november ) );
+
+		$days_until_first_thursday = ( 4 - $first_day_of_week + 7 ) % 7;
+		if ( 0 === $days_until_first_thursday && 4 !== $first_day_of_week ) {
+			$days_until_first_thursday = 7;
+		}
+
+		$fourth_thursday_day = 1 + $days_until_first_thursday + 21;
+		$black_friday_day    = $fourth_thursday_day + 1;
+
+		return mktime( 0, 0, 0, 11, $black_friday_day, $year );
 	}
 }

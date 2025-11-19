@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers/class-clear-cache-handler.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -69,13 +69,11 @@ class SCD_Clear_Cache_Handler {
 			error_log( '[SCD Clear Cache] method_exists check: ' . ( method_exists( $this->container, 'get_service' ) ? 'true' : 'false' ) );
 		}
 
-		$cache_manager = null;
-		if ( method_exists( $this->container, 'get_service' ) ) {
-			$cache_manager = $this->container::get_service( 'cache_manager' );
+		// Get cache manager from service container
+		$cache_manager = Smart_Cycle_Discounts::get_service( 'cache_manager' );
 
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD Clear Cache] cache_manager retrieved: ' . ( $cache_manager ? get_class( $cache_manager ) : 'NULL' ) );
-			}
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( '[SCD Clear Cache] cache_manager retrieved: ' . ( $cache_manager ? get_class( $cache_manager ) : 'NULL' ) );
 		}
 
 		if ( ! $cache_manager ) {

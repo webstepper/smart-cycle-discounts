@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/class-uninstaller.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -40,7 +40,13 @@ class SCD_Uninstaller {
 	public static function uninstall() {
 		global $wpdb;
 
-		$keep_data = get_option( 'scd_keep_data_on_uninstall', false );
+		// Check if user wants to remove data on uninstall
+		// Settings are stored in scd_settings array under ['advanced']['uninstall_data']
+		// uninstall_data = true means REMOVE data (delete everything)
+		// uninstall_data = false means KEEP data (preserve campaigns and settings)
+		$settings = get_option( 'scd_settings', array() );
+		$remove_data = isset( $settings['advanced']['uninstall_data'] ) && $settings['advanced']['uninstall_data'];
+		$keep_data = ! $remove_data;
 
 		if ( $keep_data ) {
 			// User wants to keep data, just clear transients and caches

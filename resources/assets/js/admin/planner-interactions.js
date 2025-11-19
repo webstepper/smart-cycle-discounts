@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/admin/planner-interactions.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -58,15 +58,10 @@
 
 			if ( $defaultCard.length ) {
 				$defaultCard.attr( 'data-focused', 'true' );
-
-				var campaignId = $defaultCard.data( 'campaign-id' );
-				var campaignState = $defaultCard.data( 'state' );
 				var campaignPosition = $defaultCard.data( 'position' );
-				var isMajorEvent = $defaultCard.attr( 'data-major-event' ) === 'true';
-
 				this.updateTimelineFocus( campaignPosition );
 
-				this.loadInsights( campaignId, campaignState, isMajorEvent, campaignPosition );
+				// Server already renders insights for default campaign, no need to reload
 			}
 		},
 		/**
@@ -180,22 +175,19 @@
 				method: 'POST',
 				data: {
 					action: 'scd_get_planner_insights',
-					campaign_id: campaignId,
+					campaignId: campaignId,
 					state: campaignState,
 					position: campaignPosition,
-					is_major_event: isMajorEvent ? '1' : '0',
+					isMajorEvent: isMajorEvent ? '1' : '0',
 					nonce: scdAdmin.nonce
 				},
 				success: function( response ) {
 					pendingRequest = null;
 					if ( response.success && response.data.html ) {
-						// Smooth transition
-						$insightsContent.fadeOut( 200, function() {
-							$( this )
-								.html( response.data.html )
-								.removeClass( 'scd-insights-loading' )
-								.fadeIn( 200 );
-						} );
+						// Replace content directly without fade animation
+						$insightsContent
+							.html( response.data.html )
+							.removeClass( 'scd-insights-loading' );
 					} else {
 						$insightsContent.removeClass( 'scd-insights-loading' );
 						console.error( '[SCD Planner] Failed to load insights:', response );
@@ -237,18 +229,18 @@
 			var $toggle = $( e.currentTarget );
 			var $section = $toggle.closest( '.scd-insights-section' );
 			var $content = $section.find( '.scd-insights-section-content' );
-			var $icon = $toggle.find( '.dashicons' ).first();
+			var $icon = $toggle.find( '.scd-icon' ).first();
 			if ( $content.is( ':visible' ) ) {
 				// Collapse
 				$content.slideUp( 300 );
 				$section.removeClass( 'scd-insights-section--open' );
-				$icon.removeClass( 'dashicons-arrow-down' ).addClass( 'dashicons-arrow-right' );
+				$icon.css( 'transform', 'rotate(-90deg)' );
 				$toggle.attr( 'aria-expanded', 'false' );
 			} else {
 				// Expand
 				$content.slideDown( 300 );
 				$section.addClass( 'scd-insights-section--open' );
-				$icon.removeClass( 'dashicons-arrow-right' ).addClass( 'dashicons-arrow-down' );
+				$icon.css( 'transform', 'rotate(0deg)' );
 				$toggle.attr( 'aria-expanded', 'true' );
 			}
 		},
@@ -269,22 +261,6 @@
 		// Only initialize if Campaign Planner exists on page
 		if ( $( '.scd-planner-grid' ).length ) {
 			PlannerInteractions.init();
-			// Diagnostic: Check CSS loading and stat card elements
-			var $firstStatCard = $( '.scd-insights-stat-card' ).first();
-			if ( $firstStatCard.length ) {
-				var bgColor = $firstStatCard.css( 'background' );
-				var borderRadius = $firstStatCard.css( 'border-radius' );
-				var padding = $firstStatCard.css( 'padding' );
-				var $icon = $firstStatCard.find( '.scd-insights-stat-card-icon' );
-				if ( $icon.length ) {
-					var iconBg = $icon.css( 'background' );
-					var iconWidth = $icon.css( 'width' );
-					var iconHeight = $icon.css( 'height' );
-				} else {
-				}
-			} else {
-			}
-		} else {
 		}
 	} );
 } )( jQuery, window, document );

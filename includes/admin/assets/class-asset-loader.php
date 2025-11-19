@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/assets/class-asset-loader.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -153,15 +153,23 @@ class SCD_Asset_Loader {
 		);
 
 		// Map hooks to page identifiers
+		// Note: WordPress may shorten menu slugs (smart-cycle-discounts → sc-discounts)
 		$page_map = array(
-			'toplevel_page_smart-cycle-discounts'      => 'scd-dashboard',
-			'toplevel_page_scd-campaigns'              => 'scd-campaigns',  // Added for campaigns as top-level page
-			'smart-cycle-discounts_page_scd-campaigns' => 'scd-campaigns',
-			'sc-discounts_page_scd-campaigns'          => 'scd-campaigns',
-			'smart-cycle-discounts_page_scd-analytics' => 'scd-analytics',
-			'smart-cycle-discounts_page_scd-settings'  => 'scd-settings',
-			'smart-cycle-discounts_page_scd-tools'     => 'scd-tools',
-			'smart-cycle-discounts_page_scd-help'      => 'scd-help',
+			'toplevel_page_smart-cycle-discounts'        => 'scd-dashboard',
+			'toplevel_page_sc-discounts'                 => 'scd-dashboard',
+			'toplevel_page_scd-campaigns'                => 'scd-campaigns',
+			'smart-cycle-discounts_page_scd-campaigns'   => 'scd-campaigns',
+			'sc-discounts_page_scd-campaigns'            => 'scd-campaigns',
+			'smart-cycle-discounts_page_scd-analytics'   => 'scd-analytics',
+			'sc-discounts_page_scd-analytics'            => 'scd-analytics',
+			'smart-cycle-discounts_page_scd-settings'    => 'scd-settings',
+			'sc-discounts_page_scd-settings'             => 'scd-settings',
+			'smart-cycle-discounts_page_scd-tools'       => 'scd-tools',
+			'sc-discounts_page_scd-tools'                => 'scd-tools',
+			'smart-cycle-discounts_page_scd-help'        => 'scd-help',
+			'sc-discounts_page_scd-help'                 => 'scd-help',
+			'smart-cycle-discounts_page_scd-notifications' => 'scd-notifications',
+			'sc-discounts_page_scd-notifications'        => 'scd-notifications',
 		);
 
 		if ( isset( $page_map[ $hook ] ) ) {
@@ -262,9 +270,9 @@ class SCD_Asset_Loader {
 		if ( ! empty( $script['condition'] ) ) {
 			foreach ( $script['condition'] as $key => $value ) {
 				// Special handling for null values in conditions (means the key should not be set)
-				if ( $value === null && isset( $this->context[ $key ] ) ) {
+				if ( null === $value && isset( $this->context[ $key ] ) ) {
 					return false;
-				} elseif ( $value !== null && ( ! isset( $this->context[ $key ] ) || $this->context[ $key ] !== $value ) ) {
+				} elseif ( null !== $value && ( ! isset( $this->context[ $key ] ) || $this->context[ $key ] !== $value ) ) {
 					return false;
 				}
 			}
@@ -293,11 +301,11 @@ class SCD_Asset_Loader {
 
 			foreach ( $style['condition'] as $key => $value ) {
 				// Special handling for null values in conditions (means the key should not be set)
-				if ( $value === null && isset( $this->context[ $key ] ) ) {
+				if ( null === $value && isset( $this->context[ $key ] ) ) {
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG && strpos( $handle, 'step-basic' ) !== false ) {
 					}
 					return false;
-				} elseif ( $value !== null && ( ! isset( $this->context[ $key ] ) || $this->context[ $key ] !== $value ) ) {
+				} elseif ( null !== $value && ( ! isset( $this->context[ $key ] ) || $this->context[ $key ] !== $value ) ) {
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG && strpos( $handle, 'step-basic' ) !== false ) {
 					}
 					return false;
@@ -358,6 +366,11 @@ class SCD_Asset_Loader {
 	 * @return void
 	 */
 	private function enqueue_style( string $handle, array $style ): void {
+		// Allow dynamic src via callback (for theme files that depend on settings)
+		if ( is_callable( $style['src'] ) ) {
+			$style['src'] = call_user_func( $style['src'] );
+		}
+
 		// Handle external styles differently
 		if ( ! empty( $style['external'] ) ) {
 			$src = $style['src'];
@@ -467,7 +480,7 @@ class SCD_Asset_Loader {
 		$loaded            = array();
 
 		foreach ( $sanitized_handles as $handle ) {
-			if ( $type === 'script' ) {
+			if ( 'script' === $type ) {
 				$script = $this->script_registry->get_script( $handle );
 				if ( $script ) {
 					$loaded[ $handle ] = array(
@@ -547,7 +560,7 @@ class SCD_Asset_Loader {
 	 * @return bool True if loaded.
 	 */
 	public function is_loaded( string $handle, string $type = 'script' ): bool {
-		$key = $type === 'script' ? 'scripts' : 'styles';
+		$key = 'script' === $type ? 'scripts' : 'styles';
 		return in_array( $handle, $this->loaded[ $key ], true );
 	}
 }

@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/class-capability-manager.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Admin_Capability_Manager {
 
@@ -79,8 +79,6 @@ class SCD_Admin_Capability_Manager {
 	public function init(): void {
 		// Don't define capabilities here - wait for init hook
 		$this->add_hooks();
-
-		$this->logger->debug( 'Capability manager initialized' );
 	}
 
 	/**
@@ -323,7 +321,7 @@ class SCD_Admin_Capability_Manager {
 	 * @return   bool                     True if user has capability.
 	 */
 	public function current_user_can( string $capability, mixed $object_id = null ): bool {
-		if ( $object_id !== null ) {
+		if ( null !== $object_id ) {
 			return current_user_can( $capability, $object_id );
 		}
 
@@ -340,7 +338,7 @@ class SCD_Admin_Capability_Manager {
 	 * @return   bool                         True if user has capability.
 	 */
 	public function user_can( int|WP_User $user, string $capability, mixed $object_id = null ): bool {
-		if ( $object_id !== null ) {
+		if ( null !== $object_id ) {
 			return user_can( $user, $capability, $object_id );
 		}
 
@@ -537,7 +535,7 @@ class SCD_Admin_Capability_Manager {
 
 		if ( isset( $this->role_capabilities[ $role ] ) ) {
 			$key = array_search( $capability, $this->role_capabilities[ $role ] );
-			if ( $key !== false ) {
+			if ( false !== $key ) {
 				unset( $this->role_capabilities[ $role ][ $key ] );
 			}
 		}

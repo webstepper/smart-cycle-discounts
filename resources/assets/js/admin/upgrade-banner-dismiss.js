@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/admin/upgrade-banner-dismiss.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -39,7 +39,7 @@
 				data: {
 					action: 'scd_dismiss_upgrade_banner',
 					nonce: dismissNonce,
-					banner_id: bannerId
+					bannerId: bannerId
 				},
 				beforeSend: function () {
 					// Fade out banner immediately for better UX

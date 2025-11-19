@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers/class-clear-license-cache-handler.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -98,10 +98,14 @@ class SCD_Clear_License_Cache_Handler extends SCD_Abstract_Ajax_Handler {
 
 		// 3. Clear any Freemius-specific transients
 		global $wpdb;
-		$transients_cleared                     = $wpdb->query(
-			"DELETE FROM {$wpdb->options}
-			WHERE option_name LIKE '_transient_fs_%'
-			OR option_name LIKE '_transient_timeout_fs_%'"
+		$transients_cleared = $wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->options}
+				WHERE option_name LIKE %s
+				OR option_name LIKE %s",
+				'_transient_fs_%',
+				'_transient_timeout_fs_%'
+			)
 		);
 		$results['freemius_transients_cleared'] = $transients_cleared;
 

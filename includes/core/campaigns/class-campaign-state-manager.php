@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/campaigns/class-campaign-state-manager.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -555,37 +555,37 @@ class SCD_Campaign_State_Manager {
 			'draft'     => array(
 				'label'       => __( 'Draft', 'smart-cycle-discounts' ),
 				'description' => __( 'Campaign is being edited', 'smart-cycle-discounts' ),
-				'icon'        => 'dashicons-edit',
+				'icon'        => 'edit',
 				'color'       => '#999999',
 			),
 			'active'    => array(
 				'label'       => __( 'Active', 'smart-cycle-discounts' ),
 				'description' => __( 'Campaign is running', 'smart-cycle-discounts' ),
-				'icon'        => 'dashicons-yes-alt',
+				'icon'        => 'check',
 				'color'       => '#46b450',
 			),
 			'paused'    => array(
 				'label'       => __( 'Paused', 'smart-cycle-discounts' ),
 				'description' => __( 'Campaign is temporarily stopped', 'smart-cycle-discounts' ),
-				'icon'        => 'dashicons-controls-pause',
+				'icon'        => 'pause',
 				'color'       => '#f0b849',
 			),
 			'scheduled' => array(
 				'label'       => __( 'Scheduled', 'smart-cycle-discounts' ),
 				'description' => __( 'Campaign will start automatically', 'smart-cycle-discounts' ),
-				'icon'        => 'dashicons-clock',
+				'icon'        => 'schedule',
 				'color'       => '#00a0d2',
 			),
 			'expired'   => array(
 				'label'       => __( 'Expired', 'smart-cycle-discounts' ),
 				'description' => __( 'Campaign has ended', 'smart-cycle-discounts' ),
-				'icon'        => 'dashicons-dismiss',
+				'icon'        => 'close',
 				'color'       => '#dc3232',
 			),
 			'archived'  => array(
 				'label'       => __( 'Archived', 'smart-cycle-discounts' ),
 				'description' => __( 'Campaign is archived', 'smart-cycle-discounts' ),
-				'icon'        => 'dashicons-archive',
+				'icon'        => 'archive',
 				'color'       => '#666666',
 			),
 		);

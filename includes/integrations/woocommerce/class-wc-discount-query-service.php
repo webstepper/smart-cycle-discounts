@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/integrations/woocommerce/class-wc-discount-query-service.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -30,7 +30,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/integrations/woocommerce
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_WC_Discount_Query_Service {
 
@@ -62,6 +62,24 @@ class SCD_WC_Discount_Query_Service {
 	private ?object $logger;
 
 	/**
+	 * Discount rules enforcer.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      SCD_Discount_Rules_Enforcer|null    $rules_enforcer    Rules enforcer.
+	 */
+	private ?SCD_Discount_Rules_Enforcer $rules_enforcer;
+
+	/**
+	 * Discount map service for efficient bulk lookups.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      SCD_WC_Discount_Map_Service|null    $map_service    Discount map service.
+	 */
+	private ?SCD_WC_Discount_Map_Service $map_service;
+
+	/**
 	 * Request-level cache for discount lookups.
 	 *
 	 * Prevents redundant database queries and calculations within a single request.
@@ -76,18 +94,24 @@ class SCD_WC_Discount_Query_Service {
 	 * Initialize the discount query service.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Manager $campaign_manager    Campaign manager instance.
-	 * @param    SCD_Discount_Engine  $discount_engine     Discount engine instance.
-	 * @param    object|null          $logger              Logger instance.
+	 * @param    SCD_Campaign_Manager              $campaign_manager    Campaign manager instance.
+	 * @param    SCD_Discount_Engine               $discount_engine     Discount engine instance.
+	 * @param    object|null                       $logger              Logger instance.
+	 * @param    SCD_Discount_Rules_Enforcer|null  $rules_enforcer      Rules enforcer instance.
+	 * @param    SCD_WC_Discount_Map_Service|null  $map_service         Discount map service instance.
 	 */
 	public function __construct(
 		SCD_Campaign_Manager $campaign_manager,
 		SCD_Discount_Engine $discount_engine,
-		?object $logger = null
+		?object $logger = null,
+		?SCD_Discount_Rules_Enforcer $rules_enforcer = null,
+		?SCD_WC_Discount_Map_Service $map_service = null
 	) {
 		$this->campaign_manager = $campaign_manager;
 		$this->discount_engine  = $discount_engine;
 		$this->logger           = $logger;
+		$this->rules_enforcer   = $rules_enforcer;
+		$this->map_service      = $map_service;
 	}
 
 	/**
@@ -129,7 +153,7 @@ class SCD_WC_Discount_Query_Service {
 	 * @return   array|null               Discount info or null if no discount.
 	 */
 	public function get_discount_info( int $product_id, array $context = array() ): ?array {
-		$cache_key = 'discount_info_' . $product_id . '_' . md5( serialize( $context ) );
+		$cache_key = 'discount_info_' . $product_id . '_' . md5( wp_json_encode( $context ) );
 
 		if ( isset( $this->cache[ $cache_key ] ) ) {
 			return $this->cache[ $cache_key ];
@@ -154,6 +178,29 @@ class SCD_WC_Discount_Query_Service {
 			// Step 4: Build discount configuration
 			$discount_config = $this->build_discount_config( $campaign );
 
+			// Step 4.5: Check discount rules eligibility
+			if ( $this->rules_enforcer ) {
+				$enforcement_context = $this->build_discount_context( $product, $product_id, $context );
+				$enforcement_check   = $this->rules_enforcer->can_apply_discount(
+					$discount_config,
+					$enforcement_context,
+					$campaign->get_id()
+				);
+
+				if ( ! $enforcement_check['allowed'] ) {
+					$this->log(
+						'debug',
+						'Discount blocked by rules enforcer',
+						array(
+							'product_id'  => $product_id,
+							'campaign_id' => $campaign->get_id(),
+							'reason'      => $enforcement_check['reason'] ?? 'Unknown',
+						)
+					);
+					return null;
+				}
+			}
+
 			// Step 5: Calculate discount
 			$original_price   = floatval( $product->get_regular_price() );
 			$discount_context = $this->build_discount_context( $product, $product_id, $context );
@@ -161,6 +208,41 @@ class SCD_WC_Discount_Query_Service {
 			$result = $this->calculate_discount( $original_price, $discount_config, $discount_context, $campaign );
 			if ( ! $result ) {
 				return null;
+			}
+
+			// Step 5.5: Apply maximum discount cap
+			if ( $this->rules_enforcer && method_exists( $result, 'get_discount_amount' ) ) {
+				$original_discount = $result->get_discount_amount();
+				$capped_discount   = $this->rules_enforcer->apply_max_discount_cap( $original_discount, $discount_config );
+
+				if ( $capped_discount < $original_discount ) {
+					$capped_price = $original_price - $capped_discount;
+					$result       = new SCD_Discount_Result(
+						$original_price,
+						$capped_price,
+						$result->get_strategy_id(),
+						true,
+						array_merge(
+							$result->get_metadata(),
+							array(
+								'discount_capped'    => true,
+								'original_discount'  => $original_discount,
+								'capped_discount'    => $capped_discount,
+								'max_discount_limit' => $discount_config['max_discount_amount'] ?? 0,
+							)
+						)
+					);
+
+					$this->log(
+						'debug',
+						'Discount capped at maximum',
+						array(
+							'product_id'        => $product_id,
+							'original_discount' => $original_discount,
+							'capped_discount'   => $capped_discount,
+						)
+					);
+				}
 			}
 
 			// Step 6: Build response data
@@ -226,12 +308,74 @@ class SCD_WC_Discount_Query_Service {
 
 		$campaigns = array();
 
-		// Gather campaigns from all checked product IDs
-		foreach ( $product_ids_to_check as $check_id ) {
-			$product_campaigns = $this->campaign_manager->get_active_campaigns_for_product( $check_id );
-			if ( ! empty( $product_campaigns ) ) {
-				$campaigns = array_merge( $campaigns, $product_campaigns );
+		// Use map service if available (efficient for shop/archive pages)
+		if ( $this->map_service && $this->map_service->is_initialized() ) {
+			foreach ( $product_ids_to_check as $check_id ) {
+				$product_campaigns = $this->map_service->get_campaigns_for_product( $check_id );
+				if ( ! empty( $product_campaigns ) ) {
+					$campaigns = array_merge( $campaigns, $product_campaigns );
+				}
 			}
+		} else {
+			// Fallback to standard method (single product pages, cart, etc.)
+			foreach ( $product_ids_to_check as $check_id ) {
+				$product_campaigns = $this->campaign_manager->get_active_campaigns_for_product( $check_id );
+				if ( ! empty( $product_campaigns ) ) {
+					$campaigns = array_merge( $campaigns, $product_campaigns );
+				}
+			}
+		}
+
+		// Filter campaigns based on stacking rules
+		$campaigns = $this->filter_campaigns_by_stacking( $campaigns );
+
+		return $campaigns;
+	}
+
+	/**
+	 * Filter campaigns based on stack_with_others rules.
+	 *
+	 * If a non-stackable campaign is already applied in cart, filter it out.
+	 * If the highest priority campaign doesn't allow stacking, only return that one.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $campaigns    Array of campaign objects.
+	 * @return   array                  Filtered campaigns.
+	 */
+	private function filter_campaigns_by_stacking( array $campaigns ): array {
+		if ( empty( $campaigns ) || 1 === count( $campaigns ) ) {
+			return $campaigns;
+		}
+
+		// Sort by priority to check highest priority campaign
+		usort(
+			$campaigns,
+			function ( $a, $b ) {
+				$priority_diff = $b->get_priority() <=> $a->get_priority();
+				if ( 0 !== $priority_diff ) {
+					return $priority_diff;
+				}
+				return $a->get_id() <=> $b->get_id();
+			}
+		);
+
+		$highest_priority_campaign = reset( $campaigns );
+		$discount_rules            = $highest_priority_campaign->get_discount_rules();
+		$allows_stacking           = isset( $discount_rules['stack_with_others'] ) ?
+			(bool) $discount_rules['stack_with_others'] : true;
+
+		// If highest priority campaign doesn't allow stacking, only return it
+		if ( ! $allows_stacking ) {
+			$this->log(
+				'debug',
+				'Campaign stacking blocked',
+				array(
+					'campaign_id'   => $highest_priority_campaign->get_id(),
+					'campaign_name' => $highest_priority_campaign->get_name(),
+				)
+			);
+			return array( $highest_priority_campaign );
 		}
 
 		return $campaigns;
@@ -338,7 +482,22 @@ class SCD_WC_Discount_Query_Service {
 		if ( in_array( $discount_type, array( 'tiered', 'bogo', 'spend_threshold' ), true ) ) {
 			$discount_rules = $campaign->get_discount_rules();
 			if ( ! empty( $discount_rules ) ) {
-				$discount_config = array_merge( $discount_config, $discount_rules );
+				// BOGO requires special handling - flatten bogo_config structure
+				if ( 'bogo' === $discount_type && isset( $discount_rules['bogo_config'] ) ) {
+					$bogo_config = $discount_rules['bogo_config'];
+					$discount_config = array_merge(
+						$discount_config,
+						array(
+							'buy_quantity'            => $bogo_config['buy_quantity'] ?? 1,
+							'get_quantity'            => $bogo_config['get_quantity'] ?? 1,
+							'get_discount_percentage' => $bogo_config['discount_percent'] ?? 100,
+							'apply_to'                => $bogo_config['apply_to'] ?? 'cheapest',
+						)
+					);
+				} else {
+				// All other discount types - merge rules directly (already in snake_case from AJAX Router)
+					$discount_config = array_merge( $discount_config, $discount_rules );
+				}
 			}
 		}
 
@@ -460,6 +619,83 @@ class SCD_WC_Discount_Query_Service {
 		}
 
 		return $discount_data;
+	}
+
+	/**
+	 * Get campaign badge information for product.
+	 *
+	 * Unlike get_discount_info(), this returns campaign data even when
+	 * the discount doesn't apply at quantity=1 (e.g., BOGO campaigns).
+	 * Used for displaying promotional badges on product pages.
+	 *
+	 * @since    1.0.0
+	 * @param    int $product_id    Product ID.
+	 * @return   array|null            Badge info or null if no campaigns.
+	 */
+	public function get_campaign_badge_info( int $product_id ): ?array {
+		$cache_key = 'badge_info_' . $product_id;
+
+		if ( isset( $this->cache[ $cache_key ] ) ) {
+			return $this->cache[ $cache_key ];
+		}
+
+		try {
+			// Get product
+			$product = $this->get_product( $product_id );
+			if ( ! $product ) {
+				return null;
+			}
+
+			// Get applicable campaigns
+			$campaigns = $this->get_applicable_campaigns( $product );
+			if ( empty( $campaigns ) ) {
+				return null;
+			}
+
+			// Select winning campaign
+			$campaign = $this->select_winning_campaign( $campaigns, $product_id );
+
+			// Build discount configuration
+			$discount_config = $this->build_discount_config( $campaign );
+
+			// Build badge data
+			$badge_data = array(
+				'type'          => $discount_config['type'] ?? 'percentage',
+				'value'         => $discount_config['value'] ?? 0,
+				'campaign_id'   => $campaign->get_id(),
+				'campaign_name' => $campaign->get_name(),
+				// Badge styling settings from campaign
+				'badge_bg_color'   => $campaign->get_badge_bg_color() ?: '#ff0000',
+				'badge_text_color' => $campaign->get_badge_text_color() ?: '#ffffff',
+				'badge_position'   => $campaign->get_badge_position() ?: 'top-right',
+			);
+
+			// Add type-specific data
+			switch ( $badge_data['type'] ) {
+				case 'bogo':
+					$badge_data['buy_quantity']            = $discount_config['buy_quantity'] ?? 1;
+					$badge_data['get_quantity']            = $discount_config['get_quantity'] ?? 1;
+					$badge_data['get_discount_percentage'] = $discount_config['get_discount_percentage'] ?? 100;
+					break;
+				case 'tiered':
+					$badge_data['tiers'] = $discount_config['tiers'] ?? array();
+					break;
+			}
+
+			$this->cache[ $cache_key ] = $badge_data;
+			return $badge_data;
+
+		} catch ( Exception $e ) {
+			$this->log(
+				'error',
+				'Failed to get campaign badge info',
+				array(
+					'product_id' => $product_id,
+					'error'      => $e->getMessage(),
+				)
+			);
+			return null;
+		}
 	}
 
 	/**

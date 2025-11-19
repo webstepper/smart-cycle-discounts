@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/pages/notifications/tabs/class-notifications-settings-tab.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -41,7 +41,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 		// Email Provider Section
 		$this->add_section(
 			'scd_notifications_provider',
-			'<span class="dashicons dashicons-email"></span> ' . __( 'Email Provider', 'smart-cycle-discounts' ),
+			SCD_Icon_Helper::get( 'email', array( 'size' => 16 ) ) . ' ' . __( 'Email Provider', 'smart-cycle-discounts' ),
 			'render_provider_section'
 		);
 
@@ -116,7 +116,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 		// Email Configuration Section
 		$this->add_section(
 			'scd_notifications_config',
-			'<span class="dashicons dashicons-admin-settings"></span> ' . __( 'Email Configuration', 'smart-cycle-discounts' ),
+			SCD_Icon_Helper::get( 'admin-settings', array( 'size' => 16 ) ) . ' ' . __( 'Email Configuration', 'smart-cycle-discounts' ),
 			'render_config_section'
 		);
 
@@ -164,7 +164,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 		// FREE Notifications Section
 		$this->add_section(
 			'scd_notifications_free',
-			'<span class="dashicons dashicons-bell"></span> ' . __( 'FREE Notifications', 'smart-cycle-discounts' ),
+			SCD_Icon_Helper::get( 'bell', array( 'size' => 16 ) ) . ' ' . __( 'FREE Notifications', 'smart-cycle-discounts' ),
 			'render_free_section'
 		);
 
@@ -201,7 +201,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 		// PRO Notifications Section
 		$this->add_section(
 			'scd_notifications_pro',
-			'<span class="dashicons dashicons-star-filled"></span> ' . __( 'PRO Notifications', 'smart-cycle-discounts' ),
+			SCD_Icon_Helper::get( 'star-filled', array( 'size' => 16 ) ) . ' ' . __( 'PRO Notifications', 'smart-cycle-discounts' ),
 			'render_pro_section'
 		);
 
@@ -317,7 +317,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 		$this->render_text_field( $args );
 		?>
 		<button type="button" class="button button-secondary scd-test-connection-btn" data-provider="sendgrid" style="margin-left: 10px;">
-			<span class="dashicons dashicons-yes-alt"></span>
+			<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 			<?php esc_html_e( 'Test Connection', 'smart-cycle-discounts' ); ?>
 		</button>
 		<p class="description">
@@ -375,7 +375,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 		$this->render_select_field( $args );
 		?>
 		<button type="button" class="button button-secondary scd-test-connection-btn" data-provider="amazonses" style="margin-left: 10px;">
-			<span class="dashicons dashicons-yes-alt"></span>
+			<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 			<?php esc_html_e( 'Test Connection', 'smart-cycle-discounts' ); ?>
 		</button>
 		<p class="description">
@@ -449,7 +449,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 
 		?>
 		<button type="button" id="scd-test-email" class="button button-secondary">
-			<span class="dashicons dashicons-email-alt"></span>
+			<?php echo SCD_Icon_Helper::get( 'email', array( 'size' => 16 ) ); ?>
 			<?php esc_html_e( 'Send Test Email', 'smart-cycle-discounts' ); ?>
 		</button>
 		<p class="description">
@@ -499,7 +499,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			?>
 			<div class="scd-upgrade-prompt">
 				<p class="scd-upgrade-message">
-					<span class="dashicons dashicons-lock" style="color: #f0ad4e;"></span>
+					<?php echo SCD_Icon_Helper::get( 'lock', array( 'size' => 16 ) ); ?>
 					<strong><?php esc_html_e( 'Unlock Proactive Notifications', 'smart-cycle-discounts' ); ?></strong><br>
 					<span style="color: #666;">
 						<?php esc_html_e( 'Upgrade to PRO to get notified before things happen so you can take action and optimize your campaigns.', 'smart-cycle-discounts' ); ?>
@@ -684,12 +684,15 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 		$sanitized['additional_recipients'] = implode( ', ', $valid_recipients );
 
 		// Notification types
-		$sanitized['notify_campaign_started'] = isset( $input['notify_campaign_started'] ) && '1' === $input['notify_campaign_started'];
-		$sanitized['notify_campaign_ending']  = isset( $input['notify_campaign_ending'] ) && '1' === $input['notify_campaign_ending'];
-		$sanitized['notify_campaign_ended']   = isset( $input['notify_campaign_ended'] ) && '1' === $input['notify_campaign_ended'];
-		$sanitized['notify_daily_report']     = isset( $input['notify_daily_report'] ) && '1' === $input['notify_daily_report'];
-		$sanitized['notify_weekly_report']    = isset( $input['notify_weekly_report'] ) && '1' === $input['notify_weekly_report'];
-		$sanitized['notify_errors']           = isset( $input['notify_errors'] ) && '1' === $input['notify_errors'];
+		$sanitized['notify_campaign_started']    = isset( $input['notify_campaign_started'] ) && '1' === $input['notify_campaign_started'];
+		$sanitized['notify_campaign_ending']     = isset( $input['notify_campaign_ending'] ) && '1' === $input['notify_campaign_ending'];
+		$sanitized['notify_campaign_ended']      = isset( $input['notify_campaign_ended'] ) && '1' === $input['notify_campaign_ended'];
+		$sanitized['notify_daily_report']        = isset( $input['notify_daily_report'] ) && '1' === $input['notify_daily_report'];
+		$sanitized['notify_weekly_report']       = isset( $input['notify_weekly_report'] ) && '1' === $input['notify_weekly_report'];
+		$sanitized['notify_performance_alert']   = isset( $input['notify_performance_alert'] ) && '1' === $input['notify_performance_alert'];
+		$sanitized['notify_low_stock_alert']     = isset( $input['notify_low_stock_alert'] ) && '1' === $input['notify_low_stock_alert'];
+		$sanitized['notify_milestone_alert']     = isset( $input['notify_milestone_alert'] ) && '1' === $input['notify_milestone_alert'];
+		$sanitized['notify_errors']              = isset( $input['notify_errors'] ) && '1' === $input['notify_errors'];
 
 		return $sanitized;
 	}

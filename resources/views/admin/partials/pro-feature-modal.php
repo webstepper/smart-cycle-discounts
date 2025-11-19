@@ -19,7 +19,7 @@ $upgrade_url = isset( $feature_gate ) && $feature_gate ?
 	admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
 ?>
 
-<div id="scd-pro-required-modal" class="scd-modal" style="display: none;" role="dialog" aria-labelledby="scd-pro-modal-title" aria-modal="true" aria-hidden="true">
+<div id="scd-pro-required-modal" class="scd-modal scd-hidden" role="dialog" aria-labelledby="scd-pro-modal-title" aria-modal="true" aria-hidden="true">
 	<div class="scd-modal-overlay" role="presentation"></div>
 
 	<div class="scd-modal-dialog" role="document">
@@ -27,14 +27,14 @@ $upgrade_url = isset( $feature_gate ) && $feature_gate ?
 			<!-- Modal Header -->
 			<div class="scd-modal-header">
 				<div class="scd-modal-icon" aria-hidden="true">
-					<span class="dashicons dashicons-lock"></span>
+					<?php echo SCD_Icon_Helper::get( 'lock', array( 'size' => 16 ) ); ?>
 				</div>
 				<h2 id="scd-pro-modal-title">
 					<span id="scd-pro-feature-name"></span>
 					<?php esc_html_e( 'Requires PRO', 'smart-cycle-discounts' ); ?>
 				</h2>
 				<button type="button" class="scd-modal-close" aria-label="<?php esc_attr_e( 'Close dialog', 'smart-cycle-discounts' ); ?>">
-					<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>
+					<?php echo SCD_Icon_Helper::get( 'no-alt', array( 'size' => 16 ) ); ?>
 				</button>
 			</div>
 
@@ -43,41 +43,41 @@ $upgrade_url = isset( $feature_gate ) && $feature_gate ?
 				<div class="scd-modal-columns">
 					<!-- Left Column: PRO Features -->
 					<div class="scd-modal-column-left">
-						<h3 class="scd-section-title">
+						<h3 class="scd-form-section-title">
 							<?php esc_html_e( 'PRO Features', 'smart-cycle-discounts' ); ?>
 						</h3>
 
 						<ul class="scd-features-list">
 							<li>
-								<span class="dashicons dashicons-yes-alt" aria-hidden="true"></span>
+								<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 								<?php esc_html_e( 'Tiered Discounts', 'smart-cycle-discounts' ); ?>
 							</li>
 							<li>
-								<span class="dashicons dashicons-yes-alt" aria-hidden="true"></span>
+								<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 								<?php esc_html_e( 'BOGO Deals', 'smart-cycle-discounts' ); ?>
 							</li>
 							<li>
-								<span class="dashicons dashicons-yes-alt" aria-hidden="true"></span>
+								<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 								<?php esc_html_e( 'Spend Thresholds', 'smart-cycle-discounts' ); ?>
 							</li>
 							<li>
-								<span class="dashicons dashicons-yes-alt" aria-hidden="true"></span>
+								<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 								<?php esc_html_e( 'Recurring Campaigns', 'smart-cycle-discounts' ); ?>
 							</li>
 							<li>
-								<span class="dashicons dashicons-yes-alt" aria-hidden="true"></span>
+								<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 								<?php esc_html_e( 'Advanced Filters', 'smart-cycle-discounts' ); ?>
 							</li>
 							<li>
-								<span class="dashicons dashicons-yes-alt" aria-hidden="true"></span>
+								<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 								<?php esc_html_e( 'Priority Support', 'smart-cycle-discounts' ); ?>
 							</li>
 							<li>
-								<span class="dashicons dashicons-yes-alt" aria-hidden="true"></span>
+								<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 								<?php esc_html_e( 'Analytics & Reports', 'smart-cycle-discounts' ); ?>
 							</li>
 							<li>
-								<span class="dashicons dashicons-yes-alt" aria-hidden="true"></span>
+								<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 								<?php esc_html_e( 'Role-Based Access', 'smart-cycle-discounts' ); ?>
 							</li>
 						</ul>
@@ -85,25 +85,25 @@ $upgrade_url = isset( $feature_gate ) && $feature_gate ?
 
 					<!-- Right Column: Why Upgrade -->
 					<div class="scd-modal-column-right">
-						<h3 class="scd-section-title">
+						<h3 class="scd-form-section-title">
 							<?php esc_html_e( 'Why Upgrade?', 'smart-cycle-discounts' ); ?>
 						</h3>
 
 						<div class="scd-benefits-compact">
 							<div class="scd-benefit-compact">
-								<span class="dashicons dashicons-chart-line" aria-hidden="true"></span>
+								<?php echo SCD_Icon_Helper::get( 'chart-line', array( 'size' => 16 ) ); ?>
 								<strong><?php esc_html_e( 'Increase AOV by 40%', 'smart-cycle-discounts' ); ?></strong>
 							</div>
 							<div class="scd-benefit-compact">
-								<span class="dashicons dashicons-groups" aria-hidden="true"></span>
+								<?php echo SCD_Icon_Helper::get( 'groups', array( 'size' => 16 ) ); ?>
 								<strong><?php esc_html_e( 'Boost Retention', 'smart-cycle-discounts' ); ?></strong>
 							</div>
 							<div class="scd-benefit-compact">
-								<span class="dashicons dashicons-clock" aria-hidden="true"></span>
+								<?php echo SCD_Icon_Helper::get( 'clock', array( 'size' => 16 ) ); ?>
 								<strong><?php esc_html_e( 'Save 10+ Hours/Month', 'smart-cycle-discounts' ); ?></strong>
 							</div>
 							<div class="scd-benefit-compact">
-								<span class="dashicons dashicons-yes-alt" aria-hidden="true"></span>
+								<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
 								<strong><?php esc_html_e( 'Unlimited Campaigns', 'smart-cycle-discounts' ); ?></strong>
 							</div>
 						</div>
@@ -121,25 +121,32 @@ $upgrade_url = isset( $feature_gate ) && $feature_gate ?
 									<span class="scd-price-period"><?php esc_html_e( '/year', 'smart-cycle-discounts' ); ?></span>
 								</div>
 							</div>
-							<button type="button" class="button button-primary button-large scd-modal-upgrade" data-upgrade-url="<?php echo esc_url( $upgrade_url ); ?>">
-								<span class="dashicons dashicons-star-filled" aria-hidden="true"></span>
-								<?php esc_html_e( 'Upgrade Now', 'smart-cycle-discounts' ); ?>
-							</button>
+							<?php
+							SCD_Button_Helper::primary(
+								__( 'Upgrade Now', 'smart-cycle-discounts' ),
+								array(
+									'size'       => 'large',
+									'icon'       => 'star-filled',
+									'classes'    => array( 'scd-modal-upgrade' ),
+									'attributes' => array( 'data-upgrade-url' => esc_url( $upgrade_url ) ),
+								)
+							);
+							?>
 							<div class="scd-trust-badges">
 								<div class="scd-trust-badge">
-									<span class="dashicons dashicons-shield-alt" aria-hidden="true"></span>
+									<?php echo SCD_Icon_Helper::get( 'shield-alt', array( 'size' => 16 ) ); ?>
 									<span><?php esc_html_e( '14-Day Guarantee', 'smart-cycle-discounts' ); ?></span>
 								</div>
 								<div class="scd-trust-badge">
-									<span class="dashicons dashicons-unlock" aria-hidden="true"></span>
+									<?php echo SCD_Icon_Helper::get( 'unlock', array( 'size' => 16 ) ); ?>
 									<span><?php esc_html_e( 'Instant Access', 'smart-cycle-discounts' ); ?></span>
 								</div>
 								<div class="scd-trust-badge">
-									<span class="dashicons dashicons-update" aria-hidden="true"></span>
+									<?php echo SCD_Icon_Helper::get( 'update', array( 'size' => 16 ) ); ?>
 									<span><?php esc_html_e( 'Free Updates', 'smart-cycle-discounts' ); ?></span>
 								</div>
 								<div class="scd-trust-badge">
-									<span class="dashicons dashicons-admin-network" aria-hidden="true"></span>
+									<?php echo SCD_Icon_Helper::get( 'admin-network', array( 'size' => 16 ) ); ?>
 									<span><?php esc_html_e( 'Secure Payment', 'smart-cycle-discounts' ); ?></span>
 								</div>
 							</div>
@@ -150,13 +157,22 @@ $upgrade_url = isset( $feature_gate ) && $feature_gate ?
 
 			<!-- Modal Footer -->
 			<div class="scd-modal-footer">
-				<button type="button" class="button button-secondary scd-modal-change">
-					<?php esc_html_e( 'Change Discount Type', 'smart-cycle-discounts' ); ?>
-				</button>
+			<?php
+			SCD_Button_Helper::secondary(
+				__( 'Change Discount Type', 'smart-cycle-discounts' ),
+				array(
+					'classes' => array( 'scd-modal-change' ),
+				)
+			);
 
-				<button type="button" class="button button-link scd-modal-save-draft">
-					<?php esc_html_e( 'Save as Draft', 'smart-cycle-discounts' ); ?>
-				</button>
+			SCD_Button_Helper::link(
+				__( 'Save as Draft', 'smart-cycle-discounts' ),
+				'#',
+				array(
+					'classes' => array( 'scd-modal-save-draft' ),
+				)
+			);
+			?>
 			</div>
 		</div>
 	</div>

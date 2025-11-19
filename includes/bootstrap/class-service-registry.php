@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/bootstrap/class-service-registry.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_Service_Registry {
 
@@ -160,7 +160,7 @@ class SCD_Service_Registry {
 
 			if ( isset( $definition['dependencies'] ) ) {
 				foreach ( $definition['dependencies'] as $dependency ) {
-					if ( $dependency !== 'container' && ! $this->register_service( $dependency ) ) {
+					if ( 'container' !== $dependency && ! $this->register_service( $dependency ) ) {
 						throw new Exception(
 							sprintf(
 								'Failed to register dependency "%s"',
@@ -241,7 +241,7 @@ class SCD_Service_Registry {
 
 		if ( isset( $this->definitions[ $service_id ]['dependencies'] ) ) {
 			foreach ( $this->definitions[ $service_id ]['dependencies'] as $dependency ) {
-				if ( $dependency !== 'container' && isset( $this->definitions[ $dependency ] ) ) {
+				if ( 'container' !== $dependency && isset( $this->definitions[ $dependency ] ) ) {
 					$this->topological_sort( $dependency, $visited, $sorted );
 				}
 			}

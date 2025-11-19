@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/wizard/wizard-orchestrator.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -37,7 +37,7 @@
 		SCD.Shared.BaseOrchestrator.call( this, 'wizard', {
 			// Module factories
 			stateManager: function() {
-				return SCD.Wizard.StateManager;
+				return SCD.Wizard.StateManager.getInstance();
 			},
 			eventBus: function() {
 				return SCD.Wizard.EventBus;
@@ -302,8 +302,8 @@
 
 		// State changes
 		if ( this.modules.stateManager ) {
-			this.modules.stateManager.subscribe( function( state, oldState, changes ) {
-				self.handleStateChange( state, oldState, changes );
+			this.modules.stateManager.subscribe( function( changes ) {
+				self.handleStateChange( changes );
 			} );
 		}
 
@@ -600,7 +600,29 @@
 			orchestrator.init( this, config );
 
 			// After init, populate with any saved data
-			var stepData = this.getStepData( stepName );
+			var stepData;
+
+			// In edit mode, prefer wizard state manager (has correct structure from change tracker)
+			// In create mode, prefer step-specific state (fresher from database)
+			var state = this.modules.stateManager ? this.modules.stateManager.get() : null;
+			var isEditMode = state && ( state.wizardMode === 'edit' || state.campaignId );
+
+			if ( isEditMode ) {
+				// Edit mode: Use wizard state manager (change tracker has correct structure)
+				stepData = this.getStepData( stepName );
+			} else {
+				// Create mode: Prefer step-specific state over wizard state
+				var stepStateVar = 'scd' + stepName.charAt(0).toUpperCase() + stepName.slice(1) + 'State';
+
+				if ( window[stepStateVar] && window[stepStateVar].saved_data ) {
+					// Use step-specific state (PHP-rendered, current from database)
+					stepData = window[stepStateVar].saved_data;
+				} else {
+					// Fallback to wizard-level state (session-based)
+					stepData = this.getStepData( stepName );
+				}
+			}
+
 			this.populateStepFields( stepName, orchestrator, stepData );
 		}
 
@@ -681,6 +703,16 @@
 	 * Extracted to reduce cognitive complexity
 	 */
 	WizardOrchestrator.prototype.handleCompletionSuccess = function( response ) {
+		// Hide fullscreen loader
+		if ( window.SCD && window.SCD.LoaderUtil ) {
+			SCD.LoaderUtil.hide( 'scd-wizard-completion-loading' );
+		}
+
+		// Re-enable navigation after completion
+		if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Navigation ) {
+			window.SCD.Wizard.Navigation.setNavigationState( false );
+		}
+
 		var campaignName = this.getCampaignName();
 
 		// Determine if we're in edit mode
@@ -731,6 +763,16 @@
 	 * Extracted to reduce cognitive complexity
 	 */
 	WizardOrchestrator.prototype.handleCompletionError = function( error ) {
+		// Hide fullscreen loader
+		if ( window.SCD && window.SCD.LoaderUtil ) {
+			SCD.LoaderUtil.hide( 'scd-wizard-completion-loading' );
+		}
+
+		// Re-enable navigation after error
+		if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Navigation ) {
+			window.SCD.Wizard.Navigation.setNavigationState( false );
+		}
+
 		if ( this.modules.stateManager ) {
 			this.modules.stateManager.set( {
 				isProcessing: false,
@@ -761,6 +803,16 @@
 			saveAsDraft: saveAsDraft || false
 		};
 
+		// Show fullscreen loader instead of button/modal loader
+		if ( window.SCD && window.SCD.LoaderUtil ) {
+			SCD.LoaderUtil.show( 'scd-wizard-completion-loading' );
+		}
+
+		// Disable navigation during completion process
+		if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Navigation ) {
+			window.SCD.Wizard.Navigation.setNavigationState( true );
+		}
+
 		if ( saveAsDraft && this.modules.stateManager ) {
 			var state = this.modules.stateManager.get();
 			var isEditMode = state && ( state.wizardMode === 'edit' || state.campaignId );
@@ -774,6 +826,16 @@
 				);
 
 				if ( ! confirmed ) {
+					// Hide loader if user cancelled
+					if ( window.SCD && window.SCD.LoaderUtil ) {
+						SCD.LoaderUtil.hide( 'scd-wizard-completion-loading' );
+					}
+
+					// Re-enable navigation when user cancels
+					if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Navigation ) {
+						window.SCD.Wizard.Navigation.setNavigationState( false );
+					}
+
 					return; // User cancelled
 				}
 			}
@@ -802,8 +864,8 @@
 				return Promise.resolve();
 				} )
 				.then( function() {
-				// Emit completing event for modal to show loading state
-				$( document ).trigger( 'scd:wizard:completing' );
+				// Note: Fullscreen loader is now shown, don't show modal loading state
+				// $( document ).trigger( 'scd:wizard:completing' );
 
 				if ( self.modules.stateManager ) {
 					self.modules.stateManager.set( {
@@ -971,22 +1033,51 @@
 
 	/**
 	 * Handle state change
-	 * @param state
-	 * @param oldState
-	 * @param changes
+	 *
+	 * @param {object} changes - Change notification object from BaseState
+	 *   For individual updates: {property, value, oldValue, newValue, state}
+	 *   For batch updates: {batch: true, changes: {...}, state: {...}}
+	 *   For reset: {reset: true, state: {...}}
 	 */
-	WizardOrchestrator.prototype.handleStateChange = function( state, oldState, changes ) {
-		// Update UI based on state
-		if ( undefined !== changes.isProcessing ) {
-			if ( changes.isProcessing ) {
-				this.setLoading( true );
-			} else {
-				this.setLoading( false );
-			}
+	WizardOrchestrator.prototype.handleStateChange = function( changes ) {
+		if ( !changes ) {
+			return;
 		}
 
-		// Handle step change
-		if ( changes.currentStep && oldState.currentStep !== changes.currentStep ) {
+		// Handle batch updates
+		if ( changes.batch && changes.changes ) {
+			// Check for isProcessing in batch changes
+			if ( undefined !== changes.changes.isProcessing ) {
+				if ( changes.changes.isProcessing ) {
+					this.setLoading( true );
+				} else {
+					this.setLoading( false );
+				}
+			}
+
+			// Handle step change in batch
+			if ( changes.changes.currentStep ) {
+				this.loadCurrentStep();
+			}
+		}
+		// Handle individual property updates
+		else if ( changes.property ) {
+			// Update UI based on specific property
+			if ( 'isProcessing' === changes.property ) {
+				if ( changes.newValue ) {
+					this.setLoading( true );
+				} else {
+					this.setLoading( false );
+				}
+			}
+
+			// Handle step change
+			if ( 'currentStep' === changes.property && changes.oldValue !== changes.newValue ) {
+				this.loadCurrentStep();
+			}
+		}
+		// Handle reset
+		else if ( changes.reset ) {
 			this.loadCurrentStep();
 		}
 	};
@@ -1029,7 +1120,7 @@
 		this.showError( 'Your session has expired. Please refresh the page.', 'error', 0 );
 
 		// Disable UI
-		$( '.scd-wizard-wrapper' ).addClass( 'session-expired' );
+		$( '.scd-wizard-wrap' ).addClass( 'session-expired' );
 	};
 
 	/**

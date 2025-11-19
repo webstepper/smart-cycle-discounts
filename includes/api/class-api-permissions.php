@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/api/class-api-permissions.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/api
- * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
+ * @author     Webstepper <contact@webstepper.io>
  */
 class SCD_API_Permissions {
 
@@ -140,7 +140,7 @@ class SCD_API_Permissions {
 	 * @return   void
 	 */
 	public function init(): void {
-		$this->logger->debug( 'API permissions manager initialized' );
+		// Initialization complete
 	}
 
 	/**
@@ -499,7 +499,7 @@ class SCD_API_Permissions {
 			)
 		);
 
-		if ( $campaign_owner === null ) {
+		if ( null === $campaign_owner ) {
 			return new WP_Error(
 				'rest_campaign_not_found',
 				__( 'Campaign not found.', 'smart-cycle-discounts' ),

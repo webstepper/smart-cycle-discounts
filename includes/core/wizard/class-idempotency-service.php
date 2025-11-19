@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/wizard/class-idempotency-service.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -54,12 +54,21 @@ class SCD_Idempotency_Service {
 	private $state_service;
 
 	/**
+	 * Cache manager instance.
+	 *
+	 * @since    1.0.0
+	 * @var      SCD_Cache_Manager
+	 */
+	private SCD_Cache_Manager $cache;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since    1.0.0
 	 * @param    SCD_Wizard_State_Service|null $state_service    State service instance.
 	 */
-	public function __construct( $state_service = null ) {
+	public function __construct( SCD_Cache_Manager $cache, $state_service = null ) {
+		$this->cache         = $cache;
 		$this->state_service = $state_service;
 	}
 
@@ -146,7 +155,7 @@ class SCD_Idempotency_Service {
 		}
 
 		$cache_key = $this->get_cache_key( $key );
-		$cached    = get_transient( $cache_key );
+		$cached    = $this->cache->get( $cache_key );
 
 		if ( $cached && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 		}
@@ -173,7 +182,7 @@ class SCD_Idempotency_Service {
 		}
 
 		$cache_key = $this->get_cache_key( $key );
-		return set_transient( $cache_key, $response, $ttl );
+		return $this->cache->set( $cache_key, $response, $ttl );
 	}
 
 	/**
@@ -190,6 +199,8 @@ class SCD_Idempotency_Service {
 			return true;
 		}
 
+		// Processing lock key (used with wp_cache_add for atomic operations)
+		// Note: This bypasses Cache Manager for atomic locking, so uses scd_ prefix directly
 		$processing_key = 'scd_idem_proc_' . md5( $key );
 
 		// Try to claim request atomically
@@ -233,17 +244,20 @@ class SCD_Idempotency_Service {
 		}
 
 		$cache_key = $this->get_cache_key( $key );
-		return delete_transient( $cache_key );
+		return $this->cache->delete( $cache_key );
 	}
 
 	/**
 	 * Get cache key for idempotency key.
+	 *
+	 * Uses reference_ prefix for Cache Manager compatibility.
 	 *
 	 * @since    1.0.0
 	 * @param    string $key    Idempotency key.
 	 * @return   string            Cache key.
 	 */
 	private function get_cache_key( $key ) {
-		return 'scd_idem_' . md5( $key );
+		// Use reference_ prefix for proper cache key validation
+		return 'reference_idem_' . md5( $key );
 	}
 }

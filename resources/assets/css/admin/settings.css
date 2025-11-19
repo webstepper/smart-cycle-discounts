@@ -18,12 +18,12 @@
 	max-width: 1200px;
 }
 
-.scd-settings h1 .dashicons {
+.scd-settings h1 .scd-icon {
 	font-size: 32px;
 	width: 32px;
-	height: 32px;
+	height: var(--scd-button-height-large);
 	margin-right: 8px;
-	color: #2271b1;
+	color: var(--scd-color-primary);
 }
 
 /* ==========================================================================
@@ -31,22 +31,22 @@
    ========================================================================== */
 
 .scd-settings-tabs {
-	margin: 20px 0;
-	border-bottom: 1px solid #c3c4c7;
+	margin: var(--scd-spacing-lg) 0;
+	border-bottom: 1px solid var(--scd-color-border);
 }
 
 .scd-settings-tabs .nav-tab {
 	display: inline-flex;
 	align-items: center;
-	gap: 8px;
-	font-size: 14px;
-	padding: 10px 16px;
+	gap: var(--scd-gap-tight);
+	font-size: var(--scd-font-size-medium);
+	padding: var(--scd-padding-small) 16px;
 }
 
-.scd-settings-tabs .nav-tab .dashicons {
-	font-size: 18px;
-	width: 18px;
-	height: 18px;
+.scd-settings-tabs .nav-tab .scd-icon {
+	font-size: var(--scd-font-size-xl);
+	width: var(--scd-icon-small);
+	height: var(--scd-icon-small);
 }
 
 /* ==========================================================================
@@ -54,11 +54,11 @@
    ========================================================================== */
 
 .scd-settings-form {
-	background: #fff;
-	border: 1px solid #c3c4c7;
-	border-radius: 4px;
-	padding: 20px;
-	margin-top: 20px;
+	background: var(--scd-color-white);
+	border: 1px solid var(--scd-color-border);
+	border-radius: var(--scd-radius-md);
+	padding: var(--scd-padding-section);
+	margin-top: var(--scd-spacing-lg);
 }
 
 .scd-settings-form h2 {
@@ -67,7 +67,7 @@
 	border-bottom: 1px solid #e5e5e5;
 	display: flex;
 	align-items: center;
-	gap: 10px;
+	gap: var(--scd-gap-normal);
 }
 
 .scd-settings-form h2:not(:first-child) {
@@ -76,193 +76,60 @@
 	border-top: 1px solid #e5e5e5;
 }
 
-.scd-settings-form h2 .dashicons {
-	color: #2271b1;
+.scd-settings-form h2 .scd-icon {
+	color: var(--scd-color-primary);
 }
 
 .scd-settings-form .form-table {
-	margin-top: 20px;
+	margin-top: var(--scd-spacing-lg);
 }
 
 .scd-settings-form .form-table th {
 	width: 220px;
-	font-weight: 600;
-	color: #1d2327;
+	font-weight: var(--scd-font-weight-semibold);
+	color: var(--scd-color-text);
 }
 
 .scd-settings-form .form-table td {
-	padding: 15px 10px;
+	padding: var(--scd-padding-compact) 10px;
 }
 
-/* Field descriptions */
 .scd-settings-form .form-table td p.description {
 	margin-top: 5px;
-	font-size: 13px;
-	color: #646970;
+	font-size: var(--scd-font-size-base);
+	color: var(--scd-color-text-muted);
 	line-height: 1.6;
 }
 
 /* Field Tooltips */
 .scd-field-tooltip {
-	color: #646970;
+	color: var(--scd-color-text-muted);
 	cursor: help;
 	margin-left: 5px;
 }
 
 .scd-field-tooltip:hover {
-	color: #2271b1;
+	color: var(--scd-color-primary);
 }
 
 /* Section Descriptions */
 .scd-section-description {
-	color: #646970;
-	font-size: 13px;
+	color: var(--scd-color-text-muted);
+	font-size: var(--scd-font-size-base);
 	line-height: 1.6;
 	margin: 0 0 20px 0;
-	padding: 12px;
-	background: #f6f7f7;
-	border-left: 4px solid #2271b1;
-	border-radius: 3px;
+	padding: var(--scd-padding-medium);
+	background: var(--scd-color-surface);
+	border-left: 4px solid var(--scd-color-primary);
+	border-radius: var(--scd-radius-sm);
 }
 
 /* ==========================================================================
    Form Fields
    ========================================================================== */
 
-/* Text inputs */
-.scd-settings-form input[type="text"],
-.scd-settings-form input[type="email"],
-.scd-settings-form input[type="url"],
-.scd-settings-form input[type="number"],
-.scd-settings-form input[type="password"] {
-	padding: 0 8px;
-	height: 30px;
-	border: 1px solid #8c8f94;
-	border-radius: 4px;
-	font-size: 14px;
-	color: #1d2327;
-	background: #fff;
-	transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-
-.scd-settings-form input[type="text"]:hover,
-.scd-settings-form input[type="email"]:hover,
-.scd-settings-form input[type="url"]:hover,
-.scd-settings-form input[type="number"]:hover,
-.scd-settings-form input[type="password"]:hover {
-	border-color: #646970;
-}
-
-.scd-settings-form input[type="text"]:focus,
-.scd-settings-form input[type="email"]:focus,
-.scd-settings-form input[type="url"]:focus,
-.scd-settings-form input[type="number"]:focus,
-.scd-settings-form input[type="password"]:focus {
-	outline: 2px solid transparent;
-	border-color: #2271b1;
-	box-shadow: 0 0 0 1px #2271b1;
-}
-
-/* Select fields */
-.scd-settings-form select {
-	padding: 0 8px;
-	height: 30px;
-	border: 1px solid #8c8f94;
-	border-radius: 4px;
-	font-size: 14px;
-	color: #1d2327;
-	background: #fff;
-	transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-
-.scd-settings-form select:hover {
-	border-color: #646970;
-}
-
-.scd-settings-form select:focus {
-	outline: 2px solid transparent;
-	border-color: #2271b1;
-	box-shadow: 0 0 0 1px #2271b1;
-}
-
-/* Textarea fields */
-.scd-settings-form textarea {
-	padding: 8px;
-	border: 1px solid #8c8f94;
-	border-radius: 4px;
-	font-size: 14px;
-	color: #1d2327;
-	background: #fff;
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-	line-height: 1.6;
-	transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-
-.scd-settings-form textarea:hover {
-	border-color: #646970;
-}
-
-.scd-settings-form textarea:focus {
-	outline: 2px solid transparent;
-	border-color: #2271b1;
-	box-shadow: 0 0 0 1px #2271b1;
-}
-
-/* Toggle Switch */
-.scd-toggle-wrapper {
-	display: inline-flex;
-	align-items: center;
-	gap: 10px;
-}
-
-.scd-toggle {
-	position: relative;
-	display: inline-block;
-	width: 44px;
-	height: 24px;
-}
-
-.scd-toggle input {
-	opacity: 0;
-	width: 0;
-	height: 0;
-}
-
-.scd-toggle-slider {
-	position: absolute;
-	cursor: pointer;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background-color: #c3c4c7;
-	transition: 0.3s;
-	border-radius: 24px;
-}
-
-.scd-toggle-slider:before {
-	position: absolute;
-	content: "";
-	height: 18px;
-	width: 18px;
-	left: 3px;
-	bottom: 3px;
-	background-color: white;
-	transition: 0.3s;
-	border-radius: 50%;
-}
-
-.scd-toggle input:checked + .scd-toggle-slider {
-	background-color: #2271b1;
-}
-
-.scd-toggle input:checked + .scd-toggle-slider:before {
-	transform: translateX( 20px );
-}
-
-.scd-toggle input:focus + .scd-toggle-slider {
-	box-shadow: 0 0 0 2px #fff, 0 0 0 4px #2271b1;
-}
+/* Form field styling is defined in shared/_forms.css */
+/* Toggle switch styling is defined in shared/_forms.css */
 
 /* ==========================================================================
    Submit Section
@@ -270,15 +137,15 @@
 
 .scd-settings-submit {
 	margin-top: 30px;
-	padding-top: 20px;
-	border-top: 1px solid #c3c4c7;
+	padding-top: var(--scd-spacing-lg);
+	border-top: 1px solid var(--scd-color-border);
 	text-align: right;
 }
 
 .scd-settings-submit .button-primary {
-	padding: 8px 24px;
+	padding: var(--scd-padding-small) 24px;
 	height: auto;
-	font-size: 14px;
+	font-size: var(--scd-font-size-medium);
 }
 
 /* ==========================================================================
@@ -287,9 +154,9 @@
 
 .scd-settings .notice {
 	margin: 0 0 20px 0;
-	padding: 12px;
+	padding: var(--scd-padding-medium);
 	border-left-width: 4px;
-	border-radius: 4px;
+	border-radius: var(--scd-radius-md);
 }
 
 /* ==========================================================================
@@ -302,7 +169,7 @@
 	}
 
 	.scd-settings-form {
-		padding: 15px;
+		padding: var(--scd-padding-compact);
 	}
 
 	.scd-settings-tabs .nav-tab {
@@ -314,7 +181,7 @@
 	.scd-settings-form .form-table td {
 		display: block;
 		width: 100%;
-		padding: 10px 0;
+		padding: var(--scd-padding-small) 0;
 	}
 
 	.scd-settings-form .form-table th {
@@ -325,16 +192,16 @@
 
 @media screen and ( max-width: 600px ) {
 	.scd-settings h1 {
-		font-size: 20px;
+		font-size: var(--scd-font-size-xxl);
 	}
 
 	.scd-settings-form h2 {
-		font-size: 18px;
+		font-size: var(--scd-font-size-xl);
 	}
 
 	.scd-settings-tabs .nav-tab {
-		padding: 8px 12px;
-		font-size: 13px;
+		padding: var(--scd-padding-small) 12px;
+		font-size: var(--scd-font-size-base);
 	}
 }
 
@@ -348,40 +215,19 @@
 	opacity: 0.6;
 }
 
-.scd-loading::after {
-	content: "";
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	width: 20px;
-	height: 20px;
-	margin-top: -10px;
-	margin-left: -10px;
-	border: 2px solid #2271b1;
-	border-top-color: transparent;
-	border-radius: 50%;
-	animation: scd-spin 0.6s linear infinite;
-}
-
-@keyframes scd-spin {
-	to {
-		transform: rotate( 360deg );
-	}
-}
-
 /* ==========================================================================
    Performance Settings - Cache Statistics
    ========================================================================== */
 
 .scd-cache-backend-info {
 	background: #f0f6fc;
-	border-left: 4px solid #2271b1;
-	padding: 12px;
-	margin-bottom: 20px;
+	border-left: 4px solid var(--scd-color-primary);
+	padding: var(--scd-padding-medium);
+	margin-bottom: var(--scd-spacing-lg);
 }
 
 .scd-cache-active-icon {
-	color: #00a32a;
+	color: var(--scd-color-success);
 }
 
 .scd-cache-stats-table {
@@ -393,23 +239,23 @@
 }
 
 .scd-status-enabled {
-	color: #00a32a;
+	color: var(--scd-color-success);
 }
 
 .scd-status-disabled {
-	color: #d63638;
+	color: var(--scd-color-danger);
 }
 
 .scd-status-active {
-	color: #00a32a;
+	color: var(--scd-color-success);
 }
 
 .scd-status-warning {
-	color: #dba617;
+	color: var(--scd-color-warning);
 }
 
 .scd-cache-clear-actions {
-	margin-top: 20px;
+	margin-top: var(--scd-spacing-lg);
 }
 
 .scd-cache-clear-actions #scd-clear-cache-status {

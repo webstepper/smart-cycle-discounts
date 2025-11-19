@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers/class-tools-handler.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -117,12 +117,23 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 
 		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
 
-		$size_before = $wpdb->get_var( "SELECT data_length + index_length FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = '{$campaigns_table}'" );
+		$size_before = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT data_length + index_length FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = %s',
+				$campaigns_table
+			)
+		);
 
-		// Optimize table
+		// Optimize table - Using direct table name (already prefixed and validated)
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( "OPTIMIZE TABLE {$campaigns_table}" );
 
-		$size_after = $wpdb->get_var( "SELECT data_length + index_length FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = '{$campaigns_table}'" );
+		$size_after = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT data_length + index_length FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = %s',
+				$campaigns_table
+			)
+		);
 
 		// Log with performance metrics
 		$this->logger->flow(
@@ -218,7 +229,13 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		global $wpdb;
-		$deleted = $wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_scd_%' OR option_name LIKE '_transient_timeout_scd_%'" );
+		$deleted = $wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+				'_transient_scd_%',
+				'_transient_timeout_scd_%'
+			)
+		);
 		if ( false !== $deleted ) {
 			$operations[] = 'transients';
 		}

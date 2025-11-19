@@ -4,8 +4,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/assets/class-asset-localizer.php
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -127,6 +127,14 @@ class SCD_Asset_Localizer {
 		$this->data['scdValidationMessages']  = $this->get_validation_messages();
 		$this->data['scdValidationConstants'] = $this->get_validation_constants();
 
+		// Admin notices data (nonces for dismiss handlers)
+		$this->data['scdAdminNotices'] = array(
+			'nonces' => array(
+				'expiration' => wp_create_nonce( 'scd_dismiss_expiration_notice' ),
+				'currency'   => wp_create_nonce( 'scd_dismiss_currency_notice' ),
+			),
+		);
+
 		// Validation config
 		$this->data['scdValidationConfig'] = array(
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
@@ -136,7 +144,7 @@ class SCD_Asset_Localizer {
 		// Settings data
 		$this->data['scdSettings'] = array(
 			'currency'           => get_woocommerce_currency(),
-			'currency_symbol'    => get_woocommerce_currency_symbol(),
+			'currency_symbol'    => html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES | ENT_HTML5, 'UTF-8' ),
 			'date_format'        => get_option( 'date_format' ),
 			'time_format'        => get_option( 'time_format' ),
 			'start_of_week'      => get_option( 'start_of_week' ),
@@ -169,11 +177,11 @@ class SCD_Asset_Localizer {
 		if ( isset( $_GET['page'] ) && 'smart-cycle-discounts' === $_GET['page'] ) {
 			$this->data['scdDashboard'] = array(
 				'nonce'          => wp_create_nonce( 'scd_main_dashboard' ),
-				'currencySymbol' => get_woocommerce_currency_symbol(),
+				'currencySymbol' => html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES | ENT_HTML5, 'UTF-8' ),
 				'dateFormat'     => get_option( 'date_format' ),
 				'timeFormat'     => get_option( 'time_format' ),
 				'i18n'           => array(
-					'loading'      => __( 'Loading dashboard data...', 'smart-cycle-discounts' ),
+					'loading'      => __( 'Loading analytics...', 'smart-cycle-discounts' ),
 					'error'        => __( 'Failed to load dashboard data', 'smart-cycle-discounts' ),
 					'success'      => __( 'Dashboard updated', 'smart-cycle-discounts' ),
 					'networkError' => __( 'Network error occurred', 'smart-cycle-discounts' ),
@@ -188,10 +196,10 @@ class SCD_Asset_Localizer {
 
 		// Analytics data (only on analytics pages)
 		if ( isset( $_GET['page'] ) && 'scd-analytics' === $_GET['page'] ) {
-			$current_period = sanitize_text_field( $_GET['date_range'] ?? '7days' );
+			$current_period = sanitize_text_field( $_GET['date_range'] ?? '30days' );
 			$valid_ranges   = array( '24hours', '7days', '30days', '90days', 'custom' );
 			if ( ! in_array( $current_period, $valid_ranges, true ) ) {
-				$current_period = '7days';
+				$current_period = '30days';
 			}
 
 			$this->localize_analytics_data(
@@ -212,6 +220,47 @@ class SCD_Asset_Localizer {
 			} elseif ( 'advanced' === $tab ) {
 				$this->localize_advanced_settings_data();
 			}
+		}
+
+		// Campaigns page data
+		if ( isset( $_GET['page'] ) && 'scd-campaigns' === $_GET['page'] ) {
+			// Campaign overview panel data (on list view and view action)
+			$action = isset( $_GET['action'] ) ? $_GET['action'] : null;
+			if ( in_array( $action, array( null, 'view' ), true ) ) {
+				$this->data['scdOverviewPanel'] = array(
+					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+					'nonce'   => wp_create_nonce( 'scd_admin_nonce' ),
+					'editUrl' => admin_url( 'admin.php?page=scd-campaigns' ),
+					'i18n'     => array(
+						'loading'       => __( 'Loading campaign details...', 'smart-cycle-discounts' ),
+						'error'         => __( 'Failed to load campaign details', 'smart-cycle-discounts' ),
+						'networkError'  => __( 'Network error occurred', 'smart-cycle-discounts' ),
+						'retry'         => __( 'Retry', 'smart-cycle-discounts' ),
+						'editCampaign'  => __( 'Edit Campaign', 'smart-cycle-discounts' ),
+						'close'         => __( 'Close', 'smart-cycle-discounts' ),
+						'campaignPanel' => __( 'Campaign Overview', 'smart-cycle-discounts' ),
+					),
+				);
+			}
+		}
+
+		// Analytics page data
+		if ( isset( $_GET['page'] ) && 'scd-analytics' === $_GET['page'] ) {
+			// Campaign overview panel data
+			$this->data['scdOverviewPanel'] = array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'nonce'   => wp_create_nonce( 'scd_admin_nonce' ),
+				'editUrl' => admin_url( 'admin.php?page=scd-campaigns' ),
+				'i18n'     => array(
+					'loading'       => __( 'Loading campaign details...', 'smart-cycle-discounts' ),
+					'error'         => __( 'Failed to load campaign details', 'smart-cycle-discounts' ),
+					'networkError'  => __( 'Network error occurred', 'smart-cycle-discounts' ),
+					'retry'         => __( 'Retry', 'smart-cycle-discounts' ),
+					'editCampaign'  => __( 'Edit Campaign', 'smart-cycle-discounts' ),
+					'close'         => __( 'Close', 'smart-cycle-discounts' ),
+					'campaignPanel' => __( 'Campaign Overview', 'smart-cycle-discounts' ),
+				),
+			);
 		}
 
 		// Notifications page data
@@ -313,10 +362,18 @@ class SCD_Asset_Localizer {
 			// Simple object name
 			$this->localize_simple( $handle, $localize );
 		} elseif ( is_array( $localize ) ) {
-			// Multiple objects
-			foreach ( $localize as $object_name ) {
-				if ( is_string( $object_name ) && ! empty( $object_name ) ) {
-					$this->localize_simple( $handle, $object_name );
+			// Check if this is a structured localization with 'object_name' and 'data'
+			if ( isset( $localize['object_name'] ) && isset( $localize['data'] ) ) {
+				// Structured localization - add data to registry and localize
+				$object_name = $localize['object_name'];
+				$this->data[ $object_name ] = $localize['data'];
+				$this->localize_simple( $handle, $object_name );
+			} else {
+				// Multiple objects (array of strings)
+				foreach ( $localize as $object_name ) {
+					if ( is_string( $object_name ) && ! empty( $object_name ) ) {
+						$this->localize_simple( $handle, $object_name );
+					}
 				}
 			}
 		}
@@ -346,9 +403,9 @@ class SCD_Asset_Localizer {
 			}
 
 			// Special handling for wizard data - generate on demand
-			if ( $object_name === 'scdWizardData' && isset( $_GET['action'] ) && $_GET['action'] === 'wizard' ) {
+			if ( 'scdWizardData' === $object_name && isset( $_GET['action'] ) && 'wizard' === $_GET['action'] ) {
 				$this->data[ $object_name ] = $this->get_wizard_data();
-			} elseif ( $object_name === 'scdNavigation' && isset( $_GET['action'] ) && $_GET['action'] === 'wizard' ) {
+			} elseif ( 'scdNavigation' === $object_name && isset( $_GET['action'] ) && 'wizard' === $_GET['action'] ) {
 				// Navigation data for wizard pages
 				if ( ! class_exists( 'SCD_Ajax_Security' ) ) {
 					require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
@@ -358,7 +415,7 @@ class SCD_Asset_Localizer {
 					'nonce'    => wp_create_nonce( 'scd_wizard_nonce' ),
 					'steps'    => array( 'basic', 'products', 'discounts', 'schedule', 'review' ),
 				);
-			} elseif ( $object_name === 'scdAnalyticsTracking' ) {
+			} elseif ( 'scdAnalyticsTracking' === $object_name ) {
 				// Analytics tracking localization
 				if ( ! class_exists( 'SCD_Ajax_Security' ) ) {
 					require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
@@ -506,7 +563,7 @@ class SCD_Asset_Localizer {
 			'admin_url'         => admin_url(),
 			'campaigns_url'     => admin_url( 'admin.php?page=scd-campaigns' ),
 			'campaign_list_url' => admin_url( 'admin.php?page=scd-campaigns' ),
-			'edit_draft_url'    => admin_url( 'admin.php?page=scd-campaigns&action=edit&campaign_id={id}' ),
+			'edit_draft_url'    => admin_url( 'admin.php?page=scd-campaigns&action=edit&id={id}' ),
 			'plugin_url'        => trailingslashit( plugins_url( '', SCD_PLUGIN_FILE ) ),
 			'steps'             => array( 'basic', 'products', 'discounts', 'schedule', 'review' ),
 			'debug'             => defined( 'SCD_DEBUG' ) && SCD_DEBUG, // Add debug flag for JavaScript debug logger
@@ -564,13 +621,10 @@ class SCD_Asset_Localizer {
 			'sessionExpiration' => array(
 				'modalTitle'            => __( 'Session Expiring Soon', 'smart-cycle-discounts' ),
 				'warningStrong'         => __( 'Your wizard session will expire in 10 minutes due to inactivity.', 'smart-cycle-discounts' ),
-				'draftSaved'            => __( 'Your work has been automatically saved as a draft and is safe.', 'smart-cycle-discounts' ),
+				'draftSaved'            => __( 'Make sure to save your work before the session expires.', 'smart-cycle-discounts' ),
 				'continuePrompt'        => __( 'Would you like to continue working?', 'smart-cycle-discounts' ),
 				'continueButton'        => __( 'Continue Working', 'smart-cycle-discounts' ),
 				'viewDraftsButton'      => __( 'View Drafts', 'smart-cycle-discounts' ),
-				'autoSaveSuccess'       => __( 'Your work has been auto-saved as a draft', 'smart-cycle-discounts' ),
-				'autoSaveError'         => __( 'Failed to auto-save your work. Please save manually.', 'smart-cycle-discounts' ),
-				'sessionExpiredDraft'   => __( 'Your session expired, but your work was auto-saved. Resuming from draft...', 'smart-cycle-discounts' ),
 				'sessionExpiredNoDraft' => __( 'Your session expired. Check your drafts to recover your work.', 'smart-cycle-discounts' ),
 			),
 			'validation'        => array(
@@ -694,7 +748,7 @@ class SCD_Asset_Localizer {
 				$selection_type = $products_data['product_selection_type'] ?? 'all_products';
 
 				// Only load specific product data if needed
-				if ( $selection_type === 'specific_products' || $selection_type === 'individual' || $selection_type === 'manual' ) {
+				if ( 'specific_products' === $selection_type || 'individual' === $selection_type || 'manual' === $selection_type ) {
 					$product_ids = $products_data['product_ids'] ?? array();
 					// Limit to reasonable number for initial load
 					$product_ids = array_slice( $product_ids, 0, 50 );
@@ -1180,11 +1234,30 @@ class SCD_Asset_Localizer {
 	 * @return void
 	 */
 	public function localize_analytics_data( array $analytics_data ): void {
+		// Get all nonces from security configuration
+		$nonces = array();
+
+		// Ensure security class is loaded
+		if ( ! class_exists( 'SCD_Ajax_Security' ) ) {
+			require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
+		}
+
+		if ( class_exists( 'SCD_Ajax_Security' ) ) {
+			$nonces = SCD_Ajax_Security::get_nonce_config();
+		}
+
 		$this->data['scdAnalytics'] = array_merge(
 			array(
-				'ajax_url'     => admin_url( 'admin-ajax.php' ),
-				'nonce'        => wp_create_nonce( 'scd_analytics_nonce' ),
-				'endpoints'    => array(
+				'ajax_url'          => admin_url( 'admin-ajax.php' ),
+				'nonce'             => wp_create_nonce( 'scd_analytics_nonce' ),
+				'nonces'            => $nonces,
+				'currency'          => get_woocommerce_currency(),
+				'currency_symbol'   => html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES | ENT_HTML5, 'UTF-8' ),
+				'currency_pos'      => get_option( 'woocommerce_currency_pos', 'left' ),
+				'price_decimals'    => wc_get_price_decimals(),
+				'decimal_separator' => wc_get_price_decimal_separator(),
+				'thousand_separator' => wc_get_price_thousand_separator(),
+				'endpoints'         => array(
 					'overview'             => 'analytics_overview',
 					'campaign_performance' => 'analytics_campaign_performance',
 					'revenue_trend'        => 'analytics_revenue_trend',
@@ -1193,13 +1266,13 @@ class SCD_Asset_Localizer {
 					'export'               => 'analytics_export',
 					'refresh_cache'        => 'analytics_refresh_cache',
 				),
-				'chart_config' => array(
+				'chart_config'      => array(
 					'colors'             => $this->get_theme_colors(),
 					'default_type'       => 'line',
 					'animation_duration' => 750,
 				),
-				'date_ranges'  => $this->get_date_range_options(),
-				'strings'      => array(
+				'date_ranges'       => $this->get_date_range_options(),
+				'strings'           => array(
 					'noData'        => __( 'No data available', 'smart-cycle-discounts' ),
 					'exportSuccess' => __( 'Export completed successfully', 'smart-cycle-discounts' ),
 					'exportError'   => __( 'Export failed. Please try again.', 'smart-cycle-discounts' ),

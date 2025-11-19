@@ -3,8 +3,8 @@
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/js/admin/campaign-list-modals.js
- * @author     Webstepper.io <contact@webstepper.io>
- * @copyright  2025 Webstepper.io
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
@@ -156,8 +156,8 @@
 				type: 'POST',
 				data: {
 					action: 'scd_ajax',
-					scd_action: 'save_draft',
-					save_as_draft: true,
+					scdAction: 'save_draft',
+					saveAsDraft: true,
 					nonce: window.scdCampaignListL10n.nonce
 				},
 				success: function( response ) {
@@ -188,10 +188,10 @@
 				type: 'POST',
 				data: {
 					action: 'scd_ajax',
-					scd_action: 'delete_draft',
-					draft_action: 'delete',
-					draft_type: 'session',
-					draft_id: 'current',
+					scdAction: 'delete_draft',
+					draftAction: 'delete',
+					draftType: 'session',
+					draftId: 'current',
 					nonce: window.scdCampaignListL10n.nonce
 				},
 				success: function( response ) {

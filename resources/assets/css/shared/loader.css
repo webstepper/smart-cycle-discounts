@@ -1,0 +1,249 @@
+/**
+ * Unified Loader System
+ *
+ * Provides consistent loading states across the plugin using WordPress core
+ * spinner with custom overlay and positioning styles.
+ *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/css/shared
+ * @author     Webstepper <contact@webstepper.io>
+ * @copyright  2025 Webstepper
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @since      1.0.0
+ */
+
+/* ==========================================================================
+   Base Loader Overlay
+   ========================================================================== */
+
+.scd-loader-overlay {
+	background: rgba(255, 255, 255, 0.7);
+	backdrop-filter: blur(4px);
+	-webkit-backdrop-filter: blur(4px); /* Safari support */
+	z-index: var(--scd-z-dropdown);
+}
+
+/* ==========================================================================
+   Loader Content (Centered Container)
+   ========================================================================== */
+
+.scd-loader-content {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--scd-gap-normal);
+}
+
+/* ==========================================================================
+   Loader Text
+   ========================================================================== */
+
+.scd-loader-text {
+	font-size: var(--scd-font-size-medium);
+	color: var(--scd-color-text-muted);
+	font-weight: var(--scd-font-weight-normal);
+	line-height: 1.4;
+}
+
+/* ==========================================================================
+   Full-Screen Loader
+   Covers viewport excluding WordPress admin sidebar
+   ========================================================================== */
+
+.scd-loader-fullscreen {
+	position: fixed;
+	top: 0;
+	left: 160px; /* WordPress admin sidebar width */
+	right: 0;
+	bottom: 0;
+	z-index: var(--scd-z-notification); /* Above navigation (9999) to cover buttons during completion */
+}
+
+/* Adjust for folded sidebar */
+@media screen and (max-width: 960px) {
+	.scd-loader-fullscreen {
+		left: 36px;
+	}
+}
+
+/* Adjust for mobile (no sidebar) */
+@media screen and (max-width: 782px) {
+	.scd-loader-fullscreen {
+		left: 0;
+	}
+}
+
+/* ==========================================================================
+   Container Loader
+   Covers a specific container with absolute positioning
+   ========================================================================== */
+
+.scd-loader-container {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+/* Ensure parent has position context */
+.scd-loader-container-parent {
+	position: relative;
+}
+
+/* ==========================================================================
+   Inline Loader
+   Small spinner for inline elements (no overlay)
+   ========================================================================== */
+
+.scd-loader-inline {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	margin: 0 8px;
+}
+
+.scd-loader-inline.is-active {
+	display: inline-flex;
+}
+
+.scd-loader-inline .spinner {
+	float: none;
+	margin: 0;
+}
+
+/* ==========================================================================
+   Button Loader
+   Spinner that replaces button text during processing
+   ========================================================================== */
+
+.scd-loader-button {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	gap: var(--scd-gap-tight);
+}
+
+.scd-loader-button .spinner {
+	float: none;
+	margin: 0;
+}
+
+.scd-loader-button .scd-loader-text {
+	font-size: inherit;
+	color: inherit;
+	font-weight: inherit;
+}
+
+/* Button loading state helper classes */
+.scd-button-loading .scd-button-text {
+	display: none;
+}
+
+.scd-button-loading .scd-loader-button {
+	display: inline-flex;
+}
+
+/* ==========================================================================
+   WordPress Spinner Adjustments
+   Ensure WordPress spinner works correctly in all contexts
+   ========================================================================== */
+
+.scd-loader-overlay .spinner,
+.scd-loader-content .spinner,
+.scd-loader-inline .spinner,
+.scd-loader-button .spinner {
+	float: none;
+	margin: 0;
+}
+
+/* Make spinner visible and active */
+.scd-loader-overlay .spinner.is-active,
+.scd-loader-content .spinner.is-active,
+.scd-loader-inline .spinner.is-active,
+.scd-loader-button .spinner.is-active {
+	display: inline-block;
+	visibility: visible;
+}
+
+/* ==========================================================================
+   Animation States
+   ========================================================================== */
+
+/* Fade in loader overlay */
+.scd-loader-overlay.scd-loader-fade-in {
+	animation: scd-loader-fade-in 0.2s ease-in-out;
+}
+
+@keyframes scd-loader-fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+/* Fade out loader overlay */
+.scd-loader-overlay.scd-loader-fade-out {
+	animation: scd-loader-fade-out 0.2s ease-in-out;
+}
+
+@keyframes scd-loader-fade-out {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
+/* Screen reader text for loading state - use .scd-sr-only from shared/_utilities.css */
+
+/* Add ARIA live region for loading announcements */
+.scd-loader-overlay[aria-live="polite"],
+.scd-loader-overlay[aria-live="assertive"] {
+	/* Ensure screen readers announce loading state */
+}
+
+/* ==========================================================================
+   High Contrast Mode Support
+   ========================================================================== */
+
+@media (prefers-contrast: high) {
+	.scd-loader-overlay {
+		background: var(--scd-color-white);
+		border: 2px solid #000000;
+	}
+
+	.scd-loader-text {
+		color: #000000;
+		font-weight: var(--scd-font-weight-semibold);
+	}
+}
+
+/* ==========================================================================
+   Reduced Motion Support
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+	.scd-loader-overlay.scd-loader-fade-in,
+	.scd-loader-overlay.scd-loader-fade-out {
+		animation: none;
+	}
+
+	/* WordPress spinner respects reduced motion by default */
+}
