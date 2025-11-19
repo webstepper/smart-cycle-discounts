@@ -100,14 +100,8 @@ class SCD_Campaign_Manager {
 		$this->cache      = $cache;
 		$this->container  = $container;
 
-		// Debug: Log Campaign_Manager instantiation
-		error_log( '[SCD] CAMPAIGN_MANAGER - Constructor called, registering scd_campaign_activated hook listener, instance ID: ' . spl_object_id( $this ) );
-
 		// Listen to campaign activation hook to trigger compilation
 		add_action( 'scd_campaign_activated', array( $this, 'on_campaign_activated' ), 5, 1 );
-
-		// Debug: Verify hook was registered
-		error_log( '[SCD] CAMPAIGN_MANAGER - Hook registered successfully' );
 	}
 
 	/**

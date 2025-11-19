@@ -1264,7 +1264,7 @@ class SCD_Email_Manager {
 	private function generate_daily_report( string $date ): array {
 		try {
 			// Get all active campaigns for the date
-			$all_campaigns    = $this->campaign_manager->get_all();
+			$all_campaigns    = $this->campaign_manager->get_campaigns();
 			$active_campaigns = array();
 			$total_revenue    = 0;
 			$total_orders     = 0;
@@ -1344,7 +1344,7 @@ class SCD_Email_Manager {
 	private function generate_weekly_report( string $week_start, string $week_end ): array {
 		try {
 			// Get all campaigns
-			$all_campaigns = $this->campaign_manager->get_all();
+			$all_campaigns = $this->campaign_manager->get_campaigns();
 			$week_campaigns = array();
 			$total_revenue = 0;
 			$total_orders = 0;

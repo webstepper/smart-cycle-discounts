@@ -421,7 +421,7 @@
     margin-bottom: var(--scd-spacing-lg);
     padding: var(--scd-spacing-md) var(--scd-spacing-lg);
     background-color: var(--scd-color-surface);
-    border: var(--scd-border-width) solid var(--scd-color-border-light);
+    border-bottom: var(--scd-border-width) solid var(--scd-color-border-light);
     border-radius: calc(var(--scd-radius-lg) - 2px) calc(var(--scd-radius-lg) - 2px) 0 0;
     box-shadow: 0 1px 3px var(--scd-shadow-gradient-light);
 }

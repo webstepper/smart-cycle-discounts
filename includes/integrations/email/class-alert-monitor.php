@@ -186,7 +186,7 @@ class SCD_Alert_Monitor {
 		}
 
 		try {
-			$campaigns = $this->campaign_manager->get_all();
+			$campaigns = $this->campaign_manager->get_campaigns();
 
 			foreach ( $campaigns as $campaign ) {
 				// Only monitor active campaigns
@@ -301,7 +301,7 @@ class SCD_Alert_Monitor {
 		}
 
 		try {
-			$campaigns = $this->campaign_manager->get_all();
+			$campaigns = $this->campaign_manager->get_campaigns();
 
 			foreach ( $campaigns as $campaign ) {
 				// Only monitor active campaigns
@@ -340,7 +340,7 @@ class SCD_Alert_Monitor {
 		}
 
 		try {
-			$campaigns = $this->campaign_manager->get_all();
+			$campaigns = $this->campaign_manager->get_campaigns();
 
 			foreach ( $campaigns as $campaign ) {
 				// Only monitor active campaigns
