@@ -1,20 +1,20 @@
 === Smart Cycle Discounts ===
 Contributors: webstepper
-Tags: woocommerce, discounts, campaigns, bulk discounts, product discounts, sale, coupons, pricing, promotions, flash sale, schedule, rotation
+Tags: woocommerce, discount rules, bulk discounts, dynamic pricing, percentage discount, bogo, tiered pricing, campaign, sale, flash sale, scheduling, pricing
 Requires at least: 6.4
 Tested up to: 6.7
 Stable tag: 1.0.0
-Requires PHP: 8.0
+Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Powerful WooCommerce discount campaigns with advanced scheduling, bulk management, and intelligent automation.
+WooCommerce Discount Rules, Bulk Pricing, Campaign Scheduling & Dynamic Pricing - Percentage Discounts, BOGO, Tiered Pricing, Flash Sales
 
 == Description ==
 
-Smart Cycle Discounts revolutionizes WooCommerce discount management with an intuitive campaign wizard, flexible product selection, and advanced scheduling capabilities. Built with modern WordPress & WooCommerce standards including HPOS compatibility.
+Smart Cycle Discounts is the most powerful WooCommerce discount rules and dynamic pricing plugin with advanced campaign scheduling, bulk discount management, and percentage discounts. Create tiered pricing, BOGO deals, quantity discounts, and flash sales with an intuitive 5-step wizard. Perfect for store owners who need to schedule seasonal sales, manage multiple discount campaigns, and automate product pricing strategies.
 
-Perfect for store owners who want to automate seasonal sales, create flash promotions, and manage multiple discount campaigns efficiently.
+Unlike basic discount plugins, Smart Cycle Discounts gives you campaign-level control with built-in scheduling, priority management, and health monitoring - making it the complete WooCommerce discount solution for serious store owners.
 
 = Free Version Features =
 

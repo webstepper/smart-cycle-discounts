@@ -10,7 +10,7 @@
  * Domain Path: /languages
  * Requires at least: 6.4
  * Tested up to: 6.7
- * Requires PHP: 8.0
+ * Requires PHP: 7.4
  * WC requires at least: 8.0
  * WC tested up to: 9.5
  * Woo: 8.0.0:9.5.0
@@ -55,7 +55,7 @@ if ( ! function_exists( 'scd_fs' ) ) {
 // Plugin constants
 define( 'SCD_VERSION', '1.0.0' );
 define( 'SCD_DB_VERSION', '1.0.0' );
-define( 'SCD_MIN_PHP_VERSION', '8.0' );
+define( 'SCD_MIN_PHP_VERSION', '7.4' );
 define( 'SCD_MIN_WP_VERSION', '6.4' );
 define( 'SCD_MIN_WC_VERSION', '8.0' );
 define( 'SCD_PLUGIN_FILE', __FILE__ );
