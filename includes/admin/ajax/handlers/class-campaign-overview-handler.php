@@ -116,6 +116,7 @@ class SCD_Campaign_Overview_Handler extends SCD_Abstract_Ajax_Handler {
 			// Render HTML sections
 			$html = array(
 				'basic'              => $this->render_section( 'basic', $data['basic'] ),
+				'health'             => $this->render_section( 'health', $data['health'] ),
 				'metrics'            => $this->render_section( 'metrics', $data['performance'] ),
 				'schedule'           => $this->render_section( 'schedule', $data['schedule'] ),
 				'recurring_schedule' => $this->render_section( 'recurring_schedule', $data['recurring_schedule'] ),
@@ -165,6 +166,9 @@ class SCD_Campaign_Overview_Handler extends SCD_Abstract_Ajax_Handler {
 		switch ( $section ) {
 			case 'basic':
 				$this->panel->render_basic_section( $data );
+				break;
+			case 'health':
+				$this->panel->render_health_section( $data );
 				break;
 			case 'metrics':
 				$this->panel->render_metrics_section( $data );

@@ -368,27 +368,12 @@ class SCD_Campaign_Validation_Handler {
 				$discount_value = floatval( $discounts['discount_value'] );
 			}
 
-			// Debug logging for discount value extraction
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Validation] Discount value extraction for percentage type:' );
-				error_log( '[Validation] - discount_value_percentage field: ' . ( isset( $discounts['discount_value_percentage'] ) ? $discounts['discount_value_percentage'] : 'not set' ) );
-				error_log( '[Validation] - discount_value field: ' . ( isset( $discounts['discount_value'] ) ? $discounts['discount_value'] : 'not set' ) );
-				error_log( '[Validation] - Final extracted value: ' . $discount_value );
-			}
 		} elseif ( 'fixed' === $discount_type ) {
 			if ( isset( $discounts['discount_value_fixed'] ) && '' !== $discounts['discount_value_fixed'] ) {
 				$discount_value = floatval( $discounts['discount_value_fixed'] );
 			} elseif ( isset( $discounts['discount_value'] ) && '' !== $discounts['discount_value'] ) {
 				// Fallback to entity field
 				$discount_value = floatval( $discounts['discount_value'] );
-			}
-
-			// Debug logging for discount value extraction
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Validation] Discount value extraction for fixed type:' );
-				error_log( '[Validation] - discount_value_fixed field: ' . ( isset( $discounts['discount_value_fixed'] ) ? $discounts['discount_value_fixed'] : 'not set' ) );
-				error_log( '[Validation] - discount_value field: ' . ( isset( $discounts['discount_value'] ) ? $discounts['discount_value'] : 'not set' ) );
-				error_log( '[Validation] - Final extracted value: ' . $discount_value );
 			}
 		}
 

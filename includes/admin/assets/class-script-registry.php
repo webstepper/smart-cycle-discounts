@@ -214,7 +214,7 @@ class SCD_Script_Registry {
 			array(
 				'src'      => 'resources/assets/js/shared/loader-utility.js',
 				'deps'     => array( 'jquery', 'scd-icon-helper' ),
-				'pages'    => array( 'scd-campaigns', 'scd-analytics', 'scd-dashboard' ),
+				'pages'    => array( 'scd-campaigns', 'scd-analytics', 'scd-dashboard', 'scd-tools', 'scd-settings' ),
 				'localize' => null,
 			)
 		);
@@ -264,6 +264,19 @@ class SCD_Script_Registry {
 			array(
 				'src'       => 'resources/assets/js/shared/row-factory.js',
 				'deps'      => array( 'jquery', 'scd-debug-logger', 'scd-icon-helper' ),
+				'pages'     => array( 'scd-campaigns' ),
+				'condition' => array( 'action' => 'wizard' ),
+				'localize'  => null,
+				'in_footer' => false,
+			)
+		);
+
+		// Input Filter - real-time input validation and filtering
+		$this->add_script(
+			'scd-input-filter',
+			array(
+				'src'       => 'resources/assets/js/shared/input-filter.js',
+				'deps'      => array( 'jquery', 'scd-shared-notification-service' ),
 				'pages'     => array( 'scd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 				'localize'  => null,
@@ -442,18 +455,6 @@ class SCD_Script_Registry {
 			)
 		);
 
-		// Performance settings page
-		$this->add_script(
-			'scd-settings-performance',
-			array(
-				'src'       => 'resources/assets/js/admin/settings-performance.js',
-				'deps'      => array( 'jquery', 'scd-tooltips' ),
-				'pages'     => array( 'scd-settings' ),
-				'condition' => array( 'tab' => 'performance' ),
-				'localize'  => 'scdSettingsPerformance',
-			)
-		);
-
 		// Campaign list modals
 		$this->add_script(
 			'scd-campaign-list-modals',
@@ -485,7 +486,7 @@ class SCD_Script_Registry {
 			'scd-tools',
 			array(
 				'src'      => 'resources/assets/js/admin/tools.js',
-				'deps'     => array( 'jquery' ),
+				'deps'     => array( 'jquery', 'scd-icon-helper', 'scd-loader-utility' ),
 				'pages'    => array( 'scd-tools' ),
 				'localize' => 'scdAdmin',
 			)
@@ -618,7 +619,7 @@ class SCD_Script_Registry {
 				),
 				'pages'     => array( 'scd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
-				'localize'  => array( 'scdWizardData', 'scdAdmin' ),
+				'localize'  => array( 'scdWizardData', 'scdAdmin', 'scdSettings' ),
 			)
 		);
 
@@ -788,6 +789,13 @@ class SCD_Script_Registry {
 			'scd-sidebar-collapse'            => array(
 				'src'  => 'resources/assets/js/wizard/sidebar-collapse.js',
 				'deps' => array( 'jquery' ),
+			),
+			'scd-sidebar-contextual'          => array(
+				'src'       => 'resources/assets/js/admin/sidebar-contextual.js',
+				'deps'      => array( 'jquery', 'scd-shared-notification-service', 'scd-icon-helper' ),
+				'pages'     => array( 'scd-campaigns' ),
+				'condition' => array( 'action' => 'wizard' ),
+				'localize'  => array( 'scdWizardData', 'scdAdmin' ),
 			),
 			'scd-card-collapse'               => array(
 				'src'  => 'resources/assets/js/shared/card-collapse.js',

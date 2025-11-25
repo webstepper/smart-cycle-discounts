@@ -37,7 +37,8 @@
 	 *             name: 'discount_value',
 	 *             label: 'Discount Value',
 	 *             min: 0,
-	 *             suffix: '%'
+	 *             prefix: '%',    // Badge-style prefix before input
+	 *             suffix: 'off'   // Text suffix after input
 	 *         }
 	 *     ],
 	 *     removeButton: {
@@ -87,7 +88,7 @@
 				fieldsWrapper: 'div',
 				fieldsWrapperClass: 'scd-row-fields',
 				fieldWrapper: 'div',
-				fieldWrapperClass: 'scd-field-group',
+				fieldWrapperClass: 'scd-row-field',
 				dataAttributes: {},
 				removeButton: {
 					enabled: false,
@@ -132,13 +133,13 @@
 				$fieldsWrapper.append( $field );
 			}
 
-			$row.append( $fieldsWrapper );
-
-			// Add remove button if enabled
+			// Add remove button if enabled - append to fields wrapper, not row
 			if ( settings.removeButton && settings.removeButton.enabled ) {
 				var $removeBtn = self._createRemoveButton( settings.removeButton );
-				$row.append( $removeBtn );
+				$fieldsWrapper.append( $removeBtn );
 			}
+
+			$row.append( $fieldsWrapper );
 
 			return $row;
 		},
@@ -152,7 +153,7 @@
 		 * @return {jQuery} Created field element
 		 */
 		_createField: function( fieldConfig, value, rowIndex ) {
-			var $wrapper = $( '<div class="' + ( fieldConfig.wrapperClass || 'scd-field-group' ) + '"></div>' );
+			var $wrapper = $( '<div class="' + ( fieldConfig.wrapperClass || 'scd-row-field' ) + '"></div>' );
 
 			// Add label if provided
 			if ( fieldConfig.label ) {
@@ -171,8 +172,20 @@
 				$wrapper.append( $label );
 			}
 
-			// Create input wrapper (for suffix support)
+			// Create input wrapper (for prefix/suffix support)
 			var $inputWrapper = $( '<div class="scd-input-wrapper"></div>' );
+
+			// Add prefix class if prefix is provided
+			if ( fieldConfig.prefix ) {
+				$inputWrapper.addClass( 'scd-input-with-prefix' );
+			}
+
+			// Add prefix if provided
+			if ( fieldConfig.prefix ) {
+				$inputWrapper.append(
+					'<span class="scd-input-prefix">' + this._escapeHtml( fieldConfig.prefix ) + '</span>'
+				);
+			}
 
 			// Create input element
 			var $input = this._createInput( fieldConfig, value, rowIndex );
@@ -232,8 +245,12 @@
 				}
 			} else {
 				$input = $( '<input>' )
-					.attr( 'type', type )
-					.val( value );
+					.attr( 'type', type );
+
+				// Set value using both .val() and .attr() to ensure it persists in HTML
+				if ( value !== '' && value !== null && value !== undefined ) {
+					$input.val( value ).attr( 'value', value );
+				}
 			}
 
 			// Set common attributes
@@ -258,6 +275,37 @@
 
 			if ( fieldConfig.step !== undefined ) {
 				$input.attr( 'step', fieldConfig.step );
+			}
+
+			// Auto-add inputmode for number fields (mobile keyboard optimization)
+			if ( type === 'number' ) {
+				var inputmode = 'numeric';  // Default for integers
+				var inputType = 'integer';  // Default input type
+
+				// Determine if decimals are allowed based on step
+				if ( fieldConfig.step !== undefined ) {
+					var step = parseFloat( fieldConfig.step );
+					if ( step !== Math.floor( step ) ) {
+						inputmode = 'decimal';  // Allow decimal point on mobile
+						inputType = 'decimal';
+					}
+				}
+
+				// Check for percentage fields (0-100 range)
+				if ( fieldConfig.max === 100 && ( fieldConfig.min === 0 || fieldConfig.min === 1 ) ) {
+					inputType = 'percentage';
+				}
+
+				// Allow override via config
+				if ( fieldConfig.inputmode ) {
+					inputmode = fieldConfig.inputmode;
+				}
+				if ( fieldConfig.inputType ) {
+					inputType = fieldConfig.inputType;
+				}
+
+				$input.attr( 'inputmode', inputmode );
+				$input.attr( 'data-input-type', inputType );
 			}
 
 			if ( fieldConfig.required ) {
@@ -289,7 +337,7 @@
 		 * Create remove button
 		 *
 		 * @param {Object} buttonConfig Button configuration
-		 * @return {jQuery} Button element
+		 * @return {jQuery} Button element wrapped in field container for alignment
 		 */
 		_createRemoveButton: function( buttonConfig ) {
 			var $button = $( '<button type="button"></button>' )
@@ -306,7 +354,18 @@
 				$button.append( document.createTextNode( buttonConfig.label ) );
 			}
 
-			return $button;
+			// Wrap button in field-like container for proper alignment with labeled fields
+			var $wrapper = $( '<div class="scd-row-field scd-row-field--button"></div>' );
+
+			// Add empty label spacer to match field structure (label + input)
+			var $labelSpacer = $( '<label class="scd-field-label-spacer"></label>' )
+				.html( '&nbsp;' )
+				.css( 'visibility', 'hidden' );
+
+			$wrapper.append( $labelSpacer );
+			$wrapper.append( $button );
+
+			return $wrapper;
 		},
 
 		/**

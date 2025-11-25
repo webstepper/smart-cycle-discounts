@@ -83,35 +83,41 @@ class SCD_Reference_Data_Cache {
 	}
 
 	/**
-	 * Load cache durations from settings.
+	 * Load cache durations.
+	 *
+	 * Uses sensible defaults with filter for developers who need customization.
+	 * Default: 3600 seconds (1 hour) - good balance between freshness and performance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @return   void
 	 */
 	private function load_cache_durations_from_settings(): void {
-		$settings = get_option( 'scd_settings', array() );
+		/**
+		 * Filter the reference data cache duration.
+		 *
+		 * @since 1.0.0
+		 * @param int $duration Cache duration in seconds. Default 3600 (1 hour).
+		 */
+		$duration = apply_filters( 'scd_reference_cache_duration', 3600 );
+		$duration = max( 900, (int) $duration ); // Minimum 15 minutes
 
-		if ( isset( $settings['performance']['product_cache_duration'] ) ) {
-			$product_duration = (int) $settings['performance']['product_cache_duration'];
-
-			// Update all reference data cache durations to use product setting
-			$this->cache_durations = array(
-				'categories'       => $product_duration,
-				'tags'             => $product_duration,
-				'attributes'       => $product_duration,
-				'tax_rates'        => $product_duration,
-				'currencies'       => $product_duration,
-				'countries'        => $product_duration,
-				'states'           => $product_duration,
-				'payment_methods'  => $product_duration,
-				'shipping_methods' => $product_duration,
-				'customer_groups'  => $product_duration,
-				'active_campaigns' => $product_duration,
-				'discount_rules'   => $product_duration,
-				'validation_rules' => $product_duration,
-			);
-		}
+		// Update all reference data cache durations
+		$this->cache_durations = array(
+			'categories'       => $duration,
+			'tags'             => $duration,
+			'attributes'       => $duration,
+			'tax_rates'        => $duration,
+			'currencies'       => $duration,
+			'countries'        => $duration,
+			'states'           => $duration,
+			'payment_methods'  => $duration,
+			'shipping_methods' => $duration,
+			'customer_groups'  => $duration,
+			'active_campaigns' => $duration,
+			'discount_rules'   => $duration,
+			'validation_rules' => $duration,
+		);
 	}
 
 	/**

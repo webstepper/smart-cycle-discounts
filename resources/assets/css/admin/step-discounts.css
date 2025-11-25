@@ -14,9 +14,6 @@
    Essential Layout Styles - Step-Specific
    ========================================================================== */
 
-.scd-wizard-step--discounts {
-    position: relative;
-}
 
 /* Layout handled by wizard-fullscreen.css */
 
@@ -57,7 +54,7 @@
 }
 
 .form-table .form-required {
-    color: var(--scd-color-error);
+    color: var(--scd-color-danger);
 }
 
 /* Form styling handled by shared _forms.css and _components.css */
@@ -158,11 +155,12 @@
    ========================================================================== */
 
 .scd-wizard-step--discounts {
+    position: relative;
     /* Extends .scd-wizard-step from wizard-steps.css */
     /* Uses global CSS variables from admin.css */
     --scd-discount-accent: var(--scd-color-primary);
     --scd-discount-success: var(--scd-color-success);
-    --scd-discount-error: var(--scd-color-error);
+    --scd-discount-error: var(--scd-color-danger);
     --scd-discount-highlight: var(--scd-color-primary-bg);
 }
 
@@ -339,7 +337,7 @@
 }
 
 .scd-bundle-actions .button-link-delete:hover {
-    color: var(--scd-color-error);
+    color: var(--scd-color-danger);
     border-color: transparent;
 }
 
@@ -443,12 +441,19 @@
 }
 
 .scd-preview-box {
-    margin-top: var(--scd-spacing-lg);
-    padding: var(--scd-padding-compact);
-    background: var(--scd-color-success-bg);
-    border: var(--scd-border-width) solid var(--scd-color-success);
+    background: var(--scd-color-success-lighter);
+    border: var(--scd-border-width) solid var(--scd-color-success-light);
     border-radius: var(--scd-radius-md);
+    padding: var(--scd-padding-large);
+    margin-top: var(--scd-spacing-base);
     color: var(--scd-color-success-dark);
+    font-size: var(--scd-font-size-medium);
+    line-height: 1.4;
+}
+
+.scd-preview-box strong {
+    color: var(--scd-color-text);
+    font-weight: var(--scd-font-weight-semibold);
 }
 
 /* Fixed sets specific styles */
@@ -538,11 +543,12 @@
     border-radius: var(--scd-radius-lg);
     padding: var(--scd-spacing-lg) var(--scd-spacing-md);
     cursor: pointer;
-    transition: all var(--scd-transition-base) ease;
+    transition: var(--scd-transition-base);
     background: var(--scd-color-background);
     text-align: center;
     position: relative;
     overflow: hidden;
+    box-shadow: var(--scd-shadow-sm);
 }
 
 .scd-discount-type-card::before {
@@ -559,13 +565,15 @@
 
 .scd-discount-type-card:hover {
     border-color: var(--scd-color-primary);
-    box-shadow: var(--scd-shadow-md);
+    box-shadow: var(--scd-card-hover-shadow);
+    transform: translateY(-1px);
 }
 
-.scd-discount-type-card.selected {
+.scd-discount-type-card.selected,
+.scd-discount-type-card:has( input:checked ) {
     border-color: var(--scd-color-primary);
-    background: transparent;
-    box-shadow: 0 0 0 1px var(--scd-color-primary);
+    background: var(--scd-card-selected-bg);
+    box-shadow: var(--scd-card-selected-shadow);
 }
 
 .scd-discount-type-card.selected::before {
@@ -607,6 +615,13 @@
     font-size: var(--scd-font-size-small);
     color: var(--scd-color-text-muted);
     font-weight: var(--scd-font-weight-medium);
+}
+
+/* Disable transforms on reduced motion */
+@media ( prefers-reduced-motion: reduce ) {
+    .scd-discount-type-card:hover {
+        transform: none;
+    }
 }
 
 /* Locked discount card - PRO badge spacing */
@@ -685,21 +700,49 @@
     max-width: var(--scd-input-max-width);
 }
 
-/* Input prefix styling - matches WordPress admin input heights */
+/* Input prefix styling - shared across all discount inputs */
 .scd-wizard-step--discounts .scd-input-prefix {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    min-height: var(--scd-input-height);
+    padding: 0 var(--scd-padding-medium);
     background: var(--scd-color-surface);
     border: var(--scd-border-width) solid var(--scd-color-border);
     border-right: none;
     border-radius: var(--scd-border-radius) 0 0 var(--scd-border-radius);
-    padding: 0 var(--scd-padding-medium);
     font-weight: var(--scd-font-weight-semibold);
-    color: var(--scd-color-text);
-    min-height: var(--scd-input-height);
-    display: inline-flex;
-    align-items: center;
     font-size: var(--scd-font-size-base);
+    color: var(--scd-color-text);
     box-sizing: border-box;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-right: 0;
 }
+
+/* Input with prefix - seamless connection */
+.scd-wizard-step--discounts .scd-input-with-prefix {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    position: relative;
+}
+
+.scd-wizard-step--discounts .scd-input-with-prefix input {
+    border-left: none;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    margin-left: calc(var(--scd-border-width) * -1);
+}
+
+/* Override enhanced-input border-radius for prefix inputs */
+.scd-wizard-step--discounts .scd-input-with-prefix input.scd-enhanced-input,
+.scd-wizard-step--discounts .scd-input-with-prefix input[type].scd-enhanced-input {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
 
 /* Strategy-specific configuration rows */
 .scd-wizard-step--discounts .form-table tbody tr.scd-strategy-options {
@@ -923,7 +966,7 @@
 }
 
 .scd-tier-section-label .required {
-    color: var(--scd-color-error);
+    color: var(--scd-color-danger);
     margin-left: var(--scd-spacing-xxs);
 }
 
@@ -956,53 +999,132 @@
     padding: var(--scd-spacing-md);
 }
 
+/* ==========================================================================
+   Tier/Threshold Row Structure
+   HTML: <div class="scd-tier-row">
+           <div class="scd-tier-fields">
+             <div class="scd-row-field">
+               <label>Label</label>
+               <div class="scd-input-wrapper [scd-input-with-prefix]">
+                 [<span class="scd-input-prefix">%</span>]
+                 <input class="scd-enhanced-input">
+               </div>
+             </div>
+           </div>
+           <button class="scd-remove-tier">Remove</button>
+         </div>
+   ========================================================================== */
+
+/* Row Container - Flexbox layout for fields + button */
 .scd-tier-row,
 .scd-threshold-row {
+    display: flex;
+    gap: var(--scd-gap-comfortable);
+    align-items: flex-start;
     margin-bottom: var(--scd-gap-normal);
     padding: var(--scd-padding-large);
     background: var(--scd-color-background);
     border: var(--scd-border-width) solid var(--scd-color-border-light);
     border-radius: var(--scd-border-radius);
+    box-shadow: var(--scd-input-shadow);
+    transition: var(--scd-transition-base);
+}
+
+.scd-tier-row:hover,
+.scd-threshold-row:hover {
+    border-color: var(--scd-color-border);
     box-shadow: var(--scd-shadow-sm);
 }
 
+/* Fields Wrapper - Contains all input fields */
 .scd-tier-fields,
 .scd-threshold-fields {
     display: flex;
     gap: var(--scd-gap-comfortable);
-    align-items: center;
-}
-
-.scd-wizard-step--discounts .scd-tier-fields .scd-field-group,
-.scd-wizard-step--discounts .scd-threshold-fields .scd-field-group {
     flex: 1;
 }
 
-.scd-wizard-step--discounts .scd-tier-fields .scd-field-group label,
-.scd-wizard-step--discounts .scd-threshold-fields .scd-field-group label {
+/* Individual Field Container (label + input wrapper) */
+.scd-tier-fields .scd-row-field,
+.scd-threshold-fields .scd-row-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--scd-gap-tight);
+}
+
+/* Button field wrapper - minimal width */
+.scd-tier-fields .scd-row-field--button,
+.scd-threshold-fields .scd-row-field--button {
+    flex: 0 0 auto;
+}
+
+/* Field Labels */
+.scd-tier-fields .scd-row-field label,
+.scd-threshold-fields .scd-row-field label {
     display: block;
-    margin-bottom: var(--scd-gap-tight);
+    margin-bottom: 0;
     font-size: var(--scd-font-size-small);
     font-weight: var(--scd-font-weight-semibold);
     color: var(--scd-color-text);
+    line-height: 1.4;
 }
 
-.scd-tier-fields input,
-.scd-threshold-fields input {
+/* Input Wrapper (contains input or prefix+input) */
+.scd-tier-fields .scd-input-wrapper,
+.scd-threshold-fields .scd-input-wrapper {
+    display: flex;
+    align-items: stretch;
     width: 100%;
-    max-width: none;
 }
 
+/* Standard Input (no prefix) */
+.scd-tier-fields .scd-input-wrapper:not(.scd-input-with-prefix) input,
+.scd-threshold-fields .scd-input-wrapper:not(.scd-input-with-prefix) input {
+    width: 100%;
+    flex: 1;
+}
+
+/* Input with Prefix Wrapper */
+.scd-tier-fields .scd-input-with-prefix,
+.scd-threshold-fields .scd-input-with-prefix {
+    width: 100%;
+}
+
+/* Input Field inside Prefix Wrapper */
+.scd-tier-fields .scd-input-with-prefix input,
+.scd-threshold-fields .scd-input-with-prefix input {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Remove Button Wrapper - Matches field structure for proper alignment */
+.scd-row-field--button {
+    flex-shrink: 0;
+    flex-grow: 0;
+    width: auto;
+}
+
+/* Label spacer - Takes up same height as real labels */
+.scd-field-label-spacer {
+    display: block;
+    margin-bottom: 0;
+    font-size: var(--scd-font-size-small);
+    line-height: 1.4;
+    pointer-events: none;
+}
+
+/* Add Tier/Threshold Button */
 .scd-add-tier,
 .scd-add-threshold {
-    margin-top: var(--scd-gap-normal);
-    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: var(--scd-gap-tight);
-    padding: var(--scd-padding-small) var(--scd-padding-large);
+    width: 100%;
     min-height: var(--scd-input-height);
+    margin-top: var(--scd-gap-normal);
+    padding: var(--scd-padding-small) var(--scd-padding-large);
     font-size: var(--scd-font-size-base);
     font-weight: var(--scd-font-weight-medium);
     border-radius: var(--scd-border-radius);
@@ -1015,59 +1137,13 @@
     height: var(--scd-icon-small);
 }
 
+/* Empty List State */
 .scd-tiers-list:empty,
 .scd-thresholds-list:empty {
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: var(--scd-nav-height);
-}
-
-.scd-remove-tier,
-.scd-remove-threshold {
-    background: var(--scd-color-background);
-    border: var(--scd-border-width) solid var(--scd-color-border-light);
-    color: var(--scd-color-text-muted);
-    padding: var(--scd-padding-small) var(--scd-padding-medium);
-    border-radius: var(--scd-border-radius);
-    cursor: pointer;
-    font-size: var(--scd-font-size-small);
-    font-weight: var(--scd-font-weight-medium);
-    min-height: var(--scd-input-height);
-    transition: all var(--scd-transition-base) ease;
-    white-space: nowrap;
-    align-self: center;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-    flex-shrink: 0;
-}
-
-.scd-remove-tier:hover,
-.scd-remove-threshold:hover {
-    border-color: var(--scd-color-error);
-    color: var(--scd-color-error);
-    background: rgba(214, 54, 56, 0.05);
-}
-
-/* Input with prefix wrapper (shared by tier and threshold) */
-.scd-input-with-prefix {
-    display: flex;
-    align-items: stretch;
-    width: 100%;
-    max-width: none;
-}
-
-.scd-wizard-step--discounts .scd-input-with-prefix .scd-input-prefix {
-    border-right: none;
-}
-
-.scd-wizard-step--discounts .scd-input-with-prefix input {
-    border-radius: 0 var(--scd-border-radius) var(--scd-border-radius) 0;
-    border-left: none;
-    flex: 1;
-    max-width: none;
 }
 
 /* ==========================================================================
@@ -1212,7 +1288,7 @@
 }
 
 .scd-result-item.discount .value {
-    color: var(--scd-color-error);
+    color: var(--scd-color-danger);
 }
 
 .scd-result-item.final .value {
@@ -1317,19 +1393,14 @@
 
 /* Tablet Styles (1200px and below) */
 @media (max-width: 1200px) {
-    .scd-discount-type-grid {
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: var(--scd-spacing-md);
-    }
-    
     .scd-calculator-result {
         grid-template-columns: 1fr;
     }
-    
+
     .scd-bogo-row {
         grid-template-columns: 1fr;
     }
-    
+
     /* Removed sidebar adjustments that were breaking layout */
 }
 
@@ -1355,17 +1426,21 @@
         font-size: var(--scd-font-size-base);
     }
     
-    /* Form adjustments */
-    .scd-tier-fields {
-        grid-template-columns: 1fr;
-    }
-    
-    .scd-tier-mode-selector {
+    /* Tier/Threshold Mobile Adjustments */
+    .scd-tier-row,
+    .scd-threshold-row {
         flex-direction: column;
     }
-    
-    .scd-tier-actions {
-        text-align: right;
+
+    .scd-tier-fields,
+    .scd-threshold-fields {
+        flex-direction: column;
+        gap: var(--scd-gap-normal);
+    }
+
+    .scd-tier-mode-selector,
+    .scd-threshold-mode-selector {
+        flex-direction: column;
     }
     
     .scd-customer-segments {
@@ -1467,7 +1542,7 @@
         width: 100%;
         padding: var(--scd-spacing-sm) 0;
     }
-    
+
     .form-table th {
         padding-bottom: var(--scd-spacing-xs);
     }
@@ -1819,22 +1894,6 @@ textarea:focus {
     font-weight: var(--scd-font-weight-semibold);
 }
 
-/* Enhanced Preview Box */
-.scd-preview-box {
-    background: var(--scd-color-success-lighter);
-    border: var(--scd-border-width) solid var(--scd-color-success-light);
-    border-radius: var(--scd-radius-md);
-    padding: var(--scd-padding-large);
-    margin-top: var(--scd-spacing-base);
-    color: var(--scd-color-success-dark);
-    font-size: var(--scd-font-size-medium);
-    line-height: 1.4;
-}
-
-.scd-preview-box strong {
-    color: var(--scd-color-text);
-    font-weight: var(--scd-font-weight-semibold);
-}
 
 /* Field helper tooltip styles handled by shared _components.css */
 
@@ -1863,65 +1922,3 @@ textarea:focus {
 	transition: opacity var(--scd-transition-base) ease-in;
 }
 
-/* ==========================================================================
-   Premium Field Polish (Variable-Based)
-   ========================================================================== */
-
-/* Field group inputs */
-.scd-field-group input[type="text"],
-.scd-field-group input[type="number"],
-.scd-field-group input[type="email"],
-.scd-field-group input[type="url"],
-.scd-field-group input[type="search"],
-.scd-field-group textarea,
-.scd-field-group select {
-	box-shadow: var(--scd-input-shadow);
-	transition: var(--scd-form-input-transition);
-}
-
-/* Field group focus */
-.scd-field-group input[type="text"]:focus,
-.scd-field-group input[type="number"]:focus,
-.scd-field-group input[type="email"]:focus,
-.scd-field-group input[type="url"]:focus,
-.scd-field-group input[type="search"]:focus,
-.scd-field-group textarea:focus,
-.scd-field-group select:focus {
-	box-shadow: var(--scd-input-focus-shadow);
-	border-color: var(--scd-form-focus);
-	outline: none;
-}
-
-/* Discount type cards */
-.scd-discount-type-card {
-	box-shadow: var(--scd-shadow-sm);
-	transition: var(--scd-transition-base);
-}
-
-.scd-discount-type-card:hover {
-	box-shadow: var(--scd-card-hover-shadow);
-	transform: translateY(-1px);
-}
-
-.scd-discount-type-card.selected,
-.scd-discount-type-card:has( input:checked ) {
-	background: var(--scd-card-selected-bg);
-	box-shadow: var(--scd-card-selected-shadow);
-}
-
-/* Tier rows */
-.scd-tier-row {
-	box-shadow: var(--scd-input-shadow);
-	transition: var(--scd-transition-base);
-}
-
-.scd-tier-row:hover {
-	box-shadow: var(--scd-shadow-sm);
-}
-
-/* Disable transforms on reduced motion */
-@media ( prefers-reduced-motion: reduce ) {
-	.scd-discount-type-card:hover {
-		transform: none;
-	}
-}

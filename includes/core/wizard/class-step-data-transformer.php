@@ -80,8 +80,8 @@ class SCD_Step_Data_Transformer {
 			$data['product_ids'] = array_values( $data['product_ids'] );
 		}
 
-		// Conditions use standardized database format throughout - no transformation needed
-		// All systems work directly with database format (condition_type, value, value2)
+		// No transformation needed - conditions use database field names throughout
+		// The case converter automatically handles conditionType (JS) ↔ condition_type (PHP)
 
 		return $data;
 	}

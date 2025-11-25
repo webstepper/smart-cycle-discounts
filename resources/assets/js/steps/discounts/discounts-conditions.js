@@ -235,7 +235,7 @@
 		 * Initialize conditions
 		 */
 		initializeConditions: function() {
-			var conditions = this.state.getState( 'conditions' );
+			var conditions = this.state.getData( 'conditions' );
 
 			if ( !conditions || !Array.isArray( conditions ) ) {
 				this.state.setState( {
@@ -251,7 +251,7 @@
 		 * Render all conditions
 		 */
 		renderConditions: function() {
-			var conditions = this.state.getState( 'conditions' ) || [];
+			var conditions = this.state.getData( 'conditions' ) || [];
 			var $container = $( '.scd-conditions-container' );
 
 			if ( !$container.length ) {return;}
@@ -277,7 +277,7 @@
 				$addButton.prop( 'disabled', false ).text( 'Add Condition' );
 			}
 
-			var logic = this.state.getState( 'conditionLogic' ) || 'all';
+			var logic = this.state.getData( 'conditionLogic' ) || 'all';
 			$( '[name="condition_logic"][value="' + logic + '"]' ).prop( 'checked', true );
 
 			// Show/hide logic selector based on condition count
@@ -473,7 +473,7 @@
 		 * Add a new condition
 		 */
 		addCondition: function() {
-			var conditions = this.state.getState( 'conditions' ) || [];
+			var conditions = this.state.getData( 'conditions' ) || [];
 
 			if ( conditions.length >= this.maxConditions ) {return;}
 
@@ -498,7 +498,7 @@
 		 * @param id
 		 */
 		removeCondition: function( id ) {
-			var conditions = this.state.getState( 'conditions' ) || [];
+			var conditions = this.state.getData( 'conditions' ) || [];
 			var filtered = conditions.filter( function( c ) { return c.id !== id; } );
 
 			this.state.setState( { conditions: filtered } );
@@ -511,7 +511,7 @@
 		 * @param updates
 		 */
 		updateCondition: function( id, updates ) {
-			var conditions = this.state.getState( 'conditions' ) || [];
+			var conditions = this.state.getData( 'conditions' ) || [];
 			var updated = conditions.map( function( c ) {
 				return c.id === id ? $.extend( {}, c, updates ) : c;
 			} );
@@ -562,7 +562,8 @@
 		 * Get user roles from WordPress
 		 */
 		getUserRoles: function() {
-			var roles = window.scdDiscountStepData && window.scdDiscountStepData.userRoles || [
+			// Default WordPress/WooCommerce roles - can be extended via scdSettings.userRoles
+			var roles = window.scdSettings && window.scdSettings.userRoles || [
 				{ value: 'subscriber', label: 'Subscriber' },
 				{ value: 'customer', label: 'Customer' },
 				{ value: 'shop_manager', label: 'Shop Manager' },
@@ -583,7 +584,7 @@
 		 * Validate all conditions
 		 */
 		validateConditions: function() {
-			var conditions = this.state.getState( 'conditions' ) || [];
+			var conditions = this.state.getData( 'conditions' ) || [];
 			var errors = {};
 			var warnings = {};
 
@@ -625,14 +626,14 @@
 		 * Get condition summary
 		 */
 		getConditionSummary: function() {
-			var conditions = this.state.getState( 'conditions' ) || [];
+			var conditions = this.state.getData( 'conditions' ) || [];
 			var enabledConditions = conditions.filter( function( c ) { return false !== c.enabled; } );
 
 			if ( 0 === enabledConditions.length ) {
 				return 'No conditions ( applies to all )';
 			}
 
-			var logic = this.state.getState( 'conditionLogic' ) || 'all';
+			var logic = this.state.getData( 'conditionLogic' ) || 'all';
 			var logicText = 'all' === logic ? 'all' : 'any';
 
 			return enabledConditions.length + ' condition' + ( 1 < enabledConditions.length ? 's' : '' ) + ' (match ' + logicText + ')';

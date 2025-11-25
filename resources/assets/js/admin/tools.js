@@ -424,6 +424,7 @@
 	 */
 	function handleCopyLog( e ) {
 		e.preventDefault();
+		var $button = $( this );
 		var $textarea = $( '#scd-log-viewer-modal textarea' );
 
 		if ( ! $textarea.val() ) {
@@ -431,16 +432,20 @@
 			return;
 		}
 
+		// Add pulse animation class
+		$button.addClass( 'scd-button-pulse' );
+
 		// Select and copy
 		$textarea.select();
 		document.execCommand( 'copy' );
 
-		var $button = $( this );
 		var originalText = $button.html();
 		$button.html( SCD.IconHelper.check( { size: 16 } ) + ' Copied!' );
+		$button.addClass( 'scd-button-success' );
 
 		setTimeout( function() {
 			$button.html( originalText );
+			$button.removeClass( 'scd-button-pulse scd-button-success' );
 		}, 2000 );
 	}
 
@@ -532,18 +537,28 @@
 	 */
 	function handleCopyReport( e ) {
 		e.preventDefault();
+		var $button = $( this );
 		var $textarea = $( '#scd-system-report textarea' );
+
+		if ( ! $textarea.val() ) {
+			showNotification( 'No report to copy. Please generate a report first.', 'error' );
+			return;
+		}
+
+		// Add pulse animation class
+		$button.addClass( 'scd-button-pulse' );
 
 		// Select and copy
 		$textarea.select();
 		document.execCommand( 'copy' );
 
-		var $button = $( this );
 		var originalText = $button.html();
 		$button.html( SCD.IconHelper.check( { size: 16 } ) + ' Copied!' );
+		$button.addClass( 'scd-button-success' );
 
 		setTimeout( function() {
 			$button.html( originalText );
+			$button.removeClass( 'scd-button-pulse scd-button-success' );
 		}, 2000 );
 	}
 
@@ -552,6 +567,7 @@
 	 */
 	function handleDownloadReport( e ) {
 		e.preventDefault();
+		var $button = $( this );
 		var reportContent = $( '#scd-system-report textarea' ).val();
 
 		if ( ! reportContent ) {
@@ -559,18 +575,36 @@
 			return;
 		}
 
-		var blob = new Blob( [ reportContent ], { type: 'text/plain' } );
-		var url = window.URL.createObjectURL( blob );
-		var timestamp = new Date().toISOString().replace( /[:.]/g, '-' ).slice( 0, -5 );
-		var filename = 'scd-system-report-' + timestamp + '.txt';
+		// Add pulse animation class
+		$button.addClass( 'scd-button-pulse' );
 
-		var a = document.createElement( 'a' );
-		a.href = url;
-		a.download = filename;
-		document.body.appendChild( a );
-		a.click();
-		document.body.removeChild( a );
-		window.URL.revokeObjectURL( url );
+		var originalText = $button.html();
+		$button.html( SCD.IconHelper.spinner( { size: 16 } ) + ' Downloading...' );
+
+		// Small delay to show the animation
+		setTimeout( function() {
+			var blob = new Blob( [ reportContent ], { type: 'text/plain' } );
+			var url = window.URL.createObjectURL( blob );
+			var timestamp = new Date().toISOString().replace( /[:.]/g, '-' ).slice( 0, -5 );
+			var filename = 'scd-system-report-' + timestamp + '.txt';
+
+			var a = document.createElement( 'a' );
+			a.href = url;
+			a.download = filename;
+			document.body.appendChild( a );
+			a.click();
+			document.body.removeChild( a );
+			window.URL.revokeObjectURL( url );
+
+			// Show success state
+			$button.html( SCD.IconHelper.check( { size: 16 } ) + ' Downloaded!' );
+			$button.addClass( 'scd-button-success' );
+
+			setTimeout( function() {
+				$button.html( originalText );
+				$button.removeClass( 'scd-button-pulse scd-button-success' );
+			}, 1500 );
+		}, 300 );
 	}
 
 	/**
@@ -603,10 +637,15 @@
 
 		for ( var i = 0; i < results.length; i++ ) {
 			var result = results[ i ];
-			var statusClass = result.status === 'pass' ? 'notice-success' : ( result.status === 'warning' ? 'notice-warning' : 'notice-error' );
+			var statusClass = 'pass' === result.status ? 'notice-success' : ( 'warning' === result.status ? 'notice-warning' : 'notice-error' );
+			var statusIcon = 'pass' === result.status ? 'yes' : ( 'warning' === result.status ? 'warning' : 'no' );
 
-			html += '<div class="notice ' + statusClass + ' inline">';
-			html += '<p><strong>' + result.test + ':</strong> ' + result.message + '</p>';
+			// Add staggered animation delay for each result
+			html += '<div class="notice ' + statusClass + ' inline scd-health-result-item" style="animation-delay: ' + ( i * 0.1 ) + 's;">';
+			html += '<p>';
+			html += '<span class="dashicons dashicons-' + statusIcon + '"></span> ';
+			html += '<strong>' + result.test + ':</strong> ' + result.message;
+			html += '</p>';
 			html += '</div>';
 		}
 

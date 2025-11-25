@@ -27,7 +27,7 @@
 .scd-recurring-badge.scd-recurring-active {
 	background-color: var(--scd-color-success-light);
 	color: var(--scd-color-success-dark);
-	border: 1px solid #a5d6a7;
+	border: 1px solid var(--scd-color-success-border);
 }
 
 /* Inactive/stopped recurring */
@@ -41,7 +41,7 @@
 .scd-recurring-badge.scd-recurring-child {
 	background-color: var(--scd-color-info-light);
 	color: var(--scd-color-info-dark);
-	border: 1px solid #90caf9;
+	border: 1px solid var(--scd-color-info-border);
 }
 
 /* Status badge adjustments when recurring badge is present */
@@ -57,7 +57,7 @@
 
 /* Stop recurring link styling */
 .row-actions .stop-recurring {
-	color: var(--scd-color-error);
+	color: var(--scd-color-danger);
 }
 
 .row-actions .stop-recurring:hover {

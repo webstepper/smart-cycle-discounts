@@ -257,6 +257,115 @@ class SCD_Log_Manager {
 	}
 
 	/**
+	 * Get campaign statistics for system report.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   array    Campaign statistics.
+	 */
+	private function get_campaign_stats(): array {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'scd_campaigns';
+
+		// Check if table exists
+		$table_exists = $wpdb->get_var(
+			$wpdb->prepare( 'SHOW TABLES LIKE %s', $table )
+		);
+
+		if ( $table_exists !== $table ) {
+			return array(
+				'total'   => 'N/A (table missing)',
+				'active'  => 'N/A',
+				'draft'   => 'N/A',
+				'paused'  => 'N/A',
+				'expired' => 'N/A',
+			);
+		}
+
+		$stats = array(
+			'total'   => 0,
+			'active'  => 0,
+			'draft'   => 0,
+			'paused'  => 0,
+			'expired' => 0,
+		);
+
+		$results = $wpdb->get_results(
+			"SELECT status, COUNT(*) as count FROM {$table} WHERE deleted_at IS NULL GROUP BY status"
+		);
+
+		if ( $results ) {
+			foreach ( $results as $row ) {
+				$status = strtolower( $row->status );
+				if ( isset( $stats[ $status ] ) ) {
+					$stats[ $status ] = (int) $row->count;
+				}
+				$stats['total'] += (int) $row->count;
+			}
+		}
+
+		return $stats;
+	}
+
+	/**
+	 * Get plugin table statistics for system report.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   array    Table statistics.
+	 */
+	private function get_table_stats(): array {
+		global $wpdb;
+
+		$tables = array(
+			'scd_campaigns',
+			'scd_campaign_conditions',
+			'scd_active_discounts',
+			'scd_analytics',
+			'scd_customer_usage',
+			'scd_campaign_recurring',
+		);
+
+		$stats = array();
+
+		foreach ( $tables as $table ) {
+			$full_table = $wpdb->prefix . $table;
+
+			// Check if table exists
+			$table_exists = $wpdb->get_var(
+				$wpdb->prepare( 'SHOW TABLES LIKE %s', $full_table )
+			);
+
+			if ( $table_exists !== $full_table ) {
+				$stats[ $table ] = array(
+					'rows' => 'N/A',
+					'size' => 'table missing',
+				);
+				continue;
+			}
+
+			// Get row count
+			$rows = $wpdb->get_var( "SELECT COUNT(*) FROM {$full_table}" );
+
+			// Get table size
+			$size = $wpdb->get_var(
+				$wpdb->prepare(
+					'SELECT ROUND((data_length + index_length) / 1024, 2) FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = %s',
+					$full_table
+				)
+			);
+
+			$stats[ $table ] = array(
+				'rows' => $rows ? number_format_i18n( $rows ) : '0',
+				'size' => $size ? $size . ' KB' : '0 KB',
+			);
+		}
+
+		return $stats;
+	}
+
+	/**
 	 * Generate system report.
 	 *
 	 * @since    1.0.0
@@ -322,7 +431,33 @@ class SCD_Log_Manager {
 		$settings = get_option( 'scd_settings', array() );
 		if ( isset( $settings['advanced'] ) ) {
 			$report[] = 'Debug Mode: ' . ( isset( $settings['advanced']['enable_debug_mode'] ) && $settings['advanced']['enable_debug_mode'] ? 'Enabled' : 'Disabled' );
-			$report[] = 'Log Level: ' . ( isset( $settings['advanced']['log_level'] ) ? $settings['advanced']['log_level'] : 'default' );
+			$configured_level = isset( $settings['advanced']['log_level'] ) ? $settings['advanced']['log_level'] : 'warning';
+			$report[]         = 'Log Level (configured): ' . $configured_level;
+		}
+		// Show effective log level (may differ if constant is defined)
+		$effective_level = defined( 'SCD_LOG_LEVEL' ) ? SCD_LOG_LEVEL : ( isset( $settings['advanced']['log_level'] ) ? $settings['advanced']['log_level'] : 'warning' );
+		$report[]        = 'Log Level (effective): ' . $effective_level;
+		if ( defined( 'SCD_LOG_LEVEL' ) ) {
+			$report[] = '  (Note: SCD_LOG_LEVEL constant is overriding admin setting)';
+		}
+		$report[] = 'SCD_DEBUG constant: ' . ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ? 'Enabled' : 'Disabled' );
+		$report[] = '';
+
+		// Campaign Statistics
+		$report[] = '=== Campaign Statistics ===';
+		$campaign_stats = $this->get_campaign_stats();
+		$report[] = 'Total Campaigns: ' . $campaign_stats['total'];
+		$report[] = 'Active Campaigns: ' . $campaign_stats['active'];
+		$report[] = 'Draft Campaigns: ' . $campaign_stats['draft'];
+		$report[] = 'Paused Campaigns: ' . $campaign_stats['paused'];
+		$report[] = 'Expired Campaigns: ' . $campaign_stats['expired'];
+		$report[] = '';
+
+		// Database Tables
+		$report[] = '=== Plugin Database Tables ===';
+		$table_stats = $this->get_table_stats();
+		foreach ( $table_stats as $table => $stats ) {
+			$report[] = $table . ': ' . $stats['rows'] . ' rows, ' . $stats['size'];
 		}
 		$report[] = '';
 

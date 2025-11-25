@@ -110,6 +110,43 @@
 				if ( 'function' === typeof this.registerComplexFieldHandler ) {
 					this.registerComplexFieldHandler( 'products.state', this.modules.state );
 					this.registerComplexFieldHandler( 'SCD.Modules.Products.Picker', this.modules.picker );
+
+					// Create and register ConditionsHandler (wraps state for conditions field)
+					var stateModule = this.modules.state;
+					var conditionsHandler = {
+						/**
+						 * Check if handler is ready
+						 * @returns {boolean} Always true since state is synchronous
+						 */
+						isReady: function() {
+							return !!stateModule;
+						},
+
+						/**
+						 * Get conditions from state
+						 * @returns {Array} Conditions array
+						 */
+						getConditions: function() {
+							if ( stateModule && 'function' === typeof stateModule.getState ) {
+								var state = stateModule.getState();
+								return state.conditions || [];
+							}
+							return [];
+						},
+
+						/**
+						 * Set conditions in state
+						 * @param {Array} conditions - Conditions to set
+						 * @returns {Promise} Resolves when set
+						 */
+						setConditions: function( conditions ) {
+							if ( stateModule && 'function' === typeof stateModule.setState ) {
+								stateModule.setState( { conditions: conditions || [] } );
+							}
+							return $.Deferred().resolve().promise();
+						}
+					};
+					this.registerComplexFieldHandler( 'SCD.Modules.Products.ConditionsHandler', conditionsHandler );
 				}
 
 				// Post-initialization: Initialize ConditionsValidator
@@ -497,8 +534,10 @@
 		 * @returns {jQuery} Rendered row element
 		 */
 		renderConditionRow: function( index, condition ) {
-			var conditionTypes = window.scdProductsState && window.scdProductsState.condition_types || {};
-			var operatorMappings = window.scdProductsState && window.scdProductsState.operator_mappings || {};
+			// Get condition types and operator mappings from field definitions
+			var fieldDefs = window.scdAdmin && window.scdAdmin.scdFieldDefinitions && window.scdAdmin.scdFieldDefinitions.products || {};
+			var conditionTypes = fieldDefs.conditionTypes || {};
+			var operatorMappings = fieldDefs.operatorMappings || {};
 
 			var conditionType = condition.conditionType || '';
 			var conditionMode = condition.mode || 'include';
@@ -525,7 +564,7 @@
 			$fields.append( $mode );
 
 			// Type select
-			var $type = $( '<select name="conditions[' + index + '][type]" class="scd-condition-type scd-enhanced-select" data-index="' + index + '"></select>' );
+			var $type = $( '<select name="conditions[' + index + '][condition_type]" class="scd-condition-type scd-enhanced-select" data-index="' + index + '"></select>' );
 			$type.append( '<option value="">Select condition type</option>' );
 			for ( var groupKey in conditionTypes ) {
 				if ( conditionTypes.hasOwnProperty( groupKey ) ) {
@@ -902,7 +941,7 @@
 				return;
 			}
 
-			// Update condition in state - reset operator and values when conditionType changes
+			// Update condition in state - reset operator and values when type changes
 			var updatedConditions = conditions.slice();
 			updatedConditions[index] = {
 				conditionType: newType,
@@ -1018,33 +1057,6 @@
 	// =========================================================================
 
 	$.extend( SCD.Steps.ProductsOrchestrator.prototype, {
-
-		/**
-		 * Collect complex field data (for conditions)
-		 *
-		 * Called by StepPersistence.collectData() for fields with type 'complex'.
-		 * The conditions field is defined as 'complex' type in PHP and needs
-		 * special handling because it's stored in state, not in form fields.
-		 *
-		 * @since 1.0.0
-		 * @param {object} fieldDef Field definition
-		 * @returns {*} Field value
-		 */
-		collectComplexField: function( fieldDef ) {
-			// Handle conditions field - get from state
-			if ( 'conditions' === fieldDef.fieldName ) {
-				if ( this.modules && this.modules.state ) {
-					var state = this.modules.state.getState();
-					var conditions = state.conditions || [];
-					return conditions;
-				}
-				return [];
-			}
-
-			// Handle other complex fields using default behavior
-			// (fallback to empty array for unknown complex fields)
-			return [];
-		},
 
 		/**
 		 * Custom validation for the products step
@@ -1167,25 +1179,53 @@
 		 * @returns {Promise} Promise that resolves to boolean (true = valid, false = invalid)
 		 */
 		validateStep: function() {
-			var isValid = true;
+			var self = this;
+			var deferred = $.Deferred();
 
 			// Validate filter conditions if conditions validator is available
+			var conditionsValid = true;
 			if ( this.modules.conditionsValidator && 'function' === typeof this.modules.conditionsValidator.validateAllConditions ) {
-				isValid = this.modules.conditionsValidator.validateAllConditions();
+				conditionsValid = this.modules.conditionsValidator.validateAllConditions();
 
 				// Show notification if validation failed
-				if ( ! isValid ) {
+				if ( ! conditionsValid ) {
 					if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
 						window.SCD.Shared.NotificationService.error(
 							'Please fix the validation errors in your product filters before proceeding.',
 							5000
 						);
 					}
+					deferred.resolve( false );
+					return deferred.promise();
 				}
 			}
 
-			// Return promise that resolves to validation result
-			return $.Deferred().resolve( isValid ).promise();
+			// Collect current step data
+			var stepData = this.collectData();
+
+			// Validate using ValidationManager
+			if ( window.SCD && window.SCD.ValidationManager && 'function' === typeof window.SCD.ValidationManager.validateStep ) {
+				var validationResult = window.SCD.ValidationManager.validateStep( this.stepName, stepData );
+
+				if ( ! validationResult.ok ) {
+					// Show validation errors
+					if ( validationResult.errors && Object.keys( validationResult.errors ).length > 0 ) {
+						// Use showErrors from StepPersistence mixin
+						// This already shows inline errors + summary notification via ValidationError.showMultiple()
+						if ( 'function' === typeof self.showErrors ) {
+							self.showErrors( validationResult.errors );
+						}
+					}
+					deferred.resolve( false );
+				} else {
+					deferred.resolve( true );
+				}
+			} else {
+				// Fallback: if ValidationManager not available, rely on conditions validation only
+				deferred.resolve( conditionsValid );
+			}
+
+			return deferred.promise();
 		}
 	} );
 
@@ -1288,8 +1328,10 @@
 			$summary.find( '.scd-condition-count' ).text( conditionCount );
 
 			// Get condition types and operator mappings
-			var conditionTypes = window.scdProductsState && window.scdProductsState.condition_types || {};
-			var operatorMappings = window.scdProductsState && window.scdProductsState.operator_mappings || {};
+			// Get condition types and operator mappings from field definitions
+			var fieldDefs = window.scdAdmin && window.scdAdmin.scdFieldDefinitions && window.scdAdmin.scdFieldDefinitions.products || {};
+			var conditionTypes = fieldDefs.conditionTypes || {};
+			var operatorMappings = fieldDefs.operatorMappings || {};
 
 			// Build summary list
 			var $summaryList = $summary.find( '.scd-summary-list' );
@@ -1297,7 +1339,7 @@
 
 			for ( var i = 0; i < conditions.length; i++ ) {
 				var cond = conditions[i];
-				var typeLabel = this._getConditionTypeLabel( cond.type, conditionTypes );
+				var typeLabel = this._getConditionTypeLabel( cond.conditionType, conditionTypes );
 				var operatorLabel = this._getOperatorLabel( cond.operator, operatorMappings );
 				var mode = cond.mode || 'include';
 

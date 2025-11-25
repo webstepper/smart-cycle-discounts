@@ -39,9 +39,9 @@
 		getBasePath: function() {
 			if ( !this.basePath ) {
 				// Plugin URL should be properly localized by WordPress
-				if ( window.scdWizardData && window.scdWizardData.plugin_url ) {
+				if ( window.scdWizardData && window.scdWizardData.pluginUrl ) {
 					// Ensure proper URL construction with trailing slash handling
-					var pluginUrl = window.scdWizardData.plugin_url;
+					var pluginUrl = window.scdWizardData.pluginUrl;
 					this.basePath = pluginUrl.replace( /\/$/, '' ) + '/resources/assets/js/steps/';
 				} else {
 					// Configuration error - plugin URL must be localized

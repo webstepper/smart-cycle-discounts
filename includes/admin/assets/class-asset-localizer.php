@@ -144,6 +144,8 @@ class SCD_Asset_Localizer {
 		$this->data['scdSettings'] = array(
 			'currency'           => get_woocommerce_currency(),
 			'currency_symbol'    => html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES | ENT_HTML5, 'UTF-8' ),
+			'currency_pos'       => get_option( 'woocommerce_currency_pos', 'left' ),
+			'price_decimals'     => wc_get_price_decimals(),
 			'date_format'        => get_option( 'date_format' ),
 			'time_format'        => get_option( 'time_format' ),
 			'start_of_week'      => get_option( 'start_of_week' ),
@@ -214,8 +216,6 @@ class SCD_Asset_Localizer {
 			$tab = sanitize_text_field( $_GET['tab'] ?? 'general' );
 			if ( 'general' === $tab ) {
 				$this->localize_general_settings_data();
-			} elseif ( 'performance' === $tab ) {
-				$this->localize_performance_settings_data();
 			} elseif ( 'advanced' === $tab ) {
 				$this->localize_advanced_settings_data();
 			}
@@ -1312,21 +1312,6 @@ class SCD_Asset_Localizer {
 				'decimal_places'               => 2,
 				'enable_debug_mode'            => false,
 				'cleanup_data_on_uninstall'    => false,
-			),
-		);
-	}
-
-	/**
-	 * Localize performance settings data.
-	 *
-	 * @since 1.0.0
-	 * @return void
-	 */
-	public function localize_performance_settings_data(): void {
-		$this->data['scdSettingsPerformance'] = array(
-			'nonce'   => wp_create_nonce( 'scd_admin_nonce' ),
-			'strings' => array(
-				'confirmClearCache' => __( 'Are you sure you want to clear all plugin cache? This will temporarily reduce performance until the cache rebuilds.', 'smart-cycle-discounts' ),
 			),
 		);
 	}

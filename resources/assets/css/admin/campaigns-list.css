@@ -72,13 +72,6 @@
 	line-height: 1.5;
 	text-align: center;
 	white-space: nowrap;
-	box-shadow: var(--scd-shadow-md);
-	transition: var(--scd-transition-all);
-}
-
-.scd-health-indicator:hover {
-	transform: translateY(-1px);
-	box-shadow: var(--scd-shadow-lg);
 }
 
 .scd-health-indicator strong {
@@ -96,13 +89,21 @@
 	color: var(--scd-color-success-dark);
 }
 
+.scd-health-indicator.scd-health-excellent svg {
+	fill: var(--scd-color-success-dark);
+}
+
 .scd-health-indicator.scd-health-good {
-	background: var(--scd-color-warning-lighter);
-	color: var(--scd-color-warning-dark);
+	background: var(--scd-color-success-lighter);
+	color: var(--scd-color-success);
 }
 
 .scd-health-indicator.scd-health-good strong {
-	color: var(--scd-color-warning-text);
+	color: var(--scd-color-success-dark);
+}
+
+.scd-health-indicator.scd-health-good svg {
+	fill: var(--scd-color-success-dark);
 }
 
 .scd-health-indicator.scd-health-fair {
@@ -114,6 +115,10 @@
 	color: var(--scd-color-warning-dark);
 }
 
+.scd-health-indicator.scd-health-fair svg {
+	fill: var(--scd-color-warning-dark);
+}
+
 .scd-health-indicator.scd-health-poor {
 	background: var(--scd-color-danger-lighter);
 	color: var(--scd-color-danger);
@@ -121,6 +126,23 @@
 
 .scd-health-indicator.scd-health-poor strong {
 	color: var(--scd-color-danger);
+}
+
+.scd-health-indicator.scd-health-poor svg {
+	fill: var(--scd-color-danger);
+}
+
+.scd-health-indicator.scd-health-critical {
+	background: var(--scd-color-danger);
+	color: var(--scd-color-white);
+}
+
+.scd-health-indicator.scd-health-critical strong {
+	color: var(--scd-color-white);
+}
+
+.scd-health-indicator.scd-health-critical svg {
+	fill: var(--scd-color-white);
 }
 
 /* ==========================================================================
@@ -555,5 +577,257 @@
 		gap: var(--scd-spacing-sm);
 		flex-wrap: wrap;
 		justify-content: flex-start;
+	}
+}
+
+/* ==========================================================================
+   Draft Notice - Enhanced
+   ========================================================================== */
+
+/* Base notice container with animation */
+.scd-draft-notice {
+	position: relative;
+	display: flex;
+	align-items: center;
+	padding: 0 var(--scd-spacing-base);
+	margin: var(--scd-spacing-md) 0;
+	min-height: 68px;
+	max-height: 68px;
+	background: var(--scd-alert-info-bg);
+	border: var(--scd-border-width) solid var(--scd-color-secondary);
+	border-left: var(--scd-border-width-accent) solid var(--scd-color-primary);
+	border-radius: var(--scd-radius-md);
+	box-shadow: 0 2px 4px var(--scd-overlay-subtle);
+	animation: scd-notice-slide-in var(--scd-transition-slow) ease-out;
+}
+
+/* Slide-in animation */
+@keyframes scd-notice-slide-in {
+	from {
+		opacity: 0;
+		transform: translateY(-10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Notice paragraph - flexbox layout */
+.scd-draft-notice p {
+	margin: 0;
+	display: flex;
+	align-items: center;
+	flex-wrap: nowrap;
+	gap: var(--scd-spacing-xs);
+	width: 100%;
+	font-size: var(--scd-font-size-base);
+	line-height: var(--scd-line-height-base);
+}
+
+/* Icon styling */
+.scd-draft-notice .scd-icon {
+	flex-shrink: 0;
+	margin-right: var(--scd-spacing-xxs);
+	color: var(--scd-color-primary);
+}
+
+.scd-draft-notice .scd-icon svg {
+	width: var(--scd-icon-medium);
+	height: var(--scd-icon-medium);
+	fill: currentColor;
+	vertical-align: middle;
+}
+
+/* Draft label */
+.scd-draft-label {
+	color: var(--scd-color-text-muted);
+	font-weight: var(--scd-font-weight-medium);
+	font-size: var(--scd-font-size-base);
+}
+
+/* Campaign name - prominent */
+.scd-draft-campaign-name {
+	color: var(--scd-color-text);
+	font-weight: var(--scd-font-weight-semibold);
+	font-size: var(--scd-font-size-medium);
+}
+
+/* Meta information (timestamp) */
+.scd-draft-meta {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--scd-spacing-xxs);
+	color: var(--scd-color-text-muted);
+	font-size: var(--scd-font-size-small);
+	font-style: italic;
+	padding-left: var(--scd-spacing-xs);
+	border-left: var(--scd-border-width) solid var(--scd-color-gray-200);
+	margin-left: var(--scd-spacing-xs);
+}
+
+/* Expiration indicator */
+.scd-draft-expiration {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--scd-spacing-xxs);
+	padding: var(--scd-spacing-xxs) var(--scd-spacing-sm);
+	margin-left: var(--scd-spacing-sm);
+	font-size: var(--scd-font-size-small);
+	font-weight: var(--scd-font-weight-medium);
+	border-radius: var(--scd-radius-sm);
+	border: var(--scd-border-width) solid transparent;
+	transition: all var(--scd-transition-base) ease;
+}
+
+/* Normal state - plenty of time (>30 minutes) */
+.scd-draft-expiration.scd-expiration-normal {
+	color: var(--scd-color-text-muted);
+	background: var(--scd-overlay-faint);
+	border-color: var(--scd-overlay-border);
+}
+
+/* Warning state - running low (15-30 minutes) */
+.scd-draft-expiration.scd-expiration-warning {
+	color: var(--scd-color-warning-dark);
+	background: var(--scd-alert-warning-bg);
+	border-color: var(--scd-color-warning-alpha-25);
+}
+
+/* Urgent state - critical (≤15 minutes) */
+.scd-draft-expiration.scd-expiration-urgent {
+	color: var(--scd-color-danger-dark);
+	background: var(--scd-alert-danger-bg);
+	border-color: var(--scd-color-danger-alpha-30);
+	font-weight: var(--scd-font-weight-semibold);
+}
+
+/* Actions container */
+.scd-draft-actions {
+	display: flex;
+	align-items: center;
+	gap: var(--scd-spacing-sm);
+	margin-left: auto;
+	flex-shrink: 0;
+}
+
+/* Draft action buttons - use shared button classes with size overrides */
+.scd-draft-actions .scd-button {
+	min-height: 28px;
+	padding: 5px var(--scd-padding-medium);
+	border-radius: var(--scd-radius-sm);
+}
+
+.scd-draft-actions .scd-button--ghost-danger {
+	padding: 5px var(--scd-padding-compact);
+}
+
+/* Dismissible button styling */
+.scd-draft-notice .notice-dismiss {
+	position: absolute;
+	top: 50%;
+	right: var(--scd-spacing-md);
+	transform: translateY(-50%);
+	padding: var(--scd-spacing-xs);
+	color: var(--scd-color-text-muted);
+	transition: color var(--scd-transition-base) ease;
+}
+
+.scd-draft-notice .notice-dismiss:hover {
+	color: var(--scd-color-primary);
+}
+
+/* ARIA and accessibility enhancements */
+.scd-draft-notice[role="status"] {
+	/* Screen reader announcements handled by role */
+}
+
+/* Focus states for accessibility */
+.scd-draft-notice a:focus {
+	outline: var(--scd-border-width-focus) solid var(--scd-color-primary);
+	outline-offset: var(--scd-spacing-xxs);
+	border-radius: var(--scd-radius-sm);
+}
+
+/* Responsive design - mobile optimization */
+@media screen and (max-width: 782px) {
+	.scd-draft-notice {
+		flex-direction: column;
+		align-items: flex-start;
+		padding: var(--scd-spacing-md) var(--scd-padding-medium);
+		min-height: auto;
+		max-height: none;
+	}
+
+	.scd-draft-notice p {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--scd-spacing-sm);
+		width: 100%;
+	}
+
+	.scd-draft-meta {
+		padding-left: 0;
+		border-left: none;
+		margin-left: 0;
+		width: 100%;
+	}
+
+	.scd-draft-actions {
+		margin-left: 0;
+		margin-top: var(--scd-gap-sm-medium);
+		width: 100%;
+		flex-wrap: wrap;
+		gap: var(--scd-spacing-sm);
+	}
+
+	.scd-draft-actions .button,
+	.scd-draft-actions .button-link-delete {
+		flex: 1;
+		min-width: 120px;
+		justify-content: center;
+	}
+}
+
+/* Tablet optimization */
+@media screen and (min-width: 783px) and (max-width: 1024px) {
+	.scd-draft-notice p {
+		gap: var(--scd-spacing-xs);
+	}
+
+	.scd-draft-actions {
+		gap: var(--scd-spacing-sm);
+	}
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+	.scd-draft-notice {
+		border-width: var(--scd-border-width-thick);
+		border-left-width: 5px;
+	}
+
+	.scd-draft-actions .button-small {
+		border-width: var(--scd-border-width-thick);
+	}
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+	.scd-draft-notice {
+		animation: none;
+	}
+}
+
+/* Print styles - simplify for printing */
+@media print {
+	.scd-draft-notice {
+		border: 1px solid var(--scd-color-text);
+		box-shadow: none;
+		background: var(--scd-color-white);
+	}
+
+	.scd-draft-actions {
+		display: none;
 	}
 }

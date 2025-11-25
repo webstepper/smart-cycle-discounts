@@ -329,7 +329,7 @@
 		 * @param relativePath
 		 */
 		getModulePath: function( relativePath ) {
-			var baseUrl = ( window.scdAdminData && window.scdAdminData.assetsUrl ) || ( window.scdWizardData && window.scdWizardData.plugin_url + 'assets/' );
+			var baseUrl = ( window.scdAdminData && window.scdAdminData.assetsUrl ) || ( window.scdWizardData && window.scdWizardData.pluginUrl + 'assets/' );
 			return baseUrl + 'js/admin/wizard/modules/discounts/' + relativePath;
 		},
 

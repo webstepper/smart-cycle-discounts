@@ -134,8 +134,8 @@
 		}
 
 		if ( window.scdAnalytics ) {
-			window.scdAnalytics.chart_config = window.scdAnalytics.chart_config || {};
-			window.scdAnalytics.chart_config.colors = {
+			window.scdAnalytics.chartConfig = window.scdAnalytics.chartConfig || {};
+			window.scdAnalytics.chartConfig.colors = {
 				primary: colors.primary,
 				secondary: colors.secondary,
 				success: colors.success,

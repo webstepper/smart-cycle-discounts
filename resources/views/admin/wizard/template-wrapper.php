@@ -37,10 +37,11 @@ function scd_wizard_render_step( $args ) {
 		'content'     => '',
 		'sidebar'     => '',
 		'step'        => '',
+		'step_data'   => array(),
 		'form_id'     => '',
 		'form_data'   => array()
 	);
-	
+
 	$args = wp_parse_args( $args, $defaults );
 	
 	// Validate required parameters
@@ -54,7 +55,7 @@ function scd_wizard_render_step( $args ) {
 	// If no sidebar provided but step is specified, get from sidebar class
 	if ( empty( $args['sidebar'] ) && ! empty( $args['step'] ) ) {
 		if ( class_exists( 'SCD_Wizard_Sidebar' ) ) {
-			$args['sidebar'] = SCD_Wizard_Sidebar::get_sidebar( $args['step'] );
+			$args['sidebar'] = SCD_Wizard_Sidebar::get_sidebar( $args['step'], $args['step_data'] );
 		}
 	}
 	
@@ -216,6 +217,11 @@ function scd_wizard_state_script( $step_name, $saved_data, $additional_data = ar
 		'saved_data' => $sanitize_recursive( $saved_data )
 	), $sanitize_recursive( $additional_data ) );
 
+	// Convert snake_case to camelCase for JavaScript (consistent with Asset Localizer)
+	if ( class_exists( 'SCD_Case_Converter' ) ) {
+		$state_data = SCD_Case_Converter::snake_to_camel( $state_data );
+	}
+
 	?>
 	<script type="text/javascript">
 	window.scd<?php echo esc_js( ucfirst( $step_name ) ); ?>State = <?php echo wp_json_encode( $state_data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ); ?>;
@@ -228,19 +234,23 @@ function scd_wizard_state_script( $step_name, $saved_data, $additional_data = ar
 
 /**
  * Generate card structure
- * 
+ *
  * @since 1.0.0
  * @param array $args {
  *     Arguments for the card
- * 
- *     @type string $title Card title
- *     @type string $subtitle Card subtitle/description (optional)
- *     @type string $icon Dashicon name without 'dashicons-' prefix (optional)
- *     @type string $content Card body content
- *     @type string $class Additional CSS classes (optional)
- *     @type string $edit_step Step to navigate to when edit button clicked (optional)
- *     @type bool $collapsible Whether the card can be collapsed (optional)
- *     @type string $id Card ID for JavaScript targeting (optional)
+ *
+ *     @type string       $title       Card title (plain text, no HTML)
+ *     @type string       $subtitle    Card subtitle/description (optional)
+ *     @type string       $icon        Dashicon name without 'dashicons-' prefix (optional)
+ *     @type string       $content     Card body content
+ *     @type string       $class       Additional CSS classes (optional)
+ *     @type string       $edit_step   Step to navigate to when edit button clicked (optional)
+ *     @type bool         $collapsible Whether the card can be collapsed (optional)
+ *     @type string       $id          Card ID for JavaScript targeting (optional)
+ *     @type array|string $badge       Badge configuration (optional). Can be:
+ *                                     - String: Badge text with default 'info' type
+ *                                     - Array: array( 'text' => 'Badge text', 'type' => 'optional|required|info|success|warning|danger' )
+ *     @type string       $indicator   Indicator type (optional): 'optional' or 'required'
  * }
  * @return void
  */
@@ -253,65 +263,73 @@ function scd_wizard_card( $args ) {
 		'class'       => '',
 		'edit_step'   => '',
 		'collapsible' => false,
-		'id'          => ''
+		'id'          => '',
+		'badge'       => '',
+		'indicator'   => '',
+		'help_topic'  => ''
 	);
-	
+
 	$args = wp_parse_args( $args, $defaults );
-	
+
 	// Validate required parameters
 	if ( empty( $args['title'] ) || empty( $args['content'] ) ) {
 		return;
 	}
-	
+
 	// Generate ID if not provided
 	if ( empty( $args['id'] ) && $args['collapsible'] ) {
 		$args['id'] = 'scd-card-' . sanitize_title( $args['title'] );
 	}
-	
+
 	$card_classes = array( 'scd-card', 'scd-wizard-card' );
 	if ( ! empty( $args['class'] ) ) {
 		$card_classes[] = sanitize_html_class( $args['class'] );
 	}
 	?>
-	<div class="<?php echo esc_attr( implode( ' ', $card_classes ) ); ?>" 
+	<div class="<?php echo esc_attr( implode( ' ', $card_classes ) ); ?>"
 		 <?php if ( $args['id'] ): ?>id="<?php echo esc_attr( $args['id'] ); ?>"<?php endif; ?>
-		 <?php if ( $args['collapsible'] ): ?>data-collapsible="true"<?php endif; ?>>
+		 <?php if ( $args['collapsible'] ): ?>data-collapsible="true"<?php endif; ?>
+		 <?php if ( ! empty( $args['help_topic'] ) ): ?>data-help-topic="<?php echo esc_attr( $args['help_topic'] ); ?>"<?php endif; ?>>
 		<div class="scd-card__header">
 			<h3 class="scd-card__title">
 				<?php if ( $args['icon'] ): ?>
 					<?php echo SCD_Icon_Helper::get( $args['icon'], array( 'size' => 16 ) ); ?>
 				<?php endif; ?>
-				<?php 
-				// Check if title contains badge or indicator HTML
-				if ( false !== strpos( $args['title'], 'scd-badge' ) || false !== strpos( $args['title'], 'scd-optional-indicator' ) || false !== strpos( $args['title'], 'scd-required-indicator' ) ) {
-					// Allow safe HTML for badges, indicators, and SVG icons while preventing XSS
-					echo wp_kses( $args['title'], array(
-						'span' => array(
-							'aria-hidden' => array(),
-							'class' => array(),
-							'aria-label' => array(),
-							'id' => array()
-						),
-						'svg' => array(
-							'class' => array(),
-							'width' => array(),
-							'height' => array(),
-							'viewBox' => array(),
-							'fill' => array(),
-							'xmlns' => array(),
-							'aria-hidden' => array(),
-							'aria-label' => array(),
-							'role' => array(),
-							'style' => array()
-						),
-						'path' => array(
-							'd' => array(),
-							'fill' => array()
-						)
-					) );
-				} else {
-					// Regular text title - escape normally
-					echo esc_html( $args['title'] );
+				<?php echo esc_html( $args['title'] ); ?>
+				<?php
+				// Render badge if provided
+				if ( ! empty( $args['badge'] ) ) {
+					$badge_text = '';
+					$badge_type = 'info';
+
+					if ( is_array( $args['badge'] ) ) {
+						$badge_text = isset( $args['badge']['text'] ) ? $args['badge']['text'] : '';
+						$badge_type = isset( $args['badge']['type'] ) ? $args['badge']['type'] : 'info';
+					} else {
+						$badge_text = $args['badge'];
+					}
+
+					if ( ! empty( $badge_text ) ) {
+						printf(
+							'<span class="scd-badge scd-badge--%s">%s</span>',
+							esc_attr( $badge_type ),
+							esc_html( $badge_text )
+						);
+					}
+				}
+
+				// Render indicator if provided (alternative to badge)
+				if ( ! empty( $args['indicator'] ) && empty( $args['badge'] ) ) {
+					$indicator_class = 'scd-' . sanitize_html_class( $args['indicator'] ) . '-indicator';
+					$indicator_text = 'optional' === $args['indicator']
+						? __( 'Optional', 'smart-cycle-discounts' )
+						: __( 'Required', 'smart-cycle-discounts' );
+
+					printf(
+						'<span class="%s" aria-label="%s">*</span>',
+						esc_attr( $indicator_class ),
+						esc_attr( $indicator_text )
+					);
 				}
 				?>
 			</h3>
@@ -327,10 +345,10 @@ function scd_wizard_card( $args ) {
 			<?php endif; ?>
 		</div>
 		<div class="scd-card__content">
-			<?php 
+			<?php
 			// Content should be escaped by the caller
 			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			echo $args['content']; 
+			echo $args['content'];
 			?>
 		</div>
 	</div>

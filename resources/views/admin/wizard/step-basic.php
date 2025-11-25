@@ -64,7 +64,8 @@ ob_start();
         'title' => __('Campaign Details', 'smart-cycle-discounts'),
         'subtitle' => __('Provide the basic information that will help you identify and manage this discount campaign.', 'smart-cycle-discounts'),
         'icon' => 'edit',
-        'content' => $details_content
+        'content' => $details_content,
+        'help_topic' => 'card-campaign-details'
     ));
     ?>
 
@@ -86,7 +87,8 @@ ob_start();
         'title' => __('Campaign Priority', 'smart-cycle-discounts'),
         'icon' => 'sort',
         'subtitle' => __('Set the priority level to control which campaign applies when multiple campaigns target the same products.', 'smart-cycle-discounts'),
-        'content' => $priority_content
+        'content' => $priority_content,
+        'help_topic' => 'card-campaign-priority'
     ));
     ?>
 <?php
@@ -95,10 +97,11 @@ $content = ob_get_clean();
 
 // Render using template wrapper with sidebar
 scd_wizard_render_step( array(
-    'title' => __( 'Campaign Setup', 'smart-cycle-discounts' ),
+    'title'     => __( 'Campaign Setup', 'smart-cycle-discounts' ),
     'description' => __( 'Set up the basic information for your discount campaign', 'smart-cycle-discounts' ),
-    'content' => $content,
-    'step' => 'basic'
+    'content'   => $content,
+    'step'      => 'basic',
+    'step_data' => $step_data,
 ) );
 ?>
 

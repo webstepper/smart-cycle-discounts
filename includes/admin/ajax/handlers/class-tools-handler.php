@@ -30,6 +30,13 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 	private $container;
 
 	/**
+	 * Current action being handled.
+	 *
+	 * @var string
+	 */
+	private $current_action = '';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param object     $container Container instance.
@@ -41,13 +48,24 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 	}
 
 	/**
+	 * Set the current action for security verification.
+	 *
+	 * @param string $action Action name.
+	 * @return void
+	 */
+	public function set_action( $action ) {
+		$this->current_action = $action;
+	}
+
+	/**
 	 * Get AJAX action name.
 	 *
 	 * @return string Action name.
 	 */
 	protected function get_action_name() {
-		// This handler handles multiple operations, use the base action
-		return 'scd_ajax';
+		// Return the current action being handled for proper security verification.
+		// The router already verified security, so this is used for logging.
+		return $this->current_action ? $this->current_action : 'scd_ajax';
 	}
 
 	/**
@@ -115,25 +133,52 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 	private function handle_optimize_tables( $start_time ) {
 		global $wpdb;
 
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
-
-		$size_before = $wpdb->get_var(
-			$wpdb->prepare(
-				'SELECT data_length + index_length FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = %s',
-				$campaigns_table
-			)
+		// All plugin tables to optimize
+		$tables = array(
+			$wpdb->prefix . 'scd_campaigns',
+			$wpdb->prefix . 'scd_campaign_conditions',
+			$wpdb->prefix . 'scd_active_discounts',
+			$wpdb->prefix . 'scd_analytics',
+			$wpdb->prefix . 'scd_customer_usage',
+			$wpdb->prefix . 'scd_campaign_recurring',
 		);
 
-		// Optimize table - Using direct table name (already prefixed and validated)
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$wpdb->query( "OPTIMIZE TABLE {$campaigns_table}" );
+		$total_size_before = 0;
+		$total_size_after  = 0;
+		$optimized_tables  = array();
 
-		$size_after = $wpdb->get_var(
-			$wpdb->prepare(
-				'SELECT data_length + index_length FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = %s',
-				$campaigns_table
-			)
-		);
+		foreach ( $tables as $table ) {
+			// Check if table exists
+			$table_exists = $wpdb->get_var(
+				$wpdb->prepare( 'SHOW TABLES LIKE %s', $table )
+			);
+
+			if ( $table_exists !== $table ) {
+				continue;
+			}
+
+			$size_before = $wpdb->get_var(
+				$wpdb->prepare(
+					'SELECT data_length + index_length FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = %s',
+					$table
+				)
+			);
+
+			// Optimize table - Using direct table name (already prefixed and validated)
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$wpdb->query( "OPTIMIZE TABLE {$table}" );
+
+			$size_after = $wpdb->get_var(
+				$wpdb->prepare(
+					'SELECT data_length + index_length FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = %s',
+					$table
+				)
+			);
+
+			$total_size_before += (int) $size_before;
+			$total_size_after  += (int) $size_after;
+			$optimized_tables[] = str_replace( $wpdb->prefix . 'scd_', '', $table );
+		}
 
 		// Log with performance metrics
 		$this->logger->flow(
@@ -141,18 +186,19 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 			'DB OPTIMIZE',
 			'Database tables optimized',
 			array(
-				'table'           => 'scd_campaigns',
-				'size_before'     => size_format( $size_before, 2 ),
-				'size_after'      => size_format( $size_after, 2 ),
-				'user_id'         => get_current_user_id(),
-				'_start_time'     => $start_time,
-				'_include_memory' => true,
+				'tables_optimized' => $optimized_tables,
+				'size_before'      => size_format( $total_size_before, 2 ),
+				'size_after'       => size_format( $total_size_after, 2 ),
+				'user_id'          => get_current_user_id(),
+				'_start_time'      => $start_time,
+				'_include_memory'  => true,
 			)
 		);
 
 		return $this->success(
 			array(
-				'message' => __( 'Database tables optimized successfully', 'smart-cycle-discounts' ),
+				/* translators: %d: number of tables optimized */
+				'message' => sprintf( __( '%d database tables optimized successfully', 'smart-cycle-discounts' ), count( $optimized_tables ) ),
 			)
 		);
 	}
@@ -170,7 +216,7 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 
 		$deleted = $wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM {$campaigns_table} WHERE status = %s AND end_date < %s",
+				"DELETE FROM {$campaigns_table} WHERE status = %s AND ends_at IS NOT NULL AND ends_at < %s",
 				'expired',
 				current_time( 'mysql' )
 			)
@@ -221,32 +267,71 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return array Response data.
 	 */
 	private function handle_rebuild_cache( $start_time ) {
-		$operations = array();
+		$cache_manager = Smart_Cycle_Discounts::get_service( 'cache_manager' );
 
-		if ( function_exists( 'wp_cache_flush' ) ) {
-			wp_cache_flush();
-			$operations[] = 'object_cache';
-		}
-
-		global $wpdb;
-		$deleted = $wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
-				'_transient_scd_%',
-				'_transient_timeout_scd_%'
-			)
+		// Get stats before clearing
+		$stats_before = array(
+			'transients' => 0,
+			'object_cache' => false,
 		);
-		if ( false !== $deleted ) {
-			$operations[] = 'transients';
+
+		if ( $cache_manager && method_exists( $cache_manager, 'get_stats' ) ) {
+			$stats = $cache_manager->get_stats();
+			$stats_before['transients'] = $stats['transient_count'] ?? 0;
+			$stats_before['object_cache'] = $stats['object_cache_available'] ?? false;
 		}
 
-		if ( $this->container->has( 'cache_manager' ) ) {
-			$cache_manager = $this->container->get( 'cache_manager' );
-			// Trigger cache warming if method exists
-			if ( method_exists( $cache_manager, 'warm_cache' ) ) {
-				$cache_manager->warm_cache();
-				$operations[] = 'cache_warming';
+		$operations = array();
+		$details = array();
+
+		// Use cache manager's flush method (handles both object cache and transients)
+		if ( $cache_manager && method_exists( $cache_manager, 'flush' ) ) {
+			$cache_manager->flush();
+			$operations[] = 'cache_flush';
+			$details[] = sprintf(
+				/* translators: %d: number of transients cleared */
+				__( '%d transients cleared', 'smart-cycle-discounts' ),
+				$stats_before['transients']
+			);
+		} else {
+			// Fallback: manual clearing
+			if ( function_exists( 'wp_cache_flush' ) ) {
+				wp_cache_flush();
+				$operations[] = 'object_cache';
 			}
+
+			global $wpdb;
+			$deleted = $wpdb->query(
+				$wpdb->prepare(
+					"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+					'_transient_scd_%',
+					'_transient_timeout_scd_%'
+				)
+			);
+			if ( false !== $deleted ) {
+				$operations[] = 'transients';
+				$details[] = sprintf(
+					/* translators: %d: number of transients cleared */
+					__( '%d transients cleared', 'smart-cycle-discounts' ),
+					$deleted
+				);
+			}
+		}
+
+		// Warm cache with fresh data
+		if ( $cache_manager && method_exists( $cache_manager, 'warm_cache' ) ) {
+			$cache_manager->warm_cache();
+			$operations[] = 'cache_warming';
+			$details[] = __( 'Cache pre-warmed with active campaigns', 'smart-cycle-discounts' );
+		}
+
+		// Get stats after rebuilding
+		$stats_after = array(
+			'transients' => 0,
+		);
+		if ( $cache_manager && method_exists( $cache_manager, 'get_stats' ) ) {
+			$stats = $cache_manager->get_stats();
+			$stats_after['transients'] = $stats['transient_count'] ?? 0;
 		}
 
 		// Log cache clear with details
@@ -255,17 +340,29 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 			'CACHE CLEAR',
 			'Cache cleared and rebuilt',
 			array(
-				'operations'         => $operations,
-				'transients_deleted' => $deleted,
-				'user_id'            => get_current_user_id(),
-				'_start_time'        => $start_time,
-				'_include_memory'    => true,
+				'operations'        => $operations,
+				'transients_before' => $stats_before['transients'],
+				'transients_after'  => $stats_after['transients'],
+				'user_id'           => get_current_user_id(),
+				'_start_time'       => $start_time,
+				'_include_memory'   => true,
 			)
 		);
 
+		// Build detailed message
+		$message = __( 'Cache cleared and rebuilt successfully.', 'smart-cycle-discounts' );
+		if ( ! empty( $details ) ) {
+			$message .= ' ' . implode( '. ', $details ) . '.';
+		}
+
 		return $this->success(
 			array(
-				'message' => __( 'Cache cleared and rebuilt successfully', 'smart-cycle-discounts' ),
+				'message'    => $message,
+				'stats'      => array(
+					'cleared'  => $stats_before['transients'],
+					'rebuilt'  => $stats_after['transients'],
+					'has_object_cache' => $stats_before['object_cache'],
+				),
 			)
 		);
 	}

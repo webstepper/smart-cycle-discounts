@@ -29,6 +29,39 @@ $conditions_logic        = isset( $data['conditions_logic'] ) ? $data['condition
 $category_count          = isset( $data['category_count'] ) ? absint( $data['category_count'] ) : count( $categories );
 $tag_count               = isset( $data['tag_count'] ) ? absint( $data['tag_count'] ) : 0;
 
+// Calculate enhanced product stats from products array
+$products_on_sale    = 0;
+$products_in_stock   = 0;
+$products_out_stock  = 0;
+$products_backorder  = 0;
+$variable_products   = 0;
+$total_variations    = 0;
+
+foreach ( $products as $product ) {
+	if ( isset( $product['on_sale'] ) && $product['on_sale'] ) {
+		++$products_on_sale;
+	}
+	if ( isset( $product['stock_status'] ) ) {
+		switch ( $product['stock_status'] ) {
+			case 'instock':
+				++$products_in_stock;
+				break;
+			case 'outofstock':
+				++$products_out_stock;
+				break;
+			case 'onbackorder':
+				++$products_backorder;
+				break;
+		}
+	}
+	if ( isset( $product['type'] ) && 'variable' === $product['type'] ) {
+		++$variable_products;
+		if ( isset( $product['variation_count'] ) ) {
+			$total_variations += absint( $product['variation_count'] );
+		}
+	}
+}
+
 // Selection type configuration
 $type_config = array(
 	'all_products'      => array(
@@ -91,6 +124,41 @@ foreach ( $conditions as $condition ) {
 			<?php echo SCD_Icon_Helper::get( 'filter', array( 'size' => 16 ) ); ?>
 			<span class="scd-stat-value"><?php echo esc_html( number_format_i18n( count( $conditions ) ) ); ?></span>
 			<span class="scd-stat-label"><?php echo esc_html( _n( 'Filter', 'Filters', count( $conditions ), 'smart-cycle-discounts' ) ); ?></span>
+		</div>
+	<?php endif; ?>
+	<?php if ( $products_on_sale > 0 ) : ?>
+		<div class="scd-stat-item scd-stat-sale">
+			<?php echo SCD_Icon_Helper::get( 'tag', array( 'size' => 16 ) ); ?>
+			<span class="scd-stat-value"><?php echo esc_html( number_format_i18n( $products_on_sale ) ); ?></span>
+			<span class="scd-stat-label"><?php echo esc_html( _n( 'On Sale', 'On Sale', $products_on_sale, 'smart-cycle-discounts' ) ); ?></span>
+		</div>
+	<?php endif; ?>
+	<?php if ( $variable_products > 0 && $total_variations > 0 ) : ?>
+		<div class="scd-stat-item scd-stat-variations">
+			<?php echo SCD_Icon_Helper::get( 'admin-settings', array( 'size' => 16 ) ); ?>
+			<span class="scd-stat-value"><?php echo esc_html( number_format_i18n( $total_variations ) ); ?></span>
+			<span class="scd-stat-label"><?php echo esc_html( _n( 'Variation', 'Variations', $total_variations, 'smart-cycle-discounts' ) ); ?></span>
+		</div>
+	<?php endif; ?>
+	<?php if ( $products_in_stock > 0 || $products_out_stock > 0 || $products_backorder > 0 ) : ?>
+		<div class="scd-stat-item scd-stat-stock-in">
+			<?php echo SCD_Icon_Helper::get( 'yes', array( 'size' => 16 ) ); ?>
+			<span class="scd-stat-value"><?php echo esc_html( number_format_i18n( $products_in_stock ) ); ?></span>
+			<span class="scd-stat-label"><?php esc_html_e( 'In Stock', 'smart-cycle-discounts' ); ?></span>
+		</div>
+	<?php endif; ?>
+	<?php if ( $products_out_stock > 0 ) : ?>
+		<div class="scd-stat-item scd-stat-stock-out">
+			<?php echo SCD_Icon_Helper::get( 'no-alt', array( 'size' => 16 ) ); ?>
+			<span class="scd-stat-value"><?php echo esc_html( number_format_i18n( $products_out_stock ) ); ?></span>
+			<span class="scd-stat-label"><?php esc_html_e( 'Out of Stock', 'smart-cycle-discounts' ); ?></span>
+		</div>
+	<?php endif; ?>
+	<?php if ( $products_backorder > 0 ) : ?>
+		<div class="scd-stat-item scd-stat-stock-backorder">
+			<?php echo SCD_Icon_Helper::get( 'backup', array( 'size' => 16 ) ); ?>
+			<span class="scd-stat-value"><?php echo esc_html( number_format_i18n( $products_backorder ) ); ?></span>
+			<span class="scd-stat-label"><?php esc_html_e( 'Backorder', 'smart-cycle-discounts' ); ?></span>
 		</div>
 	<?php endif; ?>
 </div>

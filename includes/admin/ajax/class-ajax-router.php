@@ -84,6 +84,9 @@ class SCD_Ajax_Router {
 	 * @return   void
 	 */
 	public function init() {
+		// Register unified AJAX endpoint
+		add_action( 'wp_ajax_scd_ajax', array( $this, 'route_request' ) );
+
 		// Register WordPress AJAX hooks for each handler.
 		foreach ( $this->handlers as $action => $handler_class ) {
 			add_action( 'wp_ajax_scd_' . $action, array( $this, 'route_request' ) );
@@ -225,6 +228,11 @@ class SCD_Ajax_Router {
 			// Call handler - check if it extends SCD_Abstract_Ajax_Handler.
 
 			if ( is_a( $handler, 'SCD_Abstract_Ajax_Handler' ) ) {
+				// Set the current action if handler supports it (for multi-action handlers).
+				if ( method_exists( $handler, 'set_action' ) ) {
+					$handler->set_action( 'scd_' . $handler_action );
+				}
+
 				// New base class - use execute() method with built-in security.
 				$result = $handler->execute( $request_data );
 			} else {
@@ -242,12 +250,6 @@ class SCD_Ajax_Router {
 			}
 
 			if ( null !== $result ) {
-				if ( is_array( $result ) ) {
-					if ( isset( $result['success'] ) ) {
-					}
-					if ( isset( $result['message'] ) ) {
-					}
-				}
 				$duration = microtime( true ) - $start_time;
 
 				if ( is_wp_error( $result ) ) {
@@ -365,6 +367,10 @@ class SCD_Ajax_Router {
 			'get_active_campaigns'           => 'SCD_Get_Active_Campaigns_Handler',
 			'campaign_overview'              => 'SCD_Campaign_Overview_Handler',
 			'get_campaign_products'          => 'SCD_Get_Campaign_Products_Handler',
+
+			// Contextual Sidebar handlers.
+			'get_help_topic'                 => 'SCD_Sidebar_Ajax_Handler',
+
 			// Debug handlers.
 			'debug_log'                      => 'SCD_Ajax_Debug_Log',
 			'log_console'                    => 'SCD_Console_Logger_Handler',

@@ -84,9 +84,9 @@
 
 			// Currency symbol
 			this.currencySymbol = '$';
-			if ( window.scdDiscountStepData && window.scdDiscountStepData.currencySymbol ) {
+			if ( window.scdSettings && window.scdSettings.currencySymbol ) {
 				var parser = new DOMParser();
-				var doc = parser.parseFromString( window.scdDiscountStepData.currencySymbol, 'text/html' );
+				var doc = parser.parseFromString( window.scdSettings.currencySymbol, 'text/html' );
 				this.currencySymbol = doc.documentElement.textContent || '$';
 			}
 
@@ -103,26 +103,21 @@
 			 * Initialize handler
 			 */
 			init: function() {
-				var self = this;
+				// Process any queued data
+				if ( null !== this._queuedPercentageItems ) {
+					this.setPercentageItems( this._queuedPercentageItems );
+					this._queuedPercentageItems = null;
+				}
 
-				// Use requestAnimationFrame for optimal timing
-				requestAnimationFrame( function() {
-					// Process any queued data
-					if ( null !== self._queuedPercentageItems ) {
-						self.setPercentageItems( self._queuedPercentageItems );
-						self._queuedPercentageItems = null;
-					}
+				if ( null !== this._queuedFixedItems ) {
+					this.setFixedItems( this._queuedFixedItems );
+					this._queuedFixedItems = null;
+				}
 
-					if ( null !== self._queuedFixedItems ) {
-						self.setFixedItems( self._queuedFixedItems );
-						self._queuedFixedItems = null;
-					}
+				// Mark as ready after initialization complete
+				this._ready = true;
 
-					// Mark as ready
-					self._ready = true;
-
-					// Registration is handled by the type modules that use this handler
-				} );
+				// Registration is handled by the type modules that use this handler
 			},
 
 			/**

@@ -212,9 +212,9 @@
 
 /* PRO Badge - Premium Feature Indicator */
 .scd-badge--pro {
-	background: rgba(255, 150, 0, 0.25);
+	background: var(--scd-color-warning-alpha-25);
 	color: var(--scd-color-warning);
-	border: var(--scd-border-width) solid rgba(255, 150, 0, 0.3);
+	border: var(--scd-border-width) solid var(--scd-color-warning-light-border);
 	font-weight: var(--scd-font-weight-bold);
 	text-transform: uppercase;
 	letter-spacing: 0.3px;

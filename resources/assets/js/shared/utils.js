@@ -177,16 +177,15 @@
 		 * @returns {string} Formatted currency
 		 */
 		formatCurrency: function( amount ) {
-			// Try wizard step data first, then analytics data
-			var settings = window.scdDiscountStepData || window.scdAnalytics;
+			// Use centralized settings (auto-converted to camelCase by Asset Localizer)
+			var settings = window.scdSettings || window.scdAnalytics;
 
-			// Use WooCommerce settings if available
-			// Note: scdAnalytics uses camelCase (from wp_localize_script), scdDiscountStepData uses snake_case
-			var currencySymbol = settings && ( settings.currency_symbol || settings.currencySymbol );
-			var currencyPos = settings && ( settings.currency_pos || settings.currencyPos );
-			var priceDecimals = settings && ( settings.price_decimals || settings.priceDecimals );
-			var decimalSeparator = settings && ( settings.decimal_separator || settings.decimalSeparator );
-			var thousandSeparator = settings && ( settings.thousand_separator || settings.thousandSeparator );
+			// WooCommerce currency settings (camelCase from auto-conversion)
+			var currencySymbol = settings && ( settings.currencySymbol );
+			var currencyPos = settings && ( settings.currencyPos );
+			var priceDecimals = settings && ( settings.priceDecimals );
+			var decimalSeparator = settings && ( settings.decimalSeparator );
+			var thousandSeparator = settings && ( settings.thousandSeparator );
 
 			if ( currencySymbol ) {
 				var formatted = parseFloat( amount ).toFixed( priceDecimals || 2 );
@@ -942,7 +941,7 @@
 				var condition = fieldDef.required_when;
 				var fieldValue = allData[condition.field];
 
-				// Handle both camelCase and snake_case field names
+				// Case converter handles snake_case → camelCase automatically
 				if ( undefined === fieldValue && -1 === condition.field.indexOf( '_' ) ) {
 					fieldValue = allData[this.toSnakeCase( condition.field )];
 				}
@@ -1046,7 +1045,7 @@
 
 			// Handle nested_array type BEFORE field lookup (no single DOM element exists)
 			if ( 'nested_array' === fieldDef.type ) {
-				return this.collectNestedFormArray( fieldDef.field_name || this.toSnakeCase( fieldNameCamel ) );
+				return this.collectNestedFormArray( this.toSnakeCase( fieldNameCamel ) );
 			}
 
 			// Use explicit selector if provided in field definition
@@ -1163,7 +1162,7 @@
 					// Populate nested form arrays (e.g., conditions[0][mode], conditions[0][type])
 					// Trigger event for orchestrator to handle UI reconstruction
 					$( document ).trigger( 'scd:populate-nested-array', {
-						fieldName: fieldDef.field_name || this.toSnakeCase( fieldNameCamel ),
+						fieldName: this.toSnakeCase( fieldNameCamel ),
 						value: value
 					} );
 					break;

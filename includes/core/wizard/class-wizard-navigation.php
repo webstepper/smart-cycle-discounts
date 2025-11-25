@@ -57,10 +57,16 @@ class SCD_Wizard_Navigation {
 			),
 		),
 		'button_classes' => array(
-			'previous'  => 'scd-button--secondary scd-nav-btn scd-nav-btn--previous',
-			'next'      => 'scd-button--primary scd-nav-btn scd-nav-btn--next',
-			'complete'  => 'scd-button--success scd-nav-btn scd-nav-btn--complete',
-			'secondary' => 'scd-button--secondary scd-nav-btn scd-nav-btn--draft',
+			'previous'  => 'scd-nav-btn scd-nav-btn--previous',
+			'next'      => 'scd-nav-btn scd-nav-btn--next',
+			'complete'  => 'scd-nav-btn scd-nav-btn--complete',
+			'secondary' => 'scd-nav-btn scd-nav-btn--draft',
+		),
+		'button_styles' => array(
+			'previous'  => 'secondary',
+			'next'      => 'primary',
+			'complete'  => 'success',
+			'secondary' => 'secondary',
 		),
 		'icons'          => array(
 			'previous' => 'arrow-left',

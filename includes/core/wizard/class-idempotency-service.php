@@ -157,7 +157,15 @@ class SCD_Idempotency_Service {
 		$cache_key = $this->get_cache_key( $key );
 		$cached    = $this->cache->get( $cache_key );
 
-		if ( $cached && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		// Validate cached response has required fields for save_step responses.
+		// This prevents returning incomplete/corrupted cached responses.
+		if ( $cached && is_array( $cached ) ) {
+			// A valid save_step response must have message, step, and next_step.
+			if ( ! isset( $cached['message'] ) || ! isset( $cached['step'] ) ) {
+				// Invalid/incomplete cached response - delete and return null.
+				$this->cache->delete( $cache_key );
+				return null;
+			}
 		}
 
 		return $cached ? $cached : null;

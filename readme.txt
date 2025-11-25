@@ -108,7 +108,7 @@ Upgrade to **Smart Cycle Discounts Pro** for advanced discount types, unlimited 
 
 * WordPress 6.4 or later
 * WooCommerce 8.0 or later
-* PHP 8.0 or later (PHP 8.3+ recommended)
+* PHP 7.4 or later (PHP 8.3+ recommended)
 * MySQL 5.6 or later / MariaDB 10.1 or later
 
 = Automatic Installation =
@@ -332,7 +332,7 @@ Yes! Use the **Draft** status to create and configure campaigns without activati
 * HPOS (High-Performance Order Storage) compatibility
 * WordPress 6.4+ compatibility
 * WooCommerce 8.0+ compatibility
-* PHP 8.0+ compatibility
+* PHP 7.4+ compatibility
 
 == Upgrade Notice ==
 
@@ -362,23 +362,23 @@ This plugin respects your privacy and follows WordPress.org privacy guidelines.
 
 Smart Cycle Discounts includes **optional** integrations with third-party email delivery services. These services are **disabled by default** and only activated if you explicitly configure them in the plugin settings.
 
-**SendGrid Email Service** (Optional - Pro Feature)
+**SendGrid Email Service** (Optional - Available in Free & Pro)
 
 * **Service**: SendGrid API
 * **Website**: https://sendgrid.com/
 * **API Endpoint**: https://api.sendgrid.com/v3/mail/send
-* **When Used**: Only if you configure SendGrid API credentials in Settings > Email Notifications (Pro version)
+* **When Used**: Only if you configure SendGrid API credentials in Settings > Email Notifications
 * **Data Sent**: Email addresses, email content (campaign notifications only)
 * **Purpose**: Deliver email notifications about campaign status and results
 * **Privacy Policy**: https://www.twilio.com/legal/privacy
 * **Terms of Service**: https://www.twilio.com/legal/tos
 
-**Amazon SES (Simple Email Service)** (Optional - Pro Feature)
+**Amazon SES (Simple Email Service)** (Optional - Available in Free & Pro)
 
 * **Service**: Amazon Web Services - Simple Email Service
 * **Website**: https://aws.amazon.com/ses/
 * **API Endpoint**: https://email.{region}.amazonaws.com/
-* **When Used**: Only if you configure AWS SES credentials in Settings > Email Notifications (Pro version)
+* **When Used**: Only if you configure AWS SES credentials in Settings > Email Notifications
 * **Data Sent**: Email addresses, email content (campaign notifications only)
 * **Purpose**: Deliver email notifications about campaign status and results
 * **Privacy Policy**: https://aws.amazon.com/privacy/
@@ -387,9 +387,11 @@ Smart Cycle Discounts includes **optional** integrations with third-party email 
 **Important Notes**:
 
 * Both services are completely optional and disabled by default
-* Available only in Pro version
+* Available in both Free and Pro versions
 * No data is sent to these services unless you explicitly configure API credentials
 * You can use the plugin's full functionality without enabling any email integrations
-* The free version uses standard WordPress email (wp_mail) for basic campaign notifications
+* All email providers (WordPress Mail, SendGrid, Amazon SES) work with both Free and Pro versions
+* Free version: Basic notifications (campaign started, campaign ended)
+* Pro version: Advanced proactive notifications (ending warnings, daily/weekly reports, performance alerts, low stock alerts, milestone notifications)
 * If you enable these services, you are responsible for compliance with their terms of service
 * Email notifications only contain campaign-related data, never customer personal information

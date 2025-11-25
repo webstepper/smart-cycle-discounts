@@ -282,7 +282,7 @@ class SCD_Campaign_Planner_Service {
 				$event,
 				array(
 					'is_major_event'  => true,
-					'priority'        => 100, // Major events have high priority.
+					'priority'        => isset( $event['priority'] ) ? $event['priority'] : 100,
 					'event_date'      => $event_date,
 					'campaign_start'  => $campaign_start,
 					'campaign_end'    => $campaign_end,
@@ -347,10 +347,10 @@ class SCD_Campaign_Planner_Service {
 
 			if ( $current_day >= $start_day && $current_day <= $end_day ) {
 				// Same day - check time.
-				if ( $current_day === $start_day && $current_time_int < $start_time_int ) {
+				if ( $start_day === $current_day && $current_time_int < $start_time_int ) {
 					return 'future';
 				}
-				if ( $current_day === $end_day && $current_time_int > $end_time_int ) {
+				if ( $end_day === $current_day && $current_time_int > $end_time_int ) {
 					return 'past';
 				}
 				return 'active';
@@ -387,7 +387,7 @@ class SCD_Campaign_Planner_Service {
 		// Filter by position - avoid closure for serialization compatibility.
 		$candidates = array();
 		foreach ( $campaigns as $campaign ) {
-			if ( $campaign['state'] === $position ) {
+			if ( $position === $campaign['state'] ) {
 				$candidates[] = $campaign;
 			}
 		}
@@ -488,7 +488,7 @@ class SCD_Campaign_Planner_Service {
 				$start_time_int   = intval( str_replace( ':', '', $start_time ) );
 
 				// Determine week offset.
-				if ( $current_day < $start_day || ( $current_day === $start_day && $current_time_int < $start_time_int ) ) {
+				if ( $current_day < $start_day || ( $start_day === $current_day && $current_time_int < $start_time_int ) ) {
 					// Campaign is later this week.
 					$week_offset = 0;
 				} else {

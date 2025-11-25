@@ -128,26 +128,26 @@
 			return;
 		}
 
-		this.config.nonce = window.scdWizardData.nonce || window.scdWizardData.wizard_nonce;
+		this.config.nonce = window.scdWizardData.nonce || window.scdWizardData.wizardNonce;
 
 		if ( !  this.modules.stateManager ) {
 			return;
 		}
 
 		var initData = {
-			currentStep: window.scdWizardData.current_step || 'basic',
+			currentStep: window.scdWizardData.currentStep || 'basic',
 			nonce: this.config.nonce
 		};
 
-		if ( window.scdWizardData.current_campaign && window.scdWizardData.current_campaign.completedSteps ) {
-			initData.completedSteps = window.scdWizardData.current_campaign.completedSteps;
+		if ( window.scdWizardData.currentCampaign && window.scdWizardData.currentCampaign.completedSteps ) {
+			initData.completedSteps = window.scdWizardData.currentCampaign.completedSteps;
 		}
 
 		var urlParams = new URLSearchParams( window.location.search );
 		var isEditMode = urlParams.get( 'intent' ) === 'edit' || ( urlParams.get( 'id' ) && urlParams.get( 'intent' ) !== 'new' );
 
-		// PHP uses snake_case (current_campaign) which gets auto-converted to camelCase (currentCampaign)
-		var currentCampaign = window.scdWizardData.currentCampaign || window.scdWizardData.current_campaign;
+		// Data is auto-converted to camelCase by Asset Localizer
+		var currentCampaign = window.scdWizardData.currentCampaign;
 
 		if ( window.SCD && window.SCD.Debug ) {
 			window.SCD.Debug.log( '[WizardOrchestrator] isEditMode:', isEditMode );
@@ -351,18 +351,29 @@
 	 * Extracted to reduce cognitive complexity
 	 */
 	WizardOrchestrator.prototype.tryCreateStepFromFactory = function( stepName ) {
+		console.log( '[WizardOrchestrator] tryCreateStepFromFactory for:', stepName );
+		console.log( '[WizardOrchestrator] SCD.Steps available:', !! SCD.Steps );
+		console.log( '[WizardOrchestrator] SCD.Steps.hasFactory available:', 'function' === typeof SCD.Steps.hasFactory );
+		if ( SCD.Steps && SCD.Steps._factories ) {
+			console.log( '[WizardOrchestrator] Registered factories:', Object.keys( SCD.Steps._factories ) );
+		}
+
 		if ( ! ( 'function' === typeof SCD.Steps.hasFactory && SCD.Steps.hasFactory( stepName ) ) ) {
+			console.log( '[WizardOrchestrator] No factory found for:', stepName );
 			return null;
 		}
 
+		console.log( '[WizardOrchestrator] Factory exists for:', stepName, '- attempting to create' );
 		try {
 			var instance = SCD.Steps.createStep( stepName );
 			if ( instance ) {
+				console.log( '[WizardOrchestrator] Successfully created step instance for:', stepName );
 				this.stepOrchestrators[stepName] = instance;
 				return instance;
 			}
 		} catch ( e ) {
 			// Factory creation failed
+			console.error( '[WizardOrchestrator] Factory creation failed for:', stepName, e );
 			throw new Error( 'Factory failed to create step: ' + stepName );
 		}
 
@@ -455,7 +466,11 @@
 	 * @param stepName
 	 */
 	WizardOrchestrator.prototype.getStepInstance = function( stepName ) {
-		return this.stepOrchestrators[stepName] || null;
+		console.log( '[WizardOrchestrator] getStepInstance called for:', stepName );
+		console.log( '[WizardOrchestrator] Current stepOrchestrators:', Object.keys( this.stepOrchestrators ) );
+		var instance = this.stepOrchestrators[stepName] || null;
+		console.log( '[WizardOrchestrator] Returning instance:', instance ? 'found' : 'NOT FOUND' );
+		return instance;
 	};
 
 	/**

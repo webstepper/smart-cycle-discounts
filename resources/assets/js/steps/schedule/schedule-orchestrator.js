@@ -58,6 +58,18 @@
 			} else {
 				$clearButton.hide();
 			}
+
+			// Initialize end_time field type and state based on end_date
+			var $endTime = $( '#end_time' );
+			if ( ! endDate ) {
+				// No end date - show placeholder
+				$endTime.attr( 'type', 'text' )
+					.addClass( 'scd-time-placeholder' );
+			} else {
+				// Has end date - ensure it's a time input
+				$endTime.attr( 'type', 'time' )
+					.removeClass( 'scd-time-placeholder' );
+			}
 		},
 
 		/**
@@ -87,13 +99,20 @@
 					var $endTime = $( '#end_time' );
 					if ( selectedDate ) {
 						// End date set - enable time field with default value
-						$endTime.prop( 'disabled', false );
-						if ( ! $endTime.val() ) {
+						// Set valid time value FIRST (while still type="text"), then change type
+						var currentValue = $endTime.val();
+						if ( ! currentValue || '' === currentValue || '--:--' === currentValue ) {
 							$endTime.val( '23:59' );
 						}
+						$endTime.attr( 'type', 'time' )
+							.prop( 'disabled', false )
+							.removeClass( 'scd-time-placeholder' );
 					} else {
-						// End date cleared - disable and clear time field
-						$endTime.prop( 'disabled', true ).val( '' );
+						// End date cleared - switch to text input showing placeholder
+						$endTime.attr( 'type', 'text' )
+							.prop( 'disabled', true )
+							.val( '--:--' )
+							.addClass( 'scd-time-placeholder' );
 					}
 
 					// Validate recurring requirements when end_date changes
@@ -193,7 +212,11 @@
 				e.preventDefault();
 				$( '#end_date' ).val( '' );
 				$( '#end_date_display' ).val( '' );
-				$( '#end_time' ).prop( 'disabled', true ).val( '' );
+				var $endTime = $( '#end_time' );
+				$endTime.attr( 'type', 'text' )
+					.prop( 'disabled', true )
+					.val( '--:--' )
+					.addClass( 'scd-time-placeholder' );
 				self.updateDurationDisplay();
 				// Trigger change event
 				$( '#end_date' ).trigger( 'change' );
@@ -1144,6 +1167,10 @@
 		var errors = [];
 		var state = this.modules.state.getState();
 
+		// DEBUG: Log state for troubleshooting free user issues
+		console.log( '[Schedule validateStep] State:', state );
+		console.log( '[Schedule validateStep] enableRecurring:', state.enableRecurring );
+
 		if ( 'scheduled' === state.startType && state.startDate ) {
 			var startValidation = this._validateStartTime( state.startDate, state.startTime || '00:00' );
 			if ( ! startValidation.valid ) {
@@ -1164,11 +1191,13 @@
 		}
 
 		// Validate recurring campaigns require an end date or duration
+		// IMPORTANT: For free users, enableRecurring should always be false (enforced server-side)
 		var recurringValidation = this._validateRecurring(
 			state.enableRecurring,
 			state.endDate,
 			state.durationSeconds
 		);
+		console.log( '[Schedule validateStep] recurringValidation:', recurringValidation );
 		if ( ! recurringValidation.valid ) {
 			errors.push( recurringValidation );
 		}

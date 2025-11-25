@@ -1,6 +1,9 @@
 /**
  * _Buttons
  *
+ * Comprehensive button system with variants, states, and accessibility support.
+ * Uses CSS custom properties for full theme compatibility.
+ *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/css/shared/_buttons.css
  * @author     Webstepper.io <contact@webstepper.io>
@@ -11,7 +14,7 @@
  */
 
 /* ==========================================================================
-   Base Button Styles - Modern & Accessible
+   Base Button Styles
    ========================================================================== */
 
 .scd-button,
@@ -35,7 +38,10 @@
 	border-radius: var(--scd-radius-lg);
 	background: var(--scd-color-surface);
 	color: var(--scd-color-text);
-	transition: all var(--scd-transition-fast) ease;
+	transition: background-color var(--scd-transition-fast) ease,
+				border-color var(--scd-transition-fast) ease,
+				box-shadow var(--scd-transition-fast) ease,
+				transform var(--scd-transition-fast) ease;
 	box-sizing: border-box;
 	vertical-align: middle;
 	-webkit-appearance: none;
@@ -43,24 +49,39 @@
 	appearance: none;
 }
 
+/* Base hover/active - subtle darkening, preserve color against WP common.css a:hover/a:active */
 .scd-button:hover,
-.scd-btn:hover {
-	filter: brightness(0.92);
+.scd-button:active,
+.scd-btn:hover,
+.scd-btn:active {
+	filter: brightness(0.95);
+	color: var(--scd-color-text);
 }
 
+/* Focus state - keyboard accessibility */
+.scd-button:focus-visible,
+.scd-btn:focus-visible {
+	outline: 2px solid var(--scd-color-primary);
+	outline-offset: 2px;
+}
+
+/* Fallback for browsers without :focus-visible */
 .scd-button:focus,
 .scd-btn:focus {
 	outline: 2px solid var(--scd-color-primary);
 	outline-offset: 2px;
-	box-shadow: none;
 }
 
+/* Active press state */
 .scd-button:active,
 .scd-btn:active {
-	box-shadow: none;
+	transform: translateY(1px);
 }
 
-/* Button sizes */
+/* ==========================================================================
+   Button Sizes
+   ========================================================================== */
+
 .scd-button--large,
 .scd-btn-lg {
 	height: var(--scd-button-height-large);
@@ -76,122 +97,164 @@
 }
 
 /* ==========================================================================
-   Primary Button - Bold & Confident
+   Filled Button Variants
    ========================================================================== */
 
+/* Shared filled button styles */
+.scd-button--primary,
+.scd-btn-primary,
+.button-primary.scd-themed,
+.scd-button--success,
+.scd-btn-success,
+.scd-button--warning,
+.scd-btn-warning,
+.scd-button--danger,
+.scd-btn-danger,
+.button-link-delete.scd-themed {
+	color: var(--scd-color-white);
+	font-weight: var(--scd-font-weight-semibold);
+}
+
+/* Primary Button */
 .scd-button--primary,
 .scd-btn-primary,
 .button-primary.scd-themed {
 	background: var(--scd-color-primary);
 	border-color: var(--scd-color-primary);
-	color: var(--scd-color-white);
-	font-weight: var(--scd-font-weight-semibold);
-	transition: var(--scd-transition-colors);
 }
 
 .scd-button--primary:hover,
+.scd-button--primary:active,
 .scd-btn-primary:hover,
-.button-primary.scd-themed:hover {
-	filter: brightness(0.92);
+.scd-btn-primary:active,
+.button-primary.scd-themed:hover,
+.button-primary.scd-themed:active {
+	background: var(--scd-color-primary-dark);
+	border-color: var(--scd-color-primary-dark);
+	color: var(--scd-color-white);
+	filter: none;
 }
 
+.scd-button--primary:focus-visible,
+.scd-btn-primary:focus-visible,
+.button-primary.scd-themed:focus-visible,
 .scd-button--primary:focus,
 .scd-btn-primary:focus,
 .button-primary.scd-themed:focus {
-	outline: 2px solid var(--scd-color-primary);
-	outline-offset: 2px;
 	box-shadow: var(--scd-ring-focus);
 }
 
-.scd-button--primary:active,
-.scd-btn-primary:active,
-.button-primary.scd-themed:active {
-	filter: brightness(0.88);
-}
-
-/* ==========================================================================
-   Secondary Button - Subtle & Professional
-   ========================================================================== */
-
+/* Secondary Button */
 .scd-button--secondary,
 .scd-btn-secondary,
 .button-secondary.scd-themed {
-	background: var(--scd-color-background);
+	background: var(--scd-color-white);
 	border-color: var(--scd-color-border);
 	color: var(--scd-color-text);
-	transition: var(--scd-transition-colors);
 }
 
 .scd-button--secondary:hover,
+.scd-button--secondary:active,
 .scd-btn-secondary:hover,
-.button-secondary.scd-themed:hover {
-	filter: brightness(0.92);
+.scd-btn-secondary:active,
+.button-secondary.scd-themed:hover,
+.button-secondary.scd-themed:active {
+	background: var(--scd-color-surface);
+	border-color: var(--scd-color-border-dark);
+	color: var(--scd-color-text);
+	filter: none;
 }
 
+.scd-button--secondary:focus-visible,
+.scd-btn-secondary:focus-visible,
+.button-secondary.scd-themed:focus-visible,
 .scd-button--secondary:focus,
 .scd-btn-secondary:focus,
 .button-secondary.scd-themed:focus {
-	outline: 2px solid var(--scd-color-primary);
-	outline-offset: 2px;
 	border-color: var(--scd-color-primary);
 	box-shadow: var(--scd-ring-focus);
 }
 
-/* ==========================================================================
-   Success Button - Positive & Affirming
-   ========================================================================== */
-
+/* Success Button */
 .scd-button--success,
 .scd-btn-success {
 	background: var(--scd-color-success);
 	border-color: var(--scd-color-success);
-	color: var(--scd-color-white);
-	font-weight: var(--scd-font-weight-semibold);
-	transition: var(--scd-transition-colors);
 }
 
 .scd-button--success:hover,
-.scd-btn-success:hover {
-	filter: brightness(0.92);
+.scd-button--success:active,
+.scd-btn-success:hover,
+.scd-btn-success:active {
+	background: var(--scd-color-success-dark);
+	border-color: var(--scd-color-success-dark);
+	color: var(--scd-color-white);
+	filter: none;
 }
 
+.scd-button--success:focus-visible,
+.scd-btn-success:focus-visible,
 .scd-button--success:focus,
 .scd-btn-success:focus {
-	outline: 2px solid var(--scd-color-success);
-	outline-offset: 2px;
 	box-shadow: var(--scd-ring-success);
 }
 
-/* ==========================================================================
-   Danger Button - Clear & Cautious
-   ========================================================================== */
+/* Warning Button */
+.scd-button--warning,
+.scd-btn-warning {
+	background: var(--scd-color-warning);
+	border-color: var(--scd-color-warning);
+	color: var(--scd-color-text-dark);
+}
 
+.scd-button--warning:hover,
+.scd-button--warning:active,
+.scd-btn-warning:hover,
+.scd-btn-warning:active {
+	background: var(--scd-color-warning-dark);
+	border-color: var(--scd-color-warning-dark);
+	color: var(--scd-color-text-dark);
+	filter: none;
+}
+
+.scd-button--warning:focus-visible,
+.scd-btn-warning:focus-visible,
+.scd-button--warning:focus,
+.scd-btn-warning:focus {
+	box-shadow: var(--scd-ring-warning);
+}
+
+/* Danger Button */
 .scd-button--danger,
 .scd-btn-danger,
 .button-link-delete.scd-themed {
 	background: var(--scd-color-danger);
 	border-color: var(--scd-color-danger);
-	color: var(--scd-color-white);
-	font-weight: var(--scd-font-weight-semibold);
-	transition: var(--scd-transition-colors);
 }
 
 .scd-button--danger:hover,
+.scd-button--danger:active,
 .scd-btn-danger:hover,
-.button-link-delete.scd-themed:hover {
-	filter: brightness(0.92);
+.scd-btn-danger:active,
+.button-link-delete.scd-themed:hover,
+.button-link-delete.scd-themed:active {
+	background: var(--scd-color-danger-dark);
+	border-color: var(--scd-color-danger-dark);
+	color: var(--scd-color-white);
+	filter: none;
 }
 
+.scd-button--danger:focus-visible,
+.scd-btn-danger:focus-visible,
+.button-link-delete.scd-themed:focus-visible,
 .scd-button--danger:focus,
 .scd-btn-danger:focus,
 .button-link-delete.scd-themed:focus {
-	outline: 2px solid var(--scd-color-danger);
-	outline-offset: 2px;
 	box-shadow: var(--scd-ring-danger);
 }
 
 /* ==========================================================================
-   Ghost/Outline Buttons - Minimal & Clean
+   Ghost/Outline Buttons
    ========================================================================== */
 
 .scd-button--ghost,
@@ -202,23 +265,86 @@
 }
 
 .scd-button--ghost:hover,
-.scd-btn-ghost:hover {
+.scd-button--ghost:active,
+.scd-btn-ghost:hover,
+.scd-btn-ghost:active {
 	background: var(--scd-color-primary-alpha-10);
-	border-color: var(--scd-color-border);
+	border-color: var(--scd-color-primary);
+	color: var(--scd-color-text);
+	filter: none;
 }
 
+/* Ghost Primary */
 .scd-button--ghost-primary {
+	background: transparent;
 	border-color: var(--scd-color-primary);
 	color: var(--scd-color-primary);
-	background: transparent;
 }
 
-.scd-button--ghost-primary:hover {
+.scd-button--ghost-primary:hover,
+.scd-button--ghost-primary:active {
 	background: var(--scd-color-primary-alpha-10);
+	color: var(--scd-color-primary);
+	filter: none;
+}
+
+/* Ghost Success */
+.scd-button--ghost-success {
+	background: transparent;
+	border-color: var(--scd-color-success);
+	color: var(--scd-color-success);
+}
+
+.scd-button--ghost-success:hover,
+.scd-button--ghost-success:active {
+	background: var(--scd-color-success-alpha-10);
+	color: var(--scd-color-success);
+	filter: none;
+}
+
+/* Ghost Warning */
+.scd-button--ghost-warning {
+	background: transparent;
+	border-color: var(--scd-color-warning);
+	color: var(--scd-color-warning-dark);
+}
+
+.scd-button--ghost-warning:hover,
+.scd-button--ghost-warning:active {
+	background: var(--scd-color-warning-alpha-15);
+	color: var(--scd-color-warning-dark);
+	filter: none;
+}
+
+/* Ghost Danger */
+.scd-button--ghost-danger {
+	background: transparent;
+	border-color: var(--scd-color-border);
+	color: var(--scd-color-text-muted);
+}
+
+.scd-button--ghost-danger .scd-icon {
+	color: var(--scd-color-text-muted);
+	opacity: 0.6;
+	transition: color var(--scd-transition-fast) ease,
+				opacity var(--scd-transition-fast) ease;
+}
+
+.scd-button--ghost-danger:hover,
+.scd-button--ghost-danger:active {
+	background: var(--scd-color-danger-alpha-15);
+	border-color: var(--scd-color-danger);
+	color: var(--scd-color-danger);
+	filter: none;
+}
+
+.scd-button--ghost-danger:hover .scd-icon {
+	color: var(--scd-color-danger);
+	opacity: 1;
 }
 
 /* ==========================================================================
-   Link Buttons - Simple & Accessible
+   Link Buttons
    ========================================================================== */
 
 .scd-button--link,
@@ -227,42 +353,58 @@
 	border: none;
 	color: var(--scd-color-primary);
 	text-decoration: none;
-	padding: var(--scd-spacing-xs) 8px;
+	padding: var(--scd-spacing-xs) var(--scd-spacing-sm);
 	height: auto;
 	font-weight: var(--scd-font-weight-medium);
 	box-shadow: none;
 }
 
 .scd-button--link:hover,
-.scd-btn-link:hover {
+.scd-button--link:active,
+.scd-btn-link:hover,
+.scd-btn-link:active {
+	color: var(--scd-color-primary-dark);
 	text-decoration: underline;
-	filter: brightness(0.85);
+	filter: none;
 }
 
+.scd-button--link:focus-visible,
+.scd-btn-link:focus-visible,
 .scd-button--link:focus,
 .scd-btn-link:focus {
-	outline: 2px solid var(--scd-color-primary);
-	outline-offset: 2px;
-	box-shadow: none;
+	outline: 2px solid var(--scd-color-primary-alpha-30);
+	outline-offset: 1px;
+	border-radius: var(--scd-radius-sm);
+}
+
+/* Link Danger */
+.scd-button--link-danger {
+	color: var(--scd-color-danger);
+}
+
+.scd-button--link-danger:hover,
+.scd-button--link-danger:active {
+	color: var(--scd-color-danger-dark);
 }
 
 /* ==========================================================================
-   Button States - Clear Feedback
+   Button States
    ========================================================================== */
 
+/* Disabled state */
 .scd-button:disabled,
 .scd-button--disabled,
 .scd-btn:disabled,
 .scd-btn-disabled {
 	opacity: 0.5;
 	cursor: not-allowed;
-	box-shadow: none !important;
 	pointer-events: none;
 }
 
+/* Loading state */
 .scd-button--loading,
 .scd-btn-loading {
-	color: transparent;
+	color: transparent !important;
 	position: relative;
 	pointer-events: none;
 	cursor: wait;
@@ -277,56 +419,73 @@
 	width: var(--scd-icon-small);
 	height: var(--scd-icon-small);
 	margin: calc(var(--scd-icon-small) / -2) 0 0 calc(var(--scd-icon-small) / -2);
-	border: 2px solid currentColor;
+	border: 2px solid var(--scd-color-white);
 	border-radius: var(--scd-radius-full);
 	border-top-color: transparent;
-	animation: scd-spin 1s linear infinite;
+	animation: scd-spin 0.8s linear infinite;
 }
 
+/* Loading spinner color for secondary/ghost buttons */
+.scd-button--secondary.scd-button--loading::after,
+.scd-btn-secondary.scd-btn-loading::after,
+.scd-button--ghost.scd-button--loading::after,
+.scd-btn-ghost.scd-btn-loading::after {
+	border-color: var(--scd-color-primary);
+	border-top-color: transparent;
+}
 
 /* ==========================================================================
    Button Groups
    ========================================================================== */
 
 .scd-button-group {
-    display: inline-flex;
-    gap: var(--scd-spacing-sm);
+	display: inline-flex;
+	gap: var(--scd-spacing-sm);
 }
 
 .scd-button-group--attached {
-    gap: 0;
+	gap: 0;
 }
 
 .scd-button-group--attached .scd-button:not(:first-child) {
-    margin-left: -1px;
-    border-radius: 0;
+	margin-left: -1px;
+	border-radius: 0;
 }
 
 .scd-button-group--attached .scd-button:first-child {
-    border-radius: var(--scd-radius-lg) 0 0 var(--scd-radius-lg);
+	border-radius: var(--scd-radius-lg) 0 0 var(--scd-radius-lg);
 }
 
 .scd-button-group--attached .scd-button:last-child {
-    border-radius: 0 var(--scd-radius-lg) var(--scd-radius-lg) 0;
+	border-radius: 0 var(--scd-radius-lg) var(--scd-radius-lg) 0;
+}
+
+/* Hover z-index for attached groups */
+.scd-button-group--attached .scd-button:hover {
+	z-index: 1;
+}
+
+.scd-button-group--attached .scd-button:focus,
+.scd-button-group--attached .scd-button:focus-visible {
+	z-index: 2;
 }
 
 /* ==========================================================================
-   Icon Support - SVG Icons for Perfect Alignment
+   Icon Support
    ========================================================================== */
 
-/* SVG icons - flexbox handles alignment automatically */
 .scd-button .scd-icon,
 .scd-btn .scd-icon {
 	flex-shrink: 0;
 	width: var(--scd-icon-small);
 	height: var(--scd-icon-small);
-	vertical-align: middle; /* Fallback for non-flex contexts */
+	vertical-align: middle;
 }
 
 .scd-button--small .scd-icon,
 .scd-btn-sm .scd-icon {
-	width: 14px;
-	height: 14px;
+	width: var(--scd-icon-xs);
+	height: var(--scd-icon-xs);
 }
 
 .scd-button--large .scd-icon,
@@ -335,6 +494,7 @@
 	height: var(--scd-icon-medium);
 }
 
+/* Icon-only buttons */
 .scd-button--icon-only,
 .scd-btn-icon {
 	width: var(--scd-button-icon-size);
@@ -346,9 +506,9 @@
 
 .scd-button--icon-only.scd-button--small,
 .scd-btn-icon.scd-btn-sm {
-	width: var(--scd-button-icon-size-small);
-	height: var(--scd-button-icon-size-small);
-	min-width: var(--scd-button-icon-size-small);
+	width: var(--scd-button-height);
+	height: var(--scd-button-height);
+	min-width: var(--scd-button-height);
 }
 
 .scd-button--icon-only.scd-button--large,
@@ -358,17 +518,39 @@
 	min-width: var(--scd-button-icon-size-large);
 }
 
-/* Common navigation button properties - override WordPress defaults */
+/* ==========================================================================
+   Navigation Buttons (Wizard)
+   ========================================================================== */
+
 .wp-core-ui .scd-nav-btn--previous,
 .wp-core-ui .scd-nav-btn--next,
 .wp-core-ui .scd-nav-btn--complete {
-	transition: var(--scd-transition-colors);
 	font-size: var(--scd-font-size-medium);
-	font-weight: normal;
+	font-weight: var(--scd-font-weight-medium);
 	padding: var(--scd-spacing-base) var(--scd-spacing-xl);
 }
 
-/* Complete button - extra horizontal padding */
 .wp-core-ui .scd-nav-btn--complete {
 	padding: var(--scd-spacing-base) var(--scd-spacing-xxl);
+}
+
+/* ==========================================================================
+   Accessibility - Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+	.scd-button,
+	.scd-btn {
+		transition: none;
+	}
+
+	.scd-button:active,
+	.scd-btn:active {
+		transform: none;
+	}
+
+	.scd-button--loading::after,
+	.scd-btn-loading::after {
+		animation: none;
+	}
 }

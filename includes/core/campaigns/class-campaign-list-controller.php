@@ -432,37 +432,81 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 	/**
 	 * Render draft campaign notice.
 	 *
+	 * Enhanced with accessibility features, icons, and improved layout.
+	 *
 	 * @since    1.0.0
 	 * @param    array $draft_info    Draft campaign information.
 	 * @return   void
 	 */
 	private function render_draft_notice( array $draft_info ): void {
-		$nonce = wp_create_nonce( 'scd_discard_draft' );
+		// Calculate time remaining until expiration (2 hours = 7200 seconds)
+		$last_updated      = $draft_info['last_updated'] ?? time();
+		$session_lifetime  = 7200; // Should match SCD_Wizard_State_Service::SESSION_LIFETIME
+		$time_elapsed      = time() - $last_updated;
+		$time_remaining    = $session_lifetime - $time_elapsed;
+		$minutes_remaining = max( 0, floor( $time_remaining / 60 ) );
+		$hours_remaining   = floor( $minutes_remaining / 60 );
+		$mins_only         = $minutes_remaining % 60;
+
+		// Determine urgency level
+		if ( $minutes_remaining <= 15 ) {
+			$urgency_class = 'scd-expiration-urgent';
+		} elseif ( $minutes_remaining <= 30 ) {
+			$urgency_class = 'scd-expiration-warning';
+		} else {
+			$urgency_class = 'scd-expiration-normal';
+		}
 		?>
-		<div class="notice notice-info scd-draft-notice">
+		<div class="notice notice-info scd-draft-notice" role="status" aria-live="polite" aria-atomic="true">
 			<p>
-				<strong><?php echo esc_html__( 'Draft Campaign Found', 'smart-cycle-discounts' ); ?></strong>
-				<?php echo esc_html__( 'You have an incomplete campaign:', 'smart-cycle-discounts' ); ?>
-				<strong><?php echo esc_html( $draft_info['campaign_name'] ); ?></strong>
-				
+				<?php echo SCD_Icon_Helper::get( 'info', array( 'size' => 20 ) ); ?>
+				<span class="scd-draft-label">
+					<?php echo esc_html__( 'Draft:', 'smart-cycle-discounts' ); ?>
+				</span>
+				<strong class="scd-draft-campaign-name"><?php echo esc_html( $draft_info['campaign_name'] ); ?></strong>
+
 				<?php if ( ! empty( $draft_info['last_updated'] ) ) : ?>
-					<span class="scd-draft-meta">
+					<span class="scd-draft-meta" aria-label="<?php echo esc_attr__( 'Last activity timestamp', 'smart-cycle-discounts' ); ?>">
 						<?php
 						printf(
 							/* translators: %s: Human readable time difference */
-							esc_html__( 'Last updated %s ago', 'smart-cycle-discounts' ),
-							human_time_diff( $draft_info['last_updated'], current_time( 'timestamp' ) )
+							esc_html__( '(edited %s ago)', 'smart-cycle-discounts' ),
+							esc_html( human_time_diff( $draft_info['last_updated'], time() ) )
 						);
 						?>
 					</span>
 				<?php endif; ?>
-				
-				<span class="scd-draft-actions">
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns&action=wizard&intent=continue' ) ); ?>" 
-						class="button button-small">
-						<?php echo esc_html__( 'Continue Editing', 'smart-cycle-discounts' ); ?>
+
+				<span class="scd-draft-expiration <?php echo esc_attr( $urgency_class ); ?>" aria-label="<?php echo esc_attr__( 'Draft expiration time', 'smart-cycle-discounts' ); ?>">
+					<?php
+					if ( $hours_remaining > 0 ) {
+						printf(
+							/* translators: 1: hours, 2: minutes */
+							esc_html__( 'Expires in %1$d hour %2$d min', 'smart-cycle-discounts' ),
+							$hours_remaining,
+							$mins_only
+						);
+					} elseif ( $minutes_remaining > 1 ) {
+						printf(
+							/* translators: %d: minutes */
+							esc_html__( 'Expires in %d minutes', 'smart-cycle-discounts' ),
+							$minutes_remaining
+						);
+					} elseif ( $minutes_remaining === 1 ) {
+						echo esc_html__( 'Expires in 1 minute', 'smart-cycle-discounts' );
+					} else {
+						echo esc_html__( 'Expiring soon', 'smart-cycle-discounts' );
+					}
+					?>
+				</span>
+
+				<span class="scd-draft-actions" role="group" aria-label="<?php echo esc_attr__( 'Draft campaign actions', 'smart-cycle-discounts' ); ?>">
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns&action=wizard&intent=continue' ) ); ?>"
+						class="scd-button scd-button-primary"
+						aria-label="<?php echo esc_attr__( 'Resume editing draft campaign', 'smart-cycle-discounts' ); ?>">
+						<?php echo esc_html__( 'Resume', 'smart-cycle-discounts' ); ?>
 					</a>
-					
+
 					<a href="
 					<?php
 					echo esc_url(
@@ -473,8 +517,10 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 						)
 					);
 					?>
-					" 
-						class="button-link-delete"
+					"
+						class="scd-button scd-button-secondary scd-button-danger"
+						role="button"
+						aria-label="<?php echo esc_attr__( 'Discard draft campaign', 'smart-cycle-discounts' ); ?>"
 						onclick="return confirm('<?php echo esc_attr__( 'Are you sure you want to discard this draft campaign?', 'smart-cycle-discounts' ); ?>');">
 						<?php echo esc_html__( 'Discard Draft', 'smart-cycle-discounts' ); ?>
 					</a>
@@ -495,31 +541,115 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 	private function render_draft_conflict_modal(): void {
 		require_once SCD_INCLUDES_DIR . 'admin/components/class-modal-component.php';
 
+		// Get draft info for enhanced modal content
+		$draft_info = $this->wizard_state_service->get_draft_info();
+
+		// Build enhanced modal content with draft details
+		$content = '<div id="scd-modal-message">';
+
+		if ( $draft_info ) {
+			// Campaign name
+			$content .= '<p>';
+			$content .= esc_html__( 'You have an unfinished campaign in progress:', 'smart-cycle-discounts' );
+			$content .= '</p>';
+			$content .= '<p>';
+			$content .= '<strong>' . esc_html( $draft_info['campaign_name'] ) . '</strong>';
+			$content .= '</p>';
+
+			// Draft meta information (timestamp and expiration)
+			$content .= '<div class="scd-modal__draft-meta">';
+
+			// Last updated timestamp
+			if ( ! empty( $draft_info['last_updated'] ) ) {
+				$content .= '<div class="scd-modal__draft-meta-item">';
+				$content .= SCD_Icon_Helper::get( 'clock', array( 'size' => 16 ) );
+				$content .= '<span>';
+				$content .= sprintf(
+					/* translators: %s: Human readable time difference */
+					esc_html__( 'Last edited %s ago', 'smart-cycle-discounts' ),
+					esc_html( human_time_diff( $draft_info['last_updated'], time() ) )
+				);
+				$content .= '</span>';
+				$content .= '</div>';
+			}
+
+			// Expiration timer
+			$last_updated      = $draft_info['last_updated'] ?? time();
+			$session_lifetime  = 7200; // 2 hours
+			$time_elapsed      = time() - $last_updated;
+			$time_remaining    = $session_lifetime - $time_elapsed;
+			$minutes_remaining = max( 0, floor( $time_remaining / 60 ) );
+			$hours_remaining   = floor( $minutes_remaining / 60 );
+			$mins_only         = $minutes_remaining % 60;
+
+			// Determine urgency level
+			if ( $minutes_remaining <= 15 ) {
+				$urgency_class = 'scd-expiration-urgent';
+			} elseif ( $minutes_remaining <= 30 ) {
+				$urgency_class = 'scd-expiration-warning';
+			} else {
+				$urgency_class = 'scd-expiration-normal';
+			}
+
+			$content .= '<div class="scd-modal__draft-meta-item">';
+			$content .= '<span class="scd-modal__expiration ' . esc_attr( $urgency_class ) . '">';
+			if ( $hours_remaining > 0 ) {
+				$content .= sprintf(
+					/* translators: 1: hours, 2: minutes */
+					esc_html__( 'Draft expires in %1$d hour %2$d min', 'smart-cycle-discounts' ),
+					$hours_remaining,
+					$mins_only
+				);
+			} elseif ( $minutes_remaining > 1 ) {
+				$content .= sprintf(
+					/* translators: %d: minutes */
+					esc_html__( 'Draft expires in %d minutes', 'smart-cycle-discounts' ),
+					$minutes_remaining
+				);
+			} elseif ( $minutes_remaining === 1 ) {
+				$content .= esc_html__( 'Draft expires in 1 minute', 'smart-cycle-discounts' );
+			} else {
+				$content .= esc_html__( 'Draft expiring soon', 'smart-cycle-discounts' );
+			}
+			$content .= '</span>';
+			$content .= '</div>';
+
+			$content .= '</div>'; // .scd-modal__draft-meta
+
+			// Action prompt
+			$content .= '<p>';
+			$content .= esc_html__( 'Would you like to continue working on this draft or start fresh?', 'smart-cycle-discounts' );
+			$content .= '</p>';
+		}
+
+		$content .= '</div>';
+
 		$modal_config = array(
 			'id'             => 'scd-draft-conflict-modal',
-			'title'          => '<span id="scd-modal-title">' . esc_html__( 'Draft Campaign Exists', 'smart-cycle-discounts' ) . '</span>',
-			'content'        => '<div id="scd-modal-message"></div>',
-			'icon'           => 'warning',
-			'classes'        => array( 'scd-modal__icon--warning' ),
+			'title'          => esc_html__( 'Unfinished Campaign Found', 'smart-cycle-discounts' ),
+			'content'        => $content,
+			'icon'           => 'info',
+			'classes'        => array( 'scd-modal__icon--info' ),
 			'buttons'        => array(
 				array(
-					'id'     => 'scd-save-and-new',
-					'text'   => __( 'Save as Draft & Create New', 'smart-cycle-discounts' ),
-					'class'  => 'button button-secondary scd-save-btn',
-					'action' => 'save-new',
-					'style'  => 'display:none;',
+					'id'     => 'scd-continue-draft',
+					'text'   => __( 'Resume Campaign', 'smart-cycle-discounts' ),
+					'class'  => 'scd-button scd-button-primary',
+					'action' => 'continue',
+					'icon'   => 'edit',
 				),
 				array(
 					'id'     => 'scd-discard-and-new',
-					'text'   => __( 'Discard & Create New', 'smart-cycle-discounts' ),
-					'class'  => 'button button-secondary scd-discard-btn',
+					'text'   => __( 'Start New Campaign', 'smart-cycle-discounts' ),
+					'class'  => 'scd-button scd-button-danger scd-discard-btn',
 					'action' => 'discard-new',
-					'style'  => 'display:none;',
+					'icon'   => 'trash',
 				),
 				array(
-					'text'   => __( 'Cancel', 'smart-cycle-discounts' ),
-					'class'  => 'button scd-modal-cancel',
+					'text'   => __( 'Go Back', 'smart-cycle-discounts' ),
+					'class'  => 'scd-button scd-button-secondary scd-modal-cancel',
 					'action' => 'close',
+					'icon'   => 'no',
 				),
 			),
 			'escape_content' => false, // Already escaped above
@@ -614,14 +744,9 @@ class SCD_Campaign_List_Controller extends SCD_Abstract_Campaign_Controller {
 			'scd-campaign-list-modals',
 			'scdCampaignListL10n',
 			array(
-				'unsavedDraftText'    => esc_html__( 'You have an unsaved draft campaign:', 'smart-cycle-discounts' ),
-				'whatToDoText'        => esc_html__( 'What would you like to do?', 'smart-cycle-discounts' ),
-				'savingDraftText'     => esc_html__( 'Saving Draft...', 'smart-cycle-discounts' ),
-				'discardingText'      => esc_html__( 'Discarding...', 'smart-cycle-discounts' ),
-				'saveDraftButtonText' => esc_html__( 'Save Draft & Create New', 'smart-cycle-discounts' ),
-				'saveDraftErrorText'  => esc_html__( 'Failed to save draft. Please try again.', 'smart-cycle-discounts' ),
-				'adminUrl'            => admin_url( 'admin.php' ),
-				'nonce'               => wp_create_nonce( 'scd_wizard_nonce' ),
+				'discardingText' => esc_html__( 'Discarding...', 'smart-cycle-discounts' ),
+				'adminUrl'       => admin_url( 'admin.php' ),
+				'nonce'          => wp_create_nonce( 'scd_wizard_nonce' ),
 			)
 		);
 	}

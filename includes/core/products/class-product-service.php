@@ -348,18 +348,46 @@ class SCD_Product_Service {
 
 		$category_ids = $product->get_category_ids();
 
+		// Get primary category name
+		$primary_category = '';
+		if ( ! empty( $category_ids ) ) {
+			$term = get_term( $category_ids[0], 'product_cat' );
+			if ( $term && ! is_wp_error( $term ) ) {
+				$primary_category = $term->name;
+			}
+		}
+
+		// Get variation count for variable products
+		$variation_count = 0;
+		if ( 'variable' === $product->get_type() ) {
+			$variation_count = count( $product->get_children() );
+		}
+
+		// Calculate discount percentage if on sale
+		$discount_percent = 0;
+		if ( $product->is_on_sale() ) {
+			$regular = floatval( $product->get_regular_price() );
+			$sale    = floatval( $product->get_sale_price() );
+			if ( $regular > 0 && $sale > 0 && $sale < $regular ) {
+				$discount_percent = round( ( ( $regular - $sale ) / $regular ) * 100 );
+			}
+		}
+
 		return array(
-			'id'            => $product->get_id(),
-			'name'          => $product->get_name(),
-			'price'         => $product->get_price_html(),
-			'regular_price' => $product->get_regular_price(),
-			'sale_price'    => $product->get_sale_price(),
-			'image'         => $image_url,
-			'sku'           => $product->get_sku(),
-			'stock_status'  => $product->get_stock_status(),
-			'category_ids'  => $category_ids,
-			'type'          => $product->get_type(),
-			'on_sale'       => $product->is_on_sale(),
+			'id'               => $product->get_id(),
+			'name'             => $product->get_name(),
+			'price'            => $product->get_price_html(),
+			'regular_price'    => $product->get_regular_price(),
+			'sale_price'       => $product->get_sale_price(),
+			'image'            => $image_url,
+			'sku'              => $product->get_sku(),
+			'stock_status'     => $product->get_stock_status(),
+			'category_ids'     => $category_ids,
+			'primary_category' => $primary_category,
+			'type'             => $product->get_type(),
+			'on_sale'          => $product->is_on_sale(),
+			'variation_count'  => $variation_count,
+			'discount_percent' => $discount_percent,
 		);
 	}
 

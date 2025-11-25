@@ -666,7 +666,9 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			return array();
 		}
 
-		return $session['steps'][ $current_step ] ?? array();
+		$step_data = $session['steps'][ $current_step ] ?? array();
+
+		return $step_data;
 	}
 
 	/**

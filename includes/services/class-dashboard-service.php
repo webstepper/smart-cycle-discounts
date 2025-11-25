@@ -543,8 +543,8 @@ class SCD_Dashboard_Service {
 					$campaign_limit
 				),
 			);
-			if ( 'success' === $health['status'] ) {
-				$health['status'] = 'warning';
+			if ( in_array( $health['status'], array( 'excellent', 'good' ), true ) ) {
+				$health['status'] = 'fair';
 			}
 		}
 
@@ -552,7 +552,7 @@ class SCD_Dashboard_Service {
 		$health['quick_stats']['issues_count']   = count( $health['issues'] );
 		$health['quick_stats']['warnings_count'] = count( $health['warnings'] );
 
-		if ( 'success' === $health['status'] && empty( $health['warnings'] ) && ! empty( $campaigns ) ) {
+		if ( in_array( $health['status'], array( 'excellent', 'good' ), true ) && empty( $health['warnings'] ) && ! empty( $campaigns ) ) {
 			$health['success_messages'][] = sprintf(
 				/* translators: %d: number of campaigns */
 				_n( '%d campaign analyzed and healthy', '%d campaigns analyzed and healthy', count( $campaigns ), 'smart-cycle-discounts' ),
@@ -575,7 +575,7 @@ class SCD_Dashboard_Service {
 	 */
 	private function get_empty_health_structure(): array {
 		return array(
-			'status'           => 'success',
+			'status'           => 'excellent',
 			'issues'           => array(),
 			'warnings'         => array(),
 			'success_messages' => array(),
@@ -584,7 +584,19 @@ class SCD_Dashboard_Service {
 					'status' => 'healthy',
 					'count'  => 0,
 				),
+				'coverage'      => array(
+					'status' => 'healthy',
+					'count'  => 0,
+				),
 				'schedule'      => array(
+					'status' => 'healthy',
+					'count'  => 0,
+				),
+				'discount'      => array(
+					'status' => 'healthy',
+					'count'  => 0,
+				),
+				'stock'         => array(
 					'status' => 'healthy',
 					'count'  => 0,
 				),
@@ -609,14 +621,16 @@ class SCD_Dashboard_Service {
 	 * @return   string                       Dashboard status.
 	 */
 	private function map_status_to_dashboard( string $service_status ): string {
-		$status_map = array(
-			'excellent' => 'success',
-			'good'      => 'success',
-			'fair'      => 'warning',
-			'poor'      => 'critical',
-		);
+		// Pass through the 5 statuses directly for consistency with other features
+		// (Campaign List, Overview Panel, Wizard Review all use these same 5 statuses)
+		$valid_statuses = array( 'excellent', 'good', 'fair', 'poor', 'critical' );
 
-		return isset( $status_map[ $service_status ] ) ? $status_map[ $service_status ] : 'success';
+		if ( in_array( $service_status, $valid_statuses, true ) ) {
+			return $service_status;
+		}
+
+		// Default to 'fair' for unknown statuses (middle ground)
+		return 'fair';
 	}
 
 	/**

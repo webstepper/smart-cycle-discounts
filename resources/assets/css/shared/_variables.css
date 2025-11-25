@@ -25,9 +25,6 @@
     /* Color aliases - all base colors defined in _theme-colors.css */
     --scd-color-primary-darker: var(--scd-color-primary-dark);
     --scd-color-primary-lighter: var(--scd-color-secondary);
-    --scd-color-error: var(--scd-color-danger);
-    --scd-color-error-dark: var(--scd-color-danger-dark);
-    --scd-color-error-light: var(--scd-color-danger-light);
     --scd-color-black: #000;
     --scd-color-background: var(--scd-color-white);
     --scd-color-border-lighter: var(--scd-color-surface-dark);
@@ -60,6 +57,8 @@
     --scd-font-family-mono: Consolas, Monaco, monospace;
     
     /* Font Sizes */
+    --scd-font-size-xxs: 10px;
+    --scd-font-size-xs: 11px;
     --scd-font-size-small: 12px; /* WCAG AA compliant minimum */
     --scd-font-size-base: 13px;
     --scd-font-size-medium: 14px;
@@ -68,12 +67,24 @@
     --scd-font-size-xl: 18px;
     --scd-font-size-xxl: 20px;
     --scd-font-size-xxxl: 24px;
+    --scd-font-size-display-sm: 28px;
+    --scd-font-size-display-md: 32px;
+    --scd-font-size-display-lg: 40px;
+    --scd-font-size-display-xl: 48px;
+    --scd-font-size-display-xxl: 64px;
 
     /* Icon Sizes - SVG and Dashicons */
+    --scd-icon-xs: 12px;
     --scd-icon-small: 16px;
     --scd-icon-medium: 20px;
     --scd-icon-large: 24px;
-    
+    --scd-icon-xl: 28px;
+    --scd-icon-xxl: 32px;
+    --scd-icon-hero: 40px;
+    --scd-icon-display: 48px;
+    --scd-icon-display-lg: 64px;
+    --scd-icon-display-xl: 72px;
+
     /* Font Weights */
     --scd-font-weight-normal: 400;
     --scd-font-weight-medium: 500;
@@ -92,6 +103,7 @@
     --scd-spacing-xxs: 2px;
     --scd-spacing-xs: 4px;
     --scd-spacing-sm: 8px;
+    --scd-spacing-sm-large: 10px;
     --scd-spacing-md: 12px;
     --scd-spacing-base: 16px;
     --scd-spacing-lg: 20px;
@@ -117,9 +129,12 @@
     --scd-padding-sm-large: 10px;
     --scd-padding-compact: 12px;
     --scd-padding-medium: 14px;
+    --scd-padding-base: 16px;
     --scd-padding-large: 16px;
+    --scd-padding-lg: 18px;
     --scd-padding-section: 20px;
     --scd-padding-spacious: 24px;
+    --scd-padding-modal-header: 28px;
     
     /* ==========================================================================
        Layout
@@ -158,6 +173,15 @@
     --scd-sidebar-width-tablet: 300px;
     --scd-sidebar-width-small: 200px;
 
+    /* WordPress Admin Bar Heights */
+    --scd-wp-admin-bar-height-desktop: 32px;
+    --scd-wp-admin-bar-height-mobile: 46px;
+
+    /* Sidebar Sticky Positioning */
+    --scd-sidebar-sticky-top: var(--scd-wp-admin-bar-height-desktop);
+    --scd-sidebar-margin-top: var(--scd-spacing-base);
+    --scd-sidebar-margin-bottom: var(--scd-spacing-base);
+
     /* Badge & Special Component Sizes */
     --scd-checkbox-size: 16px;
     --scd-badge-number-width: 44px;
@@ -170,6 +194,11 @@
     /* Input Styling - WordPress Core */
     --scd-input-max-width: 25em;
     --scd-input-border-radius: var(--scd-radius-md);
+    --scd-input-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --scd-input-focus-shadow: 0 0 0 3px rgba(34, 113, 177, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
+
+    /* Form Transitions */
+    --scd-form-input-transition: border-color var(--scd-transition-base) ease, box-shadow var(--scd-transition-base) ease;
 
     /* Form Field Sizes */
     --scd-form-field-width-small: 200px;
@@ -194,11 +223,13 @@
     --scd-border-width-accent-thin: 3px;
 
     /* Border Radius */
+    --scd-radius-xs: 2px;
     --scd-radius-sm: 4px;
     --scd-radius-custom: 6px;  /* Buttons - Modern, softer appearance */
     --scd-radius-md: 6px;
     --scd-radius-lg: 8px;
     --scd-radius-xl: 12px;
+    --scd-radius-xxl: 16px;
     --scd-radius-full: 50%;
     --scd-radius-pill: 100px;
 

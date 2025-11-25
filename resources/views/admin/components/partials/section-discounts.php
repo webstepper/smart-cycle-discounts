@@ -122,6 +122,36 @@ $free_shipping      = isset( $data['free_shipping'] ) ? $data['free_shipping'] :
 				<?php echo SCD_Icon_Helper::get( 'chart-line', array( 'size' => 16 ) ); ?>
 				<span><?php echo esc_html( $tiered_config['description'] ); ?></span>
 			</div>
+
+			<?php
+			// Calculate maximum savings for display
+			$max_tier         = end( $tiered_config['tiers'] );
+			$max_discount     = ! empty( $max_tier['discount_value'] ) ? $max_tier['discount_value'] : 0;
+			$max_is_percentage = ! empty( $max_tier['is_percentage'] );
+			if ( $max_discount > 0 ) :
+				?>
+				<div class="scd-discount-highlight">
+					<?php echo SCD_Icon_Helper::get( 'tag', array( 'size' => 16 ) ); ?>
+					<span>
+						<?php
+						if ( $max_is_percentage ) {
+							printf(
+								/* translators: %s: maximum discount percentage */
+								esc_html__( 'Save up to %s%%', 'smart-cycle-discounts' ),
+								esc_html( number_format_i18n( $max_discount, 0 ) )
+							);
+						} else {
+							printf(
+								/* translators: %s: maximum discount amount */
+								esc_html__( 'Save up to %s', 'smart-cycle-discounts' ),
+								wp_kses_post( wc_price( $max_discount ) )
+							);
+						}
+						?>
+					</span>
+				</div>
+			<?php endif; ?>
+
 			<ul class="scd-tiered-list">
 				<?php foreach ( $tiered_config['tiers'] as $tier ) : ?>
 					<li class="scd-tier-item">
@@ -143,7 +173,7 @@ $free_shipping      = isset( $data['free_shipping'] ) ? $data['free_shipping'] :
 							}
 							?>
 						</span>
-						<span class="scd-tier-discount"><?php echo esc_html( $tier['formatted'] ); ?></span>
+						<span class="scd-tier-discount"><?php echo wp_kses_post( $tier['formatted'] ); ?></span>
 					</li>
 				<?php endforeach; ?>
 			</ul>
@@ -159,7 +189,7 @@ $free_shipping      = isset( $data['free_shipping'] ) ? $data['free_shipping'] :
 			<ul class="scd-threshold-list">
 				<?php foreach ( $threshold_config['thresholds'] as $threshold ) : ?>
 					<li class="scd-threshold-item">
-						<?php echo esc_html( $threshold['formatted'] ); ?>
+						<?php echo wp_kses_post( $threshold['formatted'] ); ?>
 					</li>
 				<?php endforeach; ?>
 			</ul>

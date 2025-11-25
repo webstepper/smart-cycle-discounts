@@ -274,26 +274,15 @@ class SCD_Style_Registry {
 			)
 		);
 
-		// Validation UI styles - only for plugin admin pages
-		$this->add_style(
-			'scd-validation-ui',
-			array(
-				'src'   => 'resources/assets/css/admin/validation-ui.css',
-				'deps'  => array( 'scd-admin' ),
-				'pages' => array( 'scd-campaigns', 'scd-analytics' ),
-				'media' => 'all',
-			)
-		);
-
-		// Validation styles - only for wizard pages where form validation occurs
+		// Validation styles - complete validation system for all plugin admin pages
+		// Includes field states, error messages, validation summary, and UI components
 		$this->add_style(
 			'scd-validation',
 			array(
-				'src'       => 'resources/assets/css/admin/validation.css',
-				'deps'      => array( 'scd-admin' ),
-				'pages'     => array( 'scd-campaigns' ),
-				'condition' => array( 'action' => 'wizard' ),
-				'media'     => 'all',
+				'src'   => 'resources/assets/css/admin/validation.css',
+				'deps'  => array( 'scd-admin' ),
+				'pages' => array( 'scd-campaigns', 'scd-analytics' ),
+				'media' => 'all',
 			)
 		);
 
@@ -369,9 +358,9 @@ class SCD_Style_Registry {
 			'scd-wordpress-color-schemes',
 			array(
 				'src'      => 'resources/assets/css/admin/wordpress-color-schemes.css',
-				'deps'     => array(),
+				'deps'     => array( 'scd-theme-colors' ),
 				'pages'    => array( 'scd-campaigns', 'scd-analytics', 'scd-settings', 'scd-dashboard' ),
-				'priority' => 1,
+				'priority' => 2,
 			)
 		);
 
@@ -439,6 +428,17 @@ class SCD_Style_Registry {
 			'scd-campaigns-list',
 			array(
 				'src'      => 'resources/assets/css/admin/campaigns-list.css',
+				'deps'     => array( 'scd-admin' ),
+				'pages'    => array( 'scd-campaigns' ),
+				'priority' => 10,
+			)
+		);
+
+		// Draft conflict modal styles
+		$this->add_style(
+			'scd-draft-conflict-modal',
+			array(
+				'src'      => 'resources/assets/css/admin/draft-conflict-modal.css',
 				'deps'     => array( 'scd-admin' ),
 				'pages'    => array( 'scd-campaigns' ),
 				'priority' => 10,
@@ -528,6 +528,17 @@ class SCD_Style_Registry {
 			'scd-wizard-sidebar-components',
 			array(
 				'src'       => 'resources/assets/css/admin/wizard-sidebar-components.css',
+				'deps'      => array( 'scd-wizard-steps' ),
+				'pages'     => array( 'scd-campaigns' ),
+				'condition' => array( 'action' => 'wizard' ),
+			)
+		);
+
+		// Contextual sidebar system
+		$this->add_style(
+			'scd-sidebar-contextual',
+			array(
+				'src'       => 'resources/assets/css/admin/sidebar-contextual.css',
 				'deps'      => array( 'scd-wizard-steps' ),
 				'pages'     => array( 'scd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),

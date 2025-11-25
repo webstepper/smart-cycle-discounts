@@ -17,7 +17,7 @@
 .scd-wizard-step--products {
 	/* Custom CSS variables for products step */
 	--scd-products-accent: var(--scd-color-primary);
-	--scd-products-highlight: rgba(34, 113, 177, 0.05);
+	--scd-products-highlight: var(--scd-color-primary-bg);
 }
 
 /* ==========================================================================
@@ -130,10 +130,10 @@
 /* Icon styling in cards */
 .scd-wizard-step--products .scd-card-option .scd-icon {
 	color: var(--scd-color-primary);
-	font-size: 22px;
-	width: 22px;
-	height: 22px;
-	margin-right: 10px;
+	font-size: var(--scd-font-size-xxl);
+	width: var(--scd-font-size-xxl);
+	height: var(--scd-font-size-xxl);
+	margin-right: var(--scd-spacing-sm);
 	vertical-align: middle;
 	transition: color var(--scd-transition-fast) ease;
 }
@@ -288,7 +288,7 @@
 
 /* Special styling for low stock warning icon */
 .scd-smart-option .scd-icon-warning {
-	color: var(--scd-color-error);
+	color: var(--scd-color-danger);
 }
 
 .scd-smart-option:hover .scd-icon-warning,
@@ -623,9 +623,9 @@
 }
 
 .scd-conditions-empty .scd-icon {
-	font-size: 48px;
-	width: 48px;
-	height: var(--scd-input-height-large);
+	font-size: var(--scd-icon-display);
+	width: var(--scd-icon-display);
+	height: var(--scd-icon-display);
 	color: var(--scd-color-border);
 	margin-bottom: var(--scd-spacing-md);
 }
@@ -649,14 +649,14 @@
 	align-items: flex-start;
 	gap: var(--scd-gap-normal);
 	padding: var(--scd-padding-medium);
-	background: var(--scd-color-error-bg);
-	border: var(--scd-border-width) solid var(--scd-color-error);
+	background: var(--scd-color-danger-bg);
+	border: var(--scd-border-width) solid var(--scd-color-danger);
 	border-left-width: 4px;
 	border-radius: var(--scd-radius-md);
 }
 
 .scd-validation-error .scd-icon {
-	color: var(--scd-color-error);
+	color: var(--scd-color-danger);
 	font-size: var(--scd-font-size-xxl);
 	flex-shrink: 0;
 	line-height: 1;
@@ -667,7 +667,7 @@
 	font-size: var(--scd-font-size-medium);
 	font-weight: var(--scd-font-weight-semibold);
 	margin: 0 0 6px 0;
-	color: var(--scd-color-error);
+	color: var(--scd-color-danger);
 }
 
 .scd-validation-content ul {
@@ -977,7 +977,7 @@
  * Applied when validation fails for a condition
  */
 .scd-condition-row.scd-condition-error {
-	background-color: rgba(204, 29, 32, 0.03);
+	background-color: var(--scd-color-error-bg);
 	border-left: 3px solid var(--scd-color-danger);
 	animation: scd-error-pulse 0.3s ease-out;
 }
@@ -989,14 +989,13 @@
  */
 
 /**
- * Field error highlighting
- * Red border on the specific field with the issue
- * Note: Uses central ValidationError component for consistent styling
+ * Validation errors - Inherits base from validation.css
+ * Component-specific positioning only
  */
 .scd-condition-row .scd-field-error {
-	border-color: var(--scd-color-danger) !important;
-	box-shadow: var(--scd-step-products-error-shadow);
-	transition: border-color var(--scd-transition-base) ease, box-shadow var(--scd-transition-base) ease;
+	/* Base styling inherited from validation.css */
+	/* Component-specific adjustment: right-aligned border for inline display */
+	border-radius: 0 var(--scd-radius-sm) var(--scd-radius-sm) 0;
 }
 
 /**
@@ -1029,22 +1028,6 @@
 }
 
 /**
- * Error message from central ValidationError component
- * Positioned after the problematic field
- */
-.scd-condition-row .scd-field-error {
-	display: block;
-	margin-top: var(--scd-spacing-xs);
-	padding: var(--scd-spacing-xs) 8px;
-	background-color: rgba(204, 29, 32, 0.05);
-	border-left: 2px solid var(--scd-color-danger);
-	border-radius: 0 var(--scd-radius-sm) var(--scd-radius-sm) 0;
-	font-size: var(--scd-font-size-small);
-	line-height: 1.4;
-	color: var(--scd-color-danger);
-}
-
-/**
  * Inline validation error container
  * Displays validation errors directly below the condition row
  */
@@ -1060,8 +1043,8 @@
 	align-items: flex-start;
 	gap: var(--scd-gap-normal);
 	padding: var(--scd-padding-medium) 14px;
-	background-color: rgba(204, 29, 32, 0.06);
-	border: var(--scd-border-width) solid rgba(204, 29, 32, 0.15);
+	background-color: var(--scd-color-danger-bg);
+	border: var(--scd-border-width) solid var(--scd-color-danger-alpha-15);
 	border-left: 3px solid var(--scd-color-danger);
 	border-radius: var(--scd-radius-sm);
 	font-size: var(--scd-font-size-base);
@@ -1092,7 +1075,7 @@
 .scd-condition-error-message + .scd-condition-error-message {
 	margin-top: var(--scd-spacing-sm);
 	padding-top: var(--scd-spacing-sm);
-	border-top: var(--scd-border-width) solid rgba(204, 29, 32, 0.1);
+	border-top: var(--scd-border-width) solid var(--scd-color-danger-light-border);
 }
 
 /* @keyframes scd-slide-down - Defined in shared/_utilities.css */
@@ -1120,8 +1103,11 @@
 	width: 12px;
 	height: 12px;
 	margin-left: var(--scd-spacing-xs);
-	background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="%23dba617" d="M10 2L2 17h16L10 2zm0 3l5.5 10h-11L10 5zm-1 3v4h2V8H9zm0 5v2h2v-2H9z"/></svg>') no-repeat center;
-	background-size: contain;
+	-webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 2L2 17h16L10 2zm0 3l5.5 10h-11L10 5zm-1 3v4h2V8H9zm0 5v2h2v-2H9z"/></svg>') no-repeat center;
+	mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 2L2 17h16L10 2zm0 3l5.5 10h-11L10 5zm-1 3v4h2V8H9zm0 5v2h2v-2H9z"/></svg>') no-repeat center;
+	-webkit-mask-size: contain;
+	mask-size: contain;
+	background-color: var(--scd-color-warning);
 	vertical-align: middle;
 }
 
@@ -1469,11 +1455,11 @@
 }
 
 .scd-summary-list li.summary-exclude {
-	border-left-color: var(--scd-color-error);
+	border-left-color: var(--scd-color-danger);
 }
 
 .scd-summary-list li.summary-exclude .scd-icon {
-	color: var(--scd-color-error);
+	color: var(--scd-color-danger);
 }
 
 .scd-summary-item-text {
@@ -1812,4 +1798,100 @@
     * {
         transition-duration: 0.01ms !important;
     }
+}
+/* ==========================================================================
+   Tom Select FOUC Prevention
+   ==========================================================================
+
+   Prevents Flash of Unstyled Content (FOUC) during Tom Select initialization.
+   The skeleton loader provides visual continuity during the ~100-200ms gap
+   between HTML render and JavaScript enhancement.
+
+   Structure:
+   - Native <select> hidden until Tom Select adds .tomselected class
+   - Skeleton div mimics final Tom Select structure (border, padding, pill)
+   - Dual animation (shimmer overlay + pulsing pill) indicates loading state
+   ========================================================================== */
+
+/* Hide native select element before Tom Select initialization */
+#scd-campaign-categories:not(.tomselected) {
+	opacity: 0;
+	height: 0;
+	overflow: hidden;
+	position: absolute;
+}
+
+/* Skeleton container - matches Tom Select multi-select structure */
+#scd-campaign-categories:not(.tomselected) + .scd-loading-skeleton {
+	display: flex;
+	align-items: center;
+	gap: var(--scd-spacing-xs);
+	min-height: calc(var(--scd-input-height-large) + 2px);
+	padding: var(--scd-spacing-xs) var(--scd-spacing-sm);
+	background: var(--scd-color-white);
+	border: 1px solid var(--scd-color-border);
+	border-radius: var(--scd-radius-md);
+	margin-bottom: 1em;
+	position: relative;
+	overflow: hidden;
+}
+
+/* Shimmer effect - sweeps across entire skeleton */
+#scd-campaign-categories:not(.tomselected) + .scd-loading-skeleton::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: -150%;
+	width: 150%;
+	height: 100%;
+	background: linear-gradient(
+		90deg,
+		transparent 0%,
+		var(--scd-overlay-white-light) 50%,
+		transparent 100%
+	);
+	animation: scd-skeleton-shine 2s ease-in-out infinite;
+	z-index: 1;
+}
+
+/* Skeleton pill - mimics selected category item */
+#scd-campaign-categories:not(.tomselected) + .scd-loading-skeleton::after {
+	content: '';
+	display: block;
+	width: 120px;
+	height: 26px;
+	background: linear-gradient(
+		90deg,
+		var(--scd-color-surface) 0%,
+		var(--scd-color-border-light) 50%,
+		var(--scd-color-surface) 100%
+	);
+	background-size: 200% 100%;
+	animation: scd-skeleton-pulse 1.5s ease-in-out infinite;
+	border-radius: var(--scd-radius-sm);
+	position: relative;
+	z-index: 2;
+}
+
+/* Hide skeleton once Tom Select is initialized */
+#scd-campaign-categories.tomselected + .scd-loading-skeleton {
+	display: none;
+}
+
+@keyframes scd-skeleton-pulse {
+	0% {
+		background-position: 200% 0;
+	}
+	100% {
+		background-position: -200% 0;
+	}
+}
+
+@keyframes scd-skeleton-shine {
+	0% {
+		left: -150%;
+	}
+	100% {
+		left: 100%;
+	}
 }

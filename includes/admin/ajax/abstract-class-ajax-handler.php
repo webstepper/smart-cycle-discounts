@@ -72,14 +72,14 @@ abstract class SCD_Abstract_Ajax_Handler {
 			// Execute handler logic
 			$result = $this->handle( $request );
 
-			// Ensure result is an array
-			if ( ! is_array( $result ) ) {
-				$result = array();
-			}
-
-			// Handle WP_Error returns from handle()
+			// Handle WP_Error returns from handle() FIRST before any conversion
 			if ( is_wp_error( $result ) ) {
 				return $this->handle_wp_error( $result );
+			}
+
+			// Ensure result is an array (for non-error responses)
+			if ( ! is_array( $result ) ) {
+				$result = array();
 			}
 
 			// Ensure success flag is set if not explicitly defined

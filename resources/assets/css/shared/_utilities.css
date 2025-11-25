@@ -114,47 +114,6 @@
 }
 
 /* ==========================================================================
-   Button Base - Consistent Button Styling
-   ========================================================================== */
-
-.scd-button-base {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--scd-spacing-xs);
-    min-height: var(--scd-button-height);
-    padding: 0 var(--scd-spacing-md);
-    background: var(--scd-color-background);
-    border: var(--scd-border-width) solid var(--scd-color-border);
-    border-radius: var(--scd-radius-md);
-    font-size: var(--scd-font-size-base);
-    font-weight: var(--scd-font-weight-medium);
-    line-height: 1;
-    color: var(--scd-color-text);
-    cursor: pointer;
-    text-decoration: none;
-    white-space: nowrap;
-}
-
-/* Note: Don't use with .scd-hover-lift to avoid transform conflicts */
-.scd-button-base:hover:not(:disabled) {
-    background: var(--scd-color-surface);
-    border-color: var(--scd-color-border-dark);
-    box-shadow: var(--scd-button-hover-shadow);
-    transform: var(--scd-button-hover-transform);
-}
-
-.scd-button-base:active:not(:disabled) {
-    box-shadow: none;
-    transform: var(--scd-button-active-transform);
-}
-
-.scd-button-base:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* ==========================================================================
    Status Messages - Consistent Alerts
    ========================================================================== */
 
@@ -175,7 +134,7 @@
 
 .scd-status-error {
     background: var(--scd-color-error-bg);
-    border-color: var(--scd-color-error);
+    border-color: var(--scd-color-danger);
     color: var(--scd-color-text);
 }
 
@@ -292,7 +251,7 @@
 .scd-text-muted { color: var(--scd-color-text-muted); }
 .scd-text-primary { color: var(--scd-color-primary); }
 .scd-text-success { color: var(--scd-color-success); }
-.scd-text-error { color: var(--scd-color-error); }
+.scd-text-error { color: var(--scd-color-danger); }
 .scd-text-warning { color: var(--scd-color-warning); }
 
 .scd-font-medium { font-weight: var(--scd-font-weight-medium); }
@@ -452,17 +411,17 @@
 /* Error pulse animation - for error states */
 @keyframes scd-error-pulse {
 	0%, 100% {
-		box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+		box-shadow: 0 0 0 0 var(--scd-color-danger-alpha-30);
 	}
 	50% {
-		box-shadow: 0 0 0 8px rgba(220, 38, 38, 0);
+		box-shadow: 0 0 0 8px transparent;
 	}
 }
 
 /* Highlight fade animation - for temporary highlights */
 @keyframes scd-highlight-fade {
 	0% {
-		background-color: rgba(59, 130, 246, 0.15);
+		background-color: var(--scd-color-blue-alpha-15);
 	}
 	100% {
 		background-color: transparent;
@@ -529,10 +488,10 @@
 /* Highlight pulse animation - PRO features */
 @keyframes scd-highlight-pulse {
 	0%, 100% {
-		box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+		box-shadow: 0 0 0 0 var(--scd-color-primary-alpha-30);
 	}
 	50% {
-		box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+		box-shadow: 0 0 0 6px transparent;
 	}
 }
 

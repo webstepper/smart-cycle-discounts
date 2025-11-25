@@ -65,6 +65,13 @@
 			window.SCD.ValidationError.clear( $field );
 		}
 
+			// Update state immediately to maintain single source of truth
+			if ( self.state && self.state.setState ) {
+				self.state.setState( {
+					discountValuePercentage: isNaN( value ) ? 0 : value
+				} );
+			}
+
 			// Real-time validation
 			if ( !isNaN( value ) ) {
 				if ( 0 >= value ) {
@@ -144,44 +151,47 @@
 		 * Validate percentage discount configuration
 		 */
 		validate: function() {
+			console.group( '🔍 PERCENTAGE DISCOUNT - validate()' );
 			var errors = {};
 			var warnings = {};
 
-			var value = this.state.getState ?
-				parseFloat( this.state.getState( 'discountValuePercentage' ) ) : 0;
+			// Get value from state (now always synchronized via input handler)
+			var value = this.state.getData ? parseFloat( this.state.getData( 'discountValuePercentage' ) ) : 0;
+
+			console.log( 'State value:', value );
+			console.log( 'Field exists:', $( '#discount_value_percentage' ).length > 0 );
+			console.log( 'Field value from DOM:', $( '#discount_value_percentage' ).val() );
+			console.log( 'Full state:', this.state.getState ? this.state.getState() : 'no state' );
 
 			if ( isNaN( value ) || 0 >= value ) {
-				errors.discountValuePercentage = 'Please enter a valid percentage';
+				errors.discount_value_percentage = 'Please enter a valid percentage';
+				console.warn( '❌ Validation failed: Invalid or missing percentage value' );
 			} else if ( 100 < value ) {
-				errors.discountValuePercentage = 'Percentage cannot exceed 100%';
+				errors.discount_value_percentage = 'Percentage cannot exceed 100%';
+				console.warn( '❌ Validation failed: Percentage exceeds 100%' );
 			} else if ( 50 < value ) {
-				warnings.discountValuePercentage = 'Large discount percentage. Please verify this is intended.';
+				warnings.discount_value_percentage = 'Large discount percentage. Please verify this is intended.';
+				console.log( '⚠️ Warning: Large percentage value' );
 			}
 
-			var isValid = SCD.Utils.isEmpty( errors );
-
-			// Log validation if errors exist
-			if ( !isValid ) {
-				SCD.ErrorHandler.handle(
-					new Error( 'Percentage discount validation failed' ),
-					'PercentageDiscount.validate',
-					SCD.ErrorHandler.SEVERITY.LOW,
-					{ errors: errors, warnings: warnings }
-				);
-			}
-
-			return {
-				valid: isValid,
+			var result = {
+				valid: 0 === Object.keys( errors ).length,
 				errors: errors,
 				warnings: warnings
 			};
+
+			console.log( 'Validation result:', result );
+			console.groupEnd();
+			return result;
 		},
 
 		/**
 		 * Collect percentage discount data
 		 */
 		collectData: function() {
-			var value = this.state.getState ? this.state.getState( 'discountValuePercentage' ) : 0;
+			// Get value from state (now always synchronized via input handler)
+			var value = this.state.getData ? parseFloat( this.state.getData( 'discountValuePercentage' ) ) : 0;
+			value = isNaN( value ) ? 0 : value;
 
 			return {
 				discountType: 'percentage',
@@ -195,13 +205,10 @@
 		 * @param data
 		 */
 		loadData: function( data ) {
-			if ( !SCD.Utils.isEmpty( data ) ) {
-				// Data already converted to camelCase by server
-				if ( data.discountValuePercentage !== undefined && this.state.setState ) {
-					this.state.setState( {
-						discountValuePercentage: parseFloat( data.discountValuePercentage ) || 0
-					} );
-				}
+			if ( data && data.discountValuePercentage !== undefined && this.state.setState ) {
+				this.state.setState( {
+					discountValuePercentage: parseFloat( data.discountValuePercentage ) || 0
+				} );
 			}
 		},
 
@@ -209,7 +216,7 @@
 		 * Get summary text for percentage discount
 		 */
 		getSummary: function() {
-			var value = this.state.getState ? this.state.getState( 'discountValuePercentage' ) : 0;
+			var value = this.state.getData ? this.state.getData( 'discountValuePercentage' ) : 0;
 			return value + '% off';
 		},
 

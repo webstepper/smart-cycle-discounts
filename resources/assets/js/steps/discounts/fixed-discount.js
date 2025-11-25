@@ -20,8 +20,8 @@
 
 		this.type = 'fixed';
 		this.config = SCD.Modules.Discounts.Config;
-		this.currencySymbol = SCD.Utils.get( window, 'scdDiscountStepData.currencySymbol', '$' )
-		this.currencyPosition = SCD.Utils.get( window, 'scdDiscountStepData.currencyPos', 'left' );
+		this.currencySymbol = SCD.Utils.get( window, 'scdSettings.currencySymbol', '$' );
+		this.currencyPosition = SCD.Utils.get( window, 'scdSettings.currencyPos', 'left' );
 
 		if ( !SCD.Utils.ensureInitialized( this, {
 			'config': this.config
@@ -66,6 +66,13 @@
 		if ( window.SCD && window.SCD.ValidationError ) {
 			window.SCD.ValidationError.clear( $field );
 		}
+
+			// Update state immediately to maintain single source of truth
+			if ( self.state && self.state.setState ) {
+				self.state.setState( {
+					discountValueFixed: isNaN( value ) ? 0 : value
+				} );
+			}
 
 			// Real-time validation
 			if ( !isNaN( value ) && 0 >= value ) {
@@ -134,48 +141,50 @@
 		 * Validate fixed discount configuration
 		 */
 		validate: function() {
+			console.group( '🔍 FIXED DISCOUNT - validate()' );
 			var errors = {};
 			var warnings = {};
 
-			var value = this.state.getState ?
-				parseFloat( this.state.getState( 'discountValueFixed' ) ) : 0;
+			// Get value from state (now always synchronized via input handler)
+			var value = this.state.getData ? parseFloat( this.state.getData( 'discountValueFixed' ) ) : 0;
+
+			console.log( 'State value:', value );
+			console.log( 'Field exists:', $( '#discount_value_fixed' ).length > 0 );
+			console.log( 'Field value from DOM:', $( '#discount_value_fixed' ).val() );
 
 			if ( isNaN( value ) || 0 >= value ) {
-				errors.discountValueFixed = 'Please enter a valid amount';
+				errors.discount_value_fixed = 'Please enter a valid amount';
+				console.warn( '❌ Validation failed: Invalid or missing fixed amount' );
 			}
 
 			var minOrder = this.state.getState ?
-				parseFloat( this.state.getState( 'minimumOrderAmount' ) ) : 0;
+				parseFloat( this.state.getData( 'minimumOrderAmount' ) ) : 0;
 			if ( !isNaN( minOrder ) && 0 < minOrder && value >= minOrder ) {
-				warnings.discountValueFixed = 'Discount amount equals or exceeds minimum order amount';
+				warnings.discount_value_fixed = 'Discount amount equals or exceeds minimum order amount';
+				console.log( '⚠️ Warning: Amount exceeds minimum order' );
 			} else if ( 1000 < value ) {
-				warnings.discountValueFixed = 'Large discount amount. Please verify this is intended.';
+				warnings.discount_value_fixed = 'Large discount amount. Please verify this is intended.';
+				console.log( '⚠️ Warning: Large discount amount' );
 			}
 
-			var isValid = SCD.Utils.isEmpty( errors );
-
-			// Log validation if errors exist
-			if ( !isValid ) {
-				SCD.ErrorHandler.handle(
-					new Error( 'Fixed discount validation failed' ),
-					'FixedDiscount.validate',
-					SCD.ErrorHandler.SEVERITY.LOW,
-					{ errors: errors, warnings: warnings }
-				);
-			}
-
-			return {
-				valid: isValid,
+			var result = {
+				valid: 0 === Object.keys( errors ).length,
 				errors: errors,
 				warnings: warnings
 			};
+
+			console.log( 'Validation result:', result );
+			console.groupEnd();
+			return result;
 		},
 
 		/**
 		 * Collect fixed discount data
 		 */
 		collectData: function() {
-			var value = this.state.getState ? this.state.getState( 'discountValueFixed' ) : 0;
+			// Get value from state (now always synchronized via input handler)
+			var value = this.state.getData ? parseFloat( this.state.getData( 'discountValueFixed' ) ) : 0;
+			value = isNaN( value ) ? 0 : value;
 
 			return {
 				discountType: 'fixed',
@@ -189,12 +198,10 @@
 		 * @param data
 		 */
 		loadData: function( data ) {
-			if ( !SCD.Utils.isEmpty( data ) ) {
-				if ( data.discountValueFixed !== undefined && this.state.setState ) {
-					this.state.setState( {
-						discountValueFixed: parseFloat( data.discountValueFixed ) || 0
-					} );
-				}
+			if ( data && data.discountValueFixed !== undefined && this.state.setState ) {
+				this.state.setState( {
+					discountValueFixed: parseFloat( data.discountValueFixed ) || 0
+				} );
 			}
 		},
 
@@ -202,7 +209,7 @@
 		 * Get summary text for fixed discount
 		 */
 		getSummary: function() {
-			var value = this.state.getState ? this.state.getState( 'discountValueFixed' ) : 0;
+			var value = this.state.getState ? this.state.getData( 'discountValueFixed' ) : 0;
 			return this.formatCurrency( value ) + ' off';
 		},
 
@@ -210,7 +217,7 @@
 		 * Calculate effective discount value
 		 */
 		calculateValue: function() {
-			return this.state.getState ? this.state.getState( 'discountValueFixed' ) || 0 : 0;
+			return this.state.getState ? this.state.getData( 'discountValueFixed' ) || 0 : 0;
 		},
 
 		/**

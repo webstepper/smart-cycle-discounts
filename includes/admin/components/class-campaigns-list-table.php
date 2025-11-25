@@ -717,15 +717,17 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			$health_issues = array();
 		}
 
+		// Map status to icons
 		$health_icons = array(
-			'critical'  => '🔴',  // Critical issues - campaign broken
-			'excellent' => '🟢',
-			'good'      => '🟡',
-			'fair'      => '🟠',
-			'poor'      => '⚠️',   // Poor but not critical
+			'critical'  => 'dismiss',     // X icon for critical
+			'poor'      => 'warning',     // Warning triangle
+			'fair'      => 'info',        // Info circle
+			'good'      => 'yes',         // Checkmark
+			'excellent' => 'shield-alt',  // Shield with checkmark
 		);
 
-		$icon = isset( $health_icons[ $health_status ] ) ? $health_icons[ $health_status ] : '⚪';
+		$icon_name = isset( $health_icons[ $health_status ] ) ? $health_icons[ $health_status ] : 'info';
+		$icon      = SCD_Icon_Helper::get( $icon_name, array( 'size' => 16 ) );
 
 		$title = sprintf(
 			__( 'Health Score: %1$d/100 (%2$s)', 'smart-cycle-discounts' ),

@@ -316,6 +316,8 @@
 				} ).fail( function( error ) {
 					console.error( '[SCD Navigation] Validation failed:', error );
 				} );
+			} else {
+				console.warn( '[SCD Navigation] No next step found for:', currentStep );
 			}
 		},
 
@@ -512,7 +514,7 @@
 
 			// Prevent duplicate save requests (debounce)
 			if ( this._saveInProgress ) {
-					return this._savePromise || $.Deferred().reject( {
+				return this._savePromise || $.Deferred().reject( {
 					success: false,
 					data: {
 						message: 'Save already in progress',
@@ -560,8 +562,11 @@
 			// Mark save as in progress
 			this._saveInProgress = true;
 
+			console.log( '[SCD Navigation] Calling saveStep() for step:', fromStep );
+
 			// Save via step orchestrator (navigation save - primary save mechanism)
 			return stepOrchestrator.saveStep().then( function( response ) {
+				console.log( '[SCD Navigation] saveStep SUCCESS, response:', response );
 				self._saveInProgress = false;
 				self._savePromise = null;
 
@@ -575,6 +580,7 @@
 				// Build URL for server-side navigation (full page reload)
 				// This is intentional - wizard uses server-rendered step content
 				var redirectUrl = self.buildStepUrl( targetStep );
+				console.log( '[SCD Navigation] Will redirect to:', redirectUrl );
 
 				return {
 					success: true,
@@ -588,6 +594,7 @@
 					}
 				};
 			} ).fail( function( error ) {
+				console.error( '[SCD Navigation] saveStep FAILED:', error );
 				self._saveInProgress = false;
 				self._savePromise = null;
 
@@ -603,6 +610,8 @@
 				} else if ( error && error.message ) {
 					errorMessage = error.message;
 				}
+
+				console.error( '[SCD Navigation] Returning formatted error:', errorMessage, errorCode );
 
 				// Return properly formatted error
 				return $.Deferred().reject( {
@@ -1078,7 +1087,7 @@
 				return window.scdNavigation.nonce;
 			}
 			if ( window.scdWizardData && window.scdWizardData.nonces ) {
-				return window.scdWizardData.nonces.scd_wizard_nonce || window.scdWizardData.nonces.wizard_nonce;
+				return window.scdWizardData.nonces.scdWizardNonce;
 			}
 			return '';
 		},

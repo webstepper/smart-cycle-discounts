@@ -54,6 +54,19 @@
 	outline: none;
 }
 
+/* Error state overrides - higher specificity than hover/focus */
+.scd-wizard-form .ts-wrapper.error .ts-control {
+	border-color: var(--scd-color-danger);
+	border-width: 2px;
+	box-shadow: 0 0 0 1px var(--scd-color-danger) !important;
+	background-color: var(--scd-alert-danger-bg);
+}
+
+.scd-wizard-form .ts-wrapper.error.focus .ts-control {
+	border-color: var(--scd-color-danger);
+	box-shadow: 0 0 0 3px var(--scd-shadow-danger) !important;
+}
+
 .scd-wizard-form .ts-control > input {
 	color: var(--scd-color-text);
 	font-size: var(--scd-font-size-medium);
@@ -174,19 +187,8 @@ body > .ts-dropdown .no-results {
    Category Options
    ========================================================================== */
 
-/* Category Option Container */
-.scd-wizard-form .ts-dropdown .option .category-option,
-body > .ts-dropdown .option .category-option {
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-/* Category Count Badge */
-.scd-wizard-form .ts-dropdown .option .category-count,
-body > .ts-dropdown .option .category-count {
-	color: var(--scd-color-text-lighter);
-	font-size: var(--scd-font-size-small);
-	opacity: 0.8;
-}
+/* Category Option Container (same structure as products) */
+/* Category styles moved to Category Enhancement Styles section below (line 492+) */
 
 /* ==========================================================================
    Product Options
@@ -204,6 +206,12 @@ body > .ts-dropdown .option:has(.scd-tom-select-product-option) {
 	display: flex;
 	gap: var(--scd-spacing-md);
 	padding: var(--scd-spacing-sm) var(--scd-spacing-md);
+}
+
+/* Product Image Wrapper (contains image + stock badge) */
+.scd-tom-select-product-option .product-image-wrapper {
+	flex-shrink: 0;
+	position: relative;
 }
 
 /* Product Image Container */
@@ -238,6 +246,40 @@ body > .ts-dropdown .option:has(.scd-tom-select-product-option) {
 	opacity: 0.5;
 }
 
+/* Stock Status Badge (overlays image) */
+.scd-tom-select-product-option .stock-badge {
+	align-items: center;
+	border-radius: 50%;
+	border: 2px solid var(--scd-color-surface);
+	bottom: -4px;
+	display: flex;
+	height: 20px;
+	justify-content: center;
+	position: absolute;
+	right: -4px;
+	width: 20px;
+}
+
+.scd-tom-select-product-option .stock-badge svg {
+	display: block;
+}
+
+/* Stock status colors */
+.scd-tom-select-product-option .stock-badge.stock-instock {
+	background: var(--scd-color-success);
+	color: var(--scd-color-white);
+}
+
+.scd-tom-select-product-option .stock-badge.stock-outofstock {
+	background: var(--scd-color-danger);
+	color: var(--scd-color-white);
+}
+
+.scd-tom-select-product-option .stock-badge.stock-onbackorder {
+	background: var(--scd-color-warning);
+	color: var(--scd-color-white);
+}
+
 /* Product Details Container */
 .scd-tom-select-product-option .product-details {
 	display: flex;
@@ -247,15 +289,40 @@ body > .ts-dropdown .option:has(.scd-tom-select-product-option) {
 	min-width: 0;
 }
 
+/* Product Header (name + sale badge) */
+.scd-tom-select-product-option .product-header {
+	align-items: center;
+	display: flex;
+	gap: var(--scd-spacing-sm);
+}
+
 /* Product Name */
 .scd-tom-select-product-option .product-name {
 	color: var(--scd-color-text);
+	flex: 1;
 	font-size: var(--scd-font-size-medium);
 	font-weight: var(--scd-font-weight-medium);
 	line-height: 1.4;
+	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+}
+
+/* Sale Badge */
+.scd-tom-select-product-option .sale-badge {
+	align-items: center;
+	background: linear-gradient(135deg, var(--scd-color-danger) 0%, var(--scd-color-danger-dark) 100%);
+	border-radius: var(--scd-radius-xs);
+	color: var(--scd-color-white);
+	display: inline-flex;
+	flex-shrink: 0;
+	font-size: 10px;
+	font-weight: var(--scd-font-weight-bold);
+	letter-spacing: 0.025em;
+	line-height: 1;
+	padding: 4px 6px;
+	text-transform: uppercase;
 }
 
 /* Product Meta Row */
@@ -269,10 +336,68 @@ body > .ts-dropdown .option:has(.scd-tom-select-product-option) {
 	line-height: 1.4;
 }
 
-/* Product Price */
+/* Product Type Icon */
+.scd-tom-select-product-option .product-type-icon {
+	align-items: center;
+	color: var(--scd-color-text-lighter);
+	display: inline-flex;
+	opacity: 0.7;
+}
+
+.scd-tom-select-product-option .product-type-icon svg {
+	display: block;
+}
+
+/* Price Wrapper (for sale prices) */
+.scd-tom-select-product-option .product-price-wrapper {
+	align-items: center;
+	display: inline-flex;
+	gap: var(--scd-spacing-xs);
+}
+
+/* Regular Price (when on sale) */
+.scd-tom-select-product-option .product-price-regular {
+	color: var(--scd-color-text-muted);
+	font-size: var(--scd-font-size-small);
+	text-decoration: line-through;
+}
+
+/* Sale Price */
+.scd-tom-select-product-option .product-price-sale {
+	color: var(--scd-color-success);
+	font-weight: var(--scd-font-weight-bold);
+}
+
+/* Product Price (regular) */
 .scd-tom-select-product-option .product-price {
 	color: var(--scd-color-text);
 	font-weight: var(--scd-font-weight-semibold);
+}
+
+/* Variation Count */
+.scd-tom-select-product-option .product-variation-count {
+	background: var(--scd-color-surface-light);
+	border-radius: var(--scd-radius-xs);
+	color: var(--scd-color-text-muted);
+	font-size: var(--scd-font-size-small);
+	padding: 2px 6px;
+}
+
+/* Category Tag */
+.scd-tom-select-product-option .product-category-tag {
+	align-items: center;
+	background: var(--scd-color-surface-light);
+	border-radius: var(--scd-radius-xs);
+	color: var(--scd-color-text-muted);
+	display: inline-flex;
+	font-size: var(--scd-font-size-small);
+	gap: 4px;
+	padding: 2px 6px;
+}
+
+.scd-tom-select-product-option .product-category-tag svg {
+	display: block;
+	opacity: 0.7;
 }
 
 /* Product SKU */
@@ -295,6 +420,154 @@ body > .ts-dropdown .option:has(.scd-tom-select-product-option) {
 	display: flex;
 	font-size: var(--scd-font-size-base);
 	gap: var(--scd-spacing-xs);
+}
+
+/* ==========================================================================
+   Category Enhancement Styles
+   ========================================================================== */
+
+/* Category option layout */
+.category-option {
+	align-items: center;
+	display: flex;
+	padding: var(--scd-spacing-sm);
+}
+
+.category-option .category-main {
+	align-items: center;
+	display: flex;
+	flex: 1;
+	gap: var(--scd-gap-normal);
+	min-width: 0;
+}
+
+.category-option .category-text-wrapper {
+	align-items: center;
+	display: flex;
+	flex: 1;
+	gap: var(--scd-gap-tight);
+	justify-content: space-between;
+	min-width: 0;
+}
+
+.category-option .category-name {
+	align-items: center;
+	display: flex;
+	flex: 1;
+	gap: 4px;
+	min-width: 0;
+}
+
+.category-option .category-name-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Category stock badges */
+.category-stock-badge {
+	align-items: center;
+	border-radius: var(--scd-radius-xs);
+	display: inline-flex;
+	flex-shrink: 0;
+	font-size: 10px;
+	font-weight: var(--scd-font-weight-semibold);
+	gap: 2px;
+	line-height: 1;
+	padding: 3px 6px;
+	text-transform: uppercase;
+}
+
+.category-stock-badge.stock-healthy {
+	background: var(--scd-color-success);
+	color: var(--scd-color-white);
+}
+
+.category-stock-badge.stock-warning {
+	background: var(--scd-color-warning);
+	color: var(--scd-color-white);
+}
+
+.category-stock-badge.stock-critical {
+	background: var(--scd-color-danger);
+	color: var(--scd-color-white);
+}
+
+/* Subcategory count */
+.category-subcount {
+	align-items: center;
+	background: var(--scd-color-surface-light);
+	border-radius: var(--scd-radius-xs);
+	color: var(--scd-color-text-muted);
+	display: inline-flex;
+	flex-shrink: 0;
+	font-size: var(--scd-font-size-small);
+	font-weight: var(--scd-font-weight-medium);
+	gap: 3px;
+	padding: 2px 6px;
+}
+
+.category-subcount svg {
+	color: var(--scd-color-primary);
+	flex-shrink: 0;
+	opacity: 0.7;
+}
+
+/* Empty category styling */
+.category-option.category-empty {
+	opacity: 0.5;
+}
+
+.category-option.category-empty .category-name {
+	color: var(--scd-color-text-muted);
+	font-style: italic;
+}
+
+.category-option.category-empty .category-icon {
+	opacity: 0.5;
+}
+
+/* Category tree styling (hierarchy) */
+.category-tree {
+	color: var(--scd-color-text-muted);
+	flex-shrink: 0;
+	font-family: monospace;
+	font-size: var(--scd-font-size-small);
+	line-height: 1;
+	opacity: 0.6;
+	white-space: pre;
+}
+
+/* Category icon */
+.category-icon {
+	align-items: center;
+	display: inline-flex;
+	flex-shrink: 0;
+	height: 32px;
+	justify-content: center;
+	width: 32px;
+}
+
+.category-icon img {
+	border-radius: var(--scd-radius-xs);
+	height: 32px;
+	object-fit: cover;
+	width: 32px;
+}
+
+.category-image-placeholder {
+	color: var(--scd-color-text-muted);
+	opacity: 0.6;
+}
+
+.category-image-placeholder svg {
+	height: 20px;
+	width: 20px;
+}
+
+/* Hover states */
+.category-option:hover:not(.category-empty) {
+	background: var(--scd-color-surface);
 }
 
 /* ==========================================================================

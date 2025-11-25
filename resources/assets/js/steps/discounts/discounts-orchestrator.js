@@ -80,12 +80,9 @@
 			}
 
 			// CRITICAL FIX: Register handlers for instances that were created during typeRegistry.init()
-			// Use requestAnimationFrame to ensure registration happens after event loop completes
-			// This catches instances that were created before our event listener was fully set up
-			var self = this;
-			requestAnimationFrame( function() {
-				self.registerExistingHandlers();
-			} );
+			// Now that handlers initialize synchronously (no requestAnimationFrame in init()),
+			// we can register them immediately
+			this.registerExistingHandlers();
 		},
 
 		/**
@@ -323,7 +320,7 @@
 			// All standard fields and complex fields are populated by parent method
 			// Only handle discount type UI updates
 
-			// Discount type - check both camelCase and snake_case for safety
+			// Case converter handles snake_case → camelCase automatically
 			var discountType = this.getPropertyValue( data, [ 'discountType' ] ) || this.getPropertyValue( data, [ 'discount_type' ] );
 
 			// If still not found, check state (which should have been set by fromJSON)
@@ -401,8 +398,8 @@
 
 			if ( discountType ) {
 				$( '.scd-strategy-' + discountType ).addClass( 'active' );
-				$( '#discount-value-card' ).show();
-				$( '#discount-rules-card' ).removeClass( 'scd-hidden' ).show();
+				$( '#discount-value-card' ).removeClass( 'scd-hidden' );
+				$( '#discount-rules-card' ).removeClass( 'scd-hidden' );
 				$( '#discount_type' ).val( discountType );
 				$( '.scd-discount-type-card' ).removeClass( 'selected' );
 				$( '.scd-discount-type-card[data-type="' + discountType + '"]' ).addClass( 'selected' );
@@ -448,7 +445,7 @@
 			var $conditionalRules = $( '.scd-conditional-rule[data-hide-for-types]' );
 
 			// Show all rules first
-			$conditionalRules.removeClass( 'scd-rule-hidden' ).show();
+			$conditionalRules.removeClass( 'scd-rule-hidden' );
 
 			// Hide rules based on discount type
 			$conditionalRules.each( function() {
@@ -466,7 +463,7 @@
 
 				// Check if current type should hide this rule
 				if ( -1 !== typesToHide.indexOf( discountType ) ) {
-					$row.addClass( 'scd-rule-hidden' ).hide();
+					$row.addClass( 'scd-rule-hidden' );
 
 					// Clear the field value when hiding to avoid conflicts
 					var $input = $row.find( 'input, select' );
@@ -589,9 +586,46 @@
 			return 'percentage';
 		},
 
-		// Note: collectData and validateData are handled by StepPersistence mixin
-		// The mixin uses field definitions to automatically collect and validate all fields
-		// Business logic validation is handled by the PHP unified validator
+		/**
+		 * Validate discount step data
+		 *
+		 * Calls the active discount type's validate() method to perform client-side validation.
+		 * This provides immediate feedback before PHP server-side validation.
+		 *
+		 * @param {object} _data Step data (unused - validation uses current state)
+		 * @returns {object} Validation result with {valid, errors, warnings}
+		 */
+		validateData: function( _data ) {
+			console.group( '🔍 DISCOUNTS ORCHESTRATOR - validateData()' );
+			console.log( 'Container:', this.$container );
+			console.log( 'Modules:', this.modules );
+
+			if ( window.SCD && window.SCD.ValidationError && this.$container ) {
+				console.log( '✅ Clearing previous errors with ValidationError.clearAll()' );
+				SCD.ValidationError.clearAll( this.$container );
+			} else {
+				console.warn( '⚠️ Cannot clear errors - ValidationError or container not available' );
+			}
+
+			if ( this.modules && this.modules.typeRegistry ) {
+				console.log( '✅ Calling TypeRegistry.validateCurrent()' );
+				var result = this.modules.typeRegistry.validateCurrent();
+				console.log( 'Validation result:', result );
+				console.groupEnd();
+				return result;
+			}
+
+			console.warn( '⚠️ TypeRegistry not available - returning default valid result' );
+			console.groupEnd();
+			return {
+				valid: true,
+				errors: {},
+				warnings: {}
+			};
+		},
+
+		// Note: collectData is handled by StepPersistence mixin
+		// The mixin uses field definitions to automatically collect all fields
 
 		// Note: showErrors() is inherited from StepPersistence mixin
 

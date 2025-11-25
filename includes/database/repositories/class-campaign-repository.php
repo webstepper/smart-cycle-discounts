@@ -949,6 +949,29 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	}
 
 	/**
+	 * Find campaigns in trash older than specified days.
+	 *
+	 * Used by auto-purge functionality to find campaigns
+	 * that have been in trash longer than the retention period.
+	 *
+	 * @since    1.0.0
+	 * @param    int $days    Number of days threshold.
+	 * @return   array          Array of campaign IDs older than threshold.
+	 */
+	public function find_trashed_older_than( int $days ): array {
+		$cutoff_date = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
+
+		$query = $this->db->prepare(
+			"SELECT id FROM {$this->table_name} WHERE deleted_at IS NOT NULL AND deleted_at < %s",
+			$cutoff_date
+		);
+
+		$results = $this->db->get_col( $query );
+
+		return array_map( 'intval', $results );
+	}
+
+	/**
 	 * Find campaigns by status.
 	 *
 	 * @since    1.0.0

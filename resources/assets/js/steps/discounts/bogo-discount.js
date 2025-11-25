@@ -44,19 +44,15 @@
 		 */
 		init: function() {
 			SCD.Modules.Discounts.Types.BaseDiscount.prototype.init.call( this );
-			var self = this;
 
-			// Use requestAnimationFrame for optimal timing
-			requestAnimationFrame( function() {
-				self.setupBogoHandlers();
-				self.setupPresetHandler();
+			this.setupBogoHandlers();
+			this.setupPresetHandler();
 
-				// Mark as ready
-				self._ready = true;
+			// Mark as ready after initialization complete
+			this._ready = true;
 
-				// Trigger ready event
-				self.state.triggerChange( 'bogo:ready' );
-			} );
+			// Trigger ready event
+			this.state.triggerChange( 'bogo:ready' );
 		},
 
 		/**
@@ -97,7 +93,7 @@
 			}
 
 			if ( $container.length ) {
-				$container.addClass( 'active' ).show();
+				$container.addClass( 'active' );
 
 				// Only render BOGO rules if we have the modular container
 				if ( $container.hasClass( 'scd-bogo-options' ) ) {
@@ -151,13 +147,17 @@
 
 			// Allow multiple toggle
 			$( document ).on( 'change.bogo', '[name="bogo_allow_multiple"]', function() {
-				var config = self.state.getState( 'bogoConfig' ) || {};
+				var config = self.state.getData( 'bogoConfig' ) || {};
 				config.allowMultiple = $( this ).is( ':checked' );
 				self.state.setState( { bogoConfig: config } );
 			} );
 
 			// Simple PHP template field handlers
 			$( document ).on( 'input.bogo change.bogo', '#bogo_buy_quantity, #bogo_get_quantity, #bogo_discount_percentage', function() {
+				if ( window.SCD && window.SCD.ValidationError ) {
+					SCD.ValidationError.clear( $( this ) );
+				}
+
 				self.updatePreview();
 
 				// Also update the state for visual preview
@@ -185,7 +185,7 @@
 		 * Render BOGO rules UI
 		 */
 		renderBogoRules: function() {
-			var config = this.state.getState( 'bogoConfig' ) || {};
+			var config = this.state.getData( 'bogoConfig' ) || {};
 			var rules = config.rules || [];
 			var $container = $( '.scd-bogo-rules-container' );
 
@@ -307,7 +307,7 @@
 		 * Add a new BOGO rule
 		 */
 		addBogoRule: function() {
-			var config = this.state.getState( 'bogoConfig' ) || { rules: [] };
+			var config = this.state.getData( 'bogoConfig' ) || { rules: [] };
 
 			if ( config.rules.length >= this.maxRules ) {return;}
 
@@ -330,7 +330,7 @@
 		 * @param index
 		 */
 		removeBogoRule: function( index ) {
-			var config = this.state.getState( 'bogoConfig' ) || { rules: [] };
+			var config = this.state.getData( 'bogoConfig' ) || { rules: [] };
 
 			if ( 0 <= index && index < config.rules.length ) {
 				config.rules.splice( index, 1 );
@@ -349,7 +349,7 @@
 			var field = $input.data( 'field' );
 			var value = $input.val();
 
-			var config = this.state.getState( 'bogoConfig' ) || { rules: [] };
+			var config = this.state.getData( 'bogoConfig' ) || { rules: [] };
 
 			if ( !config.rules[index] ) {return;}
 
@@ -379,7 +379,7 @@
 		 * @param value
 		 */
 		handleApplyToChange: function( index, value ) {
-			var config = this.state.getState( 'bogoConfig' ) || { rules: [] };
+			var config = this.state.getData( 'bogoConfig' ) || { rules: [] };
 
 			if ( !config.rules[index] ) {return;}
 
@@ -405,7 +405,7 @@
 
 				if ( 0 === preset[0] ) {return;} // Custom option
 
-				var config = self.state.getState( 'bogoConfig' ) || { rules: [] };
+				var config = self.state.getData( 'bogoConfig' ) || { rules: [] };
 
 				if ( config.rules[index] ) {
 					config.rules[index].buyQuantity = preset[0];
@@ -433,51 +433,67 @@
 		 * Validate BOGO configuration
 		 */
 		validate: function() {
+			console.group( '🔍 BOGO DISCOUNT - validate()' );
 			var errors = {};
 			var warnings = {};
 
-			var config = this.state.getState( 'bogoConfig' ) || {};
+			var config = this.state.getData( 'bogoConfig' ) || {};
 			var rules = config.rules || [];
 
+			console.log( 'BOGO Config:', config );
+			console.log( 'Rules:', rules );
+			console.log( 'Field #bogo_buy_quantity exists:', $( '#bogo_buy_quantity' ).length > 0 );
+			console.log( 'Field #bogo_buy_quantity value:', $( '#bogo_buy_quantity' ).val() );
+
 			if ( 0 === rules.length ) {
-				errors.bogoRules = 'At least one BOGO rule is required';
+				errors.bogo_buy_quantity = 'BOGO configuration is required';
+				console.warn( '❌ No BOGO rules configured' );
 			} else {
-				rules.forEach( function( rule, index ) {
-					if ( !rule.buyQuantity || 0 >= rule.buyQuantity ) {
-						errors['bogo_' + ( index ) + '_buy'] = 'Rule ' + ( index + 1 ) + ': Invalid buy quantity';
-					}
+				var rule = rules[0];
+				console.log( 'Validating rule:', rule );
 
-					if ( !rule.getQuantity || 0 >= rule.getQuantity ) {
-						errors['bogo_' + ( index ) + '_get'] = 'Rule ' + ( index + 1 ) + ': Invalid get quantity';
-					}
+				if ( !rule.buyQuantity || 0 >= rule.buyQuantity ) {
+					errors.bogo_buy_quantity = 'Buy quantity must be at least 1';
+					console.warn( '❌ Invalid buy quantity:', rule.buyQuantity );
+				}
 
-					if ( 0 > rule.discountPercent || 100 < rule.discountPercent ) {
-						errors['bogo_' + ( index ) + '_discount'] = 'Rule ' + ( index + 1 ) + ': Discount must be between 0-100%';
-					}
+				if ( !rule.getQuantity || 0 >= rule.getQuantity ) {
+					errors.bogo_get_quantity = 'Get quantity must be at least 1';
+					console.warn( '❌ Invalid get quantity:', rule.getQuantity );
+				}
 
-					if ( 'different' === rule.applyTo && ( !rule.getProducts || 0 === rule.getProducts.length ) ) {
-						errors['bogo_' + ( index ) + '_products'] = 'Rule ' + ( index + 1 ) + ': Select products for free items';
-					}
+				if ( undefined === rule.discountPercent || 0 > rule.discountPercent || 100 < rule.discountPercent ) {
+					errors.bogo_discount_percentage = 'Discount must be between 0-100%';
+					console.warn( '❌ Invalid discount percent:', rule.discountPercent );
+				}
 
-					// Warning for unusual configurations
-					if ( rule.getQuantity > rule.buyQuantity ) {
-						warnings['bogo_' + ( index ) + '_ratio'] = 'Rule ' + ( index + 1 ) + ': Getting more than buying';
-					}
-				} );
+				if ( 'different' === rule.applyTo && ( !rule.getProducts || 0 === rule.getProducts.length ) ) {
+					errors.bogo_get_products = 'Select products for free items';
+					console.warn( '❌ No products selected for "different" apply mode' );
+				}
+
+				if ( rule.getQuantity > rule.buyQuantity ) {
+					warnings.bogo_get_quantity = 'Getting more items than buying is unusual';
+					console.log( '⚠️ Warning: Get quantity exceeds buy quantity' );
+				}
 			}
 
-			return {
+			var result = {
 				valid: 0 === Object.keys( errors ).length,
 				errors: errors,
 				warnings: warnings
 			};
+
+			console.log( 'Validation result:', result );
+			console.groupEnd();
+			return result;
 		},
 
 		/**
 		 * Collect BOGO discount data
 		 */
 		collectData: function() {
-			var config = this.state.getState( 'bogoConfig' ) || {};
+			var config = this.state.getData( 'bogoConfig' ) || {};
 
 			return {
 				discountType: 'bogo',
@@ -541,7 +557,7 @@
 		 */
 		syncWithDOMFields: function( config ) {
 			if ( !config ) {
-				config = this.state.getState( 'bogoConfig' ) || { rules: [] };
+				config = this.state.getData( 'bogoConfig' ) || { rules: [] };
 			}
 
 			var $bogoConfig = $( '#bogo_config' );
@@ -577,7 +593,7 @@
 		 * Get summary text
 		 */
 		getSummary: function() {
-			var config = this.state.getState( 'bogoConfig' ) || {};
+			var config = this.state.getData( 'bogoConfig' ) || {};
 			var rules = config.rules || [];
 
 			if ( 0 === rules.length ) {
@@ -597,7 +613,7 @@
 		 * Get preview configuration
 		 */
 		getPreviewConfig: function() {
-			var config = this.state.getState( 'bogoConfig' ) || {};
+			var config = this.state.getData( 'bogoConfig' ) || {};
 
 			return {
 				type: 'bogo',
@@ -622,15 +638,15 @@
 		getValue: function() {
 			try {
 				var config = {
-					buy_quantity: parseInt( $( '#bogo_buy_quantity' ).val() ) || 1,      // Use snake_case for PHP
-					get_quantity: parseInt( $( '#bogo_get_quantity' ).val() ) || 1,      // Use snake_case for PHP
-					discount_percent: parseFloat( $( '#bogo_discount_percentage' ).val() ) || 100  // Use snake_case for PHP
+					buyQuantity: parseInt( $( '#bogo_buy_quantity' ).val() ) || 1,           // camelCase - auto-converts to buy_quantity
+					getQuantity: parseInt( $( '#bogo_get_quantity' ).val() ) || 1,           // camelCase - auto-converts to get_quantity
+					discountPercentage: parseFloat( $( '#bogo_discount_percentage' ).val() ) || 100  // camelCase - auto-converts to discount_percentage
 				};
 
 				return config;
 			} catch ( error ) {
 				console.error( '[BOGODiscount] getValue error:', error );
-				return { buy_quantity: 1, get_quantity: 1, discount_percent: 100 };
+				return { buyQuantity: 1, getQuantity: 1, discountPercentage: 100 };
 			}
 		},
 
@@ -640,10 +656,10 @@
 		 * @param {object} config - BOGO configuration
 		 */
 		setValue: function( config ) {
-			// Accept both camelCase and snake_case property names
-			var buyQty = config.buyQuantity || config.buy_quantity;
-			var getQty = config.getQuantity || config.get_quantity;
-			var discount = config.discountPercent || config.discount_percent;
+			// Case converter handles snake_case → camelCase automatically
+			var buyQty = config.buyQuantity;
+			var getQty = config.getQuantity;
+			var discount = config.discountPercentage || config.discountPercent;
 
 			if ( buyQty ) {
 				$( '#bogo_buy_quantity' ).val( buyQty );

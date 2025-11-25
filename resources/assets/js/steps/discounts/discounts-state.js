@@ -88,7 +88,7 @@
 		this.errors = {};
 		this.validated = false;
 		this.lastSaved = null;
-		this.campaignId = ( window.scdWizardData && window.scdWizardData.current_campaign && window.scdWizardData.current_campaign.id ) || null;
+		this.campaignId = ( window.scdWizardData && window.scdWizardData.currentCampaign && window.scdWizardData.currentCampaign.id ) || null;
 
 		this.initEventManager();
 
@@ -293,19 +293,8 @@
 			}
 
 			this.validated = true;
-			var isValid = SCD.Utils.isEmpty( this.errors );
 
-			// Log validation errors if any
-			if ( !isValid && window.SCD.ErrorHandler ) {
-				SCD.ErrorHandler.handle(
-					new Error( 'Discounts step validation failed' ),
-					'DiscountsState.validate',
-					SCD.ErrorHandler.SEVERITY.LOW,
-					{ errors: this.errors }
-				);
-			}
-
-			return isValid;
+			return 0 === Object.keys( this.errors ).length;
 		},
 
 		/**
@@ -490,8 +479,8 @@
 			var configUpdates = {};
 
 			// Map backend fields to state
-			// Check both camelCase (AJAX) and snake_case (localized data)
-			var discountType = data.discountType || data.discount_type;
+			// Case converter handles snake_case → camelCase automatically
+			var discountType = data.discountType;
 			if ( discountType ) {
 				updates.discountType = discountType;
 			}
@@ -500,13 +489,13 @@
 			if ( discountType ) {
 				switch ( discountType ) {
 					case 'percentage':
-						var percentageValue = data.discountValuePercentage || data.discount_value_percentage || data.discountValue || data.discount_value;
+						var percentageValue = data.discountValuePercentage || data.discountValue;
 						if ( percentageValue !== undefined ) {
 							configUpdates.percentage = { value: parseFloat( percentageValue ) || 0 };
 						}
 						break;
 					case 'fixed':
-						var fixedValue = data.discountValueFixed || data.discount_value_fixed || data.discountValue || data.discount_value;
+						var fixedValue = data.discountValueFixed || data.discountValue;
 						if ( fixedValue !== undefined ) {
 							configUpdates.fixed = { value: parseFloat( fixedValue ) || 0 };
 						}
@@ -518,32 +507,32 @@
 								tiers: Array.isArray( tieredData ) ? tieredData : []
 							};
 						}
-						if ( data.tierMode || data.tier_mode ) {
-							updates.tierMode = data.tierMode || data.tier_mode;
+						if ( data.tierMode ) {
+							updates.tierMode = data.tierMode;
 						}
-						if ( data.tierType || data.tier_type ) {
-							updates.tierType = data.tierType || data.tier_type;
+						if ( data.tierType ) {
+							updates.tierType = data.tierType;
 						}
 						break;
 					case 'bogo':
-						// Check both formats:
+						// BOGO configuration:
 						// 1. Object format: data.bogoConfig or data.bogo_config
 						// 2. Individual fields: data.bogo_buy_quantity, etc.
-						var bogoData = data.bogoConfig || data.bogo_config;
+						var bogoData = data.bogoConfig;
 
 						if ( bogoData && 'object' === typeof bogoData ) {
-							// BOGO data is in grouped format, handle both camelCase and snake_case property names
+							// Case converter handles snake_case → camelCase automatically
 							configUpdates.bogo = {
-								buyQuantity: bogoData.buyQuantity || bogoData.buy_quantity || 1,
-								getQuantity: bogoData.getQuantity || bogoData.get_quantity || 1,
-								discountPercentage: bogoData.discountPercent || bogoData.discount_percent || bogoData.discountPercentage || 100,
-								applyTo: bogoData.applyTo || bogoData.apply_to || 'cheapest'
+								buyQuantity: bogoData.buyQuantity || 1,
+								getQuantity: bogoData.getQuantity || 1,
+								discountPercentage: bogoData.discountPercent || bogoData.discountPercentage || 100,
+								applyTo: bogoData.applyTo || 'cheapest'
 							};
 						}
 						break;
 					case 'spend_threshold':
-						if ( data.thresholdMode || data.threshold_mode ) {
-							updates.thresholdMode = data.thresholdMode || data.threshold_mode;
+						if ( data.thresholdMode ) {
+							updates.thresholdMode = data.thresholdMode;
 						}
 						if ( data.thresholds ) {
 							updates.thresholds = Array.isArray( data.thresholds ) ? data.thresholds : [];
@@ -564,54 +553,54 @@
 				updates.discountConfig = $.extend( true, {}, currentConfig, configUpdates );
 			}
 
-			// Other fields - check both camelCase and snake_case
+			// Other fields (case converter handles conversion)
 			if ( data.conditions ) {updates.conditions = data.conditions;}
-			if ( data.conditionsLogic || data.conditions_logic ) {updates.conditionsLogic = data.conditionsLogic || data.conditions_logic;}
+			if ( data.conditionsLogic ) {updates.conditionsLogic = data.conditionsLogic;}
 
 			// Usage Limits
-			var usageLimitPerCustomer = data.usageLimitPerCustomer !== undefined ? data.usageLimitPerCustomer : data.usage_limit_per_customer;
+			var usageLimitPerCustomer = data.usageLimitPerCustomer;
 			if ( usageLimitPerCustomer !== undefined ) {updates.usageLimitPerCustomer = usageLimitPerCustomer;}
 
-			var totalUsageLimit = data.totalUsageLimit !== undefined ? data.totalUsageLimit : data.total_usage_limit;
+			var totalUsageLimit = data.totalUsageLimit;
 			if ( totalUsageLimit !== undefined ) {updates.totalUsageLimit = totalUsageLimit;}
 
-			var lifetimeUsageCap = data.lifetimeUsageCap !== undefined ? data.lifetimeUsageCap : data.lifetime_usage_cap;
+			var lifetimeUsageCap = data.lifetimeUsageCap;
 			if ( lifetimeUsageCap !== undefined ) {updates.lifetimeUsageCap = lifetimeUsageCap;}
 
-			var onePerOrder = data.onePerOrder !== undefined ? data.onePerOrder : data.one_per_order;
+			var onePerOrder = data.onePerOrder;
 			if ( onePerOrder !== undefined ) {updates.onePerOrder = onePerOrder;}
 
 			// Application Rules
-			var applyTo = data.applyTo !== undefined ? data.applyTo : data.apply_to;
+			var applyTo = data.applyTo;
 			if ( applyTo !== undefined ) {updates.applyTo = applyTo;}
 
-			var maxDiscountAmount = data.maxDiscountAmount !== undefined ? data.maxDiscountAmount : data.max_discount_amount;
+			var maxDiscountAmount = data.maxDiscountAmount;
 			if ( maxDiscountAmount !== undefined ) {updates.maxDiscountAmount = maxDiscountAmount;}
 
-			var minimumQuantity = data.minimumQuantity !== undefined ? data.minimumQuantity : data.minimum_quantity;
+			var minimumQuantity = data.minimumQuantity;
 			if ( minimumQuantity !== undefined ) {updates.minimumQuantity = minimumQuantity;}
 
-			var minimumOrderAmount = data.minimumOrderAmount !== undefined ? data.minimumOrderAmount : data.minimum_order_amount;
+			var minimumOrderAmount = data.minimumOrderAmount;
 			if ( minimumOrderAmount !== undefined ) {updates.minimumOrderAmount = minimumOrderAmount;}
 
 			// Combination Policy
-			var stackWithOthers = data.stackWithOthers !== undefined ? data.stackWithOthers : data.stack_with_others;
+			var stackWithOthers = data.stackWithOthers;
 			if ( stackWithOthers !== undefined ) {updates.stackWithOthers = stackWithOthers;}
 
-			var allowCoupons = data.allowCoupons !== undefined ? data.allowCoupons : data.allow_coupons;
+			var allowCoupons = data.allowCoupons;
 			if ( allowCoupons !== undefined ) {updates.allowCoupons = allowCoupons;}
 
-			var applyToSaleItems = data.applyToSaleItems !== undefined ? data.applyToSaleItems : data.apply_to_sale_items;
+			var applyToSaleItems = data.applyToSaleItems;
 			if ( applyToSaleItems !== undefined ) {updates.applyToSaleItems = applyToSaleItems;}
 
 			// Badge settings
-			var badgeEnabled = data.badgeEnabled !== undefined ? data.badgeEnabled : data.badge_enabled;
+			var badgeEnabled = data.badgeEnabled;
 			if ( badgeEnabled !== undefined ) {updates.badgeEnabled = badgeEnabled;}
 
-			if ( data.badgeText || data.badge_text ) {updates.badgeText = data.badgeText || data.badge_text;}
-			if ( data.badgeBgColor || data.badge_bg_color ) {updates.badgeBgColor = data.badgeBgColor || data.badge_bg_color;}
-			if ( data.badgeTextColor || data.badge_text_color ) {updates.badgeTextColor = data.badgeTextColor || data.badge_text_color;}
-			if ( data.badgePosition || data.badge_position ) {updates.badgePosition = data.badgePosition || data.badge_position;}
+			if ( data.badgeText ) {updates.badgeText = data.badgeText;}
+			if ( data.badgeBgColor ) {updates.badgeBgColor = data.badgeBgColor;}
+			if ( data.badgeTextColor ) {updates.badgeTextColor = data.badgeTextColor;}
+			if ( data.badgePosition ) {updates.badgePosition = data.badgePosition;}
 
 			// Apply all updates
 			this.setState( updates );
@@ -632,7 +621,7 @@
 		 */
 		loadInitialData: function() {
 			var sources = [
-				window.scdWizardData && window.scdWizardData.current_campaign && window.scdWizardData.current_campaign.discounts,
+				window.scdWizardData && window.scdWizardData.currentCampaign && window.scdWizardData.currentCampaign.discounts,
 				window.scdDiscountState,
 				this.loadFromStorage()
 			];

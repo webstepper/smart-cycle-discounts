@@ -87,7 +87,7 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	) {
 		parent::__construct( $logger );
 
-		// Required services
+		// Required services.
 		if ( ! $state_service ) {
 			throw new InvalidArgumentException( 'State service is required' );
 		}
@@ -95,8 +95,38 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 		$this->state_service = $state_service;
 		$this->feature_gate  = $feature_gate;
 
-		$this->idempotency_service = $idempotency_service ?: new SCD_Idempotency_Service( $state_service );
-		$this->transformer         = $transformer ?: new SCD_Step_Data_Transformer();
+		// Idempotency service requires cache manager - get from container or create.
+		if ( $idempotency_service ) {
+			$this->idempotency_service = $idempotency_service;
+		} else {
+			// Try to get cache manager from container.
+			$cache_manager = null;
+			try {
+				$container     = Smart_Cycle_Discounts::get_instance();
+				$cache_manager = $container::get_service( 'cache_manager' );
+			} catch ( Exception $e ) {
+				// Fall back to creating new cache manager.
+			}
+			if ( ! $cache_manager ) {
+				// Ensure SCD_Cache_Manager class is loaded.
+				if ( ! class_exists( 'SCD_Cache_Manager' ) ) {
+					$cache_path = SCD_PLUGIN_DIR . 'includes/cache/class-cache-manager.php';
+					if ( file_exists( $cache_path ) ) {
+						require_once $cache_path;
+					}
+				}
+				if ( class_exists( 'SCD_Cache_Manager' ) ) {
+					$cache_manager = new SCD_Cache_Manager();
+				}
+			}
+			// Only create idempotency service if we have a valid cache manager.
+			if ( $cache_manager instanceof SCD_Cache_Manager ) {
+				$this->idempotency_service = new SCD_Idempotency_Service( $cache_manager, $state_service );
+			} else {
+				$this->idempotency_service = null;
+			}
+		}
+		$this->transformer = $transformer ?: new SCD_Step_Data_Transformer();
 	}
 
 	/**
@@ -119,13 +149,9 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array|WP_Error       Response data or error.
 	 */
 	protected function handle( $request ) {
-		error_log( '[SCD] Save Step Handler: Request received' );
-		error_log( '[SCD] Request data: ' . print_r( $request, true ) );
-
 		$this->set_execution_limits();
 
 		$step = $this->extract_step( $request );
-		error_log( '[SCD] Extracted step: ' . ( is_wp_error( $step ) ? 'ERROR: ' . $step->get_error_message() : $step ) );
 
 		if ( is_wp_error( $step ) ) {
 			return $step;
@@ -145,22 +171,27 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 
 		$data = $this->extract_data( $request );
 
-		// Handle idempotency
+		// Handle idempotency (only if service is available)
 		$user_id         = get_current_user_id();
-		$idempotency_key = $this->idempotency_service->generate_key( $step, $data, $user_id );
+		$idempotency_key = null;
 
-		$cached = $this->idempotency_service->get_cached_response( $idempotency_key );
-		if ( $cached ) {
-			return $cached;
-		}
+		if ( $this->idempotency_service ) {
+			$idempotency_key = $this->idempotency_service->generate_key( $step, $data, $user_id );
 
-		// Claim request atomically
-		$claim_result = $this->idempotency_service->claim_request( $idempotency_key );
-		if ( is_wp_error( $claim_result ) ) {
-			return $claim_result;
-		}
-		if ( is_array( $claim_result ) ) {
-			return $claim_result; // Another request completed
+			// Check for cached response (validated by idempotency service).
+			$cached = $this->idempotency_service->get_cached_response( $idempotency_key );
+			if ( $cached ) {
+				return $cached;
+			}
+
+			// Claim request atomically
+			$claim_result = $this->idempotency_service->claim_request( $idempotency_key );
+			if ( is_wp_error( $claim_result ) ) {
+				return $claim_result;
+			}
+			if ( is_array( $claim_result ) ) {
+				return $claim_result; // Another request completed
+			}
 		}
 
 		// Early return for empty data (except review step)
@@ -177,36 +208,30 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 			return $size_check;
 		}
 
-		error_log( '[SCD] About to validate step: ' . $step );
 		$validation_result = $this->validate_step_data( $step, $data );
 		if ( is_wp_error( $validation_result ) ) {
-			error_log( '[SCD] Validation FAILED: ' . $validation_result->get_error_message() );
 			return $validation_result;
 		}
-		error_log( '[SCD] Validation PASSED for step: ' . $step );
 
 		try {
-			error_log( '[SCD] Processing step data for: ' . $step );
 			$processed_data = $this->process_step_data( $step, $data );
 			if ( is_wp_error( $processed_data ) ) {
-				error_log( '[SCD] Process step data FAILED: ' . $processed_data->get_error_message() );
 				return $processed_data;
 			}
 
-			error_log( '[SCD] Saving to state for: ' . $step );
 			$save_result = $this->save_to_state( $step, $processed_data, $request );
 			if ( is_wp_error( $save_result ) ) {
-				error_log( '[SCD] Save to state FAILED: ' . $save_result->get_error_message() );
 				return $save_result;
 			}
-			error_log( '[SCD] Save to state SUCCESS for: ' . $step );
 		} catch ( Exception $e ) {
 			return $this->handle_save_exception( $e, $step );
 		}
 
 		$response = $this->build_response( $step, $processed_data, $request );
 
-		$this->idempotency_service->cache_response( $idempotency_key, $response );
+		if ( $this->idempotency_service && $idempotency_key ) {
+			$this->idempotency_service->cache_response( $idempotency_key, $response );
+		}
 
 		return $response;
 	}
@@ -255,14 +280,6 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 		$data = isset( $request['data'] ) ? $request['data'] : (
 			isset( $request['step_data'] ) ? $request['step_data'] : array()
 		);
-
-		// Debug: Check if conditions are present in raw request data
-		if ( isset( $data['conditions'] ) ) {
-			error_log( '[SCD] CONDITIONS FOUND in extract_data: ' . count( $data['conditions'] ) . ' conditions' );
-			error_log( '[SCD] Conditions data: ' . print_r( $data['conditions'], true ) );
-		} else {
-			error_log( '[SCD] NO CONDITIONS in extract_data for step data' );
-		}
 
 		return $data;
 	}
@@ -393,27 +410,12 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	private function process_step_data( $step, $data ) {
 		$data_to_process = ! empty( $this->sanitized_data ) ? $this->sanitized_data : $data;
 
-		// Debug: Check conditions before processing
-		if ( 'products' === $step ) {
-			error_log( '[SCD] process_step_data - BEFORE sanitization:' );
-			error_log( '[SCD] Conditions present: ' . ( isset( $data_to_process['conditions'] ) ? 'YES (' . count( $data_to_process['conditions'] ) . ')' : 'NO' ) );
-		}
-
 		switch ( $step ) {
 			case 'basic':
 			case 'products':
 			case 'discounts':
 			case 'schedule':
 				$sanitized = SCD_Validation::sanitize_step_data( $data_to_process, $step );
-
-				// Debug: Check conditions after sanitization
-				if ( 'products' === $step ) {
-					error_log( '[SCD] process_step_data - AFTER sanitization:' );
-					error_log( '[SCD] Conditions present: ' . ( isset( $sanitized['conditions'] ) ? 'YES (' . count( $sanitized['conditions'] ) . ')' : 'NO' ) );
-					if ( isset( $sanitized['conditions'] ) ) {
-						error_log( '[SCD] Sanitized conditions: ' . print_r( $sanitized['conditions'], true ) );
-					}
-				}
 
 				// Strip PRO features for free users (server-side safeguard)
 				if ( 'schedule' === $step && $this->feature_gate && ! $this->feature_gate->can_use_recurring_campaigns() ) {
@@ -464,15 +466,6 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 
 			if ( ! $this->state_service ) {
 				throw new Exception( 'State service unavailable' );
-			}
-
-			// Debug: Check conditions before saving to state
-			if ( 'products' === $step ) {
-				error_log( '[SCD] save_to_state - BEFORE saving to state service:' );
-				error_log( '[SCD] Conditions present: ' . ( isset( $processed_data['conditions'] ) ? 'YES (' . count( $processed_data['conditions'] ) . ')' : 'NO' ) );
-				if ( isset( $processed_data['conditions'] ) ) {
-					error_log( '[SCD] Processed conditions to save: ' . print_r( $processed_data['conditions'], true ) );
-				}
 			}
 
 			$save_result = $this->state_service->save_step_data( $step, $processed_data );

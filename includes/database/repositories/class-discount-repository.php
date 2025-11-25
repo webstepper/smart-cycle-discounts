@@ -113,12 +113,23 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 	public function find_expired( $cutoff_date ) {
 		global $wpdb;
 
-		// MEDIUM: Validate date format to prevent SQL errors
+		// Validate date format using strict DateTime parsing
 		$cutoff_date = sanitize_text_field( $cutoff_date );
 
-		// Ensure valid MySQL datetime format (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)
-		if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?$/', $cutoff_date ) ) {
-			return array(); // Return empty array for invalid date format
+		// Try parsing as full datetime first
+		$datetime = DateTime::createFromFormat( 'Y-m-d H:i:s', $cutoff_date );
+
+		// If that fails, try date-only format
+		if ( ! $datetime || $datetime->format( 'Y-m-d H:i:s' ) !== $cutoff_date ) {
+			$datetime = DateTime::createFromFormat( 'Y-m-d', $cutoff_date );
+
+			// If date-only format succeeds, append time
+			if ( $datetime && $datetime->format( 'Y-m-d' ) === $cutoff_date ) {
+				$cutoff_date = $datetime->format( 'Y-m-d' ) . ' 00:00:00';
+			} else {
+				// Invalid date format - reject
+				return array();
+			}
 		}
 
 		$sql = $wpdb->prepare(
@@ -275,7 +286,7 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 	 * @return   int|WP_Error           Number of deleted discounts or error.
 	 */
 	public function delete_by_campaign( $campaign_id ) {
-		// CRITICAL: Add capability check for authorization
+		// Capability check for authorization
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			return new WP_Error(
 				'insufficient_permissions',
@@ -289,6 +300,28 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 				'invalid_campaign_id',
 				__( 'Invalid campaign ID', 'smart-cycle-discounts' )
 			);
+		}
+
+		// Verify campaign ownership before deletion
+		try {
+			$container       = SCD_Core_Container::get_instance();
+			$campaign_repo   = $container->get( 'campaign_repository' );
+
+			if ( $campaign_repo ) {
+				$campaign = $campaign_repo->find( $campaign_id );
+
+				// find() returns null if user doesn't own campaign and isn't admin
+				if ( ! $campaign ) {
+					return new WP_Error(
+						'campaign_not_found',
+						__( 'Campaign not found or you do not have permission to delete its discounts', 'smart-cycle-discounts' )
+					);
+				}
+			}
+		} catch ( Exception $e ) {
+			// If we can't verify ownership, log error but allow deletion for backward compatibility
+			// The capability check above provides baseline security
+			error_log( sprintf( '[SCD] Warning: Could not verify campaign ownership for discount deletion: %s', $e->getMessage() ) );
 		}
 
 		global $wpdb;

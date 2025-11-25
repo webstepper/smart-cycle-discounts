@@ -1,6 +1,20 @@
 /**
  * Validation
  *
+ * Complete form field validation system with states, error messaging, UI components,
+ * and accessibility support (WCAG 2.1 AA compliant).
+ *
+ * Provides:
+ * - Field validation states (error, success, validating)
+ * - Error and success message displays
+ * - Validation summary panels
+ * - Navigation button states
+ * - Field wrapper containers
+ * - Full accessibility support
+ *
+ * Used by: SCD.ValidationError.js (client-side validation)
+ * Loaded on: pages=scd-campaigns, scd-analytics; conditionally on action=wizard
+ *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/css/admin/validation.css
  * @author     Webstepper.io <contact@webstepper.io>
@@ -11,191 +25,541 @@
  */
 
 /* ==========================================================================
-   Field Validation States
+   Field Wrapper Containers
    ========================================================================== */
 
-/* Error state - standardized classes only */
-.has-error input,
+/**
+ * Field wrapper container.
+ * Provides consistent spacing and positioning context for field validation states.
+ * Used in ValidationError.js as container selector for error state management.
+ */
+.scd-field-wrapper {
+	position: relative;
+	margin-bottom: var(--scd-spacing-lg);
+	transition: all var(--scd-transition-base) ease;
+}
+
+/* ==========================================================================
+   Error State - Input Fields
+   ========================================================================== */
+
+/**
+ * Error state for all input types, select, and textarea elements.
+ * Supports two application patterns:
+ * 1. Container-based: .has-error class on parent container
+ * 2. Direct: .error class on input element itself
+ *
+ * Specificity: (0,2,1) to override WordPress core input[type] styles (0,1,1)
+ */
+.has-error input[type="text"],
+.has-error input[type="email"],
+.has-error input[type="number"],
+.has-error input[type="url"],
+.has-error input[type="date"],
+.has-error input[type="time"],
 .has-error select,
 .has-error textarea,
+input.error[type="text"],
+input.error[type="email"],
+input.error[type="number"],
+input.error[type="url"],
+input.error[type="date"],
+input.error[type="time"],
 input.error,
 select.error,
 textarea.error {
-    border-color: var(--scd-color-danger) !important;
-    border-width: 2px;
-    box-shadow: 0 0 0 1px var(--scd-color-danger);
-    background-color: var(--scd-alert-danger-bg) !important;
-    color: var(--scd-color-text) !important; /* Ensure text is always readable */
+	border-color: var(--scd-color-danger);
+	border-width: var(--scd-border-width-thick);
+	box-shadow: 0 0 0 1px var(--scd-color-danger);
+	background-color: var(--scd-alert-danger-bg);
+	color: var(--scd-color-text);
 }
 
-/* Focus state for error fields */
-.has-error input:focus,
+/**
+ * Focus state for error fields.
+ * Maintains error styling while adding enhanced focus ring for accessibility.
+ */
+.has-error input[type="text"]:focus,
+.has-error input[type="email"]:focus,
+.has-error input[type="number"]:focus,
+.has-error input[type="url"]:focus,
+.has-error input[type="date"]:focus,
+.has-error input[type="time"]:focus,
 .has-error select:focus,
 .has-error textarea:focus,
+input.error[type="text"]:focus,
+input.error[type="email"]:focus,
+input.error[type="number"]:focus,
+input.error[type="url"]:focus,
+input.error[type="date"]:focus,
+input.error[type="time"]:focus,
 input.error:focus,
 select.error:focus,
 textarea.error:focus {
-    border-color: var(--scd-color-danger);
-    box-shadow: 0 0 0 3px var(--scd-shadow-danger);
-    outline: none;
+	border-color: var(--scd-color-danger);
+	box-shadow: var(--scd-ring-danger);
+	outline: none;
 }
 
-/* Success state */
+/* ==========================================================================
+   Error State - Tom Select Integration
+   ========================================================================== */
+
+/**
+ * Tom Select error state override.
+ * WordPress core applies .error styles globally, but Tom Select wrapper needs
+ * to remain transparent so only the .ts-control receives styling.
+ */
+.ts-wrapper.error {
+	background: transparent;
+	border: none;
+	box-shadow: none;
+	margin: 0;
+	padding: 0;
+}
+
+/* ==========================================================================
+   Success State
+   ========================================================================== */
+
+/**
+ * Success state for validated fields.
+ * Applied after successful validation to provide positive feedback.
+ */
 .scd-field-container.has-success input,
 .scd-field-container.has-success select,
 .scd-field-container.has-success textarea,
 .has-success input,
 .has-success select,
-.has-success textarea {
-    border-color: var(--scd-color-success);
-    border-width: 2px;
-    background-color: var(--scd-alert-success-bg);
+.has-success textarea,
+.scd-wizard-page .has-success input,
+.scd-wizard-page .has-success select,
+.scd-wizard-page .has-success textarea {
+	border-color: var(--scd-color-success);
+	border-width: var(--scd-border-width-thick);
+	background-color: var(--scd-alert-success-bg);
 }
 
-/* Validating state */
+/**
+ * Success state checkmark indicator.
+ * Displays visual checkmark after field when validation succeeds.
+ */
+.scd-field-has-success::after,
+.has-success::after {
+	content: '✓';
+	position: absolute;
+	right: var(--scd-spacing-sm);
+	top: 50%;
+	transform: translateY(-50%);
+	color: var(--scd-color-success);
+	font-size: var(--scd-font-size-xxl);
+	font-weight: var(--scd-font-weight-bold);
+	animation: scd-fade-in var(--scd-transition-base) ease;
+}
+
+/**
+ * Adjust checkmark position for select elements.
+ * Accounts for native dropdown arrow positioning.
+ */
+.scd-field-has-success:has(select)::after {
+	right: 35px;
+}
+
+/* ==========================================================================
+   Validating State
+   ========================================================================== */
+
+/**
+ * Validating state indicator.
+ * Shows animated spinner while async validation is in progress.
+ * Uses CSS mask for theme color support - spinner inherits primary color.
+ */
 .scd-field-validating input,
 .scd-field-validating select,
-.scd-field-validating textarea {
-    background-image: url('data:image/svg+xml;charset=utf8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Cpath fill="%23999" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z" opacity=".3"/%3E%3Cpath fill="%23666" d="M12 2a10 10 0 0 0-10 10h2a8 8 0 0 1 8-8z"%3E%3CanimateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/%3E%3C/path%3E%3C/svg%3E');
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    background-size: 16px 16px;
-    padding-right: 32px;
+.scd-field-validating textarea,
+.scd-field--validating input,
+.scd-field--validating select,
+.scd-field--validating textarea {
+	padding-right: var(--scd-spacing-xxl);
+	position: relative;
+}
+
+/* Spinner using CSS mask for theme color support */
+.scd-field-validating::after,
+.scd-field--validating::after {
+	content: '';
+	position: absolute;
+	right: var(--scd-spacing-sm);
+	top: 50%;
+	transform: translateY(-50%);
+	width: var(--scd-icon-small);
+	height: var(--scd-icon-small);
+	border: 2px solid var(--scd-color-border-light);
+	border-top-color: var(--scd-color-primary);
+	border-radius: 50%;
+	animation: scd-spin 0.8s linear infinite;
+	pointer-events: none;
+}
+
+/**
+ * Container state for validating fields.
+ * Provides positioning context for validation indicators.
+ */
+.scd-field--validating {
+	position: relative;
 }
 
 /* ==========================================================================
    Error Messages
    ========================================================================== */
 
+/**
+ * Error message element.
+ * Displayed below invalid fields with animation for visual feedback.
+ * Forces full width and new line in flex layouts.
+ */
+.scd-field-error {
+	display: block;
+	width: 100%;
+	flex-basis: 100%;
+	margin-top: var(--scd-spacing-xs);
+	margin-bottom: 0;
+	font-size: var(--scd-font-size-small);
+	line-height: var(--scd-line-height-base);
+	color: var(--scd-color-danger);
+	animation: scd-fade-in var(--scd-transition-base) ease;
+}
+
+/**
+ * Inline error message variant.
+ * Used for compact layouts where error appears inline with field.
+ */
+.scd-field-error--inline {
+	font-weight: var(--scd-font-weight-medium);
+}
+
+/* ==========================================================================
+   Success Messages
+   ========================================================================== */
+
+/**
+ * Success message element.
+ * Displayed below fields after successful validation.
+ * Hidden by default, shown with .scd-success--visible class.
+ */
+.scd-field-success {
+	display: none;
+	margin-top: var(--scd-spacing-xs);
+	font-size: var(--scd-font-size-small);
+	color: var(--scd-color-success);
+}
+
+.scd-field-success.scd-success--visible {
+	display: block;
+	animation: scd-fade-in var(--scd-transition-base) ease;
+}
+
+/* ==========================================================================
+   Validation Summary Panel
+   ========================================================================== */
+
+/**
+ * Validation summary panel.
+ * Displays list of all validation errors at top of form.
+ * WordPress 6.4+ admin notice styling.
+ */
+.scd-validation-summary {
+	margin: var(--scd-spacing-lg) 0;
+	padding: var(--scd-spacing-md);
+	background-color: var(--scd-color-error-bg);
+	border: 1px solid var(--scd-color-danger);
+	border-left-width: var(--scd-border-width-accent);
+	border-radius: var(--scd-radius-md);
+	animation: scd-fade-in var(--scd-transition-base) ease;
+	box-shadow: var(--scd-shadow-sm);
+}
+
+.scd-validation-summary__header {
+	display: flex;
+	align-items: center;
+	gap: var(--scd-spacing-md);
+	margin-bottom: var(--scd-spacing-md);
+}
+
+.scd-validation-summary__header .scd-icon {
+	color: var(--scd-color-danger);
+	font-size: var(--scd-font-size-xxxl);
+	flex-shrink: 0;
+}
+
+.scd-validation-summary__header h4 {
+	margin: 0;
+	font-size: 1rem;
+	font-weight: var(--scd-font-weight-semibold);
+	color: var(--scd-color-danger);
+}
+
+.scd-validation-summary__list {
+	margin: 0;
+	padding-left: 2rem;
+	list-style-type: disc;
+}
+
+.scd-validation-summary__list li {
+	margin-bottom: var(--scd-spacing-xs);
+	color: var(--scd-color-text);
+	font-size: var(--scd-font-size-base);
+}
+
+.scd-validation-summary__list a {
+	color: var(--scd-color-primary);
+	text-decoration: none;
+	font-weight: var(--scd-font-weight-medium);
+}
+
+.scd-validation-summary__list a:hover,
+.scd-validation-summary__list a:focus {
+	text-decoration: underline;
+	color: var(--scd-color-primary-hover);
+}
+
+/* ==========================================================================
+   Navigation Validation Notices
+   ========================================================================== */
+
+/**
+ * Inline validation notification.
+ * Displayed near navigation buttons when validation fails.
+ */
+.scd-navigation-notice {
+	margin: var(--scd-spacing-md) 0;
+	padding: var(--scd-spacing-md);
+	position: relative;
+	border-radius: var(--scd-radius-md);
+	box-shadow: var(--scd-shadow-sm);
+}
+
+.scd-navigation-notice.notice-error {
+	background-color: var(--scd-color-error-bg);
+	border: 1px solid var(--scd-color-danger);
+	border-left-width: var(--scd-border-width-accent);
+}
+
+.scd-navigation-notice .notice-dismiss {
+	position: absolute;
+	top: var(--scd-spacing-xs);
+	right: var(--scd-spacing-xs);
+	border: none;
+	margin: 0;
+	padding: var(--scd-spacing-xs);
+	background: none;
+	color: var(--scd-color-text-lighter);
+	cursor: pointer;
+	transition: color var(--scd-transition-fast);
+}
+
+.scd-navigation-notice .notice-dismiss:hover::before,
+.scd-navigation-notice .notice-dismiss:focus::before {
+	color: var(--scd-color-danger);
+}
+
+.scd-navigation-notice .notice-dismiss::before {
+	background: none;
+	color: inherit;
+	content: '\f153';
+	display: block;
+	font: normal 16px/20px dashicons;
+	speak: never;
+	height: var(--scd-icon-medium);
+	text-align: center;
+	width: var(--scd-icon-medium);
+}
+
+/* ==========================================================================
+   Navigation Button States
+   ========================================================================== */
+
+/**
+ * Disabled navigation button state.
+ * Applied when validation fails and navigation should be prevented.
+ */
+.scd-wizard-page .scd-nav-btn--next.scd-btn--disabled {
+	opacity: 0.3;
+	cursor: not-allowed;
+	background-color: var(--scd-color-surface);
+	color: var(--scd-color-text-lighter);
+	border-color: var(--scd-color-border);
+}
+
+.scd-wizard-page .scd-nav-btn--next.scd-btn--disabled:hover {
+	background-color: var(--scd-color-surface);
+	color: var(--scd-color-text-lighter);
+	box-shadow: none;
+}
 
 /* ==========================================================================
    WordPress Admin Integration
    ========================================================================== */
 
+/**
+ * WordPress admin compatibility.
+ * Ensures error messages display correctly in WordPress admin contexts.
+ */
 .wp-admin .scd-field-error,
 .wp-admin .field-error {
-    clear: both;
-    display: block;
+	clear: both;
+	display: block;
 }
 
+/**
+ * Form table integration.
+ * Highlights table header label when field in same row has error.
+ */
 .form-table .has-error th {
-    color: var(--scd-color-danger);
-    font-weight: var(--scd-font-weight-semibold);
+	color: var(--scd-color-danger);
+	font-weight: var(--scd-font-weight-semibold);
 }
 
 /* ==========================================================================
    Accessibility Support
    ========================================================================== */
 
-/* Screen reader only text */
+/**
+ * Screen reader only text.
+ * Visually hidden but available to assistive technologies.
+ * Uses clip method for maximum compatibility.
+ */
 .scd-validation-screen-reader-text,
 .screen-reader-text {
-    position: absolute !important;
-    clip: rect(1px, 1px, 1px, 1px);
-    height: 1px;
-    width: 1px;
-    overflow: hidden;
-    word-wrap: normal !important;
+	position: absolute !important;
+	clip: rect(1px, 1px, 1px, 1px);
+	height: 1px;
+	width: 1px;
+	overflow: hidden;
+	word-wrap: normal !important;
 }
 
-/* Skip to errors link */
+/**
+ * Skip to errors link.
+ * Keyboard-accessible link that appears on focus, allows users to jump
+ * directly to first error in form. Critical for keyboard navigation.
+ */
 .scd-skip-to-errors {
-    position: absolute;
-    left: -9999px;
-    top: auto;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
+	position: absolute;
+	left: -9999px;
+	top: auto;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
 }
 
 .scd-skip-to-errors:focus {
-    position: static;
-    width: auto;
-    height: auto;
-    padding: var(--scd-padding-small) 16px;
-    background: var(--scd-color-primary);
-    color: var(--scd-color-white);
-    text-decoration: none;
-    border-radius: var(--scd-radius-sm);
-    display: inline-block;
-    margin: 10px 0;
+	position: static;
+	width: auto;
+	height: auto;
+	padding: var(--scd-padding-small) var(--scd-spacing-base);
+	margin: var(--scd-spacing-sm) 0;
+	background: var(--scd-color-primary);
+	color: var(--scd-color-white);
+	text-decoration: none;
+	border-radius: var(--scd-radius-sm);
+	display: inline-block;
 }
 
 /* ==========================================================================
-   Media Queries
+   Media Queries - Accessibility & Responsive
    ========================================================================== */
 
-/* High contrast mode */
+/**
+ * High Contrast Mode
+ * Enhanced visibility for users with visual impairments or high contrast preferences.
+ */
 @media (prefers-contrast: high) {
-    .has-error input,
-    .has-error select,
-    .has-error textarea,
-    input.error,
-    select.error,
-    textarea.error {
-        outline: 3px solid var(--scd-color-danger);
-        outline-offset: 2px;
-    }
-    
-    .scd-field-error {
-        font-weight: bold;
-        text-decoration: underline;
-    }
+	.has-error input,
+	.has-error select,
+	.has-error textarea,
+	input.error,
+	select.error,
+	textarea.error,
+	.ts-wrapper.error .ts-control {
+		outline: 3px solid var(--scd-color-danger);
+		outline-offset: 2px;
+	}
+
+	.scd-field-error {
+		font-weight: var(--scd-font-weight-bold);
+		text-decoration: underline;
+	}
 }
 
-/* Reduced motion */
+/**
+ * Reduced Motion
+ * Respects user preference for reduced animations (accessibility, vestibular disorders).
+ */
 @media (prefers-reduced-motion: reduce) {
-    .has-error .scd-field-error,
-    .scd-field-error {
-        animation: none;
-        transition: none;
-    }
+	.scd-field-error,
+	.scd-field-success,
+	.scd-validation-summary,
+	.has-success::after {
+		animation: none;
+		transition: none;
+	}
 }
 
-/* Dark mode */
+/**
+ * Dark Mode
+ * Automatic dark mode support for users with dark color scheme preference.
+ */
 @media (prefers-color-scheme: dark) {
-    .has-error input,
-    .has-error select,
-    .has-error textarea,
-    input.error,
-    select.error,
-    textarea.error {
-        background-color: rgba(214, 54, 56, 0.15);
-        border-color: var(--scd-color-danger-light);
-        /* Keep text color as default for readability */
-    }
-    
-    .scd-field-error {
-        color: var(--scd-color-danger-light);
-    }
+	.has-error input,
+	.has-error select,
+	.has-error textarea,
+	input.error,
+	select.error,
+	textarea.error,
+	.ts-wrapper.error .ts-control {
+		background-color: var(--scd-color-danger-alpha-15);
+		border-color: var(--scd-color-danger-light);
+	}
+
+	.scd-field-error {
+		color: var(--scd-color-danger-light);
+	}
 }
 
-/* Mobile/responsive */
+/**
+ * Mobile & Responsive
+ * WordPress admin breakpoint at 782px.
+ */
 @media screen and (max-width: 782px) {
-    .scd-field-error {
-        font-size: 0.8125em;
-    }
-    
-    .has-error input,
-    .has-error select,
-    .has-error textarea {
-        margin-bottom: 4px;
-    }
+	.scd-field-error {
+		font-size: 0.8125em;
+	}
+
+	.has-error input,
+	.has-error select,
+	.has-error textarea {
+		margin-bottom: var(--scd-spacing-xs);
+	}
 }
 
-/* Print styles */
+/**
+ * Print Styles
+ * Ensure validation errors are clearly visible when printed.
+ */
 @media print {
-    .scd-field-error::before {
-        content: "[Error] ";
-        position: static;
-        background: none;
-        color: inherit;
-    }
-    
-    .has-error input,
-    .has-error select,
-    .has-error textarea {
-        border: 1px solid var(--scd-color-text);
-        background: none;
-    }
+	.scd-field-error::before {
+		content: "[Error] ";
+		position: static;
+		background: none;
+		color: inherit;
+	}
+
+	.has-error input,
+	.has-error select,
+	.has-error textarea,
+	.ts-wrapper.error .ts-control {
+		border: 1px solid var(--scd-color-text);
+		background: none;
+	}
 }

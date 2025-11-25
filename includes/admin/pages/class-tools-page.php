@@ -237,11 +237,14 @@ class SCD_Tools_Page {
 	private function render_database_section(): void {
 		global $wpdb;
 
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
-		$table_size      = $wpdb->get_var(
+		// Calculate total size of all plugin tables
+		$table_size = $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT ROUND(((data_length + index_length) / 1024 / 1024), 2) FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = %s',
-				$campaigns_table
+				"SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 2)
+				FROM information_schema.TABLES
+				WHERE table_schema = DATABASE()
+				AND table_name LIKE %s",
+				$wpdb->esc_like( $wpdb->prefix . 'scd_' ) . '%'
 			)
 		);
 
@@ -261,10 +264,10 @@ class SCD_Tools_Page {
 						<th scope="row"><?php esc_html_e( 'Optimize Tables', 'smart-cycle-discounts' ); ?></th>
 						<td>
 							<p class="description">
-								<?php esc_html_e( 'Optimize database tables to improve performance and reclaim disk space.', 'smart-cycle-discounts' ); ?>
+								<?php esc_html_e( 'Optimize all plugin database tables to improve performance and reclaim disk space.', 'smart-cycle-discounts' ); ?>
 							</p>
 							<p>
-								<strong><?php esc_html_e( 'Current size:', 'smart-cycle-discounts' ); ?></strong>
+								<strong><?php esc_html_e( 'Total database size:', 'smart-cycle-discounts' ); ?></strong>
 								<?php echo esc_html( $table_size ? $table_size . ' MB' : __( 'Unknown', 'smart-cycle-discounts' ) ); ?>
 							</p>
 							<?php
@@ -313,6 +316,18 @@ class SCD_Tools_Page {
 	 * @return   void
 	 */
 	private function render_cache_section(): void {
+		// Get cache statistics
+		$cache_manager = Smart_Cycle_Discounts::get_service( 'cache_manager' );
+		$cache_stats   = array(
+			'transient_count'        => 0,
+			'object_cache_available' => false,
+			'enabled'                => true,
+		);
+
+		if ( $cache_manager && method_exists( $cache_manager, 'get_stats' ) ) {
+			$cache_stats = array_merge( $cache_stats, $cache_manager->get_stats() );
+		}
+
 		?>
 		<div class="scd-tools-section">
 			<h2>
@@ -326,10 +341,29 @@ class SCD_Tools_Page {
 			<table class="form-table" role="presentation">
 				<tbody>
 					<tr>
+						<th scope="row"><?php esc_html_e( 'Cache Status', 'smart-cycle-discounts' ); ?></th>
+						<td>
+							<p>
+								<strong><?php esc_html_e( 'Cached transients:', 'smart-cycle-discounts' ); ?></strong>
+								<?php echo esc_html( $cache_stats['transient_count'] ); ?>
+							</p>
+							<p>
+								<strong><?php esc_html_e( 'Object cache:', 'smart-cycle-discounts' ); ?></strong>
+								<?php
+								if ( $cache_stats['object_cache_available'] ) {
+									echo SCD_Badge_Helper::health_badge( 'good', __( 'Available', 'smart-cycle-discounts' ) );
+								} else {
+									echo SCD_Badge_Helper::health_badge( 'neutral', __( 'Not available', 'smart-cycle-discounts' ) );
+								}
+								?>
+							</p>
+						</td>
+					</tr>
+					<tr>
 						<th scope="row"><?php esc_html_e( 'Clear & Rebuild Cache', 'smart-cycle-discounts' ); ?></th>
 						<td>
 							<p class="description">
-								<?php esc_html_e( 'Clears all cached data (object cache, transients, campaign data) and rebuilds the cache for optimal performance.', 'smart-cycle-discounts' ); ?>
+								<?php esc_html_e( 'Clears all cached data and rebuilds the cache with fresh campaign data for optimal performance.', 'smart-cycle-discounts' ); ?>
 							</p>
 							<?php
 							SCD_Button_Helper::primary(
@@ -369,7 +403,17 @@ class SCD_Tools_Page {
 				<?php esc_html_e( 'Log Viewer', 'smart-cycle-discounts' ); ?>
 			</h2>
 			<p class="description">
-				<?php esc_html_e( 'View, download, and manage debug log files. To configure logging settings, visit Settings > Advanced.', 'smart-cycle-discounts' ); ?>
+				<?php
+				$settings_url = admin_url( 'admin.php?page=scd-settings&tab=advanced' );
+				printf(
+					/* translators: %s: URL to Settings > Advanced page */
+					wp_kses(
+						__( 'View, download, and manage debug log files. To configure logging settings, visit <a href="%s">Settings &gt; Advanced</a>.', 'smart-cycle-discounts' ),
+						array( 'a' => array( 'href' => array() ) )
+					),
+					esc_url( $settings_url )
+				);
+				?>
 			</p>
 
 			<table class="form-table" role="presentation">
@@ -382,7 +426,16 @@ class SCD_Tools_Page {
 									<?php esc_html_e( 'View debug log contents. Sensitive information is automatically redacted.', 'smart-cycle-discounts' ); ?>
 									<br>
 									<strong><?php esc_html_e( 'Showing last 500 lines (~10-30 minutes).', 'smart-cycle-discounts' ); ?></strong>
-									<?php esc_html_e( 'Production mode logs errors only. Change log level in Settings > Advanced to see more detail.', 'smart-cycle-discounts' ); ?>
+									<?php
+									printf(
+										/* translators: %s: URL to Settings > Advanced page */
+										wp_kses(
+											__( 'Production mode logs errors and warnings. Change log level in <a href="%s">Settings &gt; Advanced</a> to see more detail.', 'smart-cycle-discounts' ),
+											array( 'a' => array( 'href' => array() ) )
+										),
+										esc_url( $settings_url )
+									);
+									?>
 								</p>
 
 								<div class="scd-log-stats" style="margin: 15px 0;">

@@ -524,21 +524,6 @@ class SCD_Service_Definitions {
 				},
 			),
 
-			'settings_performance'         => array(
-				'class'        => 'SCD_Performance_Settings',
-				'singleton'    => true,
-				'dependencies' => array( 'settings_manager', 'logger' ),
-				'factory'      => function ( $container ) {
-					require_once SCD_INCLUDES_DIR . 'admin/settings/class-settings-page-base.php';
-					require_once SCD_INCLUDES_DIR . 'admin/settings/tabs/class-performance-settings.php';
-					return new SCD_Performance_Settings(
-						$container->get( 'settings_manager' ),
-						$container->get( 'logger' ),
-						$container
-					);
-				},
-			),
-
 			'settings_advanced'            => array(
 				'class'        => 'SCD_Advanced_Settings',
 				'singleton'    => true,
@@ -633,6 +618,43 @@ class SCD_Service_Definitions {
 					} catch ( Throwable $e ) {
 						throw $e;
 					}
+				},
+			),
+
+			// Contextual Sidebar System
+			'sidebar_help_topics'          => array(
+				'class'     => 'SCD_Sidebar_Help_Topics',
+				'singleton' => false,
+				'factory'   => function ( $container ) {
+					require_once SCD_INCLUDES_DIR . 'core/wizard/class-sidebar-help-topics.php';
+					return new SCD_Sidebar_Help_Topics();
+				},
+			),
+
+			'sidebar_progress'             => array(
+				'class'     => 'SCD_Sidebar_Progress',
+				'singleton' => false,
+				'factory'   => function ( $container ) {
+					require_once SCD_INCLUDES_DIR . 'core/wizard/class-sidebar-progress.php';
+					return new SCD_Sidebar_Progress();
+				},
+			),
+
+			'sidebar_quick_actions'        => array(
+				'class'     => 'SCD_Sidebar_Quick_Actions',
+				'singleton' => false,
+				'factory'   => function ( $container ) {
+					require_once SCD_INCLUDES_DIR . 'core/wizard/class-sidebar-quick-actions.php';
+					return new SCD_Sidebar_Quick_Actions();
+				},
+			),
+
+			'sidebar_renderer'             => array(
+				'class'     => 'SCD_Sidebar_Renderer',
+				'singleton' => false,
+				'factory'   => function ( $container ) {
+					require_once SCD_INCLUDES_DIR . 'core/wizard/class-sidebar-renderer.php';
+					return new SCD_Sidebar_Renderer();
 				},
 			),
 
@@ -910,14 +932,28 @@ class SCD_Service_Definitions {
 			'campaign_overview_panel'      => array(
 				'class'        => 'SCD_Campaign_Overview_Panel',
 				'singleton'    => true,
-				'dependencies' => array( 'campaign_repository', 'campaign.formatter', 'analytics_repository', 'recurring_handler', 'product_selector' ),
+				'dependencies' => array( 'campaign_repository', 'campaign.formatter', 'analytics_repository', 'recurring_handler', 'product_selector', 'campaign_health_service' ),
 				'factory'      => function ( $container ) {
 					return new SCD_Campaign_Overview_Panel(
 						$container->get( 'campaign_repository' ),
 						$container->get( 'campaign.formatter' ),
 						$container->get( 'analytics_repository' ),
 						$container->get( 'recurring_handler' ),
-						$container->get( 'product_selector' )
+						$container->get( 'product_selector' ),
+						$container->get( 'campaign_health_service' )
+					);
+				},
+			),
+
+			'campaign_overview_handler'    => array(
+				'class'        => 'SCD_Campaign_Overview_Handler',
+				'singleton'    => true,
+				'dependencies' => array( 'campaign_repository', 'campaign_overview_panel', 'logger' ),
+				'factory'      => function ( $container ) {
+					return new SCD_Campaign_Overview_Handler(
+						$container->get( 'campaign_repository' ),
+						$container->get( 'campaign_overview_panel' ),
+						$container->get( 'logger' )
 					);
 				},
 			),

@@ -75,17 +75,11 @@ class SCD_Get_Planner_Insights_Handler extends SCD_Abstract_Ajax_Handler {
 		$is_major_event = isset( $request['is_major_event'] ) && '1' === $request['is_major_event'];
 
 		if ( empty( $campaign_id ) ) {
-			return array(
-				'success' => false,
-				'message' => __( 'Campaign ID is required', 'smart-cycle-discounts' ),
-			);
+			return $this->error( __( 'Campaign ID is required', 'smart-cycle-discounts' ), 'missing_campaign_id' );
 		}
 
 		if ( ! in_array( $state, array( 'past', 'active', 'future' ), true ) ) {
-			return array(
-				'success' => false,
-				'message' => __( 'Invalid campaign state', 'smart-cycle-discounts' ),
-			);
+			return $this->error( __( 'Invalid campaign state', 'smart-cycle-discounts' ), 'invalid_state' );
 		}
 
 		if ( ! in_array( $position, array( 'past', 'active', 'future' ), true ) ) {
@@ -111,19 +105,13 @@ class SCD_Get_Planner_Insights_Handler extends SCD_Abstract_Ajax_Handler {
 		$insights_data = $this->dashboard_service->get_unified_insights( $campaign_id, $position, $is_major_event );
 
 		if ( empty( $insights_data ) ) {
-			return array(
-				'success' => false,
-				'message' => __( 'Campaign not found', 'smart-cycle-discounts' ),
-			);
+			return $this->error( __( 'Campaign not found', 'smart-cycle-discounts' ), 'campaign_not_found' );
 		}
 
 		$view_file = SCD_VIEWS_DIR . 'admin/pages/dashboard/partials/planner-insights.php';
 
 		if ( ! file_exists( $view_file ) ) {
-			return array(
-				'success' => false,
-				'message' => __( 'View template not found', 'smart-cycle-discounts' ),
-			);
+			return $this->error( __( 'View template not found', 'smart-cycle-discounts' ), 'template_not_found', 500 );
 		}
 
 		try {
@@ -131,20 +119,18 @@ class SCD_Get_Planner_Insights_Handler extends SCD_Abstract_Ajax_Handler {
 			require $view_file;
 			$html = ob_get_clean();
 
-			return array(
-				'success' => true,
-				'html'    => $html,
+			return $this->success(
+				array(
+					'html' => $html,
+				)
 			);
 		} catch ( Exception $e ) {
-			// Clean up output buffer if still active
+			// Clean up output buffer if still active.
 			if ( ob_get_level() > 0 ) {
 				ob_end_clean();
 			}
 
-			return array(
-				'success' => false,
-				'message' => __( 'Failed to render insights template', 'smart-cycle-discounts' ),
-			);
+			return $this->error( __( 'Failed to render insights template', 'smart-cycle-discounts' ), 'render_failed', 500 );
 		}
 	}
 

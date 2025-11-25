@@ -70,6 +70,10 @@ class SCD_Autoloader {
 		'SCD_Wizard_Sidebar_Discounts'     => 'core/wizard/sidebars/class-sidebar-discounts.php',
 		'SCD_Wizard_Sidebar_Schedule'      => 'core/wizard/sidebars/class-sidebar-schedule.php',
 		'SCD_Wizard_Sidebar_Review'        => 'core/wizard/sidebars/class-sidebar-review.php',
+		'SCD_Sidebar_Help_Topics'          => 'core/wizard/class-sidebar-help-topics.php',
+		'SCD_Sidebar_Progress'             => 'core/wizard/class-sidebar-progress.php',
+		'SCD_Sidebar_Quick_Actions'        => 'core/wizard/class-sidebar-quick-actions.php',
+		'SCD_Sidebar_Renderer'             => 'core/wizard/class-sidebar-renderer.php',
 		'SCD_Session_Service'              => 'utilities/class-session-service.php',
 
 		// AJAX classes
@@ -126,7 +130,6 @@ class SCD_Autoloader {
 		'SCD_Settings_Manager'             => 'admin/settings/class-settings-manager.php',
 		'SCD_Settings_Page_Base'           => 'admin/settings/class-settings-page-base.php',
 		'SCD_General_Settings'             => 'admin/settings/tabs/class-general-settings.php',
-		'SCD_Performance_Settings'         => 'admin/settings/tabs/class-performance-settings.php',
 		'SCD_Advanced_Settings'            => 'admin/settings/tabs/class-advanced-settings.php',
 
 		// Notifications page classes
@@ -213,9 +216,16 @@ class SCD_Autoloader {
 		'SCD_Campaign_Validation_Handler'  => 'admin/ajax/handlers/class-campaign-validation-handler.php',
 		'SCD_Get_Active_Campaigns_Handler' => 'admin/ajax/handlers/class-get-active-campaigns-handler.php',
 		'SCD_Wizard_Navigate_Handler'      => 'core/wizard/class-wizard-navigate-handler.php',
+		'SCD_Sidebar_Ajax_Handler'         => 'admin/ajax/handlers/class-sidebar-ajax-handler.php',
 
 		// Draft Handler (consolidated)
 		'SCD_Draft_Handler'                => 'admin/ajax/handlers/class-draft-handler.php',
+
+		// Tools Handlers
+		'SCD_Tools_Handler'                => 'admin/ajax/handlers/class-tools-handler.php',
+		'SCD_Import_Export_Handler'        => 'admin/ajax/handlers/class-import-export-handler.php',
+		'SCD_Import_Handler'               => 'admin/ajax/handlers/class-import-handler.php',
+		'SCD_Log_Viewer_Handler'           => 'admin/ajax/handlers/class-log-viewer-handler.php',
 
 		// Analytics Handlers
 		'SCD_Overview_Handler'             => 'admin/ajax/handlers/class-overview-handler.php',
@@ -248,6 +258,9 @@ class SCD_Autoloader {
 		'SCD_Product_Selector'             => 'core/products/class-product-selector.php',
 		'SCD_Product_Service'              => 'core/products/class-product-service.php',
 		'SCD_Condition_Engine'             => 'core/products/class-condition-engine.php',
+
+		// Category classes
+		'SCD_Category_Metadata_Service'    => 'core/categories/class-category-metadata-service.php',
 
 		// Frontend classes
 		'SCD_Frontend_Manager'             => 'frontend/class-frontend-manager.php',

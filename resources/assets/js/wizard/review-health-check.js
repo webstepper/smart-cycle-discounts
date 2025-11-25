@@ -1143,8 +1143,8 @@
 			}
 
 			// Try scdWizardData
-			if ( window.scdWizardData && window.scdWizardData.campaign_id ) {
-				return window.scdWizardData.campaign_id;
+			if ( window.scdWizardData && window.scdWizardData.campaignId ) {
+				return window.scdWizardData.campaignId;
 			}
 
 			// Default to 'new' for new campaigns

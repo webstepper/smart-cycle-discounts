@@ -367,7 +367,7 @@
 			} else if ( 'fixed' === discountType ) {
 				var fixedValue = $( '#discount_value_fixed' ).val();
 				if ( fixedValue && '' !== fixedValue ) {
-					var symbol = ( window.scdDiscountStepData && window.scdDiscountStepData.currency_symbol ) || '$';
+					var symbol = ( window.scdSettings && window.scdSettings.currencySymbol ) || '$';
 					text = symbol + fixedValue + ' OFF';
 				}
 			} else if ( 'tiered' === discountType ) {

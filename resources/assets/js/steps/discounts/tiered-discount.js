@@ -20,11 +20,11 @@
 
 		this.type = 'tiered';
 		this.config = SCD.Modules.Discounts.Config;
-		this.maxTiers = 5;
+		this.maxTiers = 20; // Match backend validation limit
 
 		this.currencySymbol = '$'; // Default
-		if ( window.scdDiscountStepData && window.scdDiscountStepData.currencySymbol ) {
-			this.currencySymbol = this.decodeHtmlEntity( window.scdDiscountStepData.currencySymbol );
+		if ( window.scdSettings && window.scdSettings.currencySymbol ) {
+			this.currencySymbol = this.decodeHtmlEntity( window.scdSettings.currencySymbol );
 		}
 
 		// Ready state tracking (following advanced filters pattern)
@@ -64,31 +64,25 @@
 		 */
 		init: function() {
 			SCD.Modules.Discounts.Types.BaseDiscount.prototype.init.call( this );
-			var self = this;
 
-			// Use requestAnimationFrame for optimal timing (following advanced filters pattern)
-			requestAnimationFrame( function() {
-				self.setupTierHandlers();
+			this.setupTierHandlers();
 
-				// Process any queued data before marking as ready
-				if ( null !== self._queuedPercentageTiers ) {
-					self.setPercentageTiers( self._queuedPercentageTiers );
-					self._queuedPercentageTiers = null;
-				}
+			// Process any queued data
+			if ( null !== this._queuedPercentageTiers ) {
+				this.setPercentageTiers( this._queuedPercentageTiers );
+				this._queuedPercentageTiers = null;
+			}
 
-				if ( null !== self._queuedFixedTiers ) {
-					self.setFixedTiers( self._queuedFixedTiers );
-					self._queuedFixedTiers = null;
-				}
+			if ( null !== this._queuedFixedTiers ) {
+				this.setFixedTiers( this._queuedFixedTiers );
+				this._queuedFixedTiers = null;
+			}
 
-				// Mark as ready
-				self._ready = true;
+			// Mark as ready after initialization complete
+			this._ready = true;
 
-				// Registration is handled by the type registry
-
-				// Trigger ready event
-				self.state.triggerChange( 'tiered:ready' );
-			} );
+			// Trigger ready event
+			this.state.triggerChange( 'tiered:ready' );
 		},
 
 		/**
@@ -123,10 +117,13 @@
 
 			this.state.setState( {
 				tierMode: 'percentage',
-				percentageTiers: this._percentageTiers,
-				fixedTiers: this._fixedTiers,
 				tierType: 'quantity',
-				applyTo: 'per_item' // Default value for new campaigns
+				applyTo: 'per_item',
+				discountConfig: {
+					tiered: {
+						tiers: this._percentageTiers
+					}
+				}
 			} );
 
 			this.renderTiers();
@@ -137,12 +134,18 @@
 		 * Clear tiered discount data
 		 */
 		clearData: function() {
+			this._percentageTiers = [];
+			this._fixedTiers = [];
+
 			this.state.setState( {
 				tierMode: 'percentage',
-				percentageTiers: [],
-				fixedTiers: [],
 				tierType: 'quantity',
-				applyTo: 'per_item'
+				applyTo: 'per_item',
+				discountConfig: {
+					tiered: {
+						tiers: []
+					}
+				}
 			} );
 		},
 
@@ -211,15 +214,25 @@
 			// Tier mode selection
 			$( '[name="tier_mode"]' ).on( 'change.tiered', function() {
 				var mode = $( this ).val();
-				self.state.setState( { tierMode: mode } );
 
-				// Show/hide appropriate tier groups
+				// Update state with new mode AND tiers for that mode only
+				var currentModeTiers = 'percentage' === mode ? self._percentageTiers : self._fixedTiers;
+				self.state.setState( {
+					tierMode: mode,
+					discountConfig: {
+						tiered: {
+							tiers: currentModeTiers
+						}
+					}
+				} );
+
+				// Show/hide appropriate tier groups using CSS classes
 				if ( 'percentage' === mode ) {
-					$( '#percentage-tiers-group' ).show();
-					$( '#fixed-tiers-group' ).hide();
+					$( '#percentage-tiers-group' ).removeClass( 'scd-hidden' );
+					$( '#fixed-tiers-group' ).addClass( 'scd-hidden' );
 				} else {
-					$( '#percentage-tiers-group' ).hide();
-					$( '#fixed-tiers-group' ).show();
+					$( '#percentage-tiers-group' ).addClass( 'scd-hidden' );
+					$( '#fixed-tiers-group' ).removeClass( 'scd-hidden' );
 				}
 
 				self.renderTiers();
@@ -281,14 +294,16 @@
 			var $container = $( containerSelector );
 			if ( !$container.length ) {return;}
 
-			var html = '';
+			// Clear container
+			$container.empty();
+
 			var self = this;
 
+			// Append each tier row (jQuery objects, not HTML strings)
 			tiers.forEach( function( tier, index ) {
-				html += self.renderTierRow( tier, index, tierType, mode );
+				var $row = self.renderTierRow( tier, index, tierType, mode );
+				$container.append( $row );
 			} );
-
-			$container.html( html );
 
 			var $addButton = $( '.scd-add-tier[data-tier-type="' + mode + '"]' );
 			if ( tiers.length >= self.maxTiers ) {
@@ -309,9 +324,11 @@
 			var thresholdLabel = 'quantity' === tierType ? 'Minimum Quantity' : 'Minimum Order Value';
 			var thresholdPlaceholder = 'quantity' === tierType ? 'e.g., 5' : 'e.g., 50.00';
 			var discountPlaceholder = 'percentage' === mode ? 'e.g., 10' : 'e.g., 5.00';
+			var discountPrefix = 'percentage' === mode ? '%' : this.currencySymbol;
 
 			return {
 				rowClass: 'scd-tier-row',
+				fieldsWrapperClass: 'scd-tier-fields',
 				dataAttributes: { mode: mode },
 				fields: [
 					{
@@ -333,14 +350,16 @@
 						step: 0.01,
 						placeholder: discountPlaceholder,
 						class: 'scd-tier-input scd-tier-discount scd-enhanced-input',
-						dataAttributes: { field: 'discount' }
+						dataAttributes: { field: 'discount' },
+						prefix: discountPrefix
 					}
 				],
 				removeButton: {
 					enabled: true,
-					label: 'Remove',
-					class: 'scd-remove-tier',
-					showLabel: true
+					label: 'Remove tier',
+					class: 'scd-button scd-button--icon-only scd-button--small scd-button--ghost-danger scd-remove-tier',
+					icon: 'trash',
+					showLabel: false
 				}
 			};
 		},
@@ -362,15 +381,13 @@
 			var config = this.getTieredRowConfig( tierType, mode );
 			var $row = SCD.Shared.RowFactory.create( config, rowData, index );
 
-			// Add currency prefix for discount field
-			var $discountWrapper = $row.find( '[data-field="discount"]' ).closest( '.scd-field-group' );
-			if ( $discountWrapper.length ) {
-				var prefix = 'percentage' === mode ? '%' : this.currencySymbol;
-				$discountWrapper.find( '.scd-input-wrapper' ).addClass( 'scd-input-with-prefix' );
-				$discountWrapper.find( '.scd-input-wrapper' ).prepend( '<span class="scd-input-prefix">' + prefix + '</span>' );
-			}
+			// Add ARIA label for accessibility
+			var tierNumber = index + 1;
+			var modeLabel = 'percentage' === mode ? 'Percentage' : 'Fixed Amount';
+			$row.attr( 'role', 'group' );
+			$row.attr( 'aria-label', 'Tier ' + tierNumber + ': ' + modeLabel + ' Discount' );
 
-			return $row[0].outerHTML;
+			return $row;
 		},
 
 		/**
@@ -407,11 +424,12 @@
 
 			tiers.push( newTier );
 
-			var allTiers = this._percentageTiers.concat( this._fixedTiers );
+			// Only save tiers for the current mode (don't mix percentage and fixed)
+			var currentModeTiers = 'percentage' === mode ? this._percentageTiers : this._fixedTiers;
 			this.state.setState( {
 				discountConfig: {
 					tiered: {
-						tiers: allTiers
+						tiers: currentModeTiers
 					}
 				}
 			} );
@@ -432,10 +450,15 @@
 			if ( 0 <= index && index < tiers.length ) {
 				tiers.splice( index, 1 );
 
-				var tiersKey = 'percentage' === mode ? 'percentageTiers' : 'fixedTiers';
-				var updatedState = {};
-				updatedState[tiersKey] = tiers.slice(); // Clone array
-				this.state.setState( updatedState );
+				// Only save tiers for the current mode (don't mix percentage and fixed)
+				var currentModeTiers = 'percentage' === mode ? this._percentageTiers : this._fixedTiers;
+				this.state.setState( {
+					discountConfig: {
+						tiered: {
+							tiers: currentModeTiers
+						}
+					}
+				} );
 
 				this.renderTiers();
 				this.updateInlinePreview();
@@ -478,11 +501,12 @@
 					break;
 			}
 
-			var allTiers = this._percentageTiers.concat( this._fixedTiers );
+			// Only save tiers for the current mode (don't mix percentage and fixed)
+			var currentModeTiers = 'percentage' === mode ? this._percentageTiers : this._fixedTiers;
 			this.state.setState( {
 				discountConfig: {
 					tiered: {
-						tiers: allTiers
+						tiers: currentModeTiers
 					}
 				}
 			} );
@@ -554,8 +578,18 @@
 
 			if ( 2 > tiers.length ) {return;}
 
+			// Filter out invalid/empty tiers before checking
+			var validTiers = tiers.filter( function( tier ) {
+				var threshold = tier.quantity || tier.value || 0;
+				var discount = tier.discount || 0;
+				return threshold > 0 && discount > 0;
+			} );
+
+			// Need at least 2 valid tiers to check progression
+			if ( 2 > validTiers.length ) {return;}
+
 			// Sort tiers by threshold to check in order
-			var sortedTiers = tiers.slice().sort( function( a, b ) {
+			var sortedTiers = validTiers.slice().sort( function( a, b ) {
 				var aThreshold = a.quantity || a.value || 0;
 				var bThreshold = b.quantity || b.value || 0;
 				return aThreshold - bThreshold;
@@ -587,50 +621,69 @@
 		 * Validate tiered configuration
 		 */
 		validate: function() {
+			console.group( '🔍 TIERED DISCOUNT - validate()' );
 			var errors = {};
 			var warnings = {};
 
 			var fullState = this.state.getState();
 			var tierMode = fullState.tierMode || 'percentage';
-			// Read from internal arrays (kept in sync with config.tiers)
 			var tiers = 'percentage' === tierMode ? this._percentageTiers : this._fixedTiers;
+
+			console.log( 'Tier mode:', tierMode );
+			console.log( 'Tiers:', tiers );
+			console.log( 'Field #tiers exists:', $( '#tiers' ).length > 0 );
+			console.log( 'Field #tiers value:', $( '#tiers' ).val() );
 
 			if ( 0 === tiers.length ) {
 				errors.tiers = 'At least one tier is required';
 			} else {
 				var thresholds = [];
+				var hasInvalidTier = false;
+				var hasDuplicates = false;
 
 				tiers.forEach( function( tier, index ) {
 					var threshold = tier.quantity || tier.value || 0;
 					var discount = tier.discount || 0;
 
 					if ( 0 >= threshold ) {
-						errors['tier_' + ( index ) + '_threshold'] = 'Tier ' + ( index + 1 ) + ': Invalid threshold';
+						hasInvalidTier = true;
 					}
 
 					if ( -1 !== thresholds.indexOf( threshold ) ) {
-						errors['tier_' + ( index ) + '_threshold'] = 'Tier ' + ( index + 1 ) + ': Duplicate threshold';
+						hasDuplicates = true;
 					}
 					thresholds.push( threshold );
 
 					if ( 0 >= discount ) {
-						errors['tier_' + ( index ) + '_discount'] = 'Tier ' + ( index + 1 ) + ': Invalid discount value';
+						hasInvalidTier = true;
 					} else if ( 'percentage' === tier.type && 100 < discount ) {
-						errors['tier_' + ( index ) + '_discount'] = 'Tier ' + ( index + 1 ) + ': Percentage cannot exceed 100%';
+						hasInvalidTier = true;
 					}
 				} );
 
+				if ( hasInvalidTier ) {
+					errors.tiers = 'One or more tiers have invalid values';
+				}
+
+				if ( hasDuplicates ) {
+					errors.tiers = 'Duplicate tier thresholds found';
+				}
+
 				var sortedThresholds = thresholds.slice().sort( function( a, b ) { return a - b; } );
 				if ( JSON.stringify( thresholds ) !== JSON.stringify( sortedThresholds ) ) {
-					warnings.tier_order = 'Tiers should be in ascending order by threshold';
+					warnings.tiers = 'Tiers should be in ascending order by threshold';
 				}
 			}
 
-			return {
+			var result = {
 				valid: 0 === Object.keys( errors ).length,
 				errors: errors,
 				warnings: warnings
 			};
+
+			console.log( 'Validation result:', result );
+			console.groupEnd();
+			return result;
 		},
 
 		/**
@@ -666,71 +719,52 @@
 		 * @param data
 		 */
 		loadData: function( data ) {
-			var stateUpdate = {};
-			var hasData = false;
+			if ( !data.tiers || !Array.isArray( data.tiers ) ) {
+				return;
+			}
 
-			// Handle combined tiers format (single source of truth)
-			if ( !hasData && data.tiers ) {
-				// Normalize tier objects
-				var normalizedTiers = Array.isArray( data.tiers ) ?
-					data.tiers.map( function( tier ) {
-						return {
-							quantity: tier.quantity,
-							value: tier.value,
-							discount: tier.discount,
-							type: tier.type || 'percentage'
-						};
-					} ) : [];
+			// Normalize tier objects
+			var normalizedTiers = data.tiers.map( function( tier ) {
+				return {
+					quantity: tier.quantity,
+					value: tier.value,
+					discount: tier.discount,
+					type: tier.type || 'percentage'
+				};
+			} );
 
-				// Determine mode from tier data
-				var mode = data.tierMode || ( normalizedTiers[0] && normalizedTiers[0].type ) || 'percentage';
-				stateUpdate.tierMode = mode;
+			// Determine mode from tier data or provided mode
+			var mode = data.tierMode || ( normalizedTiers[0] && normalizedTiers[0].type ) || 'percentage';
+			var tierType = data.tierType || 'quantity';
+			var applyTo = data.applyTo || 'per_item';
 
-				stateUpdate.discountConfig = stateUpdate.discountConfig || {};
-				stateUpdate.discountConfig.tiered = stateUpdate.discountConfig.tiered || {};
-				stateUpdate.discountConfig.tiered.tiers = normalizedTiers;
+			// Populate internal arrays based on mode
+			if ( 'percentage' === mode ) {
+				this._percentageTiers = normalizedTiers;
+				this._fixedTiers = [];
+			} else {
+				this._fixedTiers = normalizedTiers;
+				this._percentageTiers = [];
+			}
 
-				// Also store tier type if provided
-				var tierType = data.tierType || 'quantity';
-				stateUpdate.tierType = tierType;
-
-				if ( 'percentage' === mode ) {
-					this._percentageTiers = normalizedTiers;
-					this._fixedTiers = [];
-				} else {
-					this._fixedTiers = normalizedTiers;
-					this._percentageTiers = [];
+			// Update state with fresh data
+			this.state.setState( {
+				tierMode: mode,
+				tierType: tierType,
+				applyTo: applyTo,
+				discountConfig: {
+					tiered: {
+						tiers: normalizedTiers
+					}
 				}
-				hasData = true;
-			}
+			} );
 
-			if ( data.tierMode ) {
-				stateUpdate.tierMode = data.tierMode;
-			}
-
-			if ( data.tierType ) {
-				stateUpdate.tierType = data.tierType;
-			} else {
-				stateUpdate.tierType = 'quantity'; // Default
-			}
-
-			if ( data.applyTo ) {
-				stateUpdate.applyTo = data.applyTo;
-			} else {
-				stateUpdate.applyTo = 'per_item'; // Default value when not specified in data
-			}
-
-			// Only update state if we have data
-			if ( hasData ) {
-				this.state.setState( stateUpdate );
-
-				// Re-render tiers and check progression after loading
-				this.renderTiers();
-				var self = this;
-				setTimeout( function() {
-					self.checkDiscountProgression();
-				}, 100 );
-			}
+			// Re-render tiers and check progression after loading
+			this.renderTiers();
+			var self = this;
+			setTimeout( function() {
+				self.checkDiscountProgression();
+			}, 100 );
 		},
 
 		/**
@@ -851,19 +885,8 @@
 		 * @param change
 		 */
 		handleStateChange: function( change ) {
-			// Re-render tiers if tier data changes
-			if ( 'percentageTiers' === change.property ||
-                 'fixedTiers' === change.property ||
-                 'tierMode' === change.property ) {
-				// Sync internal state with component state
-				var fullState = this.state.getState();
-				if ( 'percentageTiers' === change.property ) {
-					this._percentageTiers = fullState.percentageTiers || [];
-				}
-				if ( 'fixedTiers' === change.property ) {
-					this._fixedTiers = fullState.fixedTiers || [];
-				}
-
+			// Re-render tiers if tier mode changes
+			if ( 'tierMode' === change.property ) {
 				this.renderTiers();
 				this.updateInlinePreview();
 			}
@@ -897,7 +920,19 @@
 
 			if ( Array.isArray( tiers ) ) {
 				this._percentageTiers = tiers.slice(); // Clone array
-				this.state.setState( { percentageTiers: tiers } );
+
+				// Update state if currently in percentage mode
+				var fullState = this.state.getState();
+				if ( 'percentage' === fullState.tierMode ) {
+					this.state.setState( {
+						discountConfig: {
+							tiered: {
+								tiers: this._percentageTiers
+							}
+						}
+					} );
+				}
+
 				this.renderTiers();
 				this.updateInlinePreview();
 			}
@@ -923,7 +958,19 @@
 
 			if ( Array.isArray( tiers ) ) {
 				this._fixedTiers = tiers.slice(); // Clone array
-				this.state.setState( { fixedTiers: tiers } );
+
+				// Update state if currently in fixed mode
+				var fullState = this.state.getState();
+				if ( 'fixed' === fullState.tierMode ) {
+					this.state.setState( {
+						discountConfig: {
+							tiered: {
+								tiers: this._fixedTiers
+							}
+						}
+					} );
+				}
+
 				this.renderTiers();
 				this.updateInlinePreview();
 			}
@@ -932,46 +979,40 @@
 		/**
 		 * Get consolidated tier data for backend (complex field handler)
 		 * Combines percentage and fixed tiers into single array with type property
+		 * Returns camelCase keys - AJAX Router auto-converts to snake_case
 		 * @return {Array} Consolidated tiers array
 		 */
 		getValue: function() {
-			console.log( '[TieredDiscount] getValue() called' );
-			console.log( '[TieredDiscount] _percentageTiers:', this._percentageTiers );
-			console.log( '[TieredDiscount] _fixedTiers:', this._fixedTiers );
-
 			try {
 				var tiers = [];
 
 				if ( this._percentageTiers && this._percentageTiers.length ) {
-					console.log( '[TieredDiscount] Processing', this._percentageTiers.length, 'percentage tiers' );
 					this._percentageTiers.forEach( function( tier ) {
 						var tierObj = {
-							minQuantity: parseInt( tier.quantity || tier.value ) || 0,
-							discountValue: parseFloat( tier.discount ) || 0,
-							discountType: 'percentage'
+							minQuantity: parseInt( tier.quantity || tier.value ) || 0,      // camelCase - auto-converts to min_quantity
+							discountValue: parseFloat( tier.discount ) || 0,                 // camelCase - auto-converts to discount_value
+							discountType: 'percentage'                                       // camelCase - auto-converts to discount_type
 						};
-						console.log( '[TieredDiscount] Adding percentage tier:', tierObj );
 						tiers.push( tierObj );
 					} );
 				}
 
 				if ( this._fixedTiers && this._fixedTiers.length ) {
-					console.log( '[TieredDiscount] Processing', this._fixedTiers.length, 'fixed tiers' );
 					this._fixedTiers.forEach( function( tier ) {
 						var tierObj = {
-							minQuantity: parseInt( tier.quantity || tier.value ) || 0,
-							discountValue: parseFloat( tier.discount ) || 0,
-							discountType: 'fixed'
+							minQuantity: parseInt( tier.quantity || tier.value ) || 0,      // camelCase - auto-converts to min_quantity
+							discountValue: parseFloat( tier.discount ) || 0,                 // camelCase - auto-converts to discount_value
+							discountType: 'fixed'                                            // camelCase - auto-converts to discount_type
 						};
-						console.log( '[TieredDiscount] Adding fixed tier:', tierObj );
 						tiers.push( tierObj );
 					} );
 				}
 
-				console.log( '[TieredDiscount] getValue() returning:', tiers );
 				return tiers;
 			} catch ( error ) {
-				console.error( '[TieredDiscount] getValue error:', error );
+				if ( window.console && window.console.error ) {
+					window.console.error( '[TieredDiscount] getValue error:', error );
+				}
 				return [];
 			}
 		},
@@ -983,8 +1024,6 @@
 		 * @param {Array} tiers - Consolidated tiers array from backend
 		 */
 		setValue: function( tiers ) {
-			console.log( '[TieredDiscount] setValue() called with:', tiers );
-
 			try {
 				if ( !tiers || !Array.isArray( tiers ) ) {
 					return;
@@ -997,9 +1036,9 @@
 
 				tiers.forEach( function( tier ) {
 					var tierObj = {
-						quantity: parseInt( tier.min_quantity || tier.minQuantity ) || 0,
-						discount: parseFloat( tier.discount_value || tier.discountValue ) || 0,
-						type: tier.discount_type || tier.discountType
+						quantity: parseInt( tier.minQuantity ) || 0,
+						discount: parseFloat( tier.discountValue ) || 0,
+						type: tier.discountType
 					};
 
 					if ( 'percentage' === tierObj.type ) {
@@ -1025,7 +1064,9 @@
 					this.updateInlinePreview();
 				}
 			} catch ( error ) {
-				console.error( '[TieredDiscount] setValue error:', error );
+				if ( window.console && window.console.error ) {
+					window.console.error( '[TieredDiscount] setValue error:', error );
+				}
 			}
 		},
 

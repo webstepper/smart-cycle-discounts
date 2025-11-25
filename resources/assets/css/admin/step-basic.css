@@ -58,7 +58,7 @@
 }
 
 .scd-char-counter--error {
-    color: var(--scd-color-error);
+    color: var(--scd-color-danger);
 }
 
 /* ==========================================================================
@@ -110,8 +110,8 @@
 
 /* Priority variants */
 .scd-priority-display--high {
-    background: var(--scd-color-error-bg);
-    color: var(--scd-color-error);
+    background: var(--scd-color-danger-bg);
+    color: var(--scd-color-danger);
     border: var(--scd-border-width) solid var(--scd-color-danger-light-border);
 }
 
@@ -167,7 +167,7 @@
 
 .scd-priority-level--high .scd-priority-level__number {
     background: var(--scd-alert-danger-bg);
-    color: var(--scd-color-error);
+    color: var(--scd-color-danger);
 }
 
 .scd-priority-level--medium .scd-priority-level__number {
@@ -592,7 +592,7 @@
 }
 
 .scd-naming-dont .scd-icon {
-	color: var(--scd-color-error);
+	color: var(--scd-color-danger);
 	font-size: var(--scd-font-size-medium);
 	width: var(--scd-font-size-medium);
 	height: var(--scd-font-size-medium);
@@ -684,7 +684,7 @@
 }
 
 .scd-priority-high .scd-priority-range {
-	background: var(--scd-color-error);
+	background: var(--scd-color-danger);
 }
 
 .scd-priority-medium-high .scd-priority-range {

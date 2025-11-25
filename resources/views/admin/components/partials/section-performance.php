@@ -21,7 +21,7 @@ $has_data = ! empty( $data['revenue'] ) || ! empty( $data['conversions'] ) || ! 
 if ( $has_data ) :
 	?>
 	<!-- Date Range Indicator -->
-	<div style="margin-bottom: 16px; padding: 8px 12px; background: #f7f7f7; border-radius: 4px; font-size: 12px; color: #646970;">
+	<div class="scd-performance-date-range">
 		<?php echo SCD_Icon_Helper::get( 'calendar', array( 'size' => 14 ) ); ?>
 		<?php esc_html_e( 'Last 30 days', 'smart-cycle-discounts' ); ?>
 	</div>
@@ -31,7 +31,7 @@ if ( $has_data ) :
 
 		<!-- Revenue -->
 		<div class="scd-metric-card">
-			<div style="display: flex; align-items: center; justify-content: center; margin-bottom: 8px;">
+			<div class="scd-metric-icon">
 				<?php echo SCD_Icon_Helper::get( 'money-alt', array( 'size' => 20 ) ); ?>
 			</div>
 			<span class="scd-metric-value"><?php echo wp_kses_post( wc_price( $data['revenue'] ?? 0 ) ); ?></span>
@@ -40,7 +40,7 @@ if ( $has_data ) :
 
 		<!-- Conversions -->
 		<div class="scd-metric-card">
-			<div style="display: flex; align-items: center; justify-content: center; margin-bottom: 8px;">
+			<div class="scd-metric-icon">
 				<?php echo SCD_Icon_Helper::get( 'cart', array( 'size' => 20 ) ); ?>
 			</div>
 			<span class="scd-metric-value"><?php echo absint( $data['conversions'] ?? 0 ); ?></span>
@@ -49,7 +49,7 @@ if ( $has_data ) :
 
 		<!-- Impressions -->
 		<div class="scd-metric-card">
-			<div style="display: flex; align-items: center; justify-content: center; margin-bottom: 8px;">
+			<div class="scd-metric-icon">
 				<?php echo SCD_Icon_Helper::get( 'visibility', array( 'size' => 20 ) ); ?>
 			</div>
 			<span class="scd-metric-value"><?php echo number_format_i18n( $data['impressions'] ?? 0 ); ?></span>
@@ -58,7 +58,7 @@ if ( $has_data ) :
 
 		<!-- CTR -->
 		<div class="scd-metric-card">
-			<div style="display: flex; align-items: center; justify-content: center; margin-bottom: 8px;">
+			<div class="scd-metric-icon">
 				<?php echo SCD_Icon_Helper::get( 'chart-area', array( 'size' => 20 ) ); ?>
 			</div>
 			<span class="scd-metric-value"><?php echo number_format_i18n( $data['ctr'] ?? 0, 2 ); ?>%</span>
@@ -71,11 +71,11 @@ if ( $has_data ) :
 	// Average order value (if available)
 	if ( ! empty( $data['avg_order'] ) ) :
 		?>
-		<div style="margin-top: 16px; padding: 12px; background: #f7f7f7; border-radius: 4px; text-align: center;">
-			<span style="display: block; font-size: 12px; color: #646970; margin-bottom: 4px;">
+		<div class="scd-performance-avg-order">
+			<span class="scd-avg-order-label">
 				<?php esc_html_e( 'Average Order Value', 'smart-cycle-discounts' ); ?>
 			</span>
-			<span style="display: block; font-size: 16px; font-weight: 600; color: #1d2327;">
+			<span class="scd-avg-order-value">
 				<?php echo wp_kses_post( wc_price( $data['avg_order'] ) ); ?>
 			</span>
 		</div>
@@ -83,10 +83,18 @@ if ( $has_data ) :
 	endif;
 else :
 	?>
-	<p class="scd-no-data">
-		<?php echo SCD_Icon_Helper::get( 'chart-line', array( 'size' => 48 ) ); ?>
-		<br>
-		<?php esc_html_e( 'No performance data available yet.', 'smart-cycle-discounts' ); ?>
-	</p>
+	<div class="scd-no-data scd-no-data-enhanced">
+		<div class="scd-no-data-icon">
+			<?php echo SCD_Icon_Helper::get( 'chart-line', array( 'size' => 48 ) ); ?>
+		</div>
+		<h4 class="scd-no-data-title"><?php esc_html_e( 'No Performance Data Yet', 'smart-cycle-discounts' ); ?></h4>
+		<p class="scd-no-data-message">
+			<?php esc_html_e( 'Performance metrics will be available once the campaign starts running and generating activity.', 'smart-cycle-discounts' ); ?>
+		</p>
+		<div class="scd-no-data-info">
+			<?php echo SCD_Icon_Helper::get( 'info', array( 'size' => 16 ) ); ?>
+			<span><?php esc_html_e( 'Check back after the campaign has been active for a while', 'smart-cycle-discounts' ); ?></span>
+		</div>
+	</div>
 	<?php
 endif;

@@ -1,6 +1,10 @@
 /**
  * Settings
  *
+ * Settings page styles using design system variables.
+ * All colors, spacing, and typography use CSS custom properties
+ * from _variables.css for consistency.
+ *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/css/admin/settings.css
  * @author     Webstepper.io <contact@webstepper.io>
@@ -15,14 +19,19 @@
    ========================================================================== */
 
 .scd-settings {
-	max-width: 1200px;
+	max-width: var(--scd-container-lg);
+}
+
+.scd-settings h1 {
+	display: flex;
+	align-items: center;
+	gap: var(--scd-gap-tight);
 }
 
 .scd-settings h1 .scd-icon {
-	font-size: 32px;
-	width: 32px;
-	height: var(--scd-button-height-large);
-	margin-right: 8px;
+	font-size: var(--scd-icon-large);
+	width: var(--scd-icon-large);
+	height: var(--scd-icon-large);
 	color: var(--scd-color-primary);
 }
 
@@ -32,7 +41,7 @@
 
 .scd-settings-tabs {
 	margin: var(--scd-spacing-lg) 0;
-	border-bottom: 1px solid var(--scd-color-border);
+	border-bottom: var(--scd-border-width) solid var(--scd-color-border);
 }
 
 .scd-settings-tabs .nav-tab {
@@ -40,7 +49,18 @@
 	align-items: center;
 	gap: var(--scd-gap-tight);
 	font-size: var(--scd-font-size-medium);
-	padding: var(--scd-padding-small) 16px;
+	padding: var(--scd-padding-small) var(--scd-spacing-base);
+	border-radius: var(--scd-radius-sm) var(--scd-radius-sm) 0 0;
+	transition: var(--scd-transition-colors);
+}
+
+.scd-settings-tabs .nav-tab:hover {
+	background-color: var(--scd-color-surface);
+}
+
+.scd-settings-tabs .nav-tab-active {
+	background-color: var(--scd-color-white);
+	border-bottom-color: var(--scd-color-white);
 }
 
 .scd-settings-tabs .nav-tab .scd-icon {
@@ -50,35 +70,49 @@
 }
 
 /* ==========================================================================
-   Settings Form
+   Settings Form Container
    ========================================================================== */
 
 .scd-settings-form {
 	background: var(--scd-color-white);
-	border: 1px solid var(--scd-color-border);
-	border-radius: var(--scd-radius-md);
+	border: var(--scd-border-width) solid var(--scd-color-border);
+	border-radius: var(--scd-radius-lg);
 	padding: var(--scd-padding-section);
 	margin-top: var(--scd-spacing-lg);
+	box-shadow: var(--scd-shadow-sm);
 }
+
+/* ==========================================================================
+   Section Headers
+   ========================================================================== */
 
 .scd-settings-form h2 {
 	margin-top: 0;
-	padding-bottom: 10px;
-	border-bottom: 1px solid #e5e5e5;
+	margin-bottom: var(--scd-spacing-base);
+	padding-bottom: var(--scd-spacing-md);
+	border-bottom: var(--scd-border-width) solid var(--scd-color-border-light);
 	display: flex;
 	align-items: center;
 	gap: var(--scd-gap-normal);
+	font-size: var(--scd-font-size-xl);
+	font-weight: var(--scd-font-weight-semibold);
+	color: var(--scd-color-text);
 }
 
 .scd-settings-form h2:not(:first-child) {
-	margin-top: 30px;
-	padding-top: 30px;
-	border-top: 1px solid #e5e5e5;
+	margin-top: var(--scd-spacing-xxl);
 }
 
 .scd-settings-form h2 .scd-icon {
+	font-size: var(--scd-icon-medium);
+	width: var(--scd-icon-medium);
+	height: var(--scd-icon-medium);
 	color: var(--scd-color-primary);
 }
+
+/* ==========================================================================
+   Form Table Layout
+   ========================================================================== */
 
 .scd-settings-form .form-table {
 	margin-top: var(--scd-spacing-lg);
@@ -86,66 +120,140 @@
 
 .scd-settings-form .form-table th {
 	width: 220px;
+	padding: var(--scd-padding-medium) var(--scd-spacing-md) var(--scd-padding-medium) 0;
 	font-weight: var(--scd-font-weight-semibold);
+	font-size: var(--scd-font-size-medium);
 	color: var(--scd-color-text);
+	vertical-align: top;
 }
 
 .scd-settings-form .form-table td {
-	padding: var(--scd-padding-compact) 10px;
+	padding: var(--scd-padding-medium) var(--scd-spacing-md);
 }
 
 .scd-settings-form .form-table td p.description {
-	margin-top: 5px;
+	margin-top: var(--scd-spacing-sm);
 	font-size: var(--scd-font-size-base);
 	color: var(--scd-color-text-muted);
-	line-height: 1.6;
+	line-height: var(--scd-line-height-relaxed);
 }
 
-/* Field Tooltips */
-.scd-field-tooltip {
-	color: var(--scd-color-text-muted);
-	cursor: help;
-	margin-left: 5px;
+/* ==========================================================================
+   Tooltips - Unified with shared/_components.css .scd-field-helper
+   ========================================================================== */
+
+/* Note: Tooltips use .scd-field-helper class from SCD_Tooltip_Helper.
+   Styling is defined in shared/_components.css for consistency.
+   The .scd-field-tooltip class is deprecated - use .scd-field-helper. */
+
+/* Settings-specific tooltip adjustments */
+.scd-settings-form .scd-field-helper {
+	vertical-align: middle;
 }
 
-.scd-field-tooltip:hover {
+.scd-settings-form .scd-field-helper:hover .scd-icon {
 	color: var(--scd-color-primary);
+	opacity: 1;
 }
 
-/* Section Descriptions */
+/* ==========================================================================
+   Section Descriptions
+   ========================================================================== */
+
 .scd-section-description {
 	color: var(--scd-color-text-muted);
 	font-size: var(--scd-font-size-base);
-	line-height: 1.6;
-	margin: 0 0 20px 0;
+	line-height: var(--scd-line-height-relaxed);
+	margin: 0 0 var(--scd-spacing-lg) 0;
 	padding: var(--scd-padding-medium);
 	background: var(--scd-color-surface);
-	border-left: 4px solid var(--scd-color-primary);
+	border-left: var(--scd-border-width-accent) solid var(--scd-color-primary);
 	border-radius: var(--scd-radius-sm);
 }
 
 /* ==========================================================================
-   Form Fields
+   Form Fields - Settings Page Toggle Switch
    ========================================================================== */
 
-/* Form field styling is defined in shared/_forms.css */
-/* Toggle switch styling is defined in shared/_forms.css */
+/**
+ * Toggle switch for settings page.
+ * Uses the shared toggle pattern from _forms.css but renders
+ * via render_toggle_field() with .scd-toggle-slider class.
+ */
+
+.scd-settings-form .scd-toggle {
+	display: inline-flex;
+	align-items: center;
+	cursor: pointer;
+}
+
+/* Hidden checkbox input */
+.scd-settings-form .scd-toggle input[type="checkbox"] {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+/* Toggle slider track */
+.scd-settings-form .scd-toggle-slider {
+	position: relative;
+	display: inline-block;
+	width: 44px;
+	height: 22px;
+	background: var(--scd-color-border);
+	border-radius: var(--scd-radius-pill);
+	transition: var(--scd-transition-colors);
+	box-shadow: inset 0 1px 3px var(--scd-overlay-subtle);
+}
+
+/* Toggle slider thumb (knob) */
+.scd-settings-form .scd-toggle-slider::before {
+	content: '';
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 16px;
+	height: 16px;
+	background: var(--scd-color-white);
+	border-radius: var(--scd-radius-full);
+	box-shadow: var(--scd-shadow-sm);
+	transition: var(--scd-transition-transform);
+}
+
+/* Checked state - active track */
+.scd-settings-form .scd-toggle input[type="checkbox"]:checked + .scd-toggle-slider {
+	background: var(--scd-color-primary);
+	box-shadow: var(--scd-shadow-inset);
+}
+
+/* Checked state - move thumb to right */
+.scd-settings-form .scd-toggle input[type="checkbox"]:checked + .scd-toggle-slider::before {
+	transform: translateX(22px);
+}
+
+/* Focus state for accessibility */
+.scd-settings-form .scd-toggle input[type="checkbox"]:focus + .scd-toggle-slider {
+	outline: 2px solid var(--scd-color-primary);
+	outline-offset: 2px;
+}
 
 /* ==========================================================================
    Submit Section
    ========================================================================== */
 
 .scd-settings-submit {
-	margin-top: 30px;
+	margin-top: var(--scd-spacing-xxl);
 	padding-top: var(--scd-spacing-lg);
-	border-top: 1px solid var(--scd-color-border);
+	border-top: var(--scd-border-width) solid var(--scd-color-border);
 	text-align: right;
 }
 
 .scd-settings-submit .button-primary {
-	padding: var(--scd-padding-small) 24px;
+	padding: var(--scd-padding-small) var(--scd-spacing-xl);
 	height: auto;
 	font-size: var(--scd-font-size-medium);
+	font-weight: var(--scd-font-weight-semibold);
 }
 
 /* ==========================================================================
@@ -153,10 +261,34 @@
    ========================================================================== */
 
 .scd-settings .notice {
-	margin: 0 0 20px 0;
+	margin: 0 0 var(--scd-spacing-lg) 0;
 	padding: var(--scd-padding-medium);
-	border-left-width: 4px;
+	border-left-width: var(--scd-border-width-accent);
 	border-radius: var(--scd-radius-md);
+}
+
+/* Success notice styling */
+.scd-settings .notice-success {
+	background-color: var(--scd-color-success-bg);
+	border-left-color: var(--scd-color-success);
+}
+
+/* Error notice styling */
+.scd-settings .notice-error {
+	background-color: var(--scd-color-danger-bg);
+	border-left-color: var(--scd-color-danger);
+}
+
+/* Warning notice styling */
+.scd-settings .notice-warning {
+	background-color: var(--scd-color-warning-bg);
+	border-left-color: var(--scd-color-warning);
+}
+
+/* Info notice styling */
+.scd-settings .notice-info {
+	background-color: var(--scd-color-info-bg);
+	border-left-color: var(--scd-color-info);
 }
 
 /* ==========================================================================
@@ -165,7 +297,7 @@
 
 @media screen and ( max-width: 782px ) {
 	.scd-settings {
-		margin: 10px 10px 0 10px;
+		margin: var(--scd-spacing-md) var(--scd-spacing-md) 0 var(--scd-spacing-md);
 	}
 
 	.scd-settings-form {
@@ -174,7 +306,8 @@
 
 	.scd-settings-tabs .nav-tab {
 		display: block;
-		margin-bottom: 5px;
+		margin-bottom: var(--scd-spacing-xs);
+		border-radius: var(--scd-radius-sm);
 	}
 
 	.scd-settings-form .form-table th,
@@ -186,7 +319,11 @@
 
 	.scd-settings-form .form-table th {
 		padding-right: 0;
-		padding-bottom: 5px;
+		padding-bottom: var(--scd-spacing-xs);
+	}
+
+	.scd-settings-submit {
+		text-align: center;
 	}
 }
 
@@ -195,12 +332,18 @@
 		font-size: var(--scd-font-size-xxl);
 	}
 
+	.scd-settings h1 .scd-icon {
+		font-size: var(--scd-icon-medium);
+		width: var(--scd-icon-medium);
+		height: var(--scd-icon-medium);
+	}
+
 	.scd-settings-form h2 {
-		font-size: var(--scd-font-size-xl);
+		font-size: var(--scd-font-size-large);
 	}
 
 	.scd-settings-tabs .nav-tab {
-		padding: var(--scd-padding-small) 12px;
+		padding: var(--scd-padding-small) var(--scd-spacing-md);
 		font-size: var(--scd-font-size-base);
 	}
 }
@@ -213,51 +356,206 @@
 	position: relative;
 	pointer-events: none;
 	opacity: 0.6;
+	transition: opacity var(--scd-transition-base) ease;
 }
 
 /* ==========================================================================
-   Performance Settings - Cache Statistics
+   Tools Page - Cache Statistics
    ========================================================================== */
 
 .scd-cache-backend-info {
-	background: #f0f6fc;
-	border-left: 4px solid var(--scd-color-primary);
+	display: flex;
+	align-items: center;
+	gap: var(--scd-gap-normal);
+	background: var(--scd-color-info-bg);
+	border-left: var(--scd-border-width-accent) solid var(--scd-color-primary);
 	padding: var(--scd-padding-medium);
 	margin-bottom: var(--scd-spacing-lg);
+	border-radius: 0 var(--scd-radius-sm) var(--scd-radius-sm) 0;
 }
 
 .scd-cache-active-icon {
 	color: var(--scd-color-success);
+	font-size: var(--scd-icon-medium);
 }
 
 .scd-cache-stats-table {
-	max-width: 600px;
+	max-width: var(--scd-container-sm);
+	border-collapse: collapse;
+}
+
+.scd-cache-stats-table th,
+.scd-cache-stats-table td {
+	padding: var(--scd-padding-small) var(--scd-spacing-md);
+	border-bottom: var(--scd-border-width) solid var(--scd-color-border-light);
+}
+
+.scd-cache-stats-table tr:last-child th,
+.scd-cache-stats-table tr:last-child td {
+	border-bottom: none;
 }
 
 .scd-cache-stats-label {
 	width: 200px;
+	font-weight: var(--scd-font-weight-medium);
+	color: var(--scd-color-text-muted);
 }
 
+/* Status indicator colors */
 .scd-status-enabled {
 	color: var(--scd-color-success);
+	font-weight: var(--scd-font-weight-semibold);
 }
 
 .scd-status-disabled {
 	color: var(--scd-color-danger);
+	font-weight: var(--scd-font-weight-semibold);
 }
 
 .scd-status-active {
 	color: var(--scd-color-success);
+	font-weight: var(--scd-font-weight-semibold);
 }
 
 .scd-status-warning {
 	color: var(--scd-color-warning);
+	font-weight: var(--scd-font-weight-semibold);
 }
 
+/* Cache action buttons */
 .scd-cache-clear-actions {
 	margin-top: var(--scd-spacing-lg);
+	display: flex;
+	align-items: center;
+	gap: var(--scd-gap-normal);
 }
 
 .scd-cache-clear-actions #scd-clear-cache-status {
-	margin-left: 10px;
+	font-size: var(--scd-font-size-base);
+	color: var(--scd-color-text-muted);
+}
+
+/* ==========================================================================
+   Trash Management
+   ========================================================================== */
+
+.scd-trash-status {
+	display: flex;
+	flex-direction: column;
+	gap: var(--scd-spacing-sm);
+}
+
+.scd-trash-count {
+	font-size: var(--scd-font-size-medium);
+	color: var(--scd-color-text);
+}
+
+.scd-trash-actions {
+	margin-top: var(--scd-spacing-xs);
+}
+
+.scd-trash-empty {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--scd-spacing-xs);
+	color: var(--scd-color-success);
+	font-weight: var(--scd-font-weight-medium);
+}
+
+/* ==========================================================================
+   WordPress Form Elements - Enhanced Styling
+   ========================================================================== */
+
+/**
+ * Style WordPress form elements (regular-text, small-text, etc.)
+ * within the settings form for visual consistency.
+ */
+
+.scd-settings-form input[type="text"].regular-text,
+.scd-settings-form input[type="email"].regular-text,
+.scd-settings-form input[type="url"].regular-text,
+.scd-settings-form input[type="password"].regular-text,
+.scd-settings-form input[type="number"].small-text,
+.scd-settings-form select.regular-text {
+	border: var(--scd-border-width) solid var(--scd-color-border);
+	border-radius: var(--scd-radius-custom);
+	padding: var(--scd-padding-small) var(--scd-spacing-md);
+	font-size: var(--scd-font-size-medium);
+	line-height: var(--scd-line-height-base);
+	color: var(--scd-color-text);
+	background-color: var(--scd-color-background);
+	transition: var(--scd-form-input-transition);
+	box-shadow: var(--scd-input-shadow);
+}
+
+.scd-settings-form input[type="text"].regular-text:focus,
+.scd-settings-form input[type="email"].regular-text:focus,
+.scd-settings-form input[type="url"].regular-text:focus,
+.scd-settings-form input[type="password"].regular-text:focus,
+.scd-settings-form input[type="number"].small-text:focus,
+.scd-settings-form select.regular-text:focus {
+	border-color: var(--scd-form-focus);
+	box-shadow: var(--scd-input-focus-shadow);
+	outline: none;
+}
+
+/* Number inputs with small-text class */
+.scd-settings-form input[type="number"].small-text {
+	width: 80px;
+	text-align: center;
+}
+
+/* Select dropdowns - uses CSS mask for theme color support */
+.scd-settings-form select {
+	cursor: pointer;
+	background-repeat: no-repeat;
+	background-position: right var(--scd-spacing-sm) center;
+	padding-right: var(--scd-spacing-xl);
+	position: relative;
+}
+
+.scd-settings-form .form-table td:has(select)::after {
+	content: '';
+	position: absolute;
+	right: var(--scd-spacing-sm);
+	top: 50%;
+	transform: translateY(-50%);
+	width: 12px;
+	height: 12px;
+	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat center;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat center;
+	-webkit-mask-size: contain;
+	mask-size: contain;
+	background-color: var(--scd-color-text-lighter);
+	pointer-events: none;
+}
+
+/* ==========================================================================
+   Advanced Settings - Danger Zone Styling
+   ========================================================================== */
+
+/**
+ * Danger zone for destructive actions (delete data, uninstall options)
+ */
+
+.scd-settings-form .scd-danger-zone {
+	background: var(--scd-color-danger-bg);
+	border: var(--scd-border-width) solid var(--scd-color-danger);
+	border-radius: var(--scd-radius-md);
+	padding: var(--scd-padding-medium);
+	margin-top: var(--scd-spacing-lg);
+}
+
+.scd-settings-form .scd-danger-zone h3 {
+	color: var(--scd-color-danger);
+	margin-top: 0;
+	margin-bottom: var(--scd-spacing-sm);
+	font-size: var(--scd-font-size-medium);
+	font-weight: var(--scd-font-weight-semibold);
+}
+
+.scd-settings-form .scd-danger-zone p {
+	color: var(--scd-color-danger);
+	margin: 0;
+	font-size: var(--scd-font-size-base);
 }

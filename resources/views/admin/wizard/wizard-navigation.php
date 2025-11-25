@@ -26,8 +26,9 @@ $next_step = $nav_data['next_step'] ?? null;
 $config = $nav_data['config'] ?? array();
 $progress = $nav_data['progress'] ?? array();
 
-// Button classes
+// Button classes and styles
 $btn_classes = $config['button_classes'] ?? array();
+$btn_styles = $config['button_styles'] ?? array();
 $icons = $config['icons'] ?? array();
 
 // Sanitize and validate query parameters
@@ -57,9 +58,10 @@ $complete_button_text = $is_edit_mode ? __( 'Update Campaign', 'smart-cycle-disc
                 SCD_Button_Helper::render( array(
                     'text'       => __( 'Previous', 'smart-cycle-discounts' ),
                     'type'       => 'button',
+                    'style'      => $btn_styles['previous'] ?? 'secondary',
                     'icon'       => 'arrow-left',
                     'icon_position' => 'left',
-                    'classes'    => (array) $btn_classes['previous'],
+                    'classes'    => explode( ' ', $btn_classes['previous'] ?? '' ),
                     'attributes' => array(
                         'data-action' => 'previous',
                         'data-target' => esc_attr( $previous_step ),
@@ -99,9 +101,10 @@ $complete_button_text = $is_edit_mode ? __( 'Update Campaign', 'smart-cycle-disc
                 SCD_Button_Helper::render( array(
                     'text'       => $complete_button_text,
                     'type'       => 'button',
+                    'style'      => $btn_styles['complete'] ?? 'success',
                     'icon'       => 'check',
                     'icon_position' => 'left',
-                    'classes'    => (array) $btn_classes['complete'],
+                    'classes'    => explode( ' ', $btn_classes['complete'] ?? '' ),
                     'attributes' => array(
                         'data-action' => 'complete',
                         'aria-label'  => $is_edit_mode ? __( 'Complete wizard and update campaign', 'smart-cycle-discounts' ) : __( 'Complete wizard and create campaign', 'smart-cycle-discounts' ),
@@ -117,9 +120,10 @@ $complete_button_text = $is_edit_mode ? __( 'Update Campaign', 'smart-cycle-disc
                 SCD_Button_Helper::render( array(
                     'text'       => __( 'Next', 'smart-cycle-discounts' ),
                     'type'       => 'button',
+                    'style'      => $btn_styles['next'] ?? 'primary',
                     'icon'       => 'arrow-right',
                     'icon_position' => 'right',
-                    'classes'    => (array) $btn_classes['next'],
+                    'classes'    => explode( ' ', $btn_classes['next'] ?? '' ),
                     'attributes' => array(
                         'data-action' => 'next',
                         'data-target' => esc_attr( $next_step ),

@@ -25,12 +25,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 class SCD_Wizard_Sidebar_Products extends SCD_Wizard_Sidebar_Base {
 
 	/**
-	 * Get sidebar content
+	 * Constructor
+	 *
+	 * @since 1.0.0
+	 */
+	public function __construct() {
+		$this->step           = 'products';
+		$this->use_contextual = true;
+	}
+
+	/**
+	 * Get legacy sidebar content (fallback)
 	 *
 	 * @since  1.0.0
 	 * @return string HTML content
 	 */
-	public function get_content() {
+	protected function get_legacy_content() {
 		return $this->render_wrapper(
 			__( 'Product Selection Guide', 'smart-cycle-discounts' ),
 			__( 'Choose the right products and maximize your campaign effectiveness', 'smart-cycle-discounts' )
@@ -81,6 +91,117 @@ class SCD_Wizard_Sidebar_Products extends SCD_Wizard_Sidebar_Base {
 		$this->render_section(
 			__( 'Selection Methods', 'smart-cycle-discounts' ),
 			'products',
+			ob_get_clean(),
+			'open'
+		);
+
+		// Enhanced Product Dropdown section
+		ob_start();
+		?>
+		<div class="scd-dropdown-features">
+			<p class="scd-dropdown-intro">
+				<?php esc_html_e( 'The product dropdown shows rich information to help you make informed selections:', 'smart-cycle-discounts' ); ?>
+			</p>
+
+			<ul class="scd-icon-list">
+				<li>
+					<?php echo SCD_Icon_Helper::get( 'yes', array( 'size' => 16, 'class' => 'scd-list-icon' ) ); ?>
+					<div class="scd-list-content">
+						<strong><?php esc_html_e( 'Stock Status Badges', 'smart-cycle-discounts' ); ?></strong>
+						<span class="scd-list-description"><?php esc_html_e( 'Green (in stock), red (out of stock), orange (backorder) - see availability at a glance', 'smart-cycle-discounts' ); ?></span>
+					</div>
+				</li>
+				<li>
+					<?php echo SCD_Icon_Helper::get( 'tag', array( 'size' => 16, 'class' => 'scd-list-icon' ) ); ?>
+					<div class="scd-list-content">
+						<strong><?php esc_html_e( 'Sale Indicators', 'smart-cycle-discounts' ); ?></strong>
+						<span class="scd-list-description"><?php esc_html_e( 'Red badge showing current discount percentage - avoid double-discounting', 'smart-cycle-discounts' ); ?></span>
+					</div>
+				</li>
+				<li>
+					<?php echo SCD_Icon_Helper::get( 'products', array( 'size' => 16, 'class' => 'scd-list-icon' ) ); ?>
+					<div class="scd-list-content">
+						<strong><?php esc_html_e( 'Product Type Icons', 'smart-cycle-discounts' ); ?></strong>
+						<span class="scd-list-description"><?php esc_html_e( 'Quickly identify simple, variable, grouped, or external products', 'smart-cycle-discounts' ); ?></span>
+					</div>
+				</li>
+				<li>
+					<?php echo SCD_Icon_Helper::get( 'category', array( 'size' => 16, 'class' => 'scd-list-icon' ) ); ?>
+					<div class="scd-list-content">
+						<strong><?php esc_html_e( 'Primary Category', 'smart-cycle-discounts' ); ?></strong>
+						<span class="scd-list-description"><?php esc_html_e( 'See which category each product belongs to for better organization', 'smart-cycle-discounts' ); ?></span>
+					</div>
+				</li>
+				<li>
+					<?php echo SCD_Icon_Helper::get( 'admin-settings', array( 'size' => 16, 'class' => 'scd-list-icon' ) ); ?>
+					<div class="scd-list-content">
+						<strong><?php esc_html_e( 'Variation Count', 'smart-cycle-discounts' ); ?></strong>
+						<span class="scd-list-description"><?php esc_html_e( 'For variable products, see how many variations are included (sizes, colors, etc.)', 'smart-cycle-discounts' ); ?></span>
+					</div>
+				</li>
+				<li>
+					<?php echo SCD_Icon_Helper::get( 'money-alt', array( 'size' => 16, 'class' => 'scd-list-icon' ) ); ?>
+					<div class="scd-list-content">
+						<strong><?php esc_html_e( 'Enhanced Pricing', 'smart-cycle-discounts' ); ?></strong>
+						<span class="scd-list-description"><?php esc_html_e( 'Regular price with strikethrough and sale price in green when on sale', 'smart-cycle-discounts' ); ?></span>
+					</div>
+				</li>
+			</ul>
+
+			<div class="scd-conditions-tip">
+				<?php echo SCD_Icon_Helper::get( 'lightbulb', array( 'size' => 16 ) ); ?>
+				<p><strong><?php esc_html_e( 'Pro Tip:', 'smart-cycle-discounts' ); ?></strong> <?php esc_html_e( 'Use the stock status indicators to avoid discounting out-of-stock items, and check sale badges to prevent stacking discounts on already-reduced products.', 'smart-cycle-discounts' ); ?></p>
+			</div>
+		</div>
+		<?php
+		$this->render_section(
+			__( 'Enhanced Product Dropdown', 'smart-cycle-discounts' ),
+			'visibility',
+			ob_get_clean(),
+			'open'
+		);
+
+		// Enhanced Category Dropdown section
+		ob_start();
+		?>
+		<div class="scd-dropdown-features">
+			<p class="scd-dropdown-intro">
+				<?php esc_html_e( 'The category filter shows stock health and subcategory information:', 'smart-cycle-discounts' ); ?>
+			</p>
+
+			<ul class="scd-icon-list">
+				<li>
+					<?php echo SCD_Icon_Helper::get( 'yes', array( 'size' => 16, 'class' => 'scd-list-icon' ) ); ?>
+					<div class="scd-list-content">
+						<strong><?php esc_html_e( 'Stock Health Badges', 'smart-cycle-discounts' ); ?></strong>
+						<span class="scd-list-description"><?php esc_html_e( 'Green (75%+ in stock), yellow (25-75%), red (<25%) - avoid categories with low stock', 'smart-cycle-discounts' ); ?></span>
+					</div>
+				</li>
+				<li>
+					<?php echo SCD_Icon_Helper::get( 'category', array( 'size' => 16, 'class' => 'scd-list-icon' ) ); ?>
+					<div class="scd-list-content">
+						<strong><?php esc_html_e( 'Subcategory Count', 'smart-cycle-discounts' ); ?></strong>
+						<span class="scd-list-description"><?php esc_html_e( 'See how many subcategories exist - helps avoid duplicate parent+child selections', 'smart-cycle-discounts' ); ?></span>
+					</div>
+				</li>
+				<li>
+					<?php echo SCD_Icon_Helper::get( 'dismiss', array( 'size' => 16, 'class' => 'scd-list-icon' ) ); ?>
+					<div class="scd-list-content">
+						<strong><?php esc_html_e( 'Empty Category Detection', 'smart-cycle-discounts' ); ?></strong>
+						<span class="scd-list-description"><?php esc_html_e( 'Grayed-out categories with 0 products - prevents wasting time on empty selections', 'smart-cycle-discounts' ); ?></span>
+					</div>
+				</li>
+			</ul>
+
+			<div class="scd-conditions-tip">
+				<?php echo SCD_Icon_Helper::get( 'lightbulb', array( 'size' => 16 ) ); ?>
+				<p><strong><?php esc_html_e( 'Pro Tip:', 'smart-cycle-discounts' ); ?></strong> <?php esc_html_e( 'Categories with red badges (low stock) may result in ineffective campaigns. Choose green-badge categories for maximum impact.', 'smart-cycle-discounts' ); ?></p>
+			</div>
+		</div>
+		<?php
+		$this->render_section(
+			__( 'Enhanced Category Filter', 'smart-cycle-discounts' ),
+			'category',
 			ob_get_clean(),
 			'open'
 		);

@@ -25,12 +25,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 class SCD_Wizard_Sidebar_Schedule extends SCD_Wizard_Sidebar_Base {
 
 	/**
-	 * Get sidebar content
+	 * Constructor
+	 *
+	 * @since 1.0.0
+	 */
+	public function __construct() {
+		$this->step           = 'schedule';
+		$this->use_contextual = true;
+	}
+
+	/**
+	 * Get legacy sidebar content (fallback)
 	 *
 	 * @since  1.0.0
 	 * @return string HTML content
 	 */
-	public function get_content() {
+	protected function get_legacy_content() {
 		return $this->render_wrapper(
 			__( 'Schedule Your Campaign', 'smart-cycle-discounts' ),
 			__( 'Configure when your campaign should run and optimize timing', 'smart-cycle-discounts' )

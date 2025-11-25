@@ -82,7 +82,7 @@ class SCD_Cron_Scheduler {
 	public function init(): void {
 		add_action( 'scd_cleanup_expired_sessions', array( $this, 'cleanup_expired_sessions' ) );
 		add_action( 'scd_cleanup_old_analytics', array( $this, 'cleanup_old_analytics' ) );
-		add_action( 'scd_warm_cache', array( $this, 'warm_cache_task' ) );
+		add_action( 'scd_auto_purge_trash', array( $this, 'auto_purge_trash' ) );
 
 		// Schedule events on activation
 		$this->schedule_events();
@@ -158,23 +158,22 @@ class SCD_Cron_Scheduler {
 			$this->logger->info( 'Scheduled old analytics cleanup (weekly)' );
 		}
 
-		// Schedule cache warming - runs hourly if enabled in settings
+		// Schedule trash auto-purge - runs daily if enabled in settings
 		$settings = get_option( 'scd_settings', array() );
-		if ( isset( $settings['performance']['enable_cache_warming'] ) && $settings['performance']['enable_cache_warming'] ) {
-			if ( ! $this->scheduler->is_action_scheduled( 'scd_warm_cache' ) ) {
+		if ( isset( $settings['general']['trash_auto_purge'] ) && $settings['general']['trash_auto_purge'] ) {
+			if ( ! $this->scheduler->is_action_scheduled( 'scd_auto_purge_trash' ) ) {
 				$this->scheduler->schedule_recurring_action(
 					time(),
-					HOUR_IN_SECONDS,
-					'scd_warm_cache',
+					DAY_IN_SECONDS,
+					'scd_auto_purge_trash',
 					array()
 				);
-				$this->logger->info( 'Scheduled cache warming (hourly)' );
+				$this->logger->info( 'Scheduled trash auto-purge (daily)' );
 			}
+		} else {
+			// Unschedule if disabled
+			$this->scheduler->unschedule_all_actions( 'scd_auto_purge_trash' );
 		}
-
-		// Analytics aggregation disabled - main analytics table is already pre-aggregated
-		// No need for additional hourly/daily aggregation layers
-		// @see includes/database/migrations/001-initial-schema.php for aggregated analytics table structure
 	}
 
 	/**
@@ -195,7 +194,7 @@ class SCD_Cron_Scheduler {
 		$this->scheduler->unschedule_all_actions( 'scd_cleanup_wizard_sessions' );
 		$this->scheduler->unschedule_all_actions( 'scd_cleanup_audit_logs' );
 		$this->scheduler->unschedule_all_actions( 'scd_cleanup_old_analytics' );
-		$this->scheduler->unschedule_all_actions( 'scd_warm_cache' );
+		$this->scheduler->unschedule_all_actions( 'scd_auto_purge_trash' );
 		$this->scheduler->unschedule_all_actions( 'scd_analytics_hourly_aggregation' );
 		$this->scheduler->unschedule_all_actions( 'scd_analytics_daily_aggregation' );
 
@@ -237,46 +236,6 @@ class SCD_Cron_Scheduler {
 				'Failed to cleanup expired sessions',
 				array(
 					'error' => $e->getMessage(),
-				)
-			);
-		}
-	}
-
-	/**
-	 * Warm cache task.
-	 *
-	 * @since    1.0.0
-	 * @return   void
-	 */
-	public function warm_cache_task(): void {
-		try {
-			$this->logger->info( 'Starting cache warming' );
-
-			// Get cache manager from container
-			$container = Smart_Cycle_Discounts::get_instance();
-			if ( ! $container || ! method_exists( $container, 'get_service' ) ) {
-				$this->logger->error( 'Container not available for cache warming' );
-				return;
-			}
-
-			$cache_manager = $container::get_service( 'cache_manager' );
-
-			if ( ! $cache_manager || ! method_exists( $cache_manager, 'warm_cache' ) ) {
-				$this->logger->error( 'Cache manager not available for cache warming' );
-				return;
-			}
-
-			// Execute cache warming
-			$cache_manager->warm_cache();
-
-			$this->logger->info( 'Cache warming completed successfully' );
-
-		} catch ( Exception $e ) {
-			$this->logger->error(
-				'Failed to warm cache',
-				array(
-					'error' => $e->getMessage(),
-					'trace' => $e->getTraceAsString(),
 				)
 			);
 		}
@@ -360,5 +319,91 @@ class SCD_Cron_Scheduler {
 		}
 
 		return $results;
+	}
+
+	/**
+	 * Auto-purge old trashed campaigns.
+	 *
+	 * Permanently deletes campaigns that have been in trash
+	 * longer than the configured retention period.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	public function auto_purge_trash(): void {
+		try {
+			$this->logger->info( 'Starting trash auto-purge' );
+
+			// Get settings
+			$settings = get_option( 'scd_settings', array() );
+
+			// Check if auto-purge is enabled
+			if ( ! isset( $settings['general']['trash_auto_purge'] ) || ! $settings['general']['trash_auto_purge'] ) {
+				$this->logger->info( 'Trash auto-purge is disabled, skipping' );
+				return;
+			}
+
+			// Get retention period (default 30 days)
+			$retention_days = isset( $settings['general']['trash_retention_days'] )
+				? absint( $settings['general']['trash_retention_days'] )
+				: 30;
+
+			if ( $retention_days < 1 ) {
+				$retention_days = 30;
+			}
+
+			// Get campaign repository
+			$container = Smart_Cycle_Discounts::get_instance();
+			if ( ! $container || ! method_exists( $container, 'get_service' ) ) {
+				$this->logger->error( 'Container not available for trash auto-purge' );
+				return;
+			}
+
+			$repository = $container::get_service( 'campaign_repository' );
+			if ( ! $repository ) {
+				$this->logger->error( 'Campaign repository not available for trash auto-purge' );
+				return;
+			}
+
+			// Find campaigns older than retention period
+			$old_campaign_ids = $repository->find_trashed_older_than( $retention_days );
+
+			if ( empty( $old_campaign_ids ) ) {
+				$this->logger->info( 'No campaigns to purge from trash' );
+				return;
+			}
+
+			$deleted_count = 0;
+			$errors        = array();
+
+			foreach ( $old_campaign_ids as $campaign_id ) {
+				$result = $repository->force_delete( $campaign_id );
+
+				if ( $result ) {
+					++$deleted_count;
+				} else {
+					$errors[] = $campaign_id;
+				}
+			}
+
+			$this->logger->info(
+				'Trash auto-purge completed',
+				array(
+					'retention_days'  => $retention_days,
+					'campaigns_found' => count( $old_campaign_ids ),
+					'deleted_count'   => $deleted_count,
+					'errors'          => $errors,
+				)
+			);
+
+		} catch ( Exception $e ) {
+			$this->logger->error(
+				'Failed to auto-purge trash',
+				array(
+					'error' => $e->getMessage(),
+					'trace' => $e->getTraceAsString(),
+				)
+			);
+		}
 	}
 }

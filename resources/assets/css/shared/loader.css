@@ -226,11 +226,11 @@
 @media (prefers-contrast: high) {
 	.scd-loader-overlay {
 		background: var(--scd-color-white);
-		border: 2px solid #000000;
+		border: 2px solid var(--scd-color-gray-900);
 	}
 
 	.scd-loader-text {
-		color: #000000;
+		color: var(--scd-color-gray-900);
 		font-weight: var(--scd-font-weight-semibold);
 	}
 }

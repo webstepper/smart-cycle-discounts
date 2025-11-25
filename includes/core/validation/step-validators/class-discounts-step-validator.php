@@ -60,6 +60,32 @@ if ( ! defined( 'ABSPATH' ) ) {
 class SCD_Discounts_Step_Validator {
 
 	/**
+	 * Log a validation hint (informational message about unusual config).
+	 *
+	 * Uses the plugin's logger with 'info' level, which is only captured
+	 * when log level is set to 'info' or 'debug' (not by default).
+	 *
+	 * @since    1.0.0
+	 * @param    string $message    The hint message to log.
+	 * @return   void
+	 */
+	private static function log_hint( $message ) {
+		// Only log when SCD_DEBUG is enabled or log level is info/debug
+		if ( ! defined( 'SCD_DEBUG' ) || ! SCD_DEBUG ) {
+			return;
+		}
+
+		// Use the plugin's logger if available
+		if ( class_exists( 'SCD_Logger' ) ) {
+			static $logger = null;
+			if ( null === $logger ) {
+				$logger = new SCD_Logger( 'validation' );
+			}
+			$logger->info( $message );
+		}
+	}
+
+	/**
 	 * Validate discount rules configuration.
 	 *
 	 * Prevents saving discount rules that are logically inconsistent or violate business rules.
@@ -139,17 +165,13 @@ class SCD_Discounts_Step_Validator {
 		// Rule 3: If only customer limit is set, warn about potential confusion
 		if ( $customer_limit > 0 && 0 === $total_limit && 0 === $lifetime_cap ) {
 			// This is valid but might be unintentional - log for debugging
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'SCD: Per-customer limit set without total/lifetime limits. This allows unlimited campaign usage across all customers.' );
-			}
+			self::log_hint( 'Per-customer limit set without total/lifetime limits. This allows unlimited campaign usage across all customers.' );
 		}
 
 		// Rule 4: Zero customer limit with positive total limit (unusual)
 		if ( 0 === $customer_limit && $total_limit > 0 ) {
 			// This means single customers can exhaust entire campaign
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'SCD: No per-customer limit but total limit is %d. A single customer could exhaust the entire campaign.', $total_limit ) );
-			}
+			self::log_hint( sprintf( 'No per-customer limit but total limit is %d. A single customer could exhaust the entire campaign.', $total_limit ) );
 		}
 
 		// Rule 5: Very large values (potential overflow or unrealistic)
@@ -167,9 +189,7 @@ class SCD_Discounts_Step_Validator {
 		// Rule 6: All three limits identical (redundant configuration)
 		if ( $customer_limit > 0 && $customer_limit === $total_limit && $total_limit === $lifetime_cap ) {
 			// All three are the same - redundant
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'SCD: All three usage limits are set to %d. This is redundant - consider using only total_usage_limit.', $customer_limit ) );
-			}
+			self::log_hint( sprintf( 'All three usage limits are set to %d. This is redundant - consider using only total_usage_limit.', $customer_limit ) );
 		}
 	}
 
@@ -208,9 +228,7 @@ class SCD_Discounts_Step_Validator {
 			// If max discount is very low relative to percentage, warn
 			if ( $implied_min_price > 0 && $implied_min_price < 10 ) {
 				// This is valid but unusual - a $5 max on 50% would cap at $10 products
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( sprintf( 'SCD: Max discount cap of $%s with %s%% discount implies products under $%s', $max_discount, $discount_value, $implied_min_price ) );
-				}
+				self::log_hint( sprintf( 'Max discount cap of $%s with %s%% discount implies products under $%s', $max_discount, $discount_value, $implied_min_price ) );
 			}
 		}
 
@@ -233,17 +251,13 @@ class SCD_Discounts_Step_Validator {
 		// Rule 3: Minimum quantity with cart_total application
 		if ( 'cart_total' === $apply_to && $minimum_quantity > 1 ) {
 			// Warn: minimum quantity doesn't make much sense with cart_total
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'SCD: Minimum quantity is set with cart_total discount application. This may cause confusion - cart_total typically applies regardless of individual item quantities.' );
-			}
+			self::log_hint( 'Minimum quantity is set with cart_total discount application. This may cause confusion - cart_total typically applies regardless of individual item quantities.' );
 		}
 
 		// Rule 4: Max discount of zero (pointless)
 		if ( isset( $data['max_discount_amount'] ) && 0 === $max_discount && $max_discount !== false ) {
 			// Max discount is explicitly set to 0 - this would cap discount at $0
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'SCD: Maximum discount amount is set to 0. This effectively disables the discount.' );
-			}
+			self::log_hint( 'Maximum discount amount is set to 0. This effectively disables the discount.' );
 		}
 
 		// Rule 5: Unrealistic minimum quantity
@@ -286,17 +300,13 @@ class SCD_Discounts_Step_Validator {
 		// Rule 8: Very high minimum order amount (warning)
 		if ( $minimum_order_amount > 10000 && $minimum_order_amount <= SCD_Validation_Rules::MINIMUM_ORDER_AMOUNT_MAX ) {
 			// Very high minimum order - probably a mistake
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'SCD: Minimum order amount is $%s. This is very high and may prevent most customers from qualifying.', number_format( $minimum_order_amount, 2 ) ) );
-			}
+			self::log_hint( sprintf( 'Minimum order amount is $%s. This is very high and may prevent most customers from qualifying.', number_format( $minimum_order_amount, 2 ) ) );
 		}
 
 		// Rule 9: Both minimum quantity AND minimum order amount (overly restrictive)
 		if ( $minimum_quantity > 1 && $minimum_order_amount > 0 ) {
 			// Having both restrictions might be too strict
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'SCD: Both minimum quantity (%d) and minimum order amount ($%s) are set. This dual restriction may be too strict.', $minimum_quantity, number_format( $minimum_order_amount, 2 ) ) );
-			}
+			self::log_hint( sprintf( 'Both minimum quantity (%d) and minimum order amount ($%s) are set. This dual restriction may be too strict.', $minimum_quantity, number_format( $minimum_order_amount, 2 ) ) );
 		}
 	}
 
@@ -367,9 +377,7 @@ class SCD_Discounts_Step_Validator {
 
 		// Rule 4: Warn if buy=get (should probably just be regular discount)
 		if ( $buy_quantity === $get_quantity && 100.0 === $discount_pct ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'SCD: BOGO is configured as Buy ' . $buy_quantity . ' Get ' . $get_quantity . ' free. This is effectively a 50% discount and could be simplified.' );
-			}
+			self::log_hint( 'BOGO is configured as Buy ' . $buy_quantity . ' Get ' . $get_quantity . ' free. This is effectively a 50% discount and could be simplified.' );
 		}
 
 		// Rule 5: Very large buy/get quantities (unrealistic)
@@ -389,17 +397,13 @@ class SCD_Discounts_Step_Validator {
 		// Rule 6: Buy >> Get imbalance (unusual offer)
 		if ( $buy_quantity > 10 && $get_quantity === 1 ) {
 			// Buy 20 get 1 free is a very weak offer
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'SCD: BOGO has large imbalance (Buy %d Get %d). This is a very weak offer - consider increasing get quantity or using a percentage discount instead.', $buy_quantity, $get_quantity ) );
-			}
+			self::log_hint( sprintf( 'BOGO has large imbalance (Buy %d Get %d). This is a very weak offer - consider increasing get quantity or using a percentage discount instead.', $buy_quantity, $get_quantity ) );
 		}
 
 		// Rule 7: Very low discount percentage on BOGO (why not regular discount?)
 		if ( $discount_pct < 10 ) {
 			// BOGO with tiny discount is unusual
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'SCD: BOGO discount percentage is only %s%%. For small discounts, consider using a regular percentage discount instead of BOGO.', $discount_pct ) );
-			}
+			self::log_hint( sprintf( 'BOGO discount percentage is only %s%%. For small discounts, consider using a regular percentage discount instead of BOGO.', $discount_pct ) );
 		}
 	}
 
@@ -466,9 +470,7 @@ class SCD_Discounts_Step_Validator {
 			// Discount should be ascending (better deal for higher tiers)
 			if ( $discount <= $previous_discount && $index > 0 ) {
 				// This is unusual but not necessarily wrong - just warn
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( sprintf( 'SCD: Tier %d discount (%s) is not greater than previous tier. Higher tiers typically offer better discounts.', $tier_num, $discount ) );
-				}
+				self::log_hint( sprintf( 'Tier %d discount (%s) is not greater than previous tier. Higher tiers typically offer better discounts.', $tier_num, $discount ) );
 			}
 
 			// Validate discount range based on mode
@@ -529,9 +531,7 @@ class SCD_Discounts_Step_Validator {
 
 				// If jump is more than 100x the previous threshold, it's probably unrealistic
 				if ( $prev_threshold > 0 && $jump > ( $prev_threshold * 100 ) ) {
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( sprintf( 'SCD: Large tier jump detected (from %s to %s). This may result in a confusing discount structure.', $prev_threshold, $curr_threshold ) );
-					}
+					self::log_hint( sprintf( 'Large tier jump detected (from %s to %s). This may result in a confusing discount structure.', $prev_threshold, $curr_threshold ) );
 				}
 			}
 		}
@@ -564,9 +564,7 @@ class SCD_Discounts_Step_Validator {
 
 				// If gap is more than 3x average, there's a large gap
 				if ( $gap > ( $avg_span * 3 ) ) {
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( sprintf( 'SCD: Large gap between tiers (from %s to %s). Consider adding intermediate tiers for smoother progression.', $prev_threshold, $curr_threshold ) );
-					}
+					self::log_hint( sprintf( 'Large gap between tiers (from %s to %s). Consider adding intermediate tiers for smoother progression.', $prev_threshold, $curr_threshold ) );
 					break; // Only warn once
 				}
 			}
@@ -718,9 +716,7 @@ class SCD_Discounts_Step_Validator {
 				$spend_amount = floatval( $threshold['spend'] );
 				if ( $spend_amount > 0 && $spend_amount < 1 ) {
 					// Threshold less than $1 is unusual
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( sprintf( 'SCD: Spending threshold of $%s is very small. This may be unintentional.', number_format( $spend_amount, 2 ) ) );
-					}
+					self::log_hint( sprintf( 'Spending threshold of $%s is very small. This may be unintentional.', number_format( $spend_amount, 2 ) ) );
 					break; // Only warn once
 				}
 			}
@@ -763,9 +759,7 @@ class SCD_Discounts_Step_Validator {
 
 				// If jump is more than 100x the previous amount, it's probably unrealistic
 				if ( $prev_amount > 0 && $jump > ( $prev_amount * 100 ) ) {
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( sprintf( 'SCD: Large threshold jump detected (from $%s to $%s). This may result in a confusing discount structure.', number_format( $prev_amount, 2 ), number_format( $curr_amount, 2 ) ) );
-					}
+					self::log_hint( sprintf( 'Large threshold jump detected (from $%s to $%s). This may result in a confusing discount structure.', number_format( $prev_amount, 2 ), number_format( $curr_amount, 2 ) ) );
 				}
 			}
 		}
@@ -833,18 +827,14 @@ class SCD_Discounts_Step_Validator {
 			// WCAG AA requires 4.5:1 for normal text, 3:1 for large text
 			if ( $contrast_ratio < 3.0 ) {
 				// Low contrast - warn but don't block
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( sprintf( 'SCD: Badge color contrast ratio (%.2f:1) is below recommended 3:1. Consider adjusting colors for better readability.', $contrast_ratio ) );
-				}
+				self::log_hint( sprintf( 'Badge color contrast ratio (%.2f:1) is below recommended 3:1. Consider adjusting colors for better readability.', $contrast_ratio ) );
 			}
 		}
 
 		// Rule 4: Very long badge text (might overflow UI)
 		if ( strlen( $badge_text ) > 50 ) {
 			// Badge text over 50 characters is very long
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'SCD: Badge text is %d characters long. Very long text may overflow the badge display. Consider shortening to 50 characters or less.', strlen( $badge_text ) ) );
-			}
+			self::log_hint( sprintf( 'Badge text is %d characters long. Very long text may overflow the badge display. Consider shortening to 50 characters or less.', strlen( $badge_text ) ) );
 		}
 
 		// Rule 5: Identical background and text colors
@@ -891,17 +881,13 @@ class SCD_Discounts_Step_Validator {
 		if ( ! $stack_with_others && $allow_coupons ) {
 			// This is valid - coupons are different from other campaign discounts
 			// Just log for awareness
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'SCD: Campaign does not stack with other discounts but allows coupons. This is valid - coupons are treated separately from campaign stacking.' );
-			}
+			self::log_hint( 'Campaign does not stack with other discounts but allows coupons. This is valid - coupons are treated separately from campaign stacking.' );
 		}
 
 		// Rule 2: Applying to sale items + stacking = very aggressive discounting
 		if ( $apply_to_sale_items && $stack_with_others ) {
 			// This is valid but unusual - double discounting on already-discounted items
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'SCD: Campaign applies to sale items AND stacks with other discounts. This may result in very deep discounts. Verify profit margins.' );
-			}
+			self::log_hint( 'Campaign applies to sale items AND stacks with other discounts. This may result in very deep discounts. Verify profit margins.' );
 		}
 	}
 
@@ -957,24 +943,18 @@ class SCD_Discounts_Step_Validator {
 		// Rule 3: Very small discounts (probably not worth it)
 		if ( 'percentage' === $discount_type && $discount_value > 0 && $discount_value < 1 ) {
 			// Less than 1% discount
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'SCD: Discount percentage is only %s%%. This is very small and may not be worth the campaign complexity.', $discount_value ) );
-			}
+			self::log_hint( sprintf( 'Discount percentage is only %s%%. This is very small and may not be worth the campaign complexity.', $discount_value ) );
 		}
 
 		if ( 'fixed' === $discount_type && $discount_value > 0 && $discount_value < 1 ) {
 			// Less than $1 discount
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'SCD: Fixed discount is only $%s. This is very small and may not motivate customers.', number_format( $discount_value, 2 ) ) );
-			}
+			self::log_hint( sprintf( 'Fixed discount is only $%s. This is very small and may not motivate customers.', number_format( $discount_value, 2 ) ) );
 		}
 
 		// Rule 4: Percentage over 50% (profit margin warning)
 		if ( 'percentage' === $discount_type && $discount_value > SCD_Validation_Rules::PERCENTAGE_WARNING ) {
 			// Over 50% discount - check profit margins
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'SCD: Discount percentage is %s%%. Discounts over 50%% significantly impact profit margins. Verify this is intentional.', $discount_value ) );
-			}
+			self::log_hint( sprintf( 'Discount percentage is %s%%. Discounts over 50%% significantly impact profit margins. Verify this is intentional.', $discount_value ) );
 		}
 
 		// Rule 5: Fixed discount cannot exceed maximum
@@ -992,9 +972,7 @@ class SCD_Discounts_Step_Validator {
 		// Rule 6: Very large fixed discount warning
 		if ( 'fixed' === $discount_type && $discount_value > SCD_Validation_Rules::FIXED_WARNING && $discount_value <= SCD_Validation_Rules::FIXED_MAX ) {
 			// Very large fixed discount (warning only)
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'SCD: Fixed discount is $%s. This is a very large discount. Verify this amount is correct.', number_format( $discount_value, 2 ) ) );
-			}
+			self::log_hint( sprintf( 'Fixed discount is $%s. This is a very large discount. Verify this amount is correct.', number_format( $discount_value, 2 ) ) );
 		}
 	}
 
@@ -1027,42 +1005,32 @@ class SCD_Discounts_Step_Validator {
 		// Rule 2: Tiered with per_item (potentially confusing)
 		if ( 'tiered' === $discount_type && 'per_item' === $apply_to ) {
 			// Tiered usually works better with cart_total
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'SCD: Tiered discount is set to "per_item" application. Tiered discounts typically work better with "cart_total" to reward higher spending.' );
-			}
+			self::log_hint( 'Tiered discount is set to "per_item" application. Tiered discounts typically work better with "cart_total" to reward higher spending.' );
 		}
 
 		// Rule 3: Spend threshold + minimum quantity (redundant)
 		if ( 'spend_threshold' === $discount_type && $minimum_quantity > 0 ) {
 			// Spend threshold already has spending requirement, quantity is redundant
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'SCD: Spend threshold discount has minimum quantity (%d) requirement. This is redundant since spend thresholds already require specific cart values.', $minimum_quantity ) );
-			}
+			self::log_hint( sprintf( 'Spend threshold discount has minimum quantity (%d) requirement. This is redundant since spend thresholds already require specific cart values.', $minimum_quantity ) );
 		}
 
 		// Rule 4: Spend threshold + minimum order amount (conflicting)
 		if ( 'spend_threshold' === $discount_type && $minimum_order_amount > 0 ) {
 			// Spending threshold IS the minimum order amount essentially
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'SCD: Spend threshold discount has separate minimum order amount ($%s). The threshold amounts already define spending requirements - this may be confusing.', number_format( $minimum_order_amount, 2 ) ) );
-			}
+			self::log_hint( sprintf( 'Spend threshold discount has separate minimum order amount ($%s). The threshold amounts already define spending requirements - this may be confusing.', number_format( $minimum_order_amount, 2 ) ) );
 		}
 
 		// Rule 5: All combination options disabled (campaign won't apply)
 		if ( ! $apply_to_sale_items && ! $allow_coupons && ! $stack_with_others ) {
 			// All restrictions enabled - very limited application
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'SCD: All combination policies are disabled (no sale items, no coupons, no stacking). This may severely limit when the discount can be applied.' );
-			}
+			self::log_hint( 'All combination policies are disabled (no sale items, no coupons, no stacking). This may severely limit when the discount can be applied.' );
 		}
 
 		// Rule 6: Fixed discount with no maximum and cart_total (potential abuse)
 		$max_discount = isset( $data['max_discount_amount'] ) ? floatval( $data['max_discount_amount'] ) : 0;
 		if ( 'fixed' === $discount_type && 'cart_total' === $apply_to && 0 === $max_discount ) {
 			// Fixed cart discount with no cap could be abused
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'SCD: Fixed discount applied to cart total has no maximum discount cap. Consider setting a maximum to prevent abuse on very large orders.' );
-			}
+			self::log_hint( 'Fixed discount applied to cart total has no maximum discount cap. Consider setting a maximum to prevent abuse on very large orders.' );
 		}
 	}
 

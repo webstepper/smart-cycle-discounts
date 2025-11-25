@@ -121,6 +121,9 @@ class SCD_Ajax_Security {
 		// Debug handlers
 		'scd_debug_log'                      => 'scd_wizard_nonce',
 		'scd_log_console'                    => 'scd_wizard_nonce',
+
+		// Sidebar handlers
+		'scd_get_help_topic'                 => 'scd_wizard_nonce',
 	);
 
 	/**
@@ -205,6 +208,9 @@ class SCD_Ajax_Security {
 		// Debug handlers
 		'scd_debug_log'                      => 'scd_manage_campaigns',
 		'scd_log_console'                    => 'scd_manage_campaigns',
+
+		// Sidebar handlers
+		'scd_get_help_topic'                 => 'scd_manage_campaigns',
 	);
 
 	/**

@@ -572,11 +572,12 @@ class SCD_Main_Dashboard_Page {
 		$recent_activity      = $data['recent_activity'];
 		$campaign_health      = $data['campaign_health'];
 		$campaign_suggestions = $data['campaign_suggestions'];
-		$planner_data         = $data['planner_data'] ?? array(); // Weekly planner campaigns
+		$planner_data         = $data['planner_data'] ?? array();
+		$all_campaigns        = $data['all_campaigns'] ?? array();
 		$is_premium           = $data['is_premium'];
 		$campaign_limit       = $data['campaign_limit'];
 
-		// Pass feature gate, upgrade prompt manager, and dashboard service to view
+		// Pass feature gate, upgrade prompt manager, and dashboard service to view.
 		$feature_gate           = $this->feature_gate;
 		$upgrade_prompt_manager = $this->upgrade_prompt_manager;
 		$dashboard_service      = $this->dashboard_service;

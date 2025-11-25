@@ -105,7 +105,7 @@
 .scd-campaign-dates {
 	font-size: var(--font-sm) !important;
 	line-height: 1.4 !important;
-	color: #6b7280 !important;
+	color: var(--scd-color-text-muted) !important;
 }
 
 /* Value/stat text - prominent */
@@ -115,14 +115,14 @@
 	font-size: var(--font-xl) !important;
 	font-weight: var(--scd-font-weight-semibold) !important;
 	line-height: 1.2 !important;
-	color: #111827 !important;
+	color: var(--scd-color-text-dark) !important;
 }
 
 /* Description text */
 .scd-suggestion-description {
 	font-size: var(--font-base) !important;
 	line-height: 1.6 !important;
-	color: #4b5563 !important;
+	color: var(--scd-color-text-muted) !important;
 }
 
 /* ==========================================================================
@@ -251,8 +251,8 @@
 
 /* Suggestion emoji */
 .scd-suggestion-icon {
-	font-size: 32px !important;
-	line-height: 1 !important;
+	font-size: var(--scd-icon-xxl) !important;
+	line-height: var(--scd-line-height-tight) !important;
 }
 
 /* ==========================================================================
@@ -311,7 +311,7 @@
 	display: flex;
 	align-items: center;
 	gap: var(--scd-spacing-md);
-	font-size: 28px;
+	font-size: var(--scd-font-size-display-sm);
 	font-weight: var(--scd-font-weight-semibold);
 	color: var(--scd-color-text);
 }
@@ -344,7 +344,7 @@
 	border-radius: var(--scd-radius-lg);
 
 	/* Clean shadow */
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	box-shadow: var(--scd-shadow-sm);
 
 	transition: box-shadow var(--scd-transition-base) var(--scd-ease-in-out);
 }
@@ -360,7 +360,7 @@
 .scd-dashboard-section:hover,
 .scd-campaign-card:hover,
 .scd-upgrade-prompt:hover {
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+	box-shadow: var(--scd-shadow-md);
 }
 
 /* ==========================================================================
@@ -397,7 +397,72 @@
 	border-radius: var(--scd-radius-md);
 }
 
-/* Health Success - WordPress Success Green */
+/* Health Excellent - Bright Green (best status) */
+.scd-health-excellent .scd-health-icon,
+.scd-health-excellent .scd-section-header-icon {
+	background: var(--scd-color-success-lighter);
+	box-shadow: var(--scd-shadow-md);
+}
+
+.scd-health-excellent .scd-health-icon .scd-icon,
+.scd-health-excellent .scd-section-header-icon .scd-icon {
+	color: var(--scd-color-success);
+	font-size: var(--scd-icon-xxl);
+}
+
+/* Health Good - Success Green */
+.scd-health-good .scd-health-icon,
+.scd-health-good .scd-section-header-icon {
+	background: var(--scd-color-success-lighter);
+	box-shadow: var(--scd-shadow-md);
+}
+
+.scd-health-good .scd-health-icon .scd-icon,
+.scd-health-good .scd-section-header-icon .scd-icon {
+	color: var(--scd-color-success);
+	font-size: var(--scd-icon-xxl);
+}
+
+/* Health Fair - Info Blue */
+.scd-health-fair .scd-health-icon,
+.scd-health-fair .scd-section-header-icon {
+	background: var(--scd-color-info-lighter);
+	box-shadow: var(--scd-shadow-md);
+}
+
+.scd-health-fair .scd-health-icon .scd-icon,
+.scd-health-fair .scd-section-header-icon .scd-icon {
+	color: var(--scd-color-info);
+	font-size: var(--scd-icon-xxl);
+}
+
+/* Health Poor - Warning Orange */
+.scd-health-poor .scd-health-icon,
+.scd-health-poor .scd-section-header-icon {
+	background: var(--scd-color-warning-lighter);
+	box-shadow: var(--scd-shadow-md);
+}
+
+.scd-health-poor .scd-health-icon .scd-icon,
+.scd-health-poor .scd-section-header-icon .scd-icon {
+	color: var(--scd-color-warning-dark);
+	font-size: var(--scd-icon-xxl);
+}
+
+/* Health Critical - Danger Red */
+.scd-health-critical .scd-health-icon,
+.scd-health-critical .scd-section-header-icon {
+	background: var(--scd-color-danger-lighter);
+	box-shadow: var(--scd-shadow-md);
+}
+
+.scd-health-critical .scd-health-icon .scd-icon,
+.scd-health-critical .scd-section-header-icon .scd-icon {
+	color: var(--scd-color-danger-dark);
+	font-size: var(--scd-icon-xxl);
+}
+
+/* Legacy classes for backward compatibility */
 .scd-health-success .scd-health-icon {
 	background: var(--scd-color-success-lighter);
 	box-shadow: var(--scd-shadow-md);
@@ -405,10 +470,9 @@
 
 .scd-health-success .scd-health-icon .scd-icon {
 	color: var(--scd-color-success);
-	font-size: 32px;
+	font-size: var(--scd-icon-xxl);
 }
 
-/* Health Warning - WordPress Warning Orange */
 .scd-health-warning .scd-health-icon {
 	background: var(--scd-color-warning-lighter);
 	box-shadow: var(--scd-shadow-md);
@@ -416,18 +480,7 @@
 
 .scd-health-warning .scd-health-icon .scd-icon {
 	color: var(--scd-color-warning-dark);
-	font-size: 32px;
-}
-
-/* Health Critical - WordPress Danger Red */
-.scd-health-critical .scd-health-icon {
-	background: var(--scd-color-danger-lighter);
-	box-shadow: var(--scd-shadow-md);
-}
-
-.scd-health-critical .scd-health-icon .scd-icon {
-	color: var(--scd-color-danger-dark);
-	font-size: 32px;
+	font-size: var(--scd-icon-xxl);
 }
 
 .scd-health-title h3 {
@@ -692,9 +745,9 @@
 }
 
 .scd-stat-card .scd-stat-icon .scd-icon {
-	font-size: 32px;
-	width: 32px;
-	height: 32px;
+	font-size: var(--scd-icon-xxl);
+	width: var(--scd-icon-xxl);
+	height: var(--scd-icon-xxl);
 	color: var(--scd-color-blue);
 }
 
@@ -713,7 +766,7 @@
 }
 
 .scd-stat-card .scd-stat-value {
-	font-size: 36px;
+	font-size: var(--scd-font-size-display-lg);
 	font-weight: var(--scd-font-weight-bold);
 	color: var(--scd-color-text);
 	margin-bottom: var(--scd-spacing-xs);
@@ -779,8 +832,8 @@
 	align-items: center;
 	justify-content: space-between;
 	padding: 18px 20px;
-	border-bottom: 1px solid #E5E7EB;
-	background: #FAFBFC;
+	border-bottom: 1px solid var(--scd-color-border-light);
+	background: var(--scd-color-surface);
 	margin-bottom: 0;
 }
 
@@ -810,10 +863,10 @@
 }
 
 .scd-suggestions-header-text h2 {
-	margin: 0 0 4px;
-	font-size: 18px;
-	font-weight: 600;
-	color: #111827;
+	margin: 0 0 var(--scd-spacing-xs);
+	font-size: var(--scd-font-size-xl);
+	font-weight: var(--scd-font-weight-semibold);
+	color: var(--scd-color-text-dark);
 	line-height: 1.3;
 	display: flex;
 	align-items: center;
@@ -822,8 +875,8 @@
 
 .scd-suggestions-header-text p {
 	margin: 0;
-	color: #64748B;
-	font-size: 13px;
+	color: var(--scd-color-text-lighter);
+	font-size: var(--scd-font-size-base);
 	line-height: 1.4;
 }
 
@@ -1142,7 +1195,7 @@
 }
 
 .scd-suggestion-icon {
-	font-size: 48px;
+	font-size: var(--scd-icon-display);
 	line-height: 1;
 	width: 80px;
 	height: 80px;
@@ -1268,7 +1321,7 @@
 .scd-suggestion-badge {
 	display: inline-flex;
 	align-items: center;
-	gap: 2px;
+	gap: var(--scd-spacing-xxs);
 	padding: var(--scd-spacing-xxs) 6px;
 	border-radius: var(--scd-radius-sm);
 	font-size: 9px;
@@ -1281,9 +1334,9 @@
 }
 
 .scd-suggestion-badge .scd-icon {
-	font-size: 10px;
-	width: 10px;
-	height: 10px;
+	font-size: var(--scd-font-size-xxs);
+	width: var(--scd-font-size-xxs);
+	height: var(--scd-font-size-xxs);
 }
 
 .scd-badge-urgent {
@@ -1415,29 +1468,29 @@
 /* Color-coded countdown based on urgency - calculated in JS but styled here */
 /* Green: >14 days */
 .scd-countdown-far .scd-suggestion-days-until {
-	background: rgba(0, 163, 42, 0.1);
+	background: var(--scd-color-success-alpha-10);
 	color: var(--scd-color-success-dark);
-	border: 1px solid rgba(0, 163, 42, 0.2);
+	border: 1px solid var(--scd-color-success-alpha-20);
 }
 
 /* Yellow/Warning: 7-14 days */
 .scd-countdown-soon .scd-suggestion-days-until {
-	background: rgba(219, 166, 23, 0.15);
-	color: #8b6914;
-	border: 1px solid rgba(219, 166, 23, 0.3);
+	background: var(--scd-color-warning-alpha-15);
+	color: var(--scd-color-warning-dark);
+	border: 1px solid var(--scd-color-warning-alpha-30);
 }
 
 /* Orange: 4-6 days */
 .scd-countdown-approaching .scd-suggestion-days-until {
-	background: rgba(234, 88, 12, 0.15);
-	color: #c2410c;
-	border: 1px solid rgba(234, 88, 12, 0.3);
+	background: var(--scd-color-accent-alpha-15);
+	color: var(--scd-color-accent-dark);
+	border: 1px solid var(--scd-color-accent-alpha-30);
 }
 
 /* Red: ≤3 days (urgent) */
 .scd-countdown-urgent .scd-suggestion-days-until,
 .scd-suggestion-card:has(.scd-badge-urgent) .scd-suggestion-days-until {
-	background: rgba(214, 54, 56, 0.15);
+	background: var(--scd-color-danger-alpha-15);
 	color: var(--scd-color-danger-dark);
 	border: 1px solid var(--scd-color-danger-alpha-30);
 	animation: pulse-countdown 2s ease-in-out infinite;
@@ -1566,12 +1619,12 @@
 
 /* Urgent button styling - Red/Warning gradient */
 .scd-suggestion-card:has(.scd-badge-urgent) .scd-suggestion-action .button-primary {
-	background: linear-gradient(135deg, var(--scd-color-danger) 0%, #b91c1c 100%);
-	box-shadow: var(--scd-dashboard-button-shadow);
+	background: linear-gradient(135deg, var(--scd-color-danger) 0%, var(--scd-color-danger-dark) 100%);
+	box-shadow: var(--scd-shadow-md);
 }
 
 .scd-suggestion-card:has(.scd-badge-urgent) .scd-suggestion-action .button-primary:hover {
-	box-shadow: var(--scd-dashboard-button-hover-shadow);
+	box-shadow: var(--scd-shadow-lg);
 }
 
 /* Major event button styling is already handled by default primary button */
@@ -1690,7 +1743,7 @@
 }
 
 .scd-countdown-number {
-	font-size: 48px;
+	font-size: var(--scd-icon-display);
 	font-weight: var(--scd-font-weight-bold);
 	line-height: 1;
 	color: var(--scd-color-primary);
@@ -1895,36 +1948,36 @@
 	align-items: center;
 	justify-content: space-between;
 	padding: 18px 20px;
-	border-bottom: 1px solid #E5E7EB;
-	background: #FAFBFC;
+	border-bottom: 1px solid var(--scd-color-border-light);
+	background: var(--scd-color-surface);
 	border-radius: var(--scd-radius-lg) var(--scd-radius-lg) 0 0;
 }
 
 .scd-section-header-content {
 	display: flex;
 	align-items: center;
-	gap: 12px;
+	gap: var(--scd-gap-normal);
 }
 
 .scd-section-header-icon .scd-icon {
-	width: 28px;
-	height: 28px;
-	font-size: 28px;
-	color: var(--wp-admin-theme-color, #2271B1);
+	width: var(--scd-icon-xl);
+	height: var(--scd-icon-xl);
+	font-size: var(--scd-icon-xl);
+	color: var(--wp-admin-theme-color, var(--scd-color-primary));
 }
 
 .scd-section-header-text h2 {
-	margin: 0 0 4px;
-	font-size: 18px;
-	font-weight: 600;
-	color: #111827;
+	margin: 0 0 var(--scd-spacing-xs);
+	font-size: var(--scd-font-size-xl);
+	font-weight: var(--scd-font-weight-semibold);
+	color: var(--scd-color-text-dark);
 }
 
 .scd-section-header-text p {
 	margin: 0;
-	color: #64748B;
-	font-size: 13px;
-	line-height: 1.4;
+	color: var(--scd-color-text-lighter);
+	font-size: var(--scd-font-size-base);
+	line-height: var(--scd-line-height-snug);
 }
 
 .scd-section-content {
@@ -2345,7 +2398,7 @@
 }
 
 .scd-upgrade-icon .scd-icon {
-	font-size: 36px;
+	font-size: var(--scd-font-size-display-lg);
 	color: var(--scd-color-secondary);
 }
 
@@ -2469,9 +2522,9 @@
 }
 
 .scd-empty-state .scd-icon {
-	font-size: 72px;
-	width: 72px;
-	height: 72px;
+	font-size: var(--scd-icon-display-xl);
+	width: var(--scd-icon-display-xl);
+	height: var(--scd-icon-display-xl);
 	color: var(--scd-color-border);
 	margin: 0 auto var(--scd-spacing-lg);
 	opacity: 0.5;

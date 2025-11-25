@@ -40,7 +40,7 @@
 }
 
 .scd-badge-enable-text strong {
-	font-size: 15px;
+	font-size: var(--scd-font-size-medium-large);
 	color: var(--scd-color-text);
 }
 
@@ -340,8 +340,8 @@
 }
 
 .scd-badge-preview-placeholder .scd-icon {
-	font-size: 48px;
-	width: 48px;
+	font-size: var(--scd-icon-display);
+	width: var(--scd-icon-display);
 	height: var(--scd-input-height-large);
 	opacity: 0.5;
 }

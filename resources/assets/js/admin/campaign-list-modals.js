@@ -59,18 +59,14 @@
 		/**
 		 * Show the conflict modal.
 		 *
+		 * Modal content is now pre-populated server-side with draft info.
+		 *
 		 * @since 1.0.0
 		 * @param {string} sessionType   Type of session (draft/edit).
 		 * @param {string} campaignName  Name of the campaign.
 		 */
 		showModal: function( sessionType, campaignName ) {
-			var message = '<p>' + window.scdCampaignListL10n.unsavedDraftText + ' <strong>' + campaignName + '</strong></p>' +
-			              '<p>' + window.scdCampaignListL10n.whatToDoText + '</p>';
-			$( '#scd-modal-message' ).html( message );
-
-			$( '.scd-save-btn' ).show();
-			$( '.scd-discard-btn' ).show();
-
+			// Content is pre-populated in PHP, just show the modal
 			if ( typeof SCD !== 'undefined' && SCD.Modal ) {
 				SCD.Modal.show( 'scd-draft-conflict-modal' );
 			}
@@ -80,7 +76,7 @@
 	/**
 	 * Modal Action Handlers
 	 *
-	 * Handles clicks on modal buttons (save, discard, cancel, close).
+	 * Handles clicks on modal buttons (continue, discard, cancel, close).
 	 *
 	 * @since 1.0.0
 	 */
@@ -108,6 +104,13 @@
 
 				self.handleAction( action, $( this ) );
 			} );
+
+			// ESC key to close modal
+			$( document ).on( 'keydown', function( e ) {
+				if ( e.key === 'Escape' && $( '.scd-modal--visible' ).length ) {
+					self.closeModal();
+				}
+			} );
 		},
 
 		/**
@@ -119,8 +122,8 @@
 		 */
 		handleAction: function( action, $button ) {
 			switch ( action ) {
-				case 'save-new':
-					this.saveDraftAndCreateNew( $button );
+				case 'continue':
+					this.continueDraft( $button );
 					break;
 
 				case 'discard-new':
@@ -141,36 +144,16 @@
 		},
 
 		/**
-		 * Save current draft as campaign, then create new.
+		 * Continue editing the draft campaign.
 		 *
 		 * @since 1.0.0
 		 * @param {jQuery} $button Button that was clicked.
 		 */
-		saveDraftAndCreateNew: function( $button ) {
-			// Disable button and update text
-			$button.prop( 'disabled', true ).text( window.scdCampaignListL10n.savingDraftText );
-
-			// Make AJAX call to save the current draft
-			$.ajax( {
-				url: window.ajaxurl,
-				type: 'POST',
-				data: {
-					action: 'scd_ajax',
-					scdAction: 'save_draft',
-					saveAsDraft: true,
-					nonce: window.scdCampaignListL10n.nonce
-				},
-				success: function( response ) {
-					// After saving, redirect to create new
-					window.location.href = window.scdCampaignListL10n.adminUrl + '?page=scd-campaigns&action=wizard&intent=new';
-				},
-				error: function( xhr, status, error ) {
-					// Enable button and show error
-					$button.prop( 'disabled', false ).text( window.scdCampaignListL10n.saveDraftButtonText );
-					alert( window.scdCampaignListL10n.saveDraftErrorText );
-				}
-			} );
+		continueDraft: function( $button ) {
+			// Redirect to wizard with continue intent
+			window.location.href = window.scdCampaignListL10n.adminUrl + '?page=scd-campaigns&action=wizard&intent=continue';
 		},
+
 
 		/**
 		 * Discard current draft, then create new.

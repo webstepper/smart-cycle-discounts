@@ -227,11 +227,11 @@ class SCD_Uninstaller {
 			'scd_update_campaign_status',
 			'scd_collect_analytics',
 			'scd_cleanup_tasks',
-			'scd_warm_cache',
 			'scd_cleanup_wizard_sessions',
 			'scd_cleanup_audit_logs',
 			'scd_cleanup_expired_sessions',
-			'scd_cleanup_old_analytics'
+			'scd_cleanup_old_analytics',
+			'scd_auto_purge_trash',
 		);
 
 		foreach ( $cron_hooks as $hook ) {

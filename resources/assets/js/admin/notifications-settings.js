@@ -113,8 +113,6 @@
 					settings: settings
 				},
 				success: function( response ) {
-					console.log( 'Test email response:', response );
-
 					if ( response.success ) {
 						// Success response
 						var message = response.data && response.data.message ? response.data.message : scdNotificationsL10n.testEmailSent;
@@ -184,8 +182,6 @@
 					settings: settings
 				},
 				success: function( response ) {
-					console.log( 'Provider test response:', response );
-
 					if ( response.success ) {
 						// Success response
 						var message = response.data && response.data.message ? response.data.message : scdNotificationsL10n.connectionSuccess;

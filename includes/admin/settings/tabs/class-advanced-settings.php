@@ -61,13 +61,15 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 			'render_log_level_field',
 			'scd_advanced_debug',
 			array(
-				'tooltip' => __( 'Control the verbosity of log messages. Higher levels provide more detail but generate larger log files.', 'smart-cycle-discounts' ),
+				'tooltip' => __( 'Control the verbosity of log messages. "Warning" is recommended - captures errors and potential issues without excessive logging.', 'smart-cycle-discounts' ),
 				'options' => array(
+					'none'    => __( 'None - No logging', 'smart-cycle-discounts' ),
 					'error'   => __( 'Error - Critical issues only', 'smart-cycle-discounts' ),
-					'warning' => __( 'Warning - Errors and warnings', 'smart-cycle-discounts' ),
+					'warning' => __( 'Warning - Errors and warnings (recommended)', 'smart-cycle-discounts' ),
 					'info'    => __( 'Info - General information', 'smart-cycle-discounts' ),
-					'debug'   => __( 'Debug - Detailed debugging', 'smart-cycle-discounts' ),
+					'debug'   => __( 'Debug - Detailed debugging (verbose)', 'smart-cycle-discounts' ),
 				),
+				'default' => 'warning',
 			)
 		);
 
@@ -109,8 +111,16 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 	 * @return   void
 	 */
 	public function render_debug_section(): void {
+		$tools_url = admin_url( 'admin.php?page=smart-cycle-discounts-tools' );
 		echo '<p class="scd-section-description">';
-		echo esc_html__( 'Configure debug mode, logging levels, and log retention policies. To view log files, visit Tools & Maintenance.', 'smart-cycle-discounts' );
+		printf(
+			/* translators: %s: URL to Tools & Maintenance page */
+			wp_kses(
+				__( 'Configure debug mode, logging levels, and log retention policies. To view log files, visit <a href="%s">Tools &amp; Maintenance</a>.', 'smart-cycle-discounts' ),
+				array( 'a' => array( 'href' => array() ) )
+			),
+			esc_url( $tools_url )
+		);
 		echo '</p>';
 	}
 
@@ -212,11 +222,11 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 			$sanitized['debug_mode_enabled_at'] = isset( $old_settings['debug_mode_enabled_at'] ) ? $old_settings['debug_mode_enabled_at'] : time();
 		}
 
-		// Log level
-		$valid_levels           = array( 'error', 'warning', 'info', 'debug' );
+		// Log level - default to 'warning' for optimal support/noise balance
+		$valid_levels           = array( 'none', 'error', 'warning', 'info', 'debug' );
 		$sanitized['log_level'] = in_array( $input['log_level'] ?? '', $valid_levels, true )
 			? $input['log_level']
-			: 'error';
+			: 'warning';
 
 		// Log retention
 		$sanitized['log_retention_days'] = isset( $input['log_retention_days'] )

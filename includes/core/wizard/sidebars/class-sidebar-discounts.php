@@ -25,12 +25,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 class SCD_Wizard_Sidebar_Discounts extends SCD_Wizard_Sidebar_Base {
 
 	/**
-	 * Get sidebar content
+	 * Constructor
+	 *
+	 * @since 1.0.0
+	 */
+	public function __construct() {
+		$this->step           = 'discounts';
+		$this->use_contextual = true;
+	}
+
+	/**
+	 * Get legacy sidebar content (fallback)
 	 *
 	 * @since  1.0.0
 	 * @return string HTML content
 	 */
-	public function get_content() {
+	protected function get_legacy_content() {
 		return $this->render_wrapper(
 			__( 'Discount Configuration', 'smart-cycle-discounts' ),
 			__( 'Create effective discount strategies', 'smart-cycle-discounts' )

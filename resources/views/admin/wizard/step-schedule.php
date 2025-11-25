@@ -35,9 +35,11 @@ $start_type = $step_data['start_type'] ?? 'immediate';
 $start_date = $step_data['start_date'] ?? date( 'Y-m-d' );
 $end_date = $step_data['end_date'] ?? '';  // Default empty = runs indefinitely
 $start_time = $step_data['start_time'] ?? '00:00';
-$end_time = $step_data['end_time'] ?? '23:59';
+$end_time = ! empty( $end_date ) ? ( $step_data['end_time'] ?? '23:59' ) : '';
 $timezone_value = $step_data['timezone'] ?? $timezone;
-$enable_recurring = $step_data['enable_recurring'] ?? false;
+// Force enable_recurring to false for free users (server-side safeguard)
+$can_use_recurring_init = $feature_gate ? $feature_gate->can_use_recurring_campaigns() : false;
+$enable_recurring = ( $step_data['enable_recurring'] ?? false ) && $can_use_recurring_init;
 $recurrence_pattern = $step_data['recurrence_pattern'] ?? 'daily';
 $recurrence_interval = $step_data['recurrence_interval'] ?? 1;
 $recurrence_days = $step_data['recurrence_days'] ?? array();
@@ -86,7 +88,8 @@ ob_start();
         'title' => __( 'Quick Duration Setup', 'smart-cycle-discounts' ),
         'subtitle' => __( 'Select a preset duration or customize your campaign schedule below', 'smart-cycle-discounts' ),
         'icon' => 'clock',
-        'content' => $preset_content
+        'content' => $preset_content,
+        'help_topic' => 'card-duration-presets'
     ) );
     ?>
 
@@ -157,25 +160,30 @@ ob_start();
             <div class="scd-date-picker-wrapper">
                 <input type="text"
                        id="start_date_display"
-                       class="scd-date-picker <?php echo isset( $validation_errors['start_date'] ) ? 'scd-input--error' : ''; ?>"
+                       class="scd-date-picker <?php echo isset( $validation_errors['start_date'] ) ? 'error' : ''; ?>"
                        placeholder="<?php esc_attr_e( 'Select date', 'smart-cycle-discounts' ); ?>"
                        readonly
                        value="<?php echo esc_attr( $start_date ); ?>"
                        aria-describedby="start_date_help"
                        <?php if ( 'immediate' === $start_type ) { echo 'tabindex="-1"'; } ?>>
-                <?php
-                SCD_Button_Helper::icon(
-                    'calendar-alt',
-                    __( 'Choose start date', 'smart-cycle-discounts' ),
-                    array(
-                        'classes'    => array( 'scd-calendar-icon' ),
-                        'attributes' => array_merge(
-                            array( 'data-target' => 'start_date_display' ),
-                            'immediate' === $start_type ? array( 'tabindex' => '-1' ) : array()
-                        ),
-                    )
-                );
-                ?>
+                <button type="button"
+                        class="scd-calendar-icon"
+                        data-target="start_date_display"
+                        aria-label="<?php esc_attr_e( 'Choose start date', 'smart-cycle-discounts' ); ?>"
+                        <?php if ( 'immediate' === $start_type ) { echo 'tabindex="-1"'; } ?>>
+                    <?php
+                    if ( class_exists( 'SCD_Icon_Helper' ) ) {
+                        echo SCD_Icon_Helper::get(
+                            'calendar-alt',
+                            array(
+                                'size'        => 18,
+                                'class'       => 'scd-icon',
+                                'aria_hidden' => true,
+                            )
+                        );
+                    }
+                    ?>
+                </button>
             </div>
 
             <!-- Time picker -->
@@ -185,7 +193,7 @@ ob_start();
                        id="start_time"
                        name="start_time"
                        value="<?php echo esc_attr( $start_time ); ?>"
-                       class="scd-time-picker <?php echo isset( $validation_errors['start_time'] ) ? 'scd-input--error' : ''; ?>"
+                       class="scd-time-picker <?php echo isset( $validation_errors['start_time'] ) ? 'error' : ''; ?>"
                        aria-label="<?php esc_attr_e( 'Start time', 'smart-cycle-discounts' ); ?>"
                        <?php if ( 'immediate' === $start_type ) { echo 'tabindex="-1"'; } ?>>
             </div>
@@ -229,32 +237,38 @@ ob_start();
             <div class="scd-date-picker-wrapper">
                 <input type="text"
                        id="end_date_display"
-                       class="scd-date-picker <?php echo isset( $validation_errors['end_date'] ) ? 'scd-input--error' : ''; ?>"
+                       class="scd-date-picker <?php echo isset( $validation_errors['end_date'] ) ? 'error' : ''; ?>"
                        placeholder="<?php esc_attr_e( 'Runs indefinitely', 'smart-cycle-discounts' ); ?>"
                        readonly
                        value="<?php echo esc_attr( $end_date ); ?>"
                        aria-describedby="end_date_help">
-                <?php
-                SCD_Button_Helper::icon(
-                    'calendar-alt',
-                    __( 'Choose end date', 'smart-cycle-discounts' ),
-                    array(
-                        'classes'    => array( 'scd-calendar-icon' ),
-                        'attributes' => array( 'data-target' => 'end_date_display' ),
-                    )
-                );
-                ?>
+                <button type="button"
+                        class="scd-calendar-icon"
+                        data-target="end_date_display"
+                        aria-label="<?php esc_attr_e( 'Choose end date', 'smart-cycle-discounts' ); ?>">
+                    <?php
+                    if ( class_exists( 'SCD_Icon_Helper' ) ) {
+                        echo SCD_Icon_Helper::get(
+                            'calendar-alt',
+                            array(
+                                'size'        => 18,
+                                'class'       => 'scd-icon',
+                                'aria_hidden' => true,
+                            )
+                        );
+                    }
+                    ?>
+                </button>
             </div>
 
             <!-- Time picker -->
             <div class="scd-time-picker-wrapper">
                 <span class="scd-at-label"><?php esc_html_e( 'at', 'smart-cycle-discounts' ); ?></span>
-                <input type="time"
+                <input type="<?php echo empty( $end_date ) ? 'text' : 'time'; ?>"
                        id="end_time"
                        name="end_time"
-                       value="<?php echo esc_attr( $end_time ); ?>"
-                       class="scd-time-picker <?php echo isset( $validation_errors['end_time'] ) ? 'scd-input--error' : ''; ?>"
-                       placeholder="--:--"
+                       value="<?php echo empty( $end_date ) ? '--:--' : esc_attr( $end_time ); ?>"
+                       class="scd-time-picker <?php echo empty( $end_date ) ? 'scd-time-placeholder' : ''; ?><?php echo isset( $validation_errors['end_time'] ) ? ' error' : ''; ?>"
                        <?php echo empty( $end_date ) ? 'disabled' : ''; ?>
                        aria-label="<?php esc_attr_e( 'End time', 'smart-cycle-discounts' ); ?>">
             </div>
@@ -265,8 +279,9 @@ ob_start();
                 'no-alt',
                 __( 'Clear end date and time', 'smart-cycle-discounts' ),
                 array(
-                    'style'      => 'link',
-                    'classes'    => array( 'scd-button', 'scd-button--link', 'scd-clear-end-date' ),
+                    'style'      => 'ghost-danger',
+                    'size'       => 'small',
+                    'classes'    => array( 'scd-clear-end-date' ),
                     'attributes' => array( 'title' => __( 'Run indefinitely', 'smart-cycle-discounts' ) ),
                 )
             );
@@ -344,7 +359,8 @@ ob_start();
         'title' => __( 'Schedule Configuration', 'smart-cycle-discounts' ),
         'subtitle' => __( 'Configure when your campaign should run. All times are in your store timezone.', 'smart-cycle-discounts' ),
         'icon' => 'calendar-alt',
-        'content' => $schedule_content
+        'content' => $schedule_content,
+        'help_topic' => 'card-schedule-config'
     ) );
     ?>
 
@@ -443,6 +459,10 @@ ob_start();
                            value="<?php echo esc_attr( $recurrence_interval ); ?>"
                            min="1"
                            max="365"
+                           step="1"
+                           inputmode="numeric"
+                           data-label="Recurrence Interval"
+                           data-input-type="integer"
                            class="scd-input-small scd-enhanced-input"
                            <?php if ( ! $can_use_recurring ): ?>disabled<?php endif; ?>
                            aria-label="<?php esc_attr_e( 'Interval number', 'smart-cycle-discounts' ); ?>"
@@ -564,6 +584,10 @@ ob_start();
                                value="<?php echo esc_attr( $recurrence_count ); ?>"
                                min="1"
                                max="365"
+                               step="1"
+                               inputmode="numeric"
+                               data-label="Occurrence Count"
+                               data-input-type="integer"
                                class="scd-input-tiny scd-enhanced-input"
                                <?php disabled( $recurrence_end_type !== 'after' || ! $can_use_recurring ); ?>
                                aria-label="<?php esc_attr_e( 'Number of occurrences', 'smart-cycle-discounts' ); ?>">
@@ -591,16 +615,23 @@ ob_start();
                                    value="<?php echo esc_attr( $recurrence_end_date ); ?>"
                                    <?php disabled( $recurrence_end_type !== 'on' || ! $can_use_recurring ); ?>
                                    aria-label="<?php esc_attr_e( 'Recurrence end date', 'smart-cycle-discounts' ); ?>">
-                            <?php
-                            SCD_Button_Helper::icon(
-                                'calendar-alt',
-                                __( 'Choose recurrence end date', 'smart-cycle-discounts' ),
-                                array(
-                                    'classes'    => array( 'scd-calendar-icon' ),
-                                    'attributes' => array( 'data-target' => 'recurrence_end_date' ),
-                                )
-                            );
-                            ?>
+                            <button type="button"
+                                    class="scd-calendar-icon"
+                                    data-target="recurrence_end_date"
+                                    aria-label="<?php esc_attr_e( 'Choose recurrence end date', 'smart-cycle-discounts' ); ?>">
+                                <?php
+                                if ( class_exists( 'SCD_Icon_Helper' ) ) {
+                                    echo SCD_Icon_Helper::get(
+                                        'calendar-alt',
+                                        array(
+                                            'size'        => 18,
+                                            'class'       => 'scd-icon',
+                                            'aria_hidden' => true,
+                                        )
+                                    );
+                                }
+                                ?>
+                            </button>
                         </div>
                     </label>
                 </div>
@@ -634,22 +665,17 @@ ob_start();
     <?php
     $recurring_content = ob_get_clean();
 
-    // Create the card with the optional indicator in the title
-    ob_start();
-    ?>
-    <h2 id="scd-recurring-title" class="scd-card__title">
-        <?php echo SCD_Icon_Helper::get( 'backup', array( 'size' => 16 ) ); ?>
-        <?php esc_html_e( 'Recurring Schedule', 'smart-cycle-discounts' ); ?>
-        <span class="scd-badge scd-badge--optional"><?php esc_html_e( 'Optional', 'smart-cycle-discounts' ); ?></span>
-    </h2>
-    <?php
-    $title_html = ob_get_clean();
-
     scd_wizard_card( array(
-        'title' => $title_html,
+        'title' => __( 'Recurring Schedule', 'smart-cycle-discounts' ),
+        'icon' => 'backup',
+        'badge' => array(
+            'text' => __( 'Optional', 'smart-cycle-discounts' ),
+            'type' => 'optional'
+        ),
         'subtitle' => __( 'Set up your discount to repeat automatically on a regular schedule.', 'smart-cycle-discounts' ),
         'content' => $recurring_content,
-        'class' => 'scd-card--recurring'
+        'class' => 'scd-card--recurring',
+        'help_topic' => 'card-recurring-schedule'
     ) );
     ?>
 

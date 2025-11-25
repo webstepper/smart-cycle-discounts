@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Advanced Dependency Injection Container
  *
  * Features:
- * - PHP 8.1+ typed properties and union types
+ * - PHP 7.4+ typed properties
  * - Automatic constructor injection via reflection
  * - Singleton and factory patterns
  * - Service decorators and middleware

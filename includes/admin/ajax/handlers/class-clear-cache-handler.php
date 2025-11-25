@@ -62,24 +62,11 @@ class SCD_Clear_Cache_Handler {
 	 * @return   array             Response data.
 	 */
 	public function handle( $data ) {
-		// Debug logging
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[SCD Clear Cache] Handler called' );
-			error_log( '[SCD Clear Cache] Container class: ' . get_class( $this->container ) );
-			error_log( '[SCD Clear Cache] method_exists check: ' . ( method_exists( $this->container, 'get_service' ) ? 'true' : 'false' ) );
-		}
-
 		// Get cache manager from service container
 		$cache_manager = Smart_Cycle_Discounts::get_service( 'cache_manager' );
 
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[SCD Clear Cache] cache_manager retrieved: ' . ( $cache_manager ? get_class( $cache_manager ) : 'NULL' ) );
-		}
-
 		if ( ! $cache_manager ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD Clear Cache] Cache manager not available - returning error' );
-			}
+			$this->logger->warning( 'Cache clear failed: cache manager not available' );
 
 			return array(
 				'success' => false,
@@ -90,20 +77,12 @@ class SCD_Clear_Cache_Handler {
 		}
 
 		try {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD Clear Cache] Calling flush() method' );
-			}
-
 			$result = $cache_manager->flush();
-
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD Clear Cache] flush() returned: ' . ( $result ? 'true' : 'false' ) );
-			}
 
 			if ( $result ) {
 				// Log the cache clear action
 				$this->logger->info(
-					'Cache cleared manually from Performance Settings',
+					'Cache cleared manually from Tools page',
 					array(
 						'user_id' => get_current_user_id(),
 					)
@@ -116,9 +95,7 @@ class SCD_Clear_Cache_Handler {
 					),
 				);
 			} else {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[SCD Clear Cache] flush() returned false - this should not happen!' );
-				}
+				$this->logger->warning( 'Cache flush returned false' );
 
 				return array(
 					'success' => false,
@@ -128,15 +105,10 @@ class SCD_Clear_Cache_Handler {
 				);
 			}
 		} catch ( Exception $e ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD Clear Cache] Exception caught: ' . $e->getMessage() );
-			}
-
 			$this->logger->error(
 				'Error clearing cache',
 				array(
 					'error' => $e->getMessage(),
-					'trace' => $e->getTraceAsString(),
 				)
 			);
 

@@ -93,25 +93,18 @@ class SCD_Campaign_Conditions_Repository {
 	 * @return   bool                   True on success.
 	 */
 	public function save_conditions( int $campaign_id, array $conditions ): bool {
-		error_log( '[SCD] CONDITIONS_REPO - save_conditions() called for campaign ' . $campaign_id );
-		error_log( '[SCD] CONDITIONS_REPO - Saving ' . count( $conditions ) . ' conditions' );
-		error_log( '[SCD] CONDITIONS_REPO - Conditions data: ' . print_r( $conditions, true ) );
-
 		// Start transaction
 		$result = $this->db->transaction(
 			function () use ( $campaign_id, $conditions ) {
-				error_log( '[SCD] CONDITIONS_REPO - Transaction started' );
-
 				// Delete existing conditions
-				error_log( '[SCD] CONDITIONS_REPO - Deleting existing conditions for campaign ' . $campaign_id );
 				$deleted = $this->delete_conditions( $campaign_id );
-				error_log( '[SCD] CONDITIONS_REPO - Delete result: ' . ( $deleted ? 'SUCCESS' : 'FAILED' ) );
+				if ( ! $deleted ) {
+					return false;
+				}
 
 				// Insert new conditions
-				error_log( '[SCD] CONDITIONS_REPO - Inserting ' . count( $conditions ) . ' new conditions' );
 				foreach ( $conditions as $index => $condition ) {
 					if ( ! is_array( $condition ) ) {
-						error_log( '[SCD] CONDITIONS_REPO - Skipping non-array condition at index ' . $index );
 						continue;
 					}
 
@@ -125,8 +118,6 @@ class SCD_Campaign_Conditions_Repository {
 						'sort_order'     => $index,
 					);
 
-					error_log( '[SCD] CONDITIONS_REPO - Inserting condition ' . $index . ': ' . print_r( $data, true ) );
-
 					$inserted = $this->db->insert(
 						'campaign_conditions',
 						$data,
@@ -134,18 +125,14 @@ class SCD_Campaign_Conditions_Repository {
 					);
 
 					if ( ! $inserted ) {
-						error_log( '[SCD] CONDITIONS_REPO - ERROR: Failed to insert condition ' . $index );
 						return false;
 					}
-					error_log( '[SCD] CONDITIONS_REPO - Successfully inserted condition ' . $index );
 				}
 
-				error_log( '[SCD] CONDITIONS_REPO - All conditions inserted successfully' );
 				return true;
 			}
 		);
 
-		error_log( '[SCD] CONDITIONS_REPO - Transaction result: ' . ( $result ? 'SUCCESS' : 'FAILED' ) );
 		return (bool) $result;
 	}
 

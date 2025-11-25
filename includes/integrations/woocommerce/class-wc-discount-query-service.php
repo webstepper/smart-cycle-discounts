@@ -489,7 +489,7 @@ class SCD_WC_Discount_Query_Service {
 						array(
 							'buy_quantity'            => $bogo_config['buy_quantity'] ?? 1,
 							'get_quantity'            => $bogo_config['get_quantity'] ?? 1,
-							'get_discount_percentage' => $bogo_config['discount_percent'] ?? 100,
+							'get_discount_percentage' => $bogo_config['discount_percentage'] ?? $bogo_config['discount_percent'] ?? 100,  // Support both field names for backward compatibility
 							'apply_to'                => $bogo_config['apply_to'] ?? 'cheapest',
 						)
 					);

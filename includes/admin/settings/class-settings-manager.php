@@ -125,9 +125,8 @@ class SCD_Settings_Manager {
 	 */
 	private function init_tab_classes(): void {
 		$tab_services = array(
-			'general'     => 'settings_general',
-			'performance' => 'settings_performance',
-			'advanced'    => 'settings_advanced',
+			'general'  => 'settings_general',
+			'advanced' => 'settings_advanced',
 		);
 
 		foreach ( $tab_services as $tab_slug => $service_id ) {
@@ -162,17 +161,12 @@ class SCD_Settings_Manager {
 	 */
 	private function register_tabs(): void {
 		$this->tabs = array(
-			'general'     => array(
+			'general'  => array(
 				'title'    => __( 'General', 'smart-cycle-discounts' ),
 				'priority' => 10,
 				'icon'     => 'admin-settings',
 			),
-			'performance' => array(
-				'title'    => __( 'Performance', 'smart-cycle-discounts' ),
-				'priority' => 15,
-				'icon'     => 'performance',
-			),
-			'advanced'    => array(
+			'advanced' => array(
 				'title'    => __( 'Advanced', 'smart-cycle-discounts' ),
 				'priority' => 20,
 				'icon'     => 'admin-generic',
@@ -223,7 +217,7 @@ class SCD_Settings_Manager {
 	private function get_current_tab(): string {
 		$tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'general';
 
-		$valid_tabs = array( 'general', 'performance', 'advanced' );
+		$valid_tabs = array( 'general', 'advanced' );
 		if ( ! in_array( $tab, $valid_tabs, true ) ) {
 			$tab = 'general';
 		}
@@ -339,7 +333,7 @@ class SCD_Settings_Manager {
 		// Detect which tab is being saved from the input structure
 		// When form submits, only the active tab's data is in $input
 		$active_tab = $this->current_tab;
-		$valid_tabs = array( 'general', 'performance', 'advanced', 'notifications' );
+		$valid_tabs = array( 'general', 'advanced', 'notifications' );
 
 		foreach ( $valid_tabs as $tab ) {
 			if ( isset( $input[ $tab ] ) ) {
@@ -363,12 +357,6 @@ class SCD_Settings_Manager {
 		// Clear cache after settings save
 		if ( $this->cache ) {
 			$this->cache->delete_group( 'settings' );
-
-			// If performance settings changed, clear all caches
-			if ( 'performance' === $active_tab ) {
-				$this->cache->flush();
-				$this->logger->info( 'All caches cleared after performance settings update' );
-			}
 		}
 
 		return $sanitized;
@@ -419,16 +407,10 @@ class SCD_Settings_Manager {
 				'trash_retention_days' => 30,
 				'trash_auto_purge'     => true,
 			),
-			'performance'   => array(
-				'campaign_cache_duration'  => 3600,
-				'product_cache_duration'   => 3600,
-				'enable_cache_warming'     => true,
-				'warm_on_campaign_changes' => true,
-			),
 			'advanced'      => array(
 				'enable_debug_mode'     => false,
 				'debug_mode_enabled_at' => 0,
-				'log_level'             => 'error',
+				'log_level'             => 'warning',
 				'log_retention_days'    => 7,
 				'uninstall_data'        => false,
 			),

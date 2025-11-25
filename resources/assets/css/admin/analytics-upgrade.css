@@ -21,10 +21,10 @@
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: var(--scd-gap-xl);
-	margin-top: 30px;
-	padding: 40px;
+	margin-top: var(--scd-spacing-xxl);
+	padding: var(--scd-spacing-xxxl);
 	background: var(--scd-color-white);
-	border: 1px solid #ddd;
+	border: 1px solid var(--scd-color-border-light);
 	border-radius: var(--scd-radius-lg);
 	box-shadow: var(--scd-shadow-sm);
 }
@@ -35,8 +35,8 @@
 }
 
 .scd-upgrade-icon {
-	font-size: 48px;
-	width: 48px;
+	font-size: var(--scd-icon-display);
+	width: var(--scd-icon-display);
 	height: var(--scd-input-height-large);
 	color: var(--scd-color-primary);
 	margin-bottom: var(--scd-spacing-lg);
@@ -50,10 +50,10 @@
 }
 
 .scd-upgrade-description {
-	margin: 0 0 25px 0;
-	font-size: 15px;
+	margin: 0 0 var(--scd-spacing-xl) 0;
+	font-size: var(--scd-font-size-medium-large);
 	color: var(--scd-color-text-lighter);
-	line-height: 1.6;
+	line-height: var(--scd-line-height-relaxed);
 }
 
 /* Feature List */
@@ -76,7 +76,7 @@
 	font-size: var(--scd-font-size-xxl);
 	width: var(--scd-icon-medium);
 	height: var(--scd-icon-medium);
-	margin-right: 10px;
+	margin-right: var(--scd-spacing-sm-large);
 	flex-shrink: 0;
 }
 
@@ -88,9 +88,9 @@
 }
 
 .scd-upgrade-actions .button-hero {
-	padding: var(--scd-padding-medium) 24px;
+	padding: var(--scd-padding-medium) var(--scd-padding-spacious);
 	height: auto;
-	font-size: 15px;
+	font-size: var(--scd-font-size-medium-large);
 }
 
 .scd-upgrade-note {
@@ -109,7 +109,7 @@
 	border-radius: var(--scd-radius-lg);
 	overflow: hidden;
 	box-shadow: var(--scd-shadow-lg);
-	background: #f9fafb;
+	background: var(--scd-color-gray-50);
 }
 
 .scd-analytics-preview img {
@@ -136,14 +136,14 @@
 .scd-preview-title {
 	width: 180px;
 	height: var(--scd-icon-large);
-	background: linear-gradient(90deg, var(--scd-color-border-light) 0%, #f0f0f0 50%, var(--scd-color-border-light) 100%);
+	background: linear-gradient(90deg, var(--scd-color-border-light) 0%, var(--scd-color-gray-100) 50%, var(--scd-color-border-light) 100%);
 	border-radius: var(--scd-radius-md);
 }
 
 .scd-preview-actions {
 	width: 120px;
 	height: var(--scd-button-height);
-	background: linear-gradient(90deg, #2271b1 0%, #3582c4 100%);
+	background: linear-gradient(90deg, var(--scd-color-primary) 0%, var(--scd-color-secondary) 100%);
 	border-radius: var(--scd-radius-md);
 }
 
@@ -171,7 +171,7 @@
 	left: 12px;
 	width: 60%;
 	height: 16px;
-	background: linear-gradient(90deg, var(--scd-color-border-light) 0%, #f0f0f0 100%);
+	background: linear-gradient(90deg, var(--scd-color-border-light) 0%, var(--scd-color-gray-100) 100%);
 	border-radius: var(--scd-radius-sm);
 }
 
@@ -182,7 +182,7 @@
 	left: 12px;
 	width: 40%;
 	height: 28px;
-	background: linear-gradient(90deg, #2271b1 0%, #3582c4 100%);
+	background: linear-gradient(90deg, var(--scd-color-primary) 0%, var(--scd-color-secondary) 100%);
 	border-radius: var(--scd-radius-sm);
 }
 
@@ -227,7 +227,7 @@
 
 .scd-preview-row {
 	height: var(--scd-input-height-large);
-	background: linear-gradient(90deg, #f9fafb 0%, var(--scd-color-white) 100%);
+	background: linear-gradient(90deg, var(--scd-color-gray-50) 0%, var(--scd-color-white) 100%);
 	margin-bottom: var(--scd-spacing-sm);
 	border-radius: var(--scd-radius-md);
 	position: relative;
@@ -245,7 +245,7 @@
 	transform: translateY(-50%);
 	width: 30%;
 	height: 16px;
-	background: linear-gradient(90deg, var(--scd-color-border-light) 0%, #f0f0f0 100%);
+	background: linear-gradient(90deg, var(--scd-color-border-light) 0%, var(--scd-color-gray-100) 100%);
 	border-radius: var(--scd-radius-sm);
 }
 
@@ -263,11 +263,11 @@
 }
 
 .scd-preview-overlay .scd-icon {
-	font-size: 64px;
-	width: 64px;
-	height: 64px;
+	font-size: var(--scd-icon-display-lg);
+	width: var(--scd-icon-display-lg);
+	height: var(--scd-icon-display-lg);
 	color: var(--scd-color-primary-alpha-80);
-	filter: drop-shadow(0 2px 4px var(--scd-overlay-subtle);
+	filter: drop-shadow(0 2px 4px var(--scd-overlay-subtle));
 }
 
 /* Responsive Design */
@@ -326,8 +326,8 @@
 
 @media screen and (max-width: 480px) {
 	.scd-upgrade-icon {
-		font-size: 36px;
-		width: 36px;
+		font-size: var(--scd-button-icon-size);
+		width: var(--scd-button-icon-size);
 		height: var(--scd-button-height);
 	}
 
@@ -340,8 +340,8 @@
 	}
 
 	.scd-preview-overlay .scd-icon {
-		font-size: 48px;
-		width: 48px;
+		font-size: var(--scd-icon-display);
+		width: var(--scd-icon-display);
 		height: var(--scd-input-height-large);
 	}
 }

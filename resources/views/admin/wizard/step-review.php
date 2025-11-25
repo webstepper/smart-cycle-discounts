@@ -235,6 +235,7 @@ scd_wizard_card(
 		'icon'     => 'controls-play',
 		'content'  => $launch_content,
 		'class'    => 'scd-launch-section',
+		'help_topic' => 'card-launch-options',
 	)
 );
 ?>

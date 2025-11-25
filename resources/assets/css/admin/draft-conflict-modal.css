@@ -1,0 +1,377 @@
+/**
+ * Draft Conflict Modal Styles
+ *
+ * Styles for the modal shown when user attempts to create a new campaign
+ * while having an unsaved draft session.
+ *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/css/admin/draft-conflict-modal.css
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @since      1.0.0
+ */
+
+/* ==========================================================================
+   Modal Base Styles
+   ========================================================================== */
+
+.scd-modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: var(--scd-z-modal);
+	display: none;
+	align-items: center;
+	justify-content: center;
+}
+
+/* When modal is shown, use flex display */
+.scd-modal.scd-modal--visible {
+	display: flex;
+}
+
+/* ==========================================================================
+   Modal Overlay
+   ========================================================================== */
+
+.scd-modal__overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: var(--scd-overlay-heavy);
+	animation: scd-modal-overlay-fade-in var(--scd-transition-slow) ease-out;
+}
+
+/* ==========================================================================
+   Modal Container
+   ========================================================================== */
+
+.scd-modal__container {
+	position: relative;
+	max-width: 540px;
+	width: 90%;
+	background: var(--scd-color-white);
+	border-radius: var(--scd-radius-lg);
+	box-shadow: var(--scd-shadow-xl);
+	animation: scd-modal-slide-in var(--scd-transition-slow) var(--scd-ease-bounce);
+	z-index: 1;
+}
+
+/* ==========================================================================
+   Modal Content
+   ========================================================================== */
+
+.scd-modal__content {
+	padding: var(--scd-padding-spacious) var(--scd-padding-spacious) var(--scd-padding-section);
+	text-align: center;
+}
+
+/* ==========================================================================
+   Close Button
+   ========================================================================== */
+
+.scd-modal__close {
+	position: absolute;
+	top: var(--scd-spacing-md);
+	right: var(--scd-spacing-md);
+	background: none;
+	border: none;
+	font-size: var(--scd-font-size-xl);
+	cursor: pointer;
+	color: var(--scd-color-text-muted);
+	padding: var(--scd-spacing-xs);
+	transition: all var(--scd-transition-base) ease;
+	border-radius: var(--scd-radius-sm);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+}
+
+.scd-modal__close:hover {
+	color: var(--scd-color-text);
+	background: var(--scd-overlay-subtle);
+}
+
+.scd-modal__close:focus {
+	outline: none;
+	box-shadow: var(--scd-ring-focus);
+}
+
+.scd-modal__close svg {
+	width: var(--scd-icon-small);
+	height: var(--scd-icon-small);
+}
+
+/* ==========================================================================
+   Modal Icon
+   ========================================================================== */
+
+.scd-modal__icon {
+	font-size: var(--scd-icon-display);
+	margin-bottom: var(--scd-spacing-lg);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.scd-modal__icon svg {
+	width: var(--scd-icon-display);
+	height: var(--scd-icon-display);
+}
+
+/* Icon color variants */
+.scd-modal__icon--warning {
+	color: var(--scd-color-warning);
+}
+
+.scd-modal__icon--error {
+	color: var(--scd-color-danger);
+}
+
+.scd-modal__icon--success {
+	color: var(--scd-color-success);
+}
+
+.scd-modal__icon--info {
+	color: var(--scd-color-secondary);
+}
+
+/* ==========================================================================
+   Modal Title
+   ========================================================================== */
+
+.scd-modal__title {
+	font-size: var(--scd-font-size-xxl);
+	font-weight: var(--scd-font-weight-semibold);
+	margin: 0 0 var(--scd-spacing-base);
+	color: var(--scd-color-text);
+	line-height: var(--scd-line-height-tight);
+}
+
+/* ==========================================================================
+   Modal Message
+   ========================================================================== */
+
+.scd-modal__message {
+	margin-bottom: var(--scd-spacing-xl);
+	color: var(--scd-color-text-muted);
+	line-height: var(--scd-line-height-relaxed);
+	font-size: var(--scd-font-size-base);
+}
+
+.scd-modal__message p {
+	margin: var(--scd-spacing-sm) 0;
+}
+
+.scd-modal__message p:first-child {
+	margin-top: 0;
+}
+
+.scd-modal__message p:last-child {
+	margin-bottom: 0;
+}
+
+/* Draft name in message - prominent */
+.scd-modal__message strong {
+	color: var(--scd-color-text);
+	font-weight: var(--scd-font-weight-semibold);
+}
+
+/* Draft meta information */
+.scd-modal__draft-meta {
+	display: flex;
+	flex-direction: column;
+	gap: var(--scd-spacing-xs);
+	margin-top: var(--scd-spacing-md);
+	padding: var(--scd-padding-compact);
+	background: var(--scd-overlay-faint);
+	border-radius: var(--scd-radius-sm);
+	border: var(--scd-border-width) solid var(--scd-color-border-light);
+}
+
+.scd-modal__draft-meta-item {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--scd-spacing-xs);
+	font-size: var(--scd-font-size-small);
+	color: var(--scd-color-text-muted);
+}
+
+.scd-modal__draft-meta-item svg {
+	width: var(--scd-icon-small);
+	height: var(--scd-icon-small);
+	flex-shrink: 0;
+}
+
+/* Expiration indicator in modal */
+.scd-modal__expiration {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--scd-spacing-xxs);
+	padding: var(--scd-spacing-xxs) var(--scd-spacing-sm);
+	font-size: var(--scd-font-size-small);
+	font-weight: var(--scd-font-weight-medium);
+	border-radius: var(--scd-radius-sm);
+	border: var(--scd-border-width) solid transparent;
+}
+
+/* Normal state - plenty of time (>30 minutes) */
+.scd-modal__expiration.scd-expiration-normal {
+	color: var(--scd-color-text-muted);
+	background: var(--scd-overlay-faint);
+	border-color: var(--scd-overlay-border);
+}
+
+/* Warning state - running low (15-30 minutes) */
+.scd-modal__expiration.scd-expiration-warning {
+	color: var(--scd-color-warning-dark);
+	background: var(--scd-alert-warning-bg);
+	border-color: var(--scd-color-warning-alpha-25);
+}
+
+/* Urgent state - critical (≤15 minutes) */
+.scd-modal__expiration.scd-expiration-urgent {
+	color: var(--scd-color-danger-dark);
+	background: var(--scd-alert-danger-bg);
+	border-color: var(--scd-color-danger-alpha-30);
+	font-weight: var(--scd-font-weight-semibold);
+}
+
+/* ==========================================================================
+   Modal Actions (Buttons)
+   ========================================================================== */
+
+.scd-modal__actions {
+	display: flex;
+	gap: var(--scd-spacing-sm);
+	justify-content: center;
+	flex-wrap: wrap;
+}
+
+/* Modal button size overrides - uses shared button classes from _buttons.css */
+.scd-modal__actions .scd-button {
+	min-height: 36px;
+	padding: var(--scd-spacing-sm) var(--scd-padding-large);
+	border-radius: var(--scd-radius-sm);
+}
+
+/* Primary button shadow enhancement for modal context */
+.scd-modal__actions .scd-button--primary {
+	box-shadow: var(--scd-shadow-primary);
+}
+
+.scd-modal__actions .scd-button--primary:hover {
+	box-shadow: 0 4px 12px var(--scd-color-primary-alpha-25);
+}
+
+/* Ghost danger button for modal - starts as outline, fills on hover */
+.scd-modal__actions .scd-button--ghost-danger {
+	background: var(--scd-color-white);
+	border-color: var(--scd-color-danger-alpha-30);
+	color: var(--scd-color-danger-dark);
+}
+
+.scd-modal__actions .scd-button--ghost-danger:hover {
+	background: var(--scd-color-danger-dark);
+	border-color: var(--scd-color-danger-dark);
+	color: var(--scd-color-white);
+	box-shadow: 0 4px 12px var(--scd-color-danger-alpha-25);
+}
+
+/* Preserve WordPress core button compatibility (legacy) */
+.scd-modal__actions .button {
+	margin: 0;
+}
+
+/* ==========================================================================
+   Animations
+   ========================================================================== */
+
+@keyframes scd-modal-overlay-fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes scd-modal-slide-in {
+	from {
+		transform: translateY(-30px);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+/* ==========================================================================
+   Body State
+   ========================================================================== */
+
+body.scd-modal-open {
+	overflow: hidden;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media screen and (max-width: 600px) {
+	.scd-modal__container {
+		width: 95%;
+		margin: var(--scd-spacing-lg);
+	}
+
+	.scd-modal__content {
+		padding: var(--scd-padding-section) var(--scd-padding-large);
+	}
+
+	.scd-modal__actions {
+		flex-direction: column;
+	}
+
+	.scd-modal__actions .scd-button,
+	.scd-modal__actions .button {
+		width: 100%;
+		margin: var(--scd-spacing-xs) 0;
+	}
+
+	.scd-modal__title {
+		font-size: var(--scd-font-size-xl);
+	}
+
+	.scd-modal__icon svg {
+		width: 40px;
+		height: 40px;
+	}
+}
+
+/* ==========================================================================
+   Accessibility - Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+	.scd-modal__container {
+		animation: none;
+	}
+
+	.scd-modal__overlay {
+		animation: none;
+	}
+
+	.scd-modal__actions .scd-button {
+		transition: none;
+	}
+}

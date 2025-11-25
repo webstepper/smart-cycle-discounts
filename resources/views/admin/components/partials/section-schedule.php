@@ -65,6 +65,18 @@ if ( $starts_at instanceof DateTime && $ends_at instanceof DateTime ) {
 				<div class="scd-schedule-date-label">
 					<?php echo SCD_Icon_Helper::get( 'play', array( 'size' => 14 ) ); ?>
 					<?php esc_html_e( 'Start', 'smart-cycle-discounts' ); ?>
+					<?php if ( $is_upcoming ) : ?>
+						<span class="scd-schedule-date-relative">
+							<?php
+							$time_until = human_time_diff( current_time( 'timestamp' ), $starts_at->getTimestamp() );
+							printf(
+								/* translators: %s: human-readable time difference */
+								esc_html__( 'in %s', 'smart-cycle-discounts' ),
+								esc_html( $time_until )
+							);
+							?>
+						</span>
+					<?php endif; ?>
 				</div>
 				<div class="scd-schedule-date-value">
 					<?php echo esc_html( $starts_at->format( 'M j, Y g:i A' ) ); ?>
@@ -77,6 +89,29 @@ if ( $starts_at instanceof DateTime && $ends_at instanceof DateTime ) {
 				<div class="scd-schedule-date-label">
 					<?php echo SCD_Icon_Helper::get( 'pause', array( 'size' => 14 ) ); ?>
 					<?php esc_html_e( 'End', 'smart-cycle-discounts' ); ?>
+					<?php if ( $is_active ) : ?>
+						<span class="scd-schedule-date-relative scd-time-remaining">
+							<?php
+							$time_remaining = human_time_diff( current_time( 'timestamp' ), $ends_at->getTimestamp() );
+							printf(
+								/* translators: %s: human-readable time difference */
+								esc_html__( 'in %s', 'smart-cycle-discounts' ),
+								esc_html( $time_remaining )
+							);
+							?>
+						</span>
+					<?php elseif ( $is_expired ) : ?>
+						<span class="scd-schedule-date-relative scd-time-expired">
+							<?php
+							$time_since = human_time_diff( $ends_at->getTimestamp(), current_time( 'timestamp' ) );
+							printf(
+								/* translators: %s: human-readable time difference */
+								esc_html__( '%s ago', 'smart-cycle-discounts' ),
+								esc_html( $time_since )
+							);
+							?>
+						</span>
+					<?php endif; ?>
 				</div>
 				<div class="scd-schedule-date-value">
 					<?php echo esc_html( $ends_at->format( 'M j, Y g:i A' ) ); ?>

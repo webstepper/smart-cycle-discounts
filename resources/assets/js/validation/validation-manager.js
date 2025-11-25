@@ -33,7 +33,7 @@
 
 		// Configuration from localized data
 		this.config = {
-			ajaxUrl: ( window.scdWizardData && window.scdWizardData.ajax_url ) || window.ajaxurl || '',
+			ajaxUrl: ( window.scdWizardData && window.scdWizardData.ajaxUrl ) || window.ajaxurl || '',
 			nonce: ( window.scdWizardData && window.scdWizardData.nonce ) || '',
 			debounceDelay: 150,
 			cacheTime: 300000
@@ -204,12 +204,25 @@
 	 * @returns {object|null} Field definition or null
 	 */
 	ValidationManager.prototype._getFieldDefinition = function( fieldName, context ) {
-		if ( ! context.stepId || ! window.SCD || ! window.SCD.FieldDefinitions || ! window.SCD.FieldDefinitions.getField ) {
+		if ( ! context.stepId || ! window.SCD || ! window.SCD.FieldDefinitions ) {
 			return null;
 		}
 
-		// Field names in JavaScript layer are already in camelCase
-		return window.SCD.FieldDefinitions.getField( context.stepId, fieldName );
+		// Field names from validateStep() are camelCase (object keys from stepFields)
+		// Use getField() which looks up by camelCase key
+		if ( window.SCD.FieldDefinitions.getField ) {
+			var fieldDef = window.SCD.FieldDefinitions.getField( context.stepId, fieldName );
+			if ( fieldDef ) {
+				return fieldDef;
+			}
+		}
+
+		// Fallback: Try getFieldByName() in case fieldName is snake_case (from DOM)
+		if ( window.SCD.FieldDefinitions.getFieldByName ) {
+			return window.SCD.FieldDefinitions.getFieldByName( context.stepId, fieldName );
+		}
+
+		return null;
 	};
 
 	/**
@@ -568,24 +581,38 @@
 
 		var serializedArray = $form.serializeArray();
 
+		// Helper to convert snake_case to camelCase
+		var toCamelCase = function( name ) {
+			if ( window.SCD && window.SCD.Utils && window.SCD.Utils.Fields && window.SCD.Utils.Fields.toCamelCase ) {
+				return window.SCD.Utils.Fields.toCamelCase( name );
+			}
+			return name;
+		};
+
 		serializedArray.forEach( function( item ) {
+			// Convert snake_case DOM field names to camelCase for JavaScript layer consistency
+			var camelName = toCamelCase( item.name );
+
 			// Handle array fields
 			if ( item.name.indexOf( '[]' ) !== -1 ) {
-				var name = item.name.replace( '[]', '' );
+				var name = camelName.replace( '[]', '' );
 				if ( !values[name] ) {
 					values[name] = [];
 				}
 				values[name].push( item.value );
 			} else {
-				values[item.name] = item.value;
+				values[camelName] = item.value;
 			}
 		} );
 
 		// Include unchecked checkboxes
 		$form.find( 'input[type="checkbox"]' ).each( function() {
 			var name = this.name;
-			if ( name && !values.hasOwnProperty( name ) ) {
-				values[name] = '';
+			if ( name ) {
+				var camelName = toCamelCase( name );
+				if ( !values.hasOwnProperty( camelName ) ) {
+					values[camelName] = '';
+				}
 			}
 		} );
 
@@ -664,8 +691,8 @@
 					// Try to get field definition
 					var stepId = $form.data( 'step' ) || $form.closest( '[data-step]' ).data( 'step' );
 					if ( stepId ) {
-						// Field names in JavaScript layer are already in camelCase
-						var fieldDef = window.SCD.FieldDefinitions.getField( stepId, fieldName );
+						// Field names from DOM are snake_case, use getFieldByName() to match
+						var fieldDef = window.SCD.FieldDefinitions.getFieldByName ? window.SCD.FieldDefinitions.getFieldByName( stepId, fieldName ) : window.SCD.FieldDefinitions.getField( stepId, fieldName );
 
 						if ( fieldDef && fieldDef.conditional ) {
 							isVisible = this._evaluateCondition( fieldDef.conditional, formValues );

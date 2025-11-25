@@ -144,7 +144,7 @@ class SCD_Translation_Handler {
 			),
 			'activation_error'       => self::get(
 				'activation_error',
-				'Smart Cycle Discounts cannot be activated. Please ensure WooCommerce 8.0+ is installed and you are running PHP 8.1+.'
+				'Smart Cycle Discounts cannot be activated. Please ensure WooCommerce 8.0+ is installed and you are running PHP 7.4+.'
 			),
 			'activation_error_title' => self::get(
 				'activation_error_title',

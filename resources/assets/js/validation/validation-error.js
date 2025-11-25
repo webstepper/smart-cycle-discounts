@@ -109,15 +109,28 @@
 		this._applyErrorStyling( $field );
 
 		if ( message ) {
+			// Extract message string from error object if needed
+			var messageText = message;
+			if ( 'object' === typeof message && message.message ) {
+				messageText = message.message;
+			} else if ( 'object' === typeof message && message.code ) {
+				// Fallback: use code if message property not available
+				messageText = message.code;
+			}
+
 			var $container = this._findContainer( $field );
 			var errorId = 'error-' + ( $field.attr( 'name' ) || $field.attr( 'id' ) || 'field' ).replace( /[^a-zA-Z0-9]/g, '-' );
 
-			var $errorMsg = $( '<div class="scd-field-error" id="' + errorId + '" role="alert"></div>' ).text( message );
+			var $errorMsg = $( '<div class="scd-field-error" id="' + errorId + '" role="alert"></div>' ).text( messageText );
 
-			// Insert error message after field (or after container based on position option)
-			if ( 'after-container' === options.position ) {
-				$container.after( $errorMsg );
+			// Special handling for Tom Select fields
+			var $tomSelectWrapper = $field.siblings( '.ts-wrapper' );
+			if ( $tomSelectWrapper.length ) {
+				// Insert error after Tom Select wrapper (visible UI)
+				$tomSelectWrapper.after( $errorMsg );
 			} else {
+				// Insert error message inside container, after the field element
+				// This keeps error visually close to its field while avoiding flex layout issues
 				$field.after( $errorMsg );
 			}
 
@@ -125,7 +138,7 @@
 			$field.attr( 'aria-describedby', errorId );
 
 			// Announce error to screen readers
-			this.announceError( message, $field.attr( 'name' ) || $field.attr( 'id' ) );
+			this.announceError( messageText, $field.attr( 'name' ) || $field.attr( 'id' ) );
 		}
 
 		// Debug logging
@@ -176,6 +189,16 @@
 		// Also remove any error messages near the field
 		$field.siblings( '.scd-field-error' ).remove();
 		$container.find( '.scd-field-error' ).remove();
+
+		// Check if this is a Tom Select field and clear error styling from wrapper
+		var $tomSelectWrapper = $field.siblings( '.ts-wrapper' );
+		if ( $tomSelectWrapper.length ) {
+			$tomSelectWrapper.removeClass( 'error' );
+			$tomSelectWrapper.css( {
+				'border': '',
+				'background-color': ''
+			} );
+		}
 
 		$field
 			.attr( 'aria-invalid', 'false' )
@@ -292,6 +315,18 @@
 				$field = $context.find( '#' + this.escapeSelector( fieldName ) );
 			}
 
+			// If camelCase field not found, try snake_case conversion
+			// (PHP validation returns camelCase, but DOM uses snake_case)
+			if ( ! $field.length && /[A-Z]/.test( fieldName ) ) {
+				var snakeName = window.SCD && window.SCD.Utils && window.SCD.Utils.Fields && window.SCD.Utils.Fields.toSnakeCase
+					? window.SCD.Utils.Fields.toSnakeCase( fieldName )
+					: fieldName.replace( /[A-Z]/g, function( letter ) { return '_' + letter.toLowerCase(); } );
+				$field = $context.find( '[name="' + this.escapeSelector( snakeName ) + '"]' );
+				if ( ! $field.length ) {
+					$field = $context.find( '#' + this.escapeSelector( snakeName ) );
+				}
+			}
+
 			return $field;
 		},
 
@@ -330,9 +365,20 @@
 		 * @param {jQuery} $field - Field element
 		 */
 		_applyErrorStyling: function( $field ) {
-			$field.addClass( 'error' );
+			// Check if this is a Tom Select field
+			var $tomSelectWrapper = $field.siblings( '.ts-wrapper' );
 
-			$field.attr( 'aria-invalid', 'true' );
+			if ( $tomSelectWrapper.length ) {
+				// Apply error styling to visible Tom Select wrapper
+				$tomSelectWrapper.addClass( 'error' );
+				// Also add to hidden input for consistency
+				$field.addClass( 'error' );
+				$field.attr( 'aria-invalid', 'true' );
+			} else {
+				// Standard field: apply directly
+				$field.addClass( 'error' );
+				$field.attr( 'aria-invalid', 'true' );
+			}
 
 			// Also add error class to container for proper CSS targeting
 			var $container = this._findContainer( $field );
@@ -448,9 +494,25 @@
 
 				$.each( messageArray, function( index, message ) {
 					errorCount++;
+
+					// Extract message string from error object if needed
+					var messageText = message;
+					if ( 'object' === typeof message && message.message ) {
+						messageText = message.message;
+					} else if ( 'object' === typeof message && message.code ) {
+						// Fallback: use code if message property not available
+						messageText = message.code;
+					}
+
 					// Use public getFieldLabel which handles all fallback logic
 					var fieldLabel = SCD.Components.ValidationError.getFieldLabel( $field.length ? $field : fieldName, fieldName );
-					errorMessages.push( fieldLabel + ': ' + message );
+
+					// If no label found, don't show empty prefix
+					if ( fieldLabel && fieldLabel.trim() ) {
+						errorMessages.push( fieldLabel + ': ' + messageText );
+					} else {
+						errorMessages.push( messageText );
+					}
 				} );
 			} );
 
@@ -462,15 +524,27 @@
 			return;
 		}
 
-			var notificationMessage = 1 === errorCount
-				? errorMessages[0]
-				: errorMessages.join( ' • ' );
+			// Build more specific notification message based on error count
+			var notificationMessage;
+			if ( 1 === errorCount ) {
+				// Single error: Show the specific field error
+				notificationMessage = errorMessages[0];
+			} else if ( errorCount <= 3 ) {
+				// 2-3 errors: List all errors with bullets
+				notificationMessage = errorMessages.join( ' • ' );
+			} else {
+				// Many errors: Show count with first few examples
+				var displayErrors = errorMessages.slice( 0, 2 );
+				var remainingCount = errorCount - 2;
+				notificationMessage = displayErrors.join( ', ' ) +
+					' and ' + remainingCount + ' more field' + ( remainingCount > 1 ? 's' : '' ) + ' require attention';
+			}
 
 			if ( SCD.Shared && SCD.Shared.NotificationService ) {
-				SCD.Shared.NotificationService.show( 
-					notificationMessage, 
-					'error', 
-					3000, // Auto-dismiss after 3 seconds
+				SCD.Shared.NotificationService.show(
+					notificationMessage,
+					'error',
+					5000, // Longer duration for reading multiple errors
 					{
 						id: 'validation-errors',
 						replace: true,
@@ -664,11 +738,18 @@
 			}
 		}
 
-		// Fallback: Convert snake_case to Title Case
+		// Fallback: Convert snake_case or camelCase to Title Case
+		if ( fieldName && fieldName.trim() ) {
+			// Convert camelCase to snake_case first
+			var snakeCased = fieldName.replace( /([A-Z])/g, '_$1' ).toLowerCase();
+			// Then convert to Title Case
+			return snakeCased.replace( /_/g, ' ' ).replace( /\b\w/g, function( letter ) {
+				return letter.toUpperCase();
+			} ).trim();
+		}
 
-		return fieldName.replace( /_/g, ' ' ).replace( /\b\w/g, function( letter ) {
-			return letter.toUpperCase();
-		} );
+		// Final fallback if no field name at all
+		return 'This field';
 	};
 
 	/**
@@ -755,8 +836,12 @@
 		}
 
 		if ( $firstError.length ) {
-			// Calculate scroll position
-			var scrollTop = $firstError.offset().top - options.scrollOffset;
+			// Check if this is a Tom Select field - use wrapper for scroll position
+			var $tomSelectWrapper = $firstError.siblings( '.ts-wrapper' );
+			var $scrollTarget = $tomSelectWrapper.length ? $tomSelectWrapper : $firstError;
+
+			// Calculate scroll position using visible element
+			var scrollTop = $scrollTarget.offset().top - options.scrollOffset;
 
 			// Smooth scroll to field using cached scroll container
 			var $scroller = this._$scrollContainer || $( 'html, body' );

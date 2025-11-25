@@ -89,8 +89,10 @@
 		 * @private
 		 */
 		loadConditionTypes: function() {
-			if ( window.scdProductsState && window.scdProductsState.condition_types ) {
-				this.conditionTypes = window.scdProductsState.condition_types;
+			// Get condition types from field definitions
+			var fieldDefs = window.scdAdmin && window.scdAdmin.scdFieldDefinitions && window.scdAdmin.scdFieldDefinitions.products || {};
+			if ( fieldDefs.conditionTypes ) {
+				this.conditionTypes = fieldDefs.conditionTypes;
 			}
 		},
 

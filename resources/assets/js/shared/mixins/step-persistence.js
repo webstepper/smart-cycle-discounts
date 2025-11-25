@@ -245,6 +245,7 @@
 		 */
 		populateFields: function( data ) {
 			// Standard pre-check: Skip if no data provided
+
 			if ( !data || 'object' !== typeof data ) {
 				return;
 			}
@@ -313,6 +314,7 @@
 
 						if ( 'complex' === fieldDef.type ) {
 							// Handle complex fields using handler
+							// Handle complex fields using handler
 							this.populateComplexField( fieldDef, data[dataKey] );
 						} else if ( window.SCD && window.SCD.Utils && window.SCD.Utils.Fields ) {
 							// Handle standard fields
@@ -380,6 +382,7 @@
 		 */
 		saveStep: function() {
 			var self = this;
+
 			var data = this.collectData();
 
 			if ( data && data._error ) {
@@ -664,12 +667,14 @@
 
 			if ( handler && 'function' === typeof handler[methodName] ) {
 				try {
-					return handler[methodName]();
+					// Call with correct 'this' context (the handler instance)
+					return handler[methodName].call( handler );
 				} catch ( e ) {
 					console.error( '[StepPersistence] Error collecting complex field:', e );
 					return fieldDef.default || null;
 				}
 			}
+
 			return fieldDef.default || null;
 		},
 
@@ -720,7 +725,7 @@
 				this._complexFieldRetries[handlerPath] = ( this._complexFieldRetries[handlerPath] || 0 ) + 1;
 
 				if ( this._complexFieldRetries[handlerPath] > maxRetries ) {
-					console.error( '[StepPersistence] Max retries reached for handler:', handlerPath );
+					console.error( '❌ [StepPersistence] Max retries reached for handler:', handlerPath );
 					if ( this._complexFieldQueue && this._complexFieldQueue[handlerPath] ) {
 						delete this._complexFieldQueue[handlerPath];
 					}
@@ -746,7 +751,7 @@
 
 			var handler = this.getComplexFieldHandler( handlerPath );
 			if ( !handler ) {
-				console.error( '[StepPersistence] Could not get handler for:', handlerPath );
+				console.error( '❌ [StepPersistence] Could not get handler for:', handlerPath );
 				return;
 			}
 
@@ -759,10 +764,10 @@
 					try {
 						handler[methodName]( item.value );
 					} catch ( e ) {
-						console.error( '[StepPersistence] Error populating complex field:', e );
+						console.error( '❌ [StepPersistence] Error calling handler.' + methodName + '():', e );
 					}
 				} else {
-					console.error( '[StepPersistence] Handler method not found:', methodName );
+					console.error( '❌ [StepPersistence] Handler method not found:', methodName );
 				}
 			}
 		},
@@ -820,7 +825,18 @@
 			// DOM uses snake_case (WordPress forms use snake_case field names)
 			var $field = $( '[name="' + conditionalFieldSnake + '"]' );
 			if ( $field.length ) {
-				actualValue = $field.val();
+				// Handle checkboxes properly - use checked state, not value attribute
+				// Also respect disabled state - disabled checkboxes should return false
+				if ( $field.is( ':checkbox' ) ) {
+					// Disabled checkbox = feature not available, treat as false
+					if ( $field.prop( 'disabled' ) ) {
+						actualValue = false;
+					} else {
+						actualValue = $field.is( ':checked' );
+					}
+				} else {
+					actualValue = $field.val();
+				}
 			}
 		}
 

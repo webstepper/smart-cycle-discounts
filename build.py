@@ -74,7 +74,8 @@ EXCLUDE_PATTERNS = [
 
     # Source assets (exclude SCSS source files, keep compiled CSS/JS)
     'resources/assets/scss',  # Exclude SCSS source files - keep compiled CSS in resources/assets/css/
-    'assets',  # Empty legacy directory - actual assets are in resources/assets/
+    # Note: Root 'assets/' directory excluded via should_exclude() root-level check only
+    # Do NOT add 'assets' here - it would match 'resources/assets/' due to path component matching
 
     # Vendor dependencies (exclude all except Freemius SDK)
     # IMPORTANT: Plugin uses vendor/freemius/start.php directly, not Composer autoloader
@@ -158,6 +159,8 @@ def get_plugin_version():
 
 def should_exclude(path, base_path=''):
     """Check if a file or directory should be excluded."""
+    import fnmatch
+
     # Convert to relative path for checking
     rel_path = os.path.relpath(path, base_path) if base_path else path
     name = os.path.basename(path)
@@ -169,22 +172,28 @@ def should_exclude(path, base_path=''):
     if name in FORCE_INCLUDE or rel_path in FORCE_INCLUDE:
         return False
 
+    # Special case: exclude root-level 'assets/' directory (but NOT 'resources/assets/')
+    if rel_path_normalized == 'assets' or rel_path_normalized.startswith('assets/'):
+        return True
+
     # Check exclude patterns
     for pattern in EXCLUDE_PATTERNS:
         # Normalize pattern separators
         pattern_normalized = pattern.replace('\\', '/')
 
-        # Exact match
+        # Exact match on filename or full relative path
         if name == pattern or rel_path_normalized == pattern_normalized:
             return True
 
-        # Directory path prefix match (e.g., "resources/assets" excludes "resources/assets/css/admin.css")
-        if rel_path_normalized.startswith(pattern_normalized + '/') or pattern_normalized in rel_path_normalized.split('/'):
-            return True
+        # Directory path prefix match - pattern must match from start of path
+        # e.g., "resources/assets/scss" excludes "resources/assets/scss/file.scss"
+        # but "assets" does NOT exclude "resources/assets/css/file.css"
+        if '/' in pattern_normalized:
+            if rel_path_normalized.startswith(pattern_normalized + '/'):
+                return True
 
         # Wildcard pattern match
         if '*' in pattern:
-            import fnmatch
             if fnmatch.fnmatch(name, pattern) or fnmatch.fnmatch(rel_path_normalized, pattern_normalized):
                 return True
 

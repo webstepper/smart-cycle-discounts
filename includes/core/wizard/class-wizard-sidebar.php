@@ -81,10 +81,11 @@ class SCD_Wizard_Sidebar {
 	 * Get sidebar content for a wizard step.
 	 *
 	 * @since    1.0.0
-	 * @param    string $step    Step name.
+	 * @param    string $step      Step name.
+	 * @param    array  $step_data Step data for contextual sidebar.
 	 * @return   string            Sidebar HTML content.
 	 */
-	public static function get_sidebar( string $step ): string {
+	public static function get_sidebar( string $step, array $step_data = array() ): string {
 		if ( empty( $step ) ) {
 			return '';
 		}
@@ -99,6 +100,14 @@ class SCD_Wizard_Sidebar {
 		$sidebar_instance = self::get_sidebar_instance( $step, $sidebar_map );
 		if ( null === $sidebar_instance ) {
 			return '';
+		}
+
+		// Set step and step_data for contextual sidebar
+		if ( method_exists( $sidebar_instance, 'set_step' ) ) {
+			$sidebar_instance->set_step( $step );
+		}
+		if ( method_exists( $sidebar_instance, 'set_step_data' ) ) {
+			$sidebar_instance->set_step_data( $step_data );
 		}
 
 		$content = $sidebar_instance->get_content();

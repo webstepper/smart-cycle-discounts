@@ -132,14 +132,15 @@ ob_start();
         ob_start();
         ?>
                 <div class="scd-field-wrapper scd-field-required">
-                    <input type="hidden" 
-                           id="discount_type" 
-                           name="discount_type" 
+                    <input type="hidden"
+                           id="discount_type"
+                           name="discount_type"
                            value="<?php echo esc_attr($discount_type); ?>"
                            class="scd-field"
                            data-required="true"
                            data-label="Discount Type"
                            data-pattern-message="Please select a discount type"
+                           data-help-topic="discount-type"
                            aria-required="true">
                 </div>
                 
@@ -151,7 +152,8 @@ ob_start();
 
                     <!-- Percentage Discount -->
                     <div class="scd-discount-type-card <?php echo esc_attr( $discount_type === 'percentage' ? 'selected' : '' ); ?>"
-                         data-type="percentage">
+                         data-type="percentage"
+                         data-help-topic="option-discount-percentage">
                         <div class="scd-discount-type-card__icon">
                             <?php echo SCD_Icon_Helper::get( 'tag', array( 'size' => 24 ) ); ?>
                         </div>
@@ -173,7 +175,8 @@ ob_start();
                     
                     <!-- Fixed Amount Discount -->
                     <div class="scd-discount-type-card <?php echo esc_attr( $discount_type === 'fixed' ? 'selected' : '' ); ?>"
-                         data-type="fixed">
+                         data-type="fixed"
+                         data-help-topic="option-discount-fixed">
                         <div class="scd-discount-type-card__icon">
                             <?php echo SCD_Icon_Helper::get( 'receipt', array( 'size' => 24 ) ); ?>
                         </div>
@@ -207,6 +210,7 @@ ob_start();
                     ?>
                     <div class="<?php echo esc_attr( $tiered_classes ); ?>"
                          data-type="tiered"
+                         data-help-topic="option-discount-tiered"
                          <?php if ( ! $can_use_tiered ) : ?>data-locked="true"<?php endif; ?>>
                         <?php if ( $can_use_tiered ) : ?>
                             <!-- Available: Show normal card -->
@@ -264,6 +268,7 @@ ob_start();
                     ?>
                     <div class="<?php echo esc_attr( $bogo_classes ); ?>"
                          data-type="bogo"
+                         data-help-topic="option-discount-bogo"
                          <?php if ( ! $can_use_bogo ) : ?>data-locked="true"<?php endif; ?>>
                         <?php if ( $can_use_bogo ) : ?>
                             <!-- Available: Show normal card -->
@@ -321,6 +326,7 @@ ob_start();
                     ?>
                     <div class="<?php echo esc_attr( $spend_threshold_classes ); ?>"
                          data-type="spend_threshold"
+                         data-help-topic="option-discount-spend-threshold"
                          <?php if ( ! $can_use_spend_threshold ) : ?>data-locked="true"<?php endif; ?>>
                         <?php if ( $can_use_spend_threshold ) : ?>
                             <!-- Available: Show normal card -->
@@ -380,7 +386,8 @@ ob_start();
             'title' => __('Choose Your Discount Type', 'smart-cycle-discounts'),
             'subtitle' => __('Select the discount strategy that best fits your campaign goals.', 'smart-cycle-discounts'),
             'icon' => 'tag',
-            'content' => $type_selection_content
+            'content' => $type_selection_content,
+            'help_topic' => 'card-discount-type'
         ));
         ?>
 
@@ -468,21 +475,24 @@ ob_start();
                         </th>
                         <td>
                             <div class="scd-field-wrapper scd-field-required">
-                                <div class="scd-input-group scd-input-with-prefix">
+                                <div class="scd-input-wrapper scd-input-with-prefix">
                                     <span class="scd-input-prefix">%</span>
-                                    <input type="number" 
-                                           id="discount_value_percentage" 
+                                    <input type="number"
+                                           id="discount_value_percentage"
                                            name="discount_value_percentage"
-                                           value="<?php echo esc_attr($discount_value_percentage); ?>" 
-                                           min="1" 
-                                           max="100" 
-                                           step="1" 
+                                           value="<?php echo esc_attr($discount_value_percentage); ?>"
+                                           min="1"
+                                           max="100"
+                                           step="1"
+                                           inputmode="numeric"
                                            class="scd-enhanced-input scd-field scd-discount-value-field"
-                                           placeholder="e.g. 15"
+                                           placeholder="1-100"
                                            required
                                            data-required="true"
-                                           data-label="Discount Value"
+                                           data-label="Discount Percentage"
                                            data-discount-type="percentage"
+                                           data-input-type="percentage"
+                                           data-help-topic="discount-value"
                                            aria-required="true"
                                            aria-invalid="false">
                                 </div>
@@ -504,7 +514,7 @@ ob_start();
                         </th>
                         <td>
                             <div class="scd-field-wrapper scd-field-required">
-                                <div class="scd-input-group">
+                                <div class="scd-input-wrapper scd-input-with-prefix">
                                     <span class="scd-input-prefix"><?php echo esc_html( $currency_symbol ); ?></span>
                                     <input type="number"
                                            id="discount_value_fixed"
@@ -513,12 +523,15 @@ ob_start();
                                            min="<?php echo esc_attr( SCD_Validation_Rules::FIXED_MIN ); ?>"
                                            max="<?php echo esc_attr( SCD_Validation_Rules::FIXED_MAX ); ?>"
                                            step="0.01"
+                                           inputmode="decimal"
                                            class="scd-enhanced-input scd-field scd-discount-value-field"
                                            placeholder="e.g. 5.00"
                                            required
                                            data-required="true"
-                                           data-label="Discount Value"
+                                           data-label="Discount Amount"
                                            data-discount-type="fixed"
+                                           data-input-type="decimal"
+                                           data-help-topic="discount-value"
                                            aria-required="true"
                                            aria-invalid="false">
                                 </div>
@@ -541,7 +554,7 @@ ob_start();
                         <td>
                             <div class="scd-tiered-discounts">
                                 <!-- Apply Discount To Selection -->
-                                <div class="scd-field-group scd-tier-section" style="margin-bottom: 20px;">
+                                <div class="scd-tier-section">
                                     <label class="scd-tier-section-label">
                                         <?php esc_html_e('Apply Discount To', 'smart-cycle-discounts'); ?>
                                         <span class="required">*</span>
@@ -572,7 +585,7 @@ ob_start();
                                 </div>
 
                                 <!-- Tier Mode Selection -->
-                                <div class="scd-field-group scd-tier-section" style="margin-bottom: 20px;">
+                                <div class="scd-tier-section">
                                     <label class="scd-tier-section-label">
                                         <?php esc_html_e('Discount Type', 'smart-cycle-discounts'); ?>
                                         <span class="required">*</span>
@@ -614,7 +627,7 @@ ob_start();
                                 </div>
                                 
                                 <!-- Fixed Amount Tiers -->
-                                <div class="scd-tier-group" id="fixed-tiers-group" style="display: none;">
+                                <div class="scd-tier-group scd-hidden" id="fixed-tiers-group">
                                     <div class="scd-tiers-list" id="fixed-tiers-list">
                                         <!-- Fixed amount tiers will be populated by JavaScript -->
                                     </div>
@@ -623,13 +636,16 @@ ob_start();
                                         <?php esc_html_e('Add Fixed Amount Tier', 'smart-cycle-discounts'); ?>
                                     </button>
                                 </div>
+
+                                <!-- Hidden input for validation -->
+                                <input type="hidden" name="tiers" id="tiers" value="">
                             </div>
                             <div class="scd-inline-preview" id="tiered-preview">
                                 <span class="preview-text"></span>
                             </div>
                         </td>
                     </tr>
-                    
+
                     <!-- BOGO Configuration -->
                     <tr class="scd-strategy-options scd-strategy-bogo <?php echo esc_attr( ( $step_data['discount_type'] ?? '' ) === 'bogo' ? 'active' : '' ); ?>" data-strategy-type="bogo">
                         <th scope="row">
@@ -649,7 +665,11 @@ ob_start();
                                                name="bogo_buy_quantity"
                                                value="<?php echo esc_attr( $bogo_buy_quantity ); ?>"
                                                min="1"
+                                               step="1"
+                                               inputmode="numeric"
                                                placeholder="e.g. 2"
+                                               data-label="Buy Quantity"
+                                               data-input-type="integer"
                                                class="scd-enhanced-input">
                                     </div>
                                     <div class="scd-bogo-field">
@@ -659,22 +679,29 @@ ob_start();
                                                name="bogo_get_quantity"
                                                value="<?php echo esc_attr( $bogo_get_quantity ); ?>"
                                                min="1"
+                                               step="1"
+                                               inputmode="numeric"
                                                placeholder="e.g. 1"
+                                               data-label="Get Quantity"
+                                               data-input-type="integer"
                                                class="scd-enhanced-input">
                                     </div>
                                     <div class="scd-bogo-field">
                                         <label for="bogo_discount_percentage"><?php esc_html_e('At Discount', 'smart-cycle-discounts'); ?></label>
-                                        <div class="scd-input-group scd-input-with-prefix">
+                                        <div class="scd-input-wrapper scd-input-with-prefix">
                                             <span class="scd-input-prefix">%</span>
                                             <input type="number"
                                                    id="bogo_discount_percentage"
                                                    name="bogo_discount_percentage"
                                                    value="<?php echo esc_attr( $bogo_discount_percentage ); ?>"
-                                               min="0"
-                                               max="100"
-                                               step="0.01"
-                                               placeholder="100"
-                                               class="scd-enhanced-input">
+                                                   min="0"
+                                                   max="100"
+                                                   step="0.01"
+                                                   inputmode="decimal"
+                                                   placeholder="0-100"
+                                                   data-label="Discount Percentage"
+                                                   data-input-type="percentage"
+                                                   class="scd-enhanced-input">
                                         </div>
                                     </div>
                                 </div>
@@ -732,7 +759,7 @@ ob_start();
                                 </div>
                                 
                                 <!-- Fixed Amount Thresholds -->
-                                <div class="scd-threshold-group" id="fixed-thresholds-group" style="display: none;">
+                                <div class="scd-threshold-group scd-hidden" id="fixed-thresholds-group">
                                     <div class="scd-thresholds-list" id="fixed-thresholds-list" data-empty-message="<?php esc_attr_e('No fixed amount thresholds added yet', 'smart-cycle-discounts'); ?>">
                                         <!-- Fixed amount thresholds will be populated by JavaScript -->
                                     </div>
@@ -741,6 +768,9 @@ ob_start();
                                         <?php esc_html_e('Add Fixed Amount Threshold', 'smart-cycle-discounts'); ?>
                                     </button>
                                 </div>
+
+                                <!-- Hidden input for validation -->
+                                <input type="hidden" name="thresholds" id="thresholds" value="">
                             </div>
                             <div class="scd-inline-preview" id="spend-threshold-preview">
                                 <span class="preview-text"></span>
@@ -758,7 +788,8 @@ ob_start();
             'subtitle' => __('Set specific values and conditions for your selected discount type.', 'smart-cycle-discounts'),
             'icon' => 'admin-settings',
             'content' => $discount_value_content,
-            'id' => 'discount-value-card'
+            'id' => 'discount-value-card',
+            'help_topic' => 'card-discount-value'
         ));
         ?>
 
@@ -781,7 +812,7 @@ ob_start();
                 </label>
 
                 <!-- Context Warning for BOGO/Spend Threshold -->
-                <div class="scd-badge-context-warning" style="display: none;">
+                <div class="scd-badge-context-warning scd-hidden">
                     <?php echo SCD_Icon_Helper::get( 'info', array( 'size' => 16 ) ); ?>
                     <span class="scd-context-warning-text"></span>
                 </div>
@@ -811,7 +842,7 @@ ob_start();
                             </select>
                         </div>
 
-                        <div class="scd-custom-badge-text" style="<?php echo esc_attr( 'auto' === $badge_text || empty( $badge_text ) ? 'display: none;' : '' ); ?>">
+                        <div class="scd-custom-badge-text<?php echo esc_attr( 'auto' === $badge_text || empty( $badge_text ) ? ' scd-hidden' : '' ); ?>">
                             <input type="text"
                                    id="badge_text_custom"
                                    name="badge_text_custom"
@@ -946,20 +977,17 @@ ob_start();
         <?php
         $badge_display_content = ob_get_clean();
 
-        // Create the card with the optional badge in the title
-        ob_start();
-        ?>
-            <?php echo SCD_Icon_Helper::get( 'tag', array( 'size' => 16, 'aria_hidden' => true ) ); ?>
-            <?php esc_html_e( 'Badge Display', 'smart-cycle-discounts' ); ?>
-            <span class="scd-badge scd-badge--optional"><?php esc_html_e( 'Optional', 'smart-cycle-discounts' ); ?></span>
-        <?php
-        $badge_title = ob_get_clean();
-
         scd_wizard_card(array(
-            'title' => $badge_title,
+            'title' => __( 'Badge Display', 'smart-cycle-discounts' ),
+            'icon' => 'tag',
+            'badge' => array(
+                'text' => __( 'Optional', 'smart-cycle-discounts' ),
+                'type' => 'optional'
+            ),
             'subtitle' => __('Configure how your discount appears on products to attract customer attention.', 'smart-cycle-discounts'),
             'content' => $badge_display_content,
-            'id' => 'badge-display-card'
+            'id' => 'badge-display-card',
+            'help_topic' => 'card-badge-display'
         ));
         ?>
 
@@ -993,12 +1021,15 @@ ob_start();
                                 </th>
                                 <td>
                                     <div class="scd-input-wrapper">
-                                        <input type="number" 
-                                               id="usage_limit_per_customer" 
-                                               name="usage_limit_per_customer" 
-                                               value="<?php echo esc_attr( $usage_limit_per_customer ); ?>" 
-                                               min="0" 
-                                               step="1" 
+                                        <input type="number"
+                                               id="usage_limit_per_customer"
+                                               name="usage_limit_per_customer"
+                                               value="<?php echo esc_attr( $usage_limit_per_customer ); ?>"
+                                               min="0"
+                                               step="1"
+                                               inputmode="numeric"
+                                               data-label="Per Customer Limit"
+                                               data-input-type="integer"
                                                class="scd-enhanced-input"
                                                placeholder="∞">
                                         <span class="scd-field-suffix"><?php esc_html_e('uses per cycle', 'smart-cycle-discounts'); ?></span>
@@ -1018,12 +1049,15 @@ ob_start();
                                 </th>
                                 <td>
                                     <div class="scd-input-wrapper">
-                                        <input type="number" 
-                                               id="total_usage_limit" 
-                                               name="total_usage_limit" 
-                                               value="<?php echo esc_attr( $step_data['total_usage_limit'] ?? '' ); ?>" 
-                                               min="0" 
-                                               step="1" 
+                                        <input type="number"
+                                               id="total_usage_limit"
+                                               name="total_usage_limit"
+                                               value="<?php echo esc_attr( $step_data['total_usage_limit'] ?? '' ); ?>"
+                                               min="0"
+                                               step="1"
+                                               inputmode="numeric"
+                                               data-label="Total Usage Limit"
+                                               data-input-type="integer"
                                                class="scd-enhanced-input"
                                                placeholder="∞">
                                         <span class="scd-field-suffix"><?php esc_html_e('redemptions per cycle', 'smart-cycle-discounts'); ?></span>
@@ -1039,12 +1073,15 @@ ob_start();
                                 </label>
                             </th>
                             <td>
-                                <input type="number" 
-                                       id="lifetime_usage_cap" 
-                                       name="lifetime_usage_cap" 
-                                       value="<?php echo esc_attr( $step_data['lifetime_usage_cap'] ?? '' ); ?>" 
-                                       min="0" 
-                                       step="1" 
+                                <input type="number"
+                                       id="lifetime_usage_cap"
+                                       name="lifetime_usage_cap"
+                                       value="<?php echo esc_attr( $step_data['lifetime_usage_cap'] ?? '' ); ?>"
+                                       min="0"
+                                       step="1"
+                                       inputmode="numeric"
+                                       data-label="Lifetime Usage Cap"
+                                       data-input-type="integer"
                                        class="scd-enhanced-input"
                                        placeholder="<?php esc_attr_e('Unlimited', 'smart-cycle-discounts'); ?>">
                                 <span class="scd-field-suffix"><?php esc_html_e('uses across all cycles', 'smart-cycle-discounts'); ?></span>
@@ -1100,14 +1137,17 @@ ob_start();
                                 </label>
                             </th>
                             <td>
-                                <div class="scd-input-group">
+                                <div class="scd-input-wrapper scd-input-with-prefix">
                                     <span class="scd-input-prefix"><?php echo esc_html( $currency_symbol ); ?></span>
-                                    <input type="number" 
-                                           id="max_discount_amount" 
-                                           name="max_discount_amount" 
-                                           value="<?php echo esc_attr( $step_data['max_discount_amount'] ?? '' ); ?>" 
-                                           min="0" 
-                                           step="0.01" 
+                                    <input type="number"
+                                           id="max_discount_amount"
+                                           name="max_discount_amount"
+                                           value="<?php echo esc_attr( $step_data['max_discount_amount'] ?? '' ); ?>"
+                                           min="0"
+                                           step="0.01"
+                                           inputmode="decimal"
+                                           data-label="Max Discount Amount"
+                                           data-input-type="decimal"
                                            class="scd-enhanced-input"
                                            placeholder="<?php esc_attr_e('No limit', 'smart-cycle-discounts'); ?>">
                                 </div>
@@ -1128,6 +1168,9 @@ ob_start();
                                        value="<?php echo esc_attr( $step_data['minimum_quantity'] ?? '' ); ?>"
                                        min="0"
                                        step="1"
+                                       inputmode="numeric"
+                                       data-label="Minimum Quantity"
+                                       data-input-type="integer"
                                        class="scd-enhanced-input"
                                        placeholder="<?php esc_attr_e('No minimum', 'smart-cycle-discounts'); ?>">
                                 <span class="scd-field-suffix"><?php esc_html_e('items', 'smart-cycle-discounts'); ?></span>
@@ -1142,7 +1185,7 @@ ob_start();
                                 </label>
                             </th>
                             <td>
-                                <div class="scd-input-group">
+                                <div class="scd-input-wrapper scd-input-with-prefix">
                                     <span class="scd-input-prefix"><?php echo esc_html( $currency_symbol ); ?></span>
                                     <input type="number"
                                            id="minimum_order_amount"
@@ -1150,6 +1193,9 @@ ob_start();
                                            value="<?php echo esc_attr( $step_data['minimum_order_amount'] ?? '' ); ?>"
                                            min="0"
                                            step="0.01"
+                                           inputmode="decimal"
+                                           data-label="Minimum Order Amount"
+                                           data-input-type="decimal"
                                            class="scd-enhanced-input"
                                            placeholder="<?php esc_attr_e('No minimum', 'smart-cycle-discounts'); ?>">
                                 </div>
@@ -1226,55 +1272,32 @@ ob_start();
                 </div><!-- .scd-discount-rules-section -->
         <?php
         $discount_rules_content = ob_get_clean();
-        
-        // Create the card with the optional badge in the title
-        ob_start();
-        ?>
-            <?php echo SCD_Icon_Helper::get( 'admin-settings', array( 'size' => 16, 'aria_hidden' => true ) ); ?>
-            <?php esc_html_e( 'Configure Discount Rules', 'smart-cycle-discounts' ); ?>
-            <span class="scd-badge scd-badge--optional"><?php esc_html_e( 'Optional', 'smart-cycle-discounts' ); ?></span>
-        <?php
-        $rules_title = ob_get_clean();
 
         scd_wizard_card(array(
-            'title' => $rules_title,
+            'title' => __( 'Configure Discount Rules', 'smart-cycle-discounts' ),
+            'icon' => 'admin-settings',
+            'badge' => array(
+                'text' => __( 'Optional', 'smart-cycle-discounts' ),
+                'type' => 'optional'
+            ),
             'subtitle' => __('Fine-tune how your discount works to maximize impact while protecting margins.', 'smart-cycle-discounts'),
             'content' => $discount_rules_content,
             'id' => 'discount-rules-card',
-            'class' => empty($step_data['discount_type']) ? 'scd-hidden' : ''
+            'class' => empty($step_data['discount_type']) ? 'scd-hidden' : '',
+            'help_topic' => 'card-discount-rules'
         ));
         ?>
 
         <!-- Hidden fields for complex discount data - follow field definitions pattern -->
-        <div class="scd-hidden-fields" style="display: none;">
+        <div class="scd-hidden-fields scd-visually-hidden">
             <!-- Tier Mode -->
-            <input type="hidden" name="tier_mode" id="tier_mode" 
-                   value="<?php echo esc_attr( $step_data['tier_mode'] ?? 'percentage' ); ?>" 
+            <input type="hidden" name="tier_mode" id="tier_mode"
+                   value="<?php echo esc_attr( $step_data['tier_mode'] ?? 'percentage' ); ?>"
                    class="scd-field" data-type="select">
-            
-            <!-- Tier Arrays -->
-            <input type="hidden" name="percentage_tiers" id="percentage_tiers" 
-                   data-value="<?php echo esc_attr( json_encode( $step_data['percentage_tiers'] ?? array() ) ); ?>" 
-                   class="scd-field" data-type="array">
-            
-            <input type="hidden" name="fixed_tiers" id="fixed_tiers" 
-                   data-value="<?php echo esc_attr( json_encode( $step_data['fixed_tiers'] ?? array() ) ); ?>" 
-                   class="scd-field" data-type="array">
-            
             <!-- Threshold Mode -->
             <input type="hidden" name="threshold_mode" id="threshold_mode" 
                    value="<?php echo esc_attr( $step_data['threshold_mode'] ?? 'percentage' ); ?>" 
                    class="scd-field" data-type="select">
-            
-            <!-- Threshold Arrays -->
-            <input type="hidden" name="percentage_spend_thresholds" id="percentage_spend_thresholds" 
-                   data-value="<?php echo esc_attr( json_encode( $step_data['percentage_spend_thresholds'] ?? array() ) ); ?>" 
-                   class="scd-field" data-type="array">
-            
-            <input type="hidden" name="fixed_spend_thresholds" id="fixed_spend_thresholds" 
-                   data-value="<?php echo esc_attr( json_encode( $step_data['fixed_spend_thresholds'] ?? array() ) ); ?>" 
-                   class="scd-field" data-type="array">
-            
             <!-- BOGO Configuration as hidden fields -->
             <input type="hidden" name="bogo_config" id="bogo_config" 
                    data-value="<?php echo esc_attr( json_encode( $step_data['bogo_config'] ?? array() ) ); ?>" 
@@ -1325,11 +1348,8 @@ scd_wizard_state_script('discounts', array(
     'badge_position' => $badge_position,
     // Threshold and Tier Settings
     'threshold_mode' => $step_data['threshold_mode'] ?? 'percentage',
-    'percentage_spend_thresholds' => $step_data['percentage_spend_thresholds'] ?? array(),
-    'fixed_spend_thresholds' => $step_data['fixed_spend_thresholds'] ?? array(),
+    'thresholds' => $step_data['thresholds'] ?? array(),
     'tier_mode' => $step_data['tier_mode'] ?? 'percentage',
-    'percentage_tiers' => $step_data['percentage_tiers'] ?? array(),
-    'fixed_tiers' => $step_data['fixed_tiers'] ?? array(),
     // BOGO Settings
     'bogo_buy_quantity' => $bogo_buy_quantity,
     'bogo_get_quantity' => $bogo_get_quantity,
@@ -1343,23 +1363,4 @@ scd_wizard_state_script('discounts', array(
     'selected_products' => $scd_discount_step_data['selected_products'] ?? array(),
     'currency_data' => $currency_data
 ));
-?>
-
-<script type="text/javascript">
-
-// Legacy support for existing code
-window.scdDiscountStepData = window.scdDiscountStepData || {};
-window.scdDiscountStepData.currency_symbol = <?php echo wp_json_encode( $currency_symbol ); ?>;
-window.scdDiscountStepData.currency_pos = <?php echo wp_json_encode( $currency_pos ); ?>;
-window.scdDiscountStepData.price_decimals = <?php echo absint( $price_decimals ); ?>;
-window.scdDiscountStepData.decimal_separator = <?php echo wp_json_encode( $decimal_separator ); ?>;
-window.scdDiscountStepData.thousand_separator = <?php echo wp_json_encode( $thousand_separator ); ?>;
-<?php if ( ! empty( $scd_discount_step_data['selected_products'] ) ): ?>
-window.scdDiscountStepData.selected_products = <?php echo wp_json_encode( $scd_discount_step_data['selected_products'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ); ?>;
-<?php endif; ?>
-
-</script>
-
-
-<?php
-// Step complete
+// Currency data is now provided via scdSettings (Asset Localizer with auto case conversion)

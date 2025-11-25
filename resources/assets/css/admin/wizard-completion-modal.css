@@ -17,7 +17,7 @@
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background: rgba(0, 0, 0, 0.7);
+	background: var(--scd-overlay-heavy);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -49,9 +49,9 @@ body.scd-completion-active {
 
 	/* Enhanced shadow for floating effect */
 	box-shadow:
-		0 8px 32px rgba(0, 0, 0, 0.12),
-		0 4px 16px rgba(0, 0, 0, 0.08),
-		inset 0 1px 0 rgba(255, 255, 255, 0.6);
+		0 8px 32px var(--scd-overlay-light),
+		0 4px 16px var(--scd-overlay-light),
+		inset 0 1px 0 var(--scd-overlay-white-medium);
 
 	min-width: 420px;
 	max-width: 520px;
@@ -77,8 +77,8 @@ body.scd-completion-active {
 	right: 0;
 	bottom: 0;
 	background:
-		radial-gradient(circle at 30% 30%, rgba(34, 113, 177, 0.04) 0%, transparent 50%),
-		radial-gradient(circle at 70% 70%, rgba(0, 163, 42, 0.04) 0%, transparent 50%);
+		radial-gradient(circle at 30% 30%, var(--scd-color-primary-alpha-3) 0%, transparent 50%),
+		radial-gradient(circle at 70% 70%, var(--scd-color-success-alpha-5) 0%, transparent 50%);
 	pointer-events: none;
 	z-index: 0;
 }
@@ -86,8 +86,8 @@ body.scd-completion-active {
 /* Error state background */
 .scd-completion-overlay.is-error .scd-completion-modal::before {
 	background:
-		radial-gradient(circle at 30% 30%, rgba(204, 0, 0, 0.04) 0%, transparent 50%),
-		radial-gradient(circle at 70% 70%, rgba(204, 0, 0, 0.04) 0%, transparent 50%);
+		radial-gradient(circle at 30% 30%, var(--scd-color-danger-alpha-15) 0%, transparent 50%),
+		radial-gradient(circle at 70% 70%, var(--scd-color-danger-alpha-15) 0%, transparent 50%);
 }
 
 /* ===== ICON WRAPPER ===== */
@@ -103,9 +103,9 @@ body.scd-completion-active {
 
 /* ===== ICONS ===== */
 .scd-completion-icon {
-	font-size: 64px;
-	width: 64px;
-	height: 64px;
+	font-size: var(--scd-icon-display-lg);
+	width: var(--scd-icon-display-lg);
+	height: var(--scd-icon-display-lg);
 	position: absolute;
 	top: 50%;
 	left: 50%;
@@ -168,10 +168,10 @@ body.scd-completion-active {
 
 /* ===== MESSAGE ===== */
 .scd-completion-message {
-	font-size: 15px;
+	font-size: var(--scd-font-size-medium-large);
 	line-height: 1.5;
 	color: var(--scd-color-text-lighter);
-	margin: 0 0 24px;
+	margin: 0 0 var(--scd-spacing-xl);
 	position: relative;
 	z-index: var(--scd-z-base);
 	animation: scd-message-fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) var(--scd-transition-slow) both;
@@ -182,7 +182,7 @@ body.scd-completion-active {
 }
 
 .scd-completion-overlay.is-error .scd-completion-message {
-	color: #3c434a;
+	color: var(--scd-color-text);
 }
 
 /* Note: Message fade-in uses scd-fade-in from shared/_utilities.css */
@@ -236,7 +236,7 @@ body.scd-completion-active {
 	margin-left: -60px;
 	margin-top: -60px;
 	border-radius: var(--scd-radius-full);
-	background: radial-gradient(circle, rgba(0, 163, 42, 0.15) 0%, transparent 70%);
+	background: radial-gradient(circle, var(--scd-color-success-alpha-15) 0%, transparent 70%);
 	animation: scd-success-burst 0.6s ease-out;
 	pointer-events: none;
 	z-index: 0;
@@ -255,7 +255,7 @@ body.scd-completion-active {
 	margin-left: -60px;
 	margin-top: -60px;
 	border-radius: var(--scd-radius-full);
-	background: radial-gradient(circle, rgba(214, 54, 56, 0.1) 0%, transparent 70%);
+	background: radial-gradient(circle, var(--scd-color-danger-alpha-15) 0%, transparent 70%);
 	animation: scd-error-pulse 0.6s ease-out;
 	pointer-events: none;
 	z-index: 0;
@@ -278,9 +278,9 @@ body.scd-completion-active {
 	}
 
 	.scd-completion-icon {
-		font-size: 48px;
-		width: 48px;
-		height: var(--scd-input-height-large);
+		font-size: var(--scd-icon-display);
+		width: var(--scd-icon-display);
+		height: var(--scd-icon-display);
 	}
 
 	.scd-completion-title {

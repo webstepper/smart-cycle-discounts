@@ -105,6 +105,9 @@
 
 		// Track control element for click handler cleanup
 		this._clickControl = null;
+
+		// Track if dropdown is being refreshed (prevents race conditions during close/refresh/open cycles)
+		this.isRefreshing = false;
 	};
 
 	/**
@@ -265,11 +268,9 @@
 				return result;
 			};
 
-			// Make input non-focusable to reduce unnecessary focus events
-			if ( this.instance.control_input ) {
-				this.instance.control_input.setAttribute( 'tabindex', '-1' );
-				this.instance.control_input.setAttribute( 'readonly', 'readonly' );
-			}
+			// Keep input writable for user search/typing
+			// tabindex NOT set to -1 - allow normal tab navigation and focus
+			// readonly NOT set - allow users to type and search
 
 			// Call _handleInitialize directly since onInitialize callback doesn't fire reliably
 			// This binds the click handler to work around Tom-Select bug #701
@@ -485,6 +486,7 @@
 			this._clickControl = this.instance.control;
 
 			// Bind click handler directly to control element
+			// This handles clicks on the control, including the background and selected items
 			$( this.instance.control ).on( 'click.scd-tomselect', function( e ) {
 				// Don't interfere with remove button clicks
 				if ( $( e.target ).closest( '.remove' ).length > 0 ) {
@@ -500,11 +502,21 @@
 				e.preventDefault();
 				e.stopPropagation();
 
+				// Don't open if currently refreshing (prevents interference with close/refresh/open cycle)
+				if ( self.isRefreshing ) {
+					return;
+				}
+
 				// Toggle dropdown state
 				if ( self.instance.isOpen ) {
 					self.instance.close();
 				} else if ( !self.pagination.isLoading ) {
 					self.instance.open();
+
+					// Focus the input field to allow typing/searching
+					if ( self.instance.control_input ) {
+						self.instance.control_input.focus();
+					}
 				}
 			} );
 		}

@@ -19,10 +19,10 @@
 }
 
 .scd-notifications h1 .scd-icon {
-	font-size: 32px;
-	width: 32px;
+	font-size: var(--scd-icon-xxl);
+	width: var(--scd-icon-xxl);
 	height: var(--scd-button-height-large);
-	margin-right: 8px;
+	margin-right: var(--scd-spacing-sm);
 	color: var(--scd-color-primary);
 }
 
@@ -64,7 +64,7 @@
 .scd-notifications-form h2 {
 	margin-top: 0;
 	padding-bottom: 10px;
-	border-bottom: 1px solid #e5e5e5;
+	border-bottom: 1px solid var(--scd-color-border-light);
 	display: flex;
 	align-items: center;
 	gap: var(--scd-gap-normal);
@@ -73,7 +73,7 @@
 .scd-notifications-form h2:not(:first-child) {
 	margin-top: 30px;
 	padding-top: 30px;
-	border-top: 1px solid #e5e5e5;
+	border-top: 1px solid var(--scd-color-border-light);
 }
 
 .scd-notifications-form h2 .scd-icon {
@@ -207,7 +207,7 @@
 	opacity: 0.6;
 }
 
-/* Cache statistics styling is defined in admin/settings.css (Performance Settings tab) */
+/* Cache statistics styling is defined in admin/settings.css (Tools page) */
 
 /* ==========================================================================
    Queue Status Tab Styles
@@ -222,7 +222,7 @@
 
 .scd-stat-box {
 	background: var(--scd-color-white);
-	border: 1px solid #ccd0d4;
+	border: 1px solid var(--scd-color-border);
 	border-radius: var(--scd-radius-md);
 	padding: var(--scd-padding-section);
 	display: flex;
@@ -231,8 +231,8 @@
 }
 
 .scd-stat-box .scd-icon {
-	font-size: 40px;
-	width: 40px;
+	font-size: var(--scd-icon-hero);
+	width: var(--scd-icon-hero);
 	height: var(--scd-input-height-large);
 	color: var(--scd-color-text-muted);
 }
@@ -258,7 +258,7 @@
 .scd-provider-info,
 .scd-queue-actions {
 	background: var(--scd-color-white);
-	border: 1px solid #ccd0d4;
+	border: 1px solid var(--scd-color-border);
 	border-radius: var(--scd-radius-md);
 	padding: var(--scd-padding-section);
 	margin: var(--scd-spacing-lg) 0;

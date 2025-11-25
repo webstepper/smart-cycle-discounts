@@ -279,12 +279,9 @@ class SCD_CLI_Health_Check {
 
 		if ( ! empty( $missing_services ) ) {
 			WP_CLI::log( 'Attempting to re-register missing services...' );
-			// Try legacy registry
-			if ( class_exists( 'SCD_Service_Registry' ) ) {
-				$legacy_registry = new SCD_Service_Registry( $container );
-				$legacy_registry->register_all_services();
-				++$fixes_applied;
-			}
+			// Services are registered via SCD_Service_Definitions
+			// If services are missing, this indicates a configuration error
+			WP_CLI::warning( 'Service registration system may have errors. Check SCD_Service_Definitions.' );
 		}
 
 		if ( $fixes_applied > 0 ) {

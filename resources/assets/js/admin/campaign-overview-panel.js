@@ -329,6 +329,7 @@
 	renderSections: function( sections ) {
 		var sectionMap = {
 			basic: '#scd-section-basic',
+			health: '#scd-section-health',
 			schedule: '#scd-section-schedule',
 			recurringSchedule: '#scd-section-recurring-schedule',
 			products: '#scd-section-products',

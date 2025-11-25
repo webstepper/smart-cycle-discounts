@@ -99,11 +99,12 @@
 	letter-spacing: 0.3px;
 	border-radius: var(--scd-radius-sm);
 	margin: 0 4px;
-	box-shadow: var(--scd-upgrade-banner-badge-shadow);
+	box-shadow: var(--scd-shadow-sm);
 }
 
 /* ==========================================================================
    Action Buttons
+   Uses shared button classes from _buttons.css
    ========================================================================== */
 
 .scd-upgrade-banner-actions {
@@ -113,40 +114,36 @@
 	flex-shrink: 0;
 }
 
+/* Upgrade banner button sizing - uses .scd-button base class */
 .scd-upgrade-btn,
 .scd-trial-btn {
-	display: inline-flex;
-	align-items: center;
-	gap: var(--scd-gap-tight);
-	padding: var(--scd-spacing-xs) 12px;
-	font-size: var(--scd-font-size-base);
 	height: auto;
+	padding: var(--scd-spacing-xs) 12px;
 	line-height: 1.5;
-	text-decoration: none;
-	white-space: nowrap;
 }
 
 .scd-upgrade-btn .scd-icon {
-	font-size: var(--scd-font-size-large);
-	width: 16px;
-	height: 16px;
+	transition: transform var(--scd-transition-fast) ease;
 }
 
 .scd-upgrade-btn:hover .scd-icon {
 	transform: translateX(2px);
 }
 
-/* Promotional variant button styling */
-.scd-has-promotion .scd-upgrade-btn.button-primary {
+/* Promotional variant - accent color override */
+.scd-has-promotion .scd-upgrade-btn.scd-button--primary {
 	background: var(--scd-color-accent);
 	border-color: var(--scd-color-accent);
-	box-shadow: var(--scd-upgrade-banner-button-shadow);
+	color: var(--scd-color-white);
+	box-shadow: var(--scd-shadow-md);
 }
 
-.scd-has-promotion .scd-upgrade-btn.button-primary:hover {
+.scd-has-promotion .scd-upgrade-btn.scd-button--primary:hover,
+.scd-has-promotion .scd-upgrade-btn.scd-button--primary:active {
 	background: var(--scd-color-accent-dark);
 	border-color: var(--scd-color-accent-dark);
-	box-shadow: var(--scd-upgrade-banner-button-hover-shadow);
+	color: var(--scd-color-white);
+	box-shadow: var(--scd-shadow-lg);
 }
 
 /* ==========================================================================

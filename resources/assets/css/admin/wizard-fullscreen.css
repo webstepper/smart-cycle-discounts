@@ -64,6 +64,20 @@
     flex-direction: column;
     flex: 1;
     width: 100%;
+    /* Account for sidebar width - uses CSS variable for consistency */
+    margin-right: var(--scd-sidebar-width);
+}
+
+@media (max-width: 1280px) {
+    .scd-wizard-container {
+        margin-right: var(--scd-sidebar-width);
+    }
+}
+
+@media (max-width: 782px) {
+    .scd-wizard-container {
+        margin-right: 0; /* Sidebar becomes overlay on mobile */
+    }
 }
 
 /* Old wizard header styles removed - now integrated into .scd-wizard-progress */
@@ -110,7 +124,7 @@
 /* ===== WIZARD PROGRESS BAR ===== */
 /* Main Progress Container - Unified header + progress */
 .scd-wizard-progress {
-    background: #F6F7F7;
+    background: var(--scd-color-surface);
     border: var(--scd-border-width) solid var(--scd-color-border);
     border-radius: var(--scd-radius-md);
     padding: 0;
@@ -557,28 +571,12 @@
     min-width: 0;
 }
 
-/* Sidebar */
-.scd-step-sidebar {
-    flex: 0 0 360px;
-    width: 360px;
-}
-
+/* Sidebar - all positioning and layout defined in sidebar-contextual.css */
 
 /* Form sections - Removed: Now using scd-card pattern consistently */
 
 /* Section classes removed - Now using scd-card__header, scd-card__title, scd-card__subtitle */
-
-/* Sidebar panels - Minimalist design */
-.scd-sidebar-panel {
-    background: var(--scd-color-background);
-    border: var(--scd-border-width) solid var(--scd-color-border);
-    border-radius: var(--scd-radius-lg);
-    overflow: hidden;
-}
-
-.scd-sidebar-content {
-    padding: var(--scd-spacing-lg);
-}
+/* Sidebar styling moved to sidebar-contextual.css */
 
 .scd-stats-panel {
     /* Premium card styling with depth */
@@ -685,7 +683,7 @@
 /* Common tip box style - Minimalist */
 .scd-tip {
     background: var(--scd-color-surface);
-    border-left: 2px solid #d0d0d0;
+    border-left: 2px solid var(--scd-color-border-light);
     border-radius: var(--scd-radius-sm);
     padding: var(--scd-padding-small) 12px;
     margin-bottom: var(--scd-spacing-sm);
@@ -704,7 +702,7 @@
     margin: 0;
     font-size: var(--scd-font-size-small);
     line-height: 1.5;
-    color: #4a4a4a;
+    color: var(--scd-color-text);
 }
 
 /* Form styling */
@@ -851,11 +849,7 @@
     color: var(--scd-color-text-muted);
 }
 
-.error-message {
-    color: var(--scd-color-danger);
-    font-size: var(--scd-font-size-base);
-    margin-top: 5px;
-}
+/* Error messages use standardized .scd-field-error class from validation.css */
 
 /* Hide WordPress notices */
 .scd-campaign-wizard .notice:not(.scd-wizard-notice) {

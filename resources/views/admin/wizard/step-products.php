@@ -39,26 +39,21 @@ $selected_categories = is_array( $selected_categories ) ? $selected_categories :
 $product_ids = is_array( $product_ids ) ? $product_ids : array();
 $conditions = is_array( $conditions ) ? $conditions : array();
 
-// Normalize conditions to ensure all required fields are present
+// Normalize conditions to ensure all required fields are present with defaults
 // Database format: {condition_type, operator, value, value2, mode}
 $conditions = array_map( function( $condition ) {
 	if ( ! is_array( $condition ) ) {
 		return $condition;
 	}
 
-	// Database format (standard format used throughout the system)
 	// Ensure all required fields are present with defaults
-	if ( isset( $condition['condition_type'] ) ) {
-		return array(
-			'condition_type' => $condition['condition_type'],
-			'operator'       => isset( $condition['operator'] ) ? $condition['operator'] : '',
-			'mode'           => isset( $condition['mode'] ) ? $condition['mode'] : 'include',
-			'value'          => isset( $condition['value'] ) ? $condition['value'] : '',
-			'value2'         => isset( $condition['value2'] ) ? $condition['value2'] : '',
-		);
-	}
-
-	return $condition;
+	return array(
+		'condition_type' => isset( $condition['condition_type'] ) ? $condition['condition_type'] : '',
+		'operator'       => isset( $condition['operator'] ) ? $condition['operator'] : '',
+		'mode'           => isset( $condition['mode'] ) ? $condition['mode'] : 'include',
+		'value'          => isset( $condition['value'] ) ? $condition['value'] : '',
+		'value2'         => isset( $condition['value2'] ) ? $condition['value2'] : '',
+	);
 }, $conditions );
 
 // Get selected products for display with error handling
@@ -71,21 +66,22 @@ if ( ! empty( $product_ids ) && function_exists( 'wc_get_products' ) ) {
 	) );
 }
 
-// Get category data for saved categories
-$category_data = array();
-if ( ! empty( $selected_categories ) && 'all' !== $selected_categories[0] ) {
+// Get category data for saved categories (Tom Select options format)
+$category_options = array();
+if ( ! empty( $selected_categories ) && array( 'all' ) !== $selected_categories ) {
 	foreach ( $selected_categories as $cat_id ) {
 		if ( 'all' === $cat_id ) {
 			continue;
 		}
-		
-		$category = get_term( $cat_id, 'product_cat' );
+
+		$category = get_term( absint( $cat_id ), 'product_cat' );
 		if ( $category && ! is_wp_error( $category ) ) {
-			$category_data[] = array(
-				'id' => $category->term_id,
-				'name' => $category->name,
-				'count' => $category->count,
-				'level' => 0
+			$category_options[] = array(
+				'value' => (string) $category->term_id,
+				'text'  => $category->name,
+				'count' => (int) $category->count,
+				'level' => 0,
+				'$order' => 1
 			);
 		}
 	}
@@ -140,9 +136,28 @@ ob_start();
 		<select id="scd-campaign-categories"
 				name="category_ids[]"
 				multiple="multiple"
-				class="scd-category-select">
-			<!-- Categories will be loaded via AJAX -->
+				class="scd-category-select"
+				data-help-topic="category-ids">
+			<!-- Preload selected categories for form submission -->
+			<?php if ( ! empty( $selected_categories ) ) : ?>
+				<?php foreach ( $selected_categories as $cat_id ) : ?>
+					<?php if ( 'all' === $cat_id ) : ?>
+						<option value="all" selected><?php esc_html_e( 'All Categories', 'smart-cycle-discounts' ); ?></option>
+					<?php else : ?>
+						<?php
+						$category = get_term( absint( $cat_id ), 'product_cat' );
+						if ( $category && ! is_wp_error( $category ) ) :
+						?>
+							<option value="<?php echo esc_attr( $cat_id ); ?>" selected>
+								<?php echo esc_html( $category->name ); ?>
+							</option>
+						<?php endif; ?>
+					<?php endif; ?>
+				<?php endforeach; ?>
+			<?php endif; ?>
 		</select>
+		<!-- FOUC Prevention: Skeleton loader shown while Tom Select initializes (~100-200ms) -->
+		<div class="scd-loading-skeleton" aria-hidden="true"></div>
 	</div>
 	<?php
 	$category_content = ob_get_clean();
@@ -152,7 +167,8 @@ ob_start();
 		'subtitle' => esc_html__( 'Select categories to include in this campaign', 'smart-cycle-discounts' ),
 		'icon' => 'category',
 		'content' => $category_content,
-		'class' => 'scd-category-selection'
+		'class' => 'scd-category-selection',
+		'help_topic' => 'card-category-selection'
 	) );
 	?>
 	
@@ -162,11 +178,13 @@ ob_start();
 	?>
 	<div class="scd-product-selection-cards">
 		<!-- All Products Card -->
-		<div class="scd-card scd-card--interactive scd-card-option <?php echo 'all_products' === $product_selection_type ? 'scd-card-option--selected' : ''; ?>">
+		<div class="scd-card scd-card--interactive scd-card-option <?php echo 'all_products' === $product_selection_type ? 'scd-card-option--selected' : ''; ?>"
+			 data-help-topic="option-product-all">
 			<input type="radio"
 				   name="product_selection_type"
 				   value="all_products"
 				   id="product_selection_all"
+				   data-help-topic="product-selection-type"
 				   <?php checked( $product_selection_type, 'all_products' ); ?>>
 			<label for="product_selection_all" class="scd-card__content">
 				<h4 class="scd-card__title"><?php esc_html_e( 'All Products', 'smart-cycle-discounts' ); ?></h4>
@@ -175,11 +193,13 @@ ob_start();
 		</div>
 
 		<!-- Random Products Card -->
-		<div class="scd-card scd-card--interactive scd-card-option <?php echo 'random_products' === $product_selection_type ? 'scd-card-option--selected' : ''; ?>">
+		<div class="scd-card scd-card--interactive scd-card-option <?php echo 'random_products' === $product_selection_type ? 'scd-card-option--selected' : ''; ?>"
+			 data-help-topic="option-product-random">
 			<input type="radio"
 				   name="product_selection_type"
 				   value="random_products"
 				   id="product_selection_random"
+				   data-help-topic="product-selection-type"
 				   <?php checked( $product_selection_type, 'random_products' ); ?>>
 			<label for="product_selection_random" class="scd-card__content">
 				<h4 class="scd-card__title"><?php esc_html_e( 'Random Products', 'smart-cycle-discounts' ); ?></h4>
@@ -197,16 +217,24 @@ ob_start();
 					   value="<?php echo esc_attr( $random_count ); ?>"
 					   min="1"
 					   max="100"
+					   step="1"
+					   inputmode="numeric"
+					   data-label="Random Product Count"
+					   data-input-type="integer"
+					   data-help-topic="random-count"
+					   placeholder="1-100"
 					   class="scd-enhanced-input scd-input-small">
 			</div>
 		</div>
 		
 		<!-- Specific Products Card -->
-		<div class="scd-card scd-card--interactive scd-card-option <?php echo 'specific_products' === $product_selection_type ? 'scd-card-option--selected' : ''; ?>">
+		<div class="scd-card scd-card--interactive scd-card-option <?php echo 'specific_products' === $product_selection_type ? 'scd-card-option--selected' : ''; ?>"
+			 data-help-topic="option-product-specific">
 			<input type="radio"
 				   name="product_selection_type"
 				   value="specific_products"
 				   id="product_selection_specific"
+				   data-help-topic="product-selection-type"
 				   <?php checked( $product_selection_type, 'specific_products' ); ?>>
 			<label for="product_selection_specific" class="scd-card__content">
 				<h4 class="scd-card__title"><?php esc_html_e( 'Specific Products', 'smart-cycle-discounts' ); ?></h4>
@@ -228,6 +256,7 @@ ob_start();
 					<select id="scd-product-search"
 							multiple="multiple"
 							class="scd-product-search-select"
+							data-help-topic="product-ids"
 							placeholder="<?php esc_attr_e( 'Type to search products by name or SKU...', 'smart-cycle-discounts' ); ?>">
 						<?php foreach ( $selected_product_objects as $product ) : ?>
 							<?php
@@ -328,7 +357,8 @@ ob_start();
 		'subtitle' => esc_html__( 'Choose which products will receive discounts in this campaign', 'smart-cycle-discounts' ),
 		'icon' => 'products',
 		'content' => $selection_content,
-		'class' => 'scd-product-selection-method'
+		'class' => 'scd-product-selection-method',
+		'help_topic' => 'card-product-selection'
 	) );
 	?>
 	
@@ -396,7 +426,7 @@ ob_start();
 		<?php 
 		// Define a function to render condition row
 		$render_condition_row = function( $index, $condition = array() ) use ( $condition_types, $get_operators_for_type ) {
-			$condition_type = isset( $condition['type'] ) ? sanitize_text_field( $condition['type'] ) : '';
+			$condition_type = isset( $condition['condition_type'] ) ? sanitize_text_field( $condition['condition_type'] ) : '';
 			$condition_mode = isset( $condition['mode'] ) ? sanitize_text_field( $condition['mode'] ) : 'include';
 			$condition_operator = isset( $condition['operator'] ) ? sanitize_text_field( $condition['operator'] ) : '';
 			$condition_value = isset( $condition['value'] ) ? sanitize_text_field( $condition['value'] ) : '';
@@ -422,7 +452,7 @@ ob_start();
 							</option>
 						</select>
 
-						<select name="conditions[<?php echo esc_attr( $index ); ?>][type]"
+						<select name="conditions[<?php echo esc_attr( $index ); ?>][condition_type]"
 								class="scd-condition-type scd-enhanced-select"
 								data-index="<?php echo esc_attr( $index ); ?>">
 							<option value=""><?php esc_html_e( 'Select condition type', 'smart-cycle-discounts' ); ?></option>
@@ -557,22 +587,19 @@ ob_start();
 	<?php
 	$conditions_content = ob_get_clean();
 
-	// Create the card with the optional badge in the title
-	ob_start();
-	?>
-		<?php echo SCD_Icon_Helper::get( 'filter', array( 'size' => 16 ) ); ?>
-		<?php esc_html_e( 'Advanced Filters', 'smart-cycle-discounts' ); ?>
-		<span class="scd-badge scd-badge--optional"><?php esc_html_e( 'Optional', 'smart-cycle-discounts' ); ?></span>
-	<?php
-	$filters_title = ob_get_clean();
-
 	scd_wizard_card( array(
-		'title' => $filters_title,
+		'title' => __( 'Advanced Filters', 'smart-cycle-discounts' ),
+		'icon' => 'filter',
+		'badge' => array(
+			'text' => __( 'Optional', 'smart-cycle-discounts' ),
+			'type' => 'optional'
+		),
 		'subtitle' => $can_use_filters
 			? esc_html__( 'Add conditions to filter products based on specific criteria', 'smart-cycle-discounts' )
 			: esc_html__( 'Upgrade to Pro to unlock advanced product filtering capabilities', 'smart-cycle-discounts' ),
 		'content' => $conditions_content,
-		'class' => 'scd-conditions-section'
+		'class' => 'scd-conditions-section',
+		'help_topic' => 'card-advanced-filters'
 	) );
 	?>
 <?php
@@ -594,7 +621,7 @@ scd_wizard_render_step( array(
 $saved_data_for_js = array(
     'selection_type' => $product_selection_type,
     'category_ids' => $selected_categories,
-    'category_data' => $category_data,
+    'category_options' => $category_options,
     'product_ids' => $product_ids,
     'random_count' => $random_count,
     'conditions' => $conditions,

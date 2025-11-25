@@ -590,7 +590,21 @@ class SCD_Schedule_Step_Validator {
 		}
 
 		// Scenario 21: Invalid timezone identifier
-		if ( ! in_array( $timezone, timezone_identifiers_list(), true ) ) {
+		// Accept both named timezones (e.g., 'Asia/Dubai') and UTC offsets (e.g., '+04:00')
+		$is_valid_timezone = in_array( $timezone, timezone_identifiers_list(), true );
+
+		// Also accept UTC offset format like +04:00, -05:00, +00:00, etc.
+		if ( ! $is_valid_timezone && preg_match( '/^[+-]([01]\d|2[0-3]):[0-5]\d$/', $timezone ) ) {
+			// Try to create a DateTimeZone to validate the offset
+			try {
+				new DateTimeZone( $timezone );
+				$is_valid_timezone = true;
+			} catch ( Exception $e ) {
+				$is_valid_timezone = false;
+			}
+		}
+
+		if ( ! $is_valid_timezone ) {
 			$errors->add(
 				'schedule_invalid_timezone',
 				sprintf(

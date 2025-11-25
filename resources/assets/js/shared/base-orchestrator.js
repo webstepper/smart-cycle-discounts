@@ -715,9 +715,14 @@
 
 		// Auto-register factory if SCD.Steps.registerFactory is available
 		if ( 'function' === typeof SCD.Steps.registerFactory ) {
+			console.log( '[SCD BaseOrchestrator] Registering factory for step:', stepName );
 			SCD.Steps.registerFactory( stepName, function() {
+				console.log( '[SCD BaseOrchestrator] Creating instance for step:', stepName );
 				return new OrchestratorClass();
 			} );
+			console.log( '[SCD BaseOrchestrator] Factory registered. Current factories:', Object.keys( SCD.Steps._factories || {} ) );
+		} else {
+			console.error( '[SCD BaseOrchestrator] Cannot register factory - SCD.Steps.registerFactory not available' );
 		}
 
 		OrchestratorClass.fields = {};

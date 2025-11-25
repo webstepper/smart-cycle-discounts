@@ -51,7 +51,6 @@
 		};
 
 		// Pending restoration (setValue before initialization)
-		this.pendingCategories = null;
 		this.pendingProducts = null;
 
 		// Initialization state
@@ -107,12 +106,38 @@
 				return Promise.resolve();
 			}
 
+			// Get category data from PHP-provided savedData (via window.scdProductsState)
+			// This ensures data is available immediately, avoiding race conditions with populateFields()
+
+			var savedData = window.scdProductsState && window.scdProductsState.savedData ? window.scdProductsState.savedData : {};
+			var preloadedOptions = savedData.categoryOptions || [];
+			var selectedCategoryIds = savedData.categoryIds || [ 'all' ];
+			var initialOptions = [
+				{
+					value: 'all',
+					text: 'All Categories',
+					count: 0,
+					level: 0,
+					$order: 0
+				}
+			];
+
+			// Add preloaded category options (from server-side render)
+			if ( preloadedOptions && preloadedOptions.length > 0 ) {
+				initialOptions = initialOptions.concat( preloadedOptions );
+			}
+
 			var config = {
 				placeholder: 'Filter by categories...',
-				preload: false,
+				preload: true, // Eagerly load all categories on initialization
 				sortField: [ { field: '$order' }, { field: 'text' } ],
 
+				// Tom Select options+items pattern - zero flicker initialization
+				options: initialOptions,
+				items: selectedCategoryIds,
+
 				load: function( query, callback ) {
+					// Still support search for finding additional categories
 					self.loadCategories( query, callback );
 				},
 
@@ -136,43 +161,12 @@
 					self.handleCategoryChange( value );
 				},
 
-				onInitialize: function() {
-					// Add "All Categories" option immediately
-					this.addOption( {
-						value: 'all',
-						text: 'All Categories',
-						count: 0,
-						level: 0,
-						$order: 0
-					} );
-
-					if ( self.pendingCategories ) {
-						var pendingIds = self.pendingCategories;
-						self.pendingCategories = null;
-						self.ensureCategoryOptionsLoaded( pendingIds ).then( function() {
-							self.setCategoriesOnInstance( pendingIds );
-						} );
-					} else {
-						// Default to "All Categories"
-						this.setValue( [ 'all' ], true );
-					}
-				},
-
 				onDropdownOpen: function() {
-					// Clear API cache to load ALL categories
-					if ( self.api && self.api.cache && self.api.cache.categories ) {
-						self.api.cache.categories = null;
-						self.api.cache.categoryTimestamp = 0;
+					// Tom Select best practice: Only load if not already cached
+					// This prevents unnecessary API calls on every dropdown open
+					if ( !this.loadedSearches || !this.loadedSearches[''] ) {
+						this.load( '' );
 					}
-
-					// Clear TomSelect cache
-					if ( this.loadedSearches ) {
-						this.loadedSearches = {};
-					}
-					this.lastQuery = null;
-
-					// Trigger initial load
-					this.load( '' );
 				},
 
 				onItemAdd: function( value, _item ) {
@@ -230,7 +224,7 @@
 				placeholder: 'Search and select products...',
 				searchField: [ 'text', 'sku' ],
 				hidePlaceholder: true,
-				preload: false,
+				preload: 'focus', // Load on focus/dropdown open
 				sortField: [
 					{ field: '$order' },
 					{ field: '$score' }
@@ -261,9 +255,50 @@
 				},
 
 				onDropdownOpen: function() {
-					if ( ! self.productSelect.instance.loading ) {
-						self.productSelect.instance.load( '' );
+					// Tom Select architectural limitation with openOnFocus: false
+					// When using openOnFocus: false (to fix bug #701), the dropdown opens
+					// via click handler, but Tom Select's load() doesn't automatically
+					// re-render options added to an already-open dropdown.
+					//
+					// Root cause: Tom Select expects options to load DURING open(), not AFTER.
+					// Solution: Load products, then force re-render via close/refresh/open cycle.
+
+					// Tom Select best practice: Only load if not already cached
+					// Check if we have cached results for empty query
+					if ( self.productSelect.instance.loadedSearches && self.productSelect.instance.loadedSearches[''] ) {
+						return; // Already loaded, no need to reload
 					}
+
+					if ( self.productSelect.isRefreshing || self.productSelect.instance.loading ) {
+						return;
+					}
+
+					self.productSelect.instance.loading = 1;
+
+					self.loadProducts( '', function( products ) {
+						// Add options to instance
+						products.forEach( function( product ) {
+							if ( ! self.productSelect.instance.options[product.value] ) {
+								self.productSelect.instance.addOption( product );
+							}
+						} );
+
+						self.productSelect.instance.loading = 0;
+
+						// Force re-render: close, refresh options, re-open
+						setTimeout( function() {
+							if ( self.productSelect && self.productSelect.instance ) {
+								self.productSelect.isRefreshing = true;
+								self.productSelect.instance.close();
+								self.productSelect.instance.refreshOptions( false );
+								self.productSelect.instance.open();
+
+								setTimeout( function() {
+									self.productSelect.isRefreshing = false;
+								}, 100 );
+							}
+						}, 10 );
+					} );
 				}
 			};
 
@@ -288,6 +323,36 @@
 		bindEvents: function() {
 			// No events needed - category and product are in same module
 			// Direct method calls instead of events
+		},
+
+		/**
+		 * Invalidate Tom Select caches
+		 *
+		 * Call this method when underlying data changes (e.g., categories/products added/deleted)
+		 * to force fresh data load on next dropdown open.
+		 *
+		 * @since 1.0.0
+		 * @param {string} [target='both'] - Which cache to invalidate: 'categories', 'products', or 'both'
+		 * @returns {void}
+		 */
+		invalidateCache: function( target ) {
+			target = target || 'both';
+
+			// Invalidate category select cache
+			if ( ( 'categories' === target || 'both' === target ) && this.categorySelect && this.categorySelect.instance ) {
+				if ( this.categorySelect.instance.loadedSearches ) {
+					this.categorySelect.instance.loadedSearches = {};
+				}
+				this.categorySelect.instance.lastQuery = null;
+			}
+
+			// Invalidate product select cache
+			if ( ( 'products' === target || 'both' === target ) && this.productSelect && this.productSelect.instance ) {
+				if ( this.productSelect.instance.loadedSearches ) {
+					this.productSelect.instance.loadedSearches = {};
+				}
+				this.productSelect.instance.lastQuery = null;
+			}
 		},
 
 		/**
@@ -337,8 +402,8 @@
 
 			this.state.setState( { categoryIds: newCategories } );
 
-			// Sync with original select element for form submission
-			this.syncCategorySelect( newCategories );
+			// Tom Select automatically syncs to the underlying <select> element
+			// No manual sync needed
 
 			// Trigger event for other modules (e.g., orchestrator)
 			$( document ).trigger( 'scd:categories:changed', {
@@ -610,7 +675,13 @@
 
 					callback( options );
 				} )
-				.fail( function() {
+				.fail( function( jqXHR, textStatus ) {
+					// Ignore cancelled requests (expected when user changes selection rapidly)
+					if ( 'abort' === textStatus ) {
+						callback( [] );
+						return;
+					}
+
 					if ( SCD.Shared && SCD.Shared.NotificationService ) {
 						SCD.Shared.NotificationService.error( 'Failed to load categories.' );
 					}
@@ -628,8 +699,8 @@
 		 */
 		loadProducts: function( query, callback ) {
 			var self = this;
-
-			// Require minimum 2 characters for search
+			// For non-empty queries, require minimum 2 characters
+			// Empty query (dropdown open with no search) is allowed to show initial products
 			if ( query && 0 < query.length && query.length < 2 ) {
 				callback( [] );
 				return;
@@ -637,7 +708,6 @@
 
 			var categories = this.getCurrentCategoryFilter();
 			var categoryFilter = this.isAllCategoriesSelected( categories ) ? [] : categories;
-
 			this.api.searchProducts( {
 				term: query,
 				page: 1,
@@ -646,7 +716,6 @@
 			} )
 				.done( function( response ) {
 					var products = self.extractProducts( response );
-
 					// Normalize and cache
 					var normalized = products.map( function( p ) {
 						var product = {
@@ -656,17 +725,31 @@
 							price: p.price || '',
 							sku: p.sku || '',
 							image: p.image || '',
-							categoryIds: p.categoryIds || []
+							categoryIds: p.categoryIds || [],
+							// Enhanced product data
+							stockStatus: p.stockStatus || '',
+							onSale: p.onSale || false,
+							type: p.type || 'simple',
+							primaryCategory: p.primaryCategory || '',
+							variationCount: p.variationCount || 0,
+							discountPercent: p.discountPercent || 0,
+							regularPrice: p.regularPrice || '',
+							salePrice: p.salePrice || ''
 						};
 
 						self.cache.products.set( product.id, product );
 
 						return product;
 					} );
-
 					callback( normalized );
 				} )
-				.fail( function() {
+				.fail( function( jqXHR, textStatus, errorThrown ) {
+					// Ignore cancelled requests (expected when user changes selection rapidly)
+					if ( 'abort' === textStatus ) {
+						callback( [] );
+						return;
+					}
+
 					if ( SCD.Shared && SCD.Shared.NotificationService ) {
 						SCD.Shared.NotificationService.error( 'Failed to load products.' );
 					}
@@ -695,12 +778,7 @@
 			if ( preloaded.length === productIds.length ) {
 				this.addProductOptions( preloaded );
 				this.productSelect.setValue( productIds, true );
-
-				// Sync state and hidden field (critical for form submission)
-				this.state.setState( { productIds: productIds } );
-				this.syncHiddenField( productIds );
-				this.syncProductSelect( productIds );
-
+				this.syncProductState( productIds );
 				return Promise.resolve();
 			}
 
@@ -709,14 +787,9 @@
 					var products = self.extractProducts( response );
 					self.addProductOptions( products );
 					self.productSelect.setValue( productIds, true );
-
-					// Sync state and hidden field (critical for form submission)
-					self.state.setState( { productIds: productIds } );
-					self.syncHiddenField( productIds );
-					self.syncProductSelect( productIds );
+					self.syncProductState( productIds );
 				} )
 				.catch( function( error ) {
-					console.error( '[ProductsPicker] Restore failed:', error );
 					SCD.ErrorHandler.handle( error, 'picker-restore-products' );
 				} );
 		},
@@ -856,46 +929,6 @@
 		 * @param {Array} categoryIds - Category IDs
 		 * @returns {Promise} Promise that resolves when loaded
 		 */
-		ensureCategoryOptionsLoaded: function( categoryIds ) {
-			var self = this;
-
-			// Filter out 'all' as it's always available
-			var idsToLoad = categoryIds.filter( function( id ) {
-				return 'all' !== id;
-			} );
-
-			if ( 0 === idsToLoad.length ) {
-				return Promise.resolve();
-			}
-
-			return this.api.searchCategories( {
-				ids: idsToLoad,
-				skipDebounce: true
-			} ).then( function( response ) {
-				var categories = self.extractCategories( response );
-
-				categories.forEach( function( cat ) {
-					if ( ! self.categorySelect.instance.options[cat.value] ) {
-						self.categorySelect.instance.addOption( cat );
-					}
-				} );
-			} );
-		},
-
-		/**
-		 * Set categories on TomSelect instance
-		 *
-		 * @since 1.0.0
-		 * @param {Array} categoryIds - Category IDs to set
-		 * @returns {void}
-		 */
-		setCategoriesOnInstance: function( categoryIds ) {
-			if ( ! this.categorySelect ) {
-				return;
-			}
-
-			this.categorySelect.setValue( categoryIds, true );
-		},
 
 		/**
 		 * Render category option
@@ -906,13 +939,100 @@
 		 * @returns {string} HTML
 		 */
 		renderCategoryOption: function( data, escape ) {
-			var prefix = data.level ? '\u2014 '.repeat( data.level ) : '';
-			var count = data.count !== undefined
-				? ' <span class="category-count">(' + data.count + ')</span>'
-				: '';
+			// Determine if category is empty
+			var isEmpty = 0 === data.count;
+			var stockPercent = data.stockPercent || 0;
 
-			return '<div class="category-option">' +
-				prefix + escape( data.text ) + count +
+			// Stock status classification
+			var stockStatus = 'empty';
+			if ( stockPercent > 0 ) {
+				if ( stockPercent >= 75 ) {
+					stockStatus = 'healthy';
+				} else if ( stockPercent >= 25 ) {
+					stockStatus = 'warning';
+				} else {
+					stockStatus = 'critical';
+				}
+			}
+
+			// Stock badge
+			var stockBadgeHtml = '';
+			if ( ! isEmpty ) {
+				var stockClass = 'category-stock-badge stock-' + stockStatus;
+				var stockIcon = '';
+				var stockTitle = '';
+
+				switch ( stockStatus ) {
+					case 'healthy':
+						stockIcon = SCD.IconHelper.get( 'yes', { size: 12 } );
+						stockTitle = stockPercent + '% in stock';
+						break;
+					case 'warning':
+						stockIcon = SCD.IconHelper.get( 'warning', { size: 12 } );
+						stockTitle = stockPercent + '% in stock';
+						break;
+					case 'critical':
+						stockIcon = SCD.IconHelper.get( 'dismiss', { size: 12 } );
+						stockTitle = stockPercent + '% in stock';
+						break;
+				}
+
+				if ( stockIcon ) {
+					stockBadgeHtml = '<span class="' + stockClass + '" title="' + stockTitle + '">' + stockIcon + '</span>';
+				}
+			}
+
+			// Product count with subcategory info
+			var countText = '';
+			if ( data.count !== undefined ) {
+				countText = '(' + data.count + ')';
+			}
+
+			var subcategoryText = '';
+			if ( data.subcategoryCount && data.subcategoryCount > 0 ) {
+				subcategoryText = '<span class="category-subcount" title="' + data.subcategoryCount + ' subcategories">' +
+					SCD.IconHelper.get( 'category', { size: 14 } ) + ' ' + data.subcategoryCount + '</span>';
+			}
+
+			// Category image (same pattern as products)
+			var hasImage = data.image;
+			var imageHtml = hasImage
+				? '<img src="' + escape( data.image ) + '" alt="' + escape( data.text ) + '" class="category-image" loading="lazy">'
+				: '<span class="category-image-placeholder">' + SCD.IconHelper.get( 'category', { size: 20 } ) + '</span>';
+
+			// Tree connector for hierarchical categories
+			var treeConnector = '';
+			if ( data.level && data.level > 0 ) {
+				var isLast = data.isLast || false;
+				var connector = isLast ? '\u2514\u2500' : '\u251C\u2500'; // └─ or ├─
+
+				// Add vertical lines for parent levels
+				for ( var i = 1; i < data.level; i++ ) {
+					treeConnector += '\u2502  '; // │  (vertical line + spaces)
+				}
+				treeConnector += connector + ' '; // ├─ or └─
+			}
+
+			// Build the option HTML
+			var optionClass = 'category-option';
+			if ( isEmpty ) {
+				optionClass += ' category-empty';
+			}
+
+			return '<div class="' + optionClass + '" data-level="' + ( data.level || 0 ) + '" data-stock-status="' + stockStatus + '">' +
+				( treeConnector ? '<span class="category-tree">' + treeConnector + '</span>' : '' ) +
+				'<div class="category-main">' +
+					'<span class="category-icon' + ( hasImage ? '' : ' no-image' ) + '">' +
+						imageHtml +
+					'</span>' +
+					'<span class="category-text-wrapper">' +
+						'<span class="category-name">' +
+							'<span class="category-name-text">' + escape( data.text ) + ' ' + countText + '</span>' +
+							subcategoryText +
+						'</span>' +
+						stockBadgeHtml +
+					'</span>' +
+				'</div>' +
 				'</div>';
 		},
 
@@ -925,27 +1045,131 @@
 		 * @returns {string} HTML
 		 */
 		renderProductOption: function( data, escape ) {
+			// Product image with placeholder
 			var hasImage = data.image;
 			var imageHtml = hasImage
 				? '<img src="' + escape( data.image ) + '" alt="' + escape( data.text ) + '" loading="lazy">'
 				: '<span class="product-image-placeholder">' + SCD.IconHelper.get( 'products', { size: 24 } ) + '</span>';
 
-			var priceHtml = data.price
-				? '<span class="product-price">' + data.price + '</span>'
-				: '';
+			// Stock status badge
+			var stockBadgeHtml = '';
+			if ( data.stockStatus ) {
+				var stockClass = 'stock-badge stock-' + data.stockStatus;
+				var stockText = '';
+				var stockIcon = '';
 
-			var skuHtml = data.sku
-				? '<span class="product-sku" data-sku="' + escape( data.sku ) + '">' + escape( data.sku ) + '</span>'
-				: '';
+				switch ( data.stockStatus ) {
+					case 'instock':
+						stockText = 'In Stock';
+						stockIcon = SCD.IconHelper.get( 'check', { size: 12 } );
+						break;
+					case 'outofstock':
+						stockText = 'Out of Stock';
+						stockIcon = SCD.IconHelper.get( 'close', { size: 12 } );
+						break;
+					case 'onbackorder':
+						stockText = 'Backorder';
+						stockIcon = SCD.IconHelper.get( 'schedule', { size: 12 } );
+						break;
+				}
+
+				if ( stockText ) {
+					stockBadgeHtml = '<span class="' + stockClass + '" title="' + stockText + '">' + stockIcon + '</span>';
+				}
+			}
+
+			// Sale badge
+			var saleBadgeHtml = '';
+			if ( data.onSale ) {
+				var saleText = 'SALE';
+				if ( data.discountPercent && data.discountPercent > 0 ) {
+					saleText = '-' + data.discountPercent + '%';
+				}
+				saleBadgeHtml = '<span class="sale-badge">' + saleText + '</span>';
+			}
+
+			// Product type icon
+			var typeIconHtml = '';
+			if ( data.type ) {
+				var typeIcon = '';
+				var typeTitle = '';
+
+				switch ( data.type ) {
+					case 'simple':
+						typeIcon = SCD.IconHelper.get( 'products', { size: 14 } );
+						typeTitle = 'Simple Product';
+						break;
+					case 'variable':
+						typeIcon = SCD.IconHelper.get( 'admin-settings', { size: 14 } );
+						typeTitle = 'Variable Product';
+						break;
+					case 'grouped':
+						typeIcon = SCD.IconHelper.get( 'list-view', { size: 14 } );
+						typeTitle = 'Grouped Product';
+						break;
+					case 'external':
+						typeIcon = SCD.IconHelper.get( 'admin-links', { size: 14 } );
+						typeTitle = 'External Product';
+						break;
+				}
+
+				if ( typeIcon ) {
+					typeIconHtml = '<span class="product-type-icon" title="' + typeTitle + '">' + typeIcon + '</span>';
+				}
+			}
+
+			// Variation count for variable products
+			var variationCountHtml = '';
+			if ( 'variable' === data.type && data.variationCount > 0 ) {
+				variationCountHtml = '<span class="product-variation-count" title="Number of variations">' +
+					data.variationCount + ' variations</span>';
+			}
+
+			// Enhanced price display
+			var priceHtml = '';
+			if ( data.onSale && data.regularPrice && data.salePrice ) {
+				// Show both regular and sale price with discount percentage
+				priceHtml = '<span class="product-price-wrapper">' +
+					'<span class="product-price-regular">' + escape( data.regularPrice ) + '</span>' +
+					'<span class="product-price-sale">' + escape( data.salePrice ) + '</span>' +
+				'</span>';
+			} else if ( data.price ) {
+				// Regular price display
+				priceHtml = '<span class="product-price">' + data.price + '</span>';
+			}
+
+			// Category tag
+			var categoryHtml = '';
+			if ( data.primaryCategory ) {
+				categoryHtml = '<span class="product-category-tag">' +
+					SCD.IconHelper.get( 'category', { size: 12 } ) +
+					' ' + escape( data.primaryCategory ) +
+				'</span>';
+			}
+
+			// SKU
+			var skuHtml = '';
+			if ( data.sku ) {
+				skuHtml = '<span class="product-sku" data-sku="' + escape( data.sku ) + '">' + escape( data.sku ) + '</span>';
+			}
 
 			return '<div class="scd-tom-select-product-option">' +
-				'<div class="product-image' + ( hasImage ? '' : ' no-image' ) + '">' +
-					imageHtml +
+				'<div class="product-image-wrapper">' +
+					'<div class="product-image' + ( hasImage ? '' : ' no-image' ) + '">' +
+						imageHtml +
+					'</div>' +
+					stockBadgeHtml +
 				'</div>' +
 				'<div class="product-details">' +
-					'<div class="product-name" title="' + escape( data.text ) + '">' + escape( data.text ) + '</div>' +
+					'<div class="product-header">' +
+						'<div class="product-name" title="' + escape( data.text ) + '">' + escape( data.text ) + '</div>' +
+						saleBadgeHtml +
+					'</div>' +
 					'<div class="product-meta">' +
+						typeIconHtml +
 						priceHtml +
+						variationCountHtml +
+						categoryHtml +
 						skuHtml +
 					'</div>' +
 				'</div>' +
@@ -986,30 +1210,6 @@
 			return ! newProducts.every( function( id ) {
 				return -1 !== oldProducts.indexOf( id );
 			} );
-		},
-
-		/**
-		 * Sync category select element (for form submission)
-		 *
-		 * @since 1.0.0
-		 * @param {Array} values - Category IDs
-		 * @returns {void}
-		 */
-		syncCategorySelect: function( values ) {
-			var $originalSelect = $( '#scd-campaign-categories' );
-
-			if ( $originalSelect.length ) {
-				$originalSelect.empty();
-
-				if ( values && 0 < values.length ) {
-					values.forEach( function( value ) {
-						var option = new Option( value, value, true, true );
-						$originalSelect.append( option );
-					} );
-				}
-
-				$originalSelect.trigger( 'change' );
-			}
 		},
 
 		/**
@@ -1054,6 +1254,20 @@
 		},
 
 		/**
+		 * Sync product state across all data layers
+		 * Updates state manager, hidden field, and select element
+		 *
+		 * @since 1.0.0
+		 * @param {Array} productIds - Product IDs to sync
+		 * @returns {void}
+		 */
+		syncProductState: function( productIds ) {
+			this.state.setState( { productIds: productIds } );
+			this.syncHiddenField( productIds );
+			this.syncProductSelect( productIds );
+		},
+
+		/**
 		 * Complex field handler interface - Set value
 		 *
 		 * @since 1.0.0
@@ -1079,13 +1293,11 @@
 				var promises = [];
 
 
+
 				if ( data.categoryIds ) {
 					if ( this.categorySelect ) {
-						promises.push( this.ensureCategoryOptionsLoaded( data.categoryIds ).then( function() {
-							this.setCategoriesOnInstance( data.categoryIds );
-						}.bind( this ) ) );
-					} else {
-						this.pendingCategories = data.categoryIds;
+						// Categories are preloaded, just set the value
+						promises.push( this.setCategoryIds( data.categoryIds ) );
 					}
 				}
 
@@ -1124,7 +1336,8 @@
 		 * @returns {Array} Selected category IDs
 		 */
 		getCategoryIds: function() {
-			return this.categorySelect ? this.categorySelect.getValue() : [ 'all' ];
+		var categoryIds = this.categorySelect ? this.categorySelect.getValue() : [ 'all' ];
+		return categoryIds;
 		},
 
 		/**
@@ -1144,20 +1357,30 @@
 		 * @param {Array} value - Category IDs to set
 		 * @returns {Promise} Promise that resolves when set
 		 */
-		setCategoryIds: function( value ) {
+	/**
+	 * Set category IDs only (for category_ids field population)
+	 * Simplified - categories are now preloaded via options+items pattern
+	 *
+	 * @since 1.0.0
+	 * @param {Array} value - Category IDs to set
+	 * @returns {Promise} Promise that resolves when set
+	 */
+	setCategoryIds: function( value ) {
+		if ( ! this.categorySelect || ! this.categorySelect.instance ) {
+			return Promise.resolve();
+		}
 
-			if ( ! this.categorySelect ) {
-				this.pendingCategories = value;
-				return Promise.resolve();
-			}
+		// If empty array, treat as 'all' (default)
+		var categoriesToSet = value && value.length > 0 ? value : [ 'all' ];
 
-			// If empty array, treat as 'all' (default)
-			var categoriesToSet = value && value.length > 0 ? value : [ 'all' ];
+		// Simply set the value - options are already loaded
+		this.categorySelect.instance.setValue( categoriesToSet, true );
 
-			return this.ensureCategoryOptionsLoaded( categoriesToSet ).then( function() {
-				this.setCategoriesOnInstance( categoriesToSet );
-			}.bind( this ) );
-		},
+		// Update state to keep in sync
+		this.state.setState( { categoryIds: categoriesToSet } );
+
+		return Promise.resolve();
+	},
 
 		/**
 		 * Complex field handler interface - Check if ready

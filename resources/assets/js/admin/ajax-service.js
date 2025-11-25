@@ -25,8 +25,8 @@
 		 */
 		config: {
 			url: window.ajaxurl ||
-                 ( window.scdWizardData && window.scdWizardData.ajax_url ) ||
-                 ( window.scdAdmin && window.scdAdmin.ajax_url ) ||
+                 ( window.scdWizardData && window.scdWizardData.ajaxUrl ) ||
+                 ( window.scdAdmin && window.scdAdmin.ajaxUrl ) ||
                  '/wp-admin/admin-ajax.php',
 			timeout: 30000
 		},
@@ -623,8 +623,8 @@
 				if ( window.scdWizardData.nonce ) {
 					return window.scdWizardData.nonce;
 				}
-				if ( window.scdWizardData.wizard_nonce ) {
-					return window.scdWizardData.wizard_nonce;
+				if ( window.scdWizardData.wizardNonce ) {
+					return window.scdWizardData.wizardNonce;
 				}
 			}
 

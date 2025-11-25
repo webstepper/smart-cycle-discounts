@@ -113,6 +113,9 @@ select.scd-enhanced-select,
 	color: var(--scd-color-text);
 	background-color: var(--scd-color-background);
 	border: var(--scd-border-width) solid var(--scd-color-border-light);
+	box-shadow: var(--scd-input-shadow);
+	border-radius: var(--scd-radius-custom);
+	transition: var(--scd-form-input-transition);
 }
 
 /* Focus state - flat design with border color only */
@@ -133,6 +136,7 @@ textarea.scd-themed:focus,
 select.scd-themed:focus {
 	outline: none;
 	border-color: var(--scd-form-focus);
+	box-shadow: var(--scd-input-focus-shadow);
 }
 
 /* Textarea specific */
@@ -148,16 +152,41 @@ textarea.scd-themed {
 }
 
 /* Select specific */
+/* Dropdown arrow using CSS mask for theme color support */
 .scd-select,
 select.scd-enhanced-select,
 .scd-form-field select.scd-enhanced-select,
 .scd-step-main-content select.scd-enhanced-select,
 select.scd-themed {
 	cursor: pointer;
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M6 9L1 4h10z' fill='%23646970'/%3E%3C/svg%3E");
 	background-repeat: no-repeat;
 	background-position: right 8px center;
 	padding-right: 28px;
+	position: relative;
+}
+
+/* Use CSS mask technique for themed dropdown arrows */
+.scd-form-field:has(.scd-select),
+.scd-form-field:has(select.scd-enhanced-select),
+.scd-form-field:has(select.scd-themed) {
+	position: relative;
+}
+
+.scd-form-field:has(.scd-select)::after,
+.scd-form-field:has(select.scd-themed)::after {
+	content: '';
+	position: absolute;
+	right: 8px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 12px;
+	height: 12px;
+	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat center;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat center;
+	-webkit-mask-size: contain;
+	mask-size: contain;
+	background-color: var(--scd-color-text-lighter);
+	pointer-events: none;
 }
 
 /* ==========================================================================
@@ -277,7 +306,7 @@ input[type="radio"].scd-themed:focus {
 	background: var(--scd-color-border);
 	border-radius: var(--scd-radius-pill);
 	transition: var(--scd-transition-colors);
-	box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+	box-shadow: inset 0 1px 3px var(--scd-overlay-light);
 }
 
 .scd-toggle-thumb {
@@ -294,7 +323,7 @@ input[type="radio"].scd-themed:focus {
 
 .scd-toggle-input:checked + .scd-toggle-track {
 	background: var(--scd-color-primary);
-	box-shadow: inset 0 1px 3px rgba(34, 113, 177, 0.2);
+	box-shadow: inset 0 1px 3px var(--scd-color-primary-alpha-20);
 }
 
 .scd-toggle-input:checked + .scd-toggle-track .scd-toggle-thumb {
@@ -310,47 +339,9 @@ input[type="radio"].scd-themed:focus {
    Form States
    ========================================================================== */
 
-/* Error state */
-.scd-form-field--error .scd-input,
-.scd-form-field--error .scd-textarea,
-.scd-form-field--error .scd-select,
-.scd-form-field--error input.scd-enhanced-input,
-.scd-form-field--error textarea.scd-enhanced-input,
-.scd-form-field--error select.scd-enhanced-select,
-.scd-step-main-content .scd-form-field--error input.scd-enhanced-input,
-.scd-step-main-content .scd-form-field--error textarea.scd-enhanced-input,
-.scd-step-main-content .scd-form-field--error select.scd-enhanced-select,
-.scd-input--error,
-.scd-textarea--error,
-.scd-select--error {
-	border-color: var(--scd-form-error);
-	background-color: var(--scd-color-danger-bg-light);
-}
-
-.scd-form-field--error .scd-input:focus,
-.scd-form-field--error .scd-textarea:focus,
-.scd-form-field--error .scd-select:focus,
-.scd-form-field--error input.scd-enhanced-input:focus,
-.scd-form-field--error textarea.scd-enhanced-input:focus,
-.scd-form-field--error select.scd-enhanced-select:focus,
-.scd-step-main-content .scd-form-field--error input.scd-enhanced-input:focus,
-.scd-step-main-content .scd-form-field--error textarea.scd-enhanced-input:focus,
-.scd-step-main-content .scd-form-field--error select.scd-enhanced-select:focus,
-.scd-input--error:focus,
-.scd-textarea--error:focus,
-.scd-select--error:focus {
-	border-color: var(--scd-form-error);
-	outline: 2px solid var(--scd-color-danger);
-	outline-offset: 2px;
-	box-shadow: var(--scd-ring-danger);
-}
-
-.scd-form-error {
-	display: block;
-	margin-top: var(--scd-spacing-xs);
-	font-size: var(--scd-font-size-small);
-	color: var(--scd-form-error);
-}
+/* Note: Error states are now standardized in validation.css using .error and .has-error classes.
+   These classes integrate with ValidationError.js and WordPress ecosystem.
+   Legacy .scd-form-field--error classes have been removed to eliminate duplication. */
 
 /* Success state */
 .scd-form-field--success .scd-input,
@@ -675,7 +666,6 @@ select.scd-enhanced-select:disabled,
 .scd-select-wrapper select {
 	appearance: none;
 	padding-right: 36px;
-	background-image: url( 'data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path fill="%23646970" d="M6 9L1 4h10z"/></svg>' );
 	background-repeat: no-repeat;
 	background-position: right var(--scd-spacing-md) center;
 	background-size: var(--scd-spacing-md);
@@ -683,36 +673,27 @@ select.scd-enhanced-select:disabled,
 	width: 100%;
 }
 
+/* Dropdown arrow using CSS mask for theme color support */
+.scd-select-wrapper::after {
+	content: '';
+	position: absolute;
+	right: var(--scd-spacing-md);
+	top: 50%;
+	transform: translateY(-50%);
+	width: var(--scd-spacing-md);
+	height: var(--scd-spacing-md);
+	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat center;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat center;
+	-webkit-mask-size: contain;
+	mask-size: contain;
+	background-color: var(--scd-color-text-lighter);
+	pointer-events: none;
+}
+
 /* ==========================================================================
    Premium Input Polish (Variable-Based)
    ========================================================================== */
 
-/* Enhanced inputs - default subtle shadow for depth */
-input[type].scd-enhanced-input,
-textarea.scd-enhanced-input,
-select.scd-enhanced-select,
-.scd-form-field input[type].scd-enhanced-input,
-.scd-form-field textarea.scd-enhanced-input,
-.scd-form-field select.scd-enhanced-select,
-.scd-step-main-content input[type].scd-enhanced-input,
-.scd-step-main-content textarea.scd-enhanced-input,
-.scd-step-main-content select.scd-enhanced-select {
-	box-shadow: var(--scd-input-shadow);
-	border-radius: var(--scd-radius-custom);
-	transition: var(--scd-form-input-transition);
-}
-
-/* Enhanced inputs - focus state with glow ring */
-input.scd-enhanced-input:focus,
-textarea.scd-enhanced-input:focus,
-select.scd-enhanced-select:focus,
-.scd-form-field input.scd-enhanced-input:focus,
-.scd-form-field textarea.scd-enhanced-input:focus,
-.scd-form-field select.scd-enhanced-select:focus,
-.scd-step-main-content input.scd-enhanced-input:focus,
-.scd-step-main-content textarea.scd-enhanced-input:focus,
-.scd-step-main-content select.scd-enhanced-select:focus {
-	box-shadow: var(--scd-input-focus-shadow);
-	border-color: var(--scd-form-focus);
-	outline: none;
-}
+/* Note: Enhanced input styling (shadow, border-radius, transitions, focus states)
+   is now consolidated in the "Enhanced inputs" section above (lines 98-140)
+   to eliminate duplication and maintain a single source of truth. */

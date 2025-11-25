@@ -187,9 +187,15 @@ abstract class SCD_Settings_Page_Base {
 		$args['field_id']  = $id;
 		$args['label_for'] = $id; // Connect label to input
 
+		// Append tooltip to title if provided (shows next to label in <th>)
+		$field_title = $title;
+		if ( isset( $args['tooltip'] ) && ! empty( $args['tooltip'] ) ) {
+			$field_title .= ' ' . $this->get_tooltip( $args['tooltip'] );
+		}
+
 		add_settings_field(
 			$id,
-			$title,
+			$field_title,
 			array( $this, $callback ),
 			'scd-settings-' . $this->tab_slug,
 			$section,
@@ -238,11 +244,6 @@ abstract class SCD_Settings_Page_Base {
 		$value    = $this->get_setting( $field_id, false );
 		$name     = $this->get_field_name( $field_id );
 
-		if ( isset( $args['tooltip'] ) && ! empty( $args['tooltip'] ) ) {
-			echo ' ';
-			$this->render_tooltip( $args['tooltip'] );
-		}
-
 		echo '<label class="scd-toggle">';
 		printf(
 			'<input type="checkbox" id="%s" name="%s" value="1" %s>',
@@ -278,11 +279,6 @@ abstract class SCD_Settings_Page_Base {
 			esc_attr( $placeholder )
 		);
 
-		if ( isset( $args['tooltip'] ) && ! empty( $args['tooltip'] ) ) {
-			echo ' ';
-			$this->render_tooltip( $args['tooltip'] );
-		}
-
 		if ( isset( $args['description'] ) ) {
 			echo '<p class="description">' . esc_html( $args['description'] ) . '</p>';
 		}
@@ -315,11 +311,6 @@ abstract class SCD_Settings_Page_Base {
 			esc_attr( $step ),
 			esc_attr( $class )
 		);
-
-		if ( isset( $args['tooltip'] ) && ! empty( $args['tooltip'] ) ) {
-			echo ' ';
-			$this->render_tooltip( $args['tooltip'] );
-		}
 
 		if ( isset( $args['suffix'] ) ) {
 			echo ' <span class="description">' . esc_html( $args['suffix'] ) . '</span>';
@@ -358,11 +349,6 @@ abstract class SCD_Settings_Page_Base {
 		}
 
 		echo '</select>';
-
-		if ( isset( $args['tooltip'] ) && ! empty( $args['tooltip'] ) ) {
-			echo ' ';
-			$this->render_tooltip( $args['tooltip'] );
-		}
 	}
 
 	/**
@@ -390,11 +376,6 @@ abstract class SCD_Settings_Page_Base {
 			esc_attr( $placeholder ),
 			esc_textarea( $value )
 		);
-
-		if ( isset( $args['tooltip'] ) && ! empty( $args['tooltip'] ) ) {
-			echo ' ';
-			$this->render_tooltip( $args['tooltip'] );
-		}
 
 		if ( isset( $args['description'] ) ) {
 			echo '<p class="description">' . esc_html( $args['description'] ) . '</p>';

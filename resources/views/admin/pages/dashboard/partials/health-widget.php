@@ -19,10 +19,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Prepare health widget variables
 $health_status = $campaign_health['status'];
-$health_icon_name = 'success' === $health_status ? 'check' : ( 'warning' === $health_status ? 'warning' : 'close' );
-$health_class = 'scd-health-' . $health_status;
 $quick_stats = isset( $campaign_health['quick_stats'] ) ? $campaign_health['quick_stats'] : array( 'total_analyzed' => 0, 'issues_count' => 0, 'warnings_count' => 0 );
 $categories = isset( $campaign_health['categories'] ) ? $campaign_health['categories'] : array();
+
+// Map status to icon and CSS class (consistent with Campaign List, Overview Panel, Wizard)
+$status_config = array(
+	'excellent' => array( 'icon' => 'yes-alt', 'class' => 'excellent' ),
+	'good'      => array( 'icon' => 'yes', 'class' => 'good' ),
+	'fair'      => array( 'icon' => 'info', 'class' => 'fair' ),
+	'poor'      => array( 'icon' => 'warning', 'class' => 'poor' ),
+	'critical'  => array( 'icon' => 'dismiss', 'class' => 'critical' ),
+);
+$current_config = isset( $status_config[ $health_status ] ) ? $status_config[ $health_status ] : $status_config['fair'];
+$health_icon_name = $current_config['icon'];
+$health_class = 'scd-health-' . $current_config['class'];
 ?>
 
 <div class="scd-dashboard-section scd-campaign-health-widget <?php echo esc_attr( $health_class ); ?>" id="scd-health-widget">
@@ -34,9 +44,15 @@ $categories = isset( $campaign_health['categories'] ) ? $campaign_health['catego
 			<div class="scd-section-header-text">
 				<h2>
 					<?php
-					if ( 'success' === $health_status ) {
-						esc_html_e( 'Campaign Health: All Systems Running Smoothly', 'smart-cycle-discounts' );
-					} elseif ( 'warning' === $health_status ) {
+					if ( 0 === $total_campaigns ) {
+						esc_html_e( 'Campaign Health: No Campaigns Yet', 'smart-cycle-discounts' );
+					} elseif ( 'excellent' === $health_status ) {
+						esc_html_e( 'Campaign Health: Excellent', 'smart-cycle-discounts' );
+					} elseif ( 'good' === $health_status ) {
+						esc_html_e( 'Campaign Health: Good', 'smart-cycle-discounts' );
+					} elseif ( 'fair' === $health_status ) {
+						esc_html_e( 'Campaign Health: Fair', 'smart-cycle-discounts' );
+					} elseif ( 'poor' === $health_status ) {
 						esc_html_e( 'Campaign Health: Needs Attention', 'smart-cycle-discounts' );
 					} else {
 						esc_html_e( 'Campaign Health: Critical Issues', 'smart-cycle-discounts' );
@@ -44,21 +60,25 @@ $categories = isset( $campaign_health['categories'] ) ? $campaign_health['catego
 					?>
 				</h2>
 				<p>
-					<?php
-					echo esc_html(
-						sprintf(
-							/* translators: %d: number of campaigns analyzed */
-							_n( '%d campaign analyzed', '%d campaigns analyzed', $quick_stats['total_analyzed'], 'smart-cycle-discounts' ),
-							$quick_stats['total_analyzed']
-						)
-					);
-					?>
-					<span class="scd-health-divider">•</span>
-					<span class="scd-health-quick-stats">
-						<span class="scd-health-stat-critical"><?php echo esc_html( $quick_stats['issues_count'] ); ?> <?php esc_html_e( 'critical', 'smart-cycle-discounts' ); ?></span>
+					<?php if ( 0 === $total_campaigns ) : ?>
+						<?php esc_html_e( 'Create your first campaign to start tracking health metrics.', 'smart-cycle-discounts' ); ?>
+					<?php else : ?>
+						<?php
+						echo esc_html(
+							sprintf(
+								/* translators: %d: number of campaigns analyzed */
+								_n( '%d campaign analyzed', '%d campaigns analyzed', $quick_stats['total_analyzed'], 'smart-cycle-discounts' ),
+								$quick_stats['total_analyzed']
+							)
+						);
+						?>
 						<span class="scd-health-divider">•</span>
-						<span class="scd-health-stat-warning"><?php echo esc_html( $quick_stats['warnings_count'] ); ?> <?php esc_html_e( 'warnings', 'smart-cycle-discounts' ); ?></span>
-					</span>
+						<span class="scd-health-quick-stats">
+							<span class="scd-health-stat-critical"><?php echo esc_html( $quick_stats['issues_count'] ); ?> <?php esc_html_e( 'critical', 'smart-cycle-discounts' ); ?></span>
+							<span class="scd-health-divider">•</span>
+							<span class="scd-health-stat-warning"><?php echo esc_html( $quick_stats['warnings_count'] ); ?> <?php esc_html_e( 'warnings', 'smart-cycle-discounts' ); ?></span>
+						</span>
+					<?php endif; ?>
 				</p>
 			</div>
 		</div>
@@ -123,22 +143,22 @@ $categories = isset( $campaign_health['categories'] ) ? $campaign_health['catego
 			</div>
 		<?php endif; ?>
 
-		<!-- Success State -->
-		<?php if ( 'success' === $health_status && empty( $campaign_health['issues'] ) && empty( $campaign_health['warnings'] ) ) : ?>
+		<!-- Success State (excellent or good with no issues) -->
+		<?php if ( in_array( $health_status, array( 'excellent', 'good' ), true ) && empty( $campaign_health['issues'] ) && empty( $campaign_health['warnings'] ) ) : ?>
 			<?php if ( 0 === $total_campaigns ) : ?>
 				<p class="scd-health-empty-message">
 					<?php esc_html_e( 'You don\'t have any campaigns yet. Create your first campaign to start tracking its health.', 'smart-cycle-discounts' ); ?>
 				</p>
 			<?php else : ?>
 				<p class="scd-health-success-message">
-					<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
-					<?php esc_html_e( 'All campaigns are configured correctly and running as expected. Great work!', 'smart-cycle-discounts' ); ?>
+					<?php echo SCD_Icon_Helper::get( 'yes-alt', array( 'size' => 16 ) ); ?>
+					<?php esc_html_e( 'All campaigns are configured correctly and running as expected.', 'smart-cycle-discounts' ); ?>
 				</p>
 				<?php if ( ! empty( $campaign_health['success_messages'] ) ) : ?>
 					<div class="scd-health-details">
 						<?php foreach ( $campaign_health['success_messages'] as $message ) : ?>
 							<div class="scd-health-detail-item">
-								<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
+								<?php echo SCD_Icon_Helper::get( 'yes', array( 'size' => 16 ) ); ?>
 								<span><?php echo esc_html( $message ); ?></span>
 							</div>
 						<?php endforeach; ?>

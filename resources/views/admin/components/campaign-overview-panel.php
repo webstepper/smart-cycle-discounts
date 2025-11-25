@@ -80,6 +80,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 					</div>
 				</div>
 
+				<!-- Health Status Section -->
+				<div class="scd-overview-section scd-section-health">
+					<div class="scd-form-section-header">
+						<h3 class="scd-form-section-title">
+							<?php echo SCD_Icon_Helper::get( 'heart', array( 'size' => 20 ) ); ?>
+							<?php esc_html_e( 'Campaign Health', 'smart-cycle-discounts' ); ?>
+						</h3>
+					</div>
+					<div id="scd-section-health" class="scd-overview-section-content" data-section="health">
+						<!-- Populated via AJAX -->
+					</div>
+				</div>
+
 				<!-- Schedule Section -->
 				<div class="scd-overview-section scd-section-schedule">
 					<div class="scd-form-section-header">

@@ -159,17 +159,25 @@ class SCD_General_Settings extends SCD_Settings_Page_Base {
 		echo '</span>';
 
 		if ( 0 < $trash_count ) {
-			echo ' ';
+			// Build the empty trash URL with nonce
+			$empty_trash_url = wp_nonce_url(
+				admin_url( 'admin.php?page=scd-campaigns&action=empty_trash' ),
+				'scd_empty_trash'
+			);
+
 			$confirm_message = esc_js( __( 'Are you sure you want to permanently delete all trashed campaigns? This cannot be undone.', 'smart-cycle-discounts' ) );
+			echo '<div class="scd-trash-actions">';
 			SCD_Button_Helper::secondary(
 				__( 'Empty Trash Now', 'smart-cycle-discounts' ),
 				array(
-					'type'       => 'button',
+					'type'       => 'link',
+					'href'       => $empty_trash_url,
 					'icon'       => 'trash',
 					'classes'    => array( 'scd-empty-trash-btn' ),
 					'attributes' => array( 'onclick' => "return confirm('" . $confirm_message . "');" ),
 				)
 			);
+			echo '</div>';
 		} else {
 			echo ' <span class="scd-trash-empty">';
 			echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ) . ' ';

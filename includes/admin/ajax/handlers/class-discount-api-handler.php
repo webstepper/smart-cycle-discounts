@@ -63,13 +63,8 @@ class SCD_Discount_API_Handler implements SCD_Ajax_Handler {
 	 * @return array Response data
 	 */
 	public function handle( array $request ) {
-		// HIGH: Add nonce verification for CSRF protection
-		if ( ! isset( $request['nonce'] ) || ! wp_verify_nonce( $request['nonce'], 'scd_discount_api' ) ) {
-			return array(
-				'success' => false,
-				'message' => __( 'Security check failed', 'smart-cycle-discounts' ),
-			);
-		}
+		// Nonce verification is handled by AJAX Router (class-ajax-router.php:170)
+		// No need for redundant check here - follows DRY principle
 
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			return array(

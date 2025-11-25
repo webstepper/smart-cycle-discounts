@@ -826,8 +826,11 @@ class Smart_Cycle_Discounts {
 			// Run database migrations
 			if ( $this->container->has( 'migration_manager' ) ) {
 				$migration_manager = $this->container->get( 'migration_manager' );
-				if ( method_exists( $migration_manager, 'run_migrations' ) ) {
-					$migration_manager->run_migrations();
+				if ( method_exists( $migration_manager, 'migrate' ) ) {
+					$result = $migration_manager->migrate();
+					if ( $result['status'] !== 'success' ) {
+						error_log( '[SCD] Migration failed during update: ' . wp_json_encode( $result ) );
+					}
 				}
 			}
 

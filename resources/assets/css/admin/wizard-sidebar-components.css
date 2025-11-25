@@ -84,8 +84,8 @@
 .scd-list-description {
 	display: block;
 	color: var(--scd-color-text-secondary);
-	font-size: 13px;
-	line-height: 1.5;
+	font-size: var(--scd-font-size-base);
+	line-height: var(--scd-line-height-base);
 }
 
 /* ==========================================================================
@@ -109,31 +109,31 @@
 }
 
 .scd-tip-card--success {
-	border-left-color: #46b450;
-	background: rgba(70, 180, 80, 0.05);
+	border-left-color: var(--scd-color-success);
+	background: var(--scd-color-success-alpha-5);
 }
 
 .scd-tip-card--warning {
-	border-left-color: #ffb900;
-	background: rgba(255, 185, 0, 0.05);
+	border-left-color: var(--scd-color-warning);
+	background: var(--scd-color-warning-bg);
 }
 
 .scd-tip-card--info {
-	border-left-color: #00a0d2;
-	background: rgba(0, 160, 210, 0.05);
+	border-left-color: var(--scd-color-info);
+	background: var(--scd-color-info-alpha-15);
 }
 
 /* Tip icon colors - sizing inherited from combined selector above */
 .scd-tip-card--success .scd-tip-icon {
-	color: #46b450;
+	color: var(--scd-color-success);
 }
 
 .scd-tip-card--warning .scd-tip-icon {
-	color: #ffb900;
+	color: var(--scd-color-warning);
 }
 
 .scd-tip-card--info .scd-tip-icon {
-	color: #00a0d2;
+	color: var(--scd-color-info);
 }
 
 .scd-tip-content {
@@ -145,14 +145,14 @@
 	margin-bottom: var(--scd-spacing-xs);
 	color: var(--scd-color-text);
 	font-weight: var(--scd-font-weight-semibold);
-	font-size: 13px;
+	font-size: var(--scd-font-size-base);
 }
 
 .scd-tip-content p {
 	margin: 0;
 	color: var(--scd-color-text-secondary);
-	font-size: 13px;
-	line-height: 1.5;
+	font-size: var(--scd-font-size-base);
+	line-height: var(--scd-line-height-base);
 }
 
 /* ==========================================================================
@@ -176,22 +176,22 @@
 }
 
 .scd-callout--warning {
-	border-left-color: #ffb900;
-	background: rgba(255, 185, 0, 0.05);
+	border-left-color: var(--scd-color-warning);
+	background: var(--scd-color-warning-bg);
 }
 
 .scd-callout--danger {
-	border-left-color: #dc3232;
-	background: rgba(220, 50, 50, 0.05);
+	border-left-color: var(--scd-color-danger);
+	background: var(--scd-color-error-bg);
 }
 
 /* Callout icon colors - sizing inherited from combined selector above */
 .scd-callout--warning .scd-callout-icon {
-	color: #ffb900;
+	color: var(--scd-color-warning);
 }
 
 .scd-callout--danger .scd-callout-icon {
-	color: #dc3232;
+	color: var(--scd-color-danger);
 }
 
 .scd-callout-content {
@@ -202,14 +202,14 @@
 	margin: 0 0 var(--scd-spacing-xs) 0;
 	color: var(--scd-color-text);
 	font-weight: var(--scd-font-weight-semibold);
-	font-size: 13px;
+	font-size: var(--scd-font-size-base);
 }
 
 .scd-callout-content p {
 	margin: 0;
 	color: var(--scd-color-text-secondary);
-	font-size: 13px;
-	line-height: 1.5;
+	font-size: var(--scd-font-size-base);
+	line-height: var(--scd-line-height-base);
 }
 
 /* ==========================================================================
@@ -219,18 +219,18 @@
 .scd-comparison-table {
 	width: 100%;
 	border-collapse: collapse;
-	font-size: 13px;
+	font-size: var(--scd-font-size-base);
 }
 
 .scd-comparison-table thead th {
 	padding: var(--scd-spacing-sm);
 	background: var(--scd-color-background);
-	border-bottom: 2px solid var(--scd-color-border);
+	border-bottom: var(--scd-border-width-thick) solid var(--scd-color-border);
 	text-align: center;
 	vertical-align: middle;
 	font-weight: var(--scd-font-weight-semibold);
 	color: var(--scd-color-text);
-	font-size: 12px;
+	font-size: var(--scd-font-size-small);
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
 }
@@ -264,7 +264,7 @@
 
 .scd-comparison-benefit {
 	color: var(--scd-color-text-secondary);
-	font-size: 12px;
+	font-size: var(--scd-font-size-small);
 }
 
 /* ==========================================================================
@@ -288,13 +288,13 @@
 }
 
 .scd-do-card {
-	border-left: 3px solid #46b450;
-	background: rgba(70, 180, 80, 0.05);
+	border-left: 3px solid var(--scd-color-success);
+	background: var(--scd-color-success-alpha-5);
 }
 
 .scd-dont-card {
-	border-left: 3px solid #dc3232;
-	background: rgba(220, 50, 50, 0.05);
+	border-left: 3px solid var(--scd-color-danger);
+	background: var(--scd-color-error-bg);
 }
 
 .scd-card-header {
@@ -305,11 +305,11 @@
 }
 
 .scd-do-card .scd-card-header {
-	color: #46b450;
+	color: var(--scd-color-success);
 }
 
 .scd-dont-card .scd-card-header {
-	color: #dc3232;
+	color: var(--scd-color-danger);
 }
 
 .scd-card-header .scd-icon {
@@ -319,7 +319,7 @@
 }
 
 .scd-card-header strong {
-	font-size: 14px;
+	font-size: var(--scd-font-size-medium);
 	font-weight: var(--scd-font-weight-semibold);
 }
 
@@ -335,8 +335,8 @@
 	gap: var(--scd-spacing-xs);
 	margin: 0;
 	padding: var(--scd-spacing-xs);
-	font-size: 13px;
-	line-height: 1.5;
+	font-size: var(--scd-font-size-base);
+	line-height: var(--scd-line-height-base);
 	color: var(--scd-color-text-secondary);
 }
 
@@ -349,11 +349,11 @@
 }
 
 .scd-do-card .scd-example-icon {
-	color: #46b450;
+	color: var(--scd-color-success);
 }
 
 .scd-dont-card .scd-example-icon {
-	color: #dc3232;
+	color: var(--scd-color-danger);
 }
 
 /* ==========================================================================
@@ -391,7 +391,7 @@
 	width: 32px;
 	height: 32px;
 	background: var(--scd-color-primary);
-	color: #fff;
+	color: var(--scd-color-white);
 	border-radius: var(--scd-radius-full);
 }
 
@@ -409,14 +409,14 @@
 	margin: 0 0 var(--scd-spacing-xs) 0;
 	color: var(--scd-color-text);
 	font-weight: var(--scd-font-weight-semibold);
-	font-size: 13px;
+	font-size: var(--scd-font-size-base);
 }
 
 .scd-checklist-content p {
 	margin: 0;
 	color: var(--scd-color-text-secondary);
-	font-size: 13px;
-	line-height: 1.5;
+	font-size: var(--scd-font-size-base);
+	line-height: var(--scd-line-height-base);
 }
 
 /* ==========================================================================

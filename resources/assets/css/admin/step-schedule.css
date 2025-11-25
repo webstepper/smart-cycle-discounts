@@ -15,8 +15,15 @@
    ========================================================================== */
 
 .scd-wizard-step--schedule {
-    --scd-schedule-accent: var(--wp-admin-theme-color, #2271b1);
-    --scd-schedule-highlight: var(--wp-admin-theme-color-lighter-20, #f0f6fc);
+    --scd-schedule-accent: var(--wp-admin-theme-color, var(--scd-color-primary));
+    --scd-schedule-highlight: var(--wp-admin-theme-color-lighter-20, var(--scd-color-info-bg));
+
+    /* Date and Time Picker Dimensions */
+    --scd-picker-height: 40px;
+    --scd-time-picker-width: 120px;
+    --scd-calendar-icon-width: 36px;
+    --scd-picker-icon-size: var(--scd-icon-medium);
+    --scd-picker-gap: var(--scd-spacing-sm);
 }
 
 /* Layout handled by wizard-fullscreen.css */
@@ -167,9 +174,9 @@
     gap: var(--scd-gap-tight);
     width: 100%;
     min-height: 100px;
-    padding: 18px 14px;
+    padding: var(--scd-padding-large) var(--scd-padding-medium);
     background: var(--scd-color-white);
-    border: 1px solid var(--scd-color-border-light);
+    border: var(--scd-border-width) solid var(--scd-color-border-light);
     border-radius: var(--scd-radius-md);
     box-shadow: var(--scd-shadow-sm);
     cursor: pointer;
@@ -179,7 +186,7 @@
 
 .scd-timeline-preset__button:hover {
     border-color: var(--scd-color-border-dark);
-    background: linear-gradient(to bottom, #ffffff, #fafbfc);
+    background: linear-gradient(to bottom, var(--scd-color-white), var(--scd-color-surface-light));
     box-shadow: var(--scd-shadow-sm);
 }
 
@@ -198,9 +205,9 @@
 }
 
 .scd-timeline-preset__icon {
-    font-size: 28px;
-    width: 28px;
-    height: 28px;
+    font-size: var(--scd-icon-xl);
+    width: var(--scd-icon-xl);
+    height: var(--scd-icon-xl);
     color: var(--scd-color-primary);
     transition: transform var(--scd-transition-fast) ease;
 }
@@ -226,13 +233,13 @@
 }
 
 .scd-timeline-preset__name {
-    font-size: 12px;
+    font-size: var(--scd-font-size-small);
     color: var(--scd-color-text-muted);
     letter-spacing: 0.01em;
 }
 
 .scd-timeline-preset--active .scd-timeline-preset__name {
-    color: rgba(255, 255, 255, 0.95);
+    color: var(--scd-overlay-white-heavy);
 }
 
 .scd-timeline-preset__tooltip {
@@ -240,10 +247,10 @@
     bottom: -30px;
     left: 50%;
     transform: translateX(-50%);
-    padding: 6px 12px;
-    background: rgba(0, 0, 0, 0.8);
+    padding: 6px var(--scd-padding-compact);
+    background: var(--scd-overlay-dark);
     color: var(--scd-color-white);
-    font-size: 12px;
+    font-size: var(--scd-font-size-small);
     white-space: nowrap;
     border-radius: var(--scd-radius-sm);
     opacity: 0;
@@ -279,7 +286,6 @@
 
 /* Field group container - replaces table-based layout */
 .scd-field-group {
-    display: flex;
     flex-direction: column;
     gap: var(--scd-spacing-md);
     margin-bottom: var(--scd-spacing-xl);
@@ -311,7 +317,7 @@
 
 /* Required indicator */
 .scd-field-label .scd-required-indicator {
-    color: var(--scd-color-error);
+    color: var(--scd-color-danger);
     margin-left: var(--scd-spacing-xxs);
 }
 
@@ -338,12 +344,6 @@
 
 /* Tablet and desktop layout */
 @media (min-width: 768px) {
-    .scd-field-group {
-        flex-direction: row;
-        align-items: center;
-        gap: var(--scd-spacing-xl);
-    }
-
     .scd-field-header {
         flex: 0 0 160px; /* Fixed width for label alignment */
         min-width: 160px;
@@ -364,45 +364,6 @@
     line-height: var(--scd-line-height-base);
 }
 
-/* Clear button styling - matching step aesthetic */
-.scd-clear-end-date {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: 12px;
-    padding: 0;
-    width: 32px;
-    height: 32px;
-    background: var(--scd-color-background);
-    border: 1px solid var(--scd-color-border-light);
-    border-radius: var(--scd-radius-md);
-    cursor: pointer;
-    transition: border-color var(--scd-transition-fast) ease, background var(--scd-transition-fast) ease, box-shadow var(--scd-transition-fast) ease;
-}
-
-.scd-clear-end-date .scd-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
-    color: var(--scd-color-text-muted);
-    transition: color var(--scd-transition-fast) ease;
-}
-
-.scd-clear-end-date:hover {
-    background: var(--scd-color-error-bg);
-    border-color: var(--scd-color-error);
-    box-shadow: var(--scd-shadow-danger-sm);
-}
-
-.scd-clear-end-date:hover .scd-icon {
-    color: var(--scd-color-error);
-}
-
-.scd-clear-end-date:focus {
-    outline: 2px solid var(--scd-color-error);
-    outline-offset: 2px;
-}
-
 /* Required indicator handled by wizard-steps.css */
 
 /* Input widths controlled by .scd-form-field modifiers (--small, --medium, --large, --full) */
@@ -411,11 +372,11 @@
 .scd-datetime-wrapper {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: var(--scd-gap-comfortable);
     flex-wrap: wrap;
-    padding: 20px;
-    border: 1px solid var(--scd-color-border-light);
-    border-left: 3px solid var(--wp-admin-theme-color, #2271b1);
+    padding: var(--scd-padding-section);
+    border: var(--scd-border-width) solid var(--scd-color-border-light);
+    border-left: var(--scd-border-width-accent-thin) solid var(--wp-admin-theme-color, var(--scd-color-primary));
     border-radius: var(--scd-radius-sm);
 }
 
@@ -432,23 +393,23 @@
 /* Date picker - inherits base input styling from _forms.css */
 .scd-date-picker {
     width: 100%;
-    height: 40px;
-    padding-right: 40px; /* Extra padding for calendar icon */
+    height: var(--scd-picker-height);
+    padding-right: var(--scd-picker-height); /* Extra padding for calendar icon */
 }
 
 /* Calendar icon button - Minimalist Design */
 .scd-calendar-icon {
     position: absolute;
-    right: 1px;
-    top: 1px;
-    bottom: 1px;
-    width: 36px;
+    right: var(--scd-border-width);
+    top: var(--scd-border-width);
+    bottom: var(--scd-border-width);
+    width: var(--scd-calendar-icon-width);
     display: flex;
     align-items: center;
     justify-content: center;
     background: transparent;
     border: none;
-    border-left: 1px solid var(--scd-color-border);
+    border-left: var(--scd-border-width) solid var(--scd-color-border);
     cursor: pointer;
     transition: background-color var(--scd-transition-fast) ease;
 }
@@ -458,7 +419,7 @@
 }
 
 .scd-calendar-icon .scd-icon {
-    font-size: 18px;
+    font-size: var(--scd-picker-icon-size);
     color: var(--scd-color-text-muted);
 }
 
@@ -466,129 +427,115 @@
 .scd-time-picker-wrapper {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--scd-picker-gap);
 }
 
 .scd-at-label {
     color: var(--scd-color-text-muted);
-    font-size: 13px;
+    font-size: var(--scd-font-size-base);
 }
 
-/* Time picker - inherits base input styling from _forms.css */
+/* Time picker - match date picker dimensions */
 .scd-time-picker {
-    width: 100px;
-    height: 40px;
+    height: var(--scd-picker-height);
+    width: var(--scd-time-picker-width);
+    max-width: var(--scd-time-picker-width);
 }
 
-/* Clear button - Minimalist Design */
-.scd-clear-end-date {
-    padding: 0 12px;
-    height: 40px;
-    background: transparent;
-    border: 1px solid var(--scd-color-border);
-    border-radius: var(--scd-radius-sm);
-    font-size: 13px;
+/* Time picker placeholder state - disabled text input showing --:-- */
+.scd-time-picker.scd-time-placeholder {
     color: var(--scd-color-text-muted);
-    cursor: pointer;
-    transition: all var(--scd-transition-fast) ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
 }
 
-.scd-clear-end-date:hover {
-    border-color: var(--scd-color-error);
-    color: var(--scd-color-error);
-}
 
 /* ==========================================================================
    Status Messages and Indicators
    ========================================================================== */
 
 .scd-duration-display {
-    background: linear-gradient(135deg, var(--scd-schedule-highlight) 0%, rgba(34, 113, 177, 0.05) 100%);
-    border: 1px solid var(--scd-color-primary);
-    border-left-width: 4px;
+    background: linear-gradient(135deg, var(--scd-schedule-highlight) 0%, var(--scd-color-primary-bg) 100%);
+    border: var(--scd-border-width) solid var(--scd-color-primary);
+    border-left-width: var(--scd-border-width-accent);
     border-radius: var(--scd-radius-md);
-    padding: 20px 24px;
-    margin: 32px 0;
+    padding: var(--scd-padding-section) var(--scd-padding-spacious);
+    margin: var(--scd-spacing-xxl) 0;
     box-shadow: var(--scd-shadow-sm);
 }
 
 .scd-duration-content {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: var(--scd-gap-comfortable);
 }
 
 .scd-duration-icon {
-    font-size: 24px;
+    font-size: var(--scd-icon-large);
     color: var(--scd-color-primary);
 }
 
 .scd-duration-label {
-    font-size: 14px;
+    font-size: var(--scd-font-size-medium);
     font-weight: var(--scd-font-weight-semibold);
     color: var(--scd-color-text);
 }
 
 .scd-duration-value {
-    font-size: 16px;
+    font-size: var(--scd-font-size-large);
     font-weight: var(--scd-font-weight-medium);
     color: var(--scd-color-primary);
 }
 
 .scd-duration-hint {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid rgba(34, 113, 177, 0.2);
+    margin-top: var(--scd-spacing-md);
+    padding-top: var(--scd-spacing-md);
+    border-top: var(--scd-border-width) solid var(--scd-color-primary-alpha-20);
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--scd-gap-sm-medium);
 }
 
 .scd-hint-icon {
-    font-size: 18px;
+    font-size: var(--scd-font-size-xl);
 }
 
 .scd-hint-text {
-    font-size: 13px;
+    font-size: var(--scd-font-size-base);
     color: var(--scd-color-text-muted);
 }
 
 .scd-timezone-indicator {
     background: var(--scd-color-surface);
-    border: 1px solid var(--scd-color-border-light);
+    border: var(--scd-border-width) solid var(--scd-color-border-light);
     border-radius: var(--scd-radius-md);
-    padding: 16px 20px;
-    margin-top: 24px;
+    padding: var(--scd-padding-large) var(--scd-padding-section);
+    margin-top: var(--scd-spacing-xl);
 }
 
 .scd-timezone-content {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--scd-gap-normal);
 }
 
 .scd-timezone-icon {
-    font-size: 20px;
+    font-size: var(--scd-icon-medium);
     color: var(--scd-color-primary);
 }
 
 .scd-timezone-label {
-    font-size: 13px;
+    font-size: var(--scd-font-size-base);
     color: var(--scd-color-text-muted);
 }
 
 .scd-timezone-value {
-    font-size: 14px;
+    font-size: var(--scd-font-size-medium);
     font-weight: var(--scd-font-weight-semibold);
     color: var(--scd-color-text);
 }
 
 .scd-timezone-note {
-    margin-top: 8px;
-    font-size: 13px;
+    margin-top: var(--scd-spacing-sm);
+    font-size: var(--scd-font-size-base);
     color: var(--scd-color-text-muted);
     font-style: italic;
 }
@@ -609,19 +556,19 @@
 .scd-error-message {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 14px;
-    background: var(--scd-color-error-light);
-    border: 1px solid var(--scd-color-error-border);
-    border-left-width: 4px;
-    border-left-color: var(--scd-color-error);
+    gap: var(--scd-gap-tight);
+    padding: var(--scd-padding-sm-large) var(--scd-padding-medium);
+    background: var(--scd-color-danger-light);
+    border: var(--scd-border-width) solid var(--scd-color-danger-border);
+    border-left-width: var(--scd-border-width-accent);
+    border-left-color: var(--scd-color-danger);
     border-radius: var(--scd-radius-sm);
-    font-size: 13px;
-    color: var(--scd-color-error);
+    font-size: var(--scd-font-size-base);
+    color: var(--scd-color-danger);
 }
 
 .scd-error-message .scd-icon {
-    font-size: 16px;
+    font-size: var(--scd-icon-small);
     flex-shrink: 0;
 }
 
@@ -632,7 +579,7 @@
 @media (max-width: 782px) {
     .scd-schedule-selection-cards {
         grid-template-columns: 1fr;
-        gap: 12px;
+        gap: var(--scd-gap-normal);
     }
     
     
@@ -729,9 +676,9 @@
 }
 
 .scd-status-panel--error {
-    background: var(--scd-color-error-light);
-    border: 1px solid var(--scd-color-error-border);
-    color: var(--scd-color-error-text);
+    background: var(--scd-color-danger-light);
+    border: 1px solid var(--scd-color-danger-border);
+    color: var(--scd-color-danger-text);
 }
 
 .scd-status-panel--warning {
@@ -1057,7 +1004,7 @@
 }
 
 .ui-datepicker .ui-datepicker-buttonpane button {
-    background: var(--wp-admin-theme-color, #2271b1);
+    background: var(--wp-admin-theme-color, var(--scd-color-primary));
     border: none;
     border-radius: var(--scd-radius-sm);
     color: var(--scd-color-white);
@@ -1070,7 +1017,7 @@
 }
 
 .ui-datepicker .ui-datepicker-buttonpane button:hover {
-    background: var(--wp-admin-theme-color-darker-10, #135e96);
+    background: var(--wp-admin-theme-color-darker-10, var(--scd-color-primary-dark));
     /* transform: translateY(-1px); removed for instant state change */
 }
 
@@ -1158,9 +1105,9 @@
     margin-top: 16px;
     margin-bottom: 20px;
     padding: 16px;
-    background: #f0f6fc;
-    border: 1px solid #0073aa;
-    border-left: 4px solid #0073aa;
+    background: var(--scd-color-info-bg);
+    border: 1px solid var(--scd-color-info);
+    border-left: 4px solid var(--scd-color-info);
     border-radius: var(--scd-radius-sm);
 }
 
@@ -1169,13 +1116,13 @@
     width: var(--scd-icon-medium);
     height: var(--scd-icon-medium);
     font-size: var(--scd-icon-medium);
-    color: #0073aa;
+    color: var(--scd-color-info);
     margin-top: 2px;
 }
 
 .scd-recurring-warning .scd-notice-content {
     flex: 1;
-    color: #1d2327;
+    color: var(--scd-color-text);
     font-size: 13px;
     line-height: 1.6;
 }
@@ -1184,7 +1131,7 @@
     display: block;
     margin-bottom: 8px;
     font-size: 14px;
-    color: #0073aa;
+    color: var(--scd-color-info);
 }
 
 .scd-recurring-warning .scd-notice-content p {
@@ -1214,13 +1161,13 @@
     margin-bottom: 20px;
     background: var(--scd-color-surface);
     border: 1px solid var(--scd-color-border-light);
-    border-left: 3px solid var(--wp-admin-theme-color, #2271b1);
+    border-left: 3px solid var(--wp-admin-theme-color, var(--scd-color-primary));
     border-radius: var(--scd-radius-md);
     transition: border-color var(--scd-transition-base) ease, box-shadow var(--scd-transition-base) ease;
 }
 
 .scd-recurring-field-group:hover {
-    border-left-color: var(--wp-admin-theme-color-darker-10, #135e96);
+    border-left-color: var(--wp-admin-theme-color-darker-10, var(--scd-color-primary-dark));
     box-shadow: var(--scd-shadow-sm);
 }
 
@@ -1235,7 +1182,7 @@
     font-size: 18px;
     width: 18px;
     height: 18px;
-    color: var(--wp-admin-theme-color, #2271b1);
+    color: var(--wp-admin-theme-color, var(--scd-color-primary));
     flex-shrink: 0;
 }
 
@@ -1300,7 +1247,7 @@
 }
 
 .scd-toggle-control input:checked + .scd-toggle-slider {
-    background-color: var(--wp-admin-theme-color, #2271b1);
+    background-color: var(--wp-admin-theme-color, var(--scd-color-primary));
 }
 
 .scd-toggle-control input:checked + .scd-toggle-slider::before {
@@ -1308,7 +1255,7 @@
 }
 
 .scd-toggle-control input:focus + .scd-toggle-slider {
-    box-shadow: 0 0 0 2px var(--wp-admin-theme-color, #2271b1);
+    box-shadow: 0 0 0 2px var(--wp-admin-theme-color, var(--scd-color-primary));
     outline: 2px solid transparent;
 }
 
@@ -1363,8 +1310,8 @@
 .scd-input-small:focus,
 .scd-input-tiny:focus,
 .scd-input-date:focus {
-    border-color: var(--wp-admin-theme-color, #2271b1);
-    box-shadow: 0 0 0 1px var(--wp-admin-theme-color, #2271b1);
+    border-color: var(--wp-admin-theme-color, var(--scd-color-primary));
+    box-shadow: 0 0 0 1px var(--wp-admin-theme-color, var(--scd-color-primary));
     outline: none;
 }
 
@@ -1402,18 +1349,18 @@
 }
 
 .scd-day-checkbox input:checked + .scd-day-label {
-    background: var(--wp-admin-theme-color, #2271b1);
-    border-color: var(--wp-admin-theme-color, #2271b1);
+    background: var(--wp-admin-theme-color, var(--scd-color-primary));
+    border-color: var(--wp-admin-theme-color, var(--scd-color-primary));
     color: var(--scd-color-white);
 }
 
 .scd-day-checkbox input:focus + .scd-day-label {
-    outline: 2px solid var(--wp-admin-theme-color, #2271b1);
+    outline: 2px solid var(--wp-admin-theme-color, var(--scd-color-primary));
     outline-offset: 2px;
 }
 
 .scd-day-label:hover {
-    border-color: var(--wp-admin-theme-color, #2271b1);
+    border-color: var(--wp-admin-theme-color, var(--scd-color-primary));
 }
 
 /* Radio inline options - Enhanced with visual polish */
@@ -1440,14 +1387,14 @@
 }
 
 .scd-radio-inline.scd-end-option:hover {
-    border-color: var(--wp-admin-theme-color, #2271b1);
+    border-color: var(--wp-admin-theme-color, var(--scd-color-primary));
     box-shadow: var(--scd-shadow-primary-sm);
 }
 
 .scd-radio-inline.scd-end-option:has(input[type="radio"]:checked) {
-    border-color: var(--wp-admin-theme-color, #2271b1);
+    border-color: var(--wp-admin-theme-color, var(--scd-color-primary));
     background: var(--scd-color-primary-alpha-10);
-    box-shadow: 0 0 0 1px var(--wp-admin-theme-color, #2271b1);
+    box-shadow: 0 0 0 1px var(--wp-admin-theme-color, var(--scd-color-primary));
 }
 
 .scd-radio-inline input[type="radio"] {
@@ -1466,7 +1413,7 @@
 
 .scd-radio-label-text .scd-icon {
     font-size: 16px;
-    color: var(--wp-admin-theme-color, #2271b1);
+    color: var(--wp-admin-theme-color, var(--scd-color-primary));
 }
 
 .scd-occurrence-suffix {
@@ -1497,7 +1444,7 @@
 
 .scd-preview-icon {
     font-size: 20px;
-    color: var(--wp-admin-theme-color, #2271b1);
+    color: var(--wp-admin-theme-color, var(--scd-color-primary));
     flex-shrink: 0;
 }
 
@@ -1556,14 +1503,14 @@
     margin: 6px 0;
     background: var(--scd-color-surface);
     border: 1px solid var(--scd-color-border-light);
-    border-left: 3px solid var(--wp-admin-theme-color, #2271b1);
+    border-left: 3px solid var(--wp-admin-theme-color, var(--scd-color-primary));
     border-radius: var(--scd-radius-sm);
     position: relative;
     transition: all var(--scd-transition-fast) ease;
 }
 
 .scd-preview-text .scd-occurrence-list li:hover {
-    border-left-color: var(--wp-admin-theme-color-darker-10, #135e96);
+    border-left-color: var(--wp-admin-theme-color-darker-10, var(--scd-color-primary-dark));
     box-shadow: var(--scd-shadow-sm);
 }
 
@@ -1584,7 +1531,7 @@
 
 .scd-preview-footer .scd-icon {
     font-size: 16px;
-    color: var(--wp-admin-theme-color, #2271b1);
+    color: var(--wp-admin-theme-color, var(--scd-color-primary));
     flex-shrink: 0;
 }
 
@@ -1728,7 +1675,7 @@
 
 [dir="rtl"] .scd-error-message {
     border-left: none;
-    border-right: 4px solid var(--scd-color-error);
+    border-right: 4px solid var(--scd-color-danger);
 }
 
 /* ==========================================================================

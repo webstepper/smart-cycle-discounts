@@ -146,7 +146,7 @@ class SCD_Logger {
 	/**
 	 * Determine log level from multiple sources.
 	 *
-	 * Priority: constant > database > auto-detect
+	 * Priority: constant > database > admin toggle > default
 	 *
 	 * @since    1.0.0
 	 * @access   private
@@ -170,7 +170,7 @@ class SCD_Logger {
 			}
 		}
 
-		// 3. Check if debug mode is enabled via toggle
+		// 3. Check if debug mode is enabled via admin toggle (24h auto-expire)
 		if ( isset( $settings['advanced']['enable_debug_mode'] ) && $settings['advanced']['enable_debug_mode'] ) {
 			$debug_enabled_at = isset( $settings['advanced']['debug_mode_enabled_at'] ) ? $settings['advanced']['debug_mode_enabled_at'] : 0;
 			if ( $debug_enabled_at > 0 ) {
@@ -184,13 +184,9 @@ class SCD_Logger {
 			}
 		}
 
-		// 4. Auto-detect based on environment (fallback)
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			return 'warning'; // Moderate logging for development
-		}
-
-		// 5. Default for production
-		return 'error';
+		// 4. Default: 'warning' - captures errors and warnings for support
+		// This provides useful diagnostics without verbose logging
+		return 'warning';
 	}
 
 	/**

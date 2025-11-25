@@ -59,12 +59,29 @@
 
 /* Card styles defined in _components.css */
 
-/* Extra form styles */
+/* Extra form styles - Dropdown arrow uses CSS mask for theme color support */
 .scd-select {
-    background-image: url(data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2720%27%20height%3D%2720%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%3E%3Cpath%20d%3D%27M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%27%20fill%3D%27%23555%27%2F%3E%3C%2Fsvg%3E);
+    -webkit-mask-image: none;
+    mask-image: none;
     background-repeat: no-repeat;
     background-position: right 5px top 50%;
     background-size: 16px 16px;
+}
+
+.scd-select::after {
+    content: '';
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 6l5 5 5-5 2 1-7 7-7-7 2-1z'/%3E%3C/svg%3E") no-repeat center;
+    mask: url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 6l5 5 5-5 2 1-7 7-7-7 2-1z'/%3E%3C/svg%3E") no-repeat center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    background-color: var(--scd-color-text-muted);
+    pointer-events: none;
 }
 
 .scd-field-help {
@@ -165,11 +182,11 @@
     content: "•";
     position: absolute;
     left: 8px;
-    color: var(--scd-color-error);
+    color: var(--scd-color-danger);
 }
 
 .scd-validation-item--error {
-    color: var(--scd-color-error);
+    color: var(--scd-color-danger);
 }
 
 /* Form Field Validation States - Flat Design (border-only) */
@@ -179,18 +196,7 @@
     transition: border-color var(--scd-transition-fast) ease-in-out;
 }
 
-.scd-wizard-step input.error,
-.scd-wizard-step textarea.error,
-.scd-wizard-step select.error {
-    border-color: var(--scd-color-danger);
-}
-
-.scd-wizard-step input.error:focus,
-.scd-wizard-step textarea.error:focus,
-.scd-wizard-step select.error:focus {
-    border-color: var(--scd-color-danger);
-    outline: none;
-}
+/* Error states handled by validation.css */
 
 .scd-wizard-step input.warning,
 .scd-wizard-step textarea.warning {
@@ -292,7 +298,7 @@
 }
 
 .scd-discount-type-icon {
-    font-size: 32px;
+    font-size: var(--scd-icon-xxl);
     margin-bottom: var(--scd-spacing-md);
     color: var(--scd-color-primary);
 }

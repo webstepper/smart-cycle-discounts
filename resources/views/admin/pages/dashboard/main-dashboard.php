@@ -40,7 +40,7 @@ $metrics              = $metrics ?? array();
 $campaign_stats       = $campaign_stats ?? array();
 $top_campaigns        = $top_campaigns ?? array();
 $campaign_health      = $campaign_health ?? array(
-	'status'           => 'success',
+	'status'           => 'excellent',
 	'issues'           => array(),
 	'warnings'         => array(),
 	'success_messages' => array(),
@@ -58,7 +58,7 @@ $ctr_trend         = $metrics['ctr_change'] ?? 0;
 $total_campaigns     = $campaign_stats['total'] ?? 0;
 $active_campaigns    = $campaign_stats['active'] ?? 0;
 $has_critical_issues = 'critical' === $campaign_health['status'];
-$has_warnings        = 'warning' === $campaign_health['status'];
+$has_warnings        = in_array( $campaign_health['status'], array( 'fair', 'poor' ), true );
 $approaching_limit   = ! $is_premium && 0 !== $campaign_limit && $active_campaigns >= ( $campaign_limit * 0.67 );
 ?>
 

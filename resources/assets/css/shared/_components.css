@@ -872,7 +872,7 @@
     opacity: 0;
     transition: opacity var(--scd-transition-fast) ease-out;
     pointer-events: none;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--scd-overlay-light);
     z-index: var(--scd-z-overlay);
 }
 
@@ -931,7 +931,7 @@
 @media (prefers-color-scheme: dark) {
     .is-dark-theme .scd-tooltip {
         background: var(--scd-color-text);
-        border-color: rgba(255, 255, 255, 0.1);
+        border-color: var(--scd-overlay-light);
     }
 
     .is-dark-theme .scd-tooltip:before {

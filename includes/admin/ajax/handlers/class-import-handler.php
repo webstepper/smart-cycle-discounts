@@ -49,9 +49,7 @@ class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 		$this->container = $container;
 
 		// Get cache manager if available
-		if ( $container->has( 'cache' ) ) {
-			$this->cache = $container->get( 'cache' );
-		}
+		$this->cache = Smart_Cycle_Discounts::get_service( 'cache_manager' );
 	}
 
 	/**

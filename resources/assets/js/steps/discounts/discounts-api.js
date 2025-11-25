@@ -61,7 +61,7 @@
 		 * @param rules
 		 */
 		validateDiscountRules: function( rules ) {
-			if ( SCD.Utils.isEmpty( rules ) ) {
+			if ( !rules || 0 === Object.keys( rules ).length ) {
 				var error = new Error( 'Discount rules are required' );
 				SCD.ErrorHandler.handle( error, 'DiscountsAPI.validateDiscountRules', SCD.ErrorHandler.SEVERITY.LOW );
 				return $.Deferred().reject( error ).promise();

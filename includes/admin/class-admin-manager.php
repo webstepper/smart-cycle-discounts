@@ -436,11 +436,11 @@ class SCD_Admin_Manager {
 	 */
 	private function check_system_requirements(): void {
 		// Check PHP version
-		if ( version_compare( PHP_VERSION, '8.0', '<' ) ) {
+		if ( version_compare( PHP_VERSION, '7.4', '<' ) ) {
 			printf(
 				'<div class="notice notice-error"><p>%s</p></div>',
 				sprintf(
-					__( 'Smart Cycle Discounts requires PHP 8.0 or higher. You are running PHP %s.', 'smart-cycle-discounts' ),
+					__( 'Smart Cycle Discounts requires PHP 7.4 or higher. You are running PHP %s.', 'smart-cycle-discounts' ),
 					esc_html( PHP_VERSION )
 				)
 			);

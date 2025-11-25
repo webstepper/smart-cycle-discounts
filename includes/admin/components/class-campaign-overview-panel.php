@@ -75,6 +75,15 @@ class SCD_Campaign_Overview_Panel {
 	private $product_selector;
 
 	/**
+	 * Health service (optional).
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      SCD_Campaign_Health_Service|null    $health_service    Campaign health service.
+	 */
+	private $health_service;
+
+	/**
 	 * Initialize the component.
 	 *
 	 * @since    1.0.0
@@ -83,19 +92,22 @@ class SCD_Campaign_Overview_Panel {
 	 * @param    SCD_Analytics_Repository|null   $analytics_repository     Analytics repository.
 	 * @param    SCD_Recurring_Handler|null      $recurring_handler        Recurring handler.
 	 * @param    SCD_Product_Selector|null       $product_selector         Product selector service.
+	 * @param    SCD_Campaign_Health_Service|null $health_service          Campaign health service.
 	 */
 	public function __construct(
 		$campaign_repository,
 		$formatter = null,
 		$analytics_repository = null,
 		$recurring_handler = null,
-		$product_selector = null
+		$product_selector = null,
+		$health_service = null
 	) {
 		$this->campaign_repository  = $campaign_repository;
 		$this->formatter            = $formatter;
 		$this->analytics_repository = $analytics_repository;
 		$this->recurring_handler    = $recurring_handler;
 		$this->product_selector     = $product_selector;
+		$this->health_service       = $health_service;
 	}
 
 	/**
@@ -141,6 +153,7 @@ class SCD_Campaign_Overview_Panel {
 			'products'           => $this->prepare_products_section( $campaign ),
 			'discounts'          => $this->prepare_discounts_section( $campaign ),
 			'performance'        => $this->prepare_performance_section( $campaign ),
+			'health'             => $this->prepare_health_section( $campaign ),
 		);
 
 		return $data;
@@ -922,6 +935,94 @@ class SCD_Campaign_Overview_Panel {
 	}
 
 	/**
+	 * Prepare health section data.
+	 *
+	 * @since    1.0.0
+	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @return   array                       Health data.
+	 */
+	private function prepare_health_section( $campaign ) {
+		// Default health data
+		$health_data = array(
+			'enabled' => false,
+			'score'   => 0,
+			'status'  => 'unknown',
+		);
+
+		// Check if health service is available
+		if ( ! $this->health_service ) {
+			SCD_Log::debug(
+				'Campaign Health Service not available for overview panel',
+				array(
+					'campaign_id' => $campaign->get_id(),
+					'service'     => 'null',
+				)
+			);
+			return $health_data;
+		}
+
+		try {
+			// Analyze campaign health
+			$health = $this->health_service->analyze_health( $campaign, 'standard', array() );
+
+			SCD_Log::debug(
+				'Campaign health analysis result',
+				array(
+					'campaign_id' => $campaign->get_id(),
+					'has_data'    => ! empty( $health ),
+					'score'       => isset( $health['score'] ) ? $health['score'] : 'N/A',
+					'status'      => isset( $health['status'] ) ? $health['status'] : 'N/A',
+				)
+			);
+
+			if ( ! empty( $health ) ) {
+				// Extract messages from health arrays (each item is array with 'code' and 'message')
+				$critical_issues = isset( $health['critical_issues'] ) ? $health['critical_issues'] : array();
+				$warnings        = isset( $health['warnings'] ) ? $health['warnings'] : array();
+				$suggestions     = isset( $health['info'] ) ? $health['info'] : array();
+
+				$health_data = array(
+					'enabled'     => true,
+					'score'       => isset( $health['score'] ) ? absint( $health['score'] ) : 0,
+					'status'      => isset( $health['status'] ) ? $health['status'] : 'unknown',
+					'issues'      => array_map( array( $this, 'extract_message' ), $critical_issues ),
+					'warnings'    => array_map( array( $this, 'extract_message' ), $warnings ),
+					'suggestions' => array_map( array( $this, 'extract_message' ), $suggestions ),
+					'breakdown'   => isset( $health['breakdown'] ) ? $health['breakdown'] : array(),
+				);
+			}
+		} catch ( Exception $e ) {
+			SCD_Log::warning(
+				'Failed to analyze campaign health for overview panel',
+				array(
+					'campaign_id' => $campaign->get_id(),
+					'error'       => $e->getMessage(),
+					'trace'       => $e->getTraceAsString(),
+				)
+			);
+		}
+
+		return $health_data;
+	}
+
+	/**
+	 * Extract message from health item array.
+	 *
+	 * Health service returns items as arrays with 'code' and 'message' keys.
+	 * This method extracts just the message string for display.
+	 *
+	 * @since    1.0.0
+	 * @param    array|string $item    Health item (array with 'message' key or string).
+	 * @return   string                Message string.
+	 */
+	private function extract_message( $item ) {
+		if ( is_array( $item ) && isset( $item['message'] ) ) {
+			return $item['message'];
+		}
+		return is_string( $item ) ? $item : '';
+	}
+
+	/**
 	 * Render basic info section.
 	 *
 	 * @since    1.0.0
@@ -1020,6 +1121,21 @@ class SCD_Campaign_Overview_Panel {
 	 */
 	public function render_metrics_section( $data ) {
 		$template_path = SCD_PLUGIN_DIR . 'resources/views/admin/components/partials/section-metrics.php';
+
+		if ( file_exists( $template_path ) ) {
+			include $template_path;
+		}
+	}
+
+	/**
+	 * Render health section.
+	 *
+	 * @since    1.0.0
+	 * @param    array $data    Health data.
+	 * @return   void
+	 */
+	public function render_health_section( $data ) {
+		$template_path = SCD_PLUGIN_DIR . 'resources/views/admin/components/partials/section-health.php';
 
 		if ( file_exists( $template_path ) ) {
 			include $template_path;

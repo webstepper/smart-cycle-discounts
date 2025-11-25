@@ -119,7 +119,7 @@
 
 			// Send to server
 			$.ajax( {
-				url: window.scdWizardData && window.scdWizardData.ajax_url ? window.scdWizardData.ajax_url : window.ajaxurl,
+				url: window.scdWizardData && window.scdWizardData.ajaxUrl ? window.scdWizardData.ajaxUrl : window.ajaxurl,
 				type: 'POST',
 				async: ! sync,
 				data: {

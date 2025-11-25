@@ -204,11 +204,63 @@
 }
 
 /* ==========================================================================
+   Button Animations
+   ========================================================================== */
+
+/* Pulse animation for button feedback */
+@keyframes scd-button-pulse {
+	0% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(0.97);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+.scd-button-pulse {
+	animation: scd-button-pulse 0.2s ease-in-out;
+}
+
+/* Success state for buttons */
+.scd-button-success {
+	background-color: var(--scd-color-success) !important;
+	border-color: var(--scd-color-success) !important;
+	color: var(--scd-color-white) !important;
+	transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Loading button state */
+.scd-button-loading {
+	pointer-events: none;
+	opacity: 0.85;
+}
+
+/* ==========================================================================
    Health Check Results
    ========================================================================== */
 
 .scd-health-check-results {
 	margin-top: 15px;
+}
+
+/* Staggered fade-in animation for health check items */
+@keyframes scd-health-item-slide-in {
+	0% {
+		opacity: 0;
+		transform: translateY(-10px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.scd-health-result-item {
+	animation: scd-health-item-slide-in 0.3s ease-out forwards;
+	opacity: 0;
 }
 
 .scd-health-check-results .notice {
@@ -219,6 +271,28 @@
 .scd-health-check-results .notice p {
 	margin: 0;
 	font-size: var(--scd-font-size-base);
+	display: flex;
+	align-items: center;
+	gap: var(--scd-gap-tight);
+}
+
+.scd-health-check-results .notice .dashicons {
+	width: 20px;
+	height: 20px;
+	font-size: 20px;
+	line-height: 1;
+}
+
+.scd-health-check-results .notice-success .dashicons {
+	color: var(--scd-color-success);
+}
+
+.scd-health-check-results .notice-warning .dashicons {
+	color: var(--scd-color-warning);
+}
+
+.scd-health-check-results .notice-error .dashicons {
+	color: var(--scd-color-danger);
 }
 
 .scd-health-check-results .notice strong {
@@ -238,14 +312,14 @@
 
 .scd-import-status.success {
 	display: block;
-	background: #d7f0d7;
+	background: var(--scd-color-success-bg);
 	border-left: 4px solid var(--scd-color-success);
 	color: var(--scd-color-text);
 }
 
 .scd-import-status.error {
 	display: block;
-	background: #f8d7da;
+	background: var(--scd-color-danger-bg);
 	border-left: 4px solid var(--scd-color-danger);
 	color: var(--scd-color-text);
 }

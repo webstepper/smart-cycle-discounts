@@ -38,7 +38,7 @@ class SCD_Button_Helper {
 	 *
 	 *     @type string $text        Button text (required).
 	 *     @type string $type        Button type: 'button', 'submit', 'reset'. Default 'button'.
-	 *     @type string $style       Button style: 'primary', 'secondary', 'success', 'danger', 'link', 'ghost'. Default 'primary'.
+	 *     @type string $style       Button style: 'primary', 'secondary', 'success', 'danger', 'link', 'ghost', 'ghost-danger'. Default 'primary'.
 	 *     @type string $size        Button size: 'small', 'normal', 'large', 'hero' (hero maps to large). Default 'normal'.
 	 *     @type string $icon        Icon name (SVG icon name). Optional.
 	 *     @type string $icon_position Icon position: 'left', 'right'. Default 'left'.
@@ -95,6 +95,9 @@ class SCD_Button_Helper {
 				break;
 			case 'ghost':
 				$classes[] = 'scd-button--ghost';
+				break;
+			case 'ghost-danger':
+				$classes[] = 'scd-button--ghost-danger';
 				break;
 		}
 

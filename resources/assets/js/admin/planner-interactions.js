@@ -61,8 +61,18 @@
 				var campaignPosition = $defaultCard.data( 'position' );
 				this.updateTimelineFocus( campaignPosition );
 
-				// Server already renders insights for default campaign, no need to reload
+			// Check if insights content is empty and needs to be loaded
+			var $insightsContent = $( '.scd-insights-content' );
+			var hasContent = $insightsContent.children().length > 0 && $insightsContent.text().trim().length > 0;
+
+			if ( ! hasContent ) {
+				// No insights rendered by server, load via AJAX
+				var campaignId = $defaultCard.data( 'campaign-id' );
+				var campaignState = $defaultCard.data( 'state' );
+				var isMajorEvent = $defaultCard.attr( 'data-major-event' ) === 'true';
+				this.loadInsights( campaignId, campaignState, isMajorEvent, campaignPosition );
 			}
+		}
 		},
 		/**
 		 * Handle card click - switch focus and load insights
@@ -183,8 +193,8 @@
 				},
 				success: function( response ) {
 					pendingRequest = null;
-					if ( response.success && response.data.html ) {
-						// Replace content directly without fade animation
+					if ( response.success && response.data && response.data.html ) {
+						// Replace content directly without fade animation.
 						$insightsContent
 							.html( response.data.html )
 							.removeClass( 'scd-insights-loading' );
@@ -193,8 +203,9 @@
 						console.error( '[SCD Planner] Failed to load insights:', response );
 						if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
 							var errorMsg = 'Failed to load campaign insights. Please try again.';
-							if ( response.error && response.error[0] && response.error[0].message ) {
-								errorMsg = response.error[0].message;
+							// Check for error message in standardized format.
+							if ( response.error && response.error.message ) {
+								errorMsg = response.error.message;
 							}
 							SCD.Shared.NotificationService.error( errorMsg );
 						}

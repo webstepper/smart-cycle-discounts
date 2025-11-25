@@ -94,19 +94,24 @@ class SCD_Cache_Manager {
 	}
 
 	/**
-	 * Load cache settings from database.
+	 * Load cache settings.
+	 *
+	 * Uses sensible defaults with filter for developers who need customization.
+	 * Default: 3600 seconds (1 hour) - good balance between freshness and performance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @return   void
 	 */
 	private function load_settings(): void {
-		$settings = get_option( 'scd_settings', array() );
-
-		if ( isset( $settings['performance']['campaign_cache_duration'] ) ) {
-			$duration                 = (int) $settings['performance']['campaign_cache_duration'];
-			$this->default_expiration = max( 900, $duration ); // Minimum 15 minutes
-		}
+		/**
+		 * Filter the default cache duration.
+		 *
+		 * @since 1.0.0
+		 * @param int $duration Cache duration in seconds. Default 3600 (1 hour).
+		 */
+		$duration                 = apply_filters( 'scd_cache_duration', 3600 );
+		$this->default_expiration = max( 900, (int) $duration ); // Minimum 15 minutes
 	}
 
 	/**
@@ -366,16 +371,13 @@ class SCD_Cache_Manager {
 	/**
 	 * Warm cache with commonly used data.
 	 *
+	 * Called on-demand from Tools page to pre-populate cache.
+	 *
 	 * @since    1.0.0
 	 * @return   void
 	 */
 	public function warm_cache(): void {
 		if ( ! $this->enabled ) {
-			return;
-		}
-
-		$settings = get_option( 'scd_settings', array() );
-		if ( ! isset( $settings['performance']['enable_cache_warming'] ) || ! $settings['performance']['enable_cache_warming'] ) {
 			return;
 		}
 

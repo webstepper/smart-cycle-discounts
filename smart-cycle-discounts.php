@@ -91,9 +91,11 @@ define( 'SCD_TEXT_DOMAIN', 'smart-cycle-discounts' );
 define( 'SCD_TRANSIENT_PREFIX', 'scd_' );
 
 // Debug constants with granular control
-// Users can override SCD_DEBUG in wp-config.php to control plugin debugging independently
+// SCD_DEBUG controls verbose debug logging - OFF by default for production
+// Users can enable via: define( 'SCD_DEBUG', true ); in wp-config.php
+// Or via Admin Settings > Advanced > Debug Mode toggle (auto-expires in 24h)
 if ( ! defined( 'SCD_DEBUG' ) ) {
-	define( 'SCD_DEBUG', defined( 'WP_DEBUG' ) && WP_DEBUG );
+	define( 'SCD_DEBUG', false );
 }
 
 // Development mode for asset loading (unminified assets)
@@ -102,10 +104,11 @@ define( 'SCD_DEV_MODE', SCD_DEBUG && defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG )
 /**
  * Logging level control
  * Options: 'none', 'error', 'warning', 'notice', 'info', 'debug'
- * Default: 'debug' when SCD_DEBUG is true, 'error' otherwise
+ * Default: 'warning' - captures errors and warnings (useful for support)
+ * Users can adjust via Admin Settings > Advanced > Logging Level
  */
 if ( ! defined( 'SCD_LOG_LEVEL' ) ) {
-	define( 'SCD_LOG_LEVEL', SCD_DEBUG ? 'debug' : 'error' );
+	define( 'SCD_LOG_LEVEL', SCD_DEBUG ? 'debug' : 'warning' );
 }
 
 /**
@@ -149,24 +152,25 @@ if ( ! defined( 'SCD_DEBUG_FRONTEND' ) ) {
  * The plugin uses a granular logging system with configurable levels and outputs.
  * All settings can be overridden in wp-config.php before this plugin loads.
  *
- * QUICK START - REDUCE LOG VOLUME:
- * Add to wp-config.php (before require_once ABSPATH . 'wp-settings.php'):
+ * DEFAULT BEHAVIOR (no configuration needed):
+ * - Log level: 'warning' - captures errors and warnings for support
+ * - Debug mode: OFF - no verbose logging
+ * - Logs written to: wp-content/uploads/smart-cycle-discounts/logs/plugin.log
  *
- *     define( 'SCD_LOG_LEVEL', 'error' );        // Only log errors
- *     define( 'SCD_LOG_TO_DEBUG_LOG', false );   // Don't write to WordPress debug.log
- *
- * AVAILABLE CONSTANTS:
+ * AVAILABLE CONSTANTS (add to wp-config.php before 'wp-settings.php'):
  *
  * 1. SCD_DEBUG (bool)
- *    - Controls plugin debugging features
- *    - Default: true when WP_DEBUG is true
- *    - Example: define( 'SCD_DEBUG', false );
+ *    - Controls verbose debug logging (detailed traces, AJAX requests, etc.)
+ *    - Default: false (production-safe)
+ *    - Can also enable via Admin Settings > Advanced > Debug Mode (24h auto-expire)
+ *    - Example: define( 'SCD_DEBUG', true );
  *
  * 2. SCD_LOG_LEVEL (string)
  *    - Controls minimum logging level
  *    - Options: 'none', 'error', 'warning', 'notice', 'info', 'debug'
- *    - Default: 'debug' when SCD_DEBUG is true, 'error' otherwise
- *    - Example: define( 'SCD_LOG_LEVEL', 'warning' );
+ *    - Default: 'warning' (or 'debug' when SCD_DEBUG is true)
+ *    - Can also set via Admin Settings > Advanced > Logging Level
+ *    - Example: define( 'SCD_LOG_LEVEL', 'error' );
  *
  * 3. SCD_LOG_TO_DEBUG_LOG (bool)
  *    - Write logs to WordPress debug.log via error_log()
@@ -201,22 +205,19 @@ if ( ! defined( 'SCD_DEBUG_FRONTEND' ) ) {
  *
  * RECOMMENDED CONFIGURATIONS:
  *
- * Production (minimal logging):
- *     define( 'SCD_LOG_LEVEL', 'error' );
- *     define( 'SCD_LOG_TO_DEBUG_LOG', false );
+ * Production (default - no changes needed):
+ *     // Uses default 'warning' level - logs errors and warnings only
  *
- * Staging (moderate logging):
- *     define( 'SCD_LOG_LEVEL', 'warning' );
- *     define( 'SCD_LOG_TO_DEBUG_LOG', false );
+ * Production (minimal logging):
+ *     define( 'SCD_LOG_LEVEL', 'error' );  // Only critical errors
  *
  * Development (full logging):
  *     define( 'SCD_DEBUG', true );
- *     define( 'SCD_LOG_LEVEL', 'debug' );
- *     define( 'SCD_LOG_TO_DEBUG_LOG', true );
+ *     define( 'SCD_LOG_TO_DEBUG_LOG', true );  // Also write to WP debug.log
  *
- * Troubleshooting specific issues:
- *     define( 'SCD_LOG_LEVEL', 'info' );
- *     define( 'SCD_LOG_MAX_AGE_DAYS', 1 ); // Clean up quickly
+ * Troubleshooting user issues:
+ *     // Enable via Admin Settings > Advanced > Debug Mode
+ *     // Auto-expires after 24 hours for security
  *
  * ========================================
  */

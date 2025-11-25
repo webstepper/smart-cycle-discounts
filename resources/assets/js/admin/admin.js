@@ -7,6 +7,28 @@
 ( function( $ ) {
 	'use strict';
 
+	/**
+	 * Patch jQuery .focus() to handle empty collections gracefully.
+	 *
+	 * The Freemius SDK (vendor library) has a bug in connect.php where it chains
+	 * .focus() on a jQuery collection that may be empty (e.g., when #fs_license_key
+	 * doesn't exist). This causes "Cannot read properties of null (reading 'focus')"
+	 * errors. Rather than modifying vendor code (which would be overwritten on updates),
+	 * we patch jQuery to safely handle empty collections.
+	 *
+	 * @since 1.0.0
+	 */
+	( function() {
+		var originalFocus = $.fn.focus;
+		$.fn.focus = function() {
+			if ( 0 === this.length ) {
+				// Return this for chaining (empty collection - nothing to focus)
+				return this;
+			}
+			return originalFocus.apply( this, arguments );
+		};
+	} )();
+
 	window.SCD = window.SCD || {};
 	window.SCD.Admin = window.SCD.Admin || {};
 
@@ -18,7 +40,7 @@
 		config: {
 			ajaxUrl: window.ajaxurl || '',
 			nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || '',
-			restNonce: ( window.scdAdmin && window.scdAdmin.rest_nonce ) || ( window.wpApiSettings && window.wpApiSettings.nonce ) || '',
+			restNonce: ( window.scdAdmin && window.scdAdmin.restNonce ) || ( window.wpApiSettings && window.wpApiSettings.nonce ) || '',
 			debug: ( window.scdAdmin && window.scdAdmin.debug ) || false,
 			strings: ( window.scdAdmin && window.scdAdmin.strings ) || {}
 		},

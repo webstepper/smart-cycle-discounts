@@ -104,11 +104,8 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 
 			return $this->handle_search( $request );
 		} catch ( Exception $e ) {
-			// Log the error for debugging
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD Product Search Handler] Error: ' . $e->getMessage() );
-				error_log( '[SCD Product Search Handler] Stack trace: ' . $e->getTraceAsString() );
-			}
+			// Log the error using proper logger
+			$this->log_error( 'Product search error: ' . $e->getMessage() );
 
 			return array(
 				'success' => false,
@@ -326,11 +323,6 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 			}
 		}
 
-		// If parent is specified, filter by parent
-		if ( $parent > 0 ) {
-			$args['parent'] = $parent;
-		}
-
 		$terms      = get_terms( $args );
 		$categories = array();
 
@@ -345,12 +337,15 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 				);
 			}
 
-			// If no parent specified, build hierarchical structure
-			if ( 0 === $parent && empty( $search ) ) {
+			// Always build hierarchical structure for categories (no search, no specific IDs)
+			if ( empty( $search ) && empty( $ids ) ) {
 				$categories = array_merge( $categories, $this->build_category_hierarchy( $terms ) );
 			} else {
-				// Otherwise, just return the terms as-is
+				// For search or specific IDs, return flat list
 				foreach ( $terms as $term ) {
+					$thumbnail_id = get_term_meta( $term->term_id, 'thumbnail_id', true );
+					$image_url    = $thumbnail_id ? wp_get_attachment_image_url( $thumbnail_id, 'thumbnail' ) : '';
+
 					$categories[] = array(
 						'value'  => $term->term_id,
 						'text'   => $term->name,
@@ -358,6 +353,7 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 						'parent' => $term->parent,
 						'slug'   => $term->slug,
 						'level'  => 0, // Default level for non-hierarchical display
+						'image'  => $image_url,
 					);
 				}
 			}
@@ -396,24 +392,42 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 	private function build_category_hierarchy( $categories, $parent_id = 0, $level = 0 ) {
 		$hierarchy = array();
 
+		// Get category metadata service
+		$metadata_service = $this->get_category_metadata_service();
+
 		foreach ( $categories as $category ) {
 			if ( $category->parent === $parent_id ) {
-				$has_children = false;
+				$has_children      = false;
+				$subcategory_count = 0;
+
 				foreach ( $categories as $check_cat ) {
 					if ( $check_cat->parent === $category->term_id ) {
 						$has_children = true;
-						break;
+						++$subcategory_count;
 					}
 				}
 
+				// Get category thumbnail (WooCommerce feature)
+				$thumbnail_id = get_term_meta( $category->term_id, 'thumbnail_id', true );
+				$image_url    = $thumbnail_id ? wp_get_attachment_image_url( $thumbnail_id, 'thumbnail' ) : '';
+
+				// Get enhanced metadata (cached)
+				$metadata = $metadata_service ? $metadata_service->get_category_metadata( $category->term_id ) : array();
+
 				$hierarchy[] = array(
-					'value'        => $category->term_id,
-					'text'         => $category->name,
-					'count'        => $category->count,
-					'parent'       => $category->parent,
-					'slug'         => $category->slug,
-					'level'        => $level,
-					'has_children' => $has_children,
+					'value'             => $category->term_id,
+					'text'              => $category->name,
+					'count'             => $category->count,
+					'parent'            => $category->parent,
+					'slug'              => $category->slug,
+					'level'             => $level,
+					'has_children'      => $has_children,
+					'image'             => $image_url,
+					'subcategory_count' => $subcategory_count,
+					'stock_percent'     => isset( $metadata['stock_percent'] ) ? $metadata['stock_percent'] : 0,
+					'on_sale_count'     => isset( $metadata['on_sale_count'] ) ? $metadata['on_sale_count'] : 0,
+					'price_min'         => isset( $metadata['price_min'] ) ? $metadata['price_min'] : 0,
+					'price_max'         => isset( $metadata['price_max'] ) ? $metadata['price_max'] : 0,
 				);
 
 				// Recursively get children
@@ -423,6 +437,20 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		return $hierarchy;
+	}
+
+	/**
+	 * Get category metadata service.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   SCD_Category_Metadata_Service|null    Service instance or null.
+	 */
+	private function get_category_metadata_service() {
+		if ( class_exists( 'SCD_Category_Metadata_Service' ) ) {
+			return new SCD_Category_Metadata_Service();
+		}
+		return null;
 	}
 
 	/**

@@ -19,16 +19,100 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Abstract class SCD_Wizard_Sidebar_Base
  *
- * Provides common functionality for all sidebar implementations
+ * Provides common functionality for all sidebar implementations.
+ * Now supports both legacy static sidebars and new contextual sidebar system.
  */
 abstract class SCD_Wizard_Sidebar_Base {
+
+	/**
+	 * Step identifier
+	 *
+	 * @var string
+	 */
+	protected $step = '';
+
+	/**
+	 * Step data for contextual rendering
+	 *
+	 * @var array
+	 */
+	protected $step_data = array();
+
+	/**
+	 * Use contextual sidebar system
+	 *
+	 * @var bool
+	 */
+	protected $use_contextual = true;
 
 	/**
 	 * Get the sidebar content
 	 *
 	 * @return string HTML content
 	 */
-	abstract public function get_content();
+	public function get_content() {
+
+		// Use new contextual sidebar system if enabled
+		if ( $this->use_contextual && class_exists( 'SCD_Sidebar_Renderer' ) ) {
+			return $this->get_contextual_sidebar();
+		}
+
+		// Fallback to legacy sidebar rendering
+		return $this->get_legacy_content();
+	}
+
+	/**
+	 * Get legacy static sidebar content
+	 * Override in child classes for legacy mode
+	 *
+	 * @return string HTML content
+	 */
+	protected function get_legacy_content() {
+		return $this->render_wrapper(
+			'',
+			''
+		);
+	}
+
+	/**
+	 * Get contextual sidebar using new system
+	 *
+	 * @return string HTML content
+	 */
+	protected function get_contextual_sidebar() {
+
+		if ( ! class_exists( 'SCD_Sidebar_Renderer' ) ) {
+			return '';
+		}
+
+		$html = SCD_Sidebar_Renderer::render_complete_sidebar(
+			$this->step,
+			$this->step_data
+		);
+
+
+		return $html;
+	}
+
+	/**
+	 * Set step identifier
+	 *
+	 * @param string $step Step identifier.
+	 * @return void
+	 */
+	public function set_step( $step ) {
+		$this->step = $step;
+	}
+
+	/**
+	 * Set step data for contextual rendering
+	 *
+	 * @param array $data Step data.
+	 * @return void
+	 */
+	public function set_step_data( $data ) {
+		$this->step_data = is_array( $data ) ? $data : array();
+	}
 
 	/**
 	 * Render the sidebar wrapper

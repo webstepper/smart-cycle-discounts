@@ -81,38 +81,7 @@ class SCD_Theme_Color_Inline_Styles {
 		$css .= '}' . "\n";
 
 		$css .= "\n" . '/* Badge styles are now in shared/_badges.css */' . "\n";
-
-		$css .= "\n" . '/* Draft Notice Styles */' . "\n";
-		$css .= '.scd-draft-notice {' . "\n";
-		$css .= '    display: flex;' . "\n";
-		$css .= '    align-items: center;' . "\n";
-		$css .= '    padding: 12px;' . "\n";
-		$css .= '}' . "\n";
-
-		$css .= '.scd-draft-notice p {' . "\n";
-		$css .= '    margin: 0;' . "\n";
-		$css .= '    display: flex;' . "\n";
-		$css .= '    align-items: center;' . "\n";
-		$css .= '    width: 100%;' . "\n";
-		$css .= '}' . "\n";
-
-		$css .= '.scd-draft-meta {' . "\n";
-		$css .= '    color: #646970;' . "\n";
-		$css .= '    font-size: 12px;' . "\n";
-		$css .= '    margin-left: 8px;' . "\n";
-		$css .= '}' . "\n";
-
-		$css .= '.scd-draft-actions {' . "\n";
-		$css .= '    margin-left: auto;' . "\n";
-		$css .= '    display: flex;' . "\n";
-		$css .= '    gap: 12px;' . "\n";
-		$css .= '    align-items: center;' . "\n";
-		$css .= '}' . "\n";
-
-		$css .= '.button-secondary .dashicons {' . "\n";
-		$css .= '    margin-right: 4px;' . "\n";
-		$css .= '    vertical-align: middle;' . "\n";
-		$css .= '}' . "\n";
+		$css .= "\n" . '/* Draft Notice styles are now in campaigns-list.css */' . "\n";
 
 		$css .= "\n" . '/* Prevent color transitions during initial load */' . "\n";
 		$css .= 'body:not(.scd-colors-loaded) * {' . "\n";

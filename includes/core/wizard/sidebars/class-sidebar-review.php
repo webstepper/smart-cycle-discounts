@@ -44,20 +44,25 @@ class SCD_Wizard_Sidebar_Review extends SCD_Wizard_Sidebar_Base {
 	 * Constructor
 	 *
 	 * @since 1.0.0
-	 * @param SCD_Wizard_State_Service $state_service State service instance.
+	 * @param SCD_Wizard_State_Service $state_service State service instance (optional for contextual mode).
 	 */
-	public function __construct( SCD_Wizard_State_Service $state_service ) {
-		$this->state_service   = $state_service;
-		$this->summary_service = new SCD_Campaign_Summary_Service();
+	public function __construct( SCD_Wizard_State_Service $state_service = null ) {
+		$this->step           = 'review';
+		$this->use_contextual = true;
+
+		if ( $state_service ) {
+			$this->state_service   = $state_service;
+			$this->summary_service = new SCD_Campaign_Summary_Service();
+		}
 	}
 
 	/**
-	 * Get sidebar content
+	 * Get legacy sidebar content (fallback)
 	 *
 	 * @since  1.0.0
 	 * @return string HTML content
 	 */
-	public function get_content() {
+	protected function get_legacy_content() {
 		return $this->render_wrapper(
 			__( 'Campaign Summary', 'smart-cycle-discounts' ),
 			__( 'Review your campaign settings before launching', 'smart-cycle-discounts' )
@@ -258,8 +263,6 @@ class SCD_Wizard_Sidebar_Review extends SCD_Wizard_Sidebar_Base {
 			'collapsed'
 		);
 	}
-
-	/**
 
 	/**
 	 * Render pre-launch checklist section

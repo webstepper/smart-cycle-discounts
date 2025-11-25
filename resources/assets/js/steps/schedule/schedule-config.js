@@ -78,7 +78,7 @@
 		// CSS Classes
 		classes: {
 			// Input states
-			error: 'scd-input--error',
+			error: 'error',
 			loading: 'scd-loading',
 
 			// Status panels
