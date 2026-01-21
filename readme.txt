@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: woocommerce, discount, dynamic pricing, bulk discount, sale
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.0.5
+Stable tag: 1.0.6
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -59,29 +59,28 @@ Your first campaign takes under 2 minutes. Your hundredth takes the same.
 
 **Advanced Discount Types**
 
-| Discount Type | What It Does |
-|--------------|--------------|
-| **Tiered Pricing** | Buy 5+ get 10% off, Buy 10+ get 20% off |
-| **Buy One Get One** | Flexible BOGO with custom quantities and percentages |
-| **Spend Threshold** | Spend $100 get 15% off entire order |
+* **Tiered Pricing** - Buy 5+ get 10% off, Buy 10+ get 20% off
+* **Buy One Get One** - Flexible BOGO with custom quantities and percentages
+* **Spend Threshold** - Spend $100 get 15% off entire order
 
-**Smart Automation**
+**Included in Free:**
 
-| Feature | Free | Pro |
-|---------|------|-----|
-| Percentage & Fixed Discounts | Yes | Yes |
-| Unlimited Campaigns | Yes | Yes |
-| Scheduled Activation | Yes | Yes |
-| Campaign Health Monitoring | Yes | Yes |
-| Tiered Quantity Discounts | - | Yes |
-| BOGO Offers | - | Yes |
-| Spend Threshold Discounts | - | Yes |
-| Per-Customer Usage Limits | - | Yes |
-| Auto-Select Best Sellers | - | Yes |
-| Auto-Select Low Stock Items | - | Yes |
-| Performance Analytics | - | Yes |
-| Email Notifications | - | Yes |
-| REST API Access | - | Yes |
+* Percentage & Fixed Discounts
+* Unlimited Campaigns
+* Scheduled Activation
+* Campaign Health Monitoring
+
+**Pro Adds:**
+
+* Tiered Quantity Discounts
+* BOGO Offers
+* Spend Threshold Discounts
+* Per-Customer Usage Limits
+* Auto-Select Best Sellers
+* Auto-Select Low Stock Items
+* Performance Analytics
+* Email Notifications
+* REST API Access
 
 [Upgrade to Pro](https://webstepper.io/wordpress/plugins/smart-cycle-discounts/)
 
@@ -258,7 +257,8 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 
 == Changelog ==
 
-= 1.0.5 =
+= 1.0.6 =
+* Improved Free vs Pro feature comparison formatting
 * Fixed short description length (under 150 characters)
 
 = 1.0.4 =
@@ -295,8 +295,8 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 
 == Upgrade Notice ==
 
-= 1.0.5 =
-Fixed short description length for WordPress.org compliance.
+= 1.0.6 =
+Improved readme formatting for WordPress.org.
 
 = 1.0.4 =
 Improved WordPress.org listing with rewritten description, comparison tables, and real-world examples.
