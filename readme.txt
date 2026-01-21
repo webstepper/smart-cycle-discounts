@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: flash sale, bogo, bulk discount, tiered pricing, automatic discount
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.0.9
+Stable tag: 1.0.10
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -257,7 +257,7 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 
 == Changelog ==
 
-= 1.0.9 =
+= 1.0.10 =
 * Updated plugin description for WP Admin consistency
 * New WordPress.org banners
 * SEO-optimized short description with high-value keywords
@@ -297,7 +297,7 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 
 == Upgrade Notice ==
 
-= 1.0.9 =
+= 1.0.10 =
 Updated plugin description and new banners.
 
 = 1.0.4 =
