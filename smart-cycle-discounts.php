@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Smart Cycle Discounts – WooCommerce Discount Campaigns, Dynamic Pricing & Scheduled Sales
+ * Plugin Name: Smart Cycle Discounts
  * Plugin URI: https://webstepper.io/wordpress/plugins/smart-cycle-discounts/
  * Description: Revolutionary WooCommerce discount management with intelligent product rotation, multi-campaign organization, and advanced scheduling. Built with modern WordPress & WooCommerce standards.
  * Version: 1.0.1
