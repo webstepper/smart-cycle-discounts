@@ -3,12 +3,12 @@ Contributors: webstepper
 Tags: woocommerce, discount, dynamic pricing, bulk discount, sale
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Schedule WooCommerce sales that run themselves. Set dates, pick products, choose discounts - campaigns activate automatically. No manual price updates.
+Schedule WooCommerce sales that run themselves. Set dates, pick products, choose discounts - campaigns activate automatically.
 
 == Description ==
 
@@ -258,6 +258,9 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 
 == Changelog ==
 
+= 1.0.5 =
+* Fixed short description length (under 150 characters)
+
 = 1.0.4 =
 * Completely rewritten plugin description for better clarity and discoverability
 * Added Free vs Pro comparison table
@@ -291,6 +294,9 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.0.5 =
+Fixed short description length for WordPress.org compliance.
 
 = 1.0.4 =
 Improved WordPress.org listing with rewritten description, comparison tables, and real-world examples.
