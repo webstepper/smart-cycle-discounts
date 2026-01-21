@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: woocommerce, discount, dynamic pricing, bulk discount, sale
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -261,9 +261,12 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 
 == Changelog ==
 
-= 1.0.2 =
+= 1.0.3 =
 * Updated plugin banners for WordPress.org
 * Simplified plugin name display in WP Admin
+
+= 1.0.2 =
+* Deployment configuration updates
 
 = 1.0.1 =
 * Updated plugin name for better discoverability on WordPress.org
@@ -285,8 +288,11 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 
 == Upgrade Notice ==
 
-= 1.0.2 =
+= 1.0.3 =
 Updated plugin banners and cleaner plugin name in WP Admin.
+
+= 1.0.2 =
+Deployment configuration updates.
 
 = 1.0.1 =
 Minor update with improved plugin naming for better WordPress.org search visibility.
