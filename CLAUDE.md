@@ -624,6 +624,149 @@ class WSSCD_Example_Handler {
 }
 ```
 
+## 🚀 DEPLOYMENT & RELEASE WORKFLOW
+
+### Release Process Overview
+
+The plugin is distributed via:
+1. **Freemius** - Pro version sales + free version hosting
+2. **WordPress.org** - Free version distribution
+
+### Step-by-Step Release Process
+
+#### Step 1: Make Code Changes
+```
+Edit files, fix bugs, add features as needed
+```
+
+#### Step 2: Update Version Numbers
+Update version in TWO files:
+
+**`smart-cycle-discounts.php`** (line 6):
+```php
+* Version: X.X.X
+```
+
+**`readme.txt`** (line 6 + add changelog entry):
+```
+Stable tag: X.X.X
+
+== Changelog ==
+
+= X.X.X =
+* Description of changes
+```
+
+#### Step 3: Commit & Push to GitHub
+```bash
+git add -A
+git commit -m "Version X.X.X: Description of changes"
+git push origin main
+```
+
+#### Step 4: Create Git Tag (Triggers Freemius Deploy)
+```bash
+git tag X.X.X
+git push origin X.X.X
+```
+→ **GitHub Action automatically deploys to Freemius**
+
+#### Step 5: Download Free Version from Freemius
+1. Wait ~2 minutes for GitHub Action to complete
+2. Go to **Freemius Dashboard** → **Deployment**
+3. Download the **free version** zip file
+
+#### Step 6: Deploy to WordPress.org
+```bash
+./deploy-to-wporg.sh ~/Downloads/smart-cycle-discounts-free-X.X.X.zip
+```
+→ Script handles SVN trunk update, version tag, and commit
+
+### Quick Reference Commands
+
+```bash
+# Full release sequence
+git add -A
+git commit -m "Version X.X.X: [changes]"
+git push origin main
+git tag X.X.X
+git push origin X.X.X
+
+# After downloading free zip from Freemius (~2 min wait)
+./deploy-to-wporg.sh /path/to/smart-cycle-discounts-free-X.X.X.zip
+```
+
+### Deployment Architecture
+
+```
+Code Changes
+    ↓
+git commit + push
+    ↓
+git tag X.X.X + push tag
+    ↓
+┌─────────────────────────────────────┐
+│  GitHub Action (AUTOMATIC)          │
+│  .github/workflows/freemius-deploy.yml
+│  → Creates zip (excludes dev files) │
+│  → Uploads to Freemius              │
+│  → Freemius splits free/pro         │
+└─────────────────────────────────────┘
+    ↓
+Download free zip from Freemius Dashboard
+    ↓
+┌─────────────────────────────────────┐
+│  Manual: ./deploy-to-wporg.sh       │
+│  → Extracts zip to SVN trunk        │
+│  → Creates version tag              │
+│  → Commits to WordPress.org         │
+└─────────────────────────────────────┘
+```
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `.github/workflows/freemius-deploy.yml` | GitHub Action for Freemius |
+| `deploy-to-wporg.sh` | WordPress.org SVN deploy script |
+| `~/svn-deploy/smart-cycle-discounts/` | Local SVN checkout |
+
+### GitHub Secrets Required
+
+These must be configured at: `https://github.com/webstepper/smart-cycle-discounts/settings/secrets/actions`
+
+| Secret | Source |
+|--------|--------|
+| `FREEMIUS_DEV_ID` | Freemius → Profile → Developer ID |
+| `FREEMIUS_PLUGIN_ID` | Freemius → Plugin → Settings → Plugin ID |
+| `FREEMIUS_PUBLIC_KEY` | Freemius → Plugin → Settings → Public Key |
+| `FREEMIUS_SECRET_KEY` | Freemius → Plugin → Settings → Secret Key |
+
+### Files Excluded from Production Build
+
+The GitHub Action excludes these from the Freemius zip:
+- `.git*`, `.github/*` - Version control
+- `.wordpress-org/*` - SVN assets only
+- `tests/*`, `bin/*` - Development/testing
+- `*.md`, `*.sh`, `*.py` - Documentation/scripts
+- `composer.json`, `composer.lock` - PHP dependencies config
+- `phpunit*.xml`, `package*.json` - Config files
+- `vendor/*` (except `vendor/freemius/`) - Dev dependencies
+- `Webstepper.io/*` - Website content
+
+### Troubleshooting
+
+**GitHub Action failed?**
+- Check Actions tab: `https://github.com/webstepper/smart-cycle-discounts/actions`
+- Verify all 4 secrets are configured correctly
+
+**SVN commit failed?**
+- Run `svn update` in `~/svn-deploy/smart-cycle-discounts/`
+- Check SVN credentials
+
+**Version mismatch?**
+- Ensure version matches in BOTH `smart-cycle-discounts.php` AND `readme.txt`
+
 ---
 
 **Remember**: These rules ensure WordPress.org approval, maintainability, security, and optimal performance. Follow them strictly for every implementation.
