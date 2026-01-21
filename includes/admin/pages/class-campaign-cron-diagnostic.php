@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/pages
  */
-class SCD_Campaign_Cron_Diagnostic {
+class WSSCD_Campaign_Cron_Diagnostic {
 
 	/**
 	 * Initialize the diagnostic page.
@@ -33,7 +33,7 @@ class SCD_Campaign_Cron_Diagnostic {
 	 */
 	public function init(): void {
 		add_action( 'admin_menu', array( $this, 'add_diagnostic_page' ), 99 );
-		add_action( 'admin_post_scd_test_cron', array( $this, 'handle_test_cron' ) );
+		add_action( 'admin_post_wsscd_test_cron', array( $this, 'handle_test_cron' ) );
 	}
 
 	/**
@@ -48,7 +48,7 @@ class SCD_Campaign_Cron_Diagnostic {
 			'Campaign Cron Diagnostic',
 			'Campaign Cron',
 			'manage_options',
-			'scd-cron-diagnostic',
+			'wsscd-cron-diagnostic',
 			array( $this, 'render_page' )
 		);
 	}
@@ -105,7 +105,7 @@ class SCD_Campaign_Cron_Diagnostic {
 						<td>
 							<?php if ( $next_cron_run ) : ?>
 								<?php echo esc_html( human_time_diff( $next_cron_run ) ); ?> from now
-								<br><small><?php echo esc_html( date( 'Y-m-d H:i:s', $next_cron_run ) ); ?></small>
+								<br><small><?php echo esc_html( gmdate( 'Y-m-d H:i:s', $next_cron_run ) ); ?></small>
 							<?php else : ?>
 								<span style="color: orange;">⚠️ Not scheduled</span>
 							<?php endif; ?>
@@ -142,14 +142,14 @@ class SCD_Campaign_Cron_Diagnostic {
 										<?php endif; ?>
 									</td>
 									<td>
-										<?php echo esc_html( date( 'Y-m-d H:i:s', $event['timestamp'] ) ); ?>
+										<?php echo esc_html( wp_date( 'Y-m-d H:i:s', $event['timestamp'] ) ); ?>
 										<br>
 										<small>
 											<?php
 											if ( $event['timestamp'] > time() ) {
-												echo 'in ' . human_time_diff( $event['timestamp'] );
+												echo 'in ' . esc_html( human_time_diff( $event['timestamp'] ) );
 											} else {
-												echo human_time_diff( $event['timestamp'] ) . ' ago';
+												echo esc_html( human_time_diff( $event['timestamp'] ) ) . ' ago';
 											}
 											?>
 										</small>
@@ -162,9 +162,9 @@ class SCD_Campaign_Cron_Diagnostic {
 										<?php endif; ?>
 									</td>
 									<td>
-										<form method="post" action="<?php echo admin_url( 'admin-post.php' ); ?>" style="display: inline;">
-											<?php wp_nonce_field( 'scd_test_cron' ); ?>
-											<input type="hidden" name="action" value="scd_test_cron">
+										<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display: inline;">
+											<?php wp_nonce_field( 'wsscd_test_cron' ); ?>
+											<input type="hidden" name="action" value="wsscd_test_cron">
 											<input type="hidden" name="campaign_id" value="<?php echo esc_attr( $event['campaign_id'] ); ?>">
 											<input type="hidden" name="event_type" value="<?php echo esc_attr( $event['type'] ); ?>">
 											<button type="submit" class="button button-small">
@@ -186,9 +186,9 @@ class SCD_Campaign_Cron_Diagnostic {
 
 				<h3>Trigger Safety Check</h3>
 				<p>This runs the same process that the 15-minute cron job runs:</p>
-				<form method="post" action="<?php echo admin_url( 'admin-post.php' ); ?>">
-					<?php wp_nonce_field( 'scd_test_cron' ); ?>
-					<input type="hidden" name="action" value="scd_test_cron">
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<?php wp_nonce_field( 'wsscd_test_cron' ); ?>
+					<input type="hidden" name="action" value="wsscd_test_cron">
 					<input type="hidden" name="trigger_safety_check" value="1">
 					<button type="submit" class="button button-primary">
 						Run Safety Check Now
@@ -261,7 +261,7 @@ class SCD_Campaign_Cron_Diagnostic {
 		foreach ( $crons as $timestamp => $cron ) {
 			foreach ( $cron as $hook => $details ) {
 				// Match activation hooks
-				if ( preg_match( '/^scd_activate_campaign_(\d+)$/', $hook, $matches ) ) {
+				if ( preg_match( '/^wsscd_activate_campaign_(\d+)$/', $hook, $matches ) ) {
 					$events[] = array(
 						'campaign_id' => (int) $matches[1],
 						'type'        => 'activate',
@@ -271,7 +271,7 @@ class SCD_Campaign_Cron_Diagnostic {
 				}
 
 				// Match deactivation hooks
-				if ( preg_match( '/^scd_deactivate_campaign_(\d+)$/', $hook, $matches ) ) {
+				if ( preg_match( '/^wsscd_deactivate_campaign_(\d+)$/', $hook, $matches ) ) {
 					$events[] = array(
 						'campaign_id' => (int) $matches[1],
 						'type'        => 'deactivate',
@@ -328,7 +328,7 @@ class SCD_Campaign_Cron_Diagnostic {
 	 * @return   int|false    Timestamp or false.
 	 */
 	private function get_next_safety_check() {
-		return wp_next_scheduled( 'scd_update_campaign_status' );
+		return wp_next_scheduled( 'wsscd_update_campaign_status' );
 	}
 
 	/**
@@ -342,16 +342,17 @@ class SCD_Campaign_Cron_Diagnostic {
 			wp_die( 'Access denied' );
 		}
 
-		check_admin_referer( 'scd_test_cron' );
+		check_admin_referer( 'wsscd_test_cron' );
 
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verified above via check_admin_referer().
 		if ( isset( $_POST['trigger_safety_check'] ) ) {
 			// Trigger the safety check
-			do_action( 'scd_update_campaign_status' );
+			do_action( 'wsscd_update_campaign_status' );
 
-			wp_redirect(
+			wp_safe_redirect(
 				add_query_arg(
 					array(
-						'page'    => 'scd-cron-diagnostic',
+						'page'    => 'wsscd-cron-diagnostic',
 						'message' => 'safety_check_run',
 					),
 					admin_url( 'tools.php' )
@@ -361,20 +362,20 @@ class SCD_Campaign_Cron_Diagnostic {
 		}
 
 		if ( isset( $_POST['campaign_id'] ) && isset( $_POST['event_type'] ) ) {
-			$campaign_id = (int) $_POST['campaign_id'];
-			$event_type  = sanitize_text_field( $_POST['event_type'] );
+			$campaign_id = absint( $_POST['campaign_id'] );
+			$event_type  = sanitize_text_field( wp_unslash( $_POST['event_type'] ) );
 
 			// Trigger the event
 			if ( 'activate' === $event_type ) {
-				do_action( 'scd_activate_campaign_' . $campaign_id, $campaign_id );
+				do_action( 'wsscd_activate_campaign_' . $campaign_id, $campaign_id );
 			} elseif ( 'deactivate' === $event_type ) {
-				do_action( 'scd_deactivate_campaign_' . $campaign_id, $campaign_id );
+				do_action( 'wsscd_deactivate_campaign_' . $campaign_id, $campaign_id );
 			}
 
-			wp_redirect(
+			wp_safe_redirect(
 				add_query_arg(
 					array(
-						'page'        => 'scd-cron-diagnostic',
+						'page'        => 'wsscd-cron-diagnostic',
 						'message'     => 'event_triggered',
 						'campaign_id' => $campaign_id,
 						'event_type'  => $event_type,
@@ -382,10 +383,11 @@ class SCD_Campaign_Cron_Diagnostic {
 					admin_url( 'tools.php' )
 				)
 			);
+			// phpcs:enable WordPress.Security.NonceVerification.Missing
 			exit;
 		}
 
-		wp_redirect( admin_url( 'tools.php?page=scd-cron-diagnostic' ) );
+		wp_safe_redirect( admin_url( 'tools.php?page=wsscd-cron-diagnostic' ) );
 		exit;
 	}
 

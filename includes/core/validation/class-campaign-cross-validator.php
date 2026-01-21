@@ -47,7 +47,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/validation
  */
-class SCD_Campaign_Cross_Validator {
+class WSSCD_Campaign_Cross_Validator {
 
 	/**
 	 * Validate cross-step compatibility.
@@ -61,8 +61,8 @@ class SCD_Campaign_Cross_Validator {
 	 * @return   void
 	 */
 	public static function validate( array $data, WP_Error $errors ) {
-		if ( ! class_exists( 'SCD_Validation_Rules' ) ) {
-			require_once SCD_INCLUDES_DIR . 'core/validation/class-validation-rules.php';
+		if ( ! class_exists( 'WSSCD_Validation_Rules' ) ) {
+			require_once WSSCD_INCLUDES_DIR . 'core/validation/class-validation-rules.php';
 		}
 
 		// Validate discounts + products compatibility
@@ -414,7 +414,7 @@ class SCD_Campaign_Cross_Validator {
 
 		$duration_hours = ( strtotime( $end_date ) - strtotime( $start_date ) ) / HOUR_IN_SECONDS;
 		$has_rotation   = isset( $data['enable_rotation'] ) && 'yes' === $data['enable_rotation'];
-		$is_recurring   = ! empty( $data[ SCD_Schedule_Field_Names::ENABLE_RECURRING ] );
+		$is_recurring   = ! empty( $data[ WSSCD_Schedule_Field_Names::ENABLE_RECURRING ] );
 
 		// Scenario 16: BOGO with very short campaign (warning - limited impact)
 		if ( 'bogo' === $discount_type && $duration_hours < 24 ) {
@@ -557,7 +557,7 @@ class SCD_Campaign_Cross_Validator {
 
 		// Scenario 25: Advanced filters with recurring campaign (filter staleness)
 		$has_conditions = isset( $data['conditions'] ) && ! empty( $data['conditions'] );
-		$is_recurring   = ! empty( $data[ SCD_Schedule_Field_Names::ENABLE_RECURRING ] );
+		$is_recurring   = ! empty( $data[ WSSCD_Schedule_Field_Names::ENABLE_RECURRING ] );
 
 		if ( $has_conditions && $is_recurring ) {
 			$recurrence_interval = isset( $data['recurrence_interval'] ) ? intval( $data['recurrence_interval'] ) : 1;
@@ -596,7 +596,7 @@ class SCD_Campaign_Cross_Validator {
 		$discount_type          = isset( $data['discount_type'] ) ? $data['discount_type'] : '';
 		$product_selection_type = isset( $data['product_selection_type'] ) ? $data['product_selection_type'] : '';
 		$has_rotation           = isset( $data['enable_rotation'] ) && 'yes' === $data['enable_rotation'];
-		$is_recurring           = ! empty( $data[ SCD_Schedule_Field_Names::ENABLE_RECURRING ] );
+		$is_recurring           = ! empty( $data[ WSSCD_Schedule_Field_Names::ENABLE_RECURRING ] );
 
 		// Scenario 26: BOGO + Random + Rotation (complexity warning)
 		if ( 'bogo' === $discount_type && 'random_products' === $product_selection_type && $has_rotation ) {
@@ -665,7 +665,7 @@ class SCD_Campaign_Cross_Validator {
 
 		// Scenario 30: Campaign has all optional features enabled (over-engineering check)
 		$has_rotation     = isset( $data['enable_rotation'] ) && 'yes' === $data['enable_rotation'];
-		$is_recurring     = ! empty( $data[ SCD_Schedule_Field_Names::ENABLE_RECURRING ] );
+		$is_recurring     = ! empty( $data[ WSSCD_Schedule_Field_Names::ENABLE_RECURRING ] );
 		$has_conditions   = isset( $data['conditions'] ) && ! empty( $data['conditions'] );
 		$has_usage_limits = ( isset( $data['usage_limit_per_customer'] ) && intval( $data['usage_limit_per_customer'] ) > 0 ) ||
 		                    ( isset( $data['usage_limit_total'] ) && intval( $data['usage_limit_total'] ) > 0 );
@@ -747,7 +747,7 @@ class SCD_Campaign_Cross_Validator {
 		}
 
 		// Recurrence adds complexity
-		if ( ! empty( $data[ SCD_Schedule_Field_Names::ENABLE_RECURRING ] ) ) {
+		if ( ! empty( $data[ WSSCD_Schedule_Field_Names::ENABLE_RECURRING ] ) ) {
 			$score += 3;
 		}
 

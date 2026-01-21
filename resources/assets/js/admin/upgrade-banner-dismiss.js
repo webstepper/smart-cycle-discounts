@@ -20,15 +20,15 @@
 	 */
 	function initBannerDismiss() {
 		// Handle dismiss button click
-		$( document ).on( 'click', '.scd-banner-dismiss', function ( e ) {
+		$( document ).on( 'click', '.wsscd-banner-dismiss', function ( e ) {
 			e.preventDefault();
 
-			var $banner = $( this ).closest( '.scd-upgrade-banner-inline' );
+			var $banner = $( this ).closest( '.wsscd-upgrade-banner-inline' );
 			var bannerId = $banner.data( 'banner-id' );
 			var dismissNonce = $banner.data( 'dismiss-nonce' );
 
 			if ( ! bannerId || ! dismissNonce ) {
-				console.error( 'SCD: Missing banner ID or nonce for dismiss action' );
+				console.error( 'WSSCD: Missing banner ID or nonce for dismiss action' );
 				return;
 			}
 
@@ -37,7 +37,7 @@
 				url: ajaxurl,
 				type: 'POST',
 				data: {
-					action: 'scd_dismiss_upgrade_banner',
+					action: 'wsscd_dismiss_upgrade_banner',
 					nonce: dismissNonce,
 					bannerId: bannerId
 				},
@@ -52,12 +52,12 @@
 						}, 200 );
 					} else {
 						$banner.fadeIn( 200 );
-						console.error( 'SCD: Failed to dismiss banner:', response.data.message );
+						console.error( 'WSSCD: Failed to dismiss banner:', response.data.message );
 					}
 				},
 				error: function ( xhr, status, error ) {
 					$banner.fadeIn( 200 );
-					console.error( 'SCD: AJAX error dismissing banner:', error );
+					console.error( 'WSSCD: AJAX error dismissing banner:', error );
 				}
 			});
 		});

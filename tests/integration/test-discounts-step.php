@@ -9,6 +9,9 @@
  * @subpackage Smart_Cycle_Discounts/Tests/Integration
  */
 
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter
+// This is a test file, not production code.
+
 /**
  * Test Discounts Step class
  *
@@ -25,28 +28,28 @@ class Test_Discounts_Step extends WP_UnitTestCase {
 	/**
 	 * Container instance.
 	 *
-	 * @var SCD_Container
+	 * @var WSSCD_Container
 	 */
 	private $container;
 
 	/**
 	 * Campaign manager instance.
 	 *
-	 * @var SCD_Campaign_Manager
+	 * @var WSSCD_Campaign_Manager
 	 */
 	private $campaign_manager;
 
 	/**
 	 * Campaign repository instance.
 	 *
-	 * @var SCD_Campaign_Repository
+	 * @var WSSCD_Campaign_Repository
 	 */
 	private $campaign_repository;
 
 	/**
 	 * Wizard state service instance.
 	 *
-	 * @var SCD_Wizard_State_Service
+	 * @var WSSCD_Wizard_State_Service
 	 */
 	private $wizard_state;
 
@@ -78,7 +81,7 @@ class Test_Discounts_Step extends WP_UnitTestCase {
 	public function tearDown(): void {
 		// Clean up campaigns
 		global $wpdb;
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
 		$wpdb->query( "DELETE FROM {$campaigns_table} WHERE name LIKE 'Test Discount%'" );
 
 		// Clear wizard state
@@ -96,7 +99,7 @@ class Test_Discounts_Step extends WP_UnitTestCase {
 	 */
 	public static function tearDownAfterClass(): void {
 		global $wpdb;
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
 		$wpdb->query( "DELETE FROM {$campaigns_table} WHERE name LIKE 'Test Discount%'" );
 
 		parent::tearDownAfterClass();
@@ -231,7 +234,7 @@ class Test_Discounts_Step extends WP_UnitTestCase {
 
 		// Now test the change tracker extraction (the fix we implemented)
 		// Simulate loading campaign for editing
-		$change_tracker = new SCD_Campaign_Change_Tracker(
+		$change_tracker = new WSSCD_Campaign_Change_Tracker(
 			$campaign->get_id(),
 			$this->wizard_state,
 			$this->campaign_manager
@@ -437,7 +440,7 @@ class Test_Discounts_Step extends WP_UnitTestCase {
 		$this->assertNotInstanceOf( 'WP_Error', $campaign );
 
 		// Load campaign through change tracker
-		$change_tracker = new SCD_Campaign_Change_Tracker(
+		$change_tracker = new WSSCD_Campaign_Change_Tracker(
 			$campaign->get_id(),
 			$this->wizard_state,
 			$this->campaign_manager
@@ -472,7 +475,7 @@ class Test_Discounts_Step extends WP_UnitTestCase {
 			'badge_enabled'             => true,
 		);
 
-		$mapped_data = SCD_Wizard_Field_Mapper::map_form_data( $form_data );
+		$mapped_data = WSSCD_Wizard_Field_Mapper::map_form_data( $form_data );
 
 		// Verify all fields are mapped correctly
 		$this->assertEquals( 'percentage', $mapped_data['discount_type'] );
@@ -600,7 +603,7 @@ class Test_Discounts_Step extends WP_UnitTestCase {
 		$campaign_id = $campaign->get_id();
 
 		// Step 2: Load campaign through change tracker (simulating edit mode)
-		$change_tracker = new SCD_Campaign_Change_Tracker(
+		$change_tracker = new WSSCD_Campaign_Change_Tracker(
 			$campaign_id,
 			$this->wizard_state,
 			$this->campaign_manager

@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class SCD_Sidebar_Renderer {
+class WSSCD_Sidebar_Renderer {
 
 	/**
 	 * Render help topic
@@ -42,18 +42,15 @@ class SCD_Sidebar_Renderer {
 
 		ob_start();
 		?>
-		<div class="scd-sidebar-help-topic" data-topic-type="<?php echo esc_attr( $type ); ?>">
-			<div class="scd-sidebar-topic-header">
+		<div class="wsscd-sidebar-help-topic" data-topic-type="<?php echo esc_attr( $type ); ?>">
+			<div class="wsscd-sidebar-topic-header">
 				<?php if ( isset( $topic['icon'] ) ) : ?>
-					<?php
-					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Icon helper handles escaping
-					echo SCD_Icon_Helper::get( $topic['icon'], array( 'size' => 16, 'class' => 'scd-topic-icon' ) );
-					?>
+					<?php WSSCD_Icon_Helper::render( $topic['icon'], array( 'size' => 16, 'class' => 'wsscd-topic-icon' ) ); ?>
 				<?php endif; ?>
-				<h4 class="scd-topic-title"><?php echo esc_html( $topic['title'] ); ?></h4>
+				<h4 class="wsscd-topic-title"><?php echo esc_html( $topic['title'] ); ?></h4>
 			</div>
 
-			<div class="scd-sidebar-topic-content">
+			<div class="wsscd-sidebar-topic-content">
 				<?php
 				switch ( $type ) {
 					case 'examples':
@@ -96,14 +93,14 @@ class SCD_Sidebar_Renderer {
 	private static function render_simple_content( $content ) {
 		?>
 		<?php if ( isset( $content['quick_tip'] ) ) : ?>
-			<div class="scd-quick-tip">
-				<?php echo SCD_Icon_Helper::get( 'lightbulb', array( 'size' => 16 ) ); ?>
+			<div class="wsscd-quick-tip">
+				<?php WSSCD_Icon_Helper::render( 'lightbulb', array( 'size' => 16 ) ); ?>
 				<p><?php echo esc_html( $content['quick_tip'] ); ?></p>
 			</div>
 		<?php endif; ?>
 
 		<?php if ( isset( $content['bullets'] ) && is_array( $content['bullets'] ) ) : ?>
-			<ul class="scd-bullet-list">
+			<ul class="wsscd-bullet-list">
 				<?php foreach ( $content['bullets'] as $bullet ) : ?>
 					<li><?php echo esc_html( $bullet ); ?></li>
 				<?php endforeach; ?>
@@ -111,19 +108,19 @@ class SCD_Sidebar_Renderer {
 		<?php endif; ?>
 
 		<?php if ( isset( $content['pro_tip'] ) ) : ?>
-			<div class="scd-pro-tip">
-				<?php echo SCD_Icon_Helper::get( 'star-filled', array( 'size' => 16 ) ); ?>
+			<div class="wsscd-pro-tip">
+				<?php WSSCD_Icon_Helper::render( 'star-filled', array( 'size' => 16 ) ); ?>
 				<p><strong><?php esc_html_e( 'Pro Tip:', 'smart-cycle-discounts' ); ?></strong> <?php echo esc_html( $content['pro_tip'] ); ?></p>
 			</div>
 		<?php endif; ?>
 
 		<?php if ( isset( $content['common_mistakes'] ) && is_array( $content['common_mistakes'] ) ) : ?>
-			<div class="scd-common-mistakes">
-				<div class="scd-mistakes-header">
-					<?php echo SCD_Icon_Helper::get( 'warning', array( 'size' => 14 ) ); ?>
+			<div class="wsscd-common-mistakes">
+				<div class="wsscd-mistakes-header">
+					<?php WSSCD_Icon_Helper::render( 'warning', array( 'size' => 14 ) ); ?>
 					<strong><?php esc_html_e( 'Common Mistakes', 'smart-cycle-discounts' ); ?></strong>
 				</div>
-				<ul class="scd-mistakes-list">
+				<ul class="wsscd-mistakes-list">
 					<?php foreach ( $content['common_mistakes'] as $mistake ) : ?>
 						<li><?php echo esc_html( $mistake ); ?></li>
 					<?php endforeach; ?>
@@ -143,21 +140,21 @@ class SCD_Sidebar_Renderer {
 	private static function render_pros_cons_content( $content ) {
 		?>
 		<?php if ( isset( $content['quick_tip'] ) ) : ?>
-			<div class="scd-quick-tip">
-				<?php echo SCD_Icon_Helper::get( 'lightbulb', array( 'size' => 16 ) ); ?>
+			<div class="wsscd-quick-tip">
+				<?php WSSCD_Icon_Helper::render( 'lightbulb', array( 'size' => 16 ) ); ?>
 				<p><?php echo esc_html( $content['quick_tip'] ); ?></p>
 			</div>
 		<?php endif; ?>
 
 		<?php if ( isset( $content['pros'] ) || isset( $content['cons'] ) ) : ?>
-			<div class="scd-pros-cons-grid">
+			<div class="wsscd-pros-cons-grid">
 				<?php if ( isset( $content['pros'] ) && is_array( $content['pros'] ) ) : ?>
-					<div class="scd-pros-section">
-						<div class="scd-pros-header">
-							<?php echo SCD_Icon_Helper::get( 'yes', array( 'size' => 14 ) ); ?>
+					<div class="wsscd-pros-section">
+						<div class="wsscd-pros-header">
+							<?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?>
 							<strong><?php esc_html_e( 'Pros', 'smart-cycle-discounts' ); ?></strong>
 						</div>
-						<ul class="scd-pros-list">
+						<ul class="wsscd-pros-list">
 							<?php foreach ( $content['pros'] as $pro ) : ?>
 								<li><?php echo esc_html( $pro ); ?></li>
 							<?php endforeach; ?>
@@ -166,12 +163,12 @@ class SCD_Sidebar_Renderer {
 				<?php endif; ?>
 
 				<?php if ( isset( $content['cons'] ) && is_array( $content['cons'] ) ) : ?>
-					<div class="scd-cons-section">
-						<div class="scd-cons-header">
-							<?php echo SCD_Icon_Helper::get( 'no-alt', array( 'size' => 14 ) ); ?>
+					<div class="wsscd-cons-section">
+						<div class="wsscd-cons-header">
+							<?php WSSCD_Icon_Helper::render( 'no-alt', array( 'size' => 14 ) ); ?>
 							<strong><?php esc_html_e( 'Cons', 'smart-cycle-discounts' ); ?></strong>
 						</div>
-						<ul class="scd-cons-list">
+						<ul class="wsscd-cons-list">
 							<?php foreach ( $content['cons'] as $con ) : ?>
 								<li><?php echo esc_html( $con ); ?></li>
 							<?php endforeach; ?>
@@ -182,8 +179,8 @@ class SCD_Sidebar_Renderer {
 		<?php endif; ?>
 
 		<?php if ( isset( $content['best_for'] ) ) : ?>
-			<div class="scd-usage-info scd-usage-best">
-				<?php echo SCD_Icon_Helper::get( 'yes-alt', array( 'size' => 14 ) ); ?>
+			<div class="wsscd-usage-info wsscd-usage-best">
+				<?php WSSCD_Icon_Helper::render( 'yes-alt', array( 'size' => 14 ) ); ?>
 				<div>
 					<strong><?php esc_html_e( 'Best for:', 'smart-cycle-discounts' ); ?></strong>
 					<span><?php echo esc_html( $content['best_for'] ); ?></span>
@@ -192,8 +189,8 @@ class SCD_Sidebar_Renderer {
 		<?php endif; ?>
 
 		<?php if ( isset( $content['avoid'] ) ) : ?>
-			<div class="scd-usage-info scd-usage-avoid">
-				<?php echo SCD_Icon_Helper::get( 'warning', array( 'size' => 14 ) ); ?>
+			<div class="wsscd-usage-info wsscd-usage-avoid">
+				<?php WSSCD_Icon_Helper::render( 'warning', array( 'size' => 14 ) ); ?>
 				<div>
 					<strong><?php esc_html_e( 'Avoid when:', 'smart-cycle-discounts' ); ?></strong>
 					<span><?php echo esc_html( $content['avoid'] ); ?></span>
@@ -202,8 +199,8 @@ class SCD_Sidebar_Renderer {
 		<?php endif; ?>
 
 		<?php if ( isset( $content['pro_tip'] ) ) : ?>
-			<div class="scd-pro-tip">
-				<?php echo SCD_Icon_Helper::get( 'star-filled', array( 'size' => 16 ) ); ?>
+			<div class="wsscd-pro-tip">
+				<?php WSSCD_Icon_Helper::render( 'star-filled', array( 'size' => 16 ) ); ?>
 				<p><strong><?php esc_html_e( 'Pro Tip:', 'smart-cycle-discounts' ); ?></strong> <?php echo esc_html( $content['pro_tip'] ); ?></p>
 			</div>
 		<?php endif; ?>
@@ -220,24 +217,24 @@ class SCD_Sidebar_Renderer {
 	private static function render_examples_content( $content ) {
 		?>
 		<?php if ( isset( $content['quick_tip'] ) ) : ?>
-			<div class="scd-quick-tip">
-				<?php echo SCD_Icon_Helper::get( 'lightbulb', array( 'size' => 16 ) ); ?>
+			<div class="wsscd-quick-tip">
+				<?php WSSCD_Icon_Helper::render( 'lightbulb', array( 'size' => 16 ) ); ?>
 				<p><?php echo esc_html( $content['quick_tip'] ); ?></p>
 			</div>
 		<?php endif; ?>
 
 		<?php if ( isset( $content['examples'] ) && is_array( $content['examples'] ) ) : ?>
-			<div class="scd-examples-grid">
+			<div class="wsscd-examples-grid">
 				<?php foreach ( $content['examples'] as $example_group ) : ?>
-					<div class="scd-example-group scd-example-<?php echo esc_attr( $example_group['type'] ); ?>">
-						<div class="scd-example-header">
+					<div class="wsscd-example-group wsscd-example-<?php echo esc_attr( $example_group['type'] ); ?>">
+						<div class="wsscd-example-header">
 							<?php
 							$icon = 'success' === $example_group['type'] ? 'yes' : 'no-alt';
-							echo SCD_Icon_Helper::get( $icon, array( 'size' => 16 ) );
+							WSSCD_Icon_Helper::render( $icon, array( 'size' => 16 ) );
 							?>
 							<strong><?php echo esc_html( $example_group['label'] ); ?></strong>
 						</div>
-						<ul class="scd-example-items">
+						<ul class="wsscd-example-items">
 							<?php foreach ( $example_group['items'] as $item ) : ?>
 								<li><?php echo esc_html( $item ); ?></li>
 							<?php endforeach; ?>
@@ -248,8 +245,8 @@ class SCD_Sidebar_Renderer {
 		<?php endif; ?>
 
 		<?php if ( isset( $content['pro_tip'] ) ) : ?>
-			<div class="scd-pro-tip">
-				<?php echo SCD_Icon_Helper::get( 'star-filled', array( 'size' => 16 ) ); ?>
+			<div class="wsscd-pro-tip">
+				<?php WSSCD_Icon_Helper::render( 'star-filled', array( 'size' => 16 ) ); ?>
 				<p><strong><?php esc_html_e( 'Pro Tip:', 'smart-cycle-discounts' ); ?></strong> <?php echo esc_html( $content['pro_tip'] ); ?></p>
 			</div>
 		<?php endif; ?>
@@ -266,27 +263,27 @@ class SCD_Sidebar_Renderer {
 	private static function render_scale_content( $content ) {
 		?>
 		<?php if ( isset( $content['quick_tip'] ) ) : ?>
-			<div class="scd-quick-tip">
-				<?php echo SCD_Icon_Helper::get( 'lightbulb', array( 'size' => 16 ) ); ?>
+			<div class="wsscd-quick-tip">
+				<?php WSSCD_Icon_Helper::render( 'lightbulb', array( 'size' => 16 ) ); ?>
 				<p><?php echo esc_html( $content['quick_tip'] ); ?></p>
 			</div>
 		<?php endif; ?>
 
 		<?php if ( isset( $content['scale'] ) && is_array( $content['scale'] ) ) : ?>
-			<div class="scd-priority-scale">
+			<div class="wsscd-priority-scale">
 				<?php foreach ( $content['scale'] as $level => $info ) : ?>
-					<div class="scd-priority-level scd-priority-<?php echo esc_attr( $level ); ?> <?php echo isset( $info['default'] ) && $info['default'] ? 'scd-priority-default' : ''; ?>">
-						<div class="scd-priority-number"><?php echo esc_html( $level ); ?></div>
-						<div class="scd-priority-stars">
+					<div class="wsscd-priority-level wsscd-priority-<?php echo esc_attr( $level ); ?> <?php echo esc_attr( isset( $info['default'] ) && $info['default'] ? 'wsscd-priority-default' : '' ); ?>">
+						<div class="wsscd-priority-number"><?php echo esc_html( $level ); ?></div>
+						<div class="wsscd-priority-stars">
 							<?php
 							for ( $i = 0; $i < $info['stars']; $i++ ) {
-								echo SCD_Icon_Helper::get( 'star-filled', array( 'size' => 12 ) );
+								WSSCD_Icon_Helper::render( 'star-filled', array( 'size' => 12 ) );
 							}
 							?>
 						</div>
-						<div class="scd-priority-info">
+						<div class="wsscd-priority-info">
 							<strong><?php echo esc_html( $info['label'] ); ?></strong>
-							<span class="scd-priority-use"><?php echo esc_html( $info['use'] ); ?></span>
+							<span class="wsscd-priority-use"><?php echo esc_html( $info['use'] ); ?></span>
 						</div>
 					</div>
 				<?php endforeach; ?>
@@ -294,8 +291,8 @@ class SCD_Sidebar_Renderer {
 		<?php endif; ?>
 
 		<?php if ( isset( $content['pro_tip'] ) ) : ?>
-			<div class="scd-pro-tip">
-				<?php echo SCD_Icon_Helper::get( 'star-filled', array( 'size' => 16 ) ); ?>
+			<div class="wsscd-pro-tip">
+				<?php WSSCD_Icon_Helper::render( 'star-filled', array( 'size' => 16 ) ); ?>
 				<p><strong><?php esc_html_e( 'Pro Tip:', 'smart-cycle-discounts' ); ?></strong> <?php echo esc_html( $content['pro_tip'] ); ?></p>
 			</div>
 		<?php endif; ?>
@@ -312,22 +309,22 @@ class SCD_Sidebar_Renderer {
 	private static function render_methods_content( $content ) {
 		?>
 		<?php if ( isset( $content['quick_tip'] ) ) : ?>
-			<div class="scd-quick-tip">
-				<?php echo SCD_Icon_Helper::get( 'lightbulb', array( 'size' => 16 ) ); ?>
+			<div class="wsscd-quick-tip">
+				<?php WSSCD_Icon_Helper::render( 'lightbulb', array( 'size' => 16 ) ); ?>
 				<p><?php echo esc_html( $content['quick_tip'] ); ?></p>
 			</div>
 		<?php endif; ?>
 
 		<?php if ( isset( $content['methods'] ) && is_array( $content['methods'] ) ) : ?>
-			<div class="scd-methods-list">
+			<div class="wsscd-methods-list">
 				<?php foreach ( $content['methods'] as $method_id => $method ) : ?>
-					<div class="scd-method-item" data-method="<?php echo esc_attr( $method_id ); ?>">
-						<?php echo SCD_Icon_Helper::get( $method['icon'], array( 'size' => 16, 'class' => 'scd-method-icon' ) ); ?>
-						<div class="scd-method-content">
+					<div class="wsscd-method-item" data-method="<?php echo esc_attr( $method_id ); ?>">
+						<?php WSSCD_Icon_Helper::render( $method['icon'], array( 'size' => 16, 'class' => 'wsscd-method-icon' ) ); ?>
+						<div class="wsscd-method-content">
 							<strong><?php echo esc_html( $method['label'] ); ?></strong>
-							<p class="scd-method-desc"><?php echo esc_html( $method['desc'] ); ?></p>
+							<p class="wsscd-method-desc"><?php echo esc_html( $method['desc'] ); ?></p>
 							<?php if ( isset( $method['when'] ) ) : ?>
-								<p class="scd-method-when"><em><?php esc_html_e( 'Use for:', 'smart-cycle-discounts' ); ?></em> <?php echo esc_html( $method['when'] ); ?></p>
+								<p class="wsscd-method-when"><em><?php esc_html_e( 'Use for:', 'smart-cycle-discounts' ); ?></em> <?php echo esc_html( $method['when'] ); ?></p>
 							<?php endif; ?>
 						</div>
 					</div>
@@ -347,36 +344,36 @@ class SCD_Sidebar_Renderer {
 	private static function render_dynamic_methods_content( $content ) {
 		?>
 		<?php if ( isset( $content['quick_tip'] ) ) : ?>
-			<div class="scd-quick-tip">
-				<?php echo SCD_Icon_Helper::get( 'lightbulb', array( 'size' => 16 ) ); ?>
+			<div class="wsscd-quick-tip">
+				<?php WSSCD_Icon_Helper::render( 'lightbulb', array( 'size' => 16 ) ); ?>
 				<p><?php echo esc_html( $content['quick_tip'] ); ?></p>
 			</div>
 		<?php endif; ?>
 
 		<?php if ( isset( $content['methods'] ) && is_array( $content['methods'] ) ) : ?>
-			<div class="scd-dynamic-methods">
+			<div class="wsscd-dynamic-methods">
 				<?php foreach ( $content['methods'] as $method_id => $method ) : ?>
-					<div class="scd-dynamic-method" data-method="<?php echo esc_attr( $method_id ); ?>" style="display: none;">
-						<div class="scd-method-header">
-							<?php echo SCD_Icon_Helper::get( $method['icon'], array( 'size' => 16 ) ); ?>
+					<div class="wsscd-dynamic-method" data-method="<?php echo esc_attr( $method_id ); ?>" style="display: none;">
+						<div class="wsscd-method-header">
+							<?php WSSCD_Icon_Helper::render( $method['icon'], array( 'size' => 16 ) ); ?>
 							<strong><?php echo esc_html( $method['label'] ); ?></strong>
 						</div>
-						<div class="scd-method-details">
-							<div class="scd-method-row">
-								<span class="scd-method-label"><?php esc_html_e( 'Best for:', 'smart-cycle-discounts' ); ?></span>
-								<span class="scd-method-value"><?php echo esc_html( $method['when'] ); ?></span>
+						<div class="wsscd-method-details">
+							<div class="wsscd-method-row">
+								<span class="wsscd-method-label"><?php esc_html_e( 'Best for:', 'smart-cycle-discounts' ); ?></span>
+								<span class="wsscd-method-value"><?php echo esc_html( $method['when'] ); ?></span>
 							</div>
-							<div class="scd-method-row">
-								<span class="scd-method-label"><?php esc_html_e( 'Pros:', 'smart-cycle-discounts' ); ?></span>
-								<span class="scd-method-value"><?php echo esc_html( $method['pros'] ); ?></span>
+							<div class="wsscd-method-row">
+								<span class="wsscd-method-label"><?php esc_html_e( 'Pros:', 'smart-cycle-discounts' ); ?></span>
+								<span class="wsscd-method-value"><?php echo esc_html( $method['pros'] ); ?></span>
 							</div>
-							<div class="scd-method-row">
-								<span class="scd-method-label"><?php esc_html_e( 'Cons:', 'smart-cycle-discounts' ); ?></span>
-								<span class="scd-method-value"><?php echo esc_html( $method['cons'] ); ?></span>
+							<div class="wsscd-method-row">
+								<span class="wsscd-method-label"><?php esc_html_e( 'Cons:', 'smart-cycle-discounts' ); ?></span>
+								<span class="wsscd-method-value"><?php echo esc_html( $method['cons'] ); ?></span>
 							</div>
 							<?php if ( isset( $method['tip'] ) ) : ?>
-								<div class="scd-method-tip">
-									<?php echo SCD_Icon_Helper::get( 'star-filled', array( 'size' => 14 ) ); ?>
+								<div class="wsscd-method-tip">
+									<?php WSSCD_Icon_Helper::render( 'star-filled', array( 'size' => 14 ) ); ?>
 									<span><?php echo esc_html( $method['tip'] ); ?></span>
 								</div>
 							<?php endif; ?>
@@ -412,40 +409,42 @@ class SCD_Sidebar_Renderer {
 		$step_title = isset( $step_titles[ $step ] ) ? $step_titles[ $step ] : ucfirst( $step );
 		?>
 		<!-- Contextual Sidebar Wrapper (Required for JavaScript) -->
-		<div class="scd-sidebar-contextual" data-step="<?php echo esc_attr( $step ); ?>">
+		<div class="wsscd-sidebar-contextual" data-step="<?php echo esc_attr( $step ); ?>">
 			<!-- Context Breadcrumb -->
-			<div class="scd-sidebar-breadcrumb" id="scd-sidebar-breadcrumb">
-				<span class="scd-breadcrumb-step"><?php echo esc_html( $step_title ); ?></span>
-				<span class="scd-breadcrumb-separator">›</span>
-				<span class="scd-breadcrumb-topic" id="scd-breadcrumb-topic">
+			<div class="wsscd-sidebar-breadcrumb" id="wsscd-sidebar-breadcrumb">
+				<span class="wsscd-breadcrumb-step"><?php echo esc_html( $step_title ); ?></span>
+				<span class="wsscd-breadcrumb-separator">›</span>
+				<span class="wsscd-breadcrumb-topic" id="wsscd-breadcrumb-topic">
 					<?php esc_html_e( 'Overview', 'smart-cycle-discounts' ); ?>
 				</span>
 			</div>
 
 			<!-- Dynamic Help Content Area -->
-			<div class="scd-sidebar-help-area" id="scd-sidebar-help-content">
-				<?php
-				// Render initial topic if provided
-				if ( ! empty( $current_topic ) ) {
-					$topic = SCD_Sidebar_Help_Topics::get_topic( $current_topic );
-					if ( $topic ) {
-						echo self::render_help_topic( $topic );
-					}
-				} else {
-					// Show default welcome message
-					?>
-					<div class="scd-sidebar-welcome">
-						<?php echo SCD_Icon_Helper::get( 'lightbulb', array( 'size' => 24 ) ); ?>
-						<h4><?php esc_html_e( 'Contextual Help', 'smart-cycle-discounts' ); ?></h4>
-						<p><?php esc_html_e( 'Focus on any field to see relevant tips and guidance. Help automatically updates based on what you\'re working on.', 'smart-cycle-discounts' ); ?></p>
-					</div>
+			<div class="wsscd-sidebar-help-area">
+				<div id="wsscd-sidebar-help-content">
 					<?php
-				}
-				?>
+					// Render initial topic if provided
+					if ( ! empty( $current_topic ) ) {
+						$topic = WSSCD_Sidebar_Help_Topics::get_topic( $current_topic );
+						if ( $topic ) {
+							WSSCD_HTML_Helper::output( self::render_help_topic( $topic ) );
+						}
+					} else {
+						// Show default welcome message
+						?>
+						<div class="wsscd-sidebar-welcome">
+							<?php WSSCD_Icon_Helper::render( 'lightbulb', array( 'size' => 24 ) ); ?>
+							<h4><?php esc_html_e( 'Contextual Help', 'smart-cycle-discounts' ); ?></h4>
+							<p><?php esc_html_e( 'Focus on any field to see relevant tips and guidance. Help automatically updates based on what you\'re working on.', 'smart-cycle-discounts' ); ?></p>
+						</div>
+						<?php
+					}
+					?>
+				</div>
 			</div>
 
 			<!-- PERFORMANCE: Pre-render most common topics for instant display (no AJAX) -->
-			<div id="scd-prerendered-topics" style="display: none;">
+			<div id="wsscd-prerendered-topics" style="display: none;">
 				<?php
 				// Pre-render the 3 most commonly used topics per step
 				$common_topics = array();
@@ -468,16 +467,16 @@ class SCD_Sidebar_Renderer {
 				}
 
 				foreach ( $common_topics as $topic_id ) {
-					$topic = SCD_Sidebar_Help_Topics::get_topic( $topic_id );
+					$topic = WSSCD_Sidebar_Help_Topics::get_topic( $topic_id );
 					if ( $topic ) {
-						echo '<div class="scd-prerendered-topic" data-topic-id="' . esc_attr( $topic_id ) . '">';
-						echo self::render_help_topic( $topic );
+						echo '<div class="wsscd-prerendered-topic" data-topic-id="' . esc_attr( $topic_id ) . '">';
+						WSSCD_HTML_Helper::output( self::render_help_topic( $topic ) );
 						echo '</div>';
 					}
 				}
 				?>
 			</div>
-		</div><!-- .scd-sidebar-contextual -->
+		</div><!-- .wsscd-sidebar-contextual -->
 		<?php
 		return ob_get_clean();
 	}
@@ -492,20 +491,20 @@ class SCD_Sidebar_Renderer {
 	private static function render_help_guide_content( $content ) {
 		?>
 		<?php if ( isset( $content['quick_tip'] ) ) : ?>
-			<div class="scd-quick-tip">
-				<?php echo SCD_Icon_Helper::get( 'lightbulb', array( 'size' => 16 ) ); ?>
+			<div class="wsscd-quick-tip">
+				<?php WSSCD_Icon_Helper::render( 'lightbulb', array( 'size' => 16 ) ); ?>
 				<p><?php echo esc_html( $content['quick_tip'] ); ?></p>
 			</div>
 		<?php endif; ?>
 
 		<?php if ( isset( $content['how_it_works'] ) && is_array( $content['how_it_works'] ) ) : ?>
-			<div class="scd-help-section scd-help-how-works">
-				<div class="scd-help-header">
-					<?php echo SCD_Icon_Helper::get( 'admin-settings', array( 'size' => 14 ) ); ?>
+			<div class="wsscd-help-section wsscd-help-how-works">
+				<div class="wsscd-help-header">
+					<?php WSSCD_Icon_Helper::render( 'admin-settings', array( 'size' => 14 ) ); ?>
 					<span><?php esc_html_e( 'How It Works', 'smart-cycle-discounts' ); ?></span>
 				</div>
-				<div class="scd-help-body">
-					<ul class="scd-help-list">
+				<div class="wsscd-help-body">
+					<ul class="wsscd-help-list">
 						<?php foreach ( $content['how_it_works'] as $item ) : ?>
 							<li><?php echo esc_html( $item ); ?></li>
 						<?php endforeach; ?>
@@ -515,13 +514,13 @@ class SCD_Sidebar_Renderer {
 		<?php endif; ?>
 
 		<?php if ( isset( $content['use_cases'] ) && is_array( $content['use_cases'] ) ) : ?>
-			<div class="scd-help-section scd-help-use-cases">
-				<div class="scd-help-header">
-					<?php echo SCD_Icon_Helper::get( 'yes-alt', array( 'size' => 14 ) ); ?>
+			<div class="wsscd-help-section wsscd-help-use-cases">
+				<div class="wsscd-help-header">
+					<?php WSSCD_Icon_Helper::render( 'yes-alt', array( 'size' => 14 ) ); ?>
 					<span><?php esc_html_e( 'When To Use This', 'smart-cycle-discounts' ); ?></span>
 				</div>
-				<div class="scd-help-body">
-					<ul class="scd-help-list scd-checklist">
+				<div class="wsscd-help-body">
+					<ul class="wsscd-help-list wsscd-checklist">
 						<?php foreach ( $content['use_cases'] as $item ) : ?>
 							<li><?php echo esc_html( $item ); ?></li>
 						<?php endforeach; ?>
@@ -531,13 +530,13 @@ class SCD_Sidebar_Renderer {
 		<?php endif; ?>
 
 		<?php if ( isset( $content['watch_out'] ) && is_array( $content['watch_out'] ) ) : ?>
-			<div class="scd-help-section scd-help-watch-out">
-				<div class="scd-help-header">
-					<?php echo SCD_Icon_Helper::get( 'warning', array( 'size' => 14 ) ); ?>
+			<div class="wsscd-help-section wsscd-help-watch-out">
+				<div class="wsscd-help-header">
+					<?php WSSCD_Icon_Helper::render( 'warning', array( 'size' => 14 ) ); ?>
 					<span><?php esc_html_e( 'Watch Out For', 'smart-cycle-discounts' ); ?></span>
 				</div>
-				<div class="scd-help-body">
-					<ul class="scd-help-list scd-warning-list">
+				<div class="wsscd-help-body">
+					<ul class="wsscd-help-list wsscd-warning-list">
 						<?php foreach ( $content['watch_out'] as $item ) : ?>
 							<li><?php echo esc_html( $item ); ?></li>
 						<?php endforeach; ?>
@@ -547,13 +546,13 @@ class SCD_Sidebar_Renderer {
 		<?php endif; ?>
 
 		<?php if ( isset( $content['setup_tips'] ) && is_array( $content['setup_tips'] ) ) : ?>
-			<div class="scd-help-section scd-help-setup-tips">
-				<div class="scd-help-header">
-					<?php echo SCD_Icon_Helper::get( 'admin-tools', array( 'size' => 14 ) ); ?>
+			<div class="wsscd-help-section wsscd-help-setup-tips">
+				<div class="wsscd-help-header">
+					<?php WSSCD_Icon_Helper::render( 'admin-tools', array( 'size' => 14 ) ); ?>
 					<span><?php esc_html_e( 'Setup Tips', 'smart-cycle-discounts' ); ?></span>
 				</div>
-				<div class="scd-help-body">
-					<ul class="scd-help-list scd-steps-list">
+				<div class="wsscd-help-body">
+					<ul class="wsscd-help-list wsscd-steps-list">
 						<?php foreach ( $content['setup_tips'] as $item ) : ?>
 							<li><?php echo esc_html( $item ); ?></li>
 						<?php endforeach; ?>
@@ -563,14 +562,14 @@ class SCD_Sidebar_Renderer {
 		<?php endif; ?>
 
 		<?php if ( isset( $content['highlight'] ) ) : ?>
-			<div class="scd-help-highlight">
+			<div class="wsscd-help-highlight">
 				<?php echo wp_kses_post( $content['highlight'] ); ?>
 			</div>
 		<?php endif; ?>
 
 		<?php if ( isset( $content['pro_tip'] ) ) : ?>
-			<div class="scd-pro-tip">
-				<?php echo SCD_Icon_Helper::get( 'star-filled', array( 'size' => 16 ) ); ?>
+			<div class="wsscd-pro-tip">
+				<?php WSSCD_Icon_Helper::render( 'star-filled', array( 'size' => 16 ) ); ?>
 				<p><strong><?php esc_html_e( 'Pro Tip:', 'smart-cycle-discounts' ); ?></strong> <?php echo esc_html( $content['pro_tip'] ); ?></p>
 			</div>
 		<?php endif; ?>

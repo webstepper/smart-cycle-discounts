@@ -25,44 +25,44 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/frontend
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Discount_Display {
+class WSSCD_Discount_Display {
 
 	/**
 	 * Discount engine instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Discount_Engine    $discount_engine    Discount engine instance.
+	 * @var      WSSCD_Discount_Engine    $discount_engine    Discount engine instance.
 	 */
-	private SCD_Discount_Engine $discount_engine;
+	private WSSCD_Discount_Engine $discount_engine;
 
 	/**
 	 * Campaign manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Manager    $campaign_manager    Campaign manager instance.
+	 * @var      WSSCD_Campaign_Manager    $campaign_manager    Campaign manager instance.
 	 */
-	private SCD_Campaign_Manager $campaign_manager;
+	private WSSCD_Campaign_Manager $campaign_manager;
 
 	/**
 	 * Display rules instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Discount_Display_Rules    $display_rules    Display rules instance.
+	 * @var      WSSCD_Discount_Display_Rules    $display_rules    Display rules instance.
 	 */
-	private SCD_Discount_Display_Rules $display_rules;
+	private WSSCD_Discount_Display_Rules $display_rules;
 
 	/**
 	 * Initialize the discount display handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Discount_Engine        $discount_engine     Discount engine instance.
-	 * @param    SCD_Campaign_Manager       $campaign_manager    Campaign manager instance.
-	 * @param    SCD_Discount_Display_Rules $display_rules       Display rules instance.
+	 * @param    WSSCD_Discount_Engine        $discount_engine     Discount engine instance.
+	 * @param    WSSCD_Campaign_Manager       $campaign_manager    Campaign manager instance.
+	 * @param    WSSCD_Discount_Display_Rules $display_rules       Display rules instance.
 	 */
-	public function __construct( SCD_Discount_Engine $discount_engine, SCD_Campaign_Manager $campaign_manager, SCD_Discount_Display_Rules $display_rules ) {
+	public function __construct( WSSCD_Discount_Engine $discount_engine, WSSCD_Campaign_Manager $campaign_manager, WSSCD_Discount_Display_Rules $display_rules ) {
 		$this->discount_engine  = $discount_engine;
 		$this->campaign_manager = $campaign_manager;
 		$this->display_rules    = $display_rules;
@@ -208,12 +208,13 @@ class SCD_Discount_Display {
 	 */
 	private function output_badge( array $discount, string $context = 'single' ): void {
 		$badge_text = sprintf(
+			/* translators: %s: discount percentage value */
 			__( 'Save %s%%', 'smart-cycle-discounts' ),
 			$discount['percentage'] ?? 0
 		);
 
 		printf(
-			'<span class="scd-discount-badge scd-badge-%s">%s</span>',
+			'<span class="wsscd-discount-badge wsscd-badge-%s">%s</span>',
 			esc_attr( $context ),
 			esc_html( $badge_text )
 		);
@@ -253,7 +254,7 @@ class SCD_Discount_Display {
 		);
 
 		printf(
-			'<span class="scd-discount-badge scd-badge-%s scd-badge-%s scd-badge-position-%s" style="%s" data-discount-type="%s">%s</span>',
+			'<span class="wsscd-discount-badge wsscd-badge-%s wsscd-badge-%s wsscd-badge-position-%s" style="%s" data-discount-type="%s">%s</span>',
 			esc_attr( $context ),
 			esc_attr( $type ),
 			esc_attr( $position ),

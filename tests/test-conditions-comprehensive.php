@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Comprehensive Conditions Test Runner
  */
-class SCD_Conditions_Comprehensive_Test {
+class WSSCD_Conditions_Comprehensive_Test {
 
 	/**
 	 * Test results
@@ -38,14 +38,14 @@ class SCD_Conditions_Comprehensive_Test {
 	/**
 	 * Condition engine instance
 	 *
-	 * @var SCD_Condition_Engine
+	 * @var WSSCD_Condition_Engine
 	 */
 	private $condition_engine;
 
 	/**
 	 * Product selector instance
 	 *
-	 * @var SCD_Product_Selector
+	 * @var WSSCD_Product_Selector
 	 */
 	private $product_selector;
 
@@ -68,13 +68,13 @@ class SCD_Conditions_Comprehensive_Test {
 	 * Initialize required services
 	 */
 	private function init_services(): void {
-		$logger = new SCD_Logger( 'conditions-test' );
+		$logger = new WSSCD_Logger( 'conditions-test' );
 		$cache  = null; // Disable cache for testing
 
-		$this->condition_engine = new SCD_Condition_Engine( $logger, $cache );
+		$this->condition_engine = new WSSCD_Condition_Engine( $logger, $cache );
 
-		$db                   = new SCD_Database_Manager( $logger );
-		$this->product_selector = new SCD_Product_Selector( $db, $logger, $cache, $this->condition_engine );
+		$db                   = new WSSCD_Database_Manager( $logger );
+		$this->product_selector = new WSSCD_Product_Selector( $db, $logger, $cache, $this->condition_engine );
 	}
 
 	/**
@@ -883,15 +883,15 @@ class SCD_Conditions_Comprehensive_Test {
 		);
 
 		$status = $passed ? '✅ PASS' : '❌ FAIL';
-		echo sprintf( "%s: %s\n", $status, $name );
+				echo sprintf( '%s: %s' . "\n", esc_html( $status ), esc_html( $name ) );
 
 		if ( ! $passed ) {
-			echo "  Expected: " . json_encode( $expected ) . "\n";
-			echo "  Actual:   " . json_encode( $actual ) . "\n";
+						echo wp_kses_post( '  Expected: ' . wp_json_encode( $expected ) . "\n" );
+						echo wp_kses_post( '  Actual:   ' . wp_json_encode( $actual ) . "\n" );
 		}
 
 		if ( $description ) {
-			echo "  → " . $description . "\n";
+						echo '  → ' . esc_html( $description ) . "\n";
 		}
 	}
 
@@ -910,15 +910,15 @@ class SCD_Conditions_Comprehensive_Test {
 		);
 
 		$status = $passed ? '✅ PASS' : '❌ FAIL';
-		echo sprintf( "%s: %s\n", $status, $name );
+				echo sprintf( '%s: %s' . "\n", esc_html( $status ), esc_html( $name ) );
 
 		if ( ! $passed ) {
-			echo "  Expected: " . ( $expected ? 'true' : 'false' ) . "\n";
-			echo "  Actual:   " . ( $actual ? 'true' : 'false' ) . "\n";
+			echo '  Expected: ' . ( $expected ? 'true' : 'false' ) . "\n";
+			echo '  Actual:   ' . ( $actual ? 'true' : 'false' ) . "\n";
 		}
 
 		if ( $description ) {
-			echo "  → " . $description . "\n";
+						echo '  → ' . esc_html( $description ) . "\n";
 		}
 	}
 
@@ -932,27 +932,28 @@ class SCD_Conditions_Comprehensive_Test {
 
 		$pass_rate = $total > 0 ? round( ( $passed / $total ) * 100, 2 ) : 0;
 
-		echo "\n";
-		echo "========================================\n";
-		echo "TEST SUMMARY\n";
-		echo "========================================\n";
-		echo sprintf( "Total Tests:  %d\n", $total );
-		echo sprintf( "Passed:       %d\n", $passed );
-		echo sprintf( "Failed:       %d\n", $failed );
-		echo sprintf( "Pass Rate:    %.2f%%\n", $pass_rate );
-		echo "========================================\n\n";
+				echo wp_kses_post( "\n" );
+		echo wp_kses_post( "========================================\n" );
+		echo wp_kses_post( "TEST SUMMARY\n" );
+		echo wp_kses_post( "========================================\n" );
+		echo wp_kses_post( sprintf( "Total Tests:  %d\n", absint( $total ) ) );
+		echo wp_kses_post( sprintf( "Passed:       %d\n", absint( $passed ) ) );
+		echo wp_kses_post( sprintf( "Failed:       %d\n", absint( $failed ) ) );
+		echo wp_kses_post( sprintf( "Pass Rate:    %.2f%%\n", floatval( $pass_rate ) ) );
+		echo wp_kses_post( "========================================\n\n" );
 
 		if ( $failed > 0 ) {
-			echo "FAILED TESTS:\n";
-			echo "-------------\n";
+			echo wp_kses_post( "FAILED TESTS:\n" );
+			echo wp_kses_post( "-------------\n" );
 			foreach ( $this->results as $result ) {
 				if ( ! $result['passed'] ) {
-					echo "❌ " . $result['name'] . "\n";
-					echo "   Expected: " . json_encode( $result['expected'] ) . "\n";
-					echo "   Actual:   " . json_encode( $result['actual'] ) . "\n\n";
+					echo '❌ ' . esc_html( $result['name'] ) . "\n";
+					echo wp_kses_post( '   Expected: ' . wp_json_encode( $result['expected'] ) . "\n" );
+					echo wp_kses_post( '   Actual:   ' . wp_json_encode( $result['actual'] ) . "\n\n" );
 				}
 			}
 		}
+		
 
 		// Cleanup test products
 		$this->cleanup_test_products();
@@ -970,6 +971,6 @@ class SCD_Conditions_Comprehensive_Test {
 
 // Run tests if accessed directly
 if ( basename( $_SERVER['SCRIPT_FILENAME'] ) === basename( __FILE__ ) ) {
-	$test_runner = new SCD_Conditions_Comprehensive_Test();
+	$test_runner = new WSSCD_Conditions_Comprehensive_Test();
 	$test_runner->run_all_tests();
 }

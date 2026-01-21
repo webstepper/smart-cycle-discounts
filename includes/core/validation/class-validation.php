@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/validation
  */
-class SCD_Validation {
+class WSSCD_Validation {
 
 	/**
 	 * Validators loaded flag.
@@ -73,27 +73,27 @@ class SCD_Validation {
 
 		$exact_routes = array(
 			'campaign_complete' => array(
-				'class'  => 'SCD_Wizard_Validation',
+				'class'  => 'WSSCD_Wizard_Validation',
 				'method' => 'validate_complete_campaign',
 			),
 			'campaign_compiled' => array(
-				'class'  => 'SCD_Wizard_Validation',
+				'class'  => 'WSSCD_Wizard_Validation',
 				'method' => 'validate_compiled_campaign',
 			),
 			'campaign_update'   => array(
-				'class'  => 'SCD_Wizard_Validation',
+				'class'  => 'WSSCD_Wizard_Validation',
 				'method' => 'validate_campaign_update',
 			),
 			'ajax_action'       => array(
-				'class'  => 'SCD_AJAX_Validation',
+				'class'  => 'WSSCD_AJAX_Validation',
 				'method' => 'validate',
 			),
 			'ajax_navigation'   => array(
-				'class'  => 'SCD_Wizard_Validation',
+				'class'  => 'WSSCD_Wizard_Validation',
 				'method' => 'validate_navigation',
 			),
 			'product_meta'      => array(
-				'class'  => 'SCD_AJAX_Validation',
+				'class'  => 'WSSCD_AJAX_Validation',
 				'method' => 'validate_product_meta',
 			),
 		);
@@ -118,7 +118,7 @@ class SCD_Validation {
 	 * @return   array|WP_Error      Sanitized data or error.
 	 */
 	private static function handle_wizard_validation( array $data, string $step ) {
-		return SCD_Wizard_Validation::validate_step( $data, $step );
+		return WSSCD_Wizard_Validation::validate_step( $data, $step );
 	}
 
 	/**
@@ -131,6 +131,7 @@ class SCD_Validation {
 	private static function create_unknown_context_error( string $context ): WP_Error {
 		return new WP_Error(
 			'unknown_context',
+			/* translators: %s: context identifier */
 			sprintf( __( 'Unknown validation context: %s', 'smart-cycle-discounts' ), $context )
 		);
 	}
@@ -147,11 +148,11 @@ class SCD_Validation {
 		}
 
 		$validators = array(
-			'SCD_Wizard_Validation' => 'class-wizard-validation.php',
-			'SCD_AJAX_Validation'   => 'class-ajax-validation.php',
+			'WSSCD_Wizard_Validation' => 'class-wizard-validation.php',
+			'WSSCD_AJAX_Validation'   => 'class-ajax-validation.php',
 		);
 
-		$validation_dir = SCD_PLUGIN_DIR . 'includes/core/validation/';
+		$validation_dir = WSSCD_PLUGIN_DIR . 'includes/core/validation/';
 
 		foreach ( $validators as $class => $file ) {
 			if ( ! class_exists( $class ) ) {
@@ -208,33 +209,93 @@ class SCD_Validation {
 	 * @return   void
 	 */
 	private static function register_wizard_step_settings(): void {
-		$steps = array( 'basic', 'products', 'discounts', 'schedule' );
+		register_setting(
+			'wsscd_wizard_basic',
+			'wsscd_basic_data',
+			array(
+				'type'              => 'object',
+				'sanitize_callback' => array( __CLASS__, 'sanitize_basic_step' ),
+				'default'           => array(),
+				'show_in_rest'      => false,
+			)
+		);
 
-		foreach ( $steps as $step ) {
-			register_setting(
-				"scd_wizard_{$step}",
-				"scd_{$step}_data",
-				self::get_step_setting_args( $step )
-			);
-		}
+		register_setting(
+			'wsscd_wizard_products',
+			'wsscd_products_data',
+			array(
+				'type'              => 'object',
+				'sanitize_callback' => array( __CLASS__, 'sanitize_products_step' ),
+				'default'           => array(),
+				'show_in_rest'      => false,
+			)
+		);
+
+		register_setting(
+			'wsscd_wizard_discounts',
+			'wsscd_discounts_data',
+			array(
+				'type'              => 'object',
+				'sanitize_callback' => array( __CLASS__, 'sanitize_discounts_step' ),
+				'default'           => array(),
+				'show_in_rest'      => false,
+			)
+		);
+
+		register_setting(
+			'wsscd_wizard_schedule',
+			'wsscd_schedule_data',
+			array(
+				'type'              => 'object',
+				'sanitize_callback' => array( __CLASS__, 'sanitize_schedule_step' ),
+				'default'           => array(),
+				'show_in_rest'      => false,
+			)
+		);
 	}
 
 	/**
-	 * Get step setting args.
+	 * Sanitize basic step data.
 	 *
 	 * @since    1.0.0
-	 * @param    string $step    Step name.
-	 * @return   array              Setting args.
+	 * @param    mixed $data    Raw data.
+	 * @return   array           Sanitized data.
 	 */
-	private static function get_step_setting_args( string $step ): array {
-		return array(
-			'type'              => 'object',
-			'sanitize_callback' => function ( $data ) use ( $step ) {
-				return self::sanitize_step_data( $data, $step );
-			},
-			'default'           => array(),
-			'show_in_rest'      => false,
-		);
+	public static function sanitize_basic_step( $data ): array {
+		return self::sanitize_step_data( is_array( $data ) ? $data : array(), 'basic' );
+	}
+
+	/**
+	 * Sanitize products step data.
+	 *
+	 * @since    1.0.0
+	 * @param    mixed $data    Raw data.
+	 * @return   array           Sanitized data.
+	 */
+	public static function sanitize_products_step( $data ): array {
+		return self::sanitize_step_data( is_array( $data ) ? $data : array(), 'products' );
+	}
+
+	/**
+	 * Sanitize discounts step data.
+	 *
+	 * @since    1.0.0
+	 * @param    mixed $data    Raw data.
+	 * @return   array           Sanitized data.
+	 */
+	public static function sanitize_discounts_step( $data ): array {
+		return self::sanitize_step_data( is_array( $data ) ? $data : array(), 'discounts' );
+	}
+
+	/**
+	 * Sanitize schedule step data.
+	 *
+	 * @since    1.0.0
+	 * @param    mixed $data    Raw data.
+	 * @return   array           Sanitized data.
+	 */
+	public static function sanitize_schedule_step( $data ): array {
+		return self::sanitize_step_data( is_array( $data ) ? $data : array(), 'schedule' );
 	}
 
 	/**
@@ -246,7 +307,7 @@ class SCD_Validation {
 	private static function register_campaign_meta(): void {
 		register_meta(
 			'post',
-			'scd_campaign_data',
+			'wsscd_campaign_data',
 			array(
 				'type'              => 'object',
 				'sanitize_callback' => array( __CLASS__, 'sanitize_campaign_data' ),
@@ -282,46 +343,46 @@ class SCD_Validation {
 	private static function get_campaign_meta_fields(): array {
 		return array(
 			// Basic fields
-			'scd_campaign_name'        => array(
+			'wsscd_campaign_name'        => array(
 				'type'     => 'string',
 				'sanitize' => 'sanitize_text_field',
 			),
-			'scd_campaign_description' => array(
+			'wsscd_campaign_description' => array(
 				'type'     => 'string',
 				'sanitize' => 'sanitize_textarea_field',
 			),
-			'scd_campaign_priority'    => array(
+			'wsscd_campaign_priority'    => array(
 				'type'     => 'integer',
 				'sanitize' => 'absint',
 			),
 			// Discount fields
-			'scd_discount_type'        => array(
+			'wsscd_discount_type'        => array(
 				'type'     => 'string',
 				'sanitize' => 'sanitize_key',
 			),
-			'scd_discount_value'       => array(
+			'wsscd_discount_value'       => array(
 				'type'     => 'number',
 				'sanitize' => 'floatval',
 			),
 			// Product fields
-			'scd_selection_type'       => array(
+			'wsscd_selection_type'       => array(
 				'type'     => 'string',
 				'sanitize' => 'sanitize_key',
 			),
-			'scd_product_ids'          => array(
+			'wsscd_product_ids'          => array(
 				'type'     => 'array',
 				'sanitize' => 'sanitize_product_ids',
 			),
 			// Schedule fields
-			'scd_start_date'           => array(
+			'wsscd_start_date'           => array(
 				'type'     => 'string',
 				'sanitize' => 'sanitize_text_field',
 			),
-			'scd_end_date'             => array(
+			'wsscd_end_date'             => array(
 				'type'     => 'string',
 				'sanitize' => 'sanitize_text_field',
 			),
-			'scd_timezone'             => array(
+			'wsscd_timezone'             => array(
 				'type'     => 'string',
 				'sanitize' => 'sanitize_text_field',
 			),
@@ -377,7 +438,7 @@ class SCD_Validation {
 	 */
 	public static function sanitize_step_data( array $data, $step ) {
 		self::load_validators();
-		return SCD_Wizard_Validation::sanitize_step_data( $data, $step );
+		return WSSCD_Wizard_Validation::sanitize_step_data( $data, $step );
 	}
 
 	/**
@@ -402,47 +463,47 @@ class SCD_Validation {
 	private static function get_js_constants(): array {
 		return array(
 			'basic'     => array(
-				'CAMPAIGN_NAME_MIN'        => SCD_Validation_Rules::CAMPAIGN_NAME_MIN,
-				'CAMPAIGN_NAME_MAX'        => SCD_Validation_Rules::CAMPAIGN_NAME_MAX,
-				'CAMPAIGN_DESCRIPTION_MAX' => SCD_Validation_Rules::CAMPAIGN_DESCRIPTION_MAX,
-				'CAMPAIGN_PRIORITY_MIN'    => SCD_Validation_Rules::CAMPAIGN_PRIORITY_MIN,
-				'CAMPAIGN_PRIORITY_MAX'    => SCD_Validation_Rules::CAMPAIGN_PRIORITY_MAX,
+				'CAMPAIGN_NAME_MIN'        => WSSCD_Validation_Rules::CAMPAIGN_NAME_MIN,
+				'CAMPAIGN_NAME_MAX'        => WSSCD_Validation_Rules::CAMPAIGN_NAME_MAX,
+				'CAMPAIGN_DESCRIPTION_MAX' => WSSCD_Validation_Rules::CAMPAIGN_DESCRIPTION_MAX,
+				'CAMPAIGN_PRIORITY_MIN'    => WSSCD_Validation_Rules::CAMPAIGN_PRIORITY_MIN,
+				'CAMPAIGN_PRIORITY_MAX'    => WSSCD_Validation_Rules::CAMPAIGN_PRIORITY_MAX,
 			),
 			'discounts' => array(
-				'PERCENTAGE_MIN'  => SCD_Validation_Rules::PERCENTAGE_MIN,
-				'PERCENTAGE_MAX'  => SCD_Validation_Rules::PERCENTAGE_MAX,
-				'FIXED_MIN'       => SCD_Validation_Rules::FIXED_MIN,
-				'FIXED_MAX'       => SCD_Validation_Rules::FIXED_MAX,
-				'BOGO_BUY_MIN'    => SCD_Validation_Rules::BOGO_BUY_MIN,
-				'BOGO_BUY_MAX'    => SCD_Validation_Rules::BOGO_BUY_MAX,
-				'BOGO_GET_MIN'    => SCD_Validation_Rules::BOGO_GET_MIN,
-				'BOGO_GET_MAX'    => SCD_Validation_Rules::BOGO_GET_MAX,
-				'BUNDLE_SIZE_MIN' => SCD_Validation_Rules::BUNDLE_SIZE_MIN,
-				'BUNDLE_SIZE_MAX' => SCD_Validation_Rules::BUNDLE_SIZE_MAX,
-				'DISCOUNT_TYPES'  => SCD_Validation_Rules::DISCOUNT_TYPES,
+				'PERCENTAGE_MIN'  => WSSCD_Validation_Rules::PERCENTAGE_MIN,
+				'PERCENTAGE_MAX'  => WSSCD_Validation_Rules::PERCENTAGE_MAX,
+				'FIXED_MIN'       => WSSCD_Validation_Rules::FIXED_MIN,
+				'FIXED_MAX'       => WSSCD_Validation_Rules::FIXED_MAX,
+				'BOGO_BUY_MIN'    => WSSCD_Validation_Rules::BOGO_BUY_MIN,
+				'BOGO_BUY_MAX'    => WSSCD_Validation_Rules::BOGO_BUY_MAX,
+				'BOGO_GET_MIN'    => WSSCD_Validation_Rules::BOGO_GET_MIN,
+				'BOGO_GET_MAX'    => WSSCD_Validation_Rules::BOGO_GET_MAX,
+				'BUNDLE_SIZE_MIN' => WSSCD_Validation_Rules::BUNDLE_SIZE_MIN,
+				'BUNDLE_SIZE_MAX' => WSSCD_Validation_Rules::BUNDLE_SIZE_MAX,
+				'DISCOUNT_TYPES'  => WSSCD_Validation_Rules::DISCOUNT_TYPES,
 			),
 			'products'  => array(
-				'RANDOM_COUNT_MIN'               => SCD_Validation_Rules::RANDOM_COUNT_MIN,
-				'RANDOM_COUNT_MAX'               => SCD_Validation_Rules::RANDOM_COUNT_MAX,
-				'RANDOM_COUNT_WARNING_THRESHOLD' => SCD_Validation_Rules::RANDOM_COUNT_WARNING_THRESHOLD,
-				'PRODUCT_IDS_MIN'                => SCD_Validation_Rules::PRODUCT_IDS_MIN,
-				'PRODUCT_IDS_MAX'                => SCD_Validation_Rules::PRODUCT_IDS_MAX,
-				'SELECTION_TYPES'                => SCD_Validation_Rules::SELECTION_TYPES,
+				'RANDOM_COUNT_MIN'               => WSSCD_Validation_Rules::RANDOM_COUNT_MIN,
+				'RANDOM_COUNT_MAX'               => WSSCD_Validation_Rules::RANDOM_COUNT_MAX,
+				'RANDOM_COUNT_WARNING_THRESHOLD' => WSSCD_Validation_Rules::RANDOM_COUNT_WARNING_THRESHOLD,
+				'PRODUCT_IDS_MIN'                => WSSCD_Validation_Rules::PRODUCT_IDS_MIN,
+				'PRODUCT_IDS_MAX'                => WSSCD_Validation_Rules::PRODUCT_IDS_MAX,
+				'SELECTION_TYPES'                => WSSCD_Validation_Rules::SELECTION_TYPES,
 			),
 			'schedule'  => array(
 				'DATE_FORMAT'                => get_option( 'date_format' ),
 				'TIME_FORMAT'                => get_option( 'time_format' ),
-				'ROTATION_INTERVAL_MIN'      => SCD_Validation_Rules::ROTATION_INTERVAL_MIN,
-				'ROTATION_INTERVAL_MAX'      => SCD_Validation_Rules::ROTATION_INTERVAL_MAX,
-				'ROTATION_INTERVAL_DEFAULT'  => SCD_Validation_Rules::ROTATION_INTERVAL_DEFAULT,
-				'SCHEDULE_TYPES'             => SCD_Validation_Rules::SCHEDULE_TYPES,
-				'WEEKDAYS'                   => SCD_Validation_Rules::WEEKDAYS,
-				'TIMEZONE_DEFAULT'           => SCD_Validation_Rules::TIMEZONE_DEFAULT,
-				'RECURRENCE_MIN'             => SCD_Validation_Rules::RECURRENCE_MIN,
-				'RECURRENCE_MAX'             => SCD_Validation_Rules::RECURRENCE_MAX,
-				'RECURRENCE_COUNT_MIN'       => SCD_Validation_Rules::RECURRENCE_COUNT_MIN,
-				'RECURRENCE_COUNT_MAX'       => SCD_Validation_Rules::RECURRENCE_COUNT_MAX,
-				'SCHEDULE_MAX_DURATION_DAYS' => SCD_Validation_Rules::SCHEDULE_MAX_DURATION_DAYS,
+				'ROTATION_INTERVAL_MIN'      => WSSCD_Validation_Rules::ROTATION_INTERVAL_MIN,
+				'ROTATION_INTERVAL_MAX'      => WSSCD_Validation_Rules::ROTATION_INTERVAL_MAX,
+				'ROTATION_INTERVAL_DEFAULT'  => WSSCD_Validation_Rules::ROTATION_INTERVAL_DEFAULT,
+				'SCHEDULE_TYPES'             => WSSCD_Validation_Rules::SCHEDULE_TYPES,
+				'WEEKDAYS'                   => WSSCD_Validation_Rules::WEEKDAYS,
+				'TIMEZONE_DEFAULT'           => WSSCD_Validation_Rules::TIMEZONE_DEFAULT,
+				'RECURRENCE_MIN'             => WSSCD_Validation_Rules::RECURRENCE_MIN,
+				'RECURRENCE_MAX'             => WSSCD_Validation_Rules::RECURRENCE_MAX,
+				'RECURRENCE_COUNT_MIN'       => WSSCD_Validation_Rules::RECURRENCE_COUNT_MIN,
+				'RECURRENCE_COUNT_MAX'       => WSSCD_Validation_Rules::RECURRENCE_COUNT_MAX,
+				'SCHEDULE_MAX_DURATION_DAYS' => WSSCD_Validation_Rules::SCHEDULE_MAX_DURATION_DAYS,
 			),
 		);
 	}
@@ -487,8 +548,10 @@ class SCD_Validation {
 	private static function get_discount_messages(): array {
 		return array(
 			'type_required'            => __( 'Discount type is required', 'smart-cycle-discounts' ),
-			'percentage_range'         => sprintf( __( 'Percentage must be between %1$d and %2$d', 'smart-cycle-discounts' ), SCD_Validation_Rules::PERCENTAGE_MIN, SCD_Validation_Rules::PERCENTAGE_MAX ),
-			'fixed_range'              => sprintf( __( 'Fixed amount must be between %1$s and %2$s', 'smart-cycle-discounts' ), wc_price( SCD_Validation_Rules::FIXED_MIN ), wc_price( SCD_Validation_Rules::FIXED_MAX ) ),
+			/* translators: 1: minimum percentage, 2: maximum percentage */
+			'percentage_range'         => sprintf( __( 'Percentage must be between %1$d and %2$d', 'smart-cycle-discounts' ), WSSCD_Validation_Rules::PERCENTAGE_MIN, WSSCD_Validation_Rules::PERCENTAGE_MAX ),
+			/* translators: 1: minimum amount, 2: maximum amount */
+			'fixed_range'              => sprintf( __( 'Fixed amount must be between %1$s and %2$s', 'smart-cycle-discounts' ), wc_price( WSSCD_Validation_Rules::FIXED_MIN ), wc_price( WSSCD_Validation_Rules::FIXED_MAX ) ),
 			'value_required'           => __( 'Discount value is required', 'smart-cycle-discounts' ),
 			'bogo_buy_required'        => __( 'Buy quantity is required for BOGO discount', 'smart-cycle-discounts' ),
 			'bogo_get_required'        => __( 'Get quantity is required for BOGO discount', 'smart-cycle-discounts' ),
@@ -511,8 +574,10 @@ class SCD_Validation {
 			'products_required'     => __( 'At least one product must be selected', 'smart-cycle-discounts' ),
 			'categories_required'   => __( 'At least one category must be selected', 'smart-cycle-discounts' ),
 			'random_count_required' => __( 'Random product count is required', 'smart-cycle-discounts' ),
-			'random_count_range'    => sprintf( __( 'Random count must be between %1$d and %2$d', 'smart-cycle-discounts' ), SCD_Validation_Rules::RANDOM_COUNT_MIN, SCD_Validation_Rules::RANDOM_COUNT_MAX ),
-			'too_many_products'     => sprintf( __( 'Maximum %d products allowed', 'smart-cycle-discounts' ), SCD_Validation_Rules::PRODUCT_IDS_MAX ),
+			/* translators: 1: minimum count, 2: maximum count */
+			'random_count_range'    => sprintf( __( 'Random count must be between %1$d and %2$d', 'smart-cycle-discounts' ), WSSCD_Validation_Rules::RANDOM_COUNT_MIN, WSSCD_Validation_Rules::RANDOM_COUNT_MAX ),
+			/* translators: %d: maximum number of products */
+			'too_many_products'     => sprintf( __( 'Maximum %d products allowed', 'smart-cycle-discounts' ), WSSCD_Validation_Rules::PRODUCT_IDS_MAX ),
 		);
 	}
 
@@ -529,8 +594,10 @@ class SCD_Validation {
 			'invalid_start_date'      => __( 'Invalid start date format', 'smart-cycle-discounts' ),
 			'invalid_end_date'        => __( 'Invalid end date format', 'smart-cycle-discounts' ),
 			'invalid_timezone'        => __( 'Invalid timezone', 'smart-cycle-discounts' ),
-			'duration_too_long'       => sprintf( __( 'Schedule duration cannot exceed %d days', 'smart-cycle-discounts' ), SCD_Validation_Rules::SCHEDULE_MAX_DURATION_DAYS ),
-			'rotation_interval_range' => sprintf( __( 'Rotation interval must be between %1$d and %2$d hours', 'smart-cycle-discounts' ), SCD_Validation_Rules::ROTATION_INTERVAL_MIN, SCD_Validation_Rules::ROTATION_INTERVAL_MAX ),
+			/* translators: %d: maximum number of days */
+			'duration_too_long'       => sprintf( __( 'Schedule duration cannot exceed %d days', 'smart-cycle-discounts' ), WSSCD_Validation_Rules::SCHEDULE_MAX_DURATION_DAYS ),
+			/* translators: 1: minimum hours, 2: maximum hours */
+			'rotation_interval_range' => sprintf( __( 'Rotation interval must be between %1$d and %2$d hours', 'smart-cycle-discounts' ), WSSCD_Validation_Rules::ROTATION_INTERVAL_MIN, WSSCD_Validation_Rules::ROTATION_INTERVAL_MAX ),
 		);
 	}
 

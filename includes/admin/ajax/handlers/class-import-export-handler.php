@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class SCD_Import_Export_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Import_Export_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Container instance.
@@ -32,7 +32,7 @@ class SCD_Import_Export_Handler extends SCD_Abstract_Ajax_Handler {
 	/**
 	 * Feature gate instance.
 	 *
-	 * @var SCD_Feature_Gate
+	 * @var WSSCD_Feature_Gate
 	 */
 	private $feature_gate;
 
@@ -40,8 +40,8 @@ class SCD_Import_Export_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @param object           $container    Container instance.
-	 * @param SCD_Logger       $logger       Logger instance.
-	 * @param SCD_Feature_Gate $feature_gate Feature gate instance.
+	 * @param WSSCD_Logger       $logger       Logger instance.
+	 * @param WSSCD_Feature_Gate $feature_gate Feature gate instance.
 	 */
 	public function __construct( $container, $logger, $feature_gate = null ) {
 		parent::__construct( $logger );
@@ -55,7 +55,7 @@ class SCD_Import_Export_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return string Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_ajax';
+		return 'wsscd_ajax';
 	}
 
 	/**
@@ -147,42 +147,67 @@ class SCD_Import_Export_Handler extends SCD_Abstract_Ajax_Handler {
 	private function export_campaigns( $start_time ) {
 		global $wpdb;
 
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
 		$current_user_id = get_current_user_id();
 
 		// SECURITY: Build query with explicit columns (no SELECT *)
-		// This prevents schema disclosure
-		$query = "
-			SELECT
-				id,
-				name,
-				status,
-				campaign_type,
-				priority,
-				schedule_start,
-				schedule_end,
-				product_selection_type,
-				product_selection_data,
-				discount_type,
-				discount_settings,
-				usage_limit_per_user,
-				usage_limit_total,
-				created_at,
-				updated_at,
-				created_by
-			FROM {$campaigns_table}
-		";
-
-		// SECURITY: Ownership filtering - only export own campaigns unless super admin
-		// Super admins (manage_options) can export all campaigns
+		// This prevents schema disclosure.
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// Ownership filtering - only export own campaigns unless super admin.
 		if ( ! current_user_can( 'manage_options' ) ) {
-			$query .= $wpdb->prepare( ' WHERE created_by = %d', $current_user_id );
+			$query = $wpdb->prepare(
+				'SELECT
+					id,
+					name,
+					status,
+					campaign_type,
+					priority,
+					schedule_start,
+					schedule_end,
+					product_selection_type,
+					product_selection_data,
+					discount_type,
+					discount_settings,
+					usage_limit_per_user,
+					usage_limit_total,
+					created_at,
+					updated_at,
+					created_by
+				FROM %i
+				WHERE created_by = %d
+				ORDER BY created_at DESC
+				LIMIT 1000',
+				$campaigns_table,
+				$current_user_id
+			);
+		} else {
+			// Super admins can export all campaigns.
+			$query = $wpdb->prepare(
+				'SELECT
+					id,
+					name,
+					status,
+					campaign_type,
+					priority,
+					schedule_start,
+					schedule_end,
+					product_selection_type,
+					product_selection_data,
+					discount_type,
+					discount_settings,
+					usage_limit_per_user,
+					usage_limit_total,
+					created_at,
+					updated_at,
+					created_by
+				FROM %i
+				ORDER BY created_at DESC
+				LIMIT 1000',
+				$campaigns_table
+			);
 		}
 
-		// SECURITY: Add ORDER BY and LIMIT to prevent DOS
-		// Maximum 1000 campaigns per export
-		$query .= ' ORDER BY created_at DESC LIMIT 1000';
-
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
 		$campaigns = $wpdb->get_results( $query, ARRAY_A );
 
 		if ( null === $campaigns && ! empty( $wpdb->last_error ) ) {
@@ -226,7 +251,7 @@ class SCD_Import_Export_Handler extends SCD_Abstract_Ajax_Handler {
 		$is_filtered = ! current_user_can( 'manage_options' );
 
 		$export_data = array(
-			'version'            => SCD_VERSION,
+			'version'            => WSSCD_VERSION,
 			'type'               => 'campaigns',
 			'date'               => current_time( 'mysql' ),
 			'count'              => count( $sanitized_campaigns ),
@@ -234,7 +259,7 @@ class SCD_Import_Export_Handler extends SCD_Abstract_Ajax_Handler {
 			'data'               => $sanitized_campaigns,
 		);
 
-		$filename = 'scd-campaigns-export-' . gmdate( 'Y-m-d-H-i-s' ) . '.json';
+		$filename = 'wsscd-campaigns-export-' . gmdate( 'Y-m-d-H-i-s' ) . '.json';
 		$content  = wp_json_encode( $export_data, JSON_PRETTY_PRINT );
 
 		// Log successful export
@@ -268,16 +293,16 @@ class SCD_Import_Export_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return array Response data.
 	 */
 	private function export_settings( $start_time ) {
-		$settings = get_option( 'scd_settings', array() );
+		$settings = get_option( 'wsscd_settings', array() );
 
 		$export_data = array(
-			'version' => SCD_VERSION,
+			'version' => WSSCD_VERSION,
 			'type'    => 'settings',
 			'date'    => current_time( 'mysql' ),
 			'data'    => $settings,
 		);
 
-		$filename = 'scd-settings-export-' . gmdate( 'Y-m-d-H-i-s' ) . '.json';
+		$filename = 'wsscd-settings-export-' . gmdate( 'Y-m-d-H-i-s' ) . '.json';
 		$content  = wp_json_encode( $export_data, JSON_PRETTY_PRINT );
 
 		// Log successful export

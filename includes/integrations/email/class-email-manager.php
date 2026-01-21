@@ -27,52 +27,52 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/integrations/email
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Email_Manager {
+class WSSCD_Email_Manager {
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Campaign manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Manager    $campaign_manager    Campaign manager.
+	 * @var      WSSCD_Campaign_Manager    $campaign_manager    Campaign manager.
 	 */
-	private SCD_Campaign_Manager $campaign_manager;
+	private WSSCD_Campaign_Manager $campaign_manager;
 
 	/**
 	 * Action scheduler instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Action_Scheduler_Service    $action_scheduler    Action scheduler.
+	 * @var      WSSCD_Action_Scheduler_Service    $action_scheduler    Action scheduler.
 	 */
-	private SCD_Action_Scheduler_Service $action_scheduler;
+	private WSSCD_Action_Scheduler_Service $action_scheduler;
 
 	/**
 	 * Feature gate instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Feature_Gate    $feature_gate    Feature gate.
+	 * @var      WSSCD_Feature_Gate    $feature_gate    Feature gate.
 	 */
-	private SCD_Feature_Gate $feature_gate;
+	private WSSCD_Feature_Gate $feature_gate;
 
 	/**
 	 * Analytics repository instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Analytics_Repository    $analytics_repository    Analytics repository.
+	 * @var      WSSCD_Analytics_Repository    $analytics_repository    Analytics repository.
 	 */
-	private SCD_Analytics_Repository $analytics_repository;
+	private WSSCD_Analytics_Repository $analytics_repository;
 
 	/**
 	 * Email queue.
@@ -106,26 +106,26 @@ class SCD_Email_Manager {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Email_Provider    $provider    Email provider.
+	 * @var      WSSCD_Email_Provider    $provider    Email provider.
 	 */
-	private SCD_Email_Provider $provider;
+	private WSSCD_Email_Provider $provider;
 
 	/**
 	 * Initialize the email manager.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger                   $logger                Logger instance.
-	 * @param    SCD_Campaign_Manager         $campaign_manager      Campaign manager.
-	 * @param    SCD_Action_Scheduler_Service $action_scheduler      Action scheduler.
-	 * @param    SCD_Feature_Gate             $feature_gate          Feature gate instance.
-	 * @param    SCD_Analytics_Repository     $analytics_repository  Analytics repository.
+	 * @param    WSSCD_Logger                   $logger                Logger instance.
+	 * @param    WSSCD_Campaign_Manager         $campaign_manager      Campaign manager.
+	 * @param    WSSCD_Action_Scheduler_Service $action_scheduler      Action scheduler.
+	 * @param    WSSCD_Feature_Gate             $feature_gate          Feature gate instance.
+	 * @param    WSSCD_Analytics_Repository     $analytics_repository  Analytics repository.
 	 */
 	public function __construct(
-		SCD_Logger $logger,
-		SCD_Campaign_Manager $campaign_manager,
-		SCD_Action_Scheduler_Service $action_scheduler,
-		SCD_Feature_Gate $feature_gate,
-		SCD_Analytics_Repository $analytics_repository
+		WSSCD_Logger $logger,
+		WSSCD_Campaign_Manager $campaign_manager,
+		WSSCD_Action_Scheduler_Service $action_scheduler,
+		WSSCD_Feature_Gate $feature_gate,
+		WSSCD_Analytics_Repository $analytics_repository
 	) {
 		$this->logger               = $logger;
 		$this->campaign_manager     = $campaign_manager;
@@ -159,28 +159,28 @@ class SCD_Email_Manager {
 	 */
 	private function add_hooks(): void {
 		// Campaign lifecycle hooks
-		add_action( 'scd_campaign_started', array( $this, 'send_campaign_started_notification' ), 10, 1 );
-		add_action( 'scd_campaign_ending', array( $this, 'send_campaign_ending_notification' ), 10, 1 );
-		add_action( 'scd_campaign_ended', array( $this, 'send_campaign_ended_notification' ), 10, 1 );
+		add_action( 'wsscd_campaign_started', array( $this, 'send_campaign_started_notification' ), 10, 1 );
+		add_action( 'wsscd_campaign_ending', array( $this, 'send_campaign_ending_notification' ), 10, 1 );
+		add_action( 'wsscd_campaign_ended', array( $this, 'send_campaign_ended_notification' ), 10, 1 );
 
 		// Scheduled cron hook for ending notification
-		add_action( 'scd_campaign_ending_notification', array( $this, 'handle_ending_notification_cron' ), 10, 1 );
+		add_action( 'wsscd_campaign_ending_notification', array( $this, 'handle_ending_notification_cron' ), 10, 1 );
 
 		// Performance hooks
-		add_action( 'scd_daily_report', array( $this, 'send_daily_performance_report' ), 10, 1 );
-		add_action( 'scd_weekly_report', array( $this, 'send_weekly_performance_report' ), 10, 1 );
+		add_action( 'wsscd_daily_report', array( $this, 'send_daily_performance_report' ), 10, 1 );
+		add_action( 'wsscd_weekly_report', array( $this, 'send_weekly_performance_report' ), 10, 1 );
 
 		// PRO notification hooks
-		add_action( 'scd_performance_alert', array( $this, 'send_performance_alert' ), 10, 2 );
-		add_action( 'scd_low_stock_alert', array( $this, 'send_low_stock_alert' ), 10, 2 );
-		add_action( 'scd_milestone_alert', array( $this, 'send_milestone_alert' ), 10, 2 );
+		add_action( 'wsscd_performance_alert', array( $this, 'send_performance_alert' ), 10, 2 );
+		add_action( 'wsscd_low_stock_alert', array( $this, 'send_low_stock_alert' ), 10, 2 );
+		add_action( 'wsscd_milestone_alert', array( $this, 'send_milestone_alert' ), 10, 2 );
 
 		// Scheduled cron hooks for reports
-		add_action( 'scd_send_daily_report', array( $this, 'handle_daily_report_cron' ) );
-		add_action( 'scd_send_weekly_report', array( $this, 'handle_weekly_report_cron' ) );
+		add_action( 'wsscd_send_daily_report', array( $this, 'handle_daily_report_cron' ) );
+		add_action( 'wsscd_send_weekly_report', array( $this, 'handle_weekly_report_cron' ) );
 
 		// Email processing
-		add_action( 'scd_process_email_queue', array( $this, 'process_email_queue' ) );
+		add_action( 'wsscd_process_email_queue', array( $this, 'process_email_queue' ) );
 
 		// WordPress email filters (only for WP Mail provider)
 		if ( 'wpmail' === $this->settings['email_provider'] ) {
@@ -198,7 +198,7 @@ class SCD_Email_Manager {
 	 * @return   void
 	 */
 	private function load_settings(): void {
-		$all_settings           = get_option( 'scd_settings', array() );
+		$all_settings           = get_option( 'wsscd_settings', array() );
 		$notifications_settings = isset( $all_settings['notifications'] ) ? $all_settings['notifications'] : array();
 
 		// Defaults
@@ -239,7 +239,7 @@ class SCD_Email_Manager {
 
 		switch ( $provider_type ) {
 			case 'sendgrid':
-				$this->provider = new SCD_SendGrid_Provider(
+				$this->provider = new WSSCD_SendGrid_Provider(
 					$this->logger,
 					$this->settings['sendgrid_api_key'],
 					$this->settings['from_email'],
@@ -248,7 +248,7 @@ class SCD_Email_Manager {
 				break;
 
 			case 'amazonses':
-				$this->provider = new SCD_AmazonSES_Provider(
+				$this->provider = new WSSCD_AmazonSES_Provider(
 					$this->logger,
 					$this->settings['amazonses_access_key'],
 					$this->settings['amazonses_secret_key'],
@@ -260,7 +260,7 @@ class SCD_Email_Manager {
 
 			case 'wpmail':
 			default:
-				$this->provider = new SCD_WPMail_Provider(
+				$this->provider = new WSSCD_WPMail_Provider(
 					$this->logger,
 					$this->settings['from_email'],
 					$this->settings['from_name']
@@ -351,7 +351,7 @@ class SCD_Email_Manager {
 
 			$variables = array(
 				'campaign_name' => $campaign->get_name(),
-				'campaign_url'  => admin_url( "admin.php?page=scd-campaigns&action=edit&id={$campaign_id}" ),
+				'campaign_url'  => admin_url( "admin.php?page=wsscd-campaigns&action=edit&id={$campaign_id}" ),
 				'start_date'    => $campaign->get_starts_at() ? $campaign->get_starts_at()->format( 'Y-m-d H:i:s' ) : '',
 				'end_date'      => $campaign->get_ends_at() ? $campaign->get_ends_at()->format( 'Y-m-d H:i:s' ) : '',
 				'product_count' => count( $campaign->get_product_ids() ),
@@ -401,7 +401,7 @@ class SCD_Email_Manager {
 
 			$variables = array(
 				'campaign_name'       => $campaign->get_name(),
-				'campaign_url'        => admin_url( "admin.php?page=scd-campaigns&action=edit&id={$campaign_id}" ),
+				'campaign_url'        => admin_url( "admin.php?page=wsscd-campaigns&action=edit&id={$campaign_id}" ),
 				'end_date'            => $campaign->get_ends_at() ? $campaign->get_ends_at()->format( 'Y-m-d H:i:s' ) : '',
 				'time_remaining'      => $time_remaining,
 				'performance_summary' => $this->format_performance_summary( $performance ),
@@ -489,8 +489,8 @@ class SCD_Email_Manager {
 	 * @return   void
 	 */
 	public function handle_ending_notification_cron( int $campaign_id ): void {
-		// Fire the scd_campaign_ending action
-		do_action( 'scd_campaign_ending', $campaign_id );
+		// Fire the wsscd_campaign_ending action
+		do_action( 'wsscd_campaign_ending', $campaign_id );
 	}
 
 	/**
@@ -502,10 +502,10 @@ class SCD_Email_Manager {
 	 * @return   void
 	 */
 	public function handle_daily_report_cron(): void {
-		$date = date( 'Y-m-d', strtotime( 'yesterday' ) );
+		$date = gmdate( 'Y-m-d', strtotime( 'yesterday' ) );
 
-		// Fire the scd_daily_report action
-		do_action( 'scd_daily_report', $date );
+		// Fire the wsscd_daily_report action
+		do_action( 'wsscd_daily_report', $date );
 	}
 
 	/**
@@ -517,10 +517,10 @@ class SCD_Email_Manager {
 	 * @return   void
 	 */
 	public function handle_weekly_report_cron(): void {
-		$week_start = date( 'Y-m-d', strtotime( 'last Monday -1 week' ) );
+		$week_start = gmdate( 'Y-m-d', strtotime( 'last Monday -1 week' ) );
 
-		// Fire the scd_weekly_report action
-		do_action( 'scd_weekly_report', $week_start );
+		// Fire the wsscd_weekly_report action
+		do_action( 'wsscd_weekly_report', $week_start );
 	}
 
 	/**
@@ -539,7 +539,7 @@ class SCD_Email_Manager {
 			$report_data = $this->generate_daily_report( $date );
 
 			$variables = array(
-				'date'             => date( 'F j, Y', strtotime( $date ) ),
+				'date'             => gmdate( 'F j, Y', strtotime( $date ) ),
 				'active_campaigns' => $report_data['active_campaigns'],
 				'total_revenue'    => wc_price( $report_data['total_revenue'] ),
 				'total_orders'     => $report_data['total_orders'],
@@ -580,11 +580,11 @@ class SCD_Email_Manager {
 		}
 
 		try {
-			$week_end    = date( 'Y-m-d', strtotime( $week_start . ' +6 days' ) );
+			$week_end    = gmdate( 'Y-m-d', strtotime( $week_start . ' +6 days' ) );
 			$report_data = $this->generate_weekly_report( $week_start, $week_end );
 
 			$variables = array(
-				'week_range'         => date( 'M j', strtotime( $week_start ) ) . ' - ' . date( 'M j, Y', strtotime( $week_end ) ),
+				'week_range'         => gmdate( 'M j', strtotime( $week_start ) ) . ' - ' . gmdate( 'M j, Y', strtotime( $week_end ) ),
 				'campaign_summary'   => $this->format_campaign_summary( $report_data['campaigns'] ),
 				'revenue_summary'    => $this->format_revenue_summary( $report_data['revenue'] ),
 				'performance_trends' => $this->format_performance_trends( $report_data['trends'] ),
@@ -637,7 +637,7 @@ class SCD_Email_Manager {
 				'alert_message'       => $alert_data['alert_message'] ?? '',
 				'current_performance' => $alert_data['performance'] ?? '',
 				'recommended_actions' => $this->format_recommended_actions( $alert_data['actions'] ?? array() ),
-				'dashboard_url'       => admin_url( "admin.php?page=scd-campaigns&action=edit&id={$campaign_id}" ),
+				'dashboard_url'       => admin_url( "admin.php?page=wsscd-campaigns&action=edit&id={$campaign_id}" ),
 			);
 
 			$this->queue_email( 'performance_alert', $variables );
@@ -689,7 +689,7 @@ class SCD_Email_Manager {
 				'products_list'       => $this->format_product_stock_table( $low_stock_products ),
 				'total_low_stock'     => $total_low_stock,
 				'recommended_actions' => $this->format_recommended_actions( $stock_data['actions'] ?? array() ),
-				'dashboard_url'       => admin_url( "admin.php?page=scd-campaigns&action=edit&id={$campaign_id}" ),
+				'dashboard_url'       => admin_url( "admin.php?page=wsscd-campaigns&action=edit&id={$campaign_id}" ),
 			);
 
 			$this->queue_email( 'low_stock_alert', $variables );
@@ -739,7 +739,7 @@ class SCD_Email_Manager {
 				'milestone_value'     => $milestone_data['value'] ?? '',
 				'achievement_message' => $milestone_data['message'] ?? '',
 				'performance_summary' => $milestone_data['performance'] ?? '',
-				'dashboard_url'       => admin_url( "admin.php?page=scd-campaigns&action=edit&id={$campaign_id}" ),
+				'dashboard_url'       => admin_url( "admin.php?page=wsscd-campaigns&action=edit&id={$campaign_id}" ),
 			);
 
 			$this->queue_email( 'milestone_alert', $variables );
@@ -822,7 +822,7 @@ class SCD_Email_Manager {
 		}
 
 		$processed            = 0;
-		$max_emails_per_batch = apply_filters( 'scd_email_batch_size', 10 );
+		$max_emails_per_batch = apply_filters( 'wsscd_email_batch_size', 10 );
 
 		foreach ( $this->email_queue as $index => $email_data ) {
 			if ( $processed >= $max_emails_per_batch ) {
@@ -881,8 +881,8 @@ class SCD_Email_Manager {
 			return;
 		}
 
-		$max_age_days     = apply_filters( 'scd_email_queue_max_age_days', 7 );
-		$max_queue_size   = apply_filters( 'scd_email_queue_max_size', 1000 );
+		$max_age_days     = apply_filters( 'wsscd_email_queue_max_age_days', 7 );
+		$max_queue_size   = apply_filters( 'wsscd_email_queue_max_size', 1000 );
 		$cutoff_timestamp = strtotime( "-{$max_age_days} days" );
 
 		// Remove old queued items
@@ -958,7 +958,8 @@ class SCD_Email_Manager {
 				$result = $this->provider->send( $recipient, $subject, $content );
 
 				if ( ! $result ) {
-					throw new Exception( "Failed to send email to {$recipient}" );
+					// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+					throw new Exception( 'Failed to send email to ' . esc_html( $recipient ) );
 				}
 			}
 
@@ -997,7 +998,7 @@ class SCD_Email_Manager {
 	 */
 	private function render_email_template( string $template, array $variables ): string {
 		// Allow custom templates directory
-		$template_path = apply_filters( 'scd_email_template_path', SCD_PLUGIN_DIR . "templates/emails/{$template}.php", $template );
+		$template_path = apply_filters( 'wsscd_email_template_path', WSSCD_PLUGIN_DIR . "templates/emails/{$template}.php", $template );
 
 		if ( file_exists( $template_path ) ) {
 			ob_start();
@@ -1059,43 +1060,43 @@ class SCD_Email_Manager {
 	 */
 	public function schedule_email_processing(): void {
 		// Schedule recurring action to process email queue every hour
-		if ( ! $this->action_scheduler->is_action_scheduled( 'scd_process_email_queue' ) ) {
+		if ( ! $this->action_scheduler->is_action_scheduled( 'wsscd_process_email_queue' ) ) {
 			$this->action_scheduler->schedule_recurring_action(
 				time(),
 				HOUR_IN_SECONDS,
-				'scd_process_email_queue',
+				'wsscd_process_email_queue',
 				array(),
-				'scd_email'
+				'wsscd_email'
 			);
 		}
 
 		// Schedule daily performance report (if enabled)
 		if ( $this->is_notification_enabled( 'daily_report' ) ) {
-			if ( ! wp_next_scheduled( 'scd_send_daily_report' ) ) {
+			if ( ! wp_next_scheduled( 'wsscd_send_daily_report' ) ) {
 				// Schedule for 9 AM daily
 				$schedule_time = strtotime( 'tomorrow 09:00:00' );
-				wp_schedule_event( $schedule_time, 'daily', 'scd_send_daily_report' );
+				wp_schedule_event( $schedule_time, 'daily', 'wsscd_send_daily_report' );
 			}
 		} else {
 			// Unschedule if disabled
-			$timestamp = wp_next_scheduled( 'scd_send_daily_report' );
+			$timestamp = wp_next_scheduled( 'wsscd_send_daily_report' );
 			if ( $timestamp ) {
-				wp_unschedule_event( $timestamp, 'scd_send_daily_report' );
+				wp_unschedule_event( $timestamp, 'wsscd_send_daily_report' );
 			}
 		}
 
 		// Schedule weekly performance report (if enabled)
 		if ( $this->is_notification_enabled( 'weekly_report' ) ) {
-			if ( ! wp_next_scheduled( 'scd_send_weekly_report' ) ) {
+			if ( ! wp_next_scheduled( 'wsscd_send_weekly_report' ) ) {
 				// Schedule for Monday 9 AM weekly
 				$schedule_time = strtotime( 'next Monday 09:00:00' );
-				wp_schedule_event( $schedule_time, 'weekly', 'scd_send_weekly_report' );
+				wp_schedule_event( $schedule_time, 'weekly', 'wsscd_send_weekly_report' );
 			}
 		} else {
 			// Unschedule if disabled
-			$timestamp = wp_next_scheduled( 'scd_send_weekly_report' );
+			$timestamp = wp_next_scheduled( 'wsscd_send_weekly_report' );
 			if ( $timestamp ) {
-				wp_unschedule_event( $timestamp, 'scd_send_weekly_report' );
+				wp_unschedule_event( $timestamp, 'wsscd_send_weekly_report' );
 			}
 		}
 	}
@@ -1171,7 +1172,7 @@ class SCD_Email_Manager {
 			$ends_at   = $campaign->get_ends_at();
 
 			$start_date = $starts_at ? $starts_at->format( 'Y-m-d' ) : '';
-			$end_date   = $ends_at ? $ends_at->format( 'Y-m-d' ) : date( 'Y-m-d' );
+			$end_date   = $ends_at ? $ends_at->format( 'Y-m-d' ) : gmdate( 'Y-m-d' );
 
 			// Get real analytics data
 			$analytics = $this->analytics_repository->get_campaign_performance( $campaign_id, $start_date, $end_date );
@@ -1230,8 +1231,10 @@ class SCD_Email_Manager {
 		$hours = floor( ( $diff % ( 24 * 60 * 60 ) ) / ( 60 * 60 ) );
 
 		if ( $days > 0 ) {
+			/* translators: %d: number of days */
 			return sprintf( _n( '%d day', '%d days', $days, 'smart-cycle-discounts' ), $days );
 		} else {
+			/* translators: %d: number of hours */
 			return sprintf( _n( '%d hour', '%d hours', $hours, 'smart-cycle-discounts' ), $hours );
 		}
 	}
@@ -1246,6 +1249,7 @@ class SCD_Email_Manager {
 	 */
 	private function format_performance_summary( array $performance ): string {
 		return sprintf(
+			/* translators: %1$s: formatted revenue amount, %2$d: total number of orders, %3$.2f: conversion rate percentage */
 			__( 'Revenue: %1$s | Orders: %2$d | Conversion Rate: %3$.2f%%', 'smart-cycle-discounts' ),
 			wc_price( $performance['total_revenue'] ?? 0 ),
 			$performance['total_orders'] ?? 0,
@@ -1461,6 +1465,7 @@ class SCD_Email_Manager {
 	 * @return   string                 Formatted summary.
 	 */
 	private function format_campaign_summary( array $campaigns ): string {
+		/* translators: %d: number of active campaigns */
 		return sprintf( __( '%d campaigns active this week', 'smart-cycle-discounts' ), count( $campaigns ) );
 	}
 
@@ -1473,6 +1478,7 @@ class SCD_Email_Manager {
 	 * @return   string               Formatted summary.
 	 */
 	private function format_revenue_summary( array $revenue ): string {
+		/* translators: %s: formatted revenue amount */
 		return sprintf( __( 'Total revenue: %s', 'smart-cycle-discounts' ), wc_price( $revenue['total'] ) );
 	}
 
@@ -1582,7 +1588,7 @@ class SCD_Email_Manager {
 	 * @return   void
 	 */
 	private function save_email_queue(): void {
-		update_option( 'scd_email_queue', $this->email_queue );
+		update_option( 'wsscd_email_queue', $this->email_queue );
 	}
 
 	/**
@@ -1593,7 +1599,7 @@ class SCD_Email_Manager {
 	 * @return   void
 	 */
 	private function load_email_queue(): void {
-		$this->email_queue = get_option( 'scd_email_queue', array() );
+		$this->email_queue = get_option( 'wsscd_email_queue', array() );
 	}
 
 	/**
@@ -1648,10 +1654,10 @@ class SCD_Email_Manager {
 	public function update_settings( array $settings ): bool {
 		$this->settings = wp_parse_args( $settings, $this->settings );
 
-		$all_settings                  = get_option( 'scd_settings', array() );
+		$all_settings                  = get_option( 'wsscd_settings', array() );
 		$all_settings['notifications'] = $this->settings;
 
-		$result = update_option( 'scd_settings', $all_settings );
+		$result = update_option( 'wsscd_settings', $all_settings );
 
 		// Re-initialize provider if provider settings changed
 		if ( isset( $settings['email_provider'] ) || isset( $settings['sendgrid_api_key'] ) || isset( $settings['amazonses_access_key'] ) ) {

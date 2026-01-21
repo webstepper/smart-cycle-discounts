@@ -28,25 +28,25 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/security
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Audit_Logger {
+class WSSCD_Audit_Logger {
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Initialize the audit logger.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger|null $logger    Logger instance (optional, creates security context logger if null).
+	 * @param    WSSCD_Logger|null $logger    Logger instance (optional, creates security context logger if null).
 	 */
-	public function __construct( ?SCD_Logger $logger = null ) {
-		$this->logger = $logger ?? SCD_Logger::with_context( 'security' );
+	public function __construct( ?WSSCD_Logger $logger = null ) {
+		$this->logger = $logger ?? WSSCD_Logger::with_context( 'security' );
 	}
 
 	/**
@@ -62,7 +62,7 @@ class SCD_Audit_Logger {
 		$context['event_type'] = $event;
 		$context['user_id']    = get_current_user_id();
 		$context['ip_address'] = $this->get_client_ip();
-		$context['user_agent'] = $_SERVER['HTTP_USER_AGENT'] ?? '';
+		$context['user_agent'] = isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '';
 		$context['timestamp']  = current_time( 'mysql' );
 
 		$this->logger->warning( $message, $context );
@@ -135,7 +135,7 @@ class SCD_Audit_Logger {
 
 		foreach ( $ip_keys as $key ) {
 			if ( ! empty( $_SERVER[ $key ] ) ) {
-				$ip = $_SERVER[ $key ];
+				$ip = sanitize_text_field( wp_unslash( $_SERVER[ $key ] ) );
 				if ( strpos( $ip, ',' ) !== false ) {
 					$ip = trim( explode( ',', $ip )[0] );
 				}
@@ -145,6 +145,6 @@ class SCD_Audit_Logger {
 			}
 		}
 
-		return $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+		return isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown';
 	}
 }

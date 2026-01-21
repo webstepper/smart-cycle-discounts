@@ -26,14 +26,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Load_Data_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Load_Data_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * State service instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Wizard_State_Service    $state_service    State service.
+	 * @var      WSSCD_Wizard_State_Service    $state_service    State service.
 	 */
 	private $state_service;
 
@@ -41,8 +41,8 @@ class SCD_Load_Data_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Wizard_State_Service $state_service    State service.
-	 * @param    SCD_Logger               $logger           Logger instance (optional).
+	 * @param    WSSCD_Wizard_State_Service $state_service    State service.
+	 * @param    WSSCD_Logger               $logger           Logger instance (optional).
 	 */
 	public function __construct( $state_service, $logger = null ) {
 		parent::__construct( $logger );
@@ -56,7 +56,7 @@ class SCD_Load_Data_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_load_data';
+		return 'wsscd_load_data';
 	}
 
 	/**
@@ -71,8 +71,8 @@ class SCD_Load_Data_Handler extends SCD_Abstract_Ajax_Handler {
 		$load_all = ! empty( $request['load_all'] );
 
 		// Debug: Log load request
-		if ( function_exists( 'scd_debug_persistence' ) ) {
-			scd_debug_persistence(
+		if ( function_exists( 'wsscd_debug_persistence' ) ) {
+			wsscd_debug_persistence(
 				'load_request',
 				$step ? $step : 'all',
 				array(
@@ -86,8 +86,8 @@ class SCD_Load_Data_Handler extends SCD_Abstract_Ajax_Handler {
 
 		if ( ! $this->state_service->has_session() ) {
 			// Debug: Log no session found
-			if ( function_exists( 'scd_debug_persistence' ) ) {
-				scd_debug_persistence( 'load_error', $step ? $step : 'all', array(), false, 'No saved session found' );
+			if ( function_exists( 'wsscd_debug_persistence' ) ) {
+				wsscd_debug_persistence( 'load_error', $step ? $step : 'all', array(), false, 'No saved session found' );
 			}
 
 			return $this->error(
@@ -115,8 +115,8 @@ class SCD_Load_Data_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		// Debug: Log loaded data
-		if ( function_exists( 'scd_debug_persistence' ) ) {
-			scd_debug_persistence( 'load_success', $step ? $step : 'all', $data, true, 'Data loaded from session' );
+		if ( function_exists( 'wsscd_debug_persistence' ) ) {
+			wsscd_debug_persistence( 'load_success', $step ? $step : 'all', $data, true, 'Data loaded from session' );
 		}
 
 		$progress = $this->state_service->get_progress();
@@ -159,12 +159,13 @@ class SCD_Load_Data_Handler extends SCD_Abstract_Ajax_Handler {
 	 */
 	private function enrich_products_data( $data ) {
 		// Enrich category_ids with full category data
+		// Categories are a FILTER for pool-based selections, not a selection type
 		if ( ! empty( $data['category_ids'] ) && is_array( $data['category_ids'] ) ) {
 			$category_data = array();
 
 			foreach ( $data['category_ids'] as $cat_id ) {
-				// Skip 'all' - it's a special value, not a real category ID
-				if ( 'all' === $cat_id ) {
+				// Skip non-numeric IDs
+				if ( ! is_numeric( $cat_id ) || intval( $cat_id ) <= 0 ) {
 					continue;
 				}
 

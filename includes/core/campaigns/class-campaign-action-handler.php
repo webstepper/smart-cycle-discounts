@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since      1.0.0
  */
-class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
+class WSSCD_Campaign_Action_Handler extends WSSCD_Abstract_Campaign_Controller {
 
 	/**
 	 * Handle delete action.
@@ -31,6 +31,9 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	public function handle_delete() {
+		// SECURITY: ID is read first to construct the dynamic nonce action name.
+		// Nonce verification happens at line 42 using wp_verify_nonce() with action 'wsscd-campaign-action-delete-{id}'.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- ID required to build nonce action; nonce verified at line 42 below.
 		$campaign_id = isset( $_REQUEST['id'] ) ? absint( $_REQUEST['id'] ) : 0;
 		if ( ! $campaign_id ) {
 			$this->redirect_with_error( __( 'Invalid campaign ID.', 'smart-cycle-discounts' ) );
@@ -38,12 +41,12 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 		}
 
 		// Verify nonce
-		if ( ! wp_verify_nonce( isset( $_REQUEST['_wpnonce'] ) ? $_REQUEST['_wpnonce'] : '', 'scd-campaign-action-delete-' . $campaign_id ) ) {
+		if ( ! wp_verify_nonce( isset( $_REQUEST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ) : '', 'wsscd-campaign-action-delete-' . $campaign_id ) ) {
 			$this->redirect_with_error( __( 'Security check failed.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
-		if ( ! $this->check_capability( 'scd_delete_campaigns' ) ) {
+		if ( ! $this->check_capability( 'wsscd_delete_campaigns' ) ) {
 			$this->redirect_with_error( __( 'You do not have permission to delete campaigns.', 'smart-cycle-discounts' ) );
 			return;
 		}
@@ -56,7 +59,7 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 		$result = $this->campaign_manager->delete( $campaign_id );
 		if ( ! is_wp_error( $result ) && $result ) {
 			$this->redirect_with_message(
-				admin_url( 'admin.php?page=scd-campaigns' ),
+				admin_url( 'admin.php?page=wsscd-campaigns' ),
 				__( 'Campaign moved to trash.', 'smart-cycle-discounts' ),
 				'success'
 			);
@@ -72,6 +75,9 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	public function handle_duplicate() {
+		// SECURITY: ID is read first to construct the dynamic nonce action name.
+		// Nonce verification happens at line 84 using wp_verify_nonce() with action 'duplicate_campaign_{id}'.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- ID required to build nonce action; nonce verified at line 84 below.
 		$campaign_id = isset( $_REQUEST['id'] ) ? absint( $_REQUEST['id'] ) : 0;
 		if ( ! $campaign_id ) {
 			$this->redirect_with_error( __( 'Invalid campaign ID.', 'smart-cycle-discounts' ) );
@@ -79,12 +85,12 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 		}
 
 		// Verify nonce
-		if ( ! wp_verify_nonce( isset( $_REQUEST['_wpnonce'] ) ? $_REQUEST['_wpnonce'] : '', 'duplicate_campaign_' . $campaign_id ) ) {
+		if ( ! wp_verify_nonce( isset( $_REQUEST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ) : '', 'duplicate_campaign_' . $campaign_id ) ) {
 			$this->redirect_with_error( __( 'Security check failed.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
-		if ( ! $this->check_capability( 'scd_create_campaigns' ) ) {
+		if ( ! $this->check_capability( 'wsscd_create_campaigns' ) ) {
 			$this->redirect_with_error( __( 'You do not have permission to duplicate campaigns.', 'smart-cycle-discounts' ) );
 			return;
 		}
@@ -100,8 +106,9 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 
 			if ( ! is_wp_error( $new_campaign ) && $new_campaign ) {
 				$this->redirect_with_message(
-					admin_url( 'admin.php?page=scd-campaigns' ),
+					admin_url( 'admin.php?page=wsscd-campaigns' ),
 					sprintf(
+						/* translators: %s: name of the duplicated campaign */
 						__( 'Campaign duplicated successfully as "%s". Click Edit to configure it.', 'smart-cycle-discounts' ),
 						esc_html( $new_campaign->get_name() )
 					),
@@ -134,7 +141,7 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	public function handle_activate() {
-		$this->handle_status_change( 'active', 'scd_activate_campaigns' );
+		$this->handle_status_change( 'active', 'wsscd_activate_campaigns' );
 	}
 
 	/**
@@ -149,7 +156,7 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	public function handle_deactivate() {
-		$this->handle_status_change( 'paused', 'scd_activate_campaigns' );
+		$this->handle_status_change( 'paused', 'wsscd_activate_campaigns' );
 	}
 
 	/**
@@ -161,6 +168,9 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	private function handle_status_change( $new_status, $capability ) {
+		// SECURITY: ID is read first to construct the dynamic nonce action name.
+		// Nonce verification happens at line 180 using wp_verify_nonce() with action 'wsscd-campaign-action-{action}-{id}'.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- ID required to build nonce action; nonce verified at line 180 below.
 		$campaign_id = isset( $_REQUEST['id'] ) ? absint( $_REQUEST['id'] ) : 0;
 		if ( ! $campaign_id ) {
 			$this->redirect_with_error( __( 'Invalid campaign ID.', 'smart-cycle-discounts' ) );
@@ -169,8 +179,8 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 
 		// Determine action for nonce
 		$action      = ( 'active' === $new_status ) ? 'activate' : 'deactivate';
-		$nonce_name  = 'scd-campaign-action-' . $action . '-' . $campaign_id;
-		$nonce_value = isset( $_REQUEST['_wpnonce'] ) ? $_REQUEST['_wpnonce'] : '';
+		$nonce_name  = 'wsscd-campaign-action-' . $action . '-' . $campaign_id;
+		$nonce_value = isset( $_REQUEST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ) : '';
 
 		// Verify nonce
 		if ( ! wp_verify_nonce( $nonce_value, $nonce_name ) ) {
@@ -215,12 +225,14 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 						// Warn if expires within 24 hours
 						if ( $hours_until_expiry < 24 && $hours_until_expiry > 0 ) {
 							$message .= ' ' . sprintf(
-								__( 'Note: This campaign will expire soon on %s (in %s).', 'smart-cycle-discounts' ),
+								/* translators: %1$s: formatted end date, %2$s: human readable time difference */
+								__( 'Note: This campaign will expire soon on %1$s (in %2$s).', 'smart-cycle-discounts' ),
 								$end_date_display,
 								human_time_diff( $now->getTimestamp(), $ends_at->getTimestamp() )
 							);
 						} else {
 							$message .= ' ' . sprintf(
+								/* translators: %s: formatted end date */
 								__( 'Campaign will run until %s.', 'smart-cycle-discounts' ),
 								$end_date_display
 							);
@@ -236,6 +248,7 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 					if ( $ends_at ) {
 						$end_date_display = wp_date( 'F j, Y \a\t g:i A', $ends_at->getTimestamp() );
 						$message         .= ' ' . sprintf(
+							/* translators: %s: formatted expiration date */
 							__( 'Note: This campaign will still expire on %s.', 'smart-cycle-discounts' ),
 							$end_date_display
 						);
@@ -244,7 +257,7 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 			}
 
 			$this->redirect_with_message(
-				wp_get_referer() ? wp_get_referer() : admin_url( 'admin.php?page=scd-campaigns' ),
+				wp_get_referer() ? wp_get_referer() : admin_url( 'admin.php?page=wsscd-campaigns' ),
 				$message,
 				'success'
 			);
@@ -263,6 +276,7 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	public function handle_restore() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- ID needed to construct nonce action for verification below.
 		$campaign_id = isset( $_REQUEST['id'] ) ? absint( $_REQUEST['id'] ) : 0;
 		if ( ! $campaign_id ) {
 			$this->redirect_with_error( __( 'Invalid campaign ID.', 'smart-cycle-discounts' ) );
@@ -270,12 +284,12 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 		}
 
 		// Verify nonce
-		if ( ! wp_verify_nonce( isset( $_REQUEST['_wpnonce'] ) ? $_REQUEST['_wpnonce'] : '', 'scd_restore_campaign_' . $campaign_id ) ) {
+		if ( ! wp_verify_nonce( isset( $_REQUEST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ) : '', 'wsscd_restore_campaign_' . $campaign_id ) ) {
 			$this->redirect_with_error( __( 'Security check failed.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
-		if ( ! $this->check_capability( 'scd_edit_campaigns' ) ) {
+		if ( ! $this->check_capability( 'wsscd_edit_campaigns' ) ) {
 			$this->redirect_with_error( __( 'You do not have permission to restore campaigns.', 'smart-cycle-discounts' ) );
 			return;
 		}
@@ -291,7 +305,7 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 
 		if ( $result ) {
 			$this->redirect_with_message(
-				admin_url( 'admin.php?page=scd-campaigns' ),
+				admin_url( 'admin.php?page=wsscd-campaigns' ),
 				__( 'Campaign restored successfully.', 'smart-cycle-discounts' ),
 				'success'
 			);
@@ -309,6 +323,7 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	public function handle_delete_permanently() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- ID needed to construct nonce action for verification below.
 		$campaign_id = isset( $_REQUEST['id'] ) ? absint( $_REQUEST['id'] ) : 0;
 		if ( ! $campaign_id ) {
 			$this->redirect_with_error( __( 'Invalid campaign ID.', 'smart-cycle-discounts' ) );
@@ -316,12 +331,12 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 		}
 
 		// Verify nonce
-		if ( ! wp_verify_nonce( isset( $_REQUEST['_wpnonce'] ) ? $_REQUEST['_wpnonce'] : '', 'scd_delete_permanently_' . $campaign_id ) ) {
+		if ( ! wp_verify_nonce( isset( $_REQUEST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ) : '', 'wsscd_delete_permanently_' . $campaign_id ) ) {
 			$this->redirect_with_error( __( 'Security check failed.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
-		if ( ! $this->check_capability( 'scd_delete_campaigns' ) ) {
+		if ( ! $this->check_capability( 'wsscd_delete_campaigns' ) ) {
 			$this->redirect_with_error( __( 'You do not have permission to delete campaigns.', 'smart-cycle-discounts' ) );
 			return;
 		}
@@ -337,7 +352,7 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 
 		if ( $result ) {
 			$this->redirect_with_message(
-				admin_url( 'admin.php?page=scd-campaigns&status=trash' ),
+				admin_url( 'admin.php?page=wsscd-campaigns&status=trash' ),
 				__( 'Campaign permanently deleted.', 'smart-cycle-discounts' ),
 				'success'
 			);
@@ -356,12 +371,12 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 	 */
 	public function handle_empty_trash() {
 		// Verify nonce
-		if ( ! wp_verify_nonce( isset( $_REQUEST['_wpnonce'] ) ? $_REQUEST['_wpnonce'] : '', 'scd_empty_trash' ) ) {
+		if ( ! wp_verify_nonce( isset( $_REQUEST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ) : '', 'wsscd_empty_trash' ) ) {
 			$this->redirect_with_error( __( 'Security check failed.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
-		if ( ! $this->check_capability( 'scd_delete_campaigns' ) ) {
+		if ( ! $this->check_capability( 'wsscd_delete_campaigns' ) ) {
 			$this->redirect_with_error( __( 'You do not have permission to empty trash.', 'smart-cycle-discounts' ) );
 			return;
 		}
@@ -371,7 +386,7 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 
 		if ( empty( $trashed_campaigns ) ) {
 			$this->redirect_with_message(
-				admin_url( 'admin.php?page=scd-campaigns&status=trash' ),
+				admin_url( 'admin.php?page=wsscd-campaigns&status=trash' ),
 				__( 'Trash is already empty.', 'smart-cycle-discounts' ),
 				'info'
 			);
@@ -394,6 +409,7 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 				++$deleted_count;
 			} else {
 				$errors[] = sprintf(
+					/* translators: %d: campaign ID */
 					__( 'Failed to delete campaign ID %d', 'smart-cycle-discounts' ),
 					$campaign_id
 				);
@@ -403,6 +419,7 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 		// Redirect with appropriate message
 		if ( $deleted_count > 0 ) {
 			$message = sprintf(
+				/* translators: %d: number of campaigns permanently deleted */
 				_n(
 					'Trash emptied: %d campaign permanently deleted.',
 					'Trash emptied: %d campaigns permanently deleted.',
@@ -414,6 +431,7 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 
 			if ( ! empty( $errors ) ) {
 				$message .= ' ' . sprintf(
+					/* translators: %d: number of campaigns that could not be deleted */
 					_n(
 						'However, %d campaign could not be deleted.',
 						'However, %d campaigns could not be deleted.',
@@ -425,7 +443,7 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 			}
 
 			$this->redirect_with_message(
-				admin_url( 'admin.php?page=scd-campaigns&status=trash' ),
+				admin_url( 'admin.php?page=wsscd-campaigns&status=trash' ),
 				$message,
 				'success'
 			);
@@ -441,6 +459,7 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	public function handle_stop_recurring() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- ID needed to construct nonce action for verification below.
 		$campaign_id = isset( $_REQUEST['id'] ) ? absint( $_REQUEST['id'] ) : 0;
 		if ( ! $campaign_id ) {
 			$this->redirect_with_error( __( 'Invalid campaign ID.', 'smart-cycle-discounts' ) );
@@ -448,12 +467,12 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 		}
 
 		// Verify nonce
-		if ( ! wp_verify_nonce( isset( $_REQUEST['_wpnonce'] ) ? $_REQUEST['_wpnonce'] : '', 'scd_stop_recurring' ) ) {
+		if ( ! wp_verify_nonce( isset( $_REQUEST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ) : '', 'wsscd_stop_recurring' ) ) {
 			$this->redirect_with_error( __( 'Security check failed.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
-		if ( ! $this->check_capability( 'scd_edit_campaigns' ) ) {
+		if ( ! $this->check_capability( 'wsscd_edit_campaigns' ) ) {
 			$this->redirect_with_error( __( 'You do not have permission to edit campaigns.', 'smart-cycle-discounts' ) );
 			return;
 		}
@@ -473,7 +492,7 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 
 			if ( false !== $result ) {
 				$this->redirect_with_message(
-					admin_url( 'admin.php?page=scd-campaigns' ),
+					admin_url( 'admin.php?page=wsscd-campaigns' ),
 					__( 'Campaign recurring stopped successfully.', 'smart-cycle-discounts' ),
 					'success'
 				);
@@ -508,7 +527,7 @@ class SCD_Campaign_Action_Handler extends SCD_Abstract_Campaign_Controller {
 	 */
 	protected function redirect_with_error( $message ) {
 		$this->redirect_with_message(
-			wp_get_referer() ? wp_get_referer() : admin_url( 'admin.php?page=scd-campaigns' ),
+			wp_get_referer() ? wp_get_referer() : admin_url( 'admin.php?page=wsscd-campaigns' ),
 			$message,
 			'error'
 		);

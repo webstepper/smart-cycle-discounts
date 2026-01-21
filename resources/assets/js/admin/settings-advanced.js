@@ -17,7 +17,7 @@
 	 * Advanced Settings Manager
 	 */
 	function AdvancedSettingsManager() {
-		this.config = window.scdSettingsAdvanced || {};
+		this.config = window.wsscdSettingsAdvanced || {};
 		this.init();
 	}
 
@@ -59,7 +59,7 @@
 	 * Toggle conditional fields based on dependencies
 	 */
 	AdvancedSettingsManager.prototype.toggleConditionalFields = function() {
-		$( '.scd-conditional' ).each( function() {
+		$( '.wsscd-conditional' ).each( function() {
 			var depends = $( this ).data( 'depends' );
 			var dependsField = $( '#' + depends );
 
@@ -147,7 +147,7 @@
 			var $this = $( this );
 			var name = $this.attr( 'name' );
 
-			if ( name && name !== 'scd_advanced_settings_nonce' && name !== '_wp_http_referer' ) {
+			if ( name && name !== 'wsscd_advanced_settings_nonce' && name !== '_wp_http_referer' ) {
 				if ( $this.is( ':checkbox' ) ) {
 					settings[name] = $this.is( ':checked' );
 				} else {
@@ -161,7 +161,7 @@
 		var url = URL.createObjectURL( dataBlob );
 		var link = document.createElement( 'a' );
 		link.href = url;
-		link.download = 'scd-advanced-settings-' + new Date().toISOString().split( 'T' )[0] + '.json';
+		link.download = 'wsscd-advanced-settings-' + new Date().toISOString().split( 'T' )[0] + '.json';
 		document.body.appendChild( link );
 		link.click();
 		document.body.removeChild( link );

@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/wizard
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Wizard_Navigation {
+class WSSCD_Wizard_Navigation {
 
 	/**
 	 * Navigation configuration.
@@ -57,10 +57,10 @@ class SCD_Wizard_Navigation {
 			),
 		),
 		'button_classes' => array(
-			'previous'  => 'scd-nav-btn scd-nav-btn--previous',
-			'next'      => 'scd-nav-btn scd-nav-btn--next',
-			'complete'  => 'scd-nav-btn scd-nav-btn--complete',
-			'secondary' => 'scd-nav-btn scd-nav-btn--draft',
+			'previous'  => 'wsscd-nav-btn wsscd-nav-btn--previous',
+			'next'      => 'wsscd-nav-btn wsscd-nav-btn--next',
+			'complete'  => 'wsscd-nav-btn wsscd-nav-btn--complete',
+			'secondary' => 'wsscd-nav-btn wsscd-nav-btn--draft',
 		),
 		'button_styles' => array(
 			'previous'  => 'secondary',
@@ -80,7 +80,7 @@ class SCD_Wizard_Navigation {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Wizard_Manager    $wizard_manager    Wizard manager.
+	 * @var      WSSCD_Wizard_Manager    $wizard_manager    Wizard manager.
 	 */
 	private $wizard_manager = null;
 
@@ -88,7 +88,7 @@ class SCD_Wizard_Navigation {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Wizard_Manager $wizard_manager    Wizard manager instance.
+	 * @param    WSSCD_Wizard_Manager $wizard_manager    Wizard manager instance.
 	 */
 	public function __construct( $wizard_manager = null ) {
 		$this->wizard_manager = $wizard_manager;
@@ -101,7 +101,7 @@ class SCD_Wizard_Navigation {
 	 * @return   void
 	 */
 	public function init() {
-		add_action( 'scd_wizard_render_navigation', array( $this, 'render_navigation' ), 10, 2 );
+		add_action( 'wsscd_wizard_render_navigation', array( $this, 'render_navigation' ), 10, 2 );
 	}
 
 	/**
@@ -115,7 +115,7 @@ class SCD_Wizard_Navigation {
 	public function render_navigation( $current_step, $campaign_id = 0 ) {
 		$nav_data = $this->get_navigation_data( $current_step );
 
-		$template_file = SCD_PLUGIN_DIR . 'resources/views/admin/wizard/wizard-navigation.php';
+		$template_file = WSSCD_PLUGIN_DIR . 'resources/views/admin/wizard/wizard-navigation.php';
 
 		if ( file_exists( $template_file ) ) {
 			include $template_file;
@@ -158,25 +158,25 @@ class SCD_Wizard_Navigation {
 	 */
 	private function render_inline_navigation( $nav_data ) {
 		?>
-		<nav class="scd-wizard-navigation">
-			<div class="scd-nav-container">
+		<nav class="wsscd-wizard-navigation">
+			<div class="wsscd-nav-container">
 				<!-- Previous Button -->
-				<div class="scd-nav-section scd-nav-section--left">
+				<div class="wsscd-nav-section wsscd-nav-section--left">
 					<?php if ( ! $nav_data['is_first'] ) : ?>
 						<button type="button"
 								class="<?php echo esc_attr( $nav_data['config']['button_classes']['previous'] ); ?>"
 								data-action="previous"
 								data-target="<?php echo esc_attr( $nav_data['previous_step'] ); ?>">
-							<?php echo SCD_Icon_Helper::get( $nav_data['config']['icons']['previous'], array( 'size' => 16 ) ); ?>
-							<span class="scd-nav-btn__text"><?php esc_html_e( 'Previous', 'smart-cycle-discounts' ); ?></span>
+							<?php WSSCD_Icon_Helper::render( $nav_data['config']['icons']['previous'], array( 'size' => 16 ) ); ?>
+							<span class="wsscd-nav-btn__text"><?php esc_html_e( 'Previous', 'smart-cycle-discounts' ); ?></span>
 						</button>
 					<?php endif; ?>
 				</div>
 
 				<!-- Center Section -->
-				<div class="scd-nav-section scd-nav-section--center">
-					<div class="scd-nav-status">
-						<span class="scd-nav-status__step">
+				<div class="wsscd-nav-section wsscd-nav-section--center">
+					<div class="wsscd-nav-status">
+						<span class="wsscd-nav-status__step">
 							<?php
 							echo esc_html(
 								sprintf(
@@ -192,21 +192,21 @@ class SCD_Wizard_Navigation {
 				</div>
 
 				<!-- Next/Complete Button -->
-				<div class="scd-nav-section scd-nav-section--right">
+				<div class="wsscd-nav-section wsscd-nav-section--right">
 					<?php if ( $nav_data['is_last'] ) : ?>
 						<button type="button"
 								class="<?php echo esc_attr( $nav_data['config']['button_classes']['complete'] ); ?>"
 								data-action="complete">
-							<?php echo SCD_Icon_Helper::get( $nav_data['config']['icons']['complete'], array( 'size' => 16 ) ); ?>
-							<span class="scd-nav-btn__text"><?php esc_html_e( 'Create Campaign', 'smart-cycle-discounts' ); ?></span>
+							<?php WSSCD_Icon_Helper::render( $nav_data['config']['icons']['complete'], array( 'size' => 16 ) ); ?>
+							<span class="wsscd-nav-btn__text"><?php esc_html_e( 'Create Campaign', 'smart-cycle-discounts' ); ?></span>
 						</button>
 					<?php else : ?>
 						<button type="button"
 								class="<?php echo esc_attr( $nav_data['config']['button_classes']['next'] ); ?>"
 								data-action="next"
 								data-target="<?php echo esc_attr( $nav_data['next_step'] ); ?>">
-							<span class="scd-nav-btn__text"><?php esc_html_e( 'Next', 'smart-cycle-discounts' ); ?></span>
-							<?php echo SCD_Icon_Helper::get( $nav_data['config']['icons']['next'], array( 'size' => 16 ) ); ?>
+							<span class="wsscd-nav-btn__text"><?php esc_html_e( 'Next', 'smart-cycle-discounts' ); ?></span>
+							<?php WSSCD_Icon_Helper::render( $nav_data['config']['icons']['next'], array( 'size' => 16 ) ); ?>
 						</button>
 					<?php endif; ?>
 				</div>

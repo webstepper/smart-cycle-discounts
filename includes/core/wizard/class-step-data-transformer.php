@@ -29,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/wizard
  */
-class SCD_Step_Data_Transformer {
+class WSSCD_Step_Data_Transformer {
 
 	/**
 	 * Transform step data based on step type.

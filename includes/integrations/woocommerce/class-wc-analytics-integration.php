@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/integrations/woocommerce
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_WC_Analytics_Integration implements SCD_Ecommerce_Integration {
+class WSSCD_WC_Analytics_Integration implements WSSCD_Ecommerce_Integration {
 
 	/**
 	 * Get platform name.
@@ -194,7 +194,7 @@ class SCD_WC_Analytics_Integration implements SCD_Ecommerce_Integration {
 			return null;
 		}
 
-		$campaign_id = $item->get_meta( '_scd_campaign_id', true );
+		$campaign_id = $item->get_meta( '_wsscd_campaign_id', true );
 
 		return $campaign_id ? (int) $campaign_id : null;
 	}
@@ -212,7 +212,7 @@ class SCD_WC_Analytics_Integration implements SCD_Ecommerce_Integration {
 			return;
 		}
 
-		$item->add_meta_data( '_scd_campaign_id', $campaign_id, true );
+		$item->add_meta_data( '_wsscd_campaign_id', $campaign_id, true );
 		$item->save();
 	}
 

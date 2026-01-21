@@ -11,76 +11,76 @@
  */
 
 /* Recurring badges in campaign list */
-.scd-recurring-badge {
+.wsscd-recurring-badge {
 	display: inline-block;
-	padding: var(--scd-spacing-xxs) 8px;
-	margin-left: 8px;
-	font-size: var(--scd-font-size-small);
-	font-weight: var(--scd-font-weight-semibold);
-	line-height: 1.4;
-	border-radius: var(--scd-radius-sm);
+	padding: var(--wsscd-spacing-xs) var(--wsscd-spacing-md);
+	margin-left: var(--wsscd-spacing-sm);
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-medium);
+	line-height: var(--wsscd-line-height-base);
+	border-radius: var(--wsscd-radius-md);
 	vertical-align: middle;
 	white-space: nowrap;
 }
 
 /* Active recurring campaign */
-.scd-recurring-badge.scd-recurring-active {
-	background-color: var(--scd-color-success-light);
-	color: var(--scd-color-success-dark);
-	border: 1px solid var(--scd-color-success-border);
+.wsscd-recurring-badge.wsscd-recurring-active {
+	background-color: var(--wsscd-color-success-light);
+	color: var(--wsscd-color-success-dark);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-success-border);
 }
 
 /* Inactive/stopped recurring */
-.scd-recurring-badge.scd-recurring-inactive {
-	background-color: var(--scd-color-surface);
-	color: var(--scd-color-text-muted);
-	border: 1px solid var(--scd-color-border-light);
+.wsscd-recurring-badge.wsscd-recurring-inactive {
+	background-color: var(--wsscd-color-surface);
+	color: var(--wsscd-color-text-muted);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
 }
 
 /* Child campaign (created by recurring) */
-.scd-recurring-badge.scd-recurring-child {
-	background-color: var(--scd-color-info-light);
-	color: var(--scd-color-info-dark);
-	border: 1px solid var(--scd-color-info-border);
+.wsscd-recurring-badge.wsscd-recurring-child {
+	background-color: var(--wsscd-color-info-light);
+	color: var(--wsscd-color-info-dark);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-info-border);
 }
 
 /* Status badge adjustments when recurring badge is present */
-.wp-list-table .column-name .row-title + .scd-recurring-badge {
-	margin-left: 4px;
+.wp-list-table .column-name .row-title + .wsscd-recurring-badge {
+	margin-left: var(--wsscd-spacing-xs);
 }
 
 /* Hover states */
-.scd-recurring-badge:hover {
+.wsscd-recurring-badge:hover {
 	opacity: 0.9;
 	cursor: help;
 }
 
 /* Stop recurring link styling */
 .row-actions .stop-recurring {
-	color: var(--scd-color-danger);
+	color: var(--wsscd-color-danger);
 }
 
 .row-actions .stop-recurring:hover {
-	color: var(--scd-color-danger-dark);
+	color: var(--wsscd-color-danger-dark);
 }
 
 /* Schedule column recurring info */
 .column-schedule .recurring-info {
 	display: block;
-	margin-top: 5px;
-	font-size: var(--scd-font-size-small);
-	color: var(--scd-color-text-muted);
+	margin-top: var(--wsscd-spacing-sm);
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text-muted);
 }
 
 .column-schedule .recurring-info strong {
-	color: var(--scd-color-text);
+	color: var(--wsscd-color-text);
 }
 
 /* Responsive adjustments */
 @media screen and (max-width: 782px) {
-	.scd-recurring-badge {
+	.wsscd-recurring-badge {
 		display: block;
-		margin: var(--scd-spacing-xs) 0;
+		margin: var(--wsscd-spacing-xs) 0;
 		width: fit-content;
 	}
 }

@@ -20,12 +20,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.1.0
  */
-class SCD_Recurring_Handler {
+class WSSCD_Recurring_Handler {
 
 	/**
 	 * Service container
 	 *
-	 * @var SCD_Container
+	 * @var WSSCD_Container
 	 */
 	private $container;
 
@@ -39,35 +39,35 @@ class SCD_Recurring_Handler {
 	/**
 	 * Logger instance
 	 *
-	 * @var SCD_Logger
+	 * @var WSSCD_Logger
 	 */
 	private $logger;
 
 	/**
 	 * Occurrence cache
 	 *
-	 * @var SCD_Occurrence_Cache
+	 * @var WSSCD_Occurrence_Cache
 	 */
 	private $cache;
 
 	/**
 	 * ActionScheduler service
 	 *
-	 * @var SCD_Action_Scheduler_Service
+	 * @var WSSCD_Action_Scheduler_Service
 	 */
 	private $scheduler;
 
 	/**
 	 * Campaign repository
 	 *
-	 * @var SCD_Campaign_Repository
+	 * @var WSSCD_Campaign_Repository
 	 */
 	private $campaign_repo;
 
 	/**
 	 * Campaign manager
 	 *
-	 * @var SCD_Campaign_Manager
+	 * @var WSSCD_Campaign_Manager
 	 */
 	private $campaign_manager;
 
@@ -89,9 +89,9 @@ class SCD_Recurring_Handler {
 	 * Initialize recurring handler
 	 *
 	 * @since 1.1.0
-	 * @param SCD_Container $container Service container.
+	 * @param WSSCD_Container $container Service container.
 	 */
-	public function __construct( SCD_Container $container ) {
+	public function __construct( WSSCD_Container $container ) {
 		global $wpdb;
 
 		$this->container        = $container;
@@ -101,7 +101,7 @@ class SCD_Recurring_Handler {
 		$this->scheduler        = $container->get( 'action_scheduler' );
 		$this->campaign_repo    = $container->get( 'campaign_repository' );
 		$this->campaign_manager = $container->get( 'campaign_manager' );
-		$this->recurring_table  = $wpdb->prefix . 'scd_campaign_recurring';
+		$this->recurring_table  = $wpdb->prefix . 'wsscd_campaign_recurring';
 
 		$this->register_hooks();
 	}
@@ -112,10 +112,10 @@ class SCD_Recurring_Handler {
 	 * @since 1.1.0
 	 */
 	private function register_hooks(): void {
-		add_action( 'scd_campaign_saved', array( $this, 'handle_campaign_save' ), 10, 2 );
-		add_action( 'scd_materialize_occurrence', array( $this, 'materialize_occurrence' ), 10, 2 );
-		add_action( 'scd_cleanup_old_occurrences', array( $this, 'cleanup_old_occurrences' ) );
-		add_action( 'scd_check_due_occurrences', array( $this, 'check_due_occurrences' ) );
+		add_action( 'wsscd_campaign_saved', array( $this, 'handle_campaign_save' ), 10, 2 );
+		add_action( 'wsscd_materialize_occurrence', array( $this, 'materialize_occurrence' ), 10, 2 );
+		add_action( 'wsscd_cleanup_old_occurrences', array( $this, 'cleanup_old_occurrences' ) );
+		add_action( 'wsscd_check_due_occurrences', array( $this, 'check_due_occurrences' ) );
 
 		// Schedule recurring jobs after ActionScheduler is initialized
 		add_action( 'init', array( $this, 'schedule_recurring_jobs' ), 20 );
@@ -134,22 +134,22 @@ class SCD_Recurring_Handler {
 			return;
 		}
 		// Daily check for due occurrences (midnight)
-		if ( ! as_has_scheduled_action( 'scd_check_due_occurrences' ) ) {
+		if ( ! as_has_scheduled_action( 'wsscd_check_due_occurrences' ) ) {
 			as_schedule_recurring_action(
 				strtotime( 'tomorrow midnight' ),
 				DAY_IN_SECONDS,
-				'scd_check_due_occurrences',
+				'wsscd_check_due_occurrences',
 				array(),
 				'recurring_campaigns'
 			);
 		}
 
 		// Daily cleanup (3am)
-		if ( ! as_has_scheduled_action( 'scd_cleanup_old_occurrences' ) ) {
+		if ( ! as_has_scheduled_action( 'wsscd_cleanup_old_occurrences' ) ) {
 			as_schedule_recurring_action(
 				strtotime( 'tomorrow 3am' ),
 				DAY_IN_SECONDS,
-				'scd_cleanup_old_occurrences',
+				'wsscd_cleanup_old_occurrences',
 				array(),
 				'recurring_campaigns'
 			);
@@ -169,7 +169,7 @@ class SCD_Recurring_Handler {
 		$schedule = $this->extract_schedule_data( $data );
 
 		// Check if recurring is enabled
-		if ( empty( $schedule[ SCD_Schedule_Field_Names::ENABLE_RECURRING ] ) ) {
+		if ( empty( $schedule[ WSSCD_Schedule_Field_Names::ENABLE_RECURRING ] ) ) {
 			return;
 		}
 
@@ -187,7 +187,7 @@ class SCD_Recurring_Handler {
 
 		// Update campaign type
 		$this->wpdb->update(
-			$this->wpdb->prefix . 'scd_campaigns',
+			$this->wpdb->prefix . 'wsscd_campaigns',
 			array( 'campaign_type' => 'recurring_parent' ),
 			array( 'id' => $campaign_id ),
 			array( '%s' ),
@@ -224,7 +224,7 @@ class SCD_Recurring_Handler {
 
 		// Extract schedule fields from flattened format
 		$schedule_fields = array_merge(
-			SCD_Schedule_Field_Names::get_fields(),
+			WSSCD_Schedule_Field_Names::get_fields(),
 			array( 'start_date', 'start_time', 'end_date', 'end_time', 'timezone' )
 		);
 
@@ -246,15 +246,15 @@ class SCD_Recurring_Handler {
 	 * @return array           Recurring data.
 	 */
 	private function extract_recurring_data( array $schedule ): array {
-		$defaults = SCD_Schedule_Field_Names::get_defaults();
+		$defaults = WSSCD_Schedule_Field_Names::get_defaults();
 
 		return array(
-			'recurrence_pattern'   => $schedule[ SCD_Schedule_Field_Names::RECURRENCE_PATTERN ] ?? $defaults[ SCD_Schedule_Field_Names::RECURRENCE_PATTERN ],
-			'recurrence_interval'  => $schedule[ SCD_Schedule_Field_Names::RECURRENCE_INTERVAL ] ?? $defaults[ SCD_Schedule_Field_Names::RECURRENCE_INTERVAL ],
-			'recurrence_days'      => $schedule[ SCD_Schedule_Field_Names::RECURRENCE_DAYS ] ?? $defaults[ SCD_Schedule_Field_Names::RECURRENCE_DAYS ],
-			'recurrence_end_type'  => $schedule[ SCD_Schedule_Field_Names::RECURRENCE_END_TYPE ] ?? $defaults[ SCD_Schedule_Field_Names::RECURRENCE_END_TYPE ],
-			'recurrence_count'     => $schedule[ SCD_Schedule_Field_Names::RECURRENCE_COUNT ] ?? $defaults[ SCD_Schedule_Field_Names::RECURRENCE_COUNT ],
-			'recurrence_end_date'  => $schedule[ SCD_Schedule_Field_Names::RECURRENCE_END_DATE ] ?? $defaults[ SCD_Schedule_Field_Names::RECURRENCE_END_DATE ],
+			'recurrence_pattern'   => $schedule[ WSSCD_Schedule_Field_Names::RECURRENCE_PATTERN ] ?? $defaults[ WSSCD_Schedule_Field_Names::RECURRENCE_PATTERN ],
+			'recurrence_interval'  => $schedule[ WSSCD_Schedule_Field_Names::RECURRENCE_INTERVAL ] ?? $defaults[ WSSCD_Schedule_Field_Names::RECURRENCE_INTERVAL ],
+			'recurrence_days'      => $schedule[ WSSCD_Schedule_Field_Names::RECURRENCE_DAYS ] ?? $defaults[ WSSCD_Schedule_Field_Names::RECURRENCE_DAYS ],
+			'recurrence_end_type'  => $schedule[ WSSCD_Schedule_Field_Names::RECURRENCE_END_TYPE ] ?? $defaults[ WSSCD_Schedule_Field_Names::RECURRENCE_END_TYPE ],
+			'recurrence_count'     => $schedule[ WSSCD_Schedule_Field_Names::RECURRENCE_COUNT ] ?? $defaults[ WSSCD_Schedule_Field_Names::RECURRENCE_COUNT ],
+			'recurrence_end_date'  => $schedule[ WSSCD_Schedule_Field_Names::RECURRENCE_END_DATE ] ?? $defaults[ WSSCD_Schedule_Field_Names::RECURRENCE_END_DATE ],
 		);
 	}
 
@@ -306,12 +306,15 @@ class SCD_Recurring_Handler {
 		$next_occurrence = $this->calculate_first_occurrence( $schedule );
 
 		// Check if record exists
-		$exists = $this->wpdb->get_var(
-			$this->wpdb->prepare(
-				"SELECT COUNT(*) FROM {$this->recurring_table} WHERE campaign_id = %d",
-				$campaign_id
-			)
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		$sql = $this->wpdb->prepare(
+			'SELECT COUNT(*) FROM %i WHERE campaign_id = %d',
+			$this->recurring_table,
+			$campaign_id
 		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
+		$exists = $this->wpdb->get_var( $sql );
 
 		if ( $exists ) {
 			// Update existing record
@@ -400,7 +403,7 @@ class SCD_Recurring_Handler {
 			}
 
 			$this->scheduler->schedule_single(
-				'scd_materialize_occurrence',
+				'wsscd_materialize_occurrence',
 				$schedule_time,
 				array(
 					'parent_id'         => $parent_id,
@@ -429,7 +432,7 @@ class SCD_Recurring_Handler {
 
 			// Check if already scheduled
 			$hook = 'recurring_' . $parent_id . '_' . $occurrence_number;
-			if ( function_exists( 'as_has_scheduled_action' ) && as_has_scheduled_action( 'scd_materialize_occurrence', array( 'parent_id' => $parent_id, 'occurrence_number' => $occurrence_number ), $hook ) ) {
+			if ( function_exists( 'as_has_scheduled_action' ) && as_has_scheduled_action( 'wsscd_materialize_occurrence', array( 'parent_id' => $parent_id, 'occurrence_number' => $occurrence_number ), $hook ) ) {
 				continue;
 			}
 
@@ -437,7 +440,7 @@ class SCD_Recurring_Handler {
 			$schedule_time = strtotime( $occurrence['occurrence_start'] ) - ( 5 * MINUTE_IN_SECONDS );
 
 			$this->scheduler->schedule_single(
-				'scd_materialize_occurrence',
+				'wsscd_materialize_occurrence',
 				$schedule_time,
 				array(
 					'parent_id'         => $parent_id,
@@ -486,7 +489,8 @@ class SCD_Recurring_Handler {
 			$parent = $this->campaign_repo->find( $parent_id );
 
 			if ( ! $parent ) {
-				throw new Exception( 'Parent campaign not found: ' . $parent_id );
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+				throw new Exception( 'Parent campaign not found: ' . absint( $parent_id ) );
 			}
 
 			// Create instance
@@ -501,7 +505,7 @@ class SCD_Recurring_Handler {
 			$this->cache->mark_materialized( (int) $occurrence['id'], $instance_id );
 
 			// Clear retry counter
-			delete_transient( 'scd_retry_' . $parent_id . '_' . $occurrence_number );
+			delete_transient( 'wsscd_retry_' . $parent_id . '_' . $occurrence_number );
 
 			$this->logger->info(
 				'Materialized occurrence',
@@ -530,11 +534,11 @@ class SCD_Recurring_Handler {
 	 * Prepare instance data from parent and occurrence
 	 *
 	 * @since  1.1.0
-	 * @param  SCD_Campaign $parent     Parent campaign.
+	 * @param  WSSCD_Campaign $parent     Parent campaign.
 	 * @param  array        $occurrence Occurrence data.
 	 * @return array                    Instance data.
 	 */
-	private function prepare_instance_data( SCD_Campaign $parent, array $occurrence ): array {
+	private function prepare_instance_data( WSSCD_Campaign $parent, array $occurrence ): array {
 		$data = $parent->to_array();
 
 		// Remove parent-specific fields
@@ -568,7 +572,7 @@ class SCD_Recurring_Handler {
 	 * @return int                  Instance campaign ID.
 	 */
 	private function create_campaign_instance( array $instance_data ): int {
-		$campaign = new SCD_Campaign( $instance_data );
+		$campaign = new WSSCD_Campaign( $instance_data );
 
 		if ( ! $campaign->is_valid() ) {
 			throw new Exception( 'Invalid campaign instance data' );
@@ -582,7 +586,7 @@ class SCD_Recurring_Handler {
 
 		// Update campaign type
 		$this->wpdb->update(
-			$this->wpdb->prefix . 'scd_campaigns',
+			$this->wpdb->prefix . 'wsscd_campaigns',
 			array( 'campaign_type' => 'recurring_instance' ),
 			array( 'id' => $instance_id ),
 			array( '%s' ),
@@ -603,7 +607,7 @@ class SCD_Recurring_Handler {
 	 * @return void
 	 */
 	private function handle_materialization_failure( int $parent_id, int $occurrence_number, array $occurrence, string $error_message ): void {
-		$retry_key = 'scd_retry_' . $parent_id . '_' . $occurrence_number;
+		$retry_key = 'wsscd_retry_' . $parent_id . '_' . $occurrence_number;
 		$retries   = (int) get_transient( $retry_key );
 
 		if ( $retries < $this->max_retries ) {
@@ -611,7 +615,7 @@ class SCD_Recurring_Handler {
 			set_transient( $retry_key, $retries + 1, HOUR_IN_SECONDS );
 
 			$this->scheduler->schedule_single(
-				'scd_materialize_occurrence',
+				'wsscd_materialize_occurrence',
 				time() + HOUR_IN_SECONDS,
 				array(
 					'parent_id'         => $parent_id,
@@ -689,16 +693,24 @@ class SCD_Recurring_Handler {
 		$cutoff = gmdate( 'Y-m-d H:i:s', strtotime( '-' . $retention_days . ' days' ) );
 
 		// Find expired instances
-		$instances = $this->wpdb->get_col(
-			$this->wpdb->prepare(
-				"SELECT id FROM {$this->wpdb->prefix}scd_campaigns
-				 WHERE campaign_type = 'recurring_instance'
-				 AND status = 'expired'
-				 AND ends_at < %s
-				 LIMIT 100",
-				$cutoff
-			)
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		$campaigns_table = $this->wpdb->prefix . 'wsscd_campaigns';
+
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		$sql = $this->wpdb->prepare(
+			'SELECT id FROM %i
+			 WHERE campaign_type = %s
+			 AND status = %s
+			 AND ends_at < %s
+			 LIMIT 100',
+			$campaigns_table,
+			'recurring_instance',
+			'expired',
+			$cutoff
 		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
+		$instances = $this->wpdb->get_col( $sql );
 
 		if ( empty( $instances ) ) {
 			return 0;
@@ -739,13 +751,18 @@ class SCD_Recurring_Handler {
 		$placeholders = implode( ',', array_fill( 0, count( $campaign_ids ), '%d' ) );
 
 		// Fetch all parent settings in one query
-		$parent_settings = $this->wpdb->get_results(
-			$this->wpdb->prepare(
-				"SELECT * FROM {$this->recurring_table} WHERE campaign_id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				$campaign_ids
-			),
-			ARRAY_A
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		$prepare_args = array_merge( array( $this->recurring_table ), $campaign_ids );
+
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Dynamic placeholders for IN clause.
+		$sql = $this->wpdb->prepare(
+			'SELECT * FROM %i WHERE campaign_id IN (' . $placeholders . ')',
+			$prepare_args
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
+		$parent_settings = $this->wpdb->get_results( $sql, ARRAY_A );
 
 		// Index by campaign_id
 		$settings_map = array();
@@ -761,15 +778,14 @@ class SCD_Recurring_Handler {
 		}
 
 		// Check for instances (campaigns not found in parent settings)
-		$cache_table = $this->wpdb->prefix . 'scd_recurring_cache';
+		$cache_table = $this->wpdb->prefix . 'wsscd_recurring_cache';
 
 		// Verify cache table exists
-		$table_exists = $this->wpdb->get_var(
-			$this->wpdb->prepare(
-				'SHOW TABLES LIKE %s',
-				$cache_table
-			)
-		);
+		// SHOW TABLES has no WP abstraction. Query IS prepared.
+		$show_tables_sql = $this->wpdb->prepare( 'SHOW TABLES LIKE %s', $cache_table );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
+		$table_exists = $this->wpdb->get_var( $show_tables_sql );
 
 		if ( ! $table_exists ) {
 			return $settings_map;
@@ -781,13 +797,18 @@ class SCD_Recurring_Handler {
 			$missing_placeholders = implode( ',', array_fill( 0, count( $missing_ids ), '%d' ) );
 
 			// Fetch occurrence data for instances
-			$occurrences = $this->wpdb->get_results(
-				$this->wpdb->prepare(
-					"SELECT instance_id, parent_campaign_id, occurrence_number FROM {$cache_table} WHERE instance_id IN ({$missing_placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-					$missing_ids
-				),
-				ARRAY_A
+			// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+			$cache_prepare_args = array_merge( array( $cache_table ), $missing_ids );
+
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Dynamic placeholders for IN clause.
+			$cache_sql = $this->wpdb->prepare(
+				'SELECT instance_id, parent_campaign_id, occurrence_number FROM %i WHERE instance_id IN (' . $missing_placeholders . ')',
+				$cache_prepare_args
 			);
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
+			$occurrences = $this->wpdb->get_results( $cache_sql, ARRAY_A );
 
 			if ( ! empty( $occurrences ) ) {
 				// Get unique parent IDs
@@ -795,13 +816,18 @@ class SCD_Recurring_Handler {
 				$parent_placeholders = implode( ',', array_fill( 0, count( $parent_ids ), '%d' ) );
 
 				// Fetch parent settings
-				$parent_data = $this->wpdb->get_results(
-					$this->wpdb->prepare(
-						"SELECT * FROM {$this->recurring_table} WHERE campaign_id IN ({$parent_placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-						$parent_ids
-					),
-					ARRAY_A
+				// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+				$parent_prepare_args = array_merge( array( $this->recurring_table ), $parent_ids );
+
+				// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Dynamic placeholders for IN clause.
+				$parent_sql = $this->wpdb->prepare(
+					'SELECT * FROM %i WHERE campaign_id IN (' . $parent_placeholders . ')',
+					$parent_prepare_args
 				);
+				// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
+				$parent_data = $this->wpdb->get_results( $parent_sql, ARRAY_A );
 
 				// Index parent data by campaign_id
 				$parent_data_map = array();
@@ -848,13 +874,15 @@ class SCD_Recurring_Handler {
 	 */
 	public function get_recurring_settings( int $campaign_id ): ?array {
 		// First, check if this is a parent campaign
-		$settings = $this->wpdb->get_row(
-			$this->wpdb->prepare(
-				"SELECT * FROM {$this->recurring_table} WHERE campaign_id = %d",
-				$campaign_id
-			),
-			ARRAY_A
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		$sql = $this->wpdb->prepare(
+			'SELECT * FROM %i WHERE campaign_id = %d',
+			$this->recurring_table,
+			$campaign_id
 		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
+		$settings = $this->wpdb->get_row( $sql, ARRAY_A );
 
 		if ( $settings ) {
 			// Decode JSON days if present
@@ -866,28 +894,29 @@ class SCD_Recurring_Handler {
 
 		// Not a parent - check if it's an instance (child campaign)
 		// First verify the cache table exists to avoid database errors
-		$cache_table = $this->wpdb->prefix . 'scd_recurring_cache';
+		$cache_table = $this->wpdb->prefix . 'wsscd_recurring_cache';
 
 		// Check if table exists
-		$table_exists = $this->wpdb->get_var(
-			$this->wpdb->prepare(
-				'SHOW TABLES LIKE %s',
-				$cache_table
-			)
-		);
+		// SHOW TABLES has no WP abstraction. Query IS prepared.
+		$show_tables_sql = $this->wpdb->prepare( 'SHOW TABLES LIKE %s', $cache_table );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
+		$table_exists = $this->wpdb->get_var( $show_tables_sql );
 
 		if ( ! $table_exists ) {
 			// Table doesn't exist yet - not a recurring campaign
 			return null;
 		}
 
-		$occurrence = $this->wpdb->get_row(
-			$this->wpdb->prepare(
-				"SELECT parent_campaign_id, occurrence_number FROM {$cache_table} WHERE instance_id = %d",
-				$campaign_id
-			),
-			ARRAY_A
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		$occurrence_sql = $this->wpdb->prepare(
+			'SELECT parent_campaign_id, occurrence_number FROM %i WHERE instance_id = %d',
+			$cache_table,
+			$campaign_id
 		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
+		$occurrence = $this->wpdb->get_row( $occurrence_sql, ARRAY_A );
 
 		if ( ! $occurrence ) {
 			// Not a recurring campaign at all
@@ -895,13 +924,15 @@ class SCD_Recurring_Handler {
 		}
 
 		// Get parent settings
-		$parent_settings = $this->wpdb->get_row(
-			$this->wpdb->prepare(
-				"SELECT * FROM {$this->recurring_table} WHERE campaign_id = %d",
-				$occurrence['parent_campaign_id']
-			),
-			ARRAY_A
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		$parent_sql = $this->wpdb->prepare(
+			'SELECT * FROM %i WHERE campaign_id = %d',
+			$this->recurring_table,
+			$occurrence['parent_campaign_id']
 		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
+		$parent_settings = $this->wpdb->get_row( $parent_sql, ARRAY_A );
 
 		if ( ! $parent_settings ) {
 			return null;
@@ -929,14 +960,19 @@ class SCD_Recurring_Handler {
 	 */
 	public function delete_parent_occurrences( int $parent_id ): int {
 		// Get all instance IDs
-		$instances = $this->wpdb->get_col(
-			$this->wpdb->prepare(
-				"SELECT instance_id FROM {$this->wpdb->prefix}scd_recurring_cache
-				 WHERE parent_campaign_id = %d
-				 AND instance_id IS NOT NULL",
-				$parent_id
-			)
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		$cache_table = $this->wpdb->prefix . 'wsscd_recurring_cache';
+
+		$sql = $this->wpdb->prepare(
+			'SELECT instance_id FROM %i
+			 WHERE parent_campaign_id = %d
+			 AND instance_id IS NOT NULL',
+			$cache_table,
+			$parent_id
 		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
+		$instances = $this->wpdb->get_col( $sql );
 
 		// Delete occurrence cache
 		$this->cache->delete_by_parent( $parent_id );
@@ -950,7 +986,7 @@ class SCD_Recurring_Handler {
 
 		// Cancel scheduled events
 		if ( function_exists( 'as_unschedule_all_actions' ) ) {
-			as_unschedule_all_actions( 'scd_materialize_occurrence', array( 'parent_id' => $parent_id ), 'recurring_campaigns' );
+			as_unschedule_all_actions( 'wsscd_materialize_occurrence', array( 'parent_id' => $parent_id ), 'recurring_campaigns' );
 		}
 
 		// Delete campaign instances

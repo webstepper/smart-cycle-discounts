@@ -29,25 +29,25 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/integrations/woocommerce
  */
-class SCD_WC_Price_Integration {
+class WSSCD_WC_Price_Integration {
 
 	/**
 	 * Discount query service.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_WC_Discount_Query_Service    $discount_query    Discount query service.
+	 * @var      WSSCD_WC_Discount_Query_Service    $discount_query    Discount query service.
 	 */
-	private SCD_WC_Discount_Query_Service $discount_query;
+	private WSSCD_WC_Discount_Query_Service $discount_query;
 
 	/**
 	 * Customer usage manager.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Customer_Usage_Manager|null    $usage_manager    Usage manager.
+	 * @var      WSSCD_Customer_Usage_Manager|null    $usage_manager    Usage manager.
 	 */
-	private ?SCD_Customer_Usage_Manager $usage_manager;
+	private ?WSSCD_Customer_Usage_Manager $usage_manager;
 
 	/**
 	 * Logger instance.
@@ -71,13 +71,13 @@ class SCD_WC_Price_Integration {
 	 * Initialize price integration.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_WC_Discount_Query_Service   $discount_query    Discount query service.
-	 * @param    SCD_Customer_Usage_Manager|null $usage_manager     Usage manager.
+	 * @param    WSSCD_WC_Discount_Query_Service   $discount_query    Discount query service.
+	 * @param    WSSCD_Customer_Usage_Manager|null $usage_manager     Usage manager.
 	 * @param    object|null                     $logger            Logger.
 	 */
 	public function __construct(
-		SCD_WC_Discount_Query_Service $discount_query,
-		?SCD_Customer_Usage_Manager $usage_manager = null,
+		WSSCD_WC_Discount_Query_Service $discount_query,
+		?WSSCD_Customer_Usage_Manager $usage_manager = null,
 		?object $logger = null
 	) {
 		$this->discount_query = $discount_query;
@@ -109,13 +109,18 @@ class SCD_WC_Price_Integration {
 	 * Modify product price based on active discounts.
 	 *
 	 * @since    1.0.0
-	 * @param    string     $price      Original price.
-	 * @param    WC_Product $product    Product object.
+	 * @param    mixed      $price      Original price (can be various types from filters).
+	 * @param    mixed      $product    Product object (may be other types from some filters).
 	 * @return   string                  Modified price.
 	 */
-	public function modify_product_price( $price, WC_Product $product ): string {
-		// Prevent infinite recursion
+	public function modify_product_price( $price, $product ): string {
+		// Prevent infinite recursion.
 		if ( $this->processing ) {
+			return strval( $price );
+		}
+
+		// Ensure we have a valid WC_Product instance.
+		if ( ! $product instanceof WC_Product ) {
 			return strval( $price );
 		}
 
@@ -174,27 +179,32 @@ class SCD_WC_Price_Integration {
 	 * Modify sale price based on active discounts.
 	 *
 	 * @since    1.0.0
-	 * @param    string     $sale_price    Original sale price.
-	 * @param    WC_Product $product       Product object.
-	 * @return   string                     Modified sale price.
+	 * @param    mixed $sale_price    Original sale price (can be various types from filters).
+	 * @param    mixed $product       Product object (may be other types from some filters).
+	 * @return   string                Modified sale price.
 	 */
-	public function modify_sale_price( $sale_price, WC_Product $product ): string {
-		// Prevent infinite recursion
+	public function modify_sale_price( $sale_price, $product ): string {
+		// Prevent infinite recursion.
 		if ( $this->processing ) {
 			return strval( $sale_price );
 		}
 
-		// Never modify during cart calculations
+		// Ensure we have a valid WC_Product instance.
+		if ( ! $product instanceof WC_Product ) {
+			return strval( $sale_price );
+		}
+
+		// Never modify during cart calculations.
 		if ( did_action( 'woocommerce_before_calculate_totals' ) && ! did_action( 'woocommerce_after_calculate_totals' ) ) {
 			return strval( $sale_price );
 		}
 
-		// Skip on cart/checkout pages
+		// Skip on cart/checkout pages.
 		if ( is_cart() || is_checkout() ) {
 			return strval( $sale_price );
 		}
 
-		// Set processing flag to prevent recursion
+		// Set processing flag to prevent recursion.
 		$this->processing = true;
 
 		try {
@@ -228,17 +238,27 @@ class SCD_WC_Price_Integration {
 	 * Modify price HTML display.
 	 *
 	 * @since    1.0.0
-	 * @param    string     $html      Original price HTML.
-	 * @param    WC_Product $product   Product object.
-	 * @return   string                 Modified price HTML.
+	 * @param    mixed $html      Original price HTML (can be null from some filters).
+	 * @param    mixed $product   Product object (may be other types from some filters).
+	 * @return   string            Modified price HTML.
 	 */
-	public function modify_price_html( string $html, WC_Product $product ): string {
-		// Prevent infinite recursion
-		if ( $this->processing ) {
-			return $html;
+	public function modify_price_html( $html, $product ): string {
+		// Handle null or non-string HTML from some themes/plugins.
+		if ( null === $html ) {
+			$html = '';
 		}
 
-		// Set processing flag to prevent recursion
+		// Prevent infinite recursion.
+		if ( $this->processing ) {
+			return (string) $html;
+		}
+
+		// Ensure we have a valid WC_Product instance.
+		if ( ! $product instanceof WC_Product ) {
+			return (string) $html;
+		}
+
+		// Set processing flag to prevent recursion.
 		$this->processing = true;
 
 		try {
@@ -268,18 +288,23 @@ class SCD_WC_Price_Integration {
 		}
 
 		$this->processing = false;
-		return $html;
+		return (string) $html;
 	}
 
 	/**
 	 * Modify cart item prices before calculation.
 	 *
 	 * @since    1.0.0
-	 * @param    WC_Cart $cart    Cart object.
+	 * @param    mixed $cart    Cart object (may be other types from some hooks).
 	 * @return   void
 	 */
-	public function modify_cart_item_prices( WC_Cart $cart ): void {
-		if ( ! $cart || ! is_object( $cart ) || ! WC()->cart || ! is_object( WC()->cart ) ) {
+	public function modify_cart_item_prices( $cart ): void {
+		// Ensure we have a valid WC_Cart instance.
+		if ( ! $cart instanceof WC_Cart ) {
+			return;
+		}
+
+		if ( ! WC()->cart || ! is_object( WC()->cart ) ) {
 			return;
 		}
 
@@ -327,7 +352,7 @@ class SCD_WC_Price_Integration {
 					if ( $original_price > $discounted_price && 0 < $discounted_price ) {
 						$product->set_price( $discounted_price );
 
-						WC()->cart->cart_contents[ $cart_item_key ]['scd_discount'] = array(
+						WC()->cart->cart_contents[ $cart_item_key ]['wsscd_discount'] = array(
 							'original_price'   => $original_price,
 							'discounted_price' => $discounted_price,
 							'discount_amount'  => $original_price - $discounted_price,
@@ -337,8 +362,8 @@ class SCD_WC_Price_Integration {
 				} else {
 					$product->set_price( $original_price );
 
-					if ( isset( WC()->cart->cart_contents[ $cart_item_key ]['scd_discount'] ) ) {
-						unset( WC()->cart->cart_contents[ $cart_item_key ]['scd_discount'] );
+					if ( isset( WC()->cart->cart_contents[ $cart_item_key ]['wsscd_discount'] ) ) {
+						unset( WC()->cart->cart_contents[ $cart_item_key ]['wsscd_discount'] );
 					}
 				}
 			} catch ( Exception $e ) {
@@ -367,7 +392,7 @@ class SCD_WC_Price_Integration {
 	 * @return   bool                          True if should apply.
 	 */
 	private function should_apply_discount( WC_Product $product, array $discount_info ): bool {
-		$exclude = get_post_meta( $product->get_id(), '_scd_exclude_from_discounts', true );
+		$exclude = get_post_meta( $product->get_id(), '_wsscd_exclude_from_discounts', true );
 		if ( 'yes' === $exclude ) {
 			return false;
 		}

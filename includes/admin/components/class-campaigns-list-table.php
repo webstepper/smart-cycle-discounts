@@ -33,14 +33,14 @@ if ( ! class_exists( 'WP_List_Table' ) && is_admin() ) {
  * @subpackage SmartCycleDiscounts/includes/admin/tables
  * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
  */
-class SCD_Campaigns_List_Table extends WP_List_Table {
+class WSSCD_Campaigns_List_Table extends WP_List_Table {
 
 	/**
 	 * Campaign manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Manager    $campaign_manager    Campaign manager.
+	 * @var      WSSCD_Campaign_Manager    $campaign_manager    Campaign manager.
 	 */
 	private $campaign_manager;
 
@@ -49,7 +49,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Admin_Capability_Manager    $capability_manager    Capability manager.
+	 * @var      WSSCD_Admin_Capability_Manager    $capability_manager    Capability manager.
 	 */
 	private $capability_manager;
 
@@ -75,8 +75,8 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * Initialize the list table.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Manager         $campaign_manager     Campaign manager.
-	 * @param    SCD_Admin_Capability_Manager $capability_manager   Capability manager.
+	 * @param    WSSCD_Campaign_Manager         $campaign_manager     Campaign manager.
+	 * @param    WSSCD_Admin_Capability_Manager $capability_manager   Capability manager.
 	 */
 	public function __construct( $campaign_manager, $capability_manager ) {
 		$this->campaign_manager   = $campaign_manager;
@@ -112,7 +112,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			'actions'  => __( 'Actions', 'smart-cycle-discounts' ),
 		);
 
-		return apply_filters( 'scd_campaigns_list_table_columns', $columns );
+		return apply_filters( 'wsscd_campaigns_list_table_columns', $columns );
 	}
 
 	/**
@@ -133,35 +133,44 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	/**
 	 * Get bulk actions.
 	 *
+	 * SECURITY: This method reads URL param for display context only.
+	 * Capability checks are enforced below for each action type.
+	 *
 	 * @since    1.0.0
 	 * @return   array    Bulk action definitions.
 	 */
 	public function get_bulk_actions() {
+		// Defense in depth: verify user has base capability to view campaigns.
+		if ( ! $this->capability_manager->current_user_can( 'wsscd_view_campaigns' ) ) {
+			return array();
+		}
+
 		$actions = array();
 
-		$viewing_trash = isset( $_REQUEST['status'] ) && 'trash' === $_REQUEST['status'];
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL param for display context only. Capability checked above. Value validated against 'trash'.
+		$viewing_trash = isset( $_REQUEST['status'] ) && 'trash' === sanitize_text_field( wp_unslash( $_REQUEST['status'] ) );
 
 		if ( $viewing_trash ) {
 			// Trash view actions
-			if ( $this->capability_manager->current_user_can( 'scd_edit_campaigns' ) ) {
+			if ( $this->capability_manager->current_user_can( 'wsscd_edit_campaigns' ) ) {
 				$actions['restore'] = __( 'Restore', 'smart-cycle-discounts' );
 			}
 
-			if ( $this->capability_manager->current_user_can( 'scd_delete_campaigns' ) ) {
+			if ( $this->capability_manager->current_user_can( 'wsscd_delete_campaigns' ) ) {
 				$actions['delete_permanently'] = __( 'Delete Permanently', 'smart-cycle-discounts' );
 			}
 		} else {
 			// Normal view actions
-			if ( $this->capability_manager->current_user_can( 'scd_activate_campaigns' ) ) {
+			if ( $this->capability_manager->current_user_can( 'wsscd_activate_campaigns' ) ) {
 				$actions['activate']   = __( 'Activate', 'smart-cycle-discounts' );
 				$actions['deactivate'] = __( 'Deactivate', 'smart-cycle-discounts' );
 			}
 
-			if ( $this->capability_manager->current_user_can( 'scd_delete_campaigns' ) ) {
+			if ( $this->capability_manager->current_user_can( 'wsscd_delete_campaigns' ) ) {
 				$actions['delete'] = __( 'Move to Trash', 'smart-cycle-discounts' );
 			}
 
-			if ( $this->capability_manager->current_user_can( 'scd_edit_campaigns' ) ) {
+			if ( $this->capability_manager->current_user_can( 'wsscd_edit_campaigns' ) ) {
 				$actions['stop_recurring'] = __( 'Stop Recurring', 'smart-cycle-discounts' );
 			}
 		}
@@ -172,10 +181,19 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	/**
 	 * Prepare table items.
 	 *
+	 * SECURITY: This method reads URL params for list table display only.
+	 * Capability is checked at start. All values are sanitized and validated.
+	 *
 	 * @since    1.0.0
 	 * @return   void
 	 */
 	public function prepare_items() {
+		// Defense in depth: verify user has capability to view campaigns.
+		if ( ! $this->capability_manager->current_user_can( 'wsscd_view_campaigns' ) ) {
+			$this->items = array();
+			return;
+		}
+
 		$this->_column_headers = array(
 			$this->get_columns(),
 			array(),
@@ -186,17 +204,18 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 		$this->process_bulk_action();
 
 		$current_page = $this->get_pagenum();
-		$per_page     = $this->get_items_per_page( 'scd_campaigns_per_page', 20 );
+		$per_page     = $this->get_items_per_page( 'wsscd_campaigns_per_page', 20 );
 
-		$viewing_trash = isset( $_REQUEST['status'] ) && 'trash' === $_REQUEST['status'];
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Reading URL params for list table display. Capability checked above. Values sanitized and validated.
+		$viewing_trash = isset( $_REQUEST['status'] ) && 'trash' === sanitize_text_field( wp_unslash( $_REQUEST['status'] ) );
 
 		if ( $viewing_trash ) {
 			$repository = $this->campaign_manager->get_repository();
 			$options    = array(
 				'limit'           => $per_page,
 				'offset'          => ( $current_page - 1 ) * $per_page,
-				'order_by'        => sanitize_text_field( isset( $_REQUEST['orderby'] ) ? $_REQUEST['orderby'] : 'deleted_at' ),
-				'order_direction' => sanitize_text_field( isset( $_REQUEST['order'] ) ? $_REQUEST['order'] : 'DESC' ),
+				'order_by'        => isset( $_REQUEST['orderby'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['orderby'] ) ) : 'deleted_at',
+				'order_direction' => isset( $_REQUEST['order'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['order'] ) ) : 'DESC',
 			);
 
 			$campaigns   = $repository->find_trashed( $options );
@@ -205,17 +224,18 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			$args = array(
 				'limit'   => $per_page,
 				'offset'  => ( $current_page - 1 ) * $per_page,
-				'orderby' => sanitize_text_field( isset( $_REQUEST['orderby'] ) ? $_REQUEST['orderby'] : 'created_at' ),
-				'order'   => sanitize_text_field( isset( $_REQUEST['order'] ) ? $_REQUEST['order'] : 'DESC' ),
+				'orderby' => isset( $_REQUEST['orderby'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['orderby'] ) ) : 'created_at',
+				'order'   => isset( $_REQUEST['order'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['order'] ) ) : 'DESC',
 			);
 
 			if ( ! empty( $_REQUEST['s'] ) ) {
-				$args['search'] = sanitize_text_field( $_REQUEST['s'] );
+				$args['search'] = sanitize_text_field( wp_unslash( $_REQUEST['s'] ) );
 			}
 
 			if ( ! empty( $_REQUEST['status'] ) ) {
-				$args['status'] = sanitize_text_field( $_REQUEST['status'] );
+				$args['status'] = sanitize_text_field( wp_unslash( $_REQUEST['status'] ) );
 			}
+			// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 			$campaigns   = $this->campaign_manager->get_campaigns( $args );
 			$total_items = $this->campaign_manager->count_campaigns( $args );
@@ -235,11 +255,11 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * Render checkbox column.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   string                       Checkbox HTML.
 	 */
 	public function column_cb( $item ) {
-		$campaign = $item; // Type clarity - $item is SCD_Campaign object
+		$campaign = $item; // Type clarity - $item is WSSCD_Campaign object
 
 		return sprintf(
 			'<input type="checkbox" name="campaign[]" value="%d" />',
@@ -251,11 +271,11 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * Render name column.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   string                       Name column HTML.
 	 */
 	public function column_name( $item ) {
-		$campaign = $item; // Type clarity - $item is SCD_Campaign object
+		$campaign = $item; // Type clarity - $item is WSSCD_Campaign object
 
 		$campaign_id   = $campaign->get_id();
 		$campaign_name = esc_html( $campaign->get_name() );
@@ -280,14 +300,14 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 							$pattern_text = __( 'Monthly', 'smart-cycle-discounts' );
 						}
 						$recurring_badge = sprintf(
-							' <span class="scd-recurring-badge scd-recurring-active" title="%s">🔄 %s</span>',
+							' <span class="wsscd-recurring-badge wsscd-recurring-active" title="%s">🔄 %s</span>',
 							esc_attr( __( 'This campaign repeats automatically', 'smart-cycle-discounts' ) ),
 							esc_html( $pattern_text )
 						);
 					} else {
 						// Recurring but inactive
 						$recurring_badge = sprintf(
-							' <span class="scd-recurring-badge scd-recurring-inactive" title="%s">⏸️ %s</span>',
+							' <span class="wsscd-recurring-badge wsscd-recurring-inactive" title="%s">⏸️ %s</span>',
 							esc_attr( __( 'Recurring stopped', 'smart-cycle-discounts' ) ),
 							esc_html( __( 'Stopped', 'smart-cycle-discounts' ) )
 						);
@@ -295,7 +315,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 				} else {
 					// Child campaign
 					$recurring_badge = sprintf(
-						' <span class="scd-recurring-badge scd-recurring-child" title="%s">↳ %s #%d</span>',
+						' <span class="wsscd-recurring-badge wsscd-recurring-child" title="%s">↳ %s #%d</span>',
 						esc_attr( __( 'Created by recurring campaign', 'smart-cycle-discounts' ) ),
 						esc_html( __( 'Occurrence', 'smart-cycle-discounts' ) ),
 						intval( $recurring_settings['occurrence_number'] )
@@ -316,8 +336,8 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 					'<a href="%s">%s</a>',
 					esc_url(
 						wp_nonce_url(
-							admin_url( 'admin.php?page=scd-campaigns&action=restore&id=' . $campaign_id ),
-							'scd_restore_campaign_' . $campaign_id
+							admin_url( 'admin.php?page=wsscd-campaigns&action=restore&id=' . $campaign_id ),
+							'wsscd_restore_campaign_' . $campaign_id
 						)
 					),
 					__( 'Restore', 'smart-cycle-discounts' )
@@ -330,8 +350,8 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 					'<a href="%s" class="submitdelete" onclick="return confirm(\'%s\')">%s</a>',
 					esc_url(
 						wp_nonce_url(
-							admin_url( 'admin.php?page=scd-campaigns&action=delete_permanently&id=' . $campaign_id ),
-							'scd_delete_permanently_' . $campaign_id
+							admin_url( 'admin.php?page=wsscd-campaigns&action=delete_permanently&id=' . $campaign_id ),
+							'wsscd_delete_permanently_' . $campaign_id
 						)
 					),
 					$confirm_message,
@@ -343,7 +363,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			if ( $this->capability_manager->current_user_can( 'edit_campaign', $campaign_id ) ) {
 				$actions['edit'] = sprintf(
 					'<a href="%s">%s</a>',
-					esc_url( admin_url( 'admin.php?page=scd-campaigns&action=wizard&intent=edit&id=' . $campaign_id ) ),
+					esc_url( admin_url( 'admin.php?page=wsscd-campaigns&action=wizard&intent=edit&id=' . $campaign_id ) ),
 					__( 'Edit', 'smart-cycle-discounts' )
 				);
 			}
@@ -357,8 +377,8 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 						'<a href="%s">%s</a>',
 						esc_url(
 							wp_nonce_url(
-								admin_url( 'admin.php?page=scd-campaigns&action=deactivate&id=' . $campaign_id ),
-								'scd-campaign-action-deactivate-' . $campaign_id
+								admin_url( 'admin.php?page=wsscd-campaigns&action=deactivate&id=' . $campaign_id ),
+								'wsscd-campaign-action-deactivate-' . $campaign_id
 							)
 						),
 						__( 'Deactivate', 'smart-cycle-discounts' )
@@ -381,6 +401,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 						$actions['activate'] = sprintf(
 							'<span class="disabled" title="%s" style="color: #a0a5aa; cursor: not-allowed;">%s</span>',
 							esc_attr( sprintf(
+								/* translators: %s: formatted end date and time */
 								__( 'Cannot activate: End date has passed (%s). Please edit the campaign to set a future end date.', 'smart-cycle-discounts' ),
 								$end_date_display
 							) ),
@@ -392,8 +413,8 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 							'<a href="%s">%s</a>',
 							esc_url(
 								wp_nonce_url(
-									admin_url( 'admin.php?page=scd-campaigns&action=activate&id=' . $campaign_id ),
-									'scd-campaign-action-activate-' . $campaign_id
+									admin_url( 'admin.php?page=wsscd-campaigns&action=activate&id=' . $campaign_id ),
+									'wsscd-campaign-action-activate-' . $campaign_id
 								)
 							),
 							__( 'Activate', 'smart-cycle-discounts' )
@@ -402,12 +423,12 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 				}
 			}
 
-			if ( $this->capability_manager->current_user_can( 'scd_create_campaigns' ) ) {
+			if ( $this->capability_manager->current_user_can( 'wsscd_create_campaigns' ) ) {
 				$actions['duplicate'] = sprintf(
 					'<a href="%s">%s</a>',
 					esc_url(
 						wp_nonce_url(
-							admin_url( 'admin.php?page=scd-campaigns&action=duplicate&id=' . $campaign_id ),
+							admin_url( 'admin.php?page=wsscd-campaigns&action=duplicate&id=' . $campaign_id ),
 							'duplicate_campaign_' . $campaign_id
 						)
 					),
@@ -421,8 +442,8 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 					'<a href="%s" class="submitdelete" onclick="return confirm(\'%s\')">%s</a>',
 					esc_url(
 						wp_nonce_url(
-							admin_url( 'admin.php?page=scd-campaigns&action=delete&id=' . $campaign_id ),
-							'scd-campaign-action-delete-' . $campaign_id
+							admin_url( 'admin.php?page=wsscd-campaigns&action=delete&id=' . $campaign_id ),
+							'wsscd-campaign-action-delete-' . $campaign_id
 						)
 					),
 					$confirm_message,
@@ -436,8 +457,8 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 						'<a href="%s" class="stop-recurring" onclick="return confirm(\'%s\')">%s</a>',
 						esc_url(
 							wp_nonce_url(
-								admin_url( 'admin-post.php?action=scd_stop_recurring&id=' . $campaign_id ),
-								'scd_stop_recurring'
+								admin_url( 'admin-post.php?action=wsscd_stop_recurring&id=' . $campaign_id ),
+								'wsscd_stop_recurring'
 							)
 						),
 						esc_js( __( 'Are you sure you want to stop this campaign from recurring?', 'smart-cycle-discounts' ) ),
@@ -450,7 +471,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 		$title = $this->capability_manager->current_user_can( 'edit_campaign', $campaign_id )
 			? sprintf(
 				'<a href="%s" class="row-title"><strong>%s</strong></a>%s',
-				esc_url( admin_url( 'admin.php?page=scd-campaigns&action=wizard&intent=edit&id=' . $campaign_id ) ),
+				esc_url( admin_url( 'admin.php?page=wsscd-campaigns&action=wizard&intent=edit&id=' . $campaign_id ) ),
 				esc_html( $campaign_name ),
 				$recurring_badge
 			)
@@ -470,21 +491,21 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * Render status column.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   string                       Status column HTML.
 	 */
 	public function column_status( $item ) {
 		$campaign = $item;
 		$status   = $campaign->get_status();
 
-		return SCD_Badge_Helper::status_badge( $status );
+		return wp_kses_post( WSSCD_Badge_Helper::status_badge( $status ) );
 	}
 
 	/**
 	 * Render discount column.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   string                       Discount column HTML.
 	 */
 
@@ -492,7 +513,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * Render products column.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   string                       Products column HTML.
 	 */
 
@@ -532,8 +553,9 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			$display       = implode( ', ', $display_names );
 
 			$remaining = $total_count - $limit;
-			$display  .= sprintf(
-				' ' . _n( 'and %d more', 'and %d more', $remaining, 'smart-cycle-discounts' ),
+			$display  .= ' ' . sprintf(
+				/* translators: %d: number of additional categories not shown in the list */
+				_n( 'and %d more', 'and %d more', $remaining, 'smart-cycle-discounts' ),
 				$remaining
 			);
 		}
@@ -577,8 +599,9 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			$display       = implode( ', ', $display_names );
 
 			$remaining = $total_count - $limit;
-			$display  .= sprintf(
-				' ' . _n( 'and %d more', 'and %d more', $remaining, 'smart-cycle-discounts' ),
+			$display  .= ' ' . sprintf(
+				/* translators: %d: number of additional products not shown in the list */
+				_n( 'and %d more', 'and %d more', $remaining, 'smart-cycle-discounts' ),
 				$remaining
 			);
 		}
@@ -590,7 +613,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * Render schedule column.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   string                       Schedule column HTML.
 	 */
 	public function column_schedule( $item ) {
@@ -629,7 +652,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * Render performance column.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   string                       Performance column HTML.
 	 */
 
@@ -637,7 +660,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * Render created column.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   string                       Created column HTML.
 	 */
 
@@ -645,7 +668,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * Render priority column.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   string                       Priority column HTML.
 	 */
 
@@ -655,7 +678,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * Uses unified Campaign Health Service for consistent health analysis.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   string                       Health column HTML.
 	 */
 	public function column_health( $item ) {
@@ -668,8 +691,8 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 
 		if ( $health_service ) {
 			$coverage_data = array();
-			if ( class_exists( 'SCD_Preview_Coverage_Handler' ) ) {
-				$coverage_handler = new SCD_Preview_Coverage_Handler();
+			if ( class_exists( 'WSSCD_Preview_Coverage_Handler' ) ) {
+				$coverage_handler = new WSSCD_Preview_Coverage_Handler();
 
 				$basic_data     = array(
 					'priority' => $campaign->get_priority(),
@@ -727,9 +750,10 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 		);
 
 		$icon_name = isset( $health_icons[ $health_status ] ) ? $health_icons[ $health_status ] : 'info';
-		$icon      = SCD_Icon_Helper::get( $icon_name, array( 'size' => 16 ) );
+		$icon      = WSSCD_Icon_Helper::get( $icon_name, array( 'size' => 16 ) );
 
 		$title = sprintf(
+			/* translators: %1$d: health score number, %2$s: health status label (e.g., Excellent, Good, Fair) */
 			__( 'Health Score: %1$d/100 (%2$s)', 'smart-cycle-discounts' ),
 			$health_score,
 			ucfirst( $health_status )
@@ -740,10 +764,10 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 		}
 
 		return sprintf(
-			'<span class="scd-health-indicator scd-health-%s" title="%s">%s <strong>%d</strong></span>',
+			'<span class="wsscd-health-indicator wsscd-health-%s" title="%s">%s <strong>%d</strong></span>',
 			esc_attr( $health_status ),
 			esc_attr( $title ),
-			$icon,
+			wp_kses( $icon, WSSCD_Icon_Helper::get_allowed_svg_tags() ),
 			$health_score
 		);
 	}
@@ -752,7 +776,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * Render actions column.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $item    Campaign object.
+	 * @param    WSSCD_Campaign $item    Campaign object.
 	 * @return   string                  Actions column HTML.
 	 */
 	public function column_actions( $item ) {
@@ -769,16 +793,16 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 		$is_trashed = null !== $deleted_at;
 
 		// View Details button (opens Campaign Overview Panel)
-		$view_icon = class_exists( 'SCD_Icon_Helper' )
-			? SCD_Icon_Helper::get( 'visibility', array( 'size' => 20, 'aria_hidden' => true ) )
+		$view_icon = class_exists( 'WSSCD_Icon_Helper' )
+			? WSSCD_Icon_Helper::get( 'visibility', array( 'size' => 20, 'aria_hidden' => true ) )
 			: '';
 
 		$buttons['view'] = sprintf(
-			'<button type="button" class="scd-button scd-button--primary scd-button--icon-only scd-view-campaign" data-campaign-id="%d" title="%s" aria-label="%s">%s</button>',
+			'<button type="button" class="wsscd-button wsscd-button--primary wsscd-button--icon-only wsscd-view-campaign" data-campaign-id="%d" title="%s" aria-label="%s">%s</button>',
 			$campaign_id,
 			esc_attr__( 'View campaign details', 'smart-cycle-discounts' ),
 			esc_attr__( 'View Details', 'smart-cycle-discounts' ),
-			$view_icon
+			wp_kses( $view_icon, WSSCD_Icon_Helper::get_allowed_svg_tags() )
 		);
 
 		// Convert row actions to icon-only buttons
@@ -786,14 +810,14 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			$icon        = '';
 			$title       = '';
 			$url         = '';
-			$classes     = 'scd-button scd-button--secondary scd-button--icon-only';
+			$classes     = 'wsscd-button wsscd-button--secondary wsscd-button--icon-only';
 			$confirm_msg = '';
 
 			switch ( $action ) {
 				case 'edit':
 					$icon    = 'edit';
 					$title   = __( 'Edit', 'smart-cycle-discounts' );
-					$classes = 'scd-button scd-button--primary scd-button--icon-only';
+					$classes = 'wsscd-button wsscd-button--primary wsscd-button--icon-only';
 					// Extract URL from link and decode HTML entities
 					preg_match( '/href=["\']([^"\']+)["\']/', $link, $matches );
 					$url = isset( $matches[1] ) ? html_entity_decode( $matches[1], ENT_QUOTES, 'UTF-8' ) : '';
@@ -876,8 +900,8 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			}
 
 			// Get SVG icon
-			$icon_html = class_exists( 'SCD_Icon_Helper' ) && SCD_Icon_Helper::has_icon( $icon )
-				? SCD_Icon_Helper::get( $icon, array( 'size' => 20, 'aria_hidden' => true ) )
+			$icon_html = class_exists( 'WSSCD_Icon_Helper' ) && WSSCD_Icon_Helper::has_icon( $icon )
+				? WSSCD_Icon_Helper::get( $icon, array( 'size' => 20, 'aria_hidden' => true ) )
 				: '';
 
 			if ( $url ) {
@@ -894,7 +918,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 					$onclick_handler,
 					esc_attr( $title ),
 					esc_attr( $title ),
-					$icon_html
+					wp_kses( $icon_html, WSSCD_Icon_Helper::get_allowed_svg_tags() )
 				);
 			} elseif ( 'activate' === $action && ! $url ) {
 				// Render disabled activate button (for expired campaigns)
@@ -903,25 +927,25 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 					esc_attr( $classes ),
 					esc_attr( $title ),
 					esc_attr( $title ),
-					$icon_html
+					wp_kses( $icon_html, WSSCD_Icon_Helper::get_allowed_svg_tags() )
 				);
 			}
 		}
 
-		return '<div class="scd-actions-column">' . implode( ' ', $buttons ) . '</div>';
+		return '<div class="wsscd-actions-column">' . implode( ' ', $buttons ) . '</div>';
 	}
 
 	/**
 	 * Render default column.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign       Campaign object.
+	 * @param    WSSCD_Campaign $campaign       Campaign object.
 	 * @param    string       $column_name    Column name.
 	 * @return   string                          Column HTML.
 	 */
 	public function column_default( $item, $column_name ) {
 		$campaign = $item;
-		return apply_filters( 'scd_campaigns_list_table_column_' . $column_name, '', $campaign );
+		return apply_filters( 'wsscd_campaigns_list_table_column_' . $column_name, '', $campaign );
 	}
 
 	/**
@@ -943,9 +967,11 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			return;
 		}
 
-		// Verify nonce
-		if ( ! wp_verify_nonce( isset( $_REQUEST['_wpnonce'] ) ? $_REQUEST['_wpnonce'] : '', 'bulk-campaigns' ) ) {
-			return; // Silent fail on nonce verification to avoid issues during page load
+		// SECURITY: Nonce verification using WordPress standard 'bulk-campaigns' action.
+		// This nonce is generated by WP_List_Table and verified here before any bulk operations are processed.
+		$nonce = isset( $_REQUEST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'bulk-campaigns' ) ) {
+			return; // Silent fail on nonce verification to avoid issues during page load.
 		}
 
 		$campaign_ids = array_map( 'intval', isset( $_REQUEST['campaign'] ) ? $_REQUEST['campaign'] : array() );
@@ -953,11 +979,11 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 		if ( empty( $campaign_ids ) ) {
 			// If no campaigns selected, redirect with error message
 			$redirect_args = array(
-				'page'  => 'scd-campaigns',
+				'page'  => 'wsscd-campaigns',
 				'error' => 'no_campaigns_selected',
 			);
 			$redirect_url  = add_query_arg( $redirect_args, admin_url( 'admin.php' ) );
-			wp_redirect( $redirect_url );
+			wp_safe_redirect( $redirect_url );
 			exit;
 		}
 
@@ -968,10 +994,11 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			try {
 				switch ( $action ) {
 					case 'activate':
-						if ( $this->capability_manager->current_user_can( 'scd_activate_campaigns' ) ) {
+						if ( $this->capability_manager->current_user_can( 'wsscd_activate_campaigns' ) ) {
 							$campaign = $this->campaign_manager->find( $campaign_id );
 							if ( $campaign && 'expired' === $campaign->get_status() ) {
 								$errors[] = sprintf(
+									/* translators: %s: campaign name */
 									__( 'Campaign "%s": Cannot activate expired campaigns. Please edit the campaign to update the schedule first.', 'smart-cycle-discounts' ),
 									$campaign->get_name()
 								);
@@ -981,6 +1008,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 									++$processed;
 								} else {
 									$errors[] = sprintf(
+										/* translators: %1$d: campaign ID, %2$s: error message */
 										__( 'Campaign ID %1$d: %2$s', 'smart-cycle-discounts' ),
 										$campaign_id,
 										$result->get_error_message()
@@ -990,12 +1018,13 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 						}
 						break;
 					case 'deactivate':
-						if ( $this->capability_manager->current_user_can( 'scd_activate_campaigns' ) ) {
+						if ( $this->capability_manager->current_user_can( 'wsscd_activate_campaigns' ) ) {
 							$result = $this->campaign_manager->pause( $campaign_id );
 							if ( ! is_wp_error( $result ) ) {
 								++$processed;
 							} else {
 								$errors[] = sprintf(
+									/* translators: %1$d: campaign ID, %2$s: error message */
 									__( 'Campaign ID %1$d: %2$s', 'smart-cycle-discounts' ),
 									$campaign_id,
 									$result->get_error_message()
@@ -1004,12 +1033,13 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 						}
 						break;
 					case 'delete':
-						if ( $this->capability_manager->current_user_can( 'scd_delete_campaigns' ) ) {
+						if ( $this->capability_manager->current_user_can( 'wsscd_delete_campaigns' ) ) {
 							$result = $this->campaign_manager->delete( $campaign_id );
 							if ( ! is_wp_error( $result ) ) {
 								++$processed;
 							} else {
 								$errors[] = sprintf(
+									/* translators: %1$d: campaign ID, %2$s: error message */
 									__( 'Campaign ID %1$d: %2$s', 'smart-cycle-discounts' ),
 									$campaign_id,
 									$result->get_error_message()
@@ -1018,13 +1048,14 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 						}
 						break;
 					case 'restore':
-						if ( $this->capability_manager->current_user_can( 'scd_edit_campaigns' ) ) {
+						if ( $this->capability_manager->current_user_can( 'wsscd_edit_campaigns' ) ) {
 							$repository = $this->campaign_manager->get_repository();
 							$result     = $repository->restore( $campaign_id );
 							if ( $result ) {
 								++$processed;
 							} else {
 								$errors[] = sprintf(
+									/* translators: %d: campaign ID */
 									__( 'Campaign ID %d: Failed to restore', 'smart-cycle-discounts' ),
 									$campaign_id
 								);
@@ -1032,13 +1063,14 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 						}
 						break;
 					case 'delete_permanently':
-						if ( $this->capability_manager->current_user_can( 'scd_delete_campaigns' ) ) {
+						if ( $this->capability_manager->current_user_can( 'wsscd_delete_campaigns' ) ) {
 							$repository = $this->campaign_manager->get_repository();
 							$result     = $repository->force_delete( $campaign_id );
 							if ( $result ) {
 								++$processed;
 							} else {
 								$errors[] = sprintf(
+									/* translators: %d: campaign ID */
 									__( 'Campaign ID %d: Failed to delete permanently', 'smart-cycle-discounts' ),
 									$campaign_id
 								);
@@ -1046,7 +1078,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 						}
 						break;
 					case 'stop_recurring':
-						if ( $this->capability_manager->current_user_can( 'scd_edit_campaigns' ) ) {
+						if ( $this->capability_manager->current_user_can( 'wsscd_edit_campaigns' ) ) {
 							// Stop recurring for this campaign
 							if ( isset( $this->container ) && $this->container->has( 'database_manager' ) ) {
 								$db         = $this->container->get( 'database_manager' );
@@ -1065,6 +1097,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 									++$processed;
 								} else {
 									$errors[] = sprintf(
+										/* translators: %d: campaign ID */
 										__( 'Campaign ID %d: Failed to stop recurring', 'smart-cycle-discounts' ),
 										$campaign_id
 									);
@@ -1075,6 +1108,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 				}
 			} catch ( Exception $e ) {
 				$errors[] = sprintf(
+					/* translators: %1$d: campaign ID, %2$s: exception error message */
 					__( 'Campaign ID %1$d: %2$s', 'smart-cycle-discounts' ),
 					$campaign_id,
 					$e->getMessage()
@@ -1084,7 +1118,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 
 		// Redirect with appropriate messages
 		if ( $processed > 0 || ! empty( $errors ) ) {
-			$redirect_args = array( 'page' => 'scd-campaigns' );
+			$redirect_args = array( 'page' => 'wsscd-campaigns' );
 
 			if ( $processed > 0 ) {
 				$redirect_args['message']     = 'bulk_action_success';
@@ -1095,11 +1129,11 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			if ( ! empty( $errors ) ) {
 				$redirect_args['error']       = 'bulk_action_error';
 				$redirect_args['error_count'] = count( $errors );
-				set_transient( 'scd_bulk_action_errors_' . get_current_user_id(), $errors, 60 );
+				set_transient( 'wsscd_bulk_action_errors_' . get_current_user_id(), $errors, 60 );
 			}
 
 			$redirect_url = add_query_arg( $redirect_args, admin_url( 'admin.php' ) );
-			wp_redirect( $redirect_url );
+			wp_safe_redirect( $redirect_url );
 			exit;
 		}
 	}
@@ -1117,6 +1151,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 		switch ( $action ) {
 			case 'activate':
 				return sprintf(
+					/* translators: %d: number of campaigns activated */
 					_n(
 						'%d campaign activated.',
 						'%d campaigns activated.',
@@ -1127,6 +1162,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 				);
 			case 'deactivate':
 				return sprintf(
+					/* translators: %d: number of campaigns deactivated */
 					_n(
 						'%d campaign deactivated.',
 						'%d campaigns deactivated.',
@@ -1137,6 +1173,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 				);
 			case 'delete':
 				return sprintf(
+					/* translators: %d: number of campaigns moved to trash */
 					_n(
 						'%d campaign moved to trash.',
 						'%d campaigns moved to trash.',
@@ -1147,6 +1184,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 				);
 			case 'restore':
 				return sprintf(
+					/* translators: %d: number of campaigns restored from trash */
 					_n(
 						'%d campaign restored from trash.',
 						'%d campaigns restored from trash.',
@@ -1157,6 +1195,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 				);
 			case 'delete_permanently':
 				return sprintf(
+					/* translators: %d: number of campaigns permanently deleted */
 					_n(
 						'%d campaign permanently deleted.',
 						'%d campaigns permanently deleted.',
@@ -1167,6 +1206,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 				);
 			case 'stop_recurring':
 				return sprintf(
+					/* translators: %d: number of recurring campaigns stopped */
 					_n(
 						'%d campaign recurring stopped.',
 						'%d campaigns recurring stopped.',
@@ -1177,6 +1217,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 				);
 			default:
 				return sprintf(
+					/* translators: %d: number of campaigns processed */
 					_n(
 						'%d campaign processed.',
 						'%d campaigns processed.',
@@ -1198,13 +1239,13 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * @return   void
 	 */
 	private function add_admin_notice( $message, $type = 'info' ) {
-		$notices   = get_transient( 'scd_admin_notices' );
+		$notices   = get_transient( 'wsscd_admin_notices' );
 		$notices   = $notices ? $notices : array();
 		$notices[] = array(
 			'message' => $message,
 			'type'    => $type,
 		);
-		set_transient( 'scd_admin_notices', $notices, 300 );
+		set_transient( 'wsscd_admin_notices', $notices, 300 );
 	}
 
 	/**
@@ -1219,21 +1260,22 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			return;
 		}
 
-		$viewing_trash = isset( $_REQUEST['status'] ) && 'trash' === $_REQUEST['status'];
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL param for display context only.
+		$viewing_trash = isset( $_REQUEST['status'] ) && 'trash' === sanitize_text_field( wp_unslash( $_REQUEST['status'] ) );
 
 		?>
 		<div class="alignleft actions">
 			<?php $this->status_filter_dropdown(); ?>
 			<?php submit_button( __( 'Filter', 'smart-cycle-discounts' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) ); ?>
 
-			<?php if ( $viewing_trash && $this->capability_manager->current_user_can( 'scd_delete_campaigns' ) ) : ?>
+			<?php if ( $viewing_trash && $this->capability_manager->current_user_can( 'wsscd_delete_campaigns' ) ) : ?>
 				<?php
 				$repository = $this->campaign_manager->get_repository();
 				if ( $repository ) {
 					$trash_count = $repository->count_trashed();
 					if ( $trash_count > 0 ) :
 						?>
-						<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=scd-campaigns&action=empty_trash' ), 'scd_empty_trash' ) ); ?>"
+						<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=wsscd-campaigns&action=empty_trash' ), 'wsscd_empty_trash' ) ); ?>"
 							class="button"
 							onclick="return confirm('<?php echo esc_js( __( 'Are you sure you want to permanently delete all campaigns in the trash? This action cannot be undone.', 'smart-cycle-discounts' ) ); ?>');">
 							<?php echo esc_html__( 'Empty Trash', 'smart-cycle-discounts' ); ?>
@@ -1255,7 +1297,8 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * @return   void
 	 */
 	private function status_filter_dropdown() {
-		$current_status = isset( $_REQUEST['status'] ) ? $_REQUEST['status'] : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL param for dropdown selection.
+		$current_status = isset( $_REQUEST['status'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['status'] ) ) : '';
 		$statuses       = array(
 			''          => __( 'All statuses', 'smart-cycle-discounts' ),
 			'active'    => __( 'Active', 'smart-cycle-discounts' ),
@@ -1283,20 +1326,72 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * @return   void
 	 */
 	public function no_items() {
-		if ( ! empty( $_REQUEST['s'] ) ) {
-			esc_html_e( 'No campaigns found matching your search.', 'smart-cycle-discounts' );
-		} else {
-			esc_html_e( 'No campaigns found.', 'smart-cycle-discounts' );
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Reading URL params for display context only.
+		$is_search   = ! empty( $_REQUEST['s'] );
+		$status      = isset( $_REQUEST['status'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['status'] ) ) : '';
+		$is_filtered = ! empty( $status ) && 'trash' !== $status;
+		$is_trash    = 'trash' === $status;
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
-			if ( $this->capability_manager->current_user_can( 'scd_create_campaigns' ) ) {
-				echo ' ';
-				printf(
-					'<a href="%s">%s</a>',
-					esc_url( admin_url( 'admin.php?page=scd-campaigns&action=wizard&intent=new' ) ),
-					esc_html__( 'Create your first campaign', 'smart-cycle-discounts' )
-				);
-			}
-		}
+		?>
+		<div class="wsscd-empty-state">
+			<div class="wsscd-empty-state__icon">
+				<?php
+								if ( $is_search ) {
+					WSSCD_Icon_Helper::render( 'search', array( 'size' => 48 ) );
+				} elseif ( $is_trash ) {
+					WSSCD_Icon_Helper::render( 'trash', array( 'size' => 48 ) );
+				} else {
+					WSSCD_Icon_Helper::render( 'megaphone', array( 'size' => 48 ) );
+				}
+				
+				?>
+			</div>
+			<h3 class="wsscd-empty-state__title">
+				<?php
+				if ( $is_search ) {
+					esc_html_e( 'No campaigns found', 'smart-cycle-discounts' );
+				} elseif ( $is_trash ) {
+					esc_html_e( 'Trash is empty', 'smart-cycle-discounts' );
+				} elseif ( $is_filtered ) {
+					esc_html_e( 'No campaigns match this filter', 'smart-cycle-discounts' );
+				} else {
+					esc_html_e( 'No campaigns yet', 'smart-cycle-discounts' );
+				}
+				?>
+			</h3>
+			<p class="wsscd-empty-state__description">
+				<?php
+				if ( $is_search ) {
+					esc_html_e( 'Try adjusting your search terms or clearing the search to see all campaigns.', 'smart-cycle-discounts' );
+				} elseif ( $is_trash ) {
+					esc_html_e( 'Items you delete will appear here for recovery.', 'smart-cycle-discounts' );
+				} elseif ( $is_filtered ) {
+					esc_html_e( 'Try selecting a different status filter or view all campaigns.', 'smart-cycle-discounts' );
+				} else {
+					esc_html_e( 'Create your first discount campaign to start boosting sales with automatic promotions.', 'smart-cycle-discounts' );
+				}
+				?>
+			</p>
+			<div class="wsscd-empty-state__actions">
+				<?php if ( $is_search ) : ?>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wsscd-campaigns' ) ); ?>" class="wsscd-button wsscd-button--secondary">
+						<?php WSSCD_Icon_Helper::render( 'dismiss', array( 'size' => 16 ) ); ?>
+						<?php esc_html_e( 'Clear Search', 'smart-cycle-discounts' ); ?>
+					</a>
+				<?php elseif ( $is_filtered ) : ?>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wsscd-campaigns' ) ); ?>" class="wsscd-button wsscd-button--secondary">
+						<?php esc_html_e( 'View All Campaigns', 'smart-cycle-discounts' ); ?>
+					</a>
+				<?php elseif ( ! $is_trash && $this->capability_manager->current_user_can( 'wsscd_create_campaigns' ) ) : ?>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wsscd-campaigns&action=wizard&intent=new' ) ); ?>" class="wsscd-button wsscd-button--primary wsscd-button--large">
+						<?php WSSCD_Icon_Helper::render( 'plus-alt', array( 'size' => 20 ) ); ?>
+						<?php esc_html_e( 'Create Your First Campaign', 'smart-cycle-discounts' ); ?>
+					</a>
+				<?php endif; ?>
+			</div>
+		</div>
+		<?php
 	}
 
 	/**
@@ -1306,8 +1401,9 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 	 * @return   array    Views array.
 	 */
 	protected function get_views() {
-		$views          = array();
-		$current_status = isset( $_REQUEST['status'] ) ? $_REQUEST['status'] : '';
+		$views = array();
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL param for view highlighting.
+		$current_status = isset( $_REQUEST['status'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['status'] ) ) : '';
 
 		$status_counts = $this->campaign_manager->get_status_counts();
 
@@ -1318,7 +1414,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 		$class        = ( empty( $current_status ) || 'trash' !== $current_status ) ? 'current' : '';
 		$views['all'] = sprintf(
 			'<a href="%s" class="%s">%s <span class="count">(%d)</span></a>',
-			esc_url( admin_url( 'admin.php?page=scd-campaigns' ) ),
+			esc_url( admin_url( 'admin.php?page=wsscd-campaigns' ) ),
 			$class,
 			__( 'All', 'smart-cycle-discounts' ),
 			isset( $status_counts['total'] ) ? $status_counts['total'] : 0
@@ -1339,7 +1435,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 				$class            = $current_status === $status ? 'current' : '';
 				$views[ $status ] = sprintf(
 					'<a href="%s" class="%s">%s <span class="count">(%d)</span></a>',
-					esc_url( admin_url( 'admin.php?page=scd-campaigns&status=' . $status ) ),
+					esc_url( admin_url( 'admin.php?page=wsscd-campaigns&status=' . $status ) ),
 					$class,
 					$label,
 					$count
@@ -1352,7 +1448,7 @@ class SCD_Campaigns_List_Table extends WP_List_Table {
 			$class          = 'trash' === $current_status ? 'current' : '';
 			$views['trash'] = sprintf(
 				'<a href="%s" class="%s">%s <span class="count">(%d)</span></a>',
-				esc_url( admin_url( 'admin.php?page=scd-campaigns&status=trash' ) ),
+				esc_url( admin_url( 'admin.php?page=wsscd-campaigns&status=trash' ) ),
 				$class,
 				__( 'Trash', 'smart-cycle-discounts' ),
 				$trash_count

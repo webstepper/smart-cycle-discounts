@@ -12,6 +12,10 @@ vendor/*
 *.min.css
 *.map
 
+# Exception: Include bundled vendor libraries (required for WordPress.org)
+!resources/assets/vendor/**/*.min.js
+!resources/assets/vendor/**/*.min.css
+
 # Logs
 *.log
 npm-debug.log*
@@ -67,3 +71,42 @@ wp-config.php
 # Distribution files (if you create zip releases)
 *.zip
 /releases/
+
+# Development/temporary files at root
+/*.png
+/*.jpg
+/*.svg
+/*.html
+/*.json
+!package.json
+!composer.json
+
+# Temporary documentation (AI/audit reports)
+AI-*.md
+AUDIT-*.md
+WORDPRESS-*.md
+*-COMPLETE.md
+*-IMPLEMENTATION.md
+*-VERIFICATION.md
+*-REPORT.md
+*-STATUS.md
+*-FIX.md
+*-FIXES.md
+*-PLAN.md
+*-SUMMARY.md
+*-AUDIT.md
+*-CHECKLIST.md
+CONFLICT-*.md
+ELEMENTOR-*.md
+INTERACTIVE-*.md
+I18N-*.md
+
+# Other temporary folders/files
+Webstepper.io/
+SCD-FREE/
+*.py
+!build.py
+freemius-portal.css
+ineed-*.html
+ineed-*.md
+logo-*.html

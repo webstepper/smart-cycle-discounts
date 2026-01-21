@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/database/models
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Analytics_Data {
+class WSSCD_Analytics_Data {
 
 	/**
 	 * Analytics ID.
@@ -35,7 +35,7 @@ class SCD_Analytics_Data {
 	 * @since    1.0.0
 	 * @var      int|null    $id    Analytics ID.
 	 */
-	private ?int $id = null;
+	private $id = null;
 
 	/**
 	 * Campaign ID.
@@ -43,7 +43,7 @@ class SCD_Analytics_Data {
 	 * @since    1.0.0
 	 * @var      int    $campaign_id    Campaign ID.
 	 */
-	private int $campaign_id;
+	private $campaign_id;
 
 	/**
 	 * Event type.
@@ -51,7 +51,7 @@ class SCD_Analytics_Data {
 	 * @since    1.0.0
 	 * @var      string    $event_type    Event type.
 	 */
-	private string $event_type;
+	private $event_type;
 
 	/**
 	 * Event data.
@@ -59,7 +59,7 @@ class SCD_Analytics_Data {
 	 * @since    1.0.0
 	 * @var      array    $event_data    Event data.
 	 */
-	private array $event_data = array();
+	private $event_data = array();
 
 	/**
 	 * Product ID (optional).
@@ -67,7 +67,7 @@ class SCD_Analytics_Data {
 	 * @since    1.0.0
 	 * @var      int|null    $product_id    Product ID.
 	 */
-	private ?int $product_id = null;
+	private $product_id = null;
 
 	/**
 	 * User ID (optional).
@@ -75,7 +75,7 @@ class SCD_Analytics_Data {
 	 * @since    1.0.0
 	 * @var      int|null    $user_id    User ID.
 	 */
-	private ?int $user_id = null;
+	private $user_id = null;
 
 	/**
 	 * Session ID.
@@ -83,7 +83,7 @@ class SCD_Analytics_Data {
 	 * @since    1.0.0
 	 * @var      string|null    $session_id    Session ID.
 	 */
-	private ?string $session_id = null;
+	private $session_id = null;
 
 	/**
 	 * IP address.
@@ -91,7 +91,7 @@ class SCD_Analytics_Data {
 	 * @since    1.0.0
 	 * @var      string|null    $ip_address    IP address.
 	 */
-	private ?string $ip_address = null;
+	private $ip_address = null;
 
 	/**
 	 * User agent.
@@ -99,7 +99,7 @@ class SCD_Analytics_Data {
 	 * @since    1.0.0
 	 * @var      string|null    $user_agent    User agent.
 	 */
-	private ?string $user_agent = null;
+	private $user_agent = null;
 
 	/**
 	 * Referrer URL.
@@ -107,7 +107,7 @@ class SCD_Analytics_Data {
 	 * @since    1.0.0
 	 * @var      string|null    $referrer    Referrer URL.
 	 */
-	private ?string $referrer = null;
+	private $referrer = null;
 
 	/**
 	 * Event timestamp.
@@ -115,7 +115,7 @@ class SCD_Analytics_Data {
 	 * @since    1.0.0
 	 * @var      string|null    $event_timestamp    Event timestamp.
 	 */
-	private ?string $event_timestamp = null;
+	private $event_timestamp = null;
 
 	/**
 	 * Created date.
@@ -123,7 +123,7 @@ class SCD_Analytics_Data {
 	 * @since    1.0.0
 	 * @var      string|null    $created_at    Created date.
 	 */
-	private ?string $created_at = null;
+	private $created_at = null;
 
 	/**
 	 * Valid event types.
@@ -131,7 +131,7 @@ class SCD_Analytics_Data {
 	 * @since    1.0.0
 	 * @var      array    $valid_event_types    Valid event types.
 	 */
-	private static array $valid_event_types = array(
+	private static $valid_event_types = array(
 		'campaign_view',
 		'product_view',
 		'discount_applied',
@@ -303,7 +303,7 @@ class SCD_Analytics_Data {
 	 * @param    mixed  $default    Default value.
 	 * @return   mixed                 Event data value.
 	 */
-	public function get_event_value( string $key, mixed $default = null ): mixed {
+	public function get_event_value( string $key, $default = null ) {
 		return $this->event_data[ $key ] ?? $default;
 	}
 
@@ -315,7 +315,7 @@ class SCD_Analytics_Data {
 	 * @param    mixed  $value    Event data value.
 	 * @return   void
 	 */
-	public function set_event_value( string $key, mixed $value ): void {
+	public function set_event_value( string $key, $value ): void {
 		$this->event_data[ $key ] = $value;
 	}
 
@@ -700,7 +700,7 @@ class SCD_Analytics_Data {
 	 * @param    int    $campaign_id    Campaign ID.
 	 * @param    array  $event_data     Event data.
 	 * @param    array  $context        Additional context.
-	 * @return   SCD_Analytics_Data         Analytics data instance.
+	 * @return   WSSCD_Analytics_Data         Analytics data instance.
 	 */
 	public static function create_from_event( string $event_type, int $campaign_id, array $event_data = array(), array $context = array() ): self {
 		$analytics = new self();

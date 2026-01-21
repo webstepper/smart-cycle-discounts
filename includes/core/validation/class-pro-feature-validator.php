@@ -26,14 +26,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/validation
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_PRO_Feature_Validator {
+class WSSCD_PRO_Feature_Validator {
 
 	/**
 	 * Feature gate instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Feature_Gate    $feature_gate    Feature gate.
+	 * @var      WSSCD_Feature_Gate    $feature_gate    Feature gate.
 	 */
 	private $feature_gate;
 
@@ -41,7 +41,7 @@ class SCD_PRO_Feature_Validator {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Feature_Gate $feature_gate    Feature gate instance.
+	 * @param    WSSCD_Feature_Gate $feature_gate    Feature gate instance.
 	 */
 	public function __construct( $feature_gate ) {
 		$this->feature_gate = $feature_gate;
@@ -83,10 +83,14 @@ class SCD_PRO_Feature_Validator {
 			return $discount_validation;
 		}
 
-		$recurring_validation = $this->validate_recurring( $campaign_data );
-		if ( is_wp_error( $recurring_validation ) ) {
-			return $recurring_validation;
+		$config_validation = $this->validate_discount_configurations( $campaign_data );
+		if ( is_wp_error( $config_validation ) ) {
+			return $config_validation;
 		}
+
+		// Note: Recurring campaigns are now FREE - no validation needed
+		// The validate_recurring() check would pass anyway since can_use_recurring_campaigns()
+		// returns true for all users now that campaigns_recurring is set to 'free'
 
 		$filters_validation = $this->validate_advanced_filters( $campaign_data );
 		if ( is_wp_error( $filters_validation ) ) {
@@ -105,11 +109,19 @@ class SCD_PRO_Feature_Validator {
 	 * @return   true|WP_Error     True if valid, WP_Error if PRO feature detected.
 	 */
 	private function validate_discounts( $data ) {
-		if ( ! isset( $data['discount_type'] ) ) {
-			return true;
+		// Validate discount type
+		$type_validation = $this->validate_discount_type( $data );
+		if ( is_wp_error( $type_validation ) ) {
+			return $type_validation;
 		}
 
-		return $this->validate_discount_type( $data );
+		// Validate discount configurations (usage limits, application rules, etc.)
+		$config_validation = $this->validate_discount_configurations( $data );
+		if ( is_wp_error( $config_validation ) ) {
+			return $config_validation;
+		}
+
+		return true;
 	}
 
 	/**
@@ -227,6 +239,95 @@ class SCD_PRO_Feature_Validator {
 					)
 				);
 			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Validate discount configurations feature.
+	 *
+	 * Checks if free users are trying to use PRO discount configuration options
+	 * like usage limits, application rules, or combination policies.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $data    Data containing discount configurations.
+	 * @return   true|WP_Error     True if valid, WP_Error if PRO feature detected.
+	 */
+	private function validate_discount_configurations( $data ) {
+		// If user has PRO access, allow all configurations
+		if ( $this->feature_gate->can_use_discount_configurations() ) {
+			return true;
+		}
+
+		// PRO configuration fields that free users cannot use
+		$pro_config_fields = array(
+			'usage_limit_per_customer' => __( 'per-customer usage limits', 'smart-cycle-discounts' ),
+			'total_usage_limit'        => __( 'total usage limits', 'smart-cycle-discounts' ),
+			'lifetime_usage_cap'       => __( 'lifetime usage caps', 'smart-cycle-discounts' ),
+			'max_discount_amount'      => __( 'maximum discount amount', 'smart-cycle-discounts' ),
+			'minimum_quantity'         => __( 'minimum quantity requirements', 'smart-cycle-discounts' ),
+			'minimum_order_amount'     => __( 'minimum order requirements', 'smart-cycle-discounts' ),
+		);
+
+		// Check if any PRO config field has a non-empty/non-default value
+		foreach ( $pro_config_fields as $field => $label ) {
+			if ( isset( $data[ $field ] ) && ! empty( $data[ $field ] ) && 0 !== (int) $data[ $field ] ) {
+				return new WP_Error(
+					'pro_feature_required',
+					sprintf(
+						/* translators: %s: configuration feature name */
+						__( 'Setting %s requires a PRO license.', 'smart-cycle-discounts' ),
+						$label
+					),
+					array(
+						'status'      => 403,
+						'feature'     => 'discount_configurations',
+						'upgrade_url' => $this->feature_gate->get_upgrade_url(),
+					)
+				);
+			}
+		}
+
+		// Check boolean/select configurations that differ from free defaults
+		// stack_with_others: default is false (can't stack) - if true, requires PRO
+		if ( isset( $data['stack_with_others'] ) && $data['stack_with_others'] ) {
+			return new WP_Error(
+				'pro_feature_required',
+				__( 'Campaign stacking policy requires a PRO license.', 'smart-cycle-discounts' ),
+				array(
+					'status'      => 403,
+					'feature'     => 'discount_configurations',
+					'upgrade_url' => $this->feature_gate->get_upgrade_url(),
+				)
+			);
+		}
+
+		// allow_coupons: default is true - if false (blocking coupons), requires PRO
+		if ( isset( $data['allow_coupons'] ) && ! $data['allow_coupons'] ) {
+			return new WP_Error(
+				'pro_feature_required',
+				__( 'Coupon policy settings require a PRO license.', 'smart-cycle-discounts' ),
+				array(
+					'status'      => 403,
+					'feature'     => 'discount_configurations',
+					'upgrade_url' => $this->feature_gate->get_upgrade_url(),
+				)
+			);
+		}
+
+		// apply_to_sale_items: default is true - if false (excluding sale items), requires PRO
+		if ( isset( $data['apply_to_sale_items'] ) && ! $data['apply_to_sale_items'] ) {
+			return new WP_Error(
+				'pro_feature_required',
+				__( 'Sale item exclusion settings require a PRO license.', 'smart-cycle-discounts' ),
+				array(
+					'status'      => 403,
+					'feature'     => 'discount_configurations',
+					'upgrade_url' => $this->feature_gate->get_upgrade_url(),
+				)
+			);
 		}
 
 		return true;

@@ -4,7 +4,7 @@
  *
  * Validates the discounts step for logical consistency, business rules, and edge cases.
  * Focuses ONLY on discounts step internal validation. Cross-step validation is handled
- * by SCD_Campaign_Cross_Validator.
+ * by WSSCD_Campaign_Cross_Validator.
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/validation/step-validators
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Validates the discounts step configuration for 72+ types of logical inconsistencies,
  * business rule violations, and edge cases. This validator focuses ONLY on the discounts
- * step itself - cross-step validation is handled by SCD_Campaign_Cross_Validator.
+ * step itself - cross-step validation is handled by WSSCD_Campaign_Cross_Validator.
  *
  * SCOPE: Discounts step internal validation only
  * - Discount type configuration (BOGO, tiered, spend thresholds)
@@ -57,7 +57,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/validation/step-validators
  */
-class SCD_Discounts_Step_Validator {
+class WSSCD_Discounts_Step_Validator {
 
 	/**
 	 * Log a validation hint (informational message about unusual config).
@@ -70,16 +70,16 @@ class SCD_Discounts_Step_Validator {
 	 * @return   void
 	 */
 	private static function log_hint( $message ) {
-		// Only log when SCD_DEBUG is enabled or log level is info/debug
-		if ( ! defined( 'SCD_DEBUG' ) || ! SCD_DEBUG ) {
+		// Only log when WSSCD_DEBUG is enabled or log level is info/debug
+		if ( ! defined( 'WSSCD_DEBUG' ) || ! WSSCD_DEBUG ) {
 			return;
 		}
 
 		// Use the plugin's logger if available
-		if ( class_exists( 'SCD_Logger' ) ) {
+		if ( class_exists( 'WSSCD_Logger' ) ) {
 			static $logger = null;
 			if ( null === $logger ) {
-				$logger = new SCD_Logger( 'validation' );
+				$logger = new WSSCD_Logger( 'validation' );
 			}
 			$logger->info( $message );
 		}
@@ -119,7 +119,7 @@ class SCD_Discounts_Step_Validator {
 		self::validate_cross_field_logic( $data, $errors );
 
 		// NOTE: Cross-step validation (products, filters, schedule) is now handled by
-		// SCD_Campaign_Cross_Validator at the review step via the campaign health system.
+		// WSSCD_Campaign_Cross_Validator at the review step via the campaign health system.
 	}
 
 	/**
@@ -175,13 +175,13 @@ class SCD_Discounts_Step_Validator {
 		}
 
 		// Rule 5: Very large values (potential overflow or unrealistic)
-		if ( $customer_limit > SCD_Validation_Rules::USAGE_LIMIT_MAX || $total_limit > SCD_Validation_Rules::USAGE_LIMIT_MAX || $lifetime_cap > SCD_Validation_Rules::USAGE_LIMIT_MAX ) {
+		if ( $customer_limit > WSSCD_Validation_Rules::USAGE_LIMIT_MAX || $total_limit > WSSCD_Validation_Rules::USAGE_LIMIT_MAX || $lifetime_cap > WSSCD_Validation_Rules::USAGE_LIMIT_MAX ) {
 			$errors->add(
 				'usage_limit_too_large',
 				sprintf(
 					/* translators: %d: maximum limit */
 					__( 'Usage limits cannot exceed %d. Use 0 for unlimited instead.', 'smart-cycle-discounts' ),
-					SCD_Validation_Rules::USAGE_LIMIT_MAX
+					WSSCD_Validation_Rules::USAGE_LIMIT_MAX
 				)
 			);
 		}
@@ -261,44 +261,44 @@ class SCD_Discounts_Step_Validator {
 		}
 
 		// Rule 5: Unrealistic minimum quantity
-		if ( $minimum_quantity > SCD_Validation_Rules::MINIMUM_QUANTITY_MAX ) {
+		if ( $minimum_quantity > WSSCD_Validation_Rules::MINIMUM_QUANTITY_MAX ) {
 			$errors->add(
 				'minimum_quantity_unrealistic',
 				sprintf(
 					/* translators: 1: minimum quantity, 2: maximum */
 					__( 'Minimum quantity (%1$d) exceeds reasonable maximum (%2$d). Most customers won\'t purchase this many items.', 'smart-cycle-discounts' ),
 					$minimum_quantity,
-					SCD_Validation_Rules::MINIMUM_QUANTITY_MAX
+					WSSCD_Validation_Rules::MINIMUM_QUANTITY_MAX
 				)
 			);
 		}
 
 		// Rule 6: Minimum order amount cannot exceed maximum
-		if ( $minimum_order_amount > SCD_Validation_Rules::MINIMUM_ORDER_AMOUNT_MAX ) {
+		if ( $minimum_order_amount > WSSCD_Validation_Rules::MINIMUM_ORDER_AMOUNT_MAX ) {
 			$errors->add(
 				'minimum_order_amount_exceeds_maximum',
 				sprintf(
 					/* translators: %s: maximum minimum order amount */
 					__( 'Minimum order amount cannot exceed $%s. For higher minimums, please contact support.', 'smart-cycle-discounts' ),
-					number_format( SCD_Validation_Rules::MINIMUM_ORDER_AMOUNT_MAX, 2 )
+					number_format( WSSCD_Validation_Rules::MINIMUM_ORDER_AMOUNT_MAX, 2 )
 				)
 			);
 		}
 
 		// Rule 7: Max discount amount cannot exceed maximum
-		if ( $max_discount > SCD_Validation_Rules::MAX_DISCOUNT_AMOUNT_MAX ) {
+		if ( $max_discount > WSSCD_Validation_Rules::MAX_DISCOUNT_AMOUNT_MAX ) {
 			$errors->add(
 				'max_discount_amount_exceeds_maximum',
 				sprintf(
 					/* translators: %s: maximum discount cap amount */
 					__( 'Maximum discount cap cannot exceed $%s. For higher caps, please contact support.', 'smart-cycle-discounts' ),
-					number_format( SCD_Validation_Rules::MAX_DISCOUNT_AMOUNT_MAX, 2 )
+					number_format( WSSCD_Validation_Rules::MAX_DISCOUNT_AMOUNT_MAX, 2 )
 				)
 			);
 		}
 
 		// Rule 8: Very high minimum order amount (warning)
-		if ( $minimum_order_amount > 10000 && $minimum_order_amount <= SCD_Validation_Rules::MINIMUM_ORDER_AMOUNT_MAX ) {
+		if ( $minimum_order_amount > 10000 && $minimum_order_amount <= WSSCD_Validation_Rules::MINIMUM_ORDER_AMOUNT_MAX ) {
 			// Very high minimum order - probably a mistake
 			self::log_hint( sprintf( 'Minimum order amount is $%s. This is very high and may prevent most customers from qualifying.', number_format( $minimum_order_amount, 2 ) ) );
 		}
@@ -381,7 +381,7 @@ class SCD_Discounts_Step_Validator {
 		}
 
 		// Rule 5: Very large buy/get quantities (unrealistic)
-		if ( $buy_quantity > SCD_Validation_Rules::BOGO_BUY_MAX || $get_quantity > SCD_Validation_Rules::BOGO_GET_MAX ) {
+		if ( $buy_quantity > WSSCD_Validation_Rules::BOGO_BUY_MAX || $get_quantity > WSSCD_Validation_Rules::BOGO_GET_MAX ) {
 			$errors->add(
 				'bogo_unrealistic_quantities',
 				sprintf(
@@ -389,7 +389,7 @@ class SCD_Discounts_Step_Validator {
 					__( 'BOGO quantities (Buy %1$d, Get %2$d) exceed reasonable maximum (%3$d). Most customers won\'t purchase this many items.', 'smart-cycle-discounts' ),
 					$buy_quantity,
 					$get_quantity,
-					max( SCD_Validation_Rules::BOGO_BUY_MAX, SCD_Validation_Rules::BOGO_GET_MAX )
+					max( WSSCD_Validation_Rules::BOGO_BUY_MAX, WSSCD_Validation_Rules::BOGO_GET_MAX )
 				)
 			);
 		}
@@ -929,13 +929,13 @@ class SCD_Discounts_Step_Validator {
 		}
 
 		// Rule 2: Percentage cannot exceed 100%
-		if ( 'percentage' === $discount_type && $discount_value > SCD_Validation_Rules::PERCENTAGE_MAX ) {
+		if ( 'percentage' === $discount_type && $discount_value > WSSCD_Validation_Rules::PERCENTAGE_MAX ) {
 			$errors->add(
 				'discount_percentage_exceeds_maximum',
 				sprintf(
 					/* translators: %d: maximum percentage */
 					__( 'Discount percentage cannot exceed %d%%. A discount over 100%% is not mathematically valid.', 'smart-cycle-discounts' ),
-					SCD_Validation_Rules::PERCENTAGE_MAX
+					WSSCD_Validation_Rules::PERCENTAGE_MAX
 				)
 			);
 		}
@@ -952,25 +952,25 @@ class SCD_Discounts_Step_Validator {
 		}
 
 		// Rule 4: Percentage over 50% (profit margin warning)
-		if ( 'percentage' === $discount_type && $discount_value > SCD_Validation_Rules::PERCENTAGE_WARNING ) {
+		if ( 'percentage' === $discount_type && $discount_value > WSSCD_Validation_Rules::PERCENTAGE_WARNING ) {
 			// Over 50% discount - check profit margins
 			self::log_hint( sprintf( 'Discount percentage is %s%%. Discounts over 50%% significantly impact profit margins. Verify this is intentional.', $discount_value ) );
 		}
 
 		// Rule 5: Fixed discount cannot exceed maximum
-		if ( 'fixed' === $discount_type && $discount_value > SCD_Validation_Rules::FIXED_MAX ) {
+		if ( 'fixed' === $discount_type && $discount_value > WSSCD_Validation_Rules::FIXED_MAX ) {
 			$errors->add(
 				'discount_fixed_exceeds_maximum',
 				sprintf(
 					/* translators: %s: maximum fixed discount amount */
 					__( 'Fixed discount amount cannot exceed $%s. For larger discounts, please contact support.', 'smart-cycle-discounts' ),
-					number_format( SCD_Validation_Rules::FIXED_MAX, 2 )
+					number_format( WSSCD_Validation_Rules::FIXED_MAX, 2 )
 				)
 			);
 		}
 
 		// Rule 6: Very large fixed discount warning
-		if ( 'fixed' === $discount_type && $discount_value > SCD_Validation_Rules::FIXED_WARNING && $discount_value <= SCD_Validation_Rules::FIXED_MAX ) {
+		if ( 'fixed' === $discount_type && $discount_value > WSSCD_Validation_Rules::FIXED_WARNING && $discount_value <= WSSCD_Validation_Rules::FIXED_MAX ) {
 			// Very large fixed discount (warning only)
 			self::log_hint( sprintf( 'Fixed discount is $%s. This is a very large discount. Verify this amount is correct.', number_format( $discount_value, 2 ) ) );
 		}

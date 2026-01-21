@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Translation_Handler {
+class WSSCD_Translation_Handler {
 
 	/**
 	 * Cached translations.
@@ -48,19 +48,19 @@ class SCD_Translation_Handler {
 	/**
 	 * Get translated string.
 	 *
+	 * Note: This method returns the default text as-is. All translations should
+	 * be done directly in templates using __(), esc_html__(), etc. with literal
+	 * strings to ensure WordPress.org translation parser can extract them.
+	 *
 	 * @since    1.0.0
-	 * @param    string $key         Translation key.
+	 * @param    string $key         Translation key (unused, kept for backwards compatibility).
 	 * @param    string $default     Default text.
-	 * @param    string $context     Optional context.
-	 * @return   string                 Translated string.
+	 * @param    string $context     Optional context (unused).
+	 * @return   string                 The default string.
 	 */
 	public static function get( string $key, string $default, string $context = '' ): string {
-		// If text domain is loaded, return translated string
-		if ( self::$is_loaded || did_action( 'init' ) ) {
-			self::$is_loaded = true;
-			return $context ? _x( $default, $context, 'smart-cycle-discounts' ) : __( $default, 'smart-cycle-discounts' );
-		}
-
+		// Return the default text directly.
+		// Translations should be done at the call site with literal strings.
 		return $default;
 	}
 

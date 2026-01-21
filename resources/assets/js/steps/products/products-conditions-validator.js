@@ -17,17 +17,17 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	SCD.Modules = SCD.Modules || {};
-	SCD.Modules.Products = SCD.Modules.Products || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Modules = WSSCD.Modules || {};
+	WSSCD.Modules.Products = WSSCD.Modules.Products || {};
 
 	/**
 	 * Conditions Validator Module
 	 *
 	 * @param {Object} state - State manager instance
-	 * @class SCD.Modules.Products.ConditionsValidator
+	 * @class WSSCD.Modules.Products.ConditionsValidator
 	 */
-	SCD.Modules.Products.ConditionsValidator = function( state ) {
+	WSSCD.Modules.Products.ConditionsValidator = function( state ) {
 		this.state = state;
 		this.$container = null;
 		this.conditionTypes = {};
@@ -62,7 +62,7 @@
 		];
 	};
 
-	SCD.Modules.Products.ConditionsValidator.prototype = {
+	WSSCD.Modules.Products.ConditionsValidator.prototype = {
 
 		// ========================================
 		// INITIALIZATION
@@ -90,7 +90,7 @@
 		 */
 		loadConditionTypes: function() {
 			// Get condition types from field definitions
-			var fieldDefs = window.scdAdmin && window.scdAdmin.scdFieldDefinitions && window.scdAdmin.scdFieldDefinitions.products || {};
+			var fieldDefs = window.wsscdAdmin && window.wsscdAdmin.wsscdFieldDefinitions && window.wsscdAdmin.wsscdFieldDefinitions.products || {};
 			if ( fieldDefs.conditionTypes ) {
 				this.conditionTypes = fieldDefs.conditionTypes;
 			}
@@ -106,27 +106,27 @@
 			var self = this;
 
 			// Validate on type change
-			this.$container.on( 'change.scd-validator', '.scd-condition-type', function() {
-				self.validateConditionRow( $( this ).closest( '.scd-condition-row' ) );
+			this.$container.on( 'change.wsscd-validator', '.wsscd-condition-type', function() {
+				self.validateConditionRow( $( this ).closest( '.wsscd-condition-row' ) );
 			} );
 
 			// Validate on operator change
-			this.$container.on( 'change.scd-validator', '.scd-condition-operator', function() {
-				self.validateConditionRow( $( this ).closest( '.scd-condition-row' ) );
+			this.$container.on( 'change.wsscd-validator', '.wsscd-condition-operator', function() {
+				self.validateConditionRow( $( this ).closest( '.wsscd-condition-row' ) );
 			} );
 
 			// Validate on value change
-			this.$container.on( 'input.scd-validator change.scd-validator', '.scd-condition-value', function() {
-				self.validateConditionRow( $( this ).closest( '.scd-condition-row' ) );
+			this.$container.on( 'input.wsscd-validator change.wsscd-validator', '.wsscd-condition-value', function() {
+				self.validateConditionRow( $( this ).closest( '.wsscd-condition-row' ) );
 			} );
 
 			// Validate on mode change
-			this.$container.on( 'change.scd-validator', '.scd-condition-mode', function() {
-				self.validateConditionRow( $( this ).closest( '.scd-condition-row' ) );
+			this.$container.on( 'change.wsscd-validator', '.wsscd-condition-mode', function() {
+				self.validateConditionRow( $( this ).closest( '.wsscd-condition-row' ) );
 			} );
 
 			// Revalidate all on logic change
-			this.$container.on( 'change.scd-validator', '[name="conditions_logic"]', function() {
+			this.$container.on( 'change.wsscd-validator', '[name="conditions_logic"]', function() {
 				self.validateAllConditions();
 			} );
 		},
@@ -184,7 +184,7 @@
 			var self = this;
 			var allValid = true;
 
-			this.$container.find( '.scd-condition-row' ).each( function() {
+			this.$container.find( '.wsscd-condition-row' ).each( function() {
 				if ( ! self.validateConditionRow( $( this ) ) ) {
 					allValid = false;
 				}
@@ -1895,17 +1895,17 @@
 		 */
 		showValidationErrors: function( $row, issues ) {
 			// Find the wrapper (parent of the row)
-			var $wrapper = $row.closest( '.scd-condition-wrapper' );
+			var $wrapper = $row.closest( '.wsscd-condition-wrapper' );
 			if ( ! $wrapper.length ) {
 				$wrapper = $row.parent(); // Fallback
 			}
 
 			// Get or create error container (sibling of row, child of wrapper)
-			var $errorContainer = $wrapper.find( '.scd-condition-error-container' );
+			var $errorContainer = $wrapper.find( '.wsscd-condition-error-container' );
 
 			if ( ! $errorContainer.length ) {
 				// Fallback: create container if it doesn't exist
-				$errorContainer = $( '<div class="scd-condition-error-container"></div>' );
+				$errorContainer = $( '<div class="wsscd-condition-error-container"></div>' );
 				$wrapper.append( $errorContainer );
 			}
 
@@ -1913,17 +1913,17 @@
 			$errorContainer.empty();
 
 			// Add condition-specific styling
-			$row.addClass( 'scd-condition-error' );
+			$row.addClass( 'wsscd-condition-error' );
 
 			// Build error message HTML
-			var warningIcon = SCD.IconHelper ? SCD.IconHelper.warning( { size: 16 } ) : '<span class="scd-icon scd-icon-warning"></span>';
-			var errorHtml = '<div class="scd-condition-validation-error">';
+			var warningIcon = WSSCD.IconHelper ? WSSCD.IconHelper.warning( { size: 16 } ) : '<span class="wsscd-icon wsscd-icon-warning"></span>';
+			var errorHtml = '<div class="wsscd-condition-validation-error">';
 			errorHtml += warningIcon;
-			errorHtml += '<div class="scd-condition-error-messages">';
+			errorHtml += '<div class="wsscd-condition-error-messages">';
 
 			// Show all issues
 			for ( var i = 0; i < issues.length; i++ ) {
-				errorHtml += '<p class="scd-condition-error-message">' + this._escapeHtml( issues[i].message ) + '</p>';
+				errorHtml += '<p class="wsscd-condition-error-message">' + this._escapeHtml( issues[i].message ) + '</p>';
 			}
 
 			errorHtml += '</div>';
@@ -1944,17 +1944,17 @@
 		 */
 		clearValidationErrors: function( $row ) {
 			// Find the wrapper (parent of the row)
-			var $wrapper = $row.closest( '.scd-condition-wrapper' );
+			var $wrapper = $row.closest( '.wsscd-condition-wrapper' );
 			if ( ! $wrapper.length ) {
 				$wrapper = $row.parent(); // Fallback
 			}
 
 			// Clear the error container (sibling of row, child of wrapper)
-			var $errorContainer = $wrapper.find( '.scd-condition-error-container' );
+			var $errorContainer = $wrapper.find( '.wsscd-condition-error-container' );
 			$errorContainer.empty().hide();
 
 			// Remove condition-specific styling
-			$row.removeClass( 'scd-condition-error' );
+			$row.removeClass( 'wsscd-condition-error' );
 		},
 
 		/**
@@ -1966,20 +1966,20 @@
 		 * @param {Array} issues Array of issue objects
 		 */
 		_showInlineWarning: function( $row, issues ) {
-			var $existing = $row.find( '.scd-condition-inline-warning' );
+			var $existing = $row.find( '.wsscd-condition-inline-warning' );
 			if ( $existing.length ) {
 				$existing.remove();
 			}
 
-			var warningIcon = SCD.IconHelper ? SCD.IconHelper.warning( { size: 16 } ) : '<span class="scd-icon scd-icon-warning"></span>';
-			var $warning = $( '<div class="scd-condition-inline-warning"></div>' );
+			var warningIcon = WSSCD.IconHelper ? WSSCD.IconHelper.warning( { size: 16 } ) : '<span class="wsscd-icon wsscd-icon-warning"></span>';
+			var $warning = $( '<div class="wsscd-condition-inline-warning"></div>' );
 			$warning.html( warningIcon );
 
-			var $message = $( '<span class="scd-warning-message"></span>' );
+			var $message = $( '<span class="wsscd-warning-message"></span>' );
 			$message.text( issues.length + ' issue' + ( issues.length > 1 ? 's' : '' ) + ' detected' );
 			$warning.append( $message );
 
-			$row.find( '.scd-condition-fields' ).after( $warning );
+			$row.find( '.wsscd-condition-fields' ).after( $warning );
 		},
 
 		/**
@@ -1992,11 +1992,11 @@
 		 * @returns {jQuery} Field element
 		 */
 		_getFieldFromIssue: function( $row, issue ) {
-			var fieldClass = '.scd-condition-' + issue.field;
+			var fieldClass = '.wsscd-condition-' + issue.field;
 			var $field = $row.find( fieldClass );
 
 			if ( ! $field.length ) {
-				$field = $row.find( '.scd-condition-operator' );
+				$field = $row.find( '.wsscd-condition-operator' );
 			}
 
 			return $field;
@@ -2030,7 +2030,7 @@
 			var conditions = [];
 			var self = this;
 
-			this.$container.find( '.scd-condition-row' ).each( function() {
+			this.$container.find( '.wsscd-condition-row' ).each( function() {
 				var condition = self.getConditionFromRow( $( this ) );
 				if ( condition.conditionType && condition.operator ) {
 					conditions.push( condition );
@@ -2049,11 +2049,11 @@
 		 */
 		getConditionFromRow: function( $row ) {
 			return {
-				conditionType: $row.find( '.scd-condition-type' ).val() || '',
-				operator: $row.find( '.scd-condition-operator' ).val() || '',
-				value: $row.find( '.scd-condition-value' ).first().val() || '',
-				value2: $row.find( '.scd-condition-value-between' ).val() || '',
-				mode: $row.find( '.scd-condition-mode' ).val() || 'include'
+				conditionType: $row.find( '.wsscd-condition-type' ).val() || '',
+				operator: $row.find( '.wsscd-condition-operator' ).val() || '',
+				value: $row.find( '.wsscd-condition-value' ).first().val() || '',
+				value2: $row.find( '.wsscd-condition-value-between' ).val() || '',
+				mode: $row.find( '.wsscd-condition-mode' ).val() || 'include'
 			};
 		},
 
@@ -2097,7 +2097,7 @@
 		 */
 		destroy: function() {
 			if ( this.$container ) {
-				this.$container.off( '.scd-validator' );
+				this.$container.off( '.wsscd-validator' );
 			}
 			this.$container = null;
 			this.conditionTypes = {};

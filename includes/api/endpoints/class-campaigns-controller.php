@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/api/controllers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Campaigns_Controller {
+class WSSCD_Campaigns_Controller {
 
 	/**
 	 * API namespace.
@@ -43,53 +43,53 @@ class SCD_Campaigns_Controller {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Manager    $campaign_manager    Campaign manager.
+	 * @var      WSSCD_Campaign_Manager    $campaign_manager    Campaign manager.
 	 */
-	private SCD_Campaign_Manager $campaign_manager;
+	private WSSCD_Campaign_Manager $campaign_manager;
 
 	/**
 	 * Permissions manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_API_Permissions    $permissions_manager    Permissions manager.
+	 * @var      WSSCD_API_Permissions    $permissions_manager    Permissions manager.
 	 */
-	private SCD_API_Permissions $permissions_manager;
+	private WSSCD_API_Permissions $permissions_manager;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Campaign serializer instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Serializer    $serializer    Campaign serializer.
+	 * @var      WSSCD_Campaign_Serializer    $serializer    Campaign serializer.
 	 */
-	private SCD_Campaign_Serializer $serializer;
+	private WSSCD_Campaign_Serializer $serializer;
 
 	/**
 	 * Initialize the campaigns endpoint.
 	 *
 	 * @since    1.0.0
 	 * @param    string                  $namespace             API namespace.
-	 * @param    SCD_Campaign_Manager    $campaign_manager      Campaign manager.
-	 * @param    SCD_API_Permissions     $permissions_manager   Permissions manager.
-	 * @param    SCD_Campaign_Serializer $serializer            Campaign serializer.
-	 * @param    SCD_Logger              $logger                Logger instance.
+	 * @param    WSSCD_Campaign_Manager    $campaign_manager      Campaign manager.
+	 * @param    WSSCD_API_Permissions     $permissions_manager   Permissions manager.
+	 * @param    WSSCD_Campaign_Serializer $serializer            Campaign serializer.
+	 * @param    WSSCD_Logger              $logger                Logger instance.
 	 */
 	public function __construct(
 		string $namespace,
-		SCD_Campaign_Manager $campaign_manager,
-		SCD_API_Permissions $permissions_manager,
-		SCD_Campaign_Serializer $serializer,
-		SCD_Logger $logger
+		WSSCD_Campaign_Manager $campaign_manager,
+		WSSCD_API_Permissions $permissions_manager,
+		WSSCD_Campaign_Serializer $serializer,
+		WSSCD_Logger $logger
 	) {
 		$this->namespace           = $namespace;
 		$this->campaign_manager    = $campaign_manager;
@@ -113,13 +113,13 @@ class SCD_Campaigns_Controller {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_campaigns' ),
-					'permission_callback' => array( $this->permissions_manager, 'check_campaigns_permissions' ),
+					'permission_callback' => array( $this->permissions_manager, 'check_campaigns_read_permissions' ),
 					'args'                => $this->get_collection_params(),
 				),
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this, 'create_campaign' ),
-					'permission_callback' => array( $this->permissions_manager, 'check_campaigns_permissions' ),
+					'permission_callback' => array( $this->permissions_manager, 'check_campaigns_write_permissions' ),
 					'args'                => $this->get_campaign_schema(),
 				),
 			)
@@ -133,7 +133,7 @@ class SCD_Campaigns_Controller {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_campaign' ),
-					'permission_callback' => array( $this->permissions_manager, 'check_campaigns_permissions' ),
+					'permission_callback' => array( $this->permissions_manager, 'check_campaigns_read_permissions' ),
 					'args'                => array(
 						'id' => array(
 							'description'       => __( 'Campaign ID.', 'smart-cycle-discounts' ),
@@ -148,13 +148,13 @@ class SCD_Campaigns_Controller {
 				array(
 					'methods'             => WP_REST_Server::EDITABLE,
 					'callback'            => array( $this, 'update_campaign' ),
-					'permission_callback' => array( $this->permissions_manager, 'check_campaigns_permissions' ),
+					'permission_callback' => array( $this->permissions_manager, 'check_campaigns_write_permissions' ),
 					'args'                => $this->get_campaign_schema(),
 				),
 				array(
 					'methods'             => WP_REST_Server::DELETABLE,
 					'callback'            => array( $this, 'delete_campaign' ),
-					'permission_callback' => array( $this->permissions_manager, 'check_campaigns_permissions' ),
+					'permission_callback' => array( $this->permissions_manager, 'check_campaigns_write_permissions' ),
 					'args'                => array(
 						'force' => array(
 							'description' => __( 'Whether to permanently delete the campaign.', 'smart-cycle-discounts' ),
@@ -166,14 +166,14 @@ class SCD_Campaigns_Controller {
 			)
 		);
 
-		// Campaign actions
+		// Campaign actions (write operations - premium)
 		register_rest_route(
 			$this->namespace,
 			'/campaigns/(?P<id>\d+)/(?P<action>activate|deactivate|duplicate)',
 			array(
 				'methods'             => WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'campaign_action' ),
-				'permission_callback' => array( $this->permissions_manager, 'check_campaigns_permissions' ),
+				'permission_callback' => array( $this->permissions_manager, 'check_campaigns_write_permissions' ),
 				'args'                => array(
 					'id'     => array(
 						'description' => __( 'Campaign ID.', 'smart-cycle-discounts' ),
@@ -190,14 +190,14 @@ class SCD_Campaigns_Controller {
 			)
 		);
 
-		// Bulk operations
+		// Bulk operations (premium only)
 		register_rest_route(
 			$this->namespace,
 			'/campaigns/batch',
 			array(
 				'methods'             => WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'batch_campaigns' ),
-				'permission_callback' => array( $this->permissions_manager, 'check_campaigns_permissions' ),
+				'permission_callback' => array( $this->permissions_manager, 'check_bulk_permissions' ),
 				'args'                => array(
 					'action' => array(
 						'description' => __( 'Bulk action to perform.', 'smart-cycle-discounts' ),
@@ -560,16 +560,27 @@ class SCD_Campaigns_Controller {
 				);
 			}
 
-			$result = match ( $action ) {
-				'activate' => $this->campaign_manager->activate_campaign( $campaign_id ),
-				'deactivate' => $this->campaign_manager->deactivate_campaign( $campaign_id ),
-				'duplicate' => $this->campaign_manager->duplicate_campaign( $campaign_id ),
-				default => false
-			};
+			switch ( $action ) {
+				case 'activate':
+					$result = $this->campaign_manager->activate_campaign( $campaign_id );
+					break;
+				case 'deactivate':
+					$result = $this->campaign_manager->deactivate_campaign( $campaign_id );
+					break;
+				case 'duplicate':
+					$result = $this->campaign_manager->duplicate_campaign( $campaign_id );
+					break;
+				default:
+					$result = false;
+			}
 
 			if ( ! $result || ( is_object( $result ) && ! $result->is_success() ) ) {
 				$error_message = is_object( $result ) ? $result->get_error_message() :
-					sprintf( __( 'Failed to %s campaign.', 'smart-cycle-discounts' ), $action );
+					sprintf(
+						/* translators: %s: action name (activate, deactivate, etc.) */
+						__( 'Failed to %s campaign.', 'smart-cycle-discounts' ),
+						$action
+					);
 
 				return new WP_REST_Response(
 					array(
@@ -635,19 +646,31 @@ class SCD_Campaigns_Controller {
 
 			foreach ( $campaign_ids as $campaign_id ) {
 				try {
-					$result = match ( $action ) {
-						'activate' => $this->campaign_manager->activate_campaign( $campaign_id ),
-						'deactivate' => $this->campaign_manager->deactivate_campaign( $campaign_id ),
-						'delete' => $this->campaign_manager->delete_campaign( $campaign_id ),
-						default => false
-					};
+					switch ( $action ) {
+						case 'activate':
+							$result = $this->campaign_manager->activate_campaign( $campaign_id );
+							break;
+						case 'deactivate':
+							$result = $this->campaign_manager->deactivate_campaign( $campaign_id );
+							break;
+						case 'delete':
+							$result = $this->campaign_manager->delete_campaign( $campaign_id );
+							break;
+						default:
+							$result = false;
+					}
 
 					if ( $result ) {
 						$results[] = $campaign_id;
 					} else {
 						$errors[] = array(
 							'id'      => $campaign_id,
-							'message' => sprintf( __( 'Failed to %1$s campaign %2$d.', 'smart-cycle-discounts' ), $action, $campaign_id ),
+							'message' => sprintf(
+								/* translators: 1: action name (activate, deactivate, etc.), 2: campaign ID */
+								__( 'Failed to %1$s campaign %2$d.', 'smart-cycle-discounts' ),
+								$action,
+								$campaign_id
+							),
 						);
 					}
 				} catch ( Exception $e ) {
@@ -705,11 +728,11 @@ class SCD_Campaigns_Controller {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    SCD_Campaign    $campaign    Campaign object.
+	 * @param    WSSCD_Campaign    $campaign    Campaign object.
 	 * @param    WP_REST_Request $request     Request object.
 	 * @return   array                           Prepared campaign data.
 	 */
-	private function prepare_campaign_for_response( SCD_Campaign $campaign, WP_REST_Request $request ): array {
+	private function prepare_campaign_for_response( WSSCD_Campaign $campaign, WP_REST_Request $request ): array {
 		$fields = $request->get_param( '_fields' );
 		$embed  = $request->get_param( '_embed' );
 

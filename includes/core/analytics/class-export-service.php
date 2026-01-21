@@ -1,6 +1,12 @@
 <?php
 /**
+ * @fs_premium_only
+ *
  * Export Service Class
+ *
+ * Generates standalone HTML/PDF export documents. These exports are viewed outside
+ * WordPress (downloaded files, print dialogs) and have no access to wp_enqueue_style().
+ * Inline CSS is REQUIRED for proper display of exported documents.
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/analytics/class-export-service.php
@@ -21,34 +27,34 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since      1.0.0
  */
-class SCD_Export_Service {
+class WSSCD_Export_Service {
 
 	/**
 	 * Metrics calculator instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Metrics_Calculator
+	 * @var      WSSCD_Metrics_Calculator
 	 */
-	private SCD_Metrics_Calculator $metrics_calculator;
+	private $metrics_calculator;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Logger
+	 * @var      WSSCD_Logger
 	 */
-	private SCD_Logger $logger;
+	private $logger;
 
 	/**
 	 * Initialize the export service.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Metrics_Calculator $metrics_calculator    Metrics calculator.
-	 * @param    SCD_Logger             $logger                Logger instance.
+	 * @param    WSSCD_Metrics_Calculator $metrics_calculator    Metrics calculator.
+	 * @param    WSSCD_Logger             $logger                Logger instance.
 	 */
 	public function __construct(
-		SCD_Metrics_Calculator $metrics_calculator,
-		SCD_Logger $logger
+		WSSCD_Metrics_Calculator $metrics_calculator,
+		WSSCD_Logger $logger
 	) {
 		$this->metrics_calculator = $metrics_calculator;
 		$this->logger             = $logger;
@@ -156,7 +162,8 @@ class SCD_Export_Service {
 	private function get_campaign_specific_metrics( int $campaign_id, string $date_range ): array {
 		global $wpdb;
 
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Export requires fresh data. Table name is constructed with $wpdb->prefix, not user input.
 		$campaign = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT * FROM {$campaigns_table} WHERE id = %d",
@@ -164,6 +171,7 @@ class SCD_Export_Service {
 			),
 			ARRAY_A
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
 		if ( ! $campaign ) {
 			return array();
@@ -188,7 +196,7 @@ class SCD_Export_Service {
 	 */
 	private function create_export_file( array $data, string $format, string $export_type ): array {
 		$upload_dir = wp_upload_dir();
-		$export_dir = $upload_dir['basedir'] . '/scd-exports';
+		$export_dir = $upload_dir['basedir'] . '/wsscd-exports';
 
 		if ( ! file_exists( $export_dir ) ) {
 			wp_mkdir_p( $export_dir );
@@ -222,10 +230,11 @@ class SCD_Export_Service {
 		}
 
 		// Write file
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Writing export file to plugin's uploads directory.
 		file_put_contents( $filepath, $content );
 
 		// Generate download URL
-		$download_url = $upload_dir['baseurl'] . '/scd-exports/' . $filename;
+		$download_url = $upload_dir['baseurl'] . '/wsscd-exports/' . $filename;
 
 		return array(
 			'filename'     => $filename,
@@ -457,11 +466,16 @@ class SCD_Export_Service {
 	/**
 	 * Get PDF export styles.
 	 *
+	 * Returns inline CSS for standalone HTML/PDF exports. These documents are viewed
+	 * outside WordPress (downloaded files, browser print dialogs) and cannot use
+	 * wp_enqueue_style(). Inline CSS is required for proper display.
+	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @return   string    CSS styles.
 	 */
 	private function get_pdf_styles(): string {
+		// phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- Standalone HTML/PDF export. Viewed outside WordPress; wp_enqueue_style() not available.
 		return '
 		<style>
 			* { margin: 0; padding: 0; box-sizing: border-box; }

@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/utilities
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_DateTime_Builder {
+class WSSCD_DateTime_Builder {
 
 	/**
 	 * Date string (Y-m-d format).
@@ -110,7 +110,7 @@ class SCD_DateTime_Builder {
 			$this->errors['time'] = __( 'Invalid time format. Expected HH:MM.', 'smart-cycle-discounts' );
 		}
 
-		$canonical_tz = scd_validate_timezone( $this->timezone );
+		$canonical_tz = wsscd_validate_timezone( $this->timezone );
 		if ( false === $canonical_tz ) {
 			$this->errors['timezone'] = __( 'Invalid timezone identifier.', 'smart-cycle-discounts' );
 		} else {
@@ -129,22 +129,26 @@ class SCD_DateTime_Builder {
 	 */
 	public function build(): DateTimeImmutable {
 		if ( ! $this->validate() ) {
+			// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
 			throw new InvalidArgumentException(
-				'Cannot build datetime: ' . implode( ', ', $this->errors )
+				'Cannot build datetime: ' . esc_html( implode( ', ', $this->errors ) )
 			);
+			// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 		}
 
 		// Use helper function with DST handling
-		$datetime = scd_combine_date_time(
+		$datetime = wsscd_combine_date_time(
 			$this->date,
 			$this->time,
 			$this->timezone
 		);
 
 		if ( false === $datetime ) {
+			// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
 			throw new InvalidArgumentException(
-				__( 'Failed to create datetime. The date/time may fall in a DST gap or be otherwise invalid.', 'smart-cycle-discounts' )
+				esc_html__( 'Failed to create datetime. The date/time may fall in a DST gap or be otherwise invalid.', 'smart-cycle-discounts' )
 			);
+			// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 		}
 
 		return $datetime;
@@ -216,6 +220,6 @@ class SCD_DateTime_Builder {
 	 */
 	private function validate_time( string $time ): bool {
 		// Use existing helper function
-		return false !== scd_parse_time_string( $time );
+		return false !== wsscd_parse_time_string( $time );
 	}
 }

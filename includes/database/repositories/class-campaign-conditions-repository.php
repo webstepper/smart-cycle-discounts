@@ -26,16 +26,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/database/repositories
  */
-class SCD_Campaign_Conditions_Repository {
+class WSSCD_Campaign_Conditions_Repository {
 
 	/**
 	 * Database manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Database_Manager    $db    Database manager.
+	 * @var      WSSCD_Database_Manager    $db    Database manager.
 	 */
-	private SCD_Database_Manager $db;
+	private WSSCD_Database_Manager $db;
 
 	/**
 	 * Table name.
@@ -50,9 +50,9 @@ class SCD_Campaign_Conditions_Repository {
 	 * Initialize the repository.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager $db    Database manager.
+	 * @param    WSSCD_Database_Manager $db    Database manager.
 	 */
-	public function __construct( SCD_Database_Manager $db ) {
+	public function __construct( WSSCD_Database_Manager $db ) {
 		$this->db         = $db;
 		$this->table_name = $this->db->get_table_name( 'campaign_conditions' );
 	}
@@ -65,11 +65,13 @@ class SCD_Campaign_Conditions_Repository {
 	 * @return   array                 Array of condition arrays.
 	 */
 	public function get_conditions_for_campaign( int $campaign_id ): array {
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
 		$results = $this->db->get_results(
 			$this->db->prepare(
-				"SELECT * FROM {$this->table_name}
+				'SELECT * FROM %i
 				WHERE campaign_id = %d
-				ORDER BY sort_order ASC, id ASC",
+				ORDER BY sort_order ASC, id ASC',
+				$this->table_name,
 				$campaign_id
 			),
 			ARRAY_A
@@ -163,10 +165,12 @@ class SCD_Campaign_Conditions_Repository {
 	 * @return   array                       Array of campaign IDs.
 	 */
 	public function get_campaigns_with_condition_type( string $condition_type ): array {
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
 		$results = $this->db->get_results(
 			$this->db->prepare(
-				"SELECT DISTINCT campaign_id FROM {$this->table_name}
-				WHERE condition_type = %s",
+				'SELECT DISTINCT campaign_id FROM %i
+				WHERE condition_type = %s',
+				$this->table_name,
 				$condition_type
 			),
 			ARRAY_A
@@ -187,10 +191,12 @@ class SCD_Campaign_Conditions_Repository {
 	 * @return   int                   Number of conditions.
 	 */
 	public function count_conditions( int $campaign_id ): int {
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
 		$count = $this->db->get_var(
 			$this->db->prepare(
-				"SELECT COUNT(*) FROM {$this->table_name}
-				WHERE campaign_id = %d",
+				'SELECT COUNT(*) FROM %i
+				WHERE campaign_id = %d',
+				$this->table_name,
 				$campaign_id
 			)
 		);
@@ -218,9 +224,15 @@ class SCD_Campaign_Conditions_Repository {
 	 * @return   array    Array of condition types.
 	 */
 	public function get_all_condition_types(): array {
-		$results = $this->db->get_results(
-			"SELECT DISTINCT condition_type FROM {$this->table_name}
-			ORDER BY condition_type ASC",
+		global $wpdb;
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Query for condition types.
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT DISTINCT condition_type FROM %i
+				ORDER BY condition_type ASC',
+				$this->table_name
+			),
 			ARRAY_A
 		);
 

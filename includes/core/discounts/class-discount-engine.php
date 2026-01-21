@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/discounts
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Discount_Engine {
+class WSSCD_Discount_Engine {
 
 	/**
 	 * Registered discount strategies.
@@ -99,21 +99,30 @@ class SCD_Discount_Engine {
 	 * @return   void
 	 */
 	private function register_default_strategies(): void {
-		$this->register_strategy( new SCD_Percentage_Strategy() );
-		$this->register_strategy( new SCD_Fixed_Strategy() );
-		$this->register_strategy( new SCD_Tiered_Strategy() );
-		$this->register_strategy( new SCD_Bogo_Strategy() );
-		$this->register_strategy( new SCD_Spend_Threshold_Strategy() );
+		// Free discount strategies (always available)
+		$this->register_strategy( new WSSCD_Percentage_Strategy() );
+		$this->register_strategy( new WSSCD_Fixed_Strategy() );
+
+		// Pro-only discount strategies (only register if available)
+		if ( class_exists( 'WSSCD_Tiered_Strategy' ) ) {
+			$this->register_strategy( new WSSCD_Tiered_Strategy() );
+		}
+		if ( class_exists( 'WSSCD_Bogo_Strategy' ) ) {
+			$this->register_strategy( new WSSCD_Bogo_Strategy() );
+		}
+		if ( class_exists( 'WSSCD_Spend_Threshold_Strategy' ) ) {
+			$this->register_strategy( new WSSCD_Spend_Threshold_Strategy() );
+		}
 	}
 
 	/**
 	 * Register a discount strategy.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Discount_Strategy_Interface $strategy    Strategy to register.
+	 * @param    WSSCD_Discount_Strategy_Interface $strategy    Strategy to register.
 	 * @return   void
 	 */
-	public function register_strategy( SCD_Discount_Strategy_Interface $strategy ): void {
+	public function register_strategy( WSSCD_Discount_Strategy_Interface $strategy ): void {
 		$this->strategies[ $strategy->get_strategy_id() ] = $strategy;
 
 		if ( $this->logger && method_exists( $this->logger, 'debug' ) ) {
@@ -132,9 +141,9 @@ class SCD_Discount_Engine {
 	 *
 	 * @since    1.0.0
 	 * @param    string $strategy_id    Strategy identifier.
-	 * @return   SCD_Discount_Strategy_Interface|null    Strategy or null if not found.
+	 * @return   WSSCD_Discount_Strategy_Interface|null    Strategy or null if not found.
 	 */
-	public function get_strategy( string $strategy_id ): ?SCD_Discount_Strategy_Interface {
+	public function get_strategy( string $strategy_id ): ?WSSCD_Discount_Strategy_Interface {
 		$this->ensure_strategies_initialized();
 		return $this->strategies[ $strategy_id ] ?? null;
 	}
@@ -171,22 +180,22 @@ class SCD_Discount_Engine {
 	 * @param    float $original_price    Original product price.
 	 * @param    array $discount_config   Discount configuration.
 	 * @param    array $context          Additional context.
-	 * @return   SCD_Discount_Result        Discount calculation result.
+	 * @return   WSSCD_Discount_Result        Discount calculation result.
 	 */
-	public function calculate_discount( float $original_price, array $discount_config, array $context = array() ): SCD_Discount_Result {
+	public function calculate_discount( float $original_price, array $discount_config, array $context = array() ): WSSCD_Discount_Result {
 		$strategy_id = $discount_config['type'] ?? '';
 
 		if ( empty( $strategy_id ) ) {
-			return SCD_Discount_Result::no_discount( $original_price, 'unknown', 'No discount type specified' );
+			return WSSCD_Discount_Result::no_discount( $original_price, 'unknown', 'No discount type specified' );
 		}
 
 		$strategy = $this->get_strategy( $strategy_id );
 		if ( ! $strategy ) {
-			return SCD_Discount_Result::no_discount( $original_price, $strategy_id, 'Strategy not found' );
+			return WSSCD_Discount_Result::no_discount( $original_price, $strategy_id, 'Strategy not found' );
 		}
 
 		if ( ! $strategy->supports_context( $context ) ) {
-			return SCD_Discount_Result::no_discount( $original_price, $strategy_id, 'Strategy does not support context' );
+			return WSSCD_Discount_Result::no_discount( $original_price, $strategy_id, 'Strategy does not support context' );
 		}
 
 		try {
@@ -223,7 +232,7 @@ class SCD_Discount_Engine {
 				);
 			}
 
-			return SCD_Discount_Result::no_discount( $original_price, $strategy_id, 'Calculation error: ' . $e->getMessage() );
+			return WSSCD_Discount_Result::no_discount( $original_price, $strategy_id, 'Calculation error: ' . $e->getMessage() );
 		}
 	}
 
@@ -263,9 +272,9 @@ class SCD_Discount_Engine {
 	 * @param    WC_Product $product           WooCommerce product.
 	 * @param    array      $discount_config   Discount configuration.
 	 * @param    array      $context          Additional context.
-	 * @return   SCD_Discount_Result             Discount result.
+	 * @return   WSSCD_Discount_Result             Discount result.
 	 */
-	public function apply_to_wc_product( WC_Product $product, array $discount_config, array $context = array() ): SCD_Discount_Result {
+	public function apply_to_wc_product( WC_Product $product, array $discount_config, array $context = array() ): WSSCD_Discount_Result {
 		$original_price = (float) $product->get_price();
 
 		$wc_context = array_merge(
@@ -289,10 +298,10 @@ class SCD_Discount_Engine {
 	 * @param    float $original_price      Original price.
 	 * @param    array $discount_configs    Array of discount configurations.
 	 * @param    array $context            Additional context.
-	 * @return   SCD_Discount_Result          Best discount result.
+	 * @return   WSSCD_Discount_Result          Best discount result.
 	 */
-	public function get_best_discount( float $original_price, array $discount_configs, array $context = array() ): SCD_Discount_Result {
-		$best_result  = SCD_Discount_Result::no_discount( $original_price, 'none', 'No valid discounts' );
+	public function get_best_discount( float $original_price, array $discount_configs, array $context = array() ): WSSCD_Discount_Result {
+		$best_result  = WSSCD_Discount_Result::no_discount( $original_price, 'none', 'No valid discounts' );
 		$best_savings = 0;
 
 		foreach ( $discount_configs as $config ) {
@@ -453,7 +462,7 @@ class SCD_Discount_Engine {
 		$strategy_usage   = array();
 
 		foreach ( $results as $result ) {
-			if ( ! ( $result instanceof SCD_Discount_Result ) ) {
+			if ( ! ( $result instanceof WSSCD_Discount_Result ) ) {
 				continue;
 			}
 

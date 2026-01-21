@@ -24,16 +24,17 @@ if ( file_exists( dirname( __DIR__ ) . '/vendor/yoast/phpunit-polyfills/phpunitp
 }
 
 if ( ! file_exists( $_tests_dir . '/includes/functions.php' ) ) {
-	echo "Could not find WordPress tests library at: {$_tests_dir}\n";
-	echo "Please install WordPress tests or set WP_TESTS_DIR environment variable.\n";
-	echo "See: https://make.wordpress.org/core/handbook/testing/automated-testing/phpunit/\n";
+		echo 'Could not find WordPress tests library at: ' . esc_html( $_tests_dir ) . "\n";
+	echo wp_kses_post( "Please install WordPress tests or set WP_TESTS_DIR environment variable.\n" );
+	echo wp_kses_post( "See: https://make.wordpress.org/core/handbook/testing/automated-testing/phpunit/\n" );
+	
 	exit( 1 );
 }
 
 // Define test mode constant before anything else loads.
 // This tells the plugin to skip certain checks during testing.
-if ( ! defined( 'SCD_TESTING' ) ) {
-	define( 'SCD_TESTING', true );
+if ( ! defined( 'WSSCD_TESTING' ) ) {
+	define( 'WSSCD_TESTING', true );
 }
 
 // Give access to tests_add_filter() function.
@@ -177,14 +178,14 @@ require $_tests_dir . '/includes/bootstrap.php';
 
 // Initialize the plugin BEFORE activation
 // The plugins_loaded hook may have already fired during WP bootstrap
-if ( function_exists( 'scd_init_plugin' ) ) {
-	scd_init_plugin();
+if ( function_exists( 'wsscd_init_plugin' ) ) {
+	wsscd_init_plugin();
 }
 
 // Activate the plugin after WordPress loads.
 // This creates database tables and runs activation hooks.
-if ( function_exists( 'scd_activate_plugin' ) ) {
-	scd_activate_plugin();
+if ( function_exists( 'wsscd_activate_plugin' ) ) {
+	wsscd_activate_plugin();
 }
 
 // Load step validator classes explicitly for tests (autoloader may not catch them)

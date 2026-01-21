@@ -13,18 +13,18 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	window.SCD.Wizard = window.SCD.Wizard || {};
+	window.WSSCD = window.WSSCD || {};
+	window.WSSCD.Wizard = window.WSSCD.Wizard || {};
 
 	/**
 	 * Save Indicator Module
 	 *
 	 * Shows visual feedback when the wizard saves via Smart Save
 	 */
-	SCD.Wizard.SaveIndicator = {
+	WSSCD.Wizard.SaveIndicator = {
 		// Configuration
 		config: {
-			indicatorSelector: '.scd-save-indicator',
+			indicatorSelector: '.wsscd-save-indicator',
 			fadeInDuration: 200,
 			fadeOutDuration: 400,
 			displayDuration: 2000,
@@ -64,12 +64,12 @@
 				return;
 			}
 
-			var indicatorHtml = '<div class="scd-save-indicator" style="display: none;">' +
-				'<span class="scd-save-icon"></span>' +
-				'<span class="scd-save-text"></span>' +
+			var indicatorHtml = '<div class="wsscd-save-indicator" style="display: none;">' +
+				'<span class="wsscd-save-icon"></span>' +
+				'<span class="wsscd-save-text"></span>' +
 				'</div>';
 
-			var $header = $( '.scd-wizard-header' );
+			var $header = $( '.wsscd-wizard-header' );
 			if ( 0 < $header.length ) {
 				$header.append( indicatorHtml );
 			}
@@ -81,8 +81,8 @@
 		cacheElements: function() {
 			this.$indicator = $( this.config.indicatorSelector );
 			if ( 0 < this.$indicator.length ) {
-				this.$icon = this.$indicator.find( '.scd-save-icon' );
-				this.$text = this.$indicator.find( '.scd-save-text' );
+				this.$icon = this.$indicator.find( '.wsscd-save-icon' );
+				this.$text = this.$indicator.find( '.wsscd-save-text' );
 			}
 		},
 
@@ -90,12 +90,12 @@
 		 * Bind events
 		 */
 		bindEvents: function() {
-			if ( ! window.SCD || ! window.SCD.Wizard || ! window.SCD.Wizard.EventBus ) {
+			if ( ! window.WSSCD || ! window.WSSCD.Wizard || ! window.WSSCD.Wizard.EventBus ) {
 				return;
 			}
 
 			var self = this;
-			var eventBus = window.SCD.Wizard.EventBus;
+			var eventBus = window.WSSCD.Wizard.EventBus;
 
 			// Save start (generic - works with Smart Save)
 			eventBus.on( 'save:start', function() {
@@ -124,10 +124,10 @@
 			this.clearHideTimeout();
 
 			this.$indicator
-				.removeClass( 'scd-save-success scd-save-error' )
-				.addClass( 'scd-save-saving' );
+				.removeClass( 'wsscd-save-success wsscd-save-error' )
+				.addClass( 'wsscd-save-saving' );
 
-			this.$icon.html( SCD.IconHelper.spinner( { size: 16 } ) );
+			this.$icon.html( WSSCD.IconHelper.spinner( { size: 16 } ) );
 
 			this.$text.text( this.getTranslation( 'saving', 'Saving...' ) );
 
@@ -143,10 +143,10 @@
 			}
 
 			this.$indicator
-				.removeClass( 'scd-save-saving scd-save-error' )
-				.addClass( 'scd-save-success' );
+				.removeClass( 'wsscd-save-saving wsscd-save-error' )
+				.addClass( 'wsscd-save-success' );
 
-			this.$icon.html( SCD.IconHelper.check( { size: 16 } ) );
+			this.$icon.html( WSSCD.IconHelper.check( { size: 16 } ) );
 
 			this.$text.text( this.getTranslation( 'saved', 'Saved' ) );
 
@@ -163,10 +163,10 @@
 			}
 
 			this.$indicator
-				.removeClass( 'scd-save-saving scd-save-success' )
-				.addClass( 'scd-save-error' );
+				.removeClass( 'wsscd-save-saving wsscd-save-success' )
+				.addClass( 'wsscd-save-error' );
 
-			this.$icon.html( SCD.IconHelper.close( { size: 16 } ) );
+			this.$icon.html( WSSCD.IconHelper.close( { size: 16 } ) );
 
 			this.$text.text( this.getTranslation( 'save_failed', 'Save failed' ) );
 
@@ -209,8 +209,8 @@
 		 * @returns {string} Translated text
 		 */
 		getTranslation: function( key, fallback ) {
-			if ( window.scdAdmin && window.scdAdmin.i18n && window.scdAdmin.i18n[key] ) {
-				return window.scdAdmin.i18n[key];
+			if ( window.wsscdAdmin && window.wsscdAdmin.i18n && window.wsscdAdmin.i18n[key] ) {
+				return window.wsscdAdmin.i18n[key];
 			}
 			return fallback;
 		},
@@ -233,8 +233,8 @@
 	};
 
 	$( document ).ready( function() {
-		if ( 0 < $( '.scd-wizard-wrap' ).length ) {
-			SCD.Wizard.SaveIndicator.init();
+		if ( 0 < $( '.wsscd-wizard-wrap' ).length ) {
+			WSSCD.Wizard.SaveIndicator.init();
 		}
 	} );
 

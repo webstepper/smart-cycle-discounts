@@ -20,13 +20,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class SCD_Console_Logger_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Console_Logger_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger    Logger instance (optional).
+	 * @param    WSSCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -39,7 +39,7 @@ class SCD_Console_Logger_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_console_logger';
+		return 'wsscd_console_logger';
 	}
 
 	/**
@@ -77,14 +77,17 @@ class SCD_Console_Logger_Handler extends SCD_Abstract_Ajax_Handler {
 			$message   = isset( $log['message'] ) ? $log['message'] : '';
 			$timestamp = isset( $log['timestamp'] ) ? $log['timestamp'] : '';
 
-			error_log(
-				sprintf(
-					'[SCD JS %s] %s | %s',
-					$level,
-					$timestamp,
-					$message
-				)
-			);
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
+				error_log(
+					sprintf(
+						'[WSSCD JS %s] %s | %s',
+						$level,
+						$timestamp,
+						$message
+					)
+				);
+			}
 			++$logged_count;
 		}
 

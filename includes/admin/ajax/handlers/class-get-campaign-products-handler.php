@@ -25,14 +25,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Get_Campaign_Products_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Get_Campaign_Products_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Campaign repository.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Repository    $campaign_repository    Campaign repository.
+	 * @var      WSSCD_Campaign_Repository    $campaign_repository    Campaign repository.
 	 */
 	private $campaign_repository;
 
@@ -40,8 +40,8 @@ class SCD_Get_Campaign_Products_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Repository  $campaign_repository    Campaign repository.
-	 * @param    SCD_Logger|null          $logger                 Logger instance.
+	 * @param    WSSCD_Campaign_Repository  $campaign_repository    Campaign repository.
+	 * @param    WSSCD_Logger|null          $logger                 Logger instance.
 	 */
 	public function __construct(
 		$campaign_repository,
@@ -58,7 +58,7 @@ class SCD_Get_Campaign_Products_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_get_campaign_products';
+		return 'wsscd_get_campaign_products';
 	}
 
 	/**
@@ -96,7 +96,7 @@ class SCD_Get_Campaign_Products_Handler extends SCD_Abstract_Ajax_Handler {
 			return array(
 				'success' => true,
 				'data'    => array(
-					'html'  => '<p class="scd-empty-message">' . esc_html__( 'No products found', 'smart-cycle-discounts' ) . '</p>',
+					'html'  => '<p class="wsscd-empty-message">' . esc_html__( 'No products found', 'smart-cycle-discounts' ) . '</p>',
 					'count' => 0,
 				),
 			);
@@ -118,26 +118,27 @@ class SCD_Get_Campaign_Products_Handler extends SCD_Abstract_Ajax_Handler {
 			$tag         = ! empty( $product_url ) ? 'a' : 'div';
 			$link_attrs  = ! empty( $product_url ) ? ' href="' . esc_url( $product_url ) . '" target="_blank" rel="noopener noreferrer"' : '';
 
-			$html .= '<' . $tag . ' class="scd-product-card"' . $link_attrs . '>';
+			$html .= '<' . $tag . ' class="wsscd-product-card"' . $link_attrs . '>';
 
 			// Product image or placeholder
 			if ( $has_image ) {
-				$html .= '<div class="scd-product-card-image">';
+				$html .= '<div class="wsscd-product-card-image">';
 				$html .= $product->get_image( 'thumbnail' );
 				$html .= '</div>';
 			} else {
-				$html .= '<div class="scd-product-card-image no-image">';
-				$html .= '<span class="scd-product-placeholder">';
-				$html .= SCD_Icon_Helper::get( 'products', array( 'size' => 20 ) );
+				$html .= '<div class="wsscd-product-card-image no-image">';
+				$html .= '<span class="wsscd-product-placeholder">';
+				// Use wp_kses with SVG allowed tags since wp_kses_post strips SVG elements.
+				$html .= wp_kses( WSSCD_Icon_Helper::get( 'products', array( 'size' => 20 ) ), WSSCD_Icon_Helper::get_allowed_svg_tags() );
 				$html .= '</span>';
 				$html .= '</div>';
 			}
 
 			// Product content
-			$html .= '<div class="scd-product-card-content">';
-			$html .= '<div class="scd-product-card-name">' . esc_html( $product->get_name() ) . '</div>';
+			$html .= '<div class="wsscd-product-card-content">';
+			$html .= '<div class="wsscd-product-card-name">' . esc_html( $product->get_name() ) . '</div>';
 			if ( '' !== $price ) {
-				$html .= '<div class="scd-product-card-price">' . wp_kses_post( wc_price( $price ) ) . '</div>';
+				$html .= '<div class="wsscd-product-card-price">' . wp_kses_post( wc_price( $price ) ) . '</div>';
 			}
 			$html .= '</div>';
 			$html .= '</' . $tag . '>';

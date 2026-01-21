@@ -14,24 +14,24 @@
    ANIMATIONS
    ========================================================================== */
 
-/* Note: @keyframes scd-slide-down and scd-slide-up defined in shared/_utilities.css */
+/* Note: @keyframes wsscd-slide-down and wsscd-slide-up defined in shared/_utilities.css */
 
 /* ==========================================================================
    BASE NOTIFICATION CONTAINER
    ========================================================================== */
 
-#scd-notifications-container {
+#wsscd-notifications-container {
     position: fixed;
-    top: 80px; /* Below admin bar with comfortable spacing */
+    top: 50px;
     left: 0;
     right: 0;
-    z-index: var(--scd-z-notification); /* WordPress-safe: below admin bar (99999) but above modals */
+    z-index: var(--wsscd-z-notification); /* WordPress-safe: below admin bar (99999) but above modals */
     pointer-events: none;
-    padding: 0 var(--scd-spacing-lg);
+    padding: 0 var(--wsscd-spacing-lg);
 }
 
 /* Admin bar adjustments */
-body:not(.admin-bar) #scd-notifications-container {
+body:not(.admin-bar) #wsscd-notifications-container {
     top: 40px; /* Non-admin-bar spacing */
 }
 
@@ -39,60 +39,60 @@ body:not(.admin-bar) #scd-notifications-container {
    BASE NOTIFICATION STYLES
    ========================================================================== */
 
-.scd-notification {
+.wsscd-notification {
     /* Layout */
     position: relative;
     display: flex;
     align-items: flex-start;
-    gap: var(--scd-spacing-md);
+    gap: var(--wsscd-spacing-md);
 
     /* Sizing */
-    margin: 0 auto var(--scd-spacing-md);
+    margin: 0 auto var(--wsscd-spacing-md);
     max-width: 600px;
     width: 100%;
-    padding: var(--scd-spacing-md) 3rem var(--scd-spacing-md) var(--scd-spacing-md);
+    padding: var(--wsscd-spacing-md) 3rem var(--wsscd-spacing-md) var(--wsscd-spacing-md);
 
     /* Clean white background */
-    background: var(--scd-color-white);
+    background: var(--wsscd-color-white);
 
     /* Borders */
-    border: 1px solid var(--scd-color-border-light);
+    border: 1px solid var(--wsscd-color-border-light);
     border-left-width: 3px;
-    border-left-color: var(--scd-color-info);
-    border-radius: var(--scd-radius-md);
+    border-left-color: var(--wsscd-color-info);
+    border-radius: var(--wsscd-radius-md);
 
     /* Professional shadow */
     box-shadow:
-        0 2px 8px var(--scd-overlay-border),
-        0 1px 4px var(--scd-overlay-faint);
+        0 2px 8px var(--wsscd-overlay-border),
+        0 1px 4px var(--wsscd-overlay-faint);
 
     /* Typography */
-    font-size: var(--scd-font-size-base);
-    line-height: var(--scd-line-height);
+    font-size: var(--wsscd-font-size-base);
+    line-height: var(--wsscd-line-height);
 
     /* Interaction */
     pointer-events: auto;
-	animation: scd-slide-down 0.3s ease-out;
+	animation: wsscd-slide-down 0.3s ease-out;
 }
 
 /* ==========================================================================
    NOTIFICATION TYPES
    ========================================================================== */
 
-.scd-notification--success {
-    border-left-color: var(--scd-color-success);
+.wsscd-notification--success {
+    border-left-color: var(--wsscd-color-success);
 }
 
-.scd-notification--error {
-    border-left-color: var(--scd-color-danger);
+.wsscd-notification--error {
+    border-left-color: var(--wsscd-color-danger);
 }
 
-.scd-notification--warning {
-    border-left-color: var(--scd-color-warning);
+.wsscd-notification--warning {
+    border-left-color: var(--wsscd-color-warning);
 }
 
-.scd-notification--info {
-    border-left-color: var(--scd-color-info);
+.wsscd-notification--info {
+    border-left-color: var(--wsscd-color-info);
 }
 
 /* ==========================================================================
@@ -100,41 +100,41 @@ body:not(.admin-bar) #scd-notifications-container {
    ========================================================================== */
 
 /* Message content */
-.scd-notification__message {
+.wsscd-notification__message {
     flex: 1;
     margin: 0;
-    color: var(--scd-color-text);
-    font-weight: var(--scd-font-weight-normal);
-    line-height: var(--scd-line-height);
+    color: var(--wsscd-color-text);
+    font-weight: var(--wsscd-font-weight-normal);
+    line-height: var(--wsscd-line-height);
 }
 
 /* Inline links within notifications */
-.scd-notification__message .scd-notification-link,
-.scd-notification-link {
-    color: var(--scd-color-primary);
+.wsscd-notification__message .wsscd-notification-link,
+.wsscd-notification-link {
+    color: var(--wsscd-color-primary);
     text-decoration: underline;
-    font-weight: var(--scd-font-weight-semibold);
-    transition: color var(--scd-transition-fast) ease;
+    font-weight: var(--wsscd-font-weight-semibold);
+    transition: color var(--wsscd-transition-fast) ease;
 }
 
-.scd-notification__message .scd-notification-link:hover,
-.scd-notification-link:hover {
-    color: var(--scd-color-primary-dark);
+.wsscd-notification__message .wsscd-notification-link:hover,
+.wsscd-notification-link:hover {
+    color: var(--wsscd-color-primary-dark);
     text-decoration: underline;
 }
 
-.scd-notification__message .scd-notification-link:focus,
-.scd-notification-link:focus {
+.wsscd-notification__message .wsscd-notification-link:focus,
+.wsscd-notification-link:focus {
     outline: 2px solid transparent;
-    box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--scd-color-primary);
-    border-radius: var(--scd-radius-sm);
+    box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wsscd-color-primary);
+    border-radius: var(--wsscd-radius-sm);
 }
 
 /* Close button */
-.scd-notification__close {
+.wsscd-notification__close {
     position: absolute;
-    top: var(--scd-spacing-sm);
-    right: var(--scd-spacing-sm);
+    top: var(--wsscd-spacing-sm);
+    right: var(--wsscd-spacing-sm);
     
     /* Reset button styles */
     background: none;
@@ -142,49 +142,49 @@ body:not(.admin-bar) #scd-notifications-container {
     cursor: pointer;
     
     /* Size and alignment */
-    width: var(--scd-icon-large);
-    height: var(--scd-icon-large);
+    width: var(--wsscd-icon-large);
+    height: var(--wsscd-icon-large);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--scd-spacing-xs);
+    padding: var(--wsscd-spacing-xs);
     
     /* Typography */
-    font-size: var(--scd-font-size-xxl);
+    font-size: var(--wsscd-font-size-xxl);
     line-height: 1;
-    color: var(--scd-color-text-lighter);
+    color: var(--wsscd-color-text-lighter);
     
     /* Appearance */
-    border-radius: var(--scd-radius-sm);
-    transition: all var(--scd-transition-fast) ease;
+    border-radius: var(--wsscd-radius-sm);
+    transition: all var(--wsscd-transition-fast) ease;
 }
 
-.scd-notification__close:hover {
-    color: var(--scd-color-text);
-    background-color: var(--scd-overlay-faint);
+.wsscd-notification__close:hover {
+    color: var(--wsscd-color-text);
+    background-color: var(--wsscd-overlay-faint);
 }
 
-.scd-notification__close:focus {
+.wsscd-notification__close:focus {
     outline: 2px solid transparent;
-    box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--scd-color-primary);
+    box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wsscd-color-primary);
 }
 
 /* ==========================================================================
    NOTIFICATION ICONS
    ========================================================================== */
 
-.scd-notification__icon {
+.wsscd-notification__icon {
     flex-shrink: 0;
-    width: var(--scd-icon-medium);
-    height: var(--scd-icon-medium);
+    width: var(--wsscd-icon-medium);
+    height: var(--wsscd-icon-medium);
 }
 
 /* Auto-generated icons via pseudo-elements using CSS masks for theme color support */
-.scd-notification::before {
+.wsscd-notification::before {
     content: '';
     display: inline-block;
-    width: var(--scd-icon-medium);
-    height: var(--scd-icon-medium);
+    width: var(--wsscd-icon-medium);
+    height: var(--wsscd-icon-medium);
     flex-shrink: 0;
     -webkit-mask-size: contain;
     mask-size: contain;
@@ -194,28 +194,28 @@ body:not(.admin-bar) #scd-notifications-container {
     mask-position: center;
 }
 
-.scd-notification--success::before {
+.wsscd-notification--success::before {
     -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clip-rule='evenodd'/%3E%3C/svg%3E");
     mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clip-rule='evenodd'/%3E%3C/svg%3E");
-    background-color: var(--scd-color-success);
+    background-color: var(--wsscd-color-success);
 }
 
-.scd-notification--error::before {
+.wsscd-notification--error::before {
     -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' clip-rule='evenodd'/%3E%3C/svg%3E");
     mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' clip-rule='evenodd'/%3E%3C/svg%3E");
-    background-color: var(--scd-color-danger);
+    background-color: var(--wsscd-color-danger);
 }
 
-.scd-notification--warning::before {
+.wsscd-notification--warning::before {
     -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill-rule='evenodd' d='M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z' clip-rule='evenodd'/%3E%3C/svg%3E");
     mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill-rule='evenodd' d='M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z' clip-rule='evenodd'/%3E%3C/svg%3E");
-    background-color: var(--scd-color-warning);
+    background-color: var(--wsscd-color-warning);
 }
 
-.scd-notification--info::before {
+.wsscd-notification--info::before {
     -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill-rule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z' clip-rule='evenodd'/%3E%3C/svg%3E");
     mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill-rule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z' clip-rule='evenodd'/%3E%3C/svg%3E");
-    background-color: var(--scd-color-primary);
+    background-color: var(--wsscd-color-primary);
 }
 
 /* ==========================================================================
@@ -223,47 +223,47 @@ body:not(.admin-bar) #scd-notifications-container {
    ========================================================================== */
 
 /* Notifications with actions */
-.scd-notification--with-action {
-    padding-bottom: var(--scd-spacing-lg);
+.wsscd-notification--with-action {
+    padding-bottom: var(--wsscd-spacing-lg);
 }
 
-.scd-notification__actions {
+.wsscd-notification__actions {
     display: flex;
-    gap: var(--scd-spacing-sm);
-    margin-top: var(--scd-spacing-md);
+    gap: var(--wsscd-spacing-sm);
+    margin-top: var(--wsscd-spacing-md);
 }
 
-.scd-notification__action {
+.wsscd-notification__action {
     display: inline-flex;
     align-items: center;
-    padding: var(--scd-spacing-xs) var(--scd-spacing-sm);
+    padding: var(--wsscd-spacing-xs) var(--wsscd-spacing-sm);
     
     /* Typography */
-    font-size: var(--scd-font-size-small);
-    font-weight: var(--scd-font-weight-medium);
+    font-size: var(--wsscd-font-size-small);
+    font-weight: var(--wsscd-font-weight-medium);
     text-decoration: none;
     
     /* Appearance */
-    color: var(--scd-color-primary);
+    color: var(--wsscd-color-primary);
     background: none;
-    border: 1px solid var(--scd-color-primary);
-    border-radius: var(--scd-radius-sm);
+    border: 1px solid var(--wsscd-color-primary);
+    border-radius: var(--wsscd-radius-sm);
     
     /* Interaction */
     cursor: pointer;
-    transition: all var(--scd-transition-fast) ease;
+    transition: all var(--wsscd-transition-fast) ease;
 }
 
-.scd-notification__action:hover,
-.scd-notification__action:focus {
-    background-color: var(--scd-color-primary);
-    color: var(--scd-color-white);
+.wsscd-notification__action:hover,
+.wsscd-notification__action:focus {
+    background-color: var(--wsscd-color-primary);
+    color: var(--wsscd-color-white);
     text-decoration: none;
 }
 
 /* Fade out animation */
-.scd-notification--fade-out {
-	animation: scd-slide-out-up 0.2s ease-out forwards;
+.wsscd-notification--fade-out {
+	animation: wsscd-slide-out-up 0.2s ease-out forwards;
 }
 
 /* ==========================================================================
@@ -271,22 +271,21 @@ body:not(.admin-bar) #scd-notifications-container {
    ========================================================================== */
 
 /* Fixed validation notifications */
-.scd-validation-notification {
+.wsscd-validation-notification {
     position: fixed !important;
-    top: 60px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: var(--scd-z-notification);
+    z-index: var(--wsscd-z-notification);
     margin: 0 !important;
     max-width: 500px;
     min-width: 300px;
     width: auto !important;
-    box-shadow: var(--scd-notification-important-shadow) !important;
+    box-shadow: var(--wsscd-notification-important-shadow) !important;
 }
 
 /* Stacked notifications */
-.scd-notification + .scd-notification {
-    margin-top: calc(var(--scd-spacing-md) * -1);
+.wsscd-notification + .wsscd-notification {
+    margin-top: calc(var(--wsscd-spacing-md) * -1);
 }
 
 /* ==========================================================================
@@ -294,15 +293,15 @@ body:not(.admin-bar) #scd-notifications-container {
    ========================================================================== */
 
 @media screen and (max-width: 782px) {
-    .admin-bar #scd-notifications-container {
+    .admin-bar #wsscd-notifications-container {
         top: 80px; /* Mobile admin bar height + spacing */
     }
 
-    #scd-notifications-container {
-        padding: 0 var(--scd-spacing-md);
+    #wsscd-notifications-container {
+        padding: 0 var(--wsscd-spacing-md);
     }
 
-    .scd-validation-notification {
+    .wsscd-validation-notification {
         max-width: calc(100vw - 2rem);
         min-width: 280px;
     }
@@ -314,11 +313,11 @@ body:not(.admin-bar) #scd-notifications-container {
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-    .scd-notification {
+    .wsscd-notification {
         animation: none;
     }
 
-    .scd-notification--fade-out {
+    .wsscd-notification--fade-out {
         animation: none;
         opacity: 0;
     }
@@ -326,28 +325,28 @@ body:not(.admin-bar) #scd-notifications-container {
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-    .scd-notification {
+    .wsscd-notification {
         border-width: 2px;
         border-style: solid;
     }
 
-    .scd-notification--success {
-        border-left-color: var(--scd-color-success);
+    .wsscd-notification--success {
+        border-left-color: var(--wsscd-color-success);
     }
 
-    .scd-notification--error {
-        border-left-color: var(--scd-color-danger);
+    .wsscd-notification--error {
+        border-left-color: var(--wsscd-color-danger);
     }
 
-    .scd-notification--warning {
-        border-left-color: var(--scd-color-warning);
+    .wsscd-notification--warning {
+        border-left-color: var(--wsscd-color-warning);
     }
 
-    .scd-notification--info {
-        border-left-color: var(--scd-color-info);
+    .wsscd-notification--info {
+        border-left-color: var(--wsscd-color-info);
     }
 
-    .scd-notification__close:focus {
+    .wsscd-notification__close:focus {
         outline: 3px solid;
         outline-offset: 2px;
     }

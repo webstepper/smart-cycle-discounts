@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class SCD_Style_Registry {
+class WSSCD_Style_Registry {
 
 	/**
 	 * Registered styles.
@@ -85,7 +85,7 @@ class SCD_Style_Registry {
 		$this->register_component_styles();
 
 		// Allow extensions
-		do_action( 'scd_style_registry_init', $this );
+		do_action( 'wsscd_style_registry_init', $this );
 	}
 
 	/**
@@ -95,13 +95,13 @@ class SCD_Style_Registry {
 	 * @return void
 	 */
 	private function register_vendor_styles(): void {
-		// Tom Select
+		// Tom Select v2.4.3 - bundled locally for WordPress.org compliance.
 		$this->add_style(
 			'tom-select',
 			array(
-				'src'       => 'resources/assets/vendor/tom-select/tom-select.css',
+				'src'       => 'resources/assets/vendor/tom-select/tom-select.min.css',
 				'deps'      => array(),
-				'pages'     => array( 'scd-campaigns' ),
+				'pages'     => array( 'wsscd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 			)
 		);
@@ -116,18 +116,18 @@ class SCD_Style_Registry {
 	private function register_core_styles(): void {
 		// Theme colors - Must load first (no dependencies)
 		$this->add_style(
-			'scd-theme-colors',
+			'wsscd-theme-colors',
 			array(
 				'src'      => 'resources/assets/css/shared/_theme-colors.css',
 				'deps'     => array(),
 				'pages'    => array(
 					'smart-cycle-discounts',
-					'scd-campaigns',
-					'scd-analytics',
-					'scd-notifications',
-					'scd-settings',
-					'scd-tools',
-					'scd-dashboard',
+					'wsscd-campaigns',
+					'wsscd-analytics',
+					'wsscd-notifications',
+					'wsscd-settings',
+					'wsscd-tools',
+					'wsscd-dashboard',
 				),
 				'media'    => 'all',
 				'priority' => 1,
@@ -135,18 +135,18 @@ class SCD_Style_Registry {
 		);
 
 		$this->add_style(
-			'scd-variables',
+			'wsscd-variables',
 			array(
 				'src'      => 'resources/assets/css/shared/_variables.css',
-				'deps'     => array( 'scd-theme-colors' ),
+				'deps'     => array( 'wsscd-theme-colors' ),
 				'pages'    => array(
 					'smart-cycle-discounts',
-					'scd-campaigns',
-					'scd-analytics',
-					'scd-notifications',
-					'scd-settings',
-					'scd-tools',
-					'scd-dashboard',
+					'wsscd-campaigns',
+					'wsscd-analytics',
+					'wsscd-notifications',
+					'wsscd-settings',
+					'wsscd-tools',
+					'wsscd-dashboard',
 				),
 				'media'    => 'all',
 				'priority' => 2,
@@ -154,18 +154,18 @@ class SCD_Style_Registry {
 		);
 
 		$this->add_style(
-			'scd-utilities',
+			'wsscd-utilities',
 			array(
 				'src'      => 'resources/assets/css/shared/_utilities.css',
-				'deps'     => array( 'scd-variables' ),
+				'deps'     => array( 'wsscd-variables' ),
 				'pages'    => array(
 					'smart-cycle-discounts',
-					'scd-campaigns',
-					'scd-analytics',
-					'scd-notifications',
-					'scd-settings',
-					'scd-tools',
-					'scd-dashboard',
+					'wsscd-campaigns',
+					'wsscd-analytics',
+					'wsscd-notifications',
+					'wsscd-settings',
+					'wsscd-tools',
+					'wsscd-dashboard',
 				),
 				'media'    => 'all',
 				'priority' => 3,
@@ -173,18 +173,18 @@ class SCD_Style_Registry {
 		);
 
 		$this->add_style(
-			'scd-badges',
+			'wsscd-badges',
 			array(
 				'src'      => 'resources/assets/css/shared/_badges.css',
-				'deps'     => array( 'scd-variables' ),
+				'deps'     => array( 'wsscd-variables' ),
 				'pages'    => array(
 					'smart-cycle-discounts',
-					'scd-campaigns',
-					'scd-analytics',
-					'scd-notifications',
-					'scd-settings',
-					'scd-tools',
-					'scd-dashboard',
+					'wsscd-campaigns',
+					'wsscd-analytics',
+					'wsscd-notifications',
+					'wsscd-settings',
+					'wsscd-tools',
+					'wsscd-dashboard',
 				),
 				'media'    => 'all',
 				'priority' => 4,
@@ -192,18 +192,18 @@ class SCD_Style_Registry {
 		);
 
 		$this->add_style(
-			'scd-loader',
+			'wsscd-loader',
 			array(
 				'src'      => 'resources/assets/css/shared/loader.css',
-				'deps'     => array( 'scd-variables' ),
+				'deps'     => array( 'wsscd-variables' ),
 				'pages'    => array(
 					'smart-cycle-discounts',
-					'scd-campaigns',
-					'scd-analytics',
-					'scd-notifications',
-					'scd-settings',
-					'scd-tools',
-					'scd-dashboard',
+					'wsscd-campaigns',
+					'wsscd-analytics',
+					'wsscd-notifications',
+					'wsscd-settings',
+					'wsscd-tools',
+					'wsscd-dashboard',
 				),
 				'media'    => 'all',
 				'priority' => 4,
@@ -211,18 +211,18 @@ class SCD_Style_Registry {
 		);
 
 		$this->add_style(
-			'scd-components',
+			'wsscd-components',
 			array(
 				'src'      => 'resources/assets/css/shared/_components.css',
-				'deps'     => array( 'scd-variables', 'scd-utilities', 'scd-badges' ),
+				'deps'     => array( 'wsscd-variables', 'wsscd-utilities', 'wsscd-badges' ),
 				'pages'    => array(
 					'smart-cycle-discounts',
-					'scd-campaigns',
-					'scd-analytics',
-					'scd-notifications',
-					'scd-settings',
-					'scd-tools',
-					'scd-dashboard',
+					'wsscd-campaigns',
+					'wsscd-analytics',
+					'wsscd-notifications',
+					'wsscd-settings',
+					'wsscd-tools',
+					'wsscd-dashboard',
 				),
 				'media'    => 'all',
 				'priority' => 5,
@@ -230,33 +230,33 @@ class SCD_Style_Registry {
 		);
 
 		$this->add_style(
-			'scd-forms',
+			'wsscd-forms',
 			array(
 				'src'      => 'resources/assets/css/shared/_forms.css',
-				'deps'     => array( 'scd-variables', 'scd-theme-colors' ),
-				'pages'    => array( 'scd-campaigns', 'scd-analytics', 'scd-settings', 'scd-tools', 'scd-dashboard' ),
+				'deps'     => array( 'wsscd-variables', 'wsscd-theme-colors' ),
+				'pages'    => array( 'wsscd-campaigns', 'wsscd-analytics', 'wsscd-settings', 'wsscd-tools', 'wsscd-dashboard' ),
 				'media'    => 'all',
 				'priority' => 6,
 			)
 		);
 
 		$this->add_style(
-			'scd-buttons',
+			'wsscd-buttons',
 			array(
 				'src'      => 'resources/assets/css/shared/_buttons.css',
-				'deps'     => array( 'scd-variables', 'scd-theme-colors' ),
-				'pages'    => array( 'scd-campaigns', 'scd-analytics', 'scd-settings', 'scd-tools', 'scd-dashboard' ),
+				'deps'     => array( 'wsscd-variables', 'wsscd-theme-colors' ),
+				'pages'    => array( 'wsscd-campaigns', 'wsscd-analytics', 'wsscd-settings', 'wsscd-tools', 'wsscd-dashboard' ),
 				'media'    => 'all',
 				'priority' => 7,
 			)
 		);
 
 		$this->add_style(
-			'scd-pro-feature-unavailable',
+			'wsscd-pro-feature-unavailable',
 			array(
 				'src'      => 'resources/assets/css/shared/pro-feature-unavailable.css',
-				'deps'     => array( 'scd-variables', 'scd-components' ),
-				'pages'    => array( 'scd-campaigns' ),
+				'deps'     => array( 'wsscd-variables', 'wsscd-components' ),
+				'pages'    => array( 'wsscd-campaigns' ),
 				'media'    => 'all',
 				'priority' => 8,
 			)
@@ -264,11 +264,11 @@ class SCD_Style_Registry {
 
 		// Main admin styles (now depends on the shared styles)
 		$this->add_style(
-			'scd-admin',
+			'wsscd-admin',
 			array(
 				'src'      => 'resources/assets/css/admin/admin.css',
-				'deps'     => array( 'scd-variables', 'scd-utilities', 'scd-components', 'scd-forms', 'scd-buttons', 'scd-badges' ),
-				'pages'    => array( 'scd-campaigns', 'scd-analytics' ),
+				'deps'     => array( 'wsscd-variables', 'wsscd-utilities', 'wsscd-components', 'wsscd-forms', 'wsscd-buttons', 'wsscd-badges' ),
+				'pages'    => array( 'wsscd-campaigns', 'wsscd-analytics' ),
 				'media'    => 'all',
 				'priority' => 10,
 			)
@@ -277,22 +277,22 @@ class SCD_Style_Registry {
 		// Validation styles - complete validation system for all plugin admin pages
 		// Includes field states, error messages, validation summary, and UI components
 		$this->add_style(
-			'scd-validation',
+			'wsscd-validation',
 			array(
 				'src'   => 'resources/assets/css/admin/validation.css',
-				'deps'  => array( 'scd-admin' ),
-				'pages' => array( 'scd-campaigns', 'scd-analytics' ),
+				'deps'  => array( 'wsscd-admin' ),
+				'pages' => array( 'wsscd-campaigns', 'wsscd-analytics' ),
 				'media' => 'all',
 			)
 		);
 
 		// Tom Select custom styling
 		$this->add_style(
-			'scd-tom-select-custom',
+			'wsscd-tom-select-custom',
 			array(
-				'src'       => 'resources/assets/css/admin/tom-select-custom.css',
-				'deps'      => array( 'tom-select', 'scd-admin' ),
-				'pages'     => array( 'scd-campaigns' ),
+				'src'       => 'resources/assets/css/wizard/tom-select-custom.css',
+				'deps'      => array( 'tom-select', 'wsscd-admin' ),
+				'pages'     => array( 'wsscd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 				'media'     => 'all',
 			)
@@ -308,11 +308,11 @@ class SCD_Style_Registry {
 	private function register_admin_styles(): void {
 		// Main dashboard (free tier) - needs full design system
 		$this->add_style(
-			'scd-main-dashboard',
+			'wsscd-main-dashboard',
 			array(
 				'src'      => 'resources/assets/css/admin/dashboard/main-dashboard.css',
-				'deps'     => array( 'scd-theme-colors', 'scd-variables', 'scd-utilities', 'scd-badges', 'scd-components', 'scd-forms', 'scd-buttons' ),
-				'pages'    => array( 'scd-dashboard' ),
+				'deps'     => array( 'wsscd-theme-colors', 'wsscd-variables', 'wsscd-utilities', 'wsscd-badges', 'wsscd-components', 'wsscd-forms', 'wsscd-buttons' ),
+				'pages'    => array( 'wsscd-dashboard' ),
 				'media'    => 'all',
 				'priority' => 15,
 			)
@@ -320,11 +320,11 @@ class SCD_Style_Registry {
 
 		// Planner styles - weekly campaign planner feature
 		$this->add_style(
-			'scd-planner-styles',
+			'wsscd-planner-styles',
 			array(
 				'src'      => 'resources/assets/css/admin/dashboard/planner-styles.css',
-				'deps'     => array( 'scd-main-dashboard' ),
-				'pages'    => array( 'scd-dashboard' ),
+				'deps'     => array( 'wsscd-main-dashboard' ),
+				'pages'    => array( 'wsscd-dashboard' ),
 				'media'    => 'all',
 				'priority' => 16,
 			)
@@ -332,22 +332,22 @@ class SCD_Style_Registry {
 
 		// Notification styles - loaded on all plugin pages
 		$this->add_style(
-			'scd-notifications',
+			'wsscd-notifications',
 			array(
 				'src'      => 'resources/assets/css/admin/notifications.css',
-				'deps'     => array( 'scd-admin' ),
-				'pages'    => array( 'scd-campaigns', 'scd-analytics' ),
+				'deps'     => array( 'wsscd-admin' ),
+				'pages'    => array( 'wsscd-campaigns', 'wsscd-analytics' ),
 				'priority' => 5,
 			)
 		);
 
 		// Notifications page styles
 		$this->add_style(
-			'scd-notifications-page',
+			'wsscd-notifications-page',
 			array(
 				'src'      => 'resources/assets/css/admin/notifications-page.css',
 				'deps'     => array(),
-				'pages'    => array( 'scd-notifications' ),
+				'pages'    => array( 'wsscd-notifications' ),
 				'media'    => 'all',
 				'priority' => 10,
 			)
@@ -355,22 +355,22 @@ class SCD_Style_Registry {
 
 		// WordPress admin color scheme compatibility
 		$this->add_style(
-			'scd-wordpress-color-schemes',
+			'wsscd-wordpress-color-schemes',
 			array(
 				'src'      => 'resources/assets/css/admin/wordpress-color-schemes.css',
-				'deps'     => array( 'scd-theme-colors' ),
-				'pages'    => array( 'scd-campaigns', 'scd-analytics', 'scd-settings', 'scd-dashboard' ),
+				'deps'     => array( 'wsscd-theme-colors' ),
+				'pages'    => array( 'wsscd-campaigns', 'wsscd-analytics', 'wsscd-settings', 'wsscd-dashboard', 'wsscd-notifications', 'wsscd-tools' ),
 				'priority' => 2,
 			)
 		);
 
 		// Settings page styles - loads on all tabs with full design system
 		$this->add_style(
-			'scd-settings',
+			'wsscd-settings',
 			array(
 				'src'      => 'resources/assets/css/admin/settings.css',
-				'deps'     => array( 'scd-theme-colors', 'scd-variables', 'scd-utilities', 'scd-badges', 'scd-components', 'scd-forms', 'scd-buttons' ),
-				'pages'    => array( 'scd-settings' ),
+				'deps'     => array( 'wsscd-theme-colors', 'wsscd-variables', 'wsscd-utilities', 'wsscd-badges', 'wsscd-components', 'wsscd-forms', 'wsscd-buttons' ),
+				'pages'    => array( 'wsscd-settings' ),
 				'media'    => 'all',
 				'priority' => 15,
 			)
@@ -378,11 +378,11 @@ class SCD_Style_Registry {
 
 		// Tools page styles
 		$this->add_style(
-			'scd-tools',
+			'wsscd-tools',
 			array(
 				'src'      => 'resources/assets/css/admin/tools.css',
-				'deps'     => array( 'scd-theme-colors', 'scd-variables', 'scd-utilities', 'scd-forms', 'scd-buttons' ),
-				'pages'    => array( 'scd-tools' ),
+				'deps'     => array( 'wsscd-theme-colors', 'wsscd-variables', 'wsscd-utilities', 'wsscd-forms', 'wsscd-buttons' ),
+				'pages'    => array( 'wsscd-tools' ),
 				'media'    => 'all',
 				'priority' => 15,
 			)
@@ -390,11 +390,11 @@ class SCD_Style_Registry {
 
 		// Analytics upgrade prompt styles (for free users)
 		$this->add_style(
-			'scd-analytics-upgrade',
+			'wsscd-analytics-upgrade',
 			array(
 				'src'      => 'resources/assets/css/admin/analytics-upgrade.css',
 				'deps'     => array(),
-				'pages'    => array( 'scd-analytics', 'scd-dashboard' ),
+				'pages'    => array( 'wsscd-analytics', 'wsscd-dashboard' ),
 				'media'    => 'all',
 				'priority' => 10,
 			)
@@ -402,11 +402,11 @@ class SCD_Style_Registry {
 
 		// Dashboard upgrade banner styles (professional SaaS design)
 		$this->add_style(
-			'scd-dashboard-upgrade-banner',
+			'wsscd-dashboard-upgrade-banner',
 			array(
 				'src'      => 'resources/assets/css/admin/dashboard-upgrade-banner.css',
 				'deps'     => array(),
-				'pages'    => array( 'scd-dashboard' ),
+				'pages'    => array( 'wsscd-dashboard' ),
 				'media'    => 'all',
 				'priority' => 11,
 			)
@@ -414,45 +414,45 @@ class SCD_Style_Registry {
 
 		// Recurring campaigns badge styles
 		$this->add_style(
-			'scd-recurring-badges',
+			'wsscd-recurring-badges',
 			array(
 				'src'      => 'resources/assets/css/admin/recurring-badges.css',
-				'deps'     => array( 'scd-admin' ),
-				'pages'    => array( 'scd-campaigns' ),
+				'deps'     => array( 'wsscd-admin' ),
+				'pages'    => array( 'wsscd-campaigns' ),
 				'priority' => 10,
 			)
 		);
 
 		// Campaigns list table styles
 		$this->add_style(
-			'scd-campaigns-list',
+			'wsscd-campaigns-list',
 			array(
 				'src'      => 'resources/assets/css/admin/campaigns-list.css',
-				'deps'     => array( 'scd-admin' ),
-				'pages'    => array( 'scd-campaigns' ),
+				'deps'     => array( 'wsscd-admin' ),
+				'pages'    => array( 'wsscd-campaigns' ),
 				'priority' => 10,
 			)
 		);
 
 		// Draft conflict modal styles
 		$this->add_style(
-			'scd-draft-conflict-modal',
+			'wsscd-draft-conflict-modal',
 			array(
 				'src'      => 'resources/assets/css/admin/draft-conflict-modal.css',
-				'deps'     => array( 'scd-admin' ),
-				'pages'    => array( 'scd-campaigns' ),
+				'deps'     => array( 'wsscd-admin' ),
+				'pages'    => array( 'wsscd-campaigns' ),
 				'priority' => 10,
 			)
 		);
 
 		// Campaign overview panel styles
 		$this->add_style(
-			'scd-campaign-overview-panel',
+			'wsscd-campaign-overview-panel',
 			array(
 				'src'       => 'resources/assets/css/admin/campaign-overview-panel.css',
-				'deps'      => array( 'scd-admin', 'scd-badges' ),
-				'pages'     => array( 'scd-campaigns', 'scd-analytics' ),
-				// No action condition - loads on all actions for scd-campaigns page
+				'deps'      => array( 'wsscd-admin', 'wsscd-badges' ),
+				'pages'     => array( 'wsscd-campaigns', 'wsscd-analytics' ),
+				// No action condition - loads on all actions for wsscd-campaigns page
 				// Panel HTML is rendered on list view and action=view
 				'priority'  => 10,
 			)
@@ -470,88 +470,77 @@ class SCD_Style_Registry {
 	private function register_wizard_styles(): void {
 		// Main wizard navigation styles
 		$this->add_style(
-			'scd-wizard-navigation',
+			'wsscd-wizard-navigation',
 			array(
-				'src'       => 'resources/assets/css/admin/wizard-navigation.css',
-				'deps'      => array( 'scd-admin' ),
-				'pages'     => array( 'scd-campaigns' ),
+				'src'       => 'resources/assets/css/wizard/wizard-navigation.css',
+				'deps'      => array( 'wsscd-admin' ),
+				'pages'     => array( 'wsscd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 			)
 		);
 
 		// Wizard completion modal styles
 		$this->add_style(
-			'scd-wizard-completion-modal',
+			'wsscd-wizard-completion-modal',
 			array(
-				'src'       => 'resources/assets/css/admin/wizard-completion-modal.css',
-				'deps'      => array( 'scd-admin' ),
-				'pages'     => array( 'scd-campaigns' ),
+				'src'       => 'resources/assets/css/wizard/wizard-completion-modal.css',
+				'deps'      => array( 'wsscd-admin' ),
+				'pages'     => array( 'wsscd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 			)
 		);
 
 		// Session expiration warning modal styles
 		$this->add_style(
-			'scd-session-expiration-modal',
+			'wsscd-session-expiration-modal',
 			array(
-				'src'       => 'resources/assets/css/admin/session-expiration-modal.css',
-				'deps'      => array( 'scd-admin' ),
-				'pages'     => array( 'scd-campaigns' ),
+				'src'       => 'resources/assets/css/wizard/session-expiration-modal.css',
+				'deps'      => array( 'wsscd-admin' ),
+				'pages'     => array( 'wsscd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 			)
 		);
 
 		// PRO feature required modal styles
 		$this->add_style(
-			'scd-pro-feature-modal',
+			'wsscd-pro-feature-modal',
 			array(
-				'src'       => 'resources/assets/css/admin/pro-feature-modal.css',
-				'deps'      => array( 'scd-admin' ),
-				'pages'     => array( 'scd-campaigns' ),
+				'src'       => 'resources/assets/css/wizard/pro-feature-modal.css',
+				'deps'      => array( 'wsscd-admin' ),
+				'pages'     => array( 'wsscd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 			)
 		);
 
 		// Wizard steps container
 		$this->add_style(
-			'scd-wizard-steps',
+			'wsscd-wizard-steps',
 			array(
-				'src'       => 'resources/assets/css/admin/wizard-steps.css',
-				'deps'      => array( 'scd-admin' ),
-				'pages'     => array( 'scd-campaigns' ),
-				'condition' => array( 'action' => 'wizard' ),
-			)
-		);
-
-		// Wizard sidebar components (icon lists, tip cards, callouts, tables, etc.)
-		$this->add_style(
-			'scd-wizard-sidebar-components',
-			array(
-				'src'       => 'resources/assets/css/admin/wizard-sidebar-components.css',
-				'deps'      => array( 'scd-wizard-steps' ),
-				'pages'     => array( 'scd-campaigns' ),
+				'src'       => 'resources/assets/css/wizard/wizard-steps.css',
+				'deps'      => array( 'wsscd-admin' ),
+				'pages'     => array( 'wsscd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 			)
 		);
 
 		// Contextual sidebar system
 		$this->add_style(
-			'scd-sidebar-contextual',
+			'wsscd-sidebar-contextual',
 			array(
-				'src'       => 'resources/assets/css/admin/sidebar-contextual.css',
-				'deps'      => array( 'scd-wizard-steps' ),
-				'pages'     => array( 'scd-campaigns' ),
+				'src'       => 'resources/assets/css/wizard/sidebar-contextual.css',
+				'deps'      => array( 'wsscd-wizard-steps' ),
+				'pages'     => array( 'wsscd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 			)
 		);
 
 		// Wizard fullscreen mode
 		$this->add_style(
-			'scd-wizard-fullscreen',
+			'wsscd-wizard-fullscreen',
 			array(
-				'src'       => 'resources/assets/css/admin/wizard-fullscreen.css',
-				'deps'      => array( 'scd-admin', 'scd-variables', 'scd-utilities', 'scd-components', 'scd-tom-select-custom' ),
-				'pages'     => array( 'scd-campaigns' ),
+				'src'       => 'resources/assets/css/wizard/wizard-fullscreen.css',
+				'deps'      => array( 'wsscd-admin', 'wsscd-variables', 'wsscd-utilities', 'wsscd-components', 'wsscd-tom-select-custom' ),
+				'pages'     => array( 'wsscd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 			)
 		);
@@ -569,63 +558,63 @@ class SCD_Style_Registry {
 	private function register_wizard_step_styles(): void {
 		// Main step styles
 		$this->add_style(
-			'scd-wizard-step-basic',
+			'wsscd-wizard-step-basic',
 			array(
-				'src'       => 'resources/assets/css/admin/step-basic.css',
-				'deps'      => array( 'scd-admin' ),
-				'pages'     => array( 'scd-campaigns' ),
+				'src'       => 'resources/assets/css/wizard/step-basic.css',
+				'deps'      => array( 'wsscd-admin' ),
+				'pages'     => array( 'wsscd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 				'priority'  => 20,  // Higher priority to ensure it loads after base styles
 			)
 		);
 
 		$this->add_style(
-			'scd-wizard-step-products',
+			'wsscd-wizard-step-products',
 			array(
-				'src'       => 'resources/assets/css/admin/step-products.css',
-				'deps'      => array( 'scd-admin' ),
-				'pages'     => array( 'scd-campaigns' ),
+				'src'       => 'resources/assets/css/wizard/step-products.css',
+				'deps'      => array( 'wsscd-admin' ),
+				'pages'     => array( 'wsscd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 			)
 		);
 
 		$this->add_style(
-			'scd-wizard-step-discounts',
+			'wsscd-wizard-step-discounts',
 			array(
-				'src'       => 'resources/assets/css/admin/step-discounts.css',
-				'deps'      => array( 'scd-admin' ),
-				'pages'     => array( 'scd-campaigns' ),
+				'src'       => 'resources/assets/css/wizard/step-discounts.css',
+				'deps'      => array( 'wsscd-admin' ),
+				'pages'     => array( 'wsscd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 			)
 		);
 
 		// Badge settings styles
 		$this->add_style(
-			'scd-badge-settings',
+			'wsscd-badge-settings',
 			array(
-				'src'       => 'resources/assets/css/admin/badge-settings.css',
-				'deps'      => array( 'scd-admin', 'wp-color-picker' ),
-				'pages'     => array( 'scd-campaigns' ),
+				'src'       => 'resources/assets/css/wizard/badge-settings.css',
+				'deps'      => array( 'wsscd-admin', 'wp-color-picker' ),
+				'pages'     => array( 'wsscd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 			)
 		);
 
 		$this->add_style(
-			'scd-wizard-step-schedule',
+			'wsscd-wizard-step-schedule',
 			array(
-				'src'       => 'resources/assets/css/admin/step-schedule.css',
-				'deps'      => array( 'scd-admin', 'wp-jquery-ui-dialog', 'scd-wordpress-color-schemes' ),
-				'pages'     => array( 'scd-campaigns' ),
+				'src'       => 'resources/assets/css/wizard/step-schedule.css',
+				'deps'      => array( 'wsscd-admin', 'wp-jquery-ui-dialog', 'wsscd-wordpress-color-schemes' ),
+				'pages'     => array( 'wsscd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 			)
 		);
 
 		$this->add_style(
-			'scd-wizard-step-review',
+			'wsscd-wizard-step-review',
 			array(
-				'src'       => 'resources/assets/css/admin/step-review.css',
-				'deps'      => array( 'scd-admin' ),
-				'pages'     => array( 'scd-campaigns' ),
+				'src'       => 'resources/assets/css/wizard/step-review.css',
+				'deps'      => array( 'wsscd-admin' ),
+				'pages'     => array( 'wsscd-campaigns' ),
 				'condition' => array( 'action' => 'wizard' ),
 			)
 		);
@@ -640,11 +629,11 @@ class SCD_Style_Registry {
 	private function register_analytics_styles(): void {
 		// Analytics dashboard styles - premium styling
 		$this->add_style(
-			'scd-analytics',
+			'wsscd-analytics',
 			array(
 				'src'      => 'resources/assets/css/admin/analytics.css',
-				'deps'     => array( 'scd-admin' ),
-				'pages'    => array( 'scd-analytics' ),
+				'deps'     => array( 'wsscd-admin' ),
+				'pages'    => array( 'wsscd-analytics' ),
 				'media'    => 'all',
 				'priority' => 15,
 			)

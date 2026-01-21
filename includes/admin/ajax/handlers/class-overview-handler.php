@@ -21,8 +21,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since      1.0.0
  */
-class SCD_Overview_Handler extends SCD_Abstract_Analytics_Handler {
-	use SCD_License_Validation_Trait;
+class WSSCD_Overview_Handler extends WSSCD_Abstract_Analytics_Handler {
+	use WSSCD_License_Validation_Trait;
 
 	/**
 	 * Get required capability.
@@ -31,7 +31,7 @@ class SCD_Overview_Handler extends SCD_Abstract_Analytics_Handler {
 	 * @return   string    Required capability.
 	 */
 	protected function get_required_capability(): string {
-		return 'scd_view_analytics';
+		return 'wsscd_view_analytics';
 	}
 
 	/**
@@ -48,7 +48,7 @@ class SCD_Overview_Handler extends SCD_Abstract_Analytics_Handler {
 		}
 
 		// Verify request
-		$verification = $this->verify_request( $request, 'scd_analytics_overview' );
+		$verification = $this->verify_request( $request, 'wsscd_analytics_overview' );
 		if ( is_wp_error( $verification ) ) {
 			return $this->error(
 				$verification->get_error_message(),
@@ -56,8 +56,8 @@ class SCD_Overview_Handler extends SCD_Abstract_Analytics_Handler {
 			);
 		}
 
-		$date_range = isset( $request['dateRange'] ) ? sanitize_text_field( $request['dateRange'] ) :
-			( isset( $request['date_range'] ) ? sanitize_text_field( $request['date_range'] ) : '7days' );
+		// AJAX Router automatically converts camelCase to snake_case.
+		$date_range = isset( $request['date_range'] ) ? sanitize_text_field( $request['date_range'] ) : '7days';
 		$refresh    = filter_var( isset( $request['refresh'] ) ? $request['refresh'] : false, FILTER_VALIDATE_BOOLEAN );
 
 		try {
@@ -89,7 +89,8 @@ class SCD_Overview_Handler extends SCD_Abstract_Analytics_Handler {
 				)
 			);
 
-			return $this->error(
+				return $this->error(
+				/* translators: %s: error message */
 				sprintf( __( 'Failed to load analytics overview: %s', 'smart-cycle-discounts' ), $e->getMessage() ),
 				'analytics_overview_failed'
 			);

@@ -13,17 +13,17 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	SCD.Shared = SCD.Shared || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Shared = WSSCD.Shared || {};
 
 	/**
 	 * Base Orchestrator Class
 	 *
-	 * @class SCD.Shared.BaseOrchestrator
+	 * @class WSSCD.Shared.BaseOrchestrator
 	 * @param {string} stepName - Name of the step
 	 * @param {object} moduleFactories - Object containing module factory functions
 	 */
-	SCD.Shared.BaseOrchestrator = function( stepName, moduleFactories ) {
+	WSSCD.Shared.BaseOrchestrator = function( stepName, moduleFactories ) {
 		this.modules = {};
 		this.initialized = false;
 		this.wizard = null;
@@ -43,7 +43,7 @@
 		}
 	};
 
-	SCD.Shared.BaseOrchestrator.prototype = {
+	WSSCD.Shared.BaseOrchestrator.prototype = {
 		/**
 		 * Initialize orchestrator
 		 *
@@ -72,7 +72,7 @@
 			this.initialized = true;
 
 			// Trigger ready event
-			$( document ).trigger( 'scd:' + this.stepName + ':ready', [ this ] );
+			$( document ).trigger( 'wsscd:' + this.stepName + ':ready', [ this ] );
 
 			return $.Deferred().resolve().promise();
 		},
@@ -195,8 +195,8 @@
 			var data = null;
 
 			// Try to get data from state manager first (for unloaded steps)
-			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.stateManager ) {
-				var stateManager = window.SCD.Wizard.stateManager;
+			if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.stateManager ) {
+				var stateManager = window.WSSCD.Wizard.stateManager;
 				if ( 'function' === typeof stateManager.get ) {
 					var fullState = stateManager.get();
 					if ( fullState.stepData && fullState.stepData[this.stepName] ) {
@@ -325,29 +325,29 @@
 			var value = $field.val();
 
 			// Always use centralized validation with new context format
-			if ( window.SCD && window.SCD.ValidationManager ) {
+			if ( window.WSSCD && window.WSSCD.ValidationManager ) {
 				var context = {
 					stepId: this.stepName,
 					allValues: this.modules && this.modules.state ? this.modules.state.getState() : {},
 					visibilityMap: null // Real-time validation doesn't need full visibility computation
 				};
 				
-				var result = window.SCD.ValidationManager.validateField(
+				var result = window.WSSCD.ValidationManager.validateField(
 					fieldName,
 					value,
 					context
 				);
 
 				// Use centralized ValidationError component for UI updates
-				if ( window.SCD && window.SCD.ValidationError ) {
+				if ( window.WSSCD && window.WSSCD.ValidationError ) {
 					if ( result.ok ) {
-						window.SCD.ValidationError.clear( $field );
+						window.WSSCD.ValidationError.clear( $field );
 					} else {
 						// New format: result.errors is array of { code, message } objects
 						var errorMessage = result.errors[0] && result.errors[0].message ? 
 							result.errors[0].message : 
 							result.errors[0];
-						window.SCD.ValidationError.show( $field, errorMessage );
+						window.WSSCD.ValidationError.show( $field, errorMessage );
 					}
 				}
 			}
@@ -370,7 +370,7 @@
 
 			if ( !this._debouncedFunctions[key] ) {
 				var self = this;
-				this._debouncedFunctions[key] = SCD.Utils.debounce( function() {
+				this._debouncedFunctions[key] = WSSCD.Utils.debounce( function() {
 					callback();
 					delete self._debouncedFunctions[key];
 				}, delay );
@@ -402,7 +402,7 @@
 			this.showError( message, config.type, config.duration );
 
 			// Trigger error event
-			$( document ).trigger( 'scd:' + this.stepName + ':error', [ error, category ] );
+			$( document ).trigger( 'wsscd:' + this.stepName + ':error', [ error, category ] );
 		},
 
 		/**
@@ -417,13 +417,13 @@
 			duration = duration || 5000;
 
 			// Use ONLY NotificationService for consistent display at top of page
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
-				window.SCD.Shared.NotificationService.show( message, type, duration );
+			if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.NotificationService ) {
+				window.WSSCD.Shared.NotificationService.show( message, type, duration );
 				return; // Exit to prevent duplication
 			}
 
 			// If NotificationService not available, use console as fallback
-			console.error( 'SCD Error:', message );
+			console.error( 'WSSCD Error:', message );
 		},
 
 
@@ -436,9 +436,9 @@
 	 * @param {string} severity Error severity (optional, defaults to MEDIUM)
 	 */
 	safeErrorHandle: function( error, context, severity ) {
-		if ( window.SCD && window.SCD.ErrorHandler ) {
-			severity = severity || SCD.ErrorHandler.SEVERITY.MEDIUM;
-			SCD.ErrorHandler.handle( error, context, severity );
+		if ( window.WSSCD && window.WSSCD.ErrorHandler ) {
+			severity = severity || WSSCD.ErrorHandler.SEVERITY.MEDIUM;
+			WSSCD.ErrorHandler.handle( error, context, severity );
 		} else if ( window.console && window.console.error ) {
 			console.error( '[' + context + ']', error );
 		}
@@ -453,21 +453,21 @@
 	 * @param {string} message - Loading message
 	 */
 	setLoading: function( loading, message ) {
-		var $step = $( '#scd-step-' + this.stepName );
+		var $step = $( '#wsscd-step-' + this.stepName );
 
 		if ( loading ) {
 			$step.addClass( 'loading' );
 
 			// Delegate to centralized LoaderUtil
-			if ( window.SCD && window.SCD.LoaderUtil ) {
-				SCD.LoaderUtil.showOverlay( $step, message );
+			if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+				WSSCD.LoaderUtil.showOverlay( $step, message );
 			}
 		} else {
 			$step.removeClass( 'loading' );
 
 			// Delegate to centralized LoaderUtil
-			if ( window.SCD && window.SCD.LoaderUtil ) {
-				SCD.LoaderUtil.hideOverlay( $step );
+			if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+				WSSCD.LoaderUtil.hideOverlay( $step );
 			}
 		}
 	},
@@ -508,8 +508,8 @@
 		var $field = this.$container.find( '[name="' + fieldName + '"]' );
 
 		// Try snake_case conversion
-		if ( !$field.length && window.SCD && window.SCD.Utils && window.SCD.Utils.camelToSnakeCase ) {
-			var snakeName = window.SCD.Utils.camelToSnakeCase( fieldName );
+		if ( !$field.length && window.WSSCD && window.WSSCD.Utils && window.WSSCD.Utils.camelToSnakeCase ) {
+			var snakeName = window.WSSCD.Utils.camelToSnakeCase( fieldName );
 			$field = this.$container.find( '[name="' + snakeName + '"]' );
 		}
 
@@ -529,7 +529,7 @@
 	 */
 	showFieldError: function( fieldOrName, errorMessages ) {
 		// Use centralized ValidationError component
-		if ( window.SCD && window.SCD.ValidationError ) {
+		if ( window.WSSCD && window.WSSCD.ValidationError ) {
 			var $field;
 
 			// Handle both jQuery object and string
@@ -548,7 +548,7 @@
 			// Join multiple messages if array
 			var errorMessage = Array.isArray( errorMessages ) ? errorMessages.join( ' ' ) : errorMessages;
 
-			window.SCD.ValidationError.show( $field, errorMessage );
+			window.WSSCD.ValidationError.show( $field, errorMessage );
 		}
 	},
 
@@ -559,7 +559,7 @@
 	 */
 	clearFieldError: function( fieldOrName ) {
 		// Use centralized ValidationError component
-		if ( window.SCD && window.SCD.ValidationError ) {
+		if ( window.WSSCD && window.WSSCD.ValidationError ) {
 			var $field;
 
 			// Handle both jQuery object and string
@@ -575,7 +575,7 @@
 				return;
 			}
 
-			window.SCD.ValidationError.clear( $field );
+			window.WSSCD.ValidationError.clear( $field );
 		}
 	},
 
@@ -632,7 +632,7 @@
 			this.initialized = false;
 
 			// Trigger destroyed event
-			$( document ).trigger( 'scd:' + this.stepName + ':destroyed' );
+			$( document ).trigger( 'wsscd:' + this.stepName + ':destroyed' );
 		},
 
 		/**
@@ -653,7 +653,7 @@
 	 * @param {object} customMethods - Custom methods for the step orchestrator
 	 * @returns {Function} Orchestrator constructor function
 	 */
-	SCD.Shared.BaseOrchestrator.createStep = function( stepName, customMethods ) {
+	WSSCD.Shared.BaseOrchestrator.createStep = function( stepName, customMethods ) {
 		if ( !stepName || 'string' !== typeof stepName ) {
 			throw new Error( 'Step name must be a non-empty string' );
 		}
@@ -662,22 +662,22 @@
 
 		var OrchestratorClass = function() {
 			// Call parent constructor
-			SCD.Shared.BaseOrchestrator.call( this, stepName );
+			WSSCD.Shared.BaseOrchestrator.call( this, stepName );
 
 			this.modules = {};
 		};
 
-		OrchestratorClass.prototype = Object.create( SCD.Shared.BaseOrchestrator.prototype );
+		OrchestratorClass.prototype = Object.create( WSSCD.Shared.BaseOrchestrator.prototype );
 		OrchestratorClass.prototype.constructor = OrchestratorClass;
 
 		// Extend with EventManager mixin BEFORE adding other methods
-		if ( SCD.Mixins && SCD.Mixins.EventManager ) {
-			$.extend( OrchestratorClass.prototype, SCD.Mixins.EventManager );
+		if ( WSSCD.Mixins && WSSCD.Mixins.EventManager ) {
+			$.extend( OrchestratorClass.prototype, WSSCD.Mixins.EventManager );
 		}
 
 		// Mix in step persistence functionality
-		if ( SCD.Mixins && SCD.Mixins.StepPersistence ) {
-			$.extend( OrchestratorClass.prototype, SCD.Mixins.StepPersistence );
+		if ( WSSCD.Mixins && WSSCD.Mixins.StepPersistence ) {
+			$.extend( OrchestratorClass.prototype, WSSCD.Mixins.StepPersistence );
 		}
 
 		var originalInit = customMethods.init;
@@ -686,14 +686,14 @@
 				this.initEventManager();
 			}
 
-			this.$container = $( '#scd-step-' + stepName );
+			this.$container = $( '#wsscd-step-' + stepName );
 			if ( !this.$container.length ) {
-				this.$container = $( '.scd-wizard-step--' + stepName );
+				this.$container = $( '.wsscd-wizard-step--' + stepName );
 			}
 
 			// Call parent init
 			var self = this;
-			var parentPromise = SCD.Shared.BaseOrchestrator.prototype.init.call( this, wizard, config );
+			var parentPromise = WSSCD.Shared.BaseOrchestrator.prototype.init.call( this, wizard, config );
 
 			this.initPersistence( stepName );
 
@@ -713,24 +713,19 @@
 
 		$.extend( OrchestratorClass.prototype, customMethods );
 
-		// Auto-register factory if SCD.Steps.registerFactory is available
-		if ( 'function' === typeof SCD.Steps.registerFactory ) {
-			console.log( '[SCD BaseOrchestrator] Registering factory for step:', stepName );
-			SCD.Steps.registerFactory( stepName, function() {
-				console.log( '[SCD BaseOrchestrator] Creating instance for step:', stepName );
+		// Auto-register factory if WSSCD.Steps.registerFactory is available
+		if ( 'function' === typeof WSSCD.Steps.registerFactory ) {
+			WSSCD.Steps.registerFactory( stepName, function() {
 				return new OrchestratorClass();
 			} );
-			console.log( '[SCD BaseOrchestrator] Factory registered. Current factories:', Object.keys( SCD.Steps._factories || {} ) );
-		} else {
-			console.error( '[SCD BaseOrchestrator] Cannot register factory - SCD.Steps.registerFactory not available' );
 		}
 
 		OrchestratorClass.fields = {};
 
 		// Auto-load field definitions when document is ready
 		$( document ).ready( function() {
-			if ( window.SCD && window.SCD.FieldDefinitions ) {
-				var stepFields = SCD.FieldDefinitions.getStepFields( stepName );
+			if ( window.WSSCD && window.WSSCD.FieldDefinitions ) {
+				var stepFields = WSSCD.FieldDefinitions.getStepFields( stepName );
 				if ( stepFields ) {
 					OrchestratorClass.fields = stepFields;
 				}

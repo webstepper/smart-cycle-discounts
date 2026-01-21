@@ -217,13 +217,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</div>
 
 			<div class="button-container">
-				<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns' ) ); ?>" class="button"><?php esc_html_e( 'View Full Analytics', 'smart-cycle-discounts' ); ?></a>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=wsscd-campaigns' ) ); ?>" class="button"><?php esc_html_e( 'View Full Analytics', 'smart-cycle-discounts' ); ?></a>
 			</div>
 		</div>
 
 		<div class="email-footer">
 			<p><?php esc_html_e( 'This is an automated daily report from Smart Cycle Discounts', 'smart-cycle-discounts' ); ?></p>
-			<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-notifications&tab=settings' ) ); ?>"><?php esc_html_e( 'Manage notification settings', 'smart-cycle-discounts' ); ?></a></p>
+			<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=wsscd-notifications&tab=settings' ) ); ?>"><?php esc_html_e( 'Manage notification settings', 'smart-cycle-discounts' ); ?></a></p>
 		</div>
 	</div>
 </body>

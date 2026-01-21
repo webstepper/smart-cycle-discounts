@@ -1,0 +1,562 @@
+/**
+ * Badge Settings Styles - Modern Design
+ *
+ * Polished, professional styling for badge configuration UI
+ *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/css/wizard/badge-settings.css
+ * @since      1.0.0
+ */
+
+/* ========================================================================
+   Enable Badge Section
+   ======================================================================== */
+
+.wsscd-badge-enable-section {
+	margin-bottom: 24px;
+	padding: var(--wsscd-padding-section);
+	background: var(--wsscd-color-surface);
+	border-radius: var(--wsscd-radius-lg);
+	border: 1px solid var(--wsscd-color-border-light);
+}
+
+.wsscd-badge-enable-row {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--wsscd-gap-normal);
+}
+
+.wsscd-badge-enable-row .wsscd-toggle {
+	flex-shrink: 0;
+	margin-top: 2px;
+}
+
+.wsscd-badge-enable-text {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wsscd-gap-tight);
+}
+
+.wsscd-badge-enable-title {
+	font-size: var(--wsscd-font-size-medium-large);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+	cursor: pointer;
+	margin: 0;
+}
+
+.wsscd-badge-enable-description {
+	font-size: var(--wsscd-font-size-base);
+	color: var(--wsscd-color-text-muted);
+	line-height: 1.5;
+}
+
+/* Context Warning */
+.wsscd-badge-context-warning {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-gap-normal);
+	margin-top: var(--wsscd-spacing-base);
+	padding: var(--wsscd-padding-medium) 16px;
+	background: var(--wsscd-color-warning-light);
+	border-left: 4px solid var(--wsscd-color-warning);
+	border-radius: var(--wsscd-radius-md);
+	animation: wsscd-slide-down 0.3s ease;
+}
+
+/* Note: @keyframes wsscd-slide-down defined in shared/_utilities.css */
+
+.wsscd-badge-context-warning .wsscd-icon {
+	color: var(--wsscd-color-warning-text);
+	font-size: var(--wsscd-font-size-xxl);
+	width: var(--wsscd-icon-medium);
+	height: var(--wsscd-icon-medium);
+}
+
+.wsscd-context-warning-text {
+	color: var(--wsscd-color-warning-text);
+	font-size: var(--wsscd-font-size-medium);
+	line-height: 1.5;
+}
+
+/* ========================================================================
+   Badge Configuration Wrapper
+   ======================================================================== */
+
+.wsscd-badge-config-wrapper {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--wsscd-gap-xl);
+	margin-top: 24px;
+	transition: opacity var(--wsscd-transition-slow) ease;
+}
+
+.wsscd-badge-config-wrapper[style*="display: none"] {
+	opacity: 0;
+	max-height: 0;
+	overflow: hidden;
+}
+
+/* ========================================================================
+   Configuration Controls (Left Column)
+   ======================================================================== */
+
+.wsscd-badge-config-controls {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wsscd-gap-spacious);
+}
+
+.wsscd-badge-config-section {
+	padding: var(--wsscd-padding-section);
+	background: var(--wsscd-color-white);
+	border: 1px solid var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-lg);
+	box-shadow: var(--wsscd-shadow-sm);
+}
+
+.wsscd-badge-section-title {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-gap-tight);
+	margin: 0 0 16px 0;
+	padding: 0;
+	font-size: var(--wsscd-font-size-medium);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+	text-transform: none;
+}
+
+.wsscd-badge-section-title .wsscd-icon {
+	color: var(--wsscd-color-accent);
+	font-size: var(--wsscd-font-size-xl);
+	width: var(--wsscd-icon-small);
+	height: var(--wsscd-icon-small);
+}
+
+/* Badge Text Mode */
+.wsscd-badge-text-mode {
+	margin-bottom: var(--wsscd-spacing-md);
+}
+
+.wsscd-badge-text-mode select {
+	width: 100%;
+	max-width: 100%;
+}
+
+.wsscd-custom-badge-text {
+	margin-top: var(--wsscd-spacing-md);
+	padding-top: var(--wsscd-spacing-md);
+	border-top: 1px solid var(--wsscd-color-border-light);
+}
+
+.wsscd-custom-badge-text input {
+	width: 100%;
+	margin-bottom: var(--wsscd-spacing-sm);
+}
+
+.wsscd-custom-badge-text .description {
+	margin: 0;
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text-muted);
+}
+
+/* ========================================================================
+   Position Grid
+   ======================================================================== */
+
+.wsscd-badge-position-grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: var(--wsscd-gap-normal);
+}
+
+.wsscd-position-box {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--wsscd-gap-tight);
+	padding: var(--wsscd-padding-large) 12px;
+	background: var(--wsscd-color-surface);
+	border: 2px solid var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-lg);
+	cursor: pointer;
+	transition: all var(--wsscd-transition-base) ease;
+}
+
+.wsscd-position-box:hover {
+	background: var(--wsscd-color-surface);
+	border-color: var(--wsscd-color-accent-light);
+}
+
+.wsscd-position-box input[type="radio"] {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.wsscd-position-box input[type="radio"]:checked + .wsscd-position-visual {
+	border-color: var(--wsscd-color-accent);
+	background: var(--wsscd-color-accent-lighter);
+}
+
+.wsscd-position-box input[type="radio"]:checked + .wsscd-position-visual .wsscd-position-indicator {
+	background: var(--wsscd-color-accent);
+}
+
+.wsscd-position-box input[type="radio"]:checked ~ .wsscd-position-name {
+	color: var(--wsscd-color-accent);
+	font-weight: var(--wsscd-font-weight-semibold);
+}
+
+.wsscd-position-visual {
+	position: relative;
+	width: 60px;
+	height: 60px;
+	background: var(--wsscd-color-white);
+	border: 2px solid var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-md);
+	transition: all var(--wsscd-transition-base) ease;
+}
+
+.wsscd-position-indicator {
+	position: absolute;
+	width: 16px;
+	height: 16px;
+	background: var(--wsscd-color-text-light);
+	border-radius: var(--wsscd-radius-sm);
+	transition: all var(--wsscd-transition-base) ease;
+}
+
+/* Position indicators based on value */
+.wsscd-position-box input[value="top-left"] + .wsscd-position-visual .wsscd-position-indicator {
+	top: 6px;
+	left: 6px;
+}
+
+.wsscd-position-box input[value="top-right"] + .wsscd-position-visual .wsscd-position-indicator {
+	top: 6px;
+	right: 6px;
+}
+
+.wsscd-position-box input[value="bottom-left"] + .wsscd-position-visual .wsscd-position-indicator {
+	bottom: 6px;
+	left: 6px;
+}
+
+.wsscd-position-box input[value="bottom-right"] + .wsscd-position-visual .wsscd-position-indicator {
+	bottom: 6px;
+	right: 6px;
+}
+
+.wsscd-position-name {
+	font-size: var(--wsscd-font-size-base);
+	font-weight: var(--wsscd-font-weight-medium);
+	color: var(--wsscd-color-text-secondary);
+	text-align: center;
+	transition: all var(--wsscd-transition-base) ease;
+}
+
+/* ========================================================================
+   Display Location Options
+   ======================================================================== */
+
+.wsscd-badge-location-options {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wsscd-gap-normal);
+}
+
+.wsscd-location-option {
+	position: relative;
+	cursor: pointer;
+}
+
+.wsscd-location-option input[type="radio"] {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.wsscd-location-card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wsscd-gap-tight);
+	padding: var(--wsscd-padding-large);
+	background: var(--wsscd-color-surface);
+	border: 2px solid var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-lg);
+	transition: all var(--wsscd-transition-base) ease;
+}
+
+.wsscd-location-card:hover {
+	border-color: var(--wsscd-color-accent-light);
+	background: var(--wsscd-color-white);
+}
+
+.wsscd-location-option input[type="radio"]:checked + .wsscd-location-card {
+	border-color: var(--wsscd-color-accent);
+	background: var(--wsscd-color-accent-lighter);
+}
+
+.wsscd-location-option input[type="radio"]:checked + .wsscd-location-card .wsscd-icon {
+	color: var(--wsscd-color-accent);
+}
+
+.wsscd-location-option input[type="radio"]:checked + .wsscd-location-card strong {
+	color: var(--wsscd-color-accent);
+}
+
+.wsscd-location-card .wsscd-icon {
+	font-size: var(--wsscd-font-size-xxl);
+	width: var(--wsscd-icon-medium);
+	height: var(--wsscd-icon-medium);
+	color: var(--wsscd-color-text-secondary);
+	transition: color var(--wsscd-transition-base) ease;
+}
+
+.wsscd-location-card strong {
+	font-size: var(--wsscd-font-size-medium);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+	transition: color var(--wsscd-transition-base) ease;
+}
+
+.wsscd-location-card small {
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text-muted);
+	line-height: 1.4;
+}
+
+/* Focus state for accessibility */
+.wsscd-location-option:focus-within .wsscd-location-card {
+	outline: 2px solid var(--wsscd-color-accent);
+	outline-offset: 2px;
+}
+
+/* ========================================================================
+   Colors Grid
+   ======================================================================== */
+
+.wsscd-badge-colors-grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: var(--wsscd-gap-comfortable);
+}
+
+.wsscd-color-picker-box {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wsscd-gap-tight);
+}
+
+.wsscd-color-box-label {
+	font-size: var(--wsscd-font-size-base);
+	font-weight: var(--wsscd-font-weight-medium);
+	color: var(--wsscd-color-text-secondary);
+	margin: 0;
+}
+
+.wsscd-color-picker {
+	width: 100%;
+}
+
+/* ========================================================================
+   Preview Section (Right Column)
+   ======================================================================== */
+
+.wsscd-badge-config-preview {
+	position: sticky;
+	top: 32px;
+	height: fit-content;
+}
+
+.wsscd-badge-preview-header {
+	margin-bottom: var(--wsscd-spacing-base);
+}
+
+.wsscd-badge-preview-wrapper {
+	padding: var(--wsscd-padding-section);
+	background: var(--wsscd-color-white);
+	border: 1px solid var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-lg);
+	box-shadow: var(--wsscd-shadow-sm);
+}
+
+.wsscd-badge-preview-mock-product {
+	position: relative;
+	width: 100%;
+	max-width: 280px;
+	margin: 0 auto 16px;
+	border-radius: var(--wsscd-radius-lg);
+	overflow: hidden;
+	box-shadow: var(--wsscd-shadow-md);
+}
+
+.wsscd-badge-preview-mock-product img {
+	display: block;
+	width: 100%;
+	height: auto;
+	object-fit: cover;
+}
+
+.wsscd-badge-preview-placeholder {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--wsscd-gap-normal);
+	width: 100%;
+	aspect-ratio: 1;
+	background: linear-gradient(135deg, var(--wsscd-color-surface) 0%, var(--wsscd-color-border-light) 100%);
+	border: 2px dashed var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-lg);
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-badge-preview-placeholder .wsscd-icon {
+	font-size: var(--wsscd-icon-display);
+	width: var(--wsscd-icon-display);
+	height: var(--wsscd-input-height-large);
+	opacity: 0.5;
+}
+
+.wsscd-badge-preview-placeholder span:last-child {
+	font-size: var(--wsscd-font-size-medium);
+	font-weight: var(--wsscd-font-weight-medium);
+}
+
+.wsscd-badge-preview-badge {
+	position: absolute;
+	padding: var(--wsscd-spacing-xs) var(--wsscd-padding-compact);
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-bold);
+	letter-spacing: 0.5px;
+	text-transform: uppercase;
+	border-radius: var(--wsscd-radius-md);
+	box-shadow: var(--wsscd-shadow-sm);
+	transition: all var(--wsscd-transition-slow) ease;
+	z-index: var(--wsscd-z-dropdown);
+}
+
+/* Badge positions */
+.wsscd-badge-preview-badge[data-position="top-left"] {
+	top: 12px;
+	left: 12px;
+}
+
+.wsscd-badge-preview-badge[data-position="top-right"] {
+	top: 12px;
+	right: 12px;
+}
+
+.wsscd-badge-preview-badge[data-position="bottom-left"] {
+	bottom: 12px;
+	left: 12px;
+}
+
+.wsscd-badge-preview-badge[data-position="bottom-right"] {
+	bottom: 12px;
+	right: 12px;
+}
+
+.wsscd-preview-note {
+	margin: 0;
+	padding: var(--wsscd-padding-medium);
+	background: var(--wsscd-color-surface);
+	border-radius: var(--wsscd-radius-md);
+	font-size: var(--wsscd-font-size-base);
+	line-height: 1.5;
+	color: var(--wsscd-color-text-muted);
+	text-align: center;
+}
+
+/* ========================================================================
+   Responsive Design
+   ======================================================================== */
+
+@media screen and (max-width: 1280px) {
+	.wsscd-badge-config-wrapper {
+		grid-template-columns: 1fr;
+	}
+
+	.wsscd-badge-config-preview {
+		position: relative;
+		top: 0;
+	}
+}
+
+@media screen and (max-width: 768px) {
+	.wsscd-badge-position-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.wsscd-badge-colors-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.wsscd-badge-config-wrapper {
+		gap: var(--wsscd-gap-spacious);
+	}
+
+	.wsscd-badge-config-section {
+		padding: var(--wsscd-padding-large);
+	}
+}
+
+/* ========================================================================
+   Accessibility
+   ======================================================================== */
+
+.wsscd-position-box:focus-within {
+	outline: 2px solid var(--wsscd-color-accent);
+	outline-offset: 2px;
+}
+
+.wsscd-color-picker:focus {
+	border-color: var(--wsscd-color-accent);
+	box-shadow: var(--wsscd-shadow-focus);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+	.wsscd-badge-config-section,
+	.wsscd-badge-preview-wrapper {
+		border-width: 2px;
+	}
+
+	.wsscd-position-box {
+		border-width: 3px;
+	}
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+	.wsscd-badge-context-warning,
+	.wsscd-badge-preview-badge,
+	.wsscd-position-box,
+	.wsscd-position-visual,
+	.wsscd-position-indicator,
+	.wsscd-location-card {
+		animation: none;
+		transition: none;
+	}
+}
+
+/* ========================================================================
+   Print Styles
+   ======================================================================== */
+
+@media print {
+	.wsscd-badge-config-preview {
+		page-break-inside: avoid;
+	}
+
+	.wsscd-badge-preview-badge {
+		box-shadow: none;
+		border: 1px solid var(--wsscd-color-black);
+	}
+}

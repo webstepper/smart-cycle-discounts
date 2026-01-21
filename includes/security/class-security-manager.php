@@ -27,20 +27,20 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/security
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Security_Manager {
+class WSSCD_Security_Manager {
 
 	/**
 	 * Container instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Container    $container    Container instance.
+	 * @var      WSSCD_Container    $container    Container instance.
 	 */
-	private SCD_Container $container;
+	private WSSCD_Container $container;
 
-	// Removed: Input validator - using consolidated SCD_Validation class instead
+	// Removed: Input validator - using consolidated WSSCD_Validation class instead
 
-	// Removed: Sanitizer - using consolidated SCD_Validation class instead
+	// Removed: Sanitizer - using consolidated WSSCD_Validation class instead
 
 	/**
 	 * Nonce manager instance.
@@ -64,9 +64,9 @@ class SCD_Security_Manager {
 	 * Initialize the security manager.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Container $container    Container instance.
+	 * @param    WSSCD_Container $container    Container instance.
 	 */
-	public function __construct( SCD_Container $container ) {
+	public function __construct( WSSCD_Container $container ) {
 		$this->container = $container;
 	}
 
@@ -77,7 +77,7 @@ class SCD_Security_Manager {
 	 * @return   void
 	 */
 	public function init(): void {
-		// Removed: sanitizer - using consolidated SCD_Validation class instead
+		// Removed: sanitizer - using consolidated WSSCD_Validation class instead
 		$this->nonce_manager = $this->container->get( 'nonce_manager' );
 		$this->rate_limiter  = $this->container->get( 'rate_limiter' );
 	}
@@ -96,8 +96,8 @@ class SCD_Security_Manager {
 
 		// For wizard requests, use the correct nonce action
 		$nonce_action = null;
-		if ( isset( $request['action'] ) && strpos( $request['action'], 'scd_wizard' ) === 0 ) {
-			$nonce_action = 'scd_wizard_nonce';
+		if ( isset( $request['action'] ) && strpos( $request['action'], 'wsscd_wizard' ) === 0 ) {
+			$nonce_action = 'wsscd_wizard_nonce';
 		}
 
 		if ( ! $this->nonce_manager->verify_request( $request, 'nonce', $nonce_action ) ) {
@@ -108,7 +108,7 @@ class SCD_Security_Manager {
 			return false;
 		}
 
-		// Actual validation happens in individual handlers using consolidated SCD_Validation class
+		// Actual validation happens in individual handlers using consolidated WSSCD_Validation class
 		return true;
 	}
 

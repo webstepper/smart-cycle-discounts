@@ -12,296 +12,319 @@
 
 /* Global theme color properties */
 :root {
-    /* Primary colors - dynamically updated by JavaScript */
-    --scd-color-primary: #2271b1;
-    --scd-color-secondary: #72aee6;
-    --scd-color-success: #00a32a;
-    --scd-color-warning: #dba617;
-    --scd-color-danger: #d63638;
-    --scd-color-accent: #3858e9;
-    --scd-color-info: #72aee6;
-    --scd-color-blue: #3B82F6;
-    --scd-color-blue-light: #DBEAFE;
+    /* Primary colors - inherit from WordPress admin color scheme */
+    --wsscd-color-primary: var(--wp-admin-theme-color, #2271b1);
+    --wsscd-color-secondary: #72aee6;
+    --wsscd-color-success: #00a32a;
+    --wsscd-color-warning: #dba617;
+    --wsscd-color-danger: #d63638;
+    --wsscd-color-accent: #3858e9;
+    --wsscd-color-info: #72aee6;
+    --wsscd-color-blue: #3B82F6;
+    --wsscd-color-blue-light: #DBEAFE;
 
-    /* Color alpha variations (for transparency effects) */
-    --scd-color-primary-alpha-3: rgba(34, 113, 177, 0.03);
-    --scd-color-primary-alpha-10: rgba(34, 113, 177, 0.1);
-    --scd-color-primary-alpha-15: rgba(34, 113, 177, 0.15);
-    --scd-color-primary-alpha-20: rgba(34, 113, 177, 0.2);
-    --scd-color-primary-alpha-25: rgba(34, 113, 177, 0.25);
-    --scd-color-primary-alpha-30: rgba(34, 113, 177, 0.3);
-    --scd-color-success-alpha-5: rgba(0, 163, 42, 0.05);
-    --scd-color-success-alpha-15: rgba(0, 163, 42, 0.15);
-    --scd-color-warning-alpha-15: rgba(219, 166, 23, 0.15);
-    --scd-color-warning-alpha-25: rgba(219, 166, 23, 0.25);
-    --scd-color-danger-alpha-15: rgba(214, 54, 56, 0.15);
-    --scd-color-danger-alpha-25: rgba(214, 54, 56, 0.25);
-    --scd-color-danger-alpha-30: rgba(214, 54, 56, 0.3);
-    --scd-color-info-alpha-15: rgba(114, 174, 230, 0.15);
-    --scd-color-info-alpha-25: rgba(114, 174, 230, 0.25);
-    --scd-color-info-alpha-30: rgba(114, 174, 230, 0.3);
-    --scd-color-accent-alpha-30: rgba(56, 88, 233, 0.3);
-    --scd-color-gold-alpha-20: rgba(228, 196, 65, 0.2);
-    --scd-color-gold-alpha-30: rgba(228, 196, 65, 0.3);
-    --scd-color-text-alpha-15: rgba(100, 105, 112, 0.15);
-    --scd-color-text-alpha-25: rgba(100, 105, 112, 0.25);
-    --scd-color-blue-alpha-15: rgba(59, 130, 246, 0.15);
+    /* Color alpha variations - inherit from WordPress admin color scheme */
+    --wsscd-color-primary-alpha-3: var(--wp-admin-theme-color-alpha-5, rgba(34, 113, 177, 0.03));
+    --wsscd-color-primary-alpha-10: var(--wp-admin-theme-color-alpha-10, rgba(34, 113, 177, 0.1));
+    --wsscd-color-primary-alpha-15: var(--wp-admin-theme-color-alpha-20, rgba(34, 113, 177, 0.15));
+    --wsscd-color-primary-alpha-20: var(--wp-admin-theme-color-alpha-20, rgba(34, 113, 177, 0.2));
+    --wsscd-color-primary-alpha-25: var(--wp-admin-theme-color-alpha-25, rgba(34, 113, 177, 0.25));
+    --wsscd-color-primary-alpha-30: var(--wp-admin-theme-color-alpha-25, rgba(34, 113, 177, 0.3));
+    --wsscd-color-success-alpha-5: rgba(0, 163, 42, 0.05);
+    --wsscd-color-success-alpha-15: rgba(0, 163, 42, 0.15);
+    --wsscd-color-success-alpha-25: rgba(0, 163, 42, 0.25);
+    --wsscd-color-warning-alpha-15: rgba(219, 166, 23, 0.15);
+    --wsscd-color-warning-alpha-25: rgba(219, 166, 23, 0.25);
+    --wsscd-color-danger-alpha-15: rgba(214, 54, 56, 0.15);
+    --wsscd-color-danger-alpha-25: rgba(214, 54, 56, 0.25);
+    --wsscd-color-danger-alpha-30: rgba(214, 54, 56, 0.3);
+    --wsscd-color-info-alpha-15: rgba(114, 174, 230, 0.15);
+    --wsscd-color-info-alpha-25: rgba(114, 174, 230, 0.25);
+    --wsscd-color-info-alpha-30: rgba(114, 174, 230, 0.3);
+    --wsscd-color-accent-alpha-30: rgba(56, 88, 233, 0.3);
+    --wsscd-color-gold-alpha-20: rgba(228, 196, 65, 0.2);
+    --wsscd-color-gold-alpha-30: rgba(228, 196, 65, 0.3);
+    --wsscd-color-text-alpha-15: rgba(100, 105, 112, 0.15);
+    --wsscd-color-text-alpha-25: rgba(100, 105, 112, 0.25);
+    --wsscd-color-blue-alpha-15: rgba(59, 130, 246, 0.15);
 
     /* Overlay colors (for backgrounds, borders, shadows) */
-    --scd-overlay-faint: rgba(0, 0, 0, 0.02);
-    --scd-overlay-subtle: rgba(0, 0, 0, 0.05);
-    --scd-overlay-border: rgba(0, 0, 0, 0.06);
-    --scd-overlay-light: rgba(0, 0, 0, 0.1);
-    --scd-overlay-medium: rgba(0, 0, 0, 0.3);
-    --scd-overlay-heavy: rgba(0, 0, 0, 0.5);
-    --scd-overlay-dark: rgba(0, 0, 0, 0.85);
-    --scd-overlay-white-light: rgba(255, 255, 255, 0.4);
-    --scd-overlay-white-medium: rgba(255, 255, 255, 0.6);
-    --scd-overlay-white-heavy: rgba(255, 255, 255, 0.95);
+    --wsscd-overlay-faint: rgba(0, 0, 0, 0.02);
+    --wsscd-overlay-subtle: rgba(0, 0, 0, 0.05);
+    --wsscd-overlay-border: rgba(0, 0, 0, 0.06);
+    --wsscd-overlay-light: rgba(0, 0, 0, 0.1);
+    --wsscd-overlay-medium: rgba(0, 0, 0, 0.3);
+    --wsscd-overlay-heavy: rgba(0, 0, 0, 0.5);
+    --wsscd-overlay-dark: rgba(0, 0, 0, 0.85);
+    --wsscd-overlay-white-light: rgba(255, 255, 255, 0.4);
+    --wsscd-overlay-white-medium: rgba(255, 255, 255, 0.6);
+    --wsscd-overlay-white-heavy: rgba(255, 255, 255, 0.95);
 
     /* Neutral colors - WordPress defaults */
-    --scd-color-white: #fff;
-    --scd-color-text: #1d2327;
-    --scd-color-text-muted: #646970;
-    --scd-color-text-lighter: #999;
-    --scd-color-text-disabled: #a7aaad;
-    --scd-color-surface: #f6f7f7;
-    --scd-color-surface-dark: #f0f0f1;
-    --scd-color-border: #c3c4c7;
-    --scd-color-border-dark: #b4b9be;
-    --scd-color-border-light: #d0d0d0;
+    --wsscd-color-white: #fff;
+    --wsscd-color-text: #1d2327;
+    --wsscd-color-text-dark: #1d2327;
+    --wsscd-color-text-light: #50575e;
+    --wsscd-color-text-muted: #646970;
+    --wsscd-color-text-lighter: #999;
+    --wsscd-color-text-disabled: #8c8f94;
+    --wsscd-color-bg-disabled: #f0f0f1;
+    --wsscd-color-border-disabled: #c3c4c7;
+    --wsscd-color-surface: #f6f7f7;
+    --wsscd-color-surface-dark: #f0f0f1;
+    --wsscd-color-surface-alt: #f0f0f1; /* Alternate surface for nested backgrounds */
+    --wsscd-color-border: #c3c4c7;
+    --wsscd-color-border-dark: #b4b9be;
+    --wsscd-color-border-light: #d0d0d0;
 
     /* Semantic aliases */
-    --scd-color-dark: var(--scd-color-text);
-    --scd-color-light: var(--scd-color-surface-dark);
-    --scd-color-muted: var(--scd-color-text-muted);
+    --wsscd-color-dark: var(--wsscd-color-text);
+    --wsscd-color-light: var(--wsscd-color-surface-dark);
+    --wsscd-color-muted: var(--wsscd-color-text-muted);
+    --wsscd-color-text-secondary: #50575e;
+    --wsscd-color-accent-bg: rgba(56, 88, 233, 0.08);
+    --wsscd-color-info-dark: #4a90c2;
 
-    /* Color variations (auto-generated) */
-    --scd-color-primary-light: #4d8fc4;
-    --scd-color-primary-dark: #135e96;
-    --scd-color-secondary-light: #8ebced;
-    --scd-color-secondary-dark: #5991c5;
-    --scd-color-success-light: #46b450;
-    --scd-color-success-dark: #008a20;
-    --scd-color-warning-light: #e4c441;
-    --scd-color-warning-dark: #b19313;
-    --scd-color-danger-light: #dc5858;
-    --scd-color-danger-dark: #a02222;
-    --scd-color-accent-light: #5b7dff;
-    --scd-color-accent-dark: #2148c0;
+    /* Color variations - inherit from WordPress admin color scheme */
+    --wsscd-color-primary-light: var(--wp-admin-theme-color-lighter-10, #4d8fc4);
+    --wsscd-color-primary-dark: var(--wp-admin-theme-color-darker-10, #135e96);
+    --wsscd-color-secondary-light: #8ebced;
+    --wsscd-color-secondary-dark: #5991c5;
+    --wsscd-color-success-light: #46b450;
+    --wsscd-color-success-dark: #008a20;
+    --wsscd-color-warning-light: #e4c441;
+    --wsscd-color-warning-dark: #b19313;
+    --wsscd-color-danger-light: #dc5858;
+    --wsscd-color-danger-dark: #a02222;
+    --wsscd-color-accent-light: #5b7dff;
+    --wsscd-color-accent-dark: #2148c0;
 
     /* Lighter background variations (semantic aliases for alpha-15) */
-    --scd-color-success-lighter: var(--scd-color-success-alpha-15);
-    --scd-color-warning-lighter: var(--scd-color-warning-alpha-15);
-    --scd-color-danger-lighter: var(--scd-color-danger-alpha-15);
+    --wsscd-color-success-lighter: var(--wsscd-color-success-alpha-15);
+    --wsscd-color-warning-lighter: var(--wsscd-color-warning-alpha-15);
+    --wsscd-color-danger-lighter: var(--wsscd-color-danger-alpha-15);
+    --wsscd-color-info-lighter: var(--wsscd-color-info-alpha-15);
 
     /* Color-specific text and border aliases */
-    --scd-color-success-text: var(--scd-color-success-dark);
-    --scd-color-success-border: var(--scd-color-success);
-    --scd-color-warning-text: var(--scd-color-warning-dark);
-    --scd-color-warning-border: var(--scd-color-warning);
-    --scd-color-danger-text: var(--scd-color-danger-dark);
-    --scd-color-danger-border: var(--scd-color-danger);
+    --wsscd-color-success-text: var(--wsscd-color-success-dark);
+    --wsscd-color-success-border: var(--wsscd-color-success);
+    --wsscd-color-warning-text: var(--wsscd-color-warning-dark);
+    --wsscd-color-warning-border: var(--wsscd-color-warning);
+    --wsscd-color-danger-text: var(--wsscd-color-danger-dark);
+    --wsscd-color-danger-border: var(--wsscd-color-danger);
 
     /* Gray scale (WordPress standard gray values) */
-    --scd-color-gray-50: #f6f7f7;   /* Lightest */
-    --scd-color-gray-100: #f0f0f1;
-    --scd-color-gray-200: #dcdcde;
-    --scd-color-gray-300: #c3c4c7;
-    --scd-color-gray-400: #a7aaad;  /* Mid-gray */
-    --scd-color-gray-500: #8c8f94;
-    --scd-color-gray-600: #646970;
-    --scd-color-gray-700: #50575e;
-    --scd-color-gray-800: #3c434a;
-    --scd-color-gray-900: #1d2327;  /* Darkest */
+    --wsscd-color-gray-50: #f6f7f7;   /* Lightest */
+    --wsscd-color-gray-100: #f0f0f1;
+    --wsscd-color-gray-200: #dcdcde;
+    --wsscd-color-gray-300: #c3c4c7;
+    --wsscd-color-gray-400: #a7aaad;  /* Mid-gray */
+    --wsscd-color-gray-500: #8c8f94;
+    --wsscd-color-gray-600: #646970;
+    --wsscd-color-gray-700: #50575e;
+    --wsscd-color-gray-800: #3c434a;
+    --wsscd-color-gray-900: #1d2327;  /* Darkest */
 
     /* Component-specific mappings */
     /* Buttons */
-    --scd-button-primary: var(--scd-color-primary);
-    --scd-button-primary-hover: var(--scd-color-primary-dark);
-    --scd-button-secondary: var(--scd-color-secondary);
-    --scd-button-secondary-hover: var(--scd-color-secondary-dark);
-    --scd-button-success: var(--scd-color-success);
-    --scd-button-success-hover: var(--scd-color-success-dark);
-    --scd-button-danger: var(--scd-color-danger);
-    --scd-button-danger-hover: var(--scd-color-danger-dark);
+    --wsscd-button-primary: var(--wsscd-color-primary);
+    --wsscd-button-primary-hover: var(--wsscd-color-primary-dark);
+    --wsscd-button-secondary: var(--wsscd-color-secondary);
+    --wsscd-button-secondary-hover: var(--wsscd-color-secondary-dark);
+    --wsscd-button-success: var(--wsscd-color-success);
+    --wsscd-button-success-hover: var(--wsscd-color-success-dark);
+    --wsscd-button-danger: var(--wsscd-color-danger);
+    --wsscd-button-danger-hover: var(--wsscd-color-danger-dark);
     
-    /* Forms */
-    --scd-form-focus: var(--scd-color-primary);
-    --scd-form-focus-shadow: rgba(34, 113, 177, 0.25);
-    --scd-form-error: var(--scd-color-danger);
-    --scd-form-success: var(--scd-color-success);
-    --scd-form-checked-bg: var(--scd-color-primary);
-    --scd-form-checked-border: var(--scd-color-primary);
-    --scd-form-toggle-on: var(--scd-color-primary);
+    /* Forms - inherit from WordPress admin color scheme */
+    --wsscd-form-focus: var(--wp-admin-theme-color, #2271b1);
+    --wsscd-form-focus-shadow: var(--wp-admin-theme-color-alpha-25, rgba(34, 113, 177, 0.25));
+    --wsscd-form-error: var(--wsscd-color-danger);
+    --wsscd-form-success: var(--wsscd-color-success);
+    --wsscd-form-checked-bg: var(--wp-admin-theme-color, #2271b1);
+    --wsscd-form-checked-border: var(--wp-admin-theme-color, #2271b1);
+    --wsscd-form-toggle-on: var(--wp-admin-theme-color, #2271b1);
     
     /* Alerts/Notifications */
-    --scd-alert-info-bg: rgba(114, 174, 230, 0.1);
-    --scd-alert-info-border: var(--scd-color-info);
-    --scd-alert-info-text: var(--scd-color-dark);
+    --wsscd-alert-info-bg: rgba(114, 174, 230, 0.1);
+    --wsscd-alert-info-border: var(--wsscd-color-info);
+    --wsscd-alert-info-text: var(--wsscd-color-dark);
     
-    --scd-alert-success-bg: rgba(0, 163, 42, 0.1);
-    --scd-alert-success-border: var(--scd-color-success);
-    --scd-alert-success-text: var(--scd-color-dark);
+    --wsscd-alert-success-bg: rgba(0, 163, 42, 0.1);
+    --wsscd-alert-success-border: var(--wsscd-color-success);
+    --wsscd-alert-success-text: var(--wsscd-color-dark);
     
-    --scd-alert-warning-bg: rgba(219, 166, 23, 0.1);
-    --scd-alert-warning-border: var(--scd-color-warning);
-    --scd-alert-warning-text: var(--scd-color-dark);
+    --wsscd-alert-warning-bg: rgba(219, 166, 23, 0.1);
+    --wsscd-alert-warning-border: var(--wsscd-color-warning);
+    --wsscd-alert-warning-text: var(--wsscd-color-dark);
     
-    --scd-alert-danger-bg: rgba(214, 54, 56, 0.1);
-    --scd-alert-danger-border: var(--scd-color-danger);
-    --scd-alert-danger-text: var(--scd-color-dark);
+    --wsscd-alert-danger-bg: rgba(214, 54, 56, 0.1);
+    --wsscd-alert-danger-border: var(--wsscd-color-danger);
+    --wsscd-alert-danger-text: var(--wsscd-color-dark);
     
     /* Charts */
-    --scd-chart-primary: var(--scd-color-primary);
-    --scd-chart-secondary: var(--scd-color-secondary);
-    --scd-chart-success: var(--scd-color-success);
-    --scd-chart-warning: var(--scd-color-warning);
-    --scd-chart-danger: var(--scd-color-danger);
-    --scd-chart-series-1: var(--scd-color-primary);
-    --scd-chart-series-2: var(--scd-color-accent);
-    --scd-chart-series-3: var(--scd-color-secondary);
-    --scd-chart-series-4: var(--scd-color-success);
-    --scd-chart-series-5: var(--scd-color-warning);
+    --wsscd-chart-primary: var(--wsscd-color-primary);
+    --wsscd-chart-secondary: var(--wsscd-color-secondary);
+    --wsscd-chart-success: var(--wsscd-color-success);
+    --wsscd-chart-warning: var(--wsscd-color-warning);
+    --wsscd-chart-danger: var(--wsscd-color-danger);
+    --wsscd-chart-series-1: var(--wsscd-color-primary);
+    --wsscd-chart-series-2: var(--wsscd-color-accent);
+    --wsscd-chart-series-3: var(--wsscd-color-secondary);
+    --wsscd-chart-series-4: var(--wsscd-color-success);
+    --wsscd-chart-series-5: var(--wsscd-color-warning);
     
     /* Badges/Status */
-    --scd-badge-active: var(--scd-color-success);
-    --scd-badge-inactive: var(--scd-color-muted);
-    --scd-badge-scheduled: var(--scd-color-info);
-    --scd-badge-expired: var(--scd-color-danger);
-    --scd-badge-draft: var(--scd-color-warning);
+    --wsscd-badge-active: var(--wsscd-color-success);
+    --wsscd-badge-inactive: var(--wsscd-color-muted);
+    --wsscd-badge-scheduled: var(--wsscd-color-info);
+    --wsscd-badge-expired: var(--wsscd-color-danger);
+    --wsscd-badge-draft: var(--wsscd-color-warning);
     
-    /* Tables */
-    --scd-table-hover: rgba(34, 113, 177, 0.05);
-    --scd-table-selected: var(--scd-color-primary-alpha-10);
-    --scd-table-border: var(--scd-color-border-lighter);
+    /* Tables - inherit from WordPress admin color scheme */
+    --wsscd-table-hover: var(--wp-admin-theme-color-alpha-5, rgba(34, 113, 177, 0.05));
+    --wsscd-table-selected: var(--wp-admin-theme-color-alpha-10, rgba(34, 113, 177, 0.1));
+    --wsscd-table-border: var(--wsscd-color-border-lighter);
     
     /* Loading states */
-    --scd-loader-primary: var(--scd-color-primary);
-    --scd-loader-track: var(--scd-color-light);
+    --wsscd-loader-primary: var(--wsscd-color-primary);
+    --wsscd-loader-track: var(--wsscd-color-light);
     
     /* Progress bars */
-    --scd-progress-bg: var(--scd-color-light);
-    --scd-progress-fill: var(--scd-color-primary);
-    --scd-progress-success: var(--scd-color-success);
-    --scd-progress-warning: var(--scd-color-warning);
-    --scd-progress-danger: var(--scd-color-danger);
+    --wsscd-progress-bg: var(--wsscd-color-light);
+    --wsscd-progress-fill: var(--wsscd-color-primary);
+    --wsscd-progress-success: var(--wsscd-color-success);
+    --wsscd-progress-warning: var(--wsscd-color-warning);
+    --wsscd-progress-danger: var(--wsscd-color-danger);
 
     /* Additional colors needed by components */
-    --scd-color-background-overlay: var(--scd-overlay-white-heavy);
-    --scd-color-primary-bg: rgba(34, 113, 177, 0.05);
-    --scd-color-success-bg: rgba(0, 163, 42, 0.05);
-    --scd-color-warning-bg: rgba(219, 166, 23, 0.05);
-    --scd-color-error-bg: rgba(214, 54, 56, 0.05);
+    --wsscd-color-background-overlay: var(--wsscd-overlay-white-heavy);
+    --wsscd-color-primary-bg: var(--wp-admin-theme-color-alpha-5, rgba(34, 113, 177, 0.05));
+    --wsscd-color-success-bg: rgba(0, 163, 42, 0.05);
+    --wsscd-color-warning-bg: rgba(219, 166, 23, 0.05);
+    --wsscd-color-error-bg: rgba(214, 54, 56, 0.05);
 
     /* WordPress standard notice backgrounds (exact WordPress colors) */
-    --scd-color-danger-bg-light: #fcf0f1;
-    --scd-color-warning-bg-light: #fcf9e8;
+    --wsscd-color-danger-bg-light: #fcf0f1;
+    --wsscd-color-warning-bg-light: #fcf9e8;
     
     /* Additional shadow definitions */
-    --scd-shadow-success: rgba(0, 163, 42, 0.15);
-    --scd-shadow-gradient-light: rgba(0, 0, 0, 0.02);
+    --wsscd-shadow-success: rgba(0, 163, 42, 0.15);
+    --wsscd-shadow-gradient-light: rgba(0, 0, 0, 0.02);
     
     /* Overlay colors */
-    --scd-color-overlay-light: rgba(255, 255, 255, 0.5);
-    --scd-color-background-solid: rgba(255, 255, 255, 0.98);
-    --scd-color-overlay-light-text: rgba(255, 255, 255, 0.8);
+    --wsscd-color-overlay-light: rgba(255, 255, 255, 0.5);
+    --wsscd-color-background-solid: rgba(255, 255, 255, 0.98);
+    --wsscd-color-overlay-light-text: rgba(255, 255, 255, 0.8);
 
-    /* Extended color variations */
-    --scd-color-primary-light-bg: rgba(34, 113, 177, 0.08);
-    --scd-color-primary-light-border: var(--scd-color-primary-alpha-20);
-    --scd-color-danger-light-border: rgba(214, 54, 56, 0.2);
-    --scd-color-warning-light-border: rgba(219, 166, 23, 0.2);
-    --scd-color-surface-light: #fafafa;
-    --scd-color-info-bg: #e8f5f9;
-    --scd-color-danger-dark-bg: #3d1f1f;
+    /* Extended color variations - inherit from WordPress admin color scheme */
+    --wsscd-color-primary-light-bg: var(--wp-admin-theme-color-alpha-8, rgba(34, 113, 177, 0.08));
+    --wsscd-color-primary-light-border: var(--wp-admin-theme-color-alpha-20, rgba(34, 113, 177, 0.2));
+    --wsscd-color-danger-light-border: rgba(214, 54, 56, 0.2);
+    --wsscd-color-warning-light-border: rgba(219, 166, 23, 0.2);
+    --wsscd-color-surface-light: #fafafa;
+    --wsscd-color-info-bg: #e8f5f9;
+    --wsscd-color-danger-dark-bg: #3d1f1f;
 
     /* Shadow definitions moved to _variables.css for centralization */
+
+    /* Gradients */
+    --wsscd-gradient-background: linear-gradient(135deg, var(--wsscd-color-surface) 0%, var(--wsscd-color-background) 100%);
 }
 
 /* ==========================================================================
    Dark Mode Theme
    ========================================================================== */
 
-:root[data-scd-theme="dark"] {
+:root[data-wsscd-theme="dark"] {
     /* Primary colors - adjusted for dark mode */
-    --scd-color-primary: #4a9eff;
-    --scd-color-secondary: #8ec5ff;
-    --scd-color-success: #46d369;
-    --scd-color-warning: #f4c542;
-    --scd-color-danger: #ff6b6b;
-    --scd-color-accent: #6b8aff;
-    --scd-color-info: #8ec5ff;
+    --wsscd-color-primary: #4a9eff;
+    --wsscd-color-secondary: #8ec5ff;
+    --wsscd-color-success: #46d369;
+    --wsscd-color-warning: #f4c542;
+    --wsscd-color-danger: #ff6b6b;
+    --wsscd-color-accent: #6b8aff;
+    --wsscd-color-info: #8ec5ff;
 
     /* Neutral colors - inverted for dark mode */
-    --scd-color-white: #1a1d23;
-    --scd-color-text: #e4e6eb;
-    --scd-color-text-muted: #a8adb8;
-    --scd-color-text-lighter: #8a8f9a;
-    --scd-color-text-disabled: #6a6f7a;
-    --scd-color-surface: #252832;
-    --scd-color-surface-dark: #2d3139;
-    --scd-color-border: #3e4147;
-    --scd-color-border-dark: #4a4f57;
-    --scd-color-border-light: #363940;
+    --wsscd-color-white: #1a1d23;
+    --wsscd-color-text: #e4e6eb;
+    --wsscd-color-text-dark: #f0f2f5;
+    --wsscd-color-text-light: #c8ccd4;
+    --wsscd-color-text-muted: #a8adb8;
+    --wsscd-color-text-lighter: #8a8f9a;
+    --wsscd-color-text-secondary: #c8ccd4;
+    --wsscd-color-text-disabled: #6b7280;
+    --wsscd-color-bg-disabled: #374151;
+    --wsscd-color-border-disabled: #4b5563;
+    --wsscd-color-accent-bg: rgba(107, 138, 255, 0.15);
+    --wsscd-color-info-dark: #6faee6;
+    --wsscd-color-surface: #252832;
+    --wsscd-color-surface-dark: #2d3139;
+    --wsscd-color-surface-alt: #2d3139; /* Alternate surface for nested backgrounds */
+    --wsscd-color-border: #3e4147;
+    --wsscd-color-border-dark: #4a4f57;
+    --wsscd-color-border-light: #363940;
 
     /* Color variations (dark mode adjusted) */
-    --scd-color-primary-light: #6bb3ff;
-    --scd-color-primary-dark: #2a7fd9;
-    --scd-color-secondary-light: #a3d4ff;
-    --scd-color-secondary-dark: #6faee6;
-    --scd-color-success-light: #6ddf88;
-    --scd-color-success-dark: #2bb74a;
-    --scd-color-warning-light: #f7d46f;
-    --scd-color-warning-dark: #d9a825;
-    --scd-color-danger-light: #ff8a8a;
-    --scd-color-danger-dark: #e04e4e;
-    --scd-color-accent-light: #8aa5ff;
-    --scd-color-accent-dark: #4a6ed9;
+    --wsscd-color-primary-light: #6bb3ff;
+    --wsscd-color-primary-dark: #2a7fd9;
+    --wsscd-color-secondary-light: #a3d4ff;
+    --wsscd-color-secondary-dark: #6faee6;
+    --wsscd-color-success-light: #6ddf88;
+    --wsscd-color-success-dark: #2bb74a;
+    --wsscd-color-warning-light: #f7d46f;
+    --wsscd-color-warning-dark: #d9a825;
+    --wsscd-color-danger-light: #ff8a8a;
+    --wsscd-color-danger-dark: #e04e4e;
+    --wsscd-color-accent-light: #8aa5ff;
+    --wsscd-color-accent-dark: #4a6ed9;
 
     /* Alpha variations (dark mode) */
-    --scd-color-primary-alpha-3: rgba(74, 158, 255, 0.03);
-    --scd-color-primary-alpha-10: rgba(74, 158, 255, 0.1);
-    --scd-color-primary-alpha-15: rgba(74, 158, 255, 0.15);
-    --scd-color-primary-alpha-20: rgba(74, 158, 255, 0.2);
-    --scd-color-primary-alpha-25: rgba(74, 158, 255, 0.25);
-    --scd-color-primary-alpha-30: rgba(74, 158, 255, 0.3);
-    --scd-color-success-alpha-5: rgba(70, 211, 105, 0.05);
-    --scd-color-success-alpha-15: rgba(70, 211, 105, 0.15);
-    --scd-color-warning-alpha-15: rgba(244, 197, 66, 0.15);
-    --scd-color-warning-alpha-25: rgba(244, 197, 66, 0.25);
-    --scd-color-danger-alpha-15: rgba(255, 107, 107, 0.15);
-    --scd-color-danger-alpha-25: rgba(255, 107, 107, 0.25);
-    --scd-color-danger-alpha-30: rgba(255, 107, 107, 0.3);
+    --wsscd-color-primary-alpha-3: rgba(74, 158, 255, 0.03);
+    --wsscd-color-primary-alpha-10: rgba(74, 158, 255, 0.1);
+    --wsscd-color-primary-alpha-15: rgba(74, 158, 255, 0.15);
+    --wsscd-color-primary-alpha-20: rgba(74, 158, 255, 0.2);
+    --wsscd-color-primary-alpha-25: rgba(74, 158, 255, 0.25);
+    --wsscd-color-primary-alpha-30: rgba(74, 158, 255, 0.3);
+    --wsscd-color-success-alpha-5: rgba(70, 211, 105, 0.05);
+    --wsscd-color-success-alpha-15: rgba(70, 211, 105, 0.15);
+    --wsscd-color-warning-alpha-15: rgba(244, 197, 66, 0.15);
+    --wsscd-color-warning-alpha-25: rgba(244, 197, 66, 0.25);
+    --wsscd-color-danger-alpha-15: rgba(255, 107, 107, 0.15);
+    --wsscd-color-danger-alpha-25: rgba(255, 107, 107, 0.25);
+    --wsscd-color-danger-alpha-30: rgba(255, 107, 107, 0.3);
 
     /* Overlay colors (dark mode) */
-    --scd-overlay-faint: rgba(255, 255, 255, 0.02);
-    --scd-overlay-subtle: rgba(255, 255, 255, 0.05);
-    --scd-overlay-border: rgba(255, 255, 255, 0.08);
-    --scd-overlay-light: rgba(255, 255, 255, 0.1);
-    --scd-overlay-medium: rgba(0, 0, 0, 0.4);
-    --scd-overlay-heavy: rgba(0, 0, 0, 0.7);
-    --scd-overlay-dark: rgba(0, 0, 0, 0.9);
+    --wsscd-overlay-faint: rgba(255, 255, 255, 0.02);
+    --wsscd-overlay-subtle: rgba(255, 255, 255, 0.05);
+    --wsscd-overlay-border: rgba(255, 255, 255, 0.08);
+    --wsscd-overlay-light: rgba(255, 255, 255, 0.1);
+    --wsscd-overlay-medium: rgba(0, 0, 0, 0.4);
+    --wsscd-overlay-heavy: rgba(0, 0, 0, 0.7);
+    --wsscd-overlay-dark: rgba(0, 0, 0, 0.9);
 
     /* Background variations */
-    --scd-color-background: var(--scd-color-white);
-    --scd-color-surface-light: #2a2d35;
-    --scd-color-primary-bg: rgba(74, 158, 255, 0.1);
-    --scd-color-success-bg: rgba(70, 211, 105, 0.1);
-    --scd-color-warning-bg: rgba(244, 197, 66, 0.1);
-    --scd-color-error-bg: rgba(255, 107, 107, 0.1);
-    --scd-color-danger-bg-light: rgba(255, 107, 107, 0.15);
-    --scd-color-warning-bg-light: rgba(244, 197, 66, 0.15);
+    --wsscd-color-background: var(--wsscd-color-white);
+    --wsscd-color-surface-light: #2a2d35;
+    --wsscd-color-primary-bg: rgba(74, 158, 255, 0.1);
+    --wsscd-color-success-bg: rgba(70, 211, 105, 0.1);
+    --wsscd-color-warning-bg: rgba(244, 197, 66, 0.1);
+    --wsscd-color-error-bg: rgba(255, 107, 107, 0.1);
+    --wsscd-color-danger-bg-light: rgba(255, 107, 107, 0.15);
+    --wsscd-color-warning-bg-light: rgba(244, 197, 66, 0.15);
 
     /* Lighter background variations */
-    --scd-color-success-lighter: rgba(70, 211, 105, 0.15);
-    --scd-color-warning-lighter: rgba(244, 197, 66, 0.15);
-    --scd-color-danger-lighter: rgba(255, 107, 107, 0.15);
+    --wsscd-color-success-lighter: rgba(70, 211, 105, 0.15);
+    --wsscd-color-warning-lighter: rgba(244, 197, 66, 0.15);
+    --wsscd-color-danger-lighter: rgba(255, 107, 107, 0.15);
+    --wsscd-color-info-lighter: rgba(142, 197, 255, 0.15);
 
     /* Gradients (dark mode) */
-    --scd-gradient-primary: linear-gradient(135deg, #4a9eff 0%, #2a7fd9 100%);
-    --scd-gradient-success: linear-gradient(135deg, #46d369 0%, #2bb74a 100%);
-    --scd-gradient-danger: linear-gradient(135deg, #ff6b6b 0%, #e04e4e 100%);
-    --scd-gradient-warning: linear-gradient(135deg, #f4c542 0%, #d9a825 100%);
-    --scd-gradient-surface: linear-gradient(to bottom, #1a1d23 0%, #252832 100%);
+    --wsscd-gradient-primary: linear-gradient(135deg, #4a9eff 0%, #2a7fd9 100%);
+    --wsscd-gradient-success: linear-gradient(135deg, #46d369 0%, #2bb74a 100%);
+    --wsscd-gradient-danger: linear-gradient(135deg, #ff6b6b 0%, #e04e4e 100%);
+    --wsscd-gradient-warning: linear-gradient(135deg, #f4c542 0%, #d9a825 100%);
+    --wsscd-gradient-surface: linear-gradient(to bottom, #1a1d23 0%, #252832 100%);
+    --wsscd-gradient-background: linear-gradient(135deg, var(--wsscd-color-surface) 0%, var(--wsscd-color-background) 100%);
 }

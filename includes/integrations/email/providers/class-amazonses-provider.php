@@ -24,16 +24,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/integrations/email/providers
  */
-class SCD_AmazonSES_Provider implements SCD_Email_Provider {
+class WSSCD_AmazonSES_Provider implements WSSCD_Email_Provider {
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * AWS Access Key ID.
@@ -84,7 +84,7 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 	 * Initialize provider.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger        Logger instance.
+	 * @param    WSSCD_Logger $logger        Logger instance.
 	 * @param    string     $access_key    AWS Access Key ID.
 	 * @param    string     $secret_key    AWS Secret Access Key.
 	 * @param    string     $region        AWS Region.
@@ -92,7 +92,7 @@ class SCD_AmazonSES_Provider implements SCD_Email_Provider {
 	 * @param    string     $from_name     From name.
 	 */
 	public function __construct(
-		SCD_Logger $logger,
+		WSSCD_Logger $logger,
 		string $access_key = '',
 		string $secret_key = '',
 		string $region = 'us-east-1',

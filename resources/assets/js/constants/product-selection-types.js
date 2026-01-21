@@ -13,18 +13,18 @@
 ( function( window ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	SCD.Constants = SCD.Constants || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Constants = WSSCD.Constants || {};
 
-	var localizedConstants = window.scdWizardData &&
-                           window.scdWizardData.constants &&
-                           window.scdWizardData.constants.productSelectionTypes || null;
+	var localizedConstants = window.wsscdWizardData &&
+                           window.wsscdWizardData.constants &&
+                           window.wsscdWizardData.constants.productSelectionTypes || null;
 
 	/**
 	 * Product Selection Types
 	 * Uses PHP constants if available, falls back to hardcoded values
 	 */
-	SCD.Constants.ProductSelectionTypes = {
+	WSSCD.Constants.ProductSelectionTypes = {
 		ALL_PRODUCTS: localizedConstants ? localizedConstants.ALL_PRODUCTS : 'all_products',
 		SPECIFIC_PRODUCTS: localizedConstants ? localizedConstants.SPECIFIC_PRODUCTS : 'specific_products',
 		RANDOM_PRODUCTS: localizedConstants ? localizedConstants.RANDOM_PRODUCTS : 'random_products',

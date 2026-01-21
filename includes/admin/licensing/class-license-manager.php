@@ -1,5 +1,7 @@
 <?php
 /**
+ * @fs_premium_only
+ *
  * License Manager Class
  *
  * @package    SmartCycleDiscounts
@@ -26,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/licensing
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_License_Manager {
+class WSSCD_License_Manager {
 
 	/**
 	 * Option key for last license check timestamp.
@@ -35,7 +37,7 @@ class SCD_License_Manager {
 	 * @access   private
 	 * @var      string
 	 */
-	private $last_check_option = 'scd_license_last_check';
+	private $last_check_option = 'wsscd_license_last_check';
 
 	/**
 	 * Option key for cached validation result.
@@ -44,7 +46,7 @@ class SCD_License_Manager {
 	 * @access   private
 	 * @var      string
 	 */
-	private $validation_cache_option = 'scd_license_validation_cache';
+	private $validation_cache_option = 'wsscd_license_validation_cache';
 
 	/**
 	 * License check interval in seconds (24 hours - industry standard).
@@ -87,7 +89,7 @@ class SCD_License_Manager {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_License_Manager|null
+	 * @var      WSSCD_License_Manager|null
 	 */
 	private static $instance = null;
 
@@ -95,7 +97,7 @@ class SCD_License_Manager {
 	 * Get singleton instance.
 	 *
 	 * @since    1.0.0
-	 * @return   SCD_License_Manager
+	 * @return   WSSCD_License_Manager
 	 */
 	public static function instance() {
 		if ( null === self::$instance ) {
@@ -122,7 +124,7 @@ class SCD_License_Manager {
 	 */
 	private function setup_hooks() {
 		// Daily cron to verify license health
-		add_action( 'scd_license_health_check', array( $this, 'run_health_check' ) );
+		add_action( 'wsscd_license_health_check', array( $this, 'run_health_check' ) );
 
 		// Admin init for periodic checks
 		add_action( 'admin_init', array( $this, 'maybe_run_periodic_check' ) );
@@ -135,8 +137,8 @@ class SCD_License_Manager {
 	 * @return   void
 	 */
 	public function schedule_periodic_checks() {
-		if ( ! wp_next_scheduled( 'scd_license_health_check' ) ) {
-			wp_schedule_event( time(), 'daily', 'scd_license_health_check' );
+		if ( ! wp_next_scheduled( 'wsscd_license_health_check' ) ) {
+			wp_schedule_event( time(), 'daily', 'wsscd_license_health_check' );
 		}
 	}
 
@@ -147,9 +149,9 @@ class SCD_License_Manager {
 	 * @return   void
 	 */
 	public function unschedule_periodic_checks() {
-		$timestamp = wp_next_scheduled( 'scd_license_health_check' );
+		$timestamp = wp_next_scheduled( 'wsscd_license_health_check' );
 		if ( $timestamp ) {
-			wp_unschedule_event( $timestamp, 'scd_license_health_check' );
+			wp_unschedule_event( $timestamp, 'wsscd_license_health_check' );
 		}
 	}
 
@@ -163,12 +165,12 @@ class SCD_License_Manager {
 	 * @return   bool    True if license is valid and active.
 	 */
 	public function is_license_valid() {
-		if ( ! function_exists( 'scd_fs' ) || ! scd_fs() ) {
+		if ( ! function_exists( 'wsscd_fs' ) || ! wsscd_fs() ) {
 			return false;
 		}
 
 		// Quick check: if not registered, definitely not valid
-		if ( ! scd_fs()->is_registered() ) {
+		if ( ! wsscd_fs()->is_registered() ) {
 			return false;
 		}
 
@@ -213,18 +215,18 @@ class SCD_License_Manager {
 	 * @return   bool    True if license is valid and active.
 	 */
 	private function validate_with_api() {
-		if ( ! function_exists( 'scd_fs' ) || ! scd_fs() ) {
+		if ( ! function_exists( 'wsscd_fs' ) || ! wsscd_fs() ) {
 			$this->cache_validation( false );
 			return false;
 		}
 
 		try {
-			$is_premium = scd_fs()->is_premium();
-			$is_trial   = scd_fs()->is_trial();
+			$is_premium = wsscd_fs()->is_premium();
+			$is_trial   = wsscd_fs()->is_trial();
 
 			// Additional verification: check license object
 			if ( $is_premium || $is_trial ) {
-				$license = scd_fs()->_get_license();
+				$license = wsscd_fs()->_get_license();
 
 				// Verify license is active
 				if ( $license && method_exists( $license, 'is_active' ) ) {
@@ -337,8 +339,8 @@ class SCD_License_Manager {
 		update_option( $this->last_check_option, time(), false );
 
 		// Log result if logging is available
-		if ( function_exists( 'scd_log_info' ) ) {
-			scd_log_info(
+		if ( function_exists( 'wsscd_log_info' ) ) {
+			wsscd_log_info(
 				'License health check completed',
 				array(
 					'is_valid'  => $is_valid,
@@ -357,15 +359,15 @@ class SCD_License_Manager {
 	 * @return   array|null    License info or null if not available.
 	 */
 	public function get_license_info() {
-		if ( ! function_exists( 'scd_fs' ) || ! scd_fs() ) {
+		if ( ! function_exists( 'wsscd_fs' ) || ! wsscd_fs() ) {
 			return null;
 		}
 
-		if ( ! scd_fs()->is_registered() ) {
+		if ( ! wsscd_fs()->is_registered() ) {
 			return null;
 		}
 
-		$license = scd_fs()->_get_license();
+		$license = wsscd_fs()->_get_license();
 		if ( ! $license ) {
 			return null;
 		}
@@ -374,9 +376,9 @@ class SCD_License_Manager {
 			'is_active'  => method_exists( $license, 'is_active' ) ? $license->is_active() : false,
 			'is_expired' => isset( $license->is_expired ) ? $license->is_expired : false,
 			'expiration' => isset( $license->expiration ) ? $license->expiration : null,
-			'is_trial'   => scd_fs()->is_trial(),
-			'is_premium' => scd_fs()->is_premium(),
-			'plan_name'  => scd_fs()->get_plan_name(),
+			'is_trial'   => wsscd_fs()->is_trial(),
+			'is_premium' => wsscd_fs()->is_premium(),
+			'plan_name'  => wsscd_fs()->get_plan_name(),
 		);
 	}
 
@@ -401,17 +403,17 @@ class SCD_License_Manager {
 	 * @return   bool    True if user has never purchased premium.
 	 */
 	public function is_free_user() {
-		if ( ! function_exists( 'scd_fs' ) || ! scd_fs() ) {
+		if ( ! function_exists( 'wsscd_fs' ) || ! wsscd_fs() ) {
 			return true; // No Freemius = treat as free
 		}
 
 		// Not registered = free user
-		if ( ! scd_fs()->is_registered() ) {
+		if ( ! wsscd_fs()->is_registered() ) {
 			return true;
 		}
 
 		// Registered but never purchased = free user
-		if ( ! scd_fs()->has_paid_plan() ) {
+		if ( ! wsscd_fs()->has_paid_plan() ) {
 			return true;
 		}
 
@@ -425,12 +427,12 @@ class SCD_License_Manager {
 	 * @return   bool    True if user purchased but license is now invalid.
 	 */
 	public function is_license_expired() {
-		if ( ! function_exists( 'scd_fs' ) || ! scd_fs() ) {
+		if ( ! function_exists( 'wsscd_fs' ) || ! wsscd_fs() ) {
 			return false;
 		}
 
 		// Must be registered and have purchased before
-		if ( ! scd_fs()->is_registered() || ! scd_fs()->has_paid_plan() ) {
+		if ( ! wsscd_fs()->is_registered() || ! wsscd_fs()->has_paid_plan() ) {
 			return false;
 		}
 
@@ -458,7 +460,7 @@ class SCD_License_Manager {
 	/**
 	 * Clean up orphaned user meta from old notification system.
 	 *
-	 * Removes the old 'scd_dismissed_upgrade_notice' user meta that is no longer used.
+	 * Removes the old 'wsscd_dismissed_upgrade_notice' user meta that is no longer used.
 	 * This was replaced by the Upgrade Prompt Manager's banner system.
 	 *
 	 * @since    1.0.0
@@ -467,8 +469,12 @@ class SCD_License_Manager {
 	public static function cleanup_orphaned_user_meta() {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Bulk usermeta cleanup; no WP abstraction for bulk meta_key delete.
 		$deleted = $wpdb->query(
-			"DELETE FROM {$wpdb->usermeta} WHERE meta_key = 'scd_dismissed_upgrade_notice'"
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->usermeta} WHERE meta_key = %s",
+				'wsscd_dismissed_upgrade_notice'
+			)
 		);
 
 		return absint( $deleted );

@@ -26,16 +26,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/integrations/woocommerce
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_WC_Coupon_Restriction {
+class WSSCD_WC_Coupon_Restriction {
 
 	/**
 	 * Campaign manager.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Manager    $campaign_manager    Campaign manager.
+	 * @var      WSSCD_Campaign_Manager    $campaign_manager    Campaign manager.
 	 */
-	private SCD_Campaign_Manager $campaign_manager;
+	private WSSCD_Campaign_Manager $campaign_manager;
 
 	/**
 	 * Logger instance.
@@ -50,10 +50,10 @@ class SCD_WC_Coupon_Restriction {
 	 * Initialize coupon restriction.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Manager $campaign_manager    Campaign manager.
+	 * @param    WSSCD_Campaign_Manager $campaign_manager    Campaign manager.
 	 * @param    object|null          $logger              Logger.
 	 */
-	public function __construct( SCD_Campaign_Manager $campaign_manager, ?object $logger = null ) {
+	public function __construct( WSSCD_Campaign_Manager $campaign_manager, ?object $logger = null ) {
 		$this->campaign_manager = $campaign_manager;
 		$this->logger           = $logger;
 	}
@@ -72,14 +72,19 @@ class SCD_WC_Coupon_Restriction {
 	 * Validate coupon compatibility with active campaigns.
 	 *
 	 * @since    1.0.0
-	 * @param    bool      $valid     Whether coupon is valid.
-	 * @param    WC_Coupon $coupon    Coupon object.
-	 * @return   bool                   Whether coupon is valid.
-	 * @throws   Exception              If coupon conflicts with campaign.
+	 * @param    mixed $valid     Whether coupon is valid (may be other types from some filters).
+	 * @param    mixed $coupon    Coupon object (may be other types from some filters).
+	 * @return   bool              Whether coupon is valid.
+	 * @throws   Exception         If coupon conflicts with campaign.
 	 */
-	public function validate_coupon_with_campaign( bool $valid, WC_Coupon $coupon ): bool {
+	public function validate_coupon_with_campaign( $valid, $coupon ): bool {
+		// Ensure we have a valid WC_Coupon instance.
+		if ( ! $coupon instanceof WC_Coupon ) {
+			return (bool) $valid;
+		}
+
 		if ( ! $valid ) {
-			return $valid;
+			return (bool) $valid;
 		}
 
 		try {

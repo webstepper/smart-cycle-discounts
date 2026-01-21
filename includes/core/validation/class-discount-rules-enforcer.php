@@ -28,16 +28,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/validation
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Discount_Rules_Enforcer {
+class WSSCD_Discount_Rules_Enforcer {
 
 	/**
 	 * Customer usage manager.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Customer_Usage_Manager|null    $usage_manager    Usage manager.
+	 * @var      WSSCD_Customer_Usage_Manager|null    $usage_manager    Usage manager.
 	 */
-	private ?SCD_Customer_Usage_Manager $usage_manager;
+	private ?WSSCD_Customer_Usage_Manager $usage_manager;
 
 	/**
 	 * Logger instance.
@@ -52,10 +52,10 @@ class SCD_Discount_Rules_Enforcer {
 	 * Initialize the enforcer.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Customer_Usage_Manager|null $usage_manager    Usage manager.
+	 * @param    WSSCD_Customer_Usage_Manager|null $usage_manager    Usage manager.
 	 * @param    object|null                     $logger           Logger.
 	 */
-	public function __construct( ?SCD_Customer_Usage_Manager $usage_manager = null, ?object $logger = null ) {
+	public function __construct( ?WSSCD_Customer_Usage_Manager $usage_manager = null, ?object $logger = null ) {
 		$this->usage_manager = $usage_manager;
 		$this->logger        = $logger;
 	}

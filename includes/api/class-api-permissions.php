@@ -27,25 +27,34 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/api
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_API_Permissions {
+class WSSCD_API_Permissions {
 
 	/**
 	 * Capability manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Admin_Capability_Manager    $capability_manager    Capability manager.
+	 * @var      WSSCD_Admin_Capability_Manager    $capability_manager    Capability manager.
 	 */
-	private SCD_Admin_Capability_Manager $capability_manager;
+	private WSSCD_Admin_Capability_Manager $capability_manager;
+
+	/**
+	 * Feature gate instance.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      WSSCD_Feature_Gate|null    $feature_gate    Feature gate for license checks.
+	 */
+	private ?WSSCD_Feature_Gate $feature_gate = null;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * API capabilities mapping.
@@ -114,22 +123,61 @@ class SCD_API_Permissions {
 	 */
 	private array $rate_limit_exemptions = array(
 		'manage_options' => true, // WordPress administrators
-		'scd_admin'      => true,       // Plugin administrators
+		'wsscd_admin'      => true,       // Plugin administrators
 	);
 
 	/**
 	 * Initialize the permissions manager.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Admin_Capability_Manager $capability_manager    Capability manager.
-	 * @param    SCD_Logger                   $logger                Logger instance.
+	 * @param    WSSCD_Admin_Capability_Manager $capability_manager    Capability manager.
+	 * @param    WSSCD_Logger                   $logger                Logger instance.
+	 * @param    WSSCD_Feature_Gate|null        $feature_gate          Feature gate for license checks.
 	 */
 	public function __construct(
-		SCD_Admin_Capability_Manager $capability_manager,
-		SCD_Logger $logger
+		WSSCD_Admin_Capability_Manager $capability_manager,
+		WSSCD_Logger $logger,
+		?WSSCD_Feature_Gate $feature_gate = null
 	) {
 		$this->capability_manager = $capability_manager;
 		$this->logger             = $logger;
+		$this->feature_gate       = $feature_gate;
+	}
+
+	/**
+	 * Set feature gate instance.
+	 *
+	 * @since    1.0.0
+	 * @param    WSSCD_Feature_Gate $feature_gate    Feature gate instance.
+	 * @return   void
+	 */
+	public function set_feature_gate( WSSCD_Feature_Gate $feature_gate ): void {
+		$this->feature_gate = $feature_gate;
+	}
+
+	/**
+	 * Get feature gate instance.
+	 *
+	 * Falls back to container lookup if not set.
+	 *
+	 * @since    1.0.0
+	 * @return   WSSCD_Feature_Gate|null    Feature gate instance or null.
+	 */
+	private function get_feature_gate(): ?WSSCD_Feature_Gate {
+		if ( null !== $this->feature_gate ) {
+			return $this->feature_gate;
+		}
+
+		// Try to get from container
+		if ( function_exists( 'wsscd_get_instance' ) ) {
+			$container = wsscd_get_instance()->get_container();
+			if ( $container && $container->has( 'feature_gate' ) ) {
+				$this->feature_gate = $container->get( 'feature_gate' );
+				return $this->feature_gate;
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -220,11 +268,179 @@ class SCD_API_Permissions {
 		$campaign_id = $request->get_param( 'id' );
 
 		// For specific campaign operations, check ownership or admin rights
-		if ( $campaign_id && in_array( $method, array( 'PUT', 'PATCH', 'DELETE' ) ) ) {
+		if ( $campaign_id && in_array( $method, array( 'PUT', 'PATCH', 'DELETE' ), true ) ) {
 			return $this->check_campaign_ownership( $campaign_id );
 		}
 
 		return $this->check_permissions( $request );
+	}
+
+	/**
+	 * Check read-only permissions for campaigns endpoint.
+	 *
+	 * Read access is free for all authenticated users.
+	 *
+	 * @since    1.0.0
+	 * @param    WP_REST_Request $request    Request object.
+	 * @return   bool|WP_Error                  Permission result.
+	 */
+	public function check_campaigns_read_permissions( WP_REST_Request $request ) {
+		// Must be authenticated
+		$user_id = get_current_user_id();
+		if ( ! $user_id ) {
+			return new WP_Error(
+				'rest_not_authenticated',
+				__( 'You are not currently logged in.', 'smart-cycle-discounts' ),
+				array( 'status' => 401 )
+			);
+		}
+
+		// Check basic campaign view capability
+		if ( ! $this->capability_manager->current_user_can( 'view_campaigns' ) ) {
+			return new WP_Error(
+				'rest_forbidden',
+				__( 'You do not have permission to view campaigns.', 'smart-cycle-discounts' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check write permissions for campaigns endpoint.
+	 *
+	 * Write access requires premium license.
+	 *
+	 * @since    1.0.0
+	 * @param    WP_REST_Request $request    Request object.
+	 * @return   bool|WP_Error                  Permission result.
+	 */
+	public function check_campaigns_write_permissions( WP_REST_Request $request ) {
+		// First check basic permissions
+		$basic_check = $this->check_campaigns_permissions( $request );
+		if ( is_wp_error( $basic_check ) ) {
+			return $basic_check;
+		}
+
+		// Then check premium license for write operations
+		$license_check = $this->check_api_write_license();
+		if ( is_wp_error( $license_check ) ) {
+			return $license_check;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check bulk operations permissions.
+	 *
+	 * Bulk operations require premium license.
+	 *
+	 * @since    1.0.0
+	 * @param    WP_REST_Request $request    Request object.
+	 * @return   bool|WP_Error                  Permission result.
+	 */
+	public function check_bulk_permissions( WP_REST_Request $request ) {
+		// First check basic permissions
+		$basic_check = $this->check_campaigns_permissions( $request );
+		if ( is_wp_error( $basic_check ) ) {
+			return $basic_check;
+		}
+
+		// Then check premium license for bulk operations
+		$feature_gate = $this->get_feature_gate();
+		if ( $feature_gate && ! $feature_gate->can_use_api_bulk() ) {
+			return new WP_Error(
+				'rest_api_bulk_premium_required',
+				__( 'Bulk API operations require a Pro license.', 'smart-cycle-discounts' ),
+				array(
+					'status'      => 403,
+					'upgrade_url' => $feature_gate->get_upgrade_url(),
+				)
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check API write license.
+	 *
+	 * @since    1.0.0
+	 * @return   bool|WP_Error    True if allowed, WP_Error if not.
+	 */
+	private function check_api_write_license() {
+		$feature_gate = $this->get_feature_gate();
+		if ( $feature_gate && ! $feature_gate->can_use_api_write() ) {
+			return new WP_Error(
+				'rest_api_write_premium_required',
+				__( 'API write operations require a Pro license. Read access is free.', 'smart-cycle-discounts' ),
+				array(
+					'status'      => 403,
+					'upgrade_url' => $feature_gate->get_upgrade_url(),
+				)
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check read-only permissions for discounts endpoint.
+	 *
+	 * Read access is free for all authenticated users.
+	 *
+	 * @since    1.0.0
+	 * @param    WP_REST_Request $request    Request object.
+	 * @return   bool|WP_Error                  Permission result.
+	 */
+	public function check_discounts_read_permissions( WP_REST_Request $request ) {
+		// Must be authenticated
+		$user_id = get_current_user_id();
+		if ( ! $user_id ) {
+			return new WP_Error(
+				'rest_not_authenticated',
+				__( 'You are not currently logged in.', 'smart-cycle-discounts' ),
+				array( 'status' => 401 )
+			);
+		}
+
+		// Check basic discount view capability
+		if ( ! $this->capability_manager->current_user_can( 'view_discounts' ) ) {
+			return new WP_Error(
+				'rest_forbidden',
+				__( 'You do not have permission to view discounts.', 'smart-cycle-discounts' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check write permissions for discounts endpoint.
+	 *
+	 * Write access requires premium license.
+	 *
+	 * @since    1.0.0
+	 * @param    WP_REST_Request $request    Request object.
+	 * @return   bool|WP_Error                  Permission result.
+	 */
+	public function check_discounts_write_permissions( WP_REST_Request $request ) {
+		// First check basic permissions
+		$basic_check = $this->check_permissions( $request );
+		if ( is_wp_error( $basic_check ) ) {
+			return $basic_check;
+		}
+
+		// Then check premium license for write operations
+		$license_check = $this->check_api_write_license();
+		if ( is_wp_error( $license_check ) ) {
+			return $license_check;
+		}
+
+		return true;
 	}
 
 	/**
@@ -422,7 +638,7 @@ class SCD_API_Permissions {
 	 * @return   string|null         Endpoint name or null.
 	 */
 	private function extract_endpoint_from_route( string $route ): ?string {
-		$route = preg_replace( '#^/scd/v1/?#', '', $route );
+		$route = preg_replace( '#^/wsscd/v1/?#', '', $route );
 
 		$segments = explode( '/', trim( $route, '/' ) );
 		return $segments[0] ?? null;
@@ -475,7 +691,7 @@ class SCD_API_Permissions {
 
 		// Administrators can access all campaigns
 		if ( $this->capability_manager->current_user_can( 'manage_options' ) ||
-			$this->capability_manager->current_user_can( 'scd_admin' ) ) {
+			$this->capability_manager->current_user_can( 'wsscd_admin' ) ) {
 			return true;
 		}
 
@@ -489,14 +705,18 @@ class SCD_API_Permissions {
 		}
 
 		global $wpdb;
-		$table_name = $wpdb->prefix . 'scd_campaigns';
+		$table_name = $wpdb->prefix . 'wsscd_campaigns';
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Permission check on plugin's custom campaigns table; must be real-time.
 		$campaign_owner = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT created_by FROM {$table_name} WHERE id = %d AND deleted_at IS NULL",
+				'SELECT created_by FROM %i WHERE id = %d AND deleted_at IS NULL',
+				$table_name,
 				$campaign_id
 			)
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 
 		if ( null === $campaign_owner ) {
 			return new WP_Error(
@@ -529,12 +749,13 @@ class SCD_API_Permissions {
 		global $wpdb;
 
 		// Optimized approach: Query only user IDs that have API keys
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Usermeta lookup for API key validation; must query all users with API keys.
 		$user_ids = $wpdb->get_col(
 			$wpdb->prepare(
-				"SELECT DISTINCT user_id 
-                FROM {$wpdb->usermeta} 
+				"SELECT DISTINCT user_id
+                FROM {$wpdb->usermeta}
                 WHERE meta_key = %s",
-				'scd_api_keys'
+				'wsscd_api_keys'
 			)
 		);
 
@@ -543,7 +764,7 @@ class SCD_API_Permissions {
 		}
 
 		foreach ( $user_ids as $user_id ) {
-			$api_keys = get_user_meta( $user_id, 'scd_api_keys', true ) ?: array();
+			$api_keys = get_user_meta( $user_id, 'wsscd_api_keys', true ) ?: array();
 
 			foreach ( $api_keys as $stored_key ) {
 				if ( wp_check_password( $api_key, $stored_key['key_hash'] ) ) {

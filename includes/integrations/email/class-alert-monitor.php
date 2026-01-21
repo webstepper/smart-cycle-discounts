@@ -26,40 +26,40 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class SCD_Alert_Monitor {
+class WSSCD_Alert_Monitor {
 
 	/**
 	 * Logger instance.
 	 *
-	 * @var SCD_Logger
+	 * @var WSSCD_Logger
 	 */
 	private $logger;
 
 	/**
 	 * Campaign Manager instance.
 	 *
-	 * @var SCD_Campaign_Manager
+	 * @var WSSCD_Campaign_Manager
 	 */
 	private $campaign_manager;
 
 	/**
 	 * Analytics Repository instance.
 	 *
-	 * @var SCD_Analytics_Repository
+	 * @var WSSCD_Analytics_Repository
 	 */
 	private $analytics_repository;
 
 	/**
 	 * Action Scheduler Service instance.
 	 *
-	 * @var SCD_Action_Scheduler_Service
+	 * @var WSSCD_Action_Scheduler_Service
 	 */
 	private $action_scheduler;
 
 	/**
 	 * Feature Gate instance.
 	 *
-	 * @var SCD_Feature_Gate
+	 * @var WSSCD_Feature_Gate
 	 */
 	private $feature_gate;
 
@@ -73,18 +73,18 @@ class SCD_Alert_Monitor {
 	/**
 	 * Constructor.
 	 *
-	 * @param SCD_Logger                   $logger               Logger instance.
-	 * @param SCD_Campaign_Manager         $campaign_manager     Campaign Manager instance.
-	 * @param SCD_Analytics_Repository     $analytics_repository Analytics Repository instance.
-	 * @param SCD_Action_Scheduler_Service $action_scheduler     Action Scheduler Service instance.
-	 * @param SCD_Feature_Gate             $feature_gate         Feature Gate instance.
+	 * @param WSSCD_Logger                   $logger               Logger instance.
+	 * @param WSSCD_Campaign_Manager         $campaign_manager     Campaign Manager instance.
+	 * @param WSSCD_Analytics_Repository     $analytics_repository Analytics Repository instance.
+	 * @param WSSCD_Action_Scheduler_Service $action_scheduler     Action Scheduler Service instance.
+	 * @param WSSCD_Feature_Gate             $feature_gate         Feature Gate instance.
 	 */
 	public function __construct(
-		SCD_Logger $logger,
-		SCD_Campaign_Manager $campaign_manager,
-		SCD_Analytics_Repository $analytics_repository,
-		SCD_Action_Scheduler_Service $action_scheduler,
-		SCD_Feature_Gate $feature_gate
+		WSSCD_Logger $logger,
+		WSSCD_Campaign_Manager $campaign_manager,
+		WSSCD_Analytics_Repository $analytics_repository,
+		WSSCD_Action_Scheduler_Service $action_scheduler,
+		WSSCD_Feature_Gate $feature_gate
 	) {
 		$this->logger               = $logger;
 		$this->campaign_manager     = $campaign_manager;
@@ -124,7 +124,7 @@ class SCD_Alert_Monitor {
 			),
 		);
 
-		$saved_settings = get_option( 'scd_alert_settings', array() );
+		$saved_settings = get_option( 'wsscd_alert_settings', array() );
 		$this->settings = wp_parse_args( $saved_settings, $defaults );
 	}
 
@@ -138,9 +138,9 @@ class SCD_Alert_Monitor {
 		add_action( 'init', array( $this, 'schedule_monitoring' ) );
 
 		// Monitoring cron hooks
-		add_action( 'scd_monitor_performance', array( $this, 'check_performance_alerts' ) );
-		add_action( 'scd_monitor_stock', array( $this, 'check_stock_alerts' ) );
-		add_action( 'scd_monitor_milestones', array( $this, 'check_milestone_alerts' ) );
+		add_action( 'wsscd_monitor_performance', array( $this, 'check_performance_alerts' ) );
+		add_action( 'wsscd_monitor_stock', array( $this, 'check_stock_alerts' ) );
+		add_action( 'wsscd_monitor_milestones', array( $this, 'check_milestone_alerts' ) );
 	}
 
 	/**
@@ -157,16 +157,16 @@ class SCD_Alert_Monitor {
 		// Schedule performance monitoring
 		if ( $this->settings['performance']['enabled'] ) {
 			$interval = $this->settings['performance']['check_interval'];
-			if ( ! wp_next_scheduled( 'scd_monitor_performance' ) ) {
-				wp_schedule_event( time(), $interval, 'scd_monitor_performance' );
+			if ( ! wp_next_scheduled( 'wsscd_monitor_performance' ) ) {
+				wp_schedule_event( time(), $interval, 'wsscd_monitor_performance' );
 			}
 		}
 
 		// Schedule stock monitoring
 		if ( $this->settings['stock']['enabled'] ) {
 			$interval = $this->settings['stock']['check_interval'];
-			if ( ! wp_next_scheduled( 'scd_monitor_stock' ) ) {
-				wp_schedule_event( time(), $interval, 'scd_monitor_stock' );
+			if ( ! wp_next_scheduled( 'wsscd_monitor_stock' ) ) {
+				wp_schedule_event( time(), $interval, 'wsscd_monitor_stock' );
 			}
 		}
 
@@ -199,7 +199,7 @@ class SCD_Alert_Monitor {
 				// Get campaign start date for analytics range
 				$starts_at  = $campaign->get_starts_at();
 				$start_date = $starts_at ? $starts_at->format( 'Y-m-d' ) : '';
-				$end_date   = date( 'Y-m-d' );
+				$end_date   = gmdate( 'Y-m-d' );
 
 				// Get performance data
 				$performance = $this->analytics_repository->get_campaign_performance(
@@ -216,8 +216,8 @@ class SCD_Alert_Monitor {
 					$alerts[] = array(
 						'type'    => 'low_conversion',
 						'message' => sprintf(
-							/* translators: %s: conversion rate percentage */
-							__( 'Conversion rate is only %s%%, which is below the %s%% threshold.', 'smart-cycle-discounts' ),
+							/* translators: %1$s: actual conversion rate percentage, %2$s: threshold percentage */
+							__( 'Conversion rate is only %1$s%%, which is below the %2$s%% threshold.', 'smart-cycle-discounts' ),
 							number_format( $conversion_rate, 2 ),
 							number_format( $this->settings['performance']['low_conversion_rate'], 2 )
 						),
@@ -235,8 +235,8 @@ class SCD_Alert_Monitor {
 					$alerts[] = array(
 						'type'    => 'low_ctr',
 						'message' => sprintf(
-							/* translators: %s: CTR percentage */
-							__( 'Click-through rate is only %s%%, which is below the %s%% threshold.', 'smart-cycle-discounts' ),
+							/* translators: %1$s: actual CTR percentage, %2$s: threshold percentage */
+							__( 'Click-through rate is only %1$s%%, which is below the %2$s%% threshold.', 'smart-cycle-discounts' ),
 							number_format( $ctr, 2 ),
 							number_format( $this->settings['performance']['low_ctr'], 2 )
 						),
@@ -249,9 +249,11 @@ class SCD_Alert_Monitor {
 				}
 
 				// Check discount usage if max uses is set
-				$discount    = $campaign->get_discount();
-				$max_uses    = $discount->get_max_uses();
-				$current_uses = $performance['conversions'] ?? 0;
+				// Note: max_uses feature is not currently implemented in the Campaign model
+				// This check is skipped until the feature is added
+				$discount_rules = $campaign->get_discount_rules();
+				$max_uses       = $discount_rules['max_uses'] ?? 0;
+				$current_uses   = $performance['conversions'] ?? 0;
 
 				if ( $max_uses > 0 && $current_uses > 0 ) {
 					$usage_percentage = ( $current_uses / $max_uses ) * 100;
@@ -353,7 +355,7 @@ class SCD_Alert_Monitor {
 				// Get campaign start date for analytics range
 				$starts_at  = $campaign->get_starts_at();
 				$start_date = $starts_at ? $starts_at->format( 'Y-m-d' ) : '';
-				$end_date   = date( 'Y-m-d' );
+				$end_date   = gmdate( 'Y-m-d' );
 
 				// Get performance data
 				$performance = $this->analytics_repository->get_campaign_performance(
@@ -380,10 +382,10 @@ class SCD_Alert_Monitor {
 	/**
 	 * Get low stock products for a campaign.
 	 *
-	 * @param SCD_Campaign $campaign Campaign instance.
+	 * @param WSSCD_Campaign $campaign Campaign instance.
 	 * @return array Low stock products with details.
 	 */
-	private function get_low_stock_products( SCD_Campaign $campaign ): array {
+	private function get_low_stock_products( WSSCD_Campaign $campaign ): array {
 		$low_stock_products = array();
 		$threshold          = $this->settings['stock']['low_stock_threshold'];
 
@@ -427,7 +429,7 @@ class SCD_Alert_Monitor {
 	 */
 	private function check_revenue_milestones( int $campaign_id, float $revenue, array $performance ): void {
 		$thresholds         = $this->settings['milestones']['thresholds']['revenue'];
-		$reached_milestones = get_option( "scd_milestones_revenue_{$campaign_id}", array() );
+		$reached_milestones = get_option( "wsscd_milestones_revenue_{$campaign_id}", array() );
 
 		foreach ( $thresholds as $milestone ) {
 			// Check if milestone reached and not already notified
@@ -446,7 +448,7 @@ class SCD_Alert_Monitor {
 
 				// Mark milestone as reached
 				$reached_milestones[] = $milestone;
-				update_option( "scd_milestones_revenue_{$campaign_id}", $reached_milestones, false );
+				update_option( "wsscd_milestones_revenue_{$campaign_id}", $reached_milestones, false );
 			}
 		}
 	}
@@ -461,7 +463,7 @@ class SCD_Alert_Monitor {
 	 */
 	private function check_conversion_milestones( int $campaign_id, int $conversions, array $performance ): void {
 		$thresholds         = $this->settings['milestones']['thresholds']['conversions'];
-		$reached_milestones = get_option( "scd_milestones_conversions_{$campaign_id}", array() );
+		$reached_milestones = get_option( "wsscd_milestones_conversions_{$campaign_id}", array() );
 
 		foreach ( $thresholds as $milestone ) {
 			// Check if milestone reached and not already notified
@@ -480,7 +482,7 @@ class SCD_Alert_Monitor {
 
 				// Mark milestone as reached
 				$reached_milestones[] = $milestone;
-				update_option( "scd_milestones_conversions_{$campaign_id}", $reached_milestones, false );
+				update_option( "wsscd_milestones_conversions_{$campaign_id}", $reached_milestones, false );
 			}
 		}
 	}
@@ -511,7 +513,7 @@ class SCD_Alert_Monitor {
 			'actions'       => array_unique( $all_actions ),
 		);
 
-		do_action( 'scd_performance_alert', $campaign_id, $alert_data );
+		do_action( 'wsscd_performance_alert', $campaign_id, $alert_data );
 
 		$this->logger->info(
 			'Performance alert triggered',
@@ -539,7 +541,7 @@ class SCD_Alert_Monitor {
 			),
 		);
 
-		do_action( 'scd_low_stock_alert', $campaign_id, $stock_data );
+		do_action( 'wsscd_low_stock_alert', $campaign_id, $stock_data );
 
 		$this->logger->info(
 			'Low stock alert triggered',
@@ -568,7 +570,7 @@ class SCD_Alert_Monitor {
 			'performance' => $this->format_performance_data( $performance ),
 		);
 
-		do_action( 'scd_milestone_alert', $campaign_id, $milestone_data );
+		do_action( 'wsscd_milestone_alert', $campaign_id, $milestone_data );
 
 		$this->logger->info(
 			'Milestone alert triggered',
@@ -621,7 +623,7 @@ class SCD_Alert_Monitor {
 	 * @return void
 	 */
 	public function unschedule_monitoring(): void {
-		wp_clear_scheduled_hook( 'scd_monitor_performance' );
-		wp_clear_scheduled_hook( 'scd_monitor_stock' );
+		wp_clear_scheduled_hook( 'wsscd_monitor_performance' );
+		wp_clear_scheduled_hook( 'wsscd_monitor_stock' );
 	}
 }

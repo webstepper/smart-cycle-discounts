@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/api/controllers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Discounts_Controller {
+class WSSCD_Discounts_Controller {
 
 	/**
 	 * API namespace.
@@ -43,53 +43,53 @@ class SCD_Discounts_Controller {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Discount_Engine    $discount_engine    Discount engine.
+	 * @var      WSSCD_Discount_Engine    $discount_engine    Discount engine.
 	 */
-	private SCD_Discount_Engine $discount_engine;
+	private WSSCD_Discount_Engine $discount_engine;
 
 	/**
 	 * Campaign manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Manager    $campaign_manager    Campaign manager.
+	 * @var      WSSCD_Campaign_Manager    $campaign_manager    Campaign manager.
 	 */
-	private SCD_Campaign_Manager $campaign_manager;
+	private WSSCD_Campaign_Manager $campaign_manager;
 
 	/**
 	 * Permissions manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_API_Permissions    $permissions_manager    Permissions manager.
+	 * @var      WSSCD_API_Permissions    $permissions_manager    Permissions manager.
 	 */
-	private SCD_API_Permissions $permissions_manager;
+	private WSSCD_API_Permissions $permissions_manager;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Initialize the discounts endpoint.
 	 *
 	 * @since    1.0.0
 	 * @param    string               $namespace             API namespace.
-	 * @param    SCD_Discount_Engine  $discount_engine       Discount engine.
-	 * @param    SCD_Campaign_Manager $campaign_manager      Campaign manager.
-	 * @param    SCD_API_Permissions  $permissions_manager   Permissions manager.
-	 * @param    SCD_Logger           $logger                Logger instance.
+	 * @param    WSSCD_Discount_Engine  $discount_engine       Discount engine.
+	 * @param    WSSCD_Campaign_Manager $campaign_manager      Campaign manager.
+	 * @param    WSSCD_API_Permissions  $permissions_manager   Permissions manager.
+	 * @param    WSSCD_Logger           $logger                Logger instance.
 	 */
 	public function __construct(
 		string $namespace,
-		SCD_Discount_Engine $discount_engine,
-		SCD_Campaign_Manager $campaign_manager,
-		SCD_API_Permissions $permissions_manager,
-		SCD_Logger $logger
+		WSSCD_Discount_Engine $discount_engine,
+		WSSCD_Campaign_Manager $campaign_manager,
+		WSSCD_API_Permissions $permissions_manager,
+		WSSCD_Logger $logger
 	) {
 		$this->namespace           = $namespace;
 		$this->discount_engine     = $discount_engine;
@@ -105,26 +105,26 @@ class SCD_Discounts_Controller {
 	 * @return   void
 	 */
 	public function register_routes(): void {
-		// Active discounts collection
+		// Active discounts collection (FREE - read access)
 		register_rest_route(
 			$this->namespace,
 			'/discounts',
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_active_discounts' ),
-				'permission_callback' => array( $this->permissions_manager, 'check_permissions' ),
+				'permission_callback' => array( $this->permissions_manager, 'check_discounts_read_permissions' ),
 				'args'                => $this->get_collection_params(),
 			)
 		);
 
-		// Product discount calculation
+		// Product discount calculation (FREE - read-like operation)
 		register_rest_route(
 			$this->namespace,
 			'/discounts/calculate',
 			array(
 				'methods'             => WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'calculate_discount' ),
-				'permission_callback' => array( $this->permissions_manager, 'check_permissions' ),
+				'permission_callback' => array( $this->permissions_manager, 'check_discounts_read_permissions' ),
 				'args'                => array(
 					'product_id'  => array(
 						'description'       => __( 'Product ID to calculate discount for.', 'smart-cycle-discounts' ),
@@ -151,14 +151,14 @@ class SCD_Discounts_Controller {
 			)
 		);
 
-		// Bulk discount calculation
+		// Bulk discount calculation (PREMIUM - bulk operation)
 		register_rest_route(
 			$this->namespace,
 			'/discounts/calculate/bulk',
 			array(
 				'methods'             => WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'calculate_bulk_discounts' ),
-				'permission_callback' => array( $this->permissions_manager, 'check_permissions' ),
+				'permission_callback' => array( $this->permissions_manager, 'check_bulk_permissions' ),
 				'args'                => array(
 					'products' => array(
 						'description'       => __( 'Array of products to calculate discounts for.', 'smart-cycle-discounts' ),
@@ -182,14 +182,14 @@ class SCD_Discounts_Controller {
 			)
 		);
 
-		// Discount preview
+		// Discount preview (FREE - read-like operation)
 		register_rest_route(
 			$this->namespace,
 			'/discounts/preview',
 			array(
 				'methods'             => WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'preview_discount' ),
-				'permission_callback' => array( $this->permissions_manager, 'check_permissions' ),
+				'permission_callback' => array( $this->permissions_manager, 'check_discounts_read_permissions' ),
 				'args'                => array(
 					'discount_type'  => array(
 						'description' => __( 'Discount type.', 'smart-cycle-discounts' ),
@@ -219,14 +219,14 @@ class SCD_Discounts_Controller {
 			)
 		);
 
-		// Product discounts by campaign
+		// Product discounts by campaign (FREE - read access)
 		register_rest_route(
 			$this->namespace,
 			'/discounts/campaign/(?P<campaign_id>\d+)',
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_campaign_discounts' ),
-				'permission_callback' => array( $this->permissions_manager, 'check_permissions' ),
+				'permission_callback' => array( $this->permissions_manager, 'check_discounts_read_permissions' ),
 				'args'                => array(
 					'campaign_id' => array(
 						'description'       => __( 'Campaign ID.', 'smart-cycle-discounts' ),
@@ -267,14 +267,14 @@ class SCD_Discounts_Controller {
 			)
 		);
 
-		// Discount validation
+		// Discount validation (FREE - read-like operation)
 		register_rest_route(
 			$this->namespace,
 			'/discounts/validate',
 			array(
 				'methods'             => WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'validate_discount' ),
-				'permission_callback' => array( $this->permissions_manager, 'check_permissions' ),
+				'permission_callback' => array( $this->permissions_manager, 'check_discounts_read_permissions' ),
 				'args'                => array(
 					'discount_type'  => array(
 						'description' => __( 'Discount type.', 'smart-cycle-discounts' ),
@@ -829,7 +829,7 @@ class SCD_Discounts_Controller {
 				array(
 					'type'     => $discount_type,
 					'value'    => $discount_value,
-					'is_valid' => $validation_result['is_valid'],
+					'is_valid' => $is_valid,
 				)
 			);
 
@@ -887,10 +887,10 @@ class SCD_Discounts_Controller {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    SCD_Discount_Result $result    Discount result.
+	 * @param    WSSCD_Discount_Result $result    Discount result.
 	 * @return   array                             Prepared result data.
 	 */
-	private function prepare_discount_result_for_response( SCD_Discount_Result $result ): array {
+	private function prepare_discount_result_for_response( WSSCD_Discount_Result $result ): array {
 		return array(
 			'has_discount'       => $result->has_discount(),
 			'discount_amount'    => $result->get_discount_amount(),

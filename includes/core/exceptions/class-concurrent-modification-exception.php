@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/exceptions
  */
-class SCD_Concurrent_Modification_Exception extends Exception {
+class WSSCD_Concurrent_Modification_Exception extends Exception {
 
 	/**
 	 * Campaign ID that was modified.

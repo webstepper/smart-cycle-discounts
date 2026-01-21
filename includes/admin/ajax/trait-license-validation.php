@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax
  * @author     Webstepper <contact@webstepper.io>
  */
-trait SCD_License_Validation_Trait {
+trait WSSCD_License_Validation_Trait {
 
 	/**
 	 * Validate license for UI-level features.
@@ -42,8 +42,8 @@ trait SCD_License_Validation_Trait {
 	 */
 	protected function validate_license_ui( $feature_key = '' ) {
 		// Get Feature Gate instance
-		if ( function_exists( 'scd_get_instance' ) ) {
-			$container = scd_get_instance()->get_container();
+		if ( function_exists( 'wsscd_get_instance' ) ) {
+			$container = wsscd_get_instance()->get_container();
 			if ( $container && $container->has( 'feature_gate' ) ) {
 				$feature_gate = $container->get( 'feature_gate' );
 
@@ -88,14 +88,14 @@ trait SCD_License_Validation_Trait {
 	 */
 	protected function validate_license_logic() {
 		// Use server-validated check
-		if ( function_exists( 'scd_is_license_valid' ) ) {
-			if ( ! scd_is_license_valid() ) {
+		if ( function_exists( 'wsscd_is_license_valid' ) ) {
+			if ( ! wsscd_is_license_valid() ) {
 				return new WP_Error(
 					'license_invalid',
 					sprintf(
 						/* translators: Upgrade prompt */
 						__( 'A valid Pro license is required for this operation. %s', 'smart-cycle-discounts' ),
-						'<a href="' . esc_url( scd_get_upgrade_url() ) . '">' . __( 'Upgrade Now', 'smart-cycle-discounts' ) . '</a>'
+						'<a href="' . esc_url( wsscd_get_upgrade_url() ) . '">' . __( 'Upgrade Now', 'smart-cycle-discounts' ) . '</a>'
 					)
 				);
 			}
@@ -118,8 +118,8 @@ trait SCD_License_Validation_Trait {
 	 */
 	protected function validate_license_critical() {
 		// Force fresh validation
-		if ( function_exists( 'scd_force_license_validation' ) ) {
-			if ( ! scd_force_license_validation() ) {
+		if ( function_exists( 'wsscd_force_license_validation' ) ) {
+			if ( ! wsscd_force_license_validation() ) {
 				return new WP_Error(
 					'license_verification_failed',
 					sprintf(
@@ -178,6 +178,7 @@ trait SCD_License_Validation_Trait {
 	 * Get license validation error response.
 	 *
 	 * Converts WP_Error to AJAX error response.
+	 * Note: AJAX Router expects 'message' and 'code' at the top level.
 	 *
 	 * @since    1.0.0
 	 * @param    WP_Error $error    Validation error.
@@ -191,12 +192,11 @@ trait SCD_License_Validation_Trait {
 			);
 		}
 
+		// AJAX Router expects message and code at top level, not nested in data
 		return array(
 			'success' => false,
-			'data'    => array(
-				'message' => $error->get_error_message(),
-				'code'    => $error->get_error_code(),
-			),
+			'message' => $error->get_error_message(),
+			'code'    => $error->get_error_code(),
 		);
 	}
 }

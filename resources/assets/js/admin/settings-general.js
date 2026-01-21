@@ -17,7 +17,7 @@
 	 * General Settings Manager
 	 */
 	function GeneralSettingsManager() {
-		this.config = window.scdSettingsGeneral || {};
+		this.config = window.wsscdSettingsGeneral || {};
 		this.init();
 	}
 
@@ -49,7 +49,7 @@
 	 * Toggle conditional fields based on dependencies
 	 */
 	GeneralSettingsManager.prototype.toggleConditionalFields = function() {
-		$( '.scd-conditional' ).each( function() {
+		$( '.wsscd-conditional' ).each( function() {
 			var depends = $( this ).data( 'depends' );
 			var dependsField = $( '#' + depends );
 

@@ -27,24 +27,24 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/api/serializers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Campaign_Serializer {
+class WSSCD_Campaign_Serializer {
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Initialize the serializer.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger    Logger instance.
+	 * @param    WSSCD_Logger $logger    Logger instance.
 	 */
-	public function __construct( SCD_Logger $logger ) {
+	public function __construct( WSSCD_Logger $logger ) {
 		$this->logger = $logger;
 	}
 
@@ -52,11 +52,11 @@ class SCD_Campaign_Serializer {
 	 * Serialize a campaign for API response.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign to serialize.
+	 * @param    WSSCD_Campaign $campaign    Campaign to serialize.
 	 * @param    array        $context     Serialization context.
 	 * @return   array                        Serialized campaign data.
 	 */
-	public function serialize( SCD_Campaign $campaign, array $context = array() ): array {
+	public function serialize( WSSCD_Campaign $campaign, array $context = array() ): array {
 		try {
 			$include_meta           = isset( $context['include_meta'] ) ? $context['include_meta'] : true;
 			$include_stats          = isset( $context['include_stats'] ) ? $context['include_stats'] : false;
@@ -89,11 +89,11 @@ class SCD_Campaign_Serializer {
 			// Include separated date/time for UI convenience
 			if ( $include_split_datetime ) {
 				$data['schedule'] = array(
-					'start' => SCD_DateTime_Splitter::for_api(
+					'start' => WSSCD_DateTime_Splitter::for_api(
 						$campaign->get_starts_at(),
 						$campaign->get_timezone()
 					),
-					'end'   => SCD_DateTime_Splitter::for_api(
+					'end'   => WSSCD_DateTime_Splitter::for_api(
 						$campaign->get_ends_at(),
 						$campaign->get_timezone()
 					),
@@ -144,7 +144,7 @@ class SCD_Campaign_Serializer {
 		$serialized = array();
 
 		foreach ( $campaigns as $campaign ) {
-			if ( $campaign instanceof SCD_Campaign ) {
+			if ( $campaign instanceof WSSCD_Campaign ) {
 				array_push( $serialized, $this->serialize( $campaign, $context ) );
 			}
 		}
@@ -210,14 +210,19 @@ class SCD_Campaign_Serializer {
 			}
 
 			if ( isset( $data['category_ids'] ) && is_array( $data['category_ids'] ) ) {
-				$validated['category_ids'] = array_map(
-					function ( $id ) {
-						if ( 'all' === $id ) {
-							return 'all';
+				// Filter to valid numeric IDs only (categories are a filter, not selection type)
+				$validated['category_ids'] = array_values(
+					array_filter(
+						array_map(
+							function ( $id ) {
+								return is_numeric( $id ) ? absint( $id ) : null;
+							},
+							$data['category_ids']
+						),
+						function ( $id ) {
+							return null !== $id && $id > 0;
 						}
-						return (string) absint( $id );
-					},
-					$data['category_ids']
+					)
 				);
 			}
 
@@ -282,10 +287,11 @@ class SCD_Campaign_Serializer {
 			}
 		}
 
-		if ( isset( $data['name'] ) && strlen( $data['name'] ) > SCD_Validation_Rules::CAMPAIGN_NAME_MAX ) {
+		if ( isset( $data['name'] ) && strlen( $data['name'] ) > WSSCD_Validation_Rules::CAMPAIGN_NAME_MAX ) {
 			$errors['name'] = sprintf(
+				/* translators: %d: maximum character limit for campaign name */
 				__( 'Campaign name cannot exceed %d characters.', 'smart-cycle-discounts' ),
-				SCD_Validation_Rules::CAMPAIGN_NAME_MAX
+				WSSCD_Validation_Rules::CAMPAIGN_NAME_MAX
 			);
 		}
 
@@ -327,11 +333,11 @@ class SCD_Campaign_Serializer {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    SCD_Campaign $campaign    Campaign instance.
+	 * @param    WSSCD_Campaign $campaign    Campaign instance.
 	 * @return   array                        HATEOAS links.
 	 */
-	private function generate_links( SCD_Campaign $campaign ): array {
-		$base_url    = rest_url( 'scd/v1/campaigns' );
+	private function generate_links( WSSCD_Campaign $campaign ): array {
+		$base_url    = rest_url( 'wsscd/v1/campaigns' );
 		$campaign_id = $campaign->get_id();
 
 		$links = array(
@@ -350,7 +356,7 @@ class SCD_Campaign_Serializer {
 				'method' => 'DELETE',
 			),
 			'analytics'  => array(
-				'href' => rest_url( "scd/v1/analytics/campaigns/{$campaign_id}" ),
+				'href' => rest_url( "wsscd/v1/analytics/campaigns/{$campaign_id}" ),
 			),
 		);
 
@@ -383,10 +389,10 @@ class SCD_Campaign_Serializer {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    SCD_Campaign $campaign    Campaign instance.
+	 * @param    WSSCD_Campaign $campaign    Campaign instance.
 	 * @return   array                        Campaign statistics.
 	 */
-	private function get_campaign_stats( SCD_Campaign $campaign ): array {
+	private function get_campaign_stats( WSSCD_Campaign $campaign ): array {
 		// This would integrate with the metrics calculator
 		// For now, return placeholder data
 		return array(
@@ -406,10 +412,10 @@ class SCD_Campaign_Serializer {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    SCD_Campaign $campaign    Campaign instance.
+	 * @param    WSSCD_Campaign $campaign    Campaign instance.
 	 * @return   array                        Campaign products.
 	 */
-	private function get_campaign_products( SCD_Campaign $campaign ): array {
+	private function get_campaign_products( WSSCD_Campaign $campaign ): array {
 		// For specific products, return the product IDs
 		$product_ids = array();
 		if ( $campaign->get_product_selection_type() === 'specific_products' ) {
@@ -431,10 +437,10 @@ class SCD_Campaign_Serializer {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    SCD_Campaign $campaign    Campaign instance.
+	 * @param    WSSCD_Campaign $campaign    Campaign instance.
 	 * @return   bool                         Can edit.
 	 */
-	private function can_edit_campaign( SCD_Campaign $campaign ): bool {
+	private function can_edit_campaign( WSSCD_Campaign $campaign ): bool {
 		return current_user_can( 'edit_campaigns' ) ||
 				( current_user_can( 'edit_own_campaigns' ) && $campaign->get_created_by() === get_current_user_id() );
 	}
@@ -444,10 +450,10 @@ class SCD_Campaign_Serializer {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    SCD_Campaign $campaign    Campaign instance.
+	 * @param    WSSCD_Campaign $campaign    Campaign instance.
 	 * @return   bool                         Can delete.
 	 */
-	private function can_delete_campaign( SCD_Campaign $campaign ): bool {
+	private function can_delete_campaign( WSSCD_Campaign $campaign ): bool {
 		return current_user_can( 'delete_campaigns' ) ||
 				( current_user_can( 'delete_own_campaigns' ) && $campaign->get_created_by() === get_current_user_id() );
 	}

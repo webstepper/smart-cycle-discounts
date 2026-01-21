@@ -14,13 +14,13 @@
 	'use strict';
 
 	// Ensure namespace exists
-	window.SCD = window.SCD || {};
-	SCD.Modules = SCD.Modules || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Modules = WSSCD.Modules || {};
 
 	/**
 	 * Date Time Picker Module
 	 */
-	SCD.Modules.DateTimePicker = {
+	WSSCD.Modules.DateTimePicker = {
 
 		// Module state
 		state: {
@@ -46,7 +46,7 @@
 				onTimeChange: options.onTimeChange || function() {}
 			};
 
-			this.state.config = SCD.ModuleLoader['schedule-config'];
+			this.state.config = WSSCD.ModuleLoader['schedule-config'];
 
 			if ( options.startDate ) {
 				this.initDatePicker( options.startDate, 'start' );
@@ -85,13 +85,13 @@
 				self.showCalendarPicker( $( this ), type );
 			} );
 
-			if ( !$element.next( '.scd-calendar-icon' ).length ) {
+			if ( !$element.next( '.wsscd-calendar-icon' ).length ) {
 				var buttonLabel = 'start' === type ?
 					wp.i18n.__( 'Choose start date', 'smart-cycle-discounts' ) :
 					wp.i18n.__( 'Choose end date', 'smart-cycle-discounts' );
 
-				var calendarIcon = SCD.IconHelper ? SCD.IconHelper.get( 'calendar', { size: 16 } ) : '<span class="scd-icon scd-icon-calendar"></span>';
-				var $button = $( '<button type="button" class="scd-calendar-icon" data-target="' + pickerId + '">' +
+				var calendarIcon = WSSCD.IconHelper ? WSSCD.IconHelper.get( 'calendar', { size: 16 } ) : '<span class="wsscd-icon wsscd-icon-calendar"></span>';
+				var $button = $( '<button type="button" class="wsscd-calendar-icon" data-target="' + pickerId + '">' +
                     calendarIcon +
                     '<span class="screen-reader-text">' + buttonLabel + '</span>' +
                     '</button>' );
@@ -186,7 +186,7 @@
 			var $hidden = $( '#' + hiddenId );
 
 			if ( !$hidden.length ) {
-				$hidden = $( '<input type="date" id="' + hiddenId + '" class="scd-hidden-date-input">' );
+				$hidden = $( '<input type="date" id="' + hiddenId + '" class="wsscd-hidden-date-input">' );
 				$element.after( $hidden );
 
 				var constraints = this.getDateConstraints( type );
@@ -242,7 +242,7 @@
 			// Bind close events using requestAnimationFrame
 			requestAnimationFrame( function() {
 				$( document ).on( 'click.timepicker', function( e ) {
-					if ( !$( e.target ).closest( '.scd-time-picker-dropdown' ).length &&
+					if ( !$( e.target ).closest( '.wsscd-time-picker-dropdown' ).length &&
                         !$( e.target ).is( $element ) ) {
 						self.closeTimePicker();
 					}
@@ -258,8 +258,8 @@
 		 */
 		createTimePicker: function( type ) {
 			var self = this;
-			var pickerId = 'scd-time-picker-' + type;
-			var $picker = $( '<div class="scd-time-picker-dropdown" role="dialog" aria-modal="true"></div>' );
+			var pickerId = 'wsscd-time-picker-' + type;
+			var $picker = $( '<div class="wsscd-time-picker-dropdown" role="dialog" aria-modal="true"></div>' );
 
 			// Add ARIA attributes
 			var pickerLabel = 'start' === type ?
@@ -275,7 +275,7 @@
 			var description = wp.i18n.__( 'Use arrow keys to navigate options. Press Enter to select.', 'smart-cycle-discounts' );
 			$picker.append( '<div id="' + pickerId + '-desc" class="screen-reader-text">' + description + '</div>' );
 
-			var $commonTimes = $( '<div class="scd-time-picker-common" role="group"></div>' );
+			var $commonTimes = $( '<div class="wsscd-time-picker-common" role="group"></div>' );
 			$commonTimes.attr( 'aria-label', wp.i18n.__( 'Common times', 'smart-cycle-discounts' ) );
 			var commonTimes = [
 				'12:00 AM', '6:00 AM', '9:00 AM', '12:00 PM',
@@ -285,7 +285,7 @@
 			for ( var i = 0; i < commonTimes.length; i++ ) {
 				var time = commonTimes[i];
 				var index = i;
-				var $option = $( '<button type="button" class="scd-time-option" role="option">' + time + '</button>' );
+				var $option = $( '<button type="button" class="wsscd-time-option" role="option">' + time + '</button>' );
 				$option.attr( {
 					'aria-selected': 'false',
 					'tabindex': 0 === index ? '0' : '-1'
@@ -304,18 +304,18 @@
 				$commonTimes.append( $option );
 			}
 
-			$picker.append( '<h3 class="scd-time-picker-header" id="' + pickerId + '-common">' +
+			$picker.append( '<h3 class="wsscd-time-picker-header" id="' + pickerId + '-common">' +
                 wp.i18n.__( 'Common Times', 'smart-cycle-discounts' ) + '</h3>' );
 			$commonTimes.attr( 'aria-labelledby', pickerId + '-common' );
 			$picker.append( $commonTimes );
 
 			var $custom = this.createCustomTimeSelector( type );
-			$picker.append( '<h3 class="scd-time-picker-header" id="' + pickerId + '-custom">' +
+			$picker.append( '<h3 class="wsscd-time-picker-header" id="' + pickerId + '-custom">' +
                 wp.i18n.__( 'Custom Time', 'smart-cycle-discounts' ) + '</h3>' );
 			$custom.attr( 'aria-labelledby', pickerId + '-custom' );
 			$picker.append( $custom );
 
-			var $closeBtn = $( '<button type="button" class="scd-time-picker-close" aria-label="' +
+			var $closeBtn = $( '<button type="button" class="wsscd-time-picker-close" aria-label="' +
                 wp.i18n.__( 'Close time picker', 'smart-cycle-discounts' ) + '">&times;</button>' );
 			var closeBtnSelf = this;
 			$closeBtn.on( 'click', function() { return closeBtnSelf.closeTimePicker(); } );
@@ -360,7 +360,7 @@
 		 * @param {jQuery} $element Current element
 		 */
 		handleTimePickerKeyboard: function( e, $element ) {
-			var $options = $element.parent().find( '.scd-time-option' );
+			var $options = $element.parent().find( '.wsscd-time-option' );
 			var currentIndex = $options.index( $element );
 			var newIndex = currentIndex;
 
@@ -409,17 +409,17 @@
 		 */
 		createCustomTimeSelector: function( type ) {
 			var self = this;
-			var $custom = $( '<div class="scd-time-picker-custom" role="group"></div>' );
+			var $custom = $( '<div class="wsscd-time-picker-custom" role="group"></div>' );
 
 			// Hour selector
-			var $hourSelect = $( '<select class="scd-time-hour" aria-label="' +
+			var $hourSelect = $( '<select class="wsscd-time-hour" aria-label="' +
                 wp.i18n.__( 'Hour', 'smart-cycle-discounts' ) + '"></select>' );
 			for ( var i = 1; 12 >= i; i++ ) {
 				$hourSelect.append( '<option value="' + i + '">' + i + '</option>' );
 			}
 
 			// Minute selector
-			var $minuteSelect = $( '<select class="scd-time-minute" aria-label="' +
+			var $minuteSelect = $( '<select class="wsscd-time-minute" aria-label="' +
                 wp.i18n.__( 'Minute', 'smart-cycle-discounts' ) + '"></select>' );
 			for ( var j = 0; 60 > j; j += 5 ) {
 				var val = 10 > j ? '0' + j : String( j );
@@ -427,7 +427,7 @@
 			}
 
 			// AM/PM selector
-			var $ampmSelect = $( '<select class="scd-time-ampm" aria-label="' +
+			var $ampmSelect = $( '<select class="wsscd-time-ampm" aria-label="' +
                 wp.i18n.__( 'AM or PM', 'smart-cycle-discounts' ) + '"></select>' );
 			$ampmSelect.append( '<option value="AM">AM</option>' );
 			$ampmSelect.append( '<option value="PM">PM</option>' );
@@ -460,7 +460,7 @@
 		 * Close time picker
 		 */
 		closeTimePicker: function() {
-			$( '.scd-time-picker-dropdown' ).remove();
+			$( '.wsscd-time-picker-dropdown' ).remove();
 			$( document ).off( 'click.timepicker' );
 
 			// Return focus to trigger element
@@ -654,7 +654,7 @@
 			var self = this;
 
 			// Calendar icon clicks
-			$( document ).on( 'click.datepicker', '.scd-calendar-icon', function( e ) {
+			$( document ).on( 'click.datepicker', '.wsscd-calendar-icon', function( e ) {
 				e.preventDefault();
 				var targetId = $( this ).data( 'target' );
 				var $target = $( '#' + targetId );
@@ -671,7 +671,7 @@
 			} );
 
 			// Listen for preset selection events
-			$( document ).on( 'scd:preset:selected', function( e, preset, dates ) {
+			$( document ).on( 'wsscd:preset:selected', function( e, preset, dates ) {
 				if ( dates && dates.start ) {
 					self.updateDisplay( 'start', dates.start );
 				}
@@ -681,7 +681,7 @@
 			} );
 
 			// Listen for date changes from other components
-			$( document ).on( 'scd:dates:changed', function( e, startDate, endDate ) {
+			$( document ).on( 'wsscd:dates:changed', function( e, startDate, endDate ) {
 				if ( startDate ) {
 					self.updateDisplay( 'start', startDate );
 				}
@@ -731,8 +731,8 @@
 	};
 
 	// Register module with loader
-	if ( SCD.ModuleLoader ) {
-		SCD.ModuleLoader.register( 'date-time-picker', SCD.Modules.DateTimePicker );
+	if ( WSSCD.ModuleLoader ) {
+		WSSCD.ModuleLoader.register( 'date-time-picker', WSSCD.Modules.DateTimePicker );
 	}
 
 } )( window, jQuery );

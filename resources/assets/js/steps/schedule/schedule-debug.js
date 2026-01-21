@@ -14,16 +14,16 @@
 	'use strict';
 
 	// Ensure namespaces exist
-	window.SCD = window.SCD || {};
-	SCD.Modules = SCD.Modules || {};
-	SCD.Modules.Schedule = SCD.Modules.Schedule || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Modules = WSSCD.Modules || {};
+	WSSCD.Modules.Schedule = WSSCD.Modules.Schedule || {};
 
 	/**
 	 * Debug utility for schedule step
 	 */
-	SCD.Modules.Schedule.Debug = {
+	WSSCD.Modules.Schedule.Debug = {
 		// Debug mode flag - can be toggled via console or global setting
-		enabled: window.scdScheduleDebug || false,
+		enabled: window.wsscdScheduleDebug || false,
 
 		// Log styling
 		styles: {
@@ -40,8 +40,8 @@
 		 */
 		enable: function() {
 			this.enabled = true;
-			window.scdScheduleDebug = true;
-			this.log( 'info', 'Debug', 'To disable: SCD.Modules.Schedule.Debug.disable()' );
+			window.wsscdScheduleDebug = true;
+			this.log( 'info', 'Debug', 'To disable: WSSCD.Modules.Schedule.Debug.disable()' );
 		},
 
 		/**
@@ -49,7 +49,7 @@
 		 */
 		disable: function() {
 			this.enabled = false;
-			window.scdScheduleDebug = false;
+			window.wsscdScheduleDebug = false;
 		},
 
 		/**
@@ -202,15 +202,15 @@
 	};
 
 	// Auto-enable if debug flag is set
-	if ( window.scdScheduleDebug ) {
-		SCD.Modules.Schedule.Debug.enable();
+	if ( window.wsscdScheduleDebug ) {
+		WSSCD.Modules.Schedule.Debug.enable();
 	}
 
 	// Expose debug commands to console
 	window.scheduleDebug = {
-		enable: function() { SCD.Modules.Schedule.Debug.enable(); },
-		disable: function() { SCD.Modules.Schedule.Debug.disable(); },
-		toggle: function() { SCD.Modules.Schedule.Debug.toggle(); }
+		enable: function() { WSSCD.Modules.Schedule.Debug.enable(); },
+		disable: function() { WSSCD.Modules.Schedule.Debug.disable(); },
+		toggle: function() { WSSCD.Modules.Schedule.Debug.toggle(); }
 	};
 
 } )( jQuery );

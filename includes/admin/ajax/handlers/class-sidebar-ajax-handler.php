@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class SCD_Sidebar_Ajax_Handler {
+class WSSCD_Sidebar_Ajax_Handler {
 
 	/**
 	 * Handle AJAX request
@@ -66,7 +66,7 @@ class SCD_Sidebar_Ajax_Handler {
 			);
 		}
 
-		$topic = SCD_Sidebar_Help_Topics::get_topic( $topic_id );
+		$topic = WSSCD_Sidebar_Help_Topics::get_topic( $topic_id );
 
 		if ( ! $topic ) {
 			return array(
@@ -75,7 +75,7 @@ class SCD_Sidebar_Ajax_Handler {
 			);
 		}
 
-		$html = SCD_Sidebar_Renderer::render_help_topic( $topic );
+		$html = WSSCD_Sidebar_Renderer::render_help_topic( $topic );
 
 		return array(
 			'success' => true,

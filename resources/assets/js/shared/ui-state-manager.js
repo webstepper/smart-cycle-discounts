@@ -8,11 +8,11 @@
  * @package Smart_Cycle_Discounts
  */
 
-( function( window, $, SCD ) {
+( function( window, $, WSSCD ) {
 	'use strict';
 
-	if ( ! SCD || ! SCD.Shared ) {
-		console.error( 'SCD.Shared is not defined. UI State Manager cannot initialize.' );
+	if ( ! WSSCD || ! WSSCD.Shared ) {
+		console.error( 'WSSCD.Shared is not defined. UI State Manager cannot initialize.' );
 		return;
 	}
 
@@ -23,24 +23,24 @@
 	 *
 	 * @example
 	 * HTML:
-	 * <div data-scd-show-when="discountType" data-scd-show-value="percentage">
+	 * <div data-wsscd-show-when="discountType" data-wsscd-show-value="percentage">
 	 *     Percentage discount options
 	 * </div>
 	 *
-	 * <div data-scd-hide-when="mode" data-scd-hide-value="simple">
+	 * <div data-wsscd-hide-when="mode" data-wsscd-hide-value="simple">
 	 *     Advanced options
 	 * </div>
 	 *
-	 * <button data-scd-enable-when="hasProducts" data-scd-enable-value="true">
+	 * <button data-wsscd-enable-when="hasProducts" data-wsscd-enable-value="true">
 	 *     Save Campaign
 	 * </button>
 	 *
 	 * JavaScript:
 	 * var state = { discountType: 'percentage', mode: 'simple', hasProducts: true };
-	 * SCD.Shared.UIStateManager.bind( this.$container, state );
+	 * WSSCD.Shared.UIStateManager.bind( this.$container, state );
 	 * // Updates UI automatically when state.discountType changes
 	 */
-	SCD.Shared.UIStateManager = {
+	WSSCD.Shared.UIStateManager = {
 
 		/**
 		 * Active bindings registry
@@ -60,7 +60,7 @@
 
 			// Validate parameters
 			if ( ! $container || ! $container.length ) {
-				SCD.ErrorHandler.handle(
+				WSSCD.ErrorHandler.handle(
 					new Error( 'UI State Manager: Invalid container provided' ),
 					'UIStateManager.bind'
 				);
@@ -68,7 +68,7 @@
 			}
 
 			if ( ! state || typeof state !== 'object' ) {
-				SCD.ErrorHandler.handle(
+				WSSCD.ErrorHandler.handle(
 					new Error( 'UI State Manager: Invalid state object provided' ),
 					'UIStateManager.bind'
 				);
@@ -103,8 +103,8 @@
 			// Store binding
 			this._bindings.push( binding );
 
-			if ( window.SCD && window.SCD.DebugLogger ) {
-				SCD.DebugLogger.log(
+			if ( window.WSSCD && window.WSSCD.DebugLogger ) {
+				WSSCD.DebugLogger.log(
 					'info',
 					'UIStateManager',
 					'UI State Manager: Bound ' + $elements.length + ' elements to state'
@@ -122,11 +122,11 @@
 		 */
 		_findElements: function( $container ) {
 			var selectors = [
-				'[data-scd-show-when]',
-				'[data-scd-hide-when]',
-				'[data-scd-enable-when]',
-				'[data-scd-disable-when]',
-				'[data-scd-class-when]'
+				'[data-wsscd-show-when]',
+				'[data-wsscd-hide-when]',
+				'[data-wsscd-enable-when]',
+				'[data-wsscd-disable-when]',
+				'[data-wsscd-class-when]'
 			];
 
 			return $container.find( selectors.join( ', ' ) ).addBack( selectors.join( ', ' ) );
@@ -146,8 +146,8 @@
 				var $element = $( this );
 
 				// Show/hide conditions
-				if ( $element.is( '[data-scd-show-when]' ) ) {
-					var showProp = $element.attr( 'data-scd-show-when' );
+				if ( $element.is( '[data-wsscd-show-when]' ) ) {
+					var showProp = $element.attr( 'data-wsscd-show-when' );
 
 					// Only update if this property changed (or updating all)
 					if ( ! propertyName || propertyName === showProp ) {
@@ -155,8 +155,8 @@
 					}
 				}
 
-				if ( $element.is( '[data-scd-hide-when]' ) ) {
-					var hideProp = $element.attr( 'data-scd-hide-when' );
+				if ( $element.is( '[data-wsscd-hide-when]' ) ) {
+					var hideProp = $element.attr( 'data-wsscd-hide-when' );
 
 					if ( ! propertyName || propertyName === hideProp ) {
 						self._handleHideCondition( $element, binding.state );
@@ -164,16 +164,16 @@
 				}
 
 				// Enable/disable conditions
-				if ( $element.is( '[data-scd-enable-when]' ) ) {
-					var enableProp = $element.attr( 'data-scd-enable-when' );
+				if ( $element.is( '[data-wsscd-enable-when]' ) ) {
+					var enableProp = $element.attr( 'data-wsscd-enable-when' );
 
 					if ( ! propertyName || propertyName === enableProp ) {
 						self._handleEnableCondition( $element, binding.state );
 					}
 				}
 
-				if ( $element.is( '[data-scd-disable-when]' ) ) {
-					var disableProp = $element.attr( 'data-scd-disable-when' );
+				if ( $element.is( '[data-wsscd-disable-when]' ) ) {
+					var disableProp = $element.attr( 'data-wsscd-disable-when' );
 
 					if ( ! propertyName || propertyName === disableProp ) {
 						self._handleDisableCondition( $element, binding.state );
@@ -181,8 +181,8 @@
 				}
 
 				// Class toggling
-				if ( $element.is( '[data-scd-class-when]' ) ) {
-					var classProp = $element.attr( 'data-scd-class-when' );
+				if ( $element.is( '[data-wsscd-class-when]' ) ) {
+					var classProp = $element.attr( 'data-wsscd-class-when' );
 
 					if ( ! propertyName || propertyName === classProp ) {
 						self._handleClassCondition( $element, binding.state );
@@ -199,9 +199,9 @@
 		 * @return {void}
 		 */
 		_handleShowCondition: function( $element, state ) {
-			var property = $element.attr( 'data-scd-show-when' );
-			var expectedValue = $element.attr( 'data-scd-show-value' );
-			var operator = $element.attr( 'data-scd-show-operator' ) || 'equals';
+			var property = $element.attr( 'data-wsscd-show-when' );
+			var expectedValue = $element.attr( 'data-wsscd-show-value' );
+			var operator = $element.attr( 'data-wsscd-show-operator' ) || 'equals';
 
 			var shouldShow = this._evaluateCondition(
 				state[property],
@@ -226,9 +226,9 @@
 		 * @return {void}
 		 */
 		_handleHideCondition: function( $element, state ) {
-			var property = $element.attr( 'data-scd-hide-when' );
-			var expectedValue = $element.attr( 'data-scd-hide-value' );
-			var operator = $element.attr( 'data-scd-hide-operator' ) || 'equals';
+			var property = $element.attr( 'data-wsscd-hide-when' );
+			var expectedValue = $element.attr( 'data-wsscd-hide-value' );
+			var operator = $element.attr( 'data-wsscd-hide-operator' ) || 'equals';
 
 			var shouldHide = this._evaluateCondition(
 				state[property],
@@ -253,9 +253,9 @@
 		 * @return {void}
 		 */
 		_handleEnableCondition: function( $element, state ) {
-			var property = $element.attr( 'data-scd-enable-when' );
-			var expectedValue = $element.attr( 'data-scd-enable-value' );
-			var operator = $element.attr( 'data-scd-enable-operator' ) || 'equals';
+			var property = $element.attr( 'data-wsscd-enable-when' );
+			var expectedValue = $element.attr( 'data-wsscd-enable-value' );
+			var operator = $element.attr( 'data-wsscd-enable-operator' ) || 'equals';
 
 			var shouldEnable = this._evaluateCondition(
 				state[property],
@@ -282,9 +282,9 @@
 		 * @return {void}
 		 */
 		_handleDisableCondition: function( $element, state ) {
-			var property = $element.attr( 'data-scd-disable-when' );
-			var expectedValue = $element.attr( 'data-scd-disable-value' );
-			var operator = $element.attr( 'data-scd-disable-operator' ) || 'equals';
+			var property = $element.attr( 'data-wsscd-disable-when' );
+			var expectedValue = $element.attr( 'data-wsscd-disable-value' );
+			var operator = $element.attr( 'data-wsscd-disable-operator' ) || 'equals';
 
 			var shouldDisable = this._evaluateCondition(
 				state[property],
@@ -311,10 +311,10 @@
 		 * @return {void}
 		 */
 		_handleClassCondition: function( $element, state ) {
-			var property = $element.attr( 'data-scd-class-when' );
-			var expectedValue = $element.attr( 'data-scd-class-value' );
-			var className = $element.attr( 'data-scd-class-name' );
-			var operator = $element.attr( 'data-scd-class-operator' ) || 'equals';
+			var property = $element.attr( 'data-wsscd-class-when' );
+			var expectedValue = $element.attr( 'data-wsscd-class-value' );
+			var className = $element.attr( 'data-wsscd-class-name' );
+			var operator = $element.attr( 'data-wsscd-class-operator' ) || 'equals';
 
 			if ( ! className ) {
 				return;
@@ -456,8 +456,8 @@
 				this._bindings.splice( index, 1 );
 			}
 
-			if ( window.SCD && window.SCD.DebugLogger ) {
-				SCD.DebugLogger.log( 'info', 'UIStateManager', 'UI State Manager: Unbound container' );
+			if ( window.WSSCD && window.WSSCD.DebugLogger ) {
+				WSSCD.DebugLogger.log( 'info', 'UIStateManager', 'UI State Manager: Unbound container' );
 			}
 		},
 
@@ -511,15 +511,15 @@
 		 * @return {string} Data attributes string
 		 *
 		 * @example
-		 * var attrs = SCD.Shared.UIStateManager.attrs( 'show', 'discountType', 'percentage' );
-		 * // Returns: 'data-scd-show-when="discountType" data-scd-show-value="percentage"'
+		 * var attrs = WSSCD.Shared.UIStateManager.attrs( 'show', 'discountType', 'percentage' );
+		 * // Returns: 'data-wsscd-show-when="discountType" data-wsscd-show-value="percentage"'
 		 */
 		attrs: function( condition, property, value, operator ) {
-			var attrString = 'data-scd-' + condition + '-when="' + property + '" ' +
-			                 'data-scd-' + condition + '-value="' + value + '"';
+			var attrString = 'data-wsscd-' + condition + '-when="' + property + '" ' +
+			                 'data-wsscd-' + condition + '-value="' + value + '"';
 
 			if ( operator && operator !== 'equals' ) {
-				attrString += ' data-scd-' + condition + '-operator="' + operator + '"';
+				attrString += ' data-wsscd-' + condition + '-operator="' + operator + '"';
 			}
 
 			return attrString;
@@ -528,8 +528,8 @@
 	};
 
 	// Module loaded
-	if ( window.SCD && window.SCD.DebugLogger ) {
-		SCD.DebugLogger.log( 'info', 'UIStateManager', 'UI State Manager loaded' );
+	if ( window.WSSCD && window.WSSCD.DebugLogger ) {
+		WSSCD.DebugLogger.log( 'info', 'UIStateManager', 'UI State Manager loaded' );
 	}
 
-} )( window, jQuery, window.SCD || {} );
+} )( window, jQuery, window.WSSCD || {} );

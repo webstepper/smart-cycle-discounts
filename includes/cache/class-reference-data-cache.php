@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Reference Data Cache class.
  *
- * Thin wrapper around SCD_Cache_Manager for reference data caching.
+ * Thin wrapper around WSSCD_Cache_Manager for reference data caching.
  * Uses cache manager as single source of truth with reference-specific defaults.
  *
  * @since      1.0.0
@@ -28,16 +28,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/cache
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Reference_Data_Cache {
+class WSSCD_Reference_Data_Cache {
 
 	/**
 	 * Cache manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Cache_Manager    $cache    Cache manager.
+	 * @var      WSSCD_Cache_Manager    $cache    Cache manager.
 	 */
-	private SCD_Cache_Manager $cache;
+	private WSSCD_Cache_Manager $cache;
 
 	/**
 	 * Cache group for reference data.
@@ -75,9 +75,9 @@ class SCD_Reference_Data_Cache {
 	 * Initialize the reference data cache.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Cache_Manager $cache    Cache manager instance.
+	 * @param    WSSCD_Cache_Manager $cache    Cache manager instance.
 	 */
-	public function __construct( SCD_Cache_Manager $cache ) {
+	public function __construct( WSSCD_Cache_Manager $cache ) {
 		$this->cache = $cache;
 		$this->load_cache_durations_from_settings();
 	}
@@ -99,7 +99,7 @@ class SCD_Reference_Data_Cache {
 		 * @since 1.0.0
 		 * @param int $duration Cache duration in seconds. Default 3600 (1 hour).
 		 */
-		$duration = apply_filters( 'scd_reference_cache_duration', 3600 );
+		$duration = apply_filters( 'wsscd_reference_cache_duration', 3600 );
 		$duration = max( 900, (int) $duration ); // Minimum 15 minutes
 
 		// Update all reference data cache durations
@@ -129,7 +129,7 @@ class SCD_Reference_Data_Cache {
 	 * @param    int|null $duration    Optional custom cache duration.
 	 * @return   mixed                  Cached or generated data.
 	 */
-	public function get( string $type, callable $generator, ?int $duration = null ): mixed {
+	public function get( string $type, callable $generator, ?int $duration = null ) {
 		$cache_duration = $duration ?? $this->cache_durations[ $type ] ?? 3600;
 		$cache_key      = $this->get_cache_key( $type );
 
@@ -244,17 +244,17 @@ class SCD_Reference_Data_Cache {
 
 			case 'active_campaigns':
 				return function () {
-					return SCD_Performance_Optimizer::get_reference_data( 'active_campaigns' );
+					return WSSCD_Performance_Optimizer::get_reference_data( 'active_campaigns' );
 				};
 
 			case 'discount_rules':
 				return function () {
-					return SCD_Performance_Optimizer::get_reference_data( 'discount_rules' );
+					return WSSCD_Performance_Optimizer::get_reference_data( 'discount_rules' );
 				};
 
 			case 'validation_rules':
 				return function () {
-					return SCD_Performance_Optimizer::get_reference_data( 'validation_rules' );
+					return WSSCD_Performance_Optimizer::get_reference_data( 'validation_rules' );
 				};
 
 			case 'tax_rates':

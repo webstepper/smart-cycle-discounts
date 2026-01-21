@@ -16,24 +16,24 @@
 
 /**
  * Standard form field container with label, input, tooltip, and error
- * Anatomy: .scd-form-field > label + .scd-field-helper + input + .scd-form-error
+ * Anatomy: .wsscd-form-field > label + .wsscd-field-helper + input + .wsscd-form-error
  */
-.scd-form-field {
-	margin-bottom: var(--scd-form-field-gap);
+.wsscd-form-field {
+	margin-bottom: var(--wsscd-form-field-gap);
 }
 
-.scd-form-field label {
+.wsscd-form-field label {
 	display: inline-block;
-	margin-bottom: var(--scd-form-field-label-gap);
-	font-size: var(--scd-font-size-medium);
-	font-weight: var(--scd-font-weight-semibold);
-	color: var(--scd-color-text);
+	margin-bottom: var(--wsscd-form-field-label-gap);
+	font-size: var(--wsscd-font-size-medium);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
 	letter-spacing: -0.01em;
 }
 
-.scd-form-field label .required {
+.wsscd-form-field label .required {
 	margin-left: 0;
-	color: var(--scd-form-error);
+	color: var(--wsscd-form-error);
 }
 
 /* ==========================================================================
@@ -41,123 +41,133 @@
    ========================================================================== */
 
 /* Horizontal layout - label and input side-by-side */
-.scd-form-field--horizontal {
+.wsscd-form-field--horizontal {
 	display: flex;
 	align-items: center;
-	gap: var(--scd-spacing-md);
+	gap: var(--wsscd-spacing-md);
 }
 
-.scd-form-field--horizontal label {
+.wsscd-form-field--horizontal label {
 	margin-bottom: 0;
-	min-width: var(--scd-form-field-horizontal-label-width);
+	min-width: var(--wsscd-form-field-horizontal-label-width);
 	flex-shrink: 0;
 }
 
-.scd-form-field--horizontal input,
-.scd-form-field--horizontal select,
-.scd-form-field--horizontal textarea {
+.wsscd-form-field--horizontal input,
+.wsscd-form-field--horizontal select,
+.wsscd-form-field--horizontal textarea {
 	flex: 1;
 }
 
 /* Inline layout - compact horizontal with smaller label */
-.scd-form-field--inline {
+.wsscd-form-field--inline {
 	display: inline-flex;
 	align-items: center;
-	gap: var(--scd-spacing-sm);
-	margin-bottom: var(--scd-spacing-md);
+	gap: var(--wsscd-spacing-sm);
+	margin-bottom: var(--wsscd-spacing-md);
 }
 
-.scd-form-field--inline label {
+.wsscd-form-field--inline label {
 	margin-bottom: 0;
-	font-weight: var(--scd-font-weight-medium);
+	font-weight: var(--wsscd-font-weight-medium);
 }
 
 /* ==========================================================================
    Base Input Styling
    ========================================================================== */
 
-.scd-input,
-.scd-textarea,
-.scd-select,
-input[type].scd-themed,
-textarea.scd-themed,
-select.scd-themed {
+/**
+ * Input classes hierarchy:
+ * - .wsscd-input/.wsscd-textarea/.wsscd-select - Basic themed inputs
+ * - .wsscd-enhanced-input/.wsscd-enhanced-select - Premium styled inputs (wizard)
+ * - .wsscd-themed - WordPress form integration
+ *
+ * Specificity: input[type].class beats WordPress input[type="text"] (0,2,1 > 0,1,1)
+ */
+
+/* Basic themed inputs */
+.wsscd-input,
+.wsscd-textarea,
+.wsscd-select {
 	width: 100%;
-	max-width: var(--scd-form-field-width-medium);
-	padding: 0 var(--scd-spacing-sm);
-	font-size: var(--scd-font-size-base);
+	max-width: var(--wsscd-form-field-width-medium);
+	padding: 0 var(--wsscd-spacing-sm);
+	font-size: var(--wsscd-font-size-base);
 	line-height: 2;
-	color: var(--scd-color-text);
-	background-color: var(--scd-color-background);
-	border: var(--scd-border-width) solid var(--scd-color-border);
-	border-radius: var(--scd-radius-md);
+	color: var(--wsscd-color-text);
+	background-color: var(--wsscd-color-background);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-md);
 	box-sizing: border-box;
-	transition: border-color var(--scd-transition-base) ease;
+	transition: border-color var(--wsscd-transition-base) ease;
 }
 
-/* Enhanced inputs - MUST beat WordPress input[type="text"] which is (0,1,1) */
-/* Using type attribute + class = (0,2,1) specificity wins WITHOUT !important */
-input[type].scd-enhanced-input,
-textarea.scd-enhanced-input,
-select.scd-enhanced-select,
-.scd-form-field input[type].scd-enhanced-input,
-.scd-form-field textarea.scd-enhanced-input,
-.scd-form-field select.scd-enhanced-select,
-.scd-step-main-content input[type].scd-enhanced-input,
-.scd-step-main-content textarea.scd-enhanced-input,
-.scd-step-main-content select.scd-enhanced-select {
-	padding: var(--scd-padding-small) var(--scd-spacing-md);
-	font-size: var(--scd-font-size-medium);
-	line-height: var(--scd-line-height-base);
-	min-height: var(--scd-input-height);
-	color: var(--scd-color-text);
-	background-color: var(--scd-color-background);
-	border: var(--scd-border-width) solid var(--scd-color-border-light);
-	box-shadow: var(--scd-input-shadow);
-	border-radius: var(--scd-radius-custom);
-	transition: var(--scd-form-input-transition);
+/* Enhanced inputs - premium styling for wizard */
+input[type].wsscd-enhanced-input,
+textarea.wsscd-enhanced-input,
+select.wsscd-enhanced-select {
+	width: 100%;
+	padding: var(--wsscd-padding-small) var(--wsscd-spacing-md);
+	font-size: var(--wsscd-font-size-medium);
+	line-height: var(--wsscd-line-height-base);
+	min-height: var(--wsscd-input-height);
+	color: var(--wsscd-color-text);
+	background-color: var(--wsscd-color-background);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+	box-shadow: var(--wsscd-input-shadow);
+	border-radius: var(--wsscd-radius-custom);
+	box-sizing: border-box;
+	transition: var(--wsscd-form-input-transition);
 }
 
-/* Focus state - flat design with border color only */
-.scd-input:focus,
-.scd-textarea:focus,
-.scd-select:focus,
-input.scd-enhanced-input:focus,
-textarea.scd-enhanced-input:focus,
-select.scd-enhanced-select:focus,
-.scd-form-field input.scd-enhanced-input:focus,
-.scd-form-field textarea.scd-enhanced-input:focus,
-.scd-form-field select.scd-enhanced-select:focus,
-.scd-step-main-content input.scd-enhanced-input:focus,
-.scd-step-main-content textarea.scd-enhanced-input:focus,
-.scd-step-main-content select.scd-enhanced-select:focus,
-input[type].scd-themed:focus,
-textarea.scd-themed:focus,
-select.scd-themed:focus {
+/* WordPress form integration */
+input[type].wsscd-themed,
+textarea.wsscd-themed,
+select.wsscd-themed {
+	color: var(--wsscd-color-text);
+	background-color: var(--wsscd-color-background);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-md);
+	transition: border-color var(--wsscd-transition-base) ease;
+}
+
+/* ==========================================================================
+   Focus States
+   ========================================================================== */
+
+/* Focus - border color change + subtle shadow, override WordPress box-shadow ring */
+.wsscd-input:focus,
+.wsscd-textarea:focus,
+.wsscd-select:focus,
+input[type].wsscd-enhanced-input:focus,
+textarea.wsscd-enhanced-input:focus,
+select.wsscd-enhanced-select:focus,
+input[type].wsscd-themed:focus,
+textarea.wsscd-themed:focus,
+select.wsscd-themed:focus {
 	outline: none;
-	border-color: var(--scd-form-focus);
-	box-shadow: var(--scd-input-focus-shadow);
+	border-color: var(--wsscd-form-focus);
+	box-shadow: var(--wsscd-input-focus-shadow);
 }
 
-/* Textarea specific */
-.scd-textarea,
-textarea.scd-enhanced-input,
-.scd-form-field textarea.scd-enhanced-input,
-.scd-step-main-content textarea.scd-enhanced-input,
-textarea.scd-themed {
+/* ==========================================================================
+   Element-Specific Styles
+   ========================================================================== */
+
+/* Textarea */
+.wsscd-textarea,
+textarea.wsscd-enhanced-input,
+textarea.wsscd-themed {
 	min-height: 80px;
 	resize: vertical;
-	line-height: var(--scd-line-height-base);
-	padding: var(--scd-spacing-sm);
+	line-height: var(--wsscd-line-height-base);
+	padding: var(--wsscd-spacing-sm);
 }
 
-/* Select specific */
-/* Dropdown arrow using CSS mask for theme color support */
-.scd-select,
-select.scd-enhanced-select,
-.scd-form-field select.scd-enhanced-select,
-.scd-step-main-content select.scd-enhanced-select,
-select.scd-themed {
+/* Select - dropdown arrow */
+.wsscd-select,
+select.wsscd-enhanced-select,
+select.wsscd-themed {
 	cursor: pointer;
 	background-repeat: no-repeat;
 	background-position: right 8px center;
@@ -166,14 +176,14 @@ select.scd-themed {
 }
 
 /* Use CSS mask technique for themed dropdown arrows */
-.scd-form-field:has(.scd-select),
-.scd-form-field:has(select.scd-enhanced-select),
-.scd-form-field:has(select.scd-themed) {
+.wsscd-form-field:has(.wsscd-select),
+.wsscd-form-field:has(select.wsscd-enhanced-select),
+.wsscd-form-field:has(select.wsscd-themed) {
 	position: relative;
 }
 
-.scd-form-field:has(.scd-select)::after,
-.scd-form-field:has(select.scd-themed)::after {
+.wsscd-form-field:has(.wsscd-select)::after,
+.wsscd-form-field:has(select.wsscd-themed)::after {
 	content: '';
 	position: absolute;
 	right: 8px;
@@ -185,7 +195,7 @@ select.scd-themed {
 	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat center;
 	-webkit-mask-size: contain;
 	mask-size: contain;
-	background-color: var(--scd-color-text-lighter);
+	background-color: var(--wsscd-color-text-lighter);
 	pointer-events: none;
 }
 
@@ -194,43 +204,43 @@ select.scd-themed {
    ========================================================================== */
 
 /* Small inputs */
-.scd-form-field--small input,
-.scd-form-field--small select,
-.scd-form-field--small textarea,
-.scd-input--small,
-.scd-select--small,
-.scd-textarea--small,
-.scd-input-small {
-	max-width: var(--scd-form-field-width-small);
+.wsscd-form-field--small input,
+.wsscd-form-field--small select,
+.wsscd-form-field--small textarea,
+.wsscd-input--small,
+.wsscd-select--small,
+.wsscd-textarea--small,
+.wsscd-input-small {
+	max-width: var(--wsscd-form-field-width-small);
 }
 
 /* Medium inputs (default) */
-.scd-form-field--medium input,
-.scd-form-field--medium select,
-.scd-form-field--medium textarea,
-.scd-input--medium,
-.scd-select--medium,
-.scd-textarea--medium {
-	max-width: var(--scd-form-field-width-medium);
+.wsscd-form-field--medium input,
+.wsscd-form-field--medium select,
+.wsscd-form-field--medium textarea,
+.wsscd-input--medium,
+.wsscd-select--medium,
+.wsscd-textarea--medium {
+	max-width: var(--wsscd-form-field-width-medium);
 }
 
 /* Large inputs */
-.scd-form-field--large input,
-.scd-form-field--large select,
-.scd-form-field--large textarea,
-.scd-input--large,
-.scd-select--large,
-.scd-textarea--large {
-	max-width: var(--scd-form-field-width-large);
+.wsscd-form-field--large input,
+.wsscd-form-field--large select,
+.wsscd-form-field--large textarea,
+.wsscd-input--large,
+.wsscd-select--large,
+.wsscd-textarea--large {
+	max-width: var(--wsscd-form-field-width-large);
 }
 
 /* Full-width inputs */
-.scd-form-field--full input,
-.scd-form-field--full select,
-.scd-form-field--full textarea,
-.scd-input--full,
-.scd-select--full,
-.scd-textarea--full {
+.wsscd-form-field--full input,
+.wsscd-form-field--full select,
+.wsscd-form-field--full textarea,
+.wsscd-input--full,
+.wsscd-select--full,
+.wsscd-textarea--full {
 	max-width: none;
 	width: 100%;
 }
@@ -239,171 +249,190 @@ select.scd-themed {
    Checkboxes & Radios
    ========================================================================== */
 
-.scd-checkbox,
-.scd-radio {
+.wsscd-checkbox,
+.wsscd-radio {
 	display: inline-flex;
 	align-items: center;
-	gap: var(--scd-spacing-sm);
-	margin-bottom: var(--scd-spacing-sm);
+	gap: var(--wsscd-spacing-sm);
+	margin-bottom: var(--wsscd-spacing-sm);
 	cursor: pointer;
 }
 
-.scd-checkbox input[type="checkbox"],
-.scd-radio input[type="radio"],
-input[type="checkbox"].scd-themed,
-input[type="radio"].scd-themed {
+.wsscd-checkbox input[type="checkbox"],
+.wsscd-radio input[type="radio"],
+input[type="checkbox"].wsscd-themed,
+input[type="radio"].wsscd-themed {
 	flex-shrink: 0;
 	width: 16px;
 	height: 16px;
 	margin: 0;
 	cursor: pointer;
-	border: var(--scd-border-width) solid var(--scd-color-border-dark);
-	background: var(--scd-color-background);
-	transition: border-color var(--scd-transition-base) ease, background-color var(--scd-transition-base) ease;
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-dark);
+	background: var(--wsscd-color-background);
+	transition: border-color var(--wsscd-transition-base) ease, background-color var(--wsscd-transition-base) ease;
 }
 
-input[type="checkbox"].scd-themed {
-	border-radius: var(--scd-radius-sm);
+input[type="checkbox"].wsscd-themed {
+	border-radius: var(--wsscd-radius-sm);
 }
 
-input[type="radio"].scd-themed {
-	border-radius: var(--scd-radius-full);
+input[type="radio"].wsscd-themed {
+	border-radius: var(--wsscd-radius-full);
 }
 
-input[type="checkbox"].scd-themed:checked,
-input[type="radio"].scd-themed:checked {
-	background: var(--scd-form-checked-bg);
-	border-color: var(--scd-form-checked-border);
+input[type="checkbox"].wsscd-themed:checked,
+input[type="radio"].wsscd-themed:checked {
+	background: var(--wsscd-form-checked-bg);
+	border-color: var(--wsscd-form-checked-border);
 }
 
-input[type="checkbox"].scd-themed:focus,
-input[type="radio"].scd-themed:focus {
+input[type="checkbox"].wsscd-themed:focus,
+input[type="radio"].wsscd-themed:focus {
 	outline: none;
-	border-color: var(--scd-form-focus);
+	border-color: var(--wsscd-form-focus);
 }
 
 /* ==========================================================================
    Toggle Switches
    ========================================================================== */
 
-.scd-toggle {
+/**
+ * Toggle switch component using the standard HTML structure:
+ * <label class="wsscd-toggle">
+ *     <input type="checkbox" />
+ *     <span class="wsscd-toggle-slider"></span>
+ * </label>
+ */
+
+.wsscd-toggle {
 	display: inline-flex;
 	align-items: center;
-	gap: var(--scd-spacing-sm);
 	cursor: pointer;
 }
 
-.scd-toggle-input {
+/* Hide the actual checkbox */
+.wsscd-toggle input[type="checkbox"] {
 	position: absolute;
+	width: 0;
+	height: 0;
 	opacity: 0;
-	pointer-events: none;
 }
 
-.scd-toggle-track {
+/* Toggle Track (slider background) */
+.wsscd-toggle-slider {
 	position: relative;
+	display: inline-block;
 	width: 44px;
 	height: 22px;
-	background: var(--scd-color-border);
-	border-radius: var(--scd-radius-pill);
-	transition: var(--scd-transition-colors);
-	box-shadow: inset 0 1px 3px var(--scd-overlay-light);
+	background: var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-pill);
+	box-shadow: var(--wsscd-shadow-inset-subtle);
+	transition: var(--wsscd-transition-colors);
 }
 
-.scd-toggle-thumb {
+/* Toggle Thumb (slider knob) - using ::before pseudo-element */
+.wsscd-toggle-slider::before {
+	content: '';
 	position: absolute;
 	top: 3px;
 	left: 3px;
 	width: 16px;
 	height: 16px;
-	background: var(--scd-color-white);
-	border-radius: var(--scd-radius-full);
-	box-shadow: var(--scd-shadow-sm);
-	transition: var(--scd-transition-transform);
+	background: var(--wsscd-color-white);
+	border-radius: var(--wsscd-radius-full);
+	box-shadow: var(--wsscd-shadow-sm);
+	transition: var(--wsscd-transition-transform);
 }
 
-.scd-toggle-input:checked + .scd-toggle-track {
-	background: var(--scd-color-primary);
-	box-shadow: inset 0 1px 3px var(--scd-color-primary-alpha-20);
+/* Checked State */
+.wsscd-toggle input[type="checkbox"]:checked + .wsscd-toggle-slider {
+	background: var(--wsscd-color-primary);
+	box-shadow: var(--wsscd-shadow-inset);
 }
 
-.scd-toggle-input:checked + .scd-toggle-track .scd-toggle-thumb {
+.wsscd-toggle input[type="checkbox"]:checked + .wsscd-toggle-slider::before {
 	transform: translateX(22px);
 }
 
-.scd-toggle-input:focus + .scd-toggle-track {
-	outline: 2px solid var(--scd-color-primary);
-	outline-offset: 2px;
+/* Focus State - no visible outline for mouse clicks */
+.wsscd-toggle input[type="checkbox"]:focus + .wsscd-toggle-slider {
+	outline: none;
+}
+
+/* Focus-visible State - keyboard navigation only */
+.wsscd-toggle input[type="checkbox"]:focus-visible + .wsscd-toggle-slider {
+	outline: var(--wsscd-border-width-focus) solid var(--wsscd-color-primary);
+	outline-offset: var(--wsscd-spacing-xxs);
+	box-shadow: var(--wsscd-ring-focus);
 }
 
 /* ==========================================================================
    Form States
    ========================================================================== */
 
-/* Note: Error states are now standardized in validation.css using .error and .has-error classes.
-   These classes integrate with ValidationError.js and WordPress ecosystem.
-   Legacy .scd-form-field--error classes have been removed to eliminate duplication. */
-
 /* Success state */
-.scd-form-field--success .scd-input,
-.scd-form-field--success .scd-textarea,
-.scd-form-field--success .scd-select,
-.scd-form-field--success input.scd-enhanced-input,
-.scd-form-field--success textarea.scd-enhanced-input,
-.scd-form-field--success select.scd-enhanced-select,
-.scd-step-main-content .scd-form-field--success input.scd-enhanced-input,
-.scd-step-main-content .scd-form-field--success textarea.scd-enhanced-input,
-.scd-step-main-content .scd-form-field--success select.scd-enhanced-select,
-.scd-input--success,
-.scd-textarea--success,
-.scd-select--success {
-	border-color: var(--scd-form-success);
-	background-color: var(--scd-color-success-lighter);
+.wsscd-form-field--success .wsscd-input,
+.wsscd-form-field--success .wsscd-textarea,
+.wsscd-form-field--success .wsscd-select,
+.wsscd-form-field--success input.wsscd-enhanced-input,
+.wsscd-form-field--success textarea.wsscd-enhanced-input,
+.wsscd-form-field--success select.wsscd-enhanced-select,
+.wsscd-input--success,
+.wsscd-textarea--success,
+.wsscd-select--success {
+	border-color: var(--wsscd-form-success);
+	background-color: var(--wsscd-color-success-lighter);
 }
 
-.scd-form-field--success .scd-input:focus,
-.scd-form-field--success .scd-textarea:focus,
-.scd-form-field--success .scd-select:focus,
-.scd-form-field--success input.scd-enhanced-input:focus,
-.scd-form-field--success textarea.scd-enhanced-input:focus,
-.scd-form-field--success select.scd-enhanced-select:focus,
-.scd-step-main-content .scd-form-field--success input.scd-enhanced-input:focus,
-.scd-step-main-content .scd-form-field--success textarea.scd-enhanced-input:focus,
-.scd-step-main-content .scd-form-field--success select.scd-enhanced-select:focus,
-.scd-input--success:focus,
-.scd-textarea--success:focus,
-.scd-select--success:focus {
-	border-color: var(--scd-form-success);
-	outline: 2px solid var(--scd-color-success);
-	outline-offset: 2px;
-	box-shadow: var(--scd-ring-success);
+.wsscd-form-field--success .wsscd-input:focus,
+.wsscd-form-field--success .wsscd-textarea:focus,
+.wsscd-form-field--success .wsscd-select:focus,
+.wsscd-form-field--success input.wsscd-enhanced-input:focus,
+.wsscd-form-field--success textarea.wsscd-enhanced-input:focus,
+.wsscd-form-field--success select.wsscd-enhanced-select:focus,
+.wsscd-input--success:focus,
+.wsscd-textarea--success:focus,
+.wsscd-select--success:focus {
+	outline: none;
+	border-color: var(--wsscd-form-success);
 }
 
-.scd-form-success {
+.wsscd-form-field--success .wsscd-input:focus-visible,
+.wsscd-form-field--success .wsscd-textarea:focus-visible,
+.wsscd-form-field--success .wsscd-select:focus-visible,
+.wsscd-form-field--success input.wsscd-enhanced-input:focus-visible,
+.wsscd-form-field--success textarea.wsscd-enhanced-input:focus-visible,
+.wsscd-form-field--success select.wsscd-enhanced-select:focus-visible,
+.wsscd-input--success:focus-visible,
+.wsscd-textarea--success:focus-visible,
+.wsscd-select--success:focus-visible {
+	outline: none;
+}
+
+.wsscd-form-success {
 	display: block;
-	margin-top: var(--scd-spacing-xs);
-	font-size: var(--scd-font-size-small);
-	color: var(--scd-form-success);
+	margin-top: var(--wsscd-spacing-xs);
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-form-success);
 }
 
 /* Disabled state */
-.scd-input:disabled,
-.scd-textarea:disabled,
-.scd-select:disabled,
-input.scd-enhanced-input:disabled,
-textarea.scd-enhanced-input:disabled,
-select.scd-enhanced-select:disabled,
-.scd-form-field input.scd-enhanced-input:disabled,
-.scd-form-field textarea.scd-enhanced-input:disabled,
-.scd-form-field select.scd-enhanced-select:disabled,
-.scd-step-main-content input.scd-enhanced-input:disabled,
-.scd-step-main-content textarea.scd-enhanced-input:disabled,
-.scd-step-main-content select.scd-enhanced-select:disabled,
-.scd-input--disabled,
-.scd-textarea--disabled,
-.scd-select--disabled {
-	opacity: 0.6;
+.wsscd-input:disabled,
+.wsscd-textarea:disabled,
+.wsscd-select:disabled,
+input[type].wsscd-enhanced-input:disabled,
+textarea.wsscd-enhanced-input:disabled,
+select.wsscd-enhanced-select:disabled,
+input[type].wsscd-themed:disabled,
+textarea.wsscd-themed:disabled,
+select.wsscd-themed:disabled,
+.wsscd-input--disabled,
+.wsscd-textarea--disabled,
+.wsscd-select--disabled {
 	cursor: not-allowed;
-	background-color: var(--scd-color-surface);
+	background-color: var(--wsscd-color-bg-disabled);
+	border-color: var(--wsscd-color-border-disabled);
+	color: var(--wsscd-color-text-disabled);
 }
 
 /* ==========================================================================
@@ -415,72 +444,72 @@ select.scd-enhanced-select:disabled,
    ========================================================================== */
 
 /* Container */
-.scd-input-group {
+.wsscd-input-group {
 	display: flex;
 	align-items: stretch;
-	max-width: var(--scd-form-field-width-medium);
+	max-width: var(--wsscd-form-field-width-medium);
 }
 
 /* Prefix (%, $, etc.) */
-.scd-input-group .scd-input-prefix {
+.wsscd-input-group .wsscd-input-prefix {
 	display: flex;
 	align-items: center;
-	padding: var(--scd-padding-small) var(--scd-spacing-md);
-	background: var(--scd-color-surface);
-	border: var(--scd-border-width) solid var(--scd-color-border-light);
+	padding: var(--wsscd-padding-small) var(--wsscd-spacing-md);
+	background: var(--wsscd-color-surface);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
 	border-right: 0;
-	border-radius: var(--scd-radius-custom) 0 0 var(--scd-radius-custom);
-	color: var(--scd-color-text);
-	font-size: var(--scd-font-size-medium);
-	font-weight: var(--scd-font-weight-semibold);
-	line-height: var(--scd-line-height-base);
-	min-height: var(--scd-input-height);
+	border-radius: var(--wsscd-radius-custom) 0 0 var(--wsscd-radius-custom);
+	color: var(--wsscd-color-text);
+	font-size: var(--wsscd-font-size-medium);
+	font-weight: var(--wsscd-font-weight-semibold);
+	line-height: var(--wsscd-line-height-base);
+	min-height: var(--wsscd-input-height);
 	white-space: nowrap;
 	box-sizing: border-box;
 }
 
 /* Input field after prefix - seamless connection */
-.scd-input-group input[type],
-.scd-input-group input.scd-enhanced-input,
-.scd-input-group .scd-enhanced-input {
+.wsscd-input-group input[type],
+.wsscd-input-group input.wsscd-enhanced-input,
+.wsscd-input-group .wsscd-enhanced-input {
 	flex: 1;
 	border-left: 0;
-	border-radius: 0 var(--scd-radius-custom) var(--scd-radius-custom) 0;
+	border-radius: 0 var(--wsscd-radius-custom) var(--wsscd-radius-custom) 0;
 	margin: 0;
 	max-width: none;
 }
 
 /* Enhanced theme - add matching shadow to prefix */
-.scd-input-group .scd-input-prefix {
-	box-shadow: var(--scd-input-shadow);
+.wsscd-input-group .wsscd-input-prefix {
+	box-shadow: var(--wsscd-input-shadow);
 }
 
 /* Focus state for entire group */
-.scd-input-group:focus-within .scd-input-prefix {
-	border-color: var(--scd-form-focus);
+.wsscd-input-group:focus-within .wsscd-input-prefix {
+	border-color: var(--wsscd-form-focus);
 }
 
 /* Input Wrapper - Flex container for input + suffix */
-.scd-input-wrapper {
+.wsscd-input-wrapper {
 	display: flex;
 	align-items: center;
-	gap: var(--scd-spacing-md);
+	gap: var(--wsscd-spacing-md);
 	max-width: 100%;
 }
 
-.scd-input-wrapper input:not( .scd-enhanced-input ),
-.scd-input-wrapper select:not( .scd-enhanced-select ) {
-	flex: 0 1 var(--scd-form-field-width-medium);
-	max-width: var(--scd-form-field-width-medium);
+.wsscd-input-wrapper input:not( .wsscd-enhanced-input ),
+.wsscd-input-wrapper select:not( .wsscd-enhanced-select ) {
+	flex: 0 1 var(--wsscd-form-field-width-medium);
+	max-width: var(--wsscd-form-field-width-medium);
 }
 
 /* Field Suffix - Descriptive label after input */
-.scd-field-suffix {
+.wsscd-field-suffix {
 	display: inline-block;
-	margin-left: var(--scd-spacing-md);
-	font-size: var(--scd-font-size-base);
-	color: var(--scd-color-text-muted);
-	font-weight: var(--scd-font-weight-medium);
+	margin-left: var(--wsscd-spacing-md);
+	font-size: var(--wsscd-font-size-base);
+	color: var(--wsscd-color-text-muted);
+	font-weight: var(--wsscd-font-weight-medium);
 	white-space: nowrap;
 	flex-shrink: 0;
 }
@@ -489,23 +518,23 @@ select.scd-enhanced-select:disabled,
    Form Grid (Multi-column layouts)
    ========================================================================== */
 
-.scd-form-grid {
+.wsscd-form-grid {
 	display: grid;
 	grid-template-columns: repeat( auto-fit, minmax( 300px, 1fr ) );
-	gap: var(--scd-form-field-gap);
+	gap: var(--wsscd-form-field-gap);
 }
 
-.scd-form-grid--2col {
+.wsscd-form-grid--2col {
 	grid-template-columns: repeat( 2, 1fr );
 }
 
-.scd-form-grid--3col {
+.wsscd-form-grid--3col {
 	grid-template-columns: repeat( 3, 1fr );
 }
 
 @media screen and ( max-width: 782px ) {
-	.scd-form-grid--2col,
-	.scd-form-grid--3col {
+	.wsscd-form-grid--2col,
+	.wsscd-form-grid--3col {
 		grid-template-columns: 1fr;
 	}
 }
@@ -519,51 +548,51 @@ select.scd-enhanced-select:disabled,
  * Used to organize complex forms into manageable sections
  *
  * Structure:
- *   .scd-form-section
- *     .scd-form-section-header (optional)
- *       .scd-form-section-title
- *       .scd-form-section-description (optional)
+ *   .wsscd-form-section
+ *     .wsscd-form-section-header (optional)
+ *       .wsscd-form-section-title
+ *       .wsscd-form-section-description (optional)
  *     [form fields]
  */
 
-.scd-form-section {
-	margin-bottom: var(--scd-spacing-xxl, 32px);
+.wsscd-form-section {
+	margin-bottom: var(--wsscd-spacing-xxl, 32px);
 }
 
 /* Section with header - provides visual separation and context */
-.scd-form-section-header {
-	margin-bottom: var(--scd-spacing-lg, 20px);
-	padding-bottom: var(--scd-spacing-sm, 8px);
-	border-bottom: 2px solid var(--scd-color-border-light);
+.wsscd-form-section-header {
+	margin-bottom: var(--wsscd-spacing-lg, 20px);
+	padding-bottom: var(--wsscd-spacing-sm, 8px);
+	border-bottom: 2px solid var(--wsscd-color-border-light);
 }
 
-.scd-form-section-title {
-	font-size: var(--scd-font-size-large);
-	font-weight: var(--scd-font-weight-semibold, 600);
-	color: var(--scd-color-text);
+.wsscd-form-section-title {
+	font-size: var(--wsscd-font-size-large);
+	font-weight: var(--wsscd-font-weight-semibold, 600);
+	color: var(--wsscd-color-text);
 	margin: 0;
-	line-height: var(--scd-line-height-tight);
+	line-height: var(--wsscd-line-height-tight);
 	letter-spacing: -0.01em;
 }
 
-.scd-form-section-description {
-	font-size: var(--scd-font-size-small, 13px);
-	color: var(--scd-color-text-muted);
+.wsscd-form-section-description {
+	font-size: var(--wsscd-font-size-small, 13px);
+	color: var(--wsscd-color-text-muted);
 	margin: 0;
-	line-height: var(--scd-line-height-base);
+	line-height: var(--wsscd-line-height-base);
 }
 
 /* Spacing variants - adjust bottom margin based on context */
-.scd-form-section-compact {
-	margin-bottom: var(--scd-spacing-lg, 20px);
+.wsscd-form-section-compact {
+	margin-bottom: var(--wsscd-spacing-lg, 20px);
 }
 
-.scd-form-section-spacious {
-	margin-bottom: var(--scd-spacing-xxxl, 48px);
+.wsscd-form-section-spacious {
+	margin-bottom: var(--wsscd-spacing-xxxl, 48px);
 }
 
 /* No bottom margin - use for last sections in containers */
-.scd-form-section-flush {
+.wsscd-form-section-flush {
 	margin-bottom: 0;
 }
 
@@ -571,47 +600,47 @@ select.scd-enhanced-select:disabled,
    Rules Table - Enhanced form table styling
    ========================================================================== */
 
-.scd-rules-table tr {
-	border-bottom: 1px solid var(--scd-color-border-lighter);
+.wsscd-rules-table tr {
+	border-bottom: 1px solid var(--wsscd-color-border-lighter);
 }
 
-.scd-rules-table tr:last-child {
+.wsscd-rules-table tr:last-child {
 	border-bottom: none;
 }
 
-.scd-rules-table th {
+.wsscd-rules-table th {
 	width: 200px;
-	padding: var(--scd-padding-large) var(--scd-spacing-lg) var(--scd-padding-medium) 0;
-	font-weight: var(--scd-font-weight-semibold);
-	color: var(--scd-color-text);
+	padding: var(--wsscd-padding-large) var(--wsscd-spacing-lg) var(--wsscd-padding-medium) 0;
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
 }
 
-.scd-rules-table th label {
+.wsscd-rules-table th label {
 	display: flex;
 	align-items: center;
-	gap: var(--scd-gap-tight);
-	font-size: var(--scd-font-size-medium);
-	line-height: var(--scd-line-height-base);
+	gap: var(--wsscd-gap-tight);
+	font-size: var(--wsscd-font-size-medium);
+	line-height: var(--wsscd-line-height-base);
 }
 
-.scd-rules-table td {
-	padding: var(--scd-padding-large) 0;
+.wsscd-rules-table td {
+	padding: var(--wsscd-padding-large) 0;
 }
 
 /* Label Icon - Optional icon before label text */
-.scd-label-icon {
+.wsscd-label-icon {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: var(--scd-icon-medium);
-	height: var(--scd-icon-medium);
+	width: var(--wsscd-icon-medium);
+	height: var(--wsscd-icon-medium);
 	color: var(--wp-admin-theme-color);
 }
 
-.scd-label-icon .scd-icon {
-	font-size: var(--scd-font-size-xxl);
-	width: var(--scd-icon-medium);
-	height: var(--scd-icon-medium);
+.wsscd-label-icon .wsscd-icon {
+	font-size: var(--wsscd-font-size-xxl);
+	width: var(--wsscd-icon-medium);
+	height: var(--wsscd-icon-medium);
 }
 
 /* ==========================================================================
@@ -619,74 +648,74 @@ select.scd-enhanced-select:disabled,
    ========================================================================== */
 
 /* Apply theme colors to WordPress form elements when opted-in */
-.scd-themed-forms input[type="text"]:focus,
-.scd-themed-forms input[type="email"]:focus,
-.scd-themed-forms input[type="url"]:focus,
-.scd-themed-forms input[type="number"]:focus,
-.scd-themed-forms input[type="password"]:focus,
-.scd-themed-forms input[type="search"]:focus,
-.scd-themed-forms textarea:focus,
-.scd-themed-forms select:focus {
-	border-color: var(--scd-form-focus);
+.wsscd-themed-forms input[type="text"]:focus,
+.wsscd-themed-forms input[type="email"]:focus,
+.wsscd-themed-forms input[type="url"]:focus,
+.wsscd-themed-forms input[type="number"]:focus,
+.wsscd-themed-forms input[type="password"]:focus,
+.wsscd-themed-forms input[type="search"]:focus,
+.wsscd-themed-forms textarea:focus,
+.wsscd-themed-forms select:focus {
+	border-color: var(--wsscd-form-focus);
 }
 
-.scd-themed-forms input[type="checkbox"]:checked,
-.scd-themed-forms input[type="radio"]:checked {
-	background: var(--scd-form-checked-bg);
-	border-color: var(--scd-form-checked-border);
+.wsscd-themed-forms input[type="checkbox"]:checked,
+.wsscd-themed-forms input[type="radio"]:checked {
+	background: var(--wsscd-form-checked-bg);
+	border-color: var(--wsscd-form-checked-border);
 }
 
 /* ==========================================================================
-   Legacy Support (Deprecated - use .scd-form-field instead)
+   Legacy Support (Deprecated - use .wsscd-form-field instead)
    ========================================================================== */
 
 /* Backward compatibility for old class names */
-.scd-field-container,
+.wsscd-field-container,
 .form-field {
-	margin-bottom: var(--scd-form-field-gap);
+	margin-bottom: var(--wsscd-form-field-gap);
 }
 
 .form-field label {
 	display: inline-block;
-	margin-bottom: var(--scd-form-field-label-gap);
-	font-size: var(--scd-font-size-medium);
-	font-weight: var(--scd-font-weight-semibold);
-	color: var(--scd-color-text);
+	margin-bottom: var(--wsscd-form-field-label-gap);
+	font-size: var(--wsscd-font-size-medium);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
 	letter-spacing: -0.01em;
 }
 
 /* Select Wrapper - Consistent styling for select dropdowns */
-.scd-select-wrapper {
+.wsscd-select-wrapper {
 	position: relative;
 	display: block;
 	width: 100%;
-	max-width: var(--scd-form-field-width-medium);
+	max-width: var(--wsscd-form-field-width-medium);
 }
 
-.scd-select-wrapper select {
+.wsscd-select-wrapper select {
 	appearance: none;
 	padding-right: 36px;
 	background-repeat: no-repeat;
-	background-position: right var(--scd-spacing-md) center;
-	background-size: var(--scd-spacing-md);
+	background-position: right var(--wsscd-spacing-md) center;
+	background-size: var(--wsscd-spacing-md);
 	cursor: pointer;
 	width: 100%;
 }
 
 /* Dropdown arrow using CSS mask for theme color support */
-.scd-select-wrapper::after {
+.wsscd-select-wrapper::after {
 	content: '';
 	position: absolute;
-	right: var(--scd-spacing-md);
+	right: var(--wsscd-spacing-md);
 	top: 50%;
 	transform: translateY(-50%);
-	width: var(--scd-spacing-md);
-	height: var(--scd-spacing-md);
+	width: var(--wsscd-spacing-md);
+	height: var(--wsscd-spacing-md);
 	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat center;
 	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat center;
 	-webkit-mask-size: contain;
 	mask-size: contain;
-	background-color: var(--scd-color-text-lighter);
+	background-color: var(--wsscd-color-text-lighter);
 	pointer-events: none;
 }
 

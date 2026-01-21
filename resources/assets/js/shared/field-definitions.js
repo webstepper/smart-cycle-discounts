@@ -14,15 +14,15 @@
 	'use strict';
 
 	// Ensure namespaces exist
-	window.SCD = window.SCD || {};
+	window.WSSCD = window.WSSCD || {};
 
 	/**
 	 * Field Definitions Registry
 	 * 
 	 * Field definitions are loaded from PHP via wp_localize_script
-	 * and made available through window.scdAdmin.scdFieldDefinitions
+	 * and made available through window.wsscdAdmin.wsscdFieldDefinitions
 	 */
-	SCD.FieldDefinitions = ( function() {
+	WSSCD.FieldDefinitions = ( function() {
 		var definitions = {};
 		var initialized = false;
 
@@ -34,8 +34,8 @@
 				return;
 			}
 
-			if ( window.scdAdmin && window.scdAdmin.scdFieldDefinitions ) {
-				definitions = window.scdAdmin.scdFieldDefinitions;
+			if ( window.wsscdAdmin && window.wsscdAdmin.wsscdFieldDefinitions ) {
+				definitions = window.wsscdAdmin.wsscdFieldDefinitions;
 				initialized = true;
 			} else {
 			}
@@ -154,7 +154,7 @@
 	} )();
 
 	$( document ).ready( function() {
-		SCD.FieldDefinitions.init();
+		WSSCD.FieldDefinitions.init();
 	});
 
 } )( jQuery );

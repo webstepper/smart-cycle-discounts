@@ -27,34 +27,34 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/products
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Product_Filter {
+class WSSCD_Product_Filter {
 
 	/**
 	 * Product selector instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Product_Selector    $product_selector    Product selector.
+	 * @var      WSSCD_Product_Selector    $product_selector    Product selector.
 	 */
-	private SCD_Product_Selector $product_selector;
+	private WSSCD_Product_Selector $product_selector;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Initialize the product filter.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Product_Selector $product_selector    Product selector.
-	 * @param    SCD_Logger           $logger              Logger instance.
+	 * @param    WSSCD_Product_Selector $product_selector    Product selector.
+	 * @param    WSSCD_Logger           $logger              Logger instance.
 	 */
-	public function __construct( SCD_Product_Selector $product_selector, SCD_Logger $logger ) {
+	public function __construct( WSSCD_Product_Selector $product_selector, WSSCD_Logger $logger ) {
 		$this->product_selector = $product_selector;
 		$this->logger           = $logger;
 	}
@@ -462,8 +462,8 @@ class SCD_Product_Filter {
 			$max_sales = PHP_INT_MAX;
 		}
 
-		$start_date = date( 'Y-m-d', strtotime( "-{$period} days" ) );
-		$end_date   = date( 'Y-m-d' );
+		$start_date = gmdate( 'Y-m-d', strtotime( "-{$period} days" ) );
+		$end_date   = gmdate( 'Y-m-d' );
 
 		return array_filter(
 			$product_ids,
@@ -565,7 +565,7 @@ class SCD_Product_Filter {
 			'ratings'      => $this->get_rating_distribution( $product_ids ),
 		);
 
-		return apply_filters( 'scd_available_product_filters', $filters, $product_ids );
+		return apply_filters( 'wsscd_available_product_filters', $filters, $product_ids );
 	}
 
 	/**
@@ -846,6 +846,7 @@ class SCD_Product_Filter {
 			$product_id
 		);
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Query prepared above; product sales lookup.
 		$result = $wpdb->get_var( $query );
 		return intval( $result );
 	}

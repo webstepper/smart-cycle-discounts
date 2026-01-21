@@ -13,6 +13,8 @@
  * @subpackage SmartCycleDiscounts/includes/admin/views/campaigns/wizard
  */
 
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial included into function scope; variables are local, not global.
+
 // Exit if accessed directly
 if (!defined('ABSPATH')) {
     exit;
@@ -20,7 +22,7 @@ if (!defined('ABSPATH')) {
 
 
 // Initialize variables using shared function
-scd_wizard_init_step_vars($step_data, $validation_errors);
+wsscd_wizard_init_step_vars($step_data, $validation_errors);
 
 // Field schema handles default values now - no need to set them here
 // Extract values with defaults handled by field schema
@@ -28,22 +30,17 @@ $name = $step_data['name'] ?? '';
 $description = $step_data['description'] ?? '';
 $priority = $step_data['priority'] ?? 3;
 
-// Debug logging
-if (defined('WP_DEBUG') && WP_DEBUG) {
-    error_log('[SCD Basic Step] Step data initialized: ' . print_r($step_data, true));
-}
-
 // Prepare content for template wrapper
 ob_start();
 ?>
-    <?php scd_wizard_validation_notice($validation_errors); ?>
+    <?php wsscd_wizard_validation_notice($validation_errors); ?>
 
     <!-- Campaign Details Section -->
     <?php
     ob_start();
 
     // Campaign Name Field - Phase 2: Simplified syntax reading from field definitions
-    scd_wizard_form_field(array(
+    wsscd_wizard_form_field(array(
         'step' => 'basic',
         'field' => 'name',
         'value' => $name,
@@ -51,7 +48,7 @@ ob_start();
     ));
 
     // Campaign Description Field - Phase 2: Simplified syntax
-    scd_wizard_form_field(array(
+    wsscd_wizard_form_field(array(
         'step' => 'basic',
         'field' => 'description',
         'value' => $description,
@@ -60,7 +57,7 @@ ob_start();
 
     $details_content = ob_get_clean();
     
-    scd_wizard_card(array(
+    wsscd_wizard_card(array(
         'title' => __('Campaign Details', 'smart-cycle-discounts'),
         'subtitle' => __('Provide the basic information that will help you identify and manage this discount campaign.', 'smart-cycle-discounts'),
         'icon' => 'edit',
@@ -74,7 +71,7 @@ ob_start();
     ob_start();
 
     // Priority Field - Phase 2: Simplified syntax
-    scd_wizard_form_field(array(
+    wsscd_wizard_form_field(array(
         'step' => 'basic',
         'field' => 'priority',
         'value' => intval($priority),
@@ -83,7 +80,7 @@ ob_start();
 
     $priority_content = ob_get_clean();
 
-    scd_wizard_card(array(
+    wsscd_wizard_card(array(
         'title' => __('Campaign Priority', 'smart-cycle-discounts'),
         'icon' => 'sort',
         'subtitle' => __('Set the priority level to control which campaign applies when multiple campaigns target the same products.', 'smart-cycle-discounts'),
@@ -96,7 +93,7 @@ ob_start();
 $content = ob_get_clean();
 
 // Render using template wrapper with sidebar
-scd_wizard_render_step( array(
+wsscd_wizard_render_step( array(
     'title'     => __( 'Campaign Setup', 'smart-cycle-discounts' ),
     'description' => __( 'Set up the basic information for your discount campaign', 'smart-cycle-discounts' ),
     'content'   => $content,
@@ -109,7 +106,7 @@ scd_wizard_render_step( array(
 <?php
 // Validation rules are now handled by the centralized field schema system
 
-scd_wizard_state_script('basic', array(
+wsscd_wizard_state_script('basic', array(
     'name' => $name,
     'description' => $description,
     'priority' => $priority

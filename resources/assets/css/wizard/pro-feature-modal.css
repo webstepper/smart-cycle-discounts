@@ -1,0 +1,628 @@
+/**
+ * Pro Feature Modal
+ *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/css/wizard/pro-feature-modal.css
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @since      1.0.0
+ */
+
+/* ==========================================================================
+   Modal Container & Overlay
+   ========================================================================== */
+
+.wsscd-modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: var(--wsscd-z-modal);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--wsscd-padding-section);
+}
+
+.wsscd-modal-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: var(--wsscd-overlay-heavy);
+	cursor: pointer;
+}
+
+/* ==========================================================================
+   Modal Dialog
+   ========================================================================== */
+
+.wsscd-modal-dialog {
+	position: relative;
+	z-index: var(--wsscd-z-base);
+	width: 100%;
+	max-width: 900px;
+}
+
+/* Note: Modal content styles below are shared pattern across:
+ * - pro-feature-modal.css (.wsscd-modal-content)
+ * - session-expiration-modal.css (.wsscd-expiration-warning-modal .wsscd-modal-content)
+ * - wizard-completion-modal.css (.wsscd-completion-modal)
+ * Minor variations exist for specific modal needs (sizing, shadows) */
+.wsscd-modal-content {
+	background: var(--wsscd-color-white);
+
+	/* Semi-transparent border */
+	border: 1px solid var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-lg);
+
+	/* Enhanced shadow for floating effect */
+	box-shadow:
+		0 8px 32px var(--wsscd-overlay-light),
+		0 4px 16px var(--wsscd-overlay-border),
+		inset 0 1px 0 var(--wsscd-overlay-white-medium);
+
+	max-height: 90vh;
+	overflow-y: auto;
+	animation: wsscd-modal-slide-in var(--wsscd-transition-slow) ease-out;
+}
+
+/* Note: @keyframes wsscd-modal-slide-in defined in shared/_utilities.css */
+
+/* ==========================================================================
+   Modal Header
+   ========================================================================== */
+
+.wsscd-modal-header {
+	padding: var(--wsscd-padding-section) var(--wsscd-padding-modal-header) var(--wsscd-padding-section);
+	border-bottom: var(--wsscd-border-width) solid var(--wsscd-color-border-lighter);
+	position: relative;
+	text-align: center;
+	background: linear-gradient(135deg, var(--wsscd-color-surface) 0%, var(--wsscd-color-white) 100%);
+}
+
+.wsscd-modal-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--wsscd-icon-hero);
+	height: var(--wsscd-icon-hero);
+	margin: 0 auto var(--wsscd-spacing-sm);
+	background: linear-gradient(135deg, var(--wsscd-color-warning-light) 0%, var(--wsscd-color-warning) 100%);
+	border-radius: var(--wsscd-radius-full);
+	box-shadow: var(--wsscd-pro-modal-badge-shadow);
+}
+
+.wsscd-modal-icon .wsscd-icon {
+	font-size: var(--wsscd-font-size-xxxl);
+	width: var(--wsscd-icon-large);
+	height: var(--wsscd-icon-large);
+	color: var(--wsscd-color-white);
+}
+
+.wsscd-modal-header h2 {
+	margin: 0;
+	font-size: var(--wsscd-font-size-xxl);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+	line-height: 1.3;
+}
+
+.wsscd-modal-header h2 #wsscd-pro-feature-name {
+	color: var(--wsscd-color-primary);
+}
+
+.wsscd-modal-close {
+	position: absolute;
+	top: var(--wsscd-spacing-md);
+	right: var(--wsscd-spacing-md);
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: var(--wsscd-spacing-xs);
+	color: var(--wsscd-color-text-muted);
+	transition: color var(--wsscd-transition-base);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.wsscd-modal-close:hover {
+	color: var(--wsscd-color-text);
+}
+
+.wsscd-modal-close:focus {
+	outline: var(--wsscd-border-width-thick) solid var(--wsscd-color-primary);
+	outline-offset: var(--wsscd-spacing-xxs);
+	border-radius: var(--wsscd-radius-md);
+}
+
+.wsscd-modal-close .wsscd-icon {
+	width: var(--wsscd-icon-medium);
+	height: var(--wsscd-icon-medium);
+	font-size: var(--wsscd-font-size-xxl);
+}
+
+/* ==========================================================================
+   Modal Body - Compact 2 Column Layout
+   ========================================================================== */
+
+.wsscd-modal-body {
+	padding: var(--wsscd-padding-spacious);
+}
+
+.wsscd-modal-columns {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--wsscd-padding-modal-header);
+	align-items: start;
+}
+
+/* Section titles use centralized .wsscd-form-section-title from _forms.css */
+.wsscd-modal-column-left .wsscd-form-section-title,
+.wsscd-modal-column-right .wsscd-form-section-title {
+	margin: 0 0 var(--wsscd-spacing-base) 0;
+	padding-bottom: var(--wsscd-spacing-sm);
+	border-bottom: var(--wsscd-border-width-thick) solid var(--wsscd-color-surface-dark);
+}
+
+/* ==========================================================================
+   Left Column - Why Upgrade (Compact)
+   ========================================================================== */
+
+.wsscd-modal-column-left {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wsscd-gap-comfortable);
+}
+
+/* Compact Benefits Grid */
+.wsscd-benefits-compact {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--wsscd-gap-normal);
+}
+
+.wsscd-benefit-compact {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	padding: var(--wsscd-padding-sm-large) var(--wsscd-spacing-sm-large);
+	background: var(--wsscd-color-surface);
+	border-radius: var(--wsscd-radius-md);
+	transition: all var(--wsscd-transition-base);
+}
+
+.wsscd-benefit-compact:hover {
+	background: var(--wsscd-color-success-lighter);
+	transform: translateY(-2px);
+}
+
+.wsscd-benefit-compact .wsscd-icon {
+	width: var(--wsscd-icon-xxl);
+	height: var(--wsscd-icon-xxl);
+	font-size: var(--wsscd-icon-xxl);
+	color: var(--wsscd-color-primary);
+	margin-bottom: var(--wsscd-spacing-xs);
+}
+
+.wsscd-benefit-compact strong {
+	font-size: var(--wsscd-font-size-base);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+	line-height: 1.3;
+}
+
+/* Upgrade Box with Price */
+.wsscd-upgrade-box {
+	background: linear-gradient(135deg, var(--wsscd-color-primary) 0%, var(--wsscd-color-primary-dark) 100%);
+	border-radius: var(--wsscd-radius-lg);
+	padding: var(--wsscd-padding-section);
+	text-align: center;
+	box-shadow: var(--wsscd-shadow-lg);
+}
+
+.wsscd-price-wrapper {
+	margin-bottom: var(--wsscd-spacing-base);
+}
+
+.wsscd-price-original {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--wsscd-gap-tight);
+	margin-bottom: var(--wsscd-spacing-sm);
+}
+
+.wsscd-price-was {
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-overlay-white-medium);
+	font-weight: var(--wsscd-font-weight-medium);
+}
+
+.wsscd-price-strike {
+	font-size: var(--wsscd-font-size-xl);
+	color: var(--wsscd-overlay-white-medium);
+	text-decoration: line-through;
+	font-weight: var(--wsscd-font-weight-medium);
+}
+
+.wsscd-savings-badge {
+	background: var(--wsscd-color-success);
+	color: var(--wsscd-color-white);
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-bold);
+	padding: var(--wsscd-spacing-xxs) var(--wsscd-spacing-sm);
+	border-radius: var(--wsscd-radius-xl);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.wsscd-price-tag {
+	display: flex;
+	align-items: baseline;
+	justify-content: center;
+	gap: var(--wsscd-gap-tight);
+}
+
+.wsscd-price-label {
+	font-size: var(--wsscd-font-size-base);
+	color: var(--wsscd-color-overlay-light-text);
+	font-weight: var(--wsscd-font-weight-medium);
+}
+
+.wsscd-price-amount {
+	font-size: var(--wsscd-font-size-display-lg);
+	font-weight: var(--wsscd-font-weight-bold);
+	color: var(--wsscd-color-white);
+	line-height: 1;
+}
+
+.wsscd-price-period {
+	font-size: var(--wsscd-font-size-medium-large);
+	color: var(--wsscd-overlay-white-heavy);
+	font-weight: var(--wsscd-font-weight-medium);
+}
+
+.wsscd-upgrade-box .wsscd-modal-upgrade {
+	width: 100%;
+	background: var(--wsscd-color-white);
+	color: var(--wsscd-color-primary);
+	border: none;
+	font-size: var(--wsscd-font-size-medium-large);
+	font-weight: var(--wsscd-font-weight-semibold);
+	padding: var(--wsscd-padding-medium) var(--wsscd-padding-section);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--wsscd-gap-tight);
+	transition: all var(--wsscd-transition-base);
+	box-shadow: var(--wsscd-shadow-sm);
+}
+
+.wsscd-upgrade-box .wsscd-modal-upgrade:hover {
+	background: var(--wsscd-color-surface-dark);
+	transform: translateY(-2px);
+	box-shadow: var(--wsscd-shadow-md);
+}
+
+.wsscd-upgrade-box .wsscd-modal-upgrade .wsscd-icon {
+	width: var(--wsscd-icon-small);
+	height: var(--wsscd-icon-small);
+	font-size: var(--wsscd-font-size-xl);
+	color: var(--wsscd-color-warning-light);
+}
+
+.wsscd-trust-badges {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--wsscd-gap-tight);
+	margin-top: var(--wsscd-spacing-sm-large);
+}
+
+.wsscd-trust-badge {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-gap-tight);
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-overlay-white-heavy);
+	padding: var(--wsscd-spacing-xs) var(--wsscd-spacing-sm);
+	background: var(--wsscd-color-white);
+	border-radius: var(--wsscd-radius-md);
+	transition: all var(--wsscd-transition-base);
+}
+
+.wsscd-trust-badge:hover {
+	background: var(--wsscd-color-white);
+}
+
+.wsscd-trust-badge .wsscd-icon {
+	width: var(--wsscd-font-size-medium);
+	height: var(--wsscd-font-size-medium);
+	font-size: var(--wsscd-font-size-medium);
+	color: var(--wsscd-color-success);
+}
+
+/* ==========================================================================
+   Right Column - Features List
+   ========================================================================== */
+
+.wsscd-modal-column-right {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wsscd-gap-comfortable);
+}
+
+.wsscd-features-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.wsscd-features-list li {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-gap-normal);
+	padding: var(--wsscd-spacing-sm) 0;
+	font-size: var(--wsscd-font-size-medium);
+	color: var(--wsscd-color-text);
+	border-bottom: var(--wsscd-border-width) solid var(--wsscd-color-surface-dark);
+}
+
+.wsscd-features-list li:last-child {
+	border-bottom: none;
+}
+
+.wsscd-features-list li .wsscd-icon {
+	width: var(--wsscd-icon-small);
+	height: var(--wsscd-icon-small);
+	font-size: var(--wsscd-font-size-xl);
+	color: var(--wsscd-color-success);
+}
+
+/* ==========================================================================
+   Modal Footer - Compact
+   ========================================================================== */
+
+.wsscd-modal-footer {
+	padding: var(--wsscd-padding-sm-large) var(--wsscd-padding-modal-header) var(--wsscd-padding-lg);
+	border-top: var(--wsscd-border-width) solid var(--wsscd-color-border-lighter);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--wsscd-gap-comfortable);
+	background: var(--wsscd-color-surface);
+}
+
+.wsscd-modal-change {
+	padding: var(--wsscd-padding-small) var(--wsscd-padding-section);
+	font-size: var(--wsscd-font-size-medium);
+}
+
+.wsscd-modal-save-draft {
+	color: var(--wsscd-color-text-muted);
+	text-decoration: none;
+	font-size: var(--wsscd-font-size-medium);
+	padding: var(--wsscd-padding-small) var(--wsscd-padding-base);
+	background: none;
+	border: none;
+	cursor: pointer;
+	transition: color var(--wsscd-transition-base);
+}
+
+.wsscd-modal-save-draft:hover {
+	color: var(--wsscd-color-primary);
+	text-decoration: underline;
+}
+
+.wsscd-modal-save-draft:focus {
+	outline: var(--wsscd-border-width-thick) solid var(--wsscd-color-primary);
+	outline-offset: var(--wsscd-spacing-xxs);
+	border-radius: var(--wsscd-radius-md);
+}
+
+/* ==========================================================================
+   Body Lock When Modal Open
+   ========================================================================== */
+
+body.wsscd-modal-open {
+	overflow: hidden;
+}
+
+/* ==========================================================================
+   Highlight Animation
+   ========================================================================== */
+
+.wsscd-highlight-field {
+	animation: wsscd-highlight-pulse 2s ease-in-out;
+}
+
+/* Note: @keyframes wsscd-highlight-pulse defined in shared/_utilities.css */
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media screen and (max-width: 860px) {
+	.wsscd-modal-columns {
+		grid-template-columns: 1fr;
+		gap: var(--wsscd-gap-spacious);
+	}
+
+	.wsscd-modal-dialog {
+		max-width: 600px;
+	}
+
+	.wsscd-benefits-compact {
+		grid-template-columns: repeat(4, 1fr);
+	}
+}
+
+@media screen and (max-width: 600px) {
+	.wsscd-modal {
+		padding: var(--wsscd-padding-medium);
+	}
+
+	.wsscd-modal-header {
+		padding: var(--wsscd-padding-large) var(--wsscd-padding-section) var(--wsscd-padding-compact);
+	}
+
+	.wsscd-modal-header h2 {
+		font-size: var(--wsscd-font-size-xl);
+	}
+
+	.wsscd-modal-body {
+		padding: var(--wsscd-padding-section) var(--wsscd-padding-base);
+	}
+
+	.wsscd-modal-columns {
+		gap: var(--wsscd-gap-comfortable);
+	}
+
+	.wsscd-form-section-title {
+		font-size: var(--wsscd-font-size-medium-large);
+		margin-bottom: var(--wsscd-spacing-md);
+	}
+
+	.wsscd-benefits-compact {
+		grid-template-columns: 1fr 1fr;
+		gap: var(--wsscd-gap-tight);
+	}
+
+	.wsscd-benefit-compact {
+		padding: var(--wsscd-padding-small) var(--wsscd-spacing-xs);
+	}
+
+	.wsscd-benefit-compact .wsscd-icon {
+		width: var(--wsscd-icon-large);
+		height: var(--wsscd-icon-large);
+		font-size: var(--wsscd-font-size-xxxl);
+	}
+
+	.wsscd-benefit-compact strong {
+		font-size: var(--wsscd-font-size-small);
+	}
+
+	.wsscd-upgrade-box {
+		padding: var(--wsscd-padding-large);
+	}
+
+	.wsscd-price-strike {
+		font-size: var(--wsscd-font-size-large);
+	}
+
+	.wsscd-savings-badge {
+		font-size: var(--wsscd-font-size-xxs);
+		padding: var(--wsscd-spacing-xxs) var(--wsscd-spacing-xs);
+	}
+
+	.wsscd-price-amount {
+		font-size: var(--wsscd-font-size-display-md);
+	}
+
+	.wsscd-price-period {
+		font-size: var(--wsscd-font-size-medium);
+	}
+
+	.wsscd-upgrade-box .wsscd-modal-upgrade {
+		font-size: var(--wsscd-font-size-medium);
+		padding: var(--wsscd-padding-small) var(--wsscd-padding-base);
+	}
+
+	.wsscd-trust-badges {
+		gap: var(--wsscd-gap-tight);
+	}
+
+	.wsscd-trust-badge {
+		font-size: var(--wsscd-font-size-xxs);
+		padding: var(--wsscd-spacing-xs) var(--wsscd-spacing-xs);
+	}
+
+	.wsscd-trust-badge .wsscd-icon {
+		width: var(--wsscd-font-size-small);
+		height: var(--wsscd-font-size-small);
+		font-size: var(--wsscd-font-size-small);
+	}
+
+	.wsscd-features-list li {
+		font-size: var(--wsscd-font-size-base);
+		padding: var(--wsscd-spacing-xs) 0;
+	}
+
+	.wsscd-modal-footer {
+		padding: var(--wsscd-padding-small) var(--wsscd-padding-base) var(--wsscd-padding-medium);
+		flex-direction: column;
+		gap: var(--wsscd-gap-tight);
+	}
+
+	.wsscd-modal-change,
+	.wsscd-modal-save-draft {
+		width: 100%;
+		text-align: center;
+	}
+}
+
+/* ==========================================================================
+   Accessibility Enhancements
+   ========================================================================== */
+
+/* Focus visible styles for keyboard navigation */
+.wsscd-modal-upgrade:focus-visible,
+.wsscd-modal-change:focus-visible {
+	outline: var(--wsscd-border-width-thick) solid var(--wsscd-color-primary);
+	outline-offset: var(--wsscd-spacing-xxs);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+	.wsscd-modal-overlay {
+		background: var(--wsscd-overlay-dark);
+	}
+
+	.wsscd-modal-content {
+		border: var(--wsscd-border-width-thick) solid var(--wsscd-color-black);
+	}
+
+	.wsscd-upgrade-box {
+		border: var(--wsscd-border-width-thick) solid var(--wsscd-color-primary);
+	}
+}
+
+/* Browser fallback - no backdrop-filter support */
+	.wsscd-modal-content {
+		/* Slightly more opaque background when blur isn't available */
+		background: var(--wsscd-color-white);
+	}
+
+	.wsscd-modal-overlay {
+	}
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+	.wsscd-modal-content {
+		animation: none;
+		background: var(--wsscd-color-white);
+	}
+
+	.wsscd-benefit-compact:hover {
+		transform: none;
+	}
+
+	.wsscd-upgrade-box .wsscd-modal-upgrade:hover {
+		transform: none;
+	}
+
+	.wsscd-highlight-field {
+		animation: none;
+		box-shadow: var(--wsscd-modal-highlight-static);
+	}
+
+	.wsscd-modal-overlay {
+	}
+}

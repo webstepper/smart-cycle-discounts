@@ -13,8 +13,8 @@
 ( function() {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	SCD.Wizard = SCD.Wizard || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Wizard = WSSCD.Wizard || {};
 
 	/**
 	 * Step configuration object
@@ -24,10 +24,10 @@
 	 * - domSelectors: Array of DOM selectors to check for auto-initialization
 	 * - dependencies: Required modules that must be loaded before the orchestrator
 	 */
-	SCD.Wizard.StepConfig = {
+	WSSCD.Wizard.StepConfig = {
 		basic: {
 			orchestratorClass: 'BasicOrchestrator',
-			domSelectors: [ '[name="name"]', '.scd-wizard-step--basic' ],
+			domSelectors: [ '[name="name"]', '.wsscd-wizard-step--basic' ],
 			dependencies: [
 				'basic-state',
 				'basic-api',
@@ -37,9 +37,9 @@
 
 		products: {
 			orchestratorClass: 'ProductsOrchestrator',
-			domSelectors: [ '.scd-wizard-step--products', '#scd-product-selection' ],
+			domSelectors: [ '.wsscd-wizard-step--products', '#wsscd-product-selection' ],
 			dependencies: [
-				'scd-constants-product-selection',
+				'wsscd-constants-product-selection',
 				'products-state',
 				'products-api',
 				'products-selector',
@@ -50,7 +50,7 @@
 
 		discounts: {
 			orchestratorClass: 'DiscountsOrchestrator',
-			domSelectors: [ '.scd-wizard-step--discounts', '[name="discount_type"]' ],
+			domSelectors: [ '.wsscd-wizard-step--discounts', '[name="discount_type"]' ],
 			dependencies: [
 				'discounts-constants',
 				'discounts-state',
@@ -64,20 +64,20 @@
 
 		schedule: {
 			orchestratorClass: 'ScheduleOrchestrator',
-			domSelectors: [ '.scd-wizard-step--schedule', '[name="start_date"]' ],
+			domSelectors: [ '.wsscd-wizard-step--schedule', '[name="start_date"]' ],
 			dependencies: [
 				'schedule-state',
 				'schedule-api',
 				'schedule-ui',
 				'schedule-config',
-				'scd-timeline-visualizer',
-				'scd-date-time-picker'
+				'wsscd-timeline-visualizer',
+				'wsscd-date-time-picker'
 			]
 		},
 
 		review: {
 			orchestratorClass: 'ReviewOrchestrator',
-			domSelectors: [ '.scd-wizard-step--review', '#scd-review-container' ],
+			domSelectors: [ '.wsscd-wizard-step--review', '#wsscd-review-container' ],
 			dependencies: [
 				'review-state',
 				'review-api',

@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/pages/notifications/tabs
  */
-class SCD_Queue_Status_Tab extends SCD_Notifications_Tab_Base {
+class WSSCD_Queue_Status_Tab extends WSSCD_Notifications_Tab_Base {
 
 	/**
 	 * Container instance.
@@ -40,11 +40,11 @@ class SCD_Queue_Status_Tab extends SCD_Notifications_Tab_Base {
 	 *
 	 * @since    1.0.0
 	 * @param    string                 $tab_slug   Tab slug.
-	 * @param    SCD_Notifications_Page $page       Page instance.
-	 * @param    SCD_Logger             $logger     Logger instance.
+	 * @param    WSSCD_Notifications_Page $page       Page instance.
+	 * @param    WSSCD_Logger             $logger     Logger instance.
 	 * @param    object                 $container  Container instance.
 	 */
-	public function __construct( string $tab_slug, SCD_Notifications_Page $page, SCD_Logger $logger, object $container ) {
+	public function __construct( string $tab_slug, WSSCD_Notifications_Page $page, WSSCD_Logger $logger, object $container ) {
 		$this->container = $container;
 		parent::__construct( $tab_slug, $page, $logger );
 	}
@@ -66,7 +66,7 @@ class SCD_Queue_Status_Tab extends SCD_Notifications_Tab_Base {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @return   SCD_Email_Manager|null    Email manager instance or null.
+	 * @return   WSSCD_Email_Manager|null    Email manager instance or null.
 	 */
 	private function get_email_manager(): ?object {
 		if ( ! $this->container->has( 'email_manager' ) ) {
@@ -97,44 +97,52 @@ class SCD_Queue_Status_Tab extends SCD_Notifications_Tab_Base {
 		$queue_status = $email_manager->get_queue_status();
 
 		?>
-		<div class="scd-queue-status">
+		<div class="wsscd-queue-status">
 			<h2><?php esc_html_e( 'Email Queue Status', 'smart-cycle-discounts' ); ?></h2>
 
-			<div class="scd-queue-stats">
-				<div class="scd-stat-box">
-					<?php echo SCD_Icon_Helper::get( 'clock', array( 'size' => 16 ) ); ?>
-					<div class="scd-stat-content">
-						<span class="scd-stat-value"><?php echo absint( $queue_status['queued'] ); ?></span>
-						<span class="scd-stat-label"><?php esc_html_e( 'Queued', 'smart-cycle-discounts' ); ?></span>
+			<div class="wsscd-queue-stats">
+				<div class="wsscd-stat-box">
+					<?php
+					WSSCD_Icon_Helper::render( 'clock', array( 'size' => 16 ) );
+					?>
+					<div class="wsscd-stat-content">
+						<span class="wsscd-stat-value"><?php echo absint( $queue_status['queued'] ); ?></span>
+						<span class="wsscd-stat-label"><?php esc_html_e( 'Queued', 'smart-cycle-discounts' ); ?></span>
 					</div>
 				</div>
 
-				<div class="scd-stat-box scd-stat-success">
-					<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
-					<div class="scd-stat-content">
-						<span class="scd-stat-value"><?php echo absint( $queue_status['sent'] ); ?></span>
-						<span class="scd-stat-label"><?php esc_html_e( 'Sent', 'smart-cycle-discounts' ); ?></span>
+				<div class="wsscd-stat-box wsscd-stat-success">
+					<?php
+					WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) );
+					?>
+					<div class="wsscd-stat-content">
+						<span class="wsscd-stat-value"><?php echo absint( $queue_status['sent'] ); ?></span>
+						<span class="wsscd-stat-label"><?php esc_html_e( 'Sent', 'smart-cycle-discounts' ); ?></span>
 					</div>
 				</div>
 
-				<div class="scd-stat-box scd-stat-error">
-					<?php echo SCD_Icon_Helper::get( 'close', array( 'size' => 16 ) ); ?>
-					<div class="scd-stat-content">
-						<span class="scd-stat-value"><?php echo absint( $queue_status['failed'] ); ?></span>
-						<span class="scd-stat-label"><?php esc_html_e( 'Failed', 'smart-cycle-discounts' ); ?></span>
+				<div class="wsscd-stat-box wsscd-stat-error">
+					<?php
+					WSSCD_Icon_Helper::render( 'close', array( 'size' => 16 ) );
+					?>
+					<div class="wsscd-stat-content">
+						<span class="wsscd-stat-value"><?php echo absint( $queue_status['failed'] ); ?></span>
+						<span class="wsscd-stat-label"><?php esc_html_e( 'Failed', 'smart-cycle-discounts' ); ?></span>
 					</div>
 				</div>
 
-				<div class="scd-stat-box">
-					<?php echo SCD_Icon_Helper::get( 'email', array( 'size' => 16 ) ); ?>
-					<div class="scd-stat-content">
-						<span class="scd-stat-value"><?php echo absint( $queue_status['total'] ); ?></span>
-						<span class="scd-stat-label"><?php esc_html_e( 'Total', 'smart-cycle-discounts' ); ?></span>
+				<div class="wsscd-stat-box">
+					<?php
+					WSSCD_Icon_Helper::render( 'email', array( 'size' => 16 ) );
+					?>
+					<div class="wsscd-stat-content">
+						<span class="wsscd-stat-value"><?php echo absint( $queue_status['total'] ); ?></span>
+						<span class="wsscd-stat-label"><?php esc_html_e( 'Total', 'smart-cycle-discounts' ); ?></span>
 					</div>
 				</div>
 			</div>
 
-			<div class="scd-queue-info">
+			<div class="wsscd-queue-info">
 				<p class="description">
 					<?php esc_html_e( 'The email queue is processed automatically every hour using Action Scheduler. Failed emails are retried up to 3 times before being marked as failed.', 'smart-cycle-discounts' ); ?>
 				</p>
@@ -178,103 +186,55 @@ class SCD_Queue_Status_Tab extends SCD_Notifications_Tab_Base {
 			$current_provider = isset( $email_settings['email_provider'] ) ? $email_settings['email_provider'] : 'wpmail';
 			?>
 
-			<div class="scd-provider-info">
+			<div class="wsscd-provider-info">
 				<h3><?php esc_html_e( 'Current Email Provider', 'smart-cycle-discounts' ); ?></h3>
 				<p>
-					<?php echo SCD_Icon_Helper::get( 'email', array( 'size' => 16 ) ); ?>
+					<?php
+					WSSCD_Icon_Helper::render( 'email', array( 'size' => 16 ) );
+					?>
 					<strong><?php echo esc_html( $provider_names[ $current_provider ] ?? $current_provider ); ?></strong>
 				</p>
 				<p class="description">
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-notifications&tab=settings' ) ); ?>">
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wsscd-notifications&tab=settings' ) ); ?>">
 						<?php esc_html_e( 'Change email provider settings', 'smart-cycle-discounts' ); ?>
 					</a>
 				</p>
 			</div>
 
-			<div class="scd-queue-actions">
+			<div class="wsscd-queue-actions">
 				<h3><?php esc_html_e( 'Queue Management', 'smart-cycle-discounts' ); ?></h3>
 				<p class="description">
 					<?php esc_html_e( 'Use these tools to manually manage the email queue.', 'smart-cycle-discounts' ); ?>
 				</p>
 
-				<button type="button" id="scd-process-queue" class="button button-primary" <?php disabled( $queue_status['queued'], 0 ); ?>>
-					<?php echo SCD_Icon_Helper::get( 'play', array( 'size' => 16 ) ); ?>
+				<button type="button" id="wsscd-process-queue" class="button button-primary" <?php disabled( $queue_status['queued'], 0 ); ?>>
+					<?php
+					WSSCD_Icon_Helper::render( 'play', array( 'size' => 16 ) );
+					?>
 					<?php esc_html_e( 'Process Queue Now', 'smart-cycle-discounts' ); ?>
 				</button>
 
-				<button type="button" id="scd-retry-failed" class="button button-secondary" <?php disabled( $queue_status['failed'], 0 ); ?>>
-					<?php echo SCD_Icon_Helper::get( 'update', array( 'size' => 16 ) ); ?>
+				<button type="button" id="wsscd-retry-failed" class="button button-secondary" <?php disabled( $queue_status['failed'], 0 ); ?>>
+					<?php
+					WSSCD_Icon_Helper::render( 'update', array( 'size' => 16 ) );
+					?>
 					<?php esc_html_e( 'Retry Failed Emails', 'smart-cycle-discounts' ); ?>
 				</button>
 
-				<button type="button" id="scd-clear-queue" class="button button-secondary">
-					<?php echo SCD_Icon_Helper::get( 'delete', array( 'size' => 16 ) ); ?>
+				<button type="button" id="wsscd-clear-queue" class="button button-secondary">
+					<?php
+					WSSCD_Icon_Helper::render( 'delete', array( 'size' => 16 ) );
+					?>
 					<?php esc_html_e( 'Clear Old Queue Items', 'smart-cycle-discounts' ); ?>
 				</button>
 
-				<div id="scd-queue-result" class="notice" style="display: none; margin-top: 15px;"></div>
+				<div id="wsscd-queue-result" class="notice" style="display: none; margin-top: 15px;"></div>
 			</div>
 		</div>
-
-		<style>
-			.scd-queue-stats {
-				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-				gap: 20px;
-				margin: 20px 0;
-			}
-			.scd-stat-box {
-				background: #fff;
-				border: 1px solid #ccd0d4;
-				border-radius: 4px;
-				padding: 20px;
-				display: flex;
-				align-items: center;
-				gap: 15px;
-			}
-			.scd-stat-box .dashicons {
-				font-size: 40px;
-				width: 40px;
-				height: 40px;
-				color: #646970;
-			}
-			.scd-stat-box.scd-stat-success .dashicons {
-				color: #00a32a;
-			}
-			.scd-stat-box.scd-stat-error .dashicons {
-				color: #d63638;
-			}
-			.scd-stat-content {
-				display: flex;
-				flex-direction: column;
-			}
-			.scd-stat-value {
-				font-size: 32px;
-				font-weight: 600;
-				line-height: 1;
-				color: #1d2327;
-			}
-			.scd-stat-label {
-				font-size: 13px;
-				color: #646970;
-				margin-top: 4px;
-			}
-			.scd-queue-info {
-				margin: 30px 0;
-			}
-			.scd-provider-info,
-			.scd-queue-actions {
-				background: #fff;
-				border: 1px solid #ccd0d4;
-				border-radius: 4px;
-				padding: 20px;
-				margin: 20px 0;
-			}
-			.scd-provider-info h3,
-			.scd-queue-actions h3 {
-				margin-top: 0;
-			}
-		</style>
 		<?php
+		/* Styles moved to:
+		 * - shared/_components.css (stat box, stat content, stat value, stat label, variants)
+		 * - admin/notifications-page.css (queue-stats margin, queue-info, provider-info, queue-actions)
+		 */
 	}
 }

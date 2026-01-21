@@ -14,12 +14,12 @@
 	'use strict';
 
 	// Register module using utility
-	SCD.Utils.registerModule( 'SCD.Modules.Products', 'API', function( wizard ) {
+	WSSCD.Utils.registerModule( 'WSSCD.Modules.Products', 'API', function( wizard ) {
 		this.wizard = wizard;
 
-		if ( !SCD.Utils.ensureInitialized( this, {
-			'SCD.Ajax': SCD.Ajax,
-			'SCD.ErrorHandler': SCD.ErrorHandler
+		if ( !WSSCD.Utils.ensureInitialized( this, {
+			'WSSCD.Ajax': WSSCD.Ajax,
+			'WSSCD.ErrorHandler': WSSCD.ErrorHandler
 		}, 'ProductsAPI' ) ) {
 			return;
 		}
@@ -43,7 +43,7 @@
 		this.pendingCategorySearch = null;
 	} );
 
-	SCD.Modules.Products.API.prototype = {
+	WSSCD.Modules.Products.API.prototype = {
 		/**
 		 * Initialize the API module
 		 * 
@@ -142,11 +142,11 @@
 			// Use centralized AJAX helper
 			var self = this;
 			
-			if ( ! window.SCD || ! window.SCD.Ajax ) {
+			if ( ! window.WSSCD || ! window.WSSCD.Ajax ) {
 				return $.Deferred().reject( 'Ajax not available' ).promise();
 			}
 
-			return window.SCD.Ajax.post( 'scd_product_search', data )
+			return window.WSSCD.Ajax.post( 'wsscd_product_search', data )
 				.done( function( response ) {
 					self.cache.products[cacheKey] = response;
 					self.cache.productTimestamps[cacheKey] = now;
@@ -163,16 +163,16 @@
 		getProductStats: function( productIds ) {
 			if ( ! productIds || ! Array.isArray( productIds ) || 0 === productIds.length ) {
 				var error = new Error( 'Product IDs are required' );
-				if ( window.SCD && window.SCD.ErrorHandler ) {
-					window.SCD.ErrorHandler.handle( error, 'ProductsAPI.getProductStats', window.SCD.ErrorHandler.SEVERITY.LOW );
+				if ( window.WSSCD && window.WSSCD.ErrorHandler ) {
+					window.WSSCD.ErrorHandler.handle( error, 'ProductsAPI.getProductStats', window.WSSCD.ErrorHandler.SEVERITY.LOW );
 				}
 				return $.Deferred().reject( error ).promise();
 			}
 
-			return SCD.Ajax.post( 'scd_get_product_stats', {
+			return WSSCD.Ajax.post( 'wsscd_get_product_stats', {
 				productIds: productIds
 			} ).fail( function( xhr ) {
-				// Automatic error handling via BaseAPI - removed: SCD.ErrorHandler.handleAjaxError( xhr, 'scd_get_product_stats', { productIds: productIds } );
+				// Automatic error handling via BaseAPI - removed: WSSCD.ErrorHandler.handleAjaxError( xhr, 'wsscd_get_product_stats', { productIds: productIds } );
 			} );
 		},
 
@@ -186,18 +186,18 @@
 		getProductDetails: function( productIds ) {
 			if ( ! productIds || ! Array.isArray( productIds ) || 0 === productIds.length ) {
 				var error = new Error( 'Product IDs are required' );
-				if ( window.SCD && window.SCD.ErrorHandler ) {
-					window.SCD.ErrorHandler.handle( error, 'ProductsAPI.getProductDetails', window.SCD.ErrorHandler.SEVERITY.LOW );
+				if ( window.WSSCD && window.WSSCD.ErrorHandler ) {
+					window.WSSCD.ErrorHandler.handle( error, 'ProductsAPI.getProductDetails', window.WSSCD.ErrorHandler.SEVERITY.LOW );
 				}
 				return $.Deferred().reject( error ).promise();
 			}
 
 			// Use the existing product search endpoint with the get_products_by_ids action
-			return SCD.Ajax.post( 'scd_product_search', {
+			return WSSCD.Ajax.post( 'wsscd_product_search', {
 				wizardAction: 'get_products_by_ids',
 				productIds: productIds
 			} ).fail( function( xhr ) {
-				// Automatic error handling via BaseAPI - removed: SCD.ErrorHandler.handleAjaxError( xhr, 'get_product_details', { productIds: productIds } );
+				// Automatic error handling via BaseAPI - removed: WSSCD.ErrorHandler.handleAjaxError( xhr, 'get_product_details', { productIds: productIds } );
 			} );
 		},
 
@@ -219,11 +219,11 @@
 		 * @returns {Promise} jQuery promise
 		 */
 		getCategories: function() {
-			if ( ! window.SCD || ! window.SCD.Ajax ) {
+			if ( ! window.WSSCD || ! window.WSSCD.Ajax ) {
 				return $.Deferred().reject( 'Ajax not available' ).promise();
 			}
 
-			return window.SCD.Ajax.get( 'scd_get_categories' );
+			return window.WSSCD.Ajax.get( 'wsscd_get_categories' );
 		},
 
 		/**
@@ -313,7 +313,7 @@
 		}
 
 		var self = this;
-		return SCD.Ajax.post( 'scd_product_search', data )
+		return WSSCD.Ajax.post( 'wsscd_product_search', data )
 			.done( function( response ) {
 				if ( !data.search && 0 === data.parent ) {
 					self.cache.categories = response;
@@ -321,7 +321,7 @@
 				}
 			} )
 			.fail( function( xhr ) {
-				// Automatic error handling via BaseAPI - removed: SCD.ErrorHandler.handleAjaxError( xhr, 'search_categories', data );
+				// Automatic error handling via BaseAPI - removed: WSSCD.ErrorHandler.handleAjaxError( xhr, 'search_categories', data );
 			} );
 	},
 
@@ -332,11 +332,11 @@
 		 * @returns {Promise} jQuery promise
 		 */
 		loadSelection: function() {
-			if ( ! window.SCD || ! window.SCD.Ajax ) {
+			if ( ! window.WSSCD || ! window.WSSCD.Ajax ) {
 				return $.Deferred().reject( 'Ajax not available' ).promise();
 			}
 
-			return window.SCD.Ajax.post( 'scd_load_data', {
+			return window.WSSCD.Ajax.post( 'wsscd_load_data', {
 				step: 'products'
 			} );
 		},

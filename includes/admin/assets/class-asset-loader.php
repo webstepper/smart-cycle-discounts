@@ -22,23 +22,23 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class SCD_Asset_Loader {
+class WSSCD_Asset_Loader {
 
 	/**
 	 * Script registry.
 	 *
 	 * @since 1.0.0
-	 * @var SCD_Script_Registry
+	 * @var WSSCD_Script_Registry
 	 */
-	private SCD_Script_Registry $script_registry;
+	private WSSCD_Script_Registry $script_registry;
 
 	/**
 	 * Style registry.
 	 *
 	 * @since 1.0.0
-	 * @var SCD_Style_Registry
+	 * @var WSSCD_Style_Registry
 	 */
-	private SCD_Style_Registry $style_registry;
+	private WSSCD_Style_Registry $style_registry;
 
 	/**
 	 * Plugin version.
@@ -79,14 +79,14 @@ class SCD_Asset_Loader {
 	 * Constructor.
 	 *
 	 * @since 1.0.0
-	 * @param SCD_Script_Registry $script_registry Script registry.
-	 * @param SCD_Style_Registry  $style_registry  Style registry.
+	 * @param WSSCD_Script_Registry $script_registry Script registry.
+	 * @param WSSCD_Style_Registry  $style_registry  Style registry.
 	 * @param string              $version         Plugin version.
 	 * @param string              $plugin_url      Plugin URL.
 	 */
 	public function __construct(
-		SCD_Script_Registry $script_registry,
-		SCD_Style_Registry $style_registry,
+		WSSCD_Script_Registry $script_registry,
+		WSSCD_Style_Registry $style_registry,
 		string $version,
 		string $plugin_url
 	) {
@@ -137,52 +137,82 @@ class SCD_Asset_Loader {
 	/**
 	 * Determine current page context.
 	 *
+	 * SECURITY: This method ONLY reads URL parameters for asset loading context.
+	 * No data processing occurs - values are used only for conditional asset loading.
+	 * Capability is checked for defense in depth. Menu registration already enforces access.
+	 *
 	 * @since 1.0.0
 	 * @param string $hook Admin page hook.
 	 * @return array Context data.
 	 */
 	private function determine_context( string $hook ): array {
+		// Defense in depth: verify user has admin capability.
+		// Menu registration already enforces this, but we check again for safety.
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			return array(
+				'hook'          => $hook,
+				'page'          => '',
+				'action'        => null,
+				'step'          => null,
+				'tab'           => null,
+				'is_wsscd_page' => false,
+			);
+		}
+
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Reading URL params for asset context only. Capability checked above. Values validated against whitelist in consumers.
 		$context = array(
 			'hook'        => $hook,
 			'page'        => '',
 			'action'      => isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : null,
 			'step'        => isset( $_GET['step'] ) ? sanitize_key( wp_unslash( $_GET['step'] ) ) : null,
 			'tab'         => isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : null,
-			'is_scd_page' => false,
+			'is_wsscd_page' => false,
 		);
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		// Map hooks to page identifiers
 		// Note: WordPress may shorten menu slugs (smart-cycle-discounts → sc-discounts)
 		$page_map = array(
-			'toplevel_page_smart-cycle-discounts'        => 'scd-dashboard',
-			'toplevel_page_sc-discounts'                 => 'scd-dashboard',
-			'toplevel_page_scd-campaigns'                => 'scd-campaigns',
-			'smart-cycle-discounts_page_scd-campaigns'   => 'scd-campaigns',
-			'sc-discounts_page_scd-campaigns'            => 'scd-campaigns',
-			'smart-cycle-discounts_page_scd-analytics'   => 'scd-analytics',
-			'sc-discounts_page_scd-analytics'            => 'scd-analytics',
-			'smart-cycle-discounts_page_scd-settings'    => 'scd-settings',
-			'sc-discounts_page_scd-settings'             => 'scd-settings',
-			'smart-cycle-discounts_page_scd-tools'       => 'scd-tools',
-			'sc-discounts_page_scd-tools'                => 'scd-tools',
-			'smart-cycle-discounts_page_scd-help'        => 'scd-help',
-			'sc-discounts_page_scd-help'                 => 'scd-help',
-			'smart-cycle-discounts_page_scd-notifications' => 'scd-notifications',
-			'sc-discounts_page_scd-notifications'        => 'scd-notifications',
+			'toplevel_page_smart-cycle-discounts'        => 'wsscd-dashboard',
+			'toplevel_page_sc-discounts'                 => 'wsscd-dashboard',
+			'toplevel_page_wsscd-campaigns'                => 'wsscd-campaigns',
+			'smart-cycle-discounts_page_wsscd-campaigns'   => 'wsscd-campaigns',
+			'sc-discounts_page_wsscd-campaigns'            => 'wsscd-campaigns',
+			'smart-cycle-discounts_page_wsscd-analytics'   => 'wsscd-analytics',
+			'sc-discounts_page_wsscd-analytics'            => 'wsscd-analytics',
+			'smart-cycle-discounts_page_wsscd-settings'    => 'wsscd-settings',
+			'sc-discounts_page_wsscd-settings'             => 'wsscd-settings',
+			'smart-cycle-discounts_page_wsscd-tools'       => 'wsscd-tools',
+			'sc-discounts_page_wsscd-tools'                => 'wsscd-tools',
+			'smart-cycle-discounts_page_wsscd-help'        => 'wsscd-help',
+			'sc-discounts_page_wsscd-help'                 => 'wsscd-help',
+			'smart-cycle-discounts_page_wsscd-notifications' => 'wsscd-notifications',
+			'sc-discounts_page_wsscd-notifications'        => 'wsscd-notifications',
 		);
 
 		if ( isset( $page_map[ $hook ] ) ) {
 			$context['page']        = $page_map[ $hook ];
-			$context['is_scd_page'] = true;
-		} elseif ( strpos( $hook, '_page_scd-' ) !== false ) {
+			$context['is_wsscd_page'] = true;
+		} elseif ( strpos( $hook, '_page_wsscd-' ) !== false ) {
 			// Fallback for any SCD page
-			$context['is_scd_page'] = true;
-			if ( preg_match( '/_page_scd-([a-z]+)/', $hook, $matches ) ) {
-				$context['page'] = 'scd-' . $matches[1];
+			$context['is_wsscd_page'] = true;
+			if ( preg_match( '/_page_wsscd-([a-z]+)/', $hook, $matches ) ) {
+				$context['page'] = 'wsscd-' . $matches[1];
 			}
 		}
 
-		return apply_filters( 'scd_asset_loader_context', $context, $hook );
+		// Set default tab for pages that have tabs when no tab parameter is specified
+		if ( null === $context['tab'] && $context['is_wsscd_page'] ) {
+			$default_tabs = array(
+				'wsscd-settings'      => 'general',
+				'wsscd-notifications' => 'settings',
+			);
+			if ( isset( $default_tabs[ $context['page'] ] ) ) {
+				$context['tab'] = $default_tabs[ $context['page'] ];
+			}
+		}
+
+		return apply_filters( 'wsscd_asset_loader_context', $context, $hook );
 	}
 
 	/**
@@ -192,11 +222,11 @@ class SCD_Asset_Loader {
 	 * @return bool True if should load.
 	 */
 	private function should_load_assets(): bool {
-		if ( ! $this->context['is_scd_page'] ) {
+		if ( ! $this->context['is_wsscd_page'] ) {
 			return false;
 		}
 
-		return apply_filters( 'scd_should_load_assets', true, $this->context );
+		return apply_filters( 'wsscd_should_load_assets', true, $this->context );
 	}
 
 	/**
@@ -213,9 +243,9 @@ class SCD_Asset_Loader {
 				$this->enqueue_script( $handle, $script );
 				$this->loaded['scripts'][] = $handle;
 
-				if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
+				if ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) {
 				}
-			} elseif ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
+			} elseif ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) {
 
 			}
 		}
@@ -277,7 +307,7 @@ class SCD_Asset_Loader {
 			}
 		}
 
-		return apply_filters( 'scd_should_load_script', true, $handle, $script, $this->context );
+		return apply_filters( 'wsscd_should_load_script', true, $handle, $script, $this->context );
 	}
 
 	/**
@@ -315,7 +345,7 @@ class SCD_Asset_Loader {
 			}
 		}
 
-		return apply_filters( 'scd_should_load_style', true, $handle, $style, $this->context );
+		return apply_filters( 'wsscd_should_load_style', true, $handle, $style, $this->context );
 	}
 
 	/**
@@ -397,7 +427,7 @@ class SCD_Asset_Loader {
 	 */
 	private function handle_script_localization( string $handle, $localize ): void {
 		// Delegate to localizer service
-		do_action( 'scd_localize_script', $handle, $localize, $this->context );
+		do_action( 'wsscd_localize_script', $handle, $localize, $this->context );
 	}
 
 	/**
@@ -426,12 +456,12 @@ class SCD_Asset_Loader {
 
 		if ( ! empty( $lazy_scripts ) || ! empty( $lazy_styles ) ) {
 			wp_localize_script(
-				'scd-admin-main',
-				'scdLazyAssets',
+				'wsscd-admin-main',
+				'wsscdLazyAssets',
 				array(
 					'scripts'  => $lazy_scripts,
 					'styles'   => $lazy_styles,
-					'nonce'    => wp_create_nonce( 'scd_lazy_assets' ),
+					'nonce'    => wp_create_nonce( 'wsscd_lazy_assets' ),
 					'ajax_url' => admin_url( 'admin-ajax.php' ),
 				)
 			);
@@ -466,13 +496,14 @@ class SCD_Asset_Loader {
 	 * @return void
 	 */
 	public function handle_lazy_load_request(): void {
-		check_ajax_referer( 'scd_lazy_assets', 'nonce' );
+		check_ajax_referer( 'wsscd_lazy_assets', 'nonce' );
 
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Array sanitized via array_map below.
 		$handles = isset( $_POST['handles'] ) ? wp_unslash( $_POST['handles'] ) : array();
 		$type    = isset( $_POST['type'] ) ? sanitize_text_field( wp_unslash( $_POST['type'] ) ) : 'script';
 
 		if ( ! is_array( $handles ) ) {
-			SCD_AJAX_Response::error( 'Invalid handles', 'invalid_parameter' );
+			WSSCD_AJAX_Response::error( 'Invalid handles', 'invalid_parameter' );
 		}
 
 		$sanitized_handles = array_map( 'sanitize_key', $handles );
@@ -498,7 +529,7 @@ class SCD_Asset_Loader {
 			}
 		}
 
-		SCD_AJAX_Response::success( $loaded );
+		WSSCD_AJAX_Response::success( $loaded );
 	}
 
 	/**
@@ -508,20 +539,20 @@ class SCD_Asset_Loader {
 	 * @return void
 	 */
 	public function print_inline_scripts(): void {
-		if ( ! $this->context['is_scd_page'] ) {
+		if ( ! $this->context['is_wsscd_page'] ) {
 			return;
 		}
 
-		// Print configuration object
-		?>
-		<script type="text/javascript">
-		window.scdAssetLoader = {
-			loaded: <?php echo wp_json_encode( $this->loaded ); ?>,
-			context: <?php echo wp_json_encode( $this->context ); ?>,
-			version: '<?php echo esc_js( $this->version ); ?>'
-		};
-		</script>
-		<?php
+		// Print configuration object using wp_add_inline_script
+		$inline_script = 'window.wsscdAssetLoader = ' . wp_json_encode(
+			array(
+				'loaded'  => $this->loaded,
+				'context' => $this->context,
+				'version' => $this->version,
+			)
+		) . ';';
+
+		wp_add_inline_script( 'wsscd-admin', $inline_script, 'before' );
 	}
 
 	/**
@@ -535,7 +566,7 @@ class SCD_Asset_Loader {
 
 		foreach ( $inline_styles as $handle => $style ) {
 			if ( in_array( $handle, $this->loaded['styles'], true ) ) {
-				do_action( 'scd_print_inline_style', $handle, $style );
+				do_action( 'wsscd_print_inline_style', $handle, $style );
 			}
 		}
 	}

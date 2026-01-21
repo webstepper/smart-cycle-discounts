@@ -22,23 +22,23 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since      1.0.0
  */
-class SCD_Campaign_View_Renderer {
+class WSSCD_Campaign_View_Renderer {
 
 	/**
 	 * Template loader instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Template_Loader
+	 * @var      WSSCD_Template_Loader
 	 */
-	private SCD_Template_Loader $template_loader;
+	private WSSCD_Template_Loader $template_loader;
 
 	/**
 	 * Initialize the renderer.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Template_Loader $template_loader    Template loader.
+	 * @param    WSSCD_Template_Loader $template_loader    Template loader.
 	 */
-	public function __construct( SCD_Template_Loader $template_loader ) {
+	public function __construct( WSSCD_Template_Loader $template_loader ) {
 		$this->template_loader = $template_loader;
 	}
 
@@ -46,11 +46,11 @@ class SCD_Campaign_View_Renderer {
 	 * Render edit form.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign|null $campaign     Campaign object or null for new.
+	 * @param    WSSCD_Campaign|null $campaign     Campaign object or null for new.
 	 * @param    array             $form_data    Form data to populate.
 	 * @return   void
 	 */
-	public function render_edit_form( ?SCD_Campaign $campaign, array $form_data = array() ): void {
+	public function render_edit_form( ?WSSCD_Campaign $campaign, array $form_data = array() ): void {
 		$is_new      = ! $campaign;
 		$campaign_id = $campaign ? $campaign->get_id() : 0;
 
@@ -64,9 +64,9 @@ class SCD_Campaign_View_Renderer {
 				?>
 			</h1>
 			
-			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" id="scd-campaign-form">
-				<?php wp_nonce_field( 'scd_save_campaign', 'scd_campaign_nonce' ); ?>
-				<input type="hidden" name="action" value="scd_save_campaign">
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" id="wsscd-campaign-form">
+				<?php wp_nonce_field( 'wsscd_save_campaign', 'wsscd_campaign_nonce' ); ?>
+				<input type="hidden" name="action" value="wsscd_save_campaign">
 				<input type="hidden" name="campaign_id" value="<?php echo esc_attr( $campaign_id ); ?>">
 				
 				<div id="poststuff">
@@ -89,17 +89,18 @@ class SCD_Campaign_View_Renderer {
 	 * Render campaign stats view.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @param    array        $stats       Campaign statistics.
 	 * @return   void
 	 */
-	public function render_stats_view( SCD_Campaign $campaign, array $stats ): void {
+	public function render_stats_view( WSSCD_Campaign $campaign, array $stats ): void {
 		?>
 		<div class="wrap">
 			<h1>
 				<?php
 				echo esc_html(
 					sprintf(
+						/* translators: %s: campaign name */
 						__( 'Campaign Statistics: %s', 'smart-cycle-discounts' ),
 						$campaign->get_name()
 					)
@@ -107,11 +108,11 @@ class SCD_Campaign_View_Renderer {
 				?>
 			</h1>
 			
-			<div class="scd-stats-grid">
+			<div class="wsscd-stats-grid">
 				<?php foreach ( $stats as $key => $value ) : ?>
-					<div class="scd-stat-box">
+					<div class="wsscd-stat-box">
 						<h3><?php echo esc_html( $this->get_stat_label( $key ) ); ?></h3>
-						<p class="scd-stat-value"><?php echo esc_html( $this->format_stat_value( $key, $value ) ); ?></p>
+						<p class="wsscd-stat-value"><?php echo esc_html( $this->format_stat_value( $key, $value ) ); ?></p>
 					</div>
 				<?php endforeach; ?>
 			</div>
@@ -123,16 +124,16 @@ class SCD_Campaign_View_Renderer {
 	 * Render main form fields.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign|null $campaign     Campaign object.
+	 * @param    WSSCD_Campaign|null $campaign     Campaign object.
 	 * @param    array             $form_data    Form data.
 	 * @return   void
 	 */
-	private function render_main_fields( ?SCD_Campaign $campaign, array $form_data ): void {
+	private function render_main_fields( ?WSSCD_Campaign $campaign, array $form_data ): void {
 		$name        = $form_data['name'] ?? ( $campaign ? $campaign->get_name() : '' );
 		$description = $form_data['description'] ?? ( $campaign ? $campaign->get_description() : '' );
 
 		?>
-		<div class="scd-form-section">
+		<div class="wsscd-form-section">
 			<h2><?php esc_html_e( 'Campaign Details', 'smart-cycle-discounts' ); ?></h2>
 			
 			<table class="form-table">
@@ -194,11 +195,11 @@ class SCD_Campaign_View_Renderer {
 	 * Render sidebar.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign|null $campaign     Campaign object.
+	 * @param    WSSCD_Campaign|null $campaign     Campaign object.
 	 * @param    array             $form_data    Form data.
 	 * @return   void
 	 */
-	private function render_sidebar( ?SCD_Campaign $campaign, array $form_data ): void {
+	private function render_sidebar( ?WSSCD_Campaign $campaign, array $form_data ): void {
 		?>
 		<div class="postbox">
 			<h2 class="hndle"><?php esc_html_e( 'Publish', 'smart-cycle-discounts' ); ?></h2>
@@ -214,8 +215,8 @@ class SCD_Campaign_View_Renderer {
 									<?php
 									echo esc_url(
 										wp_nonce_url(
-											admin_url( 'admin.php?page=scd-campaigns&action=delete&id=' . $campaign->get_id() ),
-											'scd_delete_campaign_' . $campaign->get_id()
+											admin_url( 'admin.php?page=wsscd-campaigns&action=delete&id=' . $campaign->get_id() ),
+											'wsscd_delete_campaign_' . $campaign->get_id()
 										)
 									);
 									?>
@@ -251,11 +252,11 @@ class SCD_Campaign_View_Renderer {
 	 * Render status field.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign|null $campaign     Campaign object.
+	 * @param    WSSCD_Campaign|null $campaign     Campaign object.
 	 * @param    array             $form_data    Form data.
 	 * @return   void
 	 */
-	private function render_status_field( ?SCD_Campaign $campaign, array $form_data ): void {
+	private function render_status_field( ?WSSCD_Campaign $campaign, array $form_data ): void {
 		$current_status = $form_data['status'] ?? ( $campaign ? $campaign->get_status() : 'draft' );
 		$statuses       = array(
 			'draft'     => __( 'Draft', 'smart-cycle-discounts' ),
@@ -321,10 +322,10 @@ class SCD_Campaign_View_Renderer {
 	 * Render recurring information.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   void
 	 */
-	private function render_recurring_info( SCD_Campaign $campaign ): void {
+	private function render_recurring_info( WSSCD_Campaign $campaign ): void {
 		$container = null;
 		if ( class_exists( 'SmartCycleDiscounts' ) ) {
 			$plugin    = SmartCycleDiscounts::get_instance();
@@ -351,9 +352,9 @@ class SCD_Campaign_View_Renderer {
 					<p>
 						<strong><?php esc_html_e( 'Status:', 'smart-cycle-discounts' ); ?></strong>
 						<?php if ( ! empty( $recurring_settings['is_active'] ) ) : ?>
-							<span class="scd-text-success"><?php esc_html_e( 'Active', 'smart-cycle-discounts' ); ?></span>
+							<span class="wsscd-text-success"><?php esc_html_e( 'Active', 'smart-cycle-discounts' ); ?></span>
 						<?php else : ?>
-							<span class="scd-text-error"><?php esc_html_e( 'Stopped', 'smart-cycle-discounts' ); ?></span>
+							<span class="wsscd-text-error"><?php esc_html_e( 'Stopped', 'smart-cycle-discounts' ); ?></span>
 						<?php endif; ?>
 					</p>
 					
@@ -415,6 +416,7 @@ class SCD_Campaign_View_Renderer {
 							<?php
 							echo esc_html(
 								sprintf(
+									/* translators: %d: number of recurring occurrences */
 									__( '%d occurrences', 'smart-cycle-discounts' ),
 									$recurring_settings['recurrence_count']
 								)
@@ -437,8 +439,8 @@ class SCD_Campaign_View_Renderer {
 							<?php
 							echo esc_url(
 								wp_nonce_url(
-									admin_url( 'admin.php?page=scd-campaigns&action=stop_recurring&id=' . $campaign->get_id() ),
-									'scd_stop_recurring'
+									admin_url( 'admin.php?page=wsscd-campaigns&action=stop_recurring&id=' . $campaign->get_id() ),
+									'wsscd_stop_recurring'
 								)
 							);
 							?>
@@ -463,7 +465,8 @@ class SCD_Campaign_View_Renderer {
 						$parent_id = $recurring_settings['parent_campaign_id'];
 						printf(
 							'<a href="%s">%s</a>',
-							esc_url( admin_url( 'admin.php?page=scd-campaigns&action=edit&id=' . $parent_id ) ),
+							esc_url( admin_url( 'admin.php?page=wsscd-campaigns&action=edit&id=' . $parent_id ) ),
+							/* translators: %d: campaign ID number */
 							esc_html( sprintf( __( 'Campaign #%d', 'smart-cycle-discounts' ), $parent_id ) )
 						);
 						?>

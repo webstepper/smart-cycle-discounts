@@ -13,17 +13,17 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	SCD.Modules = SCD.Modules || {};
-	SCD.Modules.Discounts = SCD.Modules.Discounts || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Modules = WSSCD.Modules || {};
+	WSSCD.Modules.Discounts = WSSCD.Modules.Discounts || {};
 
 	/**
 	 * Discount Conditions Manager
 	 *
 	 * @param state
-	 * @class SCD.Modules.Discounts.Conditions
+	 * @class WSSCD.Modules.Discounts.Conditions
 	 */
-	SCD.Modules.Discounts.Conditions = function( state ) {
+	WSSCD.Modules.Discounts.Conditions = function( state ) {
 		this.state = state;
 		this.conditionTypes = {};
 		this.maxConditions = 10;
@@ -41,7 +41,7 @@
 		};
 	};
 
-	SCD.Modules.Discounts.Conditions.prototype = {
+	WSSCD.Modules.Discounts.Conditions.prototype = {
 		/**
 		 * Initialize conditions module
 		 */
@@ -181,44 +181,44 @@
 		setupEventHandlers: function() {
 			var self = this;
 
-			$( document ).on( 'click.conditions', '.scd-add-condition', function( e ) {
+			$( document ).on( 'click.conditions', '.wsscd-add-condition', function( e ) {
 				e.preventDefault();
 				self.addCondition();
 			} );
 
-			$( document ).on( 'click.conditions', '.scd-remove-condition', function( e ) {
+			$( document ).on( 'click.conditions', '.wsscd-remove-condition', function( e ) {
 				e.preventDefault();
 				var id = $( this ).data( 'condition-id' );
 				self.removeCondition( id );
 			} );
 
 			// Condition type change
-			$( document ).on( 'change.conditions', '.scd-condition-type', function() {
-				var $row = $( this ).closest( '.scd-condition-row' );
+			$( document ).on( 'change.conditions', '.wsscd-condition-type', function() {
+				var $row = $( this ).closest( '.wsscd-condition-row' );
 				var id = $row.data( 'condition-id' );
 				var type = $( this ).val();
 				self.handleTypeChange( id, type );
 			} );
 
 			// Operator change
-			$( document ).on( 'change.conditions', '.scd-condition-operator', function() {
-				var $row = $( this ).closest( '.scd-condition-row' );
+			$( document ).on( 'change.conditions', '.wsscd-condition-operator', function() {
+				var $row = $( this ).closest( '.wsscd-condition-row' );
 				var id = $row.data( 'condition-id' );
 				var operator = $( this ).val();
 				self.updateCondition( id, { operator: operator } );
 			} );
 
 			// Value change
-			$( document ).on( 'change.conditions input.conditions', '.scd-condition-value', function() {
-				var $row = $( this ).closest( '.scd-condition-row' );
+			$( document ).on( 'change.conditions input.conditions', '.wsscd-condition-value', function() {
+				var $row = $( this ).closest( '.wsscd-condition-row' );
 				var id = $row.data( 'condition-id' );
 				var value = self.getValueFromInput( $( this ) );
 				self.updateCondition( id, { value: value } );
 			} );
 
 			// Enable/disable toggle
-			$( document ).on( 'change.conditions', '.scd-condition-enabled', function() {
-				var $row = $( this ).closest( '.scd-condition-row' );
+			$( document ).on( 'change.conditions', '.wsscd-condition-enabled', function() {
+				var $row = $( this ).closest( '.wsscd-condition-row' );
 				var id = $row.data( 'condition-id' );
 				var enabled = $( this ).is( ':checked' );
 				self.updateCondition( id, { enabled: enabled } );
@@ -252,16 +252,16 @@
 		 */
 		renderConditions: function() {
 			var conditions = this.state.getData( 'conditions' ) || [];
-			var $container = $( '.scd-conditions-container' );
+			var $container = $( '.wsscd-conditions-container' );
 
 			if ( !$container.length ) {return;}
 
 			var html = '';
 
 			if ( 0 === conditions.length ) {
-				html = '<p class="scd-no-conditions">No conditions added. Discount will apply to all eligible items.</p>';
+				html = '<p class="wsscd-no-conditions">No conditions added. Discount will apply to all eligible items.</p>';
 			} else {
-				html = '<div class="scd-conditions-list">';
+				html = '<div class="wsscd-conditions-list">';
 				conditions.forEach( function( condition ) {
 					html += this.renderConditionRow( condition );
 				}.bind( this ) );
@@ -270,7 +270,7 @@
 
 			$container.html( html );
 
-			var $addButton = $( '.scd-add-condition' );
+			var $addButton = $( '.wsscd-add-condition' );
 			if ( conditions.length >= this.maxConditions ) {
 				$addButton.prop( 'disabled', true ).text( 'Maximum conditions reached' );
 			} else {
@@ -281,7 +281,7 @@
 			$( '[name="condition_logic"][value="' + logic + '"]' ).prop( 'checked', true );
 
 			// Show/hide logic selector based on condition count
-			$( '.scd-condition-logic' ).toggle( 1 < conditions.length );
+			$( '.wsscd-condition-logic' ).toggle( 1 < conditions.length );
 		},
 
 		/**
@@ -314,31 +314,31 @@
                                   self.operators[op].label + '</option>';
 			} );
 
-			return '<div class="scd-condition-row ' + ( false === condition.enabled ? 'disabled' : '' ) + '" ' +
+			return '<div class="wsscd-condition-row ' + ( false === condition.enabled ? 'disabled' : '' ) + '" ' +
                    'data-condition-id="' + condition.id + '">' +
-                   '<div class="scd-condition-toggle">' +
+                   '<div class="wsscd-condition-toggle">' +
                        '<input type="checkbox" ' +
-                              'class="scd-condition-enabled" ' +
+                              'class="wsscd-condition-enabled" ' +
                               ( false !== condition.enabled ? 'checked' : '' ) + '>' +
                    '</div>' +
-                   '<div class="scd-condition-content">' +
-                       '<div class="scd-condition-type-wrapper">' +
-                           '<select class="scd-condition-type">' +
+                   '<div class="wsscd-condition-content">' +
+                       '<div class="wsscd-condition-type-wrapper">' +
+                           '<select class="wsscd-condition-type">' +
                                typeOptions +
                            '</select>' +
                        '</div>' +
-                       '<div class="scd-condition-operator-wrapper">' +
-                           '<select class="scd-condition-operator">' +
+                       '<div class="wsscd-condition-operator-wrapper">' +
+                           '<select class="wsscd-condition-operator">' +
                                operatorOptions +
                            '</select>' +
                        '</div>' +
-                       '<div class="scd-condition-value-wrapper">' +
+                       '<div class="wsscd-condition-value-wrapper">' +
                            this.renderValueInput( condition, typeConfig ) +
                        '</div>' +
                    '</div>' +
-                   '<div class="scd-condition-actions">' +
+                   '<div class="wsscd-condition-actions">' +
                        '<button type="button" ' +
-                               'class="scd-remove-condition" ' +
+                               'class="wsscd-remove-condition" ' +
                                'data-condition-id="' + condition.id + '" ' +
                                'title="Remove condition">×</button>' +
                    '</div>' +
@@ -357,13 +357,13 @@
 			switch ( inputType ) {
 				case 'text':
 					return '<input type="text" ' +
-                           'class="scd-condition-value" ' +
+                           'class="wsscd-condition-value" ' +
                            'value="' + value + '" ' +
                            'placeholder="' + ( typeConfig.placeholder || '' ) + '">';
 
 				case 'number':
 					return '<input type="number" ' +
-                           'class="scd-condition-value" ' +
+                           'class="wsscd-condition-value" ' +
                            'value="' + value + '" ' +
                            'min="' + ( typeConfig.min || '' ) + '" ' +
                            'step="' + ( typeConfig.step || 1 ) + '" ' +
@@ -376,7 +376,7 @@
                                         ( value === opt.value ? 'selected' : '' ) + '>' +
                                         opt.label + '</option>';
 					} );
-					return '<select class="scd-condition-value">' + selectOptions + '</select>';
+					return '<select class="wsscd-condition-value">' + selectOptions + '</select>';
 
 				case 'role_select':
 				case 'category_select':
@@ -390,7 +390,7 @@
 
 				default:
 					return '<input type="text" ' +
-                           'class="scd-condition-value" ' +
+                           'class="wsscd-condition-value" ' +
                            'value="' + value + '" ' +
                            'placeholder="Enter value...">';
 			}
@@ -411,7 +411,7 @@
                                ( -1 !== values.indexOf( opt.value ) ? 'selected' : '' ) + '>' +
                                opt.label + '</option>';
 			} );
-			return '<select class="scd-condition-value scd-multi-select" multiple>' + multiOptions + '</select>';
+			return '<select class="wsscd-condition-value wsscd-multi-select" multiple>' + multiOptions + '</select>';
 		},
 
 		/**
@@ -424,16 +424,16 @@
 
 			var productItems = '';
 			products.forEach( function( product ) {
-				productItems += '<span class="scd-selected-item" data-id="' + product.id + '">' +
+				productItems += '<span class="wsscd-selected-item" data-id="' + product.id + '">' +
                                product.name +
-                               '<button type="button" class="scd-remove-item" data-id="' + product.id + '">×</button>' +
+                               '<button type="button" class="wsscd-remove-item" data-id="' + product.id + '">×</button>' +
                                '</span>';
 			} );
-			return '<div class="scd-product-search-wrapper" data-condition-id="' + condition.id + '">' +
+			return '<div class="wsscd-product-search-wrapper" data-condition-id="' + condition.id + '">' +
                    '<input type="text" ' +
-                          'class="scd-product-search-input" ' +
+                          'class="wsscd-product-search-input" ' +
                           'placeholder="' + ( typeConfig.placeholder || 'Search products...' ) + '">' +
-                   '<div class="scd-selected-products">' +
+                   '<div class="wsscd-selected-products">' +
                        productItems +
                    '</div>' +
                '</div>';
@@ -447,14 +447,14 @@
 		renderDateRange: function( condition, _typeConfig ) {
 			var value = condition.value || {};
 
-			return '<div class="scd-date-range-wrapper">' +
+			return '<div class="wsscd-date-range-wrapper">' +
                    '<input type="date" ' +
-                          'class="scd-condition-value scd-date-start" ' +
+                          'class="wsscd-condition-value wsscd-date-start" ' +
                           'value="' + ( value.start || '' ) + '" ' +
                           'data-field="start">' +
                    '<span>to</span>' +
                    '<input type="date" ' +
-                          'class="scd-condition-value scd-date-end" ' +
+                          'class="wsscd-condition-value wsscd-date-end" ' +
                           'value="' + ( value.end || '' ) + '" ' +
                           'data-field="end">' +
                '</div>';
@@ -543,13 +543,13 @@
 		 * @param $input
 		 */
 		getValueFromInput: function( $input ) {
-			if ( $input.hasClass( 'scd-multi-select' ) ) {
+			if ( $input.hasClass( 'wsscd-multi-select' ) ) {
 				return $input.val() || [];
-			} else if ( $input.hasClass( 'scd-date-start' ) || $input.hasClass( 'scd-date-end' ) ) {
-				var $wrapper = $input.closest( '.scd-date-range-wrapper' );
+			} else if ( $input.hasClass( 'wsscd-date-start' ) || $input.hasClass( 'wsscd-date-end' ) ) {
+				var $wrapper = $input.closest( '.wsscd-date-range-wrapper' );
 				return {
-					start: $wrapper.find( '.scd-date-start' ).val(),
-					end: $wrapper.find( '.scd-date-end' ).val()
+					start: $wrapper.find( '.wsscd-date-start' ).val(),
+					end: $wrapper.find( '.wsscd-date-end' ).val()
 				};
 			} else if ( 'number' === $input.attr( 'type' ) ) {
 				return parseFloat( $input.val() ) || 0;
@@ -562,8 +562,8 @@
 		 * Get user roles from WordPress
 		 */
 		getUserRoles: function() {
-			// Default WordPress/WooCommerce roles - can be extended via scdSettings.userRoles
-			var roles = window.scdSettings && window.scdSettings.userRoles || [
+			// Default WordPress/WooCommerce roles - can be extended via wsscdSettings.userRoles
+			var roles = window.wsscdSettings && window.wsscdSettings.userRoles || [
 				{ value: 'subscriber', label: 'Subscriber' },
 				{ value: 'customer', label: 'Customer' },
 				{ value: 'shop_manager', label: 'Shop Manager' },

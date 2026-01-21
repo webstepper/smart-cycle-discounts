@@ -29,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/utilities
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Loader_Helper {
+class WSSCD_Loader_Helper {
 
 	/**
 	 * Generate full-screen loader markup
@@ -43,17 +43,17 @@ class SCD_Loader_Helper {
 	 * @param    bool   $visible     Whether loader should be visible on render (default: false).
 	 * @return   string              HTML markup for full-screen loader.
 	 */
-	public static function fullscreen( $id = 'scd-loader-fullscreen', $text = '', $visible = false ) {
+	public static function fullscreen( $id = 'wsscd-loader-fullscreen', $text = '', $visible = false ) {
 		$text         = $text ? $text : __( 'Loading...', 'smart-cycle-discounts' );
 		$display      = $visible ? 'block' : 'none';
 		$escaped_id   = esc_attr( $id );
 		$escaped_text = esc_html( $text );
 
 		return sprintf(
-			'<div id="%s" class="scd-loader-overlay scd-loader-fullscreen" style="display: %s;">
-				<div class="scd-loader-content">
+			'<div id="%s" class="wsscd-loader-overlay wsscd-loader-fullscreen" style="display: %s;">
+				<div class="wsscd-loader-content">
 					<span class="spinner is-active"></span>
-					<span class="scd-loader-text">%s</span>
+					<span class="wsscd-loader-text">%s</span>
 				</div>
 			</div>',
 			$escaped_id,
@@ -74,19 +74,19 @@ class SCD_Loader_Helper {
 	 * @param    bool   $visible     Whether loader should be visible on render (default: false).
 	 * @return   string              HTML markup for container loader.
 	 */
-	public static function container( $id = 'scd-loader-container', $text = '', $visible = false ) {
+	public static function container( $id = 'wsscd-loader-container', $text = '', $visible = false ) {
 		$display      = $visible ? 'flex' : 'none';
 		$escaped_id   = esc_attr( $id );
 		$text_markup  = '';
 
 		if ( $text ) {
 			$escaped_text = esc_html( $text );
-			$text_markup  = sprintf( '<span class="scd-loader-text">%s</span>', $escaped_text );
+			$text_markup  = sprintf( '<span class="wsscd-loader-text">%s</span>', $escaped_text );
 		}
 
 		return sprintf(
-			'<div id="%s" class="scd-loader-overlay scd-loader-container" style="display: %s;">
-				<div class="scd-loader-content">
+			'<div id="%s" class="wsscd-loader-overlay wsscd-loader-container" style="display: %s;">
+				<div class="wsscd-loader-content">
 					<span class="spinner is-active"></span>
 					%s
 				</div>
@@ -108,8 +108,8 @@ class SCD_Loader_Helper {
 	 * @param    bool   $visible     Whether loader should be visible on render (default: false).
 	 * @return   string              HTML markup for inline loader.
 	 */
-	public static function inline( $id = 'scd-loader-inline', $visible = false ) {
-		$class       = $visible ? 'scd-loader-inline is-active' : 'scd-loader-inline';
+	public static function inline( $id = 'wsscd-loader-inline', $visible = false ) {
+		$class       = $visible ? 'wsscd-loader-inline is-active' : 'wsscd-loader-inline';
 		$escaped_id  = esc_attr( $id );
 
 		return sprintf(
@@ -131,16 +131,16 @@ class SCD_Loader_Helper {
 	 * @param    bool   $visible     Whether loader should be visible on render (default: false).
 	 * @return   string              HTML markup for button loader.
 	 */
-	public static function button( $id = 'scd-loader-button', $text = '', $visible = false ) {
+	public static function button( $id = 'wsscd-loader-button', $text = '', $visible = false ) {
 		$text        = $text ? $text : __( 'Processing...', 'smart-cycle-discounts' );
 		$display     = $visible ? 'inline-flex' : 'none';
 		$escaped_id  = esc_attr( $id );
 		$escaped_text = esc_html( $text );
 
 		return sprintf(
-			'<span id="%s" class="scd-loader-button" style="display: %s;">
+			'<span id="%s" class="wsscd-loader-button" style="display: %s;">
 				<span class="spinner is-active"></span>
-				<span class="scd-loader-text">%s</span>
+				<span class="wsscd-loader-text">%s</span>
 			</span>',
 			$escaped_id,
 			esc_attr( $display ),
@@ -153,14 +153,19 @@ class SCD_Loader_Helper {
 	 *
 	 * Directly echoes the full-screen loader markup.
 	 *
+	 * Note: We use direct echo instead of wp_kses_post because WordPress's
+	 * safecss_filter_attr() strips the 'display' CSS property from inline styles.
+	 * The output is safe because all values are escaped with esc_attr/esc_html
+	 * and the HTML structure is hardcoded in the generating methods.
+	 *
 	 * @since    1.0.0
 	 * @param    string $id          Unique ID for the loader element.
 	 * @param    string $text        Loading text to display.
 	 * @param    bool   $visible     Whether loader should be visible on render.
 	 * @return   void
 	 */
-	public static function render_fullscreen( $id = 'scd-loader-fullscreen', $text = '', $visible = false ) {
-		echo self::fullscreen( $id, $text, $visible );
+	public static function render_fullscreen( $id = 'wsscd-loader-fullscreen', $text = '', $visible = false ) {
+		WSSCD_HTML_Helper::output( self::fullscreen( $id, $text, $visible ) );
 	}
 
 	/**
@@ -168,14 +173,19 @@ class SCD_Loader_Helper {
 	 *
 	 * Directly echoes the container loader markup.
 	 *
+	 * Note: We use direct echo instead of wp_kses_post because WordPress's
+	 * safecss_filter_attr() strips the 'display' CSS property from inline styles.
+	 * The output is safe because all values are escaped with esc_attr/esc_html
+	 * and the HTML structure is hardcoded in the generating methods.
+	 *
 	 * @since    1.0.0
 	 * @param    string $id          Unique ID for the loader element.
 	 * @param    string $text        Loading text to display.
 	 * @param    bool   $visible     Whether loader should be visible on render.
 	 * @return   void
 	 */
-	public static function render_container( $id = 'scd-loader-container', $text = '', $visible = false ) {
-		echo self::container( $id, $text, $visible );
+	public static function render_container( $id = 'wsscd-loader-container', $text = '', $visible = false ) {
+		WSSCD_HTML_Helper::output( self::container( $id, $text, $visible ) );
 	}
 
 	/**
@@ -183,13 +193,18 @@ class SCD_Loader_Helper {
 	 *
 	 * Directly echoes the inline loader markup.
 	 *
+	 * Note: We use direct echo instead of wp_kses_post because WordPress's
+	 * safecss_filter_attr() strips the 'display' CSS property from inline styles.
+	 * The output is safe because all values are escaped with esc_attr/esc_html
+	 * and the HTML structure is hardcoded in the generating methods.
+	 *
 	 * @since    1.0.0
 	 * @param    string $id          Unique ID for the loader element.
 	 * @param    bool   $visible     Whether loader should be visible on render.
 	 * @return   void
 	 */
-	public static function render_inline( $id = 'scd-loader-inline', $visible = false ) {
-		echo self::inline( $id, $visible );
+	public static function render_inline( $id = 'wsscd-loader-inline', $visible = false ) {
+		WSSCD_HTML_Helper::output( self::inline( $id, $visible ) );
 	}
 
 	/**
@@ -197,13 +212,18 @@ class SCD_Loader_Helper {
 	 *
 	 * Directly echoes the button loader markup.
 	 *
+	 * Note: We use direct echo instead of wp_kses_post because WordPress's
+	 * safecss_filter_attr() strips the 'display' CSS property from inline styles.
+	 * The output is safe because all values are escaped with esc_attr/esc_html
+	 * and the HTML structure is hardcoded in the generating methods.
+	 *
 	 * @since    1.0.0
 	 * @param    string $id          Unique ID for the loader element.
 	 * @param    string $text        Loading text to display.
 	 * @param    bool   $visible     Whether loader should be visible on render.
 	 * @return   void
 	 */
-	public static function render_button( $id = 'scd-loader-button', $text = '', $visible = false ) {
-		echo self::button( $id, $text, $visible );
+	public static function render_button( $id = 'wsscd-loader-button', $text = '', $visible = false ) {
+		WSSCD_HTML_Helper::output( self::button( $id, $text, $visible ) );
 	}
 }

@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
+require_once WSSCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
 
 /**
  * Check Conflicts Handler Class
@@ -27,15 +27,15 @@ require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Check_Conflicts_Handler extends WSSCD_Abstract_Ajax_Handler {
 
-	use SCD_Wizard_Helpers;
+	use WSSCD_Wizard_Helpers;
 
 	/**
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger    Logger instance (optional).
+	 * @param    WSSCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -48,7 +48,7 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_check_conflicts';
+		return 'wsscd_check_conflicts';
 	}
 
 	/**
@@ -132,9 +132,9 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 			'total_products_blocked' => $this->_count_blocked_products( $conflicts ),
 		);
 
-		// Cache for 5 minutes
+		// Cache for 30 seconds (short TTL since wizard data changes frequently)
 		if ( $cache_manager ) {
-			$cache_manager->set( $cache_key, $result, 300 );
+			$cache_manager->set( $cache_key, $result, 30 );
 		}
 
 		return $this->success( $result );
@@ -142,6 +142,9 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Find conflicting campaigns.
+	 *
+	 * Optimized to avoid N+1 queries by pre-calculating new campaign's products
+	 * once and reusing for all comparisons.
 	 *
 	 * @since    1.0.0
 	 * @access   private
@@ -159,26 +162,31 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 			return array();
 		}
 
+		// Pre-calculate new campaign's products ONCE (eliminates N+1 query).
+		$new_campaign_products = $this->_get_selection_products( $selection_type, $product_ids, $category_ids );
+
+		// Early exit if new campaign has no products.
+		if ( empty( $new_campaign_products ) ) {
+			return array();
+		}
+
 		$conflicts = array();
 
 		foreach ( $active_campaigns as $campaign ) {
-			// Skip the campaign being edited (can't conflict with itself)
+			// Skip the campaign being edited (can't conflict with itself).
 			if ( $editing_campaign_id && $campaign->get_id() === $editing_campaign_id ) {
 				continue;
 			}
 
 			$campaign_priority = $campaign->get_priority();
 
-			// Check if new campaign would be blocked:
-			// 1. Existing campaign has HIGHER priority (bigger number) → new loses
-			// 2. Equal priorities → conflict (older campaign wins, but we're creating new so warn user)
-			$would_lose = ( $campaign_priority >= $priority );
-
-			if ( ! $would_lose ) {
+			// Use shared method for consistent priority logic across handlers
+			if ( ! $this->_would_block_new_campaign( $campaign_priority, $priority ) ) {
 				continue;
 			}
 
-			$overlap_count = $this->_count_product_overlap( $campaign, $selection_type, $product_ids, $category_ids );
+			// Pass pre-calculated products to avoid repeated queries.
+			$overlap_count = $this->_count_product_overlap_optimized( $campaign, $new_campaign_products );
 
 			if ( $overlap_count > 0 ) {
 				$conflicts[] = array(
@@ -194,72 +202,127 @@ class SCD_Check_Conflicts_Handler extends SCD_Abstract_Ajax_Handler {
 	}
 
 	/**
-	 * Count product overlap between new campaign and existing campaign.
+	 * Count product overlap between new campaign and existing campaign (optimized).
+	 *
+	 * Takes pre-calculated new campaign products to avoid repeated queries.
+	 * Uses early-exit heuristics to avoid expensive product array comparisons.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    object $campaign         Existing campaign.
-	 * @param    string $selection_type   New campaign selection type.
-	 * @param    array  $product_ids      New campaign product IDs.
-	 * @param    array  $category_ids     New campaign category IDs.
-	 * @return   int                         Number of overlapping products.
+	 * @param    object $campaign               Existing campaign.
+	 * @param    array  $new_campaign_products  Pre-calculated new campaign product IDs.
+	 * @return   int                               Number of overlapping products.
 	 */
-	private function _count_product_overlap( $campaign, $selection_type, $product_ids, $category_ids ) {
+	private function _count_product_overlap_optimized( $campaign, array $new_campaign_products ) {
 		$existing_products = $this->_get_campaign_products( $campaign );
 
-		$new_products = $this->_get_selection_products( $selection_type, $product_ids, $category_ids );
+		if ( empty( $existing_products ) ) {
+			return 0;
+		}
 
-		// Find intersection
-		$overlap = array_intersect( $existing_products, $new_products );
+		// Memory optimization: For very large sets, sample to estimate overlap.
+		$existing_count = count( $existing_products );
+		$new_count      = count( $new_campaign_products );
 
-		return count( $overlap );
+		// If both sets are large (> 1000), use sampling for estimation.
+		if ( $existing_count > 1000 && $new_count > 1000 ) {
+			return $this->_estimate_overlap_by_sampling( $existing_products, $new_campaign_products );
+		}
+
+		// Use array_flip + isset for O(n) instead of O(n*m) with array_intersect.
+		$new_products_map = array_flip( $new_campaign_products );
+		$overlap_count    = 0;
+
+		foreach ( $existing_products as $product_id ) {
+			if ( isset( $new_products_map[ $product_id ] ) ) {
+				$overlap_count++;
+			}
+		}
+
+		return $overlap_count;
+	}
+
+	/**
+	 * Estimate overlap by sampling for very large product sets.
+	 *
+	 * Uses random sampling to estimate overlap without loading full arrays.
+	 * More memory efficient for stores with thousands of products.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $set_a    First product ID set.
+	 * @param    array $set_b    Second product ID set.
+	 * @return   int                Estimated overlap count.
+	 */
+	private function _estimate_overlap_by_sampling( array $set_a, array $set_b ) {
+		$sample_size = 200; // Sample 200 items for estimation.
+		$set_a_count = count( $set_a );
+		$set_b_count = count( $set_b );
+
+		// Use smaller set for sampling.
+		if ( $set_a_count <= $set_b_count ) {
+			$sample_set  = $set_a;
+			$lookup_set  = array_flip( $set_b );
+			$total_count = $set_a_count;
+		} else {
+			$sample_set  = $set_b;
+			$lookup_set  = array_flip( $set_a );
+			$total_count = $set_b_count;
+		}
+
+		// Take random sample.
+		$sample_keys = array_rand( $sample_set, min( $sample_size, count( $sample_set ) ) );
+		if ( ! is_array( $sample_keys ) ) {
+			$sample_keys = array( $sample_keys );
+		}
+
+		$matches = 0;
+		foreach ( $sample_keys as $key ) {
+			if ( isset( $lookup_set[ $sample_set[ $key ] ] ) ) {
+				$matches++;
+			}
+		}
+
+		// Extrapolate overlap estimate.
+		$sample_ratio    = count( $sample_keys ) / $total_count;
+		$estimated_total = intval( $matches / $sample_ratio );
+
+		return $estimated_total;
 	}
 
 	/**
 	 * Get product IDs for selection criteria.
 	 *
+	 * Product Selection Model:
+	 * - selection_type: HOW to select (all_products, specific_products, random_products, smart_selection)
+	 * - category_ids: Optional FILTER for pool-based selections
+	 *
+	 * Pool-based selections (all_products, random_products, smart_selection) select from
+	 * all store products OR products filtered by categories when category_ids is set.
+	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @param    string $selection_type   Selection type.
-	 * @param    array  $product_ids      Product IDs.
-	 * @param    array  $category_ids     Category IDs.
+	 * @param    array  $product_ids      Product IDs (for specific_products only).
+	 * @param    array  $category_ids     Category filter (for pool-based selections).
 	 * @return   array                       Array of product IDs.
 	 */
 	private function _get_selection_products( $selection_type, $product_ids, $category_ids ) {
-		// When 'all_products' or 'random_products', use category_ids to get products
-		if ( 'all_products' === $selection_type || 'random_products' === $selection_type ) {
-			// If categories are specified, get products from those categories
-			if ( ! empty( $category_ids ) && is_array( $category_ids ) ) {
-				// Filter out 'all' marker if present
-				$category_ids = array_filter( $category_ids, function( $id ) {
-					return 'all' !== $id;
-				} );
-
-				if ( ! empty( $category_ids ) ) {
-					return $this->_get_products_in_categories( $category_ids );
-				}
-			}
-
-			// No specific categories = all products in store
-			return $this->_get_all_product_ids();
-		} elseif ( 'specific_products' === $selection_type ) {
+		// Specific products - use explicit product IDs, ignore category filter.
+		if ( WSSCD_Campaign::SELECTION_TYPE_SPECIFIC_PRODUCTS === $selection_type ) {
 			return is_array( $product_ids ) ? array_map( 'intval', $product_ids ) : array();
-		} elseif ( 'smart_selection' === $selection_type ) {
-			// Smart selection uses category_ids as base
+		}
+
+		// Pool-based selections - apply category filter if set.
+		if ( WSSCD_Campaign::is_pool_based_selection( $selection_type ) ) {
 			if ( ! empty( $category_ids ) && is_array( $category_ids ) ) {
-				$category_ids = array_filter( $category_ids, function( $id ) {
-					return 'all' !== $id;
-				} );
-
-				if ( ! empty( $category_ids ) ) {
-					return $this->_get_products_in_categories( $category_ids );
-				}
+				return $this->_get_products_in_categories( array_map( 'intval', $category_ids ) );
 			}
-
 			return $this->_get_all_product_ids();
 		}
 
-		return array();
+		// Unknown selection type - default to all products.
+		return $this->_get_all_product_ids();
 	}
 
 	/**

@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Deactivator {
+class WSSCD_Deactivator {
 
 	/**
 	 * Short Description. (use period)
@@ -71,20 +71,20 @@ class SCD_Deactivator {
 		}
 
 		$action_hooks = array(
-			'scd_update_campaign_status',
-			'scd_cleanup_wizard_sessions',
-			'scd_cleanup_audit_logs',
-			'scd_analytics_hourly_aggregation',
-			'scd_analytics_daily_aggregation',
-			'scd_cleanup_expired_sessions',
-			'scd_cleanup_old_analytics',
-			'scd_activate_campaign',
-			'scd_deactivate_campaign',
+			'wsscd_update_campaign_status',
+			'wsscd_cleanup_wizard_sessions',
+			'wsscd_cleanup_audit_logs',
+			'wsscd_analytics_hourly_aggregation',
+			'wsscd_analytics_daily_aggregation',
+			'wsscd_cleanup_expired_sessions',
+			'wsscd_cleanup_old_analytics',
+			'wsscd_activate_campaign',
+			'wsscd_deactivate_campaign',
 		);
 
 		foreach ( $action_hooks as $hook ) {
 			// Unschedule all instances of this action
-			as_unschedule_all_actions( $hook, array(), 'scd_actions' );
+			as_unschedule_all_actions( $hook, array(), 'wsscd_actions' );
 		}
 	}
 
@@ -97,13 +97,16 @@ class SCD_Deactivator {
 	private static function deactivate_campaigns(): void {
 		global $wpdb;
 
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
-		$discounts_table = $wpdb->prefix . 'scd_active_discounts';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
+		$discounts_table = $wpdb->prefix . 'wsscd_active_discounts';
 
-		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $campaigns_table ) ) !== $campaigns_table ) {
+		$check_table_sql = $wpdb->prepare( 'SHOW TABLES LIKE %s', $campaigns_table );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- SHOW TABLES has no WP abstraction; query prepared above.
+		if ( $wpdb->get_var( $check_table_sql ) !== $campaigns_table ) {
 			return;
 		}
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Bulk update on plugin's custom table during deactivation.
 		$wpdb->update(
 			$campaigns_table,
 			array(
@@ -117,7 +120,10 @@ class SCD_Deactivator {
 			array( '%s' )
 		);
 
-		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $discounts_table ) ) === $discounts_table ) {
+		$check_discounts_sql = $wpdb->prepare( 'SHOW TABLES LIKE %s', $discounts_table );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- SHOW TABLES has no WP abstraction; query prepared above.
+		if ( $wpdb->get_var( $check_discounts_sql ) === $discounts_table ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Bulk update on plugin's custom table during deactivation.
 			$wpdb->update(
 				$discounts_table,
 				array(
@@ -133,6 +139,7 @@ class SCD_Deactivator {
 		}
 
 		// Log campaign deactivation
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Query for logging purposes; results not cached.
 		$affected_campaigns = $wpdb->get_results(
 			$wpdb->prepare(
 				'SELECT id, name FROM %i WHERE status = %s',
@@ -158,11 +165,11 @@ class SCD_Deactivator {
 			);
 
 			if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
-				// Load SCD_Log if not already loaded
-				if ( ! class_exists( 'SCD_Log' ) ) {
-					require_once SCD_PLUGIN_DIR . 'includes/utilities/class-scd-log.php';
+				// Load WSSCD_Log if not already loaded
+				if ( ! class_exists( 'WSSCD_Log' ) ) {
+					require_once WSSCD_PLUGIN_DIR . 'includes/utilities/class-wsscd-log.php';
 				}
-				SCD_Log::info( 'Campaigns Deactivated', $log_data );
+				WSSCD_Log::info( 'Campaigns Deactivated', $log_data );
 			}
 		}
 	}
@@ -177,11 +184,12 @@ class SCD_Deactivator {
 		// Clear WordPress transients
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Bulk transient deletion during deactivation; no WP abstraction for pattern-based delete.
 		$wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
-				'_transient_' . SCD_TRANSIENT_PREFIX . '%',
-				'_transient_timeout_' . SCD_TRANSIENT_PREFIX . '%'
+				'_transient_' . WSSCD_TRANSIENT_PREFIX . '%',
+				'_transient_timeout_' . WSSCD_TRANSIENT_PREFIX . '%'
 			)
 		);
 
@@ -218,7 +226,7 @@ class SCD_Deactivator {
 	 * @access   private
 	 */
 	private static function set_deactivation_timestamp(): void {
-		update_option( 'scd_deactivated_at', current_time( 'mysql' ) );
+		update_option( 'wsscd_deactivated_at', current_time( 'mysql' ) );
 	}
 
 	/**
@@ -230,7 +238,7 @@ class SCD_Deactivator {
 	private static function log_deactivation(): void {
 		$log_data = array(
 			'event'       => 'plugin_deactivated',
-			'version'     => SCD_VERSION,
+			'version'     => WSSCD_VERSION,
 			'php_version' => PHP_VERSION,
 			'wp_version'  => get_bloginfo( 'version' ),
 			'wc_version'  => defined( 'WC_VERSION' ) ? WC_VERSION : 'unknown',
@@ -242,13 +250,13 @@ class SCD_Deactivator {
 
 		// Log to WordPress debug log if enabled
 		if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
-			if ( ! class_exists( 'SCD_Log' ) ) {
-				require_once SCD_PLUGIN_DIR . 'includes/utilities/class-scd-log.php';
+			if ( ! class_exists( 'WSSCD_Log' ) ) {
+				require_once WSSCD_PLUGIN_DIR . 'includes/utilities/class-wsscd-log.php';
 			}
-			SCD_Log::info( 'Plugin Deactivated', $log_data );
+			WSSCD_Log::info( 'Plugin Deactivated', $log_data );
 		}
 
-		$logs   = get_option( 'scd_deactivation_logs', array() );
+		$logs   = get_option( 'wsscd_deactivation_logs', array() );
 		$logs[] = $log_data;
 
 		// Keep only last 10 deactivation logs
@@ -256,7 +264,7 @@ class SCD_Deactivator {
 			$logs = array_slice( $logs, -10 );
 		}
 
-		update_option( 'scd_deactivation_logs', $logs );
+		update_option( 'wsscd_deactivation_logs', $logs );
 	}
 
 	/**
@@ -267,7 +275,7 @@ class SCD_Deactivator {
 	 * @return   string    Human readable time difference.
 	 */
 	private static function calculate_active_time(): string {
-		$activated_at = get_option( 'scd_activated_at' );
+		$activated_at = get_option( 'wsscd_activated_at' );
 		if ( ! $activated_at ) {
 			return 'unknown';
 		}
@@ -287,11 +295,11 @@ class SCD_Deactivator {
 	 */
 	private static function cleanup_temporary_data(): void {
 		$upload_dir = wp_upload_dir();
-		$scd_dir    = $upload_dir['basedir'] . '/smart-cycle-discounts';
+		$wsscd_dir    = $upload_dir['basedir'] . '/smart-cycle-discounts';
 
 		$temp_directories = array(
-			$scd_dir . '/temp',
-			$scd_dir . '/cache',
+			$wsscd_dir . '/temp',
+			$wsscd_dir . '/cache',
 		);
 
 		foreach ( $temp_directories as $dir ) {
@@ -302,10 +310,11 @@ class SCD_Deactivator {
 
 		// Clean up any temporary options
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Bulk temporary option cleanup during deactivation; no WP abstraction for pattern-based delete.
 		$wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-				'scd_temp_%'
+				'wsscd_temp_%'
 			)
 		);
 	}
@@ -330,7 +339,7 @@ class SCD_Deactivator {
 			if ( is_dir( $file_path ) ) {
 				self::delete_directory_recursively( $file_path );
 			} else {
-				unlink( $file_path );
+				wp_delete_file( $file_path );
 			}
 		}
 	}
@@ -355,10 +364,11 @@ class SCD_Deactivator {
 			if ( is_dir( $file_path ) ) {
 				self::delete_directory_recursively( $file_path );
 			} else {
-				unlink( $file_path );
+				wp_delete_file( $file_path );
 			}
 		}
 
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- Plugin uninstall cleanup; WP_Filesystem overhead unnecessary.
 		rmdir( $dir );
 	}
 
@@ -370,13 +380,19 @@ class SCD_Deactivator {
 	 */
 	private static function remove_capabilities(): void {
 		$capabilities = array(
-			'manage_scd_campaigns',
-			'create_scd_campaigns',
-			'edit_scd_campaigns',
-			'delete_scd_campaigns',
-			'view_scd_analytics',
-			'export_scd_data',
-			'manage_scd_settings',
+			'wsscd_view_campaigns',
+			'wsscd_manage_campaigns',
+			'wsscd_create_campaigns',
+			'wsscd_edit_campaigns',
+			'wsscd_delete_campaigns',
+			'wsscd_activate_campaigns',
+			'wsscd_view_analytics',
+			'wsscd_manage_analytics',
+			'wsscd_export_analytics',
+			'wsscd_view_products',
+			'wsscd_manage_settings',
+			'wsscd_manage_tools',
+			'wsscd_import_export',
 		);
 
 		$admin_role = get_role( 'administrator' );
@@ -410,31 +426,33 @@ class SCD_Deactivator {
 			'total_orders'           => 0,
 		);
 
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
 
-		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $campaigns_table ) ) === $campaigns_table ) {
-			$stats['campaigns_count'] = (int) $wpdb->get_var(
-				$wpdb->prepare(
-					'SELECT COUNT(*) FROM %i WHERE deleted_at IS NULL',
-					$campaigns_table
-				)
+		$check_campaigns_sql = $wpdb->prepare( 'SHOW TABLES LIKE %s', $campaigns_table );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- SHOW TABLES has no WP abstraction; query prepared above.
+		if ( $wpdb->get_var( $check_campaigns_sql ) === $campaigns_table ) {
+			$count_sql = $wpdb->prepare(
+				'SELECT COUNT(*) FROM %i WHERE deleted_at IS NULL',
+				$campaigns_table
 			);
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Deactivation stats query; query prepared above.
+			$stats['campaigns_count'] = (int) $wpdb->get_var( $count_sql );
 
-			$stats['active_campaigns_count'] = (int) $wpdb->get_var(
-				$wpdb->prepare(
-					'SELECT COUNT(*) FROM %i WHERE status = %s AND deleted_at IS NULL',
-					$campaigns_table,
-					'active'
-				)
+			$active_count_sql = $wpdb->prepare(
+				'SELECT COUNT(*) FROM %i WHERE status = %s AND deleted_at IS NULL',
+				$campaigns_table,
+				'active'
 			);
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Deactivation stats query; query prepared above.
+			$stats['active_campaigns_count'] = (int) $wpdb->get_var( $active_count_sql );
 
-			$totals = $wpdb->get_row(
-				$wpdb->prepare(
-					'SELECT SUM(revenue_generated) as total_revenue, SUM(orders_count) as total_orders 
+			$totals_sql = $wpdb->prepare(
+				'SELECT SUM(revenue_generated) as total_revenue, SUM(orders_count) as total_orders
                      FROM %i WHERE deleted_at IS NULL',
-					$campaigns_table
-				)
+				$campaigns_table
 			);
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Deactivation stats query; query prepared above.
+			$totals = $wpdb->get_row( $totals_sql );
 
 			if ( $totals ) {
 				$stats['total_revenue'] = (float) $totals->total_revenue;
@@ -456,7 +474,7 @@ class SCD_Deactivator {
 		// This is optional and would send anonymous usage data
 		// Only implement if user has opted in to data collection
 
-		$send_feedback = get_option( 'scd_send_usage_data', false );
+		$send_feedback = get_option( 'wsscd_send_usage_data', false );
 		if ( ! $send_feedback ) {
 			return;
 		}
@@ -464,7 +482,7 @@ class SCD_Deactivator {
 		$data = array_merge(
 			array(
 				'action'      => 'deactivate',
-				'version'     => SCD_VERSION,
+				'version'     => WSSCD_VERSION,
 				'site_url'    => get_site_url(),
 				'wp_version'  => get_bloginfo( 'version' ),
 				'wc_version'  => defined( 'WC_VERSION' ) ? WC_VERSION : 'unknown',
@@ -475,7 +493,7 @@ class SCD_Deactivator {
 		);
 
 		// Send data to remote server (implement as needed)
-		$api_url = defined( 'SCD_API_URL' ) ? SCD_API_URL : 'https://api.smartcyclediscounts.com';
+		$api_url = defined( 'WSSCD_API_URL' ) ? WSSCD_API_URL : 'https://api.smartcyclediscounts.com';
 		wp_remote_post(
 			$api_url . '/feedback',
 			array(
@@ -497,13 +515,13 @@ class SCD_Deactivator {
 	 */
 	private static function preserve_data(): void {
 		$important_data = array(
-			'settings'       => get_option( 'scd_settings' ),
-			'version'        => get_option( 'scd_version' ),
-			'activated_at'   => get_option( 'scd_activated_at' ),
+			'settings'       => get_option( 'wsscd_settings' ),
+			'version'        => get_option( 'wsscd_version' ),
+			'activated_at'   => get_option( 'wsscd_activated_at' ),
 			'deactivated_at' => current_time( 'mysql' ),
 		);
 
-		update_option( 'scd_preserved_data', $important_data );
+		update_option( 'wsscd_preserved_data', $important_data );
 	}
 
 	/**
@@ -517,6 +535,7 @@ class SCD_Deactivator {
 			return true;
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checking WordPress core action during plugin deactivation, no nonce available.
 		if ( isset( $_GET['action'] ) && 'upgrade-plugin' === sanitize_text_field( wp_unslash( $_GET['action'] ) ) ) {
 			return true;
 		}

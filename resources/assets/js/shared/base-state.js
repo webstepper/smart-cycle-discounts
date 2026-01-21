@@ -13,16 +13,16 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	SCD.Shared = SCD.Shared || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Shared = WSSCD.Shared || {};
 
 	/**
 	 * Base State Class
 	 *
 	 * @param initialState
-	 * @class SCD.Shared.BaseState
+	 * @class WSSCD.Shared.BaseState
 	 */
-	SCD.Shared.BaseState = function( initialState ) {
+	WSSCD.Shared.BaseState = function( initialState ) {
 		initialState = initialState || {};
 		this._state = $.extend( {}, initialState );
 		this._subscribers = [];
@@ -42,7 +42,7 @@
 		}
 	};
 
-	SCD.Shared.BaseState.prototype = {
+	WSSCD.Shared.BaseState.prototype = {
 		/**
 		 * Create reactive proxy for state (ES5 compatible)
 		 *
@@ -101,7 +101,7 @@
 			} );
 
 			// Trigger jQuery event for modern implementation
-			$( document ).trigger( 'scd:state:changed', [ changes ] );
+			$( document ).trigger( 'wsscd:state:changed', [ changes ] );
 		},
 
 		/**
@@ -245,7 +245,7 @@
 				// Already an object, use as-is
 				data = json;
 			} else {
-				console.error( '[SCD] fromJSON received invalid data type:', typeof json );
+				console.error( '[WSSCD] fromJSON received invalid data type:', typeof json );
 				return;
 			}
 
@@ -363,7 +363,7 @@
 
 			this._state = {};
 
-			$( document ).off( 'scd:state:changed' );
+			$( document ).off( 'wsscd:state:changed' );
 		}
 	};
 

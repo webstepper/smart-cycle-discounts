@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-require_once SCD_INCLUDES_DIR . 'database/repositories/class-base-repository.php';
+require_once WSSCD_INCLUDES_DIR . 'database/repositories/class-base-repository.php';
 
 /**
  * Discount Repository Class
@@ -29,19 +29,19 @@ require_once SCD_INCLUDES_DIR . 'database/repositories/class-base-repository.php
  * @subpackage SmartCycleDiscounts/includes/database
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Discount_Repository extends SCD_Base_Repository {
+class WSSCD_Discount_Repository extends WSSCD_Base_Repository {
 
 	/**
 	 * Initialize the repository.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager $database_manager    Database manager (for DI compatibility, not used).
+	 * @param    WSSCD_Database_Manager $database_manager    Database manager (for DI compatibility, not used).
 	 */
-	public function __construct( SCD_Database_Manager $database_manager ) {
+	public function __construct( WSSCD_Database_Manager $database_manager ) {
 		global $wpdb;
 		// Note: database_manager parameter is kept for DI container compatibility
 		// but not used. Base repository uses global $wpdb directly.
-		$this->table_name  = $wpdb->prefix . 'scd_active_discounts';
+		$this->table_name  = $wpdb->prefix . 'wsscd_active_discounts';
 		$this->primary_key = 'id';
 		$this->date_fields = array( 'created_at', 'updated_at', 'starts_at', 'ends_at', 'applied_at' );
 		$this->json_fields = array( 'metadata', 'conditions' );
@@ -132,14 +132,18 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 			}
 		}
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
 		$sql = $wpdb->prepare(
-			"SELECT * FROM {$this->table_name}
-			 WHERE status = 'active'
+			'SELECT * FROM %i
+			 WHERE status = %s
 			 AND ends_at < %s
-			 ORDER BY ends_at ASC",
+			 ORDER BY ends_at ASC',
+			$this->table_name,
+			'active',
 			$cutoff_date
 		);
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Query is prepared above with $wpdb->prepare().
 		$results = $wpdb->get_results( $sql, ARRAY_A );
 
 		if ( ! $results ) {
@@ -159,28 +163,37 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 	public function get_statistics( $campaign_id = 0 ) {
 		global $wpdb;
 
-		$where_sql    = '';
-		$where_values = array();
-
+		// SECURITY: Always use $wpdb->prepare() to satisfy WordPress.org review requirements.
 		if ( $campaign_id > 0 ) {
-			$where_sql      = 'WHERE campaign_id = %d';
-			$where_values[] = $campaign_id;
-		}
-
-		$sql = "SELECT 
+			$sql = $wpdb->prepare(
+				'SELECT
 					status,
 					COUNT(*) as count,
 					SUM(discount_value) as total_discount_value,
 					AVG(discount_value) as avg_discount_value,
 					SUM(savings_amount) as total_savings
-				FROM {$this->table_name} 
-				{$where_sql}
-				GROUP BY status";
-
-		if ( ! empty( $where_values ) ) {
-			$sql = $wpdb->prepare( $sql, $where_values );
+				FROM %i
+				WHERE campaign_id = %d
+				GROUP BY status',
+				$this->table_name,
+				$campaign_id
+			);
+		} else {
+			// No campaign filter - get all statistics.
+			$sql = $wpdb->prepare(
+				'SELECT
+					status,
+					COUNT(*) as count,
+					SUM(discount_value) as total_discount_value,
+					AVG(discount_value) as avg_discount_value,
+					SUM(savings_amount) as total_savings
+				FROM %i
+				GROUP BY status',
+				$this->table_name
+			);
 		}
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
 		$results = $wpdb->get_results( $sql, ARRAY_A );
 
 		$statistics = array(
@@ -241,15 +254,21 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 		global $wpdb;
 
 		$placeholders = implode( ',', array_fill( 0, count( $discount_ids ), '%d' ) );
-		$values       = array_merge( array( $status, current_time( 'mysql' ) ), $discount_ids );
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		$values = array_merge( array( $this->table_name, $status, current_time( 'mysql' ) ), $discount_ids );
+
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// Placeholders generated via array_fill for IN clause.
 		$sql = $wpdb->prepare(
-			"UPDATE {$this->table_name} 
-			 SET status = %s, updated_at = %s 
-			 WHERE id IN ({$placeholders})",
+			'UPDATE %i
+			 SET status = %s, updated_at = %s
+			 WHERE id IN (' . $placeholders . ')',
 			$values
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
 		$result = $wpdb->query( $sql );
 
 		return false !== $result ? $result : 0;
@@ -264,15 +283,20 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 	public function expire_old_discounts() {
 		global $wpdb;
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
 		$sql = $wpdb->prepare(
-			"UPDATE {$this->table_name} 
-			 SET status = 'expired', updated_at = %s 
-			 WHERE status = 'active' 
-			 AND ends_at < %s",
+			'UPDATE %i
+			 SET status = %s, updated_at = %s
+			 WHERE status = %s
+			 AND ends_at < %s',
+			$this->table_name,
+			'expired',
 			current_time( 'mysql' ),
+			'active',
 			current_time( 'mysql' )
 		);
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Query is prepared above with $wpdb->prepare().
 		$result = $wpdb->query( $sql );
 
 		return false !== $result ? $result : 0;
@@ -304,7 +328,7 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 
 		// Verify campaign ownership before deletion
 		try {
-			$container       = SCD_Core_Container::get_instance();
+			$container       = WSSCD_Core_Container::get_instance();
 			$campaign_repo   = $container->get( 'campaign_repository' );
 
 			if ( $campaign_repo ) {
@@ -319,13 +343,14 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 				}
 			}
 		} catch ( Exception $e ) {
-			// If we can't verify ownership, log error but allow deletion for backward compatibility
+			// If we can't verify ownership, allow deletion for backward compatibility
 			// The capability check above provides baseline security
-			error_log( sprintf( '[SCD] Warning: Could not verify campaign ownership for discount deletion: %s', $e->getMessage() ) );
+			unset( $e );
 		}
 
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Discount cleanup; no caching on delete.
 		$result = $wpdb->delete(
 			$this->table_name,
 			array( 'campaign_id' => $campaign_id ),
@@ -340,7 +365,7 @@ class SCD_Discount_Repository extends SCD_Base_Repository {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    SCD_Query_Builder $query_builder    Query builder instance.
+	 * @param    WSSCD_Query_Builder $query_builder    Query builder instance.
 	 * @param    array             $args             Query arguments.
 	 * @return   void
 	 */

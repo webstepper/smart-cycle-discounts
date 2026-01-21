@@ -14,9 +14,9 @@
 	'use strict';
 
 	// Ensure namespaces exist
-	window.SCD = window.SCD || {};
-	SCD.Modules = SCD.Modules || {};
-	SCD.Modules.Products = SCD.Modules.Products || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Modules = WSSCD.Modules || {};
+	WSSCD.Modules.Products = WSSCD.Modules.Products || {};
 
 	/**
 	 * Products Picker Constructor
@@ -24,7 +24,7 @@
 	 * @param {object} state - State module instance
 	 * @param {object} api - API module instance
 	 */
-	SCD.Modules.Products.Picker = function( state, api ) {
+	WSSCD.Modules.Products.Picker = function( state, api ) {
 		if ( ! state ) {
 			throw new Error( 'Picker requires state dependency' );
 		}
@@ -60,10 +60,10 @@
 	};
 
 	// Mix in event manager functionality
-	SCD.Utils.extend( SCD.Modules.Products.Picker.prototype, SCD.Mixins.EventManager );
+	WSSCD.Utils.extend( WSSCD.Modules.Products.Picker.prototype, WSSCD.Mixins.EventManager );
 
 	// Extend prototype with methods
-	SCD.Utils.extend( SCD.Modules.Products.Picker.prototype, {
+	WSSCD.Utils.extend( WSSCD.Modules.Products.Picker.prototype, {
 
 		/**
 		 * Initialize both TomSelect instances
@@ -96,7 +96,7 @@
 		 */
 		initCategorySelect: function() {
 			var self = this;
-			var $select = $( '#scd-campaign-categories' );
+			var $select = $( '#wsscd-campaign-categories' );
 
 			if ( ! $select.length ) {
 				return Promise.resolve();
@@ -106,12 +106,22 @@
 				return Promise.resolve();
 			}
 
-			// Get category data from PHP-provided savedData (via window.scdProductsState)
+			// Get category data from PHP-provided savedData (via window.wsscdProductsState)
 			// This ensures data is available immediately, avoiding race conditions with populateFields()
+			//
+			// Category Filter Model:
+			// - [] (empty) from PHP = all categories (no filter applied to product pool)
+			// - ['all'] = UI marker for "All Categories" option (equivalent to empty)
+			// - [id1, id2] = specific category filter
 
-			var savedData = window.scdProductsState && window.scdProductsState.savedData ? window.scdProductsState.savedData : {};
+			var savedData = window.wsscdProductsState && window.wsscdProductsState.savedData ? window.wsscdProductsState.savedData : {};
 			var preloadedOptions = savedData.categoryOptions || [];
-			var selectedCategoryIds = savedData.categoryIds || [ 'all' ];
+			var selectedCategoryIds = savedData.categoryIds;
+
+			// Normalize: treat empty array as ['all'] for UI display
+			if ( ! selectedCategoryIds || 0 === selectedCategoryIds.length ) {
+				selectedCategoryIds = [ 'all' ];
+			}
 			var initialOptions = [
 				{
 					value: 'all',
@@ -129,15 +139,10 @@
 
 			var config = {
 				placeholder: 'Filter by categories...',
-				preload: true, // Eagerly load all categories on initialization
+				preload: 'focus', // Load on focus/dropdown open (same as product select)
 				sortField: [ { field: '$order' }, { field: 'text' } ],
 
-				// Tom Select options+items pattern - zero flicker initialization
-				options: initialOptions,
-				items: selectedCategoryIds,
-
 				load: function( query, callback ) {
-					// Still support search for finding additional categories
 					self.loadCategories( query, callback );
 				},
 
@@ -162,11 +167,36 @@
 				},
 
 				onDropdownOpen: function() {
-					// Tom Select best practice: Only load if not already cached
-					// This prevents unnecessary API calls on every dropdown open
-					if ( !this.loadedSearches || !this.loadedSearches[''] ) {
-						this.load( '' );
+					// Check if already loaded
+					if ( self.categorySelect.instance.loadedSearches && self.categorySelect.instance.loadedSearches[''] ) {
+						return; // Already loaded, Tom Select will render from cache
 					}
+
+					if ( self.categorySelect.instance.loading ) {
+						return;
+					}
+
+					self.categorySelect.instance.loading = 1;
+
+					self.loadCategories( '', function( categories ) {
+						// Add options to instance
+						categories.forEach( function( category ) {
+							if ( ! self.categorySelect.instance.options[category.value] ) {
+								self.categorySelect.instance.addOption( category );
+							}
+						} );
+
+						self.categorySelect.instance.loading = 0;
+
+						// Mark as loaded to prevent re-loading
+						if ( ! self.categorySelect.instance.loadedSearches ) {
+							self.categorySelect.instance.loadedSearches = {};
+						}
+						self.categorySelect.instance.loadedSearches[''] = true;
+
+						// Refresh options to show the newly loaded categories
+						self.categorySelect.instance.refreshOptions( false );
+					} );
 				},
 
 				onItemAdd: function( value, _item ) {
@@ -178,9 +208,21 @@
 				}
 			};
 
-			this.categorySelect = new SCD.Shared.TomSelectBase( $select[0], config );
+			this.categorySelect = new WSSCD.Shared.TomSelectBase( $select[0], config );
 
 			return this.categorySelect.init().then( function() {
+				// Add "All Categories" option immediately after init
+				if ( self.categorySelect && self.categorySelect.instance ) {
+					// Add initial options (at minimum "All Categories")
+					initialOptions.forEach( function( option ) {
+						if ( ! self.categorySelect.instance.options[option.value] ) {
+							self.categorySelect.instance.addOption( option );
+						}
+					} );
+
+					// Set selected items (silent mode to prevent onChange during init)
+					self.categorySelect.instance.setValue( selectedCategoryIds, true );
+				}
 				return self;
 			} );
 		},
@@ -210,7 +252,7 @@
 		 */
 		initProductSelect: function() {
 			var self = this;
-			var $select = $( '#scd-product-search' );
+			var $select = $( '#wsscd-product-search' );
 
 			if ( ! $select.length ) {
 				return Promise.resolve();
@@ -302,7 +344,7 @@
 				}
 			};
 
-			this.productSelect = new SCD.Shared.TomSelectBase( $select[0], config );
+			this.productSelect = new WSSCD.Shared.TomSelectBase( $select[0], config );
 
 			return this.productSelect.init().then( function() {
 				if ( self.pendingProducts ) {
@@ -394,11 +436,9 @@
 				oldCategories = [ 'all' ];
 			}
 
-
 			if ( ! this.hasCategoryChanges( newCategories, oldCategories ) ) {
 				return;
 			}
-
 
 			this.state.setState( { categoryIds: newCategories } );
 
@@ -406,7 +446,7 @@
 			// No manual sync needed
 
 			// Trigger event for other modules (e.g., orchestrator)
-			$( document ).trigger( 'scd:categories:changed', {
+			$( document ).trigger( 'wsscd:categories:changed', {
 				categories: newCategories,
 				previousCategories: oldCategories,
 				source: 'picker'
@@ -497,12 +537,12 @@
 			// Sync with TomSelect element (for TomSelect to track selections)
 			this.syncProductSelect( productIds );
 
-			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.modules && window.SCD.Wizard.modules.stateManager ) {
-				var currentStepData = window.SCD.Wizard.modules.stateManager.get( 'stepData' ) || {};
+			if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.modules && window.WSSCD.Wizard.modules.stateManager ) {
+				var currentStepData = window.WSSCD.Wizard.modules.stateManager.get( 'stepData' ) || {};
 				var productsStepData = currentStepData.products || {};
 				productsStepData.productIds = productIds;
 				currentStepData.products = productsStepData;
-				window.SCD.Wizard.modules.stateManager.set( 'stepData', currentStepData );
+				window.WSSCD.Wizard.modules.stateManager.set( 'stepData', currentStepData );
 			}
 		},
 
@@ -533,8 +573,8 @@
 
 				if ( filtered.length < selected.length ) {
 					var removedCount = selected.length - filtered.length;
-					if ( SCD.Shared && SCD.Shared.NotificationService ) {
-						SCD.Shared.NotificationService.show(
+					if ( WSSCD.Shared && WSSCD.Shared.NotificationService ) {
+						WSSCD.Shared.NotificationService.show(
 							removedCount + ' product(s) removed - not in selected categories',
 							'info',
 							3000  // 3 seconds
@@ -557,6 +597,7 @@
 
 				// Immediately reload dropdown with new category filter (AJAX)
 				// This ensures TomSelect shows ONLY products from selected categories in real-time
+				// IMPORTANT: Pass categories explicitly to avoid race condition with state updates
 				self.loadProducts( '', function( newProducts ) {
 					// Handle empty response (AJAX failure OR category has no products)
 					if ( ! newProducts || 0 === newProducts.length ) {
@@ -607,7 +648,7 @@
 					// Unlock and refresh once - single visual update (no flicker!)
 					instance.unlock();
 					instance.refreshOptions( false );
-				} );
+				}, { categories: categories } );
 
 			}, 300 );
 		},
@@ -621,8 +662,8 @@
 		 * @returns {Array} Filtered product IDs
 		 */
 		filterProductsByCategories: function( productIds, categories ) {
-			// "All" = no filtering
-			if ( 1 === categories.length && 'all' === categories[0] ) {
+			// Empty or "All" = no filtering (all categories selected)
+			if ( this.isAllCategoriesSelected( categories ) ) {
 				return productIds;
 			}
 
@@ -656,9 +697,13 @@
 				return;
 			}
 
+			console.log( '[CategorySelect] API call: searchCategories', { search: query } );
+
 			this.api.searchCategories( { search: query } )
 				.done( function( response ) {
+					console.log( '[CategorySelect] API response:', response );
 					var categories = self.extractCategories( response );
+					console.log( '[CategorySelect] Extracted categories:', categories.length, categories );
 
 					categories.forEach( function( cat ) {
 						self.cache.categories.set( cat.value, cat );
@@ -673,6 +718,7 @@
 						$order: 0
 					} ].concat( categories );
 
+					console.log( '[CategorySelect] Final options:', options.length, options );
 					callback( options );
 				} )
 				.fail( function( jqXHR, textStatus ) {
@@ -682,8 +728,8 @@
 						return;
 					}
 
-					if ( SCD.Shared && SCD.Shared.NotificationService ) {
-						SCD.Shared.NotificationService.error( 'Failed to load categories.' );
+					if ( WSSCD.Shared && WSSCD.Shared.NotificationService ) {
+						WSSCD.Shared.NotificationService.error( 'Failed to load categories.' );
 					}
 					callback( [] );
 				} );
@@ -695,10 +741,14 @@
 		 * @since 1.0.0
 		 * @param {string} query - Search query
 		 * @param {function} callback - Callback function
+		 * @param {Object} options - Optional parameters
+		 * @param {Array} options.categories - Category filter override (bypasses getCurrentCategoryFilter)
 		 * @returns {void}
 		 */
-		loadProducts: function( query, callback ) {
+		loadProducts: function( query, callback, options ) {
 			var self = this;
+			options = options || {};
+
 			// For non-empty queries, require minimum 2 characters
 			// Empty query (dropdown open with no search) is allowed to show initial products
 			if ( query && 0 < query.length && query.length < 2 ) {
@@ -706,7 +756,9 @@
 				return;
 			}
 
-			var categories = this.getCurrentCategoryFilter();
+			// Use provided categories or get from current filter
+			// Explicit categories are passed during category change to avoid race conditions
+			var categories = options.categories !== undefined ? options.categories : this.getCurrentCategoryFilter();
 			var categoryFilter = this.isAllCategoriesSelected( categories ) ? [] : categories;
 			this.api.searchProducts( {
 				term: query,
@@ -750,8 +802,8 @@
 						return;
 					}
 
-					if ( SCD.Shared && SCD.Shared.NotificationService ) {
-						SCD.Shared.NotificationService.error( 'Failed to load products.' );
+					if ( WSSCD.Shared && WSSCD.Shared.NotificationService ) {
+						WSSCD.Shared.NotificationService.error( 'Failed to load products.' );
 					}
 					callback( [] );
 				} );
@@ -790,7 +842,7 @@
 					self.syncProductState( productIds );
 				} )
 				.catch( function( error ) {
-					SCD.ErrorHandler.handle( error, 'picker-restore-products' );
+					WSSCD.ErrorHandler.handle( error, 'picker-restore-products' );
 				} );
 		},
 
@@ -849,11 +901,21 @@
 		/**
 		 * Check if "All Categories" is selected
 		 *
+		 * Category Filter Model:
+		 * - [] (empty) = all categories (no filter applied to product pool)
+		 * - ['all'] = UI marker for "All Categories" (equivalent to empty)
+		 * Both are treated as "all categories selected" for product filtering purposes.
+		 *
 		 * @since 1.0.0
 		 * @param {Array} categories - Category IDs
 		 * @returns {boolean} True if all categories selected
 		 */
 		isAllCategoriesSelected: function( categories ) {
+			// Empty array = all categories (no filter)
+			if ( ! categories || 0 === categories.length ) {
+				return true;
+			}
+			// ['all'] = UI marker for all categories
 			return 1 === categories.length && 'all' === categories[0];
 		},
 
@@ -907,14 +969,14 @@
 		 * @returns {Array} Preloaded products
 		 */
 		getPreloadedProducts: function( productIds ) {
-			if ( ! window.scdWizardData ||
-				! window.scdWizardData.currentCampaign ||
-				! window.scdWizardData.currentCampaign.products ||
-				! window.scdWizardData.currentCampaign.products.selectedProductsData ) {
+			if ( ! window.wsscdWizardData ||
+				! window.wsscdWizardData.currentCampaign ||
+				! window.wsscdWizardData.currentCampaign.products ||
+				! window.wsscdWizardData.currentCampaign.products.selectedProductsData ) {
 				return [];
 			}
 
-			var preloaded = window.scdWizardData.currentCampaign.products.selectedProductsData;
+			var preloaded = window.wsscdWizardData.currentCampaign.products.selectedProductsData;
 			var idStrings = productIds.map( String );
 
 			return preloaded.filter( function( p ) {
@@ -964,15 +1026,15 @@
 
 				switch ( stockStatus ) {
 					case 'healthy':
-						stockIcon = SCD.IconHelper.get( 'yes', { size: 12 } );
+						stockIcon = WSSCD.IconHelper.get( 'yes', { size: 12 } );
 						stockTitle = stockPercent + '% in stock';
 						break;
 					case 'warning':
-						stockIcon = SCD.IconHelper.get( 'warning', { size: 12 } );
+						stockIcon = WSSCD.IconHelper.get( 'warning', { size: 12 } );
 						stockTitle = stockPercent + '% in stock';
 						break;
 					case 'critical':
-						stockIcon = SCD.IconHelper.get( 'dismiss', { size: 12 } );
+						stockIcon = WSSCD.IconHelper.get( 'dismiss', { size: 12 } );
 						stockTitle = stockPercent + '% in stock';
 						break;
 				}
@@ -991,14 +1053,14 @@
 			var subcategoryText = '';
 			if ( data.subcategoryCount && data.subcategoryCount > 0 ) {
 				subcategoryText = '<span class="category-subcount" title="' + data.subcategoryCount + ' subcategories">' +
-					SCD.IconHelper.get( 'category', { size: 14 } ) + ' ' + data.subcategoryCount + '</span>';
+					WSSCD.IconHelper.get( 'category', { size: 14 } ) + ' ' + data.subcategoryCount + '</span>';
 			}
 
 			// Category image (same pattern as products)
 			var hasImage = data.image;
 			var imageHtml = hasImage
 				? '<img src="' + escape( data.image ) + '" alt="' + escape( data.text ) + '" class="category-image" loading="lazy">'
-				: '<span class="category-image-placeholder">' + SCD.IconHelper.get( 'category', { size: 20 } ) + '</span>';
+				: '<span class="category-image-placeholder">' + WSSCD.IconHelper.get( 'category', { size: 20 } ) + '</span>';
 
 			// Tree connector for hierarchical categories
 			var treeConnector = '';
@@ -1049,7 +1111,7 @@
 			var hasImage = data.image;
 			var imageHtml = hasImage
 				? '<img src="' + escape( data.image ) + '" alt="' + escape( data.text ) + '" loading="lazy">'
-				: '<span class="product-image-placeholder">' + SCD.IconHelper.get( 'products', { size: 24 } ) + '</span>';
+				: '<span class="product-image-placeholder">' + WSSCD.IconHelper.get( 'products', { size: 24 } ) + '</span>';
 
 			// Stock status badge
 			var stockBadgeHtml = '';
@@ -1061,15 +1123,15 @@
 				switch ( data.stockStatus ) {
 					case 'instock':
 						stockText = 'In Stock';
-						stockIcon = SCD.IconHelper.get( 'check', { size: 12 } );
+						stockIcon = WSSCD.IconHelper.get( 'check', { size: 12 } );
 						break;
 					case 'outofstock':
 						stockText = 'Out of Stock';
-						stockIcon = SCD.IconHelper.get( 'close', { size: 12 } );
+						stockIcon = WSSCD.IconHelper.get( 'close', { size: 12 } );
 						break;
 					case 'onbackorder':
 						stockText = 'Backorder';
-						stockIcon = SCD.IconHelper.get( 'schedule', { size: 12 } );
+						stockIcon = WSSCD.IconHelper.get( 'schedule', { size: 12 } );
 						break;
 				}
 
@@ -1096,19 +1158,19 @@
 
 				switch ( data.type ) {
 					case 'simple':
-						typeIcon = SCD.IconHelper.get( 'products', { size: 14 } );
+						typeIcon = WSSCD.IconHelper.get( 'products', { size: 14 } );
 						typeTitle = 'Simple Product';
 						break;
 					case 'variable':
-						typeIcon = SCD.IconHelper.get( 'admin-settings', { size: 14 } );
+						typeIcon = WSSCD.IconHelper.get( 'admin-settings', { size: 14 } );
 						typeTitle = 'Variable Product';
 						break;
 					case 'grouped':
-						typeIcon = SCD.IconHelper.get( 'list-view', { size: 14 } );
+						typeIcon = WSSCD.IconHelper.get( 'list-view', { size: 14 } );
 						typeTitle = 'Grouped Product';
 						break;
 					case 'external':
-						typeIcon = SCD.IconHelper.get( 'admin-links', { size: 14 } );
+						typeIcon = WSSCD.IconHelper.get( 'admin-links', { size: 14 } );
 						typeTitle = 'External Product';
 						break;
 				}
@@ -1142,7 +1204,7 @@
 			var categoryHtml = '';
 			if ( data.primaryCategory ) {
 				categoryHtml = '<span class="product-category-tag">' +
-					SCD.IconHelper.get( 'category', { size: 12 } ) +
+					WSSCD.IconHelper.get( 'category', { size: 12 } ) +
 					' ' + escape( data.primaryCategory ) +
 				'</span>';
 			}
@@ -1153,7 +1215,7 @@
 				skuHtml = '<span class="product-sku" data-sku="' + escape( data.sku ) + '">' + escape( data.sku ) + '</span>';
 			}
 
-			return '<div class="scd-tom-select-product-option">' +
+			return '<div class="wsscd-tom-select-product-option">' +
 				'<div class="product-image-wrapper">' +
 					'<div class="product-image' + ( hasImage ? '' : ' no-image' ) + '">' +
 						imageHtml +
@@ -1220,7 +1282,7 @@
 		 * @returns {void}
 		 */
 		syncProductSelect: function( values ) {
-			var $originalSelect = $( '#scd-product-search' );
+			var $originalSelect = $( '#wsscd-product-search' );
 
 			if ( $originalSelect.length ) {
 				$originalSelect.empty();
@@ -1244,7 +1306,7 @@
 		 * @returns {void}
 		 */
 		syncHiddenField: function( values ) {
-			var $hiddenField = $( '#scd-product-ids-hidden' );
+			var $hiddenField = $( '#wsscd-product-ids-hidden' );
 
 			if ( $hiddenField.length ) {
 				var csvValue = values && 0 < values.length ? values.join( ',' ) : '';
@@ -1361,6 +1423,10 @@
 	 * Set category IDs only (for category_ids field population)
 	 * Simplified - categories are now preloaded via options+items pattern
 	 *
+	 * Category Filter Model:
+	 * - [] (empty) from PHP = all categories (no filter applied to product pool)
+	 * - ['all'] = UI marker for "All Categories" option (equivalent to empty)
+	 *
 	 * @since 1.0.0
 	 * @param {Array} value - Category IDs to set
 	 * @returns {Promise} Promise that resolves when set
@@ -1370,7 +1436,7 @@
 			return Promise.resolve();
 		}
 
-		// If empty array, treat as 'all' (default)
+		// Normalize: empty array from PHP means "all categories" in UI
 		var categoriesToSet = value && value.length > 0 ? value : [ 'all' ];
 
 		// Simply set the value - options are already loaded

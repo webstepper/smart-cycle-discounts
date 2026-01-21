@@ -14,18 +14,18 @@
 	'use strict';
 
 	// Ensure namespace exists
-	window.SCD = window.SCD || {};
-	SCD.Modules = SCD.Modules || {};
-	SCD.Modules.Discounts = SCD.Modules.Discounts || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Modules = WSSCD.Modules || {};
+	WSSCD.Modules.Discounts = WSSCD.Modules.Discounts || {};
 
 	/**
 	 * API Module Constructor
 	 */
-	SCD.Modules.Discounts.API = function() {
+	WSSCD.Modules.Discounts.API = function() {
 		// API module doesn't need initialization
 	};
 
-	SCD.Modules.Discounts.API.prototype = {
+	WSSCD.Modules.Discounts.API.prototype = {
 		/**
 		 * Save discount configuration
 		 * @param discountData
@@ -33,15 +33,15 @@
 		saveDiscountConfig: function( discountData ) {
 			if ( !discountData || $.isEmptyObject( discountData ) ) {
 				var error = new Error( 'Discount data is required' );
-				SCD.ErrorHandler.handle( error, 'DiscountsAPI.saveDiscountConfig', SCD.ErrorHandler.SEVERITY.MEDIUM );
+				WSSCD.ErrorHandler.handle( error, 'DiscountsAPI.saveDiscountConfig', WSSCD.ErrorHandler.SEVERITY.MEDIUM );
 				return $.Deferred().reject( error ).promise();
 			}
 
-			return SCD.Ajax.post( 'scd_save_step', {
+			return WSSCD.Ajax.post( 'wsscd_save_step', {
 				step: 'discounts',
 				data: discountData
 			} ).fail( function( xhr ) {
-				SCD.ErrorHandler.handleAjaxError( xhr, 'scd_save_step', { step: 'discounts' } );
+				WSSCD.ErrorHandler.handleAjaxError( xhr, 'wsscd_save_step', { step: 'discounts' } );
 			} );
 		},
 
@@ -49,10 +49,10 @@
 		 * Load discount configuration
 		 */
 		loadDiscountConfig: function() {
-			return SCD.Ajax.post( 'scd_load_data', {
+			return WSSCD.Ajax.post( 'wsscd_load_data', {
 				step: 'discounts'
 			} ).fail( function( xhr ) {
-				SCD.ErrorHandler.handleAjaxError( xhr, 'scd_load_data', { step: 'discounts' } );
+				WSSCD.ErrorHandler.handleAjaxError( xhr, 'wsscd_load_data', { step: 'discounts' } );
 			} );
 		},
 
@@ -63,14 +63,14 @@
 		validateDiscountRules: function( rules ) {
 			if ( !rules || 0 === Object.keys( rules ).length ) {
 				var error = new Error( 'Discount rules are required' );
-				SCD.ErrorHandler.handle( error, 'DiscountsAPI.validateDiscountRules', SCD.ErrorHandler.SEVERITY.LOW );
+				WSSCD.ErrorHandler.handle( error, 'DiscountsAPI.validateDiscountRules', WSSCD.ErrorHandler.SEVERITY.LOW );
 				return $.Deferred().reject( error ).promise();
 			}
 
-			return SCD.Ajax.post( 'scd_validate_discount_rules', {
+			return WSSCD.Ajax.post( 'wsscd_validate_discount_rules', {
 				rules: rules
 			} ).fail( function( xhr ) {
-				SCD.ErrorHandler.handleAjaxError( xhr, 'scd_validate_discount_rules', { rules: rules } );
+				WSSCD.ErrorHandler.handleAjaxError( xhr, 'wsscd_validate_discount_rules', { rules: rules } );
 			} );
 		},
 
@@ -79,10 +79,10 @@
 		 * @param config
 		 */
 		getDiscountPreview: function( config ) {
-			return SCD.Ajax.post( 'scd_get_discount_preview', {
+			return WSSCD.Ajax.post( 'wsscd_get_discount_preview', {
 				config: config
 			} ).fail( function( xhr ) {
-				SCD.ErrorHandler.handleAjaxError( xhr, 'scd_get_discount_preview', { config: config } );
+				WSSCD.ErrorHandler.handleAjaxError( xhr, 'wsscd_get_discount_preview', { config: config } );
 			} );
 		},
 
@@ -92,11 +92,11 @@
 		 * @param discountConfig
 		 */
 		calculateDiscountImpact: function( productIds, discountConfig ) {
-			return SCD.Ajax.post( 'scd_calculate_discount_impact', {
+			return WSSCD.Ajax.post( 'wsscd_calculate_discount_impact', {
 				productIds: productIds,
 				discountConfig: discountConfig
 			} ).fail( function( xhr ) {
-				SCD.ErrorHandler.handleAjaxError( xhr, 'scd_calculate_discount_impact', { productIds: productIds } );
+				WSSCD.ErrorHandler.handleAjaxError( xhr, 'wsscd_calculate_discount_impact', { productIds: productIds } );
 			} );
 		}
 	};

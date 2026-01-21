@@ -13,16 +13,16 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	SCD.Shared = SCD.Shared || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Shared = WSSCD.Shared || {};
 
-	// Register global SCD.Utils namespace for centralized access
-	SCD.Utils = SCD.Utils || {};
+	// Register global WSSCD.Utils namespace for centralized access
+	WSSCD.Utils = WSSCD.Utils || {};
 
 	/**
 	 * Consolidated Utility Functions
 	 */
-	SCD.Shared.Utils = {
+	WSSCD.Shared.Utils = {
 		/**
 		 * Get validation constant from PHP localization
 		 * 
@@ -31,12 +31,12 @@
 		 * @returns {*} Validation constant value
 		 */
 		getValidationConstant: function( path, defaultValue ) {
-			if ( !window.scdValidationConstants || !window.scdValidationConstants.constants ) {
+			if ( !window.wsscdValidationConstants || !window.wsscdValidationConstants.constants ) {
 				return defaultValue;
 			}
 			
 			var parts = path.split( '.' );
-			var value = window.scdValidationConstants.constants;
+			var value = window.wsscdValidationConstants.constants;
 			
 			for ( var i = 0; i < parts.length; i++ ) {
 				if ( value && Object.prototype.hasOwnProperty.call( value, parts[i] ) ) {
@@ -57,12 +57,12 @@
 		 * @returns {string} Validation message
 		 */
 		getValidationMessage: function( path, defaultMessage ) {
-			if ( !window.scdValidationConstants || !window.scdValidationConstants.messages ) {
+			if ( !window.wsscdValidationConstants || !window.wsscdValidationConstants.messages ) {
 				return defaultMessage;
 			}
 			
 			var parts = path.split( '.' );
-			var value = window.scdValidationConstants.messages;
+			var value = window.wsscdValidationConstants.messages;
 			
 			for ( var i = 0; i < parts.length; i++ ) {
 				if ( value && Object.prototype.hasOwnProperty.call( value, parts[i] ) ) {
@@ -166,7 +166,7 @@
 		 * @returns {string} Unique ID
 		 */
 		uniqueId: function( prefix ) {
-			prefix = 'undefined' === typeof prefix ? 'scd_' : prefix;
+			prefix = 'undefined' === typeof prefix ? 'wsscd_' : prefix;
 			return prefix + Math.random().toString( 36 ).substr( 2, 9 ) + '_' + Date.now();
 		},
 
@@ -178,7 +178,7 @@
 		 */
 		formatCurrency: function( amount ) {
 			// Use centralized settings (auto-converted to camelCase by Asset Localizer)
-			var settings = window.scdSettings || window.scdAnalytics;
+			var settings = window.wsscdSettings || window.wsscdAnalytics;
 
 			// WooCommerce currency settings (camelCase from auto-conversion)
 			var currencySymbol = settings && ( settings.currencySymbol );
@@ -243,8 +243,8 @@
 				return JSON.parse( json );
 			} catch ( e ) {
 				// Log error to error handler if available
-				if ( window.SCD && window.SCD.ErrorHandler && 'function' === typeof window.SCD.ErrorHandler.log ) {
-					window.SCD.ErrorHandler.log( 'JSON parse error', { json: json, error: e } );
+				if ( window.WSSCD && window.WSSCD.ErrorHandler && 'function' === typeof window.WSSCD.ErrorHandler.log ) {
+					window.WSSCD.ErrorHandler.log( 'JSON parse error', { json: json, error: e } );
 				}
 				return 1 < arguments.length ? defaultValue : null;
 			}
@@ -576,18 +576,18 @@
 				var $field = $( field );
 				if ( !$field.length ) {return;}
 
-				$field.removeClass( 'scd-field-error scd-field-success scd-field-warning' );
+				$field.removeClass( 'wsscd-field-error wsscd-field-success wsscd-field-warning' );
 
 				// Find or create message element
-				var $message = $field.siblings( '.scd-field-message' );
+				var $message = $field.siblings( '.wsscd-field-message' );
 				if ( !$message.length && message ) {
-					$message = $( '<span class="scd-field-message"></span>' );
+					$message = $( '<span class="wsscd-field-message"></span>' );
 					$field.after( $message );
 				}
 
 				// Apply new state
 				if ( state ) {
-					$field.addClass( 'scd-field-' + state );
+					$field.addClass( 'wsscd-field-' + state );
 					if ( $message.length ) {
 						$message.text( message ).show();
 					}
@@ -665,7 +665,7 @@
 
 				if ( window.localStorage ) {
 					try {
-						var stored = localStorage.getItem( 'scd_cache_' + key );
+						var stored = localStorage.getItem( 'wsscd_cache_' + key );
 						if ( stored ) {
 							var parsed = JSON.parse( stored );
 							if ( parsed.expires > Date.now() ) {
@@ -674,7 +674,7 @@
 								this._memoryCache[key] = parsed;
 								return parsed.data;
 							}
-							localStorage.removeItem( 'scd_cache_' + key );
+							localStorage.removeItem( 'wsscd_cache_' + key );
 						}
 					} catch ( e ) {
 						// Ignore localStorage errors
@@ -701,7 +701,7 @@
 
 				if ( window.localStorage ) {
 					try {
-						localStorage.setItem( 'scd_cache_' + key, JSON.stringify( item ) );
+						localStorage.setItem( 'wsscd_cache_' + key, JSON.stringify( item ) );
 					} catch ( e ) {
 						// Ignore quota errors
 					}
@@ -719,7 +719,7 @@
 
 				if ( window.localStorage ) {
 					try {
-						localStorage.removeItem( 'scd_cache_' + key );
+						localStorage.removeItem( 'wsscd_cache_' + key );
 					} catch ( e ) {
 						// Ignore errors
 					}
@@ -736,7 +736,7 @@
 					try {
 						for ( var i = localStorage.length - 1; 0 <= i; i-- ) {
 							var key = localStorage.key( i );
-							if ( key && 0 === key.indexOf( 'scd_cache_' ) ) {
+							if ( key && 0 === key.indexOf( 'wsscd_cache_' ) ) {
 								localStorage.removeItem( key );
 							}
 						}
@@ -751,20 +751,219 @@
 		}
 	};
 
-	// Export core utilities to global SCD.Utils namespace for centralized access
-	SCD.Utils = $.extend( SCD.Utils, {
-		formatCurrency: SCD.Shared.Utils.formatCurrency,
-		escapeHtml: SCD.Shared.Utils.escapeHtml,
-		isEmpty: SCD.Shared.Utils.isEmpty,
-		debounce: SCD.Shared.Utils.debounce,
-		throttle: SCD.Shared.Utils.throttle,
-		deepClone: SCD.Shared.Utils.deepClone,
-		uniqueId: SCD.Shared.Utils.uniqueId,
-		safeJsonParse: SCD.Shared.Utils.safeJsonParse,
-		waitForElement: SCD.Shared.Utils.waitForElement,
-		Cache: SCD.Shared.Utils.Cache,
-		getValidationConstant: SCD.Shared.Utils.getValidationConstant,
-		getValidationMessage: SCD.Shared.Utils.getValidationMessage,
+	/**
+	 * Wizard Session Manager
+	 *
+	 * Centralized management of wizard session data across both storage layers:
+	 * - Browser sessionStorage (client-side, fast recovery)
+	 * - PHP Transients (server-side, authoritative)
+	 *
+	 * ALWAYS use this utility to clear wizard sessions to ensure both layers are synchronized.
+	 *
+	 * @namespace WSSCD.Shared.Utils.WizardSession
+	 * @since 1.0.0
+	 */
+	WSSCD.Shared.Utils.WizardSession = {
+		/**
+		 * Storage key for wizard state
+		 *
+		 * @type {string}
+		 */
+		STORAGE_KEY: 'wsscd_wizard_state',
+
+		/**
+		 * Clear all wizard session data from both storage layers
+		 *
+		 * This is the PRIMARY method to call when discarding/clearing wizard data.
+		 * It ensures both sessionStorage and PHP transient are cleared.
+		 *
+		 * @param {object} options - Options
+		 * @param {boolean} options.clearServer - Also clear server-side session via AJAX (default: false)
+		 * @param {Function} options.onComplete - Callback after clearing completes
+		 * @returns {jQuery.Promise|void} Promise if clearServer is true
+		 * @since 1.0.0
+		 */
+		clear: function( options ) {
+			options = options || {};
+
+			// 1. Clear browser sessionStorage (synchronous)
+			this.clearClientStorage();
+
+			// 2. Clear StateManager singleton if it exists
+			this.clearStateManager();
+
+			// 3. Optionally clear server-side session via AJAX
+			if ( options.clearServer ) {
+				return this.clearServerSession().always( function() {
+					if ( 'function' === typeof options.onComplete ) {
+						options.onComplete();
+					}
+				} );
+			}
+
+			if ( 'function' === typeof options.onComplete ) {
+				options.onComplete();
+			}
+		},
+
+		/**
+		 * Clear browser sessionStorage
+		 *
+		 * @since 1.0.0
+		 */
+		clearClientStorage: function() {
+			if ( ! window.sessionStorage ) {
+				return;
+			}
+
+			try {
+				// Remove primary wizard state
+				sessionStorage.removeItem( this.STORAGE_KEY );
+
+				// Remove any other wsscd_ prefixed keys
+				var keysToRemove = [];
+				for ( var i = 0; i < sessionStorage.length; i++ ) {
+					var key = sessionStorage.key( i );
+					if ( key && 0 === key.indexOf( 'wsscd_' ) ) {
+						keysToRemove.push( key );
+					}
+				}
+
+				for ( var j = 0; j < keysToRemove.length; j++ ) {
+					sessionStorage.removeItem( keysToRemove[j] );
+				}
+			} catch ( e ) {
+				// Silently handle storage errors
+				if ( window.console && window.console.warn ) {
+					console.warn( '[WizardSession] Failed to clear sessionStorage:', e );
+				}
+			}
+		},
+
+		/**
+		 * Clear StateManager singleton instance
+		 *
+		 * @since 1.0.0
+		 */
+		clearStateManager: function() {
+			if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.StateManager ) {
+				// Reset the singleton instance
+				if ( window.WSSCD.Wizard.StateManager._instance ) {
+					var instance = window.WSSCD.Wizard.StateManager._instance;
+
+					if ( 'function' === typeof instance.reset ) {
+						instance.reset( { keepStorage: false } );
+					}
+
+					if ( 'function' === typeof instance.clearStorage ) {
+						instance.clearStorage();
+					}
+				}
+			}
+		},
+
+		/**
+		 * Clear server-side PHP session via AJAX
+		 *
+		 * @returns {jQuery.Promise} AJAX promise
+		 * @since 1.0.0
+		 */
+		clearServerSession: function() {
+			// Use WSSCD.Ajax if available, otherwise fall back to jQuery
+			if ( window.WSSCD && window.WSSCD.Ajax && 'function' === typeof window.WSSCD.Ajax.post ) {
+				return window.WSSCD.Ajax.post( 'wsscd_clear_wizard_session', {} );
+			}
+
+			// Fallback to direct jQuery AJAX
+			return $.ajax( {
+				url: window.ajaxurl,
+				type: 'POST',
+				data: {
+					action: 'wsscd_ajax',
+					wsscdAction: 'clear_wizard_session',
+					nonce: this._getNonce()
+				}
+			} );
+		},
+
+		/**
+		 * Check if there's an active wizard session
+		 *
+		 * @returns {boolean} True if session exists
+		 * @since 1.0.0
+		 */
+		hasSession: function() {
+			if ( ! window.sessionStorage ) {
+				return false;
+			}
+
+			try {
+				var stored = sessionStorage.getItem( this.STORAGE_KEY );
+				return !! stored;
+			} catch ( e ) {
+				return false;
+			}
+		},
+
+		/**
+		 * Get session data
+		 *
+		 * @returns {object|null} Session data or null
+		 * @since 1.0.0
+		 */
+		getData: function() {
+			if ( ! window.sessionStorage ) {
+				return null;
+			}
+
+			try {
+				var stored = sessionStorage.getItem( this.STORAGE_KEY );
+				if ( stored ) {
+					return JSON.parse( stored );
+				}
+			} catch ( e ) {
+				// Ignore parse errors
+			}
+
+			return null;
+		},
+
+		/**
+		 * Get nonce for AJAX requests
+		 *
+		 * @private
+		 * @returns {string} Nonce value
+		 */
+		_getNonce: function() {
+			// Try multiple sources for nonce
+			if ( window.wsscdWizardData && window.wsscdWizardData.nonce ) {
+				return window.wsscdWizardData.nonce;
+			}
+			if ( window.wsscdCampaignListL10n && window.wsscdCampaignListL10n.nonce ) {
+				return window.wsscdCampaignListL10n.nonce;
+			}
+			if ( window.wsscdSettings && window.wsscdSettings.nonce ) {
+				return window.wsscdSettings.nonce;
+			}
+			return '';
+		}
+	};
+
+	// Export core utilities to global WSSCD.Utils namespace for centralized access
+	WSSCD.Utils = $.extend( WSSCD.Utils, {
+		WizardSession: WSSCD.Shared.Utils.WizardSession,
+		formatCurrency: WSSCD.Shared.Utils.formatCurrency,
+		escapeHtml: WSSCD.Shared.Utils.escapeHtml,
+		isEmpty: WSSCD.Shared.Utils.isEmpty,
+		debounce: WSSCD.Shared.Utils.debounce,
+		throttle: WSSCD.Shared.Utils.throttle,
+		deepClone: WSSCD.Shared.Utils.deepClone,
+		uniqueId: WSSCD.Shared.Utils.uniqueId,
+		safeJsonParse: WSSCD.Shared.Utils.safeJsonParse,
+		waitForElement: WSSCD.Shared.Utils.waitForElement,
+		Cache: WSSCD.Shared.Utils.Cache,
+		getValidationConstant: WSSCD.Shared.Utils.getValidationConstant,
+		getValidationMessage: WSSCD.Shared.Utils.getValidationMessage,
 
 		/**
 		 * Extend object properties
@@ -780,7 +979,7 @@
 		/**
 		 * Register a module within a namespace
 		 *
-		 * @param {string} namespace Namespace path (e.g., 'SCD.Steps')
+		 * @param {string} namespace Namespace path (e.g., 'WSSCD.Steps')
 		 * @param {string} moduleName Module name
 		 * @param {Function} constructor Constructor function
 		 * @returns {Function} The constructor function
@@ -830,7 +1029,7 @@
 		/**
 		 * Ensure a module is initialized
 		 *
-		 * @param {string} path Module path (e.g., 'SCD.Modules.Discounts.State')
+		 * @param {string} path Module path (e.g., 'WSSCD.Modules.Discounts.State')
 		 * @param {Function} factory Factory function to create if not exists
 		 * @returns {object} Module instance
 		 */
@@ -859,10 +1058,10 @@
 	 * Field-specific utilities
 	 * Centralized field handling following DRY principle
 	 *
-	 * @namespace SCD.Utils.Fields
+	 * @namespace WSSCD.Utils.Fields
 	 * @since 1.0.0
 	 */
-	SCD.Utils.Fields = {
+	WSSCD.Utils.Fields = {
 		/**
 		 * Convert camelCase to snake_case
 		 *
@@ -1067,7 +1266,7 @@
 			}
 
 			if ( !$field.length ) {
-				return SCD.Utils.deepClone( fieldDef.default );
+				return WSSCD.Utils.deepClone( fieldDef.default );
 			}
 
 			switch ( fieldDef.type ) {
@@ -1084,7 +1283,7 @@
 					// Read from DOM attribute instead of jQuery data cache for proper persistence
 					var dataValue = $field.attr( 'data-value' );
 					if ( dataValue ) {
-						arrayData = SCD.Utils.safeJsonParse( dataValue, [] );
+						arrayData = WSSCD.Utils.safeJsonParse( dataValue, [] );
 						return Array.isArray( arrayData ) ? arrayData.slice() : [];
 					}
 					return [];
@@ -1148,12 +1347,12 @@
 						next = Array.isArray( value ) ? value.slice() : [];
 						// Read previous value from DOM attribute for comparison
 						var prevDataValue = $field.attr( 'data-value' );
-						prev = SCD.Utils.safeJsonParse( prevDataValue, [] ) || [];
+						prev = WSSCD.Utils.safeJsonParse( prevDataValue, [] ) || [];
 						changed = !this.deepEqual( prev, next );
 						$field.data( 'value', next );
 						$field.attr( 'data-value', JSON.stringify( next ) );
 						if ( changed ) {
-							$field.trigger( 'scd:set-value', [ next ] );
+							$field.trigger( 'wsscd:set-value', [ next ] );
 							$field.trigger( 'change' );
 						}
 					}
@@ -1161,7 +1360,7 @@
 				case 'nested_array':
 					// Populate nested form arrays (e.g., conditions[0][mode], conditions[0][type])
 					// Trigger event for orchestrator to handle UI reconstruction
-					$( document ).trigger( 'scd:populate-nested-array', {
+					$( document ).trigger( 'wsscd:populate-nested-array', {
 						fieldName: this.toSnakeCase( fieldNameCamel ),
 						value: value
 					} );
@@ -1202,7 +1401,7 @@
 
 		/**
 		 * Convert snake_case to camelCase
-		 * Delegates to SCD.Utils.Fields for consistency
+		 * Delegates to WSSCD.Utils.Fields for consistency
 		 * 
 		 * @param {string} str - String in snake_case
 		 * @returns {string} String in camelCase
@@ -1210,8 +1409,8 @@
 		 */
 		snakeToCamelCase: function( str ) {
 			// Delegate to Fields utility for consistency
-			if ( SCD.Utils.Fields && SCD.Utils.Fields.toCamelCase ) {
-				return SCD.Utils.Fields.toCamelCase( str );
+			if ( WSSCD.Utils.Fields && WSSCD.Utils.Fields.toCamelCase ) {
+				return WSSCD.Utils.Fields.toCamelCase( str );
 			}
 			// Fallback implementation
 			if ( !str ) {
@@ -1224,7 +1423,7 @@
 
 		/**
 		 * Convert camelCase to snake_case
-		 * Delegates to SCD.Utils.Fields for consistency
+		 * Delegates to WSSCD.Utils.Fields for consistency
 		 * 
 		 * @param {string} str - String in camelCase
 		 * @returns {string} String in snake_case
@@ -1232,8 +1431,8 @@
 		 */
 		camelToSnakeCase: function( str ) {
 			// Delegate to Fields utility for consistency
-			if ( SCD.Utils.Fields && SCD.Utils.Fields.toSnakeCase ) {
-				return SCD.Utils.Fields.toSnakeCase( str );
+			if ( WSSCD.Utils.Fields && WSSCD.Utils.Fields.toSnakeCase ) {
+				return WSSCD.Utils.Fields.toSnakeCase( str );
 			}
 			// Fallback implementation
 			if ( !str ) {

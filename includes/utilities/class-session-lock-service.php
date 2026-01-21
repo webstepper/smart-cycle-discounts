@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/services
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Session_Lock {
+class WSSCD_Session_Lock {
 
 	/**
 	 * Lock timeout in seconds.
@@ -64,7 +64,7 @@ class SCD_Session_Lock {
 	 * @access   private
 	 * @var      string    $lock_prefix    Prefix for lock transients.
 	 */
-	private string $lock_prefix = 'scd_lock_';
+	private string $lock_prefix = 'wsscd_lock_';
 
 	/**
 	 * Currently held locks.
@@ -225,7 +225,9 @@ class SCD_Session_Lock {
 		$autoload     = 'no';
 
 		// Direct database insert for true atomicity
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Atomic lock acquisition; must be direct insert.
 		$result = $wpdb->query(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $wpdb->options is WordPress core table, not user input.
 			$wpdb->prepare(
 				"INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, %s)",
 				$option_name,
@@ -255,7 +257,7 @@ class SCD_Session_Lock {
 			'user_id' => get_current_user_id(),
 			'time'    => microtime( true ),
 			'pid'     => getmypid() ?: 0,
-			'ip'      => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+			'ip'      => isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown',
 		);
 
 		return json_encode( $data );
@@ -338,12 +340,14 @@ class SCD_Session_Lock {
 	public static function cleanup_expired_locks(): int {
 		global $wpdb;
 
-		$prefix  = 'scd_lock_';
+		$prefix  = 'wsscd_lock_';
 		$cleaned = 0;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Lock cleanup; must be real-time.
 		$locks = $wpdb->get_results(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $wpdb->options is WordPress core table, not user input.
 			$wpdb->prepare(
-				"SELECT option_name, option_value FROM {$wpdb->options} 
+				"SELECT option_name, option_value FROM {$wpdb->options}
                  WHERE option_name LIKE %s",
 				$wpdb->esc_like( '_transient_' . $prefix ) . '%'
 			)
@@ -387,10 +391,10 @@ class SCD_Session_Lock {
 	public static function shutdown_cleanup(): void {
 		// Release any locks that weren't properly released
 		// This is a safety mechanism for unexpected termination
-		if ( isset( $GLOBALS['scd_session_lock_instance'] ) ) {
-			$GLOBALS['scd_session_lock_instance']->release_all();
+		if ( isset( $GLOBALS['wsscd_session_lock_instance'] ) ) {
+			$GLOBALS['wsscd_session_lock_instance']->release_all();
 		}
 	}
 }
 
-SCD_Session_Lock::register_cleanup_hook();
+WSSCD_Session_Lock::register_cleanup_hook();

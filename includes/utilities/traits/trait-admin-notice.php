@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/traits
  * @author     Webstepper <contact@webstepper.io>
  */
-trait SCD_Admin_Notice_Trait {
+trait WSSCD_Admin_Notice_Trait {
 
 	/**
 	 * Valid notice types.
@@ -156,7 +156,7 @@ trait SCD_Admin_Notice_Trait {
 		}
 
 		$user_id       = $user_id ?: get_current_user_id();
-		$transient_key = "scd_admin_notice_{$user_id}";
+		$transient_key = "wsscd_admin_notice_{$user_id}";
 
 		$notices = get_transient( $transient_key );
 		if ( ! is_array( $notices ) ) {
@@ -182,7 +182,7 @@ trait SCD_Admin_Notice_Trait {
 	 */
 	protected function display_persistent_notices( $user_id = 0 ) {
 		$user_id       = $user_id ?: get_current_user_id();
-		$transient_key = "scd_admin_notice_{$user_id}";
+		$transient_key = "wsscd_admin_notice_{$user_id}";
 
 		$notices = get_transient( $transient_key );
 		if ( ! is_array( $notices ) || empty( $notices ) ) {
@@ -210,7 +210,7 @@ trait SCD_Admin_Notice_Trait {
 	 */
 	protected function clear_persistent_notices( $user_id = 0 ) {
 		$user_id       = $user_id ?: get_current_user_id();
-		$transient_key = "scd_admin_notice_{$user_id}";
+		$transient_key = "wsscd_admin_notice_{$user_id}";
 		delete_transient( $transient_key );
 	}
 
@@ -266,7 +266,7 @@ trait SCD_Admin_Notice_Trait {
 
 		$aria_live = ( 'error' === $type ) ? 'assertive' : 'polite';
 
-		printf(
+				printf(
 			'<div class="%s" role="alert" aria-live="%s">
 				<p>%s</p>
 				%s
@@ -274,8 +274,9 @@ trait SCD_Admin_Notice_Trait {
 			esc_attr( implode( ' ', $classes ) ),
 			esc_attr( $aria_live ),
 			wp_kses( $message, $this->_get_allowed_notice_html() ),
-			$dismissible ? $this->_get_dismiss_button() : ''
+			$dismissible ? wp_kses( $this->_get_dismiss_button(), $this->_get_allowed_notice_html() ) : ''
 		);
+		
 	}
 
 	/**
@@ -328,6 +329,10 @@ trait SCD_Admin_Notice_Trait {
 				'class'  => array(),
 				'target' => array(),
 				'rel'    => array(),
+			),
+			'button' => array(
+				'type'  => array(),
+				'class' => array(),
 			),
 			'strong' => array(),
 			'em'     => array(),

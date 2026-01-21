@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Retry_Failed_Emails_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Retry_Failed_Emails_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Get AJAX action name.
@@ -32,7 +32,7 @@ class SCD_Retry_Failed_Emails_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_retry_failed_emails';
+		return 'wsscd_retry_failed_emails';
 	}
 
 	/**
@@ -49,7 +49,7 @@ class SCD_Retry_Failed_Emails_Handler extends SCD_Abstract_Ajax_Handler {
 				throw new Exception( __( 'You do not have permission to perform this action', 'smart-cycle-discounts' ) );
 			}
 
-			$container = isset( $GLOBALS['scd_container'] ) ? $GLOBALS['scd_container'] : null;
+			$container = isset( $GLOBALS['wsscd_container'] ) ? $GLOBALS['wsscd_container'] : null;
 			if ( ! $container ) {
 				throw new Exception( __( 'Service container not initialized', 'smart-cycle-discounts' ) );
 			}
@@ -63,7 +63,7 @@ class SCD_Retry_Failed_Emails_Handler extends SCD_Abstract_Ajax_Handler {
 
 			$failed_actions = $action_scheduler->get_actions(
 				array(
-					'hook'     => 'scd_process_email_queue',
+					'hook'     => 'wsscd_process_email_queue',
 					'status'   => ActionScheduler_Store::STATUS_FAILED,
 					'per_page' => 100,
 				)
@@ -76,7 +76,7 @@ class SCD_Retry_Failed_Emails_Handler extends SCD_Abstract_Ajax_Handler {
 					// Reschedule the failed action
 					$action_scheduler->schedule_single(
 						array(
-							'hook' => 'scd_process_email_queue',
+							'hook' => 'wsscd_process_email_queue',
 							'args' => array(),
 							'when' => time(),
 						)

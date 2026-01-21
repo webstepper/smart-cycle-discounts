@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/pages
  */
-class SCD_Tools_Page {
+class WSSCD_Tools_Page {
 
 	/**
 	 * Container instance.
@@ -40,28 +40,28 @@ class SCD_Tools_Page {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Feature gate instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Feature_Gate|null    $feature_gate    Feature gate instance.
+	 * @var      WSSCD_Feature_Gate|null    $feature_gate    Feature gate instance.
 	 */
-	private ?SCD_Feature_Gate $feature_gate;
+	private ?WSSCD_Feature_Gate $feature_gate;
 
 	/**
 	 * Initialize tools page.
 	 *
 	 * @since    1.0.0
 	 * @param    object                $container      Container instance.
-	 * @param    SCD_Logger            $logger         Logger instance.
-	 * @param    SCD_Feature_Gate|null $feature_gate   Feature gate instance.
+	 * @param    WSSCD_Logger            $logger         Logger instance.
+	 * @param    WSSCD_Feature_Gate|null $feature_gate   Feature gate instance.
 	 */
-	public function __construct( object $container, SCD_Logger $logger, ?SCD_Feature_Gate $feature_gate = null ) {
+	public function __construct( object $container, WSSCD_Logger $logger, ?WSSCD_Feature_Gate $feature_gate = null ) {
 		$this->container    = $container;
 		$this->logger       = $logger;
 		$this->feature_gate = $feature_gate;
@@ -78,13 +78,13 @@ class SCD_Tools_Page {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'smart-cycle-discounts' ) );
 		}
 
-		echo '<div class="wrap scd-tools-page">';
+		echo '<div class="wrap wsscd-tools-page">';
 		echo '<h1>' . esc_html__( 'Tools & Maintenance', 'smart-cycle-discounts' ) . '</h1>';
 
 		// Show admin notices
-		settings_errors( 'scd_tools_messages' );
+		settings_errors( 'wsscd_tools_messages' );
 
-		echo '<div class="scd-tools-container">';
+		echo '<div class="wsscd-tools-container">';
 
 		$this->render_import_export_section();
 		$this->render_database_section();
@@ -92,7 +92,7 @@ class SCD_Tools_Page {
 		$this->render_debug_section();
 		$this->render_diagnostics_section();
 
-		echo '</div>'; // .scd-tools-container
+		echo '</div>'; // .wsscd-tools-container
 		echo '</div>'; // .wrap
 	}
 
@@ -105,14 +105,14 @@ class SCD_Tools_Page {
 	 */
 	private function render_import_export_section(): void {
 		$can_export  = $this->feature_gate ? $this->feature_gate->can_export_data() : false;
-		$upgrade_url = function_exists( 'scd_get_upgrade_url' ) ? scd_get_upgrade_url() : admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
+		$upgrade_url = function_exists( 'wsscd_get_upgrade_url' ) ? wsscd_get_upgrade_url() : admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
 		?>
-		<div class="scd-tools-section">
+		<div class="wsscd-tools-section">
 			<h2>
-				<?php echo SCD_Icon_Helper::get( 'upload', array( 'size' => 16 ) ); ?>
+				<?php WSSCD_Icon_Helper::render( 'upload', array( 'size' => 16 ) ); ?>
 				<?php esc_html_e( 'Import & Export', 'smart-cycle-discounts' ); ?>
 				<?php if ( ! $can_export ) : ?>
-					<?php echo SCD_Badge_Helper::pro_badge(); ?>
+					<?php echo wp_kses_post( WSSCD_Badge_Helper::pro_badge() ); ?>
 				<?php endif; ?>
 			</h2>
 			<p class="description">
@@ -125,7 +125,7 @@ class SCD_Tools_Page {
 						<strong><?php esc_html_e( 'Export functionality is available in Pro version', 'smart-cycle-discounts' ); ?></strong>
 						<?php esc_html_e( '- Upgrade to export your campaigns and settings for backup or migration.', 'smart-cycle-discounts' ); ?>
 						<?php
-						SCD_Button_Helper::primary(
+						WSSCD_Button_Helper::primary(
 							__( 'Upgrade to Pro', 'smart-cycle-discounts' ),
 							array(
 								'size' => 'small',
@@ -147,18 +147,18 @@ class SCD_Tools_Page {
 							</p>
 							<?php if ( $can_export ) : ?>
 								<?php
-								SCD_Button_Helper::secondary(
+								WSSCD_Button_Helper::secondary(
 									__( 'Export Campaigns', 'smart-cycle-discounts' ),
 									array(
 										'type'    => 'button',
 										'icon'    => 'download',
-										'classes' => array( 'scd-export-campaigns-btn' ),
+										'classes' => array( 'wsscd-export-campaigns-btn' ),
 									)
 								);
 								?>
 							<?php else : ?>
 								<?php
-								SCD_Button_Helper::secondary(
+								WSSCD_Button_Helper::secondary(
 									__( 'Export Campaigns (Pro)', 'smart-cycle-discounts' ),
 									array(
 										'type'     => 'button',
@@ -178,18 +178,18 @@ class SCD_Tools_Page {
 							</p>
 							<?php if ( $can_export ) : ?>
 								<?php
-								SCD_Button_Helper::secondary(
+								WSSCD_Button_Helper::secondary(
 									__( 'Export Settings', 'smart-cycle-discounts' ),
 									array(
 										'type'    => 'button',
 										'icon'    => 'download',
-										'classes' => array( 'scd-export-settings-btn' ),
+										'classes' => array( 'wsscd-export-settings-btn' ),
 									)
 								);
 								?>
 							<?php else : ?>
 								<?php
-								SCD_Button_Helper::secondary(
+								WSSCD_Button_Helper::secondary(
 									__( 'Export Settings (Pro)', 'smart-cycle-discounts' ),
 									array(
 										'type'     => 'button',
@@ -207,18 +207,18 @@ class SCD_Tools_Page {
 							<p class="description">
 								<?php esc_html_e( 'Import campaigns or settings from a previously exported JSON file.', 'smart-cycle-discounts' ); ?>
 							</p>
-							<input type="file" id="scd-import-file" accept=".json" class="regular-text">
+							<input type="file" id="wsscd-import-file" accept=".json" class="regular-text">
 							<?php
-							SCD_Button_Helper::primary(
+							WSSCD_Button_Helper::primary(
 								__( 'Import File', 'smart-cycle-discounts' ),
 								array(
 									'type'    => 'button',
 									'icon'    => 'upload',
-									'classes' => array( 'scd-import-data-btn' ),
+									'classes' => array( 'wsscd-import-data-btn' ),
 								)
 							);
 							?>
-							<div class="scd-import-status" style="margin-top: 10px;"></div>
+							<div class="wsscd-import-status" style="margin-top: 10px;"></div>
 						</td>
 					</tr>
 				</tbody>
@@ -238,20 +238,21 @@ class SCD_Tools_Page {
 		global $wpdb;
 
 		// Calculate total size of all plugin tables
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- information_schema query has no WP abstraction.
 		$table_size = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 2)
 				FROM information_schema.TABLES
 				WHERE table_schema = DATABASE()
 				AND table_name LIKE %s",
-				$wpdb->esc_like( $wpdb->prefix . 'scd_' ) . '%'
+				$wpdb->esc_like( $wpdb->prefix . 'wsscd_' ) . '%'
 			)
 		);
 
 		?>
-		<div class="scd-tools-section">
+		<div class="wsscd-tools-section">
 			<h2>
-				<?php echo SCD_Icon_Helper::get( 'database-export', array( 'size' => 16 ) ); ?>
+				<?php WSSCD_Icon_Helper::render( 'database-export', array( 'size' => 16 ) ); ?>
 				<?php esc_html_e( 'Database Maintenance', 'smart-cycle-discounts' ); ?>
 			</h2>
 			<p class="description">
@@ -271,12 +272,12 @@ class SCD_Tools_Page {
 								<?php echo esc_html( $table_size ? $table_size . ' MB' : __( 'Unknown', 'smart-cycle-discounts' ) ); ?>
 							</p>
 							<?php
-							SCD_Button_Helper::secondary(
+							WSSCD_Button_Helper::secondary(
 								__( 'Optimize Now', 'smart-cycle-discounts' ),
 								array(
 									'type'    => 'button',
 									'icon'    => 'admin-tools',
-									'classes' => array( 'scd-optimize-tables-btn' ),
+									'classes' => array( 'wsscd-optimize-tables-btn' ),
 								)
 							);
 							?>
@@ -290,12 +291,12 @@ class SCD_Tools_Page {
 							</p>
 							<?php
 							$confirm_message = esc_js( __( 'This will permanently delete expired campaigns and old data. Continue?', 'smart-cycle-discounts' ) );
-							SCD_Button_Helper::secondary(
+							WSSCD_Button_Helper::secondary(
 								__( 'Clean Up Now', 'smart-cycle-discounts' ),
 								array(
 									'type'       => 'button',
 									'icon'       => 'trash',
-									'classes'    => array( 'scd-cleanup-expired-btn' ),
+									'classes'    => array( 'wsscd-cleanup-expired-btn' ),
 									'attributes' => array( 'onclick' => "return confirm('" . $confirm_message . "');" ),
 								)
 							);
@@ -329,9 +330,9 @@ class SCD_Tools_Page {
 		}
 
 		?>
-		<div class="scd-tools-section">
+		<div class="wsscd-tools-section">
 			<h2>
-				<?php echo SCD_Icon_Helper::get( 'performance', array( 'size' => 20 ) ); ?>
+				<?php WSSCD_Icon_Helper::render( 'performance', array( 'size' => 20 ) ); ?>
 				<?php esc_html_e( 'Cache Management', 'smart-cycle-discounts' ); ?>
 			</h2>
 			<p class="description">
@@ -351,9 +352,9 @@ class SCD_Tools_Page {
 								<strong><?php esc_html_e( 'Object cache:', 'smart-cycle-discounts' ); ?></strong>
 								<?php
 								if ( $cache_stats['object_cache_available'] ) {
-									echo SCD_Badge_Helper::health_badge( 'good', __( 'Available', 'smart-cycle-discounts' ) );
+									echo wp_kses_post( WSSCD_Badge_Helper::health_badge( 'good', __( 'Available', 'smart-cycle-discounts' ) ) );
 								} else {
-									echo SCD_Badge_Helper::health_badge( 'neutral', __( 'Not available', 'smart-cycle-discounts' ) );
+									echo wp_kses_post( WSSCD_Badge_Helper::health_badge( 'neutral', __( 'Not available', 'smart-cycle-discounts' ) ) );
 								}
 								?>
 							</p>
@@ -366,12 +367,12 @@ class SCD_Tools_Page {
 								<?php esc_html_e( 'Clears all cached data and rebuilds the cache with fresh campaign data for optimal performance.', 'smart-cycle-discounts' ); ?>
 							</p>
 							<?php
-							SCD_Button_Helper::primary(
+							WSSCD_Button_Helper::primary(
 								__( 'Clear & Rebuild Cache', 'smart-cycle-discounts' ),
 								array(
 									'type'    => 'button',
 									'icon'    => 'update',
-									'classes' => array( 'scd-rebuild-cache-btn' ),
+									'classes' => array( 'wsscd-rebuild-cache-btn' ),
 								)
 							);
 							?>
@@ -392,22 +393,22 @@ class SCD_Tools_Page {
 	 * @return   void
 	 */
 	private function render_debug_section(): void {
-		require_once SCD_INCLUDES_DIR . 'utilities/class-log-manager.php';
-		$log_manager = new SCD_Log_Manager();
+		require_once WSSCD_INCLUDES_DIR . 'utilities/class-log-manager.php';
+		$log_manager = new WSSCD_Log_Manager();
 		$log_stats   = $log_manager->get_log_stats();
 
 		?>
-		<div class="scd-tools-section">
+		<div class="wsscd-tools-section">
 			<h2>
-				<?php echo SCD_Icon_Helper::get( 'search', array( 'size' => 16 ) ); ?>
+				<?php WSSCD_Icon_Helper::render( 'search', array( 'size' => 16 ) ); ?>
 				<?php esc_html_e( 'Log Viewer', 'smart-cycle-discounts' ); ?>
 			</h2>
 			<p class="description">
 				<?php
-				$settings_url = admin_url( 'admin.php?page=scd-settings&tab=advanced' );
+				$settings_url = admin_url( 'admin.php?page=wsscd-settings&tab=advanced' );
 				printf(
-					/* translators: %s: URL to Settings > Advanced page */
 					wp_kses(
+						/* translators: %s: URL to Settings > Advanced page */
 						__( 'View, download, and manage debug log files. To configure logging settings, visit <a href="%s">Settings &gt; Advanced</a>.', 'smart-cycle-discounts' ),
 						array( 'a' => array( 'href' => array() ) )
 					),
@@ -421,15 +422,15 @@ class SCD_Tools_Page {
 					<tr>
 						<th scope="row"><?php esc_html_e( 'View Log File', 'smart-cycle-discounts' ); ?></th>
 						<td>
-							<div class="scd-log-viewer-wrapper">
+							<div class="wsscd-log-viewer-wrapper">
 								<p class="description">
 									<?php esc_html_e( 'View debug log contents. Sensitive information is automatically redacted.', 'smart-cycle-discounts' ); ?>
 									<br>
 									<strong><?php esc_html_e( 'Showing last 500 lines (~10-30 minutes).', 'smart-cycle-discounts' ); ?></strong>
 									<?php
 									printf(
-										/* translators: %s: URL to Settings > Advanced page */
 										wp_kses(
+											/* translators: %s: URL to Settings > Advanced page */
 											__( 'Production mode logs errors and warnings. Change log level in <a href="%s">Settings &gt; Advanced</a> to see more detail.', 'smart-cycle-discounts' ),
 											array( 'a' => array( 'href' => array() ) )
 										),
@@ -438,7 +439,7 @@ class SCD_Tools_Page {
 									?>
 								</p>
 
-								<div class="scd-log-stats" style="margin: 15px 0;">
+								<div class="wsscd-log-stats" style="margin: 15px 0;">
 									<strong><?php esc_html_e( 'Log File:', 'smart-cycle-discounts' ); ?></strong><br>
 									<?php if ( $log_stats['exists'] ) : ?>
 										<?php esc_html_e( 'Plugin Log:', 'smart-cycle-discounts' ); ?>
@@ -450,39 +451,39 @@ class SCD_Tools_Page {
 									<?php endif; ?>
 								</div>
 
-								<div class="scd-log-actions" style="margin: 10px 0;">
+								<div class="wsscd-log-actions" style="margin: 10px 0;">
 									<?php
-									SCD_Button_Helper::secondary(
+									WSSCD_Button_Helper::secondary(
 										__( 'View Log', 'smart-cycle-discounts' ),
 										array(
 											'type'    => 'button',
 											'icon'    => 'visibility',
-											'classes' => array( 'scd-view-logs-btn' ),
+											'classes' => array( 'wsscd-view-logs-btn' ),
 										)
 									);
 
-									SCD_Button_Helper::secondary(
+									WSSCD_Button_Helper::secondary(
 										__( 'Download', 'smart-cycle-discounts' ),
 										array(
 											'type'       => 'button',
 											'icon'       => 'download',
-											'classes'    => array( 'scd-download-logs-btn' ),
+											'classes'    => array( 'wsscd-download-logs-btn' ),
 											'attributes' => array( 'style' => 'margin-left: 4px;' ),
 										)
 									);
 									?>
 								</div>
 
-								<div id="scd-log-viewer-modal" style="display:none; margin-top: 15px;">
+								<div id="wsscd-log-viewer-modal" style="display:none; margin-top: 15px;">
 									<textarea readonly class="large-text code" rows="20" style="font-family: monospace; font-size: 12px;"></textarea>
 									<div style="margin-top: 10px;">
 										<?php
-										SCD_Button_Helper::secondary(
+										WSSCD_Button_Helper::secondary(
 											__( 'Copy to Clipboard', 'smart-cycle-discounts' ),
 											array(
 												'type'    => 'button',
 												'icon'    => 'clipboard',
-												'classes' => array( 'scd-copy-log-btn' ),
+												'classes' => array( 'wsscd-copy-log-btn' ),
 											)
 										);
 										?>
@@ -498,12 +499,12 @@ class SCD_Tools_Page {
 								<?php esc_html_e( 'Delete all log file contents. This action cannot be undone.', 'smart-cycle-discounts' ); ?>
 							</p>
 							<?php
-							SCD_Button_Helper::secondary(
+							WSSCD_Button_Helper::secondary(
 								__( 'Clear Log', 'smart-cycle-discounts' ),
 								array(
 									'type'    => 'button',
 									'icon'    => 'trash',
-									'classes' => array( 'scd-clear-logs-btn' ),
+									'classes' => array( 'wsscd-clear-logs-btn' ),
 								)
 							);
 							?>
@@ -524,9 +525,9 @@ class SCD_Tools_Page {
 	 */
 	private function render_diagnostics_section(): void {
 		?>
-		<div class="scd-tools-section">
+		<div class="wsscd-tools-section">
 			<h2>
-				<?php echo SCD_Icon_Helper::get( 'admin-site', array( 'size' => 16 ) ); ?>
+				<?php WSSCD_Icon_Helper::render( 'admin-site', array( 'size' => 16 ) ); ?>
 				<?php esc_html_e( 'System Diagnostics', 'smart-cycle-discounts' ); ?>
 			</h2>
 			<p class="description">
@@ -542,16 +543,16 @@ class SCD_Tools_Page {
 								<?php esc_html_e( 'Run a comprehensive health check to identify potential issues with the plugin configuration.', 'smart-cycle-discounts' ); ?>
 							</p>
 							<?php
-							SCD_Button_Helper::secondary(
+							WSSCD_Button_Helper::secondary(
 								__( 'Run Health Check', 'smart-cycle-discounts' ),
 								array(
 									'type'    => 'button',
 									'icon'    => 'heart',
-									'classes' => array( 'scd-health-check-btn' ),
+									'classes' => array( 'wsscd-health-check-btn' ),
 								)
 							);
 							?>
-							<div id="scd-health-check-results" style="margin-top: 10px;"></div>
+							<div id="wsscd-health-check-results" style="margin-top: 10px;"></div>
 						</td>
 					</tr>
 					<tr>
@@ -561,22 +562,22 @@ class SCD_Tools_Page {
 								<?php esc_html_e( 'Generate a detailed system report for troubleshooting and support purposes. This report can be shared with support to help diagnose issues.', 'smart-cycle-discounts' ); ?>
 							</p>
 							<?php
-							SCD_Button_Helper::secondary(
+							WSSCD_Button_Helper::secondary(
 								__( 'Generate Report', 'smart-cycle-discounts' ),
 								array(
 									'type'       => 'button',
 									'icon'       => 'media-text',
-									'classes'    => array( 'scd-generate-report-btn' ),
+									'classes'    => array( 'wsscd-generate-report-btn' ),
 									'attributes' => array( 'data-action' => 'generate' ),
 								)
 							);
 
-							SCD_Button_Helper::secondary(
+							WSSCD_Button_Helper::secondary(
 								__( 'Copy to Clipboard', 'smart-cycle-discounts' ),
 								array(
 									'type'       => 'button',
 									'icon'       => 'clipboard',
-									'classes'    => array( 'scd-copy-report-btn' ),
+									'classes'    => array( 'wsscd-copy-report-btn' ),
 									'attributes' => array(
 										'data-action' => 'copy',
 										'style'       => 'display:none;',
@@ -584,12 +585,12 @@ class SCD_Tools_Page {
 								)
 							);
 
-							SCD_Button_Helper::secondary(
+							WSSCD_Button_Helper::secondary(
 								__( 'Download Report', 'smart-cycle-discounts' ),
 								array(
 									'type'       => 'button',
 									'icon'       => 'download',
-									'classes'    => array( 'scd-download-report-btn' ),
+									'classes'    => array( 'wsscd-download-report-btn' ),
 									'attributes' => array(
 										'data-action' => 'download',
 										'style'       => 'display:none;',
@@ -597,7 +598,7 @@ class SCD_Tools_Page {
 								)
 							);
 							?>
-							<div id="scd-system-report" style="margin-top: 10px; display: none;">
+							<div id="wsscd-system-report" style="margin-top: 10px; display: none;">
 								<textarea readonly class="large-text code" rows="20" style="font-family: monospace; font-size: 12px;"></textarea>
 							</div>
 						</td>

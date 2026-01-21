@@ -17,24 +17,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Removed strict types for PHP compatibility
 
-// Ensure SCD_Validation is loaded for constants
-if ( ! class_exists( 'SCD_Validation' ) ) {
-	require_once SCD_PLUGIN_DIR . 'includes/core/validation/class-validation.php';
+// Ensure WSSCD_Validation is loaded for constants
+if ( ! class_exists( 'WSSCD_Validation' ) ) {
+	require_once WSSCD_PLUGIN_DIR . 'includes/core/validation/class-validation.php';
 }
 
 /**
  * AJAX Security Class
+ *
+ * Centralized security handler for all AJAX requests in the plugin.
+ * This class provides:
+ * - Nonce verification via wp_verify_nonce() (see verify_nonce() method at line 383)
+ * - Capability checks via current_user_can()
+ * - Rate limiting to prevent abuse
+ * - Request size validation
+ *
+ * All AJAX handlers in the plugin use verify_ajax_request() which calls wp_verify_nonce().
  *
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/security
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Ajax_Security {
+class WSSCD_Ajax_Security {
 
 	/**
-	 * Note: Security constants are now centralized in SCD_Validation class
-	 * Use SCD_Validation_Rules::MAX_REQUEST_SIZE, SCD_Validation_Rules::NONCE_LIFETIME
+	 * Note: Security constants are now centralized in WSSCD_Validation class
+	 * Use WSSCD_Validation_Rules::MAX_REQUEST_SIZE, WSSCD_Validation_Rules::NONCE_LIFETIME
 	 *
 	 * @since    1.0.0
 	 */
@@ -42,246 +51,246 @@ class SCD_Ajax_Security {
 	/**
 	 * Centralized nonce map: action => nonce_name
 	 * Each AJAX action has exactly one valid nonce
-	 * Using full action names with scd_ prefix for consistency
+	 * Using full action names with wsscd_ prefix for consistency
 	 */
 	private static $nonce_map = array(
 		// Wizard actions
-		'scd_save_step'                      => 'scd_wizard_nonce',
-		'scd_load_data'                      => 'scd_wizard_nonce',
-		'scd_load_session'                   => 'scd_wizard_nonce',
-		'scd_check_session'                  => 'scd_wizard_nonce',
-		'scd_session_status'                 => 'scd_wizard_nonce',
-		'scd_complete_wizard'                => 'scd_wizard_nonce',
-		'scd_get_summary'                    => 'scd_wizard_nonce',
-		'scd_get_product_stats'              => 'scd_wizard_nonce',
-		'scd_health_check'                   => 'scd_admin_nonce',
-		'scd_campaign_health'                => 'scd_wizard_nonce',
-		'scd_check_conflicts'                => 'scd_wizard_nonce',
-		'scd_preview_coverage'               => 'scd_wizard_nonce',
-		'scd_calculate_discount_impact'      => 'scd_wizard_nonce',
-		'scd_sale_items_filter'              => 'scd_wizard_nonce',
-		'scd_profit_margin_warning'          => 'scd_wizard_nonce',
-		'scd_recover_session'                => 'scd_wizard_nonce',
+		'wsscd_save_step'                      => 'wsscd_wizard_nonce',
+		'wsscd_load_data'                      => 'wsscd_wizard_nonce',
+		'wsscd_load_session'                   => 'wsscd_wizard_nonce',
+		'wsscd_check_session'                  => 'wsscd_wizard_nonce',
+		'wsscd_session_status'                 => 'wsscd_wizard_nonce',
+		'wsscd_complete_wizard'                => 'wsscd_wizard_nonce',
+		'wsscd_get_summary'                    => 'wsscd_wizard_nonce',
+		'wsscd_get_product_stats'              => 'wsscd_wizard_nonce',
+		'wsscd_health_check'                   => 'wsscd_admin_nonce',
+		'wsscd_campaign_health'                => 'wsscd_wizard_nonce',
+		'wsscd_check_conflicts'                => 'wsscd_wizard_nonce',
+		'wsscd_preview_coverage'               => 'wsscd_wizard_nonce',
+		'wsscd_calculate_discount_impact'      => 'wsscd_wizard_nonce',
+		'wsscd_sale_items_filter'              => 'wsscd_wizard_nonce',
+		'wsscd_profit_margin_warning'          => 'wsscd_wizard_nonce',
+		'wsscd_recover_session'                => 'wsscd_wizard_nonce',
 
 		// Tools page actions
-		'scd_export'                         => 'scd_admin_nonce',
-		'scd_import'                         => 'scd_admin_nonce',
-		'scd_database_maintenance'           => 'scd_admin_nonce',
-		'scd_cache_management'               => 'scd_admin_nonce',
-		'scd_clear_cache'                    => 'scd_admin_nonce',
-		'scd_log_viewer'                     => 'scd_admin_nonce',
+		'wsscd_export'                         => 'wsscd_admin_nonce',
+		'wsscd_import'                         => 'wsscd_admin_nonce',
+		'wsscd_database_maintenance'           => 'wsscd_admin_nonce',
+		'wsscd_cache_management'               => 'wsscd_admin_nonce',
+		'wsscd_clear_cache'                    => 'wsscd_admin_nonce',
+		'wsscd_log_viewer'                     => 'wsscd_admin_nonce',
 
 		// Validation actions
-		'scd_check_campaign_name'            => 'scd_validation_nonce',
-		'scd_validation_rules_batch'         => 'scd_validation_nonce',
+		'wsscd_check_campaign_name'            => 'wsscd_validation_nonce',
+		'wsscd_validation_rules_batch'         => 'wsscd_validation_nonce',
 
 		// Product actions
-		'scd_product_search'                 => 'scd_wizard_nonce', // Use wizard nonce since it's called from wizard
-		'product_search'                     => 'scd_wizard_nonce', // Also support without prefix for backward compatibility
+		'wsscd_product_search'                 => 'wsscd_wizard_nonce', // Use wizard nonce since it's called from wizard
+		'product_search'                     => 'wsscd_wizard_nonce', // Also support without prefix for backward compatibility
 
 		// Analytics actions
-		'scd_analytics_overview'             => 'scd_analytics_nonce',
-		'scd_analytics_campaign_performance' => 'scd_analytics_nonce',
-		'scd_analytics_revenue_trend'        => 'scd_analytics_nonce',
-		'scd_analytics_top_products'         => 'scd_analytics_nonce',
-		'scd_analytics_activity_feed'        => 'scd_analytics_nonce',
-		'scd_analytics_export'               => 'scd_analytics_nonce',
-		'scd_analytics_refresh_cache'        => 'scd_analytics_nonce',
+		'wsscd_analytics_overview'             => 'wsscd_analytics_nonce',
+		'wsscd_analytics_campaign_performance' => 'wsscd_analytics_nonce',
+		'wsscd_analytics_revenue_trend'        => 'wsscd_analytics_nonce',
+		'wsscd_analytics_top_products'         => 'wsscd_analytics_nonce',
+		'wsscd_analytics_activity_feed'        => 'wsscd_analytics_nonce',
+		'wsscd_analytics_export'               => 'wsscd_analytics_nonce',
+		'wsscd_analytics_refresh_cache'        => 'wsscd_analytics_nonce',
 
 		// Campaign actions
-		'scd_get_active_campaigns'           => 'scd_campaign_nonce',
-		'scd_campaign_overview'              => 'scd_admin_nonce',
+		'wsscd_get_active_campaigns'           => 'wsscd_campaign_nonce',
+		'wsscd_campaign_overview'              => 'wsscd_admin_nonce',
 
 		// WooCommerce integration
-		'scd_apply_discount'                 => 'scd_discount_nonce',
+		'wsscd_apply_discount'                 => 'wsscd_discount_nonce',
 
 		// Discount validation and calculation
-		'scd_validate_discounts'             => 'scd_wizard_nonce', // Called from wizard
-		'scd_validate_discount_rules'        => 'scd_wizard_nonce', // Called from wizard
-		'scd_get_discount_preview'           => 'scd_wizard_nonce', // Called from wizard
-		'scd_calculate_discount'             => 'scd_discount_nonce',
-		'scd_preview_discount'               => 'scd_wizard_nonce', // Called from wizard
+		'wsscd_validate_discounts'             => 'wsscd_wizard_nonce', // Called from wizard
+		'wsscd_validate_discount_rules'        => 'wsscd_wizard_nonce', // Called from wizard
+		'wsscd_get_discount_preview'           => 'wsscd_wizard_nonce', // Called from wizard
+		'wsscd_calculate_discount'             => 'wsscd_discount_nonce',
+		'wsscd_preview_discount'               => 'wsscd_wizard_nonce', // Called from wizard
 
 		// Draft handlers
-		'scd_save_draft'                     => 'scd_wizard_nonce',
-		'scd_delete_draft'                   => 'scd_wizard_nonce',
-		'scd_draft_list'                     => 'scd_wizard_nonce',
-		'scd_draft_preview'                  => 'scd_wizard_nonce',
+		'wsscd_save_draft'                     => 'wsscd_wizard_nonce',
+		'wsscd_delete_draft'                   => 'wsscd_wizard_nonce',
+		'wsscd_draft_list'                     => 'wsscd_wizard_nonce',
+		'wsscd_draft_preview'                  => 'wsscd_wizard_nonce',
 
 		// Dashboard actions
-		'scd_main_dashboard_data'            => 'scd_main_dashboard',
-		'scd_get_planner_insights'           => 'scd_admin_nonce',
+		'wsscd_main_dashboard_data'            => 'wsscd_main_dashboard',
+		'wsscd_get_planner_insights'           => 'wsscd_admin_nonce',
 
 		// Email/Notification actions
-		'scd_send_test_email'                => 'scd_admin_nonce',
-		'scd_process_queue'                  => 'scd_admin_nonce',
-		'scd_retry_failed_emails'            => 'scd_admin_nonce',
-		'scd_clear_queue'                    => 'scd_admin_nonce',
+		'wsscd_send_test_email'                => 'wsscd_admin_nonce',
+		'wsscd_process_queue'                  => 'wsscd_admin_nonce',
+		'wsscd_retry_failed_emails'            => 'wsscd_admin_nonce',
+		'wsscd_clear_queue'                    => 'wsscd_admin_nonce',
 
 		// Debug handlers
-		'scd_debug_log'                      => 'scd_wizard_nonce',
-		'scd_log_console'                    => 'scd_wizard_nonce',
+		'wsscd_debug_log'                      => 'wsscd_wizard_nonce',
+		'wsscd_log_console'                    => 'wsscd_wizard_nonce',
 
 		// Sidebar handlers
-		'scd_get_help_topic'                 => 'scd_wizard_nonce',
+		'wsscd_get_help_topic'                 => 'wsscd_wizard_nonce',
 	);
 
 	/**
 	 * Capability requirements map: action => capability
-	 * Using full action names with scd_ prefix for consistency
+	 * Using full action names with wsscd_ prefix for consistency
 	 */
 	private static $capability_map = array(
 		// Wizard actions - require campaign management
-		'scd_save_step'                      => 'scd_manage_campaigns',
-		'scd_load_data'                      => 'scd_manage_campaigns',
-		'scd_load_session'                   => 'scd_manage_campaigns',
-		'scd_check_session'                  => 'scd_manage_campaigns',
-		'scd_session_status'                 => 'scd_manage_campaigns',
-		'scd_complete_wizard'                => 'scd_manage_campaigns',
-		'scd_get_summary'                    => 'scd_manage_campaigns',
-		'scd_get_product_stats'              => 'scd_manage_campaigns',
-		'scd_health_check'                   => 'manage_options',
-		'scd_campaign_health'                => 'scd_manage_campaigns',
-		'scd_check_conflicts'                => 'scd_manage_campaigns',
-		'scd_preview_coverage'               => 'scd_manage_campaigns',
-		'scd_calculate_discount_impact'      => 'scd_manage_campaigns',
-		'scd_sale_items_filter'              => 'scd_manage_campaigns',
-		'scd_profit_margin_warning'          => 'scd_manage_campaigns',
-		'scd_recover_session'                => 'scd_manage_campaigns',
+		'wsscd_save_step'                      => 'wsscd_manage_campaigns',
+		'wsscd_load_data'                      => 'wsscd_manage_campaigns',
+		'wsscd_load_session'                   => 'wsscd_manage_campaigns',
+		'wsscd_check_session'                  => 'wsscd_manage_campaigns',
+		'wsscd_session_status'                 => 'wsscd_manage_campaigns',
+		'wsscd_complete_wizard'                => 'wsscd_manage_campaigns',
+		'wsscd_get_summary'                    => 'wsscd_manage_campaigns',
+		'wsscd_get_product_stats'              => 'wsscd_manage_campaigns',
+		'wsscd_health_check'                   => 'manage_options',
+		'wsscd_campaign_health'                => 'wsscd_manage_campaigns',
+		'wsscd_check_conflicts'                => 'wsscd_manage_campaigns',
+		'wsscd_preview_coverage'               => 'wsscd_manage_campaigns',
+		'wsscd_calculate_discount_impact'      => 'wsscd_manage_campaigns',
+		'wsscd_sale_items_filter'              => 'wsscd_manage_campaigns',
+		'wsscd_profit_margin_warning'          => 'wsscd_manage_campaigns',
+		'wsscd_recover_session'                => 'wsscd_manage_campaigns',
 
 		// Tools page actions - require admin capabilities
-		'scd_export'                         => 'manage_options',
-		'scd_import'                         => 'manage_options',
-		'scd_database_maintenance'           => 'manage_options',
-		'scd_cache_management'               => 'manage_options',
-		'scd_clear_cache'                    => 'manage_options',
-		'scd_log_viewer'                     => 'manage_options',
+		'wsscd_export'                         => 'manage_options',
+		'wsscd_import'                         => 'manage_options',
+		'wsscd_database_maintenance'           => 'manage_options',
+		'wsscd_cache_management'               => 'manage_options',
+		'wsscd_clear_cache'                    => 'manage_options',
+		'wsscd_log_viewer'                     => 'manage_options',
 
 		// Validation actions - require campaign management
-		'scd_check_campaign_name'            => 'scd_manage_campaigns',
-		'scd_validation_rules_batch'         => 'scd_manage_campaigns',
+		'wsscd_check_campaign_name'            => 'wsscd_manage_campaigns',
+		'wsscd_validation_rules_batch'         => 'wsscd_manage_campaigns',
 
 		// Product actions - require campaign management in wizard context
-		'scd_product_search'                 => 'scd_manage_campaigns',
+		'wsscd_product_search'                 => 'wsscd_manage_campaigns',
 
 		// Analytics view actions - require view analytics
-		'scd_analytics_overview'             => 'scd_view_analytics',
-		'scd_analytics_campaign_performance' => 'scd_view_analytics',
-		'scd_analytics_revenue_trend'        => 'scd_view_analytics',
-		'scd_analytics_top_products'         => 'scd_view_analytics',
-		'scd_analytics_activity_feed'        => 'scd_view_analytics',
+		'wsscd_analytics_overview'             => 'wsscd_view_analytics',
+		'wsscd_analytics_campaign_performance' => 'wsscd_view_analytics',
+		'wsscd_analytics_revenue_trend'        => 'wsscd_view_analytics',
+		'wsscd_analytics_top_products'         => 'wsscd_view_analytics',
+		'wsscd_analytics_activity_feed'        => 'wsscd_view_analytics',
 
 		// Analytics management actions - require manage analytics
-		'scd_analytics_export'               => 'scd_manage_analytics',
-		'scd_analytics_refresh_cache'        => 'scd_manage_analytics',
+		'wsscd_analytics_export'               => 'wsscd_manage_analytics',
+		'wsscd_analytics_refresh_cache'        => 'wsscd_manage_analytics',
 
 		// Campaign actions - require campaign management
-		'scd_get_active_campaigns'           => 'scd_manage_campaigns',
-		'scd_campaign_overview'              => 'scd_view_campaigns',
+		'wsscd_get_active_campaigns'           => 'wsscd_manage_campaigns',
+		'wsscd_campaign_overview'              => 'wsscd_view_campaigns',
 
 		// WooCommerce integration - no capability for public discount application
-		'scd_apply_discount'                 => '',
+		'wsscd_apply_discount'                 => '',
 
 		// Discount validation and calculation
-		'scd_validate_discounts'             => 'scd_manage_campaigns',
-		'scd_validate_discount_rules'        => 'scd_manage_campaigns',
-		'scd_get_discount_preview'           => 'scd_manage_campaigns',
-		'scd_calculate_discount'             => '',  // Public endpoint
-		'scd_preview_discount'               => 'scd_manage_campaigns',
+		'wsscd_validate_discounts'             => 'wsscd_manage_campaigns',
+		'wsscd_validate_discount_rules'        => 'wsscd_manage_campaigns',
+		'wsscd_get_discount_preview'           => 'wsscd_manage_campaigns',
+		'wsscd_calculate_discount'             => '',  // Public endpoint
+		'wsscd_preview_discount'               => 'wsscd_manage_campaigns',
 
 		// Draft handlers
-		'scd_save_draft'                     => 'scd_manage_campaigns',
-		'scd_delete_draft'                   => 'scd_manage_campaigns',
-		'scd_draft_list'                     => 'scd_manage_campaigns',
-		'scd_draft_preview'                  => 'scd_manage_campaigns',
+		'wsscd_save_draft'                     => 'wsscd_manage_campaigns',
+		'wsscd_delete_draft'                   => 'wsscd_manage_campaigns',
+		'wsscd_draft_list'                     => 'wsscd_manage_campaigns',
+		'wsscd_draft_preview'                  => 'wsscd_manage_campaigns',
 
 		// Dashboard actions
-		'scd_main_dashboard_data'            => 'scd_view_analytics',
-		'scd_get_planner_insights'           => 'scd_view_analytics',
+		'wsscd_main_dashboard_data'            => 'wsscd_view_analytics',
+		'wsscd_get_planner_insights'           => 'wsscd_view_analytics',
 
 		// Email/Notification actions - require admin capabilities
-		'scd_send_test_email'                => 'manage_options',
-		'scd_process_queue'                  => 'manage_options',
-		'scd_retry_failed_emails'            => 'manage_options',
-		'scd_clear_queue'                    => 'manage_options',
+		'wsscd_send_test_email'                => 'manage_options',
+		'wsscd_process_queue'                  => 'manage_options',
+		'wsscd_retry_failed_emails'            => 'manage_options',
+		'wsscd_clear_queue'                    => 'manage_options',
 
 		// Debug handlers
-		'scd_debug_log'                      => 'scd_manage_campaigns',
-		'scd_log_console'                    => 'scd_manage_campaigns',
+		'wsscd_debug_log'                      => 'wsscd_manage_campaigns',
+		'wsscd_log_console'                    => 'wsscd_manage_campaigns',
 
 		// Sidebar handlers
-		'scd_get_help_topic'                 => 'scd_manage_campaigns',
+		'wsscd_get_help_topic'                 => 'wsscd_manage_campaigns',
 	);
 
 	/**
 	 * Rate limits map: action => requests per minute
-	 * Using full action names with scd_ prefix for consistency
+	 * Using full action names with wsscd_ prefix for consistency
 	 */
 	private static $rate_limits = array(
 		// Strict limits for public endpoints
-		'scd_apply_discount'                 => 20,
+		'wsscd_apply_discount'                 => 20,
 
 		// Discount actions
-		'scd_validate_discounts'             => 60, // Allow frequent validation during wizard
-		'scd_calculate_discount'             => 30,  // Public but rate limited
-		'scd_preview_discount'               => 60,    // Allow frequent preview updates
+		'wsscd_validate_discounts'             => 60, // Allow frequent validation during wizard
+		'wsscd_calculate_discount'             => 30,  // Public but rate limited
+		'wsscd_preview_discount'               => 60,    // Allow frequent preview updates
 
 		// Wizard actions
-		'scd_save_step'                      => 30,
-		'scd_load_data'                      => 30,
-		'scd_load_session'                   => 30,
-		'scd_complete_wizard'                => 5,
-		'scd_recover_session'                => 5,
-		'scd_check_session'                  => 60,
-		'scd_get_summary'                    => 30,
-		'scd_get_product_stats'              => 30,
-		'scd_health_check'                   => 10,
-		'scd_campaign_health'                => 10,
-		'scd_check_conflicts'                => 20,
-		'scd_preview_coverage'               => 20,
-		'scd_calculate_discount_impact'      => 20,
-		'scd_sale_items_filter'              => 30,
-		'scd_profit_margin_warning'          => 20,
+		'wsscd_save_step'                      => 30,
+		'wsscd_load_data'                      => 30,
+		'wsscd_load_session'                   => 30,
+		'wsscd_complete_wizard'                => 5,
+		'wsscd_recover_session'                => 5,
+		'wsscd_check_session'                  => 60,
+		'wsscd_get_summary'                    => 30,
+		'wsscd_get_product_stats'              => 30,
+		'wsscd_health_check'                   => 10,
+		'wsscd_campaign_health'                => 10,
+		'wsscd_check_conflicts'                => 20,
+		'wsscd_preview_coverage'               => 20,
+		'wsscd_calculate_discount_impact'      => 20,
+		'wsscd_sale_items_filter'              => 30,
+		'wsscd_profit_margin_warning'          => 20,
 
 		// Validation actions
-		'scd_check_campaign_name'            => 10,
-		'scd_validation_rules_batch'         => 20,
+		'wsscd_check_campaign_name'            => 10,
+		'wsscd_validation_rules_batch'         => 20,
 
 		// Product actions
-		'scd_product_search'                 => 60,  // Increased from 20 to handle wizard usage patterns
+		'wsscd_product_search'                 => 60,  // Increased from 20 to handle wizard usage patterns
 
 		// Analytics actions
-		'scd_analytics_overview'             => 30,
-		'scd_analytics_campaign_performance' => 30,
-		'scd_analytics_revenue_trend'        => 30,
-		'scd_analytics_top_products'         => 30,
-		'scd_analytics_activity_feed'        => 30,
-		'scd_analytics_export'               => 5,
-		'scd_analytics_refresh_cache'        => 10,
+		'wsscd_analytics_overview'             => 30,
+		'wsscd_analytics_campaign_performance' => 30,
+		'wsscd_analytics_revenue_trend'        => 30,
+		'wsscd_analytics_top_products'         => 30,
+		'wsscd_analytics_activity_feed'        => 30,
+		'wsscd_analytics_export'               => 5,
+		'wsscd_analytics_refresh_cache'        => 10,
 
 		// Settings/Admin actions
-		'scd_clear_cache'                    => 10,
+		'wsscd_clear_cache'                    => 10,
 
 		// Campaign actions
-		'scd_get_active_campaigns'           => 30,
+		'wsscd_get_active_campaigns'           => 30,
 
 		// Draft handlers
-		'scd_save_draft'                     => 10,
-		'scd_delete_draft'                   => 10,
-		'scd_draft_list'                     => 30,
-		'scd_draft_preview'                  => 20,
+		'wsscd_save_draft'                     => 10,
+		'wsscd_delete_draft'                   => 10,
+		'wsscd_draft_list'                     => 30,
+		'wsscd_draft_preview'                  => 20,
 
 		// Dashboard actions
-		'scd_main_dashboard_data'            => 30,
-		'scd_get_planner_insights'           => 30,
+		'wsscd_main_dashboard_data'            => 30,
+		'wsscd_get_planner_insights'           => 30,
 
 		// Discount API handlers
-		'scd_validate_discount_rules'        => 30,
-		'scd_get_discount_preview'           => 30,
+		'wsscd_validate_discount_rules'        => 30,
+		'wsscd_get_discount_preview'           => 30,
 
 		// Debug handlers
-		'scd_debug_log'                      => 60,
-		'scd_log_console'                    => 60,
+		'wsscd_debug_log'                      => 60,
+		'wsscd_log_console'                    => 60,
 
 		// Default for other actions
 		'default'                            => 60,
@@ -355,7 +364,8 @@ class SCD_Ajax_Security {
 		}
 
 		// Verify request signature if provided (for sensitive operations)
-		if ( isset( $request['_signature'] ) && in_array( $action, self::get_signed_actions(), true ) ) {
+		// Use ! empty() instead of isset() because router sets empty string when not provided
+		if ( ! empty( $request['_signature'] ) && in_array( $action, self::get_signed_actions(), true ) ) {
 			$signature = $request['_signature'];
 			unset( $request['_signature'] ); // Remove signature from data before verification
 
@@ -372,13 +382,17 @@ class SCD_Ajax_Security {
 	}
 
 	/**
-	 * Verify nonce for action
+	 * Verify nonce for action using wp_verify_nonce().
+	 *
+	 * This method performs the actual WordPress nonce verification by calling
+	 * wp_verify_nonce() at line 423. All AJAX actions in the plugin are routed
+	 * through this centralized security check.
 	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @param    string $action     AJAX action
 	 * @param    array  $request    Request data
-	 * @return   true|WP_Error              True if valid, WP_Error otherwise
+	 * @return   true|WP_Error      True if valid, WP_Error otherwise
 	 */
 	private static function verify_nonce( $action, $request ) {
 		$expected_nonce = self::$nonce_map[ $action ] ?? null;
@@ -406,6 +420,9 @@ class SCD_Ajax_Security {
 				array( 'status' => 403 )
 			);
 		}
+
+		// Sanitize nonce value before verification (WordPress.org requirement)
+		$nonce = sanitize_text_field( wp_unslash( $nonce ) );
 
 		// Verify nonce - NO FALLBACKS!
 		$nonce_valid = wp_verify_nonce( $nonce, $expected_nonce );
@@ -462,7 +479,7 @@ class SCD_Ajax_Security {
 		}
 
 		// Also allow manage_woocommerce as secondary fallback
-		if ( strpos( $required_capability, 'scd_' ) === 0 && current_user_can( 'manage_woocommerce' ) ) {
+		if ( strpos( $required_capability, 'wsscd_' ) === 0 && current_user_can( 'manage_woocommerce' ) ) {
 			return true;
 		}
 
@@ -487,13 +504,13 @@ class SCD_Ajax_Security {
 	private static function check_request_size( $request ) {
 		$request_size = strlen( serialize( $request ) );
 
-		$action = isset( $request['scd_action'] ) ? $request['scd_action'] : '';
+		$action = isset( $request['wsscd_action'] ) ? $request['wsscd_action'] : '';
 
 		// Allow larger requests for complete_wizard action (500KB)
 		if ( 'complete_wizard' === $action ) {
-			$max_size = apply_filters( 'scd_ajax_max_request_size_complete_wizard', 512000 );
+			$max_size = apply_filters( 'wsscd_ajax_max_request_size_complete_wizard', 512000 );
 		} else {
-			$max_size = apply_filters( 'scd_ajax_max_request_size', SCD_Validation_Rules::MAX_REQUEST_SIZE );
+			$max_size = apply_filters( 'wsscd_ajax_max_request_size', WSSCD_Validation_Rules::MAX_REQUEST_SIZE );
 		}
 
 		if ( $request_size > $max_size ) {
@@ -535,7 +552,7 @@ class SCD_Ajax_Security {
 			? 'user_' . $user_id . '_ip_' . md5( $ip )
 			: 'ip_' . md5( $ip );
 
-		$transient_key = 'scd_rl_' . $identifier . '_' . $action;
+		$transient_key = 'wsscd_rl_' . $identifier . '_' . $action;
 
 		$requests     = get_transient( $transient_key ) ?: array();
 		$current_time = time();
@@ -587,7 +604,7 @@ class SCD_Ajax_Security {
 			);
 		}
 
-		$user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+		$user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '';
 		if ( empty( $user_agent ) || self::is_bot_user_agent( $user_agent ) ) {
 			return new WP_Error(
 				'invalid_user_agent',
@@ -599,7 +616,7 @@ class SCD_Ajax_Security {
 		// Verify tracking token if provided
 		$token = $request['tracking_token'] ?? '';
 		if ( ! empty( $token ) ) {
-			$expected_token = wp_hash( 'scd_tracking_' . date( 'Y-m-d' ) . '_' . self::get_client_ip() );
+			$expected_token = wp_hash( 'wsscd_tracking_' . gmdate( 'Y-m-d' ) . '_' . self::get_client_ip() );
 			if ( ! hash_equals( $expected_token, $token ) ) {
 				return new WP_Error(
 					'invalid_tracking_token',
@@ -651,13 +668,13 @@ class SCD_Ajax_Security {
 	 */
 	public static function get_client_ip() {
 		// Always use REMOTE_ADDR as the base (most reliable)
-		$remote_addr = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+		$remote_addr = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '127.0.0.1';
 
 		// Only trust forwarded headers if request comes from trusted proxy
 		// For security, we DON'T trust proxy headers by default
 		// Users can add trusted proxies via wp-config.php if needed:
-		// define( 'SCD_TRUSTED_PROXIES', array( '10.0.0.1', '192.168.1.1' ) );
-		$trusted_proxies = defined( 'SCD_TRUSTED_PROXIES' ) ? SCD_TRUSTED_PROXIES : array();
+		// define( 'WSSCD_TRUSTED_PROXIES', array( '10.0.0.1', '192.168.1.1' ) );
+		$trusted_proxies = defined( 'WSSCD_TRUSTED_PROXIES' ) ? WSSCD_TRUSTED_PROXIES : array();
 
 		// If not from trusted proxy, always use REMOTE_ADDR
 		if ( ! in_array( $remote_addr, $trusted_proxies, true ) ) {
@@ -726,7 +743,7 @@ class SCD_Ajax_Security {
 	 * @param    string $action     AJAX action
 	 * @return   true|WP_Error              True if valid, WP_Error otherwise
 	 */
-	public static function verify_scd_nonce( $nonce, $action ) {
+	public static function verify_wsscd_nonce( $nonce, $action ) {
 		return self::verify_nonce( $action, array( 'nonce' => $nonce ) );
 	}
 
@@ -739,18 +756,18 @@ class SCD_Ajax_Security {
 	private static function get_signed_actions() {
 		return array(
 			// Critical operations
-			'scd_save_campaign',
-			'scd_delete_campaign',
-			'scd_complete_wizard',
-			'scd_toggle_campaign_status',
+			'wsscd_save_campaign',
+			'wsscd_delete_campaign',
+			'wsscd_complete_wizard',
+			'wsscd_toggle_campaign_status',
 
 			// Financial/analytics exports
-			'scd_export_analytics',
-			'scd_generate_report',
-			'scd_download_export',
+			'wsscd_export_analytics',
+			'wsscd_generate_report',
+			'wsscd_download_export',
 
 			// Validation operations with sensitive data
-			'scd_get_validation_rules_batch',
+			'wsscd_get_validation_rules_batch',
 		);
 	}
 

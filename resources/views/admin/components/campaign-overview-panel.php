@@ -17,102 +17,102 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 
 <!-- Backdrop -->
-<div class="scd-overview-panel-backdrop"></div>
+<div class="wsscd-overview-panel-backdrop"></div>
 
-<div id="scd-campaign-overview-panel"
-     class="scd-overview-panel"
+<div id="wsscd-campaign-overview-panel"
+     class="wsscd-overview-panel"
      role="dialog"
      aria-modal="true"
-     aria-labelledby="scd-panel-title"
-     aria-describedby="scd-panel-description">
+     aria-labelledby="wsscd-panel-title"
+     aria-describedby="wsscd-panel-description">
 
 	<!-- Panel Container -->
-	<div class="scd-overview-panel-container">
+	<div class="wsscd-overview-panel-container">
 
 		<!-- Header -->
-		<div class="scd-overview-panel-header">
-			<div class="scd-overview-panel-header-content">
-				<h2 id="scd-panel-title" class="scd-overview-panel-title">
-					<span class="scd-panel-title-text"><?php esc_html_e( 'Campaign Overview', 'smart-cycle-discounts' ); ?></span>
+		<div class="wsscd-overview-panel-header">
+			<div class="wsscd-overview-panel-header-content">
+				<h2 id="wsscd-panel-title" class="wsscd-overview-panel-title">
+					<span class="wsscd-panel-title-text"><?php esc_html_e( 'Campaign Overview', 'smart-cycle-discounts' ); ?></span>
 				</h2>
-				<div id="scd-panel-description" class="screen-reader-text">
+				<div id="wsscd-panel-description" class="screen-reader-text">
 					<?php esc_html_e( 'Detailed information about the selected campaign', 'smart-cycle-discounts' ); ?>
 				</div>
 			</div>
 			<button type="button"
-			        class="scd-overview-panel-close"
+			        class="wsscd-overview-panel-close"
 			        aria-label="<?php esc_attr_e( 'Close panel', 'smart-cycle-discounts' ); ?>">
-				<?php echo SCD_Icon_Helper::get( 'no-alt', array( 'size' => 16 ) ); ?>
+				<?php WSSCD_Icon_Helper::render( 'no-alt', array( 'size' => 16 ) ); ?>
 			</button>
 		</div>
 
 		<!-- Content -->
-		<div class="scd-overview-panel-content">
+		<div class="wsscd-overview-panel-content">
 
 			<!-- Loading State -->
 			<?php
-			if ( class_exists( 'SCD_Loader_Helper' ) ) {
-				SCD_Loader_Helper::render_container( 'scd-overview-loading', __( 'Loading campaign details...', 'smart-cycle-discounts' ), false );
+			if ( class_exists( 'WSSCD_Loader_Helper' ) ) {
+				WSSCD_Loader_Helper::render_container( 'wsscd-overview-loading', __( 'Loading campaign details...', 'smart-cycle-discounts' ), false );
 			}
 			?>
 
 			<!-- Error State -->
-			<div id="scd-overview-error" class="scd-overview-error">
-				<?php echo SCD_Icon_Helper::get( 'warning', array( 'size' => 16 ) ); ?>
-				<p class="scd-overview-error-message"></p>
-				<button type="button" id="scd-overview-retry" class="button scd-retry-load">
+			<div id="wsscd-overview-error" class="wsscd-overview-error">
+				<?php WSSCD_Icon_Helper::render( 'warning', array( 'size' => 16 ) ); ?>
+				<p class="wsscd-overview-error-message"></p>
+				<button type="button" id="wsscd-overview-retry" class="button wsscd-retry-load">
 					<?php esc_html_e( 'Retry', 'smart-cycle-discounts' ); ?>
 				</button>
 			</div>
 
 			<!-- Sections Container -->
-			<div id="scd-overview-sections" class="scd-overview-sections">
+			<div id="wsscd-overview-sections" class="wsscd-overview-sections">
 
 				<!-- Basic Info Section -->
-				<div class="scd-overview-section scd-section-basic">
-					<div class="scd-form-section-header">
-						<h3 class="scd-form-section-title">
+				<div class="wsscd-overview-section wsscd-section-basic">
+					<div class="wsscd-form-section-header">
+						<h3 class="wsscd-form-section-title">
 							<?php esc_html_e( 'Basic Information', 'smart-cycle-discounts' ); ?>
 						</h3>
 					</div>
-					<div id="scd-section-basic" class="scd-overview-section-content" data-section="basic">
+					<div id="wsscd-section-basic" class="wsscd-overview-section-content" data-section="basic">
 						<!-- Populated via AJAX -->
 					</div>
 				</div>
 
 				<!-- Health Status Section -->
-				<div class="scd-overview-section scd-section-health">
-					<div class="scd-form-section-header">
-						<h3 class="scd-form-section-title">
-							<?php echo SCD_Icon_Helper::get( 'heart', array( 'size' => 20 ) ); ?>
+				<div class="wsscd-overview-section wsscd-section-health">
+					<div class="wsscd-form-section-header">
+						<h3 class="wsscd-form-section-title">
+							<?php WSSCD_Icon_Helper::render( 'heart', array( 'size' => 20 ) ); ?>
 							<?php esc_html_e( 'Campaign Health', 'smart-cycle-discounts' ); ?>
 						</h3>
 					</div>
-					<div id="scd-section-health" class="scd-overview-section-content" data-section="health">
+					<div id="wsscd-section-health" class="wsscd-overview-section-content" data-section="health">
 						<!-- Populated via AJAX -->
 					</div>
 				</div>
 
 				<!-- Schedule Section -->
-				<div class="scd-overview-section scd-section-schedule">
-					<div class="scd-form-section-header">
-						<h3 class="scd-form-section-title">
+				<div class="wsscd-overview-section wsscd-section-schedule">
+					<div class="wsscd-form-section-header">
+						<h3 class="wsscd-form-section-title">
 							<?php esc_html_e( 'Schedule', 'smart-cycle-discounts' ); ?>
 						</h3>
 					</div>
-					<div id="scd-section-schedule" class="scd-overview-section-content" data-section="schedule">
+					<div id="wsscd-section-schedule" class="wsscd-overview-section-content" data-section="schedule">
 						<!-- Populated via AJAX -->
 					</div>
 				</div>
 
 				<!-- Recurring Schedule Section -->
-				<div class="scd-overview-section scd-section-recurring-schedule">
-					<div class="scd-overview-subsection">
-						<div class="scd-subsection-header">
-							<?php echo SCD_Icon_Helper::get( 'backup', array( 'size' => 16 ) ); ?>
+				<div class="wsscd-overview-section wsscd-section-recurring-schedule">
+					<div class="wsscd-overview-subsection">
+						<div class="wsscd-subsection-header">
+							<?php WSSCD_Icon_Helper::render( 'backup', array( 'size' => 16 ) ); ?>
 							<h5><?php esc_html_e( 'Recurring Schedule', 'smart-cycle-discounts' ); ?></h5>
 						</div>
-						<div id="scd-section-recurring-schedule" class="scd-overview-section-content" data-section="recurring_schedule">
+						<div id="wsscd-section-recurring-schedule" class="wsscd-overview-section-content" data-section="recurring_schedule">
 							<!-- Populated via AJAX -->
 						</div>
 					</div>
@@ -120,37 +120,37 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 
 				<!-- Products Section -->
-				<div class="scd-overview-section scd-section-products">
-					<div class="scd-form-section-header">
-						<h3 class="scd-form-section-title">
+				<div class="wsscd-overview-section wsscd-section-products">
+					<div class="wsscd-form-section-header">
+						<h3 class="wsscd-form-section-title">
 							<?php esc_html_e( 'Products', 'smart-cycle-discounts' ); ?>
 						</h3>
 					</div>
-					<div id="scd-section-products" class="scd-overview-section-content" data-section="products">
+					<div id="wsscd-section-products" class="wsscd-overview-section-content" data-section="products">
 						<!-- Populated via AJAX -->
 					</div>
 				</div>
 
 				<!-- Discounts Section -->
-				<div class="scd-overview-section scd-section-discounts">
-					<div class="scd-form-section-header">
-						<h3 class="scd-form-section-title">
+				<div class="wsscd-overview-section wsscd-section-discounts">
+					<div class="wsscd-form-section-header">
+						<h3 class="wsscd-form-section-title">
 							<?php esc_html_e( 'Discount Configuration', 'smart-cycle-discounts' ); ?>
 						</h3>
 					</div>
-					<div id="scd-section-discounts" class="scd-overview-section-content" data-section="discounts">
+					<div id="wsscd-section-discounts" class="wsscd-overview-section-content" data-section="discounts">
 						<!-- Populated via AJAX -->
 					</div>
 				</div>
 
 				<!-- Performance Section -->
-				<div class="scd-overview-section scd-section-performance">
-					<div class="scd-form-section-header">
-						<h3 class="scd-form-section-title">
+				<div class="wsscd-overview-section wsscd-section-performance">
+					<div class="wsscd-form-section-header">
+						<h3 class="wsscd-form-section-title">
 							<?php esc_html_e( 'Performance', 'smart-cycle-discounts' ); ?>
 						</h3>
 					</div>
-					<div id="scd-section-performance" class="scd-overview-section-content" data-section="performance">
+					<div id="wsscd-section-performance" class="wsscd-overview-section-content" data-section="performance">
 						<!-- Populated via AJAX -->
 					</div>
 				</div>
@@ -160,11 +160,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 
 		<!-- Footer -->
-		<div class="scd-overview-panel-footer">
-			<button type="button" id="scd-overview-edit-button" class="button button-primary scd-edit-campaign" data-campaign-id="">
+		<div class="wsscd-overview-panel-footer">
+			<button type="button" id="wsscd-overview-edit-button" class="button button-primary wsscd-edit-campaign" data-campaign-id="">
 				<?php esc_html_e( 'Edit Campaign', 'smart-cycle-discounts' ); ?>
 			</button>
-			<button type="button" id="scd-overview-close-button" class="button scd-close-panel">
+			<button type="button" id="wsscd-overview-close-button" class="button wsscd-close-panel">
 				<?php esc_html_e( 'Close', 'smart-cycle-discounts' ); ?>
 			</button>
 		</div>

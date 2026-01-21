@@ -1,0 +1,35 @@
+name: Deploy to Freemius
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'  # Matches version tags like 1.0.2, 2.1.0
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Freemius
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Create plugin zip
+        run: |
+          zip -r smart-cycle-discounts.zip . -x "*.git*" -x "*.github*" -x "node_modules/*" -x "tests/*" -x "*.md" -x "deploy-to-wporg.sh"
+
+      - name: Deploy to Freemius
+        uses: buttonizer/freemius-deploy@v1.0.2
+        env:
+          DEV_ID: ${{ secrets.FREEMIUS_DEV_ID }}
+          PLUGIN_ID: ${{ secrets.FREEMIUS_PLUGIN_ID }}
+          PLUGIN_SLUG: smart-cycle-discounts
+          PUBLIC_KEY: ${{ secrets.FREEMIUS_PUBLIC_KEY }}
+          SECRET_KEY: ${{ secrets.FREEMIUS_SECRET_KEY }}
+        with:
+          file_name: smart-cycle-discounts.zip
+          version: ${{ steps.version.outputs.VERSION }}

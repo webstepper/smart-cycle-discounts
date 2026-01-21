@@ -8,11 +8,11 @@
  * @package Smart_Cycle_Discounts
  */
 
-( function( window, $, SCD ) {
+( function( window, $, WSSCD ) {
 	'use strict';
 
-	if ( ! SCD || ! SCD.Shared ) {
-		console.error( 'SCD.Shared is not defined. Auto Events cannot initialize.' );
+	if ( ! WSSCD || ! WSSCD.Shared ) {
+		console.error( 'WSSCD.Shared is not defined. Auto Events cannot initialize.' );
 		return;
 	}
 
@@ -23,20 +23,20 @@
 	 *
 	 * @example
 	 * HTML:
-	 * <button data-scd-on="click" data-scd-action="handleAddTier">Add Tier</button>
-	 * <input data-scd-on="change input" data-scd-action="updateDiscount">
-	 * <select data-scd-on="change" data-scd-action="handleTypeChange" data-scd-args='{"type":"discount"}'>
+	 * <button data-wsscd-on="click" data-wsscd-action="handleAddTier">Add Tier</button>
+	 * <input data-wsscd-on="change input" data-wsscd-action="updateDiscount">
+	 * <select data-wsscd-on="change" data-wsscd-action="handleTypeChange" data-wsscd-args='{"type":"discount"}'>
 	 *
 	 * JavaScript:
-	 * SCD.Shared.AutoEvents.bind( this.$container, this );
+	 * WSSCD.Shared.AutoEvents.bind( this.$container, this );
 	 * // Automatically binds all events in container to 'this' context
 	 */
-	SCD.Shared.AutoEvents = {
+	WSSCD.Shared.AutoEvents = {
 
 		/**
 		 * Bind all auto events in container
 		 *
-		 * Scans container for elements with data-scd-on attributes
+		 * Scans container for elements with data-wsscd-on attributes
 		 * and automatically binds event handlers
 		 *
 		 * @param {jQuery} $container Container element to scan
@@ -50,7 +50,7 @@
 
 			// Validate parameters
 			if ( ! $container || ! $container.length ) {
-				SCD.ErrorHandler.handle(
+				WSSCD.ErrorHandler.handle(
 					new Error( 'Auto Events: Invalid container provided' ),
 					'AutoEvents.bind'
 				);
@@ -58,7 +58,7 @@
 			}
 
 			if ( ! context || typeof context !== 'object' ) {
-				SCD.ErrorHandler.handle(
+				WSSCD.ErrorHandler.handle(
 					new Error( 'Auto Events: Invalid context provided' ),
 					'AutoEvents.bind'
 				);
@@ -67,10 +67,10 @@
 
 			// Default options
 			var settings = $.extend( {
-				namespace: 'scd-auto',
-				eventAttr: 'data-scd-on',
-				actionAttr: 'data-scd-action',
-				argsAttr: 'data-scd-args',
+				namespace: 'wsscd-auto',
+				eventAttr: 'data-wsscd-on',
+				actionAttr: 'data-wsscd-action',
+				argsAttr: 'data-wsscd-args',
 				delegated: true,
 				preventDefault: true,
 				stopPropagation: false
@@ -99,7 +99,7 @@
 					try {
 						args = JSON.parse( argsStr );
 					} catch ( e ) {
-						SCD.DebugLogger.warn( 'Auto Events: Failed to parse args for action "' + action + '"', 'AutoEvents' );
+						WSSCD.DebugLogger.warn( 'Auto Events: Failed to parse args for action "' + action + '"', 'AutoEvents' );
 					}
 				}
 
@@ -126,8 +126,8 @@
 				}
 			} );
 
-			if ( window.SCD && window.SCD.DebugLogger ) {
-				SCD.DebugLogger.log(
+			if ( window.WSSCD && window.WSSCD.DebugLogger ) {
+				WSSCD.DebugLogger.log(
 					'info',
 					'AutoEvents',
 					'Auto Events: Bound ' + boundEvents.length + ' events in container'
@@ -152,7 +152,7 @@
 		_bindEvent: function( $container, $element, eventType, action, context, settings, args ) {
 			// Check if handler exists
 			if ( typeof context[action] !== 'function' ) {
-				SCD.ErrorHandler.handle(
+				WSSCD.ErrorHandler.handle(
 					new Error( 'Auto Events: Handler method "' + action + '" not found in context' ),
 					'AutoEvents._bindEvent'
 				);
@@ -182,7 +182,7 @@
 						context[action].call( context, event );
 					}
 				} catch ( error ) {
-					SCD.ErrorHandler.handle(
+					WSSCD.ErrorHandler.handle(
 						error,
 						'AutoEvents.handler',
 						{ action: action, eventType: eventType }
@@ -241,16 +241,16 @@
 				var classList = classes.split( ' ' );
 				for ( var i = 0; i < classList.length; i++ ) {
 					var className = classList[i].trim();
-					if ( className && className.indexOf( 'scd-' ) === 0 ) {
+					if ( className && className.indexOf( 'wsscd-' ) === 0 ) {
 						return '.' + className;
 					}
 				}
 			}
 
-			// Use data-scd-action as last resort
-			var action = $element.attr( 'data-scd-action' );
+			// Use data-wsscd-action as last resort
+			var action = $element.attr( 'data-wsscd-action' );
 			if ( action ) {
-				return '[data-scd-action="' + action + '"]';
+				return '[data-wsscd-action="' + action + '"]';
 			}
 
 			return null;
@@ -260,11 +260,11 @@
 		 * Unbind all auto events
 		 *
 		 * @param {jQuery} $container Container element
-		 * @param {string} namespace Event namespace (default: 'scd-auto')
+		 * @param {string} namespace Event namespace (default: 'wsscd-auto')
 		 * @return {void}
 		 */
 		unbind: function( $container, namespace ) {
-			namespace = namespace || 'scd-auto';
+			namespace = namespace || 'wsscd-auto';
 
 			if ( ! $container || ! $container.length ) {
 				return;
@@ -272,8 +272,8 @@
 
 			$container.off( '.' + namespace );
 
-			if ( window.SCD && window.SCD.DebugLogger ) {
-				SCD.DebugLogger.log(
+			if ( window.WSSCD && window.WSSCD.DebugLogger ) {
+				WSSCD.DebugLogger.log(
 					'info',
 					'AutoEvents',
 					'Auto Events: Unbound all events with namespace "' + namespace + '"'
@@ -315,7 +315,7 @@
 		 */
 		rebind: function( $container, context, options ) {
 			// Unbind existing events
-			var namespace = ( options && options.namespace ) || 'scd-auto';
+			var namespace = ( options && options.namespace ) || 'wsscd-auto';
 			this.unbind( $container, namespace );
 
 			// Bind again
@@ -333,15 +333,15 @@
 		 * @return {string} HTML attribute string
 		 *
 		 * @example
-		 * var attrs = SCD.Shared.AutoEvents.attrs( 'click', 'handleAddTier', {type: 'percentage'} );
-		 * // Returns: 'data-scd-on="click" data-scd-action="handleAddTier" data-scd-args='{"type":"percentage"}''
+		 * var attrs = WSSCD.Shared.AutoEvents.attrs( 'click', 'handleAddTier', {type: 'percentage'} );
+		 * // Returns: 'data-wsscd-on="click" data-wsscd-action="handleAddTier" data-wsscd-args='{"type":"percentage"}''
 		 */
 		attrs: function( events, action, args ) {
-			var attrString = 'data-scd-on="' + events + '" data-scd-action="' + action + '"';
+			var attrString = 'data-wsscd-on="' + events + '" data-wsscd-action="' + action + '"';
 
 			if ( args && typeof args === 'object' ) {
 				var argsJson = JSON.stringify( args ).replace( /"/g, '&quot;' );
-				attrString += ' data-scd-args="' + argsJson + '"';
+				attrString += ' data-wsscd-args="' + argsJson + '"';
 			}
 
 			return attrString;
@@ -361,8 +361,8 @@
 	};
 
 	// Module loaded
-	if ( window.SCD && window.SCD.DebugLogger ) {
-		SCD.DebugLogger.log( 'info', 'AutoEvents', 'Auto Events loaded' );
+	if ( window.WSSCD && window.WSSCD.DebugLogger ) {
+		WSSCD.DebugLogger.log( 'info', 'AutoEvents', 'Auto Events loaded' );
 	}
 
-} )( window, jQuery, window.SCD || {} );
+} )( window, jQuery, window.WSSCD || {} );

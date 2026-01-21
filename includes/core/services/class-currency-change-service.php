@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/services
  */
-class SCD_Currency_Change_Service {
+class WSSCD_Currency_Change_Service {
 
 	/**
 	 * Campaign repository instance.
@@ -66,8 +66,8 @@ class SCD_Currency_Change_Service {
 		add_action( 'update_option_woocommerce_currency', array( $this, 'handle_currency_change' ), 10, 2 );
 
 		// Hook into campaign creation to track currency
-		add_action( 'scd_campaign_created', array( $this, 'track_campaign_currency' ), 10, 1 );
-		add_action( 'scd_campaign_updated', array( $this, 'track_campaign_currency' ), 10, 1 );
+		add_action( 'wsscd_campaign_created', array( $this, 'track_campaign_currency' ), 10, 1 );
+		add_action( 'wsscd_campaign_updated', array( $this, 'track_campaign_currency' ), 10, 1 );
 	}
 
 	/**
@@ -96,7 +96,7 @@ class SCD_Currency_Change_Service {
 		$this->set_currency_change_notice( $paused_count, $old_value, $new_value );
 
 		// Fire action for extensibility
-		do_action( 'scd_currency_changed', $old_value, $new_value, $paused_count );
+		do_action( 'wsscd_currency_changed', $old_value, $new_value, $paused_count );
 	}
 
 	/**
@@ -108,11 +108,20 @@ class SCD_Currency_Change_Service {
 	 */
 	private function get_affected_campaigns( $old_currency ) {
 		if ( ! $this->campaign_repository ) {
-			require_once SCD_INCLUDES_DIR . 'database/repositories/class-campaign-repository.php';
-			$this->campaign_repository = new SCD_Campaign_Repository();
+			require_once WSSCD_INCLUDES_DIR . 'database/repositories/class-campaign-repository.php';
+			$this->campaign_repository = new WSSCD_Campaign_Repository();
 		}
 
-		$campaigns = $this->campaign_repository->find_by_status( array( 'active', 'scheduled', 'paused' ) );
+		// find_by_status accepts a single status string, so we need to query each status separately
+		$statuses  = array( 'active', 'scheduled', 'paused' );
+		$campaigns = array();
+
+		foreach ( $statuses as $status ) {
+			$status_campaigns = $this->campaign_repository->find_by_status( $status );
+			if ( ! empty( $status_campaigns ) ) {
+				$campaigns = array_merge( $campaigns, $status_campaigns );
+			}
+		}
 
 		if ( empty( $campaigns ) ) {
 			return array();
@@ -132,7 +141,7 @@ class SCD_Currency_Change_Service {
 	 * Check if campaign needs review due to currency change.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign        Campaign object.
+	 * @param    WSSCD_Campaign $campaign        Campaign object.
 	 * @param    string       $old_currency    Old currency code.
 	 * @return   bool                             True if needs review.
 	 */
@@ -195,9 +204,10 @@ class SCD_Currency_Change_Service {
 
 					// Log the pause
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
 						error_log(
 							sprintf(
-								'[SCD Currency Change] Paused campaign #%d (%s) - Discount type: %s',
+								'[WSSCD Currency Change] Paused campaign #%d (%s) - Discount type: %s',
 								$campaign->get_id(),
 								$campaign->get_name(),
 								$campaign->get_discount_type()
@@ -205,13 +215,16 @@ class SCD_Currency_Change_Service {
 						);
 					}
 				} catch ( Exception $e ) {
-					error_log(
-						sprintf(
-							'[SCD Currency Change] Failed to pause campaign #%d: %s',
-							$campaign->get_id(),
-							$e->getMessage()
-						)
-					);
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
+						error_log(
+							sprintf(
+								'[WSSCD Currency Change] Failed to pause campaign #%d: %s',
+								$campaign->get_id(),
+								$e->getMessage()
+							)
+						);
+					}
 				}
 			}
 		}
@@ -223,7 +236,7 @@ class SCD_Currency_Change_Service {
 	 * Mark campaign for currency review.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign        Campaign object.
+	 * @param    WSSCD_Campaign $campaign        Campaign object.
 	 * @param    string       $old_currency    Old currency code.
 	 * @param    string       $new_currency    New currency code.
 	 * @return   void
@@ -240,7 +253,7 @@ class SCD_Currency_Change_Service {
 	 * Track campaign currency on creation/update.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   void
 	 */
 	public function track_campaign_currency( $campaign ) {
@@ -252,13 +265,16 @@ class SCD_Currency_Change_Service {
 			try {
 				$this->campaign_repository->save( $campaign );
 			} catch ( Exception $e ) {
-				error_log(
-					sprintf(
-						'[SCD Currency Tracking] Failed to save currency metadata for campaign #%d: %s',
-						$campaign->get_id(),
-						$e->getMessage()
-					)
-				);
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
+					error_log(
+						sprintf(
+							'[WSSCD Currency Tracking] Failed to save currency metadata for campaign #%d: %s',
+							$campaign->get_id(),
+							$e->getMessage()
+						)
+					);
+				}
 			}
 		}
 	}
@@ -280,7 +296,7 @@ class SCD_Currency_Change_Service {
 			'timestamp'    => time(),
 		);
 
-		set_transient( 'scd_currency_change_notice', $notice_data, DAY_IN_SECONDS );
+		set_transient( 'wsscd_currency_change_notice', $notice_data, DAY_IN_SECONDS );
 	}
 
 	/**
@@ -291,8 +307,8 @@ class SCD_Currency_Change_Service {
 	 */
 	public function get_campaigns_needing_review() {
 		if ( ! $this->campaign_repository ) {
-			require_once SCD_INCLUDES_DIR . 'database/repositories/class-campaign-repository.php';
-			$this->campaign_repository = new SCD_Campaign_Repository();
+			require_once WSSCD_INCLUDES_DIR . 'database/repositories/class-campaign-repository.php';
+			$this->campaign_repository = new WSSCD_Campaign_Repository();
 		}
 
 		$all_campaigns = $this->campaign_repository->find_all();
@@ -320,8 +336,8 @@ class SCD_Currency_Change_Service {
 	 */
 	public function clear_review_flag( $campaign_id ) {
 		if ( ! $this->campaign_repository ) {
-			require_once SCD_INCLUDES_DIR . 'database/repositories/class-campaign-repository.php';
-			$this->campaign_repository = new SCD_Campaign_Repository();
+			require_once WSSCD_INCLUDES_DIR . 'database/repositories/class-campaign-repository.php';
+			$this->campaign_repository = new WSSCD_Campaign_Repository();
 		}
 
 		try {
@@ -338,13 +354,16 @@ class SCD_Currency_Change_Service {
 
 			return true;
 		} catch ( Exception $e ) {
-			error_log(
-				sprintf(
-					'[SCD Currency Review] Failed to clear review flag for campaign #%d: %s',
-					$campaign_id,
-					$e->getMessage()
-				)
-			);
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
+				error_log(
+					sprintf(
+						'[WSSCD Currency Review] Failed to clear review flag for campaign #%d: %s',
+						$campaign_id,
+						$e->getMessage()
+					)
+				);
+			}
 			return false;
 		}
 	}
@@ -358,8 +377,8 @@ class SCD_Currency_Change_Service {
 	 */
 	public function restore_campaign_status( $campaign_id ) {
 		if ( ! $this->campaign_repository ) {
-			require_once SCD_INCLUDES_DIR . 'database/repositories/class-campaign-repository.php';
-			$this->campaign_repository = new SCD_Campaign_Repository();
+			require_once WSSCD_INCLUDES_DIR . 'database/repositories/class-campaign-repository.php';
+			$this->campaign_repository = new WSSCD_Campaign_Repository();
 		}
 
 		try {
@@ -390,13 +409,16 @@ class SCD_Currency_Change_Service {
 
 			return false;
 		} catch ( Exception $e ) {
-			error_log(
-				sprintf(
-					'[SCD Currency Review] Failed to restore campaign #%d: %s',
-					$campaign_id,
-					$e->getMessage()
-				)
-			);
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
+				error_log(
+					sprintf(
+						'[WSSCD Currency Review] Failed to restore campaign #%d: %s',
+						$campaign_id,
+						$e->getMessage()
+					)
+				);
+			}
 			return false;
 		}
 	}

@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class SCD_Clear_License_Cache_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Clear_License_Cache_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Container instance.
@@ -32,7 +32,7 @@ class SCD_Clear_License_Cache_Handler extends SCD_Abstract_Ajax_Handler {
 	/**
 	 * Logger instance.
 	 *
-	 * @var SCD_Logger
+	 * @var WSSCD_Logger
 	 */
 	private $logger;
 
@@ -40,7 +40,7 @@ class SCD_Clear_License_Cache_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @param object     $container Container instance.
-	 * @param SCD_Logger $logger    Logger instance.
+	 * @param WSSCD_Logger $logger    Logger instance.
 	 */
 	public function __construct( $container, $logger ) {
 		parent::__construct( $logger );
@@ -54,7 +54,7 @@ class SCD_Clear_License_Cache_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return string Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_clear_license_cache';
+		return 'wsscd_clear_license_cache';
 	}
 
 	/**
@@ -98,6 +98,7 @@ class SCD_Clear_License_Cache_Handler extends SCD_Abstract_Ajax_Handler {
 
 		// 3. Clear any Freemius-specific transients
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Bulk Freemius transient cleanup; no WP abstraction for pattern-based delete.
 		$transients_cleared = $wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options}
@@ -110,8 +111,8 @@ class SCD_Clear_License_Cache_Handler extends SCD_Abstract_Ajax_Handler {
 		$results['freemius_transients_cleared'] = $transients_cleared;
 
 		// 4. Get fresh Freemius status
-		if ( function_exists( 'scd_fs' ) && is_object( scd_fs() ) ) {
-			$freemius                               = scd_fs();
+		if ( function_exists( 'wsscd_fs' ) && is_object( wsscd_fs() ) ) {
+			$freemius                               = wsscd_fs();
 			$results['freemius_status_after_clear'] = array(
 				'is_premium'    => $freemius->is_premium(),
 				'is_trial'      => $freemius->is_trial(),

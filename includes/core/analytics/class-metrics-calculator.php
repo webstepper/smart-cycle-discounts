@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-require_once SCD_PLUGIN_DIR . 'includes/core/analytics/trait-analytics-helpers.php';
+require_once WSSCD_PLUGIN_DIR . 'includes/core/analytics/trait-analytics-helpers.php';
 
 /**
  * Metrics Calculator
@@ -28,36 +28,36 @@ require_once SCD_PLUGIN_DIR . 'includes/core/analytics/trait-analytics-helpers.p
  * @subpackage SmartCycleDiscounts/includes/core/analytics
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Metrics_Calculator {
+class WSSCD_Metrics_Calculator {
 
-	use SCD_Analytics_Helpers;
+	use WSSCD_Analytics_Helpers;
 
 	/**
 	 * Database manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Database_Manager    $database_manager    Database manager.
+	 * @var      WSSCD_Database_Manager    $database_manager    Database manager.
 	 */
-	private SCD_Database_Manager $database_manager;
+	private $database_manager;
 
 	/**
 	 * Cache manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Cache_Manager    $cache_manager    Cache manager.
+	 * @var      WSSCD_Cache_Manager    $cache_manager    Cache manager.
 	 */
-	private SCD_Cache_Manager $cache_manager;
+	private $cache_manager;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private $logger;
 
 	/**
 	 * Analytics table name.
@@ -66,27 +66,27 @@ class SCD_Metrics_Calculator {
 	 * @access   private
 	 * @var      string    $analytics_table    Analytics table name.
 	 */
-	private string $analytics_table;
+	private $analytics_table;
 
 	/**
 	 * Initialize the metrics calculator.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager $database_manager    Database manager.
-	 * @param    SCD_Cache_Manager    $cache_manager       Cache manager.
-	 * @param    SCD_Logger           $logger              Logger instance.
+	 * @param    WSSCD_Database_Manager $database_manager    Database manager.
+	 * @param    WSSCD_Cache_Manager    $cache_manager       Cache manager.
+	 * @param    WSSCD_Logger           $logger              Logger instance.
 	 */
 	public function __construct(
-		SCD_Database_Manager $database_manager,
-		SCD_Cache_Manager $cache_manager,
-		SCD_Logger $logger
+		WSSCD_Database_Manager $database_manager,
+		WSSCD_Cache_Manager $cache_manager,
+		WSSCD_Logger $logger
 	) {
 		$this->database_manager = $database_manager;
 		$this->cache_manager    = $cache_manager;
 		$this->logger           = $logger;
 
 		global $wpdb;
-		$this->analytics_table = $wpdb->prefix . 'scd_analytics';
+		$this->analytics_table = $wpdb->prefix . 'wsscd_analytics';
 
 		// Register cache invalidation hooks
 		$this->register_cache_invalidation_hooks();
@@ -103,13 +103,13 @@ class SCD_Metrics_Calculator {
 	 */
 	private function register_cache_invalidation_hooks(): void {
 		// Clear cache when campaigns change
-		add_action( 'scd_campaign_created', array( $this, 'clear_cache' ) );
-		add_action( 'scd_campaign_updated', array( $this, 'clear_cache' ) );
-		add_action( 'scd_campaign_deleted', array( $this, 'clear_cache' ) );
-		add_action( 'scd_campaign_status_changed', array( $this, 'clear_cache' ) );
+		add_action( 'wsscd_campaign_created', array( $this, 'clear_cache' ) );
+		add_action( 'wsscd_campaign_updated', array( $this, 'clear_cache' ) );
+		add_action( 'wsscd_campaign_deleted', array( $this, 'clear_cache' ) );
+		add_action( 'wsscd_campaign_status_changed', array( $this, 'clear_cache' ) );
 
 		// Clear cache when analytics data is recorded
-		add_action( 'scd_analytics_recorded', array( $this, 'clear_cache' ) );
+		add_action( 'wsscd_analytics_recorded', array( $this, 'clear_cache' ) );
 
 		// Clear cache when WooCommerce orders complete or are refunded
 		add_action( 'woocommerce_order_status_completed', array( $this, 'clear_cache' ) );
@@ -131,7 +131,7 @@ class SCD_Metrics_Calculator {
 		string $date_range = '7days',
 		bool $use_cache = true
 	): array {
-		$cache_key = "scd_metrics_campaign_{$campaign_id}_{$date_range}";
+		$cache_key = "analytics_metrics_campaign_{$campaign_id}_{$date_range}";
 
 		if ( $use_cache ) {
 			$cached_metrics = $this->cache_manager->get( $cache_key );
@@ -196,7 +196,7 @@ class SCD_Metrics_Calculator {
 	 * @return   array                    Overall metrics.
 	 */
 	public function calculate_overall_metrics( string $date_range = '7days', bool $use_cache = true ): array {
-		$cache_key = "scd_metrics_overall_{$date_range}";
+		$cache_key = "analytics_metrics_overall_{$date_range}";
 
 		if ( $use_cache ) {
 			$cached_metrics = $this->cache_manager->get( $cache_key );
@@ -211,19 +211,22 @@ class SCD_Metrics_Calculator {
 			global $wpdb;
 
 			// Calculate totals across all campaigns
-			$start_date = date( 'Y-m-d', strtotime( $date_conditions['start_date'] ) );
-			$end_date   = date( 'Y-m-d', strtotime( $date_conditions['end_date'] ) );
+			$start_date = gmdate( 'Y-m-d', strtotime( $date_conditions['start_date'] ) );
+			$end_date   = gmdate( 'Y-m-d', strtotime( $date_conditions['end_date'] ) );
 
+			// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Analytics aggregation query.
 			$totals = $wpdb->get_row(
 				$wpdb->prepare(
-					"SELECT
+					'SELECT
 						COALESCE(SUM(impressions), 0) as total_impressions,
 						COALESCE(SUM(clicks), 0) as total_clicks,
 						COALESCE(SUM(conversions), 0) as total_conversions,
 						COALESCE(SUM(revenue), 0) as total_revenue,
 						COALESCE(SUM(discount_given), 0) as total_discount
-					FROM {$this->analytics_table}
-					WHERE date_recorded BETWEEN %s AND %s",
+					FROM %i
+					WHERE date_recorded BETWEEN %s AND %s',
+					$this->analytics_table,
 					$start_date,
 					$end_date
 				),
@@ -232,39 +235,50 @@ class SCD_Metrics_Calculator {
 
 			// Get previous period data for comparison
 			$previous_period = $this->get_previous_period_dates( $date_range );
+			// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Analytics comparison query.
 			$previous_totals = $wpdb->get_row(
 				$wpdb->prepare(
-					"SELECT
+					'SELECT
 						COALESCE(SUM(impressions), 0) as total_impressions,
 						COALESCE(SUM(clicks), 0) as total_clicks,
 						COALESCE(SUM(conversions), 0) as total_conversions,
 						COALESCE(SUM(revenue), 0) as total_revenue
-					FROM {$this->analytics_table}
-					WHERE date_recorded BETWEEN %s AND %s",
+					FROM %i
+					WHERE date_recorded BETWEEN %s AND %s',
+					$this->analytics_table,
 					$previous_period['start_date'],
 					$previous_period['end_date']
 				),
 				ARRAY_A
 			);
 
-			// Get active campaigns count (current)
-			$campaigns_table  = $wpdb->prefix . 'scd_campaigns';
+			// Get active campaigns count (current).
+			// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+			$campaigns_table  = $wpdb->prefix . 'wsscd_campaigns';
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Active campaigns count.
 			$active_campaigns = $wpdb->get_var(
-				"SELECT COUNT(*) FROM {$campaigns_table}
-				WHERE status = 'active'
-				AND deleted_at IS NULL
-				AND ( starts_at IS NULL OR starts_at <= NOW() )
-				AND ( ends_at IS NULL OR ends_at >= NOW() )"
+				$wpdb->prepare(
+					'SELECT COUNT(*) FROM %i
+					WHERE status = \'active\'
+					AND deleted_at IS NULL
+					AND ( starts_at IS NULL OR starts_at <= NOW() )
+					AND ( ends_at IS NULL OR ends_at >= NOW() )',
+					$campaigns_table
+				)
 			);
 
-			// Get active campaigns count (previous period)
+			// Get active campaigns count (previous period).
+			// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Analytics comparison query.
 			$previous_campaigns = $wpdb->get_var(
 				$wpdb->prepare(
-					"SELECT COUNT(*) FROM {$campaigns_table}
-					WHERE status = 'active'
+					'SELECT COUNT(*) FROM %i
+					WHERE status = \'active\'
 					AND deleted_at IS NULL
 					AND ( starts_at IS NULL OR starts_at <= %s )
-					AND ( ends_at IS NULL OR ends_at >= %s )",
+					AND ( ends_at IS NULL OR ends_at >= %s )',
+					$campaigns_table,
 					$previous_period['end_date'],
 					$previous_period['start_date']
 				)
@@ -331,7 +345,7 @@ class SCD_Metrics_Calculator {
 		string $date_range = '7days',
 		bool $use_cache = true
 	): array {
-		$cache_key = "scd_metrics_product_{$product_id}_{$date_range}";
+		$cache_key = "analytics_metrics_product_{$product_id}_{$date_range}";
 
 		if ( $use_cache ) {
 			$cached_metrics = $this->cache_manager->get( $cache_key );
@@ -344,16 +358,18 @@ class SCD_Metrics_Calculator {
 			$date_conditions = $this->get_date_range_conditions( $date_range );
 
 			global $wpdb;
-			$product_analytics_table = $wpdb->prefix . 'scd_product_analytics';
+			$product_analytics_table = $wpdb->prefix . 'wsscd_product_analytics';
 
 			// Calculate date range
-			$start_date = date( 'Y-m-d', strtotime( $date_conditions['start_date'] ) );
-			$end_date   = date( 'Y-m-d', strtotime( $date_conditions['end_date'] ) );
+			$start_date = gmdate( 'Y-m-d', strtotime( $date_conditions['start_date'] ) );
+			$end_date   = gmdate( 'Y-m-d', strtotime( $date_conditions['end_date'] ) );
 
-			// Get aggregated product metrics
+			// Get aggregated product metrics.
+			// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Product analytics aggregation query.
 			$totals = $wpdb->get_row(
 				$wpdb->prepare(
-					"SELECT
+					'SELECT
 						COALESCE(SUM(impressions), 0) as total_impressions,
 						COALESCE(SUM(clicks), 0) as total_clicks,
 						COALESCE(SUM(conversions), 0) as total_conversions,
@@ -361,9 +377,10 @@ class SCD_Metrics_Calculator {
 						COALESCE(SUM(discount_given), 0) as total_discount,
 						COALESCE(SUM(profit), 0) as total_profit,
 						COALESCE(SUM(quantity_sold), 0) as total_quantity
-					FROM {$product_analytics_table}
+					FROM %i
 					WHERE product_id = %d
-					AND date_recorded BETWEEN %s AND %s",
+					AND date_recorded BETWEEN %s AND %s',
+					$product_analytics_table,
 					$product_id,
 					$start_date,
 					$end_date
@@ -430,7 +447,7 @@ class SCD_Metrics_Calculator {
 	 */
 	public function calculate_realtime_metrics( ?int $campaign_id = null ): array {
 		try {
-			$current_hour    = date( 'Y-m-d H:00:00' );
+			$current_hour    = gmdate( 'Y-m-d H:00:00' );
 			$date_conditions = array(
 				'start_date' => $current_hour,
 				'end_date'   => current_time( 'mysql' ),
@@ -482,14 +499,17 @@ class SCD_Metrics_Calculator {
 	private function calculate_impressions( int $campaign_id, array $date_conditions ): int {
 		global $wpdb;
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Analytics metric calculation.
 		$result = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COALESCE(SUM(impressions), 0) FROM {$this->analytics_table}
-             WHERE campaign_id = %d
-             AND date_recorded BETWEEN %s AND %s",
+				'SELECT COALESCE(SUM(impressions), 0) FROM %i
+				WHERE campaign_id = %d
+				AND date_recorded BETWEEN %s AND %s',
+				$this->analytics_table,
 				$campaign_id,
-				date( 'Y-m-d', strtotime( $date_conditions['start_date'] ) ),
-				date( 'Y-m-d', strtotime( $date_conditions['end_date'] ) )
+				gmdate( 'Y-m-d', strtotime( $date_conditions['start_date'] ) ),
+				gmdate( 'Y-m-d', strtotime( $date_conditions['end_date'] ) )
 			)
 		);
 
@@ -508,14 +528,17 @@ class SCD_Metrics_Calculator {
 	private function calculate_views( int $campaign_id, array $date_conditions ): int {
 		global $wpdb;
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Analytics metric calculation.
 		$result = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COALESCE(SUM(impressions), 0) FROM {$this->analytics_table}
-             WHERE campaign_id = %d
-             AND date_recorded BETWEEN %s AND %s",
+				'SELECT COALESCE(SUM(impressions), 0) FROM %i
+				WHERE campaign_id = %d
+				AND date_recorded BETWEEN %s AND %s',
+				$this->analytics_table,
 				$campaign_id,
-				date( 'Y-m-d', strtotime( $date_conditions['start_date'] ) ),
-				date( 'Y-m-d', strtotime( $date_conditions['end_date'] ) )
+				gmdate( 'Y-m-d', strtotime( $date_conditions['start_date'] ) ),
+				gmdate( 'Y-m-d', strtotime( $date_conditions['end_date'] ) )
 			)
 		);
 
@@ -534,14 +557,17 @@ class SCD_Metrics_Calculator {
 	private function calculate_clicks( int $campaign_id, array $date_conditions ): int {
 		global $wpdb;
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Analytics metric calculation.
 		$result = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COALESCE(SUM(clicks), 0) FROM {$this->analytics_table}
-             WHERE campaign_id = %d
-             AND date_recorded BETWEEN %s AND %s",
+				'SELECT COALESCE(SUM(clicks), 0) FROM %i
+				WHERE campaign_id = %d
+				AND date_recorded BETWEEN %s AND %s',
+				$this->analytics_table,
 				$campaign_id,
-				date( 'Y-m-d', strtotime( $date_conditions['start_date'] ) ),
-				date( 'Y-m-d', strtotime( $date_conditions['end_date'] ) )
+				gmdate( 'Y-m-d', strtotime( $date_conditions['start_date'] ) ),
+				gmdate( 'Y-m-d', strtotime( $date_conditions['end_date'] ) )
 			)
 		);
 
@@ -560,14 +586,17 @@ class SCD_Metrics_Calculator {
 	private function calculate_conversions( int $campaign_id, array $date_conditions ): int {
 		global $wpdb;
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Analytics metric calculation.
 		$result = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COALESCE(SUM(conversions), 0) FROM {$this->analytics_table}
-             WHERE campaign_id = %d
-             AND date_recorded BETWEEN %s AND %s",
+				'SELECT COALESCE(SUM(conversions), 0) FROM %i
+				WHERE campaign_id = %d
+				AND date_recorded BETWEEN %s AND %s',
+				$this->analytics_table,
 				$campaign_id,
-				date( 'Y-m-d', strtotime( $date_conditions['start_date'] ) ),
-				date( 'Y-m-d', strtotime( $date_conditions['end_date'] ) )
+				gmdate( 'Y-m-d', strtotime( $date_conditions['start_date'] ) ),
+				gmdate( 'Y-m-d', strtotime( $date_conditions['end_date'] ) )
 			)
 		);
 
@@ -586,14 +615,17 @@ class SCD_Metrics_Calculator {
 	private function calculate_revenue( int $campaign_id, array $date_conditions ): float {
 		global $wpdb;
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Analytics metric calculation.
 		$result = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COALESCE(SUM(revenue), 0) FROM {$this->analytics_table}
-             WHERE campaign_id = %d
-             AND date_recorded BETWEEN %s AND %s",
+				'SELECT COALESCE(SUM(revenue), 0) FROM %i
+				WHERE campaign_id = %d
+				AND date_recorded BETWEEN %s AND %s',
+				$this->analytics_table,
 				$campaign_id,
-				date( 'Y-m-d', strtotime( $date_conditions['start_date'] ) ),
-				date( 'Y-m-d', strtotime( $date_conditions['end_date'] ) )
+				gmdate( 'Y-m-d', strtotime( $date_conditions['start_date'] ) ),
+				gmdate( 'Y-m-d', strtotime( $date_conditions['end_date'] ) )
 			)
 		);
 
@@ -676,7 +708,7 @@ class SCD_Metrics_Calculator {
 	 * @return   array                    All campaigns metrics.
 	 */
 	public function calculate_all_campaigns_metrics( string $date_range = '7days', bool $use_cache = true ): array {
-		$cache_key = "scd_metrics_all_campaigns_{$date_range}";
+		$cache_key = "analytics_metrics_all_campaigns_{$date_range}";
 
 		if ( $use_cache ) {
 			$cached_metrics = $this->cache_manager->get( $cache_key );
@@ -731,13 +763,11 @@ class SCD_Metrics_Calculator {
 	private function get_all_campaign_ids(): array {
 		global $wpdb;
 
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Analytics query; table identifier prepared with %i.
 		$campaign_ids = $wpdb->get_col(
-			$wpdb->prepare(
-				"SELECT id FROM %i WHERE deleted_at IS NULL AND status IN ('active', 'scheduled') ORDER BY created_at DESC",
-				$campaigns_table
-			)
+			$wpdb->prepare( "SELECT id FROM %i WHERE deleted_at IS NULL AND status IN ('active', 'scheduled') ORDER BY created_at DESC", $campaigns_table )
 		);
 
 		return $campaign_ids ? array_map( 'intval', $campaign_ids ) : array();
@@ -871,17 +901,28 @@ class SCD_Metrics_Calculator {
 	 * @return   array                    Previous period start and end dates.
 	 */
 	private function get_previous_period_dates( string $date_range ): array {
-		$days = match ( $date_range ) {
-			'24hours' => 1,
-			'7days'   => 7,
-			'30days'  => 30,
-			'90days'  => 90,
-			'custom'  => 30, // Default to 30 for custom
-			default   => 7,
-		};
+		switch ( $date_range ) {
+			case '24hours':
+				$days = 1;
+				break;
+			case '7days':
+				$days = 7;
+				break;
+			case '30days':
+				$days = 30;
+				break;
+			case '90days':
+				$days = 90;
+				break;
+			case 'custom':
+				$days = 30; // Default to 30 for custom
+				break;
+			default:
+				$days = 7;
+		}
 
-		$previous_end   = date( 'Y-m-d', strtotime( "-{$days} days" ) );
-		$previous_start = date( 'Y-m-d', strtotime( '-' . ( $days * 2 ) . ' days' ) );
+		$previous_end   = gmdate( 'Y-m-d', strtotime( "-{$days} days" ) );
+		$previous_start = gmdate( 'Y-m-d', strtotime( '-' . ( $days * 2 ) . ' days' ) );
 
 		return array(
 			'start_date' => $previous_start,
@@ -902,9 +943,10 @@ class SCD_Metrics_Calculator {
 	 */
 	public function clear_cache(): void {
 		$cache_patterns = array(
-			'scd_metrics_overall_*',
-			'scd_metrics_campaign_*',
-			'scd_metrics_product_*',
+			'analytics_metrics_overall_*',
+			'analytics_metrics_campaign_*',
+			'analytics_metrics_product_*',
+			'analytics_metrics_all_campaigns_*',
 		);
 
 		foreach ( $cache_patterns as $pattern ) {
@@ -912,5 +954,453 @@ class SCD_Metrics_Calculator {
 		}
 
 		$this->logger->info( 'Analytics metrics cache cleared' );
+	}
+
+	/**
+	 * Calculate total views across all campaigns.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $date_conditions    Date conditions.
+	 * @return   int                          Total views.
+	 */
+	private function calculate_total_views( array $date_conditions ): int {
+		global $wpdb;
+
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Real-time analytics query.
+		$result = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COALESCE(SUM(impressions), 0) FROM %i
+				WHERE date_recorded BETWEEN %s AND %s',
+				$this->analytics_table,
+				gmdate( 'Y-m-d H:i:s', strtotime( $date_conditions['start_date'] ) ),
+				gmdate( 'Y-m-d H:i:s', strtotime( $date_conditions['end_date'] ) )
+			)
+		);
+
+		return (int) $result;
+	}
+
+	/**
+	 * Calculate total clicks across all campaigns.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $date_conditions    Date conditions.
+	 * @return   int                          Total clicks.
+	 */
+	private function calculate_total_clicks( array $date_conditions ): int {
+		global $wpdb;
+
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Real-time analytics query.
+		$result = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COALESCE(SUM(clicks), 0) FROM %i
+				WHERE date_recorded BETWEEN %s AND %s',
+				$this->analytics_table,
+				gmdate( 'Y-m-d H:i:s', strtotime( $date_conditions['start_date'] ) ),
+				gmdate( 'Y-m-d H:i:s', strtotime( $date_conditions['end_date'] ) )
+			)
+		);
+
+		return (int) $result;
+	}
+
+	/**
+	 * Calculate total conversions across all campaigns.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $date_conditions    Date conditions.
+	 * @return   int                          Total conversions.
+	 */
+	private function calculate_total_conversions( array $date_conditions ): int {
+		global $wpdb;
+
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Real-time analytics query.
+		$result = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COALESCE(SUM(conversions), 0) FROM %i
+				WHERE date_recorded BETWEEN %s AND %s',
+				$this->analytics_table,
+				gmdate( 'Y-m-d H:i:s', strtotime( $date_conditions['start_date'] ) ),
+				gmdate( 'Y-m-d H:i:s', strtotime( $date_conditions['end_date'] ) )
+			)
+		);
+
+		return (int) $result;
+	}
+
+	/**
+	 * Calculate total revenue across all campaigns.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $date_conditions    Date conditions.
+	 * @return   float                        Total revenue.
+	 */
+	private function calculate_total_revenue( array $date_conditions ): float {
+		global $wpdb;
+
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Real-time analytics query.
+		$result = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COALESCE(SUM(revenue), 0) FROM %i
+				WHERE date_recorded BETWEEN %s AND %s',
+				$this->analytics_table,
+				gmdate( 'Y-m-d H:i:s', strtotime( $date_conditions['start_date'] ) ),
+				gmdate( 'Y-m-d H:i:s', strtotime( $date_conditions['end_date'] ) )
+			)
+		);
+
+		return (float) $result;
+	}
+
+	/**
+	 * Get active sessions for a campaign.
+	 *
+	 * Counts unique sessions in the last 30 minutes.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    int $campaign_id    Campaign ID.
+	 * @return   int                    Number of active sessions.
+	 */
+	private function get_active_sessions( int $campaign_id ): int {
+		global $wpdb;
+
+		$sessions_table = $wpdb->prefix . 'wsscd_sessions';
+
+		// Check if sessions table exists.
+		$check_table_sql = $wpdb->prepare( 'SHOW TABLES LIKE %s', $sessions_table );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table existence check; query prepared above.
+		$table_exists = $wpdb->get_var( $check_table_sql );
+
+		if ( ! $table_exists ) {
+			// Fall back to counting recent analytics entries as proxy.
+			$fallback_sql = $wpdb->prepare(
+				'SELECT COUNT(DISTINCT session_id) FROM %i
+				WHERE campaign_id = %d
+				AND date_recorded >= DATE_SUB(NOW(), INTERVAL 30 MINUTE)
+				AND session_id IS NOT NULL',
+				$this->analytics_table,
+				$campaign_id
+			);
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Real-time session count; query prepared above.
+			$result = $wpdb->get_var( $fallback_sql );
+
+			return (int) $result;
+		}
+
+		// Count active sessions from sessions table.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Real-time session count.
+		$result = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COUNT(*) FROM %i
+				WHERE campaign_id = %d
+				AND last_activity >= DATE_SUB(NOW(), INTERVAL 30 MINUTE)',
+				$sessions_table,
+				$campaign_id
+			)
+		);
+
+		return (int) $result;
+	}
+
+	/**
+	 * Get total active sessions across all campaigns.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   int    Total active sessions.
+	 */
+	private function get_total_active_sessions(): int {
+		global $wpdb;
+
+		$sessions_table = $wpdb->prefix . 'wsscd_sessions';
+
+		// Check if sessions table exists.
+		$check_table_sql = $wpdb->prepare( 'SHOW TABLES LIKE %s', $sessions_table );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table existence check; query prepared above.
+		$table_exists = $wpdb->get_var( $check_table_sql );
+
+		if ( ! $table_exists ) {
+			// Fall back to counting recent analytics entries as proxy.
+			$fallback_sql = $wpdb->prepare(
+				'SELECT COUNT(DISTINCT session_id) FROM %i
+				WHERE date_recorded >= DATE_SUB(NOW(), INTERVAL 30 MINUTE)
+				AND session_id IS NOT NULL',
+				$this->analytics_table
+			);
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Real-time session count; query prepared above.
+			$result = $wpdb->get_var( $fallback_sql );
+
+			return (int) $result;
+		}
+
+		// Count active sessions from sessions table.
+		$session_count_sql = $wpdb->prepare(
+			'SELECT COUNT(*) FROM %i
+			WHERE last_activity >= DATE_SUB(NOW(), INTERVAL 30 MINUTE)',
+			$sessions_table
+		);
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Real-time session count; query prepared above.
+		$result = $wpdb->get_var( $session_count_sql );
+
+		return (int) $result;
+	}
+
+	/**
+	 * Get count of currently active campaigns.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   int    Number of active campaigns.
+	 */
+	private function get_currently_active_campaigns(): int {
+		global $wpdb;
+
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
+
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Active campaigns count.
+		$result = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COUNT(*) FROM %i
+				WHERE status = \'active\'
+				AND deleted_at IS NULL
+				AND ( starts_at IS NULL OR starts_at <= NOW() )
+				AND ( ends_at IS NULL OR ends_at >= NOW() )',
+				$campaigns_table
+			)
+		);
+
+		return (int) $result;
+	}
+
+	/**
+	 * Get empty product metrics structure.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    int    $product_id    Product ID.
+	 * @param    string $date_range    Date range.
+	 * @return   array                    Empty product metrics.
+	 */
+	private function get_empty_product_metrics( int $product_id, string $date_range ): array {
+		return array(
+			'product_id'      => $product_id,
+			'date_range'      => $date_range,
+			'impressions'     => 0,
+			'clicks'          => 0,
+			'conversions'     => 0,
+			'revenue'         => 0.0,
+			'discount_given'  => 0.0,
+			'profit'          => 0.0,
+			'quantity_sold'   => 0,
+			'ctr'             => 0.0,
+			'conversion_rate' => 0.0,
+			'avg_order_value' => 0.0,
+		);
+	}
+
+	/**
+	 * Get top performing campaigns.
+	 *
+	 * @since    1.0.0
+	 * @param    string $date_range    Date range.
+	 * @param    int    $limit         Number of campaigns to return.
+	 * @return   array                    Top campaigns data.
+	 */
+	public function get_top_campaigns( string $date_range = '30days', int $limit = 10 ): array {
+		global $wpdb;
+
+		$date_conditions = $this->get_date_range_conditions( $date_range );
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
+
+		// Get top campaigns by revenue.
+		// SECURITY: Use %i placeholder for table identifiers (WordPress 6.2+).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Top campaigns query.
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT
+					c.id,
+					c.name,
+					c.status,
+					COALESCE(SUM(a.revenue), 0) as total_revenue,
+					COALESCE(SUM(a.conversions), 0) as total_conversions,
+					COALESCE(SUM(a.clicks), 0) as total_clicks,
+					COALESCE(SUM(a.impressions), 0) as total_impressions
+				FROM %i c
+				LEFT JOIN %i a ON c.id = a.campaign_id
+					AND a.date_recorded BETWEEN %s AND %s
+				WHERE c.deleted_at IS NULL
+				GROUP BY c.id, c.name, c.status
+				ORDER BY total_revenue DESC
+				LIMIT %d',
+				$campaigns_table,
+				$this->analytics_table,
+				gmdate( 'Y-m-d', strtotime( $date_conditions['start_date'] ) ),
+				gmdate( 'Y-m-d', strtotime( $date_conditions['end_date'] ) ),
+				$limit
+			),
+			ARRAY_A
+		);
+
+		if ( ! $results ) {
+			return array();
+		}
+
+		// Calculate derived metrics for each campaign
+		foreach ( $results as &$campaign ) {
+			$impressions = (int) $campaign['total_impressions'];
+			$clicks      = (int) $campaign['total_clicks'];
+			$conversions = (int) $campaign['total_conversions'];
+			$revenue     = (float) $campaign['total_revenue'];
+
+			$campaign['ctr']             = $impressions > 0 ? round( ( $clicks / $impressions ) * 100, 2 ) : 0;
+			$campaign['conversion_rate'] = $clicks > 0 ? round( ( $conversions / $clicks ) * 100, 2 ) : 0;
+			$campaign['avg_order_value'] = $conversions > 0 ? round( $revenue / $conversions, 2 ) : 0;
+		}
+
+		return $results;
+	}
+
+	/**
+	 * Get conversion funnel data.
+	 *
+	 * @since    1.0.0
+	 * @param    string $date_range    Date range.
+	 * @return   array                    Funnel data with views, clicks, cart_additions, conversions.
+	 */
+	public function get_conversion_funnel( string $date_range = '30days' ): array {
+		global $wpdb;
+
+		$date_conditions = $this->get_date_range_conditions( $date_range );
+
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Funnel query.
+		$totals = $wpdb->get_row(
+			$wpdb->prepare(
+				'SELECT
+					COALESCE(SUM(impressions), 0) as views,
+					COALESCE(SUM(clicks), 0) as clicks,
+					COALESCE(SUM(cart_additions), 0) as cart_additions,
+					COALESCE(SUM(conversions), 0) as conversions
+				FROM %i
+				WHERE date_recorded BETWEEN %s AND %s',
+				$this->analytics_table,
+				gmdate( 'Y-m-d', strtotime( $date_conditions['start_date'] ) ),
+				gmdate( 'Y-m-d', strtotime( $date_conditions['end_date'] ) )
+			),
+			ARRAY_A
+		);
+
+		if ( ! $totals ) {
+			return array(
+				'views'          => 0,
+				'clicks'         => 0,
+				'cart_additions' => 0,
+				'conversions'    => 0,
+				'rates'          => array(
+					'view_to_click'      => 0,
+					'click_to_cart'      => 0,
+					'cart_to_conversion' => 0,
+				),
+			);
+		}
+
+		$views          = (int) $totals['views'];
+		$clicks         = (int) $totals['clicks'];
+		$cart_additions = (int) $totals['cart_additions'];
+		$conversions    = (int) $totals['conversions'];
+
+		return array(
+			'views'          => $views,
+			'clicks'         => $clicks,
+			'cart_additions' => $cart_additions,
+			'conversions'    => $conversions,
+			'rates'          => array(
+				'view_to_click'      => $views > 0 ? round( ( $clicks / $views ) * 100, 2 ) : 0,
+				'click_to_cart'      => $clicks > 0 ? round( ( $cart_additions / $clicks ) * 100, 2 ) : 0,
+				'cart_to_conversion' => $cart_additions > 0 ? round( ( $conversions / $cart_additions ) * 100, 2 ) : 0,
+			),
+		);
+	}
+
+	/**
+	 * Get revenue trend data.
+	 *
+	 * @since    1.0.0
+	 * @param    string $date_range     Date range.
+	 * @param    string $granularity    Data granularity (daily, weekly, monthly).
+	 * @return   array                     Trend data with labels and values.
+	 */
+	public function get_revenue_trend( string $date_range = '30days', string $granularity = 'daily' ): array {
+		global $wpdb;
+
+		$date_conditions = $this->get_date_range_conditions( $date_range );
+
+		// Determine date format for grouping
+		switch ( $granularity ) {
+			case 'weekly':
+				$date_format = '%Y-%u';
+				$label_format = 'Week %u, %Y';
+				break;
+			case 'monthly':
+				$date_format = '%Y-%m';
+				$label_format = '%M %Y';
+				break;
+			default:
+				$date_format = '%Y-%m-%d';
+				$label_format = '%b %d';
+		}
+
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Revenue trend query.
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT
+					DATE_FORMAT(date_recorded, %s) as period,
+					COALESCE(SUM(revenue), 0) as revenue,
+					COALESCE(SUM(conversions), 0) as conversions,
+					COALESCE(SUM(discount_given), 0) as discount_given
+				FROM %i
+				WHERE date_recorded BETWEEN %s AND %s
+				GROUP BY period
+				ORDER BY period ASC',
+				$date_format,
+				$this->analytics_table,
+				gmdate( 'Y-m-d', strtotime( $date_conditions['start_date'] ) ),
+				gmdate( 'Y-m-d', strtotime( $date_conditions['end_date'] ) )
+			),
+			ARRAY_A
+		);
+
+		$labels = array();
+		$values = array();
+		$conversions = array();
+		$discounts = array();
+
+		if ( $results ) {
+			foreach ( $results as $row ) {
+				$labels[] = $row['period'];
+				$values[] = (float) $row['revenue'];
+				$conversions[] = (int) $row['conversions'];
+				$discounts[] = (float) $row['discount_given'];
+			}
+		}
+
+		return array(
+			'labels'      => $labels,
+			'values'      => $values,
+			'conversions' => $conversions,
+			'discounts'   => $discounts,
+			'granularity' => $granularity,
+		);
 	}
 }

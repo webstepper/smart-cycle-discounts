@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Logger {
+class WSSCD_Logger {
 
 	/**
 	 * Log levels.
@@ -125,9 +125,9 @@ class SCD_Logger {
 		$this->context = $context;
 
 		// Generate unique request ID for session tracking
-		$this->request_id = uniqid( 'scd_', true );
+		$this->request_id = uniqid( 'wsscd_', true );
 
-		$this->max_file_size = defined( 'SCD_LOG_MAX_SIZE' ) ? SCD_LOG_MAX_SIZE : 10485760;
+		$this->max_file_size = defined( 'WSSCD_LOG_MAX_SIZE' ) ? WSSCD_LOG_MAX_SIZE : 10485760;
 
 		$this->min_log_level = $this->determine_log_level();
 
@@ -154,15 +154,15 @@ class SCD_Logger {
 	 */
 	private function determine_log_level(): string {
 		// 1. Check constant (highest priority - can't be overridden)
-		if ( defined( 'SCD_LOG_LEVEL' ) ) {
-			$level = SCD_LOG_LEVEL;
+		if ( defined( 'WSSCD_LOG_LEVEL' ) ) {
+			$level = WSSCD_LOG_LEVEL;
 			if ( isset( $this->level_priority[ $level ] ) ) {
 				return $level;
 			}
 		}
 
 		// 2. Check database settings from admin UI
-		$settings = get_option( 'scd_settings', array() );
+		$settings = get_option( 'wsscd_settings', array() );
 		if ( isset( $settings['advanced']['log_level'] ) ) {
 			$level = $settings['advanced']['log_level'];
 			if ( isset( $this->level_priority[ $level ] ) ) {
@@ -197,11 +197,11 @@ class SCD_Logger {
 	 * @return   void
 	 */
 	private function auto_disable_debug_mode(): void {
-		$settings = get_option( 'scd_settings', array() );
+		$settings = get_option( 'wsscd_settings', array() );
 		if ( isset( $settings['advanced'] ) ) {
 			$settings['advanced']['enable_debug_mode']     = false;
 			$settings['advanced']['debug_mode_enabled_at'] = 0;
-			update_option( 'scd_settings', $settings );
+			update_option( 'wsscd_settings', $settings );
 		}
 	}
 
@@ -218,8 +218,8 @@ class SCD_Logger {
 			$this->add_handler( 'file', array( $this, 'handle_file_log' ) );
 		}
 
-		// Only add error_log handler if explicitly enabled via SCD_LOG_TO_DEBUG_LOG constant
-		if ( defined( 'SCD_LOG_TO_DEBUG_LOG' ) && SCD_LOG_TO_DEBUG_LOG ) {
+		// Only add error_log handler if explicitly enabled via WSSCD_LOG_TO_DEBUG_LOG constant
+		if ( defined( 'WSSCD_LOG_TO_DEBUG_LOG' ) && WSSCD_LOG_TO_DEBUG_LOG ) {
 			$this->add_handler( 'error_log', array( $this, 'handle_error_log' ) );
 		}
 
@@ -393,6 +393,7 @@ class SCD_Logger {
 	 */
 	private function handle_error_log( string $level, string $message, array $context ): void {
 		$formatted_message = $this->format_message( $level, $message, $context );
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional logging to PHP debug log when WSSCD_LOG_TO_DEBUG_LOG constant is enabled.
 		error_log( $formatted_message );
 	}
 
@@ -408,12 +409,15 @@ class SCD_Logger {
 	private function handle_database_log( string $level, string $message, array $context ): void {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'scd_audit_logs';
+		$table_name = $wpdb->prefix . 'wsscd_audit_logs';
 
-		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) !== $table_name ) {
+		$check_table_sql = $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- SHOW TABLES has no WP abstraction; query prepared above.
+		if ( $wpdb->get_var( $check_table_sql ) !== $table_name ) {
 			return;
 		}
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Audit log INSERT on plugin's custom table; caching not appropriate for real-time logging.
 		$wpdb->insert(
 			$table_name,
 			array(
@@ -442,8 +446,8 @@ class SCD_Logger {
 			return false;
 		}
 
-		// For debug context, only log when SCD_DEBUG is enabled
-		if ( 'debug' === $this->context && ! ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) ) {
+		// For debug context, only log when WSSCD_DEBUG is enabled
+		if ( 'debug' === $this->context && ! ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) ) {
 			return false;
 		}
 
@@ -473,7 +477,7 @@ class SCD_Logger {
 		$level          = strtoupper( $level );
 		$context_prefix = strtoupper( $this->context );
 
-		$formatted = "[{$timestamp}] [{$this->request_id}] SCD.{$context_prefix}.{$level}: {$message}";
+		$formatted = "[{$timestamp}] [{$this->request_id}] WSSCD.{$context_prefix}.{$level}: {$message}";
 
 		if ( ! empty( $context ) ) {
 			unset( $context['logger_context'], $context['request_id'] );
@@ -499,6 +503,7 @@ class SCD_Logger {
 		}
 
 		// Write to log file
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Writing to plugin's own log file.
 		file_put_contents( $this->log_file, $message, FILE_APPEND | LOCK_EX );
 	}
 
@@ -512,6 +517,7 @@ class SCD_Logger {
 	private function rotate_log(): void {
 		$timestamp   = current_time( 'Ymd-His' );
 		$backup_file = $this->log_file . '.' . $timestamp;
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- Log rotation in plugin's own uploads directory; WP_Filesystem overhead unnecessary for internal log management.
 		rename( $this->log_file, $backup_file );
 
 		// Clean up old log files
@@ -541,14 +547,14 @@ class SCD_Logger {
 			}
 		);
 
-		$max_age_days = defined( 'SCD_LOG_MAX_AGE_DAYS' ) ? SCD_LOG_MAX_AGE_DAYS : 7;
+		$max_age_days = defined( 'WSSCD_LOG_MAX_AGE_DAYS' ) ? WSSCD_LOG_MAX_AGE_DAYS : 7;
 		$current_time = time();
 
 		foreach ( $old_logs as $log_file ) {
 			$file_age_days = ( $current_time - filemtime( $log_file ) ) / DAY_IN_SECONDS;
 
 			if ( $max_age_days > 0 && $file_age_days > $max_age_days ) {
-				unlink( $log_file );
+				wp_delete_file( $log_file );
 			}
 		}
 
@@ -564,7 +570,7 @@ class SCD_Logger {
 			$to_delete = array_slice( $remaining_logs, 0, count( $remaining_logs ) - 5 );
 			foreach ( $to_delete as $file ) {
 				if ( file_exists( $file ) ) {
-					unlink( $file );
+					wp_delete_file( $file );
 				}
 			}
 		}
@@ -583,6 +589,7 @@ class SCD_Logger {
 		}
 
 		if ( 0 === $lines ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reading plugin's own log file.
 			return file_get_contents( $this->log_file );
 		}
 
@@ -610,7 +617,8 @@ class SCD_Logger {
 	 */
 	public function clear_logs(): bool {
 		if ( file_exists( $this->log_file ) ) {
-			return unlink( $this->log_file );
+			wp_delete_file( $this->log_file );
+			return ! file_exists( $this->log_file );
 		}
 
 		return true;
@@ -642,6 +650,7 @@ class SCD_Logger {
 			'file_size'     => $this->get_log_size(),
 			'file_path'     => $this->log_file,
 			'max_file_size' => $this->max_file_size,
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable -- Simple stat check for log directory writability; no actual write operation.
 			'writable'      => is_writable( dirname( $this->log_file ) ),
 		);
 
@@ -697,9 +706,9 @@ class SCD_Logger {
 	 *
 	 * @since    1.0.0
 	 * @param    string $context    Logger context.
-	 * @return   SCD_Logger              Logger instance.
+	 * @return   WSSCD_Logger              Logger instance.
 	 */
-	public static function with_context( string $context ): SCD_Logger {
+	public static function with_context( string $context ): WSSCD_Logger {
 		return new self( $context );
 	}
 

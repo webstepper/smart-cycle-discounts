@@ -14,92 +14,92 @@
    Main Banner Container (Inline Positioned)
    ========================================================================== */
 
-.scd-upgrade-banner-inline {
+.wsscd-upgrade-banner-inline {
 	position: relative;
-	margin: var(--scd-spacing-lg) 0;
-	padding: var(--scd-padding-medium) 40px 12px 16px;
-	background: var(--scd-color-white);
-	border: 1px solid var(--scd-table-border);
-	border-left: 4px solid var(--scd-color-primary);
-	box-shadow: var(--scd-shadow-sm);
+	margin: var(--wsscd-spacing-lg) 0;
+	padding: var(--wsscd-padding-medium) 40px 12px 16px;
+	background: var(--wsscd-color-white);
+	border: 1px solid var(--wsscd-table-border);
+	border-left: 4px solid var(--wsscd-color-primary);
+	box-shadow: var(--wsscd-shadow-sm);
 	border-radius: 0;
 }
 
 /* Promotional Variant */
-.scd-upgrade-banner-inline.scd-has-promotion {
-	border-left-color: var(--scd-color-accent);
-	background: linear-gradient(90deg, var(--scd-color-primary-light-bg) 0%, var(--scd-color-white) 100%);
-	box-shadow: 0 2px 8px var(--scd-shadow-primary);
+.wsscd-upgrade-banner-inline.wsscd-has-promotion {
+	border-left-color: var(--wsscd-color-accent);
+	background: linear-gradient(90deg, var(--wsscd-color-primary-light-bg) 0%, var(--wsscd-color-white) 100%);
+	box-shadow: 0 2px 8px var(--wsscd-shadow-primary);
 }
 
 /* ==========================================================================
    Banner Content Layout
    ========================================================================== */
 
-.scd-upgrade-banner-content {
+.wsscd-upgrade-banner-content {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	gap: var(--scd-gap-comfortable);
+	gap: var(--wsscd-gap-comfortable);
 	flex-wrap: wrap;
 }
 
-.scd-upgrade-banner-left {
+.wsscd-upgrade-banner-left {
 	display: flex;
 	align-items: center;
-	gap: var(--scd-gap-normal);
+	gap: var(--wsscd-gap-normal);
 	flex: 1 1 auto;
 	min-width: 300px;
 }
 
-.scd-upgrade-icon {
-	font-size: var(--scd-font-size-xxl);
-	width: var(--scd-icon-medium);
-	height: var(--scd-icon-medium);
-	color: var(--scd-color-primary);
+.wsscd-upgrade-icon {
+	font-size: var(--wsscd-font-size-xxl);
+	width: var(--wsscd-icon-medium);
+	height: var(--wsscd-icon-medium);
+	color: var(--wsscd-color-primary);
 	flex-shrink: 0;
 }
 
-.scd-has-promotion .scd-upgrade-icon {
-	color: var(--scd-color-accent);
+.wsscd-has-promotion .wsscd-upgrade-icon {
+	color: var(--wsscd-color-accent);
 }
 
-.scd-upgrade-text {
+.wsscd-upgrade-text {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
-	gap: var(--scd-gap-tight);
-	font-size: var(--scd-font-size-base);
+	gap: var(--wsscd-gap-tight);
+	font-size: var(--wsscd-font-size-base);
 	line-height: 1.5;
 }
 
-.scd-upgrade-text strong {
-	font-weight: var(--scd-font-weight-semibold);
-	color: var(--scd-color-dark);
+.wsscd-upgrade-text strong {
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-dark);
 	margin-right: 4px;
 }
 
-.scd-upgrade-message {
-	color: var(--scd-color-muted);
+.wsscd-upgrade-message {
+	color: var(--wsscd-color-muted);
 }
 
 /* ==========================================================================
    Promotional Badge
    ========================================================================== */
 
-.scd-promotion-badge {
+.wsscd-promotion-badge {
 	display: inline-flex;
 	align-items: center;
-	padding: var(--scd-spacing-xxs) 8px;
-	background: var(--scd-color-accent);
-	color: var(--scd-color-white);
-	font-size: var(--scd-font-size-small);
-	font-weight: var(--scd-font-weight-bold);
+	padding: var(--wsscd-spacing-xxs) 8px;
+	background: var(--wsscd-color-accent);
+	color: var(--wsscd-color-white);
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-bold);
 	text-transform: uppercase;
 	letter-spacing: 0.3px;
-	border-radius: var(--scd-radius-sm);
+	border-radius: var(--wsscd-radius-sm);
 	margin: 0 4px;
-	box-shadow: var(--scd-shadow-sm);
+	box-shadow: var(--wsscd-shadow-sm);
 }
 
 /* ==========================================================================
@@ -107,77 +107,77 @@
    Uses shared button classes from _buttons.css
    ========================================================================== */
 
-.scd-upgrade-banner-actions {
+.wsscd-upgrade-banner-actions {
 	display: flex;
 	align-items: center;
-	gap: var(--scd-gap-tight);
+	gap: var(--wsscd-gap-tight);
 	flex-shrink: 0;
 }
 
-/* Upgrade banner button sizing - uses .scd-button base class */
-.scd-upgrade-btn,
-.scd-trial-btn {
+/* Upgrade banner button sizing - uses .wsscd-button base class */
+.wsscd-upgrade-btn,
+.wsscd-trial-btn {
 	height: auto;
-	padding: var(--scd-spacing-xs) 12px;
+	padding: var(--wsscd-spacing-xs) 12px;
 	line-height: 1.5;
 }
 
-.scd-upgrade-btn .scd-icon {
-	transition: transform var(--scd-transition-fast) ease;
+.wsscd-upgrade-btn .wsscd-icon {
+	transition: transform var(--wsscd-transition-fast) ease;
 }
 
-.scd-upgrade-btn:hover .scd-icon {
+.wsscd-upgrade-btn:hover .wsscd-icon {
 	transform: translateX(2px);
 }
 
 /* Promotional variant - accent color override */
-.scd-has-promotion .scd-upgrade-btn.scd-button--primary {
-	background: var(--scd-color-accent);
-	border-color: var(--scd-color-accent);
-	color: var(--scd-color-white);
-	box-shadow: var(--scd-shadow-md);
+.wsscd-has-promotion .wsscd-upgrade-btn.wsscd-button--primary {
+	background: var(--wsscd-color-accent);
+	border-color: var(--wsscd-color-accent);
+	color: var(--wsscd-color-white);
+	box-shadow: var(--wsscd-shadow-md);
 }
 
-.scd-has-promotion .scd-upgrade-btn.scd-button--primary:hover,
-.scd-has-promotion .scd-upgrade-btn.scd-button--primary:active {
-	background: var(--scd-color-accent-dark);
-	border-color: var(--scd-color-accent-dark);
-	color: var(--scd-color-white);
-	box-shadow: var(--scd-shadow-lg);
+.wsscd-has-promotion .wsscd-upgrade-btn.wsscd-button--primary:hover,
+.wsscd-has-promotion .wsscd-upgrade-btn.wsscd-button--primary:active {
+	background: var(--wsscd-color-accent-dark);
+	border-color: var(--wsscd-color-accent-dark);
+	color: var(--wsscd-color-white);
+	box-shadow: var(--wsscd-shadow-lg);
 }
 
 /* ==========================================================================
    Dismiss Button (Custom)
    ========================================================================== */
 
-.scd-banner-dismiss {
+.wsscd-banner-dismiss {
 	position: absolute;
 	top: 0;
 	right: 0;
 	padding: 9px;
 	border: none;
 	background: none;
-	color: var(--scd-color-muted);
+	color: var(--wsscd-color-muted);
 	cursor: pointer;
-	font-size: var(--scd-font-size-large);
-	line-height: var(--scd-icon-medium);
-	transition: color var(--scd-transition-base) ease;
+	font-size: var(--wsscd-font-size-large);
+	line-height: var(--wsscd-icon-medium);
+	transition: color var(--wsscd-transition-base) ease;
 }
 
-.scd-banner-dismiss .scd-icon {
-	font-size: var(--scd-font-size-xxl);
-	width: var(--scd-icon-medium);
-	height: var(--scd-icon-medium);
+.wsscd-banner-dismiss .wsscd-icon {
+	font-size: var(--wsscd-font-size-xxl);
+	width: var(--wsscd-icon-medium);
+	height: var(--wsscd-icon-medium);
 }
 
-.scd-banner-dismiss:hover {
-	color: var(--scd-color-danger);
+.wsscd-banner-dismiss:hover {
+	color: var(--wsscd-color-danger);
 }
 
-.scd-banner-dismiss:focus {
-	outline: 2px solid var(--scd-color-primary);
+.wsscd-banner-dismiss:focus {
+	outline: 2px solid var(--wsscd-color-primary);
 	outline-offset: -2px;
-	color: var(--scd-color-primary);
+	color: var(--wsscd-color-primary);
 }
 
 /* ==========================================================================
@@ -185,44 +185,44 @@
    ========================================================================== */
 
 @media screen and (max-width: 782px) {
-	.scd-upgrade-banner-content {
+	.wsscd-upgrade-banner-content {
 		flex-direction: column;
 		align-items: flex-start;
 	}
 
-	.scd-upgrade-banner-left {
+	.wsscd-upgrade-banner-left {
 		min-width: 0;
 		width: 100%;
 	}
 
-	.scd-upgrade-banner-actions {
+	.wsscd-upgrade-banner-actions {
 		width: 100%;
 	}
 
-	.scd-upgrade-btn,
-	.scd-trial-btn {
+	.wsscd-upgrade-btn,
+	.wsscd-trial-btn {
 		flex: 1;
 	}
 }
 
 @media screen and (max-width: 600px) {
-	.scd-upgrade-text {
+	.wsscd-upgrade-text {
 		flex-direction: column;
 		align-items: flex-start;
-		gap: var(--scd-gap-tight);
+		gap: var(--wsscd-gap-tight);
 	}
 
-	.scd-promotion-badge {
+	.wsscd-promotion-badge {
 		margin: 0;
 	}
 
-	.scd-upgrade-banner-actions {
+	.wsscd-upgrade-banner-actions {
 		flex-direction: column;
-		gap: var(--scd-gap-tight);
+		gap: var(--wsscd-gap-tight);
 	}
 
-	.scd-upgrade-btn,
-	.scd-trial-btn {
+	.wsscd-upgrade-btn,
+	.wsscd-trial-btn {
 		width: 100%;
 		justify-content: center;
 	}

@@ -1,4 +1,6 @@
 /**
+ * @fs_premium_only
+ *
  * Spend Threshold
  *
  * @package    SmartCycleDiscounts
@@ -14,17 +16,17 @@
 	'use strict';
 
 	// Register spend threshold discount using utility with inheritance
-	SCD.Utils.registerModule( 'SCD.Modules.Discounts.Types', 'SpendThreshold', function( state ) {
+	WSSCD.Utils.registerModule( 'WSSCD.Modules.Discounts.Types', 'SpendThreshold', function( state ) {
 		// Call parent constructor
-		SCD.Modules.Discounts.Types.BaseDiscount.call( this, state );
+		WSSCD.Modules.Discounts.Types.BaseDiscount.call( this, state );
 
 		this.type = 'spend_threshold';
-		this.config = SCD.Modules.Discounts.Config;
+		this.config = WSSCD.Modules.Discounts.Config;
 		this.maxThresholds = 5;
 
 		this.currencySymbol = '$'; // Default
-		if ( window.scdSettings && window.scdSettings.currencySymbol ) {
-			this.currencySymbol = this.decodeHtmlEntity( window.scdSettings.currencySymbol );
+		if ( window.wsscdSettings && window.wsscdSettings.currencySymbol ) {
+			this.currencySymbol = this.decodeHtmlEntity( window.wsscdSettings.currencySymbol );
 		}
 
 		// Ready state tracking (following advanced filters pattern)
@@ -36,7 +38,7 @@
 		this._percentageThresholds = [];
 		this._fixedThresholds = [];
 
-		if ( !SCD.Utils.ensureInitialized( this, {
+		if ( !WSSCD.Utils.ensureInitialized( this, {
 			'config': this.config
 		}, 'SpendThreshold' ) ) {
 			return;
@@ -44,12 +46,12 @@
 	} );
 
 	// Inherit from BaseDiscount
-	SCD.Modules.Discounts.Types.SpendThreshold.prototype = Object.create( SCD.Modules.Discounts.Types.BaseDiscount.prototype );
-	SCD.Modules.Discounts.Types.SpendThreshold.prototype.constructor =
-		SCD.Modules.Discounts.Types.SpendThreshold;
+	WSSCD.Modules.Discounts.Types.SpendThreshold.prototype = Object.create( WSSCD.Modules.Discounts.Types.BaseDiscount.prototype );
+	WSSCD.Modules.Discounts.Types.SpendThreshold.prototype.constructor =
+		WSSCD.Modules.Discounts.Types.SpendThreshold;
 
 	// Override methods using utility extend
-	SCD.Utils.extend( SCD.Modules.Discounts.Types.SpendThreshold.prototype, {
+	WSSCD.Utils.extend( WSSCD.Modules.Discounts.Types.SpendThreshold.prototype, {
 		/**
 		 * Decode HTML entities
 		 * @param html
@@ -64,7 +66,7 @@
 		 * Initialize spend threshold
 		 */
 		init: function() {
-			SCD.Modules.Discounts.Types.BaseDiscount.prototype.init.call( this );
+			WSSCD.Modules.Discounts.Types.BaseDiscount.prototype.init.call( this );
 
 			this.setupThresholdHandlers();
 
@@ -133,7 +135,7 @@
 		 * Show spend threshold UI
 		 */
 		showUI: function() {
-			$( '.scd-strategy-spend_threshold' ).addClass( 'active' );
+			$( '.wsscd-strategy-spend_threshold' ).addClass( 'active' );
 
 			// Sync state with internal data - ALWAYS use state as source of truth
 			var fullState = this.state.getState();
@@ -154,7 +156,7 @@
 		 * Hide spend threshold UI
 		 */
 		hideUI: function() {
-			$( '.scd-strategy-spend_threshold' ).removeClass( 'active' );
+			$( '.wsscd-strategy-spend_threshold' ).removeClass( 'active' );
 		},
 
 		/**
@@ -182,41 +184,41 @@
 			$( document ).off( '.spendthreshold' ); // Remove all namespaced events
 
 			// Threshold mode selection
-			$( document ).on( 'change.spendthreshold', '.scd-strategy-spend_threshold [name="threshold_mode"]', function() {
+			$( document ).on( 'change.spendthreshold', '.wsscd-strategy-spend_threshold [name="threshold_mode"]', function() {
 				var mode = $( this ).val();
 				self.state.setState( { thresholdMode: mode } );
 
 				// Show/hide appropriate threshold groups using CSS classes
 				if ( 'percentage' === mode ) {
-					$( '#percentage-thresholds-group' ).removeClass( 'scd-hidden' );
-					$( '#fixed-thresholds-group' ).addClass( 'scd-hidden' );
+					$( '#percentage-thresholds-group' ).removeClass( 'wsscd-hidden' );
+					$( '#fixed-thresholds-group' ).addClass( 'wsscd-hidden' );
 				} else {
-					$( '#percentage-thresholds-group' ).addClass( 'scd-hidden' );
-					$( '#fixed-thresholds-group' ).removeClass( 'scd-hidden' );
+					$( '#percentage-thresholds-group' ).addClass( 'wsscd-hidden' );
+					$( '#fixed-thresholds-group' ).removeClass( 'wsscd-hidden' );
 				}
 
 				self.renderThresholds();
 				self.updateInlinePreview();
 			} );
 
-			$( document ).on( 'click.spendthreshold', '.scd-strategy-spend_threshold .scd-add-threshold', function( e ) {
+			$( document ).on( 'click.spendthreshold', '.wsscd-strategy-spend_threshold .wsscd-add-threshold', function( e ) {
 				e.preventDefault();
 				var thresholdType = $( this ).data( 'threshold-type' );
 				self.addThreshold( thresholdType );
 			} );
 
-			$( document ).on( 'click.spendthreshold', '.scd-strategy-spend_threshold .scd-remove-threshold', function( e ) {
+			$( document ).on( 'click.spendthreshold', '.wsscd-strategy-spend_threshold .wsscd-remove-threshold', function( e ) {
 				e.preventDefault();
-				var $row = $( this ).closest( '.scd-threshold-row' );
+				var $row = $( this ).closest( '.wsscd-threshold-row' );
 				var index = $row.data( 'index' );
 				var thresholdType = $row.data( 'threshold-type' );
 				self.removeThreshold( index, thresholdType );
 			} );
 
 			// Handle threshold input changes
-			$( document ).on( 'change.spendthreshold input.spendthreshold', '.scd-strategy-spend_threshold .scd-threshold-input', function() {
+			$( document ).on( 'change.spendthreshold input.spendthreshold', '.wsscd-strategy-spend_threshold .wsscd-threshold-input', function() {
 				var $input = $( this );
-				var $row = $input.closest( '.scd-threshold-row' );
+				var $row = $input.closest( '.wsscd-threshold-row' );
 				var index = $row.data( 'index' );
 				var field = $input.data( 'field' );
 				var value = $input.val();
@@ -234,8 +236,8 @@
 			var thresholds = 'percentage' === thresholdType ? this._percentageThresholds : this._fixedThresholds;
 
 			if ( thresholds.length >= this.maxThresholds ) {
-				if ( SCD.Shared && SCD.Shared.NotificationService ) {
-					SCD.Shared.NotificationService.warning(
+				if ( WSSCD.Shared && WSSCD.Shared.NotificationService ) {
+					WSSCD.Shared.NotificationService.warning(
 						'Maximum ' + this.maxThresholds + ' thresholds allowed'
 					);
 				}
@@ -357,8 +359,8 @@
 			var discountMax = 'percentage' === thresholdMode ? 100 : null;
 
 			return {
-				rowClass: 'scd-threshold-row',
-				fieldsWrapperClass: 'scd-threshold-fields',
+				rowClass: 'wsscd-threshold-row',
+				fieldsWrapperClass: 'wsscd-threshold-fields',
 				dataAttributes: { 'threshold-type': thresholdMode },
 				fields: [
 					{
@@ -368,7 +370,7 @@
 						min: 0.01,
 						step: 0.01,
 						placeholder: '100.00',
-						class: 'scd-threshold-input scd-enhanced-input',
+						class: 'wsscd-threshold-input wsscd-enhanced-input',
 						dataAttributes: { field: 'threshold' },
 						prefix: this.currencySymbol
 					},
@@ -380,7 +382,7 @@
 						max: discountMax,
 						step: 0.01,
 						placeholder: discountPlaceholder,
-						class: 'scd-threshold-input scd-enhanced-input',
+						class: 'wsscd-threshold-input wsscd-enhanced-input',
 						dataAttributes: { field: 'discount_value' },
 						prefix: 'percentage' === thresholdMode ? '%' : this.currencySymbol
 					}
@@ -388,7 +390,7 @@
 				removeButton: {
 					enabled: true,
 					label: 'Remove threshold',
-					class: 'scd-button scd-button--icon-only scd-button--small scd-button--ghost-danger scd-remove-threshold',
+					class: 'wsscd-button wsscd-button--icon-only wsscd-button--small wsscd-button--ghost-danger wsscd-remove-threshold',
 					icon: 'trash',
 					showLabel: false
 				}
@@ -409,7 +411,7 @@
 			};
 
 			var config = this.getSpendThresholdRowConfig( thresholdMode );
-			var $row = SCD.Shared.RowFactory.create( config, rowData, index );
+			var $row = WSSCD.Shared.RowFactory.create( config, rowData, index );
 
 			return $row[0].outerHTML;
 		},
@@ -498,7 +500,7 @@
 			var thresholdsKey = 'percentage' === thresholdMode ? 'percentageSpendThresholds' : 'fixedSpendThresholds';
 			var thresholds = fullState[thresholdsKey] || [];
 
-			$( '.scd-threshold-warning' ).remove();
+			$( '.wsscd-threshold-warning' ).remove();
 
 			if ( 2 > thresholds.length ) {return;}
 
@@ -521,8 +523,8 @@
 			}
 
 			if ( hasIssue ) {
-				var warningIcon = SCD.IconHelper ? SCD.IconHelper.warning( { size: 16 } ) : '<span class="scd-icon scd-icon-warning"></span>';
-				var warningHtml = '<div class="scd-tier-warning scd-threshold-warning">';
+				var warningIcon = WSSCD.IconHelper ? WSSCD.IconHelper.warning( { size: 16 } ) : '<span class="wsscd-icon wsscd-icon-warning"></span>';
+				var warningHtml = '<div class="wsscd-tier-warning wsscd-threshold-warning">';
 				warningHtml += warningIcon;
 				warningHtml += '<span class="warning-text">Tip: Higher spending thresholds usually have bigger discounts.</span>';
 				warningHtml += '</div>';
@@ -953,7 +955,7 @@
 		destroy: function() {
 			$( document ).off( '.spendthreshold' );
 
-			SCD.Modules.Discounts.Types.BaseDiscount.prototype.destroy.call( this );
+			WSSCD.Modules.Discounts.Types.BaseDiscount.prototype.destroy.call( this );
 		}
 	} );
 

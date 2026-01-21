@@ -14,155 +14,169 @@
    Priority Badge - Refined
    ========================================================================== */
 
-.scd-priority-badge {
+.wsscd-priority-badge {
 	display: inline-block;
-	padding: var(--scd-spacing-xxs) var(--scd-padding-small);
-	border-radius: var(--scd-radius-md);
-	font-weight: var(--scd-font-weight-semibold);
-	font-size: var(--scd-font-size-small);
+	padding: var(--wsscd-spacing-xxs) var(--wsscd-padding-small);
+	border-radius: var(--wsscd-radius-md);
+	font-weight: var(--wsscd-font-weight-semibold);
+	font-size: var(--wsscd-font-size-small);
 	text-align: center;
-	text-transform: uppercase;
-	letter-spacing: 0.025em;
 	line-height: 1.4;
 	min-width: 40px;
 }
 
 /* Priority 5 - Critical (Red like expired) */
-.scd-priority-badge.scd-priority-5 {
-	background-color: var(--scd-color-danger-alpha-25);
-	color: var(--scd-color-danger-dark);
+.wsscd-priority-badge.wsscd-priority-5 {
+	background-color: var(--wsscd-color-danger-alpha-25);
+	color: var(--wsscd-color-danger-dark);
 }
 
 /* Priority 4 - High (Orange like draft/warning) */
-.scd-priority-badge.scd-priority-4 {
-	background-color: var(--scd-color-warning-alpha-25);
-	color: var(--scd-color-warning-dark);
+.wsscd-priority-badge.wsscd-priority-4 {
+	background-color: var(--wsscd-color-warning-alpha-25);
+	color: var(--wsscd-color-warning-dark);
 }
 
 /* Priority 3 - Normal (Blue like scheduled) */
-.scd-priority-badge.scd-priority-3 {
-	background-color: var(--scd-color-info-alpha-25);
-	color: var(--scd-color-primary-dark);
+.wsscd-priority-badge.wsscd-priority-3 {
+	background-color: var(--wsscd-color-info-alpha-25);
+	color: var(--wsscd-color-primary-dark);
 }
 
 /* Priority 2 - Low (Light gray) */
-.scd-priority-badge.scd-priority-2 {
-	background-color: var(--scd-color-text-alpha-15);
-	color: var(--scd-color-text-muted);
+.wsscd-priority-badge.wsscd-priority-2 {
+	background-color: var(--wsscd-color-text-alpha-15);
+	color: var(--wsscd-color-text-muted);
 }
 
 /* Priority 1 - Fallback (Gray) */
-.scd-priority-badge.scd-priority-1 {
-	background-color: var(--scd-color-text-alpha-25);
-	color: var(--scd-color-text-muted);
+.wsscd-priority-badge.wsscd-priority-1 {
+	background-color: var(--wsscd-color-text-alpha-25);
+	color: var(--wsscd-color-text-muted);
 }
 
 /* ==========================================================================
    Health Indicator - Refined
    ========================================================================== */
 
-.scd-health-indicator {
+.wsscd-health-indicator {
 	display: inline-flex;
 	align-items: center;
-	gap: var(--scd-spacing-xs);
-	font-size: var(--scd-font-size-small);
-	font-weight: var(--scd-font-weight-medium);
-	padding: var(--scd-spacing-xs) var(--scd-spacing-md);
-	border-radius: var(--scd-radius-lg);
+	gap: var(--wsscd-spacing-xs);
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-medium);
+	padding: var(--wsscd-spacing-xs) var(--wsscd-spacing-md);
+	border-radius: var(--wsscd-radius-md);
 	line-height: 1.5;
 	text-align: center;
 	white-space: nowrap;
 }
 
-.scd-health-indicator strong {
-	font-weight: var(--scd-font-weight-semibold);
-	font-size: var(--scd-font-size-small);
+.wsscd-health-indicator strong {
+	font-weight: var(--wsscd-font-weight-semibold);
+	font-size: var(--wsscd-font-size-small);
 	letter-spacing: -0.01em;
+	color: inherit !important;
 }
 
-.scd-health-indicator.scd-health-excellent {
-	background: var(--scd-color-success-lighter);
-	color: var(--scd-color-success);
+/* Excellent (90-100): Same as Good - light green background */
+.wsscd-health-indicator.wsscd-health-excellent {
+	background: var(--wsscd-color-success-lighter);
+	color: var(--wsscd-color-success-dark);
 }
 
-.scd-health-indicator.scd-health-excellent strong {
-	color: var(--scd-color-success-dark);
+.wsscd-health-indicator.wsscd-health-excellent strong {
+	color: var(--wsscd-color-success-dark);
 }
 
-.scd-health-indicator.scd-health-excellent svg {
-	fill: var(--scd-color-success-dark);
+.wsscd-health-indicator.wsscd-health-excellent .wsscd-icon,
+.wsscd-health-indicator.wsscd-health-excellent svg {
+	color: var(--wsscd-color-success-dark);
+	fill: var(--wsscd-color-success-dark);
 }
 
-.scd-health-indicator.scd-health-good {
-	background: var(--scd-color-success-lighter);
-	color: var(--scd-color-success);
+/* Good (70-89): Light green background - healthy */
+.wsscd-health-indicator.wsscd-health-good {
+	background: var(--wsscd-color-success-lighter);
+	color: var(--wsscd-color-success-dark);
 }
 
-.scd-health-indicator.scd-health-good strong {
-	color: var(--scd-color-success-dark);
+.wsscd-health-indicator.wsscd-health-good strong {
+	color: var(--wsscd-color-success-dark);
 }
 
-.scd-health-indicator.scd-health-good svg {
-	fill: var(--scd-color-success-dark);
+.wsscd-health-indicator.wsscd-health-good .wsscd-icon,
+.wsscd-health-indicator.wsscd-health-good svg {
+	color: var(--wsscd-color-success-dark);
+	fill: var(--wsscd-color-success-dark);
 }
 
-.scd-health-indicator.scd-health-fair {
-	background: var(--scd-color-warning-lighter);
-	color: var(--scd-color-warning-dark);
+/* Fair (50-69): Yellow/amber - needs attention */
+.wsscd-health-indicator.wsscd-health-fair {
+	background: var(--wsscd-color-warning-lighter);
+	color: var(--wsscd-color-warning-dark);
 }
 
-.scd-health-indicator.scd-health-fair strong {
-	color: var(--scd-color-warning-dark);
+.wsscd-health-indicator.wsscd-health-fair strong {
+	color: var(--wsscd-color-warning-dark);
 }
 
-.scd-health-indicator.scd-health-fair svg {
-	fill: var(--scd-color-warning-dark);
+.wsscd-health-indicator.wsscd-health-fair .wsscd-icon,
+.wsscd-health-indicator.wsscd-health-fair svg {
+	color: var(--wsscd-color-warning-dark);
+	fill: var(--wsscd-color-warning-dark);
 }
 
-.scd-health-indicator.scd-health-poor {
-	background: var(--scd-color-danger-lighter);
-	color: var(--scd-color-danger);
+/* Poor (25-49): Orange - concerning, action needed */
+.wsscd-health-indicator.wsscd-health-poor {
+	background: var(--wsscd-color-warning-alpha-25);
+	color: var(--wsscd-color-warning-dark);
 }
 
-.scd-health-indicator.scd-health-poor strong {
-	color: var(--scd-color-danger);
+.wsscd-health-indicator.wsscd-health-poor strong {
+	color: var(--wsscd-color-warning-dark);
 }
 
-.scd-health-indicator.scd-health-poor svg {
-	fill: var(--scd-color-danger);
+.wsscd-health-indicator.wsscd-health-poor .wsscd-icon,
+.wsscd-health-indicator.wsscd-health-poor svg {
+	color: var(--wsscd-color-warning-dark);
+	fill: var(--wsscd-color-warning-dark);
 }
 
-.scd-health-indicator.scd-health-critical {
-	background: var(--scd-color-danger);
-	color: var(--scd-color-white);
+/* Critical (0-24): Light red background - urgent/danger */
+.wsscd-health-indicator.wsscd-health-critical {
+	background: var(--wsscd-color-danger-lighter);
+	color: var(--wsscd-color-danger-dark);
 }
 
-.scd-health-indicator.scd-health-critical strong {
-	color: var(--scd-color-white);
+.wsscd-health-indicator.wsscd-health-critical strong {
+	color: var(--wsscd-color-danger-dark);
 }
 
-.scd-health-indicator.scd-health-critical svg {
-	fill: var(--scd-color-white);
+.wsscd-health-indicator.wsscd-health-critical .wsscd-icon,
+.wsscd-health-indicator.wsscd-health-critical svg {
+	color: var(--wsscd-color-danger-dark);
+	fill: var(--wsscd-color-danger-dark);
 }
 
 /* ==========================================================================
    Performance Column
    ========================================================================== */
 
-.scd-performance-metrics {
-	font-size: var(--scd-font-size-small);
+.wsscd-performance-metrics {
+	font-size: var(--wsscd-font-size-small);
 	line-height: 1.6;
 }
 
-.scd-performance-metrics strong {
+.wsscd-performance-metrics strong {
 	display: inline-block;
 	min-width: 70px;
-	color: var(--scd-color-text-lighter);
-	font-weight: var(--scd-font-weight-semibold);
+	color: var(--wsscd-color-text-lighter);
+	font-weight: var(--wsscd-font-weight-semibold);
 }
 
-.scd-performance-metrics .description {
-	color: var(--scd-color-text-lighter);
+.wsscd-performance-metrics .description {
+	color: var(--wsscd-color-text-lighter);
 	font-style: normal;
 }
 
@@ -175,123 +189,143 @@
    ========================================================================== */
 
 /* Base table improvements */
-.toplevel_page_scd-campaigns .wp-list-table,
+.toplevel_page_wsscd-campaigns .wp-list-table,
 .wp-list-table.campaigns {
-	border: 1px solid var(--scd-color-border-light);
-	border-radius: var(--scd-radius-md);
-	box-shadow: var(--scd-shadow-sm);
-	background: var(--scd-color-white);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-md);
+	box-shadow: var(--wsscd-shadow-sm);
+	background: var(--wsscd-color-white);
 	overflow: hidden;
 }
 
-/* Table header - refined spacing */
-.toplevel_page_scd-campaigns .wp-list-table thead th,
-.wp-list-table.campaigns thead th {
-	background: var(--scd-color-surface);
-	border-bottom: 1px solid var(--scd-color-border-light);
-	font-weight: var(--scd-font-weight-semibold);
-	color: var(--scd-color-text-secondary);
-	padding: var(--scd-padding-small) 12px;
+/* Table header and footer - refined spacing */
+.toplevel_page_wsscd-campaigns .wp-list-table thead th,
+.toplevel_page_wsscd-campaigns .wp-list-table tfoot th,
+.wp-list-table.campaigns thead th,
+.wp-list-table.campaigns tfoot th {
+	background: var(--wsscd-color-surface);
+	border-bottom: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text-secondary);
+	padding: var(--wsscd-padding-small) var(--wsscd-spacing-md);
 	text-transform: uppercase;
-	font-size: var(--scd-font-size-small);
+	font-size: var(--wsscd-font-size-small);
 	letter-spacing: 0.025em;
-	line-height: 1.5;
+	line-height: var(--wsscd-line-height-base);
 }
 
-/* First header cell */
-.toplevel_page_scd-campaigns .wp-list-table thead th:first-child,
-.wp-list-table.campaigns thead th:first-child {
-	padding-left: 16px;
+/* Footer border adjustment */
+.toplevel_page_wsscd-campaigns .wp-list-table tfoot th,
+.wp-list-table.campaigns tfoot th {
+	border-bottom: none;
+	border-top: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+}
+
+/* First header/footer cell */
+.toplevel_page_wsscd-campaigns .wp-list-table thead th:first-child,
+.toplevel_page_wsscd-campaigns .wp-list-table tfoot th:first-child,
+.wp-list-table.campaigns thead th:first-child,
+.wp-list-table.campaigns tfoot th:first-child {
+	padding-left: var(--wsscd-spacing-base);
 }
 
 /* Row styling - optimized spacing with fixed height */
-.toplevel_page_scd-campaigns .wp-list-table tbody tr,
+.toplevel_page_wsscd-campaigns .wp-list-table tbody tr,
 .wp-list-table.campaigns tbody tr {
-	background: var(--scd-color-white);
-	border-bottom: 1px solid var(--scd-color-surface);
-	transition: background-color var(--scd-transition-fast) ease, box-shadow var(--scd-transition-fast) ease;
+	background: var(--wsscd-color-white);
+	border-bottom: var(--wsscd-border-width) solid var(--wsscd-color-surface);
+	transition: background-color var(--wsscd-transition-fast) var(--wsscd-ease-out), box-shadow var(--wsscd-transition-fast) var(--wsscd-ease-out);
 	height: 68px;
 }
 
 /* Alternating row colors - subtle */
-.toplevel_page_scd-campaigns .wp-list-table tbody tr:nth-child(even),
+.toplevel_page_wsscd-campaigns .wp-list-table tbody tr:nth-child(even),
 .wp-list-table.campaigns tbody tr:nth-child(even) {
-	background: var(--scd-color-surface);
+	background: var(--wsscd-color-surface);
 }
 
 /* Hover effect - refined */
-.toplevel_page_scd-campaigns .wp-list-table tbody tr:hover,
+.toplevel_page_wsscd-campaigns .wp-list-table tbody tr:hover,
 .wp-list-table.campaigns tbody tr:hover {
-	background: var(--scd-color-primary-alpha-3);
+	background: var(--wsscd-color-primary-alpha-3);
 	cursor: pointer;
-	transition: background-color var(--scd-transition-fast) ease;
+	transition: background-color var(--wsscd-transition-fast) var(--wsscd-ease-out);
 }
 
-.toplevel_page_scd-campaigns .wp-list-table tbody tr:nth-child(even):hover,
+/* No hover effect for empty state rows */
+.toplevel_page_wsscd-campaigns .wp-list-table tbody tr:has(.wsscd-empty-state):hover,
+.wp-list-table.campaigns tbody tr:has(.wsscd-empty-state):hover,
+.toplevel_page_wsscd-campaigns .wp-list-table tbody tr.wsscd-empty-state-row:hover,
+.wp-list-table.campaigns tbody tr.wsscd-empty-state-row:hover {
+	background: transparent;
+	cursor: default;
+}
+
+.toplevel_page_wsscd-campaigns .wp-list-table tbody tr:nth-child(even):hover,
 .wp-list-table.campaigns tbody tr:nth-child(even):hover {
-	background: var(--scd-color-primary-alpha-10);
+	background: var(--wsscd-color-primary-alpha-10);
 }
 
 /* Cell padding - refined vertical rhythm */
-.toplevel_page_scd-campaigns .wp-list-table td,
+.toplevel_page_wsscd-campaigns .wp-list-table td,
 .wp-list-table.campaigns td {
-	padding: var(--scd-padding-medium);
+	padding: var(--wsscd-padding-medium);
 	vertical-align: middle;
-	line-height: 1.5;
-	font-size: var(--scd-font-size-base);
+	line-height: var(--wsscd-line-height-base);
+	font-size: var(--wsscd-font-size-base);
 	max-height: 68px;
 	overflow: hidden;
 }
 
 /* First cell */
-.toplevel_page_scd-campaigns .wp-list-table td:first-child,
+.toplevel_page_wsscd-campaigns .wp-list-table td:first-child,
 .wp-list-table.campaigns td:first-child {
-	padding-left: 16px;
+	padding-left: var(--wsscd-spacing-base);
 }
 
 /* Campaign name cell - refined typography with text limiting */
-.toplevel_page_scd-campaigns .wp-list-table .column-name,
+.toplevel_page_wsscd-campaigns .wp-list-table .column-name,
 .wp-list-table.campaigns .column-name {
-	font-weight: var(--scd-font-weight-medium);
+	font-weight: var(--wsscd-font-weight-medium);
 	max-height: 68px;
 	overflow: hidden;
 	word-wrap: break-word;
 	overflow-wrap: break-word;
 }
 
-.toplevel_page_scd-campaigns .wp-list-table .column-name .row-title,
+.toplevel_page_wsscd-campaigns .wp-list-table .column-name .row-title,
 .wp-list-table.campaigns .column-name .row-title {
-	font-size: var(--scd-font-size-medium);
-	font-weight: var(--scd-font-weight-semibold);
-	color: var(--scd-color-text);
-	line-height: 1.5;
-	transition: color var(--scd-transition-fast) ease;
+	font-size: var(--wsscd-font-size-medium);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+	line-height: var(--wsscd-line-height-base);
+	transition: color var(--wsscd-transition-fast) var(--wsscd-ease-out);
 	display: inline;
 }
 
-.toplevel_page_scd-campaigns .wp-list-table .column-name .row-title:hover,
+.toplevel_page_wsscd-campaigns .wp-list-table .column-name .row-title:hover,
 .wp-list-table.campaigns .column-name .row-title:hover {
 	color: var(--wp-admin-theme-color);
 }
 
 /* Name column wrapper - allow multi-line layout */
-.toplevel_page_scd-campaigns .wp-list-table .column-name strong,
+.toplevel_page_wsscd-campaigns .wp-list-table .column-name strong,
 .wp-list-table.campaigns .column-name strong {
 	display: block;
-	line-height: 1.5;
-	margin-bottom: 2px;
+	line-height: var(--wsscd-line-height-base);
+	margin-bottom: var(--wsscd-spacing-xxs);
 }
 
 /* Title on its own line */
-.toplevel_page_scd-campaigns .wp-list-table .column-name strong .row-title,
+.toplevel_page_wsscd-campaigns .wp-list-table .column-name strong .row-title,
 .wp-list-table.campaigns .column-name strong .row-title {
 	display: inline;
 }
 
-.toplevel_page_scd-campaigns .wp-list-table .column-name .description,
+.toplevel_page_wsscd-campaigns .wp-list-table .column-name .description,
 .wp-list-table.campaigns .column-name .description {
-	color: var(--scd-color-text-secondary);
-	font-size: var(--scd-font-size-small);
+	color: var(--wsscd-color-text-secondary);
+	font-size: var(--wsscd-font-size-small);
 	line-height: 1.45;
 	display: block;
 	max-width: 100%;
@@ -301,113 +335,113 @@
 }
 
 /* Row actions - allow natural wrapping */
-.toplevel_page_scd-campaigns .wp-list-table .row-actions,
+.toplevel_page_wsscd-campaigns .wp-list-table .row-actions,
 .wp-list-table.campaigns .row-actions {
-	color: var(--scd-color-text-secondary);
-	font-size: var(--scd-font-size-small);
-	line-height: 1.6;
+	color: var(--wsscd-color-text-secondary);
+	font-size: var(--wsscd-font-size-small);
+	line-height: var(--wsscd-line-height-relaxed);
 	position: static;
 	padding: 0;
-	margin: var(--scd-spacing-xxs) 0 0 0;
+	margin: var(--wsscd-spacing-xxs) 0 0 0;
 	visibility: hidden;
 	display: block;
 }
 
 /* Show row actions inline after title */
-.toplevel_page_scd-campaigns .wp-list-table .column-name,
+.toplevel_page_wsscd-campaigns .wp-list-table .column-name,
 .wp-list-table.campaigns .column-name {
 	position: relative;
 }
 
-.toplevel_page_scd-campaigns .wp-list-table tr:hover .row-actions,
+.toplevel_page_wsscd-campaigns .wp-list-table tr:hover .row-actions,
 .wp-list-table.campaigns tr:hover .row-actions {
 	visibility: visible;
 }
 
-.toplevel_page_scd-campaigns .wp-list-table .row-actions span,
+.toplevel_page_wsscd-campaigns .wp-list-table .row-actions span,
 .wp-list-table.campaigns .row-actions span {
 	display: inline;
 }
 
-.toplevel_page_scd-campaigns .wp-list-table .row-actions a,
+.toplevel_page_wsscd-campaigns .wp-list-table .row-actions a,
 .wp-list-table.campaigns .row-actions a {
 	text-decoration: none;
 }
 
-.toplevel_page_scd-campaigns .wp-list-table .row-actions a:hover,
+.toplevel_page_wsscd-campaigns .wp-list-table .row-actions a:hover,
 .wp-list-table.campaigns .row-actions a:hover {
 	/* Use default WordPress hover styling */
 }
 
 /* Status-based row highlighting - refined borders */
-.toplevel_page_scd-campaigns .wp-list-table tbody tr[data-status="active"],
+.toplevel_page_wsscd-campaigns .wp-list-table tbody tr[data-status="active"],
 .wp-list-table.campaigns tbody tr[data-status="active"] {
-	border-left: 3px solid var(--wp-admin-theme-color);
+	border-left: var(--wsscd-border-width-accent) solid var(--wp-admin-theme-color);
 	padding-left: 0;
 }
 
-.toplevel_page_scd-campaigns .wp-list-table tbody tr[data-status="active"] td:first-child,
+.toplevel_page_wsscd-campaigns .wp-list-table tbody tr[data-status="active"] td:first-child,
 .wp-list-table.campaigns tbody tr[data-status="active"] td:first-child {
-	padding-left: 13px;
+	padding-left: var(--wsscd-spacing-md);
 }
 
-.toplevel_page_scd-campaigns .wp-list-table tbody tr[data-status="expired"],
+.toplevel_page_wsscd-campaigns .wp-list-table tbody tr[data-status="expired"],
 .wp-list-table.campaigns tbody tr[data-status="expired"] {
 	opacity: 0.65;
-	background: var(--scd-color-surface);
+	background: var(--wsscd-color-surface);
 }
 
-.toplevel_page_scd-campaigns .wp-list-table tbody tr[data-status="expired"]:hover,
+.toplevel_page_wsscd-campaigns .wp-list-table tbody tr[data-status="expired"]:hover,
 .wp-list-table.campaigns tbody tr[data-status="expired"]:hover {
 	opacity: 0.8;
-	background: var(--scd-color-border-light);
+	background: var(--wsscd-color-border-light);
 }
 
-.toplevel_page_scd-campaigns .wp-list-table tbody tr[data-status="draft"],
+.toplevel_page_wsscd-campaigns .wp-list-table tbody tr[data-status="draft"],
 .wp-list-table.campaigns tbody tr[data-status="draft"] {
-	border-left: 3px solid var(--scd-color-warning);
+	border-left: var(--wsscd-border-width-accent) solid var(--wsscd-color-warning);
 	padding-left: 0;
 }
 
-.toplevel_page_scd-campaigns .wp-list-table tbody tr[data-status="draft"] td:first-child,
+.toplevel_page_wsscd-campaigns .wp-list-table tbody tr[data-status="draft"] td:first-child,
 .wp-list-table.campaigns tbody tr[data-status="draft"] td:first-child {
-	padding-left: 13px;
+	padding-left: var(--wsscd-spacing-md);
 }
 
 /* Text styling - refined hierarchy with text limiting */
-.toplevel_page_scd-campaigns .wp-list-table td strong,
+.toplevel_page_wsscd-campaigns .wp-list-table td strong,
 .wp-list-table.campaigns td strong {
-	color: var(--scd-color-text);
-	font-weight: var(--scd-font-weight-semibold);
-	font-size: var(--scd-font-size-base);
+	color: var(--wsscd-color-text);
+	font-weight: var(--wsscd-font-weight-semibold);
+	font-size: var(--wsscd-font-size-base);
 }
 
 /* Exception for name column - handled separately */
-.toplevel_page_scd-campaigns .wp-list-table .column-name strong,
+.toplevel_page_wsscd-campaigns .wp-list-table .column-name strong,
 .wp-list-table.campaigns .column-name strong {
-	color: var(--scd-color-text);
+	color: var(--wsscd-color-text);
 }
 
-.toplevel_page_scd-campaigns .wp-list-table td small,
+.toplevel_page_wsscd-campaigns .wp-list-table td small,
 .wp-list-table.campaigns td small {
-	color: var(--scd-color-text-secondary);
-	font-size: var(--scd-font-size-small);
-	line-height: 1.5;
+	color: var(--wsscd-color-text-secondary);
+	font-size: var(--wsscd-font-size-small);
+	line-height: var(--wsscd-line-height-base);
 	display: block;
-	margin-top: 2px;
+	margin-top: var(--wsscd-spacing-xxs);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
 /* Checkbox column - optimized */
-.toplevel_page_scd-campaigns .wp-list-table .check-column,
+.toplevel_page_wsscd-campaigns .wp-list-table .check-column,
 .wp-list-table.campaigns .check-column {
-	padding: var(--scd-padding-medium) 8px 12px 16px;
+	padding: var(--wsscd-padding-medium) var(--wsscd-spacing-sm) var(--wsscd-spacing-md) var(--wsscd-spacing-base);
 	width: 2.2em;
 }
 
-.toplevel_page_scd-campaigns .wp-list-table .check-column input[type="checkbox"],
+.toplevel_page_wsscd-campaigns .wp-list-table .check-column input[type="checkbox"],
 .wp-list-table.campaigns .check-column input[type="checkbox"] {
 	margin: 0;
 	vertical-align: middle;
@@ -418,21 +452,21 @@
    ========================================================================== */
 
 /* Use table-layout fixed for equal column distribution */
-.toplevel_page_scd-campaigns .wp-list-table,
+.toplevel_page_wsscd-campaigns .wp-list-table,
 .wp-list-table.campaigns {
 	table-layout: fixed;
 	width: 100%;
 }
 
 /* Checkbox column - fixed small width */
-.toplevel_page_scd-campaigns .wp-list-table .column-cb,
+.toplevel_page_wsscd-campaigns .wp-list-table .column-cb,
 .wp-list-table.campaigns .column-cb {
 	width: 40px;
 	vertical-align: middle;
 }
 
 /* Name column - larger for primary content */
-.toplevel_page_scd-campaigns .wp-list-table .column-name,
+.toplevel_page_wsscd-campaigns .wp-list-table .column-name,
 .wp-list-table.campaigns .column-name {
 	width: 30%;
 	min-width: 200px;
@@ -440,7 +474,7 @@
 }
 
 /* Status column - medium width, left aligned */
-.toplevel_page_scd-campaigns .wp-list-table .column-status,
+.toplevel_page_wsscd-campaigns .wp-list-table .column-status,
 .wp-list-table.campaigns .column-status {
 	width: 12%;
 	min-width: 100px;
@@ -451,7 +485,7 @@
 }
 
 /* Schedule column - medium width, left aligned */
-.toplevel_page_scd-campaigns .wp-list-table .column-schedule,
+.toplevel_page_wsscd-campaigns .wp-list-table .column-schedule,
 .wp-list-table.campaigns .column-schedule {
 	width: 18%;
 	min-width: 140px;
@@ -463,7 +497,7 @@
 }
 
 /* Health column - compact, left aligned */
-.toplevel_page_scd-campaigns .wp-list-table .column-health,
+.toplevel_page_wsscd-campaigns .wp-list-table .column-health,
 .wp-list-table.campaigns .column-health {
 	width: 12%;
 	min-width: 100px;
@@ -474,7 +508,7 @@
 }
 
 /* Actions column - wider for icon buttons */
-.toplevel_page_scd-campaigns .wp-list-table .column-actions,
+.toplevel_page_wsscd-campaigns .wp-list-table .column-actions,
 .wp-list-table.campaigns .column-actions {
 	width: 28%;
 	min-width: 220px;
@@ -489,28 +523,28 @@
 
 @media screen and (max-width: 1280px) {
 	/* Hide schedule column on smaller screens */
-	.toplevel_page_scd-campaigns .wp-list-table .column-schedule,
+	.toplevel_page_wsscd-campaigns .wp-list-table .column-schedule,
 	.wp-list-table.campaigns .column-schedule {
 		display: none;
 	}
 
 	/* Redistribute widths */
-	.toplevel_page_scd-campaigns .wp-list-table .column-name,
+	.toplevel_page_wsscd-campaigns .wp-list-table .column-name,
 	.wp-list-table.campaigns .column-name {
 		width: 35%;
 	}
 
-	.toplevel_page_scd-campaigns .wp-list-table .column-status,
+	.toplevel_page_wsscd-campaigns .wp-list-table .column-status,
 	.wp-list-table.campaigns .column-status {
 		width: 18%;
 	}
 
-	.toplevel_page_scd-campaigns .wp-list-table .column-health,
+	.toplevel_page_wsscd-campaigns .wp-list-table .column-health,
 	.wp-list-table.campaigns .column-health {
 		width: 15%;
 	}
 
-	.toplevel_page_scd-campaigns .wp-list-table .column-actions,
+	.toplevel_page_wsscd-campaigns .wp-list-table .column-actions,
 	.wp-list-table.campaigns .column-actions {
 		width: 32%;
 	}
@@ -518,28 +552,20 @@
 
 
 /* Badge alignment in cells */
-.wp-list-table td .scd-priority-badge,
-.wp-list-table td .scd-health-indicator {
+.wp-list-table td .wsscd-priority-badge,
+.wp-list-table td .wsscd-health-indicator {
 	vertical-align: middle;
 }
 
-/* Recurring badges alignment */
-.scd-recurring-badge {
-	display: inline-block;
-	padding: var(--scd-spacing-xxs) 6px;
-	margin-left: var(--scd-spacing-xs);
-	border-radius: var(--scd-radius-sm);
-	font-size: var(--scd-font-size-small);
-	line-height: 1.4;
-	vertical-align: middle;
-	white-space: nowrap;
+/* Recurring badges - campaigns list specific overrides */
+.wsscd-recurring-badge {
 	max-width: 120px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
 /* Keep description visible even without hover */
-.toplevel_page_scd-campaigns .wp-list-table .column-name .description,
+.toplevel_page_wsscd-campaigns .wp-list-table .column-name .description,
 .wp-list-table.campaigns .column-name .description {
 	opacity: 1;
 }
@@ -548,13 +574,19 @@
    Expandable Row Styles
    ========================================================================== */
 
-/* Row expansion state */
+/* Row expansion state - clickable rows open campaign panel */
 .wp-list-table.campaigns tbody tr {
 	cursor: pointer;
-	transition: background-color var(--scd-transition-base);
+	transition: background-color var(--wsscd-transition-base);
 }
 
-	.scd-actions-section .button {
+/* Empty state rows should not have pointer cursor */
+.wp-list-table.campaigns tbody tr:has(.wsscd-empty-state),
+.wp-list-table.campaigns tbody tr.wsscd-empty-state-row {
+	cursor: default;
+}
+
+	.wsscd-actions-section .button {
 		text-align: center;
 	}
 }
@@ -563,9 +595,9 @@
    Actions Column
    ========================================================================== */
 
-.scd-actions-column {
+.wsscd-actions-column {
 	display: flex;
-	gap: var(--scd-spacing-xs);
+	gap: var(--wsscd-spacing-xs);
 	align-items: center;
 	justify-content: flex-end;
 	flex-wrap: wrap;
@@ -573,8 +605,8 @@
 
 /* Responsive: Stack buttons vertically on mobile */
 @media screen and (max-width: 782px) {
-	.scd-actions-column {
-		gap: var(--scd-spacing-sm);
+	.wsscd-actions-column {
+		gap: var(--wsscd-spacing-sm);
 		flex-wrap: wrap;
 		justify-content: flex-start;
 	}
@@ -585,24 +617,24 @@
    ========================================================================== */
 
 /* Base notice container with animation */
-.scd-draft-notice {
+.wsscd-draft-notice {
 	position: relative;
 	display: flex;
 	align-items: center;
-	padding: 0 var(--scd-spacing-base);
-	margin: var(--scd-spacing-md) 0;
+	padding: 0 var(--wsscd-spacing-base);
+	margin: var(--wsscd-spacing-md) 0;
 	min-height: 68px;
 	max-height: 68px;
-	background: var(--scd-alert-info-bg);
-	border: var(--scd-border-width) solid var(--scd-color-secondary);
-	border-left: var(--scd-border-width-accent) solid var(--scd-color-primary);
-	border-radius: var(--scd-radius-md);
-	box-shadow: 0 2px 4px var(--scd-overlay-subtle);
-	animation: scd-notice-slide-in var(--scd-transition-slow) ease-out;
+	background: var(--wsscd-alert-info-bg);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-secondary);
+	border-left: var(--wsscd-border-width-accent) solid var(--wsscd-color-primary);
+	border-radius: var(--wsscd-radius-md);
+	box-shadow: var(--wsscd-shadow-sm);
+	animation: wsscd-notice-slide-in var(--wsscd-transition-slow) var(--wsscd-ease-out);
 }
 
 /* Slide-in animation */
-@keyframes scd-notice-slide-in {
+@keyframes wsscd-notice-slide-in {
 	from {
 		opacity: 0;
 		transform: translateY(-10px);
@@ -614,175 +646,173 @@
 }
 
 /* Notice paragraph - flexbox layout */
-.scd-draft-notice p {
+.wsscd-draft-notice p {
 	margin: 0;
 	display: flex;
 	align-items: center;
 	flex-wrap: nowrap;
-	gap: var(--scd-spacing-xs);
+	gap: var(--wsscd-spacing-xs);
 	width: 100%;
-	font-size: var(--scd-font-size-base);
-	line-height: var(--scd-line-height-base);
+	font-size: var(--wsscd-font-size-base);
+	line-height: var(--wsscd-line-height-base);
 }
 
 /* Icon styling */
-.scd-draft-notice .scd-icon {
-	flex-shrink: 0;
-	margin-right: var(--scd-spacing-xxs);
-	color: var(--scd-color-primary);
+.wsscd-draft-notice .wsscd-icon {
+	margin-right: var(--wsscd-spacing-xxs);
+	color: var(--wsscd-color-primary);
+	fill: var(--wsscd-color-primary);
 }
 
-.scd-draft-notice .scd-icon svg {
-	width: var(--scd-icon-medium);
-	height: var(--scd-icon-medium);
-	fill: currentColor;
-	vertical-align: middle;
+.wsscd-draft-notice .wsscd-icon svg {
+	width: var(--wsscd-icon-medium);
+	height: var(--wsscd-icon-medium);
 }
 
 /* Draft label */
-.scd-draft-label {
-	color: var(--scd-color-text-muted);
-	font-weight: var(--scd-font-weight-medium);
-	font-size: var(--scd-font-size-base);
+.wsscd-draft-label {
+	color: var(--wsscd-color-text-muted);
+	font-weight: var(--wsscd-font-weight-medium);
+	font-size: var(--wsscd-font-size-base);
 }
 
 /* Campaign name - prominent */
-.scd-draft-campaign-name {
-	color: var(--scd-color-text);
-	font-weight: var(--scd-font-weight-semibold);
-	font-size: var(--scd-font-size-medium);
+.wsscd-draft-campaign-name {
+	color: var(--wsscd-color-text);
+	font-weight: var(--wsscd-font-weight-semibold);
+	font-size: var(--wsscd-font-size-medium);
 }
 
 /* Meta information (timestamp) */
-.scd-draft-meta {
+.wsscd-draft-meta {
 	display: inline-flex;
 	align-items: center;
-	gap: var(--scd-spacing-xxs);
-	color: var(--scd-color-text-muted);
-	font-size: var(--scd-font-size-small);
+	gap: var(--wsscd-spacing-xxs);
+	color: var(--wsscd-color-text-muted);
+	font-size: var(--wsscd-font-size-small);
 	font-style: italic;
-	padding-left: var(--scd-spacing-xs);
-	border-left: var(--scd-border-width) solid var(--scd-color-gray-200);
-	margin-left: var(--scd-spacing-xs);
+	padding-left: var(--wsscd-spacing-xs);
+	border-left: var(--wsscd-border-width) solid var(--wsscd-color-gray-200);
+	margin-left: var(--wsscd-spacing-xs);
 }
 
 /* Expiration indicator */
-.scd-draft-expiration {
+.wsscd-draft-expiration {
 	display: inline-flex;
 	align-items: center;
-	gap: var(--scd-spacing-xxs);
-	padding: var(--scd-spacing-xxs) var(--scd-spacing-sm);
-	margin-left: var(--scd-spacing-sm);
-	font-size: var(--scd-font-size-small);
-	font-weight: var(--scd-font-weight-medium);
-	border-radius: var(--scd-radius-sm);
-	border: var(--scd-border-width) solid transparent;
-	transition: all var(--scd-transition-base) ease;
+	gap: var(--wsscd-spacing-xxs);
+	padding: var(--wsscd-spacing-xxs) var(--wsscd-spacing-sm);
+	margin-left: var(--wsscd-spacing-sm);
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-medium);
+	border-radius: var(--wsscd-radius-sm);
+	border: var(--wsscd-border-width) solid transparent;
+	transition: var(--wsscd-transition-all);
 }
 
 /* Normal state - plenty of time (>30 minutes) */
-.scd-draft-expiration.scd-expiration-normal {
-	color: var(--scd-color-text-muted);
-	background: var(--scd-overlay-faint);
-	border-color: var(--scd-overlay-border);
+.wsscd-draft-expiration.wsscd-expiration-normal {
+	color: var(--wsscd-color-text-muted);
+	background: var(--wsscd-overlay-faint);
+	border-color: var(--wsscd-overlay-border);
 }
 
 /* Warning state - running low (15-30 minutes) */
-.scd-draft-expiration.scd-expiration-warning {
-	color: var(--scd-color-warning-dark);
-	background: var(--scd-alert-warning-bg);
-	border-color: var(--scd-color-warning-alpha-25);
+.wsscd-draft-expiration.wsscd-expiration-warning {
+	color: var(--wsscd-color-warning-dark);
+	background: var(--wsscd-alert-warning-bg);
+	border-color: var(--wsscd-color-warning-alpha-25);
 }
 
 /* Urgent state - critical (≤15 minutes) */
-.scd-draft-expiration.scd-expiration-urgent {
-	color: var(--scd-color-danger-dark);
-	background: var(--scd-alert-danger-bg);
-	border-color: var(--scd-color-danger-alpha-30);
-	font-weight: var(--scd-font-weight-semibold);
+.wsscd-draft-expiration.wsscd-expiration-urgent {
+	color: var(--wsscd-color-danger-dark);
+	background: var(--wsscd-alert-danger-bg);
+	border-color: var(--wsscd-color-danger-alpha-30);
+	font-weight: var(--wsscd-font-weight-semibold);
 }
 
 /* Actions container */
-.scd-draft-actions {
+.wsscd-draft-actions {
 	display: flex;
 	align-items: center;
-	gap: var(--scd-spacing-sm);
+	gap: var(--wsscd-spacing-sm);
 	margin-left: auto;
 	flex-shrink: 0;
 }
 
 /* Draft action buttons - use shared button classes with size overrides */
-.scd-draft-actions .scd-button {
+.wsscd-draft-actions .wsscd-button {
 	min-height: 28px;
-	padding: 5px var(--scd-padding-medium);
-	border-radius: var(--scd-radius-sm);
+	padding: var(--wsscd-spacing-sm) var(--wsscd-padding-medium);
+	border-radius: var(--wsscd-radius-sm);
 }
 
-.scd-draft-actions .scd-button--ghost-danger {
-	padding: 5px var(--scd-padding-compact);
+.wsscd-draft-actions .wsscd-button--ghost-danger {
+	padding: var(--wsscd-spacing-sm) var(--wsscd-padding-compact);
 }
 
 /* Dismissible button styling */
-.scd-draft-notice .notice-dismiss {
+.wsscd-draft-notice .notice-dismiss {
 	position: absolute;
 	top: 50%;
-	right: var(--scd-spacing-md);
+	right: var(--wsscd-spacing-md);
 	transform: translateY(-50%);
-	padding: var(--scd-spacing-xs);
-	color: var(--scd-color-text-muted);
-	transition: color var(--scd-transition-base) ease;
+	padding: var(--wsscd-spacing-xs);
+	color: var(--wsscd-color-text-muted);
+	transition: color var(--wsscd-transition-base) var(--wsscd-ease-out);
 }
 
-.scd-draft-notice .notice-dismiss:hover {
-	color: var(--scd-color-primary);
+.wsscd-draft-notice .notice-dismiss:hover {
+	color: var(--wsscd-color-primary);
 }
 
 /* ARIA and accessibility enhancements */
-.scd-draft-notice[role="status"] {
+.wsscd-draft-notice[role="status"] {
 	/* Screen reader announcements handled by role */
 }
 
 /* Focus states for accessibility */
-.scd-draft-notice a:focus {
-	outline: var(--scd-border-width-focus) solid var(--scd-color-primary);
-	outline-offset: var(--scd-spacing-xxs);
-	border-radius: var(--scd-radius-sm);
+.wsscd-draft-notice a:focus {
+	outline: var(--wsscd-border-width-focus) solid var(--wsscd-color-primary);
+	outline-offset: var(--wsscd-spacing-xxs);
+	border-radius: var(--wsscd-radius-sm);
 }
 
 /* Responsive design - mobile optimization */
 @media screen and (max-width: 782px) {
-	.scd-draft-notice {
+	.wsscd-draft-notice {
 		flex-direction: column;
 		align-items: flex-start;
-		padding: var(--scd-spacing-md) var(--scd-padding-medium);
+		padding: var(--wsscd-spacing-md) var(--wsscd-padding-medium);
 		min-height: auto;
 		max-height: none;
 	}
 
-	.scd-draft-notice p {
+	.wsscd-draft-notice p {
 		flex-direction: column;
 		align-items: flex-start;
-		gap: var(--scd-spacing-sm);
+		gap: var(--wsscd-spacing-sm);
 		width: 100%;
 	}
 
-	.scd-draft-meta {
+	.wsscd-draft-meta {
 		padding-left: 0;
 		border-left: none;
 		margin-left: 0;
 		width: 100%;
 	}
 
-	.scd-draft-actions {
+	.wsscd-draft-actions {
 		margin-left: 0;
-		margin-top: var(--scd-gap-sm-medium);
+		margin-top: var(--wsscd-gap-sm-medium);
 		width: 100%;
 		flex-wrap: wrap;
-		gap: var(--scd-spacing-sm);
+		gap: var(--wsscd-spacing-sm);
 	}
 
-	.scd-draft-actions .button,
-	.scd-draft-actions .button-link-delete {
+	.wsscd-draft-actions .button,
+	.wsscd-draft-actions .button-link-delete {
 		flex: 1;
 		min-width: 120px;
 		justify-content: center;
@@ -791,43 +821,155 @@
 
 /* Tablet optimization */
 @media screen and (min-width: 783px) and (max-width: 1024px) {
-	.scd-draft-notice p {
-		gap: var(--scd-spacing-xs);
+	.wsscd-draft-notice p {
+		gap: var(--wsscd-spacing-xs);
 	}
 
-	.scd-draft-actions {
-		gap: var(--scd-spacing-sm);
+	.wsscd-draft-actions {
+		gap: var(--wsscd-spacing-sm);
 	}
 }
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-	.scd-draft-notice {
-		border-width: var(--scd-border-width-thick);
-		border-left-width: 5px;
+	.wsscd-draft-notice {
+		border-width: var(--wsscd-border-width-thick);
+		border-left-width: 5px; /* Intentionally larger than accent for high contrast visibility */
 	}
 
-	.scd-draft-actions .button-small {
-		border-width: var(--scd-border-width-thick);
+	.wsscd-draft-actions .button-small {
+		border-width: var(--wsscd-border-width-thick);
 	}
 }
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-	.scd-draft-notice {
+	.wsscd-draft-notice {
 		animation: none;
 	}
 }
 
 /* Print styles - simplify for printing */
 @media print {
-	.scd-draft-notice {
-		border: 1px solid var(--scd-color-text);
+	.wsscd-draft-notice {
+		border: var(--wsscd-border-width) solid var(--wsscd-color-text);
 		box-shadow: none;
-		background: var(--scd-color-white);
+		background: var(--wsscd-color-white);
 	}
 
-	.scd-draft-actions {
+	.wsscd-draft-actions {
 		display: none;
+	}
+}
+
+/* ==========================================================================
+   Empty State - Professional Design
+   ========================================================================== */
+
+.wsscd-empty-state {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	padding: var(--wsscd-spacing-xxl) var(--wsscd-spacing-xl);
+	min-height: 300px;
+	cursor: default; /* Override table row pointer cursor */
+}
+
+/* Ensure parent row doesn't show pointer cursor for empty state */
+.wp-list-table tbody tr:has(.wsscd-empty-state),
+.wp-list-table tbody tr.wsscd-empty-state-row,
+.wp-list-table tbody tr .wsscd-empty-state {
+	cursor: default;
+}
+
+/* Prevent row click behavior on empty state parent */
+.wp-list-table tbody td:has(.wsscd-empty-state),
+.wp-list-table tbody tr.wsscd-empty-state-row td {
+	cursor: default;
+}
+
+.wsscd-empty-state__icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 80px;
+	height: 80px;
+	margin-bottom: var(--wsscd-spacing-lg);
+	background: var(--wsscd-color-surface);
+	border-radius: var(--wsscd-radius-full);
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-empty-state__icon .wsscd-icon,
+.wsscd-empty-state__icon svg {
+	color: var(--wsscd-color-text-muted);
+	fill: var(--wsscd-color-text-muted);
+	opacity: 0.6;
+}
+
+.wsscd-empty-state__title {
+	margin: 0 0 var(--wsscd-spacing-sm) 0;
+	font-size: var(--wsscd-font-size-xl);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+	line-height: var(--wsscd-line-height-tight);
+}
+
+.wsscd-empty-state__description {
+	margin: 0 0 var(--wsscd-spacing-xl) 0;
+	max-width: 400px;
+	font-size: var(--wsscd-font-size-base);
+	color: var(--wsscd-color-text-muted);
+	line-height: var(--wsscd-line-height-relaxed);
+}
+
+.wsscd-empty-state__actions {
+	display: flex;
+	gap: var(--wsscd-spacing-sm);
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+/* Ensure buttons have pointer cursor */
+.wsscd-empty-state__actions .wsscd-button,
+.wsscd-empty-state__actions a {
+	cursor: pointer;
+}
+
+.wsscd-empty-state__actions .wsscd-button--large {
+	padding: var(--wsscd-spacing-md) var(--wsscd-spacing-xl);
+	font-size: var(--wsscd-font-size-medium);
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 782px) {
+	.wsscd-empty-state {
+		padding: var(--wsscd-spacing-xl) var(--wsscd-spacing-md);
+		min-height: 250px;
+	}
+
+	.wsscd-empty-state__icon {
+		width: 64px;
+		height: 64px;
+	}
+
+	.wsscd-empty-state__icon .wsscd-icon,
+	.wsscd-empty-state__icon svg {
+		width: 36px !important;
+		height: 36px !important;
+	}
+
+	.wsscd-empty-state__title {
+		font-size: var(--wsscd-font-size-large);
+	}
+
+	.wsscd-empty-state__description {
+		font-size: var(--wsscd-font-size-small);
+	}
+
+	.wsscd-empty-state__actions .wsscd-button--large {
+		width: 100%;
 	}
 }

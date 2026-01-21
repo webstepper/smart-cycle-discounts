@@ -22,13 +22,13 @@
 		 * Initialize the health check
 		 */
 		init: function() {
-			if ( ! $( '#scd-health-container' ).length ) {
+			if ( ! $( '#wsscd-health-container' ).length ) {
 				return;
 			}
 
 			// Disable navigation immediately on review step to prevent clicks during initial load
-			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Navigation ) {
-				window.SCD.Wizard.Navigation.setNavigationState( true );
+			if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.Navigation ) {
+				window.WSSCD.Wizard.Navigation.setNavigationState( true );
 			}
 
 			this.loadHealthData();
@@ -42,7 +42,7 @@
 			var self = this;
 
 			// Listen for step shown event
-			$( document ).on( 'scd:step:shown', function( event, stepName ) {
+			$( document ).on( 'wsscd:step:shown', function( event, stepName ) {
 				if ( 'review' === stepName ) {
 					self.loadHealthData();
 				}
@@ -51,17 +51,17 @@
 			// Launch option change
 			$( 'input[name="launch_option"]' ).on( 'change', function() {
 				var option = $( this ).val();
-				var infoText = $( '.scd-launch-info-text' ).data( option );
-				$( '.scd-launch-info-text' ).text( infoText );
+				var infoText = $( '.wsscd-launch-info-text' ).data( option );
+				$( '.wsscd-launch-info-text' ).text( infoText );
 			} );
 
 			// Action button clicks - navigate to step
-			$( document ).on( 'click', '.scd-issue-action', function( e ) {
+			$( document ).on( 'click', '.wsscd-issue-action', function( e ) {
 				e.preventDefault();
 				var targetStep = $( this ).data( 'step' );
 
-				if ( targetStep && window.SCD && window.SCD.Wizard && window.SCD.Wizard.Navigation ) {
-					window.SCD.Wizard.Navigation.navigateToStep( targetStep );
+				if ( targetStep && window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.Navigation ) {
+					window.WSSCD.Wizard.Navigation.navigateToStep( targetStep );
 				}
 			} );
 		},
@@ -72,16 +72,16 @@
 		loadHealthData: function() {
 			var self = this;
 
-			$( '#scd-health-loading' ).show();
-			$( '#scd-health-container' ).hide();
+			$( '#wsscd-health-loading' ).show();
+			$( '#wsscd-health-container' ).hide();
 
 			// Disable navigation during AJAX + animation using existing navigation system
-			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Navigation ) {
-				window.SCD.Wizard.Navigation.setNavigationState( true );
+			if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.Navigation ) {
+				window.WSSCD.Wizard.Navigation.setNavigationState( true );
 			}
 
 			// Use AjaxService to prevent rate limiting
-			SCD.Ajax.post( 'campaign_health', {} ).then( function( response ) {
+			WSSCD.Ajax.post( 'campaign_health', {} ).then( function( response ) {
 				// AjaxService resolves with response.data directly, so check for valid health data
 				if ( response && 'object' === typeof response && response.score !== undefined ) {
 					self.renderHealthCheck( response );
@@ -100,13 +100,13 @@
 				console.error( '[Health Check] AJAX Error:', error );
 				self.showError( 'Failed to load health check: ' + ( error.message || error ) );
 			} ).always( function() {
-				$( '#scd-health-loading' ).hide();
-				$( '#scd-health-container' ).show();
+				$( '#wsscd-health-loading' ).hide();
+				$( '#wsscd-health-container' ).show();
 
 				// Re-enable navigation after health score animation completes (300ms CSS transition)
 				setTimeout( function() {
-					if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Navigation ) {
-						window.SCD.Wizard.Navigation.setNavigationState( false );
+					if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.Navigation ) {
+						window.WSSCD.Wizard.Navigation.setNavigationState( false );
 					}
 				}, 300 );
 			} );
@@ -151,22 +151,22 @@
 			// Determine display status (critical overrides score-based status)
 			var displayStatus = hasCritical ? 'critical' : status;
 
-			$( '.scd-score-number' )
+			$( '.wsscd-score-number' )
 				.text( score )
 				.removeClass( 'excellent good fair poor critical' )
 				.addClass( displayStatus );
 
 			var subtitle = this.getStatusText( status, data.isReady, hasCritical );
-			$( '.scd-health-score-subtitle' )
+			$( '.wsscd-health-score-subtitle' )
 				.text( subtitle )
 				.removeClass( 'excellent good fair poor critical' )
 				.addClass( displayStatus );
 
-			$( '.scd-health-score-card' )
+			$( '.wsscd-health-score-card' )
 				.removeClass( 'excellent good fair poor critical' )
 				.addClass( displayStatus );
 
-			$( '.scd-health-score-fill' )
+			$( '.wsscd-health-score-fill' )
 				.css( 'width', percentage + '%' )
 				.removeClass( 'excellent good fair poor critical' )
 				.addClass( displayStatus );
@@ -182,7 +182,7 @@
 		 */
 		getStatusText: function( status, isReady, hasCritical ) {
 			if ( ! isReady ) {
-			return window.SCD && window.SCD.Utils && window.SCD.Utils.getValidationMessage ? window.SCD.Utils.getValidationMessage( 'navigation.critical_issues', 'Critical issues must be fixed before launch' ) : 'Critical issues must be fixed before launch';
+			return window.WSSCD && window.WSSCD.Utils && window.WSSCD.Utils.getValidationMessage ? window.WSSCD.Utils.getValidationMessage( 'navigation.critical_issues', 'Critical issues must be fixed before launch' ) : 'Critical issues must be fixed before launch';
 			}
 
 			// If there are CRITICAL priority recommendations, override status message
@@ -210,7 +210,7 @@
 		 * @param {Array} criticalIssues Critical issues array
 		 */
 		renderHealthFactors: function( criticalIssues ) {
-			var $container = $( '#scd-health-factors' );
+			var $container = $( '#wsscd-health-factors' );
 
 			if ( criticalIssues && criticalIssues.length > 0 ) {
 				this.renderCriticalIssues( criticalIssues );
@@ -226,21 +226,21 @@
 		 * @param {Array} issues Critical issues array
 		 */
 		renderCriticalIssues: function( issues ) {
-			var $section = $( '#scd-critical-issues' );
+			var $section = $( '#wsscd-critical-issues' );
 
 			if ( ! issues || 0 === issues.length ) {
 				$section.hide();
 				return;
 			}
 
-			var $content = $section.find( '.scd-issues-content' );
+			var $content = $section.find( '.wsscd-issues-content' );
 			$content.empty();
 
-			$section.find( '.scd-issues-count' ).text( issues.length );
+			$section.find( '.wsscd-issues-count' ).text( issues.length );
 
 			for ( var i = 0; i < issues.length; i++ ) {
 				var issue = issues[i];
-				var $item = $( '<div class="scd-issue-item"></div>' );
+				var $item = $( '<div class="wsscd-issue-item"></div>' );
 
 				// Use message as title (user-friendly), not code (technical)
 				var title = this.escapeHtml( issue.message || 'Issue' );
@@ -248,11 +248,11 @@
 					title += this.addSeverityBadge( issue.severity );
 				}
 
-				$item.append( '<div class="scd-issue-title">' + title + '</div>' );
+				$item.append( '<div class="wsscd-issue-title">' + title + '</div>' );
 
 				if ( issue.step ) {
-					var $actions = $( '<div class="scd-issue-actions"></div>' );
-					$actions.append( '<button class="scd-issue-action" data-step="' + issue.step + '">Go to ' + this.ucfirst( issue.step ) + ' Step</button>' );
+					var $actions = $( '<div class="wsscd-issue-actions"></div>' );
+					$actions.append( '<button class="wsscd-issue-action" data-step="' + issue.step + '">Go to ' + this.ucfirst( issue.step ) + ' Step</button>' );
 					$item.append( $actions );
 				}
 
@@ -289,7 +289,7 @@
 
 			var label = labels[severity] || severity.toUpperCase();
 			var modifier = healthModifiers[severity] || 'info';
-			return '<span class="scd-badge-health--' + modifier + '">' + label + '</span>';
+			return '<span class="wsscd-badge-health--' + modifier + '">' + label + '</span>';
 		},
 
 		/**
@@ -298,7 +298,7 @@
 		 * @param {Object} coverage Coverage data
 		 */
 		renderImpact: function( coverage ) {
-			// Backend automatically converts snake_case to camelCase via SCD_AJAX_Response
+			// Backend automatically converts snake_case to camelCase via WSSCD_AJAX_Response
 			var productsMatched = coverage.productsMatched || 0;
 			var productsDiscounted = coverage.productsDiscounted || 0;
 			var coveragePercentage = coverage.coveragePercentage || 0;
@@ -314,7 +314,7 @@
 
 			// Render categorized exclusions
 			if ( coverage.exclusions && coverage.exclusions.length > 0 ) {
-				var $list = $( '.scd-exclusions-list' );
+				var $list = $( '.wsscd-exclusions-list' );
 				$list.empty();
 
 				var totalExcluded = 0;
@@ -322,27 +322,27 @@
 					var exclusion = coverage.exclusions[i];
 					totalExcluded += ( exclusion.count || 0 );
 
-					var $item = $( '<div class="scd-exclusion-item"></div>' );
+					var $item = $( '<div class="wsscd-exclusion-item"></div>' );
 
 					var iconName = this.getExclusionIcon( exclusion.reason );
-					var label = $( '<span class="scd-exclusion-label"></span>' );
+					var label = $( '<span class="wsscd-exclusion-label"></span>' );
 					if ( iconName ) {
-						var iconHtml = SCD.IconHelper ? SCD.IconHelper.get( iconName, { size: 16 } ) : '<span class="scd-icon scd-icon-' + iconName + '"></span>';
+						var iconHtml = WSSCD.IconHelper ? WSSCD.IconHelper.get( iconName, { size: 16 } ) : '<span class="wsscd-icon wsscd-icon-' + iconName + '"></span>';
 						label.append( iconHtml );
 					}
 					label.append( this.escapeHtml( exclusion.label || '' ) );
 
-					var count = $( '<span class="scd-exclusion-count">' + ( exclusion.count || 0 ) + ' products</span>' );
+					var count = $( '<span class="wsscd-exclusion-count">' + ( exclusion.count || 0 ) + ' products</span>' );
 
 					$item.append( label );
 					$item.append( count );
 					$list.append( $item );
 				}
 
-				$( '#scd-exclusions h4' ).html( 'Excluded Products (' + totalExcluded + ')' );
-				$( '#scd-exclusions' ).show();
+				$( '#wsscd-exclusions h4' ).html( 'Excluded Products (' + totalExcluded + ')' );
+				$( '#wsscd-exclusions' ).show();
 			} else {
-				$( '#scd-exclusions' ).hide();
+				$( '#wsscd-exclusions' ).hide();
 			}
 		},
 
@@ -355,10 +355,10 @@
 		 * @param {string} detail Detail text
 		 */
 		addProgressBar: function( metric, value, max, detail ) {
-			var $container = $( '[data-metric="' + metric + '"]' ).closest( '.scd-impact-item' );
+			var $container = $( '[data-metric="' + metric + '"]' ).closest( '.wsscd-impact-item' );
 
-			$container.find( '.scd-progress-bar-container' ).remove();
-			$container.find( '.scd-impact-detail' ).remove();
+			$container.find( '.wsscd-progress-bar-container' ).remove();
+			$container.find( '.wsscd-impact-detail' ).remove();
 
 			// Calculate percentage
 			var percentage = max > 0 ? Math.round( ( value / max ) * 100 ) : 0;
@@ -377,14 +377,14 @@
 				}
 			}
 
-			var $progressContainer = $( '<div class="scd-progress-bar-container"></div>' );
-			var $progressBar = $( '<div class="scd-progress-bar ' + colorClass + '"></div>' );
+			var $progressContainer = $( '<div class="wsscd-progress-bar-container"></div>' );
+			var $progressBar = $( '<div class="wsscd-progress-bar ' + colorClass + '"></div>' );
 			$progressBar.css( 'width', percentage + '%' );
 			$progressContainer.append( $progressBar );
 			$container.append( $progressContainer );
 
 			if ( detail ) {
-				var $detail = $( '<div class="scd-impact-detail">' + detail + '</div>' );
+				var $detail = $( '<div class="wsscd-impact-detail">' + detail + '</div>' );
 				$container.append( $detail );
 			}
 		},
@@ -413,10 +413,10 @@
 		 * @param {Object} stockRisk Stock risk data
 		 */
 		renderStockRisk: function( stockRisk ) {
-			var $section = $( '#scd-stock-risk' );
+			var $section = $( '#wsscd-stock-risk' );
 			if ( 0 === $section.length ) {
-				$section = $( '<div id="scd-stock-risk" class="scd-stock-risk-section" style="display: none;"></div>' );
-				$section.insertAfter( '.scd-impact-analysis' );
+				$section = $( '<div id="wsscd-stock-risk" class="wsscd-stock-risk-section" style="display: none;"></div>' );
+				$section.insertAfter( '.wsscd-impact-analysis' );
 			}
 
 			// If no risk, hide section
@@ -426,51 +426,51 @@
 			}
 
 			// Build stock risk HTML
-			var warningIcon = SCD.IconHelper ? SCD.IconHelper.warning( { size: 20 } ) : '<span class="scd-icon scd-icon-warning"></span>';
-			var html = '<div class="scd-section-header">';
+			var warningIcon = WSSCD.IconHelper ? WSSCD.IconHelper.warning( { size: 20 } ) : '<span class="wsscd-icon wsscd-icon-warning"></span>';
+			var html = '<div class="wsscd-section-header">';
 			html += warningIcon;
 			html += '<h3>Stock Depletion Risk</h3>';
-			html += '<p class="scd-section-desc">Products that may sell out during this campaign</p>';
+			html += '<p class="wsscd-section-desc">Products that may sell out during this campaign</p>';
 			html += '</div>';
 
-			html += '<div class="scd-stock-risk-summary">';
+			html += '<div class="wsscd-stock-risk-summary">';
 			if ( stockRisk.highRiskCount > 0 ) {
-				html += '<div class="scd-risk-stat high">';
-				html += '<span class="scd-risk-count">' + stockRisk.highRiskCount + '</span>';
-				html += '<span class="scd-risk-label">High Risk</span>';
+				html += '<div class="wsscd-risk-stat high">';
+				html += '<span class="wsscd-risk-count">' + stockRisk.highRiskCount + '</span>';
+				html += '<span class="wsscd-risk-label">High Risk</span>';
 				html += '</div>';
 			}
 			if ( stockRisk.mediumRiskCount > 0 ) {
-				html += '<div class="scd-risk-stat medium">';
-				html += '<span class="scd-risk-count">' + stockRisk.mediumRiskCount + '</span>';
-				html += '<span class="scd-risk-label">Medium Risk</span>';
+				html += '<div class="wsscd-risk-stat medium">';
+				html += '<span class="wsscd-risk-count">' + stockRisk.mediumRiskCount + '</span>';
+				html += '<span class="wsscd-risk-label">Medium Risk</span>';
 				html += '</div>';
 			}
 			html += '</div>';
 
 			if ( stockRisk.products && stockRisk.products.length > 0 ) {
-				html += '<div class="scd-stock-risk-products">';
+				html += '<div class="wsscd-stock-risk-products">';
 				for ( var i = 0; i < stockRisk.products.length; i++ ) {
 					var product = stockRisk.products[i];
-					var riskClass = product.riskLevel === 'high' ? 'scd-risk-high' : 'scd-risk-medium';
+					var riskClass = product.riskLevel === 'high' ? 'wsscd-risk-high' : 'wsscd-risk-medium';
 					var riskIconName = product.riskLevel === 'high' ? 'warning' : 'info';
-					var riskIcon = SCD.IconHelper ? SCD.IconHelper.get( riskIconName, { size: 16 } ) : '<span class="scd-icon scd-icon-' + riskIconName + '"></span>';
+					var riskIcon = WSSCD.IconHelper ? WSSCD.IconHelper.get( riskIconName, { size: 16 } ) : '<span class="wsscd-icon wsscd-icon-' + riskIconName + '"></span>';
 
-					html += '<div class="scd-stock-risk-item ' + riskClass + '">';
-					html += '<div class="scd-risk-product-name">';
+					html += '<div class="wsscd-stock-risk-item ' + riskClass + '">';
+					html += '<div class="wsscd-risk-product-name">';
 					html += riskIcon;
 					html += this.escapeHtml( product.name );
 					html += '</div>';
-					html += '<div class="scd-risk-details">';
-					html += '<span class="scd-risk-stock">Stock: ' + product.stock + '</span>';
-					html += '<span class="scd-risk-demand">Est. Demand: ' + product.estimatedDemand + '</span>';
+					html += '<div class="wsscd-risk-details">';
+					html += '<span class="wsscd-risk-stock">Stock: ' + product.stock + '</span>';
+					html += '<span class="wsscd-risk-demand">Est. Demand: ' + product.estimatedDemand + '</span>';
 					html += '</div>';
 					html += '</div>';
 				}
 				html += '</div>';
 
-				var lightbulbIcon = SCD.IconHelper ? SCD.IconHelper.get( 'lightbulb', { size: 16 } ) : '<span class="scd-icon scd-icon-lightbulb"></span>';
-				html += '<div class="scd-stock-risk-note">';
+				var lightbulbIcon = WSSCD.IconHelper ? WSSCD.IconHelper.get( 'lightbulb', { size: 16 } ) : '<span class="wsscd-icon wsscd-icon-lightbulb"></span>';
+				html += '<div class="wsscd-stock-risk-note">';
 				html += lightbulbIcon;
 				html += '<p>Consider restocking these items before launching your campaign to avoid customer disappointment.</p>';
 				html += '</div>';
@@ -486,7 +486,7 @@
 		 * @param {Array} recommendations Recommendations array
 		 */
 		renderRecommendations: function( recommendations ) {
-			var $section = $( '#scd-recommendations' );
+			var $section = $( '#wsscd-recommendations' );
 
 			if ( ! recommendations || 0 === recommendations.length ) {
 				$section.hide();
@@ -503,8 +503,8 @@
 		 * @param {Array} recommendations Enhanced recommendations array
 		 */
 		renderEnhancedRecommendations: function( recommendations ) {
-			var $section = $( '#scd-recommendations' );
-			var $container = $section.find( '.scd-recommendations-categories' );
+			var $section = $( '#wsscd-recommendations' );
+			var $container = $section.find( '.wsscd-recommendations-categories' );
 
 			$container.empty();
 
@@ -533,9 +533,11 @@
 				var rec = activeRecommendations[i];
 				var category = rec.category || 'management';
 
-				if ( categories[category] ) {
-					categories[category].items.push( rec );
+				// If category doesn't exist in predefined list, default to management
+				if ( ! categories[category] ) {
+					category = 'management';
 				}
+				categories[category].items.push( rec );
 			}
 
 			// Render each category
@@ -549,15 +551,15 @@
 					continue;
 				}
 
-				var $category = $( '<div class="scd-recommendation-category ' + cat + '"></div>' );
+				var $category = $( '<div class="wsscd-recommendation-category ' + cat + '"></div>' );
 
-				var iconHtml = SCD.IconHelper ? SCD.IconHelper.get( categoryData.icon, { size: 16 } ) : '<span class="scd-icon scd-icon-' + categoryData.icon + '"></span>';
-				var $title = $( '<div class="scd-recommendation-category-title"></div>' );
+				var iconHtml = WSSCD.IconHelper ? WSSCD.IconHelper.get( categoryData.icon, { size: 16 } ) : '<span class="wsscd-icon wsscd-icon-' + categoryData.icon + '"></span>';
+				var $title = $( '<div class="wsscd-recommendation-category-title"></div>' );
 				$title.append( iconHtml );
 				$title.append( '<span>' + categoryData.title + ' (' + categoryData.items.length + ')</span>' );
 				$category.append( $title );
 
-				var $items = $( '<div class="scd-recommendation-items"></div>' );
+				var $items = $( '<div class="wsscd-recommendation-items"></div>' );
 
 				for ( var j = 0; j < categoryData.items.length; j++ ) {
 					var item = categoryData.items[j];
@@ -579,8 +581,8 @@
 		 * @param {number} dismissed Dismissed recommendations count
 		 */
 		renderRecommendationCounter: function( active, applied, dismissed ) {
-			var $section = $( '#scd-recommendations' );
-			var $existing = $section.find( '.scd-recommendation-counter' );
+			var $section = $( '#wsscd-recommendations' );
+			var $existing = $section.find( '.wsscd-recommendation-counter' );
 
 			$existing.remove();
 
@@ -588,25 +590,25 @@
 				return;
 			}
 
-			var $counter = $( '<div class="scd-recommendation-counter"></div>' );
+			var $counter = $( '<div class="wsscd-recommendation-counter"></div>' );
 
 			if ( active > 0 ) {
-				$counter.append( '<span class="scd-counter-active">' + active + ' Active</span>' );
+				$counter.append( '<span class="wsscd-counter-active">' + active + ' Active</span>' );
 			}
 
 			if ( applied > 0 ) {
-				$counter.append( '<span class="scd-counter-applied">✅ ' + applied + ' Applied</span>' );
+				$counter.append( '<span class="wsscd-counter-applied">✅ ' + applied + ' Applied</span>' );
 			}
 
 			if ( dismissed > 0 ) {
-				var $dismissedSpan = $( '<span class="scd-counter-dismissed">⏭️ ' + dismissed + ' Dismissed</span>' );
+				var $dismissedSpan = $( '<span class="wsscd-counter-dismissed">⏭️ ' + dismissed + ' Dismissed</span>' );
 				$dismissedSpan.on( 'click', function() {
 					this.showDismissedRecommendations();
 				}.bind( this ) );
 				$counter.append( $dismissedSpan );
 			}
 
-			$section.find( '.scd-section-header' ).after( $counter );
+			$section.find( '.wsscd-section-header' ).after( $counter );
 		},
 
 		/**
@@ -616,22 +618,22 @@
 		 * @return {jQuery} Rendered item element
 		 */
 		renderRecommendationItem: function( item ) {
-			var $item = $( '<div class="scd-recommendation-item" data-id="' + item.id + '"></div>' );
+			var $item = $( '<div class="wsscd-recommendation-item" data-id="' + item.id + '"></div>' );
 
 			if ( item.priority ) {
 				$item.addClass( 'priority-' + item.priority );
 			}
 
 			// Header wrapper (message + priority badge)
-			var $header = $( '<div class="scd-recommendation-header"></div>' );
+			var $header = $( '<div class="wsscd-recommendation-header"></div>' );
 
 			// Message wrapper
-			var $message = $( '<div class="scd-recommendation-message"></div>' );
-			$message.append( '<span class="scd-recommendation-text">' + this.escapeHtml( item.message ) + '</span>' );
+			var $message = $( '<div class="wsscd-recommendation-message"></div>' );
+			$message.append( '<span class="wsscd-recommendation-text">' + this.escapeHtml( item.message ) + '</span>' );
 
 			// Impact score
 			if ( item.impact ) {
-				$message.append( '<span class="scd-recommendation-impact">💡 ' + this.escapeHtml( item.impact ) + '</span>' );
+				$message.append( '<span class="wsscd-recommendation-impact">💡 ' + this.escapeHtml( item.impact ) + '</span>' );
 			}
 
 			$header.append( $message );
@@ -645,11 +647,11 @@
 
 			// Expandable explanation
 			if ( item.explanation ) {
-				var $explanationToggle = $( '<button type="button" class="scd-explanation-toggle">Why this matters ▼</button>' );
-				var $explanationContent = $( '<div class="scd-explanation-content" style="display:none;">' + this.escapeHtml( item.explanation ) + '</div>' );
+				var $explanationToggle = $( '<button type="button" class="wsscd-explanation-toggle">Why this matters ▼</button>' );
+				var $explanationContent = $( '<div class="wsscd-explanation-content" style="display:none;">' + this.escapeHtml( item.explanation ) + '</div>' );
 
 				$explanationToggle.on( 'click', function() {
-					var $content = $( this ).next( '.scd-explanation-content' );
+					var $content = $( this ).next( '.wsscd-explanation-content' );
 					if ( $content.is( ':visible' ) ) {
 						$content.slideUp();
 						$( this ).text( 'Why this matters ▼' );
@@ -664,7 +666,7 @@
 			}
 
 			// Action buttons container
-			var $actions = $( '<div class="scd-recommendation-actions"></div>' );
+			var $actions = $( '<div class="wsscd-recommendation-actions"></div>' );
 
 			// Apply button (if action available)
 			if ( item.action && item.action.type ) {
@@ -673,7 +675,7 @@
 			}
 
 			// Dismiss button
-			var $dismissBtn = $( '<button type="button" class="button scd-dismiss-btn">Dismiss</button>' );
+			var $dismissBtn = $( '<button type="button" class="button wsscd-dismiss-btn">Dismiss</button>' );
 			$dismissBtn.on( 'click', function() {
 				this.dismissRecommendation( item.id );
 			}.bind( this ) );
@@ -688,7 +690,7 @@
 					'schedule': 'Schedule'
 				};
 				var stepName = stepNames[item.step] || item.step;
-				var $navLink = $( '<a href="#" class="scd-step-link">Go to ' + stepName + ' →</a>' );
+				var $navLink = $( '<a href="#" class="wsscd-step-link">Go to ' + stepName + ' →</a>' );
 				$navLink.on( 'click', function( e ) {
 					e.preventDefault();
 					this.navigateToStep( item.step );
@@ -717,7 +719,7 @@
 
 			var label = buttonLabels[item.action.type] || 'Apply';
 
-			var $btn = $( '<button type="button" class="button button-primary scd-apply-btn">' + label + '</button>' );
+			var $btn = $( '<button type="button" class="button button-primary wsscd-apply-btn">' + label + '</button>' );
 
 			$btn.on( 'click', function() {
 				this.applyRecommendation( item );
@@ -737,15 +739,15 @@
 			}
 
 			var $item = $( '[data-id="' + item.id + '"]' );
-			var $btn = $item.find( '.scd-apply-btn' );
+			var $btn = $item.find( '.wsscd-apply-btn' );
 			var originalBtnText = $btn.text();
 
-			if ( window.SCD && window.SCD.LoaderUtil ) {
-				SCD.LoaderUtil.showButton( $btn, 'Applying...' );
+			if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+				WSSCD.LoaderUtil.showButton( $btn, 'Applying...' );
 			}
 
 			// Send AJAX request (via AjaxService to prevent rate limiting)
-			SCD.Ajax.post( 'apply_recommendation', {
+			WSSCD.Ajax.post( 'apply_recommendation', {
 				recommendationId: item.id,
 				actionType: item.action.type,
 				actionData: item.action.data
@@ -754,11 +756,11 @@
 						// Track as applied
 						this.markRecommendationApplied( item.id );
 
-						var checkIcon = SCD.IconHelper ? SCD.IconHelper.check( { size: 16 } ) : '<span class="scd-icon scd-icon-check"></span>';
+						var checkIcon = WSSCD.IconHelper ? WSSCD.IconHelper.check( { size: 16 } ) : '<span class="wsscd-icon wsscd-icon-check"></span>';
 						$btn.html( checkIcon + ' Applied!' ).css( 'background', '#00a32a' );
 
 						var successMessage = this.getApplySuccessMessage( item, response );
-						if ( SCD.Shared && SCD.Shared.NotificationService ) { SCD.Shared.NotificationService.success( successMessage ); }
+						if ( WSSCD.Shared && WSSCD.Shared.NotificationService ) { WSSCD.Shared.NotificationService.success( successMessage ); }
 
 						$item.css( {
 							'border-left': '4px solid #00a32a',
@@ -786,7 +788,7 @@
 						}.bind( this ), 800 );
 
 					} else {
-						var warningIcon = SCD.IconHelper ? SCD.IconHelper.warning( { size: 16 } ) : '<span class="scd-icon scd-icon-warning"></span>';
+						var warningIcon = WSSCD.IconHelper ? WSSCD.IconHelper.warning( { size: 16 } ) : '<span class="wsscd-icon wsscd-icon-warning"></span>';
 						$btn.html( warningIcon + ' Failed' )
 							.css( 'background', '#d63638' );
 
@@ -794,7 +796,7 @@
 							? response.data.message
 							: ( response.message || 'Failed to apply recommendation' );
 
-						if ( SCD.Shared && SCD.Shared.NotificationService ) { SCD.Shared.NotificationService.error( errorMessage ); }
+						if ( WSSCD.Shared && WSSCD.Shared.NotificationService ) { WSSCD.Shared.NotificationService.error( errorMessage ); }
 
 						// Restore button after 2 seconds
 						setTimeout( function() {
@@ -802,7 +804,7 @@
 						}, 2000 );
 					}
 				}.bind( this ) ).catch( function( error ) {
-					var errorIcon = SCD.IconHelper ? SCD.IconHelper.warning( { size: 16 } ) : '<span class="scd-icon scd-icon-warning"></span>';
+					var errorIcon = WSSCD.IconHelper ? WSSCD.IconHelper.warning( { size: 16 } ) : '<span class="wsscd-icon wsscd-icon-warning"></span>';
 					$btn.html( errorIcon + ' Error' )
 						.css( 'background', '#d63638' );
 
@@ -811,7 +813,7 @@
 						errorMessage += ': ' + error.message;
 					}
 
-					if ( SCD.Shared && SCD.Shared.NotificationService ) { SCD.Shared.NotificationService.error( errorMessage ); }
+					if ( WSSCD.Shared && WSSCD.Shared.NotificationService ) { WSSCD.Shared.NotificationService.error( errorMessage ); }
 
 					// Restore button after 2 seconds
 					setTimeout( function() {
@@ -878,7 +880,7 @@
 				this.updateRecommendationCounter();
 			}.bind( this ) );
 
-			if ( SCD.Shared && SCD.Shared.NotificationService ) { SCD.Shared.NotificationService.info( 'Recommendation dismissed' ); }
+			if ( WSSCD.Shared && WSSCD.Shared.NotificationService ) { WSSCD.Shared.NotificationService.info( 'Recommendation dismissed' ); }
 		},
 
 		/**
@@ -888,10 +890,10 @@
 		 */
 		navigateToStep: function( step ) {
 			// Navigate using modern wizard navigation API
-			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Navigation ) {
-				window.SCD.Wizard.Navigation.navigateToStep( step );
-			} else if ( SCD.Shared && SCD.Shared.NotificationService ) {
-				SCD.Shared.NotificationService.info( 'Please navigate to the ' + step + ' step to make this change' );
+			if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.Navigation ) {
+				window.WSSCD.Wizard.Navigation.navigateToStep( step );
+			} else if ( WSSCD.Shared && WSSCD.Shared.NotificationService ) {
+				WSSCD.Shared.NotificationService.info( 'Please navigate to the ' + step + ' step to make this change' );
 			}
 		},
 
@@ -902,7 +904,7 @@
 		 */
 		getDismissedRecommendations: function() {
 			var campaignId = this._getCampaignId();
-			var key = 'scd_dismissed_' + campaignId;
+			var key = 'wsscd_dismissed_' + campaignId;
 			var stored = localStorage.getItem( key );
 			return stored ? JSON.parse( stored ) : [];
 		},
@@ -914,7 +916,7 @@
 		 */
 		getAppliedRecommendations: function() {
 			var campaignId = this._getCampaignId();
-			var key = 'scd_applied_' + campaignId;
+			var key = 'wsscd_applied_' + campaignId;
 			var stored = localStorage.getItem( key );
 			return stored ? JSON.parse( stored ) : [];
 		},
@@ -929,7 +931,7 @@
 			if ( dismissed.indexOf( id ) === -1 ) {
 				dismissed.push( id );
 				var campaignId = this._getCampaignId();
-				localStorage.setItem( 'scd_dismissed_' + campaignId, JSON.stringify( dismissed ) );
+				localStorage.setItem( 'wsscd_dismissed_' + campaignId, JSON.stringify( dismissed ) );
 			}
 		},
 
@@ -943,7 +945,7 @@
 			if ( applied.indexOf( id ) === -1 ) {
 				applied.push( id );
 				var campaignId = this._getCampaignId();
-				localStorage.setItem( 'scd_applied_' + campaignId, JSON.stringify( applied ) );
+				localStorage.setItem( 'wsscd_applied_' + campaignId, JSON.stringify( applied ) );
 			}
 		},
 
@@ -951,7 +953,7 @@
 		 * Update recommendation counter
 		 */
 		updateRecommendationCounter: function() {
-			var $items = $( '.scd-recommendation-item:visible' );
+			var $items = $( '.wsscd-recommendation-item:visible' );
 			var active = $items.length;
 			var applied = this.getAppliedRecommendations().length;
 			var dismissed = this.getDismissedRecommendations().length;
@@ -966,8 +968,8 @@
 		var dismissed = this.getDismissedRecommendationElements();
 
 		if ( 0 === dismissed.length ) {
-			if ( SCD.Shared && SCD.Shared.NotificationService ) {
-				SCD.Shared.NotificationService.info( 'No dismissed recommendations found.' );
+			if ( WSSCD.Shared && WSSCD.Shared.NotificationService ) {
+				WSSCD.Shared.NotificationService.info( 'No dismissed recommendations found.' );
 			}
 			return;
 		}
@@ -983,7 +985,7 @@
 	 * @return {Array} Array of dismissed recommendation DOM elements
 	 */
 	getDismissedRecommendationElements: function() {
-		return $( '.scd-recommendation-item[data-dismissed="true"]' ).toArray();
+		return $( '.wsscd-recommendation-item[data-dismissed="true"]' ).toArray();
 	},
 
 
@@ -1012,7 +1014,7 @@
 
 			var label = labels[priority] || priority.toUpperCase();
 			var modifier = healthModifiers[priority] || 'info';
-			return '<span class="scd-badge-health--' + modifier + '">' + label + '</span>';
+			return '<span class="wsscd-badge-health--' + modifier + '">' + label + '</span>';
 		},
 
 		/**
@@ -1021,14 +1023,14 @@
 		 * @param {Object} conflictPreview Conflict preview data
 		 */
 		renderConflictPreview: function( conflictPreview ) {
-			var $section = $( '#scd-conflict-preview' );
+			var $section = $( '#wsscd-conflict-preview' );
 
 			if ( ! conflictPreview || ! conflictPreview.hasConflicts ) {
 				$section.hide();
 				return;
 			}
 
-			var $list = $section.find( '.scd-conflicts-list' );
+			var $list = $section.find( '.wsscd-conflicts-list' );
 			$list.empty();
 
 			if ( ! conflictPreview.conflicts || 0 === conflictPreview.conflicts.length ) {
@@ -1039,14 +1041,14 @@
 			for ( var i = 0; i < conflictPreview.conflicts.length; i++ ) {
 				var conflict = conflictPreview.conflicts[i];
 
-				var $item = $( '<div class="scd-conflict-item"></div>' );
+				var $item = $( '<div class="wsscd-conflict-item"></div>' );
 
-				var $header = $( '<div class="scd-conflict-header"></div>' );
-				$header.append( '<div class="scd-conflict-name">' + this.escapeHtml( conflict.campaignName ) + '</div>' );
-				$header.append( '<div class="scd-conflict-priority">Priority: ' + conflict.priority + '</div>' );
+				var $header = $( '<div class="wsscd-conflict-header"></div>' );
+				$header.append( '<div class="wsscd-conflict-name">' + this.escapeHtml( conflict.campaignName ) + '</div>' );
+				$header.append( '<div class="wsscd-conflict-priority">Priority: ' + conflict.priority + '</div>' );
 				$item.append( $header );
 
-				var $details = $( '<div class="scd-conflict-details"></div>' );
+				var $details = $( '<div class="wsscd-conflict-details"></div>' );
 				$details.text( conflict.affectedProducts + ' products affected' );
 				$item.append( $details );
 
@@ -1078,7 +1080,7 @@
 		 * @param {string} message Error message
 		 */
 		showError: function( message ) {
-			var $container = $( '#scd-health-container' );
+			var $container = $( '#wsscd-health-container' );
 			$container.html( '<div class="notice notice-error"><p>' + this.escapeHtml( message ) + '</p></div>' );
 			$container.show();
 		},
@@ -1090,7 +1092,7 @@
 		 */
 		updateLaunchButton: function( isReady ) {
 			// Find launch button (complete action button)
-			var $launchButton = $( '.scd-nav-btn[data-action="complete"]' );
+			var $launchButton = $( '.wsscd-nav-btn[data-action="complete"]' );
 
 			if ( ! $launchButton.length ) {
 				// Button not found (might not be on review step yet)
@@ -1100,7 +1102,7 @@
 			if ( false === isReady || ! isReady ) {
 				// Disable launch button when critical issues exist
 				$launchButton
-					.addClass( 'scd-navigation-disabled' )
+					.addClass( 'wsscd-navigation-disabled' )
 					.prop( 'disabled', true )
 					.attr( 'aria-disabled', 'true' )
 					.attr( 'title', 'Please fix all critical issues before launching' );
@@ -1114,7 +1116,7 @@
 			} else {
 				// Enable launch button when no critical issues
 				$launchButton
-					.removeClass( 'scd-navigation-disabled' )
+					.removeClass( 'wsscd-navigation-disabled' )
 					.prop( 'disabled', false )
 					.attr( 'aria-disabled', 'false' )
 					.removeAttr( 'title' );
@@ -1142,9 +1144,9 @@
 				return urlId;
 			}
 
-			// Try scdWizardData
-			if ( window.scdWizardData && window.scdWizardData.campaignId ) {
-				return window.scdWizardData.campaignId;
+			// Try wsscdWizardData
+			if ( window.wsscdWizardData && window.wsscdWizardData.campaignId ) {
+				return window.wsscdWizardData.campaignId;
 			}
 
 			// Default to 'new' for new campaigns
@@ -1186,6 +1188,6 @@
 	} );
 
 	// Expose to global scope for debugging
-	window.SCD_ReviewHealthCheck = ReviewHealthCheck;
+	window.WSSCD_ReviewHealthCheck = ReviewHealthCheck;
 
 })( jQuery );

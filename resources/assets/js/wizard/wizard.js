@@ -13,17 +13,17 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	SCD.Steps = SCD.Steps || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Steps = WSSCD.Steps || {};
 
 	/**
 	 * Wizard Facade
 	 *
 	 * Public API that delegates to the orchestrator
 	 */
-	SCD.Wizard = SCD.Utils.extend( SCD.Wizard || {}, {
+	WSSCD.Wizard = WSSCD.Utils.extend( WSSCD.Wizard || {}, {
 		// Constants
-		EVENT_PREFIX: 'scd:wizard:',
+		EVENT_PREFIX: 'wsscd:wizard:',
 
 		// Reference to the orchestrator (lazy loaded)
 		orchestrator: null,
@@ -33,8 +33,8 @@
 		 * @private
 		 */
 		getOrchestrator: function() {
-			if ( !this.orchestrator && SCD.Wizard.Orchestrator ) {
-				this.orchestrator = SCD.Wizard.Orchestrator;
+			if ( !this.orchestrator && WSSCD.Wizard.Orchestrator ) {
+				this.orchestrator = WSSCD.Wizard.Orchestrator;
 			}
 			return this.orchestrator;
 		},
@@ -45,7 +45,7 @@
 		 */
 		init: function() {
 			// Hide WordPress screen options only if we're in the wizard
-			if ( 0 < $( '.scd-wizard-page' ).length ) {
+			if ( 0 < $( '.wsscd-wizard-page' ).length ) {
 				$( '#screen-meta-links' ).hide();
 				$( '#screen-meta' ).hide();
 			}
@@ -111,8 +111,8 @@
 			}
 
 			// Fallback to ValidationManager for basic HTML5 validation
-			if ( window.SCD && window.SCD.ValidationManager ) {
-				var result = window.SCD.ValidationManager.validateStep( currentStep );
+			if ( window.WSSCD && window.WSSCD.ValidationManager ) {
+				var result = window.WSSCD.ValidationManager.validateStep( currentStep );
 				// ValidationManager returns plain object { ok, errors, clean }, wrap in Promise
 				return $.Deferred().resolve( result.ok ).promise();
 			}
@@ -341,7 +341,7 @@
 		 */
 		displayArrayErrors: function( errors ) {
 			for ( var i = 0; i < errors.length; i++ ) {
-				SCD.Shared.NotificationService.error( errors[i].message || errors[i] );
+				WSSCD.Shared.NotificationService.error( errors[i].message || errors[i] );
 			}
 		},
 
@@ -352,7 +352,7 @@
 		displayFieldErrors: function( errors ) {
 			for ( var field in errors ) {
 				if ( Object.prototype.hasOwnProperty.call( errors, field ) ) {
-					SCD.Shared.NotificationService.error( field + ': ' + errors[field] );
+					WSSCD.Shared.NotificationService.error( field + ': ' + errors[field] );
 				}
 			}
 		},
@@ -367,12 +367,12 @@
 			}
 
 			// Use ValidationManager to get validation state
-			if ( !window.SCD || !window.SCD.ValidationManager ) {
+			if ( !window.WSSCD || !window.WSSCD.ValidationManager ) {
 				return;
 			}
 
 			var currentStep = this.getCurrentStep();
-			var validationState = window.SCD.ValidationManager.getValidationState( currentStep );
+			var validationState = window.WSSCD.ValidationManager.getValidationState( currentStep );
 
 			if ( !validationState || validationState.valid ) {
 				return;
@@ -402,8 +402,8 @@
 
 	$( document ).ready( function() {
 		// Only initialize on wizard pages
-		if ( ! $( '.scd-wizard-page' ).length &&
-             ! $( '.scd-wizard-wrap' ).length &&
+		if ( ! $( '.wsscd-wizard-page' ).length &&
+             ! $( '.wsscd-wizard-wrap' ).length &&
              -1 === window.location.href.indexOf( 'action=wizard' ) ) {
 			return;
 		}
@@ -413,33 +413,33 @@
 
 		if ( 'continue' === intent ) {
 			// When continuing, we'll load data from session after orchestrator is ready
-			SCD.Wizard.data = {};
-			SCD.Wizard.loadFromSession = true;
-		} else if ( window.scdWizardData && window.scdWizardData.currentCampaign ) {
+			WSSCD.Wizard.data = {};
+			WSSCD.Wizard.loadFromSession = true;
+		} else if ( window.wsscdWizardData && window.wsscdWizardData.currentCampaign ) {
 			// Use pre-loaded data for editing existing campaigns
-			SCD.Wizard.data = window.scdWizardData.currentCampaign;
+			WSSCD.Wizard.data = window.wsscdWizardData.currentCampaign;
 
-			if ( window.scdWizardData.debugPersistence ) {
-				window.scdDebugPersistence = true;
+			if ( window.wsscdWizardData.debugPersistence ) {
+				window.wsscdDebugPersistence = true;
 			}
 		} else {
 			// Fresh start
-			SCD.Wizard.data = {};
+			WSSCD.Wizard.data = {};
 		}
 
 		function initializeWizard() {
-			if ( ! SCD.Wizard.initialized ) {
-				SCD.Wizard.init();
-				SCD.Wizard.initialized = true;
+			if ( ! WSSCD.Wizard.initialized ) {
+				WSSCD.Wizard.init();
+				WSSCD.Wizard.initialized = true;
 			}
 		}
 
-		if ( SCD.Wizard.Orchestrator ) {
+		if ( WSSCD.Wizard.Orchestrator ) {
 			// Orchestrator already exists - initialize immediately
 			initializeWizard();
 		} else {
 			// Orchestrator not ready yet - wait for event
-			$( document ).on( 'scd:orchestrator:ready', initializeWizard );
+			$( document ).on( 'wsscd:orchestrator:ready', initializeWizard );
 		}
 	} );
 

@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class SCD_Frontend_Script_Registry {
+class WSSCD_Frontend_Script_Registry {
 
 	/**
 	 * Registered scripts.
@@ -72,7 +72,7 @@ class SCD_Frontend_Script_Registry {
 		$this->register_component_scripts();
 
 		// Allow extensions
-		do_action( 'scd_frontend_script_registry_init', $this );
+		do_action( 'wsscd_frontend_script_registry_init', $this );
 	}
 
 	/**
@@ -84,11 +84,11 @@ class SCD_Frontend_Script_Registry {
 	private function register_analytics_scripts(): void {
 		// Analytics tracking script
 		$this->add_script(
-			'scd-analytics-tracking',
+			'wsscd-analytics-tracking',
 			array(
-				'src'        => 'resources/assets/js/analytics/scd-analytics-tracking.js',
+				'src'        => 'resources/assets/js/analytics/wsscd-analytics-tracking.js',
 				'deps'       => array( 'jquery' ),
-				'localize'   => 'scdAnalyticsTracking',
+				'localize'   => 'wsscdAnalyticsTracking',
 				'in_footer'  => true,
 				'conditions' => array(
 					array(
@@ -109,11 +109,11 @@ class SCD_Frontend_Script_Registry {
 	private function register_discount_display_scripts(): void {
 		// Main frontend script
 		$this->add_script(
-			'scd-frontend',
+			'wsscd-frontend',
 			array(
 				'src'        => 'resources/assets/js/frontend/main.js',
 				'deps'       => array( 'jquery' ),
-				'localize'   => 'scdFrontend',
+				'localize'   => 'wsscdFrontend',
 				'in_footer'  => true,
 				'conditions' => array(
 					array(
@@ -250,7 +250,7 @@ class SCD_Frontend_Script_Registry {
 			return false;
 		}
 
-		return has_shortcode( $post->post_content, 'scd_countdown_timer' ) ||
-				has_block( 'scd/countdown-timer', $post );
+		return has_shortcode( $post->post_content, 'wsscd_countdown_timer' ) ||
+				has_block( 'wsscd/countdown-timer', $post );
 	}
 }

@@ -1,106 +1,116 @@
-=== Smart Cycle Discounts ===
+=== Smart Cycle Discounts – WooCommerce Discount Campaigns, Dynamic Pricing & Scheduled Sales ===
 Contributors: webstepper
-Tags: woocommerce, discount rules, bulk discounts, dynamic pricing, percentage discount, bogo, tiered pricing, campaign, sale, flash sale, scheduling, pricing
+Tags: woocommerce, discount, dynamic pricing, bulk discount, sale
 Requires at least: 6.4
-Tested up to: 6.7
-Stable tag: 1.0.0
+Tested up to: 6.9
+Stable tag: 1.0.1
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-WooCommerce Discount Rules, Bulk Pricing, Campaign Scheduling & Dynamic Pricing - Percentage Discounts, BOGO, Tiered Pricing, Flash Sales
+WooCommerce dynamic pricing and discounts. Schedule sales, bulk discounts, BOGO, tiered pricing with automatic activation.
 
 == Description ==
 
-Smart Cycle Discounts is the most powerful WooCommerce discount rules and dynamic pricing plugin with advanced campaign scheduling, bulk discount management, and percentage discounts. Create tiered pricing, BOGO deals, quantity discounts, and flash sales with an intuitive 5-step wizard. Perfect for store owners who need to schedule seasonal sales, manage multiple discount campaigns, and automate product pricing strategies.
+Smart Cycle Discounts is a WooCommerce dynamic pricing and discount plugin for creating scheduled sale campaigns. Set up percentage discounts, fixed amount discounts, bulk discounts, tiered pricing, and BOGO offers with a 5-step campaign wizard.
 
-Unlike basic discount plugins, Smart Cycle Discounts gives you campaign-level control with built-in scheduling, priority management, and health monitoring - making it the complete WooCommerce discount solution for serious store owners.
+**Key capabilities:**
+
+* Schedule WooCommerce sales with specific start and end dates
+* Apply discounts to all products, specific products, or random product selections
+* Set campaign priorities when running multiple promotions
+* Automatic activation and deactivation based on your schedule
 
 = Free Version Features =
 
-**Campaign Management:**
-* **5-Step Campaign Wizard** - Guided workflow (Basic Info → Products → Discounts → Schedule → Review)
-* **Up to 3 Active Campaigns** - Run up to 3 active campaigns simultaneously
-* **Priority System** - Control which campaigns take precedence with 1-5 priority levels
-* **Bulk Actions** - Enable, disable, duplicate, or delete multiple campaigns at once
-* **Campaign Health Monitoring** - Real-time validation and health scoring
+**Campaign Wizard**
 
-**Product Selection:**
-* **All Products Mode** - Apply discounts to your entire catalog
-* **Specific Products Mode** - Hand-pick products with AJAX-powered search by name, SKU, or ID
-* **Random Products Mode** - Automatically select X random products from your catalog
+Create discount campaigns in minutes with a guided 5-step workflow:
 
-**Discount Types (Free):**
-* **Percentage Discounts** - Set percentage off (e.g., 25% off)
-* **Fixed Amount Discounts** - Set fixed dollar/currency amount off (e.g., $10 off)
+1. **Basic Info** - Name your campaign and set priority
+2. **Products** - Select which products to discount
+3. **Discounts** - Choose discount type and amount
+4. **Schedule** - Set start and end dates
+5. **Review** - Verify settings and launch
 
-**Scheduling & Automation:**
-* **Advanced Scheduling** - Set start/end dates, specific times, and timezone-aware scheduling
-* **Automatic Activation** - Campaigns activate and deactivate automatically based on schedule
-* **Draft & Scheduled Status** - Prepare campaigns in advance
+**Product Selection**
 
-**Technical Features:**
-* **HPOS Compatible** - Full support for WooCommerce High-Performance Order Storage
-* **Performance Optimized** - Efficient database queries with caching for large catalogs
-* **Security First** - Nonce verification, capability checks, sanitization throughout
-* **WordPress Standards** - Follows WordPress and WooCommerce coding standards
+* **All Products** - Apply discounts store-wide
+* **Specific Products** - Search and select individual products by name, SKU, or ID
+* **Random Products** - Automatically rotate discounts across random products
 
-= Premium Features (Pro Version) =
+**Discount Types**
 
-Upgrade to **Smart Cycle Discounts Pro** for advanced discount types, unlimited campaigns, and powerful analytics:
+* **Percentage Off** - Reduce prices by a percentage (e.g., 25% off)
+* **Fixed Amount Off** - Reduce prices by a fixed amount (e.g., $10 off)
 
-**Advanced Discount Types:**
-* **Tiered Volume Pricing** - Quantity-based discount tiers (e.g., Buy 5 get 10% off, Buy 10 get 20% off)
-* **Buy One Get One (BOGO)** - Flexible BOGO configurations with percentage discounts
-* **Spend Threshold Discounts** - Cart total-based discounts (e.g., Spend $100 get 15% off)
+**Scheduling**
 
-**Unlimited Campaigns:**
-* **No Campaign Limits** - Run unlimited active campaigns simultaneously
-* **Recurring Campaigns** - Set campaigns to repeat daily, weekly, or monthly
-* **Advanced Product Filters** - Smart Selection mode with Best Sellers, Featured Products, Low Stock, and New Arrivals
+* **Date and Time Control** - Set precise start and end times with timezone support
+* **Automatic Activation** - Campaigns start and stop on schedule without manual intervention
+* **Draft Mode** - Prepare campaigns in advance and activate when ready
 
-**Analytics & Reporting:**
-* **Analytics Dashboard** - Detailed performance metrics and insights
-* **Traffic Breakdown** - Source and device analytics
-* **Geographic Data** - Location-based campaign performance
-* **Export Features** - CSV and JSON export with scheduled reports
+**Campaign Management**
 
-**Advanced Notifications:**
-* **Proactive Alerts** - Campaign ending warnings (24 hours before)
-* **Performance Monitoring** - Smart alerts for underperforming campaigns
-* **Daily & Weekly Reports** - Automated email reports with insights
-* **Low Stock Alerts** - Get notified when discounted products run low
-* **Milestone Notifications** - Celebrate campaign achievements
+* **Unlimited Campaigns** - No restrictions on how many campaigns you can create
+* **Priority System** - Control which discount applies when campaigns overlap (1-5 levels)
+* **Bulk Actions** - Activate, deactivate, duplicate, or delete multiple campaigns at once
+* **Health Monitoring** - Real-time validation alerts you to potential issues
 
-**Professional Support:**
-* **Priority Support** - Get help faster with dedicated support queue
-* **API Access** - Programmatic campaign management via REST API
+**Technical**
 
-[**Upgrade to Pro →**](https://webstepper.io/wordpress-plugins/smart-cycle-discounts/pricing)
+* **WooCommerce HPOS Compatible** - Works with High-Performance Order Storage
+* **Performance Optimized** - Efficient queries and caching for large catalogs
+* **Secure** - Follows WordPress security best practices
 
-= Use Cases =
+= Pro Version =
 
-* **Seasonal Sales** - Schedule Black Friday, Christmas, or Summer clearance campaigns in advance
-* **Flash Sales** - Time-limited discounts with specific start/end dates and times
-* **Random Promotions** - Rotate discounts across different products automatically
-* **Bulk Discounts** - Apply discounts to hundreds of products simultaneously
-* **Priority Management** - Run multiple campaigns with controlled priority to avoid conflicts
+Upgrade to Smart Cycle Discounts Pro for advanced discount types, analytics, and automation.
 
-= Performance & Architecture =
+**Additional Discount Types**
 
-* **Service Container & DI** - Modern dependency injection architecture
-* **Efficient Database Layer** - Custom query optimization with prepared statements
-* **Asset Management System** - Intelligent script/style loading only where needed
-* **Modular Wizard System** - Step-based architecture with state management
-* **AJAX-Powered UI** - Fast, responsive admin interface without page reloads
-* **Scales Efficiently** - Handles thousands of products with optimized queries
+* **Tiered Pricing** - Quantity-based discounts (e.g., Buy 5+ get 10% off, Buy 10+ get 20% off)
+* **Buy One Get One** - Flexible BOGO offers with configurable quantities and discount percentages
+* **Spend Threshold** - Cart total discounts (e.g., Spend $100 get 15% off entire order)
 
-= Developer Friendly =
+**Advanced Controls**
 
-* **Extensive Hooks** - Actions and filters throughout for customization
-* **Well-Documented Code** - Comprehensive PHPDoc blocks and inline comments
-* **Modular Architecture** - MVC pattern with separated concerns
-* **REST API Ready** - API endpoints for external integrations (Pro)
+* **Usage Limits** - Set per-customer limits, total redemption caps, and lifetime thresholds
+* **Application Rules** - Apply discounts to all items, cheapest item only, most expensive, or first X items
+* **Smart Product Selection** - Auto-select Best Sellers, Featured Products, Low Stock, or New Arrivals
+
+**Analytics**
+
+* **Performance Dashboard** - Track revenue, conversions, and campaign effectiveness
+* **Date Range Filtering** - Analyze any time period
+* **Export Reports** - Download CSV or JSON data for external analysis
+
+**Notifications**
+
+* **Campaign Alerts** - Get notified when campaigns start, end, or need attention
+* **Performance Warnings** - Automatic alerts for underperforming campaigns
+* **Scheduled Reports** - Daily or weekly email summaries
+
+**Developer Features**
+
+* **REST API** - Programmatic campaign management for custom integrations
+* **Priority Support** - Dedicated support queue for faster response
+
+[View Pro Features](https://webstepper.io/wordpress/plugins/smart-cycle-discounts/)
+
+= Common Use Cases =
+
+* **Seasonal Promotions** - Schedule Black Friday, Christmas, or Summer sales weeks in advance
+* **Flash Sales** - Run time-limited discounts that start and end automatically
+* **Daily Deals** - Rotate discounts across different products each day
+* **Clearance Events** - Apply bulk discounts to hundreds of products at once
+* **Overlapping Campaigns** - Run multiple promotions simultaneously with priority control
+
+= For Developers =
+
+* **Hooks and Filters** - Extend functionality with actions and filters throughout
+* **Documented Code** - PHPDoc blocks and inline comments
+* **REST API** - Programmatic access to campaigns (Pro)
 
 == Installation ==
 
@@ -131,122 +141,44 @@ Upgrade to **Smart Cycle Discounts Pro** for advanced discount types, unlimited 
 
 == Getting Started ==
 
-**Create Your First Campaign in 5 Minutes**
+= Quick Start =
 
-After activating the plugin, you'll see a new "Campaigns" menu item in your WordPress admin sidebar. Here's how to create your first discount campaign:
+1. Go to **Campaigns > Create Campaign** in your WordPress admin
+2. Follow the 5-step wizard: Basic Info → Products → Discounts → Schedule → Review
+3. Click **Create Campaign** to launch your discount
 
-= Step 1: Launch the Campaign Wizard =
+= Example: 25% Off Flash Sale =
 
-1. Click **Campaigns > Create Campaign** in your WordPress admin sidebar
-2. The 5-step Campaign Wizard will open in fullscreen mode
+1. **Basic Info**: Name it "Flash Sale" with priority 5
+2. **Products**: Select "All Products" or pick specific items
+3. **Discounts**: Choose "Percentage" and enter 25
+4. **Schedule**: Set start date/time and end date/time
+5. **Review**: Verify settings and click Create
 
-= Step 2: Configure Basic Information =
-
-1. **Campaign Name**: Enter a descriptive name (e.g., "Summer Sale 2025")
-2. **Description**: Add notes about the campaign (optional, for internal reference)
-3. **Priority**: Set priority level 1-5 (5 is highest)
-   - Use priority when running multiple campaigns simultaneously
-   - Higher priority campaigns override lower priority ones on the same product
-4. Click **Next** to continue
-
-= Step 3: Select Products =
-
-Choose which products to discount:
-
-* **All Products**: Apply discount to your entire catalog
-* **Specific Products**: Use the search box to find and select individual products
-  - Search by product name, SKU, or ID
-  - Click products to add/remove from selection
-  - Selected count shows at the bottom
-* **Random Products**: Automatically select X random products from your catalog
-  - Set how many products to discount
-  - Products are randomly selected each time the campaign runs
-
-Click **Next** when products are selected.
-
-= Step 4: Configure Discount =
-
-Choose your discount type:
-
-**Free Version:**
-* **Percentage Discount**: Enter percentage (e.g., 25 for 25% off)
-* **Fixed Amount**: Enter fixed discount amount (e.g., 10.00 for $10 off)
-
-**Pro Version Only:**
-* **Tiered Discount**: Create quantity-based pricing tiers
-* **BOGO**: Configure Buy One Get One offers
-* **Spend Threshold**: Discount based on cart total
-
-Click **Next** to continue.
-
-= Step 5: Schedule Campaign =
-
-* **Start Date & Time**: When campaign should begin
-* **End Date & Time**: When campaign should end (optional - leave blank for no end date)
-* **Timezone**: Select your timezone (defaults to WordPress timezone)
-* **Recurring** (Pro): Set daily, weekly, or monthly recurring patterns
-* **Status**: Set initial status (Draft, Scheduled, or Active)
-
-Click **Next** to review.
-
-= Step 6: Review & Create =
-
-* Review all campaign settings in the sidebar
-* Check the **Campaign Health** indicator (shows any potential issues)
-* Click **Create Campaign** to activate your discount campaign
-
-**That's it!** Your discount campaign is now live and automatically applying to the selected products.
+Your discounts will activate and deactivate automatically on schedule.
 
 = Managing Campaigns =
 
-Access the **Campaigns** page to:
-
-* **View All Campaigns**: See status, priority, products, and schedule at a glance
-* **Bulk Actions**: Enable, disable, duplicate, or delete multiple campaigns
-* **Quick Edit**: Click campaign name to edit settings
-* **Duplicate**: Clone existing campaign to create similar ones quickly
-* **Campaign Health**: Monitor issues and optimization opportunities
-
-= Common Use Cases =
-
-**Flash Sale (Time-Limited)**
-1. Select "Specific Products" or "All Products"
-2. Set percentage discount (e.g., 30%)
-3. Set start/end date and time
-4. Status: Scheduled (activates automatically)
-
-**Weekend Sale (Recurring - Pro)**
-1. Select products to discount
-2. Set percentage discount
-3. Choose "Weekly" recurring pattern
-4. Select Saturday & Sunday
-5. Set start time Friday 12:01 AM, end time Sunday 11:59 PM
-
-**Seasonal Sale (Long-Running)**
-1. Select "All Products" or specific categories
-2. Set percentage discount
-3. Set start date (e.g., Dec 1) and end date (e.g., Dec 31)
-4. Priority: 3 (medium) to allow other campaigns to override if needed
+Access **Campaigns** in your admin menu to view, edit, duplicate, or delete campaigns. Use bulk actions to manage multiple campaigns at once.
 
 = Need Help? =
 
-* **Documentation**: Visit our [documentation site](https://webstepper.io/wordpress-plugins/smart-cycle-discounts)
-* **Support Forum**: Get help at [WordPress.org support forum](https://wordpress.org/support/plugin/smart-cycle-discounts/)
-* **Video Tutorial**: Watch our [5-minute video tutorial](https://webstepper.io/wordpress-plugins/smart-cycle-discounts/getting-started)
+* [Documentation](https://webstepper.io/docs-category/smart-cycle-discounts/)
+* [Support Forum](https://wordpress.org/support/plugin/smart-cycle-discounts/)
 
 == Frequently Asked Questions ==
 
 = Is Smart Cycle Discounts compatible with my theme? =
 
-Yes! Smart Cycle Discounts is a backend plugin that works with any properly coded WordPress theme. It integrates with WooCommerce's native sale price system, so your theme's existing sale price styling will work automatically.
+Yes. Smart Cycle Discounts is a backend plugin that works with any properly coded WordPress theme. It integrates with WooCommerce's native sale price system, so your theme's existing sale price styling applies automatically.
 
 = Can I schedule campaigns in advance? =
 
-Absolutely! Use the Schedule step in the wizard to set specific start and end dates/times. Campaigns will activate and deactivate automatically based on your schedule. You can create campaigns weeks or months in advance.
+Yes. Use the Schedule step in the wizard to set specific start and end dates/times. Campaigns activate and deactivate automatically based on your schedule. You can create campaigns weeks or months in advance.
 
-= How many campaigns can I create with the free version? =
+= How many campaigns can I create? =
 
-The free version allows up to **3 active campaigns** running simultaneously. You can create unlimited draft and scheduled campaigns. Upgrade to Pro for unlimited active campaigns.
+There are no campaign limits - you can create and run **unlimited campaigns** in both the free and Pro versions.
 
 = What's the difference between the discount types? =
 
@@ -265,7 +197,7 @@ No. Smart Cycle Discounts uses optimized database queries, efficient caching, an
 
 = Can I run multiple campaigns at the same time? =
 
-Yes! You can run multiple campaigns simultaneously (up to 3 active in free version, unlimited in Pro). Use the Priority field (1-5, where 5 is highest priority) to control which campaign takes precedence when multiple campaigns affect the same product.
+Yes. You can run unlimited campaigns simultaneously. Use the Priority field (1-5, where 5 is highest priority) to control which campaign takes precedence when multiple campaigns affect the same product.
 
 = What's the difference between "All Products", "Specific Products", and "Random Products"? =
 
@@ -275,11 +207,11 @@ Yes! You can run multiple campaigns simultaneously (up to 3 active in free versi
 
 = Does it work with WooCommerce HPOS (High-Performance Order Storage)? =
 
-Yes! Smart Cycle Discounts is fully compatible with WooCommerce HPOS. We've declared HPOS compatibility and tested thoroughly with custom order tables.
+Yes. Smart Cycle Discounts is fully compatible with WooCommerce HPOS and has been tested with custom order tables.
 
 = Can I duplicate an existing campaign? =
 
-Yes. On the Campaigns list page, hover over any campaign and click the "Duplicate" action. This creates a copy of the campaign with all settings intact, which you can then modify as needed. Great for creating similar campaigns quickly!
+Yes. On the Campaigns list page, hover over any campaign and click the "Duplicate" action. This creates a copy of the campaign with all settings intact, which you can then modify as needed.
 
 = How does the priority system work? =
 
@@ -295,103 +227,136 @@ When a campaign reaches its end date/time, it automatically deactivates and remo
 
 = Is there a way to test campaigns before activating them? =
 
-Yes! Use the **Draft** status to create and configure campaigns without activating them. You can review the campaign settings, check the health score, and preview which products will be affected. When ready, simply change the status to Active or Scheduled.
+Yes. Use the **Draft** status to create and configure campaigns without activating them. You can review the campaign settings, check the health score, and preview which products will be affected. When ready, change the status to Active or Scheduled.
+
+= Does it work with variable products? =
+
+Yes. Smart Cycle Discounts fully supports WooCommerce variable products. When you apply a discount to a variable product, all variations receive the discount automatically. The sale price displays correctly on both the main product page and individual variation selections.
+
+= Can I exclude products that are already on sale? =
+
+Yes. The plugin respects existing sale prices. If a product already has a manual sale price set in WooCommerce, you can configure your campaign to skip those products or override them based on your preference.
+
+= Does it work alongside WooCommerce coupons? =
+
+Yes. Campaign discounts and WooCommerce coupons work independently. Campaign discounts apply to product prices (shown as sale prices), while coupons apply at checkout. Customers can use both together unless you configure specific restrictions.
+
+= What happens if two campaigns affect the same product? =
+
+The campaign with the higher priority wins. Each campaign has a priority setting from 1 (lowest) to 5 (highest). When multiple active campaigns include the same product, only the highest-priority discount applies. This prevents discount stacking and gives you full control over which promotions take precedence.
 
 == Screenshots ==
 
-1. Campaign wizard - Step 1: Basic Information (name, description, priority)
-2. Campaign wizard - Step 2: Product Selection (all products, specific products, or random selection)
-3. Campaign wizard - Step 3: Discount Configuration (percentage or fixed amount in free version)
-4. Campaign wizard - Step 4: Schedule Settings (start/end dates, times, timezone, recurring patterns)
-5. Campaign wizard - Step 5: Review & Confirm with health scoring (preview all settings before creating)
-6. Campaigns list - Manage all campaigns with bulk actions (enable, disable, duplicate, delete)
-7. Product search - Real-time AJAX search by product name, SKU, or ID with instant results
-8. Campaign priority - Set priority levels 1-5 to control which discounts take precedence
+1. Campaigns list - Manage all campaigns with status, schedule, health scores, and quick actions
+2. Campaign overview panel - Quick view of campaign settings and real-time performance metrics
+3. Campaign wizard Step 1 - Basic information with campaign name, description, and contextual help
+4. Campaign wizard Step 2 - Product selection with category tree and filtering options
+5. Campaign wizard Step 3 - Discount configuration with live badge preview and positioning
+6. Campaign wizard Step 4 - Schedule configuration with date/time picker and duration calculator
+7. Campaign wizard Step 5 - Review with smart recommendations and campaign summary sidebar
+8. Dashboard health widget - Monitor all campaigns with 6 health indicators at a glance
+9. Campaign planner - Smart suggestions for upcoming events and seasonal promotions
+10. Analytics dashboard - Track revenue, conversions, click-through rates, and performance trends
+11. Main dashboard - Performance summary with campaign cards sorted by urgency
 
 == Changelog ==
 
+= 1.0.1 =
+* Updated plugin name for better discoverability on WordPress.org
+* Corrected plugin website URL
+
 = 1.0.0 =
 * Initial release
-* 5-step campaign wizard (Basic Info, Products, Discounts, Schedule, Review)
-* Three product selection modes: All Products, Specific Products, Random Products
-* Two discount types (Free): Percentage and Fixed Amount
-* Three advanced discount types (Pro): Tiered, BOGO, Spend Threshold
-* Up to 3 active campaigns (Free), unlimited campaigns (Pro)
-* Advanced scheduling with date/time/timezone support
-* Recurring campaigns (Pro): Daily, weekly, and monthly patterns
-* Priority system (1-5) for campaign precedence
-* AJAX-powered product search by name, SKU, or ID
-* Bulk campaign management (activate, deactivate, duplicate, delete)
-* Campaign health monitoring and validation
+* 5-step campaign wizard for creating discount campaigns
+* Product selection: All Products, Specific Products, Random Products
+* Discount types: Percentage and Fixed Amount (Free), Tiered, BOGO, Spend Threshold (Pro)
+* Scheduling with date, time, and timezone support
+* Priority system for overlapping campaigns
+* Campaign health monitoring
+* Bulk campaign management
 * Analytics dashboard (Pro)
-* Email notifications: Campaign started/ended (Free), Advanced alerts (Pro)
-* Service container architecture with dependency injection
-* Custom database abstraction layer
-* Modular wizard system with state management
-* Asset management system for optimized loading
-* HPOS (High-Performance Order Storage) compatibility
-* WordPress 6.4+ compatibility
-* WooCommerce 8.0+ compatibility
-* PHP 7.4+ compatibility
+* Email notifications
+* WooCommerce HPOS compatibility
+* WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.0.1 =
+Minor update with improved plugin naming for better WordPress.org search visibility.
 
 = 1.0.0 =
 Initial release of Smart Cycle Discounts. Create intelligent WooCommerce discount campaigns with advanced scheduling, priority management, and flexible product selection.
 
+== External services ==
+
+This plugin connects to external services for licensing, updates, and optional email delivery. Below is a complete list of all external services used, including the specific domains contacted.
+
+= Freemius (License Management) =
+
+This plugin uses Freemius for license management, plugin updates, and optional usage analytics.
+
+* **Service provider**: Freemius, Inc.
+* **Domains contacted**: api.freemius.com, wp.freemius.com, checkout.freemius.com, users.freemius.com
+* **What it does**: Handles Pro license activation/deactivation, delivers plugin updates, processes payments via secure checkout, and collects anonymous usage data (if opted-in)
+* **When data is sent**: On plugin activation, license validation, update checks, Pro checkout, and if you opt-in to usage tracking
+* **What data is sent**: Site URL, plugin version, license key (if Pro), WordPress version, PHP version, and anonymous usage statistics (only if opted-in)
+* **Terms of Service**: https://freemius.com/terms/
+* **Privacy Policy**: https://freemius.com/privacy/
+
+= Plugin Feedback API (Optional) =
+
+When deactivating the plugin, you may optionally provide feedback to help us improve.
+
+* **Service provider**: Webstepper
+* **Domain contacted**: api.smartcyclediscounts.com
+* **What it does**: Collects optional deactivation feedback to improve the plugin
+* **When data is sent**: Only when you choose to submit the optional deactivation feedback form during plugin deactivation
+* **What data is sent**: Feedback reason, site URL, WordPress version, WooCommerce version, PHP version, plugin version, and basic usage statistics (number of campaigns created)
+* **Terms of Service**: https://webstepper.io/terms-of-service/
+* **Privacy Policy**: https://webstepper.io/privacy-policy/
+
+= SendGrid Email API (Optional) =
+
+This plugin can optionally connect to the SendGrid API to send email notifications about your discount campaigns.
+
+* **Service provider**: Twilio SendGrid
+* **Domain contacted**: api.sendgrid.com
+* **What it does**: Delivers email notifications (campaign started, campaign ended, performance alerts)
+* **When data is sent**: Only when you configure SendGrid as your email provider in Settings > Email Notifications AND an email notification is triggered by campaign events
+* **What data is sent**: Recipient email address, email subject, and email body content (campaign status information only - no customer personal data is transmitted)
+* **Terms of Service**: https://www.twilio.com/legal/tos
+* **Privacy Policy**: https://www.twilio.com/legal/privacy
+
+= Amazon SES Email API (Optional) =
+
+This plugin can optionally connect to Amazon Simple Email Service (SES) to send email notifications about your discount campaigns.
+
+* **Service provider**: Amazon Web Services
+* **Domain contacted**: email.[region].amazonaws.com (where [region] is your configured AWS region, e.g., email.us-east-1.amazonaws.com)
+* **What it does**: Delivers email notifications (campaign started, campaign ended, performance alerts)
+* **When data is sent**: Only when you configure Amazon SES as your email provider in Settings > Email Notifications AND an email notification is triggered by campaign events
+* **What data is sent**: Recipient email address, email subject, and email body content (campaign status information only - no customer personal data is transmitted)
+* **Terms of Service**: https://aws.amazon.com/service-terms/
+* **Privacy Policy**: https://aws.amazon.com/privacy/
+
+**Important**: All external services except Freemius (required for licensing) are completely optional. The plugin works fully without configuring SendGrid or Amazon SES. The Plugin Feedback API is only contacted if you explicitly choose to submit feedback during deactivation. No email data is transmitted unless you explicitly enable and configure email integrations in Settings > Email Notifications.
+
 == Additional Information ==
 
-= Support & Documentation =
+= Support =
 
-* Official Website: https://webstepper.io
-* Plugin Page: https://webstepper.io/wordpress-plugins/smart-cycle-discounts
-* WordPress.org Page: https://wordpress.org/plugins/smart-cycle-discounts/
-* Support Forum: https://wordpress.org/support/plugin/smart-cycle-discounts/
-* Email Support: contact@webstepper.io
-* Rate this plugin: https://wordpress.org/support/plugin/smart-cycle-discounts/reviews/
+* [Documentation](https://webstepper.io/docs-category/smart-cycle-discounts/)
+* [FAQ](https://webstepper.io/wordpress/plugins/smart-cycle-discounts/#faq)
+* [Support Forum](https://wordpress.org/support/plugin/smart-cycle-discounts/)
+* [Contact](https://webstepper.io/contact-us/)
 
-= Privacy & Data Collection =
+= Privacy =
 
-Smart Cycle Discounts stores all campaign data locally in your WordPress database. The plugin does not collect or transmit customer data to external services by default.
+Campaign data is stored locally in your WordPress database. The plugin does not collect or transmit customer personal data. See the "External services" section for details about third-party integrations.
 
-**Optional Third-Party Services**: If you choose to enable optional email notification features (available in Pro version), the plugin can integrate with external email delivery services (SendGrid or Amazon SES). These services are completely optional and disabled by default. See "Third-Party Services" section below for details.
+= Links =
 
-This plugin respects your privacy and follows WordPress.org privacy guidelines.
-
-= Third-Party Services =
-
-Smart Cycle Discounts includes **optional** integrations with third-party email delivery services. These services are **disabled by default** and only activated if you explicitly configure them in the plugin settings.
-
-**SendGrid Email Service** (Optional - Available in Free & Pro)
-
-* **Service**: SendGrid API
-* **Website**: https://sendgrid.com/
-* **API Endpoint**: https://api.sendgrid.com/v3/mail/send
-* **When Used**: Only if you configure SendGrid API credentials in Settings > Email Notifications
-* **Data Sent**: Email addresses, email content (campaign notifications only)
-* **Purpose**: Deliver email notifications about campaign status and results
-* **Privacy Policy**: https://www.twilio.com/legal/privacy
-* **Terms of Service**: https://www.twilio.com/legal/tos
-
-**Amazon SES (Simple Email Service)** (Optional - Available in Free & Pro)
-
-* **Service**: Amazon Web Services - Simple Email Service
-* **Website**: https://aws.amazon.com/ses/
-* **API Endpoint**: https://email.{region}.amazonaws.com/
-* **When Used**: Only if you configure AWS SES credentials in Settings > Email Notifications
-* **Data Sent**: Email addresses, email content (campaign notifications only)
-* **Purpose**: Deliver email notifications about campaign status and results
-* **Privacy Policy**: https://aws.amazon.com/privacy/
-* **Terms of Service**: https://aws.amazon.com/service-terms/
-
-**Important Notes**:
-
-* Both services are completely optional and disabled by default
-* Available in both Free and Pro versions
-* No data is sent to these services unless you explicitly configure API credentials
-* You can use the plugin's full functionality without enabling any email integrations
-* All email providers (WordPress Mail, SendGrid, Amazon SES) work with both Free and Pro versions
-* Free version: Basic notifications (campaign started, campaign ended)
-* Pro version: Advanced proactive notifications (ending warnings, daily/weekly reports, performance alerts, low stock alerts, milestone notifications)
-* If you enable these services, you are responsible for compliance with their terms of service
-* Email notifications only contain campaign-related data, never customer personal information
+* [Plugin Website](https://webstepper.io/wordpress/plugins/smart-cycle-discounts/)
+* [Changelog](https://webstepper.io/plugins/smart-cycle-discounts/changelog/)
+* [Terms of Service](https://webstepper.io/terms-of-service/)
+* [Privacy Policy](https://webstepper.io/privacy-policy/)

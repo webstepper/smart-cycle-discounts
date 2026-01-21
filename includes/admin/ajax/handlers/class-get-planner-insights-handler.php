@@ -26,14 +26,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Get_Planner_Insights_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Get_Planner_Insights_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Dashboard service instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Dashboard_Service    $dashboard_service    Dashboard service.
+	 * @var      WSSCD_Dashboard_Service    $dashboard_service    Dashboard service.
 	 */
 	private $dashboard_service;
 
@@ -41,8 +41,8 @@ class SCD_Get_Planner_Insights_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Dashboard_Service $dashboard_service    Dashboard service.
-	 * @param    SCD_Logger            $logger                Logger instance (optional).
+	 * @param    WSSCD_Dashboard_Service $dashboard_service    Dashboard service.
+	 * @param    WSSCD_Logger            $logger                Logger instance (optional).
 	 */
 	public function __construct( $dashboard_service, $logger = null ) {
 		parent::__construct( $logger );
@@ -56,7 +56,7 @@ class SCD_Get_Planner_Insights_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_get_planner_insights';
+		return 'wsscd_get_planner_insights';
 	}
 
 	/**
@@ -102,17 +102,20 @@ class SCD_Get_Planner_Insights_Handler extends SCD_Abstract_Ajax_Handler {
 		// Position = where campaign is displayed (past/active/future slots).
 		// State = actual campaign state (past/active/future).
 		// For gap-filled campaigns, position may differ from state.
-		$insights_data = $this->dashboard_service->get_unified_insights( $campaign_id, $position, $is_major_event );
+		$insights_data = $this->dashboard_service->get_unified_insights( $campaign_id, $position, $is_major_event, $state );
 
 		if ( empty( $insights_data ) ) {
 			return $this->error( __( 'Campaign not found', 'smart-cycle-discounts' ), 'campaign_not_found' );
 		}
 
-		$view_file = SCD_VIEWS_DIR . 'admin/pages/dashboard/partials/planner-insights.php';
+		$view_file = WSSCD_VIEWS_DIR . 'admin/pages/dashboard/partials/planner-insights.php';
 
 		if ( ! file_exists( $view_file ) ) {
 			return $this->error( __( 'View template not found', 'smart-cycle-discounts' ), 'template_not_found', 500 );
 		}
+
+		// Extract title for header update.
+		$title = isset( $insights_data['title'] ) ? $insights_data['title'] : '';
 
 		try {
 			ob_start();
@@ -121,7 +124,8 @@ class SCD_Get_Planner_Insights_Handler extends SCD_Abstract_Ajax_Handler {
 
 			return $this->success(
 				array(
-					'html' => $html,
+					'html'  => $html,
+					'title' => $title,
 				)
 			);
 		} catch ( Exception $e ) {

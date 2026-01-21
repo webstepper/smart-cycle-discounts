@@ -14,12 +14,12 @@
 	'use strict';
 
 	// Ensure namespace exists
-	window.SCD = window.SCD || {};
+	window.WSSCD = window.WSSCD || {};
 
 	/**
 	 * Debug Logger
 	 */
-	SCD.DebugLogger = {
+	WSSCD.DebugLogger = {
 		/**
 		 * Log queue for batching requests
 		 */
@@ -31,13 +31,25 @@
 		flushTimeout: null,
 
 		/**
+		 * Check if debug mode is enabled
+		 *
+		 * @returns {boolean} True if debug mode is enabled
+		 */
+		isDebugEnabled: function() {
+			return ( window.wsscdWizardData && window.wsscdWizardData.debug ) ||
+				   ( window.wsscdAdmin && window.wsscdAdmin.debug );
+		},
+
+		/**
 		 * Initialize logger
 		 */
 		init: function() {
-			// Auto-flush on page unload
-			$( window ).on( 'beforeunload', function() {
-				SCD.DebugLogger.flush( true );
-			} );
+			// Auto-flush on page unload (only if debug enabled)
+			if ( this.isDebugEnabled() ) {
+				$( window ).on( 'beforeunload', function() {
+					WSSCD.DebugLogger.flush( true );
+				} );
+			}
 		},
 
 		/**
@@ -49,7 +61,12 @@
 		 * @param {*} data Optional data to log
 		 */
 		log: function( level, category, message, data ) {
-			// Always log to console
+			// Only log in debug mode
+			if ( ! this.isDebugEnabled() ) {
+				return;
+			}
+
+			// Log to console in debug mode
 			var consoleMessage = '[' + category + '] ' + message;
 			// Fallback to console.log if specific method unavailable
 			var consoleMethod = console[ level ] && typeof console[ level ] === 'function' ? console[ level ] : console.log;
@@ -99,7 +116,7 @@
 				this.flush();
 			} else {
 				this.flushTimeout = setTimeout( function() {
-					SCD.DebugLogger.flush();
+					WSSCD.DebugLogger.flush();
 				}, 1000 );
 			}
 		},
@@ -119,13 +136,13 @@
 
 			// Send to server
 			$.ajax( {
-				url: window.scdWizardData && window.scdWizardData.ajaxUrl ? window.scdWizardData.ajaxUrl : window.ajaxurl,
+				url: window.wsscdWizardData && window.wsscdWizardData.ajaxUrl ? window.wsscdWizardData.ajaxUrl : window.ajaxurl,
 				type: 'POST',
 				async: ! sync,
 				data: {
-					action: 'scd_ajax',
-				scdAction: 'writeDebugLog',
-					nonce: window.scdWizardData && window.scdWizardData.nonce ? window.scdWizardData.nonce : '',
+					action: 'wsscd_ajax',
+				wsscdAction: 'writeDebugLog',
+					nonce: window.wsscdWizardData && window.wsscdWizardData.nonce ? window.wsscdWizardData.nonce : '',
 					logs: JSON.stringify( logs )
 				}
 			} );
@@ -133,7 +150,7 @@
 	};
 
 	$( document ).ready( function() {
-		SCD.DebugLogger.init();
+		WSSCD.DebugLogger.init();
 	} );
 
 } )( jQuery );

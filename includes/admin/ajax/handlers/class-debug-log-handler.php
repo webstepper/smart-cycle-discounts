@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  */
-class SCD_Debug_Log_Handler {
+class WSSCD_Debug_Log_Handler {
 
 	/**
 	 * Handle debug log write request
@@ -33,7 +33,8 @@ class SCD_Debug_Log_Handler {
 	 */
 	public function handle( $request = array() ) {
 		// Verify nonce
-		if ( ! isset( $request['nonce'] ) || ! wp_verify_nonce( $request['nonce'], 'scd_wizard' ) ) {
+		$nonce = isset( $request['nonce'] ) ? sanitize_text_field( $request['nonce'] ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'wsscd_wizard' ) ) {
 			return array(
 				'success' => false,
 				'data'    => array(
@@ -94,6 +95,50 @@ class SCD_Debug_Log_Handler {
 	}
 
 	/**
+	 * Get the log directory path in uploads.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   string    Log directory path.
+	 */
+	private function get_log_directory() {
+		$upload_dir = wp_upload_dir();
+		return $upload_dir['basedir'] . '/smart-cycle-discounts/logs';
+	}
+
+	/**
+	 * Ensure log directory exists.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   bool    True if directory exists or was created.
+	 */
+	private function ensure_log_directory() {
+		$log_dir = $this->get_log_directory();
+
+		if ( ! file_exists( $log_dir ) ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_mkdir -- Creating plugin's own log directory.
+			wp_mkdir_p( $log_dir );
+
+			// Add .htaccess to protect log files.
+			$htaccess = $log_dir . '/.htaccess';
+			if ( ! file_exists( $htaccess ) ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Creating protective .htaccess file.
+				file_put_contents( $htaccess, 'deny from all' );
+			}
+
+			// Add index.php to prevent directory listing.
+			$index = $log_dir . '/index.php';
+			if ( ! file_exists( $index ) ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Creating protective index.php file.
+				file_put_contents( $index, '<?php // Silence is golden.' );
+			}
+		}
+
+		return is_dir( $log_dir );
+	}
+
+	/**
 	 * Write logs to debug file
 	 *
 	 * @since    1.0.0
@@ -102,7 +147,9 @@ class SCD_Debug_Log_Handler {
 	 * @return   true|WP_Error     True on success, WP_Error on failure
 	 */
 	private function write_logs( $logs ) {
-		$log_file = SCD_PLUGIN_DIR . 'debug.log';
+		// Ensure log directory exists in uploads folder (not plugin folder).
+		$this->ensure_log_directory();
+		$log_file = $this->get_log_directory() . '/debug.log';
 
 		$log_content = '';
 		foreach ( $logs as $log ) {
@@ -146,19 +193,31 @@ class SCD_Debug_Log_Handler {
 	}
 
 	/**
+	 * Get the static log file path.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   string    Log file path.
+	 */
+	private static function get_static_log_path() {
+		$upload_dir = wp_upload_dir();
+		return $upload_dir['basedir'] . '/smart-cycle-discounts/logs/debug.log';
+	}
+
+	/**
 	 * Clear debug log file
 	 *
 	 * @since    1.0.0
 	 * @return   true|WP_Error     True on success, WP_Error on failure
 	 */
 	public static function clear_log() {
-		$log_file = SCD_PLUGIN_DIR . 'debug.log';
+		$log_file = self::get_static_log_path();
 
 		if ( ! file_exists( $log_file ) ) {
 			return true;
 		}
 
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- Deleting plugin's own log file.
 		$result = unlink( $log_file );
 
 		if ( ! $result ) {
@@ -179,20 +238,20 @@ class SCD_Debug_Log_Handler {
 	 * @return   string|WP_Error   Log contents or error
 	 */
 	public static function get_log( $lines = 0 ) {
-		$log_file = SCD_PLUGIN_DIR . 'debug.log';
+		$log_file = self::get_static_log_path();
 
 		if ( ! file_exists( $log_file ) ) {
 			return '';
 		}
 
 		if ( 0 === $lines ) {
-			// Read entire file
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			// Read entire file.
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reading plugin's own log file.
 			return file_get_contents( $log_file );
 		}
 
-		// Read last N lines
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file
+		// Read last N lines.
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file -- Reading plugin's own log file.
 		$file_lines = file( $log_file );
 		if ( false === $file_lines ) {
 			return new WP_Error(

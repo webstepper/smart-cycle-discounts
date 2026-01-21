@@ -17,8 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-if ( defined( 'SCD_PLUGIN_DIR' ) ) {
-	require_once SCD_PLUGIN_DIR . 'includes/utilities/traits/trait-admin-notice.php';
+if ( defined( 'WSSCD_PLUGIN_DIR' ) ) {
+	require_once WSSCD_PLUGIN_DIR . 'includes/utilities/traits/trait-admin-notice.php';
 } else {
 	require_once __DIR__ . '/traits/trait-admin-notice.php';
 }
@@ -33,9 +33,9 @@ if ( defined( 'SCD_PLUGIN_DIR' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Requirements_Checker {
+class WSSCD_Requirements_Checker {
 
-	use SCD_Admin_Notice_Trait;
+	use WSSCD_Admin_Notice_Trait;
 
 	/**
 	 * Check results.
@@ -89,18 +89,18 @@ class SCD_Requirements_Checker {
 	 * @return   bool    True if PHP version is sufficient.
 	 */
 	public function check_php_version(): bool {
-		$result = version_compare( PHP_VERSION, SCD_MIN_PHP_VERSION, '>=' );
+		$result = version_compare( PHP_VERSION, WSSCD_MIN_PHP_VERSION, '>=' );
 
 		if ( ! $result && is_admin() ) {
-			if ( ! class_exists( 'SCD_Translation_Handler' ) ) {
+			if ( ! class_exists( 'WSSCD_Translation_Handler' ) ) {
 				require_once __DIR__ . '/class-translation-handler.php';
 			}
 
-			$messages = SCD_Translation_Handler::get_requirements_messages();
+			$messages = WSSCD_Translation_Handler::get_requirements_messages();
 			$this->show_error_notice(
 				sprintf(
 					$messages['php_version'],
-					SCD_MIN_PHP_VERSION,
+					WSSCD_MIN_PHP_VERSION,
 					PHP_VERSION
 				),
 				false
@@ -117,18 +117,18 @@ class SCD_Requirements_Checker {
 	 * @return   bool    True if WordPress version is sufficient.
 	 */
 	public function check_wordpress_version(): bool {
-		$result = version_compare( get_bloginfo( 'version' ), SCD_MIN_WP_VERSION, '>=' );
+		$result = version_compare( get_bloginfo( 'version' ), WSSCD_MIN_WP_VERSION, '>=' );
 
 		if ( ! $result && is_admin() ) {
-			if ( ! class_exists( 'SCD_Translation_Handler' ) ) {
+			if ( ! class_exists( 'WSSCD_Translation_Handler' ) ) {
 				require_once __DIR__ . '/class-translation-handler.php';
 			}
 
-			$messages = SCD_Translation_Handler::get_requirements_messages();
+			$messages = WSSCD_Translation_Handler::get_requirements_messages();
 			$this->show_error_notice(
 				sprintf(
 					$messages['wp_version'],
-					SCD_MIN_WP_VERSION,
+					WSSCD_MIN_WP_VERSION,
 					get_bloginfo( 'version' )
 				),
 				false
@@ -148,11 +148,11 @@ class SCD_Requirements_Checker {
 		// Use class_exists with false to prevent autoloading
 		if ( ! class_exists( 'WooCommerce', false ) ) {
 			if ( is_admin() && did_action( 'init' ) ) {
-				if ( ! class_exists( 'SCD_Translation_Handler' ) ) {
+				if ( ! class_exists( 'WSSCD_Translation_Handler' ) ) {
 					require_once __DIR__ . '/class-translation-handler.php';
 				}
 
-				$messages = SCD_Translation_Handler::get_requirements_messages();
+				$messages = WSSCD_Translation_Handler::get_requirements_messages();
 				$this->show_error_notice(
 					$messages['woocommerce_missing'],
 					false
@@ -166,18 +166,18 @@ class SCD_Requirements_Checker {
 			return true; // Assume it's okay for now, will check later
 		}
 
-		$result = version_compare( WC_VERSION, SCD_MIN_WC_VERSION, '>=' );
+		$result = version_compare( WC_VERSION, WSSCD_MIN_WC_VERSION, '>=' );
 
 		if ( ! $result && is_admin() && did_action( 'init' ) ) {
-			if ( ! class_exists( 'SCD_Translation_Handler' ) ) {
+			if ( ! class_exists( 'WSSCD_Translation_Handler' ) ) {
 				require_once __DIR__ . '/class-translation-handler.php';
 			}
 
-			$messages = SCD_Translation_Handler::get_requirements_messages();
+			$messages = WSSCD_Translation_Handler::get_requirements_messages();
 			$this->show_error_notice(
 				sprintf(
 					$messages['woocommerce_version'],
-					SCD_MIN_WC_VERSION,
+					WSSCD_MIN_WC_VERSION,
 					WC_VERSION
 				),
 				false
@@ -203,11 +203,11 @@ class SCD_Requirements_Checker {
 		// Check WC version if available
 		if ( function_exists( 'WC' ) && WC() && isset( WC()->version ) ) {
 			$wc_version = WC()->version;
-			if ( version_compare( $wc_version, SCD_MIN_WC_VERSION, '<' ) ) {
+			if ( version_compare( $wc_version, WSSCD_MIN_WC_VERSION, '<' ) ) {
 				$this->add_error(
 					sprintf(
 						'WooCommerce version %s or higher is required. Current version: %s',
-						SCD_MIN_WC_VERSION,
+						WSSCD_MIN_WC_VERSION,
 						$wc_version
 					)
 				);
@@ -254,7 +254,7 @@ class SCD_Requirements_Checker {
 		// Verify HPOS compatibility declaration
 		try {
 			$is_compatible = \Automattic\WooCommerce\Utilities\FeaturesUtil::get_compatible_features_for_plugin(
-				SCD_PLUGIN_BASENAME,
+				WSSCD_PLUGIN_BASENAME,
 				'custom_order_tables'
 			);
 
@@ -389,17 +389,17 @@ class SCD_Requirements_Checker {
 	public function get_requirements_report(): array {
 		return array(
 			'php_version'        => array(
-				'required' => SCD_MIN_PHP_VERSION,
+				'required' => WSSCD_MIN_PHP_VERSION,
 				'current'  => PHP_VERSION,
 				'status'   => $this->check_php_version(),
 			),
 			'wordpress_version'  => array(
-				'required' => SCD_MIN_WP_VERSION,
+				'required' => WSSCD_MIN_WP_VERSION,
 				'current'  => get_bloginfo( 'version' ),
 				'status'   => $this->check_wordpress_version(),
 			),
 			'woocommerce'        => array(
-				'required' => SCD_MIN_WC_VERSION,
+				'required' => WSSCD_MIN_WC_VERSION,
 				'current'  => defined( 'WC_VERSION' ) ? WC_VERSION : 'Not installed',
 				'status'   => $this->check_woocommerce(),
 			),
@@ -434,7 +434,7 @@ class SCD_Requirements_Checker {
 
 		try {
 			return \Automattic\WooCommerce\Utilities\FeaturesUtil::get_compatible_features_for_plugin(
-				SCD_PLUGIN_BASENAME,
+				WSSCD_PLUGIN_BASENAME,
 				'custom_order_tables'
 			);
 		} catch ( Exception $e ) {

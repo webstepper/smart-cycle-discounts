@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/utilities
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Log_Manager {
+class WSSCD_Log_Manager {
 
 	/**
 	 * Log directory path.
@@ -78,6 +78,7 @@ class SCD_Log_Manager {
 			return '';
 		}
 
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_readable -- Simple permission check for log file.
 		if ( ! is_readable( $log_file ) ) {
 			return new WP_Error(
 				'log_read_error',
@@ -88,9 +89,11 @@ class SCD_Log_Manager {
 		$contents = '';
 		if ( 0 === $lines ) {
 			// Read entire file
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reading plugin's own log file.
 			$contents = file_get_contents( $log_file );
 		} else {
 			// Read last N lines
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file -- Reading plugin's own log file.
 			$file_lines = file( $log_file );
 			if ( false === $file_lines ) {
 				return new WP_Error(
@@ -121,6 +124,7 @@ class SCD_Log_Manager {
 			return true; // Already empty
 		}
 
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable -- Simple permission check for log file.
 		if ( ! is_writable( $log_file ) ) {
 			return new WP_Error(
 				'log_clear_error',
@@ -129,6 +133,7 @@ class SCD_Log_Manager {
 		}
 
 		// Truncate file instead of deleting (preserves permissions)
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Clearing plugin's own log file.
 		if ( false === file_put_contents( $log_file, '' ) ) {
 			return new WP_Error(
 				'log_clear_error',
@@ -148,20 +153,23 @@ class SCD_Log_Manager {
 	public function get_log_stats(): array {
 		$log_file = $this->get_log_file_path();
 
+		// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_is_readable, WordPress.WP.AlternativeFunctions.file_system_operations_is_writable -- Simple stat checks for log file.
 		$stats = array(
 			'exists'         => file_exists( $log_file ),
 			'size'           => file_exists( $log_file ) ? filesize( $log_file ) : 0,
 			'size_formatted' => file_exists( $log_file ) ? size_format( filesize( $log_file ), 2 ) : '0 B',
 			'last_modified'  => file_exists( $log_file ) ? filemtime( $log_file ) : 0,
-			'modified_date'  => file_exists( $log_file ) ? date( 'Y-m-d H:i', filemtime( $log_file ) ) : 'N/A',
+			'modified_date'  => file_exists( $log_file ) ? gmdate( 'Y-m-d H:i', filemtime( $log_file ) ) : 'N/A',
 			'readable'       => file_exists( $log_file ) && is_readable( $log_file ),
 			'writable'       => file_exists( $log_file ) && is_writable( $log_file ),
 			'lines'          => 0,
 		);
+		// phpcs:enable WordPress.WP.AlternativeFunctions.file_system_operations_is_readable, WordPress.WP.AlternativeFunctions.file_system_operations_is_writable
 
 		// Count lines
 		if ( $stats['readable'] ) {
 			$line_count = 0;
+			// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_fopen, WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Reading plugin's own log file for line count.
 			$handle     = fopen( $log_file, 'r' );
 			if ( $handle ) {
 				while ( ! feof( $handle ) ) {
@@ -170,6 +178,7 @@ class SCD_Log_Manager {
 				}
 				fclose( $handle );
 			}
+			// phpcs:enable WordPress.WP.AlternativeFunctions.file_system_operations_fopen, WordPress.WP.AlternativeFunctions.file_system_operations_fclose
 			$stats['lines'] = $line_count;
 		}
 
@@ -194,7 +203,7 @@ class SCD_Log_Manager {
 		}
 
 		// Generate filename with timestamp
-		$filename = 'scd-plugin-' . gmdate( 'Y-m-d-His' ) . '.log';
+		$filename = 'wsscd-plugin-' . gmdate( 'Y-m-d-His' ) . '.log';
 
 		header( 'Content-Type: text/plain; charset=utf-8' );
 		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
@@ -202,7 +211,7 @@ class SCD_Log_Manager {
 		header( 'Pragma: no-cache' );
 		header( 'Expires: 0' );
 
-		echo $log_contents;
+				echo wp_kses_post( $log_contents );
 		exit;
 	}
 
@@ -239,8 +248,12 @@ class SCD_Log_Manager {
 			}
 		}
 
-		// Redact file paths (keep relative paths only)
-		$content = preg_replace( '/(' . preg_quote( ABSPATH, '/' ) . ')/', '[WP_ROOT]/', $content );
+		// Redact WordPress root path from log content for security (prevents path disclosure).
+		// Note: This is sanitization, not location determination - we need ABSPATH value to redact it.
+		if ( defined( 'ABSPATH' ) ) {
+			// phpcs:ignore WordPress.PHP.ConstantConditions.FoundConstant -- Using ABSPATH for path sanitization in logs.
+			$content = preg_replace( '/(' . preg_quote( constant( 'ABSPATH' ), '/' ) . ')/', '[WP_ROOT]/', $content );
+		}
 
 		return $content;
 	}
@@ -266,9 +279,10 @@ class SCD_Log_Manager {
 	private function get_campaign_stats(): array {
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'scd_campaigns';
+		$table = $wpdb->prefix . 'wsscd_campaigns';
 
 		// Check if table exists
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- SHOW TABLES has no WP abstraction; ephemeral check.
 		$table_exists = $wpdb->get_var(
 			$wpdb->prepare( 'SHOW TABLES LIKE %s', $table )
 		);
@@ -291,8 +305,9 @@ class SCD_Log_Manager {
 			'expired' => 0,
 		);
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- System stats query; table identifier prepared with %i.
 		$results = $wpdb->get_results(
-			"SELECT status, COUNT(*) as count FROM {$table} WHERE deleted_at IS NULL GROUP BY status"
+			$wpdb->prepare( 'SELECT status, COUNT(*) as count FROM %i WHERE deleted_at IS NULL GROUP BY status', $table )
 		);
 
 		if ( $results ) {
@@ -319,12 +334,12 @@ class SCD_Log_Manager {
 		global $wpdb;
 
 		$tables = array(
-			'scd_campaigns',
-			'scd_campaign_conditions',
-			'scd_active_discounts',
-			'scd_analytics',
-			'scd_customer_usage',
-			'scd_campaign_recurring',
+			'wsscd_campaigns',
+			'wsscd_campaign_conditions',
+			'wsscd_active_discounts',
+			'wsscd_analytics',
+			'wsscd_customer_usage',
+			'wsscd_campaign_recurring',
 		);
 
 		$stats = array();
@@ -333,6 +348,7 @@ class SCD_Log_Manager {
 			$full_table = $wpdb->prefix . $table;
 
 			// Check if table exists
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- SHOW TABLES has no WP abstraction; ephemeral check.
 			$table_exists = $wpdb->get_var(
 				$wpdb->prepare( 'SHOW TABLES LIKE %s', $full_table )
 			);
@@ -346,15 +362,17 @@ class SCD_Log_Manager {
 			}
 
 			// Get row count
-			$rows = $wpdb->get_var( "SELECT COUNT(*) FROM {$full_table}" );
+			$count_sql = $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $full_table );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- System stats query; query prepared above.
+			$rows = $wpdb->get_var( $count_sql );
 
 			// Get table size
-			$size = $wpdb->get_var(
-				$wpdb->prepare(
-					'SELECT ROUND((data_length + index_length) / 1024, 2) FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = %s',
-					$full_table
-				)
+			$size_sql = $wpdb->prepare(
+				'SELECT ROUND((data_length + index_length) / 1024, 2) FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = %s',
+				$full_table
 			);
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- information_schema query; query prepared above.
+			$size = $wpdb->get_var( $size_sql );
 
 			$stats[ $table ] = array(
 				'rows' => $rows ? number_format_i18n( $rows ) : '0',
@@ -384,8 +402,8 @@ class SCD_Log_Manager {
 
 		// Plugin Info
 		$report[] = '=== Plugin Information ===';
-		$report[] = 'Version: ' . SCD_VERSION;
-		$report[] = 'DB Version: ' . SCD_DB_VERSION;
+		$report[] = 'Version: ' . WSSCD_VERSION;
+		$report[] = 'DB Version: ' . WSSCD_DB_VERSION;
 		$report[] = '';
 
 		// WordPress Environment
@@ -428,19 +446,19 @@ class SCD_Log_Manager {
 
 		// Plugin Settings
 		$report[] = '=== Plugin Settings ===';
-		$settings = get_option( 'scd_settings', array() );
+		$settings = get_option( 'wsscd_settings', array() );
 		if ( isset( $settings['advanced'] ) ) {
 			$report[] = 'Debug Mode: ' . ( isset( $settings['advanced']['enable_debug_mode'] ) && $settings['advanced']['enable_debug_mode'] ? 'Enabled' : 'Disabled' );
 			$configured_level = isset( $settings['advanced']['log_level'] ) ? $settings['advanced']['log_level'] : 'warning';
 			$report[]         = 'Log Level (configured): ' . $configured_level;
 		}
 		// Show effective log level (may differ if constant is defined)
-		$effective_level = defined( 'SCD_LOG_LEVEL' ) ? SCD_LOG_LEVEL : ( isset( $settings['advanced']['log_level'] ) ? $settings['advanced']['log_level'] : 'warning' );
+		$effective_level = defined( 'WSSCD_LOG_LEVEL' ) ? WSSCD_LOG_LEVEL : ( isset( $settings['advanced']['log_level'] ) ? $settings['advanced']['log_level'] : 'warning' );
 		$report[]        = 'Log Level (effective): ' . $effective_level;
-		if ( defined( 'SCD_LOG_LEVEL' ) ) {
-			$report[] = '  (Note: SCD_LOG_LEVEL constant is overriding admin setting)';
+		if ( defined( 'WSSCD_LOG_LEVEL' ) ) {
+			$report[] = '  (Note: WSSCD_LOG_LEVEL constant is overriding admin setting)';
 		}
-		$report[] = 'SCD_DEBUG constant: ' . ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ? 'Enabled' : 'Disabled' );
+		$report[] = 'WSSCD_DEBUG constant: ' . ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ? 'Enabled' : 'Disabled' );
 		$report[] = '';
 
 		// Campaign Statistics

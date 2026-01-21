@@ -17,31 +17,31 @@
    Base Button Styles
    ========================================================================== */
 
-.scd-button,
-.scd-btn {
+.wsscd-button,
+.wsscd-btn {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	gap: var(--scd-gap-tight);
-	padding: 0 var(--scd-padding-medium);
-	height: var(--scd-button-height);
+	gap: var(--wsscd-gap-tight);
+	padding: 0 var(--wsscd-padding-medium);
+	height: var(--wsscd-button-height);
 	margin: 0;
 	font-family: inherit;
-	font-size: var(--scd-font-size-base);
-	font-weight: var(--scd-font-weight-medium);
+	font-size: var(--wsscd-font-size-base);
+	font-weight: var(--wsscd-font-weight-medium);
 	line-height: 1;
 	text-align: center;
 	text-decoration: none;
 	white-space: nowrap;
 	cursor: pointer;
 	border: 1px solid transparent;
-	border-radius: var(--scd-radius-lg);
-	background: var(--scd-color-surface);
-	color: var(--scd-color-text);
-	transition: background-color var(--scd-transition-fast) ease,
-				border-color var(--scd-transition-fast) ease,
-				box-shadow var(--scd-transition-fast) ease,
-				transform var(--scd-transition-fast) ease;
+	border-radius: var(--wsscd-radius-lg);
+	background: var(--wsscd-color-surface);
+	color: var(--wsscd-color-text);
+	transition: background-color var(--wsscd-transition-fast) ease,
+				border-color var(--wsscd-transition-fast) ease,
+				box-shadow var(--wsscd-transition-fast) ease,
+				transform var(--wsscd-transition-fast) ease;
 	box-sizing: border-box;
 	vertical-align: middle;
 	-webkit-appearance: none;
@@ -49,32 +49,51 @@
 	appearance: none;
 }
 
+/* Visited state - prevent color change on anchor buttons */
+a.wsscd-button:visited,
+a.wsscd-btn:visited,
+a.wsscd-button--secondary:visited,
+a.wsscd-btn-secondary:visited {
+	color: var(--wsscd-color-text);
+}
+
+a.wsscd-button--primary:visited,
+a.wsscd-btn-primary:visited,
+a.wsscd-button--success:visited,
+a.wsscd-btn-success:visited,
+a.wsscd-button--warning:visited,
+a.wsscd-btn-warning:visited,
+a.wsscd-button--danger:visited,
+a.wsscd-btn-danger:visited {
+	color: var(--wsscd-color-white);
+}
+
 /* Base hover/active - subtle darkening, preserve color against WP common.css a:hover/a:active */
-.scd-button:hover,
-.scd-button:active,
-.scd-btn:hover,
-.scd-btn:active {
+.wsscd-button:hover,
+.wsscd-button:active,
+.wsscd-btn:hover,
+.wsscd-btn:active {
 	filter: brightness(0.95);
-	color: var(--scd-color-text);
+	color: var(--wsscd-color-text);
 }
 
 /* Focus state - keyboard accessibility */
-.scd-button:focus-visible,
-.scd-btn:focus-visible {
-	outline: 2px solid var(--scd-color-primary);
+.wsscd-button:focus-visible,
+.wsscd-btn:focus-visible {
+	outline: 2px solid var(--wsscd-color-primary);
 	outline-offset: 2px;
 }
 
 /* Fallback for browsers without :focus-visible */
-.scd-button:focus,
-.scd-btn:focus {
-	outline: 2px solid var(--scd-color-primary);
+.wsscd-button:focus,
+.wsscd-btn:focus {
+	outline: 2px solid var(--wsscd-color-primary);
 	outline-offset: 2px;
 }
 
 /* Active press state */
-.scd-button:active,
-.scd-btn:active {
+.wsscd-button:active,
+.wsscd-btn:active {
 	transform: translateY(1px);
 }
 
@@ -82,18 +101,18 @@
    Button Sizes
    ========================================================================== */
 
-.scd-button--large,
-.scd-btn-lg {
-	height: var(--scd-button-height-large);
-	padding: 0 var(--scd-spacing-xl);
-	font-size: var(--scd-font-size-medium);
+.wsscd-button--large,
+.wsscd-btn-lg {
+	height: var(--wsscd-button-height-large);
+	padding: 0 var(--wsscd-spacing-xl);
+	font-size: var(--wsscd-font-size-medium);
 }
 
-.scd-button--small,
-.scd-btn-sm {
-	height: var(--scd-input-height);
-	padding: 0 var(--scd-spacing-md);
-	font-size: var(--scd-font-size-small);
+.wsscd-button--small,
+.wsscd-btn-sm {
+	height: var(--wsscd-input-height);
+	padding: 0 var(--wsscd-spacing-md);
+	font-size: var(--wsscd-font-size-small);
 }
 
 /* ==========================================================================
@@ -101,245 +120,245 @@
    ========================================================================== */
 
 /* Shared filled button styles */
-.scd-button--primary,
-.scd-btn-primary,
-.button-primary.scd-themed,
-.scd-button--success,
-.scd-btn-success,
-.scd-button--warning,
-.scd-btn-warning,
-.scd-button--danger,
-.scd-btn-danger,
-.button-link-delete.scd-themed {
-	color: var(--scd-color-white);
-	font-weight: var(--scd-font-weight-semibold);
+.wsscd-button--primary,
+.wsscd-btn-primary,
+.button-primary.wsscd-themed,
+.wsscd-button--success,
+.wsscd-btn-success,
+.wsscd-button--warning,
+.wsscd-btn-warning,
+.wsscd-button--danger,
+.wsscd-btn-danger,
+.button-link-delete.wsscd-themed {
+	color: var(--wsscd-color-white);
+	font-weight: var(--wsscd-font-weight-semibold);
 }
 
 /* Primary Button */
-.scd-button--primary,
-.scd-btn-primary,
-.button-primary.scd-themed {
-	background: var(--scd-color-primary);
-	border-color: var(--scd-color-primary);
+.wsscd-button--primary,
+.wsscd-btn-primary,
+.button-primary.wsscd-themed {
+	background: var(--wsscd-color-primary);
+	border-color: var(--wsscd-color-primary);
 }
 
-.scd-button--primary:hover,
-.scd-button--primary:active,
-.scd-btn-primary:hover,
-.scd-btn-primary:active,
-.button-primary.scd-themed:hover,
-.button-primary.scd-themed:active {
-	background: var(--scd-color-primary-dark);
-	border-color: var(--scd-color-primary-dark);
-	color: var(--scd-color-white);
+.wsscd-button--primary:hover,
+.wsscd-button--primary:active,
+.wsscd-btn-primary:hover,
+.wsscd-btn-primary:active,
+.button-primary.wsscd-themed:hover,
+.button-primary.wsscd-themed:active {
+	background: var(--wsscd-color-primary-dark);
+	border-color: var(--wsscd-color-primary-dark);
+	color: var(--wsscd-color-white);
 	filter: none;
 }
 
-.scd-button--primary:focus-visible,
-.scd-btn-primary:focus-visible,
-.button-primary.scd-themed:focus-visible,
-.scd-button--primary:focus,
-.scd-btn-primary:focus,
-.button-primary.scd-themed:focus {
-	box-shadow: var(--scd-ring-focus);
+.wsscd-button--primary:focus-visible,
+.wsscd-btn-primary:focus-visible,
+.button-primary.wsscd-themed:focus-visible,
+.wsscd-button--primary:focus,
+.wsscd-btn-primary:focus,
+.button-primary.wsscd-themed:focus {
+	box-shadow: var(--wsscd-ring-focus);
 }
 
 /* Secondary Button */
-.scd-button--secondary,
-.scd-btn-secondary,
-.button-secondary.scd-themed {
-	background: var(--scd-color-white);
-	border-color: var(--scd-color-border);
-	color: var(--scd-color-text);
+.wsscd-button--secondary,
+.wsscd-btn-secondary,
+.button-secondary.wsscd-themed {
+	background: var(--wsscd-color-white);
+	border-color: var(--wsscd-color-border);
+	color: var(--wsscd-color-text);
 }
 
-.scd-button--secondary:hover,
-.scd-button--secondary:active,
-.scd-btn-secondary:hover,
-.scd-btn-secondary:active,
-.button-secondary.scd-themed:hover,
-.button-secondary.scd-themed:active {
-	background: var(--scd-color-surface);
-	border-color: var(--scd-color-border-dark);
-	color: var(--scd-color-text);
+.wsscd-button--secondary:hover,
+.wsscd-button--secondary:active,
+.wsscd-btn-secondary:hover,
+.wsscd-btn-secondary:active,
+.button-secondary.wsscd-themed:hover,
+.button-secondary.wsscd-themed:active {
+	background: var(--wsscd-color-surface);
+	border-color: var(--wsscd-color-border-dark);
+	color: var(--wsscd-color-text);
 	filter: none;
 }
 
-.scd-button--secondary:focus-visible,
-.scd-btn-secondary:focus-visible,
-.button-secondary.scd-themed:focus-visible,
-.scd-button--secondary:focus,
-.scd-btn-secondary:focus,
-.button-secondary.scd-themed:focus {
-	border-color: var(--scd-color-primary);
-	box-shadow: var(--scd-ring-focus);
+.wsscd-button--secondary:focus-visible,
+.wsscd-btn-secondary:focus-visible,
+.button-secondary.wsscd-themed:focus-visible,
+.wsscd-button--secondary:focus,
+.wsscd-btn-secondary:focus,
+.button-secondary.wsscd-themed:focus {
+	border-color: var(--wsscd-color-primary);
+	box-shadow: var(--wsscd-ring-focus);
 }
 
 /* Success Button */
-.scd-button--success,
-.scd-btn-success {
-	background: var(--scd-color-success);
-	border-color: var(--scd-color-success);
+.wsscd-button--success,
+.wsscd-btn-success {
+	background: var(--wsscd-color-success);
+	border-color: var(--wsscd-color-success);
 }
 
-.scd-button--success:hover,
-.scd-button--success:active,
-.scd-btn-success:hover,
-.scd-btn-success:active {
-	background: var(--scd-color-success-dark);
-	border-color: var(--scd-color-success-dark);
-	color: var(--scd-color-white);
+.wsscd-button--success:hover,
+.wsscd-button--success:active,
+.wsscd-btn-success:hover,
+.wsscd-btn-success:active {
+	background: var(--wsscd-color-success-dark);
+	border-color: var(--wsscd-color-success-dark);
+	color: var(--wsscd-color-white);
 	filter: none;
 }
 
-.scd-button--success:focus-visible,
-.scd-btn-success:focus-visible,
-.scd-button--success:focus,
-.scd-btn-success:focus {
-	box-shadow: var(--scd-ring-success);
+.wsscd-button--success:focus-visible,
+.wsscd-btn-success:focus-visible,
+.wsscd-button--success:focus,
+.wsscd-btn-success:focus {
+	box-shadow: var(--wsscd-ring-success);
 }
 
 /* Warning Button */
-.scd-button--warning,
-.scd-btn-warning {
-	background: var(--scd-color-warning);
-	border-color: var(--scd-color-warning);
-	color: var(--scd-color-text-dark);
+.wsscd-button--warning,
+.wsscd-btn-warning {
+	background: var(--wsscd-color-warning);
+	border-color: var(--wsscd-color-warning);
+	color: var(--wsscd-color-text-dark);
 }
 
-.scd-button--warning:hover,
-.scd-button--warning:active,
-.scd-btn-warning:hover,
-.scd-btn-warning:active {
-	background: var(--scd-color-warning-dark);
-	border-color: var(--scd-color-warning-dark);
-	color: var(--scd-color-text-dark);
+.wsscd-button--warning:hover,
+.wsscd-button--warning:active,
+.wsscd-btn-warning:hover,
+.wsscd-btn-warning:active {
+	background: var(--wsscd-color-warning-dark);
+	border-color: var(--wsscd-color-warning-dark);
+	color: var(--wsscd-color-text-dark);
 	filter: none;
 }
 
-.scd-button--warning:focus-visible,
-.scd-btn-warning:focus-visible,
-.scd-button--warning:focus,
-.scd-btn-warning:focus {
-	box-shadow: var(--scd-ring-warning);
+.wsscd-button--warning:focus-visible,
+.wsscd-btn-warning:focus-visible,
+.wsscd-button--warning:focus,
+.wsscd-btn-warning:focus {
+	box-shadow: var(--wsscd-ring-warning);
 }
 
 /* Danger Button */
-.scd-button--danger,
-.scd-btn-danger,
-.button-link-delete.scd-themed {
-	background: var(--scd-color-danger);
-	border-color: var(--scd-color-danger);
+.wsscd-button--danger,
+.wsscd-btn-danger,
+.button-link-delete.wsscd-themed {
+	background: var(--wsscd-color-danger);
+	border-color: var(--wsscd-color-danger);
 }
 
-.scd-button--danger:hover,
-.scd-button--danger:active,
-.scd-btn-danger:hover,
-.scd-btn-danger:active,
-.button-link-delete.scd-themed:hover,
-.button-link-delete.scd-themed:active {
-	background: var(--scd-color-danger-dark);
-	border-color: var(--scd-color-danger-dark);
-	color: var(--scd-color-white);
+.wsscd-button--danger:hover,
+.wsscd-button--danger:active,
+.wsscd-btn-danger:hover,
+.wsscd-btn-danger:active,
+.button-link-delete.wsscd-themed:hover,
+.button-link-delete.wsscd-themed:active {
+	background: var(--wsscd-color-danger-dark);
+	border-color: var(--wsscd-color-danger-dark);
+	color: var(--wsscd-color-white);
 	filter: none;
 }
 
-.scd-button--danger:focus-visible,
-.scd-btn-danger:focus-visible,
-.button-link-delete.scd-themed:focus-visible,
-.scd-button--danger:focus,
-.scd-btn-danger:focus,
-.button-link-delete.scd-themed:focus {
-	box-shadow: var(--scd-ring-danger);
+.wsscd-button--danger:focus-visible,
+.wsscd-btn-danger:focus-visible,
+.button-link-delete.wsscd-themed:focus-visible,
+.wsscd-button--danger:focus,
+.wsscd-btn-danger:focus,
+.button-link-delete.wsscd-themed:focus {
+	box-shadow: var(--wsscd-ring-danger);
 }
 
 /* ==========================================================================
    Ghost/Outline Buttons
    ========================================================================== */
 
-.scd-button--ghost,
-.scd-btn-ghost {
+.wsscd-button--ghost,
+.wsscd-btn-ghost {
 	background: transparent;
-	border-color: var(--scd-color-border);
-	color: var(--scd-color-text);
+	border-color: var(--wsscd-color-border);
+	color: var(--wsscd-color-text);
 }
 
-.scd-button--ghost:hover,
-.scd-button--ghost:active,
-.scd-btn-ghost:hover,
-.scd-btn-ghost:active {
-	background: var(--scd-color-primary-alpha-10);
-	border-color: var(--scd-color-primary);
-	color: var(--scd-color-text);
+.wsscd-button--ghost:hover,
+.wsscd-button--ghost:active,
+.wsscd-btn-ghost:hover,
+.wsscd-btn-ghost:active {
+	background: var(--wsscd-color-primary-alpha-10);
+	border-color: var(--wsscd-color-primary);
+	color: var(--wsscd-color-text);
 	filter: none;
 }
 
 /* Ghost Primary */
-.scd-button--ghost-primary {
+.wsscd-button--ghost-primary {
 	background: transparent;
-	border-color: var(--scd-color-primary);
-	color: var(--scd-color-primary);
+	border-color: var(--wsscd-color-primary);
+	color: var(--wsscd-color-primary);
 }
 
-.scd-button--ghost-primary:hover,
-.scd-button--ghost-primary:active {
-	background: var(--scd-color-primary-alpha-10);
-	color: var(--scd-color-primary);
+.wsscd-button--ghost-primary:hover,
+.wsscd-button--ghost-primary:active {
+	background: var(--wsscd-color-primary-alpha-10);
+	color: var(--wsscd-color-primary);
 	filter: none;
 }
 
 /* Ghost Success */
-.scd-button--ghost-success {
+.wsscd-button--ghost-success {
 	background: transparent;
-	border-color: var(--scd-color-success);
-	color: var(--scd-color-success);
+	border-color: var(--wsscd-color-success);
+	color: var(--wsscd-color-success);
 }
 
-.scd-button--ghost-success:hover,
-.scd-button--ghost-success:active {
-	background: var(--scd-color-success-alpha-10);
-	color: var(--scd-color-success);
+.wsscd-button--ghost-success:hover,
+.wsscd-button--ghost-success:active {
+	background: var(--wsscd-color-success-alpha-10);
+	color: var(--wsscd-color-success);
 	filter: none;
 }
 
 /* Ghost Warning */
-.scd-button--ghost-warning {
+.wsscd-button--ghost-warning {
 	background: transparent;
-	border-color: var(--scd-color-warning);
-	color: var(--scd-color-warning-dark);
+	border-color: var(--wsscd-color-warning);
+	color: var(--wsscd-color-warning-dark);
 }
 
-.scd-button--ghost-warning:hover,
-.scd-button--ghost-warning:active {
-	background: var(--scd-color-warning-alpha-15);
-	color: var(--scd-color-warning-dark);
+.wsscd-button--ghost-warning:hover,
+.wsscd-button--ghost-warning:active {
+	background: var(--wsscd-color-warning-alpha-15);
+	color: var(--wsscd-color-warning-dark);
 	filter: none;
 }
 
 /* Ghost Danger */
-.scd-button--ghost-danger {
+.wsscd-button--ghost-danger {
 	background: transparent;
-	border-color: var(--scd-color-border);
-	color: var(--scd-color-text-muted);
+	border-color: var(--wsscd-color-border);
+	color: var(--wsscd-color-text-muted);
 }
 
-.scd-button--ghost-danger .scd-icon {
-	color: var(--scd-color-text-muted);
+.wsscd-button--ghost-danger .wsscd-icon {
+	color: var(--wsscd-color-text-muted);
 	opacity: 0.6;
-	transition: color var(--scd-transition-fast) ease,
-				opacity var(--scd-transition-fast) ease;
+	transition: color var(--wsscd-transition-fast) ease,
+				opacity var(--wsscd-transition-fast) ease;
 }
 
-.scd-button--ghost-danger:hover,
-.scd-button--ghost-danger:active {
-	background: var(--scd-color-danger-alpha-15);
-	border-color: var(--scd-color-danger);
-	color: var(--scd-color-danger);
+.wsscd-button--ghost-danger:hover,
+.wsscd-button--ghost-danger:active {
+	background: var(--wsscd-color-danger-alpha-15);
+	border-color: var(--wsscd-color-danger);
+	color: var(--wsscd-color-danger);
 	filter: none;
 }
 
-.scd-button--ghost-danger:hover .scd-icon {
-	color: var(--scd-color-danger);
+.wsscd-button--ghost-danger:hover .wsscd-icon {
+	color: var(--wsscd-color-danger);
 	opacity: 1;
 }
 
@@ -347,90 +366,120 @@
    Link Buttons
    ========================================================================== */
 
-.scd-button--link,
-.scd-btn-link {
+.wsscd-button--link,
+.wsscd-btn-link {
 	background: transparent;
 	border: none;
-	color: var(--scd-color-primary);
+	color: var(--wsscd-color-primary);
 	text-decoration: none;
-	padding: var(--scd-spacing-xs) var(--scd-spacing-sm);
+	padding: var(--wsscd-spacing-xs) var(--wsscd-spacing-sm);
 	height: auto;
-	font-weight: var(--scd-font-weight-medium);
+	font-weight: var(--wsscd-font-weight-medium);
 	box-shadow: none;
 }
 
-.scd-button--link:hover,
-.scd-button--link:active,
-.scd-btn-link:hover,
-.scd-btn-link:active {
-	color: var(--scd-color-primary-dark);
+.wsscd-button--link:hover,
+.wsscd-button--link:active,
+.wsscd-btn-link:hover,
+.wsscd-btn-link:active {
+	color: var(--wsscd-color-primary-dark);
 	text-decoration: underline;
 	filter: none;
 }
 
-.scd-button--link:focus-visible,
-.scd-btn-link:focus-visible,
-.scd-button--link:focus,
-.scd-btn-link:focus {
-	outline: 2px solid var(--scd-color-primary-alpha-30);
+.wsscd-button--link:focus-visible,
+.wsscd-btn-link:focus-visible,
+.wsscd-button--link:focus,
+.wsscd-btn-link:focus {
+	outline: 2px solid var(--wsscd-color-primary-alpha-30);
 	outline-offset: 1px;
-	border-radius: var(--scd-radius-sm);
+	border-radius: var(--wsscd-radius-sm);
 }
 
 /* Link Danger */
-.scd-button--link-danger {
-	color: var(--scd-color-danger);
+.wsscd-button--link-danger {
+	color: var(--wsscd-color-danger);
 }
 
-.scd-button--link-danger:hover,
-.scd-button--link-danger:active {
-	color: var(--scd-color-danger-dark);
+.wsscd-button--link-danger:hover,
+.wsscd-button--link-danger:active {
+	color: var(--wsscd-color-danger-dark);
 }
 
 /* ==========================================================================
    Button States
    ========================================================================== */
 
-/* Disabled state */
-.scd-button:disabled,
-.scd-button--disabled,
-.scd-btn:disabled,
-.scd-btn-disabled {
-	opacity: 0.5;
+/* Disabled state - explicit styling for better accessibility */
+.wsscd-button:disabled,
+.wsscd-button--disabled,
+.wsscd-btn:disabled,
+.wsscd-btn-disabled {
+	background-color: var(--wsscd-color-bg-disabled);
+	border-color: var(--wsscd-color-border-disabled);
+	color: var(--wsscd-color-text-disabled);
+	box-shadow: none;
 	cursor: not-allowed;
 	pointer-events: none;
 }
 
+/* Disabled primary button - ensure contrast */
+.wsscd-button--primary:disabled,
+.wsscd-button--primary.wsscd-button--disabled,
+.wsscd-btn-primary:disabled {
+	background-color: var(--wsscd-color-bg-disabled);
+	border-color: var(--wsscd-color-border-disabled);
+	color: var(--wsscd-color-text-disabled);
+}
+
+/* Disabled danger button */
+.wsscd-button--danger:disabled,
+.wsscd-button--danger.wsscd-button--disabled {
+	background-color: var(--wsscd-color-bg-disabled);
+	border-color: var(--wsscd-color-border-disabled);
+	color: var(--wsscd-color-text-disabled);
+}
+
+/* Disabled outline/secondary button */
+.wsscd-button--secondary:disabled,
+.wsscd-button--secondary.wsscd-button--disabled,
+.wsscd-button--outline:disabled,
+.wsscd-button--outline.wsscd-button--disabled {
+	background-color: transparent;
+	border-color: var(--wsscd-color-border-disabled);
+	color: var(--wsscd-color-text-disabled);
+}
+
 /* Loading state */
-.scd-button--loading,
-.scd-btn-loading {
+.wsscd-button--loading,
+.wsscd-btn-loading {
 	color: transparent !important;
 	position: relative;
 	pointer-events: none;
 	cursor: wait;
 }
 
-.scd-button--loading::after,
-.scd-btn-loading::after {
+.wsscd-button--loading::after,
+.wsscd-btn-loading::after {
 	content: '';
 	position: absolute;
 	top: 50%;
 	left: 50%;
-	width: var(--scd-icon-small);
-	height: var(--scd-icon-small);
-	margin: calc(var(--scd-icon-small) / -2) 0 0 calc(var(--scd-icon-small) / -2);
-	border: 2px solid var(--scd-color-white);
-	border-radius: var(--scd-radius-full);
+	width: var(--wsscd-icon-small);
+	height: var(--wsscd-icon-small);
+	margin: calc(var(--wsscd-icon-small) / -2) 0 0 calc(var(--wsscd-icon-small) / -2);
+	border: 2px solid var(--wsscd-color-white);
+	border-radius: var(--wsscd-radius-full);
 	border-top-color: transparent;
-	animation: scd-spin 0.8s linear infinite;
+	animation: wsscd-spin 0.8s linear infinite;
 }
 
 /* Loading spinner color for secondary/ghost buttons */
-.scd-button--secondary.scd-button--loading::after,
-.scd-btn-secondary.scd-btn-loading::after,
-.scd-button--ghost.scd-button--loading::after,
-.scd-btn-ghost.scd-btn-loading::after {
-	border-color: var(--scd-color-primary);
+.wsscd-button--secondary.wsscd-button--loading::after,
+.wsscd-btn-secondary.wsscd-btn-loading::after,
+.wsscd-button--ghost.wsscd-button--loading::after,
+.wsscd-btn-ghost.wsscd-btn-loading::after {
+	border-color: var(--wsscd-color-primary);
 	border-top-color: transparent;
 }
 
@@ -438,35 +487,35 @@
    Button Groups
    ========================================================================== */
 
-.scd-button-group {
+.wsscd-button-group {
 	display: inline-flex;
-	gap: var(--scd-spacing-sm);
+	gap: var(--wsscd-spacing-sm);
 }
 
-.scd-button-group--attached {
+.wsscd-button-group--attached {
 	gap: 0;
 }
 
-.scd-button-group--attached .scd-button:not(:first-child) {
+.wsscd-button-group--attached .wsscd-button:not(:first-child) {
 	margin-left: -1px;
 	border-radius: 0;
 }
 
-.scd-button-group--attached .scd-button:first-child {
-	border-radius: var(--scd-radius-lg) 0 0 var(--scd-radius-lg);
+.wsscd-button-group--attached .wsscd-button:first-child {
+	border-radius: var(--wsscd-radius-lg) 0 0 var(--wsscd-radius-lg);
 }
 
-.scd-button-group--attached .scd-button:last-child {
-	border-radius: 0 var(--scd-radius-lg) var(--scd-radius-lg) 0;
+.wsscd-button-group--attached .wsscd-button:last-child {
+	border-radius: 0 var(--wsscd-radius-lg) var(--wsscd-radius-lg) 0;
 }
 
 /* Hover z-index for attached groups */
-.scd-button-group--attached .scd-button:hover {
+.wsscd-button-group--attached .wsscd-button:hover {
 	z-index: 1;
 }
 
-.scd-button-group--attached .scd-button:focus,
-.scd-button-group--attached .scd-button:focus-visible {
+.wsscd-button-group--attached .wsscd-button:focus,
+.wsscd-button-group--attached .wsscd-button:focus-visible {
 	z-index: 2;
 }
 
@@ -474,64 +523,62 @@
    Icon Support
    ========================================================================== */
 
-.scd-button .scd-icon,
-.scd-btn .scd-icon {
-	flex-shrink: 0;
-	width: var(--scd-icon-small);
-	height: var(--scd-icon-small);
-	vertical-align: middle;
+.wsscd-button .wsscd-icon,
+.wsscd-btn .wsscd-icon {
+	width: var(--wsscd-icon-small);
+	height: var(--wsscd-icon-small);
 }
 
-.scd-button--small .scd-icon,
-.scd-btn-sm .scd-icon {
-	width: var(--scd-icon-xs);
-	height: var(--scd-icon-xs);
+.wsscd-button--small .wsscd-icon,
+.wsscd-btn-sm .wsscd-icon {
+	width: var(--wsscd-icon-xs);
+	height: var(--wsscd-icon-xs);
 }
 
-.scd-button--large .scd-icon,
-.scd-btn-lg .scd-icon {
-	width: var(--scd-icon-medium);
-	height: var(--scd-icon-medium);
+.wsscd-button--large .wsscd-icon,
+.wsscd-btn-lg .wsscd-icon {
+	width: var(--wsscd-icon-medium);
+	height: var(--wsscd-icon-medium);
 }
 
 /* Icon-only buttons */
-.scd-button--icon-only,
-.scd-btn-icon {
-	width: var(--scd-button-icon-size);
-	height: var(--scd-button-icon-size);
-	min-width: var(--scd-button-icon-size);
+.wsscd-button--icon-only,
+.wsscd-btn-icon {
+	width: var(--wsscd-button-icon-size);
+	height: var(--wsscd-button-icon-size);
+	min-width: var(--wsscd-button-icon-size);
 	padding: 0;
 	gap: 0;
 }
 
-.scd-button--icon-only.scd-button--small,
-.scd-btn-icon.scd-btn-sm {
-	width: var(--scd-button-height);
-	height: var(--scd-button-height);
-	min-width: var(--scd-button-height);
+.wsscd-button--icon-only.wsscd-button--small,
+.wsscd-btn-icon.wsscd-btn-sm {
+	width: var(--wsscd-button-height);
+	height: var(--wsscd-button-height);
+	min-width: var(--wsscd-button-height);
 }
 
-.scd-button--icon-only.scd-button--large,
-.scd-btn-icon.scd-btn-lg {
-	width: var(--scd-button-icon-size-large);
-	height: var(--scd-button-icon-size-large);
-	min-width: var(--scd-button-icon-size-large);
+.wsscd-button--icon-only.wsscd-button--large,
+.wsscd-btn-icon.wsscd-btn-lg {
+	width: var(--wsscd-button-icon-size-large);
+	height: var(--wsscd-button-icon-size-large);
+	min-width: var(--wsscd-button-icon-size-large);
 }
 
 /* ==========================================================================
    Navigation Buttons (Wizard)
    ========================================================================== */
 
-.wp-core-ui .scd-nav-btn--previous,
-.wp-core-ui .scd-nav-btn--next,
-.wp-core-ui .scd-nav-btn--complete {
-	font-size: var(--scd-font-size-medium);
-	font-weight: var(--scd-font-weight-medium);
-	padding: var(--scd-spacing-base) var(--scd-spacing-xl);
+.wp-core-ui .wsscd-nav-btn--previous,
+.wp-core-ui .wsscd-nav-btn--next,
+.wp-core-ui .wsscd-nav-btn--complete {
+	font-size: var(--wsscd-font-size-medium);
+	font-weight: var(--wsscd-font-weight-medium);
+	padding: var(--wsscd-spacing-base) var(--wsscd-spacing-xl);
 }
 
-.wp-core-ui .scd-nav-btn--complete {
-	padding: var(--scd-spacing-base) var(--scd-spacing-xxl);
+.wp-core-ui .wsscd-nav-btn--complete {
+	padding: var(--wsscd-spacing-base) var(--wsscd-spacing-xxl);
 }
 
 /* ==========================================================================
@@ -539,18 +586,18 @@
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-	.scd-button,
-	.scd-btn {
+	.wsscd-button,
+	.wsscd-btn {
 		transition: none;
 	}
 
-	.scd-button:active,
-	.scd-btn:active {
+	.wsscd-button:active,
+	.wsscd-btn:active {
 		transform: none;
 	}
 
-	.scd-button--loading::after,
-	.scd-btn-loading::after {
+	.wsscd-button--loading::after,
+	.wsscd-btn-loading::after {
 		animation: none;
 	}
 }

@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Tools_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Container instance.
@@ -40,7 +40,7 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @param object     $container Container instance.
-	 * @param SCD_Logger $logger    Logger instance.
+	 * @param WSSCD_Logger $logger    Logger instance.
 	 */
 	public function __construct( $container, $logger ) {
 		parent::__construct( $logger );
@@ -65,7 +65,7 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 	protected function get_action_name() {
 		// Return the current action being handled for proper security verification.
 		// The router already verified security, so this is used for logging.
-		return $this->current_action ? $this->current_action : 'scd_ajax';
+		return $this->current_action ? $this->current_action : 'wsscd_ajax';
 	}
 
 	/**
@@ -135,12 +135,12 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 
 		// All plugin tables to optimize
 		$tables = array(
-			$wpdb->prefix . 'scd_campaigns',
-			$wpdb->prefix . 'scd_campaign_conditions',
-			$wpdb->prefix . 'scd_active_discounts',
-			$wpdb->prefix . 'scd_analytics',
-			$wpdb->prefix . 'scd_customer_usage',
-			$wpdb->prefix . 'scd_campaign_recurring',
+			$wpdb->prefix . 'wsscd_campaigns',
+			$wpdb->prefix . 'wsscd_campaign_conditions',
+			$wpdb->prefix . 'wsscd_active_discounts',
+			$wpdb->prefix . 'wsscd_analytics',
+			$wpdb->prefix . 'wsscd_customer_usage',
+			$wpdb->prefix . 'wsscd_campaign_recurring',
 		);
 
 		$total_size_before = 0;
@@ -149,6 +149,7 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 
 		foreach ( $tables as $table ) {
 			// Check if table exists
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- SHOW TABLES has no WP abstraction; ephemeral check.
 			$table_exists = $wpdb->get_var(
 				$wpdb->prepare( 'SHOW TABLES LIKE %s', $table )
 			);
@@ -157,6 +158,7 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 				continue;
 			}
 
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- information_schema query has no WP abstraction.
 			$size_before = $wpdb->get_var(
 				$wpdb->prepare(
 					'SELECT data_length + index_length FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = %s',
@@ -164,20 +166,21 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 				)
 			);
 
-			// Optimize table - Using direct table name (already prefixed and validated)
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$wpdb->query( "OPTIMIZE TABLE {$table}" );
+			// Optimize table - table name prepared with %i identifier placeholder.
+			$optimize_sql = $wpdb->prepare( 'OPTIMIZE TABLE %i', $table );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- OPTIMIZE TABLE on plugin's custom table; query prepared above.
+			$wpdb->query( $optimize_sql );
 
-			$size_after = $wpdb->get_var(
-				$wpdb->prepare(
-					'SELECT data_length + index_length FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = %s',
-					$table
-				)
+			$size_after_sql = $wpdb->prepare(
+				'SELECT data_length + index_length FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_name = %s',
+				$table
 			);
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- information_schema query; query prepared above.
+			$size_after = $wpdb->get_var( $size_after_sql );
 
 			$total_size_before += (int) $size_before;
 			$total_size_after  += (int) $size_after;
-			$optimized_tables[] = str_replace( $wpdb->prefix . 'scd_', '', $table );
+			$optimized_tables[] = str_replace( $wpdb->prefix . 'wsscd_', '', $table );
 		}
 
 		// Log with performance metrics
@@ -212,15 +215,19 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 	private function handle_cleanup_expired( $start_time ) {
 		global $wpdb;
 
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Required for cleanup operation.
 		$deleted = $wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM {$campaigns_table} WHERE status = %s AND ends_at IS NOT NULL AND ends_at < %s",
+				'DELETE FROM %i WHERE status = %s AND ends_at IS NOT NULL AND ends_at < %s',
+				$campaigns_table,
 				'expired',
 				current_time( 'mysql' )
 			)
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 
 		if ( false === $deleted ) {
 			$this->logger->flow(
@@ -301,11 +308,12 @@ class SCD_Tools_Handler extends SCD_Abstract_Ajax_Handler {
 			}
 
 			global $wpdb;
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Bulk transient cleanup; no WP abstraction for pattern-based delete.
 			$deleted = $wpdb->query(
 				$wpdb->prepare(
 					"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
-					'_transient_scd_%',
-					'_transient_timeout_scd_%'
+					'_transient_wsscd_%',
+					'_transient_timeout_wsscd_%'
 				)
 			);
 			if ( false !== $deleted ) {

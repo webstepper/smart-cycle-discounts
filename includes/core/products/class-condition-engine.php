@@ -28,25 +28,25 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/products
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Condition_Engine {
+class WSSCD_Condition_Engine {
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Cache manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Cache_Manager|null    $cache    Cache manager.
+	 * @var      WSSCD_Cache_Manager|null    $cache    Cache manager.
 	 */
-	private ?SCD_Cache_Manager $cache = null;
+	private ?WSSCD_Cache_Manager $cache = null;
 
 	/**
 	 * Supported condition properties.
@@ -55,6 +55,7 @@ class SCD_Condition_Engine {
 	 * @access   private
 	 * @var      array    $supported_properties    Supported properties.
 	 */
+	// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Configuration array defining WooCommerce meta keys; not actual queries.
 	private array $supported_properties = array(
 		// Price & Inventory
 		'price'            => array(
@@ -191,6 +192,7 @@ class SCD_Condition_Engine {
 			'field' => 'post_modified',
 		),
 	);
+	// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 
 	/**
 	 * Supported comparison operators.
@@ -290,10 +292,10 @@ class SCD_Condition_Engine {
 	 * Initialize the condition engine.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger        $logger    Logger instance.
-	 * @param    SCD_Cache_Manager $cache     Cache manager.
+	 * @param    WSSCD_Logger        $logger    Logger instance.
+	 * @param    WSSCD_Cache_Manager $cache     Cache manager.
 	 */
-	public function __construct( SCD_Logger $logger, ?SCD_Cache_Manager $cache = null ) {
+	public function __construct( WSSCD_Logger $logger, ?WSSCD_Cache_Manager $cache = null ) {
 		$this->logger = $logger;
 		$this->cache  = $cache;
 	}
@@ -382,9 +384,6 @@ class SCD_Condition_Engine {
 			);
 
 		} catch ( Exception $e ) {
-			error_log( '[SCD] CONDITION_ENGINE - ERROR! Returning all products. Exception: ' . $e->getMessage() );
-			error_log( '[SCD] CONDITION_ENGINE - Exception trace: ' . $e->getTraceAsString() );
-
 			$this->logger->error(
 				'Condition application failed',
 				array(
@@ -461,7 +460,7 @@ class SCD_Condition_Engine {
 	 * @param    array $property_config   Property configuration.
 	 * @return   mixed                       Property value.
 	 */
-	private function get_product_property_value( int $product_id, array $property_config ): mixed {
+	private function get_product_property_value( int $product_id, array $property_config ) {
 		// Handle callback-based properties
 		if ( isset( $property_config['callback'] ) ) {
 			$product = wc_get_product( $product_id );
@@ -526,7 +525,7 @@ class SCD_Condition_Engine {
 	 * @param    string $type    Property type.
 	 * @return   mixed              Default value.
 	 */
-	private function get_default_value( string $type ): mixed {
+	private function get_default_value( string $type ) {
 		switch ( $type ) {
 			case 'numeric':
 			case 'boolean':
@@ -548,7 +547,7 @@ class SCD_Condition_Engine {
 	 * @param    string $type     Property type.
 	 * @return   mixed               Normalized value.
 	 */
-	private function normalize_value( mixed $value, string $type ): mixed {
+	private function normalize_value( $value, string $type ) {
 		switch ( $type ) {
 			case 'numeric':
 				return floatval( $value ?: 0 );
@@ -574,7 +573,7 @@ class SCD_Condition_Engine {
 	 * @param    string $type              Value type.
 	 * @return   bool                        True if condition matches.
 	 */
-	private function evaluate_condition( mixed $product_value, array $operator_config, string $operator_name, string $value, string $value2, string $type ): bool {
+	private function evaluate_condition( $product_value, array $operator_config, string $operator_name, string $value, string $value2, string $type ): bool {
 		$operator = $operator_config['symbol'];
 
 		switch ( $type ) {
@@ -714,9 +713,9 @@ class SCD_Condition_Engine {
 		$value2 = strtotime( $value2 ) ?: 0;
 
 		// Compare only dates, not times
-		$product_date = strtotime( date( 'Y-m-d', $product_value ) );
-		$value1_date  = strtotime( date( 'Y-m-d', $value1 ) );
-		$value2_date  = strtotime( date( 'Y-m-d', $value2 ) );
+		$product_date = strtotime( gmdate( 'Y-m-d', $product_value ) );
+		$value1_date  = strtotime( gmdate( 'Y-m-d', $value1 ) );
+		$value2_date  = strtotime( gmdate( 'Y-m-d', $value2 ) );
 
 		switch ( $operator ) {
 			case '=':
@@ -886,7 +885,7 @@ class SCD_Condition_Engine {
 	 * @return   array    Supported properties.
 	 */
 	public function get_supported_properties(): array {
-		return apply_filters( 'scd_condition_engine_properties', $this->supported_properties );
+		return apply_filters( 'wsscd_condition_engine_properties', $this->supported_properties );
 	}
 
 	/**
@@ -908,7 +907,7 @@ class SCD_Condition_Engine {
 			);
 		}
 
-		return apply_filters( 'scd_condition_engine_operators', $operators, $property_type );
+		return apply_filters( 'wsscd_condition_engine_operators', $operators, $property_type );
 	}
 
 	/**

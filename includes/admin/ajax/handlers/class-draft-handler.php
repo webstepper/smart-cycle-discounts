@@ -16,8 +16,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-if ( ! class_exists( 'SCD_Ajax_Response' ) ) {
-	require_once dirname( __DIR__ ) . '/class-scd-ajax-response.php';
+if ( ! class_exists( 'WSSCD_Ajax_Response' ) ) {
+	require_once dirname( __DIR__ ) . '/class-wsscd-ajax-response.php';
 }
 
 /**
@@ -30,14 +30,14 @@ if ( ! class_exists( 'SCD_Ajax_Response' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Draft_Handler {
+class WSSCD_Draft_Handler {
 
 	/**
 	 * State service instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Wizard_State_Service|null    $state_service    State service.
+	 * @var      WSSCD_Wizard_State_Service|null    $state_service    State service.
 	 */
 	private $state_service;
 
@@ -46,7 +46,7 @@ class SCD_Draft_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Manager|null    $campaign_manager    Campaign manager.
+	 * @var      WSSCD_Campaign_Manager|null    $campaign_manager    Campaign manager.
 	 */
 	private $campaign_manager;
 
@@ -55,7 +55,7 @@ class SCD_Draft_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Compiler_Service|null    $compiler    Campaign compiler.
+	 * @var      WSSCD_Campaign_Compiler_Service|null    $compiler    Campaign compiler.
 	 */
 	private $compiler;
 
@@ -64,7 +64,7 @@ class SCD_Draft_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger.
+	 * @var      WSSCD_Logger    $logger    Logger.
 	 */
 	private $logger;
 
@@ -73,7 +73,7 @@ class SCD_Draft_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Audit_Logger|null    $audit_logger    Audit logger.
+	 * @var      WSSCD_Audit_Logger|null    $audit_logger    Audit logger.
 	 */
 	private $audit_logger;
 
@@ -82,7 +82,7 @@ class SCD_Draft_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Feature_Gate|null    $feature_gate    Feature gate.
+	 * @var      WSSCD_Feature_Gate|null    $feature_gate    Feature gate.
 	 */
 	private $feature_gate;
 
@@ -99,12 +99,12 @@ class SCD_Draft_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Wizard_State_Service|null      $state_service       State service.
-	 * @param    SCD_Campaign_Manager|null          $campaign_manager    Campaign manager.
-	 * @param    SCD_Campaign_Compiler_Service|null $compiler           Campaign compiler.
-	 * @param    SCD_Logger                         $logger             Logger.
-	 * @param    SCD_Audit_Logger|null              $audit_logger       Audit logger.
-	 * @param    SCD_Feature_Gate|null              $feature_gate       Feature gate.
+	 * @param    WSSCD_Wizard_State_Service|null      $state_service       State service.
+	 * @param    WSSCD_Campaign_Manager|null          $campaign_manager    Campaign manager.
+	 * @param    WSSCD_Campaign_Compiler_Service|null $compiler           Campaign compiler.
+	 * @param    WSSCD_Logger                         $logger             Logger.
+	 * @param    WSSCD_Audit_Logger|null              $audit_logger       Audit logger.
+	 * @param    WSSCD_Feature_Gate|null              $feature_gate       Feature gate.
 	 */
 	public function __construct( $state_service, $campaign_manager, $compiler, $logger, $audit_logger, $feature_gate = null ) {
 		$this->state_service    = $state_service;
@@ -127,25 +127,32 @@ class SCD_Draft_Handler {
 			// NOTE: Draft operations are FREE (core freemium feature).
 			// PRO features are protected at campaign creation level (via feature gate).
 
-			// Use request data from router if available, otherwise fallback to $_POST.
-			// Router converts camelCase to snake_case, so we need to use that data.
-			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified by AJAX router before handler is called
-			$data = ! empty( $request ) ? $request : $_POST;
+			// Request data is always provided by the AJAX router (already sanitized).
+			// Router converts camelCase to snake_case and sanitizes all values.
+			if ( empty( $request ) ) {
+				WSSCD_Ajax_Response::error(
+					__( 'Invalid request data', 'smart-cycle-discounts' ),
+					'missing_request_data'
+				);
+				return;
+			}
 
-			$validation_result = SCD_Validation::validate( $data, 'ajax_action' );
+			$data = $request;
+
+			$validation_result = WSSCD_Validation::validate( $data, 'ajax_action' );
 
 			if ( is_wp_error( $validation_result ) ) {
-				SCD_Ajax_Response::error(
+				WSSCD_Ajax_Response::error(
 					$validation_result->get_error_message(),
 					'validation_failed',
-					array( 'errors' => SCD_Validation::extract_error_codes( $validation_result ) )
+					array( 'errors' => WSSCD_Validation::extract_error_codes( $validation_result ) )
 				);
 				return;
 			}
 
 			$this->validated_data = $validation_result;
 
-			if ( isset( $this->validated_data['scd_action'] ) && 'clear_wizard_session' === $this->validated_data['scd_action'] ) {
+			if ( isset( $this->validated_data['wsscd_action'] ) && 'clear_wizard_session' === $this->validated_data['wsscd_action'] ) {
 				$this->handle_clear_session();
 				return;
 			}
@@ -188,7 +195,7 @@ class SCD_Draft_Handler {
 				)
 			);
 
-			SCD_Ajax_Response::error( __( 'An error occurred. Please try again.', 'smart-cycle-discounts' ) );
+			WSSCD_Ajax_Response::error( __( 'An error occurred. Please try again.', 'smart-cycle-discounts' ) );
 		}
 	}
 
@@ -201,7 +208,7 @@ class SCD_Draft_Handler {
 	private function handle_complete_wizard() {
 		// Verify services are available.
 		if ( ! $this->state_service ) {
-			SCD_Ajax_Response::error( __( 'Service unavailable. Please try again.', 'smart-cycle-discounts' ) );
+			WSSCD_Ajax_Response::error( __( 'Service unavailable. Please try again.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
@@ -221,7 +228,7 @@ class SCD_Draft_Handler {
 		}
 
 		if ( ! $this->campaign_manager ) {
-			SCD_Ajax_Response::error( __( 'Campaign manager service unavailable. Please try again.', 'smart-cycle-discounts' ) );
+			WSSCD_Ajax_Response::error( __( 'Campaign manager service unavailable. Please try again.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
@@ -231,27 +238,19 @@ class SCD_Draft_Handler {
 
 		// CRITICAL: Ensure compiler is initialized before creating Campaign_Creator_Service.
 		// Campaign_Creator_Service uses strict types and requires non-null compiler.
-		if ( ! $this->compiler ) {
-			if ( ! class_exists( 'SCD_Campaign_Compiler_Service' ) ) {
-				require_once SCD_INCLUDES_DIR . 'core/campaigns/class-campaign-compiler-service.php';
-			}
-
-			try {
-				$repository     = $this->get_campaign_repository();
-				$this->compiler = new SCD_Campaign_Compiler_Service( $repository );
-			} catch ( Exception $e ) {
-				SCD_Ajax_Response::error( __( 'Failed to initialize campaign compiler. Please try again.', 'smart-cycle-discounts' ) );
-				return;
-			}
+		// Ensure compiler is initialized using centralized method.
+		if ( ! $this->ensure_compiler_initialized() ) {
+			WSSCD_Ajax_Response::error( __( 'Failed to initialize campaign compiler. Please try again.', 'smart-cycle-discounts' ) );
+			return;
 		}
 
 		// Use the centralized campaign creator service.
-		if ( ! class_exists( 'SCD_Campaign_Creator_Service' ) ) {
-			require_once SCD_INCLUDES_DIR . 'services/class-campaign-creator-service.php';
+		if ( ! class_exists( 'WSSCD_Campaign_Creator_Service' ) ) {
+			require_once WSSCD_INCLUDES_DIR . 'services/class-campaign-creator-service.php';
 		}
 
 		try {
-			$creator = new SCD_Campaign_Creator_Service(
+			$creator = new WSSCD_Campaign_Creator_Service(
 				$this->campaign_manager,
 				$this->compiler,
 				$this->logger,
@@ -262,9 +261,9 @@ class SCD_Draft_Handler {
 			$result = $creator->create_from_wizard( $this->state_service, $save_as_draft );
 
 			if ( $result['success'] ) {
-				SCD_Ajax_Response::success( $result );
+				WSSCD_Ajax_Response::success( $result );
 			} else {
-				SCD_Ajax_Response::error( $result['error'], isset( $result['code'] ) ? $result['code'] : 500 );
+				WSSCD_Ajax_Response::error( $result['error'], isset( $result['code'] ) ? $result['code'] : 500 );
 			}
 		} catch ( Exception $e ) {
 			$this->logger->error(
@@ -275,7 +274,7 @@ class SCD_Draft_Handler {
 					'user_id' => get_current_user_id(),
 				)
 			);
-			SCD_Ajax_Response::error( __( 'Campaign creation failed. Please check the error log.', 'smart-cycle-discounts' ) );
+			WSSCD_Ajax_Response::error( __( 'Campaign creation failed. Please check the error log.', 'smart-cycle-discounts' ) );
 		}
 	}
 
@@ -287,37 +286,29 @@ class SCD_Draft_Handler {
 	 */
 	private function handle_save_draft() {
 		if ( ! $this->state_service ) {
-			SCD_Ajax_Response::error( __( 'Service unavailable. Please try again.', 'smart-cycle-discounts' ) );
+			WSSCD_Ajax_Response::error( __( 'Service unavailable. Please try again.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
 		if ( ! $this->campaign_manager ) {
-			SCD_Ajax_Response::error( __( 'Campaign manager service unavailable. Please try again.', 'smart-cycle-discounts' ) );
+			WSSCD_Ajax_Response::error( __( 'Campaign manager service unavailable. Please try again.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
 		// CRITICAL: Ensure compiler is initialized before creating Campaign_Creator_Service.
 		// Campaign_Creator_Service uses strict types and requires non-null compiler.
-		if ( ! $this->compiler ) {
-			if ( ! class_exists( 'SCD_Campaign_Compiler_Service' ) ) {
-				require_once SCD_INCLUDES_DIR . 'core/campaigns/class-campaign-compiler-service.php';
-			}
-
-			try {
-				$repository     = $this->get_campaign_repository();
-				$this->compiler = new SCD_Campaign_Compiler_Service( $repository );
-			} catch ( Exception $e ) {
-				SCD_Ajax_Response::error( __( 'Failed to initialize campaign compiler. Please try again.', 'smart-cycle-discounts' ) );
-				return;
-			}
+		// Ensure compiler is initialized using centralized method.
+		if ( ! $this->ensure_compiler_initialized() ) {
+			WSSCD_Ajax_Response::error( __( 'Failed to initialize campaign compiler. Please try again.', 'smart-cycle-discounts' ) );
+			return;
 		}
 
 		// Use the centralized campaign creator service.
-		if ( ! class_exists( 'SCD_Campaign_Creator_Service' ) ) {
-			require_once SCD_INCLUDES_DIR . 'services/class-campaign-creator-service.php';
+		if ( ! class_exists( 'WSSCD_Campaign_Creator_Service' ) ) {
+			require_once WSSCD_INCLUDES_DIR . 'services/class-campaign-creator-service.php';
 		}
 
-		$creator = new SCD_Campaign_Creator_Service(
+		$creator = new WSSCD_Campaign_Creator_Service(
 			$this->campaign_manager,
 			$this->compiler,
 			$this->logger,
@@ -328,9 +319,9 @@ class SCD_Draft_Handler {
 		$result = $creator->create_from_wizard( $this->state_service, true );
 
 		if ( $result['success'] ) {
-			SCD_Ajax_Response::success( $result );
+			WSSCD_Ajax_Response::success( $result );
 		} else {
-			SCD_Ajax_Response::error( $result['error'], isset( $result['code'] ) ? $result['code'] : 500 );
+			WSSCD_Ajax_Response::error( $result['error'], isset( $result['code'] ) ? $result['code'] : 500 );
 		}
 	}
 
@@ -347,7 +338,7 @@ class SCD_Draft_Handler {
 					$this->validated_data['draft_id'] : '';
 
 		if ( empty( $draft_id ) ) {
-			SCD_Ajax_Response::error( __( 'No draft specified.', 'smart-cycle-discounts' ) );
+			WSSCD_Ajax_Response::error( __( 'No draft specified.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
@@ -368,7 +359,7 @@ class SCD_Draft_Handler {
 	 */
 	private function handle_clear_session() {
 		if ( ! $this->state_service ) {
-			SCD_Ajax_Response::error( __( 'Service unavailable.', 'smart-cycle-discounts' ) );
+			WSSCD_Ajax_Response::error( __( 'Service unavailable.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
@@ -383,7 +374,7 @@ class SCD_Draft_Handler {
 				)
 			);
 
-			SCD_Ajax_Response::success(
+			WSSCD_Ajax_Response::success(
 				array(
 					'message' => __( 'Session cleared successfully.', 'smart-cycle-discounts' ),
 					'cleared' => true,
@@ -399,7 +390,7 @@ class SCD_Draft_Handler {
 				)
 			);
 
-			SCD_Ajax_Response::error( __( 'Failed to clear session.', 'smart-cycle-discounts' ) );
+			WSSCD_Ajax_Response::error( __( 'Failed to clear session.', 'smart-cycle-discounts' ) );
 		}
 	}
 
@@ -411,7 +402,7 @@ class SCD_Draft_Handler {
 	 */
 	private function handle_list_drafts() {
 		if ( ! $this->campaign_manager ) {
-			SCD_Ajax_Response::error( __( 'Service unavailable.', 'smart-cycle-discounts' ) );
+			WSSCD_Ajax_Response::error( __( 'Service unavailable.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
@@ -447,7 +438,7 @@ class SCD_Draft_Handler {
 			'current_page'  => $args['page'],
 		);
 
-		SCD_Ajax_Response::success( $response );
+		WSSCD_Ajax_Response::success( $response );
 	}
 
 	/**
@@ -460,7 +451,7 @@ class SCD_Draft_Handler {
 		$draft_id = isset( $this->validated_data['draft_id'] ) ? $this->validated_data['draft_id'] : '';
 
 		if ( empty( $draft_id ) ) {
-			SCD_Ajax_Response::error( __( 'Invalid draft ID.', 'smart-cycle-discounts' ) );
+			WSSCD_Ajax_Response::error( __( 'Invalid draft ID.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
@@ -469,7 +460,7 @@ class SCD_Draft_Handler {
 			$data     = $this->state_service->get_all_data();
 			$progress = $this->state_service->get_progress();
 
-			SCD_Ajax_Response::success(
+			WSSCD_Ajax_Response::success(
 				array(
 					'draft_type' => 'session',
 					'data'       => $data,
@@ -484,11 +475,11 @@ class SCD_Draft_Handler {
 			$campaign = $this->campaign_manager->find( intval( $draft_id ) );
 
 			if ( ! $campaign || $campaign->get_status() !== 'draft' ) {
-				SCD_Ajax_Response::error( __( 'Draft not found.', 'smart-cycle-discounts' ) );
+				WSSCD_Ajax_Response::error( __( 'Draft not found.', 'smart-cycle-discounts' ) );
 				return;
 			}
 
-			SCD_Ajax_Response::success(
+			WSSCD_Ajax_Response::success(
 				array(
 					'draft_type' => 'campaign',
 					'data'       => $campaign->to_array(),
@@ -505,7 +496,7 @@ class SCD_Draft_Handler {
 	 */
 	private function delete_session_draft() {
 		if ( ! $this->state_service ) {
-			SCD_Ajax_Response::error( __( 'Session service unavailable.', 'smart-cycle-discounts' ) );
+			WSSCD_Ajax_Response::error( __( 'Session service unavailable.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
@@ -533,12 +524,14 @@ class SCD_Draft_Handler {
 			);
 		}
 
-		SCD_Ajax_Response::success(
+		WSSCD_Ajax_Response::success(
 			array(
-				'message' => sprintf(
-					__( 'Draft "%s" has been discarded.', 'smart-cycle-discounts' ),
-					esc_html( $campaign_name )
-				),
+				'message' =>
+					sprintf(
+						/* translators: %s: name of the discarded draft campaign */
+						__( 'Draft "%s" has been discarded.', 'smart-cycle-discounts' ),
+						esc_html( $campaign_name )
+					),
 			)
 		);
 	}
@@ -552,32 +545,32 @@ class SCD_Draft_Handler {
 	 */
 	private function delete_campaign_draft( $campaign_id ) {
 		if ( ! $this->campaign_manager ) {
-			SCD_Ajax_Response::error( __( 'Campaign service unavailable.', 'smart-cycle-discounts' ) );
+			WSSCD_Ajax_Response::error( __( 'Campaign service unavailable.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
 		if ( ! $campaign_id ) {
-			SCD_Ajax_Response::error( __( 'Invalid campaign ID.', 'smart-cycle-discounts' ) );
+			WSSCD_Ajax_Response::error( __( 'Invalid campaign ID.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
 		$campaign = $this->campaign_manager->find( $campaign_id );
 
 		if ( ! $campaign ) {
-			SCD_Ajax_Response::error( __( 'Draft campaign not found.', 'smart-cycle-discounts' ) );
+			WSSCD_Ajax_Response::error( __( 'Draft campaign not found.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
 		// Verify it is a draft.
 		if ( $campaign->get_status() !== 'draft' ) {
-			SCD_Ajax_Response::error( __( 'Only draft campaigns can be deleted this way.', 'smart-cycle-discounts' ) );
+			WSSCD_Ajax_Response::error( __( 'Only draft campaigns can be deleted this way.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
 		$campaign_name = $campaign->get_name();
 
 		if ( ! $this->campaign_manager->delete_campaign( $campaign_id ) ) {
-			SCD_Ajax_Response::error( __( 'Failed to delete draft campaign.', 'smart-cycle-discounts' ) );
+			WSSCD_Ajax_Response::error( __( 'Failed to delete draft campaign.', 'smart-cycle-discounts' ) );
 			return;
 		}
 
@@ -602,12 +595,14 @@ class SCD_Draft_Handler {
 			);
 		}
 
-		SCD_Ajax_Response::success(
+		WSSCD_Ajax_Response::success(
 			array(
-				'message' => sprintf(
-					__( 'Draft campaign "%s" has been deleted.', 'smart-cycle-discounts' ),
-					esc_html( $campaign_name )
-				),
+				'message' =>
+					sprintf(
+						/* translators: %s: name of the deleted draft campaign */
+						__( 'Draft campaign "%s" has been deleted.', 'smart-cycle-discounts' ),
+						esc_html( $campaign_name )
+					),
 			)
 		);
 	}
@@ -643,7 +638,7 @@ class SCD_Draft_Handler {
 				'is_complete'    => $this->check_draft_complete( $draft ),
 				'edit_url'       => add_query_arg(
 					array(
-						'page'        => 'scd-campaigns',
+						'page'        => 'wsscd-campaigns',
 						'action'      => 'edit',
 						'campaign_id' => $draft->get_id(),
 					),
@@ -659,7 +654,7 @@ class SCD_Draft_Handler {
 	 * Check if draft campaign is complete.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $draft    Draft campaign.
+	 * @param    WSSCD_Campaign $draft    Draft campaign.
 	 * @return   bool                      True if complete.
 	 */
 	private function check_draft_complete( $draft ) {
@@ -678,17 +673,49 @@ class SCD_Draft_Handler {
 		}
 
 		$selection_type = $draft->get_product_selection_type();
-		if ( 'specific' === $selection_type ) {
-			$has_products   = count( $draft->get_product_ids() ) > 0;
-			$has_categories = count( $draft->get_category_ids() ) > 0;
-			$has_tags       = count( $draft->get_tag_ids() ) > 0;
 
-			if ( ! $has_products && ! $has_categories && ! $has_tags ) {
+		// For specific_products, must have at least one product selected.
+		if ( WSSCD_Campaign::SELECTION_TYPE_SPECIFIC_PRODUCTS === $selection_type ) {
+			if ( count( $draft->get_product_ids() ) === 0 ) {
 				return false;
 			}
 		}
+		// Pool-based selections are always valid (categories are optional filter).
 
 		return true;
+	}
+
+	/**
+	 * Ensure campaign compiler is initialized.
+	 *
+	 * Lazy initialization of the compiler service to avoid loading it
+	 * when not needed. This method consolidates the duplicate initialization
+	 * logic that was previously in handle_complete_wizard() and handle_save_draft().
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   bool True if compiler is available, false on failure.
+	 */
+	private function ensure_compiler_initialized(): bool {
+		if ( $this->compiler ) {
+			return true;
+		}
+
+		if ( ! class_exists( 'WSSCD_Campaign_Compiler_Service' ) ) {
+			require_once WSSCD_INCLUDES_DIR . 'core/campaigns/class-campaign-compiler-service.php';
+		}
+
+		try {
+			$repository     = $this->get_campaign_repository();
+			$this->compiler = new WSSCD_Campaign_Compiler_Service( $repository );
+			return true;
+		} catch ( Exception $e ) {
+			$this->logger->error(
+				'Failed to initialize campaign compiler',
+				array( 'error' => $e->getMessage() )
+			);
+			return false;
+		}
 	}
 
 	/**
@@ -701,8 +728,8 @@ class SCD_Draft_Handler {
 	 */
 	private function get_campaign_repository(): object {
 		// Load Database Manager.
-		if ( ! class_exists( 'SCD_Database_Manager' ) ) {
-			$db_path = SCD_INCLUDES_DIR . 'database/class-database-manager.php';
+		if ( ! class_exists( 'WSSCD_Database_Manager' ) ) {
+			$db_path = WSSCD_INCLUDES_DIR . 'database/class-database-manager.php';
 			if ( file_exists( $db_path ) ) {
 				require_once $db_path;
 			} else {
@@ -711,8 +738,8 @@ class SCD_Draft_Handler {
 		}
 
 		// Load Cache Manager.
-		if ( ! class_exists( 'SCD_Cache_Manager' ) ) {
-			$cache_path = SCD_INCLUDES_DIR . 'cache/class-cache-manager.php';
+		if ( ! class_exists( 'WSSCD_Cache_Manager' ) ) {
+			$cache_path = WSSCD_INCLUDES_DIR . 'cache/class-cache-manager.php';
 			if ( file_exists( $cache_path ) ) {
 				require_once $cache_path;
 			} else {
@@ -721,8 +748,8 @@ class SCD_Draft_Handler {
 		}
 
 		// Load Campaign Repository.
-		if ( ! class_exists( 'SCD_Campaign_Repository' ) ) {
-			$repo_path = SCD_INCLUDES_DIR . 'database/repositories/class-campaign-repository.php';
+		if ( ! class_exists( 'WSSCD_Campaign_Repository' ) ) {
+			$repo_path = WSSCD_INCLUDES_DIR . 'database/repositories/class-campaign-repository.php';
 			if ( file_exists( $repo_path ) ) {
 				require_once $repo_path;
 			} else {
@@ -730,8 +757,8 @@ class SCD_Draft_Handler {
 			}
 		}
 
-		$db_manager    = new SCD_Database_Manager();
-		$cache_manager = new SCD_Cache_Manager();
-		return new SCD_Campaign_Repository( $db_manager, $cache_manager );
+		$db_manager    = new WSSCD_Database_Manager();
+		$cache_manager = new WSSCD_Cache_Manager();
+		return new WSSCD_Campaign_Repository( $db_manager, $cache_manager );
 	}
 }

@@ -21,34 +21,34 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since      1.0.0
  */
-class SCD_Activity_Tracker {
+class WSSCD_Activity_Tracker {
 
 	/**
 	 * Database manager instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Database_Manager
+	 * @var      WSSCD_Database_Manager
 	 */
-	private SCD_Database_Manager $database_manager;
+	private WSSCD_Database_Manager $database_manager;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Logger
+	 * @var      WSSCD_Logger
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Initialize the activity tracker.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager $database_manager    Database manager.
-	 * @param    SCD_Logger           $logger              Logger instance.
+	 * @param    WSSCD_Database_Manager $database_manager    Database manager.
+	 * @param    WSSCD_Logger           $logger              Logger instance.
 	 */
 	public function __construct(
-		SCD_Database_Manager $database_manager,
-		SCD_Logger $logger
+		WSSCD_Database_Manager $database_manager,
+		WSSCD_Logger $logger
 	) {
 		$this->database_manager = $database_manager;
 		$this->logger           = $logger;
@@ -108,27 +108,33 @@ class SCD_Activity_Tracker {
 	private function build_activity_query( array $args ): string {
 		global $wpdb;
 
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
 		$type_filter     = '';
 
 		if ( 'all' !== $args['type'] ) {
 			$type_filter = $wpdb->prepare( ' AND type = %s', $args['type'] );
 		}
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// $type_filter is empty or already prepared above with $wpdb->prepare().
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$query = $wpdb->prepare(
-			"SELECT
+			'SELECT
 				id as campaign_id,
 				name as campaign_name,
 				status,
 				created_at as timestamp,
-				'campaign_created' as activity_type
-			FROM {$campaigns_table}
-			WHERE 1=1 {$type_filter}
+				%s as activity_type
+			FROM %i
+			WHERE 1=1 ' . $type_filter . '
 			ORDER BY created_at DESC
-			LIMIT %d OFFSET %d",
+			LIMIT %d OFFSET %d',
+			'campaign_created',
+			$campaigns_table,
 			$args['limit'],
 			$args['offset']
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
 		return $query;
 	}
@@ -173,26 +179,31 @@ class SCD_Activity_Tracker {
 		switch ( $type ) {
 			case 'campaign_created':
 				return sprintf(
+					/* translators: %s: campaign name */
 					__( 'Campaign "%s" was created', 'smart-cycle-discounts' ),
 					$name
 				);
 			case 'campaign_updated':
 				return sprintf(
+					/* translators: %s: campaign name */
 					__( 'Campaign "%s" was updated', 'smart-cycle-discounts' ),
 					$name
 				);
 			case 'campaign_activated':
 				return sprintf(
+					/* translators: %s: campaign name */
 					__( 'Campaign "%s" was activated', 'smart-cycle-discounts' ),
 					$name
 				);
 			case 'campaign_deactivated':
 				return sprintf(
+					/* translators: %s: campaign name */
 					__( 'Campaign "%s" was deactivated', 'smart-cycle-discounts' ),
 					$name
 				);
 			default:
 				return sprintf(
+					/* translators: %s: campaign name */
 					__( 'Activity for campaign "%s"', 'smart-cycle-discounts' ),
 					$name
 				);

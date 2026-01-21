@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * SCD_Condition_Validator Class
+ * WSSCD_Condition_Validator Class
  *
  * Validates condition arrays for logical contradictions and impossibilities.
  * Mirrors client-side validation rules to prevent malicious bypass.
@@ -29,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/validation
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Condition_Validator {
+class WSSCD_Condition_Validator {
 
 	/**
 	 * Numeric property types

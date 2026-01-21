@@ -27,32 +27,32 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Menu_Manager {
+class WSSCD_Menu_Manager {
 
 	/**
 	 * Capability manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Admin_Capability_Manager    $capability_manager    Capability manager.
+	 * @var      WSSCD_Admin_Capability_Manager    $capability_manager    Capability manager.
 	 */
-	private SCD_Admin_Capability_Manager $capability_manager;
+	private WSSCD_Admin_Capability_Manager $capability_manager;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Admin instance for page rendering.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      object|null    $admin    Admin instance (SCD_Admin or SCD_Admin_Manager).
+	 * @var      object|null    $admin    Admin instance (WSSCD_Admin or WSSCD_Admin_Manager).
 	 */
 	private ?object $admin = null;
 
@@ -69,12 +69,12 @@ class SCD_Menu_Manager {
 	 * Initialize the menu manager.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Admin_Capability_Manager $capability_manager    Capability manager.
-	 * @param    SCD_Logger                   $logger                Logger instance.
+	 * @param    WSSCD_Admin_Capability_Manager $capability_manager    Capability manager.
+	 * @param    WSSCD_Logger                   $logger                Logger instance.
 	 */
 	public function __construct(
-		SCD_Admin_Capability_Manager $capability_manager,
-		SCD_Logger $logger
+		WSSCD_Admin_Capability_Manager $capability_manager,
+		WSSCD_Logger $logger
 	) {
 		$this->capability_manager = $capability_manager;
 		$this->logger             = $logger;
@@ -94,7 +94,7 @@ class SCD_Menu_Manager {
 	 * Set admin instance for page rendering.
 	 *
 	 * @since    1.0.0
-	 * @param    object $admin    Admin instance (SCD_Admin or SCD_Admin_Manager).
+	 * @param    object $admin    Admin instance (WSSCD_Admin or WSSCD_Admin_Manager).
 	 * @return   void
 	 */
 	public function set_admin( object $admin ): void {
@@ -152,7 +152,7 @@ class SCD_Menu_Manager {
 				'page_title'  => 'Campaigns',
 				'menu_title'  => 'Campaigns',
 				'capability'  => 'manage_campaigns',
-				'menu_slug'   => 'scd-campaigns',
+				'menu_slug'   => 'wsscd-campaigns',
 				'callback'    => array( $this, 'render_campaigns_page' ),
 				'type'        => 'submenu',
 			),
@@ -161,7 +161,7 @@ class SCD_Menu_Manager {
 				'page_title'  => 'Analytics',
 				'menu_title'  => $this->get_analytics_menu_title(),
 				'capability'  => 'view_analytics',
-				'menu_slug'   => 'scd-analytics',
+				'menu_slug'   => 'wsscd-analytics',
 				'callback'    => array( $this, 'render_analytics_page' ),
 				'type'        => 'submenu',
 				'pro_only'    => true,
@@ -171,7 +171,7 @@ class SCD_Menu_Manager {
 				'page_title'  => 'Email Notifications',
 				'menu_title'  => 'Notifications',
 				'capability'  => 'manage_settings',
-				'menu_slug'   => 'scd-notifications',
+				'menu_slug'   => 'wsscd-notifications',
 				'callback'    => array( $this, 'render_notifications_page' ),
 				'type'        => 'submenu',
 			),
@@ -180,7 +180,7 @@ class SCD_Menu_Manager {
 				'page_title'  => 'Settings',
 				'menu_title'  => 'Settings',
 				'capability'  => 'manage_settings',
-				'menu_slug'   => 'scd-settings',
+				'menu_slug'   => 'wsscd-settings',
 				'callback'    => array( $this, 'render_settings_page' ),
 				'type'        => 'submenu',
 			),
@@ -189,7 +189,7 @@ class SCD_Menu_Manager {
 				'page_title'  => 'Tools & Maintenance',
 				'menu_title'  => 'Tools',
 				'capability'  => 'manage_options',
-				'menu_slug'   => 'scd-tools',
+				'menu_slug'   => 'wsscd-tools',
 				'callback'    => array( $this, 'render_tools_page' ),
 				'type'        => 'submenu',
 			),
@@ -198,14 +198,14 @@ class SCD_Menu_Manager {
 				'page_title'  => '🔧 License Fix',
 				'menu_title'  => '🔧 License Fix',
 				'capability'  => 'manage_options',
-				'menu_slug'   => 'scd-license-fix',
+				'menu_slug'   => 'wsscd-license-fix',
 				'callback'    => array( $this, 'render_license_fix_page' ),
 				'type'        => 'submenu',
 			),
 		);
 
 		// Allow filtering of menu pages
-		$this->menu_pages = apply_filters( 'scd_admin_menu_pages', $this->menu_pages );
+		$this->menu_pages = apply_filters( 'wsscd_admin_menu_pages', $this->menu_pages );
 	}
 
 	/**
@@ -261,8 +261,8 @@ class SCD_Menu_Manager {
 		$title = __( 'Analytics', 'smart-cycle-discounts' );
 
 		// Add PRO badge for free users
-		if ( ! function_exists( 'scd_is_premium' ) || ! scd_is_premium() ) {
-			$title .= ' ' . SCD_Badge_Helper::pro_badge();
+		if ( ! function_exists( 'wsscd_is_premium' ) || ! wsscd_is_premium() ) {
+			$title .= ' ' . wp_kses_post( WSSCD_Badge_Helper::pro_badge() );
 		}
 
 		return $title;
@@ -370,7 +370,7 @@ class SCD_Menu_Manager {
 		wp_enqueue_script( 'dashboard' );
 		wp_enqueue_script( 'postbox' );
 
-		do_action( 'scd_dashboard_page_load' );
+		do_action( 'wsscd_dashboard_page_load' );
 	}
 
 	/**
@@ -380,11 +380,11 @@ class SCD_Menu_Manager {
 	 * @return   void
 	 */
 	public function campaigns_page_load(): void {
-		// Bulk actions are handled by the campaigns list table itself
+		// Bulk actions are handled by the campaigns list table itself.
 
 		$this->add_campaigns_screen_options();
 
-		do_action( 'scd_campaigns_page_load' );
+		do_action( 'wsscd_campaigns_page_load' );
 	}
 
 	/**
@@ -399,11 +399,11 @@ class SCD_Menu_Manager {
 			array(
 				'label'   => __( 'Reports per page', 'smart-cycle-discounts' ),
 				'default' => 20,
-				'option'  => 'scd_analytics_per_page',
+				'option'  => 'wsscd_analytics_per_page',
 			)
 		);
 
-		do_action( 'scd_analytics_page_load' );
+		do_action( 'wsscd_analytics_page_load' );
 	}
 
 	/**
@@ -413,12 +413,15 @@ class SCD_Menu_Manager {
 	 * @return   void
 	 */
 	public function settings_page_load(): void {
-		// Handle settings form submission
-		if ( isset( $_POST['submit'] ) && wp_verify_nonce( $_POST['_wpnonce'], 'scd_settings_nonce' ) ) {
+		// Handle settings form submission.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce is being extracted for verification on next line.
+		$nonce = isset( $_POST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification happens in wp_verify_nonce() on this line.
+		if ( isset( $_POST['submit'] ) && wp_verify_nonce( $nonce, 'wsscd_settings_nonce' ) ) {
 			$this->handle_settings_save();
 		}
 
-		do_action( 'scd_settings_page_load' );
+		do_action( 'wsscd_settings_page_load' );
 	}
 
 	/**
@@ -428,7 +431,7 @@ class SCD_Menu_Manager {
 	 * @return   void
 	 */
 	public function tools_page_load(): void {
-		do_action( 'scd_tools_page_load' );
+		do_action( 'wsscd_tools_page_load' );
 	}
 
 
@@ -447,21 +450,23 @@ class SCD_Menu_Manager {
 
 		$this->render_page_header( __( 'Dashboard', 'smart-cycle-discounts' ) );
 
-		echo '<div class="wrap scd-dashboard">';
+		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML structure, no dynamic content.
+		echo '<div class="wrap wsscd-dashboard">';
 		echo '<div id="dashboard-widgets-wrap">';
 		echo '<div id="dashboard-widgets" class="metabox-holder">';
 
 		// Left column
 		echo '<div class="postbox-container" id="postbox-container-1">';
-		do_meta_boxes( 'scd_dashboard', 'normal', null );
+		do_meta_boxes( 'wsscd_dashboard', 'normal', null );
 		echo '</div>';
 
 		// Right column
 		echo '<div class="postbox-container" id="postbox-container-2">';
-		do_meta_boxes( 'scd_dashboard', 'side', null );
+		do_meta_boxes( 'wsscd_dashboard', 'side', null );
 		echo '</div>';
 
 		echo '</div></div></div>';
+		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 
 		$this->render_page_footer();
 	}
@@ -481,11 +486,13 @@ class SCD_Menu_Manager {
 
 		$this->render_page_header( __( 'Campaigns', 'smart-cycle-discounts' ) );
 
-		echo '<div class="wrap scd-campaigns">';
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML structure.
+		echo '<div class="wrap wsscd-campaigns">';
 
 		// Page content will be handled by the campaigns page class
-		do_action( 'scd_render_campaigns_page' );
+		do_action( 'wsscd_render_campaigns_page' );
 
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML structure.
 		echo '</div>';
 
 		$this->render_page_footer();
@@ -506,11 +513,13 @@ class SCD_Menu_Manager {
 
 		$this->render_page_header( __( 'Analytics', 'smart-cycle-discounts' ) );
 
-		echo '<div class="wrap scd-analytics">';
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML structure.
+		echo '<div class="wrap wsscd-analytics">';
 
 		// Page content will be handled by the analytics page class
-		do_action( 'scd_render_analytics_page' );
+		do_action( 'wsscd_render_analytics_page' );
 
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML structure.
 		echo '</div>';
 
 		$this->render_page_footer();
@@ -532,7 +541,7 @@ class SCD_Menu_Manager {
 		$this->render_page_header( __( 'Email Notifications', 'smart-cycle-discounts' ) );
 
 		// Page content will be handled by the notifications page class
-		do_action( 'scd_render_notifications_page' );
+		do_action( 'wsscd_render_notifications_page' );
 
 		$this->render_page_footer();
 	}
@@ -552,11 +561,13 @@ class SCD_Menu_Manager {
 
 		$this->render_page_header( __( 'Settings', 'smart-cycle-discounts' ) );
 
-		echo '<div class="wrap scd-settings">';
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML structure.
+		echo '<div class="wrap wsscd-settings">';
 
 		// Page content will be handled by the settings page class
-		do_action( 'scd_render_settings_page' );
+		do_action( 'wsscd_render_settings_page' );
 
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML structure.
 		echo '</div>';
 
 		$this->render_page_footer();
@@ -577,11 +588,13 @@ class SCD_Menu_Manager {
 
 		$this->render_page_header( __( 'Tools & Maintenance', 'smart-cycle-discounts' ) );
 
-		echo '<div class="wrap scd-tools">';
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML structure.
+		echo '<div class="wrap wsscd-tools">';
 
 		// Page content will be handled by the tools page class
-		do_action( 'scd_render_tools_page' );
+		do_action( 'wsscd_render_tools_page' );
 
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML structure.
 		echo '</div>';
 
 		$this->render_page_footer();
@@ -594,9 +607,9 @@ class SCD_Menu_Manager {
 	 * @return   void
 	 */
 	public function render_license_fix_page(): void {
-		require_once SCD_INCLUDES_DIR . 'admin/pages/class-license-emergency-fix.php';
+		require_once WSSCD_INCLUDES_DIR . 'admin/pages/class-license-emergency-fix.php';
 
-		SCD_License_Emergency_Fix::render();
+		WSSCD_License_Emergency_Fix::render();
 	}
 
 
@@ -609,13 +622,15 @@ class SCD_Menu_Manager {
 	 * @return   void
 	 */
 	private function render_page_header( string $title ): void {
-		echo '<div class="scd-page-header">';
+		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML structure with escaped dynamic content.
+		echo '<div class="wsscd-page-header">';
 		echo '<h1 class="wp-heading-inline">' . esc_html( $title ) . '</h1>';
 
 		$this->render_page_actions();
 
 		echo '<hr class="wp-header-end">';
 		echo '</div>';
+		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	/**
@@ -629,11 +644,11 @@ class SCD_Menu_Manager {
 		$screen = get_current_screen();
 
 		switch ( $screen->id ) {
-			case 'smart-cycle-discounts_page_scd-campaigns':
+			case 'smart-cycle-discounts_page_wsscd-campaigns':
 				if ( $this->capability_manager->current_user_can( 'create_campaigns' ) ) {
 					printf(
 						'<a href="%s" class="page-title-action">%s</a>',
-						esc_url( admin_url( 'admin.php?page=scd-campaigns&action=wizard&intent=new' ) ),
+						esc_url( admin_url( 'admin.php?page=wsscd-campaigns&action=wizard&intent=new' ) ),
 						esc_html__( 'Add New Campaign', 'smart-cycle-discounts' )
 					);
 				}
@@ -649,7 +664,7 @@ class SCD_Menu_Manager {
 	 * @return   void
 	 */
 	private function render_page_footer(): void {
-		do_action( 'scd_admin_page_footer' );
+		do_action( 'wsscd_admin_page_footer' );
 	}
 
 	/**
@@ -665,7 +680,7 @@ class SCD_Menu_Manager {
 			array(
 				'label'   => __( 'Campaigns per page', 'smart-cycle-discounts' ),
 				'default' => 20,
-				'option'  => 'scd_campaigns_per_page',
+				'option'  => 'wsscd_campaigns_per_page',
 			)
 		);
 	}
@@ -679,10 +694,10 @@ class SCD_Menu_Manager {
 	 */
 	private function handle_settings_save(): void {
 		// Settings saving will be handled by the settings page class
-		do_action( 'scd_handle_settings_save' );
+		do_action( 'wsscd_handle_settings_save' );
 
 		// Redirect to prevent resubmission
-		wp_redirect( add_query_arg( 'settings-updated', 'true', wp_get_referer() ) );
+		wp_safe_redirect( add_query_arg( 'settings-updated', 'true', wp_get_referer() ) );
 		exit;
 	}
 
@@ -697,12 +712,12 @@ class SCD_Menu_Manager {
 	 * @return   void
 	 */
 	private function add_admin_notice( string $message, string $type = 'info' ): void {
-		$notices   = get_transient( 'scd_admin_notices' ) ?: array();
+		$notices   = get_transient( 'wsscd_admin_notices' ) ?: array();
 		$notices[] = array(
 			'message' => $message,
 			'type'    => $type,
 		);
-		set_transient( 'scd_admin_notices', $notices, 300 );
+		set_transient( 'wsscd_admin_notices', $notices, 300 );
 	}
 
 	/**

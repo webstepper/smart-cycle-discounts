@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/wizard
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Wizard_Field_Mapper {
+class WSSCD_Wizard_Field_Mapper {
 
 	/**
 	 * Field mapping configuration

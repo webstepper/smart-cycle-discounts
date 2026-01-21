@@ -18,7 +18,7 @@
 	 *
 	 * @since 1.0.0
 	 */
-	var SCD_Main_Dashboard = {
+	var WSSCD_Main_Dashboard = {
 
 		/**
 		 * Dashboard data cache
@@ -52,20 +52,20 @@
 		 */
 		bindEvents: function() {
 			// Refresh button (if needed in future)
-			$( document ).on( 'click', '#scd-refresh-data', function( e ) {
+			$( document ).on( 'click', '#wsscd-refresh-data', function( e ) {
 				e.preventDefault();
-				SCD_Main_Dashboard.loadDashboardData();
+				WSSCD_Main_Dashboard.loadDashboardData();
 			} );
 
 			// Campaign suggestion details toggle
-			$( document ).on( 'click', '.scd-details-toggle-btn', function( e ) {
+			$( document ).on( 'click', '.wsscd-details-toggle-btn', function( e ) {
 				e.preventDefault();
-				SCD_Main_Dashboard.toggleSuggestionDetails( $( this ) );
+				WSSCD_Main_Dashboard.toggleSuggestionDetails( $( this ) );
 			} );
 
 			// Prevent page unload during data loading
 			$( window ).on( 'beforeunload', function() {
-				if ( SCD_Main_Dashboard.isLoading ) {
+				if ( WSSCD_Main_Dashboard.isLoading ) {
 					return 'Dashboard data is still loading. Are you sure you want to leave?';
 				}
 			} );
@@ -90,9 +90,9 @@
 				url: ajaxurl,
 				type: 'POST',
 				data: {
-					action: 'scd_ajax',
-					scdAction: 'main_dashboard_data',
-					nonce: window.scdDashboard.nonce
+					action: 'wsscd_ajax',
+					wsscdAction: 'main_dashboard_data',
+					nonce: window.wsscdDashboard.nonce
 				},
 				dataType: 'json',
 				timeout: 30000,
@@ -132,8 +132,8 @@
 				this.updateTopCampaigns( data.top_campaigns );
 			}
 
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
-				SCD.Shared.NotificationService.success( 'Dashboard updated successfully' );
+			if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.NotificationService ) {
+				WSSCD.Shared.NotificationService.success( 'Dashboard updated successfully' );
 			}
 		},
 
@@ -145,21 +145,21 @@
 		 */
 		updateHeroStats: function( metrics ) {
 			if ( metrics.revenue !== undefined ) {
-				$( '#scd-stat-revenue' ).html( this.formatCurrency( metrics.revenue ) );
+				$( '#wsscd-stat-revenue' ).html( this.formatCurrency( metrics.revenue ) );
 			}
 
 			if ( metrics.active !== undefined ) {
-				$( '#scd-stat-active-campaigns' ).text( metrics.active );
+				$( '#wsscd-stat-active-campaigns' ).text( metrics.active );
 			}
 
 			if ( metrics.conversions !== undefined ) {
-				$( '#scd-stat-conversions' ).text( this.formatNumber( metrics.conversions ) );
+				$( '#wsscd-stat-conversions' ).text( this.formatNumber( metrics.conversions ) );
 			}
 
 			// Update CTR
 			if ( metrics.clicks !== undefined && metrics.impressions !== undefined ) {
 				var ctr = metrics.impressions > 0 ? ( metrics.clicks / metrics.impressions ) * 100 : 0;
-				$( '#scd-stat-ctr' ).text( this.formatPercentage( ctr ) );
+				$( '#wsscd-stat-ctr' ).text( this.formatPercentage( ctr ) );
 			}
 		},
 
@@ -175,7 +175,7 @@
 			for ( var i = 0; i < statuses.length; i++ ) {
 				var status = statuses[i];
 				if ( stats[status] !== undefined ) {
-					$( '.scd-badge-status--' + status ).each( function() {
+					$( '.wsscd-badge-status--' + status ).each( function() {
 						var $badge = $( this );
 						var currentText = $badge.text();
 						// Replace number while keeping label
@@ -186,7 +186,7 @@
 			}
 
 			if ( stats.total !== undefined ) {
-				$( '.scd-status-total strong' ).next().text( stats.total );
+				$( '.wsscd-status-total strong' ).next().text( stats.total );
 			}
 		},
 
@@ -197,7 +197,7 @@
 		 * @param {Array} campaigns Top campaigns data
 		 */
 		updateTopCampaigns: function( campaigns ) {
-			var $tbody = $( '.scd-campaigns-table tbody' );
+			var $tbody = $( '.wsscd-campaigns-table tbody' );
 
 			if ( !campaigns || campaigns.length === 0 ) {
 				return;
@@ -210,14 +210,14 @@
 				var row = '<tr>' +
 					'<td>' +
 					'<strong>' + this.escapeHtml( campaign.name ) + '</strong>' +
-					'<span class="scd-badge-status--' + this.escapeHtml( campaign.status ) + '">' +
+					'<span class="wsscd-badge-status--' + this.escapeHtml( campaign.status ) + '">' +
 					this.escapeHtml( this.capitalizeFirst( campaign.status ) ) +
 					'</span>' +
 					'</td>' +
 					'<td>' + this.formatCurrency( campaign.revenue || 0 ) + '</td>' +
 					'<td>' + this.formatNumber( campaign.conversions || 0 ) + '</td>' +
 					'<td>' +
-					'<a href="admin.php?page=scd-campaigns&action=edit&id=' + campaign.id + '" class="button button-small">Edit</a>' +
+					'<a href="admin.php?page=wsscd-campaigns&action=edit&id=' + campaign.id + '" class="button button-small">Edit</a>' +
 					'</td>' +
 					'</tr>';
 
@@ -232,8 +232,8 @@
 		 */
 		showLoading: function() {
 			this.isLoading = true;
-			if ( window.SCD && window.SCD.LoaderUtil ) {
-				SCD.LoaderUtil.show( 'scd-dashboard-loading', { fade: true } );
+			if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+				WSSCD.LoaderUtil.show( 'wsscd-dashboard-loading', { fade: true } );
 			}
 		},
 
@@ -244,8 +244,8 @@
 		 */
 		hideLoading: function() {
 			this.isLoading = false;
-			if ( window.SCD && window.SCD.LoaderUtil ) {
-				SCD.LoaderUtil.hide( 'scd-dashboard-loading', { fade: true } );
+			if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+				WSSCD.LoaderUtil.hide( 'wsscd-dashboard-loading', { fade: true } );
 			}
 		},
 
@@ -256,8 +256,8 @@
 		 * @param {String} message Error message
 		 */
 		handleError: function( message ) {
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
-				SCD.Shared.NotificationService.error( message );
+			if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.NotificationService ) {
+				WSSCD.Shared.NotificationService.error( message );
 			} else {
 				alert( 'Error: ' + message );
 			}
@@ -272,8 +272,8 @@
 		 */
 		formatCurrency: function( value ) {
 			// Use WordPress currency formatting if available
-			if ( window.scdDashboard && window.scdDashboard.currencySymbol ) {
-				return window.scdDashboard.currencySymbol + this.formatNumber( value, 2 );
+			if ( window.wsscdDashboard && window.wsscdDashboard.currencySymbol ) {
+				return window.wsscdDashboard.currencySymbol + this.formatNumber( value, 2 );
 			}
 			return '$' + this.formatNumber( value, 2 );
 		},
@@ -313,18 +313,18 @@
 		 */
 		toggleSuggestionDetails: function( $button ) {
 			var suggestionId = $button.data( 'suggestion-id' );
-			var $details = $( '#scd-details-' + suggestionId );
+			var $details = $( '#wsscd-details-' + suggestionId );
 
 			if ( $details.is( ':visible' ) ) {
 				// Close details
 				$details.slideUp( 300 );
-				$button.removeClass( 'scd-active' );
-				$button.find( 'span:not(.scd-icon)' ).text( 'Show More Details' );
+				$button.removeClass( 'wsscd-active' );
+				$button.find( 'span:not(.wsscd-icon)' ).text( 'Show More Details' );
 			} else {
 				// Open details
 				$details.slideDown( 300 );
-				$button.addClass( 'scd-active' );
-				$button.find( 'span:not(.scd-icon)' ).text( 'Show Less Details' );
+				$button.addClass( 'wsscd-active' );
+				$button.find( 'span:not(.wsscd-icon)' ).text( 'Show Less Details' );
 			}
 		},
 
@@ -355,12 +355,12 @@
 
 	$( document ).ready( function() {
 		// Only initialize if we're on the main dashboard page
-		if ( $( '.scd-main-dashboard' ).length > 0 ) {
-			SCD_Main_Dashboard.init();
+		if ( $( '.wsscd-main-dashboard' ).length > 0 ) {
+			WSSCD_Main_Dashboard.init();
 		}
 	} );
 
 	// Expose to global scope for debugging
-	window.SCD_Main_Dashboard = SCD_Main_Dashboard;
+	window.WSSCD_Main_Dashboard = WSSCD_Main_Dashboard;
 
 } )( jQuery, window, document );

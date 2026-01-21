@@ -27,13 +27,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Track_Click_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Track_Click_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger    Logger instance (optional).
+	 * @param    WSSCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -46,7 +46,7 @@ class SCD_Track_Click_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name(): string {
-		return 'scd_track_click';
+		return 'wsscd_track_click';
 	}
 
 	/**
@@ -67,7 +67,7 @@ class SCD_Track_Click_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array                Response data.
 	 */
 	protected function handle( array $request ): array {
-		$container = SCD_Container::get_instance();
+		$container = WSSCD_Container::get_instance();
 
 		if ( ! $container->has( 'analytics_collector' ) ) {
 			return $this->error(

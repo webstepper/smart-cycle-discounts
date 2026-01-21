@@ -8,11 +8,11 @@
  * @package Smart_Cycle_Discounts
  */
 
-( function( window, $, SCD ) {
+( function( window, $, WSSCD ) {
 	'use strict';
 
-	if ( ! SCD || ! SCD.Shared ) {
-		console.error( 'SCD.Shared is not defined. Module Registry cannot initialize.' );
+	if ( ! WSSCD || ! WSSCD.Shared ) {
+		console.error( 'WSSCD.Shared is not defined. Module Registry cannot initialize.' );
 		return;
 	}
 
@@ -25,23 +25,23 @@
 	 * // Define module configuration
 	 * var config = {
 	 *     state: {
-	 *         class: SCD.Modules.Basic.State,
+	 *         class: WSSCD.Modules.Basic.State,
 	 *         deps: []
 	 *     },
 	 *     api: {
-	 *         class: SCD.Modules.Basic.API,
+	 *         class: WSSCD.Modules.Basic.API,
 	 *         deps: []
 	 *     },
 	 *     fields: {
-	 *         class: SCD.Modules.Basic.Fields,
+	 *         class: WSSCD.Modules.Basic.Fields,
 	 *         deps: ['state'] // Depends on state module
 	 *     }
 	 * };
 	 *
 	 * // Initialize all modules with dependency injection
-	 * var modules = SCD.Shared.ModuleRegistry.initialize( config );
+	 * var modules = WSSCD.Shared.ModuleRegistry.initialize( config );
 	 */
-	SCD.Shared.ModuleRegistry = {
+	WSSCD.Shared.ModuleRegistry = {
 
 		/**
 		 * Initialize modules from configuration
@@ -57,7 +57,7 @@
 
 			// Validate configuration
 			if ( ! config || typeof config !== 'object' ) {
-				SCD.ErrorHandler.handle(
+				WSSCD.ErrorHandler.handle(
 					new Error( 'Module Registry: Invalid configuration provided' ),
 					'ModuleRegistry.initialize'
 				);
@@ -78,7 +78,7 @@
 
 				// Module not in config
 				if ( ! config[name] ) {
-					SCD.ErrorHandler.handle(
+					WSSCD.ErrorHandler.handle(
 						new Error( 'Module Registry: Module "' + name + '" not found in configuration' ),
 						'ModuleRegistry.initializeModule'
 					);
@@ -89,7 +89,7 @@
 
 				// Validate module configuration
 				if ( ! moduleConfig.class ) {
-					SCD.ErrorHandler.handle(
+					WSSCD.ErrorHandler.handle(
 						new Error( 'Module Registry: Module "' + name + '" missing class definition' ),
 						'ModuleRegistry.initializeModule'
 					);
@@ -104,7 +104,7 @@
 
 						// Check for circular dependencies
 						if ( depName === name ) {
-							SCD.ErrorHandler.handle(
+							WSSCD.ErrorHandler.handle(
 								new Error( 'Module Registry: Circular dependency detected for module "' + name + '"' ),
 								'ModuleRegistry.initializeModule'
 							);
@@ -114,7 +114,7 @@
 						// Initialize dependency
 						var dep = initializeModule( depName );
 						if ( ! dep ) {
-							SCD.ErrorHandler.handle(
+							WSSCD.ErrorHandler.handle(
 								new Error( 'Module Registry: Failed to resolve dependency "' + depName + '" for module "' + name + '"' ),
 								'ModuleRegistry.initializeModule'
 							);
@@ -135,7 +135,7 @@
 					var ModuleClass = self._resolveClass( moduleConfig.class );
 
 					if ( ! ModuleClass ) {
-						SCD.ErrorHandler.handle(
+						WSSCD.ErrorHandler.handle(
 							new Error( 'Module Registry: Class not found for module "' + name + '"' ),
 							'ModuleRegistry.initializeModule'
 						);
@@ -159,7 +159,7 @@
 					return instance;
 
 				} catch ( error ) {
-					SCD.ErrorHandler.handle(
+					WSSCD.ErrorHandler.handle(
 						error,
 						'ModuleRegistry.initializeModule',
 						{ module: name, deps: moduleConfig.deps }
@@ -190,7 +190,7 @@
 				return classRef;
 			}
 
-			// String path (e.g., 'SCD.Modules.Basic.State')
+			// String path (e.g., 'WSSCD.Modules.Basic.State')
 			if ( typeof classRef === 'string' ) {
 				var parts = classRef.split( '.' );
 				var current = window;
@@ -218,9 +218,9 @@
 		 * @return {Object} Module configuration
 		 *
 		 * @example
-		 * var config = SCD.Shared.ModuleRegistry.createStepConfig( 'basic', {
+		 * var config = WSSCD.Shared.ModuleRegistry.createStepConfig( 'basic', {
 		 *     customModule: {
-		 *         class: SCD.Modules.Basic.CustomModule,
+		 *         class: WSSCD.Modules.Basic.CustomModule,
 		 *         deps: ['state', 'api']
 		 *     }
 		 * } );
@@ -231,20 +231,20 @@
 			// Standard module pattern for wizard steps
 			var config = {
 				state: {
-					class: 'SCD.Modules.' + capitalizedStep + '.State',
+					class: 'WSSCD.Modules.' + capitalizedStep + '.State',
 					deps: []
 				},
 				api: {
-					class: 'SCD.Modules.' + capitalizedStep + '.API',
+					class: 'WSSCD.Modules.' + capitalizedStep + '.API',
 					deps: []
 				}
 			};
 
 			// Check if step has a Fields module
-			var FieldsClass = this._resolveClass( 'SCD.Modules.' + capitalizedStep + '.Fields' );
+			var FieldsClass = this._resolveClass( 'WSSCD.Modules.' + capitalizedStep + '.Fields' );
 			if ( FieldsClass ) {
 				config.fields = {
-					class: 'SCD.Modules.' + capitalizedStep + '.Fields',
+					class: 'WSSCD.Modules.' + capitalizedStep + '.Fields',
 					deps: ['state']
 				};
 			}
@@ -316,8 +316,8 @@
 	};
 
 	// Module loaded
-	if ( window.SCD && window.SCD.DebugLogger ) {
-	SCD.DebugLogger.log( 'info', 'ModuleRegistry', 'Module Registry loaded' );
+	if ( window.WSSCD && window.WSSCD.DebugLogger ) {
+	WSSCD.DebugLogger.log( 'info', 'ModuleRegistry', 'Module Registry loaded' );
 	}
 
-} )( window, jQuery, window.SCD || {} );
+} )( window, jQuery, window.WSSCD || {} );

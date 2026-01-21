@@ -13,15 +13,15 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	window.SCD.Shared = window.SCD.Shared || {};
+	window.WSSCD = window.WSSCD || {};
+	window.WSSCD.Shared = window.WSSCD.Shared || {};
 
 	/**
 	 * Theme Color Service
 	 *
-	 * @namespace SCD.Shared.ThemeColorService
+	 * @namespace WSSCD.Shared.ThemeColorService
 	 */
-	window.SCD.Shared.ThemeColorService = {
+	window.WSSCD.Shared.ThemeColorService = {
 
 		// Current theme colors
 		colors: null,
@@ -63,15 +63,15 @@
 			this.initialized = true;
 
 			// Emit ready event
-			$( document ).trigger( 'scd:theme-colors:ready', [ this.colors ] );
+			$( document ).trigger( 'wsscd:theme-colors:ready', [ this.colors ] );
 		},
 
 		/**
 		 * Load theme colors from WordPress/WooCommerce
 		 */
 		loadColors: function() {
-			if ( window.scdAdmin && window.scdAdmin.colors ) {
-				this.colors = $.extend( {}, this.defaultColors, window.scdAdmin.colors );
+			if ( window.wsscdAdmin && window.wsscdAdmin.colors ) {
+				this.colors = $.extend( {}, this.defaultColors, window.wsscdAdmin.colors );
 			} else {
 				// Fallback to defaults
 				this.colors = $.extend( {}, this.defaultColors );
@@ -89,7 +89,7 @@
 			// Allow other scripts to modify colors
 			var filteredColors = colors;
 
-			$( document ).trigger( 'scd:theme-colors:filter', [ filteredColors ] );
+			$( document ).trigger( 'wsscd:theme-colors:filter', [ filteredColors ] );
 
 			return filteredColors;
 		},
@@ -102,7 +102,7 @@
 
 			// Global color properties
 			Object.keys( this.colors ).forEach( function( key ) {
-				root.style.setProperty( '--scd-color-' + key, this.colors[key] );
+				root.style.setProperty( '--wsscd-color-' + key, this.colors[key] );
 			}.bind( this ) );
 
 			// Generate color variations
@@ -121,8 +121,8 @@
 				var lighter = self.lightenColor( self.colors[key], 20 );
 				var darker = self.darkenColor( self.colors[key], 20 );
 
-				root.style.setProperty( '--scd-color-' + key + '-light', lighter );
-				root.style.setProperty( '--scd-color-' + key + '-dark', darker );
+				root.style.setProperty( '--wsscd-color-' + key + '-light', lighter );
+				root.style.setProperty( '--wsscd-color-' + key + '-dark', darker );
 			} );
 		},
 
@@ -146,7 +146,7 @@
 				var colorKey = mappings[property];
 				var colorValue = this.colors[colorKey] || colorKey; // Use direct value if not a key
 
-				root.style.setProperty( '--scd-' + componentName + '-' + property, colorValue );
+				root.style.setProperty( '--wsscd-' + componentName + '-' + property, colorValue );
 			}.bind( this ) );
 
 			// Notify subscribers

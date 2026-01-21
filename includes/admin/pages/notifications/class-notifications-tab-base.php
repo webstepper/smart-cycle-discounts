@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/pages/notifications
  */
-abstract class SCD_Notifications_Tab_Base {
+abstract class WSSCD_Notifications_Tab_Base {
 
 	/**
 	 * Tab slug.
@@ -40,28 +40,28 @@ abstract class SCD_Notifications_Tab_Base {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @var      SCD_Notifications_Page    $page    Page instance.
+	 * @var      WSSCD_Notifications_Page    $page    Page instance.
 	 */
-	protected SCD_Notifications_Page $page;
+	protected WSSCD_Notifications_Page $page;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	protected SCD_Logger $logger;
+	protected WSSCD_Logger $logger;
 
 	/**
 	 * Initialize tab.
 	 *
 	 * @since    1.0.0
 	 * @param    string                 $tab_slug  Tab slug.
-	 * @param    SCD_Notifications_Page $page      Page instance.
-	 * @param    SCD_Logger             $logger    Logger instance.
+	 * @param    WSSCD_Notifications_Page $page      Page instance.
+	 * @param    WSSCD_Logger             $logger    Logger instance.
 	 */
-	public function __construct( string $tab_slug, SCD_Notifications_Page $page, SCD_Logger $logger ) {
+	public function __construct( string $tab_slug, WSSCD_Notifications_Page $page, WSSCD_Logger $logger ) {
 		$this->tab_slug = $tab_slug;
 		$this->page     = $page;
 		$this->logger   = $logger;
@@ -76,7 +76,7 @@ abstract class SCD_Notifications_Tab_Base {
 	 * @return   void
 	 */
 	protected function init(): void {
-		add_filter( 'scd_sanitize_notifications', array( $this, 'sanitize_tab_settings' ), 10, 2 );
+		add_filter( 'wsscd_sanitize_notifications', array( $this, 'sanitize_tab_settings' ), 10, 2 );
 	}
 
 	/**
@@ -145,7 +145,7 @@ abstract class SCD_Notifications_Tab_Base {
 			$id,
 			$title,
 			array( $this, $callback ),
-			'scd_notifications_' . $this->tab_slug
+			'wsscd_notifications_' . $this->tab_slug
 		);
 	}
 
@@ -165,11 +165,16 @@ abstract class SCD_Notifications_Tab_Base {
 		$args['field_id']  = $id;
 		$args['label_for'] = $this->page->get_option_name() . '[notifications][' . $id . ']';
 
+		// Append tooltip to title if provided - use wp_kses with SVG tags since tooltip contains SVG icon.
+		if ( isset( $args['tooltip'] ) && ! empty( $args['tooltip'] ) ) {
+			$title .= ' ' . wp_kses( WSSCD_Tooltip_Helper::get( $args['tooltip'] ), WSSCD_Icon_Helper::get_allowed_html_with_svg() );
+		}
+
 		add_settings_field(
 			$id,
 			$title,
 			array( $this, $callback ),
-			'scd_notifications_' . $this->tab_slug,
+			'wsscd_notifications_' . $this->tab_slug,
 			$section,
 			$args
 		);
@@ -188,7 +193,42 @@ abstract class SCD_Notifications_Tab_Base {
 		$all_settings = get_option( $this->page->get_option_name(), array() );
 		$tab_settings = isset( $all_settings['notifications'] ) ? $all_settings['notifications'] : array();
 
+		// Merge with defaults
+		$defaults     = $this->get_notification_defaults();
+		$tab_settings = wp_parse_args( $tab_settings, $defaults );
+
 		return isset( $tab_settings[ $field_id ] ) ? $tab_settings[ $field_id ] : $default;
+	}
+
+	/**
+	 * Get notification default settings.
+	 *
+	 * @since    1.0.0
+	 * @access   protected
+	 * @return   array    Default notification settings.
+	 */
+	protected function get_notification_defaults(): array {
+		return array(
+			'email_provider'           => 'wpmail',
+			'from_email'               => get_option( 'admin_email' ),
+			'from_name'                => get_bloginfo( 'name' ),
+			'additional_recipients'    => '',
+			'sendgrid_api_key'         => '',
+			'amazonses_access_key'     => '',
+			'amazonses_secret_key'     => '',
+			'amazonses_region'         => 'us-east-1',
+			// FREE notifications - ON by default
+			'notify_campaign_started'  => true,
+			'notify_campaign_ended'    => true,
+			'notify_errors'            => true,
+			// PRO notifications - OFF by default
+			'notify_campaign_ending'   => false,
+			'notify_daily_report'      => false,
+			'notify_weekly_report'     => false,
+			'notify_performance_alert' => false,
+			'notify_low_stock_alert'   => false,
+			'notify_milestone_alert'   => false,
+		);
 	}
 
 	/**
@@ -226,16 +266,11 @@ abstract class SCD_Notifications_Tab_Base {
 			esc_attr( $value ),
 			esc_attr( $class ),
 			esc_attr( $placeholder ),
-			$disabled
+			esc_attr( $disabled )
 		);
 
 		if ( $pro_feature && ! $this->page->get_feature_gate()->is_enabled( 'premium_email_providers' ) ) {
-			echo ' ' . SCD_Badge_Helper::pro_badge();
-		}
-
-		if ( isset( $args['tooltip'] ) && ! empty( $args['tooltip'] ) ) {
-			echo ' ';
-			$this->render_tooltip( $args['tooltip'] );
+			echo ' ' . wp_kses_post( WSSCD_Badge_Helper::pro_badge() );
 		}
 	}
 
@@ -270,11 +305,6 @@ abstract class SCD_Notifications_Tab_Base {
 		}
 
 		echo '</select>';
-
-		if ( isset( $args['tooltip'] ) && ! empty( $args['tooltip'] ) ) {
-			echo ' ';
-			$this->render_tooltip( $args['tooltip'] );
-		}
 	}
 
 	/**
@@ -293,55 +323,38 @@ abstract class SCD_Notifications_Tab_Base {
 		$pro_feature = isset( $args['pro_feature'] ) && $args['pro_feature'];
 
 		$notification_type   = isset( $args['notification_type'] ) ? $args['notification_type'] : null;
-		$is_pro_notification = false;
+		$is_pro_tier         = false;
 		$has_access          = true;
 
 		if ( $notification_type ) {
-			$feature_gate        = $this->page->get_feature_gate();
-			$is_pro_notification = ! $feature_gate->can_send_notification( $notification_type );
-			$has_access          = $feature_gate->can_send_notification( $notification_type );
+			$feature_gate = $this->page->get_feature_gate();
+			$is_pro_tier  = $feature_gate->is_notification_pro_tier( $notification_type );
+			$has_access   = $feature_gate->can_send_notification( $notification_type );
 
 			// Disable checkbox if PRO feature and user doesn't have access
-			if ( $is_pro_notification && ! $has_access ) {
+			if ( $is_pro_tier && ! $has_access ) {
 				$disabled = ' disabled';
 				$checked  = ''; // Uncheck PRO features for free users
 			}
 		}
 
 		?>
-		<div class="scd-toggle-wrapper<?php echo $is_pro_notification && ! $has_access ? ' scd-pro-feature-locked' : ''; ?>">
-			<label class="scd-toggle-switch">
+		<div class="wsscd-toggle-wrapper<?php echo esc_attr( $is_pro_tier && ! $has_access ? ' wsscd-pro-feature-locked' : '' ); ?>">
+			<label class="wsscd-toggle-switch">
 				<input type="checkbox"
 					id="<?php echo esc_attr( $field_id ); ?>"
 					name="<?php echo esc_attr( $args['label_for'] ); ?>"
 					value="1"
-					<?php echo $checked . $disabled; ?>
-					<?php if ( $is_pro_notification && ! $has_access ) : ?>
+					<?php echo esc_attr( $checked . $disabled ); ?>
+					<?php if ( $is_pro_tier && ! $has_access ) : ?>
 						data-pro-feature="true"
 						data-notification-type="<?php echo esc_attr( $notification_type ); ?>"
 					<?php endif; ?>
 				/>
-				<span class="scd-toggle-slider"></span>
+				<span class="wsscd-toggle-slider"></span>
 			</label>
-
-			<?php if ( $is_pro_notification ) : ?>
-				<?php
-				if ( ! $has_access ) {
-					echo SCD_Badge_Helper::pro_badge( __( 'Upgrade to PRO to unlock this notification', 'smart-cycle-discounts' ) );
-				} else {
-					echo SCD_Badge_Helper::pro_badge( __( 'PRO Feature', 'smart-cycle-discounts' ) );
-				}
-				?>
-			<?php else : ?>
-				<?php echo SCD_Badge_Helper::free_badge(); ?>
-			<?php endif; ?>
 		</div>
 		<?php
-
-		if ( isset( $args['tooltip'] ) && ! empty( $args['tooltip'] ) ) {
-			echo ' ';
-			$this->render_tooltip( $args['tooltip'] );
-		}
 	}
 
 	/**
@@ -366,11 +379,6 @@ abstract class SCD_Notifications_Tab_Base {
 			esc_attr( $class ),
 			esc_textarea( $value )
 		);
-
-		if ( isset( $args['tooltip'] ) && ! empty( $args['tooltip'] ) ) {
-			echo ' ';
-			$this->render_tooltip( $args['tooltip'] );
-		}
 	}
 
 	/**
@@ -383,7 +391,7 @@ abstract class SCD_Notifications_Tab_Base {
 	 * @return   void
 	 */
 	protected function render_tooltip( string $text, array $args = array() ): void {
-		SCD_Tooltip_Helper::render( $text, $args );
+		WSSCD_Tooltip_Helper::render( $text, $args );
 	}
 
 	/**
@@ -396,7 +404,7 @@ abstract class SCD_Notifications_Tab_Base {
 	 * @return   string             Tooltip HTML.
 	 */
 	protected function get_tooltip( string $text, array $args = array() ): string {
-		return SCD_Tooltip_Helper::get( $text, $args );
+		return WSSCD_Tooltip_Helper::get( $text, $args );
 	}
 
 	/**
@@ -411,6 +419,6 @@ abstract class SCD_Notifications_Tab_Base {
 	 * @return   void
 	 */
 	protected function render_label_with_tooltip( string $label, string $field_id, string $tooltip, array $args = array() ): void {
-		SCD_Tooltip_Helper::render_label( $label, $field_id, $tooltip, $args );
+		WSSCD_Tooltip_Helper::render_label( $label, $field_id, $tooltip, $args );
 	}
 }

@@ -1,363 +1,386 @@
 /**
- * Planner Styles
+ * Campaign Planner Styles
+ *
+ * Styles for the Campaign Planner dashboard component including:
+ * - Container and header
+ * - Timeline track with dots and segments
+ * - Campaign cards with position-based styling
+ * - Badges for state and event type
+ * - Insights panel with 3-column layout
  *
  * @package    SmartCycleDiscounts
- * @subpackage SmartCycleDiscounts/resources/assets/css/admin/dashboard/planner-styles.css
+ * @subpackage SmartCycleDiscounts/resources/assets/css/admin/dashboard
  * @author     Webstepper.io <contact@webstepper.io>
  * @copyright  2025 Webstepper.io
- * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
- * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @license    GPL-3.0-or-later
  * @since      1.0.0
  */
 
-/* ===========================
-   Campaign Planner Container
-   =========================== */
-.scd-campaign-planner {
-	background: var(--scd-color-white);
-	border: 1px solid var(--scd-color-border-light);
-	border-radius: 8px;
-	box-shadow: var(--scd-shadow-sm);
+/* =============================================================================
+   TABLE OF CONTENTS
+   =============================================================================
+   1. Container & Header
+   2. Grid Layout
+   3. Timeline Track
+   4. Campaign Cards - Base
+   5. Campaign Cards - Position Styles
+   6. Campaign Cards - Focused State
+   7. Card Components (Header, Title, Icon)
+   8. Card Badges
+   9. Card Content (Description, Stats)
+   10. Card Actions
+   11. Insights Panel
+   12. Insights Content
+   13. Animations
+   14. Responsive Design
+   ============================================================================= */
+
+/* =============================================================================
+   1. CONTAINER & HEADER
+   ============================================================================= */
+
+.wsscd-campaign-planner {
+	background: var(--wsscd-color-white);
+	border: 1px solid var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-lg);
+	box-shadow: var(--wsscd-shadow-sm);
 	margin-bottom: 20px;
+	transition: box-shadow var(--wsscd-transition-base) ease;
 }
 
-.scd-campaign-planner:hover {
-	box-shadow: var(--scd-shadow-md);
+.wsscd-campaign-planner:hover {
+	box-shadow: var(--wsscd-shadow-md);
 }
 
-.scd-planner-header {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 18px 20px;
-	border-bottom: 1px solid var(--scd-color-border-light);
-	background: var(--scd-color-gray-50);
-	border-radius: var(--scd-radius-lg) var(--scd-radius-lg) 0 0;
-}
+/* Header styles now use shared .wsscd-section-header pattern from main-dashboard.css */
 
-.scd-planner-header-content {
-	display: flex;
-	align-items: center;
-	gap: var(--scd-gap-normal);
-}
+/* =============================================================================
+   2. GRID LAYOUT
+   ============================================================================= */
 
-.scd-planner-header-icon .dashicons {
-	width: var(--scd-icon-xl);
-	height: var(--scd-icon-xl);
-	font-size: var(--scd-font-size-display-sm);
-	color: var(--wp-admin-theme-color, var(--scd-color-primary));
-}
-
-.scd-planner-header-text h2 {
-	margin: 0 0 var(--scd-spacing-xs);
-	font-size: var(--scd-font-size-xl);
-	font-weight: var(--scd-font-weight-semibold);
-	color: var(--scd-color-text-dark);
-}
-
-.scd-planner-header-text p {
-	margin: 0;
-	color: var(--scd-color-text-muted);
-	font-size: var(--scd-font-size-base);
-	line-height: 1.4;
-}
-
-/* ===========================
-   Campaign Planner Grid
-   =========================== */
-.scd-planner-grid {
+.wsscd-planner-grid {
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
-	gap: var(--scd-gap-spacious);
-	padding: var(--scd-padding-section);
+	gap: var(--wsscd-gap-spacious);
+	padding: var(--wsscd-padding-section);
 	position: relative;
 }
 
-/* ===========================
-   Timeline Track
-   =========================== */
-.scd-planner-timeline {
+/* =============================================================================
+   3. TIMELINE TRACK
+   ============================================================================= */
+
+.wsscd-planner-timeline {
 	grid-column: 1 / -1;
-	height: 56px;
-	margin-bottom: var(--scd-spacing-sm-large);
-	position: relative;
-	padding: 0 var(--scd-padding-large);
 	display: flex;
 	align-items: center;
+	justify-content: center;
+	padding: var(--wsscd-spacing-md) var(--wsscd-padding-large);
+	position: relative;
 }
 
-.scd-timeline-track {
+.wsscd-timeline-track {
 	display: flex;
 	align-items: center;
+	justify-content: center;
 	width: 100%;
+	max-width: 50%;
 	position: relative;
 }
 
 /* Timeline Items */
-.scd-timeline-item {
+.wsscd-timeline-item {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: var(--scd-spacing-xs);
+	gap: var(--wsscd-spacing-xs);
 	flex-shrink: 0;
+	padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-md);
 	cursor: pointer;
-	padding: var(--scd-spacing-xs) var(--scd-spacing-sm);
-	border-radius: var(--scd-radius-md);
-	transition: background var(--scd-transition-base) ease;
 }
 
-.scd-timeline-item:hover {
-	background: var(--scd-color-primary-alpha-5);
+.wsscd-timeline-item:hover .wsscd-timeline-dot {
+	transform: scale(1.25);
+}
+
+.wsscd-timeline-item:hover .wsscd-timeline-label {
+	color: var(--wsscd-color-text);
 }
 
 /* Timeline Labels */
-.scd-timeline-label {
-	font-size: var(--scd-font-size-small);
-	font-weight: var(--scd-font-weight-semibold);
+.wsscd-timeline-label {
+	font-size: var(--wsscd-font-size-xs);
+	font-weight: var(--wsscd-font-weight-semibold);
 	text-transform: uppercase;
-	letter-spacing: 0.5px;
-	color: var(--scd-color-text-lighter);
+	letter-spacing: 0.6px;
 	white-space: nowrap;
-	opacity: 0.75;
-	transition: opacity var(--scd-transition-base) ease;
+	color: var(--wsscd-color-text-lighter);
+	transition: color var(--wsscd-transition-base) ease;
 }
 
-.scd-timeline-label--active {
-	color: var(--wp-admin-theme-color, var(--scd-color-primary));
-	opacity: 1;
-	font-size: var(--scd-font-size-small);
+.wsscd-timeline-label--active {
+	color: var(--wp-admin-theme-color, var(--wsscd-color-primary));
 }
 
-/* Timeline Dots */
-.scd-timeline-dot {
-	width: 18px;
-	height: 18px;
-	border-radius: 50%;
-	background: var(--scd-color-white);
-	border: 3px solid var(--scd-color-border);
-	box-shadow: var(--scd-shadow-sm);
+
+/* Timeline Dots - Base */
+.wsscd-timeline-dot {
+	width: 14px;
+	height: 14px;
 	flex-shrink: 0;
-	z-index: 3;
 	position: relative;
-	transition: box-shadow 0.2s ease;
+	z-index: 3;
+	background: var(--wsscd-color-white);
+	border: 2px solid var(--wsscd-color-border);
+	border-radius: 50%;
+	transition:
+		transform var(--wsscd-transition-base) ease,
+		border-color var(--wsscd-transition-base) ease,
+		box-shadow var(--wsscd-transition-base) ease;
 }
 
-.scd-timeline-dot--past {
-	border-color: var(--scd-color-text-lighter);
-	background: var(--scd-color-surface);
-	opacity: 0.6;
+.wsscd-timeline-item:hover .wsscd-timeline-dot {
+	border-color: var(--wp-admin-theme-color, var(--wsscd-color-primary));
 }
 
-.scd-timeline-dot--active {
-	width: 22px;
-	height: 22px;
-	border-color: var(--wp-admin-theme-color, var(--scd-color-primary));
-	background: var(--scd-color-white);
-	box-shadow: 0 0 0 3px var(--scd-color-primary-alpha-10),
-				0 2px 6px var(--scd-color-primary-alpha-20);
+/* Timeline Dots - States */
+.wsscd-timeline-dot--past {
+	background: var(--wsscd-color-surface-dark);
+	border-color: var(--wsscd-color-border);
 }
 
-.scd-timeline-dot--future {
-	border-color: var(--scd-color-info-border);
-	background: var(--scd-color-white);
-	opacity: 0.8;
+.wsscd-timeline-item--past:hover .wsscd-timeline-dot--past {
+	border-color: var(--wsscd-color-text-lighter);
 }
 
-/* Hover effects */
-.scd-timeline-item:hover .scd-timeline-dot {
-	box-shadow: var(--scd-shadow-md);
+.wsscd-timeline-dot--active {
+	width: 16px;
+	height: 16px;
+	background: var(--wp-admin-theme-color, var(--wsscd-color-primary));
+	border: none;
+	box-shadow: 0 2px 6px var(--wsscd-color-primary-alpha-30);
 }
 
-.scd-timeline-item:hover .scd-timeline-label {
-	opacity: 1;
+.wsscd-timeline-item:hover .wsscd-timeline-dot--active {
+	box-shadow: 0 2px 8px var(--wsscd-color-primary-alpha-30);
 }
 
-.scd-timeline-item:hover .scd-timeline-dot--active {
-	box-shadow: 0 0 0 3px var(--scd-color-primary-alpha-15),
-				0 2px 8px var(--scd-color-primary-alpha-25);
+.wsscd-timeline-dot--future {
+	background: var(--wsscd-color-white);
+	border-color: var(--wsscd-color-primary-alpha-25);
+	border-style: dashed;
 }
 
-/* Focused state */
-.scd-timeline-item--focused .scd-timeline-dot {
-	box-shadow: 0 0 0 4px var(--scd-color-primary-alpha-20),
-				0 2px 8px var(--scd-color-primary-alpha-25);
-	animation: pulse-timeline-dot 3s ease-in-out infinite;
+.wsscd-timeline-item--future:hover .wsscd-timeline-dot--future {
+	border-color: var(--wp-admin-theme-color, var(--wsscd-color-primary));
+	border-style: solid;
 }
 
-.scd-timeline-item--focused .scd-timeline-dot::before {
+/* Timeline Dots - Focused State */
+.wsscd-timeline-item--focused .wsscd-timeline-dot {
+	transform: scale(1.15);
+	box-shadow:
+		0 0 0 3px var(--wsscd-color-primary-alpha-15),
+		0 2px 8px var(--wsscd-color-primary-alpha-25);
+	animation: pulse-timeline-dot 2.5s ease-in-out infinite;
+}
+
+.wsscd-timeline-item--focused .wsscd-timeline-dot--active {
+	box-shadow:
+		0 0 0 3px var(--wsscd-color-primary-alpha-20),
+		0 2px 8px var(--wsscd-color-primary-alpha-30);
+}
+
+.wsscd-timeline-item--focused .wsscd-timeline-dot::after {
 	content: '';
 	position: absolute;
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-	width: 8px;
-	height: 8px;
+	width: 5px;
+	height: 5px;
+	background: var(--wp-admin-theme-color, var(--wsscd-color-primary));
 	border-radius: 50%;
-	background: var(--wp-admin-theme-color, var(--scd-color-primary));
-	box-shadow: 0 0 4px var(--scd-color-primary-alpha-50);
 }
 
-.scd-timeline-item--focused .scd-timeline-label {
-	opacity: 1;
-	font-weight: 700;
-	color: var(--wp-admin-theme-color, var(--scd-color-primary));
+.wsscd-timeline-item--focused .wsscd-timeline-dot--active::after {
+	background: var(--wsscd-color-white);
 }
 
-@keyframes pulse-timeline-dot {
-	0%, 100% {
-		box-shadow: 0 0 0 4px var(--scd-color-primary-alpha-20),
-					0 2px 8px var(--scd-color-primary-alpha-25);
-	}
-	50% {
-		box-shadow: 0 0 0 6px var(--scd-color-primary-alpha-10),
-					0 2px 8px var(--scd-color-primary-alpha-25);
-	}
+.wsscd-timeline-item--focused .wsscd-timeline-label {
+	font-weight: var(--wsscd-font-weight-bold);
+	color: var(--wp-admin-theme-color, var(--wsscd-color-primary));
 }
 
 /* Timeline Segments */
-.scd-timeline-segment {
+.wsscd-timeline-segment {
 	flex: 1;
-	height: 3px;
+	height: 2px;
+	margin: 0 var(--wsscd-spacing-xs);
 	position: relative;
-	margin: 0 8px;
-	border-radius: 2px;
-	background: var(--scd-color-border-light);
+	background: var(--wsscd-color-border-light);
+	border-radius: 1px;
 	overflow: hidden;
 }
 
-.scd-timeline-segment--past {
-	background: var(--scd-color-text-lighter);
-	opacity: 0.5;
+.wsscd-timeline-segment--past {
+	background: var(--wsscd-color-border);
 }
 
-.scd-timeline-segment--active {
-	background: var(--wp-admin-theme-color, var(--scd-color-primary));
-	box-shadow: 0 0 6px var(--scd-color-primary-alpha-30);
+.wsscd-timeline-segment--active {
+	background: var(--wp-admin-theme-color, var(--wsscd-color-primary));
 }
 
-.scd-timeline-segment--active::after {
+.wsscd-timeline-segment--active::after {
 	content: '';
 	position: absolute;
 	top: 0;
 	left: -100%;
-	width: 100%;
+	width: 60%;
 	height: 100%;
-	background: linear-gradient(90deg, transparent 0%, var(--scd-overlay-white-medium) 50%, transparent 100%);
-	animation: shimmer 3s ease-in-out infinite;
+	background: linear-gradient(
+		90deg,
+		transparent 0%,
+		rgba(255, 255, 255, 0.5) 50%,
+		transparent 100%
+	);
+	animation: shimmer 2.5s ease-in-out infinite;
 }
 
-@keyframes shimmer {
-	0% {
-		left: -100%;
-	}
-	50%, 100% {
-		left: 100%;
-	}
-}
+/* =============================================================================
+   4. CAMPAIGN CARDS - BASE
+   ============================================================================= */
 
-/* ===========================
-   Campaign Cards
-   =========================== */
-.scd-planner-card {
-	background: var(--scd-color-white);
-	border: 2px solid var(--scd-color-border-light);
-	border-radius: 8px;
-	padding: 18px;
-	cursor: pointer;
+.wsscd-planner-card {
 	position: relative;
 	z-index: 1;
+	padding: 18px;
+	background: var(--wsscd-color-white);
+	border: 2px solid var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-lg);
+	box-shadow: var(--wsscd-shadow-xs);
+	cursor: pointer;
 	transition: all 0.2s ease;
-	box-shadow: var(--scd-shadow-xs);
 }
 
-.scd-planner-card:hover {
-	border-color: var(--wp-admin-theme-color, var(--scd-color-primary));
-	box-shadow: var(--scd-shadow-md);
+.wsscd-planner-card:hover {
+	border-color: var(--wp-admin-theme-color, var(--wsscd-color-primary));
+	box-shadow: var(--wsscd-shadow-md);
 }
 
-.scd-planner-card:focus {
-	outline: 2px solid var(--wp-admin-theme-color, var(--scd-color-primary));
+.wsscd-planner-card:focus {
+	outline: 2px solid var(--wp-admin-theme-color, var(--wsscd-color-primary));
 	outline-offset: 2px;
 }
 
-/* ===========================
-   Card States (Data Attributes)
-   =========================== */
+/* =============================================================================
+   5. CAMPAIGN CARDS - POSITION STYLES
+   ============================================================================= */
 
-/* Past State */
-.scd-planner-card[data-state="past"] {
-	opacity: 0.65;
-	background: var(--scd-color-gray-50);
-	border-color: var(--scd-color-border-light);
-}
+/*
+ * Position = which slot the card occupies (past/active/future)
+ * State = actual campaign state (past/active/future)
+ *
+ * - Position "past" (slot 1): De-emphasized, faded
+ * - Position "active" (slot 2): Focus slot, prominent, solid border
+ * - Position "future" (slot 3): Upcoming, dashed border
+ *
+ * Major events use warm orange tones for extra attention.
+ */
 
-.scd-planner-card[data-state="past"]:hover {
-	opacity: 0.8;
-}
-
-/* Past + Major Event */
-.scd-planner-card[data-state="past"][data-major-event="true"] {
+/* --- Slot 1: Past Position --- */
+.wsscd-planner-card[data-position="past"] {
+	background: var(--wsscd-color-gray-50);
+	border: 2px solid var(--wsscd-color-border-light);
 	opacity: 0.7;
-	background: var(--scd-color-warning-bg);
-	border-color: var(--scd-color-warning-border);
 }
 
-/* Active State - Light Blue Tones */
-.scd-planner-card[data-state="active"] {
-	background: var(--scd-color-info-bg);
-	color: var(--scd-color-primary-dark);
-	box-shadow: var(--scd-shadow-primary-md);
-	border-color: var(--scd-color-secondary);
-	border-width: 2px;
+.wsscd-planner-card[data-position="past"]:hover {
+	border-color: var(--wsscd-color-border);
+	opacity: 0.85;
 }
 
-.scd-planner-card[data-state="active"]:hover {
-	background: var(--scd-color-info-light);
-	box-shadow: var(--scd-shadow-primary-lg);
-	border-color: var(--scd-color-info);
+.wsscd-planner-card[data-position="past"][data-major-event="true"] {
+	background: var(--wsscd-color-warning-bg);
+	border-color: var(--wsscd-color-warning-border);
 }
 
-/* Active + Major Event */
-.scd-planner-card[data-state="active"][data-major-event="true"] {
-	background: var(--scd-color-blue-bg);
-	box-shadow: var(--scd-shadow-primary-md);
-	border-color: var(--scd-color-blue);
+/* --- Slot 2: Active Position (Focus Slot) --- */
+.wsscd-planner-card[data-position="active"] {
+	background: var(--wsscd-color-info-bg);
+	border: 2px solid var(--wsscd-color-secondary);
+	box-shadow: var(--wsscd-shadow-primary-md);
 }
 
-/* Future State */
-.scd-planner-card[data-state="future"] {
-	background: var(--scd-color-blue-lighter);
-	border: 2px dashed var(--scd-color-blue);
+.wsscd-planner-card[data-position="active"]:hover {
+	background: var(--wsscd-color-info-light);
+	border-color: var(--wsscd-color-info);
+	box-shadow: var(--wsscd-shadow-primary-lg);
 }
 
-.scd-planner-card[data-state="future"]:hover {
-	background: var(--scd-color-info-bg);
-	border-color: var(--scd-color-primary);
+/* Major event in focus slot */
+.wsscd-planner-card[data-position="active"][data-major-event="true"] {
+	background: var(--wsscd-color-warning-lighter);
+	border-color: var(--wsscd-color-warning);
+	box-shadow: var(--wsscd-shadow-warning-md, 0 4px 12px rgba(234, 179, 8, 0.15));
 }
 
-/* Future + Major Event */
-.scd-planner-card[data-state="future"][data-major-event="true"] {
-	background: var(--scd-color-warning-bg);
-	border: 2px dashed var(--scd-color-warning);
+.wsscd-planner-card[data-position="active"][data-major-event="true"]:hover {
+	background: var(--wsscd-color-warning-bg);
+	border-color: var(--wsscd-color-warning-dark, #ca8a04);
+	box-shadow: var(--wsscd-shadow-warning-lg, 0 6px 16px rgba(234, 179, 8, 0.2));
 }
 
-/* Focused State */
-.scd-planner-card[data-focused="true"] {
-	border: 2px solid var(--wp-admin-theme-color, var(--scd-color-primary));
-	box-shadow: 0 0 0 3px var(--scd-color-primary-alpha-15),
-				0 2px 8px var(--scd-overlay-subtle);
+/* --- Slot 3: Future Position --- */
+.wsscd-planner-card[data-position="future"] {
+	background: var(--wsscd-color-blue-lighter);
+	border: 2px dashed var(--wsscd-color-blue);
 }
 
-.scd-planner-card[data-state="active"][data-focused="true"] {
-	border: 2px solid var(--scd-color-info);
-	box-shadow: 0 0 0 3px var(--scd-color-info-alpha-25),
-				var(--scd-shadow-primary-lg);
+.wsscd-planner-card[data-position="future"]:hover {
+	background: var(--wsscd-color-info-bg);
+	border-color: var(--wsscd-color-primary);
 }
 
-/* ===========================
-   Card Components
-   =========================== */
-.scd-planner-card-header {
+.wsscd-planner-card[data-position="future"][data-major-event="true"] {
+	background: var(--wsscd-color-warning-bg);
+	border: 2px dashed var(--wsscd-color-warning);
+}
+
+.wsscd-planner-card[data-position="future"][data-major-event="true"]:hover {
+	border-color: var(--wsscd-color-warning-dark, #ca8a04);
+}
+
+/* =============================================================================
+   6. CAMPAIGN CARDS - FOCUSED STATE
+   ============================================================================= */
+
+.wsscd-planner-card[data-focused="true"] {
+	border-style: solid;
+	border-color: var(--wp-admin-theme-color, var(--wsscd-color-primary));
+	box-shadow:
+		0 0 0 3px var(--wsscd-color-primary-alpha-15),
+		0 2px 8px var(--wsscd-overlay-subtle);
+}
+
+.wsscd-planner-card[data-position="active"][data-focused="true"] {
+	box-shadow:
+		0 0 0 3px var(--wsscd-color-primary-alpha-20),
+		var(--wsscd-shadow-primary-lg);
+}
+
+.wsscd-planner-card[data-position="active"][data-major-event="true"][data-focused="true"] {
+	border-color: var(--wsscd-color-warning);
+	box-shadow:
+		0 0 0 3px rgba(234, 179, 8, 0.2),
+		var(--wsscd-shadow-warning-lg, 0 6px 16px rgba(234, 179, 8, 0.2));
+}
+
+/* =============================================================================
+   7. CARD COMPONENTS (Header, Title, Icon)
+   ============================================================================= */
+
+.wsscd-planner-card-header {
 	display: flex;
 	align-items: flex-start;
 	justify-content: space-between;
@@ -365,35 +388,43 @@
 	margin-bottom: 14px;
 }
 
-.scd-planner-card-title {
+.wsscd-planner-card-title {
 	flex: 1;
 	min-width: 0;
 }
 
-.scd-planner-card-title h3 {
-	margin: 0 0 var(--scd-spacing-xs);
-	font-size: var(--scd-font-size-xl);
-	font-weight: var(--scd-font-weight-semibold);
+.wsscd-planner-card-title h3 {
 	display: flex;
 	align-items: center;
-	gap: var(--scd-gap-tight);
+	gap: var(--wsscd-gap-tight);
+	margin: 0 0 var(--wsscd-spacing-xs);
+	font-size: var(--wsscd-font-size-xl);
+	font-weight: var(--wsscd-font-weight-semibold);
 	line-height: 1.3;
-	color: var(--scd-color-text-dark);
+	color: var(--wsscd-color-text-dark);
 }
 
-.scd-planner-card[data-state="active"] .scd-planner-card-title h3 {
-	color: var(--scd-color-primary-dark);
-	font-weight: var(--scd-font-weight-bold);
+/* Focus slot title emphasis */
+.wsscd-planner-card[data-position="active"] .wsscd-planner-card-title h3 {
+	font-weight: var(--wsscd-font-weight-bold);
+	color: var(--wsscd-color-primary-dark);
 }
 
-.scd-planner-icon {
-	font-size: var(--scd-icon-medium);
-	line-height: 1;
+.wsscd-planner-card[data-position="active"][data-major-event="true"] .wsscd-planner-card-title h3 {
+	color: var(--wsscd-color-warning-dark, #92400e);
+}
+
+.wsscd-planner-icon {
 	flex-shrink: 0;
+	font-size: var(--wsscd-icon-medium);
+	line-height: 1;
 }
 
-/* Badges Container - Flex Item */
-.scd-planner-card-badges {
+/* =============================================================================
+   8. CARD BADGES
+   ============================================================================= */
+
+.wsscd-planner-card-badges {
 	display: flex;
 	flex-direction: column;
 	align-items: flex-end;
@@ -401,368 +432,455 @@
 	flex-shrink: 0;
 }
 
-.scd-planner-card-badge {
+.wsscd-planner-card-badge {
 	display: inline-flex;
 	align-items: center;
-	gap: var(--scd-spacing-xs);
-	padding: var(--scd-spacing-xs) var(--scd-spacing-sm-large);
-	border-radius: var(--scd-radius-xl);
-	font-size: var(--scd-font-size-small);
-	font-weight: var(--scd-font-weight-semibold);
-	text-transform: uppercase;
-	letter-spacing: 0.3px;
+	gap: var(--wsscd-spacing-xs);
+	padding: var(--wsscd-spacing-xs) var(--wsscd-spacing-md);
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-medium);
+	line-height: 1.5;
+	white-space: nowrap;
+	border-radius: var(--wsscd-radius-md);
 	flex-shrink: 0;
-	transition: all var(--scd-transition-base) ease;
+	transition: var(--wsscd-transition-all);
 }
 
-/* Ensure consistent icon sizing in badges */
-.scd-planner-card-badge .scd-icon {
-	font-size: var(--scd-font-size-medium);
-	width: var(--scd-font-size-medium);
-	height: var(--scd-font-size-medium);
-	flex-shrink: 0;
+.wsscd-planner-card-badge .wsscd-icon {
+	width: 14px;
+	height: 14px;
 }
 
-/* State Badges (for non-major events) - Tinted badge style */
-.scd-badge-past {
-	background: var(--scd-color-text-alpha-15);
-	color: var(--scd-color-text-muted);
-	border: none;
+/* State Badges - Weekly Campaigns */
+.wsscd-badge-past {
+	background: var(--wsscd-color-text-alpha-15);
+	color: var(--wsscd-color-text-muted);
 }
 
-.scd-badge-active {
-	background: var(--scd-color-warning-lighter);
-	color: var(--scd-color-warning-dark);
-	border: none;
+.wsscd-badge-active {
+	background: var(--wsscd-color-warning-lighter);
+	color: var(--wsscd-color-warning-dark);
 }
 
-.scd-badge-future {
-	background: var(--scd-color-info-alpha-15);
-	color: var(--scd-color-primary);
-	border: none;
+.wsscd-badge-future {
+	background: var(--wsscd-color-info-alpha-15);
+	color: var(--wsscd-color-primary);
 }
 
-/* State-specific badge overrides on active cards */
-.scd-planner-card[data-state="active"] .scd-badge-active {
-	background: var(--scd-color-primary-dark);
-	color: var(--scd-color-white);
-	border: none;
-	font-weight: 700;
+/* Focus slot badge emphasis */
+.wsscd-planner-card[data-position="active"] .wsscd-badge-active {
+	background: var(--wsscd-color-primary);
+	color: var(--wsscd-color-white);
+	font-weight: var(--wsscd-font-weight-semibold);
 }
 
-/* Combined Major Event Badges */
-.scd-badge-combined {
-	font-weight: 700;
+/* State Badges - Major Events */
+.wsscd-badge-combined {
+	font-weight: var(--wsscd-font-weight-semibold);
 }
 
-/* Past Major Event */
-.scd-badge-major-past {
-	background: var(--scd-color-muted);
-	color: var(--scd-color-white);
-	border: none;
+.wsscd-badge-major-past {
+	background: var(--wsscd-color-muted);
+	color: var(--wsscd-color-white);
 }
 
-/* Active Major Event */
-.scd-badge-major-active {
-	background: var(--scd-color-primary-dark);
-	color: var(--scd-color-white);
-	border: none;
+.wsscd-badge-major-active {
+	background: var(--wsscd-color-primary-dark);
+	color: var(--wsscd-color-white);
 }
 
-/* Future Major Event */
-.scd-badge-major-future {
-	background: var(--scd-color-warning);
-	color: var(--scd-color-white);
-	border: none;
+.wsscd-badge-major-future {
+	background: var(--wsscd-color-warning);
+	color: var(--wsscd-color-white);
 }
 
-.scd-planner-card-content {
-	margin-bottom: var(--scd-spacing-base);
+/* =============================================================================
+   9. CARD CONTENT (Description, Date, Relative Time, Discount)
+   ============================================================================= */
+
+.wsscd-planner-card-content {
+	margin-bottom: var(--wsscd-spacing-md);
 }
 
-.scd-planner-card-description {
-	font-size: var(--scd-font-size-base);
-	line-height: var(--scd-line-height-base);
-	margin-bottom: var(--scd-spacing-md);
-	color: var(--scd-color-text-muted);
+/* Event description */
+.wsscd-planner-card-description {
+	margin: 0 0 var(--wsscd-spacing-md) 0;
+	font-size: var(--wsscd-font-size-base);
+	line-height: var(--wsscd-line-height-relaxed);
+	color: var(--wsscd-color-text-light);
 }
 
-.scd-planner-card[data-state="active"] .scd-planner-card-description {
-	color: var(--scd-color-info-dark);
-	font-weight: var(--scd-font-weight-medium);
+/* Past card - muted description */
+.wsscd-planner-card[data-position="past"] .wsscd-planner-card-description {
+	color: var(--wsscd-color-text-lighter);
 }
 
-.scd-planner-card-discount,
-.scd-planner-card-stat {
+/* Active card - emphasized description */
+.wsscd-planner-card[data-position="active"] .wsscd-planner-card-description {
+	color: var(--wsscd-color-text);
+}
+
+/* Major event active - warm tone */
+.wsscd-planner-card[data-position="active"][data-major-event="true"] .wsscd-planner-card-description {
+	color: var(--wsscd-color-warning-dark);
+}
+
+/* Meta line (date, time, discount) */
+.wsscd-planner-card-meta {
 	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text-muted);
+}
+
+/* Date (e.g., "Nov 29") */
+.wsscd-planner-card-date {
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+}
+
+/* Separator dot */
+.wsscd-planner-card-separator {
+	margin: 0 8px;
+	color: var(--wsscd-color-text-muted);
+	font-weight: var(--wsscd-font-weight-bold);
+}
+
+/* Relative time (e.g., "In 3 days") */
+.wsscd-planner-card-relative {
+	color: var(--wsscd-color-text-muted);
+}
+
+/* State-specific relative time colors */
+.wsscd-planner-card[data-state="active"] .wsscd-planner-card-relative {
+	color: var(--wsscd-color-success-dark);
+}
+
+.wsscd-planner-card[data-state="future"] .wsscd-planner-card-relative {
+	color: var(--wsscd-color-primary);
+}
+
+.wsscd-planner-card[data-state="past"] .wsscd-planner-card-relative {
+	color: var(--wsscd-color-text-lighter);
+}
+
+/* Discount suggestion (e.g., "20% off") */
+.wsscd-planner-card-discount {
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-success-dark);
+}
+
+/* =============================================================================
+   10. CARD ACTIONS
+   ============================================================================= */
+
+.wsscd-planner-card-actions {
+	display: flex;
+	gap: var(--wsscd-gap-tight);
+}
+
+/* Card Link Style */
+.wsscd-card-link {
+	display: inline-flex;
 	align-items: center;
-	gap: 6px;
-	font-size: var(--scd-font-size-base);
-	font-weight: var(--scd-font-weight-semibold);
-	color: var(--scd-color-text);
+	gap: 4px;
+	color: var(--wp-admin-theme-color, var(--wsscd-color-primary));
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-semibold);
+	text-decoration: none;
+	transition: color var(--wsscd-transition-fast) ease;
 }
 
-.scd-planner-card[data-state="active"] .scd-planner-card-discount,
-.scd-planner-card[data-state="active"] .scd-planner-card-stat {
-	color: var(--scd-color-primary-dark);
-	font-weight: var(--scd-font-weight-bold);
+.wsscd-card-link:hover {
+	color: var(--wsscd-color-primary-dark);
 }
 
-.scd-planner-card-actions {
-	display: flex;
-	gap: var(--scd-gap-tight);
+.wsscd-card-link-arrow {
+	display: inline-block;
+	transition: transform var(--wsscd-transition-fast) ease;
 }
 
-.scd-planner-card-actions .button {
-	flex: 1;
-	justify-content: center;
-	transition: all 0.2s ease;
+.wsscd-card-link:hover .wsscd-card-link-arrow {
+	transform: translateX(3px);
 }
 
-.scd-planner-create-cta {
-	font-weight: 600;
+/* =============================================================================
+   11. INSIGHTS PANEL (Seamless Integration)
+   ============================================================================= */
+
+/* Main Container - Seamless with planner (no separate card) */
+.wsscd-planner-insights {
+	border-top: 1px solid var(--wsscd-color-border-light);
 }
 
-/* ===========================
-   Insights Section
-   =========================== */
-.scd-planner-insights {
-	background: var(--scd-color-white);
-	border: 1px solid var(--scd-color-border-light);
-	border-radius: 8px;
-	box-shadow: var(--scd-shadow-xs);
-	overflow: hidden;
+/* Persistent Header */
+.wsscd-insights-header {
+	padding: var(--wsscd-padding-compact) var(--wsscd-padding-section);
+	background: var(--wsscd-color-gray-50);
 }
 
-/* Insights Header */
-.scd-insights-header {
-	display: flex;
-	align-items: center;
-	gap: var(--scd-gap-sm-medium);
-	margin-bottom: var(--scd-spacing-md);
-	padding-bottom: var(--scd-spacing-md);
-	border-bottom: var(--scd-border-width-thick) solid var(--scd-color-border-light);
-}
-
-.scd-insights-header .dashicons {
-	width: var(--scd-icon-xl);
-	height: var(--scd-icon-xl);
-	font-size: var(--scd-font-size-display-sm);
-	color: var(--wp-admin-theme-color, var(--scd-color-primary));
-	background: var(--scd-color-info-bg);
-	border-radius: var(--scd-radius-md);
-	padding: 5px;
-	flex-shrink: 0;
-}
-
-.scd-insights-header h3 {
+.wsscd-insights-title {
 	margin: 0;
-	font-size: var(--scd-font-size-xl);
-	font-weight: var(--scd-font-weight-semibold);
-	color: var(--scd-color-text-dark);
+	font-size: var(--wsscd-font-size-medium);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
 }
 
-/* 3-Column Grid */
-.scd-insights-columns {
-	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	gap: var(--scd-gap-comfortable);
-	background: var(--scd-color-surface);
-	padding: var(--scd-padding-large);
-}
 
-.scd-insights-column {
-	display: flex;
-	flex-direction: column;
-	gap: var(--scd-gap-sm-medium);
-}
+/* =============================================================================
+   12. INSIGHTS BODY (Dynamic Content)
+   ============================================================================= */
 
-.scd-insights-column-header {
-	display: flex;
-	align-items: center;
-	gap: var(--scd-gap-sm-medium);
-	padding: var(--scd-padding-sm-large) var(--scd-padding-medium);
-	background: var(--scd-color-primary-alpha-15);
-	border-radius: var(--scd-radius-md);
-	margin-bottom: var(--scd-spacing-sm);
-}
-
-.scd-insights-column-header .scd-icon {
-	color: var(--scd-color-primary);
-	font-size: var(--scd-icon-small);
-}
-
-.scd-insights-column-header h4 {
-	margin: 0;
-	font-size: var(--scd-font-size-small);
-	font-weight: var(--scd-font-weight-semibold);
-	color: var(--scd-color-primary);
-	text-transform: uppercase;
-	letter-spacing: 0.5px;
-}
-
-/* Insights Content */
-.scd-insights-content {
-	padding: var(--scd-padding-large);
+/* Body Container (replaced by AJAX) */
+.wsscd-insights-body {
+	padding: var(--wsscd-padding-large);
 	min-height: 280px;
-	transition: opacity var(--scd-transition-base) ease;
+	transition: opacity var(--wsscd-transition-base) ease;
 	position: relative;
 }
 
-.scd-insights-content.scd-insights-loading {
+.wsscd-insights-body.wsscd-insights-loading {
 	opacity: 0.5;
 	pointer-events: none;
 }
 
-.scd-insights-content.scd-insights-loading::after {
+.wsscd-insights-body.wsscd-insights-loading::after {
 	content: '';
 	position: absolute;
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-	width: var(--scd-icon-xxl);
-	height: var(--scd-icon-xxl);
-	border: var(--scd-border-width-accent-thin) solid var(--scd-color-border-light);
-	border-top-color: var(--wp-admin-theme-color, var(--scd-color-primary));
-	border-radius: var(--scd-radius-full);
-	animation: scd-spin 0.6s linear infinite;
+	width: var(--wsscd-icon-xxl);
+	height: var(--wsscd-icon-xxl);
+	border: var(--wsscd-border-width-accent-thin) solid var(--wsscd-color-border-light);
+	border-top-color: var(--wsscd-color-primary);
+	border-radius: var(--wsscd-radius-full);
+	animation: wsscd-spin 0.6s linear infinite;
 }
 
-/* Note: @keyframes scd-spin defined in shared/_utilities.css */
+/* 3-Column Grid */
+.wsscd-insights-columns {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: var(--wsscd-gap-spacious);
+}
 
-/* ===========================
-   Insights Content List
-   =========================== */
-.scd-insights-content-list {
+.wsscd-insights-column {
 	display: flex;
 	flex-direction: column;
-	gap: var(--scd-gap-tight);
-	padding: 0;
 }
 
-/* Info Items */
-.scd-insights-info-item,
-.scd-insights-pro-info-item {
+/* Column Header */
+.wsscd-insights-column-header {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-gap-tight);
+	padding: var(--wsscd-padding-small) var(--wsscd-padding-compact);
+	background: var(--wsscd-color-primary-alpha-10);
+	border-radius: var(--wsscd-radius-md);
+	margin-bottom: var(--wsscd-spacing-sm);
+}
+
+.wsscd-insights-column-header .wsscd-icon {
+	color: var(--wsscd-color-primary);
+	font-size: var(--wsscd-icon-small);
+}
+
+.wsscd-insights-column-header h4 {
+	margin: 0;
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-primary);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+/* Column Items Container */
+.wsscd-insights-items {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	gap: var(--wsscd-gap-tight);
+}
+
+/* Individual Item */
+.wsscd-insights-item {
 	display: flex;
 	align-items: center;
 	gap: 12px;
 	padding: 12px 16px;
 	min-height: 48px;
-	background: var(--scd-color-white);
-	border: 1px solid var(--scd-color-border);
-	border-radius: var(--scd-radius-md);
-	transition: background-color var(--scd-transition-base) ease;
+	background: var(--wsscd-color-white);
+	border: 1px solid var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-md);
+	transition: background-color var(--wsscd-transition-base) ease;
 }
 
-.scd-insights-info-item:hover {
-	background: var(--scd-color-surface);
+.wsscd-insights-item:hover {
+	background: var(--wsscd-color-surface);
 }
 
-.scd-insights-pro-info-item {
-	background: var(--scd-color-warning-lighter);
-	border-color: var(--scd-color-warning-light);
-	cursor: help;
+.wsscd-insights-item .wsscd-icon {
+	color: var(--wsscd-color-primary);
+	font-size: var(--wsscd-icon-medium);
 }
 
-.scd-insights-pro-info-item:hover {
-	background: var(--scd-color-warning-alpha-25);
-}
-
-.scd-insights-info-item .scd-icon,
-.scd-insights-pro-info-item .scd-icon {
-	color: var(--scd-color-primary);
-	font-size: var(--scd-icon-medium);
-}
-
-.scd-insights-pro-info-item .scd-icon {
-	color: var(--scd-color-warning);
-}
-
-.scd-insights-info-text {
-	font-size: var(--scd-font-size-base);
-	line-height: var(--scd-line-height-base);
-	color: var(--scd-color-text);
+.wsscd-insights-item-text {
+	font-size: var(--wsscd-font-size-base);
+	line-height: var(--wsscd-line-height-base);
+	color: var(--wsscd-color-text);
 	flex: 1;
 }
 
-/* CTA Section - uses .scd-button--primary from shared/_buttons.css */
-.scd-insights-cta {
-	margin-top: var(--scd-spacing-md);
-	padding-top: var(--scd-spacing-md);
-	border-top: var(--scd-border-width-thick) solid var(--scd-color-border-light);
+/* Pro Item Variant */
+.wsscd-insights-item--pro {
+	background: var(--wsscd-color-warning-lighter);
+	border-color: var(--wsscd-color-warning-light);
+	cursor: help;
 }
 
-/* Context-specific sizing for insights CTA button */
-.scd-insights-cta-button {
+.wsscd-insights-item--pro:hover {
+	background: var(--wsscd-color-warning-alpha-25);
+}
+
+.wsscd-insights-item--pro .wsscd-icon {
+	color: var(--wsscd-color-warning);
+}
+
+/* Column CTA */
+.wsscd-insights-column-cta {
+	margin-top: var(--wsscd-spacing-md);
+	padding-top: var(--wsscd-spacing-md);
+	border-top: var(--wsscd-border-width-thick) solid var(--wsscd-color-border-light);
+}
+
+.wsscd-insights-cta-button {
 	width: 100%;
 	justify-content: center;
-	padding: var(--scd-padding-small) var(--scd-padding-large);
-	font-size: var(--scd-font-size-base);
-	font-weight: var(--scd-font-weight-semibold);
+	padding: var(--wsscd-padding-small) var(--wsscd-padding-large);
+	font-size: var(--wsscd-font-size-base);
+	font-weight: var(--wsscd-font-weight-semibold);
 }
 
-.scd-insights-cta-button:hover {
-	box-shadow: 0 2px 6px var(--scd-color-primary-alpha-25);
+.wsscd-insights-cta-button:hover {
+	box-shadow: 0 2px 6px var(--wsscd-color-primary-alpha-25);
 }
 
-/* ===========================
-   Responsive Design
-   =========================== */
+/* Empty State */
+.wsscd-insights-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--wsscd-gap-normal);
+	min-height: 200px;
+	padding: var(--wsscd-padding-large);
+	text-align: center;
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-insights-empty .wsscd-icon {
+	font-size: 48px;
+	color: var(--wsscd-color-border);
+}
+
+.wsscd-insights-empty p {
+	margin: 0;
+	max-width: 300px;
+	font-size: var(--wsscd-font-size-base);
+	line-height: var(--wsscd-line-height-relaxed);
+}
+
+/* =============================================================================
+   13. ANIMATIONS
+   ============================================================================= */
+
+@keyframes pulse-timeline-dot {
+	0%, 100% {
+		box-shadow:
+			0 0 0 4px var(--wsscd-color-primary-alpha-15),
+			0 2px 10px var(--wsscd-color-primary-alpha-30);
+	}
+	50% {
+		box-shadow:
+			0 0 0 6px var(--wsscd-color-primary-alpha-10),
+			0 2px 12px var(--wsscd-color-primary-alpha-25);
+	}
+}
+
+@keyframes shimmer {
+	0% {
+		left: -100%;
+	}
+	40%, 100% {
+		left: 150%;
+	}
+}
+
+/* Note: @keyframes wsscd-spin defined in shared/_utilities.css */
+
+/* =============================================================================
+   14. RESPONSIVE DESIGN
+   ============================================================================= */
+
 @media (max-width: 1024px) {
-	.scd-planner-grid {
-		gap: var(--scd-gap-comfortable);
-		padding: var(--scd-padding-large);
+	.wsscd-planner-grid {
+		gap: var(--wsscd-gap-comfortable);
+		padding: var(--wsscd-padding-large);
 	}
 
-	.scd-insights-columns {
+	.wsscd-insights-columns {
 		grid-template-columns: repeat(2, 1fr);
-		gap: var(--scd-gap-normal);
-		padding: var(--scd-padding-medium);
+		gap: var(--wsscd-gap-normal);
 	}
 
-	.scd-insights-info-item {
+	.wsscd-insights-item {
 		padding: 9px 11px;
 	}
 }
 
 @media (max-width: 900px) {
-	.scd-planner-grid {
+	.wsscd-planner-grid {
 		grid-template-columns: repeat(2, 1fr);
-		gap: var(--scd-gap-comfortable);
+		gap: var(--wsscd-gap-comfortable);
 	}
 
-	.scd-planner-timeline {
+	.wsscd-planner-timeline {
 		height: 52px;
-		padding: 0 var(--scd-padding-compact);
+		padding: 0 var(--wsscd-padding-compact);
 	}
 
-	.scd-timeline-label {
+	.wsscd-timeline-label {
 		font-size: 9px;
 		letter-spacing: 0.4px;
 	}
 }
 
 @media (max-width: 768px) {
-	.scd-planner-grid {
+	.wsscd-planner-grid {
 		grid-template-columns: 1fr;
-		padding: var(--scd-padding-large);
+		padding: var(--wsscd-padding-large);
 	}
 
-	.scd-planner-timeline {
+	.wsscd-planner-timeline {
 		display: none;
 	}
 
-	.scd-insights-columns {
+	.wsscd-insights-columns {
 		grid-template-columns: 1fr;
-		gap: var(--scd-gap-normal);
-		padding: var(--scd-padding-medium);
+		gap: var(--wsscd-gap-normal);
 	}
 
-	.scd-insights-column-header {
-		padding: 6px var(--scd-spacing-sm-large);
+	.wsscd-insights-body {
+		padding: var(--wsscd-padding-medium);
 	}
 
-	.scd-insights-info-item {
+	.wsscd-insights-column-header {
+		padding: 6px var(--wsscd-spacing-sm-large);
+	}
+
+	.wsscd-insights-item {
 		padding: 9px 11px;
 	}
 }

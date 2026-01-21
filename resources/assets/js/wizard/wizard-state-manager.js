@@ -2,7 +2,7 @@
  * Wizard State Manager
  *
  * Centralized state management for the campaign wizard using BaseState pattern.
- * Extends SCD.Shared.BaseState for consistent state management with change tracking,
+ * Extends WSSCD.Shared.BaseState for consistent state management with change tracking,
  * subscribers, and history support.
  *
  * @package    SmartCycleDiscounts
@@ -17,8 +17,8 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	window.SCD.Wizard = window.SCD.Wizard || {};
+	window.WSSCD = window.WSSCD || {};
+	window.WSSCD.Wizard = window.WSSCD.Wizard || {};
 
 	/**
 	 * Wizard State Manager Constructor
@@ -26,13 +26,13 @@
 	 * Extends BaseState for state management with wizard-specific functionality.
 	 * Implements singleton pattern - use getInstance() to access.
 	 *
-	 * @class SCD.Wizard.StateManager
-	 * @extends SCD.Shared.BaseState
+	 * @class WSSCD.Wizard.StateManager
+	 * @extends WSSCD.Shared.BaseState
 	 */
-	SCD.Wizard.StateManager = function() {
+	WSSCD.Wizard.StateManager = function() {
 		// Return existing instance if already created (singleton pattern)
-		if ( SCD.Wizard.StateManager._instance ) {
-			return SCD.Wizard.StateManager._instance;
+		if ( WSSCD.Wizard.StateManager._instance ) {
+			return WSSCD.Wizard.StateManager._instance;
 		}
 
 		// Define initial state
@@ -87,15 +87,15 @@
 				smartSave: true,
 				validation: true,
 				preview: true,
-				debug: window.scdWizardData && window.scdWizardData.debug
+				debug: window.wsscdWizardData && window.wsscdWizardData.debug
 			}
 		};
 
 		// Call BaseState constructor
-		if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-			SCD.Shared.BaseState.call( this, initialState );
+		if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+			WSSCD.Shared.BaseState.call( this, initialState );
 		} else {
-			console.error( 'SCD.Shared.BaseState not found! Wizard state management will not work.' );
+			console.error( 'WSSCD.Shared.BaseState not found! Wizard state management will not work.' );
 			return;
 		}
 
@@ -104,24 +104,24 @@
 		this.storageError = null;
 
 		// Store singleton instance
-		SCD.Wizard.StateManager._instance = this;
+		WSSCD.Wizard.StateManager._instance = this;
 	};
 
 	// Inherit from BaseState
-	if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-		SCD.Wizard.StateManager.prototype = Object.create( SCD.Shared.BaseState.prototype );
-		SCD.Wizard.StateManager.prototype.constructor = SCD.Wizard.StateManager;
+	if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+		WSSCD.Wizard.StateManager.prototype = Object.create( WSSCD.Shared.BaseState.prototype );
+		WSSCD.Wizard.StateManager.prototype.constructor = WSSCD.Wizard.StateManager;
 	}
 
 	// Extend prototype with wizard-specific methods
-	SCD.Utils.extend( SCD.Wizard.StateManager.prototype, {
+	WSSCD.Utils.extend( WSSCD.Wizard.StateManager.prototype, {
 
 		/**
 		 * Initialize state manager with campaign data
 		 *
 		 * @since 1.0.0
 		 * @param {object} initialData - Initial wizard data
-		 * @returns {SCD.Wizard.StateManager} this
+		 * @returns {WSSCD.Wizard.StateManager} this
 		 */
 		init: function( initialData ) {
 			if ( !initialData ) {
@@ -146,16 +146,19 @@
 			}
 
 			var isEditMode = initialData && initialData.wizardMode === 'edit' && initialData.campaignId;
-			var isNewIntent = window.scdWizardSessionInfo && 'new' === window.scdWizardSessionInfo.intent;
 
-			if ( isNewIntent ) {
+			// Check isFresh flag from PHP (set by Intent Handler when processing intent=new).
+			// This is the authoritative source - URL param is stripped after redirect.
+			var isFreshFromPHP = window.wsscdWizardData && window.wsscdWizardData.isFresh;
+
+			if ( isFreshFromPHP ) {
 				this.clearStorage();
 			} else if ( isEditMode ) {
 				// CRITICAL: When editing, don't load from sessionStorage
 				// The fresh campaign data from server should take precedence
 				this.clearStorage();
-				if ( window.SCD && window.SCD.Debug ) {
-					window.SCD.Debug.log( '[StateManager] Edit mode detected - using fresh campaign data from server, not sessionStorage' );
+				if ( window.WSSCD && window.WSSCD.Debug ) {
+					window.WSSCD.Debug.log( '[StateManager] Edit mode detected - using fresh campaign data from server, not sessionStorage' );
 				}
 			} else {
 				this.loadFromStorage();
@@ -184,8 +187,8 @@
 			}
 
 			// Call parent setState for normal updates
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-				SCD.Shared.BaseState.prototype.setState.call( this, updates, batch );
+			if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+				WSSCD.Shared.BaseState.prototype.setState.call( this, updates, batch );
 			}
 
 			// Handle stepData replacement
@@ -196,7 +199,7 @@
 
 				// Mark as dirty when stepData changes
 				if ( !batch ) {
-					SCD.Shared.BaseState.prototype.setState.call( this, {
+					WSSCD.Shared.BaseState.prototype.setState.call( this, {
 						hasUnsavedChanges: true,
 						isDirty: true
 					}, false );
@@ -349,14 +352,14 @@
 			}
 
 			try {
-				var stored = sessionStorage.getItem( 'scd_wizard_state' );
+				var stored = sessionStorage.getItem( 'wsscd_wizard_state' );
 				if ( stored ) {
 					var parsedState = JSON.parse( stored );
 					this.setState( parsedState, true ); // Silent update
 				}
 			} catch ( e ) {
-				if ( window.SCD && window.SCD.Debug ) {
-					window.SCD.Debug.error( 'Failed to load state from storage:', e );
+				if ( window.WSSCD && window.WSSCD.Debug ) {
+					window.WSSCD.Debug.error( 'Failed to load state from storage:', e );
 				}
 			}
 		},
@@ -392,7 +395,7 @@
 				} );
 				seen = null; // Clear for garbage collection
 
-				sessionStorage.setItem( 'scd_wizard_state', stateString );
+				sessionStorage.setItem( 'wsscd_wizard_state', stateString );
 
 				this.clearStorageError();
 				this._storageDisabled = false;
@@ -407,7 +410,7 @@
 					// Try to clear old data and retry once
 					try {
 						this.clearOldStorageData();
-						sessionStorage.setItem( 'scd_wizard_state', stateString );
+						sessionStorage.setItem( 'wsscd_wizard_state', stateString );
 						this.clearStorageError();
 						this._storageDisabled = false;
 						return true;
@@ -415,8 +418,8 @@
 						// CRITICAL: Storage still full after cleanup
 						this._storageDisabled = true;
 
-						if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
-							window.SCD.Shared.NotificationService.error(
+						if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.NotificationService ) {
+							window.WSSCD.Shared.NotificationService.error(
 								'Storage full! Your data may be lost if you refresh. Please save your campaign immediately.',
 								{ duration: 0 } // Persistent notification
 							);
@@ -444,8 +447,8 @@
 		 */
 		handleStorageError: function( message ) {
 			// Notify UI about storage failure
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
-				window.SCD.Shared.NotificationService.warning(
+			if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.NotificationService ) {
+				window.WSSCD.Shared.NotificationService.warning(
 					'Your progress may not be saved locally. Server saves are still working.',
 					{ duration: 3000 }
 				);
@@ -457,7 +460,7 @@
 			};
 
 			// Trigger event for other components
-			$( document ).trigger( 'scd:storage:error', [ message ] );
+			$( document ).trigger( 'wsscd:storage:error', [ message ] );
 		},
 
 		/**
@@ -468,7 +471,7 @@
 		 */
 		clearStorageError: function() {
 			this.storageError = null;
-			$( document ).trigger( 'scd:storage:recovered' );
+			$( document ).trigger( 'wsscd:storage:recovered' );
 		},
 
 		/**
@@ -488,7 +491,7 @@
 			for ( i = 0; i < sessionStorage.length; i++ ) {
 				key = sessionStorage.key( i );
 
-				if ( key && 0 === key.indexOf( 'scd_' ) && 'scd_wizard_state' !== key ) {
+				if ( key && 0 === key.indexOf( 'wsscd_' ) && 'wsscd_wizard_state' !== key ) {
 					keysToRemove.push( key );
 				}
 			}
@@ -510,7 +513,7 @@
 			}
 
 			try {
-				sessionStorage.removeItem( 'scd_wizard_state' );
+				sessionStorage.removeItem( 'wsscd_wizard_state' );
 				this.clearStorageError();
 			} catch ( e ) {
 				// Handle any storage errors silently
@@ -553,7 +556,7 @@
 				}
 			};
 
-			$( document ).on( 'mousemove.scd-activity keypress.scd-activity', throttledUpdate );
+			$( document ).on( 'mousemove.wsscd-activity keypress.wsscd-activity', throttledUpdate );
 		},
 
 		/**
@@ -563,7 +566,7 @@
 		 * @returns {void}
 		 */
 		stopActivityTracking: function() {
-			$( document ).off( '.scd-activity' );
+			$( document ).off( '.wsscd-activity' );
 		},
 
 		/**
@@ -577,11 +580,11 @@
 			this.stopActivityTracking();
 
 			// Clear singleton instance
-			SCD.Wizard.StateManager._instance = null;
+			WSSCD.Wizard.StateManager._instance = null;
 
 			// Call parent destroy if available
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState && SCD.Shared.BaseState.prototype.destroy ) {
-				SCD.Shared.BaseState.prototype.destroy.call( this );
+			if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState && WSSCD.Shared.BaseState.prototype.destroy ) {
+				WSSCD.Shared.BaseState.prototype.destroy.call( this );
 			}
 		}
 	} );
@@ -590,13 +593,13 @@
 	 * Get singleton instance
 	 *
 	 * @since 1.0.0
-	 * @returns {SCD.Wizard.StateManager} Singleton instance
+	 * @returns {WSSCD.Wizard.StateManager} Singleton instance
 	 */
-	SCD.Wizard.StateManager.getInstance = function() {
-		if ( !SCD.Wizard.StateManager._instance ) {
-			SCD.Wizard.StateManager._instance = new SCD.Wizard.StateManager();
+	WSSCD.Wizard.StateManager.getInstance = function() {
+		if ( !WSSCD.Wizard.StateManager._instance ) {
+			WSSCD.Wizard.StateManager._instance = new WSSCD.Wizard.StateManager();
 		}
-		return SCD.Wizard.StateManager._instance;
+		return WSSCD.Wizard.StateManager._instance;
 	};
 
 } )( jQuery );

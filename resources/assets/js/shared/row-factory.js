@@ -8,11 +8,11 @@
  * @package Smart_Cycle_Discounts
  */
 
-( function( window, $, SCD ) {
+( function( window, $, WSSCD ) {
 	'use strict';
 
-	if ( ! SCD || ! SCD.Shared ) {
-		console.error( 'SCD.Shared is not defined. Row Factory cannot initialize.' );
+	if ( ! WSSCD || ! WSSCD.Shared ) {
+		console.error( 'WSSCD.Shared is not defined. Row Factory cannot initialize.' );
 		return;
 	}
 
@@ -23,7 +23,7 @@
 	 *
 	 * @example
 	 * var config = {
-	 *     rowClass: 'scd-tier-row',
+	 *     rowClass: 'wsscd-tier-row',
 	 *     fields: [
 	 *         {
 	 *             type: 'number',
@@ -44,14 +44,14 @@
 	 *     removeButton: {
 	 *         enabled: true,
 	 *         label: 'Remove',
-	 *         class: 'scd-remove-tier'
+	 *         class: 'wsscd-remove-tier'
 	 *     }
 	 * };
 	 *
 	 * var data = { min_quantity: 5, discount_value: 10 };
-	 * var $row = SCD.Shared.RowFactory.create( config, data, 0 );
+	 * var $row = WSSCD.Shared.RowFactory.create( config, data, 0 );
 	 */
-	SCD.Shared.RowFactory = {
+	WSSCD.Shared.RowFactory = {
 
 		/**
 		 * Create a row from configuration
@@ -66,7 +66,7 @@
 
 			// Validate configuration
 			if ( ! config || typeof config !== 'object' ) {
-				SCD.ErrorHandler.handle(
+				WSSCD.ErrorHandler.handle(
 					new Error( 'Row Factory: Invalid configuration provided' ),
 					'RowFactory.create'
 				);
@@ -74,7 +74,7 @@
 			}
 
 			if ( ! config.fields || ! Array.isArray( config.fields ) ) {
-				SCD.ErrorHandler.handle(
+				WSSCD.ErrorHandler.handle(
 					new Error( 'Row Factory: Configuration must include fields array' ),
 					'RowFactory.create'
 				);
@@ -83,17 +83,17 @@
 
 			// Default configuration
 			var settings = $.extend( true, {
-				rowClass: 'scd-dynamic-row',
+				rowClass: 'wsscd-dynamic-row',
 				rowWrapper: 'div',
 				fieldsWrapper: 'div',
-				fieldsWrapperClass: 'scd-row-fields',
+				fieldsWrapperClass: 'wsscd-row-fields',
 				fieldWrapper: 'div',
-				fieldWrapperClass: 'scd-row-field',
+				fieldWrapperClass: 'wsscd-row-field',
 				dataAttributes: {},
 				removeButton: {
 					enabled: false,
 					label: 'Remove',
-					class: 'scd-remove-row button',
+					class: 'wsscd-remove-row button',
 					icon: 'delete'
 				},
 				dragHandle: false
@@ -115,8 +115,8 @@
 
 			// Add drag handle if enabled
 			if ( settings.dragHandle ) {
-				var $dragHandle = $( '<span class="scd-drag-handle" draggable="true"></span>' )
-					.append( SCD.IconHelper.get( 'menu', { size: 16 } ) );
+				var $dragHandle = $( '<span class="wsscd-drag-handle" draggable="true"></span>' )
+					.append( WSSCD.IconHelper.get( 'menu', { size: 16 } ) );
 				$row.append( $dragHandle );
 			}
 
@@ -153,7 +153,7 @@
 		 * @return {jQuery} Created field element
 		 */
 		_createField: function( fieldConfig, value, rowIndex ) {
-			var $wrapper = $( '<div class="' + ( fieldConfig.wrapperClass || 'scd-row-field' ) + '"></div>' );
+			var $wrapper = $( '<div class="' + ( fieldConfig.wrapperClass || 'wsscd-row-field' ) + '"></div>' );
 
 			// Add label if provided
 			if ( fieldConfig.label ) {
@@ -161,7 +161,7 @@
 
 				// Add icon if provided
 				if ( fieldConfig.icon ) {
-					$label.prepend( SCD.IconHelper.get( fieldConfig.icon, { size: 16 } ) + ' ' );
+					$label.prepend( WSSCD.IconHelper.get( fieldConfig.icon, { size: 16 } ) + ' ' );
 				}
 
 				// Add required indicator
@@ -173,17 +173,17 @@
 			}
 
 			// Create input wrapper (for prefix/suffix support)
-			var $inputWrapper = $( '<div class="scd-input-wrapper"></div>' );
+			var $inputWrapper = $( '<div class="wsscd-input-wrapper"></div>' );
 
 			// Add prefix class if prefix is provided
 			if ( fieldConfig.prefix ) {
-				$inputWrapper.addClass( 'scd-input-with-prefix' );
+				$inputWrapper.addClass( 'wsscd-input-with-prefix' );
 			}
 
 			// Add prefix if provided
 			if ( fieldConfig.prefix ) {
 				$inputWrapper.append(
-					'<span class="scd-input-prefix">' + this._escapeHtml( fieldConfig.prefix ) + '</span>'
+					'<span class="wsscd-input-prefix">' + this._escapeHtml( fieldConfig.prefix ) + '</span>'
 				);
 			}
 
@@ -194,7 +194,7 @@
 			// Add suffix if provided
 			if ( fieldConfig.suffix ) {
 				$inputWrapper.append(
-					'<span class="scd-field-suffix">' + this._escapeHtml( fieldConfig.suffix ) + '</span>'
+					'<span class="wsscd-field-suffix">' + this._escapeHtml( fieldConfig.suffix ) + '</span>'
 				);
 			}
 
@@ -255,7 +255,7 @@
 
 			// Set common attributes
 			$input
-				.addClass( fieldConfig.class || 'scd-row-input' )
+				.addClass( fieldConfig.class || 'wsscd-row-input' )
 				.attr( 'name', fieldConfig.name )
 				.attr( 'data-field', fieldConfig.name )
 				.attr( 'data-index', rowIndex );
@@ -346,7 +346,7 @@
 
 			// Add icon if provided
 			if ( buttonConfig.icon ) {
-				$button.append( SCD.IconHelper.get( buttonConfig.icon, { size: 16 } ) + ' ' );
+				$button.append( WSSCD.IconHelper.get( buttonConfig.icon, { size: 16 } ) + ' ' );
 			}
 
 			// Add label text
@@ -355,10 +355,10 @@
 			}
 
 			// Wrap button in field-like container for proper alignment with labeled fields
-			var $wrapper = $( '<div class="scd-row-field scd-row-field--button"></div>' );
+			var $wrapper = $( '<div class="wsscd-row-field wsscd-row-field--button"></div>' );
 
 			// Add empty label spacer to match field structure (label + input)
-			var $labelSpacer = $( '<label class="scd-field-label-spacer"></label>' )
+			var $labelSpacer = $( '<label class="wsscd-field-label-spacer"></label>' )
 				.html( '&nbsp;' )
 				.css( 'visibility', 'hidden' );
 
@@ -376,7 +376,7 @@
 		 * @return {jQuery} Container with all rows
 		 */
 		createMultiple: function( config, dataArray ) {
-			var $container = $( '<div class="scd-rows-container"></div>' );
+			var $container = $( '<div class="wsscd-rows-container"></div>' );
 
 			if ( ! dataArray || ! Array.isArray( dataArray ) ) {
 				return $container;
@@ -394,11 +394,11 @@
 		 * Collect data from rows
 		 *
 		 * @param {jQuery} $container Container with rows
-		 * @param {string} rowSelector Row selector (default: '.scd-dynamic-row')
+		 * @param {string} rowSelector Row selector (default: '.wsscd-dynamic-row')
 		 * @return {Array} Array of row data objects
 		 */
 		collectData: function( $container, rowSelector ) {
-			rowSelector = rowSelector || '.scd-dynamic-row';
+			rowSelector = rowSelector || '.wsscd-dynamic-row';
 			var data = [];
 
 			$container.find( rowSelector ).each( function( index ) {
@@ -459,7 +459,7 @@
 		 */
 		reindex: function( $container, rowSelector ) {
 			var self = this;
-			rowSelector = rowSelector || '.scd-dynamic-row';
+			rowSelector = rowSelector || '.wsscd-dynamic-row';
 
 			$container.find( rowSelector ).each( function( index ) {
 				self.updateIndex( $( this ), index );
@@ -521,8 +521,8 @@
 	};
 
 	// Module loaded
-	if ( window.SCD && window.SCD.DebugLogger ) {
-		SCD.DebugLogger.log( 'info', 'RowFactory', 'Row Factory loaded' );
+	if ( window.WSSCD && window.WSSCD.DebugLogger ) {
+		WSSCD.DebugLogger.log( 'info', 'RowFactory', 'Row Factory loaded' );
 	}
 
-} )( window, jQuery, window.SCD || {} );
+} )( window, jQuery, window.WSSCD || {} );

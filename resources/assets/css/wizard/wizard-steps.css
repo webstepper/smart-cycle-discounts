@@ -1,0 +1,378 @@
+/**
+ * Wizard Steps
+ *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/css/wizard/wizard-steps.css
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @since      1.0.0
+ */
+
+/* ==========================================================================
+   Wizard Container & Layout
+   ========================================================================== */
+
+.wsscd-wizard-step {
+    /* Local CSS variables for wizard context */
+    --wsscd-wizard-spacing: var(--wsscd-spacing-lg);
+    --wsscd-wizard-transition: all var(--wsscd-transition-base) ease-in-out;
+}
+
+/* ==========================================================================
+   Wizard Input Normalization Layer
+   ========================================================================== */
+
+/*
+ * NOTE: This normalization layer exists to override WordPress admin defaults
+ * that may have higher specificity. These rules provide a "reset" layer that
+ * ensures base _forms.css styles can apply correctly within wizard context.
+ *
+ * IMPORTANT: Only includes properties that need to override WordPress admin.
+ * All other styling comes from _forms.css.
+ */
+
+.wsscd-wizard-step input[type="text"]:not(.wsscd-enhanced-input),
+.wsscd-wizard-step input[type="email"]:not(.wsscd-enhanced-input),
+.wsscd-wizard-step input[type="url"]:not(.wsscd-enhanced-input),
+.wsscd-wizard-step input[type="number"]:not(.wsscd-enhanced-input),
+.wsscd-wizard-step input[type="password"]:not(.wsscd-enhanced-input),
+.wsscd-wizard-step input[type="date"]:not(.wsscd-enhanced-input),
+.wsscd-wizard-step input[type="time"]:not(.wsscd-enhanced-input),
+.wsscd-wizard-step input[type="tel"]:not(.wsscd-enhanced-input),
+.wsscd-wizard-step input[type="search"]:not(.wsscd-enhanced-input),
+.wsscd-wizard-step select:not(.wsscd-enhanced-select),
+.wsscd-wizard-step textarea:not(.wsscd-enhanced-input) {
+    /* Reset WordPress appearance overrides */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+
+    /* Remove WordPress box-shadow */
+    box-shadow: none;
+}
+
+/* Context-specific overrides */
+.wsscd-wizard-step textarea:not(.wsscd-enhanced-input) {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.wsscd-wizard-step select:not(.wsscd-enhanced-select) {
+    padding-right: 36px; /* Space for dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px;
+    position: relative;
+}
+
+/* Dropdown arrow using CSS mask for theme color support */
+.wsscd-wizard-step select:not(.wsscd-enhanced-select) {
+    -webkit-mask-image: none;
+    mask-image: none;
+}
+
+.wsscd-wizard-step .wsscd-form-field:has(select:not(.wsscd-enhanced-select))::after {
+    content: '';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E") no-repeat center;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E") no-repeat center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    background-color: var(--wsscd-color-text-lighter);
+    pointer-events: none;
+}
+
+/* All other properties (width, padding, border, color, focus, disabled)
+   inherited from _forms.css */
+
+/* Number input - remove spinners for consistency */
+.wsscd-wizard-step input[type="number"]::-webkit-inner-spin-button,
+.wsscd-wizard-step input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.wsscd-wizard-step input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* ==========================================================================
+   Form Structure
+   ========================================================================== */
+
+.wsscd-form-grid {
+    display: grid;
+    gap: var(--wsscd-wizard-spacing);
+    grid-template-columns: 1fr;
+}
+
+.wsscd-form-grid--2col {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+/* Wizard-specific form field layout - extends base in shared/_forms.css */
+.wsscd-wizard-step .wsscd-form-field {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Required field indicators */
+.wsscd-wizard-step .required,
+.wsscd-required-indicator {
+    color: var(--wsscd-color-danger);
+    font-weight: var(--wsscd-font-weight-bold);
+    margin-left: 2px;
+}
+
+/* Field descriptions */
+.wsscd-field-description {
+    font-size: var(--wsscd-font-size-small);
+    color: var(--wsscd-color-text-muted);
+    line-height: 1.5;
+    margin: var(--wsscd-spacing-xs) 0 0;
+}
+
+/* ==========================================================================
+   Validation States
+   ========================================================================== */
+
+/* Error states handled by validation.css */
+
+/* Success state - Flat Design (border-only) */
+.wsscd-wizard-step .wsscd-field-has-success input,
+.wsscd-wizard-step .wsscd-field-has-success select,
+.wsscd-wizard-step .wsscd-field-has-success textarea,
+.wsscd-wizard-step .has-success input,
+.wsscd-wizard-step .has-success select,
+.wsscd-wizard-step .has-success textarea {
+    border-color: var(--wsscd-color-success);
+}
+
+.wsscd-wizard-step .wsscd-field-has-success input:focus,
+.wsscd-wizard-step .wsscd-field-has-success select:focus,
+.wsscd-wizard-step .wsscd-field-has-success textarea:focus,
+.wsscd-wizard-step .has-success input:focus,
+.wsscd-wizard-step .has-success select:focus,
+.wsscd-wizard-step .has-success textarea:focus {
+    border-color: var(--wsscd-color-success);
+    outline: none;
+}
+
+/* ==========================================================================
+   Status Panels
+   ========================================================================== */
+
+.wsscd-status-panel {
+    background: var(--wsscd-color-background);
+    border: 1px solid var(--wsscd-color-border);
+    border-radius: var(--wsscd-radius-md);
+    padding: var(--wsscd-padding-large);
+    margin: var(--wsscd-spacing-base) 0;
+}
+
+.wsscd-status-content {
+    display: flex;
+    align-items: center;
+    gap: var(--wsscd-gap-normal);
+}
+
+/* Status variants */
+.wsscd-status-panel--success {
+    background: var(--wsscd-alert-success-bg);
+    border-color: var(--wsscd-color-success);
+    color: var(--wsscd-color-text);
+}
+
+.wsscd-status-panel--warning {
+    background: var(--wsscd-alert-warning-bg);
+    border-color: var(--wsscd-color-warning);
+    color: var(--wsscd-color-text);
+}
+
+.wsscd-status-panel--error {
+    background: var(--wsscd-alert-danger-bg);
+    border-color: var(--wsscd-color-danger);
+    color: var(--wsscd-color-text);
+}
+
+/* ==========================================================================
+   Loading States
+   ========================================================================== */
+
+/* Step-scoped loading overlay - different from full-page overlay in admin/admin.css */
+.wsscd-step-main-content .wsscd-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--wsscd-overlay-white-heavy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--wsscd-z-dropdown);
+}
+
+/* Skeleton loading */
+.wsscd-skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--wsscd-color-surface) 25%,
+        var(--wsscd-color-border-light) 50%,
+        var(--wsscd-color-surface) 75%
+    );
+    background-size: 200% 100%;
+    animation: wsscd-skeleton 1.5s infinite;
+}
+
+@keyframes wsscd-skeleton {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
+/* Screen reader only */
+.wsscd-sr-only,
+.screen-reader-text {
+    position: absolute !important;
+    clip: rect(1px, 1px, 1px, 1px);
+    padding: 0 !important;
+    border: 0 !important;
+    height: 1px !important;
+    width: 1px !important;
+    overflow: hidden;
+    word-wrap: normal !important;
+}
+
+/* Focus visible for keyboard navigation */
+.wsscd-wizard-step a:focus-visible,
+.wsscd-wizard-step button:focus-visible,
+.wsscd-wizard-step [tabindex="0"]:focus-visible {
+    outline: 2px solid var(--wsscd-color-primary);
+    outline-offset: 2px;
+}
+
+/* ==========================================================================
+   Media Queries
+   ========================================================================== */
+
+/* Tablets */
+@media (max-width: 960px) {
+    .wsscd-form-grid--2col {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+    .wsscd-wizard-step input,
+    .wsscd-wizard-step select,
+    .wsscd-wizard-step textarea {
+        font-size: var(--wsscd-font-size-large); /* Prevent zoom on iOS */
+    }
+    
+    .wsscd-status-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--wsscd-gap-tight);
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .wsscd-wizard-step input,
+    .wsscd-wizard-step select,
+    .wsscd-wizard-step textarea {
+        border-width: 2px;
+    }
+    
+    .wsscd-wizard-step input:focus,
+    .wsscd-wizard-step select:focus,
+    .wsscd-wizard-step textarea:focus {
+        outline: 3px solid;
+        outline-offset: 2px;
+    }
+}
+
+/* Reduced motion */
+/* Reduced-motion handled globally by _variables.css CSS variables */
+
+/* Print */
+@media print {
+    .wsscd-loading-overlay {
+        display: none !important;
+    }
+
+    .wsscd-wizard-step input,
+    .wsscd-wizard-step select,
+    .wsscd-wizard-step textarea {
+        border: 1px solid var(--wsscd-color-black);
+        background: transparent;
+    }
+}
+
+/* ==========================================================================
+   RTL Support
+   ========================================================================== */
+
+[dir="rtl"] .wsscd-wizard-step select {
+    padding-right: var(--wsscd-spacing-md);
+    padding-left: 36px;
+    background-position: left 12px center;
+}
+
+[dir="rtl"] .wsscd-required-indicator {
+    margin-left: 0;
+    margin-right: 2px;
+}
+
+[dir="rtl"] .wsscd-status-content {
+    flex-direction: row-reverse;
+}
+
+/* ==========================================================================
+   Input Filter - Visual Feedback
+   ========================================================================== */
+
+/**
+ * Visual feedback when invalid characters are filtered from input
+ * Brief pulse animation to indicate character was removed
+ */
+.wsscd-input-filtered {
+	animation: wsscd-filter-pulse 0.3s ease-out;
+}
+
+@keyframes wsscd-filter-pulse {
+	0%, 100% {
+		box-shadow: 0 0 0 0 rgba(var(--wsscd-color-warning-rgb, 255, 193, 7), 0);
+	}
+	50% {
+		box-shadow: 0 0 0 3px rgba(var(--wsscd-color-warning-rgb, 255, 193, 7), 0.3);
+	}
+}
+
+/* Disable animation on reduced motion */
+@media (prefers-reduced-motion: reduce) {
+	.wsscd-input-filtered {
+		animation: none;
+		outline: 2px solid var(--wsscd-color-warning);
+		outline-offset: 1px;
+	}
+
+	@keyframes wsscd-filter-pulse {
+		0%, 100% {
+			box-shadow: none;
+		}
+	}
+}
+/**

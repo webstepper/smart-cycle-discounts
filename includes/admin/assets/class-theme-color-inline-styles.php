@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since      1.0.0
  */
-class SCD_Theme_Color_Inline_Styles {
+class WSSCD_Theme_Color_Inline_Styles {
 
 	/**
 	 * Initialize the class.
@@ -32,7 +32,7 @@ class SCD_Theme_Color_Inline_Styles {
 		add_action( 'admin_head', array( $this, 'print_theme_color_styles' ), 1 );
 
 		// Also hook into SCD's inline style action
-		add_action( 'scd_print_inline_style', array( $this, 'add_theme_colors_to_inline' ), 10, 2 );
+		add_action( 'wsscd_print_inline_style', array( $this, 'add_theme_colors_to_inline' ), 10, 2 );
 	}
 
 	/**
@@ -51,9 +51,18 @@ class SCD_Theme_Color_Inline_Styles {
 		$css = $this->generate_theme_color_css( $colors );
 
 		if ( ! empty( $css ) ) {
-			echo '<style id="scd-theme-colors-early">' . "\n";
-			echo $css;
-			echo '</style>' . "\n";
+			// Use wp_add_inline_style for WordPress.org compliance
+			// We need a handle - use wp-admin as it's always loaded in admin
+			wp_add_inline_style( 'wp-admin', $css );
+
+			// Add the JavaScript to mark colors as loaded using wp_add_inline_script
+			$js = 'document.addEventListener("DOMContentLoaded", function() {' .
+				'setTimeout(function() {' .
+				'if (document.body) { document.body.classList.add("wsscd-colors-loaded"); }' .
+				'}, 100);' .
+				'});';
+
+			wp_add_inline_script( 'jquery-core', $js );
 		}
 	}
 
@@ -67,15 +76,31 @@ class SCD_Theme_Color_Inline_Styles {
 	private function generate_theme_color_css( array $colors ): string {
 		$css = ':root {' . "\n";
 
-		// Base colors
+		// Base colors - sanitize each color value before output
 		foreach ( $colors as $key => $value ) {
-			$css .= sprintf( '    --scd-color-%s: %s;' . "\n", $key, $value );
+			$sanitized_key   = $this->sanitize_css_property_name( $key );
+			$sanitized_value = $this->sanitize_css_color_value( $value );
+
+			// Skip if invalid
+			if ( empty( $sanitized_key ) || empty( $sanitized_value ) ) {
+				continue;
+			}
+
+			$css .= sprintf( '    --wsscd-color-%s: %s;' . "\n", $sanitized_key, $sanitized_value );
 		}
 
-		// Component-specific colors
+		// Component-specific colors - sanitize each property and value
 		$component_mappings = $this->get_component_mappings( $colors );
 		foreach ( $component_mappings as $property => $value ) {
-			$css .= sprintf( '    %s: %s;' . "\n", $property, $value );
+			$sanitized_property = $this->sanitize_css_property_name( $property );
+			$sanitized_value    = $this->sanitize_css_color_value( $value );
+
+			// Skip if invalid
+			if ( empty( $sanitized_property ) || empty( $sanitized_value ) ) {
+				continue;
+			}
+
+			$css .= sprintf( '    %s: %s;' . "\n", $sanitized_property, $sanitized_value );
 		}
 
 		$css .= '}' . "\n";
@@ -84,22 +109,9 @@ class SCD_Theme_Color_Inline_Styles {
 		$css .= "\n" . '/* Draft Notice styles are now in campaigns-list.css */' . "\n";
 
 		$css .= "\n" . '/* Prevent color transitions during initial load */' . "\n";
-		$css .= 'body:not(.scd-colors-loaded) * {' . "\n";
+		$css .= 'body:not(.wsscd-colors-loaded) * {' . "\n";
 		$css .= '    transition-duration: 0s !important;' . "\n";
 		$css .= '}' . "\n";
-
-		// Add JavaScript to mark colors as loaded
-		$css .= '</style>' . "\n";
-		$css .= '<script>' . "\n";
-		$css .= 'document.addEventListener("DOMContentLoaded", function() {' . "\n";
-		$css .= '    setTimeout(function() {' . "\n";
-		$css .= '        if (document.body) {' . "\n";
-		$css .= '            document.body.classList.add("scd-colors-loaded");' . "\n";
-		$css .= '        }' . "\n";
-		$css .= '    }, 100);' . "\n";
-		$css .= '});' . "\n";
-		$css .= '</script>' . "\n";
-		$css .= '<style>' . "\n";
 
 		return $css;
 	}
@@ -115,54 +127,54 @@ class SCD_Theme_Color_Inline_Styles {
 		$mappings = array();
 
 		// Wizard colors
-		$mappings['--scd-wizard-primary']   = $colors['primary'] ?? '#2271b1';
-		$mappings['--scd-wizard-secondary'] = $colors['secondary'] ?? '#72aee6';
-		$mappings['--scd-wizard-success']   = $colors['success'] ?? '#00a32a';
-		$mappings['--scd-wizard-warning']   = $colors['warning'] ?? '#dba617';
-		$mappings['--scd-wizard-danger']    = $colors['danger'] ?? '#d63638';
-		$mappings['--scd-wizard-accent']    = $colors['accent'] ?? '#3858e9';
+		$mappings['--wsscd-wizard-primary']   = $colors['primary'] ?? '#2271b1';
+		$mappings['--wsscd-wizard-secondary'] = $colors['secondary'] ?? '#72aee6';
+		$mappings['--wsscd-wizard-success']   = $colors['success'] ?? '#00a32a';
+		$mappings['--wsscd-wizard-warning']   = $colors['warning'] ?? '#dba617';
+		$mappings['--wsscd-wizard-danger']    = $colors['danger'] ?? '#d63638';
+		$mappings['--wsscd-wizard-accent']    = $colors['accent'] ?? '#3858e9';
 
 		// Form colors
-		$mappings['--scd-form-focus']          = $colors['primary'] ?? '#2271b1';
-		$mappings['--scd-form-error']          = $colors['danger'] ?? '#d63638';
-		$mappings['--scd-form-success']        = $colors['success'] ?? '#00a32a';
-		$mappings['--scd-form-checked-bg']     = $colors['primary'] ?? '#2271b1';
-		$mappings['--scd-form-checked-border'] = $colors['primary'] ?? '#2271b1';
-		$mappings['--scd-form-toggle-on']      = $colors['success'] ?? '#00a32a';
-		$mappings['--scd-form-focus-shadow']   = $this->hex_to_rgba( $colors['primary'] ?? '#2271b1', 0.25 );
+		$mappings['--wsscd-form-focus']          = $colors['primary'] ?? '#2271b1';
+		$mappings['--wsscd-form-error']          = $colors['danger'] ?? '#d63638';
+		$mappings['--wsscd-form-success']        = $colors['success'] ?? '#00a32a';
+		$mappings['--wsscd-form-checked-bg']     = $colors['primary'] ?? '#2271b1';
+		$mappings['--wsscd-form-checked-border'] = $colors['primary'] ?? '#2271b1';
+		$mappings['--wsscd-form-toggle-on']      = $colors['success'] ?? '#00a32a';
+		$mappings['--wsscd-form-focus-shadow']   = $this->hex_to_rgba( $colors['primary'] ?? '#2271b1', 0.25 );
 
 		// Button colors
-		$mappings['--scd-button-primary']       = $colors['primary'] ?? '#2271b1';
-		$mappings['--scd-button-primary-hover'] = $colors['primary_dark'] ?? '#135e96';
-		$mappings['--scd-button-success']       = $colors['success'] ?? '#00a32a';
-		$mappings['--scd-button-success-hover'] = $colors['success_dark'] ?? '#008a20';
-		$mappings['--scd-button-danger']        = $colors['danger'] ?? '#d63638';
-		$mappings['--scd-button-danger-hover']  = $colors['danger_dark'] ?? '#b32d2e';
+		$mappings['--wsscd-button-primary']       = $colors['primary'] ?? '#2271b1';
+		$mappings['--wsscd-button-primary-hover'] = $colors['primary_dark'] ?? '#135e96';
+		$mappings['--wsscd-button-success']       = $colors['success'] ?? '#00a32a';
+		$mappings['--wsscd-button-success-hover'] = $colors['success_dark'] ?? '#008a20';
+		$mappings['--wsscd-button-danger']        = $colors['danger'] ?? '#d63638';
+		$mappings['--wsscd-button-danger-hover']  = $colors['danger_dark'] ?? '#b32d2e';
 
 		// Badge colors
-		$mappings['--scd-badge-active']    = $colors['success'] ?? '#00a32a';
-		$mappings['--scd-badge-inactive']  = $colors['text_muted'] ?? '#646970';
-		$mappings['--scd-badge-scheduled'] = $colors['secondary'] ?? '#72aee6';
-		$mappings['--scd-badge-expired']   = $colors['danger'] ?? '#d63638';
-		$mappings['--scd-badge-draft']     = $colors['warning'] ?? '#dba617';
+		$mappings['--wsscd-badge-active']    = $colors['success'] ?? '#00a32a';
+		$mappings['--wsscd-badge-inactive']  = $colors['text_muted'] ?? '#646970';
+		$mappings['--wsscd-badge-scheduled'] = $colors['secondary'] ?? '#72aee6';
+		$mappings['--wsscd-badge-expired']   = $colors['danger'] ?? '#d63638';
+		$mappings['--wsscd-badge-draft']     = $colors['warning'] ?? '#dba617';
 
 		// Alert backgrounds
-		$mappings['--scd-alert-success-bg']     = $this->hex_to_rgba( $colors['success'] ?? '#00a32a', 0.1 );
-		$mappings['--scd-alert-success-border'] = $colors['success'] ?? '#00a32a';
-		$mappings['--scd-alert-error-bg']       = $this->hex_to_rgba( $colors['danger'] ?? '#d63638', 0.1 );
-		$mappings['--scd-alert-error-border']   = $colors['danger'] ?? '#d63638';
-		$mappings['--scd-alert-warning-bg']     = $this->hex_to_rgba( $colors['warning'] ?? '#dba617', 0.1 );
-		$mappings['--scd-alert-warning-border'] = $colors['warning'] ?? '#dba617';
-		$mappings['--scd-alert-info-bg']        = $this->hex_to_rgba( $colors['secondary'] ?? '#72aee6', 0.1 );
-		$mappings['--scd-alert-info-border']    = $colors['secondary'] ?? '#72aee6';
+		$mappings['--wsscd-alert-success-bg']     = $this->hex_to_rgba( $colors['success'] ?? '#00a32a', 0.1 );
+		$mappings['--wsscd-alert-success-border'] = $colors['success'] ?? '#00a32a';
+		$mappings['--wsscd-alert-error-bg']       = $this->hex_to_rgba( $colors['danger'] ?? '#d63638', 0.1 );
+		$mappings['--wsscd-alert-error-border']   = $colors['danger'] ?? '#d63638';
+		$mappings['--wsscd-alert-warning-bg']     = $this->hex_to_rgba( $colors['warning'] ?? '#dba617', 0.1 );
+		$mappings['--wsscd-alert-warning-border'] = $colors['warning'] ?? '#dba617';
+		$mappings['--wsscd-alert-info-bg']        = $this->hex_to_rgba( $colors['secondary'] ?? '#72aee6', 0.1 );
+		$mappings['--wsscd-alert-info-border']    = $colors['secondary'] ?? '#72aee6';
 
 		// General component colors
-		$mappings['--scd-color-primary-bg'] = $this->hex_to_rgba( $colors['primary'] ?? '#2271b1', 0.05 );
-		$mappings['--scd-color-success-bg'] = $this->hex_to_rgba( $colors['success'] ?? '#00a32a', 0.1 );
-		$mappings['--scd-color-warning-bg'] = $this->hex_to_rgba( $colors['warning'] ?? '#dba617', 0.1 );
-		$mappings['--scd-color-error-bg']   = $this->hex_to_rgba( $colors['danger'] ?? '#d63638', 0.1 );
+		$mappings['--wsscd-color-primary-bg'] = $this->hex_to_rgba( $colors['primary'] ?? '#2271b1', 0.05 );
+		$mappings['--wsscd-color-success-bg'] = $this->hex_to_rgba( $colors['success'] ?? '#00a32a', 0.1 );
+		$mappings['--wsscd-color-warning-bg'] = $this->hex_to_rgba( $colors['warning'] ?? '#dba617', 0.1 );
+		$mappings['--wsscd-color-error-bg']   = $this->hex_to_rgba( $colors['danger'] ?? '#d63638', 0.1 );
 
-		return apply_filters( 'scd_theme_color_mappings', $mappings, $colors );
+		return apply_filters( 'wsscd_theme_color_mappings', $mappings, $colors );
 	}
 
 	/**
@@ -209,7 +221,7 @@ class SCD_Theme_Color_Inline_Styles {
 	 */
 	private function get_theme_colors(): array {
 		// Get WordPress admin color scheme colors from shared utility
-		$colors             = SCD_Theme_Colors::get_theme_colors();
+		$colors             = WSSCD_Theme_Colors::get_theme_colors();
 		$admin_color_scheme = get_user_meta( get_current_user_id(), 'admin_color', true );
 
 		$wc_colors = get_theme_mod( 'woocommerce_colors', array() );
@@ -252,7 +264,7 @@ class SCD_Theme_Color_Inline_Styles {
 		$colors['shadow']        = 'rgba(0, 0, 0, 0.1)';
 
 		// Allow filtering
-		return apply_filters( 'scd_theme_colors', $colors, $admin_color_scheme );
+		return apply_filters( 'wsscd_theme_colors', $colors, $admin_color_scheme );
 	}
 
 	/**
@@ -282,5 +294,98 @@ class SCD_Theme_Color_Inline_Styles {
 		$b = max( 0, min( 255, $b + ( $b * $percent / 100 ) ) );
 
 		return '#' . sprintf( '%02x%02x%02x', $r, $g, $b );
+	}
+
+	/**
+	 * Sanitize CSS property name.
+	 *
+	 * Ensures CSS property names contain only valid characters.
+	 *
+	 * @since 1.0.0
+	 * @param string $property CSS property name.
+	 * @return string Sanitized property name or empty string if invalid.
+	 */
+	private function sanitize_css_property_name( string $property ): string {
+		// CSS custom properties (variables) start with -- (e.g., --wsscd-color-primary)
+		// Standard properties contain only letters, numbers, hyphens (e.g., background-color)
+		// Pattern allows:
+		// 1. Custom properties: --[identifier]
+		// 2. Standard properties: [identifier]
+		if ( preg_match( '/^(--)?[a-zA-Z_][a-zA-Z0-9_-]*$/', $property ) ) {
+			return $property;
+		}
+
+		return '';
+	}
+
+	/**
+	 * Sanitize CSS color value.
+	 *
+	 * Validates and sanitizes color values to prevent CSS/HTML injection.
+	 * Accepts:
+	 * - Hex colors: #fff, #ffffff
+	 * - RGB/RGBA: rgb(0,0,0), rgba(0,0,0,0.5)
+	 * - Named colors from a whitelist
+	 *
+	 * @since 1.0.0
+	 * @param string $value CSS color value.
+	 * @return string Sanitized color value or empty string if invalid.
+	 */
+	private function sanitize_css_color_value( string $value ): string {
+		$value = trim( $value );
+
+		// Try WordPress sanitize_hex_color first for hex values
+		if ( 0 === strpos( $value, '#' ) ) {
+			$hex = sanitize_hex_color( $value );
+			if ( $hex ) {
+				return $hex;
+			}
+			// Try 3-character hex
+			$hex = sanitize_hex_color_no_hash( str_replace( '#', '', $value ) );
+			if ( $hex ) {
+				return '#' . $hex;
+			}
+		}
+
+		// Validate RGB format: rgb(0, 0, 0) or rgb(0,0,0)
+		if ( preg_match( '/^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i', $value, $matches ) ) {
+			$r = min( 255, max( 0, absint( $matches[1] ) ) );
+			$g = min( 255, max( 0, absint( $matches[2] ) ) );
+			$b = min( 255, max( 0, absint( $matches[3] ) ) );
+			return sprintf( 'rgb(%d, %d, %d)', $r, $g, $b );
+		}
+
+		// Validate RGBA format: rgba(0, 0, 0, 0.5)
+		if ( preg_match( '/^rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*([0-9.]+)\s*\)$/i', $value, $matches ) ) {
+			$r = min( 255, max( 0, absint( $matches[1] ) ) );
+			$g = min( 255, max( 0, absint( $matches[2] ) ) );
+			$b = min( 255, max( 0, absint( $matches[3] ) ) );
+			$a = min( 1, max( 0, (float) $matches[4] ) );
+			return sprintf( 'rgba(%d, %d, %d, %s)', $r, $g, $b, $a );
+		}
+
+		// Whitelist of safe CSS color keywords
+		$safe_colors = array(
+			'transparent',
+			'inherit',
+			'currentColor',
+			'black',
+			'white',
+			'red',
+			'green',
+			'blue',
+			'yellow',
+			'orange',
+			'purple',
+			'gray',
+			'grey',
+		);
+
+		if ( in_array( strtolower( $value ), array_map( 'strtolower', $safe_colors ), true ) ) {
+			return strtolower( $value );
+		}
+
+		// Invalid color - return empty
+		return '';
 	}
 }

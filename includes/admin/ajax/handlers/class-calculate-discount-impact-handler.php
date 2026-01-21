@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
+require_once WSSCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
 
 /**
  * Calculate Discount Impact Handler Class
@@ -27,14 +27,14 @@ require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Calculate_Discount_Impact_Handler extends SCD_Abstract_Ajax_Handler {
-	use SCD_Wizard_Helpers;
+class WSSCD_Calculate_Discount_Impact_Handler extends WSSCD_Abstract_Ajax_Handler {
+	use WSSCD_Wizard_Helpers;
 
 	/**
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger    Logger instance (optional).
+	 * @param    WSSCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -47,7 +47,7 @@ class SCD_Calculate_Discount_Impact_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_calculate_discount_impact';
+		return 'wsscd_calculate_discount_impact';
 	}
 
 	/**

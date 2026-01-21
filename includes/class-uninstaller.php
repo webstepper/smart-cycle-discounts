@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since    1.0.0
  */
-class SCD_Uninstaller {
+class WSSCD_Uninstaller {
 
 	/**
 	 * Run the uninstaller.
@@ -41,10 +41,10 @@ class SCD_Uninstaller {
 		global $wpdb;
 
 		// Check if user wants to remove data on uninstall
-		// Settings are stored in scd_settings array under ['advanced']['uninstall_data']
+		// Settings are stored in wsscd_settings array under ['advanced']['uninstall_data']
 		// uninstall_data = true means REMOVE data (delete everything)
 		// uninstall_data = false means KEEP data (preserve campaigns and settings)
-		$settings = get_option( 'scd_settings', array() );
+		$settings = get_option( 'wsscd_settings', array() );
 		$remove_data = isset( $settings['advanced']['uninstall_data'] ) && $settings['advanced']['uninstall_data'];
 		$keep_data = ! $remove_data;
 
@@ -80,20 +80,22 @@ class SCD_Uninstaller {
 
 		// Define tables to drop (in order - respecting foreign key dependencies)
 		$tables = array(
-			$wpdb->prefix . 'scd_customer_usage',
-			$wpdb->prefix . 'scd_campaign_recurring',
-			$wpdb->prefix . 'scd_analytics',
-			$wpdb->prefix . 'scd_active_discounts',
-			$wpdb->prefix . 'scd_campaigns',
-			$wpdb->prefix . 'scd_migrations',
+			$wpdb->prefix . 'wsscd_customer_usage',
+			$wpdb->prefix . 'wsscd_campaign_recurring',
+			$wpdb->prefix . 'wsscd_analytics',
+			$wpdb->prefix . 'wsscd_active_discounts',
+			$wpdb->prefix . 'wsscd_campaigns',
+			$wpdb->prefix . 'wsscd_migrations',
 		);
 
 		foreach ( $tables as $table ) {
 			// First, drop all foreign keys to avoid constraint errors
 			self::drop_table_foreign_keys( $table );
 
-			// Then drop the table
-			$wpdb->query( "DROP TABLE IF EXISTS `{$table}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// Then drop the table - table name prepared with %i identifier placeholder.
+			$drop_table_sql = $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- DROP TABLE during uninstall; query prepared above.
+			$wpdb->query( $drop_table_sql );
 		}
 
 		// Re-enable error display
@@ -110,27 +112,29 @@ class SCD_Uninstaller {
 	private static function drop_table_foreign_keys( $table_name ) {
 		global $wpdb;
 
-		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) !== $table_name ) {
+		$check_table_sql = $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- SHOW TABLES has no WP abstraction; query prepared above.
+		if ( $wpdb->get_var( $check_table_sql ) !== $table_name ) {
 			return;
 		}
 
-		$foreign_keys = $wpdb->get_results(
-			$wpdb->prepare(
-				'SELECT CONSTRAINT_NAME
-				FROM information_schema.KEY_COLUMN_USAGE
-				WHERE TABLE_SCHEMA = %s
-				AND TABLE_NAME = %s
-				AND REFERENCED_TABLE_NAME IS NOT NULL',
-				DB_NAME,
-				$table_name
-			)
+		$fk_query_sql = $wpdb->prepare(
+			'SELECT CONSTRAINT_NAME
+			FROM information_schema.KEY_COLUMN_USAGE
+			WHERE TABLE_SCHEMA = %s
+			AND TABLE_NAME = %s
+			AND REFERENCED_TABLE_NAME IS NOT NULL',
+			DB_NAME,
+			$table_name
 		);
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- INFORMATION_SCHEMA query has no WP abstraction; query prepared above.
+		$foreign_keys = $wpdb->get_results( $fk_query_sql );
 
 		// Drop each foreign key
 		foreach ( $foreign_keys as $fk ) {
-			$wpdb->query(
-				"ALTER TABLE `{$table_name}` DROP FOREIGN KEY `{$fk->CONSTRAINT_NAME}`" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			);
+			$drop_fk_sql = $wpdb->prepare( 'ALTER TABLE %i DROP FOREIGN KEY %i', $table_name, $fk->CONSTRAINT_NAME );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- ALTER TABLE during uninstall; query prepared above with %i.
+			$wpdb->query( $drop_fk_sql );
 		}
 	}
 
@@ -143,25 +147,25 @@ class SCD_Uninstaller {
 	private static function delete_plugin_options() {
 		global $wpdb;
 
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-				'scd_%'
-			)
+		$delete_options_sql = $wpdb->prepare(
+			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
+			'wsscd_%'
 		);
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Bulk option cleanup during uninstall; query prepared above.
+		$wpdb->query( $delete_options_sql );
 
 		$specific_options = array(
-			'scd_version',
-			'scd_db_version',
-			'scd_settings',
-			'scd_activated_at',
-			'scd_deactivated_at',
-			'scd_activation_logs',
-			'scd_deactivation_logs',
-			'scd_preserved_data',
-			'scd_keep_data_on_uninstall',
-			'scd_allow_api_key_via_get',
-			'scd_allow_jwt_via_get',
+			'wsscd_version',
+			'wsscd_db_version',
+			'wsscd_settings',
+			'wsscd_activated_at',
+			'wsscd_deactivated_at',
+			'wsscd_activation_logs',
+			'wsscd_deactivation_logs',
+			'wsscd_preserved_data',
+			'wsscd_keep_data_on_uninstall',
+			'wsscd_allow_api_key_via_get',
+			'wsscd_allow_jwt_via_get',
 		);
 
 		foreach ( $specific_options as $option ) {
@@ -170,9 +174,9 @@ class SCD_Uninstaller {
 
 		// Clean up site options for multisite
 		if ( is_multisite() ) {
-			delete_site_option( 'scd_version' );
-			delete_site_option( 'scd_db_version' );
-			delete_site_option( 'scd_network_settings' );
+			delete_site_option( 'wsscd_version' );
+			delete_site_option( 'wsscd_db_version' );
+			delete_site_option( 'wsscd_network_settings' );
 		}
 	}
 
@@ -184,13 +188,19 @@ class SCD_Uninstaller {
 	 */
 	private static function remove_user_capabilities() {
 		$capabilities = array(
-			'manage_scd_campaigns',
-			'create_scd_campaigns',
-			'edit_scd_campaigns',
-			'delete_scd_campaigns',
-			'view_scd_analytics',
-			'export_scd_data',
-			'manage_scd_settings',
+			'wsscd_view_campaigns',
+			'wsscd_manage_campaigns',
+			'wsscd_create_campaigns',
+			'wsscd_edit_campaigns',
+			'wsscd_delete_campaigns',
+			'wsscd_activate_campaigns',
+			'wsscd_view_analytics',
+			'wsscd_manage_analytics',
+			'wsscd_export_analytics',
+			'wsscd_view_products',
+			'wsscd_manage_settings',
+			'wsscd_manage_tools',
+			'wsscd_import_export',
 		);
 
 		$roles = array( 'administrator', 'shop_manager', 'editor' );
@@ -214,14 +224,14 @@ class SCD_Uninstaller {
 	 */
 	private static function clear_cron_jobs() {
 		$cron_hooks = array(
-			'scd_update_campaign_status',
-			'scd_collect_analytics',
-			'scd_cleanup_tasks',
-			'scd_cleanup_wizard_sessions',
-			'scd_cleanup_audit_logs',
-			'scd_cleanup_expired_sessions',
-			'scd_cleanup_old_analytics',
-			'scd_auto_purge_trash',
+			'wsscd_update_campaign_status',
+			'wsscd_collect_analytics',
+			'wsscd_cleanup_tasks',
+			'wsscd_cleanup_wizard_sessions',
+			'wsscd_cleanup_audit_logs',
+			'wsscd_cleanup_expired_sessions',
+			'wsscd_cleanup_old_analytics',
+			'wsscd_auto_purge_trash',
 		);
 
 		foreach ( $cron_hooks as $hook ) {
@@ -237,16 +247,18 @@ class SCD_Uninstaller {
 	 */
 	private static function delete_plugin_directories() {
 		$upload_dir = wp_upload_dir();
-		$scd_dir    = $upload_dir['basedir'] . '/smart-cycle-discounts';
+		$wsscd_dir    = $upload_dir['basedir'] . '/smart-cycle-discounts';
 
 		// Only delete if directory exists
-		if ( is_dir( $scd_dir ) ) {
-			self::delete_directory_recursively( $scd_dir );
+		if ( is_dir( $wsscd_dir ) ) {
+			self::delete_directory_recursively( $wsscd_dir );
 		}
 	}
 
 	/**
 	 * Recursively delete a directory and all its contents.
+	 *
+	 * Uses WP_Filesystem for WordPress.org compliance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
@@ -257,19 +269,34 @@ class SCD_Uninstaller {
 			return;
 		}
 
-		$files = array_diff( scandir( $dir ), array( '.', '..' ) );
+		// Initialize WP_Filesystem
+		global $wp_filesystem;
 
-		foreach ( $files as $file ) {
-			$file_path = $dir . DIRECTORY_SEPARATOR . $file;
-
-			if ( is_dir( $file_path ) ) {
-				self::delete_directory_recursively( $file_path );
-			} else {
-				wp_delete_file( $file_path );
-			}
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
 		}
 
-		rmdir( $dir );
+		// Try to initialize WP_Filesystem
+		if ( WP_Filesystem() && $wp_filesystem ) {
+			// Use WP_Filesystem for directory deletion
+			$wp_filesystem->delete( $dir, true );
+		} else {
+			// Fallback to direct PHP methods if WP_Filesystem unavailable (during uninstall)
+			$files = array_diff( scandir( $dir ), array( '.', '..' ) );
+
+			foreach ( $files as $file ) {
+				$file_path = $dir . DIRECTORY_SEPARATOR . $file;
+
+				if ( is_dir( $file_path ) ) {
+					self::delete_directory_recursively( $file_path );
+				} else {
+					wp_delete_file( $file_path );
+				}
+			}
+
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- Fallback when WP_Filesystem unavailable during uninstall; directory validated above.
+			rmdir( $dir );
+		}
 	}
 
 	/**
@@ -281,24 +308,26 @@ class SCD_Uninstaller {
 	private static function clear_transients() {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Bulk transient cleanup during uninstall; no WP abstraction for pattern-based delete.
 		$wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options}
 				WHERE option_name LIKE %s
 				OR option_name LIKE %s",
-				'_transient_scd_%',
-				'_transient_timeout_scd_%'
+				'_transient_wsscd_%',
+				'_transient_timeout_wsscd_%'
 			)
 		);
 
 		if ( is_multisite() ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Multisite transient cleanup during uninstall; no WP abstraction for pattern-based delete.
 			$wpdb->query(
 				$wpdb->prepare(
 					"DELETE FROM {$wpdb->sitemeta}
 					WHERE meta_key LIKE %s
 					OR meta_key LIKE %s",
-					'_site_transient_scd_%',
-					'_site_transient_timeout_scd_%'
+					'_site_transient_wsscd_%',
+					'_site_transient_timeout_wsscd_%'
 				)
 			);
 		}
@@ -336,6 +365,7 @@ class SCD_Uninstaller {
 
 		// Log to WordPress debug log if enabled
 		if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG_LOG is enabled.
 			error_log(
 				'[Smart Cycle Discounts] Plugin uninstalled: ' .
 				wp_json_encode( $log_data )

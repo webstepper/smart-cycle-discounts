@@ -31,10 +31,13 @@ The ZIP file is ready for:
 **Included:**
 - ✅ All PHP files (`includes/`, `templates/`, etc.)
 - ✅ JavaScript and CSS assets (`resources/assets/`)
-- ✅ Tom Select vendor library (`resources/assets/vendor/tom-select/`)
 - ✅ Freemius SDK (`freemius/`)
 - ✅ Main plugin file (`smart-cycle-discounts.php`)
 - ✅ Uninstall script (`uninstall.php`)
+
+**Bundled Vendor Libraries (WordPress.org compliance):**
+- ✅ Chart.js v4.5.1 (`resources/assets/vendor/chart-js/`)
+- ✅ Tom Select v2.4.3 (`resources/assets/vendor/tom-select/`)
 
 **Excluded (Development Files):**
 - ❌ `node_modules/` - NPM packages

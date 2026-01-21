@@ -28,44 +28,44 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/cron
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Cron_Scheduler {
+class WSSCD_Cron_Scheduler {
 
 	/**
 	 * Customer usage manager.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Customer_Usage_Manager|null    $customer_usage_manager    Customer usage manager.
+	 * @var      WSSCD_Customer_Usage_Manager|null    $customer_usage_manager    Customer usage manager.
 	 */
-	private ?SCD_Customer_Usage_Manager $customer_usage_manager = null;
+	private ?WSSCD_Customer_Usage_Manager $customer_usage_manager = null;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * ActionScheduler service.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Action_Scheduler_Service    $scheduler    ActionScheduler service.
+	 * @var      WSSCD_Action_Scheduler_Service    $scheduler    ActionScheduler service.
 	 */
-	private SCD_Action_Scheduler_Service $scheduler;
+	private WSSCD_Action_Scheduler_Service $scheduler;
 
 	/**
 	 * Initialize the scheduler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger                      $logger                    Logger instance.
-	 * @param    SCD_Action_Scheduler_Service    $scheduler                 ActionScheduler service.
-	 * @param    SCD_Customer_Usage_Manager|null $customer_usage_manager    Customer usage manager.
+	 * @param    WSSCD_Logger                      $logger                    Logger instance.
+	 * @param    WSSCD_Action_Scheduler_Service    $scheduler                 ActionScheduler service.
+	 * @param    WSSCD_Customer_Usage_Manager|null $customer_usage_manager    Customer usage manager.
 	 */
-	public function __construct( SCD_Logger $logger, SCD_Action_Scheduler_Service $scheduler, ?SCD_Customer_Usage_Manager $customer_usage_manager = null ) {
+	public function __construct( WSSCD_Logger $logger, WSSCD_Action_Scheduler_Service $scheduler, ?WSSCD_Customer_Usage_Manager $customer_usage_manager = null ) {
 		$this->logger                 = $logger;
 		$this->scheduler              = $scheduler;
 		$this->customer_usage_manager = $customer_usage_manager;
@@ -80,9 +80,9 @@ class SCD_Cron_Scheduler {
 	 * @return   void
 	 */
 	public function init(): void {
-		add_action( 'scd_cleanup_expired_sessions', array( $this, 'cleanup_expired_sessions' ) );
-		add_action( 'scd_cleanup_old_analytics', array( $this, 'cleanup_old_analytics' ) );
-		add_action( 'scd_auto_purge_trash', array( $this, 'auto_purge_trash' ) );
+		add_action( 'wsscd_cleanup_expired_sessions', array( $this, 'cleanup_expired_sessions' ) );
+		add_action( 'wsscd_cleanup_old_analytics', array( $this, 'cleanup_old_analytics' ) );
+		add_action( 'wsscd_auto_purge_trash', array( $this, 'auto_purge_trash' ) );
 
 		// Schedule events on activation
 		$this->schedule_events();
@@ -104,75 +104,75 @@ class SCD_Cron_Scheduler {
 
 		// Schedule campaign status safety check - every 15 minutes
 		// Catches campaigns that should have activated/deactivated but missed their event
-		if ( ! $this->scheduler->is_action_scheduled( 'scd_update_campaign_status' ) ) {
+		if ( ! $this->scheduler->is_action_scheduled( 'wsscd_update_campaign_status' ) ) {
 			$this->scheduler->schedule_recurring_action(
 				time(),
 				15 * MINUTE_IN_SECONDS,
-				'scd_update_campaign_status',
+				'wsscd_update_campaign_status',
 				array()
 			);
 			$this->logger->info( 'Scheduled campaign status safety check (every 15 minutes)' );
 		}
 
 		// Schedule session cleanup - runs daily
-		if ( ! $this->scheduler->is_action_scheduled( 'scd_cleanup_expired_sessions' ) ) {
+		if ( ! $this->scheduler->is_action_scheduled( 'wsscd_cleanup_expired_sessions' ) ) {
 			$this->scheduler->schedule_recurring_action(
 				time(),
 				DAY_IN_SECONDS,
-				'scd_cleanup_expired_sessions',
+				'wsscd_cleanup_expired_sessions',
 				array()
 			);
 			$this->logger->info( 'Scheduled expired sessions cleanup (daily)' );
 		}
 
 		// Schedule wizard session cleanup - runs daily
-		if ( ! $this->scheduler->is_action_scheduled( 'scd_cleanup_wizard_sessions' ) ) {
+		if ( ! $this->scheduler->is_action_scheduled( 'wsscd_cleanup_wizard_sessions' ) ) {
 			$this->scheduler->schedule_recurring_action(
 				time(),
 				DAY_IN_SECONDS,
-				'scd_cleanup_wizard_sessions',
+				'wsscd_cleanup_wizard_sessions',
 				array()
 			);
 			$this->logger->info( 'Scheduled wizard sessions cleanup (daily)' );
 		}
 
 		// Schedule audit log cleanup - runs daily
-		if ( ! $this->scheduler->is_action_scheduled( 'scd_cleanup_audit_logs' ) ) {
+		if ( ! $this->scheduler->is_action_scheduled( 'wsscd_cleanup_audit_logs' ) ) {
 			$this->scheduler->schedule_recurring_action(
 				time(),
 				DAY_IN_SECONDS,
-				'scd_cleanup_audit_logs',
+				'wsscd_cleanup_audit_logs',
 				array()
 			);
 			$this->logger->info( 'Scheduled audit logs cleanup (daily)' );
 		}
 
 		// Schedule analytics cleanup - runs weekly
-		if ( ! $this->scheduler->is_action_scheduled( 'scd_cleanup_old_analytics' ) ) {
+		if ( ! $this->scheduler->is_action_scheduled( 'wsscd_cleanup_old_analytics' ) ) {
 			$this->scheduler->schedule_recurring_action(
 				time(),
 				WEEK_IN_SECONDS,
-				'scd_cleanup_old_analytics',
+				'wsscd_cleanup_old_analytics',
 				array()
 			);
 			$this->logger->info( 'Scheduled old analytics cleanup (weekly)' );
 		}
 
 		// Schedule trash auto-purge - runs daily if enabled in settings
-		$settings = get_option( 'scd_settings', array() );
+		$settings = get_option( 'wsscd_settings', array() );
 		if ( isset( $settings['general']['trash_auto_purge'] ) && $settings['general']['trash_auto_purge'] ) {
-			if ( ! $this->scheduler->is_action_scheduled( 'scd_auto_purge_trash' ) ) {
+			if ( ! $this->scheduler->is_action_scheduled( 'wsscd_auto_purge_trash' ) ) {
 				$this->scheduler->schedule_recurring_action(
 					time(),
 					DAY_IN_SECONDS,
-					'scd_auto_purge_trash',
+					'wsscd_auto_purge_trash',
 					array()
 				);
 				$this->logger->info( 'Scheduled trash auto-purge (daily)' );
 			}
 		} else {
 			// Unschedule if disabled
-			$this->scheduler->unschedule_all_actions( 'scd_auto_purge_trash' );
+			$this->scheduler->unschedule_all_actions( 'wsscd_auto_purge_trash' );
 		}
 	}
 
@@ -189,14 +189,14 @@ class SCD_Cron_Scheduler {
 			return;
 		}
 
-		$this->scheduler->unschedule_all_actions( 'scd_update_campaign_status' );
-		$this->scheduler->unschedule_all_actions( 'scd_cleanup_expired_sessions' );
-		$this->scheduler->unschedule_all_actions( 'scd_cleanup_wizard_sessions' );
-		$this->scheduler->unschedule_all_actions( 'scd_cleanup_audit_logs' );
-		$this->scheduler->unschedule_all_actions( 'scd_cleanup_old_analytics' );
-		$this->scheduler->unschedule_all_actions( 'scd_auto_purge_trash' );
-		$this->scheduler->unschedule_all_actions( 'scd_analytics_hourly_aggregation' );
-		$this->scheduler->unschedule_all_actions( 'scd_analytics_daily_aggregation' );
+		$this->scheduler->unschedule_all_actions( 'wsscd_update_campaign_status' );
+		$this->scheduler->unschedule_all_actions( 'wsscd_cleanup_expired_sessions' );
+		$this->scheduler->unschedule_all_actions( 'wsscd_cleanup_wizard_sessions' );
+		$this->scheduler->unschedule_all_actions( 'wsscd_cleanup_audit_logs' );
+		$this->scheduler->unschedule_all_actions( 'wsscd_cleanup_old_analytics' );
+		$this->scheduler->unschedule_all_actions( 'wsscd_auto_purge_trash' );
+		$this->scheduler->unschedule_all_actions( 'wsscd_analytics_hourly_aggregation' );
+		$this->scheduler->unschedule_all_actions( 'wsscd_analytics_daily_aggregation' );
 
 		$this->logger->info( 'Unscheduled all recurring actions' );
 	}
@@ -219,8 +219,8 @@ class SCD_Cron_Scheduler {
 			}
 
 			// Clean up wizard sessions
-			if ( class_exists( 'SCD_Session_Service' ) ) {
-				$session_service = new SCD_Session_Service();
+			if ( class_exists( 'WSSCD_Session_Service' ) ) {
+				$session_service = new WSSCD_Session_Service();
 				$session_service->cleanup_expired_sessions();
 			}
 
@@ -251,7 +251,7 @@ class SCD_Cron_Scheduler {
 		try {
 			$this->logger->info( 'Starting old analytics cleanup' );
 
-			$retention_days = intval( get_option( 'scd_analytics_retention_days', 90 ) );
+			$retention_days = intval( get_option( 'wsscd_analytics_retention_days', 90 ) );
 
 			if ( $retention_days <= 0 ) {
 				return; // Retention disabled
@@ -259,15 +259,18 @@ class SCD_Cron_Scheduler {
 
 			// Clean up old analytics data
 			global $wpdb;
-			$table_name  = $wpdb->prefix . 'scd_analytics';
+			$table_name  = $wpdb->prefix . 'wsscd_analytics';
 			$cutoff_date = gmdate( 'Y-m-d H:i:s', strtotime( "-{$retention_days} days" ) );
 
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			// Table name constructed with $wpdb->prefix. Query IS prepared. Scheduled analytics cleanup.
 			$deleted = $wpdb->query(
 				$wpdb->prepare(
 					"DELETE FROM {$table_name} WHERE created_at < %s",
 					$cutoff_date
 				)
 			);
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
 			$this->logger->info(
 				'Old analytics cleanup completed',
@@ -335,7 +338,7 @@ class SCD_Cron_Scheduler {
 			$this->logger->info( 'Starting trash auto-purge' );
 
 			// Get settings
-			$settings = get_option( 'scd_settings', array() );
+			$settings = get_option( 'wsscd_settings', array() );
 
 			// Check if auto-purge is enabled
 			if ( ! isset( $settings['general']['trash_auto_purge'] ) || ! $settings['general']['trash_auto_purge'] ) {

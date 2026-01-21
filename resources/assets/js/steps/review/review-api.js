@@ -14,22 +14,22 @@
 	'use strict';
 
 	// Register module using utility - eliminates boilerplate
-	SCD.Utils.registerModule( 'SCD.Modules.Review', 'API', function() {
-		if ( !SCD.Utils.ensureInitialized( this, {
-			'SCD.Ajax': SCD.Ajax,
-			'SCD.ErrorHandler': SCD.ErrorHandler
+	WSSCD.Utils.registerModule( 'WSSCD.Modules.Review', 'API', function() {
+		if ( !WSSCD.Utils.ensureInitialized( this, {
+			'WSSCD.Ajax': WSSCD.Ajax,
+			'WSSCD.ErrorHandler': WSSCD.ErrorHandler
 		}, 'ReviewAPI' ) ) {
 			return;
 		}
 	} );
 
-	SCD.Modules.Review.API.prototype = {
+	WSSCD.Modules.Review.API.prototype = {
 		/**
 		 * Get campaign summary
 		 */
 		getCampaignSummary: function() {
-			return SCD.Ajax.post( 'scd_get_summary', {} ).fail( function( xhr ) {
-				SCD.ErrorHandler.handleAjaxError( xhr, 'scd_get_summary', {} );
+			return WSSCD.Ajax.post( 'wsscd_get_summary', {} ).fail( function( xhr ) {
+				WSSCD.ErrorHandler.handleAjaxError( xhr, 'wsscd_get_summary', {} );
 			} );
 		},
 
@@ -38,17 +38,17 @@
 		 * @param data
 		 */
 		completeWizard: function( data ) {
-			if ( SCD.Utils.isEmpty( data ) ) {
+			if ( WSSCD.Utils.isEmpty( data ) ) {
 				var error = new Error( 'Wizard completion data is required' );
-				SCD.ErrorHandler.handle( error, 'ReviewAPI.completeWizard', SCD.ErrorHandler.SEVERITY.MEDIUM );
+				WSSCD.ErrorHandler.handle( error, 'ReviewAPI.completeWizard', WSSCD.ErrorHandler.SEVERITY.MEDIUM );
 				return $.Deferred().reject( error ).promise();
 			}
 
-			return SCD.Ajax.post( 'scd_complete_wizard', {
+			return WSSCD.Ajax.post( 'wsscd_complete_wizard', {
 				launchOption: data.launchOption || 'draft',
 				data: data
 			} ).fail( function( xhr ) {
-				SCD.ErrorHandler.handleAjaxError( xhr, 'scd_complete_wizard', { launchOption: data.launchOption } );
+				WSSCD.ErrorHandler.handleAjaxError( xhr, 'wsscd_complete_wizard', { launchOption: data.launchOption } );
 			} );
 		},
 
@@ -57,11 +57,11 @@
 		 * @param data
 		 */
 		saveStepData: function( data ) {
-			return SCD.Ajax.post( 'scd_save_step', {
+			return WSSCD.Ajax.post( 'wsscd_save_step', {
 				step: 'review',
 				data: data
 			} ).fail( function( xhr ) {
-				SCD.ErrorHandler.handleAjaxError( xhr, 'scd_save_step', { step: 'review' } );
+				WSSCD.ErrorHandler.handleAjaxError( xhr, 'wsscd_save_step', { step: 'review' } );
 			} );
 		},
 
@@ -69,22 +69,10 @@
 		 * Load review step data
 		 */
 		loadStepData: function() {
-			return SCD.Ajax.post( 'scd_load_data', {
+			return WSSCD.Ajax.post( 'wsscd_load_data', {
 				step: 'review'
 			} ).fail( function( xhr ) {
-				SCD.ErrorHandler.handleAjaxError( xhr, 'scd_load_data', { step: 'review' } );
-			} );
-		},
-
-		/**
-		 * Validate campaign data before submission
-		 * @param data
-		 */
-		validateCampaignData: function( data ) {
-			return SCD.Ajax.post( 'scd_validate_campaign', {
-				data: data
-			} ).fail( function( xhr ) {
-				SCD.ErrorHandler.handleAjaxError( xhr, 'scd_validate_campaign', data );
+				WSSCD.ErrorHandler.handleAjaxError( xhr, 'wsscd_load_data', { step: 'review' } );
 			} );
 		},
 
@@ -92,8 +80,8 @@
 		 * Get all wizard data
 		 */
 		getWizardData: function() {
-			return SCD.Ajax.post( 'scd_get_wizard_data', {} ).fail( function( xhr ) {
-				SCD.ErrorHandler.handleAjaxError( xhr, 'scd_get_wizard_data', {} );
+			return WSSCD.Ajax.post( 'wsscd_get_wizard_data', {} ).fail( function( xhr ) {
+				WSSCD.ErrorHandler.handleAjaxError( xhr, 'wsscd_get_wizard_data', {} );
 			} );
 		}
 	};

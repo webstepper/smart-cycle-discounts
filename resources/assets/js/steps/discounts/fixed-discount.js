@@ -14,16 +14,16 @@
 	'use strict';
 
 	// Register fixed discount using utility with inheritance
-	SCD.Utils.registerModule( 'SCD.Modules.Discounts.Types', 'FixedDiscount', function( state ) {
+	WSSCD.Utils.registerModule( 'WSSCD.Modules.Discounts.Types', 'FixedDiscount', function( state ) {
 		// Call parent constructor
-		SCD.Modules.Discounts.Types.BaseDiscount.call( this, state );
+		WSSCD.Modules.Discounts.Types.BaseDiscount.call( this, state );
 
 		this.type = 'fixed';
-		this.config = SCD.Modules.Discounts.Config;
-		this.currencySymbol = SCD.Utils.get( window, 'scdSettings.currencySymbol', '$' );
-		this.currencyPosition = SCD.Utils.get( window, 'scdSettings.currencyPos', 'left' );
+		this.config = WSSCD.Modules.Discounts.Config;
+		this.currencySymbol = WSSCD.Utils.get( window, 'wsscdSettings.currencySymbol', '$' );
+		this.currencyPosition = WSSCD.Utils.get( window, 'wsscdSettings.currencyPos', 'left' );
 
-		if ( !SCD.Utils.ensureInitialized( this, {
+		if ( !WSSCD.Utils.ensureInitialized( this, {
 			'config': this.config
 		}, 'FixedDiscount' ) ) {
 			return;
@@ -31,17 +31,17 @@
 	} );
 
 	// Inherit from BaseDiscount
-	SCD.Modules.Discounts.Types.FixedDiscount.prototype = Object.create( SCD.Modules.Discounts.Types.BaseDiscount.prototype );
-	SCD.Modules.Discounts.Types.FixedDiscount.prototype.constructor =
-		SCD.Modules.Discounts.Types.FixedDiscount;
+	WSSCD.Modules.Discounts.Types.FixedDiscount.prototype = Object.create( WSSCD.Modules.Discounts.Types.BaseDiscount.prototype );
+	WSSCD.Modules.Discounts.Types.FixedDiscount.prototype.constructor =
+		WSSCD.Modules.Discounts.Types.FixedDiscount;
 
 	// Override methods using utility extend
-	SCD.Utils.extend( SCD.Modules.Discounts.Types.FixedDiscount.prototype, {
+	WSSCD.Utils.extend( WSSCD.Modules.Discounts.Types.FixedDiscount.prototype, {
 		/**
 		 * Initialize fixed discount
 		 */
 		init: function() {
-			SCD.Modules.Discounts.Types.BaseDiscount.prototype.init.call( this );
+			WSSCD.Modules.Discounts.Types.BaseDiscount.prototype.init.call( this );
 			this.setupFixedHandlers();
 		},
 
@@ -63,8 +63,8 @@
 			var $field = $( this );
 			var value = parseFloat( $field.val() );
 
-		if ( window.SCD && window.SCD.ValidationError ) {
-			window.SCD.ValidationError.clear( $field );
+		if ( window.WSSCD && window.WSSCD.ValidationError ) {
+			window.WSSCD.ValidationError.clear( $field );
 		}
 
 			// Update state immediately to maintain single source of truth
@@ -99,23 +99,23 @@
 		 */
 		showUI: function() {
 			this.updateFieldConstraints();
-			this.triggerCustomEvent( 'scd:discount:ui:show', [ 'fixed' ] );
+			this.triggerCustomEvent( 'wsscd:discount:ui:show', [ 'fixed' ] );
 		},
 
 		/**
 		 * Hide fixed amount UI elements
 		 */
 		hideUI: function() {
-			$( '.scd-fixed-options, .scd-strategy-fixed' ).removeClass( 'active' );
-			this.triggerCustomEvent( 'scd:discount:ui:hide', [ 'fixed' ] );
+			$( '.wsscd-fixed-options, .wsscd-strategy-fixed' ).removeClass( 'active' );
+			this.triggerCustomEvent( 'wsscd:discount:ui:hide', [ 'fixed' ] );
 		},
 
 		/**
 		 * Update field constraints for fixed amount
 		 */
 		updateFieldConstraints: function() {
-			var defaults = SCD.Utils.get( this.config, 'defaults.values.fixed', {} );
-			var selector = SCD.Utils.get( this.config, 'constants.selectors.discountValue', '[name="discount_value_fixed"]' );
+			var defaults = WSSCD.Utils.get( this.config, 'defaults.values.fixed', {} );
+			var selector = WSSCD.Utils.get( this.config, 'constants.selectors.discountValue', '[name="discount_value_fixed"]' );
 			var $field = $( selector );
 
 			if ( $field.length ) {
@@ -250,8 +250,8 @@
 		 */
 		formatCurrency: function( value ) {
 			// Use centralized utility if available
-			if ( SCD.Utils && SCD.Utils.formatCurrency ) {
-				return SCD.Utils.formatCurrency( value );
+			if ( WSSCD.Utils && WSSCD.Utils.formatCurrency ) {
+				return WSSCD.Utils.formatCurrency( value );
 			}
 
 			// Fallback implementation
@@ -312,7 +312,7 @@
 		destroy: function() {
 			$( document ).off( 'input.fixed change.fixed' );
 
-			SCD.Modules.Discounts.Types.BaseDiscount.prototype.destroy.call( this );
+			WSSCD.Modules.Discounts.Types.BaseDiscount.prototype.destroy.call( this );
 		}
 	} );
 

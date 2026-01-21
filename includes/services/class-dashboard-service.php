@@ -38,14 +38,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/services
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Dashboard_Service {
+class WSSCD_Dashboard_Service {
 
 	/**
 	 * Cache group name for dashboard transients.
 	 *
 	 * @since    1.0.0
 	 */
-	const CACHE_GROUP = 'scd_dashboard';
+	const CACHE_GROUP = 'wsscd_dashboard';
 
 	/**
 	 * Cache TTL (Time To Live) in seconds.
@@ -55,51 +55,52 @@ class SCD_Dashboard_Service {
 	 */
 	const CACHE_TTL = 300;
 
+
 	/**
 	 * Cache manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Cache_Manager    $cache    Cache manager.
+	 * @var      WSSCD_Cache_Manager    $cache    Cache manager.
 	 */
-	private SCD_Cache_Manager $cache;
+	private WSSCD_Cache_Manager $cache;
 
 
 	/**
-	 * Analytics dashboard instance.
+	 * Analytics dashboard instance (Pro-only, may be null in free version).
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Analytics_Dashboard    $analytics_dashboard    Analytics dashboard.
+	 * @var      WSSCD_Analytics_Dashboard|null    $analytics_dashboard    Analytics dashboard.
 	 */
-	private SCD_Analytics_Dashboard $analytics_dashboard;
+	private ?WSSCD_Analytics_Dashboard $analytics_dashboard;
 
 	/**
 	 * Campaign repository instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Repository    $campaign_repository    Campaign repository.
+	 * @var      WSSCD_Campaign_Repository    $campaign_repository    Campaign repository.
 	 */
-	private SCD_Campaign_Repository $campaign_repository;
+	private WSSCD_Campaign_Repository $campaign_repository;
 
 	/**
 	 * Campaign health service instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Health_Service    $health_service    Campaign health service.
+	 * @var      WSSCD_Campaign_Health_Service    $health_service    Campaign health service.
 	 */
-	private SCD_Campaign_Health_Service $health_service;
+	private WSSCD_Campaign_Health_Service $health_service;
 
 	/**
 	 * Feature gate instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Feature_Gate    $feature_gate    Feature gate.
+	 * @var      WSSCD_Feature_Gate    $feature_gate    Feature gate.
 	 */
-	private SCD_Feature_Gate $feature_gate;
+	private WSSCD_Feature_Gate $feature_gate;
 
 
 	/**
@@ -107,58 +108,62 @@ class SCD_Dashboard_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Campaign suggestions service instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Suggestions_Service    $suggestions_service    Campaign suggestions service.
+	 * @var      WSSCD_Campaign_Suggestions_Service    $suggestions_service    Campaign suggestions service.
 	 */
-	private SCD_Campaign_Suggestions_Service $suggestions_service;
+	private WSSCD_Campaign_Suggestions_Service $suggestions_service;
 
 	/**
 	 * Campaign display service instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Display_Service    $display_service    Campaign display service.
+	 * @var      WSSCD_Campaign_Display_Service    $display_service    Campaign display service.
 	 */
-	private SCD_Campaign_Display_Service $display_service;
+	private WSSCD_Campaign_Display_Service $display_service;
 
 	/**
 	 * Campaign planner service instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Planner_Service    $planner_service    Campaign planner service.
+	 * @var      WSSCD_Campaign_Planner_Service    $planner_service    Campaign planner service.
 	 */
-	private SCD_Campaign_Planner_Service $planner_service;
+	private WSSCD_Campaign_Planner_Service $planner_service;
 
 	/**
 	 * Initialize the dashboard service.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Analytics_Dashboard          $analytics_dashboard    Analytics dashboard.
-	 * @param    SCD_Campaign_Repository          $campaign_repository    Campaign repository.
-	 * @param    SCD_Campaign_Health_Service      $health_service         Campaign health service.
-	 * @param    SCD_Feature_Gate                 $feature_gate           Feature gate.
-	 * @param    SCD_Logger                       $logger                 Logger instance.
-	 * @param    SCD_Campaign_Suggestions_Service $suggestions_service    Campaign suggestions service.
-	 * @param    SCD_Campaign_Display_Service     $display_service        Campaign display service.
-	 * @param    SCD_Campaign_Planner_Service     $planner_service       Campaign planner service.
+	 * @param    WSSCD_Cache_Manager                $cache                  Cache manager.
+	 * @param    WSSCD_Analytics_Dashboard|null     $analytics_dashboard    Analytics dashboard (Pro-only, null in free).
+	 * @param    WSSCD_Campaign_Repository          $campaign_repository    Campaign repository.
+	 * @param    WSSCD_Campaign_Health_Service      $health_service         Campaign health service.
+	 * @param    WSSCD_Feature_Gate                 $feature_gate           Feature gate.
+	 * @param    WSSCD_Logger                       $logger                 Logger instance.
+	 * @param    WSSCD_Campaign_Suggestions_Service $suggestions_service    Campaign suggestions service.
+	 * @param    WSSCD_Campaign_Display_Service     $display_service        Campaign display service.
+	 * @param    WSSCD_Campaign_Planner_Service     $planner_service        Campaign planner service.
 	 */
-	public function __construct(SCD_Cache_Manager $cache, SCD_Analytics_Dashboard $analytics_dashboard,
-		SCD_Campaign_Repository $campaign_repository,
-		SCD_Campaign_Health_Service $health_service,
-		SCD_Feature_Gate $feature_gate,
-		SCD_Logger $logger,
-		SCD_Campaign_Suggestions_Service $suggestions_service,
-		SCD_Campaign_Display_Service $display_service,
-		SCD_Campaign_Planner_Service $planner_service) {
+	public function __construct(
+		WSSCD_Cache_Manager $cache,
+		?WSSCD_Analytics_Dashboard $analytics_dashboard,
+		WSSCD_Campaign_Repository $campaign_repository,
+		WSSCD_Campaign_Health_Service $health_service,
+		WSSCD_Feature_Gate $feature_gate,
+		WSSCD_Logger $logger,
+		WSSCD_Campaign_Suggestions_Service $suggestions_service,
+		WSSCD_Campaign_Display_Service $display_service,
+		WSSCD_Campaign_Planner_Service $planner_service
+	) {
 		$this->cache = $cache;
 		$this->analytics_dashboard = $analytics_dashboard;
 		$this->campaign_repository = $campaign_repository;
@@ -170,6 +175,26 @@ class SCD_Dashboard_Service {
 		$this->planner_service     = $planner_service;
 
 		$this->register_cache_hooks();
+		$this->maybe_run_cache_migration();
+	}
+
+	/**
+	 * Run one-time cache migration to clear stale dashboard caches.
+	 *
+	 * This ensures old cache formats are cleared when the cache key structure changes.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	private function maybe_run_cache_migration(): void {
+		$migration_version = 2; // Increment this to force cache clear.
+		$current_version   = get_option( 'wsscd_dashboard_cache_migration', 0 );
+
+		if ( (int) $current_version < $migration_version ) {
+			$this->invalidate_all_caches();
+			update_option( 'wsscd_dashboard_cache_migration', $migration_version, false );
+			$this->logger->info( 'Dashboard cache migration completed', array( 'version' => $migration_version ) );
+		}
 	}
 
 	/**
@@ -240,7 +265,10 @@ class SCD_Dashboard_Service {
 	 * @return   array                Dashboard data.
 	 */
 	private function calculate_dashboard_data( array $options ): array {
-		$metrics = $this->analytics_dashboard->get_dashboard_metrics( $options['date_range'], true );
+		// Pro-only: Get analytics metrics (returns empty array in free version)
+		$metrics = null !== $this->analytics_dashboard
+			? $this->analytics_dashboard->get_dashboard_metrics( $options['date_range'], true )
+			: $this->get_empty_metrics();
 
 		$campaign_stats = $this->get_campaign_stats();
 
@@ -263,7 +291,6 @@ class SCD_Dashboard_Service {
 			'all_campaigns'   => $all_campaigns,
 			'planner_data'    => $planner_data,
 			'is_premium'      => $this->feature_gate->is_premium(),
-			'campaign_limit'  => $this->feature_gate->get_campaign_limit(),
 		);
 	}
 
@@ -276,8 +303,9 @@ class SCD_Dashboard_Service {
 	private function get_campaign_stats(): array {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'scd_campaigns';
+		$table_name = $wpdb->prefix . 'wsscd_campaigns';
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Dashboard stats query; results are cached via WSSCD_Cache_Manager at higher level.
 		$stats = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT status, COUNT(*) as count
@@ -345,7 +373,10 @@ class SCD_Dashboard_Service {
 		}
 
 		try {
-			$metrics = $this->analytics_dashboard->get_batch_campaign_metrics( $campaign_ids, $date_range );
+			// Pro-only: Get batch campaign metrics (empty in free version)
+			$metrics = null !== $this->analytics_dashboard
+				? $this->analytics_dashboard->get_batch_campaign_metrics( $campaign_ids, $date_range )
+				: array();
 		} catch ( Exception $e ) {
 			// Analytics table doesn't exist yet - use empty metrics
 			$this->logger->debug( 'Analytics metrics unavailable', array( 'error' => $e->getMessage() ) );
@@ -381,23 +412,27 @@ class SCD_Dashboard_Service {
 	private function get_recent_activity( int $limit ): array {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'scd_activity_log';
+		$table_name = $wpdb->prefix . 'wsscd_activity_log';
 
-		$table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name;
+		$check_table_sql = $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- SHOW TABLES has no WP abstraction; query prepared above.
+		$table_exists = $wpdb->get_var( $check_table_sql ) === $table_name;
 
 		if ( ! $table_exists ) {
 			return array();
 		}
 
-		$events = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT * FROM {$table_name}
-				ORDER BY created_at DESC
-				LIMIT %d",
-				$limit
-			),
-			ARRAY_A
+		// Dashboard activity query. Table name constructed with $wpdb->prefix. Query IS prepared.
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- Table name from $wpdb->prefix is safe.
+		$events_sql = $wpdb->prepare(
+			"SELECT * FROM {$table_name}
+			ORDER BY created_at DESC
+			LIMIT %d",
+			$limit
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query prepared above; table name from $wpdb->prefix.
+		$events = $wpdb->get_results( $events_sql, ARRAY_A );
 
 		return $events ? $events : array();
 	}
@@ -413,8 +448,10 @@ class SCD_Dashboard_Service {
 	private function get_campaign_health(): array {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'scd_campaigns';
+		$table_name = $wpdb->prefix . 'wsscd_campaigns';
 
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// Dashboard health query. Table name constructed with $wpdb->prefix. Query IS prepared.
 		$campaigns = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT * FROM {$table_name}
@@ -427,6 +464,7 @@ class SCD_Dashboard_Service {
 			),
 			ARRAY_A
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
 		if ( empty( $campaigns ) ) {
 			return $this->get_empty_health_structure();
@@ -513,42 +551,7 @@ class SCD_Dashboard_Service {
 			}
 		}
 
-		// Filter active campaigns - avoid closure for serialization compatibility.
-		$active_campaigns = array();
-		foreach ( $campaigns as $c ) {
-			if ( 'active' === $c['status'] ) {
-				$active_campaigns[] = $c;
-			}
-		}
-		$active_count = count( $active_campaigns );
-		$campaign_limit   = $this->feature_gate->get_campaign_limit();
-
-		if ( 0 !== $campaign_limit && $active_count >= $campaign_limit ) {
-			$health['issues'][] = array(
-				'type'    => 'limit_reached',
-				'message' => sprintf(
-					/* translators: %d: campaign limit */
-					__( 'Campaign limit reached (%d active campaigns)', 'smart-cycle-discounts' ),
-					$campaign_limit
-				),
-			);
-			$health['status']   = 'critical';
-		} elseif ( 0 !== $campaign_limit && $active_count >= ( $campaign_limit * 0.67 ) ) {
-			$health['warnings'][] = array(
-				'type'    => 'approaching_limit',
-				'message' => sprintf(
-					/* translators: 1: active campaigns, 2: campaign limit */
-					__( 'Using %1$d of %2$d campaigns - approaching limit', 'smart-cycle-discounts' ),
-					$active_count,
-					$campaign_limit
-				),
-			);
-			if ( in_array( $health['status'], array( 'excellent', 'good' ), true ) ) {
-				$health['status'] = 'fair';
-			}
-		}
-
-		// Recalculate quick stats after campaign limit checks
+		// Calculate quick stats
 		$health['quick_stats']['issues_count']   = count( $health['issues'] );
 		$health['quick_stats']['warnings_count'] = count( $health['warnings'] );
 
@@ -610,6 +613,28 @@ class SCD_Dashboard_Service {
 				'issues_count'   => 0,
 				'warnings_count' => 0,
 			),
+		);
+	}
+
+	/**
+	 * Get empty metrics structure for free version.
+	 *
+	 * Returns the expected metrics structure with zeroed values when
+	 * analytics dashboard is not available (Pro-only feature).
+	 *
+	 * @since    1.0.0
+	 * @return   array    Empty metrics data structure.
+	 */
+	private function get_empty_metrics(): array {
+		return array(
+			'revenue'          => 0,
+			'orders'           => 0,
+			'conversions'      => 0,
+			'impressions'      => 0,
+			'average_discount' => 0,
+			'conversion_rate'  => 0,
+			'revenue_trend'    => array(),
+			'top_products'     => array(),
 		);
 	}
 
@@ -714,36 +739,17 @@ class SCD_Dashboard_Service {
 	 * Called when campaign data changes that affects this user's dashboard.
 	 *
 	 * @since    1.0.0
-	 * @param    int $user_id    User ID. Null for current user.
+	 * @param    int|null $user_id    User ID. Null for current user.
 	 * @return   void
 	 */
-	public function invalidate_cache( int $user_id = null ): void {
+	public function invalidate_cache( ?int $user_id = null ): void {
 		if ( null === $user_id ) {
 			$user_id = get_current_user_id();
 		}
 
-		global $wpdb;
-
-		$pattern = $wpdb->esc_like( '_transient_' . self::CACHE_GROUP . '_dashboard_' . $user_id . '_' ) . '%';
-
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$wpdb->options}
-				WHERE option_name LIKE %s",
-				$pattern
-			)
-		);
-
-		// Also delete timeout options
-		$timeout_pattern = $wpdb->esc_like( '_transient_timeout_' . self::CACHE_GROUP . '_dashboard_' . $user_id . '_' ) . '%';
-
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$wpdb->options}
-				WHERE option_name LIKE %s",
-				$timeout_pattern
-			)
-		);
+		// For now, invalidate all dashboard caches.
+		// Per-user invalidation would require tracking individual cache keys.
+		$this->cache->delete_group( self::CACHE_GROUP );
 
 		$this->logger->debug(
 			'Invalidated dashboard cache for user',
@@ -764,33 +770,26 @@ class SCD_Dashboard_Service {
 	public function invalidate_all_caches(): void {
 		global $wpdb;
 
-		$pattern = $wpdb->esc_like( '_transient_' . self::CACHE_GROUP . '_' ) . '%';
+		// Use Cache Manager's delete_group() for proper key handling.
+		// This accounts for the cache prefix and version automatically.
+		$this->cache->delete_group( self::CACHE_GROUP );
 
-		$count = $wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$wpdb->options}
-				WHERE option_name LIKE %s",
-				$pattern
-			)
-		);
+		// Also clear any legacy transients that might be using old key formats.
+		// This ensures a clean slate when cache format changes.
+		$pattern = $wpdb->esc_like( 'wsscd_dashboard' );
 
-		// Also delete timeout options
-		$timeout_pattern = $wpdb->esc_like( '_transient_timeout_' . self::CACHE_GROUP . '_' ) . '%';
-
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Bulk legacy transient cleanup; no WP abstraction for pattern-based delete.
 		$wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options}
-				WHERE option_name LIKE %s",
-				$timeout_pattern
+				WHERE option_name LIKE %s
+				OR option_name LIKE %s",
+				'%' . $pattern . '%',
+				'%scd%dashboard%'
 			)
 		);
 
-		$this->logger->info(
-			'Invalidated all dashboard caches',
-			array(
-				'transients_deleted' => $count,
-			)
-		);
+		$this->logger->info( 'Invalidated all dashboard caches via cache manager' );
 	}
 
 	/**
@@ -803,22 +802,22 @@ class SCD_Dashboard_Service {
 	 */
 	private function register_cache_hooks(): void {
 		// Invalidate when campaigns are created/updated/deleted
-		add_action( 'scd_campaign_created', array( $this, 'on_campaign_changed' ), 10, 1 );
-		add_action( 'scd_campaign_updated', array( $this, 'on_campaign_changed' ), 10, 1 );
-		add_action( 'scd_campaign_deleted', array( $this, 'on_campaign_changed' ), 10, 1 );
-		add_action( 'scd_campaign_status_changed', array( $this, 'on_campaign_changed' ), 10, 1 );
+		add_action( 'wsscd_campaign_created', array( $this, 'on_campaign_changed' ), 10, 1 );
+		add_action( 'wsscd_campaign_updated', array( $this, 'on_campaign_changed' ), 10, 1 );
+		add_action( 'wsscd_campaign_deleted', array( $this, 'on_campaign_changed' ), 10, 1 );
+		add_action( 'wsscd_campaign_status_changed', array( $this, 'on_campaign_changed' ), 10, 1 );
 
 		// Invalidate for wizard-created/updated campaigns (passes campaign ID, not object)
-		add_action( 'scd_campaign_created_from_wizard', array( $this, 'on_campaign_changed_by_id' ), 10, 1 );
-		add_action( 'scd_campaign_updated_from_wizard', array( $this, 'on_campaign_changed_by_id' ), 10, 1 );
-		add_action( 'scd_campaign_created_from_data', array( $this, 'on_campaign_changed_by_id' ), 10, 1 );
+		add_action( 'wsscd_campaign_created_from_wizard', array( $this, 'on_campaign_changed_by_id' ), 10, 1 );
+		add_action( 'wsscd_campaign_updated_from_wizard', array( $this, 'on_campaign_changed_by_id' ), 10, 1 );
+		add_action( 'wsscd_campaign_created_from_data', array( $this, 'on_campaign_changed_by_id' ), 10, 1 );
 
 		// Invalidate when settings change
-		add_action( 'scd_settings_updated', array( $this, 'invalidate_all_caches' ) );
+		add_action( 'wsscd_settings_updated', array( $this, 'invalidate_all_caches' ) );
 
 		// Invalidate when license status changes
-		add_action( 'scd_license_activated', array( $this, 'invalidate_all_caches' ) );
-		add_action( 'scd_license_deactivated', array( $this, 'invalidate_all_caches' ) );
+		add_action( 'wsscd_license_activated', array( $this, 'invalidate_all_caches' ) );
+		add_action( 'wsscd_license_deactivated', array( $this, 'invalidate_all_caches' ) );
 	}
 
 	/**
@@ -827,7 +826,7 @@ class SCD_Dashboard_Service {
 	 * Invalidates cache for campaign owner and all admins.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign|int $campaign    Campaign object or ID.
+	 * @param    WSSCD_Campaign|int $campaign    Campaign object or ID.
 	 * @return   void
 	 */
 	public function on_campaign_changed( $campaign ): void {
@@ -941,24 +940,30 @@ class SCD_Dashboard_Service {
 	 * @param  string $campaign_id     Campaign ID.
 	 * @param  string $position        Timeline position (past/active/future) - where campaign is displayed.
 	 * @param  bool   $is_major_event  Whether this is a major event.
+	 * @param  string $state           Campaign state (past/active/future) - actual campaign timing.
 	 * @return array                   Insights data structure with 'tabs' key (3 columns).
 	 */
-	public function get_unified_insights( string $campaign_id, string $position, bool $is_major_event ): array {
+	public function get_unified_insights( string $campaign_id, string $position, bool $is_major_event, string $state = '' ): array {
+		// Default state to position if not provided (backwards compatibility).
+		if ( empty( $state ) ) {
+			$state = $position;
+		}
+
 		// If major event, get rich event data from Registry.
 		if ( $is_major_event ) {
-			$event = SCD_Campaign_Suggestions_Registry::get_event_by_id( $campaign_id );
+			$event = WSSCD_Campaign_Suggestions_Registry::get_event_by_id( $campaign_id );
 
 			if ( $event ) {
-				return $this->build_event_insights( $event, $position );
+				return $this->build_event_insights( $event, $position, $state );
 			}
 		}
 
 		// For weekly campaigns, get rich data from Weekly Definitions.
-		require_once SCD_INCLUDES_DIR . 'core/campaigns/class-weekly-campaign-definitions.php';
-		$weekly = SCD_Weekly_Campaign_Definitions::get_by_id( $campaign_id );
+		require_once WSSCD_INCLUDES_DIR . 'core/campaigns/class-weekly-campaign-definitions.php';
+		$weekly = WSSCD_Weekly_Campaign_Definitions::get_by_id( $campaign_id );
 
 		if ( $weekly ) {
-			return $this->build_weekly_event_insights( $weekly, $position );
+			return $this->build_weekly_event_insights( $weekly, $position, $state );
 		}
 
 		// Fallback to basic structure if no data found.
@@ -971,17 +976,21 @@ class SCD_Dashboard_Service {
 	 * @since  1.0.0
 	 * @param  array  $event     Event definition from Campaign Suggestions Registry.
 	 * @param  string $position  Timeline position (past/active/future).
+	 * @param  string $state     Campaign state (past/active/future).
 	 * @return array             Insights data structure.
 	 */
-	private function build_event_insights( array $event, string $position ): array {
+	private function build_event_insights( array $event, string $position, string $state ): array {
 		$tabs = array(
 			$this->build_opportunity_column( $event, $position ),
-			$this->build_strategy_column( $event, $position ),
+			$this->build_strategy_column( $event, $position, $state, true ),
 			$this->build_timeline_column( $event, $position ),
 		);
 
+		// Build title with emoji icon.
+		$emoji = isset( $event['icon'] ) ? $event['icon'] . ' ' : '';
+
 		return array(
-			'title' => $event['name'],
+			'title' => $emoji . $event['name'],
 			'icon'  => 'calendar-alt',
 			'tabs'  => $tabs,
 		);
@@ -996,17 +1005,21 @@ class SCD_Dashboard_Service {
 	 * @since  1.0.0
 	 * @param  array  $weekly    Weekly campaign definition from Weekly Campaign Definitions.
 	 * @param  string $position  Timeline position (past/active/future).
+	 * @param  string $state     Campaign state (past/active/future).
 	 * @return array             Insights data structure.
 	 */
-	private function build_weekly_event_insights( array $weekly, string $position ): array {
+	private function build_weekly_event_insights( array $weekly, string $position, string $state ): array {
 		$tabs = array(
 			$this->build_weekly_opportunity_column( $weekly, $position ),
-			$this->build_weekly_strategy_column( $weekly, $position ),
+			$this->build_weekly_strategy_column( $weekly, $position, $state ),
 			$this->build_weekly_timeline_column( $weekly, $position ),
 		);
 
+		// Build title with emoji icon.
+		$emoji = isset( $weekly['icon'] ) ? $weekly['icon'] . ' ' : '';
+
 		return array(
-			'title' => $weekly['name'],
+			'title' => $emoji . $weekly['name'],
 			'icon'  => 'calendar-alt',
 			'tabs'  => $tabs,
 		);
@@ -1059,11 +1072,13 @@ class SCD_Dashboard_Service {
 	 * Returns 3 randomly selected strategy insights + CTA button.
 	 *
 	 * @since  1.0.0
-	 * @param  array  $event  Event definition.
-	 * @param  string $position  Timeline position.
-	 * @return array          Column data structure.
+	 * @param  array  $event          Event definition.
+	 * @param  string $position       Timeline position.
+	 * @param  string $state          Campaign state.
+	 * @param  bool   $is_major_event Whether this is a major event.
+	 * @return array                  Column data structure.
 	 */
-	private function build_strategy_column( array $event, string $position ): array {
+	private function build_strategy_column( array $event, string $position, string $state, bool $is_major_event ): array {
 		$content_pool = array();
 
 		if ( ! empty( $event['suggested_discount'] ) ) {
@@ -1116,16 +1131,11 @@ class SCD_Dashboard_Service {
 		// Randomly select 3 items from pool with weighted selection.
 		$selected_content = $this->weighted_random_select( $content_pool, 3 );
 
-		// Add CTA button.
-		$selected_content[] = array(
-			'type' => 'cta',
-			'url'  => admin_url( 'admin.php?page=scd-campaigns&action=wizard&intent=new&suggestion=' . $event['id'] ),
-			'text' => sprintf(
-				/* translators: %s: event name */
-				__( 'Create %s Campaign', 'smart-cycle-discounts' ),
-				$event['name']
-			),
-		);
+		// Add CTA button with position and state-aware URL and text.
+		$cta = $this->build_position_aware_cta( $event['id'], $event['name'], $position, $state, $is_major_event );
+		if ( $cta ) {
+			$selected_content[] = $cta;
+		}
 
 		return array(
 			'id'      => 'strategy',
@@ -1322,11 +1332,12 @@ class SCD_Dashboard_Service {
 	 * Returns 3 randomly selected strategy insights + CTA button.
 	 *
 	 * @since  1.0.0
-	 * @param  array  $weekly  Weekly campaign definition.
-	 * @param  string $position   Timeline position.
-	 * @return array           Column data structure.
+	 * @param  array  $weekly    Weekly campaign definition.
+	 * @param  string $position  Timeline position.
+	 * @param  string $state     Campaign state.
+	 * @return array             Column data structure.
 	 */
-	private function build_weekly_strategy_column( array $weekly, string $position ): array {
+	private function build_weekly_strategy_column( array $weekly, string $position, string $state ): array {
 		$content_pool = array();
 
 		if ( ! empty( $weekly['suggested_discount'] ) ) {
@@ -1368,16 +1379,11 @@ class SCD_Dashboard_Service {
 		// Randomly select 3 items from pool with weighted selection.
 		$selected_content = $this->weighted_random_select( $content_pool, 3 );
 
-		// Add CTA button.
-		$selected_content[] = array(
-			'type' => 'cta',
-			'url'  => admin_url( 'admin.php?page=scd-campaigns&action=wizard&intent=new&suggestion=' . $weekly['id'] ),
-			'text' => sprintf(
-				/* translators: %s: campaign name */
-				__( 'Create %s Campaign', 'smart-cycle-discounts' ),
-				$weekly['name']
-			),
-		);
+		// Add CTA button with position and state-aware URL and text.
+		$cta = $this->build_position_aware_cta( $weekly['id'], $weekly['name'], $position, $state, false );
+		if ( $cta ) {
+			$selected_content[] = $cta;
+		}
 
 		return array(
 			'id'      => 'strategy',
@@ -1688,5 +1694,92 @@ class SCD_Dashboard_Service {
 		}
 
 		return $selected;
+	}
+
+	/**
+	 * Build position-aware CTA button for insights.
+	 *
+	 * Generates CTA button that matches the card button logic:
+	 * - Active position + active state: "Create Campaign"
+	 * - Active position + future state: "Schedule Campaign" (with schedule=1)
+	 * - Past position (weekly only): "Plan Next"
+	 * - Future position (weekly only): "Plan Ahead"
+	 * - Major events in past/future: No CTA (informational only)
+	 *
+	 * @since  1.0.0
+	 * @param  string $campaign_id    Campaign/event ID.
+	 * @param  string $campaign_name  Campaign/event name.
+	 * @param  string $position       Timeline position (past/active/future).
+	 * @param  string $state          Campaign state (past/active/future).
+	 * @param  bool   $is_major_event Whether this is a major event.
+	 * @return array|null             CTA array or null if no CTA should be shown.
+	 */
+	private function build_position_aware_cta( string $campaign_id, string $campaign_name, string $position, string $state, bool $is_major_event ): ?array {
+		$base_url = admin_url( 'admin.php?page=wsscd-campaigns&action=wizard&intent=new&suggestion=' . $campaign_id );
+
+		// Active position (focus slot): Always show CTA.
+		if ( 'active' === $position ) {
+			// Check state to determine Create vs Schedule.
+			if ( 'active' === $state ) {
+				// Campaign is currently running - create now.
+				return array(
+					'type' => 'cta',
+					'url'  => $base_url,
+					'text' => $is_major_event
+						? sprintf(
+							/* translators: %s: event name */
+							__( '✨ Create %s Campaign', 'smart-cycle-discounts' ),
+							$campaign_name
+						)
+						: sprintf(
+							/* translators: %s: campaign name */
+							__( '⚡ Create %s Campaign', 'smart-cycle-discounts' ),
+							$campaign_name
+						),
+				);
+			} else {
+				// Future campaign in focus slot - schedule ahead.
+				$schedule_url = add_query_arg( 'schedule', '1', $base_url );
+				return array(
+					'type' => 'cta',
+					'url'  => $schedule_url,
+					'text' => $is_major_event
+						? sprintf(
+							/* translators: %s: event name */
+							__( '📅 Schedule %s Campaign', 'smart-cycle-discounts' ),
+							$campaign_name
+						)
+						: sprintf(
+							/* translators: %s: campaign name */
+							__( '📅 Schedule %s Campaign', 'smart-cycle-discounts' ),
+							$campaign_name
+						),
+				);
+			}
+		}
+
+		// Major events in past/future positions: No CTA (informational only).
+		if ( $is_major_event ) {
+			return null;
+		}
+
+		// Weekly campaigns in past/future positions get planning CTAs.
+		if ( 'past' === $position ) {
+			return array(
+				'type' => 'cta',
+				'url'  => $base_url,
+				'text' => __( 'Plan Next Occurrence', 'smart-cycle-discounts' ),
+			);
+		}
+
+		if ( 'future' === $position ) {
+			return array(
+				'type' => 'cta',
+				'url'  => $base_url,
+				'text' => __( 'Plan Ahead', 'smart-cycle-discounts' ),
+			);
+		}
+
+		return null;
 	}
 }

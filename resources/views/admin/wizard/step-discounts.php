@@ -12,20 +12,17 @@
  * @subpackage SmartCycleDiscounts/includes/admin/views/campaigns/wizard
  */
 
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial included into function scope; variables are local, not global.
+
 // Prevent direct access
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
 // Initialize variables using shared function
-scd_wizard_init_step_vars($step_data, $validation_errors);
+wsscd_wizard_init_step_vars($step_data, $validation_errors);
 
 // Field schema handles default values now - no need to set them here
-
-// Debug: Check what's in step_data after wp_parse_args
-if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-    error_log( '[SCD Discounts Template] Step data after defaults: ' . print_r( $step_data, true ) );
-}
 
 // Extract values for easier use with defaults handled by field schema
 $discount_type = $step_data['discount_type'] ?? 'percentage';
@@ -74,9 +71,9 @@ $currency_data = array(
 
 // Get selected products from wizard session
 $products_for_display = array();
-if ( class_exists( 'SCD_Core_Container' ) ) {
+if ( class_exists( 'WSSCD_Core_Container' ) ) {
     try {
-        $container = SCD_Core_Container::get_instance();
+        $container = WSSCD_Core_Container::get_instance();
         $state_service = $container->get('wizard.state_service');
         $products_data = $state_service->get_step_data('products');
         
@@ -104,22 +101,22 @@ if ( class_exists( 'SCD_Core_Container' ) ) {
 }
 
 // Make currency data and selected products available to Asset Manager
-global $scd_discount_step_data;
-$scd_discount_step_data = array_merge($currency_data, array(
+global $wsscd_discount_step_data;
+$wsscd_discount_step_data = array_merge($currency_data, array(
     'selected_products' => $products_for_display
 ));
 
 // Helper function to format price with currency
-if ( ! function_exists( 'scd_format_price' ) ) {
-    function scd_format_price($amount) {
+if ( ! function_exists( 'wsscd_format_price' ) ) {
+    function wsscd_format_price($amount) {
         return wc_price($amount);
     }
 }
 
 // Helper function to format example price
-if ( ! function_exists( 'scd_format_example_price' ) ) {
-    function scd_format_example_price($amount) {
-        return strip_tags(wc_price($amount));
+if ( ! function_exists( 'wsscd_format_example_price' ) ) {
+    function wsscd_format_example_price($amount) {
+        return wp_strip_all_tags(wc_price($amount));
     }
 }
 
@@ -131,12 +128,12 @@ ob_start();
         <?php
         ob_start();
         ?>
-                <div class="scd-field-wrapper scd-field-required">
+                <div class="wsscd-field-wrapper wsscd-field-required">
                     <input type="hidden"
                            id="discount_type"
                            name="discount_type"
                            value="<?php echo esc_attr($discount_type); ?>"
-                           class="scd-field"
+                           class="wsscd-field"
                            data-required="true"
                            data-label="Discount Type"
                            data-pattern-message="Please select a discount type"
@@ -144,29 +141,25 @@ ob_start();
                            aria-required="true">
                 </div>
                 
-                <div class="scd-discount-type-grid">
-                    <?php
-                    // Get upgrade URL once for all locked discount types
-                    $upgrade_url = $feature_gate ? $feature_gate->get_upgrade_url() : admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
-                    ?>
-
+                <div class="wsscd-discount-type-grid">
                     <!-- Percentage Discount -->
-                    <div class="scd-discount-type-card <?php echo esc_attr( $discount_type === 'percentage' ? 'selected' : '' ); ?>"
+                    <div class="wsscd-discount-type-card <?php echo esc_attr( $discount_type === 'percentage' ? 'selected' : '' ); ?>"
                          data-type="percentage"
                          data-help-topic="option-discount-percentage">
-                        <div class="scd-discount-type-card__icon">
-                            <?php echo SCD_Icon_Helper::get( 'tag', array( 'size' => 24 ) ); ?>
+                        <div class="wsscd-discount-type-card__icon">
+                            <?php WSSCD_Icon_Helper::render( 'tag', array( 'size' => 24 ) ); ?>
                         </div>
-                        <h4 class="scd-discount-type-card__title"><?php esc_html_e('Percentage Off', 'smart-cycle-discounts'); ?></h4>
-                        <p class="scd-discount-type-card__description">
+                        <h4 class="wsscd-discount-type-card__title"><?php esc_html_e('Percentage Off', 'smart-cycle-discounts'); ?></h4>
+                        <p class="wsscd-discount-type-card__description">
                             <?php esc_html_e('Take a percentage off the original price', 'smart-cycle-discounts'); ?>
                         </p>
-                        <div class="scd-discount-type-card__example">
-                            <?php 
+                        <div class="wsscd-discount-type-card__example">
+                            <?php
                             $example = sprintf(
-                                __('20%% off %s = %s', 'smart-cycle-discounts'),
-                                scd_format_example_price(100),
-                                scd_format_example_price(80)
+                                /* translators: %1$s: original price (e.g., "$100"), %2$s: discounted price (e.g., "$80") */
+                                __('20%% off %1$s = %2$s', 'smart-cycle-discounts'),
+                                wsscd_format_example_price(100),
+                                wsscd_format_example_price(80)
                             );
                             echo esc_html($example);
                             ?>
@@ -174,206 +167,206 @@ ob_start();
                     </div>
                     
                     <!-- Fixed Amount Discount -->
-                    <div class="scd-discount-type-card <?php echo esc_attr( $discount_type === 'fixed' ? 'selected' : '' ); ?>"
+                    <div class="wsscd-discount-type-card <?php echo esc_attr( $discount_type === 'fixed' ? 'selected' : '' ); ?>"
                          data-type="fixed"
                          data-help-topic="option-discount-fixed">
-                        <div class="scd-discount-type-card__icon">
-                            <?php echo SCD_Icon_Helper::get( 'receipt', array( 'size' => 24 ) ); ?>
+                        <div class="wsscd-discount-type-card__icon">
+                            <?php WSSCD_Icon_Helper::render( 'receipt', array( 'size' => 24 ) ); ?>
                         </div>
-                        <h4 class="scd-discount-type-card__title"><?php esc_html_e('Fixed Amount Off', 'smart-cycle-discounts'); ?></h4>
-                        <p class="scd-discount-type-card__description">
+                        <h4 class="wsscd-discount-type-card__title"><?php esc_html_e('Fixed Amount Off', 'smart-cycle-discounts'); ?></h4>
+                        <p class="wsscd-discount-type-card__description">
                             <?php esc_html_e('Subtract a fixed dollar amount', 'smart-cycle-discounts'); ?>
                         </p>
-                        <div class="scd-discount-type-card__example">
-                            <?php 
+                        <div class="wsscd-discount-type-card__example">
+                            <?php
                             $example = sprintf(
-                                __('%s off %s = %s', 'smart-cycle-discounts'),
-                                scd_format_example_price(10),
-                                scd_format_example_price(100),
-                                scd_format_example_price(90)
+                                /* translators: %1$s: discount amount (e.g., "$10"), %2$s: original price (e.g., "$100"), %3$s: discounted price (e.g., "$90") */
+                                __('%1$s off %2$s = %3$s', 'smart-cycle-discounts'),
+                                wsscd_format_example_price(10),
+                                wsscd_format_example_price(100),
+                                wsscd_format_example_price(90)
                             );
                             echo esc_html($example);
                             ?>
                         </div>
                     </div>
-                    
-                    <!-- Tiered Discount -->
+
                     <?php
-                    $can_use_tiered = $feature_gate ? $feature_gate->can_use_discount_type( 'tiered' ) : false;
-                    $tiered_classes = 'scd-discount-type-card';
-                    if ( $discount_type === 'tiered' ) {
-                        $tiered_classes .= ' selected';
-                    }
-                    if ( ! $can_use_tiered ) {
-                        $tiered_classes .= ' scd-discount-type-card--locked';
-                    }
+                    // PRO discount types - dual-block pattern for WordPress.org compliance
+                    // Block 1: Promotional UI (always in both ZIPs) - shown to free users
+                    // Block 2: Functional UI (only in PRO ZIP) - shown to licensed PRO users
+                    $has_pro_access = wsscd_fs()->can_use_premium_code();
+                    $upgrade_url = $feature_gate ? $feature_gate->get_upgrade_url() : admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
                     ?>
-                    <div class="<?php echo esc_attr( $tiered_classes ); ?>"
+
+                    <!-- Tiered Discount -->
+                    <?php if ( ! $has_pro_access ) : ?>
+                    <!-- Promotional locked card (always in both ZIPs) -->
+                    <div class="wsscd-discount-type-card wsscd-discount-type-card--locked"
                          data-type="tiered"
-                         data-help-topic="option-discount-tiered"
-                         <?php if ( ! $can_use_tiered ) : ?>data-locked="true"<?php endif; ?>>
-                        <?php if ( $can_use_tiered ) : ?>
-                            <!-- Available: Show normal card -->
-                            <div class="scd-discount-type-card__icon">
-                                <?php echo SCD_Icon_Helper::get( 'chart-line', array( 'size' => 24 ) ); ?>
-                            </div>
-                            <h4 class="scd-discount-type-card__title">
-                                <?php esc_html_e('Volume Discounts', 'smart-cycle-discounts'); ?>
+                         data-locked="true"
+                         data-help-topic="option-discount-tiered">
+                        <div class="wsscd-discount-type-card__locked-content">
+                            <?php echo wp_kses_post( WSSCD_Badge_Helper::pro_badge( __( 'PRO Feature', 'smart-cycle-discounts' ) ) ); ?>
+                            <h4 class="wsscd-discount-type-card__title">
+                                <?php esc_html_e( 'Volume Discounts', 'smart-cycle-discounts' ); ?>
                             </h4>
-                            <p class="scd-discount-type-card__description">
-                                <?php esc_html_e('More items = bigger discounts', 'smart-cycle-discounts'); ?>
+                            <p class="wsscd-discount-type-card__description">
+                                <?php esc_html_e( 'Reward bulk purchases with tiered pricing', 'smart-cycle-discounts' ); ?>
                             </p>
-                            <div class="scd-discount-type-card__example">
-                                <?php esc_html_e('Buy 2+ save 10%, Buy 5+ save 20%', 'smart-cycle-discounts'); ?>
-                            </div>
-                        <?php else : ?>
-                            <!-- Locked: Show informative upgrade content -->
-                            <div class="scd-discount-type-card__locked-content">
-                                <?php echo SCD_Badge_Helper::pro_badge( __( 'Upgrade to PRO to unlock this discount type', 'smart-cycle-discounts' ) ); ?>
-                                <h4 class="scd-discount-type-card__title">
-                                    <?php esc_html_e('Volume Discounts', 'smart-cycle-discounts'); ?>
-                                </h4>
-                                <p class="scd-discount-type-card__description">
-                                    <?php esc_html_e('Reward bulk purchases with tiered pricing', 'smart-cycle-discounts'); ?>
-                                </p>
-                                <ul class="scd-discount-type-card__features">
-                                    <li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e('Set multiple quantity tiers', 'smart-cycle-discounts'); ?></li>
-                                    <li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e('Increase discounts at each tier', 'smart-cycle-discounts'); ?></li>
-                                    <li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e('Perfect for wholesale & B2B', 'smart-cycle-discounts'); ?></li>
-                                </ul>
-                                <?php
-                                SCD_Button_Helper::primary(
-                                    __( 'Upgrade to Pro', 'smart-cycle-discounts' ),
-                                    array(
-                                        'size'    => 'small',
-                                        'href'    => esc_url( $upgrade_url ),
-                                        'classes' => array( 'scd-discount-type-card__upgrade-btn' ),
-                                    )
-                                );
-                                ?>
-                            </div>
-                        <?php endif; ?>
+                            <ul class="wsscd-discount-type-card__features">
+                                <li><?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?> <?php esc_html_e( 'Set multiple quantity tiers', 'smart-cycle-discounts' ); ?></li>
+                                <li><?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?> <?php esc_html_e( 'Increase discounts at each tier', 'smart-cycle-discounts' ); ?></li>
+                                <li><?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?> <?php esc_html_e( 'Perfect for wholesale & B2B', 'smart-cycle-discounts' ); ?></li>
+                            </ul>
+                            <?php
+                            WSSCD_Button_Helper::primary(
+                                __( 'Upgrade to Pro', 'smart-cycle-discounts' ),
+                                array(
+                                    'size'    => 'small',
+                                    'href'    => esc_url( $upgrade_url ),
+                                    'classes' => array( 'wsscd-discount-type-card__upgrade-btn' ),
+                                )
+                            );
+                            ?>
+                        </div>
                     </div>
+                    <?php endif; ?>
+                    <?php if ( wsscd_fs()->is__premium_only() ) : ?>
+                    <?php if ( $has_pro_access ) : ?>
+                    <!-- Functional card (only in PRO ZIP, shown when licensed) -->
+                    <div class="wsscd-discount-type-card <?php echo esc_attr( $discount_type === 'tiered' ? 'selected' : '' ); ?>"
+                         data-type="tiered"
+                         data-help-topic="option-discount-tiered">
+                        <div class="wsscd-discount-type-card__icon">
+                            <?php WSSCD_Icon_Helper::render( 'chart-line', array( 'size' => 24 ) ); ?>
+                        </div>
+                        <h4 class="wsscd-discount-type-card__title">
+                            <?php esc_html_e( 'Volume Discounts', 'smart-cycle-discounts' ); ?>
+                        </h4>
+                        <p class="wsscd-discount-type-card__description">
+                            <?php esc_html_e( 'More items = bigger discounts', 'smart-cycle-discounts' ); ?>
+                        </p>
+                        <div class="wsscd-discount-type-card__example">
+                            <?php esc_html_e( 'Buy 2+ save 10%, Buy 5+ save 20%', 'smart-cycle-discounts' ); ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                    <?php endif; ?>
 
                     <!-- BOGO Discount -->
-                    <?php
-                    $can_use_bogo = $feature_gate ? $feature_gate->can_use_discount_type( 'bogo' ) : false;
-                    $bogo_classes = 'scd-discount-type-card';
-                    if ( $discount_type === 'bogo' ) {
-                        $bogo_classes .= ' selected';
-                    }
-                    if ( ! $can_use_bogo ) {
-                        $bogo_classes .= ' scd-discount-type-card--locked';
-                    }
-                    ?>
-                    <div class="<?php echo esc_attr( $bogo_classes ); ?>"
+                    <?php if ( ! $has_pro_access ) : ?>
+                    <!-- Promotional locked card (always in both ZIPs) -->
+                    <div class="wsscd-discount-type-card wsscd-discount-type-card--locked"
                          data-type="bogo"
-                         data-help-topic="option-discount-bogo"
-                         <?php if ( ! $can_use_bogo ) : ?>data-locked="true"<?php endif; ?>>
-                        <?php if ( $can_use_bogo ) : ?>
-                            <!-- Available: Show normal card -->
-                            <div class="scd-discount-type-card__icon">
-                                <?php echo SCD_Icon_Helper::get( 'cart', array( 'size' => 24 ) ); ?>
-                            </div>
-                            <h4 class="scd-discount-type-card__title">
-                                <?php esc_html_e('BOGO Deals', 'smart-cycle-discounts'); ?>
+                         data-locked="true"
+                         data-help-topic="option-discount-bogo">
+                        <div class="wsscd-discount-type-card__locked-content">
+                            <?php echo wp_kses_post( WSSCD_Badge_Helper::pro_badge( __( 'PRO Feature', 'smart-cycle-discounts' ) ) ); ?>
+                            <h4 class="wsscd-discount-type-card__title">
+                                <?php esc_html_e( 'BOGO Deals', 'smart-cycle-discounts' ); ?>
                             </h4>
-                            <p class="scd-discount-type-card__description">
-                                <?php esc_html_e('Buy one get one offers', 'smart-cycle-discounts'); ?>
+                            <p class="wsscd-discount-type-card__description">
+                                <?php esc_html_e( 'Create compelling buy-one-get-one promotions', 'smart-cycle-discounts' ); ?>
                             </p>
-                            <div class="scd-discount-type-card__example">
-                                <?php esc_html_e('Buy 2 Get 1 Free', 'smart-cycle-discounts'); ?>
-                            </div>
-                        <?php else : ?>
-                            <!-- Locked: Show informative upgrade content -->
-                            <div class="scd-discount-type-card__locked-content">
-                                <?php echo SCD_Badge_Helper::pro_badge( __( 'Upgrade to PRO to unlock this discount type', 'smart-cycle-discounts' ) ); ?>
-                                <h4 class="scd-discount-type-card__title">
-                                    <?php esc_html_e('BOGO Deals', 'smart-cycle-discounts'); ?>
-                                </h4>
-                                <p class="scd-discount-type-card__description">
-                                    <?php esc_html_e('Create compelling buy-one-get-one promotions', 'smart-cycle-discounts'); ?>
-                                </p>
-                                <ul class="scd-discount-type-card__features">
-                                    <li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e('Flexible BOGO ratios (Buy 2 Get 1, etc.)', 'smart-cycle-discounts'); ?></li>
-                                    <li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e('Percentage or free gift options', 'smart-cycle-discounts'); ?></li>
-                                    <li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e('Drive sales & clear inventory', 'smart-cycle-discounts'); ?></li>
-                                </ul>
-                                <?php
-                                SCD_Button_Helper::primary(
-                                    __( 'Upgrade to Pro', 'smart-cycle-discounts' ),
-                                    array(
-                                        'size'    => 'small',
-                                        'href'    => esc_url( $upgrade_url ),
-                                        'classes' => array( 'scd-discount-type-card__upgrade-btn' ),
-                                    )
-                                );
-                                ?>
-                            </div>
-                        <?php endif; ?>
+                            <ul class="wsscd-discount-type-card__features">
+                                <li><?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?> <?php esc_html_e( 'Flexible BOGO ratios', 'smart-cycle-discounts' ); ?></li>
+                                <li><?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?> <?php esc_html_e( 'Percentage or free gift options', 'smart-cycle-discounts' ); ?></li>
+                                <li><?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?> <?php esc_html_e( 'Drive sales & clear inventory', 'smart-cycle-discounts' ); ?></li>
+                            </ul>
+                            <?php
+                            WSSCD_Button_Helper::primary(
+                                __( 'Upgrade to Pro', 'smart-cycle-discounts' ),
+                                array(
+                                    'size'    => 'small',
+                                    'href'    => esc_url( $upgrade_url ),
+                                    'classes' => array( 'wsscd-discount-type-card__upgrade-btn' ),
+                                )
+                            );
+                            ?>
+                        </div>
                     </div>
+                    <?php endif; ?>
+                    <?php if ( wsscd_fs()->is__premium_only() ) : ?>
+                    <?php if ( $has_pro_access ) : ?>
+                    <!-- Functional card (only in PRO ZIP, shown when licensed) -->
+                    <div class="wsscd-discount-type-card <?php echo esc_attr( $discount_type === 'bogo' ? 'selected' : '' ); ?>"
+                         data-type="bogo"
+                         data-help-topic="option-discount-bogo">
+                        <div class="wsscd-discount-type-card__icon">
+                            <?php WSSCD_Icon_Helper::render( 'cart', array( 'size' => 24 ) ); ?>
+                        </div>
+                        <h4 class="wsscd-discount-type-card__title">
+                            <?php esc_html_e( 'BOGO Deals', 'smart-cycle-discounts' ); ?>
+                        </h4>
+                        <p class="wsscd-discount-type-card__description">
+                            <?php esc_html_e( 'Buy one get one offers', 'smart-cycle-discounts' ); ?>
+                        </p>
+                        <div class="wsscd-discount-type-card__example">
+                            <?php esc_html_e( 'Buy 2 Get 1 Free', 'smart-cycle-discounts' ); ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                    <?php endif; ?>
 
                     <!-- Spend Threshold Discount -->
-                    <?php
-                    $can_use_spend_threshold = $feature_gate ? $feature_gate->can_use_discount_type( 'spend_threshold' ) : false;
-                    $spend_threshold_classes = 'scd-discount-type-card';
-                    if ( $discount_type === 'spend_threshold' ) {
-                        $spend_threshold_classes .= ' selected';
-                    }
-                    if ( ! $can_use_spend_threshold ) {
-                        $spend_threshold_classes .= ' scd-discount-type-card--locked';
-                    }
-                    ?>
-                    <div class="<?php echo esc_attr( $spend_threshold_classes ); ?>"
+                    <?php if ( ! $has_pro_access ) : ?>
+                    <!-- Promotional locked card (always in both ZIPs) -->
+                    <div class="wsscd-discount-type-card wsscd-discount-type-card--locked"
                          data-type="spend_threshold"
-                         data-help-topic="option-discount-spend-threshold"
-                         <?php if ( ! $can_use_spend_threshold ) : ?>data-locked="true"<?php endif; ?>>
-                        <?php if ( $can_use_spend_threshold ) : ?>
-                            <!-- Available: Show normal card -->
-                            <div class="scd-discount-type-card__icon">
-                                <?php echo SCD_Icon_Helper::get( 'receipt', array( 'size' => 24 ) ); ?>
-                            </div>
-                            <h4 class="scd-discount-type-card__title">
-                                <?php esc_html_e('Spend Threshold', 'smart-cycle-discounts'); ?>
+                         data-locked="true"
+                         data-help-topic="option-discount-spend-threshold">
+                        <div class="wsscd-discount-type-card__locked-content">
+                            <?php echo wp_kses_post( WSSCD_Badge_Helper::pro_badge( __( 'PRO Feature', 'smart-cycle-discounts' ) ) ); ?>
+                            <h4 class="wsscd-discount-type-card__title">
+                                <?php esc_html_e( 'Spend Threshold', 'smart-cycle-discounts' ); ?>
                             </h4>
-                            <p class="scd-discount-type-card__description">
-                                <?php esc_html_e('Reward customers who spend more', 'smart-cycle-discounts'); ?>
+                            <p class="wsscd-discount-type-card__description">
+                                <?php esc_html_e( 'Reward customers who spend more', 'smart-cycle-discounts' ); ?>
                             </p>
-                            <div class="scd-discount-type-card__example">
-                                <?php esc_html_e('Spend $100 get 10% off', 'smart-cycle-discounts'); ?>
-                            </div>
-                        <?php else : ?>
-                            <!-- Locked: Show informative upgrade content -->
-                            <div class="scd-discount-type-card__locked-content">
-                                <?php echo SCD_Badge_Helper::pro_badge( __( 'Upgrade to PRO to unlock this discount type', 'smart-cycle-discounts' ) ); ?>
-                                <h4 class="scd-discount-type-card__title">
-                                    <?php esc_html_e('Spend Threshold', 'smart-cycle-discounts'); ?>
-                                </h4>
-                                <p class="scd-discount-type-card__description">
-                                    <?php esc_html_e('Encourage higher cart values with spend-based rewards', 'smart-cycle-discounts'); ?>
-                                </p>
-                                <ul class="scd-discount-type-card__features">
-                                    <li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e('Multiple spending tiers', 'smart-cycle-discounts'); ?></li>
-                                    <li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e('Progressive rewards structure', 'smart-cycle-discounts'); ?></li>
-                                    <li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e('Boost average order value', 'smart-cycle-discounts'); ?></li>
-                                </ul>
-                                <?php
-                                SCD_Button_Helper::primary(
-                                    __( 'Upgrade to Pro', 'smart-cycle-discounts' ),
-                                    array(
-                                        'size'    => 'small',
-                                        'href'    => esc_url( $upgrade_url ),
-                                        'classes' => array( 'scd-discount-type-card__upgrade-btn' ),
-                                    )
-                                );
-                                ?>
-                            </div>
-                        <?php endif; ?>
+                            <ul class="wsscd-discount-type-card__features">
+                                <li><?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?> <?php esc_html_e( 'Minimum purchase triggers', 'smart-cycle-discounts' ); ?></li>
+                                <li><?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?> <?php esc_html_e( 'Spend $X get Y% off deals', 'smart-cycle-discounts' ); ?></li>
+                                <li><?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?> <?php esc_html_e( 'Increase average order value', 'smart-cycle-discounts' ); ?></li>
+                            </ul>
+                            <?php
+                            WSSCD_Button_Helper::primary(
+                                __( 'Upgrade to Pro', 'smart-cycle-discounts' ),
+                                array(
+                                    'size'    => 'small',
+                                    'href'    => esc_url( $upgrade_url ),
+                                    'classes' => array( 'wsscd-discount-type-card__upgrade-btn' ),
+                                )
+                            );
+                            ?>
+                        </div>
                     </div>
+                    <?php endif; ?>
+                    <?php if ( wsscd_fs()->is__premium_only() ) : ?>
+                    <?php if ( $has_pro_access ) : ?>
+                    <!-- Functional card (only in PRO ZIP, shown when licensed) -->
+                    <div class="wsscd-discount-type-card <?php echo esc_attr( $discount_type === 'spend_threshold' ? 'selected' : '' ); ?>"
+                         data-type="spend_threshold"
+                         data-help-topic="option-discount-spend-threshold">
+                        <div class="wsscd-discount-type-card__icon">
+                            <?php WSSCD_Icon_Helper::render( 'money', array( 'size' => 24 ) ); ?>
+                        </div>
+                        <h4 class="wsscd-discount-type-card__title">
+                            <?php esc_html_e( 'Spend Threshold', 'smart-cycle-discounts' ); ?>
+                        </h4>
+                        <p class="wsscd-discount-type-card__description">
+                            <?php esc_html_e( 'Reward customers who spend more', 'smart-cycle-discounts' ); ?>
+                        </p>
+                        <div class="wsscd-discount-type-card__example">
+                            <?php esc_html_e( 'Spend $100 get 10% off', 'smart-cycle-discounts' ); ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                    <?php endif; ?>
                 </div>
                 
                 <?php if (isset($validation_errors['discount_type'])): ?>
-                    <div class="scd-field-error">
+                    <div class="wsscd-field-error">
                         <?php foreach ((array)$validation_errors['discount_type'] as $error): ?>
                             <p class="error-message"><?php echo esc_html($error); ?></p>
                         <?php endforeach; ?>
@@ -382,7 +375,7 @@ ob_start();
         <?php
         $type_selection_content = ob_get_clean();
         
-        scd_wizard_card(array(
+        wsscd_wizard_card(array(
             'title' => __('Choose Your Discount Type', 'smart-cycle-discounts'),
             'subtitle' => __('Select the discount strategy that best fits your campaign goals.', 'smart-cycle-discounts'),
             'icon' => 'tag',
@@ -395,26 +388,17 @@ ob_start();
         <?php
         ob_start();
 
-        // Check if selected discount type is PRO and user doesn't have access
-        $selected_discount_type = $discount_type ?? '';
+        // Determine if the details container should be locked
         $pro_discount_types = array( 'tiered', 'bogo', 'spend_threshold' );
-        $is_pro_type_selected = in_array( $selected_discount_type, $pro_discount_types, true );
-
-        // Check if user has access to the selected PRO type
-        $has_access_to_selected_type = true;
-        if ( $is_pro_type_selected && $feature_gate ) {
-            $has_access_to_selected_type = $feature_gate->can_use_discount_type( $selected_discount_type );
-        }
-
-        // Lock container if PRO type selected AND user doesn't have access
-        $should_lock_container = $is_pro_type_selected && ! $has_access_to_selected_type;
+        $is_pro_type_selected = in_array( $discount_type, $pro_discount_types, true );
+        $should_lock_container = $is_pro_type_selected && ! $has_pro_access;
         ?>
 
-                <div class="scd-pro-container <?php echo $should_lock_container ? 'scd-pro-container--locked' : ''; ?>" id="scd-discount-details-container"<?php echo $should_lock_container ? ' data-active-type="' . esc_attr( $selected_discount_type ) . '"' : ''; ?>>
+                <div class="wsscd-pro-container <?php echo esc_attr( $should_lock_container ? 'wsscd-pro-container--locked' : '' ); ?>" id="wsscd-discount-details-container"<?php echo $should_lock_container ? ' data-active-type="' . esc_attr( $discount_type ) . '"' : ''; ?>>
                     <?php
-                    // Render specific overlay for each PRO discount type using centralized template
-
-                    // Tiered Pricing Overlay
+                    // PRO discount type overlays (shown when locked)
+                    // Note: The wrapper div uses data-discount-type attribute for CSS targeting
+                    // The included template adds wsscd-pro-feature-unavailable class
                     ?>
                     <div data-discount-type="tiered">
                         <?php
@@ -425,13 +409,10 @@ ob_start();
                             __( 'Bulk purchase incentives', 'smart-cycle-discounts' ),
                             __( 'Wholesale pricing automation', 'smart-cycle-discounts' ),
                         );
-                        include SCD_PLUGIN_DIR . 'resources/views/admin/partials/pro-feature-overlay.php';
+                        include WSSCD_PLUGIN_DIR . 'resources/views/admin/partials/pro-feature-overlay.php';
                         ?>
                     </div>
 
-                    <?php
-                    // BOGO Overlay
-                    ?>
                     <div data-discount-type="bogo">
                         <?php
                         $description = __( 'Buy One Get One deal configurations', 'smart-cycle-discounts' );
@@ -441,13 +422,10 @@ ob_start();
                             __( 'Mix and match product combinations', 'smart-cycle-discounts' ),
                             __( 'Flexible quantity ratios', 'smart-cycle-discounts' ),
                         );
-                        include SCD_PLUGIN_DIR . 'resources/views/admin/partials/pro-feature-overlay.php';
+                        include WSSCD_PLUGIN_DIR . 'resources/views/admin/partials/pro-feature-overlay.php';
                         ?>
                     </div>
 
-                    <?php
-                    // Spend Threshold Overlay
-                    ?>
                     <div data-discount-type="spend_threshold">
                         <?php
                         $description = __( 'Cart total-based discount rewards', 'smart-cycle-discounts' );
@@ -457,26 +435,26 @@ ob_start();
                             __( 'Progressive spending rewards', 'smart-cycle-discounts' ),
                             __( 'Cart value-based incentives', 'smart-cycle-discounts' ),
                         );
-                        include SCD_PLUGIN_DIR . 'resources/views/admin/partials/pro-feature-overlay.php';
+                        include WSSCD_PLUGIN_DIR . 'resources/views/admin/partials/pro-feature-overlay.php';
                         ?>
                     </div>
 
-                    <!-- Actual discount configuration (blurred for PRO types) -->
-                    <div class="scd-pro-background">
+                    <!-- Actual discount configuration (blurred for PRO types when locked) -->
+                    <div class="wsscd-pro-background">
                         <table class="form-table">
                     <!-- Percentage Discount Configuration -->
-                    <tr class="scd-strategy-options scd-strategy-percentage <?php echo esc_attr( $discount_type === 'percentage' ? 'active' : '' ); ?>" data-strategy-type="percentage">
+                    <tr class="wsscd-strategy-options wsscd-strategy-percentage <?php echo esc_attr( $discount_type === 'percentage' ? 'active' : '' ); ?>" data-strategy-type="percentage">
                         <th scope="row">
                             <label for="discount_value_percentage">
                                 <?php esc_html_e('Discount Percentage', 'smart-cycle-discounts'); ?>
                                 <span class="required">*</span>
-                                <?php SCD_Tooltip_Helper::render( __('Enter a value between 0.01 and 100', 'smart-cycle-discounts') ); ?>
+                                <?php WSSCD_Tooltip_Helper::render( __('Enter a value between 0.01 and 100', 'smart-cycle-discounts') ); ?>
                             </label>
                         </th>
                         <td>
-                            <div class="scd-field-wrapper scd-field-required">
-                                <div class="scd-input-wrapper scd-input-with-prefix">
-                                    <span class="scd-input-prefix">%</span>
+                            <div class="wsscd-field-wrapper wsscd-field-required">
+                                <div class="wsscd-input-wrapper wsscd-input-with-prefix">
+                                    <span class="wsscd-input-prefix">%</span>
                                     <input type="number"
                                            id="discount_value_percentage"
                                            name="discount_value_percentage"
@@ -485,7 +463,7 @@ ob_start();
                                            max="100"
                                            step="1"
                                            inputmode="numeric"
-                                           class="scd-enhanced-input scd-field scd-discount-value-field"
+                                           class="wsscd-enhanced-input wsscd-field wsscd-discount-value-field"
                                            placeholder="1-100"
                                            required
                                            data-required="true"
@@ -496,7 +474,7 @@ ob_start();
                                            aria-required="true"
                                            aria-invalid="false">
                                 </div>
-                                <div class="scd-inline-preview" id="percentage-preview">
+                                <div class="wsscd-inline-preview" id="percentage-preview">
                                     <span class="preview-text"></span>
                                 </div>
                             </div>
@@ -504,27 +482,27 @@ ob_start();
                     </tr>
                     
                     <!-- Fixed Amount Configuration -->
-                    <tr class="scd-strategy-options scd-strategy-fixed <?php echo esc_attr( $discount_type === 'fixed' ? 'active' : '' ); ?>" data-strategy-type="fixed">
+                    <tr class="wsscd-strategy-options wsscd-strategy-fixed <?php echo esc_attr( $discount_type === 'fixed' ? 'active' : '' ); ?>" data-strategy-type="fixed">
                         <th scope="row">
                             <label for="discount_value_fixed">
                                 <?php esc_html_e('Discount Amount', 'smart-cycle-discounts'); ?>
                                 <span class="required">*</span>
-                                <?php SCD_Tooltip_Helper::render( __('Enter the fixed amount to subtract from prices', 'smart-cycle-discounts') ); ?>
+                                <?php WSSCD_Tooltip_Helper::render( __('Enter the fixed amount to subtract from prices', 'smart-cycle-discounts') ); ?>
                             </label>
                         </th>
                         <td>
-                            <div class="scd-field-wrapper scd-field-required">
-                                <div class="scd-input-wrapper scd-input-with-prefix">
-                                    <span class="scd-input-prefix"><?php echo esc_html( $currency_symbol ); ?></span>
+                            <div class="wsscd-field-wrapper wsscd-field-required">
+                                <div class="wsscd-input-wrapper wsscd-input-with-prefix">
+                                    <span class="wsscd-input-prefix"><?php echo esc_html( $currency_symbol ); ?></span>
                                     <input type="number"
                                            id="discount_value_fixed"
                                            name="discount_value_fixed"
                                            value="<?php echo esc_attr( $discount_value_fixed ); ?>"
-                                           min="<?php echo esc_attr( SCD_Validation_Rules::FIXED_MIN ); ?>"
-                                           max="<?php echo esc_attr( SCD_Validation_Rules::FIXED_MAX ); ?>"
+                                           min="<?php echo esc_attr( WSSCD_Validation_Rules::FIXED_MIN ); ?>"
+                                           max="<?php echo esc_attr( WSSCD_Validation_Rules::FIXED_MAX ); ?>"
                                            step="0.01"
                                            inputmode="decimal"
-                                           class="scd-enhanced-input scd-field scd-discount-value-field"
+                                           class="wsscd-enhanced-input wsscd-field wsscd-discount-value-field"
                                            placeholder="e.g. 5.00"
                                            required
                                            data-required="true"
@@ -535,7 +513,7 @@ ob_start();
                                            aria-required="true"
                                            aria-invalid="false">
                                 </div>
-                                <div class="scd-inline-preview" id="fixed-preview">
+                                <div class="wsscd-inline-preview" id="fixed-preview">
                                     <span class="preview-text"></span>
                                 </div>
                             </div>
@@ -543,40 +521,40 @@ ob_start();
                     </tr>
                     
                     <!-- Tiered Discount Configuration -->
-                    <tr class="scd-strategy-options scd-strategy-tiered <?php echo esc_attr( ( $step_data['discount_type'] ?? '' ) === 'tiered' ? 'active' : '' ); ?>" data-strategy-type="tiered">
+                    <tr class="wsscd-strategy-options wsscd-strategy-tiered <?php echo esc_attr( ( $step_data['discount_type'] ?? '' ) === 'tiered' ? 'active' : '' ); ?>" data-strategy-type="tiered">
                         <th scope="row">
                             <label>
                                 <?php esc_html_e('Volume Tiers', 'smart-cycle-discounts'); ?>
                                 <span class="required">*</span>
-                                <?php SCD_Tooltip_Helper::render( __('Create quantity-based discount levels. Customers buying more get bigger discounts.', 'smart-cycle-discounts') ); ?>
+                                <?php WSSCD_Tooltip_Helper::render( __('Create quantity-based discount levels. Customers buying more get bigger discounts.', 'smart-cycle-discounts') ); ?>
                             </label>
                         </th>
                         <td>
-                            <div class="scd-tiered-discounts">
+                            <div class="wsscd-tiered-discounts">
                                 <!-- Apply Discount To Selection -->
-                                <div class="scd-tier-section">
-                                    <label class="scd-tier-section-label">
+                                <div class="wsscd-tier-section">
+                                    <label class="wsscd-tier-section-label">
                                         <?php esc_html_e('Apply Discount To', 'smart-cycle-discounts'); ?>
                                         <span class="required">*</span>
-                                        <?php SCD_Tooltip_Helper::render( __('Choose how the discount applies: per-item (volume pricing) or order total (promotional)', 'smart-cycle-discounts') ); ?>
+                                        <?php WSSCD_Tooltip_Helper::render( __('Choose how the discount applies: per-item (volume pricing) or order total (promotional)', 'smart-cycle-discounts') ); ?>
                                     </label>
-                                    <div class="scd-tier-mode-selector">
-                                        <label class="scd-tier-mode-option">
+                                    <div class="wsscd-tier-mode-selector">
+                                        <label class="wsscd-tier-mode-option">
                                             <input type="radio" name="apply_to" value="per_item" <?php checked(($step_data['apply_to'] ?? 'per_item'), 'per_item'); ?>>
-                                            <span class="scd-tier-mode-card">
-                                                <?php echo SCD_Icon_Helper::get( 'cart', array( 'size' => 20 ) ); ?>
+                                            <span class="wsscd-tier-mode-card">
+                                                <?php WSSCD_Icon_Helper::render( 'cart', array( 'size' => 20 ) ); ?>
                                                 <strong><?php esc_html_e('Each Item', 'smart-cycle-discounts'); ?></strong>
-                                                <small class="scd-tier-mode-description">
+                                                <small class="wsscd-tier-mode-description">
                                                     <?php esc_html_e('Unit price decreases (volume/bulk pricing)', 'smart-cycle-discounts'); ?>
                                                 </small>
                                             </span>
                                         </label>
-                                        <label class="scd-tier-mode-option">
+                                        <label class="wsscd-tier-mode-option">
                                             <input type="radio" name="apply_to" value="order_total" <?php checked(($step_data['apply_to'] ?? ''), 'order_total'); ?>>
-                                            <span class="scd-tier-mode-card">
-                                                <?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 20 ) ); ?>
+                                            <span class="wsscd-tier-mode-card">
+                                                <?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 20 ) ); ?>
                                                 <strong><?php esc_html_e('Order Total', 'smart-cycle-discounts'); ?></strong>
-                                                <small class="scd-tier-mode-description">
+                                                <small class="wsscd-tier-mode-description">
                                                     <?php esc_html_e('Fixed discount on order (promotional)', 'smart-cycle-discounts'); ?>
                                                 </small>
                                             </span>
@@ -585,29 +563,29 @@ ob_start();
                                 </div>
 
                                 <!-- Tier Mode Selection -->
-                                <div class="scd-tier-section">
-                                    <label class="scd-tier-section-label">
+                                <div class="wsscd-tier-section">
+                                    <label class="wsscd-tier-section-label">
                                         <?php esc_html_e('Discount Type', 'smart-cycle-discounts'); ?>
                                         <span class="required">*</span>
-                                        <?php SCD_Tooltip_Helper::render( __('Choose between percentage or fixed amount discounts', 'smart-cycle-discounts') ); ?>
+                                        <?php WSSCD_Tooltip_Helper::render( __('Choose between percentage or fixed amount discounts', 'smart-cycle-discounts') ); ?>
                                     </label>
-                                    <div class="scd-tier-mode-selector">
-                                        <label class="scd-tier-mode-option">
+                                    <div class="wsscd-tier-mode-selector">
+                                        <label class="wsscd-tier-mode-option">
                                             <input type="radio" name="tier_mode" value="percentage" <?php checked(($step_data['tier_mode'] ?? 'percentage'), 'percentage'); ?>>
-                                            <span class="scd-tier-mode-card">
-                                                <?php echo SCD_Icon_Helper::get( 'tag', array( 'size' => 20 ) ); ?>
+                                            <span class="wsscd-tier-mode-card">
+                                                <?php WSSCD_Icon_Helper::render( 'tag', array( 'size' => 20 ) ); ?>
                                                 <strong><?php esc_html_e('Percentage', 'smart-cycle-discounts'); ?></strong>
-                                                <small class="scd-tier-mode-description">
+                                                <small class="wsscd-tier-mode-description">
                                                     <?php esc_html_e('e.g., 10% off, 20% off', 'smart-cycle-discounts'); ?>
                                                 </small>
                                             </span>
                                         </label>
-                                        <label class="scd-tier-mode-option">
+                                        <label class="wsscd-tier-mode-option">
                                             <input type="radio" name="tier_mode" value="fixed" <?php checked(($step_data['tier_mode'] ?? ''), 'fixed'); ?>>
-                                            <span class="scd-tier-mode-card">
-                                                <?php echo SCD_Icon_Helper::get( 'receipt', array( 'size' => 20 ) ); ?>
+                                            <span class="wsscd-tier-mode-card">
+                                                <?php WSSCD_Icon_Helper::render( 'receipt', array( 'size' => 20 ) ); ?>
                                                 <strong><?php esc_html_e('Fixed Amount', 'smart-cycle-discounts'); ?></strong>
-                                                <small class="scd-tier-mode-description">
+                                                <small class="wsscd-tier-mode-description">
                                                     <?php esc_html_e('e.g., $5 off, $10 off', 'smart-cycle-discounts'); ?>
                                                 </small>
                                             </span>
@@ -616,23 +594,23 @@ ob_start();
                                 </div>
 
                                 <!-- Percentage Tiers -->
-                                <div class="scd-tier-group" id="percentage-tiers-group">
-                                    <div class="scd-tiers-list" id="percentage-tiers-list">
+                                <div class="wsscd-tier-group" id="percentage-tiers-group">
+                                    <div class="wsscd-tiers-list" id="percentage-tiers-list">
                                         <!-- Percentage tiers will be populated by JavaScript -->
                                     </div>
-                                    <button type="button" class="button button-secondary scd-add-tier" data-tier-type="percentage">
-                                        <?php echo SCD_Icon_Helper::get( 'add', array( 'size' => 16 ) ); ?>
+                                    <button type="button" class="button button-secondary wsscd-add-tier" data-tier-type="percentage">
+                                        <?php WSSCD_Icon_Helper::render( 'add', array( 'size' => 16 ) ); ?>
                                         <?php esc_html_e('Add Percentage Tier', 'smart-cycle-discounts'); ?>
                                     </button>
                                 </div>
                                 
                                 <!-- Fixed Amount Tiers -->
-                                <div class="scd-tier-group scd-hidden" id="fixed-tiers-group">
-                                    <div class="scd-tiers-list" id="fixed-tiers-list">
+                                <div class="wsscd-tier-group wsscd-hidden" id="fixed-tiers-group">
+                                    <div class="wsscd-tiers-list" id="fixed-tiers-list">
                                         <!-- Fixed amount tiers will be populated by JavaScript -->
                                     </div>
-                                    <button type="button" class="button button-secondary scd-add-tier" data-tier-type="fixed">
-                                        <?php echo SCD_Icon_Helper::get( 'add', array( 'size' => 16 ) ); ?>
+                                    <button type="button" class="button button-secondary wsscd-add-tier" data-tier-type="fixed">
+                                        <?php WSSCD_Icon_Helper::render( 'add', array( 'size' => 16 ) ); ?>
                                         <?php esc_html_e('Add Fixed Amount Tier', 'smart-cycle-discounts'); ?>
                                     </button>
                                 </div>
@@ -640,56 +618,58 @@ ob_start();
                                 <!-- Hidden input for validation -->
                                 <input type="hidden" name="tiers" id="tiers" value="">
                             </div>
-                            <div class="scd-inline-preview" id="tiered-preview">
+                            <div class="wsscd-inline-preview" id="tiered-preview">
                                 <span class="preview-text"></span>
                             </div>
                         </td>
                     </tr>
 
                     <!-- BOGO Configuration -->
-                    <tr class="scd-strategy-options scd-strategy-bogo <?php echo esc_attr( ( $step_data['discount_type'] ?? '' ) === 'bogo' ? 'active' : '' ); ?>" data-strategy-type="bogo">
+                    <tr class="wsscd-strategy-options wsscd-strategy-bogo <?php echo esc_attr( ( $step_data['discount_type'] ?? '' ) === 'bogo' ? 'active' : '' ); ?>" data-strategy-type="bogo">
                         <th scope="row">
                             <label>
                                 <?php esc_html_e('BOGO Configuration', 'smart-cycle-discounts'); ?>
                                 <span class="required">*</span>
-                                <?php SCD_Tooltip_Helper::render( __('Set to 100% for free items, or any percentage for partial discounts.', 'smart-cycle-discounts') ); ?>
+                                <?php WSSCD_Tooltip_Helper::render( __('Set to 100% for free items, or any percentage for partial discounts.', 'smart-cycle-discounts') ); ?>
                             </label>
                         </th>
                         <td>
-                            <div class="scd-bogo-config">
-                                <div class="scd-bogo-row">
-                                    <div class="scd-bogo-field">
+                            <div class="wsscd-bogo-config">
+                                <div class="wsscd-bogo-row">
+                                    <div class="wsscd-bogo-field">
                                         <label for="bogo_buy_quantity"><?php esc_html_e('Customer Buys', 'smart-cycle-discounts'); ?></label>
                                         <input type="number"
                                                id="bogo_buy_quantity"
                                                name="bogo_buy_quantity"
                                                value="<?php echo esc_attr( $bogo_buy_quantity ); ?>"
                                                min="1"
+                                               max="1000"
                                                step="1"
                                                inputmode="numeric"
                                                placeholder="e.g. 2"
                                                data-label="Buy Quantity"
                                                data-input-type="integer"
-                                               class="scd-enhanced-input">
+                                               class="wsscd-enhanced-input">
                                     </div>
-                                    <div class="scd-bogo-field">
+                                    <div class="wsscd-bogo-field">
                                         <label for="bogo_get_quantity"><?php esc_html_e('Customer Gets', 'smart-cycle-discounts'); ?></label>
                                         <input type="number"
                                                id="bogo_get_quantity"
                                                name="bogo_get_quantity"
                                                value="<?php echo esc_attr( $bogo_get_quantity ); ?>"
                                                min="1"
+                                               max="1000"
                                                step="1"
                                                inputmode="numeric"
                                                placeholder="e.g. 1"
                                                data-label="Get Quantity"
                                                data-input-type="integer"
-                                               class="scd-enhanced-input">
+                                               class="wsscd-enhanced-input">
                                     </div>
-                                    <div class="scd-bogo-field">
+                                    <div class="wsscd-bogo-field">
                                         <label for="bogo_discount_percentage"><?php esc_html_e('At Discount', 'smart-cycle-discounts'); ?></label>
-                                        <div class="scd-input-wrapper scd-input-with-prefix">
-                                            <span class="scd-input-prefix">%</span>
+                                        <div class="wsscd-input-wrapper wsscd-input-with-prefix">
+                                            <span class="wsscd-input-prefix">%</span>
                                             <input type="number"
                                                    id="bogo_discount_percentage"
                                                    name="bogo_discount_percentage"
@@ -701,46 +681,46 @@ ob_start();
                                                    placeholder="0-100"
                                                    data-label="Discount Percentage"
                                                    data-input-type="percentage"
-                                                   class="scd-enhanced-input">
+                                                   class="wsscd-enhanced-input">
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="scd-inline-preview" id="bogo-preview">
+                            <div class="wsscd-inline-preview" id="bogo-preview">
                                 <span class="preview-text"></span>
                             </div>
                         </td>
                     </tr>
                     
                     <!-- Spend Threshold Configuration -->
-                    <tr class="scd-strategy-options scd-strategy-spend_threshold <?php echo esc_attr( ( $step_data['discount_type'] ?? '' ) === 'spend_threshold' ? 'active' : '' ); ?>" data-strategy-type="spend_threshold">
+                    <tr class="wsscd-strategy-options wsscd-strategy-spend_threshold <?php echo esc_attr( ( $step_data['discount_type'] ?? '' ) === 'spend_threshold' ? 'active' : '' ); ?>" data-strategy-type="spend_threshold">
                         <th scope="row">
                             <label>
                                 <?php esc_html_e('Spending Tiers', 'smart-cycle-discounts'); ?>
                                 <span class="required">*</span>
-                                <?php SCD_Tooltip_Helper::render( __('Create spending-based discount levels. Customers spending more get bigger discounts.', 'smart-cycle-discounts') ); ?>
+                                <?php WSSCD_Tooltip_Helper::render( __('Create spending-based discount levels. Customers spending more get bigger discounts.', 'smart-cycle-discounts') ); ?>
                             </label>
                         </th>
                         <td>
-                            <div class="scd-spend-thresholds">
+                            <div class="wsscd-spend-thresholds">
                                 <!-- Threshold Mode Selection -->
-                                <div class="scd-threshold-mode-selector">
-                                    <label class="scd-threshold-mode-option">
+                                <div class="wsscd-threshold-mode-selector">
+                                    <label class="wsscd-threshold-mode-option">
                                         <input type="radio" name="threshold_mode" value="percentage" <?php checked( ( $step_data['threshold_mode'] ?? 'percentage' ), 'percentage' ); ?>>
-                                        <span class="scd-threshold-mode-card">
-                                            <?php echo SCD_Icon_Helper::get( 'tag', array( 'size' => 20 ) ); ?>
+                                        <span class="wsscd-threshold-mode-card">
+                                            <?php WSSCD_Icon_Helper::render( 'tag', array( 'size' => 20 ) ); ?>
                                             <strong><?php esc_html_e( 'Percentage Discounts', 'smart-cycle-discounts' ); ?></strong>
-                                            <small class="scd-mode-description">
+                                            <small class="wsscd-mode-description">
                                                 <?php esc_html_e( 'Scales with order value.', 'smart-cycle-discounts' ); ?>
                                             </small>
                                         </span>
                                     </label>
-                                    <label class="scd-threshold-mode-option">
+                                    <label class="wsscd-threshold-mode-option">
                                         <input type="radio" name="threshold_mode" value="fixed" <?php checked( ( $step_data['threshold_mode'] ?? '' ), 'fixed' ); ?>>
-                                        <span class="scd-threshold-mode-card">
-                                            <?php echo SCD_Icon_Helper::get( 'receipt', array( 'size' => 20 ) ); ?>
+                                        <span class="wsscd-threshold-mode-card">
+                                            <?php WSSCD_Icon_Helper::render( 'receipt', array( 'size' => 20 ) ); ?>
                                             <strong><?php esc_html_e( 'Fixed Amount Off', 'smart-cycle-discounts' ); ?></strong>
-                                            <small class="scd-mode-description">
+                                            <small class="wsscd-mode-description">
                                                 <?php esc_html_e( 'Best for high-value or fixed shipping.', 'smart-cycle-discounts' ); ?>
                                             </small>
                                         </span>
@@ -748,23 +728,23 @@ ob_start();
                                 </div>
                                 
                                 <!-- Percentage Thresholds -->
-                                <div class="scd-threshold-group" id="percentage-thresholds-group">
-                                    <div class="scd-thresholds-list" id="percentage-thresholds-list" data-empty-message="<?php esc_attr_e('No percentage thresholds added yet', 'smart-cycle-discounts'); ?>">
+                                <div class="wsscd-threshold-group" id="percentage-thresholds-group">
+                                    <div class="wsscd-thresholds-list" id="percentage-thresholds-list" data-empty-message="<?php esc_attr_e('No percentage thresholds added yet', 'smart-cycle-discounts'); ?>">
                                         <!-- Percentage thresholds will be populated by JavaScript -->
                                     </div>
-                                    <button type="button" class="button button-secondary scd-add-threshold" data-threshold-type="percentage">
-                                        <?php echo SCD_Icon_Helper::get( 'add', array( 'size' => 16 ) ); ?>
+                                    <button type="button" class="button button-secondary wsscd-add-threshold" data-threshold-type="percentage">
+                                        <?php WSSCD_Icon_Helper::render( 'add', array( 'size' => 16 ) ); ?>
                                         <?php esc_html_e('Add Percentage Threshold', 'smart-cycle-discounts'); ?>
                                     </button>
                                 </div>
                                 
                                 <!-- Fixed Amount Thresholds -->
-                                <div class="scd-threshold-group scd-hidden" id="fixed-thresholds-group">
-                                    <div class="scd-thresholds-list" id="fixed-thresholds-list" data-empty-message="<?php esc_attr_e('No fixed amount thresholds added yet', 'smart-cycle-discounts'); ?>">
+                                <div class="wsscd-threshold-group wsscd-hidden" id="fixed-thresholds-group">
+                                    <div class="wsscd-thresholds-list" id="fixed-thresholds-list" data-empty-message="<?php esc_attr_e('No fixed amount thresholds added yet', 'smart-cycle-discounts'); ?>">
                                         <!-- Fixed amount thresholds will be populated by JavaScript -->
                                     </div>
-                                    <button type="button" class="button button-secondary scd-add-threshold" data-threshold-type="fixed">
-                                        <?php echo SCD_Icon_Helper::get( 'add', array( 'size' => 16 ) ); ?>
+                                    <button type="button" class="button button-secondary wsscd-add-threshold" data-threshold-type="fixed">
+                                        <?php WSSCD_Icon_Helper::render( 'add', array( 'size' => 16 ) ); ?>
                                         <?php esc_html_e('Add Fixed Amount Threshold', 'smart-cycle-discounts'); ?>
                                     </button>
                                 </div>
@@ -772,18 +752,18 @@ ob_start();
                                 <!-- Hidden input for validation -->
                                 <input type="hidden" name="thresholds" id="thresholds" value="">
                             </div>
-                            <div class="scd-inline-preview" id="spend-threshold-preview">
+                            <div class="wsscd-inline-preview" id="spend-threshold-preview">
                                 <span class="preview-text"></span>
                             </div>
                         </td>
                     </tr>
                         </table>
-                    </div><!-- .scd-pro-background -->
-                </div><!-- .scd-pro-container -->
+                    </div>
+                </div><!-- #wsscd-discount-details-container -->
         <?php
         $discount_value_content = ob_get_clean();
         
-        scd_wizard_card(array(
+        wsscd_wizard_card(array(
             'title' => __('Configure Discount Details', 'smart-cycle-discounts'),
             'subtitle' => __('Set specific values and conditions for your selected discount type.', 'smart-cycle-discounts'),
             'icon' => 'admin-settings',
@@ -798,41 +778,44 @@ ob_start();
         ob_start();
         ?>
             <!-- Enable Badge Toggle -->
-            <div class="scd-badge-enable-section">
-                <label for="badge_enabled" class="scd-badge-enable-label">
-                    <input type="checkbox"
-                           id="badge_enabled"
-                           name="badge_enabled"
-                           value="1"
-                           <?php checked( $badge_enabled ); ?>>
-                    <span class="scd-badge-enable-text">
-                        <strong><?php esc_html_e('Show promotional badges on products', 'smart-cycle-discounts'); ?></strong>
-                        <span class="scd-badge-enable-description"><?php esc_html_e('Attract attention with eye-catching badges on discounted items', 'smart-cycle-discounts'); ?></span>
-                    </span>
-                </label>
+            <div class="wsscd-badge-enable-section">
+                <div class="wsscd-badge-enable-row">
+                    <label class="wsscd-toggle" for="badge_enabled">
+                        <input type="checkbox"
+                               id="badge_enabled"
+                               name="badge_enabled"
+                               value="1"
+                               <?php checked( $badge_enabled ); ?>>
+                        <span class="wsscd-toggle-slider"></span>
+                    </label>
+                    <div class="wsscd-badge-enable-text">
+                        <label for="badge_enabled" class="wsscd-badge-enable-title"><?php esc_html_e('Show promotional badges on products', 'smart-cycle-discounts'); ?></label>
+                        <span class="wsscd-badge-enable-description"><?php esc_html_e('Display custom badges on discounted items. When disabled, theme\'s default sale badge will show.', 'smart-cycle-discounts'); ?></span>
+                    </div>
+                </div>
 
                 <!-- Context Warning for BOGO/Spend Threshold -->
-                <div class="scd-badge-context-warning scd-hidden">
-                    <?php echo SCD_Icon_Helper::get( 'info', array( 'size' => 16 ) ); ?>
-                    <span class="scd-context-warning-text"></span>
+                <div class="wsscd-badge-context-warning wsscd-hidden">
+                    <?php WSSCD_Icon_Helper::render( 'info', array( 'size' => 16 ) ); ?>
+                    <span class="wsscd-context-warning-text"></span>
                 </div>
             </div>
 
             <!-- Badge Configuration (shown when enabled) -->
-            <div class="scd-badge-config-wrapper scd-badge-setting" data-depends-on="badge_enabled">
+            <div class="wsscd-badge-config-wrapper wsscd-badge-setting" data-depends-on="badge_enabled">
 
                 <!-- Left Column: Controls -->
-                <div class="scd-badge-config-controls">
+                <div class="wsscd-badge-config-controls">
 
                     <!-- Badge Text Section -->
-                    <div class="scd-badge-config-section">
-                        <h4 class="scd-badge-section-title">
-                            <?php echo SCD_Icon_Helper::get( 'edit', array( 'size' => 16 ) ); ?>
+                    <div class="wsscd-badge-config-section">
+                        <h4 class="wsscd-badge-section-title">
+                            <?php WSSCD_Icon_Helper::render( 'edit', array( 'size' => 16 ) ); ?>
                             <?php esc_html_e('Badge Text', 'smart-cycle-discounts'); ?>
                         </h4>
 
-                        <div class="scd-badge-text-mode">
-                            <select id="badge_text_mode" name="badge_text_mode" class="scd-enhanced-select">
+                        <div class="wsscd-badge-text-mode">
+                            <select id="badge_text_mode" name="badge_text_mode" class="wsscd-enhanced-select">
                                 <option value="auto" <?php selected( 'auto' === $badge_text || empty( $badge_text ) ); ?>>
                                     <?php esc_html_e('🤖 Auto-generate (e.g., "20% OFF")', 'smart-cycle-discounts'); ?>
                                 </option>
@@ -842,12 +825,12 @@ ob_start();
                             </select>
                         </div>
 
-                        <div class="scd-custom-badge-text<?php echo esc_attr( 'auto' === $badge_text || empty( $badge_text ) ? ' scd-hidden' : '' ); ?>">
+                        <div class="wsscd-custom-badge-text<?php echo esc_attr( 'auto' === $badge_text || empty( $badge_text ) ? ' wsscd-hidden' : '' ); ?>">
                             <input type="text"
                                    id="badge_text_custom"
                                    name="badge_text_custom"
                                    value="<?php echo esc_attr( 'auto' === $badge_text ? '' : $badge_text ); ?>"
-                                   class="scd-enhanced-input"
+                                   class="wsscd-enhanced-input"
                                    placeholder="<?php esc_attr_e('e.g., SALE, LIMITED TIME', 'smart-cycle-discounts'); ?>"
                                    maxlength="50">
                             <p class="description">
@@ -859,76 +842,76 @@ ob_start();
                     </div>
 
                     <!-- Position Section -->
-                    <div class="scd-badge-config-section">
-                        <h4 class="scd-badge-section-title">
-                            <?php echo SCD_Icon_Helper::get( 'move', array( 'size' => 16 ) ); ?>
+                    <div class="wsscd-badge-config-section">
+                        <h4 class="wsscd-badge-section-title">
+                            <?php WSSCD_Icon_Helper::render( 'move', array( 'size' => 16 ) ); ?>
                             <?php esc_html_e('Position', 'smart-cycle-discounts'); ?>
                         </h4>
 
-                        <div class="scd-badge-position-grid">
-                            <label class="scd-position-box">
+                        <div class="wsscd-badge-position-grid">
+                            <label class="wsscd-position-box">
                                 <input type="radio" name="badge_position" value="top-left" <?php checked( $badge_position, 'top-left' ); ?>>
-                                <span class="scd-position-visual">
-                                    <span class="scd-position-indicator"></span>
+                                <span class="wsscd-position-visual">
+                                    <span class="wsscd-position-indicator"></span>
                                 </span>
-                                <span class="scd-position-name"><?php esc_html_e('Top Left', 'smart-cycle-discounts'); ?></span>
+                                <span class="wsscd-position-name"><?php esc_html_e('Top Left', 'smart-cycle-discounts'); ?></span>
                             </label>
 
-                            <label class="scd-position-box">
+                            <label class="wsscd-position-box">
                                 <input type="radio" name="badge_position" value="top-right" <?php checked( $badge_position, 'top-right' ); ?>>
-                                <span class="scd-position-visual">
-                                    <span class="scd-position-indicator"></span>
+                                <span class="wsscd-position-visual">
+                                    <span class="wsscd-position-indicator"></span>
                                 </span>
-                                <span class="scd-position-name"><?php esc_html_e('Top Right', 'smart-cycle-discounts'); ?></span>
+                                <span class="wsscd-position-name"><?php esc_html_e('Top Right', 'smart-cycle-discounts'); ?></span>
                             </label>
 
-                            <label class="scd-position-box">
+                            <label class="wsscd-position-box">
                                 <input type="radio" name="badge_position" value="bottom-left" <?php checked( $badge_position, 'bottom-left' ); ?>>
-                                <span class="scd-position-visual">
-                                    <span class="scd-position-indicator"></span>
+                                <span class="wsscd-position-visual">
+                                    <span class="wsscd-position-indicator"></span>
                                 </span>
-                                <span class="scd-position-name"><?php esc_html_e('Bottom Left', 'smart-cycle-discounts'); ?></span>
+                                <span class="wsscd-position-name"><?php esc_html_e('Bottom Left', 'smart-cycle-discounts'); ?></span>
                             </label>
 
-                            <label class="scd-position-box">
+                            <label class="wsscd-position-box">
                                 <input type="radio" name="badge_position" value="bottom-right" <?php checked( $badge_position, 'bottom-right' ); ?>>
-                                <span class="scd-position-visual">
-                                    <span class="scd-position-indicator"></span>
+                                <span class="wsscd-position-visual">
+                                    <span class="wsscd-position-indicator"></span>
                                 </span>
-                                <span class="scd-position-name"><?php esc_html_e('Bottom Right', 'smart-cycle-discounts'); ?></span>
+                                <span class="wsscd-position-name"><?php esc_html_e('Bottom Right', 'smart-cycle-discounts'); ?></span>
                             </label>
                         </div>
                     </div>
 
                     <!-- Colors Section -->
-                    <div class="scd-badge-config-section">
-                        <h4 class="scd-badge-section-title">
-                            <?php echo SCD_Icon_Helper::get( 'admin-appearance', array( 'size' => 16 ) ); ?>
+                    <div class="wsscd-badge-config-section">
+                        <h4 class="wsscd-badge-section-title">
+                            <?php WSSCD_Icon_Helper::render( 'admin-appearance', array( 'size' => 16 ) ); ?>
                             <?php esc_html_e('Colors', 'smart-cycle-discounts'); ?>
                         </h4>
 
-                        <div class="scd-badge-colors-grid">
-                            <div class="scd-color-picker-box">
-                                <label for="badge_bg_color" class="scd-color-box-label">
+                        <div class="wsscd-badge-colors-grid">
+                            <div class="wsscd-color-picker-box">
+                                <label for="badge_bg_color" class="wsscd-color-box-label">
                                     <?php esc_html_e('Background', 'smart-cycle-discounts'); ?>
                                 </label>
                                 <input type="text"
                                        id="badge_bg_color"
                                        name="badge_bg_color"
                                        value="<?php echo esc_attr( $badge_bg_color ); ?>"
-                                       class="scd-color-picker"
+                                       class="wsscd-color-picker"
                                        data-default-color="#ff0000">
                             </div>
 
-                            <div class="scd-color-picker-box">
-                                <label for="badge_text_color" class="scd-color-box-label">
+                            <div class="wsscd-color-picker-box">
+                                <label for="badge_text_color" class="wsscd-color-box-label">
                                     <?php esc_html_e('Text', 'smart-cycle-discounts'); ?>
                                 </label>
                                 <input type="text"
                                        id="badge_text_color"
                                        name="badge_text_color"
                                        value="<?php echo esc_attr( $badge_text_color ); ?>"
-                                       class="scd-color-picker"
+                                       class="wsscd-color-picker"
                                        data-default-color="#ffffff">
                             </div>
                         </div>
@@ -936,21 +919,21 @@ ob_start();
                 </div>
 
                 <!-- Right Column: Preview -->
-                <div class="scd-badge-config-preview">
-                    <div class="scd-badge-preview-header">
-                        <h4 class="scd-badge-section-title">
-                            <?php echo SCD_Icon_Helper::get( 'visibility', array( 'size' => 16 ) ); ?>
+                <div class="wsscd-badge-config-preview">
+                    <div class="wsscd-badge-preview-header">
+                        <h4 class="wsscd-badge-section-title">
+                            <?php WSSCD_Icon_Helper::render( 'visibility', array( 'size' => 16 ) ); ?>
                             <?php esc_html_e('Live Preview', 'smart-cycle-discounts'); ?>
                         </h4>
                     </div>
 
-                    <div class="scd-badge-preview-wrapper">
-                        <div class="scd-badge-preview-mock-product">
-                            <div class="scd-badge-preview-placeholder">
-                                <?php echo SCD_Icon_Helper::get( 'images-alt2', array( 'size' => 16 ) ); ?>
+                    <div class="wsscd-badge-preview-wrapper">
+                        <div class="wsscd-badge-preview-mock-product">
+                            <div class="wsscd-badge-preview-placeholder">
+                                <?php WSSCD_Icon_Helper::render( 'images-alt2', array( 'size' => 16 ) ); ?>
                                 <span><?php esc_html_e('Product Image', 'smart-cycle-discounts'); ?></span>
                             </div>
-                            <span class="scd-badge-preview-badge"
+                            <span class="wsscd-badge-preview-badge"
                                   data-position="<?php echo esc_attr( $badge_position ); ?>"
                                   style="background-color: <?php echo esc_attr( $badge_bg_color ); ?>; color: <?php echo esc_attr( $badge_text_color ); ?>;">
                                 <?php
@@ -968,7 +951,7 @@ ob_start();
                                 ?>
                             </span>
                         </div>
-                        <p class="scd-preview-note">
+                        <p class="wsscd-preview-note">
                             <?php esc_html_e('This is how your badge will appear on product images in your shop.', 'smart-cycle-discounts'); ?>
                         </p>
                     </div>
@@ -977,7 +960,7 @@ ob_start();
         <?php
         $badge_display_content = ob_get_clean();
 
-        scd_wizard_card(array(
+        wsscd_wizard_card(array(
             'title' => __( 'Badge Display', 'smart-cycle-discounts' ),
             'icon' => 'tag',
             'badge' => array(
@@ -991,48 +974,103 @@ ob_start();
         ));
         ?>
 
-        <!-- Step 4: Configure Discount Rules -->
+        <!-- Step 4: Configure Discount Rules (PRO Feature) - Dual-block pattern for WordPress.org compliance -->
+        <?php if ( ! $has_pro_access ) : ?>
         <?php
+        // Block 1: Promotional locked card (always in both ZIPs) - shown to free users
         ob_start();
         ?>
+        <div class="wsscd-pro-feature-locked">
+            <div class="wsscd-pro-feature-locked__content">
+                <?php echo wp_kses_post( WSSCD_Badge_Helper::pro_badge( __( 'PRO Feature', 'smart-cycle-discounts' ) ) ); ?>
+                <h4 class="wsscd-pro-feature-locked__title">
+                    <?php esc_html_e( 'Advanced Discount Rules', 'smart-cycle-discounts' ); ?>
+                </h4>
+                <p class="wsscd-pro-feature-locked__description">
+                    <?php esc_html_e( 'Fine-tune your discounts with powerful configuration options to maximize impact while protecting margins.', 'smart-cycle-discounts' ); ?>
+                </p>
+                <ul class="wsscd-pro-feature-locked__features">
+                    <li><?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?> <?php esc_html_e( 'Set per-customer and total usage limits', 'smart-cycle-discounts' ); ?></li>
+                    <li><?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?> <?php esc_html_e( 'Configure minimum quantity and order amount', 'smart-cycle-discounts' ); ?></li>
+                    <li><?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?> <?php esc_html_e( 'Control campaign stacking and coupon combinations', 'smart-cycle-discounts' ); ?></li>
+                    <li><?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?> <?php esc_html_e( 'Set maximum discount caps to protect margins', 'smart-cycle-discounts' ); ?></li>
+                </ul>
+                <?php
+                WSSCD_Button_Helper::primary(
+                    __( 'Upgrade to Pro', 'smart-cycle-discounts' ),
+                    array(
+                        'size'    => 'medium',
+                        'href'    => esc_url( $upgrade_url ),
+                        'classes' => array( 'wsscd-pro-feature-locked__upgrade-btn' ),
+                    )
+                );
+                ?>
+            </div>
+        </div>
+        <?php
+        $discount_rules_content = ob_get_clean();
+
+        wsscd_wizard_card( array(
+            'title'      => __( 'Configure Discount Rules', 'smart-cycle-discounts' ),
+            'icon'       => 'admin-settings',
+            'badge'      => array( 'text' => __( 'PRO', 'smart-cycle-discounts' ), 'type' => 'pro' ),
+            'subtitle'   => __( 'Fine-tune how your discount works to maximize impact while protecting margins.', 'smart-cycle-discounts' ),
+            'content'    => $discount_rules_content,
+            'id'         => 'discount-rules-card',
+            'class'      => 'wsscd-wizard-card--locked',
+            'help_topic' => 'card-discount-rules',
+        ) );
+        ?>
+        <?php endif; ?>
+
+        <?php if ( wsscd_fs()->is__premium_only() ) : ?>
+        <?php if ( $has_pro_access ) : ?>
+        <?php
+        // Block 2: Functional card (only in PRO ZIP, shown when licensed)
+        ob_start();
+        ?>
+        <div id="wsscd-discount-rules-container">
+                <fieldset class="wsscd-discount-rules-fieldset">
+                <legend class="screen-reader-text"><?php esc_html_e( 'Discount Configuration Rules', 'smart-cycle-discounts' ); ?></legend>
                 <!-- Usage Limits Section -->
-                <div class="scd-discount-rules-section scd-collapsible" data-section="usage-limits">
-                    <h4 class="scd-rules-section-title scd-collapsible-trigger">
-                        <span class="scd-section-text">
-                            <?php echo SCD_Icon_Helper::get( 'admin-users', array( 'size' => 16 ) ); ?>
+                <div class="wsscd-discount-rules-section wsscd-collapsible" data-section="usage-limits">
+                    <h4 class="wsscd-rules-section-title wsscd-collapsible-trigger">
+                        <span class="wsscd-section-text">
+                            <?php WSSCD_Icon_Helper::render( 'admin-users', array( 'size' => 16 ) ); ?>
                             <?php esc_html_e('Usage Limits', 'smart-cycle-discounts'); ?>
                         </span>
-                        <span class="scd-collapse-icon">
-                            <?php echo SCD_Icon_Helper::get( 'arrow-down', array( 'size' => 16 ) ); ?>
+                        <span class="wsscd-collapse-icon">
+                            <?php WSSCD_Icon_Helper::render( 'arrow-down', array( 'size' => 16 ) ); ?>
                         </span>
                     </h4>
                     
-                    <div class="scd-collapsible-content">
-                        <table class="form-table scd-rules-table">
+                    <div class="wsscd-collapsible-content">
+                        <table class="form-table wsscd-rules-table">
                             <tr>
                                 <th scope="row">
                                     <label for="usage_limit_per_customer">
-                                        <span class="scd-label-icon" title="<?php esc_attr_e('Per customer usage limit', 'smart-cycle-discounts'); ?>">
-                                            <?php echo SCD_Icon_Helper::get( 'admin-users', array( 'size' => 16 ) ); ?>
+                                        <span class="wsscd-label-icon" title="<?php esc_attr_e('Per customer usage limit', 'smart-cycle-discounts'); ?>">
+                                            <?php WSSCD_Icon_Helper::render( 'admin-users', array( 'size' => 16 ) ); ?>
                                         </span>
                                         <?php esc_html_e('Per Customer', 'smart-cycle-discounts'); ?>
-                                        <?php SCD_Tooltip_Helper::render( __('Set how many times each individual customer can redeem this discount during each rotation cycle. Leave empty for unlimited uses.', 'smart-cycle-discounts') ); ?>
+                                        <?php WSSCD_Tooltip_Helper::render( __('Set how many times each individual customer can redeem this discount during each rotation cycle. Leave empty for unlimited uses.', 'smart-cycle-discounts') ); ?>
                                     </label>
                                 </th>
                                 <td>
-                                    <div class="scd-input-wrapper">
+                                    <div class="wsscd-input-wrapper">
                                         <input type="number"
                                                id="usage_limit_per_customer"
                                                name="usage_limit_per_customer"
                                                value="<?php echo esc_attr( $usage_limit_per_customer ); ?>"
                                                min="0"
+                                               max="999999"
                                                step="1"
                                                inputmode="numeric"
                                                data-label="Per Customer Limit"
                                                data-input-type="integer"
-                                               class="scd-enhanced-input"
+                                               class="wsscd-enhanced-input"
                                                placeholder="∞">
-                                        <span class="scd-field-suffix"><?php esc_html_e('uses per cycle', 'smart-cycle-discounts'); ?></span>
+                                        <span class="wsscd-field-suffix"><?php esc_html_e('uses per cycle', 'smart-cycle-discounts'); ?></span>
                                     </div>
                                 </td>
                             </tr>
@@ -1040,27 +1078,28 @@ ob_start();
                             <tr>
                                 <th scope="row">
                                     <label for="total_usage_limit">
-                                        <span class="scd-label-icon" title="<?php esc_attr_e('Total usage limit', 'smart-cycle-discounts'); ?>">
-                                            <?php echo SCD_Icon_Helper::get( 'chart-pie', array( 'size' => 16 ) ); ?>
+                                        <span class="wsscd-label-icon" title="<?php esc_attr_e('Total usage limit', 'smart-cycle-discounts'); ?>">
+                                            <?php WSSCD_Icon_Helper::render( 'chart-pie', array( 'size' => 16 ) ); ?>
                                         </span>
                                         <?php esc_html_e('Total Uses', 'smart-cycle-discounts'); ?>
-                                        <?php SCD_Tooltip_Helper::render( __('Total times this discount can be used by all customers combined per cycle. Great for flash sales or limited inventory.', 'smart-cycle-discounts') ); ?>
+                                        <?php WSSCD_Tooltip_Helper::render( __('Total times this discount can be used by all customers combined per cycle. Great for flash sales or limited inventory.', 'smart-cycle-discounts') ); ?>
                                     </label>
                                 </th>
                                 <td>
-                                    <div class="scd-input-wrapper">
+                                    <div class="wsscd-input-wrapper">
                                         <input type="number"
                                                id="total_usage_limit"
                                                name="total_usage_limit"
                                                value="<?php echo esc_attr( $step_data['total_usage_limit'] ?? '' ); ?>"
                                                min="0"
+                                               max="999999"
                                                step="1"
                                                inputmode="numeric"
                                                data-label="Total Usage Limit"
                                                data-input-type="integer"
-                                               class="scd-enhanced-input"
+                                               class="wsscd-enhanced-input"
                                                placeholder="∞">
-                                        <span class="scd-field-suffix"><?php esc_html_e('redemptions per cycle', 'smart-cycle-discounts'); ?></span>
+                                        <span class="wsscd-field-suffix"><?php esc_html_e('redemptions per cycle', 'smart-cycle-discounts'); ?></span>
                                     </div>
                                 </td>
                             </tr>
@@ -1069,7 +1108,7 @@ ob_start();
                             <th scope="row">
                                 <label for="lifetime_usage_cap">
                                     <?php esc_html_e('Lifetime Usage Cap', 'smart-cycle-discounts'); ?>
-                                    <?php SCD_Tooltip_Helper::render( __('Total uses allowed across all campaign cycles. Ends campaign when reached.', 'smart-cycle-discounts') ); ?>
+                                    <?php WSSCD_Tooltip_Helper::render( __('Total uses allowed across all campaign cycles. Ends campaign when reached.', 'smart-cycle-discounts') ); ?>
                                 </label>
                             </th>
                             <td>
@@ -1078,13 +1117,14 @@ ob_start();
                                        name="lifetime_usage_cap"
                                        value="<?php echo esc_attr( $step_data['lifetime_usage_cap'] ?? '' ); ?>"
                                        min="0"
+                                       max="999999"
                                        step="1"
                                        inputmode="numeric"
                                        data-label="Lifetime Usage Cap"
                                        data-input-type="integer"
-                                       class="scd-enhanced-input"
+                                       class="wsscd-enhanced-input"
                                        placeholder="<?php esc_attr_e('Unlimited', 'smart-cycle-discounts'); ?>">
-                                <span class="scd-field-suffix"><?php esc_html_e('uses across all cycles', 'smart-cycle-discounts'); ?></span>
+                                <span class="wsscd-field-suffix"><?php esc_html_e('uses across all cycles', 'smart-cycle-discounts'); ?></span>
                             </td>
                         </tr>
                         </table>
@@ -1092,32 +1132,32 @@ ob_start();
                 </div>
                 
                 <!-- Application Rules Section -->
-                <div class="scd-discount-rules-section scd-collapsible" data-section="application-rules">
-                    <h4 class="scd-rules-section-title scd-collapsible-trigger">
-                        <span class="scd-section-text">
-                            <?php echo SCD_Icon_Helper::get( 'admin-generic', array( 'size' => 16 ) ); ?>
+                <div class="wsscd-discount-rules-section wsscd-collapsible" data-section="application-rules">
+                    <h4 class="wsscd-rules-section-title wsscd-collapsible-trigger">
+                        <span class="wsscd-section-text">
+                            <?php WSSCD_Icon_Helper::render( 'admin-generic', array( 'size' => 16 ) ); ?>
                             <?php esc_html_e('Application Rules', 'smart-cycle-discounts'); ?>
                         </span>
-                        <span class="scd-collapse-icon">
-                            <?php echo SCD_Icon_Helper::get( 'arrow-down', array( 'size' => 16 ) ); ?>
+                        <span class="wsscd-collapse-icon">
+                            <?php WSSCD_Icon_Helper::render( 'arrow-down', array( 'size' => 16 ) ); ?>
                         </span>
                     </h4>
                     
-                    <div class="scd-collapsible-content">
-                        <table class="form-table scd-rules-table">
-                            <tr data-hide-for-types="fixed,bogo" class="scd-conditional-rule">
+                    <div class="wsscd-collapsible-content">
+                        <table class="form-table wsscd-rules-table">
+                            <tr data-hide-for-types="fixed,bogo" class="wsscd-conditional-rule">
                                 <th scope="row">
                                     <label for="apply_to">
-                                        <span class="scd-label-icon" title="<?php esc_attr_e('Application method', 'smart-cycle-discounts'); ?>">
-                                            <?php echo SCD_Icon_Helper::get( 'admin-generic', array( 'size' => 16 ) ); ?>
+                                        <span class="wsscd-label-icon" title="<?php esc_attr_e('Application method', 'smart-cycle-discounts'); ?>">
+                                            <?php WSSCD_Icon_Helper::render( 'admin-generic', array( 'size' => 16 ) ); ?>
                                         </span>
                                         <?php esc_html_e('Apply To', 'smart-cycle-discounts'); ?>
-                                        <?php SCD_Tooltip_Helper::render( __('Example: 10% off each item vs. 10% off total order', 'smart-cycle-discounts') ); ?>
+                                        <?php WSSCD_Tooltip_Helper::render( __('Example: 10% off each item vs. 10% off total order', 'smart-cycle-discounts') ); ?>
                                     </label>
                                 </th>
                                 <td>
-                                    <div class="scd-select-wrapper">
-                                        <select id="apply_to" name="apply_to" class="scd-enhanced-select">
+                                    <div class="wsscd-select-wrapper">
+                                        <select id="apply_to" name="apply_to" class="wsscd-enhanced-select">
                                             <option value="per_item" <?php selected( $step_data['apply_to'] ?? 'per_item', 'per_item' ); ?>>
                                                 <?php esc_html_e('🛒 Each Product Individually', 'smart-cycle-discounts'); ?>
                                             </option>
@@ -1133,32 +1173,33 @@ ob_start();
                             <th scope="row">
                                 <label for="max_discount_amount">
                                     <?php esc_html_e('MAX Discount Amount', 'smart-cycle-discounts'); ?>
-                                    <?php SCD_Tooltip_Helper::render( __('Cap the maximum discount regardless of percentage. Protects margins on expensive items.', 'smart-cycle-discounts') ); ?>
+                                    <?php WSSCD_Tooltip_Helper::render( __('Cap the maximum discount regardless of percentage. Protects margins on expensive items.', 'smart-cycle-discounts') ); ?>
                                 </label>
                             </th>
                             <td>
-                                <div class="scd-input-wrapper scd-input-with-prefix">
-                                    <span class="scd-input-prefix"><?php echo esc_html( $currency_symbol ); ?></span>
+                                <div class="wsscd-input-wrapper wsscd-input-with-prefix">
+                                    <span class="wsscd-input-prefix"><?php echo esc_html( $currency_symbol ); ?></span>
                                     <input type="number"
                                            id="max_discount_amount"
                                            name="max_discount_amount"
                                            value="<?php echo esc_attr( $step_data['max_discount_amount'] ?? '' ); ?>"
                                            min="0"
+                                           max="999999"
                                            step="0.01"
                                            inputmode="decimal"
                                            data-label="Max Discount Amount"
                                            data-input-type="decimal"
-                                           class="scd-enhanced-input"
+                                           class="wsscd-enhanced-input"
                                            placeholder="<?php esc_attr_e('No limit', 'smart-cycle-discounts'); ?>">
                                 </div>
                             </td>
                         </tr>
                         
-                        <tr data-hide-for-types="bogo" class="scd-conditional-rule">
+                        <tr data-hide-for-types="bogo" class="wsscd-conditional-rule">
                             <th scope="row">
                                 <label for="minimum_quantity">
                                     <?php esc_html_e('Minimum Quantity', 'smart-cycle-discounts'); ?>
-                                    <?php SCD_Tooltip_Helper::render( __('Requires this many items from the selected products to activate discount.', 'smart-cycle-discounts') ); ?>
+                                    <?php WSSCD_Tooltip_Helper::render( __('Requires this many items from the selected products to activate discount.', 'smart-cycle-discounts') ); ?>
                                 </label>
                             </th>
                             <td>
@@ -1167,62 +1208,64 @@ ob_start();
                                        name="minimum_quantity"
                                        value="<?php echo esc_attr( $step_data['minimum_quantity'] ?? '' ); ?>"
                                        min="0"
+                                       max="10000"
                                        step="1"
                                        inputmode="numeric"
                                        data-label="Minimum Quantity"
                                        data-input-type="integer"
-                                       class="scd-enhanced-input"
+                                       class="wsscd-enhanced-input"
                                        placeholder="<?php esc_attr_e('No minimum', 'smart-cycle-discounts'); ?>">
-                                <span class="scd-field-suffix"><?php esc_html_e('items', 'smart-cycle-discounts'); ?></span>
+                                <span class="wsscd-field-suffix"><?php esc_html_e('items', 'smart-cycle-discounts'); ?></span>
                             </td>
                         </tr>
                         
-                        <tr data-hide-for-types="spend_threshold" class="scd-conditional-rule">
+                        <tr data-hide-for-types="spend_threshold" class="wsscd-conditional-rule">
                             <th scope="row">
                                 <label for="minimum_order_amount">
                                     <?php esc_html_e('Minimum Order Amount', 'smart-cycle-discounts'); ?>
-                                    <?php SCD_Tooltip_Helper::render( __('Cart subtotal must meet this amount for discount to apply.', 'smart-cycle-discounts') ); ?>
+                                    <?php WSSCD_Tooltip_Helper::render( __('Cart subtotal must meet this amount for discount to apply.', 'smart-cycle-discounts') ); ?>
                                 </label>
                             </th>
                             <td>
-                                <div class="scd-input-wrapper scd-input-with-prefix">
-                                    <span class="scd-input-prefix"><?php echo esc_html( $currency_symbol ); ?></span>
+                                <div class="wsscd-input-wrapper wsscd-input-with-prefix">
+                                    <span class="wsscd-input-prefix"><?php echo esc_html( $currency_symbol ); ?></span>
                                     <input type="number"
                                            id="minimum_order_amount"
                                            name="minimum_order_amount"
                                            value="<?php echo esc_attr( $step_data['minimum_order_amount'] ?? '' ); ?>"
                                            min="0"
+                                           max="999999"
                                            step="0.01"
                                            inputmode="decimal"
                                            data-label="Minimum Order Amount"
                                            data-input-type="decimal"
-                                           class="scd-enhanced-input"
+                                           class="wsscd-enhanced-input"
                                            placeholder="<?php esc_attr_e('No minimum', 'smart-cycle-discounts'); ?>">
                                 </div>
                             </td>
                         </tr>
                     </table>
-                </div><!-- .scd-collapsible-content -->
-                </div><!-- .scd-discount-rules-section -->
+                </div><!-- .wsscd-collapsible-content -->
+                </div><!-- .wsscd-discount-rules-section -->
                 
                 <!-- Combination Policy Section -->
-                <div class="scd-discount-rules-section scd-collapsible" data-section="combination-policy">
-                    <h4 class="scd-rules-section-title scd-collapsible-trigger">
-                        <span class="scd-section-text">
-                            <?php echo SCD_Icon_Helper::get( 'admin-links', array( 'size' => 16 ) ); ?>
+                <div class="wsscd-discount-rules-section wsscd-collapsible" data-section="combination-policy">
+                    <h4 class="wsscd-rules-section-title wsscd-collapsible-trigger">
+                        <span class="wsscd-section-text">
+                            <?php WSSCD_Icon_Helper::render( 'admin-links', array( 'size' => 16 ) ); ?>
                             <?php esc_html_e('Combination Policy', 'smart-cycle-discounts'); ?>
                         </span>
-                        <span class="scd-collapse-icon">
-                            <?php echo SCD_Icon_Helper::get( 'arrow-down', array( 'size' => 16 ) ); ?>
+                        <span class="wsscd-collapse-icon">
+                            <?php WSSCD_Icon_Helper::render( 'arrow-down', array( 'size' => 16 ) ); ?>
                         </span>
                     </h4>
                     
-                    <div class="scd-collapsible-content">
-                        <table class="form-table scd-rules-table">
+                    <div class="wsscd-collapsible-content">
+                        <table class="form-table wsscd-rules-table">
                         <tr>
                             <th scope="row">
                                 <?php esc_html_e('Campaign Stacking', 'smart-cycle-discounts'); ?>
-                                <?php SCD_Tooltip_Helper::render( __('Whether this discount can be used with other active campaigns.', 'smart-cycle-discounts') ); ?>
+                                <?php WSSCD_Tooltip_Helper::render( __('Whether this discount can be used with other active campaigns.', 'smart-cycle-discounts') ); ?>
                             </th>
                             <td>
                                 <label for="stack_with_others">
@@ -1268,47 +1311,48 @@ ob_start();
                             </td>
                         </tr>
                         </table>
-                    </div><!-- .scd-collapsible-content -->
-                </div><!-- .scd-discount-rules-section -->
+                    </div><!-- .wsscd-collapsible-content -->
+                </div><!-- .wsscd-discount-rules-section -->
+                </fieldset><!-- .wsscd-discount-rules-fieldset -->
+        </div><!-- #wsscd-discount-rules-container -->
         <?php
         $discount_rules_content = ob_get_clean();
 
-        scd_wizard_card(array(
+        wsscd_wizard_card(array(
             'title' => __( 'Configure Discount Rules', 'smart-cycle-discounts' ),
             'icon' => 'admin-settings',
-            'badge' => array(
-                'text' => __( 'Optional', 'smart-cycle-discounts' ),
-                'type' => 'optional'
-            ),
+            'badge' => array( 'text' => __( 'Optional', 'smart-cycle-discounts' ), 'type' => 'optional' ),
             'subtitle' => __('Fine-tune how your discount works to maximize impact while protecting margins.', 'smart-cycle-discounts'),
             'content' => $discount_rules_content,
             'id' => 'discount-rules-card',
-            'class' => empty($step_data['discount_type']) ? 'scd-hidden' : '',
+            'class' => empty($step_data['discount_type']) ? 'wsscd-hidden' : '',
             'help_topic' => 'card-discount-rules'
         ));
         ?>
+        <?php endif; // End $has_pro_access ?>
+        <?php endif; // End is__premium_only() ?>
 
         <!-- Hidden fields for complex discount data - follow field definitions pattern -->
-        <div class="scd-hidden-fields scd-visually-hidden">
+        <div class="wsscd-hidden-fields wsscd-visually-hidden">
             <!-- Tier Mode -->
             <input type="hidden" name="tier_mode" id="tier_mode"
                    value="<?php echo esc_attr( $step_data['tier_mode'] ?? 'percentage' ); ?>"
-                   class="scd-field" data-type="select">
+                   class="wsscd-field" data-type="select">
             <!-- Threshold Mode -->
             <input type="hidden" name="threshold_mode" id="threshold_mode" 
                    value="<?php echo esc_attr( $step_data['threshold_mode'] ?? 'percentage' ); ?>" 
-                   class="scd-field" data-type="select">
+                   class="wsscd-field" data-type="select">
             <!-- BOGO Configuration as hidden fields -->
             <input type="hidden" name="bogo_config" id="bogo_config" 
                    data-value="<?php echo esc_attr( json_encode( $step_data['bogo_config'] ?? array() ) ); ?>" 
-                   class="scd-field" data-type="array">
+                   class="wsscd-field" data-type="array">
         </div>
 <?php
 // Get the content
 $content = ob_get_clean();
 
 // Render using template wrapper with sidebar
-scd_wizard_render_step( array(
+wsscd_wizard_render_step( array(
     'title' => __( 'Discount Configuration', 'smart-cycle-discounts' ),
     'description' => __( 'Configure the discount type, value, and rules for your campaign', 'smart-cycle-discounts' ),
     'content' => $content,
@@ -1320,7 +1364,7 @@ scd_wizard_render_step( array(
 // Validation rules are now handled by the centralized field schema system
 
 // Initialize state data for Discounts step
-scd_wizard_state_script('discounts', array(
+wsscd_wizard_state_script('discounts', array(
     'discount_type' => $discount_type,
     'discount_value_percentage' => $discount_value_percentage,
     'discount_value_fixed' => $discount_value_fixed,
@@ -1360,7 +1404,7 @@ scd_wizard_state_script('discounts', array(
     // Conditions Logic
     'conditions_logic' => $conditions_logic
 ), array(
-    'selected_products' => $scd_discount_step_data['selected_products'] ?? array(),
+    'selected_products' => $wsscd_discount_step_data['selected_products'] ?? array(),
     'currency_data' => $currency_data
 ));
-// Currency data is now provided via scdSettings (Asset Localizer with auto case conversion)
+// Currency data is now provided via wsscdSettings (Asset Localizer with auto case conversion)

@@ -18,8 +18,8 @@
 		return;
 	}
 
-	window.SCD = window.SCD || {};
-	window.SCD.Wizard = window.SCD.Wizard || {};
+	window.WSSCD = window.WSSCD || {};
+	window.WSSCD.Wizard = window.WSSCD.Wizard || {};
 
 	/**
 	 * Navigation Service
@@ -40,9 +40,9 @@
 		 * @since 1.0.0
 		 */
 		SELECTORS: {
-			NAV_BTN: '.scd-nav-btn',
-			NAV_BTN_NEXT: '.scd-nav-btn--next',
-			NAV_BTN_PREV: '.scd-nav-btn--previous'
+			NAV_BTN: '.wsscd-nav-btn',
+			NAV_BTN_NEXT: '.wsscd-nav-btn--next',
+			NAV_BTN_PREV: '.wsscd-nav-btn--previous'
 		},
 
 		/**
@@ -60,12 +60,12 @@
 		 * @since 1.0.0
 		 */
 		config: {
-			steps: window.scdNavigation && window.scdNavigation.steps ?
-				window.scdNavigation.steps :
+			steps: window.wsscdNavigation && window.wsscdNavigation.steps ?
+				window.wsscdNavigation.steps :
 				[ 'basic', 'products', 'discounts', 'schedule', 'review' ],
 			ajaxAction: 'wizard_navigation',
 			loadingClass: 'is-navigating',
-			disabledClass: 'scd-navigation-disabled'
+			disabledClass: 'wsscd-navigation-disabled'
 		},
 
 		/**
@@ -184,11 +184,11 @@
 		 */
 		cacheElements: function() {
 			this.elements = {
-				$container: $( '.scd-wizard-navigation' ),
+				$container: $( '.wsscd-wizard-navigation' ),
 				$buttons: $( this.SELECTORS.NAV_BTN ),
 				$nextButton: $( this.SELECTORS.NAV_BTN_NEXT ),
 				$prevButton: $( this.SELECTORS.NAV_BTN_PREV ),
-				$form: $( '.scd-wizard-form' )
+				$form: $( '.wsscd-wizard-form' )
 			};
 		},
 
@@ -201,15 +201,15 @@
 			var self = this;
 
 			$( document )
-				.on( 'click.scd-nav', this.SELECTORS.NAV_BTN, function( e ) {
+				.on( 'click.wsscd-nav', this.SELECTORS.NAV_BTN, function( e ) {
 					e.preventDefault();
 					self.handleNavigationClick( $( this ) );
 				} )
-				.on( 'submit.scd-nav', '.scd-wizard-form', function( e ) {
+				.on( 'submit.wsscd-nav', '.wsscd-wizard-form', function( e ) {
 					e.preventDefault();
 					self.handleFormSubmit();
 				} )
-				.on( 'click.scd-nav', '.scd-wizard-steps li', function( e ) {
+				.on( 'click.wsscd-nav', '.wsscd-wizard-steps li', function( e ) {
 					e.preventDefault();
 					var $step = $( this );
 					var targetStep = $step.data( 'step-name' );
@@ -240,6 +240,10 @@
 
 			this.clickedButton = $button;
 
+			// CRITICAL: Disable buttons IMMEDIATELY to prevent double-clicks
+			// This closes the race condition gap during the debounce delay
+			this.setNavigationState( true );
+
 			this.navigationTimeout = setTimeout( function() {
 				self.navigationTimeout = null;
 
@@ -252,7 +256,7 @@
 				} else if ( 'previous' === action ) {
 					self.navigatePrev();
 				} else if ( 'complete' === action ) {
-					$( document ).trigger( 'scd:navigation:request', [ {
+					$( document ).trigger( 'wsscd:navigation:request', [ {
 						action: 'complete',
 						saveAsDraft: saveAsDraft
 					} ] );
@@ -303,21 +307,28 @@
 		 * @since 1.0.0
 		 */
 		navigateNext: function() {
+			var self = this;
 			var currentStep = this.getCurrentStep();
 			var nextStep = this.getNextStep( currentStep );
 
 			if ( nextStep ) {
-				var self = this;
 				this.validateCurrentStep( currentStep ).done( function( validationResult ) {
 					if ( validationResult && validationResult.isValid ) {
 						self.navigateToStep( nextStep, currentStep, validationResult.formData );
+					} else {
+						// Validation failed - re-enable buttons
+						self.setNavigationState( false );
 					}
 					// Validation errors are shown by ValidationError component automatically
 				} ).fail( function( error ) {
-					console.error( '[SCD Navigation] Validation failed:', error );
+					console.error( '[WSSCD Navigation] Validation failed:', error );
+					// Re-enable buttons on validation failure
+					self.setNavigationState( false );
 				} );
 			} else {
-				console.warn( '[SCD Navigation] No next step found for:', currentStep );
+				console.warn( '[WSSCD Navigation] No next step found for:', currentStep );
+				// No next step - re-enable buttons
+				this.setNavigationState( false );
 			}
 		},
 
@@ -346,8 +357,8 @@
 			}
 
 			// Try to get step orchestrator
-			if ( SCD.Wizard && SCD.Wizard.Orchestrator && SCD.Wizard.Orchestrator.getStepInstance ) {
-				var stepOrchestrator = SCD.Wizard.Orchestrator.getStepInstance( stepName );
+			if ( WSSCD.Wizard && WSSCD.Wizard.Orchestrator && WSSCD.Wizard.Orchestrator.getStepInstance ) {
+				var stepOrchestrator = WSSCD.Wizard.Orchestrator.getStepInstance( stepName );
 
 				// If orchestrator exists and has validateStep, use it
 				if ( stepOrchestrator && 'function' === typeof stepOrchestrator.validateStep ) {
@@ -361,10 +372,10 @@
 			// CRITICAL FIX: If orchestrator not available, BLOCK navigation
 			// Don't allow skipping validation just because orchestrator isn't loaded
 			// This prevents the validation bypass bug
-			console.error( '[SCD Wizard:Navigation] Cannot validate - step orchestrator not loaded for: ' + stepName );
+			console.error( '[WSSCD Wizard:Navigation] Cannot validate - step orchestrator not loaded for: ' + stepName );
 
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
-				window.SCD.Shared.NotificationService.error(
+			if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.NotificationService ) {
+				window.WSSCD.Shared.NotificationService.error(
 					'Cannot proceed: Step validation system not ready. Please refresh the page and try again.',
 					0 // Persistent notification
 				);
@@ -384,6 +395,9 @@
 
 			if ( prevStep ) {
 				this.navigateToStep( prevStep, currentStep );
+			} else {
+				// No previous step (already on first step) - re-enable buttons
+				this.setNavigationState( false );
 			}
 		},
 
@@ -398,6 +412,8 @@
 			fromStep = fromStep || this.getCurrentStep();
 
 			if ( targetStep === fromStep ) {
+				// Already on target step - re-enable buttons
+				this.setNavigationState( false );
 				return;
 			}
 
@@ -415,8 +431,8 @@
 		performNavigation: function( fromStep, targetStep, isRetry ) {
 			var self = this;
 
-			if ( SCD.Wizard && SCD.Wizard.Orchestrator ) {
-				SCD.Wizard.Orchestrator.isInternalNavigation = true;
+			if ( WSSCD.Wizard && WSSCD.Wizard.Orchestrator ) {
+				WSSCD.Wizard.Orchestrator.isInternalNavigation = true;
 			}
 
 			this.setNavigationState( true );
@@ -445,7 +461,7 @@
 				.done( function( response ) {
 					if ( false === response.success ) {
 						var errorObj = self.extractError( response );
-						console.error( '[SCD Wizard:Navigation] Server error:', errorObj.message, errorObj.code );
+						console.error( '[WSSCD Wizard:Navigation] Server error:', errorObj.message, errorObj.code );
 						self.handleNavigationError( errorObj );
 						self.setNavigationState( false );
 						return;
@@ -523,8 +539,8 @@
 				} ).promise();
 			}
 
-			if ( ! window.SCD || ! window.SCD.Wizard || ! window.SCD.Wizard.Orchestrator ) {
-				console.error( '[SCD Navigation] Main orchestrator not available' );
+			if ( ! window.WSSCD || ! window.WSSCD.Wizard || ! window.WSSCD.Wizard.Orchestrator ) {
+				console.error( '[WSSCD Navigation] Main orchestrator not available' );
 				return $.Deferred().reject( {
 					success: false,
 					data: {
@@ -534,10 +550,10 @@
 				} ).promise();
 			}
 
-			var stepOrchestrator = window.SCD.Wizard.Orchestrator.getStepInstance( fromStep );
+			var stepOrchestrator = window.WSSCD.Wizard.Orchestrator.getStepInstance( fromStep );
 			if ( ! stepOrchestrator ) {
-				console.error( '[SCD Navigation] Step orchestrator not found for step:', fromStep );
-				console.error( '[SCD Navigation] Available orchestrators:', window.SCD.Wizard.Orchestrator.stepOrchestrators ? Object.keys( window.SCD.Wizard.Orchestrator.stepOrchestrators ) : 'none' );
+				console.error( '[WSSCD Navigation] Step orchestrator not found for step:', fromStep );
+				console.error( '[WSSCD Navigation] Available orchestrators:', window.WSSCD.Wizard.Orchestrator.stepOrchestrators ? Object.keys( window.WSSCD.Wizard.Orchestrator.stepOrchestrators ) : 'none' );
 				return $.Deferred().reject( {
 					success: false,
 					data: {
@@ -548,8 +564,8 @@
 			}
 
 			if ( 'function' !== typeof stepOrchestrator.saveStep ) {
-				console.error( '[SCD Navigation] saveStep method not available on orchestrator for step:', fromStep );
-				console.error( '[SCD Navigation] Orchestrator methods:', Object.keys( stepOrchestrator ) );
+				console.error( '[WSSCD Navigation] saveStep method not available on orchestrator for step:', fromStep );
+				console.error( '[WSSCD Navigation] Orchestrator methods:', Object.keys( stepOrchestrator ) );
 				return $.Deferred().reject( {
 					success: false,
 					data: {
@@ -562,11 +578,8 @@
 			// Mark save as in progress
 			this._saveInProgress = true;
 
-			console.log( '[SCD Navigation] Calling saveStep() for step:', fromStep );
-
 			// Save via step orchestrator (navigation save - primary save mechanism)
 			return stepOrchestrator.saveStep().then( function( response ) {
-				console.log( '[SCD Navigation] saveStep SUCCESS, response:', response );
 				self._saveInProgress = false;
 				self._savePromise = null;
 
@@ -580,7 +593,6 @@
 				// Build URL for server-side navigation (full page reload)
 				// This is intentional - wizard uses server-rendered step content
 				var redirectUrl = self.buildStepUrl( targetStep );
-				console.log( '[SCD Navigation] Will redirect to:', redirectUrl );
 
 				return {
 					success: true,
@@ -594,13 +606,13 @@
 					}
 				};
 			} ).fail( function( error ) {
-				console.error( '[SCD Navigation] saveStep FAILED:', error );
+				console.error( '[WSSCD Navigation] saveStep FAILED:', error );
 				self._saveInProgress = false;
 				self._savePromise = null;
 
 				// Validation failed or save error
-				var errorMessage = window.SCD && window.SCD.Utils && window.SCD.Utils.getValidationMessage
-					? window.SCD.Utils.getValidationMessage( 'navigation.incomplete_step', 'Please complete all required fields before proceeding.' )
+				var errorMessage = window.WSSCD && window.WSSCD.Utils && window.WSSCD.Utils.getValidationMessage
+					? window.WSSCD.Utils.getValidationMessage( 'navigation.incomplete_step', 'Please complete all required fields before proceeding.' )
 					: 'Please complete all required fields before proceeding.';
 				var errorCode = 'validation_failed';
 
@@ -611,7 +623,7 @@
 					errorMessage = error.message;
 				}
 
-				console.error( '[SCD Navigation] Returning formatted error:', errorMessage, errorCode );
+				console.error( '[WSSCD Navigation] Returning formatted error:', errorMessage, errorCode );
 
 				// Return properly formatted error
 				return $.Deferred().reject( {
@@ -634,16 +646,16 @@
 		 */
 		showSkeletonScreen: function( targetStep ) {
 			// Delegate to SkeletonTemplates service (loaded via dependencies)
-			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.SkeletonTemplates ) {
+			if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.SkeletonTemplates ) {
 				if ( this.config && this.config.steps ) {
-					window.SCD.Wizard.SkeletonTemplates.init( this.config );
+					window.WSSCD.Wizard.SkeletonTemplates.init( this.config );
 				}
-				window.SCD.Wizard.SkeletonTemplates.render( targetStep );
+				window.WSSCD.Wizard.SkeletonTemplates.render( targetStep );
 				return;
 			}
 
 			// Service not loaded - log error and skip skeleton
-			console.error( '[SCD Navigation] SkeletonTemplates service not loaded - check script dependencies' );
+			console.error( '[WSSCD Navigation] SkeletonTemplates service not loaded - check script dependencies' );
 		},
 
 		/**
@@ -660,8 +672,8 @@
 				data = response.data;
 			}
 
-			if ( data.completedSteps && SCD.Wizard && SCD.Wizard.StateManager ) {
-				SCD.Wizard.StateManager.getInstance().set( {
+			if ( data.completedSteps && WSSCD.Wizard && WSSCD.Wizard.StateManager ) {
+				WSSCD.Wizard.StateManager.getInstance().set( {
 					completedSteps: data.completedSteps
 				}, { silent: true } );
 
@@ -687,8 +699,8 @@
 					// Client-side navigation - update UI then re-enable buttons
 				this.updateURL( targetStep );
 
-				if ( SCD.Wizard && SCD.Wizard.Orchestrator && SCD.Wizard.Orchestrator.loadCurrentStep ) {
-					SCD.Wizard.Orchestrator.loadCurrentStep()
+				if ( WSSCD.Wizard && WSSCD.Wizard.Orchestrator && WSSCD.Wizard.Orchestrator.loadCurrentStep ) {
+					WSSCD.Wizard.Orchestrator.loadCurrentStep()
 						.always( function() {
 							// Update UI and re-enable buttons after orchestrator loads (or fails)
 							self.updateStepUI( targetStep );
@@ -781,16 +793,16 @@
 
 
 			// Standard error handling
-			if ( SCD.Shared && SCD.Shared.NotificationService ) {
-				SCD.Shared.NotificationService.show( message, messageType );
+			if ( WSSCD.Shared && WSSCD.Shared.NotificationService ) {
+				WSSCD.Shared.NotificationService.show( message, messageType );
 			} else if ( window.console ) {
 				// Fallback to console (better than alert)
 				if ( 'error' === messageType ) {
-					console.error( '[SCD Navigation] ' + message );
+					console.error( '[WSSCD Navigation] ' + message );
 				}
 			}
 
-			$( document ).trigger( 'scd:navigation:error', [ error ] );
+			$( document ).trigger( 'wsscd:navigation:error', [ error ] );
 		},
 
 		/**
@@ -852,17 +864,17 @@
 		 */
 		collectStepData: function( _stepName ) {
 			// Use orchestrator's collectCurrentStepData which delegates to step's collectData()
-			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Orchestrator &&
-				'function' === typeof window.SCD.Wizard.Orchestrator.collectCurrentStepData ) {
+			if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.Orchestrator &&
+				'function' === typeof window.WSSCD.Wizard.Orchestrator.collectCurrentStepData ) {
 				try {
-					var data = window.SCD.Wizard.Orchestrator.collectCurrentStepData();
+					var data = window.WSSCD.Wizard.Orchestrator.collectCurrentStepData();
 
 
 
 					return data && 'object' === typeof data ? data : {};
 				} catch ( e ) {
 					if ( window.console && window.console.error ) {
-						console.error( '[SCD Navigation] Error collecting step data:', e );
+						console.error( '[WSSCD Navigation] Error collecting step data:', e );
 					}
 					return {};
 				}
@@ -911,8 +923,8 @@
 			this.popstateHandler = function() {
 				var currentStep = self.getCurrentStep();
 
-			if ( SCD.Wizard && SCD.Wizard.Orchestrator && SCD.Wizard.Orchestrator.loadCurrentStep ) {
-				SCD.Wizard.Orchestrator.loadCurrentStep()
+			if ( WSSCD.Wizard && WSSCD.Wizard.Orchestrator && WSSCD.Wizard.Orchestrator.loadCurrentStep ) {
+				WSSCD.Wizard.Orchestrator.loadCurrentStep()
 					.done( function() {
 						self.updateStepUI( currentStep );
 					} )
@@ -924,7 +936,7 @@
 				self.updateStepUI( currentStep );
 			}
 
-				$( document ).trigger( 'scd:wizard:stepChanged', [ {
+				$( document ).trigger( 'wsscd:wizard:stepChanged', [ {
 					step: currentStep,
 					source: 'browser_navigation'
 				} ] );
@@ -940,14 +952,14 @@
 		 * @param {string} targetStep Target step name
 		 */
 		updateStepUI: function( targetStep ) {
-			$( '.scd-wizard-navigation .step' ).removeClass( 'active current' );
-			$( '.scd-wizard-navigation .step[data-step="' + targetStep + '"]' ).addClass( 'active current' );
+			$( '.wsscd-wizard-navigation .step' ).removeClass( 'active current' );
+			$( '.wsscd-wizard-navigation .step[data-step="' + targetStep + '"]' ).addClass( 'active current' );
 
 			this.updateProgress( targetStep );
 
 			// Ensure completed steps UI is synced with current state
-			if ( SCD.Wizard && SCD.Wizard.StateManager ) {
-				var completedSteps = SCD.Wizard.StateManager.getInstance().get( 'completedSteps' );
+			if ( WSSCD.Wizard && WSSCD.Wizard.StateManager ) {
+				var completedSteps = WSSCD.Wizard.StateManager.getInstance().get( 'completedSteps' );
 				if ( completedSteps ) {
 					this.updateCompletedSteps( completedSteps );
 				}
@@ -964,8 +976,8 @@
 			var currentIndex = this.config.steps.indexOf( currentStep );
 			var progress = ( ( currentIndex + 1 ) / this.config.steps.length ) * 100;
 
-			$( '.scd-progress-bar' ).css( 'width', progress + '%' );
-			$( '.scd-progress-text' ).text( 'Step ' + ( currentIndex + 1 ) + ' of ' + this.config.steps.length );
+			$( '.wsscd-progress-bar' ).css( 'width', progress + '%' );
+			$( '.wsscd-progress-text' ).text( 'Step ' + ( currentIndex + 1 ) + ' of ' + this.config.steps.length );
 		},
 
 		/**
@@ -979,11 +991,11 @@
 				return;
 			}
 
-			$( '.scd-wizard-steps li' ).removeClass( 'completed' );
+			$( '.wsscd-wizard-steps li' ).removeClass( 'completed' );
 
 			for ( var i = 0; i < completedSteps.length; i++ ) {
 				var stepName = completedSteps[i];
-				$( '.scd-wizard-steps li[data-step-name="' + stepName + '"]' ).addClass( 'completed' );
+				$( '.wsscd-wizard-steps li[data-step-name="' + stepName + '"]' ).addClass( 'completed' );
 			}
 		},
 
@@ -994,7 +1006,7 @@
 		 * @param {string} targetStep Target step name
 		 */
 		notifyStepChange: function( targetStep ) {
-			$( document ).trigger( 'scd:wizard:stepChanged', [ targetStep ] );
+			$( document ).trigger( 'wsscd:wizard:stepChanged', [ targetStep ] );
 		},
 
 		/**
@@ -1021,47 +1033,28 @@
 					.prop( 'disabled', isNavigating );
 
 				if ( isNavigating ) {
-					// Show "Proceeding..." only on clicked button
+					// Show "Proceeding..." on clicked button only
 					$buttons.each( function() {
 						var $btn = $( this );
-						// Support both .scd-nav-btn__text and .scd-button-text classes
-						var $text = $btn.find( '.scd-nav-btn__text' );
-						if ( ! $text.length ) {
-							$text = $btn.find( '.scd-button-text' );
-						}
-						var $icon = $btn.find( '.scd-icon' );
+						var $text = $btn.find( '.wsscd-nav-btn__text, .wsscd-button-text' ).first();
 
 						var isClickedButton = $clickedButton && $clickedButton.length && $btn.is( $clickedButton );
 
-						if ( isClickedButton ) {
-							// Clicked button: show "Proceeding..." and hide icon
-							if ( $text.length && ! $btn.data( self.DATA_KEYS.ORIGINAL_TEXT ) ) {
-								$btn.data( self.DATA_KEYS.ORIGINAL_TEXT, $text.text() );
-								$text.text( 'Proceeding...' );
-							}
-							if ( $icon.length ) {
-								$icon.hide();
-							}
+						if ( isClickedButton && $text.length && ! $btn.data( self.DATA_KEYS.ORIGINAL_TEXT ) ) {
+							$btn.data( self.DATA_KEYS.ORIGINAL_TEXT, $text.text() );
+							$text.text( 'Proceeding...' );
 						}
-						// Other buttons: just disabled, keep text and icon
 					} );
 				} else {
 					// Restore all buttons
 					$buttons.each( function() {
 						var $btn = $( this );
-						// Support both .scd-nav-btn__text and .scd-button-text classes
-						var $text = $btn.find( '.scd-nav-btn__text' );
-						if ( ! $text.length ) {
-							$text = $btn.find( '.scd-button-text' );
-						}
-						var $icon = $btn.find( '.scd-icon' );
+						var $text = $btn.find( '.wsscd-nav-btn__text, .wsscd-button-text' ).first();
 						var originalText = $btn.data( self.DATA_KEYS.ORIGINAL_TEXT );
+
 						if ( $text.length && originalText ) {
 							$text.text( originalText );
 							$btn.removeData( self.DATA_KEYS.ORIGINAL_TEXT );
-						}
-						if ( $icon.length ) {
-							$icon.show();
 						}
 					} );
 
@@ -1070,7 +1063,7 @@
 			}
 
 			// Container can stay cached as it's always present
-			var $container = $( '.scd-wizard-navigation' );
+			var $container = $( '.wsscd-wizard-navigation' );
 			if ( $container.length > 0 ) {
 				$container.toggleClass( this.config.loadingClass, isNavigating );
 			}
@@ -1083,11 +1076,11 @@
 		 * @returns {string} Nonce value
 		 */
 		getNonce: function() {
-			if ( window.scdNavigation && window.scdNavigation.nonce ) {
-				return window.scdNavigation.nonce;
+			if ( window.wsscdNavigation && window.wsscdNavigation.nonce ) {
+				return window.wsscdNavigation.nonce;
 			}
-			if ( window.scdWizardData && window.scdWizardData.nonces ) {
-				return window.scdWizardData.nonces.scdWizardNonce;
+			if ( window.wsscdWizardData && window.wsscdWizardData.nonces ) {
+				return window.wsscdWizardData.nonces.wsscdWizardNonce;
 			}
 			return '';
 		},
@@ -1103,12 +1096,12 @@
 	 */
 	checkProFeatures: function( step, formData ) {
 		// Delegate to ProFeatureGate service (loaded via dependencies)
-		if ( window.SCD && window.SCD.Shared && window.SCD.Shared.ProFeatureGate ) {
-			return window.SCD.Shared.ProFeatureGate.check( step, formData );
+		if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.ProFeatureGate ) {
+			return window.WSSCD.Shared.ProFeatureGate.check( step, formData );
 		}
 
 		// Service not loaded - log error and allow all features
-		console.error( '[SCD Navigation] ProFeatureGate service not loaded - check script dependencies' );
+		console.error( '[WSSCD Navigation] ProFeatureGate service not loaded - check script dependencies' );
 		return { blocked: false };
 	},
 
@@ -1118,7 +1111,7 @@
 		 * @since 1.0.0
 		 */
 		destroy: function() {
-			$( document ).off( '.scd-nav' );
+			$( document ).off( '.wsscd-nav' );
 
 			if ( this.popstateHandler ) {
 				window.removeEventListener( 'popstate', this.popstateHandler );
@@ -1143,15 +1136,15 @@
 	 */
 	$( function() {
 		// Ensure namespace exists and assign Navigation service after other scripts load
-		window.SCD = window.SCD || {};
-		window.SCD.Wizard = window.SCD.Wizard || {};
-		window.SCD.Wizard.Navigation = NavigationService;
+		window.WSSCD = window.WSSCD || {};
+		window.WSSCD.Wizard = window.WSSCD.Wizard || {};
+		window.WSSCD.Wizard.Navigation = NavigationService;
 
-		if ( ( $( '.scd-wizard-page' ).length > 0 ||
-			$( '.scd-wizard-wrap' ).length > 0 ||
+		if ( ( $( '.wsscd-wizard-page' ).length > 0 ||
+			$( '.wsscd-wizard-wrap' ).length > 0 ||
 			window.location.href.indexOf( 'action=wizard' ) !== -1 ) &&
-			window.SCD && window.SCD.Wizard && window.SCD.Wizard.Navigation ) {
-			window.SCD.Wizard.Navigation.init();
+			window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.Navigation ) {
+			window.WSSCD.Wizard.Navigation.init();
 		}
 	} );
 

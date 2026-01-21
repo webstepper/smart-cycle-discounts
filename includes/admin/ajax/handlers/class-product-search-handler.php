@@ -26,14 +26,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Product_Search_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Product service instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Product_Service|null    $product_service    Product service.
+	 * @var      WSSCD_Product_Service|null    $product_service    Product service.
 	 */
 	private $product_service = null;
 
@@ -41,8 +41,8 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Product_Service $product_service    Product service (optional).
-	 * @param    SCD_Logger          $logger             Logger instance (optional).
+	 * @param    WSSCD_Product_Service $product_service    Product service (optional).
+	 * @param    WSSCD_Logger          $logger             Logger instance (optional).
 	 */
 	public function __construct( $product_service = null, $logger = null ) {
 		parent::__construct( $logger );
@@ -56,7 +56,7 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_product_search';
+		return 'wsscd_product_search';
 	}
 
 	/**
@@ -109,7 +109,8 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 
 			return array(
 				'success' => false,
-				'message' => $e->getMessage(),
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message is sanitized before JSON output.
+				'message' => esc_html( $e->getMessage() ),
 				'code'    => 'product_search_error',
 			);
 		}
@@ -126,7 +127,7 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 	private function handle_search( $request ) {
 		$search   = sanitize_text_field( isset( $request['search'] ) ? $request['search'] : '' );
 		$page     = max( 1, intval( isset( $request['page'] ) ? $request['page'] : 1 ) );
-		$per_page = max( SCD_Validation_Rules::SEARCH_PER_PAGE_MIN, min( SCD_Validation_Rules::SEARCH_PER_PAGE_MAX, intval( isset( $request['per_page'] ) ? $request['per_page'] : SCD_Validation_Rules::SEARCH_PER_PAGE_DEFAULT ) ) );
+		$per_page = max( WSSCD_Validation_Rules::SEARCH_PER_PAGE_MIN, min( WSSCD_Validation_Rules::SEARCH_PER_PAGE_MAX, intval( isset( $request['per_page'] ) ? $request['per_page'] : WSSCD_Validation_Rules::SEARCH_PER_PAGE_DEFAULT ) ) );
 
 		$categories = $this->process_categories( isset( $request['categories'] ) ? $request['categories'] : array() );
 
@@ -229,8 +230,8 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		// Limit number of categories for performance
-		if ( count( $categories ) > SCD_Validation_Rules::SEARCH_CATEGORIES_MAX ) {
-			$categories = array_slice( $categories, 0, SCD_Validation_Rules::SEARCH_CATEGORIES_MAX );
+		if ( count( $categories ) > WSSCD_Validation_Rules::SEARCH_CATEGORIES_MAX ) {
+			$categories = array_slice( $categories, 0, WSSCD_Validation_Rules::SEARCH_CATEGORIES_MAX );
 		}
 
 		// Handle 'all' category selection
@@ -261,31 +262,25 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @return   SCD_Product_Service    Product service.
+	 * @return   WSSCD_Product_Service    Product service.
 	 */
 	private function get_product_service() {
 		if ( null === $this->product_service ) {
-			// Use dirname to go up to the includes directory
-			$includes_dir = dirname( dirname( dirname( __DIR__ ) ) );
-			$service_file = $includes_dir . '/core/products/class-product-service.php';
-
-			if ( ! file_exists( $service_file ) ) {
-				throw new Exception( 'Product Service file not found: ' . $service_file );
-			}
-
-			require_once $service_file;
-
-			if ( ! class_exists( 'SCD_Product_Service' ) ) {
-				throw new Exception( 'Product Service class not found after include' );
+			// WSSCD_Product_Service is registered in the autoloader (class-autoloader.php)
+			// No manual require_once needed - class will be loaded automatically on first use
+			if ( ! class_exists( 'WSSCD_Product_Service' ) ) {
+				throw new Exception( 'Product Service class not found. Autoloader may not be initialized.' );
 			}
 
 			try {
-				$this->product_service = new SCD_Product_Service();
+				$this->product_service = new WSSCD_Product_Service();
 			} catch ( Exception $e ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[SCD Product Search Handler] Failed to instantiate Product Service: ' . $e->getMessage() );
+					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Debug logging intentional.
+					error_log( '[WSSCD Product Search Handler] Failed to instantiate Product Service: ' . $e->getMessage() );
 				}
-				throw new Exception( 'Failed to create Product Service instance: ' . $e->getMessage() );
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+				throw new Exception( 'Failed to create Product Service instance: ' . esc_html( $e->getMessage() ) );
 			}
 		}
 
@@ -444,11 +439,11 @@ class SCD_Product_Search_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @return   SCD_Category_Metadata_Service|null    Service instance or null.
+	 * @return   WSSCD_Category_Metadata_Service|null    Service instance or null.
 	 */
 	private function get_category_metadata_service() {
-		if ( class_exists( 'SCD_Category_Metadata_Service' ) ) {
-			return new SCD_Category_Metadata_Service();
+		if ( class_exists( 'WSSCD_Category_Metadata_Service' ) ) {
+			return new WSSCD_Category_Metadata_Service();
 		}
 		return null;
 	}

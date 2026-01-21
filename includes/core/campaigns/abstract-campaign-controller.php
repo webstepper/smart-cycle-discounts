@@ -22,13 +22,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since      1.0.0
  */
-abstract class SCD_Abstract_Campaign_Controller {
+abstract class WSSCD_Abstract_Campaign_Controller {
 
 	/**
 	 * Campaign manager instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Campaign_Manager
+	 * @var      WSSCD_Campaign_Manager
 	 */
 	protected $campaign_manager;
 
@@ -36,7 +36,7 @@ abstract class SCD_Abstract_Campaign_Controller {
 	 * Capability manager instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Admin_Capability_Manager
+	 * @var      WSSCD_Admin_Capability_Manager
 	 */
 	protected $capability_manager;
 
@@ -44,7 +44,7 @@ abstract class SCD_Abstract_Campaign_Controller {
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Logger
+	 * @var      WSSCD_Logger
 	 */
 	protected $logger;
 
@@ -52,9 +52,9 @@ abstract class SCD_Abstract_Campaign_Controller {
 	 * Initialize the controller.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Manager         $campaign_manager     Campaign manager.
-	 * @param    SCD_Admin_Capability_Manager $capability_manager   Capability manager.
-	 * @param    SCD_Logger                   $logger               Logger instance.
+	 * @param    WSSCD_Campaign_Manager         $campaign_manager     Campaign manager.
+	 * @param    WSSCD_Admin_Capability_Manager $capability_manager   Capability manager.
+	 * @param    WSSCD_Logger                   $logger               Logger instance.
 	 */
 	public function __construct(
 		$campaign_manager,
@@ -108,12 +108,12 @@ abstract class SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	protected function redirect_with_message( $url, $message, $type = 'success' ) {
-		$notices   = get_transient( 'scd_admin_notices' ) ?: array();
+		$notices   = get_transient( 'wsscd_admin_notices' ) ?: array();
 		$notices[] = array(
 			'message' => $message,
 			'type'    => $type,
 		);
-		set_transient( 'scd_admin_notices', $notices, 300 );
+		set_transient( 'wsscd_admin_notices', $notices, 300 );
 
 		wp_safe_redirect( $url );
 		exit;
@@ -128,7 +128,7 @@ abstract class SCD_Abstract_Campaign_Controller {
 	 */
 	protected function redirect_with_error( $message ) {
 		$this->redirect_with_message(
-			wp_get_referer() ? wp_get_referer() : admin_url( 'admin.php?page=scd-campaigns' ),
+			wp_get_referer() ? wp_get_referer() : admin_url( 'admin.php?page=wsscd-campaigns' ),
 			$message,
 			'error'
 		);

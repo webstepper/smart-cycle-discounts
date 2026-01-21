@@ -30,7 +30,7 @@ require_once __DIR__ . '/class-session-lock-service.php';
  * @subpackage SmartCycleDiscounts/includes/services
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Session_Service {
+class WSSCD_Session_Service {
 
 	/**
 	 * Session ID.
@@ -66,7 +66,7 @@ class SCD_Session_Service {
 	 * @access   private
 	 * @var      string    $prefix    Transient prefix.
 	 */
-	private string $prefix = 'scd_wizard_';
+	private string $prefix = 'wsscd_wizard_';
 
 	/**
 	 * Maximum data size in bytes (1MB).
@@ -82,9 +82,9 @@ class SCD_Session_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Session_Lock    $lock    Session lock manager.
+	 * @var      WSSCD_Session_Lock    $lock    Session lock manager.
 	 */
-	private SCD_Session_Lock $lock;
+	private WSSCD_Session_Lock $lock;
 
 	/**
 	 * Initialize the session manager.
@@ -93,9 +93,9 @@ class SCD_Session_Service {
 	 * @param    string|null $session_id    Existing session ID.
 	 */
 	public function __construct( ?string $session_id = null ) {
-		$this->lock = new SCD_Session_Lock();
+		$this->lock = new WSSCD_Session_Lock();
 
-		$GLOBALS['scd_session_lock_instance'] = $this->lock;
+		$GLOBALS['wsscd_session_lock_instance'] = $this->lock;
 
 		if ( $session_id ) {
 			$this->load( $session_id );
@@ -147,10 +147,10 @@ class SCD_Session_Service {
 		// Acquire lock before loading
 		if ( ! $this->lock->acquire( 'session_' . $session_id ) ) {
 			// Use debug wrapper if available, fallback to direct logging
-			if ( class_exists( 'SCD_Debug' ) ) {
-				SCD_Debug::warn( 'Session: Failed to acquire lock for session load', array( 'session_id' => $session_id ) );
+			if ( class_exists( 'WSSCD_Debug' ) ) {
+				WSSCD_Debug::warn( 'Session: Failed to acquire lock for session load', array( 'session_id' => $session_id ) );
 			} elseif ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				SCD_Log::warning( 'Session: Failed to acquire lock for session load', array( 'session_id' => $session_id ) );
+				WSSCD_Log::warning( 'Session: Failed to acquire lock for session load', array( 'session_id' => $session_id ) );
 			}
 			return false;
 		}
@@ -191,7 +191,7 @@ class SCD_Session_Service {
 	 * @since    1.0.0
 	 * @return   bool|WP_Error    True if saved successfully, WP_Error on failure.
 	 */
-	public function save(): bool|WP_Error {
+	public function save() {
 		if ( ! $this->session_id ) {
 			return false;
 		}
@@ -199,7 +199,7 @@ class SCD_Session_Service {
 		// Acquire lock before saving
 		if ( ! $this->lock->acquire( 'session_' . $this->session_id ) ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				SCD_Log::warning( 'Session: Failed to acquire lock for session save', array( 'session_id' => $this->session_id ) );
+				WSSCD_Log::warning( 'Session: Failed to acquire lock for session save', array( 'session_id' => $this->session_id ) );
 			}
 			return false;
 		}
@@ -219,7 +219,7 @@ class SCD_Session_Service {
 	 * @access   private
 	 * @return   bool|WP_Error    True if saved successfully, WP_Error on failure.
 	 */
-	private function save_internal(): bool|WP_Error {
+	private function save_internal() {
 		if ( ! $this->session_id ) {
 			return false;
 		}
@@ -229,7 +229,7 @@ class SCD_Session_Service {
 		$data_size = strlen( serialize( $this->data ) );
 		if ( $data_size > $this->max_data_size ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				SCD_Log::warning(
+				WSSCD_Log::warning(
 					'Session: Data too large',
 					array(
 						'data_size'  => $data_size,
@@ -241,6 +241,7 @@ class SCD_Session_Service {
 			return new WP_Error(
 				'session_data_too_large',
 				sprintf(
+					/* translators: %1$s: current data size (e.g., "2 MB"), %2$s: maximum allowed size (e.g., "1 MB") */
 					__( 'The data you are trying to save is too large (%1$s). Maximum allowed size is %2$s. Please reduce the amount of data or contact support.', 'smart-cycle-discounts' ),
 					size_format( $data_size ),
 					size_format( $this->max_data_size )
@@ -298,7 +299,7 @@ class SCD_Session_Service {
 	 * @param    mixed  $default    Default value.
 	 * @return   mixed                 Data value.
 	 */
-	public function get( string $key, mixed $default = null ): mixed {
+	public function get( string $key, $default = null ) {
 		return $this->data[ $key ] ?? $default;
 	}
 
@@ -310,7 +311,7 @@ class SCD_Session_Service {
 	 * @param    mixed  $value    Data value.
 	 * @return   bool|WP_Error     True on success, WP_Error on failure.
 	 */
-	public function set( string $key, mixed $value ): bool|WP_Error {
+	public function set( string $key, $value ) {
 		if ( ! $this->session_id ) {
 			return false;
 		}
@@ -318,7 +319,7 @@ class SCD_Session_Service {
 		// Acquire lock for atomic update
 		if ( ! $this->lock->acquire( 'session_' . $this->session_id ) ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				SCD_Log::warning( 'Session: Failed to acquire lock for set operation', array( 'key' => $key ) );
+				WSSCD_Log::warning( 'Session: Failed to acquire lock for set operation', array( 'key' => $key ) );
 			}
 			return new WP_Error(
 				'session_lock_failed',
@@ -343,7 +344,7 @@ class SCD_Session_Service {
 
 			if ( $data_size > $this->max_data_size ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					SCD_Log::warning(
+					WSSCD_Log::warning(
 						'Session: Key too large',
 						array(
 							'key'            => $key,
@@ -355,6 +356,7 @@ class SCD_Session_Service {
 				return new WP_Error(
 					'session_data_too_large',
 					sprintf(
+						/* translators: %1$s: field name, %2$s: current data size (e.g., "2 MB"), %3$s: maximum allowed size (e.g., "1 MB") */
 						__( 'The data for "%1$s" is too large (%2$s). Maximum total size is %3$s. Please reduce the amount of data.', 'smart-cycle-discounts' ),
 						$key,
 						size_format( $data_size ),
@@ -396,7 +398,7 @@ class SCD_Session_Service {
 	 * @param    array $data    Data array.
 	 * @return   bool|WP_Error     True on success, WP_Error on failure.
 	 */
-	public function set_data( array $data ): bool|WP_Error {
+	public function set_data( array $data ) {
 		if ( ! $this->session_id ) {
 			return false;
 		}
@@ -404,7 +406,7 @@ class SCD_Session_Service {
 		// Acquire lock for atomic update
 		if ( ! $this->lock->acquire( 'session_' . $this->session_id ) ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				SCD_Log::warning( 'Session: Failed to acquire lock for set_data operation' );
+				WSSCD_Log::warning( 'Session: Failed to acquire lock for set_data operation' );
 			}
 			return new WP_Error(
 				'session_lock_failed',
@@ -428,7 +430,7 @@ class SCD_Session_Service {
 
 			if ( $data_size > $this->max_data_size ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					SCD_Log::warning(
+					WSSCD_Log::warning(
 						'Session: Data too large for set_data',
 						array(
 							'max_size'       => $this->max_data_size,
@@ -439,6 +441,7 @@ class SCD_Session_Service {
 				return new WP_Error(
 					'session_data_too_large',
 					sprintf(
+						/* translators: %1$s: current data size (e.g., "2 MB"), %2$s: maximum allowed size (e.g., "1 MB") */
 						__( 'The total data size (%1$s) exceeds the maximum allowed (%2$s). Please reduce the amount of data being saved.', 'smart-cycle-discounts' ),
 						size_format( $data_size ),
 						size_format( $this->max_data_size )
@@ -653,8 +656,8 @@ class SCD_Session_Service {
 	 * @return   void
 	 */
 	public static function schedule_cleanup(): void {
-		if ( ! wp_next_scheduled( 'scd_cleanup_wizard_sessions' ) ) {
-			wp_schedule_event( time(), 'daily', 'scd_cleanup_wizard_sessions' );
+		if ( ! wp_next_scheduled( 'wsscd_cleanup_wizard_sessions' ) ) {
+			wp_schedule_event( time(), 'daily', 'wsscd_cleanup_wizard_sessions' );
 		}
 	}
 
@@ -666,9 +669,9 @@ class SCD_Session_Service {
 	 * @return   void
 	 */
 	public static function unschedule_cleanup(): void {
-		$timestamp = wp_next_scheduled( 'scd_cleanup_wizard_sessions' );
+		$timestamp = wp_next_scheduled( 'wsscd_cleanup_wizard_sessions' );
 		if ( $timestamp ) {
-			wp_unschedule_event( $timestamp, 'scd_cleanup_wizard_sessions' );
+			wp_unschedule_event( $timestamp, 'wsscd_cleanup_wizard_sessions' );
 		}
 	}
 
@@ -682,17 +685,19 @@ class SCD_Session_Service {
 	public static function cleanup_expired_sessions(): int {
 		global $wpdb;
 
-		$prefix        = 'scd_wizard_';
+		$prefix        = 'wsscd_wizard_';
 		$expired_count = 0;
 
 		// Properly escape the prefix for LIKE queries
 		$like_pattern     = $wpdb->esc_like( '_transient_' . $prefix ) . '%';
 		$not_like_pattern = $wpdb->esc_like( '_transient_timeout_' . $prefix ) . '%';
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Session cleanup; must be real-time.
 		$transients = $wpdb->get_results(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $wpdb->options is WordPress core table, not user input.
 			$wpdb->prepare(
-				"SELECT option_name FROM {$wpdb->options} 
-                 WHERE option_name LIKE %s 
+				"SELECT option_name FROM {$wpdb->options}
+                 WHERE option_name LIKE %s
                  AND option_name NOT LIKE %s",
 				$like_pattern,
 				$not_like_pattern
@@ -721,16 +726,18 @@ class SCD_Session_Service {
 	public static function get_active_sessions_count(): int {
 		global $wpdb;
 
-		$prefix = 'scd_wizard_';
+		$prefix = 'wsscd_wizard_';
 
 		// Properly escape the prefix for LIKE queries
 		$like_pattern     = $wpdb->esc_like( '_transient_' . $prefix ) . '%';
 		$not_like_pattern = $wpdb->esc_like( '_transient_timeout_' . $prefix ) . '%';
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Session count; must be real-time.
 		$count = $wpdb->get_var(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $wpdb->options is WordPress core table, not user input.
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->options} 
-                 WHERE option_name LIKE %s 
+				"SELECT COUNT(*) FROM {$wpdb->options}
+                 WHERE option_name LIKE %s
                  AND option_name NOT LIKE %s",
 				$like_pattern,
 				$not_like_pattern
@@ -781,14 +788,14 @@ class SCD_Session_Service {
 		}
 
 		// Validate IP address if stored and validation is enabled
-		$validate_ip = apply_filters( 'scd_wizard_validate_session_ip', true );
+		$validate_ip = apply_filters( 'wsscd_wizard_validate_session_ip', true );
 
 		if ( $validate_ip && isset( $data['ip_address'] ) && ! empty( $data['ip_address'] ) ) {
 			$current_ip = $this->get_client_ip();
 			if ( $current_ip !== $data['ip_address'] ) {
 				// Log suspicious activity
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					SCD_Log::warning(
+					WSSCD_Log::warning(
 						'Session: IP mismatch detected',
 						array(
 							'session_ip' => $data['ip_address'],
@@ -840,7 +847,7 @@ class SCD_Session_Service {
 
 		foreach ( $ip_keys as $key ) {
 			if ( array_key_exists( $key, $_SERVER ) && ! empty( $_SERVER[ $key ] ) ) {
-				$ip = $_SERVER[ $key ];
+				$ip = sanitize_text_field( wp_unslash( $_SERVER[ $key ] ) );
 
 				// Handle comma-separated IPs
 				if ( strpos( $ip, ',' ) !== false ) {
@@ -854,7 +861,7 @@ class SCD_Session_Service {
 			}
 		}
 
-		return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+		return isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '0.0.0.0';
 	}
 
 	/**
@@ -987,7 +994,7 @@ class SCD_Session_Service {
 			if ( is_email( $value ) ) {
 				return sanitize_email( $value );
 			}
-			if ( $value !== strip_tags( $value ) ) {
+			if ( $value !== wp_strip_all_tags( $value ) ) {
 				// Allow basic formatting tags
 				return wp_kses(
 					$value,

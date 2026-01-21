@@ -21,14 +21,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since      1.0.0
  */
-class SCD_Activity_Feed_Handler extends SCD_Abstract_Analytics_Handler {
-	use SCD_License_Validation_Trait;
+class WSSCD_Activity_Feed_Handler extends WSSCD_Abstract_Analytics_Handler {
+	use WSSCD_License_Validation_Trait;
 
 	/**
 	 * Activity tracker instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Activity_Tracker
+	 * @var      WSSCD_Activity_Tracker
 	 */
 	private $activity_tracker;
 
@@ -36,9 +36,9 @@ class SCD_Activity_Feed_Handler extends SCD_Abstract_Analytics_Handler {
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Metrics_Calculator $metrics_calculator    Metrics calculator.
-	 * @param    SCD_Logger             $logger                Logger instance.
-	 * @param    SCD_Activity_Tracker   $activity_tracker      Activity tracker.
+	 * @param    WSSCD_Metrics_Calculator $metrics_calculator    Metrics calculator.
+	 * @param    WSSCD_Logger             $logger                Logger instance.
+	 * @param    WSSCD_Activity_Tracker   $activity_tracker      Activity tracker.
 	 */
 	public function __construct( $metrics_calculator, $logger, $activity_tracker ) {
 		parent::__construct( $metrics_calculator, $logger );
@@ -52,7 +52,7 @@ class SCD_Activity_Feed_Handler extends SCD_Abstract_Analytics_Handler {
 	 * @return   string    Required capability.
 	 */
 	protected function get_required_capability(): string {
-		return 'scd_view_analytics';
+		return 'wsscd_view_analytics';
 	}
 
 	/**
@@ -69,7 +69,7 @@ class SCD_Activity_Feed_Handler extends SCD_Abstract_Analytics_Handler {
 		}
 
 		// Verify request
-		$verification = $this->verify_request( $request, 'scd_analytics_activity_feed' );
+		$verification = $this->verify_request( $request, 'wsscd_analytics_activity_feed' );
 		if ( is_wp_error( $verification ) ) {
 			return $this->error(
 				$verification->get_error_message(),
@@ -106,7 +106,8 @@ class SCD_Activity_Feed_Handler extends SCD_Abstract_Analytics_Handler {
 				)
 			);
 
-			return $this->error(
+				return $this->error(
+				/* translators: %s: error message */
 				sprintf( __( 'Failed to load activity feed: %s', 'smart-cycle-discounts' ), $e->getMessage() ),
 				'activity_feed_failed'
 			);

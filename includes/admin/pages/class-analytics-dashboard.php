@@ -1,5 +1,7 @@
 <?php
 /**
+ * @fs_premium_only
+ *
  * Analytics Dashboard Class
  *
  * @package    SmartCycleDiscounts
@@ -25,14 +27,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/analytics
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Analytics_Dashboard {
+class WSSCD_Analytics_Dashboard {
 
 	/**
 	 * Database manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Database_Manager    $database_manager    Database manager.
+	 * @var      WSSCD_Database_Manager    $database_manager    Database manager.
 	 */
 	private $database_manager;
 
@@ -41,7 +43,7 @@ class SCD_Analytics_Dashboard {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Cache_Manager    $cache_manager    Cache manager.
+	 * @var      WSSCD_Cache_Manager    $cache_manager    Cache manager.
 	 */
 	private $cache_manager;
 
@@ -50,7 +52,7 @@ class SCD_Analytics_Dashboard {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger.
+	 * @var      WSSCD_Logger    $logger    Logger.
 	 */
 	private $logger;
 
@@ -72,9 +74,9 @@ class SCD_Analytics_Dashboard {
 	 * Initialize the analytics dashboard.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager $database_manager    Database manager.
-	 * @param    SCD_Cache_Manager    $cache_manager       Cache manager.
-	 * @param    SCD_Logger           $logger              Logger.
+	 * @param    WSSCD_Database_Manager $database_manager    Database manager.
+	 * @param    WSSCD_Cache_Manager    $cache_manager       Cache manager.
+	 * @param    WSSCD_Logger           $logger              Logger.
 	 */
 	public function __construct( $database_manager, $cache_manager, $logger ) {
 		$this->database_manager = $database_manager;
@@ -82,7 +84,7 @@ class SCD_Analytics_Dashboard {
 		$this->logger           = $logger;
 
 		global $wpdb;
-		$this->analytics_table = $wpdb->prefix . 'scd_analytics';
+		$this->analytics_table = $wpdb->prefix . 'wsscd_analytics';
 	}
 
 	/**
@@ -104,6 +106,7 @@ class SCD_Analytics_Dashboard {
 		}
 
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- SHOW TABLES has no WP abstraction; ephemeral check.
 		$table_exists = $wpdb->get_var(
 			$wpdb->prepare( 'SHOW TABLES LIKE %s', $this->analytics_table )
 		) === $this->analytics_table;
@@ -116,37 +119,43 @@ class SCD_Analytics_Dashboard {
 		try {
 			$date_ranges = $this->get_date_ranges_for_period( $date_range );
 
-			// Query aggregated analytics table (uses impressions, clicks, conversions columns)
-			// Current period metrics
+			// Query aggregated analytics table (uses impressions, clicks, conversions columns).
+			// Current period metrics.
+			// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
 			$current_query = $wpdb->prepare(
-				"SELECT
-                    SUM(impressions) as total_impressions,
-                    SUM(clicks) as total_clicks,
-                    SUM(conversions) as total_conversions,
-                    SUM(revenue) as total_revenue,
-                    SUM(unique_customers) as unique_users,
-                    COUNT(DISTINCT campaign_id) as active_campaigns
-                FROM {$this->analytics_table}
-                WHERE date_recorded >= %s AND date_recorded <= %s",
+				'SELECT
+					SUM(impressions) as total_impressions,
+					SUM(clicks) as total_clicks,
+					SUM(conversions) as total_conversions,
+					SUM(revenue) as total_revenue,
+					SUM(unique_customers) as unique_users,
+					COUNT(DISTINCT campaign_id) as active_campaigns
+				FROM %i
+				WHERE date_recorded >= %s AND date_recorded <= %s',
+				$this->analytics_table,
 				$date_ranges['current_start'],
 				$date_ranges['current_end']
 			);
 
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Query on plugin's custom analytics table.
 			$current_metrics = $wpdb->get_row( $current_query, ARRAY_A );
 
-			// Previous period metrics for comparison
+			// Previous period metrics for comparison.
+			// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
 			$previous_query = $wpdb->prepare(
-				"SELECT
-                    SUM(conversions) as previous_conversions,
-                    SUM(revenue) as previous_revenue,
-                    SUM(clicks) as previous_clicks,
-                    SUM(impressions) as previous_impressions
-                FROM {$this->analytics_table}
-                WHERE date_recorded >= %s AND date_recorded <= %s",
+				'SELECT
+					SUM(conversions) as previous_conversions,
+					SUM(revenue) as previous_revenue,
+					SUM(clicks) as previous_clicks,
+					SUM(impressions) as previous_impressions
+				FROM %i
+				WHERE date_recorded >= %s AND date_recorded <= %s',
+				$this->analytics_table,
 				$date_ranges['previous_start'],
 				$date_ranges['previous_end']
 			);
 
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Query on plugin's custom analytics table.
 			$previous_metrics = $wpdb->get_row( $previous_query, ARRAY_A );
 
 			// Merge results (using standard key names expected by templates)
@@ -216,13 +225,27 @@ class SCD_Analytics_Dashboard {
 	 * @return   array                    Array with current_start, current_end, previous_start, previous_end.
 	 */
 	private function get_date_ranges_for_period( string $date_range ): array {
-		$days = match ( $date_range ) {
-			'7days', 'last_7_days', 'previous_7days' => 7,
-			'30days', 'last_30_days', 'previous_30days' => 30,
-			'90days', 'last_90_days' => 90,
-			'today' => 1,
-			default => 7,
-		};
+		switch ( $date_range ) {
+			case '7days':
+			case 'last_7_days':
+			case 'previous_7days':
+				$days = 7;
+				break;
+			case '30days':
+			case 'last_30_days':
+			case 'previous_30days':
+				$days = 30;
+				break;
+			case '90days':
+			case 'last_90_days':
+				$days = 90;
+				break;
+			case 'today':
+				$days = 1;
+				break;
+			default:
+				$days = 7;
+		}
 
 		$current_end   = gmdate( 'Y-m-d' );
 		$current_start = gmdate( 'Y-m-d', strtotime( "-{$days} days" ) );
@@ -284,27 +307,29 @@ class SCD_Analytics_Dashboard {
 		$date_ranges  = $this->get_date_ranges_for_period( $date_range );
 		$placeholders = implode( ',', array_fill( 0, count( $campaign_ids ), '%d' ) );
 
-		$prepare_args = array_merge( $campaign_ids, array( $date_ranges['current_start'], $date_ranges['current_end'] ) );
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		$prepare_args = array_merge( array( $this->analytics_table ), $campaign_ids, array( $date_ranges['current_start'], $date_ranges['current_end'] ) );
 
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Dynamic placeholders generated via array_fill match prepare_args count.
 		$query = $wpdb->prepare(
-			"
-            SELECT
-                campaign_id,
-                SUM(impressions) as views,
-                SUM(clicks) as clicks,
-                SUM(conversions) as conversions,
-                SUM(revenue) as revenue,
-                AVG(average_order_value) as avg_order_value,
-                SUM(unique_customers) as unique_users,
-                COUNT(DISTINCT date_recorded) as active_days
-            FROM {$this->analytics_table}
-            WHERE campaign_id IN ($placeholders)
-            AND date_recorded >= %s AND date_recorded <= %s
-            GROUP BY campaign_id
-        ",
+			'SELECT
+				campaign_id,
+				SUM(impressions) as views,
+				SUM(clicks) as clicks,
+				SUM(conversions) as conversions,
+				SUM(revenue) as revenue,
+				AVG(average_order_value) as avg_order_value,
+				SUM(unique_customers) as unique_users,
+				COUNT(DISTINCT date_recorded) as active_days
+			FROM %i
+			WHERE campaign_id IN (' . $placeholders . ')
+			AND date_recorded >= %s AND date_recorded <= %s
+			GROUP BY campaign_id',
 			$prepare_args
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query on plugin's custom analytics table; results cached via WSSCD_Cache_Manager.
 		$results = $wpdb->get_results( $query, ARRAY_A );
 
 		// Index by campaign ID and calculate derived metrics
@@ -359,43 +384,61 @@ class SCD_Analytics_Dashboard {
 		$group_by           = $this->get_group_by_clause( $granularity );
 		$campaign_condition = $campaign_id ? $wpdb->prepare( 'AND campaign_id = %d', $campaign_id ) : '';
 
-		$metric_sql = match ( $metric ) {
-			'revenue' => 'SUM(revenue)',
-			'conversions' => 'SUM(conversions)',
-			'views' => 'SUM(impressions)',
-			'clicks' => 'SUM(clicks)',
-			'users' => 'SUM(unique_customers)',
-			default => 'COUNT(*)'
-		};
+		switch ( $metric ) {
+			case 'revenue':
+				$metric_sql = 'SUM(revenue)';
+				break;
+			case 'conversions':
+				$metric_sql = 'SUM(conversions)';
+				break;
+			case 'views':
+				$metric_sql = 'SUM(impressions)';
+				break;
+			case 'clicks':
+				$metric_sql = 'SUM(clicks)';
+				break;
+			case 'users':
+				$metric_sql = 'SUM(unique_customers)';
+				break;
+			default:
+				$metric_sql = 'COUNT(*)';
+		}
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// $group_by and $metric_sql are whitelisted SQL expressions from switch statements.
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- group_by and metric_sql are whitelisted values from switch statements.
 		if ( $campaign_id ) {
 			$query = $wpdb->prepare(
-				"SELECT
-                    {$group_by} as period,
-                    {$metric_sql} as value
-                FROM {$this->analytics_table}
-                WHERE date_recorded >= %s AND date_recorded <= %s
-                AND campaign_id = %d
-                GROUP BY period
-                ORDER BY period ASC",
+				'SELECT
+					' . $group_by . ' as period,
+					' . $metric_sql . ' as value
+				FROM %i
+				WHERE date_recorded >= %s AND date_recorded <= %s
+				AND campaign_id = %d
+				GROUP BY period
+				ORDER BY period ASC',
+				$this->analytics_table,
 				$date_ranges['current_start'],
 				$date_ranges['current_end'],
 				$campaign_id
 			);
 		} else {
 			$query = $wpdb->prepare(
-				"SELECT
-                    {$group_by} as period,
-                    {$metric_sql} as value
-                FROM {$this->analytics_table}
-                WHERE date_recorded >= %s AND date_recorded <= %s
-                GROUP BY period
-                ORDER BY period ASC",
+				'SELECT
+					' . $group_by . ' as period,
+					' . $metric_sql . ' as value
+				FROM %i
+				WHERE date_recorded >= %s AND date_recorded <= %s
+				GROUP BY period
+				ORDER BY period ASC',
+				$this->analytics_table,
 				$date_ranges['current_start'],
 				$date_ranges['current_end']
 			);
 		}
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query on plugin's custom analytics table; results cached via WSSCD_Cache_Manager.
 		$results = $wpdb->get_results( $query );
 
 		$labels = array();
@@ -421,13 +464,18 @@ class SCD_Analytics_Dashboard {
 	 * @return   string                    SQL GROUP BY clause.
 	 */
 	private function get_group_by_clause( string $granularity ): string {
-		return match ( $granularity ) {
-			'hour' => "DATE_FORMAT(date_recorded, '%Y-%m-%d %H:00:00')",
-			'day' => 'date_recorded',
-			'week' => "DATE_FORMAT(date_recorded, '%Y-%u')",
-			'month' => "DATE_FORMAT(date_recorded, '%Y-%m')",
-			default => 'date_recorded'
-		};
+		switch ( $granularity ) {
+			case 'hour':
+				return "DATE_FORMAT(date_recorded, '%Y-%m-%d %H:00:00')";
+			case 'day':
+				return 'date_recorded';
+			case 'week':
+				return "DATE_FORMAT(date_recorded, '%Y-%u')";
+			case 'month':
+				return "DATE_FORMAT(date_recorded, '%Y-%m')";
+			default:
+				return 'date_recorded';
+		}
 	}
 
 	/**
@@ -440,13 +488,19 @@ class SCD_Analytics_Dashboard {
 	 * @return   string                    Formatted label.
 	 */
 	private function format_period_label( string $period, string $granularity ): string {
-		return match ( $granularity ) {
-			'hour' => date( 'M j, g:i A', strtotime( $period ) ),
-			'day' => date( 'M j', strtotime( $period ) ),
-			'week' => sprintf( __( 'Week %s', 'smart-cycle-discounts' ), $period ),
-			'month' => date( 'M Y', strtotime( $period . '-01' ) ),
-			default => $period
-		};
+		switch ( $granularity ) {
+			case 'hour':
+				return wp_date( 'M j, g:i A', strtotime( $period ) );
+			case 'day':
+				return wp_date( 'M j', strtotime( $period ) );
+			case 'week':
+				/* translators: %s: week number or date range */
+				return sprintf( __( 'Week %s', 'smart-cycle-discounts' ), $period );
+			case 'month':
+				return wp_date( 'M Y', strtotime( $period . '-01' ) );
+			default:
+				return $period;
+		}
 	}
 
 	/**
@@ -461,24 +515,25 @@ class SCD_Analytics_Dashboard {
 	private function get_top_campaigns_inline( array $date_ranges, int $limit ): array {
 		global $wpdb;
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
 		$query = $wpdb->prepare(
-			"
-            SELECT
-                campaign_id,
-                SUM(conversions) as conversions,
-                SUM(revenue) as revenue
-            FROM {$this->analytics_table}
-            WHERE date_recorded >= %s AND date_recorded <= %s
-            AND campaign_id IS NOT NULL
-            GROUP BY campaign_id
-            ORDER BY revenue DESC
-            LIMIT %d
-        ",
+			'SELECT
+				campaign_id,
+				SUM(conversions) as conversions,
+				SUM(revenue) as revenue
+			FROM %i
+			WHERE date_recorded >= %s AND date_recorded <= %s
+			AND campaign_id IS NOT NULL
+			GROUP BY campaign_id
+			ORDER BY revenue DESC
+			LIMIT %d',
+			$this->analytics_table,
 			$date_ranges['current_start'],
 			$date_ranges['current_end'],
 			$limit
 		);
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Query on plugin's custom analytics table.
 		return $wpdb->get_results( $query, ARRAY_A );
 	}
 

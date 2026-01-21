@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/helpers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Button_Helper {
+class WSSCD_Button_Helper {
 
 	/**
 	 * Render a button element.
@@ -74,47 +74,47 @@ class SCD_Button_Helper {
 		}
 
 		// Build classes - Using SCD design system
-		$classes = array( 'scd-button' );
+		$classes = array( 'wsscd-button' );
 
 		// Style classes
 		switch ( $args['style'] ) {
 			case 'primary':
-				$classes[] = 'scd-button--primary';
+				$classes[] = 'wsscd-button--primary';
 				break;
 			case 'secondary':
-				$classes[] = 'scd-button--secondary';
+				$classes[] = 'wsscd-button--secondary';
 				break;
 			case 'danger':
-				$classes[] = 'scd-button--danger';
+				$classes[] = 'wsscd-button--danger';
 				break;
 			case 'success':
-				$classes[] = 'scd-button--success';
+				$classes[] = 'wsscd-button--success';
 				break;
 			case 'link':
-				$classes[] = 'scd-button--link';
+				$classes[] = 'wsscd-button--link';
 				break;
 			case 'ghost':
-				$classes[] = 'scd-button--ghost';
+				$classes[] = 'wsscd-button--ghost';
 				break;
 			case 'ghost-danger':
-				$classes[] = 'scd-button--ghost-danger';
+				$classes[] = 'wsscd-button--ghost-danger';
 				break;
 		}
 
 		// Size classes
 		switch ( $args['size'] ) {
 			case 'small':
-				$classes[] = 'scd-button--small';
+				$classes[] = 'wsscd-button--small';
 				break;
 			case 'large':
 			case 'hero': // Map hero to large
-				$classes[] = 'scd-button--large';
+				$classes[] = 'wsscd-button--large';
 				break;
 		}
 
 		// Add icon-only class
 		if ( ! empty( $args['icon_only'] ) ) {
-			$classes[] = 'scd-button--icon-only';
+			$classes[] = 'wsscd-button--icon-only';
 		}
 
 		// Add custom classes
@@ -142,12 +142,12 @@ class SCD_Button_Helper {
 		$icon_html = '';
 		if ( ! empty( $args['icon'] ) ) {
 			// Get SVG icon from Icon_Helper
-			if ( class_exists( 'SCD_Icon_Helper' ) && SCD_Icon_Helper::has_icon( $args['icon'] ) ) {
-				$icon_html = SCD_Icon_Helper::get(
+			if ( class_exists( 'WSSCD_Icon_Helper' ) && WSSCD_Icon_Helper::has_icon( $args['icon'] ) ) {
+				$icon_html = WSSCD_Icon_Helper::get(
 					$args['icon'],
 					array(
 						'size'        => 20,
-						'class'       => 'scd-button-icon',
+						'class'       => 'wsscd-button-icon',
 						'aria_hidden' => true,
 					)
 				);
@@ -155,6 +155,7 @@ class SCD_Button_Helper {
 		}
 
 		// Build button content
+		// Note: $icon_html is already escaped via wp_kses() in WSSCD_Icon_Helper::get()
 		$content = '';
 		if ( 'left' === $args['icon_position'] && ! empty( $icon_html ) ) {
 			$content .= $icon_html;
@@ -165,7 +166,7 @@ class SCD_Button_Helper {
 			// No text span needed for icon-only buttons
 		} else {
 			// Wrap text in span for JavaScript manipulation (e.g., loading states)
-			$content .= '<span class="scd-button-text">' . esc_html( $args['text'] ) . '</span>';
+			$content .= '<span class="wsscd-button-text">' . esc_html( $args['text'] ) . '</span>';
 		}
 		if ( 'right' === $args['icon_position'] && ! empty( $icon_html ) ) {
 			$content .= ' ' . $icon_html;
@@ -191,7 +192,7 @@ class SCD_Button_Helper {
 		}
 
 		if ( $args['echo'] ) {
-			echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			WSSCD_HTML_Helper::output( $html );
 		} else {
 			return $html;
 		}
@@ -322,7 +323,7 @@ class SCD_Button_Helper {
 
 		$args = wp_parse_args( $args, $defaults );
 
-		$classes = array( 'scd-button-group' );
+		$classes = array( 'wsscd-button-group' );
 		if ( ! empty( $args['classes'] ) ) {
 			$classes = array_merge( $classes, (array) $args['classes'] );
 		}
@@ -337,7 +338,7 @@ class SCD_Button_Helper {
 		$html .= '</div>';
 
 		if ( $args['echo'] ) {
-			echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			WSSCD_HTML_Helper::output( $html );
 		} else {
 			return $html;
 		}

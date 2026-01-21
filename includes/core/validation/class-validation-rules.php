@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/validation
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Validation_Rules {
+class WSSCD_Validation_Rules {
 
 	/**
 	 * Campaign constants.

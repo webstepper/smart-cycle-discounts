@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/settings/tabs
  */
-class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
+class WSSCD_Advanced_Settings extends WSSCD_Settings_Page_Base {
 
 	/**
 	 * Register settings sections and fields.
@@ -38,10 +38,10 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 			return;
 		}
 
-		// Logging Configuration Section
+		// Logging Configuration Section - use wp_kses with SVG allowed tags since wp_kses_post strips SVG.
 		$this->add_section(
-			'scd_advanced_debug',
-			SCD_Icon_Helper::get( 'admin-tools', array( 'size' => 16 ) ) . ' ' . __( 'Logging Configuration', 'smart-cycle-discounts' ),
+			'wsscd_advanced_debug',
+			wp_kses( WSSCD_Icon_Helper::get( 'admin-tools', array( 'size' => 16 ) ), WSSCD_Icon_Helper::get_allowed_svg_tags() ) . ' ' . esc_html__( 'Logging Configuration', 'smart-cycle-discounts' ),
 			'render_debug_section'
 		);
 
@@ -49,7 +49,7 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 			'enable_debug_mode',
 			__( 'Debug Mode', 'smart-cycle-discounts' ),
 			'render_debug_mode_field',
-			'scd_advanced_debug',
+			'wsscd_advanced_debug',
 			array(
 				'tooltip' => __( 'Enable debug mode to log detailed information for troubleshooting. Disable in production for better performance.', 'smart-cycle-discounts' ),
 			)
@@ -59,7 +59,7 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 			'log_level',
 			__( 'Logging Level', 'smart-cycle-discounts' ),
 			'render_log_level_field',
-			'scd_advanced_debug',
+			'wsscd_advanced_debug',
 			array(
 				'tooltip' => __( 'Control the verbosity of log messages. "Warning" is recommended - captures errors and potential issues without excessive logging.', 'smart-cycle-discounts' ),
 				'options' => array(
@@ -77,7 +77,7 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 			'log_retention_days',
 			__( 'Log Retention', 'smart-cycle-discounts' ),
 			'render_log_retention_field',
-			'scd_advanced_debug',
+			'wsscd_advanced_debug',
 			array(
 				'tooltip' => __( 'How long to keep log files before automatic cleanup. Set to 0 to keep logs indefinitely.', 'smart-cycle-discounts' ),
 				'min'     => 0,
@@ -86,10 +86,10 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 			)
 		);
 
-		// Uninstall Section
+		// Uninstall Section - use wp_kses with SVG allowed tags since wp_kses_post strips SVG.
 		$this->add_section(
-			'scd_advanced_uninstall',
-			SCD_Icon_Helper::get( 'delete', array( 'size' => 16 ) ) . ' ' . __( 'Uninstall Options', 'smart-cycle-discounts' ),
+			'wsscd_advanced_uninstall',
+			wp_kses( WSSCD_Icon_Helper::get( 'delete', array( 'size' => 16 ) ), WSSCD_Icon_Helper::get_allowed_svg_tags() ) . ' ' . esc_html__( 'Uninstall Options', 'smart-cycle-discounts' ),
 			'render_uninstall_section'
 		);
 
@@ -97,7 +97,7 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 			'uninstall_data',
 			__( 'Remove Data on Uninstall', 'smart-cycle-discounts' ),
 			'render_uninstall_data_field',
-			'scd_advanced_uninstall',
+			'wsscd_advanced_uninstall',
 			array(
 				'tooltip' => __( 'Completely remove all plugin data (campaigns, settings) when uninstalling. Cannot be undone.', 'smart-cycle-discounts' ),
 			)
@@ -112,10 +112,10 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 	 */
 	public function render_debug_section(): void {
 		$tools_url = admin_url( 'admin.php?page=smart-cycle-discounts-tools' );
-		echo '<p class="scd-section-description">';
+		echo '<p class="wsscd-section-description">';
 		printf(
-			/* translators: %s: URL to Tools & Maintenance page */
 			wp_kses(
+				/* translators: %s: URL to Tools & Maintenance page */
 				__( 'Configure debug mode, logging levels, and log retention policies. To view log files, visit <a href="%s">Tools &amp; Maintenance</a>.', 'smart-cycle-discounts' ),
 				array( 'a' => array( 'href' => array() ) )
 			),
@@ -136,7 +136,7 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 
 		$enabled = $this->get_setting( 'enable_debug_mode', false );
 		if ( $enabled ) {
-			echo ' ' . SCD_Badge_Helper::health_badge( 'warning', __( 'Active', 'smart-cycle-discounts' ) );
+			echo ' ' . wp_kses_post( WSSCD_Badge_Helper::health_badge( 'warning', __( 'Active', 'smart-cycle-discounts' ) ) );
 		}
 	}
 
@@ -169,7 +169,7 @@ class SCD_Advanced_Settings extends SCD_Settings_Page_Base {
 	 * @return   void
 	 */
 	public function render_uninstall_section(): void {
-		echo '<p class="scd-section-description">';
+		echo '<p class="wsscd-section-description">';
 		echo esc_html__( 'Configure what happens when the plugin is uninstalled.', 'smart-cycle-discounts' );
 		echo '</p>';
 	}

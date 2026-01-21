@@ -25,25 +25,25 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Service_Health_Check {
+class WSSCD_Service_Health_Check {
 
 	/**
 	 * Container instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Container    $container    Container instance.
+	 * @var      WSSCD_Container    $container    Container instance.
 	 */
-	private SCD_Container $container;
+	private WSSCD_Container $container;
 
 	/**
 	 * Service registry instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Service_Registry    $registry    Service registry.
+	 * @var      WSSCD_Service_Registry    $registry    Service registry.
 	 */
-	private SCD_Service_Registry $registry;
+	private WSSCD_Service_Registry $registry;
 
 	/**
 	 * Health check results.
@@ -58,10 +58,10 @@ class SCD_Service_Health_Check {
 	 * Initialize the health check.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Container        $container    Container instance.
-	 * @param    SCD_Service_Registry $registry     Service registry.
+	 * @param    WSSCD_Container        $container    Container instance.
+	 * @param    WSSCD_Service_Registry $registry     Service registry.
 	 */
-	public function __construct( SCD_Container $container, SCD_Service_Registry $registry ) {
+	public function __construct( WSSCD_Container $container, WSSCD_Service_Registry $registry ) {
 		$this->container = $container;
 		$this->registry  = $registry;
 	}
@@ -110,7 +110,7 @@ class SCD_Service_Health_Check {
 			'details' => array(),
 		);
 
-		$definitions = SCD_Service_Definitions::get_definitions();
+		$definitions = WSSCD_Service_Definitions::get_definitions();
 		$registered  = $this->registry->get_registered_services();
 
 		$check['details']['total_definitions']   = count( $definitions );
@@ -199,7 +199,7 @@ class SCD_Service_Health_Check {
 			'details' => array(),
 		);
 
-		$definitions = SCD_Service_Definitions::get_definitions();
+		$definitions = WSSCD_Service_Definitions::get_definitions();
 		$unresolved  = array();
 
 		foreach ( $definitions as $service_id => $definition ) {
@@ -249,7 +249,7 @@ class SCD_Service_Health_Check {
 		);
 
 		// Service validator removed - basic check only
-		$definitions = SCD_Service_Definitions::get_definitions();
+		$definitions = WSSCD_Service_Definitions::get_definitions();
 
 		// Circular dependency checking skipped - no circular dependencies currently exist
 		$check['details']['note'] = 'No circular dependencies detected in service definitions';
@@ -315,13 +315,13 @@ class SCD_Service_Health_Check {
 		);
 
 		$critical_services = array(
-			'logger'              => 'SCD_Logger',
-			'error_handler'       => 'SCD_Error_Handler',
-			'cache_manager'       => 'SCD_Cache_Manager',
-			'database_manager'    => 'SCD_Database_Manager',
-			'security_manager'    => 'SCD_Security_Manager',
-			'campaign_repository' => 'SCD_Campaign_Repository',
-			'campaign_manager'    => 'SCD_Campaign_Manager',
+			'logger'              => 'WSSCD_Logger',
+			'error_handler'       => 'WSSCD_Error_Handler',
+			'cache_manager'       => 'WSSCD_Cache_Manager',
+			'database_manager'    => 'WSSCD_Database_Manager',
+			'security_manager'    => 'WSSCD_Security_Manager',
+			'campaign_repository' => 'WSSCD_Campaign_Repository',
+			'campaign_manager'    => 'WSSCD_Campaign_Manager',
 		);
 
 		$failed = array();

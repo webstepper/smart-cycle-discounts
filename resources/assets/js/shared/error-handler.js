@@ -13,14 +13,14 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
+	window.WSSCD = window.WSSCD || {};
 
 	/**
 	 * Error Handler Service
 	 *
-	 * @class SCD.ErrorHandler
+	 * @class WSSCD.ErrorHandler
 	 */
-	SCD.ErrorHandler = {
+	WSSCD.ErrorHandler = {
 
 		/**
 		 * Error severity levels
@@ -187,26 +187,26 @@
 		 */
 		_consoleLog: function( errorData ) {
 			var logMethod = 'log';
-			var prefix = '[SCD]';
+			var prefix = '[WSSCD]';
 
 			// Choose appropriate console method
 			if ( errorData.severity === this.SEVERITY.CRITICAL ) {
 				logMethod = 'error';
-				prefix = '[SCD ERROR]';
+				prefix = '[WSSCD ERROR]';
 			} else if ( errorData.severity === this.SEVERITY.HIGH ) {
 				logMethod = 'warn';
-				prefix = '[SCD WARNING]';
+				prefix = '[WSSCD WARNING]';
 			}
 
 			// Only log in debug mode or for critical errors
 			var safeConsole = console[logMethod] && typeof console[logMethod] === 'function' ? console[logMethod] : console.log;
 
-			if ( window.scdWizardData && window.scdWizardData.debug ) {
+			if ( window.wsscdWizardData && window.wsscdWizardData.debug ) {
 				safeConsole.call( console, prefix, '[' + errorData.context + ']', errorData.message );
 				if ( errorData.stack ) {
 					safeConsole.call( console, errorData.stack );
 				}
-				if ( errorData.metadata && ( !SCD.Utils || !SCD.Utils.isEmpty || !SCD.Utils.isEmpty( errorData.metadata ) ) ) {
+				if ( errorData.metadata && ( !WSSCD.Utils || !WSSCD.Utils.isEmpty || !WSSCD.Utils.isEmpty( errorData.metadata ) ) ) {
 					safeConsole.call( console, 'Metadata:', errorData.metadata );
 				}
 			} else if ( errorData.severity === this.SEVERITY.CRITICAL ) {
@@ -221,7 +221,7 @@
 		 * @param {object} errorData - Normalized error data
 		 */
 		_triggerErrorEvent: function( errorData ) {
-			$( document ).trigger( 'scd:error', [ errorData ] );
+			$( document ).trigger( 'wsscd:error', [ errorData ] );
 		},
 
 		/**
@@ -232,8 +232,8 @@
 		 */
 		_showUserNotification: function( errorData ) {
 			// Always use NotificationService from Shared namespace
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
-				window.SCD.Shared.NotificationService.error( errorData.message );
+			if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.NotificationService ) {
+				window.WSSCD.Shared.NotificationService.error( errorData.message );
 				return;
 			}
 
@@ -251,14 +251,14 @@
 		 */
 		_sendToAnalytics: function( errorData ) {
 			// Only send analytics in production and if user has opted in
-			if ( window.scdWizardData &&
-				window.scdWizardData.analytics &&
-				window.scdWizardData.analytics.enabled &&
-				window.SCD &&
-				window.SCD.Analytics ) {
+			if ( window.wsscdWizardData &&
+				window.wsscdWizardData.analytics &&
+				window.wsscdWizardData.analytics.enabled &&
+				window.WSSCD &&
+				window.WSSCD.Analytics ) {
 
 				try {
-					SCD.Analytics.trackError( {
+					WSSCD.Analytics.trackError( {
 						message: errorData.message,
 						context: errorData.context,
 						severity: errorData.severity,
@@ -273,10 +273,10 @@
 
 	$( document ).ready( function() {
 		window.onerror = function( message, source, lineno, colno, error ) {
-			SCD.ErrorHandler.handle(
+			WSSCD.ErrorHandler.handle(
 				error || new Error( message ),
 				'Global',
-				SCD.ErrorHandler.SEVERITY.HIGH,
+				WSSCD.ErrorHandler.SEVERITY.HIGH,
 				{
 					source: source,
 					line: lineno,

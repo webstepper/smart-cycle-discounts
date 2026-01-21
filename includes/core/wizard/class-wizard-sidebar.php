@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/wizard
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Wizard_Sidebar {
+class WSSCD_Wizard_Sidebar {
 
 	/**
 	 * Sidebar instances cache.
@@ -46,11 +46,11 @@ class SCD_Wizard_Sidebar {
 	 * @var      array    $sidebar_map    Step to class mapping.
 	 */
 	private static array $sidebar_map = array(
-		'basic'     => 'SCD_Wizard_Sidebar_Basic',
-		'products'  => 'SCD_Wizard_Sidebar_Products',
-		'discounts' => 'SCD_Wizard_Sidebar_Discounts',
-		'schedule'  => 'SCD_Wizard_Sidebar_Schedule',
-		'review'    => 'SCD_Wizard_Sidebar_Review',
+		'basic'     => 'WSSCD_Wizard_Sidebar_Basic',
+		'products'  => 'WSSCD_Wizard_Sidebar_Products',
+		'discounts' => 'WSSCD_Wizard_Sidebar_Discounts',
+		'schedule'  => 'WSSCD_Wizard_Sidebar_Schedule',
+		'review'    => 'WSSCD_Wizard_Sidebar_Review',
 	);
 
 	/**
@@ -91,7 +91,7 @@ class SCD_Wizard_Sidebar {
 		}
 
 		// Allow filtering of sidebar map for extensibility
-		$sidebar_map = apply_filters( 'scd_wizard_sidebar_map', self::$sidebar_map );
+		$sidebar_map = apply_filters( 'wsscd_wizard_sidebar_map', self::$sidebar_map );
 
 		if ( ! isset( $sidebar_map[ $step ] ) ) {
 			return '';
@@ -113,7 +113,7 @@ class SCD_Wizard_Sidebar {
 		$content = $sidebar_instance->get_content();
 
 		// Allow filtering of final sidebar content
-		return apply_filters( 'scd_wizard_sidebar_content', $content, $step, $sidebar_instance );
+		return apply_filters( 'wsscd_wizard_sidebar_content', $content, $step, $sidebar_instance );
 	}
 
 	/**
@@ -152,9 +152,6 @@ class SCD_Wizard_Sidebar {
 		}
 
 		if ( ! class_exists( $class_name ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'SCD Wizard Sidebar: Class %s not found for step %s', $class_name, $step ) );
-			}
 			return null;
 		}
 
@@ -167,9 +164,6 @@ class SCD_Wizard_Sidebar {
 
 			return self::$instances[ $step ];
 		} catch ( Exception $e ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'SCD Wizard Sidebar Error: Failed to instantiate %s - %s', $class_name, $e->getMessage() ) );
-			}
 			return null;
 		}
 	}
@@ -184,24 +178,20 @@ class SCD_Wizard_Sidebar {
 	 */
 	private static function load_sidebar_file( string $step ): void {
 		// Allow filtering of files map for extensibility
-		$files_map = apply_filters( 'scd_wizard_sidebar_files_map', self::$files_map );
+		$files_map = apply_filters( 'wsscd_wizard_sidebar_files_map', self::$files_map );
 
 		if ( ! isset( $files_map[ $step ] ) ) {
 			return;
 		}
 
-		$sidebar_base_file = SCD_INCLUDES_DIR . 'core/wizard/class-sidebar-base.php';
+		$sidebar_base_file = WSSCD_INCLUDES_DIR . 'core/wizard/class-sidebar-base.php';
 		if ( file_exists( $sidebar_base_file ) ) {
 			require_once $sidebar_base_file;
 		}
 
-		$sidebar_file = SCD_INCLUDES_DIR . 'core/wizard/sidebars/' . $files_map[ $step ];
+		$sidebar_file = WSSCD_INCLUDES_DIR . 'core/wizard/sidebars/' . $files_map[ $step ];
 		if ( file_exists( $sidebar_file ) ) {
 			require_once $sidebar_file;
-		} else {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( 'SCD Wizard Sidebar: File not found - %s', $sidebar_file ) );
-			}
 		}
 	}
 
@@ -213,7 +203,7 @@ class SCD_Wizard_Sidebar {
 	 * @return   bool              True if step has sidebar.
 	 */
 	public static function has_sidebar( string $step ): bool {
-		$sidebar_map = apply_filters( 'scd_wizard_sidebar_map', self::$sidebar_map );
+		$sidebar_map = apply_filters( 'wsscd_wizard_sidebar_map', self::$sidebar_map );
 		return isset( $sidebar_map[ $step ] );
 	}
 
@@ -224,7 +214,7 @@ class SCD_Wizard_Sidebar {
 	 * @return   array    Available step names.
 	 */
 	public static function get_available_steps(): array {
-		$sidebar_map = apply_filters( 'scd_wizard_sidebar_map', self::$sidebar_map );
+		$sidebar_map = apply_filters( 'wsscd_wizard_sidebar_map', self::$sidebar_map );
 		return array_keys( $sidebar_map );
 	}
 

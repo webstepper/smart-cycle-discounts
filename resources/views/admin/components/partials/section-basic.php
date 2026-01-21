@@ -18,101 +18,102 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Extract data
-$name        = isset( $data['name'] ) ? $data['name'] : '';
-$description = isset( $data['description'] ) ? $data['description'] : '';
-$status      = isset( $data['status'] ) ? $data['status'] : 'draft';
-$priority    = isset( $data['priority'] ) ? absint( $data['priority'] ) : 3;
-$created_by  = isset( $data['created_by'] ) ? absint( $data['created_by'] ) : 0;
-$created_at  = isset( $data['created_at'] ) ? $data['created_at'] : null;
-$updated_at  = isset( $data['updated_at'] ) ? $data['updated_at'] : null;
+$wsscd_name        = isset( $data['name'] ) ? $data['name'] : '';
+$wsscd_description = isset( $data['description'] ) ? $data['description'] : '';
+$wsscd_status      = isset( $data['status'] ) ? $data['status'] : 'draft';
+$wsscd_priority    = isset( $data['priority'] ) ? absint( $data['priority'] ) : 3;
+$wsscd_created_by  = isset( $data['created_by'] ) ? absint( $data['created_by'] ) : 0;
+$wsscd_created_at  = isset( $data['created_at'] ) ? $data['created_at'] : null;
+$wsscd_updated_at  = isset( $data['updated_at'] ) ? $data['updated_at'] : null;
 
 // Get user display name
-$user_name = __( 'Unknown', 'smart-cycle-discounts' );
-if ( $created_by > 0 ) {
-	$user = get_userdata( $created_by );
-	if ( $user ) {
-		$user_name = $user->display_name;
+$wsscd_user_name = __( 'Unknown', 'smart-cycle-discounts' );
+if ( $wsscd_created_by > 0 ) {
+	$wsscd_user = get_userdata( $wsscd_created_by );
+	if ( $wsscd_user ) {
+		$wsscd_user_name = $wsscd_user->display_name;
 	}
 }
 
 // Format timestamps
-$created_time = '';
-$updated_time = '';
-if ( $created_at instanceof DateTime ) {
-	$created_time = sprintf(
+$wsscd_created_time = '';
+$wsscd_updated_time = '';
+if ( $wsscd_created_at instanceof DateTime ) {
+	$wsscd_created_time = sprintf(
 		/* translators: %s: human-readable time difference */
 		__( '%s ago', 'smart-cycle-discounts' ),
-		human_time_diff( $created_at->getTimestamp(), current_time( 'timestamp' ) )
+		human_time_diff( $wsscd_created_at->getTimestamp(), current_time( 'timestamp' ) )
 	);
 }
-if ( $updated_at instanceof DateTime ) {
-	$updated_time = sprintf(
+if ( $wsscd_updated_at instanceof DateTime ) {
+	$wsscd_updated_time = sprintf(
 		/* translators: %s: human-readable time difference */
 		__( '%s ago', 'smart-cycle-discounts' ),
-		human_time_diff( $updated_at->getTimestamp(), current_time( 'timestamp' ) )
+		human_time_diff( $wsscd_updated_at->getTimestamp(), current_time( 'timestamp' ) )
 	);
 }
 ?>
 
-<div class="scd-campaign-summary-card">
+<div class="wsscd-campaign-summary-card">
 	<!-- Header: Name + Status Badge -->
-	<div class="scd-campaign-summary-header">
-		<h3 class="scd-campaign-summary-name"><?php echo esc_html( $name ); ?></h3>
-		<div class="scd-campaign-summary-status">
-			<?php echo SCD_Badge_Helper::status_badge( $status ); ?>
+	<div class="wsscd-campaign-summary-header">
+		<h3 class="wsscd-campaign-summary-name"><?php echo esc_html( $wsscd_name ); ?></h3>
+		<div class="wsscd-campaign-summary-status">
+			<?php echo wp_kses_post( WSSCD_Badge_Helper::status_badge( $wsscd_status ) ); ?>
 		</div>
 	</div>
 
 	<!-- Description (if provided) -->
-	<?php if ( ! empty( $description ) ) : ?>
-		<div class="scd-campaign-summary-description">
-			<?php echo esc_html( $description ); ?>
+	<?php if ( ! empty( $wsscd_description ) ) : ?>
+		<div class="wsscd-campaign-summary-description">
+			<?php echo esc_html( $wsscd_description ); ?>
 		</div>
 	<?php endif; ?>
 
 	<!-- Metadata Row: Priority | Created By | Last Updated -->
-	<div class="scd-campaign-summary-meta-row">
+	<div class="wsscd-campaign-summary-meta-row">
 		<!-- Priority -->
-		<div class="scd-meta-item scd-meta-priority">
-			<div class="scd-meta-label">
-				<?php echo SCD_Icon_Helper::get( 'star-filled', array( 'size' => 14 ) ); ?>
+		<div class="wsscd-meta-item wsscd-meta-priority">
+			<div class="wsscd-meta-label">
+				<?php WSSCD_Icon_Helper::render( 'star-filled', array( 'size' => 14 ) ); ?>
 				<?php esc_html_e( 'Priority', 'smart-cycle-discounts' ); ?>
 			</div>
-			<div class="scd-meta-value">
-				<span class="scd-priority-stars" aria-label="<?php echo esc_attr( sprintf( __( 'Priority: %d out of 5', 'smart-cycle-discounts' ), $priority ) ); ?>">
+			<div class="wsscd-meta-value">
+				<?php /* translators: %d: priority level (1-5) */ ?>
+				<span class="wsscd-priority-stars" aria-label="<?php echo esc_attr( sprintf( __( 'Priority: %d out of 5', 'smart-cycle-discounts' ), $wsscd_priority ) ); ?>">
 					<?php
-					for ( $i = 1; $i <= 5; $i++ ) {
-						echo SCD_Icon_Helper::get( 'star-filled', array( 'size' => 16, 'class' => $i <= $priority ? 'scd-star-active' : 'scd-star-inactive' ) );
+					for ( $wsscd_i = 1; $wsscd_i <= 5; $wsscd_i++ ) {
+						WSSCD_Icon_Helper::render( 'star-filled', array( 'size' => 16, 'class' => $wsscd_i <= $wsscd_priority ? 'wsscd-star-active' : 'wsscd-star-inactive' ) );
 					}
 					?>
 				</span>
-				<span class="scd-priority-number">(<?php echo absint( $priority ); ?>/5)</span>
+				<span class="wsscd-priority-number">(<?php echo absint( $wsscd_priority ); ?>/5)</span>
 			</div>
 		</div>
 
 		<!-- Created By -->
-		<div class="scd-meta-item scd-meta-user">
-			<div class="scd-meta-label">
-				<?php echo SCD_Icon_Helper::get( 'admin-users', array( 'size' => 14 ) ); ?>
+		<div class="wsscd-meta-item wsscd-meta-user">
+			<div class="wsscd-meta-label">
+				<?php WSSCD_Icon_Helper::render( 'admin-users', array( 'size' => 14 ) ); ?>
 				<?php esc_html_e( 'Created by', 'smart-cycle-discounts' ); ?>
 			</div>
-			<div class="scd-meta-value">
-				<?php echo esc_html( $user_name ); ?>
-				<?php if ( ! empty( $created_time ) ) : ?>
-					<span class="scd-meta-timestamp"><?php echo esc_html( $created_time ); ?></span>
+			<div class="wsscd-meta-value">
+				<?php echo esc_html( $wsscd_user_name ); ?>
+				<?php if ( ! empty( $wsscd_created_time ) ) : ?>
+					<span class="wsscd-meta-timestamp"><?php echo esc_html( $wsscd_created_time ); ?></span>
 				<?php endif; ?>
 			</div>
 		</div>
 
 		<!-- Last Updated -->
-		<?php if ( ! empty( $updated_time ) ) : ?>
-			<div class="scd-meta-item scd-meta-updated">
-				<div class="scd-meta-label">
-					<?php echo SCD_Icon_Helper::get( 'update', array( 'size' => 14 ) ); ?>
+		<?php if ( ! empty( $wsscd_updated_time ) ) : ?>
+			<div class="wsscd-meta-item wsscd-meta-updated">
+				<div class="wsscd-meta-label">
+					<?php WSSCD_Icon_Helper::render( 'update', array( 'size' => 14 ) ); ?>
 					<?php esc_html_e( 'Last updated', 'smart-cycle-discounts' ); ?>
 				</div>
-				<div class="scd-meta-value">
-					<?php echo esc_html( $updated_time ); ?>
+				<div class="wsscd-meta-value">
+					<?php echo esc_html( $wsscd_updated_time ); ?>
 				</div>
 			</div>
 		<?php endif; ?>

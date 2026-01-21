@@ -14,12 +14,12 @@
 	'use strict';
 
 	// Ensure namespace exists
-	window.SCD = window.SCD || {};
+	window.WSSCD = window.WSSCD || {};
 
 	/**
 	 * Module Loader
 	 */
-	SCD.ModuleLoader = {
+	WSSCD.ModuleLoader = {
 
 		// Module registry
 		modules: {},
@@ -39,9 +39,9 @@
 		getBasePath: function() {
 			if ( !this.basePath ) {
 				// Plugin URL should be properly localized by WordPress
-				if ( window.scdWizardData && window.scdWizardData.pluginUrl ) {
+				if ( window.wsscdWizardData && window.wsscdWizardData.pluginUrl ) {
 					// Ensure proper URL construction with trailing slash handling
-					var pluginUrl = window.scdWizardData.pluginUrl;
+					var pluginUrl = window.wsscdWizardData.pluginUrl;
 					this.basePath = pluginUrl.replace( /\/$/, '' ) + '/resources/assets/js/steps/';
 				} else {
 					// Configuration error - plugin URL must be localized
@@ -106,7 +106,7 @@
 
 					// Trigger error event
 					if ( 'undefined' !== typeof $ ) {
-						$( document ).trigger( 'scd:module:error:' + moduleName );
+						$( document ).trigger( 'wsscd:module:error:' + moduleName );
 					}
 
 					throw new Error( 'Module ' + moduleName + ' failed to register itself properly' );
@@ -114,7 +114,7 @@
 
 				// Trigger loaded event for waiting callbacks
 				if ( 'undefined' !== typeof $ ) {
-					$( document ).trigger( 'scd:module:loaded:' + moduleName, [ self.modules[moduleName] ] );
+					$( document ).trigger( 'wsscd:module:loaded:' + moduleName, [ self.modules[moduleName] ] );
 				}
 
 				if ( callback ) {
@@ -129,13 +129,13 @@
 				// Trigger error events
 				if ( 'undefined' !== typeof $ && $( document ).trigger ) {
 					// General error event
-					$( document ).trigger( 'scd:module:error', {
+					$( document ).trigger( 'wsscd:module:error', {
 						module: moduleName,
 						path: modulePath
 					} );
 
 					// Specific module error event for waiting callbacks
-					$( document ).trigger( 'scd:module:error:' + moduleName );
+					$( document ).trigger( 'wsscd:module:error:' + moduleName );
 				}
 
 				if ( callback ) {callback( null );}
@@ -277,7 +277,7 @@
 
 				// Use proper event system if available
 				if ( 'undefined' !== typeof $ ) {
-					$( document ).one( 'scd:module:loaded:' + moduleName, function( e, module ) {
+					$( document ).one( 'wsscd:module:loaded:' + moduleName, function( e, module ) {
 						var callbacks = waitingCallbacks[moduleName] || [];
 						for ( var i = 0; i < callbacks.length; i++ ) {
 							callbacks[i]( module );
@@ -286,7 +286,7 @@
 						self.moduleListeners[moduleName] = false;
 					} );
 
-					$( document ).one( 'scd:module:error:' + moduleName, function() {
+					$( document ).one( 'wsscd:module:error:' + moduleName, function() {
 						var callbacks = waitingCallbacks[moduleName] || [];
 						for ( var i = 0; i < callbacks.length; i++ ) {
 							callbacks[i]( null );
@@ -320,7 +320,7 @@
 	};
 
 	// Shorthand
-	SCD.loadModule = SCD.ModuleLoader.load.bind( SCD.ModuleLoader );
-	SCD.loadModules = SCD.ModuleLoader.loadModules.bind( SCD.ModuleLoader );
+	WSSCD.loadModule = WSSCD.ModuleLoader.load.bind( WSSCD.ModuleLoader );
+	WSSCD.loadModules = WSSCD.ModuleLoader.loadModules.bind( WSSCD.ModuleLoader );
 
 } )( window, document );

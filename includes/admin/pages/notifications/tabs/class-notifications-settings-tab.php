@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/pages/notifications/tabs
  */
-class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
+class WSSCD_Notifications_Settings_Tab extends WSSCD_Notifications_Tab_Base {
 
 	/**
 	 * Register settings sections and fields.
@@ -38,10 +38,10 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			return;
 		}
 
-		// Email Provider Section
+		// Email Provider Section - use wp_kses with SVG allowed tags since wp_kses_post strips SVG.
 		$this->add_section(
-			'scd_notifications_provider',
-			SCD_Icon_Helper::get( 'email', array( 'size' => 16 ) ) . ' ' . __( 'Email Provider', 'smart-cycle-discounts' ),
+			'wsscd_notifications_provider',
+			wp_kses( WSSCD_Icon_Helper::get( 'email', array( 'size' => 16 ) ), WSSCD_Icon_Helper::get_allowed_svg_tags() ) . ' ' . esc_html__( 'Email Provider', 'smart-cycle-discounts' ),
 			'render_provider_section'
 		);
 
@@ -49,7 +49,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'email_provider',
 			__( 'Provider', 'smart-cycle-discounts' ),
 			'render_provider_field',
-			'scd_notifications_provider',
+			'wsscd_notifications_provider',
 			array(
 				'tooltip' => __( 'Choose your email service provider. WordPress Mail works out of the box. For better deliverability, use SendGrid or Amazon SES.', 'smart-cycle-discounts' ),
 				'options' => array(
@@ -65,10 +65,10 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'sendgrid_api_key',
 			__( 'SendGrid API Key', 'smart-cycle-discounts' ),
 			'render_sendgrid_api_key_field',
-			'scd_notifications_provider',
+			'wsscd_notifications_provider',
 			array(
 				'tooltip' => __( 'Get your API key from SendGrid dashboard. Free tier: 100 emails/day.', 'smart-cycle-discounts' ),
-				'class'   => 'regular-text scd-provider-setting scd-provider-sendgrid',
+				'class'   => 'regular-text wsscd-provider-setting wsscd-provider-sendgrid',
 			)
 		);
 
@@ -77,10 +77,10 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'amazonses_access_key',
 			__( 'AWS Access Key ID', 'smart-cycle-discounts' ),
 			'render_amazonses_access_key_field',
-			'scd_notifications_provider',
+			'wsscd_notifications_provider',
 			array(
 				'tooltip' => __( 'Your AWS Access Key ID with SES permissions.', 'smart-cycle-discounts' ),
-				'class'   => 'regular-text scd-provider-setting scd-provider-amazonses',
+				'class'   => 'regular-text wsscd-provider-setting wsscd-provider-amazonses',
 			)
 		);
 
@@ -88,10 +88,10 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'amazonses_secret_key',
 			__( 'AWS Secret Access Key', 'smart-cycle-discounts' ),
 			'render_amazonses_secret_key_field',
-			'scd_notifications_provider',
+			'wsscd_notifications_provider',
 			array(
 				'tooltip' => __( 'Your AWS Secret Access Key.', 'smart-cycle-discounts' ),
-				'class'   => 'regular-text scd-provider-setting scd-provider-amazonses',
+				'class'   => 'regular-text wsscd-provider-setting wsscd-provider-amazonses',
 			)
 		);
 
@@ -99,7 +99,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'amazonses_region',
 			__( 'AWS Region', 'smart-cycle-discounts' ),
 			'render_amazonses_region_field',
-			'scd_notifications_provider',
+			'wsscd_notifications_provider',
 			array(
 				'tooltip' => __( 'AWS region where SES is configured.', 'smart-cycle-discounts' ),
 				'options' => array(
@@ -109,14 +109,14 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 					'eu-central-1'   => __( 'EU (Frankfurt)', 'smart-cycle-discounts' ),
 					'ap-southeast-1' => __( 'Asia Pacific (Singapore)', 'smart-cycle-discounts' ),
 				),
-				'class'   => 'scd-provider-setting scd-provider-amazonses',
+				'class'   => 'wsscd-provider-setting wsscd-provider-amazonses',
 			)
 		);
 
-		// Email Configuration Section
+		// Email Configuration Section - use wp_kses with SVG allowed tags since wp_kses_post strips SVG.
 		$this->add_section(
-			'scd_notifications_config',
-			SCD_Icon_Helper::get( 'admin-settings', array( 'size' => 16 ) ) . ' ' . __( 'Email Configuration', 'smart-cycle-discounts' ),
+			'wsscd_notifications_config',
+			wp_kses( WSSCD_Icon_Helper::get( 'admin-settings', array( 'size' => 16 ) ), WSSCD_Icon_Helper::get_allowed_svg_tags() ) . ' ' . esc_html__( 'Email Configuration', 'smart-cycle-discounts' ),
 			'render_config_section'
 		);
 
@@ -124,7 +124,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'from_email',
 			__( 'From Email Address', 'smart-cycle-discounts' ),
 			'render_from_email_field',
-			'scd_notifications_config',
+			'wsscd_notifications_config',
 			array(
 				'tooltip' => __( 'Email address that notifications will be sent from.', 'smart-cycle-discounts' ),
 			)
@@ -134,7 +134,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'from_name',
 			__( 'From Name', 'smart-cycle-discounts' ),
 			'render_from_name_field',
-			'scd_notifications_config',
+			'wsscd_notifications_config',
 			array(
 				'tooltip' => __( 'Sender name shown in email client.', 'smart-cycle-discounts' ),
 			)
@@ -144,7 +144,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'additional_recipients',
 			__( 'Additional Recipients', 'smart-cycle-discounts' ),
 			'render_additional_recipients_field',
-			'scd_notifications_config',
+			'wsscd_notifications_config',
 			array(
 				'tooltip'     => __( 'Add extra email addresses to receive notifications (comma-separated). Admin email is always included.', 'smart-cycle-discounts' ),
 				'placeholder' => 'manager@example.com, team@example.com',
@@ -155,16 +155,16 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'test_email',
 			__( 'Test Email', 'smart-cycle-discounts' ),
 			'render_test_email_field',
-			'scd_notifications_config',
+			'wsscd_notifications_config',
 			array(
 				'tooltip' => __( 'Send a test email to verify your configuration.', 'smart-cycle-discounts' ),
 			)
 		);
 
-		// FREE Notifications Section
+		// FREE Notifications Section - use wp_kses with combined allowed tags since wp_kses_post strips SVG.
 		$this->add_section(
-			'scd_notifications_free',
-			SCD_Icon_Helper::get( 'bell', array( 'size' => 16 ) ) . ' ' . __( 'FREE Notifications', 'smart-cycle-discounts' ),
+			'wsscd_notifications_free',
+			wp_kses( WSSCD_Icon_Helper::get( 'bell', array( 'size' => 16 ) ), WSSCD_Icon_Helper::get_allowed_svg_tags() ) . ' ' . esc_html__( 'Notifications', 'smart-cycle-discounts' ) . ' ' . wp_kses_post( WSSCD_Badge_Helper::free_badge() ),
 			'render_free_section'
 		);
 
@@ -172,7 +172,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'notify_campaign_started',
 			__( 'Campaign Started', 'smart-cycle-discounts' ),
 			'render_notify_campaign_started_field',
-			'scd_notifications_free',
+			'wsscd_notifications_free',
 			array(
 				'tooltip' => __( 'Receive notification when a campaign starts.', 'smart-cycle-discounts' ),
 			)
@@ -182,7 +182,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'notify_campaign_ended',
 			__( 'Campaign Ended', 'smart-cycle-discounts' ),
 			'render_notify_campaign_ended_field',
-			'scd_notifications_free',
+			'wsscd_notifications_free',
 			array(
 				'tooltip' => __( 'Receive notification with performance summary when campaign ends.', 'smart-cycle-discounts' ),
 			)
@@ -192,16 +192,16 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'notify_errors',
 			__( 'Error Notifications', 'smart-cycle-discounts' ),
 			'render_notify_errors_field',
-			'scd_notifications_free',
+			'wsscd_notifications_free',
 			array(
 				'tooltip' => __( 'Receive notifications when email delivery fails or other errors occur.', 'smart-cycle-discounts' ),
 			)
 		);
 
-		// PRO Notifications Section
+		// PRO Notifications Section - use wp_kses with combined allowed tags since wp_kses_post strips SVG.
 		$this->add_section(
-			'scd_notifications_pro',
-			SCD_Icon_Helper::get( 'star-filled', array( 'size' => 16 ) ) . ' ' . __( 'PRO Notifications', 'smart-cycle-discounts' ),
+			'wsscd_notifications_pro',
+			wp_kses( WSSCD_Icon_Helper::get( 'star-filled', array( 'size' => 16 ) ), WSSCD_Icon_Helper::get_allowed_svg_tags() ) . ' ' . esc_html__( 'Notifications', 'smart-cycle-discounts' ) . ' ' . wp_kses_post( WSSCD_Badge_Helper::pro_badge() ),
 			'render_pro_section'
 		);
 
@@ -209,7 +209,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'notify_campaign_ending',
 			__( 'Campaign Ending Soon', 'smart-cycle-discounts' ),
 			'render_notify_campaign_ending_field',
-			'scd_notifications_pro',
+			'wsscd_notifications_pro',
 			array(
 				'tooltip' => __( 'Receive notification 24 hours before a campaign ends so you can take action.', 'smart-cycle-discounts' ),
 			)
@@ -219,7 +219,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'notify_daily_report',
 			__( 'Daily Performance Report', 'smart-cycle-discounts' ),
 			'render_notify_daily_report_field',
-			'scd_notifications_pro',
+			'wsscd_notifications_pro',
 			array(
 				'tooltip' => __( 'Receive daily summary of all active campaigns with actionable insights.', 'smart-cycle-discounts' ),
 			)
@@ -229,7 +229,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'notify_weekly_report',
 			__( 'Weekly Performance Report', 'smart-cycle-discounts' ),
 			'render_notify_weekly_report_field',
-			'scd_notifications_pro',
+			'wsscd_notifications_pro',
 			array(
 				'tooltip' => __( 'Receive weekly summary with trends and strategic insights.', 'smart-cycle-discounts' ),
 			)
@@ -239,7 +239,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'notify_performance_alert',
 			__( 'Performance Alerts', 'smart-cycle-discounts' ),
 			'render_notify_performance_alert_field',
-			'scd_notifications_pro',
+			'wsscd_notifications_pro',
 			array(
 				'tooltip' => __( 'Get real-time alerts about campaign performance issues or opportunities.', 'smart-cycle-discounts' ),
 			)
@@ -249,7 +249,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'notify_low_stock_alert',
 			__( 'Low Stock Alerts', 'smart-cycle-discounts' ),
 			'render_notify_low_stock_alert_field',
-			'scd_notifications_pro',
+			'wsscd_notifications_pro',
 			array(
 				'tooltip' => __( 'Receive proactive alerts when products in active campaigns are running low on stock.', 'smart-cycle-discounts' ),
 			)
@@ -259,7 +259,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 			'notify_milestone_alert',
 			__( 'Milestone Alerts', 'smart-cycle-discounts' ),
 			'render_notify_milestone_alert_field',
-			'scd_notifications_pro',
+			'wsscd_notifications_pro',
 			array(
 				'tooltip' => __( 'Celebrate when your campaigns reach important revenue or order milestones.', 'smart-cycle-discounts' ),
 			)
@@ -280,7 +280,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 
 		// Note: settings_fields() is already called in the parent page (class-notifications-page.php:299)
 		// Only call do_settings_sections() here to avoid duplicate nonce fields
-		do_settings_sections( 'scd_notifications_' . $this->tab_slug );
+		do_settings_sections( 'wsscd_notifications_' . $this->tab_slug );
 	}
 
 	/**
@@ -290,7 +290,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * @return   void
 	 */
 	public function render_provider_section(): void {
-		echo '<p class="scd-section-description">';
+		echo '<p class="wsscd-section-description">';
 		echo esc_html__( 'Select your email delivery service. WordPress Mail works with any SMTP plugin. For professional emails with analytics, use SendGrid or Amazon SES.', 'smart-cycle-discounts' );
 		echo '</p>';
 	}
@@ -316,8 +316,10 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	public function render_sendgrid_api_key_field( array $args ): void {
 		$this->render_text_field( $args );
 		?>
-		<button type="button" class="button button-secondary scd-test-connection-btn" data-provider="sendgrid" style="margin-left: 10px;">
-			<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
+		<button type="button" class="button button-secondary wsscd-test-connection-btn" data-provider="sendgrid" style="margin-left: 10px;">
+			<?php
+			WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) );
+			?>
 			<?php esc_html_e( 'Test Connection', 'smart-cycle-discounts' ); ?>
 		</button>
 		<p class="description">
@@ -374,8 +376,10 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	public function render_amazonses_region_field( array $args ): void {
 		$this->render_select_field( $args );
 		?>
-		<button type="button" class="button button-secondary scd-test-connection-btn" data-provider="amazonses" style="margin-left: 10px;">
-			<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
+		<button type="button" class="button button-secondary wsscd-test-connection-btn" data-provider="amazonses" style="margin-left: 10px;">
+			<?php
+			WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) );
+			?>
 			<?php esc_html_e( 'Test Connection', 'smart-cycle-discounts' ); ?>
 		</button>
 		<p class="description">
@@ -391,7 +395,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * @return   void
 	 */
 	public function render_config_section(): void {
-		echo '<p class="scd-section-description">';
+		echo '<p class="wsscd-section-description">';
 		echo esc_html__( 'Configure sender information for notification emails.', 'smart-cycle-discounts' );
 		echo '</p>';
 	}
@@ -442,14 +446,11 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * @return   void
 	 */
 	public function render_test_email_field( array $args ): void {
-		if ( isset( $args['tooltip'] ) && ! empty( $args['tooltip'] ) ) {
-			echo ' ';
-			$this->render_tooltip( $args['tooltip'] );
-		}
-
 		?>
-		<button type="button" id="scd-test-email" class="button button-secondary">
-			<?php echo SCD_Icon_Helper::get( 'email', array( 'size' => 16 ) ); ?>
+		<button type="button" id="wsscd-test-email" class="button button-secondary">
+			<?php
+			WSSCD_Icon_Helper::render( 'email', array( 'size' => 16 ) );
+			?>
 			<?php esc_html_e( 'Send Test Email', 'smart-cycle-discounts' ); ?>
 		</button>
 		<p class="description">
@@ -471,7 +472,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 	 * @return   void
 	 */
 	public function render_free_section(): void {
-		echo '<p class="scd-section-description">';
+		echo '<p class="wsscd-section-description">';
 		echo esc_html__( 'These notifications are available to all users. Get notified when important events happen.', 'smart-cycle-discounts' );
 		echo '</p>';
 	}
@@ -486,7 +487,7 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 		$feature_gate = $this->page->get_feature_gate();
 		$has_pro      = $feature_gate->is_premium();
 
-		echo '<p class="scd-section-description">';
+		echo '<p class="wsscd-section-description">';
 		if ( $has_pro ) {
 			echo esc_html__( 'PRO notifications provide proactive insights to help you optimize campaigns before issues occur.', 'smart-cycle-discounts' );
 		} else {
@@ -497,9 +498,11 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 		// Show upgrade banner once for free users
 		if ( ! $has_pro ) {
 			?>
-			<div class="scd-upgrade-prompt">
-				<p class="scd-upgrade-message">
-					<?php echo SCD_Icon_Helper::get( 'lock', array( 'size' => 16 ) ); ?>
+			<div class="wsscd-upgrade-prompt">
+				<p class="wsscd-upgrade-message">
+					<?php
+					WSSCD_Icon_Helper::render( 'lock', array( 'size' => 16 ) );
+					?>
 					<strong><?php esc_html_e( 'Unlock Proactive Notifications', 'smart-cycle-discounts' ); ?></strong><br>
 					<span style="color: #666;">
 						<?php esc_html_e( 'Upgrade to PRO to get notified before things happen so you can take action and optimize your campaigns.', 'smart-cycle-discounts' ); ?>
@@ -508,9 +511,6 @@ class SCD_Notifications_Settings_Tab extends SCD_Notifications_Tab_Base {
 				<p>
 					<a href="<?php echo esc_url( $feature_gate->get_upgrade_url() ); ?>" class="button button-primary">
 						<?php esc_html_e( 'Upgrade to PRO', 'smart-cycle-discounts' ); ?>
-					</a>
-					<a href="<?php echo esc_url( $feature_gate->get_trial_url() ); ?>" class="button button-secondary">
-						<?php esc_html_e( 'Start 14-Day Trial', 'smart-cycle-discounts' ); ?>
 					</a>
 				</p>
 			</div>

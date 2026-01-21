@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-require_once SCD_INCLUDES_DIR . 'database/repositories/class-base-repository.php';
+require_once WSSCD_INCLUDES_DIR . 'database/repositories/class-base-repository.php';
 
 /**
  * Analytics Repository Class
@@ -29,19 +29,19 @@ require_once SCD_INCLUDES_DIR . 'database/repositories/class-base-repository.php
  * @subpackage SmartCycleDiscounts/includes/database
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Analytics_Repository extends SCD_Base_Repository {
+class WSSCD_Analytics_Repository extends WSSCD_Base_Repository {
 
 	/**
 	 * Initialize the repository.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager $database_manager    Database manager (for DI compatibility, not used).
+	 * @param    WSSCD_Database_Manager $database_manager    Database manager (for DI compatibility, not used).
 	 */
-	public function __construct( SCD_Database_Manager $database_manager ) {
+	public function __construct( WSSCD_Database_Manager $database_manager ) {
 		global $wpdb;
 		// Note: database_manager parameter is kept for DI container compatibility
 		// but not used. Base repository uses global $wpdb directly.
-		$this->table_name  = $wpdb->prefix . 'scd_analytics';
+		$this->table_name  = $wpdb->prefix . 'wsscd_analytics';
 		$this->primary_key = 'id';
 		$this->date_fields = array( 'event_timestamp', 'created_at', 'updated_at' );
 		$this->json_fields = array( 'event_data', 'metadata', 'additional_data' );
@@ -157,20 +157,24 @@ class SCD_Analytics_Repository extends SCD_Base_Repository {
 
 		$where_sql = implode( ' AND ', $where_conditions );
 
-		// Query aggregated metrics directly from columns
+		// Query aggregated metrics directly from columns.
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- Dynamic WHERE clause with placeholders in $where_sql match $where_values count.
 		$sql = $wpdb->prepare(
-			"SELECT
+			'SELECT
 				SUM(impressions) as total_impressions,
 				SUM(clicks) as total_clicks,
 				SUM(conversions) as total_conversions,
 				SUM(revenue) as total_revenue,
 				SUM(discount_given) as total_discount,
 				SUM(unique_customers) as total_customers
-			 FROM {$this->table_name}
-			 WHERE {$where_sql}",
-			$where_values
+			 FROM %i
+			 WHERE ' . $where_sql,
+			array_merge( array( $this->table_name ), $where_values )
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare(). $where_sql contains prepared conditions.
 		$result = $wpdb->get_row( $sql, ARRAY_A );
 
 		if ( ! $result ) {
@@ -247,25 +251,33 @@ class SCD_Analytics_Repository extends SCD_Base_Repository {
 
 		$offset = ( $page - 1 ) * $per_page;
 
-		$count_sql   = $wpdb->prepare(
-			"SELECT COUNT(DISTINCT event_type) FROM {$this->table_name} WHERE {$where_sql}",
-			$where_values
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Dynamic WHERE clause built from validated column names. Placeholder count matches $where_values array.
+		$count_sql = $wpdb->prepare(
+			'SELECT COUNT(DISTINCT event_type) FROM %i WHERE ' . $where_sql,
+			array_merge( array( $this->table_name ), $where_values )
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above.
 		$total_count = (int) $wpdb->get_var( $count_sql );
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Dynamic WHERE clause built from validated column names. Placeholder count matches $where_values array.
 		$sql = $wpdb->prepare(
-			"SELECT 
+			'SELECT
 				event_type,
 				COUNT(*) as count,
-				SUM(CASE WHEN event_type = 'discount_applied' THEN CAST(JSON_EXTRACT(event_data, '$.savings_amount') AS DECIMAL(10,2)) ELSE 0 END) as total_savings,
-				AVG(CASE WHEN event_type = 'discount_applied' THEN CAST(JSON_EXTRACT(event_data, '$.discount_value') AS DECIMAL(5,2)) ELSE NULL END) as avg_discount_value
-			 FROM {$this->table_name} 
-			 WHERE {$where_sql}
+				SUM(CASE WHEN event_type = \'discount_applied\' THEN CAST(JSON_EXTRACT(event_data, \'$.savings_amount\') AS DECIMAL(10,2)) ELSE 0 END) as total_savings,
+				AVG(CASE WHEN event_type = \'discount_applied\' THEN CAST(JSON_EXTRACT(event_data, \'$.discount_value\') AS DECIMAL(5,2)) ELSE NULL END) as avg_discount_value
+			 FROM %i
+			 WHERE ' . $where_sql . '
 			 GROUP BY event_type
-			 LIMIT %d OFFSET %d",
-			array_merge( $where_values, array( $per_page, $offset ) )
+			 LIMIT %d OFFSET %d',
+			array_merge( array( $this->table_name ), $where_values, array( $per_page, $offset ) )
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above.
 		$results = $wpdb->get_results( $sql, ARRAY_A );
 
 		$performance = array(
@@ -352,23 +364,42 @@ class SCD_Analytics_Repository extends SCD_Base_Repository {
 			$where_values[]     = $filters['date_to'];
 		}
 
-		$where_sql = '';
+		// SECURITY: Always use $wpdb->prepare() to satisfy WordPress.org review requirements.
+		// Build WHERE clause - can be empty when no filters.
 		if ( ! empty( $where_conditions ) ) {
 			$where_sql = 'WHERE ' . implode( ' AND ', $where_conditions );
+		} else {
+			$where_sql = '';
 		}
 
-		$sql = "SELECT 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Dynamic WHERE clause built from validated column names.
+		if ( ! empty( $where_values ) ) {
+			$sql = $wpdb->prepare(
+				'SELECT
 					event_type,
 					COUNT(*) as count
-				FROM {$this->table_name} 
-				{$where_sql}
+				FROM %i
+				' . $where_sql . '
 				GROUP BY event_type
-				ORDER BY count DESC";
-
-		if ( ! empty( $where_values ) ) {
-			$sql = $wpdb->prepare( $sql, $where_values );
+				ORDER BY count DESC',
+				array_merge( array( $this->table_name ), $where_values )
+			);
+		} else {
+			// No where values - just prepare with table name.
+			$sql = $wpdb->prepare(
+				'SELECT
+					event_type,
+					COUNT(*) as count
+				FROM %i
+				GROUP BY event_type
+				ORDER BY count DESC',
+				$this->table_name
+			);
 		}
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
 		$results = $wpdb->get_results( $sql, ARRAY_A );
 
 		$counts = array();
@@ -419,8 +450,9 @@ class SCD_Analytics_Repository extends SCD_Base_Repository {
 	public function cleanup_old_data( $days_old = 90 ) {
 		global $wpdb;
 
-		$cutoff_date = date( 'Y-m-d H:i:s', strtotime( "-{$days_old} days" ) );
+		$cutoff_date = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days_old} days" ) );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Analytics cleanup; no caching needed for delete operation.
 		$result = $wpdb->delete(
 			$this->table_name,
 			array(
@@ -437,7 +469,7 @@ class SCD_Analytics_Repository extends SCD_Base_Repository {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    SCD_Query_Builder $query_builder    Query builder instance.
+	 * @param    WSSCD_Query_Builder $query_builder    Query builder instance.
 	 * @param    array             $args             Query arguments.
 	 * @return   void
 	 */
@@ -562,7 +594,7 @@ class SCD_Analytics_Repository extends SCD_Base_Repository {
 	 */
 	public function get_product_performance( $campaign_id, $start_date = '', $end_date = '', $limit = 10 ) {
 		global $wpdb;
-		$product_analytics_table = $wpdb->prefix . 'scd_product_analytics';
+		$product_analytics_table = $wpdb->prefix . 'wsscd_product_analytics';
 
 		$where_sql    = array();
 		$where_values = array();
@@ -585,8 +617,10 @@ class SCD_Analytics_Repository extends SCD_Base_Repository {
 
 		$where_clause = ! empty( $where_sql ) ? 'WHERE ' . implode( ' AND ', $where_sql ) : '';
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Dynamic WHERE clause built from validated column names. Placeholder count matches $where_values array.
 		$sql = $wpdb->prepare(
-			"SELECT
+			'SELECT
 				product_id,
 				SUM(impressions) as total_impressions,
 				SUM(clicks) as total_clicks,
@@ -609,14 +643,16 @@ class SCD_Analytics_Repository extends SCD_Base_Repository {
 					WHEN SUM(product_cost) > 0 THEN ((SUM(profit) / SUM(product_cost)) * 100)
 					ELSE 0
 				END as profit_margin_pct
-			FROM {$product_analytics_table}
-			{$where_clause}
+			FROM %i
+			' . $where_clause . '
 			GROUP BY product_id
 			ORDER BY total_revenue DESC
-			LIMIT %d",
-			array_merge( $where_values, array( $limit ) )
+			LIMIT %d',
+			array_merge( array( $product_analytics_table ), $where_values, array( $limit ) )
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above.
 		$results = $wpdb->get_results( $sql, ARRAY_A );
 
 		// Format results with product names
@@ -672,31 +708,37 @@ class SCD_Analytics_Repository extends SCD_Base_Repository {
 	 */
 	public function get_customer_retention_rate( $campaign_id, $days = 30 ) {
 		global $wpdb;
-		$customer_usage_table = $wpdb->prefix . 'scd_customer_usage';
+		$customer_usage_table = $wpdb->prefix . 'wsscd_customer_usage';
 		$cutoff_date          = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
 
-		// Get customers who used the campaign
+		// Get customers who used the campaign.
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Required for aggregate query on customer usage.
 		$total_customers = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(DISTINCT customer_id)
-				FROM {$customer_usage_table}
+				'SELECT COUNT(DISTINCT customer_id)
+				FROM %i
 				WHERE campaign_id = %d
 				AND customer_id > 0
-				AND first_used_at >= %s",
+				AND first_used_at >= %s',
+				$customer_usage_table,
 				$campaign_id,
 				$cutoff_date
 			)
 		);
 
-		// Get customers who made repeat purchases
+		// Get customers who made repeat purchases.
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Required for aggregate query on customer usage.
 		$repeat_customers = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(DISTINCT customer_id)
-				FROM {$customer_usage_table}
+				'SELECT COUNT(DISTINCT customer_id)
+				FROM %i
 				WHERE campaign_id = %d
 				AND customer_id > 0
 				AND usage_count > 1
-				AND first_used_at >= %s",
+				AND first_used_at >= %s',
+				$customer_usage_table,
 				$campaign_id,
 				$cutoff_date
 			)
@@ -723,19 +765,22 @@ class SCD_Analytics_Repository extends SCD_Base_Repository {
 	 */
 	public function get_baseline_comparison( $campaign_id ) {
 		global $wpdb;
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
 
-		// Get campaign dates
+		// Get campaign dates.
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Required for campaign date lookup.
 		$campaign = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT
+				'SELECT
 					starts_at,
 					ends_at,
 					baseline_revenue,
 					baseline_orders,
 					baseline_customers
-				FROM {$campaigns_table}
-				WHERE id = %d",
+				FROM %i
+				WHERE id = %d',
+				$campaigns_table,
 				$campaign_id
 			),
 			ARRAY_A

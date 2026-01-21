@@ -1,0 +1,1890 @@
+/**
+ * Step Products
+ *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/css/wizard/step-products.css
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @since      1.0.0
+ */
+
+/* ==========================================================================
+   Product Step Variables
+   ========================================================================== */
+
+.wsscd-wizard-step--products {
+	/* Custom CSS variables for products step */
+	--wsscd-products-accent: var(--wsscd-color-primary);
+	--wsscd-products-highlight: var(--wsscd-color-primary-bg);
+}
+
+/* ==========================================================================
+   Layout Structure
+   ========================================================================== */
+
+/* Layout handled by wizard-fullscreen.css - only product-specific overrides below */
+.wsscd-wizard-step--products .wsscd-step-main-content {
+	order: 1; /* Products step specific order */
+}
+
+.wsscd-wizard-step--products .wsscd-step-sidebar {
+	order: 2; /* Products step specific order */
+}
+
+/* ==========================================================================
+   Utility Classes
+   ========================================================================== */
+
+.wsscd-disabled-notice {
+	display: inline-block;
+	margin-left: 10px;
+	padding: var(--wsscd-spacing-xxs) 8px;
+	background: var(--wsscd-color-surface);
+	color: var(--wsscd-color-text-muted);
+	font-size: var(--wsscd-font-size-small);
+	border-radius: var(--wsscd-radius-sm);
+}
+
+/* ==========================================================================
+   Product Selection Cards
+   ========================================================================== */
+
+.wsscd-product-selection-cards {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wsscd-gap-comfortable);
+}
+
+/* Product selection card - professional aesthetic - scoped to products step */
+.wsscd-wizard-step--products .wsscd-card-option {
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-md);
+	transition: border-color var(--wsscd-transition-fast) ease;
+	padding: var(--wsscd-padding-section);
+	position: relative;
+	overflow: hidden;
+}
+
+.wsscd-wizard-step--products .wsscd-card-option::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: transparent;
+	transition: background var(--wsscd-transition-fast) ease;
+}
+
+.wsscd-wizard-step--products .wsscd-card-option:hover {
+	border-color: var(--wsscd-color-border-dark);
+}
+
+.wsscd-wizard-step--products .wsscd-card-option:hover::before {
+	background: linear-gradient(to right, var(--wsscd-color-primary), var(--wp-admin-theme-color-darker-10));
+}
+
+/* Hide radio buttons - card acts as visual indicator */
+.wsscd-wizard-step--products .wsscd-card-option input[type="radio"] {
+	display: none;
+}
+
+/* Enhanced card title styling */
+.wsscd-wizard-step--products .wsscd-card-option .wsscd-card__title {
+	font-size: var(--wsscd-font-size-large);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+	letter-spacing: -0.01em;
+	margin-bottom: var(--wsscd-spacing-sm);
+	line-height: 1.4;
+}
+
+/* Divider line between title and subtitle */
+.wsscd-wizard-step--products .wsscd-card-option .wsscd-card__title::after {
+	content: '';
+	display: block;
+	width: 40px;
+	height: 1px;
+	background: var(--wsscd-color-border);
+	margin-top: 10px;
+	border-radius: var(--wsscd-radius-sm);
+	transition: width var(--wsscd-transition-fast) ease;
+}
+
+.wsscd-wizard-step--products .wsscd-card-option:hover .wsscd-card__title::after {
+	width: 60px;
+}
+
+/* Enhanced subtitle styling */
+.wsscd-wizard-step--products .wsscd-card-option .wsscd-card__subtitle {
+	font-size: var(--wsscd-font-size-base);
+	color: var(--wsscd-color-text-muted);
+	line-height: 1.6;
+	margin-top: var(--wsscd-spacing-md);
+	margin-bottom: 0;
+	letter-spacing: 0.01em;
+}
+
+/* Icon styling in cards */
+.wsscd-wizard-step--products .wsscd-card-option .wsscd-icon {
+	color: var(--wsscd-color-primary);
+	font-size: var(--wsscd-font-size-xxl);
+	width: var(--wsscd-font-size-xxl);
+	height: var(--wsscd-font-size-xxl);
+	margin-right: var(--wsscd-spacing-sm);
+	transition: color var(--wsscd-transition-fast) ease;
+}
+
+.wsscd-wizard-step--products .wsscd-card-option:hover .wsscd-icon {
+	color: var(--wp-admin-theme-color-darker-10);
+}
+
+/* Product-specific spacing handled in components.css */
+
+/* Focus and selected states for product cards */
+.wsscd-wizard-step--products .wsscd-card-option:focus-within {
+	border-color: var(--wsscd-color-primary);
+	outline: var(--wsscd-border-width-focus) solid var(--wsscd-color-primary);
+	outline-offset: 2px;
+}
+
+/* Modern browsers with :has() support - clean selected state */
+.wsscd-wizard-step--products .wsscd-card-option:has(input[type="radio"]:checked) {
+	border-color: var(--wsscd-color-primary);
+	border-width: var(--wsscd-border-width-thick);
+}
+
+/* Selected state - expand divider line and show top accent */
+.wsscd-wizard-step--products .wsscd-card-option:has(input[type="radio"]:checked) .wsscd-card__title::after {
+	width: 100%;
+	background: var(--wsscd-color-primary);
+}
+
+.wsscd-wizard-step--products .wsscd-card-option:has(input[type="radio"]:checked)::before {
+	background: var(--wsscd-color-primary);
+}
+
+/* Padding adjustment handled in components.css */
+
+
+
+/* Card subsections - visibility handled by JavaScript */
+.wsscd-random-count,
+.wsscd-specific-products,
+.wsscd-smart-criteria {
+	display: none;
+	margin-top: var(--wsscd-spacing-lg);
+	padding: var(--wsscd-padding-section);
+	background: transparent;
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-md);
+}
+
+/* Active section state */
+.wsscd-random-count.wsscd-active-section,
+.wsscd-specific-products.wsscd-active-section,
+.wsscd-smart-criteria.wsscd-active-section {
+	display: block;
+}
+
+.wsscd-random-count label {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-gap-tight);
+	font-weight: var(--wsscd-font-weight-semibold);
+	font-size: var(--wsscd-font-size-base);
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-random-count input {
+	width: var(--wsscd-nav-height);
+	height: var(--wsscd-input-height);
+}
+
+.wsscd-specific-products label {
+	display: block;
+	font-weight: var(--wsscd-font-weight-semibold);
+	margin-bottom: var(--wsscd-spacing-sm);
+	font-size: var(--wsscd-font-size-base);
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-smart-label {
+	display: block;
+	font-weight: var(--wsscd-font-weight-semibold);
+	margin-bottom: var(--wsscd-spacing-md);
+	font-size: var(--wsscd-font-size-base);
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-smart-options {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wsscd-gap-tight);
+}
+
+.wsscd-smart-option {
+	display: block;
+	position: relative;
+	background: var(--wsscd-color-background);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-lighter);
+	border-radius: var(--wsscd-radius-md);
+	padding: var(--wsscd-padding-medium);
+	cursor: pointer;
+	transition: all var(--wsscd-transition-base);
+}
+
+.wsscd-smart-option:hover {
+	border-color: var(--wsscd-color-primary);
+	background: var(--wsscd-color-background);
+}
+
+.wsscd-smart-option input[type="radio"] {
+	position: absolute;
+	opacity: 0;
+	pointer-events: auto;
+	z-index: var(--wsscd-z-base);
+}
+
+.wsscd-smart-option:focus-within {
+	border-color: var(--wsscd-color-primary);
+	background: var(--wsscd-color-background);
+	outline: var(--wsscd-border-width-focus) solid transparent;
+	outline-offset: 2px;
+}
+
+/* Selected smart option state */
+.wsscd-smart-option:has(input[type="radio"]:checked) {
+	border-color: var(--wsscd-color-primary);
+	border-width: var(--wsscd-border-width-thick);
+	background: var(--wsscd-color-background);
+}
+
+/* Adjust padding for selected state */
+.wsscd-smart-option:has(input[type="radio"]:checked) .wsscd-smart-option-content {
+	padding-left: 1px;
+}
+
+.wsscd-smart-option-content {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-gap-normal);
+}
+
+.wsscd-smart-option .wsscd-icon {
+	font-size: var(--wsscd-font-size-xxl);
+	width: var(--wsscd-icon-medium);
+	height: var(--wsscd-icon-medium);
+	color: var(--wsscd-color-primary);
+}
+
+.wsscd-smart-option:hover .wsscd-icon,
+.wsscd-smart-option:focus-within .wsscd-icon {
+	color: var(--wsscd-color-primary-dark);
+}
+
+/* Special styling for low stock warning icon */
+.wsscd-smart-option .wsscd-icon-warning {
+	color: var(--wsscd-color-danger);
+}
+
+.wsscd-smart-option:hover .wsscd-icon-warning,
+.wsscd-smart-option:focus-within .wsscd-icon-warning {
+	color: var(--wsscd-color-danger-dark);
+}
+
+.wsscd-smart-option-text {
+	flex: 1;
+}
+
+.wsscd-smart-option-text strong {
+	display: block;
+	font-size: var(--wsscd-font-size-medium);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+	margin-bottom: var(--wsscd-spacing-xxs);
+}
+
+.wsscd-smart-option-text span {
+	display: block;
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text-muted);
+	font-weight: normal;
+}
+
+.wsscd-smart-option:focus-within .wsscd-smart-option-text strong {
+	color: var(--wsscd-color-primary-dark);
+}
+
+/* ==========================================================================
+   Conditions Logic Selector
+   ========================================================================== */
+
+/* Conditions logic fieldset wrapper */
+.wsscd-conditions-logic-fieldset {
+	margin-bottom: var(--wsscd-spacing-xl);
+	padding: 0;
+	border: none;
+}
+
+.wsscd-conditions-logic {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-gap-comfortable);
+	padding: var(--wsscd-padding-large) 20px;
+	background: var(--wsscd-color-background);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-md);
+	transition: border-color var(--wsscd-transition-base) ease;
+}
+
+.wsscd-conditions-logic:hover {
+	border-color: var(--wsscd-color-border);
+}
+
+.wsscd-logic-label {
+	font-weight: var(--wsscd-font-weight-semibold);
+	font-size: var(--wsscd-font-size-base);
+	color: var(--wsscd-color-text);
+	white-space: nowrap;
+}
+
+.wsscd-logic-selector {
+	display: inline-flex;
+	gap: 0;
+	background: var(--wsscd-color-surface);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-sm);
+	overflow: hidden;
+	transition: border-color var(--wsscd-transition-base) ease;
+}
+
+.wsscd-logic-selector:hover {
+	border-color: var(--wsscd-color-border);
+}
+
+.wsscd-logic-selector input[type="radio"] {
+	position: absolute;
+	opacity: 0;
+	pointer-events: auto;
+}
+
+.wsscd-logic-option {
+	display: flex;
+	align-items: center;
+	padding: var(--wsscd-padding-small) 16px;
+	margin: 0;
+	cursor: pointer;
+	transition: all var(--wsscd-transition-fast) ease;
+	border-right: var(--wsscd-border-width) solid var(--wsscd-color-border-lighter);
+	font-size: var(--wsscd-font-size-base);
+	font-weight: var(--wsscd-font-weight-medium);
+	color: var(--wsscd-color-text-muted);
+	background: transparent;
+	position: relative;
+}
+
+.wsscd-logic-option:last-child {
+	border-right: none;
+}
+
+.wsscd-logic-option:hover {
+	background: var(--wsscd-color-background);
+	color: var(--wsscd-color-text);
+}
+
+.wsscd-logic-option:has(input[type="radio"]:checked) {
+	background: var(--wsscd-color-primary);
+	color: var(--wsscd-color-white);
+	font-weight: var(--wsscd-font-weight-semibold);
+}
+
+.wsscd-logic-option:has(input[type="radio"]:focus) {
+	outline: var(--wsscd-border-width-focus) solid var(--wsscd-color-primary);
+	outline-offset: -2px;
+}
+
+.wsscd-logic-hint {
+	margin-left: var(--wsscd-spacing-xs);
+	font-size: var(--wsscd-font-size-small);
+	opacity: 0.75;
+	font-weight: normal;
+}
+
+/* ==========================================================================
+   Condition Builder
+   ========================================================================== */
+
+.wsscd-conditions-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wsscd-gap-normal);
+	margin-bottom: var(--wsscd-spacing-lg);
+}
+
+/**
+ * Condition wrapper
+ * Contains both the condition row and error container
+ */
+.wsscd-condition-wrapper {
+	margin-bottom: var(--wsscd-spacing-md);
+	animation: wsscd-fade-in var(--wsscd-transition-base) ease-out;
+}
+
+.wsscd-condition-row {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-gap-normal);
+	padding: var(--wsscd-padding-large);
+	background: var(--wsscd-color-background);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+	border-left: 3px solid var(--wsscd-color-primary);
+	border-radius: var(--wsscd-radius-sm);
+	transition: all var(--wsscd-transition-base) ease;
+	position: relative;
+	min-height: 60px;
+}
+
+.wsscd-condition-row:hover {
+	border-color: var(--wsscd-color-border);
+	box-shadow: var(--wsscd-shadow-md);
+}
+
+/* @keyframes wsscd-fade-in - Defined in shared/_utilities.css */
+
+.wsscd-condition-fields {
+	display: flex;
+	flex-wrap: nowrap;
+	gap: var(--wsscd-gap-tight);
+	flex: 1;
+	align-items: center;
+}
+
+/* Value wrapper for dynamic inputs */
+.wsscd-condition-value-wrapper {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-gap-tight);
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.wsscd-condition-value-separator {
+	color: var(--wsscd-color-text-muted);
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-semibold);
+	padding: 0 4px;
+	white-space: nowrap;
+}
+
+/* Remove button container */
+.wsscd-condition-actions {
+	display: flex;
+	align-items: center;
+	flex: 0 0 auto;
+}
+
+/* Override enhanced input max-width for condition fields to fit in single row */
+.wsscd-condition-fields .wsscd-enhanced-input,
+.wsscd-condition-fields .wsscd-enhanced-select {
+	max-width: none;
+}
+
+/* Condition field inputs - height override only */
+/* NOTE: Base styling (padding, border, color, transitions, hover, focus, disabled) inherited from _forms.css */
+.wsscd-condition-fields select:not(.wsscd-enhanced-select),
+.wsscd-condition-fields input[type="text"]:not(.wsscd-enhanced-input),
+.wsscd-condition-fields input[type="number"]:not(.wsscd-enhanced-input) {
+	height: var(--wsscd-button-height); /* Match button height for visual alignment */
+}
+
+/* Specific field sizing - optimized for single-row layout without scrolling */
+.wsscd-condition-mode {
+	flex: 0 0 110px;
+	font-weight: var(--wsscd-font-weight-medium);
+	min-width: 0;
+}
+
+.wsscd-condition-type {
+	flex: 1 1 180px;
+	min-width: 0;
+	max-width: 220px;
+}
+
+.wsscd-condition-operator {
+	flex: 0 1 140px;
+	min-width: 0;
+}
+
+.wsscd-condition-value {
+	flex: 1 1 150px;
+	min-width: 0;
+}
+
+.wsscd-condition-value-single {
+	flex: 1;
+}
+
+.wsscd-condition-value-between {
+	flex: 1;
+}
+
+/* Hidden state for between value */
+.wsscd-condition-value-between.wsscd-hidden,
+.wsscd-condition-value-separator.wsscd-hidden {
+	display: none;
+}
+
+/* Remove button styling */
+.wsscd-remove-condition {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: var(--wsscd-button-height);
+	padding: 0;
+	background: transparent;
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-sm);
+	color: var(--wsscd-color-text-muted);
+	transition: all var(--wsscd-transition-fast) ease;
+	cursor: pointer;
+}
+
+.wsscd-remove-condition:hover {
+	background: var(--wsscd-color-danger);
+	border-color: var(--wsscd-color-danger);
+	color: var(--wsscd-color-white);
+}
+
+.wsscd-remove-condition:active {
+	opacity: 0.9;
+}
+
+.wsscd-remove-condition .wsscd-icon {
+	font-size: var(--wsscd-font-size-xl);
+	width: var(--wsscd-icon-small);
+	height: var(--wsscd-icon-small);
+	line-height: 1;
+}
+
+
+/* AND/OR Badge between condition rows */
+.wsscd-conditions-list[data-logic="all"] .wsscd-condition-wrapper:not(:last-child) .wsscd-condition-row::after,
+.wsscd-conditions-list[data-logic="any"] .wsscd-condition-wrapper:not(:last-child) .wsscd-condition-row::after {
+	content: '';
+	position: absolute;
+	left: 50%;
+	bottom: -18px;
+	transform: translateX(-50%);
+	background: var(--wsscd-color-primary);
+	color: var(--wsscd-color-white);
+	padding: 3px 12px;
+	border-radius: var(--wsscd-radius-md);
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-semibold);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	z-index: var(--wsscd-z-dropdown);
+	box-shadow: var(--wsscd-step-products-badge-shadow);
+}
+
+.wsscd-conditions-list[data-logic="all"] .wsscd-condition-wrapper:not(:last-child) .wsscd-condition-row::after {
+	content: "AND";
+}
+
+.wsscd-conditions-list[data-logic="any"] .wsscd-condition-wrapper:not(:last-child) .wsscd-condition-row::after {
+	content: "OR";
+}
+
+/* Empty state - hide when conditions exist */
+.wsscd-conditions-list:not(:empty) + .wsscd-conditions-empty {
+	display: none;
+}
+
+.wsscd-condition-help {
+	margin-top: 10px;
+	padding: var(--wsscd-padding-medium) 16px;
+	border: 2px dashed var(--wsscd-color-primary);
+	border-radius: var(--wsscd-radius-md);
+}
+
+/* Empty state styling */
+.wsscd-conditions-empty {
+	padding: 32px 20px;
+	text-align: center;
+	background: var(--wsscd-color-surface);
+	border: 2px dashed var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-md);
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-conditions-empty .wsscd-icon {
+	font-size: var(--wsscd-icon-display);
+	width: var(--wsscd-icon-display);
+	height: var(--wsscd-icon-display);
+	color: var(--wsscd-color-border);
+	margin-bottom: var(--wsscd-spacing-md);
+}
+
+.wsscd-conditions-empty p {
+	margin: 0 0 var(--wsscd-spacing-base) 0;
+	font-size: var(--wsscd-font-size-medium);
+	color: var(--wsscd-color-text-muted);
+}
+
+/* ==========================================================================
+   Validation Messages
+   ========================================================================== */
+
+.wsscd-validation-messages {
+	margin: 0 0 var(--wsscd-spacing-lg) 0;
+}
+
+.wsscd-validation-error {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--wsscd-gap-normal);
+	padding: var(--wsscd-padding-medium);
+	background: var(--wsscd-color-danger-bg);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-danger);
+	border-left-width: 4px;
+	border-radius: var(--wsscd-radius-md);
+}
+
+.wsscd-validation-error .wsscd-icon {
+	color: var(--wsscd-color-danger);
+	font-size: var(--wsscd-font-size-xxl);
+	line-height: 1;
+}
+
+.wsscd-validation-content h4 {
+	font-size: var(--wsscd-font-size-medium);
+	font-weight: var(--wsscd-font-weight-semibold);
+	margin: 0 0 6px 0;
+	color: var(--wsscd-color-danger);
+}
+
+.wsscd-validation-content ul {
+	margin: 0;
+	padding-left: var(--wsscd-spacing-lg);
+}
+
+.wsscd-validation-content li {
+	font-size: var(--wsscd-font-size-small);
+	margin-bottom: var(--wsscd-spacing-xs);
+	line-height: 1.5;
+	color: var(--wsscd-color-text);
+}
+
+/* ==========================================================================
+   Advanced Filters Container
+   ========================================================================== */
+
+.wsscd-advanced-filters-container {
+	position: relative;
+	padding: var(--wsscd-padding-section);
+	background: var(--wsscd-color-background);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-md);
+}
+
+.wsscd-advanced-filters-header {
+	margin-bottom: var(--wsscd-spacing-lg);
+	padding-bottom: var(--wsscd-spacing-base);
+	border-bottom: var(--wsscd-border-width) solid var(--wsscd-color-border-lighter);
+}
+
+.wsscd-advanced-filters-header h4 {
+	margin: 0 0 var(--wsscd-spacing-xs) 0;
+	font-size: var(--wsscd-font-size-medium-large);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+}
+
+.wsscd-advanced-filters-header p {
+	margin: 0;
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text-muted);
+	line-height: 1.5;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media (max-width: 782px) {
+	/* Layout handled by wizard-fullscreen.css */
+	/* Products step specific: sidebar comes first on mobile */
+	.wsscd-wizard-step--products .wsscd-step-sidebar {
+		order: 1;
+	}
+	
+	.wsscd-wizard-step--products .wsscd-step-main-content {
+		order: 2;
+	}
+	
+	/* Card adjustments */
+	.wsscd-wizard-step--products .wsscd-card-option input[type="radio"] {
+		top: 12px;
+		right: 12px;
+	}
+	
+	.wsscd-smart-option {
+		padding: var(--wsscd-padding-small);
+	}
+	
+	.wsscd-smart-option-content {
+		gap: var(--wsscd-gap-normal);
+	}
+	
+	.wsscd-smart-option .wsscd-icon {
+		font-size: var(--wsscd-font-size-xxl);
+		width: var(--wsscd-icon-medium);
+		height: var(--wsscd-icon-medium);
+	}
+	
+	/* Advanced filters adjustments */
+	.wsscd-advanced-filters-container {
+		padding: var(--wsscd-padding-large);
+	}
+
+	/* Conditions logic adjustments */
+	.wsscd-conditions-logic {
+		flex-direction: column;
+		align-items: stretch;
+		gap: var(--wsscd-gap-normal);
+		padding: var(--wsscd-padding-medium) 16px;
+	}
+
+	.wsscd-logic-label {
+		font-size: var(--wsscd-font-size-small);
+	}
+
+	.wsscd-logic-selector {
+		width: 100%;
+	}
+
+	.wsscd-logic-option {
+		flex: 1;
+		justify-content: center;
+		padding: var(--wsscd-padding-small) 12px;
+		font-size: var(--wsscd-font-size-small);
+	}
+
+	/* Condition row adjustments */
+	.wsscd-condition-row {
+		flex-direction: column;
+		align-items: stretch;
+		gap: var(--wsscd-gap-normal);
+		padding: var(--wsscd-padding-medium);
+	}
+
+	.wsscd-condition-fields {
+		flex-direction: column;
+		gap: var(--wsscd-gap-tight);
+	}
+
+	.wsscd-condition-fields select,
+	.wsscd-condition-fields input {
+		width: 100%;
+		min-width: 0;
+		max-width: none;
+		height: var(--wsscd-button-height-large); /* Larger for mobile touch */
+		font-size: var(--wsscd-font-size-large); /* Prevent zoom on iOS */
+	}
+
+	.wsscd-condition-mode,
+	.wsscd-condition-type,
+	.wsscd-condition-operator,
+	.wsscd-condition-value {
+		flex: 1 1 100%;
+		min-width: 0;
+		max-width: none;
+	}
+
+	.wsscd-condition-value-wrapper {
+		flex-direction: column;
+		gap: var(--wsscd-gap-tight);
+		min-width: 0;
+	}
+
+	.wsscd-condition-value-separator {
+		display: none; /* Hide "and" text on mobile */
+	}
+
+	.wsscd-condition-actions {
+		justify-content: center;
+	}
+
+	.wsscd-remove-condition {
+		width: 100%;
+		height: var(--wsscd-button-height-large);
+	}
+
+	/* Add condition button adjustments */
+	.wsscd-add-condition {
+		width: 100%;
+		padding: var(--wsscd-padding-medium) 20px;
+		font-size: var(--wsscd-font-size-medium);
+	}
+
+	/* Empty state adjustments */
+	.wsscd-conditions-empty {
+		padding: var(--wsscd-padding-section) 16px;
+	}
+
+	.wsscd-conditions-empty .wsscd-icon {
+		font-size: 36px;
+		width: 36px;
+		height: var(--wsscd-button-height);
+	}
+}
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
+/* Focus styles and reduced motion handled by components.css */
+
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+	.wsscd-wizard-step--products .wsscd-card-option:focus-within {
+		border-width: var(--wsscd-border-width-accent-thin);
+		box-shadow: 0 0 0 2px currentColor;
+	}
+	
+	.wsscd-validation-error {
+		border-width: var(--wsscd-border-width-thick);
+	}
+	
+	.wsscd-condition-add {
+		border-width: var(--wsscd-border-width-accent-thin);
+	}
+	
+	.wsscd-logic-option:has(input[type="radio"]:checked) {
+		outline: var(--wsscd-border-width-focus) solid var(--wsscd-color-white);
+		outline-offset: -4px;
+	}
+}
+
+/* ==========================================================================
+   RTL Support
+   ========================================================================== */
+
+/* RTL card styles handled by components.css */
+
+[dir="rtl"] .wsscd-condition-help .description {
+	border-left: none;
+	border-right: 4px solid var(--wsscd-color-primary);
+	border-radius: 0 var(--wsscd-radius-md) var(--wsscd-radius-md) 0;
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+	.wsscd-wizard-step--products .wsscd-step-sidebar {
+		display: none;
+	}
+
+	.wsscd-wizard-step--products .wsscd-card-option {
+		page-break-inside: avoid;
+	}
+	
+	.wsscd-condition-row {
+		page-break-inside: avoid;
+	}
+}
+
+/* ==========================================================================
+   Form Fields
+   ========================================================================== */
+
+.wsscd-product-search-container {
+	position: relative;
+	margin-top: var(--wsscd-spacing-md);
+}
+
+/* ==========================================================================
+   Category Hierarchical Display - Moved to tom-select-custom.css
+   ========================================================================== */
+
+/* ==========================================================================
+   Conditional Section Visibility
+   ========================================================================== */
+
+/* Hide conditional sections by default */
+.wsscd-random-count,
+.wsscd-specific-products,
+.wsscd-smart-criteria {
+	display: none;
+	margin-top: var(--wsscd-spacing-lg);
+	padding: var(--wsscd-padding-section);
+	background: transparent;
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-md);
+}
+
+/* Show active sections with important to override default */
+.wsscd-random-count.wsscd-active-section,
+.wsscd-specific-products.wsscd-active-section,
+.wsscd-smart-criteria.wsscd-active-section {
+	display: block !important;
+}
+
+/* Ensure sections inside cards display properly */
+.wsscd-wizard-step--products .wsscd-card-option .wsscd-random-count,
+.wsscd-wizard-step--products .wsscd-card-option .wsscd-specific-products,
+.wsscd-wizard-step--products .wsscd-card-option .wsscd-smart-criteria {
+	margin-left: 0;
+	margin-right: 0;
+}
+
+/* Category filter inside advanced filters */
+.wsscd-advanced-filters-container .wsscd-form-field {
+	margin-bottom: var(--wsscd-spacing-lg);
+}
+
+.wsscd-advanced-filters-container .wsscd-form-field label {
+	display: block;
+	margin-bottom: var(--wsscd-spacing-sm);
+	font-size: var(--wsscd-font-size-base);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+}
+
+.wsscd-advanced-filters-container .wsscd-form-field .description {
+	margin-top: var(--wsscd-spacing-xs);
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text-muted);
+	line-height: 1.5;
+}
+
+/* ==========================================================================
+   Condition Validation Styling
+   ========================================================================== */
+
+/**
+ * Condition row error state
+ * Applied when validation fails for a condition
+ */
+.wsscd-condition-row.wsscd-condition-error {
+	background-color: var(--wsscd-color-error-bg);
+	border-left: 3px solid var(--wsscd-color-danger);
+	animation: wsscd-error-pulse 0.3s ease-out;
+}
+
+/**
+ * Error pulse animation
+ * Subtle attention-grabbing effect when error appears
+ * Note: @keyframes wsscd-error-pulse defined in shared/_utilities.css
+ */
+
+/**
+ * Validation errors - Inherits base from validation.css
+ * Component-specific positioning only
+ */
+.wsscd-condition-row .wsscd-field-error {
+	/* Base styling inherited from validation.css */
+	/* Component-specific adjustment: right-aligned border for inline display */
+	border-radius: 0 var(--wsscd-radius-sm) var(--wsscd-radius-sm) 0;
+}
+
+/**
+ * Inline warning banner
+ * Shows below condition row for multiple issues or explanations
+ */
+.wsscd-condition-inline-warning {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-gap-tight);
+	padding: var(--wsscd-padding-small) 12px;
+	margin-top: var(--wsscd-spacing-sm);
+	background-color: var(--wsscd-color-warning-light);
+	border-left: 3px solid var(--wsscd-color-warning);
+	border-radius: 0 var(--wsscd-radius-custom) var(--wsscd-radius-custom) 0;
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text-lighter);
+}
+
+.wsscd-condition-inline-warning .wsscd-icon {
+	color: var(--wsscd-color-warning);
+	font-size: var(--wsscd-font-size-xl);
+	width: var(--wsscd-icon-small);
+	height: var(--wsscd-icon-small);
+}
+
+.wsscd-condition-inline-warning .wsscd-warning-message {
+	flex: 1;
+	line-height: 1.4;
+}
+
+/**
+ * Inline validation error container
+ * Displays validation errors directly below the condition row
+ */
+.wsscd-condition-error-container {
+	display: none; /* Hidden by default, shown when errors exist */
+	width: 100%;
+	margin-top: var(--wsscd-spacing-md);
+	animation: wsscd-slide-down 0.3s ease-out;
+}
+
+.wsscd-condition-validation-error {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--wsscd-gap-normal);
+	padding: var(--wsscd-padding-medium) 14px;
+	background-color: var(--wsscd-color-danger-bg);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-danger-alpha-15);
+	border-left: 3px solid var(--wsscd-color-danger);
+	border-radius: var(--wsscd-radius-sm);
+	font-size: var(--wsscd-font-size-base);
+	line-height: 1.5;
+}
+
+.wsscd-condition-validation-error .wsscd-icon {
+	color: var(--wsscd-color-danger);
+	font-size: var(--wsscd-font-size-xxl);
+	width: var(--wsscd-icon-medium);
+	height: var(--wsscd-icon-medium);
+	margin-top: 1px;
+}
+
+.wsscd-condition-error-messages {
+	flex: 1;
+	color: var(--wsscd-color-text-lighter);
+}
+
+.wsscd-condition-error-message {
+	margin: 0;
+	padding: 0;
+	color: var(--wsscd-color-text-secondary);
+	font-weight: var(--wsscd-font-weight-medium);
+}
+
+.wsscd-condition-error-message + .wsscd-condition-error-message {
+	margin-top: var(--wsscd-spacing-sm);
+	padding-top: var(--wsscd-spacing-sm);
+	border-top: var(--wsscd-border-width) solid var(--wsscd-color-danger-light-border);
+}
+
+/* @keyframes wsscd-slide-down - Defined in shared/_utilities.css */
+
+/**
+ * Disabled/conflicting operator options
+ * Visual indication that an operator would create a conflict
+ */
+.wsscd-condition-operator option:disabled {
+	color: var(--wsscd-color-border);
+	font-style: italic;
+}
+
+.wsscd-condition-operator option:disabled::after {
+	content: " (conflicts)";
+	font-size: var(--wsscd-font-size-small);
+}
+
+/**
+ * Conflict indicator icon
+ * Small warning icon next to conflicting options
+ */
+.wsscd-conflict-indicator {
+	display: inline-block;
+	width: 12px;
+	height: 12px;
+	margin-left: var(--wsscd-spacing-xs);
+	-webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 2L2 17h16L10 2zm0 3l5.5 10h-11L10 5zm-1 3v4h2V8H9zm0 5v2h2v-2H9z"/></svg>') no-repeat center;
+	mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 2L2 17h16L10 2zm0 3l5.5 10h-11L10 5zm-1 3v4h2V8H9zm0 5v2h2v-2H9z"/></svg>') no-repeat center;
+	-webkit-mask-size: contain;
+	mask-size: contain;
+	background-color: var(--wsscd-color-warning);
+	vertical-align: middle;
+}
+
+/**
+ * Highlight animation for conflicting conditions
+ * Applied to other condition rows that conflict with current
+ */
+.wsscd-condition-highlight {
+	animation: wsscd-highlight-fade 1.5s ease-out;
+}
+
+/* Note: @keyframes wsscd-highlight-fade defined in shared/_utilities.css */
+
+/**
+ * Quick fix button styling
+ * Action buttons shown in inline warnings
+ */
+.wsscd-quick-fix-button {
+	display: inline-block;
+	padding: var(--wsscd-spacing-xxs) 8px;
+	margin-left: var(--wsscd-spacing-sm);
+	background: var(--wsscd-color-white);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-sm);
+	font-size: var(--wsscd-font-size-small);
+	text-decoration: none;
+	color: var(--wsscd-color-primary);
+	cursor: pointer;
+	transition: background-color var(--wsscd-transition-fast) ease, border-color var(--wsscd-transition-fast) ease;
+}
+
+.wsscd-quick-fix-button:hover {
+	background-color: var(--wsscd-color-surface);
+	border-color: var(--wsscd-color-border-dark);
+	color: var(--wsscd-color-primary-darker);
+}
+
+.wsscd-quick-fix-button:active {
+	background-color: var(--wsscd-color-border-light);
+	border-color: var(--wsscd-color-border-dark);
+}
+
+/**
+ * Screen reader only text for accessibility
+ * Used for error announcements
+ * Note: .wsscd-sr-only defined in shared/_utilities.css
+ *//* ==========================================================================
+   Method Cards (Sidebar)
+   ========================================================================== */
+
+.wsscd-method-cards {
+    display: grid;
+    gap: var(--wsscd-spacing-md);
+}
+
+/* Method card - extends shared .wsscd-card component */
+.wsscd-method-card {
+    background: var(--wsscd-color-surface);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border-lighter);
+    border-radius: var(--wsscd-radius-sm);
+    padding: var(--wsscd-spacing-base);
+    text-align: center;
+    transition: border-color var(--wsscd-transition-fast);
+}
+
+.wsscd-method-card:hover {
+    border-color: var(--wsscd-color-border);
+}
+
+.method-icon {
+    font-size: var(--wsscd-font-size-xl);
+    margin-bottom: var(--wsscd-spacing-sm);
+    color: var(--wsscd-color-primary);
+    line-height: 1;
+}
+
+.wsscd-method-card h5 {
+    margin: 0 0 var(--wsscd-spacing-xs) 0;
+    font-size: var(--wsscd-font-size-base);
+    font-weight: var(--wsscd-font-weight-semibold);
+    color: var(--wsscd-color-text);
+    line-height: 1.3;
+}
+
+.wsscd-method-card p {
+    margin: 0 0 var(--wsscd-spacing-sm) 0;
+    font-size: var(--wsscd-font-size-small);
+    color: var(--wsscd-color-text-muted);
+    line-height: var(--wsscd-line-height);
+}
+
+.method-use-case {
+    font-size: var(--wsscd-font-size-small);
+    color: var(--wsscd-color-text-muted);
+    padding-top: var(--wsscd-spacing-sm);
+    border-top: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+}
+
+.method-use-case strong {
+    color: var(--wsscd-color-text);
+}
+
+/* ==========================================================================
+   Filter Examples
+   ========================================================================== */
+
+.wsscd-filter-examples {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--wsscd-spacing-sm);
+}
+
+/* Filter example - step-specific variation of shared card pattern */
+.wsscd-filter-example {
+    display: flex;
+    gap: var(--wsscd-spacing-sm);
+    align-items: center;
+    background: var(--wsscd-color-surface);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border-lighter);
+    border-radius: var(--wsscd-radius-sm);
+    padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-md);
+    transition: border-color var(--wsscd-transition-fast);
+}
+
+.wsscd-filter-example:hover {
+    border-color: var(--wsscd-color-border);
+}
+
+.filter-icon {
+    font-size: var(--wsscd-font-size-xl);
+    flex-shrink: 0;
+    color: var(--wsscd-color-primary);
+    line-height: 1;
+}
+
+.filter-content strong {
+    display: block;
+    font-size: var(--wsscd-font-size-small);
+    font-weight: var(--wsscd-font-weight-semibold);
+    color: var(--wsscd-color-text);
+    margin-bottom: var(--wsscd-spacing-xs);
+    line-height: 1.3;
+}
+
+.filter-content p {
+    margin: 0;
+    font-size: var(--wsscd-font-size-small);
+    color: var(--wsscd-color-text-muted);
+    line-height: var(--wsscd-line-height);
+}
+
+/* ==========================================================================
+   Stats Panel
+   ========================================================================== */
+
+.wsscd-stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--wsscd-spacing-sm) 0;
+    border-bottom: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+}
+
+.wsscd-stat-item:last-child {
+    border-bottom: none;
+}
+
+/* Stat components - Defined in shared/_components.css */
+
+.wsscd-stats-estimate {
+    margin-top: var(--wsscd-spacing-md);
+    padding-top: var(--wsscd-spacing-md);
+    border-top: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+}
+
+.estimate-label {
+    margin: 0 0 var(--wsscd-spacing-xs) 0;
+    font-size: var(--wsscd-font-size-small);
+    color: var(--wsscd-color-text-muted);
+}
+
+.estimate-value {
+    margin: 0;
+    font-size: var(--wsscd-font-size-base);
+    font-weight: var(--wsscd-font-weight-semibold);
+    color: var(--wsscd-color-primary);
+}
+
+/* ==========================================================================
+   Sidebar Footer
+   ========================================================================== */
+
+/* NOTE: .wsscd-sidebar-footer and .wsscd-sidebar-link styles moved to wizard-steps.css */
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 1200px) {
+    .wsscd-filter-examples {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==========================================================================
+   RTL Support
+   ========================================================================== */
+
+[dir="rtl"] .wsscd-stat-item {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .wsscd-filter-example {
+    flex-direction: row-reverse;
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+    .wsscd-stats-panel,
+    .wsscd-sidebar-footer {
+        display: none !important;
+    }
+
+    .wsscd-method-card,
+    .wsscd-filter-example {
+        border: var(--wsscd-border-width) solid var(--wsscd-color-text);
+        background: var(--wsscd-color-white) !important;
+    }
+}
+
+/* ==========================================================================
+   Conditions Summary Panel
+   ========================================================================== */
+
+.wsscd-conditions-summary {
+	margin-top: var(--wsscd-spacing-lg);
+	padding: var(--wsscd-spacing-md);
+	background: var(--wsscd-color-background);
+	border: 1px solid var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-sm);
+	box-shadow: var(--wsscd-shadow-sm);
+}
+
+.wsscd-summary-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding-bottom: var(--wsscd-spacing-sm);
+	border-bottom: 1px solid var(--wsscd-color-border);
+	margin-bottom: var(--wsscd-spacing-md);
+}
+
+.wsscd-summary-header h4 {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-xs);
+	margin: 0;
+	font-size: 14px;
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+}
+
+.wsscd-summary-header .wsscd-icon {
+	color: var(--wsscd-color-primary);
+}
+
+.wsscd-toggle-summary {
+	padding: 4px;
+	color: var(--wsscd-color-text-muted);
+	text-decoration: none;
+	transition: color var(--wsscd-transition-base);
+}
+
+.wsscd-toggle-summary:hover,
+.wsscd-toggle-summary:focus {
+	color: var(--wsscd-color-primary);
+}
+
+.wsscd-toggle-summary .wsscd-icon {
+	transition: transform var(--wsscd-transition-base);
+}
+
+.wsscd-conditions-summary.collapsed .wsscd-toggle-summary .wsscd-icon {
+	transform: rotate(180deg);
+}
+
+.wsscd-conditions-summary.collapsed .wsscd-summary-content {
+	display: none;
+}
+
+.wsscd-summary-logic {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-xs);
+	margin-bottom: var(--wsscd-spacing-md);
+	font-size: 13px;
+}
+
+.wsscd-summary-logic strong {
+	color: var(--wsscd-color-text);
+}
+
+.wsscd-summary-logic-value {
+	display: inline-flex;
+	align-items: center;
+	padding: 2px 8px;
+	background: var(--wsscd-color-primary);
+	color: var(--wsscd-color-white);
+	border-radius: var(--wsscd-radius-sm);
+	font-size: 11px;
+	font-weight: var(--wsscd-font-weight-semibold);
+	text-transform: uppercase;
+}
+
+.wsscd-summary-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.wsscd-summary-list li {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--wsscd-spacing-sm);
+	padding: var(--wsscd-spacing-sm);
+	margin-bottom: var(--wsscd-spacing-xs);
+	background: var(--wsscd-color-surface);
+	border-left: 3px solid var(--wsscd-color-primary);
+	border-radius: var(--wsscd-radius-sm);
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.wsscd-summary-list li:last-child {
+	margin-bottom: 0;
+}
+
+.wsscd-summary-list li .wsscd-icon {
+	margin-top: 2px;
+	color: var(--wsscd-color-primary);
+}
+
+.wsscd-summary-list li.summary-exclude {
+	border-left-color: var(--wsscd-color-danger);
+}
+
+.wsscd-summary-list li.summary-exclude .wsscd-icon {
+	color: var(--wsscd-color-danger);
+}
+
+.wsscd-summary-item-text {
+	flex: 1;
+	color: var(--wsscd-color-text);
+}
+
+.wsscd-summary-operator {
+	color: var(--wsscd-color-text-muted);
+	font-weight: var(--wsscd-font-weight-semibold);
+}
+
+.wsscd-summary-value {
+	color: var(--wsscd-color-primary);
+	font-weight: var(--wsscd-font-weight-semibold);
+}
+
+.wsscd-summary-count {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-xs);
+	margin-top: var(--wsscd-spacing-md);
+	padding-top: var(--wsscd-spacing-sm);
+	border-top: 1px solid var(--wsscd-color-border);
+	font-size: 12px;
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-condition-count {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 24px;
+	height: 24px;
+	padding: 0 6px;
+	background: var(--wsscd-color-primary);
+	color: var(--wsscd-color-white);
+	border-radius: var(--wsscd-radius-full);
+	font-weight: var(--wsscd-font-weight-semibold);
+	font-size: 12px;
+}
+
+/* Summary panel max conditions warning */
+.wsscd-summary-warning {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-xs);
+	margin-top: var(--wsscd-spacing-sm);
+	padding: var(--wsscd-spacing-sm);
+	background: var(--wsscd-color-warning-bg-light);
+	border-left: 3px solid var(--wsscd-color-warning);
+	border-radius: var(--wsscd-radius-sm);
+	font-size: 12px;
+	color: var(--wsscd-color-warning-dark);
+}
+
+.wsscd-summary-warning .wsscd-icon {
+	color: var(--wsscd-color-warning);
+}
+
+/* ==========================================================================
+   Premium Card Polish (Variable-Based)
+   ========================================================================== */
+
+/* Product selection cards */
+.wsscd-card-option {
+	box-shadow: var(--wsscd-shadow-sm);
+	transition: var(--wsscd-transition-base);
+}
+
+.wsscd-card-option:hover {
+	box-shadow: var(--wsscd-card-hover-shadow);
+	transform: translateY(-2px);
+}
+
+/* Selected card */
+.wsscd-card-option.selected {
+	box-shadow: var(--wsscd-card-selected-shadow);
+	background: var(--wsscd-card-selected-bg);
+}
+
+.wsscd-card-option:has( input[type="radio"]:checked ) {
+	background: var(--wsscd-card-selected-bg);
+	box-shadow: var(--wsscd-card-selected-shadow);
+}
+
+/* Conditions logic wrapper */
+.wsscd-conditions-logic-fieldset {
+	border-radius: var(--wsscd-radius-lg);
+	padding: var(--wsscd-padding-section);
+	margin-bottom: var(--wsscd-spacing-xl);
+	box-shadow: var(--wsscd-input-shadow);
+	transition: var(--wsscd-transition-base);
+}
+
+.wsscd-conditions-logic-fieldset:hover {
+	box-shadow: var(--wsscd-shadow-sm);
+}
+
+/* Logic selector */
+.wsscd-logic-selector {
+	box-shadow: var(--wsscd-input-shadow);
+	transition: var(--wsscd-transition-base);
+}
+
+.wsscd-logic-selector:hover {
+	box-shadow: var(--wsscd-shadow-sm);
+}
+
+/* Disable transforms on reduced motion */
+@media ( prefers-reduced-motion: reduce ) {
+	.wsscd-card-option:hover {
+		transform: none;
+	}
+}
+
+/* ==========================================================================
+   Premium Sidebar Content Polish
+   ========================================================================== */
+
+/* Condition examples with enhanced depth */
+.wsscd-condition-example {
+	box-shadow: var(--wsscd-input-shadow);
+	transition: all var(--wsscd-transition-base) ease;
+}
+
+.wsscd-condition-example:hover {
+	box-shadow: var(--wsscd-shadow-sm);
+	transform: translateY(-1px);
+	background: var(--wsscd-color-background);
+}
+
+/* Conditions tip with enhanced styling */
+.wsscd-conditions-tip {
+	box-shadow: var(--wsscd-shadow-primary-sm);
+	border-left-width: 4px;
+}
+
+/* Search tips with enhanced background */
+.wsscd-search-tip {
+	box-shadow: var(--wsscd-input-shadow);
+	background: var(--wsscd-color-background);
+}
+
+/* Conditions guide container */
+.wsscd-conditions-guide {
+	position: relative;
+}
+
+/* Condition examples container with subtle background */
+.wsscd-condition-examples {
+	background: var(--wsscd-color-surface);
+	border-radius: var(--wsscd-radius-md);
+	padding: var(--wsscd-spacing-lg);
+	margin: var(--wsscd-spacing-lg) calc(var(--wsscd-spacing-lg) * -1);
+}
+
+/* Search tips container */
+.wsscd-search-tips {
+	background: var(--wsscd-color-surface);
+	border-radius: var(--wsscd-radius-sm);
+	padding: var(--wsscd-spacing-md);
+}
+
+/* Disable transforms on reduced motion */
+@media ( prefers-reduced-motion: reduce ) {
+	.wsscd-condition-example:hover {
+		transform: none;
+	}
+}
+
+/* ==========================================================================
+   Sidebar Content Styles
+   ========================================================================== */
+
+/* Conditions Guide */
+.wsscd-conditions-guide {
+	margin: var(--wsscd-spacing-md) 0;
+}
+
+.wsscd-conditions-intro {
+	margin-bottom: var(--wsscd-spacing-lg);
+	font-size: var(--wsscd-font-size-base);
+	line-height: 1.6;
+	color: var(--wsscd-color-text-muted);
+}
+
+/* Condition Examples Container */
+.wsscd-condition-examples {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wsscd-spacing-lg);
+	margin: var(--wsscd-spacing-lg) 0;
+}
+
+/* Individual Condition Example */
+.wsscd-condition-example {
+	padding: var(--wsscd-spacing-md);
+	background: var(--wsscd-color-surface);
+	border: 1px solid var(--wsscd-color-border-light);
+	border-left: 3px solid var(--wsscd-color-primary);
+	border-radius: var(--wsscd-radius-sm);
+}
+
+.wsscd-condition-example strong {
+	display: block;
+	margin-bottom: var(--wsscd-spacing-sm);
+	font-size: var(--wsscd-font-size-base);
+	color: var(--wsscd-color-text);
+}
+
+.wsscd-condition-example ul {
+	margin: 0;
+	padding-left: var(--wsscd-spacing-lg);
+	list-style: none;
+}
+
+.wsscd-condition-example li {
+	position: relative;
+	margin-bottom: var(--wsscd-spacing-xs);
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text-muted);
+	line-height: 1.6;
+}
+
+.wsscd-condition-example li:before {
+	content: "•";
+	position: absolute;
+	left: -14px;
+	color: var(--wsscd-color-primary);
+	font-weight: var(--wsscd-font-weight-bold);
+}
+
+.wsscd-condition-example li:last-child {
+	margin-bottom: 0;
+}
+
+/* Conditions Tip Box */
+.wsscd-conditions-tip {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--wsscd-spacing-sm);
+	margin-top: var(--wsscd-spacing-lg);
+	padding: var(--wsscd-spacing-md);
+	background: var(--wsscd-color-primary-bg);
+	border: 1px solid var(--wsscd-color-border-light);
+	border-left: 3px solid var(--wsscd-color-primary);
+	border-radius: var(--wsscd-radius-sm);
+}
+
+.wsscd-conditions-tip .wsscd-icon {
+	margin-top: 2px;
+	color: var(--wsscd-color-primary);
+	font-size: var(--wsscd-font-size-large);
+	width: 16px;
+	height: 16px;
+}
+
+.wsscd-conditions-tip p {
+	margin: 0;
+	font-size: var(--wsscd-font-size-small);
+	line-height: 1.6;
+	color: var(--wsscd-color-text);
+}
+
+/* Search Tips */
+.wsscd-search-tips p {
+	margin: 0 0 var(--wsscd-spacing-sm) 0;
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-search-tips ul {
+	margin: 0;
+	padding-left: var(--wsscd-spacing-lg);
+	list-style: none;
+}
+
+.wsscd-search-tips li {
+	position: relative;
+	margin-bottom: var(--wsscd-spacing-xs);
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text-muted);
+	line-height: 1.6;
+}
+
+.wsscd-search-tips li:before {
+	content: "•";
+	position: absolute;
+	left: -14px;
+	color: var(--wsscd-color-primary);
+	font-weight: var(--wsscd-font-weight-bold);
+}
+
+.wsscd-search-tips li:last-child {
+	margin-bottom: 0;
+}
+
+.wsscd-search-tip {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--wsscd-spacing-xs);
+	margin-top: var(--wsscd-spacing-md);
+	padding: var(--wsscd-spacing-sm);
+	background: var(--wsscd-color-surface);
+	border-left: 3px solid var(--wsscd-color-primary);
+	border-radius: var(--wsscd-radius-sm);
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-search-tip .wsscd-icon {
+	margin-top: 2px;
+	color: var(--wsscd-color-primary);
+	font-size: var(--wsscd-font-size-base);
+	width: 14px;
+	height: 14px;
+}
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .wsscd-method-card,
+    .wsscd-filter-example {
+        border-width: var(--wsscd-border-width-thick);
+    }
+}
+
+/* Reduced motion - shared animation utilities in _utilities.css handle this globally */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition-duration: 0.01ms !important;
+    }
+}
+/* ==========================================================================
+   Tom Select FOUC Prevention
+   ==========================================================================
+
+   Prevents Flash of Unstyled Content (FOUC) during Tom Select initialization.
+   The skeleton loader provides visual continuity during the ~100-200ms gap
+   between HTML render and JavaScript enhancement.
+
+   Structure:
+   - Native <select> hidden until Tom Select adds .tomselected class
+   - Skeleton div mimics final Tom Select structure (border, padding, pill)
+   - Dual animation (shimmer overlay + pulsing pill) indicates loading state
+   ========================================================================== */
+
+/* Hide native select element before Tom Select initialization */
+#wsscd-campaign-categories:not(.tomselected) {
+	opacity: 0;
+	height: 0;
+	overflow: hidden;
+	position: absolute;
+}
+
+/* Skeleton container - matches Tom Select multi-select structure */
+#wsscd-campaign-categories:not(.tomselected) + .wsscd-loading-skeleton {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-xs);
+	min-height: calc(var(--wsscd-input-height-large) + 2px);
+	padding: var(--wsscd-spacing-xs) var(--wsscd-spacing-sm);
+	background: var(--wsscd-color-white);
+	border: 1px solid var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-md);
+	margin-bottom: 1em;
+	position: relative;
+	overflow: hidden;
+}
+
+/* Shimmer effect - sweeps across entire skeleton */
+#wsscd-campaign-categories:not(.tomselected) + .wsscd-loading-skeleton::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: -150%;
+	width: 150%;
+	height: 100%;
+	background: linear-gradient(
+		90deg,
+		transparent 0%,
+		var(--wsscd-overlay-white-light) 50%,
+		transparent 100%
+	);
+	animation: wsscd-skeleton-shine 2s ease-in-out infinite;
+	z-index: 1;
+}
+
+/* Skeleton pill - mimics selected category item */
+#wsscd-campaign-categories:not(.tomselected) + .wsscd-loading-skeleton::after {
+	content: '';
+	display: block;
+	width: 120px;
+	height: 26px;
+	background: linear-gradient(
+		90deg,
+		var(--wsscd-color-surface) 0%,
+		var(--wsscd-color-border-light) 50%,
+		var(--wsscd-color-surface) 100%
+	);
+	background-size: 200% 100%;
+	animation: wsscd-skeleton-pulse 1.5s ease-in-out infinite;
+	border-radius: var(--wsscd-radius-sm);
+	position: relative;
+	z-index: 2;
+}
+
+/* Hide skeleton once Tom Select is initialized */
+#wsscd-campaign-categories.tomselected + .wsscd-loading-skeleton {
+	display: none;
+}
+
+@keyframes wsscd-skeleton-pulse {
+	0% {
+		background-position: 200% 0;
+	}
+	100% {
+		background-position: -200% 0;
+	}
+}
+
+@keyframes wsscd-skeleton-shine {
+	0% {
+		left: -150%;
+	}
+	100% {
+		left: 100%;
+	}
+}

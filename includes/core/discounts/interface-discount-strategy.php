@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/discounts
  * @author     Webstepper <contact@webstepper.io>
  */
-interface SCD_Discount_Strategy_Interface {
+interface WSSCD_Discount_Strategy_Interface {
 
 	/**
 	 * Calculate discount for a product.
@@ -36,9 +36,9 @@ interface SCD_Discount_Strategy_Interface {
 	 * @param    float $original_price    Original product price.
 	 * @param    array $discount_config   Discount configuration.
 	 * @param    array $context          Additional context (product, cart, etc.).
-	 * @return   SCD_Discount_Result        Discount calculation result.
+	 * @return   WSSCD_Discount_Result        Discount calculation result.
 	 */
-	public function calculate_discount( float $original_price, array $discount_config, array $context = array() ): SCD_Discount_Result;
+	public function calculate_discount( float $original_price, array $discount_config, array $context = array() ): WSSCD_Discount_Result;
 
 	/**
 	 * Validate discount configuration.
@@ -110,7 +110,7 @@ interface SCD_Discount_Strategy_Interface {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/discounts
  */
-class SCD_Discount_Result {
+class WSSCD_Discount_Result {
 
 	/**
 	 * Original price.
@@ -201,7 +201,7 @@ class SCD_Discount_Result {
 	 * @param    float  $original_price    Original price.
 	 * @param    string $strategy_id       Strategy identifier.
 	 * @param    string $reason            Reason for no discount.
-	 * @return   SCD_Discount_Result          No-discount result.
+	 * @return   WSSCD_Discount_Result          No-discount result.
 	 */
 	public static function no_discount( float $original_price, string $strategy_id, string $reason = '' ): self {
 		return new self(
@@ -291,7 +291,7 @@ class SCD_Discount_Result {
 	 * @param    mixed  $default    Default value.
 	 * @return   mixed                 Metadata value.
 	 */
-	public function get_metadata_value( string $key, mixed $default = null ): mixed {
+	public function get_metadata_value( string $key, $default = null ) {
 		return $this->metadata[ $key ] ?? $default;
 	}
 
@@ -313,7 +313,7 @@ class SCD_Discount_Result {
 	 * @param    mixed  $value    Metadata value.
 	 * @return   void
 	 */
-	public function set_metadata_value( string $key, mixed $value ): void {
+	public function set_metadata_value( string $key, $value ): void {
 		$this->metadata[ $key ] = $value;
 	}
 
@@ -377,7 +377,7 @@ class SCD_Discount_Result {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/discounts
  */
-trait SCD_Discount_Preview_Trait {
+trait WSSCD_Discount_Preview_Trait {
 
 	/**
 	 * Preview discount calculation.
@@ -416,10 +416,10 @@ trait SCD_Discount_Preview_Trait {
 	 * Override in strategy classes to customize savings text format.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Discount_Result $result    Discount calculation result.
+	 * @param    WSSCD_Discount_Result $result    Discount calculation result.
 	 * @return   string                         Formatted savings text.
 	 */
-	protected function format_savings_text( SCD_Discount_Result $result ): string {
+	protected function format_savings_text( WSSCD_Discount_Result $result ): string {
 		return sprintf(
 			/* translators: %s: discount amount */
 			__( 'Save %s', 'smart-cycle-discounts' ),

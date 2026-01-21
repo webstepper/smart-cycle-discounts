@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.1.0
  */
-class SCD_Occurrence_Cache {
+class WSSCD_Occurrence_Cache {
 
 	/**
 	 * Database instance
@@ -39,7 +39,7 @@ class SCD_Occurrence_Cache {
 	/**
 	 * Logger instance
 	 *
-	 * @var SCD_Logger
+	 * @var WSSCD_Logger
 	 */
 	private $logger;
 
@@ -54,13 +54,13 @@ class SCD_Occurrence_Cache {
 	 * Initialize cache manager
 	 *
 	 * @since 1.1.0
-	 * @param SCD_Logger $logger Logger instance.
+	 * @param WSSCD_Logger $logger Logger instance.
 	 */
-	public function __construct( SCD_Logger $logger ) {
+	public function __construct( WSSCD_Logger $logger ) {
 		global $wpdb;
 
 		$this->wpdb       = $wpdb;
-		$this->table_name = $wpdb->prefix . 'scd_recurring_cache';
+		$this->table_name = $wpdb->prefix . 'wsscd_recurring_cache';
 		$this->logger     = $logger;
 	}
 
@@ -267,17 +267,20 @@ class SCD_Occurrence_Cache {
 	public function get_due_occurrences( int $lookahead_minutes = 10 ): array {
 		$threshold = gmdate( 'Y-m-d H:i:s', time() + ( $lookahead_minutes * MINUTE_IN_SECONDS ) );
 
-		return $this->wpdb->get_results(
-			$this->wpdb->prepare(
-				"SELECT * FROM {$this->table_name}
-				 WHERE status = 'pending'
-				 AND occurrence_start <= %s
-				 ORDER BY occurrence_start ASC
-				 LIMIT 100",
-				$threshold
-			),
-			ARRAY_A
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		$sql = $this->wpdb->prepare(
+			'SELECT * FROM %i
+			 WHERE status = %s
+			 AND occurrence_start <= %s
+			 ORDER BY occurrence_start ASC
+			 LIMIT 100',
+			$this->table_name,
+			'pending',
+			$threshold
 		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
+		return $this->wpdb->get_results( $sql, ARRAY_A );
 	}
 
 	/**
@@ -289,16 +292,18 @@ class SCD_Occurrence_Cache {
 	 * @return array|null             Occurrence data or null.
 	 */
 	public function get_occurrence( int $parent_id, int $occurrence_number ): ?array {
-		$result = $this->wpdb->get_row(
-			$this->wpdb->prepare(
-				"SELECT * FROM {$this->table_name}
-				 WHERE parent_campaign_id = %d
-				 AND occurrence_number = %d",
-				$parent_id,
-				$occurrence_number
-			),
-			ARRAY_A
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		$sql = $this->wpdb->prepare(
+			'SELECT * FROM %i
+			 WHERE parent_campaign_id = %d
+			 AND occurrence_number = %d',
+			$this->table_name,
+			$parent_id,
+			$occurrence_number
 		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
+		$result = $this->wpdb->get_row( $sql, ARRAY_A );
 
 		return $result ?: null;
 	}
@@ -355,18 +360,20 @@ class SCD_Occurrence_Cache {
 	 * @return array          Array of occurrence previews.
 	 */
 	public function get_preview( int $parent_id, int $limit = 5 ): array {
-		return $this->wpdb->get_results(
-			$this->wpdb->prepare(
-				"SELECT occurrence_number, occurrence_start, occurrence_end, status
-				 FROM {$this->table_name}
-				 WHERE parent_campaign_id = %d
-				 ORDER BY occurrence_number ASC
-				 LIMIT %d",
-				$parent_id,
-				$limit
-			),
-			ARRAY_A
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		$sql = $this->wpdb->prepare(
+			'SELECT occurrence_number, occurrence_start, occurrence_end, status
+			 FROM %i
+			 WHERE parent_campaign_id = %d
+			 ORDER BY occurrence_number ASC
+			 LIMIT %d',
+			$this->table_name,
+			$parent_id,
+			$limit
 		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
+		return $this->wpdb->get_results( $sql, ARRAY_A );
 	}
 
 	/**
@@ -378,15 +385,18 @@ class SCD_Occurrence_Cache {
 	 * @return int               Count of occurrences.
 	 */
 	public function count_by_status( int $parent_id, string $status ): int {
-		return (int) $this->wpdb->get_var(
-			$this->wpdb->prepare(
-				"SELECT COUNT(*) FROM {$this->table_name}
-				 WHERE parent_campaign_id = %d
-				 AND status = %s",
-				$parent_id,
-				$status
-			)
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		$sql = $this->wpdb->prepare(
+			'SELECT COUNT(*) FROM %i
+			 WHERE parent_campaign_id = %d
+			 AND status = %s',
+			$this->table_name,
+			$parent_id,
+			$status
 		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
+		return (int) $this->wpdb->get_var( $sql );
 	}
 
 	/**
@@ -412,13 +422,16 @@ class SCD_Occurrence_Cache {
 	 * @return int            Next occurrence number.
 	 */
 	private function get_next_occurrence_number( int $parent_id ): int {
-		$max = $this->wpdb->get_var(
-			$this->wpdb->prepare(
-				"SELECT MAX(occurrence_number) FROM {$this->table_name}
-				 WHERE parent_campaign_id = %d",
-				$parent_id
-			)
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		$sql = $this->wpdb->prepare(
+			'SELECT MAX(occurrence_number) FROM %i
+			 WHERE parent_campaign_id = %d',
+			$this->table_name,
+			$parent_id
 		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
+		$max = $this->wpdb->get_var( $sql );
 
 		return $max ? (int) $max + 1 : 1;
 	}

@@ -1,0 +1,310 @@
+/**
+ * Wizard Navigation
+ *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/css/wizard/wizard-navigation.css
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @since      1.0.0
+ */
+
+/* ===== NAVIGATION CONTAINER ===== */
+#wsscd-wizard-navigation-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--wsscd-z-notification);
+    pointer-events: none;
+}
+
+#wsscd-wizard-navigation-container::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    height: var(--wsscd-nav-shadow-gradient-height);
+    background: linear-gradient(to top, var(--wsscd-shadow-gradient-light) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+/* ===== MAIN NAVIGATION BAR ===== */
+.wsscd-wizard-navigation {
+    position: fixed;
+    bottom: 0;
+    left: var(--wsscd-wp-admin-menu-width);
+    right: 0;
+
+    /* Solid background - Professional WordPress admin style */
+    background: var(--wsscd-color-white);
+    border-top: 1px solid var(--wsscd-color-border);
+
+    /* Clean shadow */
+    box-shadow: 0 -2px 8px var(--wsscd-overlay-light);
+
+    padding: var(--wsscd-padding-medium) 0;
+    z-index: var(--wsscd-z-notification);
+    transition: all var(--wsscd-transition-slow) ease;
+    pointer-events: auto;
+}
+
+.folded .wsscd-wizard-navigation {
+    left: var(--wsscd-wp-admin-menu-width-folded);
+}
+
+.wsscd-wizard-navigation.is-navigating {
+    pointer-events: none;
+    opacity: 0.9;
+}
+
+.wsscd-wizard-navigation.is-navigating::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--wsscd-color-overlay-light);
+    z-index: var(--wsscd-z-base);
+}
+
+/* ===== LAYOUT ADJUSTMENTS ===== */
+#wpbody-content {
+    position: relative;
+    z-index: var(--wsscd-z-base);
+}
+
+.wsscd-wizard-wrap {
+    padding-bottom: var(--wsscd-nav-height);
+}
+
+/* ===== NAVIGATION CONTAINER LAYOUT ===== */
+.wsscd-nav-container {
+    max-width: var(--wsscd-container-sm);
+    margin: 0 auto;
+    padding: 0 var(--wsscd-spacing-xl);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--wsscd-spacing-xxl);
+    position: relative;
+    z-index: var(--wsscd-z-base);
+}
+
+/* ===== NAVIGATION SECTIONS ===== */
+.wsscd-nav-section {
+    display: flex;
+    align-items: center;
+}
+
+.wsscd-nav-section--left {
+    flex: 1 1 0;
+    justify-content: flex-end;
+}
+
+.wsscd-nav-section--center {
+    flex: 0 0 auto;
+}
+
+.wsscd-nav-section--right {
+    flex: 1 1 0;
+    justify-content: flex-start;
+    gap: var(--wsscd-spacing-md);
+}
+
+/* ===== NAVIGATION BUTTONS ===== */
+/* Note: Base button styles (white-space, text-align, height) inherited from .wsscd-button */
+.wsscd-nav-btn {
+    position: relative;
+}
+
+.wsscd-nav-btn--previous,
+.wsscd-nav-btn--next,
+.wsscd-nav-btn--complete {
+    min-height: var(--wsscd-button-height);
+}
+
+.wsscd-nav-btn--previous,
+.wsscd-nav-btn--next {
+    min-width: var(--wsscd-nav-button-width);
+}
+
+.wsscd-nav-btn--complete {
+    min-width: var(--wsscd-nav-button-width-complete);
+    width: auto;
+    padding: var(--wsscd-spacing-base) var(--wsscd-spacing-xxl);
+}
+
+/* Note: Hover effects inherited from base button classes (.wsscd-button--primary, .wsscd-button--secondary, .wsscd-button--success) */
+
+.wsscd-nav-btn:active {
+    opacity: 1;
+    box-shadow: var(--wsscd-shadow-inset);
+}
+
+.wsscd-nav-btn:disabled {
+    opacity: 1;
+    cursor: not-allowed;
+    background-color: var(--wsscd-color-surface);
+    color: var(--wsscd-color-text-disabled);
+}
+
+/* Loading State */
+.wsscd-nav-btn.is-loading {
+    position: relative;
+    opacity: 1;
+}
+
+.wsscd-nav-btn.is-loading .wsscd-nav-btn__text {
+    opacity: 1;
+    color: inherit;
+}
+
+.wsscd-nav-btn.is-loading::after {
+    content: '';
+    position: absolute;
+    width: var(--wsscd-icon-small);
+    height: var(--wsscd-icon-small);
+    top: 50%;
+    left: 50%;
+    margin-left: calc(var(--wsscd-icon-small) / -2);
+    margin-top: calc(var(--wsscd-icon-small) / -2);
+    border: var(--wsscd-border-width-thick) solid var(--wsscd-color-border-light);
+    border-radius: var(--wsscd-radius-full);
+    border-top-color: var(--wsscd-color-primary);
+    animation: wsscd-spin 1s linear infinite;
+}
+
+.wsscd-nav-btn--next.is-loading::after,
+.wsscd-nav-btn--complete.is-loading::after {
+    border-color: var(--wsscd-color-overlay-light);
+    border-top-color: var(--wsscd-color-white);
+}
+
+.wsscd-nav-btn:disabled.is-loading {
+    opacity: 1;
+    background-color: inherit;
+    color: inherit;
+}
+
+/* Button Icons - only declare unique margin */
+.wsscd-nav-btn .wsscd-icon {
+    margin: 0 var(--wsscd-spacing-xxs);
+    display: flex;
+    align-items: center;
+}
+
+.wsscd-nav-btn--next .wsscd-icon {
+    order: 2;
+    margin-left: var(--wsscd-spacing-xxs);
+    margin-right: 0;
+}
+
+.wsscd-nav-btn--previous .wsscd-icon {
+    margin-left: 0;
+    margin-right: var(--wsscd-spacing-xxs);
+}
+
+/* Note: Button span alignment inherited from parent .wsscd-button flex container */
+
+/* ===== NAVIGATION STATUS ===== */
+.wsscd-nav-status {
+    display: flex;
+    align-items: center;
+    gap: var(--wsscd-spacing-md);
+    color: var(--wsscd-color-text-muted);
+    font-size: var(--wsscd-font-size-base);
+}
+
+.wsscd-nav-status__step {
+    font-weight: var(--wsscd-font-weight-semibold);
+    color: var(--wsscd-color-text);
+    font-size: var(--wsscd-font-size-medium);
+}
+
+/* ===== STEP COUNTER ===== */
+.wsscd-nav-steps {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--wsscd-spacing-xs);
+    font-size: var(--wsscd-font-size-base);
+    color: var(--wsscd-color-text-muted);
+    background: var(--wsscd-color-surface);
+    padding: var(--wsscd-spacing-xs) var(--wsscd-spacing-md);
+    border-radius: var(--wsscd-radius-xl);
+    font-weight: var(--wsscd-font-weight-medium);
+    border: var(--wsscd-border-width) solid var(--wsscd-overlay-faint);
+}
+
+.wsscd-nav-steps__current {
+    color: var(--wsscd-color-text);
+    font-weight: var(--wsscd-font-weight-bold);
+}
+
+/* ===== PROGRESS INDICATOR ===== */
+.wsscd-nav-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--wsscd-nav-progress-height);
+    background: var(--wsscd-overlay-faint);
+    overflow: hidden;
+}
+
+.wsscd-nav-progress__bar {
+    height: 100%;
+    background: linear-gradient(90deg,
+        var(--wsscd-color-primary) 0%,
+        var(--wp-admin-theme-color-darker-10) 100%);
+    transition: width var(--wsscd-transition-base) ease-out;
+    width: var(--progress);
+    box-shadow: var(--wsscd-shadow-progress-glow);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 782px) {
+    .wsscd-wizard-navigation {
+        padding: var(--wsscd-padding-small) 0;
+        left: 0;
+    }
+
+    .wsscd-wizard-wrap {
+        padding-bottom: var(--wsscd-nav-height-mobile);
+    }
+
+    #wsscd-wizard-navigation-container {
+        left: 0 !important;
+        right: 0 !important;
+    }
+
+    .wsscd-nav-container {
+        padding: 0 var(--wsscd-spacing-md);
+        min-height: var(--wsscd-nav-container-height-mobile);
+        gap: var(--wsscd-spacing-md);
+    }
+
+    .wsscd-nav-btn__text {
+        display: none;
+    }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-contrast: high) {
+    .wsscd-nav-btn {
+        border-width: var(--wsscd-border-width-thick);
+    }
+
+    .wsscd-nav-btn:focus {
+        outline: var(--wsscd-border-width-focus) solid;
+        outline-offset: var(--wsscd-border-width-thick);
+    }
+}
+
+/* ==========================================================================
+   ========================================================================== */
+
+/* Fallback blocks removed - using solid backgrounds now */

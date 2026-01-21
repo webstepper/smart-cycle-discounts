@@ -14,15 +14,15 @@
 	'use strict';
 
 	// Ensure namespaces exist
-	window.SCD = window.SCD || {};
-	SCD.Modules = SCD.Modules || {};
-	SCD.Modules.Discounts = SCD.Modules.Discounts || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Modules = WSSCD.Modules || {};
+	WSSCD.Modules.Discounts = WSSCD.Modules.Discounts || {};
 
 	/**
 	 * Discounts State Constructor
 	 * Extends BaseState for state management
 	 */
-	SCD.Modules.Discounts.State = function() {
+	WSSCD.Modules.Discounts.State = function() {
 		// Define initial state
 		var initialState = {
 			// Core discount configuration
@@ -80,15 +80,15 @@
 		};
 
 		// Call parent constructor
-		if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-			SCD.Shared.BaseState.call( this, initialState );
+		if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+			WSSCD.Shared.BaseState.call( this, initialState );
 		}
 
 		// Additional properties not in base state
 		this.errors = {};
 		this.validated = false;
 		this.lastSaved = null;
-		this.campaignId = ( window.scdWizardData && window.scdWizardData.currentCampaign && window.scdWizardData.currentCampaign.id ) || null;
+		this.campaignId = ( window.wsscdWizardData && window.wsscdWizardData.currentCampaign && window.wsscdWizardData.currentCampaign.id ) || null;
 
 		this.initEventManager();
 
@@ -98,13 +98,13 @@
 		this.loadInitialData();
 	};
 
-	if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-		SCD.Modules.Discounts.State.prototype = Object.create( SCD.Shared.BaseState.prototype );
-		SCD.Modules.Discounts.State.prototype.constructor = SCD.Modules.Discounts.State;
+	if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+		WSSCD.Modules.Discounts.State.prototype = Object.create( WSSCD.Shared.BaseState.prototype );
+		WSSCD.Modules.Discounts.State.prototype.constructor = WSSCD.Modules.Discounts.State;
 	}
 
 	// Extend prototype with custom methods
-	SCD.Utils.extend( SCD.Modules.Discounts.State.prototype, {
+	WSSCD.Utils.extend( WSSCD.Modules.Discounts.State.prototype, {
 		/**
 		 * Set API reference
 		 * @param api
@@ -192,7 +192,7 @@
 			this._updateDiscountValue();
 
 			// Trigger specific event for type change
-			this.triggerCustomEvent( 'scd:discounts:type:changed', [ {
+			this.triggerCustomEvent( 'wsscd:discounts:type:changed', [ {
 				newType: newType,
 				oldType: oldType,
 				config: this.getCurrentConfig(),
@@ -210,7 +210,7 @@
 				this.setState( { discountValue: value } );
 
 				// Trigger value changed event
-				this.triggerCustomEvent( 'scd:discounts:value:changed', [ {
+				this.triggerCustomEvent( 'wsscd:discounts:value:changed', [ {
 					value: value,
 					type: state.discountType,
 					config: this.getCurrentConfig(),
@@ -317,10 +317,10 @@
 			}
 
 			// Main state change event
-			this.triggerCustomEvent( 'scd:discounts:state:changed', [ eventData ] );
+			this.triggerCustomEvent( 'wsscd:discounts:state:changed', [ eventData ] );
 
 			// Also trigger wizard data changed event
-			this.triggerCustomEvent( 'scd:wizard:dataChanged', [] );
+			this.triggerCustomEvent( 'wsscd:wizard:dataChanged', [] );
 		},
 
 		/**
@@ -380,8 +380,8 @@
 			};
 
 			// Call parent reset with custom defaults
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-				SCD.Shared.BaseState.prototype.reset.call( this, defaults );
+			if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+				WSSCD.Shared.BaseState.prototype.reset.call( this, defaults );
 			}
 
 			this.errors = {};
@@ -621,8 +621,8 @@
 		 */
 		loadInitialData: function() {
 			var sources = [
-				window.scdWizardData && window.scdWizardData.currentCampaign && window.scdWizardData.currentCampaign.discounts,
-				window.scdDiscountState,
+				window.wsscdWizardData && window.wsscdWizardData.currentCampaign && window.wsscdWizardData.currentCampaign.discounts,
+				window.wsscdDiscountState,
 				this.loadFromStorage()
 			];
 
@@ -675,12 +675,12 @@
 				.done( function( response ) {
 					self.clearDirty();
 					self.lastSaved = Date.now();
-					SCD.Shared.NotificationService.success( 'Discount settings saved' );
+					WSSCD.Shared.NotificationService.success( 'Discount settings saved' );
 
 					if ( callback ) {callback( null, response );}
 				} )
 				.fail( function( error ) {
-					SCD.Shared.NotificationService.error( 'Failed to save discount settings' );
+					WSSCD.Shared.NotificationService.error( 'Failed to save discount settings' );
 
 					if ( callback ) {callback( error );}
 				} )
@@ -698,7 +698,7 @@
 			if ( !this.campaignId ) {return null;}
 
 			try {
-				var stored = localStorage.getItem( 'scd_discount_' + this.campaignId );
+				var stored = localStorage.getItem( 'wsscd_discount_' + this.campaignId );
 				return stored ? JSON.parse( stored ) : null;
 			} catch ( e ) {
 				// Failed to retrieve stored discount data
@@ -714,7 +714,7 @@
 			if ( !this.campaignId ) {return;}
 
 			try {
-				localStorage.setItem( 'scd_discount_' + this.campaignId, JSON.stringify( data ) );
+				localStorage.setItem( 'wsscd_discount_' + this.campaignId, JSON.stringify( data ) );
 			} catch ( e ) {
 				// Failed to store discount data
 			}
@@ -749,16 +749,16 @@
 				try {
 					var data = JSON.parse( e.target.result );
 					self.fromJSON( data );
-					SCD.Shared.NotificationService.success( 'Discount settings imported successfully' );
+					WSSCD.Shared.NotificationService.success( 'Discount settings imported successfully' );
 					deferred.resolve( data );
 				} catch ( error ) {
-					SCD.Shared.NotificationService.error( 'Invalid JSON file' );
+					WSSCD.Shared.NotificationService.error( 'Invalid JSON file' );
 					deferred.reject( 'Invalid JSON file' );
 				}
 			};
 
 			reader.onerror = function() {
-				SCD.Shared.NotificationService.error( 'Failed to read file' );
+				WSSCD.Shared.NotificationService.error( 'Failed to read file' );
 				deferred.reject( 'Failed to read file' );
 			};
 
@@ -774,8 +774,8 @@
 			this.unbindAllEvents();
 
 			// Call parent destroy
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-				SCD.Shared.BaseState.prototype.destroy.call( this );
+			if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+				WSSCD.Shared.BaseState.prototype.destroy.call( this );
 			}
 
 			this.errors = null;
@@ -785,6 +785,6 @@
 	} );
 
 	// Mix in event manager functionality
-	SCD.Utils.extend( SCD.Modules.Discounts.State.prototype, SCD.Mixins.EventManager );
+	WSSCD.Utils.extend( WSSCD.Modules.Discounts.State.prototype, WSSCD.Mixins.EventManager );
 
 } )( jQuery );

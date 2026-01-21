@@ -17,11 +17,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-if ( ! class_exists( 'SCD_AJAX_Response' ) ) {
-	require_once SCD_INCLUDES_DIR . 'admin/ajax/class-scd-ajax-response.php';
+if ( ! class_exists( 'WSSCD_AJAX_Response' ) ) {
+	require_once WSSCD_INCLUDES_DIR . 'admin/ajax/class-wsscd-ajax-response.php';
 }
-if ( ! trait_exists( 'SCD_Admin_Notice_Trait' ) ) {
-	require_once SCD_INCLUDES_DIR . 'utilities/traits/trait-admin-notice.php';
+if ( ! trait_exists( 'WSSCD_Admin_Notice_Trait' ) ) {
+	require_once WSSCD_INCLUDES_DIR . 'utilities/traits/trait-admin-notice.php';
 }
 
 
@@ -35,9 +35,9 @@ if ( ! trait_exists( 'SCD_Admin_Notice_Trait' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Admin {
+class WSSCD_Admin {
 
-	use SCD_Admin_Notice_Trait;
+	use WSSCD_Admin_Notice_Trait;
 
 	/**
 	 * The ID of this plugin.
@@ -105,9 +105,9 @@ class SCD_Admin {
 	public function enqueue_styles(): void {
 		/**
 		 * All styles are handled by the centralized Asset Management System:
-		 * - SCD_Admin_Asset_Manager orchestrates all asset loading
-		 * - SCD_Style_Registry defines all styles with dependencies
-		 * - SCD_Asset_Loader conditionally loads based on context
+		 * - WSSCD_Admin_Asset_Manager orchestrates all asset loading
+		 * - WSSCD_Style_Registry defines all styles with dependencies
+		 * - WSSCD_Asset_Loader conditionally loads based on context
 		 *
 		 * @see includes/admin/class-admin-asset-manager.php
 		 * @see includes/admin/assets/class-style-registry.php
@@ -124,10 +124,10 @@ class SCD_Admin {
 	public function enqueue_scripts(): void {
 		/**
 		 * All scripts are handled by the centralized Asset Management System:
-		 * - SCD_Admin_Asset_Manager orchestrates all asset loading
-		 * - SCD_Script_Registry defines all scripts with dependencies
-		 * - SCD_Asset_Loader conditionally loads based on context
-		 * - SCD_Asset_Localizer handles all script localization
+		 * - WSSCD_Admin_Asset_Manager orchestrates all asset loading
+		 * - WSSCD_Script_Registry defines all scripts with dependencies
+		 * - WSSCD_Asset_Loader conditionally loads based on context
+		 * - WSSCD_Asset_Localizer handles all script localization
 		 *
 		 * @see includes/admin/class-admin-asset-manager.php
 		 * @see includes/admin/assets/class-script-registry.php
@@ -158,6 +158,7 @@ class SCD_Admin {
 			$notifications_page = $this->container->get( 'notifications_page' );
 			$notifications_page->render();
 		} else {
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static fallback HTML.
 			echo '<div class="wrap"><h1>Email Notifications</h1><p>Notifications page not available.</p></div>';
 		}
 	}
@@ -175,12 +176,14 @@ class SCD_Admin {
 			$main_dashboard_page->render();
 		} catch ( Exception $e ) {
 			// Fallback to simple error display
+			// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML structure with escaped content.
 			echo '<div class="wrap">';
 			echo '<h1>' . esc_html__( 'Smart Cycle Discounts Dashboard', 'smart-cycle-discounts' ) . '</h1>';
 			echo '<div class="notice notice-error">';
 			echo '<p>' . esc_html__( 'Failed to load dashboard. Please try again later.', 'smart-cycle-discounts' ) . '</p>';
 			echo '</div>';
 			echo '</div>';
+			// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 
 			// Log error
 			if ( $this->container->has( 'logger' ) ) {
@@ -199,13 +202,31 @@ class SCD_Admin {
 	/**
 	 * Check if current context requires wizard initialization.
 	 *
+	 * SECURITY: This method ONLY determines whether to initialize wizard components.
+	 * It reads URL/POST parameters for routing purposes only - no data processing occurs.
+	 * All parameter values are sanitized and validated against whitelists.
+	 * Actual AJAX handlers verify nonces before processing any data.
+	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @return   bool    True if wizard should be initialized.
 	 */
 	private function is_wizard_context(): bool {
+		// Only check context for admin users - this is called from constructor
+		// so we need to be careful about capability checks timing.
+		if ( ! is_admin() ) {
+			return false;
+		}
+
+		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended -- Context detection for routing only. No data modification. Values validated against whitelist.
 		if ( wp_doing_ajax() ) {
-			$action         = $_POST['scd_action'] ?? $_REQUEST['scd_action'] ?? '';
+			// Read action from POST first, then fallback to REQUEST.
+			$action = isset( $_POST['wsscd_action'] ) ? sanitize_key( wp_unslash( $_POST['wsscd_action'] ) ) : '';
+			if ( empty( $action ) ) {
+				$action = isset( $_REQUEST['wsscd_action'] ) ? sanitize_key( wp_unslash( $_REQUEST['wsscd_action'] ) ) : '';
+			}
+
+			// Whitelist of wizard-related actions - only these will trigger wizard initialization.
 			$wizard_actions = array(
 				'save_step',
 				'load_data',
@@ -215,13 +236,17 @@ class SCD_Admin {
 				'recover_session',
 				'product_search',
 			);
+
+			// Strict whitelist validation - action must match exactly.
 			return in_array( $action, $wizard_actions, true );
 		}
 
-		$page   = $_GET['page'] ?? '';
-		$action = $_GET['action'] ?? '';
+		// For non-AJAX requests, check URL parameters.
+		$page   = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+		$action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
+		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
 
-		return 'scd-campaigns' === $page && 'wizard' === $action;
+		return 'wsscd-campaigns' === $page && 'wizard' === $action;
 	}
 
 	/**
@@ -240,38 +265,49 @@ class SCD_Admin {
 	/**
 	 * Render campaigns page.
 	 *
+	 * SECURITY: This method renders admin pages. GET parameters are read for routing
+	 * only (determining which view to display). No data modification occurs.
+	 * Capability checks are enforced via WordPress menu registration.
+	 *
 	 * @since    1.0.0
 	 * @return   void
 	 */
 	public function render_campaigns_page(): void {
-		if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
+		if ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) {
 		}
 
-		if ( isset( $_GET['scd_db_check'] ) && current_user_can( 'manage_options' ) ) {
-			require_once SCD_PLUGIN_DIR . 'database/tools/database-diagnostic.php';
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Reading URL params for page routing only. Capability checked via menu registration.
+		if ( isset( $_GET['wsscd_db_check'] ) && current_user_can( 'manage_options' ) ) {
+			require_once WSSCD_PLUGIN_DIR . 'database/tools/database-diagnostic.php';
+			// phpcs:enable WordPress.Security.NonceVerification.Recommended
 			return;
 		}
 
-		if ( isset( $_GET['action'] ) && 'wizard' === sanitize_text_field( wp_unslash( $_GET['action'] ) ) ) {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Reading URL params for page routing only.
+		$action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+		if ( 'wizard' === $action ) {
 			$this->render_wizard();
 			return;
 		}
 
 		try {
 			$campaigns_page = $this->container->get( 'campaigns_page' );
-			if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
+			if ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) {
 			}
 			$campaigns_page->render();
 		} catch ( Exception $e ) {
-			if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
+			if ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) {
 			}
 			// Show error to admin
+			// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML with escaped content.
 			echo '<div class="wrap">';
 			echo '<h1>' . esc_html__( 'Campaigns', 'smart-cycle-discounts' ) . '</h1>';
 			echo '<div class="notice notice-error">';
 			echo '<p>' . esc_html__( 'Error loading campaigns page. Please check error logs.', 'smart-cycle-discounts' ) . '</p>';
 			echo '</div>';
 			echo '</div>';
+			// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 	}
 
@@ -282,24 +318,26 @@ class SCD_Admin {
 	 * @return   void
 	 */
 	private function render_wizard(): void {
-		if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
+		if ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) {
 		}
 
 		try {
 			$wizard_controller = $this->container->get( 'campaign_wizard_controller' );
-			if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
+			if ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) {
 			}
 			$wizard_controller->handle();
 		} catch ( Exception $e ) {
-			if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
+			if ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) {
 			}
 			// Show error to admin
+			// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML with escaped content.
 			echo '<div class="wrap">';
 			echo '<h1>' . esc_html__( 'Campaign Wizard', 'smart-cycle-discounts' ) . '</h1>';
 			echo '<div class="notice notice-error">';
 			echo '<p>' . esc_html__( 'Error loading wizard. Please check error logs.', 'smart-cycle-discounts' ) . '</p>';
 			echo '</div>';
 			echo '</div>';
+			// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 	}
 
@@ -314,16 +352,18 @@ class SCD_Admin {
 			$analytics_page = $this->container->get( 'analytics_page' );
 			$analytics_page->render();
 		} catch ( Exception $e ) {
-			if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
+			if ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) {
 			}
 
 			// Show error to admin
+			// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML with escaped content.
 			echo '<div class="wrap">';
 			echo '<h1>' . esc_html__( 'Analytics', 'smart-cycle-discounts' ) . '</h1>';
 			echo '<div class="notice notice-error">';
 			echo '<p>' . esc_html__( 'Error loading analytics dashboard. Please check error logs.', 'smart-cycle-discounts' ) . '</p>';
 			echo '</div>';
 			echo '</div>';
+			// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 	}
 
@@ -337,12 +377,14 @@ class SCD_Admin {
 	 */
 	public function render_settings_page(): void {
 		if ( ! $this->container->has( 'settings_manager' ) ) {
+			// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML with escaped content.
 			echo '<div class="wrap">';
 			echo '<h1>' . esc_html__( 'Settings', 'smart-cycle-discounts' ) . '</h1>';
 			echo '<div class="notice notice-error">';
 			echo '<p>' . esc_html__( 'Settings manager not available. Please check configuration.', 'smart-cycle-discounts' ) . '</p>';
 			echo '</div>';
 			echo '</div>';
+			// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 			return;
 		}
 
@@ -350,15 +392,17 @@ class SCD_Admin {
 			$settings_manager = $this->container->get( 'settings_manager' );
 			$settings_manager->render_page();
 		} catch ( Exception $e ) {
-			if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
+			if ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) {
 			}
 
+			// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML with escaped content.
 			echo '<div class="wrap">';
 			echo '<h1>' . esc_html__( 'Settings', 'smart-cycle-discounts' ) . '</h1>';
 			echo '<div class="notice notice-error">';
 			echo '<p>' . esc_html__( 'Error loading settings page. Please check error logs.', 'smart-cycle-discounts' ) . '</p>';
 			echo '</div>';
 			echo '</div>';
+			// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 	}
 
@@ -370,12 +414,14 @@ class SCD_Admin {
 	 */
 	public function render_tools_page(): void {
 		if ( ! $this->container->has( 'tools_page' ) ) {
+			// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML with escaped content.
 			echo '<div class="wrap">';
 			echo '<h1>' . esc_html__( 'Tools & Maintenance', 'smart-cycle-discounts' ) . '</h1>';
 			echo '<div class="notice notice-error">';
 			echo '<p>' . esc_html__( 'Tools page not available. Please check configuration.', 'smart-cycle-discounts' ) . '</p>';
 			echo '</div>';
 			echo '</div>';
+			// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 			return;
 		}
 
@@ -383,15 +429,17 @@ class SCD_Admin {
 			$tools_page = $this->container->get( 'tools_page' );
 			$tools_page->render();
 		} catch ( Exception $e ) {
-			if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
+			if ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) {
 			}
 
+			// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML with escaped content.
 			echo '<div class="wrap">';
 			echo '<h1>' . esc_html__( 'Tools & Maintenance', 'smart-cycle-discounts' ) . '</h1>';
 			echo '<div class="notice notice-error">';
 			echo '<p>' . esc_html__( 'Error loading tools page. Please check error logs.', 'smart-cycle-discounts' ) . '</p>';
 			echo '</div>';
 			echo '</div>';
+			// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 	}
 }

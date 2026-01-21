@@ -14,9 +14,9 @@
 	'use strict';
 
 	// Ensure namespaces exist
-	window.SCD = window.SCD || {};
-	SCD.Modules = SCD.Modules || {};
-	SCD.Modules.Basic = SCD.Modules.Basic || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Modules = WSSCD.Modules || {};
+	WSSCD.Modules.Basic = WSSCD.Modules.Basic || {};
 
 	/**
 	 * Basic API Class
@@ -24,17 +24,17 @@
 	 *
 	 * @param {object} config Configuration options
 	 */
-	SCD.Modules.Basic.API = function( config ) {
+	WSSCD.Modules.Basic.API = function( config ) {
 		// Call parent constructor
-		if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseAPI ) {
-			SCD.Shared.BaseAPI.call( this, config );
+		if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseAPI ) {
+			WSSCD.Shared.BaseAPI.call( this, config );
 		}
 		this.stepName = 'basic';
 	};
 
-	if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseAPI ) {
-		SCD.Modules.Basic.API.prototype = Object.create( SCD.Shared.BaseAPI.prototype );
-		SCD.Modules.Basic.API.prototype.constructor = SCD.Modules.Basic.API;
+	if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseAPI ) {
+		WSSCD.Modules.Basic.API.prototype = Object.create( WSSCD.Shared.BaseAPI.prototype );
+		WSSCD.Modules.Basic.API.prototype.constructor = WSSCD.Modules.Basic.API;
 	}
 
 	/**
@@ -44,9 +44,9 @@
 	 * @param {number} excludeId Campaign ID to exclude from check (for editing)
 	 * @returns {jQuery.Promise}
 	 */
-	SCD.Modules.Basic.API.prototype.checkCampaignName = function( name, excludeId ) {
+	WSSCD.Modules.Basic.API.prototype.checkCampaignName = function( name, excludeId ) {
 		// Use inherited request() method for automatic error handling
-		return this.request( 'scd_check_campaign_name', {
+		return this.request( 'wsscd_check_campaign_name', {
 			name: name,
 			excludeId: excludeId || ''
 		} );
@@ -59,9 +59,9 @@
 	 * @param {object} data Step data to save
 	 * @returns {jQuery.Promise}
 	 */
-	SCD.Modules.Basic.API.prototype.saveStepData = function( data ) {
+	WSSCD.Modules.Basic.API.prototype.saveStepData = function( data ) {
 		// Use inherited request() method for automatic error handling
-		return this.request( 'scd_save_step', {
+		return this.request( 'wsscd_save_step', {
 			step: 'basic',
 			data: data
 		} );

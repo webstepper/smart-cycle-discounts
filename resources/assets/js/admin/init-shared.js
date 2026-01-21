@@ -13,9 +13,9 @@
 ( function() {
 	'use strict';
 
-	// Ensure SCD namespace exists
-	window.SCD = window.SCD || {};
-	window.SCD.Shared = window.SCD.Shared || {};
+	// Ensure WSSCD namespace exists
+	window.WSSCD = window.WSSCD || {};
+	window.WSSCD.Shared = window.WSSCD.Shared || {};
 
 	// Shared modules namespace initialized
 	// No logging needed - this is expected behavior

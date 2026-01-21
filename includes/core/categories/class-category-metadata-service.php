@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/categories
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Category_Metadata_Service {
+class WSSCD_Category_Metadata_Service {
 
 	/**
 	 * Cache duration in seconds (1 hour)
@@ -53,7 +53,7 @@ class SCD_Category_Metadata_Service {
 		}
 
 		// Try to get from cache first
-		$cache_key = 'scd_cat_meta_' . $category_id;
+		$cache_key = 'wsscd_cat_meta_' . $category_id;
 		$metadata  = get_transient( $cache_key );
 
 		if ( false !== $metadata && is_array( $metadata ) ) {
@@ -84,6 +84,7 @@ class SCD_Category_Metadata_Service {
 			'post_status'    => 'publish',
 			'posts_per_page' => -1,
 			'fields'         => 'ids',
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Required for category product count; results are cached.
 			'tax_query'      => array(
 				array(
 					'taxonomy' => 'product_cat',
@@ -179,7 +180,7 @@ class SCD_Category_Metadata_Service {
 	 */
 	public function invalidate_cache( $category_id ) {
 		$category_id = absint( $category_id );
-		$cache_key   = 'scd_cat_meta_' . $category_id;
+		$cache_key   = 'wsscd_cat_meta_' . $category_id;
 
 		return delete_transient( $cache_key );
 	}

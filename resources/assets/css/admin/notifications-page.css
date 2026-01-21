@@ -14,116 +14,108 @@
    Notifications Page Wrapper
    ========================================================================== */
 
-.scd-notifications {
-	max-width: 1200px;
+.wsscd-notifications {
+	max-width: var(--wsscd-container-lg);
 }
 
-.scd-notifications h1 .scd-icon {
-	font-size: var(--scd-icon-xxl);
-	width: var(--scd-icon-xxl);
-	height: var(--scd-button-height-large);
-	margin-right: var(--scd-spacing-sm);
-	color: var(--scd-color-primary);
+.wsscd-notifications h1 .wsscd-icon {
+	font-size: var(--wsscd-icon-xxl);
+	width: var(--wsscd-icon-xxl);
+	height: var(--wsscd-button-height-large);
+	margin-right: var(--wsscd-spacing-sm);
+	color: var(--wsscd-color-primary);
+	fill: var(--wsscd-color-primary);
 }
 
 /* ==========================================================================
    Tab Navigation
    ========================================================================== */
 
-.scd-notifications-tabs {
-	margin: var(--scd-spacing-lg) 0;
-	border-bottom: 1px solid var(--scd-color-border);
+.wsscd-notifications-tabs {
+	margin: var(--wsscd-spacing-lg) 0;
+	border-bottom: var(--wsscd-border-width) solid var(--wsscd-color-border);
 }
 
-.scd-notifications-tabs .nav-tab {
+.wsscd-notifications-tabs .nav-tab {
 	display: inline-flex;
 	align-items: center;
-	gap: var(--scd-gap-tight);
-	font-size: var(--scd-font-size-medium);
-	padding: var(--scd-padding-small) 16px;
+	gap: var(--wsscd-gap-tight);
+	font-size: var(--wsscd-font-size-medium);
+	padding: var(--wsscd-padding-small) var(--wsscd-spacing-base);
 }
 
-.scd-notifications-tabs .nav-tab .scd-icon {
-	font-size: var(--scd-font-size-xl);
-	width: var(--scd-icon-small);
-	height: var(--scd-icon-small);
+.wsscd-notifications-tabs .nav-tab .wsscd-icon {
+	font-size: var(--wsscd-font-size-xl);
+	width: var(--wsscd-icon-small);
+	height: var(--wsscd-icon-small);
 }
 
 /* ==========================================================================
    Settings Form
    ========================================================================== */
 
-.scd-notifications-form {
-	background: var(--scd-color-white);
-	border: 1px solid var(--scd-color-border);
-	border-radius: var(--scd-radius-md);
-	padding: var(--scd-padding-section);
-	margin-top: var(--scd-spacing-lg);
+.wsscd-notifications-form {
+	background: var(--wsscd-color-white);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-md);
+	padding: var(--wsscd-padding-section);
+	margin-top: var(--wsscd-spacing-lg);
 }
 
-.scd-notifications-form h2 {
+.wsscd-notifications-form h2 {
 	margin-top: 0;
-	padding-bottom: 10px;
-	border-bottom: 1px solid var(--scd-color-border-light);
+	padding-bottom: var(--wsscd-spacing-md);
+	border-bottom: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
 	display: flex;
 	align-items: center;
-	gap: var(--scd-gap-normal);
+	gap: var(--wsscd-gap-normal);
 }
 
-.scd-notifications-form h2:not(:first-child) {
-	margin-top: 30px;
-	padding-top: 30px;
-	border-top: 1px solid var(--scd-color-border-light);
+.wsscd-notifications-form h2:not(:first-child) {
+	margin-top: var(--wsscd-spacing-xxl);
+	padding-top: var(--wsscd-spacing-xxl);
+	border-top: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
 }
 
-.scd-notifications-form h2 .scd-icon {
-	color: var(--scd-color-primary);
+.wsscd-notifications-form h2 .wsscd-icon {
+	color: var(--wsscd-color-primary);
+	fill: var(--wsscd-color-primary);
 }
 
-.scd-notifications-form .form-table {
-	margin-top: var(--scd-spacing-lg);
+.wsscd-notifications-form .form-table {
+	margin-top: var(--wsscd-spacing-lg);
 }
 
-.scd-notifications-form .form-table th {
+.wsscd-notifications-form .form-table th {
 	width: 220px;
-	font-weight: var(--scd-font-weight-semibold);
-	color: var(--scd-color-text);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
 }
 
-.scd-notifications-form .form-table td {
-	padding: var(--scd-padding-compact) 10px;
+.wsscd-notifications-form .form-table td {
+	padding: var(--wsscd-padding-compact) var(--wsscd-spacing-md);
 }
 
 /* Field descriptions */
-.scd-notifications-form .form-table td p.description {
-	margin-top: 5px;
-	font-size: var(--scd-font-size-base);
-	color: var(--scd-color-text-muted);
-	line-height: 1.6;
+.wsscd-notifications-form .form-table td p.description {
+	margin-top: var(--wsscd-spacing-sm);
+	font-size: var(--wsscd-font-size-base);
+	color: var(--wsscd-color-text-muted);
+	line-height: var(--wsscd-line-height-relaxed);
 }
 
 /* Field Tooltips */
-.scd-field-tooltip {
-	color: var(--scd-color-text-muted);
+.wsscd-field-tooltip {
+	color: var(--wsscd-color-text-muted);
 	cursor: help;
-	margin-left: 5px;
+	margin-left: var(--wsscd-spacing-sm);
 }
 
-.scd-field-tooltip:hover {
-	color: var(--scd-color-primary);
+.wsscd-field-tooltip:hover {
+	color: var(--wsscd-color-primary);
 }
 
-/* Section Descriptions */
-.scd-section-description {
-	color: var(--scd-color-text-muted);
-	font-size: var(--scd-font-size-base);
-	line-height: 1.6;
-	margin: 0 0 20px 0;
-	padding: var(--scd-padding-medium);
-	background: var(--scd-color-surface);
-	border-left: 4px solid var(--scd-color-primary);
-	border-radius: var(--scd-radius-sm);
-}
+/* Section Descriptions - Base styles in shared/_components.css */
 
 /* ==========================================================================
    Form Fields
@@ -136,10 +128,10 @@
    Submit Section
    ========================================================================== */
 
-.scd-notifications-submit {
-	margin-top: 30px;
-	padding-top: var(--scd-spacing-lg);
-	border-top: 1px solid var(--scd-color-border);
+.wsscd-notifications-submit {
+	margin-top: var(--wsscd-spacing-xxl);
+	padding-top: var(--wsscd-spacing-lg);
+	border-top: var(--wsscd-border-width) solid var(--wsscd-color-border);
 	text-align: right;
 }
 
@@ -156,56 +148,48 @@
    ========================================================================== */
 
 @media screen and ( max-width: 782px ) {
-	.scd-notifications {
-		margin: 10px 10px 0 10px;
+	.wsscd-notifications {
+		margin: var(--wsscd-spacing-md) var(--wsscd-spacing-md) 0 var(--wsscd-spacing-md);
 	}
 
-	.scd-notifications-form {
-		padding: var(--scd-padding-compact);
+	.wsscd-notifications-form {
+		padding: var(--wsscd-padding-compact);
 	}
 
-	.scd-notifications-tabs .nav-tab {
+	.wsscd-notifications-tabs .nav-tab {
 		display: block;
-		margin-bottom: 5px;
+		margin-bottom: var(--wsscd-spacing-sm);
 	}
 
-	.scd-notifications-form .form-table th,
-	.scd-notifications-form .form-table td {
+	.wsscd-notifications-form .form-table th,
+	.wsscd-notifications-form .form-table td {
 		display: block;
 		width: 100%;
-		padding: var(--scd-padding-small) 0;
+		padding: var(--wsscd-padding-small) 0;
 	}
 
-	.scd-notifications-form .form-table th {
+	.wsscd-notifications-form .form-table th {
 		padding-right: 0;
-		padding-bottom: 5px;
+		padding-bottom: var(--wsscd-spacing-sm);
 	}
 }
 
 @media screen and ( max-width: 600px ) {
-	.scd-notifications h1 {
-		font-size: var(--scd-font-size-xxl);
+	.wsscd-notifications h1 {
+		font-size: var(--wsscd-font-size-xxl);
 	}
 
-	.scd-notifications-form h2 {
-		font-size: var(--scd-font-size-xl);
+	.wsscd-notifications-form h2 {
+		font-size: var(--wsscd-font-size-xl);
 	}
 
-	.scd-notifications-tabs .nav-tab {
-		padding: var(--scd-padding-small) 12px;
-		font-size: var(--scd-font-size-base);
+	.wsscd-notifications-tabs .nav-tab {
+		padding: var(--wsscd-padding-small) var(--wsscd-spacing-md);
+		font-size: var(--wsscd-font-size-base);
 	}
 }
 
-/* ==========================================================================
-   Loading States
-   ========================================================================== */
-
-.scd-loading {
-	position: relative;
-	pointer-events: none;
-	opacity: 0.6;
-}
+/* Loading States - Base styles in shared/_utilities.css */
 
 /* Cache statistics styling is defined in admin/settings.css (Tools page) */
 
@@ -213,58 +197,31 @@
    Queue Status Tab Styles
    ========================================================================== */
 
-.scd-queue-stats {
+/* Queue Stats Grid - extends shared stat grid with page-specific margin */
+.wsscd-queue-stats {
 	display: grid;
-	grid-template-columns: repeat( auto-fit, minmax( 200px, 1fr ) );
-	gap: var(--scd-gap-spacious);
-	margin: var(--scd-spacing-lg) 0;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: var(--wsscd-gap-spacious);
+	margin: var(--wsscd-spacing-lg) 0;
 }
 
-.scd-stat-box {
-	background: var(--scd-color-white);
-	border: 1px solid var(--scd-color-border);
-	border-radius: var(--scd-radius-md);
-	padding: var(--scd-padding-section);
-	display: flex;
-	align-items: center;
-	gap: var(--scd-gap-normal);
+/* Stat Box - Base styles in shared/_components.css */
+
+
+.wsscd-queue-info {
+	margin: var(--wsscd-spacing-xxl) 0;
 }
 
-.scd-stat-box .scd-icon {
-	font-size: var(--scd-icon-hero);
-	width: var(--scd-icon-hero);
-	height: var(--scd-input-height-large);
-	color: var(--scd-color-text-muted);
+.wsscd-provider-info,
+.wsscd-queue-actions {
+	background: var(--wsscd-color-white);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-md);
+	padding: var(--wsscd-padding-section);
+	margin: var(--wsscd-spacing-lg) 0;
 }
 
-.scd-stat-box.scd-stat-success .scd-icon {
-	color: var(--scd-color-success);
-}
-
-.scd-stat-box.scd-stat-error .scd-icon {
-	color: var(--scd-color-danger);
-}
-
-.scd-stat-content {
-	display: flex;
-	flex-direction: column;
-}
-
-
-.scd-queue-info {
-	margin: 30px 0;
-}
-
-.scd-provider-info,
-.scd-queue-actions {
-	background: var(--scd-color-white);
-	border: 1px solid var(--scd-color-border);
-	border-radius: var(--scd-radius-md);
-	padding: var(--scd-padding-section);
-	margin: var(--scd-spacing-lg) 0;
-}
-
-.scd-provider-info h3,
-.scd-queue-actions h3 {
+.wsscd-provider-info h3,
+.wsscd-queue-actions h3 {
 	margin-top: 0;
 }

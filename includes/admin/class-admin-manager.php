@@ -17,8 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
-require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-scd-ajax-response.php';
+require_once WSSCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
+require_once WSSCD_PLUGIN_DIR . 'includes/admin/ajax/class-wsscd-ajax-response.php';
+require_once WSSCD_PLUGIN_DIR . 'includes/admin/class-review-notice.php';
 
 /**
  * Admin Manager
@@ -30,7 +31,7 @@ require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-scd-ajax-response.php';
  * @subpackage SmartCycleDiscounts/includes/admin
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Admin_Manager {
+class WSSCD_Admin_Manager {
 
 	/**
 	 * Container instance.
@@ -107,7 +108,7 @@ class SCD_Admin_Manager {
 	private function init_components(): void {
 		// Note: capability_manager auto-initializes in __construct, no need to call init()
 
-		$notice_suppressor = new SCD_Notice_Suppressor();
+		$notice_suppressor = new WSSCD_Notice_Suppressor();
 		$notice_suppressor->init();
 
 		if ( $this->container->has( 'menu_manager' ) ) {
@@ -135,6 +136,10 @@ class SCD_Admin_Manager {
 			$recurring_handler = $this->container->get( 'recurring_handler' );
 			// Recurring handler hooks are set up in constructor
 		}
+
+		// Initialize review notice.
+		$review_notice = new WSSCD_Review_Notice( $this->container );
+		$review_notice->init();
 	}
 
 	/**
@@ -177,7 +182,7 @@ class SCD_Admin_Manager {
 	 */
 	public function admin_notices(): void {
 		$screen = get_current_screen();
-		if ( ! $screen || ! $this->is_scd_admin_screen( $screen ) ) {
+		if ( ! $screen || ! $this->is_wsscd_admin_screen( $screen ) ) {
 			return;
 		}
 
@@ -192,15 +197,25 @@ class SCD_Admin_Manager {
 	 * @return   void
 	 */
 	public function handle_admin_ajax(): void {
-		// Verify AJAX request security
-		$result = SCD_Ajax_Security::verify_ajax_request( 'scd_admin_action', $_POST );
+		// SECURITY: Extract and sanitize only security-relevant fields for verification.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Extracting nonce for verification.
+		$security_data = array(
+			'nonce'    => isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '',
+			'_wpnonce' => isset( $_POST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ) : '',
+		);
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		// SECURITY: Nonce verification is performed inside WSSCD_Ajax_Security::verify_ajax_request().
+		// That method calls verify_nonce() at line 341, which calls wp_verify_nonce() at line 414 of class-ajax-security.php.
+		$result = WSSCD_Ajax_Security::verify_ajax_request( 'wsscd_admin_action', $security_data );
 
 		if ( is_wp_error( $result ) ) {
-			SCD_AJAX_Response::wp_error( $result );
+			WSSCD_AJAX_Response::wp_error( $result );
 			return;
 		}
 
-		$action = sanitize_text_field( $_POST['action_type'] ?? '' );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above via WSSCD_Ajax_Security::verify_ajax_request().
+		$action = isset( $_POST['action_type'] ) ? sanitize_text_field( wp_unslash( $_POST['action_type'] ) ) : '';
 
 		switch ( $action ) {
 			case 'test_connection':
@@ -210,7 +225,7 @@ class SCD_Admin_Manager {
 				$this->ajax_clear_cache();
 				break;
 			default:
-				SCD_AJAX_Response::error(
+				WSSCD_AJAX_Response::error(
 					'invalid_action',
 					__( 'Invalid action.', 'smart-cycle-discounts' )
 				);
@@ -229,7 +244,7 @@ class SCD_Admin_Manager {
 			$notifications_page = $this->container->get( 'notifications_page' );
 			$notifications_page->render();
 		} else {
-			echo '<div class="notice notice-error"><p>Error: Notifications page service not initialized.</p></div>';
+			echo '<div class="notice notice-error"><p>' . esc_html__( 'Error: Notifications page service not initialized.', 'smart-cycle-discounts' ) . '</p></div>';
 		}
 	}
 
@@ -258,8 +273,9 @@ class SCD_Admin_Manager {
 	public function admin_footer_text( string $footer_text ): string {
 		$screen = get_current_screen();
 
-		if ( $screen && $this->is_scd_admin_screen( $screen ) ) {
+		if ( $screen && $this->is_wsscd_admin_screen( $screen ) ) {
 			$footer_text = sprintf(
+				/* translators: %s: plugin name */
 				__( 'Thank you for using %s.', 'smart-cycle-discounts' ),
 				'<strong>Smart Cycle Discounts</strong>'
 			);
@@ -277,7 +293,7 @@ class SCD_Admin_Manager {
 	 * @return   bool                       Whether to show screen options.
 	 */
 	public function show_screen_options( bool $show_screen, WP_Screen $screen ): bool {
-		if ( $this->is_scd_admin_screen( $screen ) ) {
+		if ( $this->is_wsscd_admin_screen( $screen ) ) {
 			return true;
 		}
 
@@ -292,7 +308,7 @@ class SCD_Admin_Manager {
 	 * @return   void
 	 */
 	public function add_help_tabs( WP_Screen $screen ): void {
-		if ( ! $this->is_scd_admin_screen( $screen ) ) {
+		if ( ! $this->is_wsscd_admin_screen( $screen ) ) {
 			return;
 		}
 
@@ -310,8 +326,8 @@ class SCD_Admin_Manager {
 	private function register_settings(): void {
 		// General settings
 		register_setting(
-			'scd_general_settings',
-			'scd_general_options',
+			'wsscd_general_settings',
+			'wsscd_general_options',
 			array(
 				'type'              => 'array',
 				'sanitize_callback' => array( $this, 'sanitize_general_settings' ),
@@ -321,8 +337,8 @@ class SCD_Admin_Manager {
 
 		// Campaign settings
 		register_setting(
-			'scd_campaign_settings',
-			'scd_campaign_options',
+			'wsscd_campaign_settings',
+			'wsscd_campaign_options',
 			array(
 				'type'              => 'array',
 				'sanitize_callback' => array( $this, 'sanitize_campaign_settings' ),
@@ -343,10 +359,10 @@ class SCD_Admin_Manager {
 			'add_meta_boxes',
 			function () {
 				add_meta_box(
-					'scd_campaign_settings',
+					'wsscd_campaign_settings',
 					__( 'Campaign Settings', 'smart-cycle-discounts' ),
 					array( $this, 'render_campaign_settings_meta_box' ),
-					'scd_campaign',
+					'wsscd_campaign',
 					'normal',
 					'high'
 				);
@@ -362,16 +378,16 @@ class SCD_Admin_Manager {
 	 * @param    string $hook_suffix    Hook suffix.
 	 * @return   bool                      True if SCD admin page.
 	 */
-	private function is_scd_admin_page( string $hook_suffix ): bool {
-		$scd_pages = array(
+	private function is_wsscd_admin_page( string $hook_suffix ): bool {
+		$wsscd_pages = array(
 			'toplevel_page_smart-cycle-discounts',
-			'smart-cycle-discounts_page_scd-campaigns',
-			'smart-cycle-discounts_page_scd-analytics',
-			'smart-cycle-discounts_page_scd-settings',
-			'smart-cycle-discounts_page_scd-tools',
+			'smart-cycle-discounts_page_wsscd-campaigns',
+			'smart-cycle-discounts_page_wsscd-analytics',
+			'smart-cycle-discounts_page_wsscd-settings',
+			'smart-cycle-discounts_page_wsscd-tools',
 		);
 
-		return in_array( $hook_suffix, $scd_pages );
+		return in_array( $hook_suffix, $wsscd_pages );
 	}
 
 	/**
@@ -382,7 +398,7 @@ class SCD_Admin_Manager {
 	 * @param    WP_Screen $screen    Screen object.
 	 * @return   bool                    True if SCD admin screen.
 	 */
-	private function is_scd_admin_screen( WP_Screen $screen ): bool {
+	private function is_wsscd_admin_screen( WP_Screen $screen ): bool {
 		return strpos( $screen->id, 'smart-cycle-discounts' ) !== false;
 	}
 
@@ -398,7 +414,7 @@ class SCD_Admin_Manager {
 			return;
 		}
 
-		$notices = get_transient( 'scd_admin_notices' );
+		$notices = get_transient( 'wsscd_admin_notices' );
 		if ( $notices ) {
 			foreach ( $notices as $notice ) {
 				printf(
@@ -407,7 +423,7 @@ class SCD_Admin_Manager {
 					esc_html( $notice['message'] )
 				);
 			}
-			delete_transient( 'scd_admin_notices' );
+			delete_transient( 'wsscd_admin_notices' );
 		}
 
 		$this->check_system_requirements();
@@ -439,9 +455,12 @@ class SCD_Admin_Manager {
 		if ( version_compare( PHP_VERSION, '7.4', '<' ) ) {
 			printf(
 				'<div class="notice notice-error"><p>%s</p></div>',
-				sprintf(
-					__( 'Smart Cycle Discounts requires PHP 7.4 or higher. You are running PHP %s.', 'smart-cycle-discounts' ),
-					esc_html( PHP_VERSION )
+				esc_html(
+					sprintf(
+						/* translators: %s: current PHP version */
+						__( 'Smart Cycle Discounts requires PHP 7.4 or higher. You are running PHP %s.', 'smart-cycle-discounts' ),
+						PHP_VERSION
+					)
 				)
 			);
 		}
@@ -450,9 +469,12 @@ class SCD_Admin_Manager {
 		if ( version_compare( get_bloginfo( 'version' ), '6.4', '<' ) ) {
 			printf(
 				'<div class="notice notice-error"><p>%s</p></div>',
-				sprintf(
-					__( 'Smart Cycle Discounts requires WordPress 6.4 or higher. You are running WordPress %s.', 'smart-cycle-discounts' ),
-					esc_html( get_bloginfo( 'version' ) )
+				esc_html(
+					sprintf(
+						/* translators: %s: current WordPress version */
+						__( 'Smart Cycle Discounts requires WordPress 6.4 or higher. You are running WordPress %s.', 'smart-cycle-discounts' ),
+						get_bloginfo( 'version' )
+					)
 				)
 			);
 		}
@@ -469,7 +491,7 @@ class SCD_Admin_Manager {
 		if ( ! class_exists( 'WooCommerce' ) ) {
 			printf(
 				'<div class="notice notice-warning"><p>%s</p></div>',
-				__( 'Smart Cycle Discounts requires WooCommerce to be installed and activated.', 'smart-cycle-discounts' )
+				esc_html__( 'Smart Cycle Discounts requires WooCommerce to be installed and activated.', 'smart-cycle-discounts' )
 			);
 			return;
 		}
@@ -477,9 +499,12 @@ class SCD_Admin_Manager {
 		if ( version_compare( WC_VERSION, '8.0', '<' ) ) {
 			printf(
 				'<div class="notice notice-warning"><p>%s</p></div>',
-				sprintf(
-					__( 'Smart Cycle Discounts requires WooCommerce 8.0 or higher. You are running WooCommerce %s.', 'smart-cycle-discounts' ),
-					esc_html( WC_VERSION )
+				esc_html(
+					sprintf(
+						/* translators: %s: current WooCommerce version */
+						__( 'Smart Cycle Discounts requires WooCommerce 8.0 or higher. You are running WooCommerce %s.', 'smart-cycle-discounts' ),
+						WC_VERSION
+					)
 				)
 			);
 		}
@@ -496,7 +521,7 @@ class SCD_Admin_Manager {
 	private function add_general_help_tab( WP_Screen $screen ): void {
 		$screen->add_help_tab(
 			array(
-				'id'      => 'scd_general_help',
+				'id'      => 'wsscd_general_help',
 				'title'   => __( 'General Help', 'smart-cycle-discounts' ),
 				'content' => $this->get_general_help_content(),
 			)
@@ -516,10 +541,10 @@ class SCD_Admin_Manager {
 			case 'toplevel_page_smart-cycle-discounts':
 				$this->add_dashboard_help_tabs( $screen );
 				break;
-			case 'smart-cycle-discounts_page_scd-campaigns':
+			case 'smart-cycle-discounts_page_wsscd-campaigns':
 				$this->add_campaigns_help_tabs( $screen );
 				break;
-			case 'smart-cycle-discounts_page_scd-analytics':
+			case 'smart-cycle-discounts_page_wsscd-analytics':
 				$this->add_analytics_help_tabs( $screen );
 				break;
 		}
@@ -548,7 +573,7 @@ class SCD_Admin_Manager {
 	private function add_dashboard_help_tabs( WP_Screen $screen ): void {
 		$screen->add_help_tab(
 			array(
-				'id'      => 'scd_dashboard_help',
+				'id'      => 'wsscd_dashboard_help',
 				'title'   => __( 'Dashboard', 'smart-cycle-discounts' ),
 				'content' => '<p>' . __( 'The dashboard provides an overview of your discount campaigns and their performance.', 'smart-cycle-discounts' ) . '</p>',
 			)
@@ -566,7 +591,7 @@ class SCD_Admin_Manager {
 	private function add_campaigns_help_tabs( WP_Screen $screen ): void {
 		$screen->add_help_tab(
 			array(
-				'id'      => 'scd_campaigns_help',
+				'id'      => 'wsscd_campaigns_help',
 				'title'   => __( 'Campaigns', 'smart-cycle-discounts' ),
 				'content' => '<p>' . __( 'Create and manage your discount campaigns here.', 'smart-cycle-discounts' ) . '</p>',
 			)
@@ -584,7 +609,7 @@ class SCD_Admin_Manager {
 	private function add_analytics_help_tabs( WP_Screen $screen ): void {
 		$screen->add_help_tab(
 			array(
-				'id'      => 'scd_analytics_help',
+				'id'      => 'wsscd_analytics_help',
 				'title'   => __( 'Analytics', 'smart-cycle-discounts' ),
 				'content' => '<p>' . __( 'View detailed analytics and reports for your discount campaigns.', 'smart-cycle-discounts' ) . '</p>',
 			)
@@ -599,7 +624,7 @@ class SCD_Admin_Manager {
 	 * @return   void
 	 */
 	private function ajax_test_connection(): void {
-		SCD_AJAX_Response::success(
+		WSSCD_AJAX_Response::success(
 			array(
 				'message' => __( 'Connection test successful.', 'smart-cycle-discounts' ),
 			)
@@ -616,7 +641,7 @@ class SCD_Admin_Manager {
 	private function ajax_clear_cache(): void {
 		wp_cache_flush();
 
-		SCD_AJAX_Response::success(
+		WSSCD_AJAX_Response::success(
 			array(
 				'message' => __( 'Cache cleared successfully.', 'smart-cycle-discounts' ),
 			)
@@ -695,7 +720,7 @@ class SCD_Admin_Manager {
 	 * @return   void
 	 */
 	public function render_campaign_settings_meta_box( WP_Post $post ): void {
-		wp_nonce_field( 'scd_campaign_meta_box', 'scd_campaign_meta_box_nonce' );
+		wp_nonce_field( 'wsscd_campaign_meta_box', 'wsscd_campaign_meta_box_nonce' );
 
 		echo '<p>' . esc_html__( 'Campaign settings will be displayed here.', 'smart-cycle-discounts' ) . '</p>';
 	}
@@ -709,11 +734,11 @@ class SCD_Admin_Manager {
 	 * @return   void
 	 */
 	public function add_notice( string $message, string $type = 'info' ): void {
-		$notices   = get_transient( 'scd_admin_notices' ) ?: array();
+		$notices   = get_transient( 'wsscd_admin_notices' ) ?: array();
 		$notices[] = array(
 			'message' => $message,
 			'type'    => $type,
 		);
-		set_transient( 'scd_admin_notices', $notices, 300 ); // 5 minutes
+		set_transient( 'wsscd_admin_notices', $notices, 300 ); // 5 minutes
 	}
 }

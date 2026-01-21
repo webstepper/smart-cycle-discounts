@@ -20,9 +20,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Import_Handler extends WSSCD_Abstract_Ajax_Handler {
 
-	use SCD_License_Validation_Trait;
+	use WSSCD_License_Validation_Trait;
 
 	/**
 	 * Container instance.
@@ -34,7 +34,7 @@ class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 	/**
 	 * Cache manager instance.
 	 *
-	 * @var SCD_Cache_Manager|null
+	 * @var WSSCD_Cache_Manager|null
 	 */
 	private $cache = null;
 
@@ -42,7 +42,7 @@ class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @param object     $container Container instance.
-	 * @param SCD_Logger $logger    Logger instance.
+	 * @param WSSCD_Logger $logger    Logger instance.
 	 */
 	public function __construct( $container, $logger ) {
 		parent::__construct( $logger );
@@ -58,7 +58,7 @@ class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return string Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_ajax';
+		return 'wsscd_ajax';
 	}
 
 	/**
@@ -159,7 +159,7 @@ class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 	private function import_campaigns( $campaigns, $start_time ) {
 		global $wpdb;
 
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
 		$imported        = 0;
 		$failed          = 0;
 		$errors          = array();
@@ -178,6 +178,7 @@ class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 			}
 
 			// Insert sanitized campaign
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- INSERT on plugin's custom campaigns table; no caching on write.
 			$result = $wpdb->insert( $campaigns_table, $sanitized_campaign );
 
 			if ( $result ) {
@@ -324,8 +325,11 @@ class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 		// Validate required fields
 		foreach ( $field_rules as $field => $rules ) {
 			if ( ! empty( $rules['required'] ) && empty( $campaign[ $field ] ) ) {
-				/* translators: %s: field name */
-				return new WP_Error( 'missing_field', sprintf( __( 'Required field missing: %s', 'smart-cycle-discounts' ), $field ) );
+				return new WP_Error(
+					'missing_field',
+					/* translators: %s: field name */
+					sprintf( __( 'Required field missing: %s', 'smart-cycle-discounts' ), $field )
+				);
 			}
 		}
 
@@ -466,12 +470,15 @@ class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 	private function ensure_unique_slug( $slug ) {
 		global $wpdb;
 
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
 		$original_slug   = $slug;
 		$counter         = 1;
 
-		while ( $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$campaigns_table} WHERE slug = %s", $slug ) ) > 0 ) {
-			$slug = $original_slug . '-' . $counter;
+		$check_slug_sql = $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE slug = %s', $campaigns_table, $slug );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Slug uniqueness check; query prepared above.
+		while ( $wpdb->get_var( $check_slug_sql ) > 0 ) {
+			$slug           = $original_slug . '-' . $counter;
+			$check_slug_sql = $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE slug = %s', $campaigns_table, $slug );
 			++$counter;
 		}
 
@@ -486,12 +493,12 @@ class SCD_Import_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return array Response data.
 	 */
 	private function import_settings( $settings, $start_time ) {
-		$current_settings = get_option( 'scd_settings', array() );
+		$current_settings = get_option( 'wsscd_settings', array() );
 
 		// Merge with imported settings
 		$merged_settings = array_replace_recursive( $current_settings, $settings );
 
-		$result = update_option( 'scd_settings', $merged_settings );
+		$result = update_option( 'wsscd_settings', $merged_settings );
 
 		// Log import results
 		if ( $result ) {

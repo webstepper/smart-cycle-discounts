@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/licensing
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_License_Notices {
+class WSSCD_License_Notices {
 
 	/**
 	 * Initialize the notices.
@@ -34,14 +34,14 @@ class SCD_License_Notices {
 	 */
 	public function init() {
 		add_action( 'admin_notices', array( $this, 'show_license_notices' ) );
-		add_action( 'wp_ajax_scd_dismiss_expired_notice', array( $this, 'handle_dismiss_expired_notice' ) );
+		add_action( 'wp_ajax_wsscd_dismiss_expired_notice', array( $this, 'handle_dismiss_expired_notice' ) );
 	}
 
 	/**
 	 * Show license-related admin notices.
 	 *
 	 * IMPORTANT: This class handles ONLY critical license warnings for Pro users.
-	 * Free user upgrade prompts are handled by SCD_Upgrade_Prompt_Manager.
+	 * Free user upgrade prompts are handled by WSSCD_Upgrade_Prompt_Manager.
 	 *
 	 * @since    1.0.0
 	 * @return   void
@@ -49,7 +49,7 @@ class SCD_License_Notices {
 	public function show_license_notices() {
 		// Only show on plugin pages
 		$screen = get_current_screen();
-		if ( ! $screen || false === strpos( $screen->id, 'smart-cycle-discounts' ) && false === strpos( $screen->id, 'scd-' ) ) {
+		if ( ! $screen || false === strpos( $screen->id, 'smart-cycle-discounts' ) && false === strpos( $screen->id, 'wsscd-' ) ) {
 			return;
 		}
 
@@ -60,7 +60,7 @@ class SCD_License_Notices {
 
 		// Show ONLY critical license warnings for pro users with expired licenses
 		// Free user upgrade prompts are handled by Upgrade Prompt Manager (inline banners)
-		if ( function_exists( 'scd_is_license_expired' ) && scd_is_license_expired() ) {
+		if ( function_exists( 'wsscd_is_license_expired' ) && wsscd_is_license_expired() ) {
 			// Pro user with expired license - show critical notice (3-day cycle)
 			$this->show_expired_license_notice();
 		}
@@ -78,17 +78,17 @@ class SCD_License_Notices {
 	 */
 	private function show_expired_license_notice() {
 		$user_id   = get_current_user_id();
-		$dismissed = get_user_meta( $user_id, 'scd_dismissed_expired_notice', true );
+		$dismissed = get_user_meta( $user_id, 'wsscd_dismissed_expired_notice', true );
 
 		if ( $dismissed && $dismissed > time() ) {
 			return;
 		}
 
 		$account_url = admin_url( 'admin.php?page=smart-cycle-discounts-account' );
-		$upgrade_url = function_exists( 'scd_get_upgrade_url' ) ? scd_get_upgrade_url() : admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
+		$upgrade_url = function_exists( 'wsscd_get_upgrade_url' ) ? wsscd_get_upgrade_url() : admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
 
 		?>
-		<div class="notice notice-error is-dismissible scd-expired-notice" data-notice-id="license_expired">
+		<div class="notice notice-error is-dismissible wsscd-expired-notice" data-notice-id="license_expired">
 			<p>
 				<strong><?php esc_html_e( 'Smart Cycle Discounts - License Expired', 'smart-cycle-discounts' ); ?>:</strong>
 				<?php esc_html_e( 'Your Pro license has expired. Please renew to continue using premium features.', 'smart-cycle-discounts' ); ?>
@@ -102,17 +102,15 @@ class SCD_License_Notices {
 				</a>
 			</p>
 		</div>
-		<script type="text/javascript">
-		jQuery(document).ready(function($) {
-			$('.scd-expired-notice').on('click', '.notice-dismiss', function() {
-				$.post(ajaxurl, {
-					action: 'scd_dismiss_expired_notice',
-					nonce: '<?php echo esc_js( wp_create_nonce( 'scd_dismiss_expired_notice' ) ); ?>'
-				});
-			});
-		});
-		</script>
 		<?php
+		// Use wp_add_inline_script for WordPress.org compliance
+		$nonce  = wp_create_nonce( 'wsscd_dismiss_expired_notice' );
+		$script = 'jQuery(document).ready(function($) {' .
+			'$(".wsscd-expired-notice").on("click", ".notice-dismiss", function() {' .
+			'$.post(ajaxurl, { action: "wsscd_dismiss_expired_notice", nonce: "' . esc_js( $nonce ) . '" });' .
+			'});' .
+			'});';
+		wp_add_inline_script( 'jquery-core', $script );
 	}
 
 	/**
@@ -123,7 +121,7 @@ class SCD_License_Notices {
 	 */
 	public function handle_dismiss_expired_notice() {
 		// Verify nonce
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'scd_dismiss_expired_notice' ) ) {
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'wsscd_dismiss_expired_notice' ) ) {
 			wp_send_json_error( array( 'message' => 'Invalid nonce' ) );
 		}
 
@@ -133,7 +131,7 @@ class SCD_License_Notices {
 
 		// Dismiss for 3 days (critical license notice)
 		$user_id = get_current_user_id();
-		update_user_meta( $user_id, 'scd_dismissed_expired_notice', time() + ( 3 * DAY_IN_SECONDS ) );
+		update_user_meta( $user_id, 'wsscd_dismissed_expired_notice', time() + ( 3 * DAY_IN_SECONDS ) );
 
 		wp_send_json_success();
 	}

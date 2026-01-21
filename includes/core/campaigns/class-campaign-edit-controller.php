@@ -22,31 +22,31 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since      1.0.0
  */
-class SCD_Campaign_Edit_Controller extends SCD_Abstract_Campaign_Controller {
+class WSSCD_Campaign_Edit_Controller extends WSSCD_Abstract_Campaign_Controller {
 
 	/**
 	 * View renderer instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Campaign_View_Renderer
+	 * @var      WSSCD_Campaign_View_Renderer
 	 */
-	private SCD_Campaign_View_Renderer $view_renderer;
+	private WSSCD_Campaign_View_Renderer $view_renderer;
 
-	// Validator removed - using consolidated SCD_Validation class directly
+	// Validator removed - using consolidated WSSCD_Validation class directly
 
 	/**
 	 * Initialize the controller.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Manager         $campaign_manager     Campaign manager.
-	 * @param    SCD_Admin_Capability_Manager $capability_manager   Capability manager.
-	 * @param    SCD_Logger                   $logger               Logger instance.
-	 * @param    SCD_Campaign_View_Renderer   $view_renderer        View renderer.
+	 * @param    WSSCD_Campaign_Manager         $campaign_manager     Campaign manager.
+	 * @param    WSSCD_Admin_Capability_Manager $capability_manager   Capability manager.
+	 * @param    WSSCD_Logger                   $logger               Logger instance.
+	 * @param    WSSCD_Campaign_View_Renderer   $view_renderer        View renderer.
 	 */
-	public function __construct(SCD_Cache_Manager $cache, SCD_Campaign_Manager $campaign_manager,
-		SCD_Admin_Capability_Manager $capability_manager,
-		SCD_Logger $logger,
-		SCD_Campaign_View_Renderer $view_renderer) {
+	public function __construct(WSSCD_Cache_Manager $cache, WSSCD_Campaign_Manager $campaign_manager,
+		WSSCD_Admin_Capability_Manager $capability_manager,
+		WSSCD_Logger $logger,
+		WSSCD_Campaign_View_Renderer $view_renderer) {
 		$this->cache = $cache;
 		parent::__construct( $campaign_manager, $capability_manager, $logger );
 		$this->view_renderer = $view_renderer;
@@ -60,17 +60,17 @@ class SCD_Campaign_Edit_Controller extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	public function handle( int $campaign_id ): void {
-		if ( ! $this->check_capability( 'scd_edit_campaigns' ) ) {
-			wp_die( __( 'You do not have permission to edit campaigns.', 'smart-cycle-discounts' ) );
+		if ( ! $this->check_capability( 'wsscd_edit_campaigns' ) ) {
+			wp_die( esc_html__( 'You do not have permission to edit campaigns.', 'smart-cycle-discounts' ) );
 		}
 
 		$campaign = $this->campaign_manager->find( $campaign_id );
 		if ( ! $campaign ) {
-			wp_die( __( 'Campaign not found.', 'smart-cycle-discounts' ) );
+			wp_die( esc_html__( 'Campaign not found.', 'smart-cycle-discounts' ) );
 		}
 
 		if ( ! $this->can_edit_campaign( $campaign ) ) {
-			wp_die( __( 'You do not have permission to edit this campaign.', 'smart-cycle-discounts' ) );
+			wp_die( esc_html__( 'You do not have permission to edit this campaign.', 'smart-cycle-discounts' ) );
 		}
 
 		$this->render( $campaign );
@@ -84,41 +84,52 @@ class SCD_Campaign_Edit_Controller extends SCD_Abstract_Campaign_Controller {
 	 */
 	public function handle_save(): void {
 		// Verify nonce
-		if ( ! wp_verify_nonce( $_POST['scd_campaign_nonce'] ?? '', 'scd_save_campaign' ) ) {
-			wp_die( __( 'Security check failed.', 'smart-cycle-discounts' ) );
+		if ( ! wp_verify_nonce( isset( $_POST['wsscd_campaign_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['wsscd_campaign_nonce'] ) ) : '', 'wsscd_save_campaign' ) ) {
+			wp_die( esc_html__( 'Security check failed.', 'smart-cycle-discounts' ) );
 		}
 
-		if ( ! $this->check_capability( 'scd_edit_campaigns' ) ) {
-			wp_die( __( 'You do not have permission to save campaigns.', 'smart-cycle-discounts' ) );
+		if ( ! $this->check_capability( 'wsscd_edit_campaigns' ) ) {
+			wp_die( esc_html__( 'You do not have permission to save campaigns.', 'smart-cycle-discounts' ) );
 		}
 
-		$campaign_id = isset( $_POST['campaign_id'] ) ? absint( $_POST['campaign_id'] ) : 0;
+		// Ensure case converter is loaded for sanitization.
+		if ( ! class_exists( 'WSSCD_Case_Converter' ) ) {
+			require_once WSSCD_PLUGIN_DIR . 'includes/utilities/class-case-converter.php';
+		}
+
+		// Extract and sanitize only campaign-specific fields - not the entire $_POST array.
+		// This addresses WordPress.org requirements to process only required fields.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above at line 87.
+		$campaign_fields = WSSCD_Case_Converter::get_campaign_edit_fields();
+		$sanitized_post  = WSSCD_Case_Converter::extract_and_sanitize( $campaign_fields, $_POST );
+
+		$campaign_id = isset( $sanitized_post['campaign_id'] ) ? absint( $sanitized_post['campaign_id'] ) : 0;
 
 		// For existing campaigns, verify ownership
 		if ( $campaign_id ) {
 			$campaign = $this->campaign_manager->find( $campaign_id );
 			if ( ! $campaign ) {
-				wp_die( __( 'Campaign not found.', 'smart-cycle-discounts' ) );
+				wp_die( esc_html__( 'Campaign not found.', 'smart-cycle-discounts' ) );
 			}
 
 			if ( ! $this->can_edit_campaign( $campaign ) ) {
-				wp_die( __( 'You do not have permission to edit this campaign.', 'smart-cycle-discounts' ) );
+				wp_die( esc_html__( 'You do not have permission to edit this campaign.', 'smart-cycle-discounts' ) );
 			}
 		}
 
-		$validation_result = SCD_Validation::validate( $_POST, 'campaign_complete' );
+		$validation_result = WSSCD_Validation::validate( $sanitized_post, 'campaign_complete' );
 		if ( is_wp_error( $validation_result ) ) {
 			// Convert WP_Error to array format expected by handle_validation_errors
 			$errors = array();
 			foreach ( $validation_result->get_error_codes() as $code ) {
 				$errors[ $code ] = $validation_result->get_error_messages( $code );
 			}
-			$this->handle_validation_errors( $errors, $campaign_id );
+			$this->handle_validation_errors( $errors, $campaign_id, $sanitized_post );
 			return;
 		}
 
 		try {
-			$campaign_data = $this->prepare_campaign_data( $_POST );
+			$campaign_data = $this->prepare_campaign_data( $sanitized_post );
 
 			if ( $campaign_id ) {
 				$result = $this->campaign_manager->update_campaign( $campaign_id, $campaign_data );
@@ -129,7 +140,7 @@ class SCD_Campaign_Edit_Controller extends SCD_Abstract_Campaign_Controller {
 
 			if ( $result ) {
 				$this->redirect_with_message(
-					admin_url( 'admin.php?page=scd-campaigns&action=edit&id=' . $campaign_id ),
+					admin_url( 'admin.php?page=wsscd-campaigns&action=edit&id=' . $campaign_id ),
 					__( 'Campaign saved successfully.', 'smart-cycle-discounts' ),
 					'success'
 				);
@@ -154,10 +165,10 @@ class SCD_Campaign_Edit_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Check if user can edit campaign.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   bool                         True if can edit.
 	 */
-	private function can_edit_campaign( SCD_Campaign $campaign ): bool {
+	private function can_edit_campaign( WSSCD_Campaign $campaign ): bool {
 		$current_user_id = get_current_user_id();
 
 		// Administrators can edit any campaign
@@ -165,11 +176,11 @@ class SCD_Campaign_Edit_Controller extends SCD_Abstract_Campaign_Controller {
 			return true;
 		}
 
-		if ( $this->check_capability( 'scd_edit_campaigns' ) ) {
+		if ( $this->check_capability( 'wsscd_edit_campaigns' ) ) {
 			return $campaign->get_created_by() === $current_user_id;
 		}
 
-		if ( $this->check_capability( 'scd_edit_own_campaigns' ) ) {
+		if ( $this->check_capability( 'wsscd_edit_own_campaigns' ) ) {
 			return $campaign->get_created_by() === $current_user_id;
 		}
 
@@ -223,22 +234,23 @@ class SCD_Campaign_Edit_Controller extends SCD_Abstract_Campaign_Controller {
 	 * @since    1.0.0
 	 * @param    array $errors         Validation errors.
 	 * @param    int   $campaign_id    Campaign ID.
+	 * @param    array $form_data      Sanitized form data to preserve.
 	 * @return   void
 	 */
-	private function handle_validation_errors( array $errors, int $campaign_id ): void {
+	private function handle_validation_errors( array $errors, int $campaign_id, array $form_data = array() ): void {
 		foreach ( $errors as $field => $messages ) {
 			foreach ( $messages as $message ) {
 				$this->add_notice( $message, 'error' );
 			}
 		}
 
-		// Preserve form data
-		$this->cache->set( 'scd_campaign_form_data', $_POST, 60 );
+		// Preserve sanitized form data.
+		$this->cache->set( 'wsscd_campaign_form_data', $form_data, 60 );
 
 		// Redirect back to edit page
 		$url = $campaign_id
-			? admin_url( 'admin.php?page=scd-campaigns&action=edit&id=' . $campaign_id )
-			: admin_url( 'admin.php?page=scd-campaigns&action=new' );
+			? admin_url( 'admin.php?page=wsscd-campaigns&action=edit&id=' . $campaign_id )
+			: admin_url( 'admin.php?page=wsscd-campaigns&action=wizard&intent=new' );
 
 		wp_safe_redirect( $url );
 		exit;
@@ -248,13 +260,13 @@ class SCD_Campaign_Edit_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Render the edit form.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign|null $campaign    Campaign object or null for new.
+	 * @param    WSSCD_Campaign|null $campaign    Campaign object or null for new.
 	 * @return   void
 	 */
-	private function render( ?SCD_Campaign $campaign ): void {
-		$form_data = $this->cache->get( 'scd_campaign_form_data' );
+	private function render( ?WSSCD_Campaign $campaign ): void {
+		$form_data = $this->cache->get( 'wsscd_campaign_form_data' );
 		if ( $form_data ) {
-			$this->cache->delete( 'scd_campaign_form_data' );
+			$this->cache->delete( 'wsscd_campaign_form_data' );
 		}
 
 		$this->view_renderer->render_edit_form( $campaign, $form_data ?: array() );

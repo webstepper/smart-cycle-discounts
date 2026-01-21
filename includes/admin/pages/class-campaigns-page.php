@@ -22,13 +22,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since      1.0.0
  */
-class SCD_Campaigns_Page {
+class WSSCD_Campaigns_Page {
 
 	/**
 	 * Service container.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Container
+	 * @var      WSSCD_Container
 	 */
 	private $container;
 
@@ -36,7 +36,7 @@ class SCD_Campaigns_Page {
 	 * List controller.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Campaign_List_Controller|null
+	 * @var      WSSCD_Campaign_List_Controller|null
 	 */
 	private $list_controller = null;
 
@@ -44,7 +44,7 @@ class SCD_Campaigns_Page {
 	 * Edit controller.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Campaign_Edit_Controller|null
+	 * @var      WSSCD_Campaign_Edit_Controller|null
 	 */
 	private $edit_controller = null;
 
@@ -52,7 +52,7 @@ class SCD_Campaigns_Page {
 	 * Wizard controller.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Campaign_Wizard_Controller|null
+	 * @var      WSSCD_Campaign_Wizard_Controller|null
 	 */
 	private $wizard_controller = null;
 
@@ -60,7 +60,7 @@ class SCD_Campaigns_Page {
 	 * Action handler.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Campaign_Action_Handler|null
+	 * @var      WSSCD_Campaign_Action_Handler|null
 	 */
 	private $action_handler = null;
 
@@ -68,7 +68,7 @@ class SCD_Campaigns_Page {
 	 * Initialize the page.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Container $container    Service container.
+	 * @param    WSSCD_Container $container    Service container.
 	 */
 	public function __construct( $container ) {
 		$this->container = $container;
@@ -78,7 +78,7 @@ class SCD_Campaigns_Page {
 	 * Get list controller.
 	 *
 	 * @since    1.0.0
-	 * @return   SCD_Campaign_List_Controller
+	 * @return   WSSCD_Campaign_List_Controller
 	 */
 	private function get_list_controller() {
 		if ( ! $this->list_controller ) {
@@ -91,7 +91,7 @@ class SCD_Campaigns_Page {
 	 * Get edit controller.
 	 *
 	 * @since    1.0.0
-	 * @return   SCD_Campaign_Edit_Controller
+	 * @return   WSSCD_Campaign_Edit_Controller
 	 */
 	private function get_edit_controller() {
 		if ( ! $this->edit_controller ) {
@@ -104,18 +104,18 @@ class SCD_Campaigns_Page {
 	 * Get wizard controller.
 	 *
 	 * @since    1.0.0
-	 * @return   SCD_Campaign_Wizard_Controller
+	 * @return   WSSCD_Campaign_Wizard_Controller
 	 */
 	private function get_wizard_controller() {
 		if ( ! $this->wizard_controller ) {
-			if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
+			if ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) {
 			}
 			try {
 				$this->wizard_controller = $this->container->get( 'campaign_wizard_controller' );
-				if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
+				if ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) {
 				}
 			} catch ( Throwable $e ) {
-				if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
+				if ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) {
 				}
 				throw $e;
 			}
@@ -127,7 +127,7 @@ class SCD_Campaigns_Page {
 	 * Get action handler.
 	 *
 	 * @since    1.0.0
-	 * @return   SCD_Campaign_Action_Handler
+	 * @return   WSSCD_Campaign_Action_Handler
 	 */
 	private function get_action_handler() {
 		if ( ! $this->action_handler ) {
@@ -139,19 +139,31 @@ class SCD_Campaigns_Page {
 	/**
 	 * Render the page.
 	 *
+	 * SECURITY: This method ONLY reads URL params for routing purposes (determining which view to render).
+	 * No data is processed or saved here. Each action handler (edit, delete, etc.) verifies nonces before processing.
+	 * Capability is checked at start for defense in depth. Menu registration already enforces access.
+	 *
 	 * @since    1.0.0
 	 * @return   void
 	 */
 	public function render() {
-		$action = isset( $_GET['action'] ) ? $_GET['action'] : 'list';
+		// Defense in depth: verify user has capability to view campaigns.
+		// Menu registration already enforces this, but we check again for safety.
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'smart-cycle-discounts' ) );
+		}
 
-		// Debug logging
-		if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- URL param used for page routing only. Capability checked above. Each action handler verifies nonces.
+		$action = isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : 'list';
+
+		// Debug logging.
+		if ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) {
 		}
 
 		switch ( $action ) {
 			case 'edit':
 				$campaign_id = isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0;
+				// phpcs:enable WordPress.Security.NonceVerification.Recommended
 				if ( $campaign_id ) {
 					$this->get_edit_controller()->handle( $campaign_id );
 				} else {
@@ -164,15 +176,15 @@ class SCD_Campaigns_Page {
 				break;
 
 			case 'wizard':
-				if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
+				if ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) {
 				}
 				try {
 					$wizard_controller = $this->get_wizard_controller();
-					if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
+					if ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) {
 					}
 					$wizard_controller->handle();
 				} catch ( Throwable $e ) {
-					if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
+					if ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) {
 					}
 					throw $e;
 				}
@@ -217,10 +229,10 @@ class SCD_Campaigns_Page {
 				break;
 
 			case 'currency-review':
-				require_once SCD_INCLUDES_DIR . 'admin/pages/class-currency-review-page.php';
-				require_once SCD_INCLUDES_DIR . 'core/services/class-currency-change-service.php';
-				$currency_service     = new SCD_Currency_Change_Service( $this->container->get( 'campaign_repository' ) );
-				$currency_review_page = new SCD_Currency_Review_Page( $currency_service );
+				require_once WSSCD_INCLUDES_DIR . 'admin/pages/class-currency-review-page.php';
+				require_once WSSCD_INCLUDES_DIR . 'core/services/class-currency-change-service.php';
+				$currency_service     = new WSSCD_Currency_Change_Service( $this->container->get( 'campaign_repository' ) );
+				$currency_review_page = new WSSCD_Currency_Review_Page( $currency_service );
 				$currency_review_page->render_page();
 				break;
 
@@ -248,7 +260,7 @@ class SCD_Campaigns_Page {
 	 * @return   void
 	 */
 	private function redirect_to_list() {
-		wp_safe_redirect( admin_url( 'admin.php?page=scd-campaigns' ) );
+		wp_safe_redirect( admin_url( 'admin.php?page=wsscd-campaigns' ) );
 		exit;
 	}
 }

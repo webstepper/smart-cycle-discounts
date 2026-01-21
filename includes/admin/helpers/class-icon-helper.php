@@ -29,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/helpers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Icon_Helper {
+class WSSCD_Icon_Helper {
 
 	/**
 	 * SVG icon library.
@@ -50,6 +50,7 @@ class SCD_Icon_Helper {
 		// Actions
 		'check'       => '<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>',
 		'yes'         => '<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>',
+		'yes-alt'     => '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>',
 		'close'       => '<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>',
 		'dismiss'     => '<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>',
 		'add'         => '<path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>',
@@ -166,7 +167,62 @@ class SCD_Icon_Helper {
 	);
 
 	/**
+	 * Get allowed HTML tags for SVG icons (for wp_kses).
+	 *
+	 * @since    1.0.0
+	 * @return   array    Allowed HTML tags and attributes for SVG.
+	 */
+	public static function get_allowed_svg_tags() {
+		return array(
+			'svg'    => array(
+				'class'       => true,
+				'width'       => true,
+				'height'      => true,
+				'viewbox'     => true,
+				'fill'        => true,
+				'xmlns'       => true,
+				'style'       => true,
+				'aria-hidden' => true,
+				'aria-label'  => true,
+				'role'        => true,
+			),
+			'path'   => array(
+				'd'    => true,
+				'fill' => true,
+			),
+			'circle' => array(
+				'cx'   => true,
+				'cy'   => true,
+				'r'    => true,
+				'fill' => true,
+			),
+			'rect'   => array(
+				'x'      => true,
+				'y'      => true,
+				'width'  => true,
+				'height' => true,
+				'fill'   => true,
+			),
+		);
+	}
+
+	/**
+	 * Get allowed HTML tags including SVG for use with wp_kses.
+	 *
+	 * Merges standard post allowed tags with SVG tags.
+	 * Use this when escaping HTML that contains SVG icons.
+	 *
+	 * @since    1.0.0
+	 * @return   array    Combined allowed HTML tags.
+	 */
+	public static function get_allowed_html_with_svg() {
+		return array_merge( wp_kses_allowed_html( 'post' ), self::get_allowed_svg_tags() );
+	}
+
+	/**
 	 * Get an SVG icon.
+	 *
+	 * Returns escaped SVG HTML safe for direct output.
 	 *
 	 * @since    1.0.0
 	 * @param    string $name    Icon name.
@@ -180,7 +236,7 @@ class SCD_Icon_Helper {
 	 *     @type bool   $aria_hidden      Whether to hide from screen readers. Default true.
 	 *     @type bool   $no_inline_style  Disable inline styles (use CSS instead). Default false.
 	 * }
-	 * @return   string    SVG icon HTML.
+	 * @return   string    Escaped SVG icon HTML (safe for direct output).
 	 */
 	public static function get( $name, $args = array() ) {
 		// Return empty if icon doesn't exist
@@ -200,7 +256,7 @@ class SCD_Icon_Helper {
 		$args = wp_parse_args( $args, $defaults );
 
 		// Build classes
-		$classes = array( 'scd-icon', 'scd-icon--' . esc_attr( $name ) );
+		$classes = array( 'wsscd-icon', 'wsscd-icon--' . esc_attr( $name ) );
 		if ( ! empty( $args['class'] ) ) {
 			$classes[] = esc_attr( $args['class'] );
 		}
@@ -235,23 +291,28 @@ class SCD_Icon_Helper {
 		foreach ( $attributes as $key => $value ) {
 			if ( is_bool( $value ) ) {
 				if ( $value ) {
-					$attr_string .= ' ' . $key;
+					$attr_string .= ' ' . esc_attr( $key );
 				}
 			} else {
-				$attr_string .= sprintf( ' %s="%s"', $key, $value );
+				$attr_string .= sprintf( ' %s="%s"', esc_attr( $key ), esc_attr( $value ) );
 			}
 		}
 
-		// Build SVG
-		return sprintf(
+		// Build SVG and return escaped
+		$svg = sprintf(
 			'<svg%s>%s</svg>',
 			$attr_string,
 			self::$icons[ $name ]
 		);
+
+		return wp_kses( $svg, self::get_allowed_svg_tags() );
 	}
 
 	/**
 	 * Render an SVG icon (echo).
+	 *
+	 * Output is pre-escaped via wp_kses in get() method with custom SVG whitelist.
+	 * We cannot use wp_kses_post() here as it strips SVG tags.
 	 *
 	 * @since    1.0.0
 	 * @param    string $name    Icon name.
@@ -259,7 +320,7 @@ class SCD_Icon_Helper {
 	 * @return   void
 	 */
 	public static function render( $name, $args = array() ) {
-		echo self::get( $name, $args ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		WSSCD_HTML_Helper::output( self::get( $name, $args ) );
 	}
 
 	/**

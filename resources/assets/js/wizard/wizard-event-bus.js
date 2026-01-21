@@ -13,22 +13,22 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	window.SCD.Wizard = window.SCD.Wizard || {};
+	window.WSSCD = window.WSSCD || {};
+	window.WSSCD.Wizard = window.WSSCD.Wizard || {};
 
 	/**
 	 * Event Bus
 	 *
 	 * Manages all wizard events with namespacing and cleanup
 	 */
-	window.SCD.Wizard.EventBus = {
+	window.WSSCD.Wizard.EventBus = {
 		// Event namespaces
 		namespaces: {
-			wizard: 'scd-wizard',
-			steps: 'scd-wizard-steps',
-			validation: 'scd-wizard-validation',
-			ajax: 'scd-wizard-ajax',
-			ui: 'scd-wizard-ui'
+			wizard: 'wsscd-wizard',
+			steps: 'wsscd-wizard-steps',
+			validation: 'wsscd-wizard-validation',
+			ajax: 'wsscd-wizard-ajax',
+			ui: 'wsscd-wizard-ui'
 		},
 
 		// Registered events
@@ -287,7 +287,7 @@
 			// Monitor performance
 			if ( window.performance && window.performance.mark ) {
 				this.on( '*', function( e, _data ) {
-					window.performance.mark( 'scd-event-' + e.type );
+					window.performance.mark( 'wsscd-event-' + e.type );
 				} );
 			}
 		},
@@ -350,6 +350,6 @@
 	};
 
 	// Trigger service ready event
-	$( document ).trigger( 'scd:service:ready', [ 'EventBus' ] );
+	$( document ).trigger( 'wsscd:service:ready', [ 'EventBus' ] );
 
 } )( jQuery );

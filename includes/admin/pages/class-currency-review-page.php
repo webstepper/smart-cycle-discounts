@@ -36,14 +36,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/pages
  */
-class SCD_Currency_Review_Page {
+class WSSCD_Currency_Review_Page {
 
 	/**
 	 * Currency change service instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Currency_Change_Service    $currency_service    Currency service.
+	 * @var      WSSCD_Currency_Change_Service    $currency_service    Currency service.
 	 */
 	private $currency_service;
 
@@ -51,7 +51,7 @@ class SCD_Currency_Review_Page {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Currency_Change_Service $currency_service    Currency service instance.
+	 * @param    WSSCD_Currency_Change_Service $currency_service    Currency service instance.
 	 */
 	public function __construct( $currency_service = null ) {
 		$this->currency_service = $currency_service;
@@ -67,7 +67,7 @@ class SCD_Currency_Review_Page {
 		add_action( 'admin_menu', array( $this, 'add_currency_review_notice' ), 100 );
 
 		// Register AJAX handlers
-		add_action( 'wp_ajax_scd_currency_review_action', array( $this, 'handle_review_action' ) );
+		add_action( 'wp_ajax_wsscd_currency_review_action', array( $this, 'handle_review_action' ) );
 	}
 
 	/**
@@ -78,8 +78,8 @@ class SCD_Currency_Review_Page {
 	 */
 	public function add_currency_review_notice() {
 		if ( ! $this->currency_service ) {
-			require_once SCD_INCLUDES_DIR . 'core/services/class-currency-change-service.php';
-			$this->currency_service = new SCD_Currency_Change_Service();
+			require_once WSSCD_INCLUDES_DIR . 'core/services/class-currency-change-service.php';
+			$this->currency_service = new WSSCD_Currency_Change_Service();
 		}
 
 		$needing_review = $this->currency_service->get_campaigns_needing_review();
@@ -99,13 +99,12 @@ class SCD_Currency_Review_Page {
 	public function add_menu_badge_script() {
 		$needing_review = $this->currency_service->get_campaigns_needing_review();
 		$count          = count( $needing_review );
-		?>
-		<script>
-		jQuery(document).ready(function($) {
-			$('a[href*="page=scd-campaigns"]').first().append(' <span class="update-plugins"><span class="plugin-count"><?php echo esc_js( $count ); ?></span></span>');
-		});
-		</script>
-		<?php
+
+		// Use wp_add_inline_script for WordPress.org compliance
+		$script = 'jQuery(document).ready(function($) {' .
+			'$("a[href*=\"page=wsscd-campaigns\"]").first().append(" <span class=\"update-plugins\"><span class=\"plugin-count\">' . esc_js( $count ) . '</span></span>");' .
+			'});';
+		wp_add_inline_script( 'jquery-core', $script );
 	}
 
 	/**
@@ -116,8 +115,8 @@ class SCD_Currency_Review_Page {
 	 */
 	public function render_page() {
 		if ( ! $this->currency_service ) {
-			require_once SCD_INCLUDES_DIR . 'core/services/class-currency-change-service.php';
-			$this->currency_service = new SCD_Currency_Change_Service();
+			require_once WSSCD_INCLUDES_DIR . 'core/services/class-currency-change-service.php';
+			$this->currency_service = new WSSCD_Currency_Change_Service();
 		}
 
 		$campaigns = $this->currency_service->get_campaigns_needing_review();
@@ -130,7 +129,7 @@ class SCD_Currency_Review_Page {
 		$current_currency = get_woocommerce_currency();
 		$current_symbol   = get_woocommerce_currency_symbol();
 
-		include SCD_PLUGIN_DIR . 'resources/views/admin/pages/currency-review.php';
+		include WSSCD_PLUGIN_DIR . 'resources/views/admin/pages/currency-review.php';
 	}
 
 	/**
@@ -141,7 +140,7 @@ class SCD_Currency_Review_Page {
 	 */
 	private function render_no_campaigns_message() {
 		?>
-		<div class="scd-currency-review-empty">
+		<div class="wsscd-currency-review-empty">
 			<div class="notice notice-success inline">
 				<p>
 					<strong><?php esc_html_e( 'All Clear!', 'smart-cycle-discounts' ); ?></strong>
@@ -167,17 +166,21 @@ class SCD_Currency_Review_Page {
 	 * @return   void
 	 */
 	public function handle_review_action() {
-		// Verify nonce
-		if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], 'scd_currency_review' ) ) {
+		// Verify nonce.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce is being extracted for verification on next line.
+		$nonce = isset( $_POST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'wsscd_currency_review' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Security check failed', 'smart-cycle-discounts' ) ) );
 		}
 
-		// Verify permissions
+		// Verify permissions.
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Permission denied', 'smart-cycle-discounts' ) ) );
 		}
 
-		$action      = isset( $_POST['review_action'] ) ? sanitize_text_field( $_POST['review_action'] ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above.
+		$action      = isset( $_POST['review_action'] ) ? sanitize_text_field( wp_unslash( $_POST['review_action'] ) ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above.
 		$campaign_id = isset( $_POST['campaign_id'] ) ? intval( $_POST['campaign_id'] ) : 0;
 
 		if ( ! $campaign_id ) {
@@ -185,8 +188,8 @@ class SCD_Currency_Review_Page {
 		}
 
 		if ( ! $this->currency_service ) {
-			require_once SCD_INCLUDES_DIR . 'core/services/class-currency-change-service.php';
-			$this->currency_service = new SCD_Currency_Change_Service();
+			require_once WSSCD_INCLUDES_DIR . 'core/services/class-currency-change-service.php';
+			$this->currency_service = new WSSCD_Currency_Change_Service();
 		}
 
 		// Handle action
@@ -230,7 +233,7 @@ class SCD_Currency_Review_Page {
 		$success = $this->currency_service->restore_campaign_status( $campaign_id );
 
 		if ( $success ) {
-			do_action( 'scd_currency_review_approved', $campaign_id );
+			do_action( 'wsscd_currency_review_approved', $campaign_id );
 		}
 
 		return $success;
@@ -247,7 +250,7 @@ class SCD_Currency_Review_Page {
 		$success = $this->currency_service->clear_review_flag( $campaign_id );
 
 		if ( $success ) {
-			do_action( 'scd_currency_review_marked', $campaign_id );
+			do_action( 'wsscd_currency_review_marked', $campaign_id );
 		}
 
 		return $success;
@@ -261,8 +264,8 @@ class SCD_Currency_Review_Page {
 	 * @return   bool                   True on success.
 	 */
 	private function archive_campaign( $campaign_id ) {
-		require_once SCD_INCLUDES_DIR . 'database/repositories/class-campaign-repository.php';
-		$repository = new SCD_Campaign_Repository();
+		require_once WSSCD_INCLUDES_DIR . 'database/repositories/class-campaign-repository.php';
+		$repository = new WSSCD_Campaign_Repository();
 
 		try {
 			$campaign = $repository->find_by_id( $campaign_id );
@@ -278,13 +281,14 @@ class SCD_Currency_Review_Page {
 
 			$repository->update( $campaign );
 
-			do_action( 'scd_currency_review_archived', $campaign_id );
+			do_action( 'wsscd_currency_review_archived', $campaign_id );
 
 			return true;
 		} catch ( Exception $e ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Logging error in production is acceptable for debugging issues.
 			error_log(
 				sprintf(
-					'[SCD Currency Review] Failed to archive campaign #%d: %s',
+					'[WSSCD Currency Review] Failed to archive campaign #%d: %s',
 					$campaign_id,
 					$e->getMessage()
 				)

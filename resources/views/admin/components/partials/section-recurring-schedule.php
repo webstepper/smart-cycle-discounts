@@ -11,6 +11,8 @@
  * @since      1.0.0
  */
 
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial included into function scope; variables are local, not global.
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
@@ -18,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Show message if recurring is not enabled
 if ( empty( $data['enabled'] ) ) :
 	?>
-	<div class="scd-no-data">
+	<div class="wsscd-no-data">
 		<p><?php esc_html_e( 'This campaign does not use recurring scheduling.', 'smart-cycle-discounts' ); ?></p>
 	</div>
 	<?php
@@ -33,14 +35,14 @@ if ( $is_parent ) :
 	?>
 
 	<!-- Status -->
-	<div class="scd-field-row">
-		<div class="scd-field-label"><?php esc_html_e( 'Status', 'smart-cycle-discounts' ); ?></div>
-		<div class="scd-field-value">
+	<div class="wsscd-field-row">
+		<div class="wsscd-field-label"><?php esc_html_e( 'Status', 'smart-cycle-discounts' ); ?></div>
+		<div class="wsscd-field-value">
 			<?php
 			if ( ! empty( $data['is_active'] ) ) {
-				echo SCD_Badge_Helper::status_badge( 'active', __( 'Active', 'smart-cycle-discounts' ) );
+								echo wp_kses_post( WSSCD_Badge_Helper::status_badge( 'active', __( 'Active', 'smart-cycle-discounts' ) ) );
 			} else {
-				echo SCD_Badge_Helper::status_badge( 'paused', __( 'Stopped', 'smart-cycle-discounts' ) );
+								echo wp_kses_post( WSSCD_Badge_Helper::status_badge( 'paused', __( 'Stopped', 'smart-cycle-discounts' ) ) );
 			}
 			?>
 		</div>
@@ -48,17 +50,17 @@ if ( $is_parent ) :
 
 	<!-- Pattern -->
 	<?php if ( ! empty( $data['pattern_label'] ) ) : ?>
-	<div class="scd-field-row">
-		<div class="scd-field-label"><?php esc_html_e( 'Recurrence Pattern', 'smart-cycle-discounts' ); ?></div>
-		<div class="scd-field-value"><?php echo esc_html( $data['pattern_label'] ); ?></div>
+	<div class="wsscd-field-row">
+		<div class="wsscd-field-label"><?php esc_html_e( 'Recurrence Pattern', 'smart-cycle-discounts' ); ?></div>
+		<div class="wsscd-field-value"><?php echo esc_html( $data['pattern_label'] ); ?></div>
 	</div>
 	<?php endif; ?>
 
 	<!-- Interval (if applicable) -->
 	<?php if ( ! empty( $data['interval'] ) && $data['interval'] > 1 ) : ?>
-	<div class="scd-field-row">
-		<div class="scd-field-label"><?php esc_html_e( 'Interval', 'smart-cycle-discounts' ); ?></div>
-		<div class="scd-field-value">
+	<div class="wsscd-field-row">
+		<div class="wsscd-field-label"><?php esc_html_e( 'Interval', 'smart-cycle-discounts' ); ?></div>
+		<div class="wsscd-field-value">
 			<?php
 			/* translators: %d: interval number */
 			echo esc_html( sprintf( _n( 'Every %d day', 'Every %d days', $data['interval'], 'smart-cycle-discounts' ), $data['interval'] ) );
@@ -69,9 +71,9 @@ if ( $is_parent ) :
 
 	<!-- Next Occurrence -->
 	<?php if ( ! empty( $data['next_occurrence_formatted'] ) ) : ?>
-	<div class="scd-field-row">
-		<div class="scd-field-label"><?php esc_html_e( 'Next Occurrence', 'smart-cycle-discounts' ); ?></div>
-		<div class="scd-field-value">
+	<div class="wsscd-field-row">
+		<div class="wsscd-field-label"><?php esc_html_e( 'Next Occurrence', 'smart-cycle-discounts' ); ?></div>
+		<div class="wsscd-field-value">
 			<strong><?php echo esc_html( $data['next_occurrence_formatted'] ); ?></strong>
 			<?php if ( ! empty( $data['next_occurrence_relative'] ) ) : ?>
 				<br>
@@ -85,9 +87,9 @@ if ( $is_parent ) :
 		</div>
 	</div>
 	<?php elseif ( ! empty( $data['is_active'] ) ) : ?>
-	<div class="scd-field-row">
-		<div class="scd-field-label"><?php esc_html_e( 'Next Occurrence', 'smart-cycle-discounts' ); ?></div>
-		<div class="scd-field-value">
+	<div class="wsscd-field-row">
+		<div class="wsscd-field-label"><?php esc_html_e( 'Next Occurrence', 'smart-cycle-discounts' ); ?></div>
+		<div class="wsscd-field-value">
 			<span style="color: #d63638;"><?php esc_html_e( 'None scheduled', 'smart-cycle-discounts' ); ?></span>
 		</div>
 	</div>
@@ -95,17 +97,17 @@ if ( $is_parent ) :
 
 	<!-- Recurrence End Date -->
 	<?php if ( ! empty( $data['recurrence_end_formatted'] ) ) : ?>
-	<div class="scd-field-row">
-		<div class="scd-field-label"><?php esc_html_e( 'End Date', 'smart-cycle-discounts' ); ?></div>
-		<div class="scd-field-value"><?php echo esc_html( $data['recurrence_end_formatted'] ); ?></div>
+	<div class="wsscd-field-row">
+		<div class="wsscd-field-label"><?php esc_html_e( 'End Date', 'smart-cycle-discounts' ); ?></div>
+		<div class="wsscd-field-value"><?php echo esc_html( $data['recurrence_end_formatted'] ); ?></div>
 	</div>
 	<?php endif; ?>
 
 	<!-- Occurrence Count Limit -->
 	<?php if ( ! empty( $data['recurrence_count'] ) ) : ?>
-	<div class="scd-field-row">
-		<div class="scd-field-label"><?php esc_html_e( 'Max Occurrences', 'smart-cycle-discounts' ); ?></div>
-		<div class="scd-field-value">
+	<div class="wsscd-field-row">
+		<div class="wsscd-field-label"><?php esc_html_e( 'Max Occurrences', 'smart-cycle-discounts' ); ?></div>
+		<div class="wsscd-field-value">
 			<?php
 			$current    = isset( $data['occurrence_number'] ) ? intval( $data['occurrence_number'] ) : 0;
 			$max        = intval( $data['recurrence_count'] );
@@ -118,9 +120,9 @@ if ( $is_parent ) :
 
 	<!-- Child Campaigns Count -->
 	<?php if ( isset( $data['child_campaigns_count'] ) && $data['child_campaigns_count'] > 0 ) : ?>
-	<div class="scd-field-row">
-		<div class="scd-field-label"><?php esc_html_e( 'Child Campaigns', 'smart-cycle-discounts' ); ?></div>
-		<div class="scd-field-value">
+	<div class="wsscd-field-row">
+		<div class="wsscd-field-label"><?php esc_html_e( 'Child Campaigns', 'smart-cycle-discounts' ); ?></div>
+		<div class="wsscd-field-value">
 			<?php
 			/* translators: %d: number of child campaigns */
 			echo esc_html( sprintf( _n( '%d campaign created', '%d campaigns created', $data['child_campaigns_count'], 'smart-cycle-discounts' ), $data['child_campaigns_count'] ) );
@@ -131,9 +133,9 @@ if ( $is_parent ) :
 
 	<!-- Last Error (if any) -->
 	<?php if ( ! empty( $data['last_error'] ) ) : ?>
-	<div class="scd-field-row">
-		<div class="scd-field-label"><?php esc_html_e( 'Last Error', 'smart-cycle-discounts' ); ?></div>
-		<div class="scd-field-value">
+	<div class="wsscd-field-row">
+		<div class="wsscd-field-label"><?php esc_html_e( 'Last Error', 'smart-cycle-discounts' ); ?></div>
+		<div class="wsscd-field-value">
 			<span style="color: #d63638;"><?php echo esc_html( $data['last_error'] ); ?></span>
 		</div>
 	</div>
@@ -145,9 +147,9 @@ else :
 	?>
 
 	<!-- Parent Campaign -->
-	<div class="scd-field-row">
-		<div class="scd-field-label"><?php esc_html_e( 'Parent Campaign', 'smart-cycle-discounts' ); ?></div>
-		<div class="scd-field-value">
+	<div class="wsscd-field-row">
+		<div class="wsscd-field-label"><?php esc_html_e( 'Parent Campaign', 'smart-cycle-discounts' ); ?></div>
+		<div class="wsscd-field-value">
 			<?php if ( ! empty( $data['parent_campaign_name'] ) ) : ?>
 				<strong><?php echo esc_html( $data['parent_campaign_name'] ); ?></strong>
 				<?php if ( ! empty( $data['parent_campaign_id'] ) ) : ?>
@@ -170,9 +172,9 @@ else :
 
 	<!-- Occurrence Number -->
 	<?php if ( ! empty( $data['occurrence_number'] ) ) : ?>
-	<div class="scd-field-row">
-		<div class="scd-field-label"><?php esc_html_e( 'Occurrence', 'smart-cycle-discounts' ); ?></div>
-		<div class="scd-field-value">
+	<div class="wsscd-field-row">
+		<div class="wsscd-field-label"><?php esc_html_e( 'Occurrence', 'smart-cycle-discounts' ); ?></div>
+		<div class="wsscd-field-value">
 			<?php
 			/* translators: %d: occurrence number */
 			echo esc_html( sprintf( __( '#%d', 'smart-cycle-discounts' ), $data['occurrence_number'] ) );
@@ -182,10 +184,12 @@ else :
 	<?php endif; ?>
 
 	<!-- Type Badge -->
-	<div class="scd-field-row">
-		<div class="scd-field-label"><?php esc_html_e( 'Type', 'smart-cycle-discounts' ); ?></div>
-		<div class="scd-field-value">
-			<?php echo SCD_Badge_Helper::info_badge( __( 'Recurring Child', 'smart-cycle-discounts' ) ); ?>
+	<div class="wsscd-field-row">
+		<div class="wsscd-field-label"><?php esc_html_e( 'Type', 'smart-cycle-discounts' ); ?></div>
+		<div class="wsscd-field-value">
+			<?php
+						echo wp_kses_post( WSSCD_Badge_Helper::info_badge( __( 'Recurring Child', 'smart-cycle-discounts' ) ) );
+			?>
 		</div>
 	</div>
 

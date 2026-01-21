@@ -2,6 +2,12 @@
 /**
  * Send Test Email Handler Class
  *
+ * Contains test email HTML template with inline CSS. Email clients (Gmail, Outlook,
+ * Apple Mail, etc.) do NOT support external stylesheets. Inline CSS is REQUIRED
+ * for proper email rendering per industry standards.
+ *
+ * @see https://www.campaignmonitor.com/css/
+ *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers/class-send-test-email-handler.php
  * @author     Webstepper <contact@webstepper.io>
@@ -23,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Send_Test_Email_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Send_Test_Email_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Get AJAX action name.
@@ -32,7 +38,7 @@ class SCD_Send_Test_Email_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_send_test_email';
+		return 'wsscd_send_test_email';
 	}
 
 	/**
@@ -72,7 +78,7 @@ class SCD_Send_Test_Email_Handler extends SCD_Abstract_Ajax_Handler {
 				$from_name = get_bloginfo( 'name' );
 			}
 
-			$container = isset( $GLOBALS['scd_container'] ) ? $GLOBALS['scd_container'] : null;
+			$container = isset( $GLOBALS['wsscd_container'] ) ? $GLOBALS['wsscd_container'] : null;
 			if ( ! $container ) {
 				throw new Exception( __( 'Service container not initialized', 'smart-cycle-discounts' ) );
 			}
@@ -125,7 +131,8 @@ class SCD_Send_Test_Email_Handler extends SCD_Abstract_Ajax_Handler {
 			}
 
 			return $this->error(
-				$e->getMessage(),
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message is sanitized before JSON output.
+				esc_html( $e->getMessage() ),
 				'test_email_failed',
 				400
 			);
@@ -139,42 +146,44 @@ class SCD_Send_Test_Email_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @access   private
 	 * @param    string     $provider     Provider type.
 	 * @param    array      $settings     Provider settings.
-	 * @param    SCD_Logger $logger       Logger instance.
+	 * @param    WSSCD_Logger $logger       Logger instance.
 	 * @param    string     $from_email   From email address.
 	 * @param    string     $from_name    From name.
-	 * @return   SCD_Email_Provider           Provider instance.
+	 * @return   WSSCD_Email_Provider           Provider instance.
 	 * @throws   Exception                    If provider cannot be created.
 	 */
 	private function create_provider( $provider, $settings, $logger, $from_email, $from_name ) {
-		require_once SCD_INCLUDES_DIR . 'integrations/email/interface-email-provider.php';
+		require_once WSSCD_INCLUDES_DIR . 'integrations/email/interface-email-provider.php';
 
 		switch ( $provider ) {
 			case 'sendgrid':
-				require_once SCD_INCLUDES_DIR . 'integrations/email/providers/class-sendgrid-provider.php';
+				require_once WSSCD_INCLUDES_DIR . 'integrations/email/providers/class-sendgrid-provider.php';
 				$api_key = isset( $settings['sendgrid_api_key'] ) ? sanitize_text_field( $settings['sendgrid_api_key'] ) : '';
 
 				if ( empty( $api_key ) ) {
-					throw new Exception( __( 'SendGrid API key is required', 'smart-cycle-discounts' ) );
+					// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+					throw new Exception( esc_html__( 'SendGrid API key is required', 'smart-cycle-discounts' ) );
 				}
 
-				return new SCD_SendGrid_Provider( $logger, $api_key, $from_email, $from_name );
+				return new WSSCD_SendGrid_Provider( $logger, $api_key, $from_email, $from_name );
 
 			case 'amazonses':
-				require_once SCD_INCLUDES_DIR . 'integrations/email/providers/class-amazonses-provider.php';
+				require_once WSSCD_INCLUDES_DIR . 'integrations/email/providers/class-amazonses-provider.php';
 				$access_key = isset( $settings['amazonses_access_key'] ) ? sanitize_text_field( $settings['amazonses_access_key'] ) : '';
 				$secret_key = isset( $settings['amazonses_secret_key'] ) ? sanitize_text_field( $settings['amazonses_secret_key'] ) : '';
 				$region     = isset( $settings['amazonses_region'] ) ? sanitize_text_field( $settings['amazonses_region'] ) : 'us-east-1';
 
 				if ( empty( $access_key ) || empty( $secret_key ) ) {
-					throw new Exception( __( 'Amazon SES access and secret keys are required', 'smart-cycle-discounts' ) );
+					// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+					throw new Exception( esc_html__( 'Amazon SES access and secret keys are required', 'smart-cycle-discounts' ) );
 				}
 
-				return new SCD_AmazonSES_Provider( $logger, $access_key, $secret_key, $region, $from_email, $from_name );
+				return new WSSCD_AmazonSES_Provider( $logger, $access_key, $secret_key, $region, $from_email, $from_name );
 
 			case 'wpmail':
 			default:
-				require_once SCD_INCLUDES_DIR . 'integrations/email/providers/class-wpmail-provider.php';
-				return new SCD_WPMail_Provider( $logger, $from_email, $from_name );
+				require_once WSSCD_INCLUDES_DIR . 'integrations/email/providers/class-wpmail-provider.php';
+				return new WSSCD_WPMail_Provider( $logger, $from_email, $from_name );
 		}
 	}
 
@@ -205,6 +214,7 @@ class SCD_Send_Test_Email_Handler extends SCD_Abstract_Ajax_Handler {
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title><?php esc_html_e( 'Test Email', 'smart-cycle-discounts' ); ?></title>
+	<?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- Email template. Email clients do not support external stylesheets. ?>
 	<style type="text/css">
 		body {
 			margin: 0;
@@ -343,7 +353,7 @@ class SCD_Send_Test_Email_Handler extends SCD_Abstract_Ajax_Handler {
 
 		<div class="email-footer">
 			<p><?php esc_html_e( 'This is a test email from Smart Cycle Discounts', 'smart-cycle-discounts' ); ?></p>
-			<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-notifications&tab=settings' ) ); ?>"><?php esc_html_e( 'Manage notification settings', 'smart-cycle-discounts' ); ?></a></p>
+			<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=wsscd-notifications&tab=settings' ) ); ?>"><?php esc_html_e( 'Manage notification settings', 'smart-cycle-discounts' ); ?></a></p>
 		</div>
 	</div>
 </body>

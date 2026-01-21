@@ -232,6 +232,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 			<div class="alert-box">
 				<h3><?php esc_html_e( 'Stock Alert', 'smart-cycle-discounts' ); ?></h3>
+				<?php /* translators: %s: number of products with low stock */ ?>
 				<p><?php echo sprintf( esc_html__( '%s products in your campaign are running low on stock. Immediate action may be needed to avoid stockouts.', 'smart-cycle-discounts' ), '{total_low_stock}' ); ?></p>
 			</div>
 
@@ -255,7 +256,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 		<div class="email-footer">
 			<p><?php esc_html_e( 'This is an automated notification from Smart Cycle Discounts', 'smart-cycle-discounts' ); ?></p>
-			<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-notifications&tab=settings' ) ); ?>"><?php esc_html_e( 'Manage notification settings', 'smart-cycle-discounts' ); ?></a></p>
+			<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=wsscd-notifications&tab=settings' ) ); ?>"><?php esc_html_e( 'Manage notification settings', 'smart-cycle-discounts' ); ?></a></p>
 		</div>
 	</div>
 </body>

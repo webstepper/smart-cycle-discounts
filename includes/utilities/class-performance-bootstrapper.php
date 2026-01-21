@@ -27,16 +27,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/bootstrap
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Performance_Bootstrapper {
+class WSSCD_Performance_Bootstrapper {
 
 	/**
 	 * The loader instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Loader    $loader    The loader instance.
+	 * @var      WSSCD_Loader    $loader    The loader instance.
 	 */
-	private SCD_Loader $loader;
+	private WSSCD_Loader $loader;
 
 	/**
 	 * The container instance.
@@ -51,10 +51,10 @@ class SCD_Performance_Bootstrapper {
 	 * Initialize the bootstrapper.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Loader $loader       The loader instance.
+	 * @param    WSSCD_Loader $loader       The loader instance.
 	 * @param    object     $container    The container instance.
 	 */
-	public function __construct( SCD_Loader $loader, object $container ) {
+	public function __construct( WSSCD_Loader $loader, object $container ) {
 		$this->loader    = $loader;
 		$this->container = $container;
 	}
@@ -80,13 +80,13 @@ class SCD_Performance_Bootstrapper {
 	 */
 	private function load_dependencies(): void {
 		// Performance Optimizer
-		require_once SCD_INCLUDES_DIR . 'utilities/class-performance-optimizer.php';
+		require_once WSSCD_INCLUDES_DIR . 'utilities/class-performance-optimizer.php';
 
 		// Performance Monitor
-		require_once SCD_INCLUDES_DIR . 'utilities/class-performance-monitor.php';
+		require_once WSSCD_INCLUDES_DIR . 'utilities/class-performance-monitor.php';
 
 		// Reference Data Cache
-		require_once SCD_INCLUDES_DIR . 'cache/class-reference-data-cache.php';
+		require_once WSSCD_INCLUDES_DIR . 'cache/class-reference-data-cache.php';
 
 		// Performance classes are loaded via autoloader
 	}
@@ -104,7 +104,7 @@ class SCD_Performance_Bootstrapper {
 			$this->container->singleton(
 				'reference_data_cache',
 				function () {
-					return new SCD_Reference_Data_Cache();
+					return new WSSCD_Reference_Data_Cache();
 				}
 			);
 		}
@@ -123,7 +123,7 @@ class SCD_Performance_Bootstrapper {
 		// Initialize Performance Optimizer early
 		$this->loader->add_action( 'plugins_loaded', $this, 'init_performance_optimizer', 5 );
 
-		if ( get_option( 'scd_debug', false ) ) {
+		if ( get_option( 'wsscd_debug', false ) ) {
 			$this->loader->add_action( 'init', $this, 'start_performance_monitoring', 1 );
 			$this->loader->add_action( 'shutdown', $this, 'log_performance_report', 999 );
 			$this->loader->add_action( 'send_headers', $this, 'add_performance_headers' );
@@ -135,7 +135,7 @@ class SCD_Performance_Bootstrapper {
 		// AJAX handlers now handled by unified router
 
 		// Validation performance scripts are handled by the Asset Management System
-		// Scripts are conditionally loaded based on context through SCD_Asset_Loader
+		// Scripts are conditionally loaded based on context through WSSCD_Asset_Loader
 	}
 
 	/**
@@ -145,11 +145,11 @@ class SCD_Performance_Bootstrapper {
 	 * @return   void
 	 */
 	public function init_performance_optimizer(): void {
-		if ( class_exists( 'SCD_Performance_Optimizer' ) ) {
+		if ( class_exists( 'WSSCD_Performance_Optimizer' ) ) {
 			add_action(
 				'woocommerce_before_calculate_totals',
 				function () {
-					SCD_Performance_Optimizer::$is_calculating = true;
+					WSSCD_Performance_Optimizer::$is_calculating = true;
 				},
 				1
 			);
@@ -157,7 +157,7 @@ class SCD_Performance_Bootstrapper {
 			add_action(
 				'woocommerce_after_calculate_totals',
 				function () {
-					SCD_Performance_Optimizer::$is_calculating = false;
+					WSSCD_Performance_Optimizer::$is_calculating = false;
 				},
 				999
 			);
@@ -171,9 +171,9 @@ class SCD_Performance_Bootstrapper {
 	 * @return   void
 	 */
 	public function start_performance_monitoring(): void {
-		if ( class_exists( 'SCD_Performance_Monitor' ) ) {
-			SCD_Performance_Monitor::start_timer( 'page_load' );
-			SCD_Performance_Monitor::track_memory( 'init' );
+		if ( class_exists( 'WSSCD_Performance_Monitor' ) ) {
+			WSSCD_Performance_Monitor::start_timer( 'page_load' );
+			WSSCD_Performance_Monitor::track_memory( 'init' );
 		}
 	}
 
@@ -184,10 +184,10 @@ class SCD_Performance_Bootstrapper {
 	 * @return   void
 	 */
 	public function log_performance_report(): void {
-		if ( class_exists( 'SCD_Performance_Monitor' ) ) {
-			SCD_Performance_Monitor::stop_timer( 'page_load' );
-			SCD_Performance_Monitor::track_memory( 'shutdown' );
-			SCD_Performance_Monitor::log_report( 'page_load' );
+		if ( class_exists( 'WSSCD_Performance_Monitor' ) ) {
+			WSSCD_Performance_Monitor::stop_timer( 'page_load' );
+			WSSCD_Performance_Monitor::track_memory( 'shutdown' );
+			WSSCD_Performance_Monitor::log_report( 'page_load' );
 		}
 	}
 
@@ -198,8 +198,8 @@ class SCD_Performance_Bootstrapper {
 	 * @return   void
 	 */
 	public function add_performance_headers(): void {
-		if ( class_exists( 'SCD_Performance_Monitor' ) && ! headers_sent() ) {
-			SCD_Performance_Monitor::add_performance_headers();
+		if ( class_exists( 'WSSCD_Performance_Monitor' ) && ! headers_sent() ) {
+			WSSCD_Performance_Monitor::add_performance_headers();
 		}
 	}
 
@@ -228,32 +228,51 @@ class SCD_Performance_Bootstrapper {
 	 */
 	public function handle_validation_rules_batch(): void {
 		// Load AJAX security handler
-		require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
-		require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-scd-ajax-response.php';
+		require_once WSSCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
+		require_once WSSCD_PLUGIN_DIR . 'includes/admin/ajax/class-wsscd-ajax-response.php';
+
+		// Extract and sanitize security-relevant fields for verification.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Extracting nonce for verification.
+		$security_data = array(
+			'nonce'    => isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '',
+			'_wpnonce' => isset( $_POST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ) : '',
+		);
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		// Verify AJAX request security
-		$result = SCD_Ajax_Security::verify_ajax_request( 'scd_get_validation_rules_batch', $_POST );
+		$result = WSSCD_Ajax_Security::verify_ajax_request( 'wsscd_get_validation_rules_batch', $security_data );
 
 		if ( is_wp_error( $result ) ) {
-			SCD_AJAX_Response::wp_error( $result );
+			WSSCD_AJAX_Response::wp_error( $result );
 			return;
 		}
 
 		if ( $this->container->has( 'validation_rules_batch_handler' ) ) {
-			$handler  = $this->container->get( 'validation_rules_batch_handler' );
-			$response = $handler->handle( $_POST );
+			$handler = $this->container->get( 'validation_rules_batch_handler' );
+
+			// Ensure case converter is loaded for sanitization.
+			if ( ! class_exists( 'WSSCD_Case_Converter' ) ) {
+				require_once WSSCD_PLUGIN_DIR . 'includes/utilities/class-case-converter.php';
+			}
+
+			// Extract and sanitize only allowed fields - not the entire $_POST array.
+			// This addresses WordPress.org requirements to process only required fields.
+			$allowed_fields = WSSCD_Case_Converter::get_allowed_ajax_fields();
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above at line 243.
+			$sanitized_data = WSSCD_Case_Converter::extract_and_sanitize( $allowed_fields, $_POST );
+			$response       = $handler->handle( $sanitized_data );
 
 			if ( $response['success'] ) {
-				SCD_AJAX_Response::success( $response['data'] );
+				WSSCD_AJAX_Response::success( $response['data'] );
 			} else {
-				SCD_AJAX_Response::error(
+				WSSCD_AJAX_Response::error(
 					'batch_processing_failed',
 					isset( $response['data']['message'] ) ? $response['data']['message'] : __( 'Batch processing failed', 'smart-cycle-discounts' ),
 					$response['data']
 				);
 			}
 		} else {
-			SCD_AJAX_Response::error(
+			WSSCD_AJAX_Response::error(
 				'handler_not_available',
 				__( 'Batch handler not available', 'smart-cycle-discounts' )
 			);
@@ -270,12 +289,12 @@ class SCD_Performance_Bootstrapper {
 	 * @return   string             Version string.
 	 */
 	private function get_asset_version( string $file ): string {
-		$file_path = SCD_PLUGIN_DIR . $file;
+		$file_path = WSSCD_PLUGIN_DIR . $file;
 
 		if ( file_exists( $file_path ) ) {
-			return filemtime( $file_path ) ?: SCD_VERSION;
+			return filemtime( $file_path ) ?: WSSCD_VERSION;
 		}
 
-		return SCD_VERSION;
+		return WSSCD_VERSION;
 	}
 }

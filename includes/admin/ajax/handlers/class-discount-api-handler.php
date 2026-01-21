@@ -23,21 +23,21 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  */
-class SCD_Discount_API_Handler implements SCD_Ajax_Handler {
+class WSSCD_Discount_API_Handler implements WSSCD_Ajax_Handler {
 
-	// Removed: validation_service - using consolidated SCD_Validation class instead
+	// Removed: validation_service - using consolidated WSSCD_Validation class instead
 
 	/**
 	 * Discount engine
 	 *
-	 * @var SCD_Discount_Engine
+	 * @var WSSCD_Discount_Engine
 	 */
 	private $discount_engine;
 
 	/**
 	 * State service
 	 *
-	 * @var SCD_Wizard_State_Service
+	 * @var WSSCD_Wizard_State_Service
 	 */
 	private $state_service;
 
@@ -45,15 +45,15 @@ class SCD_Discount_API_Handler implements SCD_Ajax_Handler {
 	 * Constructor
 	 */
 	public function __construct() {
-		$container = SCD_Core_Container::get_instance();
+		$container = WSSCD_Core_Container::get_instance();
 
-		// Removed: validation_service - using consolidated SCD_Validation class instead
+		// Removed: validation_service - using consolidated WSSCD_Validation class instead
 		$this->state_service = $container->get( 'wizard.state_service' );
 
-		if ( ! class_exists( 'SCD_Discount_Engine' ) ) {
-			require_once SCD_INCLUDES_DIR . 'core/discounts/class-discount-engine.php';
+		if ( ! class_exists( 'WSSCD_Discount_Engine' ) ) {
+			require_once WSSCD_INCLUDES_DIR . 'core/discounts/class-discount-engine.php';
 		}
-		$this->discount_engine = new SCD_Discount_Engine();
+		$this->discount_engine = new WSSCD_Discount_Engine();
 	}
 
 	/**
@@ -74,7 +74,7 @@ class SCD_Discount_API_Handler implements SCD_Ajax_Handler {
 		}
 
 		$action = isset( $request['action'] ) ? sanitize_key( $request['action'] ) : '';
-		$action = str_replace( 'scd_', '', $action );
+		$action = str_replace( 'wsscd_', '', $action );
 
 		// Security: Whitelist of allowed actions
 		$allowed_actions = array( 'validate_discount_rules', 'get_discount_preview', 'calculate_discount_impact' );
@@ -108,9 +108,9 @@ class SCD_Discount_API_Handler implements SCD_Ajax_Handler {
 		// Defensive programming: ensure rules is an array
 		$rules = isset( $request['rules'] ) && is_array( $request['rules'] ) ? $request['rules'] : array();
 
-		// Use consolidated SCD_Validation class for validation
+		// Use consolidated WSSCD_Validation class for validation
 		$validation_context = 'wizard_discounts';
-		$validation_result  = SCD_Validation::validate( array( 'rules' => $rules ), $validation_context );
+		$validation_result  = WSSCD_Validation::validate( array( 'rules' => $rules ), $validation_context );
 
 		if ( is_wp_error( $validation_result ) ) {
 			return array(
@@ -216,10 +216,11 @@ class SCD_Discount_API_Handler implements SCD_Ajax_Handler {
 			),
 			'chart_data' => $this->prepare_chart_data( $impact ),
 			'message'    => sprintf(
+				/* translators: %1$d: number of products affected, %2$s: formatted total discount amount */
 				__( '%1$d products affected, total discount: %2$s', 'smart-cycle-discounts' ),
-				$impact['products_affected'],
-				wc_price( $impact['total_discount'] )
-			),
+					$impact['products_affected'],
+					wc_price( $impact['total_discount'] )
+				),
 		);
 	}
 
@@ -297,11 +298,14 @@ class SCD_Discount_API_Handler implements SCD_Ajax_Handler {
 	private function get_savings_text( $calculation, $config ) {
 		switch ( $config['discount_type'] ) {
 			case 'percentage':
-				return sprintf( __( 'Save %s%%', 'smart-cycle-discounts' ), $calculation['savings_percent'] );
+				return /* translators: %s: savings percentage */
+				sprintf( __( 'Save %s%%', 'smart-cycle-discounts' ), $calculation['savings_percent'] );
 			case 'fixed':
-				return sprintf( __( 'Save %s', 'smart-cycle-discounts' ), wc_price( $calculation['discount_amount'] ) );
+				return /* translators: %s: formatted price amount */
+				sprintf( __( 'Save %s', 'smart-cycle-discounts' ), wc_price( $calculation['discount_amount'] ) );
 			default:
-				return sprintf( __( '%s off', 'smart-cycle-discounts' ), wc_price( $calculation['discount_amount'] ) );
+				return /* translators: %s: formatted price amount */
+				sprintf( __( '%s off', 'smart-cycle-discounts' ), wc_price( $calculation['discount_amount'] ) );
 		}
 	}
 
@@ -311,9 +315,11 @@ class SCD_Discount_API_Handler implements SCD_Ajax_Handler {
 	private function get_badge_text( $calculation, $config ) {
 		switch ( $config['discount_type'] ) {
 			case 'percentage':
-				return sprintf( __( '%s%% OFF', 'smart-cycle-discounts' ), $calculation['savings_percent'] );
+				return /* translators: %s: discount percentage */
+				sprintf( __( '%s%% OFF', 'smart-cycle-discounts' ), $calculation['savings_percent'] );
 			case 'fixed':
-				return sprintf( __( 'SAVE %s', 'smart-cycle-discounts' ), strip_tags( wc_price( $calculation['discount_amount'] ) ) );
+				return /* translators: %s: formatted price amount */
+				sprintf( __( 'SAVE %s', 'smart-cycle-discounts' ), wp_strip_all_tags( wc_price( $calculation['discount_amount'] ) ) );
 			case 'bogo':
 				return __( 'BOGO DEAL', 'smart-cycle-discounts' );
 			default:
@@ -327,23 +333,23 @@ class SCD_Discount_API_Handler implements SCD_Ajax_Handler {
 	private function render_preview_html( $preview_data ) {
 		ob_start();
 		?>
-		<div class="scd-discount-preview">
-			<div class="scd-preview-badge">
+		<div class="wsscd-discount-preview">
+			<div class="wsscd-preview-badge">
 				<?php echo esc_html( $preview_data['badge_text'] ); ?>
 			</div>
 			
-			<div class="scd-preview-pricing">
-				<div class="scd-original-price">
+			<div class="wsscd-preview-pricing">
+				<div class="wsscd-original-price">
 					<span class="label"><?php esc_html_e( 'Regular:', 'smart-cycle-discounts' ); ?></span>
 					<span class="price strikethrough"><?php echo wp_kses_post( $preview_data['original_price'] ); ?></span>
 				</div>
 				
-				<div class="scd-sale-price">
+				<div class="wsscd-sale-price">
 					<span class="label"><?php esc_html_e( 'Sale:', 'smart-cycle-discounts' ); ?></span>
 					<span class="price highlight"><?php echo wp_kses_post( $preview_data['final_price'] ); ?></span>
 				</div>
 				
-				<div class="scd-savings">
+				<div class="wsscd-savings">
 					<?php echo esc_html( $preview_data['savings_text'] ); ?>
 				</div>
 			</div>

@@ -14,8 +14,8 @@
 	'use strict';
 
 	// Ensure namespace exists
-	window.SCD = window.SCD || {};
-	SCD.Shared = SCD.Shared || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Shared = WSSCD.Shared || {};
 
 	/**
 	 * Configuration Constants
@@ -42,9 +42,9 @@
 		},
 		Z_INDEX: {
 			// Wrapper z-index: normal stacking context
-			WRAPPER: 1000,
-			// Dropdown z-index: below WordPress admin bar (99999) but above page content
-			DROPDOWN: 9999
+			WRAPPER: 100,
+			// Dropdown z-index: below wizard navigation (9999) but above content
+			DROPDOWN: 1000
 		}
 	};
 
@@ -54,7 +54,7 @@
 	 * @param {HTMLElement} element - The select element to enhance
 	 * @param {Object} config - Configuration options
 	 */
-	SCD.Shared.TomSelectBase = function( element, config ) {
+	WSSCD.Shared.TomSelectBase = function( element, config ) {
 		if ( !element ) {
 			throw new Error( 'TomSelectBase requires a valid element' );
 		}
@@ -66,11 +66,11 @@
 
 		var hasPreload = true === this.config.preload || ( 'string' === typeof this.config.preload && this.config.preload );
 		if ( hasPreload && true === this.config.openOnFocus ) {
-			if ( window.SCD && window.SCD.ErrorHandler ) {
-				window.SCD.ErrorHandler.handle(
+			if ( window.WSSCD && window.WSSCD.ErrorHandler ) {
+				window.WSSCD.ErrorHandler.handle(
 					new Error( 'TomSelectBase: Suboptimal configuration. Both preload and openOnFocus are enabled. For better control, use preload:false with manual loading in onDropdownOpen.' ),
 					'tom-select-base-config-validation',
-					window.SCD.ErrorHandler.SEVERITY.LOW
+					window.WSSCD.ErrorHandler.SEVERITY.LOW
 				);
 			} else {
 				console.warn(
@@ -134,7 +134,7 @@
 	 *
 	 * @return {Object} Default configuration object
 	 */
-	SCD.Shared.TomSelectBase.prototype.getDefaultConfig = function() {
+	WSSCD.Shared.TomSelectBase.prototype.getDefaultConfig = function() {
 		return {
 			plugins: [ 'remove_button', 'clear_button' ],
 			placeholder: 'Search and select...',
@@ -142,7 +142,7 @@
 			valueField: 'value',
 			labelField: 'text',
 			searchField: [ 'text' ],
-			openOnFocus: false, // Keep false - we control opening via click handler
+			openOnFocus: true, // Native Tom Select behavior
 			closeAfterSelect: false,
 			preload: false, // Manual loading via onDropdownOpen for category-filtered results
 			create: false,
@@ -167,8 +167,7 @@
 				option: this.renderOption.bind( this ),
 				item: this.renderItem.bind( this ),
 				no_results: this.renderNoResults.bind( this ),
-				loading: this.renderLoading.bind( this ),
-				dropdown: this.renderDropdown.bind( this )
+				loading: this.renderLoading.bind( this )
 			}
 		};
 	};
@@ -179,7 +178,7 @@
 	 *
 	 * @return {Promise} Resolves with this instance on success
 	 */
-	SCD.Shared.TomSelectBase.prototype.init = function() {
+	WSSCD.Shared.TomSelectBase.prototype.init = function() {
 		// Return existing promise if initialization already started
 		if ( this._initPromise ) {
 			return this._initPromise;
@@ -243,7 +242,7 @@
 	 * @param {Function} reject - Promise reject function
 	 * @private
 	 */
-	SCD.Shared.TomSelectBase.prototype._createInstance = function( resolve, reject ) {
+	WSSCD.Shared.TomSelectBase.prototype._createInstance = function( resolve, reject ) {
 		try {
 			this.instance = new TomSelect( this.element, this.config );
 
@@ -290,7 +289,7 @@
 	 * @param {Array|string} values - Values to set
 	 * @return {Object} This instance for chaining
 	 */
-	SCD.Shared.TomSelectBase.prototype.setValue = function( values, silent ) {
+	WSSCD.Shared.TomSelectBase.prototype.setValue = function( values, silent ) {
 		if ( !this.instance ) {
 			return this;
 		}
@@ -307,7 +306,7 @@
 	 *
 	 * @return {Array} Current selected values
 	 */
-	SCD.Shared.TomSelectBase.prototype.getValue = function() {
+	WSSCD.Shared.TomSelectBase.prototype.getValue = function() {
 		if ( !this.instance ) {
 			return [];
 		}
@@ -322,7 +321,7 @@
 	 * @param {Array} options - Array of option objects
 	 * @return {Object} This instance for chaining
 	 */
-	SCD.Shared.TomSelectBase.prototype.addOptions = function( options ) {
+	WSSCD.Shared.TomSelectBase.prototype.addOptions = function( options ) {
 		if ( !this.instance || !Array.isArray( options ) ) {
 			return this;
 		}
@@ -344,7 +343,7 @@
 	 *
 	 * @return {Object} This instance for chaining
 	 */
-	SCD.Shared.TomSelectBase.prototype.clearOptions = function() {
+	WSSCD.Shared.TomSelectBase.prototype.clearOptions = function() {
 		if ( this.instance ) {
 			this.instance.clearOptions();
 			this.cache.loadedOptions.clear();
@@ -359,7 +358,7 @@
 	 *
 	 * @return {Object} This instance for chaining
 	 */
-	SCD.Shared.TomSelectBase.prototype.clear = function() {
+	WSSCD.Shared.TomSelectBase.prototype.clear = function() {
 		if ( this.instance ) {
 			// Always trigger change events (no silent mode)
 			this.instance.clear( false );
@@ -373,13 +372,13 @@
 	 * @param {string} message - Error message to display
 	 * @return {Object} This instance for chaining
 	 */
-	SCD.Shared.TomSelectBase.prototype.showError = function( message ) {
-		if ( ! this.instance || ! window.SCD || ! window.SCD.ValidationError ) {
+	WSSCD.Shared.TomSelectBase.prototype.showError = function( message ) {
+		if ( ! this.instance || ! window.WSSCD || ! window.WSSCD.ValidationError ) {
 			return this;
 		}
 
 		// Use centralized ValidationError component
-		window.SCD.ValidationError.show( this.$element, message );
+		window.WSSCD.ValidationError.show( this.$element, message );
 
 		if ( this.instance.wrapper ) {
 			$( this.instance.wrapper ).addClass( 'error' );
@@ -393,13 +392,13 @@
 	 *
 	 * @return {Object} This instance for chaining
 	 */
-	SCD.Shared.TomSelectBase.prototype.clearError = function() {
-		if ( ! this.instance || ! window.SCD || ! window.SCD.ValidationError ) {
+	WSSCD.Shared.TomSelectBase.prototype.clearError = function() {
+		if ( ! this.instance || ! window.WSSCD || ! window.WSSCD.ValidationError ) {
 			return this;
 		}
 
 		// Use centralized ValidationError component
-		window.SCD.ValidationError.clear( this.$element );
+		window.WSSCD.ValidationError.clear( this.$element );
 
 		if ( this.instance.wrapper ) {
 			$( this.instance.wrapper ).removeClass( 'error' );
@@ -414,7 +413,7 @@
 	 * @param {boolean} triggerDropdown - Whether to trigger dropdown
 	 * @return {Object} This instance for chaining
 	 */
-	SCD.Shared.TomSelectBase.prototype.refreshOptions = function( triggerDropdown ) {
+	WSSCD.Shared.TomSelectBase.prototype.refreshOptions = function( triggerDropdown ) {
 		if ( this.instance ) {
 			this.instance.refreshOptions( triggerDropdown );
 		}
@@ -426,7 +425,7 @@
 	 *
 	 * @return {boolean} True if dropdown is open
 	 */
-	SCD.Shared.TomSelectBase.prototype.isOpen = function() {
+	WSSCD.Shared.TomSelectBase.prototype.isOpen = function() {
 		return this.instance ? this.instance.isOpen : false;
 	};
 
@@ -435,7 +434,7 @@
 	 *
 	 * @return {Object} This instance for chaining
 	 */
-	SCD.Shared.TomSelectBase.prototype.open = function() {
+	WSSCD.Shared.TomSelectBase.prototype.open = function() {
 		if ( this.instance ) {
 			this.instance.open();
 		}
@@ -447,7 +446,7 @@
 	 *
 	 * @return {Object} This instance for chaining
 	 */
-	SCD.Shared.TomSelectBase.prototype.close = function() {
+	WSSCD.Shared.TomSelectBase.prototype.close = function() {
 		if ( this.instance ) {
 			this.instance.close();
 		}
@@ -460,7 +459,7 @@
 	 * @param {string} query - Search query
 	 * @return {Object} This instance for chaining
 	 */
-	SCD.Shared.TomSelectBase.prototype.load = function( query ) {
+	WSSCD.Shared.TomSelectBase.prototype.load = function( query ) {
 		if ( this.instance ) {
 			this.instance.load( query );
 		}
@@ -476,50 +475,11 @@
 	 *
 	 * @private
 	 */
-	SCD.Shared.TomSelectBase.prototype._handleInitialize = function() {
-		// Bind click handler to control element
-		// Workaround for Tom-Select bug #701: openOnFocus: false disables click opening
-		// Solution: Manually bind click handler with preventDefault to keep dropdown open
-		if ( this.instance && this.instance.control ) {
-			var self = this;
+	WSSCD.Shared.TomSelectBase.prototype._handleInitialize = function() {
+		var self = this;
 
-			this._clickControl = this.instance.control;
-
-			// Bind click handler directly to control element
-			// This handles clicks on the control, including the background and selected items
-			$( this.instance.control ).on( 'click.scd-tomselect', function( e ) {
-				// Don't interfere with remove button clicks
-				if ( $( e.target ).closest( '.remove' ).length > 0 ) {
-					return;
-				}
-
-				// Don't interfere with clear button clicks
-				if ( $( e.target ).closest( '.clear-button' ).length > 0 ) {
-					return;
-				}
-
-				// Prevent default and stop propagation
-				e.preventDefault();
-				e.stopPropagation();
-
-				// Don't open if currently refreshing (prevents interference with close/refresh/open cycle)
-				if ( self.isRefreshing ) {
-					return;
-				}
-
-				// Toggle dropdown state
-				if ( self.instance.isOpen ) {
-					self.instance.close();
-				} else if ( !self.pagination.isLoading ) {
-					self.instance.open();
-
-					// Focus the input field to allow typing/searching
-					if ( self.instance.control_input ) {
-						self.instance.control_input.focus();
-					}
-				}
-			} );
-		}
+		// With openOnFocus: true, Tom Select handles opening natively
+		// No manual click handlers needed
 
 		this.onInitialize();
 	};
@@ -531,7 +491,7 @@
 	 * @param {*} value - Changed value
 	 * @private
 	 */
-	SCD.Shared.TomSelectBase.prototype._handleChange = function( value ) {
+	WSSCD.Shared.TomSelectBase.prototype._handleChange = function( value ) {
 		this.clearError();
 
 		this.onChange( value );
@@ -544,7 +504,7 @@
 	 *
 	 * @private
 	 */
-	SCD.Shared.TomSelectBase.prototype._handleFocus = function() {
+	WSSCD.Shared.TomSelectBase.prototype._handleFocus = function() {
 		this.onFocus();
 	};
 
@@ -554,7 +514,7 @@
 	 * @param {HTMLElement} dropdown - Dropdown element
 	 * @private
 	 */
-	SCD.Shared.TomSelectBase.prototype._handleDropdownOpen = function( dropdown ) {
+	WSSCD.Shared.TomSelectBase.prototype._handleDropdownOpen = function( dropdown ) {
 		if ( this.pagination.currentPage < this.pagination.totalPages ) {
 			var self = this;
 			setTimeout( function() {
@@ -571,7 +531,7 @@
 	 * @param {HTMLElement} item - Item element
 	 * @private
 	 */
-	SCD.Shared.TomSelectBase.prototype._handleItemAdd = function( value, item ) {
+	WSSCD.Shared.TomSelectBase.prototype._handleItemAdd = function( value, item ) {
 		this.onItemAdd( value, item );
 	};
 
@@ -581,7 +541,7 @@
 	 * @param {*} value - Removed value
 	 * @private
 	 */
-	SCD.Shared.TomSelectBase.prototype._handleItemRemove = function( value ) {
+	WSSCD.Shared.TomSelectBase.prototype._handleItemRemove = function( value ) {
 		this.onItemRemove( value );
 	};
 
@@ -592,7 +552,7 @@
 	/**
 	 * Hook: On initialize
 	 */
-	SCD.Shared.TomSelectBase.prototype.onInitialize = function() {
+	WSSCD.Shared.TomSelectBase.prototype.onInitialize = function() {
 		// Override in subclasses
 	};
 
@@ -601,7 +561,7 @@
 	 *
 	 * @param {*} _value - Changed value
 	 */
-	SCD.Shared.TomSelectBase.prototype.onChange = function( _value ) {
+	WSSCD.Shared.TomSelectBase.prototype.onChange = function( _value ) {
 		// Override in subclasses
 	};
 
@@ -610,7 +570,7 @@
 	 * Note: Won't fire from user interaction due to readonly input
 	 * Available for programmatic focus or subclass override
 	 */
-	SCD.Shared.TomSelectBase.prototype.onFocus = function() {
+	WSSCD.Shared.TomSelectBase.prototype.onFocus = function() {
 		// Override in subclasses if needed
 	};
 
@@ -619,7 +579,7 @@
 	 *
 	 * @param {HTMLElement} _dropdown - Dropdown element
 	 */
-	SCD.Shared.TomSelectBase.prototype.onDropdownOpen = function( _dropdown ) {
+	WSSCD.Shared.TomSelectBase.prototype.onDropdownOpen = function( _dropdown ) {
 		// Override in subclasses
 	};
 
@@ -629,7 +589,7 @@
 	 * @param {*} _value - Added value
 	 * @param {HTMLElement} _item - Item element
 	 */
-	SCD.Shared.TomSelectBase.prototype.onItemAdd = function( _value, _item ) {
+	WSSCD.Shared.TomSelectBase.prototype.onItemAdd = function( _value, _item ) {
 		// Override in subclasses
 	};
 
@@ -638,7 +598,7 @@
 	 *
 	 * @param {*} _value - Removed value
 	 */
-	SCD.Shared.TomSelectBase.prototype.onItemRemove = function( _value ) {
+	WSSCD.Shared.TomSelectBase.prototype.onItemRemove = function( _value ) {
 		// Override in subclasses
 	};
 
@@ -653,7 +613,7 @@
 	 * @param {Function} escape - Escape function for XSS prevention
 	 * @return {string} HTML string
 	 */
-	SCD.Shared.TomSelectBase.prototype.renderOption = function( data, escape ) {
+	WSSCD.Shared.TomSelectBase.prototype.renderOption = function( data, escape ) {
 		var text = data.text || data.label || data.value || '';
 		return '<div>' + escape( text ) + '</div>';
 	};
@@ -665,7 +625,7 @@
 	 * @param {Function} escape - Escape function for XSS prevention
 	 * @return {string} HTML string
 	 */
-	SCD.Shared.TomSelectBase.prototype.renderItem = function( data, escape ) {
+	WSSCD.Shared.TomSelectBase.prototype.renderItem = function( data, escape ) {
 		var text = data.text || data.label || data.value || '';
 		return '<div>' + escape( text ) + '</div>';
 	};
@@ -677,7 +637,7 @@
 	 * @param {Function} _escape - Escape function for XSS prevention
 	 * @return {string} HTML string
 	 */
-	SCD.Shared.TomSelectBase.prototype.renderNoResults = function( _data, _escape ) {
+	WSSCD.Shared.TomSelectBase.prototype.renderNoResults = function( _data, _escape ) {
 		return '<div class="no-results">No results found</div>';
 	};
 
@@ -686,7 +646,7 @@
 	 *
 	 * @return {string} HTML string
 	 */
-	SCD.Shared.TomSelectBase.prototype.renderLoading = function() {
+	WSSCD.Shared.TomSelectBase.prototype.renderLoading = function() {
 		return '<div class="spinner" role="status" aria-live="polite" aria-atomic="true">' +
 			'<span class="screen-reader-text">Loading options...</span>' +
 			'<span aria-hidden="true">Loading...</span>' +
@@ -698,7 +658,7 @@
 	 *
 	 * @return {string} HTML string
 	 */
-	SCD.Shared.TomSelectBase.prototype.renderDropdown = function() {
+	WSSCD.Shared.TomSelectBase.prototype.renderDropdown = function() {
 		return '<div style="position: absolute; z-index: ' + BASE_CONFIG.Z_INDEX.DROPDOWN + ';"></div>';
 	};
 
@@ -711,7 +671,7 @@
 	 *
 	 * @private
 	 */
-	SCD.Shared.TomSelectBase.prototype._addLoadMoreButton = function() {
+	WSSCD.Shared.TomSelectBase.prototype._addLoadMoreButton = function() {
 		if ( !this.instance || !this.instance.dropdown ) {
 			return;
 		}
@@ -726,10 +686,10 @@
 				return;
 			}
 
-			var arrowIcon = SCD.IconHelper ? SCD.IconHelper.get( 'arrow-down', { size: 16 } ) : '<span class="scd-icon scd-icon-arrow-down"></span>';
+			var arrowIcon = WSSCD.IconHelper ? WSSCD.IconHelper.get( 'arrow-down', { size: 16 } ) : '<span class="wsscd-icon wsscd-icon-arrow-down"></span>';
 			var $footer = $(
-				'<div class="scd-tom-select-footer">' +
-					'<button type="button" class="scd-load-more-btn">' +
+				'<div class="wsscd-tom-select-footer">' +
+					'<button type="button" class="wsscd-load-more-btn">' +
 						arrowIcon + ' ' +
 						'Load More' +
 					'</button>' +
@@ -749,9 +709,9 @@
 				self.loadMore();
 			};
 
-			$footer.find( '.scd-load-more-btn' ).on( 'click', clickHandler );
+			$footer.find( '.wsscd-load-more-btn' ).on( 'click', clickHandler );
 
-			$footer.data( 'scd-click-handler', clickHandler );
+			$footer.data( 'wsscd-click-handler', clickHandler );
 
 		} catch ( error ) {
 			this._handleError( error, 'addLoadMoreButton' );
@@ -763,18 +723,18 @@
 	 *
 	 * @private
 	 */
-	SCD.Shared.TomSelectBase.prototype._cleanupLoadMoreButton = function() {
+	WSSCD.Shared.TomSelectBase.prototype._cleanupLoadMoreButton = function() {
 		if ( !this.instance || !this.instance.dropdown ) {
 			return;
 		}
 
 		var $dropdown = $( this.instance.dropdown );
-		var $footer = $dropdown.find( '.scd-tom-select-footer' );
+		var $footer = $dropdown.find( '.wsscd-tom-select-footer' );
 
 		if ( $footer.length ) {
-			var clickHandler = $footer.data( 'scd-click-handler' );
+			var clickHandler = $footer.data( 'wsscd-click-handler' );
 			if ( clickHandler ) {
-				$footer.find( '.scd-load-more-btn' ).off( 'click', clickHandler );
+				$footer.find( '.wsscd-load-more-btn' ).off( 'click', clickHandler );
 			}
 
 			$footer.remove();
@@ -789,14 +749,14 @@
 	/**
 	 * Load more results (override in subclasses)
 	 */
-	SCD.Shared.TomSelectBase.prototype.loadMore = function() {
+	WSSCD.Shared.TomSelectBase.prototype.loadMore = function() {
 		// Override in subclasses
 	};
 
 	/**
 	 * Reset pagination state
 	 */
-	SCD.Shared.TomSelectBase.prototype.resetPagination = function() {
+	WSSCD.Shared.TomSelectBase.prototype.resetPagination = function() {
 		this.pagination.currentPage = 1;
 		this.pagination.totalPages = 1;
 		this.pagination.currentQuery = '';
@@ -809,7 +769,7 @@
 	 * @param {Object} response - API response
 	 * @param {number} page - Current page number
 	 */
-	SCD.Shared.TomSelectBase.prototype.updatePagination = function( response, page ) {
+	WSSCD.Shared.TomSelectBase.prototype.updatePagination = function( response, page ) {
 		this.pagination.currentPage = page || 1;
 
 		if ( response && response.pagination ) {
@@ -827,7 +787,7 @@
 	 * @param {*} value - Value to normalize
 	 * @return {Array} Normalized array
 	 */
-	SCD.Shared.TomSelectBase.prototype.normalizeToArray = function( value ) {
+	WSSCD.Shared.TomSelectBase.prototype.normalizeToArray = function( value ) {
 		if ( Array.isArray( value ) ) {
 			return value;
 		}
@@ -842,7 +802,7 @@
 	 *
 	 * @return {boolean} True if initialized and ready
 	 */
-	SCD.Shared.TomSelectBase.prototype.isReady = function() {
+	WSSCD.Shared.TomSelectBase.prototype.isReady = function() {
 		return this._initialized && this.instance !== null;
 	};
 
@@ -851,7 +811,7 @@
 	 *
 	 * @return {boolean} True if element is visible
 	 */
-	SCD.Shared.TomSelectBase.prototype.isVisible = function() {
+	WSSCD.Shared.TomSelectBase.prototype.isVisible = function() {
 		return this.$element.is( ':visible' );
 	};
 
@@ -862,7 +822,7 @@
 	 * @param {boolean} visible - Whether element is now visible
 	 * @return {Promise} Promise that resolves when operation completes
 	 */
-	SCD.Shared.TomSelectBase.prototype.handleVisibilityChange = function( visible ) {
+	WSSCD.Shared.TomSelectBase.prototype.handleVisibilityChange = function( visible ) {
 		var self = this;
 
 		if ( ! visible && this.isReady() ) {
@@ -887,11 +847,11 @@
 	 * @param {string} context - Context where error occurred
 	 * @private
 	 */
-	SCD.Shared.TomSelectBase.prototype._handleError = function( error, context ) {
+	WSSCD.Shared.TomSelectBase.prototype._handleError = function( error, context ) {
 		var fullContext = 'TomSelectBase.' + context;
 
-		if ( window.SCD && window.SCD.ErrorHandler ) {
-			window.SCD.ErrorHandler.handle( error, fullContext, window.SCD.ErrorHandler.SEVERITY.MEDIUM );
+		if ( window.WSSCD && window.WSSCD.ErrorHandler ) {
+			window.WSSCD.ErrorHandler.handle( error, fullContext, window.WSSCD.ErrorHandler.SEVERITY.MEDIUM );
 		} else {
 			console.error( '[' + fullContext + ']', error );
 		}
@@ -907,7 +867,7 @@
 	 *
 	 * @param {number} maxAge - Maximum age in milliseconds (default: 5 minutes)
 	 */
-	SCD.Shared.TomSelectBase.prototype.clearExpiredCache = function( maxAge ) {
+	WSSCD.Shared.TomSelectBase.prototype.clearExpiredCache = function( maxAge ) {
 		maxAge = maxAge || 300000; // 5 minutes default
 		var now = Date.now();
 		var self = this;
@@ -925,7 +885,7 @@
 	 *
 	 * @return {number} Number of cached options
 	 */
-	SCD.Shared.TomSelectBase.prototype.getCacheSize = function() {
+	WSSCD.Shared.TomSelectBase.prototype.getCacheSize = function() {
 		return this.cache.loadedOptions.size;
 	};
 
@@ -936,7 +896,7 @@
 	/**
 	 * Destroy Tom Select instance
 	 */
-	SCD.Shared.TomSelectBase.prototype.destroy = function() {
+	WSSCD.Shared.TomSelectBase.prototype.destroy = function() {
 		try {
 			this._cleanupLoadMoreButton();
 			this._clearTimers();
@@ -953,7 +913,7 @@
 	 *
 	 * @private
 	 */
-	SCD.Shared.TomSelectBase.prototype._clearTimers = function() {
+	WSSCD.Shared.TomSelectBase.prototype._clearTimers = function() {
 		var self = this;
 		Object.keys( this.timers ).forEach( function( key ) {
 			if ( self.timers[key] ) {
@@ -968,13 +928,14 @@
 	 *
 	 * @private
 	 */
-	SCD.Shared.TomSelectBase.prototype._destroyInstance = function() {
+	WSSCD.Shared.TomSelectBase.prototype._destroyInstance = function() {
+		// Clean up manual mousedown handler
+		if ( this._clickControl ) {
+			$( this._clickControl ).off( 'mousedown.wsscdTomSelect' );
+			this._clickControl = null;
+		}
+
 		if ( this.instance ) {
-			// Unbind click handler before destroying
-			if ( this._clickControl ) {
-				$( this._clickControl ).off( 'click.scd-tomselect' );
-				this._clickControl = null;
-			}
 			this.instance.destroy();
 			this.instance = null;
 		}
@@ -985,7 +946,7 @@
 	 *
 	 * @private
 	 */
-	SCD.Shared.TomSelectBase.prototype._clearCache = function() {
+	WSSCD.Shared.TomSelectBase.prototype._clearCache = function() {
 		if ( this.cache.loadedOptions ) {
 			this.cache.loadedOptions.clear();
 		}
@@ -999,7 +960,7 @@
 	 *
 	 * @private
 	 */
-	SCD.Shared.TomSelectBase.prototype._resetState = function() {
+	WSSCD.Shared.TomSelectBase.prototype._resetState = function() {
 		this._initialized = false;
 		this._initPromise = null;
 		this.resetPagination();
@@ -1012,6 +973,6 @@
 	/**
 	 * Export configuration constants for subclasses
 	 */
-	SCD.Shared.TomSelectBase.CONFIG = BASE_CONFIG;
+	WSSCD.Shared.TomSelectBase.CONFIG = BASE_CONFIG;
 
 } )( jQuery );

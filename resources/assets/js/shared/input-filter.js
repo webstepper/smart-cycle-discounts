@@ -16,9 +16,9 @@
 ( function( $, window ) {
 	'use strict';
 
-	// Ensure SCD namespace exists
-	window.SCD = window.SCD || {};
-	window.SCD.Shared = window.SCD.Shared || {};
+	// Ensure WSSCD namespace exists
+	window.WSSCD = window.WSSCD || {};
+	window.WSSCD.Shared = window.WSSCD.Shared || {};
 
 	/**
 	 * Input Filter Module
@@ -53,27 +53,27 @@
 		 */
 		attachFilters: function() {
 			// Integer fields - only digits, no decimals
-			$( document ).on( 'input.scd-filter', 'input[data-input-type="integer"]', function() {
+			$( document ).on( 'input.wsscd-filter', 'input[data-input-type="integer"]', function() {
 				InputFilter.filterInteger.call( this );
 			} );
 
 			// Decimal fields - digits and single decimal point
-			$( document ).on( 'input.scd-filter', 'input[data-input-type="decimal"]', function() {
+			$( document ).on( 'input.wsscd-filter', 'input[data-input-type="decimal"]', function() {
 				InputFilter.filterDecimal.call( this );
 			} );
 
 			// Percentage fields - 0-100 range with validation
-			$( document ).on( 'input.scd-filter', 'input[data-input-type="percentage"]', function() {
+			$( document ).on( 'input.wsscd-filter', 'input[data-input-type="percentage"]', function() {
 				InputFilter.filterPercentage.call( this );
 			} );
 
 			// Range validation on blur for all numeric fields
-			$( document ).on( 'blur.scd-filter', 'input[type="number"]', function() {
+			$( document ).on( 'blur.wsscd-filter', 'input[type="number"]', function() {
 				InputFilter.validateRange.call( this );
 			} );
 
 			// Prevent mousewheel changes on numeric inputs (UX improvement)
-			$( document ).on( 'mousewheel.scd-filter wheel.scd-filter', 'input[type="number"]', function( e ) {
+			$( document ).on( 'mousewheel.wsscd-filter wheel.wsscd-filter', 'input[type="number"]', function( e ) {
 				if ( $( this ).is( ':focus' ) ) {
 					e.preventDefault();
 				}
@@ -81,9 +81,10 @@
 		},
 
 		/**
-		 * Filter integer input - allow only digits
+		 * Filter integer input - allow only digits with real-time range enforcement
 		 *
 		 * Removes all non-numeric characters from the input value.
+		 * Enforces min/max constraints in real-time if attributes exist.
 		 * Provides visual feedback when characters are filtered.
 		 *
 		 * @since 1.0.0
@@ -92,6 +93,20 @@
 			var $field = $( this );
 			var value = $field.val();
 			var filtered = value.replace( /[^0-9]/g, '' );
+			var max = parseFloat( $field.attr( 'max' ) );
+
+			// Prevent leading zeros
+			if ( 1 < filtered.length && '0' === filtered[0] ) {
+				filtered = filtered.replace( /^0+/, '' ) || '0';
+			}
+
+			// Real-time max enforcement
+			if ( ! isNaN( max ) && '' !== filtered ) {
+				var numValue = parseInt( filtered, 10 );
+				if ( numValue > max ) {
+					filtered = String( Math.floor( max ) );
+				}
+			}
 
 			if ( filtered !== value ) {
 				$field.val( filtered );
@@ -103,7 +118,8 @@
 		 * Filter decimal input - allow digits and single decimal point
 		 *
 		 * Removes invalid characters and ensures only one decimal point.
-		 * Limits to 2 decimal places based on step attribute.
+		 * Limits decimal places based on step attribute.
+		 * Enforces max constraint in real-time.
 		 *
 		 * @since 1.0.0
 		 */
@@ -111,6 +127,7 @@
 			var $field = $( this );
 			var value = $field.val();
 			var step = parseFloat( $field.attr( 'step' ) ) || 0.01;
+			var max = parseFloat( $field.attr( 'max' ) );
 			var filtered = value;
 
 			// Remove all non-numeric except decimal point
@@ -129,6 +146,19 @@
 				filtered = filtered.replace( regex, '$1' );
 			}
 
+			// Prevent leading zeros (except for "0" or "0.x")
+			if ( 1 < filtered.length && '0' === filtered[0] && '.' !== filtered[1] ) {
+				filtered = filtered.replace( /^0+/, '' ) || '0';
+			}
+
+			// Real-time max enforcement
+			if ( ! isNaN( max ) && '' !== filtered ) {
+				var numValue = parseFloat( filtered );
+				if ( numValue > max ) {
+					filtered = String( max );
+				}
+			}
+
 			if ( filtered !== value ) {
 				$field.val( filtered );
 				InputFilter.showFilterFeedback( $field );
@@ -136,15 +166,47 @@
 		},
 
 		/**
-		 * Filter percentage input - delegate to decimal filter
+		 * Filter percentage input - enforces 0-100 range in real-time
 		 *
-		 * Percentages are treated as decimals with additional 0-100 range
-		 * validation handled in validateRange().
+		 * Removes invalid characters and clamps values to 0-100 during typing.
 		 *
 		 * @since 1.0.0
 		 */
 		filterPercentage: function() {
-			InputFilter.filterDecimal.call( this );
+			var $field = $( this );
+			var value = $field.val();
+			var filtered = value;
+
+			// Remove all non-numeric except decimal point
+			filtered = filtered.replace( /[^0-9.]/g, '' );
+
+			// Ensure only one decimal point
+			var parts = filtered.split( '.' );
+			if ( 1 < parts.length ) {
+				filtered = parts[0] + '.' + parts.slice( 1 ).join( '' );
+			}
+
+			// Limit to 2 decimal places
+			if ( -1 !== filtered.indexOf( '.' ) ) {
+				filtered = filtered.replace( /^(\d*\.\d{0,2}).*$/, '$1' );
+			}
+
+			// Real-time range enforcement: clamp to max 100
+			var numValue = parseFloat( filtered );
+			if ( ! isNaN( numValue ) && numValue > 100 ) {
+				filtered = '100';
+				InputFilter.showFilterFeedback( $field );
+			}
+
+			// Prevent leading zeros (except for "0" or "0.x")
+			if ( 1 < filtered.length && '0' === filtered[0] && '.' !== filtered[1] ) {
+				filtered = filtered.replace( /^0+/, '' ) || '0';
+			}
+
+			if ( filtered !== value ) {
+				$field.val( filtered );
+				InputFilter.showFilterFeedback( $field );
+			}
 		},
 
 		/**
@@ -193,9 +255,9 @@
 		 * @param {jQuery} $field The input field
 		 */
 		showFilterFeedback: function( $field ) {
-			$field.addClass( 'scd-input-filtered' );
+			$field.addClass( 'wsscd-input-filtered' );
 			setTimeout( function() {
-				$field.removeClass( 'scd-input-filtered' );
+				$field.removeClass( 'wsscd-input-filtered' );
 			}, 300 );
 		},
 
@@ -210,9 +272,9 @@
 		 * @param {number} value The clamped value
 		 */
 		showRangeNotification: function( label, type, value ) {
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
+			if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.NotificationService ) {
 				var message = label + ' adjusted to ' + type + ': ' + value;
-				window.SCD.Shared.NotificationService.info( message, 2000 );
+				window.WSSCD.Shared.NotificationService.info( message, 2000 );
 			}
 		},
 
@@ -227,13 +289,13 @@
 		 */
 		clearValidationError: function( $field ) {
 			// Use ValidationError component if available
-			if ( window.SCD && window.SCD.ValidationError ) {
-				window.SCD.ValidationError.clear( $field );
+			if ( window.WSSCD && window.WSSCD.ValidationError ) {
+				window.WSSCD.ValidationError.clear( $field );
 			}
 
 			// Fallback: remove error classes manually
 			$field.removeClass( 'error' );
-			$field.closest( '.scd-field-wrapper' ).removeClass( 'has-error' );
+			$field.closest( '.wsscd-field-wrapper' ).removeClass( 'has-error' );
 		},
 
 		/**
@@ -262,21 +324,21 @@
 		/**
 		 * Log debug message
 		 *
-		 * Logs to console if window.SCD.debug is enabled.
+		 * Logs to console if window.WSSCD.debug is enabled.
 		 *
 		 * @since 1.0.0
 		 * @param {string} message Debug message
 		 */
 		logDebug: function( message ) {
-			if ( window.SCD && window.SCD.debug ) {
-				console.log( '[SCD Input Filter] ' + message );
+			if ( window.WSSCD && window.WSSCD.debug ) {
+				console.log( '[WSSCD Input Filter] ' + message );
 			}
 		}
 
 	};
 
-	// Expose to SCD namespace
-	window.SCD.Shared.InputFilter = InputFilter;
+	// Expose to WSSCD namespace
+	window.WSSCD.Shared.InputFilter = InputFilter;
 
 	// Auto-initialize on document ready
 	$( document ).ready( function() {

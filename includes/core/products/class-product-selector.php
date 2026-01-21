@@ -27,58 +27,58 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/products
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Product_Selector {
+class WSSCD_Product_Selector {
 
 	/**
 	 * Database manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Database_Manager    $db    Database manager.
+	 * @var      WSSCD_Database_Manager    $db    Database manager.
 	 */
-	private SCD_Database_Manager $db;
+	private WSSCD_Database_Manager $db;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Cache manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Cache_Manager|null    $cache    Cache manager.
+	 * @var      WSSCD_Cache_Manager|null    $cache    Cache manager.
 	 */
-	private ?SCD_Cache_Manager $cache = null;
+	private ?WSSCD_Cache_Manager $cache = null;
 
 	/**
 	 * Condition engine instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Condition_Engine|null    $condition_engine    Condition engine.
+	 * @var      WSSCD_Condition_Engine|null    $condition_engine    Condition engine.
 	 */
-	private ?SCD_Condition_Engine $condition_engine = null;
+	private ?WSSCD_Condition_Engine $condition_engine = null;
 
 	/**
 	 * Initialize the product selector.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager $db                 Database manager.
-	 * @param    SCD_Logger           $logger             Logger instance.
-	 * @param    SCD_Cache_Manager    $cache              Cache manager.
-	 * @param    SCD_Condition_Engine $condition_engine   Condition engine.
+	 * @param    WSSCD_Database_Manager $db                 Database manager.
+	 * @param    WSSCD_Logger           $logger             Logger instance.
+	 * @param    WSSCD_Cache_Manager    $cache              Cache manager.
+	 * @param    WSSCD_Condition_Engine $condition_engine   Condition engine.
 	 */
 	public function __construct(
-		SCD_Database_Manager $db,
-		SCD_Logger $logger,
-		?SCD_Cache_Manager $cache = null,
-		?SCD_Condition_Engine $condition_engine = null
+		WSSCD_Database_Manager $db,
+		WSSCD_Logger $logger,
+		?WSSCD_Cache_Manager $cache = null,
+		?WSSCD_Condition_Engine $condition_engine = null
 	) {
 		$this->db               = $db;
 		$this->logger           = $logger;
@@ -98,6 +98,10 @@ class SCD_Product_Selector {
 		add_action( 'created_product_tag', array( $this, 'handle_taxonomy_change' ), 10, 1 );
 		add_action( 'edited_product_tag', array( $this, 'handle_taxonomy_change' ), 10, 1 );
 		add_action( 'delete_product_tag', array( $this, 'handle_taxonomy_change' ), 10, 1 );
+
+		// Invalidate cache when product category/tag assignments change (bulk edits, API, etc.)
+		// This catches scenarios not covered by individual term hooks above.
+		add_action( 'set_object_terms', array( $this, 'handle_product_term_assignment' ), 10, 6 );
 	}
 
 	/**
@@ -111,7 +115,7 @@ class SCD_Product_Selector {
 		// Generate cache key that includes ALL criteria that affect results
 		// Must include: conditions, categories, tags, price range, stock, featured, include/exclude IDs, operators, etc.
 		$cache_parts = array(
-			'type'              => $criteria['product_selection_type'] ?? 'all',
+			'type'              => $criteria['product_selection_type'] ?? WSSCD_Campaign::SELECTION_TYPE_ALL_PRODUCTS,
 			'categories'        => $criteria['categories'] ?? array(),
 			'category_operator' => $criteria['category_operator'] ?? 'IN',
 			'tags'              => $criteria['tags'] ?? array(),
@@ -149,7 +153,9 @@ class SCD_Product_Selector {
 				'post_status'    => 'publish',
 				'posts_per_page' => 5000,
 				'fields'         => 'ids',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Required for product filtering by meta fields.
 				'meta_query'     => array(),
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Required for category/tag filtering.
 				'tax_query'      => array(),
 			);
 
@@ -161,6 +167,7 @@ class SCD_Product_Selector {
 				$conditions_logic = $criteria['conditions_logic'] ?? 'all';
 				$meta_query       = $this->condition_engine->build_meta_query( $criteria['conditions'], $conditions_logic );
 				if ( ! empty( $meta_query ) && count( $meta_query ) > 1 ) {
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Required for condition-based product filtering.
 					$query_args['meta_query'] = array_merge( $query_args['meta_query'], $meta_query );
 				}
 			}
@@ -169,14 +176,15 @@ class SCD_Product_Selector {
 			$query       = new WP_Query( $query_args );
 			$product_ids = $query->posts;
 
-			// Apply additional filters that can't be done in WP_Query
-			$product_ids = $this->apply_post_query_filters( $product_ids, $criteria );
-
-			// Apply post-query conditions if condition engine is available
+			// Apply post-query conditions FIRST (before random selection)
+			// This ensures random selection picks from already-filtered pool
 			if ( ! empty( $criteria['conditions'] ) && $this->condition_engine ) {
 				$conditions_logic = $criteria['conditions_logic'] ?? 'all';
 				$product_ids      = $this->condition_engine->apply_conditions( $product_ids, $criteria['conditions'], $conditions_logic );
 			}
+
+			// Apply additional filters (including random selection) AFTER conditions
+			$product_ids = $this->apply_post_query_filters( $product_ids, $criteria );
 
 			// Cache for 15 minutes - cleared when campaigns change
 			if ( $this->cache ) {
@@ -212,7 +220,7 @@ class SCD_Product_Selector {
 	 * @return   array                    Eligible product data.
 	 */
 	public function get_eligible_products( array $exclude_ids = array() ): array {
-		$cache_key = 'scd_eligible_products_' . md5( serialize( $exclude_ids ) );
+		$cache_key = 'wsscd_eligible_products_' . md5( serialize( $exclude_ids ) );
 
 		if ( $this->cache ) {
 			$cached_result = $this->cache->get( $cache_key );
@@ -228,6 +236,7 @@ class SCD_Product_Selector {
 				'post_type'      => 'product',
 				'post_status'    => 'publish',
 				'posts_per_page' => 1000, // Reasonable limit for stock products
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Required for stock status and visibility filtering.
 				'meta_query'     => array(
 					array(
 						'key'     => '_stock_status',
@@ -243,6 +252,7 @@ class SCD_Product_Selector {
 			);
 
 			if ( ! empty( $exclude_ids ) ) {
+				// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- Exclusion list is limited and necessary for product filtering.
 				$query_args['post__not_in'] = $exclude_ids;
 			}
 
@@ -419,6 +429,7 @@ class SCD_Product_Selector {
 
 		// Exclude specific products
 		if ( ! empty( $criteria['exclude_ids'] ) ) {
+			// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- Exclusion list is user-defined and limited.
 			$query_args['post__not_in'] = $criteria['exclude_ids'];
 		}
 
@@ -833,6 +844,7 @@ class SCD_Product_Selector {
 					'post_status'    => 'publish',
 					'posts_per_page' => 1, // Only need count, not results
 					'fields'         => 'ids',
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Required for stock status filtering.
 					'meta_query'     => array(
 						array(
 							'key'     => '_stock_status',
@@ -850,6 +862,7 @@ class SCD_Product_Selector {
 					'post_status'    => 'publish',
 					'posts_per_page' => 1, // Only need count, not results
 					'fields'         => 'ids',
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Required for featured product filtering.
 					'meta_query'     => array(
 						array(
 							'key'     => '_featured',
@@ -887,7 +900,7 @@ class SCD_Product_Selector {
 	 * @return   array                     Selected product IDs.
 	 */
 	public function select_by_categories( array $category_ids, array $conditions = array(), int $limit = 0, string $conditions_logic = 'all' ): array {
-		$cache_key = 'scd_category_selection_' . md5( serialize( $category_ids ) . serialize( $conditions ) . $limit . $conditions_logic );
+		$cache_key = 'wsscd_category_selection_' . md5( serialize( $category_ids ) . serialize( $conditions ) . $limit . $conditions_logic );
 
 		if ( $this->cache ) {
 			$cached_result = $this->cache->get( $cache_key );
@@ -984,7 +997,7 @@ class SCD_Product_Selector {
 	 * @return   int                       Product count.
 	 */
 	public function get_product_count_by_categories( array $category_ids, array $conditions = array(), string $conditions_logic = 'all' ): int {
-		$cache_key = 'scd_category_count_' . md5( serialize( $category_ids ) . serialize( $conditions ) . $conditions_logic );
+		$cache_key = 'wsscd_category_count_' . md5( serialize( $category_ids ) . serialize( $conditions ) . $conditions_logic );
 
 		if ( $this->cache ) {
 			$cached_result = $this->cache->get( $cache_key );
@@ -1039,6 +1052,7 @@ class SCD_Product_Selector {
 			'post_status'    => 'publish',
 			'posts_per_page' => $limit > 0 ? $limit : -1,
 			'fields'         => 'ids',
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Required for stock status filtering.
 			'meta_query'     => array(
 				array(
 					'key'     => '_stock_status',
@@ -1049,6 +1063,7 @@ class SCD_Product_Selector {
 		);
 
 		if ( ! in_array( 'all', $category_ids, true ) && ! empty( $category_ids ) ) {
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Required for category-based product filtering.
 			$query_args['tax_query'] = array(
 				array(
 					'taxonomy' => 'product_cat',
@@ -1063,6 +1078,7 @@ class SCD_Product_Selector {
 		if ( ! empty( $conditions ) && $this->condition_engine ) {
 			$meta_query = $this->condition_engine->build_meta_query( $conditions );
 			if ( ! empty( $meta_query ) && count( $meta_query ) > 1 ) {
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Required for condition-based product filtering.
 				$query_args['meta_query'] = array_merge( $query_args['meta_query'], $meta_query );
 			}
 		}
@@ -1080,11 +1096,11 @@ class SCD_Product_Selector {
 	 * @return   array                     Product data for autocomplete.
 	 */
 	public function search_products_autocomplete( string $search_term, array $category_ids = array(), int $limit = 20 ): array {
-		if ( strlen( $search_term ) < SCD_Validation_Rules::SEARCH_TERM_MIN ) {
+		if ( strlen( $search_term ) < WSSCD_Validation_Rules::SEARCH_TERM_MIN ) {
 			return array();
 		}
 
-		$cache_key = 'scd_product_search_' . md5( $search_term . serialize( $category_ids ) . $limit );
+		$cache_key = 'wsscd_product_search_' . md5( $search_term . serialize( $category_ids ) . $limit );
 
 		if ( $this->cache ) {
 			$cached_result = $this->cache->get( $cache_key );
@@ -1099,6 +1115,7 @@ class SCD_Product_Selector {
 				'post_status'    => 'publish',
 				'posts_per_page' => $limit,
 				's'              => $search_term,
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Required for stock status filtering.
 				'meta_query'     => array(
 					array(
 						'key'     => '_stock_status',
@@ -1109,6 +1126,7 @@ class SCD_Product_Selector {
 			);
 
 			if ( ! empty( $category_ids ) && ! in_array( 'all', $category_ids ) ) {
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Required for category-based product filtering.
 				$query_args['tax_query'] = array(
 					array(
 						'taxonomy' => 'product_cat',
@@ -1185,7 +1203,7 @@ class SCD_Product_Selector {
 			return array();
 		}
 
-		$cache_key = 'scd_products_by_ids_' . md5( serialize( $product_ids ) );
+		$cache_key = 'wsscd_products_by_ids_' . md5( serialize( $product_ids ) );
 
 		if ( $this->cache ) {
 			$cached_result = $this->cache->get( $cache_key );
@@ -1256,7 +1274,7 @@ class SCD_Product_Selector {
 	 * @return   array                     Category data with hierarchy.
 	 */
 	public function get_product_categories_hierarchy( bool $include_empty = false ): array {
-		$cache_key = 'scd_categories_hierarchy_' . ( $include_empty ? 'with_empty' : 'no_empty' );
+		$cache_key = 'wsscd_categories_hierarchy_' . ( $include_empty ? 'with_empty' : 'no_empty' );
 
 		if ( $this->cache ) {
 			$cached_result = $this->cache->get( $cache_key );
@@ -1502,6 +1520,7 @@ class SCD_Product_Selector {
 	 * @param    array $smart_criteria    Smart selection criteria
 	 * @return   array                       Condition engine conditions
 	 */
+	// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Configuration arrays defining meta keys; not actual queries.
 	private function transform_smart_criteria_to_conditions( array $smart_criteria ): array {
 		$conditions = array();
 
@@ -1537,7 +1556,7 @@ class SCD_Product_Selector {
 
 				case 'new_arrivals':
 					// Products created in the last 30 days
-					$date_30_days_ago = date( 'Y-m-d', strtotime( '-30 days' ) );
+					$date_30_days_ago = gmdate( 'Y-m-d', strtotime( '-30 days' ) );
 					$conditions[]     = array(
 						'property' => 'date',
 						'operator' => 'greater_than',
@@ -1549,6 +1568,7 @@ class SCD_Product_Selector {
 
 		return $conditions;
 	}
+	// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 
 	/**
 	 * Handle product deletion.
@@ -1587,7 +1607,7 @@ class SCD_Product_Selector {
 		 * @since 1.0.0
 		 * @param int $product_id The product ID that was deleted.
 		 */
-		do_action( 'scd_product_deleted', $product_id );
+		do_action( 'wsscd_product_deleted', $product_id );
 	}
 
 	/**
@@ -1624,7 +1644,7 @@ class SCD_Product_Selector {
 		 * @since 1.0.0
 		 * @param int $product_id The product ID that was updated.
 		 */
-		do_action( 'scd_product_updated', $product_id );
+		do_action( 'wsscd_product_updated', $product_id );
 	}
 
 	/**
@@ -1648,8 +1668,8 @@ class SCD_Product_Selector {
 			$this->cache->invalidate_product();
 
 			// Clear reference data cache for categories/tags
-			if ( class_exists( 'SCD_Reference_Data_Cache' ) ) {
-				$ref_cache = new SCD_Reference_Data_Cache();
+			if ( class_exists( 'WSSCD_Reference_Data_Cache' ) ) {
+				$ref_cache = new WSSCD_Reference_Data_Cache();
 				$ref_cache->delete( 'categories' );
 				$ref_cache->delete( 'tags' );
 			}
@@ -1661,6 +1681,68 @@ class SCD_Product_Selector {
 		 * @since 1.0.0
 		 * @param int $term_id The term ID that was changed.
 		 */
-		do_action( 'scd_taxonomy_changed', $term_id );
+		do_action( 'wsscd_taxonomy_changed', $term_id );
+	}
+
+	/**
+	 * Handle product term assignment changes.
+	 *
+	 * Fires when terms are assigned to a product via bulk edit, API, or direct assignment.
+	 * This ensures cache is invalidated when products are added to or removed from
+	 * categories/tags that may be targeted by campaigns.
+	 *
+	 * @since    1.0.0
+	 * @param    int    $object_id  Object ID (product ID).
+	 * @param    array  $terms      Array of term IDs.
+	 * @param    array  $tt_ids     Array of term taxonomy IDs.
+	 * @param    string $taxonomy   Taxonomy slug.
+	 * @param    bool   $append     Whether terms were appended.
+	 * @param    array  $old_tt_ids Previous term taxonomy IDs.
+	 * @return   void
+	 */
+	public function handle_product_term_assignment( int $object_id, array $terms, array $tt_ids, string $taxonomy, bool $append, array $old_tt_ids ): void {
+		// Only handle product-related taxonomies
+		if ( ! in_array( $taxonomy, array( 'product_cat', 'product_tag' ), true ) ) {
+			return;
+		}
+
+		// Only handle WooCommerce products
+		if ( 'product' !== get_post_type( $object_id ) ) {
+			return;
+		}
+
+		// Only invalidate if terms actually changed
+		if ( $tt_ids === $old_tt_ids ) {
+			return;
+		}
+
+		$this->logger->info(
+			'Product term assignment changed, invalidating caches',
+			array(
+				'product_id' => $object_id,
+				'taxonomy'   => $taxonomy,
+				'new_terms'  => $tt_ids,
+				'old_terms'  => $old_tt_ids,
+			)
+		);
+
+		if ( $this->cache ) {
+			// Invalidate product-specific cache
+			$this->cache->invalidate_product( $object_id );
+
+			// Also invalidate campaign caches since product-campaign mappings may have changed
+			$this->cache->invalidate_campaign();
+		}
+
+		/**
+		 * Fires after product term assignment is handled.
+		 *
+		 * @since 1.0.0
+		 * @param int    $object_id  Object ID (product ID).
+		 * @param string $taxonomy   Taxonomy slug.
+		 * @param array  $tt_ids     New term taxonomy IDs.
+		 * @param array  $old_tt_ids Previous term taxonomy IDs.
+		 */
+		do_action( 'wsscd_product_terms_changed', $object_id, $taxonomy, $tt_ids, $old_tt_ids );
 	}
 }

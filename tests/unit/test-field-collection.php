@@ -20,30 +20,30 @@ use PHPUnit\Framework\TestCase;
 class Test_Field_Collection extends TestCase {
 
 	/**
-	 * Test that SCD_Field_Definitions class is available.
+	 * Test that WSSCD_Field_Definitions class is available.
 	 *
 	 * Verifies the field definitions system is loaded and accessible.
-	 * This is the PHP equivalent of checking SCD.Utils.Fields in JavaScript.
+	 * This is the PHP equivalent of checking WSSCD.Utils.Fields in JavaScript.
 	 *
 	 * @since 1.0.0
 	 */
 	public function test_field_definitions_available() {
 		// Assert: Field definitions class should be loaded
 		$this->assertTrue(
-			class_exists( 'SCD_Field_Definitions' ),
-			'SCD_Field_Definitions class must be available for validation'
+			class_exists( 'WSSCD_Field_Definitions' ),
+			'WSSCD_Field_Definitions class must be available for validation'
 		);
 
 		// Verify the class has the required validate method
 		$this->assertTrue(
-			method_exists( 'SCD_Field_Definitions', 'validate' ),
-			'SCD_Field_Definitions must have validate() method'
+			method_exists( 'WSSCD_Field_Definitions', 'validate' ),
+			'WSSCD_Field_Definitions must have validate() method'
 		);
 
 		// Verify the class has the required validate method
 		$this->assertTrue(
-			method_exists( 'SCD_Field_Definitions', 'validate' ),
-			'SCD_Field_Definitions must have validate() method'
+			method_exists( 'WSSCD_Field_Definitions', 'validate' ),
+			'WSSCD_Field_Definitions must have validate() method'
 		);
 	}
 
@@ -63,7 +63,7 @@ class Test_Field_Collection extends TestCase {
 		);
 
 		// Act: Attempt to validate basic step without name field
-		$result = SCD_Field_Definitions::validate( 'basic', $data );
+		$result = WSSCD_Field_Definitions::validate( 'basic', $data );
 
 		// Assert: Should return WP_Error (not silently succeed)
 		$this->assertInstanceOf(
@@ -113,7 +113,7 @@ class Test_Field_Collection extends TestCase {
 		);
 
 		// Act: Validate discounts step
-		$result = SCD_Field_Definitions::validate( 'discounts', $data );
+		$result = WSSCD_Field_Definitions::validate( 'discounts', $data );
 
 		// Assert: Should return WP_Error for invalid value
 		$this->assertInstanceOf(
@@ -156,7 +156,7 @@ class Test_Field_Collection extends TestCase {
 		);
 
 		// Act: Validate discounts step
-		$result = SCD_Field_Definitions::validate( 'discounts', $data );
+		$result = WSSCD_Field_Definitions::validate( 'discounts', $data );
 
 		// Assert: Should return sanitized array (not WP_Error)
 		if ( is_wp_error( $result ) ) {

@@ -21,18 +21,18 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Coordinates WooCommerce sub-integrations using the coordinator pattern.
  * Delegates all functionality to specialized classes:
- * - SCD_WC_Discount_Query_Service: Discount lookup logic
- * - SCD_WC_Price_Integration: Price modifications
- * - SCD_WC_Display_Integration: Badges and display
- * - SCD_WC_Cart_Message_Service: Cart messages
- * - SCD_WC_Admin_Integration: Admin fields
- * - SCD_WC_Order_Integration: Order tracking
+ * - WSSCD_WC_Discount_Query_Service: Discount lookup logic
+ * - WSSCD_WC_Price_Integration: Price modifications
+ * - WSSCD_WC_Display_Integration: Badges and display
+ * - WSSCD_WC_Cart_Message_Service: Cart messages
+ * - WSSCD_WC_Admin_Integration: Admin fields
+ * - WSSCD_WC_Order_Integration: Order tracking
  *
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/integrations/woocommerce
  */
-class SCD_WooCommerce_Integration implements SCD_Ecommerce_Integration {
+class WSSCD_WooCommerce_Integration implements WSSCD_Ecommerce_Integration {
 
 	/**
 	 * Container instance.
@@ -57,27 +57,27 @@ class SCD_WooCommerce_Integration implements SCD_Ecommerce_Integration {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Discount_Engine|null    $discount_engine    Discount engine.
+	 * @var      WSSCD_Discount_Engine|null    $discount_engine    Discount engine.
 	 */
-	private ?SCD_Discount_Engine $discount_engine = null;
+	private ?WSSCD_Discount_Engine $discount_engine = null;
 
 	/**
 	 * Campaign manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Manager|null    $campaign_manager    Campaign manager.
+	 * @var      WSSCD_Campaign_Manager|null    $campaign_manager    Campaign manager.
 	 */
-	private ?SCD_Campaign_Manager $campaign_manager = null;
+	private ?WSSCD_Campaign_Manager $campaign_manager = null;
 
 	/**
 	 * Customer usage manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Customer_Usage_Manager|null    $customer_usage_manager    Customer usage manager.
+	 * @var      WSSCD_Customer_Usage_Manager|null    $customer_usage_manager    Customer usage manager.
 	 */
-	private ?SCD_Customer_Usage_Manager $customer_usage_manager = null;
+	private ?WSSCD_Customer_Usage_Manager $customer_usage_manager = null;
 
 	/**
 	 * Discount map service instance.
@@ -86,9 +86,9 @@ class SCD_WooCommerce_Integration implements SCD_Ecommerce_Integration {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_WC_Discount_Map_Service|null    $discount_map_service    Discount map service.
+	 * @var      WSSCD_WC_Discount_Map_Service|null    $discount_map_service    Discount map service.
 	 */
-	private ?SCD_WC_Discount_Map_Service $discount_map_service = null;
+	private ?WSSCD_WC_Discount_Map_Service $discount_map_service = null;
 
 	/**
 	 * Discount query service instance.
@@ -98,63 +98,63 @@ class SCD_WooCommerce_Integration implements SCD_Ecommerce_Integration {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_WC_Discount_Query_Service|null    $discount_query    Discount query service.
+	 * @var      WSSCD_WC_Discount_Query_Service|null    $discount_query    Discount query service.
 	 */
-	private ?SCD_WC_Discount_Query_Service $discount_query = null;
+	private ?WSSCD_WC_Discount_Query_Service $discount_query = null;
 
 	/**
 	 * Price integration instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_WC_Price_Integration|null    $price_integration    Price integration.
+	 * @var      WSSCD_WC_Price_Integration|null    $price_integration    Price integration.
 	 */
-	private ?SCD_WC_Price_Integration $price_integration = null;
+	private ?WSSCD_WC_Price_Integration $price_integration = null;
 
 	/**
 	 * Display integration instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_WC_Display_Integration|null    $display_integration    Display integration.
+	 * @var      WSSCD_WC_Display_Integration|null    $display_integration    Display integration.
 	 */
-	private ?SCD_WC_Display_Integration $display_integration = null;
+	private ?WSSCD_WC_Display_Integration $display_integration = null;
 
 	/**
 	 * Cart message service instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_WC_Cart_Message_Service|null    $cart_message_service    Cart message service.
+	 * @var      WSSCD_WC_Cart_Message_Service|null    $cart_message_service    Cart message service.
 	 */
-	private ?SCD_WC_Cart_Message_Service $cart_message_service = null;
+	private ?WSSCD_WC_Cart_Message_Service $cart_message_service = null;
 
 	/**
 	 * Admin integration instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_WC_Admin_Integration|null    $admin_integration    Admin integration.
+	 * @var      WSSCD_WC_Admin_Integration|null    $admin_integration    Admin integration.
 	 */
-	private ?SCD_WC_Admin_Integration $admin_integration = null;
+	private ?WSSCD_WC_Admin_Integration $admin_integration = null;
 
 	/**
 	 * Order integration instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_WC_Order_Integration|null    $order_integration    Order integration.
+	 * @var      WSSCD_WC_Order_Integration|null    $order_integration    Order integration.
 	 */
-	private ?SCD_WC_Order_Integration $order_integration = null;
+	private ?WSSCD_WC_Order_Integration $order_integration = null;
 
 	/**
 	 * Coupon restriction instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_WC_Coupon_Restriction|null    $coupon_restriction    Coupon restriction.
+	 * @var      WSSCD_WC_Coupon_Restriction|null    $coupon_restriction    Coupon restriction.
 	 */
-	private ?SCD_WC_Coupon_Restriction $coupon_restriction = null;
+	private ?WSSCD_WC_Coupon_Restriction $coupon_restriction = null;
 
 	/**
 	 * WooCommerce compatibility status.
@@ -242,7 +242,7 @@ class SCD_WooCommerce_Integration implements SCD_Ecommerce_Integration {
 			// Require discount engine from container (fail fast if missing)
 			if ( ! $this->container->has( 'discount_engine' ) ) {
 				throw new RuntimeException(
-					'SCD_Discount_Engine not registered in service container. Check includes/bootstrap/class-service-definitions.php'
+					'WSSCD_Discount_Engine not registered in service container. Check includes/bootstrap/class-service-definitions.php'
 				);
 			}
 			$this->discount_engine = $this->container->get( 'discount_engine' );
@@ -250,7 +250,7 @@ class SCD_WooCommerce_Integration implements SCD_Ecommerce_Integration {
 			// Require campaign manager from container (fail fast if missing)
 			if ( ! $this->container->has( 'campaign_manager' ) ) {
 				throw new RuntimeException(
-					'SCD_Campaign_Manager not registered in service container. Check includes/bootstrap/class-service-definitions.php'
+					'WSSCD_Campaign_Manager not registered in service container. Check includes/bootstrap/class-service-definitions.php'
 				);
 			}
 			$this->campaign_manager = $this->container->get( 'campaign_manager' );
@@ -265,7 +265,7 @@ class SCD_WooCommerce_Integration implements SCD_Ecommerce_Integration {
 			// Get discount rules enforcer from container
 			if ( ! $this->container->has( 'discount_rules_enforcer' ) ) {
 				throw new RuntimeException(
-					'SCD_Discount_Rules_Enforcer not registered in service container. Check includes/bootstrap/class-service-definitions.php'
+					'WSSCD_Discount_Rules_Enforcer not registered in service container. Check includes/bootstrap/class-service-definitions.php'
 				);
 			}
 			$rules_enforcer = $this->container->get( 'discount_rules_enforcer' );
@@ -274,13 +274,13 @@ class SCD_WooCommerce_Integration implements SCD_Ecommerce_Integration {
 			$cache_manager = $this->container->has( 'cache_manager' ) ? $this->container->get( 'cache_manager' ) : null;
 
 			// Create discount map service for efficient bulk product lookups
-			$this->discount_map_service = new SCD_WC_Discount_Map_Service(
+			$this->discount_map_service = new WSSCD_WC_Discount_Map_Service(
 				$this->campaign_manager,
 				$cache_manager,
 				$this->logger
 			);
 
-			$this->discount_query = new SCD_WC_Discount_Query_Service(
+			$this->discount_query = new WSSCD_WC_Discount_Query_Service(
 				$this->campaign_manager,
 				$this->discount_engine,
 				$this->logger,
@@ -288,34 +288,34 @@ class SCD_WooCommerce_Integration implements SCD_Ecommerce_Integration {
 				$this->discount_map_service
 			);
 
-			$this->price_integration = new SCD_WC_Price_Integration(
+			$this->price_integration = new WSSCD_WC_Price_Integration(
 				$this->discount_query,
 				$this->customer_usage_manager,
 				$this->logger
 			);
 
-			$this->display_integration = new SCD_WC_Display_Integration(
+			$this->display_integration = new WSSCD_WC_Display_Integration(
 				$this->discount_query,
 				$this->logger
 			);
 
-			$this->cart_message_service = new SCD_WC_Cart_Message_Service(
+			$this->cart_message_service = new WSSCD_WC_Cart_Message_Service(
 				$this->discount_query,
 				$this->campaign_manager,
 				$this->logger
 			);
 
-			$this->admin_integration = new SCD_WC_Admin_Integration(
+			$this->admin_integration = new WSSCD_WC_Admin_Integration(
 				$this->logger
 			);
 
-			$this->order_integration = new SCD_WC_Order_Integration(
+			$this->order_integration = new WSSCD_WC_Order_Integration(
 				$this->discount_query,
 				$this->customer_usage_manager,
 				$this->logger
 			);
 
-			$this->coupon_restriction = new SCD_WC_Coupon_Restriction(
+			$this->coupon_restriction = new WSSCD_WC_Coupon_Restriction(
 				$this->campaign_manager,
 				$this->logger
 			);
@@ -458,7 +458,7 @@ class SCD_WooCommerce_Integration implements SCD_Ecommerce_Integration {
 		if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
 			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
 				'custom_order_tables',
-				SCD_PLUGIN_FILE,
+				WSSCD_PLUGIN_FILE,
 				true
 			);
 
@@ -507,7 +507,7 @@ class SCD_WooCommerce_Integration implements SCD_Ecommerce_Integration {
 	}
 
 	// ============================================================================
-	// SCD_Ecommerce_Integration Interface Implementation
+	// WSSCD_Ecommerce_Integration Interface Implementation
 	// ============================================================================
 
 	/**
@@ -637,7 +637,7 @@ class SCD_WooCommerce_Integration implements SCD_Ecommerce_Integration {
 	 * @return   int|null       Campaign ID or null.
 	 */
 	public function get_item_campaign_id( $item ) {
-		$campaign_id = $item->get_meta( '_scd_campaign_id', true );
+		$campaign_id = $item->get_meta( '_wsscd_campaign_id', true );
 		return $campaign_id ? (int) $campaign_id : null;
 	}
 
@@ -650,7 +650,7 @@ class SCD_WooCommerce_Integration implements SCD_Ecommerce_Integration {
 	 * @return   void
 	 */
 	public function set_item_campaign_id( $item, $campaign_id ) {
-		$item->add_meta_data( '_scd_campaign_id', $campaign_id, true );
+		$item->add_meta_data( '_wsscd_campaign_id', $campaign_id, true );
 		$item->save_meta_data();
 	}
 

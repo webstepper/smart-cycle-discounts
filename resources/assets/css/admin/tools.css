@@ -1,5 +1,8 @@
 /**
- * Tools
+ * Tools Page Styles
+ *
+ * Styles for the Tools/Utilities admin page including log viewer,
+ * system report, health checks, and import/export functionality.
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/css/admin/tools.css
@@ -11,88 +14,88 @@
  */
 
 /* ==========================================================================
-   Tools Page Container
+   Page Container
    ========================================================================== */
 
-.scd-tools-page {
-	max-width: 1200px;
-	margin: var(--scd-spacing-lg) 20px 0 0;
+.wsscd-tools-page {
+	max-width: var(--wsscd-container-lg);
+	margin: var(--wsscd-spacing-lg) var(--wsscd-spacing-lg) 0 0;
 }
 
-.scd-tools-page h1 {
-	margin-bottom: var(--scd-spacing-lg);
-	font-size: var(--scd-font-size-xxxl);
-	font-weight: var(--scd-font-weight-semibold);
-	color: var(--scd-color-text);
+.wsscd-tools-page h1 {
+	margin-bottom: var(--wsscd-spacing-lg);
+	font-size: var(--wsscd-font-size-xxxl);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
 }
 
 /* ==========================================================================
-   Tools Sections
+   Section Cards
    ========================================================================== */
 
-.scd-tools-section {
-	background: var(--scd-color-white);
-	border: 1px solid var(--scd-color-border);
-	border-radius: var(--scd-radius-md);
-	padding: var(--scd-padding-section);
-	margin-bottom: 24px;
-	box-shadow: var(--scd-tools-card-shadow);
+.wsscd-tools-section {
+	background: var(--wsscd-color-white);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-md);
+	padding: var(--wsscd-padding-section);
+	margin-bottom: var(--wsscd-spacing-xl);
+	box-shadow: var(--wsscd-shadow-sm);
 }
 
-.scd-tools-section h2 {
-	margin: 0 0 16px;
-	padding-bottom: var(--scd-spacing-md);
-	border-bottom: 1px solid var(--scd-color-border-lighter);
-	font-size: var(--scd-font-size-xl);
-	font-weight: var(--scd-font-weight-semibold);
-	color: var(--scd-color-text);
+.wsscd-tools-section h2 {
 	display: flex;
 	align-items: center;
-	gap: var(--scd-gap-tight);
+	gap: var(--wsscd-gap-tight);
+	margin: 0 0 var(--wsscd-spacing-base);
+	padding-bottom: var(--wsscd-spacing-md);
+	border-bottom: var(--wsscd-border-width) solid var(--wsscd-color-border-lighter);
+	font-size: var(--wsscd-font-size-xl);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
 }
 
-.scd-tools-section h2 .scd-icon {
-	font-size: var(--scd-font-size-xxxl);
-	width: var(--scd-icon-large);
-	height: var(--scd-icon-large);
-	color: var(--scd-color-primary);
+.wsscd-tools-section h2 .wsscd-icon {
+	width: var(--wsscd-icon-large);
+	height: var(--wsscd-icon-large);
+	color: var(--wsscd-color-primary);
+	fill: var(--wsscd-color-primary);
 }
 
-.scd-tools-section .description {
-	color: var(--scd-color-text-muted);
-	font-size: var(--scd-font-size-base);
-	margin-bottom: var(--scd-spacing-lg);
+.wsscd-tools-section .description {
+	margin-bottom: var(--wsscd-spacing-lg);
+	color: var(--wsscd-color-text-muted);
+	font-size: var(--wsscd-font-size-base);
 }
 
 /* ==========================================================================
-   Form Table Styling
+   Form Table
    ========================================================================== */
 
-.scd-tools-section .form-table {
+.wsscd-tools-section .form-table {
 	margin-top: 0;
 }
 
-.scd-tools-section .form-table th {
-	padding: var(--scd-padding-section) 10px 20px 0;
+.wsscd-tools-section .form-table th {
 	width: 200px;
-	font-weight: var(--scd-font-weight-semibold);
-	color: var(--scd-color-text);
+	padding: var(--wsscd-padding-section) var(--wsscd-spacing-sm-large) var(--wsscd-spacing-lg) 0;
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
 }
 
-.scd-tools-section .form-table td {
-	padding: var(--scd-padding-section) 10px;
+.wsscd-tools-section .form-table td {
+	padding: var(--wsscd-padding-section) var(--wsscd-spacing-sm-large);
 }
 
-.scd-tools-section .form-table tr {
-	border-bottom: 1px solid var(--scd-color-border-lighter);
+.wsscd-tools-section .form-table tr {
+	border-bottom: var(--wsscd-border-width) solid var(--wsscd-color-border-lighter);
 }
 
-.scd-tools-section .form-table tr:last-child {
+.wsscd-tools-section .form-table tr:last-child {
 	border-bottom: none;
 }
 
-.scd-tools-section .form-table p.description {
-	margin: 0 0 10px;
+.wsscd-tools-section .form-table p.description {
+	margin: 0 0 var(--wsscd-spacing-sm-large);
 	font-style: normal;
 }
 
@@ -100,261 +103,266 @@
    Buttons
    ========================================================================== */
 
-.scd-tools-section .button {
+.wsscd-tools-section .button {
 	display: inline-flex;
 	align-items: center;
-	gap: var(--scd-gap-tight);
-	min-height: var(--scd-button-height-large);
-	padding: 0 12px;
+	gap: var(--wsscd-gap-tight);
+	min-height: var(--wsscd-button-height-large);
+	padding: 0 var(--wsscd-spacing-md);
 }
 
-.scd-tools-section .button .scd-icon {
-	font-size: var(--scd-font-size-large);
-	width: 16px;
-	height: 16px;
+.wsscd-tools-section .button .wsscd-icon {
+	width: var(--wsscd-icon-small);
+	height: var(--wsscd-icon-small);
 }
 
-/* Spinner animation now handled by shared/_utilities.css .scd-icon-spin */
+/* Button States */
+.wsscd-button-loading {
+	pointer-events: none;
+	opacity: 0.85;
+}
+
+.wsscd-button-success {
+	background-color: var(--wsscd-color-success) !important;
+	border-color: var(--wsscd-color-success) !important;
+	color: var(--wsscd-color-white) !important;
+	transition: var(--wsscd-transition-colors);
+}
+
+.wsscd-button-pulse {
+	animation: wsscd-button-pulse var(--wsscd-transition-base) var(--wsscd-ease-in-out);
+}
+
+@keyframes wsscd-button-pulse {
+	0%, 100% { transform: scale(1); }
+	50% { transform: var(--wsscd-transform-scale-down); }
+}
 
 /* ==========================================================================
-   Log Viewer
+   Code Viewer (Shared - Log Viewer & System Report)
    ========================================================================== */
 
-.scd-log-viewer-wrapper {
-	margin-top: 10px;
+.wsscd-code-viewer-wrapper {
+	margin-top: var(--wsscd-spacing-sm-large);
+	padding: var(--wsscd-padding-compact);
+	background: var(--wsscd-color-surface);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-lighter);
+	border-radius: var(--wsscd-radius-md);
 }
 
-.scd-log-stats {
-	background: var(--scd-color-surface);
-	border-left: 4px solid var(--scd-color-primary);
-	padding: var(--scd-padding-medium);
-	margin: 15px 0;
-	font-size: var(--scd-font-size-base);
-	line-height: 1.6;
+.wsscd-code-viewer-wrapper textarea {
+	width: 100%;
+	padding: var(--wsscd-padding-medium);
+	border: none;
+	border-radius: var(--wsscd-radius-sm);
+	font-family: var(--wsscd-font-family-mono);
+	font-size: var(--wsscd-font-size-small);
+	line-height: var(--wsscd-line-height-relaxed);
 }
 
-.scd-log-stats code {
-	background: var(--scd-color-white);
-	padding: var(--scd-spacing-xxs) 6px;
-	border-radius: var(--scd-radius-sm);
-	font-family: Consolas, Monaco, monospace;
-	font-size: var(--scd-font-size-small);
+/* Log Viewer - Dark Theme */
+.wsscd-log-viewer-wrapper,
+#wsscd-log-viewer-modal {
+	margin-top: var(--wsscd-spacing-base);
+	padding: var(--wsscd-padding-compact);
+	background: var(--wsscd-color-surface);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-lighter);
+	border-radius: var(--wsscd-radius-md);
 }
 
-.scd-log-actions {
-	margin: 10px 0;
+#wsscd-log-viewer-modal textarea {
+	width: 100%;
+	padding: var(--wsscd-padding-medium);
+	border: none;
+	border-radius: var(--wsscd-radius-sm);
+	background: var(--wsscd-color-text);
+	color: var(--wsscd-color-surface-dark);
+	font-family: var(--wsscd-font-family-mono);
+	font-size: var(--wsscd-font-size-small);
+	line-height: var(--wsscd-line-height-relaxed);
+}
+
+/* System Report - Light Theme */
+#wsscd-system-report {
+	margin-top: var(--wsscd-spacing-sm-large);
+	padding: var(--wsscd-padding-compact);
+	background: var(--wsscd-color-surface);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-lighter);
+	border-radius: var(--wsscd-radius-md);
+}
+
+#wsscd-system-report textarea {
+	width: 100%;
+	padding: var(--wsscd-padding-medium);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-lighter);
+	border-radius: var(--wsscd-radius-sm);
+	background: var(--wsscd-color-white);
+	color: var(--wsscd-color-text);
+	font-family: var(--wsscd-font-family-mono);
+	font-size: var(--wsscd-font-size-small);
+	line-height: var(--wsscd-line-height-relaxed);
+}
+
+/* ==========================================================================
+   Log Stats & Actions
+   ========================================================================== */
+
+.wsscd-log-stats {
+	margin: var(--wsscd-spacing-base) 0;
+	padding: var(--wsscd-padding-medium);
+	background: var(--wsscd-color-surface);
+	border-left: var(--wsscd-border-width-accent) solid var(--wsscd-color-primary);
+	font-size: var(--wsscd-font-size-base);
+	line-height: var(--wsscd-line-height-relaxed);
+}
+
+.wsscd-log-stats code {
+	padding: var(--wsscd-spacing-xxs) var(--wsscd-spacing-xs);
+	background: var(--wsscd-color-white);
+	border-radius: var(--wsscd-radius-sm);
+	font-family: var(--wsscd-font-family-mono);
+	font-size: var(--wsscd-font-size-small);
+}
+
+.wsscd-log-actions {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: var(--scd-gap-tight);
+	gap: var(--wsscd-gap-tight);
+	margin: var(--wsscd-spacing-sm-large) 0;
 }
 
-.scd-log-actions label {
+.wsscd-log-actions label {
 	margin: 0;
-	font-weight: var(--scd-font-weight-semibold);
+	font-weight: var(--wsscd-font-weight-semibold);
 }
 
-.scd-log-actions select {
+.wsscd-log-actions select {
 	min-width: 150px;
-	height: var(--scd-button-height-large);
-}
-
-#scd-log-viewer-modal {
-	margin-top: 15px;
-	padding: var(--scd-padding-compact);
-	background: var(--scd-color-surface);
-	border: 1px solid var(--scd-color-border-lighter);
-	border-radius: var(--scd-radius-md);
-}
-
-#scd-log-viewer-modal textarea {
-	width: 100%;
-	font-family: Consolas, Monaco, monospace;
-	font-size: var(--scd-font-size-small);
-	background: var(--scd-color-text);
-	color: var(--scd-color-surface-dark);
-	border: none;
-	padding: var(--scd-padding-medium);
-	border-radius: var(--scd-radius-sm);
-	line-height: 1.6;
-}
-
-/* ==========================================================================
-   System Report
-   ========================================================================== */
-
-#scd-system-report {
-	margin-top: 10px;
-	padding: var(--scd-padding-compact);
-	background: var(--scd-color-surface);
-	border: 1px solid var(--scd-color-border-lighter);
-	border-radius: var(--scd-radius-md);
-}
-
-#scd-system-report textarea {
-	width: 100%;
-	font-family: Consolas, Monaco, monospace;
-	font-size: var(--scd-font-size-small);
-	background: var(--scd-color-white);
-	color: var(--scd-color-text);
-	border: 1px solid var(--scd-color-border-lighter);
-	padding: var(--scd-padding-medium);
-	border-radius: var(--scd-radius-sm);
-	line-height: 1.6;
-}
-
-/* ==========================================================================
-   Button Animations
-   ========================================================================== */
-
-/* Pulse animation for button feedback */
-@keyframes scd-button-pulse {
-	0% {
-		transform: scale(1);
-	}
-	50% {
-		transform: scale(0.97);
-	}
-	100% {
-		transform: scale(1);
-	}
-}
-
-.scd-button-pulse {
-	animation: scd-button-pulse 0.2s ease-in-out;
-}
-
-/* Success state for buttons */
-.scd-button-success {
-	background-color: var(--scd-color-success) !important;
-	border-color: var(--scd-color-success) !important;
-	color: var(--scd-color-white) !important;
-	transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-}
-
-/* Loading button state */
-.scd-button-loading {
-	pointer-events: none;
-	opacity: 0.85;
+	height: var(--wsscd-button-height-large);
 }
 
 /* ==========================================================================
    Health Check Results
    ========================================================================== */
 
-.scd-health-check-results {
-	margin-top: 15px;
+.wsscd-health-check-results {
+	margin-top: var(--wsscd-spacing-base);
 }
 
-/* Staggered fade-in animation for health check items */
-@keyframes scd-health-item-slide-in {
-	0% {
+.wsscd-health-check-results .notice {
+	margin: var(--wsscd-spacing-sm) 0;
+	padding: var(--wsscd-padding-medium);
+}
+
+.wsscd-health-check-results .notice p {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-gap-tight);
+	margin: 0;
+	font-size: var(--wsscd-font-size-base);
+}
+
+.wsscd-health-check-results .notice .dashicons {
+	width: var(--wsscd-icon-medium);
+	height: var(--wsscd-icon-medium);
+	font-size: var(--wsscd-icon-medium);
+	line-height: 1;
+}
+
+.wsscd-health-check-results .notice-success .dashicons {
+	color: var(--wsscd-color-success);
+}
+
+.wsscd-health-check-results .notice-warning .dashicons {
+	color: var(--wsscd-color-warning);
+}
+
+.wsscd-health-check-results .notice-error .dashicons {
+	color: var(--wsscd-color-danger);
+}
+
+.wsscd-health-check-results .notice strong {
+	color: var(--wsscd-color-text);
+}
+
+/* Health Item Animation */
+.wsscd-health-result-item {
+	opacity: 0;
+	animation: wsscd-health-item-slide-in var(--wsscd-transition-slow) var(--wsscd-ease-out) forwards;
+}
+
+@keyframes wsscd-health-item-slide-in {
+	from {
 		opacity: 0;
 		transform: translateY(-10px);
 	}
-	100% {
+	to {
 		opacity: 1;
 		transform: translateY(0);
 	}
 }
 
-.scd-health-result-item {
-	animation: scd-health-item-slide-in 0.3s ease-out forwards;
-	opacity: 0;
-}
-
-.scd-health-check-results .notice {
-	margin: var(--scd-spacing-sm) 0;
-	padding: var(--scd-padding-medium);
-}
-
-.scd-health-check-results .notice p {
-	margin: 0;
-	font-size: var(--scd-font-size-base);
-	display: flex;
-	align-items: center;
-	gap: var(--scd-gap-tight);
-}
-
-.scd-health-check-results .notice .dashicons {
-	width: 20px;
-	height: 20px;
-	font-size: 20px;
-	line-height: 1;
-}
-
-.scd-health-check-results .notice-success .dashicons {
-	color: var(--scd-color-success);
-}
-
-.scd-health-check-results .notice-warning .dashicons {
-	color: var(--scd-color-warning);
-}
-
-.scd-health-check-results .notice-error .dashicons {
-	color: var(--scd-color-danger);
-}
-
-.scd-health-check-results .notice strong {
-	color: var(--scd-color-text);
-}
-
 /* ==========================================================================
-   Import Status
+   Import/Export Status
    ========================================================================== */
 
-.scd-import-status {
-	margin-top: 10px;
-	padding: var(--scd-padding-small);
-	border-radius: var(--scd-radius-md);
+.wsscd-import-status {
 	display: none;
+	margin-top: var(--wsscd-spacing-sm-large);
+	padding: var(--wsscd-padding-small);
+	border-radius: var(--wsscd-radius-md);
 }
 
-.scd-import-status.success {
+.wsscd-import-status.success {
 	display: block;
-	background: var(--scd-color-success-bg);
-	border-left: 4px solid var(--scd-color-success);
-	color: var(--scd-color-text);
+	background: var(--wsscd-color-success-bg);
+	border-left: var(--wsscd-border-width-accent) solid var(--wsscd-color-success);
+	color: var(--wsscd-color-text);
 }
 
-.scd-import-status.error {
+.wsscd-import-status.error {
 	display: block;
-	background: var(--scd-color-danger-bg);
-	border-left: 4px solid var(--scd-color-danger);
-	color: var(--scd-color-text);
+	background: var(--wsscd-color-danger-bg);
+	border-left: var(--wsscd-border-width-accent) solid var(--wsscd-color-danger);
+	color: var(--wsscd-color-text);
 }
 
 /* ==========================================================================
-   Responsive
+   Responsive Design
    ========================================================================== */
 
 @media screen and (max-width: 782px) {
-	.scd-tools-section {
-		padding: var(--scd-padding-large);
+	.wsscd-tools-page {
+		margin: var(--wsscd-spacing-base) var(--wsscd-spacing-sm) 0 0;
 	}
 
-	.scd-tools-section .form-table th,
-	.scd-tools-section .form-table td {
+	.wsscd-tools-section {
+		padding: var(--wsscd-padding-large);
+	}
+
+	.wsscd-tools-section .form-table th,
+	.wsscd-tools-section .form-table td {
 		display: block;
 		width: 100%;
-		padding: var(--scd-padding-medium) 0;
+		padding: var(--wsscd-padding-medium) 0;
 	}
 
-	.scd-tools-section .form-table th {
+	.wsscd-tools-section .form-table th {
 		padding-bottom: 0;
 	}
 
-	.scd-log-actions {
+	.wsscd-log-actions {
 		flex-direction: column;
 		align-items: stretch;
 	}
 
-	.scd-log-actions label {
-		margin-bottom: 4px;
+	.wsscd-log-actions label {
+		margin-bottom: var(--wsscd-spacing-xs);
 	}
 
-	.scd-log-actions select,
-	.scd-log-actions .button {
+	.wsscd-log-actions select,
+	.wsscd-log-actions .button {
 		width: 100%;
 		justify-content: center;
 	}

@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/analytics
  * @author     Webstepper <contact@webstepper.io>
  */
-trait SCD_Analytics_Helpers {
+trait WSSCD_Analytics_Helpers {
 
 	/**
 	 * Get date range conditions for analytics queries.
@@ -42,38 +42,38 @@ trait SCD_Analytics_Helpers {
 
 		switch ( $date_range ) {
 			case '24hours':
-				$start_date = date( 'Y-m-d H:i:s', strtotime( '-24 hours' ) );
+				$start_date = gmdate( 'Y-m-d H:i:s', strtotime( '-24 hours' ) );
 				break;
 			case '7days':
-				$start_date = date( 'Y-m-d H:i:s', strtotime( '-7 days' ) );
+				$start_date = gmdate( 'Y-m-d H:i:s', strtotime( '-7 days' ) );
 				break;
 			case '30days':
-				$start_date = date( 'Y-m-d H:i:s', strtotime( '-30 days' ) );
+				$start_date = gmdate( 'Y-m-d H:i:s', strtotime( '-30 days' ) );
 				break;
 			case '90days':
-				$start_date = date( 'Y-m-d H:i:s', strtotime( '-90 days' ) );
+				$start_date = gmdate( 'Y-m-d H:i:s', strtotime( '-90 days' ) );
 				break;
 
 			// Previous periods for trend comparison
 			case 'previous_24hours':
-				$end_date   = date( 'Y-m-d H:i:s', strtotime( '-24 hours' ) );
-				$start_date = date( 'Y-m-d H:i:s', strtotime( '-48 hours' ) );
+				$end_date   = gmdate( 'Y-m-d H:i:s', strtotime( '-24 hours' ) );
+				$start_date = gmdate( 'Y-m-d H:i:s', strtotime( '-48 hours' ) );
 				break;
 			case 'previous_7days':
-				$end_date   = date( 'Y-m-d H:i:s', strtotime( '-7 days' ) );
-				$start_date = date( 'Y-m-d H:i:s', strtotime( '-14 days' ) );
+				$end_date   = gmdate( 'Y-m-d H:i:s', strtotime( '-7 days' ) );
+				$start_date = gmdate( 'Y-m-d H:i:s', strtotime( '-14 days' ) );
 				break;
 			case 'previous_30days':
-				$end_date   = date( 'Y-m-d H:i:s', strtotime( '-30 days' ) );
-				$start_date = date( 'Y-m-d H:i:s', strtotime( '-60 days' ) );
+				$end_date   = gmdate( 'Y-m-d H:i:s', strtotime( '-30 days' ) );
+				$start_date = gmdate( 'Y-m-d H:i:s', strtotime( '-60 days' ) );
 				break;
 			case 'previous_90days':
-				$end_date   = date( 'Y-m-d H:i:s', strtotime( '-90 days' ) );
-				$start_date = date( 'Y-m-d H:i:s', strtotime( '-180 days' ) );
+				$end_date   = gmdate( 'Y-m-d H:i:s', strtotime( '-90 days' ) );
+				$start_date = gmdate( 'Y-m-d H:i:s', strtotime( '-180 days' ) );
 				break;
 
 			default:
-				$start_date = date( 'Y-m-d H:i:s', strtotime( '-7 days' ) );
+				$start_date = gmdate( 'Y-m-d H:i:s', strtotime( '-7 days' ) );
 		}
 
 		return array(

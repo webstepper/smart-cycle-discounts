@@ -1,7 +1,7 @@
 /**
  * Admin Notices Dismiss Handler
  *
- * Handles dismissal of all SCD admin notices (campaign expiration, currency change, etc.)
+ * Handles dismissal of all WSSCD admin notices (campaign expiration, currency change, etc.)
  * Uses data attributes to determine which AJAX action to call.
  *
  * @package    SmartCycleDiscounts
@@ -21,20 +21,20 @@
 	 */
 	$( document ).ready( function() {
 		// Verify localized data is available
-		if ( 'undefined' === typeof window.scdAdminNotices ) {
-			console.error( 'SCD Admin Notices: Localized data not found' );
+		if ( 'undefined' === typeof window.wsscdAdminNotices ) {
+			console.error( 'WSSCD Admin Notices: Localized data not found' );
 			return;
 		}
 
 		/**
-		 * Handle dismiss button clicks for all SCD admin notices.
+		 * Handle dismiss button clicks for all WSSCD admin notices.
 		 *
 		 * Uses data-action attribute to determine which AJAX action to call.
-		 * Nonces are provided via localized scdAdminNotices object.
+		 * Nonces are provided via localized wsscdAdminNotices object.
 		 *
 		 * Note: Using .off().on() to prevent duplicate handlers if script loads multiple times.
 		 */
-		$( '.scd-dismiss-notice' ).off( 'click.scdDismiss' ).on( 'click.scdDismiss', function() {
+		$( '.wsscd-dismiss-notice' ).off( 'click.wsscdDismiss' ).on( 'click.wsscdDismiss', function() {
 			var $button = $( this );
 			var $notice = $button.closest( '.notice' );
 			var action  = $button.data( 'action' );
@@ -42,14 +42,14 @@
 
 			// Validate required data attributes
 			if ( ! action || ! type ) {
-				console.error( 'SCD Admin Notice: Missing required data attributes (action or type)' );
+				console.error( 'WSSCD Admin Notice: Missing required data attributes (action or type)' );
 				return;
 			}
 
 			// Get nonce from localized data
-			var nonce = window.scdAdminNotices.nonces[type];
+			var nonce = window.wsscdAdminNotices.nonces[type];
 			if ( ! nonce ) {
-				console.error( 'SCD Admin Notice: Nonce not found for type "' + type + '"' );
+				console.error( 'WSSCD Admin Notice: Nonce not found for type "' + type + '"' );
 				return;
 			}
 
@@ -69,7 +69,7 @@
 				}
 			).fail( function( xhr, status, error ) {
 				// Log error but still remove notice from UI
-				console.error( 'SCD Admin Notice dismiss error:', error );
+				console.error( 'WSSCD Admin Notice dismiss error:', error );
 				$notice.fadeOut( 300, function() {
 					$( this ).remove();
 				} );

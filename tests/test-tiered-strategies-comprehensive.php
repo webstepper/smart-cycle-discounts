@@ -2,7 +2,7 @@
 /**
  * Comprehensive Tests for Tiered Discount Strategies
  *
- * Tests both SCD_Tiered_Strategy and SCD_Spend_Threshold_Strategy
+ * Tests both WSSCD_Tiered_Strategy and WSSCD_Spend_Threshold_Strategy
  * to verify correct field name usage, calculation logic, and edge cases.
  *
  * @package    SmartCycleDiscounts
@@ -10,19 +10,19 @@
  * @since      1.0.0
  */
 
-class SCD_Test_Tiered_Strategies extends WP_UnitTestCase {
+class WSSCD_Test_Tiered_Strategies extends WP_UnitTestCase {
 
 	/**
 	 * Tiered strategy instance.
 	 *
-	 * @var SCD_Tiered_Strategy
+	 * @var WSSCD_Tiered_Strategy
 	 */
 	private $tiered_strategy;
 
 	/**
 	 * Spend threshold strategy instance.
 	 *
-	 * @var SCD_Spend_Threshold_Strategy
+	 * @var WSSCD_Spend_Threshold_Strategy
 	 */
 	private $spend_strategy;
 
@@ -31,8 +31,8 @@ class SCD_Test_Tiered_Strategies extends WP_UnitTestCase {
 	 */
 	public function setUp() {
 		parent::setUp();
-		$this->tiered_strategy = new SCD_Tiered_Strategy();
-		$this->spend_strategy  = new SCD_Spend_Threshold_Strategy();
+		$this->tiered_strategy = new WSSCD_Tiered_Strategy();
+		$this->spend_strategy  = new WSSCD_Spend_Threshold_Strategy();
 	}
 
 	// ==========================================

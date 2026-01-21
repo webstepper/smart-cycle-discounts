@@ -13,6 +13,8 @@
  * @since      1.0.0
  */
 
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial included into function scope; variables are local, not global.
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
@@ -30,55 +32,55 @@ $formatted_impressions = number_format_i18n( $impressions );
 $formatted_ctr         = number_format_i18n( $ctr, 2 ) . '%';
 ?>
 
-<div class="scd-overview-subsection">
-	<div class="scd-subsection-header">
-		<?php echo SCD_Icon_Helper::get( 'chart-bar', array( 'size' => 16 ) ); ?>
+<div class="wsscd-overview-subsection">
+	<div class="wsscd-subsection-header">
+		<?php WSSCD_Icon_Helper::render( 'chart-bar', array( 'size' => 16 ) ); ?>
 		<h5><?php esc_html_e( 'Performance Overview', 'smart-cycle-discounts' ); ?></h5>
-		<span class="scd-subsection-period"><?php esc_html_e( '(Last 30 Days)', 'smart-cycle-discounts' ); ?></span>
+		<span class="wsscd-subsection-period"><?php esc_html_e( '(Last 30 Days)', 'smart-cycle-discounts' ); ?></span>
 	</div>
 
-	<div class="scd-metrics-row">
+	<div class="wsscd-metrics-row">
 		<!-- Revenue -->
-		<div class="scd-metric-card">
-			<div class="scd-metric-icon">
-				<?php echo SCD_Icon_Helper::get( 'money-alt', array( 'size' => 20 ) ); ?>
+		<div class="wsscd-metric-card">
+			<div class="wsscd-metric-icon">
+				<?php WSSCD_Icon_Helper::render( 'money-alt', array( 'size' => 20 ) ); ?>
 			</div>
-			<div class="scd-metric-content">
-				<div class="scd-metric-value"><?php echo wp_kses_post( $formatted_revenue ); ?></div>
-				<div class="scd-metric-label"><?php esc_html_e( 'Revenue', 'smart-cycle-discounts' ); ?></div>
+			<div class="wsscd-metric-content">
+				<div class="wsscd-metric-value"><?php echo wp_kses_post( $formatted_revenue ); ?></div>
+				<div class="wsscd-metric-label"><?php esc_html_e( 'Revenue', 'smart-cycle-discounts' ); ?></div>
 			</div>
 		</div>
 
 		<!-- Conversions -->
-		<div class="scd-metric-card">
-			<div class="scd-metric-icon">
-				<?php echo SCD_Icon_Helper::get( 'yes', array( 'size' => 20 ) ); ?>
+		<div class="wsscd-metric-card">
+			<div class="wsscd-metric-icon">
+				<?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 20 ) ); ?>
 			</div>
-			<div class="scd-metric-content">
-				<div class="scd-metric-value"><?php echo esc_html( $formatted_conversions ); ?></div>
-				<div class="scd-metric-label"><?php esc_html_e( 'Orders', 'smart-cycle-discounts' ); ?></div>
+			<div class="wsscd-metric-content">
+				<div class="wsscd-metric-value"><?php echo esc_html( $formatted_conversions ); ?></div>
+				<div class="wsscd-metric-label"><?php esc_html_e( 'Orders', 'smart-cycle-discounts' ); ?></div>
 			</div>
 		</div>
 
 		<!-- Impressions -->
-		<div class="scd-metric-card">
-			<div class="scd-metric-icon">
-				<?php echo SCD_Icon_Helper::get( 'visibility', array( 'size' => 20 ) ); ?>
+		<div class="wsscd-metric-card">
+			<div class="wsscd-metric-icon">
+				<?php WSSCD_Icon_Helper::render( 'visibility', array( 'size' => 20 ) ); ?>
 			</div>
-			<div class="scd-metric-content">
-				<div class="scd-metric-value"><?php echo esc_html( $formatted_impressions ); ?></div>
-				<div class="scd-metric-label"><?php esc_html_e( 'Views', 'smart-cycle-discounts' ); ?></div>
+			<div class="wsscd-metric-content">
+				<div class="wsscd-metric-value"><?php echo esc_html( $formatted_impressions ); ?></div>
+				<div class="wsscd-metric-label"><?php esc_html_e( 'Views', 'smart-cycle-discounts' ); ?></div>
 			</div>
 		</div>
 
 		<!-- CTR -->
-		<div class="scd-metric-card">
-			<div class="scd-metric-icon">
-				<?php echo SCD_Icon_Helper::get( 'chart-line', array( 'size' => 20 ) ); ?>
+		<div class="wsscd-metric-card">
+			<div class="wsscd-metric-icon">
+				<?php WSSCD_Icon_Helper::render( 'chart-line', array( 'size' => 20 ) ); ?>
 			</div>
-			<div class="scd-metric-content">
-				<div class="scd-metric-value"><?php echo esc_html( $formatted_ctr ); ?></div>
-				<div class="scd-metric-label"><?php esc_html_e( 'CTR', 'smart-cycle-discounts' ); ?></div>
+			<div class="wsscd-metric-content">
+				<div class="wsscd-metric-value"><?php echo esc_html( $formatted_ctr ); ?></div>
+				<div class="wsscd-metric-label"><?php esc_html_e( 'CTR', 'smart-cycle-discounts' ); ?></div>
 			</div>
 		</div>
 	</div>

@@ -14,15 +14,15 @@
 	'use strict';
 
 	// Ensure namespace exists
-	window.SCD = window.SCD || {};
-	SCD.Modules = SCD.Modules || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Modules = WSSCD.Modules || {};
 
 	// Safe timezone getter
 	function getTimezone() {
 		try {
-			return ( window.scd_admin && window.scd_admin.timezone ) ||
-                   ( window.scdAdmin && window.scdAdmin.timezone ) ||
-                   ( window.scdWizardData && window.scdWizardData.timezone ) ||
+			return ( window.wsscd_admin && window.wsscd_admin.timezone ) ||
+                   ( window.wsscdAdmin && window.wsscdAdmin.timezone ) ||
+                   ( window.wsscdWizardData && window.wsscdWizardData.timezone ) ||
                    'UTC';
 		} catch ( e ) {
 			return 'UTC';
@@ -32,12 +32,12 @@
 	/**
 	 * Schedule Configuration
 	 */
-	SCD.Modules.ScheduleConfig = {
+	WSSCD.Modules.ScheduleConfig = {
 
 		// DOM Selectors
 		selectors: {
 			// Form elements
-			form: '#scd-wizard-schedule-form',
+			form: '#wsscd-wizard-schedule-form',
 
 			// Date inputs
 			startDate: '#start_date',
@@ -56,39 +56,39 @@
 			endTimeAmPm: '#end_time_ampm',
 
 			// UI elements
-			clearEndDate: '.scd-clear-end-date',
-			durationDisplay: '#scd-duration-display',
-			durationText: '#scd-duration-text',
-			durationHint: '#scd-duration-hint',
-			statusPanel: '#scd-schedule-status',
-			loadingOverlay: '#scd-schedule-loading',
-			saveIndicator: '#scd-save-indicator',
-			announcements: '#scd-schedule-announcements',
+			clearEndDate: '.wsscd-clear-end-date',
+			durationDisplay: '#wsscd-duration-display',
+			durationText: '#wsscd-duration-text',
+			durationHint: '#wsscd-duration-hint',
+			statusPanel: '#wsscd-schedule-status',
+			loadingOverlay: '#wsscd-schedule-loading',
+			saveIndicator: '#wsscd-save-indicator',
+			announcements: '#wsscd-schedule-announcements',
 
 			// Preset elements
-			presetsContainer: '#scd-smart-presets',
-			presetGrid: '#scd-preset-recommendations',
+			presetsContainer: '#wsscd-smart-presets',
+			presetGrid: '#wsscd-preset-recommendations',
 
 			// Schedule type elements
 			startTypeRadios: 'input[name="start_type"]',
-			scheduledStartFields: '.scd-scheduled-start-fields',
-			timelineSection: '#scd-timeline-section'
+			scheduledStartFields: '.wsscd-scheduled-start-fields',
+			timelineSection: '#wsscd-timeline-section'
 		},
 
 		// CSS Classes
 		classes: {
 			// Input states
 			error: 'error',
-			loading: 'scd-loading',
+			loading: 'wsscd-loading',
 
 			// Status panels
-			success: 'scd-status-panel--success',
-			warning: 'scd-status-panel--warning',
-			errorPanel: 'scd-status-panel--error',
+			success: 'wsscd-status-panel--success',
+			warning: 'wsscd-status-panel--warning',
+			errorPanel: 'wsscd-status-panel--error',
 
 			// Presets
-			presetActive: 'scd-preset-card--active',
-			presetRecommended: 'scd-preset-card--recommended',
+			presetActive: 'wsscd-preset-card--active',
+			presetRecommended: 'wsscd-preset-card--recommended',
 
 			// Accessibility
 			srOnly: 'screen-reader-text',
@@ -185,10 +185,10 @@
 
 		// API Endpoints
 		endpoints: {
-			save: 'scd_save_schedule',
-			validate: 'scd_validate_schedule',
-			getPresets: 'scd_get_schedule_presets',
-			getContext: 'scd_get_campaign_context'
+			save: 'wsscd_save_schedule',
+			validate: 'wsscd_validate_schedule',
+			getPresets: 'wsscd_get_schedule_presets',
+			getContext: 'wsscd_get_campaign_context'
 		},
 
 		/**
@@ -305,8 +305,8 @@
 	};
 
 	// Register module with loader
-	if ( SCD.ModuleLoader ) {
-		SCD.ModuleLoader.register( 'schedule-config', SCD.Modules.ScheduleConfig );
+	if ( WSSCD.ModuleLoader ) {
+		WSSCD.ModuleLoader.register( 'schedule-config', WSSCD.Modules.ScheduleConfig );
 	}
 
 } )( window );

@@ -27,34 +27,34 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/components
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Condition_Builder {
+class WSSCD_Condition_Builder {
 
 	/**
 	 * Condition engine instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Condition_Engine    $condition_engine    Condition engine.
+	 * @var      WSSCD_Condition_Engine    $condition_engine    Condition engine.
 	 */
-	private SCD_Condition_Engine $condition_engine;
+	private WSSCD_Condition_Engine $condition_engine;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Initialize the condition builder.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Condition_Engine $condition_engine    Condition engine.
-	 * @param    SCD_Logger           $logger              Logger instance.
+	 * @param    WSSCD_Condition_Engine $condition_engine    Condition engine.
+	 * @param    WSSCD_Logger           $logger              Logger instance.
 	 */
-	public function __construct( SCD_Condition_Engine $condition_engine, SCD_Logger $logger ) {
+	public function __construct( WSSCD_Condition_Engine $condition_engine, WSSCD_Logger $logger ) {
 		$this->condition_engine = $condition_engine;
 		$this->logger           = $logger;
 	}
@@ -80,17 +80,19 @@ class SCD_Condition_Builder {
 		try {
 			ob_start();
 			?>
-			<div class="scd-condition-builder-wrapper" 
+			<div class="wsscd-condition-builder-wrapper" 
 				data-show-when="<?php echo esc_attr( $args['show_only_when'] ); ?>">
 				
-				<div class="scd-condition-header">
-					<h4 class="scd-condition-title">
+				<div class="wsscd-condition-header">
+					<h4 class="wsscd-condition-title">
 						<?php echo esc_html( $args['title'] ); ?>
-						<span class="scd-condition-toggle">
-							<button type="button" class="button button-secondary scd-toggle-conditions" 
-									data-expanded="<?php echo empty( $args['conditions'] ) ? 'false' : 'true'; ?>">
-								<?php echo SCD_Icon_Helper::get( 'filter', array( 'size' => 16 ) ); ?>
-								<span class="scd-toggle-text">
+						<span class="wsscd-condition-toggle">
+							<button type="button" class="button button-secondary wsscd-toggle-conditions"
+									data-expanded="<?php echo esc_attr( empty( $args['conditions'] ) ? 'false' : 'true' ); ?>">
+								<?php
+								WSSCD_Icon_Helper::render( 'filter', array( 'size' => 16 ) );
+								?>
+								<span class="wsscd-toggle-text">
 									<?php
 									echo empty( $args['conditions'] ) ?
 										esc_html__( 'Add Conditions', 'smart-cycle-discounts' ) :
@@ -100,41 +102,51 @@ class SCD_Condition_Builder {
 							</button>
 						</span>
 					</h4>
-					<p class="scd-condition-description">
+					<p class="wsscd-condition-description">
 						<?php echo esc_html( $args['description'] ); ?>
 					</p>
 				</div>
 
-				<div class="scd-conditions-container" 
-					style="<?php echo empty( $args['conditions'] ) ? 'display: none;' : ''; ?>">
+				<div class="wsscd-conditions-container"
+					style="<?php echo esc_attr( empty( $args['conditions'] ) ? 'display: none;' : '' ); ?>">
 					
-					<div class="scd-conditions-list">
-						<?php echo $this->render_existing_conditions( $args['conditions'], $args['name_prefix'] ); ?>
+					<div class="wsscd-conditions-list">
+						<?php
+						WSSCD_HTML_Helper::output( $this->render_existing_conditions( $args['conditions'], $args['name_prefix'] ) );
+						?>
 					</div>
 
-					<div class="scd-condition-actions">
-						<button type="button" class="button scd-add-condition">
-							<?php echo SCD_Icon_Helper::get( 'add', array( 'size' => 16 ) ); ?>
+					<div class="wsscd-condition-actions">
+						<button type="button" class="button wsscd-add-condition">
+							<?php
+							WSSCD_Icon_Helper::render( 'add', array( 'size' => 16 ) );
+							?>
 							<?php esc_html_e( 'Add Condition', 'smart-cycle-discounts' ); ?>
 						</button>
 
 						<?php if ( ! empty( $args['conditions'] ) ) : ?>
-						<button type="button" class="button button-secondary scd-clear-conditions">
-							<?php echo SCD_Icon_Helper::get( 'delete', array( 'size' => 16 ) ); ?>
+						<button type="button" class="button button-secondary wsscd-clear-conditions">
+							<?php
+							WSSCD_Icon_Helper::render( 'delete', array( 'size' => 16 ) );
+							?>
 							<?php esc_html_e( 'Clear All', 'smart-cycle-discounts' ); ?>
 						</button>
 						<?php endif; ?>
 					</div>
 
-					<div class="scd-condition-preview">
-						<div class="scd-preview-summary" id="scd-conditions-summary">
-							<?php echo $this->render_conditions_summary( $args['conditions'] ); ?>
+					<div class="wsscd-condition-preview">
+						<div class="wsscd-preview-summary" id="wsscd-conditions-summary">
+							<?php
+							WSSCD_HTML_Helper::output( $this->render_conditions_summary( $args['conditions'] ) );
+							?>
 						</div>
 					</div>
 				</div>
 
-				<?php echo $this->render_condition_template(); ?>
-				<?php echo $this->render_condition_logic_script( $args['name_prefix'] ); ?>
+				<?php
+				WSSCD_HTML_Helper::output( $this->render_condition_template() );
+				WSSCD_HTML_Helper::output( $this->render_condition_logic_script( $args['name_prefix'] ) );
+				?>
 			</div>
 			<?php
 			return ob_get_clean();
@@ -147,7 +159,7 @@ class SCD_Condition_Builder {
 					'error' => $e->getMessage(),
 				)
 			);
-			return '<div class="scd-error">' . __( 'Failed to load condition builder.', 'smart-cycle-discounts' ) . '</div>';
+			return '<div class="wsscd-error">' . __( 'Failed to load condition builder.', 'smart-cycle-discounts' ) . '</div>';
 		}
 	}
 
@@ -162,7 +174,7 @@ class SCD_Condition_Builder {
 	 */
 	private function render_existing_conditions( array $conditions, string $name_prefix ): string {
 		if ( empty( $conditions ) ) {
-			return '<div class="scd-no-conditions">' .
+			return '<div class="wsscd-no-conditions">' .
 					esc_html__( 'No conditions added yet. Click "Add Condition" to get started.', 'smart-cycle-discounts' ) .
 					'</div>';
 		}
@@ -196,12 +208,12 @@ class SCD_Condition_Builder {
 
 		ob_start();
 		?>
-		<div class="scd-condition-row" data-index="<?php echo esc_attr( $index ); ?>">
-			<div class="scd-condition-fields">
+		<div class="wsscd-condition-row" data-index="<?php echo esc_attr( $index ); ?>">
+			<div class="wsscd-condition-fields">
 				<!-- Property Dropdown -->
-				<div class="scd-condition-field scd-property-field">
+				<div class="wsscd-condition-field wsscd-property-field">
 					<select name="<?php echo esc_attr( $name_prefix ); ?>[<?php echo esc_attr( $index ); ?>][condition_type]"
-							class="scd-condition-type"
+							class="wsscd-condition-type"
 							data-index="<?php echo esc_attr( $index ); ?>">
 						<option value=""><?php esc_html_e( 'Select Property', 'smart-cycle-discounts' ); ?></option>
 						<?php foreach ( $properties as $key => $property ) : ?>
@@ -215,32 +227,40 @@ class SCD_Condition_Builder {
 				</div>
 
 				<!-- Operator Dropdown -->
-				<div class="scd-condition-field scd-operator-field">
-					<select name="<?php echo esc_attr( $name_prefix ); ?>[<?php echo esc_attr( $index ); ?>][operator]" 
-							class="scd-condition-operator" 
+				<div class="wsscd-condition-field wsscd-operator-field">
+					<select name="<?php echo esc_attr( $name_prefix ); ?>[<?php echo esc_attr( $index ); ?>][operator]"
+							class="wsscd-condition-operator"
 							data-index="<?php echo esc_attr( $index ); ?>"
-							<?php echo empty( $selected_property ) ? 'disabled' : ''; ?>>
+							<?php disabled( empty( $selected_property ) ); ?>>
 						<option value=""><?php esc_html_e( 'Select Operator', 'smart-cycle-discounts' ); ?></option>
-						<?php echo $this->render_operator_options( $operators, $selected_property, $selected_operator, $properties ); ?>
+						<?php
+						echo wp_kses_post( $this->render_operator_options( $operators, $selected_property, $selected_operator, $properties ) );
+						?>
 					</select>
 				</div>
 
 				<!-- Value Fields -->
-				<div class="scd-condition-field scd-value-field">
-					<?php echo $this->render_value_inputs( $condition_value, $condition_value2, $selected_operator, $index, $name_prefix ); ?>
+				<div class="wsscd-condition-field wsscd-value-field">
+					<?php
+					echo wp_kses_post( $this->render_value_inputs( $condition_value, $condition_value2, $selected_operator, $index, $name_prefix ) );
+					?>
 				</div>
 			</div>
 
-			<div class="scd-condition-actions">
-				<button type="button" class="button button-small scd-remove-condition" 
+			<div class="wsscd-condition-actions">
+				<button type="button" class="button button-small wsscd-remove-condition"
 						data-index="<?php echo esc_attr( $index ); ?>"
 						title="<?php esc_attr_e( 'Remove condition', 'smart-cycle-discounts' ); ?>">
-					<?php echo SCD_Icon_Helper::get( 'delete', array( 'size' => 16 ) ); ?>
+					<?php
+					WSSCD_Icon_Helper::render( 'delete', array( 'size' => 16 ) );
+					?>
 				</button>
 			</div>
 
-			<div class="scd-condition-validation">
-				<?php echo $this->render_condition_validation( $condition ); ?>
+			<div class="wsscd-condition-validation">
+				<?php
+				WSSCD_HTML_Helper::output( $this->render_condition_validation( $condition ) );
+				?>
 			</div>
 		</div>
 		<?php
@@ -299,22 +319,22 @@ class SCD_Condition_Builder {
 
 		ob_start();
 		?>
-		<div class="scd-value-inputs" data-value-count="<?php echo esc_attr( $value_count ); ?>">
+		<div class="wsscd-value-inputs" data-value-count="<?php echo esc_attr( $value_count ); ?>">
 			<input type="text"
 					name="<?php echo esc_attr( $name_prefix ); ?>[<?php echo esc_attr( $index ); ?>][value]"
-					class="scd-condition-value"
+					class="wsscd-condition-value"
 					value="<?php echo esc_attr( $value ); ?>"
 					placeholder="<?php echo esc_attr( $this->get_value_placeholder( $operator, 0 ) ); ?>"
-					<?php echo empty( $operator ) ? 'disabled' : ''; ?> />
+					<?php disabled( empty( $operator ) ); ?> />
 
 			<?php if ( $value_count === 2 ) : ?>
-				<span class="scd-value-separator"><?php esc_html_e( 'and', 'smart-cycle-discounts' ); ?></span>
+				<span class="wsscd-value-separator"><?php esc_html_e( 'and', 'smart-cycle-discounts' ); ?></span>
 				<input type="text"
 						name="<?php echo esc_attr( $name_prefix ); ?>[<?php echo esc_attr( $index ); ?>][value2]"
-						class="scd-condition-value scd-condition-value-between"
+						class="wsscd-condition-value wsscd-condition-value-between"
 						value="<?php echo esc_attr( $value2 ); ?>"
 						placeholder="<?php echo esc_attr( $this->get_value_placeholder( $operator, 1 ) ); ?>"
-						<?php echo empty( $operator ) ? 'disabled' : ''; ?> />
+						<?php disabled( empty( $operator ) ); ?> />
 			<?php endif; ?>
 		</div>
 		<?php
@@ -360,17 +380,19 @@ class SCD_Condition_Builder {
 
 		$validation = $this->condition_engine->validate_condition( $condition );
 
+		// Use wp_kses with SVG allowed tags since wp_kses_post strips SVG elements.
 		if ( $validation ) {
-			return '<div class="scd-validation-success">
-                        ' . SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ) . '
-                        <span class="scd-validation-text">' . esc_html__( 'Valid condition', 'smart-cycle-discounts' ) . '</span>
+			return '<div class="wsscd-validation-success">
+                        ' . wp_kses( WSSCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ), WSSCD_Icon_Helper::get_allowed_svg_tags() ) . '
+                        <span class="wsscd-validation-text">' . esc_html__( 'Valid condition', 'smart-cycle-discounts' ) . '</span>
                     </div>';
 		} else {
-			return '<div class="scd-validation-error">
-                        ' . SCD_Icon_Helper::get( 'warning', array( 'size' => 16 ) ) . '
-                        <span class="scd-validation-text">' . esc_html__( 'Invalid condition', 'smart-cycle-discounts' ) . '</span>
+			return '<div class="wsscd-validation-error">
+                        ' . wp_kses( WSSCD_Icon_Helper::get( 'warning', array( 'size' => 16 ) ), WSSCD_Icon_Helper::get_allowed_svg_tags() ) . '
+                        <span class="wsscd-validation-text">' . esc_html__( 'Invalid condition', 'smart-cycle-discounts' ) . '</span>
                     </div>';
 		}
+		
 	}
 
 	/**
@@ -383,7 +405,7 @@ class SCD_Condition_Builder {
 	 */
 	private function render_conditions_summary( array $conditions ): string {
 		if ( empty( $conditions ) ) {
-			return '<p class="scd-summary-empty">' .
+			return '<p class="wsscd-summary-empty">' .
 					esc_html__( 'No conditions applied. All products from selected categories will be included.', 'smart-cycle-discounts' ) .
 					'</p>';
 		}
@@ -391,26 +413,27 @@ class SCD_Condition_Builder {
 		$summaries = $this->condition_engine->get_condition_summaries( $conditions );
 
 		if ( empty( $summaries ) ) {
-			return '<p class="scd-summary-invalid">' .
+			return '<p class="wsscd-summary-invalid">' .
 					esc_html__( 'Some conditions are invalid and will be ignored.', 'smart-cycle-discounts' ) .
 					'</p>';
 		}
 
 		ob_start();
 		?>
-		<div class="scd-conditions-summary">
-			<p class="scd-summary-intro">
+		<div class="wsscd-conditions-summary">
+			<p class="wsscd-summary-intro">
 				<?php
 				printf(
+					/* translators: %d: number of active product filter conditions */
 					esc_html( _n( 'Products will be filtered by %d condition:', 'Products will be filtered by %d conditions:', count( $summaries ), 'smart-cycle-discounts' ) ),
 					count( $summaries )
 				);
 				?>
 			</p>
-			<ul class="scd-summary-list">
+			<ul class="wsscd-summary-list">
 				<?php foreach ( $summaries as $summary ) : ?>
-					<li class="scd-summary-item">
-						<span class="scd-summary-text"><?php echo esc_html( $summary['summary'] ); ?></span>
+					<li class="wsscd-summary-item">
+						<span class="wsscd-summary-text"><?php echo esc_html( $summary['summary'] ); ?></span>
 					</li>
 				<?php endforeach; ?>
 			</ul>
@@ -432,13 +455,13 @@ class SCD_Condition_Builder {
 
 		ob_start();
 		?>
-		<script type="text/template" id="scd-condition-template">
-			<div class="scd-condition-row" data-index="{{INDEX}}">
-				<div class="scd-condition-fields">
+		<script type="text/template" id="wsscd-condition-template">
+			<div class="wsscd-condition-row" data-index="{{INDEX}}">
+				<div class="wsscd-condition-fields">
 					<!-- Property Dropdown -->
-					<div class="scd-condition-field scd-property-field">
+					<div class="wsscd-condition-field wsscd-property-field">
 						<select name="{{NAME_PREFIX}}[{{INDEX}}][condition_type]"
-								class="scd-condition-type"
+								class="wsscd-condition-type"
 								data-index="{{INDEX}}">
 							<option value=""><?php esc_html_e( 'Select Property', 'smart-cycle-discounts' ); ?></option>
 							<?php foreach ( $properties as $key => $property ) : ?>
@@ -451,41 +474,43 @@ class SCD_Condition_Builder {
 					</div>
 
 					<!-- Operator Dropdown -->
-					<div class="scd-condition-field scd-operator-field">
+					<div class="wsscd-condition-field wsscd-operator-field">
 						<select name="{{NAME_PREFIX}}[{{INDEX}}][operator]" 
-								class="scd-condition-operator" 
+								class="wsscd-condition-operator" 
 								data-index="{{INDEX}}" disabled>
 							<option value=""><?php esc_html_e( 'Select Operator', 'smart-cycle-discounts' ); ?></option>
 						</select>
 					</div>
 
 					<!-- Value Fields -->
-					<div class="scd-condition-field scd-value-field">
-						<div class="scd-value-inputs" data-value-count="1">
+					<div class="wsscd-condition-field wsscd-value-field">
+						<div class="wsscd-value-inputs" data-value-count="1">
 							<input type="text"
 									name="{{NAME_PREFIX}}[{{INDEX}}][value]"
-									class="scd-condition-value"
+									class="wsscd-condition-value"
 									placeholder="<?php esc_attr_e( 'Enter value', 'smart-cycle-discounts' ); ?>"
 									disabled />
 						</div>
 					</div>
 				</div>
 
-				<div class="scd-condition-actions">
-					<button type="button" class="button button-small scd-remove-condition" 
+				<div class="wsscd-condition-actions">
+					<button type="button" class="button button-small wsscd-remove-condition"
 							data-index="{{INDEX}}"
 							title="<?php esc_attr_e( 'Remove condition', 'smart-cycle-discounts' ); ?>">
-						<?php echo SCD_Icon_Helper::get( 'delete', array( 'size' => 16 ) ); ?>
+						<?php
+						WSSCD_Icon_Helper::render( 'delete', array( 'size' => 16 ) );
+						?>
 					</button>
 				</div>
 
-				<div class="scd-condition-validation"></div>
+				<div class="wsscd-condition-validation"></div>
 			</div>
 		</script>
 
 		<!-- Operator options templates -->
 		<?php foreach ( $properties as $property_key => $property ) : ?>
-			<script type="text/template" id="scd-operators-<?php echo esc_attr( $property_key ); ?>">
+			<script type="text/template" id="wsscd-operators-<?php echo esc_attr( $property_key ); ?>">
 				<option value=""><?php esc_html_e( 'Select Operator', 'smart-cycle-discounts' ); ?></option>
 				<?php foreach ( $operators as $operator_key => $operator ) : ?>
 					<?php if ( in_array( $property['type'], $operator['types'] ) ) : ?>
@@ -510,43 +535,76 @@ class SCD_Condition_Builder {
 	 * @return   string                    JavaScript code.
 	 */
 	private function render_condition_logic_script( string $name_prefix ): string {
+		// Localize the script data
+		$script_data = array(
+			'namePrefix'           => $name_prefix,
+			'i18n'                 => array(
+				'addConditions'       => __( 'Add Conditions', 'smart-cycle-discounts' ),
+				'hideConditions'      => __( 'Hide Conditions', 'smart-cycle-discounts' ),
+				'confirmClearAll'     => __( 'Are you sure you want to remove all conditions?', 'smart-cycle-discounts' ),
+				'selectOperator'      => __( 'Select Operator', 'smart-cycle-discounts' ),
+				'andSeparator'        => __( 'and', 'smart-cycle-discounts' ),
+				'minValue'            => __( 'Min value', 'smart-cycle-discounts' ),
+				'maxValue'            => __( 'Max value', 'smart-cycle-discounts' ),
+				'enterValue'          => __( 'Enter value', 'smart-cycle-discounts' ),
+				'noConditionsYet'     => __( 'No conditions added yet. Click "Add Condition" to get started.', 'smart-cycle-discounts' ),
+				'validCondition'      => __( 'Valid condition', 'smart-cycle-discounts' ),
+				'incompleteCondition' => __( 'Incomplete condition', 'smart-cycle-discounts' ),
+				'noConditionsApplied' => __( 'No conditions applied. All products from selected categories will be included.', 'smart-cycle-discounts' ),
+				'conditionsValidated' => __( 'Conditions will be validated when you proceed to the next step.', 'smart-cycle-discounts' ),
+			),
+			'icons'                => array(
+				'check'   => WSSCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ),
+				'warning' => WSSCD_Icon_Helper::get( 'warning', array( 'size' => 16 ) ),
+			),
+		);
+
+		// Generate inline script with localized data
+		$inline_script = 'window.wsscdConditionBuilderConfig = ' . wp_json_encode( $script_data ) . ';';
+
+		// Add the configuration data
+		wp_add_inline_script( 'jquery-core', $inline_script );
+
+		// Now generate the main script without inline PHP
 		ob_start();
 		?>
-		<script type="text/javascript">
 		jQuery(document).ready(function($) {
-			var conditionIndex = $('.scd-condition-row').length;
-			var namePrefix = '<?php echo esc_js( $name_prefix ); ?>';
+			var config = window.wsscdConditionBuilderConfig || {};
+			var i18n = config.i18n || {};
+			var icons = config.icons || {};
+			var conditionIndex = $('.wsscd-condition-row').length;
+			var namePrefix = config.namePrefix || '';
 
 			// Toggle conditions visibility
-			$('.scd-toggle-conditions').on('click', function() {
+			$('.wsscd-toggle-conditions').on('click', function() {
 				var $button = $(this);
-				var $container = $('.scd-conditions-container');
+				var $container = $('.wsscd-conditions-container');
 				var isExpanded = $button.data('expanded') === 'true';
 
 				if (isExpanded) {
 					$container.slideUp();
 					$button.data('expanded', 'false');
-					$button.find('.scd-toggle-text').text('<?php echo esc_js( __( 'Add Conditions', 'smart-cycle-discounts' ) ); ?>');
+					$button.find('.wsscd-toggle-text').text(i18n.addConditions || 'Add Conditions');
 				} else {
 					$container.slideDown();
 					$button.data('expanded', 'true');
-					$button.find('.scd-toggle-text').text('<?php echo esc_js( __( 'Hide Conditions', 'smart-cycle-discounts' ) ); ?>');
+					$button.find('.wsscd-toggle-text').text(i18n.hideConditions || 'Hide Conditions');
 				}
 			});
 
-			$('.scd-add-condition').on('click', function() {
-				var template = $('#scd-condition-template').html();
+			$('.wsscd-add-condition').on('click', function() {
+				var template = $('#wsscd-condition-template').html();
 				var newCondition = template
 					.replace(/\{\{INDEX\}\}/g, conditionIndex)
 					.replace(/\{\{NAME_PREFIX\}\}/g, namePrefix);
 
-				$('.scd-conditions-list').append(newCondition);
+				$('.wsscd-conditions-list').append(newCondition);
 				updateNoConditionsMessage();
 				conditionIndex++;
 			});
 
-			$(document).on('click', '.scd-remove-condition', function() {
-				var $row = $(this).closest('.scd-condition-row');
+			$(document).on('click', '.wsscd-remove-condition', function() {
+				var $row = $(this).closest('.wsscd-condition-row');
 				$row.fadeOut(300, function() {
 					$row.remove();
 					updateNoConditionsMessage();
@@ -554,9 +612,9 @@ class SCD_Condition_Builder {
 				});
 			});
 
-			$('.scd-clear-conditions').on('click', function() {
-				if (confirm('<?php echo esc_js( __( 'Are you sure you want to remove all conditions?', 'smart-cycle-discounts' ) ); ?>')) {
-					$('.scd-condition-row').fadeOut(300, function() {
+			$('.wsscd-clear-conditions').on('click', function() {
+				if (confirm(i18n.confirmClearAll || 'Are you sure you want to remove all conditions?')) {
+					$('.wsscd-condition-row').fadeOut(300, function() {
 						$(this).remove();
 						updateNoConditionsMessage();
 						updateConditionsSummary();
@@ -565,18 +623,18 @@ class SCD_Condition_Builder {
 			});
 
 			// Handle property selection change
-			$(document).on('change', '.scd-condition-property', function() {
+			$(document).on('change', '.wsscd-condition-property', function() {
 				var $property = $(this);
-				var $row = $property.closest('.scd-condition-row');
-				var $operator = $row.find('.scd-condition-operator');
-				var $values = $row.find('.scd-condition-value');
+				var $row = $property.closest('.wsscd-condition-row');
+				var $operator = $row.find('.wsscd-condition-operator');
+				var $values = $row.find('.wsscd-condition-value');
 				var property = $property.val();
 
-				$operator.html('<option value=""><?php echo esc_js( __( 'Select Operator', 'smart-cycle-discounts' ) ); ?></option>');
+				$operator.html('<option value="">' + (i18n.selectOperator || 'Select Operator') + '</option>');
 				$values.val('').prop('disabled', true);
 
 				if (property) {
-					var operatorTemplate = $('#scd-operators-' + property).html();
+					var operatorTemplate = $('#wsscd-operators-' + property).html();
 					if (operatorTemplate) {
 						$operator.html(operatorTemplate).prop('disabled', false);
 					}
@@ -589,20 +647,20 @@ class SCD_Condition_Builder {
 			});
 
 			// Handle operator selection change
-			$(document).on('change', '.scd-condition-operator', function() {
+			$(document).on('change', '.wsscd-condition-operator', function() {
 				var $operator = $(this);
-				var $row = $operator.closest('.scd-condition-row');
-				var $valueContainer = $row.find('.scd-value-inputs');
-				var $values = $row.find('.scd-condition-value');
+				var $row = $operator.closest('.wsscd-condition-row');
+				var $valueContainer = $row.find('.wsscd-value-inputs');
+				var $values = $row.find('.wsscd-condition-value');
 				var operator = $operator.val();
 				var valueCount = $operator.find('option:selected').data('value-count') || 1;
 
 				updateValueInputs($valueContainer, valueCount, $row.data('index'));
 
 				if (operator) {
-					$row.find('.scd-condition-value').prop('disabled', false);
+					$row.find('.wsscd-condition-value').prop('disabled', false);
 				} else {
-					$row.find('.scd-condition-value').prop('disabled', true);
+					$row.find('.wsscd-condition-value').prop('disabled', true);
 				}
 
 				updateConditionValidation($row);
@@ -610,15 +668,15 @@ class SCD_Condition_Builder {
 			});
 
 			// Handle value input changes
-			$(document).on('input', '.scd-condition-value', function() {
-				var $row = $(this).closest('.scd-condition-row');
+			$(document).on('input', '.wsscd-condition-value', function() {
+				var $row = $(this).closest('.wsscd-condition-row');
 				updateConditionValidation($row);
 				updateConditionsSummary();
 			});
 
 			// Show/hide conditions based on product selection
-			$(document).on('scd:product-selection-changed', function(e, data) {
-				var $wrapper = $('.scd-condition-builder-wrapper');
+			$(document).on('wsscd:product-selection-changed', function(e, data) {
+				var $wrapper = $('.wsscd-condition-builder-wrapper');
 				var showWhen = $wrapper.data('show-when').split(',');
 				
 				if (showWhen.includes(data.type)) {
@@ -635,57 +693,57 @@ class SCD_Condition_Builder {
 				for (var i = 0; i < valueCount; i++) {
 					var placeholder = getValuePlaceholder(i, valueCount);
 					var input = '<input type="text" name="' + namePrefix + '[' + index + '][values][' + i + ']" ' +
-								'class="scd-condition-value" placeholder="' + placeholder + '" />';
+								'class="wsscd-condition-value" placeholder="' + placeholder + '" />';
 					
 					$container.append(input);
 					
 					if (valueCount === 2 && i === 0) {
-						$container.append('<span class="scd-value-separator"><?php echo esc_js( __( 'and', 'smart-cycle-discounts' ) ); ?></span>');
+						$container.append('<span class="wsscd-value-separator">' + (i18n.andSeparator || 'and') + '</span>');
 					}
 				}
 			}
 
 			function getValuePlaceholder(index, count) {
 				if (count === 2) {
-					return index === 0 ? '<?php echo esc_js( __( 'Min value', 'smart-cycle-discounts' ) ); ?>' : '<?php echo esc_js( __( 'Max value', 'smart-cycle-discounts' ) ); ?>';
+					return index === 0 ? (i18n.minValue || 'Min value') : (i18n.maxValue || 'Max value');
 				}
-				return '<?php echo esc_js( __( 'Enter value', 'smart-cycle-discounts' ) ); ?>';
+				return i18n.enterValue || 'Enter value';
 			}
 
 			function updateNoConditionsMessage() {
-				var $list = $('.scd-conditions-list');
-				var $noConditions = $list.find('.scd-no-conditions');
-				var hasConditions = $list.find('.scd-condition-row').length > 0;
+				var $list = $('.wsscd-conditions-list');
+				var $noConditions = $list.find('.wsscd-no-conditions');
+				var hasConditions = $list.find('.wsscd-condition-row').length > 0;
 
 				if (hasConditions && $noConditions.length > 0) {
 					$noConditions.remove();
-				} elseif (!hasConditions && $noConditions.length === 0) {
-					$list.append('<div class="scd-no-conditions"><?php echo esc_js( __( 'No conditions added yet. Click "Add Condition" to get started.', 'smart-cycle-discounts' ) ); ?></div>');
+				} else if (!hasConditions && $noConditions.length === 0) {
+					$list.append('<div class="wsscd-no-conditions">' + (i18n.noConditionsYet || 'No conditions added yet. Click "Add Condition" to get started.') + '</div>');
 				}
 			}
 
 			function updateConditionValidation($row) {
-				var $validation = $row.find('.scd-condition-validation');
-				var property = $row.find('.scd-condition-property').val();
-				var operator = $row.find('.scd-condition-operator').val();
-				var values = array();
-				
-				$row.find('.scd-condition-value').each(function() {
+				var $validation = $row.find('.wsscd-condition-validation');
+				var property = $row.find('.wsscd-condition-property').val();
+				var operator = $row.find('.wsscd-condition-operator').val();
+				var values = [];
+
+				$row.find('.wsscd-condition-value').each(function() {
 					var val = $(this).val().trim();
 					if (val) values.push(val);
 				});
 
 				var isValid = property && operator && values.length > 0;
-				
+
 				if (isValid) {
-					$validation.html('<div class="scd-validation-success">' +
-						'<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>' +
-						'<span class="scd-validation-text"><?php echo esc_js( __( 'Valid condition', 'smart-cycle-discounts' ) ); ?></span>' +
+					$validation.html('<div class="wsscd-validation-success">' +
+						(icons.check || '') +
+						'<span class="wsscd-validation-text">' + (i18n.validCondition || 'Valid condition') + '</span>' +
 						'</div>');
-				} elseif (property || operator || values.length > 0) {
-					$validation.html('<div class="scd-validation-error">' +
-						'<?php echo SCD_Icon_Helper::get( 'warning', array( 'size' => 16 ) ); ?>' +
-						'<span class="scd-validation-text"><?php echo esc_js( __( 'Incomplete condition', 'smart-cycle-discounts' ) ); ?></span>' +
+				} else if (property || operator || values.length > 0) {
+					$validation.html('<div class="wsscd-validation-error">' +
+						(icons.warning || '') +
+						'<span class="wsscd-validation-text">' + (i18n.incompleteCondition || 'Incomplete condition') + '</span>' +
 						'</div>');
 				} else {
 					$validation.empty();
@@ -695,23 +753,27 @@ class SCD_Condition_Builder {
 			function updateConditionsSummary() {
 				// This would make an AJAX call to get updated summary
 				// For now, just show a placeholder
-				var conditionCount = $('.scd-condition-row').length;
-				var $summary = $('#scd-conditions-summary');
-				
+				var conditionCount = $('.wsscd-condition-row').length;
+				var $summary = $('#wsscd-conditions-summary');
+
 				if (conditionCount === 0) {
-					$summary.html('<p class="scd-summary-empty"><?php echo esc_js( __( 'No conditions applied. All products from selected categories will be included.', 'smart-cycle-discounts' ) ); ?></p>');
+					$summary.html('<p class="wsscd-summary-empty">' + (i18n.noConditionsApplied || 'No conditions applied. All products from selected categories will be included.') + '</p>');
 				} else {
-					$summary.html('<p class="scd-summary-pending"><?php echo esc_js( __( 'Conditions will be validated when you proceed to the next step.', 'smart-cycle-discounts' ) ); ?></p>');
+					$summary.html('<p class="wsscd-summary-pending">' + (i18n.conditionsValidated || 'Conditions will be validated when you proceed to the next step.') + '</p>');
 				}
 			}
 
-			$('.scd-condition-row').each(function() {
+			$('.wsscd-condition-row').each(function() {
 				updateConditionValidation($(this));
 			});
 		});
-		</script>
 		<?php
-		return ob_get_clean();
+		$js_code = ob_get_clean();
+
+		// Use wp_add_inline_script for WordPress.org compliance
+		wp_add_inline_script( 'jquery-core', $js_code );
+
+		return '';
 	}
 
 	/**
@@ -734,6 +796,7 @@ class SCD_Condition_Builder {
 			if ( $this->condition_engine->validate_condition( $condition ) ) {
 				$valid_conditions[] = $condition;
 			} else {
+				/* translators: %d: condition number (1, 2, 3, etc.) */
 				$errors[] = sprintf( __( 'Condition %d is invalid.', 'smart-cycle-discounts' ), $index + 1 );
 			}
 		}

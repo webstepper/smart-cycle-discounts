@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/integrations/woocommerce
  */
-class SCD_WC_Admin_Integration {
+class WSSCD_WC_Admin_Integration {
 
 	/**
 	 * Logger.
@@ -68,11 +68,11 @@ class SCD_WC_Admin_Integration {
 			return;
 		}
 
-		$exclude_from_discounts = get_post_meta( $post->ID, '_scd_exclude_from_discounts', true );
+		$exclude_from_discounts = get_post_meta( $post->ID, '_wsscd_exclude_from_discounts', true );
 
 		woocommerce_wp_checkbox(
 			array(
-				'id'          => '_scd_exclude_from_discounts',
+				'id'          => '_wsscd_exclude_from_discounts',
 				'label'       => __( 'Exclude from Smart Cycle Discounts', 'smart-cycle-discounts' ),
 				'description' => __( 'Check this to exclude this product from all Smart Cycle Discount campaigns.', 'smart-cycle-discounts' ),
 				'value'       => $exclude_from_discounts,
@@ -92,12 +92,14 @@ class SCD_WC_Admin_Integration {
 			return;
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification happening here.
 		if ( ! isset( $_POST['woocommerce_meta_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['woocommerce_meta_nonce'] ) ), 'woocommerce_save_data' ) ) {
 			return;
 		}
 
-		$exclude_from_discounts = isset( $_POST['_scd_exclude_from_discounts'] ) ? 'yes' : 'no';
-		update_post_meta( $post_id, '_scd_exclude_from_discounts', $exclude_from_discounts );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above.
+		$exclude_from_discounts = isset( $_POST['_wsscd_exclude_from_discounts'] ) ? 'yes' : 'no';
+		update_post_meta( $post_id, '_wsscd_exclude_from_discounts', $exclude_from_discounts );
 
 		$this->log(
 			'debug',

@@ -36,16 +36,16 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 // Plugin constants.
-if ( ! defined( 'SCD_PLUGIN_FILE' ) ) {
-	define( 'SCD_PLUGIN_FILE', dirname( __DIR__ ) . '/smart-cycle-discounts.php' );
+if ( ! defined( 'WSSCD_PLUGIN_FILE' ) ) {
+	define( 'WSSCD_PLUGIN_FILE', dirname( __DIR__ ) . '/smart-cycle-discounts.php' );
 }
 
-if ( ! defined( 'SCD_PLUGIN_DIR' ) ) {
-	define( 'SCD_PLUGIN_DIR', dirname( __DIR__ ) );
+if ( ! defined( 'WSSCD_PLUGIN_DIR' ) ) {
+	define( 'WSSCD_PLUGIN_DIR', dirname( __DIR__ ) );
 }
 
-if ( ! defined( 'SCD_INCLUDES_DIR' ) ) {
-	define( 'SCD_INCLUDES_DIR', SCD_PLUGIN_DIR . '/includes/' );
+if ( ! defined( 'WSSCD_INCLUDES_DIR' ) ) {
+	define( 'WSSCD_INCLUDES_DIR', WSSCD_PLUGIN_DIR . '/includes/' );
 }
 
 // Load minimal WordPress functions needed for tests.
@@ -208,22 +208,22 @@ if ( ! defined( 'YEAR_IN_SECONDS' ) ) {
 }
 
 // Load plugin's autoloader.
-if ( file_exists( SCD_INCLUDES_DIR . 'class-autoloader.php' ) ) {
-	require_once SCD_INCLUDES_DIR . 'class-autoloader.php';
-	SCD_Autoloader::register();
+if ( file_exists( WSSCD_INCLUDES_DIR . 'class-autoloader.php' ) ) {
+	require_once WSSCD_INCLUDES_DIR . 'class-autoloader.php';
+	WSSCD_Autoloader::register();
 }
 
 // Load validation classes manually if autoloader doesn't catch them.
-if ( ! class_exists( 'SCD_Schedule_Step_Validator' ) ) {
-	require_once SCD_INCLUDES_DIR . 'core/validation/step-validators/class-schedule-step-validator.php';
+if ( ! class_exists( 'WSSCD_Schedule_Step_Validator' ) ) {
+	require_once WSSCD_INCLUDES_DIR . 'core/validation/step-validators/class-schedule-step-validator.php';
 }
 
-if ( ! class_exists( 'SCD_Validation_Rules' ) ) {
-	require_once SCD_INCLUDES_DIR . 'core/validation/class-validation-rules.php';
+if ( ! class_exists( 'WSSCD_Validation_Rules' ) ) {
+	require_once WSSCD_INCLUDES_DIR . 'core/validation/class-validation-rules.php';
 }
 
-if ( ! class_exists( 'SCD_Field_Definitions' ) ) {
-	require_once SCD_INCLUDES_DIR . 'core/validation/class-field-definitions.php';
+if ( ! class_exists( 'WSSCD_Field_Definitions' ) ) {
+	require_once WSSCD_INCLUDES_DIR . 'core/validation/class-field-definitions.php';
 }
 
 echo "Lightweight WordPress bootstrap loaded successfully.\n";

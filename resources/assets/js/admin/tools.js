@@ -18,27 +18,27 @@
 	 */
 	function init() {
 		// Import/Export handlers
-		$( '.scd-export-campaigns-btn' ).on( 'click', handleExportCampaigns );
-		$( '.scd-export-settings-btn' ).on( 'click', handleExportSettings );
-		$( '.scd-import-data-btn' ).on( 'click', handleImportData );
+		$( '.wsscd-export-campaigns-btn' ).on( 'click', handleExportCampaigns );
+		$( '.wsscd-export-settings-btn' ).on( 'click', handleExportSettings );
+		$( '.wsscd-import-data-btn' ).on( 'click', handleImportData );
 
 		// Database maintenance handlers
-		$( '.scd-optimize-tables-btn' ).on( 'click', handleOptimizeTables );
-		$( '.scd-cleanup-expired-btn' ).on( 'click', handleCleanupExpired );
+		$( '.wsscd-optimize-tables-btn' ).on( 'click', handleOptimizeTables );
+		$( '.wsscd-cleanup-expired-btn' ).on( 'click', handleCleanupExpired );
 
-		$( '.scd-rebuild-cache-btn' ).on( 'click', handleRebuildCache );
+		$( '.wsscd-rebuild-cache-btn' ).on( 'click', handleRebuildCache );
 
 		// Debug logs handlers
-		$( '.scd-view-logs-btn' ).on( 'click', handleViewLogs );
-		$( '.scd-download-logs-btn' ).on( 'click', handleDownloadLogs );
-		$( '.scd-clear-logs-btn' ).on( 'click', handleClearLogs );
-		$( '.scd-copy-log-btn' ).on( 'click', handleCopyLog );
+		$( '.wsscd-view-logs-btn' ).on( 'click', handleViewLogs );
+		$( '.wsscd-download-logs-btn' ).on( 'click', handleDownloadLogs );
+		$( '.wsscd-clear-logs-btn' ).on( 'click', handleClearLogs );
+		$( '.wsscd-copy-log-btn' ).on( 'click', handleCopyLog );
 
 		// System diagnostics handlers
-		$( '.scd-health-check-btn' ).on( 'click', handleHealthCheck );
-		$( '.scd-generate-report-btn' ).on( 'click', handleGenerateReport );
-		$( '.scd-copy-report-btn' ).on( 'click', handleCopyReport );
-		$( '.scd-download-report-btn' ).on( 'click', handleDownloadReport );
+		$( '.wsscd-health-check-btn' ).on( 'click', handleHealthCheck );
+		$( '.wsscd-generate-report-btn' ).on( 'click', handleGenerateReport );
+		$( '.wsscd-copy-report-btn' ).on( 'click', handleCopyReport );
+		$( '.wsscd-download-report-btn' ).on( 'click', handleDownloadReport );
 	}
 
 	/**
@@ -48,8 +48,8 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		if ( window.SCD && window.SCD.LoaderUtil ) {
-			SCD.LoaderUtil.showButton( $button, 'Exporting...' );
+		if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+			WSSCD.LoaderUtil.showButton( $button, 'Exporting...' );
 		}
 
 		// Make AJAX request
@@ -57,10 +57,10 @@
 			url: ajaxurl,
 			type: 'POST',
 			data: {
-				action: 'scd_ajax',
-				scdAction: 'export',
+				action: 'wsscd_ajax',
+				wsscdAction: 'export',
 				exportType: 'campaigns',
-				nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || ''
+				nonce: ( window.wsscdAdmin && window.wsscdAdmin.nonce ) || ''
 			},
 			success: function( response ) {
 				if ( response.success && response.data ) {
@@ -75,8 +75,8 @@
 				showNotification( 'Error exporting campaigns. Please try again.', 'error' );
 			},
 			complete: function() {
-				if ( window.SCD && window.SCD.LoaderUtil ) {
-					SCD.LoaderUtil.hideButton( $button );
+				if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+					WSSCD.LoaderUtil.hideButton( $button );
 				}
 			}
 		} );
@@ -89,8 +89,8 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		if ( window.SCD && window.SCD.LoaderUtil ) {
-			SCD.LoaderUtil.showButton( $button, 'Exporting...' );
+		if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+			WSSCD.LoaderUtil.showButton( $button, 'Exporting...' );
 		}
 
 		// Make AJAX request
@@ -98,10 +98,10 @@
 			url: ajaxurl,
 			type: 'POST',
 			data: {
-				action: 'scd_ajax',
-				scdAction: 'export',
+				action: 'wsscd_ajax',
+				wsscdAction: 'export',
 				exportType: 'settings',
-				nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || ''
+				nonce: ( window.wsscdAdmin && window.wsscdAdmin.nonce ) || ''
 			},
 			success: function( response ) {
 				if ( response.success && response.data ) {
@@ -116,8 +116,8 @@
 				showNotification( 'Error exporting settings. Please try again.', 'error' );
 			},
 			complete: function() {
-				if ( window.SCD && window.SCD.LoaderUtil ) {
-					SCD.LoaderUtil.hideButton( $button );
+				if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+					WSSCD.LoaderUtil.hideButton( $button );
 				}
 			}
 		} );
@@ -130,7 +130,7 @@
 		e.preventDefault();
 		var $button = $( this );
 		var originalText = $button.html();
-		var $fileInput = $( '#scd-import-file' );
+		var $fileInput = $( '#wsscd-import-file' );
 		var file = $fileInput[ 0 ].files[ 0 ];
 
 		if ( ! file ) {
@@ -138,8 +138,8 @@
 			return;
 		}
 
-		if ( window.SCD && window.SCD.LoaderUtil ) {
-			SCD.LoaderUtil.showButton( $button, 'Importing...' );
+		if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+			WSSCD.LoaderUtil.showButton( $button, 'Importing...' );
 		} else {
 			$button.prop( 'disabled', true );
 			$button.html( 'Importing...' );
@@ -153,10 +153,10 @@
 				url: ajaxurl,
 				type: 'POST',
 				data: {
-					action: 'scd_ajax',
-					scdAction: 'import',
+					action: 'wsscd_ajax',
+					wsscdAction: 'import',
 					importData: event.target.result,
-					nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || ''
+					nonce: ( window.wsscdAdmin && window.wsscdAdmin.nonce ) || ''
 				},
 				success: function( response ) {
 					if ( response.success ) {
@@ -173,8 +173,8 @@
 					showNotification( 'Error importing data. Please try again.', 'error' );
 				},
 				complete: function() {
-					if ( window.SCD && window.SCD.LoaderUtil ) {
-						SCD.LoaderUtil.hideButton( $button, originalText );
+					if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+						WSSCD.LoaderUtil.hideButton( $button, originalText );
 					} else {
 						$button.prop( 'disabled', false );
 						$button.html( originalText );
@@ -192,8 +192,8 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		if ( window.SCD && window.SCD.LoaderUtil ) {
-			SCD.LoaderUtil.showButton( $button, 'Optimizing...' );
+		if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+			WSSCD.LoaderUtil.showButton( $button, 'Optimizing...' );
 		}
 
 		// Make AJAX request
@@ -201,10 +201,10 @@
 			url: ajaxurl,
 			type: 'POST',
 			data: {
-				action: 'scd_ajax',
-				scdAction: 'database_maintenance',
+				action: 'wsscd_ajax',
+				wsscdAction: 'database_maintenance',
 				operation: 'optimize',
-				nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || ''
+				nonce: ( window.wsscdAdmin && window.wsscdAdmin.nonce ) || ''
 			},
 			success: function( response ) {
 				if ( response.success ) {
@@ -221,8 +221,8 @@
 				showNotification( 'Error optimizing tables. Please try again.', 'error' );
 			},
 			complete: function() {
-				if ( window.SCD && window.SCD.LoaderUtil ) {
-					SCD.LoaderUtil.hideButton( $button );
+				if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+					WSSCD.LoaderUtil.hideButton( $button );
 				}
 			}
 		} );
@@ -237,8 +237,8 @@
 
 		// Confirmation is handled by onclick attribute
 
-		if ( window.SCD && window.SCD.LoaderUtil ) {
-			SCD.LoaderUtil.showButton( $button, 'Cleaning...' );
+		if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+			WSSCD.LoaderUtil.showButton( $button, 'Cleaning...' );
 		}
 
 		// Make AJAX request
@@ -246,10 +246,10 @@
 			url: ajaxurl,
 			type: 'POST',
 			data: {
-				action: 'scd_ajax',
-				scdAction: 'database_maintenance',
+				action: 'wsscd_ajax',
+				wsscdAction: 'database_maintenance',
 				operation: 'cleanup_expired',
-				nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || ''
+				nonce: ( window.wsscdAdmin && window.wsscdAdmin.nonce ) || ''
 			},
 			success: function( response ) {
 				if ( response.success ) {
@@ -262,8 +262,8 @@
 				showNotification( 'Error cleaning up data. Please try again.', 'error' );
 			},
 			complete: function() {
-				if ( window.SCD && window.SCD.LoaderUtil ) {
-					SCD.LoaderUtil.hideButton( $button );
+				if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+					WSSCD.LoaderUtil.hideButton( $button );
 				}
 			}
 		} );
@@ -276,8 +276,8 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		if ( window.SCD && window.SCD.LoaderUtil ) {
-			SCD.LoaderUtil.showButton( $button, 'Rebuilding...' );
+		if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+			WSSCD.LoaderUtil.showButton( $button, 'Rebuilding...' );
 		}
 
 		// Make AJAX request
@@ -285,10 +285,10 @@
 			url: ajaxurl,
 			type: 'POST',
 			data: {
-				action: 'scd_ajax',
-				scdAction: 'cache_management',
+				action: 'wsscd_ajax',
+				wsscdAction: 'cache_management',
 				operation: 'rebuild_cache',
-				nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || ''
+				nonce: ( window.wsscdAdmin && window.wsscdAdmin.nonce ) || ''
 			},
 			success: function( response ) {
 				if ( response.success ) {
@@ -301,8 +301,8 @@
 				showNotification( 'Error rebuilding cache. Please try again.', 'error' );
 			},
 			complete: function() {
-				if ( window.SCD && window.SCD.LoaderUtil ) {
-					SCD.LoaderUtil.hideButton( $button );
+				if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+					WSSCD.LoaderUtil.hideButton( $button );
 				}
 			}
 		} );
@@ -315,8 +315,8 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		if ( window.SCD && window.SCD.LoaderUtil ) {
-			SCD.LoaderUtil.showButton( $button, 'Loading...' );
+		if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+			WSSCD.LoaderUtil.showButton( $button, 'Loading...' );
 		}
 
 		// Make AJAX request
@@ -324,15 +324,15 @@
 			url: ajaxurl,
 			type: 'POST',
 			data: {
-				action: 'scd_ajax',
-				scdAction: 'log_viewer',
+				action: 'wsscd_ajax',
+				wsscdAction: 'log_viewer',
 				logAction: 'view',
 				lines: 500,
-				nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || ''
+				nonce: ( window.wsscdAdmin && window.wsscdAdmin.nonce ) || ''
 			},
 			success: function( response ) {
 				if ( response.success && response.data ) {
-					var $modal = $( '#scd-log-viewer-modal' );
+					var $modal = $( '#wsscd-log-viewer-modal' );
 					$modal.find( 'textarea' ).val( response.data.logs );
 					$modal.slideDown();
 				} else {
@@ -343,8 +343,8 @@
 				showNotification( 'Error loading logs. Please try again.', 'error' );
 			},
 			complete: function() {
-				if ( window.SCD && window.SCD.LoaderUtil ) {
-					SCD.LoaderUtil.hideButton( $button );
+				if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+					WSSCD.LoaderUtil.hideButton( $button );
 				}
 			}
 		} );
@@ -361,10 +361,10 @@
 			action: ajaxurl
 		} );
 
-		form.append( $( '<input>', { type: 'hidden', name: 'action', value: 'scd_ajax' } ) );
-		form.append( $( '<input>', { type: 'hidden', name: 'scdAction', value: 'log_viewer' } ) );
+		form.append( $( '<input>', { type: 'hidden', name: 'action', value: 'wsscd_ajax' } ) );
+		form.append( $( '<input>', { type: 'hidden', name: 'wsscdAction', value: 'log_viewer' } ) );
 		form.append( $( '<input>', { type: 'hidden', name: 'logAction', value: 'download' } ) );
-		form.append( $( '<input>', { type: 'hidden', name: 'nonce', value: ( window.scdAdmin && window.scdAdmin.nonce ) || '' } ) );
+		form.append( $( '<input>', { type: 'hidden', name: 'nonce', value: ( window.wsscdAdmin && window.wsscdAdmin.nonce ) || '' } ) );
 
 		$( 'body' ).append( form );
 		form.submit();
@@ -383,8 +383,8 @@
 			return;
 		}
 
-		if ( window.SCD && window.SCD.LoaderUtil ) {
-			SCD.LoaderUtil.showButton( $button, 'Clearing...' );
+		if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+			WSSCD.LoaderUtil.showButton( $button, 'Clearing...' );
 		}
 
 		// Make AJAX request
@@ -392,10 +392,10 @@
 			url: ajaxurl,
 			type: 'POST',
 			data: {
-				action: 'scd_ajax',
-				scdAction: 'log_viewer',
+				action: 'wsscd_ajax',
+				wsscdAction: 'log_viewer',
 				logAction: 'clear',
-				nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || ''
+				nonce: ( window.wsscdAdmin && window.wsscdAdmin.nonce ) || ''
 			},
 			success: function( response ) {
 				if ( response.success ) {
@@ -412,8 +412,8 @@
 				showNotification( 'Error clearing logs. Please try again.', 'error' );
 			},
 			complete: function() {
-				if ( window.SCD && window.SCD.LoaderUtil ) {
-					SCD.LoaderUtil.hideButton( $button );
+				if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+					WSSCD.LoaderUtil.hideButton( $button );
 				}
 			}
 		} );
@@ -425,7 +425,7 @@
 	function handleCopyLog( e ) {
 		e.preventDefault();
 		var $button = $( this );
-		var $textarea = $( '#scd-log-viewer-modal textarea' );
+		var $textarea = $( '#wsscd-log-viewer-modal textarea' );
 
 		if ( ! $textarea.val() ) {
 			showNotification( 'No log data to copy. Please view the log first.', 'error' );
@@ -433,19 +433,19 @@
 		}
 
 		// Add pulse animation class
-		$button.addClass( 'scd-button-pulse' );
+		$button.addClass( 'wsscd-button-pulse' );
 
 		// Select and copy
 		$textarea.select();
 		document.execCommand( 'copy' );
 
 		var originalText = $button.html();
-		$button.html( SCD.IconHelper.check( { size: 16 } ) + ' Copied!' );
-		$button.addClass( 'scd-button-success' );
+		$button.html( WSSCD.IconHelper.check( { size: 16 } ) + ' Copied!' );
+		$button.addClass( 'wsscd-button-success' );
 
 		setTimeout( function() {
 			$button.html( originalText );
-			$button.removeClass( 'scd-button-pulse scd-button-success' );
+			$button.removeClass( 'wsscd-button-pulse wsscd-button-success' );
 		}, 2000 );
 	}
 
@@ -456,8 +456,8 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		if ( window.SCD && window.SCD.LoaderUtil ) {
-			SCD.LoaderUtil.showButton( $button, 'Checking...' );
+		if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+			WSSCD.LoaderUtil.showButton( $button, 'Checking...' );
 		}
 
 		// Make AJAX request
@@ -465,13 +465,13 @@
 			url: ajaxurl,
 			type: 'POST',
 			data: {
-				action: 'scd_ajax',
-				scdAction: 'health_check',
-				nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || ''
+				action: 'wsscd_ajax',
+				wsscdAction: 'health_check',
+				nonce: ( window.wsscdAdmin && window.wsscdAdmin.nonce ) || ''
 			},
 			success: function( response ) {
 				if ( response.success && response.data ) {
-					var $results = $( '#scd-health-check-results' );
+					var $results = $( '#wsscd-health-check-results' );
 					$results.html( formatHealthCheckResults( response.data.results ) );
 					$results.slideDown();
 				} else {
@@ -482,8 +482,8 @@
 				showNotification( 'Error running health check. Please try again.', 'error' );
 			},
 			complete: function() {
-				if ( window.SCD && window.SCD.LoaderUtil ) {
-					SCD.LoaderUtil.hideButton( $button );
+				if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+					WSSCD.LoaderUtil.hideButton( $button );
 				}
 			}
 		} );
@@ -496,8 +496,8 @@
 		e.preventDefault();
 		var $button = $( this );
 
-		if ( window.SCD && window.SCD.LoaderUtil ) {
-			SCD.LoaderUtil.showButton( $button, 'Generating...' );
+		if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+			WSSCD.LoaderUtil.showButton( $button, 'Generating...' );
 		}
 
 		// Make AJAX request
@@ -505,18 +505,18 @@
 			url: ajaxurl,
 			type: 'POST',
 			data: {
-				action: 'scd_ajax',
-				scdAction: 'log_viewer',
+				action: 'wsscd_ajax',
+				wsscdAction: 'log_viewer',
 				logAction: 'system_report',
-				nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || ''
+				nonce: ( window.wsscdAdmin && window.wsscdAdmin.nonce ) || ''
 			},
 			success: function( response ) {
 				if ( response.success && response.data ) {
-					var $reportContainer = $( '#scd-system-report' );
+					var $reportContainer = $( '#wsscd-system-report' );
 					$reportContainer.find( 'textarea' ).val( response.data.report );
 					$reportContainer.slideDown();
 
-					$( '.scd-copy-report-btn, .scd-download-report-btn' ).fadeIn();
+					$( '.wsscd-copy-report-btn, .wsscd-download-report-btn' ).fadeIn();
 				} else {
 					showNotification( response.data ? response.data.message : 'Failed to generate report', 'error' );
 				}
@@ -525,8 +525,8 @@
 				showNotification( 'Error generating report. Please try again.', 'error' );
 			},
 			complete: function() {
-				if ( window.SCD && window.SCD.LoaderUtil ) {
-					SCD.LoaderUtil.hideButton( $button );
+				if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+					WSSCD.LoaderUtil.hideButton( $button );
 				}
 			}
 		} );
@@ -538,7 +538,7 @@
 	function handleCopyReport( e ) {
 		e.preventDefault();
 		var $button = $( this );
-		var $textarea = $( '#scd-system-report textarea' );
+		var $textarea = $( '#wsscd-system-report textarea' );
 
 		if ( ! $textarea.val() ) {
 			showNotification( 'No report to copy. Please generate a report first.', 'error' );
@@ -546,19 +546,19 @@
 		}
 
 		// Add pulse animation class
-		$button.addClass( 'scd-button-pulse' );
+		$button.addClass( 'wsscd-button-pulse' );
 
 		// Select and copy
 		$textarea.select();
 		document.execCommand( 'copy' );
 
 		var originalText = $button.html();
-		$button.html( SCD.IconHelper.check( { size: 16 } ) + ' Copied!' );
-		$button.addClass( 'scd-button-success' );
+		$button.html( WSSCD.IconHelper.check( { size: 16 } ) + ' Copied!' );
+		$button.addClass( 'wsscd-button-success' );
 
 		setTimeout( function() {
 			$button.html( originalText );
-			$button.removeClass( 'scd-button-pulse scd-button-success' );
+			$button.removeClass( 'wsscd-button-pulse wsscd-button-success' );
 		}, 2000 );
 	}
 
@@ -568,7 +568,7 @@
 	function handleDownloadReport( e ) {
 		e.preventDefault();
 		var $button = $( this );
-		var reportContent = $( '#scd-system-report textarea' ).val();
+		var reportContent = $( '#wsscd-system-report textarea' ).val();
 
 		if ( ! reportContent ) {
 			showNotification( 'No report to download. Please generate a report first.', 'error' );
@@ -576,17 +576,17 @@
 		}
 
 		// Add pulse animation class
-		$button.addClass( 'scd-button-pulse' );
+		$button.addClass( 'wsscd-button-pulse' );
 
 		var originalText = $button.html();
-		$button.html( SCD.IconHelper.spinner( { size: 16 } ) + ' Downloading...' );
+		$button.html( WSSCD.IconHelper.spinner( { size: 16 } ) + ' Downloading...' );
 
 		// Small delay to show the animation
 		setTimeout( function() {
 			var blob = new Blob( [ reportContent ], { type: 'text/plain' } );
 			var url = window.URL.createObjectURL( blob );
 			var timestamp = new Date().toISOString().replace( /[:.]/g, '-' ).slice( 0, -5 );
-			var filename = 'scd-system-report-' + timestamp + '.txt';
+			var filename = 'wsscd-system-report-' + timestamp + '.txt';
 
 			var a = document.createElement( 'a' );
 			a.href = url;
@@ -597,12 +597,12 @@
 			window.URL.revokeObjectURL( url );
 
 			// Show success state
-			$button.html( SCD.IconHelper.check( { size: 16 } ) + ' Downloaded!' );
-			$button.addClass( 'scd-button-success' );
+			$button.html( WSSCD.IconHelper.check( { size: 16 } ) + ' Downloaded!' );
+			$button.addClass( 'wsscd-button-success' );
 
 			setTimeout( function() {
 				$button.html( originalText );
-				$button.removeClass( 'scd-button-pulse scd-button-success' );
+				$button.removeClass( 'wsscd-button-pulse wsscd-button-success' );
 			}, 1500 );
 		}, 300 );
 	}
@@ -633,7 +633,7 @@
 	 * @return {string} Formatted HTML
 	 */
 	function formatHealthCheckResults( results ) {
-		var html = '<div class="scd-health-check-results">';
+		var html = '<div class="wsscd-health-check-results">';
 
 		for ( var i = 0; i < results.length; i++ ) {
 			var result = results[ i ];
@@ -641,7 +641,7 @@
 			var statusIcon = 'pass' === result.status ? 'yes' : ( 'warning' === result.status ? 'warning' : 'no' );
 
 			// Add staggered animation delay for each result
-			html += '<div class="notice ' + statusClass + ' inline scd-health-result-item" style="animation-delay: ' + ( i * 0.1 ) + 's;">';
+			html += '<div class="notice ' + statusClass + ' inline wsscd-health-result-item" style="animation-delay: ' + ( i * 0.1 ) + 's;">';
 			html += '<p>';
 			html += '<span class="dashicons dashicons-' + statusIcon + '"></span> ';
 			html += '<strong>' + result.test + ':</strong> ' + result.message;
@@ -661,8 +661,8 @@
 	 */
 	function showNotification( message, type ) {
 		// Use NotificationService if available
-		if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
-			window.SCD.Shared.NotificationService.show( message, type || 'info', 3000 );
+		if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.NotificationService ) {
+			window.WSSCD.Shared.NotificationService.show( message, type || 'info', 3000 );
 		} else {
 			// Fallback to alert
 			alert( message );

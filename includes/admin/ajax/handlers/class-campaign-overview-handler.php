@@ -25,14 +25,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Campaign_Overview_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Campaign_Overview_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Campaign repository.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Repository    $campaign_repository    Campaign repository.
+	 * @var      WSSCD_Campaign_Repository    $campaign_repository    Campaign repository.
 	 */
 	private $campaign_repository;
 
@@ -41,7 +41,7 @@ class SCD_Campaign_Overview_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Overview_Panel    $panel    Panel component.
+	 * @var      WSSCD_Campaign_Overview_Panel    $panel    Panel component.
 	 */
 	private $panel;
 
@@ -49,9 +49,9 @@ class SCD_Campaign_Overview_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Repository      $campaign_repository    Campaign repository.
-	 * @param    SCD_Campaign_Overview_Panel  $panel                  Panel component.
-	 * @param    SCD_Logger|null              $logger                 Logger instance.
+	 * @param    WSSCD_Campaign_Repository      $campaign_repository    Campaign repository.
+	 * @param    WSSCD_Campaign_Overview_Panel  $panel                  Panel component.
+	 * @param    WSSCD_Logger|null              $logger                 Logger instance.
 	 */
 	public function __construct(
 		$campaign_repository,
@@ -70,7 +70,7 @@ class SCD_Campaign_Overview_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_campaign_overview';
+		return 'wsscd_campaign_overview';
 	}
 
 	/**
@@ -136,7 +136,7 @@ class SCD_Campaign_Overview_Handler extends SCD_Abstract_Ajax_Handler {
 
 		} catch ( Exception $e ) {
 
-			SCD_Log::error(
+			WSSCD_Log::error(
 				'Failed to load campaign for overview panel',
 				array(
 					'campaign_id' => $campaign_id,

@@ -17,20 +17,20 @@
    Modal Base Styles
    ========================================================================== */
 
-.scd-modal {
+.wsscd-modal {
 	position: fixed;
 	top: 0;
 	left: 0;
 	width: 100%;
 	height: 100%;
-	z-index: var(--scd-z-modal);
+	z-index: var(--wsscd-z-modal);
 	display: none;
 	align-items: center;
 	justify-content: center;
 }
 
 /* When modal is shown, use flex display */
-.scd-modal.scd-modal--visible {
+.wsscd-modal.wsscd-modal--visible {
 	display: flex;
 }
 
@@ -38,28 +38,28 @@
    Modal Overlay
    ========================================================================== */
 
-.scd-modal__overlay {
+.wsscd-modal__overlay {
 	position: absolute;
 	top: 0;
 	left: 0;
 	width: 100%;
 	height: 100%;
-	background: var(--scd-overlay-heavy);
-	animation: scd-modal-overlay-fade-in var(--scd-transition-slow) ease-out;
+	background: var(--wsscd-overlay-heavy);
+	animation: wsscd-modal-overlay-fade-in var(--wsscd-transition-slow) ease-out;
 }
 
 /* ==========================================================================
    Modal Container
    ========================================================================== */
 
-.scd-modal__container {
+.wsscd-modal__container {
 	position: relative;
 	max-width: 540px;
 	width: 90%;
-	background: var(--scd-color-white);
-	border-radius: var(--scd-radius-lg);
-	box-shadow: var(--scd-shadow-xl);
-	animation: scd-modal-slide-in var(--scd-transition-slow) var(--scd-ease-bounce);
+	background: var(--wsscd-color-white);
+	border-radius: var(--wsscd-radius-lg);
+	box-shadow: var(--wsscd-shadow-xl);
+	animation: wsscd-modal-slide-in var(--wsscd-transition-slow) var(--wsscd-ease-bounce);
 	z-index: 1;
 }
 
@@ -67,8 +67,8 @@
    Modal Content
    ========================================================================== */
 
-.scd-modal__content {
-	padding: var(--scd-padding-spacious) var(--scd-padding-spacious) var(--scd-padding-section);
+.wsscd-modal__content {
+	padding: var(--wsscd-padding-spacious) var(--wsscd-padding-spacious) var(--wsscd-padding-section);
 	text-align: center;
 }
 
@@ -76,18 +76,18 @@
    Close Button
    ========================================================================== */
 
-.scd-modal__close {
+.wsscd-modal__close {
 	position: absolute;
-	top: var(--scd-spacing-md);
-	right: var(--scd-spacing-md);
+	top: var(--wsscd-spacing-md);
+	right: var(--wsscd-spacing-md);
 	background: none;
 	border: none;
-	font-size: var(--scd-font-size-xl);
+	font-size: var(--wsscd-font-size-xl);
 	cursor: pointer;
-	color: var(--scd-color-text-muted);
-	padding: var(--scd-spacing-xs);
-	transition: all var(--scd-transition-base) ease;
-	border-radius: var(--scd-radius-sm);
+	color: var(--wsscd-color-text-muted);
+	padding: var(--wsscd-spacing-xs);
+	transition: all var(--wsscd-transition-base) ease;
+	border-radius: var(--wsscd-radius-sm);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -95,200 +95,200 @@
 	height: 28px;
 }
 
-.scd-modal__close:hover {
-	color: var(--scd-color-text);
-	background: var(--scd-overlay-subtle);
+.wsscd-modal__close:hover {
+	color: var(--wsscd-color-text);
+	background: var(--wsscd-overlay-subtle);
 }
 
-.scd-modal__close:focus {
+.wsscd-modal__close:focus {
 	outline: none;
-	box-shadow: var(--scd-ring-focus);
+	box-shadow: var(--wsscd-ring-focus);
 }
 
-.scd-modal__close svg {
-	width: var(--scd-icon-small);
-	height: var(--scd-icon-small);
+.wsscd-modal__close svg {
+	width: var(--wsscd-icon-small);
+	height: var(--wsscd-icon-small);
 }
 
 /* ==========================================================================
    Modal Icon
    ========================================================================== */
 
-.scd-modal__icon {
-	font-size: var(--scd-icon-display);
-	margin-bottom: var(--scd-spacing-lg);
+.wsscd-modal__icon {
+	font-size: var(--wsscd-icon-display);
+	margin-bottom: var(--wsscd-spacing-lg);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 }
 
-.scd-modal__icon svg {
-	width: var(--scd-icon-display);
-	height: var(--scd-icon-display);
+.wsscd-modal__icon svg {
+	width: var(--wsscd-icon-display);
+	height: var(--wsscd-icon-display);
 }
 
 /* Icon color variants */
-.scd-modal__icon--warning {
-	color: var(--scd-color-warning);
+.wsscd-modal__icon--warning {
+	color: var(--wsscd-color-warning);
 }
 
-.scd-modal__icon--error {
-	color: var(--scd-color-danger);
+.wsscd-modal__icon--error {
+	color: var(--wsscd-color-danger);
 }
 
-.scd-modal__icon--success {
-	color: var(--scd-color-success);
+.wsscd-modal__icon--success {
+	color: var(--wsscd-color-success);
 }
 
-.scd-modal__icon--info {
-	color: var(--scd-color-secondary);
+.wsscd-modal__icon--info {
+	color: var(--wsscd-color-secondary);
 }
 
 /* ==========================================================================
    Modal Title
    ========================================================================== */
 
-.scd-modal__title {
-	font-size: var(--scd-font-size-xxl);
-	font-weight: var(--scd-font-weight-semibold);
-	margin: 0 0 var(--scd-spacing-base);
-	color: var(--scd-color-text);
-	line-height: var(--scd-line-height-tight);
+.wsscd-modal__title {
+	font-size: var(--wsscd-font-size-xxl);
+	font-weight: var(--wsscd-font-weight-semibold);
+	margin: 0 0 var(--wsscd-spacing-base);
+	color: var(--wsscd-color-text);
+	line-height: var(--wsscd-line-height-tight);
 }
 
 /* ==========================================================================
    Modal Message
    ========================================================================== */
 
-.scd-modal__message {
-	margin-bottom: var(--scd-spacing-xl);
-	color: var(--scd-color-text-muted);
-	line-height: var(--scd-line-height-relaxed);
-	font-size: var(--scd-font-size-base);
+.wsscd-modal__message {
+	margin-bottom: var(--wsscd-spacing-xl);
+	color: var(--wsscd-color-text-muted);
+	line-height: var(--wsscd-line-height-relaxed);
+	font-size: var(--wsscd-font-size-base);
 }
 
-.scd-modal__message p {
-	margin: var(--scd-spacing-sm) 0;
+.wsscd-modal__message p {
+	margin: var(--wsscd-spacing-sm) 0;
 }
 
-.scd-modal__message p:first-child {
+.wsscd-modal__message p:first-child {
 	margin-top: 0;
 }
 
-.scd-modal__message p:last-child {
+.wsscd-modal__message p:last-child {
 	margin-bottom: 0;
 }
 
 /* Draft name in message - prominent */
-.scd-modal__message strong {
-	color: var(--scd-color-text);
-	font-weight: var(--scd-font-weight-semibold);
+.wsscd-modal__message strong {
+	color: var(--wsscd-color-text);
+	font-weight: var(--wsscd-font-weight-semibold);
 }
 
 /* Draft meta information */
-.scd-modal__draft-meta {
+.wsscd-modal__draft-meta {
 	display: flex;
 	flex-direction: column;
-	gap: var(--scd-spacing-xs);
-	margin-top: var(--scd-spacing-md);
-	padding: var(--scd-padding-compact);
-	background: var(--scd-overlay-faint);
-	border-radius: var(--scd-radius-sm);
-	border: var(--scd-border-width) solid var(--scd-color-border-light);
+	gap: var(--wsscd-spacing-xs);
+	margin-top: var(--wsscd-spacing-md);
+	padding: var(--wsscd-padding-compact);
+	background: var(--wsscd-overlay-faint);
+	border-radius: var(--wsscd-radius-sm);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
 }
 
-.scd-modal__draft-meta-item {
+.wsscd-modal__draft-meta-item {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: var(--scd-spacing-xs);
-	font-size: var(--scd-font-size-small);
-	color: var(--scd-color-text-muted);
+	gap: var(--wsscd-spacing-xs);
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text-muted);
 }
 
-.scd-modal__draft-meta-item svg {
-	width: var(--scd-icon-small);
-	height: var(--scd-icon-small);
+.wsscd-modal__draft-meta-item svg {
+	width: var(--wsscd-icon-small);
+	height: var(--wsscd-icon-small);
 	flex-shrink: 0;
 }
 
 /* Expiration indicator in modal */
-.scd-modal__expiration {
+.wsscd-modal__expiration {
 	display: inline-flex;
 	align-items: center;
-	gap: var(--scd-spacing-xxs);
-	padding: var(--scd-spacing-xxs) var(--scd-spacing-sm);
-	font-size: var(--scd-font-size-small);
-	font-weight: var(--scd-font-weight-medium);
-	border-radius: var(--scd-radius-sm);
-	border: var(--scd-border-width) solid transparent;
+	gap: var(--wsscd-spacing-xxs);
+	padding: var(--wsscd-spacing-xxs) var(--wsscd-spacing-sm);
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-medium);
+	border-radius: var(--wsscd-radius-sm);
+	border: var(--wsscd-border-width) solid transparent;
 }
 
 /* Normal state - plenty of time (>30 minutes) */
-.scd-modal__expiration.scd-expiration-normal {
-	color: var(--scd-color-text-muted);
-	background: var(--scd-overlay-faint);
-	border-color: var(--scd-overlay-border);
+.wsscd-modal__expiration.wsscd-expiration-normal {
+	color: var(--wsscd-color-text-muted);
+	background: var(--wsscd-overlay-faint);
+	border-color: var(--wsscd-overlay-border);
 }
 
 /* Warning state - running low (15-30 minutes) */
-.scd-modal__expiration.scd-expiration-warning {
-	color: var(--scd-color-warning-dark);
-	background: var(--scd-alert-warning-bg);
-	border-color: var(--scd-color-warning-alpha-25);
+.wsscd-modal__expiration.wsscd-expiration-warning {
+	color: var(--wsscd-color-warning-dark);
+	background: var(--wsscd-alert-warning-bg);
+	border-color: var(--wsscd-color-warning-alpha-25);
 }
 
 /* Urgent state - critical (≤15 minutes) */
-.scd-modal__expiration.scd-expiration-urgent {
-	color: var(--scd-color-danger-dark);
-	background: var(--scd-alert-danger-bg);
-	border-color: var(--scd-color-danger-alpha-30);
-	font-weight: var(--scd-font-weight-semibold);
+.wsscd-modal__expiration.wsscd-expiration-urgent {
+	color: var(--wsscd-color-danger-dark);
+	background: var(--wsscd-alert-danger-bg);
+	border-color: var(--wsscd-color-danger-alpha-30);
+	font-weight: var(--wsscd-font-weight-semibold);
 }
 
 /* ==========================================================================
    Modal Actions (Buttons)
    ========================================================================== */
 
-.scd-modal__actions {
+.wsscd-modal__actions {
 	display: flex;
-	gap: var(--scd-spacing-sm);
+	gap: var(--wsscd-spacing-sm);
 	justify-content: center;
 	flex-wrap: wrap;
 }
 
 /* Modal button size overrides - uses shared button classes from _buttons.css */
-.scd-modal__actions .scd-button {
+.wsscd-modal__actions .wsscd-button {
 	min-height: 36px;
-	padding: var(--scd-spacing-sm) var(--scd-padding-large);
-	border-radius: var(--scd-radius-sm);
+	padding: var(--wsscd-spacing-sm) var(--wsscd-padding-large);
+	border-radius: var(--wsscd-radius-sm);
 }
 
 /* Primary button shadow enhancement for modal context */
-.scd-modal__actions .scd-button--primary {
-	box-shadow: var(--scd-shadow-primary);
+.wsscd-modal__actions .wsscd-button--primary {
+	box-shadow: var(--wsscd-shadow-primary);
 }
 
-.scd-modal__actions .scd-button--primary:hover {
-	box-shadow: 0 4px 12px var(--scd-color-primary-alpha-25);
+.wsscd-modal__actions .wsscd-button--primary:hover {
+	box-shadow: 0 4px 12px var(--wsscd-color-primary-alpha-25);
 }
 
 /* Ghost danger button for modal - starts as outline, fills on hover */
-.scd-modal__actions .scd-button--ghost-danger {
-	background: var(--scd-color-white);
-	border-color: var(--scd-color-danger-alpha-30);
-	color: var(--scd-color-danger-dark);
+.wsscd-modal__actions .wsscd-button--ghost-danger {
+	background: var(--wsscd-color-white);
+	border-color: var(--wsscd-color-danger-alpha-30);
+	color: var(--wsscd-color-danger-dark);
 }
 
-.scd-modal__actions .scd-button--ghost-danger:hover {
-	background: var(--scd-color-danger-dark);
-	border-color: var(--scd-color-danger-dark);
-	color: var(--scd-color-white);
-	box-shadow: 0 4px 12px var(--scd-color-danger-alpha-25);
+.wsscd-modal__actions .wsscd-button--ghost-danger:hover {
+	background: var(--wsscd-color-danger-dark);
+	border-color: var(--wsscd-color-danger-dark);
+	color: var(--wsscd-color-white);
+	box-shadow: 0 4px 12px var(--wsscd-color-danger-alpha-25);
 }
 
 /* Preserve WordPress core button compatibility (legacy) */
-.scd-modal__actions .button {
+.wsscd-modal__actions .button {
 	margin: 0;
 }
 
@@ -296,7 +296,7 @@
    Animations
    ========================================================================== */
 
-@keyframes scd-modal-overlay-fade-in {
+@keyframes wsscd-modal-overlay-fade-in {
 	from {
 		opacity: 0;
 	}
@@ -305,7 +305,7 @@
 	}
 }
 
-@keyframes scd-modal-slide-in {
+@keyframes wsscd-modal-slide-in {
 	from {
 		transform: translateY(-30px);
 		opacity: 0;
@@ -320,7 +320,7 @@
    Body State
    ========================================================================== */
 
-body.scd-modal-open {
+body.wsscd-modal-open {
 	overflow: hidden;
 }
 
@@ -329,30 +329,30 @@ body.scd-modal-open {
    ========================================================================== */
 
 @media screen and (max-width: 600px) {
-	.scd-modal__container {
+	.wsscd-modal__container {
 		width: 95%;
-		margin: var(--scd-spacing-lg);
+		margin: var(--wsscd-spacing-lg);
 	}
 
-	.scd-modal__content {
-		padding: var(--scd-padding-section) var(--scd-padding-large);
+	.wsscd-modal__content {
+		padding: var(--wsscd-padding-section) var(--wsscd-padding-large);
 	}
 
-	.scd-modal__actions {
+	.wsscd-modal__actions {
 		flex-direction: column;
 	}
 
-	.scd-modal__actions .scd-button,
-	.scd-modal__actions .button {
+	.wsscd-modal__actions .wsscd-button,
+	.wsscd-modal__actions .button {
 		width: 100%;
-		margin: var(--scd-spacing-xs) 0;
+		margin: var(--wsscd-spacing-xs) 0;
 	}
 
-	.scd-modal__title {
-		font-size: var(--scd-font-size-xl);
+	.wsscd-modal__title {
+		font-size: var(--wsscd-font-size-xl);
 	}
 
-	.scd-modal__icon svg {
+	.wsscd-modal__icon svg {
 		width: 40px;
 		height: 40px;
 	}
@@ -363,15 +363,15 @@ body.scd-modal-open {
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-	.scd-modal__container {
+	.wsscd-modal__container {
 		animation: none;
 	}
 
-	.scd-modal__overlay {
+	.wsscd-modal__overlay {
 		animation: none;
 	}
 
-	.scd-modal__actions .scd-button {
+	.wsscd-modal__actions .wsscd-button {
 		transition: none;
 	}
 }

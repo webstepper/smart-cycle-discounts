@@ -39,7 +39,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/database/models
  */
-class SCD_Campaign_State_Manager {
+class WSSCD_Campaign_State_Manager {
 
 	/**
 	 * Valid campaign states.
@@ -142,12 +142,12 @@ class SCD_Campaign_State_Manager {
 	 * Transition campaign to new state.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign     Campaign object.
+	 * @param    WSSCD_Campaign $campaign     Campaign object.
 	 * @param    string       $new_state    New state.
 	 * @param    array        $context      Transition context.
 	 * @return   bool|WP_Error                 True on success, WP_Error on failure.
 	 */
-	public function transition( SCD_Campaign $campaign, string $new_state, array $context = array() ) {
+	public function transition( WSSCD_Campaign $campaign, string $new_state, array $context = array() ) {
 		$current_state = $campaign->get_status();
 
 		if ( ! $this->can_transition( $current_state, $new_state ) ) {
@@ -214,11 +214,11 @@ class SCD_Campaign_State_Manager {
 	 * - Campaign Manager (final validation before save)
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign     Campaign object.
+	 * @param    WSSCD_Campaign $campaign     Campaign object.
 	 * @param    string       $new_state    Target state.
 	 * @return   bool|WP_Error                 True if valid, WP_Error otherwise.
 	 */
-	private function validate_transition_conditions( SCD_Campaign $campaign, string $new_state ) {
+	private function validate_transition_conditions( WSSCD_Campaign $campaign, string $new_state ) {
 		switch ( $new_state ) {
 			case 'scheduled':
 				// Only validate scheduling-specific requirements (date in future).
@@ -241,10 +241,10 @@ class SCD_Campaign_State_Manager {
 	 * Campaign data (products, discounts, etc.) is validated elsewhere.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   bool|WP_Error                True if valid, WP_Error otherwise.
 	 */
-	private function validate_scheduling_date( SCD_Campaign $campaign ) {
+	private function validate_scheduling_date( WSSCD_Campaign $campaign ) {
 		$starts_at = $campaign->get_starts_at();
 
 		if ( ! $starts_at ) {
@@ -267,10 +267,10 @@ class SCD_Campaign_State_Manager {
 	 * 2. It's a reasonable action (active/paused campaigns without end dates can be expired manually)
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   bool|WP_Error                True if valid, WP_Error otherwise.
 	 */
-	private function validate_expiration( SCD_Campaign $campaign ) {
+	private function validate_expiration( WSSCD_Campaign $campaign ) {
 		$ends_at = $campaign->get_ends_at();
 		$now     = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
 
@@ -291,31 +291,31 @@ class SCD_Campaign_State_Manager {
 	 * Execute before transition hooks.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign        Campaign object.
+	 * @param    WSSCD_Campaign $campaign        Campaign object.
 	 * @param    string       $from_state      Current state.
 	 * @param    string       $to_state        Target state.
 	 * @param    array        $context         Transition context.
 	 * @return   void
 	 */
-	private function before_transition( SCD_Campaign $campaign, string $from_state, string $to_state, array $context ): void {
+	private function before_transition( WSSCD_Campaign $campaign, string $from_state, string $to_state, array $context ): void {
 		// Generic hook.
-		do_action( 'scd_before_campaign_transition', $campaign, $from_state, $to_state, $context );
+		do_action( 'wsscd_before_campaign_transition', $campaign, $from_state, $to_state, $context );
 
 		// Specific hook.
-		do_action( "scd_before_campaign_{$from_state}_to_{$to_state}", $campaign, $context );
+		do_action( "wsscd_before_campaign_{$from_state}_to_{$to_state}", $campaign, $context );
 	}
 
 	/**
 	 * Execute after transition hooks.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign        Campaign object.
+	 * @param    WSSCD_Campaign $campaign        Campaign object.
 	 * @param    string       $from_state      Previous state.
 	 * @param    string       $to_state        New state.
 	 * @param    array        $context         Transition context.
 	 * @return   void
 	 */
-	private function after_transition( SCD_Campaign $campaign, string $from_state, string $to_state, array $context ): void {
+	private function after_transition( WSSCD_Campaign $campaign, string $from_state, string $to_state, array $context ): void {
 		// Note: Cache invalidation handled by Repository layer on save().
 
 		// State-specific actions.
@@ -328,12 +328,12 @@ class SCD_Campaign_State_Manager {
 				$this->schedule_ending_notification( $campaign );
 
 				// Fire campaign started notification hook.
-				do_action( 'scd_campaign_started', $campaign->get_id() );
+				do_action( 'wsscd_campaign_started', $campaign->get_id() );
 				break;
 
 			case 'expired':
 				// Fire campaign ended notification hook.
-				do_action( 'scd_campaign_ended', $campaign->get_id() );
+				do_action( 'wsscd_campaign_ended', $campaign->get_id() );
 				break;
 
 			case 'archived':
@@ -343,23 +343,23 @@ class SCD_Campaign_State_Manager {
 		}
 
 		// Generic hook.
-		do_action( 'scd_after_campaign_transition', $campaign, $from_state, $to_state, $context );
+		do_action( 'wsscd_after_campaign_transition', $campaign, $from_state, $to_state, $context );
 
 		// Specific hook.
-		do_action( "scd_after_campaign_{$from_state}_to_{$to_state}", $campaign, $context );
+		do_action( "wsscd_after_campaign_{$from_state}_to_{$to_state}", $campaign, $context );
 	}
 
 	/**
 	 * Log state transition.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign        Campaign object.
+	 * @param    WSSCD_Campaign $campaign        Campaign object.
 	 * @param    string       $from_state      Previous state.
 	 * @param    string       $to_state        New state.
 	 * @param    array        $context         Transition context.
 	 * @return   void
 	 */
-	private function log_transition( SCD_Campaign $campaign, string $from_state, string $to_state, array $context ): void {
+	private function log_transition( WSSCD_Campaign $campaign, string $from_state, string $to_state, array $context ): void {
 		if ( ! $this->logger ) {
 			return;
 		}
@@ -381,13 +381,13 @@ class SCD_Campaign_State_Manager {
 	 * Dispatch transition event.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign        Campaign object.
+	 * @param    WSSCD_Campaign $campaign        Campaign object.
 	 * @param    string       $from_state      Previous state.
 	 * @param    string       $to_state        New state.
 	 * @param    array        $context         Transition context.
 	 * @return   void
 	 */
-	private function dispatch_transition_event( SCD_Campaign $campaign, string $from_state, string $to_state, array $context ): void {
+	private function dispatch_transition_event( WSSCD_Campaign $campaign, string $from_state, string $to_state, array $context ): void {
 		if ( ! $this->event_dispatcher ) {
 			return;
 		}
@@ -440,10 +440,10 @@ class SCD_Campaign_State_Manager {
 	 * Auto-transition campaigns based on schedule.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   bool                         True if transitioned.
 	 */
-	public function auto_transition( SCD_Campaign $campaign ): bool {
+	public function auto_transition( WSSCD_Campaign $campaign ): bool {
 		$current_state = $campaign->get_status();
 		// Use UTC timezone to match campaign dates (which are stored in UTC).
 		$now = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
@@ -471,16 +471,16 @@ class SCD_Campaign_State_Manager {
 	 * Schedule expiration check for campaign.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   void
 	 */
-	private function schedule_expiration_check( SCD_Campaign $campaign ): void {
+	private function schedule_expiration_check( WSSCD_Campaign $campaign ): void {
 		$ends_at = $campaign->get_ends_at();
 		if ( ! $ends_at ) {
 			return;
 		}
 
-		$hook = 'scd_check_campaign_expiration';
+		$hook = 'wsscd_check_campaign_expiration';
 		$args = array( $campaign->get_id() );
 
 		wp_clear_scheduled_hook( $hook, $args );
@@ -495,10 +495,10 @@ class SCD_Campaign_State_Manager {
 	 * Schedules a notification to be sent 24 hours before campaign ends.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   void
 	 */
-	private function schedule_ending_notification( SCD_Campaign $campaign ): void {
+	private function schedule_ending_notification( WSSCD_Campaign $campaign ): void {
 		$ends_at = $campaign->get_ends_at();
 		if ( ! $ends_at ) {
 			return;
@@ -513,7 +513,7 @@ class SCD_Campaign_State_Manager {
 			return;
 		}
 
-		$hook = 'scd_campaign_ending_notification';
+		$hook = 'wsscd_campaign_ending_notification';
 		$args = array( $campaign->get_id() );
 
 		wp_clear_scheduled_hook( $hook, $args );
@@ -526,20 +526,20 @@ class SCD_Campaign_State_Manager {
 	 * Clean up scheduled tasks for campaign.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   void
 	 */
-	private function cleanup_scheduled_tasks( SCD_Campaign $campaign ): void {
+	private function cleanup_scheduled_tasks( WSSCD_Campaign $campaign ): void {
 		$campaign_id = $campaign->get_id();
 		if ( ! $campaign_id ) {
 			return;
 		}
 
-		wp_clear_scheduled_hook( 'scd_check_campaign_expiration', array( $campaign_id ) );
+		wp_clear_scheduled_hook( 'wsscd_check_campaign_expiration', array( $campaign_id ) );
 
-		wp_clear_scheduled_hook( 'scd_campaign_ending_notification', array( $campaign_id ) );
+		wp_clear_scheduled_hook( 'wsscd_campaign_ending_notification', array( $campaign_id ) );
 
-		wp_clear_scheduled_hook( 'scd_rotate_campaign_products', array( $campaign_id ) );
+		wp_clear_scheduled_hook( 'wsscd_rotate_campaign_products', array( $campaign_id ) );
 	}
 
 	/**

@@ -1,0 +1,1344 @@
+/**
+ * Contextual Sidebar Styling
+ *
+ * Focus-aware sidebar for wizard steps with clean, consistent styling.
+ * Uses CSS variables from the plugin's design system.
+ *
+ * Table of Contents:
+ * 1. CSS Custom Properties (Local)
+ * 2. Sidebar Container
+ * 3. Contextual Inner Container
+ * 4. Breadcrumb Navigation
+ * 5. Help Content Area
+ * 6. Topic Header
+ * 7. Welcome State
+ * 8. Tip Cards (Quick Tip, Pro Tip)
+ * 9. Lists (Bullet, Checklist, Warning, Steps)
+ * 10. Examples & Pros/Cons
+ * 11. Usage Info Cards
+ * 12. Priority Scale & Methods
+ * 13. Dynamic Methods
+ * 14. Help Guide Sections
+ * 15. Common Mistakes Section
+ * 16. Review Sidebar (Campaign Summary)
+ * 17. Loading & Error States
+ * 18. Mobile Toggle
+ * 19. Responsive Design
+ * 20. Accessibility (Print, Reduced Motion)
+ *
+ * @package SmartCycleDiscounts
+ * @since   1.0.0
+ */
+
+/* ==========================================================================
+   1. CSS Custom Properties (Local)
+   ========================================================================== */
+
+.wsscd-step-sidebar {
+	/* Sidebar-specific spacing */
+	--sidebar-header-padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-sm-large);
+	--sidebar-body-padding: var(--wsscd-spacing-sm-large);
+	--sidebar-item-gap: var(--wsscd-spacing-sm);
+	--sidebar-section-gap: var(--wsscd-spacing-sm);
+
+	/* Sidebar-specific sizing */
+	--sidebar-icon-size: 14px;
+	--sidebar-toggle-size: var(--wsscd-spacing-xl);
+}
+
+/* ==========================================================================
+   2. Sidebar Container
+   ========================================================================== */
+
+.wsscd-step-sidebar {
+	position: sticky !important;
+	top: calc(var(--wsscd-sidebar-sticky-top) + var(--wsscd-sidebar-margin-top)) !important;
+	align-self: flex-start !important;
+	flex: 0 0 var(--wsscd-sidebar-width);
+	width: var(--wsscd-sidebar-width);
+	height: calc(100vh - var(--wsscd-sidebar-sticky-top) - var(--wsscd-sidebar-margin-top) - var(--wsscd-nav-height) - var(--wsscd-sidebar-margin-bottom));
+	max-height: calc(100vh - var(--wsscd-sidebar-sticky-top) - var(--wsscd-sidebar-margin-top) - var(--wsscd-nav-height) - var(--wsscd-sidebar-margin-bottom));
+	display: flex;
+	flex-direction: column;
+	background: var(--wsscd-color-white);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-lg);
+	box-shadow: var(--wsscd-shadow-sm);
+	overflow: hidden;
+	z-index: var(--wsscd-z-sticky);
+}
+
+/* Custom Scrollbar */
+.wsscd-step-sidebar::-webkit-scrollbar {
+	width: var(--wsscd-spacing-sm);
+}
+
+.wsscd-step-sidebar::-webkit-scrollbar-track {
+	background: var(--wsscd-color-surface);
+}
+
+.wsscd-step-sidebar::-webkit-scrollbar-thumb {
+	background: var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-sm);
+}
+
+.wsscd-step-sidebar::-webkit-scrollbar-thumb:hover {
+	background: var(--wsscd-color-border-dark);
+}
+
+/* ==========================================================================
+   3. Contextual Inner Container
+   ========================================================================== */
+
+.wsscd-sidebar-contextual {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 0;
+}
+
+/* ==========================================================================
+   4. Breadcrumb Navigation
+   ========================================================================== */
+
+.wsscd-sidebar-breadcrumb {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-sm);
+	padding: var(--wsscd-padding-compact) var(--wsscd-padding-base);
+	background: var(--wsscd-color-surface);
+	border-bottom: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text-muted);
+	flex-shrink: 0;
+}
+
+.wsscd-breadcrumb-step {
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+}
+
+.wsscd-breadcrumb-separator {
+	color: var(--wsscd-color-border-dark);
+}
+
+.wsscd-breadcrumb-topic {
+	color: var(--wsscd-color-primary);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-weight: var(--wsscd-font-weight-medium);
+	transition: opacity var(--wsscd-transition-fast), transform var(--wsscd-transition-fast);
+}
+
+/* ==========================================================================
+   5. Help Content Area
+   ========================================================================== */
+
+.wsscd-sidebar-help-area {
+	flex: 1;
+	padding: var(--wsscd-padding-compact);
+	overflow-y: auto;
+	min-height: 0;
+	scroll-behavior: smooth;
+}
+
+#wsscd-sidebar-help-content {
+	opacity: 1;
+	transform: translateY(0);
+	transition: opacity var(--wsscd-transition-fast), transform var(--wsscd-transition-fast);
+}
+
+#wsscd-sidebar-help-content.wsscd-transitioning {
+	opacity: 0;
+	transform: translateY(-8px);
+}
+
+#wsscd-sidebar-help-content.wsscd-loading {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
+/* ==========================================================================
+   6. Topic Header
+   ========================================================================== */
+
+.wsscd-sidebar-help-topic {
+	animation: wsscdSlideIn var(--wsscd-transition-base) ease forwards;
+}
+
+@keyframes wsscdSlideIn {
+	from {
+		opacity: 0;
+		transform: translateY(var(--wsscd-spacing-md));
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.wsscd-sidebar-topic-header {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-sm);
+	margin-bottom: var(--wsscd-spacing-md);
+	padding-bottom: var(--wsscd-spacing-sm);
+	border-bottom: var(--wsscd-border-width-thick) solid var(--wsscd-color-border-light);
+	position: relative;
+}
+
+.wsscd-sidebar-topic-header::after {
+	content: 'HELP';
+	position: absolute;
+	right: 0;
+	top: 50%;
+	transform: translateY(-50%);
+	background: var(--wsscd-color-primary);
+	color: var(--wsscd-color-white);
+	font-size: var(--wsscd-font-size-xxs);
+	font-weight: var(--wsscd-font-weight-bold);
+	padding: var(--wsscd-spacing-xxs) var(--wsscd-spacing-sm);
+	border-radius: var(--wsscd-radius-xs);
+	letter-spacing: 0.5px;
+}
+
+.wsscd-topic-icon {
+	color: var(--wsscd-color-primary);
+	flex-shrink: 0;
+}
+
+.wsscd-topic-title {
+	margin: 0;
+	font-size: var(--wsscd-font-size-medium);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+	line-height: var(--wsscd-line-height-tight);
+	flex: 1;
+	padding-right: var(--wsscd-spacing-xxxl);
+}
+
+.wsscd-sidebar-topic-content {
+	color: var(--wsscd-color-text-muted);
+	line-height: var(--wsscd-line-height-base);
+	font-size: var(--wsscd-font-size-small);
+}
+
+/* ==========================================================================
+   7. Welcome State
+   ========================================================================== */
+
+.wsscd-sidebar-welcome {
+	text-align: center;
+	padding: var(--wsscd-spacing-xxxl) var(--wsscd-padding-base);
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-sidebar-welcome .wsscd-icon {
+	width: var(--wsscd-icon-large);
+	height: var(--wsscd-icon-large);
+	margin: 0 auto var(--wsscd-spacing-lg);
+	color: var(--wsscd-color-primary);
+}
+
+.wsscd-sidebar-welcome h4 {
+	margin: 0 0 var(--wsscd-spacing-md);
+	font-size: var(--wsscd-font-size-large);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+}
+
+.wsscd-sidebar-welcome p {
+	margin: 0;
+	font-size: var(--wsscd-font-size-base);
+	line-height: var(--wsscd-line-height-relaxed);
+}
+
+/* ==========================================================================
+   8. Tip Cards (Quick Tip, Pro Tip)
+   ========================================================================== */
+
+.wsscd-quick-tip,
+.wsscd-pro-tip {
+	display: flex;
+	gap: var(--wsscd-spacing-sm);
+	padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-sm-large);
+	border-radius: var(--wsscd-radius-md);
+	margin-bottom: var(--wsscd-spacing-sm);
+}
+
+.wsscd-quick-tip .wsscd-icon,
+.wsscd-pro-tip .wsscd-icon {
+	margin-top: var(--wsscd-spacing-xxs);
+}
+
+.wsscd-quick-tip p,
+.wsscd-pro-tip p {
+	margin: 0;
+	color: var(--wsscd-color-text);
+	font-size: var(--wsscd-font-size-small);
+	line-height: var(--wsscd-line-height-base);
+}
+
+.wsscd-quick-tip {
+	background: var(--wsscd-color-primary-light-bg);
+	border-left: var(--wsscd-border-width-accent-thin) solid var(--wsscd-color-primary);
+}
+
+.wsscd-quick-tip .wsscd-icon {
+	color: var(--wsscd-color-primary);
+}
+
+.wsscd-pro-tip {
+	background: var(--wsscd-color-warning-bg);
+	border-left: var(--wsscd-border-width-accent-thin) solid var(--wsscd-color-warning);
+	margin-top: var(--wsscd-spacing-sm);
+	margin-bottom: 0;
+}
+
+.wsscd-pro-tip .wsscd-icon {
+	color: var(--wsscd-color-warning);
+}
+
+.wsscd-pro-tip strong {
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-warning-dark);
+}
+
+/* ==========================================================================
+   9. Lists (Bullet, Checklist, Warning, Steps)
+   ========================================================================== */
+
+/* Base List Styles */
+.wsscd-bullet-list,
+.wsscd-help-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* Bullet List */
+.wsscd-bullet-list li {
+	margin-bottom: var(--wsscd-spacing-sm);
+	padding-left: var(--wsscd-spacing-lg);
+	color: var(--wsscd-color-text-muted);
+	font-size: var(--wsscd-font-size-small);
+	line-height: var(--wsscd-line-height-base);
+	position: relative;
+}
+
+.wsscd-bullet-list li::before {
+	content: '\2022';
+	position: absolute;
+	left: var(--wsscd-spacing-sm);
+	color: var(--wsscd-color-primary);
+	font-weight: var(--wsscd-font-weight-bold);
+}
+
+.wsscd-bullet-list li:last-child {
+	margin-bottom: 0;
+}
+
+/* Help List - Base */
+.wsscd-help-list li {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--wsscd-spacing-sm);
+	padding: var(--wsscd-spacing-xs) 0;
+	font-size: var(--wsscd-font-size-small);
+	line-height: var(--wsscd-line-height-base);
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-help-list li:last-child {
+	padding-bottom: 0;
+}
+
+.wsscd-help-list li::before {
+	content: '';
+	width: var(--wsscd-spacing-xs);
+	height: var(--wsscd-spacing-xs);
+	border-radius: var(--wsscd-radius-full);
+	background: currentColor;
+	opacity: 0.5;
+	margin-top: var(--wsscd-spacing-sm);
+	flex-shrink: 0;
+}
+
+/* Checklist Variant */
+.wsscd-help-list.wsscd-checklist li::before {
+	content: '\2713';
+	width: auto;
+	height: auto;
+	background: none;
+	opacity: 1;
+	color: var(--wsscd-color-success);
+	font-weight: var(--wsscd-font-weight-bold);
+	font-size: var(--wsscd-font-size-medium);
+	margin-top: 0;
+}
+
+/* Warning List Variant */
+.wsscd-help-list.wsscd-warning-list li::before {
+	content: '\26A0';
+	width: auto;
+	height: auto;
+	background: none;
+	opacity: 1;
+	font-size: var(--wsscd-font-size-base);
+	margin-top: 0;
+}
+
+/* Numbered Steps Variant */
+.wsscd-help-list.wsscd-steps-list {
+	counter-reset: step-counter;
+}
+
+.wsscd-help-list.wsscd-steps-list li {
+	padding-left: var(--wsscd-spacing-xl);
+	position: relative;
+}
+
+.wsscd-help-list.wsscd-steps-list li::before {
+	counter-increment: step-counter;
+	content: counter(step-counter);
+	position: absolute;
+	left: 0;
+	top: var(--wsscd-spacing-xs);
+	width: var(--wsscd-spacing-lg);
+	height: var(--wsscd-spacing-lg);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--wsscd-color-accent);
+	color: var(--wsscd-color-white);
+	font-size: var(--wsscd-font-size-xxs);
+	font-weight: var(--wsscd-font-weight-bold);
+	border-radius: var(--wsscd-radius-full);
+	margin-top: 0;
+	opacity: 1;
+}
+
+/* ==========================================================================
+   10. Examples & Pros/Cons
+   ========================================================================== */
+
+/* Shared Card Structure */
+.wsscd-examples-grid,
+.wsscd-pros-cons-grid {
+	display: flex;
+	flex-direction: column;
+	gap: var(--sidebar-item-gap);
+	margin: var(--wsscd-spacing-sm) 0;
+}
+
+.wsscd-example-group,
+.wsscd-pros-section,
+.wsscd-cons-section {
+	border-radius: var(--wsscd-radius-md);
+	overflow: hidden;
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+}
+
+/* Shared Header Styles */
+.wsscd-example-header,
+.wsscd-pros-header,
+.wsscd-cons-header {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-sm);
+	padding: var(--sidebar-header-padding);
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-semibold);
+}
+
+/* Example Variants */
+.wsscd-example-success .wsscd-example-header {
+	background: var(--wsscd-color-success-bg);
+	color: var(--wsscd-color-success-dark);
+	border-left: var(--wsscd-border-width-accent-thin) solid var(--wsscd-color-success);
+}
+
+.wsscd-example-success .wsscd-icon {
+	color: var(--wsscd-color-success);
+}
+
+.wsscd-example-danger .wsscd-example-header {
+	background: var(--wsscd-color-danger-bg-light);
+	color: var(--wsscd-color-danger-dark);
+	border-left: var(--wsscd-border-width-accent-thin) solid var(--wsscd-color-danger);
+}
+
+.wsscd-example-danger .wsscd-icon {
+	color: var(--wsscd-color-danger);
+}
+
+.wsscd-example-info .wsscd-example-header {
+	background: var(--wsscd-color-info-bg);
+	color: var(--wsscd-color-primary-dark);
+	border-left: var(--wsscd-border-width-accent-thin) solid var(--wsscd-color-primary);
+}
+
+.wsscd-example-info .wsscd-icon {
+	color: var(--wsscd-color-primary);
+}
+
+/* Example Items List */
+.wsscd-example-items {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	background: var(--wsscd-color-white);
+}
+
+.wsscd-example-items li {
+	padding: var(--wsscd-spacing-sm) var(--wsscd-padding-small);
+	font-size: var(--wsscd-font-size-small);
+	line-height: var(--wsscd-line-height-tight);
+	border-bottom: var(--wsscd-border-width) solid var(--wsscd-color-gray-100);
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-example-items li:last-child {
+	border-bottom: none;
+}
+
+/* Pros/Cons Headers */
+.wsscd-pros-header {
+	background: var(--wsscd-color-success-bg);
+	color: var(--wsscd-color-success-dark);
+	border-left: var(--wsscd-border-width-accent-thin) solid var(--wsscd-color-success);
+}
+
+.wsscd-pros-header .wsscd-icon {
+	color: var(--wsscd-color-success);
+}
+
+.wsscd-cons-header {
+	background: var(--wsscd-color-danger-bg-light);
+	color: var(--wsscd-color-danger-dark);
+	border-left: var(--wsscd-border-width-accent-thin) solid var(--wsscd-color-danger);
+}
+
+.wsscd-cons-header .wsscd-icon {
+	color: var(--wsscd-color-danger);
+}
+
+/* Pros/Cons Lists */
+.wsscd-pros-list,
+.wsscd-cons-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	background: var(--wsscd-color-white);
+}
+
+.wsscd-pros-list li,
+.wsscd-cons-list li {
+	padding: var(--wsscd-spacing-sm) var(--wsscd-padding-small) var(--wsscd-spacing-sm) var(--wsscd-spacing-xxl);
+	font-size: var(--wsscd-font-size-small);
+	line-height: var(--wsscd-line-height-tight);
+	border-bottom: var(--wsscd-border-width) solid var(--wsscd-color-gray-100);
+	color: var(--wsscd-color-text-muted);
+	position: relative;
+}
+
+.wsscd-pros-list li::before {
+	content: '\2713';
+	position: absolute;
+	left: var(--wsscd-spacing-sm-large);
+	color: var(--wsscd-color-success);
+	font-weight: var(--wsscd-font-weight-bold);
+}
+
+.wsscd-cons-list li::before {
+	content: '\2717';
+	position: absolute;
+	left: var(--wsscd-spacing-sm-large);
+	color: var(--wsscd-color-danger);
+	font-weight: var(--wsscd-font-weight-bold);
+}
+
+.wsscd-pros-list li:last-child,
+.wsscd-cons-list li:last-child {
+	border-bottom: none;
+}
+
+/* ==========================================================================
+   11. Usage Info Cards
+   ========================================================================== */
+
+.wsscd-usage-info {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--wsscd-spacing-sm);
+	padding: var(--wsscd-spacing-sm);
+	border-radius: var(--wsscd-radius-md);
+	margin-top: var(--wsscd-spacing-sm);
+	font-size: var(--wsscd-font-size-xs);
+	line-height: var(--wsscd-line-height-tight);
+}
+
+.wsscd-usage-info .wsscd-icon {
+	margin-top: var(--wsscd-spacing-xxs);
+}
+
+.wsscd-usage-info div {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: var(--wsscd-spacing-xxs);
+}
+
+.wsscd-usage-info strong {
+	font-weight: var(--wsscd-font-weight-semibold);
+	font-size: var(--wsscd-font-size-xs);
+}
+
+.wsscd-usage-info span {
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-usage-best {
+	background: var(--wsscd-color-success-bg);
+	border-left: var(--wsscd-border-width-thick) solid var(--wsscd-color-success);
+}
+
+.wsscd-usage-best .wsscd-icon {
+	color: var(--wsscd-color-success);
+}
+
+.wsscd-usage-best strong {
+	color: var(--wsscd-color-success-dark);
+}
+
+.wsscd-usage-avoid {
+	background: var(--wsscd-color-warning-bg);
+	border-left: var(--wsscd-border-width-thick) solid var(--wsscd-color-warning);
+}
+
+.wsscd-usage-avoid .wsscd-icon {
+	color: var(--wsscd-color-warning);
+}
+
+.wsscd-usage-avoid strong {
+	color: var(--wsscd-color-warning-dark);
+}
+
+/* ==========================================================================
+   12. Priority Scale & Methods
+   ========================================================================== */
+
+.wsscd-priority-scale,
+.wsscd-methods-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--sidebar-item-gap);
+	margin: var(--wsscd-spacing-sm) 0;
+}
+
+.wsscd-priority-level {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-sm);
+	padding: var(--wsscd-spacing-sm);
+	background: var(--wsscd-color-white);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-md);
+}
+
+.wsscd-priority-level.wsscd-priority-default {
+	background: var(--wsscd-color-primary-light-bg);
+	border-color: var(--wsscd-color-primary);
+	border-width: var(--wsscd-border-width-thick);
+}
+
+.wsscd-priority-number {
+	width: var(--wsscd-spacing-xxl);
+	height: var(--wsscd-spacing-xxl);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--wsscd-color-surface);
+	border-radius: var(--wsscd-radius-md);
+	font-weight: var(--wsscd-font-weight-bold);
+	font-size: var(--wsscd-font-size-base);
+	color: var(--wsscd-color-text);
+	flex-shrink: 0;
+}
+
+.wsscd-priority-stars {
+	display: flex;
+	gap: var(--wsscd-spacing-xxs);
+	flex-shrink: 0;
+}
+
+.wsscd-priority-stars .wsscd-icon {
+	color: var(--wsscd-color-warning);
+}
+
+.wsscd-priority-info {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wsscd-spacing-xxs);
+	flex: 1;
+	min-width: 0;
+}
+
+.wsscd-priority-info strong {
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+}
+
+.wsscd-priority-use {
+	font-size: var(--wsscd-font-size-xs);
+	color: var(--wsscd-color-text-muted);
+	line-height: var(--wsscd-line-height-tight);
+}
+
+/* Method Cards */
+.wsscd-method-item {
+	display: flex;
+	gap: var(--wsscd-spacing-sm);
+	padding: var(--wsscd-spacing-sm);
+	background: var(--wsscd-color-white);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-md);
+}
+
+.wsscd-method-icon {
+	color: var(--wsscd-color-primary);
+	flex-shrink: 0;
+}
+
+.wsscd-method-content {
+	flex: 1;
+	min-width: 0;
+}
+
+.wsscd-method-content strong {
+	display: block;
+	margin-bottom: var(--wsscd-spacing-xxs);
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+}
+
+.wsscd-method-desc {
+	margin: 0 0 var(--wsscd-spacing-xs);
+	font-size: var(--wsscd-font-size-xs);
+	color: var(--wsscd-color-text-muted);
+	line-height: var(--wsscd-line-height-base);
+}
+
+.wsscd-method-when {
+	margin: 0;
+	font-size: var(--wsscd-font-size-xs);
+	color: var(--wsscd-color-text-muted);
+	line-height: var(--wsscd-line-height-tight);
+}
+
+.wsscd-method-when em {
+	font-weight: var(--wsscd-font-weight-medium);
+	font-style: normal;
+	color: var(--wsscd-color-primary);
+}
+
+/* ==========================================================================
+   13. Dynamic Methods
+   ========================================================================== */
+
+.wsscd-dynamic-methods {
+	margin: var(--wsscd-spacing-sm) 0;
+}
+
+.wsscd-dynamic-method {
+	padding: var(--wsscd-spacing-sm-large);
+	background: var(--wsscd-color-surface);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-md);
+}
+
+.wsscd-method-header {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-sm);
+	margin-bottom: var(--wsscd-spacing-sm);
+	padding-bottom: var(--wsscd-spacing-sm);
+	border-bottom: var(--wsscd-border-width-thick) solid var(--wsscd-color-gray-200);
+	position: relative;
+}
+
+.wsscd-method-header::after {
+	content: 'RECOMMENDED';
+	position: absolute;
+	right: 0;
+	background: var(--wsscd-color-success);
+	color: var(--wsscd-color-white);
+	font-size: var(--wsscd-font-size-xxs);
+	font-weight: var(--wsscd-font-weight-bold);
+	padding: var(--wsscd-spacing-xxs) var(--wsscd-spacing-xs);
+	border-radius: var(--wsscd-radius-xs);
+	letter-spacing: 0.3px;
+}
+
+.wsscd-method-header .wsscd-icon {
+	color: var(--wsscd-color-primary);
+}
+
+.wsscd-method-header strong {
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+	padding-right: 80px;
+}
+
+.wsscd-method-details {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wsscd-spacing-xs);
+}
+
+.wsscd-method-row {
+	display: grid;
+	grid-template-columns: 65px 1fr;
+	gap: var(--wsscd-spacing-sm);
+	font-size: var(--wsscd-font-size-xs);
+	line-height: var(--wsscd-line-height-tight);
+}
+
+.wsscd-method-label {
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-method-value {
+	color: var(--wsscd-color-text);
+}
+
+.wsscd-method-tip {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--wsscd-spacing-sm);
+	margin-top: var(--wsscd-spacing-sm);
+	padding: var(--wsscd-spacing-sm);
+	background: var(--wsscd-color-warning-bg);
+	border-radius: var(--wsscd-radius-sm);
+	border-left: var(--wsscd-border-width-thick) solid var(--wsscd-color-warning);
+	font-size: var(--wsscd-font-size-xxs);
+	line-height: var(--wsscd-line-height-tight);
+	color: var(--wsscd-color-text);
+}
+
+.wsscd-method-tip .wsscd-icon {
+	color: var(--wsscd-color-warning);
+}
+
+/* ==========================================================================
+   14. Help Guide Sections
+   ========================================================================== */
+
+.wsscd-help-section {
+	margin: var(--sidebar-section-gap) 0;
+	border-radius: var(--wsscd-radius-md);
+	overflow: hidden;
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+}
+
+.wsscd-help-header {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-sm);
+	padding: var(--sidebar-header-padding);
+	font-size: var(--wsscd-font-size-xs);
+	font-weight: var(--wsscd-font-weight-bold);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.wsscd-help-body {
+	padding: var(--sidebar-body-padding);
+	background: var(--wsscd-color-white);
+}
+
+/* Section Color Variants */
+.wsscd-help-how-works .wsscd-help-header {
+	background: var(--wsscd-color-info-bg);
+	color: var(--wsscd-color-primary-dark);
+	border-left: var(--wsscd-border-width-accent-thin) solid var(--wsscd-color-primary);
+}
+
+.wsscd-help-how-works .wsscd-help-header .wsscd-icon {
+	color: var(--wsscd-color-primary);
+}
+
+.wsscd-help-use-cases .wsscd-help-header {
+	background: var(--wsscd-color-success-bg);
+	color: var(--wsscd-color-success-dark);
+	border-left: var(--wsscd-border-width-accent-thin) solid var(--wsscd-color-success);
+}
+
+.wsscd-help-use-cases .wsscd-help-header .wsscd-icon {
+	color: var(--wsscd-color-success);
+}
+
+.wsscd-help-watch-out .wsscd-help-header {
+	background: var(--wsscd-color-warning-bg);
+	color: var(--wsscd-color-warning-dark);
+	border-left: var(--wsscd-border-width-accent-thin) solid var(--wsscd-color-warning);
+}
+
+.wsscd-help-watch-out .wsscd-help-header .wsscd-icon {
+	color: var(--wsscd-color-warning);
+}
+
+.wsscd-help-badge-settings .wsscd-help-header {
+	background: var(--wsscd-color-info-alpha-15);
+	color: var(--wsscd-color-primary-dark);
+	border-left: var(--wsscd-border-width-accent-thin) solid var(--wsscd-color-info);
+}
+
+.wsscd-help-badge-settings .wsscd-help-header .wsscd-icon {
+	color: var(--wsscd-color-info);
+}
+
+.wsscd-help-setup-tips .wsscd-help-header {
+	background: var(--wsscd-color-accent-alpha-30);
+	color: var(--wsscd-color-accent-dark);
+	border-left: var(--wsscd-border-width-accent-thin) solid var(--wsscd-color-accent);
+}
+
+.wsscd-help-setup-tips .wsscd-help-header .wsscd-icon {
+	color: var(--wsscd-color-accent);
+}
+
+/* Highlight Box */
+.wsscd-help-highlight {
+	background: var(--wsscd-color-warning-bg);
+	border-left: var(--wsscd-border-width-accent-thin) solid var(--wsscd-color-warning);
+	padding: var(--wsscd-spacing-sm-large);
+	margin: var(--wsscd-spacing-sm) 0;
+	border-radius: var(--wsscd-radius-md);
+	font-size: var(--wsscd-font-size-small);
+	line-height: var(--wsscd-line-height-base);
+	color: var(--wsscd-color-warning-dark);
+}
+
+.wsscd-help-highlight strong {
+	color: var(--wsscd-color-warning-dark);
+	font-weight: var(--wsscd-font-weight-semibold);
+}
+
+/* Stats Badge */
+.wsscd-stats-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-xs);
+	padding: var(--wsscd-spacing-xxs) var(--wsscd-spacing-sm);
+	background: var(--wsscd-color-info-bg);
+	color: var(--wsscd-color-primary-dark);
+	font-size: var(--wsscd-font-size-xs);
+	font-weight: var(--wsscd-font-weight-semibold);
+	border-radius: var(--wsscd-radius-pill);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-info);
+	margin-left: var(--wsscd-spacing-sm);
+}
+
+.wsscd-stats-badge .wsscd-icon {
+	color: var(--wsscd-color-primary);
+}
+
+/* ==========================================================================
+   15. Common Mistakes Section
+   ========================================================================== */
+
+.wsscd-common-mistakes {
+	margin-top: var(--wsscd-spacing-sm);
+	border-radius: var(--wsscd-radius-md);
+	overflow: hidden;
+	border: var(--wsscd-border-width) solid var(--wsscd-color-danger-light-border);
+}
+
+.wsscd-mistakes-header {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-sm);
+	padding: var(--sidebar-header-padding);
+	background: var(--wsscd-color-danger-bg-light);
+	color: var(--wsscd-color-danger-dark);
+	border-left: var(--wsscd-border-width-accent-thin) solid var(--wsscd-color-danger);
+	font-size: var(--wsscd-font-size-xs);
+	font-weight: var(--wsscd-font-weight-bold);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.wsscd-mistakes-header .wsscd-icon {
+	color: var(--wsscd-color-danger);
+}
+
+.wsscd-mistakes-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	background: var(--wsscd-color-white);
+}
+
+.wsscd-mistakes-list li {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--wsscd-spacing-sm);
+	padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-sm-large) var(--wsscd-spacing-sm) var(--wsscd-spacing-xxl);
+	font-size: var(--wsscd-font-size-small);
+	line-height: var(--wsscd-line-height-base);
+	color: var(--wsscd-color-text-muted);
+	border-bottom: var(--wsscd-border-width) solid var(--wsscd-color-danger-bg-light);
+	position: relative;
+}
+
+.wsscd-mistakes-list li:last-child {
+	border-bottom: none;
+}
+
+.wsscd-mistakes-list li::before {
+	content: '\2717';
+	position: absolute;
+	left: var(--wsscd-spacing-sm-large);
+	color: var(--wsscd-color-danger);
+	font-weight: var(--wsscd-font-weight-bold);
+}
+
+/* ==========================================================================
+   16. Review Sidebar (Campaign Summary)
+   ========================================================================== */
+
+.wsscd-review-sidebar .wsscd-sidebar-topic-header::after {
+	content: 'SUMMARY';
+	background: var(--wsscd-color-success);
+}
+
+.wsscd-review-summary-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--sidebar-item-gap);
+}
+
+.wsscd-review-summary-item {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wsscd-spacing-xxs);
+	padding: var(--wsscd-spacing-sm);
+	background: var(--wsscd-color-surface);
+	border-radius: var(--wsscd-radius-sm);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+}
+
+.wsscd-review-summary-item:first-child {
+	grid-column: 1 / -1;
+}
+
+.wsscd-review-label {
+	font-size: var(--wsscd-font-size-xxs);
+	font-weight: var(--wsscd-font-weight-semibold);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-review-value {
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-medium);
+	color: var(--wsscd-color-text);
+	word-break: break-word;
+}
+
+.wsscd-review-value--primary {
+	font-size: var(--wsscd-font-size-medium);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-primary);
+}
+
+.wsscd-review-value--highlight {
+	color: var(--wsscd-color-success-dark);
+	font-weight: var(--wsscd-font-weight-semibold);
+}
+
+.wsscd-review-description {
+	margin: 0;
+	font-size: var(--wsscd-font-size-small);
+	line-height: var(--wsscd-line-height-base);
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-review-empty {
+	margin: 0;
+	font-size: var(--wsscd-font-size-small);
+	font-style: italic;
+	color: var(--wsscd-color-text-muted);
+	opacity: 0.7;
+}
+
+/* Review Checklist */
+.wsscd-checklist-items {
+	background: var(--wsscd-color-white);
+}
+
+.wsscd-checklist-items .wsscd-checklist-item {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--wsscd-spacing-sm);
+	padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-sm-large) var(--wsscd-spacing-sm) var(--wsscd-spacing-xxl);
+	font-size: var(--wsscd-font-size-small);
+	line-height: var(--wsscd-line-height-base);
+	color: var(--wsscd-color-text-muted);
+	border-bottom: var(--wsscd-border-width) solid var(--wsscd-color-success-bg);
+	position: relative;
+}
+
+.wsscd-checklist-items .wsscd-checklist-item:last-child {
+	border-bottom: none;
+}
+
+.wsscd-checklist-items .wsscd-checklist-item::before {
+	content: '\25CB';
+	position: absolute;
+	left: var(--wsscd-spacing-sm-large);
+	color: var(--wsscd-color-success);
+	font-size: var(--wsscd-font-size-small);
+}
+
+/* Review Sidebar - Success theme override for checklist */
+.wsscd-review-sidebar .wsscd-common-mistakes {
+	border-color: var(--wsscd-color-success-alpha-15);
+}
+
+.wsscd-review-sidebar .wsscd-common-mistakes .wsscd-mistakes-header {
+	background: var(--wsscd-color-success-bg);
+	color: var(--wsscd-color-success-dark);
+	border-left-color: var(--wsscd-color-success);
+}
+
+.wsscd-review-sidebar .wsscd-common-mistakes .wsscd-mistakes-header .wsscd-icon {
+	color: var(--wsscd-color-success);
+}
+
+/* ==========================================================================
+   17. Loading & Error States
+   ========================================================================== */
+
+.wsscd-sidebar-help-area.wsscd-loading {
+	opacity: 0.6;
+	pointer-events: none;
+	position: relative;
+}
+
+.wsscd-sidebar-help-area.wsscd-loading::after {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: var(--wsscd-spacing-xl);
+	height: var(--wsscd-spacing-xl);
+	margin: calc(var(--wsscd-spacing-xl) * -0.5) 0 0 calc(var(--wsscd-spacing-xl) * -0.5);
+	border: var(--wsscd-border-width-thick) solid var(--wsscd-color-border);
+	border-top-color: var(--wsscd-color-primary);
+	border-radius: var(--wsscd-radius-full);
+	animation: wsscdSpin 0.6s linear infinite;
+}
+
+@keyframes wsscdSpin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.wsscd-sidebar-error {
+	text-align: center;
+	padding: var(--wsscd-spacing-xxl) var(--wsscd-padding-compact);
+	color: var(--wsscd-color-danger);
+}
+
+.wsscd-sidebar-error .wsscd-icon {
+	display: block;
+	margin: 0 auto var(--wsscd-spacing-md);
+}
+
+.wsscd-sidebar-error p {
+	margin: 0;
+	font-size: var(--wsscd-font-size-base);
+	color: var(--wsscd-color-text-muted);
+}
+
+/* ==========================================================================
+   18. Mobile Toggle
+   ========================================================================== */
+
+.wsscd-sidebar-toggle {
+	display: none;
+	position: absolute;
+	top: var(--wsscd-spacing-sm);
+	left: calc(-1 * var(--sidebar-toggle-size) - var(--wsscd-spacing-xs));
+	width: var(--sidebar-toggle-size);
+	height: var(--sidebar-toggle-size);
+	padding: 0;
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border);
+	border-radius: var(--wsscd-border-radius);
+	background: var(--wsscd-color-surface);
+	box-shadow: var(--wsscd-shadow-sm);
+	cursor: pointer;
+	z-index: 10;
+	transition: background-color var(--wsscd-transition-fast),
+	            box-shadow var(--wsscd-transition-fast),
+	            transform var(--wsscd-transition-fast);
+}
+
+.wsscd-sidebar-toggle:hover {
+	background: var(--wsscd-color-surface-hover, var(--wsscd-color-surface-dark));
+	box-shadow: var(--wsscd-shadow-md);
+}
+
+.wsscd-sidebar-toggle:focus {
+	outline: none;
+	box-shadow: var(--wsscd-shadow-sm), 0 0 0 2px var(--wsscd-color-accent-alpha-30);
+}
+
+/* Toggle Icon - Chevron */
+.wsscd-sidebar-toggle-icon {
+	display: block;
+	width: 100%;
+	height: 100%;
+	position: relative;
+}
+
+.wsscd-sidebar-toggle-icon::before,
+.wsscd-sidebar-toggle-icon::after {
+	content: '';
+	position: absolute;
+	left: 50%;
+	width: 8px;
+	height: 2px;
+	background: var(--wsscd-color-text-muted);
+	border-radius: 1px;
+	transition: transform var(--wsscd-transition-fast);
+}
+
+.wsscd-sidebar-toggle-icon::before {
+	top: 35%;
+	transform: translateX(-50%) rotate(45deg);
+}
+
+.wsscd-sidebar-toggle-icon::after {
+	top: 55%;
+	transform: translateX(-50%) rotate(-45deg);
+}
+
+/* Collapsed State - Rotate chevron */
+.wsscd-sidebar-collapsed .wsscd-sidebar-toggle-icon::before {
+	transform: translateX(-50%) rotate(-45deg);
+}
+
+.wsscd-sidebar-collapsed .wsscd-sidebar-toggle-icon::after {
+	transform: translateX(-50%) rotate(45deg);
+}
+
+/* ==========================================================================
+   19. Responsive Design
+   ========================================================================== */
+
+@media (max-width: 782px) {
+	/* Show toggle button */
+	.wsscd-sidebar-toggle {
+		display: block;
+	}
+
+	/* Fixed positioning on mobile */
+	.wsscd-step-sidebar {
+		position: fixed;
+		top: calc(var(--wsscd-wp-admin-bar-height-mobile) + var(--wsscd-sidebar-margin-top));
+		right: 0;
+		height: calc(100vh - var(--wsscd-wp-admin-bar-height-mobile) - var(--wsscd-sidebar-margin-top) - var(--wsscd-nav-height-mobile) - var(--wsscd-sidebar-margin-bottom));
+		max-height: calc(100vh - var(--wsscd-wp-admin-bar-height-mobile) - var(--wsscd-sidebar-margin-top) - var(--wsscd-nav-height-mobile) - var(--wsscd-sidebar-margin-bottom));
+		width: 100%;
+		max-width: 380px;
+		box-shadow: var(--wsscd-shadow-lg);
+		z-index: var(--wsscd-z-dropdown);
+		transition: transform var(--wsscd-transition-normal);
+	}
+
+	/* Collapsed state */
+	.wsscd-step-sidebar.wsscd-sidebar-collapsed {
+		transform: translateX(calc(100% - var(--sidebar-toggle-size) - var(--wsscd-spacing-xs)));
+	}
+
+	.wsscd-sidebar-collapsed .wsscd-sidebar-toggle {
+		left: calc(-1 * var(--sidebar-toggle-size) - var(--wsscd-spacing-xs));
+	}
+
+	.wsscd-sidebar-collapsed .wsscd-sidebar-contextual {
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity var(--wsscd-transition-fast);
+	}
+
+	.wsscd-step-sidebar:not(.wsscd-sidebar-collapsed) .wsscd-sidebar-contextual {
+		opacity: 1;
+		pointer-events: auto;
+	}
+
+	/* Layout adjustments */
+	.wsscd-method-row {
+		grid-template-columns: 1fr;
+		gap: var(--wsscd-spacing-xs);
+	}
+
+	.wsscd-method-label {
+		font-weight: var(--wsscd-font-weight-semibold);
+		color: var(--wsscd-color-text);
+	}
+
+	.wsscd-review-summary-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.wsscd-review-summary-item:first-child {
+		grid-column: 1;
+	}
+}
+
+@media (max-width: 600px) {
+	.wsscd-step-sidebar {
+		max-width: 100%;
+	}
+
+	.wsscd-sidebar-breadcrumb {
+		padding: var(--wsscd-padding-small) var(--wsscd-padding-compact);
+	}
+
+	.wsscd-sidebar-help-area {
+		padding: var(--wsscd-padding-compact);
+	}
+}
+
+/* ==========================================================================
+   20. Accessibility (Print, Reduced Motion)
+   ========================================================================== */
+
+@media print {
+	.wsscd-step-sidebar {
+		display: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.wsscd-sidebar-help-topic,
+	#wsscd-sidebar-help-content,
+	.wsscd-breadcrumb-topic,
+	.wsscd-sidebar-toggle,
+	.wsscd-sidebar-toggle-icon::before,
+	.wsscd-sidebar-toggle-icon::after,
+	.wsscd-step-sidebar {
+		animation: none;
+		transition: none;
+	}
+}

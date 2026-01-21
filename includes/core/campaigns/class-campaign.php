@@ -27,7 +27,71 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/database/models
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Campaign {
+class WSSCD_Campaign {
+
+	/**
+	 * Product Selection Model.
+	 *
+	 * Products step selection flow:
+	 * 1. CATEGORY FILTER (first field) - Creates the product pool from selected categories
+	 * 2. SELECTION TYPE - Determines HOW to select products FROM the category pool
+	 * 3. ADVANCED FILTERS - Further refines the selection
+	 *
+	 * Selection Types (all select FROM the category pool):
+	 * - all_products: All products from the category pool
+	 * - specific_products: Manually selected products from the category pool
+	 * - random_products: Random subset from the category pool
+	 * - smart_selection: Algorithm-selected from the category pool
+	 *
+	 * @since 1.0.0
+	 */
+	const SELECTION_TYPE_ALL_PRODUCTS      = 'all_products';
+	const SELECTION_TYPE_SPECIFIC_PRODUCTS = 'specific_products';
+	const SELECTION_TYPE_RANDOM_PRODUCTS   = 'random_products';
+	const SELECTION_TYPE_SMART_SELECTION   = 'smart_selection';
+
+	/**
+	 * Pool-based selection types.
+	 *
+	 * These selection types select from the category pool without explicit product IDs.
+	 * specific_products is NOT pool-based as it uses explicit product IDs.
+	 *
+	 * @since 1.0.0
+	 */
+	const POOL_BASED_SELECTION_TYPES = array(
+		self::SELECTION_TYPE_ALL_PRODUCTS,
+		self::SELECTION_TYPE_RANDOM_PRODUCTS,
+		self::SELECTION_TYPE_SMART_SELECTION,
+	);
+
+	/**
+	 * Get all valid selection types.
+	 *
+	 * @since    1.0.0
+	 * @return   array    Valid selection types.
+	 */
+	public static function get_valid_selection_types(): array {
+		return array(
+			self::SELECTION_TYPE_ALL_PRODUCTS,
+			self::SELECTION_TYPE_SPECIFIC_PRODUCTS,
+			self::SELECTION_TYPE_RANDOM_PRODUCTS,
+			self::SELECTION_TYPE_SMART_SELECTION,
+		);
+	}
+
+	/**
+	 * Check if selection type is pool-based.
+	 *
+	 * Pool-based types select from the category pool without explicit product IDs.
+	 * specific_products is NOT pool-based as it requires explicit product IDs.
+	 *
+	 * @since    1.0.0
+	 * @param    string $type    Selection type.
+	 * @return   bool              True if pool-based.
+	 */
+	public static function is_pool_based_selection( string $type ): bool {
+		return in_array( $type, self::POOL_BASED_SELECTION_TYPES, true );
+	}
 
 	/**
 	 * Campaign ID.
@@ -171,7 +235,7 @@ class SCD_Campaign {
 	 * @since    1.0.0
 	 * @var      string    $product_selection_type    Product selection type.
 	 */
-	private string $product_selection_type = 'all';
+	private string $product_selection_type = 'all_products';
 
 	/**
 	 * Product IDs.
@@ -593,6 +657,13 @@ class SCD_Campaign {
 	}
 
 	public function set_product_selection_type( string $type ): void {
+		$valid_types = self::get_valid_selection_types();
+
+		if ( ! in_array( $type, $valid_types, true ) ) {
+			// Default to all_products for invalid types.
+			$type = self::SELECTION_TYPE_ALL_PRODUCTS;
+		}
+
 		$this->product_selection_type = $type;
 	}
 
@@ -609,7 +680,13 @@ class SCD_Campaign {
 	}
 
 	public function set_category_ids( array $categories ): void {
-		$this->category_ids = array_map( 'intval', $categories );
+		// Filter empty values and convert to integers.
+		$this->category_ids = array_values( array_filter(
+			array_map( 'intval', $categories ),
+			function( $id ) {
+				return $id > 0;
+			}
+		) );
 	}
 
 	public function get_tag_ids(): array {
@@ -617,7 +694,13 @@ class SCD_Campaign {
 	}
 
 	public function set_tag_ids( array $tags ): void {
-		$this->tag_ids = array_map( 'intval', $tags );
+		// Filter empty values and convert to integers.
+		$this->tag_ids = array_values( array_filter(
+			array_map( 'intval', $tags ),
+			function( $id ) {
+				return $id > 0;
+			}
+		) );
 	}
 
 	public function get_conditions(): array {
@@ -625,7 +708,6 @@ class SCD_Campaign {
 	}
 
 	public function set_conditions( array $conditions ): void {
-		error_log( '[SCD] CAMPAIGN - set_conditions() called with: ' . print_r( $conditions, true ) );
 		$this->conditions = $conditions;
 	}
 
@@ -940,7 +1022,7 @@ class SCD_Campaign {
 			'created_at'             => $this->created_at->format( 'Y-m-d H:i:s' ),
 			'updated_at'             => $this->updated_at->format( 'Y-m-d H:i:s' ),
 			'version'                => $this->version,
-			'deleted_at'             => $this->deleted_at?->format( 'Y-m-d H:i:s' ),
+			'deleted_at'             => null !== $this->deleted_at ? $this->deleted_at->format( 'Y-m-d H:i:s' ) : null,
 		);
 	}
 

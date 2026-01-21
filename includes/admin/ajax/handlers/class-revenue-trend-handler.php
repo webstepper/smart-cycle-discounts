@@ -21,14 +21,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since      1.0.0
  */
-class SCD_Revenue_Trend_Handler extends SCD_Abstract_Analytics_Handler {
-	use SCD_License_Validation_Trait;
+class WSSCD_Revenue_Trend_Handler extends WSSCD_Abstract_Analytics_Handler {
+	use WSSCD_License_Validation_Trait;
 
 	/**
 	 * Analytics collector instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Analytics_Collector
+	 * @var      WSSCD_Analytics_Collector
 	 */
 	private $analytics_collector;
 
@@ -36,9 +36,9 @@ class SCD_Revenue_Trend_Handler extends SCD_Abstract_Analytics_Handler {
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Metrics_Calculator  $metrics_calculator     Metrics calculator.
-	 * @param    SCD_Logger              $logger                 Logger instance.
-	 * @param    SCD_Analytics_Collector $analytics_collector    Analytics collector.
+	 * @param    WSSCD_Metrics_Calculator  $metrics_calculator     Metrics calculator.
+	 * @param    WSSCD_Logger              $logger                 Logger instance.
+	 * @param    WSSCD_Analytics_Collector $analytics_collector    Analytics collector.
 	 */
 	public function __construct( $metrics_calculator, $logger, $analytics_collector ) {
 		parent::__construct( $metrics_calculator, $logger );
@@ -52,7 +52,7 @@ class SCD_Revenue_Trend_Handler extends SCD_Abstract_Analytics_Handler {
 	 * @return   string    Required capability.
 	 */
 	protected function get_required_capability(): string {
-		return 'scd_view_analytics';
+		return 'wsscd_view_analytics';
 	}
 
 	/**
@@ -69,7 +69,7 @@ class SCD_Revenue_Trend_Handler extends SCD_Abstract_Analytics_Handler {
 		}
 
 		// Verify request
-		$verification = $this->verify_request( $request, 'scd_analytics_revenue_trend' );
+		$verification = $this->verify_request( $request, 'wsscd_analytics_revenue_trend' );
 		if ( is_wp_error( $verification ) ) {
 			return $this->error(
 				$verification->get_error_message(),
@@ -108,7 +108,8 @@ class SCD_Revenue_Trend_Handler extends SCD_Abstract_Analytics_Handler {
 				)
 			);
 
-			return $this->error(
+				return $this->error(
+				/* translators: %s: error message */
 				sprintf( __( 'Failed to generate revenue trend: %s', 'smart-cycle-discounts' ), $e->getMessage() ),
 				'revenue_trend_failed'
 			);

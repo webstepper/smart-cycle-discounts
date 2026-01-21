@@ -28,10 +28,10 @@
 		 * Cache DOM elements
 		 */
 		cacheElements: function() {
-			this.$processQueueBtn = $( '#scd-process-queue' );
-			this.$retryFailedBtn = $( '#scd-retry-failed' );
-			this.$clearQueueBtn = $( '#scd-clear-queue' );
-			this.$result = $( '#scd-queue-result' );
+			this.$processQueueBtn = $( '#wsscd-process-queue' );
+			this.$retryFailedBtn = $( '#wsscd-retry-failed' );
+			this.$clearQueueBtn = $( '#wsscd-clear-queue' );
+			this.$result = $( '#wsscd-queue-result' );
 		},
 
 		/**
@@ -52,7 +52,7 @@
 
 			// Clear queue button
 			this.$clearQueueBtn.on( 'click', function() {
-				if ( confirm( scdQueueL10n.confirmClear ) ) {
+				if ( confirm( wsscdQueueL10n.confirmClear ) ) {
 					self.clearQueue();
 				}
 			} );
@@ -67,8 +67,8 @@
 			var originalText = $button.html();
 
 			// Disable button and show loading
-			if ( window.SCD && window.SCD.LoaderUtil ) {
-				SCD.LoaderUtil.showButton( $button, scdQueueL10n.processing );
+			if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+				WSSCD.LoaderUtil.showButton( $button, wsscdQueueL10n.processing );
 			}
 
 			// Send AJAX request
@@ -76,8 +76,8 @@
 				url: ajaxurl,
 				type: 'POST',
 				data: {
-					action: 'scd_process_queue',
-					nonce: scdQueueL10n.nonce
+					action: 'wsscd_process_queue',
+					nonce: wsscdQueueL10n.nonce
 				},
 				success: function( response ) {
 					if ( response.success ) {
@@ -87,11 +87,11 @@
 							location.reload();
 						}, 2000 );
 					} else {
-						self.showNotice( response.data || scdQueueL10n.processFailed, 'error' );
+						self.showNotice( response.data || wsscdQueueL10n.processFailed, 'error' );
 					}
 				},
 				error: function() {
-					self.showNotice( scdQueueL10n.processFailed, 'error' );
+					self.showNotice( wsscdQueueL10n.processFailed, 'error' );
 				},
 				complete: function() {
 					// Re-enable button
@@ -109,8 +109,8 @@
 			var originalText = $button.html();
 
 			// Disable button and show loading
-			if ( window.SCD && window.SCD.LoaderUtil ) {
-				SCD.LoaderUtil.showButton( $button, scdQueueL10n.retrying );
+			if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+				WSSCD.LoaderUtil.showButton( $button, wsscdQueueL10n.retrying );
 			}
 
 			// Send AJAX request
@@ -118,8 +118,8 @@
 				url: ajaxurl,
 				type: 'POST',
 				data: {
-					action: 'scd_retry_failed_emails',
-					nonce: scdQueueL10n.nonce
+					action: 'wsscd_retry_failed_emails',
+					nonce: wsscdQueueL10n.nonce
 				},
 				success: function( response ) {
 					if ( response.success ) {
@@ -129,11 +129,11 @@
 							location.reload();
 						}, 2000 );
 					} else {
-						self.showNotice( response.data || scdQueueL10n.retryFailed, 'error' );
+						self.showNotice( response.data || wsscdQueueL10n.retryFailed, 'error' );
 					}
 				},
 				error: function() {
-					self.showNotice( scdQueueL10n.retryFailed, 'error' );
+					self.showNotice( wsscdQueueL10n.retryFailed, 'error' );
 				},
 				complete: function() {
 					// Re-enable button
@@ -151,8 +151,8 @@
 			var originalText = $button.html();
 
 			// Disable button and show loading
-			if ( window.SCD && window.SCD.LoaderUtil ) {
-				SCD.LoaderUtil.showButton( $button, scdQueueL10n.clearing );
+			if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+				WSSCD.LoaderUtil.showButton( $button, wsscdQueueL10n.clearing );
 			}
 
 			// Send AJAX request
@@ -160,8 +160,8 @@
 				url: ajaxurl,
 				type: 'POST',
 				data: {
-					action: 'scd_clear_queue',
-					nonce: scdQueueL10n.nonce
+					action: 'wsscd_clear_queue',
+					nonce: wsscdQueueL10n.nonce
 				},
 				success: function( response ) {
 					if ( response.success ) {
@@ -171,11 +171,11 @@
 							location.reload();
 						}, 2000 );
 					} else {
-						self.showNotice( response.data || scdQueueL10n.clearFailed, 'error' );
+						self.showNotice( response.data || wsscdQueueL10n.clearFailed, 'error' );
 					}
 				},
 				error: function() {
-					self.showNotice( scdQueueL10n.clearFailed, 'error' );
+					self.showNotice( wsscdQueueL10n.clearFailed, 'error' );
 				},
 				complete: function() {
 					// Re-enable button
@@ -206,11 +206,11 @@
 	 */
 	$( document ).ready( function() {
 		// Only initialize on notifications queue page
-		if ( $( 'body' ).hasClass( 'smart-cycle-discounts_page_scd-notifications' ) && $( '.scd-queue-actions' ).length ) {
+		if ( $( 'body' ).hasClass( 'smart-cycle-discounts_page_wsscd-notifications' ) && $( '.wsscd-queue-actions' ).length ) {
 			QueueManagement.init();
 		}
 	} );
 
-	// Spinner animation now handled by shared/_utilities.css .scd-icon-spin
+	// Spinner animation now handled by shared/_utilities.css .wsscd-icon-spin
 
 } )( jQuery );

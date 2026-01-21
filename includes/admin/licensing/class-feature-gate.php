@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/licensing
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Feature_Gate {
+class WSSCD_Feature_Gate {
 
 	/**
 	 * Feature definitions (Free vs Pro).
@@ -50,12 +50,12 @@ class SCD_Feature_Gate {
 		'analytics_funnel_analysis'          => 'pro',
 
 		// Campaign features
-		'campaigns_unlimited'                => 'pro',
-		'campaigns_advanced_rotation'        => 'pro',
-		'campaigns_geographic_restrictions'  => 'pro',
-		'campaigns_customer_segments'        => 'pro',
+		'campaigns_unlimited'                => 'free',
 		'campaigns_advanced_product_filters' => 'pro',
-		'campaigns_recurring'                => 'pro',
+		'campaigns_recurring'                => 'free',
+
+		// Discount configurations (usage limits, application rules, combination policy)
+		'discount_configurations'            => 'pro',
 
 		// Discount types
 		'discount_type_tiered'               => 'pro',
@@ -83,8 +83,12 @@ class SCD_Feature_Gate {
 		'export_scheduled_reports'           => 'pro',
 
 		// Advanced features
-		'api_access'                         => 'pro',
 		'priority_support'                   => 'pro',
+
+		// API access (read = free, write = pro)
+		'api_read'                           => 'free',
+		'api_write'                          => 'pro',
+		'api_bulk_operations'                => 'pro',
 	);
 
 	/**
@@ -103,7 +107,7 @@ class SCD_Feature_Gate {
 	 * @return   bool    True if Freemius is available.
 	 */
 	private function is_freemius_loaded() {
-		return function_exists( 'scd_fs' ) && is_object( scd_fs() );
+		return function_exists( 'wsscd_fs' ) && is_object( wsscd_fs() );
 	}
 
 	/**
@@ -121,8 +125,8 @@ class SCD_Feature_Gate {
 		}
 
 		// Use License Manager for server-validated check (Phase 2)
-		if ( function_exists( 'scd_is_license_valid' ) ) {
-			$this->is_premium_cached = scd_is_license_valid();
+		if ( function_exists( 'wsscd_is_license_valid' ) ) {
+			$this->is_premium_cached = wsscd_is_license_valid();
 			return $this->is_premium_cached;
 		}
 
@@ -133,7 +137,7 @@ class SCD_Feature_Gate {
 		}
 
 		// Last resort: direct Freemius check
-		$this->is_premium_cached = scd_fs()->is_premium() || scd_fs()->is_trial();
+		$this->is_premium_cached = wsscd_fs()->is_premium() || wsscd_fs()->is_trial();
 
 		return $this->is_premium_cached;
 	}
@@ -149,7 +153,7 @@ class SCD_Feature_Gate {
 			return false;
 		}
 
-		return scd_fs()->is_trial();
+		return wsscd_fs()->is_trial();
 	}
 
 	/**
@@ -233,6 +237,19 @@ class SCD_Feature_Gate {
 	}
 
 	/**
+	 * Check if user can use discount configurations.
+	 *
+	 * Discount configurations include: usage limits, application rules,
+	 * and combination policy settings.
+	 *
+	 * @since    1.0.0
+	 * @return   bool    True if user can use discount configurations.
+	 */
+	public function can_use_discount_configurations() {
+		return $this->can_use_feature( 'discount_configurations' );
+	}
+
+	/**
 	 * Check if user can use custom date ranges.
 	 *
 	 * @since    1.0.0
@@ -283,33 +300,28 @@ class SCD_Feature_Gate {
 	/**
 	 * Get campaign limit based on subscription level.
 	 *
+	 * NOTE: Campaigns are now unlimited for all users (free and pro).
+	 * This method is kept for backward compatibility but always returns 0 (unlimited).
+	 *
 	 * @since    1.0.0
-	 * @return   int    Campaign limit (0 = unlimited).
+	 * @return   int    Always returns 0 (unlimited).
 	 */
 	public function get_campaign_limit() {
-		if ( $this->is_premium() ) {
-			return 0; // Unlimited
-		}
-
-		return 3; // Free tier limit
+		return 0; // Unlimited for all users
 	}
 
 	/**
 	 * Check if user can create more campaigns.
 	 *
+	 * NOTE: Campaigns are now unlimited for all users (free and pro).
+	 * This method is kept for backward compatibility but always returns true.
+	 *
 	 * @since    1.0.0
-	 * @param    int $current_count    Current campaign count.
-	 * @return   bool                     True if user can create more campaigns.
+	 * @param    int $current_count    Current campaign count (ignored).
+	 * @return   bool                     Always returns true.
 	 */
 	public function can_create_campaign( $current_count ) {
-		$limit = $this->get_campaign_limit();
-
-		// Unlimited campaigns
-		if ( 0 === $limit ) {
-			return true;
-		}
-
-		return $current_count < $limit;
+		return true; // Unlimited campaigns for all users
 	}
 
 	/**
@@ -362,21 +374,7 @@ class SCD_Feature_Gate {
 			return admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
 		}
 
-		return scd_fs()->get_upgrade_url();
-	}
-
-	/**
-	 * Get trial URL.
-	 *
-	 * @since    1.0.0
-	 * @return   string    Trial URL.
-	 */
-	public function get_trial_url() {
-		if ( ! $this->is_freemius_loaded() ) {
-			return admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
-		}
-
-		return scd_fs()->get_trial_url();
+		return wsscd_fs()->get_upgrade_url();
 	}
 
 	/**
@@ -438,5 +436,52 @@ class SCD_Feature_Gate {
 			}
 		}
 		return $pro;
+	}
+
+	/**
+	 * Check if a notification type is PRO tier (regardless of user access).
+	 *
+	 * @since    1.0.0
+	 * @param    string $notification_type    Notification type.
+	 * @return   bool                         True if PRO tier, false if free.
+	 */
+	public function is_notification_pro_tier( $notification_type ) {
+		return in_array( $notification_type, $this->get_pro_notifications(), true );
+	}
+
+	/**
+	 * Check if user can access API read endpoints.
+	 *
+	 * Read endpoints are free for all users.
+	 *
+	 * @since    1.0.0
+	 * @return   bool    True if user can access API read endpoints.
+	 */
+	public function can_use_api_read() {
+		return $this->can_use_feature( 'api_read' );
+	}
+
+	/**
+	 * Check if user can access API write endpoints.
+	 *
+	 * Write endpoints (create, update, delete) require premium.
+	 *
+	 * @since    1.0.0
+	 * @return   bool    True if user can access API write endpoints.
+	 */
+	public function can_use_api_write() {
+		return $this->can_use_feature( 'api_write' );
+	}
+
+	/**
+	 * Check if user can access API bulk operations.
+	 *
+	 * Bulk operations require premium.
+	 *
+	 * @since    1.0.0
+	 * @return   bool    True if user can access API bulk operations.
+	 */
+	public function can_use_api_bulk() {
+		return $this->can_use_feature( 'api_bulk_operations' );
 	}
 }

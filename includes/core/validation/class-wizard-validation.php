@@ -22,11 +22,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/validation
  */
-class SCD_Wizard_Validation {
+class WSSCD_Wizard_Validation {
 
 	/**
-	 * NOTE: Field definitions removed - now using SCD_Field_Definitions as single source of truth.
-	 * This class delegates to SCD_Field_Definitions to avoid duplication and prevent bugs.
+	 * NOTE: Field definitions removed - now using WSSCD_Field_Definitions as single source of truth.
+	 * This class delegates to WSSCD_Field_Definitions to avoid duplication and prevent bugs.
 	 */
 
 	/**
@@ -46,7 +46,7 @@ class SCD_Wizard_Validation {
 
 		self::ensure_field_definitions_loaded();
 
-		return SCD_Field_Definitions::validate( $step, $data );
+		return WSSCD_Field_Definitions::validate( $step, $data );
 	}
 
 	/**
@@ -70,6 +70,7 @@ class SCD_Wizard_Validation {
 	private static function create_unknown_step_error( string $step ): WP_Error {
 		return new WP_Error(
 			'unknown_step',
+			/* translators: %s: step identifier */
 			sprintf( __( 'Unknown wizard step: %s', 'smart-cycle-discounts' ), $step )
 		);
 	}
@@ -81,15 +82,15 @@ class SCD_Wizard_Validation {
 	 * @return   void
 	 */
 	private static function ensure_field_definitions_loaded(): void {
-		if ( ! class_exists( 'SCD_Field_Definitions' ) ) {
-			require_once SCD_PLUGIN_DIR . 'includes/core/validation/class-field-definitions.php';
+		if ( ! class_exists( 'WSSCD_Field_Definitions' ) ) {
+			require_once WSSCD_PLUGIN_DIR . 'includes/core/validation/class-field-definitions.php';
 		}
 	}
 
 	/**
 	 * Sanitize wizard step data.
 	 *
-	 * Delegates to SCD_Field_Definitions as single source of truth.
+	 * Delegates to WSSCD_Field_Definitions as single source of truth.
 	 *
 	 * @since    1.0.0
 	 * @param    array  $data    Data to sanitize.
@@ -100,12 +101,12 @@ class SCD_Wizard_Validation {
 		self::ensure_field_definitions_loaded();
 
 		// Delegate to Field Definitions (single source of truth)
-		return SCD_Field_Definitions::sanitize_only( $data, $step );
+		return WSSCD_Field_Definitions::sanitize_only( $data, $step );
 	}
 
 	/**
 	 * NOTE: Removed duplicate sanitization methods.
-	 * All sanitization now delegated to SCD_Field_Definitions (single source of truth).
+	 * All sanitization now delegated to WSSCD_Field_Definitions (single source of truth).
 	 * Deleted methods:
 	 * - sanitize_fields()
 	 * - sanitize_by_type()
@@ -168,6 +169,7 @@ class SCD_Wizard_Validation {
 		if ( ! isset( $data[ $step ] ) ) {
 			$errors->add(
 				'missing_step',
+				/* translators: %s: step identifier */
 				sprintf( __( 'Missing required step data: %s', 'smart-cycle-discounts' ), $step )
 			);
 			return null;
@@ -297,7 +299,7 @@ class SCD_Wizard_Validation {
 	 * @return   void
 	 */
 	private static function validate_request_size( array $data, WP_Error $errors ): void {
-		if ( strlen( serialize( $data ) ) > SCD_Validation_Rules::MAX_REQUEST_SIZE ) {
+		if ( strlen( serialize( $data ) ) > WSSCD_Validation_Rules::MAX_REQUEST_SIZE ) {
 			$errors->add( 'request_too_large', __( 'Request data is too large', 'smart-cycle-discounts' ) );
 		}
 	}
@@ -305,7 +307,7 @@ class SCD_Wizard_Validation {
 
 	/**
 	 * NOTE: Removed duplicate complex field sanitization methods.
-	 * All complex field sanitization now handled by SCD_Field_Definitions.
+	 * All complex field sanitization now handled by WSSCD_Field_Definitions.
 	 * Deleted methods:
 	 * - sanitize_tiers() (delegates to Field_Definitions)
 	 * - sanitize_thresholds() (delegates to Field_Definitions)
@@ -356,7 +358,8 @@ class SCD_Wizard_Validation {
 					}
 				} catch ( Exception $e ) {
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( 'SCD End date validation error: ' . $e->getMessage() );
+						// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
+						error_log( 'WSSCD End date validation error: ' . $e->getMessage() );
 					}
 					$errors->add( 'invalid_end_date_format', __( 'Invalid end date format', 'smart-cycle-discounts' ) );
 				}
@@ -396,19 +399,21 @@ class SCD_Wizard_Validation {
 
 			// MEDIUM: Validate maximum duration
 			$duration_days = $start_date->diff( $end_date )->days;
-			if ( $duration_days > SCD_Validation_Rules::SCHEDULE_MAX_DURATION_DAYS ) {
+			if ( $duration_days > WSSCD_Validation_Rules::SCHEDULE_MAX_DURATION_DAYS ) {
 				$errors->add(
 					'duration_too_long',
 					sprintf(
+						/* translators: %d: maximum number of days allowed for campaign duration */
 						__( 'Campaign duration cannot exceed %d days', 'smart-cycle-discounts' ),
-						SCD_Validation_Rules::SCHEDULE_MAX_DURATION_DAYS
+						WSSCD_Validation_Rules::SCHEDULE_MAX_DURATION_DAYS
 					)
 				);
 			}
 		} catch ( Exception $e ) {
 			// MEDIUM: Log the error for debugging
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'SCD Date validation error: ' . $e->getMessage() );
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
+				error_log( 'WSSCD Date validation error: ' . $e->getMessage() );
 			}
 			$errors->add( 'invalid_date_format', __( 'Invalid date format', 'smart-cycle-discounts' ) );
 		}
@@ -458,10 +463,10 @@ class SCD_Wizard_Validation {
 	public static function get_wizard_constants(): array {
 		return array(
 			'steps'            => array( 'basic', 'products', 'discounts', 'schedule', 'review' ),
-			'discount_types'   => SCD_Validation_Rules::DISCOUNT_TYPES,
-			'selection_types'  => SCD_Validation_Rules::SELECTION_TYPES,
-			'schedule_types'   => SCD_Validation_Rules::SCHEDULE_TYPES,
-			'max_request_size' => SCD_Validation_Rules::MAX_REQUEST_SIZE,
+			'discount_types'   => WSSCD_Validation_Rules::DISCOUNT_TYPES,
+			'selection_types'  => WSSCD_Validation_Rules::SELECTION_TYPES,
+			'schedule_types'   => WSSCD_Validation_Rules::SCHEDULE_TYPES,
+			'max_request_size' => WSSCD_Validation_Rules::MAX_REQUEST_SIZE,
 		);
 	}
 

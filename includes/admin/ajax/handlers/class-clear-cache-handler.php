@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  */
-class SCD_Clear_Cache_Handler {
+class WSSCD_Clear_Cache_Handler {
 
 	/**
 	 * Container instance
@@ -38,7 +38,7 @@ class SCD_Clear_Cache_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger
+	 * @var      WSSCD_Logger
 	 */
 	private $logger;
 
@@ -47,7 +47,7 @@ class SCD_Clear_Cache_Handler {
 	 *
 	 * @since    1.0.0
 	 * @param    object     $container    Container instance.
-	 * @param    SCD_Logger $logger       Logger instance.
+	 * @param    WSSCD_Logger $logger       Logger instance.
 	 */
 	public function __construct( $container, $logger ) {
 		$this->container = $container;

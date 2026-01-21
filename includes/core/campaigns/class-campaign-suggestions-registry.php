@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since      1.0.0
  */
-class SCD_Campaign_Suggestions_Registry {
+class WSSCD_Campaign_Suggestions_Registry {
 
 	/**
 	 * Get all event definitions.
@@ -659,7 +659,7 @@ class SCD_Campaign_Suggestions_Registry {
 					__( 'Use performance-based rotation to prioritize top converting products [PRO]', 'smart-cycle-discounts' ),
 					__( 'Load test checkout flow and payment processing', 'smart-cycle-discounts' ),
 					__( 'Schedule additional customer support coverage', 'smart-cycle-discounts' ),
-					__( 'Run unlimited campaigns for multiple doorbusters and flash deals [PRO]', 'smart-cycle-discounts' ),
+					__( 'Run multiple campaigns for separate doorbusters and flash deals', 'smart-cycle-discounts' ),
 					__( 'Set higher campaign priority to ensure Black Friday deals override others', 'smart-cycle-discounts' ),
 					__( 'Target VIP customer segments for 24-hour early access [PRO]', 'smart-cycle-discounts' ),
 					__( 'Set up email notifications for hourly flash deal alerts [PRO]', 'smart-cycle-discounts' ),

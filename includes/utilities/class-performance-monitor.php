@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/performance
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Performance_Monitor {
+class WSSCD_Performance_Monitor {
 
 	/**
 	 * Performance metrics.
@@ -122,8 +122,8 @@ class SCD_Performance_Monitor {
 		if ( $time > 50 ) { // 50ms threshold
 			self::record_metric( 'slow_queries', 1, 'count' );
 
-			if ( get_option( 'scd_debug', false ) ) {
-				SCD_Log::warning(
+			if ( get_option( 'wsscd_debug', false ) ) {
+				WSSCD_Log::warning(
 					'Slow Query',
 					array(
 						'time_ms' => $time,
@@ -242,13 +242,13 @@ class SCD_Performance_Monitor {
 	 * @return   void
 	 */
 	public static function log_report( string $context ): void {
-		if ( ! get_option( 'scd_debug', false ) ) {
+		if ( ! get_option( 'wsscd_debug', false ) ) {
 			return;
 		}
 
 		$summary = self::get_summary();
 
-		SCD_Log::info(
+		WSSCD_Log::info(
 			'Performance Report - ' . $context,
 			array(
 				'total_time_ms'  => $summary['total_time'],
@@ -309,15 +309,15 @@ class SCD_Performance_Monitor {
 	 * @return   void
 	 */
 	public static function add_performance_headers(): void {
-		if ( ! get_option( 'scd_debug', false ) ) {
+		if ( ! get_option( 'wsscd_debug', false ) ) {
 			return;
 		}
 
 		$summary = self::get_summary();
 
-		header( sprintf( 'X-SCD-Performance-Time: %.2fms', $summary['total_time'] ) );
-		header( sprintf( 'X-SCD-Performance-DB: %d queries', $summary['db_queries'] ) );
-		header( sprintf( 'X-SCD-Performance-Cache: %.1f%% hits', $summary['cache_hit_rate'] ) );
-		header( sprintf( 'X-SCD-Performance-Memory: %.2fMB', $summary['peak_memory'] ) );
+		header( sprintf( 'X-WSSCD-Performance-Time: %.2fms', $summary['total_time'] ) );
+		header( sprintf( 'X-WSSCD-Performance-DB: %d queries', $summary['db_queries'] ) );
+		header( sprintf( 'X-WSSCD-Performance-Cache: %.1f%% hits', $summary['cache_hit_rate'] ) );
+		header( sprintf( 'X-WSSCD-Performance-Memory: %.2fMB', $summary['peak_memory'] ) );
 	}
 }

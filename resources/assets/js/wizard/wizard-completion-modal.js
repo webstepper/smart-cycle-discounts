@@ -17,8 +17,8 @@
 		return;
 	}
 
-	window.SCD = window.SCD || {};
-	window.SCD.Wizard = window.SCD.Wizard || {};
+	window.WSSCD = window.WSSCD || {};
+	window.WSSCD.Wizard = window.WSSCD.Wizard || {};
 
 	/**
 	 * Completion Modal Handler
@@ -60,8 +60,8 @@
 		 * @since 1.0.0
 		 */
 		config: {
-			overlayClass: 'scd-completion-overlay',
-			modalClass: 'scd-completion-modal',
+			overlayClass: 'wsscd-completion-overlay',
+			modalClass: 'wsscd-completion-modal',
 			loadingClass: 'is-loading',
 			successClass: 'is-success',
 			errorClass: 'is-error',
@@ -90,20 +90,20 @@
 		 * @since 1.0.0
 		 */
 		createModal: function() {
-			var successIcon = SCD.IconHelper ? SCD.IconHelper.check( { size: 48 } ) : '<span class="scd-icon scd-icon-check"></span>';
-			var errorIcon = SCD.IconHelper ? SCD.IconHelper.close( { size: 48 } ) : '<span class="scd-icon scd-icon-close"></span>';
+			var successIcon = WSSCD.IconHelper ? WSSCD.IconHelper.check( { size: 48 } ) : '<span class="wsscd-icon wsscd-icon-check"></span>';
+			var errorIcon = WSSCD.IconHelper ? WSSCD.IconHelper.close( { size: 48 } ) : '<span class="wsscd-icon wsscd-icon-close"></span>';
 
 			var modalHTML =
-				'<div class="' + this.config.overlayClass + '" role="dialog" aria-modal="true" aria-labelledby="scd-completion-title" aria-busy="false">' +
+				'<div class="' + this.config.overlayClass + '" role="dialog" aria-modal="true" aria-labelledby="wsscd-completion-title" aria-busy="false">' +
 					'<div class="' + this.config.modalClass + '">' +
-						'<div class="scd-completion-icon-wrapper">' +
-							'<span class="scd-completion-icon scd-completion-icon--success" aria-hidden="true">' + successIcon + '</span>' +
-							'<span class="scd-completion-icon scd-completion-icon--error" aria-hidden="true">' + errorIcon + '</span>' +
+						'<div class="wsscd-completion-icon-wrapper">' +
+							'<span class="wsscd-completion-icon wsscd-completion-icon--success" aria-hidden="true">' + successIcon + '</span>' +
+							'<span class="wsscd-completion-icon wsscd-completion-icon--error" aria-hidden="true">' + errorIcon + '</span>' +
 						'</div>' +
-						'<h2 id="scd-completion-title" class="scd-completion-title"></h2>' +
-						'<p class="scd-completion-message"></p>' +
-						'<div class="scd-completion-actions"></div>' +
-						'<div class="scd-completion-status" role="status" aria-live="polite" aria-atomic="true"></div>' +
+						'<h2 id="wsscd-completion-title" class="wsscd-completion-title"></h2>' +
+						'<p class="wsscd-completion-message"></p>' +
+						'<div class="wsscd-completion-actions"></div>' +
+						'<div class="wsscd-completion-status" role="status" aria-live="polite" aria-atomic="true"></div>' +
 					'</div>' +
 				'</div>';
 
@@ -120,29 +120,29 @@
 			var self = this;
 
 			// Listen for wizard completion success
-			$( document ).on( 'scd:wizard:completed', function( e, data ) {
+			$( document ).on( 'wsscd:wizard:completed', function( e, data ) {
 				self.showSuccess( data );
 			} );
 
 			// Listen for wizard completion error
-			$( document ).on( 'scd:wizard:error', function( e, data ) {
+			$( document ).on( 'wsscd:wizard:error', function( e, data ) {
 				self.showError( data );
 			} );
 
 			// Handle retry button click
-			this.$modal.on( 'click', '.scd-completion-retry', function( e ) {
+			this.$modal.on( 'click', '.wsscd-completion-retry', function( e ) {
 				e.preventDefault();
 				self.handleRetry();
 			} );
 
 			// Handle cancel button click
-			this.$modal.on( 'click', '.scd-completion-cancel', function( e ) {
+			this.$modal.on( 'click', '.wsscd-completion-cancel', function( e ) {
 				e.preventDefault();
 				self.hide();
 			} );
 
 			// Handle view campaign button click
-			this.$modal.on( 'click', '.scd-completion-view', function( e ) {
+			this.$modal.on( 'click', '.wsscd-completion-view', function( e ) {
 				e.preventDefault();
 				var url = $( this ).attr( 'href' );
 				if ( url ) {
@@ -190,12 +190,12 @@
 
 			// If we have a campaign ID but no redirect URL, construct view URL (fallback)
 			if ( campaignId && ! viewUrl ) {
-				viewUrl = '/wp-admin/admin.php?page=scd-campaigns&action=view&id=' + campaignId;
+				viewUrl = '/wp-admin/admin.php?page=wsscd-campaigns&action=view&id=' + campaignId;
 			}
 
 			// Show the modal overlay with active class
 			self.$modal.addClass( self.config.activeClass );
-			$( 'body' ).addClass( 'scd-completion-active' );
+			$( 'body' ).addClass( 'wsscd-completion-active' );
 
 			// Transition to success state
 			setTimeout( function() {
@@ -204,7 +204,7 @@
 					.addClass( self.config.successClass )
 					.attr( 'aria-busy', 'false' );
 
-				self.$modal.find( '.scd-completion-title' ).text( message );
+				self.$modal.find( '.wsscd-completion-title' ).text( message );
 
 				var statusMessage;
 				if ( 'active' === data.status ) {
@@ -226,14 +226,14 @@
 						'Your changes have been saved.' :
 						'Your campaign has been saved.';
 				}
-				self.$modal.find( '.scd-completion-message' ).text( statusMessage );
+				self.$modal.find( '.wsscd-completion-message' ).text( statusMessage );
 
 				if ( viewUrl ) {
-					var viewButton = '<a href="' + viewUrl + '" class="button button-primary scd-completion-view">View Campaign</a>';
-					self.$modal.find( '.scd-completion-actions' ).html( viewButton );
+					var viewButton = '<a href="' + viewUrl + '" class="button button-primary wsscd-completion-view">View Campaign</a>';
+					self.$modal.find( '.wsscd-completion-actions' ).html( viewButton );
 				}
 
-				self.$modal.find( '.scd-completion-status' ).text( message + ' ' + statusMessage );
+				self.$modal.find( '.wsscd-completion-status' ).text( message + ' ' + statusMessage );
 
 				// Schedule redirect
 				if ( redirectUrl ) {
@@ -266,7 +266,7 @@
 
 			// Show the modal overlay with active class
 			self.$modal.addClass( self.config.activeClass );
-			$( 'body' ).addClass( 'scd-completion-active' );
+			$( 'body' ).addClass( 'wsscd-completion-active' );
 
 			// Transition to error state
 			setTimeout( function() {
@@ -276,15 +276,15 @@
 					.attr( 'aria-busy', 'false' );
 
 				var errorTitle = isEditMode ? 'Campaign Update Failed' : 'Campaign Creation Failed';
-				self.$modal.find( '.scd-completion-title' ).text( errorTitle );
+				self.$modal.find( '.wsscd-completion-title' ).text( errorTitle );
 
-				self.$modal.find( '.scd-completion-message' ).text( errorMessage );
+				self.$modal.find( '.wsscd-completion-message' ).text( errorMessage );
 
-				var buttons = '<button type="button" class="button button-primary scd-completion-retry">Retry</button>' +
-					'<button type="button" class="button scd-completion-cancel">Cancel</button>';
-				self.$modal.find( '.scd-completion-actions' ).html( buttons );
+				var buttons = '<button type="button" class="button button-primary wsscd-completion-retry">Retry</button>' +
+					'<button type="button" class="button wsscd-completion-cancel">Cancel</button>';
+				self.$modal.find( '.wsscd-completion-actions' ).html( buttons );
 
-				self.$modal.find( '.scd-completion-status' ).text( 'Error: ' + errorMessage );
+				self.$modal.find( '.wsscd-completion-status' ).text( 'Error: ' + errorMessage );
 			}, 300 );
 		},
 
@@ -303,12 +303,12 @@
 
 			// Hide modal and show fullscreen loader
 			this.hide();
-			if ( window.SCD && window.SCD.LoaderUtil ) {
-				SCD.LoaderUtil.show( 'scd-wizard-completion-loading' );
+			if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+				WSSCD.LoaderUtil.show( 'wsscd-wizard-completion-loading' );
 			}
 
 			// Trigger retry event for wizard orchestrator to handle
-			$( document ).trigger( 'scd:wizard:retry' );
+			$( document ).trigger( 'wsscd:wizard:retry' );
 
 			var self = this;
 			setTimeout( function() {
@@ -329,9 +329,9 @@
 			this.$modal
 				.removeClass( this.config.activeClass )
 				.attr( 'aria-busy', 'false' );
-			$( 'body' ).removeClass( 'scd-completion-active' );
+			$( 'body' ).removeClass( 'wsscd-completion-active' );
 
-			this.$modal.find( '.scd-completion-status' ).empty();
+			this.$modal.find( '.wsscd-completion-status' ).empty();
 		},
 
 		/**
@@ -341,8 +341,8 @@
 		 * @return {boolean} True if editing existing campaign
 		 */
 		isEditMode: function() {
-			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.StateManager ) {
-				var wizardState = window.SCD.Wizard.StateManager.getInstance().get();
+			if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.StateManager ) {
+				var wizardState = window.WSSCD.Wizard.StateManager.getInstance().get();
 				return wizardState && ( wizardState.wizardMode === 'edit' || wizardState.campaignId > 0 );
 			}
 			return false;
@@ -354,7 +354,7 @@
 		 * @since 1.0.0
 		 */
 		destroy: function() {
-			$( document ).off( 'scd:wizard:completed scd:wizard:error' );
+			$( document ).off( 'wsscd:wizard:completed wsscd:wizard:error' );
 
 			if ( this.$modal ) {
 				this.$modal.off( 'click' );
@@ -362,7 +362,7 @@
 				this.$modal = null;
 			}
 
-			$( 'body' ).removeClass( 'scd-completion-active' );
+			$( 'body' ).removeClass( 'wsscd-completion-active' );
 			this.initialized = false;
 			this.completionData = null;
 		}
@@ -374,10 +374,10 @@
 	 * @since 1.0.0
 	 */
 	$( function() {
-		window.SCD.Wizard.CompletionModal = CompletionModal;
+		window.WSSCD.Wizard.CompletionModal = CompletionModal;
 
-		if ( $( '.scd-wizard-page' ).length > 0 ||
-			$( '.scd-wizard-wrap' ).length > 0 ||
+		if ( $( '.wsscd-wizard-page' ).length > 0 ||
+			$( '.wsscd-wizard-wrap' ).length > 0 ||
 			window.location.href.indexOf( 'action=wizard' ) !== -1 ) {
 
 			CompletionModal.init();

@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/security
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Nonce_Manager {
+class WSSCD_Nonce_Manager {
 
 	/**
 	 * Create a nonce.
@@ -49,6 +49,7 @@ class SCD_Nonce_Manager {
 	 * @return   bool                 True if valid.
 	 */
 	public function verify( string $nonce, string $action ): bool {
+		$nonce = sanitize_text_field( $nonce );
 		return wp_verify_nonce( $nonce, $action ) !== false;
 	}
 

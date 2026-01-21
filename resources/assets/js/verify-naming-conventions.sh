@@ -35,7 +35,7 @@ echo "${YELLOW}[1/4] Checking AJAX requests through unified router...${NC}"
 PROBLEMATIC_KEYS=$(grep -rn "makeAjaxRequest\|SCD\.Ajax\.post\|SCD\.Admin\.ajax" --include="*.js" . 2>/dev/null | \
   grep -A10 "{" | \
   grep -E "^\s*[a-z][a-z_]*_[a-z_]*\s*:" | \
-  grep -v "scd-analytics-tracking.js" | \
+  grep -v "wsscd-analytics-tracking.js" | \
   grep -v "discounts-conditions.js" | \
   grep -v "discounts-config.js" | \
   wc -l)
@@ -45,7 +45,7 @@ if [ "$PROBLEMATIC_KEYS" -gt 0 ]; then
   grep -rn "makeAjaxRequest\|SCD\.Ajax\.post\|SCD\.Admin\.ajax" --include="*.js" . 2>/dev/null | \
     grep -A10 "{" | \
     grep -E "^\s*[a-z][a-z_]*_[a-z_]*\s*:" | \
-    grep -v "scd-analytics-tracking.js" | \
+    grep -v "wsscd-analytics-tracking.js" | \
     head -10
   ISSUES_FOUND=$((ISSUES_FOUND + 1))
 else
@@ -58,16 +58,16 @@ echo ""
 # ============================================================================
 echo "${YELLOW}[2/4] Checking common problematic fields...${NC}"
 
-COMMON_FIELDS=$(grep -rn "\b(campaign_id|product_id|date_range|data_type|scd_action):" --include="*.js" . 2>/dev/null | \
-  grep -v "scd-analytics-tracking.js" | \
+COMMON_FIELDS=$(grep -rn "\b(campaign_id|product_id|date_range|data_type|wsscd_action):" --include="*.js" . 2>/dev/null | \
+  grep -v "wsscd-analytics-tracking.js" | \
   grep -v "products-state.js" | \
   grep -v "discounts-conditions.js" | \
   wc -l)
 
 if [ "$COMMON_FIELDS" -gt 0 ]; then
   echo "${RED}✗ FAIL: Found $COMMON_FIELDS instances of common snake_case fields${NC}"
-  grep -rn "\b(campaign_id|product_id|date_range|data_type|scd_action):" --include="*.js" . 2>/dev/null | \
-    grep -v "scd-analytics-tracking.js" | \
+  grep -rn "\b(campaign_id|product_id|date_range|data_type|wsscd_action):" --include="*.js" . 2>/dev/null | \
+    grep -v "wsscd-analytics-tracking.js" | \
     grep -v "products-state.js" | \
     head -10
   ISSUES_FOUND=$((ISSUES_FOUND + 1))
@@ -105,20 +105,20 @@ ROUTER_FILE="$PLUGIN_ROOT/includes/admin/ajax/class-ajax-router.php"
 
 if [ -f "$ROUTER_FILE" ]; then
   # Router should ONLY accept camelCase (no fallbacks to snake_case)
-  ROUTER_CAMEL=$(grep "isset.*POST.*scdAction" "$ROUTER_FILE" 2>/dev/null | wc -l)
-  ROUTER_SNAKE_FALLBACK=$(grep "elseif.*isset.*POST.*scd_action" "$ROUTER_FILE" 2>/dev/null | wc -l)
+  ROUTER_CAMEL=$(grep "isset.*POST.*wsscdAction" "$ROUTER_FILE" 2>/dev/null | wc -l)
+  ROUTER_SNAKE_FALLBACK=$(grep "elseif.*isset.*POST.*wsscd_action" "$ROUTER_FILE" 2>/dev/null | wc -l)
 
   if [ "$ROUTER_CAMEL" -gt 0 ] && [ "$ROUTER_SNAKE_FALLBACK" -eq 0 ]; then
     echo "${GREEN}✓ PASS: Router accepts ONLY camelCase (clean architecture)${NC}"
   elif [ "$ROUTER_CAMEL" -gt 0 ] && [ "$ROUTER_SNAKE_FALLBACK" -gt 0 ]; then
     echo "${RED}✗ FAIL: Router has snake_case fallback (violates clean architecture)${NC}"
     echo "Router should ONLY accept camelCase:"
-    echo "  ✓ if ( isset( \$_POST['scdAction'] ) )"
-    echo "  ✗ elseif ( isset( \$_POST['scd_action'] ) )  // Remove this"
+    echo "  ✓ if ( isset( \$_POST['wsscdAction'] ) )"
+    echo "  ✗ elseif ( isset( \$_POST['wsscd_action'] ) )  // Remove this"
     ISSUES_FOUND=$((ISSUES_FOUND + 1))
   else
     echo "${RED}✗ FAIL: Router doesn't accept camelCase${NC}"
-    echo "Router must accept: if ( isset( \$_POST['scdAction'] ) )"
+    echo "Router must accept: if ( isset( \$_POST['wsscdAction'] ) )"
     ISSUES_FOUND=$((ISSUES_FOUND + 1))
   fi
 else
@@ -127,11 +127,11 @@ fi
 echo ""
 
 # ============================================================================
-# CHECK 5: Direct $.ajax Calls with 'scd_ajax' Action
+# CHECK 5: Direct $.ajax Calls with 'wsscd_ajax' Action
 # ============================================================================
 echo "${YELLOW}[5/5] Checking direct $.ajax calls to unified endpoint...${NC}"
 
-DIRECT_AJAX=$(grep -B5 "action.*'scd_ajax'" --include="*.js" . 2>/dev/null | \
+DIRECT_AJAX=$(grep -B5 "action.*'wsscd_ajax'" --include="*.js" . 2>/dev/null | \
   grep -E "^\s*[a-z][a-z_]*_[a-z_]*\s*:" | \
   grep -v "action:" | \
   wc -l)

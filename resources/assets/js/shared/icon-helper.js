@@ -2,7 +2,7 @@
  * Icon Helper - JavaScript SVG Icon Generator
  *
  * Provides a simple interface to generate SVG icons in JavaScript,
- * matching the PHP SCD_Icon_Helper functionality.
+ * matching the PHP WSSCD_Icon_Helper functionality.
  *
  * @package    Smart_Cycle_Discounts
  * @subpackage Assets/JS/Shared
@@ -12,7 +12,7 @@
 (function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
+	window.WSSCD = window.WSSCD || {};
 
 	/**
 	 * Icon Helper
@@ -21,7 +21,7 @@
 	 *
 	 * @since 1.0.0
 	 */
-	window.SCD.IconHelper = {
+	window.WSSCD.IconHelper = {
 
 		/**
 		 * Generate an SVG icon
@@ -36,16 +36,16 @@
 		get: function( iconName, options ) {
 			options = options || {};
 			var size = options.size || 20;
-			var className = 'scd-icon scd-icon--' + iconName + ( options.className ? ' ' + options.className : '' );
+			var className = 'wsscd-icon wsscd-icon--' + iconName + ( options.className ? ' ' + options.className : '' );
 			var ariaHidden = options.ariaHidden !== false ? ' aria-hidden="true"' : '';
 
 			// Get SVG path from localized data
 			var iconPath = '';
-			if ( typeof scdIcons !== 'undefined' && scdIcons.paths && scdIcons.paths[ iconName ] ) {
-				iconPath = scdIcons.paths[ iconName ];
+			if ( typeof wsscdIcons !== 'undefined' && wsscdIcons.paths && wsscdIcons.paths[ iconName ] ) {
+				iconPath = wsscdIcons.paths[ iconName ];
 			} else {
 				// Fallback: return empty SVG if icon not found
-				console.warn( 'SCD Icon Helper: Icon "' + iconName + '" not found' );
+				console.warn( 'WSSCD Icon Helper: Icon "' + iconName + '" not found' );
 				iconPath = '';
 			}
 
@@ -89,7 +89,7 @@
 		},
 
 		spinner: function( options ) {
-			return this.get( 'update', $.extend( {}, options, { className: ( options && options.className || '' ) + ' scd-icon-spin' } ) );
+			return this.get( 'update', $.extend( {}, options, { className: ( options && options.className || '' ) + ' wsscd-icon-spin' } ) );
 		}
 	};
 

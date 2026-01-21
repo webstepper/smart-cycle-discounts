@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/services
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Product_Service {
+class WSSCD_Product_Service {
 
 	/**
 	 * Results per page.
@@ -300,6 +300,7 @@ class SCD_Product_Service {
 		);
 
 		// In WooCommerce 3.0+, visibility is handled via taxonomy, not meta
+		// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Required for category-based product filtering.
 		$args['tax_query'] = array();
 
 		if ( ! empty( $search ) ) {
@@ -459,9 +460,10 @@ class SCD_Product_Service {
 					if ( class_exists( 'WooCommerce' ) ) {
 						// Try to get the main instance
 						$wc = WooCommerce::instance();
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce core hook.
 						if ( ! did_action( 'woocommerce_init' ) ) {
-							// Initialize WooCommerce if needed
-							do_action( 'woocommerce_init' );
+							// Initialize WooCommerce if needed.
+							do_action( 'woocommerce_init' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce core hook.
 						}
 					}
 				}
@@ -479,8 +481,6 @@ class SCD_Product_Service {
 		} catch ( Exception $e ) {
 			// Log the detailed error
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD Product Service] Failed to ensure WooCommerce loaded: ' . $e->getMessage() );
-				error_log( '[SCD Product Service] Stack trace: ' . $e->getTraceAsString() );
 			}
 			throw $e;
 		}

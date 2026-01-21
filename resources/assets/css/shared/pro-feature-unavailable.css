@@ -18,7 +18,7 @@
  * Container with locked state
  * Apply this to the parent container that wraps both overlay and background
  */
-.scd-pro-container {
+.wsscd-pro-container {
 	position: relative;
 	min-height: 200px;
 }
@@ -26,105 +26,110 @@
 /**
  * Locked state - expand container to accommodate overlay
  */
-.scd-pro-container--locked {
+.wsscd-pro-container--locked {
 	min-height: 450px;
 }
 
 /**
  * Locked state - applies blur to background content
  */
-.scd-pro-container--locked .scd-pro-background {
+.wsscd-pro-container--locked .wsscd-pro-background {
 	filter: blur(6px);
 	opacity: 0.3;
 	pointer-events: none;
 	user-select: none;
-	transition: filter var(--scd-transition-base), opacity var(--scd-transition-base);
+	transition: filter var(--wsscd-transition-base), opacity var(--wsscd-transition-base);
 }
 
 /**
  * Hide overlay by default (will be shown when container has --locked class)
  */
-.scd-pro-feature-unavailable {
+.wsscd-pro-feature-unavailable {
 	display: none;
 }
 
 /**
- * Hide wrapper divs for discount type overlays (but NOT input fields)
+ * Hide wrapper divs for discount type overlays
+ * These wrappers contain the overlay template and have data-discount-type attribute
  */
-.scd-pro-feature-unavailable[data-discount-type] {
+[data-discount-type] > .wsscd-pro-feature-unavailable {
 	display: none;
 }
 
-.scd-pro-container--locked[data-active-type="tiered"] .scd-pro-feature-unavailable[data-discount-type="tiered"],
-.scd-pro-container--locked[data-active-type="bogo"] .scd-pro-feature-unavailable[data-discount-type="bogo"],
-.scd-pro-container--locked[data-active-type="spend_threshold"] .scd-pro-feature-unavailable[data-discount-type="spend_threshold"] {
+/**
+ * Show specific overlay when container is locked and matches active type
+ * The data-discount-type is on the parent wrapper div, not on .wsscd-pro-feature-unavailable itself
+ */
+.wsscd-pro-container--locked[data-active-type="tiered"] [data-discount-type="tiered"] > .wsscd-pro-feature-unavailable,
+.wsscd-pro-container--locked[data-active-type="bogo"] [data-discount-type="bogo"] > .wsscd-pro-feature-unavailable,
+.wsscd-pro-container--locked[data-active-type="spend_threshold"] [data-discount-type="spend_threshold"] > .wsscd-pro-feature-unavailable {
 	display: block;
 }
 
 /**
  * Main overlay container with glassmorphism effect
- * Show overlays when container is locked
+ * Positioning and styling for overlays (display is controlled by specific data-discount-type rules above)
  */
-.scd-pro-container--locked .scd-pro-feature-unavailable {
-	display: block;
+.wsscd-pro-container--locked .wsscd-pro-feature-unavailable {
+	/* Note: display:block is set by specific data-discount-type selectors above */
 	position: absolute;
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-	z-index: var(--scd-z-overlay);
-	background: linear-gradient(135deg, var(--scd-overlay-white-heavy) 0%, var(--scd-overlay-white-heavy) 100%);
+	z-index: var(--wsscd-z-overlay);
+	background: linear-gradient(135deg, var(--wsscd-overlay-white-heavy) 0%, var(--wsscd-overlay-white-heavy) 100%);
 	backdrop-filter: blur(16px) saturate(180%);
 	-webkit-backdrop-filter: blur(16px) saturate(180%);
-	border: 2px solid var(--scd-color-primary-alpha-20);
-	border-radius: var(--scd-radius-xl);
+	border: 2px solid var(--wsscd-color-primary-alpha-20);
+	border-radius: var(--wsscd-radius-xl);
 	padding: 32px 28px;
-	box-shadow: var(--scd-pro-feature-overlay-shadow);
+	box-shadow: var(--wsscd-pro-feature-overlay-shadow);
 	text-align: center;
 	max-width: 450px;
 	width: 90%;
-	animation: scd-fade-in 0.4s ease-out;
+	animation: wsscd-fade-in 0.4s ease-out;
 }
 
 /**
  * Description text
  */
-.scd-pro-feature-unavailable__description {
-	font-size: var(--scd-font-size-medium);
-	color: var(--scd-color-text);
+.wsscd-pro-feature-unavailable__description {
+	font-size: var(--wsscd-font-size-medium);
+	color: var(--wsscd-color-text);
 	margin: 0 0 10px 0;
-	line-height: var(--scd-line-height-relaxed);
-	font-weight: var(--scd-font-weight-semibold);
+	line-height: var(--wsscd-line-height-relaxed);
+	font-weight: var(--wsscd-font-weight-semibold);
 }
 
 /**
  * Features list container
  */
-.scd-pro-feature-unavailable__features {
+.wsscd-pro-feature-unavailable__features {
 	list-style: none;
 	margin: 0 0 20px 0;
-	padding: var(--scd-padding-medium);
+	padding: var(--wsscd-padding-medium);
 	text-align: left;
-	background: var(--scd-overlay-white-medium);
-	border: 1px solid var(--scd-color-primary-alpha-10);
-	border-radius: var(--scd-radius-md);
+	background: var(--wsscd-overlay-white-medium);
+	border: 1px solid var(--wsscd-color-primary-alpha-10);
+	border-radius: var(--wsscd-radius-md);
 }
 
 /**
  * Individual feature items
  */
-.scd-pro-feature-unavailable__features li {
+.wsscd-pro-feature-unavailable__features li {
 	display: flex;
 	align-items: center;
-	gap: var(--scd-gap-tight);
-	padding: var(--scd-spacing-sm) 0;
-	font-size: var(--scd-font-size-small);
-	color: var(--scd-color-text);
-	line-height: var(--scd-line-height-base);
-	font-weight: var(--scd-font-weight-medium);
-	border-bottom: 1px solid var(--scd-overlay-faint);
+	gap: var(--wsscd-gap-tight);
+	padding: var(--wsscd-spacing-sm) 0;
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text);
+	line-height: var(--wsscd-line-height-base);
+	font-weight: var(--wsscd-font-weight-medium);
+	border-bottom: 1px solid var(--wsscd-overlay-faint);
 }
 
-.scd-pro-feature-unavailable__features li:last-child {
+.wsscd-pro-feature-unavailable__features li:last-child {
 	border-bottom: none;
 	padding-bottom: 0;
 }
@@ -132,45 +137,44 @@
 /**
  * Checkmark icons in feature list
  */
-.scd-pro-feature-unavailable__features .scd-icon {
-	color: var(--scd-color-success);
-	font-size: var(--scd-font-size-large);
+.wsscd-pro-feature-unavailable__features .wsscd-icon {
+	color: var(--wsscd-color-success);
+	font-size: var(--wsscd-font-size-large);
 	width: 16px;
 	height: 16px;
-	flex-shrink: 0;
-	background: var(--scd-color-success-alpha-15);
-	border-radius: var(--scd-radius-full);
+	background: var(--wsscd-color-success-alpha-15);
+	border-radius: var(--wsscd-radius-full);
 	padding: 3px;
 }
 
 /**
  * Upgrade button
  */
-.scd-pro-feature-unavailable .button {
+.wsscd-pro-feature-unavailable .button {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	padding: var(--scd-spacing-sm) 20px;
-	font-size: var(--scd-font-size-small);
-	font-weight: var(--scd-font-weight-bold);
-	background: linear-gradient(135deg, var(--scd-color-primary) 0%, var(--wp-admin-theme-color-darker-10) 100%);
+	padding: var(--wsscd-spacing-sm) 20px;
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-bold);
+	background: linear-gradient(135deg, var(--wsscd-color-primary) 0%, var(--wp-admin-theme-color-darker-10) 100%);
 	border: none;
-	color: var(--scd-color-white);
-	box-shadow: var(--scd-shadow-md);
-	transition: box-shadow var(--scd-transition-fast) var(--scd-ease-in-out);
+	color: var(--wsscd-color-white);
+	box-shadow: var(--wsscd-shadow-md);
+	transition: box-shadow var(--wsscd-transition-fast) var(--wsscd-ease-in-out);
 }
 
-.scd-pro-feature-unavailable .button:hover,
-.scd-pro-feature-unavailable .button:active {
-	box-shadow: var(--scd-shadow-lg);
-	color: var(--scd-color-white);
+.wsscd-pro-feature-unavailable .button:hover,
+.wsscd-pro-feature-unavailable .button:active {
+	box-shadow: var(--wsscd-shadow-lg);
+	color: var(--wsscd-color-white);
 }
 
 /**
  * Button icon
  */
-.scd-pro-feature-unavailable .button .scd-icon {
-	font-size: var(--scd-font-size-medium);
+.wsscd-pro-feature-unavailable .button .wsscd-icon {
+	font-size: var(--wsscd-font-size-medium);
 	width: 14px;
 	height: 14px;
 	background: transparent;
@@ -179,7 +183,7 @@
 /**
  * Non-locked state - ensure background is normal
  */
-.scd-pro-container:not(.scd-pro-container--locked) .scd-pro-background {
+.wsscd-pro-container:not(.wsscd-pro-container--locked) .wsscd-pro-background {
 	filter: none;
 	opacity: 1;
 	pointer-events: auto;
@@ -187,34 +191,216 @@
 }
 
 /* ==========================================================================
+   Locked Discount Type Cards
+   Used when PRO discount types (tiered, bogo, spend_threshold) are shown to free users
+   ========================================================================== */
+
+.wsscd-discount-type-card--locked {
+	position: relative;
+	cursor: default;
+	border: 2px dashed var(--wsscd-color-border-light);
+	background: linear-gradient(180deg, var(--wsscd-color-surface) 0%, var(--wsscd-color-white) 100%);
+	border-radius: var(--wsscd-radius-lg);
+	box-shadow: var(--wsscd-shadow-sm);
+	transition: var(--wsscd-transition-base);
+}
+
+.wsscd-discount-type-card--locked::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: linear-gradient(90deg, var(--wsscd-color-warning) 0%, var(--wsscd-color-warning-light) 100%);
+	border-radius: var(--wsscd-radius-lg) var(--wsscd-radius-lg) 0 0;
+}
+
+.wsscd-discount-type-card--locked:hover {
+	transform: translateY(-2px);
+	border-color: var(--wsscd-color-warning);
+	box-shadow: var(--wsscd-shadow-md), 0 0 0 1px rgba(var(--wsscd-shadow-color-warning), 0.1);
+}
+
+.wsscd-discount-type-card__locked-content {
+	text-align: center;
+}
+
+.wsscd-discount-type-card__locked-content .wsscd-pro-badge {
+	display: inline-flex;
+	margin-bottom: var(--wsscd-spacing-md);
+}
+
+.wsscd-discount-type-card__locked-content .wsscd-discount-type-card__title {
+	font-size: var(--wsscd-font-size-medium);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+	margin: 0 0 var(--wsscd-spacing-xs) 0;
+}
+
+.wsscd-discount-type-card__locked-content .wsscd-discount-type-card__description {
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text-muted);
+	margin: 0 0 var(--wsscd-spacing-md) 0;
+	line-height: var(--wsscd-line-height-relaxed);
+}
+
+.wsscd-discount-type-card__features {
+	list-style: none;
+	margin: 0 0 var(--wsscd-spacing-lg) 0;
+	padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-md);
+	text-align: left;
+	background: var(--wsscd-color-surface);
+	border-radius: var(--wsscd-radius-md);
+}
+
+.wsscd-discount-type-card__features li {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--wsscd-spacing-sm);
+	padding: var(--wsscd-spacing-xs) 0;
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text);
+	line-height: var(--wsscd-line-height-base);
+}
+
+.wsscd-discount-type-card__features li .wsscd-icon {
+	color: var(--wsscd-color-success);
+	flex-shrink: 0;
+	margin-top: 2px;
+}
+
+.wsscd-discount-type-card__upgrade-btn {
+	width: 100%;
+	font-weight: var(--wsscd-font-weight-medium);
+}
+
+/* ==========================================================================
+   Locked Section Cards
+   Used for PRO sections like Discount Rules and Advanced Filters
+   ========================================================================== */
+
+.wsscd-pro-feature-locked {
+	position: relative;
+	padding: var(--wsscd-spacing-xxl) var(--wsscd-spacing-xl);
+	text-align: center;
+	background: linear-gradient(180deg, var(--wsscd-color-white) 0%, var(--wsscd-color-surface) 100%);
+	border-radius: var(--wsscd-radius-lg);
+	border: 2px dashed var(--wsscd-color-border-light);
+}
+
+.wsscd-pro-feature-locked::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 80px;
+	height: 3px;
+	background: linear-gradient(90deg, var(--wsscd-color-warning) 0%, var(--wsscd-color-warning-light) 100%);
+	border-radius: 0 0 var(--wsscd-radius-sm) var(--wsscd-radius-sm);
+}
+
+.wsscd-pro-feature-locked__content {
+	max-width: 480px;
+	margin: 0 auto;
+}
+
+.wsscd-pro-feature-locked__content .wsscd-pro-badge {
+	display: inline-flex;
+	margin-bottom: var(--wsscd-spacing-lg);
+}
+
+.wsscd-pro-feature-locked__title {
+	font-size: var(--wsscd-font-size-xl);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+	margin: 0 0 var(--wsscd-spacing-sm) 0;
+}
+
+.wsscd-pro-feature-locked__description {
+	font-size: var(--wsscd-font-size-base);
+	color: var(--wsscd-color-text-muted);
+	margin: 0 0 var(--wsscd-spacing-lg) 0;
+	line-height: var(--wsscd-line-height-relaxed);
+}
+
+.wsscd-pro-feature-locked__features {
+	list-style: none;
+	margin: 0 0 var(--wsscd-spacing-xl) 0;
+	padding: var(--wsscd-spacing-md) var(--wsscd-spacing-lg);
+	text-align: left;
+	background: var(--wsscd-color-white);
+	border: 1px solid var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-md);
+	box-shadow: var(--wsscd-shadow-sm);
+}
+
+.wsscd-pro-feature-locked__features li {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--wsscd-spacing-sm);
+	padding: var(--wsscd-spacing-sm) 0;
+	font-size: var(--wsscd-font-size-base);
+	color: var(--wsscd-color-text);
+	border-bottom: 1px solid var(--wsscd-color-border-lighter);
+}
+
+.wsscd-pro-feature-locked__features li:last-child {
+	border-bottom: none;
+	padding-bottom: 0;
+}
+
+.wsscd-pro-feature-locked__features li:first-child {
+	padding-top: 0;
+}
+
+.wsscd-pro-feature-locked__features li .wsscd-icon {
+	color: var(--wsscd-color-success);
+	flex-shrink: 0;
+	margin-top: 3px;
+}
+
+.wsscd-pro-feature-locked__upgrade-btn {
+	min-width: 200px;
+	font-weight: var(--wsscd-font-weight-medium);
+}
+
+/* Locked wizard card modifier */
+.wsscd-wizard-card--locked {
+	border-style: dashed;
+	border-color: var(--wsscd-color-border-light);
+}
+
+/* ==========================================================================
    Responsive - Mobile Adjustments
    ========================================================================== */
 
 @media (max-width: 782px) {
-	.scd-pro-container--locked .scd-pro-feature-unavailable {
-		padding: var(--scd-padding-section) 20px;
+	.wsscd-pro-container--locked .wsscd-pro-feature-unavailable {
+		padding: var(--wsscd-padding-section) 20px;
 		width: 95%;
 		max-width: none;
 	}
 
-	.scd-pro-feature-unavailable__description {
-		font-size: var(--scd-font-size-small);
+	.wsscd-pro-feature-unavailable__description {
+		font-size: var(--wsscd-font-size-small);
 	}
 
-	.scd-pro-feature-unavailable__features {
-		padding: var(--scd-spacing-md);
-		margin-bottom: var(--scd-spacing-lg);
+	.wsscd-pro-feature-unavailable__features {
+		padding: var(--wsscd-spacing-md);
+		margin-bottom: var(--wsscd-spacing-lg);
 	}
 
-	.scd-pro-feature-unavailable__features li {
-		font-size: var(--scd-font-size-small);
+	.wsscd-pro-feature-unavailable__features li {
+		font-size: var(--wsscd-font-size-small);
 		padding: 6px 0;
 	}
 
-	.scd-pro-feature-unavailable .button {
+	.wsscd-pro-feature-unavailable .button {
 		width: 100%;
 		justify-content: center;
-		padding: var(--scd-spacing-sm) 16px;
-		font-size: var(--scd-font-size-small);
+		padding: var(--wsscd-spacing-sm) 16px;
+		font-size: var(--wsscd-font-size-small);
 	}
 }

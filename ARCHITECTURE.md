@@ -76,7 +76,7 @@ $campaign_manager = $container->get('campaign_manager');
 SCD_Campaign_Manager           // Main business logic
 SCD_Campaign_Repository        // Database abstraction
 SCD_Admin_Asset_Manager        // Admin asset handling
-SCD_Abstract_Ajax_Handler      // Base AJAX class
+WSSCD_Abstract_Ajax_Handler      // Base AJAX class
 ```
 
 **File Organization:**
@@ -390,20 +390,20 @@ $active_campaigns = $campaign_stats['active'] ?? 0;
 
 ```
 AJAX Request (from JavaScript)
-    ↓ Includes scdAction parameter
+    ↓ Includes wsscdAction parameter
     ↓
-WordPress Hook (wp_ajax_scd_ajax)
+WordPress Hook (wp_ajax_wsscd_ajax)
     ↓
-SCD_Ajax_Router::route_request()
+WSSCD_Ajax_Router::route_request()
     ↓ Extract action from request
     ↓ Validate handler class name
     ↓ Load handler class
     ↓
-SCD_Abstract_Ajax_Handler::execute()
+WSSCD_Abstract_Ajax_Handler::execute()
     ↓ Verify nonce and capability
     ↓ Execute handler logic
     ↓
-SCD_AJAX_Response::success() or error()
+WSSCD_AJAX_Response::success() or error()
 ```
 
 **Handler Registration:**
@@ -411,10 +411,10 @@ SCD_AJAX_Response::success() or error()
 Handlers are registered in the router:
 ```php
 $this->handlers = array(
-    'save_step' => 'SCD_Save_Step_Handler',
-    'load_data' => 'SCD_Load_Data_Handler',
-    'get_summary' => 'SCD_Get_Summary_Handler',
-    'main_dashboard_data' => 'SCD_Main_Dashboard_Data_Handler',
+    'save_step' => 'WSSCD_Save_Step_Handler',
+    'load_data' => 'WSSCD_Load_Data_Handler',
+    'get_summary' => 'WSSCD_Get_Summary_Handler',
+    'main_dashboard_data' => 'WSSCD_Main_Dashboard_Data_Handler',
     // 40+ handlers...
 );
 ```
@@ -433,7 +433,7 @@ $this->handlers = array(
 **Core Pattern:**
 
 ```php
-abstract class SCD_Abstract_Ajax_Handler {
+abstract class WSSCD_Abstract_Ajax_Handler {
     protected $logger;
     
     public function __construct($logger = null) {
@@ -498,7 +498,7 @@ abstract class SCD_Abstract_Ajax_Handler {
 **Handler Implementation Example:**
 
 ```php
-class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Get_Summary_Handler extends WSSCD_Abstract_Ajax_Handler {
     private $state_service;
     
     public function __construct($state_service, $logger = null) {
@@ -584,7 +584,7 @@ protected function verify_request($request) {
 **Standardized Response Structure:**
 
 ```php
-class SCD_AJAX_Response {
+class WSSCD_AJAX_Response {
     public static function success($data = null, $meta = array()) {
         $response = array(
             'success' => true,
@@ -844,7 +844,7 @@ class SCD_Asset_Localizer {
         $this->add_data_provider('nonce', function() {
             return array(
                 'wizard_nonce' => wp_create_nonce('scd_wizard'),
-                'ajax_nonce' => wp_create_nonce('scd_ajax'),
+                'ajax_nonce' => wp_create_nonce('wsscd_ajax'),
             );
         });
     }
@@ -852,7 +852,7 @@ class SCD_Asset_Localizer {
     public function localize_scripts() {
         // Build localization data
         $localization = array(
-            'nonce' => wp_create_nonce('scd_ajax'),
+            'nonce' => wp_create_nonce('wsscd_ajax'),
             'ajax_url' => admin_url('admin-ajax.php'),
             'current_user' => array(
                 'id' => get_current_user_id(),
@@ -1078,7 +1078,7 @@ class SCD_Admin {
 
 1. **Create AJAX Handler**
    ```php
-   class SCD_Campaign_Overview_Handler extends SCD_Abstract_Ajax_Handler {
+   class SCD_Campaign_Overview_Handler extends WSSCD_Abstract_Ajax_Handler {
        private $campaign_overview_service;
        
        protected function get_action_name() {
@@ -1190,7 +1190,7 @@ When building new features like the campaign overview panel:
 4. **Log Important Events** - Use logger service for debugging
 5. **Follow Naming** - `SCD_` prefix, snake_case for methods/properties
 6. **Implement Security** - Check capabilities, verify nonces, sanitize input
-7. **Use AJAX Handlers** - Extend `SCD_Abstract_Ajax_Handler` for AJAX endpoints
+7. **Use AJAX Handlers** - Extend `WSSCD_Abstract_Ajax_Handler` for AJAX endpoints
 8. **Conditional Asset Loading** - Only load scripts/styles when needed
 9. **Localize Data** - Use asset localizer for PHP → JavaScript data
 10. **Add to Service Definitions** - Register in bootstrap for DI resolution

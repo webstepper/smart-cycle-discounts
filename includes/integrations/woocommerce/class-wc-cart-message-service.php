@@ -23,25 +23,25 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/integrations/woocommerce
  */
-class SCD_WC_Cart_Message_Service {
+class WSSCD_WC_Cart_Message_Service {
 
 	/**
 	 * Discount query service.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_WC_Discount_Query_Service    $discount_query
+	 * @var      WSSCD_WC_Discount_Query_Service    $discount_query
 	 */
-	private SCD_WC_Discount_Query_Service $discount_query;
+	private WSSCD_WC_Discount_Query_Service $discount_query;
 
 	/**
 	 * Campaign manager.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Manager    $campaign_manager
+	 * @var      WSSCD_Campaign_Manager    $campaign_manager
 	 */
-	private SCD_Campaign_Manager $campaign_manager;
+	private WSSCD_Campaign_Manager $campaign_manager;
 
 	/**
 	 * Logger.
@@ -56,13 +56,13 @@ class SCD_WC_Cart_Message_Service {
 	 * Initialize cart message service.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_WC_Discount_Query_Service $discount_query      Discount query service.
-	 * @param    SCD_Campaign_Manager          $campaign_manager    Campaign manager.
+	 * @param    WSSCD_WC_Discount_Query_Service $discount_query      Discount query service.
+	 * @param    WSSCD_Campaign_Manager          $campaign_manager    Campaign manager.
 	 * @param    object|null                   $logger              Logger.
 	 */
 	public function __construct(
-		SCD_WC_Discount_Query_Service $discount_query,
-		SCD_Campaign_Manager $campaign_manager,
+		WSSCD_WC_Discount_Query_Service $discount_query,
+		WSSCD_Campaign_Manager $campaign_manager,
 		?object $logger = null
 	) {
 		$this->discount_query   = $discount_query;

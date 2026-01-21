@@ -29,27 +29,27 @@
 		};
 	} )();
 
-	window.SCD = window.SCD || {};
-	window.SCD.Admin = window.SCD.Admin || {};
+	window.WSSCD = window.WSSCD || {};
+	window.WSSCD.Admin = window.WSSCD.Admin || {};
 
 	/**
 	 * Core Admin Controller
 	 */
-	SCD.Admin = {
+	WSSCD.Admin = {
 		// Configuration
 		config: {
 			ajaxUrl: window.ajaxurl || '',
-			nonce: ( window.scdAdmin && window.scdAdmin.nonce ) || '',
-			restNonce: ( window.scdAdmin && window.scdAdmin.restNonce ) || ( window.wpApiSettings && window.wpApiSettings.nonce ) || '',
-			debug: ( window.scdAdmin && window.scdAdmin.debug ) || false,
-			strings: ( window.scdAdmin && window.scdAdmin.strings ) || {}
+			nonce: ( window.wsscdAdmin && window.wsscdAdmin.nonce ) || '',
+			restNonce: ( window.wsscdAdmin && window.wsscdAdmin.restNonce ) || ( window.wpApiSettings && window.wpApiSettings.nonce ) || '',
+			debug: ( window.wsscdAdmin && window.wsscdAdmin.debug ) || false,
+			strings: ( window.wsscdAdmin && window.wsscdAdmin.strings ) || {}
 		},
 
 		/**
 		 * Initialize admin functionality
 		 */
 		init: function() {
-			if ( ! window.scdAdmin ) {
+			if ( ! window.wsscdAdmin ) {
 				return;
 			}
 
@@ -64,10 +64,10 @@
 		 */
 		bindEvents: function() {
 			// Tab navigation
-			$( document ).on( 'click', '.scd-tabs .scd-tab', this.handleTabClick );
+			$( document ).on( 'click', '.wsscd-tabs .wsscd-tab', this.handleTabClick );
 
 			// Form submission
-			$( document ).on( 'submit', '.scd-ajax-form', this.handleAjaxFormSubmit );
+			$( document ).on( 'submit', '.wsscd-ajax-form', this.handleAjaxFormSubmit );
 
 			// Tooltip initialization
 			this.initTooltips();
@@ -95,13 +95,13 @@
 
 			$tab.addClass( 'active' ).siblings().removeClass( 'active' );
 
-			$( target ).addClass( 'active' ).siblings( '.scd-tab-content' ).removeClass( 'active' );
+			$( target ).addClass( 'active' ).siblings( '.wsscd-tab-content' ).removeClass( 'active' );
 
 			// Save active tab to localStorage
 			if ( window.localStorage ) {
-				var tabGroup = $tab.closest( '.scd-tabs' ).data( 'tab-group' );
+				var tabGroup = $tab.closest( '.wsscd-tabs' ).data( 'tab-group' );
 				if ( tabGroup ) {
-					localStorage.setItem( 'scd_active_tab_' + tabGroup, target );
+					localStorage.setItem( 'wsscd_active_tab_' + tabGroup, target );
 				}
 			}
 		},
@@ -134,21 +134,21 @@
 			} );
 
 			// Use shared AJAX service
-			if ( !window.SCD || !window.SCD.Ajax || !action ) {
-				SCD.Admin.showNotice( 'AJAX service not available or action not specified', 'error' );
+			if ( !window.WSSCD || !window.WSSCD.Ajax || !action ) {
+				WSSCD.Admin.showNotice( 'AJAX service not available or action not specified', 'error' );
 				$submit.prop( 'disabled', false ).text( originalText );
 				return;
 			}
 
-			SCD.Ajax.post( action, requestData )
+			WSSCD.Ajax.post( action, requestData )
 				.then( function( data ) {
-					SCD.Admin.showNotice( data.message || 'Success!', 'success' );
+					WSSCD.Admin.showNotice( data.message || 'Success!', 'success' );
 
 					// Trigger custom event
-					$form.trigger( 'scd:form:success', [ { success: true, data: data } ] );
+					$form.trigger( 'wsscd:form:success', [ { success: true, data: data } ] );
 				} )
 				.catch( function( error ) {
-					SCD.Admin.showNotice( error.message || 'An error occurred', 'error' );
+					WSSCD.Admin.showNotice( error.message || 'An error occurred', 'error' );
 				} )
 				.finally( function() {
 					$submit.prop( 'disabled', false ).text( originalText );
@@ -160,7 +160,7 @@
 		 */
 		initTooltips: function() {
 			// Simple tooltip implementation
-			$( '.scd-tooltip' ).each( function() {
+			$( '.wsscd-tooltip' ).each( function() {
 				var $this = $( this );
 				var title = $this.attr( 'title' );
 
@@ -168,16 +168,16 @@
 
 				$this
 					.on( 'mouseenter', function() {
-						$( '<div class="scd-tooltip-content">' )
+						$( '<div class="wsscd-tooltip-content">' )
 							.text( title )
 							.appendTo( 'body' )
 							.fadeIn( 'fast' );
 					} )
 					.on( 'mouseleave', function() {
-						$( '.scd-tooltip-content' ).remove();
+						$( '.wsscd-tooltip-content' ).remove();
 					} )
 					.mousemove( function( e ) {
-					$( '.scd-tooltip-content' ).css( {
+					$( '.wsscd-tooltip-content' ).css( {
 						top: e.pageY + 10,
 						left: e.pageX + 10
 					} );
@@ -231,9 +231,9 @@
 
 			// Setup loading indicator
 			$( document ).ajaxStart( function() {
-				$( 'body' ).addClass( 'scd-ajax-loading' );
+				$( 'body' ).addClass( 'wsscd-ajax-loading' );
 			} ).ajaxStop( function() {
-				$( 'body' ).removeClass( 'scd-ajax-loading' );
+				$( 'body' ).removeClass( 'wsscd-ajax-loading' );
 			} );
 		},
 
@@ -242,8 +242,8 @@
 		 */
 		initNotificationSystem: function() {
 			// Listen for notification events
-			$( document ).on( 'scd:notification:show', function( e, data ) {
-				SCD.Shared.NotificationService.show( data.message, data.type, data.duration );
+			$( document ).on( 'wsscd:notification:show', function( e, data ) {
+				WSSCD.Shared.NotificationService.show( data.message, data.type, data.duration );
 			} );
 		},
 
@@ -258,7 +258,7 @@
 			data = data || {};
 
 			// Use shared AJAX service
-			if ( !window.SCD || !window.SCD.Ajax ) {
+			if ( !window.WSSCD || !window.WSSCD.Ajax ) {
 				console.error( 'AJAX service not available' );
 				if ( callback ) {
 					callback( { success: false, error: 'AJAX service not available' } );
@@ -269,7 +269,7 @@
 			var requestData = $.extend( {}, data );
 			requestData.nonce = this.config.nonce;
 
-			return SCD.Ajax.post( action, requestData )
+			return WSSCD.Ajax.post( action, requestData )
 				.then( function( responseData ) {
 					if ( callback ) {
 						callback( { success: true, data: responseData } );
@@ -291,7 +291,7 @@
 		 */
 		formatCurrency: function( amount ) {
 			// Use centralized utility
-			return SCD.Utils.formatCurrency( amount );
+			return WSSCD.Utils.formatCurrency( amount );
 		},
 
 		/**
@@ -300,10 +300,10 @@
 		 * @param wait
 		 */
 		debounce: function( func, wait ) {
-			if ( !SCD.Utils || !SCD.Utils.debounce ) {
-				throw new Error( 'SCD.Utils not available. Ensure proper script loading order.' );
+			if ( !WSSCD.Utils || !WSSCD.Utils.debounce ) {
+				throw new Error( 'WSSCD.Utils not available. Ensure proper script loading order.' );
 			}
-			return SCD.Utils.debounce( func, wait );
+			return WSSCD.Utils.debounce( func, wait );
 		},
 
 		/**
@@ -319,22 +319,22 @@
 	};
 
 	// Campaign management helpers
-	SCD.Admin.Campaigns = {
+	WSSCD.Admin.Campaigns = {
 		/**
 		 * Handle campaign status toggle
 		 * @param campaignId
 		 * @param newStatus
 		 */
 		toggleStatus: function( campaignId, newStatus ) {
-			return SCD.Admin.ajax( 'scd_toggle_campaign_status', {
+			return WSSCD.Admin.ajax( 'wsscd_toggle_campaign_status', {
 				campaignId: campaignId,
 				status: newStatus
 			} ).done( function( response ) {
 				if ( response.success ) {
-					SCD.Shared.NotificationService.success( response.data.message );
+					WSSCD.Shared.NotificationService.success( response.data.message );
 					// Reload table or update UI
-					if ( 'undefined' !== typeof SCD.CampaignsList ) {
-						SCD.CampaignsList.reload();
+					if ( 'undefined' !== typeof WSSCD.CampaignsList ) {
+						WSSCD.CampaignsList.reload();
 					}
 				}
 			} );
@@ -349,17 +349,17 @@
 				return;
 			}
 
-			return SCD.Admin.ajax( 'scd_delete_campaign', {
+			return WSSCD.Admin.ajax( 'wsscd_delete_campaign', {
 				campaignId: campaignId
 			} ).done( function( response ) {
 				if ( response.success ) {
-					SCD.Shared.NotificationService.success( 'Campaign deleted successfully' );
+					WSSCD.Shared.NotificationService.success( 'Campaign deleted successfully' );
 					// Reload or redirect
-					if ( 'undefined' !== typeof SCD.CampaignsList ) {
-						SCD.CampaignsList.reload();
+					if ( 'undefined' !== typeof WSSCD.CampaignsList ) {
+						WSSCD.CampaignsList.reload();
 					} else {
-						window.location.href = window.scdCampaigns && window.scdCampaigns.urls && window.scdCampaigns.urls.campaignsList ?
-							window.scdCampaigns.urls.campaignsList : '/wp-admin/admin.php?page=scd-campaigns';
+						window.location.href = window.wsscdCampaigns && window.wsscdCampaigns.urls && window.wsscdCampaigns.urls.campaignsList ?
+							window.wsscdCampaigns.urls.campaignsList : '/wp-admin/admin.php?page=wsscd-campaigns';
 					}
 				}
 			} );
@@ -367,13 +367,13 @@
 	};
 
 	// Analytics helpers
-	SCD.Admin.Analytics = {
+	WSSCD.Admin.Analytics = {
 		/**
 		 * Load analytics data
 		 * @param params
 		 */
 		loadData: function( params ) {
-			return SCD.Admin.ajax( 'scd_get_analytics_data', params );
+			return WSSCD.Admin.ajax( 'wsscd_get_analytics_data', params );
 		},
 
 		/**
@@ -383,12 +383,12 @@
 		 */
 		exportReport: function( format, params ) {
 			params.format = format;
-			return SCD.Admin.ajax( 'scd_export_analytics', params );
+			return WSSCD.Admin.ajax( 'wsscd_export_analytics', params );
 		}
 	};
 
 	// Product search helpers
-	SCD.Admin.Products = {
+	WSSCD.Admin.Products = {
 		/**
 		 * Search products
 		 * @param query
@@ -400,27 +400,27 @@
 
 			// REST API calls still use jQuery directly
 			return $.ajax( {
-				url: window.scdProducts && window.scdProducts.endpoints && window.scdProducts.endpoints.search ?
-					window.scdProducts.endpoints.search : '/wp-json/scd/v1/products/search',
+				url: window.wsscdProducts && window.wsscdProducts.endpoints && window.wsscdProducts.endpoints.search ?
+					window.wsscdProducts.endpoints.search : '/wp-json/wsscd/v1/products/search',
 				method: 'GET',
 				data: params,
 				headers: {
-					'X-WP-Nonce': SCD.Admin.config.restNonce // Use REST nonce for REST API calls
+					'X-WP-Nonce': WSSCD.Admin.config.restNonce // Use REST nonce for REST API calls
 				}
 			} );
 		}
 	};
 
 	$( document ).ready( function() {
-		SCD.Admin.init();
+		WSSCD.Admin.init();
 	} );
 
 	// Restore active tabs
 	$( window ).on( 'load', function() {
 		if ( window.localStorage ) {
-			$( '.scd-tabs[data-tab-group]' ).each( function() {
+			$( '.wsscd-tabs[data-tab-group]' ).each( function() {
 				var tabGroup = $( this ).data( 'tab-group' );
-				var activeTab = localStorage.getItem( 'scd_active_tab_' + tabGroup );
+				var activeTab = localStorage.getItem( 'wsscd_active_tab_' + tabGroup );
 
 				if ( activeTab ) {
 					$( this ).find( '[data-target="' + activeTab + '"]' ).trigger( 'click' );

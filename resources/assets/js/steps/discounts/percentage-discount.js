@@ -14,14 +14,14 @@
 	'use strict';
 
 	// Register percentage discount using utility with inheritance
-	SCD.Utils.registerModule( 'SCD.Modules.Discounts.Types', 'PercentageDiscount', function( state ) {
+	WSSCD.Utils.registerModule( 'WSSCD.Modules.Discounts.Types', 'PercentageDiscount', function( state ) {
 		// Call parent constructor
-		SCD.Modules.Discounts.Types.BaseDiscount.call( this, state );
+		WSSCD.Modules.Discounts.Types.BaseDiscount.call( this, state );
 
 		this.type = 'percentage';
-		this.config = SCD.Modules.Discounts.Config;
+		this.config = WSSCD.Modules.Discounts.Config;
 
-		if ( !SCD.Utils.ensureInitialized( this, {
+		if ( !WSSCD.Utils.ensureInitialized( this, {
 			'config': this.config
 		}, 'PercentageDiscount' ) ) {
 			return;
@@ -29,17 +29,17 @@
 	} );
 
 	// Inherit from BaseDiscount
-	SCD.Modules.Discounts.Types.PercentageDiscount.prototype = Object.create( SCD.Modules.Discounts.Types.BaseDiscount.prototype );
-	SCD.Modules.Discounts.Types.PercentageDiscount.prototype.constructor =
-		SCD.Modules.Discounts.Types.PercentageDiscount;
+	WSSCD.Modules.Discounts.Types.PercentageDiscount.prototype = Object.create( WSSCD.Modules.Discounts.Types.BaseDiscount.prototype );
+	WSSCD.Modules.Discounts.Types.PercentageDiscount.prototype.constructor =
+		WSSCD.Modules.Discounts.Types.PercentageDiscount;
 
 	// Override methods using utility extend
-	SCD.Utils.extend( SCD.Modules.Discounts.Types.PercentageDiscount.prototype, {
+	WSSCD.Utils.extend( WSSCD.Modules.Discounts.Types.PercentageDiscount.prototype, {
 		/**
 		 * Initialize percentage discount
 		 */
 		init: function() {
-			SCD.Modules.Discounts.Types.BaseDiscount.prototype.init.call( this );
+			WSSCD.Modules.Discounts.Types.BaseDiscount.prototype.init.call( this );
 			this.setupPercentageHandlers();
 		},
 
@@ -61,8 +61,8 @@
 			var $field = $( this );
 			var value = parseFloat( $field.val() );
 
-		if ( window.SCD && window.SCD.ValidationError ) {
-			window.SCD.ValidationError.clear( $field );
+		if ( window.WSSCD && window.WSSCD.ValidationError ) {
+			window.WSSCD.ValidationError.clear( $field );
 		}
 
 			// Update state immediately to maintain single source of truth
@@ -101,23 +101,23 @@
 		 */
 		showUI: function() {
 			this.updateFieldConstraints();
-			this.triggerCustomEvent( 'scd:discount:ui:show', [ 'percentage' ] );
+			this.triggerCustomEvent( 'wsscd:discount:ui:show', [ 'percentage' ] );
 		},
 
 		/**
 		 * Hide percentage UI elements
 		 */
 		hideUI: function() {
-			$( '.scd-percentage-options, .scd-strategy-percentage' ).removeClass( 'active' );
-			this.triggerCustomEvent( 'scd:discount:ui:hide', [ 'percentage' ] );
+			$( '.wsscd-percentage-options, .wsscd-strategy-percentage' ).removeClass( 'active' );
+			this.triggerCustomEvent( 'wsscd:discount:ui:hide', [ 'percentage' ] );
 		},
 
 		/**
 		 * Update field constraints for percentage
 		 */
 		updateFieldConstraints: function() {
-			var defaults = SCD.Utils.get( this.config, 'defaults.values.percentage', {} );
-			var selector = SCD.Utils.get( this.config, 'constants.selectors.discountValue', '[name="discount_value_percentage"]' );
+			var defaults = WSSCD.Utils.get( this.config, 'defaults.values.percentage', {} );
+			var selector = WSSCD.Utils.get( this.config, 'constants.selectors.discountValue', '[name="discount_value_percentage"]' );
 			var $field = $( selector );
 
 			if ( $field.length ) {
@@ -138,8 +138,8 @@
 				var newConfig = change.value;
 				var oldConfig = change.oldValue;
 
-				var newValue = SCD.Utils.get( newConfig, 'percentage.value' );
-				var oldValue = SCD.Utils.get( oldConfig, 'percentage.value' );
+				var newValue = WSSCD.Utils.get( newConfig, 'percentage.value' );
+				var oldValue = WSSCD.Utils.get( oldConfig, 'percentage.value' );
 
 				if ( newValue !== oldValue && newValue !== undefined ) {
 					this.updateInlinePreview();
@@ -225,7 +225,7 @@
 		 */
 		calculateValue: function() {
 			var config = this.state.getCurrentConfig ? this.state.getCurrentConfig() : {};
-			return SCD.Utils.get( config, 'value', 0 );
+			return WSSCD.Utils.get( config, 'value', 0 );
 		},
 
 		/**
@@ -284,7 +284,7 @@
 		destroy: function() {
 			$( document ).off( 'input.percentage change.percentage' );
 
-			SCD.Modules.Discounts.Types.BaseDiscount.prototype.destroy.call( this );
+			WSSCD.Modules.Discounts.Types.BaseDiscount.prototype.destroy.call( this );
 		}
 	} );
 

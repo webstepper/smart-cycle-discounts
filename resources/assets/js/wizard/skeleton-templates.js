@@ -11,424 +11,547 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	window.SCD.Wizard = window.SCD.Wizard || {};
+	window.WSSCD = window.WSSCD || {};
+	window.WSSCD.Wizard = window.WSSCD.Wizard || {};
 
 	/**
 	 * Skeleton Templates Service
-	 *
-	 * Public API for generating skeleton screens during navigation.
 	 */
-	window.SCD.Wizard.SkeletonTemplates = {
+	window.WSSCD.Wizard.SkeletonTemplates = {
 
-		/**
-		 * Step configuration
-		 *
-		 * @since 1.0.0
-		 */
 		config: {
-			steps: [ 'basic', 'products', 'discounts', 'schedule', 'review' ]
+			steps: [ 'basic', 'products', 'discounts', 'schedule', 'review' ],
+			labelWidths: [ '45px', '65px', '70px', '65px', '55px' ]
 		},
 
-		/**
-		 * Initialize configuration
-		 *
-		 * @since 1.0.0
-		 * @param {object} config Configuration options
-		 */
+		// Common style constants using CSS variables for consistency
+		styles: {
+			card: 'padding:var(--wsscd-spacing-lg);margin-bottom:var(--wsscd-spacing-lg);border-radius:var(--wsscd-radius-md);',
+			cardTitle: 'margin:0 0 var(--wsscd-spacing-sm) 0;display:flex;align-items:center;',
+			cardSubtitle: 'margin:0 0 var(--wsscd-spacing-md) 0;',
+			cardContent: 'padding-top:var(--wsscd-spacing-md);',
+			flexCenter: 'display:flex;align-items:center;',
+			flexBetween: 'display:flex;align-items:center;justify-content:space-between;',
+			border: '',
+			borderDark: '',
+			shimmer: 'background:linear-gradient(90deg,var(--wsscd-color-surface-alt) 25%,var(--wsscd-color-border-light) 50%,var(--wsscd-color-surface-alt) 75%);background-size:200% 100%;animation:wsscd-skeleton-shimmer 1.8s ease-in-out infinite;'
+		},
+
 		init: function( config ) {
 			if ( config && config.steps ) {
 				this.config.steps = config.steps;
 			}
 		},
 
-		/**
-		 * Show skeleton screen for a target step
-		 *
-		 * Displays a skeleton placeholder while navigating to give instant feedback.
-		 *
-		 * @since 1.0.0
-		 * @param {string} targetStep Target step name
-		 */
+		// =========================================================================
+		// Helper Methods - Reusable skeleton elements
+		// =========================================================================
+
+		line: function( width, height, extra ) {
+			return '<span class="wsscd-skeleton-line" style="width:' + width + ';height:' + ( height || '14px' ) + ';' + ( extra || '' ) + '"></span>';
+		},
+
+		icon: function( size, extra ) {
+			var s = size || 20;
+			return '<span class="wsscd-skeleton-icon" style="width:' + s + 'px;height:' + s + 'px;' + ( extra || '' ) + '"></span>';
+		},
+
+		input: function( height, extra ) {
+			return '<div class="wsscd-skeleton-input" style="height:' + ( height || 'var(--wsscd-input-height)' ) + ';border-radius:var(--wsscd-radius-md);' + ( extra || '' ) + '"></div>';
+		},
+
+		radio: function( size ) {
+			var s = size || 18;
+			return '<div class="wsscd-skeleton-radio" style="width:' + s + 'px;height:' + s + 'px;border-radius:var(--wsscd-radius-full);"></div>';
+		},
+
+		badge: function( width, height ) {
+			return '<span class="wsscd-skeleton-badge" style="width:' + ( width || '60px' ) + ';height:' + ( height || '20px' ) + ';border-radius:var(--wsscd-radius-full);"></span>';
+		},
+
+		button: function( width, height ) {
+			return '<div class="wsscd-skeleton-button" style="width:' + ( width || '100px' ) + ';height:' + ( height || 'var(--wsscd-button-height)' ) + ';border-radius:var(--wsscd-radius-sm);"></div>';
+		},
+
+		// Card wrapper helpers
+		cardStart: function( titleWidth, subtitleWidth, badge ) {
+			var html = [
+				'<div class="wsscd-card wsscd-wizard-card" style="' + this.styles.card + '">',
+				'<div class="wsscd-card__header">',
+				'<h3 class="wsscd-card__title" style="' + this.styles.cardTitle + '">',
+				this.icon( 20, 'display:inline-block;margin-right:var(--wsscd-spacing-sm);' ),
+				this.line( titleWidth || '160px', '22px', 'display:inline-block;vertical-align:middle;margin-bottom:0;' )
+			];
+			if ( badge ) {
+				html.push( '<span class="wsscd-skeleton-badge" style="width:' + badge + ';height:20px;margin-left:var(--wsscd-spacing-sm);border-radius:var(--wsscd-radius-full);"></span>' );
+			}
+			html.push(
+				'</h3>',
+				'<p class="wsscd-card__subtitle" style="' + this.styles.cardSubtitle + '">',
+				this.line( subtitleWidth || '85%', '14px' ),
+				'</p>',
+				'</div>',
+				'<div class="wsscd-card__content" style="' + this.styles.cardContent + '">'
+			);
+			return html.join( '' );
+		},
+
+		cardEnd: function() {
+			return '</div></div>';
+		},
+
+		field: function( labelWidth, inputHeight, isLast ) {
+			return [
+				'<div class="wsscd-skeleton-field" style="margin-bottom:' + ( isLast ? '0' : 'var(--wsscd-spacing-lg)' ) + ';">',
+				this.line( labelWidth || '120px', '14px', 'margin-bottom:var(--wsscd-spacing-sm);display:block;' ),
+				this.input( inputHeight ),
+				'</div>'
+			].join( '' );
+		},
+
+		// =========================================================================
+		// Main API
+		// =========================================================================
+
 		render: function( targetStep ) {
-			var contentSkeleton = this.getStepContent( targetStep );
-			var fullSkeleton = this.buildFullPage( targetStep, contentSkeleton );
-			var $wizardWrap = $( '.scd-wizard-wrap' ).first();
-
-			if ( $wizardWrap.length ) {
-				$( 'body' ).append( '<div class="scd-loading-bar"></div>' );
-
-				$wizardWrap.addClass( 'scd-wizard-main--loading' );
-				$wizardWrap.html( fullSkeleton );
-				$wizardWrap.removeClass( 'scd-wizard-main--loading' );
-			} else {
-				console.error( '[SCD SkeletonTemplates] No .scd-wizard-wrap element found!' );
+			var $wizardWrap = $( '.wsscd-wizard-wrap' ).first();
+			if ( ! $wizardWrap.length ) {
+				return;
 			}
+
+			$( 'body' ).append( '<div class="wsscd-loading-bar"></div>' );
+			$wizardWrap.addClass( 'wsscd-wizard-main--loading' )
+				.html( this.buildFullPage( targetStep, this.getStepContent( targetStep ) ) )
+				.removeClass( 'wsscd-wizard-main--loading' );
 		},
 
-		/**
-		 * Build full page skeleton with header, progress, content, sidebar, and navigation
-		 *
-		 * @since 1.0.0
-		 * @param {string} targetStep Target step name
-		 * @param {string} contentSkeleton Content skeleton HTML
-		 * @returns {string} Complete skeleton HTML
-		 */
 		buildFullPage: function( targetStep, contentSkeleton ) {
-			var currentIndex = this.config.steps.indexOf( targetStep );
-
-			var header = this.buildHeader();
-			var progress = this.buildProgress( targetStep, currentIndex );
-			var sidebar = this.buildSidebar();
-			var navigation = this.buildNavigation( currentIndex );
-			var content = this.buildContent( targetStep, contentSkeleton, sidebar, navigation );
-
-			return header + progress + content;
+			var idx = this.config.steps.indexOf( targetStep );
+			return this.buildProgress( targetStep, idx ) +
+				this.buildContent( targetStep, contentSkeleton, this.buildSidebar(), this.buildNavigation( idx ) );
 		},
 
-		/**
-		 * Build header skeleton
-		 *
-		 * @since 1.0.0
-		 * @returns {string} Header skeleton HTML
-		 */
-		buildHeader: function() {
-			return '<div class="scd-wizard-header" style="margin-bottom:20px;display:flex;align-items:center;">' +
-				'<h1 style="margin:0;padding:0;">' +
-				'<span class="scd-skeleton-line" style="width:220px;height:32px;display:inline-block;margin-bottom:0;"></span>' +
-				'</h1>' +
-				'</div>';
-		},
+		// =========================================================================
+		// Layout Components
+		// =========================================================================
 
-		/**
-		 * Build progress indicator skeleton
-		 *
-		 * @since 1.0.0
-		 * @param {string} targetStep Target step name
-		 * @param {number} currentIndex Current step index
-		 * @returns {string} Progress skeleton HTML
-		 */
 		buildProgress: function( targetStep, currentIndex ) {
-			var progress = '<div class="scd-wizard-progress" style="padding:24px 40px;">' +
-				'<ul class="scd-wizard-steps" style="max-width:800px;margin:0 auto;padding:0;list-style:none;display:flex;justify-content:space-between;align-items:center;">';
+			var self = this;
+			// Use actual HTML structure so CSS from wizard-fullscreen.css applies identically
+			var html = [
+				'<div class="wsscd-wizard-progress">',
+				'<div class="wsscd-wizard-progress-header">',
+				'<div class="wsscd-wizard-progress-title">',
+				// Use actual h1 element so it inherits WordPress admin h1 styles
+				'<h1><span class="wsscd-skeleton-shimmer" style="display:inline-block;width:200px;height:1em;border-radius:var(--wsscd-radius-sm);vertical-align:middle;' + this.styles.shimmer + '">&nbsp;</span></h1>',
+				'</div>',
+				// Use actual .button class so it inherits WordPress button styles (border removed for skeleton)
+				'<a href="#" class="button wsscd-exit-wizard wsscd-skeleton-shimmer" style="pointer-events:none;border:none;color:transparent;' + this.styles.shimmer + '">',
+				'<span style="visibility:hidden;">Exit Wizard</span>',
+				'</a>',
+				'</div>',
+				'<ul class="wsscd-wizard-steps">'
+			];
 
-			for ( var i = 0; i < this.config.steps.length; i++ ) {
-				var stepName = this.config.steps[i];
-				var isActive = i === currentIndex;
-				var isCompleted = i < currentIndex;
-				var classes = 'scd-wizard-step scd-wizard-step--skeleton';
-				if ( isActive ) {
-					classes += ' active current';
-				}
-				if ( isCompleted ) {
-					classes += ' completed';
-				}
+			// Use actual li structure with skeleton class to override ::before
+			this.config.steps.forEach( function( stepName, i ) {
+				var classes = 'wsscd-step--skeleton';
+				if ( i === currentIndex ) { classes += ' active'; }
+				if ( i < currentIndex ) { classes += ' completed'; }
 
-				var stepNumberSkeleton = '<div class="scd-skeleton-step-circle" style="width:32px;height:32px;border-radius:50%;margin-bottom:8px;background:linear-gradient(90deg,#f0f0f1 25%,#e8e9ea 50%,#f0f0f1 75%);background-size:200% 100%;animation:scd-skeleton-shimmer 1.8s ease-in-out infinite;"></div>';
+				html.push(
+					'<li class="' + classes + '" data-step="' + ( i + 1 ) + '" data-step-name="' + stepName + '" style="cursor:default;">',
+					// Circle skeleton element (replaces ::before which is hidden via CSS)
+					'<span class="wsscd-step-circle-skeleton" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:var(--wsscd-radius-full);margin-bottom:var(--wsscd-spacing-sm);' + self.styles.shimmer + 'animation-delay:' + ( i * 0.05 ) + 's;"></span>',
+					// Label shimmer inside actual span.step-label so it inherits proper styles
+					'<span class="step-label"><span class="wsscd-skeleton-shimmer" style="display:inline-block;width:' + ( self.config.labelWidths[ i ] || '60px' ) + ';height:1em;border-radius:var(--wsscd-radius-sm);' + self.styles.shimmer + 'animation-delay:' + ( i * 0.05 + 0.1 ) + 's;">&nbsp;</span></span>',
+					'</li>'
+				);
+			} );
 
-				var labelWidths = [ '80px', '95px', '110px', '85px', '100px' ];
-				var labelWidth = labelWidths[i] || '90px';
-				var stepLabelSkeleton = '<div class="scd-skeleton-step-label" style="width:' + labelWidth + ';height:13px;margin-top:8px;border-radius:4px;background:linear-gradient(90deg,#f0f0f1 25%,#e8e9ea 50%,#f0f0f1 75%);background-size:200% 100%;animation:scd-skeleton-shimmer 1.8s ease-in-out infinite;animation-delay:' + ( i * 0.05 ) + 's;"></div>';
-
-				progress += '<li class="' + classes + '" data-step-name="' + stepName + '" style="flex:1;text-align:center;display:flex;flex-direction:column;align-items:center;">' +
-					stepNumberSkeleton +
-					stepLabelSkeleton +
-					'</li>';
-			}
-			progress += '</ul></div>';
-
-			return progress;
+			html.push( '</ul></div>' );
+			return html.join( '' );
 		},
 
-		/**
-		 * Build sidebar skeleton
-		 *
-		 * @since 1.0.0
-		 * @returns {string} Sidebar skeleton HTML
-		 */
 		buildSidebar: function() {
-			var sidebar = '<aside class="scd-step-sidebar" style="flex:0 0 360px;width:360px;">';
+			var self = this;
+			var html = [
+				'<aside class="wsscd-step-sidebar" style="flex:0 0 var(--wsscd-sidebar-width);width:var(--wsscd-sidebar-width);">',
+				'<div class="wsscd-card wsscd-sidebar-panel" style="padding:var(--wsscd-spacing-lg);border-radius:var(--wsscd-radius-md);">',
+				'<div class="wsscd-card__header">',
+				'<h3 class="wsscd-card__title" style="' + this.styles.cardTitle + '">',
+				this.icon( 20, 'display:inline-block;margin-right:var(--wsscd-spacing-sm);' ),
+				this.line( '180px', '20px', 'display:inline-block;vertical-align:middle;margin-bottom:0;' ),
+				'</h3>',
+				'<p class="wsscd-card__subtitle" style="' + this.styles.cardSubtitle + '">' + this.line( '85%', '14px' ) + '</p>',
+				'</div>',
+				'<div class="wsscd-card__content" style="padding-top:var(--wsscd-spacing-sm);">'
+			];
 
-			// Main sidebar card (clean style matching content cards)
-			sidebar += '<div class="scd-card scd-sidebar-panel" style="padding:20px;border-radius:8px;">';
-
-			// Card header (same clean style as content cards)
-			sidebar += '<div class="scd-card__header">';
-			sidebar += '<h3 class="scd-card__title" style="margin:0 0 8px 0;display:flex;align-items:center;">';
-			sidebar += '<span class="scd-skeleton-icon" style="width:20px;height:20px;display:inline-block;margin-right:8px;"></span>';
-			sidebar += '<span class="scd-skeleton-line" style="width:180px;height:20px;display:inline-block;vertical-align:middle;margin-bottom:0;"></span>';
-			sidebar += '</h3>';
-			sidebar += '<p class="scd-card__subtitle" style="margin:0 0 16px 0;">';
-			sidebar += '<span class="scd-skeleton-line" style="width:85%;height:14px;"></span>';
-			sidebar += '</p>';
-			sidebar += '</div>';
-
-			// Card content with sections
-			sidebar += '<div class="scd-card__content" style="padding-top:8px;">';
-
-			// Create 3 collapsible sections (1 open, 2 collapsed)
-			for ( var s = 0; s < 3; s++ ) {
+			// 3 collapsible sections
+			[ 0, 1, 2 ].forEach( function( s ) {
 				var isOpen = 0 === s;
-
-				// Section container (matches .scd-sidebar-section)
-				sidebar += '<div class="scd-sidebar-section" style="margin-bottom:' + ( s < 2 ? '20px' : '0' ) + ';background:#fff;border:1px solid #f0f0f1;border-radius:4px;">';
-
-				// Section header (matches .scd-sidebar-section-header)
-				sidebar += '<div class="scd-sidebar-section-header" style="display:flex;align-items:center;padding:16px 20px;background:' + ( isOpen ? '#f6f7f7' : 'transparent' ) + ';border-bottom:' + ( isOpen ? '1px solid #f0f0f1' : 'none' ) + ';border-radius:' + ( isOpen ? '4px 4px 0 0' : '4px' ) + ';">';
-				sidebar += '<span class="scd-skeleton-icon" style="width:20px;height:20px;margin-right:12px;"></span>';
-				sidebar += '<span class="scd-skeleton-line" style="width:' + ( 110 + s * 20 ) + 'px;height:14px;margin-bottom:0;"></span>';
-				sidebar += '</div>';
-
-				// Section content (only for open section)
+				var mb = s < 2 ? 'var(--wsscd-spacing-lg)' : '0';
+				html.push(
+					'<div class="wsscd-sidebar-section" style="margin-bottom:' + mb + ';background:var(--wsscd-color-surface);' + self.styles.border + 'border-radius:var(--wsscd-radius-sm);">',
+					'<div class="wsscd-sidebar-section-header" style="' + self.styles.flexCenter + 'padding:var(--wsscd-spacing-md) var(--wsscd-spacing-lg);background:' + ( isOpen ? 'var(--wsscd-color-surface-alt)' : 'transparent' ) + ';border-bottom:' + ( isOpen ? 'var(--wsscd-border-width) solid var(--wsscd-color-border-light)' : 'none' ) + ';border-radius:' + ( isOpen ? 'var(--wsscd-radius-sm) var(--wsscd-radius-sm) 0 0' : 'var(--wsscd-radius-sm)' ) + ';">',
+					self.icon( 20, 'margin-right:var(--wsscd-spacing-md);' ),
+					self.line( ( 110 + s * 20 ) + 'px', '14px', 'margin-bottom:0;' ),
+					'</div>'
+				);
 				if ( isOpen ) {
-					sidebar += '<div class="scd-sidebar-section-content" style="padding:20px;">';
-
-					// List items (3 items)
-					for ( var i = 0; i < 3; i++ ) {
-						sidebar += '<div style="margin-bottom:' + ( i < 2 ? '8px' : '0' ) + ';">';
-						sidebar += '<span class="scd-skeleton-line" style="width:' + ( 85 + i * 5 ) + '%;height:13px;"></span>';
-						sidebar += '</div>';
-					}
-
-					sidebar += '</div>';
+					html.push( '<div class="wsscd-sidebar-section-content" style="padding:var(--wsscd-spacing-lg);">' );
+					[ 0, 1, 2 ].forEach( function( i ) {
+						html.push( '<div style="margin-bottom:' + ( i < 2 ? 'var(--wsscd-spacing-sm)' : '0' ) + ';">' + self.line( ( 85 + i * 5 ) + '%', '13px' ) + '</div>' );
+					} );
+					html.push( '</div>' );
 				}
+				html.push( '</div>' );
+			} );
 
-				sidebar += '</div>';
-			}
-
-			sidebar += '</div>';
-			sidebar += '</div>';
-			sidebar += '</aside>';
-
-			return sidebar;
+			html.push( '</div></div></aside>' );
+			return html.join( '' );
 		},
 
-		/**
-		 * Build navigation skeleton
-		 *
-		 * @since 1.0.0
-		 * @param {number} currentIndex Current step index
-		 * @returns {string} Navigation skeleton HTML
-		 */
 		buildNavigation: function( currentIndex ) {
-			var navigation = '<nav class="scd-wizard-navigation" role="navigation" style="padding:12px 0;">';
-			navigation += '<div class="scd-nav-container">';
-
-			// Left section - Previous button (only if not first step)
-			navigation += '<div class="scd-nav-section scd-nav-section--left">';
+			var html = [
+				'<nav class="wsscd-wizard-navigation" role="navigation" style="padding:var(--wsscd-spacing-md) 0;">',
+				'<div class="wsscd-nav-container">',
+				'<div class="wsscd-nav-section wsscd-nav-section--left">'
+			];
 			if ( currentIndex > 0 ) {
-				navigation += '<div class="scd-skeleton-button" style="min-width:100px;width:100px;height:32px;border-radius:4px;"></div>';
+				html.push( this.button( '100px', 'var(--wsscd-button-height-large)' ) );
 			}
-			navigation += '</div>';
-
-			// Center section - Step counter
-			navigation += '<div class="scd-nav-section scd-nav-section--center">';
-			navigation += '<div class="scd-nav-status">';
-			navigation += '<span class="scd-skeleton-line" style="width:90px;height:14px;display:inline-block;margin-bottom:0;"></span>';
-			navigation += '</div>';
-			navigation += '</div>';
-
-			// Right section - Next/Complete button
-			navigation += '<div class="scd-nav-section scd-nav-section--right">';
-			navigation += '<div class="scd-skeleton-button" style="min-width:100px;width:100px;height:32px;border-radius:4px;"></div>';
-			navigation += '</div>';
-
-			navigation += '</div>';
-			navigation += '</nav>';
-
-			return navigation;
+			html.push(
+				'</div>',
+				'<div class="wsscd-nav-section wsscd-nav-section--center"><div class="wsscd-nav-status">',
+				this.line( '90px', '14px', 'display:inline-block;margin-bottom:0;' ),
+				'</div></div>',
+				'<div class="wsscd-nav-section wsscd-nav-section--right">',
+				this.button( '100px', 'var(--wsscd-button-height-large)' ),
+				'</div></div></nav>'
+			);
+			return html.join( '' );
 		},
 
-		/**
-		 * Build content wrapper with step content and sidebar
-		 *
-		 * @since 1.0.0
-		 * @param {string} targetStep Target step name
-		 * @param {string} contentSkeleton Content skeleton HTML
-		 * @param {string} sidebar Sidebar skeleton HTML
-		 * @param {string} navigation Navigation skeleton HTML
-		 * @returns {string} Content wrapper HTML
-		 */
 		buildContent: function( targetStep, contentSkeleton, sidebar, navigation ) {
-			return '<form method="post" class="scd-wizard-form" autocomplete="off">' +
-				'<div class="scd-wizard-content scd-wizard-layout" style="gap:40px;padding:30px 0 40px 0;" data-step="' + targetStep + '">' +
-				'<div class="scd-step-main-content scd-wizard-step--' + targetStep + '">' + contentSkeleton + '</div>' +
-				sidebar +
-				'</div>' +
-				navigation +
-				'</form>';
+			return [
+				'<form method="post" class="wsscd-wizard-form" autocomplete="off">',
+				'<div class="wsscd-wizard-content wsscd-wizard-layout" style="display:flex;gap:var(--wsscd-gap-xl);padding:0 0 40px 0;align-items:flex-start;" data-step="' + targetStep + '">',
+				'<div class="wsscd-step-main-content wsscd-wizard-step--' + targetStep + '" style="flex:1;min-width:0;">' + contentSkeleton + '</div>',
+				sidebar,
+				'</div>',
+				navigation,
+				'</form>'
+			].join( '' );
 		},
 
-		/**
-		 * Get skeleton HTML for a specific step
-		 *
-		 * Returns appropriate skeleton structure based on target step.
-		 *
-		 * @since 1.0.0
-		 * @param {string} stepName Step name
-		 * @returns {string} Skeleton HTML
-		 */
+		// =========================================================================
+		// Step Content Router
+		// =========================================================================
+
 		getStepContent: function( stepName ) {
-			var skeleton = '';
-
-			// Step-specific skeletons matching actual layouts
-			if ( 'basic' === stepName ) {
-				// Basic: Campaign Details + Priority cards
-				skeleton = this.createCard( true, 2 ) + this.createCard( true, 1 );
-
-			} else if ( 'products' === stepName ) {
-				// Products: Selection card with grid
-				skeleton = this.createProductsCard();
-
-			} else if ( 'discounts' === stepName ) {
-				// Discounts: Type selector + Config cards
-				skeleton = this.createCard( true, 1 ) + this.createCard( true, 3 );
-
-			} else if ( 'schedule' === stepName ) {
-				// Schedule: Date Range + Usage Limits
-				skeleton = this.createCard( true, 2 ) + this.createCard( true, 2 );
-
-			} else if ( 'review' === stepName ) {
-				// Review: Summary cards with varied line widths for realistic look
-				skeleton = this.createReviewCards();
-
-			} else {
-				// Fallback: Generic 2-card layout
-				skeleton = this.createCard( true, 2 ) + this.createCard( true, 2 );
-			}
-
-			return skeleton;
+			var methods = {
+				'basic': 'createBasicStepCards',
+				'products': 'createProductsStepCards',
+				'discounts': 'createDiscountsStepCards',
+				'schedule': 'createScheduleStepCards',
+				'review': 'createReviewStepCards'
+			};
+			return methods[ stepName ] ? this[ methods[ stepName ] ]() : this.createCard( 2 ) + this.createCard( 2 );
 		},
 
-		/**
-		 * Create a wizard card skeleton matching actual .scd-card structure
-		 *
-		 * @since 1.0.0
-		 * @param {boolean} hasIcon Whether to show icon
-		 * @param {number} fields Number of fields
-		 * @returns {string} Card skeleton HTML
-		 */
-		createCard: function( hasIcon, fields ) {
-			var card = '<div class="scd-card scd-wizard-card" style="padding:20px;margin-bottom:20px;border-radius:8px;">' +
-				'<div class="scd-card__header">' +
-				'<h3 class="scd-card__title" style="margin:0 0 8px 0;display:flex;align-items:center;">';
-
-			if ( hasIcon ) {
-				card += '<span class="scd-skeleton-icon" style="width:20px;height:20px;display:inline-block;margin-right:8px;"></span>';
-			}
-
-			card += '<span class="scd-skeleton-line" style="width:200px;height:22px;display:inline-block;vertical-align:middle;margin-bottom:0;"></span>' +
-				'</h3>' +
-				'<p class="scd-card__subtitle" style="margin:0 0 16px 0;">' +
-				'<span class="scd-skeleton-line" style="width:85%;height:14px;"></span>' +
-				'</p>' +
-				'</div>' +
-				'<div class="scd-card__content" style="padding-top:8px;">';
-
+		createCard: function( fields ) {
+			var html = [ this.cardStart( '200px', '85%' ) ];
 			for ( var i = 0; i < fields; i++ ) {
-				card += '<div class="scd-skeleton-field" style="margin-bottom:' + ( i < fields - 1 ? '16px' : '0' ) + ';"></div>';
+				html.push( '<div class="wsscd-skeleton-field" style="margin-bottom:' + ( i < fields - 1 ? '16px' : '0' ) + ';"></div>' );
 			}
-
-			card += '</div></div>';
-
-			return card;
+			html.push( this.cardEnd() );
+			return html.join( '' );
 		},
 
-		/**
-		 * Create products step card with grid
-		 *
-		 * @since 1.0.0
-		 * @returns {string} Products card skeleton HTML
-		 */
-		createProductsCard: function() {
-			return '<div class="scd-card scd-wizard-card">' +
-				'<div class="scd-card__header">' +
-				'<h3 class="scd-card__title">' +
-				'<span class="scd-skeleton-icon" style="width:20px;height:20px;display:inline-block;margin-right:8px;"></span>' +
-				'<span class="scd-skeleton-line" style="width:50%;height:20px;display:inline-block;vertical-align:middle;margin-bottom:0;"></span>' +
-				'</h3>' +
-				'<p class="scd-card__subtitle">' +
-				'<span class="scd-skeleton-line scd-skeleton-line--long" style="height:14px;"></span>' +
-				'</p>' +
-				'</div>' +
-				'<div class="scd-card__content">' +
-				'<div class="scd-skeleton-field" style="margin-bottom:20px;"></div>' +
-				'<div class="scd-skeleton-grid">' +
-				'<div class="scd-skeleton-grid-item"></div>' +
-				'<div class="scd-skeleton-grid-item"></div>' +
-				'<div class="scd-skeleton-grid-item"></div>' +
-				'<div class="scd-skeleton-grid-item"></div>' +
-				'</div>' +
-				'</div>' +
-				'</div>';
+		// =========================================================================
+		// Step-Specific Skeletons
+		// =========================================================================
+
+		createBasicStepCards: function() {
+			// Card 1: Campaign Details
+			var card1 = [
+				this.cardStart( '160px', '85%' ),
+				this.field( '120px', '30px' ),
+				this.field( '100px', '80px', true ),
+				this.cardEnd()
+			].join( '' );
+
+			// Card 2: Priority
+			var card2 = [
+				this.cardStart( '150px', '90%' ),
+				'<div class="wsscd-skeleton-field">',
+				this.line( '80px', '14px', 'margin-bottom:12px;display:block;' ),
+				'<div class="wsscd-skeleton-slider" style="height:8px;border-radius:4px;margin-bottom:8px;"></div>',
+				'<div style="display:flex;justify-content:space-between;">',
+				this.line( '40px', '12px' ),
+				this.line( '50px', '12px' ),
+				this.line( '40px', '12px' ),
+				'</div></div>',
+				this.cardEnd()
+			].join( '' );
+
+			return card1 + card2;
 		},
 
-		/**
-		 * Create review step cards with varied line widths
-		 *
-		 * @since 1.0.0
-		 * @returns {string} Review cards skeleton HTML
-		 */
-		createReviewCards: function() {
-			var rc1 = '<div class="scd-card scd-wizard-card">' +
-				'<div class="scd-card__header">' +
-				'<h3 class="scd-card__title">' +
-				'<span class="scd-skeleton-line" style="width:35%;height:20px;display:inline-block;margin-bottom:0;"></span>' +
-				'</h3>' +
-				'</div>' +
-				'<div class="scd-card__content">' +
-				'<div class="scd-skeleton-line" style="width:92%;"></div>' +
-				'<div class="scd-skeleton-line" style="width:78%;"></div>' +
-				'<div class="scd-skeleton-line" style="width:65%;"></div>' +
-				'</div>' +
-				'</div>';
+		createProductsStepCards: function() {
+			var self = this;
 
-			var rc2 = '<div class="scd-card scd-wizard-card">' +
-				'<div class="scd-card__header">' +
-				'<h3 class="scd-card__title">' +
-				'<span class="scd-skeleton-line" style="width:40%;height:20px;display:inline-block;margin-bottom:0;"></span>' +
-				'</h3>' +
-				'</div>' +
-				'<div class="scd-card__content">' +
-				'<div class="scd-skeleton-line" style="width:88%;"></div>' +
-				'<div class="scd-skeleton-line" style="width:95%;"></div>' +
-				'<div class="scd-skeleton-line" style="width:72%;"></div>' +
-				'</div>' +
-				'</div>';
+			// Card 1: Categories
+			var card1 = [
+				this.cardStart( '150px', '75%' ),
+				this.field( '90px', '38px', true ),
+				this.cardEnd()
+			].join( '' );
 
-			var rc3 = '<div class="scd-card scd-wizard-card">' +
-				'<div class="scd-card__header">' +
-				'<h3 class="scd-card__title">' +
-				'<span class="scd-skeleton-line" style="width:45%;height:20px;display:inline-block;margin-bottom:0;"></span>' +
-				'</h3>' +
-				'</div>' +
-				'<div class="scd-card__content">' +
-				'<div class="scd-skeleton-line" style="width:85%;"></div>' +
-				'<div class="scd-skeleton-line" style="width:90%;"></div>' +
-				'<div class="scd-skeleton-line" style="width:68%;"></div>' +
-				'</div>' +
-				'</div>';
+			// Card 2: Selection (4 options)
+			var optionWidths = [ '100px', '130px', '130px', '120px' ];
+			var descWidths = [ '280px', '240px', '220px', '260px' ];
+			var options = optionWidths.map( function( w, i ) {
+				return [
+					'<div style="padding:16px;border-radius:6px;' + self.styles.border + '">',
+					'<div style="display:flex;align-items:flex-start;gap:12px;">',
+					'<div style="flex-shrink:0;margin-top:2px;">' + self.radio() + '</div>',
+					'<div style="flex:1;">',
+					self.line( w, '16px', 'margin-bottom:6px;display:block;' ),
+					self.line( descWidths[ i ], '13px', 'max-width:90%;' ),
+					'</div></div></div>'
+				].join( '' );
+			} ).join( '' );
 
-			var rc4 = '<div class="scd-card scd-wizard-card">' +
-				'<div class="scd-card__header">' +
-				'<h3 class="scd-card__title">' +
-				'<span class="scd-skeleton-line" style="width:38%;height:20px;display:inline-block;margin-bottom:0;"></span>' +
-				'</h3>' +
-				'</div>' +
-				'<div class="scd-card__content">' +
-				'<div class="scd-skeleton-line" style="width:93%;"></div>' +
-				'<div class="scd-skeleton-line" style="width:80%;"></div>' +
-				'<div class="scd-skeleton-line" style="width:70%;"></div>' +
-				'</div>' +
-				'</div>';
+			var card2 = [
+				this.cardStart( '130px', '80%' ),
+				'<div style="display:flex;flex-direction:column;gap:12px;">',
+				options,
+				'</div>',
+				this.cardEnd()
+			].join( '' );
 
-			return rc1 + rc2 + rc3 + rc4;
+			// Card 3: Filters (PRO)
+			var card3 = [
+				this.cardStart( '140px', '70%', '60px' ),
+				'<div style="' + this.styles.flexCenter + 'gap:12px;margin-bottom:16px;">',
+				this.line( '140px', '14px', 'margin-bottom:0;' ),
+				'<div class="wsscd-skeleton-toggle" style="width:180px;height:30px;border-radius:6px;"></div>',
+				'</div>',
+				'<div style="display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:#f9f9f9;border-radius:6px;">',
+				this.input( '30px', 'width:90px;' ),
+				this.input( '30px', 'width:150px;' ),
+				this.input( '30px', 'width:130px;' ),
+				this.input( '30px', 'width:100px;' ),
+				'</div>',
+				this.cardEnd()
+			].join( '' );
+
+			return card1 + card2 + card3;
+		},
+
+		createDiscountsStepCards: function() {
+			var self = this;
+
+			// Card 1: Type Grid (5 items)
+			var typeCards = [ 0, 1, 2, 3, 4 ].map( function( i ) {
+				var isPro = i >= 2;
+				return [
+					'<div style="padding:20px 12px;border-radius:8px;text-align:center;min-height:140px;background:var(--wsscd-color-surface-alt);">',
+					'<div class="wsscd-skeleton-icon-lg" style="width:48px;height:48px;margin:0 auto 12px;border-radius:8px;"></div>',
+					self.line( '75%', '16px', 'margin:0 auto 8px;display:block;' ),
+					self.line( '90%', '13px', 'margin:0 auto 6px;display:block;' ),
+					self.line( '65%', '12px', 'margin:0 auto;display:block;' ),
+					isPro ? '<div class="wsscd-skeleton-badge" style="width:36px;height:18px;margin:10px auto 0;border-radius:9px;"></div>' : '',
+					'</div>'
+				].join( '' );
+			} ).join( '' );
+
+			var card1 = [
+				this.cardStart( '200px', '75%' ),
+				'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;">',
+				typeCards,
+				'</div>',
+				this.cardEnd()
+			].join( '' );
+
+			// Card 2: Config (3 form rows)
+			var formRows = [ 0, 1, 2 ].map( function( j ) {
+				return [
+					'<div style="display:flex;align-items:center;padding:12px 0;">',
+					self.line( '140px', '14px', 'flex-shrink:0;margin-bottom:0;' ),
+					self.input( '30px', 'flex:1;margin-left:20px;' ),
+					'</div>'
+				].join( '' );
+			} ).join( '' );
+
+			var card2 = this.cardStart( '190px', '65%' ) + formRows + this.cardEnd();
+
+			// Card 3: Badge
+			var card3 = [
+				this.cardStart( '120px', '70%' ),
+				'<div style="' + this.styles.flexCenter + 'gap:12px;margin-bottom:20px;">',
+				'<div class="wsscd-skeleton-toggle-switch" style="width:44px;height:24px;border-radius:12px;"></div>',
+				this.line( '120px', '14px' ),
+				'</div>',
+				'<div class="wsscd-skeleton-preview" style="height:80px;border-radius:8px;background:var(--wsscd-color-surface-alt);"></div>',
+				this.cardEnd()
+			].join( '' );
+
+			// Card 4: Rules (PRO)
+			var sections = [ '130px', '150px', '160px' ].map( function( w, k ) {
+				return [
+					'<div style="' + self.styles.border + 'border-radius:4px;margin-bottom:' + ( k < 2 ? '12px' : '0' ) + ';">',
+					'<div style="' + self.styles.flexCenter + 'padding:14px 16px;">',
+					self.icon( 16, 'margin-right:10px;' ),
+					self.line( w, '14px' ),
+					'<div class="wsscd-skeleton-chevron" style="width:16px;height:16px;margin-left:auto;"></div>',
+					'</div></div>'
+				].join( '' );
+			} ).join( '' );
+
+			var card4 = this.cardStart( '180px', '60%', '35px' ) + sections + this.cardEnd();
+
+			return card1 + card2 + card3 + card4;
+		},
+
+		createScheduleStepCards: function() {
+			var self = this;
+
+			// Card 1: Presets (6 items)
+			var presets = [ 0, 1, 2, 3, 4, 5 ].map( function() {
+				return [
+					'<div style="padding:16px;border-radius:6px;' + self.styles.border + 'text-align:center;min-height:60px;">',
+					self.line( '70%', '15px', 'margin:0 auto 8px;display:block;' ),
+					self.line( '50%', '12px', 'margin:0 auto;display:block;' ),
+					'</div>'
+				].join( '' );
+			} ).join( '' );
+
+			var card1 = [
+				this.cardStart( '170px', '75%' ),
+				'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">',
+				presets,
+				'</div>',
+				this.cardEnd()
+			].join( '' );
+
+			// Card 2: Configuration
+			var startTypes = [ 0, 1 ].map( function() {
+				return [
+					'<div style="flex:1;padding:14px;border-radius:6px;' + self.styles.border + '">',
+					'<div style="' + self.styles.flexCenter + 'gap:10px;">',
+					self.radio(),
+					self.line( '100px', '14px', 'margin-bottom:0;' ),
+					'</div></div>'
+				].join( '' );
+			} ).join( '' );
+
+			var card2 = [
+				this.cardStart( '190px', '70%' ),
+				'<div style="display:flex;gap:12px;margin-bottom:20px;">' + startTypes + '</div>',
+				'<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">',
+				this.field( '80px', '30px', true ),
+				this.field( '70px', '30px', true ),
+				'</div>',
+				'<div style="margin-top:16px;padding:12px;background:#f9f9f9;border-radius:6px;">',
+				this.line( '200px', '14px', 'margin:0 auto;display:block;' ),
+				'</div>',
+				this.cardEnd()
+			].join( '' );
+
+			// Card 3: Recurring
+			var card3 = [
+				this.cardStart( '150px', '80%' ),
+				'<div style="' + this.styles.flexCenter + 'gap:12px;margin-bottom:20px;">',
+				'<div class="wsscd-skeleton-toggle-switch" style="width:44px;height:24px;border-radius:12px;"></div>',
+				this.line( '140px', '14px' ),
+				'</div>',
+				'<div style="opacity:0.5;">',
+				this.line( '120px', '14px', 'margin-bottom:12px;display:block;' ),
+				'<div style="display:flex;gap:10px;">',
+				'<div class="wsscd-skeleton-pill" style="width:60px;height:32px;border-radius:16px;"></div>',
+				'<div class="wsscd-skeleton-pill" style="width:70px;height:32px;border-radius:16px;"></div>',
+				'<div class="wsscd-skeleton-pill" style="width:80px;height:32px;border-radius:16px;"></div>',
+				'</div></div>',
+				this.cardEnd()
+			].join( '' );
+
+			return card1 + card2 + card3;
+		},
+
+		createReviewStepCards: function() {
+			var self = this;
+
+			// Loading state
+			var loading = [
+				'<div style="text-align:center;padding:40px 20px;margin-bottom:20px;">',
+				'<div class="wsscd-skeleton-spinner" style="width:40px;height:40px;border-radius:50%;margin:0 auto 16px;"></div>',
+				this.line( '220px', '14px', 'margin:0 auto;display:block;' ),
+				'</div>'
+			].join( '' );
+
+			// Health Score
+			var healthScore = [
+				'<div style="padding:24px;margin-bottom:20px;border-radius:8px;' + this.styles.border + this.styles.flexBetween + '">',
+				'<div>',
+				this.line( '180px', '20px', 'margin-bottom:8px;display:block;' ),
+				this.line( '140px', '14px' ),
+				'</div>',
+				'<div class="wsscd-skeleton-score" style="width:80px;height:50px;border-radius:8px;"></div>',
+				'</div>'
+			].join( '' );
+
+			// Impact (3 metrics)
+			var metrics = [ 0, 1, 2 ].map( function() {
+				return [
+					'<div style="padding:16px;border-radius:6px;' + self.styles.border + 'text-align:center;">',
+					self.line( '80%', '12px', 'margin:0 auto 10px;display:block;' ),
+					'<div class="wsscd-skeleton-value" style="width:50px;height:28px;margin:0 auto;border-radius:4px;"></div>',
+					'</div>'
+				].join( '' );
+			} ).join( '' );
+
+			var impact = [
+				this.cardStart( '200px', '70%' ),
+				'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">',
+				metrics,
+				'</div>',
+				this.cardEnd()
+			].join( '' );
+
+			// Launch Options (2 cards)
+			var options = [ 0, 1 ].map( function() {
+				return [
+					'<div style="flex:1;padding:20px;border-radius:8px;' + self.styles.border + '">',
+					'<div style="display:flex;align-items:flex-start;gap:12px;">',
+					'<div style="flex-shrink:0;margin-top:2px;">' + self.radio( 20 ) + '</div>',
+					'<div style="flex:1;">',
+					self.icon( 24, 'margin-bottom:10px;display:block;' ),
+					self.line( '120px', '16px', 'margin-bottom:8px;display:block;' ),
+					self.line( '90%', '13px' ),
+					'</div></div></div>'
+				].join( '' );
+			} ).join( '' );
+
+			var launch = [
+				this.cardStart( '180px', '60%' ),
+				'<div style="display:flex;gap:16px;">' + options + '</div>',
+				'<div style="margin-top:16px;padding:12px;background:#f9f9f9;border-radius:4px;' + this.styles.flexCenter + 'gap:10px;">',
+				this.icon( 16, 'flex-shrink:0;' ),
+				this.line( '80%', '13px' ),
+				'</div>',
+				this.cardEnd()
+			].join( '' );
+
+			return loading + healthScore + impact + launch;
 		}
 	};
 
-	// Emit service ready event for dependency tracking
 	$( document ).ready( function() {
-		$( document ).trigger( 'scd:service:ready', [ 'SkeletonTemplates' ] );
+		$( document ).trigger( 'wsscd:service:ready', [ 'SkeletonTemplates' ] );
 	} );
 
 } )( jQuery );

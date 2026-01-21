@@ -24,7 +24,7 @@
 	 * 
 	 * @since 1.0.0
 	 */
-	SCD.Mixins.StepPersistence = {
+	WSSCD.Mixins.StepPersistence = {
 
 		/**
 		 * Track if we're currently updating state to prevent recursion
@@ -53,15 +53,15 @@
 
 			if ( this.modules && this.modules.state ) {
 				var currentState = this.modules.state.getState();
-				if ( ( SCD.Utils && SCD.Utils.isEmpty && SCD.Utils.isEmpty( currentState ) ) || $.isEmptyObject( currentState ) ) {
-					var fields = SCD.FieldDefinitions.getStepFields( stepName );
+				if ( ( WSSCD.Utils && WSSCD.Utils.isEmpty && WSSCD.Utils.isEmpty( currentState ) ) || $.isEmptyObject( currentState ) ) {
+					var fields = WSSCD.FieldDefinitions.getStepFields( stepName );
 					if ( fields ) {
 						var defaults = {};
 						for ( var fieldName in fields ) {
 							if ( Object.prototype.hasOwnProperty.call( fields, fieldName ) ) {
 								// Use deepClone if available, otherwise use jQuery extend
-								if ( SCD.Utils && SCD.Utils.deepClone ) {
-									defaults[fieldName] = SCD.Utils.deepClone( fields[fieldName].default );
+								if ( WSSCD.Utils && WSSCD.Utils.deepClone ) {
+									defaults[fieldName] = WSSCD.Utils.deepClone( fields[fieldName].default );
 								} else {
 									defaults[fieldName] = $.extend( true, {}, fields[fieldName].default );
 								}
@@ -71,7 +71,7 @@
 						this.modules.state.setState( defaults );
 						this._isUpdatingState = false;
 					} else {
-						if ( window.scdDebugPersistence ) {
+						if ( window.wsscdDebugPersistence ) {
 						}
 					}
 				}
@@ -82,14 +82,14 @@
 
 			// Listen for save requests with namespaced events
 			var self = this;
-			this.bindCustomEvent( 'scd:wizard:save-step' + this._persistenceNamespace, function( event, step ) {
+			this.bindCustomEvent( 'wsscd:wizard:save-step' + this._persistenceNamespace, function( event, step ) {
 				if ( step === self.stepName ) {
 					self.saveStep();
 				}
 			} );
 
 			// Listen for validation requests with namespaced events
-			this.bindCustomEvent( 'scd:wizard:validate-step' + this._persistenceNamespace, function( event, step ) {
+			this.bindCustomEvent( 'wsscd:wizard:validate-step' + this._persistenceNamespace, function( event, step ) {
 				if ( step === self.stepName ) {
 					self.validateStep();
 				}
@@ -110,13 +110,13 @@
 				}
 
 				// Verify required dependencies are loaded (fail loudly if missing)
-				if ( ! window.SCD || ! window.SCD.Utils || ! window.SCD.Utils.Fields ) {
-					console.error( '[StepPersistence] CRITICAL: SCD.Utils.Fields not loaded for step:', this.stepName );
+				if ( ! window.WSSCD || ! window.WSSCD.Utils || ! window.WSSCD.Utils.Fields ) {
+					console.error( '[StepPersistence] CRITICAL: WSSCD.Utils.Fields not loaded for step:', this.stepName );
 					console.error( '[StepPersistence] This indicates a script dependency issue. Check script-registry.php.' );
-					return this._createErrorResponse( 'Required dependencies (SCD.Utils.Fields) not loaded. Cannot collect field data.' );
+					return this._createErrorResponse( 'Required dependencies (WSSCD.Utils.Fields) not loaded. Cannot collect field data.' );
 				}
 
-				var fieldDefs = window.SCD.FieldDefinitions.getStepFields( this.stepName ) || {};
+				var fieldDefs = window.WSSCD.FieldDefinitions.getStepFields( this.stepName ) || {};
 
 				var data = {};
 
@@ -126,7 +126,9 @@
 						var fieldDef = fieldDefs[fieldName];
 
 						// Skip fields that don't meet their conditional visibility requirements
-						if ( ! this._isFieldVisible( fieldDef, data ) ) {
+						var isVisible = this._isFieldVisible( fieldDef, data );
+
+						if ( ! isVisible ) {
 							continue;
 						}
 
@@ -134,21 +136,21 @@
 							// Handle complex fields using handler
 							data[fieldName] = this.collectComplexField( fieldDef );
 						} else {
-							// SCD.Utils.Fields is guaranteed to be loaded (verified above)
-							data[fieldName] = window.SCD.Utils.Fields.getFieldValue( fieldName, fieldDef );
+							// WSSCD.Utils.Fields is guaranteed to be loaded (verified above)
+							data[fieldName] = window.WSSCD.Utils.Fields.getFieldValue( fieldName, fieldDef );
 						}
 					}
 				}
 
 				// Sanitize the collected data
 				var sanitizedData = data;
-				if ( window.SCD && window.SCD.ValidationManager && 'function' === typeof window.SCD.ValidationManager.sanitizeFieldValue ) {
-					var fields = SCD.FieldDefinitions.getStepFields( this.stepName );
+				if ( window.WSSCD && window.WSSCD.ValidationManager && 'function' === typeof window.WSSCD.ValidationManager.sanitizeFieldValue ) {
+					var fields = WSSCD.FieldDefinitions.getStepFields( this.stepName );
 					if ( fields ) {
 						sanitizedData = {};
 						for ( var fieldKey in fields ) {
 							if ( Object.prototype.hasOwnProperty.call( fields, fieldKey ) && Object.prototype.hasOwnProperty.call( data, fieldKey ) ) {
-								sanitizedData[fieldKey] = window.SCD.ValidationManager.sanitizeFieldValue( data[fieldKey], fields[fieldKey].type );
+								sanitizedData[fieldKey] = window.WSSCD.ValidationManager.sanitizeFieldValue( data[fieldKey], fields[fieldKey].type );
 							}
 						}
 					}
@@ -170,7 +172,7 @@
 		 * @param data
 		 */
 		validateData: function( data ) {
-			if ( window.scdDebugPersistence ) {
+			if ( window.wsscdDebugPersistence ) {
 			}
 			try {
 				if ( data && data._error ) {
@@ -183,8 +185,8 @@
 					};
 				}
 
-				if ( !window.SCD || !window.SCD.ValidationManager ) {
-					if ( window.scdDebugPersistence ) {
+				if ( !window.WSSCD || !window.WSSCD.ValidationManager ) {
+					if ( window.wsscdDebugPersistence ) {
 					}
 					return {
 						valid: true,
@@ -193,7 +195,7 @@
 				}
 
 				// Use pure ValidationManager.validateStep method
-				var result = window.SCD.ValidationManager.validateStep( this.stepName, data );
+				var result = window.WSSCD.ValidationManager.validateStep( this.stepName, data );
 				
 				// Convert ValidationManager format { ok: ..., errors: {...} } to orchestrator format { valid: ..., errors: [...] }
 				// This adapter layer maintains the public interface used by all orchestrators
@@ -226,8 +228,8 @@
 					clean: result.clean
 				};
 			} catch ( error ) {
-				if ( window.SCD && window.SCD.ErrorHandler ) {
-					window.SCD.ErrorHandler.handle( error, 'StepPersistence.validateData' );
+				if ( window.WSSCD && window.WSSCD.ErrorHandler ) {
+					window.WSSCD.ErrorHandler.handle( error, 'StepPersistence.validateData' );
 				}
 				return this._createValidationErrorResult( 'system', 'Validation error: ' + ( error.message || 'Unknown error' ) );
 			}
@@ -250,24 +252,23 @@
 				return;
 			}
 
-			// Standard pre-check: Skip if data is empty (using SCD.Utils.isEmpty if available)
-			if ( window.SCD && window.SCD.Utils && window.SCD.Utils.isEmpty && window.SCD.Utils.isEmpty( data ) ) {
+			// Standard pre-check: Skip if data is empty (using WSSCD.Utils.isEmpty if available)
+			if ( window.WSSCD && window.WSSCD.Utils && window.WSSCD.Utils.isEmpty && window.WSSCD.Utils.isEmpty( data ) ) {
 				return;
 			}
 
-			// Standard pre-check: Skip population on initial page load with intent=new
-			// This prevents overwriting empty form when creating a new campaign
-			var urlParams = new URLSearchParams( window.location.search );
-			var intent = urlParams.get( 'intent' );
-			if ( 'new' === intent ) {
+			// Standard pre-check: Skip population on initial page load with fresh session.
+			// This prevents overwriting empty form when creating a new campaign.
+			// isFresh flag from PHP is the authoritative source (URL param is stripped by Intent Handler).
+			if ( window.wsscdWizardData && window.wsscdWizardData.isFresh ) {
 				return;
 			}
 
 			// Wrap everything in try-catch for consistent error handling
 			try {
 				// Standard debug logging
-				if ( window.scdDebugWizard ) {
-					scdDebugWizard( this.stepName, 'populate_fields', {
+				if ( window.wsscdDebugWizard ) {
+					wsscdDebugWizard( this.stepName, 'populate_fields', {
 						dataKeys: Object.keys( data ),
 						hasData: !!data
 					} );
@@ -285,11 +286,11 @@
 					this._isUpdatingState = false;
 				}
 
-				if ( !window.SCD || !window.SCD.FieldDefinitions || !window.SCD.FieldDefinitions.getStepFields ) {
+				if ( !window.WSSCD || !window.WSSCD.FieldDefinitions || !window.WSSCD.FieldDefinitions.getStepFields ) {
 					return;
 				}
 
-				var fieldDefs = window.SCD.FieldDefinitions.getStepFields( this.stepName );
+				var fieldDefs = window.WSSCD.FieldDefinitions.getStepFields( this.stepName );
 				if ( !fieldDefs ) {
 					return;
 				}
@@ -316,9 +317,9 @@
 							// Handle complex fields using handler
 							// Handle complex fields using handler
 							this.populateComplexField( fieldDef, data[dataKey] );
-						} else if ( window.SCD && window.SCD.Utils && window.SCD.Utils.Fields ) {
+						} else if ( window.WSSCD && window.WSSCD.Utils && window.WSSCD.Utils.Fields ) {
 							// Handle standard fields
-							window.SCD.Utils.Fields.setFieldValue( fieldName, data[dataKey], fieldDef );
+							window.WSSCD.Utils.Fields.setFieldValue( fieldName, data[dataKey], fieldDef );
 						}
 					}
 				}
@@ -329,12 +330,12 @@
 				}
 
 				// Trigger populated event
-				this.triggerCustomEvent( 'scd:' + this.stepName + ':populated', [ data ] );
+				this.triggerCustomEvent( 'wsscd:' + this.stepName + ':populated', [ data ] );
 
 			} catch ( error ) {
 				// Standard error handling
-				if ( window.SCD && window.SCD.ErrorHandler ) {
-					window.SCD.ErrorHandler.handle( error, this.stepName + '-populate-fields' );
+				if ( window.WSSCD && window.WSSCD.ErrorHandler ) {
+					window.WSSCD.ErrorHandler.handle( error, this.stepName + '-populate-fields' );
 				} else {
 					console.error( '[StepPersistence] Error populating fields for ' + this.stepName + ':', error );
 				}
@@ -388,7 +389,7 @@
 			if ( data && data._error ) {
 				var errors = [ { field: 'system', message: data._message || 'Failed to collect data' } ];
 				this.showErrors( errors );
-				this.triggerCustomEvent( 'scd:' + this.stepName + ':save-failed', [ errors ] );
+				this.triggerCustomEvent( 'wsscd:' + this.stepName + ':save-failed', [ errors ] );
 				return $.Deferred().reject( errors ).promise();
 			}
 
@@ -396,38 +397,38 @@
 
 			if ( !validation.valid ) {
 				this.showErrors( validation.errors );
-				this.triggerCustomEvent( 'scd:' + this.stepName + ':save-failed', [ validation.errors ] );
+				this.triggerCustomEvent( 'wsscd:' + this.stepName + ':save-failed', [ validation.errors ] );
 				return $.Deferred().reject( validation.errors ).promise();
 			}
 
-			return SCD.Ajax.post( 'scd_save_step', {
+			return WSSCD.Ajax.post( 'wsscd_save_step', {
 				step: this.stepName,
 				data: data
 			} ).done( function( response ) {
 				// This ensures that when navigating back to this step, the updated data is used
 				// instead of the original data loaded from PHP on page load
-				if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.modules && window.SCD.Wizard.modules.stateManager ) {
-					var currentStepData = window.SCD.Wizard.modules.stateManager.get( 'stepData' ) || {};
+				if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.modules && window.WSSCD.Wizard.modules.stateManager ) {
+					var currentStepData = window.WSSCD.Wizard.modules.stateManager.get( 'stepData' ) || {};
 					currentStepData[self.stepName] = data;
-					window.SCD.Wizard.modules.stateManager.set( 'stepData', currentStepData );
+					window.WSSCD.Wizard.modules.stateManager.set( 'stepData', currentStepData );
 				}
 
-				// CRITICAL FIX: Update window.scdWizardData to prevent stale data from being re-used
-				// window.scdWizardData contains PHP-localized data from initial page load
+				// CRITICAL FIX: Update window.wsscdWizardData to prevent stale data from being re-used
+				// window.wsscdWizardData contains PHP-localized data from initial page load
 				// After save, this data becomes stale. We must update it with the latest saved data
 				// to ensure that any future step initializations use fresh data
-				if ( window.scdWizardData && window.scdWizardData.currentCampaign ) {
-					if ( ! window.scdWizardData.currentCampaign[self.stepName] ) {
-						window.scdWizardData.currentCampaign[self.stepName] = {};
+				if ( window.wsscdWizardData && window.wsscdWizardData.currentCampaign ) {
+					if ( ! window.wsscdWizardData.currentCampaign[self.stepName] ) {
+						window.wsscdWizardData.currentCampaign[self.stepName] = {};
 					}
 					// Deep copy to prevent reference issues
-					window.scdWizardData.currentCampaign[self.stepName] = $.extend( true, {}, data );
+					window.wsscdWizardData.currentCampaign[self.stepName] = $.extend( true, {}, data );
 				}
 
-				self.triggerCustomEvent( 'scd:' + self.stepName + ':saved', [ response ] );
+				self.triggerCustomEvent( 'wsscd:' + self.stepName + ':saved', [ response ] );
 			} ).fail( function( xhr ) {
-				SCD.ErrorHandler.handleAjaxError( xhr, 'scd_save_step', { step: self.stepName } );
-				self.triggerCustomEvent( 'scd:' + self.stepName + ':save-failed', [ xhr ] );
+				WSSCD.ErrorHandler.handleAjaxError( xhr, 'wsscd_save_step', { step: self.stepName } );
+				self.triggerCustomEvent( 'wsscd:' + self.stepName + ':save-failed', [ xhr ] );
 			} );
 		},
 
@@ -445,7 +446,7 @@
 				if ( data && data._error ) {
 					var errors = [ { field: 'system', message: data._message || 'Failed to collect data' } ];
 					this.showValidationErrors( errors );
-					this.triggerCustomEvent( 'scd:' + this.stepName + ':validated', [ false ] );
+					this.triggerCustomEvent( 'wsscd:' + this.stepName + ':validated', [ false ] );
 					deferred.resolve( false );
 					return deferred.promise();
 				}
@@ -459,11 +460,11 @@
 					this.showValidationErrors( validation.errors );
 				}
 
-				this.triggerCustomEvent( 'scd:' + this.stepName + ':validated', [ validation.valid ] );
+				this.triggerCustomEvent( 'wsscd:' + this.stepName + ':validated', [ validation.valid ] );
 				deferred.resolve( validation.valid );
 			} catch ( error ) {
 				console.error( '[StepPersistence] Validation error:', error );
-				this.triggerCustomEvent( 'scd:' + this.stepName + ':validated', [ false ] );
+				this.triggerCustomEvent( 'wsscd:' + this.stepName + ':validated', [ false ] );
 				deferred.resolve( false );
 			}
 
@@ -503,12 +504,12 @@
 			}
 
 			// Find step container
-			var $stepContainer = $( '#scd-step-' + this.stepName );
+			var $stepContainer = $( '#wsscd-step-' + this.stepName );
 			if ( ! $stepContainer.length ) {
-				$stepContainer = $( '.scd-wizard-step--' + this.stepName );
+				$stepContainer = $( '.wsscd-wizard-step--' + this.stepName );
 			}
 			if ( ! $stepContainer.length ) {
-				$stepContainer = $( '.scd-wizard-content' );
+				$stepContainer = $( '.wsscd-wizard-content' );
 			}
 
 			// Convert errors to the format expected by ValidationError.showMultiple()
@@ -527,8 +528,8 @@
 			}
 
 			// Use ValidationError component for proper display
-			if ( window.SCD && window.SCD.ValidationError && 0 < Object.keys( formattedErrors ).length ) {
-				window.SCD.ValidationError.showMultiple( formattedErrors, $stepContainer, {
+			if ( window.WSSCD && window.WSSCD.ValidationError && 0 < Object.keys( formattedErrors ).length ) {
+				window.WSSCD.ValidationError.showMultiple( formattedErrors, $stepContainer, {
 					clearFirst: true,
 					showSummary: true,
 					summaryPosition: 'top',
@@ -558,7 +559,7 @@
 		 */
 		reset: function() {
 			try {
-				var fields = SCD.FieldDefinitions[this.stepName];
+				var fields = WSSCD.FieldDefinitions[this.stepName];
 				if ( !fields ) {
 					console.error( '[StepPersistence] Cannot reset - Field definitions not available for step:', this.stepName );
 					return;
@@ -568,7 +569,7 @@
 				var defaults = {};
 				for ( var fieldName in fields ) {
 					if ( Object.prototype.hasOwnProperty.call( fields, fieldName ) ) {
-						defaults[fieldName] = SCD.Utils.deepClone( fields[fieldName].default );
+						defaults[fieldName] = WSSCD.Utils.deepClone( fields[fieldName].default );
 					}
 				}
 
@@ -581,7 +582,7 @@
 				// Reset DOM
 				this.populateFields( defaults );
 
-				this.triggerCustomEvent( 'scd:' + this.stepName + ':reset', [] );
+				this.triggerCustomEvent( 'wsscd:' + this.stepName + ':reset', [] );
 			} catch ( error ) {
 				console.error( '[StepPersistence] Error during reset:', error );
 				if ( 'function' === typeof this.showError ) {
@@ -779,13 +780,13 @@
 		 * @returns {boolean} True if available
 		 */
 		_hasFieldDefinitions: function() {
-			return window.SCD && 
-			       window.SCD.FieldDefinitions && 
-			       'function' === typeof window.SCD.FieldDefinitions.getStepFields;
+			return window.WSSCD && 
+			       window.WSSCD.FieldDefinitions && 
+			       'function' === typeof window.WSSCD.FieldDefinitions.getStepFields;
 		},
 
 	/**
-	 * Check if a field is visible based on its conditional property
+	 * Check if a field is visible based on its conditional property and feature access
 	 * @private
 	 * @since 1.0.0
 	 * @param {object} fieldDef - Field definition
@@ -793,6 +794,11 @@
 	 * @returns {boolean} True if field should be visible/processed
 	 */
 	_isFieldVisible: function( fieldDef, currentData ) {
+		// Check PRO feature access first
+		if ( fieldDef.proFeature && ! this._hasFeatureAccess( fieldDef.proFeature ) ) {
+			return false;
+		}
+
 		// If no conditional defined, field is always visible
 		if ( ! fieldDef.conditional ) {
 			return true;
@@ -807,8 +813,8 @@
 		var actualValue = null;
 
 		// Convert to camelCase for JavaScript data lookup
-		var conditionalFieldName = window.SCD && window.SCD.Utils && window.SCD.Utils.Fields
-			? window.SCD.Utils.Fields.toCamelCase( conditionalFieldSnake )
+		var conditionalFieldName = window.WSSCD && window.WSSCD.Utils && window.WSSCD.Utils.Fields
+			? window.WSSCD.Utils.Fields.toCamelCase( conditionalFieldSnake )
 			: conditionalFieldSnake;
 
 		// First check the data parameter (for populateFields)
@@ -852,10 +858,47 @@
 			conditionMatches = actualValue === conditionalValue;
 		}
 
-		if ( window.scdDebugPersistence ) {
+		if ( window.wsscdDebugPersistence ) {
 		}
 
 		return conditionMatches;
+	},
+
+	/**
+	 * Check if user has access to a PRO feature
+	 * Uses feature gate data exposed via wsscdWizardData.features
+	 *
+	 * @private
+	 * @since 1.0.0
+	 * @param {string} featureName - Feature identifier (e.g., 'discount_configurations', 'advanced_filters')
+	 * @returns {boolean} True if user has access to the feature
+	 */
+	_hasFeatureAccess: function( featureName ) {
+		// Get feature gate data from wizard data
+		var features = window.wsscdWizardData && window.wsscdWizardData.features;
+
+		// If no feature data available, default to allow (fail open for safety)
+		if ( ! features ) {
+			return true;
+		}
+
+		// Map feature names to feature gate properties
+		// Feature names in field definitions map to can_use_* properties in wsscdWizardData.features
+		var featureMap = {
+			'discount_configurations': 'canUseDiscountConfigs',
+			'advanced_filters': 'canUseAdvancedFilters',
+			'recurring': 'canUseRecurring'
+		};
+
+		var featureKey = featureMap[featureName];
+
+		// If unknown feature, default to allow
+		if ( ! featureKey ) {
+			return true;
+		}
+
+		// Check if user has access to the feature
+		return !! features[featureKey];
 	},
 
 		/**
@@ -896,8 +939,8 @@
 		cleanup: function() {
 			// Unbind namespaced events if namespace exists
 			if ( this._persistenceNamespace && 'function' === typeof this.unbindCustomEvent ) {
-				this.unbindCustomEvent( 'scd:wizard:save-step' + this._persistenceNamespace );
-				this.unbindCustomEvent( 'scd:wizard:validate-step' + this._persistenceNamespace );
+				this.unbindCustomEvent( 'wsscd:wizard:save-step' + this._persistenceNamespace );
+				this.unbindCustomEvent( 'wsscd:wizard:validate-step' + this._persistenceNamespace );
 			}
 
 			this._isUpdatingState = false;

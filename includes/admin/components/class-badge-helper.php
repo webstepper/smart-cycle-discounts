@@ -25,18 +25,18 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since      1.0.0
  */
-class SCD_Badge_Helper {
+class WSSCD_Badge_Helper {
 
 	/**
 	 * Generate a generic badge.
 	 *
 	 * @since 1.0.0
 	 * @param string $text Badge text content.
-	 * @param string $class CSS class name (default: 'scd-badge').
+	 * @param string $class CSS class name (default: 'wsscd-badge').
 	 * @param string $title Optional title attribute for tooltip.
 	 * @return string Badge HTML.
 	 */
-	public static function badge( $text, $class = 'scd-badge', $title = '' ) {
+	public static function badge( $text, $class = 'wsscd-badge', $title = '' ) {
 		$title_attr = '';
 		if ( ! empty( $title ) ) {
 			$title_attr = ' title="' . esc_attr( $title ) . '"';
@@ -64,7 +64,7 @@ class SCD_Badge_Helper {
 
 		return self::badge(
 			__( 'PRO', 'smart-cycle-discounts' ),
-			'scd-pro-badge',
+			'wsscd-pro-badge',
 			$title
 		);
 	}
@@ -83,7 +83,7 @@ class SCD_Badge_Helper {
 
 		return self::badge(
 			__( 'FREE', 'smart-cycle-discounts' ),
-			'scd-free-badge',
+			'wsscd-free-badge',
 			$title
 		);
 	}
@@ -111,7 +111,7 @@ class SCD_Badge_Helper {
 
 		return self::badge(
 			$label,
-			'scd-badge-status--' . esc_attr( $status )
+			'wsscd-badge-status--' . esc_attr( $status )
 		);
 	}
 
@@ -136,7 +136,7 @@ class SCD_Badge_Helper {
 
 		return self::badge(
 			$label,
-			'scd-badge-health--' . esc_attr( $level )
+			'wsscd-badge-health--' . esc_attr( $level )
 		);
 	}
 
@@ -150,7 +150,7 @@ class SCD_Badge_Helper {
 	public static function priority_badge( $priority ) {
 		return self::badge(
 			(string) $priority,
-			'scd-priority-badge scd-priority-' . absint( $priority )
+			'wsscd-priority-badge wsscd-priority-' . absint( $priority )
 		);
 	}
 
@@ -165,14 +165,14 @@ class SCD_Badge_Helper {
 	 * @return string Product badge HTML.
 	 */
 	public static function product_badge( $text, $selection_type = 'specific_products', $title = '', $is_empty = false ) {
-		$classes = array( 'scd-badge', 'scd-badge-product' );
+		$classes = array( 'wsscd-badge', 'wsscd-badge-product' );
 
 		// Add selection type class
-		$classes[] = 'scd-badge-product--' . esc_attr( $selection_type );
+		$classes[] = 'wsscd-badge-product--' . esc_attr( $selection_type );
 
 		// Add empty state class if needed
 		if ( $is_empty ) {
-			$classes[] = 'scd-badge-product--empty';
+			$classes[] = 'wsscd-badge-product--empty';
 		}
 
 		return self::badge(

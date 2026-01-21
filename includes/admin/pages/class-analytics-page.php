@@ -16,10 +16,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-scd-ajax-response.php';
+require_once WSSCD_PLUGIN_DIR . 'includes/admin/ajax/class-wsscd-ajax-response.php';
 
 // Load AJAX security handler
-require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
+require_once WSSCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
 
 /**
  * Analytics Page Controller
@@ -31,69 +31,69 @@ require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
  * @subpackage SmartCycleDiscounts/includes/admin/pages
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Analytics_Page {
+class WSSCD_Analytics_Page {
 
 	/**
 	 * Analytics collector instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Analytics_Collector    $analytics_collector    Analytics collector.
+	 * @var      WSSCD_Analytics_Collector    $analytics_collector    Analytics collector.
 	 */
-	private SCD_Analytics_Collector $analytics_collector;
+	private WSSCD_Analytics_Collector $analytics_collector;
 
 	/**
 	 * Metrics calculator instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Metrics_Calculator    $metrics_calculator    Metrics calculator.
+	 * @var      WSSCD_Metrics_Calculator    $metrics_calculator    Metrics calculator.
 	 */
-	private SCD_Metrics_Calculator $metrics_calculator;
+	private WSSCD_Metrics_Calculator $metrics_calculator;
 
 	/**
 	 * Chart renderer instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Chart_Renderer    $chart_renderer    Chart renderer.
+	 * @var      WSSCD_Chart_Renderer    $chart_renderer    Chart renderer.
 	 */
-	private SCD_Chart_Renderer $chart_renderer;
+	private WSSCD_Chart_Renderer $chart_renderer;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Campaign Overview Panel instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Overview_Panel    $overview_panel    Campaign Overview Panel.
+	 * @var      WSSCD_Campaign_Overview_Panel    $overview_panel    Campaign Overview Panel.
 	 */
-	private SCD_Campaign_Overview_Panel $overview_panel;
+	private WSSCD_Campaign_Overview_Panel $overview_panel;
 
 	/**
 	 * Initialize the analytics page.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Analytics_Collector       $analytics_collector    Analytics collector.
-	 * @param    SCD_Metrics_Calculator        $metrics_calculator     Metrics calculator.
-	 * @param    SCD_Chart_Renderer            $chart_renderer         Chart renderer.
-	 * @param    SCD_Logger                    $logger                 Logger instance.
-	 * @param    SCD_Campaign_Overview_Panel   $overview_panel         Campaign Overview Panel.
+	 * @param    WSSCD_Analytics_Collector       $analytics_collector    Analytics collector.
+	 * @param    WSSCD_Metrics_Calculator        $metrics_calculator     Metrics calculator.
+	 * @param    WSSCD_Chart_Renderer            $chart_renderer         Chart renderer.
+	 * @param    WSSCD_Logger                    $logger                 Logger instance.
+	 * @param    WSSCD_Campaign_Overview_Panel   $overview_panel         Campaign Overview Panel.
 	 */
 	public function __construct(
-		SCD_Analytics_Collector $analytics_collector,
-		SCD_Metrics_Calculator $metrics_calculator,
-		SCD_Chart_Renderer $chart_renderer,
-		SCD_Logger $logger,
-		SCD_Campaign_Overview_Panel $overview_panel
+		WSSCD_Analytics_Collector $analytics_collector,
+		WSSCD_Metrics_Calculator $metrics_calculator,
+		WSSCD_Chart_Renderer $chart_renderer,
+		WSSCD_Logger $logger,
+		WSSCD_Campaign_Overview_Panel $overview_panel
 	) {
 		$this->analytics_collector = $analytics_collector;
 		$this->metrics_calculator  = $metrics_calculator;
@@ -109,11 +109,11 @@ class SCD_Analytics_Page {
 	 * @return   void
 	 */
 	public function render(): void {
-		if ( ! current_user_can( 'scd_view_analytics' ) ) {
-			wp_die( __( 'You do not have sufficient permissions to access this page.', 'smart-cycle-discounts' ) );
+		if ( ! current_user_can( 'wsscd_view_analytics' ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'smart-cycle-discounts' ) );
 		}
 
-		$is_premium = function_exists( 'scd_is_premium' ) && scd_is_premium();
+		$is_premium = function_exists( 'wsscd_is_premium' ) && wsscd_is_premium();
 
 		// Show upgrade prompt for free users
 		if ( ! $is_premium ) {
@@ -124,8 +124,9 @@ class SCD_Analytics_Page {
 		try {
 			$date_range = $this->get_current_date_range();
 
-			// Check if user requested cache refresh
-			$refresh = isset( $_GET['refresh'] ) && '1' === $_GET['refresh'];
+			// Check if user requested cache refresh.
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL param for cache refresh only. Capability checked at method start. Value validated against expected '1'.
+			$refresh = isset( $_GET['refresh'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['refresh'] ) );
 
 			// Calculate metrics once (use cache unless refresh requested)
 			$full_metrics = $this->metrics_calculator->calculate_overall_metrics( $date_range, ! $refresh );
@@ -148,23 +149,26 @@ class SCD_Analytics_Page {
 				)
 			);
 
-			wp_die( __( 'Failed to load analytics dashboard.', 'smart-cycle-discounts' ) );
+			wp_die( esc_html__( 'Failed to load analytics dashboard.', 'smart-cycle-discounts' ) );
 		}
 	}
 
 	/**
 	 * Get current date range.
 	 *
+	 * SECURITY: Called only from render() which enforces capability check.
+	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @return   string    Date range.
 	 */
 	private function get_current_date_range(): string {
-		$date_range = sanitize_text_field( $_GET['date_range'] ?? '30days' );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL param for date range only. Capability checked in caller (render()). Value validated against whitelist below.
+		$date_range = isset( $_GET['date_range'] ) ? sanitize_text_field( wp_unslash( $_GET['date_range'] ) ) : '30days';
 
 		$valid_ranges = array( '24hours', '7days', '30days', '90days', 'custom' );
 
-		if ( ! in_array( $date_range, $valid_ranges ) ) {
+		if ( ! in_array( $date_range, $valid_ranges, true ) ) {
 			$date_range = '30days';
 		}
 
@@ -306,7 +310,7 @@ class SCD_Analytics_Page {
 		$overview_panel = $this->overview_panel;
 
 		// Include the dashboard template
-		include SCD_PLUGIN_DIR . 'resources/views/admin/pages/dashboard.php';
+		include WSSCD_PLUGIN_DIR . 'resources/views/admin/pages/dashboard.php';
 	}
 
 	/**
@@ -317,79 +321,77 @@ class SCD_Analytics_Page {
 	 * @return   void
 	 */
 	private function render_upgrade_prompt(): void {
-		$upgrade_url = function_exists( 'scd_get_upgrade_url' ) ? scd_get_upgrade_url() : admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
-		$trial_url   = function_exists( 'scd_get_trial_url' ) ? scd_get_trial_url() : $upgrade_url;
+		$upgrade_url = function_exists( 'wsscd_get_upgrade_url' ) ? wsscd_get_upgrade_url() : admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
 
 		?>
-		<div class="wrap scd-analytics-locked">
+		<div class="wrap wsscd-analytics-locked">
 			<h1><?php esc_html_e( 'Analytics', 'smart-cycle-discounts' ); ?></h1>
 
-			<div class="scd-upgrade-container">
-				<div class="scd-upgrade-content">
-					<?php echo SCD_Icon_Helper::get( 'chart-area', array( 'size' => 16, 'class' => 'scd-upgrade-icon' ) ); ?>
+			<div class="wsscd-upgrade-container">
+				<div class="wsscd-upgrade-content">
+					<?php
+					WSSCD_Icon_Helper::render( 'chart-area', array( 'size' => 16, 'class' => 'wsscd-upgrade-icon' ) );
+					?>
 					<h2><?php esc_html_e( 'Unlock Advanced Analytics with Pro', 'smart-cycle-discounts' ); ?></h2>
 
-					<p class="scd-upgrade-description">
+					<p class="wsscd-upgrade-description">
 						<?php esc_html_e( 'Get access to powerful analytics and insights to optimize your discount campaigns:', 'smart-cycle-discounts' ); ?>
 					</p>
 
-					<ul class="scd-feature-list">
-						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Custom date ranges and flexible reporting', 'smart-cycle-discounts' ); ?></li>
-						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Export data to CSV and JSON formats', 'smart-cycle-discounts' ); ?></li>
-						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Advanced metrics and performance charts', 'smart-cycle-discounts' ); ?></li>
-						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Geographic sales breakdown', 'smart-cycle-discounts' ); ?></li>
-						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Traffic source analysis', 'smart-cycle-discounts' ); ?></li>
-						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Customer lifetime value calculations', 'smart-cycle-discounts' ); ?></li>
-						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Conversion funnel analysis', 'smart-cycle-discounts' ); ?></li>
-						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Priority support', 'smart-cycle-discounts' ); ?></li>
+					<?php
+										?>
+					<ul class="wsscd-feature-list">
+						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Custom date ranges and flexible reporting', 'smart-cycle-discounts' ); ?></li>
+						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Export data to CSV and JSON formats', 'smart-cycle-discounts' ); ?></li>
+						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Advanced metrics and performance charts', 'smart-cycle-discounts' ); ?></li>
+						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Geographic sales breakdown', 'smart-cycle-discounts' ); ?></li>
+						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Traffic source analysis', 'smart-cycle-discounts' ); ?></li>
+						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Customer lifetime value calculations', 'smart-cycle-discounts' ); ?></li>
+						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Conversion funnel analysis', 'smart-cycle-discounts' ); ?></li>
+						<li><?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Priority support', 'smart-cycle-discounts' ); ?></li>
 					</ul>
+					<?php  ?>
 
-					<div class="scd-upgrade-actions">
+					<div class="wsscd-upgrade-actions">
 						<?php
-						SCD_Button_Helper::primary(
+						WSSCD_Button_Helper::primary(
 							__( 'Upgrade to Pro', 'smart-cycle-discounts' ),
 							array(
 								'size' => 'hero',
 								'href' => esc_url( $upgrade_url ),
 							)
 						);
-
-						SCD_Button_Helper::secondary(
-							__( 'Start 14-Day Trial', 'smart-cycle-discounts' ),
-							array(
-								'size' => 'hero',
-								'href' => esc_url( $trial_url ),
-							)
-						);
 						?>
 					</div>
 
-					<p class="scd-upgrade-note">
+					<p class="wsscd-upgrade-note">
 						<?php esc_html_e( '14-day money-back guarantee. No risk, cancel anytime.', 'smart-cycle-discounts' ); ?>
 					</p>
 				</div>
 
-				<div class="scd-analytics-preview">
-					<div class="scd-preview-placeholder">
-						<div class="scd-preview-header">
-							<div class="scd-preview-title"></div>
-							<div class="scd-preview-actions"></div>
+				<div class="wsscd-analytics-preview">
+					<div class="wsscd-preview-placeholder">
+						<div class="wsscd-preview-header">
+							<div class="wsscd-preview-title"></div>
+							<div class="wsscd-preview-actions"></div>
 						</div>
-						<div class="scd-preview-metrics">
-							<div class="scd-preview-metric"></div>
-							<div class="scd-preview-metric"></div>
-							<div class="scd-preview-metric"></div>
-							<div class="scd-preview-metric"></div>
+						<div class="wsscd-preview-metrics">
+							<div class="wsscd-preview-metric"></div>
+							<div class="wsscd-preview-metric"></div>
+							<div class="wsscd-preview-metric"></div>
+							<div class="wsscd-preview-metric"></div>
 						</div>
-						<div class="scd-preview-chart"></div>
-						<div class="scd-preview-table">
-							<div class="scd-preview-row"></div>
-							<div class="scd-preview-row"></div>
-							<div class="scd-preview-row"></div>
+						<div class="wsscd-preview-chart"></div>
+						<div class="wsscd-preview-table">
+							<div class="wsscd-preview-row"></div>
+							<div class="wsscd-preview-row"></div>
+							<div class="wsscd-preview-row"></div>
 						</div>
 					</div>
-					<div class="scd-preview-overlay">
-						<?php echo SCD_Icon_Helper::get( 'lock', array( 'size' => 16 ) ); ?>
+					<div class="wsscd-preview-overlay">
+						<?php
+						WSSCD_Icon_Helper::render( 'lock', array( 'size' => 16 ) );
+						?>
 					</div>
 				</div>
 			</div>
@@ -404,7 +406,7 @@ class SCD_Analytics_Page {
 	 * @return   void
 	 */
 	public function handle_ajax_requests(): void {
-		// AJAX handlers moved to SCD_Analytics_Ajax class for better organization
+		// AJAX handlers moved to WSSCD_Analytics_Ajax class for better organization
 		// This method kept for modern implementation but no longer registers handlers
 	}
 }

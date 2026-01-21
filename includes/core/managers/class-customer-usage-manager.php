@@ -27,47 +27,47 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/managers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Customer_Usage_Manager {
+class WSSCD_Customer_Usage_Manager {
 
 	/**
 	 * Customer usage repository.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Customer_Usage_Repository    $repository    Repository instance.
+	 * @var      WSSCD_Customer_Usage_Repository    $repository    Repository instance.
 	 */
-	private SCD_Customer_Usage_Repository $repository;
+	private WSSCD_Customer_Usage_Repository $repository;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Session manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Session_Service    $session    Session service.
+	 * @var      WSSCD_Session_Service    $session    Session service.
 	 */
-	private SCD_Session_Service $session;
+	private WSSCD_Session_Service $session;
 
 	/**
 	 * Initialize the manager.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Customer_Usage_Repository $repository    Repository instance.
-	 * @param    SCD_Logger                    $logger        Logger instance.
-	 * @param    SCD_Session_Service           $session       Session service.
+	 * @param    WSSCD_Customer_Usage_Repository $repository    Repository instance.
+	 * @param    WSSCD_Logger                    $logger        Logger instance.
+	 * @param    WSSCD_Session_Service           $session       Session service.
 	 */
 	public function __construct(
-		SCD_Customer_Usage_Repository $repository,
-		SCD_Logger $logger,
-		SCD_Session_Service $session
+		WSSCD_Customer_Usage_Repository $repository,
+		WSSCD_Logger $logger,
+		WSSCD_Session_Service $session
 	) {
 		$this->repository = $repository;
 		$this->logger     = $logger;
@@ -116,6 +116,7 @@ class SCD_Customer_Usage_Manager {
 				return array(
 					'valid'       => false,
 					'error'       => sprintf(
+						/* translators: %1$d: current usage count, %2$d: maximum allowed uses */
 						__( 'You have already used this discount %1$d time(s). Maximum allowed: %2$d', 'smart-cycle-discounts' ),
 						$usage['usage_count'] ?? 0,
 						$max_uses
@@ -158,7 +159,7 @@ class SCD_Customer_Usage_Manager {
 	public function record_order_usage( int $order_id, WC_Order $order ): void {
 		try {
 			foreach ( $order->get_items() as $item ) {
-				$campaign_id = $item->get_meta( '_scd_campaign_id' );
+				$campaign_id = $item->get_meta( '_wsscd_campaign_id' );
 
 				if ( ! $campaign_id ) {
 					continue;
@@ -171,7 +172,7 @@ class SCD_Customer_Usage_Manager {
 					continue;
 				}
 
-				$original_price = floatval( $item->get_meta( '_scd_original_price', true ) );
+				$original_price = floatval( $item->get_meta( '_wsscd_original_price', true ) );
 				$quantity       = max( 1, intval( $item->get_quantity() ) );
 				$item_total     = floatval( $item->get_total() );
 
@@ -260,14 +261,17 @@ class SCD_Customer_Usage_Manager {
 				}
 			}
 
+			// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- WooCommerce checkout form data; nonce is sanitized via sanitize_text_field before wp_verify_nonce.
 			if ( is_checkout() && ! empty( $_POST['billing_email'] ) ) {
-				// Verify nonce if available
-				if ( isset( $_POST['woocommerce-process-checkout-nonce'] ) &&
-					! wp_verify_nonce( $_POST['woocommerce-process-checkout-nonce'], 'woocommerce-process_checkout' ) ) {
+				// Verify WooCommerce checkout nonce - MUST be present and valid.
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated -- Nonce is sanitized before verification.
+				if ( ! isset( $_POST['woocommerce-process-checkout-nonce'] ) ||
+					! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['woocommerce-process-checkout-nonce'] ) ), 'woocommerce-process_checkout' ) ) {
 					return null;
 				}
-				return sanitize_email( $_POST['billing_email'] );
+				return sanitize_email( wp_unslash( $_POST['billing_email'] ) );
 			}
+			// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		} catch ( Exception $e ) {
 			$this->logger->error(
 				'Failed to get customer email',
@@ -347,7 +351,7 @@ class SCD_Customer_Usage_Manager {
 
 		foreach ( $ip_keys as $key ) {
 			if ( ! empty( $_SERVER[ $key ] ) ) {
-				$ip = sanitize_text_field( $_SERVER[ $key ] );
+				$ip = sanitize_text_field( wp_unslash( $_SERVER[ $key ] ) );
 
 				// Handle comma-separated IPs
 				if ( strpos( $ip, ',' ) !== false ) {
@@ -374,7 +378,7 @@ class SCD_Customer_Usage_Manager {
 	 */
 	private function get_user_agent(): ?string {
 		return ! empty( $_SERVER['HTTP_USER_AGENT'] ) ?
-			substr( sanitize_text_field( $_SERVER['HTTP_USER_AGENT'] ), 0, 255 ) : null;
+			substr( sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ), 0, 255 ) : null;
 	}
 
 	/**

@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Request_Schemas {
+class WSSCD_Request_Schemas {
 
 	/**
 	 * Get schema for campaign creation/update.
@@ -43,7 +43,7 @@ class SCD_Request_Schemas {
 				'required'          => true,
 				'description'       => __( 'Campaign name', 'smart-cycle-discounts' ),
 				'validate_callback' => function ( $value ) {
-					$result = SCD_Validation::validate( $value, 'campaign_name' );
+					$result = WSSCD_Validation::validate( $value, 'campaign_name' );
 					return is_wp_error( $result ) ? $result : true;
 				},
 				'sanitize_callback' => 'sanitize_text_field',
@@ -98,25 +98,27 @@ class SCD_Request_Schemas {
 
 					if ( 'percentage' === $type ) {
 						$value = floatval( $value );
-						if ( $value < SCD_Validation_Rules::DISCOUNT_PERCENTAGE_MIN || $value > SCD_Validation_Rules::DISCOUNT_PERCENTAGE_MAX ) {
+						if ( $value < WSSCD_Validation_Rules::DISCOUNT_PERCENTAGE_MIN || $value > WSSCD_Validation_Rules::DISCOUNT_PERCENTAGE_MAX ) {
 							return new WP_Error(
 								'invalid_percentage',
 								sprintf(
+									/* translators: %1$s: minimum percentage, %2$s: maximum percentage */
 									__( 'Percentage must be between %1$s and %2$s', 'smart-cycle-discounts' ),
-									SCD_Validation_Rules::DISCOUNT_PERCENTAGE_MIN,
-									SCD_Validation_Rules::DISCOUNT_PERCENTAGE_MAX
+									WSSCD_Validation_Rules::DISCOUNT_PERCENTAGE_MIN,
+									WSSCD_Validation_Rules::DISCOUNT_PERCENTAGE_MAX
 								)
 							);
 						}
 					} elseif ( 'fixed' === $type ) {
 						$value = floatval( $value );
-						if ( $value < SCD_Validation_Rules::DISCOUNT_FIXED_MIN || $value > SCD_Validation_Rules::DISCOUNT_FIXED_MAX ) {
+						if ( $value < WSSCD_Validation_Rules::DISCOUNT_FIXED_MIN || $value > WSSCD_Validation_Rules::DISCOUNT_FIXED_MAX ) {
 							return new WP_Error(
 								'invalid_amount',
 								sprintf(
+									/* translators: %1$s: minimum amount, %2$s: maximum amount */
 									__( 'Fixed amount must be between %1$s and %2$s', 'smart-cycle-discounts' ),
-									SCD_Validation_Rules::DISCOUNT_FIXED_MIN,
-									SCD_Validation_Rules::DISCOUNT_FIXED_MAX
+									WSSCD_Validation_Rules::DISCOUNT_FIXED_MIN,
+									WSSCD_Validation_Rules::DISCOUNT_FIXED_MAX
 								)
 							);
 						}
@@ -127,8 +129,8 @@ class SCD_Request_Schemas {
 				'sanitize_callback' => function ( $value, $request ) {
 					$type = $request['discount_type'] ?? '';
 
-					if ( 'percentage' === $type && class_exists( 'SCD_Validation' ) ) {
-						return SCD_Validation_Rules::sanitize_percentage( $value );
+					if ( 'percentage' === $type && class_exists( 'WSSCD_Validation' ) ) {
+						return WSSCD_Validation_Rules::sanitize_percentage( $value );
 					}
 
 					return wc_format_decimal( $value );
@@ -164,8 +166,8 @@ class SCD_Request_Schemas {
 			'selection_type'   => array(
 				'type'              => 'string',
 				'required'          => true,
-				'enum'              => array( 'all', 'specific', 'categories', 'tags', 'attributes' ),
-				'description'       => __( 'Product selection method', 'smart-cycle-discounts' ),
+				'enum'              => array( 'all_products', 'specific_products', 'random_products', 'smart_selection' ),
+				'description'       => __( 'Product selection method (selects FROM the category pool)', 'smart-cycle-discounts' ),
 				'sanitize_callback' => 'sanitize_key',
 			),
 			'product_ids'      => array(
@@ -224,7 +226,7 @@ class SCD_Request_Schemas {
 					return true;
 				},
 				'sanitize_callback' => function ( $value ) {
-					return ! empty( $value ) ? date( 'Y-m-d H:i:s', strtotime( $value ) ) : '';
+					return ! empty( $value ) ? gmdate( 'Y-m-d H:i:s', strtotime( $value ) ) : '';
 				},
 			),
 			'end_date'          => array(
@@ -246,7 +248,7 @@ class SCD_Request_Schemas {
 					return true;
 				},
 				'sanitize_callback' => function ( $value ) {
-					return ! empty( $value ) ? date( 'Y-m-d H:i:s', strtotime( $value ) ) : '';
+					return ! empty( $value ) ? gmdate( 'Y-m-d H:i:s', strtotime( $value ) ) : '';
 				},
 			),
 			'timezone'          => array(
@@ -341,13 +343,14 @@ class SCD_Request_Schemas {
 	 * @param    WP_REST_Request $request   Optional REST request object.
 	 * @return   true|WP_Error              True on success, error on failure.
 	 */
-	public static function validate_request( array $data, array $schema, ?WP_REST_Request $request = null ): bool|WP_Error {
+	public static function validate_request( array $data, array $schema, ?WP_REST_Request $request = null ) {
 		$errors = array();
 
 		foreach ( $schema as $field => $rules ) {
 			$value = $data[ $field ] ?? null;
 
 			if ( ! empty( $rules['required'] ) && ( null === $value || '' === $value ) ) {
+				/* translators: %s: field name or description */
 				$errors[ $field ] = sprintf( __( '%s is required', 'smart-cycle-discounts' ), $rules['description'] ?? $field );
 				continue;
 			}
@@ -366,6 +369,7 @@ class SCD_Request_Schemas {
 
 			// Enum validation
 			if ( ! empty( $rules['enum'] ) && ! in_array( $value, $rules['enum'], true ) ) {
+				/* translators: %s: comma-separated list of allowed values */
 				$errors[ $field ] = sprintf( __( 'Invalid value. Must be one of: %s', 'smart-cycle-discounts' ), implode( ', ', $rules['enum'] ) );
 				continue;
 			}
@@ -373,10 +377,12 @@ class SCD_Request_Schemas {
 			// Min/Max validation for numbers
 			if ( $rules['type'] === 'integer' || $rules['type'] === 'number' ) {
 				if ( isset( $rules['minimum'] ) && $value < $rules['minimum'] ) {
+					/* translators: %s: minimum value */
 					$errors[ $field ] = sprintf( __( 'Must be at least %s', 'smart-cycle-discounts' ), $rules['minimum'] );
 					continue;
 				}
 				if ( isset( $rules['maximum'] ) && $value > $rules['maximum'] ) {
+					/* translators: %s: maximum value */
 					$errors[ $field ] = sprintf( __( 'Cannot exceed %s', 'smart-cycle-discounts' ), $rules['maximum'] );
 					continue;
 				}
@@ -407,7 +413,7 @@ class SCD_Request_Schemas {
 	 * @param    string $type     Expected type.
 	 * @return   true|WP_Error       True on success, error on failure.
 	 */
-	private static function validate_type( $value, string $type ): bool|WP_Error {
+	private static function validate_type( $value, string $type ) {
 		switch ( $type ) {
 			case 'string':
 				if ( ! is_string( $value ) ) {

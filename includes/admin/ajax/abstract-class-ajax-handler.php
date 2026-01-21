@@ -26,14 +26,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax
  * @author     Webstepper <contact@webstepper.io>
  */
-abstract class SCD_Abstract_Ajax_Handler {
+abstract class WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
 	protected $logger;
 
@@ -41,13 +41,13 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger    Logger instance (optional).
+	 * @param    WSSCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		$this->logger = $logger;
 
-		if ( null === $this->logger && class_exists( 'SCD_Logger' ) ) {
-			$this->logger = new SCD_Logger( 'ajax' );
+		if ( null === $this->logger && class_exists( 'WSSCD_Logger' ) ) {
+			$this->logger = new WSSCD_Logger( 'ajax' );
 		}
 	}
 
@@ -108,17 +108,17 @@ abstract class SCD_Abstract_Ajax_Handler {
 	/**
 	 * Get the AJAX action name for this handler.
 	 *
-	 * Used for security verification via SCD_Ajax_Security.
+	 * Used for security verification via WSSCD_Ajax_Security.
 	 *
 	 * @since    1.0.0
-	 * @return   string    Action name (e.g., 'scd_save_step').
+	 * @return   string    Action name (e.g., 'wsscd_save_step').
 	 */
 	abstract protected function get_action_name();
 
 	/**
 	 * Verify request security.
 	 *
-	 * Uses centralized SCD_Ajax_Security to verify:
+	 * Uses centralized WSSCD_Ajax_Security to verify:
 	 * - Nonce validity
 	 * - User capability
 	 * - Rate limiting
@@ -130,8 +130,8 @@ abstract class SCD_Abstract_Ajax_Handler {
 	 * @return   true|WP_Error              True if valid, WP_Error otherwise.
 	 */
 	protected function verify_request( $request ) {
-		// Ensure SCD_Ajax_Security is loaded
-		if ( ! class_exists( 'SCD_Ajax_Security' ) ) {
+		// Ensure WSSCD_Ajax_Security is loaded
+		if ( ! class_exists( 'WSSCD_Ajax_Security' ) ) {
 			return new WP_Error(
 				'security_unavailable',
 				__( 'Security verification unavailable', 'smart-cycle-discounts' ),
@@ -142,7 +142,7 @@ abstract class SCD_Abstract_Ajax_Handler {
 		$action = $this->get_action_name();
 
 		// Use centralized security verification
-		$result = SCD_Ajax_Security::verify_ajax_request( $action, $request );
+		$result = WSSCD_Ajax_Security::verify_ajax_request( $action, $request );
 
 		if ( is_wp_error( $result ) ) {
 			$this->log_security_failure( $action, $result );
@@ -317,7 +317,7 @@ abstract class SCD_Abstract_Ajax_Handler {
 				'error_code' => $error->get_error_code(),
 				'error_msg'  => $error->get_error_message(),
 				'user_id'    => get_current_user_id(),
-				'ip'         => SCD_Ajax_Security::get_client_ip(),
+				'ip'         => WSSCD_Ajax_Security::get_client_ip(),
 			)
 		);
 	}

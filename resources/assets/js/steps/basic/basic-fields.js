@@ -14,19 +14,19 @@
 	'use strict';
 
 	// Register module using utility
-	SCD.Utils.registerModule( 'SCD.Modules.Basic', 'Fields', function( state ) {
+	WSSCD.Utils.registerModule( 'WSSCD.Modules.Basic', 'Fields', function( state ) {
 		this.state = state;
 
 		this.initEventManager();
 
-		if ( !SCD.Utils.ensureInitialized( this, {
+		if ( !WSSCD.Utils.ensureInitialized( this, {
 			'state': this.state
 		}, 'BasicFields' ) ) {
 			return;
 		}
 	} );
 
-	SCD.Modules.Basic.Fields.prototype = {
+	WSSCD.Modules.Basic.Fields.prototype = {
 		/**
 		 * Initialize field handlers
 		 */
@@ -41,12 +41,12 @@
 		bindFieldEvents: function() {
 			var self = this;
 
-			var fieldDefs = SCD.FieldDefinitions.basic || {};
+			var fieldDefs = WSSCD.FieldDefinitions.basic || {};
 
 			// Campaign name field
 			if ( fieldDefs.name && fieldDefs.name.selector ) {
 				this.bindDelegatedEvent( document, fieldDefs.name.selector, 'input',
-					SCD.Utils.debounce( function( e ) {
+					WSSCD.Utils.debounce( function( e ) {
 						self.handleNameChange( e );
 					}, 300 )
 				);
@@ -84,14 +84,14 @@
 			var value = $field.val().trim();
 
 			// Use ValidationManager for field validation
-			if ( window.SCD && window.SCD.ValidationManager ) {
-				window.SCD.ValidationManager.validateFieldDebounced( e.target, {
+			if ( window.WSSCD && window.WSSCD.ValidationManager ) {
+				window.WSSCD.ValidationManager.validateFieldDebounced( e.target, {
 					stepId: 'basic'
 				} );
 			}
 
 			// Emit event for orchestrator to handle state update
-			this.triggerCustomEvent( 'scd:basic:field:changed', [ {
+			this.triggerCustomEvent( 'wsscd:basic:field:changed', [ {
 				field: 'name',
 				value: value
 			} ] );
@@ -108,11 +108,11 @@
 		checkNameUniqueness: function( name ) {
 			var self = this;
 			// Use field definitions for selector
-			var fieldDef = SCD.FieldDefinitions.basic && SCD.FieldDefinitions.basic.name;
+			var fieldDef = WSSCD.FieldDefinitions.basic && WSSCD.FieldDefinitions.basic.name;
 			var $field = fieldDef && fieldDef.selector ? $( fieldDef.selector ) : $( '[name="name"]' );
 
 			// Ensure API is available
-			if ( ! window.SCD || ! window.SCD.Modules || ! window.SCD.Modules.Basic || ! window.SCD.Modules.Basic.API ) {
+			if ( ! window.WSSCD || ! window.WSSCD.Modules || ! window.WSSCD.Modules.Basic || ! window.WSSCD.Modules.Basic.API ) {
 				return;
 			}
 
@@ -121,7 +121,7 @@
 				this.nameCheckRequest.abort();
 			}
 
-			var api = new SCD.Modules.Basic.API();
+			var api = new WSSCD.Modules.Basic.API();
 			var excludeId = this.state.getData( 'id' );
 
 			this.nameCheckRequest = api.checkCampaignName( name, excludeId )
@@ -131,17 +131,17 @@
 					if ( currentName === name ) {
 						if ( ! response.unique ) {
 							// Use centralized message from constants
-							var message = window.SCD && window.SCD.Constants && window.SCD.Constants.Validation ?
-								window.SCD.Constants.Validation.DEFAULT_MESSAGES.DUPLICATE_NAME :
+							var message = window.WSSCD && window.WSSCD.Constants && window.WSSCD.Constants.Validation ?
+								window.WSSCD.Constants.Validation.DEFAULT_MESSAGES.DUPLICATE_NAME :
 								'A campaign with this name already exists';
 							// Use ValidationError component directly
-							if ( window.SCD && window.SCD.ValidationError ) {
-								window.SCD.ValidationError.show( $field, message );
+							if ( window.WSSCD && window.WSSCD.ValidationError ) {
+								window.WSSCD.ValidationError.show( $field, message );
 							}
 						} else {
 							// Use ValidationError component directly
-							if ( window.SCD && window.SCD.ValidationError ) {
-								window.SCD.ValidationError.clear( $field );
+							if ( window.WSSCD && window.WSSCD.ValidationError ) {
+								window.WSSCD.ValidationError.clear( $field );
 							}
 						}
 					}
@@ -166,14 +166,14 @@
 			var value = $field.val().trim();
 
 			// Use ValidationManager for field validation
-			if ( window.SCD && window.SCD.ValidationManager ) {
-				window.SCD.ValidationManager.validateFieldDebounced( e.target, {
+			if ( window.WSSCD && window.WSSCD.ValidationManager ) {
+				window.WSSCD.ValidationManager.validateFieldDebounced( e.target, {
 					stepId: 'basic'
 				} );
 			}
 
 			// Emit event for orchestrator to handle state update
-			this.triggerCustomEvent( 'scd:basic:field:changed', [ {
+			this.triggerCustomEvent( 'wsscd:basic:field:changed', [ {
 				field: 'description',
 				value: value
 			} ] );
@@ -188,14 +188,14 @@
 			var value = parseInt( $field.val() );
 
 			// Use ValidationManager for field validation
-			if ( window.SCD && window.SCD.ValidationManager ) {
-				window.SCD.ValidationManager.validateFieldDebounced( e.target, {
+			if ( window.WSSCD && window.WSSCD.ValidationManager ) {
+				window.WSSCD.ValidationManager.validateFieldDebounced( e.target, {
 					stepId: 'basic'
 				} );
 			}
 
 			// Emit event for orchestrator to handle state update
-			this.triggerCustomEvent( 'scd:basic:field:changed', [ {
+			this.triggerCustomEvent( 'wsscd:basic:field:changed', [ {
 				field: 'priority',
 				value: value
 			} ] );
@@ -213,8 +213,8 @@
 		showFieldError: function( $field, message, severity ) {
 			severity = severity || 'error';
 
-			if ( window.SCD && window.SCD.ValidationError ) {
-				window.SCD.ValidationError.show( $field, message, {
+			if ( window.WSSCD && window.WSSCD.ValidationError ) {
+				window.WSSCD.ValidationError.show( $field, message, {
 					type: severity,
 					animate: true
 				} );
@@ -223,11 +223,11 @@
 			}
 
 			// Log actual errors
-			if ( 'error' === severity && window.SCD && window.SCD.ErrorHandler ) {
-				SCD.ErrorHandler.handle(
+			if ( 'error' === severity && window.WSSCD && window.WSSCD.ErrorHandler ) {
+				WSSCD.ErrorHandler.handle(
 					new Error( 'Field validation error: ' + message ),
 					'BasicFields.showFieldError',
-					SCD.ErrorHandler.SEVERITY.LOW,
+					WSSCD.ErrorHandler.SEVERITY.LOW,
 					{ field: $field.attr( 'name' ), message: message }
 				);
 			}
@@ -238,8 +238,8 @@
 		 * @param $field
 		 */
 		clearFieldError: function( $field ) {
-			if ( window.SCD && window.SCD.ValidationError ) {
-				window.SCD.ValidationError.clear( $field );
+			if ( window.WSSCD && window.WSSCD.ValidationError ) {
+				window.WSSCD.ValidationError.clear( $field );
 			}
 		},
 
@@ -258,26 +258,26 @@
 			$( '[name="priority"]' ).val( 3 ).trigger( 'change' );
 
 			// Also reset using Utils.Fields if available for consistency
-			if ( window.SCD && window.SCD.Utils && window.SCD.Utils.Fields ) {
+			if ( window.WSSCD && window.WSSCD.Utils && window.WSSCD.Utils.Fields ) {
 				// Emit events for orchestrator to handle
-				this.triggerCustomEvent( 'scd:basic:field:changed', [ {
+				this.triggerCustomEvent( 'wsscd:basic:field:changed', [ {
 					field: 'name',
 					value: ''
 				} ] );
-				this.triggerCustomEvent( 'scd:basic:field:changed', [ {
+				this.triggerCustomEvent( 'wsscd:basic:field:changed', [ {
 					field: 'description',
 					value: ''
 				} ] );
-				this.triggerCustomEvent( 'scd:basic:field:changed', [ {
+				this.triggerCustomEvent( 'wsscd:basic:field:changed', [ {
 					field: 'priority',
 					value: 5
 				} ] );
 			}
 
-			if ( window.SCD && window.SCD.ValidationError ) {
+			if ( window.WSSCD && window.WSSCD.ValidationError ) {
 				var $container = $( '[name="name"]' ).closest( 'form' );
 				if ( $container.length ) {
-					window.SCD.ValidationError.clearAll( $container );
+					window.WSSCD.ValidationError.clearAll( $container );
 				}
 			}
 		},
@@ -297,6 +297,6 @@
 	};
 
 	// Mix in event manager functionality
-	SCD.Utils.extend( SCD.Modules.Basic.Fields.prototype, SCD.Mixins.EventManager );
+	WSSCD.Utils.extend( WSSCD.Modules.Basic.Fields.prototype, WSSCD.Mixins.EventManager );
 
 } )( jQuery );

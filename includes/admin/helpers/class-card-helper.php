@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/helpers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Card_Helper {
+class WSSCD_Card_Helper {
 
 	/**
 	 * Render a card element.
@@ -79,29 +79,29 @@ class SCD_Card_Helper {
 		}
 
 		// Build classes
-		$classes = array( 'scd-card' );
+		$classes = array( 'wsscd-card' );
 
 		// Variant classes
 		switch ( $args['variant'] ) {
 			case 'stat':
-				$classes[] = 'scd-card--stat';
+				$classes[] = 'wsscd-card--stat';
 				break;
 			case 'metric':
-				$classes[] = 'scd-card--metric';
+				$classes[] = 'wsscd-card--metric';
 				break;
 			case 'summary':
-				$classes[] = 'scd-card--summary';
+				$classes[] = 'wsscd-card--summary';
 				break;
 			case 'highlight':
-				$classes[] = 'scd-card--highlight';
+				$classes[] = 'wsscd-card--highlight';
 				break;
 		}
 
 		// Collapsible state
 		if ( $args['collapsible'] ) {
-			$classes[] = 'scd-card--collapsible';
+			$classes[] = 'wsscd-card--collapsible';
 			if ( $args['collapsed'] ) {
-				$classes[] = 'scd-card--collapsed';
+				$classes[] = 'wsscd-card--collapsed';
 			}
 		}
 
@@ -125,55 +125,55 @@ class SCD_Card_Helper {
 
 		// Build header if title, icon, badge, or actions provided
 		if ( ! empty( $args['title'] ) || ! empty( $args['icon'] ) || ! empty( $args['badge'] ) || ! empty( $args['actions'] ) ) {
-			$html .= '<div class="scd-card__header">';
+			$html .= '<div class="wsscd-card__header">';
 
 			// Header content wrapper
-			$html .= '<div class="scd-card__header-content">';
+			$html .= '<div class="wsscd-card__header-content">';
 
-			// Icon
+			// Icon - use wp_kses with SVG allowed tags since wp_kses_post strips SVG
 			if ( ! empty( $args['icon'] ) ) {
-				$html .= '<span class="scd-card__icon">' . SCD_Icon_Helper::get( $args['icon'], array( 'size' => 20 ) ) . '</span>';
+				$html .= '<span class="wsscd-card__icon">' . wp_kses( WSSCD_Icon_Helper::get( $args['icon'], array( 'size' => 20 ) ), WSSCD_Icon_Helper::get_allowed_svg_tags() ) . '</span>';
 			}
 
 			// Title and subtitle
 			if ( ! empty( $args['title'] ) ) {
-				$html .= '<div class="scd-card__header-text">';
-				$html .= sprintf( '<h3 class="scd-card__title">%s</h3>', esc_html( $args['title'] ) );
+				$html .= '<div class="wsscd-card__header-text">';
+				$html .= sprintf( '<h3 class="wsscd-card__title">%s</h3>', esc_html( $args['title'] ) );
 				if ( ! empty( $args['subtitle'] ) ) {
-					$html .= sprintf( '<p class="scd-card__subtitle">%s</p>', esc_html( $args['subtitle'] ) );
+					$html .= sprintf( '<p class="wsscd-card__subtitle">%s</p>', esc_html( $args['subtitle'] ) );
 				}
 				$html .= '</div>';
 			}
 
 			// Badge - Use Badge_Helper for consistency
 			if ( ! empty( $args['badge'] ) ) {
-				$badge_class = 'scd-badge scd-badge--' . esc_attr( $args['badge_type'] );
-				$html .= SCD_Badge_Helper::badge( $args['badge'], $badge_class );
+				$badge_class = 'wsscd-badge wsscd-badge--' . esc_attr( $args['badge_type'] );
+				$html .= wp_kses_post( WSSCD_Badge_Helper::badge( $args['badge'], $badge_class ) );
 			}
 
 			$html .= '</div>'; // End header-content
 
-			// Actions
+			// Actions - Button_Helper output is already properly escaped including SVG icons
 			if ( ! empty( $args['actions'] ) ) {
-				$html .= '<div class="scd-card__actions">';
+				$html .= '<div class="wsscd-card__actions">';
 				foreach ( $args['actions'] as $action_args ) {
 					$action_args['echo'] = false;
-					$html .= SCD_Button_Helper::render( $action_args );
+					$html .= WSSCD_Button_Helper::render( $action_args );
 				}
 				$html .= '</div>';
 			}
 
-			// Collapsible toggle
+			// Collapsible toggle - use wp_kses with SVG allowed tags since wp_kses_post strips SVG
 			if ( $args['collapsible'] ) {
 				$aria_expanded = $args['collapsed'] ? 'false' : 'true';
 				$aria_label = $args['collapsed']
 					? __( 'Expand card content', 'smart-cycle-discounts' )
 					: __( 'Collapse card content', 'smart-cycle-discounts' );
 				$html .= sprintf(
-					'<button type="button" class="scd-card__toggle" aria-expanded="%s" aria-label="%s">%s</button>',
+					'<button type="button" class="wsscd-card__toggle" aria-expanded="%s" aria-label="%s">%s</button>',
 					esc_attr( $aria_expanded ),
 					esc_attr( $aria_label ),
-					SCD_Icon_Helper::get( 'arrow-down', array( 'size' => 16 ) )
+					wp_kses( WSSCD_Icon_Helper::get( 'arrow-down', array( 'size' => 16 ) ), WSSCD_Icon_Helper::get_allowed_svg_tags() )
 				);
 			}
 
@@ -181,13 +181,13 @@ class SCD_Card_Helper {
 		}
 
 		// Body (using __content to match existing convention)
-		$html .= '<div class="scd-card__content">';
+		$html .= '<div class="wsscd-card__content">';
 		$html .= $args['content']; // Content is already escaped by caller
 		$html .= '</div>';
 
 		// Footer
 		if ( ! empty( $args['footer'] ) ) {
-			$html .= '<div class="scd-card__footer">';
+			$html .= '<div class="wsscd-card__footer">';
 			$html .= $args['footer']; // Footer is already escaped by caller
 			$html .= '</div>';
 		}
@@ -195,7 +195,7 @@ class SCD_Card_Helper {
 		$html .= '</div>'; // End card
 
 		if ( $args['echo'] ) {
-			echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			WSSCD_HTML_Helper::output( $html );
 		} else {
 			return $html;
 		}
@@ -212,7 +212,7 @@ class SCD_Card_Helper {
 	 */
 	public static function stat( $value, $label, $args = array() ) {
 		$content = sprintf(
-			'<div class="scd-stat-value">%s</div><div class="scd-stat-label">%s</div>',
+			'<div class="wsscd-stat-value">%s</div><div class="wsscd-stat-label">%s</div>',
 			esc_html( $value ),
 			esc_html( $label )
 		);
@@ -234,21 +234,21 @@ class SCD_Card_Helper {
 	 * @return   string|void    Card HTML if $args['echo'] is false.
 	 */
 	public static function metric( $value, $label, $trend = 'neutral', $change = '', $args = array() ) {
-		$trend_class = 'scd-metric-trend--' . esc_attr( $trend );
+		$trend_class = 'wsscd-metric-trend--' . esc_attr( $trend );
 		$trend_icon = 'neutral' === $trend ? 'minus' : ( 'up' === $trend ? 'arrow-up-alt' : 'arrow-down-alt' );
 
 		$content = sprintf(
-			'<div class="scd-metric-value">%s</div><div class="scd-metric-label">%s</div>',
+			'<div class="wsscd-metric-value">%s</div><div class="wsscd-metric-label">%s</div>',
 			esc_html( $value ),
 			esc_html( $label )
 		);
 
 		if ( ! empty( $change ) ) {
-			$icon_html = SCD_Icon_Helper::get( $trend_icon, array( 'size' => 16 ) );
+			$icon_html = WSSCD_Icon_Helper::get( $trend_icon, array( 'size' => 16 ) );
 			$content .= sprintf(
-				'<div class="scd-metric-trend %s">%s %s</div>',
+				'<div class="wsscd-metric-trend %s">%s %s</div>',
 				esc_attr( $trend_class ),
-				$icon_html,
+				wp_kses( $icon_html, WSSCD_Icon_Helper::get_allowed_svg_tags() ),
 				esc_html( $change )
 			);
 		}
@@ -271,10 +271,10 @@ class SCD_Card_Helper {
 			return '';
 		}
 
-		$content = '<dl class="scd-summary-list">';
+		$content = '<dl class="wsscd-summary-list">';
 		foreach ( $items as $label => $value ) {
 			$content .= sprintf(
-				'<div class="scd-summary-item"><dt class="scd-summary-label">%s</dt><dd class="scd-summary-value">%s</dd></div>',
+				'<div class="wsscd-summary-item"><dt class="wsscd-summary-label">%s</dt><dd class="wsscd-summary-value">%s</dd></div>',
 				esc_html( $label ),
 				esc_html( $value )
 			);
@@ -307,7 +307,7 @@ class SCD_Card_Helper {
 		$args['variant'] = 'highlight';
 		$args['icon'] = isset( $icon_map[ $type ] ) ? $icon_map[ $type ] : $icon_map['info'];
 		$args['classes'] = isset( $args['classes'] ) ? $args['classes'] : array();
-		$args['classes'][] = 'scd-card--' . esc_attr( $type );
+		$args['classes'][] = 'wsscd-card--' . esc_attr( $type );
 
 		return self::render( $args );
 	}

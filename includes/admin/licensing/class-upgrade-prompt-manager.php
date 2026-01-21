@@ -26,14 +26,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/licensing
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Upgrade_Prompt_Manager {
+class WSSCD_Upgrade_Prompt_Manager {
 
 	/**
 	 * Feature Gate instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Feature_Gate    $feature_gate    Feature gate service.
+	 * @var      WSSCD_Feature_Gate    $feature_gate    Feature gate service.
 	 */
 	private $feature_gate;
 
@@ -53,33 +53,33 @@ class SCD_Upgrade_Prompt_Manager {
 	 * @access   private
 	 * @var      string    $transient_prefix    Transient key prefix.
 	 */
-	private $transient_prefix = 'scd_upgrade_prompts_';
+	private $transient_prefix = 'wsscd_upgrade_prompts_';
 
 	/**
 	 * Initialize the manager.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Feature_Gate $feature_gate    Feature gate service.
+	 * @param    WSSCD_Feature_Gate $feature_gate    Feature gate service.
 	 */
-	public function __construct( SCD_Feature_Gate $feature_gate ) {
+	public function __construct( WSSCD_Feature_Gate $feature_gate ) {
 		$this->feature_gate = $feature_gate;
 
 		// Register AJAX handler for dismissing banners
-		add_action( 'wp_ajax_scd_dismiss_upgrade_banner', array( $this, 'handle_dismiss_banner' ) );
+		add_action( 'wp_ajax_wsscd_dismiss_upgrade_banner', array( $this, 'handle_dismiss_banner' ) );
 	}
 
 	/**
 	 * Get promotional settings.
 	 *
-	 * Use filter 'scd_upgrade_promotion_active' to enable/disable promotions.
-	 * Use filter 'scd_upgrade_promotion_settings' to customize promotion details.
+	 * Use filter 'wsscd_upgrade_promotion_active' to enable/disable promotions.
+	 * Use filter 'wsscd_upgrade_promotion_settings' to customize promotion details.
 	 *
 	 * @since    1.0.0
 	 * @return   array    Promotional settings array.
 	 */
 	public function get_promotion_settings() {
 		// Default: true (enabled) - set to false to disable promotions
-		$is_active = apply_filters( 'scd_upgrade_promotion_active', true );
+		$is_active = apply_filters( 'wsscd_upgrade_promotion_active', true );
 
 		if ( ! $is_active ) {
 			return array( 'promotion' => false );
@@ -93,7 +93,7 @@ class SCD_Upgrade_Prompt_Manager {
 		);
 
 		// Allow customization via filter
-		return apply_filters( 'scd_upgrade_promotion_settings', $defaults );
+		return apply_filters( 'wsscd_upgrade_promotion_settings', $defaults );
 	}
 
 	/**
@@ -104,7 +104,7 @@ class SCD_Upgrade_Prompt_Manager {
 	 * @return   bool                    True if dismissed.
 	 */
 	public function is_banner_dismissed( $banner_id = 'dashboard_analytics' ) {
-		$dismissed = get_user_meta( get_current_user_id(), 'scd_dismissed_upgrade_banner_' . $banner_id, true );
+		$dismissed = get_user_meta( get_current_user_id(), 'wsscd_dismissed_upgrade_banner_' . $banner_id, true );
 
 		// If dismissed, check if enough time has passed to show again (30 days)
 		if ( $dismissed ) {
@@ -114,7 +114,7 @@ class SCD_Upgrade_Prompt_Manager {
 
 			// If 30 days have passed, reset the dismissal
 			if ( $time_elapsed >= $reshow_after ) {
-				delete_user_meta( get_current_user_id(), 'scd_dismissed_upgrade_banner_' . $banner_id );
+				delete_user_meta( get_current_user_id(), 'wsscd_dismissed_upgrade_banner_' . $banner_id );
 				return false;
 			}
 
@@ -137,7 +137,7 @@ class SCD_Upgrade_Prompt_Manager {
 	 */
 	public function handle_dismiss_banner() {
 		// Security check - dies if nonce verification fails
-		check_ajax_referer( 'scd_dismiss_upgrade_banner', 'nonce' );
+		check_ajax_referer( 'wsscd_dismiss_upgrade_banner', 'nonce' );
 
 		// Capability check
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
@@ -150,7 +150,7 @@ class SCD_Upgrade_Prompt_Manager {
 
 		$banner_id = isset( $_POST['banner_id'] ) ? sanitize_text_field( wp_unslash( $_POST['banner_id'] ) ) : 'dashboard_analytics';
 
-		update_user_meta( get_current_user_id(), 'scd_dismissed_upgrade_banner_' . $banner_id, time() );
+		update_user_meta( get_current_user_id(), 'wsscd_dismissed_upgrade_banner_' . $banner_id, time() );
 
 		wp_send_json_success(
 			array(
@@ -213,8 +213,8 @@ class SCD_Upgrade_Prompt_Manager {
 		$this->increment_prompt_count();
 
 		// Log the event for analytics
-		if ( function_exists( 'scd_log_info' ) ) {
-			scd_log_info(
+		if ( function_exists( 'wsscd_log_info' ) ) {
+			wsscd_log_info(
 				'Upgrade prompt shown',
 				array(
 					'context'     => $context,
@@ -289,7 +289,6 @@ class SCD_Upgrade_Prompt_Manager {
 		}
 
 		$upgrade_url = $this->feature_gate->get_upgrade_url();
-		$trial_url   = $this->feature_gate->get_trial_url();
 
 		$title = isset( $args['title'] ) ? esc_html( $args['title'] ) : sprintf(
 			/* translators: %s: feature name */
@@ -304,27 +303,27 @@ class SCD_Upgrade_Prompt_Manager {
 		$discount_text = isset( $args['discount_text'] ) ? esc_html( $args['discount_text'] ) : esc_html__( 'Save 30%', 'smart-cycle-discounts' );
 
 		// Generate nonce for dismiss action
-		$dismiss_nonce = wp_create_nonce( 'scd_dismiss_upgrade_banner' );
+		$dismiss_nonce = wp_create_nonce( 'wsscd_dismiss_upgrade_banner' );
 
 		ob_start();
 		?>
-		<div class="scd-upgrade-banner scd-upgrade-banner-inline <?php echo esc_attr( $has_promotion ? 'scd-has-promotion' : '' ); ?>" data-banner-id="<?php echo esc_attr( $banner_id ); ?>" data-dismiss-nonce="<?php echo esc_attr( $dismiss_nonce ); ?>">
-			<button type="button" class="scd-banner-dismiss" aria-label="<?php esc_attr_e( 'Dismiss this notice', 'smart-cycle-discounts' ); ?>">
-				<?php echo SCD_Icon_Helper::get( 'no-alt', array( 'size' => 16 ) ); ?>
+		<div class="wsscd-upgrade-banner wsscd-upgrade-banner-inline <?php echo esc_attr( $has_promotion ? 'wsscd-has-promotion' : '' ); ?>" data-banner-id="<?php echo esc_attr( $banner_id ); ?>" data-dismiss-nonce="<?php echo esc_attr( $dismiss_nonce ); ?>">
+			<button type="button" class="wsscd-banner-dismiss" aria-label="<?php esc_attr_e( 'Dismiss this notice', 'smart-cycle-discounts' ); ?>">
+				<?php WSSCD_Icon_Helper::render( 'no-alt', array( 'size' => 16 ) ); ?>
 			</button>
-			<div class="scd-upgrade-banner-content">
-				<div class="scd-upgrade-banner-left">
-					<?php echo SCD_Icon_Helper::get( 'info', array( 'size' => 16, 'class' => 'scd-upgrade-icon' ) ); ?>
-					<div class="scd-upgrade-text">
+			<div class="wsscd-upgrade-banner-content">
+				<div class="wsscd-upgrade-banner-left">
+					<?php WSSCD_Icon_Helper::render( 'info', array( 'size' => 16, 'class' => 'wsscd-upgrade-icon' ) ); ?>
+					<div class="wsscd-upgrade-text">
 						<strong><?php echo esc_html( $title ); ?></strong>
 						<?php if ( true === $has_promotion ) : ?>
-							<span class="scd-promotion-badge"><?php echo esc_html( $discount_text ); ?></span>
+							<span class="wsscd-promotion-badge"><?php echo esc_html( $discount_text ); ?></span>
 						<?php endif; ?>
-						<span class="scd-upgrade-message"><?php echo esc_html( $message ); ?></span>
+						<span class="wsscd-upgrade-message"><?php echo esc_html( $message ); ?></span>
 					</div>
 				</div>
-				<div class="scd-upgrade-banner-actions">
-					<a href="<?php echo esc_url( $upgrade_url ); ?>" class="button button-primary scd-upgrade-btn">
+				<div class="wsscd-upgrade-banner-actions">
+					<a href="<?php echo esc_url( $upgrade_url ); ?>" class="button button-primary wsscd-upgrade-btn">
 						<?php
 						if ( true === $has_promotion ) {
 							esc_html_e( 'Claim Discount', 'smart-cycle-discounts' );
@@ -332,10 +331,7 @@ class SCD_Upgrade_Prompt_Manager {
 							esc_html_e( 'Upgrade to Pro', 'smart-cycle-discounts' );
 						}
 						?>
-						<?php echo SCD_Icon_Helper::get( 'arrow-right', array( 'size' => 16 ) ); ?>
-					</a>
-					<a href="<?php echo esc_url( $trial_url ); ?>" class="button scd-trial-btn">
-						<?php esc_html_e( 'Start Trial', 'smart-cycle-discounts' ); ?>
+						<?php WSSCD_Icon_Helper::render( 'arrow-right', array( 'size' => 16 ) ); ?>
 					</a>
 				</div>
 			</div>
@@ -363,9 +359,13 @@ class SCD_Upgrade_Prompt_Manager {
 
 		ob_start();
 		?>
-		<div class="scd-upgrade-prompt-inline">
-			<?php echo SCD_Icon_Helper::get( 'lock', array( 'size' => 16 ) ); ?>
-			<span><?php echo $message; ?></span>
+		<div class="wsscd-upgrade-prompt-inline">
+			<?php
+			WSSCD_Icon_Helper::render( 'lock', array( 'size' => 16 ) );
+			?>
+			<span><?php
+						echo wp_kses_post( $message );
+			?></span>
 			<a href="<?php echo esc_url( $upgrade_url ); ?>" class="button button-small">
 				<?php esc_html_e( 'Upgrade', 'smart-cycle-discounts' ); ?>
 			</a>
@@ -384,7 +384,6 @@ class SCD_Upgrade_Prompt_Manager {
 	 */
 	private function get_modal_prompt( $feature_name, $args = array() ) {
 		$upgrade_url = $this->feature_gate->get_upgrade_url();
-		$trial_url   = $this->feature_gate->get_trial_url();
 
 		$title = isset( $args['title'] ) ? esc_html( $args['title'] ) : sprintf(
 			/* translators: %s: feature name */
@@ -393,29 +392,30 @@ class SCD_Upgrade_Prompt_Manager {
 		);
 
 		$benefits = isset( $args['benefits'] ) ? $args['benefits'] : array(
-			__( 'Advanced analytics and insights', 'smart-cycle-discounts' ),
-			__( 'Unlimited campaigns', 'smart-cycle-discounts' ),
+			__( 'Advanced discount types (Tiered, BOGO, Spend Threshold)', 'smart-cycle-discounts' ),
+			__( 'Detailed analytics and insights', 'smart-cycle-discounts' ),
 			__( 'Priority support', 'smart-cycle-discounts' ),
 			__( 'Custom date ranges and exports', 'smart-cycle-discounts' ),
 		);
 
 		ob_start();
 		?>
-		<div id="scd-upgrade-modal" class="scd-modal" style="display: none;">
-			<div class="scd-modal-content">
-				<span class="scd-modal-close">&times;</span>
-				<h2><?php echo $title; ?></h2>
-				<ul class="scd-feature-list">
+		<div id="wsscd-upgrade-modal" class="wsscd-modal" style="display: none;">
+			<div class="wsscd-modal-content">
+				<span class="wsscd-modal-close">&times;</span>
+				<h2><?php
+								echo wp_kses_post( $title );
+				?></h2>
+				<ul class="wsscd-feature-list">
 					<?php foreach ( $benefits as $benefit ) : ?>
-						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php echo esc_html( $benefit ); ?></li>
+						<li><?php
+						WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) );
+						?> <?php echo esc_html( $benefit ); ?></li>
 					<?php endforeach; ?>
 				</ul>
-				<div class="scd-modal-actions">
+				<div class="wsscd-modal-actions">
 					<a href="<?php echo esc_url( $upgrade_url ); ?>" class="button button-primary button-hero">
 						<?php esc_html_e( 'Upgrade Now', 'smart-cycle-discounts' ); ?>
-					</a>
-					<a href="<?php echo esc_url( $trial_url ); ?>" class="button button-secondary button-hero">
-						<?php esc_html_e( 'Start Free Trial', 'smart-cycle-discounts' ); ?>
 					</a>
 				</div>
 			</div>
@@ -443,10 +443,14 @@ class SCD_Upgrade_Prompt_Manager {
 
 		ob_start();
 		?>
-		<div class="scd-upgrade-overlay">
-			<div class="scd-upgrade-overlay-content">
-				<?php echo SCD_Icon_Helper::get( 'lock', array( 'size' => 16 ) ); ?>
-				<h3><?php echo $message; ?></h3>
+		<div class="wsscd-upgrade-overlay">
+			<div class="wsscd-upgrade-overlay-content">
+				<?php
+				WSSCD_Icon_Helper::render( 'lock', array( 'size' => 16 ) );
+				?>
+				<h3><?php
+								echo wp_kses_post( $message );
+				?></h3>
 				<a href="<?php echo esc_url( $upgrade_url ); ?>" class="button button-primary">
 					<?php esc_html_e( 'Upgrade to Pro', 'smart-cycle-discounts' ); ?>
 				</a>

@@ -27,36 +27,36 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/frontend
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Shortcodes {
+class WSSCD_Shortcodes {
 
 	/**
 	 * Discount display instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Discount_Display    $discount_display    Discount display.
+	 * @var      WSSCD_Discount_Display    $discount_display    Discount display.
 	 */
-	private SCD_Discount_Display $discount_display;
+	private WSSCD_Discount_Display $discount_display;
 
 	/**
 	 * Campaign manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Manager    $campaign_manager    Campaign manager.
+	 * @var      WSSCD_Campaign_Manager    $campaign_manager    Campaign manager.
 	 */
-	private SCD_Campaign_Manager $campaign_manager;
+	private WSSCD_Campaign_Manager $campaign_manager;
 
 	/**
 	 * Initialize the shortcodes.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Discount_Display $discount_display    Discount display.
-	 * @param    SCD_Campaign_Manager $campaign_manager    Campaign manager.
+	 * @param    WSSCD_Discount_Display $discount_display    Discount display.
+	 * @param    WSSCD_Campaign_Manager $campaign_manager    Campaign manager.
 	 */
 	public function __construct(
-		SCD_Discount_Display $discount_display,
-		SCD_Campaign_Manager $campaign_manager
+		WSSCD_Discount_Display $discount_display,
+		WSSCD_Campaign_Manager $campaign_manager
 	) {
 		$this->discount_display = $discount_display;
 		$this->campaign_manager = $campaign_manager;
@@ -70,16 +70,16 @@ class SCD_Shortcodes {
 	 */
 	public function register(): void {
 		// Product discount shortcodes
-		add_shortcode( 'scd_product_discount', array( $this, 'product_discount' ) );
-		add_shortcode( 'scd_product_badge', array( $this, 'product_badge' ) );
+		add_shortcode( 'wsscd_product_discount', array( $this, 'product_discount' ) );
+		add_shortcode( 'wsscd_product_badge', array( $this, 'product_badge' ) );
 
 		// Campaign shortcodes
-		add_shortcode( 'scd_campaign_countdown', array( $this, 'campaign_countdown' ) );
-		add_shortcode( 'scd_campaign_products', array( $this, 'campaign_products' ) );
+		add_shortcode( 'wsscd_campaign_countdown', array( $this, 'campaign_countdown' ) );
+		add_shortcode( 'wsscd_campaign_products', array( $this, 'campaign_products' ) );
 
 		// General shortcodes
-		add_shortcode( 'scd_active_campaigns', array( $this, 'active_campaigns' ) );
-		add_shortcode( 'scd_discount_timer', array( $this, 'discount_timer' ) );
+		add_shortcode( 'wsscd_active_campaigns', array( $this, 'active_campaigns' ) );
+		add_shortcode( 'wsscd_discount_timer', array( $this, 'discount_timer' ) );
 	}
 
 	/**
@@ -193,12 +193,12 @@ class SCD_Shortcodes {
 
 		ob_start();
 		?>
-		<div class="scd-campaign-countdown" data-campaign-id="<?php echo esc_attr( $campaign->get_id() ); ?>">
+		<div class="wsscd-campaign-countdown" data-campaign-id="<?php echo esc_attr( $campaign->get_id() ); ?>">
 			<?php if ( $atts['show_title'] === 'yes' ) : ?>
 				<h3><?php echo esc_html( $campaign->get_name() ); ?></h3>
 			<?php endif; ?>
-			<div class="scd-countdown-timer" data-end-time="<?php echo esc_attr( $end_date->format( 'c' ) ); ?>">
-				<span class="scd-countdown-loading">Loading countdown...</span>
+			<div class="wsscd-countdown-timer" data-end-time="<?php echo esc_attr( $end_date->format( 'c' ) ); ?>">
+				<span class="wsscd-countdown-loading">Loading countdown...</span>
 			</div>
 		</div>
 		<?php
@@ -285,13 +285,13 @@ class SCD_Shortcodes {
 
 		ob_start();
 		?>
-		<div class="scd-active-campaigns scd-style-<?php echo esc_attr( $atts['style'] ); ?>">
+		<div class="wsscd-active-campaigns wsscd-style-<?php echo esc_attr( $atts['style'] ); ?>">
 			<?php foreach ( $campaigns as $campaign ) : ?>
 				<?php
 				if ( ! $campaign ) {
 					continue;}
 				?>
-				<div class="scd-campaign-item">
+				<div class="wsscd-campaign-item">
 					<h3><?php echo esc_html( $campaign->get_name() ); ?></h3>
 					<?php if ( $campaign->get_description() ) : ?>
 						<p><?php echo wp_kses_post( $campaign->get_description() ); ?></p>
@@ -363,10 +363,10 @@ class SCD_Shortcodes {
 
 		ob_start();
 		?>
-		<div class="scd-discount-timer scd-style-<?php echo esc_attr( $atts['style'] ); ?>" 
+		<div class="wsscd-discount-timer wsscd-style-<?php echo esc_attr( $atts['style'] ); ?>" 
 			data-end-time="<?php echo esc_attr( $active_campaign->get_ends_at()->format( 'c' ) ); ?>">
-			<span class="scd-timer-label"><?php esc_html_e( 'Offer ends in:', 'smart-cycle-discounts' ); ?></span>
-			<span class="scd-timer-countdown">--:--:--</span>
+			<span class="wsscd-timer-label"><?php esc_html_e( 'Offer ends in:', 'smart-cycle-discounts' ); ?></span>
+			<span class="wsscd-timer-countdown">--:--:--</span>
 		</div>
 		<?php
 		return ob_get_clean();

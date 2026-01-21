@@ -26,13 +26,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since      1.0.0
  */
-class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Save_Step_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * State service instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Wizard_State_Service
+	 * @var      WSSCD_Wizard_State_Service
 	 */
 	private $state_service;
 
@@ -40,7 +40,7 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Idempotency service instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Idempotency_Service
+	 * @var      WSSCD_Idempotency_Service
 	 */
 	private $idempotency_service;
 
@@ -48,7 +48,7 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Step data transformer instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Step_Data_Transformer
+	 * @var      WSSCD_Step_Data_Transformer
 	 */
 	private $transformer;
 
@@ -56,7 +56,7 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Feature gate instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Feature_Gate|null
+	 * @var      WSSCD_Feature_Gate|null
 	 */
 	private $feature_gate;
 
@@ -72,11 +72,11 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Wizard_State_Service  $state_service         State service (required).
-	 * @param    SCD_Logger|null           $logger                Logger instance.
-	 * @param    SCD_Feature_Gate|null     $feature_gate          Feature gate.
-	 * @param    SCD_Idempotency_Service   $idempotency_service   Idempotency service (required).
-	 * @param    SCD_Step_Data_Transformer $transformer           Data transformer (required).
+	 * @param    WSSCD_Wizard_State_Service  $state_service         State service (required).
+	 * @param    WSSCD_Logger|null           $logger                Logger instance.
+	 * @param    WSSCD_Feature_Gate|null     $feature_gate          Feature gate.
+	 * @param    WSSCD_Idempotency_Service   $idempotency_service   Idempotency service (required).
+	 * @param    WSSCD_Step_Data_Transformer $transformer           Data transformer (required).
 	 */
 	public function __construct(
 		$state_service,
@@ -108,25 +108,25 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 				// Fall back to creating new cache manager.
 			}
 			if ( ! $cache_manager ) {
-				// Ensure SCD_Cache_Manager class is loaded.
-				if ( ! class_exists( 'SCD_Cache_Manager' ) ) {
-					$cache_path = SCD_PLUGIN_DIR . 'includes/cache/class-cache-manager.php';
+				// Ensure WSSCD_Cache_Manager class is loaded.
+				if ( ! class_exists( 'WSSCD_Cache_Manager' ) ) {
+					$cache_path = WSSCD_PLUGIN_DIR . 'includes/cache/class-cache-manager.php';
 					if ( file_exists( $cache_path ) ) {
 						require_once $cache_path;
 					}
 				}
-				if ( class_exists( 'SCD_Cache_Manager' ) ) {
-					$cache_manager = new SCD_Cache_Manager();
+				if ( class_exists( 'WSSCD_Cache_Manager' ) ) {
+					$cache_manager = new WSSCD_Cache_Manager();
 				}
 			}
 			// Only create idempotency service if we have a valid cache manager.
-			if ( $cache_manager instanceof SCD_Cache_Manager ) {
-				$this->idempotency_service = new SCD_Idempotency_Service( $cache_manager, $state_service );
+			if ( $cache_manager instanceof WSSCD_Cache_Manager ) {
+				$this->idempotency_service = new WSSCD_Idempotency_Service( $cache_manager, $state_service );
 			} else {
 				$this->idempotency_service = null;
 			}
 		}
-		$this->transformer = $transformer ?: new SCD_Step_Data_Transformer();
+		$this->transformer = $transformer ?: new WSSCD_Step_Data_Transformer();
 	}
 
 	/**
@@ -136,7 +136,7 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_save_step';
+		return 'wsscd_save_step';
 	}
 
 	/**
@@ -157,7 +157,7 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 			return $step;
 		}
 
-		if ( ! SCD_Wizard_Step_Registry::is_valid_step( $step ) ) {
+		if ( ! WSSCD_Wizard_Step_Registry::is_valid_step( $step ) ) {
 			return new WP_Error(
 				'invalid_step',
 				sprintf(
@@ -199,7 +199,7 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 			return array(
 				'message'   => __( 'No data to save', 'smart-cycle-discounts' ),
 				'step'      => $step,
-				'next_step' => SCD_Wizard_Step_Registry::get_next_step( $step ),
+				'next_step' => WSSCD_Wizard_Step_Registry::get_next_step( $step ),
 			);
 		}
 
@@ -239,13 +239,16 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	/**
 	 * Set execution limits.
 	 *
+	 * Note: Removed set_time_limit() call per WordPress.org guidelines.
+	 * PHP limits should not be modified by plugins. If timeouts occur,
+	 * server-level configuration should be adjusted instead.
+	 *
 	 * @since    1.0.0
 	 * @return   void
 	 */
 	private function set_execution_limits() {
-		if ( function_exists( 'set_time_limit' ) && ! ini_get( 'safe_mode' ) ) {
-			set_time_limit( 30 );
-		}
+		// Intentionally empty - PHP limits should not be modified by plugins.
+		// Server configuration should handle timeout settings.
 	}
 
 	/**
@@ -321,10 +324,13 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @param    array  $data    Step data.
 	 * @return   true|WP_Error      True if valid, error otherwise.
 	 */
-	private function validate_step_data( $step, $data ) {
+	private function validate_step_data( $step, &$data ) {
 		if ( 'review' === $step ) {
 			return true;
 		}
+
+		// Strip PRO features for free users before validation.
+		$this->strip_pro_features_for_free_users( $step, $data );
 
 		// Validate PRO features first
 		$pro_validation = $this->validate_pro_features( $step, $data );
@@ -334,6 +340,54 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 
 		// Always use strict validation
 		return $this->validate_full_save( $step, $data );
+	}
+
+	/**
+	 * Strip PRO features from step data for free users.
+	 *
+	 * Removes PRO-only fields before validation to prevent false rejections.
+	 * This is a server-side safeguard that allows free users to save without
+	 * errors when the form sends fields that should have been hidden.
+	 *
+	 * @since    1.0.0
+	 * @param    string $step    Step name.
+	 * @param    array  $data    Step data (passed by reference).
+	 * @return   void
+	 */
+	private function strip_pro_features_for_free_users( $step, &$data ) {
+		if ( ! $this->feature_gate ) {
+			return;
+		}
+
+		// Strip discount configurations for free users on discounts step.
+		if ( 'discounts' === $step && ! $this->feature_gate->can_use_discount_configurations() ) {
+			$pro_config_fields = array(
+				'usage_limit_per_customer',
+				'total_usage_limit',
+				'lifetime_usage_cap',
+				'max_discount_amount',
+				'minimum_quantity',
+				'minimum_order_amount',
+			);
+
+			foreach ( $pro_config_fields as $field ) {
+				unset( $data[ $field ] );
+			}
+
+			// Reset boolean configs to free-tier defaults.
+			$data['stack_with_others']   = false; // Free users cannot stack.
+			$data['allow_coupons']       = true;  // Free users must allow coupons.
+			$data['apply_to_sale_items'] = true;  // Free users must apply to sale items.
+		}
+
+		// Note: Recurring campaigns are FREE - no stripping needed for schedule step.
+
+		// Strip advanced filters for free users on products step.
+		if ( 'products' === $step && ! $this->feature_gate->can_use_advanced_product_filters() ) {
+			// Clear conditions array to prevent PRO filter validation.
+			$data['conditions']       = array();
+			$data['conditions_logic'] = 'all'; // Reset to default.
+		}
 	}
 
 	/**
@@ -349,18 +403,18 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 			return true; // Fail open if no feature gate
 		}
 
-		$validator_path = SCD_PLUGIN_DIR . 'includes/core/validation/class-pro-feature-validator.php';
+		$validator_path = WSSCD_PLUGIN_DIR . 'includes/core/validation/class-pro-feature-validator.php';
 		if ( ! file_exists( $validator_path ) ) {
 			return true; // Fail open
 		}
 
 		require_once $validator_path;
 
-		if ( ! class_exists( 'SCD_PRO_Feature_Validator' ) ) {
+		if ( ! class_exists( 'WSSCD_PRO_Feature_Validator' ) ) {
 			return true; // Fail open
 		}
 
-		$validator = new SCD_PRO_Feature_Validator( $this->feature_gate );
+		$validator = new WSSCD_PRO_Feature_Validator( $this->feature_gate );
 		return $validator->validate_step( $step, $data );
 	}
 
@@ -380,8 +434,8 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 			case 'products':
 			case 'discounts':
 			case 'schedule':
-				$this->sanitized_data = SCD_Validation::sanitize_step_data( $data, $step );
-				return SCD_Validation::validate( $this->sanitized_data, 'wizard_' . $step );
+				$this->sanitized_data = WSSCD_Validation::sanitize_step_data( $data, $step );
+				return WSSCD_Validation::validate( $this->sanitized_data, 'wizard_' . $step );
 
 			case 'review':
 				if ( ! $this->state_service ) {
@@ -392,7 +446,7 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 				}
 
 				$all_data = $this->state_service->get_all_data();
-				return SCD_Validation::validate( $all_data, 'campaign_complete' );
+				return WSSCD_Validation::validate( $all_data, 'campaign_complete' );
 
 			default:
 				return new WP_Error( 'unknown_step', __( 'Unknown step', 'smart-cycle-discounts' ) );
@@ -415,7 +469,7 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 			case 'products':
 			case 'discounts':
 			case 'schedule':
-				$sanitized = SCD_Validation::sanitize_step_data( $data_to_process, $step );
+				$sanitized = WSSCD_Validation::sanitize_step_data( $data_to_process, $step );
 
 				// Strip PRO features for free users (server-side safeguard)
 				if ( 'schedule' === $step && $this->feature_gate && ! $this->feature_gate->can_use_recurring_campaigns() ) {
@@ -494,10 +548,10 @@ class SCD_Save_Step_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   array                       Response array.
 	 */
 	private function build_response( $step, $processed_data, $request ) {
-		$next_step = SCD_Wizard_Step_Registry::get_next_step( $step );
+		$next_step = WSSCD_Wizard_Step_Registry::get_next_step( $step );
 		$progress  = $this->state_service ? $this->state_service->get_progress() : array(
 			'completed_steps' => array(),
-			'total_steps'     => SCD_Wizard_Step_Registry::get_step_count(),
+			'total_steps'     => WSSCD_Wizard_Step_Registry::get_step_count(),
 			'percentage'      => 0,
 		);
 

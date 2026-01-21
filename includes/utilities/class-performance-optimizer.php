@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/performance
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Performance_Optimizer {
+class WSSCD_Performance_Optimizer {
 
 	/**
 	 * Request-level memoization cache.
@@ -205,9 +205,10 @@ class SCD_Performance_Optimizer {
 				global $wpdb;
 
 				$placeholders = implode( ',', array_fill( 0, count( $product_ids ), '%d' ) );
-				$table_name   = $wpdb->prefix . 'scd_active_discounts';
+				$table_name   = $wpdb->prefix . 'wsscd_active_discounts';
 
 				// Query all active discounts for these products in one go
+				// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Batch discount lookup; result is cached at higher level. Table name is constructed with $wpdb->prefix; dynamic placeholders via array_fill; spread operator passes correct count.
 				$results = $wpdb->get_results(
 					$wpdb->prepare(
 						"SELECT product_id, discount_type, discount_amount, discount_percentage
@@ -220,6 +221,7 @@ class SCD_Performance_Optimizer {
 					),
 					ARRAY_A
 				);
+				// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
 				$discount_map = array();
 				foreach ( $results as $row ) {
@@ -244,7 +246,7 @@ class SCD_Performance_Optimizer {
 	 * @return   array               Cached reference data.
 	 */
 	public static function get_reference_data( string $type ): array {
-		$cache_key      = 'scd_ref_data_' . $type;
+		$cache_key      = 'wsscd_ref_data_' . $type;
 		$cache_duration = 300; // 5 minutes
 
 		return self::get_or_set_transient(
@@ -278,8 +280,9 @@ class SCD_Performance_Optimizer {
 	private static function load_active_campaigns(): array {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'scd_campaigns';
+		$table_name = $wpdb->prefix . 'wsscd_campaigns';
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Reference data query; cached at transient level.
 		return $wpdb->get_results(
 			$wpdb->prepare(
 				'SELECT id, name, priority, discount_type
@@ -304,13 +307,13 @@ class SCD_Performance_Optimizer {
 	 * @return   array    Discount rules.
 	 */
 	private static function load_discount_rules(): array {
-		if ( class_exists( 'SCD_Validation' ) ) {
+		if ( class_exists( 'WSSCD_Validation' ) ) {
 			return array(
-				'discount_types' => SCD_Validation_Rules::DISCOUNT_TYPES,
-				'percentage_min' => SCD_Validation_Rules::PERCENTAGE_MIN,
-				'percentage_max' => SCD_Validation_Rules::PERCENTAGE_MAX,
-				'fixed_min'      => SCD_Validation_Rules::FIXED_MIN,
-				'fixed_max'      => SCD_Validation_Rules::FIXED_MAX,
+				'discount_types' => WSSCD_Validation_Rules::DISCOUNT_TYPES,
+				'percentage_min' => WSSCD_Validation_Rules::PERCENTAGE_MIN,
+				'percentage_max' => WSSCD_Validation_Rules::PERCENTAGE_MAX,
+				'fixed_min'      => WSSCD_Validation_Rules::FIXED_MIN,
+				'fixed_max'      => WSSCD_Validation_Rules::FIXED_MAX,
 			);
 		}
 
@@ -326,8 +329,8 @@ class SCD_Performance_Optimizer {
 	 */
 	private static function load_validation_rules(): array {
 		// Use the consolidated validation class to get all rules
-		if ( class_exists( 'SCD_Validation' ) ) {
-			return SCD_Validation::get_js_data();
+		if ( class_exists( 'WSSCD_Validation' ) ) {
+			return WSSCD_Validation::get_js_data();
 		}
 
 		return array();

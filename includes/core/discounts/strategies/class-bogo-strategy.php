@@ -1,5 +1,7 @@
 <?php
 /**
+ * @fs_premium_only
+ *
  * Bogo Strategy Class
  *
  * @package    SmartCycleDiscounts
@@ -27,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/discounts/strategies
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_BOGO_Strategy implements SCD_Discount_Strategy_Interface {
+class WSSCD_BOGO_Strategy implements WSSCD_Discount_Strategy_Interface {
 
 	/**
 	 * Calculate BOGO discount.
@@ -36,13 +38,13 @@ class SCD_BOGO_Strategy implements SCD_Discount_Strategy_Interface {
 	 * @param    float $original_price      Original price.
 	 * @param    array $discount_config     Strategy configuration.
 	 * @param    array $context            Additional context.
-	 * @return   SCD_Discount_Result         Calculation result.
+	 * @return   WSSCD_Discount_Result         Calculation result.
 	 */
-	public function calculate_discount( float $original_price, array $discount_config, array $context = array() ): SCD_Discount_Result {
+	public function calculate_discount( float $original_price, array $discount_config, array $context = array() ): WSSCD_Discount_Result {
 		try {
 			// CRITICAL: Defensive validation for NULL or invalid prices
 			if ( ! is_numeric( $original_price ) || $original_price < 0 ) {
-				return SCD_Discount_Result::no_discount(
+				return WSSCD_Discount_Result::no_discount(
 					0.0,
 					$this->get_strategy_id(),
 					'Invalid price: must be a non-negative number'
@@ -51,12 +53,12 @@ class SCD_BOGO_Strategy implements SCD_Discount_Strategy_Interface {
 
 			$validation_errors = $this->validate_config( $discount_config );
 			if ( ! empty( $validation_errors ) ) {
-				return SCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'Invalid configuration' );
+				return WSSCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'Invalid configuration' );
 			}
 
 			$quantity = intval( $context['quantity'] ?? 1 );
 			if ( $quantity < 1 ) {
-				return SCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'Quantity must be at least 1' );
+				return WSSCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'Quantity must be at least 1' );
 			}
 
 			// Get BOGO configuration
@@ -106,13 +108,13 @@ class SCD_BOGO_Strategy implements SCD_Discount_Strategy_Interface {
 					);
 				}
 
-				return new SCD_Discount_Result( $original_price, $discounted_price, $this->get_strategy_id(), true, $metadata );
+				return new WSSCD_Discount_Result( $original_price, $discounted_price, $this->get_strategy_id(), true, $metadata );
 			}
 
-			return SCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'Insufficient quantity for BOGO' );
+			return WSSCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'Insufficient quantity for BOGO' );
 
 		} catch ( Exception $e ) {
-			return SCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), $e->getMessage() );
+			return WSSCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), $e->getMessage() );
 		}
 	}
 
@@ -130,11 +132,12 @@ class SCD_BOGO_Strategy implements SCD_Discount_Strategy_Interface {
 			$errors[] = __( 'Buy quantity is required and must be numeric', 'smart-cycle-discounts' );
 		} else {
 			$buy_qty = intval( $discount_config['buy_quantity'] );
-			if ( $buy_qty < SCD_Validation_Rules::BOGO_BUY_MIN || $buy_qty > SCD_Validation_Rules::BOGO_BUY_MAX ) {
+			if ( $buy_qty < WSSCD_Validation_Rules::BOGO_BUY_MIN || $buy_qty > WSSCD_Validation_Rules::BOGO_BUY_MAX ) {
 				$errors[] = sprintf(
+					/* translators: %1$d: minimum buy quantity, %2$d: maximum buy quantity */
 					__( 'Buy quantity must be between %1$d and %2$d', 'smart-cycle-discounts' ),
-					SCD_Validation_Rules::BOGO_BUY_MIN,
-					SCD_Validation_Rules::BOGO_BUY_MAX
+					WSSCD_Validation_Rules::BOGO_BUY_MIN,
+					WSSCD_Validation_Rules::BOGO_BUY_MAX
 				);
 			}
 		}
@@ -143,11 +146,12 @@ class SCD_BOGO_Strategy implements SCD_Discount_Strategy_Interface {
 			$errors[] = __( 'Get quantity is required and must be numeric', 'smart-cycle-discounts' );
 		} else {
 			$get_qty = intval( $discount_config['get_quantity'] );
-			if ( $get_qty < SCD_Validation_Rules::BOGO_GET_MIN || $get_qty > SCD_Validation_Rules::BOGO_GET_MAX ) {
+			if ( $get_qty < WSSCD_Validation_Rules::BOGO_GET_MIN || $get_qty > WSSCD_Validation_Rules::BOGO_GET_MAX ) {
 				$errors[] = sprintf(
+					/* translators: %1$d: minimum get quantity, %2$d: maximum get quantity */
 					__( 'Get quantity must be between %1$d and %2$d', 'smart-cycle-discounts' ),
-					SCD_Validation_Rules::BOGO_GET_MIN,
-					SCD_Validation_Rules::BOGO_GET_MAX
+					WSSCD_Validation_Rules::BOGO_GET_MIN,
+					WSSCD_Validation_Rules::BOGO_GET_MAX
 				);
 			}
 		}

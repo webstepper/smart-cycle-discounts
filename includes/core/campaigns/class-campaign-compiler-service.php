@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/services
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Campaign_Compiler_Service {
+class WSSCD_Campaign_Compiler_Service {
 
 	/**
 	 * Campaign repository.
@@ -48,11 +48,11 @@ class SCD_Campaign_Compiler_Service {
 		$this->campaign_repository = $campaign_repository;
 
 		// If no repository provided, try to create one
-		if ( ! $this->campaign_repository && class_exists( 'SCD_Campaign_Repository' ) ) {
-			if ( class_exists( 'SCD_Database_Manager' ) && class_exists( 'SCD_Cache_Manager' ) ) {
-				$this->campaign_repository = new SCD_Campaign_Repository(
-					new SCD_Database_Manager(),
-					new SCD_Cache_Manager()
+		if ( ! $this->campaign_repository && class_exists( 'WSSCD_Campaign_Repository' ) ) {
+			if ( class_exists( 'WSSCD_Database_Manager' ) && class_exists( 'WSSCD_Cache_Manager' ) ) {
+				$this->campaign_repository = new WSSCD_Campaign_Repository(
+					new WSSCD_Database_Manager(),
+					new WSSCD_Cache_Manager()
 				);
 			}
 		}
@@ -65,11 +65,11 @@ class SCD_Campaign_Compiler_Service {
 	 * @return   array|null    Compiled campaign data or null if no session.
 	 */
 	public function compile_from_session(): ?array {
-		if ( ! class_exists( 'SCD_Wizard_State_Service' ) ) {
-			require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
+		if ( ! class_exists( 'WSSCD_Wizard_State_Service' ) ) {
+			require_once WSSCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
 		}
 
-		$state_service = new SCD_Wizard_State_Service();
+		$state_service = new WSSCD_Wizard_State_Service();
 
 		$session_data = $state_service->get_all_data();
 
@@ -97,15 +97,15 @@ class SCD_Campaign_Compiler_Service {
 		}
 
 		// Debug: Check if products step has conditions
-		if ( isset( $steps_data['products']['conditions'] ) ) {
-			error_log( '[SCD] COMPILER - Products step has conditions: ' . print_r( $steps_data['products']['conditions'], true ) );
-		} else {
-			error_log( '[SCD] COMPILER - Products step has NO conditions' );
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			if ( isset( $steps_data['products']['conditions'] ) ) {
+			} else {
+			}
 		}
 
 		// Merge all step data
 		foreach ( $steps_data as $step => $step_data ) {
-			if ( $step === '_meta' ) {
+			if ( '_meta' === $step ) {
 				continue; // Skip meta step
 			}
 
@@ -123,21 +123,21 @@ class SCD_Campaign_Compiler_Service {
 		}
 
 		// Apply field transformations using Wizard Field Mapper
-		if ( class_exists( 'SCD_Wizard_Field_Mapper' ) ) {
-			$compiled = SCD_Wizard_Field_Mapper::transform_to_entity_fields( $compiled );
+		if ( class_exists( 'WSSCD_Wizard_Field_Mapper' ) ) {
+			$compiled = WSSCD_Wizard_Field_Mapper::transform_to_entity_fields( $compiled );
 		}
 
 		// Apply other transformations (schedule, settings, etc.)
 		$compiled = $this->transform_campaign_data( $compiled );
 
 		// Debug: Check conditions after transformation
-		if ( isset( $compiled['conditions'] ) ) {
-			error_log( '[SCD] COMPILER - Compiled data has conditions: ' . print_r( $compiled['conditions'], true ) );
-		} else {
-			error_log( '[SCD] COMPILER - Compiled data has NO conditions' );
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			if ( isset( $compiled['conditions'] ) ) {
+			} else {
+			}
 		}
 
-		return apply_filters( 'scd_wizard_compile_campaign_data', $compiled, $steps_data );
+		return apply_filters( 'wsscd_wizard_compile_campaign_data', $compiled, $steps_data );
 	}
 
 	/**
@@ -189,7 +189,7 @@ class SCD_Campaign_Compiler_Service {
 	 * JSON storage into individual wizard fields.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign|array $campaign    Campaign object or array.
+	 * @param    WSSCD_Campaign|array $campaign    Campaign object or array.
 	 * @return   array                             Formatted data for wizard.
 	 */
 	public function format_for_wizard( $campaign ): array {
@@ -244,12 +244,12 @@ class SCD_Campaign_Compiler_Service {
 
 			// Badge Settings
 			if ( isset( $discount_rules['badge'] ) && is_array( $discount_rules['badge'] ) ) {
-				$badge_config                = $discount_rules['badge'];
-				$data['badge_enabled']       = $badge_config['enabled'] ?? false;
-				$data['badge_text']          = $badge_config['text'] ?? '';
-				$data['badge_bg_color']      = $badge_config['bg_color'] ?? '#ff0000';
-				$data['badge_text_color']    = $badge_config['text_color'] ?? '#ffffff';
-				$data['badge_position']      = $badge_config['position'] ?? 'top-right';
+				$badge_config                     = $discount_rules['badge'];
+				$data['badge_enabled']            = $badge_config['enabled'] ?? false;
+				$data['badge_text']               = ! empty( $badge_config['text'] ) ? $badge_config['text'] : 'auto';
+				$data['badge_bg_color']           = $badge_config['bg_color'] ?? '#ff0000';
+				$data['badge_text_color']         = $badge_config['text_color'] ?? '#ffffff';
+				$data['badge_position']           = $badge_config['position'] ?? 'top-right';
 			}
 
 			// BOGO Configuration - keep in grouped format
@@ -337,21 +337,22 @@ class SCD_Campaign_Compiler_Service {
 		$settings['tags']       = array();
 
 		if ( ! empty( $data['category_ids'] ) && is_array( $data['category_ids'] ) ) {
-			// Remove 'all' value if present - empty array means all categories
+			// Filter to valid numeric category IDs only
+			// Category filter creates the product pool (first field in Products step)
 			$category_ids = array_filter(
 				$data['category_ids'],
 				function ( $id ) {
-					return $id !== 'all';
+					return is_numeric( $id ) && intval( $id ) > 0;
 				}
 			);
 
 			if ( ! empty( $category_ids ) ) {
-				$data['category_ids'] = array_map( 'intval', $category_ids );
+				$data['category_ids'] = array_values( array_map( 'intval', $category_ids ) );
 				// Also store in metadata for additional info if needed
 				$data['metadata']['category_ids'] = $data['category_ids'];
 				$settings['categories'] = $data['category_ids'];
 			} else {
-				// If only 'all' was present, set to empty array (means all categories)
+				// Empty category filter = all products in store (fallback)
 				$data['category_ids']   = array();
 				$settings['categories'] = array();
 			}
@@ -432,17 +433,19 @@ class SCD_Campaign_Compiler_Service {
 					$current_time = $now_dt->format( 'H:i' );
 
 					// Use DateTimeBuilder for type-safe UTC conversion
-					$start_builder = SCD_DateTime_Builder::from_user_input(
+					$start_builder = WSSCD_DateTime_Builder::from_user_input(
 						$current_date,
 						$current_time,
 						$campaign_timezone
 					);
 
 					if ( ! $start_builder->validate() ) {
+						// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
 						throw new InvalidArgumentException(
-							__( 'Invalid immediate start date or time: ', 'smart-cycle-discounts' ) .
-							implode( ', ', $start_builder->get_errors() )
+							esc_html__( 'Invalid immediate start date or time: ', 'smart-cycle-discounts' ) .
+							esc_html( implode( ', ', $start_builder->get_errors() ) )
 						);
+						// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 					}
 
 					// Get UTC datetime for database storage
@@ -461,17 +464,19 @@ class SCD_Campaign_Compiler_Service {
 					$end_time = $data['end_time'];
 
 					// Use DateTimeBuilder for type-safe combination
-					$end_builder = SCD_DateTime_Builder::from_user_input(
+					$end_builder = WSSCD_DateTime_Builder::from_user_input(
 						$end_date,
 						$end_time,
 						$campaign_timezone
 					);
 
 					if ( ! $end_builder->validate() ) {
+						// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
 						throw new InvalidArgumentException(
-							__( 'Invalid end date or time: ', 'smart-cycle-discounts' ) .
-							implode( ', ', $end_builder->get_errors() )
+							esc_html__( 'Invalid end date or time: ', 'smart-cycle-discounts' ) .
+							esc_html( implode( ', ', $end_builder->get_errors() ) )
 						);
+						// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 					}
 
 					$data['ends_at'] = $end_builder->to_mysql();
@@ -483,17 +488,19 @@ class SCD_Campaign_Compiler_Service {
 					$end_dt->modify( '+' . $duration_seconds . ' seconds' );
 
 					// Use DateTimeBuilder for consistent UTC conversion
-					$end_builder = SCD_DateTime_Builder::from_user_input(
+					$end_builder = WSSCD_DateTime_Builder::from_user_input(
 						$end_dt->format( 'Y-m-d' ),
 						$end_dt->format( 'H:i' ),
 						$campaign_timezone
 					);
 
 					if ( ! $end_builder->validate() ) {
+						// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
 						throw new InvalidArgumentException(
-							__( 'Invalid duration-based end date or time: ', 'smart-cycle-discounts' ) .
-							implode( ', ', $end_builder->get_errors() )
+							esc_html__( 'Invalid duration-based end date or time: ', 'smart-cycle-discounts' ) .
+							esc_html( implode( ', ', $end_builder->get_errors() ) )
 						);
+						// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 					}
 
 					$data['ends_at'] = $end_builder->to_mysql();
@@ -506,17 +513,19 @@ class SCD_Campaign_Compiler_Service {
 
 					try {
 						// Use DateTimeBuilder for validation and combination
-						$builder = SCD_DateTime_Builder::from_user_input(
+						$builder = WSSCD_DateTime_Builder::from_user_input(
 							$start_date,
 							$start_time,
 							$campaign_timezone
 						);
 
 						if ( ! $builder->validate() ) {
+							// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
 							throw new InvalidArgumentException(
-								__( 'Invalid start date or time: ', 'smart-cycle-discounts' ) .
-								implode( ', ', $builder->get_errors() )
+								esc_html__( 'Invalid start date or time: ', 'smart-cycle-discounts' ) .
+								esc_html( implode( ', ', $builder->get_errors() ) )
 							);
+							// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 						}
 
 						// Get UTC datetime for database storage
@@ -533,17 +542,19 @@ class SCD_Campaign_Compiler_Service {
 
 					try {
 						// Use DateTimeBuilder for validation and combination
-						$builder = SCD_DateTime_Builder::from_user_input(
+						$builder = WSSCD_DateTime_Builder::from_user_input(
 							$end_date,
 							$end_time,
 							$campaign_timezone
 						);
 
 						if ( ! $builder->validate() ) {
+							// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
 							throw new InvalidArgumentException(
-								__( 'Invalid end date or time: ', 'smart-cycle-discounts' ) .
-								implode( ', ', $builder->get_errors() )
+								esc_html__( 'Invalid end date or time: ', 'smart-cycle-discounts' ) .
+								esc_html( implode( ', ', $builder->get_errors() ) )
 							);
+							// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 						}
 
 						// Get UTC datetime for database storage
@@ -580,7 +591,6 @@ class SCD_Campaign_Compiler_Service {
 		// Map campaign status based on launch option and start time
 		// CRITICAL FIX: Respect user intent - launch_option is the PRIMARY decider
 		$launch_option = $data['launch_option'] ?? null;
-		$start_type    = $data['start_type'] ?? 'immediate';
 
 		$is_future_campaign = false;
 		if ( ! empty( $data['starts_at'] ) ) {
@@ -594,7 +604,7 @@ class SCD_Campaign_Compiler_Service {
 		// 1. User explicitly chose 'draft' → ALWAYS draft (allows reviewing future campaigns)
 		// 2. User chose 'active' + future start → 'scheduled' (physical constraint)
 		// 3. User chose 'active' + immediate start → 'active'
-		// 4. No choice → preserve existing status or default to 'draft'
+		// 4. No choice → preserve existing status (edit mode) or default to 'draft' (create mode)
 
 		if ( 'draft' === $launch_option ) {
 			// PRIORITY 1: User wants draft - ALWAYS respect this choice
@@ -612,9 +622,37 @@ class SCD_Campaign_Compiler_Service {
 			}
 		} else {
 			// PRIORITY 3: No explicit choice - preserve existing or default
-			// When editing, preserve current status unless user made a choice
+			// When editing, fetch and preserve current status from database
 			// When creating, default to 'draft' for safety
-			$data['status'] = $data['status'] ?? 'draft';
+			$existing_status = null;
+
+			// Check if we're editing (campaign ID exists)
+			if ( ! empty( $data['id'] ) && $this->campaign_repository ) {
+				$existing_campaign = $this->campaign_repository->find( (int) $data['id'] );
+				// Repository returns WSSCD_Campaign|null, verify type before calling methods
+				if ( $existing_campaign instanceof WSSCD_Campaign ) {
+					$existing_status = $existing_campaign->get_status();
+				}
+			}
+
+			if ( $existing_status ) {
+				// Editing: Preserve existing status, but apply physical constraints
+				// If campaign was scheduled/active and still has future start, keep as scheduled
+				// If campaign was scheduled and start time is now past, make it active
+				if ( in_array( $existing_status, array( 'scheduled', 'active' ), true ) ) {
+					if ( $is_future_campaign ) {
+						$data['status'] = 'scheduled';
+					} else {
+						$data['status'] = 'active';
+					}
+				} else {
+					// Preserve other statuses (draft, paused, expired, archived)
+					$data['status'] = $existing_status;
+				}
+			} else {
+				// Creating: Default to draft for safety
+				$data['status'] = $data['status'] ?? 'draft';
+			}
 		}
 
 		// Ensure campaign name is unique (including soft-deleted campaigns)
@@ -711,7 +749,7 @@ class SCD_Campaign_Compiler_Service {
 		if ( ! empty( $data['badge_enabled'] ) ) {
 			$config['badge'] = array(
 				'enabled'    => true,
-				'text'       => $data['badge_text'] ?? '',
+				'text'       => ! empty( $data['badge_text'] ) ? $data['badge_text'] : 'auto',
 				'bg_color'   => $data['badge_bg_color'] ?? '#ff0000',
 				'text_color' => $data['badge_text_color'] ?? '#ffffff',
 				'position'   => $data['badge_position'] ?? 'top-right',
@@ -837,8 +875,8 @@ class SCD_Campaign_Compiler_Service {
 		}
 
 		// For repositories without save_campaign_with_products, create and save campaign
-		if ( class_exists( 'SCD_Campaign' ) ) {
-			$campaign = new SCD_Campaign( $compiled_data );
+		if ( class_exists( 'WSSCD_Campaign' ) ) {
+			$campaign = new WSSCD_Campaign( $compiled_data );
 
 			if ( $this->campaign_repository->save( $campaign ) ) {
 				// If campaign is being created as active AND requires compilation, trigger it
@@ -846,7 +884,7 @@ class SCD_Campaign_Compiler_Service {
 					$selection_type = $campaign->get_product_selection_type();
 					if ( in_array( $selection_type, array( 'random_products', 'smart_selection' ), true ) ) {
 						// Trigger the compilation hook so Campaign_Manager can handle it
-						do_action( 'scd_campaign_activated', $campaign );
+						do_action( 'wsscd_campaign_activated', $campaign );
 					}
 				}
 
@@ -868,7 +906,7 @@ class SCD_Campaign_Compiler_Service {
 	 */
 	private function get_unique_campaign_name( string $name, ?int $exclude_campaign_id = null ): string {
 		global $wpdb;
-		$table         = $wpdb->prefix . 'scd_campaigns';
+		$table         = $wpdb->prefix . 'wsscd_campaigns';
 		$original_name = $name;
 		$counter       = 1;
 		$max_attempts  = 100; // Prevent infinite loops
@@ -877,6 +915,7 @@ class SCD_Campaign_Compiler_Service {
 		while ( $counter <= $max_attempts ) {
 			// Exclude current campaign when editing
 			if ( $exclude_campaign_id ) {
+				// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Unique name check; must be real-time. Table name from $wpdb->prefix.
 				$exists = $wpdb->get_var(
 					$wpdb->prepare(
 						"SELECT COUNT(*) FROM {$table} WHERE name = %s AND id != %d",
@@ -884,17 +923,21 @@ class SCD_Campaign_Compiler_Service {
 						$exclude_campaign_id
 					)
 				);
+				// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter
 			} else {
+				// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Unique name check; must be real-time. Table name from $wpdb->prefix.
 				$exists = $wpdb->get_var(
 					$wpdb->prepare(
 						"SELECT COUNT(*) FROM {$table} WHERE name = %s",
 						$name
 					)
 				);
+				// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter
 			}
 
 			if ( $wpdb->last_error ) {
-				throw new Exception( 'Database error while checking campaign name uniqueness: ' . $wpdb->last_error );
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+				throw new Exception( 'Database error while checking campaign name uniqueness: ' . esc_html( $wpdb->last_error ) );
 			}
 
 			if ( ! $exists ) {
@@ -909,7 +952,8 @@ class SCD_Campaign_Compiler_Service {
 
 		// If we exhausted all attempts, throw an exception
 		if ( $counter > $max_attempts ) {
-			throw new Exception( 'Could not generate unique campaign name after ' . $max_attempts . ' attempts' );
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+			throw new Exception( 'Could not generate unique campaign name after ' . absint( $max_attempts ) . ' attempts' );
 		}
 
 		return $name;
@@ -928,12 +972,13 @@ class SCD_Campaign_Compiler_Service {
 		$required_fields = array( 'name', 'discount_type', 'product_selection_type' );
 		foreach ( $required_fields as $field ) {
 			if ( empty( $compiled_data[ $field ] ) ) {
+				/* translators: %s: field name */
 				$errors[ $field ] = sprintf( __( '%s is required', 'smart-cycle-discounts' ), $field );
 			}
 		}
 
-		if ( class_exists( 'SCD_Campaign' ) ) {
-			$campaign     = new SCD_Campaign( $compiled_data );
+		if ( class_exists( 'WSSCD_Campaign' ) ) {
+			$campaign     = new WSSCD_Campaign( $compiled_data );
 			$model_errors = $campaign->validate();
 
 			if ( ! empty( $model_errors ) ) {

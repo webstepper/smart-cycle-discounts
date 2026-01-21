@@ -27,36 +27,36 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/services
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Campaign_Suggestions_Service {
+class WSSCD_Campaign_Suggestions_Service {
 
 	/**
 	 * Campaign repository instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Repository    $campaign_repository    Campaign repository.
+	 * @var      WSSCD_Campaign_Repository    $campaign_repository    Campaign repository.
 	 */
-	private SCD_Campaign_Repository $campaign_repository;
+	private WSSCD_Campaign_Repository $campaign_repository;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Initialize the campaign suggestions service.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Repository $campaign_repository    Campaign repository.
-	 * @param    SCD_Logger              $logger                 Logger instance.
+	 * @param    WSSCD_Campaign_Repository $campaign_repository    Campaign repository.
+	 * @param    WSSCD_Logger              $logger                 Logger instance.
 	 */
 	public function __construct(
-		SCD_Campaign_Repository $campaign_repository,
-		SCD_Logger $logger
+		WSSCD_Campaign_Repository $campaign_repository,
+		WSSCD_Logger $logger
 	) {
 		$this->campaign_repository = $campaign_repository;
 		$this->logger              = $logger;
@@ -71,8 +71,8 @@ class SCD_Campaign_Suggestions_Service {
 	 * @return   array    Array of campaign suggestions.
 	 */
 	public function get_suggestions(): array {
-		require_once SCD_INCLUDES_DIR . 'core/campaigns/class-campaign-suggestions-registry.php';
-		$all_events        = SCD_Campaign_Suggestions_Registry::get_event_definitions();
+		require_once WSSCD_INCLUDES_DIR . 'core/campaigns/class-campaign-suggestions-registry.php';
+		$all_events        = WSSCD_Campaign_Suggestions_Registry::get_event_definitions();
 		$qualifying_events = array();
 
 		// Use WordPress timezone for user-facing date calculations.
@@ -137,8 +137,8 @@ class SCD_Campaign_Suggestions_Service {
 	 * @return   array|null              Event definition or null if not found.
 	 */
 	public function get_event_by_id( string $event_id ): ?array {
-		require_once SCD_INCLUDES_DIR . 'core/campaigns/class-campaign-suggestions-registry.php';
-		return SCD_Campaign_Suggestions_Registry::get_event_by_id( $event_id );
+		require_once WSSCD_INCLUDES_DIR . 'core/campaigns/class-campaign-suggestions-registry.php';
+		return WSSCD_Campaign_Suggestions_Registry::get_event_by_id( $event_id );
 	}
 
 	/**
@@ -154,7 +154,7 @@ class SCD_Campaign_Suggestions_Service {
 	public function calculate_event_date( array $event, int $year ): int {
 		// Handle new date_calculator string identifiers.
 		if ( isset( $event['date_calculator'] ) ) {
-			return SCD_Campaign_Suggestions_Registry::call_date_calculator( $event['date_calculator'], $year );
+			return WSSCD_Campaign_Suggestions_Registry::call_date_calculator( $event['date_calculator'], $year );
 		}
 
 		// Backward compatibility: handle old calculate_date closures.
@@ -307,7 +307,7 @@ class SCD_Campaign_Suggestions_Service {
 						'id'     => $campaign->get_id(),
 						'name'   => $campaign->get_name(),
 						'status' => $campaign->get_status(),
-						'url'    => admin_url( 'admin.php?page=scd-campaigns&action=edit&id=' . $campaign->get_id() ),
+						'url'    => admin_url( 'admin.php?page=wsscd-campaigns&action=edit&id=' . $campaign->get_id() ),
 					);
 				} else {
 					$suggestion['has_campaign'] = false;

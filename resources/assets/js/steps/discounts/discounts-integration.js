@@ -13,16 +13,16 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	SCD.Modules = SCD.Modules || {};
-	SCD.Modules.Discounts = SCD.Modules.Discounts || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Modules = WSSCD.Modules || {};
+	WSSCD.Modules.Discounts = WSSCD.Modules.Discounts || {};
 
 	/**
 	 * Integration Testing and Monitoring
 	 *
-	 * @class SCD.Modules.Discounts.Integration
+	 * @class WSSCD.Modules.Discounts.Integration
 	 */
-	SCD.Modules.Discounts.Integration = function() {
+	WSSCD.Modules.Discounts.Integration = function() {
 		this.tests = {};
 		this.metrics = {
 			moduleLoadTime: {},
@@ -34,7 +34,7 @@
 		this.startTime = Date.now();
 	};
 
-	SCD.Modules.Discounts.Integration.prototype = {
+	WSSCD.Modules.Discounts.Integration.prototype = {
 		/**
 		 * Initialize integration module
 		 */
@@ -207,7 +207,7 @@
 			var missingModules = [];
 
 			requiredModules.forEach( function( module ) {
-				if ( !( window.SCD && window.SCD.Modules && window.SCD.Modules.Discounts && window.SCD.Modules.Discounts[module] ) ) {
+				if ( !( window.WSSCD && window.WSSCD.Modules && window.WSSCD.Modules.Discounts && window.WSSCD.Modules.Discounts[module] ) ) {
 					missingModules.push( module );
 				}
 			} );
@@ -224,7 +224,7 @@
 			var missingTypes = [];
 
 			requiredTypes.forEach( function( type ) {
-				if ( !( window.SCD && window.SCD.Modules && window.SCD.Modules.Discounts && window.SCD.Modules.Discounts.Types && window.SCD.Modules.Discounts.Types[type] ) ) {
+				if ( !( window.WSSCD && window.WSSCD.Modules && window.WSSCD.Modules.Discounts && window.WSSCD.Modules.Discounts.Types && window.WSSCD.Modules.Discounts.Types[type] ) ) {
 					missingTypes.push( type );
 				}
 			} );
@@ -243,7 +243,7 @@
 		 * Test state management
 		 */
 		testStateManagement: function() {
-			var orchestrator = window.SCD && window.SCD.Steps && window.SCD.Steps.discounts;
+			var orchestrator = window.WSSCD && window.WSSCD.Steps && window.WSSCD.Steps.discounts;
 			if ( !orchestrator ) {
 				throw new Error( 'Orchestrator not initialized' );
 			}
@@ -272,7 +272,7 @@
 				eventTriggered = true;
 			};
 
-			$( document ).on( 'scd:discounts:state:changed.test', testHandler );
+			$( document ).on( 'wsscd:discounts:state:changed.test', testHandler );
 
 			orchestrator.modules.state.setData( 'testValue', 123 );
 
@@ -293,7 +293,7 @@
 		 * Test discount types
 		 */
 		testDiscountTypes: function() {
-			var orchestrator = window.SCD && window.SCD.Steps && window.SCD.Steps.discounts;
+			var orchestrator = window.WSSCD && window.WSSCD.Steps && window.WSSCD.Steps.discounts;
 			var registry = orchestrator && orchestrator.modules && orchestrator.modules.typeRegistry;
 
 			if ( !registry ) {
@@ -361,7 +361,7 @@
 		 * Test data persistence
 		 */
 		testDataPersistence: function() {
-			var dataModule = window.SCD && window.SCD.Steps && window.SCD.Steps.discounts && window.SCD.Steps.discounts.modules && window.SCD.Steps.discounts.modules.data;
+			var dataModule = window.WSSCD && window.WSSCD.Steps && window.WSSCD.Steps.discounts && window.WSSCD.Steps.discounts.modules && window.WSSCD.Steps.discounts.modules.data;
 
 			if ( !dataModule ) {
 				throw new Error( 'Data module not initialized' );
@@ -410,7 +410,7 @@
 		 * Test condition system
 		 */
 		testConditionSystem: function() {
-			var conditionsModule = window.SCD && window.SCD.Steps && window.SCD.Steps.discounts && window.SCD.Steps.discounts.modules && window.SCD.Steps.discounts.modules.conditions;
+			var conditionsModule = window.WSSCD && window.WSSCD.Steps && window.WSSCD.Steps.discounts && window.WSSCD.Steps.discounts.modules && window.WSSCD.Steps.discounts.modules.conditions;
 
 			if ( !conditionsModule ) {
 				throw new Error( 'Conditions module not initialized' );
@@ -424,7 +424,7 @@
 			}
 
 			// Test adding conditions
-			var orchestrator = window.SCD && window.SCD.Steps && window.SCD.Steps.discounts;
+			var orchestrator = window.WSSCD && window.WSSCD.Steps && window.WSSCD.Steps.discounts;
 			orchestrator.setState( {
 				conditions: [
 					{
@@ -460,7 +460,7 @@
 		 * Test validation
 		 */
 		testValidation: function() {
-			var orchestrator = window.SCD && window.SCD.Steps && window.SCD.Steps.discounts;
+			var orchestrator = window.WSSCD && window.WSSCD.Steps && window.WSSCD.Steps.discounts;
 			var results = {};
 
 			// Test invalid percentage
@@ -514,7 +514,7 @@
 		 */
 		testPerformance: function() {
 			var metrics = {};
-			var orchestrator = window.SCD && window.SCD.Steps && window.SCD.Steps.discounts;
+			var orchestrator = window.WSSCD && window.WSSCD.Steps && window.WSSCD.Steps.discounts;
 
 			// Test state update performance
 			var stateStart = Date.now();
@@ -550,7 +550,7 @@
 		 */
 		testErrorRecovery: function() {
 			var results = {};
-			var orchestrator = window.SCD && window.SCD.Steps && window.SCD.Steps.discounts;
+			var orchestrator = window.WSSCD && window.WSSCD.Steps && window.WSSCD.Steps.discounts;
 
 			// Test invalid type - errors should be thrown
 			orchestrator.setState( { discountType: 'invalid_type' } );

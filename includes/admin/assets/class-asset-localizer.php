@@ -17,14 +17,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-require_once SCD_INCLUDES_DIR . 'constants/class-scd-product-selection-types.php';
+require_once WSSCD_INCLUDES_DIR . 'constants/class-wsscd-product-selection-types.php';
+require_once WSSCD_INCLUDES_DIR . 'constants/class-wsscd-intent-constants.php';
+require_once WSSCD_INCLUDES_DIR . 'core/campaigns/class-campaign.php';
 
 /**
  * Asset Localizer Class
  *
  * @since 1.0.0
  */
-class SCD_Asset_Localizer {
+class WSSCD_Asset_Localizer {
 
 	/**
 	 * Localization data.
@@ -79,7 +81,7 @@ class SCD_Asset_Localizer {
 		add_action( 'init', array( $this, 'register_data_providers' ), 20 );
 
 		// Handle script localization requests - use earlier priority
-		add_action( 'scd_localize_script', array( $this, 'localize_script' ), 5, 3 );
+		add_action( 'wsscd_localize_script', array( $this, 'localize_script' ), 5, 3 );
 
 		// Print global data before scripts are printed
 		add_action( 'admin_print_scripts', array( $this, 'print_global_data' ), 1 );
@@ -87,6 +89,11 @@ class SCD_Asset_Localizer {
 
 	/**
 	 * Register data providers.
+	 *
+	 * SECURITY: This method runs on 'init' hook with priority 20, only in admin context.
+	 * It reads GET parameters ONLY to determine which page-specific data to prepare
+	 * for JavaScript. No data is modified - this is purely for display/localization.
+	 * All parameters are sanitized and validated against whitelists.
 	 *
 	 * @since 1.0.0
 	 * @return void
@@ -98,6 +105,12 @@ class SCD_Asset_Localizer {
 			return;
 		}
 
+		// SECURITY: Only register data providers for admin users.
+		// This is called from admin context but we add explicit check for defense in depth.
+		if ( ! is_admin() || ! current_user_can( 'manage_woocommerce' ) ) {
+			return;
+		}
+
 		// Prevent double registration
 		if ( $this->data_registered ) {
 			return;
@@ -106,42 +119,42 @@ class SCD_Asset_Localizer {
 		$this->data_registered = true;
 
 		// Admin data
-		$this->data['scdAdmin']               = array(
+		$this->data['wsscdAdmin']               = array(
 			'ajax_url'            => admin_url( 'admin-ajax.php' ),
-			'plugin_url'          => trailingslashit( plugins_url( '', SCD_PLUGIN_FILE ) ),
+			'plugin_url'          => trailingslashit( plugins_url( '', WSSCD_PLUGIN_FILE ) ),
 			'admin_url'           => admin_url(),
 			'site_url'            => site_url(),
-			'nonce'               => wp_create_nonce( 'scd_admin_nonce' ),
+			'nonce'               => wp_create_nonce( 'wsscd_admin_nonce' ),
 			'user_id'             => get_current_user_id(),
 			'locale'              => get_locale(),
 			'is_rtl'              => is_rtl(),
-			'version'             => SCD_VERSION,
+			'version'             => WSSCD_VERSION,
 			'debug_mode'          => defined( 'WP_DEBUG' ) && WP_DEBUG,
-			'debug'               => defined( 'SCD_DEBUG' ) && SCD_DEBUG,
+			'debug'               => defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG,
 			'i18n'                => $this->get_i18n_strings(),
 			'colors'              => $this->get_theme_colors(),
-			// Include field definitions within scdAdmin object
-			'scdFieldDefinitions' => $this->get_field_definitions(),
+			// Include field definitions within wsscdAdmin object
+			'wsscdFieldDefinitions' => $this->get_field_definitions(),
 		);
-		$this->data['scdValidationMessages']  = $this->get_validation_messages();
-		$this->data['scdValidationConstants'] = $this->get_validation_constants();
+		$this->data['wsscdValidationMessages']  = $this->get_validation_messages();
+		$this->data['wsscdValidationConstants'] = $this->get_validation_constants();
 
 		// Admin notices data (nonces for dismiss handlers)
-		$this->data['scdAdminNotices'] = array(
+		$this->data['wsscdAdminNotices'] = array(
 			'nonces' => array(
-				'expiration' => wp_create_nonce( 'scd_dismiss_expiration_notice' ),
-				'currency'   => wp_create_nonce( 'scd_dismiss_currency_notice' ),
+				'expiration' => wp_create_nonce( 'wsscd_dismiss_expiration_notice' ),
+				'currency'   => wp_create_nonce( 'wsscd_dismiss_currency_notice' ),
 			),
 		);
 
 		// Validation config
-		$this->data['scdValidationConfig'] = array(
+		$this->data['wsscdValidationConfig'] = array(
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
-			'nonce'    => wp_create_nonce( 'scd_validation_nonce' ),
+			'nonce'    => wp_create_nonce( 'wsscd_validation_nonce' ),
 		);
 
 		// Settings data
-		$this->data['scdSettings'] = array(
+		$this->data['wsscdSettings'] = array(
 			'currency'           => get_woocommerce_currency(),
 			'currency_symbol'    => html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES | ENT_HTML5, 'UTF-8' ),
 			'currency_pos'       => get_option( 'woocommerce_currency_pos', 'left' ),
@@ -156,7 +169,7 @@ class SCD_Asset_Localizer {
 		);
 
 		// Feature flags
-		$this->data['scdFeatures'] = array(
+		$this->data['wsscdFeatures'] = array(
 			'analytics'         => $this->settings['enable_analytics'] ?? true,
 			'bulk_actions'      => $this->settings['enable_bulk_actions'] ?? true,
 			'export'            => $this->settings['enable_export'] ?? true,
@@ -166,7 +179,7 @@ class SCD_Asset_Localizer {
 		);
 
 		// Permissions
-		$this->data['scdPermissions'] = array(
+		$this->data['wsscdPermissions'] = array(
 			'create_campaigns' => current_user_can( 'manage_woocommerce' ),
 			'edit_campaigns'   => current_user_can( 'manage_woocommerce' ),
 			'delete_campaigns' => current_user_can( 'manage_woocommerce' ),
@@ -174,10 +187,12 @@ class SCD_Asset_Localizer {
 			'manage_settings'  => current_user_can( 'manage_options' ),
 		);
 
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Reading URL params for context detection only. Capability checked at method start. No data modification occurs.
+
 		// Dashboard data (only on main dashboard page)
-		if ( isset( $_GET['page'] ) && 'smart-cycle-discounts' === $_GET['page'] ) {
-			$this->data['scdDashboard'] = array(
-				'nonce'          => wp_create_nonce( 'scd_main_dashboard' ),
+		if ( isset( $_GET['page'] ) && 'smart-cycle-discounts' === sanitize_key( wp_unslash( $_GET['page'] ) ) ) {
+			$this->data['wsscdDashboard'] = array(
+				'nonce'          => wp_create_nonce( 'wsscd_main_dashboard' ),
 				'currencySymbol' => html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES | ENT_HTML5, 'UTF-8' ),
 				'dateFormat'     => get_option( 'date_format' ),
 				'timeFormat'     => get_option( 'time_format' ),
@@ -191,13 +206,13 @@ class SCD_Asset_Localizer {
 		}
 
 		// Wizard data (only on wizard pages)
-		if ( isset( $_GET['action'] ) && 'wizard' === $_GET['action'] ) {
-			$this->data['scdWizardData'] = $this->get_wizard_data();
+		if ( isset( $_GET['action'] ) && 'wizard' === sanitize_key( wp_unslash( $_GET['action'] ) ) ) {
+			$this->data['wsscdWizardData'] = $this->get_wizard_data();
 		}
 
 		// Analytics data (only on analytics pages)
-		if ( isset( $_GET['page'] ) && 'scd-analytics' === $_GET['page'] ) {
-			$current_period = sanitize_text_field( $_GET['date_range'] ?? '30days' );
+		if ( isset( $_GET['page'] ) && 'wsscd-analytics' === sanitize_key( wp_unslash( $_GET['page'] ) ) ) {
+			$current_period = isset( $_GET['date_range'] ) ? sanitize_key( wp_unslash( $_GET['date_range'] ) ) : '30days';
 			$valid_ranges   = array( '24hours', '7days', '30days', '90days', 'custom' );
 			if ( ! in_array( $current_period, $valid_ranges, true ) ) {
 				$current_period = '30days';
@@ -212,8 +227,8 @@ class SCD_Asset_Localizer {
 		}
 
 		// Settings page data (tab-specific)
-		if ( isset( $_GET['page'] ) && 'scd-settings' === $_GET['page'] ) {
-			$tab = sanitize_text_field( $_GET['tab'] ?? 'general' );
+		if ( isset( $_GET['page'] ) && 'wsscd-settings' === sanitize_key( wp_unslash( $_GET['page'] ) ) ) {
+			$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'general';
 			if ( 'general' === $tab ) {
 				$this->localize_general_settings_data();
 			} elseif ( 'advanced' === $tab ) {
@@ -222,14 +237,14 @@ class SCD_Asset_Localizer {
 		}
 
 		// Campaigns page data
-		if ( isset( $_GET['page'] ) && 'scd-campaigns' === $_GET['page'] ) {
+		if ( isset( $_GET['page'] ) && 'wsscd-campaigns' === sanitize_key( wp_unslash( $_GET['page'] ) ) ) {
 			// Campaign overview panel data (on list view and view action)
-			$action = isset( $_GET['action'] ) ? $_GET['action'] : null;
+			$action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : null;
 			if ( in_array( $action, array( null, 'view' ), true ) ) {
-				$this->data['scdOverviewPanel'] = array(
+				$this->data['wsscdOverviewPanel'] = array(
 					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-					'nonce'   => wp_create_nonce( 'scd_admin_nonce' ),
-					'editUrl' => admin_url( 'admin.php?page=scd-campaigns' ),
+					'nonce'   => wp_create_nonce( 'wsscd_admin_nonce' ),
+					'editUrl' => admin_url( 'admin.php?page=wsscd-campaigns' ),
 					'i18n'     => array(
 						'loading'       => __( 'Loading campaign details...', 'smart-cycle-discounts' ),
 						'error'         => __( 'Failed to load campaign details', 'smart-cycle-discounts' ),
@@ -244,12 +259,12 @@ class SCD_Asset_Localizer {
 		}
 
 		// Analytics page data
-		if ( isset( $_GET['page'] ) && 'scd-analytics' === $_GET['page'] ) {
+		if ( isset( $_GET['page'] ) && 'wsscd-analytics' === sanitize_key( wp_unslash( $_GET['page'] ) ) ) {
 			// Campaign overview panel data
-			$this->data['scdOverviewPanel'] = array(
+			$this->data['wsscdOverviewPanel'] = array(
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-				'nonce'   => wp_create_nonce( 'scd_admin_nonce' ),
-				'editUrl' => admin_url( 'admin.php?page=scd-campaigns' ),
+				'nonce'   => wp_create_nonce( 'wsscd_admin_nonce' ),
+				'editUrl' => admin_url( 'admin.php?page=wsscd-campaigns' ),
 				'i18n'     => array(
 					'loading'       => __( 'Loading campaign details...', 'smart-cycle-discounts' ),
 					'error'         => __( 'Failed to load campaign details', 'smart-cycle-discounts' ),
@@ -263,9 +278,9 @@ class SCD_Asset_Localizer {
 		}
 
 		// Notifications page data
-		if ( isset( $_GET['page'] ) && 'scd-notifications' === $_GET['page'] ) {
-			$this->data['scdNotificationsL10n'] = array(
-				'nonce'                  => wp_create_nonce( 'scd_admin_nonce' ),
+		if ( isset( $_GET['page'] ) && 'wsscd-notifications' === sanitize_key( wp_unslash( $_GET['page'] ) ) ) {
+			$this->data['wsscdNotificationsL10n'] = array(
+				'nonce'                  => wp_create_nonce( 'wsscd_admin_nonce' ),
 				'sending'                => __( 'Sending...', 'smart-cycle-discounts' ),
 				'testing'                => __( 'Testing...', 'smart-cycle-discounts' ),
 				'testEmailSent'          => __( 'Test email sent successfully! Check your inbox.', 'smart-cycle-discounts' ),
@@ -275,14 +290,15 @@ class SCD_Asset_Localizer {
 				'sendgridApiKeyRequired' => __( 'SendGrid API key is required.', 'smart-cycle-discounts' ),
 				'awsKeysRequired'        => __( 'Amazon SES access and secret keys are required.', 'smart-cycle-discounts' ),
 				'invalidFromEmail'       => __( 'Please enter a valid from email address.', 'smart-cycle-discounts' ),
+				/* translators: %s: invalid email address */
 				'invalidRecipientEmail'  => __( 'Invalid recipient email address: %s', 'smart-cycle-discounts' ),
 			);
 
 			// Queue management data (only on queue tab)
-			$tab = sanitize_text_field( $_GET['tab'] ?? 'settings' );
+			$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'settings';
 			if ( 'queue' === $tab ) {
-				$this->data['scdQueueL10n'] = array(
-					'nonce'         => wp_create_nonce( 'scd_admin_nonce' ),
+				$this->data['wsscdQueueL10n'] = array(
+					'nonce'         => wp_create_nonce( 'wsscd_admin_nonce' ),
 					'processing'    => __( 'Processing...', 'smart-cycle-discounts' ),
 					'retrying'      => __( 'Retrying...', 'smart-cycle-discounts' ),
 					'clearing'      => __( 'Clearing...', 'smart-cycle-discounts' ),
@@ -293,6 +309,8 @@ class SCD_Asset_Localizer {
 				);
 			}
 		}
+
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 	}
 
 	/**
@@ -331,11 +349,14 @@ class SCD_Asset_Localizer {
 			'required'            => __( 'This field is required', 'smart-cycle-discounts' ),
 			'invalid_email'       => __( 'Please enter a valid email address', 'smart-cycle-discounts' ),
 			'invalid_number'      => __( 'Please enter a valid number', 'smart-cycle-discounts' ),
+			/* translators: %d: minimum number of characters required */
 			'min_length'          => __( 'Minimum length is %d characters', 'smart-cycle-discounts' ),
+			/* translators: %d: maximum number of characters allowed */
 			'max_length'          => __( 'Maximum length is %d characters', 'smart-cycle-discounts' ),
 
 			// Confirmations
 			'confirm_delete'      => __( 'Are you sure you want to delete this item?', 'smart-cycle-discounts' ),
+			/* translators: %d: number of items to be deleted */
 			'confirm_bulk_delete' => __( 'Are you sure you want to delete %d items?', 'smart-cycle-discounts' ),
 			'unsaved_changes'     => __( 'You have unsaved changes. Are you sure you want to leave?', 'smart-cycle-discounts' ),
 
@@ -402,32 +423,35 @@ class SCD_Asset_Localizer {
 			}
 
 			// Special handling for wizard data - generate on demand
-			if ( 'scdWizardData' === $object_name && isset( $_GET['action'] ) && 'wizard' === $_GET['action'] ) {
+			// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only URL parameter checks for page type detection. Capability checked in register_data_providers().
+			$current_action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
+			if ( 'wsscdWizardData' === $object_name && 'wizard' === $current_action ) {
 				$this->data[ $object_name ] = $this->get_wizard_data();
-			} elseif ( 'scdNavigation' === $object_name && isset( $_GET['action'] ) && 'wizard' === $_GET['action'] ) {
+			} elseif ( 'wsscdNavigation' === $object_name && 'wizard' === $current_action ) {
+				// phpcs:enable WordPress.Security.NonceVerification.Recommended
 				// Navigation data for wizard pages
-				if ( ! class_exists( 'SCD_Ajax_Security' ) ) {
-					require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
+				if ( ! class_exists( 'WSSCD_Ajax_Security' ) ) {
+					require_once WSSCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
 				}
 				$this->data[ $object_name ] = array(
 					'ajax_url' => admin_url( 'admin-ajax.php' ),
-					'nonce'    => wp_create_nonce( 'scd_wizard_nonce' ),
+					'nonce'    => wp_create_nonce( 'wsscd_wizard_nonce' ),
 					'steps'    => array( 'basic', 'products', 'discounts', 'schedule', 'review' ),
 				);
-			} elseif ( 'scdAnalyticsTracking' === $object_name ) {
+			} elseif ( 'wsscdAnalyticsTracking' === $object_name ) {
 				// Analytics tracking localization
-				if ( ! class_exists( 'SCD_Ajax_Security' ) ) {
-					require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
+				if ( ! class_exists( 'WSSCD_Ajax_Security' ) ) {
+					require_once WSSCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
 				}
 				$this->data[ $object_name ] = array(
 					'ajax_url'       => admin_url( 'admin-ajax.php' ),
-					'nonce'          => wp_create_nonce( 'scd_public_tracking_nonce' ),
-					'tracking_token' => wp_hash( 'scd_tracking_' . date( 'Y-m-d' ) . '_' . SCD_Ajax_Security::get_client_ip() ),
+					'nonce'          => wp_create_nonce( 'wsscd_public_tracking_nonce' ),
+					'tracking_token' => wp_hash( 'wsscd_tracking_' . gmdate( 'Y-m-d' ) . '_' . WSSCD_Ajax_Security::get_client_ip() ),
 				);
 			} else {
 				// Try to generate data dynamically
 				$this->data[ $object_name ] = apply_filters(
-					'scd_localize_' . $object_name,
+					'wsscd_localize_' . $object_name,
 					array(),
 					$handle
 				);
@@ -469,7 +493,7 @@ class SCD_Asset_Localizer {
 
 	/**
 	 * Convert snake_case keys to camelCase for JavaScript.
-	 * Delegates to SCD_Case_Converter utility.
+	 * Delegates to WSSCD_Case_Converter utility.
 	 *
 	 * @since 1.0.0
 	 * @param array $data Data to convert.
@@ -477,11 +501,11 @@ class SCD_Asset_Localizer {
 	 */
 	private function snake_to_camel_keys( $data ) {
 		// Ensure utility class is loaded
-		if ( ! class_exists( 'SCD_Case_Converter' ) ) {
-			require_once SCD_PLUGIN_DIR . 'includes/utilities/class-case-converter.php';
+		if ( ! class_exists( 'WSSCD_Case_Converter' ) ) {
+			require_once WSSCD_PLUGIN_DIR . 'includes/utilities/class-case-converter.php';
 		}
 
-		return SCD_Case_Converter::snake_to_camel( $data );
+		return WSSCD_Case_Converter::snake_to_camel( $data );
 	}
 
 	/**
@@ -496,19 +520,17 @@ class SCD_Asset_Localizer {
 			return;
 		}
 
-		// Only on SCD pages
+		// Only on Smart Cycle Discounts pages
 		$screen = get_current_screen();
-		if ( ! $screen || strpos( $screen->id, 'scd' ) === false ) {
+		if ( ! $screen || ( strpos( $screen->id, 'wsscd' ) === false && strpos( $screen->id, 'smart-cycle-discounts' ) === false ) ) {
 			return;
 		}
 
-		?>
-		<script type="text/javascript">
-		/* SCD Global Configuration */
-		window.SCD = window.SCD || {};
-		window.SCD.config = <?php echo wp_json_encode( $this->get_global_config() ); ?>;
-		</script>
-		<?php
+		// Use wp_add_inline_script for WordPress.org compliance
+		$inline_script = 'window.WSSCD = window.WSSCD || {};' . "\n" .
+			'window.WSSCD.config = ' . wp_json_encode( $this->get_global_config() ) . ';';
+
+		wp_add_inline_script( 'wsscd-admin', $inline_script, 'before' );
 	}
 
 	/**
@@ -519,15 +541,15 @@ class SCD_Asset_Localizer {
 	 */
 	private function get_global_config(): array {
 		return array(
-			'version'     => SCD_VERSION,
+			'version'     => WSSCD_VERSION,
 			'api'         => array(
 				'root'      => esc_url_raw( rest_url() ),
 				'nonce'     => wp_create_nonce( 'wp_rest' ),
-				'namespace' => 'scd/v1',
+				'namespace' => 'wsscd/v1',
 			),
 			'assets'      => array(
-				'images' => plugins_url( 'resources/assets/images/', SCD_PLUGIN_FILE ),
-				'icons'  => plugins_url( 'resources/assets/images/icons/', SCD_PLUGIN_FILE ),
+				'images' => plugins_url( 'resources/assets/images/', WSSCD_PLUGIN_FILE ),
+				'icons'  => plugins_url( 'resources/assets/images/icons/', WSSCD_PLUGIN_FILE ),
 			),
 			'debug'       => defined( 'WP_DEBUG' ) && WP_DEBUG,
 			'environment' => wp_get_environment_type(),
@@ -546,26 +568,26 @@ class SCD_Asset_Localizer {
 		$nonces = array();
 
 		// Ensure security class is loaded
-		if ( ! class_exists( 'SCD_Ajax_Security' ) ) {
-			require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
+		if ( ! class_exists( 'WSSCD_Ajax_Security' ) ) {
+			require_once WSSCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
 		}
 
-		if ( class_exists( 'SCD_Ajax_Security' ) ) {
-			$nonces = SCD_Ajax_Security::get_nonce_config();
+		if ( class_exists( 'WSSCD_Ajax_Security' ) ) {
+			$nonces = WSSCD_Ajax_Security::get_nonce_config();
 		}
 
 		$wizard_data = array(
 			// Phase 2: Session management via secure cookies only - no sessionId needed in JS
-			'nonce'             => wp_create_nonce( 'scd_wizard_nonce' ), // Wizard nonce for AJAX security
+			'nonce'             => wp_create_nonce( 'wsscd_wizard_nonce' ), // Wizard nonce for AJAX security
 			'nonces'            => $nonces, // Include all nonces from security configuration
 			'ajax_url'          => admin_url( 'admin-ajax.php' ),
 			'admin_url'         => admin_url(),
-			'campaigns_url'     => admin_url( 'admin.php?page=scd-campaigns' ),
-			'campaign_list_url' => admin_url( 'admin.php?page=scd-campaigns' ),
-			'edit_draft_url'    => admin_url( 'admin.php?page=scd-campaigns&action=edit&id={id}' ),
-			'plugin_url'        => trailingslashit( plugins_url( '', SCD_PLUGIN_FILE ) ),
+			'campaigns_url'     => admin_url( 'admin.php?page=wsscd-campaigns' ),
+			'campaign_list_url' => admin_url( 'admin.php?page=wsscd-campaigns' ),
+			'edit_draft_url'    => admin_url( 'admin.php?page=wsscd-campaigns&action=edit&id={id}' ),
+			'plugin_url'        => trailingslashit( plugins_url( '', WSSCD_PLUGIN_FILE ) ),
 			'steps'             => array( 'basic', 'products', 'discounts', 'schedule', 'review' ),
-			'debug'             => defined( 'SCD_DEBUG' ) && SCD_DEBUG, // Add debug flag for JavaScript debug logger
+			'debug'             => defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG, // Add debug flag for JavaScript debug logger
 			'navigation'        => array(
 				'steps'    => array(
 					'basic'     => array(
@@ -631,13 +653,14 @@ class SCD_Asset_Localizer {
 			),
 			'constants'         => array(
 				'product_selection_types' => array(
-					'ALL_PRODUCTS'      => SCD_Product_Selection_Types::ALL_PRODUCTS,
-					'SPECIFIC_PRODUCTS' => SCD_Product_Selection_Types::SPECIFIC_PRODUCTS,
-					'RANDOM_PRODUCTS'   => SCD_Product_Selection_Types::RANDOM_PRODUCTS,
+					'ALL_PRODUCTS'      => WSSCD_Product_Selection_Types::ALL_PRODUCTS,
+					'SPECIFIC_PRODUCTS' => WSSCD_Product_Selection_Types::SPECIFIC_PRODUCTS,
+					'RANDOM_PRODUCTS'   => WSSCD_Product_Selection_Types::RANDOM_PRODUCTS,
 				),
 			),
 			'timezone'          => wp_timezone_string(),
-			'debug_persistence' => true,  // Enable debug logging for wizard
+			'debug_persistence' => false, // Set to true to enable debug logging
+			'features'          => $this->get_feature_gate_data(),
 		);
 
 		$session_data = $this->load_wizard_session_data();
@@ -646,11 +669,19 @@ class SCD_Asset_Localizer {
 			$wizard_data['current_campaign'] = $session_data;
 		}
 
+		// Check if this is a fresh session (signals JS to clear client storage).
+		// This is set by Intent Handler when processing intent=new.
+		$wizard_data['is_fresh'] = $this->is_fresh_session();
+
 		return $wizard_data;
 	}
 
 	/**
 	 * Load wizard session data for frontend use.
+	 *
+	 * SECURITY: This method is called from get_wizard_data() which is only invoked
+	 * from register_data_providers() after capability check. It reads GET parameters
+	 * to determine page context and load appropriate session data.
 	 *
 	 * @since 1.0.0
 	 * @return array Wizard session data.
@@ -662,34 +693,41 @@ class SCD_Asset_Localizer {
 			return array();
 		}
 
-		// Only load session data on wizard pages
-		if ( ! isset( $_GET['action'] ) || ( $_GET['action'] !== 'wizard' && $_GET['action'] !== 'edit' ) ) {
+		// SECURITY: Only load for authorized admin users.
+		// Also checked in register_data_providers() but added here for defense in depth.
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			return array();
 		}
 
-		// Don't load session data if intent is to start fresh
-		if ( isset( $_GET['intent'] ) && $_GET['intent'] === 'new' ) {
+		// Only load session data on wizard pages.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only URL parameter for page type detection. Capability checked above.
+		$action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
+		if ( 'wizard' !== $action && 'edit' !== $action ) {
 			return array();
 		}
 
 		try {
-			if ( ! class_exists( 'SCD_Wizard_State_Service' ) ) {
-				require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
+			if ( ! class_exists( 'WSSCD_Wizard_State_Service' ) ) {
+				require_once WSSCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
 			}
 
-			$state_service = new SCD_Wizard_State_Service();
+			$state_service = new WSSCD_Wizard_State_Service();
+			$all_data      = $state_service->get_all_data();
 
-			// CRITICAL FIX: Initialize change tracker for edit mode
-			// The wizard controller calls initialize_with_intent() but Asset Localizer doesn't,
-			// so we need to manually ensure the change tracker is initialized if in edit mode
-			$intent = isset( $_GET['intent'] ) ? sanitize_text_field( $_GET['intent'] ) : '';
+			// Don't load step data if this is a fresh session.
+			// Uses is_fresh() which reads from request-level static cache.
+			// This handles the case where consume_fresh_flag() already cleared the flag from transient.
+			if ( $state_service->is_fresh() ) {
+				return array();
+			}
+
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only URL parameter for edit mode detection. Capability checked above.
+			$intent = isset( $_GET['intent'] ) ? sanitize_key( wp_unslash( $_GET['intent'] ) ) : '';
+
+			// Initialize change tracker for edit mode.
 			if ( 'edit' === $intent ) {
 				$state_service->initialize_with_intent( 'edit' );
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				}
 			}
-
-			$all_data     = $state_service->get_all_data();
 			$session_data = array();
 
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -730,8 +768,9 @@ class SCD_Asset_Localizer {
 				}
 			}
 
+			// Get campaign ID from URL. $intent is already sanitized above.
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only URL parameter. Capability checked at method start.
 			$campaign_id = isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0;
-			$intent      = isset( $_GET['intent'] ) ? sanitize_text_field( $_GET['intent'] ) : '';
 
 			// Edit mode data loading is now handled by Change Tracker
 			// Data is loaded on-demand from database, not decomposed into session
@@ -744,10 +783,10 @@ class SCD_Asset_Localizer {
 			// This prevents loading hundreds of products into frontend memory
 			if ( isset( $session_data['products'] ) ) {
 				$products_data  = $session_data['products'];
-				$selection_type = $products_data['product_selection_type'] ?? 'all_products';
+				$selection_type = $products_data['product_selection_type'] ?? WSSCD_Campaign::SELECTION_TYPE_ALL_PRODUCTS;
 
-				// Only load specific product data if needed
-				if ( 'specific_products' === $selection_type || 'individual' === $selection_type || 'manual' === $selection_type ) {
+				// Only load specific product data if needed (specific_products uses explicit IDs)
+				if ( WSSCD_Campaign::SELECTION_TYPE_SPECIFIC_PRODUCTS === $selection_type ) {
 					$product_ids = $products_data['product_ids'] ?? array();
 					// Limit to reasonable number for initial load
 					$product_ids = array_slice( $product_ids, 0, 50 );
@@ -766,7 +805,41 @@ class SCD_Asset_Localizer {
 	}
 
 	/**
+	 * Check if current session is fresh (new campaign creation).
+	 *
+	 * Uses the one-time signal pattern via consume_fresh_flag():
+	 * - First read after NEW intent: returns true, clears flag
+	 * - Subsequent reads (page refresh, step nav): returns false
+	 *
+	 * This prevents data loss on page refresh while ensuring
+	 * JavaScript clears sessionStorage on initial wizard load.
+	 *
+	 * @since 1.0.0
+	 * @return bool True if session is fresh (first read only).
+	 */
+	private function is_fresh_session(): bool {
+		try {
+			if ( ! class_exists( 'WSSCD_Wizard_State_Service' ) ) {
+				require_once WSSCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
+			}
+
+			$state_service = new WSSCD_Wizard_State_Service();
+
+			// Use the one-time signal pattern - reads and clears the flag.
+			return $state_service->consume_fresh_flag();
+
+		} catch ( Exception $e ) {
+			return false;
+		}
+	}
+
+	/**
 	 * Load products based on selection type.
+	 *
+	 * Product Selection Model (Products Step Flow):
+	 * 1. CATEGORY FILTER (first field) - Creates the product pool from selected categories
+	 * 2. SELECTION TYPE - Determines HOW to select products FROM the category pool
+	 * 3. ADVANCED FILTERS - Further refines the selection
 	 *
 	 * @since 1.0.0
 	 * @param string $selection_type Product selection type.
@@ -781,29 +854,23 @@ class SCD_Asset_Localizer {
 		$products = array();
 
 		try {
-			switch ( $selection_type ) {
-				case 'specific_products':
-				case 'individual':
-				case 'manual':
-					$product_ids = $products_data['product_ids'] ?? array();
-					if ( ! empty( $product_ids ) ) {
-						$products = $this->get_wc_products_by_ids( $product_ids );
-					}
-					break;
-
-				case 'categories':
-					$categories = $products_data['category_ids'] ?? array();
-					if ( ! empty( $categories ) ) {
-						$products = $this->get_wc_products_by_categories( $categories );
-					}
-					break;
-
-				case 'all_products':
-				case 'all':
-				case 'random_products':
-					// For these types, load all available products (limited for performance)
+			// Specific products - use explicit product IDs from the category pool
+			if ( WSSCD_Campaign::SELECTION_TYPE_SPECIFIC_PRODUCTS === $selection_type ) {
+				$product_ids = $products_data['product_ids'] ?? array();
+				if ( ! empty( $product_ids ) ) {
+					$products = $this->get_wc_products_by_ids( $product_ids );
+				}
+			} elseif ( WSSCD_Campaign::is_pool_based_selection( $selection_type ) ) {
+				// Pool-based selections select from the category pool
+				$categories = $products_data['category_ids'] ?? array();
+				if ( ! empty( $categories ) ) {
+					// Load products from the category pool
+					$products = $this->get_wc_products_by_categories( $categories );
+				} else {
+					// No category filter = all products (empty pool handling)
+					// For performance, products are loaded via AJAX as needed
 					$products = $this->get_all_wc_products();
-					break;
+				}
 			}
 		} catch ( Exception $e ) {
 		}
@@ -961,9 +1028,13 @@ class SCD_Asset_Localizer {
 			'invalid_integer'        => __( 'Please enter a whole number', 'smart-cycle-discounts' ),
 			'invalid_format'         => __( 'Invalid format', 'smart-cycle-discounts' ),
 			'invalid_date'           => __( 'Please enter a valid date', 'smart-cycle-discounts' ),
+			/* translators: %s: minimum value required */
 			'min_value'              => __( 'Must be at least %s', 'smart-cycle-discounts' ),
+			/* translators: %s: maximum value allowed */
 			'max_value'              => __( 'Cannot exceed %s', 'smart-cycle-discounts' ),
+			/* translators: %s: minimum number of characters required */
 			'min_length'             => __( 'Must be at least %s characters', 'smart-cycle-discounts' ),
+			/* translators: %s: maximum number of characters allowed */
 			'max_length'             => __( 'Must not exceed %s characters', 'smart-cycle-discounts' ),
 
 			// Basic step - Campaign Name
@@ -1146,15 +1217,15 @@ class SCD_Asset_Localizer {
 	 */
 	private function get_field_definitions(): array {
 		// Ensure the field definitions class is loaded
-		if ( ! class_exists( 'SCD_Field_Definitions' ) ) {
-			$schema_file = SCD_PLUGIN_DIR . 'includes/core/validation/class-field-definitions.php';
+		if ( ! class_exists( 'WSSCD_Field_Definitions' ) ) {
+			$schema_file = WSSCD_PLUGIN_DIR . 'includes/core/validation/class-field-definitions.php';
 			if ( file_exists( $schema_file ) ) {
 				require_once $schema_file;
 			}
 		}
 
-		if ( class_exists( 'SCD_Field_Definitions' ) && method_exists( 'SCD_Field_Definitions', 'export_for_js' ) ) {
-			return SCD_Field_Definitions::export_for_js();
+		if ( class_exists( 'WSSCD_Field_Definitions' ) && method_exists( 'WSSCD_Field_Definitions', 'export_for_js' ) ) {
+			return WSSCD_Field_Definitions::export_for_js();
 		}
 
 		return array();
@@ -1170,15 +1241,15 @@ class SCD_Asset_Localizer {
 		$validation_data = array();
 
 		// Ensure the validation class is loaded
-		if ( ! class_exists( 'SCD_Validation' ) ) {
-			$validation_file = SCD_PLUGIN_DIR . 'includes/core/validation/class-validation.php';
+		if ( ! class_exists( 'WSSCD_Validation' ) ) {
+			$validation_file = WSSCD_PLUGIN_DIR . 'includes/core/validation/class-validation.php';
 			if ( file_exists( $validation_file ) ) {
 				require_once $validation_file;
 			}
 		}
 
-		if ( class_exists( 'SCD_Validation' ) && method_exists( 'SCD_Validation', 'get_js_data' ) ) {
-			$validation_data = SCD_Validation::get_js_data();
+		if ( class_exists( 'WSSCD_Validation' ) && method_exists( 'WSSCD_Validation', 'get_js_data' ) ) {
+			$validation_data = WSSCD_Validation::get_js_data();
 		}
 
 		// Merge with UI/UX constants that aren't validation rules
@@ -1211,16 +1282,16 @@ class SCD_Asset_Localizer {
 				'valid'         => 'valid',
 				'validating'    => 'validating',
 				'has_error'     => 'has-error',
-				'field_error'   => 'scd-field-error',
-				'error_message' => 'scd-error-message',
+				'field_error'   => 'wsscd-field-error',
+				'error_message' => 'wsscd-error-message',
 			),
 
 			// JavaScript events
 			'events'      => array(
-				'field_valid'   => 'scd:validation:field:valid',
-				'field_invalid' => 'scd:validation:field:invalid',
-				'form_valid'    => 'scd:validation:form:valid',
-				'form_invalid'  => 'scd:validation:form:invalid',
+				'field_valid'   => 'wsscd:validation:field:valid',
+				'field_invalid' => 'wsscd:validation:field:invalid',
+				'form_valid'    => 'wsscd:validation:form:valid',
+				'form_invalid'  => 'wsscd:validation:form:invalid',
 			),
 		);
 	}
@@ -1237,18 +1308,19 @@ class SCD_Asset_Localizer {
 		$nonces = array();
 
 		// Ensure security class is loaded
-		if ( ! class_exists( 'SCD_Ajax_Security' ) ) {
-			require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
+		if ( ! class_exists( 'WSSCD_Ajax_Security' ) ) {
+			require_once WSSCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
 		}
 
-		if ( class_exists( 'SCD_Ajax_Security' ) ) {
-			$nonces = SCD_Ajax_Security::get_nonce_config();
+		if ( class_exists( 'WSSCD_Ajax_Security' ) ) {
+			$nonces = WSSCD_Ajax_Security::get_nonce_config();
 		}
 
-		$this->data['scdAnalytics'] = array_merge(
+		$this->data['wsscdAnalytics'] = array_merge(
 			array(
+				'is_premium'        => function_exists( 'wsscd_is_premium' ) && wsscd_is_premium(),
 				'ajax_url'          => admin_url( 'admin-ajax.php' ),
-				'nonce'             => wp_create_nonce( 'scd_analytics_nonce' ),
+				'nonce'             => wp_create_nonce( 'wsscd_analytics_nonce' ),
 				'nonces'            => $nonces,
 				'currency'          => get_woocommerce_currency(),
 				'currency_symbol'   => html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES | ENT_HTML5, 'UTF-8' ),
@@ -1290,7 +1362,7 @@ class SCD_Asset_Localizer {
 	 * @return void
 	 */
 	public function localize_general_settings_data(): void {
-		$this->data['scdSettingsGeneral'] = array(
+		$this->data['wsscdSettingsGeneral'] = array(
 			'strings'  => array(
 				'confirmReset' => __( 'Are you sure you want to reset all settings to defaults? This cannot be undone.', 'smart-cycle-discounts' ),
 			),
@@ -1323,7 +1395,7 @@ class SCD_Asset_Localizer {
 	 * @return void
 	 */
 	public function localize_advanced_settings_data(): void {
-		$this->data['scdSettingsAdvanced'] = array(
+		$this->data['wsscdSettingsAdvanced'] = array(
 			'strings'  => array(
 				'confirmRegenerateWebhook' => __( 'Are you sure you want to regenerate the webhook secret? This will invalidate existing webhook configurations.', 'smart-cycle-discounts' ),
 				'confirmReset'             => __( 'Are you sure you want to reset all advanced settings to defaults? This cannot be undone.', 'smart-cycle-discounts' ),
@@ -1388,7 +1460,7 @@ class SCD_Asset_Localizer {
 	 */
 	private function get_theme_colors(): array {
 		// Get WordPress admin color scheme colors from shared utility
-		$colors             = SCD_Theme_Colors::get_theme_colors();
+		$colors             = WSSCD_Theme_Colors::get_theme_colors();
 		$admin_color_scheme = get_user_meta( get_current_user_id(), 'admin_color', true );
 
 		$theme_primary = get_theme_mod( 'primary_color' );
@@ -1402,9 +1474,63 @@ class SCD_Asset_Localizer {
 		}
 
 		// Apply filter for custom theme integration
-		return apply_filters( 'scd_theme_colors', $colors, $admin_color_scheme );
+		return apply_filters( 'wsscd_theme_colors', $colors, $admin_color_scheme );
 	}
 
+
+	/**
+	 * Get feature gate data for JavaScript.
+	 *
+	 * Provides license-based feature access flags to JavaScript
+	 * so orchestrators can conditionally collect/skip PRO fields.
+	 *
+	 * @since 1.0.0
+	 * @return array Feature access flags.
+	 */
+	private function get_feature_gate_data(): array {
+		$feature_gate = null;
+
+		// Get feature gate from service container.
+		try {
+			if ( class_exists( 'Smart_Cycle_Discounts' ) ) {
+				$container    = Smart_Cycle_Discounts::get_instance();
+				$feature_gate = $container::get_service( 'feature_gate' );
+			}
+		} catch ( Exception $e ) {
+			// Fall through to defaults.
+		}
+
+		// If no feature gate, create one.
+		if ( ! $feature_gate ) {
+			if ( ! class_exists( 'WSSCD_Feature_Gate' ) ) {
+				require_once WSSCD_INCLUDES_DIR . 'admin/licensing/class-feature-gate.php';
+			}
+			$feature_gate = new WSSCD_Feature_Gate();
+		}
+
+		// Return feature access flags that JavaScript needs.
+		return array(
+			// General license status.
+			'is_premium'                    => $feature_gate->is_premium(),
+
+			// Discount configurations (usage limits, application rules, etc.).
+			'can_use_discount_configs'      => $feature_gate->can_use_discount_configurations(),
+
+			// Advanced product filters.
+			'can_use_advanced_filters'      => $feature_gate->can_use_advanced_product_filters(),
+
+			// Recurring campaigns (now FREE).
+			'can_use_recurring'             => $feature_gate->can_use_recurring_campaigns(),
+
+			// PRO discount types.
+			'can_use_tiered'                => $feature_gate->can_use_discount_type( 'tiered' ),
+			'can_use_bogo'                  => $feature_gate->can_use_discount_type( 'bogo' ),
+			'can_use_spend_threshold'       => $feature_gate->can_use_discount_type( 'spend_threshold' ),
+
+			// Upgrade URL for upsell prompts.
+			'upgrade_url'                   => $feature_gate->get_upgrade_url(),
+		);
+	}
 
 	/**
 	 * Check if handle is localized.

@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Notice_Suppressor {
+class WSSCD_Notice_Suppressor {
 
 	/**
 	 * Initialize notice suppression.
@@ -57,24 +57,33 @@ class SCD_Notice_Suppressor {
 	/**
 	 * Check if current page is a plugin admin page.
 	 *
+	 * SECURITY: This method ONLY checks if we're on a plugin page for notice suppression.
+	 * No data processing occurs. Capability is checked for defense in depth.
+	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @return   bool    True if on plugin page.
 	 */
 	private function is_plugin_page() {
+		// Defense in depth: verify user is an admin.
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			return false;
+		}
+
 		$screen = get_current_screen();
 
 		if ( ! $screen ) {
 			return false;
 		}
 
-		if ( false !== strpos( $screen->id, 'smart-cycle-discounts' ) || false !== strpos( $screen->id, 'scd-' ) ) {
+		if ( false !== strpos( $screen->id, 'smart-cycle-discounts' ) || false !== strpos( $screen->id, 'wsscd-' ) ) {
 			return true;
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checking URL param for page context only. Capability checked above. Value validated against known plugin slugs.
 		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
 
-		if ( false !== strpos( $page, 'smart-cycle-discounts' ) || false !== strpos( $page, 'scd-' ) ) {
+		if ( false !== strpos( $page, 'smart-cycle-discounts' ) || false !== strpos( $page, 'wsscd-' ) ) {
 			return true;
 		}
 
@@ -99,8 +108,8 @@ class SCD_Notice_Suppressor {
 
 		// Whitelist: These are allowed to show notices
 		$allowed_prefixes = array(
-			'SCD_',              // Our plugin classes
-			'scd_',              // Our plugin functions
+			'WSSCD_',              // Our plugin classes
+			'wsscd_',              // Our plugin functions
 			'_',                 // WordPress core (internal functions)
 			'WP_',               // WordPress core classes
 			'do_settings_errors', // WordPress settings errors

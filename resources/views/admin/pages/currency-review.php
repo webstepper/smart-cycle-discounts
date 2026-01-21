@@ -9,16 +9,18 @@
  * @subpackage SmartCycleDiscounts/resources/views/admin/pages
  */
 
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial included into function scope; variables are local, not global.
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
 ?>
 
-<div class="wrap scd-currency-review-page">
+<div class="wrap wsscd-currency-review-page">
 	<h1><?php esc_html_e( 'Currency Review', 'smart-cycle-discounts' ); ?></h1>
 
-	<div class="scd-currency-review-intro">
+	<div class="wsscd-currency-review-intro">
 		<div class="notice notice-warning inline">
 			<p>
 				<strong><?php esc_html_e( 'Store Currency Changed', 'smart-cycle-discounts' ); ?></strong>
@@ -37,7 +39,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</div>
 
-	<div class="scd-currency-review-list">
+	<div class="wsscd-currency-review-list">
 		<table class="wp-list-table widefat fixed striped">
 			<thead>
 				<tr>
@@ -63,12 +65,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 							<strong><?php echo esc_html( $campaign->get_name() ); ?></strong>
 							<div class="row-actions">
 								<span class="view">
-									<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns&action=view&id=' . $campaign->get_id() ) ); ?>">
+									<a href="<?php echo esc_url( admin_url( 'admin.php?page=wsscd-campaigns&action=view&id=' . $campaign->get_id() ) ); ?>">
 										<?php esc_html_e( 'View', 'smart-cycle-discounts' ); ?>
 									</a>
 								</span>
 								<span class="edit">
-									| <a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns&action=edit&id=' . $campaign->get_id() ) ); ?>">
+									| <a href="<?php echo esc_url( admin_url( 'admin.php?page=wsscd-campaigns&action=edit&id=' . $campaign->get_id() ) ); ?>">
 										<?php esc_html_e( 'Edit', 'smart-cycle-discounts' ); ?>
 									</a>
 								</span>
@@ -99,13 +101,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 							?>
 						</td>
 						<td>
-							<span class="scd-currency-change-badge">
+							<span class="wsscd-currency-change-badge">
 								<?php echo esc_html( sprintf( '%s → %s', $old_currency, $new_currency ) ); ?>
 							</span>
 							<br>
 							<small>
 								<?php
 								echo esc_html( sprintf(
+									/* translators: %s: date when currency was changed */
 									__( 'Changed on %s', 'smart-cycle-discounts' ),
 									wp_date( get_option( 'date_format' ), strtotime( $change_date ) )
 								) );
@@ -113,17 +116,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 							</small>
 						</td>
 						<td>
-							<?php echo SCD_Badge_Helper::status_badge( 'paused', __( 'Paused for Review', 'smart-cycle-discounts' ) ); ?>
+							<?php echo wp_kses_post( WSSCD_Badge_Helper::status_badge( 'paused', __( 'Paused for Review', 'smart-cycle-discounts' ) ) ); ?>
 						</td>
-						<td class="scd-review-actions">
+						<td class="wsscd-review-actions">
 							<button type="button"
-								class="button button-primary scd-review-approve"
+								class="button button-primary wsscd-review-approve"
 								data-campaign-id="<?php echo esc_attr( $campaign->get_id() ); ?>"
 								data-action="approve_and_resume">
 								<?php esc_html_e( 'Approve & Resume', 'smart-cycle-discounts' ); ?>
 							</button>
 							<button type="button"
-								class="button scd-review-archive"
+								class="button wsscd-review-archive"
 								data-campaign-id="<?php echo esc_attr( $campaign->get_id() ); ?>"
 								data-action="archive">
 								<?php esc_html_e( 'Archive', 'smart-cycle-discounts' ); ?>
@@ -136,20 +139,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</div>
 </div>
 
-<style>
-.scd-currency-review-page {
-	max-width: 1200px;
-}
-
-.scd-currency-review-intro {
-	margin: 20px 0;
-}
-
-.scd-currency-review-list {
-	margin-top: 30px;
-}
-
-.scd-currency-change-badge {
+<?php
+// Use wp_add_inline_style for WordPress.org compliance
+$currency_review_css = '
+.wsscd-currency-review-page { max-width: 1200px; }
+.wsscd-currency-review-intro { margin: 20px 0; }
+.wsscd-currency-review-list { margin-top: 30px; }
+.wsscd-currency-change-badge {
 	display: inline-block;
 	padding: 3px 8px;
 	background: #fff3cd;
@@ -158,93 +154,79 @@ if ( ! defined( 'ABSPATH' ) ) {
 	font-weight: 600;
 	font-size: 12px;
 }
-
-.scd-badge-status {
+.wsscd-badge-status {
 	display: inline-block;
 	padding: 3px 8px;
 	border-radius: 3px;
 	font-size: 12px;
 	font-weight: 600;
 }
+.wsscd-badge-status--paused { background: #ff9800; color: #fff; }
+.wsscd-review-actions { white-space: nowrap; }
+.wsscd-review-actions .button { margin-right: 5px; margin-bottom: 5px; }
+.wsscd-review-approve:disabled,
+.wsscd-review-archive:disabled { opacity: 0.5; cursor: not-allowed; }
+';
+wp_add_inline_style( 'wp-admin', $currency_review_css );
 
-.scd-badge-status--paused {
-	background: #ff9800;
-	color: #fff;
-}
+// Prepare i18n strings for JavaScript
+$i18n = array(
+	'confirmArchive' => __( 'Are you sure you want to archive this campaign? This cannot be undone.', 'smart-cycle-discounts' ),
+	'processing'     => __( 'Processing...', 'smart-cycle-discounts' ),
+	'failedUpdate'   => __( 'Failed to update campaign', 'smart-cycle-discounts' ),
+	'errorOccurred'  => __( 'An error occurred. Please try again.', 'smart-cycle-discounts' ),
+);
 
-.scd-review-actions {
-	white-space: nowrap;
-}
+$script_data = array(
+	'i18n'   => $i18n,
+	'nonce'  => wp_create_nonce( 'wsscd_currency_review' ),
+);
 
-.scd-review-actions .button {
-	margin-right: 5px;
-	margin-bottom: 5px;
-}
+// Build the script
+$currency_review_script = 'window.wsscdCurrencyReview = ' . wp_json_encode( $script_data ) . ';' .
+	'jQuery(document).ready(function($) {' .
+	'"use strict";' .
+	'var config = window.wsscdCurrencyReview || {};' .
+	'var i18n = config.i18n || {};' .
+	'$(".wsscd-review-approve, .wsscd-review-archive").on("click", function() {' .
+	'var $button = $(this);' .
+	'var campaignId = $button.data("campaign-id");' .
+	'var action = $button.data("action");' .
+	'var $row = $button.closest("tr");' .
+	'if ("archive" === action) {' .
+	'if (!confirm(i18n.confirmArchive || "Are you sure?")) { return; }' .
+	'}' .
+	'$button.prop("disabled", true).text(i18n.processing || "Processing...");' .
+	'$.ajax({' .
+	'url: ajaxurl,' .
+	'type: "POST",' .
+	'data: {' .
+	'action: "wsscd_currency_review_action",' .
+	'review_action: action,' .
+	'campaign_id: campaignId,' .
+	'_wpnonce: config.nonce' .
+	'},' .
+	'success: function(response) {' .
+	'if (response.success) {' .
+	'$row.fadeOut(400, function() {' .
+	'$(this).remove();' .
+	'if (0 === $("table tbody tr").length) { location.reload(); }' .
+	'});' .
+	'} else {' .
+	'alert(response.data.message || i18n.failedUpdate || "Failed");' .
+	'$button.prop("disabled", false).text($button.data("original-text"));' .
+	'}' .
+	'},' .
+	'error: function() {' .
+	'alert(i18n.errorOccurred || "An error occurred");' .
+	'$button.prop("disabled", false).text($button.data("original-text"));' .
+	'}' .
+	'});' .
+	'});' .
+	'$(".wsscd-review-approve, .wsscd-review-archive").each(function() {' .
+	'$(this).data("original-text", $(this).text());' .
+	'});' .
+	'});';
 
-.scd-review-approve:disabled,
-.scd-review-archive:disabled {
-	opacity: 0.5;
-	cursor: not-allowed;
-}
-</style>
-
-<script>
-jQuery(document).ready(function($) {
-	'use strict';
-
-	// Handle review actions
-	$('.scd-review-approve, .scd-review-archive').on('click', function() {
-		var $button = $(this);
-		var campaignId = $button.data('campaign-id');
-		var action = $button.data('action');
-		var $row = $button.closest('tr');
-
-		// Confirm archive
-		if ( 'archive' === action ) {
-			if ( ! confirm( <?php echo wp_json_encode( __( 'Are you sure you want to archive this campaign? This cannot be undone.', 'smart-cycle-discounts' ) ); ?> ) ) {
-				return;
-			}
-		}
-
-		// Disable button
-		$button.prop('disabled', true).text( <?php echo wp_json_encode( __( 'Processing...', 'smart-cycle-discounts' ) ); ?> );
-
-		// Send AJAX request
-		$.ajax({
-			url: ajaxurl,
-			type: 'POST',
-			data: {
-				action: 'scd_currency_review_action',
-				review_action: action,
-				campaign_id: campaignId,
-				_wpnonce: <?php echo wp_json_encode( wp_create_nonce( 'scd_currency_review' ) ); ?>
-			},
-			success: function(response) {
-				if ( response.success ) {
-					// Fade out row
-					$row.fadeOut(400, function() {
-						$(this).remove();
-
-						// Check if table is empty
-						if ( 0 === $('table tbody tr').length ) {
-							location.reload();
-						}
-					});
-				} else {
-					alert( response.data.message || <?php echo wp_json_encode( __( 'Failed to update campaign', 'smart-cycle-discounts' ) ); ?> );
-					$button.prop('disabled', false).text( $button.data('original-text') );
-				}
-			},
-			error: function() {
-				alert( <?php echo wp_json_encode( __( 'An error occurred. Please try again.', 'smart-cycle-discounts' ) ); ?> );
-				$button.prop('disabled', false).text( $button.data('original-text') );
-			}
-		});
-	});
-
-	// Store original button text
-	$('.scd-review-approve, .scd-review-archive').each(function() {
-		$(this).data('original-text', $(this).text());
-	});
-});
-</script>
+wp_add_inline_script( 'jquery-core', $currency_review_script );
+?>

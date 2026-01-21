@@ -1,0 +1,791 @@
+/**
+ * Step Basic
+ *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/css/wizard/step-basic.css
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @since      1.0.0
+ */
+
+/* ==========================================================================
+   Layout Structure
+   ========================================================================== */
+
+.wsscd-wizard-step--basic {
+    /* Local CSS variables */
+    --wsscd-basic-accent: var(--wsscd-color-primary);
+}
+
+/* Content layout */
+.wsscd-wizard-step--basic .wsscd-step-content {
+    display: flex;
+    gap: var(--wsscd-gap-large);
+    align-items: flex-start;
+}
+
+.wsscd-wizard-step--basic .wsscd-step-main-content {
+    flex: 1;
+    min-width: 0;
+    order: 1;
+}
+
+.wsscd-wizard-step--basic .wsscd-step-sidebar {
+    flex: 0 0 var(--wsscd-sidebar-width);
+    width: var(--wsscd-sidebar-width);
+    order: 2;
+}
+
+/* ==========================================================================
+   Form Elements
+   ========================================================================== */
+
+/* Field constraints - Removed: Enhanced inputs have their own max-width */
+/* Enhanced inputs (.wsscd-enhanced-input) handle max-width via _forms.css */
+
+/* Character counter */
+.wsscd-char-counter {
+    font-size: var(--wsscd-font-size-small);
+    color: var(--wsscd-color-text-muted);
+    margin-top: var(--wsscd-spacing-sm);
+    font-style: italic;
+}
+
+.wsscd-char-counter--warning {
+    color: var(--wsscd-color-warning);
+}
+
+.wsscd-char-counter--error {
+    color: var(--wsscd-color-danger);
+}
+
+/* ==========================================================================
+   Warnings and Hints
+   ========================================================================== */
+
+.wsscd-field-warning,
+.wsscd-uniqueness-hint {
+    margin-top: var(--wsscd-spacing-md);
+    padding: var(--wsscd-padding-sm-large) var(--wsscd-spacing-base);
+    background: var(--wsscd-color-warning-bg);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-warning);
+    border-left-width: var(--wsscd-border-width-accent);
+    border-radius: var(--wsscd-radius-md);
+    color: var(--wsscd-color-text);
+    font-size: var(--wsscd-font-size-base);
+    line-height: 1.6;
+}
+
+.wsscd-field-warning .wsscd-icon,
+.wsscd-uniqueness-hint .wsscd-icon {
+    color: var(--wsscd-color-warning);
+    margin-right: var(--wsscd-spacing-xs);
+    font-size: var(--wsscd-font-size-large);
+}
+
+/* ==========================================================================
+   Priority Display
+   ========================================================================== */
+
+.wsscd-priority-display {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--wsscd-gap-tight);
+    margin-left: var(--wsscd-spacing-md);
+    padding: var(--wsscd-spacing-xs) var(--wsscd-padding-sm-large);
+    background: var(--wsscd-color-surface);
+    border-radius: var(--wsscd-radius-xl);
+    font-size: var(--wsscd-font-size-base);
+    font-weight: var(--wsscd-font-weight-semibold);
+    line-height: 1.5;
+}
+
+.wsscd-priority-display__icon {
+    font-size: var(--wsscd-font-size-medium);
+    line-height: 1;
+}
+
+/* Priority variants */
+.wsscd-priority-display--high {
+    background: var(--wsscd-color-danger-bg);
+    color: var(--wsscd-color-danger);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-danger-light-border);
+}
+
+.wsscd-priority-display--medium {
+    background: var(--wsscd-color-warning-bg);
+    color: var(--wsscd-color-warning);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-warning-light-border);
+}
+
+.wsscd-priority-display--low {
+    background: var(--wsscd-color-primary-light-bg);
+    color: var(--wsscd-color-primary);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-primary-light-border);
+}
+
+/* ==========================================================================
+   Priority Guide
+   ========================================================================== */
+
+.wsscd-priority-levels {
+    display: grid;
+    gap: var(--wsscd-gap-comfortable);
+}
+
+.wsscd-priority-level {
+    display: flex;
+    gap: var(--wsscd-gap-comfortable);
+    background: var(--wsscd-color-background);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+    border-radius: var(--wsscd-radius-lg);
+    padding: var(--wsscd-padding-section);
+    align-items: center;
+    transition: border-color var(--wsscd-transition-fast) ease, box-shadow var(--wsscd-transition-fast) ease;
+}
+
+.wsscd-priority-level:hover {
+    border-color: var(--wsscd-color-border-dark);
+    box-shadow: var(--wsscd-shadow-md);
+}
+
+/* Priority number badge */
+.wsscd-priority-level__number {
+    flex-shrink: 0;
+    width: var(--wsscd-button-height-large);
+    height: var(--wsscd-button-height-large);
+    border-radius: var(--wsscd-radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--wsscd-font-weight-bold);
+    font-size: var(--wsscd-font-size-large);
+}
+
+.wsscd-priority-level--high .wsscd-priority-level__number {
+    background: var(--wsscd-alert-danger-bg);
+    color: var(--wsscd-color-danger);
+}
+
+.wsscd-priority-level--medium .wsscd-priority-level__number {
+    background: var(--wsscd-alert-warning-bg);
+    color: var(--wsscd-color-warning);
+}
+
+.wsscd-priority-level--low .wsscd-priority-level__number {
+    background: var(--wsscd-alert-info-bg);
+    color: var(--wsscd-color-primary);
+}
+
+/* Priority info content */
+.wsscd-priority-level__info h5 {
+    margin: 0 0 var(--wsscd-spacing-sm);
+    font-size: var(--wsscd-font-size-medium-large);
+    font-weight: var(--wsscd-font-weight-semibold);
+    color: var(--wsscd-color-text);
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+}
+
+.wsscd-priority-level__info p {
+    margin: 0 0 var(--wsscd-spacing-sm);
+    font-size: var(--wsscd-font-size-medium);
+    color: var(--wsscd-color-text-muted);
+    line-height: 1.6;
+}
+
+.wsscd-priority-level__use-case {
+    font-size: var(--wsscd-font-size-small);
+    color: var(--wsscd-color-text-lighter);
+    font-style: italic;
+}
+
+.wsscd-priority-level__use-case strong {
+    color: var(--wsscd-color-text-muted);
+}
+
+/* ==========================================================================
+   Setup Checklist
+   ========================================================================== */
+
+.wsscd-checklist {
+    background: var(--wsscd-color-background);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border);
+    border-radius: var(--wsscd-radius-lg);
+    padding: var(--wsscd-padding-section);
+}
+
+.wsscd-checklist__item {
+    display: flex;
+    align-items: center;
+    gap: var(--wsscd-gap-normal);
+    margin-bottom: var(--wsscd-spacing-md);
+}
+
+.wsscd-checklist__item:last-child {
+    margin-bottom: 0;
+}
+
+.wsscd-checklist__item input[type="checkbox"] {
+    flex-shrink: 0;
+    margin: 0;
+    width: var(--wsscd-checkbox-size);
+    height: var(--wsscd-checkbox-size);
+}
+
+.wsscd-checklist__item span {
+    font-size: var(--wsscd-font-size-medium);
+    color: var(--wsscd-color-text);
+    line-height: 1.6;
+}
+
+/* Next step items */
+.wsscd-checklist__item--next {
+    padding-top: var(--wsscd-spacing-sm);
+    border-top: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+    margin-top: var(--wsscd-spacing-sm);
+}
+
+/* ==========================================================================
+   Campaign Idea Cards
+   ========================================================================== */
+
+.wsscd-idea-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--wsscd-gap-comfortable);
+}
+
+.wsscd-idea-card {
+    background: var(--wsscd-color-background);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+    border-radius: var(--wsscd-radius-lg);
+    padding: var(--wsscd-padding-section);
+    text-align: center;
+    transition: border-color var(--wsscd-transition-fast) ease, box-shadow var(--wsscd-transition-fast) ease;
+    cursor: pointer;
+}
+
+.wsscd-idea-card:hover {
+    border-color: var(--wsscd-color-border-dark);
+    box-shadow: var(--wsscd-shadow-md);
+}
+
+.wsscd-idea-card__icon {
+    font-size: var(--wsscd-font-size-xxxl);
+    margin-bottom: var(--wsscd-spacing-sm);
+    color: var(--wsscd-color-primary);
+    line-height: 1;
+}
+
+.wsscd-idea-card h5 {
+    margin: 0 0 var(--wsscd-spacing-sm);
+    font-size: var(--wsscd-font-size-medium-large);
+    font-weight: var(--wsscd-font-weight-semibold);
+    color: var(--wsscd-color-text);
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+}
+
+.wsscd-idea-card p {
+    margin: 0;
+    font-size: var(--wsscd-font-size-medium);
+    color: var(--wsscd-color-text-muted);
+    line-height: 1.6;
+}
+
+/* ==========================================================================
+   Sidebar Components
+   ========================================================================== */
+
+/* NOTE: .wsscd-sidebar-footer and .wsscd-sidebar-link styles moved to wizard-steps.css */
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
+/* Focus states */
+.wsscd-checklist__item input[type="checkbox"]:focus {
+    outline: var(--wsscd-border-width-focus) solid transparent;
+    box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wsscd-color-primary);
+}
+
+/* ==========================================================================
+   Media Queries
+   ========================================================================== */
+
+/* Large tablets */
+@media (max-width: 1200px) {
+    .wsscd-wizard-step--basic .wsscd-step-sidebar {
+        flex: 0 0 var(--wsscd-sidebar-width-tablet);
+        width: var(--wsscd-sidebar-width-tablet);
+    }
+
+    .wsscd-idea-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Tablets */
+@media (max-width: 960px) {
+    .wsscd-wizard-step--basic .wsscd-step-content {
+        flex-direction: column;
+        gap: var(--wsscd-gap-spacious);
+    }
+    
+    .wsscd-wizard-step--basic .wsscd-step-sidebar {
+        flex: none;
+        width: 100%;
+        order: 3;
+    }
+    
+    .wsscd-wizard-step--basic .wsscd-step-main-content {
+        order: 2;
+    }
+}
+
+/* WordPress mobile breakpoint */
+@media (max-width: 782px) {
+    .wsscd-priority-display {
+        display: inline-block;
+        margin-left: 0;
+        margin-top: var(--wsscd-spacing-xs);
+    }
+
+    .wsscd-priority-level {
+        padding: var(--wsscd-padding-medium);
+    }
+
+    .wsscd-priority-level__number {
+        width: var(--wsscd-badge-number-width-mobile);
+        height: var(--wsscd-button-height);
+        font-size: var(--wsscd-font-size-medium);
+    }
+
+    .wsscd-idea-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Small mobile */
+@media (max-width: 600px) {
+    .wsscd-priority-level {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--wsscd-gap-tight);
+    }
+    
+    .wsscd-checklist {
+        padding: var(--wsscd-padding-medium);
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .wsscd-priority-display {
+        border: var(--wsscd-border-width) solid currentColor;
+    }
+
+    .wsscd-priority-level,
+    .wsscd-idea-card {
+        border-width: var(--wsscd-border-width-thick);
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .wsscd-idea-card,
+    .wsscd-priority-level {
+        transition: none;
+    }
+}
+
+/* Print styles */
+@media print {
+    .wsscd-sidebar-footer,
+    .wsscd-idea-cards,
+    .wsscd-step-sidebar {
+        display: none !important;
+    }
+    
+    .wsscd-priority-level,
+    .wsscd-priority-display {
+        border: var(--wsscd-border-width) solid var(--wsscd-color-black);
+        background: var(--wsscd-color-white) !important;
+    }
+
+    .wsscd-priority-display {
+        color: var(--wsscd-color-black) !important;
+    }
+}
+
+/* ==========================================================================
+   RTL Support
+   ========================================================================== */
+
+[dir="rtl"] .wsscd-priority-level,
+[dir="rtl"] .wsscd-checklist__item {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .wsscd-priority-display {
+    margin-left: 0;
+    margin-right: var(--wsscd-spacing-md);
+}
+
+[dir="rtl"] .wsscd-field-warning .wsscd-icon,
+[dir="rtl"] .wsscd-uniqueness-hint .wsscd-icon {
+    margin-right: 0;
+    margin-left: var(--wsscd-spacing-xs);
+}/* NOTE: Common sidebar section styles moved to wizard-steps.css to avoid conflicts */
+
+
+/* ==========================================================================
+   Campaign Examples
+   ========================================================================== */
+
+.wsscd-campaign-examples {
+    display: grid;
+    gap: var(--wsscd-spacing-md);
+}
+
+/* Example cards use shared card component with specific modifiers */
+.wsscd-example-card {
+    /* Extends .wsscd-card from components.css */
+    padding: var(--wsscd-spacing-md);
+}
+
+.wsscd-example-card h5 {
+    margin: 0 0 var(--wsscd-spacing-sm) 0;
+    font-size: var(--wsscd-font-size-base);
+    font-weight: var(--wsscd-font-weight-semibold);
+    color: var(--wsscd-color-text);
+    line-height: 1.3;
+}
+
+.wsscd-example-card p {
+    margin: 0;
+    font-size: var(--wsscd-font-size-small);
+    color: var(--wsscd-color-text-muted);
+    line-height: var(--wsscd-line-height);
+}
+
+/* ==========================================================================
+   Campaign Ideas
+   ========================================================================== */
+
+.wsscd-campaign-ideas {
+    display: grid;
+    gap: var(--wsscd-spacing-sm);
+}
+
+/* Campaign ideas extend alert component with custom styling */
+.wsscd-campaign-idea {
+    /* Extends .wsscd-alert--info from components.css */
+    padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-md);
+}
+
+.wsscd-campaign-idea h5 {
+    margin: 0 0 var(--wsscd-spacing-xs) 0;
+    font-size: var(--wsscd-font-size-base);
+    font-weight: var(--wsscd-font-weight-semibold);
+    color: var(--wsscd-color-text);
+    line-height: 1.3;
+}
+
+.wsscd-campaign-idea p {
+    margin: 0;
+    font-size: var(--wsscd-font-size-small);
+    color: var(--wsscd-color-text-muted);
+    line-height: var(--wsscd-line-height);
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 782px) {
+    .wsscd-sidebar-content {
+        padding: var(--wsscd-spacing-md);
+    }
+}
+
+/* ==========================================================================
+   RTL Support
+   ========================================================================== */
+
+[dir="rtl"] .wsscd-checklist__item {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .wsscd-campaign-idea {
+    border-left: none;
+    border-right: 4px solid var(--wsscd-color-primary);
+    border-radius: var(--wsscd-radius-md) 0 0 var(--wsscd-radius-md);
+}
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
+/* Focus states handled by shared _components.css */
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .wsscd-example-card,
+    .wsscd-campaign-idea {
+        border-width: var(--wsscd-border-width-thick);
+    }
+
+    .wsscd-campaign-idea {
+        border-left-width: var(--wsscd-border-width-accent);
+    }
+}
+
+/* Reduced motion handled by shared _components.css */
+
+/* ==========================================================================
+   Naming Best Practices Section
+   ========================================================================== */
+
+.wsscd-naming-tips {
+	font-size: var(--wsscd-font-size-small);
+}
+
+.wsscd-naming-intro {
+	margin: 0 0 var(--wsscd-spacing-md) 0;
+	color: var(--wsscd-color-text-muted);
+	line-height: var(--wsscd-line-height);
+}
+
+.wsscd-naming-do,
+.wsscd-naming-dont {
+	margin-bottom: var(--wsscd-spacing-md);
+}
+
+.wsscd-naming-label {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-xs);
+	margin: 0 0 var(--wsscd-spacing-xs) 0;
+	font-weight: var(--wsscd-font-weight-medium);
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text);
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+.wsscd-naming-do .wsscd-icon {
+	color: var(--wsscd-color-success);
+	font-size: var(--wsscd-font-size-medium);
+	width: var(--wsscd-font-size-medium);
+	height: var(--wsscd-font-size-medium);
+}
+
+.wsscd-naming-dont .wsscd-icon {
+	color: var(--wsscd-color-danger);
+	font-size: var(--wsscd-font-size-medium);
+	width: var(--wsscd-font-size-medium);
+	height: var(--wsscd-font-size-medium);
+}
+
+.wsscd-naming-examples {
+	margin: 0;
+	padding-left: var(--wsscd-spacing-base);
+	list-style: none;
+}
+
+.wsscd-naming-examples li {
+	position: relative;
+	margin-bottom: var(--wsscd-spacing-xs);
+	color: var(--wsscd-color-text-muted);
+	font-size: var(--wsscd-font-size-small);
+	line-height: var(--wsscd-line-height);
+	padding-left: 2px;
+}
+
+.wsscd-naming-examples li:before {
+	content: "•";
+	position: absolute;
+	left: var(--wsscd-list-bullet-offset);
+	color: var(--wsscd-color-border);
+}
+
+.wsscd-naming-tip {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--wsscd-spacing-xs);
+	padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-md);
+	background: var(--wsscd-color-surface);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+	border-left: var(--wsscd-border-width-accent-thin) solid var(--wsscd-color-primary);
+	border-radius: var(--wsscd-radius-sm);
+	margin-top: var(--wsscd-spacing-sm);
+}
+
+.wsscd-naming-tip .wsscd-icon {
+	color: var(--wsscd-color-text-muted);
+	font-size: var(--wsscd-font-size-medium);
+	width: var(--wsscd-font-size-medium);
+	height: var(--wsscd-font-size-medium);
+	margin-top: 1px;
+	opacity: 0.7;
+}
+
+.wsscd-naming-tip p {
+	margin: 0;
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text-muted);
+	line-height: var(--wsscd-line-height);
+}
+
+/* ==========================================================================
+   Priority System Guide
+   ========================================================================== */
+
+.wsscd-priority-explainer {
+	font-size: var(--wsscd-font-size-small);
+}
+
+.wsscd-priority-description {
+	margin: 0 0 var(--wsscd-spacing-md) 0;
+	color: var(--wsscd-color-text-muted);
+	line-height: var(--wsscd-line-height);
+}
+
+.wsscd-priority-level {
+	display: flex;
+	align-items: center;
+	padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-md);
+	border-radius: var(--wsscd-radius-sm);
+	background: var(--wsscd-color-surface);
+	gap: var(--wsscd-spacing-xs);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+}
+
+.wsscd-priority-range {
+	font-weight: var(--wsscd-font-weight-semibold);
+	font-size: var(--wsscd-font-size-small);
+	min-width: var(--wsscd-priority-badge-min-width);
+	text-align: center;
+	padding: var(--wsscd-spacing-xxs) var(--wsscd-spacing-xs);
+	border-radius: var(--wsscd-radius-sm);
+	color: var(--wsscd-color-white);
+}
+
+.wsscd-priority-high .wsscd-priority-range {
+	background: var(--wsscd-color-danger);
+}
+
+.wsscd-priority-medium-high .wsscd-priority-range {
+	background: var(--wsscd-color-warning);
+}
+
+.wsscd-priority-medium .wsscd-priority-range {
+	background: var(--wsscd-color-info);
+}
+
+.wsscd-priority-low .wsscd-priority-range {
+	background: var(--wsscd-color-success);
+}
+
+.wsscd-priority-label {
+	font-weight: var(--wsscd-font-weight-medium);
+	font-size: var(--wsscd-font-size-small);
+	min-width: 50px;
+	color: var(--wsscd-color-text);
+}
+
+.wsscd-priority-use {
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text-muted);
+	flex: 1;
+}
+
+.wsscd-priority-tip {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--wsscd-spacing-xs);
+	margin: 0;
+	padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-md);
+	background: var(--wsscd-color-surface);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+	border-left: var(--wsscd-border-width-accent-thin) solid var(--wsscd-color-primary);
+	border-radius: var(--wsscd-radius-sm);
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-priority-tip .wsscd-icon {
+	color: var(--wsscd-color-text-muted);
+	font-size: var(--wsscd-font-size-medium);
+	width: var(--wsscd-font-size-medium);
+	height: var(--wsscd-font-size-medium);
+	margin-top: 1px;
+	opacity: 0.7;
+}
+
+/* ==========================================================================
+   Sidebar Resources Section
+   ========================================================================== */
+
+.wsscd-sidebar-resources {
+	font-size: var(--wsscd-font-size-small);
+}
+
+.wsscd-sidebar-intro {
+	margin: 0 0 var(--wsscd-spacing-sm) 0;
+	color: var(--wsscd-color-text-muted);
+	line-height: var(--wsscd-line-height);
+	font-size: var(--wsscd-font-size-small);
+}
+
+.wsscd-sidebar-links {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wsscd-spacing-xs);
+	margin-bottom: var(--wsscd-spacing-md);
+}
+
+/* NOTE: .wsscd-sidebar-link styles moved to wizard-steps.css (.wsscd-sidebar-links .wsscd-sidebar-link) */
+
+.wsscd-sidebar-faq {
+	padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-md);
+	background: var(--wsscd-color-surface);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+	border-left: var(--wsscd-border-width-accent-thin) solid var(--wsscd-color-primary);
+	border-radius: var(--wsscd-radius-sm);
+}
+
+.wsscd-sidebar-faq-title {
+	font-weight: var(--wsscd-font-weight-medium);
+	font-size: var(--wsscd-font-size-small);
+	margin: 0 0 var(--wsscd-spacing-xs) 0;
+	color: var(--wsscd-color-text);
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+.wsscd-sidebar-faq-list {
+	margin: 0;
+	padding-left: var(--wsscd-spacing-base);
+	list-style: none;
+}
+
+.wsscd-sidebar-faq-list li {
+	position: relative;
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text-muted);
+	margin-bottom: var(--wsscd-spacing-xs);
+	line-height: 1.4;
+	padding-left: 2px;
+}
+
+.wsscd-sidebar-faq-list li:before {
+	content: "•";
+	position: absolute;
+	left: var(--wsscd-list-bullet-offset);
+	color: var(--wsscd-color-border);
+}

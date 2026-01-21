@@ -27,16 +27,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Admin_Capability_Manager {
+class WSSCD_Admin_Capability_Manager {
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Plugin capabilities.
@@ -60,9 +60,9 @@ class SCD_Admin_Capability_Manager {
 	 * Initialize the capability manager.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger    Logger instance.
+	 * @param    WSSCD_Logger $logger    Logger instance.
 	 */
-	public function __construct( SCD_Logger $logger ) {
+	public function __construct( WSSCD_Logger $logger ) {
 		$this->logger = $logger;
 
 		// Auto-initialize on construction
@@ -121,75 +121,75 @@ class SCD_Admin_Capability_Manager {
 	private function define_capabilities(): void {
 		$this->capabilities = array(
 			// Campaign management
-			'scd_view_campaigns'     => array(
+			'wsscd_view_campaigns'     => array(
 				'label'       => __( 'View Campaigns', 'smart-cycle-discounts' ),
 				'description' => __( 'View discount campaigns.', 'smart-cycle-discounts' ),
 				'group'       => 'campaigns',
 			),
-			'scd_manage_campaigns'   => array(
+			'wsscd_manage_campaigns'   => array(
 				'label'       => __( 'Manage Campaigns', 'smart-cycle-discounts' ),
 				'description' => __( 'Create, edit, and manage discount campaigns.', 'smart-cycle-discounts' ),
 				'group'       => 'campaigns',
 			),
-			'scd_create_campaigns'   => array(
+			'wsscd_create_campaigns'   => array(
 				'label'       => __( 'Create Campaigns', 'smart-cycle-discounts' ),
 				'description' => __( 'Create new discount campaigns.', 'smart-cycle-discounts' ),
 				'group'       => 'campaigns',
 			),
-			'scd_edit_campaigns'     => array(
+			'wsscd_edit_campaigns'     => array(
 				'label'       => __( 'Edit Campaigns', 'smart-cycle-discounts' ),
 				'description' => __( 'Edit existing discount campaigns.', 'smart-cycle-discounts' ),
 				'group'       => 'campaigns',
 			),
-			'scd_delete_campaigns'   => array(
+			'wsscd_delete_campaigns'   => array(
 				'label'       => __( 'Delete Campaigns', 'smart-cycle-discounts' ),
 				'description' => __( 'Delete discount campaigns.', 'smart-cycle-discounts' ),
 				'group'       => 'campaigns',
 			),
-			'scd_activate_campaigns' => array(
+			'wsscd_activate_campaigns' => array(
 				'label'       => __( 'Activate Campaigns', 'smart-cycle-discounts' ),
 				'description' => __( 'Activate and deactivate discount campaigns.', 'smart-cycle-discounts' ),
 				'group'       => 'campaigns',
 			),
 
 			// Analytics and reporting
-			'scd_view_analytics'     => array(
+			'wsscd_view_analytics'     => array(
 				'label'       => __( 'View Analytics', 'smart-cycle-discounts' ),
 				'description' => __( 'View campaign analytics and reports.', 'smart-cycle-discounts' ),
 				'group'       => 'analytics',
 			),
-			'scd_manage_analytics'   => array(
+			'wsscd_manage_analytics'   => array(
 				'label'       => __( 'Manage Analytics', 'smart-cycle-discounts' ),
 				'description' => __( 'Manage analytics settings, generate reports, and clear cache.', 'smart-cycle-discounts' ),
 				'group'       => 'analytics',
 			),
-			'scd_export_analytics'   => array(
+			'wsscd_export_analytics'   => array(
 				'label'       => __( 'Export Analytics', 'smart-cycle-discounts' ),
 				'description' => __( 'Export analytics data and reports.', 'smart-cycle-discounts' ),
 				'group'       => 'analytics',
 			),
 
 			// Product management
-			'scd_view_products'      => array(
+			'wsscd_view_products'      => array(
 				'label'       => __( 'View Products', 'smart-cycle-discounts' ),
 				'description' => __( 'View and search products for campaigns.', 'smart-cycle-discounts' ),
 				'group'       => 'products',
 			),
 
 			// Settings management
-			'scd_manage_settings'    => array(
+			'wsscd_manage_settings'    => array(
 				'label'       => __( 'Manage Settings', 'smart-cycle-discounts' ),
 				'description' => __( 'Manage plugin settings and configuration.', 'smart-cycle-discounts' ),
 				'group'       => 'settings',
 			),
 
 			// Tools and utilities
-			'scd_manage_tools'       => array(
+			'wsscd_manage_tools'       => array(
 				'label'       => __( 'Manage Tools', 'smart-cycle-discounts' ),
 				'description' => __( 'Access plugin tools and utilities.', 'smart-cycle-discounts' ),
 				'group'       => 'tools',
 			),
-			'scd_import_export'      => array(
+			'wsscd_import_export'      => array(
 				'label'       => __( 'Import/Export', 'smart-cycle-discounts' ),
 				'description' => __( 'Import and export campaign data.', 'smart-cycle-discounts' ),
 				'group'       => 'tools',
@@ -197,7 +197,7 @@ class SCD_Admin_Capability_Manager {
 		);
 
 		// Allow filtering of capabilities
-		$this->capabilities = apply_filters( 'scd_admin_capabilities', $this->capabilities );
+		$this->capabilities = apply_filters( 'wsscd_admin_capabilities', $this->capabilities );
 	}
 
 	/**
@@ -210,57 +210,57 @@ class SCD_Admin_Capability_Manager {
 	private function define_role_capabilities(): void {
 		$this->role_capabilities = array(
 			'administrator' => array(
-				'scd_view_campaigns',
-				'scd_manage_campaigns',
-				'scd_create_campaigns',
-				'scd_edit_campaigns',
-				'scd_delete_campaigns',
-				'scd_activate_campaigns',
-				'scd_view_analytics',
-				'scd_manage_analytics',
-				'scd_export_analytics',
-				'scd_view_products',
-				'scd_manage_settings',
-				'scd_manage_tools',
-				'scd_import_export',
+				'wsscd_view_campaigns',
+				'wsscd_manage_campaigns',
+				'wsscd_create_campaigns',
+				'wsscd_edit_campaigns',
+				'wsscd_delete_campaigns',
+				'wsscd_activate_campaigns',
+				'wsscd_view_analytics',
+				'wsscd_manage_analytics',
+				'wsscd_export_analytics',
+				'wsscd_view_products',
+				'wsscd_manage_settings',
+				'wsscd_manage_tools',
+				'wsscd_import_export',
 			),
 			'shop_manager'  => array(
-				'scd_view_campaigns',
-				'scd_manage_campaigns',
-				'scd_create_campaigns',
-				'scd_edit_campaigns',
-				'scd_delete_campaigns',
-				'scd_activate_campaigns',
-				'scd_view_analytics',
-				'scd_manage_analytics',
-				'scd_export_analytics',
-				'scd_view_products',
+				'wsscd_view_campaigns',
+				'wsscd_manage_campaigns',
+				'wsscd_create_campaigns',
+				'wsscd_edit_campaigns',
+				'wsscd_delete_campaigns',
+				'wsscd_activate_campaigns',
+				'wsscd_view_analytics',
+				'wsscd_manage_analytics',
+				'wsscd_export_analytics',
+				'wsscd_view_products',
 			),
 			'editor'        => array(
-				'scd_view_campaigns',
-				'scd_manage_campaigns',
-				'scd_create_campaigns',
-				'scd_edit_campaigns',
-				'scd_view_analytics',
-				'scd_view_products',
+				'wsscd_view_campaigns',
+				'wsscd_manage_campaigns',
+				'wsscd_create_campaigns',
+				'wsscd_edit_campaigns',
+				'wsscd_view_analytics',
+				'wsscd_view_products',
 			),
 			'author'        => array(
-				'scd_view_campaigns',
-				'scd_create_campaigns',
-				'scd_edit_campaigns',
-				'scd_view_analytics',
-				'scd_view_products',
+				'wsscd_view_campaigns',
+				'wsscd_create_campaigns',
+				'wsscd_edit_campaigns',
+				'wsscd_view_analytics',
+				'wsscd_view_products',
 			),
 			'contributor'   => array(
-				'scd_view_campaigns',
-				'scd_create_campaigns',
-				'scd_view_analytics',
-				'scd_view_products',
+				'wsscd_view_campaigns',
+				'wsscd_create_campaigns',
+				'wsscd_view_analytics',
+				'wsscd_view_products',
 			),
 		);
 
 		// Allow filtering of role capabilities
-		$this->role_capabilities = apply_filters( 'scd_role_capabilities', $this->role_capabilities );
+		$this->role_capabilities = apply_filters( 'wsscd_role_capabilities', $this->role_capabilities );
 	}
 
 	/**
@@ -319,7 +319,7 @@ class SCD_Admin_Capability_Manager {
 	 * @param    mixed  $object_id     Object ID for meta capabilities.
 	 * @return   bool                     True if user has capability.
 	 */
-	public function current_user_can( string $capability, mixed $object_id = null ): bool {
+	public function current_user_can( string $capability, $object_id = null ): bool {
 		if ( null !== $object_id ) {
 			return current_user_can( $capability, $object_id );
 		}
@@ -336,7 +336,7 @@ class SCD_Admin_Capability_Manager {
 	 * @param    mixed       $object_id    Object ID for meta capabilities.
 	 * @return   bool                         True if user has capability.
 	 */
-	public function user_can( int|WP_User $user, string $capability, mixed $object_id = null ): bool {
+	public function user_can( $user, string $capability, $object_id = null ): bool {
 		if ( null !== $object_id ) {
 			return user_can( $user, $capability, $object_id );
 		}
@@ -388,12 +388,12 @@ class SCD_Admin_Capability_Manager {
 		// Map meta capabilities to primitive capabilities
 		switch ( $cap ) {
 			case 'edit_campaign':
-				return array( 'scd_edit_campaigns' );
+				return array( 'wsscd_edit_campaigns' );
 			case 'delete_campaign':
-				return array( 'scd_delete_campaigns' );
+				return array( 'wsscd_delete_campaigns' );
 			case 'activate_campaign':
 			case 'deactivate_campaign':
-				return array( 'scd_activate_campaigns' );
+				return array( 'wsscd_activate_campaigns' );
 		}
 
 		return array( 'do_not_allow' );
@@ -591,6 +591,7 @@ class SCD_Admin_Capability_Manager {
 	public function get_users_with_capability( string $capability ): array {
 		$users = get_users(
 			array(
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Required for capability-based user lookup; admin-only operation.
 				'meta_query' => array(
 					array(
 						'key'     => 'wp_capabilities',
@@ -617,15 +618,15 @@ class SCD_Admin_Capability_Manager {
 	 * @param    mixed  $object_id    Object ID if applicable.
 	 * @return   bool|WP_Error           True if valid, error otherwise.
 	 */
-	public function validate_user_permissions( string $action, mixed $object_id = null ): bool|WP_Error {
+	public function validate_user_permissions( string $action, $object_id = null ) {
 		$capability_map = array(
-			'view_campaigns'    => 'scd_view_campaigns',
-			'create_campaign'   => 'scd_create_campaigns',
+			'view_campaigns'    => 'wsscd_view_campaigns',
+			'create_campaign'   => 'wsscd_create_campaigns',
 			'edit_campaign'     => 'edit_campaign',
 			'delete_campaign'   => 'delete_campaign',
 			'activate_campaign' => 'activate_campaign',
-			'view_analytics'    => 'scd_view_analytics',
-			'manage_settings'   => 'scd_manage_settings',
+			'view_analytics'    => 'wsscd_view_analytics',
+			'manage_settings'   => 'wsscd_manage_settings',
 		);
 
 		$capability = $capability_map[ $action ] ?? $action;
@@ -648,11 +649,11 @@ class SCD_Admin_Capability_Manager {
 	 */
 	public function get_page_capabilities(): array {
 		return array(
-			'smart-cycle-discounts' => 'scd_view_campaigns',
-			'scd-campaigns'         => 'scd_view_campaigns',
-			'scd-analytics'         => 'scd_view_analytics',
-			'scd-settings'          => 'scd_manage_settings',
-			'scd-tools'             => 'scd_manage_tools',
+			'smart-cycle-discounts' => 'wsscd_view_campaigns',
+			'wsscd-campaigns'         => 'wsscd_view_campaigns',
+			'wsscd-analytics'         => 'wsscd_view_analytics',
+			'wsscd-settings'          => 'wsscd_manage_settings',
+			'wsscd-tools'             => 'wsscd_manage_tools',
 		);
 	}
 
@@ -665,7 +666,7 @@ class SCD_Admin_Capability_Manager {
 	 */
 	private function ensure_capabilities_exist(): void {
 		$admin_role = get_role( 'administrator' );
-		if ( ! $admin_role || ! $admin_role->has_cap( 'scd_view_campaigns' ) ) {
+		if ( ! $admin_role || ! $admin_role->has_cap( 'wsscd_view_campaigns' ) ) {
 			// Capabilities not added yet, add them now
 			$this->add_capabilities();
 		}

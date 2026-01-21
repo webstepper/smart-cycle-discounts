@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/helpers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Tooltip_Helper {
+class WSSCD_Tooltip_Helper {
 
 	/**
 	 * Render tooltip icon with text.
@@ -43,14 +43,16 @@ class SCD_Tooltip_Helper {
 		$args = wp_parse_args( $args, $defaults );
 
 		$icon_name = str_replace( 'dashicons-', '', $args['icon'] );
-		$icon_html = SCD_Icon_Helper::get( $icon_name, array( 'size' => 16 ) );
+		// Icon_Helper::get() already escapes SVG via wp_kses() with custom SVG whitelist.
+		$icon_html = WSSCD_Icon_Helper::get( $icon_name, array( 'size' => 16 ) );
 
 		printf(
-			'<span class="scd-field-helper %s" aria-label="%s" data-tooltip="%s" tabindex="0">%s</span>',
+			'<span class="wsscd-field-helper %s" aria-label="%s" data-tooltip="%s" tabindex="0">%s</span>',
 			esc_attr( $args['class'] ),
 			esc_attr( $args['aria_label'] ),
 			esc_attr( $text ),
-			$icon_html
+			// Use wp_kses with SVG allowed tags since wp_kses_post strips SVG elements.
+			wp_kses( $icon_html, WSSCD_Icon_Helper::get_allowed_svg_tags() )
 		);
 	}
 
@@ -79,11 +81,13 @@ class SCD_Tooltip_Helper {
 	 * @return   void
 	 */
 	public static function render_label( $label, $for, $tooltip, $args = array() ) {
+		// self::get() returns HTML containing SVG via Icon_Helper.
+		// Use wp_kses with combined SVG and post allowed tags.
 		printf(
 			'<label for="%s">%s %s</label>',
 			esc_attr( $for ),
 			esc_html( $label ),
-			self::get( $tooltip, $args )
+			wp_kses( self::get( $tooltip, $args ), WSSCD_Icon_Helper::get_allowed_html_with_svg() )
 		);
 	}
 
@@ -99,7 +103,7 @@ class SCD_Tooltip_Helper {
 	 */
 	public static function render_inline( $text, $args = array() ) {
 		$defaults = array(
-			'class' => 'scd-inline-tooltip',
+			'class' => 'wsscd-inline-tooltip',
 		);
 
 		$args = wp_parse_args( $args, $defaults );

@@ -14,17 +14,17 @@
 	'use strict';
 
 	// Ensure namespaces exist
-	window.SCD = window.SCD || {};
-	SCD.Modules = SCD.Modules || {};
-	SCD.Modules.Schedule = SCD.Modules.Schedule || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Modules = WSSCD.Modules || {};
+	WSSCD.Modules.Schedule = WSSCD.Modules.Schedule || {};
 
 	/**
 	 * Schedule State Constructor
 	 * Extends BaseState for state management
 	 */
-	SCD.Modules.Schedule.State = function() {
-		if ( SCD.Modules.Schedule.Debug ) {
-			SCD.Modules.Schedule.Debug.logInit( 'Schedule State', {
+	WSSCD.Modules.Schedule.State = function() {
+		if ( WSSCD.Modules.Schedule.Debug ) {
+			WSSCD.Modules.Schedule.Debug.logInit( 'Schedule State', {
 				method: 'constructor'
 			} );
 		}
@@ -38,7 +38,7 @@
 			endTime: '23:59',
 
 			// Timezone
-			timezone: ( window.scdWizardData && window.scdWizardData.timezone ) || 'UTC',
+			timezone: ( window.wsscdWizardData && window.wsscdWizardData.timezone ) || 'UTC',
 
 			// Start type
 			startType: 'immediate',
@@ -82,48 +82,48 @@
 		};
 
 		// Call parent constructor
-		if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-			SCD.Shared.BaseState.call( this, initialState );
+		if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+			WSSCD.Shared.BaseState.call( this, initialState );
 		}
 	};
 
-	if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-		SCD.Modules.Schedule.State.prototype = Object.create( SCD.Shared.BaseState.prototype );
-		SCD.Modules.Schedule.State.prototype.constructor = SCD.Modules.Schedule.State;
+	if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+		WSSCD.Modules.Schedule.State.prototype = Object.create( WSSCD.Shared.BaseState.prototype );
+		WSSCD.Modules.Schedule.State.prototype.constructor = WSSCD.Modules.Schedule.State;
 	}
 
 	// Extend prototype with custom methods
-	$.extend( SCD.Modules.Schedule.State.prototype, {
+	$.extend( WSSCD.Modules.Schedule.State.prototype, {
 		/**
 		 * Override setState to add duration calculation
 		 * @param updates
 		 */
 		setState: function( updates ) {
-			if ( SCD.Modules.Schedule.Debug ) {
-				SCD.Modules.Schedule.Debug.log( 'info', 'State', 'setState called with:', updates );
+			if ( WSSCD.Modules.Schedule.Debug ) {
+				WSSCD.Modules.Schedule.Debug.log( 'info', 'State', 'setState called with:', updates );
 			}
 
 			// Calculate duration if dates changed
 			if ( updates && ( 'startDate' in updates || 'endDate' in updates ||
 					'startTime' in updates || 'endTime' in updates ) ) {
 				// Apply updates first via parent
-				if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-					SCD.Shared.BaseState.prototype.setState.call( this, updates, false );
+				if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+					WSSCD.Shared.BaseState.prototype.setState.call( this, updates, false );
 				}
 				// Then calculate duration with updated state
 				this._calculateDuration();
 			} else {
 				// No date changes, just apply updates
-				if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-					SCD.Shared.BaseState.prototype.setState.call( this, updates, false );
+				if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+					WSSCD.Shared.BaseState.prototype.setState.call( this, updates, false );
 				}
 			}
 
 			if ( updates && 'errors' in updates ) {
 				var state = this.getState();
 				var newUpdates = { isValid: 0 === Object.keys( state.errors ).length };
-				if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-					SCD.Shared.BaseState.prototype.setState.call( this, newUpdates, false );
+				if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+					WSSCD.Shared.BaseState.prototype.setState.call( this, newUpdates, false );
 				}
 			}
 		},
@@ -132,8 +132,8 @@
 		 * Calculate duration based on current dates/times
 		 */
 		_calculateDuration: function() {
-			if ( SCD.Modules.Schedule.Debug ) {
-				SCD.Modules.Schedule.Debug.time( 'Duration Calculation' );
+			if ( WSSCD.Modules.Schedule.Debug ) {
+				WSSCD.Modules.Schedule.Debug.time( 'Duration Calculation' );
 			}
 
 			var state = this.getState();
@@ -142,13 +142,13 @@
 					duration: null,
 					durationText: ''
 				};
-				if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-					SCD.Shared.BaseState.prototype.setState.call( this, updates, false );
+				if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+					WSSCD.Shared.BaseState.prototype.setState.call( this, updates, false );
 				}
 
-				if ( SCD.Modules.Schedule.Debug ) {
-					SCD.Modules.Schedule.Debug.log( 'info', 'State', 'Duration calculation skipped - missing dates' );
-					SCD.Modules.Schedule.Debug.timeEnd( 'Duration Calculation' );
+				if ( WSSCD.Modules.Schedule.Debug ) {
+					WSSCD.Modules.Schedule.Debug.log( 'info', 'State', 'Duration calculation skipped - missing dates' );
+					WSSCD.Modules.Schedule.Debug.timeEnd( 'Duration Calculation' );
 				}
 				return;
 			}
@@ -158,15 +158,15 @@
 			var end = new Date( state.endDate + ' ' + state.endTime );
 
 			if ( isNaN( start.getTime() ) || isNaN( end.getTime() ) ) {
-				if ( SCD.Modules.Schedule.Debug ) {
-					SCD.Modules.Schedule.Debug.log( 'error', 'State', 'Invalid dates for duration calculation' );
+				if ( WSSCD.Modules.Schedule.Debug ) {
+					WSSCD.Modules.Schedule.Debug.log( 'error', 'State', 'Invalid dates for duration calculation' );
 				}
 				var invalidUpdates = {
 					duration: null,
 					durationText: 'Invalid dates'
 				};
-				if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-					SCD.Shared.BaseState.prototype.setState.call( this, invalidUpdates, false );
+				if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+					WSSCD.Shared.BaseState.prototype.setState.call( this, invalidUpdates, false );
 				}
 				return;
 			}
@@ -216,16 +216,16 @@
 				durationUpdates.durationText = 'Invalid duration';
 			}
 
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-				SCD.Shared.BaseState.prototype.setState.call( this, durationUpdates, false );
+			if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+				WSSCD.Shared.BaseState.prototype.setState.call( this, durationUpdates, false );
 			}
 
-			if ( SCD.Modules.Schedule.Debug ) {
-				SCD.Modules.Schedule.Debug.log( 'data', 'State', 'Duration calculated:', {
+			if ( WSSCD.Modules.Schedule.Debug ) {
+				WSSCD.Modules.Schedule.Debug.log( 'data', 'State', 'Duration calculated:', {
 					duration: durationUpdates.duration,
 					text: durationUpdates.durationText
 				} );
-				SCD.Modules.Schedule.Debug.timeEnd( 'Duration Calculation' );
+				WSSCD.Modules.Schedule.Debug.timeEnd( 'Duration Calculation' );
 			}
 		},
 
@@ -253,8 +253,8 @@
 				recurrenceEndDate: state.recurrenceEndDate
 			};
 
-			if ( SCD.Modules.Schedule.Debug ) {
-				SCD.Modules.Schedule.Debug.log( 'data', 'State', 'toJSON output:', json );
+			if ( WSSCD.Modules.Schedule.Debug ) {
+				WSSCD.Modules.Schedule.Debug.log( 'data', 'State', 'toJSON output:', json );
 			}
 
 			return json;
@@ -267,8 +267,8 @@
 		fromJSON: function( data ) {
 			if ( !data ) {return;}
 
-			if ( SCD.Modules.Schedule.Debug ) {
-				SCD.Modules.Schedule.Debug.log( 'data', 'State', 'fromJSON input:', data );
+			if ( WSSCD.Modules.Schedule.Debug ) {
+				WSSCD.Modules.Schedule.Debug.log( 'data', 'State', 'fromJSON input:', data );
 			}
 
 			// Data already converted to camelCase by server
@@ -297,8 +297,8 @@
 
 			this.clearDirty();
 			var lastSavedUpdate = { lastSaved: new Date() };
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-				SCD.Shared.BaseState.prototype.setState.call( this, lastSavedUpdate, false );
+			if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+				WSSCD.Shared.BaseState.prototype.setState.call( this, lastSavedUpdate, false );
 			}
 		},
 
@@ -310,8 +310,8 @@
 		applyPreset: function( preset, dates ) {
 			if ( !preset || !dates ) {return;}
 
-			if ( SCD.Modules.Schedule.Debug ) {
-				SCD.Modules.Schedule.Debug.log( 'info', 'State', 'Applying preset:', { preset: preset, dates: dates } );
+			if ( WSSCD.Modules.Schedule.Debug ) {
+				WSSCD.Modules.Schedule.Debug.log( 'info', 'State', 'Applying preset:', { preset: preset, dates: dates } );
 			}
 
 			this.setState( {
@@ -324,7 +324,7 @@
 			} );
 
 			// Emit preset applied event
-			$( document ).trigger( 'scd:schedule:preset:applied', preset );
+			$( document ).trigger( 'wsscd:schedule:preset:applied', preset );
 		},
 
 		/**
@@ -347,11 +347,11 @@
 		 * Reset to initial state
 		 */
 		reset: function() {
-			if ( SCD.Modules.Schedule.Debug ) {
-				SCD.Modules.Schedule.Debug.log( 'warning', 'State', 'Resetting state to initial values' );
+			if ( WSSCD.Modules.Schedule.Debug ) {
+				WSSCD.Modules.Schedule.Debug.log( 'warning', 'State', 'Resetting state to initial values' );
 			}
 
-			var originalTimezone = ( window.scdWizardData && window.scdWizardData.timezone ) || 'UTC';
+			var originalTimezone = ( window.wsscdWizardData && window.wsscdWizardData.timezone ) || 'UTC';
 
 			var defaults = {
 				startDate: '',
@@ -387,8 +387,8 @@
 			};
 
 			// Call parent reset
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-				SCD.Shared.BaseState.prototype.reset.call( this, defaults );
+			if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+				WSSCD.Shared.BaseState.prototype.reset.call( this, defaults );
 			}
 		},
 
@@ -396,13 +396,13 @@
 		 * Clean up module
 		 */
 		destroy: function() {
-			if ( SCD.Modules.Schedule.Debug ) {
-				SCD.Modules.Schedule.Debug.log( 'warning', 'State', 'Destroying state module' );
+			if ( WSSCD.Modules.Schedule.Debug ) {
+				WSSCD.Modules.Schedule.Debug.log( 'warning', 'State', 'Destroying state module' );
 			}
 
 			// Call parent destroy
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-				SCD.Shared.BaseState.prototype.destroy.call( this );
+			if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+				WSSCD.Shared.BaseState.prototype.destroy.call( this );
 			}
 		}
 	} );

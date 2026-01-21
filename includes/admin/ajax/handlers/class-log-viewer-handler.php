@@ -24,12 +24,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  */
-class SCD_Log_Viewer_Handler {
+class WSSCD_Log_Viewer_Handler {
 
 	/**
 	 * Logger instance.
 	 *
-	 * @var SCD_Logger
+	 * @var WSSCD_Logger
 	 */
 	private $logger;
 
@@ -37,11 +37,11 @@ class SCD_Log_Viewer_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger    Logger instance (optional).
+	 * @param    WSSCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		if ( null === $logger ) {
-			$logger = SCD_Logger::with_context( 'ajax' );
+			$logger = WSSCD_Logger::with_context( 'ajax' );
 		}
 		$this->logger = $logger;
 	}
@@ -116,8 +116,8 @@ class SCD_Log_Viewer_Handler {
 	 * @return   array                  Response data.
 	 */
 	private function handle_view_logs( array $request, float $start_time ): array {
-		require_once SCD_INCLUDES_DIR . 'utilities/class-log-manager.php';
-		$log_manager = new SCD_Log_Manager();
+		require_once WSSCD_INCLUDES_DIR . 'utilities/class-log-manager.php';
+		$log_manager = new WSSCD_Log_Manager();
 
 		$lines = isset( $request['lines'] ) ? absint( $request['lines'] ) : 100;
 
@@ -169,8 +169,8 @@ class SCD_Log_Viewer_Handler {
 	 * @return   array                  Response data.
 	 */
 	private function handle_clear_logs( array $request, float $start_time ): array {
-		require_once SCD_INCLUDES_DIR . 'utilities/class-log-manager.php';
-		$log_manager = new SCD_Log_Manager();
+		require_once WSSCD_INCLUDES_DIR . 'utilities/class-log-manager.php';
+		$log_manager = new WSSCD_Log_Manager();
 
 		$result = $log_manager->clear_logs();
 
@@ -219,8 +219,8 @@ class SCD_Log_Viewer_Handler {
 	 * @return   array                  Response data (or exits with download).
 	 */
 	private function handle_download_logs( array $request, float $start_time ): array {
-		require_once SCD_INCLUDES_DIR . 'utilities/class-log-manager.php';
-		$log_manager = new SCD_Log_Manager();
+		require_once WSSCD_INCLUDES_DIR . 'utilities/class-log-manager.php';
+		$log_manager = new WSSCD_Log_Manager();
 
 		// Log download request
 		$this->logger->flow(
@@ -251,8 +251,8 @@ class SCD_Log_Viewer_Handler {
 	 * @return   array                  Response data.
 	 */
 	private function handle_get_stats( float $start_time ): array {
-		require_once SCD_INCLUDES_DIR . 'utilities/class-log-manager.php';
-		$log_manager = new SCD_Log_Manager();
+		require_once WSSCD_INCLUDES_DIR . 'utilities/class-log-manager.php';
+		$log_manager = new WSSCD_Log_Manager();
 
 		$stats = $log_manager->get_log_stats();
 
@@ -282,8 +282,8 @@ class SCD_Log_Viewer_Handler {
 	 * @return   array                  Response data.
 	 */
 	private function handle_system_report( float $start_time ): array {
-		require_once SCD_INCLUDES_DIR . 'utilities/class-log-manager.php';
-		$log_manager = new SCD_Log_Manager();
+		require_once WSSCD_INCLUDES_DIR . 'utilities/class-log-manager.php';
+		$log_manager = new WSSCD_Log_Manager();
 
 		$report = $log_manager->generate_system_report();
 

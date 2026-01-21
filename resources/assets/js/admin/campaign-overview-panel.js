@@ -36,25 +36,28 @@
 
 			this.bindEvents();
 			this.checkUrlState();
+
+			// Add fallback class for empty state rows (for browsers without :has() support)
+			$( '.wsscd-empty-state' ).closest( 'tr' ).addClass( 'wsscd-empty-state-row' );
 		},
 
 		cacheElements: function() {
-			this.elements.backdrop = $( '.scd-overview-panel-backdrop' );
-			this.elements.panel = $( '#scd-campaign-overview-panel' );
-			this.elements.closeButton = $( '.scd-overview-panel-close' );
-			this.elements.loadingContainer = $( '#scd-overview-loading' );
-			this.elements.errorContainer = $( '#scd-overview-error' );
-			this.elements.sectionsContainer = $( '#scd-overview-sections' );
-			this.elements.retryButton = $( '#scd-overview-retry' );
-			this.elements.editButton = $( '#scd-overview-edit-button' );
-			this.elements.closeFooterButton = $( '#scd-overview-close-button' );
+			this.elements.backdrop = $( '.wsscd-overview-panel-backdrop' );
+			this.elements.panel = $( '#wsscd-campaign-overview-panel' );
+			this.elements.closeButton = $( '.wsscd-overview-panel-close' );
+			this.elements.loadingContainer = $( '#wsscd-overview-loading' );
+			this.elements.errorContainer = $( '#wsscd-overview-error' );
+			this.elements.sectionsContainer = $( '#wsscd-overview-sections' );
+			this.elements.retryButton = $( '#wsscd-overview-retry' );
+			this.elements.editButton = $( '#wsscd-overview-edit-button' );
+			this.elements.closeFooterButton = $( '#wsscd-overview-close-button' );
 		},
 
 		bindEvents: function() {
 			var self = this;
 
 			// View campaign triggers
-			$( document ).on( 'click', '.scd-view-campaign', function( e ) {
+			$( document ).on( 'click', '.wsscd-view-campaign', function( e ) {
 				e.preventDefault();
 				var campaignId = $( this ).data( 'campaign-id' );
 				if ( campaignId ) {
@@ -64,18 +67,21 @@
 
 			// Click on campaign row to open panel
 			$( document ).on( 'click', '.wp-list-table.campaigns tbody tr', function( e ) {
-				// Don't trigger if clicking on action buttons or checkboxes
-				if ( $( e.target ).closest( '.scd-actions-column button, input[type="checkbox"]' ).length ) {
+				// Don't trigger if clicking on action buttons, checkboxes, or empty state
+				if ( $( e.target ).closest( '.wsscd-actions-column button, input[type="checkbox"], .wsscd-empty-state, .wsscd-empty-state a, .wsscd-empty-state button' ).length ) {
+					return;
+				}
+
+				// Don't trigger on empty state rows (no campaign data)
+				var campaignId = $( this ).find( '.wsscd-view-campaign' ).data( 'campaign-id' );
+				if ( ! campaignId ) {
 					return;
 				}
 
 				// Prevent default link behavior
 				e.preventDefault();
 
-				var campaignId = $( this ).find( '.scd-view-campaign' ).data( 'campaign-id' );
-				if ( campaignId ) {
-					self.openPanel( campaignId );
-				}
+				self.openPanel( campaignId );
 			} );
 
 			// Close button clicks
@@ -134,7 +140,7 @@
 		var urlParams = new URLSearchParams( window.location.search );
 		var action = urlParams.get( 'action' );
 
-		// Canonical format: ?page=scd-campaigns&action=view&id=X
+		// Canonical format: ?page=wsscd-campaigns&action=view&id=X
 		var campaignId = 'view' === action ? urlParams.get( 'id' ) : null;
 
 		if ( campaignId && ! this.isOpen ) {
@@ -224,8 +230,8 @@
 			// Check if AjaxService is available
 
 			// Make AJAX request
-			if ( window.SCD && window.SCD.AjaxService ) {
-				window.SCD.AjaxService.request( 'scd_campaign_overview', {
+			if ( window.WSSCD && window.WSSCD.AjaxService ) {
+				window.WSSCD.AjaxService.request( 'wsscd_campaign_overview', {
 					campaign_id: campaignId
 				} ).done( function( response ) {
 					if ( response.success && response.data ) {
@@ -239,8 +245,8 @@
 					self.showError( errorMsg );
 				} );
 			} else {
-				var ajaxUrl = window.scdOverviewPanel && window.scdOverviewPanel.ajaxUrl ? window.scdOverviewPanel.ajaxUrl : '/wp-admin/admin-ajax.php';
-				var nonce = window.scdOverviewPanel && window.scdOverviewPanel.nonce ? window.scdOverviewPanel.nonce : '';
+				var ajaxUrl = window.wsscdOverviewPanel && window.wsscdOverviewPanel.ajaxUrl ? window.wsscdOverviewPanel.ajaxUrl : ( window.ajaxurl || '' );
+				var nonce = window.wsscdOverviewPanel && window.wsscdOverviewPanel.nonce ? window.wsscdOverviewPanel.nonce : '';
 
 				if ( ! nonce ) {
 					self.showError( 'Security token missing' );
@@ -251,8 +257,8 @@
 					url: ajaxUrl,
 					type: 'POST',
 					data: {
-						action: 'scd_ajax',
-						scdAction: 'scd_campaign_overview',
+						action: 'wsscd_ajax',
+						wsscdAction: 'wsscd_campaign_overview',
 						nonce: nonce,
 						campaign_id: campaignId
 					},
@@ -306,8 +312,8 @@
 		renderCampaign: function( data ) {
 			
 			// Hide loading
-			if ( window.SCD && window.SCD.LoaderUtil ) {
-			SCD.LoaderUtil.hide( 'scd-overview-loading', { fade: true } );
+			if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+			WSSCD.LoaderUtil.hide( 'wsscd-overview-loading', { fade: true } );
 		}
 
 			// Hide error if visible
@@ -328,13 +334,13 @@
 
 	renderSections: function( sections ) {
 		var sectionMap = {
-			basic: '#scd-section-basic',
-			health: '#scd-section-health',
-			schedule: '#scd-section-schedule',
-			recurringSchedule: '#scd-section-recurring-schedule',
-			products: '#scd-section-products',
-			discounts: '#scd-section-discounts',
-			performance: '#scd-section-performance'
+			basic: '#wsscd-section-basic',
+			health: '#wsscd-section-health',
+			schedule: '#wsscd-section-schedule',
+			recurringSchedule: '#wsscd-section-recurring-schedule',
+			products: '#wsscd-section-products',
+			discounts: '#wsscd-section-discounts',
+			performance: '#wsscd-section-performance'
 		};
 
 		// Render each section
@@ -350,8 +356,8 @@
 	},
 
 		showLoading: function() {
-			if ( window.SCD && window.SCD.LoaderUtil ) {
-			SCD.LoaderUtil.show( 'scd-overview-loading', { fade: true } );
+			if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+			WSSCD.LoaderUtil.show( 'wsscd-overview-loading', { fade: true } );
 		}
 			this.elements.errorContainer.removeClass( 'visible' );
 			this.elements.sectionsContainer.removeClass( 'visible' );
@@ -360,8 +366,8 @@
 		showError: function( message ) {
 
 			// Hide loading
-			if ( window.SCD && window.SCD.LoaderUtil ) {
-			SCD.LoaderUtil.hide( 'scd-overview-loading', { fade: true } );
+			if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+			WSSCD.LoaderUtil.hide( 'wsscd-overview-loading', { fade: true } );
 		}
 
 			// Hide sections
@@ -371,23 +377,23 @@
 			var errorText = 'string' === typeof message ? message : 'Failed to load campaign data';
 
 			// Show error
-			this.elements.errorContainer.find( '.scd-overview-error-message' ).text( errorText );
+			this.elements.errorContainer.find( '.wsscd-overview-error-message' ).text( errorText );
 			this.elements.errorContainer.addClass( 'visible' );
 
 			// Show notification
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
-				window.SCD.Shared.NotificationService.error( errorText );
+			if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.NotificationService ) {
+				window.WSSCD.Shared.NotificationService.error( errorText );
 			}
 		},
 
 		resetPanel: function() {
 			this.currentCampaignId = null;
-			if ( window.SCD && window.SCD.LoaderUtil ) {
-			SCD.LoaderUtil.hide( 'scd-overview-loading', { fade: true } );
+			if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+			WSSCD.LoaderUtil.hide( 'wsscd-overview-loading', { fade: true } );
 		}
 			this.elements.errorContainer.removeClass( 'visible' );
 			this.elements.sectionsContainer.removeClass( 'visible' );
-			this.elements.sectionsContainer.find( '.scd-overview-section-content' ).html( '' );
+			this.elements.sectionsContainer.find( '.wsscd-overview-section-content' ).html( '' );
 		},
 
 		updateUrl: function( campaignId ) {
@@ -412,7 +418,7 @@
 		},
 
 		getEditUrl: function( campaignId ) {
-			var baseUrl = window.scdOverviewPanel && window.scdOverviewPanel.editUrl ? window.scdOverviewPanel.editUrl : 'admin.php?page=scd-campaigns';
+			var baseUrl = window.wsscdOverviewPanel && window.wsscdOverviewPanel.editUrl ? window.wsscdOverviewPanel.editUrl : 'admin.php?page=wsscd-campaigns';
 			var separator = baseUrl.indexOf( '?' ) > -1 ? '&' : '?';
 			var fullUrl = baseUrl + separator + 'action=wizard&intent=edit&id=' + campaignId;
 			return fullUrl;
@@ -456,8 +462,8 @@
 		CampaignOverviewPanel.init();
 	} );
 
-	// Expose to global SCD namespace
-	window.SCD = window.SCD || {};
-	window.SCD.CampaignOverviewPanel = CampaignOverviewPanel;
+	// Expose to global WSSCD namespace
+	window.WSSCD = window.WSSCD || {};
+	window.WSSCD.CampaignOverviewPanel = CampaignOverviewPanel;
 
 } )( jQuery, window, document );

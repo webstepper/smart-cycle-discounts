@@ -28,21 +28,21 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since      1.0.0
  */
-class SCD_WC_Discount_Map_Service {
+class WSSCD_WC_Discount_Map_Service {
 
 	/**
 	 * Campaign manager instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Campaign_Manager
+	 * @var      WSSCD_Campaign_Manager
 	 */
-	private SCD_Campaign_Manager $campaign_manager;
+	private WSSCD_Campaign_Manager $campaign_manager;
 
 	/**
 	 * Cache manager instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Cache_Manager|null
+	 * @var      WSSCD_Cache_Manager|null
 	 */
 	private ?object $cache;
 
@@ -83,11 +83,11 @@ class SCD_WC_Discount_Map_Service {
 	 * Initialize the service.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Manager $campaign_manager    Campaign manager instance.
+	 * @param    WSSCD_Campaign_Manager $campaign_manager    Campaign manager instance.
 	 * @param    object|null          $cache               Cache manager instance.
 	 * @param    object|null          $logger              Logger instance (optional).
 	 */
-	public function __construct( SCD_Campaign_Manager $campaign_manager, ?object $cache = null, ?object $logger = null ) {
+	public function __construct( WSSCD_Campaign_Manager $campaign_manager, ?object $cache = null, ?object $logger = null ) {
 		$this->campaign_manager = $campaign_manager;
 		$this->cache            = $cache;
 		$this->logger           = $logger;

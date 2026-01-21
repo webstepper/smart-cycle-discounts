@@ -14,17 +14,17 @@
 	'use strict';
 
 	// Ensure namespaces exist
-	window.SCD = window.SCD || {};
-	SCD.Steps = SCD.Steps || {};
-	SCD.Modules = SCD.Modules || {};
-	SCD.Modules.Discounts = SCD.Modules.Discounts || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Steps = WSSCD.Steps || {};
+	WSSCD.Modules = WSSCD.Modules || {};
+	WSSCD.Modules.Discounts = WSSCD.Modules.Discounts || {};
 
 	/**
 	 * Discounts Orchestrator
 	 * Created using BaseOrchestrator.createStep() factory method
 	 * Inherits from BaseOrchestrator with EventManager and StepPersistence mixins
 	 */
-	SCD.Steps.DiscountOrchestrator = SCD.Shared.BaseOrchestrator.createStep( 'discounts', {
+	WSSCD.Steps.DiscountOrchestrator = WSSCD.Shared.BaseOrchestrator.createStep( 'discounts', {
 
 		// Custom properties
 		complexFieldHandlers: {},
@@ -46,7 +46,7 @@
 			this.initializeUI();
 
 			// Expose globally for field definitions
-			window.scdDiscountsOrchestrator = this;
+			window.wsscdDiscountsOrchestrator = this;
 		},
 
 		/**
@@ -55,8 +55,8 @@
 		initializeModules: function() {
 			// Use Module Registry for state and api
 			if ( !this.modules.state || !this.modules.api ) {
-				var moduleConfig = SCD.Shared.ModuleRegistry.createStepConfig( 'discounts' );
-				this.modules = SCD.Shared.ModuleRegistry.initialize( moduleConfig, this );
+				var moduleConfig = WSSCD.Shared.ModuleRegistry.createStepConfig( 'discounts' );
+				this.modules = WSSCD.Shared.ModuleRegistry.initialize( moduleConfig, this );
 
 				// Post-initialization: Connect API to state
 				if ( this.modules.state && this.modules.api && 'function' === typeof this.modules.state.setApi ) {
@@ -71,7 +71,7 @@
 			// Type registry for discount type modules
 			// Manual initialization to control timing (must be after event handler setup)
 			if ( !this.modules.typeRegistry ) {
-				this.modules.typeRegistry = new SCD.Modules.Discounts.TypeRegistry( this.modules.state );
+				this.modules.typeRegistry = new WSSCD.Modules.Discounts.TypeRegistry( this.modules.state );
 				if ( 'function' === typeof this.modules.typeRegistry.init ) {
 					this.modules.typeRegistry.init();
 				}
@@ -92,7 +92,7 @@
 			var self = this;
 
 			// Listen for discount type instance creation
-			$( document ).on( 'scd:discount:type:instance:created.orchestrator', function( event, data ) {
+			$( document ).on( 'wsscd:discount:type:instance:created.orchestrator', function( event, data ) {
 				if ( data && data.typeId && data.instance ) {
 					self.registerHandlerForType( data.typeId, data.instance );
 				}
@@ -180,9 +180,6 @@
 		registerComplexFieldHandler: function( name, handler ) {
 			if ( handler && 'function' === typeof handler.getValue ) {
 				this.complexFieldHandlers[name] = handler;
-				console.log( '[DiscountsOrchestrator] Successfully registered complex field handler:', name );
-			} else {
-				console.warn( '[DiscountsOrchestrator] Failed to register handler - missing getValue:', name );
 			}
 		},
 
@@ -202,10 +199,10 @@
 			var self = this;
 
 			// Discount type selection
-			this.bindDelegatedEvent( document, '.scd-discount-type-card', 'click', function( e ) {
+			this.bindDelegatedEvent( document, '.wsscd-discount-type-card', 'click', function( e ) {
 				// Allow upgrade button clicks to navigate to pricing page
 				var $target = $( e.target );
-				if ( $target.closest( '.button, a' ).length && $target.closest( '.scd-pro-feature-unavailable' ).length ) {
+				if ( $target.closest( '.button, a' ).length && $target.closest( '.wsscd-pro-feature-unavailable' ).length ) {
 					// Clicking upgrade button - allow default navigation
 					return;
 				}
@@ -217,8 +214,8 @@
 			// Discount value changes
 			this.bindDelegatedEvent( document, '#discount_value_percentage, #discount_value_fixed', 'input change', function() {
 				var $field = $( this );
-				if ( window.SCD && window.SCD.ValidationError ) {
-					window.SCD.ValidationError.clear( $field );
+				if ( window.WSSCD && window.WSSCD.ValidationError ) {
+					window.WSSCD.ValidationError.clear( $field );
 				}
 				self.updateDiscountValue( $field );
 			} );
@@ -226,28 +223,28 @@
 			// BOGO fields
 			this.bindDelegatedEvent( document, '#bogo_buy_quantity, #bogo_get_quantity, #bogo_discount_percentage', 'input change', function() {
 				var $bogoField = $( '[name="bogo_config"]' );
-				if ( $bogoField.length && window.SCD && window.SCD.ValidationError ) {
-					window.SCD.ValidationError.clear( $bogoField );
+				if ( $bogoField.length && window.WSSCD && window.WSSCD.ValidationError ) {
+					window.WSSCD.ValidationError.clear( $bogoField );
 				}
 				self.updateBOGOConfig();
 			} );
 
 			// Tier management
-			this.bindDelegatedEvent( document, '.scd-add-tier', 'click', function( e ) {
+			this.bindDelegatedEvent( document, '.wsscd-add-tier', 'click', function( e ) {
 				e.preventDefault();
 				var $tiersField = $( '[name="tiers"]' );
-				if ( $tiersField.length && window.SCD && window.SCD.ValidationError ) {
-					window.SCD.ValidationError.clear( $tiersField );
+				if ( $tiersField.length && window.WSSCD && window.WSSCD.ValidationError ) {
+					window.WSSCD.ValidationError.clear( $tiersField );
 				}
 				// TypeRegistry handles the actual tier addition
 			} );
 
 			// Threshold management
-			this.bindDelegatedEvent( document, '.scd-add-threshold', 'click', function( e ) {
+			this.bindDelegatedEvent( document, '.wsscd-add-threshold', 'click', function( e ) {
 				e.preventDefault();
 				var $thresholdsField = $( '[name="thresholds"]' );
-				if ( $thresholdsField.length && window.SCD && window.SCD.ValidationError ) {
-					window.SCD.ValidationError.clear( $thresholdsField );
+				if ( $thresholdsField.length && window.WSSCD && window.WSSCD.ValidationError ) {
+					window.WSSCD.ValidationError.clear( $thresholdsField );
 				}
 				// TypeRegistry handles the actual threshold addition
 			} );
@@ -268,25 +265,25 @@
 			} );
 
 			// Badge settings fields
-			this.bindDelegatedEvent( document, '#badge_enabled, #badge_text, #badge_position, #badge_bg_color, #badge_text_color', 'change', function() {
+			this.bindDelegatedEvent( document, '#badge_enabled, #badge_text, input[name="badge_position"], #badge_bg_color, #badge_text_color', 'change', function() {
 				self.updateBadgeSettings();
 			} );
 
 			// Collapsible sections
-			this.bindDelegatedEvent( document, '.scd-collapsible-trigger', 'click', function( e ) {
+			this.bindDelegatedEvent( document, '.wsscd-collapsible-trigger', 'click', function( e ) {
 				e.preventDefault();
-				self.toggleSection( $( this ).closest( '.scd-collapsible' ) );
+				self.toggleSection( $( this ).closest( '.wsscd-collapsible' ) );
 			} );
 
 			// Listen for state changes
-			this.bindCustomEvent( 'scd:discounts:state:changed', function( event, change ) {
+			this.bindCustomEvent( 'wsscd:discounts:state:changed', function( event, change ) {
 				if ( 'discountType' === change.property ) {
 					self.updateDiscountTypeUI( change.value );
 				}
 			} );
 
 			// Listen for field change events from modules (single source of truth)
-			this.bindCustomEvent( 'scd:discounts:field:changed', function( event, data ) {
+			this.bindCustomEvent( 'wsscd:discounts:field:changed', function( event, data ) {
 				if ( data && data.field && data.value !== undefined ) {
 					if ( self.modules.state ) {
 						self.modules.state.setData( data.field, data.value );
@@ -309,7 +306,7 @@
 		},
 
 		// loadData method removed - data population is handled by wizard orchestrator
-		// which calls populateFields() directly with saved data from scdWizardData.currentCampaign
+		// which calls populateFields() directly with saved data from wsscdWizardData.currentCampaign
 
 		/**
 		 * Custom logic after field population
@@ -330,8 +327,8 @@
 
 			if ( discountType ) {
 				$( '#discount_type' ).val( discountType );
-				$( '.scd-discount-type-card' ).removeClass( 'selected' );
-				$( '.scd-discount-type-card[data-type="' + discountType + '"]' ).addClass( 'selected' );
+				$( '.wsscd-discount-type-card' ).removeClass( 'selected' );
+				$( '.wsscd-discount-type-card[data-type="' + discountType + '"]' ).addClass( 'selected' );
 
 				// Update UI to reflect loaded data
 				this.updateDiscountTypeUI( discountType );
@@ -358,10 +355,10 @@
 		handleDiscountTypeSelect: function( $card ) {
 			var discountType = $card.data( 'type' );
 
-			if ( $card.data( 'locked' ) === true || $card.attr( 'data-locked' ) === 'true' || $card.hasClass( 'scd-discount-type-card--locked' ) ) {
-				var $detailsContainer = $( '#scd-discount-details-container' );
+			if ( $card.data( 'locked' ) === true || $card.attr( 'data-locked' ) === 'true' || $card.hasClass( 'wsscd-discount-type-card--locked' ) ) {
+				var $detailsContainer = $( '#wsscd-discount-details-container' );
 				if ( $detailsContainer.length ) {
-					$detailsContainer.addClass( 'scd-pro-container--locked' );
+					$detailsContainer.addClass( 'wsscd-pro-container--locked' );
 					$detailsContainer.attr( 'data-active-type', discountType );
 				}
 				return;
@@ -370,7 +367,7 @@
 			this.clearFieldError( 'discount_type' );
 
 			// Update UI
-			$( '.scd-discount-type-card' ).removeClass( 'selected' );
+			$( '.wsscd-discount-type-card' ).removeClass( 'selected' );
 			$card.addClass( 'selected' );
 
 			$( '#discount_type' ).val( discountType ).trigger( 'change' );
@@ -387,6 +384,74 @@
 			// Update UI
 			this.updateDiscountTypeUI( discountType );
 
+			// Scroll to discount details card and focus first input
+			this.scrollToDiscountDetails( discountType );
+		},
+
+		/**
+		 * Scroll to discount details card and focus the first input field
+		 * @param {string} discountType - The selected discount type
+		 */
+		scrollToDiscountDetails: function( discountType ) {
+			var self = this;
+			var $detailsCard = $( '#discount-value-card' );
+
+			if ( ! $detailsCard.length ) {
+				return;
+			}
+
+			// Small delay to allow UI updates to complete
+			setTimeout( function() {
+				// Scroll to the card with smooth behavior
+				var cardTop = $detailsCard.offset().top;
+				var adminBarHeight = $( '#wpadminbar' ).outerHeight() || 0;
+				var scrollTarget = cardTop - adminBarHeight - 20; // 20px padding
+
+				$( 'html, body' ).animate( {
+					scrollTop: scrollTarget
+				}, 300, function() {
+					// After scroll completes, focus the first input
+					self.focusFirstInputForType( discountType );
+				} );
+			}, 100 );
+		},
+
+		/**
+		 * Focus the first input field for the given discount type
+		 * @param {string} discountType - The discount type
+		 */
+		focusFirstInputForType: function( discountType ) {
+			var $input = null;
+
+			switch ( discountType ) {
+				case 'percentage':
+					$input = $( '#discount_value_percentage' );
+					break;
+				case 'fixed':
+					$input = $( '#discount_value_fixed' );
+					break;
+				case 'tiered':
+					// Focus first tier quantity input or the add tier button
+					$input = $( '.wsscd-strategy-tiered .wsscd-tier-row:first input:first' );
+					if ( ! $input.length ) {
+						$input = $( '.wsscd-strategy-tiered input[name="apply_to"]:first' );
+					}
+					break;
+				case 'bogo':
+					$input = $( '#bogo_buy_quantity' );
+					break;
+				case 'spend_threshold':
+					// Focus first threshold input or the add threshold button
+					$input = $( '.wsscd-strategy-spend_threshold .wsscd-threshold-row:first input:first' );
+					if ( ! $input.length ) {
+						$input = $( '.wsscd-strategy-spend_threshold input[name="threshold_mode"]:first' );
+					}
+					break;
+			}
+
+			if ( $input && $input.length && $input.is( ':visible' ) ) {
+				$input.focus();
+			}
 		},
 
 		/**
@@ -394,34 +459,34 @@
 		 * @param discountType
 		 */
 		updateDiscountTypeUI: function( discountType ) {
-			$( '.scd-strategy-options' ).removeClass( 'active' );
+			$( '.wsscd-strategy-options' ).removeClass( 'active' );
 
 			if ( discountType ) {
-				$( '.scd-strategy-' + discountType ).addClass( 'active' );
-				$( '#discount-value-card' ).removeClass( 'scd-hidden' );
-				$( '#discount-rules-card' ).removeClass( 'scd-hidden' );
+				$( '.wsscd-strategy-' + discountType ).addClass( 'active' );
+				$( '#discount-value-card' ).removeClass( 'wsscd-hidden' );
+				$( '#discount-rules-card' ).removeClass( 'wsscd-hidden' );
 				$( '#discount_type' ).val( discountType );
-				$( '.scd-discount-type-card' ).removeClass( 'selected' );
-				$( '.scd-discount-type-card[data-type="' + discountType + '"]' ).addClass( 'selected' );
+				$( '.wsscd-discount-type-card' ).removeClass( 'selected' );
+				$( '.wsscd-discount-type-card[data-type="' + discountType + '"]' ).addClass( 'selected' );
 
 				// Update conditional rule visibility based on discount type
 				this.updateConditionalRuleVisibility( discountType );
 
 				// Only lock if the discount type card itself is locked (free user trying to use PRO type)
 				var proTypes = [ 'tiered', 'bogo', 'spend_threshold' ];
-				var $detailsContainer = $( '#scd-discount-details-container' );
+				var $detailsContainer = $( '#wsscd-discount-details-container' );
 				if ( $detailsContainer.length ) {
 					var isPro = proTypes.indexOf( discountType ) !== -1;
-					var $card = $( '.scd-discount-type-card[data-type="' + discountType + '"]' );
-					var isCardLocked = $card.length && ( $card.attr( 'data-locked' ) === 'true' || $card.hasClass( 'scd-discount-type-card--locked' ) );
+					var $card = $( '.wsscd-discount-type-card[data-type="' + discountType + '"]' );
+					var isCardLocked = $card.length && ( $card.attr( 'data-locked' ) === 'true' || $card.hasClass( 'wsscd-discount-type-card--locked' ) );
 
 					if ( isPro && isCardLocked ) {
 						// PRO type that user doesn't have access to
-						$detailsContainer.addClass( 'scd-pro-container--locked' );
+						$detailsContainer.addClass( 'wsscd-pro-container--locked' );
 						$detailsContainer.attr( 'data-active-type', discountType );
 					} else {
 						// Free type or PRO type that user has access to
-						$detailsContainer.removeClass( 'scd-pro-container--locked' );
+						$detailsContainer.removeClass( 'wsscd-pro-container--locked' );
 						$detailsContainer.removeAttr( 'data-active-type' );
 					}
 				}
@@ -442,10 +507,10 @@
 			var self = this;
 
 			// Get all conditional rule rows
-			var $conditionalRules = $( '.scd-conditional-rule[data-hide-for-types]' );
+			var $conditionalRules = $( '.wsscd-conditional-rule[data-hide-for-types]' );
 
 			// Show all rules first
-			$conditionalRules.removeClass( 'scd-rule-hidden' );
+			$conditionalRules.removeClass( 'wsscd-rule-hidden' );
 
 			// Hide rules based on discount type
 			$conditionalRules.each( function() {
@@ -463,7 +528,7 @@
 
 				// Check if current type should hide this rule
 				if ( -1 !== typesToHide.indexOf( discountType ) ) {
-					$row.addClass( 'scd-rule-hidden' );
+					$row.addClass( 'wsscd-rule-hidden' );
 
 					// Clear the field value when hiding to avoid conflicts
 					var $input = $row.find( 'input, select' );
@@ -554,7 +619,7 @@
 				this.modules.state.setState( {
 					badgeEnabled: $( '#badge_enabled' ).is( ':checked' ),
 					badgeText: $( '#badge_text' ).val(),
-					badgePosition: $( '#badge_position' ).val(),
+					badgePosition: $( 'input[name="badge_position"]:checked' ).val() || 'top-right',
 					badgeBgColor: $( '#badge_bg_color' ).val(),
 					badgeTextColor: $( '#badge_text_color' ).val()
 				} );
@@ -572,7 +637,7 @@
 				}
 			}
 
-			var $selectedCard = $( '.scd-discount-type-card.selected' );
+			var $selectedCard = $( '.wsscd-discount-type-card.selected' );
 			if ( $selectedCard.length ) {
 				return $selectedCard.data( 'type' );
 			}
@@ -596,27 +661,17 @@
 		 * @returns {object} Validation result with {valid, errors, warnings}
 		 */
 		validateData: function( _data ) {
-			console.group( '🔍 DISCOUNTS ORCHESTRATOR - validateData()' );
-			console.log( 'Container:', this.$container );
-			console.log( 'Modules:', this.modules );
-
-			if ( window.SCD && window.SCD.ValidationError && this.$container ) {
-				console.log( '✅ Clearing previous errors with ValidationError.clearAll()' );
-				SCD.ValidationError.clearAll( this.$container );
-			} else {
-				console.warn( '⚠️ Cannot clear errors - ValidationError or container not available' );
+			// Clear previous validation errors.
+			if ( window.WSSCD && window.WSSCD.ValidationError && this.$container ) {
+				WSSCD.ValidationError.clearAll( this.$container );
 			}
 
+			// Delegate validation to TypeRegistry.
 			if ( this.modules && this.modules.typeRegistry ) {
-				console.log( '✅ Calling TypeRegistry.validateCurrent()' );
-				var result = this.modules.typeRegistry.validateCurrent();
-				console.log( 'Validation result:', result );
-				console.groupEnd();
-				return result;
+				return this.modules.typeRegistry.validateCurrent();
 			}
 
-			console.warn( '⚠️ TypeRegistry not available - returning default valid result' );
-			console.groupEnd();
+			// Fallback: return valid if no registry available.
 			return {
 				valid: true,
 				errors: {},
@@ -650,12 +705,12 @@
 				return;
 			}
 
-			$section.toggleClass( 'scd-collapsed' );
+			$section.toggleClass( 'wsscd-collapsed' );
 
 			// Save state to localStorage
 			var sectionId = $section.data( 'section' );
 			if ( sectionId ) {
-				this.saveCollapsibleState( sectionId, $section.hasClass( 'scd-collapsed' ) );
+				this.saveCollapsibleState( sectionId, $section.hasClass( 'wsscd-collapsed' ) );
 			}
 		},
 
@@ -665,12 +720,12 @@
 		initializeCollapsibles: function() {
 			var savedState = this.getCollapsibleState();
 
-			this.$container.find( '.scd-collapsible' ).each( function() {
+			this.$container.find( '.wsscd-collapsible' ).each( function() {
 				var $section = $( this );
 				var sectionId = $section.data( 'section' );
 
 				if ( true === savedState[sectionId] ) {
-					$section.addClass( 'scd-collapsed' );
+					$section.addClass( 'wsscd-collapsed' );
 				}
 			} );
 		},
@@ -680,7 +735,7 @@
 		 */
 		getCollapsibleState: function() {
 			try {
-				var state = localStorage.getItem( 'scd_collapsible_state' );
+				var state = localStorage.getItem( 'wsscd_collapsible_state' );
 				return state ? JSON.parse( state ) : {};
 			} catch ( e ) {
 				return {};
@@ -696,14 +751,14 @@
 			try {
 				var state = this.getCollapsibleState();
 				state[sectionId] = isCollapsed;
-				localStorage.setItem( 'scd_collapsible_state', JSON.stringify( state ) );
+				localStorage.setItem( 'wsscd_collapsible_state', JSON.stringify( state ) );
 			} catch ( e ) {
 				// Fail silently
 			}
 		},
 
 		// Note: Tooltip methods (initializeTooltips, showTooltip, hideTooltip)
-		// are now handled by shared SCD.TooltipManager utility
+		// are now handled by shared WSSCD.TooltipManager utility
 
 		/**
 		 * Clean up when leaving step
@@ -722,7 +777,7 @@
 			}
 
 			if ( this.$container ) {
-				this.$container.find( '[data-tooltip]' ).off( '.scd-tooltip' );
+				this.$container.find( '[data-tooltip]' ).off( '.wsscd-tooltip' );
 			}
 
 			// Unbind all events
@@ -734,8 +789,8 @@
 			this.initialized = false;
 
 			// Call parent destroy
-			if ( SCD.Shared.BaseOrchestrator.prototype.destroy ) {
-				SCD.Shared.BaseOrchestrator.prototype.destroy.call( this );
+			if ( WSSCD.Shared.BaseOrchestrator.prototype.destroy ) {
+				WSSCD.Shared.BaseOrchestrator.prototype.destroy.call( this );
 			}
 		}
 	} );

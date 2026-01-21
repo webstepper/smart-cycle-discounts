@@ -26,12 +26,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Occurrence_Preview_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Occurrence_Preview_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Occurrence cache instance
 	 *
-	 * @var SCD_Occurrence_Cache
+	 * @var WSSCD_Occurrence_Cache
 	 */
 	private $cache;
 
@@ -39,8 +39,8 @@ class SCD_Occurrence_Preview_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.1.0
-	 * @param    SCD_Occurrence_Cache $cache   Occurrence cache instance.
-	 * @param    SCD_Logger           $logger  Logger instance (optional).
+	 * @param    WSSCD_Occurrence_Cache $cache   Occurrence cache instance.
+	 * @param    WSSCD_Logger           $logger  Logger instance (optional).
 	 */
 	public function __construct( $cache, $logger = null ) {
 		parent::__construct( $logger );
@@ -54,7 +54,7 @@ class SCD_Occurrence_Preview_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_occurrence_preview';
+		return 'wsscd_occurrence_preview';
 	}
 
 	/**

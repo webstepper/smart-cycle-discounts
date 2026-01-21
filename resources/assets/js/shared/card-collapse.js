@@ -31,28 +31,28 @@
 		 */
 		bindEvents: function() {
 			// Handle toggle button clicks
-			$( document ).on( 'click', '.scd-card__toggle', function( e ) {
+			$( document ).on( 'click', '.wsscd-card__toggle', function( e ) {
 				e.preventDefault();
 				e.stopPropagation();
 				CardCollapse.toggleCard( $( this ) );
 			} );
 
 			// Handle header clicks for collapsible cards
-			$( document ).on( 'click', '.scd-card--collapsible .scd-card__header', function( e ) {
+			$( document ).on( 'click', '.wsscd-card--collapsible .wsscd-card__header', function( e ) {
 				// Don't toggle if clicking on actions or inside them
-				if ( $( e.target ).closest( '.scd-card__actions' ).length > 0 ) {
+				if ( $( e.target ).closest( '.wsscd-card__actions' ).length > 0 ) {
 					return;
 				}
 
 				e.preventDefault();
-				var $toggle = $( this ).find( '.scd-card__toggle' );
+				var $toggle = $( this ).find( '.wsscd-card__toggle' );
 				if ( $toggle.length ) {
 					CardCollapse.toggleCard( $toggle );
 				}
 			} );
 
 			// Handle keyboard accessibility (Enter/Space on toggle button)
-			$( document ).on( 'keydown', '.scd-card__toggle', function( e ) {
+			$( document ).on( 'keydown', '.wsscd-card__toggle', function( e ) {
 				if ( 13 === e.which || 32 === e.which ) { // Enter or Space
 					e.preventDefault();
 					CardCollapse.toggleCard( $( this ) );
@@ -66,16 +66,16 @@
 		 * @param {jQuery} $toggle Toggle button element
 		 */
 		toggleCard: function( $toggle ) {
-			var $card = $toggle.closest( '.scd-card' );
+			var $card = $toggle.closest( '.wsscd-card' );
 			var cardId = $card.attr( 'id' );
-			var $content = $card.find( '.scd-card__content' );
-			var $footer = $card.find( '.scd-card__footer' );
-			var $icon = $toggle.find( '.scd-icon' );
+			var $content = $card.find( '.wsscd-card__content' );
+			var $footer = $card.find( '.wsscd-card__footer' );
+			var $icon = $toggle.find( '.wsscd-icon' );
 
 			// Toggle collapsed state
-			if ( $card.hasClass( 'scd-card--collapsed' ) ) {
+			if ( $card.hasClass( 'wsscd-card--collapsed' ) ) {
 				// Expand
-				$card.removeClass( 'scd-card--collapsed' );
+				$card.removeClass( 'wsscd-card--collapsed' );
 				$content.slideDown( 200 );
 				$footer.slideDown( 200 );
 				$toggle.attr( 'aria-expanded', 'true' );
@@ -84,7 +84,7 @@
 				this.saveState( cardId, 'open' );
 			} else {
 				// Collapse
-				$card.addClass( 'scd-card--collapsed' );
+				$card.addClass( 'wsscd-card--collapsed' );
 				$content.slideUp( 200 );
 				$footer.slideUp( 200 );
 				$toggle.attr( 'aria-expanded', 'false' );
@@ -100,7 +100,7 @@
 		restoreStates: function() {
 			var self = this;
 
-			$( '.scd-card--collapsible' ).each( function() {
+			$( '.wsscd-card--collapsible' ).each( function() {
 				var $card = $( this );
 				var cardId = $card.attr( 'id' );
 
@@ -109,25 +109,25 @@
 					return;
 				}
 
-				var $toggle = $card.find( '.scd-card__toggle' );
+				var $toggle = $card.find( '.wsscd-card__toggle' );
 				var savedState = self.getState( cardId );
 				var defaultState = $card.data( 'default-state' ) || 'open';
 
 				// Use saved state if available, otherwise use default
 				var state = savedState || defaultState;
 
-				if ( 'collapsed' === state && ! $card.hasClass( 'scd-card--collapsed' ) ) {
+				if ( 'collapsed' === state && ! $card.hasClass( 'wsscd-card--collapsed' ) ) {
 					// Apply collapsed state without animation on page load
-					$card.addClass( 'scd-card--collapsed' );
-					$card.find( '.scd-card__content' ).hide();
-					$card.find( '.scd-card__footer' ).hide();
+					$card.addClass( 'wsscd-card--collapsed' );
+					$card.find( '.wsscd-card__content' ).hide();
+					$card.find( '.wsscd-card__footer' ).hide();
 					$toggle.attr( 'aria-expanded', 'false' );
 					$toggle.attr( 'aria-label', $toggle.data( 'label-expand' ) || 'Expand card content' );
-				} else if ( 'open' === state && $card.hasClass( 'scd-card--collapsed' ) ) {
+				} else if ( 'open' === state && $card.hasClass( 'wsscd-card--collapsed' ) ) {
 					// Ensure expanded state
-					$card.removeClass( 'scd-card--collapsed' );
-					$card.find( '.scd-card__content' ).show();
-					$card.find( '.scd-card__footer' ).show();
+					$card.removeClass( 'wsscd-card--collapsed' );
+					$card.find( '.wsscd-card__content' ).show();
+					$card.find( '.wsscd-card__footer' ).show();
 					$toggle.attr( 'aria-expanded', 'true' );
 					$toggle.attr( 'aria-label', $toggle.data( 'label-collapse' ) || 'Collapse card content' );
 				}
@@ -146,7 +146,7 @@
 			}
 
 			try {
-				var key = 'scd_card_' + cardId;
+				var key = 'wsscd_card_' + cardId;
 				localStorage.setItem( key, state );
 			} catch ( e ) {
 				// localStorage not available or quota exceeded
@@ -166,7 +166,7 @@
 			}
 
 			try {
-				var key = 'scd_card_' + cardId;
+				var key = 'wsscd_card_' + cardId;
 				return localStorage.getItem( key );
 			} catch ( e ) {
 				// localStorage not available
@@ -182,7 +182,7 @@
 				var keys = [];
 				for ( var i = 0; i < localStorage.length; i++ ) {
 					var key = localStorage.key( i );
-					if ( key && key.indexOf( 'scd_card_' ) === 0 ) {
+					if ( key && key.indexOf( 'wsscd_card_' ) === 0 ) {
 						keys.push( key );
 					}
 				}
@@ -206,7 +206,7 @@
 	/**
 	 * Expose to global scope for debugging
 	 */
-	window.SCD = window.SCD || {};
-	window.SCD.CardCollapse = CardCollapse;
+	window.WSSCD = window.WSSCD || {};
+	window.WSSCD.CardCollapse = CardCollapse;
 
 } )( jQuery );

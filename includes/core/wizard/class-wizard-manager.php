@@ -27,16 +27,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/components
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Wizard_Manager {
+class WSSCD_Wizard_Manager {
 
 	/**
 	 * State service manager.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Wizard_State_Service    $state_service    State service manager.
+	 * @var      WSSCD_Wizard_State_Service    $state_service    State service manager.
 	 */
-	private SCD_Wizard_State_Service $state_service;
+	private WSSCD_Wizard_State_Service $state_service;
 
 	/**
 	 * Security manager.
@@ -61,9 +61,9 @@ class SCD_Wizard_Manager {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Compiler_Service|null    $compiler    Compiler instance.
+	 * @var      WSSCD_Campaign_Compiler_Service|null    $compiler    Compiler instance.
 	 */
-	private ?SCD_Campaign_Compiler_Service $compiler = null;
+	private ?WSSCD_Campaign_Compiler_Service $compiler = null;
 
 	/**
 	 * Wizard steps configuration.
@@ -135,26 +135,26 @@ class SCD_Wizard_Manager {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Wizard_Navigation|null    $navigation    Navigation instance.
+	 * @var      WSSCD_Wizard_Navigation|null    $navigation    Navigation instance.
 	 */
-	private ?SCD_Wizard_Navigation $navigation = null;
+	private ?WSSCD_Wizard_Navigation $navigation = null;
 
 	/**
 	 * Initialize the wizard manager.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Wizard_State_Service|null $state_service         State service manager.
+	 * @param    WSSCD_Wizard_State_Service|null $state_service         State service manager.
 	 * @param    object|null                   $security              Security manager.
 	 * @param    object|null                   $campaign_repository   Campaign repository.
 	 */
 	public function __construct(
-		?SCD_Wizard_State_Service $state_service = null,
+		?WSSCD_Wizard_State_Service $state_service = null,
 		?object $security = null,
 		?object $campaign_repository = null
 	) {
 		// Debug: Log wizard manager construction
-		if ( function_exists( 'scd_debug_wizard' ) ) {
-			scd_debug_wizard(
+		if ( function_exists( 'wsscd_debug_wizard' ) ) {
+			wsscd_debug_wizard(
 				'constructor',
 				array(
 					'state_service_provided'       => null !== $state_service,
@@ -166,8 +166,8 @@ class SCD_Wizard_Manager {
 
 		// Use provided state service or create new one
 		if ( null === $state_service ) {
-			require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
-			$state_service = new SCD_Wizard_State_Service();
+			require_once WSSCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
+			$state_service = new WSSCD_Wizard_State_Service();
 		}
 		$this->state_service = $state_service;
 
@@ -178,10 +178,10 @@ class SCD_Wizard_Manager {
 		// Use provided repository or create default
 		if ( null === $campaign_repository ) {
 			// Try to create default repository
-			if ( class_exists( 'SCD_Campaign_Repository' ) ) {
-				$db_manager          = new SCD_Database_Manager();
-				$cache_manager       = new SCD_Cache_Manager();
-				$campaign_repository = new SCD_Campaign_Repository( $db_manager, $cache_manager );
+			if ( class_exists( 'WSSCD_Campaign_Repository' ) ) {
+				$db_manager          = new WSSCD_Database_Manager();
+				$cache_manager       = new WSSCD_Cache_Manager();
+				$campaign_repository = new WSSCD_Campaign_Repository( $db_manager, $cache_manager );
 			} else {
 				// Use a dummy repository
 				$campaign_repository = new stdClass();
@@ -194,12 +194,12 @@ class SCD_Wizard_Manager {
 	 * Get navigation instance.
 	 *
 	 * @since    1.0.0
-	 * @return   SCD_Wizard_Navigation    Navigation instance.
+	 * @return   WSSCD_Wizard_Navigation    Navigation instance.
 	 */
-	public function get_navigation(): SCD_Wizard_Navigation {
+	public function get_navigation(): WSSCD_Wizard_Navigation {
 		if ( $this->navigation === null ) {
-			require_once SCD_PLUGIN_DIR . 'includes/core/wizard/class-wizard-navigation.php';
-			$this->navigation = new SCD_Wizard_Navigation( $this );
+			require_once WSSCD_PLUGIN_DIR . 'includes/core/wizard/class-wizard-navigation.php';
+			$this->navigation = new WSSCD_Wizard_Navigation( $this );
 			$this->navigation->init();
 		}
 		return $this->navigation;
@@ -211,18 +211,18 @@ class SCD_Wizard_Manager {
 	 * @since    1.0.0
 	 */
 	private function load_sidebar_manager(): void {
-		require_once SCD_PLUGIN_DIR . 'includes/core/wizard/class-wizard-sidebar.php';
+		require_once WSSCD_PLUGIN_DIR . 'includes/core/wizard/class-wizard-sidebar.php';
 
-		SCD_Wizard_Sidebar::set_dependency( 'review', $this->state_service );
+		WSSCD_Wizard_Sidebar::set_dependency( 'review', $this->state_service );
 	}
 
 	/**
 	 * Get state service instance.
 	 *
 	 * @since    1.0.0
-	 * @return   SCD_Wizard_State_Service    State service instance.
+	 * @return   WSSCD_Wizard_State_Service    State service instance.
 	 */
-	public function get_state_service(): SCD_Wizard_State_Service {
+	public function get_state_service(): WSSCD_Wizard_State_Service {
 		return $this->state_service;
 	}
 
@@ -230,10 +230,10 @@ class SCD_Wizard_Manager {
 	 * Set state service instance.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Wizard_State_Service $state_service    State service instance.
+	 * @param    WSSCD_Wizard_State_Service $state_service    State service instance.
 	 * @return   void
 	 */
-	public function set_state_service( SCD_Wizard_State_Service $state_service ): void {
+	public function set_state_service( WSSCD_Wizard_State_Service $state_service ): void {
 		$this->state_service = $state_service;
 	}
 
@@ -246,8 +246,8 @@ class SCD_Wizard_Manager {
 	 */
 	public function initialize( array $options = array() ): string {
 		// Debug: Log detailed wizard initialization
-		if ( function_exists( 'scd_debug_wizard' ) ) {
-			scd_debug_wizard(
+		if ( function_exists( 'wsscd_debug_wizard' ) ) {
+			wsscd_debug_wizard(
 				'initialize',
 				'init',
 				array(
@@ -256,7 +256,7 @@ class SCD_Wizard_Manager {
 					'current_user_id'      => get_current_user_id(),
 					'current_step'         => $this->get_current_step(),
 					'available_steps'      => array_keys( $this->steps ),
-					'request_uri'          => $_SERVER['REQUEST_URI'] ?? '',
+					'request_uri'          => isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '',
 					'ajax_request'         => wp_doing_ajax(),
 				)
 			);
@@ -269,11 +269,11 @@ class SCD_Wizard_Manager {
 				$this->state_service->clear_session();
 
 				// Debug: Log session cleared
-				if ( function_exists( 'scd_debug_wizard' ) ) {
-					scd_debug_wizard( 'session_cleared', array() );
+				if ( function_exists( 'wsscd_debug_wizard' ) ) {
+					wsscd_debug_wizard( 'session_cleared', array() );
 				}
 			} catch ( Exception $e ) {
-				SCD_Log::warning(
+				WSSCD_Log::warning(
 					'Failed to clear existing wizard session during initialization',
 					array(
 						'error' => $e->getMessage(),
@@ -282,8 +282,8 @@ class SCD_Wizard_Manager {
 				);
 
 				// Debug: Log session clear failure
-				if ( function_exists( 'scd_debug_error' ) ) {
-					scd_debug_error(
+				if ( function_exists( 'wsscd_debug_error' ) ) {
+					wsscd_debug_error(
 						'Failed to clear wizard session',
 						$e,
 						array(
@@ -299,8 +299,8 @@ class SCD_Wizard_Manager {
 		$session_id = $this->state_service->create();
 
 		// Debug: Log session created
-		if ( function_exists( 'scd_debug_wizard' ) ) {
-			scd_debug_wizard(
+		if ( function_exists( 'wsscd_debug_wizard' ) ) {
+			wsscd_debug_wizard(
 				'session_created',
 				array(
 					'session_id' => $session_id,
@@ -318,11 +318,11 @@ class SCD_Wizard_Manager {
 			$this->state_service->save_step_data( '_meta', $initial_data );
 
 			// Debug: Log metadata saved
-			if ( function_exists( 'scd_debug_persistence' ) ) {
-				scd_debug_persistence( 'save_metadata', '_meta', $initial_data, true, 'Initial wizard metadata saved' );
+			if ( function_exists( 'wsscd_debug_persistence' ) ) {
+				wsscd_debug_persistence( 'save_metadata', '_meta', $initial_data, true, 'Initial wizard metadata saved' );
 			}
 		} catch ( Exception $e ) {
-			SCD_Log::error(
+			WSSCD_Log::error(
 				'Failed to save initial wizard metadata',
 				array(
 					'error'        => $e->getMessage(),
@@ -332,8 +332,8 @@ class SCD_Wizard_Manager {
 			);
 
 			// Debug: Log metadata save failure
-			if ( function_exists( 'scd_debug_error' ) ) {
-				scd_debug_error(
+			if ( function_exists( 'wsscd_debug_error' ) ) {
+				wsscd_debug_error(
 					'Failed to save wizard metadata',
 					$e,
 					array(
@@ -347,8 +347,8 @@ class SCD_Wizard_Manager {
 		}
 
 		// Debug: Log wizard initialization complete
-		if ( function_exists( 'scd_debug_wizard' ) ) {
-			scd_debug_wizard(
+		if ( function_exists( 'wsscd_debug_wizard' ) ) {
+			wsscd_debug_wizard(
 				'initialize',
 				'complete',
 				array(
@@ -415,7 +415,7 @@ class SCD_Wizard_Manager {
 		unset( $step_data['nonce'], $step_data['action'] );
 
 		$validation_context = 'wizard_' . $step;
-		$validation_result  = SCD_Validation::validate( $step_data, $validation_context );
+		$validation_result  = WSSCD_Validation::validate( $step_data, $validation_context );
 		if ( is_wp_error( $validation_result ) ) {
 			$errors = array();
 			foreach ( $validation_result->get_error_codes() as $code ) {
@@ -496,7 +496,7 @@ class SCD_Wizard_Manager {
 		try {
 			$this->state_service->save_step_data( $step, $data );
 		} catch ( Exception $e ) {
-			SCD_Log::error(
+			WSSCD_Log::error(
 				'Failed to save wizard step data',
 				array(
 					'step'      => $step,
@@ -599,7 +599,7 @@ class SCD_Wizard_Manager {
 		try {
 			$this->state_service->clear_session();
 		} catch ( Exception $e ) {
-			SCD_Log::warning(
+			WSSCD_Log::warning(
 				'Failed to clear wizard session after completion',
 				array(
 					'error'         => $e->getMessage(),
@@ -631,7 +631,7 @@ class SCD_Wizard_Manager {
 			array(
 				'campaign_id'   => $campaign_id,
 				'campaign_uuid' => $campaign_uuid,
-				'redirect_url'  => admin_url( 'admin.php?page=scd-campaigns' . ( $campaign_id ? '&action=view&id=' . $campaign_id : '' ) ),
+				'redirect_url'  => admin_url( 'admin.php?page=wsscd-campaigns' . ( $campaign_id ? '&action=view&id=' . $campaign_id : '' ) ),
 			)
 		);
 	}
@@ -682,12 +682,12 @@ class SCD_Wizard_Manager {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @return   SCD_Campaign_Compiler_Service    Compiler instance.
+	 * @return   WSSCD_Campaign_Compiler_Service    Compiler instance.
 	 */
-	private function get_compiler(): SCD_Campaign_Compiler_Service {
+	private function get_compiler(): WSSCD_Campaign_Compiler_Service {
 		if ( $this->compiler === null ) {
-			require_once SCD_INCLUDES_DIR . 'core/campaigns/class-campaign-compiler-service.php';
-			$this->compiler = new SCD_Campaign_Compiler_Service( $this->campaign_repository );
+			require_once WSSCD_INCLUDES_DIR . 'core/campaigns/class-campaign-compiler-service.php';
+			$this->compiler = new WSSCD_Campaign_Compiler_Service( $this->campaign_repository );
 		}
 		return $this->compiler;
 	}
@@ -704,7 +704,7 @@ class SCD_Wizard_Manager {
 		try {
 			$this->state_service->mark_step_complete( $step );
 		} catch ( Exception $e ) {
-			SCD_Log::warning(
+			WSSCD_Log::warning(
 				'Failed to mark wizard step as completed',
 				array(
 					'step'  => $step,
@@ -834,8 +834,8 @@ class SCD_Wizard_Manager {
 	 * @return   bool              True if valid.
 	 */
 	private function validate_security( array $data ): bool {
-		$nonce = $data['nonce'] ?? '';
-		if ( ! wp_verify_nonce( $nonce, 'scd_wizard_nonce' ) ) {
+		$nonce = isset( $data['nonce'] ) ? sanitize_text_field( $data['nonce'] ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'wsscd_wizard_nonce' ) ) {
 			return false;
 		}
 

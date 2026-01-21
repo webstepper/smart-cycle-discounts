@@ -31,23 +31,23 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Activation Requirements:
  * - Must define WP_DEBUG as true
- * - Must define SCD_DEBUG_CONSOLE as true
+ * - Must define WSSCD_DEBUG_CONSOLE as true
  * - User must have 'manage_options' capability
  *
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/utilities
  */
-class SCD_Debug_Console {
+class WSSCD_Debug_Console {
 
 	/**
 	 * Debug logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Debug_Logger    $logger    Debug logger.
+	 * @var      WSSCD_Debug_Logger    $logger    Debug logger.
 	 */
-	private SCD_Debug_Logger $logger;
+	private WSSCD_Debug_Logger $logger;
 
 	/**
 	 * Debug mode flag.
@@ -74,10 +74,10 @@ class SCD_Debug_Console {
 	 */
 	public function __construct() {
 		$this->debug_mode = defined( 'WP_DEBUG' ) && WP_DEBUG &&
-							defined( 'SCD_DEBUG_CONSOLE' ) && SCD_DEBUG_CONSOLE;
+							defined( 'WSSCD_DEBUG_CONSOLE' ) && WSSCD_DEBUG_CONSOLE;
 
 		if ( $this->debug_mode ) {
-			$this->logger = new SCD_Debug_Logger();
+			$this->logger = new WSSCD_Debug_Logger();
 			$this->init_hooks();
 		}
 	}
@@ -90,7 +90,7 @@ class SCD_Debug_Console {
 	 */
 	private function init_hooks(): void {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_console_assets' ) );
-		add_action( 'wp_ajax_scd_debug_console', array( $this, 'handle_console_ajax' ) );
+		add_action( 'wp_ajax_wsscd_debug_console', array( $this, 'handle_console_ajax' ) );
 		add_action( 'admin_footer', array( $this, 'render_console_html' ) );
 		add_action( 'wp_footer', array( $this, 'render_console_html' ) );
 	}
@@ -108,26 +108,26 @@ class SCD_Debug_Console {
 		}
 
 		wp_enqueue_script(
-			'scd-debug-console',
-			SCD_PLUGIN_URL . 'resources/assets/js/utilities/debug-console.js',
+			'wsscd-debug-console',
+			WSSCD_PLUGIN_URL . 'resources/assets/js/utilities/debug-console.js',
 			array( 'jquery' ),
 			'1.0.0',
 			true
 		);
 
 		wp_enqueue_style(
-			'scd-debug-console',
-			SCD_PLUGIN_URL . 'resources/assets/css/admin/debug-console.css',
+			'wsscd-debug-console',
+			WSSCD_PLUGIN_URL . 'resources/assets/css/admin/debug-console.css',
 			array(),
 			'1.0.0'
 		);
 
 		wp_localize_script(
-			'scd-debug-console',
-			'SCD_Debug_Console',
+			'wsscd-debug-console',
+			'WSSCD_Debug_Console',
 			array(
 				'ajax_url' => admin_url( 'admin-ajax.php' ),
-				'nonce'    => wp_create_nonce( 'scd_debug_console' ),
+				'nonce'    => wp_create_nonce( 'wsscd_debug_console' ),
 				'enabled'  => $this->debug_mode,
 				'buffer'   => $this->console_buffer,
 			)
@@ -146,7 +146,10 @@ class SCD_Debug_Console {
 	 * @return   void
 	 */
 	public function handle_console_ajax(): void {
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'scd_debug_console' ) ) {
+		// Validate and sanitize nonce.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce is being extracted for verification on next line.
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'wsscd_debug_console' ) ) {
 			wp_die( 'Security check failed' );
 		}
 
@@ -154,7 +157,8 @@ class SCD_Debug_Console {
 			wp_die( 'Insufficient permissions' );
 		}
 
-		$action = sanitize_text_field( $_POST['console_action'] ?? '' );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above.
+		$action = isset( $_POST['console_action'] ) ? sanitize_text_field( wp_unslash( $_POST['console_action'] ) ) : '';
 
 		switch ( $action ) {
 			case 'execute_code':
@@ -190,7 +194,8 @@ class SCD_Debug_Console {
 	 * @return   void
 	 */
 	private function execute_debug_code(): void {
-		$code = sanitize_textarea_field( $_POST['code'] ?? '' );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in handle_console_ajax().
+		$code = isset( $_POST['code'] ) ? sanitize_textarea_field( wp_unslash( $_POST['code'] ) ) : '';
 
 		if ( empty( $code ) ) {
 			wp_send_json_error( 'No code provided' );
@@ -199,58 +204,8 @@ class SCD_Debug_Console {
 		$result = array(
 			'executed' => false,
 			'output'   => '',
-			'error'    => __( 'Code execution is disabled in production builds for security compliance. Use the Inspector tab to view system information, or enable this feature locally by uncommenting the eval() block in class-debug-console.php.', 'smart-cycle-discounts' ),
+			'error'    => __( 'Code execution is disabled for security compliance. Use the Inspector tab to view system information.', 'smart-cycle-discounts' ),
 		);
-
-		/* DISABLED FOR PRODUCTION - WordPress.org Security Compliance
-		 *
-		 * Uncomment this block ONLY in local development environments.
-		 * NEVER enable eval() in production or WordPress.org releases.
-		 *
-		// Security: Only allow safe debug functions
-		$allowed_functions = array(
-			'scd_get_campaign',
-			'scd_get_debug_info',
-			'scd_test_validation',
-			'scd_run_validation_tests',
-			'scd_get_validation_rules',
-			'scd_inspect_state',
-			'var_dump',
-			'print_r',
-			'get_option',
-			'current_user_can',
-		);
-
-		$result = array(
-			'executed' => false,
-			'output'   => '',
-			'error'    => '',
-		);
-
-		try {
-			// Start output buffering
-			ob_start();
-
-			// Very basic security check
-			foreach ( $allowed_functions as $func ) {
-				if ( strpos( $code, $func ) === 0 ) {
-					$result['executed'] = true;
-					eval( $code );
-					break;
-				}
-			}
-
-			if ( ! $result['executed'] ) {
-				$result['error'] = 'Function not allowed for security reasons';
-			} else {
-				$result['output'] = ob_get_contents();
-			}
-		} catch ( \Throwable $e ) {
-			$result['error'] = $e->getMessage();
-		} finally {
-			ob_end_clean();
-		}
-		*/
 
 		wp_send_json_success( $result );
 	}
@@ -262,7 +217,8 @@ class SCD_Debug_Console {
 	 * @return   void
 	 */
 	private function get_debug_logs(): void {
-		$lines = (int) ( $_POST['lines'] ?? 50 );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in handle_console_ajax().
+		$lines = isset( $_POST['lines'] ) ? absint( wp_unslash( $_POST['lines'] ) ) : 50;
 		$lines = max( 10, min( 500, $lines ) ); // Limit between 10-500 lines
 
 		$upload_dir = wp_upload_dir();
@@ -290,11 +246,19 @@ class SCD_Debug_Console {
 	 * @return   void
 	 */
 	private function clear_debug_logs(): void {
+		global $wp_filesystem;
+
+		// Initialize WP_Filesystem if needed.
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+		WP_Filesystem();
+
 		$upload_dir = wp_upload_dir();
 		$log_file   = $upload_dir['basedir'] . '/smart-cycle-discounts/logs/debug.log';
 
-		if ( file_exists( $log_file ) ) {
-			file_put_contents( $log_file, '' );
+		if ( $wp_filesystem && $wp_filesystem->exists( $log_file ) ) {
+			$wp_filesystem->put_contents( $log_file, '', FS_CHMOD_FILE );
 			wp_send_json_success( array( 'message' => 'Debug logs cleared' ) );
 		} else {
 			wp_send_json_error( 'Log file not found' );
@@ -308,7 +272,8 @@ class SCD_Debug_Console {
 	 * @return   void
 	 */
 	private function inspect_variable(): void {
-		$var_name = sanitize_text_field( $_POST['variable'] ?? '' );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in handle_console_ajax().
+		$var_name = isset( $_POST['variable'] ) ? sanitize_text_field( wp_unslash( $_POST['variable'] ) ) : '';
 
 		$result = array();
 
@@ -317,12 +282,13 @@ class SCD_Debug_Console {
 				$result = $_SESSION ?? array();
 				break;
 			case 'wizard_state':
-				$result = get_transient( 'scd_wizard_state_' . get_current_user_id() );
+				$result = get_transient( 'wsscd_wizard_state_' . get_current_user_id() );
 				break;
 			case 'active_campaigns':
 				global $wpdb;
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Debug console query; table identifier prepared with %i.
 				$result = $wpdb->get_results(
-					"SELECT * FROM {$wpdb->prefix}scd_campaigns WHERE deleted_at IS NULL LIMIT 10"
+					$wpdb->prepare( 'SELECT * FROM %i WHERE deleted_at IS NULL LIMIT 10', $wpdb->prefix . 'wsscd_campaigns' )
 				);
 				break;
 			case 'debug_info':
@@ -367,53 +333,53 @@ class SCD_Debug_Console {
 			return;
 		}
 		?>
-		<div id="scd-debug-console" class="scd-debug-console">
-			<div class="scd-debug-console-header">
-				<h3>SCD Debug Console</h3>
-				<div class="scd-debug-console-controls">
-					<button id="scd-debug-toggle" class="button">Show/Hide</button>
-					<button id="scd-debug-clear" class="button">Clear</button>
-					<button id="scd-debug-refresh" class="button">Refresh Logs</button>
+		<div id="wsscd-debug-console" class="wsscd-debug-console">
+			<div class="wsscd-debug-console-header">
+				<h3>Smart Cycle Discounts Debug Console</h3>
+				<div class="wsscd-debug-console-controls">
+					<button id="wsscd-debug-toggle" class="button">Show/Hide</button>
+					<button id="wsscd-debug-clear" class="button">Clear</button>
+					<button id="wsscd-debug-refresh" class="button">Refresh Logs</button>
 				</div>
 			</div>
-			<div class="scd-debug-console-content">
-				<div class="scd-debug-tabs">
-					<button class="scd-debug-tab active" data-tab="logs">Logs</button>
-					<button class="scd-debug-tab" data-tab="console">Console</button>
-					<button class="scd-debug-tab" data-tab="inspector">Inspector</button>
+			<div class="wsscd-debug-console-content">
+				<div class="wsscd-debug-tabs">
+					<button class="wsscd-debug-tab active" data-tab="logs">Logs</button>
+					<button class="wsscd-debug-tab" data-tab="console">Console</button>
+					<button class="wsscd-debug-tab" data-tab="inspector">Inspector</button>
 				</div>
 				
-				<div class="scd-debug-panel" id="scd-debug-logs">
-					<div class="scd-debug-log-controls">
-						<select id="scd-debug-log-lines">
+				<div class="wsscd-debug-panel" id="wsscd-debug-logs">
+					<div class="wsscd-debug-log-controls">
+						<select id="wsscd-debug-log-lines">
 							<option value="50">Last 50 lines</option>
 							<option value="100">Last 100 lines</option>
 							<option value="200">Last 200 lines</option>
 						</select>
 					</div>
-					<pre id="scd-debug-log-output"></pre>
+					<pre id="wsscd-debug-log-output"></pre>
 				</div>
 				
-				<div class="scd-debug-panel" id="scd-debug-console" style="display: none;">
-					<div class="scd-debug-console-input">
-						<textarea id="scd-debug-code-input" placeholder="Enter debug code... (e.g., scd_get_debug_info())"></textarea>
-						<button id="scd-debug-execute" class="button button-primary">Execute</button>
+				<div class="wsscd-debug-panel" id="wsscd-debug-console" style="display: none;">
+					<div class="wsscd-debug-console-input">
+						<textarea id="wsscd-debug-code-input" placeholder="Enter debug code... (e.g., wsscd_get_debug_info())"></textarea>
+						<button id="wsscd-debug-execute" class="button button-primary">Execute</button>
 					</div>
-					<pre id="scd-debug-console-output"></pre>
+					<pre id="wsscd-debug-console-output"></pre>
 				</div>
 				
-				<div class="scd-debug-panel" id="scd-debug-inspector" style="display: none;">
-					<div class="scd-debug-inspector-controls">
-						<select id="scd-debug-inspect-var">
+				<div class="wsscd-debug-panel" id="wsscd-debug-inspector" style="display: none;">
+					<div class="wsscd-debug-inspector-controls">
+						<select id="wsscd-debug-inspect-var">
 							<option value="">Select variable to inspect</option>
 							<option value="session_data">Session Data</option>
 							<option value="wizard_state">Wizard State</option>
 							<option value="active_campaigns">Active Campaigns</option>
 							<option value="debug_info">System Info</option>
 						</select>
-						<button id="scd-debug-inspect" class="button">Inspect</button>
+						<button id="wsscd-debug-inspect" class="button">Inspect</button>
 					</div>
-					<pre id="scd-debug-inspector-output"></pre>
+					<pre id="wsscd-debug-inspector-output"></pre>
 				</div>
 			</div>
 		</div>
@@ -429,7 +395,7 @@ class SCD_Debug_Console {
 	private function should_show_console(): bool {
 		return $this->debug_mode &&
 				current_user_can( 'manage_options' ) &&
-				( is_admin() || ( defined( 'SCD_DEBUG_FRONTEND' ) && SCD_DEBUG_FRONTEND ) );
+				( is_admin() || ( defined( 'WSSCD_DEBUG_FRONTEND' ) && WSSCD_DEBUG_FRONTEND ) );
 	}
 
 	/**
@@ -441,24 +407,33 @@ class SCD_Debug_Console {
 	 * @return   string              File contents.
 	 */
 	private function tail_file( string $file, int $lines ): string {
-		if ( ! file_exists( $file ) ) {
+		global $wp_filesystem;
+
+		// Initialize WP_Filesystem if needed.
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+		WP_Filesystem();
+
+		if ( ! $wp_filesystem || ! $wp_filesystem->exists( $file ) ) {
 			return '';
 		}
 
-		$handle = fopen( $file, 'r' );
-		if ( ! $handle ) {
+		$contents = $wp_filesystem->get_contents( $file );
+		if ( false === $contents ) {
 			return '';
 		}
 
-		$line_buffer = array();
-		while ( ( $line = fgets( $handle ) ) !== false ) {
-			$line_buffer[] = rtrim( $line );
-			if ( count( $line_buffer ) > $lines ) {
-				array_shift( $line_buffer );
-			}
-		}
+		$all_lines   = explode( "\n", $contents );
+		$total_lines = count( $all_lines );
 
-		fclose( $handle );
+		// Get last N lines.
+		$start_line  = max( 0, $total_lines - $lines );
+		$line_buffer = array_slice( $all_lines, $start_line );
+
+		// Trim each line.
+		$line_buffer = array_map( 'rtrim', $line_buffer );
+
 		return implode( "\n", $line_buffer );
 	}
 

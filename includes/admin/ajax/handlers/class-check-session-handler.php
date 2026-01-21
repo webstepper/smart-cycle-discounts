@@ -23,13 +23,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Check_Session_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Check_Session_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger    Logger instance (optional).
+	 * @param    WSSCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -42,7 +42,7 @@ class SCD_Check_Session_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_check_session';
+		return 'wsscd_check_session';
 	}
 
 	/**
@@ -54,7 +54,7 @@ class SCD_Check_Session_Handler extends SCD_Abstract_Ajax_Handler {
 	 */
 	protected function handle( $request ) {
 		try {
-			$container = isset( $GLOBALS['scd_container'] ) ? $GLOBALS['scd_container'] : null;
+			$container = isset( $GLOBALS['wsscd_container'] ) ? $GLOBALS['wsscd_container'] : null;
 			if ( ! $container ) {
 				throw new Exception( __( 'Service container not initialized', 'smart-cycle-discounts' ) );
 			}

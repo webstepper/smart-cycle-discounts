@@ -27,43 +27,43 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/cache/strategies
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Cache_Warming {
+class WSSCD_Cache_Warming {
 
 	/**
 	 * Cache manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Cache_Manager    $cache_manager    Cache manager.
+	 * @var      WSSCD_Cache_Manager    $cache_manager    Cache manager.
 	 */
-	private SCD_Cache_Manager $cache_manager;
+	private WSSCD_Cache_Manager $cache_manager;
 
 	/**
 	 * Campaign manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Manager    $campaign_manager    Campaign manager.
+	 * @var      WSSCD_Campaign_Manager    $campaign_manager    Campaign manager.
 	 */
-	private SCD_Campaign_Manager $campaign_manager;
+	private WSSCD_Campaign_Manager $campaign_manager;
 
 	/**
 	 * Analytics collector instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Analytics_Collector    $analytics_collector    Analytics collector.
+	 * @var      WSSCD_Analytics_Collector    $analytics_collector    Analytics collector.
 	 */
-	private SCD_Analytics_Collector $analytics_collector;
+	private WSSCD_Analytics_Collector $analytics_collector;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Warming strategies.
@@ -78,16 +78,16 @@ class SCD_Cache_Warming {
 	 * Initialize the cache warming system.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Cache_Manager       $cache_manager        Cache manager.
-	 * @param    SCD_Campaign_Manager    $campaign_manager     Campaign manager.
-	 * @param    SCD_Analytics_Collector $analytics_collector  Analytics collector.
-	 * @param    SCD_Logger              $logger               Logger instance.
+	 * @param    WSSCD_Cache_Manager       $cache_manager        Cache manager.
+	 * @param    WSSCD_Campaign_Manager    $campaign_manager     Campaign manager.
+	 * @param    WSSCD_Analytics_Collector $analytics_collector  Analytics collector.
+	 * @param    WSSCD_Logger              $logger               Logger instance.
 	 */
 	public function __construct(
-		SCD_Cache_Manager $cache_manager,
-		SCD_Campaign_Manager $campaign_manager,
-		SCD_Analytics_Collector $analytics_collector,
-		SCD_Logger $logger
+		WSSCD_Cache_Manager $cache_manager,
+		WSSCD_Campaign_Manager $campaign_manager,
+		WSSCD_Analytics_Collector $analytics_collector,
+		WSSCD_Logger $logger
 	) {
 		$this->cache_manager       = $cache_manager;
 		$this->campaign_manager    = $campaign_manager;
@@ -105,18 +105,18 @@ class SCD_Cache_Warming {
 	 */
 	public function init(): void {
 		// Schedule cache warming
-		add_action( 'scd_cache_warm_up', array( $this, 'execute_warming' ) );
+		add_action( 'wsscd_cache_warm_up', array( $this, 'execute_warming' ) );
 
 		// Schedule daily cache warming
-		if ( ! wp_next_scheduled( 'scd_cache_warm_up' ) ) {
-			wp_schedule_event( time(), 'daily', 'scd_cache_warm_up' );
+		if ( ! wp_next_scheduled( 'wsscd_cache_warm_up' ) ) {
+			wp_schedule_event( time(), 'daily', 'wsscd_cache_warm_up' );
 		}
 
 		// Warm cache on campaign activation
-		add_action( 'scd_campaign_activated', array( $this, 'warm_campaign_cache' ), 10, 1 );
+		add_action( 'wsscd_campaign_activated', array( $this, 'warm_campaign_cache' ), 10, 1 );
 
 		// Warm cache on plugin activation
-		add_action( 'scd_plugin_activated', array( $this, 'warm_essential_cache' ) );
+		add_action( 'wsscd_plugin_activated', array( $this, 'warm_essential_cache' ) );
 	}
 
 	/**
@@ -138,7 +138,8 @@ class SCD_Cache_Warming {
 			} elseif ( isset( $this->strategies[ $strategy ] ) ) {
 				$results[ $strategy ] = $this->execute_strategy( $strategy, $this->strategies[ $strategy ] );
 			} else {
-				throw new InvalidArgumentException( "Unknown warming strategy: {$strategy}" );
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+				throw new InvalidArgumentException( 'Unknown warming strategy: ' . esc_html( $strategy ) );
 			}
 
 			$execution_time = microtime( true ) - $start_time;
@@ -193,10 +194,10 @@ class SCD_Cache_Warming {
 	 * Warm campaign-specific cache.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign to warm cache for.
+	 * @param    WSSCD_Campaign $campaign    Campaign to warm cache for.
 	 * @return   array                        Warming results.
 	 */
-	public function warm_campaign_cache( SCD_Campaign $campaign ): array {
+	public function warm_campaign_cache( WSSCD_Campaign $campaign ): array {
 		$campaign_id = $campaign->get_id();
 
 		$cache_keys = array(
@@ -256,7 +257,7 @@ class SCD_Cache_Warming {
 	 */
 	public function get_warming_stats(): array {
 		$stats = get_option(
-			'scd_cache_warming_stats',
+			'wsscd_cache_warming_stats',
 			array(
 				'last_run'     => null,
 				'total_runs'   => 0,
@@ -276,7 +277,7 @@ class SCD_Cache_Warming {
 	 * @return   bool    Success status.
 	 */
 	public function reset_warming_stats(): bool {
-		return delete_option( 'scd_cache_warming_stats' );
+		return delete_option( 'wsscd_cache_warming_stats' );
 	}
 
 	/**
@@ -327,7 +328,7 @@ class SCD_Cache_Warming {
 		);
 
 		// Allow filtering of strategies
-		$this->strategies = apply_filters( 'scd_cache_warming_strategies', $this->strategies );
+		$this->strategies = apply_filters( 'wsscd_cache_warming_strategies', $this->strategies );
 	}
 
 	/**
@@ -409,7 +410,7 @@ class SCD_Cache_Warming {
 		$strategy_stats['warmed']      += $warmed;
 		$strategy_stats['average_time'] = ( $strategy_stats['average_time'] * ( $strategy_stats['runs'] - 1 ) + $time ) / $strategy_stats['runs'];
 
-		update_option( 'scd_cache_warming_stats', $stats );
+		update_option( 'wsscd_cache_warming_stats', $stats );
 	}
 
 	/**
@@ -433,7 +434,7 @@ class SCD_Cache_Warming {
 	 * @return   array    Plugin settings.
 	 */
 	public function get_plugin_settings(): array {
-		return get_option( 'scd_settings', array() );
+		return get_option( 'wsscd_settings', array() );
 	}
 
 	/**
@@ -573,7 +574,7 @@ class SCD_Cache_Warming {
 	 * @return   bool                   Success status.
 	 */
 	public function schedule_warming( string $strategy, string $schedule = 'daily' ): bool {
-		$hook = "scd_cache_warm_up_{$strategy}";
+		$hook = "wsscd_cache_warm_up_{$strategy}";
 
 		wp_clear_scheduled_hook( $hook );
 
@@ -589,7 +590,7 @@ class SCD_Cache_Warming {
 	 * @return   bool                   Success status.
 	 */
 	public function unschedule_warming( string $strategy ): bool {
-		$hook = "scd_cache_warm_up_{$strategy}";
+		$hook = "wsscd_cache_warm_up_{$strategy}";
 		return wp_clear_scheduled_hook( $hook ) !== false;
 	}
 
@@ -618,7 +619,7 @@ class SCD_Cache_Warming {
 		$events = array();
 
 		foreach ( array_keys( $this->strategies ) as $strategy ) {
-			$hook     = "scd_cache_warm_up_{$strategy}";
+			$hook     = "wsscd_cache_warm_up_{$strategy}";
 			$next_run = wp_next_scheduled( $hook );
 
 			if ( $next_run ) {

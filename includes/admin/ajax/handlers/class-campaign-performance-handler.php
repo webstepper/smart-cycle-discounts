@@ -21,14 +21,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since      1.0.0
  */
-class SCD_Campaign_Performance_Handler extends SCD_Abstract_Analytics_Handler {
-	use SCD_License_Validation_Trait;
+class WSSCD_Campaign_Performance_Handler extends WSSCD_Abstract_Analytics_Handler {
+	use WSSCD_License_Validation_Trait;
 
 	/**
 	 * Analytics collector instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Analytics_Collector
+	 * @var      WSSCD_Analytics_Collector
 	 */
 	private $analytics_collector;
 
@@ -36,9 +36,9 @@ class SCD_Campaign_Performance_Handler extends SCD_Abstract_Analytics_Handler {
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Metrics_Calculator  $metrics_calculator     Metrics calculator.
-	 * @param    SCD_Logger              $logger                 Logger instance.
-	 * @param    SCD_Analytics_Collector $analytics_collector    Analytics collector.
+	 * @param    WSSCD_Metrics_Calculator  $metrics_calculator     Metrics calculator.
+	 * @param    WSSCD_Logger              $logger                 Logger instance.
+	 * @param    WSSCD_Analytics_Collector $analytics_collector    Analytics collector.
 	 */
 	public function __construct( $metrics_calculator, $logger, $analytics_collector ) {
 		parent::__construct( $metrics_calculator, $logger );
@@ -52,7 +52,7 @@ class SCD_Campaign_Performance_Handler extends SCD_Abstract_Analytics_Handler {
 	 * @return   string    Required capability.
 	 */
 	protected function get_required_capability(): string {
-		return 'scd_view_analytics';
+		return 'wsscd_view_analytics';
 	}
 
 	/**
@@ -69,7 +69,7 @@ class SCD_Campaign_Performance_Handler extends SCD_Abstract_Analytics_Handler {
 		}
 
 		// Verify request
-		$verification = $this->verify_request( $request, 'scd_analytics_campaign_performance' );
+		$verification = $this->verify_request( $request, 'wsscd_analytics_campaign_performance' );
 		if ( is_wp_error( $verification ) ) {
 			return $this->error(
 				$verification->get_error_message(),
@@ -77,8 +77,8 @@ class SCD_Campaign_Performance_Handler extends SCD_Abstract_Analytics_Handler {
 			);
 		}
 
-		$date_range = isset( $request['dateRange'] ) ? sanitize_text_field( $request['dateRange'] ) :
-			( isset( $request['date_range'] ) ? sanitize_text_field( $request['date_range'] ) : '30days' );
+		// AJAX Router automatically converts camelCase to snake_case.
+		$date_range = isset( $request['date_range'] ) ? sanitize_text_field( $request['date_range'] ) : '30days';
 		$limit      = isset( $request['limit'] ) ? absint( $request['limit'] ) : 10;
 		$metric     = sanitize_text_field( isset( $request['metric'] ) ? $request['metric'] : 'revenue' );
 
@@ -116,7 +116,8 @@ class SCD_Campaign_Performance_Handler extends SCD_Abstract_Analytics_Handler {
 				)
 			);
 
-			return $this->error(
+				return $this->error(
+				/* translators: %s: error message */
 				sprintf( __( 'Failed to retrieve campaign performance: %s', 'smart-cycle-discounts' ), $e->getMessage() ),
 				'campaign_performance_failed'
 			);

@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/settings
  * @author     Webstepper <contact@webstepper.io>
  */
-abstract class SCD_Settings_Page_Base {
+abstract class WSSCD_Settings_Page_Base {
 
 	/**
 	 * Tab slug.
@@ -48,28 +48,28 @@ abstract class SCD_Settings_Page_Base {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @var      SCD_Settings_Manager    $settings_manager    Settings manager.
+	 * @var      WSSCD_Settings_Manager    $settings_manager    Settings manager.
 	 */
-	protected SCD_Settings_Manager $settings_manager;
+	protected WSSCD_Settings_Manager $settings_manager;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	protected SCD_Logger $logger;
+	protected WSSCD_Logger $logger;
 
 	/**
 	 * Initialize settings page.
 	 *
 	 * @since    1.0.0
 	 * @param    string               $tab_slug          Tab slug.
-	 * @param    SCD_Settings_Manager $settings_manager  Settings manager.
-	 * @param    SCD_Logger           $logger            Logger instance.
+	 * @param    WSSCD_Settings_Manager $settings_manager  Settings manager.
+	 * @param    WSSCD_Logger           $logger            Logger instance.
 	 */
-	public function __construct( string $tab_slug, SCD_Settings_Manager $settings_manager, SCD_Logger $logger ) {
+	public function __construct( string $tab_slug, WSSCD_Settings_Manager $settings_manager, WSSCD_Logger $logger ) {
 		$this->tab_slug         = $tab_slug;
 		$this->settings_manager = $settings_manager;
 		$this->logger           = $logger;
@@ -82,9 +82,9 @@ abstract class SCD_Settings_Page_Base {
 	 * @return   void
 	 */
 	public function init(): void {
-		add_action( 'scd_register_settings_sections', array( $this, 'register_sections' ) );
-		add_action( 'scd_render_settings_tab', array( $this, 'render_tab_content' ) );
-		add_filter( 'scd_sanitize_settings', array( $this, 'sanitize_tab_settings' ), 10, 3 );
+		add_action( 'wsscd_register_settings_sections', array( $this, 'register_sections' ) );
+		add_action( 'wsscd_render_settings_tab', array( $this, 'render_tab_content' ) );
+		add_filter( 'wsscd_sanitize_settings', array( $this, 'sanitize_tab_settings' ), 10, 3 );
 	}
 
 	/**
@@ -110,7 +110,7 @@ abstract class SCD_Settings_Page_Base {
 			return;
 		}
 
-		do_settings_sections( 'scd-settings-' . $this->tab_slug );
+		do_settings_sections( 'wsscd-settings-' . $this->tab_slug );
 	}
 
 	/**
@@ -166,7 +166,7 @@ abstract class SCD_Settings_Page_Base {
 			$id,
 			$title,
 			$callback ? array( $this, $callback ) : '__return_null',
-			'scd-settings-' . $this->tab_slug
+			'wsscd-settings-' . $this->tab_slug
 		);
 	}
 
@@ -197,7 +197,7 @@ abstract class SCD_Settings_Page_Base {
 			$id,
 			$field_title,
 			array( $this, $callback ),
-			'scd-settings-' . $this->tab_slug,
+			'wsscd-settings-' . $this->tab_slug,
 			$section,
 			$args
 		);
@@ -244,15 +244,17 @@ abstract class SCD_Settings_Page_Base {
 		$value    = $this->get_setting( $field_id, false );
 		$name     = $this->get_field_name( $field_id );
 
-		echo '<label class="scd-toggle">';
+		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML structure with escaped dynamic values.
+		echo '<label class="wsscd-toggle">';
 		printf(
 			'<input type="checkbox" id="%s" name="%s" value="1" %s>',
 			esc_attr( $field_id ),
 			esc_attr( $name ),
 			checked( $value, true, false )
 		);
-		echo '<span class="scd-toggle-slider"></span>';
+		echo '<span class="wsscd-toggle-slider"></span>';
 		echo '</label>';
+		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	/**
@@ -280,6 +282,7 @@ abstract class SCD_Settings_Page_Base {
 		);
 
 		if ( isset( $args['description'] ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML with escaped content.
 			echo '<p class="description">' . esc_html( $args['description'] ) . '</p>';
 		}
 	}
@@ -313,6 +316,7 @@ abstract class SCD_Settings_Page_Base {
 		);
 
 		if ( isset( $args['suffix'] ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML with escaped content.
 			echo ' <span class="description">' . esc_html( $args['suffix'] ) . '</span>';
 		}
 	}
@@ -348,6 +352,7 @@ abstract class SCD_Settings_Page_Base {
 			);
 		}
 
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML.
 		echo '</select>';
 	}
 
@@ -378,6 +383,7 @@ abstract class SCD_Settings_Page_Base {
 		);
 
 		if ( isset( $args['description'] ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML with escaped content.
 			echo '<p class="description">' . esc_html( $args['description'] ) . '</p>';
 		}
 	}
@@ -392,7 +398,7 @@ abstract class SCD_Settings_Page_Base {
 	 * @return   void
 	 */
 	protected function render_tooltip( string $text, array $args = array() ): void {
-		SCD_Tooltip_Helper::render( $text, $args );
+		WSSCD_Tooltip_Helper::render( $text, $args );
 	}
 
 	/**
@@ -405,6 +411,6 @@ abstract class SCD_Settings_Page_Base {
 	 * @return   string             Tooltip HTML.
 	 */
 	protected function get_tooltip( string $text, array $args = array() ): string {
-		return SCD_Tooltip_Helper::get( $text, $args );
+		return WSSCD_Tooltip_Helper::get( $text, $args );
 	}
 }

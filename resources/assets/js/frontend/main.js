@@ -19,7 +19,7 @@
 		/**
 		 * Frontend Discount Manager
 		 */
-		var SCDFrontend = {
+		var WSSCDFrontend = {
 
 			/**
 			 * Initialize frontend components
@@ -47,10 +47,10 @@
 			 */
 			initDiscountBadges: function() {
 				// Find all products with discounts
-				$( '.scd-discount-badge' ).each( function() {
+				$( '.wsscd-discount-badge' ).each( function() {
 					var $badge = $( this );
 
-					$badge.addClass( 'scd-badge-animated' );
+					$badge.addClass( 'wsscd-badge-animated' );
 				} );
 			},
 
@@ -58,12 +58,12 @@
 			 * Initialize countdown timers
 			 */
 			initCountdownTimers: function() {
-				$( '.scd-countdown-timer' ).each( function() {
+				$( '.wsscd-countdown-timer' ).each( function() {
 					var $timer = $( this );
 					var endTime = $timer.data( 'end-time' );
 
 					if ( endTime ) {
-						SCDFrontend.startCountdown( $timer, endTime );
+						WSSCDFrontend.startCountdown( $timer, endTime );
 					}
 				} );
 			},
@@ -91,20 +91,20 @@
 					if ( 0 < distance ) {
 						var html = '';
 						if ( 0 < days ) {
-							html += '<span class="scd-timer-days">' + days + 'd</span> ';
+							html += '<span class="wsscd-timer-days">' + days + 'd</span> ';
 						}
-						html += '<span class="scd-timer-hours">' + hours + 'h</span> ';
-						html += '<span class="scd-timer-minutes">' + minutes + 'm</span> ';
-						html += '<span class="scd-timer-seconds">' + seconds + 's</span>';
+						html += '<span class="wsscd-timer-hours">' + hours + 'h</span> ';
+						html += '<span class="wsscd-timer-minutes">' + minutes + 'm</span> ';
+						html += '<span class="wsscd-timer-seconds">' + seconds + 's</span>';
 
 						$element.html( html );
 					} else {
 						// Timer expired
 						clearInterval( timer );
-						$element.html( '<span class="scd-timer-expired">Expired</span>' );
+						$element.html( '<span class="wsscd-timer-expired">Expired</span>' );
 
 						// Trigger expired event
-						$( document.body ).trigger( 'scd_discount_expired', [ $element ] );
+						$( document.body ).trigger( 'wsscd_discount_expired', [ $element ] );
 					}
 				}, 1000 );
 
@@ -128,8 +128,8 @@
 			 * Cleanup all timers
 			 */
 			cleanupAllTimers: function() {
-				$( '.scd-countdown-timer' ).each( function() {
-					SCD.Frontend.stopCountdown( $( this ) );
+				$( '.wsscd-countdown-timer' ).each( function() {
+					WSSCD.Frontend.stopCountdown( $( this ) );
 				} );
 			},
 
@@ -143,8 +143,8 @@
 				var $form = $( event.target );
 				var $priceElement = $form.find( '.woocommerce-variation-price' );
 
-				if ( variation.scd_discount ) {
-					this.updateDiscountBadge( $priceElement, variation.scd_discount );
+				if ( variation.wsscd_discount ) {
+					this.updateDiscountBadge( $priceElement, variation.wsscd_discount );
 				}
 			},
 
@@ -157,7 +157,7 @@
 				var $form = $( event.target );
 				var $priceElement = $form.find( '.woocommerce-variation-price' );
 
-				$priceElement.find( '.scd-discount-badge-dynamic' ).remove();
+				$priceElement.find( '.wsscd-discount-badge-dynamic' ).remove();
 			},
 
 			/**
@@ -167,10 +167,10 @@
 			 * @param {object} discount Discount data
 			 */
 			updateDiscountBadge: function( $container, discount ) {
-				$container.find( '.scd-discount-badge-dynamic' ).remove();
+				$container.find( '.wsscd-discount-badge-dynamic' ).remove();
 
 				if ( 'percentage' === discount.type ) {
-					var badge = '<span class="scd-discount-badge scd-discount-badge-dynamic">-' +
+					var badge = '<span class="wsscd-discount-badge wsscd-discount-badge-dynamic">-' +
 						discount.value + '%</span>';
 					$container.append( badge );
 				}
@@ -197,27 +197,27 @@
 		};
 
 		// Initialize
-		SCDFrontend.init();
+		WSSCDFrontend.init();
 
 		// Cleanup on page unload to prevent memory leaks
 		$( window ).on( 'beforeunload', function() {
-			SCDFrontend.cleanupAllTimers();
+			WSSCDFrontend.cleanupAllTimers();
 		} );
 
 		// Also cleanup when elements are removed from DOM
 		$( document ).on( 'DOMNodeRemoved', function( e ) {
 			var $target = $( e.target );
-			if ( $target.hasClass( 'scd-countdown-timer' ) ) {
-				SCDFrontend.stopCountdown( $target );
+			if ( $target.hasClass( 'wsscd-countdown-timer' ) ) {
+				WSSCDFrontend.stopCountdown( $target );
 			} else {
-				$target.find( '.scd-countdown-timer' ).each( function() {
-					SCDFrontend.stopCountdown( $( this ) );
+				$target.find( '.wsscd-countdown-timer' ).each( function() {
+					WSSCDFrontend.stopCountdown( $( this ) );
 				} );
 			}
 		} );
 
 		// Expose for external use
-		window.SCDFrontend = SCDFrontend;
+		window.WSSCDFrontend = WSSCDFrontend;
 
 	} );
 

@@ -24,16 +24,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/integrations/email/providers
  */
-class SCD_WPMail_Provider implements SCD_Email_Provider {
+class WSSCD_WPMail_Provider implements WSSCD_Email_Provider {
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * From email address.
@@ -57,11 +57,11 @@ class SCD_WPMail_Provider implements SCD_Email_Provider {
 	 * Initialize provider.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger        Logger instance.
+	 * @param    WSSCD_Logger $logger        Logger instance.
 	 * @param    string     $from_email    From email address.
 	 * @param    string     $from_name     From name.
 	 */
-	public function __construct( SCD_Logger $logger, string $from_email = '', string $from_name = '' ) {
+	public function __construct( WSSCD_Logger $logger, string $from_email = '', string $from_name = '' ) {
 		$this->logger     = $logger;
 		$this->from_email = ! empty( $from_email ) ? $from_email : get_option( 'admin_email' );
 		$this->from_name  = ! empty( $from_name ) ? $from_name : get_bloginfo( 'name' );
@@ -271,7 +271,7 @@ class SCD_WPMail_Provider implements SCD_Email_Provider {
 			return true;
 		}
 
-		$server_name = isset( $_SERVER['SERVER_NAME'] ) ? $_SERVER['SERVER_NAME'] : '';
+		$server_name = isset( $_SERVER['SERVER_NAME'] ) ? sanitize_text_field( wp_unslash( $_SERVER['SERVER_NAME'] ) ) : '';
 		$local_hosts = array( '.local', 'localhost', '127.0.0.1', '.test', '.dev' );
 
 		foreach ( $local_hosts as $host ) {

@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/integrations/email
  */
-interface SCD_Email_Provider {
+interface WSSCD_Email_Provider {
 
 	/**
 	 * Send email.

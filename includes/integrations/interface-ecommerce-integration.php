@@ -29,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/integrations
  * @author     Webstepper <contact@webstepper.io>
  */
-interface SCD_Ecommerce_Integration {
+interface WSSCD_Ecommerce_Integration {
 
 	/**
 	 * Get platform name.

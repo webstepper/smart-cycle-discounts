@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/scheduled-tasks
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Task_Manager {
+class WSSCD_Task_Manager {
 
 	/**
 	 * Container instance.
@@ -104,7 +104,7 @@ class SCD_Task_Manager {
 	 * @return   void
 	 */
 	private function schedule_task( string $key, array $task ): void {
-		$file_path = SCD_INCLUDES_DIR . 'scheduled-tasks/' . $task['file'];
+		$file_path = WSSCD_INCLUDES_DIR . 'scheduled-tasks/' . $task['file'];
 		if ( file_exists( $file_path ) ) {
 			require_once $file_path;
 		}
@@ -149,7 +149,7 @@ class SCD_Task_Manager {
 
 		return array(
 			'status'   => $next_run ? 'scheduled' : 'not_scheduled',
-			'next_run' => $next_run ? date( 'Y-m-d H:i:s', $next_run ) : null,
+			'next_run' => $next_run ? wp_date( 'Y-m-d H:i:s', $next_run ) : null,
 			'schedule' => $task['schedule'],
 		);
 	}

@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since      1.0.0
  */
-class SCD_Campaign_Change_Tracker {
+class WSSCD_Campaign_Change_Tracker {
 
 	/**
 	 * Campaign ID being edited.
@@ -48,7 +48,7 @@ class SCD_Campaign_Change_Tracker {
 	 * Wizard state service.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Wizard_State_Service
+	 * @var      WSSCD_Wizard_State_Service
 	 */
 	private $session;
 
@@ -56,7 +56,7 @@ class SCD_Campaign_Change_Tracker {
 	 * Campaign manager for loading campaign.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Campaign_Manager|null
+	 * @var      WSSCD_Campaign_Manager|null
 	 */
 	private $campaign_manager;
 
@@ -64,7 +64,7 @@ class SCD_Campaign_Change_Tracker {
 	 * Cached campaign entity.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Campaign|null
+	 * @var      WSSCD_Campaign|null
 	 */
 	private $campaign_cache = null;
 
@@ -73,8 +73,8 @@ class SCD_Campaign_Change_Tracker {
 	 *
 	 * @since    1.0.0
 	 * @param    int                       $campaign_id        Campaign ID.
-	 * @param    SCD_Wizard_State_Service  $session            Session service.
-	 * @param    SCD_Campaign_Manager|null $campaign_manager   Campaign manager.
+	 * @param    WSSCD_Wizard_State_Service  $session            Session service.
+	 * @param    WSSCD_Campaign_Manager|null $campaign_manager   Campaign manager.
 	 */
 	public function __construct( $campaign_id, $session, $campaign_manager = null ) {
 		$this->campaign_id      = $campaign_id;
@@ -239,7 +239,7 @@ class SCD_Campaign_Change_Tracker {
 	 * Load campaign from database (with caching).
 	 *
 	 * @since    1.0.0
-	 * @return   SCD_Campaign|null    Campaign or null.
+	 * @return   WSSCD_Campaign|null    Campaign or null.
 	 */
 	private function load_campaign() {
 		if ( null !== $this->campaign_cache ) {
@@ -289,7 +289,7 @@ class SCD_Campaign_Change_Tracker {
 	 * Extract step data from campaign entity.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign entity.
+	 * @param    WSSCD_Campaign $campaign    Campaign entity.
 	 * @param    string       $step        Step name.
 	 * @return   array                        Step data.
 	 */
@@ -311,6 +311,7 @@ class SCD_Campaign_Change_Tracker {
 				if ( count( $product_ids ) !== count( $valid_product_ids ) ) {
 					$removed_count = count( $product_ids ) - count( $valid_product_ids );
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
 						error_log(
 							sprintf(
 								'[Change Tracker] Filtered %d deleted product(s) from campaign %d',
@@ -402,8 +403,8 @@ class SCD_Campaign_Change_Tracker {
 				$timezone  = $campaign->get_timezone();
 				$metadata  = $campaign->get_metadata();
 
-				$start_split = $starts_at ? SCD_DateTime_Splitter::for_editing( $starts_at, $timezone ) : array();
-				$end_split   = $ends_at ? SCD_DateTime_Splitter::for_editing( $ends_at, $timezone ) : array();
+				$start_split = $starts_at ? WSSCD_DateTime_Splitter::for_editing( $starts_at, $timezone ) : array();
+				$end_split   = $ends_at ? WSSCD_DateTime_Splitter::for_editing( $ends_at, $timezone ) : array();
 
 
 				$end_time = '';

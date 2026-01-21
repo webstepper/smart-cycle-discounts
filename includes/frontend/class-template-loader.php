@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/frontend
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Template_Loader {
+class WSSCD_Template_Loader {
 
 	/**
 	 * Template directory.
@@ -44,7 +44,7 @@ class SCD_Template_Loader {
 	 * @since    1.0.0
 	 */
 	public function __construct() {
-		$this->template_dir = SCD_TEMPLATES_DIR;
+		$this->template_dir = WSSCD_TEMPLATES_DIR;
 	}
 
 	/**
@@ -88,7 +88,7 @@ class SCD_Template_Loader {
 	 * @param    string $template    Template name.
 	 * @return   string|false           Template path or false if not found.
 	 */
-	public function locate_template( string $template ): string|false {
+	public function locate_template( string $template ) {
 		$template = $this->sanitize_template_name( $template );
 
 		if ( empty( $template ) ) {
@@ -98,7 +98,7 @@ class SCD_Template_Loader {
 		$theme_template = locate_template(
 			array(
 				'smart-cycle-discounts/' . $template,
-				'scd/' . $template,
+				'wsscd/' . $template,
 			)
 		);
 

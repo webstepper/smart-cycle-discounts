@@ -13,6 +13,8 @@
  * @since      1.0.0
  */
 
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial included into function scope; variables are local, not global.
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
@@ -106,93 +108,93 @@ foreach ( $conditions as $condition ) {
 ?>
 
 <!-- Products Stats Bar -->
-<div class="scd-products-stats-bar">
-	<div class="scd-stat-item">
-		<?php echo SCD_Icon_Helper::get( 'products', array( 'size' => 16 ) ); ?>
-		<span class="scd-stat-value"><?php echo esc_html( number_format_i18n( $total_products ) ); ?></span>
-		<span class="scd-stat-label"><?php echo esc_html( _n( 'Product', 'Products', $total_products, 'smart-cycle-discounts' ) ); ?></span>
+<div class="wsscd-products-stats-bar">
+	<div class="wsscd-stat-item">
+		<?php WSSCD_Icon_Helper::render( 'products', array( 'size' => 16 ) ); ?>
+		<span class="wsscd-stat-value"><?php echo esc_html( number_format_i18n( $total_products ) ); ?></span>
+		<span class="wsscd-stat-label"><?php echo esc_html( _n( 'Product', 'Products', $total_products, 'smart-cycle-discounts' ) ); ?></span>
 	</div>
 	<?php if ( ! $all_categories_selected && $category_count > 0 ) : ?>
-		<div class="scd-stat-item">
-			<?php echo SCD_Icon_Helper::get( 'category', array( 'size' => 16 ) ); ?>
-			<span class="scd-stat-value"><?php echo esc_html( number_format_i18n( $category_count ) ); ?></span>
-			<span class="scd-stat-label"><?php echo esc_html( _n( 'Category', 'Categories', $category_count, 'smart-cycle-discounts' ) ); ?></span>
+		<div class="wsscd-stat-item">
+			<?php WSSCD_Icon_Helper::render( 'category', array( 'size' => 16 ) ); ?>
+			<span class="wsscd-stat-value"><?php echo esc_html( number_format_i18n( $category_count ) ); ?></span>
+			<span class="wsscd-stat-label"><?php echo esc_html( _n( 'Category', 'Categories', $category_count, 'smart-cycle-discounts' ) ); ?></span>
 		</div>
 	<?php endif; ?>
 	<?php if ( $has_conditions && count( $conditions ) > 0 ) : ?>
-		<div class="scd-stat-item">
-			<?php echo SCD_Icon_Helper::get( 'filter', array( 'size' => 16 ) ); ?>
-			<span class="scd-stat-value"><?php echo esc_html( number_format_i18n( count( $conditions ) ) ); ?></span>
-			<span class="scd-stat-label"><?php echo esc_html( _n( 'Filter', 'Filters', count( $conditions ), 'smart-cycle-discounts' ) ); ?></span>
+		<div class="wsscd-stat-item">
+			<?php WSSCD_Icon_Helper::render( 'filter', array( 'size' => 16 ) ); ?>
+			<span class="wsscd-stat-value"><?php echo esc_html( number_format_i18n( count( $conditions ) ) ); ?></span>
+			<span class="wsscd-stat-label"><?php echo esc_html( _n( 'Filter', 'Filters', count( $conditions ), 'smart-cycle-discounts' ) ); ?></span>
 		</div>
 	<?php endif; ?>
 	<?php if ( $products_on_sale > 0 ) : ?>
-		<div class="scd-stat-item scd-stat-sale">
-			<?php echo SCD_Icon_Helper::get( 'tag', array( 'size' => 16 ) ); ?>
-			<span class="scd-stat-value"><?php echo esc_html( number_format_i18n( $products_on_sale ) ); ?></span>
-			<span class="scd-stat-label"><?php echo esc_html( _n( 'On Sale', 'On Sale', $products_on_sale, 'smart-cycle-discounts' ) ); ?></span>
+		<div class="wsscd-stat-item wsscd-stat-sale">
+			<?php WSSCD_Icon_Helper::render( 'tag', array( 'size' => 16 ) ); ?>
+			<span class="wsscd-stat-value"><?php echo esc_html( number_format_i18n( $products_on_sale ) ); ?></span>
+			<span class="wsscd-stat-label"><?php echo esc_html( _n( 'On Sale', 'On Sale', $products_on_sale, 'smart-cycle-discounts' ) ); ?></span>
 		</div>
 	<?php endif; ?>
 	<?php if ( $variable_products > 0 && $total_variations > 0 ) : ?>
-		<div class="scd-stat-item scd-stat-variations">
-			<?php echo SCD_Icon_Helper::get( 'admin-settings', array( 'size' => 16 ) ); ?>
-			<span class="scd-stat-value"><?php echo esc_html( number_format_i18n( $total_variations ) ); ?></span>
-			<span class="scd-stat-label"><?php echo esc_html( _n( 'Variation', 'Variations', $total_variations, 'smart-cycle-discounts' ) ); ?></span>
+		<div class="wsscd-stat-item wsscd-stat-variations">
+			<?php WSSCD_Icon_Helper::render( 'admin-settings', array( 'size' => 16 ) ); ?>
+			<span class="wsscd-stat-value"><?php echo esc_html( number_format_i18n( $total_variations ) ); ?></span>
+			<span class="wsscd-stat-label"><?php echo esc_html( _n( 'Variation', 'Variations', $total_variations, 'smart-cycle-discounts' ) ); ?></span>
 		</div>
 	<?php endif; ?>
 	<?php if ( $products_in_stock > 0 || $products_out_stock > 0 || $products_backorder > 0 ) : ?>
-		<div class="scd-stat-item scd-stat-stock-in">
-			<?php echo SCD_Icon_Helper::get( 'yes', array( 'size' => 16 ) ); ?>
-			<span class="scd-stat-value"><?php echo esc_html( number_format_i18n( $products_in_stock ) ); ?></span>
-			<span class="scd-stat-label"><?php esc_html_e( 'In Stock', 'smart-cycle-discounts' ); ?></span>
+		<div class="wsscd-stat-item wsscd-stat-stock-in">
+			<?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 16 ) ); ?>
+			<span class="wsscd-stat-value"><?php echo esc_html( number_format_i18n( $products_in_stock ) ); ?></span>
+			<span class="wsscd-stat-label"><?php esc_html_e( 'In Stock', 'smart-cycle-discounts' ); ?></span>
 		</div>
 	<?php endif; ?>
 	<?php if ( $products_out_stock > 0 ) : ?>
-		<div class="scd-stat-item scd-stat-stock-out">
-			<?php echo SCD_Icon_Helper::get( 'no-alt', array( 'size' => 16 ) ); ?>
-			<span class="scd-stat-value"><?php echo esc_html( number_format_i18n( $products_out_stock ) ); ?></span>
-			<span class="scd-stat-label"><?php esc_html_e( 'Out of Stock', 'smart-cycle-discounts' ); ?></span>
+		<div class="wsscd-stat-item wsscd-stat-stock-out">
+			<?php WSSCD_Icon_Helper::render( 'no-alt', array( 'size' => 16 ) ); ?>
+			<span class="wsscd-stat-value"><?php echo esc_html( number_format_i18n( $products_out_stock ) ); ?></span>
+			<span class="wsscd-stat-label"><?php esc_html_e( 'Out of Stock', 'smart-cycle-discounts' ); ?></span>
 		</div>
 	<?php endif; ?>
 	<?php if ( $products_backorder > 0 ) : ?>
-		<div class="scd-stat-item scd-stat-stock-backorder">
-			<?php echo SCD_Icon_Helper::get( 'backup', array( 'size' => 16 ) ); ?>
-			<span class="scd-stat-value"><?php echo esc_html( number_format_i18n( $products_backorder ) ); ?></span>
-			<span class="scd-stat-label"><?php esc_html_e( 'Backorder', 'smart-cycle-discounts' ); ?></span>
+		<div class="wsscd-stat-item wsscd-stat-stock-backorder">
+			<?php WSSCD_Icon_Helper::render( 'backup', array( 'size' => 16 ) ); ?>
+			<span class="wsscd-stat-value"><?php echo esc_html( number_format_i18n( $products_backorder ) ); ?></span>
+			<span class="wsscd-stat-label"><?php esc_html_e( 'Backorder', 'smart-cycle-discounts' ); ?></span>
 		</div>
 	<?php endif; ?>
 </div>
 
 <!-- Selection Method & Scope (Combined) -->
-<div class="scd-overview-subsection">
-	<div class="scd-subsection-header">
-		<?php echo SCD_Icon_Helper::get( 'admin-settings', array( 'size' => 16 ) ); ?>
+<div class="wsscd-overview-subsection">
+	<div class="wsscd-subsection-header">
+		<?php WSSCD_Icon_Helper::render( 'admin-settings', array( 'size' => 16 ) ); ?>
 		<h5><?php esc_html_e( 'Selection Method', 'smart-cycle-discounts' ); ?></h5>
 	</div>
 
-	<div class="scd-selection-method-card">
+	<div class="wsscd-selection-method-card">
 		<!-- Selection Type -->
-		<div class="scd-selection-method-header">
-			<?php echo SCD_Icon_Helper::get( $type_info['icon'], array( 'size' => 20 ) ); ?>
-			<div class="scd-selection-method-info">
-				<div class="scd-selection-method-title"><?php echo esc_html( $type_info['label'] ); ?></div>
+		<div class="wsscd-selection-method-header">
+			<?php WSSCD_Icon_Helper::render( $type_info['icon'], array( 'size' => 20 ) ); ?>
+			<div class="wsscd-selection-method-info">
+				<div class="wsscd-selection-method-title"><?php echo esc_html( $type_info['label'] ); ?></div>
 			</div>
 		</div>
 
 		<!-- Category Scope Integrated -->
 		<?php if ( $all_categories_selected || ! empty( $categories ) ) : ?>
-		<div class="scd-selection-scope">
+		<div class="wsscd-selection-scope">
 			<?php if ( $all_categories_selected ) : ?>
-				<div class="scd-scope-item">
-					<?php echo SCD_Icon_Helper::get( 'category', array( 'size' => 14 ) ); ?>
-					<span class="scd-scope-label"><?php esc_html_e( 'Scope:', 'smart-cycle-discounts' ); ?></span>
-					<span class="scd-scope-value"><?php esc_html_e( 'All product categories', 'smart-cycle-discounts' ); ?></span>
+				<div class="wsscd-scope-item">
+					<?php WSSCD_Icon_Helper::render( 'category', array( 'size' => 14 ) ); ?>
+					<span class="wsscd-scope-label"><?php esc_html_e( 'Scope:', 'smart-cycle-discounts' ); ?></span>
+					<span class="wsscd-scope-value"><?php esc_html_e( 'All product categories', 'smart-cycle-discounts' ); ?></span>
 				</div>
 			<?php elseif ( ! empty( $categories ) ) : ?>
-				<div class="scd-scope-item">
-					<?php echo SCD_Icon_Helper::get( 'category', array( 'size' => 14 ) ); ?>
-					<span class="scd-scope-label"><?php esc_html_e( 'Categories:', 'smart-cycle-discounts' ); ?></span>
-					<span class="scd-scope-value">
+				<div class="wsscd-scope-item">
+					<?php WSSCD_Icon_Helper::render( 'category', array( 'size' => 14 ) ); ?>
+					<span class="wsscd-scope-label"><?php esc_html_e( 'Categories:', 'smart-cycle-discounts' ); ?></span>
+					<span class="wsscd-scope-value">
 						<?php
 						$category_names = array_column( $categories, 'name' );
 						if ( count( $category_names ) <= 3 ) {
@@ -216,15 +218,27 @@ foreach ( $conditions as $condition ) {
 		<?php
 		// Random products additional info
 		if ( 'random_products' === $selection_type && isset( $data['random_count'] ) ) :
+			$random_count   = absint( $data['random_count'] );
+			$actual_count   = $total_products;
+			$showing_actual = ( $actual_count === $random_count || $actual_count < $random_count );
 			?>
-			<div class="scd-selection-method-detail">
-				<?php echo SCD_Icon_Helper::get( 'randomize', array( 'size' => 14 ) ); ?>
+			<div class="wsscd-selection-method-detail">
+				<?php WSSCD_Icon_Helper::render( 'randomize', array( 'size' => 14 ) ); ?>
 				<?php
-				printf(
-					/* translators: %d: number of random products */
-					esc_html__( 'Randomly selecting %d products from pool', 'smart-cycle-discounts' ),
-					absint( $data['random_count'] )
-				);
+				if ( $showing_actual ) {
+					printf(
+						/* translators: %d: number of randomly selected products */
+						esc_html__( 'Showing %d randomly selected products', 'smart-cycle-discounts' ),
+						intval( $actual_count )
+					);
+				} else {
+					printf(
+						/* translators: 1: number of products shown, 2: requested random count */
+						esc_html__( 'Showing %1$d of %2$d requested random products (filtered by conditions)', 'smart-cycle-discounts' ),
+						intval( $actual_count ),
+						intval( $random_count )
+					);
+				}
 				?>
 			</div>
 			<?php
@@ -238,8 +252,8 @@ foreach ( $conditions as $condition ) {
 			);
 			$criteria_label = isset( $criteria_labels[ $data['smart_criteria'] ] ) ? $criteria_labels[ $data['smart_criteria'] ] : $data['smart_criteria'];
 			?>
-			<div class="scd-selection-method-detail">
-				<?php echo SCD_Icon_Helper::get( 'chart-line', array( 'size' => 14 ) ); ?>
+			<div class="wsscd-selection-method-detail">
+				<?php WSSCD_Icon_Helper::render( 'chart-line', array( 'size' => 14 ) ); ?>
 				<?php echo esc_html( $criteria_label ); ?>
 			</div>
 			<?php
@@ -250,21 +264,21 @@ foreach ( $conditions as $condition ) {
 
 <!-- Category Details (Only if specific categories selected and worth showing) -->
 <?php if ( ! $all_categories_selected && ! empty( $categories ) && count( $categories ) > 3 ) : ?>
-	<div class="scd-overview-subsection">
-		<div class="scd-subsection-header">
-			<?php echo SCD_Icon_Helper::get( 'category', array( 'size' => 16 ) ); ?>
+	<div class="wsscd-overview-subsection">
+		<div class="wsscd-subsection-header">
+			<?php WSSCD_Icon_Helper::render( 'category', array( 'size' => 16 ) ); ?>
 			<h5><?php esc_html_e( 'Category Details', 'smart-cycle-discounts' ); ?></h5>
-			<span class="scd-count-badge"><?php echo absint( count( $categories ) ); ?></span>
+			<span class="wsscd-count-badge"><?php echo absint( count( $categories ) ); ?></span>
 		</div>
 
-		<div class="scd-category-grid">
+		<div class="wsscd-category-grid">
 			<?php foreach ( $categories as $category ) : ?>
-				<div class="scd-category-card">
-					<?php echo SCD_Icon_Helper::get( 'category', array( 'size' => 16 ) ); ?>
-					<div class="scd-category-card-content">
-						<div class="scd-category-card-name"><?php echo esc_html( $category['name'] ); ?></div>
+				<div class="wsscd-category-card">
+					<?php WSSCD_Icon_Helper::render( 'category', array( 'size' => 16 ) ); ?>
+					<div class="wsscd-category-card-content">
+						<div class="wsscd-category-card-name"><?php echo esc_html( $category['name'] ); ?></div>
 						<?php if ( isset( $category['count'] ) && $category['count'] > 0 ) : ?>
-							<div class="scd-category-card-count">
+							<div class="wsscd-category-card-count">
 								<?php
 								printf(
 									/* translators: %d: number of products */
@@ -283,25 +297,25 @@ foreach ( $conditions as $condition ) {
 
 <!-- Advanced Filters (Beautiful New Design) -->
 <?php if ( $has_conditions && ! empty( $conditions ) ) : ?>
-	<div class="scd-overview-subsection">
-		<div class="scd-subsection-header">
-			<?php echo SCD_Icon_Helper::get( 'filter', array( 'size' => 16 ) ); ?>
+	<div class="wsscd-overview-subsection">
+		<div class="wsscd-subsection-header">
+			<?php WSSCD_Icon_Helper::render( 'filter', array( 'size' => 16 ) ); ?>
 			<h5><?php esc_html_e( 'Advanced Filters', 'smart-cycle-discounts' ); ?></h5>
 		</div>
 
-		<div class="scd-filter-logic-indicator scd-filter-logic-indicator--<?php echo 'all' === $conditions_logic ? 'and' : 'or'; ?>">
-			<div class="scd-filter-logic-header">
-				<div class="scd-filter-logic-icon">
+		<div class="wsscd-filter-logic-indicator wsscd-filter-logic-indicator--<?php echo esc_attr( 'all' === $conditions_logic ? 'and' : 'or' ); ?>">
+			<div class="wsscd-filter-logic-header">
+				<div class="wsscd-filter-logic-icon">
 					<?php
 					if ( 'all' === $conditions_logic ) {
-						echo SCD_Icon_Helper::get( 'yes', array( 'size' => 18 ) );
+						WSSCD_Icon_Helper::render( 'yes', array( 'size' => 18 ) );
 					} else {
-						echo SCD_Icon_Helper::get( 'menu', array( 'size' => 18 ) );
+						WSSCD_Icon_Helper::render( 'menu', array( 'size' => 18 ) );
 					}
 					?>
 				</div>
-				<div class="scd-filter-logic-content">
-					<div class="scd-filter-logic-label">
+				<div class="wsscd-filter-logic-content">
+					<div class="wsscd-filter-logic-label">
 						<?php
 						if ( 'all' === $conditions_logic ) {
 							esc_html_e( 'Match ALL', 'smart-cycle-discounts' );
@@ -310,7 +324,7 @@ foreach ( $conditions as $condition ) {
 						}
 						?>
 					</div>
-					<div class="scd-filter-logic-desc">
+					<div class="wsscd-filter-logic-desc">
 						<?php
 						if ( 'all' === $conditions_logic ) {
 							esc_html_e( 'Products must satisfy all rules below', 'smart-cycle-discounts' );
@@ -323,24 +337,24 @@ foreach ( $conditions as $condition ) {
 			</div>
 
 			<!-- Conditions List -->
-			<div class="scd-filter-rules">
+			<div class="wsscd-filter-rules">
 				<?php foreach ( $conditions as $index => $condition ) : ?>
 					<?php
 					$mode = isset( $condition['mode'] ) ? $condition['mode'] : 'include';
 					$is_include = 'include' === $mode;
 					?>
-					<div class="scd-filter-rule scd-filter-rule--<?php echo esc_attr( $mode ); ?>">
-						<div class="scd-filter-rule-indicator">
+					<div class="wsscd-filter-rule wsscd-filter-rule--<?php echo esc_attr( $mode ); ?>">
+						<div class="wsscd-filter-rule-indicator">
 							<?php
 							if ( $is_include ) {
-								echo SCD_Icon_Helper::get( 'saved', array( 'size' => 16 ) );
+								WSSCD_Icon_Helper::render( 'saved', array( 'size' => 16 ) );
 							} else {
-								echo SCD_Icon_Helper::get( 'dismiss', array( 'size' => 16 ) );
+								WSSCD_Icon_Helper::render( 'dismiss', array( 'size' => 16 ) );
 							}
 							?>
 						</div>
-						<div class="scd-filter-rule-content">
-							<div class="scd-filter-rule-label">
+						<div class="wsscd-filter-rule-content">
+							<div class="wsscd-filter-rule-label">
 								<?php
 								if ( $is_include ) {
 									esc_html_e( 'Include', 'smart-cycle-discounts' );
@@ -349,7 +363,7 @@ foreach ( $conditions as $condition ) {
 								}
 								?>
 							</div>
-							<div class="scd-filter-rule-desc">
+							<div class="wsscd-filter-rule-desc">
 								<?php
 								if ( 'price' === $condition['type'] ) {
 									echo wp_kses_post( $condition['description'] );
@@ -378,15 +392,15 @@ foreach ( $conditions as $condition ) {
 		$section_title = __( 'Discounted Products', 'smart-cycle-discounts' );
 	}
 	?>
-	<div class="scd-overview-subsection">
-		<div class="scd-subsection-header">
-			<?php echo SCD_Icon_Helper::get( 'products', array( 'size' => 16 ) ); ?>
+	<div class="wsscd-overview-subsection">
+		<div class="wsscd-subsection-header">
+			<?php WSSCD_Icon_Helper::render( 'products', array( 'size' => 16 ) ); ?>
 			<h5><?php echo esc_html( $section_title ); ?></h5>
-			<span class="scd-count-badge"><?php echo absint( $product_count ); ?></span>
+			<span class="wsscd-count-badge"><?php echo absint( $product_count ); ?></span>
 		</div>
 
-		<div class="scd-product-grid-container">
-			<div class="scd-product-grid">
+		<div class="wsscd-product-grid-container">
+			<div class="wsscd-product-grid">
 				<?php foreach ( $products as $product ) : ?>
 					<?php
 					$product_url = isset( $product['url'] ) ? esc_url( $product['url'] ) : '';
@@ -395,47 +409,47 @@ foreach ( $conditions as $condition ) {
 					$link_attrs  = $has_link ? ' href="' . $product_url . '" target="_blank" rel="noopener noreferrer"' : '';
 					$has_image   = ! empty( $product['has_image'] );
 					?>
-					<<?php echo $tag; ?> class="scd-product-card"<?php echo $link_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+					<<?php echo esc_html( $tag ); ?> class="wsscd-product-card"<?php echo wp_kses_post( $link_attrs ); ?>>
 						<?php if ( $has_image ) : ?>
-							<div class="scd-product-card-image">
+							<div class="wsscd-product-card-image">
 								<img src="<?php echo esc_url( $product['image_url'] ); ?>" alt="<?php echo esc_attr( $product['name'] ); ?>" loading="lazy">
 							</div>
 						<?php else : ?>
-							<div class="scd-product-card-image no-image">
-								<span class="scd-product-placeholder">
-									<?php echo SCD_Icon_Helper::get( 'products', array( 'size' => 20 ) ); ?>
+							<div class="wsscd-product-card-image no-image">
+								<span class="wsscd-product-placeholder">
+									<?php WSSCD_Icon_Helper::render( 'products', array( 'size' => 20 ) ); ?>
 								</span>
 							</div>
 						<?php endif; ?>
-						<div class="scd-product-card-content">
-							<div class="scd-product-card-name"><?php echo esc_html( $product['name'] ); ?></div>
+						<div class="wsscd-product-card-content">
+							<div class="wsscd-product-card-name"><?php echo esc_html( $product['name'] ); ?></div>
 							<?php if ( isset( $product['price'] ) && '' !== $product['price'] ) : ?>
-								<div class="scd-product-card-price"><?php echo wp_kses_post( wc_price( $product['price'] ) ); ?></div>
+								<div class="wsscd-product-card-price"><?php echo wp_kses_post( wc_price( $product['price'] ) ); ?></div>
 							<?php endif; ?>
 						</div>
-					</<?php echo $tag; ?>>
+					</<?php echo esc_html( $tag ); ?>>
 				<?php endforeach; ?>
 			</div>
 		</div>
 	</div>
 <?php elseif ( $total_products > 0 ) : ?>
-	<div class="scd-overview-subsection">
-		<div class="scd-subsection-header">
-			<?php echo SCD_Icon_Helper::get( 'products', array( 'size' => 16 ) ); ?>
+	<div class="wsscd-overview-subsection">
+		<div class="wsscd-subsection-header">
+			<?php WSSCD_Icon_Helper::render( 'products', array( 'size' => 16 ) ); ?>
 			<h5><?php esc_html_e( 'Products Included', 'smart-cycle-discounts' ); ?></h5>
-			<span class="scd-count-badge"><?php echo absint( $total_products ); ?></span>
+			<span class="wsscd-count-badge"><?php echo absint( $total_products ); ?></span>
 		</div>
 
-		<div class="scd-product-count-card">
-			<?php echo SCD_Icon_Helper::get( 'products', array( 'size' => 20 ) ); ?>
-			<div class="scd-product-count-content">
-				<span class="scd-product-count-value"><?php echo absint( $total_products ); ?></span>
+		<div class="wsscd-product-count-card">
+			<?php WSSCD_Icon_Helper::render( 'products', array( 'size' => 20 ) ); ?>
+			<div class="wsscd-product-count-content">
+				<span class="wsscd-product-count-value"><?php echo absint( $total_products ); ?></span>
 				<?php
 				echo ' ' . esc_html( _n( 'product will receive this discount', 'products will receive this discount', $total_products, 'smart-cycle-discounts' ) );
 				?>
 			</div>
-			<button type="button" class="scd-view-all-products-btn" data-campaign-id="<?php echo esc_attr( isset( $data['campaign_id'] ) ? $data['campaign_id'] : '' ); ?>">
-				<?php echo SCD_Icon_Helper::get( 'visibility', array( 'size' => 16 ) ); ?>
+			<button type="button" class="wsscd-view-all-products-btn" data-campaign-id="<?php echo esc_attr( isset( $data['campaign_id'] ) ? $data['campaign_id'] : '' ); ?>">
+				<?php WSSCD_Icon_Helper::render( 'visibility', array( 'size' => 16 ) ); ?>
 				<?php esc_html_e( 'View All Products', 'smart-cycle-discounts' ); ?>
 			</button>
 		</div>

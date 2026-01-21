@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/integrations
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Integration_Manager {
+class WSSCD_Integration_Manager {
 
 	/**
 	 * Container instance.
@@ -78,27 +78,27 @@ class SCD_Integration_Manager {
 	private function register_integrations(): void {
 		$this->integrations = array(
 			'woocommerce'   => array(
-				'class'  => 'SCD_WooCommerce_Integration',
+				'class'  => 'WSSCD_WooCommerce_Integration',
 				'file'   => 'woocommerce/class-woocommerce-integration.php',
 				'active' => class_exists( 'WooCommerce' ),
 			),
 			'blocks'        => array(
-				'class'  => 'SCD_Blocks_Manager',
+				'class'  => 'WSSCD_Blocks_Manager',
 				'file'   => 'blocks/class-blocks-manager.php',
 				'active' => function_exists( 'register_block_type' ),
 			),
 			'email'         => array(
-				'class'  => 'SCD_Email_Manager',
+				'class'  => 'WSSCD_Email_Manager',
 				'file'   => 'email/class-email-manager.php',
 				'active' => true,
 			),
 			'alert_monitor' => array(
-				'class'  => 'SCD_Alert_Monitor',
+				'class'  => 'WSSCD_Alert_Monitor',
 				'file'   => 'email/class-alert-monitor.php',
 				'active' => true,
 			),
 			'privacy'       => array(
-				'class'  => 'SCD_Privacy_Integration',
+				'class'  => 'WSSCD_Privacy_Integration',
 				'file'   => 'class-privacy-integration.php',
 				'active' => true,
 			),
@@ -130,7 +130,7 @@ class SCD_Integration_Manager {
 	 * @return   void
 	 */
 	private function load_integration( string $key, array $integration ): void {
-		$file_path = SCD_INCLUDES_DIR . 'integrations/' . $integration['file'];
+		$file_path = WSSCD_INCLUDES_DIR . 'integrations/' . $integration['file'];
 
 		if ( file_exists( $file_path ) ) {
 			require_once $file_path;
@@ -160,20 +160,20 @@ class SCD_Integration_Manager {
 	private function create_integration_instance( string $class ): ?object {
 		try {
 			switch ( $class ) {
-				case 'SCD_Blocks_Manager':
-					return new SCD_Blocks_Manager(
+				case 'WSSCD_Blocks_Manager':
+					return new WSSCD_Blocks_Manager(
 						$this->container->get( 'logger' ),
 						$this->container->get( 'admin_asset_manager' ),
 						$this->container->get( 'campaign_manager' )
 					);
 
-				case 'SCD_Email_Manager':
+				case 'WSSCD_Email_Manager':
 					// Reuse email_manager from container if available
 					if ( $this->container->has( 'email_manager' ) ) {
 						return $this->container->get( 'email_manager' );
 					}
 					// Fallback to creating new instance
-					return new SCD_Email_Manager(
+					return new WSSCD_Email_Manager(
 						$this->container->get( 'logger' ),
 						$this->container->get( 'campaign_manager' ),
 						$this->container->get( 'action_scheduler' ),
@@ -181,13 +181,13 @@ class SCD_Integration_Manager {
 						$this->container->get( 'analytics_repository' )
 					);
 
-				case 'SCD_Alert_Monitor':
+				case 'WSSCD_Alert_Monitor':
 					// Reuse alert_monitor from container if available
 					if ( $this->container->has( 'alert_monitor' ) ) {
 						return $this->container->get( 'alert_monitor' );
 					}
 					// Fallback to creating new instance
-					return new SCD_Alert_Monitor(
+					return new WSSCD_Alert_Monitor(
 						$this->container->get( 'logger' ),
 						$this->container->get( 'campaign_manager' ),
 						$this->container->get( 'analytics_repository' ),
@@ -195,13 +195,13 @@ class SCD_Integration_Manager {
 						$this->container->get( 'feature_gate' )
 					);
 
-				case 'SCD_WooCommerce_Integration':
+				case 'WSSCD_WooCommerce_Integration':
 					// WooCommerce integration accepts container
-					return new SCD_WooCommerce_Integration( $this->container );
+					return new WSSCD_WooCommerce_Integration( $this->container );
 
-				case 'SCD_Privacy_Integration':
+				case 'WSSCD_Privacy_Integration':
 					// Privacy integration requires no dependencies
-					return new SCD_Privacy_Integration();
+					return new WSSCD_Privacy_Integration();
 
 				default:
 					// Default behavior: pass container

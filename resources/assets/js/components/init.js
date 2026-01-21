@@ -13,9 +13,9 @@
 ( function() {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	window.SCD.Admin = window.SCD.Admin || {};
-	window.scdAdmin = window.scdAdmin || {
+	window.WSSCD = window.WSSCD || {};
+	window.WSSCD.Admin = window.WSSCD.Admin || {};
+	window.wsscdAdmin = window.wsscdAdmin || {
 		ajaxUrl: window.ajaxurl || '',
 		nonce: '',
 		restNonce: '',
@@ -30,12 +30,12 @@
 
 	// Document ready handler
 	jQuery( document ).ready( function( $ ) {
-		if ( window.SCD && window.SCD.Admin && 'function' === typeof window.SCD.Admin.init ) {
-			window.SCD.Admin.init();
+		if ( window.WSSCD && window.WSSCD.Admin && 'function' === typeof window.WSSCD.Admin.init ) {
+			window.WSSCD.Admin.init();
 		}
 
 		// Trigger custom event for other components
-		$( document ).trigger( 'scd:admin:ready' );
+		$( document ).trigger( 'wsscd:admin:ready' );
 	} );
 
 } )();

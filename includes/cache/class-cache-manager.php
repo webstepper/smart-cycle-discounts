@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/cache
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Cache_Manager {
+class WSSCD_Cache_Manager {
 
 	/**
 	 * Valid cache groups for key validation.
@@ -44,6 +44,8 @@ class SCD_Cache_Manager {
 		'products',
 		'analytics',
 		'reference',
+		'settings',
+		'wsscd_dashboard',
 	);
 
 	/**
@@ -53,7 +55,7 @@ class SCD_Cache_Manager {
 	 * @access   private
 	 * @var      string    $cache_prefix    Cache prefix.
 	 */
-	private string $cache_prefix = 'scd_';
+	private string $cache_prefix = 'wsscd_';
 
 	/**
 	 * Default cache expiration time in seconds.
@@ -91,6 +93,236 @@ class SCD_Cache_Manager {
 		$this->enabled = $this->is_cache_enabled();
 		$this->load_settings();
 		$this->cache_version = $this->get_cache_version();
+		$this->register_hooks();
+	}
+
+	/**
+	 * Register cache invalidation hooks.
+	 *
+	 * Automatically invalidates caches when campaigns change status.
+	 * This ensures expired campaigns stop applying discounts immediately.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   void
+	 */
+	private function register_hooks(): void {
+		// Invalidate cache when campaigns expire (CRITICAL for stopping discounts)
+		add_action( 'wsscd_campaign_expired', array( $this, 'on_campaign_status_changed' ), 10, 1 );
+
+		// Invalidate cache when campaigns are activated/deactivated
+		add_action( 'wsscd_campaign_activated', array( $this, 'on_campaign_status_changed' ), 10, 1 );
+		add_action( 'wsscd_campaign_deactivated', array( $this, 'on_campaign_status_changed' ), 10, 1 );
+
+		// Invalidate cache when campaign status changes (covers pause, resume, etc.)
+		add_action( 'wsscd_campaign_status_changed', array( $this, 'on_campaign_status_changed' ), 10, 1 );
+
+		// Invalidate cache when campaigns are created/updated/deleted
+		add_action( 'wsscd_campaign_created', array( $this, 'on_campaign_status_changed' ), 10, 1 );
+		add_action( 'wsscd_campaign_updated', array( $this, 'on_campaign_status_changed' ), 10, 1 );
+		add_action( 'wsscd_campaign_deleted', array( $this, 'on_campaign_status_changed' ), 10, 1 );
+
+		// WooCommerce settings changes - invalidate all caches when critical settings change
+		add_action( 'update_option_woocommerce_currency', array( $this, 'on_woocommerce_settings_changed' ), 10, 0 );
+		add_action( 'update_option_woocommerce_price_thousand_sep', array( $this, 'on_woocommerce_settings_changed' ), 10, 0 );
+		add_action( 'update_option_woocommerce_price_decimal_sep', array( $this, 'on_woocommerce_settings_changed' ), 10, 0 );
+		add_action( 'update_option_woocommerce_price_num_decimals', array( $this, 'on_woocommerce_settings_changed' ), 10, 0 );
+		add_action( 'update_option_woocommerce_tax_display_shop', array( $this, 'on_woocommerce_settings_changed' ), 10, 0 );
+		add_action( 'update_option_woocommerce_tax_display_cart', array( $this, 'on_woocommerce_settings_changed' ), 10, 0 );
+		add_action( 'update_option_woocommerce_prices_include_tax', array( $this, 'on_woocommerce_settings_changed' ), 10, 0 );
+		add_action( 'update_option_woocommerce_calc_taxes', array( $this, 'on_woocommerce_settings_changed' ), 10, 0 );
+
+		// Plugin-specific settings changes
+		add_action( 'wsscd_settings_updated', array( $this, 'on_plugin_settings_changed' ), 10, 0 );
+		add_action( 'wsscd_license_activated', array( $this, 'on_plugin_settings_changed' ), 10, 0 );
+		add_action( 'wsscd_license_deactivated', array( $this, 'on_plugin_settings_changed' ), 10, 0 );
+
+		// Currency change event from currency change service
+		add_action( 'wsscd_currency_changed', array( $this, 'on_currency_changed' ), 10, 3 );
+
+		// Bulk campaign operations - comprehensive cache invalidation
+		add_action( 'wsscd_campaigns_bulk_activated', array( $this, 'on_bulk_campaign_operation' ), 10, 1 );
+		add_action( 'wsscd_campaigns_bulk_paused', array( $this, 'on_bulk_campaign_operation' ), 10, 1 );
+		add_action( 'wsscd_campaigns_bulk_deleted', array( $this, 'on_bulk_campaign_operation' ), 10, 1 );
+
+		// Wizard session cleanup - clear product caches when wizard completes
+		add_action( 'wsscd_campaign_created_from_wizard', array( $this, 'on_wizard_session_complete' ), 10, 1 );
+		add_action( 'wsscd_campaign_updated_from_wizard', array( $this, 'on_wizard_session_complete' ), 10, 1 );
+		add_action( 'wsscd_wizard_session_cancelled', array( $this, 'on_wizard_session_cancelled' ), 10, 1 );
+		add_action( 'wsscd_wizard_session_expired', array( $this, 'on_wizard_session_cancelled' ), 10, 1 );
+	}
+
+	/**
+	 * Handle bulk campaign operations.
+	 *
+	 * Performs comprehensive cache invalidation after bulk activate/pause/delete.
+	 *
+	 * @since    1.0.0
+	 * @param    array $campaign_ids    Array of affected campaign IDs.
+	 * @return   void
+	 */
+	public function on_bulk_campaign_operation( array $campaign_ids ): void {
+		// Full invalidation for bulk operations
+		$this->invalidate_campaign();
+		$this->invalidate_analytics();
+
+		// Clear specific caches for each affected campaign
+		foreach ( $campaign_ids as $campaign_id ) {
+			$this->delete( $this->campaigns_key( 'stats_' . $campaign_id ) );
+			$this->delete( $this->campaigns_key( 'exists_' . $campaign_id ) );
+		}
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
+			error_log( sprintf(
+				'[WSSCD Cache] Bulk campaign operation - invalidated caches for %d campaigns',
+				count( $campaign_ids )
+			) );
+		}
+	}
+
+	/**
+	 * Handle wizard session completion.
+	 *
+	 * Clears wizard-specific product caches (all product IDs, product lookups)
+	 * that were populated during the wizard session.
+	 *
+	 * @since    1.0.0
+	 * @param    int $campaign_id    The created/updated campaign ID.
+	 * @return   void
+	 */
+	public function on_wizard_session_complete( int $campaign_id ): void {
+		// Clear wizard-specific product caches
+		$this->delete( $this->products_key( 'all_ids' ) );
+		$this->delete( $this->products_key( 'all_products' ) );
+
+		// Clear reference data used during wizard
+		$this->delete_group( 'reference' );
+
+		// Invalidate the campaign to ensure fresh data
+		$this->invalidate_campaign( $campaign_id );
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
+			error_log( sprintf(
+				'[WSSCD Cache] Wizard session complete for campaign %d - cleared wizard caches',
+				$campaign_id
+			) );
+		}
+	}
+
+	/**
+	 * Handle wizard session cancellation or expiration.
+	 *
+	 * Clears any cached data from abandoned wizard sessions to prevent
+	 * stale product lists from affecting future sessions.
+	 *
+	 * @since    1.0.0
+	 * @param    string|int $session_id    The wizard session ID or campaign ID.
+	 * @return   void
+	 */
+	public function on_wizard_session_cancelled( $session_id ): void {
+		// Clear wizard-specific product caches
+		$this->delete( $this->products_key( 'all_ids' ) );
+		$this->delete( $this->products_key( 'all_products' ) );
+
+		// Clear reference data that might be stale
+		$this->delete_group( 'reference' );
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
+			error_log( sprintf(
+				'[WSSCD Cache] Wizard session cancelled/expired (session: %s) - cleared wizard caches',
+				$session_id
+			) );
+		}
+	}
+
+	/**
+	 * Handle WooCommerce settings changes.
+	 *
+	 * Invalidates all caches when critical WooCommerce settings change
+	 * (currency, tax, price formatting) as these affect discount calculations.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	public function on_woocommerce_settings_changed(): void {
+		$this->invalidate_all();
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
+			error_log( '[WSSCD Cache] WooCommerce settings changed - all caches invalidated' );
+		}
+	}
+
+	/**
+	 * Handle plugin settings changes.
+	 *
+	 * Invalidates all caches when plugin settings or license status changes.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	public function on_plugin_settings_changed(): void {
+		$this->invalidate_all();
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
+			error_log( '[WSSCD Cache] Plugin settings changed - all caches invalidated' );
+		}
+	}
+
+	/**
+	 * Handle currency change event.
+	 *
+	 * Invalidates all campaign and analytics caches when store currency changes.
+	 *
+	 * @since    1.0.0
+	 * @param    string $old_currency   Old currency code.
+	 * @param    string $new_currency   New currency code.
+	 * @param    int    $paused_count   Number of campaigns paused.
+	 * @return   void
+	 */
+	public function on_currency_changed( string $old_currency, string $new_currency, int $paused_count ): void {
+		// Full cache invalidation since all monetary values are affected
+		$this->invalidate_all();
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
+			error_log( sprintf(
+				'[WSSCD Cache] Currency changed from %s to %s - all caches invalidated',
+				$old_currency,
+				$new_currency
+			) );
+		}
+	}
+
+	/**
+	 * Handle campaign status change by invalidating ALL relevant caches.
+	 *
+	 * This is called for any campaign lifecycle event (create, update, delete,
+	 * activate, deactivate, expire). It performs comprehensive cache invalidation
+	 * to ensure no stale data remains.
+	 *
+	 * @since    1.0.0
+	 * @param    WSSCD_Campaign|int $campaign    Campaign object or ID.
+	 * @return   void
+	 */
+	public function on_campaign_status_changed( $campaign ): void {
+		$campaign_id = is_object( $campaign ) ? $campaign->get_id() : (int) $campaign;
+
+		// Comprehensive invalidation - clear all related caches
+		$this->invalidate_campaign( $campaign_id );
+
+		// Also invalidate analytics since campaign changes affect reporting
+		$this->invalidate_analytics();
+
+		// Clear specific campaign caches that use direct keys (not groups)
+		if ( $campaign_id ) {
+			$this->delete( $this->campaigns_key( 'stats_' . $campaign_id ) );
+			$this->delete( $this->campaigns_key( 'exists_' . $campaign_id ) );
+		}
 	}
 
 	/**
@@ -110,7 +342,7 @@ class SCD_Cache_Manager {
 		 * @since 1.0.0
 		 * @param int $duration Cache duration in seconds. Default 3600 (1 hour).
 		 */
-		$duration                 = apply_filters( 'scd_cache_duration', 3600 );
+		$duration                 = apply_filters( 'wsscd_cache_duration', 3600 );
 		$this->default_expiration = max( 900, (int) $duration ); // Minimum 15 minutes
 	}
 
@@ -159,6 +391,17 @@ class SCD_Cache_Manager {
 	}
 
 	/**
+	 * Build a properly-formatted cache key for settings group.
+	 *
+	 * @since    1.0.0
+	 * @param    string $suffix    Key suffix.
+	 * @return   string               Properly-formatted cache key.
+	 */
+	public function settings_key( string $suffix ): string {
+		return 'settings_' . $suffix;
+	}
+
+	/**
 	 * Validate cache key follows naming convention.
 	 *
 	 * Ensures cache key starts with a valid group prefix.
@@ -178,9 +421,10 @@ class SCD_Cache_Manager {
 		// Log warning in debug mode
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			$valid_prefixes = array_map( function( $g ) { return $g . '_'; }, $this->valid_groups );
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
 			error_log(
 				sprintf(
-					'[SCD Cache] WARNING: Invalid cache key "%s" - must start with one of: %s',
+					'[WSSCD Cache] WARNING: Invalid cache key "%s" - must start with one of: %s',
 					$key,
 					implode( ', ', $valid_prefixes )
 				)
@@ -219,7 +463,7 @@ class SCD_Cache_Manager {
 	 * @param    mixed  $default    Default value if not found.
 	 * @return   mixed                 Cached value or default.
 	 */
-	public function get( string $key, mixed $default = null ): mixed {
+	public function get( string $key, $default = null ) {
 		if ( ! $this->enabled ) {
 			return $default;
 		}
@@ -228,7 +472,7 @@ class SCD_Cache_Manager {
 
 		// Try object cache first (if available)
 		if ( wp_using_ext_object_cache() ) {
-			$value = wp_cache_get( $cache_key, 'scd' );
+			$value = wp_cache_get( $cache_key, 'wsscd' );
 			if ( false !== $value ) {
 				return $value;
 			}
@@ -239,7 +483,7 @@ class SCD_Cache_Manager {
 		if ( false !== $value ) {
 			// Populate object cache for next request (if available)
 			if ( wp_using_ext_object_cache() ) {
-				wp_cache_set( $cache_key, $value, 'scd', $this->default_expiration );
+				wp_cache_set( $cache_key, $value, 'wsscd', $this->default_expiration );
 			}
 			return $value;
 		}
@@ -256,7 +500,7 @@ class SCD_Cache_Manager {
 	 * @param    int    $expiration   Expiration time in seconds.
 	 * @return   bool                    True on success, false on failure.
 	 */
-	public function set( string $key, mixed $value, int $expiration = 0 ): bool {
+	public function set( string $key, $value, int $expiration = 0 ): bool {
 		if ( ! $this->enabled ) {
 			return false;
 		}
@@ -275,7 +519,7 @@ class SCD_Cache_Manager {
 
 		// Also set in object cache if available (for fast access)
 		if ( wp_using_ext_object_cache() ) {
-			wp_cache_set( $cache_key, $value, 'scd', $expiration );
+			wp_cache_set( $cache_key, $value, 'wsscd', $expiration );
 		}
 
 		return $result;
@@ -291,9 +535,58 @@ class SCD_Cache_Manager {
 	public function delete( string $key ): bool {
 		$cache_key = $this->get_cache_key( $key );
 
-		wp_cache_delete( $cache_key, 'scd' );
+		wp_cache_delete( $cache_key, 'wsscd' );
 
 		return delete_transient( $cache_key );
+	}
+
+	/**
+	 * Delete cached values by pattern.
+	 *
+	 * Uses SQL LIKE pattern matching to delete multiple cache keys.
+	 * Pattern should use * as wildcard (converted to % for SQL).
+	 *
+	 * @since    1.0.0
+	 * @param    string $pattern    Cache key pattern (e.g., 'analytics_metrics_*').
+	 * @return   int                   Number of keys deleted.
+	 */
+	public function delete_by_pattern( string $pattern ): int {
+		global $wpdb;
+
+		// Convert wildcard pattern to SQL LIKE pattern
+		$sql_pattern = str_replace( '*', '%', $pattern );
+
+		// Build full cache key pattern (same format as get_cache_key)
+		// Format: prefix + version + _ + key
+		$full_pattern = $this->cache_prefix . $this->cache_version . '_' . $sql_pattern;
+
+		// Flush object cache group (no pattern support, but helps)
+		wp_cache_flush_group( 'wsscd' );
+
+		// Query for matching transient names first
+		// We need to use delete_transient() to properly clear WordPress's in-memory cache
+		$transient_prefix = '_transient_';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Pattern-based transient lookup has no WP abstraction.
+		$transient_names  = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT option_name FROM {$wpdb->options}
+				WHERE option_name LIKE %s",
+				$transient_prefix . $full_pattern
+			)
+		);
+
+		$deleted = 0;
+
+		// Delete each transient properly (clears both DB and object cache)
+		foreach ( $transient_names as $option_name ) {
+			// Extract transient name by removing '_transient_' prefix
+			$transient_name = substr( $option_name, strlen( $transient_prefix ) );
+			if ( delete_transient( $transient_name ) ) {
+				++$deleted;
+			}
+		}
+
+		return $deleted;
 	}
 
 	/**
@@ -305,7 +598,7 @@ class SCD_Cache_Manager {
 	 * @param    int      $expiration   Expiration time in seconds.
 	 * @return   mixed                     Cached or generated value.
 	 */
-	public function remember( string $key, callable $callback, int $expiration = 0 ): mixed {
+	public function remember( string $key, callable $callback, int $expiration = 0 ) {
 		// Validate key follows naming convention
 		$this->validate_key( $key );
 
@@ -330,8 +623,9 @@ class SCD_Cache_Manager {
 	public function flush(): bool {
 		global $wpdb;
 
-		wp_cache_flush_group( 'scd' );
+		wp_cache_flush_group( 'wsscd' );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Bulk transient deletion for cache flush; no WP abstraction for pattern-based delete.
 		$wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
@@ -352,6 +646,7 @@ class SCD_Cache_Manager {
 	public function get_stats(): array {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Admin stats query; transient count lookup has no WP abstraction.
 		$transient_count = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE %s",
@@ -401,16 +696,20 @@ class SCD_Cache_Manager {
 	private function warm_campaign_cache(): void {
 		global $wpdb;
 
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
 
-		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $campaigns_table ) ) === $campaigns_table ) {
-			$active_campaigns = $wpdb->get_results(
-				$wpdb->prepare(
-					"SELECT * FROM {$campaigns_table} WHERE status = %s AND deleted_at IS NULL LIMIT %d",
-					'active',
-					10
-				)
+		$check_table_sql = $wpdb->prepare( 'SHOW TABLES LIKE %s', $campaigns_table );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- SHOW TABLES has no WP abstraction; query prepared above.
+		if ( $campaigns_table === $wpdb->get_var( $check_table_sql ) ) {
+			// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+			$active_sql = $wpdb->prepare(
+				'SELECT * FROM %i WHERE status = %s AND deleted_at IS NULL LIMIT %d',
+				$campaigns_table,
+				'active',
+				10
 			);
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Cache warming query; query prepared above.
+			$active_campaigns = $wpdb->get_results( $active_sql );
 
 			if ( $active_campaigns ) {
 				$this->set( 'campaigns_active_campaigns', $active_campaigns, 1800 ); // 30 minutes
@@ -426,7 +725,7 @@ class SCD_Cache_Manager {
 	 * @return   void
 	 */
 	private function warm_settings_cache(): void {
-		$settings = get_option( 'scd_settings', array() );
+		$settings = get_option( 'wsscd_settings', array() );
 		if ( ! empty( $settings ) ) {
 			$this->set( 'settings_plugin_settings', $settings, 3600 ); // 1 hour (settings rarely change)
 		}
@@ -477,7 +776,7 @@ class SCD_Cache_Manager {
 	 * @return   bool    True if caching is enabled.
 	 */
 	private function is_cache_enabled(): bool {
-		$settings = get_option( 'scd_settings', array() );
+		$settings = get_option( 'wsscd_settings', array() );
 		return $settings['general']['cache_enabled'] ?? true;
 	}
 
@@ -533,7 +832,7 @@ class SCD_Cache_Manager {
 	 * @param    int    $offset   Increment offset.
 	 * @return   int|false           New value or false on failure.
 	 */
-	public function increment( string $key, int $offset = 1 ): int|false {
+	public function increment( string $key, int $offset = 1 ) {
 		$value = $this->get( $key, 0 );
 
 		if ( ! is_numeric( $value ) ) {
@@ -557,7 +856,7 @@ class SCD_Cache_Manager {
 	 * @param    int    $offset   Decrement offset.
 	 * @return   int|false           New value or false on failure.
 	 */
-	public function decrement( string $key, int $offset = 1 ): int|false {
+	public function decrement( string $key, int $offset = 1 ) {
 		return $this->increment( $key, -$offset );
 	}
 
@@ -605,12 +904,40 @@ class SCD_Cache_Manager {
 
 		// Clear object cache group
 		if ( wp_using_ext_object_cache() ) {
-			wp_cache_flush_group( 'scd_' . $group );
+			wp_cache_flush_group( 'wsscd_' . $group );
 		}
 
 		// Clear transients matching group pattern
 		$pattern = $this->cache_prefix . $this->cache_version . '_' . $group . '%';
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Bulk transient deletion for cache group; no WP abstraction for pattern-based delete.
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->options}
+				WHERE option_name LIKE %s
+				OR option_name LIKE %s",
+				'_transient_' . $pattern,
+				'_transient_timeout_' . $pattern
+			)
+		);
+
+		return true;
+	}
+
+	/**
+	 * Delete all cached items matching a key prefix.
+	 *
+	 * @since    1.0.0
+	 * @param    string $prefix    Cache key prefix to match.
+	 * @return   bool                 True on success.
+	 */
+	public function delete_by_prefix( string $prefix ): bool {
+		global $wpdb;
+
+		// Build the pattern for transient deletion
+		$pattern = $this->cache_prefix . $this->cache_version . '_' . $prefix . '%';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Bulk transient deletion; no WP abstraction for pattern-based delete.
 		$wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options}
@@ -632,11 +959,11 @@ class SCD_Cache_Manager {
 	 * @return   string    Cache version.
 	 */
 	private function get_cache_version(): string {
-		$version = get_option( 'scd_cache_version', '' );
+		$version = get_option( 'wsscd_cache_version', '' );
 
 		if ( empty( $version ) ) {
 			$version = 'v1';
-			update_option( 'scd_cache_version', $version, false );
+			update_option( 'wsscd_cache_version', $version, false );
 		}
 
 		return $version;
@@ -650,14 +977,14 @@ class SCD_Cache_Manager {
 	 */
 	public function bump_cache_version(): bool {
 		$new_version = 'v' . time();
-		$result      = update_option( 'scd_cache_version', $new_version, false );
+		$result      = update_option( 'wsscd_cache_version', $new_version, false );
 
 		if ( $result ) {
 			$this->cache_version = $new_version;
 
 			// Clear object cache immediately
 			if ( wp_using_ext_object_cache() ) {
-				wp_cache_flush_group( 'scd' );
+				wp_cache_flush_group( 'wsscd' );
 			}
 		}
 
@@ -680,17 +1007,19 @@ class SCD_Cache_Manager {
 		// Always clear the campaigns group
 		$this->delete_group( 'campaigns' );
 
-		// If specific campaign, also clear product lookups
-		// (products may have been added/removed from this campaign)
-		if ( $campaign_id ) {
-			$this->delete_group( 'products' );
-		}
+		// Always clear products group - any campaign change can affect product discounts
+		// (products may have been added/removed, conditions changed, discount values updated)
+		$this->delete_group( 'products' );
+
+		// Clear reference data cache since campaign changes may affect category/product counts
+		$this->delete_group( 'reference' );
 
 		// Log invalidation for debugging
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
 			error_log(
 				sprintf(
-					'[SCD Cache] Invalidated campaign cache%s',
+					'[WSSCD Cache] Invalidated campaign cache%s',
 					$campaign_id ? " for campaign {$campaign_id}" : ''
 				)
 			);
@@ -716,14 +1045,16 @@ class SCD_Cache_Manager {
 			$this->delete( $this->products_key( 'discount_info_' . $product_id ) );
 
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( "[SCD Cache] Invalidated cache for product {$product_id}" );
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
+				error_log( "[WSSCD Cache] Invalidated cache for product {$product_id}" );
 			}
 		} else {
 			// Clear entire products group
 			$this->delete_group( 'products' );
 
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD Cache] Invalidated all product caches' );
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
+				error_log( '[WSSCD Cache] Invalidated all product caches' );
 			}
 		}
 	}
@@ -743,7 +1074,8 @@ class SCD_Cache_Manager {
 		$this->delete_group( 'analytics' );
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[SCD Cache] Invalidated analytics cache' );
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
+			error_log( '[WSSCD Cache] Invalidated analytics cache' );
 		}
 	}
 
@@ -762,7 +1094,8 @@ class SCD_Cache_Manager {
 		$this->flush();
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[SCD Cache] Flushed all plugin caches' );
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
+			error_log( '[WSSCD Cache] Flushed all plugin caches' );
 		}
 	}
 }

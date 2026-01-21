@@ -24,14 +24,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Main_Dashboard_Data_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Main_Dashboard_Data_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Dashboard service instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Dashboard_Service    $dashboard_service    Dashboard service instance.
+	 * @var      WSSCD_Dashboard_Service    $dashboard_service    Dashboard service instance.
 	 */
 	private $dashboard_service;
 
@@ -39,8 +39,8 @@ class SCD_Main_Dashboard_Data_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Dashboard_Service $dashboard_service    Dashboard service instance.
-	 * @param    SCD_Logger            $logger               Logger instance.
+	 * @param    WSSCD_Dashboard_Service $dashboard_service    Dashboard service instance.
+	 * @param    WSSCD_Logger            $logger               Logger instance.
 	 */
 	public function __construct( $dashboard_service, $logger = null ) {
 		parent::__construct( $logger );
@@ -54,7 +54,7 @@ class SCD_Main_Dashboard_Data_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_ajax';
+		return 'wsscd_ajax';
 	}
 
 	/**
@@ -64,7 +64,7 @@ class SCD_Main_Dashboard_Data_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Required capability.
 	 */
 	protected function get_required_capability() {
-		return 'scd_view_analytics';
+		return 'wsscd_view_analytics';
 	}
 
 	/**
@@ -90,7 +90,6 @@ class SCD_Main_Dashboard_Data_Handler extends SCD_Abstract_Ajax_Handler {
 					'campaign_stats' => isset( $data['campaign_stats'] ) ? $data['campaign_stats'] : array(),
 					'top_campaigns'  => isset( $data['top_campaigns'] ) ? $data['top_campaigns'] : array(),
 					'is_premium'     => isset( $data['is_premium'] ) ? $data['is_premium'] : false,
-					'campaign_limit' => isset( $data['campaign_limit'] ) ? $data['campaign_limit'] : 3,
 				),
 			);
 
@@ -125,7 +124,8 @@ class SCD_Main_Dashboard_Data_Handler extends SCD_Abstract_Ajax_Handler {
 	 */
 	protected function verify_request( $request ) {
 		// Verify nonce
-		if ( ! isset( $request['nonce'] ) || ! wp_verify_nonce( $request['nonce'], 'scd_main_dashboard' ) ) {
+		$nonce = isset( $request['nonce'] ) ? sanitize_text_field( $request['nonce'] ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'wsscd_main_dashboard' ) ) {
 			return new WP_Error(
 				'invalid_nonce',
 				__( 'Security verification failed', 'smart-cycle-discounts' )

@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/wizard
  */
-class SCD_Idempotency_Service {
+class WSSCD_Idempotency_Service {
 
 	/**
 	 * Cache duration for idempotent responses (10 minutes).
@@ -49,7 +49,7 @@ class SCD_Idempotency_Service {
 	 * State service instance for session access.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Wizard_State_Service|null
+	 * @var      WSSCD_Wizard_State_Service|null
 	 */
 	private $state_service;
 
@@ -57,17 +57,17 @@ class SCD_Idempotency_Service {
 	 * Cache manager instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Cache_Manager
+	 * @var      WSSCD_Cache_Manager
 	 */
-	private SCD_Cache_Manager $cache;
+	private WSSCD_Cache_Manager $cache;
 
 	/**
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Wizard_State_Service|null $state_service    State service instance.
+	 * @param    WSSCD_Wizard_State_Service|null $state_service    State service instance.
 	 */
-	public function __construct( SCD_Cache_Manager $cache, $state_service = null ) {
+	public function __construct( WSSCD_Cache_Manager $cache, $state_service = null ) {
 		$this->cache         = $cache;
 		$this->state_service = $state_service;
 	}
@@ -86,7 +86,7 @@ class SCD_Idempotency_Service {
 	 */
 	public function generate_key( $step, $data, $user_id ) {
 		$client_key = isset( $_SERVER['HTTP_X_IDEMPOTENCY_KEY'] )
-			? sanitize_text_field( $_SERVER['HTTP_X_IDEMPOTENCY_KEY'] )
+			? sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_IDEMPOTENCY_KEY'] ) )
 			: null;
 
 		if ( $client_key && preg_match( '/^[a-zA-Z0-9_-]{32,64}$/', $client_key ) ) {
@@ -118,7 +118,7 @@ class SCD_Idempotency_Service {
 		$timestamp = floor( time() / 60 );
 
 		return sprintf(
-			'scd_save_%s_%s_%d_%s_%d',
+			'wsscd_save_%s_%s_%d_%s_%d',
 			$step,
 			substr( $data_hash, 0, 16 ),
 			$user_id,
@@ -208,8 +208,8 @@ class SCD_Idempotency_Service {
 		}
 
 		// Processing lock key (used with wp_cache_add for atomic operations)
-		// Note: This bypasses Cache Manager for atomic locking, so uses scd_ prefix directly
-		$processing_key = 'scd_idem_proc_' . md5( $key );
+		// Note: This bypasses Cache Manager for atomic locking, so uses wsscd_ prefix directly
+		$processing_key = 'wsscd_idem_proc_' . md5( $key );
 
 		// Try to claim request atomically
 		// wp_cache_add only succeeds if key does not exist

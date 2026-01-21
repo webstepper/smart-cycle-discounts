@@ -16,9 +16,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-scd-ajax-response.php';
+require_once WSSCD_PLUGIN_DIR . 'includes/admin/ajax/class-wsscd-ajax-response.php';
 
-require_once SCD_PLUGIN_DIR . 'includes/core/analytics/trait-analytics-helpers.php';
+require_once WSSCD_PLUGIN_DIR . 'includes/core/analytics/trait-analytics-helpers.php';
 
 /**
  * Analytics Collector
@@ -30,45 +30,45 @@ require_once SCD_PLUGIN_DIR . 'includes/core/analytics/trait-analytics-helpers.p
  * @subpackage SmartCycleDiscounts/includes/core/analytics
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Analytics_Collector {
+class WSSCD_Analytics_Collector {
 
-	use SCD_Analytics_Helpers;
+	use WSSCD_Analytics_Helpers;
 
 	/**
 	 * Database manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Database_Manager    $database_manager    Database manager.
+	 * @var      WSSCD_Database_Manager    $database_manager    Database manager.
 	 */
-	private SCD_Database_Manager $database_manager;
+	private $database_manager;
 
 	/**
 	 * Cache manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Cache_Manager    $cache_manager    Cache manager.
+	 * @var      WSSCD_Cache_Manager    $cache_manager    Cache manager.
 	 */
-	private SCD_Cache_Manager $cache_manager;
+	private $cache_manager;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private $logger;
 
 	/**
 	 * E-commerce integration instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Ecommerce_Integration    $ecommerce_integration    E-commerce integration.
+	 * @var      WSSCD_Ecommerce_Integration    $ecommerce_integration    E-commerce integration.
 	 */
-	private SCD_Ecommerce_Integration $ecommerce_integration;
+	private $ecommerce_integration;
 
 	/**
 	 * Analytics table name.
@@ -77,23 +77,23 @@ class SCD_Analytics_Collector {
 	 * @access   private
 	 * @var      string    $analytics_table    Analytics table name.
 	 */
-	private string $analytics_table;
+	private $analytics_table;
 
 
 	/**
 	 * Initialize the analytics collector.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager      $database_manager       Database manager.
-	 * @param    SCD_Cache_Manager         $cache_manager          Cache manager.
-	 * @param    SCD_Logger                $logger                 Logger instance.
-	 * @param    SCD_Ecommerce_Integration $ecommerce_integration  E-commerce integration.
+	 * @param    WSSCD_Database_Manager      $database_manager       Database manager.
+	 * @param    WSSCD_Cache_Manager         $cache_manager          Cache manager.
+	 * @param    WSSCD_Logger                $logger                 Logger instance.
+	 * @param    WSSCD_Ecommerce_Integration $ecommerce_integration  E-commerce integration.
 	 */
 	public function __construct(
-		SCD_Database_Manager $database_manager,
-		SCD_Cache_Manager $cache_manager,
-		SCD_Logger $logger,
-		SCD_Ecommerce_Integration $ecommerce_integration
+		WSSCD_Database_Manager $database_manager,
+		WSSCD_Cache_Manager $cache_manager,
+		WSSCD_Logger $logger,
+		WSSCD_Ecommerce_Integration $ecommerce_integration
 	) {
 		$this->database_manager      = $database_manager;
 		$this->cache_manager         = $cache_manager;
@@ -101,7 +101,7 @@ class SCD_Analytics_Collector {
 		$this->ecommerce_integration = $ecommerce_integration;
 
 		global $wpdb;
-		$this->analytics_table = $wpdb->prefix . 'scd_analytics';
+		$this->analytics_table = $wpdb->prefix . 'wsscd_analytics';
 	}
 
 	/**
@@ -112,7 +112,7 @@ class SCD_Analytics_Collector {
 	 */
 	public function init(): void {
 		// Load AJAX security handler
-		require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
+		require_once WSSCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
 
 		$this->add_hooks();
 	}
@@ -128,14 +128,14 @@ class SCD_Analytics_Collector {
 		// Only register hooks if e-commerce platform is active
 		if ( ! $this->ecommerce_integration->is_active() ) {
 			// Log warning once per day (not on every request)
-			if ( ! get_transient( 'scd_woocommerce_warning_logged' ) ) {
+			if ( ! get_transient( 'wsscd_woocommerce_warning_logged' ) ) {
 				$this->logger->warning(
 					'E-commerce platform is not active - analytics tracking disabled',
 					array(
 						'platform' => $this->ecommerce_integration->get_platform_name(),
 					)
 				);
-				set_transient( 'scd_woocommerce_warning_logged', true, DAY_IN_SECONDS );
+				set_transient( 'wsscd_woocommerce_warning_logged', true, DAY_IN_SECONDS );
 			}
 			return;
 		}
@@ -144,8 +144,8 @@ class SCD_Analytics_Collector {
 		$this->ecommerce_integration->register_order_complete_hook( array( $this, 'track_purchase_complete' ) );
 
 		// Campaign tracking hooks
-		add_action( 'scd_campaign_activated', array( $this, 'track_campaign_activation' ), 10, 1 );
-		add_action( 'scd_campaign_deactivated', array( $this, 'track_campaign_deactivation' ), 10, 1 );
+		add_action( 'wsscd_campaign_activated', array( $this, 'track_campaign_activation' ), 10, 1 );
+		add_action( 'wsscd_campaign_deactivated', array( $this, 'track_campaign_deactivation' ), 10, 1 );
 
 		// AJAX tracking handled by specialized handlers (track-impression, track-click)
 
@@ -177,20 +177,25 @@ class SCD_Analytics_Collector {
 			$hour_recorded = (int) gmdate( 'H' );
 			$product_id    = isset( $context['product_id'] ) ? absint( $context['product_id'] ) : 0;
 
-			// Track campaign-level impression
+			// Track campaign-level impression.
+			// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Analytics INSERT/UPDATE on plugin's custom table.
 			$query = $wpdb->prepare(
-				"INSERT INTO {$this->analytics_table}
+				'INSERT INTO %i
                 (campaign_id, date_recorded, hour_recorded, impressions, created_at)
                 VALUES (%d, %s, %d, 1, %s)
                 ON DUPLICATE KEY UPDATE
-                    impressions = impressions + 1",
+                    impressions = impressions + 1',
+				$this->analytics_table,
 				$campaign_id,
 				$date_recorded,
 				$hour_recorded,
 				gmdate( 'Y-m-d H:i:s' )
 			);
 
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
 			$result = $wpdb->query( $query );
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 
 			// Track product-level impression if product_id provided
 			if ( $product_id > 0 ) {
@@ -247,19 +252,24 @@ class SCD_Analytics_Collector {
 			$hour_recorded = (int) gmdate( 'H' );
 
 			// Track campaign-level click
+			// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Analytics INSERT/UPDATE on plugin's custom table.
 			$query = $wpdb->prepare(
-				"INSERT INTO {$this->analytics_table}
+				'INSERT INTO %i
                 (campaign_id, date_recorded, hour_recorded, clicks, created_at)
                 VALUES (%d, %s, %d, 1, %s)
                 ON DUPLICATE KEY UPDATE
-                    clicks = clicks + 1",
+                    clicks = clicks + 1',
+				$this->analytics_table,
 				$campaign_id,
 				$date_recorded,
 				$hour_recorded,
 				gmdate( 'Y-m-d H:i:s' )
 			);
 
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
 			$result = $wpdb->query( $query );
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 
 			// Track product-level click if product_id provided
 			if ( $product_id > 0 ) {
@@ -356,7 +366,7 @@ class SCD_Analytics_Collector {
 	 * Track campaign activation.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   void
 	 */
 	public function track_campaign_activation( $campaign ): void {
@@ -380,7 +390,7 @@ class SCD_Analytics_Collector {
 	 * Track campaign deactivation.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   void
 	 */
 	public function track_campaign_deactivation( $campaign ): void {
@@ -418,24 +428,30 @@ class SCD_Analytics_Collector {
 		}
 
 		global $wpdb;
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
 		$now_utc         = gmdate( 'Y-m-d H:i:s' );
 
 		// Query active campaigns that include this product
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Campaign lookup for analytics.
 		$query = $wpdb->prepare(
-			"SELECT id, product_selection_type, product_ids
-            FROM {$campaigns_table}
-            WHERE status = 'active'
+			'SELECT id, product_selection_type, product_ids
+            FROM %i
+            WHERE status = %s
             AND deleted_at IS NULL
             AND ( starts_at IS NULL OR starts_at <= %s )
             AND ( ends_at IS NULL OR ends_at >= %s )
             ORDER BY priority DESC, created_at ASC
-            LIMIT 1",
+            LIMIT 1',
+			$campaigns_table,
+			'active',
 			$now_utc,
 			$now_utc
 		);
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
 		$campaigns = $wpdb->get_results( $query, ARRAY_A );
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 
 		if ( empty( $campaigns ) ) {
 			$this->cache_manager->set( $cache_key, 0, 300 );
@@ -499,8 +515,10 @@ class SCD_Analytics_Collector {
 		$is_new_customer = $this->is_new_customer_for_campaign( $campaign_id, $customer_id );
 
 		// Track campaign-level aggregated metrics
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Analytics INSERT/UPDATE on plugin's custom table.
 		$query = $wpdb->prepare(
-			"INSERT INTO {$this->analytics_table}
+			'INSERT INTO %i
             (campaign_id, date_recorded, hour_recorded, conversions, revenue, discount_given, product_cost, profit_margin, unique_customers, created_at)
             VALUES (%d, %s, %d, 1, %f, %f, %f, %f, %d, %s)
             ON DUPLICATE KEY UPDATE
@@ -509,7 +527,8 @@ class SCD_Analytics_Collector {
                 discount_given = discount_given + %f,
                 product_cost = product_cost + %f,
                 profit_margin = profit_margin + %f,
-                unique_customers = unique_customers + %d",
+                unique_customers = unique_customers + %d',
+			$this->analytics_table,
 			$campaign_id,
 			$date_recorded,
 			$hour_recorded,
@@ -526,7 +545,9 @@ class SCD_Analytics_Collector {
 			$is_new_customer ? 1 : 0
 		);
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
 		$result = $wpdb->query( $query );
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 
 		// Track product-level metrics
 		$this->track_product_conversion(
@@ -585,16 +606,20 @@ class SCD_Analytics_Collector {
 		}
 
 		global $wpdb;
-		$customer_usage_table = $wpdb->prefix . 'scd_customer_usage';
+		$customer_usage_table = $wpdb->prefix . 'wsscd_customer_usage';
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Customer usage lookup; must be real-time.
 		$usage_count = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$customer_usage_table}
-                WHERE campaign_id = %d AND customer_id = %d",
+				'SELECT COUNT(*) FROM %i
+                WHERE campaign_id = %d AND customer_id = %d',
+				$customer_usage_table,
 				$campaign_id,
 				$customer_id
 			)
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 
 		return 0 === (int) $usage_count;
 	}
@@ -609,9 +634,9 @@ class SCD_Analytics_Collector {
 	 */
 	private function invalidate_analytics_cache( ?int $campaign_id = null ): void {
 		if ( $campaign_id ) {
-			$this->cache_manager->delete( "scd_analytics_campaign_{$campaign_id}_7days" );
-			$this->cache_manager->delete( "scd_analytics_campaign_{$campaign_id}_30days" );
-			$this->cache_manager->delete( "scd_analytics_campaign_{$campaign_id}_90days" );
+			$this->cache_manager->delete( "wsscd_analytics_campaign_{$campaign_id}_7days" );
+			$this->cache_manager->delete( "wsscd_analytics_campaign_{$campaign_id}_30days" );
+			$this->cache_manager->delete( "wsscd_analytics_campaign_{$campaign_id}_90days" );
 			$this->cache_manager->delete( "active_campaign_for_product_{$campaign_id}" );
 		}
 
@@ -637,7 +662,7 @@ class SCD_Analytics_Collector {
 			$end_date        = $date_conditions['end_date'];
 
 			// Build SQL query based on granularity
-			$analytics_table = $wpdb->prefix . 'scd_analytics';
+			$analytics_table = $wpdb->prefix . 'wsscd_analytics';
 
 			// Base WHERE conditions
 			$where_parts  = array();
@@ -645,10 +670,10 @@ class SCD_Analytics_Collector {
 
 			// Date range filter
 			$where_parts[]  = 'date_recorded >= %s';
-			$where_values[] = date( 'Y-m-d', strtotime( $start_date ) );
+			$where_values[] = gmdate( 'Y-m-d', strtotime( $start_date ) );
 
 			$where_parts[]  = 'date_recorded <= %s';
-			$where_values[] = date( 'Y-m-d', strtotime( $end_date ) );
+			$where_values[] = gmdate( 'Y-m-d', strtotime( $end_date ) );
 
 			// Campaign filter (if specified)
 			if ( $campaign_id > 0 ) {
@@ -686,18 +711,22 @@ class SCD_Analytics_Collector {
 					break;
 			}
 
+			// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- Dynamic SELECT fields ($select_date), GROUP BY ($group_by), and ORDER BY ($order_by) are whitelisted expressions built from switch statements above. All user values go through prepare placeholders.
 			$sql = "SELECT
                         {$select_date},
                         SUM(revenue) as total_revenue,
                         SUM(conversions) as total_conversions,
                         SUM(impressions) as total_impressions,
                         SUM(clicks) as total_clicks
-                    FROM {$analytics_table}
+                    FROM %i
                     WHERE {$where_clause}
                     GROUP BY {$group_by}
                     ORDER BY {$order_by}";
 
-			$prepared_sql = $wpdb->prepare( $sql, $where_values );
+			$prepared_sql = $wpdb->prepare( $sql, array_merge( array( $analytics_table ), $where_values ) );
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query prepared above with wpdb->prepare(); analytics chart data.
 			$results      = $wpdb->get_results( $prepared_sql, ARRAY_A );
 
 			$labels = array();
@@ -760,7 +789,7 @@ class SCD_Analytics_Collector {
 			case 'hourly':
 				// Format: "2024-01-15 14:00" -> "Jan 15, 2pm"
 				$timestamp = strtotime( $period );
-				return date( 'M j, ga', $timestamp );
+				return wp_date( 'M j, ga', $timestamp );
 
 			case 'weekly':
 				// Format: "2024-Week 03" -> "Week 3, 2024"
@@ -772,13 +801,13 @@ class SCD_Analytics_Collector {
 			case 'monthly':
 				// Format: "2024-01" -> "January 2024"
 				$timestamp = strtotime( $period . '-01' );
-				return date( 'F Y', $timestamp );
+				return wp_date( 'F Y', $timestamp );
 
 			case 'daily':
 			default:
 				// Format: "2024-01-15" -> "Jan 15"
 				$timestamp = strtotime( $period );
-				return date( 'M j', $timestamp );
+				return wp_date( 'M j', $timestamp );
 		}
 	}
 
@@ -800,15 +829,15 @@ class SCD_Analytics_Collector {
 		switch ( $granularity ) {
 			case 'hourly':
 				while ( $current <= $end ) {
-					$labels[] = date( 'M j, ga', $current );
+					$labels[] = wp_date( 'M j, ga', $current );
 					$current  = strtotime( '+1 hour', $current );
 				}
 				break;
 
 			case 'weekly':
 				while ( $current <= $end ) {
-					$week     = date( 'W', $current );
-					$year     = date( 'Y', $current );
+					$week     = gmdate( 'W', $current );
+					$year     = gmdate( 'Y', $current );
 					$labels[] = 'Week ' . intval( $week ) . ', ' . $year;
 					$current  = strtotime( '+1 week', $current );
 				}
@@ -816,7 +845,7 @@ class SCD_Analytics_Collector {
 
 			case 'monthly':
 				while ( $current <= $end ) {
-					$labels[] = date( 'F Y', $current );
+					$labels[] = wp_date( 'F Y', $current );
 					$current  = strtotime( '+1 month', $current );
 				}
 				break;
@@ -824,7 +853,7 @@ class SCD_Analytics_Collector {
 			case 'daily':
 			default:
 				while ( $current <= $end ) {
-					$labels[] = date( 'M j', $current );
+					$labels[] = wp_date( 'M j', $current );
 					$current  = strtotime( '+1 day', $current );
 				}
 				break;
@@ -846,14 +875,17 @@ class SCD_Analytics_Collector {
 	 */
 	private function track_product_impression( int $campaign_id, int $product_id, string $date_recorded, int $hour_recorded ): void {
 		global $wpdb;
-		$product_analytics_table = $wpdb->prefix . 'scd_product_analytics';
+		$product_analytics_table = $wpdb->prefix . 'wsscd_product_analytics';
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Analytics INSERT/UPDATE; caching not appropriate for real-time tracking.
 		$query = $wpdb->prepare(
-			"INSERT INTO {$product_analytics_table}
+			'INSERT INTO %i
             (campaign_id, product_id, date_recorded, hour_recorded, impressions, created_at)
             VALUES (%d, %d, %s, %d, 1, %s)
             ON DUPLICATE KEY UPDATE
-                impressions = impressions + 1",
+                impressions = impressions + 1',
+			$product_analytics_table,
 			$campaign_id,
 			$product_id,
 			$date_recorded,
@@ -861,7 +893,9 @@ class SCD_Analytics_Collector {
 			gmdate( 'Y-m-d H:i:s' )
 		);
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
 		$wpdb->query( $query );
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 	}
 
 	/**
@@ -877,14 +911,17 @@ class SCD_Analytics_Collector {
 	 */
 	private function track_product_click( int $campaign_id, int $product_id, string $date_recorded, int $hour_recorded ): void {
 		global $wpdb;
-		$product_analytics_table = $wpdb->prefix . 'scd_product_analytics';
+		$product_analytics_table = $wpdb->prefix . 'wsscd_product_analytics';
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Analytics INSERT/UPDATE; caching not appropriate for real-time tracking.
 		$query = $wpdb->prepare(
-			"INSERT INTO {$product_analytics_table}
+			'INSERT INTO %i
             (campaign_id, product_id, date_recorded, hour_recorded, clicks, created_at)
             VALUES (%d, %d, %s, %d, 1, %s)
             ON DUPLICATE KEY UPDATE
-                clicks = clicks + 1",
+                clicks = clicks + 1',
+			$product_analytics_table,
 			$campaign_id,
 			$product_id,
 			$date_recorded,
@@ -892,7 +929,9 @@ class SCD_Analytics_Collector {
 			gmdate( 'Y-m-d H:i:s' )
 		);
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
 		$wpdb->query( $query );
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 	}
 
 	/**
@@ -925,10 +964,12 @@ class SCD_Analytics_Collector {
 		bool $is_new_customer
 	): void {
 		global $wpdb;
-		$product_analytics_table = $wpdb->prefix . 'scd_product_analytics';
+		$product_analytics_table = $wpdb->prefix . 'wsscd_product_analytics';
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Analytics INSERT/UPDATE; caching not appropriate for real-time tracking.
 		$query = $wpdb->prepare(
-			"INSERT INTO {$product_analytics_table}
+			'INSERT INTO %i
             (campaign_id, product_id, date_recorded, hour_recorded, conversions, revenue, discount_given, product_cost, profit, quantity_sold, unique_customers, created_at)
             VALUES (%d, %d, %s, %d, 1, %f, %f, %f, %f, %d, %d, %s)
             ON DUPLICATE KEY UPDATE
@@ -938,7 +979,8 @@ class SCD_Analytics_Collector {
                 product_cost = product_cost + %f,
                 profit = profit + %f,
                 quantity_sold = quantity_sold + %d,
-                unique_customers = unique_customers + %d",
+                unique_customers = unique_customers + %d',
+			$product_analytics_table,
 			$campaign_id,
 			$product_id,
 			$date_recorded,
@@ -958,7 +1000,9 @@ class SCD_Analytics_Collector {
 			$is_new_customer ? 1 : 0
 		);
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
 		$wpdb->query( $query );
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 	}
 
 	/**
@@ -1002,7 +1046,7 @@ class SCD_Analytics_Collector {
 	 */
 	public function get_top_products_by_revenue( string $date_range = '30days', int $limit = 10 ): array {
 		// Create analytics repository instance
-		$repository = new SCD_Analytics_Repository( $this->database_manager );
+		$repository = new WSSCD_Analytics_Repository( $this->database_manager );
 
 		// Calculate date range
 		$dates = $this->parse_date_range( $date_range );
@@ -1034,23 +1078,29 @@ class SCD_Analytics_Collector {
 		$date_range = isset( $args['date_range'] ) ? $args['date_range'] : '30days';
 		$dates      = $this->parse_date_range( $date_range );
 
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
 
 		// Get campaign IDs
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Campaign performance lookup.
 		$campaign_ids = $wpdb->get_col(
 			$wpdb->prepare(
-				"SELECT id FROM {$campaigns_table}
-				WHERE status = 'active' OR status = 'completed'
-				ORDER BY created_at DESC"
+				'SELECT id FROM %i
+				WHERE status = %s OR status = %s
+				ORDER BY created_at DESC',
+				$campaigns_table,
+				'active',
+				'completed'
 			)
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 
 		if ( empty( $campaign_ids ) ) {
 			return array();
 		}
 
 		// Create analytics repository instance
-		$repository = new SCD_Analytics_Repository( $this->database_manager );
+		$repository = new WSSCD_Analytics_Repository( $this->database_manager );
 		$results    = array();
 
 		foreach ( $campaign_ids as $campaign_id ) {
@@ -1058,12 +1108,16 @@ class SCD_Analytics_Collector {
 
 			if ( ! empty( $data ) ) {
 				// Get campaign details
+				// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+				// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Campaign lookup.
 				$campaign = $wpdb->get_row(
 					$wpdb->prepare(
-						"SELECT name, status FROM {$campaigns_table} WHERE id = %d",
+						'SELECT name, status FROM %i WHERE id = %d',
+						$campaigns_table,
 						$campaign_id
 					)
 				);
+				// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 
 				// Calculate ROI (Return on Investment)
 				$revenue = isset( $data['revenue'] ) ? floatval( $data['revenue'] ) : 0;
@@ -1073,7 +1127,7 @@ class SCD_Analytics_Collector {
 				// Build campaign URLs
 				$edit_url = add_query_arg(
 					array(
-						'page'   => 'scd-campaigns',
+						'page'   => 'wsscd-campaigns',
 						'action' => 'wizard',
 						'id'     => $campaign_id,
 					),
@@ -1082,7 +1136,7 @@ class SCD_Analytics_Collector {
 
 				$view_url = add_query_arg(
 					array(
-						'page'        => 'scd-analytics',
+						'page'        => 'wsscd-analytics',
 						'campaign_id' => $campaign_id,
 					),
 					admin_url( 'admin.php' )
@@ -1153,6 +1207,82 @@ class SCD_Analytics_Collector {
 			'start' => $start_date,
 			'end'   => $end_date,
 		);
+	}
+
+	/**
+	 * Get daily metrics for a date range.
+	 *
+	 * @since    1.0.0
+	 * @param    string $date_range    Date range (e.g., '30days', '7days').
+	 * @return   array                    Daily metrics data.
+	 */
+	public function get_daily_metrics( string $date_range = '30days' ): array {
+		global $wpdb;
+
+		try {
+			$date_conditions = $this->get_date_range_conditions( $date_range );
+
+			// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Daily metrics query; no caching needed.
+			$results = $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT
+						date_recorded,
+						COALESCE(SUM(impressions), 0) as impressions,
+						COALESCE(SUM(clicks), 0) as clicks,
+						COALESCE(SUM(conversions), 0) as conversions,
+						COALESCE(SUM(revenue), 0) as revenue,
+						COALESCE(SUM(discount_given), 0) as discount_given
+					FROM %i
+					WHERE date_recorded BETWEEN %s AND %s
+					GROUP BY date_recorded
+					ORDER BY date_recorded ASC',
+					$this->analytics_table,
+					gmdate( 'Y-m-d', strtotime( $date_conditions['start_date'] ) ),
+					gmdate( 'Y-m-d', strtotime( $date_conditions['end_date'] ) )
+				),
+				ARRAY_A
+			);
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
+
+			if ( ! $results ) {
+				return array();
+			}
+
+			// Transform results into more usable format
+			$daily_data = array();
+			foreach ( $results as $row ) {
+				$impressions = (int) $row['impressions'];
+				$clicks      = (int) $row['clicks'];
+				$conversions = (int) $row['conversions'];
+				$revenue     = (float) $row['revenue'];
+
+				$daily_data[] = array(
+					'date'            => $row['date_recorded'],
+					'impressions'     => $impressions,
+					'clicks'          => $clicks,
+					'conversions'     => $conversions,
+					'revenue'         => $revenue,
+					'discount_given'  => (float) $row['discount_given'],
+					'ctr'             => $impressions > 0 ? round( ( $clicks / $impressions ) * 100, 2 ) : 0,
+					'conversion_rate' => $clicks > 0 ? round( ( $conversions / $clicks ) * 100, 2 ) : 0,
+					'aov'             => $conversions > 0 ? round( $revenue / $conversions, 2 ) : 0,
+				);
+			}
+
+			return $daily_data;
+
+		} catch ( Exception $e ) {
+			$this->logger->error(
+				'Failed to get daily metrics',
+				array(
+					'error'      => $e->getMessage(),
+					'date_range' => $date_range,
+				)
+			);
+
+			return array();
+		}
 	}
 
 }

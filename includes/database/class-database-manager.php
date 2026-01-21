@@ -11,9 +11,8 @@
  * @since      1.0.0
  */
 
-
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit; // Exit if accessed directly.
 }
 
 
@@ -27,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/database
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Database_Manager {
+class WSSCD_Database_Manager {
 
 	/**
 	 * WordPress database instance.
@@ -79,13 +78,16 @@ class SCD_Database_Manager {
 	 */
 	private function setup_table_names(): void {
 		$this->tables = array(
-			'campaigns'            => $this->wpdb->prefix . 'scd_campaigns',
-			'campaign_conditions'  => $this->wpdb->prefix . 'scd_campaign_conditions',
-			'active_discounts'     => $this->wpdb->prefix . 'scd_active_discounts',
-			'analytics'            => $this->wpdb->prefix . 'scd_analytics',
-			'customer_usage'       => $this->wpdb->prefix . 'scd_customer_usage',
-			'campaign_recurring'   => $this->wpdb->prefix . 'scd_campaign_recurring',
-			'migrations'           => $this->wpdb->prefix . 'scd_migrations',
+			'campaigns'           => $this->wpdb->prefix . 'wsscd_campaigns',
+			'campaign_conditions' => $this->wpdb->prefix . 'wsscd_campaign_conditions',
+			'active_discounts'    => $this->wpdb->prefix . 'wsscd_active_discounts',
+			'analytics'           => $this->wpdb->prefix . 'wsscd_analytics',
+			'customer_usage'      => $this->wpdb->prefix . 'wsscd_customer_usage',
+			'campaign_recurring'  => $this->wpdb->prefix . 'wsscd_campaign_recurring',
+			'activity_log'        => $this->wpdb->prefix . 'wsscd_activity_log',
+			'product_analytics'   => $this->wpdb->prefix . 'wsscd_product_analytics',
+			'recurring_cache'     => $this->wpdb->prefix . 'wsscd_recurring_cache',
+			'migrations'          => $this->wpdb->prefix . 'wsscd_migrations',
 		);
 	}
 
@@ -126,11 +128,13 @@ class SCD_Database_Manager {
 			return false;
 		}
 
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- SHOW TABLES has no WP abstraction; ephemeral check, caching not appropriate. Query IS prepared.
 		$result = $this->wpdb->get_var(
 			$this->wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name )
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 
-		return $result === $table_name;
+		return $table_name === $result;
 	}
 
 	/**
@@ -141,17 +145,14 @@ class SCD_Database_Manager {
 	 * @return   array                    Array of column names.
 	 */
 	public function get_columns( string $table_name ): array {
-		// Validate table name against whitelist to prevent SQL injection
+		// Validate table name against whitelist to prevent SQL injection.
 		if ( ! in_array( $table_name, $this->tables, true ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD_Database] Invalid table name requested: ' . $table_name );
-			}
 			return array();
 		}
 
 		$columns = array();
 
-		// Use INFORMATION_SCHEMA for safer column lookup
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- INFORMATION_SCHEMA query has no WP abstraction; schema inspection, caching not appropriate. Query IS prepared.
 		$results = $this->wpdb->get_results(
 			$this->wpdb->prepare(
 				'SELECT COLUMN_NAME
@@ -163,9 +164,11 @@ class SCD_Database_Manager {
 				$table_name
 			)
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 
 		if ( ! empty( $results ) ) {
 			foreach ( $results as $column ) {
+				// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- MySQL INFORMATION_SCHEMA column name.
 				$columns[] = $column->COLUMN_NAME;
 			}
 		}
@@ -180,27 +183,28 @@ class SCD_Database_Manager {
 	 * @param    string $query    SQL query.
 	 * @return   int|false           Number of rows affected or false on error.
 	 */
-	public function query( string $query ): int|false {
+	public function query( string $query ) {
 		$start_time = microtime( true );
-		$result     = $this->wpdb->query( $query );
-		$duration   = microtime( true ) - $start_time;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Generic query method; receives pre-prepared queries from calling code; caching handled via WSSCD_Cache_Manager.
+		$result   = $this->wpdb->query( $query );
+		$duration = microtime( true ) - $start_time;
 
-		// Debug: Log database query
-		if ( function_exists( 'scd_debug_database' ) ) {
-			scd_debug_database( 'query', 'custom', array( 'query' => $query ), $result, $duration );
+		// Log database query for debugging.
+		if ( function_exists( 'wsscd_debug_database' ) ) {
+			wsscd_debug_database( 'query', 'custom', array( 'query' => $query ), $result, $duration );
 		}
 
-		// Handle wpdb->query return types correctly
-		// Returns: int (rows affected), false (error), or true (DDL success)
+		// Handle wpdb->query return types correctly.
+		// Returns: int (rows affected), false (error), or true (DDL success).
 		if ( false === $result ) {
-			return false; // Error
+			return false; // Error.
 		}
 
 		if ( true === $result ) {
-			return 1; // DDL success (CREATE, ALTER, DROP) - return 1, not 0
+			return 1; // DDL success (CREATE, ALTER, DROP) - return 1, not 0.
 		}
 
-		return (int) $result; // Affected rows
+		return (int) $result; // Affected rows.
 	}
 
 	/**
@@ -211,8 +215,9 @@ class SCD_Database_Manager {
 	 * @return   string|null         Variable value or null.
 	 */
 	public function get_var( string $query ): ?string {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Generic query method; receives pre-prepared queries from calling code; caching handled via WSSCD_Cache_Manager.
 		$result = $this->wpdb->get_var( $query );
-		return $result !== null ? (string) $result : null;
+		return null !== $result ? (string) $result : null;
 	}
 
 	/**
@@ -223,7 +228,8 @@ class SCD_Database_Manager {
 	 * @param    string $output     Output type (OBJECT, ARRAY_A, ARRAY_N).
 	 * @return   mixed                 Row data or null.
 	 */
-	public function get_row( string $query, string $output = OBJECT ): mixed {
+	public function get_row( string $query, string $output = OBJECT ) {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Generic query method; receives pre-prepared queries from calling code; caching handled via WSSCD_Cache_Manager.
 		return $this->wpdb->get_row( $query, $output );
 	}
 
@@ -237,13 +243,14 @@ class SCD_Database_Manager {
 	 */
 	public function get_results( string $query, string $output = OBJECT ): array {
 		$start_time = microtime( true );
-		$results    = $this->wpdb->get_results( $query, $output );
-		$duration   = microtime( true ) - $start_time;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Generic query method; receives pre-prepared queries from calling code; caching handled via WSSCD_Cache_Manager.
+		$results  = $this->wpdb->get_results( $query, $output );
+		$duration = microtime( true ) - $start_time;
 
-		// Debug: Log select operation
-		if ( function_exists( 'scd_debug_database' ) ) {
+		// Log select operation for debugging.
+		if ( function_exists( 'wsscd_debug_database' ) ) {
 			$row_count = is_array( $results ) ? count( $results ) : 0;
-			scd_debug_database( 'select', 'custom', array( 'query' => $query ), $row_count, $duration );
+			wsscd_debug_database( 'select', 'custom', array( 'query' => $query ), $row_count, $duration );
 		}
 
 		return is_array( $results ) ? $results : array();
@@ -258,35 +265,29 @@ class SCD_Database_Manager {
 	 * @param    array  $format   Data format.
 	 * @return   int|false           Insert ID or false on error.
 	 */
-	public function insert( string $table, array $data, array $format = array() ): int|false {
+	public function insert( string $table, array $data, array $format = array() ) {
 		$table_name = $this->get_table_name( $table );
 		if ( empty( $table_name ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD_Database] Insert failed: Invalid table name for ' . $table );
-			}
 			return false;
 		}
 
 		$start_time = microtime( true );
-		$result     = $this->wpdb->insert( $table_name, $data, $format );
-		$duration   = microtime( true ) - $start_time;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Insert into plugin's custom tables; cache invalidated after operation.
+		$result   = $this->wpdb->insert( $table_name, $data, $format );
+		$duration = microtime( true ) - $start_time;
 
-		if ( $result === false ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD_Database] Insert failed: ' . $this->wpdb->last_error );
-			}
-
-			// Debug: Log failed insert
-			if ( function_exists( 'scd_debug_database' ) ) {
-				scd_debug_database( 'insert', $table, $data, false, $duration );
+		if ( false === $result ) {
+			// Log failed insert for debugging.
+			if ( function_exists( 'wsscd_debug_database' ) ) {
+				wsscd_debug_database( 'insert', $table, $data, false, $duration );
 			}
 
 			return false;
 		}
 
-		// Debug: Log successful insert
-		if ( function_exists( 'scd_debug_database' ) ) {
-			scd_debug_database( 'insert', $table, $data, $this->wpdb->insert_id, $duration );
+		// Log successful insert for debugging.
+		if ( function_exists( 'wsscd_debug_database' ) ) {
+			wsscd_debug_database( 'insert', $table, $data, $this->wpdb->insert_id, $duration );
 		}
 
 		return $this->wpdb->insert_id;
@@ -303,20 +304,21 @@ class SCD_Database_Manager {
 	 * @param    array  $where_format WHERE format.
 	 * @return   int|false               Number of rows updated or false on error.
 	 */
-	public function update( string $table, array $data, array $where, array $format = array(), array $where_format = array() ): int|false {
+	public function update( string $table, array $data, array $where, array $format = array(), array $where_format = array() ) {
 		$table_name = $this->get_table_name( $table );
 		if ( empty( $table_name ) ) {
 			return false;
 		}
 
 		$start_time = microtime( true );
-		$result     = $this->wpdb->update( $table_name, $data, $where, $format, $where_format );
-		$duration   = microtime( true ) - $start_time;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Update plugin's custom tables; cache invalidated after operation via WSSCD_Cache_Manager.
+		$result   = $this->wpdb->update( $table_name, $data, $where, $format, $where_format );
+		$duration = microtime( true ) - $start_time;
 
-		// Debug: Log update operation
-		if ( function_exists( 'scd_debug_database' ) ) {
+		// Log update operation for debugging.
+		if ( function_exists( 'wsscd_debug_database' ) ) {
 			$update_data = array_merge( $data, array( 'where' => $where ) );
-			scd_debug_database( 'update', $table, $update_data, $result, $duration );
+			wsscd_debug_database( 'update', $table, $update_data, $result, $duration );
 		}
 
 		return $result;
@@ -331,19 +333,20 @@ class SCD_Database_Manager {
 	 * @param    array  $where_format WHERE format.
 	 * @return   int|false               Number of rows deleted or false on error.
 	 */
-	public function delete( string $table, array $where, array $where_format = array() ): int|false {
+	public function delete( string $table, array $where, array $where_format = array() ) {
 		$table_name = $this->get_table_name( $table );
 		if ( empty( $table_name ) ) {
 			return false;
 		}
 
 		$start_time = microtime( true );
-		$result     = $this->wpdb->delete( $table_name, $where, $where_format );
-		$duration   = microtime( true ) - $start_time;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Delete from plugin's custom tables; cache invalidated after operation via WSSCD_Cache_Manager.
+		$result   = $this->wpdb->delete( $table_name, $where, $where_format );
+		$duration = microtime( true ) - $start_time;
 
-		// Debug: Log delete operation
-		if ( function_exists( 'scd_debug_database' ) ) {
-			scd_debug_database( 'delete', $table, array( 'where' => $where ), $result, $duration );
+		// Log delete operation for debugging.
+		if ( function_exists( 'wsscd_debug_database' ) ) {
+			wsscd_debug_database( 'delete', $table, array( 'where' => $where ), $result, $duration );
 		}
 
 		return $result;
@@ -358,6 +361,7 @@ class SCD_Database_Manager {
 	 * @return   string              Prepared query.
 	 */
 	public function prepare( string $query, ...$args ): string {
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This is a wrapper method; $query contains placeholders, $args contains values.
 		return $this->wpdb->prepare( $query, ...$args );
 	}
 
@@ -368,7 +372,8 @@ class SCD_Database_Manager {
 	 * @return   bool    True on success, false on failure.
 	 */
 	public function start_transaction(): bool {
-		return $this->wpdb->query( 'START TRANSACTION' ) !== false;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Transaction control has no WP abstraction.
+		return false !== $this->wpdb->query( 'START TRANSACTION' );
 	}
 
 	/**
@@ -378,7 +383,8 @@ class SCD_Database_Manager {
 	 * @return   bool    True on success, false on failure.
 	 */
 	public function commit(): bool {
-		return $this->wpdb->query( 'COMMIT' ) !== false;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Transaction control has no WP abstraction.
+		return false !== $this->wpdb->query( 'COMMIT' );
 	}
 
 	/**
@@ -388,7 +394,8 @@ class SCD_Database_Manager {
 	 * @return   bool    True on success, false on failure.
 	 */
 	public function rollback(): bool {
-		return $this->wpdb->query( 'ROLLBACK' ) !== false;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Transaction control has no WP abstraction.
+		return false !== $this->wpdb->query( 'ROLLBACK' );
 	}
 
 	/**
@@ -397,8 +404,9 @@ class SCD_Database_Manager {
 	 * @since    1.0.0
 	 * @param    callable $callback    Callback to execute.
 	 * @return   mixed                    Callback result or false on error.
+	 * @throws   Exception                 Re-throws any exception from the callback.
 	 */
-	public function transaction( callable $callback ): mixed {
+	public function transaction( callable $callback ) {
 		if ( ! $this->start_transaction() ) {
 			return false;
 		}
@@ -406,7 +414,7 @@ class SCD_Database_Manager {
 		try {
 			$result = $callback( $this );
 
-			if ( $result === false ) {
+			if ( false === $result ) {
 				$this->rollback();
 				return false;
 			}
@@ -492,15 +500,17 @@ class SCD_Database_Manager {
 	 * @return   int                      Table size in bytes.
 	 */
 	private function get_table_size( string $table_name ): int {
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- INFORMATION_SCHEMA query has no WP abstraction; admin stats only, caching not appropriate. Query IS prepared.
 		$result = $this->wpdb->get_row(
 			$this->wpdb->prepare(
-				'SELECT (data_length + index_length) as size 
-                 FROM information_schema.TABLES 
-                 WHERE table_schema = %s AND table_name = %s',
+				'SELECT (data_length + index_length) as size
+				FROM information_schema.TABLES
+				WHERE table_schema = %s AND table_name = %s',
 				DB_NAME,
 				$table_name
 			)
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 
 		return $result ? (int) $result->size : 0;
 	}
@@ -514,14 +524,11 @@ class SCD_Database_Manager {
 	 * @return   int                      Row count.
 	 */
 	private function get_table_count( string $table_name ): int {
-		if ( ! preg_match( '/^[a-zA-Z0-9_]+$/', $table_name ) ) {
-			return 0;
-		}
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		$sql = $this->wpdb->prepare( 'SELECT COUNT(*) FROM %i', $table_name );
 
-		// Table names cannot be prepared with placeholders
-		// We ensure safety by validating the table name above
-		$query  = "SELECT COUNT(*) FROM `{$table_name}`";
-		$result = $this->wpdb->get_var( $query );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
+		$result = $this->wpdb->get_var( $sql );
 
 		return $result ? (int) $result : 0;
 	}
@@ -537,12 +544,12 @@ class SCD_Database_Manager {
 
 		foreach ( $this->tables as $key => $table_name ) {
 			if ( $this->table_exists( $key ) ) {
-				if ( preg_match( '/^[a-zA-Z0-9_]+$/', $table_name ) ) {
-					$result          = $this->wpdb->query( "OPTIMIZE TABLE `{$table_name}`" );
-					$results[ $key ] = $result !== false;
-				} else {
-					$results[ $key ] = false;
-				}
+				// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+				$sql = $this->wpdb->prepare( 'OPTIMIZE TABLE %i', $table_name );
+
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above; OPTIMIZE TABLE on plugin's custom table.
+				$result          = $this->wpdb->query( $sql );
+				$results[ $key ] = false !== $result;
 			}
 		}
 
@@ -560,12 +567,12 @@ class SCD_Database_Manager {
 
 		foreach ( $this->tables as $key => $table_name ) {
 			if ( $this->table_exists( $key ) ) {
-				if ( preg_match( '/^[a-zA-Z0-9_]+$/', $table_name ) ) {
-					$result          = $this->wpdb->query( "REPAIR TABLE `{$table_name}`" );
-					$results[ $key ] = $result !== false;
-				} else {
-					$results[ $key ] = false;
-				}
+				// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+				$sql = $this->wpdb->prepare( 'REPAIR TABLE %i', $table_name );
+
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above; REPAIR TABLE on plugin's custom table.
+				$result          = $this->wpdb->query( $sql );
+				$results[ $key ] = false !== $result;
 			}
 		}
 

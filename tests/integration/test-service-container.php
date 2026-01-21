@@ -9,6 +9,9 @@
  * @subpackage Smart_Cycle_Discounts/Tests/Integration
  */
 
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter
+// This is a test file, not production code.
+
 /**
  * Test Service Container class
  *
@@ -26,7 +29,7 @@ class Test_Service_Container extends WP_UnitTestCase {
 	/**
 	 * Container instance.
 	 *
-	 * @var SCD_Container
+	 * @var WSSCD_Container
 	 */
 	private $container;
 
@@ -50,7 +53,7 @@ class Test_Service_Container extends WP_UnitTestCase {
 	public function tearDown(): void {
 		// Clean up campaigns before users to avoid foreign key constraint violations
 		global $wpdb;
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
 		$wpdb->query( "DELETE FROM {$campaigns_table}" );
 
 		parent::tearDown();
@@ -177,41 +180,41 @@ class Test_Service_Container extends WP_UnitTestCase {
 		// Test logger resolves
 		$logger = $this->container->get( 'logger' );
 		$this->assertInstanceOf(
-			'SCD_Logger',
+			'WSSCD_Logger',
 			$logger,
-			'Logger service should resolve to SCD_Logger instance'
+			'Logger service should resolve to WSSCD_Logger instance'
 		);
 
 		// Test campaign manager resolves
 		$campaign_manager = $this->container->get( 'campaign_manager' );
 		$this->assertInstanceOf(
-			'SCD_Campaign_Manager',
+			'WSSCD_Campaign_Manager',
 			$campaign_manager,
-			'Campaign manager should resolve to SCD_Campaign_Manager instance'
+			'Campaign manager should resolve to WSSCD_Campaign_Manager instance'
 		);
 
 		// Test campaign repository resolves
 		$campaign_repository = $this->container->get( 'campaign_repository' );
 		$this->assertInstanceOf(
-			'SCD_Campaign_Repository',
+			'WSSCD_Campaign_Repository',
 			$campaign_repository,
-			'Campaign repository should resolve to SCD_Campaign_Repository instance'
+			'Campaign repository should resolve to WSSCD_Campaign_Repository instance'
 		);
 
 		// Test discount engine resolves
 		$discount_engine = $this->container->get( 'discount_engine' );
 		$this->assertInstanceOf(
-			'SCD_Discount_Engine',
+			'WSSCD_Discount_Engine',
 			$discount_engine,
-			'Discount engine should resolve to SCD_Discount_Engine instance'
+			'Discount engine should resolve to WSSCD_Discount_Engine instance'
 		);
 
 		// Test product selector resolves
 		$product_selector = $this->container->get( 'product_selector' );
 		$this->assertInstanceOf(
-			'SCD_Product_Selector',
+			'WSSCD_Product_Selector',
 			$product_selector,
-			'Product selector should resolve to SCD_Product_Selector instance'
+			'Product selector should resolve to WSSCD_Product_Selector instance'
 		);
 	}
 
@@ -269,7 +272,7 @@ class Test_Service_Container extends WP_UnitTestCase {
 
 		// Verify campaign manager was created (dependencies resolved)
 		$this->assertInstanceOf(
-			'SCD_Campaign_Manager',
+			'WSSCD_Campaign_Manager',
 			$campaign_manager,
 			'Campaign manager should be instantiated with all dependencies'
 		);
@@ -293,7 +296,7 @@ class Test_Service_Container extends WP_UnitTestCase {
 		$campaign_manager = $this->container->get( 'campaign_manager' );
 
 		$this->assertInstanceOf(
-			'SCD_Campaign_Manager',
+			'WSSCD_Campaign_Manager',
 			$campaign_manager,
 			'Container should successfully resolve campaign_manager with all dependencies'
 		);
@@ -302,7 +305,7 @@ class Test_Service_Container extends WP_UnitTestCase {
 		$discount_applicator = $this->container->get( 'discount_applicator' );
 
 		$this->assertInstanceOf(
-			'SCD_Discount_Applicator',
+			'WSSCD_Discount_Applicator',
 			$discount_applicator,
 			'Container should successfully resolve discount_applicator with nested dependencies'
 		);

@@ -44,7 +44,7 @@
 		 * Initialize the session monitor
 		 */
 		init: function() {
-			if ( 'undefined' === typeof window.SCD || ! window.SCD.Wizard ) {
+			if ( 'undefined' === typeof window.WSSCD || ! window.WSSCD.Wizard ) {
 				return;
 			}
 
@@ -97,17 +97,17 @@
 			this.lastCheck = now;
 
 			// Make AJAX request to check session using AjaxService
-			if ( ! window.SCD || ! window.SCD.Shared || ! window.SCD.Shared.AjaxService ) {
-				console.error( '[SCD Session Monitor] AjaxService not available' );
+			if ( ! window.WSSCD || ! window.WSSCD.Shared || ! window.WSSCD.Shared.AjaxService ) {
+				console.error( '[WSSCD Session Monitor] AjaxService not available' );
 				return;
 			}
 
-			window.SCD.Shared.AjaxService.post( 'session_status', {}, {} ).then( function( response ) {
+			window.WSSCD.Shared.AjaxService.post( 'session_status', {}, {} ).then( function( response ) {
 				if ( response.success && response.data ) {
 					self.handleSessionStatus( response.data );
 				}
 			} ).catch( function( error ) {
-				console.error( '[SCD Session Monitor] AJAX error:', error );
+				console.error( '[WSSCD Session Monitor] AJAX error:', error );
 			} );
 		},
 
@@ -148,8 +148,8 @@
 			var message = 'Your session will expire in ' + minutes + ' minute' + ( 1 !== minutes ? 's' : '' ) + '. ';
 			message += 'Save your progress to avoid losing data.';
 
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
-				window.SCD.Shared.NotificationService.warning(
+			if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.NotificationService ) {
+				window.WSSCD.Shared.NotificationService.warning(
 					'Session Expiration Warning: ' + message,
 					10000, // 10 seconds for important session warning
 					{
@@ -160,8 +160,8 @@
 			}
 
 			// Trigger event via EventBus
-			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.EventBus ) {
-				window.SCD.Wizard.EventBus.emit( 'session:warning', {
+			if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.EventBus ) {
+				window.WSSCD.Wizard.EventBus.emit( 'session:warning', {
 					timeRemaining: timeRemaining,
 					minutes: minutes
 				} );
@@ -173,17 +173,17 @@
 		 */
 		showSessionExpiredModal: function() {
 			// Create modal HTML
-			var modalHtml = '<div class="scd-modal-overlay scd-session-expired-modal">' +
-				'<div class="scd-modal scd-modal--medium">' +
-				'<div class="scd-modal__header">' +
-				'<h2 class="scd-modal__title">Session Expired</h2>' +
+			var modalHtml = '<div class="wsscd-modal-overlay wsscd-session-expired-modal">' +
+				'<div class="wsscd-modal wsscd-modal--medium">' +
+				'<div class="wsscd-modal__header">' +
+				'<h2 class="wsscd-modal__title">Session Expired</h2>' +
 				'</div>' +
-				'<div class="scd-modal__content">' +
+				'<div class="wsscd-modal__content">' +
 				'<p>Your session has expired. Any unsaved changes may be lost.</p>' +
 				'<p>Please refresh the page to continue working.</p>' +
 				'</div>' +
-				'<div class="scd-modal__footer">' +
-				'<button type="button" class="button button-primary scd-refresh-page">Refresh Page</button>' +
+				'<div class="wsscd-modal__footer">' +
+				'<button type="button" class="button button-primary wsscd-refresh-page">Refresh Page</button>' +
 				'</div>' +
 				'</div>' +
 				'</div>';
@@ -193,21 +193,21 @@
 			$( 'body' ).append( $modal );
 
 			// Bind refresh button
-			$modal.find( '.scd-refresh-page' ).on( 'click', function() {
+			$modal.find( '.wsscd-refresh-page' ).on( 'click', function() {
 				window.location.reload();
 			} );
 
 			// Show modal with fade in
 			setTimeout( function() {
-				$modal.addClass( 'scd-modal--active' );
+				$modal.addClass( 'wsscd-modal--active' );
 			}, 10 );
 
 			// Trigger event via EventBus
-			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.EventBus ) {
-				window.SCD.Wizard.EventBus.emit( 'session:expired' );
+			if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.EventBus ) {
+				window.WSSCD.Wizard.EventBus.emit( 'session:expired' );
 			}
 
-			console.error( '[SCD Session Monitor] Session expired' );
+			console.error( '[WSSCD Session Monitor] Session expired' );
 		},
 
 		/**
@@ -217,15 +217,15 @@
 			var self = this;
 
 			// Listen for step saves (session automatically extends)
-			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.EventBus ) {
-				window.SCD.Wizard.EventBus.on( 'step:saved', function() {
+			if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.EventBus ) {
+				window.WSSCD.Wizard.EventBus.on( 'step:saved', function() {
 					// Session was extended by save, reset warning
 					self.warningShown = false;
 				} );
 			}
 
 			// Listen for wizard navigation (indicates user is active)
-			$( document ).on( 'scd:wizard:stepChanged', function() {
+			$( document ).on( 'wsscd:wizard:stepChanged', function() {
 				// User is active, check session status
 				self.checkSession();
 			} );
@@ -234,14 +234,14 @@
 
 	$( document ).ready( function() {
 		// Only initialize on wizard pages
-		if ( $( '.scd-wizard-wrap' ).length > 0 || $( '.scd-wizard-page' ).length > 0 ) {
+		if ( $( '.wsscd-wizard-wrap' ).length > 0 || $( '.wsscd-wizard-page' ).length > 0 ) {
 			SessionMonitor.init();
 		}
 	} );
 
 	// Expose to global scope
-	window.SCD = window.SCD || {};
-	window.SCD.Wizard = window.SCD.Wizard || {};
-	window.SCD.Wizard.SessionMonitor = SessionMonitor;
+	window.WSSCD = window.WSSCD || {};
+	window.WSSCD.Wizard = window.WSSCD.Wizard || {};
+	window.WSSCD.Wizard.SessionMonitor = SessionMonitor;
 
 } )( jQuery );

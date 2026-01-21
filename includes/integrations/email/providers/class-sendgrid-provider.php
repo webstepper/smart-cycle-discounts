@@ -24,16 +24,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/integrations/email/providers
  */
-class SCD_SendGrid_Provider implements SCD_Email_Provider {
+class WSSCD_SendGrid_Provider implements WSSCD_Email_Provider {
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * SendGrid API key.
@@ -75,12 +75,12 @@ class SCD_SendGrid_Provider implements SCD_Email_Provider {
 	 * Initialize provider.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger        Logger instance.
+	 * @param    WSSCD_Logger $logger        Logger instance.
 	 * @param    string     $api_key       SendGrid API key.
 	 * @param    string     $from_email    From email address.
 	 * @param    string     $from_name     From name.
 	 */
-	public function __construct( SCD_Logger $logger, string $api_key = '', string $from_email = '', string $from_name = '' ) {
+	public function __construct( WSSCD_Logger $logger, string $api_key = '', string $from_email = '', string $from_name = '' ) {
 		$this->logger     = $logger;
 		$this->api_key    = $api_key;
 		$this->from_email = ! empty( $from_email ) ? $from_email : get_option( 'admin_email' );

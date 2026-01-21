@@ -1,5 +1,9 @@
 /**
- * Frontend
+ * Frontend Styles
+ *
+ * Customer-facing styles for discount badges, price displays, and cart elements.
+ * Designed to integrate seamlessly with WooCommerce themes while maintaining
+ * consistent branding for Smart Cycle Discounts.
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/css/frontend/frontend.css
@@ -8,57 +12,1098 @@
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
  * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
  * @since      1.0.0
+ *
+ * Table of Contents:
+ * 1. CSS Custom Properties (Frontend-specific)
+ * 2. Discount Badge Base Styles
+ * 3. Badge Position Variants
+ * 4. Badge Style Variants
+ * 5. Price Display Styles
+ * 6. Shop Loop Integration
+ * 7. Single Product Integration
+ * 8. Cart & Mini-Cart Integration
+ * 9. Checkout Integration
+ * 10. Tiered Discount Display
+ * 11. BOGO Display
+ * 12. Countdown Timer
+ * 13. Animations & Transitions
+ * 14. Responsive Styles
+ * 15. Accessibility
+ * 16. Print Styles
  */
 
-/* Discount Badge Styles */
-.scd-discount-badge {
-    display: inline-block;
-    background-color: var(--scd-frontend-badge-bg);
-    color: var(--scd-frontend-badge-color);
-    font-size: var(--scd-font-size-small);
-    font-weight: bold;
-    padding: 3px 8px;
-    border-radius: var(--scd-radius-sm);
-    margin-left: 8px;
-    vertical-align: middle;
-    line-height: 1;
+/* ==========================================================================
+   1. CSS Custom Properties (Frontend-specific)
+   ========================================================================== */
+
+:root {
+	/* Badge Colors - Customizable via admin settings */
+	--wsscd-frontend-badge-bg: #d63638;
+	--wsscd-frontend-badge-color: #fff;
+	--wsscd-frontend-badge-bg-hover: #b32d2e;
+
+	/* Discount Colors */
+	--wsscd-frontend-discount-color: #00a32a;
+	--wsscd-frontend-success-color: #00a32a;
+	--wsscd-frontend-savings-color: #d63638;
+
+	/* Price Colors */
+	--wsscd-frontend-original-price-color: #787c82;
+	--wsscd-frontend-sale-price-color: #d63638;
+
+	/* Badge Sizing */
+	--wsscd-frontend-badge-font-size: 12px;
+	--wsscd-frontend-badge-font-size-sm: 11px;
+	--wsscd-frontend-badge-font-size-lg: 14px;
+	--wsscd-frontend-badge-padding: 4px 10px;
+	--wsscd-frontend-badge-padding-sm: 3px 8px;
+	--wsscd-frontend-badge-padding-lg: 6px 14px;
+	--wsscd-frontend-badge-radius: 4px;
+
+	/* Spacing */
+	--wsscd-frontend-spacing-xs: 4px;
+	--wsscd-frontend-spacing-sm: 8px;
+	--wsscd-frontend-spacing-md: 12px;
+	--wsscd-frontend-spacing-lg: 16px;
+
+	/* Transitions */
+	--wsscd-frontend-transition: 200ms ease;
 }
 
-/* Product Price Display */
-.price .scd-discount-badge {
-    font-size: var(--scd-font-size-small);
-    padding: var(--scd-spacing-xxs) 6px;
+/* ==========================================================================
+   2. Discount Badge Base Styles
+   ========================================================================== */
+
+.wsscd-discount-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--wsscd-frontend-spacing-xs);
+	background-color: var(--wsscd-frontend-badge-bg);
+	color: var(--wsscd-frontend-badge-color);
+	font-size: var(--wsscd-frontend-badge-font-size);
+	font-weight: 700;
+	line-height: 1.2;
+	padding: var(--wsscd-frontend-badge-padding);
+	border-radius: var(--wsscd-frontend-badge-radius);
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	white-space: nowrap;
+	box-sizing: border-box;
+	transition: background-color var(--wsscd-frontend-transition),
+	            transform var(--wsscd-frontend-transition);
 }
 
-/* Shop Loop Badge */
-.woocommerce ul.products li.product .scd-discount-badge {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: var(--scd-z-base);
+.wsscd-discount-badge:hover {
+	background-color: var(--wsscd-frontend-badge-bg-hover);
 }
 
-/* Single Product Badge */
-.woocommerce div.product .scd-discount-badge {
-    font-size: var(--scd-font-size-medium);
-    padding: var(--scd-spacing-xs) 10px;
+/* Badge with icon */
+.wsscd-discount-badge .wsscd-badge-icon {
+	width: 14px;
+	height: 14px;
+	flex-shrink: 0;
 }
 
-/* Sale Price Styling */
-.woocommerce-Price-amount.scd-original-price {
-    text-decoration: line-through;
-    opacity: 0.6;
+/* Badge text */
+.wsscd-discount-badge .wsscd-badge-text {
+	display: inline-block;
 }
 
-/* Cart Item Discounts */
-.woocommerce-cart-form__cart-item .scd-discount-info {
-    font-size: var(--scd-font-size-small);
-    color: var(--scd-frontend-discount-color);
-    margin-top: var(--scd-spacing-xs);
+/* ==========================================================================
+   3. Badge Position Variants
+   ========================================================================== */
+
+/* Top Left */
+.wsscd-badge-position-top-left {
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	right: auto;
+	z-index: 15;
 }
 
-/* Checkout Discount Display */
-.woocommerce-checkout-review-order .scd-discount-line {
-    color: var(--scd-frontend-success-color);
-    font-weight: var(--scd-font-weight-semibold);
+/* Top Right (Default) */
+.wsscd-badge-position-top-right {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	left: auto;
+	z-index: 15;
+}
+
+/* Bottom Left */
+.wsscd-badge-position-bottom-left {
+	position: absolute;
+	bottom: 10px;
+	left: 10px;
+	right: auto;
+	top: auto;
+	z-index: 15;
+}
+
+/* Bottom Right */
+.wsscd-badge-position-bottom-right {
+	position: absolute;
+	bottom: 10px;
+	right: 10px;
+	left: auto;
+	top: auto;
+	z-index: 15;
+}
+
+/* Inline (next to price) */
+.wsscd-badge-position-inline {
+	position: relative;
+	margin-left: var(--wsscd-frontend-spacing-sm);
+	vertical-align: middle;
+}
+
+/* ==========================================================================
+   4. Badge Style Variants
+   ========================================================================== */
+
+/* Pill Style */
+.wsscd-badge-style-pill {
+	border-radius: 50px;
+	padding: var(--wsscd-frontend-badge-padding-sm);
+}
+
+/* Square Style */
+.wsscd-badge-style-square {
+	border-radius: 0;
+}
+
+/* Ribbon Style */
+.wsscd-badge-style-ribbon {
+	position: absolute;
+	top: 0;
+	right: 0;
+	left: auto;
+	border-radius: 0 0 0 var(--wsscd-frontend-badge-radius);
+	padding: 6px 12px;
+}
+
+/* Circle Style */
+.wsscd-badge-style-circle {
+	width: 50px;
+	height: 50px;
+	border-radius: 50%;
+	padding: 0;
+	font-size: var(--wsscd-frontend-badge-font-size-sm);
+	text-align: center;
+}
+
+/* Outline Style */
+.wsscd-badge-style-outline {
+	background-color: transparent;
+	border: 2px solid var(--wsscd-frontend-badge-bg);
+	color: var(--wsscd-frontend-badge-bg);
+}
+
+.wsscd-badge-style-outline:hover {
+	background-color: var(--wsscd-frontend-badge-bg);
+	color: var(--wsscd-frontend-badge-color);
+}
+
+/* ==========================================================================
+   5. Price Display Styles
+   ========================================================================== */
+
+/* Original Price (Strikethrough) */
+.wsscd-original-price,
+.woocommerce-Price-amount.wsscd-original-price {
+	text-decoration: line-through;
+	color: var(--wsscd-frontend-original-price-color);
+	opacity: 0.7;
+	font-weight: 400;
+}
+
+/* Sale/Discounted Price */
+.wsscd-sale-price,
+.woocommerce-Price-amount.wsscd-sale-price {
+	color: var(--wsscd-frontend-sale-price-color);
+	font-weight: 600;
+}
+
+/* Price with Discount Container */
+.wsscd-price-wrapper {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--wsscd-frontend-spacing-sm);
+}
+
+/* Inline Badge with Price */
+.price .wsscd-discount-badge {
+	font-size: var(--wsscd-frontend-badge-font-size-sm);
+	padding: var(--wsscd-frontend-badge-padding-sm);
+}
+
+/* Savings Display */
+.wsscd-savings {
+	display: inline-block;
+	color: var(--wsscd-frontend-savings-color);
+	font-size: 0.85em;
+	font-weight: 600;
+}
+
+.wsscd-savings::before {
+	content: "(";
+}
+
+.wsscd-savings::after {
+	content: ")";
+}
+
+/* ==========================================================================
+   6. Shop Loop Integration
+   ========================================================================== */
+
+/*
+ * Hide WooCommerce/Theme Sale Badges when SCD discount is active
+ * Uses wsscd-has-discount class added to body and product elements
+ * Covers standard WooCommerce and popular theme patterns
+ */
+
+/* Standard WooCommerce sale badge */
+.wsscd-has-discount .onsale,
+.wsscd-has-discount .woocommerce-onsale,
+.wsscd-has-discount span.onsale,
+li.product.wsscd-has-discount .onsale,
+li.product.wsscd-has-discount .woocommerce-onsale {
+	display: none !important;
+}
+
+/* Common theme sale badge patterns */
+.wsscd-has-discount .sale-badge,
+.wsscd-has-discount .product-badge.sale,
+.wsscd-has-discount .badge-sale,
+.wsscd-has-discount .product-label.sale,
+.wsscd-has-discount .product-sale-label,
+.wsscd-has-discount .sale-flash,
+.wsscd-has-discount .sale-tag,
+.wsscd-has-discount [class*="sale-badge"],
+.wsscd-has-discount [class*="product-sale"],
+li.product.wsscd-has-discount .sale-badge,
+li.product.wsscd-has-discount .product-badge.sale,
+li.product.wsscd-has-discount .badge-sale,
+li.product.wsscd-has-discount [class*="sale-badge"] {
+	display: none !important;
+}
+
+/* Popular theme-specific sale badges */
+
+/* Astra theme */
+.wsscd-has-discount .ast-onsale-card,
+.wsscd-has-discount .ast-on-card-button,
+li.product.wsscd-has-discount .ast-onsale-card {
+	display: none !important;
+}
+
+/* Flatsome theme */
+.wsscd-has-discount .badge-container .badge,
+.wsscd-has-discount .callout.badge,
+.wsscd-has-discount .badge.onsale,
+li.product.wsscd-has-discount .badge-container .badge.onsale {
+	display: none !important;
+}
+
+/* OceanWP theme */
+.wsscd-has-discount .owp-badge,
+.wsscd-has-discount .woo-entry-onsale,
+li.product.wsscd-has-discount .owp-badge {
+	display: none !important;
+}
+
+
+/* GeneratePress theme */
+.wsscd-has-discount .wc-sale-badge,
+.wsscd-has-discount .gp-wc-sale-flash,
+li.product.wsscd-has-discount .wc-sale-badge {
+	display: none !important;
+}
+
+/* Flavor / flavor theme */
+.wsscd-has-discount .product-tag.sale,
+.wsscd-has-discount .product-flags .sale,
+li.product.wsscd-has-discount .product-tag.sale {
+	display: none !important;
+}
+
+/* Porto theme */
+.wsscd-has-discount .onhot,
+.wsscd-has-discount .porto-label-onsale,
+li.product.wsscd-has-discount .onhot {
+	display: none !important;
+}
+
+/* Flavor / flavor theme */
+.wsscd-has-discount .ribbon-sale,
+.wsscd-has-discount .label-sale,
+li.product.wsscd-has-discount .ribbon-sale {
+	display: none !important;
+}
+
+/* Elementor/JetWoo widgets */
+.wsscd-has-discount .jet-woo-product-badge.sale,
+.wsscd-has-discount .elementor-widget-wc-products .onsale,
+li.product.wsscd-has-discount .jet-woo-product-badge.sale {
+	display: none !important;
+}
+
+/* Kadence theme */
+.wsscd-has-discount .kadence-sale-badge,
+.wsscd-has-discount .kb-product-sale-label,
+li.product.wsscd-has-discount .kadence-sale-badge {
+	display: none !important;
+}
+
+/* Divi theme */
+.wsscd-has-discount .et_shop_sale_icon,
+.wsscd-has-discount .et_pb_sale_badge,
+li.product.wsscd-has-discount .et_shop_sale_icon {
+	display: none !important;
+}
+
+/* Generic patterns (catch-all) */
+.wsscd-has-discount [class*="-onsale"],
+.wsscd-has-discount [class*="_onsale"],
+.wsscd-has-discount [class*="-sale-badge"],
+.wsscd-has-discount [class*="_sale_badge"],
+.wsscd-has-discount [class*="sale-label"],
+.wsscd-has-discount [class*="sale_label"],
+li.product.wsscd-has-discount [class*="-onsale"],
+li.product.wsscd-has-discount [class*="-sale-badge"] {
+	display: none !important;
+}
+
+/* Single product page - body class approach */
+body.wsscd-has-discount .woocommerce-product-gallery .onsale,
+body.wsscd-has-discount .single-product .onsale,
+body.wsscd-has-discount .product .onsale {
+	display: none !important;
+}
+
+/* Product Card Badge */
+.woocommerce ul.products li.product {
+	position: relative;
+}
+
+.woocommerce ul.products li.product .wsscd-discount-badge {
+	position: absolute;
+	z-index: 15; /* Higher than WooCommerce .onsale (z-index: 9) */
+}
+
+/* Shop badge positions - default to top-right */
+.woocommerce ul.products li.product .wsscd-discount-badge.wsscd-badge-position-top-left {
+	top: 10px;
+	left: 10px;
+	right: auto;
+	bottom: auto;
+}
+
+.woocommerce ul.products li.product .wsscd-discount-badge.wsscd-badge-position-top-right,
+.woocommerce ul.products li.product .wsscd-discount-badge:not([class*="wsscd-badge-position-"]) {
+	top: 10px;
+	right: 10px;
+	left: auto;
+	bottom: auto;
+}
+
+.woocommerce ul.products li.product .wsscd-discount-badge.wsscd-badge-position-bottom-left {
+	bottom: 10px;
+	left: 10px;
+	top: auto;
+	right: auto;
+}
+
+.woocommerce ul.products li.product .wsscd-discount-badge.wsscd-badge-position-bottom-right {
+	bottom: 10px;
+	right: 10px;
+	top: auto;
+	left: auto;
+}
+
+/* Respect WooCommerce sale badge positioning */
+.woocommerce ul.products li.product .wsscd-discount-badge.wsscd-badge-with-sale {
+	top: 45px;
+}
+
+/* Product Image Container */
+.woocommerce ul.products li.product .wsscd-product-image-wrapper {
+	position: relative;
+	overflow: hidden;
+}
+
+/* Multiple Badges Stack */
+.woocommerce ul.products li.product .wsscd-badges-container {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	display: flex;
+	flex-direction: column;
+	gap: var(--wsscd-frontend-spacing-xs);
+	z-index: 15;
+}
+
+/* ==========================================================================
+   7. Single Product Integration
+   ========================================================================== */
+
+/* Single Product Badge - Base Styles */
+.woocommerce div.product .wsscd-discount-badge {
+	font-size: var(--wsscd-frontend-badge-font-size-lg);
+	padding: var(--wsscd-frontend-badge-padding-lg);
+}
+
+/* Badge on Product Gallery - ensure gallery is positioned */
+.woocommerce div.product .woocommerce-product-gallery {
+	position: relative;
+}
+
+/* Gallery image wrapper - contains image and badge */
+.woocommerce div.product .wsscd-gallery-image-wrapper {
+	position: relative;
+	display: inline-block;
+	width: 100%;
+}
+
+/* Badge on Product Image (gallery) */
+.woocommerce div.product .wsscd-discount-badge.wsscd-badge-single-image {
+	position: absolute;
+	z-index: 15;
+}
+
+/* Image badge positions - inside gallery wrapper */
+.woocommerce div.product .wsscd-gallery-image-wrapper .wsscd-badge-single-image.wsscd-badge-position-top-left,
+.woocommerce div.product .wsscd-badge-single-image.wsscd-badge-position-top-left {
+	top: 15px;
+	left: 15px;
+	right: auto;
+	bottom: auto;
+}
+
+.woocommerce div.product .wsscd-gallery-image-wrapper .wsscd-badge-single-image.wsscd-badge-position-top-right,
+.woocommerce div.product .wsscd-badge-single-image.wsscd-badge-position-top-right {
+	top: 15px;
+	right: 15px;
+	left: auto;
+	bottom: auto;
+}
+
+.woocommerce div.product .wsscd-gallery-image-wrapper .wsscd-badge-single-image.wsscd-badge-position-bottom-left,
+.woocommerce div.product .wsscd-badge-single-image.wsscd-badge-position-bottom-left {
+	bottom: 15px;
+	left: 15px;
+	top: auto;
+	right: auto;
+}
+
+.woocommerce div.product .wsscd-gallery-image-wrapper .wsscd-badge-single-image.wsscd-badge-position-bottom-right,
+.woocommerce div.product .wsscd-badge-single-image.wsscd-badge-position-bottom-right {
+	bottom: 15px;
+	right: 15px;
+	top: auto;
+	left: auto;
+}
+
+/* Legacy support - badges directly in gallery without position class */
+.woocommerce div.product .woocommerce-product-gallery .wsscd-discount-badge:not(.wsscd-badge-single-image) {
+	position: absolute;
+	top: 15px;
+	right: 15px;
+	z-index: 15;
+}
+
+/* Single Product Price Display */
+.woocommerce div.product .price .wsscd-original-price {
+	font-size: 0.85em;
+}
+
+.woocommerce div.product .price .wsscd-sale-price {
+	font-size: 1.1em;
+}
+
+/* Product Summary Discount Info */
+.woocommerce div.product .wsscd-discount-info {
+	margin: var(--wsscd-frontend-spacing-md) 0;
+	padding: var(--wsscd-frontend-spacing-md);
+	background-color: #f8f9fa;
+	border-left: 3px solid var(--wsscd-frontend-discount-color);
+	border-radius: 0 var(--wsscd-frontend-badge-radius) var(--wsscd-frontend-badge-radius) 0;
+}
+
+.woocommerce div.product .wsscd-discount-info p {
+	margin: 0;
+	color: var(--wsscd-frontend-discount-color);
+	font-weight: 500;
+}
+
+/* ==========================================================================
+   8. Cart & Mini-Cart Integration
+   ========================================================================== */
+
+/* Cart Item Discount */
+.woocommerce-cart-form__cart-item .wsscd-discount-info {
+	display: block;
+	margin-top: var(--wsscd-frontend-spacing-xs);
+	font-size: 0.9em;
+	color: var(--wsscd-frontend-discount-color);
+}
+
+/* Cart Totals Discount Line */
+.woocommerce .cart-discount .wsscd-discount-label {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-frontend-spacing-xs);
+}
+
+.woocommerce .cart-discount .wsscd-discount-amount {
+	color: var(--wsscd-frontend-success-color);
+	font-weight: 600;
+}
+
+/* Mini Cart Discount */
+.woocommerce .widget_shopping_cart .wsscd-discount-info {
+	font-size: 0.85em;
+	color: var(--wsscd-frontend-discount-color);
+	margin-top: var(--wsscd-frontend-spacing-xs);
+}
+
+/* Cart Savings Summary */
+.wsscd-cart-savings {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: var(--wsscd-frontend-spacing-md);
+	background-color: rgba(0, 163, 42, 0.08);
+	border-radius: var(--wsscd-frontend-badge-radius);
+	margin-bottom: var(--wsscd-frontend-spacing-md);
+}
+
+.wsscd-cart-savings-label {
+	font-weight: 500;
+	color: #333;
+}
+
+.wsscd-cart-savings-amount {
+	font-weight: 700;
+	color: var(--wsscd-frontend-success-color);
+}
+
+/* ==========================================================================
+   9. Checkout Integration
+   ========================================================================== */
+
+/* Checkout Discount Line */
+.woocommerce-checkout-review-order .wsscd-discount-line {
+	color: var(--wsscd-frontend-success-color);
+	font-weight: 600;
+}
+
+/* Order Review Savings */
+.woocommerce-checkout-review-order-table .wsscd-savings-row {
+	background-color: rgba(0, 163, 42, 0.05);
+}
+
+.woocommerce-checkout-review-order-table .wsscd-savings-row td {
+	color: var(--wsscd-frontend-success-color);
+}
+
+/* Checkout Badge Display */
+.woocommerce-checkout .wsscd-discount-badge {
+	font-size: var(--wsscd-frontend-badge-font-size-sm);
+	padding: 2px 6px;
+}
+
+/* ==========================================================================
+   10. Tiered Discount Display
+   ========================================================================== */
+
+/* Discount Details Container */
+.wsscd-discount-details {
+	margin: var(--wsscd-frontend-spacing-lg) 0;
+	padding: 0;
+}
+
+/* Tier Table Wrapper */
+.wsscd-tier-table-wrapper {
+	background-color: #f8f9fa;
+	border-radius: var(--wsscd-frontend-badge-radius);
+	padding: var(--wsscd-frontend-spacing-md);
+	border: 1px solid #e0e0e0;
+}
+
+/* Tier Table Title */
+.wsscd-tier-table-title {
+	margin: 0 0 var(--wsscd-frontend-spacing-sm) 0;
+	padding: 0;
+	font-size: 1em;
+	font-weight: 700;
+	color: var(--wsscd-frontend-discount-color);
+	text-align: center;
+}
+
+/* Tier Progress Container */
+.wsscd-tier-progress {
+	margin: var(--wsscd-frontend-spacing-lg) 0;
+	padding: var(--wsscd-frontend-spacing-md);
+	background-color: #f8f9fa;
+	border-radius: var(--wsscd-frontend-badge-radius);
+}
+
+/* Tier Progress Header */
+.wsscd-tier-progress-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: var(--wsscd-frontend-spacing-sm);
+	font-size: 0.9em;
+	color: #555;
+}
+
+/* Tier Progress Bar */
+.wsscd-tier-progress-bar {
+	height: 8px;
+	background-color: #e0e0e0;
+	border-radius: 4px;
+	overflow: hidden;
+	margin-bottom: var(--wsscd-frontend-spacing-sm);
+}
+
+.wsscd-tier-progress-fill {
+	height: 100%;
+	background-color: var(--wsscd-frontend-discount-color);
+	border-radius: 4px;
+	transition: width 0.5s ease;
+}
+
+/* Tier Milestones */
+.wsscd-tier-milestones {
+	display: flex;
+	justify-content: space-between;
+	position: relative;
+}
+
+.wsscd-tier-milestone {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	font-size: 0.8em;
+	color: #787c82;
+}
+
+.wsscd-tier-milestone.active {
+	color: var(--wsscd-frontend-discount-color);
+	font-weight: 600;
+}
+
+.wsscd-tier-milestone-dot {
+	width: 10px;
+	height: 10px;
+	background-color: #e0e0e0;
+	border-radius: 50%;
+	margin-bottom: var(--wsscd-frontend-spacing-xs);
+}
+
+.wsscd-tier-milestone.active .wsscd-tier-milestone-dot {
+	background-color: var(--wsscd-frontend-discount-color);
+}
+
+/* Tier Table */
+.wsscd-tier-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 0;
+	font-size: 0.9em;
+	background-color: #fff;
+	border-radius: var(--wsscd-frontend-badge-radius);
+	overflow: hidden;
+}
+
+.wsscd-tier-table th,
+.wsscd-tier-table td {
+	padding: var(--wsscd-frontend-spacing-sm) var(--wsscd-frontend-spacing-md);
+	border-bottom: 1px solid #e9ecef;
+	text-align: left;
+}
+
+.wsscd-tier-table thead tr {
+	background-color: #f1f3f5;
+}
+
+.wsscd-tier-table th {
+	font-weight: 600;
+	color: #495057;
+	font-size: 0.85em;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+
+.wsscd-tier-table tbody tr:last-child td {
+	border-bottom: none;
+}
+
+.wsscd-tier-table tbody tr:hover {
+	background-color: rgba(0, 163, 42, 0.04);
+}
+
+.wsscd-tier-table tr.active {
+	background-color: rgba(0, 163, 42, 0.08);
+}
+
+.wsscd-tier-table .wsscd-tier-discount {
+	color: var(--wsscd-frontend-discount-color);
+	font-weight: 600;
+}
+
+/* ==========================================================================
+   11. BOGO Display
+   ========================================================================== */
+
+/* BOGO Banner */
+.wsscd-bogo-banner {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-frontend-spacing-md);
+	padding: var(--wsscd-frontend-spacing-md);
+	background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
+	border: 1px solid rgba(214, 54, 56, 0.2);
+	border-radius: var(--wsscd-frontend-badge-radius);
+	margin: var(--wsscd-frontend-spacing-md) 0;
+}
+
+.wsscd-bogo-icon {
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: var(--wsscd-frontend-badge-bg);
+	color: var(--wsscd-frontend-badge-color);
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+.wsscd-bogo-content {
+	flex: 1;
+}
+
+.wsscd-bogo-title {
+	font-weight: 700;
+	color: #333;
+	margin-bottom: var(--wsscd-frontend-spacing-xs);
+}
+
+.wsscd-bogo-description {
+	font-size: 0.9em;
+	color: #555;
+}
+
+/* BOGO Badge Variant */
+.wsscd-discount-badge.wsscd-bogo-badge {
+	background: linear-gradient(135deg, #d63638 0%, #b32d2e 100%);
+}
+
+/* BOGO Details (on product page) */
+.wsscd-bogo-details {
+	background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
+	border: 1px solid rgba(214, 54, 56, 0.2);
+	border-radius: var(--wsscd-frontend-badge-radius);
+	padding: var(--wsscd-frontend-spacing-md);
+	text-align: center;
+}
+
+.wsscd-bogo-offer {
+	margin: 0;
+	font-size: 1.1em;
+	font-weight: 700;
+	color: var(--wsscd-frontend-badge-bg);
+}
+
+/* ==========================================================================
+   12. Countdown Timer
+   ========================================================================== */
+
+/* Campaign Countdown */
+.wsscd-countdown {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--wsscd-frontend-spacing-sm);
+	padding: var(--wsscd-frontend-spacing-sm) var(--wsscd-frontend-spacing-md);
+	background-color: #fff8e1;
+	border: 1px solid #ffcc00;
+	border-radius: var(--wsscd-frontend-badge-radius);
+	font-size: 0.9em;
+}
+
+.wsscd-countdown-label {
+	color: #b8860b;
+	font-weight: 500;
+}
+
+.wsscd-countdown-timer {
+	display: flex;
+	gap: var(--wsscd-frontend-spacing-xs);
+	font-weight: 700;
+	color: #333;
+	font-variant-numeric: tabular-nums;
+}
+
+.wsscd-countdown-segment {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	min-width: 36px;
+}
+
+.wsscd-countdown-value {
+	font-size: 1.2em;
+}
+
+.wsscd-countdown-unit {
+	font-size: 0.7em;
+	font-weight: 400;
+	text-transform: uppercase;
+	color: #787c82;
+}
+
+.wsscd-countdown-separator {
+	font-size: 1.2em;
+	opacity: 0.5;
+}
+
+/* Urgency State */
+.wsscd-countdown.wsscd-countdown-urgent {
+	background-color: #fff5f5;
+	border-color: var(--wsscd-frontend-badge-bg);
+	animation: wsscd-pulse 2s infinite;
+}
+
+.wsscd-countdown.wsscd-countdown-urgent .wsscd-countdown-label {
+	color: var(--wsscd-frontend-badge-bg);
+}
+
+/* ==========================================================================
+   13. Animations & Transitions
+   ========================================================================== */
+
+/* Badge Entrance Animation */
+@keyframes wsscd-badge-enter {
+	from {
+		opacity: 0;
+		transform: scale(0.8) translateY(-10px);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
+}
+
+.wsscd-discount-badge.wsscd-animate-enter {
+	animation: wsscd-badge-enter 0.3s ease-out forwards;
+}
+
+/* Pulse Animation */
+@keyframes wsscd-pulse {
+	0%, 100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.7;
+	}
+}
+
+.wsscd-pulse {
+	animation: wsscd-pulse 2s infinite;
+}
+
+/* Shine Effect */
+@keyframes wsscd-shine {
+	from {
+		background-position: -100% 0;
+	}
+	to {
+		background-position: 200% 0;
+	}
+}
+
+.wsscd-discount-badge.wsscd-shine {
+	background: linear-gradient(
+		90deg,
+		var(--wsscd-frontend-badge-bg) 0%,
+		var(--wsscd-frontend-badge-bg-hover) 25%,
+		var(--wsscd-frontend-badge-bg) 50%,
+		var(--wsscd-frontend-badge-bg-hover) 75%,
+		var(--wsscd-frontend-badge-bg) 100%
+	);
+	background-size: 200% 100%;
+	animation: wsscd-shine 3s linear infinite;
+}
+
+/* Progress Bar Animation */
+@keyframes wsscd-progress-fill {
+	from {
+		width: 0;
+	}
+}
+
+.wsscd-tier-progress-fill.wsscd-animate {
+	animation: wsscd-progress-fill 1s ease-out forwards;
+}
+
+/* ==========================================================================
+   14. Responsive Styles
+   ========================================================================== */
+
+/* Tablet */
+@media screen and (max-width: 782px) {
+	.wsscd-discount-badge {
+		font-size: var(--wsscd-frontend-badge-font-size-sm);
+		padding: var(--wsscd-frontend-badge-padding-sm);
+	}
+
+	.woocommerce ul.products li.product .wsscd-discount-badge {
+		top: 8px;
+		right: 8px;
+	}
+
+	.wsscd-tier-progress {
+		padding: var(--wsscd-frontend-spacing-sm);
+	}
+
+	.wsscd-countdown {
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+
+	.wsscd-countdown-segment {
+		min-width: 28px;
+	}
+}
+
+/* Mobile */
+@media screen and (max-width: 480px) {
+	.wsscd-discount-badge {
+		font-size: 10px;
+		padding: 2px 6px;
+	}
+
+	.woocommerce div.product .wsscd-discount-badge {
+		font-size: var(--wsscd-frontend-badge-font-size);
+		padding: var(--wsscd-frontend-badge-padding);
+	}
+
+	.wsscd-badge-style-circle {
+		width: 40px;
+		height: 40px;
+		font-size: 10px;
+	}
+
+	/* Tier Table Mobile */
+	.wsscd-tier-table-wrapper {
+		padding: var(--wsscd-frontend-spacing-sm);
+	}
+
+	.wsscd-tier-table-title {
+		font-size: 0.9em;
+	}
+
+	.wsscd-tier-table {
+		font-size: 0.85em;
+	}
+
+	.wsscd-tier-table th,
+	.wsscd-tier-table td {
+		padding: var(--wsscd-frontend-spacing-xs) var(--wsscd-frontend-spacing-sm);
+	}
+
+	.wsscd-tier-milestones {
+		font-size: 0.75em;
+	}
+
+	.wsscd-bogo-banner {
+		flex-direction: column;
+		text-align: center;
+	}
+
+	.wsscd-countdown-timer {
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+
+	.wsscd-countdown-separator {
+		display: none;
+	}
+}
+
+/* ==========================================================================
+   15. Accessibility
+   ========================================================================== */
+
+/* Focus States */
+.wsscd-discount-badge:focus {
+	outline: 2px solid var(--wsscd-frontend-badge-bg);
+	outline-offset: 2px;
+}
+
+/* Screen Reader Only Text */
+.wsscd-sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+	.wsscd-discount-badge {
+		border: 2px solid currentColor;
+	}
+
+	.wsscd-original-price {
+		text-decoration-thickness: 2px;
+	}
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+	.wsscd-discount-badge,
+	.wsscd-tier-progress-fill,
+	.wsscd-countdown {
+		animation: none;
+		transition: none;
+	}
+}
+
+/* ==========================================================================
+   16. Print Styles
+   ========================================================================== */
+
+@media print {
+	.wsscd-discount-badge {
+		background-color: #fff;
+		color: #000;
+		border: 1px solid #000;
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+	}
+
+	.wsscd-countdown {
+		display: none;
+	}
+
+	.wsscd-tier-progress-bar {
+		border: 1px solid #000;
+	}
+
+	.wsscd-tier-progress-fill {
+		background-color: #666;
+	}
 }

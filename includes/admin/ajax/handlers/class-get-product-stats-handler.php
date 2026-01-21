@@ -26,14 +26,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Get_Product_Stats_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Get_Product_Stats_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Product service instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Product_Service|null    $product_service    Product service.
+	 * @var      WSSCD_Product_Service|null    $product_service    Product service.
 	 */
 	private $product_service = null;
 
@@ -41,7 +41,7 @@ class SCD_Get_Product_Stats_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger    Logger instance (optional).
+	 * @param    WSSCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -54,7 +54,7 @@ class SCD_Get_Product_Stats_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_get_product_stats';
+		return 'wsscd_get_product_stats';
 	}
 
 	/**
@@ -163,10 +163,10 @@ class SCD_Get_Product_Stats_Handler extends SCD_Abstract_Ajax_Handler {
 	 */
 	private function get_campaign_product_ids( $campaign_id ) {
 		// Try to use campaign repository to load campaign
-		if ( class_exists( 'SCD_Campaign_Repository' ) && class_exists( 'SCD_Database_Manager' ) && class_exists( 'SCD_Cache_Manager' ) ) {
-			$db_manager    = new SCD_Database_Manager();
-			$cache_manager = new SCD_Cache_Manager();
-			$repository    = new SCD_Campaign_Repository( $db_manager, $cache_manager );
+		if ( class_exists( 'WSSCD_Campaign_Repository' ) && class_exists( 'WSSCD_Database_Manager' ) && class_exists( 'WSSCD_Cache_Manager' ) ) {
+			$db_manager    = new WSSCD_Database_Manager();
+			$cache_manager = new WSSCD_Cache_Manager();
+			$repository    = new WSSCD_Campaign_Repository( $db_manager, $cache_manager );
 
 			$campaign = $repository->get_by_id( $campaign_id );
 			if ( $campaign ) {
@@ -188,12 +188,12 @@ class SCD_Get_Product_Stats_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @return   SCD_Product_Service    Product service.
+	 * @return   WSSCD_Product_Service    Product service.
 	 */
 	private function get_product_service() {
 		if ( null === $this->product_service ) {
-			require_once SCD_PLUGIN_DIR . 'includes/core/products/class-product-service.php';
-			$this->product_service = new SCD_Product_Service();
+			require_once WSSCD_PLUGIN_DIR . 'includes/core/products/class-product-service.php';
+			$this->product_service = new WSSCD_Product_Service();
 		}
 
 		return $this->product_service;

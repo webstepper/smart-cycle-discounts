@@ -25,13 +25,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Check_Campaign_Name_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Check_Campaign_Name_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Campaign manager instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Campaign_Manager    $campaign_manager    Campaign manager instance.
+	 * @var      WSSCD_Campaign_Manager    $campaign_manager    Campaign manager instance.
 	 */
 	private $campaign_manager;
 
@@ -39,8 +39,8 @@ class SCD_Check_Campaign_Name_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Manager $campaign_manager    Campaign manager instance.
-	 * @param    SCD_Logger           $logger              Logger instance.
+	 * @param    WSSCD_Campaign_Manager $campaign_manager    Campaign manager instance.
+	 * @param    WSSCD_Logger           $logger              Logger instance.
 	 */
 	public function __construct( $campaign_manager = null, $logger = null ) {
 		parent::__construct( $logger );
@@ -54,7 +54,7 @@ class SCD_Check_Campaign_Name_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_check_campaign_name';
+		return 'wsscd_check_campaign_name';
 	}
 
 	/**

@@ -22,13 +22,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Uses WordPress native admin notices with Asset Management System.
  *
  * Dismiss functionality handled by admin-notices-dismiss.js (registered in Script_Registry).
- * Nonces localized via Asset_Localizer (scdAdminNotices.nonces.expiration).
+ * Nonces localized via Asset_Localizer (wsscdAdminNotices.nonces.expiration).
  *
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin
  */
-class SCD_Campaign_Expiration_Notices {
+class WSSCD_Campaign_Expiration_Notices {
 
 	/**
 	 * Transient key for expired campaigns data.
@@ -36,7 +36,7 @@ class SCD_Campaign_Expiration_Notices {
 	 * @since    1.0.0
 	 * @var      string
 	 */
-	const TRANSIENT_KEY = 'scd_recently_expired_campaigns';
+	const TRANSIENT_KEY = 'wsscd_recently_expired_campaigns';
 
 	/**
 	 * Time window for "recent" expiration (24 hours).
@@ -57,7 +57,7 @@ class SCD_Campaign_Expiration_Notices {
 	 */
 	public function init() {
 		add_action( 'admin_notices', array( $this, 'display_expiration_notice' ) );
-		add_action( 'wp_ajax_scd_dismiss_expiration_notice', array( $this, 'handle_dismiss_notice' ) );
+		add_action( 'wp_ajax_wsscd_dismiss_expiration_notice', array( $this, 'handle_dismiss_notice' ) );
 	}
 
 	/**
@@ -114,16 +114,18 @@ class SCD_Campaign_Expiration_Notices {
 			return false;
 		}
 
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Checking URL params for display context only.
 		// Show on main dashboard (overview page).
 		if ( false !== strpos( $screen->id, 'smart-cycle-discounts' ) && ! isset( $_GET['page'] ) ) {
 			return true;
 		}
 
 		// Show on campaigns list page ONLY (not wizard, not edit).
-		if ( false !== strpos( $screen->id, 'scd-campaigns' ) ) {
+		if ( false !== strpos( $screen->id, 'wsscd-campaigns' ) ) {
 			// Only on list view (no action parameter).
 			return ! isset( $_GET['action'] );
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		return false;
 	}
@@ -156,8 +158,8 @@ class SCD_Campaign_Expiration_Notices {
 	private function enqueue_notice_styles() {
 		wp_add_inline_style(
 			'wp-admin',
-			'.notice.scd-expiration-notice { border-left-color: #2196F3; border-left-width: 4px; }
-			.notice.scd-expiration-notice ul { list-style: disc; margin-left: 20px; margin-top: 8px; margin-bottom: 8px; }'
+			'.notice.wsscd-expiration-notice { border-left-color: #2196F3; border-left-width: 4px; }
+			.notice.wsscd-expiration-notice ul { list-style: disc; margin-left: 20px; margin-top: 8px; margin-bottom: 8px; }'
 		);
 	}
 
@@ -170,9 +172,9 @@ class SCD_Campaign_Expiration_Notices {
 	 */
 	private function render_notice( $expired_campaigns ) {
 		$count       = count( $expired_campaigns );
-		$expired_url = admin_url( 'admin.php?page=scd-campaigns&status=expired' );
+		$expired_url = admin_url( 'admin.php?page=wsscd-campaigns&status=expired' );
 		?>
-		<div class="notice notice-info scd-expiration-notice">
+		<div class="notice notice-info wsscd-expiration-notice">
 			<p>
 				<strong><?php esc_html_e( 'Campaign Expiration Notice', 'smart-cycle-discounts' ); ?></strong>
 			</p>
@@ -180,6 +182,7 @@ class SCD_Campaign_Expiration_Notices {
 				<?php
 				echo esc_html(
 					sprintf(
+						/* translators: %d: number of campaigns that have expired */
 						_n(
 							'%d campaign has automatically expired after reaching its end date.',
 							'%d campaigns have automatically expired after reaching their end dates.',
@@ -195,7 +198,7 @@ class SCD_Campaign_Expiration_Notices {
 				<ul>
 					<?php foreach ( $expired_campaigns as $campaign ) : ?>
 						<li>
-							<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns&action=edit&id=' . $campaign['id'] ) ); ?>">
+							<a href="<?php echo esc_url( admin_url( 'admin.php?page=wsscd-campaigns&action=edit&id=' . $campaign['id'] ) ); ?>">
 								<?php echo esc_html( $campaign['name'] ); ?>
 							</a>
 						</li>
@@ -208,8 +211,8 @@ class SCD_Campaign_Expiration_Notices {
 				</a>
 				<button
 					type="button"
-					class="button scd-dismiss-notice"
-					data-action="scd_dismiss_expiration_notice"
+					class="button wsscd-dismiss-notice"
+					data-action="wsscd_dismiss_expiration_notice"
 					data-type="expiration">
 					<?php esc_html_e( 'Dismiss', 'smart-cycle-discounts' ); ?>
 				</button>
@@ -226,7 +229,7 @@ class SCD_Campaign_Expiration_Notices {
 	 */
 	public function handle_dismiss_notice() {
 		// Verify nonce.
-		check_ajax_referer( 'scd_dismiss_expiration_notice', '_wpnonce' );
+		check_ajax_referer( 'wsscd_dismiss_expiration_notice', '_wpnonce' );
 
 		// Verify permissions.
 		if ( ! current_user_can( 'manage_woocommerce' ) && ! current_user_can( 'manage_options' ) ) {

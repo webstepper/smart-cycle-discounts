@@ -15,6 +15,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// Load Intent Constants for single source of truth.
+require_once WSSCD_PLUGIN_DIR . 'includes/constants/class-wsscd-intent-constants.php';
+
 /**
  * Wizard State Service Class
  *
@@ -24,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/wizard
  */
-class SCD_Wizard_State_Service {
+class WSSCD_Wizard_State_Service {
 
 	/**
 	 * Session cookie name.
@@ -32,7 +35,7 @@ class SCD_Wizard_State_Service {
 	 * @since    1.0.0
 	 * @var      string
 	 */
-	const COOKIE_NAME = 'scd_wizard_session';
+	const COOKIE_NAME = 'wsscd_wizard_session';
 
 	/**
 	 * Session lifetime in seconds (2 hours).
@@ -52,13 +55,13 @@ class SCD_Wizard_State_Service {
 	 * @since    1.0.0
 	 * @var      string
 	 */
-	const TRANSIENT_PREFIX = 'scd_wizard_session_';
+	const TRANSIENT_PREFIX = 'wsscd_wizard_session_';
 
 	/**
 	 * Available wizard steps (delegated to Step Registry).
 	 *
 	 * @since    1.0.0
-	 * @deprecated Use SCD_Wizard_Step_Registry::get_steps() instead
+	 * @deprecated Use WSSCD_Wizard_Step_Registry::get_steps() instead
 	 * @var      array
 	 */
 	private $steps;
@@ -91,7 +94,7 @@ class SCD_Wizard_State_Service {
 	 * Change tracker for edit mode.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Campaign_Change_Tracker|null
+	 * @var      WSSCD_Campaign_Change_Tracker|null
 	 */
 	private $change_tracker = null;
 
@@ -103,7 +106,7 @@ class SCD_Wizard_State_Service {
 	 */
 	public function __construct( $session_id = null ) {
 		// Use Step Registry for step definitions
-		$this->steps = SCD_Wizard_Step_Registry::get_steps();
+		$this->steps = WSSCD_Wizard_Step_Registry::get_steps();
 
 		$this->initialize( $session_id );
 	}
@@ -136,17 +139,20 @@ class SCD_Wizard_State_Service {
 	/**
 	 * Initialize with specific intent.
 	 *
+	 * Uses WSSCD_Intent_Constants for intent values (single source of truth).
+	 *
 	 * @since    1.0.0
-	 * @param    string      $intent         Intent: 'new', 'continue', or 'edit'.
+	 * @param    string      $intent         Intent: 'new', 'continue', 'edit', or 'duplicate'.
 	 * @param    string|null $suggestion_id  Optional suggestion ID for pre-fill.
+	 * @param    bool        $schedule_mode  Whether to use future dates (true) or current dates (false).
 	 * @return   void
 	 */
-	public function initialize_with_intent( string $intent = 'continue', ?string $suggestion_id = null ): void {
-		if ( 'new' === $intent ) {
-			$this->start_fresh_session( $suggestion_id );
-		} elseif ( 'edit' === $intent ) {
+	public function initialize_with_intent( string $intent = WSSCD_Intent_Constants::DEFAULT_INTENT, ?string $suggestion_id = null, bool $schedule_mode = false ): void {
+		if ( WSSCD_Intent_Constants::NEW === $intent ) {
+			$this->start_fresh_session( $suggestion_id, $schedule_mode );
+		} elseif ( WSSCD_Intent_Constants::EDIT === $intent ) {
 			$this->start_edit_session();
-		} elseif ( 'continue' === $intent && ! $this->has_session() ) {
+		} elseif ( WSSCD_Intent_Constants::CONTINUE === $intent && ! $this->has_session() ) {
 			$this->create();
 		} else {
 			$this->clear_fresh_flag();
@@ -160,6 +166,7 @@ class SCD_Wizard_State_Service {
 	 * @return   void
 	 */
 	private function start_edit_session(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL parameter for campaign ID, not form processing.
 		$campaign_id = isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0;
 
 		// CRITICAL FIX: If no campaign ID in URL, check session (for AJAX requests)
@@ -201,40 +208,109 @@ class SCD_Wizard_State_Service {
 	 *
 	 * @since    1.0.0
 	 * @param    string|null $suggestion_id  Optional suggestion ID for pre-fill.
+	 * @param    bool        $schedule_mode  Whether to use future dates (true) or current dates (false).
 	 * @return   void
 	 */
-	private function start_fresh_session( ?string $suggestion_id = null ): void {
+	private function start_fresh_session( ?string $suggestion_id = null, bool $schedule_mode = false ): void {
 		$this->clear_session();
 		$this->create();
 		$this->mark_as_fresh();
 
-		// Pre-fill wizard data from campaign suggestion
+		// Pre-fill wizard data from campaign suggestion.
 		if ( $suggestion_id ) {
-			$this->prefill_from_suggestion( $suggestion_id );
+			$this->prefill_from_suggestion( $suggestion_id, $schedule_mode );
 		}
 	}
 
 	/**
 	 * Mark session as fresh.
 	 *
+	 * Sets the is_fresh flag which signals JavaScript to clear browser sessionStorage.
+	 * This flag is consumed (cleared) after first read by Asset Localizer.
+	 *
 	 * @since    1.0.0
 	 * @return   void
 	 */
 	private function mark_as_fresh(): void {
-		$this->data['is_fresh'] = true;
-		$this->dirty            = true;
+		$this->data[ WSSCD_Intent_Constants::FLAG_IS_FRESH ] = true;
+		$this->dirty = true;
 		$this->save();
 	}
 
 	/**
-	 * Clear fresh flag.
+	 * Request-level cache for is_fresh flag.
+	 *
+	 * This ensures multiple components (Asset Localizer, Wizard Controller) can
+	 * all read the same value during a single request, even after flag is consumed.
+	 *
+	 * @since    1.0.0
+	 * @var      bool|null
+	 */
+	private static $is_fresh_cache = null;
+
+	/**
+	 * Consume the fresh flag (read and clear).
+	 *
+	 * This implements the one-time signal pattern:
+	 * - Returns true if session is fresh (first read after NEW intent)
+	 * - Clears the flag from transient so subsequent REQUESTS return false
+	 * - Caches value for current request so multiple reads work correctly
+	 * - Prevents data loss on page refresh
+	 *
+	 * Called by Asset Localizer to pass isFresh to JavaScript.
+	 *
+	 * @since    1.0.0
+	 * @return   bool True if session was fresh (first read only).
+	 */
+	public function consume_fresh_flag(): bool {
+		// Return cached value if already determined this request.
+		if ( null !== self::$is_fresh_cache ) {
+			return self::$is_fresh_cache;
+		}
+
+		$is_fresh = $this->get( WSSCD_Intent_Constants::FLAG_IS_FRESH, false );
+
+		// Cache the value for this request.
+		self::$is_fresh_cache = (bool) $is_fresh;
+
+		if ( $is_fresh ) {
+			// Clear the flag from transient - next REQUEST won't see it.
+			unset( $this->data[ WSSCD_Intent_Constants::FLAG_IS_FRESH ] );
+			$this->dirty = true;
+			$this->save();
+		}
+
+		return self::$is_fresh_cache;
+	}
+
+	/**
+	 * Check if session is fresh (non-consuming read).
+	 *
+	 * Uses request-level cache to ensure consistent value across all components.
+	 * This should be used by Wizard Controller to check fresh status.
+	 *
+	 * @since    1.0.0
+	 * @return   bool True if session is fresh.
+	 */
+	public function is_fresh(): bool {
+		// If cache is set, use it (flag was already consumed this request).
+		if ( null !== self::$is_fresh_cache ) {
+			return self::$is_fresh_cache;
+		}
+
+		// Otherwise read from session data (not consuming).
+		return (bool) $this->get( WSSCD_Intent_Constants::FLAG_IS_FRESH, false );
+	}
+
+	/**
+	 * Clear fresh flag (internal use).
 	 *
 	 * @since    1.0.0
 	 * @return   void
 	 */
 	private function clear_fresh_flag(): void {
-		if ( isset( $this->data['is_fresh'] ) ) {
-			unset( $this->data['is_fresh'] );
+		if ( isset( $this->data[ WSSCD_Intent_Constants::FLAG_IS_FRESH ] ) ) {
+			unset( $this->data[ WSSCD_Intent_Constants::FLAG_IS_FRESH ] );
 			$this->dirty = true;
 			$this->save();
 		}
@@ -248,19 +324,20 @@ class SCD_Wizard_State_Service {
 	 *
 	 * @since    1.0.0
 	 * @param    string $suggestion_id  Suggestion event ID.
+	 * @param    bool   $schedule_mode  Whether to use future dates (true) or current/immediate dates (false).
 	 * @return   void
 	 */
-	private function prefill_from_suggestion( string $suggestion_id ): void {
+	private function prefill_from_suggestion( string $suggestion_id, bool $schedule_mode = false ): void {
 		$event = null;
 
-		// First, try to get from Campaign Suggestions Registry (major events)
-		require_once SCD_INCLUDES_DIR . 'core/campaigns/class-campaign-suggestions-registry.php';
-		$event = SCD_Campaign_Suggestions_Registry::get_event_by_id( $suggestion_id );
+		// First, try to get from Campaign Suggestions Registry (major events).
+		require_once WSSCD_INCLUDES_DIR . 'core/campaigns/class-campaign-suggestions-registry.php';
+		$event = WSSCD_Campaign_Suggestions_Registry::get_event_by_id( $suggestion_id );
 
-		// If not found, try Weekly Campaign Definitions
+		// If not found, try Weekly Campaign Definitions.
 		if ( ! $event ) {
-			require_once SCD_INCLUDES_DIR . 'core/campaigns/class-weekly-campaign-definitions.php';
-			$event = SCD_Weekly_Campaign_Definitions::get_by_id( $suggestion_id );
+			require_once WSSCD_INCLUDES_DIR . 'core/campaigns/class-weekly-campaign-definitions.php';
+			$event = WSSCD_Weekly_Campaign_Definitions::get_by_id( $suggestion_id );
 		}
 
 		if ( ! $event ) {
@@ -269,7 +346,7 @@ class SCD_Wizard_State_Service {
 
 		$this->set( 'from_suggestion', $suggestion_id );
 
-		// Pre-fill basic step data
+		// Pre-fill basic step data.
 		if ( ! isset( $this->data['steps'] ) ) {
 			$this->data['steps'] = array();
 		}
@@ -278,24 +355,24 @@ class SCD_Wizard_State_Service {
 			$this->data['steps']['basic'] = array();
 		}
 
-		// Determine if this is a weekly campaign or major event
+		// Determine if this is a weekly campaign or major event.
 		$is_weekly_campaign = isset( $event['schedule'] ) && isset( $event['schedule']['start_day'] );
 
 		if ( $is_weekly_campaign ) {
-			// Weekly campaign - use simple name (no date range needed as it's recurring)
+			// Weekly campaign - use simple name (no date range needed as it's recurring).
 			$this->data['steps']['basic']['name'] = $event['name'];
 
-			// Weekly campaigns use recurring_weekly category, map to priority 3 (normal)
+			// Weekly campaigns use recurring_weekly category, map to priority 3 (normal).
 			$this->data['steps']['basic']['priority'] = 3;
 		} else {
-			// Major event - include specific date range
+			// Major event - include specific date range.
 			$start_month = wp_date( 'M', $event['calculated_start_date'] );
 			$start_day   = wp_date( 'j', $event['calculated_start_date'] );
 			$end_month   = wp_date( 'M', $event['calculated_end_date'] );
 			$end_day     = wp_date( 'j', $event['calculated_end_date'] );
 			$year        = wp_date( 'Y', $event['calculated_start_date'] );
 
-			// Format: "Weekend Sale Nov 1-3, 2025" or "Valentine's Day Feb 7-14, 2025"
+			// Format: "Weekend Sale Nov 1-3, 2025" or "Valentine's Day Feb 7-14, 2025".
 			if ( $start_month === $end_month ) {
 				$date_range = sprintf( '%s %d-%d, %s', $start_month, $start_day, $end_day, $year );
 			} else {
@@ -304,7 +381,7 @@ class SCD_Wizard_State_Service {
 
 			$this->data['steps']['basic']['name'] = $event['name'] . ' ' . $date_range;
 
-			// Priority based on event category
+			// Priority based on event category.
 			$priority_map                             = array(
 				'major'    => 4,
 				'seasonal' => 3,
@@ -314,38 +391,15 @@ class SCD_Wizard_State_Service {
 			$this->data['steps']['basic']['priority'] = (int) ( $priority_map[ $event['category'] ] ?? 3 );
 		}
 
-		// Pre-fill schedule step data
+		// Pre-fill schedule step data.
 		if ( ! isset( $this->data['steps']['schedule'] ) ) {
 			$this->data['steps']['schedule'] = array();
 		}
 
 		if ( $is_weekly_campaign ) {
-			// Weekly campaign - calculate next occurrence (this week or next week)
-			$schedule           = $event['schedule'];
-			$current_week_start = strtotime( 'this week Monday 00:00' );
-
-			$start_day_offset = $schedule['start_day'] - 1; // Monday = 0
-			$end_day_offset   = $schedule['end_day'] - 1;
-
-			// Calculate this week's timestamps
-			$start_timestamp = strtotime( "+{$start_day_offset} days {$schedule['start_time']}", $current_week_start );
-			$end_timestamp   = strtotime( "+{$end_day_offset} days {$schedule['end_time']}", $current_week_start );
-
-			// If campaign start has already passed, use next week instead
-			$now = current_time( 'timestamp' );
-			if ( $start_timestamp < $now ) {
-				$next_week_start = strtotime( 'next week Monday 00:00' );
-				$start_timestamp = strtotime( "+{$start_day_offset} days {$schedule['start_time']}", $next_week_start );
-				$end_timestamp   = strtotime( "+{$end_day_offset} days {$schedule['end_time']}", $next_week_start );
-			}
-
-			$this->data['steps']['schedule']['start_type'] = 'scheduled';
-			$this->data['steps']['schedule']['start_date'] = wp_date( 'Y-m-d', $start_timestamp );
-			$this->data['steps']['schedule']['end_date']   = wp_date( 'Y-m-d', $end_timestamp );
-			$this->data['steps']['schedule']['start_time'] = $schedule['start_time'];
-			$this->data['steps']['schedule']['end_time']   = $schedule['end_time'];
+			$this->prefill_weekly_campaign_schedule( $event, $schedule_mode );
 		} else {
-			// Major event - use pre-calculated dates
+			// Major event - use pre-calculated dates.
 			$this->data['steps']['schedule']['start_type'] = 'scheduled';
 			$this->data['steps']['schedule']['start_date'] = wp_date( 'Y-m-d', $event['calculated_start_date'] );
 			$this->data['steps']['schedule']['end_date']   = wp_date( 'Y-m-d', $event['calculated_end_date'] );
@@ -353,27 +407,27 @@ class SCD_Wizard_State_Service {
 			$this->data['steps']['schedule']['end_time']   = '23:59';
 		}
 
-		// Pre-fill products step data with default (all products)
-		// This allows the Review step to display properly
+		// Pre-fill products step data with default (all products).
+		// This allows the Review step to display properly.
 		if ( ! isset( $this->data['steps']['products'] ) ) {
 			$this->data['steps']['products'] = array();
 		}
 		$this->data['steps']['products']['product_selection_type'] = 'all_products';
 		$this->data['steps']['products']['selected_product_ids']   = array();
 
-		// Pre-fill discounts step data if available
+		// Pre-fill discounts step data if available.
 		if ( isset( $event['suggested_discount']['optimal'] ) ) {
 			if ( ! isset( $this->data['steps']['discounts'] ) ) {
 				$this->data['steps']['discounts'] = array();
 			}
 
 			$this->data['steps']['discounts']['discount_type'] = 'percentage';
-			// Cast to float for proper type - Campaign class requires float for discount_value
+			// Cast to float for proper type - Campaign class requires float for discount_value.
 			$this->data['steps']['discounts']['discount_value_percentage'] = (float) $event['suggested_discount']['optimal'];
 		}
 
-		// Mark steps as completed so user can navigate directly to Review
-		// This allows skipping to the final step since everything is pre-filled
+		// Mark steps as completed so user can navigate directly to Review.
+		// This allows skipping to the final step since everything is pre-filled.
 		$completed_steps = array( 'basic', 'schedule', 'products', 'discounts' );
 		$this->set( 'completed_steps', $completed_steps );
 
@@ -381,6 +435,58 @@ class SCD_Wizard_State_Service {
 
 		$this->dirty = true;
 		$this->save();
+	}
+
+	/**
+	 * Pre-fill schedule data for weekly campaigns.
+	 *
+	 * Handles two modes:
+	 * - Create mode (schedule_mode=false): Use current week dates, even if start time passed.
+	 *   This is for "Create Campaign" when a weekly campaign is currently active.
+	 * - Schedule mode (schedule_mode=true): Use next occurrence dates.
+	 *   This is for "Schedule Campaign" or "Plan Next/Ahead" buttons.
+	 *
+	 * @since    1.0.0
+	 * @param    array $event         Weekly campaign event data.
+	 * @param    bool  $schedule_mode Whether to use future dates.
+	 * @return   void
+	 */
+	private function prefill_weekly_campaign_schedule( array $event, bool $schedule_mode ): void {
+		$schedule           = $event['schedule'];
+		$current_week_start = strtotime( 'this week Monday 00:00' );
+		$now                = current_time( 'timestamp' );
+
+		$start_day_offset = $schedule['start_day'] - 1; // Monday = 0.
+		$end_day_offset   = $schedule['end_day'] - 1;
+
+		// Calculate this week's timestamps.
+		$start_timestamp = strtotime( "+{$start_day_offset} days {$schedule['start_time']}", $current_week_start );
+		$end_timestamp   = strtotime( "+{$end_day_offset} days {$schedule['end_time']}", $current_week_start );
+
+		if ( $schedule_mode ) {
+			// Schedule mode: Always use next occurrence if start has passed.
+			if ( $start_timestamp < $now ) {
+				$next_week_start = strtotime( 'next week Monday 00:00' );
+				$start_timestamp = strtotime( "+{$start_day_offset} days {$schedule['start_time']}", $next_week_start );
+				$end_timestamp   = strtotime( "+{$end_day_offset} days {$schedule['end_time']}", $next_week_start );
+			}
+		} else {
+			// Create mode: Use current week dates if campaign is still running (end not passed).
+			// This allows creating a campaign for an active weekly event.
+			if ( $end_timestamp < $now ) {
+				// Campaign has completely ended, use next week.
+				$next_week_start = strtotime( 'next week Monday 00:00' );
+				$start_timestamp = strtotime( "+{$start_day_offset} days {$schedule['start_time']}", $next_week_start );
+				$end_timestamp   = strtotime( "+{$end_day_offset} days {$schedule['end_time']}", $next_week_start );
+			}
+			// If campaign is still running (end > now), keep this week's dates.
+		}
+
+		$this->data['steps']['schedule']['start_type'] = 'scheduled';
+		$this->data['steps']['schedule']['start_date'] = wp_date( 'Y-m-d', $start_timestamp );
+		$this->data['steps']['schedule']['end_date']   = wp_date( 'Y-m-d', $end_timestamp );
+		$this->data['steps']['schedule']['start_time'] = $schedule['start_time'];
+		$this->data['steps']['schedule']['end_time']   = $schedule['end_time'];
 	}
 
 	/**
@@ -448,13 +554,6 @@ class SCD_Wizard_State_Service {
 
 		if ( $session_user_id !== $current_user_id ) {
 			// Session hijacking attempt - reject the session
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf(
-					'[SCD_Security] Session hijacking attempt detected. Session user: %d, Current user: %d',
-					$session_user_id,
-					$current_user_id
-				) );
-			}
 			return false;
 		}
 
@@ -492,7 +591,7 @@ class SCD_Wizard_State_Service {
 			return null;
 		}
 
-		return sanitize_text_field( $_COOKIE[ self::COOKIE_NAME ] );
+		return sanitize_text_field( wp_unslash( $_COOKIE[ self::COOKIE_NAME ] ) );
 	}
 
 	/**
@@ -544,7 +643,7 @@ class SCD_Wizard_State_Service {
 		}
 
 		// Acquire lock using transient
-		$lock_key      = 'scd_state_lock_' . $this->session_id;
+		$lock_key      = 'wsscd_state_lock_' . $this->session_id;
 		$lock_acquired = false;
 
 		if ( $force ) {
@@ -675,20 +774,23 @@ class SCD_Wizard_State_Service {
 		$step = sanitize_key( $step );
 
 		if ( ! $this->is_valid_step( $step ) ) {
-			error_log( '[SCD] save_step_data: Invalid step: ' . $step );
 			return false;
 		}
 
 		$this->prepare_step_data( $step, $data );
+
+		// Invalidate conflicts cache when relevant step data changes
+		if ( in_array( $step, array( 'products', 'basic' ), true ) ) {
+			$this->invalidate_conflicts_cache();
+		}
 
 		// Edit mode: use Change Tracker (stores only deltas)
 		$campaign_id = $this->get( 'campaign_id' );
 		$is_edit     = $this->is_edit_mode() || $campaign_id;
 
 		if ( $is_edit && $this->change_tracker ) {
-			// Track changes via Change Tracker (session only)
-			// Database will be updated when user completes wizard via create_from_wizard()
-			error_log( '[SCD] save_step_data: Using Change Tracker for step: ' . $step . ' (edit mode)' );
+			// Track changes via Change Tracker (session only).
+			// Database will be updated when user completes wizard via create_from_wizard().
 			$this->change_tracker->track_step( $step, $data );
 			return true;
 		}
@@ -697,11 +799,7 @@ class SCD_Wizard_State_Service {
 		$merged_data   = array_merge( $existing_data, $data );
 		$this->set_step_data( $step, $merged_data );
 
-		error_log( '[SCD] save_step_data: Saving step data for: ' . $step );
-		$save_result = $this->save();
-		error_log( '[SCD] save_step_data: Save result: ' . ( $save_result ? 'SUCCESS' : 'FAILED' ) );
-
-		return $save_result;
+		return $this->save();
 	}
 
 	/**
@@ -713,6 +811,28 @@ class SCD_Wizard_State_Service {
 	 */
 	private function is_valid_step( string $step ): bool {
 		return in_array( $step, $this->steps, true );
+	}
+
+	/**
+	 * Invalidate conflicts cache when step data changes.
+	 *
+	 * Clears cached conflict data to ensure fresh conflict detection
+	 * after product selection or priority changes.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   void
+	 */
+	private function invalidate_conflicts_cache(): void {
+		if ( class_exists( 'Smart_Cycle_Discounts' ) ) {
+			$plugin    = Smart_Cycle_Discounts::get_instance();
+			$container = $plugin->get_container();
+			if ( $container && $container->has( 'cache_manager' ) ) {
+				$cache_manager = $container->get( 'cache_manager' );
+				// Clear all conflict-related caches
+				$cache_manager->delete_by_prefix( 'campaigns_conflicts_' );
+			}
+		}
 	}
 
 	/**
@@ -801,34 +921,20 @@ class SCD_Wizard_State_Service {
 		$step = sanitize_key( $step );
 
 		if ( ! $this->is_valid_step( $step ) ) {
-			error_log( '[SCD] mark_step_complete: Invalid step: ' . $step );
 			return false;
 		}
 
 		$this->ensure_completed_steps_array();
 
 		if ( $this->is_step_complete( $step ) ) {
-			error_log( '[SCD] mark_step_complete: Step already complete: ' . $step );
 			return true;
 		}
 
 		$this->add_completed_step( $step );
-		error_log( '[SCD] mark_step_complete: Added step: ' . $step . ' | Completed steps: ' . implode( ', ', $this->data['completed_steps'] ) );
 
-		// Force immediate save for navigation - bypass lock to prevent deferred save
-		// Critical: Must persist before client redirects to next step
-		$save_result = $this->save( true );
-		error_log( '[SCD] mark_step_complete: Save result: ' . ( $save_result ? 'SUCCESS' : 'FAILED' ) );
-
-		// Verify it was actually saved
-		$verification = get_transient( self::TRANSIENT_PREFIX . $this->session_id );
-		if ( $verification ) {
-			error_log( '[SCD] mark_step_complete: Verification - completed_steps in transient: ' . implode( ', ', $verification['completed_steps'] ?? array() ) );
-		} else {
-			error_log( '[SCD] mark_step_complete: Verification FAILED - transient not found!' );
-		}
-
-		return $save_result;
+		// Force immediate save for navigation - bypass lock to prevent deferred save.
+		// Critical: Must persist before client redirects to next step.
+		return $this->save( true );
 	}
 
 	/**
@@ -1001,8 +1107,6 @@ class SCD_Wizard_State_Service {
 		$required_steps = array_diff( $this->steps, array( 'review' ) );
 		$can_complete   = count( array_intersect( $required_steps, $completed_steps ) ) === count( $required_steps );
 
-		error_log( '[SCD] get_progress: Completed steps: ' . implode( ', ', $completed_steps ) . ' | Count: ' . $completed_count );
-
 		return array(
 			'completed_steps' => $completed_steps,
 			'total_steps'     => $total_steps,
@@ -1047,7 +1151,7 @@ class SCD_Wizard_State_Service {
 			return array();
 		}
 
-		$compiler = new Campaign_Data_Compiler( $this->data['steps'] );
+		$compiler = new WSSCD_Campaign_Data_Compiler( $this->data['steps'] );
 		return $compiler->compile();
 	}
 
@@ -1073,7 +1177,7 @@ class SCD_Wizard_State_Service {
 			return;
 		}
 
-		$this->change_tracker = new SCD_Campaign_Change_Tracker(
+		$this->change_tracker = new WSSCD_Campaign_Change_Tracker(
 			$campaign_id,
 			$this,
 			null  // Campaign manager will be lazy-loaded
@@ -1084,9 +1188,9 @@ class SCD_Wizard_State_Service {
 	 * Get change tracker.
 	 *
 	 * @since    1.0.0
-	 * @return   SCD_Campaign_Change_Tracker|null    Change tracker or null.
+	 * @return   WSSCD_Campaign_Change_Tracker|null    Change tracker or null.
 	 */
-	public function get_change_tracker(): ?SCD_Campaign_Change_Tracker {
+	public function get_change_tracker(): ?WSSCD_Campaign_Change_Tracker {
 		return $this->change_tracker;
 	}
 
@@ -1257,7 +1361,7 @@ class SCD_Wizard_State_Service {
  *
  * @since      1.0.0
  */
-class Campaign_Data_Compiler {
+class WSSCD_Campaign_Data_Compiler {
 
 	/**
 	 * Steps data.

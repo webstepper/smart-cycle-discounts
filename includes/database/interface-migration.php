@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/database
  */
-interface SCD_Migration_Interface {
+interface WSSCD_Migration_Interface {
 
 	/**
 	 * Run the migration.

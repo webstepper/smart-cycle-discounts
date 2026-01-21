@@ -29,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/database
  * @author     Webstepper <contact@webstepper.io>
  */
-abstract class SCD_Base_Repository {
+abstract class WSSCD_Base_Repository {
 
 	/**
 	 * Table name.
@@ -77,11 +77,17 @@ abstract class SCD_Base_Repository {
 	public function find( $id ) {
 		global $wpdb;
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// Note: primary_key is always 'id' - a controlled internal value, not user input.
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Primary key column name is internal class property.
 		$sql = $wpdb->prepare(
-			"SELECT * FROM {$this->table_name} WHERE {$this->primary_key} = %d",
+			'SELECT * FROM %i WHERE ' . $this->primary_key . ' = %d',
+			$this->table_name,
 			$id
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
 		$result = $wpdb->get_row( $sql, ARRAY_A );
 
 		if ( null === $result ) {
@@ -99,26 +105,24 @@ abstract class SCD_Base_Repository {
 	 * @return   array             Array of records.
 	 */
 	public function find_all( array $args = array() ) {
-		global $wpdb;
-
 		$defaults = $this->get_default_query_args();
 		$args     = wp_parse_args( $args, $defaults );
 
 		$query_builder = $this->create_query_builder();
 		$query_builder->select( '*' )
-					->from( $this->table_name );
+					->from( $this->get_table_name_without_prefix() );
 
-		// Apply WHERE conditions
+		// Apply WHERE conditions.
 		$this->apply_where_conditions( $query_builder, $args );
 
-		// Apply ORDER BY
+		// Apply ORDER BY.
 		$this->apply_order_by( $query_builder, $args );
 
-		// Apply LIMIT
+		// Apply LIMIT.
 		$this->apply_limit( $query_builder, $args );
 
-		$sql     = $query_builder->build();
-		$results = $wpdb->get_results( $sql, ARRAY_A );
+		// Execute via Query Builder - uses $wpdb->prepare() internally for all WHERE values.
+		$results = $query_builder->get();
 
 		return array_map( array( $this, 'prepare_item' ), $results );
 	}
@@ -147,11 +151,11 @@ abstract class SCD_Base_Repository {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @return   SCD_Query_Builder    Query builder instance.
+	 * @return   WSSCD_Query_Builder    Query builder instance.
 	 */
 	protected function create_query_builder() {
-		require_once SCD_INCLUDES_DIR . 'database/class-query-builder.php';
-		return new SCD_Query_Builder();
+		require_once WSSCD_INCLUDES_DIR . 'database/class-query-builder.php';
+		return new WSSCD_Query_Builder();
 	}
 
 	/**
@@ -159,7 +163,7 @@ abstract class SCD_Base_Repository {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    SCD_Query_Builder $query_builder    Query builder instance.
+	 * @param    WSSCD_Query_Builder $query_builder    Query builder instance.
 	 * @param    array             $args             Query arguments.
 	 * @return   void
 	 */
@@ -186,7 +190,7 @@ abstract class SCD_Base_Repository {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    SCD_Query_Builder $query_builder    Query builder instance.
+	 * @param    WSSCD_Query_Builder $query_builder    Query builder instance.
 	 * @param    array             $args             Query arguments.
 	 * @return   void
 	 */
@@ -204,7 +208,7 @@ abstract class SCD_Base_Repository {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    SCD_Query_Builder $query_builder    Query builder instance.
+	 * @param    WSSCD_Query_Builder $query_builder    Query builder instance.
 	 * @param    array             $args             Query arguments.
 	 * @return   void
 	 */
@@ -223,7 +227,7 @@ abstract class SCD_Base_Repository {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    SCD_Query_Builder $query_builder    Query builder instance.
+	 * @param    WSSCD_Query_Builder $query_builder    Query builder instance.
 	 * @param    array             $args             Query arguments.
 	 * @return   void
 	 */
@@ -251,6 +255,7 @@ abstract class SCD_Base_Repository {
 
 		$formats = $this->get_data_formats( $data );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Base repository INSERT; no caching on write.
 		$result = $wpdb->insert(
 			$this->table_name,
 			$data,
@@ -261,6 +266,7 @@ abstract class SCD_Base_Repository {
 			return new WP_Error(
 				'db_insert_error',
 				sprintf(
+					/* translators: %1$s: entity name, %2$s: database error message */
 					__( 'Failed to create %1$s record: %2$s', 'smart-cycle-discounts' ),
 					$this->get_entity_name(),
 					$wpdb->last_error
@@ -290,6 +296,7 @@ abstract class SCD_Base_Repository {
 
 		$formats = $this->get_data_formats( $data );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Base repository UPDATE; no caching on write.
 		$result = $wpdb->update(
 			$this->table_name,
 			$data,
@@ -302,6 +309,7 @@ abstract class SCD_Base_Repository {
 			return new WP_Error(
 				'db_update_error',
 				sprintf(
+					/* translators: %1$s: entity name, %2$s: database error message */
 					__( 'Failed to update %1$s record: %2$s', 'smart-cycle-discounts' ),
 					$this->get_entity_name(),
 					$wpdb->last_error
@@ -326,6 +334,7 @@ abstract class SCD_Base_Repository {
 			return $this->soft_delete( $id );
 		}
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Base repository DELETE; no caching on write.
 		$result = $wpdb->delete(
 			$this->table_name,
 			array( $this->primary_key => $id ),
@@ -336,6 +345,7 @@ abstract class SCD_Base_Repository {
 			return new WP_Error(
 				'db_delete_error',
 				sprintf(
+					/* translators: %1$s: entity name, %2$s: database error message */
 					__( 'Failed to delete %1$s record: %2$s', 'smart-cycle-discounts' ),
 					$this->get_entity_name(),
 					$wpdb->last_error
@@ -390,17 +400,14 @@ abstract class SCD_Base_Repository {
 	 * @return   int                 Record count.
 	 */
 	public function count( array $args = array() ) {
-		global $wpdb;
-
 		$query_builder = $this->create_query_builder();
-		$query_builder->select( 'COUNT(*)' )
-					->from( $this->table_name );
+		$query_builder->from( $this->get_table_name_without_prefix() );
 
-		// Apply WHERE conditions
+		// Apply WHERE conditions.
 		$this->apply_where_conditions( $query_builder, $args );
 
-		$sql = $query_builder->build();
-		return (int) $wpdb->get_var( $sql );
+		// Execute via Query Builder's count() method - uses $wpdb->prepare() internally.
+		return $query_builder->count();
 	}
 
 	/**
@@ -413,11 +420,17 @@ abstract class SCD_Base_Repository {
 	public function exists( $id ) {
 		global $wpdb;
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// Note: primary_key is always 'id' - a controlled internal value, not user input.
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Primary key column name is internal class property.
 		$sql = $wpdb->prepare(
-			"SELECT EXISTS(SELECT 1 FROM {$this->table_name} WHERE {$this->primary_key} = %d)",
+			'SELECT EXISTS(SELECT 1 FROM %i WHERE ' . $this->primary_key . ' = %d)',
+			$this->table_name,
 			$id
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
 		return (bool) $wpdb->get_var( $sql );
 	}
 
@@ -478,6 +491,7 @@ abstract class SCD_Base_Repository {
 	 */
 	public function begin_transaction() {
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Transaction management; no abstraction available.
 		return $wpdb->query( 'START TRANSACTION' );
 	}
 
@@ -489,6 +503,7 @@ abstract class SCD_Base_Repository {
 	 */
 	public function commit() {
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Transaction management; no abstraction available.
 		return $wpdb->query( 'COMMIT' );
 	}
 
@@ -500,6 +515,7 @@ abstract class SCD_Base_Repository {
 	 */
 	public function rollback() {
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Transaction management; no abstraction available.
 		return $wpdb->query( 'ROLLBACK' );
 	}
 
@@ -521,6 +537,27 @@ abstract class SCD_Base_Repository {
 	 * @return   string    Full table name.
 	 */
 	public function get_table_name() {
+		return $this->table_name;
+	}
+
+	/**
+	 * Get table name without prefix for Query Builder.
+	 *
+	 * The Query Builder's from() method adds the prefix automatically,
+	 * so we need to strip it when passing from repositories.
+	 *
+	 * @since    1.0.0
+	 * @access   protected
+	 * @return   string    Table name without prefix.
+	 */
+	protected function get_table_name_without_prefix(): string {
+		global $wpdb;
+		$prefix = $wpdb->prefix;
+
+		if ( strpos( $this->table_name, $prefix ) === 0 ) {
+			return substr( $this->table_name, strlen( $prefix ) );
+		}
+
 		return $this->table_name;
 	}
 

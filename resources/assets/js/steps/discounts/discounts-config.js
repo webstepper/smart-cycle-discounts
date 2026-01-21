@@ -13,14 +13,14 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	SCD.Modules = SCD.Modules || {};
-	SCD.Modules.Discounts = SCD.Modules.Discounts || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Modules = WSSCD.Modules || {};
+	WSSCD.Modules.Discounts = WSSCD.Modules.Discounts || {};
 
 	/**
 	 * Unified Discount Configuration
 	 */
-	SCD.Modules.Discounts.Config = {
+	WSSCD.Modules.Discounts.Config = {
 		/**
 		 * Static Constants
 		 * Immutable values that never change during runtime
@@ -29,38 +29,38 @@
 			// DOM Selectors
 			selectors: {
 				// Main containers
-				container: '#scd-step-discounts',
-				formWrapper: '.scd-discount-form-wrapper',
+				container: '#wsscd-step-discounts',
+				formWrapper: '.wsscd-discount-form-wrapper',
 				
 				// Form elements
-				discountType: '#scd-discount-type',
-				discountValue: '#scd-discount-value',
-				recurringDiscount: '#scd-recurring-discount',
-				limitUsageToggle: '#scd-limit-usage-toggle',
-				usageLimit: '#scd-usage-limit',
-				usageLimitPerCustomer: '#scd-usage-limit-per-customer',
+				discountType: '#wsscd-discount-type',
+				discountValue: '#wsscd-discount-value',
+				recurringDiscount: '#wsscd-recurring-discount',
+				limitUsageToggle: '#wsscd-limit-usage-toggle',
+				usageLimit: '#wsscd-usage-limit',
+				usageLimitPerCustomer: '#wsscd-usage-limit-per-customer',
 				
 				// Complex fields
-				tierContainer: '.scd-tier-container',
-				thresholdContainer: '.scd-threshold-container',
-				bogoContainer: '.scd-bogo-container',
+				tierContainer: '.wsscd-tier-container',
+				thresholdContainer: '.wsscd-threshold-container',
+				bogoContainer: '.wsscd-bogo-container',
 				
 				// Sections
-				valueSection: '.scd-discount-value-section',
-				tierSection: '.scd-tier-section',
-				thresholdSection: '.scd-threshold-section',
-				bogoSection: '.scd-bogo-section',
-				limitSection: '.scd-limit-section',
-				conditionsSection: '.scd-conditions-section',
+				valueSection: '.wsscd-discount-value-section',
+				tierSection: '.wsscd-tier-section',
+				thresholdSection: '.wsscd-threshold-section',
+				bogoSection: '.wsscd-bogo-section',
+				limitSection: '.wsscd-limit-section',
+				conditionsSection: '.wsscd-conditions-section',
 				
 				// Buttons
-				addTierButton: '.scd-add-tier',
-				addThresholdButton: '.scd-add-threshold',
+				addTierButton: '.wsscd-add-tier',
+				addThresholdButton: '.wsscd-add-threshold',
 				
 				// Preview
-				previewContainer: '.scd-discount-preview',
-				previewContent: '.scd-discount-preview-content',
-				previewLoader: '.scd-discount-preview-loader'
+				previewContainer: '.wsscd-discount-preview',
+				previewContent: '.wsscd-discount-preview-content',
+				previewLoader: '.wsscd-discount-preview-loader'
 			},
 			
 			// Timing Constants
@@ -134,9 +134,9 @@
 			// API configuration
 			api: {
 				endpoints: {
-					validate: 'scd_validate_discount',
-					preview: 'scd_preview_discount',
-					save: 'scd_save_discount'
+					validate: 'wsscd_validate_discount',
+					preview: 'wsscd_preview_discount',
+					save: 'wsscd_save_discount'
 				},
 				timeout: 30000,
 				retryAttempts: 3,
@@ -283,8 +283,8 @@
 			this.loadPreferences();
 			
 			// Apply any server-side configuration
-			if ( window.scdDiscountsConfig ) {
-				this.merge( window.scdDiscountsConfig );
+			if ( window.wsscdDiscountsConfig ) {
+				this.merge( window.wsscdDiscountsConfig );
 			}
 		},
 		
@@ -293,7 +293,7 @@
 		 */
 		loadPreferences: function() {
 			try {
-				var prefs = localStorage.getItem( 'scd_discount_preferences' );
+				var prefs = localStorage.getItem( 'wsscd_discount_preferences' );
 				if ( prefs ) {
 					var parsed = JSON.parse( prefs );
 					if ( parsed.behavior ) {
@@ -312,7 +312,7 @@
 		 */
 		savePreferences: function( prefs ) {
 			try {
-				localStorage.setItem( 'scd_discount_preferences', JSON.stringify( prefs ) );
+				localStorage.setItem( 'wsscd_discount_preferences', JSON.stringify( prefs ) );
 			} catch ( e ) {
 				// Silent fail for localStorage issues
 			}
@@ -320,8 +320,8 @@
 	};
 	
 	$( document ).ready( function() {
-		if ( SCD.Modules.Discounts.Config ) {
-			SCD.Modules.Discounts.Config.init();
+		if ( WSSCD.Modules.Discounts.Config ) {
+			WSSCD.Modules.Discounts.Config.init();
 		}
 	} );
 

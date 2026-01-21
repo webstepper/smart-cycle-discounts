@@ -26,14 +26,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Recover_Session_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Recover_Session_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * State service instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Wizard_State_Service    $state_service    State service.
+	 * @var      WSSCD_Wizard_State_Service    $state_service    State service.
 	 */
 	private $state_service;
 
@@ -41,8 +41,8 @@ class SCD_Recover_Session_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Wizard_State_Service $state_service    State service instance.
-	 * @param    SCD_Logger               $logger           Logger instance (optional).
+	 * @param    WSSCD_Wizard_State_Service $state_service    State service instance.
+	 * @param    WSSCD_Logger               $logger           Logger instance (optional).
 	 */
 	public function __construct( $state_service, $logger = null ) {
 		parent::__construct( $logger );
@@ -56,7 +56,7 @@ class SCD_Recover_Session_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_recover_session';
+		return 'wsscd_recover_session';
 	}
 
 	/**
@@ -86,7 +86,7 @@ class SCD_Recover_Session_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		// Phase 3: Create new session using secure cookie system
-		$new_state_service = new SCD_Wizard_State_Service();
+		$new_state_service = new WSSCD_Wizard_State_Service();
 		$new_session_id    = $new_state_service->create(); // This sets the secure cookie
 
 		// Restore each step's data
@@ -111,12 +111,14 @@ class SCD_Recover_Session_Handler extends SCD_Abstract_Ajax_Handler {
 					}
 				} else {
 					$errors[] = sprintf(
+						/* translators: %s: wizard step name (e.g., basic, products, discounts) */
 						__( 'Failed to restore %s step data', 'smart-cycle-discounts' ),
 						$step
 					);
 				}
 			} catch ( Exception $e ) {
 				$errors[] = sprintf(
+					/* translators: %1$s: wizard step name, %2$s: error message */
 					__( 'Error restoring %1$s step: %2$s', 'smart-cycle-discounts' ),
 					$step,
 					$e->getMessage()
@@ -139,7 +141,7 @@ class SCD_Recover_Session_Handler extends SCD_Abstract_Ajax_Handler {
 
 		$redirect_url = add_query_arg(
 			array(
-				'page'      => 'scd-campaigns',
+				'page'      => 'wsscd-campaigns',
 				'action'    => 'wizard',
 				'step'      => $current_step,
 				'recovered' => '1',
@@ -169,6 +171,7 @@ class SCD_Recover_Session_Handler extends SCD_Abstract_Ajax_Handler {
 				'restored_steps' => $restored_steps,
 				'errors'         => $errors,
 				'message'        => sprintf(
+					/* translators: %1$d: number of steps successfully recovered, %2$d: total number of steps attempted */
 					__( 'Successfully recovered %1$d of %2$d steps', 'smart-cycle-discounts' ),
 					count( $restored_steps ),
 					count( $recovery_data['steps'] )
@@ -184,5 +187,5 @@ class SCD_Recover_Session_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @access   private
 	 * @return   string    New session ID.
 	 */
-	// Phase 3: generate_session_id removed - session management handled by SCD_Wizard_State_Service via secure cookies
+	// Phase 3: generate_session_id removed - session management handled by WSSCD_Wizard_State_Service via secure cookies
 }

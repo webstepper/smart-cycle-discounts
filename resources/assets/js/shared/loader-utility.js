@@ -17,9 +17,9 @@
 	'use strict';
 
 	/**
-	 * Initialize SCD namespace
+	 * Initialize WSSCD namespace
 	 */
-	window.SCD = window.SCD || {};
+	window.WSSCD = window.WSSCD || {};
 
 	/**
 	 * Loader Utility
@@ -27,7 +27,7 @@
 	 * Provides consistent methods for showing/hiding loaders
 	 * with proper accessibility and animation support.
 	 */
-	window.SCD.LoaderUtil = {
+	window.WSSCD.LoaderUtil = {
 
 		/**
 		 * Show loader
@@ -52,7 +52,7 @@
 
 			// Update text if provided
 			if ( settings.text ) {
-				$loader.find( '.scd-loader-text' ).text( settings.text );
+				$loader.find( '.wsscd-loader-text' ).text( settings.text );
 			}
 
 			// Set ARIA attributes for accessibility
@@ -62,11 +62,11 @@
 
 			// Show loader with optional fade animation
 			if ( settings.fade ) {
-				$loader.addClass( 'scd-loader-fade-in' );
+				$loader.addClass( 'wsscd-loader-fade-in' );
 				$loader.show();
 				// Remove animation class after animation completes
 				setTimeout( function() {
-					$loader.removeClass( 'scd-loader-fade-in' );
+					$loader.removeClass( 'wsscd-loader-fade-in' );
 				}, 200 );
 			} else {
 				$loader.show();
@@ -101,10 +101,10 @@
 
 				// Hide loader with optional fade animation
 				if ( settings.fade ) {
-					$loader.addClass( 'scd-loader-fade-out' );
+					$loader.addClass( 'wsscd-loader-fade-out' );
 					setTimeout( function() {
 						$loader.hide();
-						$loader.removeClass( 'scd-loader-fade-out' );
+						$loader.removeClass( 'wsscd-loader-fade-out' );
 					}, 200 );
 				} else {
 					$loader.hide();
@@ -149,27 +149,27 @@
 		}
 
 		// Add loading class to button
-		$button.addClass( 'scd-button-loading' );
+		$button.addClass( 'wsscd-button-loading' );
 		$button.prop( 'disabled', true );
 
 		// Check if button has pre-rendered loader element
-		var $loader = $button.find( '.scd-loader-button' );
+		var $loader = $button.find( '.wsscd-loader-button' );
 
 		if ( $loader.length ) {
 			// Pre-rendered loader exists - update text and show
 			if ( text ) {
-				$loader.find( '.scd-loader-text' ).text( text );
+				$loader.find( '.wsscd-loader-text' ).text( text );
 			}
 			$loader.show();
 		} else {
 			// No pre-rendered loader - replace button HTML
 			// Store original HTML for restoration
-			if ( ! $button.data( 'scd-original-html' ) ) {
-				$button.data( 'scd-original-html', $button.html() );
+			if ( ! $button.data( 'wsscd-original-html' ) ) {
+				$button.data( 'wsscd-original-html', $button.html() );
 			}
 
 			// Replace with loader HTML
-			var loaderHtml = SCD.IconHelper.spinner( { size: 16 } );
+			var loaderHtml = WSSCD.IconHelper.spinner( { size: 16 } );
 			if ( text ) {
 				loaderHtml += ' ' + text;
 			}
@@ -197,24 +197,24 @@
 		}
 
 		// Remove loading class from button
-		$button.removeClass( 'scd-button-loading' );
+		$button.removeClass( 'wsscd-button-loading' );
 
 		if ( ! keepDisabled ) {
 			$button.prop( 'disabled', false );
 		}
 
 		// Check if button has pre-rendered loader element
-		var $loader = $button.find( '.scd-loader-button' );
+		var $loader = $button.find( '.wsscd-loader-button' );
 
 		if ( $loader.length ) {
 			// Pre-rendered loader - just hide it
 			$loader.hide();
 		} else {
 			// Dynamic HTML replacement - restore original HTML
-			var originalHtml = $button.data( 'scd-original-html' );
+			var originalHtml = $button.data( 'wsscd-original-html' );
 			if ( originalHtml ) {
 				$button.html( originalHtml );
-				$button.removeData( 'scd-original-html' );
+				$button.removeData( 'wsscd-original-html' );
 			}
 		}
 
@@ -268,7 +268,7 @@
 		}
 
 		// Remove existing overlay
-		$target.find( '.scd-loading-overlay' ).remove();
+		$target.find( '.wsscd-loading-overlay' ).remove();
 
 		// Ensure target has position for absolute overlay
 		if ( 'static' === $target.css( 'position' ) ) {
@@ -277,10 +277,10 @@
 
 		// Create overlay element
 		var $overlay = $(
-			'<div class="scd-loading-overlay">' +
-				'<div class="scd-loading-content">' +
+			'<div class="wsscd-loading-overlay">' +
+				'<div class="wsscd-loading-content">' +
 					'<span class="spinner is-active"></span>' +
-					'<span class="scd-loading-text">' + this._escapeHtml( message ) + '</span>' +
+					'<span class="wsscd-loading-text">' + this._escapeHtml( message ) + '</span>' +
 				'</div>' +
 			'</div>'
 		);
@@ -308,7 +308,7 @@
 			return;
 		}
 
-		$target.find( '.scd-loading-overlay' ).fadeOut( 200, function() {
+		$target.find( '.wsscd-loading-overlay' ).fadeOut( 200, function() {
 			$( this ).remove();
 		} );
 	},
@@ -325,7 +325,7 @@
 				return;
 			}
 
-			$loader.find( '.scd-loader-text' ).text( text );
+			$loader.find( '.wsscd-loader-text' ).text( text );
 		},
 
 		/**
@@ -388,24 +388,24 @@
 	/**
 	 * jQuery plugin wrapper for convenience
 	 */
-	$.fn.scdLoader = function( action, options ) {
+	$.fn.wsscdLoader = function( action, options ) {
 		var loader = this;
 
 		switch ( action ) {
 			case 'show':
-				SCD.LoaderUtil.show( loader, options );
+				WSSCD.LoaderUtil.show( loader, options );
 				break;
 			case 'hide':
-				SCD.LoaderUtil.hide( loader, options );
+				WSSCD.LoaderUtil.hide( loader, options );
 				break;
 			case 'toggle':
-				SCD.LoaderUtil.toggle( loader, options.show, options );
+				WSSCD.LoaderUtil.toggle( loader, options.show, options );
 				break;
 			case 'updateText':
-				SCD.LoaderUtil.updateText( loader, options );
+				WSSCD.LoaderUtil.updateText( loader, options );
 				break;
 			default:
-				console.warn( 'Unknown scdLoader action:', action );
+				console.warn( 'Unknown wsscdLoader action:', action );
 		}
 
 		return this;
@@ -415,6 +415,6 @@
 	 * Legacy compatibility aliases
 	 * For backward compatibility with existing code
 	 */
-	window.SCD.Loader = window.SCD.LoaderUtil;
+	window.WSSCD.Loader = window.WSSCD.LoaderUtil;
 
 } )( jQuery );

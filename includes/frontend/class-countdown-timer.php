@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/frontend
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Countdown_Timer {
+class WSSCD_Countdown_Timer {
 
 	/**
 	 * Render countdown timer.
@@ -56,38 +56,38 @@ class SCD_Countdown_Timer {
 			return '';
 		}
 
-		$timer_id = 'scd-timer-' . ( $args['campaign_id'] ?: wp_rand( 1000, 9999 ) );
+		$timer_id = 'wsscd-timer-' . ( $args['campaign_id'] ?: wp_rand( 1000, 9999 ) );
 
 		ob_start();
 		?>
 		<div id="<?php echo esc_attr( $timer_id ); ?>" 
-			class="scd-countdown-timer" 
+			class="wsscd-countdown-timer" 
 			data-end-date="<?php echo esc_attr( $args['end_date'] ); ?>">
 			<?php if ( $args['show_days'] ) : ?>
-				<div class="scd-timer-unit">
-					<span class="scd-timer-value" data-unit="days">00</span>
-					<span class="scd-timer-label"><?php echo esc_html( $args['labels']['days'] ); ?></span>
+				<div class="wsscd-timer-unit">
+					<span class="wsscd-timer-value" data-unit="days">00</span>
+					<span class="wsscd-timer-label"><?php echo esc_html( $args['labels']['days'] ); ?></span>
 				</div>
 			<?php endif; ?>
 			
 			<?php if ( $args['show_hours'] ) : ?>
-				<div class="scd-timer-unit">
-					<span class="scd-timer-value" data-unit="hours">00</span>
-					<span class="scd-timer-label"><?php echo esc_html( $args['labels']['hours'] ); ?></span>
+				<div class="wsscd-timer-unit">
+					<span class="wsscd-timer-value" data-unit="hours">00</span>
+					<span class="wsscd-timer-label"><?php echo esc_html( $args['labels']['hours'] ); ?></span>
 				</div>
 			<?php endif; ?>
 			
 			<?php if ( $args['show_minutes'] ) : ?>
-				<div class="scd-timer-unit">
-					<span class="scd-timer-value" data-unit="minutes">00</span>
-					<span class="scd-timer-label"><?php echo esc_html( $args['labels']['minutes'] ); ?></span>
+				<div class="wsscd-timer-unit">
+					<span class="wsscd-timer-value" data-unit="minutes">00</span>
+					<span class="wsscd-timer-label"><?php echo esc_html( $args['labels']['minutes'] ); ?></span>
 				</div>
 			<?php endif; ?>
 			
 			<?php if ( $args['show_seconds'] ) : ?>
-				<div class="scd-timer-unit">
-					<span class="scd-timer-value" data-unit="seconds">00</span>
-					<span class="scd-timer-label"><?php echo esc_html( $args['labels']['seconds'] ); ?></span>
+				<div class="wsscd-timer-unit">
+					<span class="wsscd-timer-value" data-unit="seconds">00</span>
+					<span class="wsscd-timer-label"><?php echo esc_html( $args['labels']['seconds'] ); ?></span>
 				</div>
 			<?php endif; ?>
 		</div>

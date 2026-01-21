@@ -1,12 +1,12 @@
 <?php
 /**
  * Wizard Step Template Wrapper
- * 
+ *
  * This template provides the standard fullscreen layout structure for all wizard steps
- * 
+ *
  * Usage:
- * Include this file and call scd_wizard_render_step() with your content
- * 
+ * Include this file and call wsscd_wizard_render_step() with your content
+ *
  * @since 1.0.0
  */
 
@@ -30,7 +30,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *     @type array  $form_data     Form data array (optional)
  * }
  */
-function scd_wizard_render_step( $args ) {
+function wsscd_wizard_render_step( $args ) {
 	$defaults = array(
 		'title'       => '',
 		'description' => '',
@@ -54,8 +54,8 @@ function scd_wizard_render_step( $args ) {
 	
 	// If no sidebar provided but step is specified, get from sidebar class
 	if ( empty( $args['sidebar'] ) && ! empty( $args['step'] ) ) {
-		if ( class_exists( 'SCD_Wizard_Sidebar' ) ) {
-			$args['sidebar'] = SCD_Wizard_Sidebar::get_sidebar( $args['step'], $args['step_data'] );
+		if ( class_exists( 'WSSCD_Wizard_Sidebar' ) ) {
+			$args['sidebar'] = WSSCD_Wizard_Sidebar::get_sidebar( $args['step'], $args['step_data'] );
 		}
 	}
 	
@@ -65,22 +65,14 @@ function scd_wizard_render_step( $args ) {
 	}
 	?>
 	
-	<div class="scd-step-main-content<?php echo $step_class ? ' scd-wizard-step--' . esc_attr( $step_class ) : ''; ?>">
-		<?php
-		// Content should be escaped by the caller
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo $args['content'];
-		?>
-	</div><!-- .scd-step-main-content -->
-	
+	<div class="wsscd-step-main-content wsscd-wizard-step<?php echo $step_class ? ' wsscd-wizard-step--' . esc_attr( $step_class ) : ''; ?>">
+		<?php WSSCD_HTML_Helper::output( $args['content'] ); ?>
+	</div><!-- .wsscd-step-main-content -->
+
 	<?php if ( $args['sidebar'] ): ?>
 		<!-- Help Sidebar -->
-		<aside class="scd-step-sidebar">
-			<?php
-			// Sidebar content should be escaped by the caller
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			echo $args['sidebar'];
-			?>
+		<aside class="wsscd-step-sidebar">
+			<?php WSSCD_HTML_Helper::output( $args['sidebar'] ); ?>
 		</aside>
 	<?php endif; ?>
 	
@@ -95,9 +87,9 @@ function scd_wizard_render_step( $args ) {
  * @param string $field_name Field name to check for errors
  * @return void
  */
-function scd_wizard_field_errors( $validation_errors, $field_name ) {
+function wsscd_wizard_field_errors( $validation_errors, $field_name ) {
 	if ( isset( $validation_errors[$field_name] ) ): ?>
-		<div class="scd-field-error">
+		<div class="wsscd-field-error">
 			<?php foreach ( (array) $validation_errors[$field_name] as $error ): ?>
 				<p class="error-message"><?php echo esc_html( $error ); ?></p>
 			<?php endforeach; ?>
@@ -112,9 +104,9 @@ function scd_wizard_field_errors( $validation_errors, $field_name ) {
  * @param array $validation_errors Array of validation errors
  * @return void
  */
-function scd_wizard_validation_notice( $validation_errors ) {
+function wsscd_wizard_validation_notice( $validation_errors ) {
 	if ( ! empty( $validation_errors ) ): ?>
-		<div class="notice notice-error is-dismissible scd-validation-notice">
+		<div class="notice notice-error is-dismissible wsscd-validation-notice">
 			<p><strong><?php esc_html_e( 'Please correct the following errors:', 'smart-cycle-discounts' ); ?></strong></p>
 			<ul>
 				<?php foreach ( $validation_errors as $field => $errors ): ?>
@@ -135,37 +127,40 @@ function scd_wizard_validation_notice( $validation_errors ) {
  * @param array &$validation_errors Reference to validation errors variable
  * @return void
  */
-function scd_wizard_init_step_vars( &$step_data, &$validation_errors ) {
+function wsscd_wizard_init_step_vars( &$step_data, &$validation_errors ) {
 	// Initialize variables with safe defaults
 	$step_data = isset( $step_data ) ? $step_data : array();
 	$validation_errors = isset( $validation_errors ) ? $validation_errors : array();
 	
 	// Check nonce first for security
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce is being verified on the next line.
 	if ( isset( $_GET['validation_error'] ) && isset( $_GET['_wpnonce'] ) ) {
-		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'scd_wizard_validation' ) ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verification happening here.
+		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'wsscd_wizard_validation' ) ) {
 			return;
 		}
-		
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified above.
 		if ( absint( $_GET['validation_error'] ) === 1 ) {
 			$user_id = get_current_user_id();
 			
 			// Load stored validation errors
-			$stored_errors = get_transient( "scd_wizard_validation_errors_{$user_id}" );
+			$stored_errors = get_transient( "wsscd_wizard_validation_errors_{$user_id}" );
 			if ( $stored_errors ) {
 				$validation_errors = $stored_errors;
-				delete_transient( "scd_wizard_validation_errors_{$user_id}" );
+				delete_transient( "wsscd_wizard_validation_errors_{$user_id}" );
 			}
 			
 			// Load previous form data
-			$stored_form_data = get_transient( "scd_wizard_form_data_{$user_id}" );
+			$stored_form_data = get_transient( "wsscd_wizard_form_data_{$user_id}" );
 			if ( $stored_form_data ) {
 				// Safely get the current step from request URI
 				$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
-				$step_key = sanitize_key( basename( parse_url( $request_uri, PHP_URL_PATH ), '.php' ) );
+				$step_key = sanitize_key( basename( wp_parse_url( $request_uri, PHP_URL_PATH ), '.php' ) );
 				
 				if ( ! empty( $step_key ) && isset( $stored_form_data[$step_key] ) ) {
 					$step_data = array_merge( $step_data, $stored_form_data[$step_key] );
-					delete_transient( "scd_wizard_form_data_{$user_id}" );
+					delete_transient( "wsscd_wizard_form_data_{$user_id}" );
 				}
 			}
 		}
@@ -181,7 +176,7 @@ function scd_wizard_init_step_vars( &$step_data, &$validation_errors ) {
  * @param array $additional_data Additional data to include in state (optional)
  * @return void
  */
-function scd_wizard_state_script( $step_name, $saved_data, $additional_data = array() ) {
+function wsscd_wizard_state_script( $step_name, $saved_data, $additional_data = array() ) {
 	// Validate step name
 	$step_name = sanitize_key( $step_name );
 	if ( empty( $step_name ) ) {
@@ -213,23 +208,25 @@ function scd_wizard_state_script( $step_name, $saved_data, $additional_data = ar
 
 	$state_data = array_merge( array(
 		'ajax_url' => admin_url( 'admin-ajax.php' ),
-		'nonce' => wp_create_nonce( 'scd_wizard_nonce' ),
+		'nonce' => wp_create_nonce( 'wsscd_wizard_nonce' ),
 		'saved_data' => $sanitize_recursive( $saved_data )
 	), $sanitize_recursive( $additional_data ) );
 
 	// Convert snake_case to camelCase for JavaScript (consistent with Asset Localizer)
-	if ( class_exists( 'SCD_Case_Converter' ) ) {
-		$state_data = SCD_Case_Converter::snake_to_camel( $state_data );
+	if ( class_exists( 'WSSCD_Case_Converter' ) ) {
+		$state_data = WSSCD_Case_Converter::snake_to_camel( $state_data );
 	}
 
-	?>
-	<script type="text/javascript">
-	window.scd<?php echo esc_js( ucfirst( $step_name ) ); ?>State = <?php echo wp_json_encode( $state_data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ); ?>;
-	<?php if ( $validation_rules !== null ): ?>
-	window.scd<?php echo esc_js( ucfirst( $step_name ) ); ?>Validation = <?php echo wp_json_encode( $sanitize_recursive( $validation_rules ), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ); ?>;
-	<?php endif; ?>
-	</script>
-	<?php
+	// Build script for WordPress.org compliance using wp_add_inline_script
+	$var_name  = 'wsscd' . ucfirst( $step_name ) . 'State';
+	$script    = 'window.' . esc_js( $var_name ) . ' = ' . wp_json_encode( $state_data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ) . ';';
+
+	if ( $validation_rules !== null ) {
+		$validation_var = 'wsscd' . ucfirst( $step_name ) . 'Validation';
+		$script        .= 'window.' . esc_js( $validation_var ) . ' = ' . wp_json_encode( $sanitize_recursive( $validation_rules ), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ) . ';';
+	}
+
+	wp_add_inline_script( 'jquery-core', $script );
 }
 
 /**
@@ -254,7 +251,7 @@ function scd_wizard_state_script( $step_name, $saved_data, $additional_data = ar
  * }
  * @return void
  */
-function scd_wizard_card( $args ) {
+function wsscd_wizard_card( $args ) {
 	$defaults = array(
 		'title'       => '',
 		'subtitle'    => '',
@@ -278,10 +275,10 @@ function scd_wizard_card( $args ) {
 
 	// Generate ID if not provided
 	if ( empty( $args['id'] ) && $args['collapsible'] ) {
-		$args['id'] = 'scd-card-' . sanitize_title( $args['title'] );
+		$args['id'] = 'wsscd-card-' . sanitize_title( $args['title'] );
 	}
 
-	$card_classes = array( 'scd-card', 'scd-wizard-card' );
+	$card_classes = array( 'wsscd-card', 'wsscd-wizard-card' );
 	if ( ! empty( $args['class'] ) ) {
 		$card_classes[] = sanitize_html_class( $args['class'] );
 	}
@@ -290,10 +287,10 @@ function scd_wizard_card( $args ) {
 		 <?php if ( $args['id'] ): ?>id="<?php echo esc_attr( $args['id'] ); ?>"<?php endif; ?>
 		 <?php if ( $args['collapsible'] ): ?>data-collapsible="true"<?php endif; ?>
 		 <?php if ( ! empty( $args['help_topic'] ) ): ?>data-help-topic="<?php echo esc_attr( $args['help_topic'] ); ?>"<?php endif; ?>>
-		<div class="scd-card__header">
-			<h3 class="scd-card__title">
+		<div class="wsscd-card__header">
+			<h3 class="wsscd-card__title">
 				<?php if ( $args['icon'] ): ?>
-					<?php echo SCD_Icon_Helper::get( $args['icon'], array( 'size' => 16 ) ); ?>
+					<?php WSSCD_Icon_Helper::render( $args['icon'], array( 'size' => 16 ) ); ?>
 				<?php endif; ?>
 				<?php echo esc_html( $args['title'] ); ?>
 				<?php
@@ -311,7 +308,7 @@ function scd_wizard_card( $args ) {
 
 					if ( ! empty( $badge_text ) ) {
 						printf(
-							'<span class="scd-badge scd-badge--%s">%s</span>',
+							'<span class="wsscd-badge wsscd-badge--%s">%s</span>',
 							esc_attr( $badge_type ),
 							esc_html( $badge_text )
 						);
@@ -320,7 +317,7 @@ function scd_wizard_card( $args ) {
 
 				// Render indicator if provided (alternative to badge)
 				if ( ! empty( $args['indicator'] ) && empty( $args['badge'] ) ) {
-					$indicator_class = 'scd-' . sanitize_html_class( $args['indicator'] ) . '-indicator';
+					$indicator_class = 'wsscd-' . sanitize_html_class( $args['indicator'] ) . '-indicator';
 					$indicator_text = 'optional' === $args['indicator']
 						? __( 'Optional', 'smart-cycle-discounts' )
 						: __( 'Required', 'smart-cycle-discounts' );
@@ -334,22 +331,18 @@ function scd_wizard_card( $args ) {
 				?>
 			</h3>
 			<?php if ( $args['subtitle'] ): ?>
-				<p class="scd-card__subtitle">
+				<p class="wsscd-card__subtitle">
 					<?php echo esc_html( $args['subtitle'] ); ?>
 				</p>
 			<?php endif; ?>
 			<?php if ( $args['edit_step'] ): ?>
-				<a href="#" class="scd-edit-step" data-edit-step="<?php echo esc_attr( $args['edit_step'] ); ?>">
+				<a href="#" class="wsscd-edit-step" data-edit-step="<?php echo esc_attr( $args['edit_step'] ); ?>">
 					<?php esc_html_e( 'Edit', 'smart-cycle-discounts' ); ?>
 				</a>
 			<?php endif; ?>
 		</div>
-		<div class="scd-card__content">
-			<?php
-			// Content should be escaped by the caller
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			echo $args['content'];
-			?>
+		<div class="wsscd-card__content">
+			<?php WSSCD_HTML_Helper::output( $args['content'] ); ?>
 		</div>
 	</div>
 	<?php
@@ -379,7 +372,7 @@ function scd_wizard_card( $args ) {
  * }
  * @return void
  */
-function scd_wizard_form_field( $args ) {
+function wsscd_wizard_form_field( $args ) {
 	$defaults = array(
 		'step'              => '',
 		'field'             => '',
@@ -401,8 +394,8 @@ function scd_wizard_form_field( $args ) {
 	$args = wp_parse_args( $args, $defaults );
 
 	// If step and field are provided, read from field definitions
-	if ( ! empty( $args['step'] ) && ! empty( $args['field'] ) && class_exists( 'SCD_Field_Definitions' ) ) {
-		$field_def = SCD_Field_Definitions::get_field( $args['step'], $args['field'] );
+	if ( ! empty( $args['step'] ) && ! empty( $args['field'] ) && class_exists( 'WSSCD_Field_Definitions' ) ) {
+		$field_def = WSSCD_Field_Definitions::get_field( $args['step'], $args['field'] );
 
 		if ( ! empty( $field_def ) ) {
 			// Map field definition properties to template args
@@ -476,9 +469,9 @@ function scd_wizard_form_field( $args ) {
 
 	// Apply appropriate enhanced styling class based on field type
 	if ( 'select' === $args['type'] ) {
-		$field_classes[] = 'scd-enhanced-select';
+		$field_classes[] = 'wsscd-enhanced-select';
 	} else {
-		$field_classes[] = 'scd-enhanced-input'; // For text, number, email, textarea, etc.
+		$field_classes[] = 'wsscd-enhanced-input'; // For text, number, email, textarea, etc.
 	}
 
 	if ( ! empty( $args['class'] ) ) {
@@ -489,14 +482,14 @@ function scd_wizard_form_field( $args ) {
 	}
 	$field_class_string = implode( ' ', $field_classes );
 	?>
-	<div class="scd-form-field">
+	<div class="wsscd-form-field">
 		<label for="<?php echo esc_attr( $args['id'] ); ?>">
 			<?php echo esc_html( $args['label'] ); ?>
 			<?php if ( $args['required'] ): ?>
 				<span class="required">*</span>
 			<?php endif; ?>
 			<?php if ( ! empty( $args['tooltip'] ) ): ?>
-				<?php scd_wizard_field_helper( $args['tooltip'] ); ?>
+				<?php wsscd_wizard_field_helper( $args['tooltip'] ); ?>
 			<?php endif; ?>
 		</label>
 
@@ -506,22 +499,16 @@ function scd_wizard_form_field( $args ) {
 				name="<?php echo esc_attr( $args['name'] ); ?>"
 				class="<?php echo esc_attr( $field_class_string ); ?>"
 				placeholder="<?php echo esc_attr( $args['placeholder'] ); ?>"
-				<?php echo $args['required'] ? 'aria-required="true"' : ''; ?>
-				<?php
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Already escaped in construction (line 373)
-				echo $attr_string;
-				?>
+				<?php echo esc_attr( $args['required'] ? 'aria-required="true"' : '' ); ?>
+				<?php WSSCD_HTML_Helper::output( $attr_string ); ?>
 			><?php echo esc_textarea( $args['value'] ); ?></textarea>
 		<?php elseif ( 'select' === $args['type'] && ! empty( $args['options'] ) ): ?>
 			<select
 				id="<?php echo esc_attr( $args['id'] ); ?>"
 				name="<?php echo esc_attr( $args['name'] ); ?>"
 				class="<?php echo esc_attr( $field_class_string ); ?>"
-				<?php echo $args['required'] ? 'aria-required="true"' : ''; ?>
-				<?php
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Already escaped in construction (line 373)
-				echo $attr_string;
-				?>
+				<?php echo esc_attr( $args['required'] ? 'aria-required="true"' : '' ); ?>
+				<?php WSSCD_HTML_Helper::output( $attr_string ); ?>
 			>
 				<?php foreach ( $args['options'] as $opt_value => $opt_label ): ?>
 					<option value="<?php echo esc_attr( $opt_value ); ?>" <?php selected( $args['value'], $opt_value ); ?>>
@@ -537,15 +524,12 @@ function scd_wizard_form_field( $args ) {
 				value="<?php echo esc_attr( $args['value'] ); ?>"
 				class="<?php echo esc_attr( $field_class_string ); ?>"
 				placeholder="<?php echo esc_attr( $args['placeholder'] ?? '' ); ?>"
-				<?php echo $args['required'] ? 'aria-required="true"' : ''; ?>
-				<?php
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Already escaped in construction (line 373)
-				echo $attr_string;
-				?>
+				<?php echo esc_attr( $args['required'] ? 'aria-required="true"' : '' ); ?>
+				<?php WSSCD_HTML_Helper::output( $attr_string ); ?>
 			/>
 		<?php endif; ?>
 
-		<?php scd_wizard_field_errors( $args['validation_errors'] ?? array(), $args['name'] ); ?>
+		<?php wsscd_wizard_field_errors( $args['validation_errors'] ?? array(), $args['name'] ); ?>
 	</div>
 	<?php
 }
@@ -563,7 +547,7 @@ function scd_wizard_form_field( $args ) {
  * }
  * @return void
  */
-function scd_wizard_table_field( $args ) {
+function wsscd_wizard_table_field( $args ) {
 	$defaults = array(
 		'label'   => '',
 		'tooltip' => '',
@@ -590,16 +574,12 @@ function scd_wizard_table_field( $args ) {
 				) );
 				?>
 				<?php if ( $args['tooltip'] ): ?>
-					<?php scd_wizard_field_helper( $args['tooltip'] ); ?>
+					<?php wsscd_wizard_field_helper( $args['tooltip'] ); ?>
 				<?php endif; ?>
 			</label>
 		</th>
 		<td>
-			<?php 
-			// Content should be escaped by the caller
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			echo $args['content']; 
-			?>
+			<?php WSSCD_HTML_Helper::output( $args['content'] ); ?>
 		</td>
 	</tr>
 	<?php
@@ -613,7 +593,7 @@ function scd_wizard_table_field( $args ) {
  * @param int $limit Maximum number of names to return
  * @return array Array of product names
  */
-function scd_wizard_get_product_names( $product_ids, $limit = 5 ) {
+function wsscd_wizard_get_product_names( $product_ids, $limit = 5 ) {
 	if ( empty( $product_ids ) || ! is_array( $product_ids ) ) {
 		return array();
 	}
@@ -629,19 +609,17 @@ function scd_wizard_get_product_names( $product_ids, $limit = 5 ) {
 	global $wpdb;
 	
 	// Get product names efficiently with a single query
-	$placeholders = array_fill( 0, count( $product_ids ), '%d' );
-	$placeholders = implode( ', ', $placeholders );
-	
+	$placeholders = implode( ', ', array_fill( 0, count( $product_ids ), '%d' ) );
+
+	// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
+	// Dynamic IN() clause with safe %d placeholders generated via array_fill. Query IS prepared. Product names lookup.
 	$results = $wpdb->get_results(
 		$wpdb->prepare(
-			"SELECT ID, post_title FROM {$wpdb->posts} 
-			WHERE ID IN ({$placeholders}) 
-			AND post_type = 'product' 
-			AND post_status = 'publish'
-			ORDER BY post_title ASC",
-			$product_ids
+			"SELECT ID, post_title FROM {$wpdb->posts} WHERE ID IN ({$placeholders}) AND post_type = 'product' AND post_status = 'publish' ORDER BY post_title ASC",
+			...$product_ids
 		)
 	);
+	// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 	
 	$product_names = array();
 	if ( $results ) {
@@ -660,7 +638,7 @@ function scd_wizard_get_product_names( $product_ids, $limit = 5 ) {
  * @param array $category_ids Array of category IDs
  * @return array Array of category names
  */
-function scd_wizard_get_category_names( $category_ids ) {
+function wsscd_wizard_get_category_names( $category_ids ) {
 	if ( empty( $category_ids ) || ! is_array( $category_ids ) ) {
 		return array();
 	}
@@ -696,21 +674,21 @@ function scd_wizard_get_category_names( $category_ids ) {
 /**
  * Generate field helper/tooltip
  *
- * Uses centralized SCD_Tooltip_Helper for consistency
+ * Uses centralized WSSCD_Tooltip_Helper for consistency
  *
  * @since 1.0.0
  * @param string $tooltip Tooltip text
  * @param array  $args    Optional tooltip arguments
  * @return void
  */
-function scd_wizard_field_helper( $tooltip, $args = array() ) {
+function wsscd_wizard_field_helper( $tooltip, $args = array() ) {
 	if ( empty( $tooltip ) ) {
 		return;
 	}
 
 	// Use centralized tooltip system
-	if ( class_exists( 'SCD_Tooltip_Helper' ) ) {
-		SCD_Tooltip_Helper::render( $tooltip, $args );
+	if ( class_exists( 'WSSCD_Tooltip_Helper' ) ) {
+		WSSCD_Tooltip_Helper::render( $tooltip, $args );
 	}
 }
 
@@ -722,7 +700,7 @@ function scd_wizard_field_helper( $tooltip, $args = array() ) {
  * @param string $text Loading text (default: 'Loading...')
  * @return void
  */
-function scd_wizard_loading_indicator( $id, $text = '' ) {
+function wsscd_wizard_loading_indicator( $id, $text = '' ) {
 	if ( empty( $id ) ) {
 		return;
 	}
@@ -731,9 +709,9 @@ function scd_wizard_loading_indicator( $id, $text = '' ) {
 		$text = __( 'Loading...', 'smart-cycle-discounts' );
 	}
 	?>
-	<div id="<?php echo esc_attr( $id ); ?>" class="scd-loading-overlay" style="display: none;" role="status">
+	<div id="<?php echo esc_attr( $id ); ?>" class="wsscd-loading-overlay" style="display: none;" role="status">
 		<span class="spinner is-active" aria-hidden="true"></span>
-		<span class="scd-loading-text"><?php echo esc_html( $text ); ?></span>
+		<span class="wsscd-loading-text"><?php echo esc_html( $text ); ?></span>
 	</div>
 	<?php
 }
@@ -765,7 +743,7 @@ function scd_wizard_loading_indicator( $id, $text = '' ) {
  * }
  * @return void
  */
-function scd_wizard_enhanced_field( $args ) {
+function wsscd_wizard_enhanced_field( $args ) {
 	$defaults = array(
 		'id'          => '',
 		'name'        => '',
@@ -794,8 +772,8 @@ function scd_wizard_enhanced_field( $args ) {
 		<th scope="row">
 			<label for="<?php echo esc_attr( $args['id'] ); ?>">
 				<?php if ( $args['icon'] ): ?>
-					<span class="scd-label-icon" title="<?php echo esc_attr( $args['label'] ); ?>">
-						<?php echo SCD_Icon_Helper::get( $args['icon'], array( 'size' => 16 ) ); ?>
+					<span class="wsscd-label-icon" title="<?php echo esc_attr( $args['label'] ); ?>">
+						<?php WSSCD_Icon_Helper::render( $args['icon'], array( 'size' => 16 ) ); ?>
 					</span>
 				<?php endif; ?>
 				<?php echo esc_html( $args['label'] ); ?>
@@ -803,15 +781,15 @@ function scd_wizard_enhanced_field( $args ) {
 					<span class="required">*</span>
 				<?php endif; ?>
 				<?php if ( $args['tooltip'] ): ?>
-					<span class="scd-field-helper" data-tooltip="<?php echo esc_attr( $args['tooltip'] ); ?>">
-						<?php echo SCD_Icon_Helper::get( 'editor-help', array( 'size' => 16 ) ); ?>
+					<span class="wsscd-field-helper" data-tooltip="<?php echo esc_attr( $args['tooltip'] ); ?>">
+						<?php WSSCD_Icon_Helper::render( 'editor-help', array( 'size' => 16 ) ); ?>
 					</span>
 				<?php endif; ?>
 			</label>
 		</th>
 		<td>
 			<?php if ( $args['suffix'] ): ?>
-				<div class="scd-input-wrapper">
+				<div class="wsscd-input-wrapper">
 			<?php endif; ?>
 
 			<input type="<?php echo esc_attr( $args['type'] ); ?>"
@@ -821,12 +799,12 @@ function scd_wizard_enhanced_field( $args ) {
 			       <?php if ( $args['min'] !== '' ): ?>min="<?php echo esc_attr( $args['min'] ); ?>"<?php endif; ?>
 			       <?php if ( $args['max'] !== '' ): ?>max="<?php echo esc_attr( $args['max'] ); ?>"<?php endif; ?>
 			       <?php if ( $args['step'] !== '' ): ?>step="<?php echo esc_attr( $args['step'] ); ?>"<?php endif; ?>
-			       class="scd-enhanced-input <?php echo esc_attr( $args['class'] ); ?>"
+			       class="wsscd-enhanced-input <?php echo esc_attr( $args['class'] ); ?>"
 			       placeholder="<?php echo esc_attr( $args['placeholder'] ); ?>"
-			       <?php echo $args['required'] ? 'required aria-required="true"' : ''; ?>>
+			       <?php echo esc_attr( $args['required'] ? 'required aria-required="true"' : '' ); ?>>
 
 			<?php if ( $args['suffix'] ): ?>
-				<span class="scd-field-suffix"><?php echo esc_html( $args['suffix'] ); ?></span>
+				<span class="wsscd-field-suffix"><?php echo esc_html( $args['suffix'] ); ?></span>
 				</div>
 			<?php endif; ?>
 		</td>

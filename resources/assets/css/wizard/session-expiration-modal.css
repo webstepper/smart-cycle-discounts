@@ -1,0 +1,196 @@
+/**
+ * Session Expiration Modal
+ *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/css/wizard/session-expiration-modal.css
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @since      1.0.0
+ */
+
+/* ===== MODAL OVERLAY ===== */
+.wsscd-expiration-warning-modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: var(--wsscd-z-modal);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.wsscd-expiration-warning-modal .wsscd-modal-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: var(--wsscd-overlay-heavy); /* Slightly lighter than pro-feature-modal (0.7) */
+}
+
+/* ===== MODAL CONTENT ===== */
+/* Note: Base modal content pattern shared with pro-feature-modal.css */
+.wsscd-expiration-warning-modal .wsscd-modal-content {
+	position: relative;
+
+	background: var(--wsscd-color-white);
+
+	/* Semi-transparent border */
+	border: 1px solid var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-lg);
+
+	/* Enhanced shadow for floating effect - slightly stronger than pro modal */
+	box-shadow:
+		0 8px 32px var(--wsscd-overlay-medium),
+		0 4px 16px var(--wsscd-overlay-subtle),
+		inset 0 1px 0 var(--wsscd-overlay-white-heavy);
+
+	min-width: 400px;
+	max-width: 520px;
+	z-index: var(--wsscd-z-base);
+	animation: wsscd-modal-slide-in 0.3s ease-out;
+}
+
+/* Note: @keyframes wsscd-modal-slide-in defined in shared/_utilities.css */
+
+/* ===== MODAL HEADER ===== */
+.wsscd-expiration-warning-modal .wsscd-modal-header {
+	padding: var(--wsscd-padding-section) 32px;
+	border-bottom: 1px solid var(--wsscd-color-border-light);
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-gap-normal);
+}
+
+.wsscd-expiration-warning-modal .wsscd-modal-header .wsscd-icon {
+	color: var(--wsscd-color-warning); /* Warning orange */
+	font-size: var(--wsscd-icon-xl);
+	width: var(--wsscd-icon-xl);
+	height: var(--wsscd-icon-xl);
+}
+
+.wsscd-expiration-warning-modal .wsscd-modal-header h2 {
+	margin: 0;
+	font-size: var(--wsscd-font-size-xxl);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text-dark);
+	line-height: 1.3;
+}
+
+/* ===== MODAL BODY ===== */
+.wsscd-expiration-warning-modal .wsscd-modal-body {
+	padding: var(--wsscd-padding-section) 32px;
+	color: var(--wsscd-color-text-lighter);
+	line-height: 1.6;
+}
+
+.wsscd-expiration-warning-modal .wsscd-modal-body p {
+	margin: 0 0 12px 0;
+}
+
+.wsscd-expiration-warning-modal .wsscd-modal-body p:last-child {
+	margin-bottom: 0;
+}
+
+.wsscd-expiration-warning-modal .wsscd-modal-body strong {
+	color: var(--wsscd-color-text-dark);
+	font-weight: var(--wsscd-font-weight-semibold);
+}
+
+/* ===== MODAL FOOTER ===== */
+.wsscd-expiration-warning-modal .wsscd-modal-footer {
+	padding: var(--wsscd-padding-section) 32px;
+	border-top: 1px solid var(--wsscd-color-border-light);
+	display: flex;
+	gap: var(--wsscd-gap-normal);
+	justify-content: flex-end;
+	background: var(--wsscd-color-gray-50);
+	border-radius: 0 0 var(--wsscd-radius-md) var(--wsscd-radius-md);
+}
+
+.wsscd-expiration-warning-modal .wsscd-modal-footer .button {
+	min-width: 140px;
+	justify-content: center;
+	padding: var(--wsscd-padding-small) 20px;
+	font-size: var(--wsscd-font-size-medium);
+}
+
+/* Primary button (Continue Working) - uses shared button system */
+.wsscd-expiration-warning-modal .button-primary {
+	background: var(--wsscd-color-primary);
+	border-color: var(--wsscd-color-primary);
+	color: var(--wsscd-color-white);
+	box-shadow: var(--wsscd-shadow-primary-sm);
+}
+
+.wsscd-expiration-warning-modal .button-primary:hover,
+.wsscd-expiration-warning-modal .button-primary:active,
+.wsscd-expiration-warning-modal .button-primary:focus {
+	background: var(--wsscd-color-primary-dark);
+	border-color: var(--wsscd-color-primary-dark);
+	color: var(--wsscd-color-white);
+}
+
+/* Secondary button (View Drafts) - uses shared button system */
+.wsscd-expiration-warning-modal .button-secondary {
+	background: var(--wsscd-color-white);
+	border-color: var(--wsscd-color-border);
+	color: var(--wsscd-color-text);
+}
+
+.wsscd-expiration-warning-modal .button-secondary:hover,
+.wsscd-expiration-warning-modal .button-secondary:active,
+.wsscd-expiration-warning-modal .button-secondary:focus {
+	background: var(--wsscd-color-surface);
+	border-color: var(--wsscd-color-border-dark);
+	color: var(--wsscd-color-text);
+}
+
+/* ===== BROWSER FALLBACK - NO BACKDROP-FILTER SUPPORT ===== */
+	.wsscd-expiration-warning-modal .wsscd-modal-content {
+		/* Slightly more opaque background when blur isn't available */
+		background: var(--wsscd-color-white);
+	}
+
+	.wsscd-expiration-warning-modal .wsscd-modal-overlay {
+	}
+}
+
+/* ===== RESPONSIVE ===== */
+@media screen and (max-width: 600px) {
+	.wsscd-expiration-warning-modal .wsscd-modal-content {
+		min-width: 320px;
+		max-width: 90vw;
+		margin: 0 16px;
+	}
+
+	.wsscd-expiration-warning-modal .wsscd-modal-header,
+	.wsscd-expiration-warning-modal .wsscd-modal-body,
+	.wsscd-expiration-warning-modal .wsscd-modal-footer {
+		padding-left: 20px;
+		padding-right: 20px;
+	}
+
+	.wsscd-expiration-warning-modal .wsscd-modal-footer {
+		flex-direction: column;
+	}
+
+	.wsscd-expiration-warning-modal .wsscd-modal-footer .button {
+		width: 100%;
+	}
+}
+
+/* ===== REDUCED MOTION SUPPORT ===== */
+@media (prefers-reduced-motion: reduce) {
+	.wsscd-expiration-warning-modal .wsscd-modal-content {
+		animation: none;
+		background: var(--wsscd-color-white);
+	}
+
+	.wsscd-expiration-warning-modal .wsscd-modal-overlay {
+	}
+}

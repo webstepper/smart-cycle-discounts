@@ -13,13 +13,13 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	SCD.Shared = SCD.Shared || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Shared = WSSCD.Shared || {};
 
 	/**
 	 * System Check Utility
 	 */
-	SCD.Shared.SystemCheck = {
+	WSSCD.Shared.SystemCheck = {
 		/**
 		 * Run all system checks
 		 */
@@ -38,11 +38,11 @@
 		checkSharedModules: function() {
 
 			var modules = [
-				{ name: 'BaseOrchestrator', path: 'SCD.Shared.BaseOrchestrator' },
-				{ name: 'BaseState', path: 'SCD.Shared.BaseState' },
-				{ name: 'ValidationManager', path: 'SCD.ValidationManager' },
-				{ name: 'UI', path: 'SCD.Shared.UI' },
-				{ name: 'AjaxService', path: 'SCD.Ajax' }
+				{ name: 'BaseOrchestrator', path: 'WSSCD.Shared.BaseOrchestrator' },
+				{ name: 'BaseState', path: 'WSSCD.Shared.BaseState' },
+				{ name: 'ValidationManager', path: 'WSSCD.ValidationManager' },
+				{ name: 'UI', path: 'WSSCD.Shared.UI' },
+				{ name: 'AjaxService', path: 'WSSCD.Ajax' }
 			];
 
 			var self = this;
@@ -59,31 +59,31 @@
 
 			// Check Products
 
-			var productsOrchestrator = window.SCD && window.SCD.Steps && window.SCD.Steps.ProductsOrchestrator;
+			var productsOrchestrator = window.WSSCD && window.WSSCD.Steps && window.WSSCD.Steps.ProductsOrchestrator;
 
 			if ( productsOrchestrator ) {
 				var prodTestInstance = new productsOrchestrator();
-				if ( ! ( SCD.Shared && SCD.Shared.BaseOrchestrator && prodTestInstance instanceof SCD.Shared.BaseOrchestrator ) ) {
+				if ( ! ( WSSCD.Shared && WSSCD.Shared.BaseOrchestrator && prodTestInstance instanceof WSSCD.Shared.BaseOrchestrator ) ) {
 				}
 			}
 
 			// Check Discounts
 
-			var discountsOrchestrator = window.SCD && window.SCD.Steps && window.SCD.Steps.DiscountOrchestrator;
+			var discountsOrchestrator = window.WSSCD && window.WSSCD.Steps && window.WSSCD.Steps.DiscountOrchestrator;
 
 			if ( discountsOrchestrator ) {
 				var discTestInstance = new discountsOrchestrator();
-				if ( ! ( SCD.Shared && SCD.Shared.BaseOrchestrator && discTestInstance instanceof SCD.Shared.BaseOrchestrator ) ) {
+				if ( ! ( WSSCD.Shared && WSSCD.Shared.BaseOrchestrator && discTestInstance instanceof WSSCD.Shared.BaseOrchestrator ) ) {
 				}
 			}
 
 			// Check Schedule
 
-			var scheduleOrchestrator = window.SCD && window.SCD.Steps && window.SCD.Steps.ScheduleOrchestrator;
+			var scheduleOrchestrator = window.WSSCD && window.WSSCD.Steps && window.WSSCD.Steps.ScheduleOrchestrator;
 
 			if ( scheduleOrchestrator ) {
 				var schedTestInstance = new scheduleOrchestrator();
-				if ( ! ( SCD.Shared && SCD.Shared.BaseOrchestrator && schedTestInstance instanceof SCD.Shared.BaseOrchestrator ) ) {
+				if ( ! ( WSSCD.Shared && WSSCD.Shared.BaseOrchestrator && schedTestInstance instanceof WSSCD.Shared.BaseOrchestrator ) ) {
 				}
 			}
 
@@ -95,10 +95,10 @@
 		checkDevelopmentTools: function() {
 
 			var tools = [
-				{ name: 'Debug API', exists: !!window.scd },
-				{ name: 'Feature Toggle', exists: !!window.scdFeatures },
-				{ name: 'Module Inspector', exists: !!( SCD.Shared && SCD.Shared.ModuleInspector ) },
-				{ name: 'Dev Tools', exists: !!( SCD.Shared && SCD.Shared.DevTools ) }
+				{ name: 'Debug API', exists: !!window.wsscd },
+				{ name: 'Feature Toggle', exists: !!window.wsscdFeatures },
+				{ name: 'Module Inspector', exists: !!( WSSCD.Shared && WSSCD.Shared.ModuleInspector ) },
+				{ name: 'Dev Tools', exists: !!( WSSCD.Shared && WSSCD.Shared.DevTools ) }
 			];
 
 			tools.forEach( function( _tool ) {
@@ -135,15 +135,15 @@
 				modularSystemActive: true,
 				modules: {
 					shared: {
-						BaseOrchestrator: !!( SCD.Shared && SCD.Shared.BaseOrchestrator ),
-						BaseState: !!( SCD.Shared && SCD.Shared.BaseState ),
-						ValidationManager: !!( SCD.ValidationManager ),
-						UI: !!( SCD.Shared && SCD.Shared.UI )
+						BaseOrchestrator: !!( WSSCD.Shared && WSSCD.Shared.BaseOrchestrator ),
+						BaseState: !!( WSSCD.Shared && WSSCD.Shared.BaseState ),
+						ValidationManager: !!( WSSCD.ValidationManager ),
+						UI: !!( WSSCD.Shared && WSSCD.Shared.UI )
 					},
 					steps: {
-						products: !!( SCD.Steps && SCD.Steps.products ),
-						discounts: !!( SCD.Steps && SCD.Steps.discounts ),
-						schedule: !!( SCD.Steps && SCD.Steps.schedule )
+						products: !!( WSSCD.Steps && WSSCD.Steps.products ),
+						discounts: !!( WSSCD.Steps && WSSCD.Steps.discounts ),
+						schedule: !!( WSSCD.Steps && WSSCD.Steps.schedule )
 					}
 				},
 				ready: true
@@ -155,17 +155,17 @@
 
 	// Auto-run check when debug mode is enabled
 	$( document ).ready( function() {
-		if ( window.scdDebugMode || 'localhost' === window.location.hostname ) {
+		if ( window.wsscdDebugMode || 'localhost' === window.location.hostname ) {
 			// Run check after a short delay to ensure all modules are loaded
 			setTimeout( function() {
 
-				SCD.Shared.SystemCheck.runChecks();
+				WSSCD.Shared.SystemCheck.runChecks();
 			}, 1000 );
 		}
 	} );
 
-	if ( window.scd ) {
-		window.scd.systemCheck = function() { return SCD.Shared.SystemCheck.runChecks(); };
+	if ( window.wsscd ) {
+		window.wsscd.systemCheck = function() { return WSSCD.Shared.SystemCheck.runChecks(); };
 	}
 
 } )( jQuery );

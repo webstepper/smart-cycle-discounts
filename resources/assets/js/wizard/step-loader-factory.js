@@ -13,12 +13,12 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	SCD.Wizard = SCD.Wizard || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Wizard = WSSCD.Wizard || {};
 
 	// Register this module with the ModuleLoader
-	if ( window.SCD.ModuleLoader ) {
-		SCD.ModuleLoader.modules['step-loader-factory'] = true;
+	if ( window.WSSCD.ModuleLoader ) {
+		WSSCD.ModuleLoader.modules['step-loader-factory'] = true;
 	}
 
 	/**
@@ -26,7 +26,7 @@
 	 *
 	 * Creates loader functions for wizard steps based on configuration
 	 */
-	SCD.Wizard.StepLoaderFactory = {
+	WSSCD.Wizard.StepLoaderFactory = {
 
 		/**
 		 * Create a loader function for a specific step
@@ -41,28 +41,28 @@
 				var orchestratorClass = config.orchestratorClass;
 				var deferred;
 
-				if ( SCD.Steps[orchestratorProperty] ) {
+				if ( WSSCD.Steps[orchestratorProperty] ) {
 					deferred = $.Deferred();
 					deferred.resolve();
 					return deferred.promise();
 				}
 
-				if ( !SCD.Steps[orchestratorClass] ) {
+				if ( !WSSCD.Steps[orchestratorClass] ) {
 					deferred = $.Deferred();
 					deferred.reject( new Error( orchestratorClass + ' not available' ) );
 					return deferred.promise();
 				}
 
-				var orchestrator = new SCD.Steps[orchestratorClass]();
+				var orchestrator = new WSSCD.Steps[orchestratorClass]();
 
-				SCD.Steps[orchestratorProperty] = orchestrator;
+				WSSCD.Steps[orchestratorProperty] = orchestrator;
 
-				Object.defineProperty( SCD.Steps, stepName, {
+				Object.defineProperty( WSSCD.Steps, stepName, {
 					get: function() {
-						return SCD.Steps[orchestratorProperty];
+						return WSSCD.Steps[orchestratorProperty];
 					},
 					set: function( value ) {
-						SCD.Steps[orchestratorProperty] = value;
+						WSSCD.Steps[orchestratorProperty] = value;
 					},
 					configurable: true
 				} );
@@ -87,13 +87,13 @@
 			var loaderFunction = 'load' + stepName.charAt( 0 ).toUpperCase() + stepName.slice( 1 );
 
 			// Auto-initialize when wizard loads this step
-			$( document ).on( 'scd:wizard:stepLoaded', function( e, loadedStepName ) {
+			$( document ).on( 'wsscd:wizard:stepLoaded', function( e, loadedStepName ) {
 				if ( loadedStepName === stepName ) {
-					SCD.Steps[loaderFunction]().then( function() {
+					WSSCD.Steps[loaderFunction]().then( function() {
 						// Step loaded successfully
 					} ).fail( function( error ) {
 						// Trigger error event for wizard to handle
-						$( document ).trigger( 'scd:wizard:stepLoadError', [ stepName, error ] );
+						$( document ).trigger( 'wsscd:wizard:stepLoadError', [ stepName, error ] );
 					} );
 				}
 			} );
@@ -113,7 +113,7 @@
 
 				if ( isOnStep ) {
 					// Trigger step loaded event
-					$( document ).trigger( 'scd:wizard:stepLoaded', [ stepName ] );
+					$( document ).trigger( 'wsscd:wizard:stepLoaded', [ stepName ] );
 				}
 			} );
 		},
@@ -123,20 +123,20 @@
 		 */
 		init: function() {
 			// Ensure Steps namespace exists
-			SCD.Steps = SCD.Steps || {};
+			WSSCD.Steps = WSSCD.Steps || {};
 
 			// Wait for configuration to be available
-			if ( !SCD.Wizard.StepConfig ) {
-				console.error( 'SCD: Step configuration not found' );
+			if ( !WSSCD.Wizard.StepConfig ) {
+				console.error( 'WSSCD: Step configuration not found' );
 				return;
 			}
 
-			for ( var stepName in SCD.Wizard.StepConfig ) {
-				if ( Object.prototype.hasOwnProperty.call( SCD.Wizard.StepConfig, stepName ) ) {
-					var config = SCD.Wizard.StepConfig[stepName];
+			for ( var stepName in WSSCD.Wizard.StepConfig ) {
+				if ( Object.prototype.hasOwnProperty.call( WSSCD.Wizard.StepConfig, stepName ) ) {
+					var config = WSSCD.Wizard.StepConfig[stepName];
 					var loaderName = 'load' + stepName.charAt( 0 ).toUpperCase() + stepName.slice( 1 );
 
-					SCD.Steps[loaderName] = this.createLoader( stepName, config );
+					WSSCD.Steps[loaderName] = this.createLoader( stepName, config );
 
 					// Register event handlers
 					this.registerStepEvents( stepName, config );
@@ -146,8 +146,8 @@
 	};
 
 	$( document ).ready( function() {
-		if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.StepLoaderFactory ) {
-			SCD.Wizard.StepLoaderFactory.init();
+		if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.StepLoaderFactory ) {
+			WSSCD.Wizard.StepLoaderFactory.init();
 		}
 	} );
 

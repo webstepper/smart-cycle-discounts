@@ -39,7 +39,7 @@
 		bindEvents: function() {
 			var self = this;
 
-			$( '.scd-new-campaign-btn' ).on( 'click', function( e ) {
+			$( '.wsscd-new-campaign-btn' ).on( 'click', function( e ) {
 				var hasSession = $( this ).data( 'has-session' ) === 'true' || $( this ).data( 'has-session' ) === true;
 				var sessionType = $( this ).data( 'session-type' );
 				var campaignName = $( this ).data( 'campaign-name' );
@@ -49,7 +49,7 @@
 				var lastActivity = $( this ).data( 'last-activity' );
 
 				// Only show modal if we have a session
-				if ( hasSession === true && campaignName ) {
+				if ( true === hasSession && campaignName ) {
 					e.preventDefault();
 					self.showModal( sessionType, campaignName, currentStep, stepNumber, totalSteps, lastActivity );
 				}
@@ -66,9 +66,16 @@
 		 * @param {string} campaignName  Name of the campaign.
 		 */
 		showModal: function( sessionType, campaignName ) {
-			// Content is pre-populated in PHP, just show the modal
-			if ( typeof SCD !== 'undefined' && SCD.Modal ) {
-				SCD.Modal.show( 'scd-draft-conflict-modal' );
+			var $modal = $( '#wsscd-draft-conflict-modal' );
+
+			if ( $modal.length ) {
+				$modal.addClass( 'wsscd-modal--visible' ).fadeIn( 200 ).css( 'display', 'flex' );
+				$( 'body' ).addClass( 'wsscd-modal-open' );
+
+				// Focus first button for accessibility
+				setTimeout( function() {
+					$modal.find( '.wsscd-modal__actions button:first' ).focus();
+				}, 250 );
 			}
 		}
 	};
@@ -98,16 +105,22 @@
 		bindEvents: function() {
 			var self = this;
 
-			$( document ).on( 'click', '.scd-modal__actions button[data-action], .scd-modal-cancel, .scd-modal__close', function( e ) {
+			$( document ).on( 'click', '#wsscd-draft-conflict-modal .wsscd-modal__actions button[data-action], #wsscd-draft-conflict-modal .wsscd-modal-cancel, #wsscd-draft-conflict-modal .wsscd-modal__close', function( e ) {
 				e.preventDefault();
 				var action = $( this ).data( 'action' );
 
 				self.handleAction( action, $( this ) );
 			} );
 
+			// Close modal on overlay click
+			$( document ).on( 'click', '#wsscd-draft-conflict-modal .wsscd-modal__overlay', function( e ) {
+				e.preventDefault();
+				self.closeModal();
+			} );
+
 			// ESC key to close modal
 			$( document ).on( 'keydown', function( e ) {
-				if ( e.key === 'Escape' && $( '.scd-modal--visible' ).length ) {
+				if ( 'Escape' === e.key && $( '#wsscd-draft-conflict-modal.wsscd-modal--visible' ).length ) {
 					self.closeModal();
 				}
 			} );
@@ -136,7 +149,7 @@
 
 				default:
 					// Handle cancel button and close button
-					if ( $button.hasClass( 'scd-modal-cancel' ) || $button.hasClass( 'scd-modal__close' ) ) {
+					if ( $button.hasClass( 'wsscd-modal-cancel' ) || $button.hasClass( 'wsscd-modal__close' ) ) {
 						this.closeModal();
 					}
 					break;
@@ -151,7 +164,7 @@
 		 */
 		continueDraft: function( $button ) {
 			// Redirect to wizard with continue intent
-			window.location.href = window.scdCampaignListL10n.adminUrl + '?page=scd-campaigns&action=wizard&intent=continue';
+			window.location.href = window.wsscdCampaignListL10n.adminUrl + '?page=wsscd-campaigns&action=wizard&intent=continue';
 		},
 
 
@@ -163,26 +176,33 @@
 		 */
 		discardDraftAndCreateNew: function( $button ) {
 			// Disable button and update text
-			$button.prop( 'disabled', true ).text( window.scdCampaignListL10n.discardingText );
+			$button.prop( 'disabled', true ).text( window.wsscdCampaignListL10n.discardingText );
 
-			// Make AJAX call to discard the draft
+			var redirectUrl = window.wsscdCampaignListL10n.adminUrl + '?page=wsscd-campaigns&action=wizard&intent=new';
+
+			// Clear client-side storage FIRST (before AJAX, ensures clean state)
+			if ( window.WSSCD && window.WSSCD.Utils && window.WSSCD.Utils.WizardSession ) {
+				WSSCD.Utils.WizardSession.clearClientStorage();
+			}
+
+			// Make AJAX call to discard the server-side draft
 			$.ajax( {
 				url: window.ajaxurl,
 				type: 'POST',
 				data: {
-					action: 'scd_ajax',
-					scdAction: 'delete_draft',
+					action: 'wsscd_ajax',
+					wsscdAction: 'delete_draft',
 					draftAction: 'delete',
 					draftType: 'session',
 					draftId: 'current',
-					nonce: window.scdCampaignListL10n.nonce
+					nonce: window.wsscdCampaignListL10n.nonce
 				},
-				success: function( response ) {
-					window.location.href = window.scdCampaignListL10n.adminUrl + '?page=scd-campaigns&action=wizard&intent=new';
+				success: function() {
+					window.location.href = redirectUrl;
 				},
-				error: function( xhr, status, error ) {
-					// Still redirect even on error (graceful degradation)
-					window.location.href = window.scdCampaignListL10n.adminUrl + '?page=scd-campaigns&action=wizard&intent=new';
+				error: function() {
+					// Still redirect even on error - client storage already cleared
+					window.location.href = redirectUrl;
 				}
 			} );
 		},
@@ -193,8 +213,11 @@
 		 * @since 1.0.0
 		 */
 		closeModal: function() {
-			if ( typeof SCD !== 'undefined' && SCD.Modal ) {
-				SCD.Modal.hide( 'scd-draft-conflict-modal' );
+			var $modal = $( '#wsscd-draft-conflict-modal' );
+
+			if ( $modal.length ) {
+				$modal.removeClass( 'wsscd-modal--visible' ).fadeOut( 200 );
+				$( 'body' ).removeClass( 'wsscd-modal-open' );
 			}
 		}
 	};

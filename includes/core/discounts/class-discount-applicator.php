@@ -27,25 +27,25 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/discounts
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Discount_Applicator {
+class WSSCD_Discount_Applicator {
 
 	/**
 	 * Discount engine instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Discount_Engine    $discount_engine    Discount engine.
+	 * @var      WSSCD_Discount_Engine    $discount_engine    Discount engine.
 	 */
-	private SCD_Discount_Engine $discount_engine;
+	private WSSCD_Discount_Engine $discount_engine;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Applied discounts cache.
@@ -69,10 +69,10 @@ class SCD_Discount_Applicator {
 	 * Initialize the discount applicator.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Discount_Engine $discount_engine    Discount engine.
-	 * @param    SCD_Logger          $logger             Logger instance.
+	 * @param    WSSCD_Discount_Engine $discount_engine    Discount engine.
+	 * @param    WSSCD_Logger          $logger             Logger instance.
 	 */
-	public function __construct( SCD_Discount_Engine $discount_engine, SCD_Logger $logger ) {
+	public function __construct( WSSCD_Discount_Engine $discount_engine, WSSCD_Logger $logger ) {
 		$this->discount_engine = $discount_engine;
 		$this->logger          = $logger;
 	}
@@ -214,6 +214,7 @@ class SCD_Discount_Applicator {
 				}
 			} catch ( Exception $e ) {
 				$results['errors'][] = sprintf(
+					/* translators: %1$s: cart item key, %2$s: error message */
 					__( 'Error processing cart item %1$s: %2$s', 'smart-cycle-discounts' ),
 					$cart_item_key,
 					$e->getMessage()
@@ -277,9 +278,9 @@ class SCD_Discount_Applicator {
 				$result['discount_amount']  = $calculation['discount_amount'];
 				$result['success']          = true;
 
-				$cart_item['scd_discount_applied'] = true;
-				$cart_item['scd_discount_amount']  = $calculation['discount_amount'];
-				$cart_item['scd_original_price']   = $original_price;
+				$cart_item['wsscd_discount_applied'] = true;
+				$cart_item['wsscd_discount_amount']  = $calculation['discount_amount'];
+				$cart_item['wsscd_original_price']   = $original_price;
 
 			} else {
 				$result['errors']           = array_merge( $result['errors'], $calculation['errors'] ?? array() );
@@ -374,13 +375,13 @@ class SCD_Discount_Applicator {
 	 * @return   bool                      True if eligible.
 	 */
 	public function is_product_eligible( WC_Product $product, array $context = array() ): bool {
-		$excluded = get_post_meta( $product->get_id(), '_scd_exclude_from_discounts', true );
+		$excluded = get_post_meta( $product->get_id(), '_wsscd_exclude_from_discounts', true );
 		if ( 'yes' === $excluded ) {
 			return false;
 		}
 
 		$allowed_types = apply_filters(
-			'scd_allowed_product_types',
+			'wsscd_allowed_product_types',
 			array(
 				'simple',
 				'variable',
@@ -402,7 +403,7 @@ class SCD_Discount_Applicator {
 		}
 
 		// Allow filtering
-		return apply_filters( 'scd_is_product_eligible_for_discount', true, $product, $context );
+		return apply_filters( 'wsscd_is_product_eligible_for_discount', true, $product, $context );
 	}
 
 	/**
@@ -484,7 +485,7 @@ class SCD_Discount_Applicator {
 		}
 
 		// Allow custom rule validation
-		return apply_filters( 'scd_is_discount_rule_applicable', true, $product_id, $rule, $context );
+		return apply_filters( 'wsscd_is_discount_rule_applicable', true, $product_id, $rule, $context );
 	}
 
 	/**

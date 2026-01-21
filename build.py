@@ -76,6 +76,7 @@ EXCLUDE_PATTERNS = [
     'resources/assets/scss',  # Exclude SCSS source files - keep compiled CSS in resources/assets/css/
     # Note: Root 'assets/' directory excluded via should_exclude() root-level check only
     # Do NOT add 'assets' here - it would match 'resources/assets/' due to path component matching
+    # ✅ INCLUDED: resources/assets/vendor/ (bundled Chart.js and Tom Select for WordPress.org compliance)
 
     # Vendor dependencies (exclude all except Freemius SDK)
     # IMPORTANT: Plugin uses vendor/freemius/start.php directly, not Composer autoloader
@@ -129,6 +130,15 @@ EXCLUDE_PATTERNS = [
     '*.gif',
     '*.svg',
     '*.ico',
+
+    # HTML files (development/test files, not part of plugin)
+    '*.html',
+
+    # JSON files (development/config files, not part of plugin)
+    '*.json',
+
+    # CSS files in root (development artifacts)
+    'freemius-portal.css',
 
     # Build artifacts
     '*.zip',

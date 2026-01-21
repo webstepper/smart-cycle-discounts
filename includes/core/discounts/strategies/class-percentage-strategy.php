@@ -27,9 +27,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/discounts/strategies
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Percentage_Strategy implements SCD_Discount_Strategy_Interface {
+class WSSCD_Percentage_Strategy implements WSSCD_Discount_Strategy_Interface {
 
-	use SCD_Discount_Preview_Trait;
+	use WSSCD_Discount_Preview_Trait;
 
 	/**
 	 * Strategy identifier.
@@ -43,12 +43,12 @@ class SCD_Percentage_Strategy implements SCD_Discount_Strategy_Interface {
 	 * @param    float $original_price    Original product price.
 	 * @param    array $discount_config   Discount configuration.
 	 * @param    array $context          Additional context.
-	 * @return   SCD_Discount_Result        Discount calculation result.
+	 * @return   WSSCD_Discount_Result        Discount calculation result.
 	 */
-	public function calculate_discount( float $original_price, array $discount_config, array $context = array() ): SCD_Discount_Result {
+	public function calculate_discount( float $original_price, array $discount_config, array $context = array() ): WSSCD_Discount_Result {
 		// CRITICAL: Defensive validation for NULL or invalid prices
 		if ( ! is_numeric( $original_price ) || $original_price < 0 ) {
-			return SCD_Discount_Result::no_discount(
+			return WSSCD_Discount_Result::no_discount(
 				0.0,
 				self::STRATEGY_ID,
 				'Invalid price: must be a non-negative number'
@@ -57,14 +57,14 @@ class SCD_Percentage_Strategy implements SCD_Discount_Strategy_Interface {
 
 		$errors = $this->validate_config( $discount_config );
 		if ( ! empty( $errors ) ) {
-			return SCD_Discount_Result::no_discount( $original_price, self::STRATEGY_ID, 'Invalid configuration' );
+			return WSSCD_Discount_Result::no_discount( $original_price, self::STRATEGY_ID, 'Invalid configuration' );
 		}
 
 		$percentage = (float) $discount_config['percentage'];
 
 		// CRITICAL: Add defensive validation even if config validation passed
 		if ( $percentage < 0 || $percentage > 100 ) {
-			return SCD_Discount_Result::no_discount(
+			return WSSCD_Discount_Result::no_discount(
 				$original_price,
 				self::STRATEGY_ID,
 				'Invalid percentage value'
@@ -74,7 +74,7 @@ class SCD_Percentage_Strategy implements SCD_Discount_Strategy_Interface {
 		$max_amount = (float) ( $discount_config['max_amount'] ?? 0 );
 
 		if ( $min_amount > 0 && $original_price < $min_amount ) {
-			return SCD_Discount_Result::no_discount(
+			return WSSCD_Discount_Result::no_discount(
 				$original_price,
 				self::STRATEGY_ID,
 				"Price below minimum threshold of {$min_amount}"
@@ -110,7 +110,7 @@ class SCD_Percentage_Strategy implements SCD_Discount_Strategy_Interface {
 			'min_discounted_price' => $min_discounted_price,
 		);
 
-		return new SCD_Discount_Result(
+		return new WSSCD_Discount_Result(
 			$original_price,
 			$discounted_price,
 			self::STRATEGY_ID,
@@ -135,10 +135,10 @@ class SCD_Percentage_Strategy implements SCD_Discount_Strategy_Interface {
 			$percentage = (float) $discount_config['percentage'];
 
 			// CRITICAL: Fix broken constant names - use PERCENTAGE_MIN/MAX not DISCOUNT_PERCENTAGE_MIN/MAX
-			if ( $percentage < SCD_Validation_Rules::PERCENTAGE_MIN ) {
-				$errors['percentage'] = sprintf( 'Percentage must be at least %d.', SCD_Validation_Rules::PERCENTAGE_MIN );
-			} elseif ( $percentage > SCD_Validation_Rules::PERCENTAGE_MAX ) {
-				$errors['percentage'] = sprintf( 'Percentage cannot exceed %d%%.', SCD_Validation_Rules::PERCENTAGE_MAX );
+			if ( $percentage < WSSCD_Validation_Rules::PERCENTAGE_MIN ) {
+				$errors['percentage'] = sprintf( 'Percentage must be at least %d.', WSSCD_Validation_Rules::PERCENTAGE_MIN );
+			} elseif ( $percentage > WSSCD_Validation_Rules::PERCENTAGE_MAX ) {
+				$errors['percentage'] = sprintf( 'Percentage cannot exceed %d%%.', WSSCD_Validation_Rules::PERCENTAGE_MAX );
 			} elseif ( $percentage < 0 ) {
 				$errors['percentage'] = 'Percentage cannot be negative.';
 			}
@@ -335,10 +335,10 @@ class SCD_Percentage_Strategy implements SCD_Discount_Strategy_Interface {
 	 * Override to include percentage in savings text.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Discount_Result $result    Discount calculation result.
+	 * @param    WSSCD_Discount_Result $result    Discount calculation result.
 	 * @return   string                            Formatted savings text with percentage.
 	 */
-	protected function format_savings_text( SCD_Discount_Result $result ): string {
+	protected function format_savings_text( WSSCD_Discount_Result $result ): string {
 		return sprintf(
 			/* translators: 1: discount amount, 2: discount percentage */
 			__( 'Save %1$s (%2$s%%)', 'smart-cycle-discounts' ),

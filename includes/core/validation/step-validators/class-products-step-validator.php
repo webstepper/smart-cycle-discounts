@@ -4,7 +4,7 @@
  *
  * Validates the products step for logical consistency, business rules, and edge cases.
  * Focuses ONLY on products step internal validation. Cross-step validation is handled
- * by SCD_Campaign_Cross_Validator.
+ * by WSSCD_Campaign_Cross_Validator.
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/validation/step-validators
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Validates the products step configuration for 97+ types of logical contradictions,
  * business rule violations, and edge cases. This validator focuses ONLY on the products
- * step itself - cross-step validation is handled by SCD_Campaign_Cross_Validator.
+ * step itself - cross-step validation is handled by WSSCD_Campaign_Cross_Validator.
  *
  * SCOPE: Products step internal validation only
  * - Product selection type configuration
@@ -64,7 +64,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/validation/step-validators
  */
-class SCD_Products_Step_Validator {
+class WSSCD_Products_Step_Validator {
 
 	/**
 	 * Validate filter conditions for contradictions and impossibilities.

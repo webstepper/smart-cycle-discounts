@@ -25,14 +25,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Apply_Recommendation_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * State service instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Wizard_State_Service    $state_service    State service.
+	 * @var      WSSCD_Wizard_State_Service    $state_service    State service.
 	 */
 	private $state_service;
 
@@ -40,7 +40,7 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger    Logger instance (optional).
+	 * @param    WSSCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -54,7 +54,7 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_apply_recommendation';
+		return 'wsscd_apply_recommendation';
 	}
 
 	/**
@@ -82,10 +82,10 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 
 		// Ensure state service is initialized
 		if ( ! $this->state_service ) {
-			if ( ! class_exists( 'SCD_Wizard_State_Service' ) ) {
-				require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
+			if ( ! class_exists( 'WSSCD_Wizard_State_Service' ) ) {
+				require_once WSSCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
 			}
-			$this->state_service = new SCD_Wizard_State_Service();
+			$this->state_service = new WSSCD_Wizard_State_Service();
 			$this->state_service->initialize_with_intent( 'continue' );
 		}
 
@@ -145,6 +145,7 @@ class SCD_Apply_Recommendation_Handler extends SCD_Abstract_Ajax_Handler {
 
 			default:
 				return $this->error(
+					/* translators: %s: action type name */
 					sprintf( __( 'Invalid action type: %s', 'smart-cycle-discounts' ), $action_type ),
 					'invalid_action_type'
 				);

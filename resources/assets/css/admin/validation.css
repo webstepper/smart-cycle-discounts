@@ -13,7 +13,7 @@
  * - Full accessibility support
  *
  * Used by: SCD.ValidationError.js (client-side validation)
- * Loaded on: pages=scd-campaigns, scd-analytics; conditionally on action=wizard
+ * Loaded on: pages=wsscd-campaigns, wsscd-analytics; conditionally on action=wizard
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/resources/assets/css/admin/validation.css
@@ -33,10 +33,10 @@
  * Provides consistent spacing and positioning context for field validation states.
  * Used in ValidationError.js as container selector for error state management.
  */
-.scd-field-wrapper {
+.wsscd-field-wrapper {
 	position: relative;
-	margin-bottom: var(--scd-spacing-lg);
-	transition: all var(--scd-transition-base) ease;
+	margin-bottom: var(--wsscd-spacing-lg);
+	transition: all var(--wsscd-transition-base) ease;
 }
 
 /* ==========================================================================
@@ -51,53 +51,42 @@
  *
  * Specificity: (0,2,1) to override WordPress core input[type] styles (0,1,1)
  */
-.has-error input[type="text"],
-.has-error input[type="email"],
-.has-error input[type="number"],
-.has-error input[type="url"],
-.has-error input[type="date"],
-.has-error input[type="time"],
+.has-error input,
 .has-error select,
 .has-error textarea,
-input.error[type="text"],
-input.error[type="email"],
-input.error[type="number"],
-input.error[type="url"],
-input.error[type="date"],
-input.error[type="time"],
 input.error,
 select.error,
 textarea.error {
-	border-color: var(--scd-color-danger);
-	border-width: var(--scd-border-width-thick);
-	box-shadow: 0 0 0 1px var(--scd-color-danger);
-	background-color: var(--scd-alert-danger-bg);
-	color: var(--scd-color-text);
+	border-color: var(--wsscd-color-danger);
+	border-width: var(--wsscd-border-width-thick);
+	background-color: var(--wsscd-alert-danger-bg);
+	color: var(--wsscd-color-text);
 }
 
 /**
  * Focus state for error fields.
- * Maintains error styling while adding enhanced focus ring for accessibility.
+ * Maintains error border color without adding ring (mouse clicks).
  */
-.has-error input[type="text"]:focus,
-.has-error input[type="email"]:focus,
-.has-error input[type="number"]:focus,
-.has-error input[type="url"]:focus,
-.has-error input[type="date"]:focus,
-.has-error input[type="time"]:focus,
+.has-error input:focus,
 .has-error select:focus,
 .has-error textarea:focus,
-input.error[type="text"]:focus,
-input.error[type="email"]:focus,
-input.error[type="number"]:focus,
-input.error[type="url"]:focus,
-input.error[type="date"]:focus,
-input.error[type="time"]:focus,
 input.error:focus,
 select.error:focus,
 textarea.error:focus {
-	border-color: var(--scd-color-danger);
-	box-shadow: var(--scd-ring-danger);
+	border-color: var(--wsscd-color-danger);
+	outline: none;
+}
+
+/**
+ * Focus-visible state for error fields.
+ * Border color change is sufficient - no outline ring needed.
+ */
+.has-error input:focus-visible,
+.has-error select:focus-visible,
+.has-error textarea:focus-visible,
+input.error:focus-visible,
+select.error:focus-visible,
+textarea.error:focus-visible {
 	outline: none;
 }
 
@@ -126,42 +115,42 @@ textarea.error:focus {
  * Success state for validated fields.
  * Applied after successful validation to provide positive feedback.
  */
-.scd-field-container.has-success input,
-.scd-field-container.has-success select,
-.scd-field-container.has-success textarea,
+.wsscd-field-container.has-success input,
+.wsscd-field-container.has-success select,
+.wsscd-field-container.has-success textarea,
 .has-success input,
 .has-success select,
 .has-success textarea,
-.scd-wizard-page .has-success input,
-.scd-wizard-page .has-success select,
-.scd-wizard-page .has-success textarea {
-	border-color: var(--scd-color-success);
-	border-width: var(--scd-border-width-thick);
-	background-color: var(--scd-alert-success-bg);
+.wsscd-wizard-page .has-success input,
+.wsscd-wizard-page .has-success select,
+.wsscd-wizard-page .has-success textarea {
+	border-color: var(--wsscd-color-success);
+	border-width: var(--wsscd-border-width-thick);
+	background-color: var(--wsscd-alert-success-bg);
 }
 
 /**
  * Success state checkmark indicator.
  * Displays visual checkmark after field when validation succeeds.
  */
-.scd-field-has-success::after,
+.wsscd-field-has-success::after,
 .has-success::after {
 	content: '✓';
 	position: absolute;
-	right: var(--scd-spacing-sm);
+	right: var(--wsscd-spacing-sm);
 	top: 50%;
 	transform: translateY(-50%);
-	color: var(--scd-color-success);
-	font-size: var(--scd-font-size-xxl);
-	font-weight: var(--scd-font-weight-bold);
-	animation: scd-fade-in var(--scd-transition-base) ease;
+	color: var(--wsscd-color-success);
+	font-size: var(--wsscd-font-size-xxl);
+	font-weight: var(--wsscd-font-weight-bold);
+	animation: wsscd-fade-in var(--wsscd-transition-base) ease;
 }
 
 /**
  * Adjust checkmark position for select elements.
  * Accounts for native dropdown arrow positioning.
  */
-.scd-field-has-success:has(select)::after {
+.wsscd-field-has-success:has(select)::after {
 	right: 35px;
 }
 
@@ -174,30 +163,30 @@ textarea.error:focus {
  * Shows animated spinner while async validation is in progress.
  * Uses CSS mask for theme color support - spinner inherits primary color.
  */
-.scd-field-validating input,
-.scd-field-validating select,
-.scd-field-validating textarea,
-.scd-field--validating input,
-.scd-field--validating select,
-.scd-field--validating textarea {
-	padding-right: var(--scd-spacing-xxl);
+.wsscd-field-validating input,
+.wsscd-field-validating select,
+.wsscd-field-validating textarea,
+.wsscd-field--validating input,
+.wsscd-field--validating select,
+.wsscd-field--validating textarea {
+	padding-right: var(--wsscd-spacing-xxl);
 	position: relative;
 }
 
 /* Spinner using CSS mask for theme color support */
-.scd-field-validating::after,
-.scd-field--validating::after {
+.wsscd-field-validating::after,
+.wsscd-field--validating::after {
 	content: '';
 	position: absolute;
-	right: var(--scd-spacing-sm);
+	right: var(--wsscd-spacing-sm);
 	top: 50%;
 	transform: translateY(-50%);
-	width: var(--scd-icon-small);
-	height: var(--scd-icon-small);
-	border: 2px solid var(--scd-color-border-light);
-	border-top-color: var(--scd-color-primary);
+	width: var(--wsscd-icon-small);
+	height: var(--wsscd-icon-small);
+	border: 2px solid var(--wsscd-color-border-light);
+	border-top-color: var(--wsscd-color-primary);
 	border-radius: 50%;
-	animation: scd-spin 0.8s linear infinite;
+	animation: wsscd-spin 0.8s linear infinite;
 	pointer-events: none;
 }
 
@@ -205,7 +194,7 @@ textarea.error:focus {
  * Container state for validating fields.
  * Provides positioning context for validation indicators.
  */
-.scd-field--validating {
+.wsscd-field--validating {
 	position: relative;
 }
 
@@ -218,24 +207,24 @@ textarea.error:focus {
  * Displayed below invalid fields with animation for visual feedback.
  * Forces full width and new line in flex layouts.
  */
-.scd-field-error {
+.wsscd-field-error {
 	display: block;
 	width: 100%;
 	flex-basis: 100%;
-	margin-top: var(--scd-spacing-xs);
+	margin-top: var(--wsscd-spacing-xs);
 	margin-bottom: 0;
-	font-size: var(--scd-font-size-small);
-	line-height: var(--scd-line-height-base);
-	color: var(--scd-color-danger);
-	animation: scd-fade-in var(--scd-transition-base) ease;
+	font-size: var(--wsscd-font-size-small);
+	line-height: var(--wsscd-line-height-base);
+	color: var(--wsscd-color-danger);
+	animation: wsscd-fade-in var(--wsscd-transition-base) ease;
 }
 
 /**
  * Inline error message variant.
  * Used for compact layouts where error appears inline with field.
  */
-.scd-field-error--inline {
-	font-weight: var(--scd-font-weight-medium);
+.wsscd-field-error--inline {
+	font-weight: var(--wsscd-font-weight-medium);
 }
 
 /* ==========================================================================
@@ -245,18 +234,18 @@ textarea.error:focus {
 /**
  * Success message element.
  * Displayed below fields after successful validation.
- * Hidden by default, shown with .scd-success--visible class.
+ * Hidden by default, shown with .wsscd-success--visible class.
  */
-.scd-field-success {
+.wsscd-field-success {
 	display: none;
-	margin-top: var(--scd-spacing-xs);
-	font-size: var(--scd-font-size-small);
-	color: var(--scd-color-success);
+	margin-top: var(--wsscd-spacing-xs);
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-success);
 }
 
-.scd-field-success.scd-success--visible {
+.wsscd-field-success.wsscd-success--visible {
 	display: block;
-	animation: scd-fade-in var(--scd-transition-base) ease;
+	animation: wsscd-fade-in var(--wsscd-transition-base) ease;
 }
 
 /* ==========================================================================
@@ -268,59 +257,58 @@ textarea.error:focus {
  * Displays list of all validation errors at top of form.
  * WordPress 6.4+ admin notice styling.
  */
-.scd-validation-summary {
-	margin: var(--scd-spacing-lg) 0;
-	padding: var(--scd-spacing-md);
-	background-color: var(--scd-color-error-bg);
-	border: 1px solid var(--scd-color-danger);
-	border-left-width: var(--scd-border-width-accent);
-	border-radius: var(--scd-radius-md);
-	animation: scd-fade-in var(--scd-transition-base) ease;
-	box-shadow: var(--scd-shadow-sm);
+.wsscd-validation-summary {
+	margin: var(--wsscd-spacing-lg) 0;
+	padding: var(--wsscd-spacing-md);
+	background-color: var(--wsscd-color-error-bg);
+	border: 1px solid var(--wsscd-color-danger);
+	border-left-width: var(--wsscd-border-width-accent);
+	border-radius: var(--wsscd-radius-md);
+	animation: wsscd-fade-in var(--wsscd-transition-base) ease;
+	box-shadow: var(--wsscd-shadow-sm);
 }
 
-.scd-validation-summary__header {
+.wsscd-validation-summary__header {
 	display: flex;
 	align-items: center;
-	gap: var(--scd-spacing-md);
-	margin-bottom: var(--scd-spacing-md);
+	gap: var(--wsscd-spacing-md);
+	margin-bottom: var(--wsscd-spacing-md);
 }
 
-.scd-validation-summary__header .scd-icon {
-	color: var(--scd-color-danger);
-	font-size: var(--scd-font-size-xxxl);
-	flex-shrink: 0;
+.wsscd-validation-summary__header .wsscd-icon {
+	color: var(--wsscd-color-danger);
+	font-size: var(--wsscd-font-size-xxxl);
 }
 
-.scd-validation-summary__header h4 {
+.wsscd-validation-summary__header h4 {
 	margin: 0;
 	font-size: 1rem;
-	font-weight: var(--scd-font-weight-semibold);
-	color: var(--scd-color-danger);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-danger);
 }
 
-.scd-validation-summary__list {
+.wsscd-validation-summary__list {
 	margin: 0;
 	padding-left: 2rem;
 	list-style-type: disc;
 }
 
-.scd-validation-summary__list li {
-	margin-bottom: var(--scd-spacing-xs);
-	color: var(--scd-color-text);
-	font-size: var(--scd-font-size-base);
+.wsscd-validation-summary__list li {
+	margin-bottom: var(--wsscd-spacing-xs);
+	color: var(--wsscd-color-text);
+	font-size: var(--wsscd-font-size-base);
 }
 
-.scd-validation-summary__list a {
-	color: var(--scd-color-primary);
+.wsscd-validation-summary__list a {
+	color: var(--wsscd-color-primary);
 	text-decoration: none;
-	font-weight: var(--scd-font-weight-medium);
+	font-weight: var(--wsscd-font-weight-medium);
 }
 
-.scd-validation-summary__list a:hover,
-.scd-validation-summary__list a:focus {
+.wsscd-validation-summary__list a:hover,
+.wsscd-validation-summary__list a:focus {
 	text-decoration: underline;
-	color: var(--scd-color-primary-hover);
+	color: var(--wsscd-color-primary-hover);
 }
 
 /* ==========================================================================
@@ -331,48 +319,48 @@ textarea.error:focus {
  * Inline validation notification.
  * Displayed near navigation buttons when validation fails.
  */
-.scd-navigation-notice {
-	margin: var(--scd-spacing-md) 0;
-	padding: var(--scd-spacing-md);
+.wsscd-navigation-notice {
+	margin: var(--wsscd-spacing-md) 0;
+	padding: var(--wsscd-spacing-md);
 	position: relative;
-	border-radius: var(--scd-radius-md);
-	box-shadow: var(--scd-shadow-sm);
+	border-radius: var(--wsscd-radius-md);
+	box-shadow: var(--wsscd-shadow-sm);
 }
 
-.scd-navigation-notice.notice-error {
-	background-color: var(--scd-color-error-bg);
-	border: 1px solid var(--scd-color-danger);
-	border-left-width: var(--scd-border-width-accent);
+.wsscd-navigation-notice.notice-error {
+	background-color: var(--wsscd-color-error-bg);
+	border: 1px solid var(--wsscd-color-danger);
+	border-left-width: var(--wsscd-border-width-accent);
 }
 
-.scd-navigation-notice .notice-dismiss {
+.wsscd-navigation-notice .notice-dismiss {
 	position: absolute;
-	top: var(--scd-spacing-xs);
-	right: var(--scd-spacing-xs);
+	top: var(--wsscd-spacing-xs);
+	right: var(--wsscd-spacing-xs);
 	border: none;
 	margin: 0;
-	padding: var(--scd-spacing-xs);
+	padding: var(--wsscd-spacing-xs);
 	background: none;
-	color: var(--scd-color-text-lighter);
+	color: var(--wsscd-color-text-lighter);
 	cursor: pointer;
-	transition: color var(--scd-transition-fast);
+	transition: color var(--wsscd-transition-fast);
 }
 
-.scd-navigation-notice .notice-dismiss:hover::before,
-.scd-navigation-notice .notice-dismiss:focus::before {
-	color: var(--scd-color-danger);
+.wsscd-navigation-notice .notice-dismiss:hover::before,
+.wsscd-navigation-notice .notice-dismiss:focus::before {
+	color: var(--wsscd-color-danger);
 }
 
-.scd-navigation-notice .notice-dismiss::before {
+.wsscd-navigation-notice .notice-dismiss::before {
 	background: none;
 	color: inherit;
 	content: '\f153';
 	display: block;
 	font: normal 16px/20px dashicons;
 	speak: never;
-	height: var(--scd-icon-medium);
+	height: var(--wsscd-icon-medium);
 	text-align: center;
-	width: var(--scd-icon-medium);
+	width: var(--wsscd-icon-medium);
 }
 
 /* ==========================================================================
@@ -383,17 +371,17 @@ textarea.error:focus {
  * Disabled navigation button state.
  * Applied when validation fails and navigation should be prevented.
  */
-.scd-wizard-page .scd-nav-btn--next.scd-btn--disabled {
+.wsscd-wizard-page .wsscd-nav-btn--next.wsscd-btn--disabled {
 	opacity: 0.3;
 	cursor: not-allowed;
-	background-color: var(--scd-color-surface);
-	color: var(--scd-color-text-lighter);
-	border-color: var(--scd-color-border);
+	background-color: var(--wsscd-color-surface);
+	color: var(--wsscd-color-text-lighter);
+	border-color: var(--wsscd-color-border);
 }
 
-.scd-wizard-page .scd-nav-btn--next.scd-btn--disabled:hover {
-	background-color: var(--scd-color-surface);
-	color: var(--scd-color-text-lighter);
+.wsscd-wizard-page .wsscd-nav-btn--next.wsscd-btn--disabled:hover {
+	background-color: var(--wsscd-color-surface);
+	color: var(--wsscd-color-text-lighter);
 	box-shadow: none;
 }
 
@@ -405,7 +393,7 @@ textarea.error:focus {
  * WordPress admin compatibility.
  * Ensures error messages display correctly in WordPress admin contexts.
  */
-.wp-admin .scd-field-error,
+.wp-admin .wsscd-field-error,
 .wp-admin .field-error {
 	clear: both;
 	display: block;
@@ -416,8 +404,8 @@ textarea.error:focus {
  * Highlights table header label when field in same row has error.
  */
 .form-table .has-error th {
-	color: var(--scd-color-danger);
-	font-weight: var(--scd-font-weight-semibold);
+	color: var(--wsscd-color-danger);
+	font-weight: var(--wsscd-font-weight-semibold);
 }
 
 /* ==========================================================================
@@ -429,7 +417,7 @@ textarea.error:focus {
  * Visually hidden but available to assistive technologies.
  * Uses clip method for maximum compatibility.
  */
-.scd-validation-screen-reader-text,
+.wsscd-validation-screen-reader-text,
 .screen-reader-text {
 	position: absolute !important;
 	clip: rect(1px, 1px, 1px, 1px);
@@ -444,7 +432,7 @@ textarea.error:focus {
  * Keyboard-accessible link that appears on focus, allows users to jump
  * directly to first error in form. Critical for keyboard navigation.
  */
-.scd-skip-to-errors {
+.wsscd-skip-to-errors {
 	position: absolute;
 	left: -9999px;
 	top: auto;
@@ -453,16 +441,16 @@ textarea.error:focus {
 	overflow: hidden;
 }
 
-.scd-skip-to-errors:focus {
+.wsscd-skip-to-errors:focus {
 	position: static;
 	width: auto;
 	height: auto;
-	padding: var(--scd-padding-small) var(--scd-spacing-base);
-	margin: var(--scd-spacing-sm) 0;
-	background: var(--scd-color-primary);
-	color: var(--scd-color-white);
+	padding: var(--wsscd-padding-small) var(--wsscd-spacing-base);
+	margin: var(--wsscd-spacing-sm) 0;
+	background: var(--wsscd-color-primary);
+	color: var(--wsscd-color-white);
 	text-decoration: none;
-	border-radius: var(--scd-radius-sm);
+	border-radius: var(--wsscd-radius-sm);
 	display: inline-block;
 }
 
@@ -482,12 +470,12 @@ textarea.error:focus {
 	select.error,
 	textarea.error,
 	.ts-wrapper.error .ts-control {
-		outline: 3px solid var(--scd-color-danger);
+		outline: 3px solid var(--wsscd-color-danger);
 		outline-offset: 2px;
 	}
 
-	.scd-field-error {
-		font-weight: var(--scd-font-weight-bold);
+	.wsscd-field-error {
+		font-weight: var(--wsscd-font-weight-bold);
 		text-decoration: underline;
 	}
 }
@@ -497,9 +485,9 @@ textarea.error:focus {
  * Respects user preference for reduced animations (accessibility, vestibular disorders).
  */
 @media (prefers-reduced-motion: reduce) {
-	.scd-field-error,
-	.scd-field-success,
-	.scd-validation-summary,
+	.wsscd-field-error,
+	.wsscd-field-success,
+	.wsscd-validation-summary,
 	.has-success::after {
 		animation: none;
 		transition: none;
@@ -518,12 +506,12 @@ textarea.error:focus {
 	select.error,
 	textarea.error,
 	.ts-wrapper.error .ts-control {
-		background-color: var(--scd-color-danger-alpha-15);
-		border-color: var(--scd-color-danger-light);
+		background-color: var(--wsscd-color-danger-alpha-15);
+		border-color: var(--wsscd-color-danger-light);
 	}
 
-	.scd-field-error {
-		color: var(--scd-color-danger-light);
+	.wsscd-field-error {
+		color: var(--wsscd-color-danger-light);
 	}
 }
 
@@ -532,14 +520,14 @@ textarea.error:focus {
  * WordPress admin breakpoint at 782px.
  */
 @media screen and (max-width: 782px) {
-	.scd-field-error {
+	.wsscd-field-error {
 		font-size: 0.8125em;
 	}
 
 	.has-error input,
 	.has-error select,
 	.has-error textarea {
-		margin-bottom: var(--scd-spacing-xs);
+		margin-bottom: var(--wsscd-spacing-xs);
 	}
 }
 
@@ -548,7 +536,7 @@ textarea.error:focus {
  * Ensure validation errors are clearly visible when printed.
  */
 @media print {
-	.scd-field-error::before {
+	.wsscd-field-error::before {
 		content: "[Error] ";
 		position: static;
 		background: none;
@@ -559,7 +547,7 @@ textarea.error:focus {
 	.has-error select,
 	.has-error textarea,
 	.ts-wrapper.error .ts-control {
-		border: 1px solid var(--scd-color-text);
+		border: 1px solid var(--wsscd-color-text);
 		background: none;
 	}
 }

@@ -1,0 +1,1910 @@
+/**
+ * Step Discounts
+ *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/css/wizard/step-discounts.css
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @since      1.0.0
+ */
+
+/* ==========================================================================
+   Essential Layout Styles - Step-Specific
+   ========================================================================== */
+
+
+/* Layout handled by wizard-fullscreen.css */
+
+.wsscd-discount-rules-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wsscd-gap-spacious);
+}
+
+.form-table {
+    width: 100%;
+    clear: both;
+    margin: 0;
+    border-spacing: 0;
+    border-collapse: separate;
+}
+
+.form-table td,
+.form-table th {
+    padding: var(--wsscd-padding-compact) var(--wsscd-spacing-lg) 15px 0;
+    line-height: 1.3;
+    vertical-align: top;
+    border: none;
+}
+
+.form-table th {
+    color: var(--wsscd-color-text);
+    font-weight: var(--wsscd-font-weight-semibold);
+    text-align: left;
+    padding-left: 0;
+    width: var(--wsscd-sidebar-width-small);
+    box-shadow: none;
+}
+
+.form-table td {
+    margin-bottom: var(--wsscd-spacing-sm);
+    padding-left: 0;
+}
+
+.form-table .form-required {
+    color: var(--wsscd-color-danger);
+}
+
+/* Form styling handled by shared _forms.css and _components.css */
+
+/* ==========================================================================
+   Simplified Discount Rules Styles
+   ========================================================================== */
+
+/* Variables now defined in _variables.css and theme files */
+
+/* Clean section styling */
+.wsscd-discount-rules-section {
+    margin-bottom: var(--wsscd-gap-spacious);
+    background: var(--wsscd-color-background);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+    border-radius: var(--wsscd-border-radius);
+    box-shadow: var(--wsscd-shadow-md);
+}
+
+.wsscd-rules-section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--wsscd-padding-large) var(--wsscd-padding-section);
+    margin: 0;
+    border-bottom: var(--wsscd-border-width) solid var(--wsscd-color-border-lighter);
+    cursor: pointer;
+    font-size: var(--wsscd-font-size-heading);
+    font-weight: var(--wsscd-font-weight-semibold);
+    color: var(--wsscd-color-text);
+    background: linear-gradient(to bottom, var(--wsscd-color-surface), var(--wsscd-color-white));
+    border-radius: var(--wsscd-border-radius) var(--wsscd-border-radius) 0 0;
+    transition: background var(--wsscd-transition-base) ease;
+}
+
+.wsscd-section-text {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--wsscd-gap-normal);
+}
+
+.wsscd-section-text .wsscd-icon {
+    font-size: var(--wsscd-icon-medium);
+    width: var(--wsscd-icon-medium);
+    height: var(--wsscd-icon-medium);
+    color: var(--wp-admin-theme-color);
+}
+
+.wsscd-collapsible-trigger:hover {
+    background: var(--wsscd-color-surface);
+}
+
+.wsscd-collapsible-content {
+    padding: var(--wsscd-padding-section);
+}
+
+/* Hide complex elements */
+.wsscd-section-hint,
+.wsscd-section-icon,
+.wsscd-label-icon {
+    display: none;
+}
+
+/* Form field styling: Defined in shared/_forms.css */
+/* Rules table now uses .wsscd-enhanced-input class automatically via template-wrapper.php */
+
+/* Helper icon styling - now handled by shared/_components.css for global consistency */
+
+/* Collapse icon */
+.wsscd-collapsed .wsscd-collapse-icon .wsscd-icon:before {
+    content: "\f345"; /* arrow-right-alt2 */
+}
+
+.wsscd-collapse-icon .wsscd-icon {
+    color: var(--wsscd-color-text-muted);
+    font-size: var(--wsscd-icon-small);
+    transition: transform var(--wsscd-transition-slow) ease;
+}
+
+.wsscd-collapse-icon .wsscd-icon:before {
+    transition: transform var(--wsscd-transition-slow) ease;
+}
+
+.wsscd-collapsed .wsscd-collapsible-content {
+    display: none;
+}
+
+
+/* ==========================================================================
+   Global Input Width Settings - Standardized widths
+   ========================================================================== */
+
+/* Width styling now handled by .wsscd-enhanced-input class automatically - no duplication needed */
+
+/* ==========================================================================
+   Discount Step Variables
+   ========================================================================== */
+
+.wsscd-wizard-step--discounts {
+    position: relative;
+    /* Extends .wsscd-wizard-step from wizard-steps.css */
+    /* Uses global CSS variables from admin.css */
+    --wsscd-discount-accent: var(--wsscd-color-primary);
+    --wsscd-discount-success: var(--wsscd-color-success);
+    --wsscd-discount-error: var(--wsscd-color-danger);
+    --wsscd-discount-highlight: var(--wsscd-color-primary-bg);
+}
+
+
+/* ==========================================================================
+   Bundle Builder Styles
+   ========================================================================== */
+
+/* Apply box-sizing to all bundle elements */
+.wsscd-bundle-options,
+.wsscd-bundle-options * {
+    box-sizing: border-box;
+}
+
+.wsscd-bundle-options {
+    min-height: calc(var(--wsscd-button-height-large) * 2);
+    width: 100%;
+}
+
+.wsscd-bundle-options .wsscd-loading {
+    padding: var(--wsscd-padding-section);
+    text-align: center;
+}
+
+.wsscd-bundle-options .spinner {
+    float: none;
+    margin: 0 auto var(--wsscd-spacing-sm);
+}
+
+.wsscd-bundle-type-selector {
+    margin-bottom: var(--wsscd-spacing-xl);
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+}
+
+.wsscd-bundle-type-selector label {
+    display: inline-block;
+    margin-right: var(--wsscd-spacing-md);
+    font-weight: var(--wsscd-font-weight-normal);
+    color: var(--wsscd-color-text-muted);
+    font-size: var(--wsscd-font-size-medium);
+}
+
+.wsscd-bundle-type-selector select {
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+    padding: var(--wsscd-padding-small) 12px;
+    font-size: var(--wsscd-font-size-medium);
+    background: var(--wsscd-color-background);
+    border-radius: var(--wsscd-radius-md);
+    transition: border-color var(--wsscd-transition-fast) ease;
+}
+
+.wsscd-bundle-type-selector select:focus {
+    outline: none;
+    border-color: var(--wsscd-color-border-dark);
+}
+
+.wsscd-bundle-builder {
+    margin-top: var(--wsscd-spacing-lg);
+}
+
+.wsscd-bundle-item {
+    border: 2px solid var(--wsscd-color-border-light);
+    padding: var(--wsscd-padding-section);
+    margin-bottom: var(--wsscd-spacing-lg);
+    background: var(--wsscd-color-surface);
+    border-radius: var(--wsscd-radius-xl);
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    transition: all var(--wsscd-transition-base) ease;
+    box-shadow: var(--wsscd-shadow-md);
+}
+
+.wsscd-bundle-item:hover {
+    border-color: var(--wp-admin-theme-color);
+    box-shadow: var(--wsscd-shadow-lg);
+    background: var(--wsscd-color-background);
+}
+
+.wsscd-bundle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--wsscd-spacing-xl);
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.wsscd-bundle-title {
+    display: flex;
+    align-items: flex-start;
+    flex: 1;
+    gap: var(--wsscd-gap-comfortable);
+}
+
+.wsscd-bundle-title-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--wsscd-gap-tight);
+}
+
+.wsscd-bundle-description {
+    font-size: var(--wsscd-font-size-small);
+    color: var(--wsscd-color-text-lighter);
+    font-style: italic;
+    margin: 0;
+}
+
+.wsscd-bundle-number {
+    background: var(--wp-admin-theme-color);
+    color: var(--wsscd-color-white);
+    padding: var(--wsscd-padding-small) 12px;
+    border-radius: var(--wsscd-radius-full);
+    font-weight: var(--wsscd-font-weight-semibold);
+    font-size: var(--wsscd-font-size-medium);
+    min-width: var(--wsscd-badge-number-width-mobile);
+    height: var(--wsscd-button-height);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--wsscd-shadow-md);
+}
+
+.wsscd-bundle-name {
+    flex: 1;
+    font-weight: var(--wsscd-font-weight-medium);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--wsscd-color-border-light);
+    padding: var(--wsscd-padding-small) 0;
+    font-size: var(--wsscd-font-size-large);
+    transition: border-color var(--wsscd-transition-fast) ease;
+    color: var(--wsscd-color-text);
+}
+
+.wsscd-bundle-name:focus {
+    outline: none;
+    border-bottom-color: var(--wp-admin-theme-color);
+}
+
+.wsscd-bundle-actions {
+    display: flex;
+    gap: var(--wsscd-gap-tight);
+    opacity: 0;
+    transition: opacity var(--wsscd-transition-fast) ease;
+}
+
+.wsscd-bundle-item:hover .wsscd-bundle-actions {
+    opacity: 1;
+}
+
+.wsscd-bundle-actions button {
+    padding: var(--wsscd-spacing-xs) var(--wsscd-padding-small);
+    font-size: var(--wsscd-font-size-small);
+    background: transparent;
+    border: var(--wsscd-border-width) solid transparent;
+    color: var(--wsscd-color-text-muted);
+    cursor: pointer;
+    transition: all var(--wsscd-transition-fast) ease;
+    border-radius: var(--wsscd-radius-sm);
+}
+
+.wsscd-bundle-actions button:hover {
+    border-color: var(--wsscd-color-border-light);
+    color: var(--wsscd-color-text);
+}
+
+.wsscd-bundle-actions .button-link-delete {
+    color: var(--wsscd-color-text-lighter);
+}
+
+.wsscd-bundle-actions .button-link-delete:hover {
+    color: var(--wsscd-color-danger);
+    border-color: transparent;
+}
+
+/* Bundle item configuration container */
+.wsscd-bundle-item .wsscd-bundle-config {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wsscd-gap-spacious);
+    padding: var(--wsscd-padding-section) 0 0 0;
+    width: 100%;
+    box-sizing: border-box;
+    border-top: var(--wsscd-border-width) solid var(--wsscd-color-border-lighter);
+    margin-top: var(--wsscd-spacing-base);
+}
+
+/* Discounts step field group styles - scoped to prevent conflicts */
+.wsscd-wizard-step--discounts .wsscd-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wsscd-spacing-xs);
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Field labels - consistent with WordPress admin */
+.wsscd-wizard-step--discounts .wsscd-field-group label {
+    display: block;
+    margin-bottom: var(--wsscd-spacing-xs);
+    font-size: var(--wsscd-font-size-base);
+    line-height: 1.4;
+    font-weight: var(--wsscd-font-weight-semibold);
+    color: var(--wsscd-color-text);
+}
+
+/* Field group inputs - margin and height overrides only */
+/* NOTE: Base styling (padding, border, color, transitions, focus) inherited from _forms.css */
+.wsscd-wizard-step--discounts .wsscd-field-group input[type="text"],
+.wsscd-wizard-step--discounts .wsscd-field-group input[type="number"],
+.wsscd-wizard-step--discounts .wsscd-field-group input[type="email"],
+.wsscd-wizard-step--discounts .wsscd-field-group input[type="url"],
+.wsscd-wizard-step--discounts .wsscd-field-group input[type="search"],
+.wsscd-wizard-step--discounts .wsscd-field-group textarea,
+.wsscd-wizard-step--discounts .wsscd-field-group select {
+    margin: 0; /* Reset margin for field-group layout */
+    min-height: var(--wsscd-input-height); /* Ensure minimum height consistency */
+}
+
+.wsscd-price-input {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    max-width: calc(var(--wsscd-sidebar-width-small) - 20px);
+}
+
+.wsscd-currency {
+    background: transparent;
+    padding: var(--wsscd-padding-small) 12px;
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+    border-right: none;
+    border-radius: var(--wsscd-radius-md) 0 0 4px;
+    font-weight: var(--wsscd-font-weight-normal);
+    white-space: nowrap;
+    color: var(--wsscd-color-text-muted);
+    font-size: var(--wsscd-font-size-medium);
+}
+
+.wsscd-bundle-price {
+    flex: 1;
+    min-width: var(--wsscd-nav-height);
+    border-left: none;
+    border-radius: 0 var(--wsscd-radius-sm) var(--wsscd-radius-sm) 0;
+}
+
+
+
+.wsscd-product-option {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--wsscd-padding-small) 0;
+    font-size: var(--wsscd-font-size-medium);
+}
+
+.wsscd-product-tag {
+    background: transparent;
+    color: var(--wsscd-color-text);
+    padding: var(--wsscd-spacing-xxs) 6px;
+    border-radius: var(--wsscd-radius-sm);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+    font-size: var(--wsscd-font-size-small);
+}
+
+/* Mix & Match specific styles - scoped to discounts step */
+.wsscd-wizard-step--discounts .wsscd-mix-match-options .wsscd-field-group {
+    margin-bottom: var(--wsscd-spacing-md);
+}
+
+.wsscd-mix-match-options .wsscd-currency-symbol {
+    display: inline-block;
+    margin-right: var(--wsscd-spacing-xs);
+    font-weight: var(--wsscd-font-weight-semibold);
+}
+
+.wsscd-preview-box {
+    background: var(--wsscd-color-success-lighter);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-success-light);
+    border-radius: var(--wsscd-radius-md);
+    padding: var(--wsscd-padding-large);
+    margin-top: var(--wsscd-spacing-base);
+    color: var(--wsscd-color-success-dark);
+    font-size: var(--wsscd-font-size-medium);
+    line-height: 1.4;
+}
+
+.wsscd-preview-box strong {
+    color: var(--wsscd-color-text);
+    font-weight: var(--wsscd-font-weight-semibold);
+}
+
+/* Fixed sets specific styles */
+.wsscd-fixed-sets-options {
+    width: 100%;
+    overflow: visible;
+    box-sizing: border-box;
+}
+
+.wsscd-bundles-container {
+    margin-bottom: var(--wsscd-spacing-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--wsscd-gap-spacious);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.wsscd-bundle-requirements {
+    margin-top: var(--wsscd-spacing-lg);
+    padding-top: var(--wsscd-spacing-lg);
+    border-top: var(--wsscd-border-width) solid var(--wsscd-color-border-lighter);
+}
+
+.wsscd-bundle-requirements label {
+    display: flex;
+    align-items: flex-start;
+    cursor: pointer;
+    width: 100%;
+    flex-wrap: wrap;
+    color: var(--wsscd-color-text-muted);
+    font-weight: var(--wsscd-font-weight-normal);
+    font-size: var(--wsscd-font-size-medium);
+}
+
+.wsscd-bundle-requirements input[type="checkbox"] {
+    margin-right: var(--wsscd-spacing-md);
+    flex-shrink: 0;
+    width: var(--wsscd-checkbox-size);
+    height: var(--wsscd-checkbox-size);
+}
+
+.wsscd-checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--wsscd-gap-normal);
+    cursor: pointer;
+    margin-bottom: var(--wsscd-spacing-sm);
+    width: 100%;
+}
+
+.wsscd-checkbox-text {
+    font-weight: var(--wsscd-font-weight-normal);
+    flex: 1;
+    word-wrap: break-word;
+    line-height: 1.4;
+}
+
+.wsscd-sidebar-text {
+    font-size: var(--wsscd-font-size-small);
+    color: var(--wsscd-color-text-lighter);
+    font-style: normal;
+    margin-top: var(--wsscd-spacing-sm);
+    line-height: 1.3;
+}
+
+.wsscd-products-count {
+    font-size: var(--wsscd-font-size-small);
+    color: var(--wsscd-color-text-lighter);
+    margin-top: var(--wsscd-spacing-sm);
+    font-style: normal;
+}
+
+/* ==========================================================================
+   Discount Type Selection
+   ========================================================================== */
+
+.wsscd-discount-type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--wsscd-spacing-md);
+    margin-top: var(--wsscd-spacing-md);
+}
+
+.wsscd-discount-type-card {
+    border: 2px solid var(--wsscd-color-border-light);
+    border-radius: var(--wsscd-radius-lg);
+    padding: var(--wsscd-spacing-lg) var(--wsscd-spacing-md);
+    cursor: pointer;
+    transition: var(--wsscd-transition-base);
+    background: var(--wsscd-color-background);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--wsscd-shadow-sm);
+}
+
+.wsscd-discount-type-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--wsscd-nav-progress-height);
+    background: var(--wsscd-color-primary);
+    transform: translateY(-100%);
+    transition: transform var(--wsscd-transition-base) ease;
+}
+
+.wsscd-discount-type-card:hover {
+    border-color: var(--wsscd-color-primary);
+    box-shadow: var(--wsscd-card-hover-shadow);
+    transform: translateY(-1px);
+}
+
+.wsscd-discount-type-card.selected,
+.wsscd-discount-type-card:has( input:checked ) {
+    border-color: var(--wsscd-color-primary);
+    background: var(--wsscd-card-selected-bg);
+    box-shadow: var(--wsscd-card-selected-shadow);
+}
+
+.wsscd-discount-type-card.selected::before {
+    transform: translateY(0);
+}
+
+.wsscd-discount-type-card__icon {
+    margin-bottom: var(--wsscd-spacing-sm);
+}
+
+.wsscd-discount-type-card__icon .wsscd-icon {
+    font-size: calc(var(--wsscd-font-size-xxxl) * 1.5);
+    width: var(--wsscd-badge-number-width-mobile);
+    height: var(--wsscd-button-height);
+    color: var(--wsscd-color-primary);
+    line-height: 1;
+}
+
+.wsscd-discount-type-card__title {
+    font-size: var(--wsscd-font-size-md);
+    font-weight: var(--wsscd-font-weight-semibold);
+    margin: 0 0 var(--wsscd-spacing-xs) 0;
+    color: var(--wsscd-color-text);
+    line-height: 1.3;
+}
+
+.wsscd-discount-type-card__description {
+    font-size: var(--wsscd-font-size-small);
+    color: var(--wsscd-color-text-muted);
+    margin: 0 0 var(--wsscd-spacing-sm) 0;
+    line-height: var(--wsscd-line-height);
+}
+
+.wsscd-discount-type-card__example {
+    background: var(--wsscd-color-surface);
+    padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-md);
+    border-radius: var(--wsscd-radius-md);
+    font-size: var(--wsscd-font-size-small);
+    color: var(--wsscd-color-text-muted);
+    font-weight: var(--wsscd-font-weight-medium);
+}
+
+/* Disable transforms on reduced motion */
+@media ( prefers-reduced-motion: reduce ) {
+    .wsscd-discount-type-card:hover {
+        transform: none;
+    }
+}
+
+/* Locked discount card - PRO badge spacing */
+.wsscd-discount-type-card__locked-content .wsscd-badge--pro {
+    display: block;
+    margin-bottom: var(--wsscd-spacing-md);
+}
+
+.wsscd-discount-type-card__locked-content .wsscd-pro-badge {
+    margin-bottom: var(--wsscd-spacing-sm);
+}
+
+/* ==========================================================================
+   Form Elements & Input Groups
+   ========================================================================== */
+
+/* Form table styling for better visual grouping */
+.wsscd-wizard-step--discounts .form-table {
+    background: transparent;
+}
+
+/* Apply styling to all form rows except strategy options */
+.wsscd-wizard-step--discounts .form-table tr:not(.wsscd-strategy-options) {
+    background: var(--wsscd-color-white);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+    border-radius: var(--wsscd-border-radius);
+    margin-bottom: var(--wsscd-gap-comfortable);
+    display: block;
+    box-shadow: var(--wsscd-shadow-sm);
+}
+
+.wsscd-wizard-step--discounts .form-table th,
+.wsscd-wizard-step--discounts .form-table td {
+    display: block;
+    padding: var(--wsscd-padding-large);
+    border: none;
+}
+
+.wsscd-wizard-step--discounts .form-table th {
+    background: var(--wsscd-color-surface);
+    border-bottom: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+    border-radius: var(--wsscd-border-radius) var(--wsscd-border-radius) 0 0;
+    padding-bottom: var(--wsscd-padding-medium);
+    width: 100%;
+}
+
+.wsscd-wizard-step--discounts .form-table td {
+    padding-top: var(--wsscd-padding-large);
+}
+
+/* Responsive: Show side-by-side on larger screens */
+@media (min-width: 782px) {
+    .wsscd-wizard-step--discounts .form-table tr:not(.wsscd-strategy-options) {
+        display: table-row;
+    }
+
+    .wsscd-wizard-step--discounts .form-table th,
+    .wsscd-wizard-step--discounts .form-table td {
+        display: table-cell;
+        vertical-align: top;
+    }
+
+    .wsscd-wizard-step--discounts .form-table th {
+        width: var(--wsscd-sidebar-width-small);
+        border-bottom: none;
+        border-right: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+        border-radius: var(--wsscd-border-radius) 0 0 var(--wsscd-border-radius);
+        background: var(--wsscd-color-surface);
+    }
+
+    .wsscd-wizard-step--discounts .form-table td {
+        border-radius: 0 var(--wsscd-border-radius) var(--wsscd-border-radius) 0;
+        background: var(--wsscd-color-white);
+    }
+}
+
+.wsscd-wizard-step--discounts .wsscd-input-group {
+    display: inline-flex;
+    align-items: center;
+    max-width: var(--wsscd-input-max-width);
+}
+
+/* Input prefix styling - shared across all discount inputs */
+.wsscd-wizard-step--discounts .wsscd-input-prefix {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    min-height: var(--wsscd-input-height);
+    padding: 0 var(--wsscd-padding-medium);
+    background: var(--wsscd-color-surface);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border);
+    border-right: none;
+    border-radius: var(--wsscd-border-radius) 0 0 var(--wsscd-border-radius);
+    font-weight: var(--wsscd-font-weight-semibold);
+    font-size: var(--wsscd-font-size-base);
+    color: var(--wsscd-color-text);
+    box-sizing: border-box;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-right: 0;
+}
+
+/* Input with prefix - seamless connection */
+.wsscd-wizard-step--discounts .wsscd-input-with-prefix {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    position: relative;
+}
+
+/* Override enhanced-input border-radius for prefix inputs */
+.wsscd-wizard-step--discounts .wsscd-input-with-prefix input.wsscd-enhanced-input,
+.wsscd-wizard-step--discounts .wsscd-input-with-prefix input[type].wsscd-enhanced-input {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+
+/* Strategy-specific configuration rows */
+.wsscd-wizard-step--discounts .form-table tbody tr.wsscd-strategy-options {
+    /* Visual styling similar to other form rows */
+    background: var(--wsscd-color-white);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+    border-radius: var(--wsscd-border-radius);
+    margin-bottom: var(--wsscd-gap-comfortable);
+    box-shadow: var(--wsscd-shadow-sm);
+    /* Visibility control - ensure this row type is hidden by default */
+    display: none;
+    transition: opacity var(--wsscd-transition-base) ease, visibility var(--wsscd-transition-base) ease;
+}
+
+/* Show the active strategy option */
+.wsscd-wizard-step--discounts .form-table tbody tr.wsscd-strategy-options.active {
+    display: block;
+}
+
+.wsscd-wizard-step--discounts .form-table tbody tr.wsscd-strategy-options th {
+    background: var(--wsscd-color-surface);
+    border-radius: var(--wsscd-border-radius) var(--wsscd-border-radius) 0 0;
+}
+
+.wsscd-wizard-step--discounts .form-table tbody tr.wsscd-strategy-options td {
+    background: var(--wsscd-color-white);
+}
+
+/* Responsive: Adjust display for larger screens */
+@media (min-width: 782px) {
+    .wsscd-wizard-step--discounts .form-table tbody tr.wsscd-strategy-options {
+        display: none;
+    }
+
+    .wsscd-wizard-step--discounts .form-table tbody tr.wsscd-strategy-options.active {
+        display: table-row;
+    }
+
+    .wsscd-wizard-step--discounts .form-table tbody tr.wsscd-strategy-options th {
+        border-right: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+        border-radius: var(--wsscd-border-radius) 0 0 var(--wsscd-border-radius);
+    }
+
+    .wsscd-wizard-step--discounts .form-table tbody tr.wsscd-strategy-options td {
+        border-radius: 0 var(--wsscd-border-radius) var(--wsscd-border-radius) 0;
+    }
+}
+
+/* ==========================================================================
+   Tiered Discounts (Specific Overrides Only)
+   ========================================================================== */
+
+/* Field sizing specific to tiers - scoped to discounts step */
+.wsscd-wizard-step--discounts .wsscd-tier-fields .wsscd-field-group:nth-child( 1 ) {
+    flex: 0 0 var(--wsscd-nav-button-width); /* Quantity/value field */
+}
+
+.wsscd-wizard-step--discounts .wsscd-tier-fields .wsscd-field-group:nth-child( 2 ) {
+    flex: 0 0 var(--wsscd-nav-button-width); /* Discount value field */
+}
+
+/* Tier warning message (unique to tiers, not thresholds) */
+.wsscd-tier-warning,
+.wsscd-threshold-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--wsscd-spacing-xs);
+    margin-top: var(--wsscd-spacing-sm);
+    margin-bottom: var(--wsscd-spacing-md);
+    padding: var(--wsscd-spacing-sm);
+    background: var(--wsscd-color-warning-bg);
+    border-left: 4px solid var(--wsscd-color-warning);
+    border-radius: var(--wsscd-radius-md);
+    color: var(--wsscd-color-text);
+    font-size: var(--wsscd-font-size-base);
+    line-height: 1.5;
+}
+
+.wsscd-tier-warning .wsscd-icon,
+.wsscd-threshold-warning .wsscd-icon {
+    color: var(--wsscd-color-warning);
+    font-size: var(--wsscd-font-size-xxl);
+    margin-top: calc(var(--wsscd-spacing-xxs) * -1);
+}
+
+.wsscd-tier-warning .warning-text,
+.wsscd-threshold-warning .warning-text {
+    flex: 1;
+    color: var(--wsscd-color-text-secondary);
+}
+
+
+/* ==========================================================================
+   BOGO Configuration
+   ========================================================================== */
+
+.wsscd-bogo-config {
+    max-width: 100%;
+}
+
+.wsscd-bogo-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.5fr;
+    gap: var(--wsscd-gap-spacious);
+    margin-bottom: var(--wsscd-gap-comfortable);
+}
+
+.wsscd-bogo-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.wsscd-bogo-field label {
+    display: block;
+    font-weight: var(--wsscd-font-weight-semibold);
+    margin-bottom: var(--wsscd-gap-tight);
+    font-size: var(--wsscd-font-size-base);
+    color: var(--wsscd-color-text);
+}
+
+/* NOTE: Enhanced inputs handle their own width */
+.wsscd-bogo-field input:not(.wsscd-enhanced-input) {
+    width: 100%;
+    max-width: none;
+}
+
+/* ==========================================================================
+   Shared Tier/Threshold Styles (DRY principle)
+   ========================================================================== */
+
+/* Base styles for both tiers and thresholds */
+.wsscd-tier-mode-selector,
+.wsscd-threshold-mode-selector {
+    display: flex;
+    gap: var(--wsscd-spacing-md);
+    margin-bottom: var(--wsscd-spacing-lg);
+}
+
+.wsscd-tier-mode-option,
+.wsscd-threshold-mode-option {
+    flex: 1;
+    cursor: pointer;
+}
+
+.wsscd-tier-mode-option input[type="radio"],
+.wsscd-threshold-mode-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.wsscd-tier-mode-card,
+.wsscd-threshold-mode-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--wsscd-spacing-md);
+    background: var(--wsscd-color-background);
+    border: 2px solid var(--wsscd-color-border-light);
+    border-radius: var(--wsscd-radius-md);
+    text-align: center;
+    transition: all var(--wsscd-transition-fast);
+}
+
+.wsscd-tier-mode-card:hover,
+.wsscd-threshold-mode-card:hover {
+    border-color: var(--wsscd-color-border);
+    background: var(--wsscd-color-background-subtle);
+}
+
+.wsscd-tier-mode-option input:checked + .wsscd-tier-mode-card,
+.wsscd-threshold-mode-option input:checked + .wsscd-threshold-mode-card {
+    background: var(--wsscd-color-primary-bg);
+    border-color: var(--wsscd-color-primary);
+}
+
+.wsscd-tier-mode-card .wsscd-icon,
+.wsscd-threshold-mode-card .wsscd-icon {
+    font-size: var(--wsscd-font-size-xxxl);
+    width: var(--wsscd-icon-large);
+    height: var(--wsscd-icon-large);
+    color: var(--wsscd-color-primary);
+    margin-bottom: var(--wsscd-spacing-xs);
+}
+
+.wsscd-tier-mode-card strong,
+.wsscd-threshold-mode-card strong {
+    display: block;
+    font-size: var(--wsscd-font-size-medium);
+    font-weight: var(--wsscd-font-weight-semibold);
+    color: var(--wsscd-color-text);
+}
+
+/* Mode description text (tiers and thresholds) */
+.wsscd-tier-mode-description,
+.wsscd-mode-description {
+    display: block;
+    margin-top: var(--wsscd-spacing-xs);
+    font-weight: normal;
+    font-size: var(--wsscd-font-size-small);
+    color: var(--wsscd-color-text-subtle);
+    line-height: 1.4;
+}
+
+/* Tier section wrapper */
+.wsscd-tier-section {
+    margin-bottom: var(--wsscd-gap-spacious);
+}
+
+/* Tier section label */
+.wsscd-tier-section-label {
+    display: flex;
+    align-items: center;
+    gap: var(--wsscd-gap-tight);
+    margin-bottom: var(--wsscd-gap-normal);
+    font-weight: var(--wsscd-font-weight-semibold);
+    font-size: var(--wsscd-font-size-base);
+    color: var(--wsscd-color-text);
+    line-height: 1.5;
+}
+
+.wsscd-tier-section-label .required {
+    color: var(--wsscd-color-danger);
+    margin-left: var(--wsscd-spacing-xxs);
+}
+
+.wsscd-tier-section-label .wsscd-field-helper {
+    margin-left: var(--wsscd-gap-tight);
+}
+
+.wsscd-tier-group,
+.wsscd-threshold-group {
+    margin-bottom: var(--wsscd-gap-comfortable);
+}
+
+.wsscd-tiers-list,
+.wsscd-thresholds-list {
+    padding: var(--wsscd-padding-large);
+    background: var(--wsscd-color-surface);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+    border-radius: var(--wsscd-border-radius);
+    margin-bottom: var(--wsscd-gap-normal);
+    min-height: var(--wsscd-nav-height);
+}
+
+.wsscd-tiers-list:empty::before,
+.wsscd-thresholds-list:empty::before {
+    content: attr(data-empty-message);
+    display: block;
+    text-align: center;
+    color: var(--wsscd-color-text-muted);
+    font-style: italic;
+    padding: var(--wsscd-spacing-md);
+}
+
+/* ==========================================================================
+   Tier/Threshold Row Structure
+   HTML: <div class="wsscd-tier-row">
+           <div class="wsscd-tier-fields">
+             <div class="wsscd-row-field">
+               <label>Label</label>
+               <div class="wsscd-input-wrapper [wsscd-input-with-prefix]">
+                 [<span class="wsscd-input-prefix">%</span>]
+                 <input class="wsscd-enhanced-input">
+               </div>
+             </div>
+           </div>
+           <button class="wsscd-remove-tier">Remove</button>
+         </div>
+   ========================================================================== */
+
+/* Row Container - Flexbox layout for fields + button */
+.wsscd-tier-row,
+.wsscd-threshold-row {
+    display: flex;
+    gap: var(--wsscd-gap-comfortable);
+    align-items: flex-start;
+    margin-bottom: var(--wsscd-gap-normal);
+    padding: var(--wsscd-padding-large);
+    background: var(--wsscd-color-background);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+    border-radius: var(--wsscd-border-radius);
+    box-shadow: var(--wsscd-input-shadow);
+    transition: var(--wsscd-transition-base);
+}
+
+.wsscd-tier-row:hover,
+.wsscd-threshold-row:hover {
+    border-color: var(--wsscd-color-border);
+    box-shadow: var(--wsscd-shadow-sm);
+}
+
+/* Fields Wrapper - Contains all input fields */
+.wsscd-tier-fields,
+.wsscd-threshold-fields {
+    display: flex;
+    gap: var(--wsscd-gap-comfortable);
+    flex: 1;
+}
+
+/* Individual Field Container (label + input wrapper) */
+.wsscd-tier-fields .wsscd-row-field,
+.wsscd-threshold-fields .wsscd-row-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--wsscd-gap-tight);
+}
+
+/* Button field wrapper - minimal width */
+.wsscd-tier-fields .wsscd-row-field--button,
+.wsscd-threshold-fields .wsscd-row-field--button {
+    flex: 0 0 auto;
+}
+
+/* Field Labels */
+.wsscd-tier-fields .wsscd-row-field label,
+.wsscd-threshold-fields .wsscd-row-field label {
+    display: block;
+    margin-bottom: 0;
+    font-size: var(--wsscd-font-size-small);
+    font-weight: var(--wsscd-font-weight-semibold);
+    color: var(--wsscd-color-text);
+    line-height: 1.4;
+}
+
+/* Input Wrapper (contains input or prefix+input) */
+.wsscd-tier-fields .wsscd-input-wrapper,
+.wsscd-threshold-fields .wsscd-input-wrapper {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+}
+
+/* Standard Input (no prefix) */
+.wsscd-tier-fields .wsscd-input-wrapper:not(.wsscd-input-with-prefix) input,
+.wsscd-threshold-fields .wsscd-input-wrapper:not(.wsscd-input-with-prefix) input {
+    width: 100%;
+    flex: 1;
+}
+
+/* Input with Prefix Wrapper */
+.wsscd-tier-fields .wsscd-input-with-prefix,
+.wsscd-threshold-fields .wsscd-input-with-prefix {
+    width: 100%;
+}
+
+/* Input Field inside Prefix Wrapper */
+.wsscd-tier-fields .wsscd-input-with-prefix input,
+.wsscd-threshold-fields .wsscd-input-with-prefix input {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Remove Button Wrapper - Matches field structure for proper alignment */
+.wsscd-row-field--button {
+    flex-shrink: 0;
+    flex-grow: 0;
+    width: auto;
+}
+
+/* Label spacer - Takes up same height as real labels */
+.wsscd-field-label-spacer {
+    display: block;
+    margin-bottom: 0;
+    font-size: var(--wsscd-font-size-small);
+    line-height: 1.4;
+    pointer-events: none;
+}
+
+/* Add Tier/Threshold Button */
+.wsscd-add-tier,
+.wsscd-add-threshold {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--wsscd-gap-tight);
+    width: 100%;
+    min-height: var(--wsscd-input-height);
+    margin-top: var(--wsscd-gap-normal);
+    padding: var(--wsscd-padding-small) var(--wsscd-padding-large);
+    font-size: var(--wsscd-font-size-base);
+    font-weight: var(--wsscd-font-weight-medium);
+    border-radius: var(--wsscd-border-radius);
+}
+
+.wsscd-add-tier .wsscd-icon,
+.wsscd-add-threshold .wsscd-icon {
+    font-size: var(--wsscd-icon-small);
+    width: var(--wsscd-icon-small);
+    height: var(--wsscd-icon-small);
+}
+
+/* Empty List State */
+.wsscd-tiers-list:empty,
+.wsscd-thresholds-list:empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--wsscd-nav-height);
+}
+
+/* ==========================================================================
+   Spend Threshold Discounts (Specific Overrides Only)
+   ========================================================================== */
+
+.wsscd-spend-thresholds {
+    max-width: var(--wsscd-container-sm);
+}
+
+/* Field sizing specific to spend thresholds - scoped to discounts step */
+.wsscd-wizard-step--discounts .wsscd-threshold-fields .wsscd-field-group:nth-child( 1 ) {
+    flex: 0 0 var(--wsscd-nav-button-width); /* Spend amount field */
+}
+
+.wsscd-wizard-step--discounts .wsscd-threshold-fields .wsscd-field-group:nth-child( 2 ) {
+    flex: 0 0 var(--wsscd-nav-button-width); /* Discount value field */
+}
+
+/* ==========================================================================
+   Inline Previews (shared by all discount types)
+   ========================================================================== */
+
+.wsscd-inline-preview {
+    background: var(--wsscd-discount-highlight);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-primary);
+    border-radius: var(--wsscd-radius-md);
+    padding: var(--wsscd-spacing-md) var(--wsscd-spacing-md);
+    text-align: center;
+    margin-top: var(--wsscd-spacing-sm);
+}
+
+.wsscd-inline-preview .preview-text {
+    font-size: var(--wsscd-font-size-lg);
+    font-weight: var(--wsscd-font-weight-semibold);
+    color: var(--wsscd-color-primary);
+    line-height: 1.3;
+}
+
+.wsscd-inline-preview .preview-text.placeholder {
+    color: var(--wsscd-color-text-muted);
+    font-weight: var(--wsscd-font-weight-normal);
+    font-style: italic;
+}
+
+.wsscd-inline-preview:empty {
+    display: none;
+}
+
+/* ==========================================================================
+   Bundle Configuration
+   ========================================================================== */
+
+/* Main wrapper for bundle type content - give it more space for fixed sets */
+.wsscd-bundle-options > .wsscd-bundle-config {
+    max-width: 100%;
+    width: 100%;
+}
+
+/* Ensure proper table cell width */
+.wsscd-strategy-bundle td {
+    width: 100%;
+    max-width: 100%;
+}
+
+.wsscd-bundle-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: var(--wsscd-spacing-lg);
+}
+
+.wsscd-bundle-field label {
+    display: block;
+    font-weight: var(--wsscd-font-weight-semibold);
+    margin-bottom: var(--wsscd-spacing-sm);
+    color: var(--wsscd-color-text);
+    font-size: var(--wsscd-font-size-base);
+}
+
+.wsscd-bundle-field .description {
+    font-size: var(--wsscd-font-size-small);
+    color: var(--wsscd-color-text-muted);
+    margin-top: var(--wsscd-spacing-xs);
+    line-height: var(--wsscd-line-height);
+}
+
+
+/* ==========================================================================
+   Discount Calculator
+   ========================================================================== */
+
+.wsscd-discount-calculator {
+    background: var(--wsscd-color-surface);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+    border-radius: var(--wsscd-radius-lg);
+    padding: var(--wsscd-spacing-xl);
+    margin-bottom: var(--wsscd-spacing-xl);
+    box-shadow: var(--wsscd-shadow-sm);
+}
+
+.wsscd-calculator-input {
+    margin-bottom: var(--wsscd-spacing-lg);
+}
+
+.wsscd-calculator-input label {
+    display: block;
+    font-weight: var(--wsscd-font-weight-semibold);
+    margin-bottom: var(--wsscd-spacing-sm);
+    color: var(--wsscd-color-text);
+    font-size: var(--wsscd-font-size-base);
+}
+
+/* Let WordPress handle button spacing */
+
+.wsscd-calculator-result {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--wsscd-spacing-md);
+}
+
+.wsscd-result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--wsscd-spacing-md) var(--wsscd-spacing-md);
+    background: var(--wsscd-color-background);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+    border-radius: var(--wsscd-radius-md);
+    transition: all var(--wsscd-transition-fast);
+}
+
+.wsscd-result-item .label {
+    font-weight: var(--wsscd-font-weight-medium);
+    color: var(--wsscd-color-text-muted);
+    font-size: var(--wsscd-font-size-base);
+}
+
+.wsscd-result-item .value {
+    font-weight: var(--wsscd-font-weight-semibold);
+    font-size: var(--wsscd-font-size-lg);
+    color: var(--wsscd-color-text);
+}
+
+.wsscd-result-item.discount .value {
+    color: var(--wsscd-color-danger);
+}
+
+.wsscd-result-item.final .value {
+    color: var(--wsscd-color-success);
+    font-size: var(--wsscd-font-size-xl);
+}
+
+.wsscd-result-item.savings {
+    background: var(--wsscd-discount-highlight);
+    border-color: var(--wsscd-color-primary);
+}
+
+.wsscd-result-item.savings .value {
+    color: var(--wsscd-color-primary);
+}
+
+/* ==========================================================================
+   Impact Graph
+   ========================================================================== */
+
+.wsscd-impact-graph-container {
+    margin-bottom: var(--wsscd-spacing-xxl);
+    padding: var(--wsscd-spacing-lg);
+    background: var(--wsscd-color-surface);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+    border-radius: var(--wsscd-radius-lg);
+    box-shadow: var(--wsscd-shadow-sm);
+}
+
+.wsscd-impact-graph-container h4 {
+    margin: 0 0 var(--wsscd-spacing-md) 0;
+    font-size: var(--wsscd-font-size-lg);
+    font-weight: var(--wsscd-font-weight-semibold);
+    color: var(--wsscd-color-text);
+    line-height: 1.3;
+}
+
+#discount-impact-chart {
+    max-width: 100%;
+    height: calc(var(--wsscd-container-sm) / 2);
+}
+
+/* ==========================================================================
+   Preview Table
+   ========================================================================== */
+
+.wsscd-preview-table-container {
+    overflow-x: auto;
+}
+
+.wsscd-preview-table-container h4 {
+    margin: 0 0 var(--wsscd-spacing-md) 0;
+    font-size: var(--wsscd-font-size-lg);
+    font-weight: var(--wsscd-font-weight-semibold);
+    color: var(--wsscd-color-text);
+    line-height: 1.3;
+}
+
+.wsscd-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--wsscd-color-background);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+    border-radius: var(--wsscd-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--wsscd-shadow-sm);
+}
+
+.wsscd-preview-table th,
+.wsscd-preview-table td {
+    padding: var(--wsscd-spacing-md) var(--wsscd-spacing-lg);
+    text-align: left;
+    border-bottom: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+}
+
+.wsscd-preview-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.wsscd-preview-table th {
+    background: var(--wsscd-color-surface);
+    font-weight: var(--wsscd-font-weight-semibold);
+    color: var(--wsscd-color-text);
+    font-size: var(--wsscd-font-size-base);
+}
+
+.wsscd-preview-table td {
+    color: var(--wsscd-color-text-muted);
+    font-size: var(--wsscd-font-size-base);
+}
+
+.wsscd-preview-table td strong {
+    color: var(--wsscd-color-text);
+    font-weight: var(--wsscd-font-weight-semibold);
+}
+
+/* Card styles handled by shared _components.css */
+
+/* ==========================================================================
+   Mobile Responsive Design
+   ========================================================================== */
+
+/* Tablet Styles (1200px and below) */
+@media (max-width: 1200px) {
+    .wsscd-calculator-result {
+        grid-template-columns: 1fr;
+    }
+
+    .wsscd-bogo-row {
+        grid-template-columns: 1fr;
+    }
+
+    /* Removed sidebar adjustments that were breaking layout */
+}
+
+/* Mobile Styles (782px and below - WordPress admin breakpoint) */
+@media (max-width: 782px) {
+    /* Discount type cards - single column */
+    .wsscd-discount-type-grid {
+        grid-template-columns: 1fr;
+        gap: var(--wsscd-spacing-md);
+    }
+    
+    .wsscd-discount-type-card {
+        padding: var(--wsscd-spacing-md);
+    }
+    
+    .wsscd-discount-type-card__icon .wsscd-icon {
+        font-size: calc(var(--wsscd-font-size-xxxl) * 1.5);
+        width: var(--wsscd-badge-number-width-mobile);
+        height: var(--wsscd-button-height);
+    }
+    
+    .wsscd-discount-type-card__title {
+        font-size: var(--wsscd-font-size-base);
+    }
+    
+    /* Tier/Threshold Mobile Adjustments */
+    .wsscd-tier-row,
+    .wsscd-threshold-row {
+        flex-direction: column;
+    }
+
+    .wsscd-tier-fields,
+    .wsscd-threshold-fields {
+        flex-direction: column;
+        gap: var(--wsscd-gap-normal);
+    }
+
+    .wsscd-tier-mode-selector,
+    .wsscd-threshold-mode-selector {
+        flex-direction: column;
+    }
+    
+    .wsscd-customer-segments {
+        grid-template-columns: 1fr;
+    }
+    
+    .wsscd-bundle-row {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Bundle item responsive adjustments */
+    .wsscd-bundle-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--wsscd-gap-normal);
+    }
+    
+    .wsscd-bundle-actions {
+        margin-top: var(--wsscd-spacing-sm);
+    }
+    
+    .wsscd-bundle-item {
+        padding: var(--wsscd-padding-compact);
+    }
+    
+    /* Input groups */
+    .wsscd-wizard-step--discounts .wsscd-input-group {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .wsscd-wizard-step--discounts .wsscd-input-group input {
+        flex: 1;
+    }
+    
+    /* Calculator adjustments */
+    .wsscd-discount-calculator {
+        padding: var(--wsscd-spacing-md);
+    }
+    
+    /* Let WordPress handle button layout in mobile */
+    
+    /* Preview table - horizontal scroll */
+    .wsscd-preview-table-container {
+        margin: 0 calc(var(--wsscd-spacing-md) * -1);
+        padding: 0 var(--wsscd-spacing-md);
+    }
+
+    .wsscd-preview-table {
+        min-width: calc(var(--wsscd-container-sm) - 100px);
+    }
+
+    /* Card spacing */
+    .wsscd-card {
+        margin-bottom: var(--wsscd-spacing-md);
+    }
+    
+    /* Card content responsive styles moved to components.css */
+
+    /* Field group inputs - width handled by global rule */
+    
+    /* All form inputs - full width on mobile */
+    .wsscd-wizard-step--discounts input[type="text"],
+    .wsscd-wizard-step--discounts input[type="password"],
+    .wsscd-wizard-step--discounts input[type="color"],
+    .wsscd-wizard-step--discounts input[type="date"],
+    .wsscd-wizard-step--discounts input[type="datetime"],
+    .wsscd-wizard-step--discounts input[type="datetime-local"],
+    .wsscd-wizard-step--discounts input[type="email"],
+    .wsscd-wizard-step--discounts input[type="month"],
+    .wsscd-wizard-step--discounts input[type="number"],
+    .wsscd-wizard-step--discounts input[type="search"],
+    .wsscd-wizard-step--discounts input[type="tel"],
+    .wsscd-wizard-step--discounts input[type="time"],
+    .wsscd-wizard-step--discounts input[type="url"],
+    .wsscd-wizard-step--discounts input[type="week"],
+    .wsscd-wizard-step--discounts select,
+    .wsscd-wizard-step--discounts textarea {
+        width: 100%;
+    }
+}
+
+/* Small Mobile Styles (480px and below) */
+@media (max-width: 480px) {
+    /* Even more compact design */
+    .wsscd-discount-type-card {
+        padding: var(--wsscd-spacing-md);
+    }
+
+    .wsscd-discount-type-card__example {
+        font-size: var(--wsscd-font-size-small);
+        padding: var(--wsscd-spacing-sm);
+    }
+    
+    /* Form table adjustments */
+    .form-table th,
+    .form-table td {
+        display: block;
+        width: 100%;
+        padding: var(--wsscd-spacing-sm) 0;
+    }
+
+    .form-table th {
+        padding-bottom: var(--wsscd-spacing-xs);
+    }
+    
+    /* Preview elements */
+    .wsscd-preview-table th,
+    .wsscd-preview-table td {
+        padding: var(--wsscd-spacing-md);
+        font-size: var(--wsscd-font-size-base);
+    }
+    
+    /* Impact graph container */
+    .wsscd-impact-graph-container {
+        padding: var(--wsscd-spacing-md);
+    }
+    
+    #discount-impact-chart {
+        height: var(--wsscd-sidebar-width-small);
+    }
+}
+
+/* Very Small Mobile (320px and below) */
+@media (max-width: 320px) {
+    /* Ensure nothing breaks on very small screens */
+    .wsscd-discount-type-card__title {
+        font-size: var(--wsscd-font-size-base);
+    }
+
+    .wsscd-discount-type-card__description {
+        font-size: var(--wsscd-font-size-small);
+    }
+    
+    .wsscd-wizard-step--discounts .wsscd-input-prefix,
+    .wsscd-wizard-step--discounts .wsscd-input-suffix {
+        padding: 0 var(--wsscd-spacing-sm);
+        font-size: var(--wsscd-font-size-base);
+    }
+    
+    .wsscd-segment-checkbox {
+        padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-md);
+        font-size: var(--wsscd-font-size-base);
+    }
+}
+
+/* ==========================================================================
+   Touch-friendly Enhancements
+   ========================================================================== */
+
+@media (pointer: coarse) {
+    /* Larger touch targets */
+    .wsscd-discount-type-card {
+        min-height: calc(var(--wsscd-nav-height) * 1.5);
+    }
+    
+    input[type="checkbox"],
+    input[type="radio"] {
+        width: var(--wsscd-icon-medium);
+        height: var(--wsscd-icon-medium);
+    }
+    
+    .button,
+    .wsscd-tier-actions button {
+        min-height: var(--wsscd-button-height-large);
+        min-width: var(--wsscd-badge-number-width);
+    }
+    
+    /* Better spacing for touch */
+    .wsscd-tier-row,
+    .wsscd-segment-checkbox {
+        padding: var(--wsscd-spacing-md);
+    }
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+    .wsscd-wizard-navigation,
+    .button {
+        display: none;
+    }
+    
+    .wsscd-discount-type-card {
+        break-inside: avoid;
+    }
+    
+    .wsscd-preview-table {
+        border: var(--wsscd-border-width) solid var(--wsscd-color-text);
+    }
+    
+    .wsscd-preview-table th,
+    .wsscd-preview-table td {
+        border: var(--wsscd-border-width) solid var(--wsscd-color-text);
+    }
+}
+
+/* ==========================================================================
+   Accessibility Improvements
+   ========================================================================== */
+
+/* Focus styles for discount-specific components */
+.wsscd-discount-type-card:focus,
+.wsscd-segment-checkbox:focus-within {
+    outline: var(--wsscd-border-width-focus) solid transparent;
+    box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wsscd-color-primary);
+}
+
+/* Note: Generic input/select/textarea focus styles are defined in _forms.css */
+
+/* ==========================================================================
+   Responsive Layout
+   ========================================================================== */
+
+/* Responsive layout is handled by wizard-fullscreen.css */
+/* Removed duplicate/conflicting responsive rules that were causing sidebar positioning issues */
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .wsscd-discount-type-card {
+        border-width: var(--wsscd-border-width-accent-thin);
+    }
+    
+    .wsscd-discount-type-card.selected {
+        border-width: var(--wsscd-border-width-accent-thin);
+        box-shadow: 0 0 0 var(--wsscd-border-width-thick) currentColor;
+    }
+
+    .wsscd-tier-row {
+        border-width: var(--wsscd-border-width-thick);
+    }
+}
+
+/* Reduced motion support */
+/* Reduced-motion handled globally by _variables.css CSS variables */
+
+/* ==========================================================================
+   RTL Support
+   ========================================================================== */
+
+[dir="rtl"] .wsscd-discount-type-card::before {
+    right: auto;
+    left: 0;
+}
+
+[dir="rtl"] .wsscd-wizard-step--discounts .wsscd-input-prefix {
+    border-left: none;
+    border-right: var(--wsscd-border-width) solid var(--wsscd-color-border);
+    border-radius: 0 var(--wsscd-radius-md) var(--wsscd-radius-md) 0;
+}
+
+[dir="rtl"] .wsscd-wizard-step--discounts .wsscd-input-suffix {
+    border-right: none;
+    border-left: var(--wsscd-border-width) solid var(--wsscd-color-border);
+    border-radius: var(--wsscd-radius-md) 0 0 var(--wsscd-radius-md);
+}
+
+/* ==========================================================================
+   Loading States & Messages
+   ========================================================================== */
+
+/* Loading states handled by shared _components.css and wizard-steps.css */
+
+/* Messages */
+.wsscd-message {
+    display: flex;
+    align-items: center;
+    padding: var(--wsscd-padding-medium) 16px;
+    margin-bottom: var(--wsscd-spacing-base);
+    border-radius: var(--wsscd-radius-md);
+    font-size: var(--wsscd-font-size-medium);
+    line-height: 1.5;
+}
+
+.wsscd-message .wsscd-icon {
+    font-size: var(--wsscd-font-size-xxl);
+    width: var(--wsscd-icon-medium);
+    height: var(--wsscd-icon-medium);
+    margin-right: var(--wsscd-spacing-md);
+}
+
+.wsscd-message__text {
+    flex: 1;
+}
+
+.wsscd-message__close {
+    background: none;
+    border: none;
+    font-size: var(--wsscd-font-size-xxl);
+    line-height: 1;
+    padding: 0;
+    margin-left: var(--wsscd-spacing-md);
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity var(--wsscd-transition-base);
+}
+
+.wsscd-message__close:hover {
+    opacity: 1;
+}
+
+/* Success message */
+.wsscd-message--success {
+    background-color: var(--wsscd-alert-success-bg);
+    border: var(--wsscd-border-width) solid var(--wsscd-alert-success-border);
+    color: var(--wsscd-alert-success-text);
+}
+
+.wsscd-message--success .wsscd-icon {
+    color: var(--wsscd-alert-success-text);
+}
+
+/* Error message */
+.wsscd-message--error {
+    background-color: var(--wsscd-alert-danger-bg);
+    border: var(--wsscd-border-width) solid var(--wsscd-alert-danger-border);
+    color: var(--wsscd-alert-danger-text);
+}
+
+.wsscd-message--error .wsscd-icon {
+    color: var(--wsscd-alert-danger-text);
+}
+
+/* Warning message */
+.wsscd-message--warning {
+    background-color: var(--wsscd-alert-warning-bg);
+    border: var(--wsscd-border-width) solid var(--wsscd-alert-warning-border);
+    color: var(--wsscd-alert-warning-text);
+}
+
+.wsscd-message--warning .wsscd-icon {
+    color: var(--wsscd-alert-warning-text);
+}
+
+/* ==========================================================================
+   Customer Targeting & Restrictions
+   ========================================================================== */
+
+/* Override the default segment styling for consistency */
+.wsscd-wizard-step--discounts .wsscd-customer-segments {
+    background: var(--wsscd-color-background);
+    padding: var(--wsscd-spacing-md);
+    border-radius: var(--wsscd-radius-md);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+}
+
+/* Add Bundle Button Styling */
+.wsscd-add-bundle {
+    background: linear-gradient(135deg, var(--wsscd-color-primary) 0%, var(--wsscd-color-primary-dark) 100%);
+    border: none;
+    color: var(--wsscd-color-white);
+    padding: var(--wsscd-padding-medium) 20px;
+    border-radius: var(--wsscd-radius-lg);
+    font-weight: var(--wsscd-font-weight-medium);
+    font-size: var(--wsscd-font-size-medium);
+    cursor: pointer;
+    transition: all var(--wsscd-transition-base) ease;
+    box-shadow: var(--wsscd-shadow-md);
+    margin-top: var(--wsscd-spacing-base);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--wsscd-gap-tight);
+}
+
+.wsscd-add-bundle:before {
+    content: "+";
+    font-size: var(--wsscd-font-size-large);
+    font-weight: var(--wsscd-font-weight-semibold);
+}
+
+.wsscd-add-bundle:hover {
+    background: linear-gradient(135deg, var(--wsscd-color-primary-dark) 0%, var(--wsscd-color-primary-darker) 100%);
+    box-shadow: var(--wsscd-shadow-lg);
+    /* transform: translateY(-1px); removed for instant state change */
+}
+
+.wsscd-add-bundle:disabled {
+    background: var(--wsscd-color-border-light);
+    color: var(--wsscd-color-primary-light);
+    cursor: not-allowed;
+    /* transform: none; removed for instant state change */
+    box-shadow: none;
+}
+
+.wsscd-add-bundle:disabled:before {
+    content: "✓";
+}
+
+/* Bundle Container Visual Enhancement */
+.wsscd-bundles-container:empty:after {
+    content: "📦 No bundles created yet. Each bundle you create will become a separate deal option that customers can choose from. Click 'Add Another Bundle' below to start.";
+    display: block;
+    text-align: center;
+    color: var(--wsscd-color-primary-light);
+    font-style: italic;
+    padding: calc(var(--wsscd-spacing-xxl) + var(--wsscd-spacing-sm) var(--wsscd-spacing-lg);
+    border: var(--wsscd-border-width-thick) dashed var(--wsscd-color-border-light);
+    border-radius: var(--wsscd-radius-xl);
+    background: var(--wsscd-color-surface);
+    margin-bottom: var(--wsscd-spacing-base);
+    line-height: 1.4;
+}
+
+/* Bundle Explanation Styling */
+.wsscd-bundle-explanation {
+    background: var(--wsscd-color-surface-light);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-primary-lighter);
+    border-radius: var(--wsscd-radius-lg);
+    padding: var(--wsscd-padding-section);
+    margin-bottom: var(--wsscd-spacing-xl);
+    color: var(--wsscd-color-primary-darker);
+}
+
+.wsscd-bundle-explanation h4 {
+    margin: 0 0 var(--wsscd-spacing-md) 0;
+    color: var(--wsscd-color-primary-dark);
+    font-size: var(--wsscd-font-size-large);
+    font-weight: var(--wsscd-font-weight-semibold);
+}
+
+.wsscd-bundle-explanation p {
+    margin: 0 0 var(--wsscd-spacing-md) 0;
+    line-height: 1.5;
+    color: var(--wsscd-color-text);
+}
+
+.wsscd-bundle-explanation ul {
+    margin: var(--wsscd-spacing-md) 0;
+    padding-left: var(--wsscd-spacing-lg);
+}
+
+.wsscd-bundle-explanation li {
+    margin-bottom: var(--wsscd-spacing-sm);
+    line-height: 1.4;
+    color: var(--wsscd-color-text);
+}
+
+.wsscd-bundle-explanation strong {
+    color: var(--wsscd-color-primary-dark);
+    font-weight: var(--wsscd-font-weight-semibold);
+}
+
+
+/* Field helper tooltip styles handled by shared _components.css */
+
+/* Tooltip styles handled by shared _components.css and tooltips.css */
+
+/* Responsive adjustments already handled in previous media queries */
+
+/* =============================================================================
+   Conditional Rule Visibility
+   ============================================================================= */
+
+/**
+ * Hide discount rules that don't apply to the selected discount type
+ * Applied via JavaScript when discount type changes
+ */
+.wsscd-conditional-rule.wsscd-rule-hidden {
+	display: none !important;
+	opacity: 0;
+	transition: opacity var(--wsscd-transition-base) ease-out;
+}
+
+/**
+ * Smooth transition when showing conditional rules
+ */
+.wsscd-conditional-rule {
+	transition: opacity var(--wsscd-transition-base) ease-in;
+}
+

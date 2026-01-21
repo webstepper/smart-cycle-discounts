@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/utilities
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_DateTime_Splitter {
+class WSSCD_DateTime_Splitter {
 
 	/**
 	 * Split UTC datetime for editing form.

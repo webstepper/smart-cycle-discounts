@@ -27,24 +27,24 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/security
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Rate_Limiter {
+class WSSCD_Rate_Limiter {
 
 	/**
 	 * Cache manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Cache_Manager    $cache_manager    Cache manager.
+	 * @var      WSSCD_Cache_Manager    $cache_manager    Cache manager.
 	 */
-	private SCD_Cache_Manager $cache_manager;
+	private WSSCD_Cache_Manager $cache_manager;
 
 	/**
 	 * Initialize the rate limiter.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Cache_Manager $cache_manager    Cache manager.
+	 * @param    WSSCD_Cache_Manager $cache_manager    Cache manager.
 	 */
-	public function __construct( SCD_Cache_Manager $cache_manager ) {
+	public function __construct( WSSCD_Cache_Manager $cache_manager ) {
 		$this->cache_manager = $cache_manager;
 	}
 

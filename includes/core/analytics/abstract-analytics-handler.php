@@ -22,34 +22,34 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since      1.0.0
  */
-abstract class SCD_Abstract_Analytics_Handler {
+abstract class WSSCD_Abstract_Analytics_Handler {
 
 	/**
 	 * Metrics calculator instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Metrics_Calculator
+	 * @var      WSSCD_Metrics_Calculator
 	 */
-	protected SCD_Metrics_Calculator $metrics_calculator;
+	protected $metrics_calculator;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Logger
+	 * @var      WSSCD_Logger
 	 */
-	protected SCD_Logger $logger;
+	protected $logger;
 
 	/**
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Metrics_Calculator $metrics_calculator    Metrics calculator.
-	 * @param    SCD_Logger             $logger                Logger instance.
+	 * @param    WSSCD_Metrics_Calculator $metrics_calculator    Metrics calculator.
+	 * @param    WSSCD_Logger             $logger                Logger instance.
 	 */
 	public function __construct(
-		SCD_Metrics_Calculator $metrics_calculator,
-		SCD_Logger $logger
+		WSSCD_Metrics_Calculator $metrics_calculator,
+		WSSCD_Logger $logger
 	) {
 		$this->metrics_calculator = $metrics_calculator;
 		$this->logger             = $logger;
@@ -80,9 +80,9 @@ abstract class SCD_Abstract_Analytics_Handler {
 	 * @param    string $action     Action name.
 	 * @return   true|WP_Error          True on success, WP_Error on failure.
 	 */
-	protected function verify_request( array $request, string $action ): bool|WP_Error {
+	protected function verify_request( array $request, string $action ) {
 		// Security check
-		$result = SCD_Ajax_Security::verify_ajax_request( $action, $request );
+		$result = WSSCD_Ajax_Security::verify_ajax_request( $action, $request );
 
 		if ( is_wp_error( $result ) ) {
 			return $result;

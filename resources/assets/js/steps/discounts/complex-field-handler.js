@@ -20,7 +20,7 @@
 	 * 
 	 * @param {Object} config Configuration object
 	 * @param {string} config.handlerName Name for the handler (e.g., 'TieredHandler', 'ThresholdHandler')
-	 * @param {string} config.namespace Namespace path (e.g., 'SCD.Modules.Discounts')
+	 * @param {string} config.namespace Namespace path (e.g., 'WSSCD.Modules.Discounts')
 	 * @param {Object} config.propertyNames Property name mappings
 	 * @param {string} config.propertyNames.percentageItems Internal property name for percentage items
 	 * @param {string} config.propertyNames.fixedItems Internal property name for fixed items
@@ -31,7 +31,7 @@
 	 * @param {Function} config.itemParser Function to parse/validate individual items
 	 * @param {boolean} config.logEnabled Enable console logging (default: true)
 	 */
-	SCD.Utils.createComplexFieldHandler = function( config ) {
+	WSSCD.Utils.createComplexFieldHandler = function( config ) {
 		if ( !config || !config.handlerName || !config.namespace ) {
 			throw new Error( 'Complex field handler requires handlerName and namespace in config' );
 		}
@@ -62,7 +62,7 @@
 		config = _$.extend( true, {}, defaults, config );
 
 		// Register handler using utility
-		SCD.Utils.registerModule( config.namespace, config.handlerName, function() {
+		WSSCD.Utils.registerModule( config.namespace, config.handlerName, function() {
 			// Internal state - no DOM dependency
 			var self = this;
 			
@@ -84,9 +84,9 @@
 
 			// Currency symbol
 			this.currencySymbol = '$';
-			if ( window.scdSettings && window.scdSettings.currencySymbol ) {
+			if ( window.wsscdSettings && window.wsscdSettings.currencySymbol ) {
 				var parser = new DOMParser();
-				var doc = parser.parseFromString( window.scdSettings.currencySymbol, 'text/html' );
+				var doc = parser.parseFromString( window.wsscdSettings.currencySymbol, 'text/html' );
 				this.currencySymbol = doc.documentElement.textContent || '$';
 			}
 
@@ -96,7 +96,7 @@
 			this.defaults = config.defaults;
 		} );
 
-		var HandlerClass = SCD.Utils.getNestedProperty( window, config.namespace + '.' + config.handlerName );
+		var HandlerClass = WSSCD.Utils.getNestedProperty( window, config.namespace + '.' + config.handlerName );
 		
 		HandlerClass.prototype = {
 			/**
@@ -247,7 +247,7 @@
 	/**
 	 * Helper to get nested property safely
 	 */
-	SCD.Utils.getNestedProperty = function( obj, path ) {
+	WSSCD.Utils.getNestedProperty = function( obj, path ) {
 		return path.split( '.' ).reduce( function( current, prop ) {
 			return current ? current[prop] : undefined;
 		}, obj );

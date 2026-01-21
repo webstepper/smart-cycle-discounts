@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/components
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Modal_Component {
+class WSSCD_Modal_Component {
 
 	/**
 	 * Modal configuration.
@@ -68,7 +68,7 @@ class SCD_Modal_Component {
 
 		// Ensure ID is set
 		if ( empty( $this->config['id'] ) ) {
-			$this->config['id'] = 'scd-modal-' . wp_generate_uuid4();
+			$this->config['id'] = 'wsscd-modal-' . wp_generate_uuid4();
 		}
 	}
 
@@ -103,7 +103,7 @@ class SCD_Modal_Component {
 	 * @return   void
 	 */
 	private function render_modal_html(): void {
-		$classes    = array_merge( array( 'scd-modal' ), $this->config['classes'] );
+		$classes    = array_merge( array( 'wsscd-modal' ), $this->config['classes'] );
 		$attributes = $this->build_attributes( $this->config['attributes'] );
 		?>
 		<div id="<?php echo esc_attr( $this->config['id'] ); ?>"
@@ -112,41 +112,51 @@ class SCD_Modal_Component {
 			aria-modal="true"
 			aria-labelledby="<?php echo esc_attr( $this->config['id'] . '-title' ); ?>"
 			aria-describedby="<?php echo esc_attr( $this->config['id'] . '-message' ); ?>"
-			<?php echo $attributes; ?>
+			<?php
+						echo wp_kses_post( $attributes );
+			?>
 			style="display:none;">
-			<div class="scd-modal__overlay" aria-hidden="true"></div>
-			<div class="scd-modal__container" role="document">
-				<div class="scd-modal__content">
+			<div class="wsscd-modal__overlay" aria-hidden="true"></div>
+			<div class="wsscd-modal__container" role="document">
+				<div class="wsscd-modal__content">
 					<?php if ( $this->config['dismissible'] ) : ?>
-						<button class="scd-modal__close" type="button" aria-label="<?php echo esc_attr__( 'Close modal', 'smart-cycle-discounts' ); ?>">
-							<?php echo SCD_Icon_Helper::get( 'close', array( 'size' => 16 ) ); ?>
+						<button class="wsscd-modal__close" type="button" aria-label="<?php echo esc_attr__( 'Close modal', 'smart-cycle-discounts' ); ?>">
+							<?php
+							WSSCD_Icon_Helper::render( 'close', array( 'size' => 16 ) );
+							?>
 						</button>
 					<?php endif; ?>
 
 					<?php if ( ! empty( $this->config['icon'] ) ) : ?>
-						<div class="scd-modal__icon" aria-hidden="true">
+						<div class="wsscd-modal__icon" aria-hidden="true">
 							<?php $this->render_icon(); ?>
 						</div>
 					<?php endif; ?>
 
 					<?php if ( ! empty( $this->config['title'] ) ) : ?>
-						<h2 id="<?php echo esc_attr( $this->config['id'] . '-title' ); ?>" class="scd-modal__title">
+						<h2 id="<?php echo esc_attr( $this->config['id'] . '-title' ); ?>" class="wsscd-modal__title">
 							<?php echo esc_html( $this->config['title'] ); ?>
 						</h2>
 					<?php endif; ?>
 
-					<div id="<?php echo esc_attr( $this->config['id'] . '-message' ); ?>" class="scd-modal__message">
+					<div id="<?php echo esc_attr( $this->config['id'] . '-message' ); ?>" class="wsscd-modal__message">
 						<?php
 						if ( $this->config['escape_content'] ) {
-							echo wp_kses_post( $this->config['content'] );
+							// Use wp_kses with SVG allowed tags since content may contain buttons with SVG icons.
+							$allowed_tags = array_merge(
+								wp_kses_allowed_html( 'post' ),
+								WSSCD_Icon_Helper::get_allowed_svg_tags()
+							);
+							echo wp_kses( $this->config['content'], $allowed_tags );
 						} else {
-							echo $this->config['content'];
+							// Content may contain buttons with SVG icons.
+							WSSCD_HTML_Helper::output( $this->config['content'] );
 						}
 						?>
 					</div>
 
 					<?php if ( ! empty( $this->config['buttons'] ) ) : ?>
-						<div class="scd-modal__actions" role="group" aria-label="<?php echo esc_attr__( 'Modal actions', 'smart-cycle-discounts' ); ?>">
+						<div class="wsscd-modal__actions" role="group" aria-label="<?php echo esc_attr__( 'Modal actions', 'smart-cycle-discounts' ); ?>">
 							<?php $this->render_buttons(); ?>
 						</div>
 					<?php endif; ?>
@@ -159,14 +169,14 @@ class SCD_Modal_Component {
 	/**
 	 * Render modal icon.
 	 *
-	 * Uses SCD_Icon_Helper to render SVG icons.
+	 * Uses WSSCD_Icon_Helper to render SVG icons.
 	 *
 	 * @since    1.0.0
 	 * @return   void
 	 */
 	private function render_icon(): void {
 		if ( ! empty( $this->config['icon'] ) ) {
-			echo SCD_Icon_Helper::get( $this->config['icon'], array( 'size' => 48 ) );
+			WSSCD_Icon_Helper::render( $this->config['icon'], array( 'size' => 48 ) );
 		}
 	}
 
@@ -209,11 +219,13 @@ class SCD_Modal_Component {
 						?>
 						id="<?php echo esc_attr( $button['id'] ); ?>"<?php endif; ?>
 					class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>"
-					<?php echo $attributes; ?>>
+					<?php
+										echo wp_kses_post( $attributes );
+					?>>
 				<?php
 				// Render icon if provided
 				if ( ! empty( $button['icon'] ) ) {
-					echo SCD_Icon_Helper::get( $button['icon'], array( 'size' => 16 ) );
+					WSSCD_Icon_Helper::render( $button['icon'], array( 'size' => 16 ) );
 				}
 				echo esc_html( $button['text'] );
 				?>
@@ -247,80 +259,61 @@ class SCD_Modal_Component {
 
 		if ( ! $base_scripts_rendered ) {
 			$base_scripts_rendered = true;
-			?>
-			<script>
-			jQuery(document).ready(function($) {
-				window.SCD = window.SCD || {};
 
-				// Store the last focused element before opening modal
+			// Build modal script using output buffering (WordPress.org compliant - no HEREDOC).
+			ob_start();
+			?>
+			jQuery(document).ready(function($) {
+				window.WSSCD = window.WSSCD || {};
 				var lastFocusedElement = null;
 
-				// Only define SCD.Modal if it doesn't already exist from ui-utilities.js
-				if (!window.SCD.Modal) {
-					window.SCD.Modal = {
+				if (!window.WSSCD.Modal) {
+					window.WSSCD.Modal = {
 						show: function(modalId) {
-							var $modal = $('#' + modalId);
-
-							// Store current focus
+							var $modal = $("#" + modalId);
 							lastFocusedElement = document.activeElement;
-
-							// Show modal
-							$modal.addClass('scd-modal--visible').fadeIn(200).css('display', 'flex');
-							$('body').addClass('scd-modal-open');
-
-							// Focus first button
+							$modal.addClass("wsscd-modal--visible").fadeIn(200).css("display", "flex");
+							$("body").addClass("wsscd-modal-open");
 							setTimeout(function() {
-								var $firstButton = $modal.find('.scd-modal__actions button:first');
-								if ($firstButton.length) {
-									$firstButton.focus();
-								}
+								var $firstButton = $modal.find(".wsscd-modal__actions button:first");
+								if ($firstButton.length) { $firstButton.focus(); }
 							}, 250);
-
-							// Setup focus trap
 							this.setupFocusTrap($modal);
 						},
 						hide: function(modalId) {
-							var $modal = $('#' + modalId);
-							$modal.removeClass('scd-modal--visible').fadeOut(200);
-							$('body').removeClass('scd-modal-open');
-
-							// Restore focus to trigger element
-							if (lastFocusedElement) {
+							var $modal = $("#" + modalId);
+							$modal.removeClass("wsscd-modal--visible").fadeOut(200);
+							$("body").removeClass("wsscd-modal-open");
+							if (lastFocusedElement && document.body.contains(lastFocusedElement)) {
 								setTimeout(function() {
-									lastFocusedElement.focus();
+									if (lastFocusedElement && document.body.contains(lastFocusedElement)) {
+										lastFocusedElement.focus();
+									}
 									lastFocusedElement = null;
 								}, 250);
-							}
+							} else { lastFocusedElement = null; }
 						},
 						hideAll: function() {
-							$('.scd-modal').removeClass('scd-modal--visible').hide();
-							$('body').removeClass('scd-modal-open');
-
-							// Restore focus
-							if (lastFocusedElement) {
+							$(".wsscd-modal").removeClass("wsscd-modal--visible").hide();
+							$("body").removeClass("wsscd-modal-open");
+							if (lastFocusedElement && document.body.contains(lastFocusedElement)) {
 								lastFocusedElement.focus();
-								lastFocusedElement = null;
 							}
+							lastFocusedElement = null;
 						},
 						setupFocusTrap: function($modal) {
-							var focusableElements = $modal.find('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+							var focusableElements = $modal.find("button, [href], input, select, textarea, [tabindex]:not([tabindex=\"-1\"])");
 							var firstElement = focusableElements.first();
 							var lastElement = focusableElements.last();
-
-							// Remove previous handlers
-							$modal.off('keydown.focustrap');
-
-							// Trap focus
-							$modal.on('keydown.focustrap', function(e) {
-								if (e.key === 'Tab') {
+							$modal.off("keydown.focustrap");
+							$modal.on("keydown.focustrap", function(e) {
+								if (e.key === "Tab") {
 									if (e.shiftKey) {
-										// Shift + Tab
 										if (document.activeElement === firstElement[0]) {
 											e.preventDefault();
 											lastElement.focus();
 										}
 									} else {
-										// Tab
 										if (document.activeElement === lastElement[0]) {
 											e.preventDefault();
 											firstElement.focus();
@@ -331,69 +324,51 @@ class SCD_Modal_Component {
 						}
 					};
 				} else {
-					// Extend existing SCD.Modal to work with our modal component's CSS classes
-					var originalShow = window.SCD.Modal.show;
-					var originalHide = window.SCD.Modal.hide;
+					var originalShow = window.WSSCD.Modal.show;
+					var originalHide = window.WSSCD.Modal.hide;
 
-					window.SCD.Modal.show = function(modalId) {
-						var $modal = $('#' + modalId);
-						if ($modal.hasClass('scd-modal')) {
-							// Store current focus
+					window.WSSCD.Modal.show = function(modalId) {
+						var $modal = $("#" + modalId);
+						if ($modal.hasClass("wsscd-modal")) {
 							lastFocusedElement = document.activeElement;
-
-							// Our modal component - use our approach
-							$modal.addClass('scd-modal--visible').fadeIn(200).css('display', 'flex');
-							$('body').addClass('scd-modal-open');
-
-							// Focus first button
+							$modal.addClass("wsscd-modal--visible").fadeIn(200).css("display", "flex");
+							$("body").addClass("wsscd-modal-open");
 							setTimeout(function() {
-								var $firstButton = $modal.find('.scd-modal__actions button:first');
-								if ($firstButton.length) {
-									$firstButton.focus();
-								}
+								var $firstButton = $modal.find(".wsscd-modal__actions button:first");
+								if ($firstButton.length) { $firstButton.focus(); }
 							}, 250);
-
-							// Setup focus trap
 							this.setupFocusTrap($modal);
 						} else if (originalShow) {
-							// Other modals - use original approach
 							originalShow.call(this, modalId);
 						}
 					};
 
-					window.SCD.Modal.hide = function(modalId) {
-						var $modal = $('#' + modalId);
-						if ($modal.hasClass('scd-modal')) {
-							// Our modal component - use our approach
-							$modal.removeClass('scd-modal--visible').fadeOut(200);
-							$('body').removeClass('scd-modal-open');
-
-							// Restore focus
-							if (lastFocusedElement) {
+					window.WSSCD.Modal.hide = function(modalId) {
+						var $modal = $("#" + modalId);
+						if ($modal.hasClass("wsscd-modal")) {
+							$modal.removeClass("wsscd-modal--visible").fadeOut(200);
+							$("body").removeClass("wsscd-modal-open");
+							if (lastFocusedElement && document.body.contains(lastFocusedElement)) {
 								setTimeout(function() {
-									lastFocusedElement.focus();
+									if (lastFocusedElement && document.body.contains(lastFocusedElement)) {
+										lastFocusedElement.focus();
+									}
 									lastFocusedElement = null;
 								}, 250);
-							}
+							} else { lastFocusedElement = null; }
 						} else if (originalHide) {
-							// Other modals - use original approach
 							originalHide.call(this, modalId);
 						}
 					};
 
-					// Add focus trap setup if not exists
-					if (!window.SCD.Modal.setupFocusTrap) {
-						window.SCD.Modal.setupFocusTrap = function($modal) {
-							var focusableElements = $modal.find('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+					if (!window.WSSCD.Modal.setupFocusTrap) {
+						window.WSSCD.Modal.setupFocusTrap = function($modal) {
+							var focusableElements = $modal.find("button, [href], input, select, textarea, [tabindex]:not([tabindex=\"-1\"])");
 							var firstElement = focusableElements.first();
 							var lastElement = focusableElements.last();
-
-							// Remove previous handlers
-							$modal.off('keydown.focustrap');
-
-							// Trap focus
-							$modal.on('keydown.focustrap', function(e) {
-								if (e.key === 'Tab') {
+							$modal.off("keydown.focustrap");
+							$modal.on("keydown.focustrap", function(e) {
+								if (e.key === "Tab") {
 									if (e.shiftKey) {
 										if (document.activeElement === firstElement[0]) {
 											e.preventDefault();
@@ -411,21 +386,23 @@ class SCD_Modal_Component {
 					}
 				}
 
-				// Global modal event handlers
-				$(document).on('click', '.scd-modal__close, .scd-modal__overlay', function(e) {
+				$(document).on("click", ".wsscd-modal__close, .wsscd-modal__overlay", function(e) {
 					e.preventDefault();
-					var $modal = $(this).closest('.scd-modal');
-					SCD.Modal.hide($modal.attr('id'));
+					var $modal = $(this).closest(".wsscd-modal");
+					WSSCD.Modal.hide($modal.attr("id"));
 				});
 
-				$(document).on('click', '.scd-modal__actions button[data-action="close"]', function(e) {
+				$(document).on("click", ".wsscd-modal__actions button[data-action=\"close\"]", function(e) {
 					e.preventDefault();
-					var $modal = $(this).closest('.scd-modal');
-					SCD.Modal.hide($modal.attr('id'));
+					var $modal = $(this).closest(".wsscd-modal");
+					WSSCD.Modal.hide($modal.attr("id"));
 				});
 			});
-			</script>
 			<?php
+			$modal_script = ob_get_clean();
+
+			// Use wp_add_inline_script for WordPress.org compliance.
+			wp_add_inline_script( 'jquery-core', $modal_script );
 		}
 	}
 
@@ -485,7 +462,7 @@ class SCD_Modal_Component {
 			case 'error':
 				$defaults = array(
 					'icon'    => 'dismiss',
-					'classes' => array( 'scd-modal--error' ),
+					'classes' => array( 'wsscd-modal--error' ),
 					'buttons' => array(
 						array(
 							'text'   => __( 'OK', 'smart-cycle-discounts' ),
@@ -499,7 +476,7 @@ class SCD_Modal_Component {
 			case 'success':
 				$defaults = array(
 					'icon'    => 'yes-alt',
-					'classes' => array( 'scd-modal--success' ),
+					'classes' => array( 'wsscd-modal--success' ),
 					'buttons' => array(
 						array(
 							'text'   => __( 'OK', 'smart-cycle-discounts' ),

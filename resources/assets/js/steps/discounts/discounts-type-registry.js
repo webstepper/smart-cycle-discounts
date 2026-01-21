@@ -13,17 +13,17 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	SCD.Modules = SCD.Modules || {};
-	SCD.Modules.Discounts = SCD.Modules.Discounts || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Modules = WSSCD.Modules || {};
+	WSSCD.Modules.Discounts = WSSCD.Modules.Discounts || {};
 
 	/**
 	 * Discount Type Registry
 	 *
 	 * @param state
-	 * @class SCD.Modules.Discounts.TypeRegistry
+	 * @class WSSCD.Modules.Discounts.TypeRegistry
 	 */
-	SCD.Modules.Discounts.TypeRegistry = function( state ) {
+	WSSCD.Modules.Discounts.TypeRegistry = function( state ) {
 		this.state = state;
 		this.types = {};
 		this.instances = {};
@@ -32,7 +32,7 @@
 		this.loadingPromises = {};
 	};
 
-	SCD.Modules.Discounts.TypeRegistry.prototype = {
+	WSSCD.Modules.Discounts.TypeRegistry.prototype = {
 		/**
 		 * Initialize the registry
 		 */
@@ -108,31 +108,31 @@
 
 			} else {
 				// Original eager loading approach
-				this.registerType( 'percentage', SCD.Modules.Discounts.Types.PercentageDiscount, {
+				this.registerType( 'percentage', WSSCD.Modules.Discounts.Types.PercentageDiscount, {
 					label: 'Percentage Off',
 					icon: 'percent',
 					description: 'Reduce price by a percentage'
 				} );
 
-				this.registerType( 'fixed', SCD.Modules.Discounts.Types.FixedDiscount, {
+				this.registerType( 'fixed', WSSCD.Modules.Discounts.Types.FixedDiscount, {
 					label: 'Fixed Amount Off',
 					icon: 'tag',
 					description: 'Reduce price by a fixed amount'
 				} );
 
-				this.registerType( 'tiered', SCD.Modules.Discounts.Types.TieredDiscount, {
+				this.registerType( 'tiered', WSSCD.Modules.Discounts.Types.TieredDiscount, {
 					label: 'Tiered Discount',
 					icon: 'layers',
 					description: 'Different discounts based on quantity or order value'
 				} );
 
-				this.registerType( 'bogo', SCD.Modules.Discounts.Types.BogoDiscount, {
+				this.registerType( 'bogo', WSSCD.Modules.Discounts.Types.BogoDiscount, {
 					label: 'Buy One Get One',
 					icon: 'gift',
 					description: 'Buy X Get Y deals'
 				} );
 
-				this.registerType( 'spend_threshold', SCD.Modules.Discounts.Types.SpendThreshold, {
+				this.registerType( 'spend_threshold', WSSCD.Modules.Discounts.Types.SpendThreshold, {
 					label: 'Spend Threshold',
 					icon: 'money',
 					description: 'Discounts based on cart total'
@@ -167,7 +167,7 @@
 			var self = this;
 
 			// Listen for discount type changes using event system
-			$( document ).on( 'scd:discounts:type:changed.typeRegistry', function( event, data ) {
+			$( document ).on( 'wsscd:discounts:type:changed.typeRegistry', function( event, data ) {
 				if ( data.newType && data.newType !== self.activeType ) {
 					self.activateType( data.newType );
 				}
@@ -232,8 +232,8 @@
 
 				// Loading state handled by orchestrator
 
-				if ( window.SCD.Shared && window.SCD.Shared.NotificationService ) {
-					SCD.Shared.NotificationService.error( 'Failed to load discount type. Please try again.' );
+				if ( window.WSSCD.Shared && window.WSSCD.Shared.NotificationService ) {
+					WSSCD.Shared.NotificationService.error( 'Failed to load discount type. Please try again.' );
 				}
 			}
 		},
@@ -266,7 +266,7 @@
 				this.instances[typeId] = instance;
 
 				// Emit event when instance is created for handler registration
-				$( document ).trigger( 'scd:discount:type:instance:created', [ { typeId: typeId, instance: instance } ] );
+				$( document ).trigger( 'wsscd:discount:type:instance:created', [ { typeId: typeId, instance: instance } ] );
 
 				return instance;
 				} catch ( error ) {
@@ -302,7 +302,7 @@
 
 				script.onload = function() {
 					var className = self.getClassNameFromType( typeId );
-					var TypeClass = window.SCD.Modules.Discounts.Types[className];
+					var TypeClass = window.WSSCD.Modules.Discounts.Types[className];
 
 					if ( TypeClass ) {
 						typeConfig.class = TypeClass;
@@ -329,7 +329,7 @@
 		 * @param relativePath
 		 */
 		getModulePath: function( relativePath ) {
-			var baseUrl = ( window.scdAdminData && window.scdAdminData.assetsUrl ) || ( window.scdWizardData && window.scdWizardData.pluginUrl + 'assets/' );
+			var baseUrl = ( window.wsscdAdminData && window.wsscdAdminData.assetsUrl ) || ( window.wsscdWizardData && window.wsscdWizardData.pluginUrl + 'assets/' );
 			return baseUrl + 'js/admin/wizard/modules/discounts/' + relativePath;
 		},
 

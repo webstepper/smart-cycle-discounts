@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
+require_once WSSCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
 
 /**
  * Preview Coverage Handler Class
@@ -27,14 +27,14 @@ require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
-	use SCD_Wizard_Helpers;
+class WSSCD_Preview_Coverage_Handler extends WSSCD_Abstract_Ajax_Handler {
+	use WSSCD_Wizard_Helpers;
 
 	/**
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger    Logger instance (optional).
+	 * @param    WSSCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -47,7 +47,7 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_preview_coverage';
+		return 'wsscd_preview_coverage';
 	}
 
 	/**
@@ -206,40 +206,35 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 	}
 
 	/**
-	 * Get matched products for selection.
+	 * Get matched products based on selection type and category filter.
+	 *
+	 * Product Selection Model:
+	 * - selection_type: HOW to select (all_products, specific_products, random_products, smart_selection)
+	 * - category_ids: Optional FILTER for pool-based selections
 	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @param    string $selection_type   Selection type.
-	 * @param    array  $product_ids      Product IDs.
-	 * @param    array  $category_ids     Category IDs.
+	 * @param    array  $product_ids      Product IDs (for specific_products only).
+	 * @param    array  $category_ids     Category filter (for pool-based selections).
 	 * @return   array                       Array of product IDs.
 	 */
 	private function _get_matched_products( $selection_type, $product_ids, $category_ids ) {
-		if ( 'all_products' === $selection_type ) {
-			// If categories are specified, get all products from those categories
-			// Otherwise get all products in store
-			if ( ! empty( $category_ids ) && is_array( $category_ids ) && ! in_array( 'all', $category_ids, true ) ) {
-				return $this->_get_products_in_categories( $category_ids );
-			}
-			return $this->_get_all_product_ids();
-		} elseif ( 'specific_products' === $selection_type ) {
+		// Specific products - use explicit product IDs, ignore category filter.
+		if ( WSSCD_Campaign::SELECTION_TYPE_SPECIFIC_PRODUCTS === $selection_type ) {
 			return is_array( $product_ids ) ? array_map( 'intval', $product_ids ) : array();
-		} elseif ( 'random_products' === $selection_type ) {
-			// For random products, get all products from selected categories
-			if ( ! empty( $category_ids ) && is_array( $category_ids ) ) {
-				return $this->_get_products_in_categories( $category_ids );
-			}
-			return $this->_get_all_product_ids();
-		} elseif ( 'smart_selection' === $selection_type ) {
-			// For smart selection, use categories as base if specified
+		}
+
+		// Pool-based selections - apply category filter if set.
+		if ( WSSCD_Campaign::is_pool_based_selection( $selection_type ) ) {
 			if ( ! empty( $category_ids ) && is_array( $category_ids ) ) {
 				return $this->_get_products_in_categories( $category_ids );
 			}
 			return $this->_get_all_product_ids();
 		}
 
-		return array();
+		// Unknown type - default to all products.
+		return $this->_get_all_product_ids();
 	}
 
 	/**
@@ -269,6 +264,7 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 			'posts_per_page' => -1,
 			'post_status'    => 'publish',
 			'fields'         => 'ids',
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Required for category-based product filtering; results are cached.
 			'tax_query'      => array(
 				array(
 					'taxonomy'         => 'product_cat',
@@ -329,10 +325,8 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 		foreach ( $active_campaigns as $campaign ) {
 			$campaign_priority = $campaign->get_priority();
 
-			// Check campaigns with higher OR equal priority (both block new campaign's products)
-			// Higher value = higher priority (5 beats 3)
-			// Equal priority = older campaign wins (but we're creating new, so it will be blocked)
-			if ( $priority > $campaign_priority ) {
+			// Use shared method for consistent priority logic across handlers
+			if ( ! $this->_would_block_new_campaign( $campaign_priority, $priority ) ) {
 				continue;
 			}
 
@@ -358,6 +352,6 @@ class SCD_Preview_Coverage_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   bool            True if valid category ID.
 	 */
 	private function filter_valid_category_id( $id ) {
-		return 'all' !== $id && ! empty( $id );
+		return is_numeric( $id ) && intval( $id ) > 0;
 	}
 }

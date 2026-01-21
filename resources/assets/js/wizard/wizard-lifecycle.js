@@ -13,15 +13,15 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	window.SCD.Wizard = window.SCD.Wizard || {};
+	window.WSSCD = window.WSSCD || {};
+	window.WSSCD.Wizard = window.WSSCD.Wizard || {};
 
 	/**
 	 * Lifecycle Manager
 	 *
 	 * Handles wizard initialization, cleanup, and lifecycle events
 	 */
-	SCD.Wizard.Lifecycle = {
+	WSSCD.Wizard.Lifecycle = {
 		// Lifecycle phases
 		phases: {
 			UNINITIALIZED: 'uninitialized',
@@ -445,8 +445,8 @@
 			this.currentPhase = phase;
 
 			// Emit phase change event
-			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.EventBus ) {
-				window.SCD.Wizard.EventBus.emit( 'wizard:phaseChange', {
+			if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.EventBus ) {
+				window.WSSCD.Wizard.EventBus.emit( 'wizard:phaseChange', {
 					oldPhase: oldPhase,
 					newPhase: phase
 				} );
@@ -488,8 +488,8 @@
 			this.executeHooks( 'onError', { error: error, context: context } );
 
 			// Emit error event
-			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.EventBus ) {
-				window.SCD.Wizard.EventBus.emit( 'wizard:lifecycleError', {
+			if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.EventBus ) {
+				window.WSSCD.Wizard.EventBus.emit( 'wizard:lifecycleError', {
 					error: error,
 					context: context,
 					phase: this.currentPhase
@@ -548,9 +548,9 @@
 		}
 	};
 
-	// Expose to SCD namespace
-	window.SCD = window.SCD || {};
-	window.SCD.Wizard = window.SCD.Wizard || {};
-	window.SCD.Wizard.LifecycleManager = SCD.Wizard.Lifecycle;
+	// Expose to WSSCD namespace
+	window.WSSCD = window.WSSCD || {};
+	window.WSSCD.Wizard = window.WSSCD.Wizard || {};
+	window.WSSCD.Wizard.LifecycleManager = WSSCD.Wizard.Lifecycle;
 
 } )( jQuery );

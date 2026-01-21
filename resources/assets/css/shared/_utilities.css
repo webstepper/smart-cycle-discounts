@@ -14,16 +14,16 @@
    Focus States - Consistent WordPress Admin Focus
    ========================================================================== */
 
-/* Use with scd- prefixed elements to avoid WordPress conflicts */
-.scd-focus,
-.scd-focus-visible:focus-visible {
+/* Use with wsscd- prefixed elements to avoid WordPress conflicts */
+.wsscd-focus,
+.wsscd-focus-visible:focus-visible {
     outline: 2px solid transparent;
     outline-offset: 0;
-    box-shadow: var(--scd-shadow-focus);
+    box-shadow: var(--wsscd-shadow-focus);
 }
 
 /* Remove focus for mouse users, keep for keyboard */
-.scd-focus-visible:focus:not(:focus-visible) {
+.wsscd-focus-visible:focus:not(:focus-visible) {
     box-shadow: none;
 }
 
@@ -31,22 +31,22 @@
    Transitions - Smooth State Changes
    ========================================================================== */
 
-.scd-transition {
-    transition: all var(--scd-transition-base) var(--scd-ease-in-out);
+.wsscd-transition {
+    transition: all var(--wsscd-transition-base) var(--wsscd-ease-in-out);
 }
 
-.scd-transition-fast {
-    transition: all var(--scd-transition-fast) var(--scd-ease-in-out);
+.wsscd-transition-fast {
+    transition: all var(--wsscd-transition-fast) var(--wsscd-ease-in-out);
 }
 
-.scd-transition-slow {
-    transition: all var(--scd-transition-slow) var(--scd-ease-in-out);
+.wsscd-transition-slow {
+    transition: all var(--wsscd-transition-slow) var(--wsscd-ease-in-out);
 }
 
-.scd-transition-colors {
-    transition: color var(--scd-transition-fast) var(--scd-ease-in-out),
-                background-color var(--scd-transition-fast) var(--scd-ease-in-out),
-                border-color var(--scd-transition-fast) var(--scd-ease-in-out);
+.wsscd-transition-colors {
+    transition: color var(--wsscd-transition-fast) var(--wsscd-ease-in-out),
+                background-color var(--wsscd-transition-fast) var(--wsscd-ease-in-out),
+                border-color var(--wsscd-transition-fast) var(--wsscd-ease-in-out);
 }
 
 /* ==========================================================================
@@ -54,62 +54,62 @@
    ========================================================================== */
 
 /* Note: Don't combine hover transform utilities on the same element */
-.scd-hover-lift:hover {
-    box-shadow: var(--scd-hover-lift-shadow);
-    transform: var(--scd-hover-lift-transform);
+.wsscd-hover-lift:hover {
+    box-shadow: var(--wsscd-hover-lift-shadow);
+    transform: var(--wsscd-hover-lift-transform);
 }
 
-.scd-hover-scale:hover {
-    transform: var(--scd-hover-scale-transform);
+.wsscd-hover-scale:hover {
+    transform: var(--wsscd-hover-scale-transform);
 }
 
 /* ==========================================================================
    Card Base - Consistent Card Styling
    ========================================================================== */
 
-.scd-card-base {
-    background: var(--scd-color-background);
-    border: var(--scd-border-width) solid var(--scd-color-border);
-    border-radius: var(--scd-radius-lg);
-    padding: var(--scd-spacing-lg);
-    box-shadow: var(--scd-shadow-sm);
+.wsscd-card-base {
+    background: var(--wsscd-color-background);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border);
+    border-radius: var(--wsscd-radius-lg);
+    padding: var(--wsscd-spacing-lg);
+    box-shadow: var(--wsscd-shadow-sm);
 }
 
 /* Apply transition utilities separately for flexibility */
-.scd-card-base:hover {
-    border-color: var(--scd-color-border-dark);
-    box-shadow: var(--scd-card-hover-shadow);
+.wsscd-card-base:hover {
+    border-color: var(--wsscd-color-border-dark);
+    box-shadow: var(--wsscd-card-hover-shadow);
 }
 
 /* ==========================================================================
    Form Elements - Consistent Input Styling
    ========================================================================== */
 
-.scd-input-base {
+.wsscd-input-base {
     width: 100%;
-    height: var(--scd-input-height);
-    padding: 0 var(--scd-spacing-sm);
-    background: var(--scd-color-background);
-    border: var(--scd-border-width) solid var(--scd-color-border);
-    border-radius: var(--scd-radius-md);
-    font-size: var(--scd-font-size-base);
+    height: var(--wsscd-input-height);
+    padding: 0 var(--wsscd-spacing-sm);
+    background: var(--wsscd-color-background);
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border);
+    border-radius: var(--wsscd-radius-md);
+    font-size: var(--wsscd-font-size-base);
     line-height: normal;
-    color: var(--scd-color-text);
+    color: var(--wsscd-color-text);
 }
 
-.scd-input-base:hover:not(:disabled) {
-    border-color: var(--scd-color-border-dark);
+.wsscd-input-base:hover:not(:disabled) {
+    border-color: var(--wsscd-color-border-dark);
 }
 
-/* Focus inherits from .scd-focus if both classes are used */
-.scd-input-base:focus {
-    border-color: var(--scd-color-primary);
+/* Focus inherits from .wsscd-focus if both classes are used */
+.wsscd-input-base:focus {
+    border-color: var(--wsscd-color-primary);
     outline: 2px solid transparent;
 }
 
-.scd-input-base:disabled {
-    background: var(--scd-color-surface);
-    color: var(--scd-color-text-disabled);
+.wsscd-input-base:disabled {
+    background: var(--wsscd-color-surface);
+    color: var(--wsscd-color-text-disabled);
     cursor: not-allowed;
 }
 
@@ -117,37 +117,53 @@
    Status Messages - Consistent Alerts
    ========================================================================== */
 
-.scd-status-base {
-    padding: var(--scd-spacing-md);
-    border: var(--scd-border-width) solid;
-    border-left-width: var(--scd-border-width-accent);
-    border-radius: var(--scd-radius-md);
-    font-size: var(--scd-font-size-base);
-    line-height: var(--scd-line-height-base);
+.wsscd-status-base {
+    padding: var(--wsscd-spacing-md);
+    border: var(--wsscd-border-width) solid;
+    border-left-width: var(--wsscd-border-width-accent);
+    border-radius: var(--wsscd-radius-md);
+    font-size: var(--wsscd-font-size-base);
+    line-height: var(--wsscd-line-height-base);
 }
 
-.scd-status-success {
-    background: var(--scd-color-success-bg);
-    border-color: var(--scd-color-success);
-    color: var(--scd-color-text);
+.wsscd-status-success {
+    background: var(--wsscd-color-success-bg);
+    border-color: var(--wsscd-color-success);
+    color: var(--wsscd-color-text);
 }
 
-.scd-status-error {
-    background: var(--scd-color-error-bg);
-    border-color: var(--scd-color-danger);
-    color: var(--scd-color-text);
+.wsscd-status-error {
+    background: var(--wsscd-color-error-bg);
+    border-color: var(--wsscd-color-danger);
+    color: var(--wsscd-color-text);
 }
 
-.scd-status-warning {
-    background: var(--scd-color-warning-bg);
-    border-color: var(--scd-color-warning);
-    color: var(--scd-color-text);
+.wsscd-status-warning {
+    background: var(--wsscd-color-warning-bg);
+    border-color: var(--wsscd-color-warning);
+    color: var(--wsscd-color-text);
 }
 
-.scd-status-info {
-    background: var(--scd-color-primary-bg);
-    border-color: var(--scd-color-primary);
-    color: var(--scd-color-text);
+.wsscd-status-info {
+    background: var(--wsscd-color-primary-bg);
+    border-color: var(--wsscd-color-primary);
+    color: var(--wsscd-color-text);
+}
+
+/* ==========================================================================
+   Loading State Utilities
+   ========================================================================== */
+
+/**
+ * Base loading state - disables interaction and reduces opacity.
+ * Apply to any container to indicate loading state.
+ * Context-specific overrides can adjust styling as needed.
+ */
+.wsscd-loading {
+	position: relative;
+	pointer-events: none;
+	opacity: 0.6;
+	transition: opacity var(--wsscd-transition-base) var(--wsscd-ease-out);
 }
 
 /* ==========================================================================
@@ -155,45 +171,45 @@
    ========================================================================== */
 
 /* Margin */
-.scd-m-0 { margin: 0; }
-.scd-mt-0 { margin-top: 0; }
-.scd-mb-0 { margin-bottom: 0; }
-.scd-mt-xs { margin-top: var(--scd-spacing-xs); }
-.scd-mt-sm { margin-top: var(--scd-spacing-sm); }
-.scd-mt-md { margin-top: var(--scd-spacing-md); }
-.scd-mt-lg { margin-top: var(--scd-spacing-lg); }
-.scd-mb-xs { margin-bottom: var(--scd-spacing-xs); }
-.scd-mb-sm { margin-bottom: var(--scd-spacing-sm); }
-.scd-mb-md { margin-bottom: var(--scd-spacing-md); }
-.scd-mb-lg { margin-bottom: var(--scd-spacing-lg); }
+.wsscd-m-0 { margin: 0; }
+.wsscd-mt-0 { margin-top: 0; }
+.wsscd-mb-0 { margin-bottom: 0; }
+.wsscd-mt-xs { margin-top: var(--wsscd-spacing-xs); }
+.wsscd-mt-sm { margin-top: var(--wsscd-spacing-sm); }
+.wsscd-mt-md { margin-top: var(--wsscd-spacing-md); }
+.wsscd-mt-lg { margin-top: var(--wsscd-spacing-lg); }
+.wsscd-mb-xs { margin-bottom: var(--wsscd-spacing-xs); }
+.wsscd-mb-sm { margin-bottom: var(--wsscd-spacing-sm); }
+.wsscd-mb-md { margin-bottom: var(--wsscd-spacing-md); }
+.wsscd-mb-lg { margin-bottom: var(--wsscd-spacing-lg); }
 
 /* Padding */
-.scd-p-0 { padding: 0; }
-.scd-p-xs { padding: var(--scd-spacing-xs); }
-.scd-p-sm { padding: var(--scd-spacing-sm); }
-.scd-p-md { padding: var(--scd-spacing-md); }
-.scd-p-lg { padding: var(--scd-spacing-lg); }
+.wsscd-p-0 { padding: 0; }
+.wsscd-p-xs { padding: var(--wsscd-spacing-xs); }
+.wsscd-p-sm { padding: var(--wsscd-spacing-sm); }
+.wsscd-p-md { padding: var(--wsscd-spacing-md); }
+.wsscd-p-lg { padding: var(--wsscd-spacing-lg); }
 
 /* ==========================================================================
    Display Utilities
    ========================================================================== */
 
-.scd-hidden { display: none !important; }
-.scd-block { display: block; }
-.scd-inline-block { display: inline-block; }
-.scd-flex { display: flex; }
-.scd-inline-flex { display: inline-flex; }
+.wsscd-hidden { display: none !important; }
+.wsscd-block { display: block; }
+.wsscd-inline-block { display: inline-block; }
+.wsscd-flex { display: flex; }
+.wsscd-inline-flex { display: inline-flex; }
 
 /* Disabled state - use for non-form elements or visual overlay */
 /* For form elements, prefer native :disabled pseudo-selector */
-.scd-disabled {
+.wsscd-disabled {
     pointer-events: none;
     position: relative;
     opacity: 0.5;
-    transition: var(--scd-disabled-transition);
+    transition: var(--wsscd-disabled-transition);
 }
 
-.scd-disabled::after {
+.wsscd-disabled::after {
     content: '';
     position: absolute;
     top: 0;
@@ -204,80 +220,80 @@
         45deg,
         transparent,
         transparent 10px,
-        var(--scd-overlay-faint) 10px,
-        var(--scd-overlay-faint) 20px
+        var(--wsscd-overlay-faint) 10px,
+        var(--wsscd-overlay-faint) 20px
     );
     border-radius: inherit;
-    z-index: var(--scd-z-dropdown);
+    z-index: var(--wsscd-z-dropdown);
 }
 
-/* Removed scd-disabled-notice - not used anywhere */
+/* Removed wsscd-disabled-notice - not used anywhere */
 
 /* Flex utilities */
-.scd-flex-center {
+.wsscd-flex-center {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.scd-flex-between {
+.wsscd-flex-between {
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
-.scd-flex-column {
+.wsscd-flex-column {
     display: flex;
     flex-direction: column;
 }
 
-.scd-gap-xs { gap: var(--scd-spacing-xs); }
-.scd-gap-sm { gap: var(--scd-spacing-sm); }
-.scd-gap-md { gap: var(--scd-spacing-md); }
-.scd-gap-lg { gap: var(--scd-spacing-lg); }
+.wsscd-gap-xs { gap: var(--wsscd-spacing-xs); }
+.wsscd-gap-sm { gap: var(--wsscd-spacing-sm); }
+.wsscd-gap-md { gap: var(--wsscd-spacing-md); }
+.wsscd-gap-lg { gap: var(--wsscd-spacing-lg); }
 
 /* ==========================================================================
    Text Utilities
    ========================================================================== */
 
-.scd-text-center { text-align: center; }
-.scd-text-left { text-align: left; }
-.scd-text-right { text-align: right; }
+.wsscd-text-center { text-align: center; }
+.wsscd-text-left { text-align: left; }
+.wsscd-text-right { text-align: right; }
 
-.scd-text-small { font-size: var(--scd-font-size-small); }
-.scd-text-base { font-size: var(--scd-font-size-base); }
-.scd-text-large { font-size: var(--scd-font-size-large); }
+.wsscd-text-small { font-size: var(--wsscd-font-size-small); }
+.wsscd-text-base { font-size: var(--wsscd-font-size-base); }
+.wsscd-text-large { font-size: var(--wsscd-font-size-large); }
 
-.scd-text-muted { color: var(--scd-color-text-muted); }
-.scd-text-primary { color: var(--scd-color-primary); }
-.scd-text-success { color: var(--scd-color-success); }
-.scd-text-error { color: var(--scd-color-danger); }
-.scd-text-warning { color: var(--scd-color-warning); }
+.wsscd-text-muted { color: var(--wsscd-color-text-muted); }
+.wsscd-text-primary { color: var(--wsscd-color-primary); }
+.wsscd-text-success { color: var(--wsscd-color-success); }
+.wsscd-text-error { color: var(--wsscd-color-danger); }
+.wsscd-text-warning { color: var(--wsscd-color-warning); }
 
-.scd-font-medium { font-weight: var(--scd-font-weight-medium); }
-.scd-font-semibold { font-weight: var(--scd-font-weight-semibold); }
-.scd-font-bold { font-weight: var(--scd-font-weight-bold); }
+.wsscd-font-medium { font-weight: var(--wsscd-font-weight-medium); }
+.wsscd-font-semibold { font-weight: var(--wsscd-font-weight-semibold); }
+.wsscd-font-bold { font-weight: var(--wsscd-font-weight-bold); }
 
 /* ==========================================================================
    Border Utilities
    ========================================================================== */
 
-.scd-border { border: var(--scd-border-width) solid var(--scd-color-border); }
-.scd-border-top { border-top: var(--scd-border-width) solid var(--scd-color-border); }
-.scd-border-bottom { border-bottom: var(--scd-border-width) solid var(--scd-color-border); }
-.scd-border-none { border: none; }
+.wsscd-border { border: var(--wsscd-border-width) solid var(--wsscd-color-border); }
+.wsscd-border-top { border-top: var(--wsscd-border-width) solid var(--wsscd-color-border); }
+.wsscd-border-bottom { border-bottom: var(--wsscd-border-width) solid var(--wsscd-color-border); }
+.wsscd-border-none { border: none; }
 
-.scd-rounded-sm { border-radius: var(--scd-radius-sm); }
-.scd-rounded { border-radius: var(--scd-radius-md); }
-.scd-rounded-lg { border-radius: var(--scd-radius-lg); }
-.scd-rounded-full { border-radius: var(--scd-radius-full); }
+.wsscd-rounded-sm { border-radius: var(--wsscd-radius-sm); }
+.wsscd-rounded { border-radius: var(--wsscd-radius-md); }
+.wsscd-rounded-lg { border-radius: var(--wsscd-radius-lg); }
+.wsscd-rounded-full { border-radius: var(--wsscd-radius-full); }
 
 /* ==========================================================================
    Accessibility Utilities
    ========================================================================== */
 
 /* Screen reader only - standard accessible hiding pattern */
-.scd-sr-only {
+.wsscd-sr-only {
 	position: absolute;
 	width: 1px;
 	height: 1px;
@@ -290,8 +306,8 @@
 }
 
 /* Focus within */
-.scd-focus-within:focus-within {
-	box-shadow: var(--scd-focus-within-shadow);
+.wsscd-focus-within:focus-within {
+	box-shadow: var(--wsscd-focus-within-shadow);
 }
 
 /* ==========================================================================
@@ -299,14 +315,14 @@
    ========================================================================== */
 
 /* List reset - removes default list styling */
-.scd-list-reset {
+.wsscd-list-reset {
 	list-style: none;
 	margin: 0;
 	padding: 0;
 }
 
 /* Hidden input - for custom radio/checkbox designs */
-.scd-input-hidden {
+.wsscd-input-hidden {
 	position: absolute;
 	opacity: 0;
 	width: 0;
@@ -314,21 +330,21 @@
 }
 
 /* Position utilities */
-.scd-relative {
+.wsscd-relative {
 	position: relative;
 }
 
-.scd-absolute {
+.wsscd-absolute {
 	position: absolute;
 }
 
 /* Width utilities */
-.scd-full-width {
+.wsscd-full-width {
 	width: 100%;
 }
 
 /* Shadow utilities */
-.scd-shadow-none {
+.wsscd-shadow-none {
 	box-shadow: none !important;
 }
 
@@ -337,19 +353,19 @@
    ========================================================================== */
 
 /* Spin animation - for loading spinners */
-@keyframes scd-spin {
+@keyframes wsscd-spin {
 	from { transform: rotate(0deg); }
 	to { transform: rotate(360deg); }
 }
 
 /* Fade in animation */
-@keyframes scd-fade-in {
+@keyframes wsscd-fade-in {
 	from { opacity: 0; }
 	to { opacity: 1; }
 }
 
 /* Slide up animation - enter from bottom */
-@keyframes scd-slide-up {
+@keyframes wsscd-slide-up {
 	from {
 		opacity: 0;
 		transform: translateY(10px);
@@ -361,7 +377,7 @@
 }
 
 /* Slide down animation - enter from top */
-@keyframes scd-slide-down {
+@keyframes wsscd-slide-down {
 	from {
 		opacity: 0;
 		transform: translateY(-10px);
@@ -373,7 +389,7 @@
 }
 
 /* Slide out up animation - exit moving up */
-@keyframes scd-slide-out-up {
+@keyframes wsscd-slide-out-up {
 	from {
 		opacity: 1;
 		transform: translateY(0);
@@ -385,7 +401,7 @@
 }
 
 /* Slide in from left animation */
-@keyframes scd-slide-in-left {
+@keyframes wsscd-slide-in-left {
 	from {
 		opacity: 0;
 		transform: translateX(-20px);
@@ -397,7 +413,7 @@
 }
 
 /* Modal slide in animation */
-@keyframes scd-modal-slide-in {
+@keyframes wsscd-modal-slide-in {
 	from {
 		opacity: 0;
 		transform: translateY(-20px) scale(0.95);
@@ -409,9 +425,9 @@
 }
 
 /* Error pulse animation - for error states */
-@keyframes scd-error-pulse {
+@keyframes wsscd-error-pulse {
 	0%, 100% {
-		box-shadow: 0 0 0 0 var(--scd-color-danger-alpha-30);
+		box-shadow: 0 0 0 0 var(--wsscd-color-danger-alpha-30);
 	}
 	50% {
 		box-shadow: 0 0 0 8px transparent;
@@ -419,9 +435,9 @@
 }
 
 /* Highlight fade animation - for temporary highlights */
-@keyframes scd-highlight-fade {
+@keyframes wsscd-highlight-fade {
 	0% {
-		background-color: var(--scd-color-blue-alpha-15);
+		background-color: var(--wsscd-color-blue-alpha-15);
 	}
 	100% {
 		background-color: transparent;
@@ -429,7 +445,7 @@
 }
 
 /* Checkmark pop animation - success states */
-@keyframes scd-checkmark-pop {
+@keyframes wsscd-checkmark-pop {
 	0% {
 		transform: scale(0);
 		opacity: 0;
@@ -444,7 +460,7 @@
 }
 
 /* Error shake animation - error states */
-@keyframes scd-error-shake {
+@keyframes wsscd-error-shake {
 	0%, 100% {
 		transform: translateX(0);
 	}
@@ -457,7 +473,7 @@
 }
 
 /* Shake animation - for field validation errors (simpler version) */
-@keyframes scd-shake {
+@keyframes wsscd-shake {
 	0%, 100% {
 		transform: translateX(0);
 	}
@@ -470,7 +486,7 @@
 }
 
 /* Success burst animation - completion states */
-@keyframes scd-success-burst {
+@keyframes wsscd-success-burst {
 	0% {
 		transform: scale(0.8);
 		opacity: 0;
@@ -486,9 +502,9 @@
 }
 
 /* Highlight pulse animation - PRO features */
-@keyframes scd-highlight-pulse {
+@keyframes wsscd-highlight-pulse {
 	0%, 100% {
-		box-shadow: 0 0 0 0 var(--scd-color-primary-alpha-30);
+		box-shadow: 0 0 0 0 var(--wsscd-color-primary-alpha-30);
 	}
 	50% {
 		box-shadow: 0 0 0 6px transparent;
@@ -496,16 +512,16 @@
 }
 
 /* Animation utility classes */
-.scd-animate-fade-in {
-	animation: var(--scd-animation-fade-in);
+.wsscd-animate-fade-in {
+	animation: var(--wsscd-animation-fade-in);
 }
 
-.scd-animate-slide-up {
-	animation: var(--scd-animation-slide-up);
+.wsscd-animate-slide-up {
+	animation: var(--wsscd-animation-slide-up);
 }
 
-.scd-animate-slide-down {
-	animation: var(--scd-animation-slide-down);
+.wsscd-animate-slide-down {
+	animation: var(--wsscd-animation-slide-down);
 }
 
 /* ==========================================================================
@@ -518,35 +534,35 @@
    Background Color Utilities
    ========================================================================== */
 
-.scd-bg-white { background-color: var(--scd-color-white); }
-.scd-bg-background { background-color: var(--scd-color-background); }
-.scd-bg-surface { background-color: var(--scd-color-surface); }
-.scd-bg-surface-light { background-color: var(--scd-color-surface-light); }
-.scd-bg-primary { background-color: var(--scd-color-primary); }
-.scd-bg-primary-light { background-color: var(--scd-color-primary-bg); }
-.scd-bg-success { background-color: var(--scd-color-success-bg); }
-.scd-bg-warning { background-color: var(--scd-color-warning-bg); }
-.scd-bg-danger { background-color: var(--scd-color-error-bg); }
-.scd-bg-info { background-color: var(--scd-color-info-bg); }
+.wsscd-bg-white { background-color: var(--wsscd-color-white); }
+.wsscd-bg-background { background-color: var(--wsscd-color-background); }
+.wsscd-bg-surface { background-color: var(--wsscd-color-surface); }
+.wsscd-bg-surface-light { background-color: var(--wsscd-color-surface-light); }
+.wsscd-bg-primary { background-color: var(--wsscd-color-primary); }
+.wsscd-bg-primary-light { background-color: var(--wsscd-color-primary-bg); }
+.wsscd-bg-success { background-color: var(--wsscd-color-success-bg); }
+.wsscd-bg-warning { background-color: var(--wsscd-color-warning-bg); }
+.wsscd-bg-danger { background-color: var(--wsscd-color-error-bg); }
+.wsscd-bg-info { background-color: var(--wsscd-color-info-bg); }
 
 /* ==========================================================================
    Border Color Utilities  
    ========================================================================== */
 
-.scd-border-light { border-color: var(--scd-color-border-light); }
-.scd-border-dark { border-color: var(--scd-color-border-dark); }
-.scd-border-primary { border-color: var(--scd-color-primary); }
-.scd-border-success { border-color: var(--scd-color-success); }
-.scd-border-warning { border-color: var(--scd-color-warning); }
-.scd-border-danger { border-color: var(--scd-color-danger); }
+.wsscd-border-light { border-color: var(--wsscd-color-border-light); }
+.wsscd-border-dark { border-color: var(--wsscd-color-border-dark); }
+.wsscd-border-primary { border-color: var(--wsscd-color-primary); }
+.wsscd-border-success { border-color: var(--wsscd-color-success); }
+.wsscd-border-warning { border-color: var(--wsscd-color-warning); }
+.wsscd-border-danger { border-color: var(--wsscd-color-danger); }
 
-.scd-border-left-primary { border-left: var(--scd-border-width) solid var(--scd-color-primary); }
-.scd-border-left-success { border-left: var(--scd-border-width) solid var(--scd-color-success); }
-.scd-border-left-warning { border-left: var(--scd-border-width) solid var(--scd-color-warning); }
-.scd-border-left-danger { border-left: var(--scd-border-width) solid var(--scd-color-danger); }
-.scd-border-left-info { border-left: var(--scd-border-width) solid var(--scd-color-info); }
+.wsscd-border-left-primary { border-left: var(--wsscd-border-width) solid var(--wsscd-color-primary); }
+.wsscd-border-left-success { border-left: var(--wsscd-border-width) solid var(--wsscd-color-success); }
+.wsscd-border-left-warning { border-left: var(--wsscd-border-width) solid var(--wsscd-color-warning); }
+.wsscd-border-left-danger { border-left: var(--wsscd-border-width) solid var(--wsscd-color-danger); }
+.wsscd-border-left-info { border-left: var(--wsscd-border-width) solid var(--wsscd-color-info); }
 
-.scd-border-left-4 { border-left-width: var(--scd-border-width-accent); }
+.wsscd-border-left-4 { border-left-width: var(--wsscd-border-width-accent); }
 
 /* Alert components implemented in admin.css via notification system */
 
@@ -555,12 +571,12 @@
 /* Badge components moved to _badges.css */
 
 /* Data display components - keep only stat utilities */
-.scd-stat-change-positive {
-    color: var(--scd-color-success);
+.wsscd-stat-change-positive {
+    color: var(--wsscd-color-success);
 }
 
-.scd-stat-change-negative {
-    color: var(--scd-color-danger);
+.wsscd-stat-change-negative {
+    color: var(--wsscd-color-danger);
 }
 
 /* Layout components - removed, use semantic HTML instead */
@@ -569,15 +585,15 @@
    Form Enhancement Utilities
    ========================================================================== */
 
-.scd-form-group {
-    margin-bottom: var(--scd-spacing-lg);
+.wsscd-form-group {
+    margin-bottom: var(--wsscd-spacing-lg);
 }
 
-.scd-form-label {
+.wsscd-form-label {
     display: block;
-    color: var(--scd-color-text);
-    font-weight: var(--scd-font-weight-semibold);
-    margin-bottom: var(--scd-spacing-xs);
+    color: var(--wsscd-color-text);
+    font-weight: var(--wsscd-font-weight-semibold);
+    margin-bottom: var(--wsscd-spacing-xs);
 }
 
 /* Toggle switch styles moved to shared/_forms.css to avoid duplication */
@@ -593,7 +609,7 @@
    ========================================================================== */
 
 /* Base icon container - centers content */
-.scd-icon-container {
+.wsscd-icon-container {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -601,37 +617,37 @@
 }
 
 /* Circular variant */
-.scd-icon-container--circular {
-    border-radius: var(--scd-radius-full);
+.wsscd-icon-container--circular {
+    border-radius: var(--wsscd-radius-full);
 }
 
 /* Size variants */
-.scd-icon-container--xs {
+.wsscd-icon-container--xs {
     width: 16px;
     height: 16px;
 }
 
-.scd-icon-container--sm {
+.wsscd-icon-container--sm {
     width: 20px;
     height: 20px;
 }
 
-.scd-icon-container--md {
+.wsscd-icon-container--md {
     width: 24px;
     height: 24px;
 }
 
-.scd-icon-container--lg {
+.wsscd-icon-container--lg {
     width: 32px;
     height: 32px;
 }
 
-.scd-icon-container--xl {
+.wsscd-icon-container--xl {
     width: 40px;
     height: 40px;
 }
 
-.scd-icon-container--xxl {
+.wsscd-icon-container--xxl {
     width: 48px;
     height: 48px;
 }
@@ -641,48 +657,49 @@
    ========================================================================== */
 
 /* Base SVG Icon Styles - Prevent Flash/Jump on Load */
-.scd-icon {
-    display: inline-block;
-    vertical-align: middle;
+/* Critical: !important prevents flash during page load before styles apply */
+.wsscd-icon {
+    display: inline-block !important;
+    vertical-align: middle !important;
     /* Size set by Icon_Helper inline styles (default 20px) - don't override */
-    flex-shrink: 0;
+    flex-shrink: 0 !important;
     fill: currentColor;
     /* Smooth rotation for collapse/expand animations */
-    transition: transform var(--scd-transition-base) var(--scd-ease-in-out);
+    transition: transform var(--wsscd-transition-base) var(--wsscd-ease-in-out);
     /* Fix alignment in flexbox containers */
     align-self: center;
 }
 
 /* Prevent icon size changes during load */
-button .scd-icon,
-a .scd-icon,
-.scd-button .scd-icon {
+button .wsscd-icon,
+a .wsscd-icon,
+.wsscd-button .wsscd-icon {
     margin: 0;
     padding: 0;
 }
 
 /* Small SVG icons (16px) - use Icon_Helper with size=>16 instead */
-.scd-icon-sm,
-.scd-icon--sm .scd-icon {
-    width: var(--scd-icon-small);
-    height: var(--scd-icon-small);
+.wsscd-icon-sm,
+.wsscd-icon--sm .wsscd-icon {
+    width: var(--wsscd-icon-small);
+    height: var(--wsscd-icon-small);
 }
 
 /* Medium SVG icons (20px) - default size */
-.scd-icon-md,
-.scd-icon--md .scd-icon {
-    width: var(--scd-icon-medium);
-    height: var(--scd-icon-medium);
+.wsscd-icon-md,
+.wsscd-icon--md .wsscd-icon {
+    width: var(--wsscd-icon-medium);
+    height: var(--wsscd-icon-medium);
 }
 
 /* Large SVG icons (24px) */
-.scd-icon-lg,
-.scd-icon--lg .scd-icon {
-    width: var(--scd-icon-large);
-    height: var(--scd-icon-large);
+.wsscd-icon-lg,
+.wsscd-icon--lg .wsscd-icon {
+    width: var(--wsscd-icon-large);
+    height: var(--wsscd-icon-large);
 }
 
-/* Spinner Animation - uses @keyframes scd-spin defined in Animation Utilities section */
-.scd-icon-spin {
-    animation: scd-spin 1s linear infinite;
+/* Spinner Animation - uses @keyframes wsscd-spin defined in Animation Utilities section */
+.wsscd-icon-spin {
+    animation: wsscd-spin 1s linear infinite;
 }

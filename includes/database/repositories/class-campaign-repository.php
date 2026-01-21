@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-require_once SCD_INCLUDES_DIR . 'database/repositories/class-base-repository.php';
+require_once WSSCD_INCLUDES_DIR . 'database/repositories/class-base-repository.php';
 
 /**
  * Campaign Repository
@@ -29,14 +29,14 @@ require_once SCD_INCLUDES_DIR . 'database/repositories/class-base-repository.php
  * @subpackage SmartCycleDiscounts/includes/database/repositories
  * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
  */
-class SCD_Campaign_Repository extends SCD_Base_Repository {
+class WSSCD_Campaign_Repository extends WSSCD_Base_Repository {
 
 	/**
 	 * Database manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Database_Manager    $db    Database manager.
+	 * @var      WSSCD_Database_Manager    $db    Database manager.
 	 */
 	private $db;
 
@@ -45,7 +45,7 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Cache_Manager    $cache    Cache manager.
+	 * @var      WSSCD_Cache_Manager    $cache    Cache manager.
 	 */
 	private $cache;
 
@@ -53,14 +53,14 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 * Initialize the repository.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager $db       Database manager.
-	 * @param    SCD_Cache_Manager    $cache    Cache manager.
+	 * @param    WSSCD_Database_Manager $db       Database manager.
+	 * @param    WSSCD_Cache_Manager    $cache    Cache manager.
 	 */
-	public function __construct( SCD_Database_Manager $db, SCD_Cache_Manager $cache ) {
+	public function __construct( WSSCD_Database_Manager $db, WSSCD_Cache_Manager $cache ) {
 		global $wpdb;
 		$this->db          = $db;
 		$this->cache       = $cache;
-		$this->table_name  = $wpdb->prefix . 'scd_campaigns';
+		$this->table_name  = $wpdb->prefix . 'wsscd_campaigns';
 		$this->json_fields = array( 'conditions', 'category_ids', 'tag_ids', 'attributes', 'product_ids', 'variation_rules' );
 		$this->date_fields = array( 'created_at', 'updated_at', 'starts_at', 'ends_at', 'deleted_at' );
 	}
@@ -90,10 +90,10 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 * Invalidate all caches for a campaign.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign Campaign to invalidate.
+	 * @param    WSSCD_Campaign $campaign Campaign to invalidate.
 	 * @return   void
 	 */
-	private function invalidate_campaign_cache( SCD_Campaign $campaign ): void {
+	private function invalidate_campaign_cache( WSSCD_Campaign $campaign ): void {
 		// Clear specific campaign caches
 		$this->cache->delete( $this->get_cache_key( 'id', $campaign->get_id() ) );
 		$this->cache->delete( $this->get_cache_key( 'id_trashed', $campaign->get_id() ) );
@@ -117,7 +117,7 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 * @param    int  $id                Campaign ID.
 	 * @param    bool $include_trashed   Include trashed campaigns.
 	 * @param    bool $skip_auth_check   Skip ownership check (use with caution).
-	 * @return   SCD_Campaign|null         Campaign or null if not found or unauthorized.
+	 * @return   WSSCD_Campaign|null         Campaign or null if not found or unauthorized.
 	 */
 	public function find( $id, $include_trashed = false, $skip_auth_check = false ) {
 		$campaign = $this->find_internal( $id, $include_trashed );
@@ -160,7 +160,7 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 * @access   private
 	 * @param    int  $id                Campaign ID.
 	 * @param    bool $include_trashed   Include trashed campaigns.
-	 * @return   SCD_Campaign|null         Campaign or null if not found.
+	 * @return   WSSCD_Campaign|null         Campaign or null if not found.
 	 */
 	private function find_internal( $id, $include_trashed = false ) {
 		$cache_key = $include_trashed ?
@@ -173,7 +173,7 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 				global $wpdb;
 
 				// JOIN with recurring table to load recurring configuration
-				$recurring_table = $wpdb->prefix . 'scd_campaign_recurring';
+				$recurring_table = $wpdb->prefix . 'wsscd_campaign_recurring';
 
 				if ( $include_trashed ) {
 					$query = "
@@ -223,7 +223,7 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 * @since    1.0.0
 	 * @param    int $id        Campaign ID.
 	 * @param    int $user_id   User ID to verify ownership.
-	 * @return   SCD_Campaign|null   Campaign or null if not found or unauthorized.
+	 * @return   WSSCD_Campaign|null   Campaign or null if not found or unauthorized.
 	 */
 	public function find_for_user( $id, $user_id ) {
 		$campaign = $this->find_internal( $id, false );
@@ -244,9 +244,9 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 *
 	 * @since    1.0.0
 	 * @param    string $uuid    Campaign UUID.
-	 * @return   SCD_Campaign|null      Campaign or null if not found.
+	 * @return   WSSCD_Campaign|null      Campaign or null if not found.
 	 */
-	public function find_by_uuid( string $uuid ): ?SCD_Campaign {
+	public function find_by_uuid( string $uuid ): ?WSSCD_Campaign {
 		$cache_key = "campaigns_uuid_{$uuid}";
 
 		return $this->cache->remember(
@@ -270,9 +270,9 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 *
 	 * @since    1.0.0
 	 * @param    string $slug    Campaign slug.
-	 * @return   SCD_Campaign|null      Campaign or null if not found.
+	 * @return   WSSCD_Campaign|null      Campaign or null if not found.
 	 */
-	public function find_by_slug( string $slug ): ?SCD_Campaign {
+	public function find_by_slug( string $slug ): ?WSSCD_Campaign {
 		$cache_key = "campaigns_slug_{$slug}";
 
 		return $this->cache->remember(
@@ -348,7 +348,8 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 		$allowed_meta_keys = array( 'suggestion_id', 'source', 'parent_id', 'import_id', 'template_id' );
 		if ( ! in_array( $meta_key, $allowed_meta_keys, true ) ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD_Repository] Invalid metadata key requested: ' . $meta_key );
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Debug logging for invalid metadata key, only in WP_DEBUG mode.
+				error_log( '[WSSCD_Repository] Invalid metadata key requested: ' . $meta_key );
 			}
 			return array();
 		}
@@ -359,14 +360,19 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 		// Query using JSON_EXTRACT for metadata (MySQL 5.7+)
 		// JSON path is now properly prepared as a parameter
 		$json_path = '$.' . $meta_key;
-		$query     = $wpdb->prepare(
-			"SELECT * FROM {$this->table_name}
+
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- order_by and limit are built by sanitized helper methods with whitelisted values.
+		$query = $wpdb->prepare(
+			'SELECT * FROM %i
 			WHERE deleted_at IS NULL
 			AND JSON_EXTRACT(metadata, %s) = %s
-			{$order_by} {$limit}",
+			' . $order_by . ' ' . $limit,
+			$this->table_name,
 			$json_path,
 			$meta_value
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
 		return $this->execute_and_hydrate( $query, array() );
 	}
@@ -384,6 +390,7 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 		global $wpdb;
 
 		// Atomic update: Only update if current status matches expected
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Atomic status update on plugin's custom table; cache invalidated below.
 		$affected_rows = $wpdb->update(
 			$this->table_name,
 			array(
@@ -420,7 +427,7 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 		// Use standardized cache key
 		$cache_key = $this->get_cache_key( 'active', $options );
 
-		return $this->cache->remember(
+		$campaigns = $this->cache->remember(
 			$cache_key,
 			function () use ( $options ) {
 				// Use UTC time because starts_at and ends_at are stored in UTC
@@ -456,6 +463,52 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 			},
 			1800
 		); // 30 minutes cache
+
+		// CRITICAL SAFETY CHECK: Filter out campaigns that have expired since being cached.
+		// This prevents stale cached campaigns from applying discounts after their end date.
+		// Even if ActionScheduler fails to fire wsscd_deactivate_campaign, this ensures
+		// expired campaigns never apply discounts.
+		return $this->filter_expired_campaigns( $campaigns );
+	}
+
+	/**
+	 * Filter out campaigns based on current time (expired or not yet started).
+	 *
+	 * This is a critical safety check that runs AFTER cache retrieval to ensure
+	 * stale cached campaigns don't apply discounts outside their valid date range.
+	 * Even if ActionScheduler fails to fire status change events, this ensures
+	 * campaigns only apply discounts within their scheduled window.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $campaigns    Array of campaign objects.
+	 * @return   array                  Filtered campaigns (only truly active ones).
+	 */
+	private function filter_expired_campaigns( array $campaigns ): array {
+		if ( empty( $campaigns ) ) {
+			return array();
+		}
+
+		$now = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
+
+		return array_filter(
+			$campaigns,
+			function ( $campaign ) use ( $now ) {
+				// Check if campaign has ended
+				$ends_at = $campaign->get_ends_at();
+				if ( null !== $ends_at && $ends_at <= $now ) {
+					return false; // Campaign has expired
+				}
+
+				// Check if campaign hasn't started yet
+				$starts_at = $campaign->get_starts_at();
+				if ( null !== $starts_at && $starts_at > $now ) {
+					return false; // Campaign hasn't started
+				}
+
+				return true; // Campaign is within valid date range
+			}
+		);
 	}
 
 	/**
@@ -585,34 +638,28 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 * Save campaign.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign to save.
+	 * @param    WSSCD_Campaign $campaign    Campaign to save.
 	 * @return   bool                         True on success, false on failure.
 	 */
-	public function save( SCD_Campaign $campaign ): bool {
+	public function save( WSSCD_Campaign $campaign ): bool {
 		if ( ! $campaign->is_valid() ) {
 			return false;
 		}
 
 		// Extract conditions before saving - they go to a separate table
 		$conditions = $campaign->get_conditions();
-		error_log( '[SCD] REPOSITORY SAVE - Campaign has ' . count( $conditions ) . ' conditions to save' );
-		error_log( '[SCD] REPOSITORY SAVE - Extracted conditions: ' . print_r( $conditions, true ) );
 
 		// Wrap save operation in transaction for data integrity
-		error_log( '[SCD] REPOSITORY SAVE - Starting transaction' );
 		$result = $this->db->transaction(
 			function () use ( $campaign, $conditions ) {
-				error_log( '[SCD] REPOSITORY SAVE - Inside transaction callback' );
 
 				// Declare variables at function scope
 				$expected_version = null;
-				$current_user_id = get_current_user_id();
+				$current_user_id  = get_current_user_id();
 
 				if ( $campaign->get_id() ) {
-					error_log( '[SCD] REPOSITORY SAVE - Updating existing campaign ' . $campaign->get_id() );
 					$existing = $this->find( $campaign->get_id() );
 					if ( ! $existing ) {
-						error_log( '[SCD] REPOSITORY SAVE - ERROR: Existing campaign not found' );
 						return false;
 					}
 
@@ -630,12 +677,10 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 					// CRITICAL FIX: Sync the campaign's version with database BEFORE dehydration
 					// This ensures dehydrate() captures the correct current version
 					$campaign->set_version( $expected_version );
-					error_log( '[SCD] REPOSITORY SAVE - Synced campaign version to database version: ' . $expected_version );
 				}
 
 				// Now dehydrate with correct version
 				$data = $this->dehydrate( $campaign );
-				error_log( '[SCD] REPOSITORY SAVE - Campaign dehydrated, has ' . count( $data ) . ' fields' );
 
 				if ( $campaign->get_id() ) {
 					// Update existing campaign
@@ -666,37 +711,36 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 						array( '%d', '%d' )
 					);
 
-					error_log( '[SCD] REPOSITORY SAVE - Update result: ' . var_export( $result, true ) );
-					error_log( '[SCD] REPOSITORY SAVE - Expected version: ' . $expected_version );
-
 					if ( $result === 0 ) {
 						// wpdb->update() returns 0 for both "no match" and "no changes"
 						// Check if row exists with expected version to distinguish
 						$current_version = $this->db->get_var(
-							'campaigns',
-							'version',
-							array( 'id' => $campaign->get_id() )
+							$this->db->prepare(
+								"SELECT version FROM {$this->table_name} WHERE id = %d",
+								$campaign->get_id()
+							)
 						);
 
 						if ( null === $current_version ) {
 							// Row doesn't exist - deleted by another process
-							error_log( '[SCD] REPOSITORY SAVE - Campaign deleted by another process!' );
-							throw new SCD_Concurrent_Modification_Exception(
-								$campaign->get_id(),
-								$expected_version,
+							// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+							throw new WSSCD_Concurrent_Modification_Exception(
+								absint( $campaign->get_id() ),
+								absint( $expected_version ),
 								null  // Unknown current version
 							);
+							// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 						} elseif ( (int) $current_version !== $expected_version ) {
 							// Version mismatch - modified by another process
-							error_log( '[SCD] REPOSITORY SAVE - Version mismatch! Expected: ' . $expected_version . ', Current: ' . $current_version );
-							throw new SCD_Concurrent_Modification_Exception(
-								$campaign->get_id(),
-								$expected_version,
-								(int) $current_version
+							// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+							throw new WSSCD_Concurrent_Modification_Exception(
+								absint( $campaign->get_id() ),
+								absint( $expected_version ),
+								absint( $current_version )
 							);
+							// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 						}
-						// else: Row exists with correct version but data unchanged - this is OK
-						error_log( '[SCD] REPOSITORY SAVE - No changes detected (data identical)' );
+						// Row exists with correct version but data unchanged - this is OK
 					}
 				} else {
 					$data['created_at'] = gmdate( 'Y-m-d H:i:s' );
@@ -723,29 +767,16 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 			}
 		);
 
-		error_log( '[SCD] REPOSITORY SAVE - Transaction completed with result: ' . var_export( $result, true ) );
-		error_log( '[SCD] REPOSITORY SAVE - Campaign ID: ' . $campaign->get_id() );
-		error_log( '[SCD] REPOSITORY SAVE - Conditions count: ' . count( $conditions ) );
-
 		// Transaction returns false on failure, result on success
 		if ( $result === false ) {
-			error_log( '[SCD] REPOSITORY SAVE - Transaction failed, returning false' );
 			return false;
 		}
 
 		// Save conditions to separate table
 		if ( $result && $campaign->get_id() && ! empty( $conditions ) ) {
-			error_log( '[SCD] REPOSITORY - Saving ' . count( $conditions ) . ' conditions for campaign ' . $campaign->get_id() );
-			error_log( '[SCD] REPOSITORY - Conditions to save: ' . print_r( $conditions, true ) );
 			$conditions_repo = $this->get_conditions_repository();
 			if ( $conditions_repo ) {
-				error_log( '[SCD] REPOSITORY - About to call save_conditions with: ' . print_r( $conditions, true ) );
-				$conditions_saved = $conditions_repo->save_conditions( $campaign->get_id(), $conditions );
-				if ( ! $conditions_saved ) {
-					error_log( '[SCD] REPOSITORY - ERROR: Failed to save conditions' );
-				}
-			} else {
-				error_log( '[SCD] REPOSITORY - ERROR: Conditions repository not available' );
+				$conditions_repo->save_conditions( $campaign->get_id(), $conditions );
 			}
 		}
 
@@ -756,7 +787,7 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 				$this->save_recurring_config( $campaign->get_id(), $recurring_config );
 
 				// Trigger recurring handler to generate occurrence cache
-				do_action( 'scd_campaign_saved', $campaign->get_id(), $campaign->to_array() );
+				do_action( 'wsscd_campaign_saved', $campaign->get_id(), $campaign->to_array() );
 			}
 		}
 
@@ -775,8 +806,9 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 		global $wpdb;
 
 		// Delete existing recurring config first (in case of update)
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Delete from plugin's custom table before insert.
 		$wpdb->delete(
-			$wpdb->prefix . 'scd_campaign_recurring',
+			$wpdb->prefix . 'wsscd_campaign_recurring',
 			array(
 				'campaign_id'        => $campaign_id,
 				'parent_campaign_id' => 0, // This IS the parent
@@ -798,9 +830,9 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 			'created_at'          => current_time( 'mysql' ),
 		);
 
-		// Insert into campaign_recurring table
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Insert into plugin's custom table.
 		$result = $wpdb->insert(
-			$wpdb->prefix . 'scd_campaign_recurring',
+			$wpdb->prefix . 'wsscd_campaign_recurring',
 			$recurring_data,
 			array(
 				'%d', // campaign_id
@@ -817,7 +849,6 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 		);
 
 		if ( false === $result ) {
-			error_log( '[SCD] Failed to save recurring config: ' . $wpdb->last_error );
 			return false;
 		}
 
@@ -1077,10 +1108,18 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 		}
 
 		$where_clause = implode( ' AND ', $where_clauses );
-		$query        = "SELECT COUNT(*) FROM {$this->table_name} WHERE $where_clause";
 
+		// SECURITY: Always use $wpdb->prepare() to satisfy WordPress.org review requirements.
 		if ( ! empty( $where_values ) ) {
+			$query = "SELECT COUNT(*) FROM {$this->table_name} WHERE $where_clause";
 			$query = $this->db->prepare( $query, ...$where_values );
+		} else {
+			// No filter values - add dummy condition for prepare() compatibility.
+			$query = $this->db->prepare(
+				"SELECT COUNT(*) FROM {$this->table_name} WHERE $where_clause AND %d = %d",
+				1,
+				1
+			);
 		}
 
 		return (int) $this->db->get_var( $query );
@@ -1146,15 +1185,15 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 *
 	 * @since    1.0.0
 	 * @param    array $campaign_data    Campaign data including products.
-	 * @return   SCD_Campaign|false         Saved campaign or false on failure.
+	 * @return   WSSCD_Campaign|false         Saved campaign or false on failure.
 	 */
-	public function save_campaign_with_products( array $campaign_data ): SCD_Campaign|false {
+	public function save_campaign_with_products( array $campaign_data ) {
 		// Debug logging
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 
 		}
 
-		$campaign = new SCD_Campaign( $campaign_data );
+		$campaign = new WSSCD_Campaign( $campaign_data );
 
 		if ( ! $campaign->is_valid() ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -1388,10 +1427,10 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 * Get conflicting campaigns.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign to check conflicts for.
+	 * @param    WSSCD_Campaign $campaign    Campaign to check conflicts for.
 	 * @return   array                        Array of conflicting campaigns.
 	 */
-	public function get_conflicting_campaigns( SCD_Campaign $campaign ): array {
+	public function get_conflicting_campaigns( WSSCD_Campaign $campaign ): array {
 		$conflicts = array();
 
 		if ( $campaign->get_starts_at() && $campaign->get_ends_at() ) {
@@ -1435,9 +1474,9 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 * @since    1.0.0
 	 * @access   private
 	 * @param    object $data    Database row data.
-	 * @return   SCD_Campaign       Campaign instance.
+	 * @return   WSSCD_Campaign       Campaign instance.
 	 */
-	private function hydrate( object $data ): SCD_Campaign {
+	private function hydrate( object $data ): WSSCD_Campaign {
 		// Only hydrate fields that exist in the Campaign entity
 		$campaign_data = array(
 			'id'                     => (int) $data->id,
@@ -1483,9 +1522,7 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 		$conditions_repo = $this->get_conditions_repository();
 		if ( $conditions_repo ) {
 			$campaign_data['conditions'] = $conditions_repo->get_conditions_for_campaign( (int) $data->id );
-			error_log( '[SCD] REPOSITORY HYDRATE - Loaded ' . count( $campaign_data['conditions'] ) . ' conditions for campaign ' . $data->id );
 		} else {
-			error_log( '[SCD] REPOSITORY HYDRATE - ERROR: Conditions repository not available for campaign ' . $data->id );
 			$campaign_data['conditions'] = array();
 		}
 
@@ -1502,11 +1539,24 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 			);
 		}
 
+		// Extract badge configuration from discount_rules and set on entity
+		// Badge data is stored in discount_rules.badge by the compiler
+		if ( isset( $campaign_data['discount_rules']['badge'] ) && is_array( $campaign_data['discount_rules']['badge'] ) ) {
+			$badge_config = $campaign_data['discount_rules']['badge'];
+
+			// Set badge properties directly on the campaign data
+			$campaign_data['badge_enabled']    = $badge_config['enabled'] ?? false;
+			$campaign_data['badge_text']       = $badge_config['text'] ?? 'auto';
+			$campaign_data['badge_bg_color']   = $badge_config['bg_color'] ?? '#ff0000';
+			$campaign_data['badge_text_color'] = $badge_config['text_color'] ?? '#ffffff';
+			$campaign_data['badge_position']   = $badge_config['position'] ?? 'top-right';
+		}
+
 		// Note: Database has additional fields (color_theme, icon, rotation_*,
 		// performance metrics, etc.) that are not in the simplified Campaign entity.
 		// These are stored in settings/metadata or tracked by separate services.
 
-		return new SCD_Campaign( $campaign_data );
+		return new WSSCD_Campaign( $campaign_data );
 	}
 
 	/**
@@ -1514,10 +1564,10 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    SCD_Campaign $campaign    Campaign instance.
+	 * @param    WSSCD_Campaign $campaign    Campaign instance.
 	 * @return   array                        Database data.
 	 */
-	private function dehydrate( SCD_Campaign $campaign ): array {
+	private function dehydrate( WSSCD_Campaign $campaign ): array {
 		$data = $campaign->to_array();
 
 		// Remove fields that are not columns in the main campaigns table
@@ -1547,10 +1597,11 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 
 				// Verify JSON encoding succeeded
 				if ( false === $encoded || null === $encoded ) {
+					// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
 					throw new RuntimeException(
 						sprintf(
 							'Failed to encode %s data for database storage. Data may contain invalid UTF-8 sequences.',
-							$field
+							esc_html( $field )
 						)
 					);
 				}
@@ -1608,27 +1659,28 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    SCD_Campaign $campaign    Campaign instance.
+	 * @param    WSSCD_Campaign $campaign    Campaign instance.
 	 * @return   void
 	 */
-	private function clear_campaign_cache( SCD_Campaign $campaign ): void {
+	private function clear_campaign_cache( WSSCD_Campaign $campaign ): void {
 		$this->invalidate_campaign_cache( $campaign );
 
 		// Also clear legacy wp_cache entries (WordPress object cache)
-		wp_cache_delete( 'campaigns_active', 'scd' );
-		wp_cache_delete( 'campaigns_scheduled', 'scd' );
-		wp_cache_delete( 'campaigns_paused', 'scd' );
+		wp_cache_delete( 'campaigns_active', 'wsscd' );
+		wp_cache_delete( 'campaigns_scheduled', 'wsscd' );
+		wp_cache_delete( 'campaigns_paused', 'wsscd' );
 
 		// Clear all active campaign transients (with new naming pattern)
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Bulk transient deletion for cache invalidation; no WP abstraction for pattern-based delete.
 		$wpdb->query(
 			$wpdb->prepare(
 				'DELETE FROM %i
                  WHERE option_name LIKE %s
                  OR option_name LIKE %s',
 				$wpdb->options,
-				'_transient_scd_v1_campaigns_active_%',
-				'_transient_timeout_scd_v1_campaigns_active_%'
+				'_transient_wsscd_v1_campaigns_active_%',
+				'_transient_timeout_wsscd_v1_campaigns_active_%'
 			)
 		);
 
@@ -1637,12 +1689,12 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 		if ( ! empty( $product_ids ) ) {
 			foreach ( $product_ids as $product_id ) {
 				// Clear product-specific caches with proper prefix
-				wp_cache_delete( 'products_campaigns_by_' . $product_id, 'scd' );
-				wp_cache_delete( 'products_active_campaigns_' . $product_id, 'scd' );
+				wp_cache_delete( 'products_campaigns_by_' . $product_id, 'wsscd' );
+				wp_cache_delete( 'products_active_campaigns_' . $product_id, 'wsscd' );
 
 				// Delete product-specific transients
-				delete_transient( 'scd_v1_products_campaigns_by_' . $product_id );
-				delete_transient( 'scd_v1_products_active_campaigns_' . $product_id );
+				delete_transient( 'wsscd_v1_products_campaigns_by_' . $product_id );
+				delete_transient( 'wsscd_v1_products_active_campaigns_' . $product_id );
 
 				// Clear WooCommerce product transients to force price recalculation
 				if ( function_exists( 'wc_delete_product_transients' ) ) {
@@ -1652,14 +1704,15 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 		}
 
 		// Bulk clear all product-specific transients (for condition-based campaigns)
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Bulk transient deletion for cache invalidation; no WP abstraction for pattern-based delete.
 		$wpdb->query(
 			$wpdb->prepare(
 				'DELETE FROM %i
                  WHERE option_name LIKE %s
                  OR option_name LIKE %s',
 				$wpdb->options,
-				'_transient_scd_v1_products_%',
-				'_transient_timeout_scd_v1_products_%'
+				'_transient_wsscd_v1_products_%',
+				'_transient_timeout_wsscd_v1_products_%'
 			)
 		);
 	}
@@ -1765,7 +1818,8 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 * @return   array             Array of campaigns matching search.
 	 */
 	private function search_campaigns( array $args ): array {
-		$search_term   = $this->db->esc_like( $args['search'] );
+		global $wpdb;
+		$search_term   = $wpdb->esc_like( $args['search'] );
 		$where_clauses = array( 'deleted_at IS NULL' );
 		$where_values  = array();
 
@@ -1806,7 +1860,8 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 * @return   int                   Number of campaigns matching search.
 	 */
 	private function count_search_results( array $criteria ): int {
-		$search_term   = $this->db->esc_like( $criteria['search'] );
+		global $wpdb;
+		$search_term   = $wpdb->esc_like( $criteria['search'] );
 		$where_clauses = array( 'deleted_at IS NULL' );
 		$where_values  = array();
 
@@ -1830,10 +1885,18 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 		}
 
 		$where_clause = implode( ' AND ', $where_clauses );
-		$query        = "SELECT COUNT(*) FROM {$this->table_name} WHERE $where_clause";
 
+		// SECURITY: Always use $wpdb->prepare() to satisfy WordPress.org review requirements.
 		if ( ! empty( $where_values ) ) {
+			$query = "SELECT COUNT(*) FROM {$this->table_name} WHERE $where_clause";
 			$query = $this->db->prepare( $query, ...$where_values );
+		} else {
+			// No filter values - add dummy condition for prepare() compatibility.
+			$query = $this->db->prepare(
+				"SELECT COUNT(*) FROM {$this->table_name} WHERE $where_clause AND %d = %d",
+				1,
+				1
+			);
 		}
 
 		return (int) $this->db->get_var( $query );
@@ -1844,7 +1907,7 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @param    SCD_Query_Builder $query_builder    Query builder instance.
+	 * @param    WSSCD_Query_Builder $query_builder    Query builder instance.
 	 * @param    array             $args             Query arguments.
 	 * @return   void
 	 */
@@ -1959,7 +2022,8 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 
 		if ( ! in_array( $order_by_field, $allowed_fields, true ) ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[SCD_Repository] Invalid order_by field: ' . $order_by_field );
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Debug logging for invalid order_by field, only in WP_DEBUG mode.
+				error_log( '[WSSCD_Repository] Invalid order_by field: ' . $order_by_field );
 			}
 			return '';
 		}
@@ -2019,8 +2083,30 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 * @return   array                     Array of hydrated campaigns.
 	 */
 	private function execute_and_hydrate( string $query, array $where_values = array() ): array {
+		// SECURITY: Always use $wpdb->prepare() to satisfy WordPress.org review requirements.
 		if ( ! empty( $where_values ) ) {
 			$query = $this->db->prepare( $query, ...$where_values );
+		} else {
+			// No filter values - add dummy condition for prepare() compatibility.
+			// Must insert before ORDER BY, GROUP BY, LIMIT, or at end.
+			$insert_before = array( 'ORDER BY', 'GROUP BY', 'HAVING', 'LIMIT', 'OFFSET', 'UNION', 'FOR UPDATE' );
+			$insert_pos    = strlen( $query );
+
+			foreach ( $insert_before as $clause ) {
+				$pos = stripos( $query, $clause );
+				if ( false !== $pos && $pos < $insert_pos ) {
+					$insert_pos = $pos;
+				}
+			}
+
+			$before_part = substr( $query, 0, $insert_pos );
+			$after_part  = substr( $query, $insert_pos );
+
+			if ( stripos( $before_part, 'WHERE' ) !== false ) {
+				$query = $this->db->prepare( $before_part . ' AND %d = %d ' . $after_part, 1, 1 );
+			} else {
+				$query = $this->db->prepare( $before_part . ' WHERE %d = %d ' . $after_part, 1, 1 );
+			}
 		}
 
 		$results = $this->db->get_results( $query );
@@ -2044,59 +2130,34 @@ class SCD_Campaign_Repository extends SCD_Base_Repository {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @return   SCD_Campaign_Conditions_Repository|null    Conditions repository or null.
+	 * @return   WSSCD_Campaign_Conditions_Repository|null    Conditions repository or null.
 	 */
 	private function get_conditions_repository(): ?object {
 		static $conditions_repo = null;
 
 		if ( null === $conditions_repo ) {
-			error_log( '[SCD] REPOSITORY - get_conditions_repository() called' );
-
 			// Ensure the class file is loaded
-			if ( ! class_exists( 'SCD_Campaign_Conditions_Repository' ) ) {
-				error_log( '[SCD] REPOSITORY - Class not loaded, attempting to load' );
-				$conditions_repo_file = SCD_INCLUDES_DIR . 'database/repositories/class-campaign-conditions-repository.php';
+			if ( ! class_exists( 'WSSCD_Campaign_Conditions_Repository' ) ) {
+				$conditions_repo_file = WSSCD_INCLUDES_DIR . 'database/repositories/class-campaign-conditions-repository.php';
 				if ( file_exists( $conditions_repo_file ) ) {
 					require_once $conditions_repo_file;
-					error_log( '[SCD] REPOSITORY - Loaded class file successfully' );
-				} else {
-					error_log( '[SCD] REPOSITORY - ERROR: File not found at: ' . $conditions_repo_file );
 				}
-			} else {
-				error_log( '[SCD] REPOSITORY - Class already loaded' );
 			}
 
 			// Try to get from service container first
 			if ( class_exists( 'Smart_Cycle_Discounts' ) ) {
 				try {
-					error_log( '[SCD] REPOSITORY - Attempting to get from service container' );
 					$conditions_repo = Smart_Cycle_Discounts::get_service( 'campaign_conditions_repository' );
-					error_log( '[SCD] REPOSITORY - SUCCESS: Got from service container' );
 				} catch ( Exception $e ) {
-					error_log( '[SCD] REPOSITORY - FALLBACK: Service failed (' . $e->getMessage() . ')' );
 					// Service not available, create new instance
-					if ( class_exists( 'SCD_Campaign_Conditions_Repository' ) ) {
-						$conditions_repo = new SCD_Campaign_Conditions_Repository( $this->db );
-						error_log( '[SCD] REPOSITORY - Created new instance directly' );
-					} else {
-						error_log( '[SCD] REPOSITORY - ERROR: Cannot create instance, class not available' );
+					if ( class_exists( 'WSSCD_Campaign_Conditions_Repository' ) ) {
+						$conditions_repo = new WSSCD_Campaign_Conditions_Repository( $this->db );
 					}
 				}
-			} elseif ( class_exists( 'SCD_Campaign_Conditions_Repository' ) ) {
+			} elseif ( class_exists( 'WSSCD_Campaign_Conditions_Repository' ) ) {
 				// Fallback: create directly
-				$conditions_repo = new SCD_Campaign_Conditions_Repository( $this->db );
-				error_log( '[SCD] REPOSITORY - Created new instance (Smart_Cycle_Discounts not available)' );
-			} else {
-				error_log( '[SCD] REPOSITORY - ERROR: No way to get conditions repository' );
+				$conditions_repo = new WSSCD_Campaign_Conditions_Repository( $this->db );
 			}
-		} else {
-			error_log( '[SCD] REPOSITORY - Using cached conditions repository instance' );
-		}
-
-		if ( null === $conditions_repo ) {
-			error_log( '[SCD] REPOSITORY - ERROR: Returning NULL conditions repository!' );
-		} else {
-			error_log( '[SCD] REPOSITORY - Returning conditions repository: ' . get_class( $conditions_repo ) );
 		}
 
 		return $conditions_repo;

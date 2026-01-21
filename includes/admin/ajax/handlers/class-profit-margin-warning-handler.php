@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
+require_once WSSCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
 
 /**
  * Profit Margin Warning Handler Class
@@ -27,15 +27,15 @@ require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Profit_Margin_Warning_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Profit_Margin_Warning_Handler extends WSSCD_Abstract_Ajax_Handler {
 
-	use SCD_Wizard_Helpers;
+	use WSSCD_Wizard_Helpers;
 
 	/**
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger    Logger instance (optional).
+	 * @param    WSSCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -48,7 +48,7 @@ class SCD_Profit_Margin_Warning_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_profit_margin_warning';
+		return 'wsscd_profit_margin_warning';
 	}
 
 	/**
@@ -214,21 +214,21 @@ class SCD_Profit_Margin_Warning_Handler extends SCD_Abstract_Ajax_Handler {
 	 */
 	private function _get_warning_message( $count, $loss ) {
 		if ( $loss > 1000 ) {
-			/* translators: 1: number of products, 2: estimated loss amount */
 			return sprintf(
+				/* translators: 1: number of products, 2: estimated loss amount */
 				__( 'Critical: %1$d products will sell below cost, resulting in estimated loss of %2$s per sale!', 'smart-cycle-discounts' ),
 				$count,
 				wc_price( $loss )
 			);
 		} elseif ( $loss > 100 ) {
-			/* translators: 1: number of products */
 			return sprintf(
+				/* translators: 1: number of products */
 				__( 'Warning: %d products will sell below cost. Review profit margins carefully.', 'smart-cycle-discounts' ),
 				$count
 			);
 		} else {
-			/* translators: 1: number of products */
 			return sprintf(
+				/* translators: 1: number of products */
 				__( 'Note: %d products will have minimal profit margin. Consider excluding low-margin items.', 'smart-cycle-discounts' ),
 				$count
 			);

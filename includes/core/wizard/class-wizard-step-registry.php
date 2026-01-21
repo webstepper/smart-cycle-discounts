@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/wizard
  */
-class SCD_Wizard_Step_Registry {
+class WSSCD_Wizard_Step_Registry {
 
 	/**
 	 * Available wizard steps in order.
@@ -61,11 +61,19 @@ class SCD_Wizard_Step_Registry {
 	/**
 	 * Get step labels.
 	 *
+	 * Returns translated step labels for display.
+	 *
 	 * @since    1.0.0
-	 * @return   array    Associative array of step => label.
+	 * @return   array    Associative array of step => translated label.
 	 */
 	public static function get_step_labels() {
-		return self::$step_labels;
+		return array(
+			'basic'     => __( 'Basic Info', 'smart-cycle-discounts' ),
+			'products'  => __( 'Products', 'smart-cycle-discounts' ),
+			'discounts' => __( 'Discounts', 'smart-cycle-discounts' ),
+			'schedule'  => __( 'Schedule', 'smart-cycle-discounts' ),
+			'review'    => __( 'Review', 'smart-cycle-discounts' ),
+		);
 	}
 
 	/**

@@ -27,14 +27,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/components
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Campaign_Overview_Panel {
+class WSSCD_Campaign_Overview_Panel {
 
 	/**
 	 * Campaign repository.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Repository    $campaign_repository    Campaign repository.
+	 * @var      WSSCD_Campaign_Repository    $campaign_repository    Campaign repository.
 	 */
 	private $campaign_repository;
 
@@ -43,7 +43,7 @@ class SCD_Campaign_Overview_Panel {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Formatter|null    $formatter    Campaign formatter.
+	 * @var      WSSCD_Campaign_Formatter|null    $formatter    Campaign formatter.
 	 */
 	private $formatter;
 
@@ -52,7 +52,7 @@ class SCD_Campaign_Overview_Panel {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Analytics_Repository|null    $analytics_repository    Analytics repository.
+	 * @var      WSSCD_Analytics_Repository|null    $analytics_repository    Analytics repository.
 	 */
 	private $analytics_repository;
 
@@ -61,7 +61,7 @@ class SCD_Campaign_Overview_Panel {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Recurring_Handler|null    $recurring_handler    Recurring handler.
+	 * @var      WSSCD_Recurring_Handler|null    $recurring_handler    Recurring handler.
 	 */
 	private $recurring_handler;
 
@@ -70,7 +70,7 @@ class SCD_Campaign_Overview_Panel {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Product_Selector|null    $product_selector    Product selector service.
+	 * @var      WSSCD_Product_Selector|null    $product_selector    Product selector service.
 	 */
 	private $product_selector;
 
@@ -79,7 +79,7 @@ class SCD_Campaign_Overview_Panel {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Health_Service|null    $health_service    Campaign health service.
+	 * @var      WSSCD_Campaign_Health_Service|null    $health_service    Campaign health service.
 	 */
 	private $health_service;
 
@@ -87,12 +87,12 @@ class SCD_Campaign_Overview_Panel {
 	 * Initialize the component.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Repository         $campaign_repository      Campaign repository.
-	 * @param    SCD_Campaign_Formatter|null     $formatter                Campaign formatter.
-	 * @param    SCD_Analytics_Repository|null   $analytics_repository     Analytics repository.
-	 * @param    SCD_Recurring_Handler|null      $recurring_handler        Recurring handler.
-	 * @param    SCD_Product_Selector|null       $product_selector         Product selector service.
-	 * @param    SCD_Campaign_Health_Service|null $health_service          Campaign health service.
+	 * @param    WSSCD_Campaign_Repository         $campaign_repository      Campaign repository.
+	 * @param    WSSCD_Campaign_Formatter|null     $formatter                Campaign formatter.
+	 * @param    WSSCD_Analytics_Repository|null   $analytics_repository     Analytics repository.
+	 * @param    WSSCD_Recurring_Handler|null      $recurring_handler        Recurring handler.
+	 * @param    WSSCD_Product_Selector|null       $product_selector         Product selector service.
+	 * @param    WSSCD_Campaign_Health_Service|null $health_service          Campaign health service.
 	 */
 	public function __construct(
 		$campaign_repository,
@@ -119,7 +119,7 @@ class SCD_Campaign_Overview_Panel {
 	 * @return   void
 	 */
 	public function render() {
-		$template_path = SCD_PLUGIN_DIR . 'resources/views/admin/components/campaign-overview-panel.php';
+		$template_path = WSSCD_PLUGIN_DIR . 'resources/views/admin/components/campaign-overview-panel.php';
 
 
 		if ( ! file_exists( $template_path ) ) {
@@ -138,7 +138,7 @@ class SCD_Campaign_Overview_Panel {
 	 * Called by AJAX handler to format campaign data.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   array                       Formatted campaign data.
 	 */
 	public function prepare_campaign_data( $campaign ) {
@@ -163,7 +163,7 @@ class SCD_Campaign_Overview_Panel {
 	 * Prepare basic info section data.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   array                       Basic info data.
 	 */
 	private function prepare_basic_section( $campaign ) {
@@ -182,7 +182,7 @@ class SCD_Campaign_Overview_Panel {
 	 * Prepare schedule section data.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   array                       Schedule data.
 	 */
 	private function prepare_schedule_section( $campaign ) {
@@ -273,7 +273,7 @@ class SCD_Campaign_Overview_Panel {
 	 * Prepare products section data.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   array                       Products data.
 	 */
 	private function prepare_products_section( $campaign ) {
@@ -305,13 +305,19 @@ class SCD_Campaign_Overview_Panel {
 					$criteria['exclude_ids'] = $settings['excluded_product_ids'];
 				}
 
+				// For random selection, pass the random count and selection type
+				if ( 'random_products' === $selection_type && ! empty( $settings['random_count'] ) ) {
+					$criteria['selection_type'] = 'random';
+					$criteria['random_count']   = absint( $settings['random_count'] );
+				}
+
 				// Compile products using Product Selector
 				$compiled_ids = $this->product_selector->select_products( $criteria );
 
 				// Use compiled IDs for display
 				$product_ids = $compiled_ids;
 			} catch ( Exception $e ) {
-				SCD_Log::warning(
+				WSSCD_Log::warning(
 					'Failed to compile products for campaign overview panel',
 					array(
 						'campaign_id'    => $campaign->get_id(),
@@ -436,7 +442,7 @@ class SCD_Campaign_Overview_Panel {
 	 * Prepare discounts section data.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   array                       Discounts data.
 	 */
 	private function prepare_discounts_section( $campaign ) {
@@ -762,7 +768,7 @@ class SCD_Campaign_Overview_Panel {
 	 * Prepare performance section data.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   array                       Performance data.
 	 */
 	private function prepare_performance_section( $campaign ) {
@@ -781,7 +787,7 @@ class SCD_Campaign_Overview_Panel {
 			try {
 				// Calculate date range for last 30 days
 				$end_date   = current_time( 'mysql' );
-				$start_date = date( 'Y-m-d H:i:s', strtotime( '-30 days', strtotime( $end_date ) ) );
+				$start_date = gmdate( 'Y-m-d H:i:s', strtotime( '-30 days', strtotime( $end_date ) ) );
 
 				$analytics = $this->analytics_repository->get_campaign_performance(
 					$campaign->get_id(),
@@ -801,7 +807,7 @@ class SCD_Campaign_Overview_Panel {
 				}
 			} catch ( Exception $e ) {
 				// Analytics unavailable - return empty metrics
-				SCD_Log::warning(
+				WSSCD_Log::warning(
 					'Failed to load campaign analytics for overview panel',
 					array(
 						'campaign_id' => $campaign->get_id(),
@@ -818,7 +824,7 @@ class SCD_Campaign_Overview_Panel {
 	 * Prepare recurring schedule section data.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   array                       Recurring schedule data.
 	 */
 	private function prepare_recurring_schedule_section( $campaign ) {
@@ -895,7 +901,7 @@ class SCD_Campaign_Overview_Panel {
 				}
 			} catch ( Exception $e ) {
 				// Recurring data unavailable
-				SCD_Log::warning(
+				WSSCD_Log::warning(
 					'Failed to load recurring settings for overview panel',
 					array(
 						'campaign_id' => $campaign_id,
@@ -922,7 +928,7 @@ class SCD_Campaign_Overview_Panel {
 			// Return 0 for now - child campaign count display is not critical for overview panel
 			// If needed in future, implement: $this->recurring_handler->count_child_campaigns( $parent_id );
 		} catch ( Exception $e ) {
-			SCD_Log::warning(
+			WSSCD_Log::warning(
 				'Failed to count child campaigns for overview panel',
 				array(
 					'parent_id' => $parent_id,
@@ -938,7 +944,7 @@ class SCD_Campaign_Overview_Panel {
 	 * Prepare health section data.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   array                       Health data.
 	 */
 	private function prepare_health_section( $campaign ) {
@@ -951,7 +957,7 @@ class SCD_Campaign_Overview_Panel {
 
 		// Check if health service is available
 		if ( ! $this->health_service ) {
-			SCD_Log::debug(
+			WSSCD_Log::debug(
 				'Campaign Health Service not available for overview panel',
 				array(
 					'campaign_id' => $campaign->get_id(),
@@ -965,7 +971,7 @@ class SCD_Campaign_Overview_Panel {
 			// Analyze campaign health
 			$health = $this->health_service->analyze_health( $campaign, 'standard', array() );
 
-			SCD_Log::debug(
+			WSSCD_Log::debug(
 				'Campaign health analysis result',
 				array(
 					'campaign_id' => $campaign->get_id(),
@@ -992,7 +998,7 @@ class SCD_Campaign_Overview_Panel {
 				);
 			}
 		} catch ( Exception $e ) {
-			SCD_Log::warning(
+			WSSCD_Log::warning(
 				'Failed to analyze campaign health for overview panel',
 				array(
 					'campaign_id' => $campaign->get_id(),
@@ -1030,7 +1036,7 @@ class SCD_Campaign_Overview_Panel {
 	 * @return   void
 	 */
 	public function render_basic_section( $data ) {
-		$template_path = SCD_PLUGIN_DIR . 'resources/views/admin/components/partials/section-basic.php';
+		$template_path = WSSCD_PLUGIN_DIR . 'resources/views/admin/components/partials/section-basic.php';
 
 		if ( file_exists( $template_path ) ) {
 			include $template_path;
@@ -1045,7 +1051,7 @@ class SCD_Campaign_Overview_Panel {
 	 * @return   void
 	 */
 	public function render_schedule_section( $data ) {
-		$template_path = SCD_PLUGIN_DIR . 'resources/views/admin/components/partials/section-schedule.php';
+		$template_path = WSSCD_PLUGIN_DIR . 'resources/views/admin/components/partials/section-schedule.php';
 
 		if ( file_exists( $template_path ) ) {
 			include $template_path;
@@ -1060,7 +1066,7 @@ class SCD_Campaign_Overview_Panel {
 	 * @return   void
 	 */
 	public function render_products_section( $data ) {
-		$template_path = SCD_PLUGIN_DIR . 'resources/views/admin/components/partials/section-products.php';
+		$template_path = WSSCD_PLUGIN_DIR . 'resources/views/admin/components/partials/section-products.php';
 
 		if ( file_exists( $template_path ) ) {
 			include $template_path;
@@ -1075,7 +1081,7 @@ class SCD_Campaign_Overview_Panel {
 	 * @return   void
 	 */
 	public function render_discounts_section( $data ) {
-		$template_path = SCD_PLUGIN_DIR . 'resources/views/admin/components/partials/section-discounts.php';
+		$template_path = WSSCD_PLUGIN_DIR . 'resources/views/admin/components/partials/section-discounts.php';
 
 		if ( file_exists( $template_path ) ) {
 			include $template_path;
@@ -1090,7 +1096,7 @@ class SCD_Campaign_Overview_Panel {
 	 * @return   void
 	 */
 	public function render_performance_section( $data ) {
-		$template_path = SCD_PLUGIN_DIR . 'resources/views/admin/components/partials/section-performance.php';
+		$template_path = WSSCD_PLUGIN_DIR . 'resources/views/admin/components/partials/section-performance.php';
 
 		if ( file_exists( $template_path ) ) {
 			include $template_path;
@@ -1105,7 +1111,7 @@ class SCD_Campaign_Overview_Panel {
 	 * @return   void
 	 */
 	public function render_recurring_schedule_section( $data ) {
-		$template_path = SCD_PLUGIN_DIR . 'resources/views/admin/components/partials/section-recurring-schedule.php';
+		$template_path = WSSCD_PLUGIN_DIR . 'resources/views/admin/components/partials/section-recurring-schedule.php';
 
 		if ( file_exists( $template_path ) ) {
 			include $template_path;
@@ -1120,7 +1126,7 @@ class SCD_Campaign_Overview_Panel {
 	 * @return   void
 	 */
 	public function render_metrics_section( $data ) {
-		$template_path = SCD_PLUGIN_DIR . 'resources/views/admin/components/partials/section-metrics.php';
+		$template_path = WSSCD_PLUGIN_DIR . 'resources/views/admin/components/partials/section-metrics.php';
 
 		if ( file_exists( $template_path ) ) {
 			include $template_path;
@@ -1135,7 +1141,7 @@ class SCD_Campaign_Overview_Panel {
 	 * @return   void
 	 */
 	public function render_health_section( $data ) {
-		$template_path = SCD_PLUGIN_DIR . 'resources/views/admin/components/partials/section-health.php';
+		$template_path = WSSCD_PLUGIN_DIR . 'resources/views/admin/components/partials/section-health.php';
 
 		if ( file_exists( $template_path ) ) {
 			include $template_path;

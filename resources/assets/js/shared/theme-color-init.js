@@ -15,25 +15,25 @@
 	'use strict';
 
 	// Apply colors immediately if available
-	if ( window.scdAdmin && window.scdAdmin.colors ) {
+	if ( window.wsscdAdmin && window.wsscdAdmin.colors ) {
 		var root = document.documentElement;
-		var colors = window.scdAdmin.colors;
+		var colors = window.wsscdAdmin.colors;
 
 		// Apply critical colors immediately to prevent flash
 		Object.keys( colors ).forEach( function( key ) {
-			root.style.setProperty( '--scd-color-' + key, colors[key] );
+			root.style.setProperty( '--wsscd-color-' + key, colors[key] );
 		} );
 
 		// Apply component-specific critical colors
-		root.style.setProperty( '--scd-wizard-primary', colors.primary || '#2271b1' );
-		root.style.setProperty( '--scd-wizard-secondary', colors.secondary || '#72aee6' );
-		root.style.setProperty( '--scd-wizard-success', colors.success || '#00a32a' );
-		root.style.setProperty( '--scd-wizard-warning', colors.warning || '#dba617' );
-		root.style.setProperty( '--scd-wizard-danger', colors.danger || '#d63638' );
-		root.style.setProperty( '--scd-wizard-accent', colors.accent || '#3858e9' );
+		root.style.setProperty( '--wsscd-wizard-primary', colors.primary || '#2271b1' );
+		root.style.setProperty( '--wsscd-wizard-secondary', colors.secondary || '#72aee6' );
+		root.style.setProperty( '--wsscd-wizard-success', colors.success || '#00a32a' );
+		root.style.setProperty( '--wsscd-wizard-warning', colors.warning || '#dba617' );
+		root.style.setProperty( '--wsscd-wizard-danger', colors.danger || '#d63638' );
+		root.style.setProperty( '--wsscd-wizard-accent', colors.accent || '#3858e9' );
 
 		// Mark as applied
-		root.setAttribute( 'data-scd-early-colors', 'true' );
+		root.setAttribute( 'data-wsscd-early-colors', 'true' );
 	}
 } )();
 
@@ -44,8 +44,8 @@
 	// Wait for DOM ready
 	$( document ).ready( function() {
 
-		if ( window.SCD && window.SCD.Shared && window.SCD.Shared.ThemeColorService ) {
-			window.SCD.Shared.ThemeColorService.init();
+		if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.ThemeColorService ) {
+			window.WSSCD.Shared.ThemeColorService.init();
 
 			// Apply component-specific colors
 			applyComponentColors();
@@ -72,7 +72,7 @@
 	 * Apply colors to various components
 	 */
 	function applyComponentColors() {
-		var ThemeColorService = window.SCD.Shared.ThemeColorService;
+		var ThemeColorService = window.WSSCD.Shared.ThemeColorService;
 
 		// Wizard progress (already handled in wizard.js)
 
@@ -98,7 +98,7 @@
 	function applyChartColors() {
 		if ( !window.Chart ) {return;}
 
-		var ThemeColorService = window.SCD.Shared.ThemeColorService;
+		var ThemeColorService = window.WSSCD.Shared.ThemeColorService;
 		var colors = ThemeColorService.getAllColors();
 
 		// Default chart colors based on theme
@@ -133,9 +133,9 @@
 			} );
 		}
 
-		if ( window.scdAnalytics ) {
-			window.scdAnalytics.chartConfig = window.scdAnalytics.chartConfig || {};
-			window.scdAnalytics.chartConfig.colors = {
+		if ( window.wsscdAnalytics ) {
+			window.wsscdAnalytics.chartConfig = window.wsscdAnalytics.chartConfig || {};
+			window.wsscdAnalytics.chartConfig.colors = {
 				primary: colors.primary,
 				secondary: colors.secondary,
 				success: colors.success,
@@ -196,7 +196,7 @@
 	 * Apply colors to notifications
 	 */
 	function applyNotificationColors() {
-		var ThemeColorService = window.SCD.Shared.ThemeColorService;
+		var ThemeColorService = window.WSSCD.Shared.ThemeColorService;
 
 		ThemeColorService.applyToComponent( 'notice', {
 			'info-bg': 'info',
@@ -214,7 +214,7 @@
 	 * Apply colors to form elements
 	 */
 	function applyFormColors() {
-		var ThemeColorService = window.SCD.Shared.ThemeColorService;
+		var ThemeColorService = window.WSSCD.Shared.ThemeColorService;
 
 		ThemeColorService.applyToComponent( 'form', {
 			'focus-border': 'primary',
@@ -241,7 +241,7 @@
 	 * Apply colors to badges
 	 */
 	function applyBadgeColors() {
-		var ThemeColorService = window.SCD.Shared.ThemeColorService;
+		var ThemeColorService = window.WSSCD.Shared.ThemeColorService;
 
 		ThemeColorService.applyToComponent( 'badge', {
 			'active': 'success',

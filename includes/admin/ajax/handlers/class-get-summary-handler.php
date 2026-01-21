@@ -26,14 +26,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Get_Summary_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * State service instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Wizard_State_Service    $state_service    State service.
+	 * @var      WSSCD_Wizard_State_Service    $state_service    State service.
 	 */
 	private $state_service;
 
@@ -41,8 +41,8 @@ class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Wizard_State_Service $state_service    State service.
-	 * @param    SCD_Logger               $logger           Logger instance (optional).
+	 * @param    WSSCD_Wizard_State_Service $state_service    State service.
+	 * @param    WSSCD_Logger               $logger           Logger instance (optional).
 	 */
 	public function __construct( $state_service, $logger = null ) {
 		parent::__construct( $logger );
@@ -56,7 +56,7 @@ class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_get_summary';
+		return 'wsscd_get_summary';
 	}
 
 	/**
@@ -131,7 +131,7 @@ class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
 			$category_ids = isset( $steps['products']['category_ids'] ) ? $steps['products']['category_ids'] : array();
 
 			$summary['products'] = array(
-				'product_selection_type' => isset( $steps['products']['product_selection_type'] ) ? $steps['products']['product_selection_type'] : 'manual',
+				'product_selection_type' => isset( $steps['products']['product_selection_type'] ) ? $steps['products']['product_selection_type'] : WSSCD_Campaign::SELECTION_TYPE_ALL_PRODUCTS,
 				'product_count'          => count( $product_ids ),
 				'product_ids'            => $product_ids,
 				'category_count'         => count( $category_ids ),
@@ -214,6 +214,7 @@ class SCD_Get_Summary_Handler extends SCD_Abstract_Ajax_Handler {
 
 		if ( count( $product_ids ) > 10 ) {
 			$names[] = sprintf(
+				/* translators: %d: number of additional products not shown */
 				__( 'and %d more...', 'smart-cycle-discounts' ),
 				count( $product_ids ) - 10
 			);

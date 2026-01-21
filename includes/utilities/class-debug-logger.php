@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/utilities
  */
-class SCD_Debug_Logger extends SCD_Logger {
+class WSSCD_Debug_Logger extends WSSCD_Logger {
 
 	/**
 	 * Debug log file path.
@@ -69,13 +69,13 @@ class SCD_Debug_Logger extends SCD_Logger {
 		$this->debug_log_file = $log_dir . '/plugin.log';
 
 		// Generate unique request ID
-		$this->request_id = uniqid( 'scd_', true );
+		$this->request_id = uniqid( 'wsscd_', true );
 		$this->start_time = microtime( true );
 
 		$this->add_handler( 'debug_file', array( $this, 'handle_debug_file_log' ) );
 
 		// Log initialization only if debug level logging is enabled
-		if ( defined( 'SCD_DEBUG' ) && SCD_DEBUG ) {
+		if ( defined( 'WSSCD_DEBUG' ) && WSSCD_DEBUG ) {
 			$this->log_request_start();
 		}
 	}
@@ -89,9 +89,9 @@ class SCD_Debug_Logger extends SCD_Logger {
 	private function log_request_start(): void {
 		$context = array(
 			'request_id'   => $this->request_id,
-			'method'       => $_SERVER['REQUEST_METHOD'] ?? 'CLI',
-			'uri'          => $_SERVER['REQUEST_URI'] ?? 'N/A',
-			'user_agent'   => $_SERVER['HTTP_USER_AGENT'] ?? 'N/A',
+			'method'       => isset( $_SERVER['REQUEST_METHOD'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : 'CLI',
+			'uri'          => isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : 'N/A',
+			'user_agent'   => isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : 'N/A',
 			'ip'           => $this->get_client_ip(),
 			'user_id'      => get_current_user_id(),
 			'session_id'   => session_id() ?: 'no_session',
@@ -452,7 +452,7 @@ class SCD_Debug_Logger extends SCD_Logger {
 
 		unset( $context['request_id'], $context['logger_context'] );
 
-		$formatted = "[{$timestamp}] [{$request_id}] SCD.DEBUG.{$level}: {$message}";
+		$formatted = "[{$timestamp}] [{$request_id}] WSSCD.DEBUG.{$level}: {$message}";
 
 		if ( ! empty( $context ) ) {
 			$formatted .= ' | ' . wp_json_encode( $context, JSON_UNESCAPED_SLASHES );
@@ -471,7 +471,7 @@ class SCD_Debug_Logger extends SCD_Logger {
 	 */
 	protected function write_to_debug_file( string $message ): void {
 		// Use 5x the normal log size for debug logs (default 50MB)
-		$max_debug_size = defined( 'SCD_LOG_MAX_SIZE' ) ? SCD_LOG_MAX_SIZE * 5 : 52428800;
+		$max_debug_size = defined( 'WSSCD_LOG_MAX_SIZE' ) ? WSSCD_LOG_MAX_SIZE * 5 : 52428800;
 
 		// Rotate if needed
 		if ( file_exists( $this->debug_log_file ) && filesize( $this->debug_log_file ) > $max_debug_size ) {
@@ -479,6 +479,7 @@ class SCD_Debug_Logger extends SCD_Logger {
 		}
 
 		// Write to debug log
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Writing to plugin's own debug log file.
 		file_put_contents( $this->debug_log_file, $message, FILE_APPEND | LOCK_EX );
 	}
 
@@ -490,11 +491,22 @@ class SCD_Debug_Logger extends SCD_Logger {
 	 * @return   void
 	 */
 	protected function rotate_debug_log(): void {
+		global $wp_filesystem;
+
+		// Initialize WP_Filesystem if needed.
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+		WP_Filesystem();
+
 		$timestamp   = current_time( 'Ymd-His' );
 		$backup_file = $this->debug_log_file . '.' . $timestamp;
-		rename( $this->debug_log_file, $backup_file );
 
-		// Clean up old log files
+		if ( $wp_filesystem && $wp_filesystem->exists( $this->debug_log_file ) ) {
+			$wp_filesystem->move( $this->debug_log_file, $backup_file );
+		}
+
+		// Clean up old log files.
 		$this->cleanup_old_logs();
 	}
 
@@ -520,14 +532,14 @@ class SCD_Debug_Logger extends SCD_Logger {
 			}
 		);
 
-		$max_age_days = defined( 'SCD_LOG_MAX_AGE_DAYS' ) ? SCD_LOG_MAX_AGE_DAYS : 7;
+		$max_age_days = defined( 'WSSCD_LOG_MAX_AGE_DAYS' ) ? WSSCD_LOG_MAX_AGE_DAYS : 7;
 		$current_time = time();
 
 		foreach ( $old_logs as $log_file ) {
 			$file_age_days = ( $current_time - filemtime( $log_file ) ) / DAY_IN_SECONDS;
 
 			if ( $max_age_days > 0 && $file_age_days > $max_age_days ) {
-				unlink( $log_file );
+				wp_delete_file( $log_file );
 			}
 		}
 
@@ -543,7 +555,7 @@ class SCD_Debug_Logger extends SCD_Logger {
 			$to_delete = array_slice( $remaining_logs, 0, count( $remaining_logs ) - 5 );
 			foreach ( $to_delete as $file ) {
 				if ( file_exists( $file ) ) {
-					unlink( $file );
+					wp_delete_file( $file );
 				}
 			}
 		}

@@ -17,26 +17,26 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-require_once SCD_PLUGIN_DIR . 'includes/admin/assets/class-script-registry.php';
-require_once SCD_PLUGIN_DIR . 'includes/admin/assets/class-style-registry.php';
-require_once SCD_PLUGIN_DIR . 'includes/admin/assets/class-asset-loader.php';
-require_once SCD_PLUGIN_DIR . 'includes/admin/assets/class-asset-localizer.php';
-require_once SCD_PLUGIN_DIR . 'includes/admin/assets/class-theme-color-inline-styles.php';
+require_once WSSCD_PLUGIN_DIR . 'includes/admin/assets/class-script-registry.php';
+require_once WSSCD_PLUGIN_DIR . 'includes/admin/assets/class-style-registry.php';
+require_once WSSCD_PLUGIN_DIR . 'includes/admin/assets/class-asset-loader.php';
+require_once WSSCD_PLUGIN_DIR . 'includes/admin/assets/class-asset-localizer.php';
+require_once WSSCD_PLUGIN_DIR . 'includes/admin/assets/class-theme-color-inline-styles.php';
 
 /**
  * Admin Asset Manager Class
  *
  * @since      1.0.0
  */
-class SCD_Admin_Asset_Manager {
+class WSSCD_Admin_Asset_Manager {
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Logger
+	 * @var      WSSCD_Logger
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Plugin version.
@@ -58,44 +58,44 @@ class SCD_Admin_Asset_Manager {
 	 * Asset loader instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Asset_Loader|null
+	 * @var      WSSCD_Asset_Loader|null
 	 */
-	private ?SCD_Asset_Loader $asset_loader = null;
+	private ?WSSCD_Asset_Loader $asset_loader = null;
 
 	/**
 	 * Asset localizer instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Asset_Localizer|null
+	 * @var      WSSCD_Asset_Localizer|null
 	 */
-	private ?SCD_Asset_Localizer $asset_localizer = null;
+	private ?WSSCD_Asset_Localizer $asset_localizer = null;
 
 	/**
 	 * Script registry instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Script_Registry|null
+	 * @var      WSSCD_Script_Registry|null
 	 */
-	private ?SCD_Script_Registry $script_registry = null;
+	private ?WSSCD_Script_Registry $script_registry = null;
 
 	/**
 	 * Style registry instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Style_Registry|null
+	 * @var      WSSCD_Style_Registry|null
 	 */
-	private ?SCD_Style_Registry $style_registry = null;
+	private ?WSSCD_Style_Registry $style_registry = null;
 
 	/**
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger        Logger instance.
+	 * @param    WSSCD_Logger $logger        Logger instance.
 	 * @param    string     $version       Plugin version.
 	 * @param    string     $plugin_url    Plugin URL.
 	 */
 	public function __construct(
-		SCD_Logger $logger,
+		WSSCD_Logger $logger,
 		string $version,
 		string $plugin_url
 	) {
@@ -121,13 +121,13 @@ class SCD_Admin_Asset_Manager {
 	 * @return   void
 	 */
 	private function init_asset_system(): void {
-		$this->script_registry = new SCD_Script_Registry( $this->version, $this->plugin_url );
-		$this->style_registry  = new SCD_Style_Registry( $this->version, $this->plugin_url );
+		$this->script_registry = new WSSCD_Script_Registry( $this->version, $this->plugin_url );
+		$this->style_registry  = new WSSCD_Style_Registry( $this->version, $this->plugin_url );
 
 		$this->script_registry->init();
 		$this->style_registry->init();
 
-		$this->asset_loader = new SCD_Asset_Loader(
+		$this->asset_loader = new WSSCD_Asset_Loader(
 			$this->script_registry,
 			$this->style_registry,
 			$this->version,
@@ -138,14 +138,14 @@ class SCD_Admin_Asset_Manager {
 			'version'    => $this->version,
 			'plugin_url' => $this->plugin_url,
 		);
-		$this->asset_localizer = new SCD_Asset_Localizer( $settings );
+		$this->asset_localizer = new WSSCD_Asset_Localizer( $settings );
 
 		$this->asset_loader->init();
 		$this->asset_localizer->init();
 
-		add_filter( 'scd_localize_scdDraftManager', array( $this, 'get_draft_manager_data' ) );
+		add_filter( 'wsscd_localize_wsscdDraftManager', array( $this, 'get_draft_manager_data' ) );
 
-		$theme_color_styles = new SCD_Theme_Color_Inline_Styles();
+		$theme_color_styles = new WSSCD_Theme_Color_Inline_Styles();
 		$theme_color_styles->init();
 	}
 
@@ -153,9 +153,9 @@ class SCD_Admin_Asset_Manager {
 	 * Get the asset loader instance.
 	 *
 	 * @since    1.0.0
-	 * @return   SCD_Asset_Loader|null    Asset loader instance.
+	 * @return   WSSCD_Asset_Loader|null    Asset loader instance.
 	 */
-	public function get_asset_loader(): ?SCD_Asset_Loader {
+	public function get_asset_loader(): ?WSSCD_Asset_Loader {
 		return $this->asset_loader;
 	}
 
@@ -163,9 +163,9 @@ class SCD_Admin_Asset_Manager {
 	 * Get the asset localizer instance.
 	 *
 	 * @since    1.0.0
-	 * @return   SCD_Asset_Localizer|null    Asset localizer instance.
+	 * @return   WSSCD_Asset_Localizer|null    Asset localizer instance.
 	 */
-	public function get_asset_localizer(): ?SCD_Asset_Localizer {
+	public function get_asset_localizer(): ?WSSCD_Asset_Localizer {
 		return $this->asset_localizer;
 	}
 
@@ -173,9 +173,9 @@ class SCD_Admin_Asset_Manager {
 	 * Get the script registry instance.
 	 *
 	 * @since    1.0.0
-	 * @return   SCD_Script_Registry|null    Script registry instance.
+	 * @return   WSSCD_Script_Registry|null    Script registry instance.
 	 */
-	public function get_script_registry(): ?SCD_Script_Registry {
+	public function get_script_registry(): ?WSSCD_Script_Registry {
 		return $this->script_registry;
 	}
 
@@ -183,9 +183,9 @@ class SCD_Admin_Asset_Manager {
 	 * Get the style registry instance.
 	 *
 	 * @since    1.0.0
-	 * @return   SCD_Style_Registry|null    Style registry instance.
+	 * @return   WSSCD_Style_Registry|null    Style registry instance.
 	 */
-	public function get_style_registry(): ?SCD_Style_Registry {
+	public function get_style_registry(): ?WSSCD_Style_Registry {
 		return $this->style_registry;
 	}
 
@@ -271,8 +271,9 @@ class SCD_Admin_Asset_Manager {
 	public function get_draft_manager_data( array $data ): array {
 		return array(
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
-			'nonce'    => wp_create_nonce( 'scd_draft_manager' ),
+			'nonce'    => wp_create_nonce( 'wsscd_draft_manager' ),
 			'i18n'     => array(
+				/* translators: %s: name of the existing draft campaign */
 				'warning_message' => __( 'You have an existing draft campaign "%s". Starting a new campaign will discard your current draft. Do you want to continue?', 'smart-cycle-discounts' ),
 				'load_error'      => __( 'Unable to load draft information.', 'smart-cycle-discounts' ),
 				'save_error'      => __( 'Unable to save draft. Please try again.', 'smart-cycle-discounts' ),

@@ -31,25 +31,25 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/integrations/woocommerce
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_WC_Discount_Query_Service {
+class WSSCD_WC_Discount_Query_Service {
 
 	/**
 	 * Campaign manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Manager    $campaign_manager    Campaign manager.
+	 * @var      WSSCD_Campaign_Manager    $campaign_manager    Campaign manager.
 	 */
-	private SCD_Campaign_Manager $campaign_manager;
+	private WSSCD_Campaign_Manager $campaign_manager;
 
 	/**
 	 * Discount engine instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Discount_Engine    $discount_engine    Discount engine.
+	 * @var      WSSCD_Discount_Engine    $discount_engine    Discount engine.
 	 */
-	private SCD_Discount_Engine $discount_engine;
+	private WSSCD_Discount_Engine $discount_engine;
 
 	/**
 	 * Logger instance.
@@ -65,18 +65,18 @@ class SCD_WC_Discount_Query_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Discount_Rules_Enforcer|null    $rules_enforcer    Rules enforcer.
+	 * @var      WSSCD_Discount_Rules_Enforcer|null    $rules_enforcer    Rules enforcer.
 	 */
-	private ?SCD_Discount_Rules_Enforcer $rules_enforcer;
+	private ?WSSCD_Discount_Rules_Enforcer $rules_enforcer;
 
 	/**
 	 * Discount map service for efficient bulk lookups.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_WC_Discount_Map_Service|null    $map_service    Discount map service.
+	 * @var      WSSCD_WC_Discount_Map_Service|null    $map_service    Discount map service.
 	 */
-	private ?SCD_WC_Discount_Map_Service $map_service;
+	private ?WSSCD_WC_Discount_Map_Service $map_service;
 
 	/**
 	 * Request-level cache for discount lookups.
@@ -93,18 +93,18 @@ class SCD_WC_Discount_Query_Service {
 	 * Initialize the discount query service.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Manager              $campaign_manager    Campaign manager instance.
-	 * @param    SCD_Discount_Engine               $discount_engine     Discount engine instance.
+	 * @param    WSSCD_Campaign_Manager              $campaign_manager    Campaign manager instance.
+	 * @param    WSSCD_Discount_Engine               $discount_engine     Discount engine instance.
 	 * @param    object|null                       $logger              Logger instance.
-	 * @param    SCD_Discount_Rules_Enforcer|null  $rules_enforcer      Rules enforcer instance.
-	 * @param    SCD_WC_Discount_Map_Service|null  $map_service         Discount map service instance.
+	 * @param    WSSCD_Discount_Rules_Enforcer|null  $rules_enforcer      Rules enforcer instance.
+	 * @param    WSSCD_WC_Discount_Map_Service|null  $map_service         Discount map service instance.
 	 */
 	public function __construct(
-		SCD_Campaign_Manager $campaign_manager,
-		SCD_Discount_Engine $discount_engine,
+		WSSCD_Campaign_Manager $campaign_manager,
+		WSSCD_Discount_Engine $discount_engine,
 		?object $logger = null,
-		?SCD_Discount_Rules_Enforcer $rules_enforcer = null,
-		?SCD_WC_Discount_Map_Service $map_service = null
+		?WSSCD_Discount_Rules_Enforcer $rules_enforcer = null,
+		?WSSCD_WC_Discount_Map_Service $map_service = null
 	) {
 		$this->campaign_manager = $campaign_manager;
 		$this->discount_engine  = $discount_engine;
@@ -130,6 +130,32 @@ class SCD_WC_Discount_Query_Service {
 		}
 
 		$result                    = null !== $this->get_discount_info( $product_id );
+		$this->cache[ $cache_key ] = $result;
+
+		return $result;
+	}
+
+	/**
+	 * Check if product has SCD badge enabled.
+	 *
+	 * Returns true only if the product has an active discount AND
+	 * the campaign has badge display enabled. Used to determine
+	 * whether to hide theme sale badges.
+	 *
+	 * @since    1.0.0
+	 * @param    int $product_id    Product ID.
+	 * @return   bool               True if WSSCD badge is enabled for this product.
+	 */
+	public function has_wsscd_badge_enabled( int $product_id ): bool {
+		$cache_key = 'has_wsscd_badge_' . $product_id;
+
+		if ( isset( $this->cache[ $cache_key ] ) ) {
+			return $this->cache[ $cache_key ];
+		}
+
+		$badge_info = $this->get_campaign_badge_info( $product_id );
+		$result     = $badge_info && ! empty( $badge_info['badge_enabled'] );
+
 		$this->cache[ $cache_key ] = $result;
 
 		return $result;
@@ -216,7 +242,7 @@ class SCD_WC_Discount_Query_Service {
 
 				if ( $capped_discount < $original_discount ) {
 					$capped_price = $original_price - $capped_discount;
-					$result       = new SCD_Discount_Result(
+					$result       = new WSSCD_Discount_Result(
 						$original_price,
 						$capped_price,
 						$result->get_strategy_id(),
@@ -392,9 +418,9 @@ class SCD_WC_Discount_Query_Service {
 	 * @access   private
 	 * @param    array $campaigns     Array of campaign objects.
 	 * @param    int   $product_id    Product ID (for logging).
-	 * @return   SCD_Campaign             Winning campaign.
+	 * @return   WSSCD_Campaign             Winning campaign.
 	 */
-	private function select_winning_campaign( array $campaigns, int $product_id ): SCD_Campaign {
+	private function select_winning_campaign( array $campaigns, int $product_id ): WSSCD_Campaign {
 		usort(
 			$campaigns,
 			function ( $a, $b ) {
@@ -467,10 +493,10 @@ class SCD_WC_Discount_Query_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   array                        Discount configuration array.
 	 */
-	private function build_discount_config( SCD_Campaign $campaign ): array {
+	private function build_discount_config( WSSCD_Campaign $campaign ): array {
 		$discount_type   = $campaign->get_discount_type();
 		$discount_config = array(
 			'type'  => $discount_type,
@@ -549,14 +575,14 @@ class SCD_WC_Discount_Query_Service {
 	 * @param    float        $original_price      Original price.
 	 * @param    array        $discount_config     Discount configuration.
 	 * @param    array        $discount_context    Discount context.
-	 * @param    SCD_Campaign $campaign            Campaign object (for logging).
+	 * @param    WSSCD_Campaign $campaign            Campaign object (for logging).
 	 * @return   object|null                           Discount result or null on error.
 	 */
 	private function calculate_discount(
 		float $original_price,
 		array $discount_config,
 		array $discount_context,
-		SCD_Campaign $campaign
+		WSSCD_Campaign $campaign
 	): ?object {
 		try {
 			$result = $this->discount_engine->calculate_discount(
@@ -593,11 +619,11 @@ class SCD_WC_Discount_Query_Service {
 	 * @since    1.0.0
 	 * @access   private
 	 * @param    array        $discount_config    Discount configuration.
-	 * @param    SCD_Campaign $campaign           Campaign object.
+	 * @param    WSSCD_Campaign $campaign           Campaign object.
 	 * @param    object       $result             Discount calculation result.
 	 * @return   array                               Formatted discount data.
 	 */
-	private function build_discount_data( array $discount_config, SCD_Campaign $campaign, object $result ): array {
+	private function build_discount_data( array $discount_config, WSSCD_Campaign $campaign, object $result ): array {
 		$discount_data = array(
 			'type'             => $discount_config['type'] ?? 'percentage',
 			'value'            => $discount_config['value'] ?? 0,
@@ -663,7 +689,10 @@ class SCD_WC_Discount_Query_Service {
 				'value'         => $discount_config['value'] ?? 0,
 				'campaign_id'   => $campaign->get_id(),
 				'campaign_name' => $campaign->get_name(),
+				// Badge enabled status
+				'badge_enabled'    => $campaign->is_badge_enabled(),
 				// Badge styling settings from campaign
+				'badge_text'       => $campaign->get_badge_text() ?: 'auto',
 				'badge_bg_color'   => $campaign->get_badge_bg_color() ?: '#ff0000',
 				'badge_text_color' => $campaign->get_badge_text_color() ?: '#ffffff',
 				'badge_position'   => $campaign->get_badge_position() ?: 'top-right',
@@ -677,7 +706,11 @@ class SCD_WC_Discount_Query_Service {
 					$badge_data['get_discount_percentage'] = $discount_config['get_discount_percentage'] ?? 100;
 					break;
 				case 'tiered':
-					$badge_data['tiers'] = $discount_config['tiers'] ?? array();
+					$badge_data['tiers']    = $discount_config['tiers'] ?? array();
+					$badge_data['apply_to'] = $discount_config['apply_to'] ?? 'per_item';
+					break;
+				case 'spend_threshold':
+					$badge_data['thresholds'] = $discount_config['thresholds'] ?? array();
 					break;
 			}
 

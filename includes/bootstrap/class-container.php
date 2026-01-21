@@ -34,7 +34,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Container {
+class WSSCD_Container {
 
 	/**
 	 * Service bindings registry.
@@ -113,9 +113,9 @@ class SCD_Container {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Container|null    $static_instance    Static container instance.
+	 * @var      WSSCD_Container|null    $static_instance    Static container instance.
 	 */
-	private static ?SCD_Container $static_instance = null;
+	private static ?WSSCD_Container $static_instance = null;
 
 	/**
 	 * Constructor - Initialize container with optional mock mode.
@@ -136,14 +136,14 @@ class SCD_Container {
 	 * Get the static container instance.
 	 *
 	 * @since    1.0.0
-	 * @return   SCD_Container    The container instance.
+	 * @return   WSSCD_Container    The container instance.
 	 * @throws   RuntimeException    If container not initialized.
 	 */
-	public static function get_instance(): SCD_Container {
+	public static function get_instance(): WSSCD_Container {
 		if ( null === self::$static_instance ) {
 			// Try to get from global if available
-			if ( isset( $GLOBALS['scd_container'] ) && $GLOBALS['scd_container'] instanceof SCD_Container ) {
-				self::$static_instance = $GLOBALS['scd_container'];
+			if ( isset( $GLOBALS['wsscd_container'] ) && $GLOBALS['wsscd_container'] instanceof WSSCD_Container ) {
+				self::$static_instance = $GLOBALS['wsscd_container'];
 				return self::$static_instance;
 			}
 
@@ -179,13 +179,14 @@ class SCD_Container {
 
 		$this->mock_services['nonce_manager'] = new class() {
 			public function verify( string $nonce, string $action ): bool {
+				$nonce = sanitize_text_field( $nonce );
 				return wp_verify_nonce( $nonce, $action ) !== false;
 			}
 			public function create( string $action ): string {
 				return wp_create_nonce( $action );
 			}
 			public function verify_request( array $request, string $nonce_key = 'nonce', ?string $action = null ): bool {
-				$nonce = $request[ $nonce_key ] ?? '';
+				$nonce = isset( $request[ $nonce_key ] ) ? sanitize_text_field( $request[ $nonce_key ] ) : '';
 				if ( empty( $nonce ) ) {
 					return false;
 				}
@@ -213,7 +214,7 @@ class SCD_Container {
 	 * @param    bool   $singleton    Whether service is singleton.
 	 * @return   void
 	 */
-	public function bind( string $abstract, mixed $concrete = null, bool $singleton = false ): void {
+	public function bind( string $abstract, $concrete = null, bool $singleton = false ): void {
 		$this->drop_stale_instances( $abstract );
 
 		if ( is_null( $concrete ) ) {
@@ -235,7 +236,7 @@ class SCD_Container {
 	 * @param    mixed  $concrete    Service implementation.
 	 * @return   void
 	 */
-	public function singleton( string $abstract, mixed $concrete = null ): void {
+	public function singleton( string $abstract, $concrete = null ): void {
 		$this->bind( $abstract, $concrete, true );
 	}
 
@@ -247,7 +248,7 @@ class SCD_Container {
 	 * @param    mixed  $instance    Service instance.
 	 * @return   mixed                  The registered instance.
 	 */
-	public function instance( string $abstract, mixed $instance ): mixed {
+	public function instance( string $abstract, $instance ) {
 		$this->remove_abstract_alias( $abstract );
 
 		$is_bound = $this->bound( $abstract );
@@ -288,7 +289,7 @@ class SCD_Container {
 	 * @return   mixed            Service instance.
 	 * @throws   Exception        If service cannot be resolved.
 	 */
-	public function get( string $id ): mixed {
+	public function get( string $id ) {
 		if ( isset( $this->mock_services[ $id ] ) ) {
 			return $this->mock_services[ $id ];
 		}
@@ -301,7 +302,8 @@ class SCD_Container {
 				throw $e;
 			}
 
-			throw new Exception( "Service '{$id}' not found in container." );
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+			throw new Exception( "Service '" . esc_html( $id ) . "' not found in container." );
 		}
 	}
 
@@ -325,11 +327,12 @@ class SCD_Container {
 	 * @return   mixed                    Service instance.
 	 * @throws   Exception                If circular dependency detected.
 	 */
-	public function resolve( string $abstract, array $parameters = array() ): mixed {
+	public function resolve( string $abstract, array $parameters = array() ) {
 		$abstract = $this->get_alias( $abstract );
 
 		if ( isset( $this->building[ $abstract ] ) ) {
-			throw new Exception( "Circular dependency detected while resolving '{$abstract}'." );
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+			throw new Exception( "Circular dependency detected while resolving '" . esc_html( $abstract ) . "'." );
 		}
 
 		if ( isset( $this->instances[ $abstract ] ) && empty( $parameters ) ) {
@@ -374,7 +377,7 @@ class SCD_Container {
 	 * @return   mixed                   Service instance.
 	 * @throws   Exception               If service cannot be built.
 	 */
-	public function build( mixed $concrete, array $parameters = array() ): mixed {
+	public function build( $concrete, array $parameters = array() ) {
 		if ( $concrete instanceof Closure ) {
 			return $concrete( $this, $parameters );
 		}
@@ -382,11 +385,13 @@ class SCD_Container {
 		try {
 			$reflector = new ReflectionClass( $concrete );
 		} catch ( ReflectionException $e ) {
-			throw new Exception( "Target class [{$concrete}] does not exist.", 0, $e );
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+			throw new Exception( "Target class [" . esc_html( $concrete ) . "] does not exist.", 0, $e );
 		}
 
 		if ( ! $reflector->isInstantiable() ) {
-			throw new Exception( "Target [{$concrete}] is not instantiable." );
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+			throw new Exception( "Target [" . esc_html( $concrete ) . "] is not instantiable." );
 		}
 
 		$constructor = $reflector->getConstructor();
@@ -442,7 +447,7 @@ class SCD_Container {
 	 * @return   mixed                               Resolved dependency.
 	 * @throws   Exception                           If dependency cannot be resolved.
 	 */
-	protected function resolve_class( ReflectionParameter $parameter ): mixed {
+	protected function resolve_class( ReflectionParameter $parameter ) {
 		try {
 			return $this->resolve( $this->get_parameter_class_name( $parameter ) );
 		} catch ( Exception $e ) {
@@ -462,12 +467,13 @@ class SCD_Container {
 	 * @return   mixed                               Resolved primitive.
 	 * @throws   Exception                           If primitive cannot be resolved.
 	 */
-	protected function resolve_primitive( ReflectionParameter $parameter ): mixed {
+	protected function resolve_primitive( ReflectionParameter $parameter ) {
 		if ( $parameter->isDefaultValueAvailable() ) {
 			return $parameter->getDefaultValue();
 		}
 
-		throw new Exception( "Unresolvable dependency resolving [{$parameter}] in class {$parameter->getDeclaringClass()->getName()}" );
+		// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+		throw new Exception( "Unresolvable dependency resolving [" . esc_html( (string) $parameter ) . "] in class " . esc_html( $parameter->getDeclaringClass()->getName() ) );
 	}
 
 	/**
@@ -506,7 +512,7 @@ class SCD_Container {
 	 * @param    string $abstract    Service identifier.
 	 * @return   mixed                  Concrete implementation.
 	 */
-	protected function get_concrete( string $abstract ): mixed {
+	protected function get_concrete( string $abstract ) {
 		if ( isset( $this->bindings[ $abstract ] ) ) {
 			return $this->bindings[ $abstract ]['concrete'];
 		}
@@ -522,7 +528,7 @@ class SCD_Container {
 	 * @param    mixed  $concrete    Service implementation.
 	 * @return   Closure                Service closure.
 	 */
-	protected function get_closure( string $abstract, mixed $concrete ): Closure {
+	protected function get_closure( string $abstract, $concrete ): Closure {
 		return function ( $container, $parameters = array() ) use ( $abstract, $concrete ) {
 			if ( $abstract === $concrete ) {
 				return $container->build( $concrete, $parameters );
@@ -540,7 +546,7 @@ class SCD_Container {
 	 * @param    string $abstract    Service identifier.
 	 * @return   bool                   True if buildable.
 	 */
-	protected function is_buildable( mixed $concrete, string $abstract ): bool {
+	protected function is_buildable( $concrete, string $abstract ): bool {
 		return $concrete === $abstract || $concrete instanceof Closure;
 	}
 
@@ -606,7 +612,8 @@ class SCD_Container {
 	 */
 	public function alias( string $abstract, string $alias ): void {
 		if ( $alias === $abstract ) {
-			throw new Exception( "[{$abstract}] is aliased to itself." );
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+			throw new Exception( "[" . esc_html( $abstract ) . "] is aliased to itself." );
 		}
 
 		$this->aliases[ $alias ] = $abstract;
@@ -620,7 +627,7 @@ class SCD_Container {
 	 * @param    array        $tags         Tags to apply.
 	 * @return   void
 	 */
-	public function tag( array|string $abstracts, ...$tags ): void {
+	public function tag( $abstracts, ...$tags ): void {
 
 		foreach ( $tags as $tag ) {
 			if ( ! isset( $this->tags[ $tag ] ) ) {
@@ -690,7 +697,7 @@ class SCD_Container {
 	 * @param    mixed  $object      Service instance.
 	 * @return   void
 	 */
-	protected function fire_resolving_callbacks( string $abstract, mixed $object ): void {
+	protected function fire_resolving_callbacks( string $abstract, $object ): void {
 		// Placeholder for resolving callbacks
 		// Can be extended to support before/after resolving events
 	}

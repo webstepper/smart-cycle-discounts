@@ -13,19 +13,19 @@
 ( function() {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	SCD.Utils = SCD.Utils || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Utils = WSSCD.Utils || {};
 
 	/**
 	 * Module registration utility
 	 *
 	 * Safely creates namespace hierarchy and registers modules
 	 *
-	 * @param {string} namespace - Full namespace path (e.g., 'SCD.Modules.Products')
+	 * @param {string} namespace - Full namespace path (e.g., 'WSSCD.Modules.Products')
 	 * @param {string} name - Module name
 	 * @param {Function | object} implementation - Module implementation
 	 */
-	SCD.Utils.registerModule = function( namespace, name, implementation ) {
+	WSSCD.Utils.registerModule = function( namespace, name, implementation ) {
 		var parts = namespace.split( '.' );
 		var current = window;
 		var i;
@@ -41,8 +41,8 @@
 		current[name] = implementation;
 
 		// Auto-register with ModuleLoader if available
-		if ( window.SCD && window.SCD.ModuleLoader && window.SCD.ModuleLoader.modules ) {
-			SCD.ModuleLoader.modules[namespace + '.' + name] = true;
+		if ( window.WSSCD && window.WSSCD.ModuleLoader && window.WSSCD.ModuleLoader.modules ) {
+			WSSCD.ModuleLoader.modules[namespace + '.' + name] = true;
 		}
 	};
 
@@ -58,13 +58,13 @@
 	 * @param {string} moduleName - Module name for error reporting
 	 * @returns {object | boolean} Module instance or initialization status
 	 */
-	SCD.Utils.ensureInitialized = function( pathOrContext, factoryOrDeps, moduleName ) {
+	WSSCD.Utils.ensureInitialized = function( pathOrContext, factoryOrDeps, moduleName ) {
 		// Overload 1: Module creation (path, factory)
 		if ( 'string' === typeof pathOrContext && 'function' === typeof factoryOrDeps ) {
 			var modulePath = pathOrContext;
 			var factory = factoryOrDeps;
 
-			var ModuleConstructor = SCD.Utils.get( window, modulePath );
+			var ModuleConstructor = WSSCD.Utils.get( window, modulePath );
 
 			if ( 'function' === typeof ModuleConstructor ) {
 				// Module exists, create instance
@@ -86,13 +86,13 @@
 			var key;
 			for ( key in dependencies ) {
 				if ( Object.prototype.hasOwnProperty.call( dependencies, key ) && !dependencies[key] ) {
-					if ( SCD.ErrorHandler ) {
-						SCD.ErrorHandler.handle(
+					if ( WSSCD.ErrorHandler ) {
+						WSSCD.ErrorHandler.handle(
 							new Error( 'Missing dependency: ' + key ),
 							moduleName || 'Unknown Module'
 						);
 					} else {
-						console.error( '[' + ( moduleName || 'SCD' ) + '] Missing dependency: ' + key );
+						console.error( '[' + ( moduleName || 'WSSCD' ) + '] Missing dependency: ' + key );
 					}
 					return false;
 				}
@@ -114,7 +114,7 @@
 	 * @param {*} defaultValue - Default value if property doesn't exist
 	 * @returns {*} Property value or default
 	 */
-	SCD.Utils.get = function( obj, path, defaultValue ) {
+	WSSCD.Utils.get = function( obj, path, defaultValue ) {
 		if ( !obj || 'string' !== typeof path ) {
 			return defaultValue;
 		}
@@ -133,7 +133,7 @@
 		return current;
 	};
 
-	// Debounce function removed - use SCD.Utils.debounce from utils.js instead
+	// Debounce function removed - use WSSCD.Utils.debounce from utils.js instead
 
 	/**
 	 * Extend objects (WordPress-compatible alternative to $.extend)
@@ -145,7 +145,7 @@
 	 * @param {...object} sources - Source object(s) to merge
 	 * @returns {object} Extended object
 	 */
-	SCD.Utils.extend = function( target ) {
+	WSSCD.Utils.extend = function( target ) {
 		var sources = Array.prototype.slice.call( arguments, 1 );
 		var source, key, i;
 
@@ -163,6 +163,6 @@
 		return target;
 	};
 
-	// isEmpty function removed - use SCD.Utils.isEmpty from utils.js instead
+	// isEmpty function removed - use WSSCD.Utils.isEmpty from utils.js instead
 
 } )();

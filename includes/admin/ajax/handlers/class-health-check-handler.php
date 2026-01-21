@@ -26,13 +26,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Health_Check_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Health_Check_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger    Logger instance (optional).
+	 * @param    WSSCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -45,7 +45,7 @@ class SCD_Health_Check_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_health_check';
+		return 'wsscd_health_check';
 	}
 
 	/**
@@ -161,7 +161,7 @@ class SCD_Health_Check_Handler extends SCD_Abstract_Ajax_Handler {
 		$results[] = array(
 			'test'    => 'Plugin Version',
 			'status'  => 'pass',
-			'message' => SCD_VERSION,
+			'message' => WSSCD_VERSION,
 		);
 
 		// Log health check results
@@ -176,7 +176,7 @@ class SCD_Health_Check_Handler extends SCD_Abstract_Ajax_Handler {
 				'php_version'     => $php_version,
 				'wp_version'      => $wp_version,
 				'wc_version'      => $wc_version,
-				'plugin_version'  => SCD_VERSION,
+				'plugin_version'  => WSSCD_VERSION,
 				'_start_time'     => $start_time,
 				'_include_memory' => true,
 			)
@@ -200,6 +200,7 @@ class SCD_Health_Check_Handler extends SCD_Abstract_Ajax_Handler {
 		global $wpdb;
 
 		try {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Database connectivity test; caching defeats purpose.
 			$result    = $wpdb->get_var( 'SELECT 1' );
 			$connected = '1' === $result;
 
@@ -242,14 +243,15 @@ class SCD_Health_Check_Handler extends SCD_Abstract_Ajax_Handler {
 		global $wpdb;
 
 		$required_tables = array(
-			'scd_campaigns',
-			'scd_campaign_conditions',
-			'scd_active_discounts',
+			'wsscd_campaigns',
+			'wsscd_campaign_conditions',
+			'wsscd_active_discounts',
 		);
 
 		$missing_tables = array();
 		foreach ( $required_tables as $table ) {
 			$full_table = $wpdb->prefix . $table;
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- SHOW TABLES has no WP abstraction; ephemeral check.
 			$exists     = $wpdb->get_var(
 				$wpdb->prepare( 'SHOW TABLES LIKE %s', $full_table )
 			);
@@ -333,6 +335,7 @@ class SCD_Health_Check_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable -- Simple permission check for log directory.
 		if ( is_writable( $log_dir ) ) {
 			return array(
 				'status'  => 'pass',

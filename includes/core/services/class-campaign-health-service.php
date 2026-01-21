@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/services
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Campaign_Health_Service {
+class WSSCD_Campaign_Health_Service {
 
 	/**
 	 * Health Score Thresholds
@@ -109,7 +109,7 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
 	private $logger;
 
@@ -118,7 +118,7 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Recurring_Handler    $recurring_handler    Recurring handler instance.
+	 * @var      WSSCD_Recurring_Handler    $recurring_handler    Recurring handler instance.
 	 */
 	private $recurring_handler;
 
@@ -126,8 +126,8 @@ class SCD_Campaign_Health_Service {
 	 * Initialize the service.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger             $logger              Logger instance.
-	 * @param    SCD_Recurring_Handler  $recurring_handler   Recurring handler instance.
+	 * @param    WSSCD_Logger             $logger              Logger instance.
+	 * @param    WSSCD_Recurring_Handler  $recurring_handler   Recurring handler instance.
 	 */
 	public function __construct( $logger, $recurring_handler ) {
 		$this->logger            = $logger;
@@ -249,7 +249,7 @@ class SCD_Campaign_Health_Service {
 	 * wizard scores due to real-world factors that develop after campaign creation.
 	 *
 	 * @since    1.0.0
-	 * @param    mixed  $campaign      Campaign data (array from DB or SCD_Campaign object).
+	 * @param    mixed  $campaign      Campaign data (array from DB or WSSCD_Campaign object).
 	 * @param    string $mode          Analysis mode: 'quick', 'standard', 'comprehensive'.
 	 * @param    array  $context       Additional context (coverage_data, conflicts_data, view_context).
 	 * @return   array                    Health analysis results.
@@ -327,12 +327,12 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    mixed $campaign    Campaign data (array or SCD_Campaign object).
+	 * @param    mixed $campaign    Campaign data (array or WSSCD_Campaign object).
 	 * @return   array                 Normalized campaign data array.
 	 */
 	private function normalize_campaign_data( $campaign ) {
 		if ( is_object( $campaign ) && method_exists( $campaign, 'get_id' ) ) {
-			// SCD_Campaign object
+			// WSSCD_Campaign object
 			return array(
 				'id'                     => $campaign->get_id(),
 				'name'                   => $campaign->get_name(),
@@ -518,7 +518,7 @@ class SCD_Campaign_Health_Service {
 			);
 		}
 
-		if ( 'random' === $selection_type ) {
+		if ( WSSCD_Campaign::SELECTION_TYPE_RANDOM_PRODUCTS === $selection_type ) {
 			$random_count = isset( $campaign['random_count'] ) ? intval( $campaign['random_count'] ) : 0;
 			if ( $random_count > 0 ) {
 				// IMPROVED: Safe error handling for wp_count_posts
@@ -553,13 +553,26 @@ class SCD_Campaign_Health_Service {
 			}
 
 			if ( ! empty( $category_ids ) ) {
-				$args        = array(
-					'status'   => 'publish',
-					'limit'    => self::PRODUCT_CHECK_LIMIT,
-					'category' => $category_ids,
-					'return'   => 'ids',
+				// Convert category IDs to slugs (wc_get_products 'category' param expects slugs, not IDs)
+				$terms = get_terms(
+					array(
+						'taxonomy'   => 'product_cat',
+						'include'    => array_map( 'intval', $category_ids ),
+						'hide_empty' => false,
+						'fields'     => 'id=>slug',
+					)
 				);
-				$product_ids = wc_get_products( $args );
+
+				if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+					$category_slugs = array_values( $terms );
+					$args           = array(
+						'status'   => 'publish',
+						'limit'    => self::PRODUCT_CHECK_LIMIT,
+						'category' => $category_slugs,
+						'return'   => 'ids',
+					);
+					$product_ids    = wc_get_products( $args );
+				}
 			}
 		}
 
@@ -746,96 +759,59 @@ class SCD_Campaign_Health_Service {
 			}
 		}
 
-		// POST-CREATION ISSUE: Check category/tag selection expansion or emptiness
-		if ( 'categories' === $selection_type || 'tags' === $selection_type ) {
-			$selected_ids = array();
+		// POST-CREATION ISSUE: Check category filter expansion or emptiness
+		// Category filter applies to ALL selection types (categories are a FILTER, not selection type)
+		$category_ids = isset( $campaign['selected_category_ids'] ) ? $campaign['selected_category_ids'] : ( isset( $campaign['category_ids'] ) ? $campaign['category_ids'] : array() );
 
-			if ( 'categories' === $selection_type ) {
-				$selected_ids = isset( $campaign['selected_category_ids'] ) ? $campaign['selected_category_ids'] : ( isset( $campaign['category_ids'] ) ? $campaign['category_ids'] : array() );
-			} else {
-				$selected_ids = isset( $campaign['selected_tag_ids'] ) ? $campaign['selected_tag_ids'] : ( isset( $campaign['tag_ids'] ) ? $campaign['tag_ids'] : array() );
+		// Handle serialized data
+		if ( is_string( $category_ids ) ) {
+			$category_ids = maybe_unserialize( $category_ids );
+		}
+		if ( ! is_array( $category_ids ) ) {
+			$category_ids = array();
+		}
+
+		// Filter valid numeric IDs only
+		$category_ids = array_filter(
+			$category_ids,
+			function ( $id ) {
+				return is_numeric( $id ) && intval( $id ) > 0;
 			}
+		);
 
-			// Handle serialized data
-			if ( is_string( $selected_ids ) ) {
-				$selected_ids = maybe_unserialize( $selected_ids );
-			}
-			if ( ! is_array( $selected_ids ) ) {
-				$selected_ids = array();
-			}
+		if ( ! empty( $category_ids ) ) {
+			// Use chunked loading to avoid memory exhaustion
+			$current_products = array();
+			$page             = 1;
+			$per_page         = self::PAGINATION_PER_PAGE;
 
-			if ( ! empty( $selected_ids ) ) {
-				// Use chunked loading to avoid memory exhaustion
-				$current_products = array();
-				$page             = 1;
-				$per_page         = self::PAGINATION_PER_PAGE;
+			if ( function_exists( 'wc_get_products' ) ) {
+				// Convert category IDs to slugs (wc_get_products 'category' param expects slugs, not IDs)
+				$category_slugs = array();
+				$terms          = get_terms(
+					array(
+						'taxonomy'   => 'product_cat',
+						'include'    => array_map( 'intval', $category_ids ),
+						'hide_empty' => false,
+						'fields'     => 'id=>slug',
+					)
+				);
+				if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+					$category_slugs = array_values( $terms );
+				}
 
-				if ( function_exists( 'wc_get_products' ) ) {
-					// Use WooCommerce API with chunking
+				// If valid slugs found, use WooCommerce API with chunking
+				if ( ! empty( $category_slugs ) ) {
 					while ( true ) {
-						if ( 'categories' === $selection_type ) {
-							$batch = wc_get_products(
-								array(
-									'limit'    => $per_page,
-									'page'     => $page,
-									'status'   => 'publish',
-									'category' => $selected_ids,
-									'return'   => 'ids',
-								)
-							);
-						} else {
-							$batch = wc_get_products(
-								array(
-									'limit'  => $per_page,
-									'page'   => $page,
-									'status' => 'publish',
-									'tag'    => $selected_ids,
-									'return' => 'ids',
-								)
-							);
-						}
-
-						if ( empty( $batch ) ) {
-							break;
-						}
-
-						$current_products = array_merge( $current_products, $batch );
-						$page++;
-
-						if ( $page > self::PAGINATION_MAX_PAGES ) {
-							break; // Safety limit
-						}
-					}
-				} else {
-					// Fallback with chunking
-					while ( true ) {
-						$args = array(
-							'post_type'      => 'product',
-							'post_status'    => 'publish',
-							'posts_per_page' => $per_page,
-							'fields'         => 'ids',
-							'paged'          => $page,
+						$batch = wc_get_products(
+							array(
+								'limit'    => $per_page,
+								'page'     => $page,
+								'status'   => 'publish',
+								'category' => $category_slugs,
+								'return'   => 'ids',
+							)
 						);
-
-						if ( 'categories' === $selection_type ) {
-							$args['tax_query'] = array(
-								array(
-									'taxonomy' => 'product_cat',
-									'field'    => 'term_id',
-									'terms'    => $selected_ids,
-								),
-							);
-						} else {
-							$args['tax_query'] = array(
-								array(
-									'taxonomy' => 'product_tag',
-									'field'    => 'term_id',
-									'terms'    => $selected_ids,
-								),
-							);
-						}
-
-						$batch = get_posts( $args );
 
 						if ( empty( $batch ) ) {
 							break;
@@ -849,40 +825,70 @@ class SCD_Campaign_Health_Service {
 						}
 					}
 				}
+			}
 
-				$current_count = count( $current_products );
+			// Fallback: use get_posts with tax_query if WC API unavailable or no slugs found
+			if ( empty( $current_products ) ) {
+				// Reset pagination for fallback
+				$page = 1;
+				// Fallback with chunking
+				while ( true ) {
+					$args = array(
+						'post_type'      => 'product',
+						'post_status'    => 'publish',
+						'posts_per_page' => $per_page,
+						'fields'         => 'ids',
+						'paged'          => $page,
+						// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Required for category-based product filtering.
+						'tax_query'      => array(
+							array(
+								'taxonomy' => 'product_cat',
+								'field'    => 'term_id',
+								'terms'    => array_map( 'intval', $category_ids ),
+							),
+						),
+					);
 
-				// Critical: Selection resulted in zero products
-				if ( 0 === $current_count ) {
-					$taxonomy_label              = ( 'categories' === $selection_type ) ? __( 'categories', 'smart-cycle-discounts' ) : __( 'tags', 'smart-cycle-discounts' );
-					$health['critical_issues'][] = array(
-						'code'     => 'taxonomy_selection_empty',
-						'message'  => sprintf(
-							/* translators: %s: taxonomy label (categories/tags) */
-							__( 'Selected %s contain 0 published products', 'smart-cycle-discounts' ),
-							$taxonomy_label
-						),
-						'category' => 'products',
-					);
-					$penalty += self::PENALTY_CRITICAL_SEVERE;
-					$status                      = 'critical';
-				} elseif ( $current_count > 500 ) {
-					// Warning: Selection expanded to too many products
-					$taxonomy_label       = ( 'categories' === $selection_type ) ? __( 'category', 'smart-cycle-discounts' ) : __( 'tag', 'smart-cycle-discounts' );
-					$health['warnings'][] = array(
-						'code'     => 'taxonomy_selection_too_broad',
-						'message'  => sprintf(
-							/* translators: 1: taxonomy label, 2: product count */
-							__( '%1$s selection now includes %2$d products (may impact performance)', 'smart-cycle-discounts' ),
-							ucfirst( $taxonomy_label ),
-							$current_count
-						),
-						'category' => 'products',
-					);
-					$penalty += self::PENALTY_MEDIUM_HIGH;
-					if ( 'critical' !== $status ) {
-						$status = 'warning';
+					$batch = get_posts( $args );
+
+					if ( empty( $batch ) ) {
+						break;
 					}
+
+					$current_products = array_merge( $current_products, $batch );
+					$page++;
+
+					if ( $page > self::PAGINATION_MAX_PAGES ) {
+						break; // Safety limit
+					}
+				}
+			}
+
+			$current_count = count( $current_products );
+
+			// Critical: Category filter resulted in zero products
+			if ( 0 === $current_count ) {
+				$health['critical_issues'][] = array(
+					'code'     => 'category_filter_empty',
+					'message'  => __( 'Selected category filter contains 0 published products', 'smart-cycle-discounts' ),
+					'category' => 'products',
+				);
+				$penalty += self::PENALTY_CRITICAL_SEVERE;
+				$status                      = 'critical';
+			} elseif ( $current_count > 500 ) {
+				// Warning: Category filter includes too many products
+				$health['warnings'][] = array(
+					'code'     => 'category_filter_too_broad',
+					'message'  => sprintf(
+						/* translators: %d: product count */
+						__( 'Category filter includes %d products (may impact performance)', 'smart-cycle-discounts' ),
+						$current_count
+					),
+					'category' => 'products',
+				);
+				$penalty += self::PENALTY_MEDIUM_HIGH;
+				if ( 'critical' !== $status ) {
+					$status = 'warning';
 				}
 			}
 		}
@@ -915,7 +921,7 @@ class SCD_Campaign_Health_Service {
 	 * REVIEW CONTEXT: Wizard already validates schedule, no additional checks needed
 	 *
 	 * TIMEZONE HANDLING:
-	 * Uses current_time('timestamp') and scd_combine_date_time() which respect WordPress timezone settings.
+	 * Uses current_time('timestamp') and wsscd_combine_date_time() which respect WordPress timezone settings.
 	 *
 	 * @since    1.0.0
 	 * @access   private
@@ -937,13 +943,13 @@ class SCD_Campaign_Health_Service {
 
 		// REMOVED: "Campaign expired but still active" check
 		// Reason: This is IMPOSSIBLE due to wizard validation (prevents past end dates)
-		// and the scd_update_campaign_status cron job automatically expires campaigns.
+		// and the wsscd_update_campaign_status cron job automatically expires campaigns.
 		// If this state occurs, it's a SYSTEM issue (cron not running), not a campaign health issue.
 		// Users cannot fix this - it requires checking WordPress cron health.
 		//
 		// KEPT: "Ending soon" warning - this is useful information for planning
 		if ( 'active' === $campaign_status && ! empty( $end_date ) ) {
-			$end_dt        = scd_combine_date_time( $end_date, $end_time_only, wp_timezone_string() );
+			$end_dt        = wsscd_combine_date_time( $end_date, $end_time_only, wp_timezone_string() );
 			$end_timestamp = $end_dt ? $end_dt->getTimestamp() : false;
 
 			// Informational warning: Campaign ending within 3 days
@@ -969,11 +975,11 @@ class SCD_Campaign_Health_Service {
 		// Reason: This is EXPECTED behavior - scheduled campaigns automatically
 		// transition to 'active' status via cron when their start date arrives.
 		// Showing this as a warning is illogical and confusing to users.
-		// The scd_update_campaign_status cron job handles this transition automatically.
+		// The wsscd_update_campaign_status cron job handles this transition automatically.
 
 		// POST-CREATION ISSUE: No activity warning (dashboard only)
 		if ( 'dashboard' === $view_context && 'active' === $campaign_status && ! empty( $start_date ) ) {
-			$start_dt        = scd_combine_date_time( $start_date, $start_time_only, wp_timezone_string() );
+			$start_dt        = wsscd_combine_date_time( $start_date, $start_time_only, wp_timezone_string() );
 			$start_timestamp = $start_dt ? $start_dt->getTimestamp() : false;
 
 			if ( $start_timestamp && $start_timestamp < ( $now - ( 7 * DAY_IN_SECONDS ) ) ) {
@@ -1591,8 +1597,8 @@ class SCD_Campaign_Health_Service {
 	 */
 	private function check_cross_step_validation( $campaign, $health, $view_context ) {
 		// Load the cross-validator
-		if ( ! class_exists( 'SCD_Campaign_Cross_Validator' ) ) {
-			require_once SCD_INCLUDES_DIR . 'core/validation/class-campaign-cross-validator.php';
+		if ( ! class_exists( 'WSSCD_Campaign_Cross_Validator' ) ) {
+			require_once WSSCD_INCLUDES_DIR . 'core/validation/class-campaign-cross-validator.php';
 		}
 
 		// DOUBLE-COUNTING PREVENTION: Track which issues have already been penalized
@@ -1612,7 +1618,7 @@ class SCD_Campaign_Health_Service {
 		$errors = new WP_Error();
 
 		// Run cross-step validation
-		SCD_Campaign_Cross_Validator::validate( $campaign, $errors );
+		WSSCD_Campaign_Cross_Validator::validate( $campaign, $errors );
 
 		// Convert WP_Error to health issues
 		if ( $errors->has_errors() ) {
@@ -1753,7 +1759,7 @@ class SCD_Campaign_Health_Service {
 				),
 				'category' => 'stock',
 			);
-			$penalty             += self::PENALTY_HIGH_ISSUE;
+			$penalty             += self::PENALTY_HIGH;
 			$status               = 'warning';
 		}
 
@@ -1767,7 +1773,7 @@ class SCD_Campaign_Health_Service {
 				),
 				'category' => 'stock',
 			);
-			$penalty         += self::PENALTY_MEDIUM_ISSUE;
+			$penalty         += self::PENALTY_MEDIUM;
 		}
 
 		// Track breakdown
@@ -1820,11 +1826,12 @@ class SCD_Campaign_Health_Service {
 			}
 
 			global $wpdb;
-			$table_name     = $wpdb->prefix . 'scd_campaigns';
+			$table_name     = $wpdb->prefix . 'wsscd_campaigns';
 			$campaign_id    = $campaign['id'];
 			$priority       = intval( $campaign['priority'] );
 			$selection_type = isset( $campaign['product_selection_type'] ) ? $campaign['product_selection_type'] : '';
 
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Conflict detection query; results are cached at higher level. Table name is constructed with $wpdb->prefix, not user input.
 			$other_campaigns = $wpdb->get_results(
 				$wpdb->prepare(
 					"SELECT id, name, priority, product_selection_type, product_ids, category_ids, tag_ids, starts_at, ends_at
@@ -1836,6 +1843,7 @@ class SCD_Campaign_Health_Service {
 				),
 				ARRAY_A
 			);
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
 			// Normalize field names for compatibility with health check code
 			foreach ( $other_campaigns as &$other_campaign ) {
@@ -1966,9 +1974,27 @@ class SCD_Campaign_Health_Service {
 	 * @return   bool                        True if campaigns overlap.
 	 */
 	private function check_product_overlap( $campaign1, $campaign2, $type1, $type2 ) {
-		// If either campaign targets all products, they overlap
-		if ( 'all_products' === $type1 || 'all_products' === $type2 ) {
-			return true;
+		// Handle pool-based selections - must check category filters!
+		// Pool-based with category filter = products in those categories
+		// Pool-based without category filter = all products in the store
+		if ( WSSCD_Campaign::is_pool_based_selection( $type1 ) || WSSCD_Campaign::is_pool_based_selection( $type2 ) ) {
+			$cats1 = $this->get_campaign_category_ids( $campaign1 );
+			$cats2 = $this->get_campaign_category_ids( $campaign2 );
+
+			// Both have no category filter = entire store, definitely overlap
+			if ( empty( $cats1 ) && empty( $cats2 ) ) {
+				return true;
+			}
+
+			// One has no filter (entire store), other has filter = overlap
+			// (products in any category are a subset of all products)
+			if ( empty( $cats1 ) || empty( $cats2 ) ) {
+				return true;
+			}
+
+			// Both have category filters - check for category intersection
+			$cat_intersection = array_intersect( $cats1, $cats2 );
+			return ! empty( $cat_intersection );
 		}
 
 		// Both specific products - check for intersection
@@ -1995,57 +2021,48 @@ class SCD_Campaign_Health_Service {
 			return ! empty( $intersection );
 		}
 
-		// Both categories - check for intersection
-		if ( 'categories' === $type1 && 'categories' === $type2 ) {
-			$cats1 = isset( $campaign1['selected_category_ids'] ) ? $campaign1['selected_category_ids'] : ( isset( $campaign1['category_ids'] ) ? $campaign1['category_ids'] : array() );
-			$cats2 = isset( $campaign2['selected_category_ids'] ) ? $campaign2['selected_category_ids'] : ( isset( $campaign2['category_ids'] ) ? $campaign2['category_ids'] : array() );
+		// Note: 'categories' and 'tags' are NOT selection types in the current model.
+		// They are FILTERS applied to pool-based selections.
+		// The pool-based check above handles category filtering correctly.
 
-			// Handle serialized data
-			if ( is_string( $cats1 ) ) {
-				$cats1 = maybe_unserialize( $cats1 );
-			}
-			if ( is_string( $cats2 ) ) {
-				$cats2 = maybe_unserialize( $cats2 );
-			}
-
-			if ( ! is_array( $cats1 ) ) {
-				$cats1 = array();
-			}
-			if ( ! is_array( $cats2 ) ) {
-				$cats2 = array();
-			}
-
-			$intersection = array_intersect( $cats1, $cats2 );
-			return ! empty( $intersection );
-		}
-
-		// Both tags - check for intersection
-		if ( 'tags' === $type1 && 'tags' === $type2 ) {
-			$tags1 = isset( $campaign1['selected_tag_ids'] ) ? $campaign1['selected_tag_ids'] : ( isset( $campaign1['tag_ids'] ) ? $campaign1['tag_ids'] : array() );
-			$tags2 = isset( $campaign2['selected_tag_ids'] ) ? $campaign2['selected_tag_ids'] : ( isset( $campaign2['tag_ids'] ) ? $campaign2['tag_ids'] : array() );
-
-			// Handle serialized data
-			if ( is_string( $tags1 ) ) {
-				$tags1 = maybe_unserialize( $tags1 );
-			}
-			if ( is_string( $tags2 ) ) {
-				$tags2 = maybe_unserialize( $tags2 );
-			}
-
-			if ( ! is_array( $tags1 ) ) {
-				$tags1 = array();
-			}
-			if ( ! is_array( $tags2 ) ) {
-				$tags2 = array();
-			}
-
-			$intersection = array_intersect( $tags1, $tags2 );
-			return ! empty( $intersection );
-		}
-
-		// Different selection types - would need product expansion to determine overlap
-		// For now, assume no overlap (conservative approach)
+		// Mixed selection types or unknown - assume no overlap (conservative approach)
 		return false;
+	}
+
+	/**
+	 * Get category IDs from campaign data.
+	 *
+	 * Extracts and normalizes category IDs from various campaign data formats.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $campaign    Campaign data array.
+	 * @return   array                 Array of category IDs (integers).
+	 */
+	private function get_campaign_category_ids( $campaign ) {
+		// Try different field names used in different contexts
+		$cats = isset( $campaign['category_ids'] ) ? $campaign['category_ids'] : ( isset( $campaign['selected_category_ids'] ) ? $campaign['selected_category_ids'] : array() );
+
+		// Handle JSON-encoded data from database
+		if ( is_string( $cats ) ) {
+			$decoded = json_decode( $cats, true );
+			if ( is_array( $decoded ) ) {
+				$cats = $decoded;
+			} else {
+				$cats = maybe_unserialize( $cats );
+			}
+		}
+
+		if ( ! is_array( $cats ) ) {
+			return array();
+		}
+
+		// Filter out 'all' marker and empty values, convert to integers
+		$cats = array_filter( $cats, function( $id ) {
+			return 'all' !== $id && '' !== $id && null !== $id;
+		} );
+
+		return array_map( 'intval', $cats );
 	}
 
 	/**
@@ -2087,7 +2104,8 @@ class SCD_Campaign_Health_Service {
 		} catch ( Exception $e ) {
 			// If date parsing fails, assume no overlap
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'SCD Date overlap check error: ' . $e->getMessage() );
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
+				error_log( 'WSSCD Date overlap check error: ' . $e->getMessage() );
 			}
 			return false;
 		}
@@ -2138,11 +2156,15 @@ class SCD_Campaign_Health_Service {
 		}
 
 		// No end date recommendation
+		// NOTE: Priority is 'medium' not 'high' because:
+		// 1. Indefinite campaigns are a valid choice (evergreen promotions, loyalty programs)
+		// 2. This is a best practice suggestion, not a requirement
+		// 3. Consistent with other similar recommendations (usage limits, badges, min order)
 		if ( empty( $campaign['end_date'] ) ) {
 			$recommendations[] = array(
 				'category' => 'timing',
-				'priority' => 'high',
-				'message'  => __( 'Set a 7-14 day duration - limited-time offers create urgency', 'smart-cycle-discounts' ),
+				'priority' => 'medium',
+				'message'  => __( 'Consider a 7-14 day duration - limited-time offers create urgency', 'smart-cycle-discounts' ),
 			);
 		}
 
@@ -2203,7 +2225,7 @@ class SCD_Campaign_Health_Service {
 		if ( ! empty( $campaign['start_date'] ) ) {
 			$start_timestamp = strtotime( $campaign['start_date'] );
 			if ( $start_timestamp ) {
-				$day_of_week = date( 'N', $start_timestamp );
+				$day_of_week = gmdate( 'N', $start_timestamp );
 				// Monday = 1, Sunday = 7
 				if ( $day_of_week >= 5 ) {
 					// Friday, Saturday, Sunday
@@ -2370,13 +2392,26 @@ class SCD_Campaign_Health_Service {
 			}
 
 			if ( ! empty( $category_ids ) ) {
-				$args        = array(
-					'status'   => 'publish',
-					'limit'    => 100, // Limit for performance
-					'category' => $category_ids,
-					'return'   => 'ids',
+				// Convert category IDs to slugs (wc_get_products 'category' param expects slugs, not IDs)
+				$terms = get_terms(
+					array(
+						'taxonomy'   => 'product_cat',
+						'include'    => array_map( 'intval', $category_ids ),
+						'hide_empty' => false,
+						'fields'     => 'id=>slug',
+					)
 				);
-				$product_ids = wc_get_products( $args );
+
+				if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+					$category_slugs = array_values( $terms );
+					$args           = array(
+						'status'   => 'publish',
+						'limit'    => 100, // Limit for performance
+						'category' => $category_slugs,
+						'return'   => 'ids',
+					);
+					$product_ids    = wc_get_products( $args );
+				}
 			}
 		}
 		// For "specific_products", use the stored product_ids
@@ -2706,7 +2741,8 @@ class SCD_Campaign_Health_Service {
 		} catch ( Exception $e ) {
 			// Log error but don't break the health check
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'SCD Health Service: Error calculating average daily sales - ' . $e->getMessage() );
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
+				error_log( 'WSSCD Health Service: Error calculating average daily sales - ' . $e->getMessage() );
 			}
 			return 0;
 		}
@@ -3172,8 +3208,8 @@ class SCD_Campaign_Health_Service {
 		}
 
 		$start_timestamp = strtotime( $start_date );
-		$start_month     = (int) date( 'n', $start_timestamp );
-		$start_day       = (int) date( 'j', $start_timestamp );
+		$start_month     = (int) gmdate( 'n', $start_timestamp );
+		$start_day       = (int) gmdate( 'j', $start_timestamp );
 
 		// Check for major shopping seasons
 		$is_peak_season = false;
@@ -3217,7 +3253,7 @@ class SCD_Campaign_Health_Service {
 		}
 
 		// Check day of week (if we can determine it)
-		$day_of_week = (int) date( 'N', $start_timestamp ); // 1 (Monday) to 7 (Sunday)
+		$day_of_week = (int) gmdate( 'N', $start_timestamp ); // 1 (Monday) to 7 (Sunday)
 
 		// Starting on weekend might be strategic for B2C
 		if ( 6 === $day_of_week || 7 === $day_of_week ) {
@@ -3559,7 +3595,7 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array $campaigns    Array of SCD_Campaign objects.
+	 * @param    array $campaigns    Array of WSSCD_Campaign objects.
 	 * @param    array $context      Additional context (analytics_repo).
 	 * @return   array                  Aggregate statistics.
 	 */
@@ -3701,7 +3737,7 @@ class SCD_Campaign_Health_Service {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    array $campaigns    Array of SCD_Campaign objects.
+	 * @param    array $campaigns    Array of WSSCD_Campaign objects.
 	 * @return   array                  Date range (earliest, latest).
 	 */
 	private function get_campaigns_date_range( $campaigns ) {
@@ -3730,8 +3766,8 @@ class SCD_Campaign_Health_Service {
 		}
 
 		return array(
-			'earliest' => $earliest ? date( 'Y-m-d', $earliest ) : null,
-			'latest'   => $latest ? date( 'Y-m-d', $latest ) : null,
+			'earliest' => $earliest ? gmdate( 'Y-m-d', $earliest ) : null,
+			'latest'   => $latest ? gmdate( 'Y-m-d', $latest ) : null,
 		);
 	}
 
@@ -3822,7 +3858,7 @@ class SCD_Campaign_Health_Service {
 		// Seasonal adjustment
 		$start_date = isset( $campaign['start_date'] ) ? $campaign['start_date'] : '';
 		if ( ! empty( $start_date ) ) {
-			$start_month = (int) date( 'n', strtotime( $start_date ) );
+			$start_month = (int) gmdate( 'n', strtotime( $start_date ) );
 
 			// Peak shopping months get positive adjustment
 			if ( in_array( $start_month, array( 11, 12 ), true ) ) {

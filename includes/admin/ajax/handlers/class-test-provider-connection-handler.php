@@ -26,21 +26,21 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper.io <contact@webstepper.io>
  */
-class SCD_Test_Provider_Connection_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Test_Provider_Connection_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Logger instance.
 	 *
-	 * @var SCD_Logger
+	 * @var WSSCD_Logger
 	 */
 	private $logger;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param SCD_Logger $logger Logger instance.
+	 * @param WSSCD_Logger $logger Logger instance.
 	 */
-	public function __construct( SCD_Logger $logger ) {
+	public function __construct( WSSCD_Logger $logger ) {
 		$this->logger = $logger;
 	}
 
@@ -71,7 +71,7 @@ class SCD_Test_Provider_Connection_Handler extends SCD_Abstract_Ajax_Handler {
 	public function handle( array $request_data ): array {
 		try {
 			// Get current settings
-			$settings = get_option( 'scd_settings', array() );
+			$settings = get_option( 'wsscd_settings', array() );
 
 			if ( ! isset( $settings['notifications'] ) ) {
 				return $this->error_response( 'Notification settings not found. Please save your settings first.' );

@@ -1,4 +1,6 @@
 /**
+ * @fs_premium_only
+ *
  * Analytics Dashboard
  *
  * @package    SmartCycleDiscounts
@@ -17,7 +19,7 @@
 	 * Analytics Dashboard Manager
 	 */
 	function AnalyticsDashboard() {
-		this.config = window.scdAnalytics || {};
+		this.config = window.wsscdAnalytics || {};
 		this.charts = {};
 		this.refreshTimer = null;
 		this.isLoading = false;
@@ -29,6 +31,12 @@
 	 * Initialize the dashboard
 	 */
 	AnalyticsDashboard.prototype.init = function() {
+		// Don't initialize for free users - they see the upgrade prompt instead
+		// Asset Localizer converts is_premium to isPremium via snake_to_camel
+		if ( ! this.config.isPremium ) {
+			return;
+		}
+
 		this.bindEvents();
 		this.initCharts();
 		this.loadInitialData();
@@ -46,15 +54,15 @@
 	AnalyticsDashboard.prototype.getThemeColor = function( colorName, fallback, alpha ) {
 		// Try CSS variable first
 		var cssVar = getComputedStyle( document.documentElement )
-			.getPropertyValue( '--scd-color-' + colorName ).trim();
+			.getPropertyValue( '--wsscd-color-' + colorName ).trim();
 
 		if ( cssVar ) {
 			return cssVar + ( alpha || '' );
 		}
 
-		// Try window.scdAdmin.colors
-		if ( window.scdAdmin && window.scdAdmin.colors && window.scdAdmin.colors[colorName] ) {
-			return window.scdAdmin.colors[colorName] + ( alpha || '' );
+		// Try window.wsscdAdmin.colors
+		if ( window.wsscdAdmin && window.wsscdAdmin.colors && window.wsscdAdmin.colors[colorName] ) {
+			return window.wsscdAdmin.colors[colorName] + ( alpha || '' );
 		}
 
 		// Use fallback
@@ -68,80 +76,80 @@
 		var self = this;
 
 		// Quick date filter buttons
-		$( '.scd-quick-date-btn' ).on( 'click', function( e ) {
+		$( '.wsscd-quick-date-btn' ).on( 'click', function( e ) {
 			var $btn = $( e.currentTarget );
 			var range = $btn.data( 'range' );
 
 			// Update button states
-			$( '.scd-quick-date-btn' ).attr( 'aria-pressed', 'false' );
+			$( '.wsscd-quick-date-btn' ).attr( 'aria-pressed', 'false' );
 			$btn.attr( 'aria-pressed', 'true' );
 
 			// Update dropdown to match
-			$( '#scd-date-range' ).val( range );
+			$( '#wsscd-date-range' ).val( range );
 
 			// Handle the date range change
 			self.handleDateRangeChange( range );
 		} );
 
 		// Date range selector
-		$( '#scd-date-range' ).on( 'change', function( e ) {
+		$( '#wsscd-date-range' ).on( 'change', function( e ) {
 			// Update quick button states when dropdown changes
 			var value = e.target.value;
-			$( '.scd-quick-date-btn' ).attr( 'aria-pressed', 'false' );
-			$( '.scd-quick-date-btn[data-range="' + value + '"]' ).attr( 'aria-pressed', 'true' );
+			$( '.wsscd-quick-date-btn' ).attr( 'aria-pressed', 'false' );
+			$( '.wsscd-quick-date-btn[data-range="' + value + '"]' ).attr( 'aria-pressed', 'true' );
 
 			self.handleDateRangeChange( value );
 		} );
 
 		// Custom date range
-		$( '#scd-apply-date-range' ).on( 'click', function() {
+		$( '#wsscd-apply-date-range' ).on( 'click', function() {
 			self.applyCustomDateRange();
 		} );
 
 		// Refresh button
-		$( '#scd-refresh-data' ).on( 'click', function() {
+		$( '#wsscd-refresh-data' ).on( 'click', function() {
 			self.refreshData();
 		} );
 
 		// Auto-refresh toggle
-		$( '#scd-auto-refresh' ).on( 'change', function( e ) {
+		$( '#wsscd-auto-refresh' ).on( 'change', function( e ) {
 			self.toggleAutoRefresh( e.target.checked );
 		} );
 
 		// Chart type selectors
-		$( '#scd-revenue-chart-type' ).on( 'change', function( e ) {
+		$( '#wsscd-revenue-chart-type' ).on( 'change', function( e ) {
 			self.changeChartType( 'revenue-trend', e.target.value );
 		} );
 
 		// Top Products period selector
-		$( '#scd-top-products-period' ).on( 'change', function( e ) {
+		$( '#wsscd-top-products-period' ).on( 'change', function( e ) {
 			self.loadTopProductsData( e.target.value );
 		} );
 
 		// Export functionality
-		$( '#scd-export-toggle' ).on( 'click', function() {
+		$( '#wsscd-export-toggle' ).on( 'click', function() {
 			self.toggleExportMenu();
 		} );
 
-		$( '.scd-export-link' ).on( 'click', function( e ) {
+		$( '.wsscd-export-link' ).on( 'click', function( e ) {
 			e.preventDefault();
 			self.exportData( $( e.target ).data( 'format' ) );
 		} );
 
 		// Export modal
-		$( '#scd-export-form' ).on( 'submit', function( e ) {
+		$( '#wsscd-export-form' ).on( 'submit', function( e ) {
 			e.preventDefault();
 			self.handleExportForm();
 		} );
 
-		$( '.scd-modal-close' ).on( 'click', function() {
+		$( '.wsscd-modal-close' ).on( 'click', function() {
 			self.closeModal();
 		} );
 
 		// Close dropdowns when clicking outside
 		$( document ).on( 'click', function( e ) {
-			if ( ! $( e.target ).closest( '.scd-export-dropdown' ).length ) {
-				$( '.scd-export-menu' ).hide();
+			if ( ! $( e.target ).closest( '.wsscd-export-dropdown' ).length ) {
+				$( '.wsscd-export-menu' ).hide();
 			}
 		} );
 	};
@@ -154,10 +162,29 @@
 		// Verify Chart.js is loaded (should always be true via WordPress)
 		if ( 'undefined' === typeof Chart ) {
 			console.error( 'Chart.js not loaded. Check asset enqueue configuration.' );
+			this.showChartLoadError();
 			return;
 		}
 
 		this.createCharts();
+	};
+
+	/**
+	 * Show error message when Chart.js fails to load
+	 */
+	AnalyticsDashboard.prototype.showChartLoadError = function() {
+		var errorHtml = '<div class="wsscd-chart-error">' +
+			'<p><strong>Charts unavailable</strong></p>' +
+			'<p>Chart library failed to load. Please refresh the page or contact support if the issue persists.</p>' +
+			'</div>';
+
+		// Find all chart containers and show error
+		$( '.wsscd-chart-container' ).each( function() {
+			$( this ).html( errorHtml );
+		} );
+
+		// Also show notification
+		this.showError( 'Charts could not be loaded. Please refresh the page.' );
 	};
 
 	/**
@@ -172,7 +199,7 @@
 	 * Create revenue trend chart
 	 */
 	AnalyticsDashboard.prototype.createRevenueChart = function() {
-		var canvas = document.getElementById( 'scd-revenue-trend-chart' );
+		var canvas = document.getElementById( 'wsscd-revenue-trend-chart' );
 		if ( ! canvas ) {return;}
 
 		var ctx = canvas.getContext( '2d' );
@@ -331,7 +358,7 @@
 	 * Create campaign performance chart
 	 */
 	AnalyticsDashboard.prototype.createCampaignChart = function() {
-		var canvas = document.getElementById( 'scd-campaign-performance-chart' );
+		var canvas = document.getElementById( 'wsscd-campaign-performance-chart' );
 		if ( ! canvas ) {return;}
 
 		var ctx = canvas.getContext( '2d' );
@@ -435,12 +462,13 @@
 		this.makeAjaxRequest( 'analytics_overview', {
 			dateRange: this.config.currentPeriod
 		} ).done( function( response ) {
-			// SCD.Ajax.post automatically unwraps the response.data
+			// WSSCD.Ajax.post automatically unwraps the response.data
 			if ( response && response.overview ) {
 			}
 			deferred.resolve();
 		} ).fail( function() {
-			deferred.resolve();
+			self.showError( 'Failed to load overview metrics' );
+			deferred.reject();
 		} );
 
 		return deferred.promise();
@@ -457,7 +485,7 @@
 			dateRange: this.config.currentPeriod || '30days',
 			granularity: 'daily'
 		} ).done( function( response ) {
-			// SCD.Ajax.post automatically unwraps the response.data
+			// WSSCD.Ajax.post automatically unwraps the response.data
 			if ( response && response.labels && self.charts['revenue-trend'] ) {
 				var chart = self.charts['revenue-trend'];
 				chart.data.labels = response.labels;
@@ -466,7 +494,8 @@
 			}
 			deferred.resolve();
 		} ).fail( function() {
-			deferred.resolve();
+			self.showError( 'Failed to load revenue data' );
+			deferred.reject();
 		} );
 
 		return deferred.promise();
@@ -481,9 +510,9 @@
 
 		this.makeAjaxRequest( 'analytics_campaign_performance', {
 			dateRange: this.config.currentPeriod,
-			metric: $( '#scd-campaign-metric' ).val() || 'revenue'
+			metric: $( '#wsscd-campaign-metric' ).val() || 'revenue'
 		} ).done( function( response ) {
-			// SCD.Ajax.post automatically unwraps the response.data
+			// WSSCD.Ajax.post automatically unwraps the response.data
 			if ( response && response.labels && self.charts['campaign-performance'] ) {
 				var chart = self.charts['campaign-performance'];
 				chart.data.labels = response.labels;
@@ -492,7 +521,8 @@
 			}
 			deferred.resolve();
 		} ).fail( function() {
-			deferred.resolve();
+			self.showError( 'Failed to load campaign data' );
+			deferred.reject();
 		} );
 
 		return deferred.promise();
@@ -505,19 +535,20 @@
 	AnalyticsDashboard.prototype.loadTopProductsData = function( dateRange ) {
 		var self = this;
 		var deferred = $.Deferred();
-		var period = dateRange || $( '#scd-top-products-period' ).val() || '30days';
+		var period = dateRange || $( '#wsscd-top-products-period' ).val() || '30days';
 
 		this.makeAjaxRequest( 'analytics_top_products', {
 			dateRange: period,
 			limit: 10
 		} ).done( function( response ) {
-			// SCD.Ajax.post automatically unwraps the response.data
+			// WSSCD.Ajax.post automatically unwraps the response.data
 			if ( response && response.products ) {
 				self.updateTopProductsTable( response.products );
 			}
 			deferred.resolve();
 		} ).fail( function() {
-			deferred.resolve();
+			self.showError( 'Failed to load top products data' );
+			deferred.reject();
 		} );
 
 		return deferred.promise();
@@ -529,13 +560,13 @@
 	 */
 	AnalyticsDashboard.prototype.updateTopProductsTable = function( products ) {
 		var self = this;
-		var tbody = $( '#scd-top-products-tbody' );
+		var tbody = $( '#wsscd-top-products-tbody' );
 		tbody.empty();
 
 		if ( ! products || 0 === products.length ) {
 			tbody.append(
 				'<tr>' +
-					'<td colspan="5" class="scd-no-data">' +
+					'<td colspan="5" class="wsscd-no-data">' +
 						'No product data available for this period' +
 					'</td>' +
 				'</tr>'
@@ -547,23 +578,23 @@
 			var trend = product.trend || 'neutral';
 			var trendIcon = 'neutral' === trend ? '—' :
 				( 'up' === trend ? '▲' : '▼' );
-			var trendClass = 'scd-trend-' + trend;
+			var trendClass = 'wsscd-trend-' + trend;
 
 			var row = $(
 				'<tr>' +
-					'<td class="scd-table-col-product">' +
+					'<td class="wsscd-table-col-product">' +
 						'<strong>' + self.escapeHtml( product.name ) + '</strong>' +
 					'</td>' +
-					'<td class="scd-table-col-revenue">' +
+					'<td class="wsscd-table-col-revenue">' +
 						self.formatCurrency( product.revenue ) +
 					'</td>' +
-					'<td class="scd-table-col-orders">' +
+					'<td class="wsscd-table-col-orders">' +
 						self.formatNumber( product.order_count ) +
 					'</td>' +
-					'<td class="scd-table-col-discount">' +
+					'<td class="wsscd-table-col-discount">' +
 						( product.avg_discount_percent || 0 ).toFixed( 1 ) + '%' +
 					'</td>' +
-					'<td class="scd-table-col-trend">' +
+					'<td class="wsscd-table-col-trend">' +
 						'<span class="' + trendClass + '">' + trendIcon + '</span>' +
 					'</td>' +
 				'</tr>'
@@ -583,7 +614,7 @@
 			dateRange: this.config.currentPeriod,
 			limit: 10
 		} ).done( function( response ) {
-			// SCD.Ajax.post automatically unwraps the response.data
+			// WSSCD.Ajax.post automatically unwraps the response.data
 			if ( response && response.campaigns ) {
 				self.updateTopCampaignsTable( response.campaigns );
 			}
@@ -605,7 +636,7 @@
 		this.makeAjaxRequest( 'analytics_activity_feed', {
 			limit: 20
 		} ).done( function( response ) {
-			// SCD.Ajax.post automatically unwraps the response.data
+			// WSSCD.Ajax.post automatically unwraps the response.data
 			if ( response && response.activities ) {
 				self.updateActivityFeed( response.activities );
 			}
@@ -623,13 +654,13 @@
 	 */
 	AnalyticsDashboard.prototype.updateTopCampaignsTable = function( campaigns ) {
 		var self = this;
-		var tbody = $( '#scd-top-campaigns-tbody' );
+		var tbody = $( '#wsscd-top-campaigns-tbody' );
 		tbody.empty();
 
 		if ( ! campaigns || 0 === campaigns.length ) {
 			tbody.append(
 				'<tr>' +
-                    '<td colspan="7" class="scd-no-data">' +
+                    '<td colspan="7" class="wsscd-no-data">' +
                         this.config.strings.noData +
                     '</td>' +
                 '</tr>'
@@ -644,7 +675,7 @@
                         '<strong>' + self.escapeHtml( campaign.name ) + '</strong>' +
                         '<div class="row-actions">' +
                             '<span class="view">' +
-                                '<a href="#" class="scd-view-campaign" data-campaign-id="' + campaign.campaignId + '">View</a> | ' +
+                                '<a href="#" class="wsscd-view-campaign" data-campaign-id="' + campaign.campaignId + '">View</a> | ' +
                             '</span>' +
                             '<span class="edit">' +
                                 '<a href="' + campaign.editUrl + '">Edit</a>' +
@@ -652,7 +683,7 @@
                         '</div>' +
                     '</td>' +
                     '<td>' +
-                        '<span class="scd-status scd-status--' + campaign.status + '">' +
+                        '<span class="wsscd-status wsscd-status--' + campaign.status + '">' +
                             self.escapeHtml( campaign.statusLabel ) +
                         '</span>' +
                     '</td>' +
@@ -661,7 +692,7 @@
                     '<td>' + self.formatPercentage( campaign.ctr ) + '</td>' +
                     '<td>' + self.formatPercentage( campaign.roi ) + '</td>' +
                     '<td>' +
-                        '<button type="button" class="button button-small scd-view-campaign" data-campaign-id="' + campaign.campaignId + '">' +
+                        '<button type="button" class="button button-small wsscd-view-campaign" data-campaign-id="' + campaign.campaignId + '">' +
                             'View Details' +
                         '</button>' +
                     '</td>' +
@@ -677,12 +708,12 @@
 	 */
 	AnalyticsDashboard.prototype.updateActivityFeed = function( activities ) {
 		var self = this;
-		var feed = $( '#scd-activity-feed' );
+		var feed = $( '#wsscd-activity-feed' );
 		feed.empty();
 
 		if ( ! activities || 0 === activities.length ) {
 			feed.append(
-				'<div class="scd-activity-item scd-no-activity">' +
+				'<div class="wsscd-activity-item wsscd-no-activity">' +
                     this.config.strings.noData +
                 '</div>'
 			);
@@ -693,18 +724,18 @@
 			// Convert dashicon class to icon name
 			var iconClass = activity.icon || '';
 			var iconName = iconClass.replace( 'dashicons-', '' ).replace( 'dashicons', 'info' ) || 'info';
-			var icon = SCD.IconHelper ? SCD.IconHelper.get( iconName, { size: 16 } ) : '<span class="scd-icon scd-icon-' + iconName + '"></span>';
+			var icon = WSSCD.IconHelper ? WSSCD.IconHelper.get( iconName, { size: 16 } ) : '<span class="wsscd-icon wsscd-icon-' + iconName + '"></span>';
 
 			var item = $(
-				'<div class="scd-activity-item">' +
-                    '<div class="scd-activity-icon">' +
+				'<div class="wsscd-activity-item">' +
+                    '<div class="wsscd-activity-icon">' +
                         icon +
                     '</div>' +
-                    '<div class="scd-activity-content">' +
-                        '<div class="scd-activity-message">' +
+                    '<div class="wsscd-activity-content">' +
+                        '<div class="wsscd-activity-message">' +
                             self.escapeHtml( activity.message ) +
                         '</div>' +
-                        '<div class="scd-activity-time">' +
+                        '<div class="wsscd-activity-time">' +
                             self.escapeHtml( activity.time_ago ) +
                         '</div>' +
                     '</div>' +
@@ -720,9 +751,9 @@
 	 */
 	AnalyticsDashboard.prototype.handleDateRangeChange = function( value ) {
 		if ( 'custom' === value ) {
-			$( '.scd-custom-date-range' ).show();
+			$( '.wsscd-custom-date-range' ).show();
 		} else {
-			$( '.scd-custom-date-range' ).hide();
+			$( '.wsscd-custom-date-range' ).hide();
 			this.config.currentPeriod = value;
 			this.refreshData();
 		}
@@ -732,16 +763,16 @@
 	 * Apply custom date range
 	 */
 	AnalyticsDashboard.prototype.applyCustomDateRange = function() {
-		var startDate = $( '#scd-start-date' ).val();
-		var endDate = $( '#scd-end-date' ).val();
+		var startDate = $( '#wsscd-start-date' ).val();
+		var endDate = $( '#wsscd-end-date' ).val();
 
 		if ( ! startDate || ! endDate ) {
-			SCD.Shared.NotificationService.warning( 'Please select both start and end dates.' );
+			WSSCD.Shared.NotificationService.warning( 'Please select both start and end dates.' );
 			return;
 		}
 
 		if ( new Date( startDate ) > new Date( endDate ) ) {
-			SCD.Shared.NotificationService.warning( 'Start date must be before end date.' );
+			WSSCD.Shared.NotificationService.warning( 'Start date must be before end date.' );
 			return;
 		}
 
@@ -775,7 +806,7 @@
 	 * Setup auto-refresh
 	 */
 	AnalyticsDashboard.prototype.setupAutoRefresh = function() {
-		var checkbox = $( '#scd-auto-refresh' );
+		var checkbox = $( '#wsscd-auto-refresh' );
 		if ( checkbox.is( ':checked' ) ) {
 			this.startAutoRefresh();
 		}
@@ -865,7 +896,7 @@
 	 * Toggle export menu
 	 */
 	AnalyticsDashboard.prototype.toggleExportMenu = function() {
-		$( '.scd-export-menu' ).toggle();
+		$( '.wsscd-export-menu' ).toggle();
 	};
 
 	/**
@@ -874,7 +905,7 @@
 	 */
 	AnalyticsDashboard.prototype.exportData = function( format ) {
 		var self = this;
-		$( '.scd-export-menu' ).hide();
+		$( '.wsscd-export-menu' ).hide();
 
 		this.showLoading();
 
@@ -904,18 +935,18 @@
 				document.body.removeChild( link );
 
 				// Use plugin's localized notification strings
-				SCD.Shared.NotificationService.success(
+				WSSCD.Shared.NotificationService.success(
 					self.config.strings.exportSuccess || 'Export completed successfully'
 				);
 			} else {
 				// Use plugin's localized notification strings
-				SCD.Shared.NotificationService.error(
+				WSSCD.Shared.NotificationService.error(
 					self.config.strings.exportError || 'Export failed. Please try again.'
 				);
 			}
 		} ).fail( function( error ) {
 			// Use plugin's localized notification strings with error message if available
-			SCD.Shared.NotificationService.error(
+			WSSCD.Shared.NotificationService.error(
 				( error && error.message ) || self.config.strings.exportError || 'Export failed. Please try again.'
 			);
 		} ).always( function() {
@@ -928,7 +959,7 @@
 	 */
 	AnalyticsDashboard.prototype.handleExportForm = function() {
 		var self = this;
-		var form = $( '#scd-export-form' );
+		var form = $( '#wsscd-export-form' );
 		var formData = form.serializeArray();
 		var data = {};
 
@@ -945,13 +976,13 @@
 		} ).done( function( response ) {
 			if ( response.success ) {
 				// Handle download
-				SCD.Shared.NotificationService.success( self.config.strings.exportSuccess );
+				WSSCD.Shared.NotificationService.success( self.config.strings.exportSuccess );
 				self.closeModal();
 			} else {
-				SCD.Shared.NotificationService.error( self.config.strings.exportError );
+				WSSCD.Shared.NotificationService.error( self.config.strings.exportError );
 			}
 		} ).fail( function() {
-			SCD.Shared.NotificationService.error( self.config.strings.exportError );
+			WSSCD.Shared.NotificationService.error( self.config.strings.exportError );
 		} ).always( function() {
 			self.hideLoading();
 		} );
@@ -961,7 +992,7 @@
 	 * Close modal
 	 */
 	AnalyticsDashboard.prototype.closeModal = function() {
-		$( '.scd-modal' ).hide();
+		$( '.wsscd-modal' ).hide();
 	};
 
 	/**
@@ -973,14 +1004,14 @@
 		data = data || {};
 
 		// Use shared AJAX service
-		if ( !window.SCD || !window.SCD.Ajax ) {
+		if ( !window.WSSCD || !window.WSSCD.Ajax ) {
 			throw new Error( 'AJAX service not available' );
 		}
 
 		var requestData = $.extend( {}, data );
 		requestData.nonce = this.config.nonce;
 
-		return SCD.Ajax.post( 'scd_' + action, requestData );
+		return WSSCD.Ajax.post( 'wsscd_' + action, requestData );
 	};
 
 	/**
@@ -988,7 +1019,7 @@
 	 */
 	AnalyticsDashboard.prototype.showLoading = function() {
 		this.isLoading = true;
-		$( '#scd-dashboard-loading' ).show();
+		$( '#wsscd-dashboard-loading' ).show();
 	};
 
 	/**
@@ -996,7 +1027,7 @@
 	 */
 	AnalyticsDashboard.prototype.hideLoading = function() {
 		this.isLoading = false;
-		$( '#scd-dashboard-loading' ).hide();
+		$( '#wsscd-dashboard-loading' ).hide();
 	};
 
 	/**
@@ -1004,8 +1035,8 @@
 	 * @param {string} message Error message
 	 */
 	AnalyticsDashboard.prototype.showError = function( message ) {
-		if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
-			SCD.Shared.NotificationService.error( message );
+		if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.NotificationService ) {
+			WSSCD.Shared.NotificationService.error( message );
 		} else {
 			console.error( 'Analytics Dashboard Error:', message );
 		}
@@ -1017,7 +1048,7 @@
 	AnalyticsDashboard.prototype.updateLastUpdatedTime = function() {
 		var now = new Date();
 		var timeString = now.toLocaleString();
-		$( '#scd-last-updated-time' ).text( timeString );
+		$( '#wsscd-last-updated-time' ).text( timeString );
 	};
 
 	/**
@@ -1026,20 +1057,20 @@
 	 */
 	AnalyticsDashboard.prototype.escapeHtml = function( text ) {
 		// Use centralized utility
-		if ( !window.SCD || !SCD.Utils || !SCD.Utils.escapeHtml ) {
-			throw new Error( 'SCD.Utils.escapeHtml not available. Ensure proper script loading order.' );
+		if ( !window.WSSCD || !WSSCD.Utils || !WSSCD.Utils.escapeHtml ) {
+			throw new Error( 'WSSCD.Utils.escapeHtml not available. Ensure proper script loading order.' );
 		}
 
-		return SCD.Utils.escapeHtml( text );
+		return WSSCD.Utils.escapeHtml( text );
 	};
 
 	AnalyticsDashboard.prototype.formatCurrency = function( amount ) {
 		// Use centralized utility
-		if ( !window.SCD || !SCD.Utils || !SCD.Utils.formatCurrency ) {
-			throw new Error( 'SCD.Utils.formatCurrency not available. Ensure proper script loading order.' );
+		if ( !window.WSSCD || !WSSCD.Utils || !WSSCD.Utils.formatCurrency ) {
+			throw new Error( 'WSSCD.Utils.formatCurrency not available. Ensure proper script loading order.' );
 		}
 
-		return SCD.Utils.formatCurrency( amount );
+		return WSSCD.Utils.formatCurrency( amount );
 	};
 
 	AnalyticsDashboard.prototype.formatNumber = function( number ) {

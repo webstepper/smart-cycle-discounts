@@ -1,4 +1,6 @@
 /**
+ * @fs_premium_only
+ *
  * Bogo Discount
  *
  * @package    SmartCycleDiscounts
@@ -14,18 +16,18 @@
 	'use strict';
 
 	// Register BOGO discount using utility with inheritance
-	SCD.Utils.registerModule( 'SCD.Modules.Discounts.Types', 'BogoDiscount', function( state ) {
+	WSSCD.Utils.registerModule( 'WSSCD.Modules.Discounts.Types', 'BogoDiscount', function( state ) {
 		// Call parent constructor
-		SCD.Modules.Discounts.Types.BaseDiscount.call( this, state );
+		WSSCD.Modules.Discounts.Types.BaseDiscount.call( this, state );
 
 		this.type = 'bogo';
-		this.config = SCD.Modules.Discounts.Config;
+		this.config = WSSCD.Modules.Discounts.Config;
 		this.maxRules = 5;
 
 		// Ready state tracking
 		this._ready = false;
 
-		if ( !SCD.Utils.ensureInitialized( this, {
+		if ( !WSSCD.Utils.ensureInitialized( this, {
 			'config': this.config
 		}, 'BogoDiscount' ) ) {
 			return;
@@ -33,17 +35,17 @@
 	} );
 
 	// Inherit from BaseDiscount
-	SCD.Modules.Discounts.Types.BogoDiscount.prototype = Object.create( SCD.Modules.Discounts.Types.BaseDiscount.prototype );
-	SCD.Modules.Discounts.Types.BogoDiscount.prototype.constructor =
-		SCD.Modules.Discounts.Types.BogoDiscount;
+	WSSCD.Modules.Discounts.Types.BogoDiscount.prototype = Object.create( WSSCD.Modules.Discounts.Types.BaseDiscount.prototype );
+	WSSCD.Modules.Discounts.Types.BogoDiscount.prototype.constructor =
+		WSSCD.Modules.Discounts.Types.BogoDiscount;
 
 	// Override methods using utility extend
-	SCD.Utils.extend( SCD.Modules.Discounts.Types.BogoDiscount.prototype, {
+	WSSCD.Utils.extend( WSSCD.Modules.Discounts.Types.BogoDiscount.prototype, {
 		/**
 		 * Initialize BOGO discount
 		 */
 		init: function() {
-			SCD.Modules.Discounts.Types.BaseDiscount.prototype.init.call( this );
+			WSSCD.Modules.Discounts.Types.BaseDiscount.prototype.init.call( this );
 
 			this.setupBogoHandlers();
 			this.setupPresetHandler();
@@ -85,18 +87,18 @@
 		 */
 		showUI: function() {
 			// First check for the new modular container
-			var $container = $( '.scd-bogo-options' );
+			var $container = $( '.wsscd-bogo-options' );
 
 			// If not found, use the existing PHP template container
 			if ( !$container.length ) {
-				$container = $( '.scd-strategy-bogo' );
+				$container = $( '.wsscd-strategy-bogo' );
 			}
 
 			if ( $container.length ) {
 				$container.addClass( 'active' );
 
 				// Only render BOGO rules if we have the modular container
-				if ( $container.hasClass( 'scd-bogo-options' ) ) {
+				if ( $container.hasClass( 'wsscd-bogo-options' ) ) {
 					this.renderBogoRules();
 				}
 				// Otherwise, the PHP template fields are already there
@@ -113,7 +115,7 @@
 		 * Hide BOGO discount UI
 		 */
 		hideUI: function() {
-			$( '.scd-bogo-options, .scd-strategy-bogo' ).removeClass( 'active' );
+			$( '.wsscd-bogo-options, .wsscd-strategy-bogo' ).removeClass( 'active' );
 		},
 
 		/**
@@ -122,24 +124,24 @@
 		setupBogoHandlers: function() {
 			var self = this;
 
-			$( document ).off( 'click.bogo' ).on( 'click.bogo', '.scd-add-bogo-rule', function( e ) {
+			$( document ).off( 'click.bogo' ).on( 'click.bogo', '.wsscd-add-bogo-rule', function( e ) {
 				e.preventDefault();
 				self.addBogoRule();
 			} );
 
-			$( document ).on( 'click.bogo', '.scd-remove-bogo-rule', function( e ) {
+			$( document ).on( 'click.bogo', '.wsscd-remove-bogo-rule', function( e ) {
 				e.preventDefault();
 				var index = $( this ).data( 'index' );
 				self.removeBogoRule( index );
 			} );
 
 			// Rule field changes
-			$( document ).on( 'change.bogo', '.scd-bogo-input', function() {
+			$( document ).on( 'change.bogo', '.wsscd-bogo-input', function() {
 				self.updateBogoRuleFromInput( $( this ) );
 			} );
 
 			// Apply to change ( same/different products )
-			$( document ).on( 'change.bogo', '.scd-bogo-apply-to', function() {
+			$( document ).on( 'change.bogo', '.wsscd-bogo-apply-to', function() {
 				var index = $( this ).data( 'index' );
 				var value = $( this ).val();
 				self.handleApplyToChange( index, value );
@@ -154,8 +156,8 @@
 
 			// Simple PHP template field handlers
 			$( document ).on( 'input.bogo change.bogo', '#bogo_buy_quantity, #bogo_get_quantity, #bogo_discount_percentage', function() {
-				if ( window.SCD && window.SCD.ValidationError ) {
-					SCD.ValidationError.clear( $( this ) );
+				if ( window.WSSCD && window.WSSCD.ValidationError ) {
+					WSSCD.ValidationError.clear( $( this ) );
 				}
 
 				self.updatePreview();
@@ -187,7 +189,7 @@
 		renderBogoRules: function() {
 			var config = this.state.getData( 'bogoConfig' ) || {};
 			var rules = config.rules || [];
-			var $container = $( '.scd-bogo-rules-container' );
+			var $container = $( '.wsscd-bogo-rules-container' );
 
 			if ( !$container.length ) {return;}
 
@@ -200,7 +202,7 @@
 
 			$container.html( html );
 
-			var $addButton = $( '.scd-add-bogo-rule' );
+			var $addButton = $( '.wsscd-add-bogo-rule' );
 			if ( rules.length >= this.maxRules ) {
 				$addButton.prop( 'disabled', true ).text( 'Maximum rules reached' );
 			} else {
@@ -233,12 +235,12 @@
 				}
 			} );
 
-			var html = '<div class="scd-bogo-rule" data-index="' + index + '">';
+			var html = '<div class="wsscd-bogo-rule" data-index="' + index + '">';
 			html += '<h4>BOGO Rule ' + ( index + 1 ) + '</h4>';
 
-			html += '<div class="scd-bogo-preset">';
+			html += '<div class="wsscd-bogo-preset">';
 			html += '<label>Quick Select:</label>';
-			html += '<select class="scd-bogo-preset-select scd-enhanced-select" data-index="' + index + '">';
+			html += '<select class="wsscd-bogo-preset-select wsscd-enhanced-select" data-index="' + index + '">';
 
 			presetOptions.forEach( function( preset ) {
 				var optionValue = preset.buy + '_' + preset.get + '_' + preset.discount;
@@ -249,44 +251,44 @@
 			html += '</select>';
 			html += '</div>';
 
-			html += '<div class="scd-bogo-fields">';
+			html += '<div class="wsscd-bogo-fields">';
 
-			html += '<div class="scd-field-group">';
+			html += '<div class="wsscd-field-group">';
 			html += '<label>Buy Quantity:</label>';
-			html += '<input type="number" class="scd-bogo-input scd-enhanced-input" data-index="' + index + '" data-field="buyQuantity" value="' + ( rule.buyQuantity || 1 ) + '" min="1" step="1">';
+			html += '<input type="number" class="wsscd-bogo-input wsscd-enhanced-input" data-index="' + index + '" data-field="buyQuantity" value="' + ( rule.buyQuantity || 1 ) + '" min="1" step="1">';
 			html += '</div>';
 
-			html += '<div class="scd-field-group">';
+			html += '<div class="wsscd-field-group">';
 			html += '<label>Get Quantity:</label>';
-			html += '<input type="number" class="scd-bogo-input scd-enhanced-input" data-index="' + index + '" data-field="getQuantity" value="' + ( rule.getQuantity || 1 ) + '" min="1" step="1">';
+			html += '<input type="number" class="wsscd-bogo-input wsscd-enhanced-input" data-index="' + index + '" data-field="getQuantity" value="' + ( rule.getQuantity || 1 ) + '" min="1" step="1">';
 			html += '</div>';
 
-			html += '<div class="scd-field-group">';
+			html += '<div class="wsscd-field-group">';
 			html += '<label>Discount on Free Items:</label>';
-			html += '<input type="number" class="scd-bogo-input scd-enhanced-input" data-index="' + index + '" data-field="discountPercent" value="' + ( rule.discountPercent || 100 ) + '" min="0" max="100" step="1">';
+			html += '<input type="number" class="wsscd-bogo-input wsscd-enhanced-input" data-index="' + index + '" data-field="discountPercent" value="' + ( rule.discountPercent || 100 ) + '" min="0" max="100" step="1">';
 			html += '<span>%</span>';
 			html += '</div>';
 
-			html += '<div class="scd-field-group">';
+			html += '<div class="wsscd-field-group">';
 			html += '<label>Apply To:</label>';
-			html += '<select class="scd-bogo-apply-to scd-enhanced-select" data-index="' + index + '">';
+			html += '<select class="wsscd-bogo-apply-to wsscd-enhanced-select" data-index="' + index + '">';
 			html += '<option value="same" ' + ( 'same' === rule.applyTo ? 'selected' : '' ) + '>Same Product</option>';
 			html += '<option value="different" ' + ( 'different' === rule.applyTo ? 'selected' : '' ) + '>Different Products</option>';
 			html += '</select>';
 			html += '</div>';
 
 			if ( 'different' === rule.applyTo ) {
-				html += '<div class="scd-field-group scd-get-products">';
+				html += '<div class="wsscd-field-group wsscd-get-products">';
 				html += '<label>Free Products:</label>';
-				html += '<div class="scd-product-selector" data-index="' + index + '">';
-				html += '<input type="text" class="scd-product-search" placeholder="Search products..." data-index="' + index + '">';
-				html += '<div class="scd-selected-products">';
+				html += '<div class="wsscd-product-selector" data-index="' + index + '">';
+				html += '<input type="text" class="wsscd-product-search" placeholder="Search products..." data-index="' + index + '">';
+				html += '<div class="wsscd-selected-products">';
 
 				if ( rule.getProducts && 0 < rule.getProducts.length ) {
 					rule.getProducts.forEach( function( product ) {
-						html += '<span class="scd-selected-product" data-id="' + product.id + '">';
+						html += '<span class="wsscd-selected-product" data-id="' + product.id + '">';
 						html += this._escapeHtml( product.name );
-						html += '<button type="button" class="scd-remove-product" data-index="' + index + '" data-product-id="' + product.id + '">×</button>';
+						html += '<button type="button" class="wsscd-remove-product" data-index="' + index + '" data-product-id="' + product.id + '">×</button>';
 						html += '</span>';
 					} );
 				}
@@ -296,7 +298,7 @@
 				html += '</div>';
 			}
 
-			html += '<button type="button" class="scd-remove-bogo-rule" data-index="' + index + '">Remove Rule</button>';
+			html += '<button type="button" class="wsscd-remove-bogo-rule" data-index="' + index + '">Remove Rule</button>';
 			html += '</div>';
 			html += '</div>';
 
@@ -399,7 +401,7 @@
 		setupPresetHandler: function() {
 			var self = this;
 
-			$( document ).on( 'change.bogo', '.scd-bogo-preset-select', function() {
+			$( document ).on( 'change.bogo', '.wsscd-bogo-preset-select', function() {
 				var index = $( this ).data( 'index' );
 				var preset = $( this ).val().split( '_' ).map( function( v ) { return parseInt( v ); } );
 
@@ -722,7 +724,7 @@
 			$( document ).off( 'click.bogo' );
 			$( document ).off( 'change.bogo' );
 
-			SCD.Modules.Discounts.Types.BaseDiscount.prototype.destroy.call( this );
+			WSSCD.Modules.Discounts.Types.BaseDiscount.prototype.destroy.call( this );
 		}
 	} );
 

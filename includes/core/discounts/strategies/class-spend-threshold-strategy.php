@@ -1,5 +1,7 @@
 <?php
 /**
+ * @fs_premium_only
+ *
  * Spend Threshold Strategy Class
  *
  * @package    SmartCycleDiscounts
@@ -27,9 +29,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/discounts/strategies
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
+class WSSCD_Spend_Threshold_Strategy implements WSSCD_Discount_Strategy_Interface {
 
-	use SCD_Discount_Preview_Trait;
+	use WSSCD_Discount_Preview_Trait;
 
 	/**
 	 * Calculate spend threshold discount.
@@ -38,13 +40,13 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	 * @param    float $original_price      Original price.
 	 * @param    array $discount_config     Strategy configuration.
 	 * @param    array $context            Additional context.
-	 * @return   SCD_Discount_Result         Calculation result.
+	 * @return   WSSCD_Discount_Result         Calculation result.
 	 */
-	public function calculate_discount( float $original_price, array $discount_config, array $context = array() ): SCD_Discount_Result {
+	public function calculate_discount( float $original_price, array $discount_config, array $context = array() ): WSSCD_Discount_Result {
 		try {
 			// CRITICAL: Defensive validation for NULL or invalid prices
 			if ( ! is_numeric( $original_price ) || $original_price < 0 ) {
-				return SCD_Discount_Result::no_discount(
+				return WSSCD_Discount_Result::no_discount(
 					0.0,
 					$this->get_strategy_id(),
 					'Invalid price: must be a non-negative number'
@@ -53,13 +55,13 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 
 			$validation_errors = $this->validate_config( $discount_config );
 			if ( ! empty( $validation_errors ) ) {
-				return SCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'Invalid configuration' );
+				return WSSCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'Invalid configuration' );
 			}
 
 			$thresholds = $discount_config['thresholds'] ?? array();
 
 			if ( empty( $thresholds ) ) {
-				return SCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'No thresholds configured' );
+				return WSSCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'No thresholds configured' );
 			}
 
 			$cart_total = $this->get_cart_total( $context );
@@ -68,7 +70,7 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 			$applicable_threshold = $this->find_applicable_threshold( $thresholds, $cart_total );
 
 			if ( ! $applicable_threshold ) {
-				return SCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'No applicable threshold found' );
+				return WSSCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), 'No applicable threshold found' );
 			}
 
 			$discounted_price = $this->calculate_threshold_discount( $original_price, $applicable_threshold );
@@ -81,10 +83,10 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 				'threshold_discount_value' => $applicable_threshold['discount_value'],
 			);
 
-			return new SCD_Discount_Result( $original_price, $discounted_price, $this->get_strategy_id(), true, $metadata );
+			return new WSSCD_Discount_Result( $original_price, $discounted_price, $this->get_strategy_id(), true, $metadata );
 
 		} catch ( Exception $e ) {
-			return SCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), $e->getMessage() );
+			return WSSCD_Discount_Result::no_discount( $original_price, $this->get_strategy_id(), $e->getMessage() );
 		}
 	}
 
@@ -139,20 +141,25 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 	 * @return   array                  Validation errors.
 	 */
 	private function validate_threshold( array $threshold, int $index ): array {
-		$errors          = array();
+		$errors = array();
+		/* translators: %d: threshold number (1, 2, 3, etc.) */
 		$threshold_label = sprintf( __( 'Threshold %d', 'smart-cycle-discounts' ), $index + 1 );
 
 		if ( ! isset( $threshold['spend_amount'] ) || ! is_numeric( $threshold['spend_amount'] ) ) {
+			/* translators: %s: threshold label (e.g., "Threshold 1") */
 			$errors[] = sprintf( __( '%s: Threshold amount is required and must be numeric', 'smart-cycle-discounts' ), $threshold_label );
 		} elseif ( floatval( $threshold['spend_amount'] ) < 0 ) {
+			/* translators: %s: threshold label (e.g., "Threshold 1") */
 			$errors[] = sprintf( __( '%s: Threshold amount must be non-negative', 'smart-cycle-discounts' ), $threshold_label );
 		}
 
 		if ( ! isset( $threshold['discount_type'] ) || ! in_array( $threshold['discount_type'], array( 'percentage', 'fixed' ), true ) ) {
+			/* translators: %s: threshold label (e.g., "Threshold 1") */
 			$errors[] = sprintf( __( '%s: Discount type must be either "percentage" or "fixed"', 'smart-cycle-discounts' ), $threshold_label );
 		}
 
 		if ( ! isset( $threshold['discount_value'] ) || ! is_numeric( $threshold['discount_value'] ) ) {
+			/* translators: %s: threshold label (e.g., "Threshold 1") */
 			$errors[] = sprintf( __( '%s: Discount value is required and must be numeric', 'smart-cycle-discounts' ), $threshold_label );
 		} else {
 			$discount_value   = floatval( $threshold['discount_value'] );
@@ -160,16 +167,19 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 			$threshold_amount = isset( $threshold['spend_amount'] ) ? floatval( $threshold['spend_amount'] ) : 0;
 
 			if ( $discount_value < 0 ) {
+				/* translators: %s: threshold label (e.g., "Threshold 1") */
 				$errors[] = sprintf( __( '%s: Discount value must be non-negative', 'smart-cycle-discounts' ), $threshold_label );
 			}
 
 			if ( 'percentage' === $discount_type && $discount_value > 100 ) {
+				/* translators: %s: threshold label (e.g., "Threshold 1") */
 				$errors[] = sprintf( __( '%s: Percentage discount cannot exceed 100%%', 'smart-cycle-discounts' ), $threshold_label );
 			}
 
 			// Warning: Low percentage discount
 			if ( 'percentage' === $discount_type && $discount_value > 0 && $discount_value < 5 ) {
 				$errors[] = sprintf(
+					/* translators: %s: threshold label (e.g., "Threshold 1") */
 					__( '%s: Percentage discount less than 5%% may not effectively incentivize purchases. Consider increasing to at least 5%% or using fixed amount.', 'smart-cycle-discounts' ),
 					$threshold_label
 				);
@@ -178,6 +188,7 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 			// Warning: Fixed discount that's too high relative to threshold
 			if ( 'fixed' === $discount_type && $threshold_amount > 0 && $discount_value / $threshold_amount > 0.5 ) {
 				$errors[] = sprintf(
+					/* translators: %s: threshold label (e.g., "Threshold 1") */
 					__( '%s: Discount is more than 50%% of threshold amount. Consider using percentage discount for better scaling.', 'smart-cycle-discounts' ),
 					$threshold_label
 				);
@@ -186,6 +197,7 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 			// Warning: Very low threshold amount
 			if ( $threshold_amount > 0 && $threshold_amount < 10 ) {
 				$errors[] = sprintf(
+					/* translators: 1: threshold label (e.g., "Threshold 1"), 2: formatted price amount */
 					__( '%1$s: Threshold amount is very low (%2$s). Consider setting a higher threshold to encourage meaningful spending.', 'smart-cycle-discounts' ),
 					$threshold_label,
 					wc_price( $threshold_amount )
@@ -395,12 +407,14 @@ class SCD_Spend_Threshold_Strategy implements SCD_Discount_Strategy_Interface {
 
 		if ( 'percentage' === $discount_type ) {
 			return sprintf(
+				/* translators: %1$s: percentage discount value, %2$s: formatted minimum cart total */
 				__( '%1$s%% off when cart total is %2$s or more', 'smart-cycle-discounts' ),
 				number_format( $discount_value, 1 ),
 				wc_price( $threshold_amount )
 			);
 		} else {
 			return sprintf(
+				/* translators: %1$s: formatted discount amount, %2$s: formatted minimum cart total */
 				__( '%1$s off when cart total is %2$s or more', 'smart-cycle-discounts' ),
 				wc_price( $discount_value ),
 				wc_price( $threshold_amount )

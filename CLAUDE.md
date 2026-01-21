@@ -168,7 +168,7 @@ options: {
 ```php
 // AUTOMATIC CONVERSION - NO MANUAL MAPPING NEEDED
 $request_data = self::camel_to_snake_keys( $request_data );
-// Delegates to: SCD_Case_Converter::camel_to_snake( $data );
+// Delegates to: WSSCD_Case_Converter::camel_to_snake( $data );
 ```
 
 **What It Does:**
@@ -215,7 +215,7 @@ public function handle( array $request_data ) {
 // AUTOMATIC CONVERSION - NO MANUAL MAPPING NEEDED
 $localized_data = $this->snake_to_camel_keys( $this->data[ $object_name ] );
 wp_localize_script( $handle, $object_name, $localized_data );
-// Delegates to: SCD_Case_Converter::snake_to_camel( $data );
+// Delegates to: WSSCD_Case_Converter::snake_to_camel( $data );
 ```
 
 **What It Does:**
@@ -316,7 +316,7 @@ if ( 'bogo' === $discount_type && isset( $discount_rules['bogo_config'] ) ) {
 
 ```php
 // Bidirectional conversion utility
-class SCD_Case_Converter {
+class WSSCD_Case_Converter {
     // JavaScript → PHP (used by AJAX Router)
     public static function camel_to_snake( $data );
 
@@ -409,8 +409,8 @@ if ( window.SCD && window.SCD.ValidationError ) {
 ```javascript
 // ❌ Don't do this
 $field.addClass('error');
-$field.after('<div class="scd-field-error">' + message + '</div>');
-$field.siblings('.scd-field-error-message').remove();
+$field.after('<div class="wsscd-field-error">' + message + '</div>');
+$field.siblings('.wsscd-field-error-message').remove();
 ```
 
 **ValidationError automatically integrates with NotificationService:**
@@ -435,10 +435,10 @@ Component modules have `showError()` methods that internally delegate to `Valida
 ## 🏗️ PLUGIN ARCHITECTURE PATTERNS
 
 ### Your Plugin Structure:
-- **Prefix Convention**: `SCD_` for PHP classes, `scd_` for functions/hooks, `scd-` for assets
+- **Prefix Convention**: `WSSCD_` for PHP classes, `wsscd_` for functions/hooks, `wsscd-` for assets (5-character prefix for WordPress.org compliance)
 - **Service Container**: Dependency injection throughout
 - **Asset Management**: Admin_Asset_Manager, Script_Registry, Style_Registry
-- **Theme Management**: SCD_Theme_Manager for centralized theme operations
+- **Theme Management**: WSSCD_Theme_Manager for centralized theme operations
 - **Modular Wizard**: Each step has state management, API, and orchestrator
 - **MVC Pattern**: Separate views from business logic
 - **Singleton Main Class**: Single initialization point
@@ -446,51 +446,51 @@ Component modules have `showError()` methods that internally delegate to `Valida
 
 ### Theme Management System
 
-**SCD_Theme_Manager** (`includes/utilities/class-theme-manager.php`) - Centralized theme management
+**WSSCD_Theme_Manager** (`includes/utilities/class-theme-manager.php`) - Centralized theme management
 
 **Always use Theme_Manager for theme operations. Never access settings directly.**
 
 ```php
 // ✅ CORRECT: Get current theme
-$theme = SCD_Theme_Manager::get_current_theme();
+$theme = WSSCD_Theme_Manager::get_current_theme();
 
 // ✅ CORRECT: Check if theme is valid
-if ( SCD_Theme_Manager::is_valid_theme( $theme ) ) {
+if ( WSSCD_Theme_Manager::is_valid_theme( $theme ) ) {
     // Do something
 }
 
 // ✅ CORRECT: Get theme dropdown options
-$options = SCD_Theme_Manager::get_theme_options();
+$options = WSSCD_Theme_Manager::get_theme_options();
 
 // ✅ CORRECT: Get default theme
-$default = SCD_Theme_Manager::get_default_theme();
+$default = WSSCD_Theme_Manager::get_default_theme();
 
 // ✅ CORRECT: Get body class
-$class = SCD_Theme_Manager::get_theme_body_class();
+$class = WSSCD_Theme_Manager::get_theme_body_class();
 
 // ✅ CORRECT: Get CSS filename with validation
-$filename = SCD_Theme_Manager::get_validated_theme_filename( $theme );
+$filename = WSSCD_Theme_Manager::get_validated_theme_filename( $theme );
 
 // ❌ WRONG: Direct settings access
-$settings = get_option( 'scd_settings', array() );
+$settings = get_option( 'wsscd_settings', array() );
 $theme = $settings['general']['admin_theme'] ?? 'classic';  // Don't do this!
 
 // ❌ WRONG: Hardcoded theme names
 if ( 'classic' === $theme ) { }  // Use constants instead
 
 // ✅ CORRECT: Use constants
-if ( SCD_Theme_Manager::THEME_CLASSIC === $theme ) { }
+if ( WSSCD_Theme_Manager::THEME_CLASSIC === $theme ) { }
 ```
 
 **Available Constants:**
-- `SCD_Theme_Manager::THEME_CLASSIC` - Classic theme identifier
-- `SCD_Theme_Manager::THEME_ENHANCED` - Enhanced theme identifier
-- `SCD_Theme_Manager::DEFAULT_THEME` - Default theme (classic)
+- `WSSCD_Theme_Manager::THEME_CLASSIC` - Classic theme identifier
+- `WSSCD_Theme_Manager::THEME_ENHANCED` - Enhanced theme identifier
+- `WSSCD_Theme_Manager::DEFAULT_THEME` - Default theme (classic)
 
 **Extensibility:**
 ```php
 // Add custom theme via filter
-add_filter( 'scd_available_themes', function( $themes ) {
+add_filter( 'wsscd_available_themes', function( $themes ) {
     $themes['custom'] = array(
         'label'       => 'Custom Theme',
         'description' => 'My custom theme',
@@ -500,7 +500,7 @@ add_filter( 'scd_available_themes', function( $themes ) {
 } );
 
 // Override default theme
-add_filter( 'scd_default_theme', function( $default ) {
+add_filter( 'wsscd_default_theme', function( $default ) {
     return 'enhanced';
 } );
 ```
@@ -537,7 +537,7 @@ Before submitting any code:
 - [ ] JavaScript is ES5 compatible with jQuery wrapper
 - [ ] CSS uses lowercase-hyphen naming
 - [ ] Security measures implemented (nonces, escaping, sanitization)
-- [ ] Proper prefixing applied (SCD_, scd_, scd-)
+- [ ] Proper prefixing applied (WSSCD_, wsscd_, wsscd-)
 - [ ] Assets enqueued through Asset Management System
 - [ ] Database operations use abstraction layer
 - [ ] Code is modular and follows DRY principle
@@ -576,21 +576,21 @@ When working with Claude Code:
 /**
  * Example WordPress Plugin Class
  * 
- * @package SCD_Plugin
+ * @package WSSCD_Plugin
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly
 }
 
-class SCD_Example_Handler {
+class WSSCD_Example_Handler {
     
     /**
      * Initialize the handler
      */
     public function __construct() {
         add_action( 'init', array( $this, 'init' ) );
-        add_action( 'wp_ajax_scd_process', array( $this, 'handle_ajax' ) );
+        add_action( 'wp_ajax_wsscd_process', array( $this, 'handle_ajax' ) );
     }
     
     /**
@@ -609,7 +609,7 @@ class SCD_Example_Handler {
      */
     public function handle_ajax() {
         // Security check
-        if ( ! wp_verify_nonce( $_POST['nonce'], 'scd_nonce' ) ) {
+        if ( ! wp_verify_nonce( $_POST['nonce'], 'wsscd_nonce' ) ) {
             wp_die( 'Security check failed' );
         }
         
@@ -618,7 +618,7 @@ class SCD_Example_Handler {
         
         // Process and escape output
         wp_send_json_success( array(
-            'message' => esc_html__( 'Success', 'scd-plugin' )
+            'message' => esc_html__( 'Success', 'smart-cycle-discounts' )
         ) );
     }
 }

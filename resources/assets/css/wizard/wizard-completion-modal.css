@@ -1,0 +1,349 @@
+/**
+ * Wizard Completion Modal
+ *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/css/wizard/wizard-completion-modal.css
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @since      1.0.0
+ */
+
+/* ===== OVERLAY ===== */
+.wsscd-completion-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: var(--wsscd-overlay-heavy);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: var(--wsscd-z-modal);
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity var(--wsscd-transition-slow) ease, visibility var(--wsscd-transition-slow) ease;
+}
+
+.wsscd-completion-overlay.is-active {
+	opacity: 1;
+	visibility: visible;
+}
+
+/* Prevent body scroll when modal is active */
+body.wsscd-completion-active {
+	overflow: hidden;
+}
+
+/* ===== MODAL CARD ===== */
+/* Note: Base modal pattern shared with pro-feature-modal.css */
+.wsscd-completion-modal {
+	background: var(--wsscd-color-white);
+
+	/* Semi-transparent border */
+	border: 1px solid var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-xl); /* Larger radius for celebration modal */
+	padding: 48px 64px;
+
+	/* Enhanced shadow for floating effect */
+	box-shadow:
+		0 8px 32px var(--wsscd-overlay-light),
+		0 4px 16px var(--wsscd-overlay-light),
+		inset 0 1px 0 var(--wsscd-overlay-white-medium);
+
+	min-width: 420px;
+	max-width: 520px;
+	text-align: center;
+	transform: scale(0.9) translateY(20px);
+	opacity: 0;
+	transition: all var(--wsscd-transition-slower) cubic-bezier(0.34, 1.56, 0.64, 1);
+	position: relative;
+	overflow: hidden;
+}
+
+.wsscd-completion-overlay.is-active .wsscd-completion-modal {
+	transform: scale(1) translateY(0);
+	opacity: 1;
+}
+
+/* Subtle background pattern */
+.wsscd-completion-modal::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background:
+		radial-gradient(circle at 30% 30%, var(--wsscd-color-primary-alpha-3) 0%, transparent 50%),
+		radial-gradient(circle at 70% 70%, var(--wsscd-color-success-alpha-5) 0%, transparent 50%);
+	pointer-events: none;
+	z-index: 0;
+}
+
+/* Error state background */
+.wsscd-completion-overlay.is-error .wsscd-completion-modal::before {
+	background:
+		radial-gradient(circle at 30% 30%, var(--wsscd-color-danger-alpha-15) 0%, transparent 50%),
+		radial-gradient(circle at 70% 70%, var(--wsscd-color-danger-alpha-15) 0%, transparent 50%);
+}
+
+/* ===== ICON WRAPPER ===== */
+.wsscd-completion-icon-wrapper {
+	position: relative;
+	width: 80px;
+	height: 80px;
+	margin: 0 auto 24px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+/* ===== ICONS ===== */
+.wsscd-completion-icon {
+	font-size: var(--wsscd-icon-display-lg);
+	width: var(--wsscd-icon-display-lg);
+	height: var(--wsscd-icon-display-lg);
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	opacity: 0;
+	transition: opacity var(--wsscd-transition-slow) ease;
+}
+
+/* Success icon (checkmark) */
+.wsscd-completion-icon--success {
+	color: var(--wsscd-color-success);
+	filter: var(--wsscd-filter-drop-shadow-success);
+}
+
+.wsscd-completion-overlay.is-success .wsscd-completion-icon--success {
+	opacity: 1;
+	animation: wsscd-checkmark-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Note: @keyframes wsscd-checkmark-pop defined in shared/_utilities.css */
+
+/* Error icon (X mark) */
+.wsscd-completion-icon--error {
+	color: var(--wsscd-color-danger);
+	filter: var(--wsscd-filter-drop-shadow-danger);
+}
+
+.wsscd-completion-overlay.is-error .wsscd-completion-icon--error {
+	opacity: 1;
+	animation: wsscd-error-shake 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Note: @keyframes wsscd-error-shake defined in shared/_utilities.css */
+
+/* ===== TITLE ===== */
+.wsscd-completion-title {
+	font-size: var(--wsscd-font-size-xxxl);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+	margin: 0 0 12px;
+	line-height: 1.3;
+	letter-spacing: -0.02em;
+	position: relative;
+	z-index: var(--wsscd-z-base);
+}
+
+/* Success state title */
+.wsscd-completion-overlay.is-success .wsscd-completion-title {
+	color: var(--wsscd-color-success);
+	animation: wsscd-title-fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) var(--wsscd-transition-base) both;
+}
+
+/* Error state title */
+.wsscd-completion-overlay.is-error .wsscd-completion-title {
+	color: var(--wsscd-color-danger);
+	animation: wsscd-title-fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) var(--wsscd-transition-base) both;
+}
+
+/* Note: Title fade-in uses wsscd-fade-in from shared/_utilities.css */
+
+/* ===== MESSAGE ===== */
+.wsscd-completion-message {
+	font-size: var(--wsscd-font-size-medium-large);
+	line-height: 1.5;
+	color: var(--wsscd-color-text-lighter);
+	margin: 0 0 var(--wsscd-spacing-xl);
+	position: relative;
+	z-index: var(--wsscd-z-base);
+	animation: wsscd-message-fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) var(--wsscd-transition-slow) both;
+}
+
+.wsscd-completion-message:empty {
+	display: none;
+}
+
+.wsscd-completion-overlay.is-error .wsscd-completion-message {
+	color: var(--wsscd-color-text);
+}
+
+/* Note: Message fade-in uses wsscd-fade-in from shared/_utilities.css */
+
+/* ===== ACTIONS ===== */
+.wsscd-completion-actions {
+	position: relative;
+	z-index: var(--wsscd-z-base);
+	display: flex;
+	gap: var(--wsscd-gap-normal);
+	justify-content: center;
+	align-items: center;
+	animation: wsscd-actions-fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.4s both;
+}
+
+.wsscd-completion-actions:empty {
+	display: none;
+}
+
+.wsscd-completion-actions .button {
+	min-width: 120px;
+}
+
+.wsscd-completion-actions .wsscd-completion-view {
+	text-decoration: none;
+}
+
+/* Note: Actions fade-in uses wsscd-fade-in from shared/_utilities.css */
+
+/* ===== SCREEN READER STATUS (HIDDEN) ===== */
+.wsscd-completion-status {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* ===== SUCCESS BURST EFFECT ===== */
+.wsscd-completion-overlay.is-success .wsscd-completion-modal::after {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 120px;
+	height: 120px;
+	margin-left: -60px;
+	margin-top: -60px;
+	border-radius: var(--wsscd-radius-full);
+	background: radial-gradient(circle, var(--wsscd-color-success-alpha-15) 0%, transparent 70%);
+	animation: wsscd-success-burst 0.6s ease-out;
+	pointer-events: none;
+	z-index: 0;
+}
+
+/* Note: @keyframes wsscd-success-burst defined in shared/_utilities.css */
+
+/* ===== ERROR PULSE EFFECT ===== */
+.wsscd-completion-overlay.is-error .wsscd-completion-modal::after {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 120px;
+	height: 120px;
+	margin-left: -60px;
+	margin-top: -60px;
+	border-radius: var(--wsscd-radius-full);
+	background: radial-gradient(circle, var(--wsscd-color-danger-alpha-15) 0%, transparent 70%);
+	animation: wsscd-error-pulse 0.6s ease-out;
+	pointer-events: none;
+	z-index: 0;
+}
+
+/* Note: @keyframes wsscd-error-pulse defined in shared/_utilities.css */
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 600px) {
+	.wsscd-completion-modal {
+		min-width: 320px;
+		max-width: 90%;
+		padding: 36px 32px;
+	}
+
+	.wsscd-completion-icon-wrapper {
+		width: 64px;
+		height: 64px;
+		margin-bottom: var(--wsscd-spacing-lg);
+	}
+
+	.wsscd-completion-icon {
+		font-size: var(--wsscd-icon-display);
+		width: var(--wsscd-icon-display);
+		height: var(--wsscd-icon-display);
+	}
+
+	.wsscd-completion-title {
+		font-size: var(--wsscd-font-size-xxl);
+	}
+
+	.wsscd-completion-message {
+		font-size: var(--wsscd-font-size-medium);
+	}
+
+	.wsscd-completion-actions {
+		flex-direction: column;
+		gap: var(--wsscd-gap-tight);
+	}
+
+	.wsscd-completion-actions .button {
+		width: 100%;
+		min-width: 0;
+	}
+}
+
+/* ===== BROWSER FALLBACK - NO BACKDROP-FILTER SUPPORT ===== */
+	.wsscd-completion-modal {
+		/* Slightly more opaque background when blur isn't available */
+		background: var(--wsscd-color-white);
+	}
+
+	.wsscd-completion-overlay {
+		/* Remove blur fallback */
+	}
+}
+
+/* ===== REDUCED MOTION SUPPORT ===== */
+@media (prefers-reduced-motion: reduce) {
+	.wsscd-completion-overlay,
+	.wsscd-completion-modal,
+	.wsscd-completion-icon,
+	.wsscd-completion-title,
+	.wsscd-completion-message,
+	.wsscd-completion-actions {
+		animation: none !important;
+		transition-duration: 0.1s !important;
+	}
+
+	.wsscd-completion-overlay.is-active .wsscd-completion-modal {
+		transform: scale(1) translateY(0);
+	}
+
+	.wsscd-completion-overlay.is-success .wsscd-completion-icon--success,
+	.wsscd-completion-overlay.is-error .wsscd-completion-icon--error {
+		opacity: 1;
+		transform: translate(-50%, -50%);
+	}
+
+	.wsscd-completion-modal::after {
+		display: none !important;
+	}
+
+	/* Disable blur effects for reduced motion */
+	.wsscd-completion-modal {
+		background: var(--wsscd-color-white);
+	}
+
+	.wsscd-completion-overlay {
+	}
+}

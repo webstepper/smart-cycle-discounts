@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Loader {
+class WSSCD_Loader {
 
 	/**
 	 * The array of actions registered with WordPress.
@@ -145,7 +145,7 @@ class SCD_Loader {
 	public function run(): void {
 		// Debug logging
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			SCD_Log::debug(
+			WSSCD_Log::debug(
 				'Loader: Running hook registration',
 				array(
 					'actions_count' => count( $this->actions ),
@@ -173,7 +173,7 @@ class SCD_Loader {
 
 			// Debug specific hooks
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG && strpos( $hook['hook'], 'woocommerce_product_get_price' ) !== false ) {
-				SCD_Log::debug(
+				WSSCD_Log::debug(
 					'Loader: Registered filter',
 					array(
 						'hook'      => $hook['hook'],

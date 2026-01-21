@@ -16,14 +16,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * SCD_AJAX_Validation Class
+ * WSSCD_AJAX_Validation Class
  *
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/validation
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_AJAX_Validation {
+class WSSCD_AJAX_Validation {
 
 	/**
 	 * Validate AJAX request data
@@ -41,7 +41,7 @@ class SCD_AJAX_Validation {
 		}
 
 		// Otherwise, determine context from action
-		if ( isset( $data['scd_action'] ) ) {
+		if ( isset( $data['wsscd_action'] ) ) {
 			return self::validate_by_action( $data );
 		}
 
@@ -62,12 +62,13 @@ class SCD_AJAX_Validation {
 
 		$nonce_valid = false;
 		if ( isset( $data['nonce'] ) ) {
+			$nonce = sanitize_text_field( $data['nonce'] );
 			// Try wizard nonce first (used by wizard pages)
-			if ( wp_verify_nonce( $data['nonce'], 'scd_wizard_nonce' ) ) {
+			if ( wp_verify_nonce( $nonce, 'wsscd_wizard_nonce' ) ) {
 				$nonce_valid = true;
 			}
 			// Fallback to ajax nonce (used by other AJAX requests)
-			elseif ( wp_verify_nonce( $data['nonce'], 'scd_ajax_nonce' ) ) {
+			elseif ( wp_verify_nonce( $nonce, 'wsscd_ajax_nonce' ) ) {
 				$nonce_valid = true;
 			}
 		}
@@ -77,15 +78,15 @@ class SCD_AJAX_Validation {
 			return $errors;
 		}
 
-		$validated['scd_action'] = sanitize_key( $data['scd_action'] );
+		$validated['wsscd_action'] = sanitize_key( $data['wsscd_action'] );
 
-		if ( strlen( serialize( $data ) ) > SCD_Validation_Rules::MAX_REQUEST_SIZE ) {
+		if ( strlen( serialize( $data ) ) > WSSCD_Validation_Rules::MAX_REQUEST_SIZE ) {
 			$errors->add( 'request_too_large', __( 'Request data is too large', 'smart-cycle-discounts' ) );
 			return $errors;
 		}
 
 		// Route to specific validation based on action
-		switch ( $validated['scd_action'] ) {
+		switch ( $validated['wsscd_action'] ) {
 			case 'save_draft':
 				return self::validate_save_draft( $data, $validated );
 
@@ -166,29 +167,29 @@ class SCD_AJAX_Validation {
 		$errors    = new WP_Error();
 		$validated = array();
 
-		if ( ! isset( $data['scd_product_meta_nonce'] ) ||
-			! wp_verify_nonce( $data['scd_product_meta_nonce'], 'scd_product_meta' ) ) {
+		$nonce = isset( $data['wsscd_product_meta_nonce'] ) ? sanitize_text_field( $data['wsscd_product_meta_nonce'] ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'wsscd_product_meta' ) ) {
 			$errors->add( 'invalid_nonce', __( 'Security check failed', 'smart-cycle-discounts' ) );
 			return $errors;
 		}
 
-		if ( isset( $data['scd_exclude_from_discounts'] ) ) {
-			$validated['scd_exclude_from_discounts'] = rest_sanitize_boolean( $data['scd_exclude_from_discounts'] );
+		if ( isset( $data['wsscd_exclude_from_discounts'] ) ) {
+			$validated['wsscd_exclude_from_discounts'] = rest_sanitize_boolean( $data['wsscd_exclude_from_discounts'] );
 		}
 
-		if ( isset( $data['scd_max_discount_percentage'] ) ) {
-			$percentage = absint( $data['scd_max_discount_percentage'] );
+		if ( isset( $data['wsscd_max_discount_percentage'] ) ) {
+			$percentage = absint( $data['wsscd_max_discount_percentage'] );
 			if ( $percentage > 0 && $percentage <= 100 ) {
-				$validated['scd_max_discount_percentage'] = $percentage;
+				$validated['wsscd_max_discount_percentage'] = $percentage;
 			} elseif ( $percentage > 100 ) {
 				$errors->add( 'invalid_max_discount', __( 'Maximum discount cannot exceed 100%', 'smart-cycle-discounts' ) );
 			}
 		}
 
-		if ( isset( $data['scd_custom_priority'] ) ) {
-			$priority = absint( $data['scd_custom_priority'] );
+		if ( isset( $data['wsscd_custom_priority'] ) ) {
+			$priority = absint( $data['wsscd_custom_priority'] );
 			if ( $priority >= 1 && $priority <= 5 ) {
-				$validated['scd_custom_priority'] = $priority;
+				$validated['wsscd_custom_priority'] = $priority;
 			} else {
 				$errors->add( 'invalid_priority', __( 'Priority must be between 1 and 5', 'smart-cycle-discounts' ) );
 			}
@@ -215,6 +216,7 @@ class SCD_AJAX_Validation {
 			} else {
 				// Log invalid draft_action for debugging
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
 					error_log( '[AJAX_Validation] Invalid draft_action: ' . $action . ' (expected one of: ' . implode( ', ', $valid_actions ) . ')' );
 				}
 			}

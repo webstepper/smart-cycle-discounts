@@ -27,17 +27,25 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/api
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_REST_API_Manager {
+class WSSCD_REST_API_Manager {
 
 	/**
 	 * Cache manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Cache_Manager    $cache    Cache manager.
+	 * @var      WSSCD_Cache_Manager    $cache    Cache manager.
 	 */
-	private SCD_Cache_Manager $cache;
+	private WSSCD_Cache_Manager $cache;
 
+	/**
+	 * Container instance.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      WSSCD_Container    $container    Service container.
+	 */
+	private WSSCD_Container $container;
 
 	/**
 	 * API namespace.
@@ -46,7 +54,7 @@ class SCD_REST_API_Manager {
 	 * @access   private
 	 * @var      string    $namespace    API namespace.
 	 */
-	private string $namespace = 'scd/v1';
+	private string $namespace = 'wsscd/v1';
 
 	/**
 	 * API version.
@@ -62,36 +70,36 @@ class SCD_REST_API_Manager {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_API_Authentication    $auth_manager    Authentication manager.
+	 * @var      WSSCD_API_Authentication|null    $auth_manager    Authentication manager.
 	 */
-	private SCD_API_Authentication $auth_manager;
+	private ?WSSCD_API_Authentication $auth_manager = null;
 
 	/**
 	 * Permissions manager.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_API_Permissions    $permissions_manager    Permissions manager.
+	 * @var      WSSCD_API_Permissions|null    $permissions_manager    Permissions manager.
 	 */
-	private SCD_API_Permissions $permissions_manager;
+	private ?WSSCD_API_Permissions $permissions_manager = null;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
-	 * Registered endpoints.
+	 * Registered endpoint controllers.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      array    $endpoints    Registered endpoints.
+	 * @var      array    $controllers    Registered controller instances.
 	 */
-	private array $endpoints = array();
+	private array $controllers = array();
 
 	/**
 	 * Rate limiting enabled.
@@ -106,11 +114,13 @@ class SCD_REST_API_Manager {
 	 * Initialize the REST API manager.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Container $container    Container instance.
+	 * @param    WSSCD_Cache_Manager $cache        Cache manager.
+	 * @param    WSSCD_Container     $container    Container instance.
 	 */
-	public function __construct(SCD_Cache_Manager $cache, SCD_Container $container) {
-		$this->cache = $cache;
-		$this->logger = $container->get( 'logger' );
+	public function __construct( WSSCD_Cache_Manager $cache, WSSCD_Container $container ) {
+		$this->cache     = $cache;
+		$this->container = $container;
+		$this->logger    = $container->get( 'logger' );
 	}
 
 	/**
@@ -120,8 +130,29 @@ class SCD_REST_API_Manager {
 	 * @return   void
 	 */
 	public function init(): void {
+		$this->init_managers();
 		$this->add_hooks();
-		$this->register_core_endpoints();
+		$this->register_core_controllers();
+	}
+
+	/**
+	 * Initialize authentication and permissions managers.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   void
+	 */
+	private function init_managers(): void {
+		// Initialize permissions manager
+		if ( $this->container->has( 'api_permissions' ) ) {
+			$this->permissions_manager = $this->container->get( 'api_permissions' );
+		}
+
+		// Initialize authentication manager
+		if ( $this->container->has( 'api_authentication' ) ) {
+			$this->auth_manager = $this->container->get( 'api_authentication' );
+			$this->auth_manager->init();
+		}
 	}
 
 	/**
@@ -147,6 +178,7 @@ class SCD_REST_API_Manager {
 	 * @return   void
 	 */
 	public function register_routes(): void {
+		// Register API info endpoint
 		register_rest_route(
 			$this->namespace,
 			'',
@@ -157,15 +189,18 @@ class SCD_REST_API_Manager {
 			)
 		);
 
-		foreach ( $this->endpoints as $endpoint ) {
-			$endpoint->register_routes();
+		// Register all controller routes
+		foreach ( $this->controllers as $controller ) {
+			if ( method_exists( $controller, 'register_routes' ) ) {
+				$controller->register_routes();
+			}
 		}
 
 		$this->logger->debug(
 			'REST API routes registered',
 			array(
-				'namespace'       => $this->namespace,
-				'endpoints_count' => count( $this->endpoints ),
+				'namespace'         => $this->namespace,
+				'controllers_count' => count( $this->controllers ),
 			)
 		);
 	}
@@ -179,7 +214,7 @@ class SCD_REST_API_Manager {
 	public function register_fields(): void {
 		register_rest_field(
 			'product',
-			'scd_discount_info',
+			'wsscd_discount_info',
 			array(
 				'get_callback' => array( $this, 'get_product_discount_info' ),
 				'schema'       => array(
@@ -253,8 +288,8 @@ class SCD_REST_API_Manager {
 			return $result;
 		}
 
-		// Only handle our API namespace
-		$request_uri = $_SERVER['REQUEST_URI'] ?? '';
+		// Only handle our API namespace.
+		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 		if ( strpos( $request_uri, '/wp-json/' . $this->namespace ) === false ) {
 			return $result;
 		}
@@ -312,7 +347,7 @@ class SCD_REST_API_Manager {
 		$result->header( 'Access-Control-Allow-Credentials', 'true' );
 
 		// Add API version header
-		$result->header( 'X-SCD-API-Version', $this->version );
+		$result->header( 'X-WSSCD-API-Version', $this->version );
 
 		if ( $this->rate_limiting_enabled ) {
 			$rate_limit_info = $this->get_rate_limit_info( $request );
@@ -330,35 +365,29 @@ class SCD_REST_API_Manager {
 	}
 
 	/**
-	 * Register an endpoint.
+	 * Register a controller instance.
 	 *
 	 * @since    1.0.0
-	 * @param    string $endpoint_class    Endpoint class name.
-	 * @return   bool                         Success status.
+	 * @param    object $controller    Controller instance.
+	 * @return   bool                     Success status.
 	 */
-	public function register_endpoint( string $endpoint_class ): bool {
-		if ( ! class_exists( $endpoint_class ) ) {
-			$this->logger->error( 'Endpoint class not found', array( 'class' => $endpoint_class ) );
-			return false;
-		}
-
-		try {
-			$endpoint          = new $endpoint_class( $this->namespace, null, $this->logger );
-			$this->endpoints[] = $endpoint;
-
-			$this->logger->debug( 'Endpoint registered', array( 'class' => $endpoint_class ) );
-			return true;
-
-		} catch ( Exception $e ) {
+	public function register_controller( object $controller ): bool {
+		if ( ! method_exists( $controller, 'register_routes' ) ) {
 			$this->logger->error(
-				'Failed to register endpoint',
-				array(
-					'class' => $endpoint_class,
-					'error' => $e->getMessage(),
-				)
+				'Controller does not have register_routes method',
+				array( 'class' => get_class( $controller ) )
 			);
 			return false;
 		}
+
+		$this->controllers[] = $controller;
+
+		$this->logger->debug(
+			'Controller registered',
+			array( 'class' => get_class( $controller ) )
+		);
+
+		return true;
 	}
 
 	/**
@@ -385,7 +414,7 @@ class SCD_REST_API_Manager {
 				'limits'  => $this->get_rate_limits(),
 			),
 			'documentation'  => home_url( '/wp-json/' . $this->namespace . '/docs' ),
-			'timestamp'      => current_time( 'timestamp' ),
+			'timestamp'      => time(),
 			'timezone'       => wp_timezone_string(),
 		);
 
@@ -426,22 +455,34 @@ class SCD_REST_API_Manager {
 	}
 
 	/**
-	 * Register core endpoints.
+	 * Register core API controllers.
+	 *
+	 * Creates controller instances via the service container with proper dependency injection.
 	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @return   void
 	 */
-	private function register_core_endpoints(): void {
-		$core_endpoints = array(
-			'SCD_Campaigns_Controller',
-			'SCD_Discounts_Controller',
-			'SCD_Analytics_Controller',
+	private function register_core_controllers(): void {
+		// Controller service names in the container
+		$controller_services = array(
+			'api_campaigns_controller',
+			'api_discounts_controller',
 		);
 
-		foreach ( $core_endpoints as $endpoint_class ) {
-			$this->register_endpoint( $endpoint_class );
+		foreach ( $controller_services as $service_name ) {
+			if ( $this->container->has( $service_name ) ) {
+				$controller = $this->container->get( $service_name );
+				if ( null !== $controller ) {
+					$this->register_controller( $controller );
+				}
+			}
 		}
+
+		$this->logger->debug(
+			'Core API controllers registered',
+			array( 'count' => count( $this->controllers ) )
+		);
 	}
 
 	/**
@@ -456,7 +497,7 @@ class SCD_REST_API_Manager {
 		$client_ip = $this->get_client_ip();
 		$user_id   = get_current_user_id();
 
-		$rate_limit_key = 'scd_rate_limit_' . ( $user_id ?: $client_ip );
+		$rate_limit_key = 'wsscd_rate_limit_' . ( $user_id ?: $client_ip );
 
 		$current_requests = $this->cache->get( $rate_limit_key ) ?: 0;
 		$rate_limit       = $this->get_rate_limit_for_request( $request );
@@ -560,7 +601,7 @@ class SCD_REST_API_Manager {
 	private function get_rate_limit_info( WP_REST_Request $request ): array {
 		$client_ip      = $this->get_client_ip();
 		$user_id        = get_current_user_id();
-		$rate_limit_key = 'scd_rate_limit_' . ( $user_id ?: $client_ip );
+		$rate_limit_key = 'wsscd_rate_limit_' . ( $user_id ?: $client_ip );
 
 		$current_requests = $this->cache->get( $rate_limit_key ) ?: 0;
 		$rate_limit       = $this->get_rate_limit_for_request( $request );
@@ -584,7 +625,8 @@ class SCD_REST_API_Manager {
 
 		foreach ( $ip_keys as $key ) {
 			if ( array_key_exists( $key, $_SERVER ) === true ) {
-				foreach ( explode( ',', $_SERVER[ $key ] ) as $ip ) {
+				$server_value = sanitize_text_field( wp_unslash( $_SERVER[ $key ] ) );
+				foreach ( explode( ',', $server_value ) as $ip ) {
 					$ip = trim( $ip );
 					if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) !== false ) {
 						return $ip;
@@ -593,7 +635,7 @@ class SCD_REST_API_Manager {
 			}
 		}
 
-		return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+		return isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '0.0.0.0';
 	}
 
 	/**
@@ -607,14 +649,14 @@ class SCD_REST_API_Manager {
 	private function get_allowed_origin( WP_REST_Request $request ): string {
 		$origin          = $request->get_header( 'origin' );
 		$allowed_origins = apply_filters(
-			'scd_api_allowed_origins',
+			'wsscd_api_allowed_origins',
 			array(
 				home_url(),
 				admin_url(),
 			)
 		);
 
-		if ( in_array( $origin, $allowed_origins ) ) {
+		if ( in_array( $origin, $allowed_origins, true ) ) {
 			return $origin;
 		}
 
@@ -631,9 +673,9 @@ class SCD_REST_API_Manager {
 	private function get_endpoint_list(): array {
 		$endpoints = array();
 
-		foreach ( $this->endpoints as $endpoint ) {
-			if ( method_exists( $endpoint, 'get_endpoint_info' ) ) {
-				$endpoints[] = $endpoint->get_endpoint_info();
+		foreach ( $this->controllers as $controller ) {
+			if ( method_exists( $controller, 'get_endpoint_info' ) ) {
+				$endpoints[] = $controller->get_endpoint_info();
 			}
 		}
 

@@ -13,11 +13,11 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	SCD.Steps = SCD.Steps || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Steps = WSSCD.Steps || {};
 
 	// Step factory registry
-	SCD.Steps._factories = SCD.Steps._factories || {};
+	WSSCD.Steps._factories = WSSCD.Steps._factories || {};
 
 	/**
 	 * Register a step factory
@@ -25,7 +25,7 @@
 	 * @param {string} stepName - Name of the step
 	 * @param {Function} factory - Factory function that returns a step instance
 	 */
-	SCD.Steps.registerFactory = function( stepName, factory ) {
+	WSSCD.Steps.registerFactory = function( stepName, factory ) {
 		if ( 'function' !== typeof factory ) {
 			throw new Error( 'Factory for step "' + stepName + '" must be a function, got: ' + typeof factory );
 		}
@@ -34,11 +34,11 @@
 			throw new Error( 'Step name must be a non-empty string, got: ' + typeof stepName );
 		}
 
-		SCD.Steps._factories[stepName] = factory;
+		WSSCD.Steps._factories[stepName] = factory;
 
 		// Emit registration event for debugging
 		if ( 'undefined' !== typeof $ ) {
-			$( document ).trigger( 'scd:step:registered', [ stepName ] );
+			$( document ).trigger( 'wsscd:step:registered', [ stepName ] );
 		}
 	};
 
@@ -48,8 +48,8 @@
 	 * @param {string} stepName - Name of the step
 	 * @returns {object | null} Step instance or null if not found
 	 */
-	SCD.Steps.createStep = function( stepName ) {
-		var factory = SCD.Steps._factories[stepName];
+	WSSCD.Steps.createStep = function( stepName ) {
+		var factory = WSSCD.Steps._factories[stepName];
 
 		if ( !factory ) {
 			throw new Error( 'No factory registered for step: ' + stepName );
@@ -64,7 +64,7 @@
 
 			// Emit creation event for debugging
 			if ( 'undefined' !== typeof $ ) {
-				$( document ).trigger( 'scd:step:created', [ stepName, instance ] );
+				$( document ).trigger( 'wsscd:step:created', [ stepName, instance ] );
 			}
 
 			return instance;
@@ -79,8 +79,8 @@
 	 * @param {string} stepName - Name of the step
 	 * @returns {boolean} True if factory exists
 	 */
-	SCD.Steps.hasFactory = function( stepName ) {
-		return Object.prototype.hasOwnProperty.call( SCD.Steps._factories, stepName );
+	WSSCD.Steps.hasFactory = function( stepName ) {
+		return Object.prototype.hasOwnProperty.call( WSSCD.Steps._factories, stepName );
 	};
 
 	/**
@@ -88,8 +88,8 @@
 	 *
 	 * @returns {string[]} Array of step names
 	 */
-	SCD.Steps.getRegisteredSteps = function() {
-		return Object.keys( SCD.Steps._factories );
+	WSSCD.Steps.getRegisteredSteps = function() {
+		return Object.keys( WSSCD.Steps._factories );
 	};
 
 } )( jQuery );

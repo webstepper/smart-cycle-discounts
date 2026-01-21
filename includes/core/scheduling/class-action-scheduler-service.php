@@ -27,16 +27,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/scheduling
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Action_Scheduler_Service {
+class WSSCD_Action_Scheduler_Service {
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger|null    $logger    Logger instance.
+	 * @var      WSSCD_Logger|null    $logger    Logger instance.
 	 */
-	private ?SCD_Logger $logger;
+	private ?WSSCD_Logger $logger;
 
 	/**
 	 * Action group for all plugin actions.
@@ -45,15 +45,15 @@ class SCD_Action_Scheduler_Service {
 	 * @access   private
 	 * @var      string    $action_group    Action group identifier.
 	 */
-	private string $action_group = 'scd_actions';
+	private string $action_group = 'wsscd_actions';
 
 	/**
 	 * Initialize the service.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger|null $logger    Logger instance.
+	 * @param    WSSCD_Logger|null $logger    Logger instance.
 	 */
-	public function __construct( ?SCD_Logger $logger = null ) {
+	public function __construct( ?WSSCD_Logger $logger = null ) {
 		$this->logger = $logger;
 	}
 
@@ -77,7 +77,7 @@ class SCD_Action_Scheduler_Service {
 	 * @param    string $group        Optional. Action group (defaults to plugin group).
 	 * @return   int|bool                Action ID on success, false on failure.
 	 */
-	public function schedule_single_action( int $timestamp, string $hook, array $args = array(), string $group = '' ): int|bool {
+	public function schedule_single_action( int $timestamp, string $hook, array $args = array(), string $group = '' ) {
 		if ( ! $this->is_available() ) {
 			if ( $this->logger ) {
 				$this->logger->error(
@@ -147,7 +147,7 @@ class SCD_Action_Scheduler_Service {
 	 * @param    string $group        Optional. Action group (defaults to plugin group).
 	 * @return   int|bool                Action ID on success, false on failure.
 	 */
-	public function schedule_recurring_action( int $timestamp, int $interval, string $hook, array $args = array(), string $group = '' ): int|bool {
+	public function schedule_recurring_action( int $timestamp, int $interval, string $hook, array $args = array(), string $group = '' ) {
 		if ( ! $this->is_available() ) {
 			if ( $this->logger ) {
 				$this->logger->error(
@@ -210,7 +210,7 @@ class SCD_Action_Scheduler_Service {
 	 * @param    string $group        Optional. Action group (defaults to plugin group).
 	 * @return   int|bool                Action ID on success, false on failure.
 	 */
-	public function schedule_cron_action( int $timestamp, string $schedule, string $hook, array $args = array(), string $group = '' ): int|bool {
+	public function schedule_cron_action( int $timestamp, string $schedule, string $hook, array $args = array(), string $group = '' ) {
 		if ( ! $this->is_available() ) {
 			return false;
 		}
@@ -280,7 +280,7 @@ class SCD_Action_Scheduler_Service {
 	 * @param    string $group    Optional. Action group.
 	 * @return   int|bool            Unix timestamp or false if not scheduled.
 	 */
-	public function get_next_scheduled_action( string $hook, array $args = array(), string $group = '' ): int|bool {
+	public function get_next_scheduled_action( string $hook, array $args = array(), string $group = '' ) {
 		if ( ! $this->is_available() ) {
 			return false;
 		}
@@ -306,7 +306,7 @@ class SCD_Action_Scheduler_Service {
 	 * @param    string $group    Optional. Action group.
 	 * @return   int|bool            Number of actions unscheduled, or false on failure.
 	 */
-	public function unschedule_action( string $hook, array $args = array(), string $group = '' ): int|bool {
+	public function unschedule_action( string $hook, array $args = array(), string $group = '' ) {
 		if ( ! $this->is_available() ) {
 			return false;
 		}
@@ -356,7 +356,7 @@ class SCD_Action_Scheduler_Service {
 	 * @param    string $group    Optional. Action group.
 	 * @return   int|bool            Number of actions unscheduled, or false on failure.
 	 */
-	public function unschedule_all_actions( string $hook, string $group = '' ): int|bool {
+	public function unschedule_all_actions( string $hook, string $group = '' ) {
 		if ( ! $this->is_available() ) {
 			return false;
 		}

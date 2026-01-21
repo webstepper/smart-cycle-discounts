@@ -14,10 +14,10 @@
 	'use strict';
 
 	// Ensure namespaces exist
-	window.SCD = window.SCD || {};
-	SCD.Steps = SCD.Steps || {};
-	SCD.Modules = SCD.Modules || {};
-	SCD.Modules.Basic = SCD.Modules.Basic || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Steps = WSSCD.Steps || {};
+	WSSCD.Modules = WSSCD.Modules || {};
+	WSSCD.Modules.Basic = WSSCD.Modules.Basic || {};
 
 	/**
 	 * Basic Orchestrator
@@ -26,7 +26,7 @@
 	 *
 	 * Phase 2 Migration: Uses Module Registry for declarative module initialization
 	 */
-	SCD.Steps.BasicOrchestrator = SCD.Shared.BaseOrchestrator.createStep( 'basic', {
+	WSSCD.Steps.BasicOrchestrator = WSSCD.Shared.BaseOrchestrator.createStep( 'basic', {
 
 		/**
 		 * Initialize step modules
@@ -36,10 +36,10 @@
 		 */
 		initializeStep: function() {
 			// Create module configuration using helper
-			var moduleConfig = SCD.Shared.ModuleRegistry.createStepConfig( 'basic' );
+			var moduleConfig = WSSCD.Shared.ModuleRegistry.createStepConfig( 'basic' );
 
 			// Initialize all modules with automatic dependency injection
-			this.modules = SCD.Shared.ModuleRegistry.initialize( moduleConfig, this );
+			this.modules = WSSCD.Shared.ModuleRegistry.initialize( moduleConfig, this );
 		},
 
 		/**
@@ -50,7 +50,7 @@
 		 */
 		onInit: function() {
 			// Bind auto events - convention-based event binding via data attributes
-			SCD.Shared.AutoEvents.bind( this.$container, this );
+			WSSCD.Shared.AutoEvents.bind( this.$container, this );
 		},
 
 		/**
@@ -81,7 +81,7 @@
 			}
 
 			// Notify that step is ready
-			this.triggerCustomEvent( 'scd:basic:ready', [ this.modules ] );
+			this.triggerCustomEvent( 'wsscd:basic:ready', [ this.modules ] );
 		},
 
 		// Note: collectData, validateData, showErrors, getData, setData, and populateFields
@@ -99,7 +99,7 @@
 				this.modules.fields.resetFields();
 			}
 
-			this.triggerCustomEvent( 'scd:basic:reset', [] );
+			this.triggerCustomEvent( 'wsscd:basic:reset', [] );
 		},
 
 		// Note: isValid and isDirty are now handled by StepPersistence mixin

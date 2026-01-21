@@ -31,10 +31,10 @@
 		 */
 		cacheElements: function() {
 			this.$providerSelect = $( '#email_provider' );
-			this.$providerFields = $( '.scd-provider-setting' );
-			this.$testEmailBtn = $( '#scd-test-email' );
-			this.$testConnectionBtns = $( '.scd-test-connection-btn' );
-			this.$form = $( '.scd-notifications-form' );
+			this.$providerFields = $( '.wsscd-provider-setting' );
+			this.$testEmailBtn = $( '#wsscd-test-email' );
+			this.$testConnectionBtns = $( '.wsscd-test-connection-btn' );
+			this.$form = $( '.wsscd-notifications-form' );
 		},
 
 		/**
@@ -78,7 +78,7 @@
 
 			// Show fields for selected provider
 			if ( selectedProvider ) {
-				$( '.scd-provider-' + selectedProvider ).closest( 'tr' ).show();
+				$( '.wsscd-provider-' + selectedProvider ).closest( 'tr' ).show();
 			}
 		},
 
@@ -91,7 +91,7 @@
 			var originalText = $button.text();
 
 			// Disable button and show loading
-			$button.prop( 'disabled', true ).text( scdNotificationsL10n.sending );
+			$button.prop( 'disabled', true ).text( wsscdNotificationsL10n.sending );
 
 			// Get form data
 			var formData = this.$form.serializeArray();
@@ -99,7 +99,7 @@
 
 			// Convert form data to settings object
 			$( formData ).each( function( index, field ) {
-				var fieldName = field.name.replace( 'scd_settings[notifications][', '' ).replace( ']', '' );
+				var fieldName = field.name.replace( 'wsscd_settings[notifications][', '' ).replace( ']', '' );
 				settings[ fieldName ] = field.value;
 			} );
 
@@ -108,18 +108,18 @@
 				url: ajaxurl,
 				type: 'POST',
 				data: {
-					action: 'scd_send_test_email',
-					nonce: scdNotificationsL10n.nonce,
+					action: 'wsscd_send_test_email',
+					nonce: wsscdNotificationsL10n.nonce,
 					settings: settings
 				},
 				success: function( response ) {
 					if ( response.success ) {
 						// Success response
-						var message = response.data && response.data.message ? response.data.message : scdNotificationsL10n.testEmailSent;
+						var message = response.data && response.data.message ? response.data.message : wsscdNotificationsL10n.testEmailSent;
 						self.showNotice( message, 'success' );
 					} else {
 						// Error response - handle object or string
-						var errorMessage = scdNotificationsL10n.testEmailFailed;
+						var errorMessage = wsscdNotificationsL10n.testEmailFailed;
 
 						if ( response.data ) {
 							if ( typeof response.data === 'string' ) {
@@ -137,7 +137,7 @@
 				error: function( xhr, status, error ) {
 					console.error( 'AJAX Error:', status, error );
 					console.error( 'Response:', xhr.responseText );
-					self.showNotice( scdNotificationsL10n.testEmailFailed, 'error' );
+					self.showNotice( wsscdNotificationsL10n.testEmailFailed, 'error' );
 				},
 				complete: function() {
 					// Re-enable button
@@ -153,12 +153,12 @@
 		 */
 		testProviderConnection: function( provider ) {
 			var self = this;
-			var $button = $( '.scd-test-connection-btn[data-provider="' + provider + '"]' );
+			var $button = $( '.wsscd-test-connection-btn[data-provider="' + provider + '"]' );
 			var originalHtml = $button.html();
 
 			// Disable button and show loading
-			if ( window.SCD && window.SCD.LoaderUtil ) {
-				SCD.LoaderUtil.showButton( $button, scdNotificationsL10n.testing );
+			if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+				WSSCD.LoaderUtil.showButton( $button, wsscdNotificationsL10n.testing );
 			}
 
 			// Get form data
@@ -167,7 +167,7 @@
 
 			// Convert form data to settings object
 			$( formData ).each( function( index, field ) {
-				var fieldName = field.name.replace( 'scd_settings[notifications][', '' ).replace( ']', '' );
+				var fieldName = field.name.replace( 'wsscd_settings[notifications][', '' ).replace( ']', '' );
 				settings[ fieldName ] = field.value;
 			} );
 
@@ -176,15 +176,15 @@
 				url: ajaxurl,
 				type: 'POST',
 				data: {
-					action: 'scd_test_provider_connection',
-					nonce: scdNotificationsL10n.nonce,
+					action: 'wsscd_test_provider_connection',
+					nonce: wsscdNotificationsL10n.nonce,
 					provider: provider,
 					settings: settings
 				},
 				success: function( response ) {
 					if ( response.success ) {
 						// Success response
-						var message = response.data && response.data.message ? response.data.message : scdNotificationsL10n.connectionSuccess;
+						var message = response.data && response.data.message ? response.data.message : wsscdNotificationsL10n.connectionSuccess;
 						self.showNotice( message, 'success' );
 
 						// Show stats if available
@@ -193,7 +193,7 @@
 						}
 					} else {
 						// Error response
-						var errorMessage = scdNotificationsL10n.connectionFailed;
+						var errorMessage = wsscdNotificationsL10n.connectionFailed;
 
 						if ( response.data ) {
 							if ( typeof response.data === 'string' ) {
@@ -211,12 +211,12 @@
 				error: function( xhr, status, error ) {
 					console.error( 'AJAX Error:', status, error );
 					console.error( 'Response:', xhr.responseText );
-					self.showNotice( scdNotificationsL10n.connectionFailed, 'error' );
+					self.showNotice( wsscdNotificationsL10n.connectionFailed, 'error' );
 				},
 				complete: function() {
 					// Re-enable button
-					if ( window.SCD && window.SCD.LoaderUtil ) {
-					SCD.LoaderUtil.hideButton( $button );
+					if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+					WSSCD.LoaderUtil.hideButton( $button );
 				}
 				}
 			} );
@@ -229,7 +229,7 @@
 		 * @param {object} stats Statistics object
 		 */
 		showProviderStats: function( provider, stats ) {
-			var statsHtml = '<div class="scd-provider-stats"><h4>Provider Statistics:</h4><ul>';
+			var statsHtml = '<div class="wsscd-provider-stats"><h4>Provider Statistics:</h4><ul>';
 
 			for ( var key in stats ) {
 				if ( stats.hasOwnProperty( key ) ) {
@@ -257,7 +257,7 @@
 			if ( 'sendgrid' === selectedProvider ) {
 				var apiKey = $( '#sendgrid_api_key' ).val();
 				if ( ! apiKey || apiKey.trim() === '' ) {
-					this.showNotice( scdNotificationsL10n.sendgridApiKeyRequired, 'error' );
+					this.showNotice( wsscdNotificationsL10n.sendgridApiKeyRequired, 'error' );
 					isValid = false;
 				}
 			}
@@ -267,7 +267,7 @@
 				var secretKey = $( '#amazonses_secret_key' ).val();
 
 				if ( ! accessKey || accessKey.trim() === '' || ! secretKey || secretKey.trim() === '' ) {
-					this.showNotice( scdNotificationsL10n.awsKeysRequired, 'error' );
+					this.showNotice( wsscdNotificationsL10n.awsKeysRequired, 'error' );
 					isValid = false;
 				}
 			}
@@ -275,7 +275,7 @@
 			// Validate from email
 			var fromEmail = $( '#from_email' ).val();
 			if ( fromEmail && ! this.isValidEmail( fromEmail ) ) {
-				this.showNotice( scdNotificationsL10n.invalidFromEmail, 'error' );
+				this.showNotice( wsscdNotificationsL10n.invalidFromEmail, 'error' );
 				isValid = false;
 			}
 
@@ -287,7 +287,7 @@
 				$( emails ).each( function( index, email ) {
 					var trimmedEmail = email.trim();
 					if ( trimmedEmail && ! self.isValidEmail( trimmedEmail ) ) {
-						self.showNotice( scdNotificationsL10n.invalidRecipientEmail.replace( '%s', trimmedEmail ), 'error' );
+						self.showNotice( wsscdNotificationsL10n.invalidRecipientEmail.replace( '%s', trimmedEmail ), 'error' );
 						isValid = false;
 						return false; // Break loop
 					}

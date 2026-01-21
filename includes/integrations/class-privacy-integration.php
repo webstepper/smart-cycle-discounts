@@ -34,7 +34,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/integrations
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Privacy_Integration {
+class WSSCD_Privacy_Integration {
 
 	/**
 	 * Initialize privacy integration.
@@ -241,7 +241,8 @@ class SCD_Privacy_Integration {
 		global $wpdb;
 
 		// Erase customer usage data
-		$usage_table = $wpdb->prefix . 'scd_customer_usage';
+		$usage_table = $wpdb->prefix . 'wsscd_customer_usage';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- GDPR data erasure; no caching on delete.
 		$deleted     = $wpdb->delete(
 			$usage_table,
 			array( 'customer_id' => $user->ID ),
@@ -278,9 +279,11 @@ class SCD_Privacy_Integration {
 	private function get_customer_usage_data( int $user_id ): array {
 		global $wpdb;
 
-		$usage_table    = $wpdb->prefix . 'scd_customer_usage';
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$usage_table    = $wpdb->prefix . 'wsscd_customer_usage';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
 
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// Table names constructed with $wpdb->prefix. Query IS prepared. Privacy data export.
 		$query = $wpdb->prepare(
 			"SELECT
 				u.id,
@@ -297,6 +300,7 @@ class SCD_Privacy_Integration {
 		);
 
 		$results = $wpdb->get_results( $query, ARRAY_A );
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		return is_array( $results ) ? $results : array();
 	}
 }

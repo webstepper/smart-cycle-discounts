@@ -27,34 +27,34 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/integrations/blocks
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Blocks_Manager {
+class WSSCD_Blocks_Manager {
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Asset manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Admin_Asset_Manager    $asset_manager    Asset manager.
+	 * @var      WSSCD_Admin_Asset_Manager    $asset_manager    Asset manager.
 	 */
-	private SCD_Admin_Asset_Manager $asset_manager;
+	private WSSCD_Admin_Asset_Manager $asset_manager;
 
 	/**
 	 * Campaign manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Manager    $campaign_manager    Campaign manager.
+	 * @var      WSSCD_Campaign_Manager    $campaign_manager    Campaign manager.
 	 */
-	private SCD_Campaign_Manager $campaign_manager;
+	private WSSCD_Campaign_Manager $campaign_manager;
 
 	/**
 	 * Registered blocks.
@@ -84,14 +84,14 @@ class SCD_Blocks_Manager {
 	 * Initialize the blocks manager.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger              $logger            Logger instance.
-	 * @param    SCD_Admin_Asset_Manager $asset_manager     Asset manager.
-	 * @param    SCD_Campaign_Manager    $campaign_manager  Campaign manager.
+	 * @param    WSSCD_Logger              $logger            Logger instance.
+	 * @param    WSSCD_Admin_Asset_Manager $asset_manager     Asset manager.
+	 * @param    WSSCD_Campaign_Manager    $campaign_manager  Campaign manager.
 	 */
 	public function __construct(
-		SCD_Logger $logger,
-		SCD_Admin_Asset_Manager $asset_manager,
-		SCD_Campaign_Manager $campaign_manager
+		WSSCD_Logger $logger,
+		WSSCD_Admin_Asset_Manager $asset_manager,
+		WSSCD_Campaign_Manager $campaign_manager
 	) {
 		$this->logger           = $logger;
 		$this->asset_manager    = $asset_manager;
@@ -152,7 +152,7 @@ class SCD_Blocks_Manager {
 		// Define available blocks
 		$this->blocks = array(
 			'discount-showcase' => array(
-				'name'            => 'scd/discount-showcase',
+				'name'            => 'wsscd/discount-showcase',
 				'title'           => __( 'Discount Showcase', 'smart-cycle-discounts' ),
 				'description'     => __( 'Display active discounts and campaigns', 'smart-cycle-discounts' ),
 				'category'        => 'smart-cycle-discounts',
@@ -197,7 +197,7 @@ class SCD_Blocks_Manager {
 			),
 
 			'campaign-timer'    => array(
-				'name'            => 'scd/campaign-timer',
+				'name'            => 'wsscd/campaign-timer',
 				'title'           => __( 'Campaign Timer', 'smart-cycle-discounts' ),
 				'description'     => __( 'Display countdown timer for active campaigns', 'smart-cycle-discounts' ),
 				'category'        => 'smart-cycle-discounts',
@@ -237,7 +237,7 @@ class SCD_Blocks_Manager {
 			),
 
 			'product-discounts' => array(
-				'name'            => 'scd/product-discounts',
+				'name'            => 'wsscd/product-discounts',
 				'title'           => __( 'Product Discounts', 'smart-cycle-discounts' ),
 				'description'     => __( 'Display products with active discounts', 'smart-cycle-discounts' ),
 				'category'        => 'smart-cycle-discounts',
@@ -288,7 +288,7 @@ class SCD_Blocks_Manager {
 	 */
 	public function register_block_types(): void {
 		foreach ( $this->blocks as $block_slug => $block_config ) {
-			$block_path = SCD_INCLUDES_DIR . "integrations/blocks/{$block_slug}/";
+			$block_path = WSSCD_INCLUDES_DIR . "integrations/blocks/{$block_slug}/";
 
 			if ( file_exists( $block_path . 'block.json' ) ) {
 				register_block_type( $block_path );
@@ -298,9 +298,9 @@ class SCD_Blocks_Manager {
 					array(
 						'attributes'      => $block_config['attributes'],
 						'render_callback' => $block_config['render_callback'],
-						'editor_script'   => 'scd-blocks-editor',
-						'editor_style'    => 'scd-blocks-editor',
-						'style'           => 'scd-blocks',
+						'editor_script'   => 'wsscd-blocks-editor',
+						'editor_style'    => 'wsscd-blocks-editor',
+						'style'           => 'wsscd-blocks',
 					)
 				);
 			}
@@ -316,20 +316,20 @@ class SCD_Blocks_Manager {
 	 * @return   void
 	 */
 	public function enqueue_block_editor_assets(): void {
-		$asset_file = SCD_PLUGIN_DIR . 'assets/dist/js/blocks-editor.asset.php';
+		$asset_file = WSSCD_PLUGIN_DIR . 'assets/dist/js/blocks-editor.asset.php';
 		$asset_data = file_exists( $asset_file ) ? include $asset_file : array(
 			'dependencies' => array(),
 			'version'      => '1.0.0',
 		);
 
-		$block_js  = SCD_PLUGIN_DIR . 'assets/dist/js/blocks-editor.js';
-		$block_css = SCD_PLUGIN_DIR . 'assets/dist/css/blocks-editor.css';
+		$block_js  = WSSCD_PLUGIN_DIR . 'assets/dist/js/blocks-editor.js';
+		$block_css = WSSCD_PLUGIN_DIR . 'assets/dist/css/blocks-editor.css';
 
 		if ( file_exists( $block_js ) ) {
 			// Enqueue editor script
 			wp_enqueue_script(
-				'scd-blocks-editor',
-				SCD_PLUGIN_URL . 'assets/dist/js/blocks-editor.js',
+				'wsscd-blocks-editor',
+				WSSCD_PLUGIN_URL . 'assets/dist/js/blocks-editor.js',
 				array_merge( $asset_data['dependencies'], array( 'wp-blocks', 'wp-element', 'wp-editor', 'wp-components' ) ),
 				$asset_data['version'],
 				true
@@ -339,8 +339,8 @@ class SCD_Blocks_Manager {
 		if ( file_exists( $block_css ) ) {
 			// Enqueue editor styles
 			wp_enqueue_style(
-				'scd-blocks-editor',
-				SCD_PLUGIN_URL . 'assets/dist/css/blocks-editor.css',
+				'wsscd-blocks-editor',
+				WSSCD_PLUGIN_URL . 'assets/dist/css/blocks-editor.css',
 				array( 'wp-edit-blocks' ),
 				$asset_data['version']
 			);
@@ -348,10 +348,10 @@ class SCD_Blocks_Manager {
 
 		// Localize script with data
 		wp_localize_script(
-			'scd-blocks-editor',
-			'scdBlocks',
+			'wsscd-blocks-editor',
+			'wsscdBlocks',
 			array(
-				'api_url'    => rest_url( 'scd/v1/' ),
+				'api_url'    => rest_url( 'wsscd/v1/' ),
 				'nonce'      => wp_create_nonce( 'wp_rest' ),
 				'campaigns'  => $this->get_campaigns_for_editor(),
 				'categories' => $this->get_product_categories(),
@@ -375,14 +375,14 @@ class SCD_Blocks_Manager {
 	 * @return   void
 	 */
 	public function enqueue_block_assets(): void {
-		$block_css = SCD_PLUGIN_DIR . 'assets/dist/css/blocks.css';
-		$block_js  = SCD_PLUGIN_DIR . 'assets/dist/js/blocks.js';
+		$block_css = WSSCD_PLUGIN_DIR . 'assets/dist/css/blocks.css';
+		$block_js  = WSSCD_PLUGIN_DIR . 'assets/dist/js/blocks.js';
 
 		if ( file_exists( $block_css ) ) {
 			// Enqueue frontend styles
 			wp_enqueue_style(
-				'scd-blocks',
-				SCD_PLUGIN_URL . 'assets/dist/css/blocks.css',
+				'wsscd-blocks',
+				WSSCD_PLUGIN_URL . 'assets/dist/css/blocks.css',
 				array(),
 				'1.0.0'
 			);
@@ -391,8 +391,8 @@ class SCD_Blocks_Manager {
 		if ( file_exists( $block_js ) ) {
 			// Enqueue frontend script
 			wp_enqueue_script(
-				'scd-blocks',
-				SCD_PLUGIN_URL . 'assets/dist/js/blocks.js',
+				'wsscd-blocks',
+				WSSCD_PLUGIN_URL . 'assets/dist/js/blocks.js',
 				array( 'jquery' ),
 				'1.0.0',
 				true
@@ -446,7 +446,7 @@ class SCD_Blocks_Manager {
 		}
 
 		if ( ! $campaign ) {
-			return '<div class="scd-block-error">' .
+			return '<div class="wsscd-block-error">' .
 					esc_html__( 'No campaign selected or campaign not found.', 'smart-cycle-discounts' ) .
 					'</div>';
 		}
@@ -454,24 +454,28 @@ class SCD_Blocks_Manager {
 		$products = $this->get_campaign_products( $campaign, $attributes['max_products'] );
 
 		if ( empty( $products ) ) {
-			return '<div class="scd-block-empty">' .
+			return '<div class="wsscd-block-empty">' .
 					esc_html__( 'No products found for this campaign.', 'smart-cycle-discounts' ) .
 					'</div>';
 		}
 
 		ob_start();
 		?>
-		<div class="scd-discount-showcase scd-display-<?php echo esc_attr( $attributes['display_type'] ); ?> scd-columns-<?php echo esc_attr( $attributes['columns'] ); ?>">
+		<div class="wsscd-discount-showcase wsscd-display-<?php echo esc_attr( $attributes['display_type'] ); ?> wsscd-columns-<?php echo esc_attr( $attributes['columns'] ); ?>">
 			<?php if ( $attributes['show_timer'] && $campaign->has_end_date() ) : ?>
-				<div class="scd-campaign-timer">
-					<?php echo $this->render_campaign_timer( $campaign ); ?>
+				<div class="wsscd-campaign-timer">
+					<?php
+					echo wp_kses_post( $this->render_campaign_timer( $campaign ) );
+					?>
 				</div>
 			<?php endif; ?>
-			
-			<div class="scd-products-grid">
+
+			<div class="wsscd-products-grid">
 				<?php foreach ( $products as $product ) : ?>
-					<div class="scd-product-item">
-						<?php echo $this->render_product_item( $product, $campaign ); ?>
+					<div class="wsscd-product-item">
+						<?php
+						echo wp_kses_post( $this->render_product_item( $product, $campaign ) );
+						?>
 					</div>
 				<?php endforeach; ?>
 			</div>
@@ -506,7 +510,7 @@ class SCD_Blocks_Manager {
 			if ( $attributes['hide_when_expired'] ) {
 				return '';
 			}
-			return '<div class="scd-block-error">' .
+			return '<div class="wsscd-block-error">' .
 					esc_html__( 'No campaign selected or campaign has no end date.', 'smart-cycle-discounts' ) .
 					'</div>';
 		}
@@ -535,18 +539,20 @@ class SCD_Blocks_Manager {
 		$products = $this->get_discounted_products( $attributes );
 
 		if ( empty( $products ) ) {
-			return '<div class="scd-block-empty">' .
+			return '<div class="wsscd-block-empty">' .
 					esc_html__( 'No products with active discounts found.', 'smart-cycle-discounts' ) .
 					'</div>';
 		}
 
 		ob_start();
 		?>
-		<div class="scd-product-discounts">
-			<div class="scd-products-grid">
+		<div class="wsscd-product-discounts">
+			<div class="wsscd-products-grid">
 				<?php foreach ( $products as $product ) : ?>
-					<div class="scd-product-item">
-						<?php echo $this->render_product_item( $product ); ?>
+					<div class="wsscd-product-item">
+						<?php
+						echo wp_kses_post( $this->render_product_item( $product ) );
+						?>
 					</div>
 				<?php endforeach; ?>
 			</div>
@@ -663,31 +669,31 @@ class SCD_Blocks_Manager {
 
 		ob_start();
 		?>
-		<div class="scd-countdown-timer scd-style-<?php echo esc_attr( $attributes['timer_style'] ); ?>" 
+		<div class="wsscd-countdown-timer wsscd-style-<?php echo esc_attr( $attributes['timer_style'] ); ?>" 
 			data-end-time="<?php echo esc_attr( $campaign->get_ends_at() ? $campaign->get_ends_at()->format( 'Y-m-d H:i:s' ) : '' ); ?>">
-			<div class="scd-timer-units">
-				<div class="scd-timer-unit">
-					<span class="scd-timer-value" data-unit="days">0</span>
+			<div class="wsscd-timer-units">
+				<div class="wsscd-timer-unit">
+					<span class="wsscd-timer-value" data-unit="days">0</span>
 					<?php if ( $attributes['show_labels'] ) : ?>
-						<span class="scd-timer-label"><?php esc_html_e( 'Days', 'smart-cycle-discounts' ); ?></span>
+						<span class="wsscd-timer-label"><?php esc_html_e( 'Days', 'smart-cycle-discounts' ); ?></span>
 					<?php endif; ?>
 				</div>
-				<div class="scd-timer-unit">
-					<span class="scd-timer-value" data-unit="hours">0</span>
+				<div class="wsscd-timer-unit">
+					<span class="wsscd-timer-value" data-unit="hours">0</span>
 					<?php if ( $attributes['show_labels'] ) : ?>
-						<span class="scd-timer-label"><?php esc_html_e( 'Hours', 'smart-cycle-discounts' ); ?></span>
+						<span class="wsscd-timer-label"><?php esc_html_e( 'Hours', 'smart-cycle-discounts' ); ?></span>
 					<?php endif; ?>
 				</div>
-				<div class="scd-timer-unit">
-					<span class="scd-timer-value" data-unit="minutes">0</span>
+				<div class="wsscd-timer-unit">
+					<span class="wsscd-timer-value" data-unit="minutes">0</span>
 					<?php if ( $attributes['show_labels'] ) : ?>
-						<span class="scd-timer-label"><?php esc_html_e( 'Minutes', 'smart-cycle-discounts' ); ?></span>
+						<span class="wsscd-timer-label"><?php esc_html_e( 'Minutes', 'smart-cycle-discounts' ); ?></span>
 					<?php endif; ?>
 				</div>
-				<div class="scd-timer-unit">
-					<span class="scd-timer-value" data-unit="seconds">0</span>
+				<div class="wsscd-timer-unit">
+					<span class="wsscd-timer-value" data-unit="seconds">0</span>
 					<?php if ( $attributes['show_labels'] ) : ?>
-						<span class="scd-timer-label"><?php esc_html_e( 'Seconds', 'smart-cycle-discounts' ); ?></span>
+						<span class="wsscd-timer-label"><?php esc_html_e( 'Seconds', 'smart-cycle-discounts' ); ?></span>
 					<?php endif; ?>
 				</div>
 			</div>
@@ -708,7 +714,7 @@ class SCD_Blocks_Manager {
 	private function render_product_item( $product, $campaign = null ): string {
 		// This would render a product item with discount information
 		// For now, return placeholder
-		return '<div class="scd-product-placeholder">Product Item</div>';
+		return '<div class="wsscd-product-placeholder">Product Item</div>';
 	}
 
 	/**

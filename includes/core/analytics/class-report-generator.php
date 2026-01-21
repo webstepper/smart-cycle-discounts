@@ -1,5 +1,7 @@
 <?php
 /**
+ * @fs_premium_only
+ *
  * Report Generator Class
  *
  * @package    SmartCycleDiscounts
@@ -27,52 +29,52 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/analytics
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Report_Generator {
+class WSSCD_Report_Generator {
 
 	/**
 	 * Analytics collector instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Analytics_Collector    $analytics_collector    Analytics collector.
+	 * @var      WSSCD_Analytics_Collector    $analytics_collector    Analytics collector.
 	 */
-	private SCD_Analytics_Collector $analytics_collector;
+	private $analytics_collector;
 
 	/**
 	 * Metrics calculator instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Metrics_Calculator    $metrics_calculator    Metrics calculator.
+	 * @var      WSSCD_Metrics_Calculator    $metrics_calculator    Metrics calculator.
 	 */
-	private SCD_Metrics_Calculator $metrics_calculator;
+	private $metrics_calculator;
 
 	/**
 	 * Campaign manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Manager    $campaign_manager    Campaign manager.
+	 * @var      WSSCD_Campaign_Manager    $campaign_manager    Campaign manager.
 	 */
-	private SCD_Campaign_Manager $campaign_manager;
+	private $campaign_manager;
 
 	/**
 	 * Cache manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Cache_Manager    $cache_manager    Cache manager.
+	 * @var      WSSCD_Cache_Manager    $cache_manager    Cache manager.
 	 */
-	private SCD_Cache_Manager $cache_manager;
+	private $cache_manager;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private $logger;
 
 	/**
 	 * Supported export formats.
@@ -81,24 +83,24 @@ class SCD_Report_Generator {
 	 * @access   private
 	 * @var      array    $supported_formats    Supported formats.
 	 */
-	private array $supported_formats = array( 'csv', 'json', 'pdf', 'excel' );
+	private $supported_formats = array( 'csv', 'json', 'pdf', 'excel' );
 
 	/**
 	 * Initialize the report generator.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Analytics_Collector $analytics_collector    Analytics collector.
-	 * @param    SCD_Metrics_Calculator  $metrics_calculator     Metrics calculator.
-	 * @param    SCD_Campaign_Manager    $campaign_manager       Campaign manager.
-	 * @param    SCD_Cache_Manager       $cache_manager          Cache manager.
-	 * @param    SCD_Logger              $logger                 Logger instance.
+	 * @param    WSSCD_Analytics_Collector $analytics_collector    Analytics collector.
+	 * @param    WSSCD_Metrics_Calculator  $metrics_calculator     Metrics calculator.
+	 * @param    WSSCD_Campaign_Manager    $campaign_manager       Campaign manager.
+	 * @param    WSSCD_Cache_Manager       $cache_manager          Cache manager.
+	 * @param    WSSCD_Logger              $logger                 Logger instance.
 	 */
 	public function __construct(
-		SCD_Analytics_Collector $analytics_collector,
-		SCD_Metrics_Calculator $metrics_calculator,
-		SCD_Campaign_Manager $campaign_manager,
-		SCD_Cache_Manager $cache_manager,
-		SCD_Logger $logger
+		WSSCD_Analytics_Collector $analytics_collector,
+		WSSCD_Metrics_Calculator $metrics_calculator,
+		WSSCD_Campaign_Manager $campaign_manager,
+		WSSCD_Cache_Manager $cache_manager,
+		WSSCD_Logger $logger
 	) {
 		$this->analytics_collector = $analytics_collector;
 		$this->metrics_calculator  = $metrics_calculator;
@@ -126,7 +128,8 @@ class SCD_Report_Generator {
 			);
 
 			if ( ! $this->is_valid_report_type( $report_type ) ) {
-				throw new InvalidArgumentException( "Invalid report type: {$report_type}" );
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+				throw new InvalidArgumentException( 'Invalid report type: ' . esc_html( $report_type ) );
 			}
 
 			$options = $this->sanitize_report_options( $options );
@@ -155,7 +158,7 @@ class SCD_Report_Generator {
 				'file_size'     => $file_result['file_size'],
 				'records_count' => count( $report_data['data'] ?? array() ),
 				'generated_at'  => current_time( 'mysql' ),
-				'expires_at'    => date( 'Y-m-d H:i:s', time() + ( 24 * HOUR_IN_SECONDS ) ),
+				'expires_at'    => gmdate( 'Y-m-d H:i:s', time() + ( 24 * HOUR_IN_SECONDS ) ),
 				'metadata'      => $report_data['metadata'] ?? array(),
 			);
 
@@ -370,13 +373,13 @@ class SCD_Report_Generator {
 				'status'      => 'active',
 			);
 
-			$schedule_id = 'scd_scheduled_report_' . uniqid();
+			$schedule_id = 'wsscd_scheduled_report_' . uniqid();
 			$this->cache_manager->set( $schedule_id, $scheduled_report, YEAR_IN_SECONDS );
 
 			// Schedule the first run
 			wp_schedule_single_event(
 				strtotime( $scheduled_report['next_run'] ),
-				'scd_generate_scheduled_report',
+				'wsscd_generate_scheduled_report',
 				array( $schedule_id )
 			);
 
@@ -428,7 +431,8 @@ class SCD_Report_Generator {
 				return $this->generate_custom_report( $options );
 
 			default:
-				throw new InvalidArgumentException( "Unsupported report type: {$report_type}" );
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+				throw new InvalidArgumentException( 'Unsupported report type: ' . esc_html( $report_type ) );
 		}
 	}
 
@@ -444,7 +448,7 @@ class SCD_Report_Generator {
 	 */
 	private function generate_report_file( array $report_data, string $format, array $options ): array {
 		$upload_dir  = wp_upload_dir();
-		$reports_dir = $upload_dir['basedir'] . '/scd-reports';
+		$reports_dir = $upload_dir['basedir'] . '/wsscd-reports';
 
 		if ( ! file_exists( $reports_dir ) ) {
 			wp_mkdir_p( $reports_dir );
@@ -452,7 +456,7 @@ class SCD_Report_Generator {
 
 		$filename  = $this->generate_filename( $report_data['metadata']['report_type'] ?? 'report', $format );
 		$file_path = $reports_dir . DIRECTORY_SEPARATOR . $filename;
-		$file_url  = $upload_dir['baseurl'] . '/scd-reports/' . $filename;
+		$file_url  = $upload_dir['baseurl'] . '/wsscd-reports/' . $filename;
 
 		switch ( $format ) {
 			case 'csv':
@@ -472,7 +476,8 @@ class SCD_Report_Generator {
 				break;
 
 			default:
-				throw new InvalidArgumentException( "Unsupported format: {$format}" );
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+				throw new InvalidArgumentException( 'Unsupported format: ' . esc_html( $format ) );
 		}
 
 		return array(
@@ -492,10 +497,12 @@ class SCD_Report_Generator {
 	 * @return   void
 	 */
 	private function generate_csv_file( array $report_data, string $file_path ): void {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Writing export CSV to plugin's uploads directory.
 		$handle = fopen( $file_path, 'w' );
 
 		if ( false === $handle ) {
-			throw new RuntimeException( "Cannot create CSV file: {$file_path}" );
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+			throw new RuntimeException( 'Cannot create CSV file: ' . esc_html( $file_path ) );
 		}
 
 		$data = $report_data['data'];
@@ -522,6 +529,7 @@ class SCD_Report_Generator {
 			}
 		}
 
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing file handle for CSV export.
 		fclose( $handle );
 	}
 
@@ -541,8 +549,10 @@ class SCD_Report_Generator {
 			throw new RuntimeException( 'Failed to encode report data as JSON' );
 		}
 
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Writing export file to plugin's uploads directory.
 		if ( false === file_put_contents( $file_path, $json_data ) ) {
-			throw new RuntimeException( "Cannot write JSON file: {$file_path}" );
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+			throw new RuntimeException( 'Cannot write JSON file: ' . esc_html( $file_path ) );
 		}
 	}
 
@@ -564,10 +574,12 @@ class SCD_Report_Generator {
 
 		// Simple HTML to PDF conversion (placeholder)
 		// This would need a proper PDF library in production
-		$pdf_content = "PDF Report\n\n" . strip_tags( $html_content );
+		$pdf_content = "PDF Report\n\n" . wp_strip_all_tags( $html_content );
 
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Writing export file to plugin's uploads directory.
 		if ( file_put_contents( $file_path, $pdf_content ) === false ) {
-			throw new RuntimeException( "Cannot write PDF file: {$file_path}" );
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
+			throw new RuntimeException( 'Cannot write PDF file: ' . esc_html( $file_path ) );
 		}
 	}
 
@@ -596,7 +608,7 @@ class SCD_Report_Generator {
 	 * @return   string                   HTML content.
 	 */
 	private function generate_html_report( array $report_data, array $options ): string {
-		$template_path = SCD_PLUGIN_DIR . 'resources/views/admin/pages/campaign-performance.php';
+		$template_path = WSSCD_PLUGIN_DIR . 'resources/views/admin/pages/campaign-performance.php';
 
 		if ( file_exists( $template_path ) ) {
 			ob_start();
@@ -677,7 +689,7 @@ class SCD_Report_Generator {
 			'options'     => $options,
 		);
 
-		return 'scd_report_' . md5( serialize( $key_data ) );
+		return 'wsscd_report_' . md5( serialize( $key_data ) );
 	}
 
 	/**
@@ -690,8 +702,8 @@ class SCD_Report_Generator {
 	 * @return   string                    Filename.
 	 */
 	private function generate_filename( string $report_type, string $format ): string {
-		$timestamp = date( 'Y-m-d_H-i-s' );
-		return "scd_{$report_type}_{$timestamp}.{$format}";
+		$timestamp = gmdate( 'Y-m-d_H-i-s' );
+		return "wsscd_{$report_type}_{$timestamp}.{$format}";
 	}
 
 	/**
@@ -773,13 +785,13 @@ class SCD_Report_Generator {
 	private function calculate_next_run_time( string $schedule ): string {
 		switch ( $schedule ) {
 			case 'daily':
-				return date( 'Y-m-d H:i:s', strtotime( '+1 day' ) );
+				return gmdate( 'Y-m-d H:i:s', strtotime( '+1 day' ) );
 			case 'weekly':
-				return date( 'Y-m-d H:i:s', strtotime( '+1 week' ) );
+				return gmdate( 'Y-m-d H:i:s', strtotime( '+1 week' ) );
 			case 'monthly':
-				return date( 'Y-m-d H:i:s', strtotime( '+1 month' ) );
+				return gmdate( 'Y-m-d H:i:s', strtotime( '+1 month' ) );
 			default:
-				return date( 'Y-m-d H:i:s', strtotime( '+1 day' ) );
+				return gmdate( 'Y-m-d H:i:s', strtotime( '+1 day' ) );
 		}
 	}
 

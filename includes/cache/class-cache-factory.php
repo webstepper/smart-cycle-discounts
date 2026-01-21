@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/cache
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Cache_Factory {
+class WSSCD_Cache_Factory {
 
 	/**
 	 * Create cache instance.
@@ -37,7 +37,7 @@ class SCD_Cache_Factory {
 	 * @return   object             Cache instance.
 	 */
 	public static function create( string $type = 'transient' ): object {
-		return new SCD_Cache_Manager();
+		return new WSSCD_Cache_Manager();
 	}
 
 	/**

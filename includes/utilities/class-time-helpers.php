@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @param string $format Optional format (default: 'Y-m-d H:i:s')
  * @return DateTimeImmutable|false DateTime object in site timezone or false on failure
  */
-function scd_parse_local( string $datetime_str, string $format = 'Y-m-d H:i:s' ) {
+function wsscd_parse_local( string $datetime_str, string $format = 'Y-m-d H:i:s' ) {
 	try {
 		$wp_timezone = wp_timezone();
 
@@ -52,9 +52,9 @@ function scd_parse_local( string $datetime_str, string $format = 'Y-m-d H:i:s' )
 		}
 
 		// EC-002, EC-003 FIX: Check for DST transitions
-		$dst_info = scd_check_dst_transition( $datetime );
+		$dst_info = wsscd_check_dst_transition( $datetime );
 		if ( $dst_info['is_transition_day'] ) {
-			$datetime = scd_adjust_for_dst_transition( $datetime, $dst_info );
+			$datetime = wsscd_adjust_for_dst_transition( $datetime, $dst_info );
 		}
 
 		return $datetime;
@@ -70,7 +70,7 @@ function scd_parse_local( string $datetime_str, string $format = 'Y-m-d H:i:s' )
  * @param DateTimeImmutable $datetime DateTime object (in any timezone)
  * @return int UTC timestamp
  */
-function scd_to_utc_ts( DateTimeImmutable $datetime ): int {
+function wsscd_to_utc_ts( DateTimeImmutable $datetime ): int {
 	// DateTime::getTimestamp() always returns UTC timestamp regardless of timezone
 	return $datetime->getTimestamp();
 }
@@ -82,7 +82,7 @@ function scd_to_utc_ts( DateTimeImmutable $datetime ): int {
  * @param int $timestamp UTC timestamp
  * @return DateTimeImmutable DateTime object in site timezone
  */
-function scd_from_utc_ts( int $timestamp ): DateTimeImmutable {
+function wsscd_from_utc_ts( int $timestamp ): DateTimeImmutable {
 	$wp_timezone = wp_timezone();
 	$datetime    = new DateTimeImmutable( '@' . $timestamp );
 	return $datetime->setTimezone( $wp_timezone );
@@ -94,7 +94,7 @@ function scd_from_utc_ts( int $timestamp ): DateTimeImmutable {
  * @since 1.0.0
  * @return DateTimeImmutable Current time in site timezone
  */
-function scd_current_time(): DateTimeImmutable {
+function wsscd_current_time(): DateTimeImmutable {
 	return new DateTimeImmutable( 'now', wp_timezone() );
 }
 
@@ -106,7 +106,7 @@ function scd_current_time(): DateTimeImmutable {
  * @param string            $format PHP date format string
  * @return string Formatted date string
  */
-function scd_format_datetime( DateTimeImmutable $datetime, string $format = 'Y-m-d H:i:s' ): string {
+function wsscd_format_datetime( DateTimeImmutable $datetime, string $format = 'Y-m-d H:i:s' ): string {
 	// Ensure we're formatting in site timezone
 	$site_datetime = $datetime->setTimezone( wp_timezone() );
 	return $site_datetime->format( $format );
@@ -119,7 +119,7 @@ function scd_format_datetime( DateTimeImmutable $datetime, string $format = 'Y-m
  * @param string $time_str Time string to parse
  * @return array|false Array with 'hour' (0-23) and 'minute' (0-59) or false on failure
  */
-function scd_parse_time_string( string $time_str ) {
+function wsscd_parse_time_string( string $time_str ) {
 	// Try 24-hour format first
 	if ( preg_match( '/^(\d{1,2}):(\d{2})$/', $time_str, $matches ) ) {
 		$hour   = (int) $matches[1];
@@ -165,11 +165,11 @@ function scd_parse_time_string( string $time_str ) {
  * @param DateTimeImmutable|null $current_time Optional current time (defaults to now)
  * @return bool True if within window, false otherwise
  */
-function scd_is_within_time_window( string $start_time, string $end_time, ?DateTimeImmutable $current_time = null ): bool {
-	$current = $current_time ?? scd_current_time();
+function wsscd_is_within_time_window( string $start_time, string $end_time, ?DateTimeImmutable $current_time = null ): bool {
+	$current = $current_time ?? wsscd_current_time();
 
-	$start_parts = scd_parse_time_string( $start_time );
-	$end_parts   = scd_parse_time_string( $end_time );
+	$start_parts = wsscd_parse_time_string( $start_time );
+	$end_parts   = wsscd_parse_time_string( $end_time );
 
 	if ( false === $start_parts || false === $end_parts ) {
 		return false; // Invalid time format
@@ -198,18 +198,18 @@ function scd_is_within_time_window( string $start_time, string $end_time, ?DateT
  * @param DateTimeImmutable|null $from_time Starting point (defaults to now)
  * @return DateTimeImmutable|false Next allowed time or false if invalid window
  */
-function scd_next_allowed_time( string $start_time, string $end_time, ?DateTimeImmutable $from_time = null ): DateTimeImmutable|false {
-	$from = $from_time ?? scd_current_time();
+function wsscd_next_allowed_time( string $start_time, string $end_time, $from_time = null ) {
+	$from = $from_time ?? wsscd_current_time();
 
-	$start_parts = scd_parse_time_string( $start_time );
-	$end_parts   = scd_parse_time_string( $end_time );
+	$start_parts = wsscd_parse_time_string( $start_time );
+	$end_parts   = wsscd_parse_time_string( $end_time );
 
 	if ( false === $start_parts || false === $end_parts ) {
 		return false;
 	}
 
 	// If already within window, return current time
-	if ( scd_is_within_time_window( $start_time, $end_time, $from ) ) {
+	if ( wsscd_is_within_time_window( $start_time, $end_time, $from ) ) {
 		return $from;
 	}
 
@@ -234,7 +234,7 @@ function scd_next_allowed_time( string $start_time, string $end_time, ?DateTimeI
  * @param string $timezone Timezone identifier to validate
  * @return string|false Canonical timezone ID or false if invalid
  */
-function scd_validate_timezone( string $timezone ): string|false {
+function wsscd_validate_timezone( string $timezone ) {
 	$valid_timezones = DateTimeZone::listIdentifiers();
 
 	// Direct match
@@ -271,12 +271,12 @@ function scd_validate_timezone( string $timezone ): string|false {
  * @since 1.0.0
  * @return string Canonical timezone identifier
  */
-function scd_get_canonical_timezone(): string {
+function wsscd_get_canonical_timezone(): string {
 	$timezone_string = get_option( 'timezone_string' );
 
 	// If we have a timezone string, validate and return it
 	if ( ! empty( $timezone_string ) ) {
-		$validated = scd_validate_timezone( $timezone_string );
+		$validated = wsscd_validate_timezone( $timezone_string );
 		if ( $validated ) {
 			return $validated;
 		}
@@ -287,8 +287,8 @@ function scd_get_canonical_timezone(): string {
 
 	if ( preg_match( '/^UTC[+-]/', $wp_tz ) ) {
 		// Log warning about UTC offset usage
-		if ( function_exists( 'scd_log_warning' ) ) {
-			scd_log_warning(
+		if ( function_exists( 'wsscd_log_warning' ) ) {
+			wsscd_log_warning(
 				'WordPress timezone is set to UTC offset instead of timezone string',
 				array(
 					'timezone'       => $wp_tz,
@@ -308,7 +308,7 @@ function scd_get_canonical_timezone(): string {
  * @param DateTimeImmutable $datetime DateTime to check
  * @return array Information about DST transition
  */
-function scd_check_dst_transition( DateTimeImmutable $datetime ): array {
+function wsscd_check_dst_transition( DateTimeImmutable $datetime ): array {
 	$tz          = $datetime->getTimezone();
 	$transitions = $tz->getTransitions( $datetime->getTimestamp() - 86400, $datetime->getTimestamp() + 86400 );
 
@@ -359,10 +359,10 @@ function scd_check_dst_transition( DateTimeImmutable $datetime ): array {
  *
  * @since 1.0.0
  * @param DateTimeImmutable $datetime DateTime to adjust
- * @param array             $dst_info DST transition information from scd_check_dst_transition()
+ * @param array             $dst_info DST transition information from wsscd_check_dst_transition()
  * @return DateTimeImmutable Adjusted datetime
  */
-function scd_adjust_for_dst_transition( DateTimeImmutable $datetime, array $dst_info ): DateTimeImmutable {
+function wsscd_adjust_for_dst_transition( DateTimeImmutable $datetime, array $dst_info ): DateTimeImmutable {
 	if ( ! $dst_info['is_transition_day'] ) {
 		return $datetime;
 	}
@@ -372,9 +372,9 @@ function scd_adjust_for_dst_transition( DateTimeImmutable $datetime, array $dst_
 		$lost_start = $dst_info['lost_hour']['start'];
 		$lost_end   = $dst_info['lost_hour']['end'];
 
-		$time_parts  = scd_parse_time_string( $time_str );
-		$start_parts = scd_parse_time_string( $lost_start );
-		$end_parts   = scd_parse_time_string( $lost_end );
+		$time_parts  = wsscd_parse_time_string( $time_str );
+		$start_parts = wsscd_parse_time_string( $lost_start );
+		$end_parts   = wsscd_parse_time_string( $lost_end );
 
 		if ( $time_parts && $start_parts && $end_parts ) {
 			$time_minutes  = $time_parts['hour'] * 60 + $time_parts['minute'];
@@ -386,8 +386,8 @@ function scd_adjust_for_dst_transition( DateTimeImmutable $datetime, array $dst_
 				$datetime = $datetime->modify( '+1 hour' );
 
 				// Log the adjustment
-				if ( function_exists( 'scd_log_warning' ) ) {
-					scd_log_warning(
+				if ( function_exists( 'wsscd_log_warning' ) ) {
+					wsscd_log_warning(
 						'DST Spring Forward: Adjusted time from non-existent hour',
 						array(
 							'original_time' => $time_str,
@@ -406,9 +406,9 @@ function scd_adjust_for_dst_transition( DateTimeImmutable $datetime, array $dst_
 		$repeat_start = $dst_info['repeated_hour']['start'];
 		$repeat_end   = $dst_info['repeated_hour']['end'];
 
-		$time_parts  = scd_parse_time_string( $time_str );
-		$start_parts = scd_parse_time_string( $repeat_start );
-		$end_parts   = scd_parse_time_string( $repeat_end );
+		$time_parts  = wsscd_parse_time_string( $time_str );
+		$start_parts = wsscd_parse_time_string( $repeat_start );
+		$end_parts   = wsscd_parse_time_string( $repeat_end );
 
 		if ( $time_parts && $start_parts && $end_parts ) {
 			$time_minutes  = $time_parts['hour'] * 60 + $time_parts['minute'];
@@ -417,8 +417,8 @@ function scd_adjust_for_dst_transition( DateTimeImmutable $datetime, array $dst_
 
 			if ( $time_minutes >= $start_minutes && $time_minutes < $end_minutes ) {
 				// Log the ambiguous time - using first occurrence
-				if ( function_exists( 'scd_log_info' ) ) {
-					scd_log_info(
+				if ( function_exists( 'wsscd_log_info' ) ) {
+					wsscd_log_info(
 						'DST Fall Back: Time in repeated hour, using first occurrence',
 						array(
 							'time' => $time_str,
@@ -440,17 +440,17 @@ function scd_adjust_for_dst_transition( DateTimeImmutable $datetime, array $dst_
  * @param DateTimeImmutable $datetime DateTime to check
  * @return bool True if in lost hour
  */
-function scd_is_in_dst_lost_hour( DateTimeImmutable $datetime ): bool {
-	$dst_info = scd_check_dst_transition( $datetime );
+function wsscd_is_in_dst_lost_hour( DateTimeImmutable $datetime ): bool {
+	$dst_info = wsscd_check_dst_transition( $datetime );
 
 	if ( 'spring_forward' !== $dst_info['transition_type'] || ! $dst_info['lost_hour'] ) {
 		return false;
 	}
 
 	$time_str    = $datetime->format( 'H:i' );
-	$time_parts  = scd_parse_time_string( $time_str );
-	$start_parts = scd_parse_time_string( $dst_info['lost_hour']['start'] );
-	$end_parts   = scd_parse_time_string( $dst_info['lost_hour']['end'] );
+	$time_parts  = wsscd_parse_time_string( $time_str );
+	$start_parts = wsscd_parse_time_string( $dst_info['lost_hour']['start'] );
+	$end_parts   = wsscd_parse_time_string( $dst_info['lost_hour']['end'] );
 
 	if ( ! $time_parts || ! $start_parts || ! $end_parts ) {
 		return false;
@@ -475,7 +475,7 @@ function scd_is_in_dst_lost_hour( DateTimeImmutable $datetime ): bool {
  * @param string|null $timezone Timezone identifier (defaults to WordPress timezone)
  * @return DateTimeImmutable|false DateTimeImmutable object or false on failure
  */
-function scd_combine_date_time( string $date, string $time, ?string $timezone = null ) {
+function wsscd_combine_date_time( string $date, string $time, ?string $timezone = null ) {
 	try {
 		$tz = $timezone ? new DateTimeZone( $timezone ) : wp_timezone();
 
@@ -484,7 +484,7 @@ function scd_combine_date_time( string $date, string $time, ?string $timezone = 
 			return false;
 		}
 
-		$time_parts = scd_parse_time_string( $time );
+		$time_parts = wsscd_parse_time_string( $time );
 		if ( false === $time_parts ) {
 			return false;
 		}
@@ -500,9 +500,9 @@ function scd_combine_date_time( string $date, string $time, ?string $timezone = 
 		$datetime = new DateTimeImmutable( $datetime_str, $tz );
 
 		// DST transition handling
-		$dst_info = scd_check_dst_transition( $datetime );
+		$dst_info = wsscd_check_dst_transition( $datetime );
 		if ( $dst_info['is_transition_day'] ) {
-			$datetime = scd_adjust_for_dst_transition( $datetime, $dst_info );
+			$datetime = wsscd_adjust_for_dst_transition( $datetime, $dst_info );
 		}
 
 		return $datetime;

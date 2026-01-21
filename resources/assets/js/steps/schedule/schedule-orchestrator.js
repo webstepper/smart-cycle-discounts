@@ -14,25 +14,25 @@
 	'use strict';
 
 	// Ensure namespaces exist
-	window.SCD = window.SCD || {};
-	SCD.Steps = SCD.Steps || {};
-	SCD.Modules = SCD.Modules || {};
-	SCD.Modules.Schedule = SCD.Modules.Schedule || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Steps = WSSCD.Steps || {};
+	WSSCD.Modules = WSSCD.Modules || {};
+	WSSCD.Modules.Schedule = WSSCD.Modules.Schedule || {};
 
 	/**
 	 * Schedule Orchestrator
 	 * Created using BaseOrchestrator.createStep() factory method
 	 * Inherits from BaseOrchestrator with EventManager and StepPersistence mixins
 	 */
-	SCD.Steps.ScheduleOrchestrator = SCD.Shared.BaseOrchestrator.createStep( 'schedule', {
+	WSSCD.Steps.ScheduleOrchestrator = WSSCD.Shared.BaseOrchestrator.createStep( 'schedule', {
 
 		/**
 		 * Initialize step modules using Module Registry
 		 * Called by BaseOrchestrator's initializeModules
 		 */
 		initializeStep: function() {
-			var moduleConfig = SCD.Shared.ModuleRegistry.createStepConfig( 'schedule' );
-			this.modules = SCD.Shared.ModuleRegistry.initialize( moduleConfig, this );
+			var moduleConfig = WSSCD.Shared.ModuleRegistry.createStepConfig( 'schedule' );
+			this.modules = WSSCD.Shared.ModuleRegistry.initialize( moduleConfig, this );
 		},
 
 		/**
@@ -47,12 +47,12 @@
 			this.initializePresets();
 
 			this.$container.find( 'input[name="start_type"]:checked' )
-				.closest( '.scd-radio-option' )
-				.addClass( 'scd-radio-option--selected' );
+				.closest( '.wsscd-radio-option' )
+				.addClass( 'wsscd-radio-option--selected' );
 
 			// Initialize clear button visibility based on end_date value
 			var endDate = $( '#end_date' ).val();
-			var $clearButton = this.$container.find( '.scd-clear-end-date' );
+			var $clearButton = this.$container.find( '.wsscd-clear-end-date' );
 			if ( endDate ) {
 				$clearButton.show();
 			} else {
@@ -64,11 +64,11 @@
 			if ( ! endDate ) {
 				// No end date - show placeholder
 				$endTime.attr( 'type', 'text' )
-					.addClass( 'scd-time-placeholder' );
+					.addClass( 'wsscd-time-placeholder' );
 			} else {
 				// Has end date - ensure it's a time input
 				$endTime.attr( 'type', 'time' )
-					.removeClass( 'scd-time-placeholder' );
+					.removeClass( 'wsscd-time-placeholder' );
 			}
 		},
 
@@ -106,13 +106,13 @@
 						}
 						$endTime.attr( 'type', 'time' )
 							.prop( 'disabled', false )
-							.removeClass( 'scd-time-placeholder' );
+							.removeClass( 'wsscd-time-placeholder' );
 					} else {
 						// End date cleared - switch to text input showing placeholder
 						$endTime.attr( 'type', 'text' )
 							.prop( 'disabled', true )
 							.val( '--:--' )
-							.addClass( 'scd-time-placeholder' );
+							.addClass( 'wsscd-time-placeholder' );
 					}
 
 					// Validate recurring requirements when end_date changes
@@ -121,7 +121,7 @@
 					var recurringValidation = self._validateRecurring( enableRecurring, selectedDate, durationSeconds );
 
 					// Show/hide clear button based on whether date is selected
-					var $clearButton = self.$container.find( '.scd-clear-end-date' );
+					var $clearButton = self.$container.find( '.wsscd-clear-end-date' );
 					if ( selectedDate ) {
 						$clearButton.show();
 					} else {
@@ -167,8 +167,8 @@
 				var selectedTime = $input.val();
 
 				if ( ! selectedTime ) {
-					if ( window.SCD && window.SCD.ValidationError ) {
-						SCD.ValidationError.clear( $input );
+					if ( window.WSSCD && window.WSSCD.ValidationError ) {
+						WSSCD.ValidationError.clear( $input );
 					}
 					return;
 				}
@@ -202,13 +202,13 @@
 			// Start type changes
 			this.$container.on( 'change', 'input[name="start_type"]', function() {
 				var value = $( this ).val();
-				var $radioOptions = self.$container.find( '.scd-radio-option' );
-				$radioOptions.removeClass( 'scd-radio-option--selected' );
-				$( this ).closest( '.scd-radio-option' ).addClass( 'scd-radio-option--selected' );
+				var $radioOptions = self.$container.find( '.wsscd-radio-option' );
+				$radioOptions.removeClass( 'wsscd-radio-option--selected' );
+				$( this ).closest( '.wsscd-radio-option' ).addClass( 'wsscd-radio-option--selected' );
 				self.handleStartTypeChange( value );
 			} );
 
-			this.$container.on( 'click', '.scd-clear-end-date', function( e ) {
+			this.$container.on( 'click', '.wsscd-clear-end-date', function( e ) {
 				e.preventDefault();
 				$( '#end_date' ).val( '' );
 				$( '#end_date_display' ).val( '' );
@@ -216,14 +216,14 @@
 				$endTime.attr( 'type', 'text' )
 					.prop( 'disabled', true )
 					.val( '--:--' )
-					.addClass( 'scd-time-placeholder' );
+					.addClass( 'wsscd-time-placeholder' );
 				self.updateDurationDisplay();
 				// Trigger change event
 				$( '#end_date' ).trigger( 'change' );
 			} );
 
 			// Calendar icon buttons
-			this.$container.on( 'click', '.scd-calendar-icon', function( e ) {
+			this.$container.on( 'click', '.wsscd-calendar-icon', function( e ) {
 				e.preventDefault();
 				var targetId = $( this ).data( 'target' );
 				if ( targetId ) {
@@ -232,15 +232,15 @@
 			} );
 
 			// Preset selection
-			$( document ).on( 'scd:preset:selected', function( e, preset ) {
+			$( document ).on( 'wsscd:preset:selected', function( e, preset ) {
 				self.applyPreset( preset );
 			} );
 
 			// Recurring schedule
 			this.$container.on( 'change', '#enable_recurring', function() {
 				var isChecked = $( this ).prop( 'checked' );
-				var $recurringOptions = $( '#scd-recurring-options' );
-				var $recurringWarning = $( '#scd-recurring-warning' );
+				var $recurringOptions = $( '#wsscd-recurring-options' );
+				var $recurringWarning = $( '#wsscd-recurring-warning' );
 
 				// Toggle recurring options and warning
 				$recurringOptions.toggle( isChecked );
@@ -274,7 +274,7 @@
 			// Recurrence pattern
 			this.$container.on( 'change', '#recurrence_pattern', function() {
 				var pattern = $( this ).val();
-				$( '#scd-weekly-options' ).toggle( 'weekly' === pattern );
+				$( '#wsscd-weekly-options' ).toggle( 'weekly' === pattern );
 				if ( self.modules.state && 'function' === typeof self.modules.state.setState ) {
 					self.modules.state.setState( { recurrencePattern: pattern } );
 				}
@@ -343,7 +343,7 @@
 				if ( this.modules.state && 'function' === typeof this.modules.state.setState ) {
 					this.modules.state.setState( stateUpdate );
 				}
-				$( document ).trigger( 'scd:schedule:' + field + ':changed', value );
+				$( document ).trigger( 'wsscd:schedule:' + field + ':changed', value );
 			} catch ( error ) {
 				this.safeErrorHandle( error, 'schedule-date-change' );
 				this.showError( 'Failed to update date. Please check your input.', 'error', 5000 );
@@ -362,7 +362,7 @@
 				if ( this.modules.state && 'function' === typeof this.modules.state.setState ) {
 					this.modules.state.setState( stateUpdate );
 				}
-				$( document ).trigger( 'scd:schedule:' + field + '-time:changed', value );
+				$( document ).trigger( 'wsscd:schedule:' + field + '-time:changed', value );
 			} catch ( error ) {
 				this.safeErrorHandle( error, 'schedule-time-change' );
 				this.showError( 'Failed to update time. Please check your input.', 'error', 5000 );
@@ -427,7 +427,7 @@
 		 */
 		handleStartTypeChange: function( startType ) {
 			try {
-				var $startDateRow = this.$container.find( '.scd-scheduled-start-fields' );
+				var $startDateRow = this.$container.find( '.wsscd-scheduled-start-fields' );
 
 				if ( 'scheduled' === startType ) {
 					$startDateRow.show();
@@ -443,7 +443,7 @@
 				if ( this.modules.state && 'function' === typeof this.modules.state.setState ) {
 					this.modules.state.setState( { startType: startType } );
 				}
-				$( document ).trigger( 'scd:schedule:start-type:changed', startType );
+				$( document ).trigger( 'wsscd:schedule:start-type:changed', startType );
 			} catch ( error ) {
 				this.safeErrorHandle( error, 'schedule-start-type-change' );
 			}
@@ -453,7 +453,7 @@
 		 * Update recurrence preview
 		 */
 		updateRecurrencePreview: function() {
-			var $preview = $( '#scd-recurrence-preview-text' );
+			var $preview = $( '#wsscd-recurrence-preview-text' );
 
 			if ( !this.modules.state || 'function' !== typeof this.modules.state.getState ) {
 				$preview.html( '<em>Configure recurrence settings to see preview</em>' );
@@ -493,7 +493,7 @@
 			// Generate occurrences
 			var occurrences = this.calculateNextOccurrences( this.getPreviewOccurrenceCount() );
 			if ( 0 < occurrences.length ) {
-				text += '<ul class="scd-occurrence-list">';
+				text += '<ul class="wsscd-occurrence-list">';
 				for ( var i = 0; i < occurrences.length; i++ ) {
 					text += '<li>' + occurrences[i] + '</li>';
 				}
@@ -647,7 +647,7 @@
 				this.updateDurationDisplay();
 
 				// Emit event
-				$( document ).trigger( 'scd:schedule:preset:applied', preset );
+				$( document ).trigger( 'wsscd:schedule:preset:applied', preset );
 			} catch ( error ) {
 				this.safeErrorHandle( error, 'schedule-apply-preset' );
 				this.showError( 'Failed to apply preset. Please try again.', 'error', 5000 );
@@ -680,7 +680,7 @@
 						name: 'duration_seconds',
 						id: 'duration_seconds',
 						value: dates.durationSeconds
-					} ).appendTo( '.scd-wizard-form' );
+					} ).appendTo( '.wsscd-wizard-form' );
 				} else {
 					$durationField.val( dates.durationSeconds );
 				}
@@ -707,14 +707,14 @@
 			// Update UI state for recurring options
 			var enableRecurring = this.getPropertyValue( data, [ 'enableRecurring' ] );
 			if ( enableRecurring !== undefined ) {
-				var $recurringOptions = $( '#scd-recurring-options' );
+				var $recurringOptions = $( '#wsscd-recurring-options' );
 				$recurringOptions.toggle( enableRecurring );
 				$recurringOptions.attr( 'aria-hidden', !enableRecurring );
 			}
 
 			var recurrencePattern = this.getPropertyValue( data, [ 'recurrencePattern' ] );
 			if ( recurrencePattern ) {
-				$( '#scd-weekly-options' ).toggle( 'weekly' === recurrencePattern );
+				$( '#wsscd-weekly-options' ).toggle( 'weekly' === recurrencePattern );
 			}
 
 			var recurrenceEndType = this.getPropertyValue( data, [ 'recurrenceEndType' ] );
@@ -796,19 +796,19 @@
 		 */
 		initializePresets: function() {
 			var self = this;
-			var $presetsContainer = this.$container.find( '#scd-preset-recommendations' );
+			var $presetsContainer = this.$container.find( '#wsscd-preset-recommendations' );
 
-			if ( !$presetsContainer.length || !SCD.Modules.ScheduleConfig ) {
+			if ( !$presetsContainer.length || !WSSCD.Modules.ScheduleConfig ) {
 				return;
 			}
 
 			$presetsContainer.empty();
 
-			var presets = SCD.Modules.ScheduleConfig.presets.durations;
+			var presets = WSSCD.Modules.ScheduleConfig.presets.durations;
 
 			$.each( presets, function( key, preset ) {
 				var $presetCard = $( '<div>', {
-					'class': 'scd-timeline-preset',
+					'class': 'wsscd-timeline-preset',
 					'data-preset-type': key,
 					'data-days': preset.days,
 					'role': 'button',
@@ -816,29 +816,29 @@
 				} );
 
 				var $button = $( '<button>', {
-					'class': 'scd-timeline-preset__button',
+					'class': 'wsscd-timeline-preset__button',
 					'type': 'button',
 					'aria-label': preset.label
 				} );
 
-				var iconHtml = SCD.IconHelper ? SCD.IconHelper.get( preset.icon || 'clock', { size: 20 } ) : '<span class="scd-icon scd-icon-' + ( preset.icon || 'clock' ) + '"></span>';
+				var iconHtml = WSSCD.IconHelper ? WSSCD.IconHelper.get( preset.icon || 'clock', { size: 20 } ) : '<span class="wsscd-icon wsscd-icon-' + ( preset.icon || 'clock' ) + '"></span>';
 				$button.append(
 					$( '<span>', {
-						'class': 'scd-timeline-preset__icon',
+						'class': 'wsscd-timeline-preset__icon',
 						'aria-hidden': 'true'
 					} ).html( iconHtml ),
 					$( '<span>', {
-						'class': 'scd-timeline-preset__duration',
+						'class': 'wsscd-timeline-preset__duration',
 						'text': preset.days + ' days'
 					} ),
 					$( '<span>', {
-						'class': 'scd-timeline-preset__name',
+						'class': 'wsscd-timeline-preset__name',
 						'text': preset.label
 					} )
 				);
 
 				var $tooltip = $( '<span>', {
-					'class': 'scd-timeline-preset__tooltip',
+					'class': 'wsscd-timeline-preset__tooltip',
 					'text': 'Click to set campaign duration to ' + preset.days + ' days'
 				} );
 
@@ -851,14 +851,14 @@
 						unit: 'days'
 					} );
 
-					$presetsContainer.find( '.scd-timeline-preset' ).removeClass( 'scd-timeline-preset--active' );
-					$( this ).addClass( 'scd-timeline-preset--active' );
+					$presetsContainer.find( '.wsscd-timeline-preset' ).removeClass( 'wsscd-timeline-preset--active' );
+					$( this ).addClass( 'wsscd-timeline-preset--active' );
 				} );
 
 				$presetsContainer.append( $presetCard );
 			} );
 
-			$( document ).trigger( 'scd:schedule:presets:loaded', presets );
+			$( document ).trigger( 'wsscd:schedule:presets:loaded', presets );
 		},
 
 		/**
@@ -867,10 +867,10 @@
 		 */
 		collectData: function() {
 			// Call parent method from mixin - this is the single source of truth
-			var data = SCD.Mixins.StepPersistence.collectData.call( this );
+			var data = WSSCD.Mixins.StepPersistence.collectData.call( this );
 
-			if ( window.scdWizardData && window.scdWizardData.timezone ) {
-				data.timezone = window.scdWizardData.timezone;
+			if ( window.wsscdWizardData && window.wsscdWizardData.timezone ) {
+				data.timezone = window.wsscdWizardData.timezone;
 			}
 
 			return data;
@@ -889,9 +889,9 @@
 		updateDurationDisplay: function() {
 			var startDate = $( '#start_date' ).val();
 			var endDate = $( '#end_date' ).val();
-			var $durationDisplay = $( '#scd-duration-display' );
-			var $durationText = $( '#scd-duration-text' );
-			var $durationHint = $( '.scd-hint-text' );
+			var $durationDisplay = $( '#wsscd-duration-display' );
+			var $durationText = $( '#wsscd-duration-text' );
+			var $durationHint = $( '.wsscd-hint-text' );
 
 			// If no dates set, hide duration display
 			if ( !startDate || !endDate ) {
@@ -943,9 +943,9 @@
 
 				if ( hintText ) {
 					$durationHint.text( hintText );
-					$( '#scd-duration-hint' ).show();
+					$( '#wsscd-duration-hint' ).show();
 				} else {
-					$( '#scd-duration-hint' ).hide();
+					$( '#wsscd-duration-hint' ).hide();
 				}
 
 				$durationDisplay.show();
@@ -1021,17 +1021,17 @@
 	 * @return {void}
 	 */
 	_showOrClearValidation: function( validation, $input ) {
-		if ( ! window.SCD || ! window.SCD.ValidationError ) {
+		if ( ! window.WSSCD || ! window.WSSCD.ValidationError ) {
 			return;
 		}
 
 		if ( ! validation.valid ) {
 			var $errorField = this.$container.find( '#' + validation.field );
 			if ( $errorField.length ) {
-				SCD.ValidationError.show( $errorField, validation.message );
+				WSSCD.ValidationError.show( $errorField, validation.message );
 			}
 		} else {
-			SCD.ValidationError.clear( $input );
+			WSSCD.ValidationError.clear( $input );
 		}
 	},
 
@@ -1167,10 +1167,6 @@
 		var errors = [];
 		var state = this.modules.state.getState();
 
-		// DEBUG: Log state for troubleshooting free user issues
-		console.log( '[Schedule validateStep] State:', state );
-		console.log( '[Schedule validateStep] enableRecurring:', state.enableRecurring );
-
 		if ( 'scheduled' === state.startType && state.startDate ) {
 			var startValidation = this._validateStartTime( state.startDate, state.startTime || '00:00' );
 			if ( ! startValidation.valid ) {
@@ -1197,7 +1193,6 @@
 			state.endDate,
 			state.durationSeconds
 		);
-		console.log( '[Schedule validateStep] recurringValidation:', recurringValidation );
 		if ( ! recurringValidation.valid ) {
 			errors.push( recurringValidation );
 		}
@@ -1210,8 +1205,8 @@
 			} );
 
 			// Use wizard validation pattern - handles inline errors and auto-scroll to field
-			if ( window.SCD && window.SCD.ValidationError ) {
-				SCD.ValidationError.showMultiple( errorObject, this.$container, {
+			if ( window.WSSCD && window.WSSCD.ValidationError ) {
+				WSSCD.ValidationError.showMultiple( errorObject, this.$container, {
 					clearFirst: true,
 					showSummary: false, // No banner for single field errors - just scroll to field
 					focusFirstError: true
@@ -1249,7 +1244,7 @@
 			}
 
 			// Unbind document event that was bound directly (not tracked by BaseOrchestrator)
-			$( document ).off( 'scd:preset:selected' );
+			$( document ).off( 'wsscd:preset:selected' );
 		}
 	} );
 

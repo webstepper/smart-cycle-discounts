@@ -20,22 +20,22 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since      1.0.0
  */
-trait SCD_Wizard_Helpers {
+trait WSSCD_Wizard_Helpers {
 
 	/**
 	 * Get wizard state service instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @return   SCD_Wizard_State_Service|null    State service instance or null on failure.
+	 * @return   WSSCD_Wizard_State_Service|null    State service instance or null on failure.
 	 */
 	private function _get_state_service() {
-		if ( ! class_exists( 'SCD_Wizard_State_Service' ) ) {
-			require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
+		if ( ! class_exists( 'WSSCD_Wizard_State_Service' ) ) {
+			require_once WSSCD_INCLUDES_DIR . 'core/wizard/class-wizard-state-service.php';
 		}
 
 		try {
-			$state_service = new SCD_Wizard_State_Service();
+			$state_service = new WSSCD_Wizard_State_Service();
 			return $state_service;
 		} catch ( Exception $e ) {
 			return null;
@@ -194,11 +194,11 @@ trait SCD_Wizard_Helpers {
 			return array();
 		}
 
-		// Filter out 'all' marker and non-numeric IDs
+		// Convert to integers and filter out invalid IDs.
 		$category_ids = array_filter(
 			array_map( 'intval', $category_ids ),
 			function( $id ) {
-				return 0 < $id;
+				return $id > 0;
 			}
 		);
 
@@ -234,31 +234,52 @@ trait SCD_Wizard_Helpers {
 		$per_page        = 100; // Process 100 products at a time
 
 		if ( function_exists( 'wc_get_products' ) ) {
-			// Use WooCommerce API - respects visibility rules, HPOS compatible
-			while ( true ) {
-				$batch = wc_get_products(
-					array(
-						'limit'    => $per_page,
-						'page'     => $page,
-						'status'   => 'publish',
-						'category' => $category_ids,
-						'return'   => 'ids',
-					)
-				);
+			// Convert category IDs to slugs (wc_get_products 'category' param expects slugs, not IDs)
+			$terms = get_terms(
+				array(
+					'taxonomy'   => 'product_cat',
+					'include'    => $category_ids,
+					'hide_empty' => false,
+					'fields'     => 'id=>slug',
+				)
+			);
 
-				if ( empty( $batch ) ) {
-					break; // No more products
-				}
+			$category_slugs = array();
+			if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+				$category_slugs = array_values( $terms );
+			}
 
-				$all_product_ids = array_merge( $all_product_ids, $batch );
-				$page++;
+			// If valid slugs found, use WooCommerce API
+			if ( ! empty( $category_slugs ) ) {
+				while ( true ) {
+					$batch = wc_get_products(
+						array(
+							'limit'    => $per_page,
+							'page'     => $page,
+							'status'   => 'publish',
+							'category' => $category_slugs,
+							'return'   => 'ids',
+						)
+					);
 
-				// Safety: Prevent infinite loops (max 10,000 products)
-				if ( $page > 100 ) {
-					break;
+					if ( empty( $batch ) ) {
+						break; // No more products
+					}
+
+					$all_product_ids = array_merge( $all_product_ids, $batch );
+					$page++;
+
+					// Safety: Prevent infinite loops (max 10,000 products)
+					if ( $page > 100 ) {
+						break;
+					}
 				}
 			}
-		} else {
+		}
+
+		// Fallback: use get_posts with tax_query if WC API unavailable or no slugs found
+		if ( empty( $all_product_ids ) ) {
+			$page = 1; // Reset pagination for fallback
 			// Fallback using get_posts with chunking
 			while ( true ) {
 				$args = array(
@@ -267,6 +288,7 @@ trait SCD_Wizard_Helpers {
 					'post_status'    => 'publish',
 					'fields'         => 'ids',
 					'paged'          => $page,
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Required for category-based product filtering.
 					'tax_query'      => array(
 						array(
 							'taxonomy' => 'product_cat',
@@ -303,6 +325,10 @@ trait SCD_Wizard_Helpers {
 	/**
 	 * Get product IDs from wizard data.
 	 *
+	 * Product Selection Model:
+	 * - selection_type: HOW to select (all_products, specific_products, random_products, smart_selection)
+	 * - category_ids: Optional FILTER for pool-based selections
+	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @param    array $products_data    Products data from wizard.
@@ -313,29 +339,45 @@ trait SCD_Wizard_Helpers {
 			return array();
 		}
 
-		// Handle different data formats
-		if ( isset( $products_data['product_selection_type'] ) ) {
-			$selection_type = $products_data['product_selection_type'];
-
-			if ( 'all_products' === $selection_type ) {
-				return $this->_get_all_product_ids();
-			}
-
-			if ( 'specific_categories' === $selection_type && ! empty( $products_data['category_ids'] ) ) {
-				return $this->_get_products_in_categories( $products_data['category_ids'] );
-			}
-
-			if ( 'specific_products' === $selection_type && ! empty( $products_data['product_ids'] ) ) {
-				return is_array( $products_data['product_ids'] ) ? array_map( 'intval', $products_data['product_ids'] ) : array();
-			}
+		if ( ! isset( $products_data['product_selection_type'] ) ) {
+			// Fallback: assume it's an array of product IDs.
+			return array_map( 'intval', $products_data );
 		}
 
-		// Fallback: assume it's an array of product IDs
-		return array_map( 'intval', $products_data );
+		$selection_type = $products_data['product_selection_type'];
+		$category_ids   = isset( $products_data['category_ids'] ) ? $products_data['category_ids'] : array();
+		$product_ids    = isset( $products_data['product_ids'] ) ? $products_data['product_ids'] : array();
+
+		// Specific products - use explicit product IDs, ignore category filter.
+		if ( WSSCD_Campaign::SELECTION_TYPE_SPECIFIC_PRODUCTS === $selection_type ) {
+			return is_array( $product_ids ) ? array_map( 'intval', $product_ids ) : array();
+		}
+
+		// Pool-based selections - apply category filter if set.
+		if ( WSSCD_Campaign::is_pool_based_selection( $selection_type ) ) {
+			if ( ! empty( $category_ids ) && is_array( $category_ids ) ) {
+				return $this->_get_products_in_categories( array_map( 'intval', $category_ids ) );
+			}
+			return $this->_get_all_product_ids();
+		}
+
+		// Unknown type - default to all products.
+		return $this->_get_all_product_ids();
 	}
 
 	/**
 	 * Get campaign products based on campaign data.
+	 *
+	 * Resolves product IDs for a campaign based on its selection type.
+	 * Pool-based selections dynamically resolve products since they're not stored.
+	 *
+	 * Product Selection Model:
+	 * - selection_type: HOW to select products
+	 *   - all_products: All products in store
+	 *   - specific_products: Manually selected product IDs
+	 *   - random_products: Random subset from pool
+	 *   - smart_selection: Algorithm-selected from pool
+	 * - category_ids: Optional FILTER for pool-based selections
 	 *
 	 * @since    1.0.0
 	 * @access   private
@@ -347,29 +389,94 @@ trait SCD_Wizard_Helpers {
 			return array();
 		}
 
-		// Handle campaign object
-		if ( is_object( $campaign ) && method_exists( $campaign, 'get_product_ids' ) ) {
-			return $campaign->get_product_ids();
+		// Handle campaign object.
+		if ( is_object( $campaign ) ) {
+			return $this->_get_campaign_products_from_object( $campaign );
 		}
 
-		// Handle campaign array
+		// Handle campaign array.
 		if ( is_array( $campaign ) ) {
-			$selection_type = isset( $campaign['product_selection_type'] ) ? $campaign['product_selection_type'] : '';
-
-			if ( 'all_products' === $selection_type ) {
-				return $this->_get_all_product_ids();
-			}
-
-			if ( 'specific_categories' === $selection_type && ! empty( $campaign['category_ids'] ) ) {
-				return $this->_get_products_in_categories( $campaign['category_ids'] );
-			}
-
-			if ( 'specific_products' === $selection_type && ! empty( $campaign['product_ids'] ) ) {
-				return is_array( $campaign['product_ids'] ) ? array_map( 'intval', $campaign['product_ids'] ) : array();
-			}
+			return $this->_get_campaign_products_from_array( $campaign );
 		}
 
 		return array();
+	}
+
+	/**
+	 * Get campaign products from campaign object.
+	 *
+	 * Product Selection Model:
+	 * - selection_type: HOW to select (all_products, specific_products, random_products, smart_selection)
+	 * - category_ids: Optional FILTER for pool-based selections
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    object $campaign    Campaign object.
+	 * @return   array                  Array of product IDs.
+	 */
+	private function _get_campaign_products_from_object( $campaign ) {
+		$selection_type = method_exists( $campaign, 'get_product_selection_type' )
+			? $campaign->get_product_selection_type()
+			: WSSCD_Campaign::SELECTION_TYPE_ALL_PRODUCTS;
+
+		// Specific products - return stored product IDs, ignore category filter.
+		if ( WSSCD_Campaign::SELECTION_TYPE_SPECIFIC_PRODUCTS === $selection_type ) {
+			return method_exists( $campaign, 'get_product_ids' )
+				? $campaign->get_product_ids()
+				: array();
+		}
+
+		// Pool-based selections - apply category filter if set.
+		if ( WSSCD_Campaign::is_pool_based_selection( $selection_type ) ) {
+			$category_ids = method_exists( $campaign, 'get_category_ids' )
+				? $campaign->get_category_ids()
+				: array();
+
+			if ( ! empty( $category_ids ) ) {
+				return $this->_get_products_in_categories( $category_ids );
+			}
+			return $this->_get_all_product_ids();
+		}
+
+		// Unknown type - default to all products.
+		return $this->_get_all_product_ids();
+	}
+
+	/**
+	 * Get campaign products from campaign array.
+	 *
+	 * Product Selection Model:
+	 * - selection_type: HOW to select (all_products, specific_products, random_products, smart_selection)
+	 * - category_ids: Optional FILTER for pool-based selections
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $campaign    Campaign data array.
+	 * @return   array                 Array of product IDs.
+	 */
+	private function _get_campaign_products_from_array( array $campaign ) {
+		$selection_type = isset( $campaign['product_selection_type'] )
+			? $campaign['product_selection_type']
+			: WSSCD_Campaign::SELECTION_TYPE_ALL_PRODUCTS;
+
+		$category_ids = isset( $campaign['category_ids'] ) ? $campaign['category_ids'] : array();
+		$product_ids  = isset( $campaign['product_ids'] ) ? $campaign['product_ids'] : array();
+
+		// Specific products - use explicit product IDs, ignore category filter.
+		if ( WSSCD_Campaign::SELECTION_TYPE_SPECIFIC_PRODUCTS === $selection_type ) {
+			return is_array( $product_ids ) ? array_map( 'intval', $product_ids ) : array();
+		}
+
+		// Pool-based selections - apply category filter if set.
+		if ( WSSCD_Campaign::is_pool_based_selection( $selection_type ) ) {
+			if ( ! empty( $category_ids ) && is_array( $category_ids ) ) {
+				return $this->_get_products_in_categories( array_map( 'intval', $category_ids ) );
+			}
+			return $this->_get_all_product_ids();
+		}
+
+		// Unknown type - default to all products.
+		return $this->_get_all_product_ids();
 	}
 
 	/**
@@ -416,6 +523,24 @@ trait SCD_Wizard_Helpers {
 			default:
 				return $price;
 		}
+	}
+
+	/**
+	 * Check if an existing campaign would block a new campaign.
+	 *
+	 * Priority Logic:
+	 * - Higher number = higher priority (e.g., 5 beats 3)
+	 * - Equal priority = older campaign wins (existing blocks new)
+	 * - New campaign is blocked if existing has higher OR equal priority
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    int $existing_priority    Priority of existing campaign.
+	 * @param    int $new_priority         Priority of new campaign being created.
+	 * @return   bool                         True if existing campaign would block new one.
+	 */
+	private function _would_block_new_campaign( $existing_priority, $new_priority ) {
+		return intval( $existing_priority ) >= intval( $new_priority );
 	}
 
 	/**

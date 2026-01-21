@@ -27,9 +27,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/discounts/strategies
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Fixed_Strategy implements SCD_Discount_Strategy_Interface {
+class WSSCD_Fixed_Strategy implements WSSCD_Discount_Strategy_Interface {
 
-	use SCD_Discount_Preview_Trait;
+	use WSSCD_Discount_Preview_Trait;
 
 	/**
 	 * Strategy identifier.
@@ -43,12 +43,12 @@ class SCD_Fixed_Strategy implements SCD_Discount_Strategy_Interface {
 	 * @param    float $original_price    Original product price.
 	 * @param    array $discount_config   Discount configuration.
 	 * @param    array $context          Additional context.
-	 * @return   SCD_Discount_Result        Discount calculation result.
+	 * @return   WSSCD_Discount_Result        Discount calculation result.
 	 */
-	public function calculate_discount( float $original_price, array $discount_config, array $context = array() ): SCD_Discount_Result {
+	public function calculate_discount( float $original_price, array $discount_config, array $context = array() ): WSSCD_Discount_Result {
 		// CRITICAL: Defensive validation for NULL or invalid prices
 		if ( ! is_numeric( $original_price ) || $original_price < 0 ) {
-			return SCD_Discount_Result::no_discount(
+			return WSSCD_Discount_Result::no_discount(
 				0.0,
 				self::STRATEGY_ID,
 				'Invalid price: must be a non-negative number'
@@ -57,14 +57,14 @@ class SCD_Fixed_Strategy implements SCD_Discount_Strategy_Interface {
 
 		$errors = $this->validate_config( $discount_config );
 		if ( ! empty( $errors ) ) {
-			return SCD_Discount_Result::no_discount( $original_price, self::STRATEGY_ID, 'Invalid configuration' );
+			return WSSCD_Discount_Result::no_discount( $original_price, self::STRATEGY_ID, 'Invalid configuration' );
 		}
 
 		$fixed_amount = (float) $discount_config['amount'];
 
 		// CRITICAL: Add defensive validation even if config validation passed
 		if ( $fixed_amount < 0 ) {
-			return SCD_Discount_Result::no_discount(
+			return WSSCD_Discount_Result::no_discount(
 				$original_price,
 				self::STRATEGY_ID,
 				'Invalid negative discount amount'
@@ -75,7 +75,7 @@ class SCD_Fixed_Strategy implements SCD_Discount_Strategy_Interface {
 		$max_percentage = (float) ( $discount_config['max_percentage'] ?? 0 );
 
 		if ( $min_price > 0 && $original_price < $min_price ) {
-			return SCD_Discount_Result::no_discount(
+			return WSSCD_Discount_Result::no_discount(
 				$original_price,
 				self::STRATEGY_ID,
 				"Price below minimum threshold of {$min_price}"
@@ -111,7 +111,7 @@ class SCD_Fixed_Strategy implements SCD_Discount_Strategy_Interface {
 			'percentage_applied'      => $original_price > 0 ? ( $discount_amount / $original_price ) * 100 : 0,
 		);
 
-		return new SCD_Discount_Result(
+		return new WSSCD_Discount_Result(
 			$original_price,
 			$discounted_price,
 			self::STRATEGY_ID,

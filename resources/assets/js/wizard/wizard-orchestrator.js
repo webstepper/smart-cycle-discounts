@@ -13,8 +13,8 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	window.SCD.Wizard = window.SCD.Wizard || {};
+	window.WSSCD = window.WSSCD || {};
+	window.WSSCD.Wizard = window.WSSCD.Wizard || {};
 
 	/**
 	 * Field definitions will be loaded from the centralized field-definitions.js module
@@ -29,30 +29,30 @@
 	 */
 	var WizardOrchestrator = function() {
 		// Ensure BaseOrchestrator is available
-		if ( !  SCD.Shared || ! SCD.Shared.BaseOrchestrator ) {
+		if ( !  WSSCD.Shared || ! WSSCD.Shared.BaseOrchestrator ) {
 			return;
 		}
 
 		// Call parent constructor
-		SCD.Shared.BaseOrchestrator.call( this, 'wizard', {
+		WSSCD.Shared.BaseOrchestrator.call( this, 'wizard', {
 			// Module factories
 			stateManager: function() {
-				return SCD.Wizard.StateManager.getInstance();
+				return WSSCD.Wizard.StateManager.getInstance();
 			},
 			eventBus: function() {
-				return SCD.Wizard.EventBus;
+				return WSSCD.Wizard.EventBus;
 			},
 			navigationService: function() {
-				return SCD.Wizard.Navigation;
+				return WSSCD.Wizard.Navigation;
 			},
 			lifecycleManager: function() {
-				return SCD.Wizard.LifecycleManager;
+				return WSSCD.Wizard.LifecycleManager;
 			},
 			ajaxService: function() {
-				return SCD.Ajax || null;
+				return WSSCD.Ajax || null;
 			},
 			uiService: function() {
-				return SCD.Shared ? SCD.Shared.UI : null;
+				return WSSCD.Shared ? WSSCD.Shared.UI : null;
 			}
 		} );
 
@@ -66,7 +66,7 @@
 	};
 
 	// Extend BaseOrchestrator
-	WizardOrchestrator.prototype = Object.create( SCD.Shared.BaseOrchestrator.prototype );
+	WizardOrchestrator.prototype = Object.create( WSSCD.Shared.BaseOrchestrator.prototype );
 	WizardOrchestrator.prototype.constructor = WizardOrchestrator;
 
 	/**
@@ -81,14 +81,14 @@
 		// Call parent init
 		// Note: Parent init calls onInit() which loads the current step
 		// No need to call loadCurrentStep() here - it's handled in onInit()
-		return SCD.Shared.BaseOrchestrator.prototype.init.call( this, wizard, config );
+		return WSSCD.Shared.BaseOrchestrator.prototype.init.call( this, wizard, config );
 	};
 
 	/**
 	 * Get default configuration
 	 */
 	WizardOrchestrator.prototype.getDefaultConfig = function() {
-		return $.extend( {}, SCD.Shared.BaseOrchestrator.prototype.getDefaultConfig.call( this ), {
+		return $.extend( {}, WSSCD.Shared.BaseOrchestrator.prototype.getDefaultConfig.call( this ), {
 			steps: [ 'basic', 'products', 'discounts', 'schedule', 'review' ],
 			sessionTimeout: 7200000,  // 2 hours - aligned with PHP SESSION_LIFETIME
 			validateOnNavigation: true,
@@ -97,26 +97,21 @@
 	};
 
 	/**
-	 * Clear session storage for new campaigns
-	 * Extracted to reduce cognitive complexity
+	 * Clear all wizard session data
+	 *
+	 * Delegates to centralized WizardSession utility for consistent behavior.
+	 * Clears both browser sessionStorage and StateManager singleton.
+	 *
+	 * @since 1.0.0
+	 * @param {object} options - Optional settings.
+	 * @param {boolean} options.clearServer - Also clear server-side session (default: false).
+	 * @returns {void}
 	 */
-	WizardOrchestrator.prototype.clearSessionStorage = function() {
-		if ( !  window.sessionStorage ) {
-			return;
+	WizardOrchestrator.prototype.clearSessionStorage = function( options ) {
+		if ( window.WSSCD && window.WSSCD.Utils && window.WSSCD.Utils.WizardSession ) {
+			// Use centralized clear() which handles both storage layers
+			WSSCD.Utils.WizardSession.clear( options || {} );
 		}
-
-		sessionStorage.removeItem( 'scd_wizard_state' );
-
-		var keysToRemove = [];
-		for ( var i = 0; i < sessionStorage.length; i++ ) {
-			var key = sessionStorage.key( i );
-			if ( key && 0 === key.indexOf( 'scd_' ) ) {
-				keysToRemove.push( key );
-			}
-		}
-		keysToRemove.forEach( function( key ) {
-			sessionStorage.removeItem( key );
-		} );
 	};
 
 	/**
@@ -124,35 +119,41 @@
 	 * Extracted to reduce cognitive complexity
 	 */
 	WizardOrchestrator.prototype.initializeStateFromWindowData = function() {
-		if ( !  window.scdWizardData ) {
+		if ( ! window.wsscdWizardData ) {
 			return;
 		}
 
-		this.config.nonce = window.scdWizardData.nonce || window.scdWizardData.wizardNonce;
+		this.config.nonce = window.wsscdWizardData.nonce || window.wsscdWizardData.wizardNonce;
 
-		if ( !  this.modules.stateManager ) {
+		if ( ! this.modules.stateManager ) {
 			return;
 		}
 
 		var initData = {
-			currentStep: window.scdWizardData.currentStep || 'basic',
+			currentStep: window.wsscdWizardData.currentStep || 'basic',
 			nonce: this.config.nonce
 		};
 
-		if ( window.scdWizardData.currentCampaign && window.scdWizardData.currentCampaign.completedSteps ) {
-			initData.completedSteps = window.scdWizardData.currentCampaign.completedSteps;
+		if ( window.wsscdWizardData.currentCampaign && window.wsscdWizardData.currentCampaign.completedSteps ) {
+			initData.completedSteps = window.wsscdWizardData.currentCampaign.completedSteps;
 		}
 
 		var urlParams = new URLSearchParams( window.location.search );
-		var isEditMode = urlParams.get( 'intent' ) === 'edit' || ( urlParams.get( 'id' ) && urlParams.get( 'intent' ) !== 'new' );
+
+		// Check if this is a fresh session (new campaign) from PHP flag.
+		// Intent Handler strips URL params after processing, so use PHP flag as authority.
+		var isFreshFromPHP = window.wsscdWizardData && window.wsscdWizardData.isFresh;
+
+		// Edit mode: has campaign ID but NOT a fresh new campaign.
+		var isEditMode = urlParams.get( 'intent' ) === 'edit' || ( urlParams.get( 'id' ) && ! isFreshFromPHP );
 
 		// Data is auto-converted to camelCase by Asset Localizer
-		var currentCampaign = window.scdWizardData.currentCampaign;
+		var currentCampaign = window.wsscdWizardData.currentCampaign;
 
-		if ( window.SCD && window.SCD.Debug ) {
-			window.SCD.Debug.log( '[WizardOrchestrator] isEditMode:', isEditMode );
-			window.SCD.Debug.log( '[WizardOrchestrator] currentCampaign:', currentCampaign );
-			window.SCD.Debug.log( '[WizardOrchestrator] window.scdWizardData:', window.scdWizardData );
+		if ( window.WSSCD && window.WSSCD.Debug ) {
+			window.WSSCD.Debug.log( '[WizardOrchestrator] isEditMode:', isEditMode );
+			window.WSSCD.Debug.log( '[WizardOrchestrator] currentCampaign:', currentCampaign );
+			window.WSSCD.Debug.log( '[WizardOrchestrator] window.wsscdWizardData:', window.wsscdWizardData );
 		}
 
 		if ( currentCampaign ) {
@@ -183,15 +184,15 @@
 					initData.campaignId = parseInt( campaignId, 10 );
 					initData.wizardMode = 'edit';
 
-					if ( window.SCD && window.SCD.Debug ) {
-						window.SCD.Debug.log( '[WizardOrchestrator] Setting edit mode. Campaign ID: ' + initData.campaignId );
+					if ( window.WSSCD && window.WSSCD.Debug ) {
+						window.WSSCD.Debug.log( '[WizardOrchestrator] Setting edit mode. Campaign ID: ' + initData.campaignId );
 					}
 				}
 			}
 		}
 
-		if ( window.SCD && window.SCD.Debug ) {
-			window.SCD.Debug.log( '[WizardOrchestrator] Initializing StateManager with:', initData );
+		if ( window.WSSCD && window.WSSCD.Debug ) {
+			window.WSSCD.Debug.log( '[WizardOrchestrator] Initializing StateManager with:', initData );
 		}
 
 		this.modules.stateManager.init( initData );
@@ -226,21 +227,21 @@
 	};
 
 	/**
-	 * Initialize orchestrator
+	 * Initialize orchestrator.
+	 *
+	 * @since 1.0.0
+	 * @returns {void}
 	 */
 	WizardOrchestrator.prototype.onInit = function() {
 		var self = this;
 
-		var urlParams = new URLSearchParams( window.location.search );
-		var intent = urlParams.get( 'intent' );
+		// Check isFresh flag from PHP (one-time signal, consumed after read).
+		// This is the authoritative source - URL intent param is stripped by Intent Handler.
+		var isFresh = window.wsscdWizardData && window.wsscdWizardData.isFresh;
 
-		// If intent=new, clear all client-side state first
-		if ( 'new' === intent ) {
+		// Clear browser sessionStorage for fresh sessions.
+		if ( isFresh ) {
 			this.clearSessionStorage();
-
-			if ( this.modules.stateManager ) {
-				this.modules.stateManager.reset( { keepStorage: false } );
-			}
 		}
 
 		this.initializeStateFromWindowData();
@@ -277,12 +278,12 @@
 		}
 
 		// Also listen for document-based navigation request
-		$( document ).on( 'scd:navigation:request', function( e, data ) {
+		$( document ).on( 'wsscd:navigation:request', function( e, data ) {
 			self.handleNavigationRequest( data );
 		} );
 
 		// Listen for retry event from completion modal
-		$( document ).on( 'scd:wizard:retry', function() {
+		$( document ).on( 'wsscd:wizard:retry', function() {
 			self.retryCompletion();
 		} );
 
@@ -328,7 +329,7 @@
 		// Track form changes to set hasUnsavedChanges (for UI state only)
 		$( document ).on( 'change.wizard input.wizard', 'input, select, textarea', function( e ) {
 			// Skip if this is a navigation button or non-form element
-			if ( 0 < $( e.target ).closest( '.scd-wizard-navigation' ).length ) {
+			if ( 0 < $( e.target ).closest( '.wsscd-wizard-navigation' ).length ) {
 				return;
 			}
 
@@ -351,29 +352,18 @@
 	 * Extracted to reduce cognitive complexity
 	 */
 	WizardOrchestrator.prototype.tryCreateStepFromFactory = function( stepName ) {
-		console.log( '[WizardOrchestrator] tryCreateStepFromFactory for:', stepName );
-		console.log( '[WizardOrchestrator] SCD.Steps available:', !! SCD.Steps );
-		console.log( '[WizardOrchestrator] SCD.Steps.hasFactory available:', 'function' === typeof SCD.Steps.hasFactory );
-		if ( SCD.Steps && SCD.Steps._factories ) {
-			console.log( '[WizardOrchestrator] Registered factories:', Object.keys( SCD.Steps._factories ) );
-		}
-
-		if ( ! ( 'function' === typeof SCD.Steps.hasFactory && SCD.Steps.hasFactory( stepName ) ) ) {
-			console.log( '[WizardOrchestrator] No factory found for:', stepName );
+		if ( ! ( 'function' === typeof WSSCD.Steps.hasFactory && WSSCD.Steps.hasFactory( stepName ) ) ) {
 			return null;
 		}
 
-		console.log( '[WizardOrchestrator] Factory exists for:', stepName, '- attempting to create' );
 		try {
-			var instance = SCD.Steps.createStep( stepName );
+			var instance = WSSCD.Steps.createStep( stepName );
 			if ( instance ) {
-				console.log( '[WizardOrchestrator] Successfully created step instance for:', stepName );
 				this.stepOrchestrators[stepName] = instance;
 				return instance;
 			}
 		} catch ( e ) {
-			// Factory creation failed
-			console.error( '[WizardOrchestrator] Factory creation failed for:', stepName, e );
+			// Factory creation failed - keep error for debugging
 			throw new Error( 'Factory failed to create step: ' + stepName );
 		}
 
@@ -386,11 +376,11 @@
 	 */
 	WizardOrchestrator.prototype.tryCreateStepFromClass = function( stepName ) {
 		var className = stepName.charAt( 0 ).toUpperCase() + stepName.slice( 1 ) + 'Orchestrator';
-		if ( !  window.SCD.Steps[className] ) {
+		if ( !  window.WSSCD.Steps[className] ) {
 			return null;
 		}
 
-		var OrchestratorClass = window.SCD.Steps[className];
+		var OrchestratorClass = window.WSSCD.Steps[className];
 		if ( 'function' === typeof OrchestratorClass ) {
 			this.stepOrchestrators[stepName] = new OrchestratorClass();
 			return this.stepOrchestrators[stepName];
@@ -418,7 +408,7 @@
 			return deferred.promise();
 		}
 
-		if ( !  ( window.SCD && window.SCD.Steps ) ) {
+		if ( !  ( window.WSSCD && window.WSSCD.Steps ) ) {
 			deferred.resolve();
 			return deferred.promise();
 		}
@@ -466,11 +456,7 @@
 	 * @param stepName
 	 */
 	WizardOrchestrator.prototype.getStepInstance = function( stepName ) {
-		console.log( '[WizardOrchestrator] getStepInstance called for:', stepName );
-		console.log( '[WizardOrchestrator] Current stepOrchestrators:', Object.keys( this.stepOrchestrators ) );
-		var instance = this.stepOrchestrators[stepName] || null;
-		console.log( '[WizardOrchestrator] Returning instance:', instance ? 'found' : 'NOT FOUND' );
-		return instance;
+		return this.stepOrchestrators[stepName] || null;
 	};
 
 	/**
@@ -478,11 +464,11 @@
 	 * Extracted to reduce cognitive complexity
 	 */
 	WizardOrchestrator.prototype.createStepInstanceFromFactory = function( stepName, deferred ) {
-		if ( !  ( SCD.Steps.hasFactory && SCD.Steps.hasFactory( stepName ) ) ) {
+		if ( !  ( WSSCD.Steps.hasFactory && WSSCD.Steps.hasFactory( stepName ) ) ) {
 			return false;
 		}
 
-		var instance = SCD.Steps.createStep( stepName );
+		var instance = WSSCD.Steps.createStep( stepName );
 		if ( instance ) {
 			this.stepOrchestrators[stepName] = instance;
 			deferred.resolve();
@@ -501,11 +487,11 @@
 		var self = this;
 		var deferred = $.Deferred();
 
-		var hasModuleLoader = window.SCD && window.SCD.ModuleLoader && window.SCD.ModuleLoader.isLoaded;
-		var hasStepLoader = hasModuleLoader && window.SCD.ModuleLoader.isLoaded( stepName + '-loader' );
+		var hasModuleLoader = window.WSSCD && window.WSSCD.ModuleLoader && window.WSSCD.ModuleLoader.isLoaded;
+		var hasStepLoader = hasModuleLoader && window.WSSCD.ModuleLoader.isLoaded( stepName + '-loader' );
 
 		if ( hasStepLoader ) {
-			window.SCD.ModuleLoader.load( stepName + '-loader', function() {
+			window.WSSCD.ModuleLoader.load( stepName + '-loader', function() {
 				if ( !  self.createStepInstanceFromFactory( stepName, deferred ) ) {
 					deferred.reject( new Error( 'Step not found after loading' ) );
 				}
@@ -528,7 +514,7 @@
 	 */
 	WizardOrchestrator.prototype.getStepData = function( stepName ) {
 		// CRITICAL: In edit mode, ALWAYS use wizard state manager's runtime data
-		// The state manager gets updated after each save, whereas window.scdWizardData
+		// The state manager gets updated after each save, whereas window.wsscdWizardData
 		// contains stale data from initial page load
 		if ( this.modules.stateManager ) {
 			var state = this.modules.stateManager.get();
@@ -539,8 +525,8 @@
 				// In edit mode: Always return stepData from state manager (even if empty)
 				// This ensures we use runtime-updated data, not stale PHP data
 				if ( isEditMode ) {
-					if ( window.SCD && window.SCD.Debug ) {
-						window.SCD.Debug.log( '[WizardOrchestrator] Edit mode - using wizard state manager data for step:', stepName );
+					if ( window.WSSCD && window.WSSCD.Debug ) {
+						window.WSSCD.Debug.log( '[WizardOrchestrator] Edit mode - using wizard state manager data for step:', stepName );
 					}
 					return state.stepData[stepName];
 				}
@@ -581,7 +567,7 @@
 		try {
 			orchestrator.populateFields( stepData );
 		} catch ( e ) {
-			console.error( '[SCD Wizard:Orchestrator] Failed to populate fields for step "' + stepName + '":', e );
+			console.error( '[WSSCD Wizard:Orchestrator] Failed to populate fields for step "' + stepName + '":', e );
 
 			// Emit event for error handling
 			if ( this.modules.eventBus ) {
@@ -609,7 +595,7 @@
 			// Pass wizard and config to orchestrator init
 			var config = {
 				stepName: stepName,
-				container: '.scd-wizard-step--' + stepName
+				container: '.wsscd-wizard-step--' + stepName
 			};
 
 			orchestrator.init( this, config );
@@ -627,7 +613,7 @@
 				stepData = this.getStepData( stepName );
 			} else {
 				// Create mode: Prefer step-specific state over wizard state
-				var stepStateVar = 'scd' + stepName.charAt(0).toUpperCase() + stepName.slice(1) + 'State';
+				var stepStateVar = 'wsscd' + stepName.charAt(0).toUpperCase() + stepName.slice(1) + 'State';
 
 				if ( window[stepStateVar] && window[stepStateVar].saved_data ) {
 					// Use step-specific state (PHP-rendered, current from database)
@@ -655,21 +641,21 @@
 	 * @param stepName
 	 */
 	WizardOrchestrator.prototype.updateStepUI = function( stepName ) {
-		$( '.scd-wizard-navigation .step' ).removeClass( 'active' );
-		$( '.scd-wizard-navigation .step[data-step="' + stepName + '"]' ).addClass( 'active' );
+		$( '.wsscd-wizard-navigation .step' ).removeClass( 'active' );
+		$( '.wsscd-wizard-navigation .step[data-step="' + stepName + '"]' ).addClass( 'active' );
 
 		// Only remove 'active' class, preserve 'completed' class
-		$( '.scd-wizard-steps li' ).removeClass( 'active' );
-		$( '.scd-wizard-steps li[data-step-name="' + stepName + '"]' ).addClass( 'active' );
+		$( '.wsscd-wizard-steps li' ).removeClass( 'active' );
+		$( '.wsscd-wizard-steps li[data-step-name="' + stepName + '"]' ).addClass( 'active' );
 
-		$( '.scd-wizard-step' ).removeClass( 'active' );
-		$( '#scd-step-' + stepName ).addClass( 'active' );
+		$( '.wsscd-wizard-step' ).removeClass( 'active' );
+		$( '#wsscd-step-' + stepName ).addClass( 'active' );
 
 		var currentIndex = this.config.steps.indexOf( stepName );
 		var progress = ( ( currentIndex + 1 ) / this.config.steps.length ) * 100;
 
-		$( '.scd-progress-bar' ).css( 'width', progress + '%' );
-		$( '.scd-progress-text' ).text( 'Step ' + ( currentIndex + 1 ) + ' of ' + this.config.steps.length );
+		$( '.wsscd-progress-bar' ).css( 'width', progress + '%' );
+		$( '.wsscd-progress-text' ).text( 'Step ' + ( currentIndex + 1 ) + ' of ' + this.config.steps.length );
 	};
 
 	/**
@@ -719,13 +705,13 @@
 	 */
 	WizardOrchestrator.prototype.handleCompletionSuccess = function( response ) {
 		// Hide fullscreen loader
-		if ( window.SCD && window.SCD.LoaderUtil ) {
-			SCD.LoaderUtil.hide( 'scd-wizard-completion-loading' );
+		if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+			WSSCD.LoaderUtil.hide( 'wsscd-wizard-completion-loading' );
 		}
 
 		// Re-enable navigation after completion
-		if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Navigation ) {
-			window.SCD.Wizard.Navigation.setNavigationState( false );
+		if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.Navigation ) {
+			window.WSSCD.Wizard.Navigation.setNavigationState( false );
 		}
 
 		var campaignName = this.getCampaignName();
@@ -767,7 +753,7 @@
 		}
 
 		// Trigger document event for navigation component
-		$( document ).trigger( 'scd:wizard:completed', [ eventData ] );
+		$( document ).trigger( 'wsscd:wizard:completed', [ eventData ] );
 
 		// Redirect after delay
 		this.scheduleRedirect( response.redirectUrl );
@@ -779,13 +765,13 @@
 	 */
 	WizardOrchestrator.prototype.handleCompletionError = function( error ) {
 		// Hide fullscreen loader
-		if ( window.SCD && window.SCD.LoaderUtil ) {
-			SCD.LoaderUtil.hide( 'scd-wizard-completion-loading' );
+		if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+			WSSCD.LoaderUtil.hide( 'wsscd-wizard-completion-loading' );
 		}
 
 		// Re-enable navigation after error
-		if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Navigation ) {
-			window.SCD.Wizard.Navigation.setNavigationState( false );
+		if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.Navigation ) {
+			window.WSSCD.Wizard.Navigation.setNavigationState( false );
 		}
 
 		if ( this.modules.stateManager ) {
@@ -799,7 +785,7 @@
 		var errorMessage = error.message || error.error || 'An error occurred while creating the campaign.';
 
 		// Emit error event for modal
-		$( document ).trigger( 'scd:wizard:error', [ {
+		$( document ).trigger( 'wsscd:wizard:error', [ {
 			message: errorMessage,
 			error: error
 		} ] );
@@ -819,13 +805,13 @@
 		};
 
 		// Show fullscreen loader instead of button/modal loader
-		if ( window.SCD && window.SCD.LoaderUtil ) {
-			SCD.LoaderUtil.show( 'scd-wizard-completion-loading' );
+		if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+			WSSCD.LoaderUtil.show( 'wsscd-wizard-completion-loading' );
 		}
 
 		// Disable navigation during completion process
-		if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Navigation ) {
-			window.SCD.Wizard.Navigation.setNavigationState( true );
+		if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.Navigation ) {
+			window.WSSCD.Wizard.Navigation.setNavigationState( true );
 		}
 
 		if ( saveAsDraft && this.modules.stateManager ) {
@@ -842,13 +828,13 @@
 
 				if ( ! confirmed ) {
 					// Hide loader if user cancelled
-					if ( window.SCD && window.SCD.LoaderUtil ) {
-						SCD.LoaderUtil.hide( 'scd-wizard-completion-loading' );
+					if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
+						WSSCD.LoaderUtil.hide( 'wsscd-wizard-completion-loading' );
 					}
 
 					// Re-enable navigation when user cancels
-					if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Navigation ) {
-						window.SCD.Wizard.Navigation.setNavigationState( false );
+					if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.Navigation ) {
+						window.WSSCD.Wizard.Navigation.setNavigationState( false );
 					}
 
 					return; // User cancelled
@@ -880,7 +866,7 @@
 				} )
 				.then( function() {
 				// Note: Fullscreen loader is now shown, don't show modal loading state
-				// $( document ).trigger( 'scd:wizard:completing' );
+				// $( document ).trigger( 'wsscd:wizard:completing' );
 
 				if ( self.modules.stateManager ) {
 					self.modules.stateManager.set( {
@@ -890,7 +876,7 @@
 				}
 
 				// Complete wizard via AJAX
-				return SCD.Ajax.post( 'scd_complete_wizard', {
+				return WSSCD.Ajax.post( 'wsscd_complete_wizard', {
 					saveAsDraft: options.saveAsDraft
 				} );
 			} )
@@ -1135,7 +1121,7 @@
 		this.showError( 'Your session has expired. Please refresh the page.', 'error', 0 );
 
 		// Disable UI
-		$( '.scd-wizard-wrap' ).addClass( 'session-expired' );
+		$( '.wsscd-wizard-wrap' ).addClass( 'session-expired' );
 	};
 
 	/**
@@ -1228,7 +1214,7 @@
 		}
 
 		// Call parent cleanup
-		SCD.Shared.BaseOrchestrator.prototype.destroy.call( this );
+		WSSCD.Shared.BaseOrchestrator.prototype.destroy.call( this );
 	};
 
 	/**
@@ -1241,7 +1227,7 @@
 		$( document ).off( '.wizard' );
 
 		// Unbind specific navigation and wizard events
-		$( document ).off( 'scd:navigation:request scd:wizard:retry' );
+		$( document ).off( 'wsscd:navigation:request wsscd:wizard:retry' );
 
 		// Destroy state manager
 		if ( this.modules.stateManager && 'function' === typeof this.modules.stateManager.destroy ) {
@@ -1273,7 +1259,7 @@
 				}
 			}
 
-			$( document ).on( 'scd:service:ready', function( event, serviceName ) {
+			$( document ).on( 'wsscd:service:ready', function( event, serviceName ) {
 				if ( -1 !== self.requiredServices.indexOf( serviceName ) &&
                     -1 === self.readyServices.indexOf( serviceName ) ) {
 					self.readyServices.push( serviceName );
@@ -1283,16 +1269,12 @@
 
 		// Extracted to reduce cognitive complexity
 		isEventBusReady: function() {
-			var windowCheck = !! ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.EventBus );
-			var localCheck = !! ( SCD && SCD.Wizard && SCD.Wizard.EventBus );
-			return windowCheck || localCheck;
+			return !! ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.EventBus );
 		},
 
 		// Extracted to reduce cognitive complexity
 		isBaseOrchestratorReady: function() {
-			var windowCheck = !! ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseOrchestrator );
-			var localCheck = !! ( SCD && SCD.Shared && SCD.Shared.BaseOrchestrator );
-			return windowCheck || localCheck;
+			return !! ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseOrchestrator );
 		},
 
 		isServiceReady: function( serviceName ) {
@@ -1344,7 +1326,7 @@
 				}
 			}
 
-			console.error( '[SCD Wizard:Orchestrator] Service initialization timeout. Missing:', missingServices );
+			console.error( '[WSSCD Wizard:Orchestrator] Service initialization timeout. Missing:', missingServices );
 
 			if ( onSuccess ) {
 				onSuccess();
@@ -1383,10 +1365,10 @@
 		ServiceReadiness.waitForServices(
 			// Success callback
 			function() {
-				SCD.Wizard.Orchestrator = new WizardOrchestrator();
+				WSSCD.Wizard.Orchestrator = new WizardOrchestrator();
 
 				// Emit orchestrator ready event
-				$( document ).trigger( 'scd:orchestrator:ready' );
+				$( document ).trigger( 'wsscd:orchestrator:ready' );
 			},
 			// Error callback
 			function( _error ) {

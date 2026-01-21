@@ -16,35 +16,37 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
+// Load Intent Constants for single source of truth.
+require_once WSSCD_PLUGIN_DIR . 'includes/constants/class-wsscd-intent-constants.php';
 
 /**
  * Campaign Wizard Controller Class
  *
  * @since      1.0.0
  */
-class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
+class WSSCD_Campaign_Wizard_Controller extends WSSCD_Abstract_Campaign_Controller {
 
 	/**
 	 * Wizard session.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Wizard_State_Service
+	 * @var      WSSCD_Wizard_State_Service
 	 */
-	private SCD_Wizard_State_Service $session;
+	private WSSCD_Wizard_State_Service $session;
 
 	/**
 	 * Feature gate service.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Feature_Gate
+	 * @var      WSSCD_Feature_Gate
 	 */
-	private SCD_Feature_Gate $feature_gate;
+	private WSSCD_Feature_Gate $feature_gate;
 
 	/**
 	 * Available wizard steps (delegated to Step Registry).
 	 *
 	 * @since    1.0.0
-	 * @deprecated Use SCD_Wizard_Step_Registry::get_steps() instead
+	 * @deprecated Use WSSCD_Wizard_Step_Registry::get_steps() instead
 	 * @var      array
 	 */
 	private array $steps;
@@ -53,25 +55,25 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Initialize the controller.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Manager         $campaign_manager     Campaign manager.
-	 * @param    SCD_Admin_Capability_Manager $capability_manager   Capability manager.
-	 * @param    SCD_Logger                   $logger               Logger instance.
-	 * @param    SCD_Wizard_State_Service     $session              Wizard session.
-	 * @param    SCD_Feature_Gate             $feature_gate         Feature gate service.
+	 * @param    WSSCD_Campaign_Manager         $campaign_manager     Campaign manager.
+	 * @param    WSSCD_Admin_Capability_Manager $capability_manager   Capability manager.
+	 * @param    WSSCD_Logger                   $logger               Logger instance.
+	 * @param    WSSCD_Wizard_State_Service     $session              Wizard session.
+	 * @param    WSSCD_Feature_Gate             $feature_gate         Feature gate service.
 	 */
 	public function __construct(
-		SCD_Campaign_Manager $campaign_manager,
-		SCD_Admin_Capability_Manager $capability_manager,
-		SCD_Logger $logger,
-		SCD_Wizard_State_Service $session,
-		SCD_Feature_Gate $feature_gate
+		WSSCD_Campaign_Manager $campaign_manager,
+		WSSCD_Admin_Capability_Manager $capability_manager,
+		WSSCD_Logger $logger,
+		WSSCD_Wizard_State_Service $session,
+		WSSCD_Feature_Gate $feature_gate
 	) {
 		parent::__construct( $campaign_manager, $capability_manager, $logger );
 		$this->session      = $session;
 		$this->feature_gate = $feature_gate;
 
 		// Use Step Registry for step definitions
-		$this->steps = SCD_Wizard_Step_Registry::get_steps();
+		$this->steps = WSSCD_Wizard_Step_Registry::get_steps();
 
 		$this->init_wizard_components();
 	}
@@ -83,56 +85,53 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	private function init_wizard_components(): void {
-		require_once SCD_INCLUDES_DIR . 'core/wizard/class-wizard-navigation.php';
-		$navigation = new SCD_Wizard_Navigation();
+		require_once WSSCD_INCLUDES_DIR . 'core/wizard/class-wizard-navigation.php';
+		$navigation = new WSSCD_Wizard_Navigation();
 		$navigation->init();
 	}
 
 	/**
 	 * Handle wizard display.
 	 *
+	 * Note: The 'new' and 'edit' intents are processed early by WSSCD_Wizard_Intent_Handler
+	 * on admin_init hook (before headers are sent) to ensure session cookies are properly set.
+	 * By the time this method is called, those intents have already been processed and
+	 * the URL has been redirected to remove the intent parameter.
+	 *
 	 * @since    1.0.0
 	 * @return   void
 	 */
 	public function handle(): void {
-		if ( ! $this->check_capability( 'scd_create_campaigns' ) ) {
-			wp_die( __( 'You do not have permission to create campaigns.', 'smart-cycle-discounts' ) );
+		if ( ! $this->check_capability( 'wsscd_create_campaigns' ) ) {
+			wp_die( esc_html__( 'You do not have permission to create campaigns.', 'smart-cycle-discounts' ) );
 		}
 
-		$intent        = $this->get_intent();
+		// Initialize session based on intent.
+		//
+		// Intent Processing Flow:
+		// ─────────────────────────────────────────────────────────────────────
+		// NEW/EDIT: Already processed by WSSCD_Wizard_Intent_Handler on admin_init.
+		//           URL was redirected, intent param stripped. Session already exists.
+		//           This call will get empty intent → defaults to CONTINUE.
+		//
+		// CONTINUE: Uses existing session (created by Intent Handler or previous visit).
+		//           Creates new session only if none exists.
+		//
+		// DUPLICATE: Handled here (not early-processed). Creates fresh session
+		//            pre-filled with source campaign data.
+		// ─────────────────────────────────────────────────────────────────────
+		$intent = WSSCD_Intent_Constants::get_from_request();
+		if ( '' === $intent ) {
+			$intent = WSSCD_Intent_Constants::DEFAULT_INTENT;
+		}
+
 		$suggestion_id = $this->get_suggestion_id();
+		$schedule_mode = $this->is_schedule_mode();
 
-		if ( 'new' === $intent || 'continue' === $intent ) {
-			$session_data    = $this->session->get_all_data();
-			$is_new_campaign = empty( $session_data ) || ! isset( $session_data['campaign_id'] );
+		$this->session->initialize_with_intent( $intent, $suggestion_id, $schedule_mode );
 
-			if ( $is_new_campaign && ! $this->can_create_campaign() ) {
-				$this->render_campaign_limit_prompt();
-				return;
-			}
-		}
-
-		$this->session->initialize_with_intent( $intent, $suggestion_id );
-
-		if ( 'POST' === $_SERVER['REQUEST_METHOD'] ) {
+		if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'] ) {
 			$this->handle_step_submission();
-			return;
-		}
-
-		// Initial redirect for intent=new: drop the intent parameter after session is initialized
-		// The session already knows it's a new campaign from initialize_with_intent() above
-		// Keeping intent=new in URL causes redirect loops and function issues
-		if ( 'new' === $intent ) {
-			$session_data              = $this->session->get_all_data();
-			$prefilled_from_suggestion = $session_data['prefilled_from_suggestion'] ?? false;
-
-			if ( $prefilled_from_suggestion ) {
-				// Redirect to Review step since everything is pre-filled
-				$this->redirect_to_wizard( 'review' );
-			} else {
-				// Normal flow: start at Basic step
-				$this->redirect_to_wizard( 'basic' );
-			}
 			return;
 		}
 
@@ -140,43 +139,57 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	}
 
 	/**
-	 * Get intent from request.
-	 *
-	 * Validates against whitelist to prevent XSS attacks.
-	 *
-	 * @since    1.0.0
-	 * @return   string    Intent value.
-	 */
-	private function get_intent(): string {
-		$allowed_intents = array( 'new', 'continue', 'edit', 'duplicate' );
-		$intent          = isset( $_GET['intent'] ) ? sanitize_key( $_GET['intent'] ) : 'continue';
-
-		// Whitelist validation - only allow expected values
-		if ( ! in_array( $intent, $allowed_intents, true ) ) {
-			return 'continue';
-		}
-
-		return $intent;
-	}
-
-	/**
 	 * Get suggestion ID from request.
+	 *
+	 * SECURITY: This method is only called from handle() after capability check.
+	 * The suggestion ID is a predefined template identifier (e.g., 'clearance_sale'),
+	 * not user-submitted data. It's validated against a strict alphanumeric pattern.
 	 *
 	 * @since    1.0.0
 	 * @return   string|null    Suggestion ID or null.
 	 */
 	private function get_suggestion_id(): ?string {
+		// Capability check - this method should only be accessible to authorized users.
+		// This is also checked in handle() but we add it here for defense in depth.
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			return null;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only URL parameter for loading predefined suggestion templates. Validated with strict regex. Capability checked above.
 		if ( ! isset( $_GET['suggestion'] ) ) {
 			return null;
 		}
 
-		$suggestion_id = sanitize_text_field( $_GET['suggestion'] );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only URL parameter for loading predefined suggestion templates. Validated with strict regex. Capability checked above.
+		$suggestion_id = sanitize_key( wp_unslash( $_GET['suggestion'] ) );
 
+		// Strict validation: only allow lowercase alphanumeric and underscores.
+		// This prevents any injection attempts as suggestion IDs are predefined constants.
 		if ( ! preg_match( '/^[a-z0-9_]+$/', $suggestion_id ) ) {
 			return null;
 		}
 
 		return $suggestion_id;
+	}
+
+	/**
+	 * Check if this is a scheduled campaign request.
+	 *
+	 * SECURITY: This method is ONLY called from handle() after capability check at line 98-100.
+	 * When schedule=1 is in the URL, the campaign should use future dates.
+	 * Without it, the campaign uses current/immediate dates.
+	 *
+	 * @since    1.0.0
+	 * @return   bool    True if scheduling for future, false for immediate.
+	 */
+	private function is_schedule_mode(): bool {
+		// Defense in depth: capability check (also verified in handle() before this is called).
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			return false;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only URL parameter for mode detection. Capability checked above. Value compared against literal '1'.
+		return isset( $_GET['schedule'] ) && '1' === sanitize_key( wp_unslash( $_GET['schedule'] ) );
 	}
 
 	/**
@@ -254,7 +267,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 			);
 
 			$this->redirect_with_message(
-				admin_url( 'admin.php?page=scd-campaigns' ),
+				admin_url( 'admin.php?page=wsscd-campaigns' ),
 				__( 'Unable to start wizard session.', 'smart-cycle-discounts' ),
 				'error'
 			);
@@ -271,7 +284,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 */
 	private function redirect_to_wizard( string $step, array $args = array() ): void {
 		$defaults = array(
-			'page'   => 'scd-campaigns',
+			'page'   => 'wsscd-campaigns',
 			'action' => 'wizard',
 			'step'   => $step,
 		);
@@ -293,7 +306,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 */
 	private function handle_step_submission(): void {
 		if ( ! $this->verify_nonce() ) {
-			wp_die( __( 'Security check failed.', 'smart-cycle-discounts' ) );
+			wp_die( esc_html__( 'Security check failed.', 'smart-cycle-discounts' ) );
 		}
 
 		$current_step = $this->get_current_step();
@@ -339,18 +352,42 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * @return   bool    Is valid nonce.
 	 */
 	private function verify_nonce(): bool {
-		return wp_verify_nonce( $_POST['scd_wizard_nonce'] ?? '', 'scd_wizard_nonce' );
+		return wp_verify_nonce( isset( $_POST['wsscd_wizard_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['wsscd_wizard_nonce'] ) ) : '', 'wsscd_wizard_nonce' );
 	}
 
 	/**
 	 * Get current step from URL.
 	 *
+	 * SECURITY: This method is called from handle_get_request() and render() after
+	 * capability is checked in handle() at line 98-100.
+	 *
 	 * @since    1.0.0
 	 * @return   string    Current step.
 	 */
 	private function get_current_step(): string {
-		$step = isset( $_GET['step'] ) ? sanitize_key( $_GET['step'] ) : 'basic';
+		// Defense in depth: capability check (also verified in handle() before this is called).
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			return 'basic';
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only URL parameter for navigation. Capability checked above. Validated against whitelist.
+		$step = isset( $_GET['step'] ) ? sanitize_key( wp_unslash( $_GET['step'] ) ) : 'basic';
 		return in_array( $step, $this->steps, true ) ? $step : 'basic';
+	}
+
+	/**
+	 * Get current intent from URL.
+	 *
+	 * Note: For NEW and EDIT intents, this will typically return empty string
+	 * because the Intent Handler processes them early and redirects with the
+	 * intent parameter stripped. This method is primarily useful for CONTINUE
+	 * and DUPLICATE intents which are not early-processed.
+	 *
+	 * @since    1.0.0
+	 * @return   string    Current intent or empty string.
+	 */
+	private function get_intent(): string {
+		return WSSCD_Intent_Constants::get_from_request();
 	}
 
 	/**
@@ -426,15 +463,22 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	/**
 	 * Get navigation direction.
 	 *
+	 * SECURITY: This method is ONLY called from handle_step_submission() at line 308,
+	 * which verifies nonce via verify_nonce() at line 303-305 before ANY processing.
+	 *
 	 * @since    1.0.0
 	 * @return   string    Navigation direction.
 	 */
 	private function get_navigation_direction(): string {
-		return $_POST['wizard_navigation'] ?? 'next';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in handle_step_submission() line 327 via verify_nonce() before this method is called.
+		return isset( $_POST['wizard_navigation'] ) ? sanitize_key( wp_unslash( $_POST['wizard_navigation'] ) ) : 'next';
 	}
 
 	/**
 	 * Validate step data.
+	 *
+	 * SECURITY: This method is ONLY called from handle_step_submission() at line 311,
+	 * which verifies nonce via verify_nonce() at line 303-305 before ANY processing.
 	 *
 	 * @since    1.0.0
 	 * @param    string $step    Current step.
@@ -442,7 +486,13 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 */
 	private function validate_step_data( string $step ): bool {
 		$validation_context = 'wizard_' . $step;
-		$validation_result  = SCD_Validation::validate( $_POST, $validation_context );
+		// Extract and sanitize only step-specific fields - not the entire $_POST array.
+		// This addresses WordPress.org requirements to process only required fields.
+		$step_fields       = WSSCD_Case_Converter::get_wizard_step_fields( $step );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in handle_step_submission() line 327 via verify_nonce() before this method is called.
+		$extracted_data    = WSSCD_Case_Converter::extract_and_sanitize( $step_fields, $_POST );
+		$sanitized_data    = $this->sanitize_step_data( $extracted_data, $step );
+		$validation_result = WSSCD_Validation::validate( $sanitized_data, $validation_context );
 
 		if ( is_wp_error( $validation_result ) ) {
 			$this->store_validation_errors( $validation_result );
@@ -490,12 +540,21 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	/**
 	 * Save step data.
 	 *
+	 * SECURITY: This method is ONLY called from handle_step_submission() at line 316,
+	 * which verifies nonce via verify_nonce() at line 303-305 before ANY processing.
+	 * The call chain is: handle() -> handle_step_submission() [nonce verified] -> save_step_data().
+	 *
 	 * @since    1.0.0
 	 * @param    string $step    Current step.
 	 * @return   void
 	 */
 	private function save_step_data( string $step ): void {
-		$sanitized_data = $this->sanitize_step_data( $_POST, $step );
+		// Extract and sanitize only step-specific fields - not the entire $_POST array.
+		// This addresses WordPress.org requirements to process only required fields.
+		$step_fields    = WSSCD_Case_Converter::get_wizard_step_fields( $step );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in handle_step_submission() line 327 via verify_nonce() before this method is called.
+		$extracted_data = WSSCD_Case_Converter::extract_and_sanitize( $step_fields, $_POST );
+		$sanitized_data = $this->sanitize_step_data( $extracted_data, $step );
 		$this->session->save_step_data( $step, $sanitized_data );
 		$this->session->set_draft_status( true );
 		$this->session->save();
@@ -567,16 +626,16 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Get campaign creator service.
 	 *
 	 * @since    1.0.0
-	 * @return   SCD_Campaign_Creator_Service    Campaign creator.
+	 * @return   WSSCD_Campaign_Creator_Service    Campaign creator.
 	 */
-	private function get_campaign_creator(): SCD_Campaign_Creator_Service {
-		require_once SCD_INCLUDES_DIR . 'services/class-campaign-creator-service.php';
-		require_once SCD_INCLUDES_DIR . 'core/campaigns/class-campaign-compiler-service.php';
+	private function get_campaign_creator(): WSSCD_Campaign_Creator_Service {
+		require_once WSSCD_INCLUDES_DIR . 'services/class-campaign-creator-service.php';
+		require_once WSSCD_INCLUDES_DIR . 'core/campaigns/class-campaign-compiler-service.php';
 
 		$repository = $this->get_campaign_repository();
-		$compiler   = new SCD_Campaign_Compiler_Service( $repository );
+		$compiler   = new WSSCD_Campaign_Compiler_Service( $repository );
 
-		return new SCD_Campaign_Creator_Service(
+		return new WSSCD_Campaign_Creator_Service(
 			$this->campaign_manager,
 			$compiler,
 			$this->logger,
@@ -674,14 +733,24 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	/**
 	 * Check if session is fresh.
 	 *
+	 * Checks multiple indicators:
+	 * 1. Session has no steps (empty session)
+	 * 2. Session has no ID (invalid session)
+	 * 3. is_fresh flag in session data
+	 * 4. State Service's is_fresh() (uses request-level cache for race condition safety)
+	 *
 	 * @since    1.0.0
 	 * @param    array $session    Session data.
 	 * @return   bool                 Is fresh session.
 	 */
 	private function is_fresh_session( array $session ): bool {
-		return empty( $session['steps'] ) ||
-				empty( $session['session_id'] ) ||
-				! empty( $session['is_fresh'] );
+		// Check session data directly.
+		if ( empty( $session['steps'] ) || empty( $session['session_id'] ) || ! empty( $session['is_fresh'] ) ) {
+			return true;
+		}
+
+		// Also check State Service's cached value (handles race condition with Asset Localizer).
+		return $this->session->is_fresh();
 	}
 
 	/**
@@ -696,14 +765,14 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 */
 	private function render_wizard_wrapper( array $session, string $current_step, array $step_data, array $errors ): void {
 		?>
-		<div class="wrap scd-wizard-wrap scd-wizard-page">
+		<div class="wrap wsscd-wizard-wrap wsscd-wizard-page">
 			<?php $this->render_progress_bar( $current_step ); ?>
 			<?php $this->render_errors( $errors ); ?>
 			
-			<form method="post" class="scd-wizard-form" autocomplete="off">
-				<?php wp_nonce_field( 'scd_wizard_nonce', 'scd_wizard_nonce' ); ?>
+			<form method="post" class="wsscd-wizard-form" autocomplete="off">
+				<?php wp_nonce_field( 'wsscd_wizard_nonce', 'wsscd_wizard_nonce' ); ?>
 				
-				<div class="scd-wizard-content scd-wizard-layout" data-step="<?php echo esc_attr( $current_step ); ?>">
+				<div class="wsscd-wizard-content wsscd-wizard-layout" data-step="<?php echo esc_attr( $current_step ); ?>">
 					<?php $this->render_step( $current_step, $step_data ); ?>
 				</div>
 				
@@ -715,10 +784,10 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 
 			<?php
 			// Completion loading overlay (shown before completion modal)
-			if ( class_exists( 'SCD_Loader_Helper' ) ) {
+			if ( class_exists( 'WSSCD_Loader_Helper' ) ) {
 				$is_edit_mode = ! empty( $session['campaign_id'] );
 				$loading_text = $is_edit_mode ? __( 'Updating campaign...', 'smart-cycle-discounts' ) : __( 'Creating campaign...', 'smart-cycle-discounts' );
-				SCD_Loader_Helper::render_fullscreen( 'scd-wizard-completion-loading', $loading_text, false );
+				WSSCD_Loader_Helper::render_fullscreen( 'wsscd-wizard-completion-loading', $loading_text, false );
 			}
 			?>
 		</div>
@@ -737,29 +806,23 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 		$campaign_name = ! empty( $session['basic']['campaign_name'] ) ? $session['basic']['campaign_name'] : '';
 
 		?>
-		<div class="scd-wizard-header">
+		<div class="wsscd-wizard-header">
 			<?php if ( $is_edit_mode ) : ?>
 				<h1>
 					<?php esc_html_e( 'Edit Campaign', 'smart-cycle-discounts' ); ?>
 					<?php if ( $campaign_name ) : ?>
-						<span class="scd-campaign-name">: <?php echo esc_html( $campaign_name ); ?></span>
+						<span class="wsscd-campaign-name">: <?php echo esc_html( $campaign_name ); ?></span>
 					<?php endif; ?>
 				</h1>
 			<?php else : ?>
 				<h1><?php esc_html_e( 'Create New Campaign', 'smart-cycle-discounts' ); ?></h1>
 			<?php endif; ?>
 
-			<?php if ( $is_edit_mode ) : ?>
-				<?php echo SCD_Badge_Helper::health_badge( 'info', __( 'Editing Mode', 'smart-cycle-discounts' ) ); ?>
-			<?php endif; ?>
-
-			<?php if ( isset( $_GET['saved'] ) && '1' === $_GET['saved'] ) : ?>
-				<?php echo SCD_Badge_Helper::health_badge( 'healthy', __( 'Saved', 'smart-cycle-discounts' ) ); ?>
-			<?php endif; ?>
-			
-			<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns' ) ); ?>"
-				class="button scd-exit-wizard">
-				<?php echo SCD_Icon_Helper::get( 'close', array( 'size' => 16 ) ); ?>
+			<a href="<?php echo esc_url( admin_url( 'admin.php?page=wsscd-campaigns' ) ); ?>"
+				class="button wsscd-exit-wizard">
+				<?php
+				WSSCD_Icon_Helper::render( 'close', array( 'size' => 16 ) );
+				?>
 				<span><?php esc_html_e( 'Exit Wizard', 'smart-cycle-discounts' ); ?></span>
 			</a>
 		</div>
@@ -802,15 +865,11 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 		$current_index = array_search( $current_step, $this->steps, true );
 		$progress      = ( ( $current_index + 1 ) / count( $this->steps ) ) * 100;
 
-		?>
-		<style>
-			.scd-wizard-navigation {
-				--progress: <?php echo esc_attr( $progress ); ?>%;
-			}
-		</style>
-		<?php
+		// Use wp_add_inline_style for WordPress.org compliance
+		$css = '.wsscd-wizard-navigation { --progress: ' . esc_attr( $progress ) . '%; }';
+		wp_add_inline_style( 'wsscd-wizard-navigation', $css );
 
-		do_action( 'scd_wizard_render_navigation', $current_step );
+		do_action( 'wsscd_wizard_render_navigation', $current_step );
 	}
 
 	/**
@@ -825,46 +884,44 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 		$is_premium  = $this->feature_gate ? $this->feature_gate->is_premium() : false;
 		$upgrade_url = $this->feature_gate ? $this->feature_gate->get_upgrade_url() : admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
 
-		?>
-		<script>
-			window.scdWizardSessionInfo = {
-				isFresh: <?php echo $this->is_fresh_session( $session ) ? 'true' : 'false'; ?>,
-				hasSteps: <?php echo ! empty( $session['steps'] ) ? 'true' : 'false'; ?>,
-				sessionId: '<?php echo esc_js( substr( $session['session_id'] ?? '', 0, 8 ) ); ?>...',
-				intent: '<?php echo esc_js( $this->get_intent() ); ?>'
-			};
+		// Build session info data
+		$session_info = array(
+			'isFresh'   => $this->is_fresh_session( $session ),
+			'hasSteps'  => ! empty( $session['steps'] ),
+			'sessionId' => substr( $session['session_id'] ?? '', 0, 8 ) . '...',
+			'intent'    => $this->get_intent(),
+		);
 
-			// Configuration for client-side feature gating
-			window.scdWizardConfig = {
-				is_premium: <?php echo $is_premium ? 'true' : 'false'; ?>,
-				upgrade_url: '<?php echo esc_js( $upgrade_url ); ?>'
-			};
-			
-			if ( window.scdWizardSessionInfo.isFresh ) {
-				( function( $ ) {
-					'use strict';
-					
-					['sessionStorage', 'localStorage'].forEach( function( storageType ) {
-						if ( window[storageType] ) {
-							var keysToRemove = [];
-							var i;
-							
-							for ( i = 0; i < window[storageType].length; i++ ) {
-								var key = window[storageType].key( i );
-								if ( key && ( key.indexOf( 'scd_' ) === 0 || key.indexOf( 'wizard' ) !== -1 ) ) {
-									keysToRemove.push( key );
-								}
-							}
-							
-							keysToRemove.forEach( function( key ) {
-								window[storageType].removeItem( key );
-							} );
-						}
-					} );
-				} )( jQuery );
-			}
-		</script>
-		<?php
+		$config = array(
+			'is_premium'  => $is_premium,
+			'upgrade_url' => $upgrade_url,
+		);
+
+		// Build the script
+		$script = 'window.wsscdWizardSessionInfo = ' . wp_json_encode( $session_info ) . ';' .
+			'window.wsscdWizardConfig = ' . wp_json_encode( $config ) . ';';
+
+		// Add storage cleanup script for fresh sessions
+		if ( $this->is_fresh_session( $session ) ) {
+			$script .= '(function($) {' .
+				'"use strict";' .
+				'["sessionStorage", "localStorage"].forEach(function(storageType) {' .
+				'if (window[storageType]) {' .
+				'var keysToRemove = [];' .
+				'for (var i = 0; i < window[storageType].length; i++) {' .
+				'var key = window[storageType].key(i);' .
+				'if (key && (key.indexOf("wsscd_") === 0 || key.indexOf("wizard") !== -1)) {' .
+				'keysToRemove.push(key);' .
+				'}' .
+				'}' .
+				'keysToRemove.forEach(function(key) { window[storageType].removeItem(key); });' .
+				'}' .
+				'});' .
+				'})(jQuery);';
+		}
+
+		// Use wp_add_inline_script for WordPress.org compliance
+		wp_add_inline_script( 'jquery-core', $script );
 	}
 
 	/**
@@ -877,7 +934,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 */
 	private function render_pro_feature_modal(): void {
 		$feature_gate = $this->feature_gate;
-		include SCD_PLUGIN_DIR . 'resources/views/admin/partials/pro-feature-modal.php';
+		include WSSCD_PLUGIN_DIR . 'resources/views/admin/partials/pro-feature-modal.php';
 	}
 
 	/**
@@ -896,35 +953,43 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 		$campaign_name = ! empty( $session_data['basic']['campaign_name'] ) ? $session_data['basic']['campaign_name'] : '';
 
 		?>
-		<div class="scd-wizard-progress">
+		<div class="wsscd-wizard-progress">
 			<!-- Wizard Header Content -->
-			<div class="scd-wizard-progress-header">
-				<div class="scd-wizard-progress-title">
+			<div class="wsscd-wizard-progress-header">
+				<div class="wsscd-wizard-progress-title">
 					<?php if ( $is_edit_mode ) : ?>
 						<h1>
 							<?php esc_html_e( 'Edit Campaign', 'smart-cycle-discounts' ); ?>
 							<?php if ( $campaign_name ) : ?>
-								<span class="scd-campaign-name">: <?php echo esc_html( $campaign_name ); ?></span>
+								<span class="wsscd-campaign-name">: <?php echo esc_html( $campaign_name ); ?></span>
 							<?php endif; ?>
 						</h1>
 					<?php else : ?>
 						<h1><?php esc_html_e( 'Create New Campaign', 'smart-cycle-discounts' ); ?></h1>
 					<?php endif; ?>
 
-					<?php if ( isset( $_GET['saved'] ) && '1' === $_GET['saved'] ) : ?>
-						<?php echo SCD_Badge_Helper::health_badge( 'healthy', __( 'Saved', 'smart-cycle-discounts' ) ); ?>
+					<?php
+					// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only URL parameter for display. Capability verified in handle() before render. Value compared to literal '1'.
+					$is_saved = isset( $_GET['saved'] ) && '1' === sanitize_key( wp_unslash( $_GET['saved'] ) );
+					if ( $is_saved ) :
+						?>
+						<?php
+												echo wp_kses_post( WSSCD_Badge_Helper::health_badge( 'healthy', __( 'Saved', 'smart-cycle-discounts' ) ) );
+						?>
 					<?php endif; ?>
 				</div>
 
-				<a href="<?php echo esc_url( admin_url( 'admin.php?page=scd-campaigns' ) ); ?>"
-					class="button scd-exit-wizard">
-					<?php echo SCD_Icon_Helper::get( 'close', array( 'size' => 16 ) ); ?>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=wsscd-campaigns' ) ); ?>"
+					class="button wsscd-exit-wizard">
+					<?php
+					WSSCD_Icon_Helper::render( 'close', array( 'size' => 16 ) );
+					?>
 					<span><?php esc_html_e( 'Exit Wizard', 'smart-cycle-discounts' ); ?></span>
 				</a>
 			</div>
 
 			<!-- Step Progress Indicators -->
-			<ul class="scd-wizard-steps">
+			<ul class="wsscd-wizard-steps">
 				<?php $this->render_progress_steps( $step_labels, $current_step, $current_index ); ?>
 			</ul>
 		</div>
@@ -985,19 +1050,11 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * Get step labels.
 	 *
 	 * @since    1.0.0
-	 * @return   array    Step labels.
+	 * @return   array    Step labels (already translated).
 	 */
 	private function get_step_labels(): array {
-		// Delegate to Step Registry
-		$labels = SCD_Wizard_Step_Registry::get_step_labels();
-
-		// Translate labels
-		return array_map(
-			function ( $label ) {
-				return __( $label, 'smart-cycle-discounts' );
-			},
-			$labels
-		);
+		// Delegate to Step Registry (returns translated labels)
+		return WSSCD_Wizard_Step_Registry::get_step_labels();
 	}
 
 	/**
@@ -1025,7 +1082,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	private function load_template_wrapper(): void {
-		$wrapper_file = SCD_PLUGIN_DIR . 'resources/views/admin/wizard/template-wrapper.php';
+		$wrapper_file = WSSCD_PLUGIN_DIR . 'resources/views/admin/wizard/template-wrapper.php';
 		if ( file_exists( $wrapper_file ) ) {
 			require_once $wrapper_file;
 		}
@@ -1051,7 +1108,7 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * @return   void
 	 */
 	private function include_step_template( string $step, array $step_data ): void {
-		$view_file         = SCD_PLUGIN_DIR . 'resources/views/admin/wizard/step-' . $step . '.php';
+		$view_file         = WSSCD_PLUGIN_DIR . 'resources/views/admin/wizard/step-' . $step . '.php';
 		$validation_errors = $this->session->get( 'errors', array() );
 		$feature_gate      = $this->feature_gate;
 
@@ -1071,164 +1128,24 @@ class SCD_Campaign_Wizard_Controller extends SCD_Abstract_Campaign_Controller {
 	 * @return   array              Sanitized data.
 	 */
 	private function sanitize_step_data( array $data, string $step ): array {
-		unset( $data['scd_wizard_nonce'], $data['wizard_navigation'] );
-		return SCD_Validation::sanitize_step_data( $data, $step );
+		unset( $data['wsscd_wizard_nonce'], $data['wizard_navigation'] );
+		return WSSCD_Validation::sanitize_step_data( $data, $step );
 	}
 
 	/**
 	 * Get campaign repository instance.
 	 *
 	 * @since    1.0.0
-	 * @return   SCD_Campaign_Repository    Campaign repository.
+	 * @return   WSSCD_Campaign_Repository    Campaign repository.
 	 */
-	private function get_campaign_repository(): SCD_Campaign_Repository {
-		if ( ! class_exists( 'SCD_Campaign_Repository' ) ) {
+	private function get_campaign_repository(): WSSCD_Campaign_Repository {
+		if ( ! class_exists( 'WSSCD_Campaign_Repository' ) ) {
 			throw new Exception( 'Campaign repository not available' );
 		}
 
-		$db_manager    = new SCD_Database_Manager();
-		$cache_manager = new SCD_Cache_Manager();
+		$db_manager    = new WSSCD_Database_Manager();
+		$cache_manager = new WSSCD_Cache_Manager();
 
-		return new SCD_Campaign_Repository( $db_manager, $cache_manager );
-	}
-
-	/**
-	 * Check if user can create more campaigns.
-	 *
-	 * @since    1.0.0
-	 * @return   bool    True if user can create campaigns.
-	 */
-	private function can_create_campaign(): bool {
-		// Premium users can create unlimited campaigns
-		if ( $this->feature_gate->is_premium() ) {
-			return true;
-		}
-
-		$repository = $this->campaign_manager->get_repository();
-		if ( ! $repository ) {
-			// If repository not available, allow creation (fail open)
-			return true;
-		}
-
-		$current_count = $repository->count(
-			array(
-				'status__not' => 'deleted',
-			)
-		);
-
-		return $this->feature_gate->can_create_campaign( $current_count );
-	}
-
-	/**
-	 * Render campaign limit reached prompt.
-	 *
-	 * @since    1.0.0
-	 * @return   void
-	 */
-	private function render_campaign_limit_prompt(): void {
-		$campaign_limit = $this->feature_gate->get_campaign_limit();
-		$upgrade_url    = function_exists( 'scd_get_upgrade_url' ) ? scd_get_upgrade_url() : admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
-		$trial_url      = function_exists( 'scd_get_trial_url' ) ? scd_get_trial_url() : $upgrade_url;
-
-		?>
-		<div class="wrap scd-campaign-limit-reached">
-			<h1><?php esc_html_e( 'Campaign Limit Reached', 'smart-cycle-discounts' ); ?></h1>
-
-			<div class="scd-upgrade-notice">
-				<div class="scd-upgrade-icon">
-					<?php echo SCD_Icon_Helper::get( 'info', array( 'size' => 20 ) ); ?>
-				</div>
-				<div class="scd-upgrade-content">
-					<h2><?php echo esc_html( sprintf( __( 'You\'ve reached the %d campaign limit', 'smart-cycle-discounts' ), $campaign_limit ) ); ?></h2>
-					<p><?php esc_html_e( 'Upgrade to Pro to create unlimited campaigns and unlock advanced features:', 'smart-cycle-discounts' ); ?></p>
-
-					<ul class="scd-feature-list">
-						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Unlimited active campaigns', 'smart-cycle-discounts' ); ?></li>
-						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Advanced analytics and reporting', 'smart-cycle-discounts' ); ?></li>
-						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Export campaign data to CSV/JSON', 'smart-cycle-discounts' ); ?></li>
-						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Customer segmentation targeting', 'smart-cycle-discounts' ); ?></li>
-						<li><?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?> <?php esc_html_e( 'Priority email support', 'smart-cycle-discounts' ); ?></li>
-					</ul>
-
-					<div class="scd-upgrade-actions">
-						<a href="<?php echo esc_url( $trial_url ); ?>" class="button button-primary button-hero">
-							<?php esc_html_e( 'Start 14-Day Free Trial', 'smart-cycle-discounts' ); ?>
-						</a>
-						<a href="<?php echo esc_url( $upgrade_url ); ?>" class="button button-secondary button-hero">
-							<?php esc_html_e( 'View Pricing', 'smart-cycle-discounts' ); ?>
-						</a>
-					</div>
-
-					<p class="scd-upgrade-alternative">
-						<?php
-						printf(
-							/* translators: %s: campaigns page URL */
-							esc_html__( 'Or %s to free up space for a new campaign.', 'smart-cycle-discounts' ),
-							'<a href="' . esc_url( admin_url( 'admin.php?page=scd-campaigns' ) ) . '">' . esc_html__( 'delete an existing campaign', 'smart-cycle-discounts' ) . '</a>'
-						);
-						?>
-					</p>
-				</div>
-			</div>
-
-			<style>
-				.scd-campaign-limit-reached {
-					max-width: 800px;
-					margin: 40px auto;
-				}
-				.scd-upgrade-notice {
-					background: #fff;
-					border: 1px solid #c3c4c7;
-					border-left: 4px solid #2271b1;
-					box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
-					padding: 30px;
-					margin: 30px 0;
-					display: flex;
-					gap: 20px;
-				}
-				.scd-upgrade-icon {
-					font-size: 48px;
-					color: #2271b1;
-					flex-shrink: 0;
-				}
-				.scd-upgrade-icon .dashicons {
-					width: 48px;
-					height: 48px;
-					font-size: 48px;
-				}
-				.scd-upgrade-content h2 {
-					margin-top: 0;
-					font-size: 20px;
-					font-weight: 600;
-				}
-				.scd-feature-list {
-					list-style: none;
-					padding: 0;
-					margin: 20px 0;
-				}
-				.scd-feature-list li {
-					padding: 8px 0;
-					display: flex;
-					align-items: center;
-					gap: 8px;
-				}
-				.scd-feature-list .dashicons {
-					color: #00a32a;
-					flex-shrink: 0;
-				}
-				.scd-upgrade-actions {
-					margin: 25px 0 15px;
-					display: flex;
-					gap: 10px;
-					flex-wrap: wrap;
-				}
-				.scd-upgrade-alternative {
-					font-size: 13px;
-					color: #646970;
-					margin-top: 15px;
-				}
-			</style>
-		</div>
-		<?php
+		return new WSSCD_Campaign_Repository( $db_manager, $cache_manager );
 	}
 }

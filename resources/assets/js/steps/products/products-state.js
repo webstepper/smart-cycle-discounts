@@ -14,16 +14,25 @@
 	'use strict';
 
 	// Ensure namespaces exist
-	window.SCD = window.SCD || {};
-	SCD.Modules = SCD.Modules || {};
-	SCD.Modules.Products = SCD.Modules.Products || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Modules = WSSCD.Modules || {};
+	WSSCD.Modules.Products = WSSCD.Modules.Products || {};
 
 	/**
 	 * Products State Constructor
 	 * Extends BaseState for state management
+	 *
+	 * Product Selection Model:
+	 * 1. CATEGORY FILTER (first field) - Creates the product pool
+	 *    - Empty array [] = all categories (no filter)
+	 *    - ['all'] = UI marker for "All Categories" (equivalent to empty)
+	 *    - [id1, id2] = specific category filter
+	 * 2. SELECTION TYPE - Determines HOW to select from the pool
+	 * 3. ADVANCED FILTERS - Further refines the selection
 	 */
-	SCD.Modules.Products.State = function() {
+	WSSCD.Modules.Products.State = function() {
 		// Define initial state
+		// Note: categoryIds uses ['all'] as UI default but [] and ['all'] are equivalent
 		var initialState = {
 			productSelectionType: 'all_products',
 			productIds: [],
@@ -35,20 +44,20 @@
 		};
 
 		// Call parent constructor
-		if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-			SCD.Shared.BaseState.call( this, initialState );
+		if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+			WSSCD.Shared.BaseState.call( this, initialState );
 		}
 
 		this.initEventManager();
 	};
 
-	if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-		SCD.Modules.Products.State.prototype = Object.create( SCD.Shared.BaseState.prototype );
-		SCD.Modules.Products.State.prototype.constructor = SCD.Modules.Products.State;
+	if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+		WSSCD.Modules.Products.State.prototype = Object.create( WSSCD.Shared.BaseState.prototype );
+		WSSCD.Modules.Products.State.prototype.constructor = WSSCD.Modules.Products.State;
 	}
 
 	// Extend prototype with custom methods
-	SCD.Utils.extend( SCD.Modules.Products.State.prototype, {
+	WSSCD.Utils.extend( WSSCD.Modules.Products.State.prototype, {
 
 		/**
 		 * Override setState to add data normalization only
@@ -71,13 +80,16 @@
 			}
 
 			// Call parent setState (triggers change events)
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-				SCD.Shared.BaseState.prototype.setState.call( this, updates, batch );
+			if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+				WSSCD.Shared.BaseState.prototype.setState.call( this, updates, batch );
 			}
 		},
 
 		/**
 		 * Normalize value to array
+		 *
+		 * For categoryIds: empty array [] is treated as ['all'] for UI display
+		 * This ensures "All Categories" is always shown when no specific categories are selected
 		 *
 		 * @since 1.0.0
 		 * @private
@@ -92,9 +104,15 @@
 			if ( ! Array.isArray( value ) ) {
 				return [ String( value ) ];
 			}
-			return value.map( String ).filter( function( v ) {
+			var filtered = value.map( String ).filter( function( v ) {
 				return v && '' !== v;
 			} );
+			// If filtered result is empty and we have a default, use the default
+			// This handles the case where PHP sends [] and we need ['all'] for UI
+			if ( 0 === filtered.length && defaultValue && 0 < defaultValue.length ) {
+				return defaultValue;
+			}
+			return filtered;
 		},
 
 		/**
@@ -151,8 +169,8 @@
 			};
 
 			// Call parent reset
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-				SCD.Shared.BaseState.prototype.reset.call( this, defaults );
+			if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+				WSSCD.Shared.BaseState.prototype.reset.call( this, defaults );
 			}
 		},
 
@@ -198,13 +216,13 @@
 			this.unbindAllEvents();
 
 			// Call parent destroy
-			if ( window.SCD && window.SCD.Shared && window.SCD.Shared.BaseState ) {
-				SCD.Shared.BaseState.prototype.destroy.call( this );
+			if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.BaseState ) {
+				WSSCD.Shared.BaseState.prototype.destroy.call( this );
 			}
 		}
 	} );
 
 	// Mix in event manager functionality
-	SCD.Utils.extend( SCD.Modules.Products.State.prototype, SCD.Mixins.EventManager );
+	WSSCD.Utils.extend( WSSCD.Modules.Products.State.prototype, WSSCD.Mixins.EventManager );
 
 } )( jQuery );

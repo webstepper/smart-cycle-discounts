@@ -25,16 +25,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Service_Registry {
+class WSSCD_Service_Registry {
 
 	/**
 	 * Container instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Container    $container    Container instance.
+	 * @var      WSSCD_Container    $container    Container instance.
 	 */
-	private SCD_Container $container;
+	private WSSCD_Container $container;
 
 	/**
 	 * Service definitions.
@@ -64,12 +64,21 @@ class SCD_Service_Registry {
 	private array $registered = array();
 
 	/**
+	 * Skipped optional services (Pro-only services not available in free version).
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      array    $skipped    Skipped optional services.
+	 */
+	private array $skipped = array();
+
+	/**
 	 * Initialize the service registry.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Container $container    Container instance.
+	 * @param    WSSCD_Container $container    Container instance.
 	 */
-	public function __construct( SCD_Container $container ) {
+	public function __construct( WSSCD_Container $container ) {
 		$this->container = $container;
 		$this->load_definitions();
 	}
@@ -82,7 +91,7 @@ class SCD_Service_Registry {
 	 * @return   void
 	 */
 	private function load_definitions(): void {
-		$this->definitions = SCD_Service_Definitions::get_definitions();
+		$this->definitions = WSSCD_Service_Definitions::get_definitions();
 	}
 
 	/**
@@ -104,7 +113,7 @@ class SCD_Service_Registry {
 
 		foreach ( $sorted_services as $service_id ) {
 			if ( ! $this->register_service( $service_id ) ) {
-				SCD_Log::error( 'Failed to register service', array( 'service_id' => $service_id ) );
+				WSSCD_Log::error( 'Failed to register service', array( 'service_id' => $service_id ) );
 			}
 		}
 
@@ -133,13 +142,14 @@ class SCD_Service_Registry {
 		}
 
 		$definition = $this->definitions[ $service_id ];
+		$is_optional = isset( $definition['optional'] ) && $definition['optional'];
 
 		try {
 			if ( ! class_exists( $definition['class'] ) ) {
 				// Try to load the class file for repositories
 				if ( strpos( $definition['class'], '_Repository' ) !== false ) {
 					$class_file = str_replace( '_', '-', strtolower( $definition['class'] ) ) . '.php';
-					$repo_path  = SCD_INCLUDES_DIR . 'database/repositories/class-' . str_replace( 'scd-', '', $class_file );
+					$repo_path  = WSSCD_INCLUDES_DIR . 'database/repositories/class-' . str_replace( 'wsscd-', '', $class_file );
 
 					if ( file_exists( $repo_path ) ) {
 						require_once $repo_path;
@@ -147,6 +157,12 @@ class SCD_Service_Registry {
 				}
 
 				if ( ! class_exists( $definition['class'] ) ) {
+					// Optional services (Pro-only) are skipped when class doesn't exist
+					if ( $is_optional ) {
+						$this->registered[ $service_id ] = true;
+						$this->skipped[ $service_id ]    = true;
+						return true;
+					}
 					throw new Exception(
 						sprintf(
 							'Class %s not found. Make sure it is loaded. File path checked: %s',
@@ -159,7 +175,18 @@ class SCD_Service_Registry {
 
 			if ( isset( $definition['dependencies'] ) ) {
 				foreach ( $definition['dependencies'] as $dependency ) {
-					if ( 'container' !== $dependency && ! $this->register_service( $dependency ) ) {
+					// Skip optional dependencies that were skipped (Pro-only)
+					if ( 'container' === $dependency ) {
+						continue;
+					}
+					if ( isset( $this->skipped[ $dependency ] ) ) {
+						continue;
+					}
+					if ( ! $this->register_service( $dependency ) ) {
+						// Check if the failed dependency is optional
+						if ( isset( $this->definitions[ $dependency ]['optional'] ) && $this->definitions[ $dependency ]['optional'] ) {
+							continue;
+						}
 						throw new Exception(
 							sprintf(
 								'Failed to register dependency "%s"',
@@ -182,7 +209,7 @@ class SCD_Service_Registry {
 
 		} catch ( Exception $e ) {
 			$this->errors[ $service_id ] = $e->getMessage();
-			SCD_Log::exception( $e, 'Failed to register service: ' . $service_id );
+			WSSCD_Log::exception( $e, 'Failed to register service: ' . $service_id );
 			return false;
 		}
 	}
@@ -257,7 +284,7 @@ class SCD_Service_Registry {
 	 * @return   void
 	 */
 	private function register_aliases(): void {
-		$aliases = SCD_Service_Definitions::get_aliases();
+		$aliases = WSSCD_Service_Definitions::get_aliases();
 
 		foreach ( $aliases as $alias => $service ) {
 			if ( $this->container->has( $service ) ) {
@@ -275,7 +302,7 @@ class SCD_Service_Registry {
 	 */
 	private function log_validation_errors(): void {
 		foreach ( $this->errors as $error ) {
-			SCD_Log::error( 'Registry Error', array( 'error' => $error ) );
+			WSSCD_Log::error( 'Registry Error', array( 'error' => $error ) );
 		}
 	}
 

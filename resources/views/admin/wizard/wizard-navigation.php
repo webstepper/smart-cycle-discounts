@@ -8,8 +8,10 @@
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin/templates/navigation
  * 
- * @var array $nav_data Navigation data from SCD_Wizard_Navigation::get_navigation_data()
+ * @var array $nav_data Navigation data from WSSCD_Wizard_Navigation::get_navigation_data()
  */
+
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial included into function scope; variables are local, not global.
 
 // Exit if accessed directly
 if (!defined('ABSPATH')) {
@@ -43,19 +45,19 @@ $is_edit_mode = ( 'edit' === $intent ) || ( $campaign_id > 0 && 'new' !== $inten
 $complete_button_text = $is_edit_mode ? __( 'Update Campaign', 'smart-cycle-discounts' ) : __( 'Create Campaign', 'smart-cycle-discounts' );
 ?>
 
-<nav class="scd-wizard-navigation"
+<nav class="wsscd-wizard-navigation"
      data-current-step="<?php echo esc_attr($current_step); ?>"
      role="navigation"
      aria-label="<?php esc_attr_e('Wizard Navigation - Use Previous and Next buttons to navigate between steps', 'smart-cycle-discounts'); ?>"
      aria-live="polite"
      aria-atomic="true">
 
-    <div class="scd-nav-container">
+    <div class="wsscd-nav-container">
         <!-- Previous Button Section -->
-        <div class="scd-nav-section scd-nav-section--left">
+        <div class="wsscd-nav-section wsscd-nav-section--left">
             <?php if ( ! $is_first && $previous_step ): ?>
                 <?php
-                SCD_Button_Helper::render( array(
+                WSSCD_Button_Helper::render( array(
                     'text'       => __( 'Previous', 'smart-cycle-discounts' ),
                     'type'       => 'button',
                     'style'      => $btn_styles['previous'] ?? 'secondary',
@@ -73,12 +75,13 @@ $complete_button_text = $is_edit_mode ? __( 'Update Campaign', 'smart-cycle-disc
         </div>
 
         <!-- Center Status Section -->
-        <div class="scd-nav-section scd-nav-section--center">
-            <div class="scd-nav-status">
-                <span class="scd-nav-status__step">
-                    <?php 
+        <div class="wsscd-nav-section wsscd-nav-section--center">
+            <div class="wsscd-nav-status">
+                <span class="wsscd-nav-status__step">
+                    <?php
                     echo esc_html(sprintf(
-                        __('Step %d of %d', 'smart-cycle-discounts'),
+                        /* translators: %1$d: current step number, %2$d: total number of steps */
+                        __('Step %1$d of %2$d', 'smart-cycle-discounts'),
                         $nav_data['current_index'] + 1,
                         $nav_data['total_steps']
                     )); 
@@ -88,17 +91,11 @@ $complete_button_text = $is_edit_mode ? __( 'Update Campaign', 'smart-cycle-disc
         </div>
 
         <!-- Next/Complete Button Section -->
-        <div class="scd-nav-section scd-nav-section--right">
+        <div class="wsscd-nav-section wsscd-nav-section--right">
             <?php if ( $is_last ): ?>
                 <!-- Complete Campaign Button -->
                 <?php
-                ob_start();
-                if ( class_exists( 'SCD_Loader_Helper' ) ) {
-                    echo SCD_Loader_Helper::button( 'scd-launch-loader', $is_edit_mode ? __( 'Updating...', 'smart-cycle-discounts' ) : __( 'Creating...', 'smart-cycle-discounts' ), false );
-                }
-                $loader_html = ob_get_clean();
-
-                SCD_Button_Helper::render( array(
+                WSSCD_Button_Helper::render( array(
                     'text'       => $complete_button_text,
                     'type'       => 'button',
                     'style'      => $btn_styles['complete'] ?? 'success',
@@ -111,13 +108,14 @@ $complete_button_text = $is_edit_mode ? __( 'Update Campaign', 'smart-cycle-disc
                     ),
                 ) );
 
-                // Output loader HTML after button
-                // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Already escaped by SCD_Loader_Helper
-                echo $loader_html;
+                // Output loader HTML after button - uses render_button() which handles escaping internally
+                if ( class_exists( 'WSSCD_Loader_Helper' ) ) {
+                    WSSCD_Loader_Helper::render_button( 'wsscd-launch-loader', $is_edit_mode ? __( 'Updating...', 'smart-cycle-discounts' ) : __( 'Creating...', 'smart-cycle-discounts' ), false );
+                }
                 ?>
             <?php elseif ( $next_step ): ?>
                 <?php
-                SCD_Button_Helper::render( array(
+                WSSCD_Button_Helper::render( array(
                     'text'       => __( 'Next', 'smart-cycle-discounts' ),
                     'type'       => 'button',
                     'style'      => $btn_styles['next'] ?? 'primary',

@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
+require_once WSSCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
 
 /**
  * Campaign Health Handler Class
@@ -27,15 +27,15 @@ require_once SCD_INCLUDES_DIR . 'admin/ajax/trait-wizard-helpers.php';
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Campaign_Health_Handler extends WSSCD_Abstract_Ajax_Handler {
 
-	use SCD_Wizard_Helpers;
+	use WSSCD_Wizard_Helpers;
 
 	/**
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger    Logger instance (optional).
+	 * @param    WSSCD_Logger $logger    Logger instance (optional).
 	 */
 	public function __construct( $logger = null ) {
 		parent::__construct( $logger );
@@ -48,13 +48,13 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_campaign_health';
+		return 'wsscd_campaign_health';
 	}
 
 	/**
 	 * Handle the campaign health request.
 	 *
-	 * REFACTORED: Now uses unified SCD_Campaign_Health_Service instead of wizard-specific calculator.
+	 * REFACTORED: Now uses unified WSSCD_Campaign_Health_Service instead of wizard-specific calculator.
 	 * Maintains backward compatibility with wizard frontend expectations.
 	 *
 	 * @since    1.0.0
@@ -71,7 +71,7 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		$coverage_handler  = new SCD_Preview_Coverage_Handler();
+		$coverage_handler  = new WSSCD_Preview_Coverage_Handler();
 		$coverage_response = $coverage_handler->handle( $request );
 
 		if ( is_wp_error( $coverage_response ) ) {
@@ -80,7 +80,7 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 			$coverage_data = isset( $coverage_response['data'] ) ? $coverage_response['data'] : array();
 		}
 
-		$conflicts_handler  = new SCD_Check_Conflicts_Handler();
+		$conflicts_handler  = new WSSCD_Check_Conflicts_Handler();
 		$conflicts_response = $conflicts_handler->handle( $request );
 
 		if ( is_wp_error( $conflicts_response ) ) {
@@ -131,11 +131,11 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 	/**
 	 * Get unified health service from container.
 	 *
-	 * REFACTORED: Now returns SCD_Campaign_Health_Service instead of wizard calculator.
+	 * REFACTORED: Now returns WSSCD_Campaign_Health_Service instead of wizard calculator.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @return   SCD_Campaign_Health_Service    Health service instance.
+	 * @return   WSSCD_Campaign_Health_Service    Health service instance.
 	 */
 	private function _get_health_service() {
 		if ( class_exists( 'SmartCycleDiscounts' ) ) {
@@ -147,8 +147,8 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		// Fallback: create instance manually
-		if ( ! class_exists( 'SCD_Campaign_Health_Service' ) ) {
-			require_once SCD_INCLUDES_DIR . 'core/services/class-campaign-health-service.php';
+		if ( ! class_exists( 'WSSCD_Campaign_Health_Service' ) ) {
+			require_once WSSCD_INCLUDES_DIR . 'core/services/class-campaign-health-service.php';
 		}
 
 		// Get recurring handler from container or create new instance
@@ -163,11 +163,11 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 		}
 
 		// If still null, create new instance
-		if ( null === $recurring_handler && null !== $container && class_exists( 'SCD_Recurring_Handler' ) ) {
-			$recurring_handler = new SCD_Recurring_Handler( $container );
+		if ( null === $recurring_handler && null !== $container && class_exists( 'WSSCD_Recurring_Handler' ) ) {
+			$recurring_handler = new WSSCD_Recurring_Handler( $container );
 		}
 
-		return new SCD_Campaign_Health_Service( $this->logger, $recurring_handler );
+		return new WSSCD_Campaign_Health_Service( $this->logger, $recurring_handler );
 	}
 
 	/**
@@ -177,7 +177,7 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    SCD_Wizard_State_Service $state_service    State service.
+	 * @param    WSSCD_Wizard_State_Service $state_service    State service.
 	 * @return   array                                         Campaign data array.
 	 */
 	private function _prepare_campaign_data_for_service( $state_service ) {
@@ -203,11 +203,15 @@ class SCD_Campaign_Health_Handler extends SCD_Abstract_Ajax_Handler {
 			'discount_value'         => $discount_value,
 			'product_selection_type' => isset( $products['product_selection_type'] ) ? $products['product_selection_type'] : 'all_products',
 			'selected_product_ids'   => isset( $products['selected_product_ids'] ) ? $products['selected_product_ids'] : array(),
+			'category_ids'           => isset( $products['category_ids'] ) ? $products['category_ids'] : array(),
+			'tag_ids'                => isset( $products['tag_ids'] ) ? $products['tag_ids'] : array(),
+			'random_count'           => isset( $products['random_count'] ) ? intval( $products['random_count'] ) : 0,
 			'start_date'             => isset( $schedule['start_date'] ) ? $schedule['start_date'] : null,
 			'end_date'               => isset( $schedule['end_date'] ) ? $schedule['end_date'] : null,
 			'start_time'             => isset( $schedule['start_time'] ) ? $schedule['start_time'] : '00:00',
 			'end_time'               => isset( $schedule['end_time'] ) ? $schedule['end_time'] : '23:59',
 			'start_type'             => isset( $schedule['start_type'] ) ? $schedule['start_type'] : 'scheduled',
+			'enable_recurring'       => isset( $schedule['enable_recurring'] ) ? $schedule['enable_recurring'] : false,
 			'status'                 => 'draft', // Wizard campaigns are drafts
 		);
 	}

@@ -14,7 +14,7 @@
 	'use strict';
 
 	// Define the Review State constructor
-	SCD.Utils.registerModule( 'SCD.Modules.Review', 'State', function() {
+	WSSCD.Utils.registerModule( 'WSSCD.Modules.Review', 'State', function() {
 		// Define initial state
 		var initialState = {
 			launchOption: 'active', // 'active' or 'draft'
@@ -36,8 +36,8 @@
 			},
 			buttonText: function( state ) {
 				return 'active' === state.launchOption
-					? ( ( window.scdReviewStrings && window.scdReviewStrings.launchActive ) || 'Launch Campaign' )
-					: ( ( window.scdReviewStrings && window.scdReviewStrings.saveDraft ) || 'Save as Draft' );
+					? ( ( window.wsscdReviewStrings && window.wsscdReviewStrings.launchActive ) || 'Launch Campaign' )
+					: ( ( window.wsscdReviewStrings && window.wsscdReviewStrings.saveDraft ) || 'Save as Draft' );
 			},
 			hasWizardData: function( state ) {
 				return null !== state.wizardData && 0 < Object.keys( state.wizardData ).length;
@@ -62,7 +62,7 @@
 		};
 
 		// Call parent constructor
-		SCD.Shared.BaseState.call( this, initialState );
+		WSSCD.Shared.BaseState.call( this, initialState );
 
 		// Register computed properties if BaseState supports it
 		if ( this.registerComputed ) {
@@ -74,17 +74,17 @@
 		}
 	} );
 
-	SCD.Modules.Review.State.prototype = Object.create( SCD.Shared.BaseState.prototype );
-	SCD.Modules.Review.State.prototype.constructor = SCD.Modules.Review.State;
+	WSSCD.Modules.Review.State.prototype = Object.create( WSSCD.Shared.BaseState.prototype );
+	WSSCD.Modules.Review.State.prototype.constructor = WSSCD.Modules.Review.State;
 
 	// THEN extend with event manager mixin
-	SCD.Utils.extend( SCD.Modules.Review.State.prototype, SCD.EventManager );
+	WSSCD.Utils.extend( WSSCD.Modules.Review.State.prototype, WSSCD.EventManager );
 
 	/**
 	 * Load wizard data
 	 * @param data
 	 */
-	SCD.Modules.Review.State.prototype.loadWizardData = function( data ) {
+	WSSCD.Modules.Review.State.prototype.loadWizardData = function( data ) {
 		if ( data ) {
 			this.setState( {
 				wizardData: data,
@@ -103,7 +103,7 @@
 	 * @param step
 	 * @param data
 	 */
-	SCD.Modules.Review.State.prototype.updateStepSummary = function( step, data ) {
+	WSSCD.Modules.Review.State.prototype.updateStepSummary = function( step, data ) {
 		var currentSummary = this.getState().summaryData;
 		var newSummaryData = {};
 		// Copy existing summary data
@@ -123,7 +123,7 @@
 	 * Convert state to JSON for saving
 	 * @returns {object} Serialized state
 	 */
-	SCD.Modules.Review.State.prototype.toJSON = function() {
+	WSSCD.Modules.Review.State.prototype.toJSON = function() {
 		var state = this.getState();
 
 		return {
@@ -136,7 +136,7 @@
 	 * Load state from saved data
 	 * @param {object} data Saved data
 	 */
-	SCD.Modules.Review.State.prototype.fromJSON = function( data ) {
+	WSSCD.Modules.Review.State.prototype.fromJSON = function( data ) {
 		if ( !data ) {return;}
 
 		var updates = {};
@@ -154,7 +154,7 @@
 	 * Reset to defaults
 	 * @param {object} newState Optional new state to reset to
 	 */
-	SCD.Modules.Review.State.prototype.reset = function( newState ) {
+	WSSCD.Modules.Review.State.prototype.reset = function( newState ) {
 		// If no state provided, use defaults
 		if ( !newState ) {
 			newState = {
@@ -172,7 +172,7 @@
 		}
 
 		// Call parent reset with the state
-		SCD.Shared.BaseState.prototype.reset.call( this, newState );
+		WSSCD.Shared.BaseState.prototype.reset.call( this, newState );
 	};
 
 } )( jQuery );

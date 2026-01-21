@@ -27,44 +27,44 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core/campaigns
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Campaign_Event_Scheduler {
+class WSSCD_Campaign_Event_Scheduler {
 
 	/**
 	 * Campaign Manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Manager    $campaign_manager    Campaign Manager instance.
+	 * @var      WSSCD_Campaign_Manager    $campaign_manager    Campaign Manager instance.
 	 */
-	private SCD_Campaign_Manager $campaign_manager;
+	private WSSCD_Campaign_Manager $campaign_manager;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger|null    $logger    Logger instance.
+	 * @var      WSSCD_Logger|null    $logger    Logger instance.
 	 */
-	private ?SCD_Logger $logger;
+	private ?WSSCD_Logger $logger;
 
 	/**
 	 * ActionScheduler service.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Action_Scheduler_Service    $scheduler    ActionScheduler service.
+	 * @var      WSSCD_Action_Scheduler_Service    $scheduler    ActionScheduler service.
 	 */
-	private SCD_Action_Scheduler_Service $scheduler;
+	private WSSCD_Action_Scheduler_Service $scheduler;
 
 	/**
 	 * Initialize the event scheduler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Manager         $campaign_manager    Campaign Manager instance.
-	 * @param    SCD_Action_Scheduler_Service $scheduler           ActionScheduler service.
-	 * @param    SCD_Logger|null              $logger              Logger instance.
+	 * @param    WSSCD_Campaign_Manager         $campaign_manager    Campaign Manager instance.
+	 * @param    WSSCD_Action_Scheduler_Service $scheduler           ActionScheduler service.
+	 * @param    WSSCD_Logger|null              $logger              Logger instance.
 	 */
-	public function __construct( SCD_Campaign_Manager $campaign_manager, SCD_Action_Scheduler_Service $scheduler, ?SCD_Logger $logger = null ) {
+	public function __construct( WSSCD_Campaign_Manager $campaign_manager, WSSCD_Action_Scheduler_Service $scheduler, ?WSSCD_Logger $logger = null ) {
 		$this->campaign_manager = $campaign_manager;
 		$this->scheduler        = $scheduler;
 		$this->logger           = $logger;
@@ -136,7 +136,7 @@ class SCD_Campaign_Event_Scheduler {
 	 * @return   bool                        True on success, false on failure.
 	 */
 	private function schedule_activation_event( int $campaign_id, DateTime $starts_at ): bool {
-		$hook      = 'scd_activate_campaign';
+		$hook      = 'wsscd_activate_campaign';
 		$timestamp = $starts_at->getTimestamp();
 
 		// Only schedule if in the future (compare in UTC)
@@ -175,7 +175,7 @@ class SCD_Campaign_Event_Scheduler {
 	 * @return   bool                        True on success, false on failure.
 	 */
 	private function schedule_deactivation_event( int $campaign_id, DateTime $ends_at ): bool {
-		$hook      = 'scd_deactivate_campaign';
+		$hook      = 'wsscd_deactivate_campaign';
 		$timestamp = $ends_at->getTimestamp();
 
 		// Only schedule if in the future (compare in UTC)
@@ -213,12 +213,12 @@ class SCD_Campaign_Event_Scheduler {
 	 */
 	public function clear_campaign_events( int $campaign_id ): void {
 		$this->scheduler->unschedule_action(
-			'scd_activate_campaign',
+			'wsscd_activate_campaign',
 			array( 'campaign_id' => $campaign_id )
 		);
 
 		$this->scheduler->unschedule_action(
-			'scd_deactivate_campaign',
+			'wsscd_deactivate_campaign',
 			array( 'campaign_id' => $campaign_id )
 		);
 	}

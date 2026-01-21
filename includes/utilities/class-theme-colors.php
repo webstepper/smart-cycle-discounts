@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class SCD_Theme_Colors {
+class WSSCD_Theme_Colors {
 
 	/**
 	 * Get theme colors based on WordPress admin color scheme.

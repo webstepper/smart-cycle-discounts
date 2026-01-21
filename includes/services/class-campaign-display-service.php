@@ -27,36 +27,36 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/services
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Campaign_Display_Service {
+class WSSCD_Campaign_Display_Service {
 
 	/**
 	 * Campaign repository instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Repository    $campaign_repository    Campaign repository.
+	 * @var      WSSCD_Campaign_Repository    $campaign_repository    Campaign repository.
 	 */
-	private SCD_Campaign_Repository $campaign_repository;
+	private WSSCD_Campaign_Repository $campaign_repository;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Initialize the campaign display service.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Repository $campaign_repository    Campaign repository.
-	 * @param    SCD_Logger              $logger                 Logger instance.
+	 * @param    WSSCD_Campaign_Repository $campaign_repository    Campaign repository.
+	 * @param    WSSCD_Logger              $logger                 Logger instance.
 	 */
 	public function __construct(
-		SCD_Campaign_Repository $campaign_repository,
-		SCD_Logger $logger
+		WSSCD_Campaign_Repository $campaign_repository,
+		WSSCD_Logger $logger
 	) {
 		$this->campaign_repository = $campaign_repository;
 		$this->logger              = $logger;
@@ -131,8 +131,20 @@ class SCD_Campaign_Display_Service {
 		// Status formatting.
 		$status_data = $this->format_status_data( $campaign );
 
+		// Product scope formatting.
+		$scope_data = $this->format_product_scope_data( $campaign );
+
+		// Schedule formatting.
+		$schedule_data = $this->format_schedule_data( $campaign );
+
+		// Discount type formatting.
+		$discount_data = $this->format_discount_type_data( $campaign );
+
+		// Priority formatting.
+		$priority_data = $this->format_priority_data( $campaign );
+
 		// Merge everything.
-		return array_merge( $campaign, $time_data, $urgency_data, $status_data );
+		return array_merge( $campaign, $time_data, $urgency_data, $status_data, $scope_data, $schedule_data, $discount_data, $priority_data );
 	}
 
 	/**
@@ -287,7 +299,7 @@ class SCD_Campaign_Display_Service {
 		$status = $campaign['status'];
 
 		return array(
-			'status_badge_class' => 'scd-status-' . $status,
+			'status_badge_class' => 'wsscd-status-' . $status,
 			'status_label'       => ucfirst( $status ),
 			'status_icon'        => $this->get_status_icon( $status ),
 		);
@@ -312,6 +324,241 @@ class SCD_Campaign_Display_Service {
 		);
 
 		return $icons[ $status ] ?? 'admin-generic';
+	}
+
+	/**
+	 * Format product scope data for display.
+	 *
+	 * Generates human-readable text and icon for product selection type.
+	 *
+	 * @since    1.0.0
+	 * @param    array $campaign    Campaign data.
+	 * @return   array                 Product scope data array.
+	 */
+	private function format_product_scope_data( array $campaign ): array {
+		$selection_type = $campaign['product_selection_type'] ?? '';
+		$product_ids    = $campaign['product_ids'] ?? array();
+		$category_ids   = $campaign['category_ids'] ?? array();
+		$tag_ids        = $campaign['tag_ids'] ?? array();
+		$random_count   = $campaign['random_product_count'] ?? 0;
+
+		$scope_text = '';
+		$scope_icon = 'store';
+
+		// Normalize empty values to 'all_products'.
+		if ( empty( $selection_type ) ) {
+			$selection_type = 'all_products';
+		}
+
+		switch ( $selection_type ) {
+			case 'all_products':
+			case 'all':
+				$scope_text = __( 'All Products', 'smart-cycle-discounts' );
+				$scope_icon = 'store';
+				break;
+
+			case 'specific_products':
+			case 'specific':
+			case 'products':
+				$count      = is_array( $product_ids ) ? count( $product_ids ) : 0;
+				$scope_text = sprintf(
+					/* translators: %d: number of products */
+					_n( '%d Product', '%d Products', $count, 'smart-cycle-discounts' ),
+					$count
+				);
+				$scope_icon = 'archive';
+				break;
+
+			case 'categories':
+			case 'category':
+				$count      = is_array( $category_ids ) ? count( $category_ids ) : 0;
+				$scope_text = sprintf(
+					/* translators: %d: number of categories */
+					_n( '%d Category', '%d Categories', $count, 'smart-cycle-discounts' ),
+					$count
+				);
+				$scope_icon = 'category';
+				break;
+
+			case 'tags':
+			case 'tag':
+				$count      = is_array( $tag_ids ) ? count( $tag_ids ) : 0;
+				$scope_text = sprintf(
+					/* translators: %d: number of tags */
+					_n( '%d Tag', '%d Tags', $count, 'smart-cycle-discounts' ),
+					$count
+				);
+				$scope_icon = 'tag';
+				break;
+
+			case 'random':
+				$scope_text = sprintf(
+					/* translators: %d: number of random products */
+					__( '%d Random', 'smart-cycle-discounts' ),
+					$random_count
+				);
+				$scope_icon = 'randomize';
+				break;
+
+			default:
+				// Fallback - show "All Products" for unknown types.
+				$scope_text = __( 'All Products', 'smart-cycle-discounts' );
+				$scope_icon = 'store';
+		}
+
+		return array(
+			'scope_text' => $scope_text,
+			'scope_icon' => $scope_icon,
+		);
+	}
+
+	/**
+	 * Format schedule data for display.
+	 *
+	 * Generates formatted date range text.
+	 *
+	 * @since    1.0.0
+	 * @param    array $campaign    Campaign data.
+	 * @return   array                 Schedule data array.
+	 */
+	private function format_schedule_data( array $campaign ): array {
+		$starts_at = $campaign['starts_at'] ?? null;
+		$ends_at   = $campaign['ends_at'] ?? null;
+		$timezone  = $campaign['timezone'] ?? wp_timezone_string();
+
+		$schedule_text = '';
+		$has_schedule  = false;
+
+		try {
+			$tz = new DateTimeZone( $timezone );
+
+			if ( $starts_at && $ends_at ) {
+				$start_date    = new DateTime( $starts_at, new DateTimeZone( 'UTC' ) );
+				$end_date      = new DateTime( $ends_at, new DateTimeZone( 'UTC' ) );
+				$start_date->setTimezone( $tz );
+				$end_date->setTimezone( $tz );
+
+				// Check if same year.
+				if ( $start_date->format( 'Y' ) === $end_date->format( 'Y' ) ) {
+					// Same year - omit year from start date.
+					$schedule_text = sprintf(
+						'%s - %s',
+						$start_date->format( 'M j' ),
+						$end_date->format( 'M j, Y' )
+					);
+				} else {
+					// Different years.
+					$schedule_text = sprintf(
+						'%s - %s',
+						$start_date->format( 'M j, Y' ),
+						$end_date->format( 'M j, Y' )
+					);
+				}
+				$has_schedule = true;
+			} elseif ( $starts_at ) {
+				$start_date = new DateTime( $starts_at, new DateTimeZone( 'UTC' ) );
+				$start_date->setTimezone( $tz );
+				$schedule_text = sprintf(
+					/* translators: %s: start date */
+					__( 'From %s', 'smart-cycle-discounts' ),
+					$start_date->format( 'M j, Y' )
+				);
+				$has_schedule = true;
+			} elseif ( $ends_at ) {
+				$end_date = new DateTime( $ends_at, new DateTimeZone( 'UTC' ) );
+				$end_date->setTimezone( $tz );
+				$schedule_text = sprintf(
+					/* translators: %s: end date */
+					__( 'Until %s', 'smart-cycle-discounts' ),
+					$end_date->format( 'M j, Y' )
+				);
+				$has_schedule = true;
+			} else {
+				$schedule_text = __( 'No end date', 'smart-cycle-discounts' );
+			}
+		} catch ( Exception $e ) {
+			$schedule_text = __( 'Schedule unavailable', 'smart-cycle-discounts' );
+		}
+
+		return array(
+			'schedule_text' => $schedule_text,
+			'has_schedule'  => $has_schedule,
+		);
+	}
+
+	/**
+	 * Format discount type data for display.
+	 *
+	 * Generates icon and label for discount type.
+	 *
+	 * @since    1.0.0
+	 * @param    array $campaign    Campaign data.
+	 * @return   array                 Discount type data array.
+	 */
+	private function format_discount_type_data( array $campaign ): array {
+		$discount_type  = $campaign['discount_type'] ?? 'percentage';
+		$discount_rules = $campaign['discount_rules'] ?? array();
+
+		$type_icon  = 'tickets-alt';
+		$type_label = '';
+
+		switch ( $discount_type ) {
+			case 'percentage':
+				$type_icon  = 'tickets-alt';
+				$type_label = __( 'Percentage', 'smart-cycle-discounts' );
+				break;
+
+			case 'fixed':
+				$type_icon  = 'money-alt';
+				$type_label = __( 'Fixed', 'smart-cycle-discounts' );
+				break;
+
+			case 'tiered':
+				$tier_count = isset( $discount_rules['tiers'] ) ? count( $discount_rules['tiers'] ) : 0;
+				$type_icon  = 'chart-bar';
+				$type_label = sprintf(
+					/* translators: %d: number of tiers */
+					_n( '%d Tier', '%d Tiers', $tier_count, 'smart-cycle-discounts' ),
+					$tier_count
+				);
+				break;
+
+			case 'bogo':
+				$type_icon  = 'cart';
+				$type_label = __( 'BOGO', 'smart-cycle-discounts' );
+				break;
+
+			default:
+				$type_label = ucfirst( $discount_type );
+		}
+
+		return array(
+			'discount_type_icon'  => $type_icon,
+			'discount_type_label' => $type_label,
+		);
+	}
+
+	/**
+	 * Format priority data for display.
+	 *
+	 * Determines if priority badge should be shown.
+	 *
+	 * @since    1.0.0
+	 * @param    array $campaign    Campaign data.
+	 * @return   array                 Priority data array.
+	 */
+	private function format_priority_data( array $campaign ): array {
+		$priority = isset( $campaign['priority'] ) ? (int) $campaign['priority'] : 0;
+
+		return array(
+			'has_priority'   => $priority > 0,
+			'priority_value' => $priority,
+			'priority_label' => sprintf(
+				/* translators: %d: priority number */
+				__( 'Priority %d', 'smart-cycle-discounts' ),
+				$priority
+			),
+		);
 	}
 
 	/**

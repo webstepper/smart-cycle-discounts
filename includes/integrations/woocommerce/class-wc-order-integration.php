@@ -23,25 +23,25 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/integrations/woocommerce
  */
-class SCD_WC_Order_Integration {
+class WSSCD_WC_Order_Integration {
 
 	/**
 	 * Discount query service.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_WC_Discount_Query_Service    $discount_query
+	 * @var      WSSCD_WC_Discount_Query_Service    $discount_query
 	 */
-	private SCD_WC_Discount_Query_Service $discount_query;
+	private WSSCD_WC_Discount_Query_Service $discount_query;
 
 	/**
 	 * Customer usage manager.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Customer_Usage_Manager|null    $usage_manager
+	 * @var      WSSCD_Customer_Usage_Manager|null    $usage_manager
 	 */
-	private ?SCD_Customer_Usage_Manager $usage_manager;
+	private ?WSSCD_Customer_Usage_Manager $usage_manager;
 
 	/**
 	 * Logger.
@@ -56,13 +56,13 @@ class SCD_WC_Order_Integration {
 	 * Initialize order integration.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_WC_Discount_Query_Service   $discount_query    Discount query service.
-	 * @param    SCD_Customer_Usage_Manager|null $usage_manager     Usage manager.
+	 * @param    WSSCD_WC_Discount_Query_Service   $discount_query    Discount query service.
+	 * @param    WSSCD_Customer_Usage_Manager|null $usage_manager     Usage manager.
 	 * @param    object|null                     $logger            Logger.
 	 */
 	public function __construct(
-		SCD_WC_Discount_Query_Service $discount_query,
-		?SCD_Customer_Usage_Manager $usage_manager = null,
+		WSSCD_WC_Discount_Query_Service $discount_query,
+		?WSSCD_Customer_Usage_Manager $usage_manager = null,
 		?object $logger = null
 	) {
 		$this->discount_query = $discount_query;
@@ -93,14 +93,14 @@ class SCD_WC_Order_Integration {
 	 * @return   void
 	 */
 	public function add_order_item_meta( $item, string $cart_item_key, array $cart_item, $order ): void {
-		if ( isset( $cart_item['scd_discount'] ) ) {
-			$discount = $cart_item['scd_discount'];
+		if ( isset( $cart_item['wsscd_discount'] ) ) {
+			$discount = $cart_item['wsscd_discount'];
 
-			$item->add_meta_data( '_scd_discount_applied', 'yes', true );
-			$item->add_meta_data( '_scd_campaign_id', $discount['campaign_id'] ?? 0, true );
-			$item->add_meta_data( '_scd_original_price', $discount['original_price'] ?? 0, true );
-			$item->add_meta_data( '_scd_discounted_price', $discount['discounted_price'] ?? 0, true );
-			$item->add_meta_data( '_scd_discount_amount', $discount['discount_amount'] ?? 0, true );
+			$item->add_meta_data( '_wsscd_discount_applied', 'yes', true );
+			$item->add_meta_data( '_wsscd_campaign_id', $discount['campaign_id'] ?? 0, true );
+			$item->add_meta_data( '_wsscd_original_price', $discount['original_price'] ?? 0, true );
+			$item->add_meta_data( '_wsscd_discounted_price', $discount['discounted_price'] ?? 0, true );
+			$item->add_meta_data( '_wsscd_discount_amount', $discount['discount_amount'] ?? 0, true );
 		}
 	}
 
@@ -130,7 +130,7 @@ class SCD_WC_Order_Integration {
 			}
 
 			foreach ( $order->get_items() as $item ) {
-				$campaign_id = $item->get_meta( '_scd_campaign_id' );
+				$campaign_id = $item->get_meta( '_wsscd_campaign_id' );
 
 				if ( $campaign_id ) {
 					$this->usage_manager->track_usage( $customer_id, (int) $campaign_id, $order_id );

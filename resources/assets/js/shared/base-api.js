@@ -13,23 +13,23 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	SCD.Shared = SCD.Shared || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Shared = WSSCD.Shared || {};
 
 	/**
 	 * Base API Class
 	 *
-	 * @class SCD.Shared.BaseAPI
+	 * @class WSSCD.Shared.BaseAPI
 	 * @param {object} config - Configuration options
 	 */
-	SCD.Shared.BaseAPI = function( config ) {
+	WSSCD.Shared.BaseAPI = function( config ) {
 		config = config || {};
 
 		this.config = $.extend( {}, this.getDefaultConfig(), config );
 		this._pendingRequests = {};
 	};
 
-	SCD.Shared.BaseAPI.prototype = {
+	WSSCD.Shared.BaseAPI.prototype = {
 		/**
 		 * Get default configuration
 		 *
@@ -37,8 +37,8 @@
 		 */
 		getDefaultConfig: function() {
 			return {
-				ajaxUrl: window.scdAjax && window.scdAjax.ajaxUrl || '',
-				nonce: window.scdAjax && window.scdAjax.nonce || '',
+				ajaxUrl: window.wsscdAjax && window.wsscdAjax.ajaxUrl || '',
+				nonce: window.wsscdAjax && window.wsscdAjax.nonce || '',
 				timeout: 30000,
 				retryAttempts: 0
 			};
@@ -67,12 +67,12 @@
 				return this._pendingRequests[requestKey];
 			}
 
-			var promise = SCD.Ajax.post( action, data, {
+			var promise = WSSCD.Ajax.post( action, data, {
 				timeout: options.timeout || this.config.timeout
 			} ).fail( function( xhr, textStatus, errorThrown ) {
 				// Automatic error handling using centralized ErrorHandler
-				if ( window.SCD && window.SCD.ErrorHandler ) {
-					window.SCD.ErrorHandler.handleAjaxError( xhr, action, {
+				if ( window.WSSCD && window.WSSCD.ErrorHandler ) {
+					window.WSSCD.ErrorHandler.handleAjaxError( xhr, action, {
 						data: data,
 						status: textStatus,
 						error: errorThrown
@@ -141,7 +141,7 @@
 		 * @returns {boolean} True if ready
 		 */
 		isReady: function() {
-			return !! ( window.SCD && window.SCD.Ajax );
+			return !! ( window.WSSCD && window.WSSCD.Ajax );
 		},
 
 		/**
@@ -161,7 +161,7 @@
 	 * @param {object} customMethods - Custom API methods for the step
 	 * @returns {Function} API constructor function
 	 */
-	SCD.Shared.BaseAPI.createAPI = function( stepName, customMethods ) {
+	WSSCD.Shared.BaseAPI.createAPI = function( stepName, customMethods ) {
 		if ( !stepName || 'string' !== typeof stepName ) {
 			throw new Error( 'Step name must be a non-empty string' );
 		}
@@ -170,19 +170,19 @@
 
 		var APIClass = function( config ) {
 			// Call parent constructor
-			SCD.Shared.BaseAPI.call( this, config );
+			WSSCD.Shared.BaseAPI.call( this, config );
 
 			this.stepName = stepName;
 		};
 
-		APIClass.prototype = Object.create( SCD.Shared.BaseAPI.prototype );
+		APIClass.prototype = Object.create( WSSCD.Shared.BaseAPI.prototype );
 		APIClass.prototype.constructor = APIClass;
 
 		$.extend( APIClass.prototype, customMethods );
 
 		if ( !customMethods.saveStepData ) {
 			APIClass.prototype.saveStepData = function( data ) {
-				return this.request( 'scd_save_step', {
+				return this.request( 'wsscd_save_step', {
 					step: this.stepName,
 					data: data
 				} );

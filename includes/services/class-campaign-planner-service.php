@@ -27,47 +27,55 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/services
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Campaign_Planner_Service {
+class WSSCD_Campaign_Planner_Service {
+
+	/**
+	 * Maximum days ahead to show future campaigns.
+	 *
+	 * @since    1.0.0
+	 * @var      int
+	 */
+	const FUTURE_HORIZON_DAYS = 60;
 
 	/**
 	 * Campaign repository instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Repository    $campaign_repository    Campaign repository.
+	 * @var      WSSCD_Campaign_Repository    $campaign_repository    Campaign repository.
 	 */
-	private SCD_Campaign_Repository $campaign_repository;
+	private WSSCD_Campaign_Repository $campaign_repository;
 
 	/**
 	 * Campaign suggestions service instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Suggestions_Service    $suggestions_service    Suggestions service.
+	 * @var      WSSCD_Campaign_Suggestions_Service    $suggestions_service    Suggestions service.
 	 */
-	private SCD_Campaign_Suggestions_Service $suggestions_service;
+	private WSSCD_Campaign_Suggestions_Service $suggestions_service;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Initialize the planner service.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Repository          $campaign_repository    Campaign repository.
-	 * @param    SCD_Campaign_Suggestions_Service $suggestions_service    Suggestions service.
-	 * @param    SCD_Logger                       $logger                 Logger instance.
+	 * @param    WSSCD_Campaign_Repository          $campaign_repository    Campaign repository.
+	 * @param    WSSCD_Campaign_Suggestions_Service $suggestions_service    Suggestions service.
+	 * @param    WSSCD_Logger                       $logger                 Logger instance.
 	 */
 	public function __construct(
-		SCD_Campaign_Repository $campaign_repository,
-		SCD_Campaign_Suggestions_Service $suggestions_service,
-		SCD_Logger $logger
+		WSSCD_Campaign_Repository $campaign_repository,
+		WSSCD_Campaign_Suggestions_Service $suggestions_service,
+		WSSCD_Logger $logger
 	) {
 		$this->campaign_repository = $campaign_repository;
 		$this->suggestions_service = $suggestions_service;
@@ -105,6 +113,11 @@ class SCD_Campaign_Planner_Service {
 				// Replace description with random insight from pools on each load.
 				$campaign['description'] = $this->get_random_insight( $campaign );
 				$campaign['random_stat'] = $this->get_random_stat( $campaign );
+				// Add formatted date info for cards.
+				$campaign['date_range']    = $this->format_date_range( $campaign );
+				$campaign['time_relative'] = $this->format_time_relative( $campaign );
+				// Add formatted discount suggestion (matches prefilled value).
+				$campaign['discount_suggestion'] = $this->format_discount_suggestion( $campaign );
 			}
 		}
 
@@ -132,6 +145,9 @@ class SCD_Campaign_Planner_Service {
 	 * 2. ACTIVE/NEXT: Current OR next upcoming (fills gaps)
 	 * 3. FUTURE: Next after active/next slot
 	 *
+	 * Special handling: When a major event is within 3 days, it overrides
+	 * any active weekly campaign to keep focus on the important event.
+	 *
 	 * @since  1.0.0
 	 * @param  array $all_campaigns All campaign opportunities with calculated states.
 	 * @return array Exactly 3 campaigns for timeline display.
@@ -143,12 +159,23 @@ class SCD_Campaign_Planner_Service {
 		$past_campaign = $this->get_best_campaign_for_position( $all_campaigns, 'past' );
 		$timeline[]    = $past_campaign;
 
+		// Check for imminent major events (within 3 days) that should override weekly campaigns.
+		$imminent_major_event = $this->get_imminent_major_event( $all_campaigns );
+
 		// SLOT 2: ACTIVE/NEXT - Current campaign OR next upcoming (gap filler).
 		$active_campaign = $this->get_best_campaign_for_position( $all_campaigns, 'active' );
 
 		if ( $active_campaign ) {
-			// Campaign currently running - show as active.
-			$timeline[] = $active_campaign;
+			// Check if active campaign is weekly and there's an imminent major event.
+			$is_weekly_active = empty( $active_campaign['is_major_event'] );
+
+			if ( $is_weekly_active && $imminent_major_event ) {
+				// Override weekly campaign with imminent major event.
+				$timeline[] = $imminent_major_event;
+			} else {
+				// Show the active campaign (either major event or no imminent override).
+				$timeline[] = $active_campaign;
+			}
 		} else {
 			// NO active campaign - fill gap with next upcoming campaign.
 			$next_campaign = $this->get_next_upcoming_campaign( $all_campaigns );
@@ -156,26 +183,73 @@ class SCD_Campaign_Planner_Service {
 		}
 
 		// SLOT 3: FUTURE - Next campaign after slot 2.
-		$slot_2_id      = isset( $timeline[1]['id'] ) ? $timeline[1]['id'] : null;
+		$slot_2_id       = isset( $timeline[1]['id'] ) ? $timeline[1]['id'] : null;
 		$future_campaign = $this->get_next_future_campaign( $all_campaigns, $slot_2_id );
-		$timeline[]     = $future_campaign;
+		$timeline[]      = $future_campaign;
 
 		return $timeline;
 	}
 
 	/**
+	 * Get imminent major event within specified days.
+	 *
+	 * Finds a major event starting within the specified number of days.
+	 * Used for both overriding weekly campaigns (3 days) and gap-filling (7 days).
+	 *
+	 * @since  1.0.0
+	 * @param  array $campaigns All campaign opportunities.
+	 * @param  int   $days      Number of days to look ahead (default: 3).
+	 * @return array|null Imminent major event, or null if none found.
+	 */
+	private function get_imminent_major_event( array $campaigns, int $days = 3 ): ?array {
+		$now       = current_time( 'timestamp' );
+		$threshold = $now + ( $days * DAY_IN_SECONDS );
+
+		$imminent_events = array();
+		foreach ( $campaigns as $campaign ) {
+			// Only check future major events.
+			if ( empty( $campaign['is_major_event'] ) || 'future' !== $campaign['state'] ) {
+				continue;
+			}
+
+			// Check if starting within threshold.
+			if ( $campaign['start_timestamp'] <= $threshold ) {
+				$imminent_events[] = $campaign;
+			}
+		}
+
+		if ( empty( $imminent_events ) ) {
+			return null;
+		}
+
+		// Sort by priority, then start time.
+		usort(
+			$imminent_events,
+			array( $this, 'compare_campaigns_by_priority_then_start' )
+		);
+
+		return reset( $imminent_events );
+	}
+
+	/**
 	 * Get next upcoming campaign (for gap filling).
 	 *
-	 * Finds the soonest future campaign to fill the active slot when
-	 * no campaign is currently running. Prioritizes PROXIMITY over priority
-	 * to show what's coming NEXT.
+	 * Finds the most relevant future campaign to fill the active slot when
+	 * no campaign is currently running. Major events within 7 days take
+	 * priority over weekly campaigns to ensure important events are visible.
 	 *
 	 * @since  1.0.0
 	 * @param  array $campaigns All campaign opportunities.
 	 * @return array|null Next upcoming campaign, or null if none found.
 	 */
 	private function get_next_upcoming_campaign( array $campaigns ): ?array {
-		// Filter future campaigns - avoid closure for serialization compatibility.
+		// Check for major events starting within 7 days - they take priority.
+		$imminent_major_event = $this->get_imminent_major_event( $campaigns, 7 );
+		if ( $imminent_major_event ) {
+			return $imminent_major_event;
+		}
+
+		// No imminent major events - find soonest future campaign.
 		$future_campaigns = array();
 		foreach ( $campaigns as $campaign ) {
 			if ( 'future' === $campaign['state'] ) {
@@ -187,7 +261,7 @@ class SCD_Campaign_Planner_Service {
 			return null;
 		}
 
-		// Sort by start timestamp, then priority - avoid closure for serialization compatibility.
+		// Sort by start timestamp, then priority.
 		usort(
 			$future_campaigns,
 			array( $this, 'compare_campaigns_by_start_then_priority' )
@@ -197,42 +271,53 @@ class SCD_Campaign_Planner_Service {
 	}
 
 	/**
-	 * Get next future campaign after a given campaign.
+	 * Get next campaign for slot 3 (future position).
 	 *
 	 * Finds the next upcoming campaign that's NOT the same as the
-	 * campaign in slot 2 (to avoid duplication).
+	 * campaign in slot 2 (to avoid duplication). Considers both "future"
+	 * and "active" campaigns since multiple major events can be active
+	 * simultaneously (e.g., Black Friday and Christmas both within 7-day window).
+	 *
+	 * Prioritizes major events over weekly campaigns to keep focus on
+	 * important business planning during major event seasons.
 	 *
 	 * @since  1.0.0
 	 * @param  array       $campaigns      All campaign opportunities.
 	 * @param  string|null $exclude_id     Campaign ID to exclude (slot 2).
-	 * @return array|null Next future campaign, or null if none found.
+	 * @return array|null Next campaign for slot 3, or null if none found.
 	 */
 	private function get_next_future_campaign( array $campaigns, ?string $exclude_id ): ?array {
 		$now = current_time( 'timestamp' );
 
-		// Filter future campaigns - avoid closure for serialization compatibility.
-		$future_campaigns = array();
+		// Filter campaigns that are not in slot 2 and are either future or active.
+		// This handles the case where multiple major events have overlapping promotion windows.
+		$candidate_campaigns = array();
 		foreach ( $campaigns as $campaign ) {
-			if ( 'future' === $campaign['state'] && $campaign['id'] !== $exclude_id ) {
-				$future_campaigns[] = $campaign;
+			if ( $exclude_id === $campaign['id'] ) {
+				continue;
+			}
+			// Include both future campaigns and active campaigns (for overlapping major events).
+			if ( 'future' === $campaign['state'] || 'active' === $campaign['state'] ) {
+				$candidate_campaigns[] = $campaign;
 			}
 		}
 
-		if ( empty( $future_campaigns ) ) {
+		if ( empty( $candidate_campaigns ) ) {
 			return null;
 		}
 
-		// Sort by priority, then start - avoid closure for serialization compatibility.
+		// Sort by priority first (major events before weekly), then start timestamp.
+		// This ensures Christmas shows after Black Friday, not Wednesday Wins.
 		usort(
-			$future_campaigns,
+			$candidate_campaigns,
 			array( $this, 'compare_campaigns_by_priority_then_start' )
 		);
 
-		// Only show future campaigns within 60 days - avoid closure for serialization compatibility.
-		$sixty_days_ahead = $now + ( 60 * DAY_IN_SECONDS );
+		// Only show campaigns within the future horizon.
+		$future_horizon = $now + ( self::FUTURE_HORIZON_DAYS * DAY_IN_SECONDS );
 		$filtered         = array();
-		foreach ( $future_campaigns as $campaign ) {
-			if ( $campaign['start_timestamp'] <= $sixty_days_ahead ) {
+		foreach ( $candidate_campaigns as $campaign ) {
+			if ( $campaign['start_timestamp'] <= $future_horizon ) {
 				$filtered[] = $campaign;
 			}
 		}
@@ -252,12 +337,12 @@ class SCD_Campaign_Planner_Service {
 	private function get_all_campaign_opportunities(): array {
 		$campaigns = array();
 
-		require_once SCD_INCLUDES_DIR . 'core/campaigns/class-weekly-campaign-definitions.php';
-		$weekly_campaigns = SCD_Weekly_Campaign_Definitions::get_definitions();
+		require_once WSSCD_INCLUDES_DIR . 'core/campaigns/class-weekly-campaign-definitions.php';
+		$weekly_campaigns = WSSCD_Weekly_Campaign_Definitions::get_definitions();
 		$campaigns        = array_merge( $campaigns, $weekly_campaigns );
 
-		require_once SCD_INCLUDES_DIR . 'core/campaigns/class-campaign-suggestions-registry.php';
-		$major_events = SCD_Campaign_Suggestions_Registry::get_event_definitions();
+		require_once WSSCD_INCLUDES_DIR . 'core/campaigns/class-campaign-suggestions-registry.php';
+		$major_events = WSSCD_Campaign_Suggestions_Registry::get_event_definitions();
 
 		$current_year = intval( wp_date( 'Y' ) );
 		$now          = current_time( 'timestamp' );
@@ -298,6 +383,7 @@ class SCD_Campaign_Planner_Service {
 	 * Calculate campaign state (past/active/future).
 	 *
 	 * Determines whether a campaign has ended, is currently active, or is upcoming.
+	 * State reflects the ACTUAL campaign period, not the promotion window.
 	 *
 	 * @since  1.0.0
 	 * @param  array $campaign Campaign data.
@@ -307,24 +393,16 @@ class SCD_Campaign_Planner_Service {
 		$now = current_time( 'timestamp' );
 
 		if ( ! empty( $campaign['is_major_event'] ) ) {
-			// Major event state based on creation window.
-			$window = $campaign['creation_window'] ?? array();
+			$campaign_start = $campaign['campaign_start'] ?? 0;
+			$campaign_end   = $campaign['campaign_end'] ?? 0;
 
-			if ( empty( $window ) ) {
-				return 'future';
-			}
-
-			$window_start = $window['window_start'] ?? 0;
-			$window_end   = $window['window_end'] ?? 0;
-			$campaign_end = $campaign['campaign_end'] ?? 0;
-
-			// If campaign ended, it's past.
+			// If campaign has ended, it's past.
 			if ( $campaign_end < $now ) {
 				return 'past';
 			}
 
-			// If in creation window, it's active.
-			if ( $now >= $window_start && $now <= $window_end ) {
+			// If campaign is currently running, it's active.
+			if ( $now >= $campaign_start && $now <= $campaign_end ) {
 				return 'active';
 			}
 
@@ -413,7 +491,7 @@ class SCD_Campaign_Planner_Service {
 			case 'active':
 				usort(
 					$candidates,
-					array( $this, 'compare_campaigns_by_priority_only' )
+					array( $this, 'compare_campaigns_by_priority_then_start' )
 				);
 				break;
 
@@ -423,11 +501,11 @@ class SCD_Campaign_Planner_Service {
 					array( $this, 'compare_campaigns_by_priority_then_start' )
 				);
 
-				// Only show future campaigns within 60 days - avoid closure for serialization compatibility.
-				$sixty_days_ahead = $now + ( 60 * DAY_IN_SECONDS );
-				$filtered         = array();
+				// Only show future campaigns within the future horizon.
+				$future_horizon = $now + ( self::FUTURE_HORIZON_DAYS * DAY_IN_SECONDS );
+				$filtered       = array();
 				foreach ( $candidates as $campaign ) {
-					if ( $campaign['start_timestamp'] <= $sixty_days_ahead ) {
+					if ( $campaign['start_timestamp'] <= $future_horizon ) {
 						$filtered[] = $campaign;
 					}
 				}
@@ -513,12 +591,15 @@ class SCD_Campaign_Planner_Service {
 	/**
 	 * Get wizard URL for campaign creation.
 	 *
+	 * The wizard pre-fills schedule dates from the suggestion ID automatically
+	 * via prefill_from_suggestion() in the wizard state service.
+	 *
 	 * @since  1.0.0
 	 * @param  array $campaign Campaign data.
 	 * @return string Wizard URL.
 	 */
 	private function get_wizard_url_for_campaign( array $campaign ): string {
-		$base_url = admin_url( 'admin.php?page=scd-campaigns&action=wizard&intent=new' );
+		$base_url = admin_url( 'admin.php?page=wsscd-campaigns&action=wizard&intent=new' );
 
 		$campaign_id = $campaign['id'];
 		return add_query_arg( 'suggestion', $campaign_id, $base_url );
@@ -569,7 +650,7 @@ class SCD_Campaign_Planner_Service {
 		$random_insight = $selected_pool[ array_rand( $selected_pool ) ];
 
 		// Strip PRO marker for PRO users (show badge only to FREE users for promotional purposes).
-		if ( scd_is_license_valid() ) {
+		if ( wsscd_is_license_valid() ) {
 			$random_insight = str_replace( ' [PRO]', '', $random_insight );
 		}
 
@@ -597,7 +678,7 @@ class SCD_Campaign_Planner_Service {
 		$random_stat = $stats[ array_rand( $stats ) ];
 
 		// Strip PRO marker for PRO users (show badge only to FREE users for promotional purposes).
-		if ( scd_is_license_valid() ) {
+		if ( wsscd_is_license_valid() ) {
 			$random_stat = str_replace( ' [PRO]', '', $random_stat );
 		}
 
@@ -660,20 +741,133 @@ class SCD_Campaign_Planner_Service {
 	}
 
 	/**
-	 * Compare campaigns by priority only.
-	 * Used instead of closure for serialization compatibility.
+	 * Format event date for campaign card display.
+	 *
+	 * Shows the actual event date (e.g., "Nov 29" for Black Friday),
+	 * not the campaign/promotion period.
 	 *
 	 * @since  1.0.0
-	 * @param  array $a First campaign.
-	 * @param  array $b Second campaign.
-	 * @return int Comparison result.
+	 * @param  array $campaign Campaign data.
+	 * @return string Formatted event date (e.g., "Nov 29").
 	 */
-	private function compare_campaigns_by_priority_only( array $a, array $b ): int {
-		// Priority first.
-		if ( $a['priority'] !== $b['priority'] ) {
-			return $b['priority'] - $a['priority'];
+	private function format_date_range( array $campaign ): string {
+		// For major events, use the actual event date.
+		if ( ! empty( $campaign['is_major_event'] ) && ! empty( $campaign['event_date'] ) ) {
+			return wp_date( 'M j', $campaign['event_date'] );
 		}
-		// If both major events, neither gets precedence.
-		return 0;
+
+		// For weekly campaigns, show the day range (e.g., "Wed - Thu").
+		if ( ! empty( $campaign['schedule'] ) ) {
+			$days = array(
+				1 => __( 'Mon', 'smart-cycle-discounts' ),
+				2 => __( 'Tue', 'smart-cycle-discounts' ),
+				3 => __( 'Wed', 'smart-cycle-discounts' ),
+				4 => __( 'Thu', 'smart-cycle-discounts' ),
+				5 => __( 'Fri', 'smart-cycle-discounts' ),
+				6 => __( 'Sat', 'smart-cycle-discounts' ),
+				7 => __( 'Sun', 'smart-cycle-discounts' ),
+			);
+
+			$start_day = $campaign['schedule']['start_day'] ?? 1;
+			$end_day   = $campaign['schedule']['end_day'] ?? 1;
+
+			if ( $start_day === $end_day ) {
+				return $days[ $start_day ] ?? '';
+			}
+
+			return sprintf( '%s - %s', $days[ $start_day ] ?? '', $days[ $end_day ] ?? '' );
+		}
+
+		return '';
 	}
+
+	/**
+	 * Format relative time for campaign card display.
+	 *
+	 * Shows time relative to the actual event date, not the campaign period.
+	 *
+	 * @since  1.0.0
+	 * @param  array $campaign Campaign data.
+	 * @return string Relative time (e.g., "In 3 days", "5 days ago").
+	 */
+	private function format_time_relative( array $campaign ): string {
+		$now   = current_time( 'timestamp' );
+		$state = $campaign['state'] ?? '';
+
+		// For major events, use the actual event date.
+		if ( ! empty( $campaign['is_major_event'] ) && ! empty( $campaign['event_date'] ) ) {
+			$event_date = $campaign['event_date'];
+			$days_diff  = (int) round( ( $event_date - $now ) / DAY_IN_SECONDS );
+
+			if ( $days_diff < 0 ) {
+				// Past.
+				$days_ago = abs( $days_diff );
+				if ( 0 === $days_ago ) {
+					return __( 'Today', 'smart-cycle-discounts' );
+				} elseif ( 1 === $days_ago ) {
+					return __( 'Yesterday', 'smart-cycle-discounts' );
+				} else {
+					return sprintf(
+						/* translators: %d: number of days */
+						__( '%d days ago', 'smart-cycle-discounts' ),
+						$days_ago
+					);
+				}
+			} elseif ( 0 === $days_diff ) {
+				return __( 'Today', 'smart-cycle-discounts' );
+			} elseif ( 1 === $days_diff ) {
+				return __( 'Tomorrow', 'smart-cycle-discounts' );
+			} else {
+				return sprintf(
+					/* translators: %d: number of days */
+					__( 'In %d days', 'smart-cycle-discounts' ),
+					$days_diff
+				);
+			}
+		}
+
+		// For weekly campaigns, use relative to campaign period.
+		switch ( $state ) {
+			case 'past':
+				return __( 'Last week', 'smart-cycle-discounts' );
+
+			case 'active':
+				return __( 'This week', 'smart-cycle-discounts' );
+
+			case 'future':
+				return __( 'Next week', 'smart-cycle-discounts' );
+
+			default:
+				return '';
+		}
+	}
+
+	/**
+	 * Format discount suggestion for campaign card display.
+	 *
+	 * Shows the optimal discount value that will be prefilled in the wizard.
+	 *
+	 * @since  1.0.0
+	 * @param  array $campaign Campaign data.
+	 * @return string Formatted discount (e.g., "20% off").
+	 */
+	private function format_discount_suggestion( array $campaign ): string {
+		if ( empty( $campaign['suggested_discount'] ) ) {
+			return '';
+		}
+
+		$discount = $campaign['suggested_discount'];
+
+		// Use optimal value (same as wizard prefill).
+		if ( isset( $discount['optimal'] ) ) {
+			return sprintf(
+				/* translators: %d: discount percentage */
+				__( '%d%% off', 'smart-cycle-discounts' ),
+				(int) $discount['optimal']
+			);
+		}
+
+		return '';
+	}
+
 }

@@ -31,7 +31,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/settings
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Settings_Manager {
+class WSSCD_Settings_Manager {
 
 	/**
 	 * Settings option name.
@@ -40,7 +40,7 @@ class SCD_Settings_Manager {
 	 * @access   private
 	 * @var      string    $option_name    Settings option name.
 	 */
-	private string $option_name = 'scd_settings';
+	private string $option_name = 'wsscd_settings';
 
 	/**
 	 * Container instance.
@@ -56,9 +56,9 @@ class SCD_Settings_Manager {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Registered tabs.
@@ -83,18 +83,18 @@ class SCD_Settings_Manager {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Cache_Manager|null    $cache    Cache manager.
+	 * @var      WSSCD_Cache_Manager|null    $cache    Cache manager.
 	 */
-	private ?SCD_Cache_Manager $cache = null;
+	private ?WSSCD_Cache_Manager $cache = null;
 
 	/**
 	 * Initialize settings manager.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger       Logger instance.
+	 * @param    WSSCD_Logger $logger       Logger instance.
 	 * @param    object     $container    Container instance.
 	 */
-	public function __construct( SCD_Logger $logger, object $container ) {
+	public function __construct( WSSCD_Logger $logger, object $container ) {
 		$this->logger      = $logger;
 		$this->container   = $container;
 		$this->current_tab = $this->get_current_tab();
@@ -174,7 +174,7 @@ class SCD_Settings_Manager {
 		);
 
 		// Allow filtering of tabs
-		$this->tabs = apply_filters( 'scd_settings_tabs', $this->tabs );
+		$this->tabs = apply_filters( 'wsscd_settings_tabs', $this->tabs );
 
 		uasort(
 			$this->tabs,
@@ -192,7 +192,7 @@ class SCD_Settings_Manager {
 	 */
 	public function register_settings(): void {
 		register_setting(
-			'scd_settings_group',
+			'wsscd_settings_group',
 			$this->option_name,
 			array(
 				'type'              => 'array',
@@ -202,7 +202,7 @@ class SCD_Settings_Manager {
 		);
 
 		// Let each tab register its sections and fields
-		do_action( 'scd_register_settings_sections', $this->current_tab );
+		do_action( 'wsscd_register_settings_sections', $this->current_tab );
 
 		$this->logger->debug( 'Settings registered with WordPress Settings API' );
 	}
@@ -215,7 +215,8 @@ class SCD_Settings_Manager {
 	 * @return   string    Current tab slug.
 	 */
 	private function get_current_tab(): string {
-		$tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'general';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL parameter for tab navigation, not form processing.
+		$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'general';
 
 		$valid_tabs = array( 'general', 'advanced' );
 		if ( ! in_array( $tab, $valid_tabs, true ) ) {
@@ -260,27 +261,30 @@ class SCD_Settings_Manager {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'smart-cycle-discounts' ) );
 		}
 
-		echo '<div class="wrap scd-settings">';
-		echo '<h1>' . SCD_Icon_Helper::get( 'admin-settings', array( 'size' => 16 ) ) . ' ' . esc_html( get_admin_page_title() ) . '</h1>';
+		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML structure with escaped dynamic content.
+		echo '<div class="wrap wsscd-settings">';
+		// Use wp_kses with SVG allowed tags since wp_kses_post strips SVG elements.
+		echo '<h1>' . wp_kses( WSSCD_Icon_Helper::get( 'admin-settings', array( 'size' => 16 ) ), WSSCD_Icon_Helper::get_allowed_svg_tags() ) . ' ' . esc_html( get_admin_page_title() ) . '</h1>';
 
 		// Show admin notices
-		settings_errors( 'scd_settings_messages' );
+		settings_errors( 'wsscd_settings_messages' );
 
 		$this->render_tab_navigation();
 
-		echo '<form method="post" action="options.php" class="scd-settings-form">';
+		echo '<form method="post" action="options.php" class="wsscd-settings-form">';
 
-		settings_fields( 'scd_settings_group' );
+		settings_fields( 'wsscd_settings_group' );
 
-		do_action( 'scd_render_settings_tab', $this->current_tab );
+		do_action( 'wsscd_render_settings_tab', $this->current_tab );
 
 		// Submit button
-		echo '<div class="scd-settings-submit">';
+		echo '<div class="wsscd-settings-submit">';
 		submit_button( __( 'Save Settings', 'smart-cycle-discounts' ), 'primary', 'submit', false );
 		echo '</div>';
 
 		echo '</form>';
 		echo '</div>';
+		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	/**
@@ -291,30 +295,32 @@ class SCD_Settings_Manager {
 	 * @return   void
 	 */
 	private function render_tab_navigation(): void {
-		echo '<nav class="scd-settings-tabs nav-tab-wrapper">';
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML.
+		echo '<nav class="wsscd-settings-tabs nav-tab-wrapper">';
 
 		foreach ( $this->get_tabs() as $tab_slug => $tab_data ) {
 			$active_class = ( $this->current_tab === $tab_slug ) ? ' nav-tab-active' : '';
 			$tab_url      = add_query_arg(
 				array(
-					'page' => 'scd-settings',
+					'page' => 'wsscd-settings',
 					'tab'  => $tab_slug,
 				),
 				admin_url( 'admin.php' )
 			);
 
 			$icon_name = str_replace( 'dashicons-', '', $tab_data['icon'] );
-			$icon_html = SCD_Icon_Helper::get( $icon_name, array( 'size' => 16 ) );
+			$icon_html = WSSCD_Icon_Helper::get( $icon_name, array( 'size' => 16 ) );
 
 			printf(
 				'<a href="%s" class="nav-tab%s">%s %s</a>',
 				esc_url( $tab_url ),
 				esc_attr( $active_class ),
-				$icon_html,
+				wp_kses( $icon_html, WSSCD_Icon_Helper::get_allowed_svg_tags() ),
 				esc_html( $tab_data['title'] )
 			);
 		}
 
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML.
 		echo '</nav>';
 	}
 
@@ -344,12 +350,16 @@ class SCD_Settings_Manager {
 
 		$raw_tab_input = isset( $input[ $active_tab ] ) ? $input[ $active_tab ] : array();
 
+		// Apply guaranteed per-field sanitization based on field type
+		// This ensures data is always sanitized, even if filters don't run
+		$input = $this->sanitize_fields_by_type( $input );
+
 		// Merge with current settings to preserve other tabs
 		$sanitized = array_replace_recursive( $current, $input );
 
 		// Apply tab-specific sanitization with RAW input
 		// Pass the full merged settings but with raw input for active tab
-		$sanitized = apply_filters( 'scd_sanitize_settings', $sanitized, $active_tab, $raw_tab_input );
+		$sanitized = apply_filters( 'wsscd_sanitize_settings', $sanitized, $active_tab, $raw_tab_input );
 
 		// Log settings update
 		$this->logger->info( 'Settings updated', array( 'tab' => $active_tab ) );
@@ -360,6 +370,122 @@ class SCD_Settings_Manager {
 		}
 
 		return $sanitized;
+	}
+
+	/**
+	 * Sanitize fields by their expected type.
+	 *
+	 * Provides guaranteed per-field sanitization based on field definitions.
+	 * This ensures WordPress.org compliance by sanitizing all fields appropriately.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $input    Raw input data.
+	 * @return   array             Sanitized data.
+	 */
+	private function sanitize_fields_by_type( array $input ): array {
+		// Define field types for each setting
+		$field_definitions = array(
+			'general'       => array(
+				'trash_retention_days' => 'absint',
+				'trash_auto_purge'     => 'boolean',
+			),
+			'advanced'      => array(
+				'enable_debug_mode'     => 'boolean',
+				'debug_mode_enabled_at' => 'absint',
+				'log_level'             => array( 'enum', array( 'none', 'error', 'warning', 'info', 'debug' ) ),
+				'log_retention_days'    => 'absint',
+				'uninstall_data'        => 'boolean',
+			),
+			'notifications' => array(
+				'email_provider'           => array( 'enum', array( 'wpmail', 'sendgrid', 'amazonses' ) ),
+				'from_email'               => 'email',
+				'from_name'                => 'text',
+				'additional_recipients'    => 'email_list',
+				'sendgrid_api_key'         => 'text',
+				'amazonses_access_key'     => 'text',
+				'amazonses_secret_key'     => 'text',
+				'amazonses_region'         => array( 'enum', array( 'us-east-1', 'us-west-2', 'eu-west-1', 'eu-central-1', 'ap-southeast-1' ) ),
+				'notify_campaign_started'  => 'boolean',
+				'notify_campaign_ended'    => 'boolean',
+				'notify_errors'            => 'boolean',
+				'notify_campaign_ending'   => 'boolean',
+				'notify_daily_report'      => 'boolean',
+				'notify_weekly_report'     => 'boolean',
+				'notify_performance_alert' => 'boolean',
+				'notify_low_stock_alert'   => 'boolean',
+				'notify_milestone_alert'   => 'boolean',
+			),
+		);
+
+		$sanitized = array();
+
+		foreach ( $input as $tab => $tab_data ) {
+			if ( ! is_array( $tab_data ) ) {
+				continue;
+			}
+
+			$sanitized[ $tab ] = array();
+			$tab_definitions   = isset( $field_definitions[ $tab ] ) ? $field_definitions[ $tab ] : array();
+
+			foreach ( $tab_data as $field => $value ) {
+				$field_type = isset( $tab_definitions[ $field ] ) ? $tab_definitions[ $field ] : 'text';
+				$sanitized[ $tab ][ $field ] = $this->sanitize_field_value( $value, $field_type, $field );
+			}
+		}
+
+		return $sanitized;
+	}
+
+	/**
+	 * Sanitize a single field value based on its type.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    mixed        $value       Raw field value.
+	 * @param    string|array $field_type  Field type or array with enum values.
+	 * @param    string       $field_name  Field name for context.
+	 * @return   mixed                       Sanitized value.
+	 */
+	private function sanitize_field_value( $value, $field_type, string $field_name ) {
+		// Handle enum type (array format: ['enum', ['option1', 'option2']])
+		if ( is_array( $field_type ) && 'enum' === $field_type[0] ) {
+			$allowed_values = $field_type[1];
+			$value          = sanitize_key( $value );
+			return in_array( $value, $allowed_values, true ) ? $value : $allowed_values[0];
+		}
+
+		// Handle standard types
+		switch ( $field_type ) {
+			case 'boolean':
+				return rest_sanitize_boolean( $value );
+
+			case 'absint':
+				return absint( $value );
+
+			case 'email':
+				$sanitized = sanitize_email( $value );
+				return is_email( $sanitized ) ? $sanitized : '';
+
+			case 'email_list':
+				// Sanitize comma-separated email list
+				if ( empty( $value ) ) {
+					return '';
+				}
+				$emails          = array_map( 'trim', explode( ',', $value ) );
+				$valid_emails    = array();
+				foreach ( $emails as $email ) {
+					$sanitized = sanitize_email( $email );
+					if ( is_email( $sanitized ) ) {
+						$valid_emails[] = $sanitized;
+					}
+				}
+				return implode( ', ', $valid_emails );
+
+			case 'text':
+			default:
+				return sanitize_text_field( $value );
+		}
 	}
 
 	/**
@@ -416,25 +542,30 @@ class SCD_Settings_Manager {
 			),
 			// Notifications settings moved to separate page
 			'notifications' => array(
-				'email_provider'          => 'wpmail',
-				'from_email'              => get_option( 'admin_email' ),
-				'from_name'               => get_bloginfo( 'name' ),
-				'additional_recipients'   => '',
-				'sendgrid_api_key'        => '',
-				'amazonses_access_key'    => '',
-				'amazonses_secret_key'    => '',
-				'amazonses_region'        => 'us-east-1',
-				'notify_campaign_started' => true,
-				'notify_campaign_ending'  => true,
-				'notify_campaign_ended'   => true,
-				'notify_daily_report'     => false,
-				'notify_weekly_report'    => false,
-				'notify_errors'           => true,
+				'email_provider'           => 'wpmail',
+				'from_email'               => get_option( 'admin_email' ),
+				'from_name'                => get_bloginfo( 'name' ),
+				'additional_recipients'    => '',
+				'sendgrid_api_key'         => '',
+				'amazonses_access_key'     => '',
+				'amazonses_secret_key'     => '',
+				'amazonses_region'         => 'us-east-1',
+				// FREE notifications - ON by default
+				'notify_campaign_started'  => true,
+				'notify_campaign_ended'    => true,
+				'notify_errors'            => true,
+				// PRO notifications - OFF by default
+				'notify_campaign_ending'   => false,
+				'notify_daily_report'      => false,
+				'notify_weekly_report'     => false,
+				'notify_performance_alert' => false,
+				'notify_low_stock_alert'   => false,
+				'notify_milestone_alert'   => false,
 			),
 		);
 
 		// Allow filtering of defaults
-		$defaults = apply_filters( 'scd_default_settings', $defaults );
+		$defaults = apply_filters( 'wsscd_default_settings', $defaults );
 
 		return $defaults;
 	}

@@ -9,6 +9,9 @@
  * @subpackage Smart_Cycle_Discounts/Tests/Integration
  */
 
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter
+// This is a test file, not production code.
+
 /**
  * Test Plugin Architecture class
  *
@@ -26,7 +29,7 @@ class Test_Plugin_Architecture extends WP_UnitTestCase {
 	/**
 	 * Container instance.
 	 *
-	 * @var SCD_Container
+	 * @var WSSCD_Container
 	 */
 	private $container;
 
@@ -53,7 +56,7 @@ class Test_Plugin_Architecture extends WP_UnitTestCase {
 	public function tearDown(): void {
 		// Clean up campaigns before users to avoid foreign key constraint violations
 		global $wpdb;
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
 		$wpdb->query( "DELETE FROM {$campaigns_table} WHERE name LIKE 'Architecture Test%' OR name LIKE 'Test Campaign%'" );
 
 		parent::tearDown();
@@ -75,7 +78,7 @@ class Test_Plugin_Architecture extends WP_UnitTestCase {
 
 		// Container should be available globally
 		$this->assertInstanceOf(
-			'SCD_Container',
+			'WSSCD_Container',
 			$this->container,
 			'Service container should be initialized'
 		);
@@ -142,7 +145,7 @@ class Test_Plugin_Architecture extends WP_UnitTestCase {
 		$campaign_repository = $this->container->get( 'campaign_repository' );
 
 		$this->assertInstanceOf(
-			'SCD_Campaign_Repository',
+			'WSSCD_Campaign_Repository',
 			$campaign_repository,
 			'Campaign repository should be available'
 		);
@@ -169,7 +172,7 @@ class Test_Plugin_Architecture extends WP_UnitTestCase {
 		$campaign_manager = $this->container->get( 'campaign_manager' );
 
 		$this->assertInstanceOf(
-			'SCD_Campaign_Manager',
+			'WSSCD_Campaign_Manager',
 			$campaign_manager,
 			'Campaign manager should be available'
 		);
@@ -199,7 +202,7 @@ class Test_Plugin_Architecture extends WP_UnitTestCase {
 		$campaign = $campaign_manager->create( $campaign_data );
 
 		$this->assertInstanceOf(
-			'SCD_Campaign',
+			'WSSCD_Campaign',
 			$campaign,
 			'Campaign manager should successfully create campaign using repository'
 		);
@@ -219,7 +222,7 @@ class Test_Plugin_Architecture extends WP_UnitTestCase {
 		$discount_engine = $this->container->get( 'discount_engine' );
 
 		$this->assertInstanceOf(
-			'SCD_Discount_Engine',
+			'WSSCD_Discount_Engine',
 			$discount_engine,
 			'Discount engine should be available'
 		);
@@ -251,12 +254,12 @@ class Test_Plugin_Architecture extends WP_UnitTestCase {
 	public function test_plugin_activation_succeeds() {
 		// Activation function should exist
 		$this->assertTrue(
-			class_exists( 'SCD_Activator' ),
+			class_exists( 'WSSCD_Activator' ),
 			'Plugin activator class should exist'
 		);
 
 		$this->assertTrue(
-			method_exists( 'SCD_Activator', 'activate' ),
+			method_exists( 'WSSCD_Activator', 'activate' ),
 			'Activator should have activate method'
 		);
 
@@ -279,7 +282,7 @@ class Test_Plugin_Architecture extends WP_UnitTestCase {
 		$cache_manager = $this->container->get( 'cache_manager' );
 
 		$this->assertInstanceOf(
-			'SCD_Cache_Manager',
+			'WSSCD_Cache_Manager',
 			$cache_manager,
 			'Cache manager should be available'
 		);
@@ -313,7 +316,7 @@ class Test_Plugin_Architecture extends WP_UnitTestCase {
 		$error_handler = $this->container->get( 'error_handler' );
 
 		$this->assertInstanceOf(
-			'SCD_Error_Handler',
+			'WSSCD_Error_Handler',
 			$error_handler,
 			'Error handler should be available'
 		);
@@ -322,7 +325,7 @@ class Test_Plugin_Architecture extends WP_UnitTestCase {
 		$logger = $this->container->get( 'logger' );
 
 		$this->assertInstanceOf(
-			'SCD_Logger',
+			'WSSCD_Logger',
 			$logger,
 			'Logger should be available'
 		);

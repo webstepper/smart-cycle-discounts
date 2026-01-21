@@ -27,16 +27,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/api
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_API_Authentication {
+class WSSCD_API_Authentication {
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * JWT enabled status.
@@ -74,9 +74,9 @@ class SCD_API_Authentication {
 	 * Initialize the authentication manager.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger $logger    Logger instance.
+	 * @param    WSSCD_Logger $logger    Logger instance.
 	 */
-	public function __construct( SCD_Logger $logger ) {
+	public function __construct( WSSCD_Logger $logger ) {
 		$this->logger      = $logger;
 		$this->jwt_secret  = $this->get_jwt_secret();
 		$this->jwt_enabled = ! empty( $this->jwt_secret );
@@ -235,6 +235,7 @@ class SCD_API_Authentication {
 		}
 
 		// Decode basic auth
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Required for HTTP Basic Auth header decoding per RFC 7617.
 		$credentials = base64_decode( substr( $auth_header, 6 ) );
 		if ( ! $credentials || false === strpos( $credentials, ':' ) ) {
 			return null;
@@ -381,7 +382,7 @@ class SCD_API_Authentication {
 	 * @param    string $description  API key description.
 	 * @return   string|WP_Error         API key or error.
 	 */
-	public function generate_api_key( int $user_id, string $description = '' ): string|WP_Error {
+	public function generate_api_key( int $user_id, string $description = '' ) {
 		$user = get_user_by( 'id', $user_id );
 		if ( ! $user ) {
 			return new WP_Error(
@@ -391,11 +392,11 @@ class SCD_API_Authentication {
 		}
 
 		// Generate secure API key
-		$api_key      = 'scd_' . wp_generate_password( 32, false );
+		$api_key      = 'wsscd_' . wp_generate_password( 32, false );
 		$api_key_hash = wp_hash_password( $api_key );
 
 		// Store API key
-		$api_keys   = get_user_meta( $user_id, 'scd_api_keys', true ) ?: array();
+		$api_keys   = get_user_meta( $user_id, 'wsscd_api_keys', true ) ?: array();
 		$api_keys[] = array(
 			'key_hash'    => $api_key_hash,
 			'description' => $description,
@@ -404,7 +405,7 @@ class SCD_API_Authentication {
 			'usage_count' => 0,
 		);
 
-		update_user_meta( $user_id, 'scd_api_keys', $api_keys );
+		update_user_meta( $user_id, 'wsscd_api_keys', $api_keys );
 
 		$this->logger->info(
 			'API key generated',
@@ -426,12 +427,12 @@ class SCD_API_Authentication {
 	 * @return   bool                  Success status.
 	 */
 	public function revoke_api_key( int $user_id, string $api_key ): bool {
-		$api_keys = get_user_meta( $user_id, 'scd_api_keys', true ) ?: array();
+		$api_keys = get_user_meta( $user_id, 'wsscd_api_keys', true ) ?: array();
 
 		foreach ( $api_keys as $index => $stored_key ) {
 			if ( wp_check_password( $api_key, $stored_key['key_hash'] ) ) {
 				unset( $api_keys[ $index ] );
-				update_user_meta( $user_id, 'scd_api_keys', array_values( $api_keys ) );
+				update_user_meta( $user_id, 'wsscd_api_keys', array_values( $api_keys ) );
 
 				$this->logger->info( 'API key revoked', array( 'user_id' => $user_id ) );
 				return true;
@@ -465,7 +466,8 @@ class SCD_API_Authentication {
 			return substr( $auth_header, 7 );
 		}
 
-		if ( get_option( 'scd_allow_jwt_via_get', false ) || apply_filters( 'scd_allow_jwt_via_get', false ) ) {
+		if ( get_option( 'wsscd_allow_jwt_via_get', false ) || apply_filters( 'wsscd_allow_jwt_via_get', false ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- REST API authentication, nonces not applicable.
 			return isset( $_GET['jwt'] ) ? sanitize_text_field( wp_unslash( $_GET['jwt'] ) ) : null;
 		}
 
@@ -480,12 +482,14 @@ class SCD_API_Authentication {
 	 * @return   string|null    API key or null.
 	 */
 	private function get_api_key(): ?string {
-		$api_key = $_SERVER['HTTP_X_API_KEY'] ?? null;
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Custom header for API authentication, sanitized below.
+		$api_key = isset( $_SERVER['HTTP_X_API_KEY'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_API_KEY'] ) ) : null;
 		if ( $api_key ) {
 			return $api_key;
 		}
 
-		if ( get_option( 'scd_allow_api_key_via_get', false ) || apply_filters( 'scd_allow_api_key_via_get', false ) ) {
+		if ( get_option( 'wsscd_allow_api_key_via_get', false ) || apply_filters( 'wsscd_allow_api_key_via_get', false ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- REST API authentication, nonces not applicable.
 			return isset( $_GET['api_key'] ) ? sanitize_text_field( wp_unslash( $_GET['api_key'] ) ) : null;
 		}
 
@@ -507,7 +511,7 @@ class SCD_API_Authentication {
 
 		foreach ( $headers as $header ) {
 			if ( isset( $_SERVER[ $header ] ) ) {
-				return $_SERVER[ $header ];
+				return sanitize_text_field( wp_unslash( $_SERVER[ $header ] ) );
 			}
 		}
 
@@ -533,12 +537,13 @@ class SCD_API_Authentication {
 		global $wpdb;
 
 		// Optimized approach: Query only user IDs that have API keys
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Usermeta lookup for API key validation; must query all users with API keys.
 		$user_ids = $wpdb->get_col(
 			$wpdb->prepare(
-				"SELECT DISTINCT user_id 
-                FROM {$wpdb->usermeta} 
+				"SELECT DISTINCT user_id
+                FROM {$wpdb->usermeta}
                 WHERE meta_key = %s",
-				'scd_api_keys'
+				'wsscd_api_keys'
 			)
 		);
 
@@ -547,13 +552,13 @@ class SCD_API_Authentication {
 		}
 
 		foreach ( $user_ids as $user_id ) {
-			$api_keys = get_user_meta( $user_id, 'scd_api_keys', true ) ?: array();
+			$api_keys = get_user_meta( $user_id, 'wsscd_api_keys', true ) ?: array();
 
 			foreach ( $api_keys as $index => $stored_key ) {
 				if ( wp_check_password( $api_key, $stored_key['key_hash'] ) ) {
 					$api_keys[ $index ]['last_used']   = current_time( 'mysql' );
 					$api_keys[ $index ]['usage_count'] = ( $api_keys[ $index ]['usage_count'] ?? 0 ) + 1;
-					update_user_meta( $user_id, 'scd_api_keys', $api_keys );
+					update_user_meta( $user_id, 'wsscd_api_keys', $api_keys );
 
 					return (int) $user_id;
 				}
@@ -572,8 +577,8 @@ class SCD_API_Authentication {
 	 */
 	private function get_jwt_secret(): string {
 		// Try to get from WordPress constants
-		if ( defined( 'SCD_JWT_SECRET' ) ) {
-			return SCD_JWT_SECRET;
+		if ( defined( 'WSSCD_JWT_SECRET' ) ) {
+			return WSSCD_JWT_SECRET;
 		}
 
 		// Try to get from WordPress auth keys
@@ -582,10 +587,10 @@ class SCD_API_Authentication {
 		}
 
 		// Generate and store a secret
-		$secret = get_option( 'scd_jwt_secret' );
+		$secret = get_option( 'wsscd_jwt_secret' );
 		if ( ! $secret ) {
 			$secret = wp_generate_password( 64, true, true );
-			update_option( 'scd_jwt_secret', $secret );
+			update_option( 'wsscd_jwt_secret', $secret );
 		}
 
 		return $secret;
@@ -675,6 +680,7 @@ class SCD_API_Authentication {
 	 * @return   string             Decoded data.
 	 */
 	private function base64url_decode( string $data ): string {
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Required for JWT token decoding per RFC 7519.
 		return base64_decode( str_pad( strtr( $data, '-_', '+/' ), strlen( $data ) % 4, '=', STR_PAD_RIGHT ) );
 	}
 }

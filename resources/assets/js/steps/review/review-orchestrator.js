@@ -14,30 +14,30 @@
 	'use strict';
 
 	// Ensure namespaces exist
-	window.SCD = window.SCD || {};
-	SCD.Steps = SCD.Steps || {};
-	SCD.Modules = SCD.Modules || {};
-	SCD.Modules.Review = SCD.Modules.Review || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Steps = WSSCD.Steps || {};
+	WSSCD.Modules = WSSCD.Modules || {};
+	WSSCD.Modules.Review = WSSCD.Modules.Review || {};
 
 	/**
 	 * Review Orchestrator
 	 * Created using BaseOrchestrator.createStep() factory method
 	 * Inherits from BaseOrchestrator with EventManager and StepPersistence mixins
 	 */
-	SCD.Steps.ReviewOrchestrator = SCD.Shared.BaseOrchestrator.createStep( 'review', {
+	WSSCD.Steps.ReviewOrchestrator = WSSCD.Shared.BaseOrchestrator.createStep( 'review', {
 
 		/**
 		 * Initialize step modules using Module Registry
 		 * Called by BaseOrchestrator's initializeModules
 		 */
 		initializeStep: function() {
-			var moduleConfig = SCD.Shared.ModuleRegistry.createStepConfig( 'review', {
+			var moduleConfig = WSSCD.Shared.ModuleRegistry.createStepConfig( 'review', {
 				components: {
-					class: 'SCD.Modules.Review.Components',
+					class: 'WSSCD.Modules.Review.Components',
 					deps: ['state', 'api']
 				}
 			} );
-			this.modules = SCD.Shared.ModuleRegistry.initialize( moduleConfig, this );
+			this.modules = WSSCD.Shared.ModuleRegistry.initialize( moduleConfig, this );
 		},
 
 		/**
@@ -67,18 +67,18 @@
 			var self = this;
 
 			// Listen for step initialization
-			this.bindCustomEvent( 'scd:wizard:step-loaded', function( event, stepName ) {
+			this.bindCustomEvent( 'wsscd:wizard:step-loaded', function( event, stepName ) {
 				if ( 'review' === stepName ) {
 					self.onStepLoaded();
 				}
 			} );
 
 			// Listen for navigation before-complete event
-			this.bindCustomEvent( 'scd:navigation:before-complete', function() {
+			this.bindCustomEvent( 'wsscd:navigation:before-complete', function() {
 				self.storeLaunchOption();
 			} );
 
-			this.bindCustomEvent( 'scd:review:state:changed', function( e, data ) {
+			this.bindCustomEvent( 'wsscd:review:state:changed', function( e, data ) {
 				if ( 'launchOption' === data.property ) {
 					if ( self.modules.components && 'function' === typeof self.modules.components.updateNavigationButton ) {
 						self.modules.components.updateNavigationButton();
@@ -95,16 +95,16 @@
 				this.modules.components.init();
 			}
 
-			this.triggerCustomEvent( 'scd:review:ready', [ this.modules ] );
+			this.triggerCustomEvent( 'wsscd:review:ready', [ this.modules ] );
 		},
 
 		/**
 		 * Load wizard data for review
 		 */
 		loadWizardData: function() {
-			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.data ) {
+			if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.data ) {
 				this.modules.state.setState( {
-					wizardData: window.SCD.Wizard.data
+					wizardData: window.WSSCD.Wizard.data
 				} );
 			}
 		},
@@ -117,8 +117,8 @@
 		storeLaunchOption: function() {
 			var launchOption = this.modules.state.getState().launchOption;
 
-			if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.data ) {
-				window.SCD.Wizard.data.launchOption = launchOption;
+			if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.data ) {
+				window.WSSCD.Wizard.data.launchOption = launchOption;
 			}
 
 			return launchOption;
@@ -130,7 +130,7 @@
 		 */
 		collectData: function() {
 			// Call parent method from mixin first
-			var data = SCD.Mixins.StepPersistence.collectData.call( this );
+			var data = WSSCD.Mixins.StepPersistence.collectData.call( this );
 
 			// Use state's toJSON for any additional complex data
 			if ( this.modules.state && 'function' === typeof this.modules.state.toJSON ) {
@@ -148,7 +148,7 @@
 		 */
 		validateData: function( data ) {
 			// Call parent method from mixin first
-			var validation = SCD.Mixins.StepPersistence.validateData.call( this, data );
+			var validation = WSSCD.Mixins.StepPersistence.validateData.call( this, data );
 			var errors = validation.errors || [];
 
 			if ( this.modules.components && 'function' === typeof this.modules.components.validate ) {
@@ -211,7 +211,7 @@
 				this.modules.components.reset();
 			}
 
-			this.triggerCustomEvent( 'scd:review:reset', [] );
+			this.triggerCustomEvent( 'wsscd:review:reset', [] );
 		},
 
 		/**
@@ -234,14 +234,14 @@
 		 * @param name
 		 */
 		getModule: function( name ) {
-			return SCD.Utils.get( this.modules, name );
+			return WSSCD.Utils.get( this.modules, name );
 		},
 
 		/**
 		 * Check if step is ready
 		 */
 		isReady: function() {
-			return !SCD.Utils.isEmpty( this.modules ) &&
+			return !WSSCD.Utils.isEmpty( this.modules ) &&
 					this.modules.state &&
 					this.modules.api &&
 					this.modules.components;

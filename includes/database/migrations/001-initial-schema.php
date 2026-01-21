@@ -40,24 +40,24 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/database/migrations
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
+class WSSCD_Migration_001_Initial_Schema implements WSSCD_Migration_Interface {
 
 	/**
 	 * Database manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Database_Manager    $db    Database manager.
+	 * @var      WSSCD_Database_Manager    $db    Database manager.
 	 */
-	private SCD_Database_Manager $db;
+	private WSSCD_Database_Manager $db;
 
 	/**
 	 * Initialize the migration.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager $db    Database manager.
+	 * @param    WSSCD_Database_Manager $db    Database manager.
 	 */
-	public function __construct( SCD_Database_Manager $db ) {
+	public function __construct( WSSCD_Database_Manager $db ) {
 		$this->db = $db;
 	}
 
@@ -183,6 +183,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 		) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- CREATE TABLE during plugin migration; uses dbDelta() for safe schema changes. Table name from plugin's database manager.
 		dbDelta( $sql );
 	}
 
@@ -243,6 +244,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 		) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- CREATE TABLE during plugin migration; uses dbDelta() for safe schema changes. Table name from plugin's database manager.
 		dbDelta( $sql );
 	}
 
@@ -314,6 +316,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 		) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- CREATE TABLE during plugin migration; uses dbDelta() for safe schema changes. Table name from plugin's database manager.
 		dbDelta( $sql );
 	}
 
@@ -357,6 +360,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 		) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- CREATE TABLE during plugin migration; uses dbDelta() for safe schema changes. Table name from plugin's database manager.
 		dbDelta( $sql );
 	}
 
@@ -400,6 +404,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 		) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- CREATE TABLE during plugin migration; uses dbDelta() for safe schema changes. Table name from plugin's database manager.
 		dbDelta( $sql );
 	}
 
@@ -414,7 +419,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 	 * @return   void
 	 */
 	private function create_activity_log_table( string $charset_collate ): void {
-		$table_name = $this->db->get_wpdb()->prefix . 'scd_activity_log';
+		$table_name = $this->db->get_table_name( 'activity_log' );
 
 		$sql = "CREATE TABLE $table_name (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -432,6 +437,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 		) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- CREATE TABLE during plugin migration; uses dbDelta() for safe schema changes. Table name from $wpdb->prefix.
 		dbDelta( $sql );
 	}
 
@@ -467,6 +473,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 		) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- CREATE TABLE during plugin migration; uses dbDelta() for safe schema changes. Table name from plugin's database manager.
 		dbDelta( $sql );
 	}
 
@@ -481,7 +488,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 	 * @return   void
 	 */
 	private function create_product_analytics_table( string $charset_collate ): void {
-		$table_name = $this->db->get_wpdb()->prefix . 'scd_product_analytics';
+		$table_name = $this->db->get_table_name( 'product_analytics' );
 
 		$sql = "CREATE TABLE $table_name (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -511,6 +518,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 		) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- CREATE TABLE during plugin migration; uses dbDelta() for safe schema changes. Table name from $wpdb->prefix.
 		dbDelta( $sql );
 	}
 
@@ -525,7 +533,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 	 * @return   void
 	 */
 	private function create_recurring_cache_table( string $charset_collate ): void {
-		$table_name = $this->db->get_wpdb()->prefix . 'scd_recurring_cache';
+		$table_name = $this->db->get_table_name( 'recurring_cache' );
 
 		$sql = "CREATE TABLE $table_name (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -547,6 +555,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 		) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- CREATE TABLE during plugin migration; uses dbDelta() for safe schema changes. Table name from $wpdb->prefix.
 		dbDelta( $sql );
 	}
 
@@ -609,6 +618,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 
 		// Foreign key for created_by (references wp_users)
 		if ( ! $this->foreign_key_exists( $table_name, 'fk_campaigns_created_by' ) ) {
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- ALTER TABLE for foreign key during migration; no WP abstraction. Uses %i placeholder for table names.
 			$wpdb->query(
 				$wpdb->prepare(
 					'ALTER TABLE %i
@@ -619,10 +629,12 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 					$wpdb->users
 				)
 			);
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 		}
 
 		// Foreign key for updated_by (references wp_users)
 		if ( ! $this->foreign_key_exists( $table_name, 'fk_campaigns_updated_by' ) ) {
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- ALTER TABLE for foreign key during migration; no WP abstraction. Uses %i placeholder for table names.
 			$wpdb->query(
 				$wpdb->prepare(
 					'ALTER TABLE %i
@@ -633,6 +645,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 					$wpdb->users
 				)
 			);
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 		}
 	}
 
@@ -650,6 +663,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 
 		// Foreign key for campaign_id
 		if ( ! $this->foreign_key_exists( $table_name, 'fk_active_discounts_campaign_id' ) ) {
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- ALTER TABLE for foreign key during migration; no WP abstraction. Uses %i placeholder for table names.
 			$wpdb->query(
 				$wpdb->prepare(
 					'ALTER TABLE %i
@@ -660,10 +674,12 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 					$campaigns_table
 				)
 			);
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 		}
 
 		// Foreign key for product_id (references wp_posts)
 		if ( ! $this->foreign_key_exists( $table_name, 'fk_active_discounts_product_id' ) ) {
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- ALTER TABLE for foreign key during migration; no WP abstraction. Uses %i placeholder for table names.
 			$wpdb->query(
 				$wpdb->prepare(
 					'ALTER TABLE %i
@@ -674,10 +690,12 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 					$wpdb->posts
 				)
 			);
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 		}
 
 		// Foreign key for variation_id (references wp_posts)
 		if ( ! $this->foreign_key_exists( $table_name, 'fk_active_discounts_variation_id' ) ) {
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- ALTER TABLE for foreign key during migration; no WP abstraction. Uses %i placeholder for table names.
 			$wpdb->query(
 				$wpdb->prepare(
 					'ALTER TABLE %i
@@ -688,6 +706,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 					$wpdb->posts
 				)
 			);
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 		}
 	}
 
@@ -705,6 +724,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 
 		// Foreign key for campaign_id
 		if ( ! $this->foreign_key_exists( $table_name, 'fk_analytics_campaign_id' ) ) {
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- ALTER TABLE for foreign key during migration; no WP abstraction. Uses %i placeholder for table names.
 			$wpdb->query(
 				$wpdb->prepare(
 					'ALTER TABLE %i
@@ -715,6 +735,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 					$campaigns_table
 				)
 			);
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 		}
 	}
 
@@ -732,6 +753,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 
 		// Foreign key for campaign_id
 		if ( ! $this->foreign_key_exists( $table_name, 'fk_customer_usage_campaign_id' ) ) {
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- ALTER TABLE for foreign key during migration; no WP abstraction. Uses %i placeholder for table names.
 			$wpdb->query(
 				$wpdb->prepare(
 					'ALTER TABLE %i
@@ -742,10 +764,12 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 					$campaigns_table
 				)
 			);
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 		}
 
 		// Foreign key for customer_id (references wp_users)
 		if ( ! $this->foreign_key_exists( $table_name, 'fk_customer_usage_customer_id' ) ) {
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- ALTER TABLE for foreign key during migration; no WP abstraction. Uses %i placeholder for table names.
 			$wpdb->query(
 				$wpdb->prepare(
 					'ALTER TABLE %i
@@ -756,6 +780,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 					$wpdb->users
 				)
 			);
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 		}
 	}
 
@@ -773,6 +798,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 
 		// Foreign key for campaign_id
 		if ( ! $this->foreign_key_exists( $table_name, 'fk_campaign_recurring_campaign' ) ) {
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- ALTER TABLE for foreign key during migration; no WP abstraction. Uses %i placeholder for table names.
 			$wpdb->query(
 				$wpdb->prepare(
 					'ALTER TABLE %i
@@ -783,6 +809,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 					$campaigns_table
 				)
 			);
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 		}
 	}
 
@@ -802,6 +829,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 
 		// Foreign key for campaign_id
 		if ( ! $this->foreign_key_exists( $table_name, 'fk_campaign_conditions_campaign' ) ) {
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- ALTER TABLE for foreign key during migration; no WP abstraction. Uses %i placeholder for table names.
 			$wpdb->query(
 				$wpdb->prepare(
 					'ALTER TABLE %i
@@ -812,6 +840,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 					$campaigns_table
 				)
 			);
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 		}
 	}
 
@@ -826,11 +855,12 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 	 */
 	private function add_recurring_cache_foreign_keys(): void {
 		global $wpdb;
-		$table_name      = $wpdb->prefix . 'scd_recurring_cache';
+		$table_name      = $this->db->get_table_name( 'recurring_cache' );
 		$campaigns_table = $this->db->get_table_name( 'campaigns' );
 
 		// Foreign key for parent_campaign_id
 		if ( ! $this->foreign_key_exists( $table_name, 'fk_cache_parent' ) ) {
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- ALTER TABLE for foreign key during migration; no WP abstraction. Uses %i placeholder for table names.
 			$wpdb->query(
 				$wpdb->prepare(
 					'ALTER TABLE %i
@@ -841,6 +871,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 					$campaigns_table
 				)
 			);
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 		}
 	}
 
@@ -890,18 +921,15 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 		);
 
 		foreach ( $tables as $table ) {
-			// Handle tables with full prefix vs get_table_name
-			if ( in_array( $table, array( 'recurring_cache', 'product_analytics', 'activity_log' ), true ) ) {
-				$table_name = $wpdb->prefix . 'scd_' . $table;
-			} else {
-				$table_name = $this->db->get_table_name( $table );
-			}
+			$table_name = $this->db->get_table_name( $table );
 
 			// Drop foreign keys first
 			$this->drop_foreign_keys( $table_name );
 
 			// Drop the table
-			$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table_name ) );
+			$drop_table_sql = $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table_name );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- DROP TABLE during migration rollback; query prepared above.
+			$wpdb->query( $drop_table_sql );
 		}
 	}
 
@@ -919,6 +947,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 		$constraints = $this->get_foreign_key_constraints( $table_name );
 
 		foreach ( $constraints as $constraint ) {
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- ALTER TABLE during migration rollback; no WP abstraction. Uses %i placeholder for identifiers.
 			$wpdb->query(
 				$wpdb->prepare(
 					'ALTER TABLE %i DROP FOREIGN KEY %i',
@@ -926,6 +955,7 @@ class SCD_Migration_001_Initial_Schema implements SCD_Migration_Interface {
 					$constraint
 				)
 			);
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 		}
 	}
 

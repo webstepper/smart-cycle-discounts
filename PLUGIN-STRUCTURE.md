@@ -1107,14 +1107,6 @@
 
 **Folder Total: 1 files, 230 LOC**
 
-### 📁 `resources/assets/js/polyfills/`
-
-| File Name | LOC |
-|-----------|----:|
-| `wp-i18n-polyfill.js` | 87 |
-
-**Folder Total: 1 files, 87 LOC**
-
 ### 📁 `resources/assets/js/shared/`
 
 | File Name | LOC |
@@ -1242,13 +1234,16 @@
 
 **Folder Total: 17 files, 9149 LOC**
 
-### 📁 `resources/assets/vendor/tom-select/`
+### 📁 `resources/assets/vendor/` (Bundled Libraries)
 
-| File Name | LOC |
-|-----------|----:|
-| `tom-select.js` | 440 |
+> **Note:** All vendor libraries are bundled locally for WordPress.org compliance.
 
-**Folder Total: 1 files, 440 LOC**
+| Directory | Library | Version | Files |
+|-----------|---------|---------|-------|
+| `chart-js/` | Chart.js | 4.5.1 | `chart.umd.min.js` |
+| `tom-select/` | Tom Select | 2.4.3 | `tom-select.complete.min.js`, `tom-select.min.css` |
+
+**Folder Total: 3 vendor files (bundled locally)**
 
 ### 📁 `tests/javascript/manual/`
 
@@ -1373,13 +1368,11 @@
 
 **Folder Total: 1 files, 0 LOC**
 
-### 📁 `resources/assets/vendor/tom-select/`
+### 📁 `resources/assets/vendor/` (CSS - External via CDN)
 
-| File Name | LOC |
-|-----------|----:|
-| `tom-select.css` | 1 |
+> CSS for external libraries loaded from CDN - see JavaScript section for details.
 
-**Folder Total: 1 files, 1 LOC**
+**Folder Total: 0 local CSS files (CDN-based)**
 
 
 ---

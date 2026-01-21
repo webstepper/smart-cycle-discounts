@@ -4,7 +4,7 @@
  *
  * Validates the schedule step for logical consistency, business rules, and edge cases.
  * Focuses ONLY on schedule step internal validation. Cross-step validation is handled
- * by SCD_Campaign_Cross_Validator.
+ * by WSSCD_Campaign_Cross_Validator.
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/validation/step-validators
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Validates the schedule step configuration for 47+ types of logical inconsistencies,
  * business rule violations, and edge cases. This validator focuses ONLY on the schedule
- * step itself - cross-step validation is handled by SCD_Campaign_Cross_Validator.
+ * step itself - cross-step validation is handled by WSSCD_Campaign_Cross_Validator.
  *
  * SCOPE: Schedule step internal validation only
  * - Date/time logic and temporal consistency
@@ -54,7 +54,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/core/validation/step-validators
  */
-class SCD_Schedule_Step_Validator {
+class WSSCD_Schedule_Step_Validator {
 
 	/**
 	 * Validate schedule step for contradictions and edge cases.
@@ -68,8 +68,8 @@ class SCD_Schedule_Step_Validator {
 	 * @return   void
 	 */
 	public static function validate( array $data, WP_Error $errors ) {
-		if ( ! class_exists( 'SCD_Validation_Rules' ) ) {
-			require_once SCD_INCLUDES_DIR . 'core/validation/class-validation-rules.php';
+		if ( ! class_exists( 'WSSCD_Validation_Rules' ) ) {
+			require_once WSSCD_INCLUDES_DIR . 'core/validation/class-validation-rules.php';
 		}
 
 		// Basic date logic validation
@@ -233,14 +233,14 @@ class SCD_Schedule_Step_Validator {
 		}
 
 		// Scenario 7: Max duration exceeded
-		if ( $duration_days > SCD_Validation_Rules::SCHEDULE_MAX_DURATION_DAYS ) {
+		if ( $duration_days > WSSCD_Validation_Rules::SCHEDULE_MAX_DURATION_DAYS ) {
 			$errors->add(
 				'schedule_max_duration_exceeded',
 				sprintf(
 					/* translators: 1: Duration in days, 2: Maximum allowed days */
 					__( 'Campaign duration (%1$d days) exceeds maximum allowed duration of %2$d days.', 'smart-cycle-discounts' ),
 					round( $duration_days ),
-					SCD_Validation_Rules::SCHEDULE_MAX_DURATION_DAYS
+					WSSCD_Validation_Rules::SCHEDULE_MAX_DURATION_DAYS
 				),
 				array( 'severity' => 'critical' )
 			);
@@ -311,15 +311,15 @@ class SCD_Schedule_Step_Validator {
 		$recurrence_unit     = isset( $data['recurrence_unit'] ) ? $data['recurrence_unit'] : 'days';
 
 		// Scenario 11: Invalid interval
-		if ( $recurrence_interval < SCD_Validation_Rules::RECURRENCE_MIN || $recurrence_interval > SCD_Validation_Rules::RECURRENCE_MAX ) {
+		if ( $recurrence_interval < WSSCD_Validation_Rules::RECURRENCE_MIN || $recurrence_interval > WSSCD_Validation_Rules::RECURRENCE_MAX ) {
 			$errors->add(
 				'schedule_invalid_recurrence_interval',
 				sprintf(
 					/* translators: 1: Interval, 2: Min, 3: Max */
 					__( 'Recurrence interval (%1$d) must be between %2$d and %3$d.', 'smart-cycle-discounts' ),
 					$recurrence_interval,
-					SCD_Validation_Rules::RECURRENCE_MIN,
-					SCD_Validation_Rules::RECURRENCE_MAX
+					WSSCD_Validation_Rules::RECURRENCE_MIN,
+					WSSCD_Validation_Rules::RECURRENCE_MAX
 				),
 				array( 'severity' => 'critical' )
 			);
@@ -423,7 +423,7 @@ class SCD_Schedule_Step_Validator {
 		if ( 'after_occurrences' === $end_type ) {
 			$occurrence_count = isset( $data['occurrence_count'] ) ? intval( $data['occurrence_count'] ) : 0;
 
-			if ( $occurrence_count < SCD_Validation_Rules::RECURRENCE_COUNT_MIN ) {
+			if ( $occurrence_count < WSSCD_Validation_Rules::RECURRENCE_COUNT_MIN ) {
 				$errors->add(
 					'schedule_zero_occurrences',
 					__( 'Occurrence count must be at least 1 for campaigns that end after a specific number of occurrences.', 'smart-cycle-discounts' ),
@@ -431,14 +431,14 @@ class SCD_Schedule_Step_Validator {
 				);
 			}
 
-			if ( $occurrence_count > SCD_Validation_Rules::RECURRENCE_COUNT_MAX ) {
+			if ( $occurrence_count > WSSCD_Validation_Rules::RECURRENCE_COUNT_MAX ) {
 				$errors->add(
 					'schedule_excessive_occurrences',
 					sprintf(
 						/* translators: 1: Count, 2: Max */
 						__( 'Occurrence count (%1$d) exceeds maximum allowed (%2$d). This may cause performance issues.', 'smart-cycle-discounts' ),
 						$occurrence_count,
-						SCD_Validation_Rules::RECURRENCE_COUNT_MAX
+						WSSCD_Validation_Rules::RECURRENCE_COUNT_MAX
 					),
 					array( 'severity' => 'warning' )
 				);
@@ -472,27 +472,27 @@ class SCD_Schedule_Step_Validator {
 		$rotation_interval = isset( $data['rotation_interval'] ) ? intval( $data['rotation_interval'] ) : 0;
 
 		// Scenario 17-18: Zero or negative interval
-		if ( $rotation_interval < SCD_Validation_Rules::ROTATION_INTERVAL_MIN ) {
+		if ( $rotation_interval < WSSCD_Validation_Rules::ROTATION_INTERVAL_MIN ) {
 			$errors->add(
 				'schedule_invalid_rotation_interval',
 				sprintf(
 					/* translators: 1: Interval, 2: Minimum */
 					__( 'Rotation interval (%1$d hours) must be at least %2$d hour.', 'smart-cycle-discounts' ),
 					$rotation_interval,
-					SCD_Validation_Rules::ROTATION_INTERVAL_MIN
+					WSSCD_Validation_Rules::ROTATION_INTERVAL_MIN
 				),
 				array( 'severity' => 'critical' )
 			);
 		}
 
-		if ( $rotation_interval > SCD_Validation_Rules::ROTATION_INTERVAL_MAX ) {
+		if ( $rotation_interval > WSSCD_Validation_Rules::ROTATION_INTERVAL_MAX ) {
 			$errors->add(
 				'schedule_rotation_interval_too_large',
 				sprintf(
 					/* translators: 1: Interval, 2: Maximum */
 					__( 'Rotation interval (%1$d hours) exceeds maximum allowed (%2$d hours / 7 days).', 'smart-cycle-discounts' ),
 					$rotation_interval,
-					SCD_Validation_Rules::ROTATION_INTERVAL_MAX
+					WSSCD_Validation_Rules::ROTATION_INTERVAL_MAX
 				),
 				array( 'severity' => 'critical' )
 			);
@@ -690,7 +690,7 @@ class SCD_Schedule_Step_Validator {
 
 		// Scenario 27: Invalid day names
 		foreach ( $selected_days as $day ) {
-			if ( ! in_array( strtolower( $day ), SCD_Validation_Rules::WEEKDAYS, true ) ) {
+			if ( ! in_array( strtolower( $day ), WSSCD_Validation_Rules::WEEKDAYS, true ) ) {
 				$errors->add(
 					'schedule_invalid_weekday',
 					sprintf(

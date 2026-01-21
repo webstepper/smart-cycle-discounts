@@ -14,23 +14,23 @@
 	'use strict';
 
 	// Ensure namespaces exist
-	window.SCD = window.SCD || {};
-	SCD.Modules = SCD.Modules || {};
-	SCD.Modules.Basic = SCD.Modules.Basic || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Modules = WSSCD.Modules || {};
+	WSSCD.Modules.Basic = WSSCD.Modules.Basic || {};
 
 	/**
 	 * Basic State Constructor
 	 * Inherits from BaseState
 	 */
-	SCD.Modules.Basic.State = function() {
+	WSSCD.Modules.Basic.State = function() {
 		var initialState = {};
-		var fields = SCD.FieldDefinitions.basic;
+		var fields = WSSCD.FieldDefinitions.basic;
 		if ( fields ) {
 			for ( var fieldName in fields ) {
 				if ( Object.prototype.hasOwnProperty.call( fields, fieldName ) ) {
 					// Use deepClone if available, otherwise use jQuery extend
-					if ( SCD.Utils && SCD.Utils.deepClone ) {
-						initialState[fieldName] = SCD.Utils.deepClone( fields[fieldName].default );
+					if ( WSSCD.Utils && WSSCD.Utils.deepClone ) {
+						initialState[fieldName] = WSSCD.Utils.deepClone( fields[fieldName].default );
 					} else {
 						initialState[fieldName] = $.extend( true, {}, fields[fieldName].default );
 					}
@@ -39,13 +39,13 @@
 		}
 
 		// Call parent constructor
-		SCD.Shared.BaseState.call( this, initialState );
+		WSSCD.Shared.BaseState.call( this, initialState );
 
 		// Subscribe to our own state changes for validation
 		var self = this;
 		this.subscribe( function( changes ) {
-			if ( changes.property && window.SCD && window.SCD.ValidationManager ) {
-				var result = window.SCD.ValidationManager.validateField(
+			if ( changes.property && window.WSSCD && window.WSSCD.ValidationManager ) {
+				var result = window.WSSCD.ValidationManager.validateField(
 					changes.property,
 					changes.newValue,
 					{
@@ -67,10 +67,10 @@
 		} );
 	};
 
-	SCD.Modules.Basic.State.prototype = Object.create( SCD.Shared.BaseState.prototype );
-	SCD.Modules.Basic.State.prototype.constructor = SCD.Modules.Basic.State;
+	WSSCD.Modules.Basic.State.prototype = Object.create( WSSCD.Shared.BaseState.prototype );
+	WSSCD.Modules.Basic.State.prototype.constructor = WSSCD.Modules.Basic.State;
 
-	$.extend( SCD.Modules.Basic.State.prototype, {
+	$.extend( WSSCD.Modules.Basic.State.prototype, {
 
 		/**
 		 * Validate all data using ValidationManager
@@ -79,7 +79,7 @@
 			var state = this.getState();
 			var validation = { valid: true, errors: {} };
 
-			if ( window.SCD && window.SCD.ValidationManager ) {
+			if ( window.WSSCD && window.WSSCD.ValidationManager ) {
 				var $form = $( '<form>' );
 				for ( var fieldName in state ) {
 					if ( Object.prototype.hasOwnProperty.call( state, fieldName ) ) {
@@ -92,7 +92,7 @@
 				}
 
 				// Use ValidationManager to validate
-				validation = window.SCD.ValidationManager.validateForm( $form, {
+				validation = window.WSSCD.ValidationManager.validateForm( $form, {
 					stepId: 'basic',
 					allValues: state,
 					visibilityMap: null
@@ -105,11 +105,11 @@
 			this._validationErrors = validation.errors;
 
 			// Log validation if debug enabled  
-			if ( ! validation.ok && window.SCD && window.SCD.ErrorHandler ) {
-				SCD.ErrorHandler.handle(
+			if ( ! validation.ok && window.WSSCD && window.WSSCD.ErrorHandler ) {
+				WSSCD.ErrorHandler.handle(
 					new Error( 'Basic step validation failed' ),
 					'BasicState.validate',
-					SCD.ErrorHandler.SEVERITY.LOW,
+					WSSCD.ErrorHandler.SEVERITY.LOW,
 					{ errors: this._validationErrors }
 				);
 			}
@@ -164,20 +164,20 @@
 		 */
 		reset: function() {
 			var defaults = {};
-			var fields = SCD.FieldDefinitions.basic;
+			var fields = WSSCD.FieldDefinitions.basic;
 			if ( fields ) {
 				for ( var fieldName in fields ) {
 					if ( Object.prototype.hasOwnProperty.call( fields, fieldName ) ) {
 						// Use deepClone if available, otherwise use jQuery extend
-						if ( SCD.Utils && SCD.Utils.deepClone ) {
-							defaults[fieldName] = SCD.Utils.deepClone( fields[fieldName].default );
+						if ( WSSCD.Utils && WSSCD.Utils.deepClone ) {
+							defaults[fieldName] = WSSCD.Utils.deepClone( fields[fieldName].default );
 						} else {
 							defaults[fieldName] = $.extend( true, {}, fields[fieldName].default );
 						}
 					}
 				}
 			}
-			SCD.Shared.BaseState.prototype.reset.call( this, defaults );
+			WSSCD.Shared.BaseState.prototype.reset.call( this, defaults );
 			this._validationErrors = {};
 		}
 	} );

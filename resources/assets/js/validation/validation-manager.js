@@ -14,7 +14,7 @@
 	'use strict';
 
 	// Ensure namespace exists
-	window.SCD = window.SCD || {};
+	window.WSSCD = window.WSSCD || {};
 
 	/**
 	 * Validation Manager - Simplified Implementation
@@ -33,8 +33,8 @@
 
 		// Configuration from localized data
 		this.config = {
-			ajaxUrl: ( window.scdWizardData && window.scdWizardData.ajaxUrl ) || window.ajaxurl || '',
-			nonce: ( window.scdWizardData && window.scdWizardData.nonce ) || '',
+			ajaxUrl: ( window.wsscdWizardData && window.wsscdWizardData.ajaxUrl ) || window.ajaxurl || '',
+			nonce: ( window.wsscdWizardData && window.wsscdWizardData.nonce ) || '',
 			debounceDelay: 150,
 			cacheTime: 300000
 		};
@@ -43,10 +43,10 @@
 		this.timers = {};
 		this.validationState = {};
 		
-		if ( window.scdValidationConstants ) {
-			if ( window.scdValidationConstants.timing ) {
-				this.config.debounceDelay = window.scdValidationConstants.timing.debounce_delay || 150;
-				this.config.cacheTime = window.scdValidationConstants.timing.cache_duration || 300000;
+		if ( window.wsscdValidationConstants ) {
+			if ( window.wsscdValidationConstants.timing ) {
+				this.config.debounceDelay = window.wsscdValidationConstants.timing.debounce_delay || 150;
+				this.config.cacheTime = window.wsscdValidationConstants.timing.cache_duration || 300000;
 			}
 		}
 
@@ -204,22 +204,22 @@
 	 * @returns {object|null} Field definition or null
 	 */
 	ValidationManager.prototype._getFieldDefinition = function( fieldName, context ) {
-		if ( ! context.stepId || ! window.SCD || ! window.SCD.FieldDefinitions ) {
+		if ( ! context.stepId || ! window.WSSCD || ! window.WSSCD.FieldDefinitions ) {
 			return null;
 		}
 
 		// Field names from validateStep() are camelCase (object keys from stepFields)
 		// Use getField() which looks up by camelCase key
-		if ( window.SCD.FieldDefinitions.getField ) {
-			var fieldDef = window.SCD.FieldDefinitions.getField( context.stepId, fieldName );
+		if ( window.WSSCD.FieldDefinitions.getField ) {
+			var fieldDef = window.WSSCD.FieldDefinitions.getField( context.stepId, fieldName );
 			if ( fieldDef ) {
 				return fieldDef;
 			}
 		}
 
 		// Fallback: Try getFieldByName() in case fieldName is snake_case (from DOM)
-		if ( window.SCD.FieldDefinitions.getFieldByName ) {
-			return window.SCD.FieldDefinitions.getFieldByName( context.stepId, fieldName );
+		if ( window.WSSCD.FieldDefinitions.getFieldByName ) {
+			return window.WSSCD.FieldDefinitions.getFieldByName( context.stepId, fieldName );
 		}
 
 		return null;
@@ -313,8 +313,8 @@
 		// CRITICAL FIX: Convert field name from snake_case to camelCase
 		// Conditional field names come from PHP in snake_case (e.g., 'discount_type')
 		// But allValues uses camelCase keys (e.g., 'discountType')
-		var camelCaseFieldName = window.SCD && window.SCD.Utils && window.SCD.Utils.Fields
-			? window.SCD.Utils.Fields.toCamelCase( fieldName )
+		var camelCaseFieldName = window.WSSCD && window.WSSCD.Utils && window.WSSCD.Utils.Fields
+			? window.WSSCD.Utils.Fields.toCamelCase( fieldName )
 			: fieldName;
 
 		// Get value from allValues object (JavaScript layer uses camelCase)
@@ -508,13 +508,13 @@
 			var result = self.validateField( fieldName, $field.val(), validationContext );
 			
 			// Handle UI updates separately (side effects)
-			if ( !result.ok && window.SCD && window.SCD.ValidationError ) {
+			if ( !result.ok && window.WSSCD && window.WSSCD.ValidationError ) {
 				var errorMessage = result.errors[0] && result.errors[0].message ? 
 					result.errors[0].message : 
 					(result.errors[0] || 'Invalid value');
-				window.SCD.ValidationError.show( $field, errorMessage );
-			} else if ( result.ok && window.SCD && window.SCD.ValidationError ) {
-				window.SCD.ValidationError.clear( $field );
+				window.WSSCD.ValidationError.show( $field, errorMessage );
+			} else if ( result.ok && window.WSSCD && window.WSSCD.ValidationError ) {
+				window.WSSCD.ValidationError.clear( $field );
 			}
 			
 			if ( callback ) {
@@ -583,8 +583,8 @@
 
 		// Helper to convert snake_case to camelCase
 		var toCamelCase = function( name ) {
-			if ( window.SCD && window.SCD.Utils && window.SCD.Utils.Fields && window.SCD.Utils.Fields.toCamelCase ) {
-				return window.SCD.Utils.Fields.toCamelCase( name );
+			if ( window.WSSCD && window.WSSCD.Utils && window.WSSCD.Utils.Fields && window.WSSCD.Utils.Fields.toCamelCase ) {
+				return window.WSSCD.Utils.Fields.toCamelCase( name );
 			}
 			return name;
 		};
@@ -620,17 +620,17 @@
 		// Tom Select and other complex components manage state in JavaScript,
 		// not in DOM. DOM state lags behind due to async updates.
 		// Use the existing collectComplexField() method that persistence already uses.
-		if ( window.SCD && window.SCD.FieldDefinitions ) {
+		if ( window.WSSCD && window.WSSCD.FieldDefinitions ) {
 			var stepName = $form.data( 'step' ) || $form.closest( '[data-step]' ).data( 'step' );
 
 			if ( stepName ) {
 				// Find the orchestrator for this step
 				var orchestratorKey = stepName.charAt( 0 ).toUpperCase() + stepName.slice( 1 ) + 'Orchestrator';
-				var orchestrator = window.SCD.Steps && window.SCD.Steps[orchestratorKey];
+				var orchestrator = window.WSSCD.Steps && window.WSSCD.Steps[orchestratorKey];
 
 
 				if ( orchestrator && 'function' === typeof orchestrator.collectComplexField ) {
-					var stepFields = window.SCD.FieldDefinitions.getStepFields( stepName ) || {};
+					var stepFields = window.WSSCD.FieldDefinitions.getStepFields( stepName ) || {};
 
 					// Collect complex fields using the SAME method as persistence
 					for ( var fieldName in stepFields ) {
@@ -687,12 +687,12 @@
 					}
 				}
 				
-				if ( isVisible && window.SCD && window.SCD.FieldDefinitions ) {
+				if ( isVisible && window.WSSCD && window.WSSCD.FieldDefinitions ) {
 					// Try to get field definition
 					var stepId = $form.data( 'step' ) || $form.closest( '[data-step]' ).data( 'step' );
 					if ( stepId ) {
 						// Field names from DOM are snake_case, use getFieldByName() to match
-						var fieldDef = window.SCD.FieldDefinitions.getFieldByName ? window.SCD.FieldDefinitions.getFieldByName( stepId, fieldName ) : window.SCD.FieldDefinitions.getField( stepId, fieldName );
+						var fieldDef = window.WSSCD.FieldDefinitions.getFieldByName ? window.WSSCD.FieldDefinitions.getFieldByName( stepId, fieldName ) : window.WSSCD.FieldDefinitions.getField( stepId, fieldName );
 
 						if ( fieldDef && fieldDef.conditional ) {
 							isVisible = this._evaluateCondition( fieldDef.conditional, formValues );
@@ -722,8 +722,8 @@
 		};
 
 		// Find step container using the ACTUAL DOM structure from PHP
-		// The wizard renders: <div class="scd-wizard-content scd-wizard-layout" data-step="products">
-		var $stepContainer = $( '.scd-wizard-content[data-step="' + stepName + '"]' );
+		// The wizard renders: <div class="wsscd-wizard-content wsscd-wizard-layout" data-step="products">
+		var $stepContainer = $( '.wsscd-wizard-content[data-step="' + stepName + '"]' );
 
 		if ( !$stepContainer.length ) {
 			// CRITICAL FIX: Container not found - validation MUST fail for safety
@@ -751,8 +751,8 @@
 		};
 
 		
-		if ( window.SCD && window.SCD.FieldDefinitions && window.SCD.FieldDefinitions.getStepFields ) {
-			var stepFields = window.SCD.FieldDefinitions.getStepFields( stepName );
+		if ( window.WSSCD && window.WSSCD.FieldDefinitions && window.WSSCD.FieldDefinitions.getStepFields ) {
+			var stepFields = window.WSSCD.FieldDefinitions.getStepFields( stepName );
 
 
 			// CRITICAL FIX: Check if stepFields has actual fields, not just truthy check
@@ -813,18 +813,18 @@
 	 */
 	ValidationManager.prototype.getMessage = function( key, param ) {
 		// Try to get message from PHP localization using utility function
-		if ( window.SCD && window.SCD.Utils && window.SCD.Utils.getValidationMessage ) {
+		if ( window.WSSCD && window.WSSCD.Utils && window.WSSCD.Utils.getValidationMessage ) {
 			// Try step-specific message first
 			var stepName = this.currentContext ? this.currentContext.split( '.' )[1] : null;
 			if ( stepName ) {
-				var stepMessage = window.SCD.Utils.getValidationMessage( stepName + '.' + key );
+				var stepMessage = window.WSSCD.Utils.getValidationMessage( stepName + '.' + key );
 				if ( stepMessage && stepMessage !== key ) {
 					return this.formatMessage( stepMessage, param );
 				}
 			}
 			
 			// Try general message
-			var message = window.SCD.Utils.getValidationMessage( key );
+			var message = window.WSSCD.Utils.getValidationMessage( key );
 			if ( message && message !== key ) {
 				return this.formatMessage( message, param );
 			}
@@ -926,9 +926,9 @@
 	};
 
 
-	window.SCD.ValidationManager = new ValidationManager();
+	window.WSSCD.ValidationManager = new ValidationManager();
 	
 	// Trigger ready event
-	$( document ).trigger( 'scd:validation:ready' );
+	$( document ).trigger( 'wsscd:validation:ready' );
 
 } )( jQuery );

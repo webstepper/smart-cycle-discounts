@@ -12,6 +12,8 @@
  * @subpackage SmartCycleDiscounts/includes/admin/views/campaigns/wizard
  */
 
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial included into function scope; variables are local, not global.
+
 // Prevent direct access
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -23,11 +25,15 @@ if ( ! current_user_can( 'manage_woocommerce' ) ) {
 }
 
 // Initialize variables using shared function
-scd_wizard_init_step_vars( $step_data, $validation_errors );
+wsscd_wizard_init_step_vars( $step_data, $validation_errors );
 
 // Extract values with defaults handled by field schema
+// Product Selection Model:
+// 1. Category filter (first field) - Creates the product pool. Empty = all categories
+// 2. Selection type - Determines HOW to select from the category pool
+// 3. Advanced filters - Further refines the selection
 $product_selection_type = $step_data['product_selection_type'] ?? 'all_products';
-$selected_categories = $step_data['category_ids'] ?? array( 'all' );
+$selected_categories = $step_data['category_ids'] ?? array();
 $product_ids = $step_data['product_ids'] ?? array();
 $random_count = $step_data['random_count'] ?? 10;
 $conditions = $step_data['conditions'] ?? array();
@@ -35,7 +41,8 @@ $conditions_logic = $step_data['conditions_logic'] ?? 'all';
 $smart_criteria = $step_data['smart_criteria'] ?? '';
 
 // Ensure arrays are proper type for template usage
-$selected_categories = is_array( $selected_categories ) ? $selected_categories : array( 'all' );
+// Empty array = all categories (no filter applied)
+$selected_categories = is_array( $selected_categories ) ? $selected_categories : array();
 $product_ids = is_array( $product_ids ) ? $product_ids : array();
 $conditions = is_array( $conditions ) ? $conditions : array();
 
@@ -67,10 +74,12 @@ if ( ! empty( $product_ids ) && function_exists( 'wc_get_products' ) ) {
 }
 
 // Get category data for saved categories (Tom Select options format)
+// Empty array = all categories (no filter), only load options for specific category IDs
 $category_options = array();
-if ( ! empty( $selected_categories ) && array( 'all' ) !== $selected_categories ) {
+if ( ! empty( $selected_categories ) ) {
 	foreach ( $selected_categories as $cat_id ) {
-		if ( 'all' === $cat_id ) {
+		// Only process valid numeric category IDs
+		if ( ! is_numeric( $cat_id ) || intval( $cat_id ) <= 0 ) {
 			continue;
 		}
 
@@ -87,11 +96,11 @@ if ( ! empty( $selected_categories ) && array( 'all' ) !== $selected_categories 
 	}
 }
 
-// Condition types are now defined in SCD_Field_Definitions::get_condition_types()
-$condition_types = class_exists( 'SCD_Field_Definitions' ) ? SCD_Field_Definitions::get_condition_types() : array();
+// Condition types are now defined in WSSCD_Field_Definitions::get_condition_types()
+$condition_types = class_exists( 'WSSCD_Field_Definitions' ) ? WSSCD_Field_Definitions::get_condition_types() : array();
 
-// Operator mappings are now defined in SCD_Field_Definitions::get_operator_mappings()
-$operator_mappings = class_exists( 'SCD_Field_Definitions' ) ? SCD_Field_Definitions::get_operator_mappings() : array();
+// Operator mappings are now defined in WSSCD_Field_Definitions::get_operator_mappings()
+$operator_mappings = class_exists( 'WSSCD_Field_Definitions' ) ? WSSCD_Field_Definitions::get_operator_mappings() : array();
 
 // Function to get operators for a condition type
 $get_operators_for_type = function( $type ) use ( $operator_mappings ) {
@@ -117,57 +126,62 @@ $js_strings = array(
 	'specific_products' => esc_html__( 'Specific Products', 'smart-cycle-discounts' )
 );
 
+// PRO feature access for dual-block pattern (WordPress.org compliance)
+$has_pro_access = wsscd_fs()->can_use_premium_code();
+$upgrade_url = $feature_gate ? $feature_gate->get_upgrade_url() : admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
+
 // Prepare content for template wrapper
 ob_start();
 ?>
-	<?php scd_wizard_validation_notice( $validation_errors ); ?>
+	<?php wsscd_wizard_validation_notice( $validation_errors ); ?>
 	
-	<?php wp_nonce_field( 'scd_wizard_products_step', 'scd_products_nonce' ); ?>
+	<?php wp_nonce_field( 'wsscd_wizard_products_step', 'wsscd_products_nonce' ); ?>
 	
 	<!-- Category Selection -->
 	<?php
 	ob_start();
 	?>
-	<div class="scd-form-field scd-form-field--full">
-		<label for="scd-campaign-categories">
+	<div class="wsscd-form-field wsscd-form-field--full">
+		<label for="wsscd-campaign-categories">
 			<?php esc_html_e( 'Categories', 'smart-cycle-discounts' ); ?>
-			<?php SCD_Tooltip_Helper::render( __( 'Filter products by category. Select multiple categories to include products from any of them.', 'smart-cycle-discounts' ) ); ?>
+			<?php WSSCD_Tooltip_Helper::render( __( 'Filter products by category. Select multiple categories to include products from any of them.', 'smart-cycle-discounts' ) ); ?>
 		</label>
-		<select id="scd-campaign-categories"
+		<select id="wsscd-campaign-categories"
 				name="category_ids[]"
 				multiple="multiple"
-				class="scd-category-select"
+				class="wsscd-category-select"
 				data-help-topic="category-ids">
 			<!-- Preload selected categories for form submission -->
+			<!-- Empty selection = all categories (no filter applied to the product pool) -->
 			<?php if ( ! empty( $selected_categories ) ) : ?>
 				<?php foreach ( $selected_categories as $cat_id ) : ?>
-					<?php if ( 'all' === $cat_id ) : ?>
-						<option value="all" selected><?php esc_html_e( 'All Categories', 'smart-cycle-discounts' ); ?></option>
-					<?php else : ?>
-						<?php
-						$category = get_term( absint( $cat_id ), 'product_cat' );
-						if ( $category && ! is_wp_error( $category ) ) :
-						?>
-							<option value="<?php echo esc_attr( $cat_id ); ?>" selected>
-								<?php echo esc_html( $category->name ); ?>
-							</option>
-						<?php endif; ?>
+					<?php
+					// Only render valid numeric category IDs
+					if ( ! is_numeric( $cat_id ) || intval( $cat_id ) <= 0 ) {
+						continue;
+					}
+					$category = get_term( absint( $cat_id ), 'product_cat' );
+					if ( $category && ! is_wp_error( $category ) ) :
+					?>
+						<option value="<?php echo esc_attr( $cat_id ); ?>" selected>
+							<?php echo esc_html( $category->name ); ?>
+						</option>
 					<?php endif; ?>
 				<?php endforeach; ?>
 			<?php endif; ?>
 		</select>
 		<!-- FOUC Prevention: Skeleton loader shown while Tom Select initializes (~100-200ms) -->
-		<div class="scd-loading-skeleton" aria-hidden="true"></div>
+		<div class="wsscd-loading-skeleton" aria-hidden="true"></div>
 	</div>
 	<?php
 	$category_content = ob_get_clean();
 	
-	scd_wizard_card( array(
+	wsscd_wizard_card( array(
 		'title' => esc_html__( 'Product Categories', 'smart-cycle-discounts' ),
 		'subtitle' => esc_html__( 'Select categories to include in this campaign', 'smart-cycle-discounts' ),
 		'icon' => 'category',
 		'content' => $category_content,
-		'class' => 'scd-category-selection',
+		'class' => 'wsscd-category-selection',
 		'help_topic' => 'card-category-selection'
 	) );
 	?>
@@ -176,9 +190,9 @@ ob_start();
 	<?php
 	ob_start();
 	?>
-	<div class="scd-product-selection-cards">
+	<div class="wsscd-product-selection-cards">
 		<!-- All Products Card -->
-		<div class="scd-card scd-card--interactive scd-card-option <?php echo 'all_products' === $product_selection_type ? 'scd-card-option--selected' : ''; ?>"
+		<div class="wsscd-card wsscd-card--interactive wsscd-card-option <?php echo esc_attr( 'all_products' === $product_selection_type ? 'wsscd-card-option--selected' : '' ); ?>"
 			 data-help-topic="option-product-all">
 			<input type="radio"
 				   name="product_selection_type"
@@ -186,14 +200,14 @@ ob_start();
 				   id="product_selection_all"
 				   data-help-topic="product-selection-type"
 				   <?php checked( $product_selection_type, 'all_products' ); ?>>
-			<label for="product_selection_all" class="scd-card__content">
-				<h4 class="scd-card__title"><?php esc_html_e( 'All Products', 'smart-cycle-discounts' ); ?></h4>
-				<p class="scd-card__subtitle"><?php esc_html_e( 'Apply discount to all products in selected categories', 'smart-cycle-discounts' ); ?></p>
+			<label for="product_selection_all" class="wsscd-card__content">
+				<h4 class="wsscd-card__title"><?php esc_html_e( 'All Products', 'smart-cycle-discounts' ); ?></h4>
+				<p class="wsscd-card__subtitle"><?php esc_html_e( 'Apply discount to all products in selected categories', 'smart-cycle-discounts' ); ?></p>
 			</label>
 		</div>
 
 		<!-- Random Products Card -->
-		<div class="scd-card scd-card--interactive scd-card-option <?php echo 'random_products' === $product_selection_type ? 'scd-card-option--selected' : ''; ?>"
+		<div class="wsscd-card wsscd-card--interactive wsscd-card-option <?php echo esc_attr( 'random_products' === $product_selection_type ? 'wsscd-card-option--selected' : '' ); ?>"
 			 data-help-topic="option-product-random">
 			<input type="radio"
 				   name="product_selection_type"
@@ -201,18 +215,18 @@ ob_start();
 				   id="product_selection_random"
 				   data-help-topic="product-selection-type"
 				   <?php checked( $product_selection_type, 'random_products' ); ?>>
-			<label for="product_selection_random" class="scd-card__content">
-				<h4 class="scd-card__title"><?php esc_html_e( 'Random Products', 'smart-cycle-discounts' ); ?></h4>
-				<p class="scd-card__subtitle"><?php esc_html_e( 'Randomly select a specific number of products', 'smart-cycle-discounts' ); ?></p>
+			<label for="product_selection_random" class="wsscd-card__content">
+				<h4 class="wsscd-card__title"><?php esc_html_e( 'Random Products', 'smart-cycle-discounts' ); ?></h4>
+				<p class="wsscd-card__subtitle"><?php esc_html_e( 'Randomly select a specific number of products', 'smart-cycle-discounts' ); ?></p>
 			</label>
 			
-			<div class="scd-random-count">
-				<label for="scd-random-count">
+			<div class="wsscd-random-count">
+				<label for="wsscd-random-count">
 					<?php esc_html_e( 'Number of products:', 'smart-cycle-discounts' ); ?>
-					<?php SCD_Tooltip_Helper::render( __('Specify how many random products to select from the chosen categories.', 'smart-cycle-discounts') ); ?>
+					<?php WSSCD_Tooltip_Helper::render( __('Specify how many random products to select from the chosen categories.', 'smart-cycle-discounts') ); ?>
 				</label>
 				<input type="number"
-					   id="scd-random-count"
+					   id="wsscd-random-count"
 					   name="random_count"
 					   value="<?php echo esc_attr( $random_count ); ?>"
 					   min="1"
@@ -223,12 +237,12 @@ ob_start();
 					   data-input-type="integer"
 					   data-help-topic="random-count"
 					   placeholder="1-100"
-					   class="scd-enhanced-input scd-input-small">
+					   class="wsscd-enhanced-input wsscd-input-small">
 			</div>
 		</div>
 		
 		<!-- Specific Products Card -->
-		<div class="scd-card scd-card--interactive scd-card-option <?php echo 'specific_products' === $product_selection_type ? 'scd-card-option--selected' : ''; ?>"
+		<div class="wsscd-card wsscd-card--interactive wsscd-card-option <?php echo esc_attr( 'specific_products' === $product_selection_type ? 'wsscd-card-option--selected' : '' ); ?>"
 			 data-help-topic="option-product-specific">
 			<input type="radio"
 				   name="product_selection_type"
@@ -236,26 +250,26 @@ ob_start();
 				   id="product_selection_specific"
 				   data-help-topic="product-selection-type"
 				   <?php checked( $product_selection_type, 'specific_products' ); ?>>
-			<label for="product_selection_specific" class="scd-card__content">
-				<h4 class="scd-card__title"><?php esc_html_e( 'Specific Products', 'smart-cycle-discounts' ); ?></h4>
-				<p class="scd-card__subtitle"><?php esc_html_e( 'Hand-pick individual products to discount', 'smart-cycle-discounts' ); ?></p>
+			<label for="product_selection_specific" class="wsscd-card__content">
+				<h4 class="wsscd-card__title"><?php esc_html_e( 'Specific Products', 'smart-cycle-discounts' ); ?></h4>
+				<p class="wsscd-card__subtitle"><?php esc_html_e( 'Hand-pick individual products to discount', 'smart-cycle-discounts' ); ?></p>
 			</label>
 			
-			<div class="scd-specific-products">
-				<div class="scd-product-search-container">
-					<label for="scd-product-search">
+			<div class="wsscd-specific-products">
+				<div class="wsscd-product-search-container">
+					<label for="wsscd-product-search">
 						<?php esc_html_e( 'Search and select products:', 'smart-cycle-discounts' ); ?>
-						<?php SCD_Tooltip_Helper::render( __('Search for specific products by name, SKU, or ID. You can select multiple products.', 'smart-cycle-discounts') ); ?>
+						<?php WSSCD_Tooltip_Helper::render( __('Search for specific products by name, SKU, or ID. You can select multiple products.', 'smart-cycle-discounts') ); ?>
 					</label>
 					<!-- Hidden field stores actual product IDs (single source of truth) -->
 					<input type="hidden"
-						   id="scd-product-ids-hidden"
+						   id="wsscd-product-ids-hidden"
 						   name="product_ids"
 						   value="<?php echo esc_attr( ! empty( $product_ids ) ? implode( ',', array_map( 'absint', $product_ids ) ) : '' ); ?>" />
 					<!-- TomSelect UI (syncs to hidden field) -->
-					<select id="scd-product-search"
+					<select id="wsscd-product-search"
 							multiple="multiple"
-							class="scd-product-search-select"
+							class="wsscd-product-search-select"
 							data-help-topic="product-ids"
 							placeholder="<?php esc_attr_e( 'Type to search products by name or SKU...', 'smart-cycle-discounts' ); ?>">
 						<?php foreach ( $selected_product_objects as $product ) : ?>
@@ -276,70 +290,70 @@ ob_start();
 		</div>
 		
 		<!-- Smart Selection Card -->
-		<div class="scd-card scd-card--interactive scd-card-option <?php echo 'smart_selection' === $product_selection_type ? 'scd-card-option--selected' : ''; ?>">
+		<div class="wsscd-card wsscd-card--interactive wsscd-card-option <?php echo esc_attr( 'smart_selection' === $product_selection_type ? 'wsscd-card-option--selected' : '' ); ?>">
 			<input type="radio"
 				   name="product_selection_type"
 				   value="smart_selection"
 				   id="product_selection_smart"
 				   <?php checked( $product_selection_type, 'smart_selection' ); ?>>
-			<label for="product_selection_smart" class="scd-card__content">
-				<h4 class="scd-card__title"><?php esc_html_e( 'Smart Selection', 'smart-cycle-discounts' ); ?></h4>
-				<p class="scd-card__subtitle"><?php esc_html_e( 'Auto-select products based on business criteria', 'smart-cycle-discounts' ); ?></p>
+			<label for="product_selection_smart" class="wsscd-card__content">
+				<h4 class="wsscd-card__title"><?php esc_html_e( 'Smart Selection', 'smart-cycle-discounts' ); ?></h4>
+				<p class="wsscd-card__subtitle"><?php esc_html_e( 'Auto-select products based on business criteria', 'smart-cycle-discounts' ); ?></p>
 			</label>
 			
-			<div class="scd-smart-criteria">
-				<div class="scd-smart-label">
+			<div class="wsscd-smart-criteria">
+				<div class="wsscd-smart-label">
 					<?php esc_html_e( 'Select products based on:', 'smart-cycle-discounts' ); ?>
-					<?php SCD_Tooltip_Helper::render( __('Automatically select products based on predefined criteria like best sellers, featured products, or inventory levels.', 'smart-cycle-discounts') ); ?>
+					<?php WSSCD_Tooltip_Helper::render( __('Automatically select products based on predefined criteria like best sellers, featured products, or inventory levels.', 'smart-cycle-discounts') ); ?>
 				</div>
-				<div class="scd-smart-options">
-					<label class="scd-smart-option">
+				<div class="wsscd-smart-options">
+					<label class="wsscd-smart-option">
 						<input type="radio" 
 							   name="smart_criteria" 
 							   value="best_sellers" 
 							   <?php checked( $smart_criteria, 'best_sellers' ); ?>>
-						<div class="scd-smart-option-content">
-							<?php echo SCD_Icon_Helper::get( 'chart-line', array( 'size' => 20 ) ); ?>
-							<div class="scd-smart-option-text">
+						<div class="wsscd-smart-option-content">
+							<?php WSSCD_Icon_Helper::render( 'chart-line', array( 'size' => 20 ) ); ?>
+							<div class="wsscd-smart-option-text">
 								<strong><?php esc_html_e( 'Best Sellers', 'smart-cycle-discounts' ); ?></strong>
 								<span><?php esc_html_e( 'Top performing products by sales', 'smart-cycle-discounts' ); ?></span>
 							</div>
 						</div>
 					</label>
-					<label class="scd-smart-option">
+					<label class="wsscd-smart-option">
 						<input type="radio" 
 							   name="smart_criteria" 
 							   value="featured"
 							   <?php checked( $smart_criteria, 'featured' ); ?>>
-						<div class="scd-smart-option-content">
-							<?php echo SCD_Icon_Helper::get( 'star-filled', array( 'size' => 16 ) ); ?>
-							<div class="scd-smart-option-text">
+						<div class="wsscd-smart-option-content">
+							<?php WSSCD_Icon_Helper::render( 'star-filled', array( 'size' => 16 ) ); ?>
+							<div class="wsscd-smart-option-text">
 								<strong><?php esc_html_e( 'Featured Products', 'smart-cycle-discounts' ); ?></strong>
 								<span><?php esc_html_e( 'Hand-picked showcase products', 'smart-cycle-discounts' ); ?></span>
 							</div>
 						</div>
 					</label>
-					<label class="scd-smart-option">
+					<label class="wsscd-smart-option">
 						<input type="radio" 
 							   name="smart_criteria" 
 							   value="low_stock"
 							   <?php checked( $smart_criteria, 'low_stock' ); ?>>
-						<div class="scd-smart-option-content">
-							<?php echo SCD_Icon_Helper::get( 'warning', array( 'size' => 16 ) ); ?>
-							<div class="scd-smart-option-text">
+						<div class="wsscd-smart-option-content">
+							<?php WSSCD_Icon_Helper::render( 'warning', array( 'size' => 16 ) ); ?>
+							<div class="wsscd-smart-option-text">
 								<strong><?php esc_html_e( 'Low Stock', 'smart-cycle-discounts' ); ?></strong>
 								<span><?php esc_html_e( 'Products with 10 or fewer items in stock', 'smart-cycle-discounts' ); ?></span>
 							</div>
 						</div>
 					</label>
-					<label class="scd-smart-option">
+					<label class="wsscd-smart-option">
 						<input type="radio" 
 							   name="smart_criteria" 
 							   value="new_arrivals"
 							   <?php checked( $smart_criteria, 'new_arrivals' ); ?>>
-						<div class="scd-smart-option-content">
-							<?php echo SCD_Icon_Helper::get( 'calendar', array( 'size' => 16 ) ); ?>
-							<div class="scd-smart-option-text">
+						<div class="wsscd-smart-option-content">
+							<?php WSSCD_Icon_Helper::render( 'calendar', array( 'size' => 16 ) ); ?>
+							<div class="wsscd-smart-option-text">
 								<strong><?php esc_html_e( 'New Arrivals', 'smart-cycle-discounts' ); ?></strong>
 								<span><?php esc_html_e( 'Recently added products (last 30 days)', 'smart-cycle-discounts' ); ?></span>
 							</div>
@@ -352,69 +366,100 @@ ob_start();
 	<?php
 	$selection_content = ob_get_clean();
 	
-	scd_wizard_card( array(
+	wsscd_wizard_card( array(
 		'title' => esc_html__( 'Select Products', 'smart-cycle-discounts' ),
 		'subtitle' => esc_html__( 'Choose which products will receive discounts in this campaign', 'smart-cycle-discounts' ),
 		'icon' => 'products',
 		'content' => $selection_content,
-		'class' => 'scd-product-selection-method',
+		'class' => 'wsscd-product-selection-method',
 		'help_topic' => 'card-product-selection'
 	) );
 	?>
 	
-	<!-- Advanced Conditions -->
+	<!-- Advanced Conditions (PRO) - Dual-block pattern for WordPress.org compliance -->
+	<?php if ( ! $has_pro_access ) : ?>
 	<?php
-	// Check if user can use advanced product filters
-	$can_use_filters = $feature_gate ? $feature_gate->can_use_advanced_product_filters() : false;
-	$upgrade_url = $feature_gate ? $feature_gate->get_upgrade_url() : admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
+	// Block 1: Promotional locked card (always in both ZIPs) - shown to free users
+	ob_start();
+	?>
+	<div class="wsscd-pro-feature-locked">
+		<div class="wsscd-pro-feature-locked__content">
+			<?php echo wp_kses_post( WSSCD_Badge_Helper::pro_badge( __( 'PRO Feature', 'smart-cycle-discounts' ) ) ); ?>
+			<h4 class="wsscd-pro-feature-locked__title">
+				<?php esc_html_e( 'Advanced Product Filters', 'smart-cycle-discounts' ); ?>
+			</h4>
+			<p class="wsscd-pro-feature-locked__description">
+				<?php esc_html_e( 'Create precise product targeting with powerful filter conditions to maximize campaign effectiveness.', 'smart-cycle-discounts' ); ?>
+			</p>
+			<ul class="wsscd-pro-feature-locked__features">
+				<li><?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?> <?php esc_html_e( 'Filter by price range, stock level, and attributes', 'smart-cycle-discounts' ); ?></li>
+				<li><?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?> <?php esc_html_e( 'Include or exclude products based on multiple criteria', 'smart-cycle-discounts' ); ?></li>
+				<li><?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?> <?php esc_html_e( 'Combine conditions with AND/OR logic', 'smart-cycle-discounts' ); ?></li>
+				<li><?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?> <?php esc_html_e( 'Filter by product tags, attributes, and more', 'smart-cycle-discounts' ); ?></li>
+			</ul>
+			<?php
+			WSSCD_Button_Helper::primary(
+				__( 'Upgrade to Pro', 'smart-cycle-discounts' ),
+				array(
+					'size'    => 'medium',
+					'href'    => esc_url( $upgrade_url ),
+					'classes' => array( 'wsscd-pro-feature-locked__upgrade-btn' ),
+				)
+			);
+			?>
+		</div>
+	</div>
+	<?php
+	$conditions_content = ob_get_clean();
 
+	wsscd_wizard_card( array(
+		'title'      => __( 'Advanced Filters', 'smart-cycle-discounts' ),
+		'icon'       => 'filter',
+		'badge'      => array( 'text' => __( 'PRO', 'smart-cycle-discounts' ), 'type' => 'pro' ),
+		'subtitle'   => esc_html__( 'Add conditions to filter products based on specific criteria', 'smart-cycle-discounts' ),
+		'content'    => $conditions_content,
+		'class'      => 'wsscd-conditions-section wsscd-wizard-card--locked',
+		'help_topic' => 'card-advanced-filters',
+	) );
+	?>
+	<?php endif; ?>
+
+	<?php if ( wsscd_fs()->is__premium_only() ) : ?>
+	<?php if ( $has_pro_access ) : ?>
+	<?php
+	// Block 2: Functional card (only in PRO ZIP, shown when licensed)
 	ob_start();
 	?>
 
-	<div class="scd-pro-container <?php echo $can_use_filters ? '' : 'scd-pro-container--locked'; ?>" id="scd-advanced-filters-container">
-		<?php if ( ! $can_use_filters ) : ?>
-			<?php
-			// Use centralized PRO overlay template
-			$description = __( 'Advanced filtering with custom conditions', 'smart-cycle-discounts' );
-			$features = array(
-				__( 'Price & inventory conditions', 'smart-cycle-discounts' ),
-				__( 'Product attributes (weight, dimensions, SKU)', 'smart-cycle-discounts' ),
-				__( 'Status & performance filters', 'smart-cycle-discounts' ),
-				__( 'Complex AND/OR logic', 'smart-cycle-discounts' ),
-			);
-			include SCD_PLUGIN_DIR . 'resources/views/admin/partials/pro-feature-overlay.php';
-			?>
-		<?php endif; ?>
-
-		<!-- Actual Advanced Filters UI (blurred for free users) -->
-		<div class="scd-pro-background">
-			<fieldset class="scd-conditions-logic-fieldset" <?php echo $can_use_filters ? '' : 'disabled aria-hidden="true"'; ?>>
+	<div id="wsscd-advanced-filters-container">
+		<div>
+			<fieldset class="wsscd-conditions-logic-fieldset">
 			<legend class="screen-reader-text"><?php esc_html_e( 'Condition Logic', 'smart-cycle-discounts' ); ?></legend>
-			<div class="scd-conditions-logic">
-				<span class="scd-logic-label">
+			<div class="wsscd-conditions-logic">
+				<span class="wsscd-logic-label">
 					<?php esc_html_e( 'Filter products that match', 'smart-cycle-discounts' ); ?>
-					<?php SCD_Tooltip_Helper::render( __('Choose whether products must meet all criteria or just one to be included', 'smart-cycle-discounts') ); ?>
+					<?php WSSCD_Tooltip_Helper::render( __('Choose whether products must meet all criteria or just one to be included', 'smart-cycle-discounts') ); ?>
 				</span>
-				<div class="scd-logic-selector" role="radiogroup" aria-label="<?php esc_attr_e( 'Condition matching logic', 'smart-cycle-discounts' ); ?>">
-					<label class="scd-logic-option">
+				<div class="wsscd-logic-selector" role="radiogroup" aria-label="<?php esc_attr_e( 'Condition matching logic', 'smart-cycle-discounts' ); ?>">
+					<label class="wsscd-logic-option">
 						<input type="radio"
 							   name="conditions_logic"
 							   value="all"
 							   <?php checked( $conditions_logic, 'all' ); ?>>
-						<span class="scd-logic-text">
+						<span class="wsscd-logic-text">
 							<?php esc_html_e( 'All conditions', 'smart-cycle-discounts' ); ?>
-							<span class="scd-logic-hint" aria-label="<?php esc_attr_e( 'AND logic', 'smart-cycle-discounts' ); ?>"><?php esc_html_e( '(AND)', 'smart-cycle-discounts' ); ?></span>
+							<span class="wsscd-logic-hint" aria-label="<?php esc_attr_e( 'AND logic', 'smart-cycle-discounts' ); ?>"><?php esc_html_e( '(AND)', 'smart-cycle-discounts' ); ?></span>
 						</span>
 					</label>
 
-					<label class="scd-logic-option">
+					<label class="wsscd-logic-option">
 						<input type="radio"
 							   name="conditions_logic"
 							   value="any"
 							   <?php checked( $conditions_logic, 'any' ); ?>>
-						<span class="scd-logic-text">
+						<span class="wsscd-logic-text">
 							<?php esc_html_e( 'Any condition', 'smart-cycle-discounts' ); ?>
-							<span class="scd-logic-hint" aria-label="<?php esc_attr_e( 'OR logic', 'smart-cycle-discounts' ); ?>"><?php esc_html_e( '(OR)', 'smart-cycle-discounts' ); ?></span>
+							<span class="wsscd-logic-hint" aria-label="<?php esc_attr_e( 'OR logic', 'smart-cycle-discounts' ); ?>"><?php esc_html_e( '(OR)', 'smart-cycle-discounts' ); ?></span>
 						</span>
 					</label>
 				</div>
@@ -422,7 +467,7 @@ ob_start();
 		</fieldset>
 
 		<!-- Conditions List -->
-		<div id="scd-conditions-list" class="scd-conditions-list" data-logic="<?php echo esc_attr( $conditions_logic ); ?>">
+		<div id="wsscd-conditions-list" class="wsscd-conditions-list" data-logic="<?php echo esc_attr( $conditions_logic ); ?>">
 		<?php 
 		// Define a function to render condition row
 		$render_condition_row = function( $index, $condition = array() ) use ( $condition_types, $get_operators_for_type ) {
@@ -438,11 +483,11 @@ ob_start();
 			$has_operator = ! empty( $condition_operator );
 			$is_between = in_array( $condition_operator, array( 'between', 'not_between' ), true );
 			?>
-			<div class="scd-condition-wrapper" data-index="<?php echo esc_attr( $index ); ?>">
-				<div class="scd-condition-row">
-					<div class="scd-condition-fields">
+			<div class="wsscd-condition-wrapper" data-index="<?php echo esc_attr( $index ); ?>">
+				<div class="wsscd-condition-row">
+					<div class="wsscd-condition-fields">
 						<select name="conditions[<?php echo esc_attr( $index ); ?>][mode]"
-								class="scd-condition-mode scd-enhanced-select"
+								class="wsscd-condition-mode wsscd-enhanced-select"
 								data-index="<?php echo esc_attr( $index ); ?>">
 							<option value="include" <?php selected( $condition_mode, 'include' ); ?>>
 								<?php esc_html_e( 'Include', 'smart-cycle-discounts' ); ?>
@@ -453,7 +498,7 @@ ob_start();
 						</select>
 
 						<select name="conditions[<?php echo esc_attr( $index ); ?>][condition_type]"
-								class="scd-condition-type scd-enhanced-select"
+								class="wsscd-condition-type wsscd-enhanced-select"
 								data-index="<?php echo esc_attr( $index ); ?>">
 							<option value=""><?php esc_html_e( 'Select condition type', 'smart-cycle-discounts' ); ?></option>
 							<?php foreach ( $condition_types as $group_key => $group ) : ?>
@@ -468,9 +513,9 @@ ob_start();
 						</select>
 
 						<select name="conditions[<?php echo esc_attr( $index ); ?>][operator]"
-								class="scd-condition-operator scd-enhanced-select"
+								class="wsscd-condition-operator wsscd-enhanced-select"
 								data-index="<?php echo esc_attr( $index ); ?>"
-								<?php echo ( ! $has_type ) ? 'disabled="disabled"' : ''; ?>>
+								<?php echo esc_attr( ( ! $has_type ) ? 'disabled' : '' ); ?>>
 							<option value=""><?php esc_html_e( 'Select operator', 'smart-cycle-discounts' ); ?></option>
 							<?php if ( $has_type ) : ?>
 								<?php foreach ( $operators as $op_value => $op_label ) : ?>
@@ -481,33 +526,33 @@ ob_start();
 							<?php endif; ?>
 						</select>
 
-						<div class="scd-condition-value-wrapper" data-index="<?php echo esc_attr( $index ); ?>">
+						<div class="wsscd-condition-value-wrapper" data-index="<?php echo esc_attr( $index ); ?>">
 							<input type="text"
 								   name="conditions[<?php echo esc_attr( $index ); ?>][value]"
-								   class="scd-condition-value scd-condition-value-single scd-enhanced-input"
+								   class="wsscd-condition-value wsscd-condition-value-single wsscd-enhanced-input"
 								   value="<?php echo esc_attr( $condition_value ); ?>"
 								   placeholder="<?php esc_attr_e( 'Enter value', 'smart-cycle-discounts' ); ?>"
-								   <?php echo ( ! $has_operator ) ? 'disabled="disabled"' : ''; ?>>
-							<span class="scd-condition-value-separator<?php echo $is_between ? '' : ' scd-hidden'; ?>">
+								   <?php disabled( ! $has_operator ); ?>>
+							<span class="wsscd-condition-value-separator<?php echo esc_attr( $is_between ? '' : ' wsscd-hidden' ); ?>">
 								<?php esc_html_e( 'and', 'smart-cycle-discounts' ); ?>
 							</span>
 							<input type="text"
 								   name="conditions[<?php echo esc_attr( $index ); ?>][value2]"
 								   value="<?php echo esc_attr( $condition_value2 ); ?>"
 								   placeholder="<?php esc_attr_e( 'Max value', 'smart-cycle-discounts' ); ?>"
-								   class="scd-condition-value scd-condition-value-between scd-enhanced-input<?php echo $is_between ? '' : ' scd-hidden'; ?>"
-								   <?php echo ( ! $has_operator ) ? 'disabled="disabled"' : ''; ?>>
+								   class="wsscd-condition-value wsscd-condition-value-between wsscd-enhanced-input<?php echo esc_attr( $is_between ? '' : ' wsscd-hidden' ); ?>"
+								   <?php disabled( ! $has_operator ); ?>>
 						</div>
 					</div>
 
-					<div class="scd-condition-actions">
+					<div class="wsscd-condition-actions">
 						<?php
-						SCD_Button_Helper::icon(
+						WSSCD_Button_Helper::icon(
 							'trash',
 							__( 'Remove this condition', 'smart-cycle-discounts' ),
 							array(
 								'style'   => 'secondary',
-								'classes' => array( 'scd-remove-condition' ),
+								'classes' => array( 'wsscd-remove-condition' ),
 							)
 						);
 						?>
@@ -515,7 +560,7 @@ ob_start();
 				</div>
 
 				<!-- Inline validation error container - now outside flex row -->
-				<div class="scd-condition-error-container"></div>
+				<div class="wsscd-condition-error-container"></div>
 			</div>
             <?php
 		};
@@ -531,83 +576,83 @@ ob_start();
 		</div>
 
 		<!-- Condition Actions -->
-		<div class="scd-condition-actions-wrapper">
+		<div class="wsscd-condition-actions-wrapper">
 			<?php
-			SCD_Button_Helper::secondary(
+			WSSCD_Button_Helper::secondary(
 				__( 'Add Condition', 'smart-cycle-discounts' ),
 				array(
 					'icon'    => 'plus-alt',
-					'classes' => array( 'scd-add-condition' ),
+					'classes' => array( 'wsscd-add-condition' ),
 				)
 			);
 			?>
 
-			<div class="scd-condition-help">
+			<div class="wsscd-condition-help">
 				<p class="description">
-					<?php echo SCD_Icon_Helper::get( 'info', array( 'size' => 16 ) ); ?>
+					<?php WSSCD_Icon_Helper::render( 'info', array( 'size' => 16 ) ); ?>
 					<?php esc_html_e( 'Conditions are automatically applied as you create them', 'smart-cycle-discounts' ); ?>
 				</p>
 			</div>
 		</div>
 
 		<!-- Conditions Summary Panel -->
-		<div class="scd-conditions-summary scd-hidden" role="region" aria-label="<?php esc_attr_e( 'Active Filters Summary', 'smart-cycle-discounts' ); ?>">
-			<div class="scd-summary-header">
+		<div class="wsscd-conditions-summary wsscd-hidden" role="region" aria-label="<?php esc_attr_e( 'Active Filters Summary', 'smart-cycle-discounts' ); ?>">
+			<div class="wsscd-summary-header">
 				<h4>
-					<?php echo SCD_Icon_Helper::get( 'filter', array( 'size' => 16 ) ); ?>
+					<?php WSSCD_Icon_Helper::render( 'filter', array( 'size' => 16 ) ); ?>
 					<?php esc_html_e( 'Active Filters', 'smart-cycle-discounts' ); ?>
 				</h4>
 				<?php
-				SCD_Button_Helper::icon(
+				WSSCD_Button_Helper::icon(
 					'arrow-up-alt2',
 					__( 'Toggle summary', 'smart-cycle-discounts' ),
 					array(
 						'style'   => 'link',
-						'classes' => array( 'scd-toggle-summary' ),
+						'classes' => array( 'wsscd-toggle-summary' ),
 					)
 				);
 				?>
 			</div>
-			<div class="scd-summary-content">
-				<div class="scd-summary-logic">
+			<div class="wsscd-summary-content">
+				<div class="wsscd-summary-logic">
 					<strong><?php esc_html_e( 'Logic:', 'smart-cycle-discounts' ); ?></strong>
-					<span class="scd-summary-logic-value"></span>
+					<span class="wsscd-summary-logic-value"></span>
 				</div>
-				<div class="scd-summary-conditions">
-					<ul class="scd-summary-list" role="list"></ul>
+				<div class="wsscd-summary-conditions">
+					<ul class="wsscd-summary-list" role="list"></ul>
 				</div>
-				<div class="scd-summary-count">
-					<span class="scd-condition-count">0</span>
+				<div class="wsscd-summary-count">
+					<span class="wsscd-condition-count">0</span>
 					<span><?php esc_html_e( 'conditions active', 'smart-cycle-discounts' ); ?></span>
 				</div>
 			</div>
 		</div>
-		</div><!-- .scd-pro-background -->
-	</div><!-- .scd-pro-container -->
+		</div>
+	</div><!-- #wsscd-advanced-filters-container -->
 	<?php
 	$conditions_content = ob_get_clean();
 
-	scd_wizard_card( array(
+	wsscd_wizard_card( array(
 		'title' => __( 'Advanced Filters', 'smart-cycle-discounts' ),
 		'icon' => 'filter',
 		'badge' => array(
 			'text' => __( 'Optional', 'smart-cycle-discounts' ),
 			'type' => 'optional'
 		),
-		'subtitle' => $can_use_filters
-			? esc_html__( 'Add conditions to filter products based on specific criteria', 'smart-cycle-discounts' )
-			: esc_html__( 'Upgrade to Pro to unlock advanced product filtering capabilities', 'smart-cycle-discounts' ),
+		'subtitle' => esc_html__( 'Add conditions to filter products based on specific criteria', 'smart-cycle-discounts' ),
 		'content' => $conditions_content,
-		'class' => 'scd-conditions-section',
+		'class' => 'wsscd-conditions-section',
 		'help_topic' => 'card-advanced-filters'
 	) );
 	?>
+	<?php endif; // End $has_pro_access ?>
+	<?php endif; // End is__premium_only() ?>
 <?php
 // Get the content
 $content = ob_get_clean();
 
 // Render using template wrapper with sidebar
-scd_wizard_render_step( array(
+wsscd_wizard_render_step( array(
     'title' => esc_html__( 'Product Selection', 'smart-cycle-discounts' ),
     'description' => esc_html__( 'Choose which products will be eligible for this discount', 'smart-cycle-discounts' ),
     'content' => $content,
@@ -644,7 +689,7 @@ if ( ! empty( $selected_product_objects ) ) {
 
 // Validation rules are now handled by the centralized field schema system
 
-scd_wizard_state_script( 'products', $saved_data_for_js, array(
+wsscd_wizard_state_script( 'products', $saved_data_for_js, array(
     'strings' => $js_strings,
     'condition_types' => $condition_types,
     'operator_mappings' => $operator_mappings

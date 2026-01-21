@@ -9,6 +9,9 @@
  * @subpackage Smart_Cycle_Discounts/Tests/Integration
  */
 
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter
+// This is a test file, not production code.
+
 /**
  * Test Database Schema class
  *
@@ -50,7 +53,7 @@ class Test_Database_Schema extends WP_UnitTestCase {
 	public function tearDown(): void {
 		// Clean up campaigns before users to avoid foreign key constraint violations
 		global $wpdb;
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
 		$wpdb->query( "DELETE FROM {$campaigns_table}" );
 
 		parent::tearDown();
@@ -64,7 +67,7 @@ class Test_Database_Schema extends WP_UnitTestCase {
 	 * @since 1.0.0
 	 */
 	public function test_campaigns_table_exists() {
-		$table_name = $this->wpdb->prefix . 'scd_campaigns';
+		$table_name = $this->wpdb->prefix . 'wsscd_campaigns';
 
 		// Query to check if table exists
 		$table_exists = $this->wpdb->get_var(
@@ -94,7 +97,7 @@ class Test_Database_Schema extends WP_UnitTestCase {
 	 * @since 1.0.0
 	 */
 	public function test_campaigns_table_has_required_columns() {
-		$table_name = $this->wpdb->prefix . 'scd_campaigns';
+		$table_name = $this->wpdb->prefix . 'wsscd_campaigns';
 
 		// Get all columns in campaigns table
 		$columns = $this->wpdb->get_results(
@@ -136,7 +139,7 @@ class Test_Database_Schema extends WP_UnitTestCase {
 	 * @since 1.0.0
 	 */
 	public function test_active_discounts_table_exists() {
-		$table_name = $this->wpdb->prefix . 'scd_active_discounts';
+		$table_name = $this->wpdb->prefix . 'wsscd_active_discounts';
 
 		$table_exists = $this->wpdb->get_var(
 			$this->wpdb->prepare(
@@ -159,7 +162,7 @@ class Test_Database_Schema extends WP_UnitTestCase {
 	 * @since 1.0.0
 	 */
 	public function test_analytics_table_exists() {
-		$table_name = $this->wpdb->prefix . 'scd_activity_log';
+		$table_name = $this->wpdb->prefix . 'wsscd_activity_log';
 
 		$table_exists = $this->wpdb->get_var(
 			$this->wpdb->prepare(
@@ -182,7 +185,7 @@ class Test_Database_Schema extends WP_UnitTestCase {
 	 * @since 1.0.0
 	 */
 	public function test_customer_usage_table_exists() {
-		$table_name = $this->wpdb->prefix . 'scd_customer_usage';
+		$table_name = $this->wpdb->prefix . 'wsscd_customer_usage';
 
 		$table_exists = $this->wpdb->get_var(
 			$this->wpdb->prepare(
@@ -205,7 +208,7 @@ class Test_Database_Schema extends WP_UnitTestCase {
 	 * @since 1.0.0
 	 */
 	public function test_campaigns_table_has_indexes() {
-		$table_name = $this->wpdb->prefix . 'scd_campaigns';
+		$table_name = $this->wpdb->prefix . 'wsscd_campaigns';
 
 		// Get all indexes
 		$indexes = $this->wpdb->get_results(
@@ -247,7 +250,7 @@ class Test_Database_Schema extends WP_UnitTestCase {
 	 * @since 1.0.0
 	 */
 	public function test_tables_use_correct_charset() {
-		$table_name = $this->wpdb->prefix . 'scd_campaigns';
+		$table_name = $this->wpdb->prefix . 'wsscd_campaigns';
 
 		// Get table status
 		$table_status = $this->wpdb->get_row(
@@ -278,7 +281,7 @@ class Test_Database_Schema extends WP_UnitTestCase {
 	 * @since 1.0.0
 	 */
 	public function test_tables_use_innodb_engine() {
-		$table_name = $this->wpdb->prefix . 'scd_campaigns';
+		$table_name = $this->wpdb->prefix . 'wsscd_campaigns';
 
 		// Get table status
 		$table_status = $this->wpdb->get_row(

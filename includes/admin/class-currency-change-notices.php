@@ -23,13 +23,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Uses WordPress native admin notices with Asset Management System.
  *
  * Dismiss functionality handled by admin-notices-dismiss.js (registered in Script_Registry).
- * Nonces localized via Asset_Localizer (scdAdminNotices.nonces.currency).
+ * Nonces localized via Asset_Localizer (wsscdAdminNotices.nonces.currency).
  *
  * @since      1.0.0
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/admin
  */
-class SCD_Currency_Change_Notices {
+class WSSCD_Currency_Change_Notices {
 
 	/**
 	 * Transient key for currency change data.
@@ -37,7 +37,7 @@ class SCD_Currency_Change_Notices {
 	 * @since    1.0.0
 	 * @var      string
 	 */
-	const TRANSIENT_KEY = 'scd_currency_change_notice';
+	const TRANSIENT_KEY = 'wsscd_currency_change_notice';
 
 	/**
 	 * Initialize notices.
@@ -50,7 +50,7 @@ class SCD_Currency_Change_Notices {
 	 */
 	public function init() {
 		add_action( 'admin_notices', array( $this, 'display_currency_change_notice' ) );
-		add_action( 'wp_ajax_scd_dismiss_currency_notice', array( $this, 'handle_dismiss_notice' ) );
+		add_action( 'wp_ajax_wsscd_dismiss_currency_notice', array( $this, 'handle_dismiss_notice' ) );
 	}
 
 	/**
@@ -108,16 +108,18 @@ class SCD_Currency_Change_Notices {
 			return false;
 		}
 
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Checking URL params for display context only.
 		// Show on main dashboard (overview page).
 		if ( false !== strpos( $screen->id, 'smart-cycle-discounts' ) && ! isset( $_GET['page'] ) ) {
 			return true;
 		}
 
 		// Show on campaigns list page ONLY (not wizard, not edit).
-		if ( false !== strpos( $screen->id, 'scd-campaigns' ) ) {
+		if ( false !== strpos( $screen->id, 'wsscd-campaigns' ) ) {
 			// Only on list view (no action parameter).
 			return ! isset( $_GET['action'] );
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		return false;
 	}
@@ -134,8 +136,8 @@ class SCD_Currency_Change_Notices {
 	private function enqueue_notice_styles() {
 		wp_add_inline_style(
 			'wp-admin',
-			'.notice.scd-currency-notice { border-left-color: #ff9800; }
-			.notice.scd-currency-notice--paused { border-left-width: 4px; }'
+			'.notice.wsscd-currency-notice { border-left-color: #ff9800; }
+			.notice.wsscd-currency-notice--paused { border-left-width: 4px; }'
 		);
 	}
 
@@ -149,7 +151,7 @@ class SCD_Currency_Change_Notices {
 	 */
 	private function render_safe_change_notice( $old_currency, $new_currency ) {
 		?>
-		<div class="notice notice-info is-dismissible scd-currency-notice">
+		<div class="notice notice-info is-dismissible wsscd-currency-notice">
 			<p>
 				<strong><?php esc_html_e( 'Currency Changed', 'smart-cycle-discounts' ); ?></strong>
 			</p>
@@ -179,9 +181,9 @@ class SCD_Currency_Change_Notices {
 	 * @return   void
 	 */
 	private function render_paused_campaigns_notice( $paused_count, $old_currency, $new_currency ) {
-		$review_url = admin_url( 'admin.php?page=scd-campaigns&action=currency-review' );
+		$review_url = admin_url( 'admin.php?page=wsscd-campaigns&action=currency-review' );
 		?>
-		<div class="notice notice-warning scd-currency-notice scd-currency-notice--paused">
+		<div class="notice notice-warning wsscd-currency-notice wsscd-currency-notice--paused">
 			<p>
 				<strong><?php esc_html_e( 'Currency Changed - Campaigns Paused for Review', 'smart-cycle-discounts' ); ?></strong>
 			</p>
@@ -189,8 +191,8 @@ class SCD_Currency_Change_Notices {
 				<?php
 				echo esc_html(
 					sprintf(
+						/* translators: %1$s: old currency code, %2$s: new currency code, %3$d: number of campaigns */
 						_n(
-							// translators: %1$s: old currency code, %2$s: new currency code, %3$d: number of campaigns.
 							'Your store currency has been changed from %1$s to %2$s. %3$d campaign with fixed discount amounts has been automatically paused for your review.',
 							'Your store currency has been changed from %1$s to %2$s. %3$d campaigns with fixed discount amounts have been automatically paused for your review.',
 							$paused_count,
@@ -212,8 +214,8 @@ class SCD_Currency_Change_Notices {
 				</a>
 				<button
 					type="button"
-					class="button scd-dismiss-notice"
-					data-action="scd_dismiss_currency_notice"
+					class="button wsscd-dismiss-notice"
+					data-action="wsscd_dismiss_currency_notice"
 					data-type="currency">
 					<?php esc_html_e( 'Dismiss', 'smart-cycle-discounts' ); ?>
 				</button>
@@ -230,7 +232,7 @@ class SCD_Currency_Change_Notices {
 	 */
 	public function handle_dismiss_notice() {
 		// Verify nonce.
-		check_ajax_referer( 'scd_dismiss_currency_notice', '_wpnonce' );
+		check_ajax_referer( 'wsscd_dismiss_currency_notice', '_wpnonce' );
 
 		// Verify permissions.
 		if ( ! current_user_can( 'manage_woocommerce' ) && ! current_user_can( 'manage_options' ) ) {

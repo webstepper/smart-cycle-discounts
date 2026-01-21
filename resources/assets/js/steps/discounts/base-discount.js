@@ -14,16 +14,16 @@
 	'use strict';
 
 	// Ensure namespace exists
-	window.SCD = window.SCD || {};
-	SCD.Modules = SCD.Modules || {};
-	SCD.Modules.Discounts = SCD.Modules.Discounts || {};
-	SCD.Modules.Discounts.Types = SCD.Modules.Discounts.Types || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Modules = WSSCD.Modules || {};
+	WSSCD.Modules.Discounts = WSSCD.Modules.Discounts || {};
+	WSSCD.Modules.Discounts.Types = WSSCD.Modules.Discounts.Types || {};
 
 	/**
 	 * Base Discount Type Constructor
 	 * @param state
 	 */
-	SCD.Modules.Discounts.Types.BaseDiscount = function( state ) {
+	WSSCD.Modules.Discounts.Types.BaseDiscount = function( state ) {
 		this.state = state;
 		this.type = 'base'; // Override in child classes
 		this.initialized = false;
@@ -34,13 +34,13 @@
 	};
 
 	// Extend with EventManager mixin if available
-	if ( SCD.EventManager ) {
-		$.extend( SCD.Modules.Discounts.Types.BaseDiscount.prototype, SCD.EventManager );
-	} else if ( SCD.Mixins && SCD.Mixins.EventManager ) {
-		$.extend( SCD.Modules.Discounts.Types.BaseDiscount.prototype, SCD.Mixins.EventManager );
+	if ( WSSCD.EventManager ) {
+		$.extend( WSSCD.Modules.Discounts.Types.BaseDiscount.prototype, WSSCD.EventManager );
+	} else if ( WSSCD.Mixins && WSSCD.Mixins.EventManager ) {
+		$.extend( WSSCD.Modules.Discounts.Types.BaseDiscount.prototype, WSSCD.Mixins.EventManager );
 	}
 
-	$.extend( SCD.Modules.Discounts.Types.BaseDiscount.prototype, {
+	$.extend( WSSCD.Modules.Discounts.Types.BaseDiscount.prototype, {
 		/**
 		 * Initialize the discount type
 		 */
@@ -60,7 +60,7 @@
 			var self = this;
 
 			// Listen for state changes using event manager
-			this.bindCustomEvent( 'scd:discounts:state:changed', function( event, change ) {
+			this.bindCustomEvent( 'wsscd:discounts:state:changed', function( event, change ) {
 				// Only react if this is the active discount type
 				if ( self.state.getData && self.state.getData( 'discountType' ) === self.type ) {
 					self.handleStateChange( change );
@@ -84,7 +84,7 @@
 			this.setDefaults();
 			this.showUI();
 			this.bindEvents();
-			this.triggerCustomEvent( 'scd:discount:type:activated', [ this.type ] );
+			this.triggerCustomEvent( 'wsscd:discount:type:activated', [ this.type ] );
 		},
 
 		/**
@@ -94,7 +94,7 @@
 			this.hideUI();
 			this.unbindEvents();
 			this.clearData();
-			this.triggerCustomEvent( 'scd:discount:type:deactivated', [ this.type ] );
+			this.triggerCustomEvent( 'wsscd:discount:type:deactivated', [ this.type ] );
 		},
 
 		/**
@@ -205,7 +205,7 @@
 		 * Update discount preview using event system
 		 */
 		updatePreview: function() {
-			this.triggerCustomEvent( 'scd:discount:preview:update', [ {
+			this.triggerCustomEvent( 'wsscd:discount:preview:update', [ {
 				type: this.type,
 				value: this.calculateValue(),
 				config: this.getPreviewConfig()
@@ -223,8 +223,8 @@
 			}
 
 		// Use centralized ValidationError component
-		if ( window.SCD && window.SCD.ValidationError ) {
-			window.SCD.ValidationError.show( $field, message );
+		if ( window.WSSCD && window.WSSCD.ValidationError ) {
+			window.WSSCD.ValidationError.show( $field, message );
 		}
 		},
 

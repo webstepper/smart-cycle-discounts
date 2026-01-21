@@ -17,18 +17,18 @@
    Base Loader Overlay
    ========================================================================== */
 
-.scd-loader-overlay {
+.wsscd-loader-overlay {
 	background: rgba(255, 255, 255, 0.7);
 	backdrop-filter: blur(4px);
 	-webkit-backdrop-filter: blur(4px); /* Safari support */
-	z-index: var(--scd-z-dropdown);
+	z-index: var(--wsscd-z-dropdown);
 }
 
 /* ==========================================================================
    Loader Content (Centered Container)
    ========================================================================== */
 
-.scd-loader-content {
+.wsscd-loader-content {
 	position: absolute;
 	top: 50%;
 	left: 50%;
@@ -37,17 +37,17 @@
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	gap: var(--scd-gap-normal);
+	gap: var(--wsscd-gap-normal);
 }
 
 /* ==========================================================================
    Loader Text
    ========================================================================== */
 
-.scd-loader-text {
-	font-size: var(--scd-font-size-medium);
-	color: var(--scd-color-text-muted);
-	font-weight: var(--scd-font-weight-normal);
+.wsscd-loader-text {
+	font-size: var(--wsscd-font-size-medium);
+	color: var(--wsscd-color-text-muted);
+	font-weight: var(--wsscd-font-weight-normal);
 	line-height: 1.4;
 }
 
@@ -56,25 +56,25 @@
    Covers viewport excluding WordPress admin sidebar
    ========================================================================== */
 
-.scd-loader-fullscreen {
+.wsscd-loader-fullscreen {
 	position: fixed;
 	top: 0;
 	left: 160px; /* WordPress admin sidebar width */
 	right: 0;
 	bottom: 0;
-	z-index: var(--scd-z-notification); /* Above navigation (9999) to cover buttons during completion */
+	z-index: var(--wsscd-z-notification); /* Above navigation (9999) to cover buttons during completion */
 }
 
 /* Adjust for folded sidebar */
 @media screen and (max-width: 960px) {
-	.scd-loader-fullscreen {
+	.wsscd-loader-fullscreen {
 		left: 36px;
 	}
 }
 
 /* Adjust for mobile (no sidebar) */
 @media screen and (max-width: 782px) {
-	.scd-loader-fullscreen {
+	.wsscd-loader-fullscreen {
 		left: 0;
 	}
 }
@@ -84,7 +84,7 @@
    Covers a specific container with absolute positioning
    ========================================================================== */
 
-.scd-loader-container {
+.wsscd-loader-container {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -96,7 +96,7 @@
 }
 
 /* Ensure parent has position context */
-.scd-loader-container-parent {
+.wsscd-loader-container-parent {
 	position: relative;
 }
 
@@ -105,18 +105,18 @@
    Small spinner for inline elements (no overlay)
    ========================================================================== */
 
-.scd-loader-inline {
+.wsscd-loader-inline {
 	display: none;
 	align-items: center;
 	justify-content: center;
 	margin: 0 8px;
 }
 
-.scd-loader-inline.is-active {
+.wsscd-loader-inline.is-active {
 	display: inline-flex;
 }
 
-.scd-loader-inline .spinner {
+.wsscd-loader-inline .spinner {
 	float: none;
 	margin: 0;
 }
@@ -126,30 +126,30 @@
    Spinner that replaces button text during processing
    ========================================================================== */
 
-.scd-loader-button {
+.wsscd-loader-button {
 	display: none;
 	align-items: center;
 	justify-content: center;
-	gap: var(--scd-gap-tight);
+	gap: var(--wsscd-gap-tight);
 }
 
-.scd-loader-button .spinner {
+.wsscd-loader-button .spinner {
 	float: none;
 	margin: 0;
 }
 
-.scd-loader-button .scd-loader-text {
+.wsscd-loader-button .wsscd-loader-text {
 	font-size: inherit;
 	color: inherit;
 	font-weight: inherit;
 }
 
 /* Button loading state helper classes */
-.scd-button-loading .scd-button-text {
+.wsscd-button-loading .wsscd-button-text {
 	display: none;
 }
 
-.scd-button-loading .scd-loader-button {
+.wsscd-button-loading .wsscd-loader-button {
 	display: inline-flex;
 }
 
@@ -158,19 +158,19 @@
    Ensure WordPress spinner works correctly in all contexts
    ========================================================================== */
 
-.scd-loader-overlay .spinner,
-.scd-loader-content .spinner,
-.scd-loader-inline .spinner,
-.scd-loader-button .spinner {
+.wsscd-loader-overlay .spinner,
+.wsscd-loader-content .spinner,
+.wsscd-loader-inline .spinner,
+.wsscd-loader-button .spinner {
 	float: none;
 	margin: 0;
 }
 
 /* Make spinner visible and active */
-.scd-loader-overlay .spinner.is-active,
-.scd-loader-content .spinner.is-active,
-.scd-loader-inline .spinner.is-active,
-.scd-loader-button .spinner.is-active {
+.wsscd-loader-overlay .spinner.is-active,
+.wsscd-loader-content .spinner.is-active,
+.wsscd-loader-inline .spinner.is-active,
+.wsscd-loader-button .spinner.is-active {
 	display: inline-block;
 	visibility: visible;
 }
@@ -180,11 +180,11 @@
    ========================================================================== */
 
 /* Fade in loader overlay */
-.scd-loader-overlay.scd-loader-fade-in {
-	animation: scd-loader-fade-in 0.2s ease-in-out;
+.wsscd-loader-overlay.wsscd-loader-fade-in {
+	animation: wsscd-loader-fade-in 0.2s ease-in-out;
 }
 
-@keyframes scd-loader-fade-in {
+@keyframes wsscd-loader-fade-in {
 	from {
 		opacity: 0;
 	}
@@ -194,11 +194,11 @@
 }
 
 /* Fade out loader overlay */
-.scd-loader-overlay.scd-loader-fade-out {
-	animation: scd-loader-fade-out 0.2s ease-in-out;
+.wsscd-loader-overlay.wsscd-loader-fade-out {
+	animation: wsscd-loader-fade-out 0.2s ease-in-out;
 }
 
-@keyframes scd-loader-fade-out {
+@keyframes wsscd-loader-fade-out {
 	from {
 		opacity: 1;
 	}
@@ -211,11 +211,11 @@
    Accessibility
    ========================================================================== */
 
-/* Screen reader text for loading state - use .scd-sr-only from shared/_utilities.css */
+/* Screen reader text for loading state - use .wsscd-sr-only from shared/_utilities.css */
 
 /* Add ARIA live region for loading announcements */
-.scd-loader-overlay[aria-live="polite"],
-.scd-loader-overlay[aria-live="assertive"] {
+.wsscd-loader-overlay[aria-live="polite"],
+.wsscd-loader-overlay[aria-live="assertive"] {
 	/* Ensure screen readers announce loading state */
 }
 
@@ -224,14 +224,14 @@
    ========================================================================== */
 
 @media (prefers-contrast: high) {
-	.scd-loader-overlay {
-		background: var(--scd-color-white);
-		border: 2px solid var(--scd-color-gray-900);
+	.wsscd-loader-overlay {
+		background: var(--wsscd-color-white);
+		border: 2px solid var(--wsscd-color-gray-900);
 	}
 
-	.scd-loader-text {
-		color: var(--scd-color-gray-900);
-		font-weight: var(--scd-font-weight-semibold);
+	.wsscd-loader-text {
+		color: var(--wsscd-color-gray-900);
+		font-weight: var(--wsscd-font-weight-semibold);
 	}
 }
 
@@ -240,8 +240,8 @@
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-	.scd-loader-overlay.scd-loader-fade-in,
-	.scd-loader-overlay.scd-loader-fade-out {
+	.wsscd-loader-overlay.wsscd-loader-fade-in,
+	.wsscd-loader-overlay.wsscd-loader-fade-out {
 		animation: none;
 	}
 

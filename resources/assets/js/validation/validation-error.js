@@ -13,8 +13,8 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	window.SCD.Components = window.SCD.Components || {};
+	window.WSSCD = window.WSSCD || {};
+	window.WSSCD.Components = window.WSSCD.Components || {};
 
 	/**
 	 * ValidationError Component
@@ -23,7 +23,7 @@
 	 * presentation throughout the plugin. Provides consistent styling,
 	 * accessibility compliance, and integration with validation workflows.
 	 *
-	 * @namespace SCD.Components.ValidationError
+	 * @namespace WSSCD.Components.ValidationError
 	 * @since 1.0.0
 	 *
 	 * Design Principles:
@@ -33,7 +33,7 @@
 	 * - Performance: Efficient DOM manipulation and caching
 	 * - Integration: Seamless ValidationManager integration
 	 */
-	SCD.Components.ValidationError = {
+	WSSCD.Components.ValidationError = {
 
 		/**
 		 * Track timeouts for cleanup
@@ -73,7 +73,7 @@
 		 * positioning, and ARIA compliance automatically.
 		 *
 		 * @function show
-		 * @memberof SCD.Components.ValidationError
+		 * @memberof WSSCD.Components.ValidationError
 		 * @param {jQuery} $field - jQuery field element to show error for
 		 * @param {string} message - Error message to display
 		 * @param {object} [options={}] - Display configuration options
@@ -85,10 +85,10 @@
 		 *
 		 * @example
 		 * // Show basic error
-		 * SCD.Components.ValidationError.show($('#email'), 'Invalid email address');
+		 * WSSCD.Components.ValidationError.show($('#email'), 'Invalid email address');
 		 *
 		 * // Show warning with custom options
-		 * SCD.Components.ValidationError.show($('#password'), 'Weak password', {
+		 * WSSCD.Components.ValidationError.show($('#password'), 'Weak password', {
 		 *     type: 'warning',
 		 *     animate: true,
 		 *     focus: true
@@ -121,7 +121,7 @@
 			var $container = this._findContainer( $field );
 			var errorId = 'error-' + ( $field.attr( 'name' ) || $field.attr( 'id' ) || 'field' ).replace( /[^a-zA-Z0-9]/g, '-' );
 
-			var $errorMsg = $( '<div class="scd-field-error" id="' + errorId + '" role="alert"></div>' ).text( messageText );
+			var $errorMsg = $( '<div class="wsscd-field-error" id="' + errorId + '" role="alert"></div>' ).text( messageText );
 
 			// Special handling for Tom Select fields
 			var $tomSelectWrapper = $field.siblings( '.ts-wrapper' );
@@ -154,7 +154,7 @@
 		 * error element removal or just hiding.
 		 *
 		 * @function clear
-		 * @memberof SCD.Components.ValidationError
+		 * @memberof WSSCD.Components.ValidationError
 		 * @param {jQuery} $field - jQuery field element to clear error from
 		 * @param {object} [options={}] - Clear configuration options
 		 * @param {boolean} [options.animate=true] - Whether to animate error removal
@@ -162,10 +162,10 @@
 		 *
 		 * @example
 		 * // Clear error with animation
-		 * SCD.Components.ValidationError.clear($('#email'));
+		 * WSSCD.Components.ValidationError.clear($('#email'));
 		 *
 		 * // Clear and remove error element completely
-		 * SCD.Components.ValidationError.clear($('#password'), {
+		 * WSSCD.Components.ValidationError.clear($('#password'), {
 		 *     animate: true,
 		 *     remove: true
 		 * });
@@ -187,8 +187,8 @@
 		}
 
 		// Also remove any error messages near the field
-		$field.siblings( '.scd-field-error' ).remove();
-		$container.find( '.scd-field-error' ).remove();
+		$field.siblings( '.wsscd-field-error' ).remove();
+		$container.find( '.wsscd-field-error' ).remove();
 
 		// Check if this is a Tom Select field and clear error styling from wrapper
 		var $tomSelectWrapper = $field.siblings( '.ts-wrapper' );
@@ -223,7 +223,7 @@
 		 * Commonly used for complete form validation results.
 		 *
 		 * @function showMultiple
-		 * @memberof SCD.Components.ValidationError
+		 * @memberof WSSCD.Components.ValidationError
 		 * @param {object} errors - Field name to error messages mapping
 		 * @param {jQuery} $context - Container element to search for fields
 		 * @param {object} [options={}] - Display configuration options
@@ -240,7 +240,7 @@
 		 *     'confirm_password': 'Passwords do not match'
 		 * };
 		 *
-		 * SCD.Components.ValidationError.showMultiple(errors, $('#registration-form'), {
+		 * WSSCD.Components.ValidationError.showMultiple(errors, $('#registration-form'), {
 		 *     clearFirst: true,
 		 *     showSummary: true,
 		 *     summaryPosition: 'top'
@@ -318,8 +318,8 @@
 			// If camelCase field not found, try snake_case conversion
 			// (PHP validation returns camelCase, but DOM uses snake_case)
 			if ( ! $field.length && /[A-Z]/.test( fieldName ) ) {
-				var snakeName = window.SCD && window.SCD.Utils && window.SCD.Utils.Fields && window.SCD.Utils.Fields.toSnakeCase
-					? window.SCD.Utils.Fields.toSnakeCase( fieldName )
+				var snakeName = window.WSSCD && window.WSSCD.Utils && window.WSSCD.Utils.Fields && window.WSSCD.Utils.Fields.toSnakeCase
+					? window.WSSCD.Utils.Fields.toSnakeCase( fieldName )
 					: fieldName.replace( /[A-Z]/g, function( letter ) { return '_' + letter.toLowerCase(); } );
 				$field = $context.find( '[name="' + this.escapeSelector( snakeName ) + '"]' );
 				if ( ! $field.length ) {
@@ -338,7 +338,7 @@
 		 * @returns {jQuery} Container element
 		 */
 		_findContainer: function( $field ) {
-			var $container = $field.closest( '.scd-field-container, .scd-field-wrapper, .form-field' );
+			var $container = $field.closest( '.wsscd-field-container, .wsscd-field-wrapper, .form-field' );
 
 			if ( ! $container.length ) {
 				$container = $field.parent();
@@ -432,7 +432,7 @@
 		 * starting fresh validation cycles.
 		 *
 		 * @function clearAll
-		 * @memberof SCD.Components.ValidationError
+		 * @memberof WSSCD.Components.ValidationError
 		 * @param {jQuery} $context - Container element to clear errors from
 		 * @param {object} [options={}] - Clear configuration options
 		 * @param {boolean} [options.animate=true] - Whether to animate error removal
@@ -440,10 +440,10 @@
 		 *
 		 * @example
 		 * // Clear all errors in form
-		 * SCD.Components.ValidationError.clearAll($('#wizard-form'));
+		 * WSSCD.Components.ValidationError.clearAll($('#wizard-form'));
 		 *
 		 * // Clear all errors and remove elements
-		 * SCD.Components.ValidationError.clearAll($('#step-container'), {
+		 * WSSCD.Components.ValidationError.clearAll($('#step-container'), {
 		 *     animate: false,
 		 *     remove: true
 		 * });
@@ -459,8 +459,8 @@
 				self.clear( $( this ), options );
 			} );
 
-			if ( SCD.Shared && SCD.Shared.NotificationService ) {
-				SCD.Shared.NotificationService.dismiss( 'validation-errors' );
+			if ( WSSCD.Shared && WSSCD.Shared.NotificationService ) {
+				WSSCD.Shared.NotificationService.dismiss( 'validation-errors' );
 			}
 
 			if ( this._$announcer && this._$announcer.length ) {
@@ -505,7 +505,7 @@
 					}
 
 					// Use public getFieldLabel which handles all fallback logic
-					var fieldLabel = SCD.Components.ValidationError.getFieldLabel( $field.length ? $field : fieldName, fieldName );
+					var fieldLabel = WSSCD.Components.ValidationError.getFieldLabel( $field.length ? $field : fieldName, fieldName );
 
 					// If no label found, don't show empty prefix
 					if ( fieldLabel && fieldLabel.trim() ) {
@@ -518,8 +518,8 @@
 
 		if ( 0 === errorCount ) {
 			// Dismiss any existing validation error notification when there are no errors
-			if ( SCD.Shared && SCD.Shared.NotificationService ) {
-				SCD.Shared.NotificationService.dismiss( 'validation-errors' );
+			if ( WSSCD.Shared && WSSCD.Shared.NotificationService ) {
+				WSSCD.Shared.NotificationService.dismiss( 'validation-errors' );
 			}
 			return;
 		}
@@ -540,8 +540,8 @@
 					' and ' + remainingCount + ' more field' + ( remainingCount > 1 ? 's' : '' ) + ' require attention';
 			}
 
-			if ( SCD.Shared && SCD.Shared.NotificationService ) {
-				SCD.Shared.NotificationService.show(
+			if ( WSSCD.Shared && WSSCD.Shared.NotificationService ) {
+				WSSCD.Shared.NotificationService.show(
 					notificationMessage,
 					'error',
 					5000, // Longer duration for reading multiple errors
@@ -629,16 +629,16 @@
 		announceError: function( message, fieldName ) {
 			// Use cached announcer or create if needed
 			if ( ! this._$announcer || ! this._$announcer.length ) {
-				this._$announcer = $( '#scd-validation-announcer' );
+				this._$announcer = $( '#wsscd-validation-announcer' );
 
 				if ( ! this._$announcer.length ) {
-					this._$announcer = $( '<div id="scd-validation-announcer" class="screen-reader-text" aria-live="assertive" aria-atomic="true"></div>' );
+					this._$announcer = $( '<div id="wsscd-validation-announcer" class="screen-reader-text" aria-live="assertive" aria-atomic="true"></div>' );
 					$( 'body' ).append( this._$announcer );
 				}
 			}
 
 			// Format announcement using public method which handles all fallback logic
-			var announcement = 'Error in ' + SCD.Components.ValidationError.getFieldLabel( fieldName ) + ': ' + message;
+			var announcement = 'Error in ' + WSSCD.Components.ValidationError.getFieldLabel( fieldName ) + ': ' + message;
 
 			var $announcer = this._$announcer;
 			$announcer.empty();
@@ -667,11 +667,11 @@
 		 * Sets up announcer and caches
 		 */
 		init: function() {
-			if ( ! $( '#scd-validation-announcer' ).length ) {
-				this._$announcer = $( '<div id="scd-validation-announcer" class="screen-reader-text" aria-live="assertive" aria-atomic="true"></div>' );
+			if ( ! $( '#wsscd-validation-announcer' ).length ) {
+				this._$announcer = $( '<div id="wsscd-validation-announcer" class="screen-reader-text" aria-live="assertive" aria-atomic="true"></div>' );
 				$( 'body' ).append( this._$announcer );
 			} else {
-				this._$announcer = $( '#scd-validation-announcer' );
+				this._$announcer = $( '#wsscd-validation-announcer' );
 			}
 
 			this._$scrollContainer = $( 'html, body' );
@@ -690,17 +690,17 @@
 
 			this._clearAllTimeouts();
 
-			$( '.scd-field-error, .field-error' ).remove();
+			$( '.wsscd-field-error, .field-error' ).remove();
 
 			if ( this._$announcer && this._$announcer.length ) {
 				this._$announcer.remove();
 			}
-			$( '#scd-validation-announcer' ).remove();
+			$( '#wsscd-validation-announcer' ).remove();
 
-			$( '.scd-validation-summary' ).remove();
+			$( '.wsscd-validation-summary' ).remove();
 
 			$( '.has-error' ).removeClass( 'has-error' );
-			$( '.scd-field-error-border' ).removeClass( 'scd-field-error-border' );
+			$( '.wsscd-field-error-border' ).removeClass( 'wsscd-field-error-border' );
 
 			this._labelCache = {};
 			this._$announcer = null;
@@ -715,7 +715,7 @@
 	 * @param {string} fallbackName - Fallback field name if first param is jQuery
 	 * @returns {string} Human-readable label
 	 */
-	SCD.Components.ValidationError.getFieldLabel = function( fieldOrName, fallbackName ) {
+	WSSCD.Components.ValidationError.getFieldLabel = function( fieldOrName, fallbackName ) {
 		// If first parameter is a jQuery object, use private instance method
 		if ( fieldOrName && fieldOrName.jquery ) {
 			var fieldName = fallbackName || fieldOrName.attr( 'name' ) || fieldOrName.attr( 'id' ) || '';
@@ -727,10 +727,10 @@
 		var fieldName = String( fieldOrName || '' );
 
 		// Try PHP field definitions first
-		if ( window.SCD && window.SCD.FieldDefinitions && window.SCD.FieldDefinitions.getFieldByName ) {
+		if ( window.WSSCD && window.WSSCD.FieldDefinitions && window.WSSCD.FieldDefinitions.getFieldByName ) {
 			var steps = ['basic', 'products', 'discounts', 'schedule'];
 			for ( var i = 0; i < steps.length; i++ ) {
-				var field = window.SCD.FieldDefinitions.getFieldByName( steps[i], fieldName );
+				var field = window.WSSCD.FieldDefinitions.getFieldByName( steps[i], fieldName );
 
 				if ( field && field.label ) {
 					return field.label;
@@ -759,9 +759,9 @@
 	 * @param {string} fieldName - Field name for field-specific messages
 	 * @returns {string} Formatted and escaped message
 	 */
-	SCD.Components.ValidationError.getMessage = function( key, fieldName ) {
+	WSSCD.Components.ValidationError.getMessage = function( key, fieldName ) {
 		// Use localized messages from PHP
-		var messages = window.scdValidationMessages || {};
+		var messages = window.wsscdValidationMessages || {};
 		var message = messages[key];
 
 		var fieldLabel = fieldName ? this.getFieldLabel( fieldName ) : 'This field';
@@ -784,9 +784,9 @@
 		var escapedArgs = [];
 		for ( var i = 0; i < templateArgs.length; i++ ) {
 			var argValue = String( templateArgs[i] );
-			// Use SCD.Utils.escapeHtml if available, otherwise use basic escaping
-			if ( window.SCD && window.SCD.Utils && window.SCD.Utils.escapeHtml ) {
-				escapedArgs.push( window.SCD.Utils.escapeHtml( argValue ) );
+			// Use WSSCD.Utils.escapeHtml if available, otherwise use basic escaping
+			if ( window.WSSCD && window.WSSCD.Utils && window.WSSCD.Utils.escapeHtml ) {
+				escapedArgs.push( window.WSSCD.Utils.escapeHtml( argValue ) );
 			} else {
 				// Basic HTML escaping as fallback
 				escapedArgs.push( argValue
@@ -819,7 +819,7 @@
 	 * @param {jQuery} $container - Container to search for errors
 	 * @param {object} [options={}] - Options for focus behavior
 	 */
-	SCD.Components.ValidationError.focusFirstError = function( $container, options ) {
+	WSSCD.Components.ValidationError.focusFirstError = function( $container, options ) {
 		options = options || {};
 		options = $.extend( {
 			scrollOffset: 100,
@@ -871,11 +871,11 @@
 	};
 
 	$( document ).ready( function() {
-		SCD.Components.ValidationError.init();
+		WSSCD.Components.ValidationError.init();
 	} );
 
 	// Make component globally available
-	window.SCD.ValidationError = SCD.Components.ValidationError;
+	window.WSSCD.ValidationError = WSSCD.Components.ValidationError;
 
 
 } )( jQuery );

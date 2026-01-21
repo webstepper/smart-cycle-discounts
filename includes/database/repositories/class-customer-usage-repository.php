@@ -11,9 +11,8 @@
  * @since      1.0.0
  */
 
-
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit; // Exit if accessed directly.
 }
 
 
@@ -27,25 +26,25 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/database/repositories
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Customer_Usage_Repository {
+class WSSCD_Customer_Usage_Repository {
 
 	/**
 	 * Database manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Database_Manager    $db    Database manager.
+	 * @var      WSSCD_Database_Manager    $db    Database manager.
 	 */
-	private SCD_Database_Manager $db;
+	private WSSCD_Database_Manager $db;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Table name.
@@ -61,19 +60,19 @@ class SCD_Customer_Usage_Repository {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Cache_Manager|null    $cache    Cache manager.
+	 * @var      WSSCD_Cache_Manager|null    $cache    Cache manager.
 	 */
-	private ?SCD_Cache_Manager $cache = null;
+	private ?WSSCD_Cache_Manager $cache = null;
 
 	/**
 	 * Initialize the repository.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager   $db        Database manager.
-	 * @param    SCD_Logger             $logger    Logger instance.
-	 * @param    SCD_Cache_Manager|null $cache     Cache manager (optional).
+	 * @param    WSSCD_Database_Manager   $db        Database manager.
+	 * @param    WSSCD_Logger             $logger    Logger instance.
+	 * @param    WSSCD_Cache_Manager|null $cache     Cache manager (optional).
 	 */
-	public function __construct( SCD_Database_Manager $db, SCD_Logger $logger, ?SCD_Cache_Manager $cache = null ) {
+	public function __construct( WSSCD_Database_Manager $db, WSSCD_Logger $logger, ?WSSCD_Cache_Manager $cache = null ) {
 		$this->db         = $db;
 		$this->logger     = $logger;
 		$this->cache      = $cache;
@@ -90,10 +89,12 @@ class SCD_Customer_Usage_Repository {
 	 */
 	public function get_customer_usage( int $campaign_id, string $customer_email ): ?array {
 		try {
+			// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
 			$result = $this->db->get_row(
 				$this->db->prepare(
-					"SELECT * FROM {$this->table_name} 
-                    WHERE campaign_id = %d AND customer_email = %s",
+					'SELECT * FROM %i
+                    WHERE campaign_id = %d AND customer_email = %s',
+					$this->table_name,
 					$campaign_id,
 					$customer_email
 				),
@@ -127,12 +128,12 @@ class SCD_Customer_Usage_Repository {
 		try {
 			$usage = $this->get_customer_usage( $campaign_id, $customer_email );
 
-			// If no usage recorded, customer can use the discount
+			// If no usage recorded, customer can use the discount.
 			if ( ! $usage ) {
 				return true;
 			}
 
-			if ( $usage['status'] === 'blocked' ) {
+			if ( 'blocked' === $usage['status'] ) {
 				return false;
 			}
 
@@ -153,23 +154,31 @@ class SCD_Customer_Usage_Repository {
 	/**
 	 * Record customer usage.
 	 *
+	 * Uses transaction to prevent race conditions when multiple requests
+	 * try to record usage for the same customer/campaign combination.
+	 *
 	 * @since    1.0.0
 	 * @param    array $usage_data    Usage data.
 	 * @return   int|false               Insert ID or false on failure.
 	 */
-	public function record_usage( array $usage_data ): int|false {
+	public function record_usage( array $usage_data ) {
 		try {
-			$existing = $this->get_customer_usage(
-				intval( $usage_data['campaign_id'] ),
-				strval( $usage_data['customer_email'] )
-			);
+			// Use transaction to prevent race condition between check and insert/update.
+			return $this->db->transaction(
+				function () use ( $usage_data ) {
+					$existing = $this->get_customer_usage(
+						intval( $usage_data['campaign_id'] ),
+						strval( $usage_data['customer_email'] )
+					);
 
-			if ( $existing ) {
-				return $this->update_usage( $existing['id'], $usage_data );
-			} else {
-				// Insert new record
-				return $this->insert_usage( $usage_data );
-			}
+					if ( $existing ) {
+						return $this->update_usage( $existing['id'], $usage_data );
+					} else {
+						// Insert new record.
+						return $this->insert_usage( $usage_data );
+					}
+				}
+			);
 		} catch ( Exception $e ) {
 			$this->logger->error(
 				'Failed to record customer usage',
@@ -190,7 +199,7 @@ class SCD_Customer_Usage_Repository {
 	 * @param    array $usage_data    Usage data.
 	 * @return   int|false               Insert ID or false on failure.
 	 */
-	private function insert_usage( array $usage_data ): int|false {
+	private function insert_usage( array $usage_data ) {
 		$defaults = array(
 			'usage_count'           => 1,
 			'first_used_at'         => current_time( 'mysql' ),
@@ -236,9 +245,10 @@ class SCD_Customer_Usage_Repository {
 	 * @param    array $usage_data    Usage data.
 	 * @return   int|false               Updated ID or false on failure.
 	 */
-	private function update_usage( int $id, array $usage_data ): int|false {
+	private function update_usage( int $id, array $usage_data ) {
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
 		$existing = $this->db->get_row(
-			$this->db->prepare( "SELECT * FROM {$this->table_name} WHERE id = %d", $id ),
+			$this->db->prepare( 'SELECT * FROM %i WHERE id = %d', $this->table_name, $id ),
 			ARRAY_A
 		);
 
@@ -282,11 +292,11 @@ class SCD_Customer_Usage_Repository {
 			array( 'id' => $id )
 		);
 
-		if ( $result !== false && $this->cache ) {
+		if ( false !== $result && $this->cache ) {
 			$this->cache->invalidate_analytics();
 		}
 
-		return $result !== false ? $id : false;
+		return false !== $result ? $id : false;
 	}
 
 	/**
@@ -298,23 +308,26 @@ class SCD_Customer_Usage_Repository {
 	 */
 	public function get_campaign_usage_stats( int $campaign_id ): array {
 		try {
+			// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
 			$stats = $this->db->get_row(
 				$this->db->prepare(
-					"SELECT 
+					'SELECT
                         COUNT(*) as total_customers,
                         SUM(usage_count) as total_uses,
                         SUM(total_discount_amount) as total_discount_given,
                         SUM(total_order_value) as total_revenue,
                         AVG(usage_count) as avg_uses_per_customer,
                         MAX(usage_count) as max_uses_by_single_customer
-                    FROM {$this->table_name}
-                    WHERE campaign_id = %d AND status = 'active'",
-					$campaign_id
+                    FROM %i
+                    WHERE campaign_id = %d AND status = %s',
+					$this->table_name,
+					$campaign_id,
+					'active'
 				),
 				ARRAY_A
 			);
 
-			return $stats ?: array(
+			return $stats ? $stats : array(
 				'total_customers'             => 0,
 				'total_uses'                  => 0,
 				'total_discount_given'        => 0.0,
@@ -353,7 +366,7 @@ class SCD_Customer_Usage_Repository {
 				)
 			);
 
-			return $result !== false;
+			return false !== $result;
 		} catch ( Exception $e ) {
 			$this->logger->error(
 				'Failed to block customer',
@@ -376,14 +389,18 @@ class SCD_Customer_Usage_Repository {
 	 */
 	public function cleanup_expired_sessions( int $days_old = 30 ): int {
 		try {
-			$cutoff_date = date( 'Y-m-d H:i:s', strtotime( "-{$days_old} days" ) );
+			$cutoff_date = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days_old} days" ) );
 
+			// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
 			$result = $this->db->query(
 				$this->db->prepare(
-					"UPDATE {$this->table_name} 
-                    SET status = 'expired' 
-                    WHERE last_used_at < %s AND status = 'active'",
-					$cutoff_date
+					'UPDATE %i
+                    SET status = %s
+                    WHERE last_used_at < %s AND status = %s',
+					$this->table_name,
+					'expired',
+					$cutoff_date,
+					'active'
 				)
 			);
 
@@ -409,16 +426,18 @@ class SCD_Customer_Usage_Repository {
 	 */
 	public function get_customer_all_usage( string $customer_email ): array {
 		try {
+			// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
 			$results = $this->db->get_results(
 				$this->db->prepare(
-					"SELECT * FROM {$this->table_name} 
-                    WHERE customer_email = %s",
+					'SELECT * FROM %i
+                    WHERE customer_email = %s',
+					$this->table_name,
 					$customer_email
 				),
 				ARRAY_A
 			);
 
-			return array_map( array( $this, 'format_usage_data' ), $results ?: array() );
+			return array_map( array( $this, 'format_usage_data' ), $results ? $results : array() );
 		} catch ( Exception $e ) {
 			$this->logger->error(
 				'Failed to get customer all usage',
@@ -440,10 +459,12 @@ class SCD_Customer_Usage_Repository {
 	 */
 	public function get_campaign_total_usage( int $campaign_id ): int {
 		try {
+			// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
 			$count = $this->db->get_var(
 				$this->db->prepare(
-					"SELECT SUM(usage_count) FROM {$this->table_name}
-                    WHERE campaign_id = %d",
+					'SELECT SUM(usage_count) FROM %i
+                    WHERE campaign_id = %d',
+					$this->table_name,
 					$campaign_id
 				)
 			);
@@ -472,10 +493,12 @@ class SCD_Customer_Usage_Repository {
 	 */
 	public function get_campaign_lifetime_usage( int $campaign_id ): int {
 		try {
+			// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
 			$count = $this->db->get_var(
 				$this->db->prepare(
-					"SELECT SUM(usage_count) FROM {$this->table_name}
-                    WHERE campaign_id = %d",
+					'SELECT SUM(usage_count) FROM %i
+                    WHERE campaign_id = %d',
+					$this->table_name,
 					$campaign_id
 				)
 			);

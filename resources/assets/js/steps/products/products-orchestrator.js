@@ -14,10 +14,10 @@
 	'use strict';
 
 	// Ensure namespaces exist
-	window.SCD = window.SCD || {};
-	SCD.Steps = SCD.Steps || {};
-	SCD.Modules = SCD.Modules || {};
-	SCD.Modules.Products = SCD.Modules.Products || {};
+	window.WSSCD = window.WSSCD || {};
+	WSSCD.Steps = WSSCD.Steps || {};
+	WSSCD.Modules = WSSCD.Modules || {};
+	WSSCD.Modules.Products = WSSCD.Modules.Products || {};
 
 	/**
 	 * Products Orchestrator
@@ -26,7 +26,7 @@
 	 *
 	 * @since 1.0.0
 	 */
-	SCD.Steps.ProductsOrchestrator = SCD.Shared.BaseOrchestrator.createStep( 'products', {
+	WSSCD.Steps.ProductsOrchestrator = WSSCD.Shared.BaseOrchestrator.createStep( 'products', {
 
 		// =========================================================================
 		// CUSTOM PROPERTIES (set on each instance in custom init)
@@ -61,19 +61,19 @@
 			return $.when( uiPromise ).then( function() {
 
 				// CRITICAL: Bind events before setting initial state
-				// This ensures the 'scd:populate-nested-array' handler is registered
+				// This ensures the 'wsscd:populate-nested-array' handler is registered
 				// BEFORE populateFields() is called by the wizard
 				self.bindEvents();
 
 				self._setInitialState();
 
 				// Expose globally for field definitions
-				window.scdProductsOrchestrator = self;
+				window.wsscdProductsOrchestrator = self;
 
 				return self;
 			} ).fail( function( error ) {
 				// Handle initialization errors
-				this.safeErrorHandle( error, 'ProductsOrchestrator.init', SCD.ErrorHandler.SEVERITY.CRITICAL );
+				this.safeErrorHandle( error, 'ProductsOrchestrator.init', WSSCD.ErrorHandler.SEVERITY.CRITICAL );
 				throw error;
 			} );
 		},
@@ -92,24 +92,24 @@
 
 			if ( Object.keys( this.modules ).length === 0 ) {
 				// Use Module Registry for declarative module initialization
-				var moduleConfig = SCD.Shared.ModuleRegistry.createStepConfig( 'products', {
+				var moduleConfig = WSSCD.Shared.ModuleRegistry.createStepConfig( 'products', {
 					picker: {
-						class: 'SCD.Modules.Products.Picker',
+						class: 'WSSCD.Modules.Products.Picker',
 						deps: ['state', 'api']
 					},
 					conditionsValidator: {
-						class: 'SCD.Modules.Products.ConditionsValidator',
+						class: 'WSSCD.Modules.Products.ConditionsValidator',
 					deps: ['state'],
 					autoInit: false // Requires manual init with $container argument
 					}
 				} );
 
-				this.modules = SCD.Shared.ModuleRegistry.initialize( moduleConfig, this );
+				this.modules = WSSCD.Shared.ModuleRegistry.initialize( moduleConfig, this );
 
 				// Post-initialization: Register complex field handlers
 				if ( 'function' === typeof this.registerComplexFieldHandler ) {
 					this.registerComplexFieldHandler( 'products.state', this.modules.state );
-					this.registerComplexFieldHandler( 'SCD.Modules.Products.Picker', this.modules.picker );
+					this.registerComplexFieldHandler( 'WSSCD.Modules.Products.Picker', this.modules.picker );
 
 					// Create and register ConditionsHandler (wraps state for conditions field)
 					var stateModule = this.modules.state;
@@ -146,7 +146,7 @@
 							return $.Deferred().resolve().promise();
 						}
 					};
-					this.registerComplexFieldHandler( 'SCD.Modules.Products.ConditionsHandler', conditionsHandler );
+					this.registerComplexFieldHandler( 'WSSCD.Modules.Products.ConditionsHandler', conditionsHandler );
 				}
 
 				// Post-initialization: Initialize ConditionsValidator
@@ -185,7 +185,7 @@
 						return self;
 					} )
 					.catch( function( error ) {
-						SCD.ErrorHandler.handle( error, 'products-init-picker', SCD.ErrorHandler.SEVERITY.HIGH );
+						WSSCD.ErrorHandler.handle( error, 'products-init-picker', WSSCD.ErrorHandler.SEVERITY.HIGH );
 						throw error;
 					} );
 			}
@@ -217,8 +217,8 @@
 		 */
 		getDefaultConfig: function() {
 			// Use parent default config if available
-			if ( SCD.Shared.BaseOrchestrator.prototype.getDefaultConfig ) {
-				return SCD.Shared.BaseOrchestrator.prototype.getDefaultConfig.call( this );
+			if ( WSSCD.Shared.BaseOrchestrator.prototype.getDefaultConfig ) {
+				return WSSCD.Shared.BaseOrchestrator.prototype.getDefaultConfig.call( this );
 			}
 			// Fallback
 			return {
@@ -232,7 +232,7 @@
 	// EVENT BINDING METHODS
 	// =========================================================================
 
-	$.extend( SCD.Steps.ProductsOrchestrator.prototype, {
+	$.extend( WSSCD.Steps.ProductsOrchestrator.prototype, {
 
 		/**
 		 * Bind all events
@@ -245,8 +245,8 @@
 			var self = this;
 
 			// Call parent bindEvents for common functionality
-			if ( 'function' === typeof SCD.Shared.BaseOrchestrator.prototype.bindEvents ) {
-				SCD.Shared.BaseOrchestrator.prototype.bindEvents.call( this );
+			if ( 'function' === typeof WSSCD.Shared.BaseOrchestrator.prototype.bindEvents ) {
+				WSSCD.Shared.BaseOrchestrator.prototype.bindEvents.call( this );
 			}
 
 			// Ensure container is available
@@ -269,19 +269,19 @@
 			};
 
 			// Selection type change
-			this.$container.on( 'change.scd-products', '[name="product_selection_type"]', this._boundHandlers.selectionTypeChange );
+			this.$container.on( 'change.wsscd-products', '[name="product_selection_type"]', this._boundHandlers.selectionTypeChange );
 
 			// Random count change
 			this._boundHandlers.randomCountChange = function() {
 				self.handleRandomCountChange( $( this ).val() );
 			};
-			this.$container.on( 'change.scd-products', '#scd-random-count', this._boundHandlers.randomCountChange );
+			this.$container.on( 'change.wsscd-products', '#wsscd-random-count', this._boundHandlers.randomCountChange );
 
 			// Smart criteria change
 			this._boundHandlers.smartCriteriaChange = function() {
 				self.handleSmartCriteriaChange( $( this ).val() );
 			};
-			this.$container.on( 'change.scd-products', '[name="smart_criteria"]', this._boundHandlers.smartCriteriaChange );
+			this.$container.on( 'change.wsscd-products', '[name="smart_criteria"]', this._boundHandlers.smartCriteriaChange );
 
 			// Conditions logic change
 			this._boundHandlers.conditionsLogicChange = function() {
@@ -289,22 +289,22 @@
 					var logic = $( this ).val();
 				self.modules.state.setState( { conditionsLogic: logic } );
 				// Update data-logic attribute for AND/OR badges
-				$( '#scd-conditions-list' ).attr( 'data-logic', logic );
+				$( '#wsscd-conditions-list' ).attr( 'data-logic', logic );
 				}
 			};
-			this.$container.on( 'change.scd-products', '[name="conditions_logic"]', this._boundHandlers.conditionsLogicChange );
+			this.$container.on( 'change.wsscd-products', '[name="conditions_logic"]', this._boundHandlers.conditionsLogicChange );
 
 			this._boundHandlers.addCondition = function( e ) {
 				e.preventDefault();
 				self.handleAddCondition();
 			};
-			this.$container.on( 'click.scd-products', '.scd-add-condition', this._boundHandlers.addCondition );
+			this.$container.on( 'click.wsscd-products', '.wsscd-add-condition', this._boundHandlers.addCondition );
 
 			this._boundHandlers.removeCondition = function( e ) {
 				e.preventDefault();
-				self.handleRemoveCondition( $( this ).closest( '.scd-condition-row' ) );
+				self.handleRemoveCondition( $( this ).closest( '.wsscd-condition-row' ) );
 			};
-			this.$container.on( 'click.scd-products', '.scd-remove-condition', this._boundHandlers.removeCondition );
+			this.$container.on( 'click.wsscd-products', '.wsscd-remove-condition', this._boundHandlers.removeCondition );
 
 			// Nested array population (for conditions field restoration)
 			this._boundHandlers.populateNestedArray = function( e, data ) {
@@ -312,7 +312,7 @@
 					self.handlePopulateConditions( data.value || [] );
 				}
 			};
-			$( document ).on( 'scd:populate-nested-array', this._boundHandlers.populateNestedArray );
+			$( document ).on( 'wsscd:populate-nested-array', this._boundHandlers.populateNestedArray );
 
 			// Custom events from modules
 			this._bindModuleEvents();
@@ -327,12 +327,12 @@
 		 */
 		unbindEvents: function() {
 			if ( this.$container && this.$container.length ) {
-				this.$container.off( '.scd-products' );
+				this.$container.off( '.wsscd-products' );
 			}
 
 			// Unbind document-level events
 			if ( this._boundHandlers.populateNestedArray ) {
-				$( document ).off( 'scd:populate-nested-array', this._boundHandlers.populateNestedArray );
+				$( document ).off( 'wsscd:populate-nested-array', this._boundHandlers.populateNestedArray );
 			}
 
 			this._boundHandlers = {};
@@ -353,48 +353,48 @@
 
 			// Condition field change handlers
 			this._boundHandlers.conditionTypeChange = function() {
-				var $row = $( this ).closest( '.scd-condition-row' );
+				var $row = $( this ).closest( '.wsscd-condition-row' );
 				var index = parseInt( $row.data( 'index' ), 10 );
 				var newType = $( this ).val();
 				self.handleConditionTypeChange( index, newType, $row );
 			};
-			this.$container.on( 'change.scd-products', '.scd-condition-type', this._boundHandlers.conditionTypeChange );
+			this.$container.on( 'change.wsscd-products', '.wsscd-condition-type', this._boundHandlers.conditionTypeChange );
 
 			this._boundHandlers.conditionOperatorChange = function() {
-				var $row = $( this ).closest( '.scd-condition-row' );
+				var $row = $( this ).closest( '.wsscd-condition-row' );
 				var index = parseInt( $row.data( 'index' ), 10 );
 				var newOperator = $( this ).val();
 				self.handleConditionOperatorChange( index, newOperator, $row );
 			};
-			this.$container.on( 'change.scd-products', '.scd-condition-operator', this._boundHandlers.conditionOperatorChange );
+			this.$container.on( 'change.wsscd-products', '.wsscd-condition-operator', this._boundHandlers.conditionOperatorChange );
 
 			this._boundHandlers.conditionModeChange = function() {
-				var $row = $( this ).closest( '.scd-condition-row' );
+				var $row = $( this ).closest( '.wsscd-condition-row' );
 				var index = parseInt( $row.data( 'index' ), 10 );
 				var newMode = $( this ).val();
 				self.handleConditionModeChange( index, newMode );
 			};
-			this.$container.on( 'change.scd-products', '.scd-condition-mode', this._boundHandlers.conditionModeChange );
+			this.$container.on( 'change.wsscd-products', '.wsscd-condition-mode', this._boundHandlers.conditionModeChange );
 
 			this._boundHandlers.conditionValueChange = function() {
-				var $row = $( this ).closest( '.scd-condition-row' );
+				var $row = $( this ).closest( '.wsscd-condition-row' );
 				var index = parseInt( $row.data( 'index' ), 10 );
 				self.handleConditionValueChange( index, $row );
 			};
-			this.$container.on( 'input.scd-products change.scd-products', '.scd-condition-value', this._boundHandlers.conditionValueChange );
+			this.$container.on( 'input.wsscd-products change.wsscd-products', '.wsscd-condition-value', this._boundHandlers.conditionValueChange );
 
 			// Product selection events
 			if ( 'function' === typeof this.bindCustomEvent ) {
-				this.bindCustomEvent( 'scd:products:selected', function() {
+				this.bindCustomEvent( 'wsscd:products:selected', function() {
 					self.updateProductsList();
 				} );
 
-				this.bindCustomEvent( 'scd:products:deselected', function() {
+				this.bindCustomEvent( 'wsscd:products:deselected', function() {
 					self.updateProductsList();
 				} );
 
 				// Field changes
-				this.bindCustomEvent( 'scd:products:field:changed', function( event, data ) {
+				this.bindCustomEvent( 'wsscd:products:field:changed', function( event, data ) {
 					if ( data && data.field && self.modules.state && 'function' === typeof self.modules.state.setState ) {
 						var update = {};
 						update[data.field] = data.value;
@@ -409,7 +409,7 @@
 	// UI UPDATE METHODS
 	// =========================================================================
 
-	$.extend( SCD.Steps.ProductsOrchestrator.prototype, {
+	$.extend( WSSCD.Steps.ProductsOrchestrator.prototype, {
 
 		/**
 		 * Update section visibility based on selection type
@@ -425,30 +425,30 @@
 				return;
 			}
 
-			this.$container.find( '.scd-random-count, .scd-specific-products, .scd-smart-criteria' ).each( function() {
-				$( this ).removeClass( 'scd-active-section' ).hide();
+			this.$container.find( '.wsscd-random-count, .wsscd-specific-products, .wsscd-smart-criteria' ).each( function() {
+				$( this ).removeClass( 'wsscd-active-section' ).hide();
 			} );
 
 			var sectionSelector = '';
 			switch ( selectionType ) {
 				case 'random_products':
-					sectionSelector = '.scd-random-count';
+					sectionSelector = '.wsscd-random-count';
 					break;
 				case 'specific_products':
-					sectionSelector = '.scd-specific-products';
+					sectionSelector = '.wsscd-specific-products';
 					break;
 				case 'smart_selection':
-					sectionSelector = '.scd-smart-criteria';
+					sectionSelector = '.wsscd-smart-criteria';
 					break;
 			}
 
 
 			if ( sectionSelector ) {
 				var $section = this.$container.find( sectionSelector );
-				$section.addClass( 'scd-active-section' ).show();
+				$section.addClass( 'wsscd-active-section' ).show();
 
 				// If the section is inside a card option, ensure the parent is visible
-				var $parentCard = $section.closest( '.scd-card-option' );
+				var $parentCard = $section.closest( '.wsscd-card-option' );
 				if ( $parentCard.length ) {
 					$parentCard.find( sectionSelector ).show();
 				}
@@ -460,11 +460,11 @@
 
 			// Enable/disable Advanced Filters (conditions) based on selection type
 			// Advanced Filters are only available for 'all_products' and 'random_products'
-			var $conditionsSection = this.$container.find( '.scd-conditions-section' );
+			var $conditionsSection = this.$container.find( '.wsscd-conditions-section' );
 			if ( 'all_products' === selectionType || 'random_products' === selectionType ) {
-				$conditionsSection.removeClass( 'scd-disabled' );
+				$conditionsSection.removeClass( 'wsscd-disabled' );
 			} else {
-				$conditionsSection.addClass( 'scd-disabled' );
+				$conditionsSection.addClass( 'wsscd-disabled' );
 			}
 
 			// Initialize Product Select if needed (for specific_products mode)
@@ -496,7 +496,7 @@
 			}
 
 			// Update UI count display
-			this.$container.find( '.scd-selected-count' ).text( count );
+			this.$container.find( '.wsscd-selected-count' ).text( count );
 		},
 
 		/**
@@ -507,7 +507,7 @@
 		 * @returns {void}
 		 */
 		renderConditions: function( conditions ) {
-			var $list = this.$container.find( '#scd-conditions-list' );
+			var $list = this.$container.find( '#wsscd-conditions-list' );
 			if ( ! $list || ! $list.length ) {
 				return;
 			}
@@ -535,7 +535,7 @@
 		 */
 		renderConditionRow: function( index, condition ) {
 			// Get condition types and operator mappings from field definitions
-			var fieldDefs = window.scdAdmin && window.scdAdmin.scdFieldDefinitions && window.scdAdmin.scdFieldDefinitions.products || {};
+			var fieldDefs = window.wsscdAdmin && window.wsscdAdmin.wsscdFieldDefinitions && window.wsscdAdmin.wsscdFieldDefinitions.products || {};
 			var conditionTypes = fieldDefs.conditionTypes || {};
 			var operatorMappings = fieldDefs.operatorMappings || {};
 
@@ -552,19 +552,19 @@
 			var isBetween = 'between' === conditionOperator || 'not_between' === conditionOperator;
 
 			// Build row HTML
-			var $row = $( '<div class="scd-condition-row" data-index="' + index + '"></div>' );
+			var $row = $( '<div class="wsscd-condition-row" data-index="' + index + '"></div>' );
 
 			// Build fields container
-			var $fields = $( '<div class="scd-condition-fields"></div>' );
+			var $fields = $( '<div class="wsscd-condition-fields"></div>' );
 
 			// Mode select
-			var $mode = $( '<select name="conditions[' + index + '][mode]" class="scd-condition-mode scd-enhanced-select" data-index="' + index + '"></select>' );
+			var $mode = $( '<select name="conditions[' + index + '][mode]" class="wsscd-condition-mode wsscd-enhanced-select" data-index="' + index + '"></select>' );
 			$mode.append( '<option value="include"' + ( 'include' === conditionMode ? ' selected' : '' ) + '>Include</option>' );
 			$mode.append( '<option value="exclude"' + ( 'exclude' === conditionMode ? ' selected' : '' ) + '>Exclude</option>' );
 			$fields.append( $mode );
 
 			// Type select
-			var $type = $( '<select name="conditions[' + index + '][condition_type]" class="scd-condition-type scd-enhanced-select" data-index="' + index + '"></select>' );
+			var $type = $( '<select name="conditions[' + index + '][condition_type]" class="wsscd-condition-type wsscd-enhanced-select" data-index="' + index + '"></select>' );
 			$type.append( '<option value="">Select condition type</option>' );
 			for ( var groupKey in conditionTypes ) {
 				if ( conditionTypes.hasOwnProperty( groupKey ) ) {
@@ -583,7 +583,7 @@
 			$fields.append( $type );
 
 			// Operator select
-			var $operator = $( '<select name="conditions[' + index + '][operator]" class="scd-condition-operator scd-enhanced-select" data-index="' + index + '"' + ( ! hasType ? ' disabled' : '' ) + '></select>' );
+			var $operator = $( '<select name="conditions[' + index + '][operator]" class="wsscd-condition-operator wsscd-enhanced-select" data-index="' + index + '"' + ( ! hasType ? ' disabled' : '' ) + '></select>' );
 			$operator.append( '<option value="">Select operator</option>' );
 			if ( hasType && operators ) {
 				for ( var opValue in operators ) {
@@ -597,26 +597,26 @@
 			$fields.append( $operator );
 
 			// Value wrapper
-			var $valueWrapper = $( '<div class="scd-condition-value-wrapper" data-index="' + index + '"></div>' );
+			var $valueWrapper = $( '<div class="wsscd-condition-value-wrapper" data-index="' + index + '"></div>' );
 
 			// Value input
-			var $value = $( '<input type="text" name="conditions[' + index + '][value]" class="scd-condition-value scd-condition-value-single scd-enhanced-input" value="' + this._escapeHtml( conditionValue ) + '" placeholder="Enter value"' + ( ! hasOperator ? ' disabled' : '' ) + ' />' );
+			var $value = $( '<input type="text" name="conditions[' + index + '][value]" class="wsscd-condition-value wsscd-condition-value-single wsscd-enhanced-input" value="' + this._escapeHtml( conditionValue ) + '" placeholder="Enter value"' + ( ! hasOperator ? ' disabled' : '' ) + ' />' );
 			$valueWrapper.append( $value );
 
 			// Separator and value2 for "between" operators
-			var $separator = $( '<span class="scd-condition-value-separator' + ( isBetween ? '' : ' scd-hidden' ) + '">and</span>' );
+			var $separator = $( '<span class="wsscd-condition-value-separator' + ( isBetween ? '' : ' wsscd-hidden' ) + '">and</span>' );
 			$valueWrapper.append( $separator );
 
-			var $value2 = $( '<input type="text" name="conditions[' + index + '][value2]" class="scd-condition-value scd-condition-value-between scd-enhanced-input' + ( isBetween ? '' : ' scd-hidden' ) + '" value="' + this._escapeHtml( conditionValue2 ) + '" placeholder="Max value"' + ( ! hasOperator ? ' disabled' : '' ) + ' />' );
+			var $value2 = $( '<input type="text" name="conditions[' + index + '][value2]" class="wsscd-condition-value wsscd-condition-value-between wsscd-enhanced-input' + ( isBetween ? '' : ' wsscd-hidden' ) + '" value="' + this._escapeHtml( conditionValue2 ) + '" placeholder="Max value"' + ( ! hasOperator ? ' disabled' : '' ) + ' />' );
 			$valueWrapper.append( $value2 );
 
 			$fields.append( $valueWrapper );
 			$row.append( $fields );
 
 			// Actions
-			var $actions = $( '<div class="scd-condition-actions"></div>' );
-			var trashIcon = SCD.IconHelper ? SCD.IconHelper.get( 'trash', { size: 16 } ) : '<span class="scd-icon scd-icon-trash"></span>';
-			var $removeBtn = $( '<button type="button" class="button scd-remove-condition" title="Remove this condition">' + trashIcon + '</button>' );
+			var $actions = $( '<div class="wsscd-condition-actions"></div>' );
+			var trashIcon = WSSCD.IconHelper ? WSSCD.IconHelper.get( 'trash', { size: 16 } ) : '<span class="wsscd-icon wsscd-icon-trash"></span>';
+			var $removeBtn = $( '<button type="button" class="button wsscd-remove-condition" title="Remove this condition">' + trashIcon + '</button>' );
 			$actions.append( $removeBtn );
 			$row.append( $actions );
 
@@ -678,7 +678,7 @@
 	// DATA HANDLING METHODS
 	// =========================================================================
 
-	$.extend( SCD.Steps.ProductsOrchestrator.prototype, {
+	$.extend( WSSCD.Steps.ProductsOrchestrator.prototype, {
 
 		/**
 		 * Custom logic after field population
@@ -762,7 +762,7 @@
 
 			if ( categoriesChanged ) {
 				// Trigger event for other modules (e.g., TomSelect to reload products)
-				$( document ).trigger( 'scd:categories:changed', {
+				$( document ).trigger( 'wsscd:categories:changed', {
 					categories: categories,
 					oldCategories: oldCategories
 				} );
@@ -819,7 +819,7 @@
 	// EVENT HANDLER METHODS
 	// =========================================================================
 
-	$.extend( SCD.Steps.ProductsOrchestrator.prototype, {
+	$.extend( WSSCD.Steps.ProductsOrchestrator.prototype, {
 
 		/**
 		 * Handle random count change
@@ -1037,8 +1037,8 @@
 			}
 
 			// Get values from inputs
-			var value = $row.find( '.scd-condition-value-single' ).val() || '';
-			var value2 = $row.find( '.scd-condition-value-between' ).val() || '';
+			var value = $row.find( '.wsscd-condition-value-single' ).val() || '';
+			var value2 = $row.find( '.wsscd-condition-value-between' ).val() || '';
 
 			// Update condition values
 			var updatedConditions = conditions.slice();
@@ -1056,7 +1056,7 @@
 	// VALIDATION METHODS
 	// =========================================================================
 
-	$.extend( SCD.Steps.ProductsOrchestrator.prototype, {
+	$.extend( WSSCD.Steps.ProductsOrchestrator.prototype, {
 
 		/**
 		 * Custom validation for the products step
@@ -1189,8 +1189,8 @@
 
 				// Show notification if validation failed
 				if ( ! conditionsValid ) {
-					if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
-						window.SCD.Shared.NotificationService.error(
+					if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.NotificationService ) {
+						window.WSSCD.Shared.NotificationService.error(
 							'Please fix the validation errors in your product filters before proceeding.',
 							5000
 						);
@@ -1204,8 +1204,8 @@
 			var stepData = this.collectData();
 
 			// Validate using ValidationManager
-			if ( window.SCD && window.SCD.ValidationManager && 'function' === typeof window.SCD.ValidationManager.validateStep ) {
-				var validationResult = window.SCD.ValidationManager.validateStep( this.stepName, stepData );
+			if ( window.WSSCD && window.WSSCD.ValidationManager && 'function' === typeof window.WSSCD.ValidationManager.validateStep ) {
+				var validationResult = window.WSSCD.ValidationManager.validateStep( this.stepName, stepData );
 
 				if ( ! validationResult.ok ) {
 					// Show validation errors
@@ -1233,7 +1233,7 @@
 	// ERROR DISPLAY METHODS
 	// =========================================================================
 
-	$.extend( SCD.Steps.ProductsOrchestrator.prototype, {
+	$.extend( WSSCD.Steps.ProductsOrchestrator.prototype, {
 
 		// Note: showErrors() is inherited from StepPersistence mixin
 
@@ -1267,15 +1267,15 @@
 
 				this.updateSectionVisibility( selectedType );
 
-				$( '.scd-card-option' ).removeClass( 'scd-card-option--selected' );
-				$selectedInput.closest( '.scd-card-option' ).addClass( 'scd-card-option--selected' );
+				$( '.wsscd-card-option' ).removeClass( 'wsscd-card-option--selected' );
+				$selectedInput.closest( '.wsscd-card-option' ).addClass( 'wsscd-card-option--selected' );
 			} else {
 				// If specific value not found, default to all_products
 				var $defaultInput = $( selector + '[value="all_products"]' );
 				if ( $defaultInput.length ) {
 					$defaultInput.prop( 'checked', true );
 					this.updateSectionVisibility( 'all_products' );
-					$defaultInput.closest( '.scd-card-option' ).addClass( 'scd-card-option--selected' );
+					$defaultInput.closest( '.wsscd-card-option' ).addClass( 'wsscd-card-option--selected' );
 				}
 			}
 		},
@@ -1293,7 +1293,7 @@
 	// LIFECYCLE METHODS
 	// =========================================================================
 
-	$.extend( SCD.Steps.ProductsOrchestrator.prototype, {
+	$.extend( WSSCD.Steps.ProductsOrchestrator.prototype, {
 
 		/**
 		 * Update conditions summary panel
@@ -1303,7 +1303,7 @@
 		 * @returns {void}
 		 */
 		updateConditionsSummary: function( conditions ) {
-			var $summary = $( '.scd-conditions-summary' );
+			var $summary = $( '.wsscd-conditions-summary' );
 			if ( ! $summary.length ) {
 				return;
 			}
@@ -1322,19 +1322,19 @@
 			// Update logic display
 			var logic = $( '[name="conditions_logic"]:checked' ).val() || 'all';
 			var logicText = 'all' === logic ? 'AND (all must match)' : 'OR (any can match)';
-			$summary.find( '.scd-summary-logic-value' ).text( logicText );
+			$summary.find( '.wsscd-summary-logic-value' ).text( logicText );
 
 			// Update condition count
-			$summary.find( '.scd-condition-count' ).text( conditionCount );
+			$summary.find( '.wsscd-condition-count' ).text( conditionCount );
 
 			// Get condition types and operator mappings
 			// Get condition types and operator mappings from field definitions
-			var fieldDefs = window.scdAdmin && window.scdAdmin.scdFieldDefinitions && window.scdAdmin.scdFieldDefinitions.products || {};
+			var fieldDefs = window.wsscdAdmin && window.wsscdAdmin.wsscdFieldDefinitions && window.wsscdAdmin.wsscdFieldDefinitions.products || {};
 			var conditionTypes = fieldDefs.conditionTypes || {};
 			var operatorMappings = fieldDefs.operatorMappings || {};
 
 			// Build summary list
-			var $summaryList = $summary.find( '.scd-summary-list' );
+			var $summaryList = $summary.find( '.wsscd-summary-list' );
 			$summaryList.empty();
 
 			for ( var i = 0; i < conditions.length; i++ ) {
@@ -1346,40 +1346,40 @@
 				var summaryText = typeLabel + ' ' + operatorLabel;
 
 				if ( cond.value ) {
-					summaryText += ' <span class="scd-summary-value">' + this._escapeHtml( cond.value ) + '</span>';
+					summaryText += ' <span class="wsscd-summary-value">' + this._escapeHtml( cond.value ) + '</span>';
 				}
 
 				if ( cond.value2 && -1 !== [ 'between', 'not_between' ].indexOf( cond.operator ) ) {
-					summaryText += ' and <span class="scd-summary-value">' + this._escapeHtml( cond.value2 ) + '</span>';
+					summaryText += ' and <span class="wsscd-summary-value">' + this._escapeHtml( cond.value2 ) + '</span>';
 				}
 
 				var iconName = 'include' === mode ? 'check' : 'close';
-				var iconHtml = SCD.IconHelper ? SCD.IconHelper.get( iconName, { size: 16 } ) : '<span class="scd-icon scd-icon-' + iconName + '"></span>';
+				var iconHtml = WSSCD.IconHelper ? WSSCD.IconHelper.get( iconName, { size: 16 } ) : '<span class="wsscd-icon wsscd-icon-' + iconName + '"></span>';
 				var modeClass = 'include' === mode ? 'summary-include' : 'summary-exclude';
 
 				var $li = $( '<li>' )
 					.addClass( modeClass )
-					.html( iconHtml + '<span class="scd-summary-item-text">' + summaryText + '</span>' );
+					.html( iconHtml + '<span class="wsscd-summary-item-text">' + summaryText + '</span>' );
 
 				$summaryList.append( $li );
 			}
 
 			// Show warning if at limit
-			var $warning = $summary.find( '.scd-summary-warning' );
+			var $warning = $summary.find( '.wsscd-summary-warning' );
 			if ( conditionCount >= 20 ) {
 				if ( ! $warning.length ) {
-					var warningIcon = SCD.IconHelper ? SCD.IconHelper.warning( { size: 16 } ) : '<span class="scd-icon scd-icon-warning"></span>';
-					$warning = $( '<div class="scd-summary-warning">' + warningIcon + '<span>Maximum condition limit reached (20). Remove conditions to add more.</span></div>' );
-					$summary.find( '.scd-summary-count' ).after( $warning );
+					var warningIcon = WSSCD.IconHelper ? WSSCD.IconHelper.warning( { size: 16 } ) : '<span class="wsscd-icon wsscd-icon-warning"></span>';
+					$warning = $( '<div class="wsscd-summary-warning">' + warningIcon + '<span>Maximum condition limit reached (20). Remove conditions to add more.</span></div>' );
+					$summary.find( '.wsscd-summary-count' ).after( $warning );
 				}
 			} else {
 				$warning.remove();
 			}
 
 			// Bind toggle handler if not already bound
-			var $toggleBtn = $summary.find( '.scd-toggle-summary' );
+			var $toggleBtn = $summary.find( '.wsscd-toggle-summary' );
 			if ( ! $toggleBtn.data( 'bound' ) ) {
-				$toggleBtn.data( 'bound', true ).on( 'click.scd-summary', function() {
+				$toggleBtn.data( 'bound', true ).on( 'click.wsscd-summary', function() {
 					$summary.toggleClass( 'collapsed' );
 				} );
 			}
@@ -1475,8 +1475,8 @@
 			this.initialized = false;
 
 			// Call parent destroy
-			if ( 'function' === typeof SCD.Shared.BaseOrchestrator.prototype.destroy ) {
-				SCD.Shared.BaseOrchestrator.prototype.destroy.call( this );
+			if ( 'function' === typeof WSSCD.Shared.BaseOrchestrator.prototype.destroy ) {
+				WSSCD.Shared.BaseOrchestrator.prototype.destroy.call( this );
 			}
 		}
 	} );

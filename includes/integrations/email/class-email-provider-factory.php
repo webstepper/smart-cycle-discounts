@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/integrations/email
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Email_Provider_Factory {
+class WSSCD_Email_Provider_Factory {
 
 	/**
 	 * Create provider instance based on settings.
@@ -31,24 +31,26 @@ class SCD_Email_Provider_Factory {
 	 * @since    1.0.0
 	 * @param    string     $provider     Provider type (wpmail, sendgrid, amazonses).
 	 * @param    array      $settings     Provider settings.
-	 * @param    SCD_Logger $logger       Logger instance.
+	 * @param    WSSCD_Logger $logger       Logger instance.
 	 * @param    string     $from_email   From email address.
 	 * @param    string     $from_name    From name.
 	 * @return   object                      Provider instance.
 	 * @throws   Exception                   If provider cannot be created.
 	 */
 	public static function create( $provider, $settings, $logger, $from_email, $from_name ) {
-		require_once SCD_INCLUDES_DIR . 'integrations/email/interface-email-provider.php';
+		require_once WSSCD_INCLUDES_DIR . 'integrations/email/interface-email-provider.php';
 
 		$valid_providers = array( 'wpmail', 'sendgrid', 'amazonses' );
 		if ( ! in_array( $provider, $valid_providers, true ) ) {
+			// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
 			throw new Exception(
 				sprintf(
 					/* translators: %s: provider name */
 					__( 'Invalid email provider: %s', 'smart-cycle-discounts' ),
-					$provider
+					esc_html( $provider )
 				)
 			);
+			// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 		}
 
 		switch ( $provider ) {
@@ -70,22 +72,23 @@ class SCD_Email_Provider_Factory {
 	 * @since    1.0.0
 	 * @access   private
 	 * @param    array      $settings     Provider settings.
-	 * @param    SCD_Logger $logger       Logger instance.
+	 * @param    WSSCD_Logger $logger       Logger instance.
 	 * @param    string     $from_email   From email address.
 	 * @param    string     $from_name    From name.
-	 * @return   SCD_SendGrid_Provider       SendGrid provider instance.
+	 * @return   WSSCD_SendGrid_Provider       SendGrid provider instance.
 	 * @throws   Exception                   If API key is missing.
 	 */
 	private static function create_sendgrid_provider( $settings, $logger, $from_email, $from_name ) {
-		require_once SCD_INCLUDES_DIR . 'integrations/email/providers/class-sendgrid-provider.php';
+		require_once WSSCD_INCLUDES_DIR . 'integrations/email/providers/class-sendgrid-provider.php';
 
 		$api_key = isset( $settings['sendgrid_api_key'] ) ? sanitize_text_field( $settings['sendgrid_api_key'] ) : '';
 
 		if ( empty( $api_key ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
 			throw new Exception( __( 'SendGrid API key is required', 'smart-cycle-discounts' ) );
 		}
 
-		return new SCD_SendGrid_Provider( $logger, $api_key, $from_email, $from_name );
+		return new WSSCD_SendGrid_Provider( $logger, $api_key, $from_email, $from_name );
 	}
 
 	/**
@@ -94,24 +97,25 @@ class SCD_Email_Provider_Factory {
 	 * @since    1.0.0
 	 * @access   private
 	 * @param    array      $settings     Provider settings.
-	 * @param    SCD_Logger $logger       Logger instance.
+	 * @param    WSSCD_Logger $logger       Logger instance.
 	 * @param    string     $from_email   From email address.
 	 * @param    string     $from_name    From name.
-	 * @return   SCD_AmazonSES_Provider      Amazon SES provider instance.
+	 * @return   WSSCD_AmazonSES_Provider      Amazon SES provider instance.
 	 * @throws   Exception                   If credentials are missing.
 	 */
 	private static function create_amazonses_provider( $settings, $logger, $from_email, $from_name ) {
-		require_once SCD_INCLUDES_DIR . 'integrations/email/providers/class-amazonses-provider.php';
+		require_once WSSCD_INCLUDES_DIR . 'integrations/email/providers/class-amazonses-provider.php';
 
 		$access_key = isset( $settings['amazonses_access_key'] ) ? sanitize_text_field( $settings['amazonses_access_key'] ) : '';
 		$secret_key = isset( $settings['amazonses_secret_key'] ) ? sanitize_text_field( $settings['amazonses_secret_key'] ) : '';
 		$region     = isset( $settings['amazonses_region'] ) ? sanitize_text_field( $settings['amazonses_region'] ) : 'us-east-1';
 
 		if ( empty( $access_key ) || empty( $secret_key ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output.
 			throw new Exception( __( 'Amazon SES access and secret keys are required', 'smart-cycle-discounts' ) );
 		}
 
-		return new SCD_AmazonSES_Provider( $logger, $access_key, $secret_key, $region, $from_email, $from_name );
+		return new WSSCD_AmazonSES_Provider( $logger, $access_key, $secret_key, $region, $from_email, $from_name );
 	}
 
 	/**
@@ -119,14 +123,14 @@ class SCD_Email_Provider_Factory {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    SCD_Logger $logger       Logger instance.
+	 * @param    WSSCD_Logger $logger       Logger instance.
 	 * @param    string     $from_email   From email address.
 	 * @param    string     $from_name    From name.
-	 * @return   SCD_WPMail_Provider         WordPress Mail provider instance.
+	 * @return   WSSCD_WPMail_Provider         WordPress Mail provider instance.
 	 */
 	private static function create_wpmail_provider( $logger, $from_email, $from_name ) {
-		require_once SCD_INCLUDES_DIR . 'integrations/email/providers/class-wpmail-provider.php';
+		require_once WSSCD_INCLUDES_DIR . 'integrations/email/providers/class-wpmail-provider.php';
 
-		return new SCD_WPMail_Provider( $logger, $from_email, $from_name );
+		return new WSSCD_WPMail_Provider( $logger, $from_email, $from_name );
 	}
 }

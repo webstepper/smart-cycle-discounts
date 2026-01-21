@@ -27,11 +27,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/database/models
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Discount {
+class WSSCD_Discount {
 
 	/**
-	 * Note: Validation constants are now centralized in SCD_Validation class
-	 * Use SCD_Validation_Rules::PERCENTAGE_MIN, SCD_Validation_Rules::PERCENTAGE_MAX, etc.
+	 * Note: Validation constants are now centralized in WSSCD_Validation class
+	 * Use WSSCD_Validation_Rules::PERCENTAGE_MIN, WSSCD_Validation_Rules::PERCENTAGE_MAX, etc.
 	 *
 	 * @since    1.0.0
 	 */
@@ -221,7 +221,7 @@ class SCD_Discount {
 		$data = $this->to_array();
 
 		// Use centralized validation
-		$result = SCD_Validation::validate( $data, 'wizard_discounts' );
+		$result = WSSCD_Validation::validate( $data, 'wizard_discounts' );
 
 		// If WP_Error, convert to array of error messages
 		if ( is_wp_error( $result ) ) {
@@ -367,12 +367,14 @@ class SCD_Discount {
 		switch ( $this->discount_type ) {
 			case 'percentage':
 				return sprintf(
+					/* translators: %s: discount percentage value */
 					__( '%s%% off', 'smart-cycle-discounts' ),
 					number_format( $this->discount_value, 1 )
 				);
 
 			case 'fixed':
 				return sprintf(
+					/* translators: %s: formatted discount amount */
 					__( '%s off', 'smart-cycle-discounts' ),
 					wc_price( $this->discount_value )
 				);
@@ -629,7 +631,7 @@ class SCD_Discount {
 	 * @param    mixed  $default    Default value.
 	 * @return   mixed                 Metadata value.
 	 */
-	public function get_metadata_value( string $key, mixed $default = null ): mixed {
+	public function get_metadata_value( string $key, $default = null ) {
 		return $this->metadata[ $key ] ?? $default;
 	}
 
@@ -641,7 +643,7 @@ class SCD_Discount {
 	 * @param    mixed  $value    Metadata value.
 	 * @return   void
 	 */
-	public function set_metadata_value( string $key, mixed $value ): void {
+	public function set_metadata_value( string $key, $value ): void {
 		$this->metadata[ $key ] = $value;
 	}
 
@@ -666,15 +668,15 @@ class SCD_Discount {
 	}
 
 	/**
-	 * Create discount from SCD_Discount_Result.
+	 * Create discount from WSSCD_Discount_Result.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Discount_Result $result        Discount result.
+	 * @param    WSSCD_Discount_Result $result        Discount result.
 	 * @param    int                 $campaign_id   Campaign ID.
 	 * @param    int                 $product_id    Product ID.
-	 * @return   SCD_Discount                          Discount instance.
+	 * @return   WSSCD_Discount                          Discount instance.
 	 */
-	public static function from_discount_result( SCD_Discount_Result $result, int $campaign_id, int $product_id ): self {
+	public static function from_discount_result( WSSCD_Discount_Result $result, int $campaign_id, int $product_id ): self {
 		$discount = new self();
 
 		$discount->set_campaign_id( $campaign_id );

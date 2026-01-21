@@ -15,61 +15,61 @@
    ========================================================================== */
 
 /* Campaign Status Badges */
-.scd-badge-status--active,
-.scd-badge-status--inactive,
-.scd-badge-status--scheduled,
-.scd-badge-status--expired,
-.scd-badge-status--draft,
-.scd-badge-status--paused,
+.wsscd-badge-status--active,
+.wsscd-badge-status--inactive,
+.wsscd-badge-status--scheduled,
+.wsscd-badge-status--expired,
+.wsscd-badge-status--draft,
+.wsscd-badge-status--paused,
 /* Health Check Badges */
-.scd-badge-health--healthy,
-.scd-badge-health--warning,
-.scd-badge-health--alert,
-.scd-badge-health--info,
+.wsscd-badge-health--healthy,
+.wsscd-badge-health--warning,
+.wsscd-badge-health--alert,
+.wsscd-badge-health--info,
 /* Performance Badges */
-.scd-badge--performance,
-.scd-badge--high-performance,
-.scd-badge--medium-performance,
-.scd-badge--low-performance,
+.wsscd-badge--performance,
+.wsscd-badge--high-performance,
+.wsscd-badge--medium-performance,
+.wsscd-badge--low-performance,
 /* Discount Type Badges */
-.scd-badge--percentage,
-.scd-badge--fixed,
-.scd-badge--bogo,
-.scd-badge--tiered,
+.wsscd-badge--percentage,
+.wsscd-badge--fixed,
+.wsscd-badge--bogo,
+.wsscd-badge--tiered,
 /* Product Selection Badges */
-.scd-badge-product {
+.wsscd-badge-product {
     display: inline-flex;
     align-items: center;
-    gap: var(--scd-spacing-xs);
-    padding: var(--scd-spacing-xs) var(--scd-spacing-md);
-    font-size: var(--scd-font-size-small);
-    font-weight: var(--scd-font-weight-medium);
+    gap: var(--wsscd-spacing-xs);
+    padding: var(--wsscd-spacing-xs) var(--wsscd-spacing-md);
+    font-size: var(--wsscd-font-size-small);
+    font-weight: var(--wsscd-font-weight-medium);
     line-height: 1.5;
     text-align: center;
     white-space: nowrap;
-    border-radius: var(--scd-radius-md); /* 6px - subtle rounded, not too circular */
-    transition: var(--scd-transition-all);
+    border-radius: var(--wsscd-radius-md); /* 6px - subtle rounded, not too circular */
+    transition: var(--wsscd-transition-all);
 }
 
 /* ==========================================================================
    Badge Size Variants
    ========================================================================== */
 
-.scd-badge--sm {
-    padding: 2px var(--scd-spacing-sm);
-    font-size: var(--scd-font-size-small);
-    gap: var(--scd-spacing-xxs);
+.wsscd-badge--sm {
+    padding: 2px var(--wsscd-spacing-sm);
+    font-size: var(--wsscd-font-size-small);
+    gap: var(--wsscd-spacing-xxs);
 }
 
-.scd-badge--md {
-    padding: var(--scd-spacing-xs) var(--scd-spacing-md);
-    font-size: var(--scd-font-size-base);
+.wsscd-badge--md {
+    padding: var(--wsscd-spacing-xs) var(--wsscd-spacing-md);
+    font-size: var(--wsscd-font-size-base);
 }
 
-.scd-badge--lg {
-    padding: var(--scd-spacing-sm) var(--scd-spacing-base);
-    font-size: var(--scd-font-size-medium);
-    gap: var(--scd-spacing-sm);
+.wsscd-badge--lg {
+    padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-base);
+    font-size: var(--wsscd-font-size-medium);
+    gap: var(--wsscd-spacing-sm);
 }
 
 /* ==========================================================================
@@ -77,43 +77,43 @@
    ========================================================================== */
 
 /* Active campaigns */
-.scd-badge-status--active {
-    background: var(--scd-color-success-lighter);
-    color: var(--scd-color-success);
+.wsscd-badge-status--active {
+    background: var(--wsscd-color-success-lighter);
+    color: var(--wsscd-color-success);
 }
 
-.scd-badge-status--active .scd-icon {
-    color: var(--scd-color-success);
+.wsscd-badge-status--active .wsscd-icon {
+    color: var(--wsscd-color-success);
 }
 
 /* Inactive campaigns */
-.scd-badge-status--inactive {
-    background: var(--scd-color-text-alpha-15);
-    color: var(--scd-color-text-muted);
+.wsscd-badge-status--inactive {
+    background: var(--wsscd-color-text-alpha-15);
+    color: var(--wsscd-color-text-muted);
 }
 
 /* Scheduled campaigns */
-.scd-badge-status--scheduled {
-    background: var(--scd-color-info-alpha-15);
-    color: var(--scd-color-primary);
+.wsscd-badge-status--scheduled {
+    background: var(--wsscd-color-info-alpha-15);
+    color: var(--wsscd-color-primary);
 }
 
 /* Expired campaigns */
-.scd-badge-status--expired {
-    background: var(--scd-color-danger-lighter);
-    color: var(--scd-color-danger-dark);
+.wsscd-badge-status--expired {
+    background: var(--wsscd-color-danger-lighter);
+    color: var(--wsscd-color-danger-dark);
 }
 
 /* Draft campaigns */
-.scd-badge-status--draft {
-    background: var(--scd-color-warning-lighter);
-    color: var(--scd-color-warning-dark);
+.wsscd-badge-status--draft {
+    background: var(--wsscd-color-warning-lighter);
+    color: var(--wsscd-color-warning-dark);
 }
 
 /* Paused campaigns */
-.scd-badge-status--paused {
-    background: var(--scd-color-text-alpha-15);
-    color: var(--scd-color-text-muted);
+.wsscd-badge-status--paused {
+    background: var(--wsscd-color-text-alpha-15);
+    color: var(--wsscd-color-text-muted);
 }
 
 /* ==========================================================================
@@ -121,77 +121,77 @@
    ========================================================================== */
 
 /* Healthy / No issues */
-.scd-badge-health--healthy {
-    background: var(--scd-color-success-lighter);
-    color: var(--scd-color-success);
+.wsscd-badge-health--healthy {
+    background: var(--wsscd-color-success-lighter);
+    color: var(--wsscd-color-success);
 }
 
 /* Warning / Attention needed */
-.scd-badge-health--warning {
-    background: var(--scd-color-warning-lighter);
-    color: var(--scd-color-warning-dark);
+.wsscd-badge-health--warning {
+    background: var(--wsscd-color-warning-lighter);
+    color: var(--wsscd-color-warning-dark);
 }
 
 /* Alert / Critical issue */
-.scd-badge-health--alert {
-    background: var(--scd-color-danger-lighter);
-    color: var(--scd-color-danger-dark);
+.wsscd-badge-health--alert {
+    background: var(--wsscd-color-danger-lighter);
+    color: var(--wsscd-color-danger-dark);
 }
 
 /* Info / Informational */
-.scd-badge-health--info {
-    background: var(--scd-color-info-alpha-15);
-    color: var(--scd-color-primary);
+.wsscd-badge-health--info {
+    background: var(--wsscd-color-info-alpha-15);
+    color: var(--wsscd-color-primary);
 }
 
 /* ==========================================================================
    Performance Badges
    ========================================================================== */
 
-.scd-badge--performance {
+.wsscd-badge--performance {
     font-variant-numeric: tabular-nums;
 }
 
 /* High performing */
-.scd-badge--high-performance {
-    background: var(--scd-color-success-lighter);
-    color: var(--scd-color-success);
+.wsscd-badge--high-performance {
+    background: var(--wsscd-color-success-lighter);
+    color: var(--wsscd-color-success);
 }
 
 /* Medium performing */
-.scd-badge--medium-performance {
-    background: var(--scd-color-warning-lighter);
-    color: var(--scd-color-warning-dark);
+.wsscd-badge--medium-performance {
+    background: var(--wsscd-color-warning-lighter);
+    color: var(--wsscd-color-warning-dark);
 }
 
 /* Low performing */
-.scd-badge--low-performance {
-    background: var(--scd-color-danger-lighter);
-    color: var(--scd-color-danger-dark);
+.wsscd-badge--low-performance {
+    background: var(--wsscd-color-danger-lighter);
+    color: var(--wsscd-color-danger-dark);
 }
 
 /* ==========================================================================
    Discount Type Badges
    ========================================================================== */
 
-.scd-badge--percentage {
-    background-color: var(--scd-color-accent-bg);
-    color: var(--scd-color-accent);
+.wsscd-badge--percentage {
+    background-color: var(--wsscd-color-accent-bg);
+    color: var(--wsscd-color-accent);
 }
 
-.scd-badge--fixed {
-    background-color: var(--scd-color-primary-bg);
-    color: var(--scd-color-primary);
+.wsscd-badge--fixed {
+    background-color: var(--wsscd-color-primary-bg);
+    color: var(--wsscd-color-primary);
 }
 
-.scd-badge--bogo {
-    background-color: var(--scd-color-info-bg);
-    color: var(--scd-color-secondary);
+.wsscd-badge--bogo {
+    background-color: var(--wsscd-color-info-bg);
+    color: var(--wsscd-color-secondary);
 }
 
-.scd-badge--tiered {
-    background-color: var(--scd-color-warning-bg);
-    color: var(--scd-color-warning);
+.wsscd-badge--tiered {
+    background-color: var(--wsscd-color-warning-bg);
+    color: var(--wsscd-color-warning);
 }
 
 /* ==========================================================================
@@ -199,27 +199,27 @@
    ========================================================================== */
 
 /* Base product badge */
-.scd-badge-product {
-    background-color: var(--scd-color-surface);
-    color: var(--scd-color-text);
-    border: 1px solid var(--scd-color-border);
+.wsscd-badge-product {
+    background-color: var(--wsscd-color-surface);
+    color: var(--wsscd-color-text);
+    border: 1px solid var(--wsscd-color-border);
     text-transform: none;
     cursor: help;
 }
 
-.scd-badge-product:hover {
+.wsscd-badge-product:hover {
     opacity: 0.85;
 }
 
 /* Empty/Pending state */
-.scd-badge-product--empty {
-    background-color: var(--scd-color-white);
+.wsscd-badge-product--empty {
+    background-color: var(--wsscd-color-white);
     border-style: dashed;
-    color: var(--scd-color-text-secondary);
+    color: var(--wsscd-color-text-secondary);
     font-style: italic;
 }
 
-.scd-badge-product--empty:hover {
+.wsscd-badge-product--empty:hover {
     opacity: 0.85;
 }
 
@@ -227,33 +227,33 @@
    PRO/FREE Feature Badges
    ========================================================================== */
 
-.scd-pro-badge,
-.scd-free-badge {
+.wsscd-pro-badge,
+.wsscd-free-badge {
     display: inline-flex;
     align-items: center;
-    gap: var(--scd-spacing-xs);
-    padding: var(--scd-spacing-xs) var(--scd-spacing-md);
-    font-size: var(--scd-font-size-small);
-    font-weight: var(--scd-font-weight-semibold);
+    gap: var(--wsscd-spacing-xs);
+    padding: var(--wsscd-spacing-xs) var(--wsscd-spacing-md);
+    font-size: var(--wsscd-font-size-small);
+    font-weight: var(--wsscd-font-weight-semibold);
     line-height: 1.5;
     text-align: center;
     white-space: nowrap;
-    border-radius: var(--scd-radius-md); /* 6px - consistent with status badges */
-    transition: var(--scd-transition-all);
+    border-radius: var(--wsscd-radius-md); /* 6px - consistent with status badges */
+    transition: var(--wsscd-transition-all);
     letter-spacing: 0.01em;
 }
 
-.scd-pro-badge {
-    background: var(--scd-color-warning);
-    color: var(--scd-color-white);
-    border: none;
-    box-shadow: var(--scd-shadow-warning);
+.wsscd-pro-badge {
+    background: var(--wsscd-color-warning-lighter);
+    color: var(--wsscd-color-warning-dark);
+    border: 1px solid var(--wsscd-color-warning);
+    box-shadow: none;
 }
 
-.scd-free-badge {
-    background: var(--scd-color-success-lighter);
-    color: var(--scd-color-success-dark);
-    border: 1px solid var(--scd-color-success);
+.wsscd-free-badge {
+    background: var(--wsscd-color-success-lighter);
+    color: var(--wsscd-color-success-dark);
+    border: 1px solid var(--wsscd-color-success);
     box-shadow: none;
 }
 
@@ -262,22 +262,22 @@
    ========================================================================== */
 
 /* Dot indicator */
-.scd-badge--with-dot::before {
+.wsscd-badge--with-dot::before {
     content: '';
     width: 6px;
     height: 6px;
-    border-radius: var(--scd-radius-full);
+    border-radius: var(--wsscd-radius-full);
     background-color: currentColor;
-    margin-right: var(--scd-spacing-xs);
+    margin-right: var(--wsscd-spacing-xs);
 }
 
 /* ==========================================================================
    Badge Groups
    ========================================================================== */
 
-.scd-badge-group {
+.wsscd-badge-group {
     display: inline-flex;
-    gap: var(--scd-spacing-xs);
+    gap: var(--wsscd-spacing-xs);
     flex-wrap: wrap;
 }
 
@@ -285,19 +285,19 @@
    Icon Support
    ========================================================================== */
 
-.scd-badge-status--active .scd-icon,
-.scd-badge-status--inactive .scd-icon,
-.scd-badge-status--scheduled .scd-icon,
-.scd-badge-status--expired .scd-icon,
-.scd-badge-status--draft .scd-icon,
-.scd-badge-status--paused .scd-icon,
-.scd-badge-health--healthy .scd-icon,
-.scd-badge-health--warning .scd-icon,
-.scd-badge-health--alert .scd-icon,
-.scd-badge-health--info .scd-icon {
+.wsscd-badge-status--active .wsscd-icon,
+.wsscd-badge-status--inactive .wsscd-icon,
+.wsscd-badge-status--scheduled .wsscd-icon,
+.wsscd-badge-status--expired .wsscd-icon,
+.wsscd-badge-status--draft .wsscd-icon,
+.wsscd-badge-status--paused .wsscd-icon,
+.wsscd-badge-health--healthy .wsscd-icon,
+.wsscd-badge-health--warning .wsscd-icon,
+.wsscd-badge-health--alert .wsscd-icon,
+.wsscd-badge-health--info .wsscd-icon {
     width: 14px;
     height: 14px;
-    font-size: var(--scd-font-size-medium);
+    font-size: var(--wsscd-font-size-medium);
     line-height: 1;
 }
 
@@ -305,17 +305,28 @@
    Interactive Badges
    ========================================================================== */
 
-.scd-badge--clickable {
+.wsscd-badge--clickable {
     cursor: pointer;
-    transition: var(--scd-transition-all);
+    transition: var(--wsscd-transition-all);
 }
 
-.scd-badge--clickable:hover {
+.wsscd-badge--clickable:hover {
     opacity: 0.85;
 }
 
-.scd-badge--clickable:active {
+.wsscd-badge--clickable:active {
     opacity: 0.9;
+}
+
+/* Focus state for keyboard navigation */
+.wsscd-badge--clickable:focus {
+    outline: none;
+}
+
+.wsscd-badge--clickable:focus-visible {
+    outline: var(--wsscd-border-width-focus) solid var(--wsscd-color-primary);
+    outline-offset: 2px;
+    box-shadow: var(--wsscd-ring-focus);
 }
 
 /* ==========================================================================
@@ -323,31 +334,31 @@
    ========================================================================== */
 
 /* Apply theme colors to post status when opted-in */
-.scd-themed-badges .post-state {
-    color: var(--scd-color-text-muted);
+.wsscd-themed-badges .post-state {
+    color: var(--wsscd-color-text-muted);
 }
 
-.scd-themed-badges .post-state-scheduled {
-    color: var(--scd-badge-scheduled);
+.wsscd-themed-badges .post-state-scheduled {
+    color: var(--wsscd-badge-scheduled);
 }
 
-.scd-themed-badges .post-state-draft {
-    color: var(--scd-badge-draft);
+.wsscd-themed-badges .post-state-draft {
+    color: var(--wsscd-badge-draft);
 }
 
 /* ==========================================================================
    Loading/Skeleton Badge
    ========================================================================== */
 
-.scd-badge--loading {
-    background: var(--scd-gradient-shimmer);
+.wsscd-badge--loading {
+    background: var(--wsscd-gradient-shimmer);
     background-size: 200% 100%;
     color: transparent;
     min-width: 60px;
-    animation: scd-shimmer 1.5s ease-in-out infinite;
+    animation: wsscd-shimmer 1.5s ease-in-out infinite;
 }
 
-@keyframes scd-shimmer {
+@keyframes wsscd-shimmer {
     0% {
         background-position: 200% 0;
     }

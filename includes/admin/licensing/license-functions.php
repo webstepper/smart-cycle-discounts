@@ -24,8 +24,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since    1.0.0
  * @return   bool    True if license is valid and active.
  */
-function scd_is_license_valid() {
-	$license_manager = SCD_License_Manager::instance();
+function wsscd_is_license_valid() {
+	if ( ! class_exists( 'WSSCD_License_Manager' ) ) {
+		return false;
+	}
+	$license_manager = WSSCD_License_Manager::instance();
 	return $license_manager->is_license_valid();
 }
 
@@ -35,8 +38,11 @@ function scd_is_license_valid() {
  * @since    1.0.0
  * @return   array|null    License info or null if not available.
  */
-function scd_get_license_info() {
-	$license_manager = SCD_License_Manager::instance();
+function wsscd_get_license_info() {
+	if ( ! class_exists( 'WSSCD_License_Manager' ) ) {
+		return null;
+	}
+	$license_manager = WSSCD_License_Manager::instance();
 	return $license_manager->get_license_info();
 }
 
@@ -49,8 +55,11 @@ function scd_get_license_info() {
  * @since    1.0.0
  * @return   bool    Validation result.
  */
-function scd_force_license_validation() {
-	$license_manager = SCD_License_Manager::instance();
+function wsscd_force_license_validation() {
+	if ( ! class_exists( 'WSSCD_License_Manager' ) ) {
+		return false;
+	}
+	$license_manager = WSSCD_License_Manager::instance();
 	return $license_manager->force_validation();
 }
 
@@ -62,8 +71,11 @@ function scd_force_license_validation() {
  * @since    1.0.0
  * @return   void
  */
-function scd_clear_license_cache() {
-	$license_manager = SCD_License_Manager::instance();
+function wsscd_clear_license_cache() {
+	if ( ! class_exists( 'WSSCD_License_Manager' ) ) {
+		return;
+	}
+	$license_manager = WSSCD_License_Manager::instance();
 	$license_manager->clear_validation_cache();
 }
 
@@ -73,8 +85,11 @@ function scd_clear_license_cache() {
  * @since    1.0.0
  * @return   int    Days remaining until next check.
  */
-function scd_get_days_until_license_check() {
-	$license_manager = SCD_License_Manager::instance();
+function wsscd_get_days_until_license_check() {
+	if ( ! class_exists( 'WSSCD_License_Manager' ) ) {
+		return 0;
+	}
+	$license_manager = WSSCD_License_Manager::instance();
 	return $license_manager->get_days_until_next_check();
 }
 
@@ -84,8 +99,11 @@ function scd_get_days_until_license_check() {
  * @since    1.0.0
  * @return   bool    True if user has never purchased premium.
  */
-function scd_is_free_user() {
-	$license_manager = SCD_License_Manager::instance();
+function wsscd_is_free_user() {
+	if ( ! class_exists( 'WSSCD_License_Manager' ) ) {
+		return true;
+	}
+	$license_manager = WSSCD_License_Manager::instance();
 	return $license_manager->is_free_user();
 }
 
@@ -95,39 +113,13 @@ function scd_is_free_user() {
  * @since    1.0.0
  * @return   bool    True if user purchased but license is now invalid.
  */
-function scd_is_license_expired() {
-	$license_manager = SCD_License_Manager::instance();
+function wsscd_is_license_expired() {
+	if ( ! class_exists( 'WSSCD_License_Manager' ) ) {
+		return false;
+	}
+	$license_manager = WSSCD_License_Manager::instance();
 	return $license_manager->is_license_expired();
 }
 
-/**
- * Get upgrade URL.
- *
- * @since    1.0.0
- * @return   string    Upgrade URL.
- */
-if ( ! function_exists( 'scd_get_upgrade_url' ) ) {
-	function scd_get_upgrade_url() {
-		if ( ! function_exists( 'scd_fs' ) || ! scd_fs() ) {
-			return admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
-		}
-
-		return scd_fs()->get_upgrade_url();
-	}
-}
-
-/**
- * Get trial URL.
- *
- * @since    1.0.0
- * @return   string    Trial URL.
- */
-if ( ! function_exists( 'scd_get_trial_url' ) ) {
-	function scd_get_trial_url() {
-		if ( ! function_exists( 'scd_fs' ) || ! scd_fs() ) {
-			return admin_url( 'admin.php?page=smart-cycle-discounts-pricing' );
-		}
-
-		return scd_fs()->get_trial_url();
-	}
-}
+// Note: wsscd_get_upgrade_url() is defined in smart-cycle-discounts.php
+// to ensure it's available early in the plugin lifecycle.

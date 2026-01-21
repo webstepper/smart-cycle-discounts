@@ -21,15 +21,15 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since      1.0.0
  */
-class SCD_Export_Handler extends SCD_Abstract_Analytics_Handler {
+class WSSCD_Export_Handler extends WSSCD_Abstract_Analytics_Handler {
 
-	use SCD_License_Validation_Trait;
+	use WSSCD_License_Validation_Trait;
 
 	/**
 	 * Export service instance.
 	 *
 	 * @since    1.0.0
-	 * @var      SCD_Export_Service
+	 * @var      WSSCD_Export_Service
 	 */
 	private $export_service;
 
@@ -37,9 +37,9 @@ class SCD_Export_Handler extends SCD_Abstract_Analytics_Handler {
 	 * Initialize the handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Metrics_Calculator $metrics_calculator    Metrics calculator.
-	 * @param    SCD_Logger             $logger                Logger instance.
-	 * @param    SCD_Export_Service     $export_service        Export service.
+	 * @param    WSSCD_Metrics_Calculator $metrics_calculator    Metrics calculator.
+	 * @param    WSSCD_Logger             $logger                Logger instance.
+	 * @param    WSSCD_Export_Service     $export_service        Export service.
 	 */
 	public function __construct( $metrics_calculator, $logger, $export_service ) {
 		parent::__construct( $metrics_calculator, $logger );
@@ -53,7 +53,7 @@ class SCD_Export_Handler extends SCD_Abstract_Analytics_Handler {
 	 * @return   string    Required capability.
 	 */
 	protected function get_required_capability(): string {
-		return 'scd_export_analytics';
+		return 'wsscd_export_analytics';
 	}
 
 	/**
@@ -65,7 +65,7 @@ class SCD_Export_Handler extends SCD_Abstract_Analytics_Handler {
 	 */
 	public function handle( array $request ): array {
 		// Verify request
-		$verification = $this->verify_request( $request, 'scd_analytics_export' );
+		$verification = $this->verify_request( $request, 'wsscd_analytics_export' );
 		if ( is_wp_error( $verification ) ) {
 			return $this->error(
 				$verification->get_error_message(),
@@ -121,6 +121,7 @@ class SCD_Export_Handler extends SCD_Abstract_Analytics_Handler {
 			);
 
 			return $this->error(
+				/* translators: %s: error message */
 				sprintf( __( 'Failed to generate export: %s', 'smart-cycle-discounts' ), $e->getMessage() ),
 				'export_generation_failed'
 			);

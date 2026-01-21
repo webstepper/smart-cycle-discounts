@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/core
  * @author     Smart Cycle Discounts <support@smartcyclediscounts.com>
  */
-class SCD_Service_Definitions {
+class WSSCD_Service_Definitions {
 
 	/**
 	 * Get all service definitions.
@@ -37,63 +37,63 @@ class SCD_Service_Definitions {
 		return array(
 			// Core Services
 			'logger'                       => array(
-				'class'     => 'SCD_Logger',
+				'class'     => 'WSSCD_Logger',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
-					return new SCD_Logger();
+					return new WSSCD_Logger();
 				},
 			),
 
 			'action_scheduler'             => array(
-				'class'        => 'SCD_Action_Scheduler_Service',
+				'class'        => 'WSSCD_Action_Scheduler_Service',
 				'singleton'    => true,
 				'dependencies' => array( 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Action_Scheduler_Service(
+					return new WSSCD_Action_Scheduler_Service(
 						$container->get( 'logger' )
 					);
 				},
 			),
 
 			'debug_logger'                 => array(
-				'class'     => 'SCD_Debug_Logger',
+				'class'     => 'WSSCD_Debug_Logger',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
-					require_once SCD_INCLUDES_DIR . 'utilities/class-debug-logger.php';
-					return new SCD_Debug_Logger();
+					require_once WSSCD_INCLUDES_DIR . 'utilities/class-debug-logger.php';
+					return new WSSCD_Debug_Logger();
 				},
 			),
 
 			'debug_console'                => array(
-				'class'        => 'SCD_Debug_Console',
+				'class'        => 'WSSCD_Debug_Console',
 				'singleton'    => true,
 				'dependencies' => array(),
 				'factory'      => function ( $container ) {
-					require_once SCD_INCLUDES_DIR . 'utilities/class-debug-console.php';
-					return new SCD_Debug_Console();
+					require_once WSSCD_INCLUDES_DIR . 'utilities/class-debug-console.php';
+					return new WSSCD_Debug_Console();
 				},
 			),
 
 			'error_handler'                => array(
-				'class'        => 'SCD_Error_Handler',
+				'class'        => 'WSSCD_Error_Handler',
 				'singleton'    => true,
 				'dependencies' => array( 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Error_Handler( $container->get( 'logger' ) );
+					return new WSSCD_Error_Handler( $container->get( 'logger' ) );
 				},
 			),
 
 			'cache_manager'                => array(
-				'class'     => 'SCD_Cache_Manager',
+				'class'     => 'WSSCD_Cache_Manager',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
-					return new SCD_Cache_Manager();
+					return new WSSCD_Cache_Manager();
 				},
 			),
 
 			// Alias for backward compatibility
 			'cache'                        => array(
-				'class'        => 'SCD_Cache_Manager',
+				'class'        => 'WSSCD_Cache_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'cache_manager' ),
 				'factory'      => function ( $container ) {
@@ -102,39 +102,39 @@ class SCD_Service_Definitions {
 			),
 
 			'reference_data_cache'         => array(
-				'class'        => 'SCD_Reference_Data_Cache',
+				'class'        => 'WSSCD_Reference_Data_Cache',
 				'singleton'    => true,
 				'dependencies' => array( 'cache_manager' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Reference_Data_Cache( $container->get( 'cache_manager' ) );
+					return new WSSCD_Reference_Data_Cache( $container->get( 'cache_manager' ) );
 				},
 			),
 
 			'database_manager'             => array(
-				'class'     => 'SCD_Database_Manager',
+				'class'     => 'WSSCD_Database_Manager',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
-					return new SCD_Database_Manager();
+					return new WSSCD_Database_Manager();
 				},
 			),
 
 			'security_manager'             => array(
-				'class'        => 'SCD_Security_Manager',
+				'class'        => 'WSSCD_Security_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'container' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Security_Manager( $container );
+					return new WSSCD_Security_Manager( $container );
 				},
 			),
 
 			// Campaign Model Services (New modular components)
 
 			'campaign.calculator'          => array(
-				'class'        => 'SCD_Campaign_Calculator',
+				'class'        => 'WSSCD_Campaign_Calculator',
 				'singleton'    => true,
 				'dependencies' => array( 'analytics_repository', 'product_selector' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Campaign_Calculator(
+					return new WSSCD_Campaign_Calculator(
 						$container->get( 'analytics_repository' ),
 						$container->get( 'product_selector' )
 					);
@@ -142,19 +142,19 @@ class SCD_Service_Definitions {
 			),
 
 			'campaign.formatter'           => array(
-				'class'     => 'SCD_Campaign_Formatter',
+				'class'     => 'WSSCD_Campaign_Formatter',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
-					return new SCD_Campaign_Formatter();
+					return new WSSCD_Campaign_Formatter();
 				},
 			),
 
 			'campaign.state_manager'       => array(
-				'class'        => 'SCD_Campaign_State_Manager',
+				'class'        => 'WSSCD_Campaign_State_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Campaign_State_Manager(
+					return new WSSCD_Campaign_State_Manager(
 						$container->get( 'logger' ),
 						null // Event dispatcher if available
 					);
@@ -162,11 +162,11 @@ class SCD_Service_Definitions {
 			),
 
 			'campaign_health_service'      => array(
-				'class'        => 'SCD_Campaign_Health_Service',
+				'class'        => 'WSSCD_Campaign_Health_Service',
 				'singleton'    => true,
 				'dependencies' => array( 'logger', 'recurring_handler' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Campaign_Health_Service(
+					return new WSSCD_Campaign_Health_Service(
 						$container->get( 'logger' ),
 						$container->get( 'recurring_handler' )
 					);
@@ -176,11 +176,11 @@ class SCD_Service_Definitions {
 
 			// Repository Services
 			'campaign_repository'          => array(
-				'class'        => 'SCD_Campaign_Repository',
+				'class'        => 'WSSCD_Campaign_Repository',
 				'singleton'    => true,
 				'dependencies' => array( 'database_manager', 'cache_manager' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Campaign_Repository(
+					return new WSSCD_Campaign_Repository(
 						$container->get( 'database_manager' ),
 						$container->get( 'cache_manager' )
 					);
@@ -188,41 +188,41 @@ class SCD_Service_Definitions {
 			),
 
 		'campaign_conditions_repository' => array(
-			'class'        => 'SCD_Campaign_Conditions_Repository',
+			'class'        => 'WSSCD_Campaign_Conditions_Repository',
 			'singleton'    => true,
 			'dependencies' => array( 'database_manager' ),
 			'factory'      => function ( $container ) {
-				require_once SCD_INCLUDES_DIR . 'database/repositories/class-campaign-conditions-repository.php';
-				return new SCD_Campaign_Conditions_Repository(
+				require_once WSSCD_INCLUDES_DIR . 'database/repositories/class-campaign-conditions-repository.php';
+				return new WSSCD_Campaign_Conditions_Repository(
 					$container->get( 'database_manager' )
 				);
 			},
 		),
 
 			'discount_repository'          => array(
-				'class'        => 'SCD_Discount_Repository',
+				'class'        => 'WSSCD_Discount_Repository',
 				'singleton'    => true,
 				'dependencies' => array( 'database_manager' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Discount_Repository( $container->get( 'database_manager' ) );
+					return new WSSCD_Discount_Repository( $container->get( 'database_manager' ) );
 				},
 			),
 
 			'analytics_repository'         => array(
-				'class'        => 'SCD_Analytics_Repository',
+				'class'        => 'WSSCD_Analytics_Repository',
 				'singleton'    => true,
 				'dependencies' => array( 'database_manager' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Analytics_Repository( $container->get( 'database_manager' ) );
+					return new WSSCD_Analytics_Repository( $container->get( 'database_manager' ) );
 				},
 			),
 
 			'customer_usage_repository'    => array(
-				'class'        => 'SCD_Customer_Usage_Repository',
+				'class'        => 'WSSCD_Customer_Usage_Repository',
 				'singleton'    => true,
 				'dependencies' => array( 'database_manager', 'logger', 'cache' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Customer_Usage_Repository(
+					return new WSSCD_Customer_Usage_Repository(
 						$container->get( 'database_manager' ),
 						$container->get( 'logger' ),
 						$container->get( 'cache' )
@@ -231,20 +231,20 @@ class SCD_Service_Definitions {
 			),
 
 			'session_service'              => array(
-				'class'     => 'SCD_Session_Service',
+				'class'     => 'WSSCD_Session_Service',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
-					return new SCD_Session_Service();
+					return new WSSCD_Session_Service();
 				},
 			),
 
 			// Business Logic Services
 			'campaign_manager'             => array(
-				'class'        => 'SCD_Campaign_Manager',
+				'class'        => 'WSSCD_Campaign_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'campaign_repository', 'logger', 'cache_manager', 'container' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Campaign_Manager(
+					return new WSSCD_Campaign_Manager(
 						$container->get( 'campaign_repository' ),
 						$container->get( 'logger' ),
 						$container->get( 'cache_manager' ),
@@ -254,11 +254,11 @@ class SCD_Service_Definitions {
 			),
 
 			'discount_engine'              => array(
-				'class'        => 'SCD_Discount_Engine',
+				'class'        => 'WSSCD_Discount_Engine',
 				'singleton'    => true,
 				'dependencies' => array( 'logger', 'cache_manager' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Discount_Engine(
+					return new WSSCD_Discount_Engine(
 						$container->get( 'logger' ),
 						$container->get( 'cache_manager' )
 					);
@@ -266,11 +266,11 @@ class SCD_Service_Definitions {
 			),
 
 			'customer_usage_manager'       => array(
-				'class'        => 'SCD_Customer_Usage_Manager',
+				'class'        => 'WSSCD_Customer_Usage_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'customer_usage_repository', 'logger', 'session_service' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Customer_Usage_Manager(
+					return new WSSCD_Customer_Usage_Manager(
 						$container->get( 'customer_usage_repository' ),
 						$container->get( 'logger' ),
 						$container->get( 'session_service' )
@@ -279,11 +279,11 @@ class SCD_Service_Definitions {
 			),
 
 			'discount_rules_enforcer'      => array(
-				'class'        => 'SCD_Discount_Rules_Enforcer',
+				'class'        => 'WSSCD_Discount_Rules_Enforcer',
 				'singleton'    => true,
 				'dependencies' => array( 'customer_usage_manager', 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Discount_Rules_Enforcer(
+					return new WSSCD_Discount_Rules_Enforcer(
 						$container->get( 'customer_usage_manager' ),
 						$container->get( 'logger' )
 					);
@@ -291,11 +291,11 @@ class SCD_Service_Definitions {
 			),
 
 			'cron_scheduler'               => array(
-				'class'        => 'SCD_Cron_Scheduler',
+				'class'        => 'WSSCD_Cron_Scheduler',
 				'singleton'    => true,
 				'dependencies' => array( 'logger', 'action_scheduler', 'customer_usage_manager' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Cron_Scheduler(
+					return new WSSCD_Cron_Scheduler(
 						$container->get( 'logger' ),
 						$container->get( 'action_scheduler' ),
 						$container->get( 'customer_usage_manager' )
@@ -304,11 +304,11 @@ class SCD_Service_Definitions {
 			),
 
 			'discount_applicator'          => array(
-				'class'        => 'SCD_Discount_Applicator',
+				'class'        => 'WSSCD_Discount_Applicator',
 				'singleton'    => true,
 				'dependencies' => array( 'discount_engine', 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Discount_Applicator(
+					return new WSSCD_Discount_Applicator(
 						$container->get( 'discount_engine' ),
 						$container->get( 'logger' )
 					);
@@ -316,42 +316,42 @@ class SCD_Service_Definitions {
 			),
 
 			'occurrence_cache'             => array(
-				'class'        => 'SCD_Occurrence_Cache',
+				'class'        => 'WSSCD_Occurrence_Cache',
 				'singleton'    => true,
 				'dependencies' => array( 'logger' ),
 				'factory'      => function ( $container ) {
-					require_once SCD_INCLUDES_DIR . 'core/campaigns/class-occurrence-cache.php';
-					return new SCD_Occurrence_Cache(
+					require_once WSSCD_INCLUDES_DIR . 'core/campaigns/class-occurrence-cache.php';
+					return new WSSCD_Occurrence_Cache(
 						$container->get( 'logger' )
 					);
 				},
 			),
 
 			'recurring_handler'            => array(
-				'class'        => 'SCD_Recurring_Handler',
+				'class'        => 'WSSCD_Recurring_Handler',
 				'singleton'    => true,
 				'dependencies' => array( 'container' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Recurring_Handler( $container );
+					return new WSSCD_Recurring_Handler( $container );
 				},
 			),
 
 			// Admin Services
 			'admin_manager'                => array(
-				'class'        => 'SCD_Admin_Manager',
+				'class'        => 'WSSCD_Admin_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'container' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Admin_Manager( $container );
+					return new WSSCD_Admin_Manager( $container );
 				},
 			),
 
 			'menu_manager'                 => array(
-				'class'        => 'SCD_Menu_Manager',
+				'class'        => 'WSSCD_Menu_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'capability_manager', 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Menu_Manager(
+					return new WSSCD_Menu_Manager(
 						$container->get( 'capability_manager' ),
 						$container->get( 'logger' )
 					);
@@ -359,92 +359,96 @@ class SCD_Service_Definitions {
 			),
 
 			'ajax_router'                  => array(
-				'class'     => 'SCD_Ajax_Router',
+				'class'     => 'WSSCD_Ajax_Router',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
-					return new SCD_Ajax_Router();
+					return new WSSCD_Ajax_Router();
 				},
 			),
 
 			'admin_asset_manager'          => array(
-				'class'        => 'SCD_Admin_Asset_Manager',
+				'class'        => 'WSSCD_Admin_Asset_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Admin_Asset_Manager(
+					return new WSSCD_Admin_Asset_Manager(
 						$container->get( 'logger' ),
-						SCD_VERSION,
-						SCD_PLUGIN_URL
+						WSSCD_VERSION,
+						WSSCD_PLUGIN_URL
 					);
 				},
 			),
 
 			'capability_manager'           => array(
-				'class'        => 'SCD_Admin_Capability_Manager',
+				'class'        => 'WSSCD_Admin_Capability_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Admin_Capability_Manager( $container->get( 'logger' ) );
+					return new WSSCD_Admin_Capability_Manager( $container->get( 'logger' ) );
 				},
 			),
 
 			// Licensing Services
 			'feature_gate'                 => array(
-				'class'        => 'SCD_Feature_Gate',
+				'class'        => 'WSSCD_Feature_Gate',
 				'singleton'    => true,
 				'dependencies' => array(),
 				'factory'      => function ( $container ) {
-					return new SCD_Feature_Gate();
+					return new WSSCD_Feature_Gate();
 				},
 			),
 
 			'license_manager'              => array(
-				'class'        => 'SCD_License_Manager',
+				'class'        => 'WSSCD_License_Manager',
 				'singleton'    => true,
+				'optional'     => true,
 				'dependencies' => array(),
 				'factory'      => function ( $container ) {
-					require_once SCD_INCLUDES_DIR . 'admin/licensing/class-license-manager.php';
-					return SCD_License_Manager::instance();
+					if ( ! file_exists( WSSCD_INCLUDES_DIR . 'admin/licensing/class-license-manager.php' ) ) {
+						return null;
+					}
+					require_once WSSCD_INCLUDES_DIR . 'admin/licensing/class-license-manager.php';
+					return WSSCD_License_Manager::instance();
 				},
 			),
 
 			'license_notices'              => array(
-				'class'        => 'SCD_License_Notices',
+				'class'        => 'WSSCD_License_Notices',
 				'singleton'    => true,
 				'dependencies' => array(),
 				'factory'      => function ( $container ) {
-					require_once SCD_INCLUDES_DIR . 'admin/licensing/class-license-notices.php';
-					return new SCD_License_Notices();
+					require_once WSSCD_INCLUDES_DIR . 'admin/licensing/class-license-notices.php';
+					return new WSSCD_License_Notices();
 				},
 			),
 
 			'upgrade_prompt_manager'       => array(
-				'class'        => 'SCD_Upgrade_Prompt_Manager',
+				'class'        => 'WSSCD_Upgrade_Prompt_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'feature_gate' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Upgrade_Prompt_Manager(
+					return new WSSCD_Upgrade_Prompt_Manager(
 						$container->get( 'feature_gate' )
 					);
 				},
 			),
 
 			'campaigns_page'               => array(
-				'class'        => 'SCD_Campaigns_Page',
+				'class'        => 'WSSCD_Campaigns_Page',
 				'singleton'    => true,
 				'dependencies' => array( 'campaign_manager', 'capability_manager', 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Campaigns_Page( $container );
+					return new WSSCD_Campaigns_Page( $container );
 				},
 			),
 
 			'tools_page'                   => array(
-				'class'        => 'SCD_Tools_Page',
+				'class'        => 'WSSCD_Tools_Page',
 				'singleton'    => true,
 				'dependencies' => array( 'container', 'logger', 'feature_gate' ),
 				'factory'      => function ( $container ) {
-					require_once SCD_INCLUDES_DIR . 'admin/pages/class-tools-page.php';
-					return new SCD_Tools_Page(
+					require_once WSSCD_INCLUDES_DIR . 'admin/pages/class-tools-page.php';
+					return new WSSCD_Tools_Page(
 						$container,
 						$container->get( 'logger' ),
 						$container->get( 'feature_gate' )
@@ -454,12 +458,12 @@ class SCD_Service_Definitions {
 
 			// Notifications Page Services
 			'notifications_page'           => array(
-				'class'        => 'SCD_Notifications_Page',
+				'class'        => 'WSSCD_Notifications_Page',
 				'singleton'    => true,
 				'dependencies' => array( 'logger', 'container', 'feature_gate' ),
 				'factory'      => function ( $container ) {
-					require_once SCD_INCLUDES_DIR . 'admin/pages/notifications/class-notifications-page.php';
-					return new SCD_Notifications_Page(
+					require_once WSSCD_INCLUDES_DIR . 'admin/pages/notifications/class-notifications-page.php';
+					return new WSSCD_Notifications_Page(
 						$container->get( 'logger' ),
 						$container,
 						$container->get( 'feature_gate' )
@@ -468,13 +472,13 @@ class SCD_Service_Definitions {
 			),
 
 			'notifications_settings_tab'   => array(
-				'class'        => 'SCD_Notifications_Settings_Tab',
+				'class'        => 'WSSCD_Notifications_Settings_Tab',
 				'singleton'    => true,
 				'dependencies' => array( 'notifications_page', 'logger' ),
 				'factory'      => function ( $container ) {
-					require_once SCD_INCLUDES_DIR . 'admin/pages/notifications/class-notifications-tab-base.php';
-					require_once SCD_INCLUDES_DIR . 'admin/pages/notifications/tabs/class-notifications-settings-tab.php';
-					return new SCD_Notifications_Settings_Tab(
+					require_once WSSCD_INCLUDES_DIR . 'admin/pages/notifications/class-notifications-tab-base.php';
+					require_once WSSCD_INCLUDES_DIR . 'admin/pages/notifications/tabs/class-notifications-settings-tab.php';
+					return new WSSCD_Notifications_Settings_Tab(
 						'settings',
 						$container->get( 'notifications_page' ),
 						$container->get( 'logger' )
@@ -483,13 +487,13 @@ class SCD_Service_Definitions {
 			),
 
 			'notifications_queue_tab'      => array(
-				'class'        => 'SCD_Queue_Status_Tab',
+				'class'        => 'WSSCD_Queue_Status_Tab',
 				'singleton'    => true,
 				'dependencies' => array( 'notifications_page', 'logger', 'container' ),
 				'factory'      => function ( $container ) {
-					require_once SCD_INCLUDES_DIR . 'admin/pages/notifications/class-notifications-tab-base.php';
-					require_once SCD_INCLUDES_DIR . 'admin/pages/notifications/tabs/class-queue-status-tab.php';
-					return new SCD_Queue_Status_Tab(
+					require_once WSSCD_INCLUDES_DIR . 'admin/pages/notifications/class-notifications-tab-base.php';
+					require_once WSSCD_INCLUDES_DIR . 'admin/pages/notifications/tabs/class-queue-status-tab.php';
+					return new WSSCD_Queue_Status_Tab(
 						'queue',
 						$container->get( 'notifications_page' ),
 						$container->get( 'logger' ),
@@ -500,23 +504,23 @@ class SCD_Service_Definitions {
 
 			// Settings Services
 			'settings_manager'             => array(
-				'class'        => 'SCD_Settings_Manager',
+				'class'        => 'WSSCD_Settings_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'logger', 'container' ),
 				'factory'      => function ( $container ) {
-					require_once SCD_INCLUDES_DIR . 'admin/settings/class-settings-manager.php';
-					return new SCD_Settings_Manager( $container->get( 'logger' ), $container );
+					require_once WSSCD_INCLUDES_DIR . 'admin/settings/class-settings-manager.php';
+					return new WSSCD_Settings_Manager( $container->get( 'logger' ), $container );
 				},
 			),
 
 			'settings_general'             => array(
-				'class'        => 'SCD_General_Settings',
+				'class'        => 'WSSCD_General_Settings',
 				'singleton'    => true,
 				'dependencies' => array( 'settings_manager', 'logger', 'container' ),
 				'factory'      => function ( $container ) {
-					require_once SCD_INCLUDES_DIR . 'admin/settings/class-settings-page-base.php';
-					require_once SCD_INCLUDES_DIR . 'admin/settings/tabs/class-general-settings.php';
-					return new SCD_General_Settings(
+					require_once WSSCD_INCLUDES_DIR . 'admin/settings/class-settings-page-base.php';
+					require_once WSSCD_INCLUDES_DIR . 'admin/settings/tabs/class-general-settings.php';
+					return new WSSCD_General_Settings(
 						$container->get( 'settings_manager' ),
 						$container->get( 'logger' ),
 						$container
@@ -525,13 +529,13 @@ class SCD_Service_Definitions {
 			),
 
 			'settings_advanced'            => array(
-				'class'        => 'SCD_Advanced_Settings',
+				'class'        => 'WSSCD_Advanced_Settings',
 				'singleton'    => true,
 				'dependencies' => array( 'settings_manager', 'logger' ),
 				'factory'      => function ( $container ) {
-					require_once SCD_INCLUDES_DIR . 'admin/settings/class-settings-page-base.php';
-					require_once SCD_INCLUDES_DIR . 'admin/settings/tabs/class-advanced-settings.php';
-					return new SCD_Advanced_Settings(
+					require_once WSSCD_INCLUDES_DIR . 'admin/settings/class-settings-page-base.php';
+					require_once WSSCD_INCLUDES_DIR . 'admin/settings/tabs/class-advanced-settings.php';
+					return new WSSCD_Advanced_Settings(
 						'advanced',
 						$container->get( 'settings_manager' ),
 						$container->get( 'logger' )
@@ -541,20 +545,20 @@ class SCD_Service_Definitions {
 
 			// Campaign Page Services
 			'campaign_view_renderer'       => array(
-				'class'        => 'SCD_Campaign_View_Renderer',
+				'class'        => 'WSSCD_Campaign_View_Renderer',
 				'singleton'    => true,
 				'dependencies' => array( 'template_loader' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Campaign_View_Renderer( $container->get( 'template_loader' ) );
+					return new WSSCD_Campaign_View_Renderer( $container->get( 'template_loader' ) );
 				},
 			),
 
 			'campaign_list_controller'     => array(
-				'class'        => 'SCD_Campaign_List_Controller',
+				'class'        => 'WSSCD_Campaign_List_Controller',
 				'singleton'    => false,
 				'dependencies' => array( 'campaign_manager', 'capability_manager', 'logger', 'wizard_state_service', 'feature_gate' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Campaign_List_Controller(
+					return new WSSCD_Campaign_List_Controller(
 						$container->get( 'campaign_manager' ),
 						$container->get( 'capability_manager' ),
 						$container->get( 'logger' ),
@@ -565,11 +569,11 @@ class SCD_Service_Definitions {
 			),
 
 			'campaign_edit_controller'     => array(
-				'class'        => 'SCD_Campaign_Edit_Controller',
+				'class'        => 'WSSCD_Campaign_Edit_Controller',
 				'singleton'    => false,
 				'dependencies' => array( 'cache_manager', 'campaign_manager', 'capability_manager', 'logger', 'campaign_view_renderer' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Campaign_Edit_Controller(
+					return new WSSCD_Campaign_Edit_Controller(
 						$container->get( 'cache_manager' ),
 						$container->get( 'campaign_manager' ),
 						$container->get( 'capability_manager' ),
@@ -580,11 +584,11 @@ class SCD_Service_Definitions {
 			),
 
 			'campaign_wizard_controller'   => array(
-				'class'        => 'SCD_Campaign_Wizard_Controller',
+				'class'        => 'WSSCD_Campaign_Wizard_Controller',
 				'singleton'    => false,
 				'dependencies' => array( 'campaign_manager', 'capability_manager', 'logger', 'wizard_state_service', 'feature_gate' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Campaign_Wizard_Controller(
+					return new WSSCD_Campaign_Wizard_Controller(
 						$container->get( 'campaign_manager' ),
 						$container->get( 'capability_manager' ),
 						$container->get( 'logger' ),
@@ -595,11 +599,11 @@ class SCD_Service_Definitions {
 			),
 
 			'campaign_action_handler'      => array(
-				'class'        => 'SCD_Campaign_Action_Handler',
+				'class'        => 'WSSCD_Campaign_Action_Handler',
 				'singleton'    => false,
 				'dependencies' => array( 'campaign_manager', 'capability_manager', 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Campaign_Action_Handler(
+					return new WSSCD_Campaign_Action_Handler(
 						$container->get( 'campaign_manager' ),
 						$container->get( 'capability_manager' ),
 						$container->get( 'logger' )
@@ -610,11 +614,11 @@ class SCD_Service_Definitions {
 			// Wizard Services
 
 			'wizard_state_service'         => array(
-				'class'     => 'SCD_Wizard_State_Service',
+				'class'     => 'WSSCD_Wizard_State_Service',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
 					try {
-						return new SCD_Wizard_State_Service();
+						return new WSSCD_Wizard_State_Service();
 					} catch ( Throwable $e ) {
 						throw $e;
 					}
@@ -623,47 +627,29 @@ class SCD_Service_Definitions {
 
 			// Contextual Sidebar System
 			'sidebar_help_topics'          => array(
-				'class'     => 'SCD_Sidebar_Help_Topics',
+				'class'     => 'WSSCD_Sidebar_Help_Topics',
 				'singleton' => false,
 				'factory'   => function ( $container ) {
-					require_once SCD_INCLUDES_DIR . 'core/wizard/class-sidebar-help-topics.php';
-					return new SCD_Sidebar_Help_Topics();
-				},
-			),
-
-			'sidebar_progress'             => array(
-				'class'     => 'SCD_Sidebar_Progress',
-				'singleton' => false,
-				'factory'   => function ( $container ) {
-					require_once SCD_INCLUDES_DIR . 'core/wizard/class-sidebar-progress.php';
-					return new SCD_Sidebar_Progress();
-				},
-			),
-
-			'sidebar_quick_actions'        => array(
-				'class'     => 'SCD_Sidebar_Quick_Actions',
-				'singleton' => false,
-				'factory'   => function ( $container ) {
-					require_once SCD_INCLUDES_DIR . 'core/wizard/class-sidebar-quick-actions.php';
-					return new SCD_Sidebar_Quick_Actions();
+					require_once WSSCD_INCLUDES_DIR . 'core/wizard/class-sidebar-help-topics.php';
+					return new WSSCD_Sidebar_Help_Topics();
 				},
 			),
 
 			'sidebar_renderer'             => array(
-				'class'     => 'SCD_Sidebar_Renderer',
+				'class'     => 'WSSCD_Sidebar_Renderer',
 				'singleton' => false,
 				'factory'   => function ( $container ) {
-					require_once SCD_INCLUDES_DIR . 'core/wizard/class-sidebar-renderer.php';
-					return new SCD_Sidebar_Renderer();
+					require_once WSSCD_INCLUDES_DIR . 'core/wizard/class-sidebar-renderer.php';
+					return new WSSCD_Sidebar_Renderer();
 				},
 			),
 
 			'idempotency_service'          => array(
-				'class'        => 'SCD_Idempotency_Service',
+				'class'        => 'WSSCD_Idempotency_Service',
 				'singleton'    => false,
 				'dependencies' => array( 'cache_manager', 'wizard_state_service' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Idempotency_Service(
+					return new WSSCD_Idempotency_Service(
 						$container->get( 'cache_manager' ),
 						$container->get( 'wizard_state_service' )
 					);
@@ -671,19 +657,19 @@ class SCD_Service_Definitions {
 			),
 
 			'step_data_transformer'        => array(
-				'class'     => 'SCD_Step_Data_Transformer',
+				'class'     => 'WSSCD_Step_Data_Transformer',
 				'singleton' => false,
 				'factory'   => function ( $container ) {
-					return new SCD_Step_Data_Transformer();
+					return new WSSCD_Step_Data_Transformer();
 				},
 			),
 
 			'wizard_manager'               => array(
-				'class'        => 'SCD_Wizard_Manager',
+				'class'        => 'WSSCD_Wizard_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'wizard_state_service', 'security_manager', 'campaign_repository' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Wizard_Manager(
+					return new WSSCD_Wizard_Manager(
 						$container->get( 'wizard_state_service' ),
 						$container->get( 'security_manager' ),
 						$container->get( 'campaign_repository' )
@@ -691,53 +677,61 @@ class SCD_Service_Definitions {
 				},
 			),
 
+			'wizard_intent_handler'        => array(
+				'class'     => 'WSSCD_Wizard_Intent_Handler',
+				'singleton' => true,
+				'factory'   => function ( $container ) {
+					return new WSSCD_Wizard_Intent_Handler( $container );
+				},
+			),
+
 			// Template Services
 			'template_loader'              => array(
-				'class'        => 'SCD_Template_Loader',
+				'class'        => 'WSSCD_Template_Loader',
 				'singleton'    => true,
 				'dependencies' => array(),
 				'factory'      => function ( $container ) {
-					return new SCD_Template_Loader();
+					return new WSSCD_Template_Loader();
 				},
 			),
 
 			// Frontend Services
 			'frontend_manager'             => array(
-				'class'        => 'SCD_Frontend_Manager',
+				'class'        => 'WSSCD_Frontend_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'container' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Frontend_Manager( 'smart-cycle-discounts', SCD_VERSION, $container );
+					return new WSSCD_Frontend_Manager( 'smart-cycle-discounts', WSSCD_VERSION, $container );
 				},
 			),
 
 			'frontend_asset_manager'       => array(
-				'class'        => 'SCD_Frontend_Asset_Manager',
+				'class'        => 'WSSCD_Frontend_Asset_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Frontend_Asset_Manager(
+					return new WSSCD_Frontend_Asset_Manager(
 						'smart-cycle-discounts',
-						SCD_VERSION,
+						WSSCD_VERSION,
 						$container->get( 'logger' )
 					);
 				},
 			),
 
 			'discount_display_rules'       => array(
-				'class'     => 'SCD_Discount_Display_Rules',
+				'class'     => 'WSSCD_Discount_Display_Rules',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
-					return new SCD_Discount_Display_Rules();
+					return new WSSCD_Discount_Display_Rules();
 				},
 			),
 
 			'discount_display'             => array(
-				'class'        => 'SCD_Discount_Display',
+				'class'        => 'WSSCD_Discount_Display',
 				'singleton'    => true,
 				'dependencies' => array( 'discount_engine', 'campaign_manager', 'discount_display_rules' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Discount_Display(
+					return new WSSCD_Discount_Display(
 						$container->get( 'discount_engine' ),
 						$container->get( 'campaign_manager' ),
 						$container->get( 'discount_display_rules' )
@@ -746,19 +740,19 @@ class SCD_Service_Definitions {
 			),
 
 			'countdown_timer'              => array(
-				'class'     => 'SCD_Countdown_Timer',
+				'class'     => 'WSSCD_Countdown_Timer',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
-					return new SCD_Countdown_Timer();
+					return new WSSCD_Countdown_Timer();
 				},
 			),
 
 			'shortcodes'                   => array(
-				'class'        => 'SCD_Shortcodes',
+				'class'        => 'WSSCD_Shortcodes',
 				'singleton'    => true,
 				'dependencies' => array( 'discount_display', 'campaign_manager' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Shortcodes(
+					return new WSSCD_Shortcodes(
 						$container->get( 'discount_display' ),
 						$container->get( 'campaign_manager' )
 					);
@@ -767,17 +761,17 @@ class SCD_Service_Definitions {
 
 			// Integration Services
 			'woocommerce_integration'      => array(
-				'class'        => 'SCD_WooCommerce_Integration',
+				'class'        => 'WSSCD_WooCommerce_Integration',
 				'singleton'    => true,
 				'dependencies' => array( 'container' ),
 				'factory'      => function ( $container ) {
-					return new SCD_WooCommerce_Integration( $container );
+					return new WSSCD_WooCommerce_Integration( $container );
 				},
 			),
 
 			// Alias for interface-based dependency injection
 			'ecommerce_integration'        => array(
-				'class'     => 'SCD_WooCommerce_Integration',
+				'class'     => 'WSSCD_WooCommerce_Integration',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
 					return $container->get( 'woocommerce_integration' );
@@ -785,21 +779,21 @@ class SCD_Service_Definitions {
 			),
 
 			'integration_manager'          => array(
-				'class'        => 'SCD_Integration_Manager',
+				'class'        => 'WSSCD_Integration_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'container' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Integration_Manager( $container );
+					return new WSSCD_Integration_Manager( $container );
 				},
 			),
 
 			'email_manager'                => array(
-				'class'        => 'SCD_Email_Manager',
+				'class'        => 'WSSCD_Email_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'logger', 'campaign_manager', 'action_scheduler', 'feature_gate', 'analytics_repository' ),
 				'factory'      => function ( $container ) {
-					require_once SCD_INCLUDES_DIR . 'integrations/email/class-email-manager.php';
-					return new SCD_Email_Manager(
+					require_once WSSCD_INCLUDES_DIR . 'integrations/email/class-email-manager.php';
+					return new WSSCD_Email_Manager(
 						$container->get( 'logger' ),
 						$container->get( 'campaign_manager' ),
 						$container->get( 'action_scheduler' ),
@@ -810,11 +804,11 @@ class SCD_Service_Definitions {
 			),
 
 			'alert_monitor'                => array(
-				'class'        => 'SCD_Alert_Monitor',
+				'class'        => 'WSSCD_Alert_Monitor',
 				'singleton'    => true,
 				'dependencies' => array( 'logger', 'campaign_manager', 'analytics_repository', 'action_scheduler', 'feature_gate' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Alert_Monitor(
+					return new WSSCD_Alert_Monitor(
 						$container->get( 'logger' ),
 						$container->get( 'campaign_manager' ),
 						$container->get( 'analytics_repository' ),
@@ -825,50 +819,127 @@ class SCD_Service_Definitions {
 			),
 
 			// API Services
-			'rest_api_manager'             => array(
-				'class'        => 'SCD_REST_API_Manager',
+			'api_authentication'           => array(
+				'class'        => 'WSSCD_API_Authentication',
 				'singleton'    => true,
+				'optional'     => true,
+				'dependencies' => array( 'logger' ),
+				'factory'      => function ( $container ) {
+					if ( ! class_exists( 'WSSCD_API_Authentication' ) ) {
+						return null;
+					}
+					return new WSSCD_API_Authentication(
+						$container->get( 'logger' )
+					);
+				},
+			),
+
+			'api_permissions'              => array(
+				'class'        => 'WSSCD_API_Permissions',
+				'singleton'    => true,
+				'optional'     => true,
+				'dependencies' => array( 'capability_manager', 'logger', 'feature_gate' ),
+				'factory'      => function ( $container ) {
+					if ( ! class_exists( 'WSSCD_API_Permissions' ) ) {
+						return null;
+					}
+					return new WSSCD_API_Permissions(
+						$container->get( 'capability_manager' ),
+						$container->get( 'logger' ),
+						$container->get( 'feature_gate' )
+					);
+				},
+			),
+
+			'api_campaigns_controller'     => array(
+				'class'        => 'WSSCD_Campaigns_Controller',
+				'singleton'    => true,
+				'optional'     => true,
+				'dependencies' => array( 'campaign_manager', 'api_permissions', 'campaign_serializer', 'logger' ),
+				'factory'      => function ( $container ) {
+					if ( ! class_exists( 'WSSCD_Campaigns_Controller' ) ) {
+						return null;
+					}
+					return new WSSCD_Campaigns_Controller(
+						'wsscd/v1',
+						$container->get( 'campaign_manager' ),
+						$container->get( 'api_permissions' ),
+						$container->get( 'campaign_serializer' ),
+						$container->get( 'logger' )
+					);
+				},
+			),
+
+			'api_discounts_controller'     => array(
+				'class'        => 'WSSCD_Discounts_Controller',
+				'singleton'    => true,
+				'optional'     => true,
+				'dependencies' => array( 'discount_engine', 'campaign_manager', 'api_permissions', 'logger' ),
+				'factory'      => function ( $container ) {
+					if ( ! class_exists( 'WSSCD_Discounts_Controller' ) ) {
+						return null;
+					}
+					return new WSSCD_Discounts_Controller(
+						'wsscd/v1',
+						$container->get( 'discount_engine' ),
+						$container->get( 'campaign_manager' ),
+						$container->get( 'api_permissions' ),
+						$container->get( 'logger' )
+					);
+				},
+			),
+
+			'rest_api_manager'             => array(
+				'class'        => 'WSSCD_REST_API_Manager',
+				'singleton'    => true,
+				'optional'     => true,
 				'dependencies' => array( 'cache_manager', 'container' ),
 				'factory'      => function ( $container ) {
-					return new SCD_REST_API_Manager( $container );
+					if ( ! class_exists( 'WSSCD_REST_API_Manager' ) ) {
+						return null;
+					}
+					return new WSSCD_REST_API_Manager(
+						$container->get( 'cache_manager' ),
+						$container
+					);
 				},
 			),
 
 			// Security Services
 
 			'nonce_manager'                => array(
-				'class'     => 'SCD_Nonce_Manager',
+				'class'     => 'WSSCD_Nonce_Manager',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
-					return new SCD_Nonce_Manager();
+					return new WSSCD_Nonce_Manager();
 				},
 			),
 
 			'rate_limiter'                 => array(
-				'class'        => 'SCD_Rate_Limiter',
+				'class'        => 'WSSCD_Rate_Limiter',
 				'singleton'    => true,
 				'dependencies' => array( 'cache_manager' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Rate_Limiter( $container->get( 'cache_manager' ) );
+					return new WSSCD_Rate_Limiter( $container->get( 'cache_manager' ) );
 				},
 			),
 
 			'audit_logger'                 => array(
-				'class'        => 'SCD_Audit_Logger',
+				'class'        => 'WSSCD_Audit_Logger',
 				'singleton'    => true,
 				'dependencies' => array( 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Audit_Logger( $container->get( 'logger' ) );
+					return new WSSCD_Audit_Logger( $container->get( 'logger' ) );
 				},
 			),
 
 			// Analytics Services
 			'analytics_collector'          => array(
-				'class'        => 'SCD_Analytics_Collector',
+				'class'        => 'WSSCD_Analytics_Collector',
 				'singleton'    => true,
 				'dependencies' => array( 'database_manager', 'cache_manager', 'logger', 'ecommerce_integration' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Analytics_Collector(
+					return new WSSCD_Analytics_Collector(
 						$container->get( 'database_manager' ),
 						$container->get( 'cache_manager' ),
 						$container->get( 'logger' ),
@@ -878,11 +949,11 @@ class SCD_Service_Definitions {
 			),
 
 			'metrics_calculator'           => array(
-				'class'        => 'SCD_Metrics_Calculator',
+				'class'        => 'WSSCD_Metrics_Calculator',
 				'singleton'    => true,
 				'dependencies' => array( 'database_manager', 'cache_manager', 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Metrics_Calculator(
+					return new WSSCD_Metrics_Calculator(
 						$container->get( 'database_manager' ),
 						$container->get( 'cache_manager' ),
 						$container->get( 'logger' )
@@ -890,12 +961,17 @@ class SCD_Service_Definitions {
 				},
 			),
 
+			// Pro-only: Report Generator
 			'report_generator'             => array(
-				'class'        => 'SCD_Report_Generator',
+				'class'        => 'WSSCD_Report_Generator',
 				'singleton'    => true,
+				'optional'     => true,
 				'dependencies' => array( 'analytics_collector', 'metrics_calculator', 'campaign_manager', 'cache_manager', 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Report_Generator(
+					if ( ! class_exists( 'WSSCD_Report_Generator' ) ) {
+						return null;
+					}
+					return new WSSCD_Report_Generator(
 						$container->get( 'analytics_collector' ),
 						$container->get( 'metrics_calculator' ),
 						$container->get( 'campaign_manager' ),
@@ -906,22 +982,27 @@ class SCD_Service_Definitions {
 			),
 
 			'chart_renderer'               => array(
-				'class'        => 'SCD_Chart_Renderer',
+				'class'        => 'WSSCD_Chart_Renderer',
 				'singleton'    => true,
 				'dependencies' => array( 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Chart_Renderer(
+					return new WSSCD_Chart_Renderer(
 						$container->get( 'logger' )
 					);
 				},
 			),
 
+			// Pro-only: Analytics Dashboard
 			'analytics_dashboard'          => array(
-				'class'        => 'SCD_Analytics_Dashboard',
+				'class'        => 'WSSCD_Analytics_Dashboard',
 				'singleton'    => true,
+				'optional'     => true,
 				'dependencies' => array( 'database_manager', 'cache_manager', 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Analytics_Dashboard(
+					if ( ! class_exists( 'WSSCD_Analytics_Dashboard' ) ) {
+						return null;
+					}
+					return new WSSCD_Analytics_Dashboard(
 						$container->get( 'database_manager' ),
 						$container->get( 'cache_manager' ),
 						$container->get( 'logger' )
@@ -930,11 +1011,11 @@ class SCD_Service_Definitions {
 			),
 
 			'campaign_overview_panel'      => array(
-				'class'        => 'SCD_Campaign_Overview_Panel',
+				'class'        => 'WSSCD_Campaign_Overview_Panel',
 				'singleton'    => true,
 				'dependencies' => array( 'campaign_repository', 'campaign.formatter', 'analytics_repository', 'recurring_handler', 'product_selector', 'campaign_health_service' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Campaign_Overview_Panel(
+					return new WSSCD_Campaign_Overview_Panel(
 						$container->get( 'campaign_repository' ),
 						$container->get( 'campaign.formatter' ),
 						$container->get( 'analytics_repository' ),
@@ -946,11 +1027,11 @@ class SCD_Service_Definitions {
 			),
 
 			'campaign_overview_handler'    => array(
-				'class'        => 'SCD_Campaign_Overview_Handler',
+				'class'        => 'WSSCD_Campaign_Overview_Handler',
 				'singleton'    => true,
 				'dependencies' => array( 'campaign_repository', 'campaign_overview_panel', 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Campaign_Overview_Handler(
+					return new WSSCD_Campaign_Overview_Handler(
 						$container->get( 'campaign_repository' ),
 						$container->get( 'campaign_overview_panel' ),
 						$container->get( 'logger' )
@@ -959,11 +1040,11 @@ class SCD_Service_Definitions {
 			),
 
 			'analytics_page'               => array(
-				'class'        => 'SCD_Analytics_Page',
+				'class'        => 'WSSCD_Analytics_Page',
 				'singleton'    => true,
 				'dependencies' => array( 'analytics_collector', 'metrics_calculator', 'chart_renderer', 'logger', 'campaign_overview_panel' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Analytics_Page(
+					return new WSSCD_Analytics_Page(
 						$container->get( 'analytics_collector' ),
 						$container->get( 'metrics_calculator' ),
 						$container->get( 'chart_renderer' ),
@@ -974,12 +1055,14 @@ class SCD_Service_Definitions {
 			),
 
 			'main_dashboard_page'          => array(
-				'class'        => 'SCD_Main_Dashboard_Page',
+				'class'        => 'WSSCD_Main_Dashboard_Page',
 				'singleton'    => true,
 				'dependencies' => array( 'analytics_dashboard', 'campaign_repository', 'feature_gate', 'upgrade_prompt_manager', 'logger', 'campaign_health_service', 'dashboard_service' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Main_Dashboard_Page(
-						$container->get( 'analytics_dashboard' ),
+					// analytics_dashboard may be null in free version
+					$analytics_dashboard = $container->has( 'analytics_dashboard' ) ? $container->get( 'analytics_dashboard' ) : null;
+					return new WSSCD_Main_Dashboard_Page(
+						$analytics_dashboard,
 						$container->get( 'campaign_repository' ),
 						$container->get( 'feature_gate' ),
 						$container->get( 'upgrade_prompt_manager' ),
@@ -991,11 +1074,11 @@ class SCD_Service_Definitions {
 			),
 
 			'campaign_suggestions_service' => array(
-				'class'        => 'SCD_Campaign_Suggestions_Service',
+				'class'        => 'WSSCD_Campaign_Suggestions_Service',
 				'singleton'    => true,
 				'dependencies' => array( 'campaign_repository', 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Campaign_Suggestions_Service(
+					return new WSSCD_Campaign_Suggestions_Service(
 						$container->get( 'campaign_repository' ),
 						$container->get( 'logger' )
 					);
@@ -1003,11 +1086,11 @@ class SCD_Service_Definitions {
 			),
 
 			'campaign_display_service'     => array(
-				'class'        => 'SCD_Campaign_Display_Service',
+				'class'        => 'WSSCD_Campaign_Display_Service',
 				'singleton'    => true,
 				'dependencies' => array( 'campaign_repository', 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Campaign_Display_Service(
+					return new WSSCD_Campaign_Display_Service(
 						$container->get( 'campaign_repository' ),
 						$container->get( 'logger' )
 					);
@@ -1015,11 +1098,11 @@ class SCD_Service_Definitions {
 			),
 
 			'campaign_planner_service'     => array(
-				'class'        => 'SCD_Campaign_Planner_Service',
+				'class'        => 'WSSCD_Campaign_Planner_Service',
 				'singleton'    => true,
 				'dependencies' => array( 'campaign_repository', 'campaign_suggestions_service', 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Campaign_Planner_Service(
+					return new WSSCD_Campaign_Planner_Service(
 						$container->get( 'campaign_repository' ),
 						$container->get( 'campaign_suggestions_service' ),
 						$container->get( 'logger' )
@@ -1028,13 +1111,15 @@ class SCD_Service_Definitions {
 			),
 
 			'dashboard_service'            => array(
-				'class'        => 'SCD_Dashboard_Service',
+				'class'        => 'WSSCD_Dashboard_Service',
 				'singleton'    => true,
 				'dependencies' => array( 'cache_manager', 'analytics_dashboard', 'campaign_repository', 'campaign_health_service', 'feature_gate', 'logger', 'campaign_suggestions_service', 'campaign_display_service', 'campaign_planner_service' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Dashboard_Service(
+					// analytics_dashboard may be null in free version
+					$analytics_dashboard = $container->has( 'analytics_dashboard' ) ? $container->get( 'analytics_dashboard' ) : null;
+					return new WSSCD_Dashboard_Service(
 						$container->get( 'cache_manager' ),
-					$container->get( 'analytics_dashboard' ),
+						$analytics_dashboard,
 						$container->get( 'campaign_repository' ),
 						$container->get( 'campaign_health_service' ),
 						$container->get( 'feature_gate' ),
@@ -1047,11 +1132,11 @@ class SCD_Service_Definitions {
 			),
 
 			'main_dashboard_data_handler'  => array(
-				'class'        => 'SCD_Main_Dashboard_Data_Handler',
+				'class'        => 'WSSCD_Main_Dashboard_Data_Handler',
 				'singleton'    => false,
 				'dependencies' => array( 'dashboard_service', 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Main_Dashboard_Data_Handler(
+					return new WSSCD_Main_Dashboard_Data_Handler(
 						$container->get( 'dashboard_service' ),
 						$container->get( 'logger' )
 					);
@@ -1059,23 +1144,28 @@ class SCD_Service_Definitions {
 			),
 
 			'activity_tracker'             => array(
-				'class'        => 'SCD_Activity_Tracker',
+				'class'        => 'WSSCD_Activity_Tracker',
 				'singleton'    => true,
 				'dependencies' => array( 'database_manager', 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Activity_Tracker(
+					return new WSSCD_Activity_Tracker(
 						$container->get( 'database_manager' ),
 						$container->get( 'logger' )
 					);
 				},
 			),
 
+			// Pro-only: Export Service
 			'export_service'               => array(
-				'class'        => 'SCD_Export_Service',
+				'class'        => 'WSSCD_Export_Service',
 				'singleton'    => true,
+				'optional'     => true,
 				'dependencies' => array( 'metrics_calculator', 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Export_Service(
+					if ( ! class_exists( 'WSSCD_Export_Service' ) ) {
+						return null;
+					}
+					return new WSSCD_Export_Service(
 						$container->get( 'metrics_calculator' ),
 						$container->get( 'logger' )
 					);
@@ -1084,11 +1174,11 @@ class SCD_Service_Definitions {
 
 			// Analytics AJAX Handlers
 			'activity_feed_handler'        => array(
-				'class'        => 'SCD_Activity_Feed_Handler',
+				'class'        => 'WSSCD_Activity_Feed_Handler',
 				'singleton'    => false,
 				'dependencies' => array( 'metrics_calculator', 'logger', 'activity_tracker' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Activity_Feed_Handler(
+					return new WSSCD_Activity_Feed_Handler(
 						$container->get( 'metrics_calculator' ),
 						$container->get( 'logger' ),
 						$container->get( 'activity_tracker' )
@@ -1097,11 +1187,11 @@ class SCD_Service_Definitions {
 			),
 
 			'campaign_performance_handler' => array(
-				'class'        => 'SCD_Campaign_Performance_Handler',
+				'class'        => 'WSSCD_Campaign_Performance_Handler',
 				'singleton'    => false,
 				'dependencies' => array( 'metrics_calculator', 'logger', 'analytics_collector' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Campaign_Performance_Handler(
+					return new WSSCD_Campaign_Performance_Handler(
 						$container->get( 'metrics_calculator' ),
 						$container->get( 'logger' ),
 						$container->get( 'analytics_collector' )
@@ -1110,11 +1200,11 @@ class SCD_Service_Definitions {
 			),
 
 			'revenue_trend_handler'        => array(
-				'class'        => 'SCD_Revenue_Trend_Handler',
+				'class'        => 'WSSCD_Revenue_Trend_Handler',
 				'singleton'    => false,
 				'dependencies' => array( 'metrics_calculator', 'logger', 'analytics_collector' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Revenue_Trend_Handler(
+					return new WSSCD_Revenue_Trend_Handler(
 						$container->get( 'metrics_calculator' ),
 						$container->get( 'logger' ),
 						$container->get( 'analytics_collector' )
@@ -1123,11 +1213,11 @@ class SCD_Service_Definitions {
 			),
 
 			'top_products_handler'         => array(
-				'class'        => 'SCD_Top_Products_Handler',
+				'class'        => 'WSSCD_Top_Products_Handler',
 				'singleton'    => false,
 				'dependencies' => array( 'metrics_calculator', 'logger', 'analytics_collector' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Top_Products_Handler(
+					return new WSSCD_Top_Products_Handler(
 						$container->get( 'metrics_calculator' ),
 						$container->get( 'logger' ),
 						$container->get( 'analytics_collector' )
@@ -1137,11 +1227,11 @@ class SCD_Service_Definitions {
 
 			// Product Services
 			'condition_engine'             => array(
-				'class'        => 'SCD_Condition_Engine',
+				'class'        => 'WSSCD_Condition_Engine',
 				'singleton'    => true,
 				'dependencies' => array( 'logger', 'cache_manager' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Condition_Engine(
+					return new WSSCD_Condition_Engine(
 						$container->get( 'logger' ),
 						$container->get( 'cache_manager' )
 					);
@@ -1149,11 +1239,11 @@ class SCD_Service_Definitions {
 			),
 
 			'product_selector'             => array(
-				'class'        => 'SCD_Product_Selector',
+				'class'        => 'WSSCD_Product_Selector',
 				'singleton'    => true,
 				'dependencies' => array( 'database_manager', 'logger', 'cache_manager', 'condition_engine' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Product_Selector(
+					return new WSSCD_Product_Selector(
 						$container->get( 'database_manager' ),
 						$container->get( 'logger' ),
 						$container->get( 'cache_manager' ),
@@ -1163,11 +1253,11 @@ class SCD_Service_Definitions {
 			),
 
 			'product_filter'               => array(
-				'class'        => 'SCD_Product_Filter',
+				'class'        => 'WSSCD_Product_Filter',
 				'singleton'    => true,
 				'dependencies' => array( 'product_selector', 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Product_Filter(
+					return new WSSCD_Product_Filter(
 						$container->get( 'product_selector' ),
 						$container->get( 'logger' )
 					);
@@ -1176,23 +1266,34 @@ class SCD_Service_Definitions {
 
 			// Campaign Services
 
+			'campaign_serializer'          => array(
+				'class'        => 'WSSCD_Campaign_Serializer',
+				'singleton'    => true,
+				'dependencies' => array( 'logger' ),
+				'factory'      => function ( $container ) {
+					return new WSSCD_Campaign_Serializer(
+						$container->get( 'logger' )
+					);
+				},
+			),
+
 			'campaign_compiler'            => array(
-				'class'        => 'SCD_Campaign_Compiler_Service',
+				'class'        => 'WSSCD_Campaign_Compiler_Service',
 				'singleton'    => true,
 				'dependencies' => array( 'campaign_repository' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Campaign_Compiler_Service(
+					return new WSSCD_Campaign_Compiler_Service(
 						$container->get( 'campaign_repository' )
 					);
 				},
 			),
 
 			'campaign_event_scheduler'     => array(
-				'class'        => 'SCD_Campaign_Event_Scheduler',
+				'class'        => 'WSSCD_Campaign_Event_Scheduler',
 				'singleton'    => true,
 				'dependencies' => array( 'campaign_manager', 'action_scheduler', 'logger' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Campaign_Event_Scheduler(
+					return new WSSCD_Campaign_Event_Scheduler(
 						$container->get( 'campaign_manager' ),
 						$container->get( 'action_scheduler' ),
 						$container->get( 'logger' )
@@ -1202,20 +1303,20 @@ class SCD_Service_Definitions {
 
 			// Migration Services
 			'migration_manager'            => array(
-				'class'        => 'SCD_Migration_Manager',
+				'class'        => 'WSSCD_Migration_Manager',
 				'singleton'    => true,
 				'dependencies' => array( 'database_manager' ),
 				'factory'      => function ( $container ) {
-					return new SCD_Migration_Manager( $container->get( 'database_manager' ) );
+					return new WSSCD_Migration_Manager( $container->get( 'database_manager' ) );
 				},
 			),
 
 			// Quality Services
 			'requirements_checker'         => array(
-				'class'     => 'SCD_Requirements_Checker',
+				'class'     => 'WSSCD_Requirements_Checker',
 				'singleton' => true,
 				'factory'   => function ( $container ) {
-					return new SCD_Requirements_Checker();
+					return new WSSCD_Requirements_Checker();
 				},
 			),
 		);

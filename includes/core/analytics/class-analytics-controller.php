@@ -1,5 +1,7 @@
 <?php
 /**
+ * @fs_premium_only
+ *
  * Analytics Controller Class
  *
  * @package    SmartCycleDiscounts
@@ -27,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/api/controllers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Analytics_Controller {
+class WSSCD_Analytics_Controller {
 
 	/**
 	 * API namespace.
@@ -36,60 +38,60 @@ class SCD_Analytics_Controller {
 	 * @access   private
 	 * @var      string    $namespace    API namespace.
 	 */
-	private string $namespace;
+	private $namespace;
 
 	/**
 	 * Analytics collector instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Analytics_Collector    $analytics_collector    Analytics collector.
+	 * @var      WSSCD_Analytics_Collector    $analytics_collector    Analytics collector.
 	 */
-	private SCD_Analytics_Collector $analytics_collector;
+	private $analytics_collector;
 
 	/**
 	 * Metrics calculator instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Metrics_Calculator    $metrics_calculator    Metrics calculator.
+	 * @var      WSSCD_Metrics_Calculator    $metrics_calculator    Metrics calculator.
 	 */
-	private SCD_Metrics_Calculator $metrics_calculator;
+	private $metrics_calculator;
 
 	/**
 	 * Permissions manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_API_Permissions    $permissions_manager    Permissions manager.
+	 * @var      WSSCD_API_Permissions    $permissions_manager    Permissions manager.
 	 */
-	private SCD_API_Permissions $permissions_manager;
+	private $permissions_manager;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger instance.
+	 * @var      WSSCD_Logger    $logger    Logger instance.
 	 */
-	private SCD_Logger $logger;
+	private $logger;
 
 	/**
 	 * Initialize the analytics endpoint.
 	 *
 	 * @since    1.0.0
 	 * @param    string                  $namespace             API namespace.
-	 * @param    SCD_Analytics_Collector $analytics_collector   Analytics collector.
-	 * @param    SCD_Metrics_Calculator  $metrics_calculator    Metrics calculator.
-	 * @param    SCD_API_Permissions     $permissions_manager   Permissions manager.
-	 * @param    SCD_Logger              $logger                Logger instance.
+	 * @param    WSSCD_Analytics_Collector $analytics_collector   Analytics collector.
+	 * @param    WSSCD_Metrics_Calculator  $metrics_calculator    Metrics calculator.
+	 * @param    WSSCD_API_Permissions     $permissions_manager   Permissions manager.
+	 * @param    WSSCD_Logger              $logger                Logger instance.
 	 */
 	public function __construct(
 		string $namespace,
-		SCD_Analytics_Collector $analytics_collector,
-		SCD_Metrics_Calculator $metrics_calculator,
-		SCD_API_Permissions $permissions_manager,
-		SCD_Logger $logger
+		WSSCD_Analytics_Collector $analytics_collector,
+		WSSCD_Metrics_Calculator $metrics_calculator,
+		WSSCD_API_Permissions $permissions_manager,
+		WSSCD_Logger $logger
 	) {
 		$this->namespace           = $namespace;
 		$this->analytics_collector = $analytics_collector;
@@ -616,12 +618,19 @@ class SCD_Analytics_Controller {
 			$data_type  = $request->get_param( 'data_type' ) ?: 'overview';
 			$date_range = $this->prepare_date_range( $request );
 
-			$export_data = match ( $data_type ) {
-				'overview' => $this->metrics_calculator->calculate_overall_metrics( $date_range ),
-				'campaigns' => $this->metrics_calculator->calculate_all_campaigns_metrics( $date_range ),
-				'products' => $this->metrics_calculator->calculate_all_products_metrics( $date_range ),
-				default => array()
-			};
+			switch ( $data_type ) {
+				case 'overview':
+					$export_data = $this->metrics_calculator->calculate_overall_metrics( $date_range );
+					break;
+				case 'campaigns':
+					$export_data = $this->metrics_calculator->calculate_all_campaigns_metrics( $date_range );
+					break;
+				case 'products':
+					$export_data = $this->metrics_calculator->calculate_all_products_metrics( $date_range );
+					break;
+				default:
+					$export_data = array();
+			}
 
 			// Generate export file
 			$export_result = $this->generate_export_file( $export_data, $format, $data_type, $date_range );
@@ -875,15 +884,22 @@ class SCD_Analytics_Controller {
 	private function get_active_campaigns_count(): int {
 		global $wpdb;
 
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
-		$count           = $wpdb->get_var(
-			"SELECT COUNT(*)
-			FROM {$campaigns_table}
-			WHERE status = 'active'
-			AND deleted_at IS NULL
-			AND ( starts_at IS NULL OR starts_at <= NOW() )
-			AND ( ends_at IS NULL OR ends_at >= NOW() )"
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Count of active campaigns.
+		$count = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COUNT(*)
+				FROM %i
+				WHERE status = %s
+				AND deleted_at IS NULL
+				AND ( starts_at IS NULL OR starts_at <= NOW() )
+				AND ( ends_at IS NULL OR ends_at >= NOW() )',
+				$campaigns_table,
+				'active'
+			)
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 
 		return (int) ( $count ?? 0 );
 	}
@@ -898,24 +914,28 @@ class SCD_Analytics_Controller {
 	private function get_current_hour_stats(): array {
 		global $wpdb;
 
-		$analytics_table = $wpdb->prefix . 'scd_analytics';
-		$current_hour    = date( 'Y-m-d H:00:00' );
+		$analytics_table = $wpdb->prefix . 'wsscd_analytics';
+		$current_hour    = gmdate( 'Y-m-d H:00:00' );
 		$now             = current_time( 'mysql' );
 
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Analytics query for real-time stats.
 		$stats = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT
+				'SELECT
 					COALESCE(SUM(impressions), 0) as views,
 					COALESCE(SUM(clicks), 0) as clicks,
 					COALESCE(SUM(conversions), 0) as conversions,
 					COALESCE(SUM(revenue), 0) as revenue
-				FROM {$analytics_table}
-				WHERE date_recorded BETWEEN %s AND %s",
+				FROM %i
+				WHERE date_recorded BETWEEN %s AND %s',
+				$analytics_table,
 				$current_hour,
 				$now
 			),
 			ARRAY_A
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls
 
 		return array(
 			'views'       => (int) ( $stats['views'] ?? 0 ),
@@ -948,7 +968,7 @@ class SCD_Analytics_Controller {
 			case 'hourly':
 				$current = $start;
 				while ( $current <= $end ) {
-					$labels[] = date( 'H:00', $current );
+					$labels[] = wp_date( 'H:00', $current );
 					$current  = strtotime( '+1 hour', $current );
 				}
 				break;
@@ -956,7 +976,7 @@ class SCD_Analytics_Controller {
 			case 'daily':
 				$current = $start;
 				while ( $current <= $end ) {
-					$labels[] = date( 'M j', $current );
+					$labels[] = wp_date( 'M j', $current );
 					$current  = strtotime( '+1 day', $current );
 				}
 				break;
@@ -964,7 +984,7 @@ class SCD_Analytics_Controller {
 			case 'weekly':
 				$current = $start;
 				while ( $current <= $end ) {
-					$labels[] = date( 'M j', $current );
+					$labels[] = wp_date( 'M j', $current );
 					$current  = strtotime( '+1 week', $current );
 				}
 				break;
@@ -972,7 +992,7 @@ class SCD_Analytics_Controller {
 			case 'monthly':
 				$current = $start;
 				while ( $current <= $end ) {
-					$labels[] = date( 'M Y', $current );
+					$labels[] = wp_date( 'M Y', $current );
 					$current  = strtotime( '+1 month', $current );
 				}
 				break;
@@ -981,7 +1001,7 @@ class SCD_Analytics_Controller {
 				// Default to daily
 				$current = $start;
 				while ( $current <= $end ) {
-					$labels[] = date( 'M j', $current );
+					$labels[] = wp_date( 'M j', $current );
 					$current  = strtotime( '+1 day', $current );
 				}
 		}
@@ -1004,19 +1024,19 @@ class SCD_Analytics_Controller {
 
 		switch ( $date_range ) {
 			case '24hours':
-				$start_date = date( 'Y-m-d H:i:s', strtotime( '-24 hours' ) );
+				$start_date = gmdate( 'Y-m-d H:i:s', strtotime( '-24 hours' ) );
 				break;
 			case '7days':
-				$start_date = date( 'Y-m-d H:i:s', strtotime( '-7 days' ) );
+				$start_date = gmdate( 'Y-m-d H:i:s', strtotime( '-7 days' ) );
 				break;
 			case '30days':
-				$start_date = date( 'Y-m-d H:i:s', strtotime( '-30 days' ) );
+				$start_date = gmdate( 'Y-m-d H:i:s', strtotime( '-30 days' ) );
 				break;
 			case '90days':
-				$start_date = date( 'Y-m-d H:i:s', strtotime( '-90 days' ) );
+				$start_date = gmdate( 'Y-m-d H:i:s', strtotime( '-90 days' ) );
 				break;
 			default:
-				$start_date = date( 'Y-m-d H:i:s', strtotime( '-7 days' ) );
+				$start_date = gmdate( 'Y-m-d H:i:s', strtotime( '-7 days' ) );
 		}
 
 		return array(

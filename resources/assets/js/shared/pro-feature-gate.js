@@ -11,15 +11,15 @@
 ( function( $ ) {
 	'use strict';
 
-	window.SCD = window.SCD || {};
-	window.SCD.Shared = window.SCD.Shared || {};
+	window.WSSCD = window.WSSCD || {};
+	window.WSSCD.Shared = window.WSSCD.Shared || {};
 
 	/**
 	 * PRO Feature Gate Service
 	 *
 	 * Public API for checking PRO features and showing upgrade prompts.
 	 */
-	window.SCD.Shared.ProFeatureGate = {
+	window.WSSCD.Shared.ProFeatureGate = {
 
 		/**
 		 * Check if user is trying to use PRO features
@@ -33,14 +33,14 @@
 		 * @returns {object} { blocked: boolean, message: string, feature: string, upgradeUrl: string }
 		 */
 		check: function( step, formData ) {
-			var isPremium = window.scdWizardConfig && window.scdWizardConfig.is_premium;
+			var isPremium = window.wsscdWizardConfig && window.wsscdWizardConfig.is_premium;
 
 			// If premium, allow all features
 			if ( isPremium ) {
 				return { blocked: false };
 			}
 
-			var upgradeUrl = ( window.scdWizardConfig && window.scdWizardConfig.upgrade_url ) || '#';
+			var upgradeUrl = ( window.wsscdWizardConfig && window.wsscdWizardConfig.upgrade_url ) || '#';
 
 			if ( 'discounts' === step && formData.discountType ) {
 				var proDiscountTypes = [ 'tiered', 'bogo', 'spend_threshold' ];
@@ -63,23 +63,7 @@
 				}
 			}
 
-			if ( 'schedule' === step && formData.enable_recurring ) {
-				this.showModal( {
-					featureType: 'recurring_campaigns',
-					featureName: 'Recurring Campaigns',
-					featureKey: 'campaigns_recurring',
-					upgradeUrl: upgradeUrl,
-					configData: formData,
-					step: step
-				} );
-
-				return {
-					blocked: true,
-					message: 'Recurring campaigns require a PRO license.',
-					feature: 'campaigns_recurring',
-					upgradeUrl: upgradeUrl
-				};
-			}
+			// Note: Recurring campaigns are now FREE - no block needed
 
 			if ( 'products' === step && formData.use_advanced_filters ) {
 				this.showModal( {
@@ -113,23 +97,23 @@
 		 */
 		showModal: function( options ) {
 			var self = this;
-			var $modal = $( '#scd-pro-required-modal' );
+			var $modal = $( '#wsscd-pro-required-modal' );
 
 			if ( ! $modal.length ) {
-				console.error( '[SCD ProFeatureGate] PRO modal not found in DOM' );
+				console.error( '[WSSCD ProFeatureGate] PRO modal not found in DOM' );
 				return;
 			}
 
 			// Populate modal content
-			$modal.find( '#scd-pro-feature-name' ).text( '"' + options.featureName + '"' );
+			$modal.find( '#wsscd-pro-feature-name' ).text( '"' + options.featureName + '"' );
 
 			$modal.fadeIn( 200 );
-			$( 'body' ).addClass( 'scd-modal-open' );
+			$( 'body' ).addClass( 'wsscd-modal-open' );
 
-			$modal.find( '.scd-modal-upgrade' ).focus();
+			$modal.find( '.wsscd-modal-upgrade' ).focus();
 
 			// Handle upgrade button
-			$modal.find( '.scd-modal-upgrade' ).off( 'click' ).on( 'click', function() {
+			$modal.find( '.wsscd-modal-upgrade' ).off( 'click' ).on( 'click', function() {
 				var $button = $( this );
 				var upgradeUrl = $button.data( 'upgrade-url' );
 
@@ -146,7 +130,7 @@
 			} );
 
 			// Handle change button
-			$modal.find( '.scd-modal-change' ).off( 'click' ).on( 'click', function() {
+			$modal.find( '.wsscd-modal-change' ).off( 'click' ).on( 'click', function() {
 				// Close modal
 				self.closeModal();
 
@@ -155,12 +139,12 @@
 					var $selector = $( '[name="discount_type"]' );
 					if ( $selector.length ) {
 						$( 'html, body' ).animate( {
-							scrollTop: $selector.closest( '.scd-wizard-card' ).offset().top - 100
+							scrollTop: $selector.closest( '.wsscd-wizard-card' ).offset().top - 100
 						}, 400, function() {
 							// Highlight the selector briefly
-							$selector.closest( '.scd-discount-type-selector' ).addClass( 'scd-highlight-field' );
+							$selector.closest( '.wsscd-discount-type-selector' ).addClass( 'wsscd-highlight-field' );
 							setTimeout( function() {
-								$selector.closest( '.scd-discount-type-selector' ).removeClass( 'scd-highlight-field' );
+								$selector.closest( '.wsscd-discount-type-selector' ).removeClass( 'wsscd-highlight-field' );
 							}, 2000 );
 						} );
 					}
@@ -168,19 +152,19 @@
 			} );
 
 			// Handle save as draft button
-			$modal.find( '.scd-modal-save-draft' ).off( 'click' ).on( 'click', function() {
+			$modal.find( '.wsscd-modal-save-draft' ).off( 'click' ).on( 'click', function() {
 				// Close modal
 				self.closeModal();
 
 				// Trigger save via orchestrator
-				if ( window.SCD && window.SCD.Wizard && window.SCD.Wizard.Orchestrator ) {
-					var currentStep = window.SCD.Wizard.StateManager.getInstance().get('currentStep');
-					var stepOrchestrator = window.SCD.Wizard.Orchestrator.getStepInstance( currentStep );
+				if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.Orchestrator ) {
+					var currentStep = window.WSSCD.Wizard.StateManager.getInstance().get('currentStep');
+					var stepOrchestrator = window.WSSCD.Wizard.Orchestrator.getStepInstance( currentStep );
 
 					if ( stepOrchestrator && 'function' === typeof stepOrchestrator.saveStep ) {
 						stepOrchestrator.saveStep().done( function() {
-							if ( window.SCD && window.SCD.Shared && window.SCD.Shared.NotificationService ) {
-								window.SCD.Shared.NotificationService.success( 'Draft saved! Upgrade anytime to activate this campaign.' );
+							if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.NotificationService ) {
+								window.WSSCD.Shared.NotificationService.success( 'Draft saved! Upgrade anytime to activate this campaign.' );
 							}
 						} );
 					}
@@ -188,17 +172,17 @@
 			} );
 
 			// Handle close button
-			$modal.find( '.scd-modal-close' ).off( 'click' ).on( 'click', function() {
+			$modal.find( '.wsscd-modal-close' ).off( 'click' ).on( 'click', function() {
 				self.closeModal();
 			} );
 
 			// Close on overlay click
-			$modal.find( '.scd-modal-overlay' ).off( 'click' ).on( 'click', function() {
+			$modal.find( '.wsscd-modal-overlay' ).off( 'click' ).on( 'click', function() {
 				self.closeModal();
 			} );
 
 			// Close on ESC key
-			$( document ).off( 'keydown.scd-pro-modal' ).on( 'keydown.scd-pro-modal', function( e ) {
+			$( document ).off( 'keydown.wsscd-pro-modal' ).on( 'keydown.wsscd-pro-modal', function( e ) {
 				if ( 27 === e.keyCode ) {
 					self.closeModal();
 				}
@@ -211,10 +195,10 @@
 		 * @since 1.0.0
 		 */
 		closeModal: function() {
-			var $modal = $( '#scd-pro-required-modal' );
+			var $modal = $( '#wsscd-pro-required-modal' );
 			$modal.fadeOut( 200 );
-			$( 'body' ).removeClass( 'scd-modal-open' );
-			$( document ).off( 'keydown.scd-pro-modal' );
+			$( 'body' ).removeClass( 'wsscd-modal-open' );
+			$( document ).off( 'keydown.wsscd-pro-modal' );
 		},
 
 		/**
@@ -236,7 +220,7 @@
 
 	// Emit service ready event for dependency tracking
 	$( document ).ready( function() {
-		$( document ).trigger( 'scd:service:ready', [ 'ProFeatureGate' ] );
+		$( document ).trigger( 'wsscd:service:ready', [ 'ProFeatureGate' ] );
 	} );
 
 } )( jQuery );

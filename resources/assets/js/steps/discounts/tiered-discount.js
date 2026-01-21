@@ -1,4 +1,6 @@
 /**
+ * @fs_premium_only
+ *
  * Tiered Discount
  *
  * @package    SmartCycleDiscounts
@@ -14,17 +16,17 @@
 	'use strict';
 
 	// Register tiered discount using utility with inheritance
-	SCD.Utils.registerModule( 'SCD.Modules.Discounts.Types', 'TieredDiscount', function( state ) {
+	WSSCD.Utils.registerModule( 'WSSCD.Modules.Discounts.Types', 'TieredDiscount', function( state ) {
 		// Call parent constructor
-		SCD.Modules.Discounts.Types.BaseDiscount.call( this, state );
+		WSSCD.Modules.Discounts.Types.BaseDiscount.call( this, state );
 
 		this.type = 'tiered';
-		this.config = SCD.Modules.Discounts.Config;
+		this.config = WSSCD.Modules.Discounts.Config;
 		this.maxTiers = 20; // Match backend validation limit
 
 		this.currencySymbol = '$'; // Default
-		if ( window.scdSettings && window.scdSettings.currencySymbol ) {
-			this.currencySymbol = this.decodeHtmlEntity( window.scdSettings.currencySymbol );
+		if ( window.wsscdSettings && window.wsscdSettings.currencySymbol ) {
+			this.currencySymbol = this.decodeHtmlEntity( window.wsscdSettings.currencySymbol );
 		}
 
 		// Ready state tracking (following advanced filters pattern)
@@ -36,7 +38,7 @@
 		this._percentageTiers = [];
 		this._fixedTiers = [];
 
-		if ( !SCD.Utils.ensureInitialized( this, {
+		if ( !WSSCD.Utils.ensureInitialized( this, {
 			'config': this.config
 		}, 'TieredDiscount' ) ) {
 			return;
@@ -44,12 +46,12 @@
 	} );
 
 	// Inherit from BaseDiscount
-	SCD.Modules.Discounts.Types.TieredDiscount.prototype = Object.create( SCD.Modules.Discounts.Types.BaseDiscount.prototype );
-	SCD.Modules.Discounts.Types.TieredDiscount.prototype.constructor =
-		SCD.Modules.Discounts.Types.TieredDiscount;
+	WSSCD.Modules.Discounts.Types.TieredDiscount.prototype = Object.create( WSSCD.Modules.Discounts.Types.BaseDiscount.prototype );
+	WSSCD.Modules.Discounts.Types.TieredDiscount.prototype.constructor =
+		WSSCD.Modules.Discounts.Types.TieredDiscount;
 
 	// Override methods using utility extend
-	SCD.Utils.extend( SCD.Modules.Discounts.Types.TieredDiscount.prototype, {
+	WSSCD.Utils.extend( WSSCD.Modules.Discounts.Types.TieredDiscount.prototype, {
 		/**
 		 * Decode HTML entities
 		 * @param html
@@ -63,7 +65,7 @@
 		 * Initialize tiered discount
 		 */
 		init: function() {
-			SCD.Modules.Discounts.Types.BaseDiscount.prototype.init.call( this );
+			WSSCD.Modules.Discounts.Types.BaseDiscount.prototype.init.call( this );
 
 			this.setupTierHandlers();
 
@@ -153,7 +155,7 @@
 		 * Show tiered discount UI
 		 */
 		showUI: function() {
-			var $container = $( '.scd-strategy-tiered' );
+			var $container = $( '.wsscd-strategy-tiered' );
 
 			if ( $container.length ) {
 				$container.addClass( 'active' );
@@ -188,7 +190,7 @@
 		 * Hide tiered discount UI
 		 */
 		hideUI: function() {
-			$( '.scd-strategy-tiered' ).removeClass( 'active' );
+			$( '.wsscd-strategy-tiered' ).removeClass( 'active' );
 		},
 
 		/**
@@ -197,11 +199,11 @@
 		setupTierHandlers: function() {
 			var self = this;
 
-			$( '.scd-add-tier' ).off( 'click.tiered' );
-			$( document ).off( 'click.tiered', '.scd-remove-tier' );
+			$( '.wsscd-add-tier' ).off( 'click.tiered' );
+			$( document ).off( 'click.tiered', '.wsscd-remove-tier' );
 			$( document ).off( 'change.tiered', '[name="tier_type"]' );
 			$( document ).off( 'change.tiered', '[name="apply_to"]' );
-			$( document ).off( 'change.tiered input.tiered', '.scd-tier-input' );
+			$( document ).off( 'change.tiered input.tiered', '.wsscd-tier-input' );
 			$( '[name="tier_mode"]' ).off( 'change.tiered' );
 
 			// Apply To selection (per_item vs order_total)
@@ -228,18 +230,18 @@
 
 				// Show/hide appropriate tier groups using CSS classes
 				if ( 'percentage' === mode ) {
-					$( '#percentage-tiers-group' ).removeClass( 'scd-hidden' );
-					$( '#fixed-tiers-group' ).addClass( 'scd-hidden' );
+					$( '#percentage-tiers-group' ).removeClass( 'wsscd-hidden' );
+					$( '#fixed-tiers-group' ).addClass( 'wsscd-hidden' );
 				} else {
-					$( '#percentage-tiers-group' ).addClass( 'scd-hidden' );
-					$( '#fixed-tiers-group' ).removeClass( 'scd-hidden' );
+					$( '#percentage-tiers-group' ).addClass( 'wsscd-hidden' );
+					$( '#fixed-tiers-group' ).removeClass( 'wsscd-hidden' );
 				}
 
 				self.renderTiers();
 				self.updateInlinePreview();
 			} );
 
-			$( '.scd-add-tier' ).on( 'click.tiered', function( e ) {
+			$( '.wsscd-add-tier' ).on( 'click.tiered', function( e ) {
 				e.preventDefault();
 				e.stopPropagation();
 				var tierType = $( this ).data( 'tier-type' );
@@ -247,10 +249,10 @@
 				return false;
 			} );
 
-			$( document ).on( 'click.tiered', '.scd-remove-tier', function( e ) {
+			$( document ).on( 'click.tiered', '.wsscd-remove-tier', function( e ) {
 				e.preventDefault();
 				e.stopPropagation();
-				var $row = $( this ).closest( '.scd-tier-row' );
+				var $row = $( this ).closest( '.wsscd-tier-row' );
 				var index = parseInt( $row.data( 'index' ), 10 );
 				var mode = $row.data( 'mode' );
 				self.removeTier( index, mode );
@@ -265,7 +267,7 @@
 			} );
 
 			// Tier value changes
-			$( document ).on( 'change.tiered input.tiered', '.scd-tier-input', function() {
+			$( document ).on( 'change.tiered input.tiered', '.wsscd-tier-input', function() {
 				self.updateTierFromInput( $( this ) );
 				self.updateInlinePreview();
 			} );
@@ -305,12 +307,12 @@
 				$container.append( $row );
 			} );
 
-			var $addButton = $( '.scd-add-tier[data-tier-type="' + mode + '"]' );
+			var $addButton = $( '.wsscd-add-tier[data-tier-type="' + mode + '"]' );
 			if ( tiers.length >= self.maxTiers ) {
-				$addButton.prop( 'disabled', true ).html( SCD.IconHelper.warning( { size: 16 } ) + ' Maximum tiers reached' );
+				$addButton.prop( 'disabled', true ).html( WSSCD.IconHelper.warning( { size: 16 } ) + ' Maximum tiers reached' );
 			} else {
 				var buttonText = 'percentage' === mode ? 'Add Percentage Tier' : 'Add Fixed Amount Tier';
-				$addButton.prop( 'disabled', false ).html( SCD.IconHelper.get( 'plus', { size: 16 } ) + ' ' + buttonText );
+				$addButton.prop( 'disabled', false ).html( WSSCD.IconHelper.get( 'plus', { size: 16 } ) + ' ' + buttonText );
 			}
 		},
 
@@ -327,8 +329,8 @@
 			var discountPrefix = 'percentage' === mode ? '%' : this.currencySymbol;
 
 			return {
-				rowClass: 'scd-tier-row',
-				fieldsWrapperClass: 'scd-tier-fields',
+				rowClass: 'wsscd-tier-row',
+				fieldsWrapperClass: 'wsscd-tier-fields',
 				dataAttributes: { mode: mode },
 				fields: [
 					{
@@ -338,7 +340,7 @@
 						min: 'quantity' === tierType ? 2 : 0.01,
 						step: 'quantity' === tierType ? 1 : 0.01,
 						placeholder: thresholdPlaceholder,
-						class: 'scd-tier-input scd-tier-threshold scd-enhanced-input',
+						class: 'wsscd-tier-input wsscd-tier-threshold wsscd-enhanced-input',
 						dataAttributes: { field: 'threshold' },
 						suffix: 'value' === tierType ? this.currencySymbol : ''
 					},
@@ -349,7 +351,7 @@
 						min: 0,
 						step: 0.01,
 						placeholder: discountPlaceholder,
-						class: 'scd-tier-input scd-tier-discount scd-enhanced-input',
+						class: 'wsscd-tier-input wsscd-tier-discount wsscd-enhanced-input',
 						dataAttributes: { field: 'discount' },
 						prefix: discountPrefix
 					}
@@ -357,7 +359,7 @@
 				removeButton: {
 					enabled: true,
 					label: 'Remove tier',
-					class: 'scd-button scd-button--icon-only scd-button--small scd-button--ghost-danger scd-remove-tier',
+					class: 'wsscd-button wsscd-button--icon-only wsscd-button--small wsscd-button--ghost-danger wsscd-remove-tier',
 					icon: 'trash',
 					showLabel: false
 				}
@@ -379,7 +381,7 @@
 			};
 
 			var config = this.getTieredRowConfig( tierType, mode );
-			var $row = SCD.Shared.RowFactory.create( config, rowData, index );
+			var $row = WSSCD.Shared.RowFactory.create( config, rowData, index );
 
 			// Add ARIA label for accessibility
 			var tierNumber = index + 1;
@@ -471,7 +473,7 @@
 		 * @param $input
 		 */
 		updateTierFromInput: function( $input ) {
-			var $row = $input.closest( '.scd-tier-row' );
+			var $row = $input.closest( '.wsscd-tier-row' );
 			var index = parseInt( $row.data( 'index' ) );
 			var mode = $row.data( 'mode' );
 			var field = $input.data( 'field' );
@@ -574,7 +576,7 @@
 			// Read from internal arrays (kept in sync with config.tiers)
 			var tiers = 'percentage' === tierMode ? this._percentageTiers : this._fixedTiers;
 
-			$( '.scd-tier-warning' ).remove();
+			$( '.wsscd-tier-warning' ).remove();
 
 			if ( 2 > tiers.length ) {return;}
 
@@ -607,8 +609,8 @@
 			}
 
 			if ( hasIssue ) {
-				var warningHtml = '<div class="scd-tier-warning">';
-				warningHtml += SCD.IconHelper.warning( { size: 16 } );
+				var warningHtml = '<div class="wsscd-tier-warning">';
+				warningHtml += WSSCD.IconHelper.warning( { size: 16 } );
 				warningHtml += '<span class="warning-text">Tip: Higher quantity tiers usually have bigger discounts.</span>';
 				warningHtml += '</div>';
 
@@ -1079,7 +1081,7 @@
 			$( '[name="apply_to"]' ).off( 'change.tiered' );
 			$( '[name="tier_mode"]' ).off( 'change.tiered' );
 
-			SCD.Modules.Discounts.Types.BaseDiscount.prototype.destroy.call( this );
+			WSSCD.Modules.Discounts.Types.BaseDiscount.prototype.destroy.call( this );
 		}
 	} );
 

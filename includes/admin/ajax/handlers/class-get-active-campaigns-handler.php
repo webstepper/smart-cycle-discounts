@@ -26,25 +26,25 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/admin/ajax/handlers
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Get_Active_Campaigns_Handler extends SCD_Abstract_Ajax_Handler {
+class WSSCD_Get_Active_Campaigns_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 	/**
 	 * Cache manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Cache_Manager    $cache    Cache manager.
+	 * @var      WSSCD_Cache_Manager    $cache    Cache manager.
 	 */
-	private SCD_Cache_Manager $cache;
+	private WSSCD_Cache_Manager $cache;
 
 	/**
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Cache_Manager $cache     Cache manager instance.
-	 * @param    SCD_Logger        $logger    Logger instance (optional).
+	 * @param    WSSCD_Cache_Manager $cache     Cache manager instance.
+	 * @param    WSSCD_Logger        $logger    Logger instance (optional).
 	 */
-	public function __construct( SCD_Cache_Manager $cache, $logger = null ) {
+	public function __construct( WSSCD_Cache_Manager $cache, $logger = null ) {
 		parent::__construct( $logger );
 		$this->cache = $cache;
 	}
@@ -56,7 +56,7 @@ class SCD_Get_Active_Campaigns_Handler extends SCD_Abstract_Ajax_Handler {
 	 * @return   string    Action name.
 	 */
 	protected function get_action_name() {
-		return 'scd_get_active_campaigns';
+		return 'wsscd_get_active_campaigns';
 	}
 
 	/**
@@ -69,10 +69,10 @@ class SCD_Get_Active_Campaigns_Handler extends SCD_Abstract_Ajax_Handler {
 	protected function handle( $request ) {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'scd_campaigns';
+		$table_name = $wpdb->prefix . 'wsscd_campaigns';
 		$exclude_id = isset( $request['exclude_id'] ) ? intval( $request['exclude_id'] ) : 0;
 
-		$cache_key = 'scd_active_campaigns_' . $exclude_id;
+		$cache_key = 'wsscd_active_campaigns_' . $exclude_id;
 		$cached    = $this->cache->get( $cache_key );
 
 		if ( null !== $cached ) {
@@ -83,38 +83,49 @@ class SCD_Get_Active_Campaigns_Handler extends SCD_Abstract_Ajax_Handler {
 		// SECURITY: Use correct schema column names and prepared statements
 		// INDEX OPTIMIZATION: Migration 006 adds index on (status, schedule_start, schedule_end)
 
-		$query = "
-            SELECT
-                id,
-                name,
-                schedule_start,
-                schedule_end,
-                status,
-                priority,
-                product_selection_type,
-                product_selection_data,
-                enable_recurring
-            FROM {$table_name}
-            WHERE status IN ('active', 'scheduled', 'draft')
-            AND (schedule_end IS NULL OR schedule_end >= NOW())
-        ";
-
-		$params = array();
-
-		// Exclude current campaign if editing
+		// Build query with optional exclude_id filter.
+		// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
 		if ( $exclude_id > 0 ) {
-			$query   .= ' AND id != %d';
-			$params[] = $exclude_id;
+			$query = $wpdb->prepare(
+				'SELECT
+					id,
+					name,
+					schedule_start,
+					schedule_end,
+					status,
+					priority,
+					product_selection_type,
+					product_selection_data,
+					enable_recurring
+				FROM %i
+				WHERE status IN (\'active\', \'scheduled\', \'draft\')
+				AND (schedule_end IS NULL OR schedule_end >= NOW())
+				AND id != %d
+				ORDER BY schedule_start ASC, priority DESC',
+				$table_name,
+				$exclude_id
+			);
+		} else {
+			$query = $wpdb->prepare(
+				'SELECT
+					id,
+					name,
+					schedule_start,
+					schedule_end,
+					status,
+					priority,
+					product_selection_type,
+					product_selection_data,
+					enable_recurring
+				FROM %i
+				WHERE status IN (\'active\', \'scheduled\', \'draft\')
+				AND (schedule_end IS NULL OR schedule_end >= NOW())
+				ORDER BY schedule_start ASC, priority DESC',
+				$table_name
+			);
 		}
 
-		// SECURITY: Use only validated column names for ORDER BY
-		$query .= ' ORDER BY schedule_start ASC, priority DESC';
-
-		// Always use prepared statement, even if params is empty (best practice)
-		if ( ! empty( $params ) ) {
-			$query = $wpdb->prepare( $query, ...$params );
-		}
-
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above with $wpdb->prepare().
 		$campaigns = $wpdb->get_results( $query, ARRAY_A );
 
 		$processed_campaigns = array();

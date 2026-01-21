@@ -9,6 +9,9 @@
  * @subpackage Smart_Cycle_Discounts/Tests/Integration
  */
 
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter
+// This is a test file, not production code.
+
 /**
  * Test Campaign Creation class
  *
@@ -20,21 +23,21 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 	/**
 	 * Container instance.
 	 *
-	 * @var SCD_Container
+	 * @var WSSCD_Container
 	 */
 	private $container;
 
 	/**
 	 * Campaign manager instance.
 	 *
-	 * @var SCD_Campaign_Manager
+	 * @var WSSCD_Campaign_Manager
 	 */
 	private $campaign_manager;
 
 	/**
 	 * Campaign repository instance.
 	 *
-	 * @var SCD_Campaign_Repository
+	 * @var WSSCD_Campaign_Repository
 	 */
 	private $campaign_repository;
 
@@ -65,7 +68,7 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 	public function tearDown(): void {
 		// Clean up campaigns first (before users due to foreign key constraint)
 		global $wpdb;
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
 		$wpdb->query( "DELETE FROM {$campaigns_table} WHERE name LIKE 'Test Campaign%'" );
 
 		parent::tearDown();
@@ -81,7 +84,7 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 	public static function tearDownAfterClass(): void {
 		// Clean up any remaining test campaigns before WordPress deletes users
 		global $wpdb;
-		$campaigns_table = $wpdb->prefix . 'scd_campaigns';
+		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
 		$wpdb->query( "DELETE FROM {$campaigns_table} WHERE name LIKE 'Test Campaign%'" );
 
 		parent::tearDownAfterClass();
@@ -133,9 +136,9 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 		);
 
 		$this->assertInstanceOf(
-			'SCD_Campaign',
+			'WSSCD_Campaign',
 			$campaign,
-			'Campaign manager should return SCD_Campaign object'
+			'Campaign manager should return WSSCD_Campaign object'
 		);
 
 		$this->assertGreaterThan( 0, $campaign->get_id(), 'Campaign should have a valid ID' );
@@ -212,13 +215,13 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 
 		// Assert: Both should be created successfully (Campaign objects, not WP_Error)
 		$this->assertInstanceOf(
-			'SCD_Campaign',
+			'WSSCD_Campaign',
 			$immediate_campaign,
 			'Immediate campaign should be created'
 		);
 
 		$this->assertInstanceOf(
-			'SCD_Campaign',
+			'WSSCD_Campaign',
 			$scheduled_campaign,
 			'Scheduled campaign should be created'
 		);
@@ -276,7 +279,7 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 		);
 
 		$this->assertInstanceOf(
-			'SCD_Campaign',
+			'WSSCD_Campaign',
 			$campaign,
 			'Should return Campaign object'
 		);
@@ -363,7 +366,7 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 		);
 
 		$this->assertInstanceOf(
-			'SCD_Campaign',
+			'WSSCD_Campaign',
 			$campaign,
 			"{$discount_type} campaign should return Campaign object"
 		);
@@ -412,7 +415,7 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 			"{$selection_type} selection should work without errors"
 		);
 
-		$this->assertInstanceOf( 'SCD_Campaign', $campaign );
+		$this->assertInstanceOf( 'WSSCD_Campaign', $campaign );
 		$this->assertEquals( $selection_type, $campaign->get_product_selection_type() );
 	}
 
@@ -457,7 +460,7 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 		$campaign      = $this->campaign_manager->create( $campaign_data );
 
 		$this->assertNotInstanceOf( 'WP_Error', $campaign, 'Campaign with usage limits should be created' );
-		$this->assertInstanceOf( 'SCD_Campaign', $campaign );
+		$this->assertInstanceOf( 'WSSCD_Campaign', $campaign );
 	}
 
 	/**
@@ -468,7 +471,7 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 		$campaign      = $this->campaign_manager->create( $campaign_data );
 
 		$this->assertNotInstanceOf( 'WP_Error', $campaign, 'Campaign with minimum requirements should be created' );
-		$this->assertInstanceOf( 'SCD_Campaign', $campaign );
+		$this->assertInstanceOf( 'WSSCD_Campaign', $campaign );
 	}
 
 	/**
@@ -479,7 +482,7 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 		$campaign      = $this->campaign_manager->create( $campaign_data );
 
 		$this->assertNotInstanceOf( 'WP_Error', $campaign, 'Campaign with badge should be created' );
-		$this->assertInstanceOf( 'SCD_Campaign', $campaign );
+		$this->assertInstanceOf( 'WSSCD_Campaign', $campaign );
 	}
 
 	/**
@@ -490,7 +493,7 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 		$campaign      = $this->campaign_manager->create( $campaign_data );
 
 		$this->assertNotInstanceOf( 'WP_Error', $campaign, 'Stackable campaign should be created' );
-		$this->assertInstanceOf( 'SCD_Campaign', $campaign );
+		$this->assertInstanceOf( 'WSSCD_Campaign', $campaign );
 	}
 
 	/**
@@ -501,7 +504,7 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 		$campaign      = $this->campaign_manager->create( $campaign_data );
 
 		$this->assertNotInstanceOf( 'WP_Error', $campaign, 'Campaign excluding sale items should be created' );
-		$this->assertInstanceOf( 'SCD_Campaign', $campaign );
+		$this->assertInstanceOf( 'WSSCD_Campaign', $campaign );
 	}
 
 	/**
@@ -512,7 +515,7 @@ class Test_Campaign_Creation extends WP_UnitTestCase {
 		$campaign      = $this->campaign_manager->create( $campaign_data );
 
 		$this->assertNotInstanceOf( 'WP_Error', $campaign, 'Campaign with max discount cap should be created' );
-		$this->assertInstanceOf( 'SCD_Campaign', $campaign );
+		$this->assertInstanceOf( 'WSSCD_Campaign', $campaign );
 	}
 
 	/**

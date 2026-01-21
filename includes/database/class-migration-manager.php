@@ -27,16 +27,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/database
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Migration_Manager {
+class WSSCD_Migration_Manager {
 
 	/**
 	 * Database manager instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Database_Manager    $db    Database manager.
+	 * @var      WSSCD_Database_Manager    $db    Database manager.
 	 */
-	private SCD_Database_Manager $db;
+	private WSSCD_Database_Manager $db;
 
 	/**
 	 * Migration directory path.
@@ -60,11 +60,11 @@ class SCD_Migration_Manager {
 	 * Initialize the migration manager.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Database_Manager $db    Database manager.
+	 * @param    WSSCD_Database_Manager $db    Database manager.
 	 */
-	public function __construct( SCD_Database_Manager $db ) {
+	public function __construct( WSSCD_Database_Manager $db ) {
 		$this->db            = $db;
-		$this->migration_dir = SCD_PLUGIN_DIR . 'includes/database/migrations/';
+		$this->migration_dir = WSSCD_PLUGIN_DIR . 'includes/database/migrations/';
 
 		$this->load_migrations();
 		$this->ensure_migrations_table();
@@ -120,7 +120,7 @@ class SCD_Migration_Manager {
 			)
 		);
 
-		return 'SCD_Migration_' . str_replace( ' ', '_', implode( '_', $class_parts ) );
+		return 'WSSCD_Migration_' . str_replace( ' ', '_', implode( '_', $class_parts ) );
 	}
 
 	/**
@@ -264,8 +264,12 @@ class SCD_Migration_Manager {
 	public function get_executed_migrations(): array {
 		$table_name = $this->db->get_table_name( 'migrations' );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Migration tracking query; no WP abstraction.
 		$results = $this->db->get_results(
-			"SELECT migration FROM $table_name ORDER BY id ASC"
+			$this->db->prepare(
+				'SELECT migration FROM %i ORDER BY id ASC',
+				$table_name
+			)
 		);
 
 		return array_column( $results, 'migration' );
@@ -283,20 +287,22 @@ class SCD_Migration_Manager {
 	private function run_migration( array $migration, int $batch ): array {
 		try {
 			// Ensure interface is loaded
-			if ( ! interface_exists( 'SCD_Migration_Interface' ) ) {
+			if ( ! interface_exists( 'WSSCD_Migration_Interface' ) ) {
 				require_once $this->migration_dir . '/../interface-migration.php';
 			}
 
 			require_once $migration['file'];
 
 			if ( ! class_exists( $migration['class'] ) ) {
-				throw new Exception( 'Migration class ' . $migration['class'] . ' not found.' );
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output. Migration class names are internal.
+				throw new Exception( 'Migration class ' . esc_html( $migration['class'] ) . ' not found.' );
 			}
 
 			$instance = new $migration['class']( $this->db );
 
 			if ( ! method_exists( $instance, 'up' ) ) {
-				throw new Exception( 'Migration ' . $migration['class'] . ' does not have an "up" method.' );
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output. Migration class names are internal.
+				throw new Exception( 'Migration ' . esc_html( $migration['class'] ) . ' does not have an "up" method.' );
 			}
 
 			// Execute migration in transaction
@@ -316,7 +322,8 @@ class SCD_Migration_Manager {
 			);
 
 			if ( $result === false ) {
-				throw new Exception( 'Failed to execute migration ' . $migration['name'] . '.' );
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output. Migration names are internal.
+				throw new Exception( 'Failed to execute migration ' . esc_html( $migration['name'] ) . '.' );
 			}
 
 			return array(
@@ -347,13 +354,15 @@ class SCD_Migration_Manager {
 			require_once $migration['file'];
 
 			if ( ! class_exists( $migration['class'] ) ) {
-				throw new Exception( 'Migration class ' . $migration['class'] . ' not found.' );
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output. Migration class names are internal.
+				throw new Exception( 'Migration class ' . esc_html( $migration['class'] ) . ' not found.' );
 			}
 
 			$instance = new $migration['class']( $this->db );
 
 			if ( ! method_exists( $instance, 'down' ) ) {
-				throw new Exception( 'Migration ' . $migration['class'] . ' does not have a "down" method.' );
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output. Migration class names are internal.
+				throw new Exception( 'Migration ' . esc_html( $migration['class'] ) . ' does not have a "down" method.' );
 			}
 
 			// Execute rollback in transaction
@@ -371,7 +380,8 @@ class SCD_Migration_Manager {
 			);
 
 			if ( $result === false ) {
-				throw new Exception( 'Failed to rollback migration ' . $migration['name'] . '.' );
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are for logging/debugging, not direct output. Migration names are internal.
+				throw new Exception( 'Failed to rollback migration ' . esc_html( $migration['name'] ) . '.' );
 			}
 
 			return array(
@@ -399,8 +409,12 @@ class SCD_Migration_Manager {
 	private function get_next_batch_number(): int {
 		$table_name = $this->db->get_table_name( 'migrations' );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Migration tracking query; no WP abstraction.
 		$result = $this->db->get_var(
-			"SELECT MAX(batch) FROM $table_name"
+			$this->db->prepare(
+				'SELECT MAX(batch) FROM %i',
+				$table_name
+			)
 		);
 
 		return $result ? (int) $result + 1 : 1;
@@ -416,8 +430,12 @@ class SCD_Migration_Manager {
 	private function get_executed_batches(): array {
 		$table_name = $this->db->get_table_name( 'migrations' );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Migration tracking query; no WP abstraction.
 		$results = $this->db->get_results(
-			"SELECT DISTINCT batch FROM $table_name ORDER BY batch DESC"
+			$this->db->prepare(
+				'SELECT DISTINCT batch FROM %i ORDER BY batch DESC',
+				$table_name
+			)
 		);
 
 		return array_column( $results, 'batch' );
@@ -434,9 +452,11 @@ class SCD_Migration_Manager {
 	private function get_migrations_in_batch( int $batch ): array {
 		$table_name = $this->db->get_table_name( 'migrations' );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Migration tracking query; no WP abstraction.
 		$results = $this->db->get_results(
 			$this->db->prepare(
-				"SELECT migration FROM $table_name WHERE batch = %d ORDER BY id ASC",
+				'SELECT migration FROM %i WHERE batch = %d ORDER BY id ASC',
+				$table_name,
 				$batch
 			)
 		);

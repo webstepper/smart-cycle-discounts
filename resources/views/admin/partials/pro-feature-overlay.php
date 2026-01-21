@@ -13,6 +13,8 @@
  * @var array  $button_args Optional button arguments (text, size, icon)
  */
 
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial included into function scope; variables are local, not global.
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -29,18 +31,18 @@ $button_size = isset( $button_args['size'] ) ? $button_args['size'] : 'medium';
 $button_icon = isset( $button_args['icon'] ) ? $button_args['icon'] : 'star-filled';
 ?>
 
-<div class="scd-pro-feature-unavailable">
+<div class="wsscd-pro-feature-unavailable">
 	<?php if ( ! empty( $description ) ) : ?>
-		<p class="scd-pro-feature-unavailable__description">
+		<p class="wsscd-pro-feature-unavailable__description">
 			<?php echo esc_html( $description ); ?>
 		</p>
 	<?php endif; ?>
 
 	<?php if ( ! empty( $features ) ) : ?>
-		<ul class="scd-pro-feature-unavailable__features">
+		<ul class="wsscd-pro-feature-unavailable__features">
 			<?php foreach ( $features as $feature ) : ?>
 				<li>
-					<?php echo SCD_Icon_Helper::get( 'check', array( 'size' => 16 ) ); ?>
+					<?php WSSCD_Icon_Helper::render( 'check', array( 'size' => 16 ) ); ?>
 					<?php echo esc_html( $feature ); ?>
 				</li>
 			<?php endforeach; ?>
@@ -49,7 +51,7 @@ $button_icon = isset( $button_args['icon'] ) ? $button_args['icon'] : 'star-fill
 
 	<a href="<?php echo esc_url( $upgrade_url ); ?>" class="button button-primary button-<?php echo esc_attr( $button_size ); ?>">
 		<?php if ( ! empty( $button_icon ) ) : ?>
-			<?php echo SCD_Icon_Helper::get( $button_icon, array( 'size' => 16 ) ); ?>
+			<?php WSSCD_Icon_Helper::render( $button_icon, array( 'size' => 16 ) ); ?>
 		<?php endif; ?>
 		<?php echo esc_html( $button_text ); ?>
 	</a>

@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class SCD_Weekly_Campaign_Definitions {
+class WSSCD_Weekly_Campaign_Definitions {
 
 	/**
 	 * Get all weekly campaign definitions.

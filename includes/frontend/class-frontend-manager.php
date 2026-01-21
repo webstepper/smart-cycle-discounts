@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/frontend
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Frontend_Manager {
+class WSSCD_Frontend_Manager {
 
 	/**
 	 * The ID of this plugin.
@@ -62,9 +62,9 @@ class SCD_Frontend_Manager {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Frontend_Asset_Manager|null    $asset_manager    Frontend asset manager.
+	 * @var      WSSCD_Frontend_Asset_Manager|null    $asset_manager    Frontend asset manager.
 	 */
-	private ?SCD_Frontend_Asset_Manager $asset_manager = null;
+	private ?WSSCD_Frontend_Asset_Manager $asset_manager = null;
 
 	/**
 	 * Initialize the frontend manager.
@@ -126,7 +126,7 @@ class SCD_Frontend_Manager {
 		// Basic frontend styles
 		wp_enqueue_style(
 			$this->plugin_name . '-frontend',
-			SCD_ASSETS_URL . $css_file,
+			WSSCD_ASSETS_URL . $css_file,
 			array(),
 			$this->version,
 			'all'
@@ -148,10 +148,10 @@ class SCD_Frontend_Manager {
 
 		// Fallback: Check if frontend script exists before enqueuing
 		$js_file = 'js/frontend/frontend.js';
-		if ( file_exists( SCD_PLUGIN_DIR . 'resources/assets/' . $js_file ) ) {
+		if ( file_exists( WSSCD_PLUGIN_DIR . 'resources/assets/' . $js_file ) ) {
 			wp_enqueue_script(
 				$this->plugin_name . '-frontend',
-				SCD_ASSETS_URL . $js_file,
+				WSSCD_ASSETS_URL . $js_file,
 				array( 'jquery' ),
 				$this->version,
 				true
@@ -206,21 +206,6 @@ class SCD_Frontend_Manager {
 			$shortcodes = $this->container->get( 'shortcodes' );
 			if ( method_exists( $shortcodes, 'register_all' ) ) {
 				$shortcodes->register_all();
-			}
-		}
-	}
-
-	/**
-	 * Display discount badge on single product page.
-	 *
-	 * @since    1.0.0
-	 * @return   void
-	 */
-	public function display_discount_badge(): void {
-		if ( $this->container->has( 'discount_display' ) ) {
-			$discount_display = $this->container->get( 'discount_display' );
-			if ( method_exists( $discount_display, 'render_single_product_badge' ) ) {
-				$discount_display->render_single_product_badge();
 			}
 		}
 	}

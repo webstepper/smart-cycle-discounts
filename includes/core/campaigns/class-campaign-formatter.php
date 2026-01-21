@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/includes/database/models
  */
-class SCD_Campaign_Formatter {
+class WSSCD_Campaign_Formatter {
 
 	/**
 	 * Date format.
@@ -65,11 +65,11 @@ class SCD_Campaign_Formatter {
 	 * Format campaign for display.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @param    string       $context     Display context.
 	 * @return   array                        Formatted data.
 	 */
-	public function format( SCD_Campaign $campaign, string $context = 'list' ): array {
+	public function format( WSSCD_Campaign $campaign, string $context = 'list' ): array {
 		$base_data = array(
 			'id'       => $campaign->get_id(),
 			'name'     => $this->format_name( $campaign ),
@@ -101,10 +101,10 @@ class SCD_Campaign_Formatter {
 	 * Format campaign name.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   string                       Formatted name.
 	 */
-	private function format_name( SCD_Campaign $campaign ): string {
+	private function format_name( WSSCD_Campaign $campaign ): string {
 		$name = esc_html( $campaign->get_name() );
 
 		if ( $campaign->get_status() === 'draft' ) {
@@ -118,10 +118,10 @@ class SCD_Campaign_Formatter {
 	 * Format campaign status.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   array                        Formatted status.
 	 */
-	private function format_status( SCD_Campaign $campaign ): array {
+	private function format_status( WSSCD_Campaign $campaign ): array {
 		$status        = $campaign->get_status();
 		$status_labels = $this->get_status_labels();
 
@@ -174,10 +174,10 @@ class SCD_Campaign_Formatter {
 	 * Format discount display.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   array                        Formatted discount.
 	 */
-	private function format_discount( SCD_Campaign $campaign ): array {
+	private function format_discount( WSSCD_Campaign $campaign ): array {
 		$type  = $campaign->get_discount_type();
 		$value = $campaign->get_discount_value();
 
@@ -242,10 +242,10 @@ class SCD_Campaign_Formatter {
 	 * Format schedule display.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   array                        Formatted schedule.
 	 */
-	private function format_schedule( SCD_Campaign $campaign ): array {
+	private function format_schedule( WSSCD_Campaign $campaign ): array {
 		$starts_at = $campaign->get_starts_at();
 		$ends_at   = $campaign->get_ends_at();
 
@@ -289,6 +289,7 @@ class SCD_Campaign_Formatter {
 
 		if ( $starts_at && ! $ends_at ) {
 			return sprintf(
+				/* translators: %s: formatted start date */
 				__( 'Starts %s', 'smart-cycle-discounts' ),
 				wp_date( $this->date_format, $starts_at->getTimestamp() )
 			);
@@ -296,6 +297,7 @@ class SCD_Campaign_Formatter {
 
 		if ( ! $starts_at && $ends_at ) {
 			return sprintf(
+				/* translators: %s: formatted end date */
 				__( 'Ends %s', 'smart-cycle-discounts' ),
 				wp_date( $this->date_format, $ends_at->getTimestamp() )
 			);
@@ -312,10 +314,10 @@ class SCD_Campaign_Formatter {
 	 * Get schedule status.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   string                       Schedule status.
 	 */
-	private function get_schedule_status( SCD_Campaign $campaign ): string {
+	private function get_schedule_status( WSSCD_Campaign $campaign ): string {
 		// Use UTC timezone to match campaign dates (which are stored in UTC)
 		$now       = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
 		$starts_at = $campaign->get_starts_at();
@@ -340,10 +342,10 @@ class SCD_Campaign_Formatter {
 	 * Format priority display.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   array                        Formatted priority.
 	 */
-	private function format_priority( SCD_Campaign $campaign ): array {
+	private function format_priority( WSSCD_Campaign $campaign ): array {
 		$priority = $campaign->get_priority();
 
 		return array(
@@ -379,10 +381,10 @@ class SCD_Campaign_Formatter {
 	 * Format detail data.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   array                        Detail data.
 	 */
-	private function format_detail_data( SCD_Campaign $campaign ): array {
+	private function format_detail_data( WSSCD_Campaign $campaign ): array {
 		return array(
 			'description' => wp_kses_post( $campaign->get_description() ),
 			'created'     => $this->format_datetime( $campaign->get_created_at() ),
@@ -397,10 +399,10 @@ class SCD_Campaign_Formatter {
 	 * Format product selection.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   array                        Product selection data.
 	 */
-	private function format_product_selection( SCD_Campaign $campaign ): array {
+	private function format_product_selection( WSSCD_Campaign $campaign ): array {
 		$type = $campaign->get_product_selection_type();
 
 		return array(
@@ -416,30 +418,33 @@ class SCD_Campaign_Formatter {
 	/**
 	 * Get product selection label.
 	 *
+	 * Product Selection Model:
+	 * - selection_type: HOW to select (all_products, specific_products, random_products, smart_selection)
+	 * - category_ids: Optional FILTER for pool-based selections (not a selection type)
+	 *
 	 * @since    1.0.0
 	 * @param    string $type    Selection type.
 	 * @return   string             Type label.
 	 */
 	private function get_product_selection_label( string $type ): string {
 		$labels = array(
-			'all'        => __( 'All Products', 'smart-cycle-discounts' ),
-			'individual' => __( 'Selected Products', 'smart-cycle-discounts' ),
-			'categories' => __( 'Product Categories', 'smart-cycle-discounts' ),
-			'tags'       => __( 'Product Tags', 'smart-cycle-discounts' ),
-			'conditions' => __( 'Custom Conditions', 'smart-cycle-discounts' ),
+			WSSCD_Campaign::SELECTION_TYPE_ALL_PRODUCTS      => __( 'All Products', 'smart-cycle-discounts' ),
+			WSSCD_Campaign::SELECTION_TYPE_SPECIFIC_PRODUCTS => __( 'Specific Products', 'smart-cycle-discounts' ),
+			WSSCD_Campaign::SELECTION_TYPE_RANDOM_PRODUCTS   => __( 'Random Products', 'smart-cycle-discounts' ),
+			WSSCD_Campaign::SELECTION_TYPE_SMART_SELECTION   => __( 'Smart Selection', 'smart-cycle-discounts' ),
 		);
 
-		return $labels[ $type ] ?? ucfirst( $type );
+		return $labels[ $type ] ?? ucfirst( str_replace( '_', ' ', $type ) );
 	}
 
 	/**
 	 * Get product count.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   int                          Product count.
 	 */
-	private function get_product_count( SCD_Campaign $campaign ): int {
+	private function get_product_count( WSSCD_Campaign $campaign ): int {
 		$selection_type = $campaign->get_product_selection_type();
 
 		switch ( $selection_type ) {
@@ -462,10 +467,10 @@ class SCD_Campaign_Formatter {
 	 * Format edit data.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   array                        Edit data.
 	 */
-	private function format_edit_data( SCD_Campaign $campaign ): array {
+	private function format_edit_data( WSSCD_Campaign $campaign ): array {
 		return $campaign->to_array();
 	}
 
@@ -473,10 +478,10 @@ class SCD_Campaign_Formatter {
 	 * Format API data.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   array                        API data.
 	 */
-	private function format_api_data( SCD_Campaign $campaign ): array {
+	private function format_api_data( WSSCD_Campaign $campaign ): array {
 		$data = $campaign->to_array();
 
 		$data['_formatted'] = array(
@@ -492,10 +497,10 @@ class SCD_Campaign_Formatter {
 	 * Format export data.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign    Campaign object.
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
 	 * @return   array                        Export data.
 	 */
-	private function format_export_data( SCD_Campaign $campaign ): array {
+	private function format_export_data( WSSCD_Campaign $campaign ): array {
 		return array(
 			'ID'             => $campaign->get_id(),
 			'Name'           => $campaign->get_name(),

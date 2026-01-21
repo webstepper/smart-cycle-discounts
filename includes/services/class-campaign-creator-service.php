@@ -27,69 +27,69 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/services
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Campaign_Creator_Service {
+class WSSCD_Campaign_Creator_Service {
 
 	/**
 	 * Campaign manager.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Manager    $campaign_manager    Campaign manager.
+	 * @var      WSSCD_Campaign_Manager    $campaign_manager    Campaign manager.
 	 */
-	private SCD_Campaign_Manager $campaign_manager;
+	private WSSCD_Campaign_Manager $campaign_manager;
 
 	/**
 	 * Campaign compiler.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Campaign_Compiler_Service    $compiler    Campaign compiler.
+	 * @var      WSSCD_Campaign_Compiler_Service    $compiler    Campaign compiler.
 	 */
-	private SCD_Campaign_Compiler_Service $compiler;
+	private WSSCD_Campaign_Compiler_Service $compiler;
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger    $logger    Logger.
+	 * @var      WSSCD_Logger    $logger    Logger.
 	 */
-	private SCD_Logger $logger;
+	private WSSCD_Logger $logger;
 
 	/**
 	 * Audit logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Audit_Logger|null    $audit_logger    Audit logger.
+	 * @var      WSSCD_Audit_Logger|null    $audit_logger    Audit logger.
 	 */
-	private ?SCD_Audit_Logger $audit_logger;
+	private ?WSSCD_Audit_Logger $audit_logger;
 
 	/**
 	 * Feature gate instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Feature_Gate|null    $feature_gate    Feature gate.
+	 * @var      WSSCD_Feature_Gate|null    $feature_gate    Feature gate.
 	 */
-	private ?SCD_Feature_Gate $feature_gate;
+	private ?WSSCD_Feature_Gate $feature_gate;
 
 	/**
 	 * Constructor.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign_Manager          $campaign_manager    Campaign manager.
-	 * @param    SCD_Campaign_Compiler_Service $compiler           Campaign compiler.
-	 * @param    SCD_Logger                    $logger             Logger.
-	 * @param    SCD_Audit_Logger|null         $audit_logger       Audit logger.
-	 * @param    SCD_Feature_Gate|null         $feature_gate       Feature gate.
+	 * @param    WSSCD_Campaign_Manager          $campaign_manager    Campaign manager.
+	 * @param    WSSCD_Campaign_Compiler_Service $compiler           Campaign compiler.
+	 * @param    WSSCD_Logger                    $logger             Logger.
+	 * @param    WSSCD_Audit_Logger|null         $audit_logger       Audit logger.
+	 * @param    WSSCD_Feature_Gate|null         $feature_gate       Feature gate.
 	 */
 	public function __construct(
-		SCD_Campaign_Manager $campaign_manager,
-		SCD_Campaign_Compiler_Service $compiler,
-		SCD_Logger $logger,
-		?SCD_Audit_Logger $audit_logger = null,
-		?SCD_Feature_Gate $feature_gate = null
+		WSSCD_Campaign_Manager $campaign_manager,
+		WSSCD_Campaign_Compiler_Service $compiler,
+		WSSCD_Logger $logger,
+		?WSSCD_Audit_Logger $audit_logger = null,
+		?WSSCD_Feature_Gate $feature_gate = null
 	) {
 		$this->campaign_manager = $campaign_manager;
 		$this->compiler         = $compiler;
@@ -102,15 +102,15 @@ class SCD_Campaign_Creator_Service {
 	 * Create campaign from wizard session.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Wizard_State_Service $state_service    Wizard state service.
+	 * @param    WSSCD_Wizard_State_Service $state_service    Wizard state service.
 	 * @param    bool                     $save_as_draft    Whether to save as draft.
 	 * @return   array                                        Result array with success status and data.
 	 */
-	public function create_from_wizard( SCD_Wizard_State_Service $state_service, bool $save_as_draft = false ): array {
+	public function create_from_wizard( WSSCD_Wizard_State_Service $state_service, bool $save_as_draft = false ): array {
 		$is_update = false;
 
 		try {
-			if ( ! current_user_can( 'scd_create_campaigns' ) && ! current_user_can( 'manage_options' ) ) {
+			if ( ! current_user_can( 'wsscd_create_campaigns' ) && ! current_user_can( 'manage_options' ) ) {
 				return $this->error_response(
 					__( 'You do not have permission to create campaigns.', 'smart-cycle-discounts' ),
 					403
@@ -261,7 +261,7 @@ class SCD_Campaign_Creator_Service {
 						}
 
 						// Use State Manager to transition directly (bypasses full campaign validation).
-						$state_manager = new SCD_Campaign_State_Manager( $this->logger, null );
+						$state_manager = new WSSCD_Campaign_State_Manager( $this->logger, null );
 						$transition    = $state_manager->transition( $fresh_campaign, 'scheduled' );
 
 						if ( is_wp_error( $transition ) ) {
@@ -328,47 +328,6 @@ class SCD_Campaign_Creator_Service {
 						500
 					);
 				}
-
-				// PHASE 1.1: Verify campaign limit AFTER creation (prevents race condition).
-				// Draft campaigns count toward limits following WordPress pattern.
-				if ( true === $is_new_campaign && $this->feature_gate ) {
-					if ( ! $this->feature_gate->is_premium() ) {
-						$repository = $this->campaign_manager->get_repository();
-						if ( $repository ) {
-							$final_count = $repository->count(
-								array(
-									'status__not' => 'deleted',
-								)
-							);
-
-							$campaign_limit = $this->feature_gate->get_campaign_limit();
-
-							if ( $final_count > $campaign_limit ) {
-								// Exceeded limit - rollback by deleting the just-created campaign.
-								$repository->delete( $campaign->get_id() );
-
-								$this->logger->warning(
-									'Campaign limit exceeded after creation, rolled back',
-									array(
-										'campaign_id' => $campaign->get_id(),
-										'final_count' => $final_count,
-										'limit'       => $campaign_limit,
-										'user_id'     => absint( get_current_user_id() ),
-									)
-								);
-
-								return $this->error_response(
-									sprintf(
-										/* translators: %d: campaign limit */
-										__( 'Campaign limit reached. Free plan is limited to %d campaigns. Please upgrade to Pro for unlimited campaigns.', 'smart-cycle-discounts' ),
-										$campaign_limit
-									),
-									403
-								);
-							}
-						}
-					}
-				}
 			}
 
 			try {
@@ -399,9 +358,9 @@ class SCD_Campaign_Creator_Service {
 
 			// Trigger action for extensions.
 			if ( true === $is_update ) {
-				do_action( 'scd_campaign_updated_from_wizard', $campaign->get_id(), $campaign_data );
+				do_action( 'wsscd_campaign_updated_from_wizard', $campaign->get_id(), $campaign_data );
 			} else {
-				do_action( 'scd_campaign_created_from_wizard', $campaign->get_id(), $campaign_data );
+				do_action( 'wsscd_campaign_created_from_wizard', $campaign->get_id(), $campaign_data );
 			}
 
 			return $this->success_response( $campaign, $save_as_draft );
@@ -431,7 +390,7 @@ class SCD_Campaign_Creator_Service {
 	 */
 	public function create_from_data( array $data ): array {
 		try {
-			if ( ! current_user_can( 'scd_create_campaigns' ) && ! current_user_can( 'manage_options' ) ) {
+			if ( ! current_user_can( 'wsscd_create_campaigns' ) && ! current_user_can( 'manage_options' ) ) {
 				return $this->error_response(
 					__( 'You do not have permission to create campaigns.', 'smart-cycle-discounts' ),
 					403
@@ -454,52 +413,11 @@ class SCD_Campaign_Creator_Service {
 				);
 			}
 
-			// PHASE 1.1: Verify campaign limit AFTER creation (prevents race condition).
-			// Draft campaigns count toward limits following WordPress pattern.
-			if ( true === $is_new_campaign && $this->feature_gate ) {
-				if ( ! $this->feature_gate->is_premium() ) {
-					$repository = $this->campaign_manager->get_repository();
-					if ( $repository ) {
-						$final_count = $repository->count(
-							array(
-								'status__not' => 'deleted',
-							)
-						);
-
-						$campaign_limit = $this->feature_gate->get_campaign_limit();
-
-						if ( $final_count > $campaign_limit ) {
-							// Exceeded limit - rollback by deleting the just-created campaign.
-							$repository->delete( $campaign->get_id() );
-
-							$this->logger->warning(
-								'Campaign limit exceeded after creation, rolled back',
-								array(
-									'campaign_id' => $campaign->get_id(),
-									'final_count' => $final_count,
-									'limit'       => $campaign_limit,
-									'user_id'     => absint( get_current_user_id() ),
-								)
-							);
-
-							return $this->error_response(
-								sprintf(
-									/* translators: %d: campaign limit */
-									__( 'Campaign limit reached. Free plan is limited to %d campaigns. Please upgrade to Pro for unlimited campaigns.', 'smart-cycle-discounts' ),
-									$campaign_limit
-								),
-								403
-							);
-						}
-					}
-				}
-			}
-
 			// Log success.
 			$this->log_campaign_created( $campaign, 'direct' );
 
 			// Trigger action for extensions.
-			do_action( 'scd_campaign_created_from_data', $campaign->get_id(), $data );
+			do_action( 'wsscd_campaign_created_from_data', $campaign->get_id(), $data );
 
 			return $this->success_response( $campaign );
 
@@ -528,7 +446,7 @@ class SCD_Campaign_Creator_Service {
 	 */
 	public function duplicate_campaign( int $campaign_id ): array {
 		try {
-			if ( ! current_user_can( 'scd_create_campaigns' ) && ! current_user_can( 'manage_options' ) ) {
+			if ( ! current_user_can( 'wsscd_create_campaigns' ) && ! current_user_can( 'manage_options' ) ) {
 				return $this->error_response(
 					__( 'You do not have permission to duplicate campaigns.', 'smart-cycle-discounts' ),
 					403
@@ -563,50 +481,11 @@ class SCD_Campaign_Creator_Service {
 				);
 			}
 
-			// PHASE 1.1: Verify campaign limit AFTER creation (prevents race condition).
-			if ( $this->feature_gate && ! $this->feature_gate->is_premium() ) {
-				$repository = $this->campaign_manager->get_repository();
-				if ( $repository ) {
-					$final_count = $repository->count(
-						array(
-							'status__not' => 'deleted',
-						)
-					);
-
-					$campaign_limit = $this->feature_gate->get_campaign_limit();
-
-					if ( $final_count > $campaign_limit ) {
-						// Exceeded limit - rollback by deleting the just-created campaign.
-						$repository->delete( $duplicate->get_id() );
-
-						$this->logger->warning(
-							'Campaign limit exceeded after duplication, rolled back',
-							array(
-								'duplicate_id' => $duplicate->get_id(),
-								'original_id'  => $campaign_id,
-								'final_count'  => $final_count,
-								'limit'        => $campaign_limit,
-								'user_id'      => absint( get_current_user_id() ),
-							)
-						);
-
-						return $this->error_response(
-							sprintf(
-								/* translators: %d: campaign limit */
-								__( 'Campaign limit reached. Free plan is limited to %d campaigns. Please upgrade to Pro for unlimited campaigns.', 'smart-cycle-discounts' ),
-								$campaign_limit
-							),
-							403
-						);
-					}
-				}
-			}
-
 			// Log success.
 			$this->log_campaign_created( $duplicate, 'duplicate', false, $campaign_id );
 
 			// Trigger action for extensions.
-			do_action( 'scd_campaign_duplicated', $duplicate->get_id(), $campaign_id );
+			do_action( 'wsscd_campaign_duplicated', $duplicate->get_id(), $campaign_id );
 
 			return $this->success_response( $duplicate );
 
@@ -630,11 +509,11 @@ class SCD_Campaign_Creator_Service {
 	 * Build success response.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign         Created campaign.
+	 * @param    WSSCD_Campaign $campaign         Created campaign.
 	 * @param    bool         $is_draft        Whether campaign is draft.
 	 * @return   array                            Response array.
 	 */
-	private function success_response( SCD_Campaign $campaign, bool $is_draft = false ): array {
+	private function success_response( WSSCD_Campaign $campaign, bool $is_draft = false ): array {
 		$message = true === $is_draft
 			? __( 'Campaign saved as draft successfully.', 'smart-cycle-discounts' )
 			: __( 'Campaign created successfully.', 'smart-cycle-discounts' );
@@ -642,14 +521,14 @@ class SCD_Campaign_Creator_Service {
 		$redirect_url = true === $is_draft
 			? add_query_arg(
 				array(
-					'page'    => 'scd-campaigns',
+					'page'    => 'wsscd-campaigns',
 					'message' => 'draft_saved',
 				),
 				admin_url( 'admin.php' )
 			)
 			: add_query_arg(
 				array(
-					'page'    => 'scd-campaigns',
+					'page'    => 'wsscd-campaigns',
 					'action'  => 'view',
 					'id'      => $campaign->get_id(),
 					'message' => 'created',
@@ -693,14 +572,14 @@ class SCD_Campaign_Creator_Service {
 	 * Log campaign creation.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Campaign $campaign       Created campaign.
+	 * @param    WSSCD_Campaign $campaign       Created campaign.
 	 * @param    string       $source         Creation source.
 	 * @param    bool         $is_draft       Whether saved as draft.
 	 * @param    int|null     $original_id    Original campaign ID if duplicated.
 	 * @return   void
 	 */
 	private function log_campaign_created(
-		SCD_Campaign $campaign,
+		WSSCD_Campaign $campaign,
 		string $source,
 		bool $is_draft = false,
 		?int $original_id = null
@@ -744,7 +623,7 @@ class SCD_Campaign_Creator_Service {
 		}
 
 		// Load PRO feature validator class.
-		$validator_path = SCD_PLUGIN_DIR . 'includes/core/validation/class-pro-feature-validator.php';
+		$validator_path = WSSCD_PLUGIN_DIR . 'includes/core/validation/class-pro-feature-validator.php';
 		if ( ! file_exists( $validator_path ) ) {
 			// Validator file missing - log error but allow (fail open).
 			$this->logger->warning(
@@ -758,13 +637,13 @@ class SCD_Campaign_Creator_Service {
 
 		require_once $validator_path;
 
-		if ( ! class_exists( 'SCD_PRO_Feature_Validator' ) ) {
+		if ( ! class_exists( 'WSSCD_PRO_Feature_Validator' ) ) {
 			// Validator class missing - log error but allow (fail open).
 			$this->logger->warning( 'PRO feature validator class not found' );
 			return true;
 		}
 
-		$validator = new SCD_PRO_Feature_Validator( $this->feature_gate );
+		$validator = new WSSCD_PRO_Feature_Validator( $this->feature_gate );
 		$result    = $validator->validate_campaign( $campaign_data );
 
 		// Log validation failures for security auditing.
@@ -800,14 +679,14 @@ class SCD_Campaign_Creator_Service {
 	 * @since    1.0.0
 	 * @param    int   $campaign_id      Campaign ID.
 	 * @param    array $campaign_data    Campaign data to update.
-	 * @return   SCD_Campaign|WP_Error      Updated campaign or error.
+	 * @return   WSSCD_Campaign|WP_Error      Updated campaign or error.
 	 */
 	private function update_with_retry( int $campaign_id, array $campaign_data ) {
 		try {
 			// First attempt.
 			return $this->campaign_manager->update( $campaign_id, $campaign_data );
 
-		} catch ( SCD_Concurrent_Modification_Exception $e ) {
+		} catch ( WSSCD_Concurrent_Modification_Exception $e ) {
 			// Version conflict detected - attempt auto-recovery.
 			$this->logger->info(
 				'Optimistic locking conflict detected, attempting auto-retry',
@@ -858,7 +737,7 @@ class SCD_Campaign_Creator_Service {
 
 				return $result;
 
-			} catch ( SCD_Concurrent_Modification_Exception $retry_exception ) {
+			} catch ( WSSCD_Concurrent_Modification_Exception $retry_exception ) {
 				// Second failure - genuine concurrent edit conflict.
 				$this->logger->warning(
 					'Auto-retry failed with another version conflict',
@@ -935,10 +814,10 @@ class SCD_Campaign_Creator_Service {
 	 * Get State Manager instance.
 	 *
 	 * @since    1.0.0
-	 * @return   SCD_Campaign_State_Manager    State Manager instance.
+	 * @return   WSSCD_Campaign_State_Manager    State Manager instance.
 	 */
-	private function get_state_manager(): SCD_Campaign_State_Manager {
-		return new SCD_Campaign_State_Manager( $this->logger, null );
+	private function get_state_manager(): WSSCD_Campaign_State_Manager {
+		return new WSSCD_Campaign_State_Manager( $this->logger, null );
 	}
 
 	/**

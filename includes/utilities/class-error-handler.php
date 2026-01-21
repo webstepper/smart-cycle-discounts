@@ -11,6 +11,9 @@
  * @since      1.0.0
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
 
 /**
  * Error Handler Class
@@ -22,16 +25,16 @@
  * @subpackage SmartCycleDiscounts/includes/core
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Error_Handler {
+class WSSCD_Error_Handler {
 
 	/**
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger|null    $logger    Logger instance.
+	 * @var      WSSCD_Logger|null    $logger    Logger instance.
 	 */
-	private ?SCD_Logger $logger = null;
+	private ?WSSCD_Logger $logger = null;
 
 	/**
 	 * Error types mapping.
@@ -62,9 +65,9 @@ class SCD_Error_Handler {
 	 * Initialize the error handler.
 	 *
 	 * @since    1.0.0
-	 * @param    SCD_Logger|null $logger    Logger instance.
+	 * @param    WSSCD_Logger|null $logger    Logger instance.
 	 */
-	public function __construct( ?SCD_Logger $logger = null ) {
+	public function __construct( ?WSSCD_Logger $logger = null ) {
 		$this->logger = $logger;
 	}
 
@@ -80,8 +83,9 @@ class SCD_Error_Handler {
 	 * @return   bool                   True if error was handled.
 	 */
 	public function handle_error( int $errno, string $errstr, string $errfile = '', int $errline = 0, array $errcontext = array() ): bool {
-		// Don't handle errors if error reporting is disabled
-		if ( ! ( error_reporting() & $errno ) ) {
+		// Only handle errors when WordPress debug mode is enabled
+		// This respects WordPress's standard debugging configuration.
+		if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
 			return false;
 		}
 
@@ -246,6 +250,7 @@ class SCD_Error_Handler {
 	 * @return   void
 	 */
 	public function register_handlers(): void {
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- Core functionality of error handler class
 		set_error_handler( array( $this, 'handle_error' ) );
 		set_exception_handler( array( $this, 'handle_exception' ) );
 		register_shutdown_function( array( $this, 'handle_shutdown' ) );
@@ -265,12 +270,27 @@ class SCD_Error_Handler {
 	/**
 	 * Check if error should be reported.
 	 *
+	 * Uses WordPress debug constants to determine if errors should be reported.
+	 * This respects the site's WP_DEBUG and WP_DEBUG_LOG configuration.
+	 *
 	 * @since    1.0.0
 	 * @param    int $errno    Error number.
 	 * @return   bool             True if error should be reported.
 	 */
 	public function should_report_error( int $errno ): bool {
-		return (bool) ( error_reporting() & $errno );
+		// Only report errors when WordPress debug mode is enabled.
+		if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
+			return false;
+		}
+
+		// Fatal errors should always be reported when debugging is on.
+		$fatal_errors = array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR );
+		if ( in_array( $errno, $fatal_errors, true ) ) {
+			return true;
+		}
+
+		// For non-fatal errors, also check WP_DEBUG_LOG.
+		return defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG;
 	}
 
 	/**
@@ -292,13 +312,15 @@ class SCD_Error_Handler {
 	 * @return   string                  Sanitized file path.
 	 */
 	private function sanitize_file_path( string $file_path ): string {
-		if ( defined( 'SCD_PLUGIN_DIR' ) ) {
-			$file_path = str_replace( SCD_PLUGIN_DIR, 'SCD/', $file_path );
+		if ( defined( 'WSSCD_PLUGIN_DIR' ) ) {
+			$file_path = str_replace( WSSCD_PLUGIN_DIR, 'WSSCD/', $file_path );
 		}
 
-		// Remove WordPress root path
+		// Remove WordPress root path from log output for security (prevents path disclosure).
+		// Note: This is sanitization, not location determination - we need ABSPATH value to redact it.
+		// phpcs:ignore WordPress.PHP.ConstantConditions.FoundConstant -- ABSPATH check for sanitization, not location determination.
 		if ( defined( 'ABSPATH' ) ) {
-			$file_path = str_replace( ABSPATH, 'WP/', $file_path );
+			$file_path = str_replace( constant( 'ABSPATH' ), 'WP/', $file_path );
 		}
 
 		$file_path = preg_replace( '/^.*\/plugins\//', 'plugins/', $file_path );

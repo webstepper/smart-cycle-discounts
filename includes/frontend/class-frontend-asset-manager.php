@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage SmartCycleDiscounts/includes/frontend
  * @author     Webstepper <contact@webstepper.io>
  */
-class SCD_Frontend_Asset_Manager {
+class WSSCD_Frontend_Asset_Manager {
 
 	/**
 	 * Plugin version for cache busting.
@@ -52,27 +52,27 @@ class SCD_Frontend_Asset_Manager {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Logger|null    $logger    Logger instance.
+	 * @var      WSSCD_Logger|null    $logger    Logger instance.
 	 */
-	private ?SCD_Logger $logger = null;
+	private ?WSSCD_Logger $logger = null;
 
 	/**
 	 * Script registry instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Frontend_Script_Registry|null    $script_registry    Script registry.
+	 * @var      WSSCD_Frontend_Script_Registry|null    $script_registry    Script registry.
 	 */
-	private ?SCD_Frontend_Script_Registry $script_registry = null;
+	private ?WSSCD_Frontend_Script_Registry $script_registry = null;
 
 	/**
 	 * Asset localizer instance.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      SCD_Asset_Localizer|null    $asset_localizer    Asset localizer.
+	 * @var      WSSCD_Asset_Localizer|null    $asset_localizer    Asset localizer.
 	 */
-	private ?SCD_Asset_Localizer $asset_localizer = null;
+	private ?WSSCD_Asset_Localizer $asset_localizer = null;
 
 	/**
 	 * Initialize the asset manager.
@@ -80,22 +80,22 @@ class SCD_Frontend_Asset_Manager {
 	 * @since    1.0.0
 	 * @param    string     $plugin_name    Plugin name.
 	 * @param    string     $version        Plugin version.
-	 * @param    SCD_Logger $logger         Logger instance.
+	 * @param    WSSCD_Logger $logger         Logger instance.
 	 */
-	public function __construct( string $plugin_name, string $version, ?SCD_Logger $logger = null ) {
+	public function __construct( string $plugin_name, string $version, ?WSSCD_Logger $logger = null ) {
 		$this->plugin_name = $plugin_name;
 		$this->version     = $version;
 		$this->logger      = $logger;
 
-		if ( file_exists( SCD_PLUGIN_DIR . 'includes/frontend/assets/class-frontend-script-registry.php' ) ) {
-			require_once SCD_PLUGIN_DIR . 'includes/frontend/assets/class-frontend-script-registry.php';
-			$this->script_registry = new SCD_Frontend_Script_Registry( $version, SCD_PLUGIN_URL );
+		if ( file_exists( WSSCD_PLUGIN_DIR . 'includes/frontend/assets/class-frontend-script-registry.php' ) ) {
+			require_once WSSCD_PLUGIN_DIR . 'includes/frontend/assets/class-frontend-script-registry.php';
+			$this->script_registry = new WSSCD_Frontend_Script_Registry( $version, WSSCD_PLUGIN_URL );
 			$this->script_registry->init();
 		}
 
-		if ( file_exists( SCD_PLUGIN_DIR . 'includes/admin/assets/class-asset-localizer.php' ) ) {
-			require_once SCD_PLUGIN_DIR . 'includes/admin/assets/class-asset-localizer.php';
-			$this->asset_localizer = new SCD_Asset_Localizer();
+		if ( file_exists( WSSCD_PLUGIN_DIR . 'includes/admin/assets/class-asset-localizer.php' ) ) {
+			require_once WSSCD_PLUGIN_DIR . 'includes/admin/assets/class-asset-localizer.php';
+			$this->asset_localizer = new WSSCD_Asset_Localizer();
 			$this->asset_localizer->init();
 		}
 	}
@@ -128,7 +128,7 @@ class SCD_Frontend_Asset_Manager {
 		// Main frontend stylesheet
 		wp_enqueue_style(
 			$this->plugin_name . '-frontend',
-			SCD_PLUGIN_URL . 'resources/assets/css/frontend/frontend.css',
+			WSSCD_PLUGIN_URL . 'resources/assets/css/frontend/frontend.css',
 			array(),
 			$this->version,
 			'all'
@@ -155,7 +155,7 @@ class SCD_Frontend_Asset_Manager {
 			foreach ( $scripts as $handle => $script ) {
 				$src = $script['src'];
 				if ( ! filter_var( $src, FILTER_VALIDATE_URL ) ) {
-					$src = SCD_PLUGIN_URL . $src;
+					$src = WSSCD_PLUGIN_URL . $src;
 				}
 
 				wp_register_script(
@@ -195,16 +195,16 @@ class SCD_Frontend_Asset_Manager {
 		$data = array();
 
 		switch ( $object_name ) {
-			case 'scdFrontend':
+			case 'wsscdFrontend':
 				$data = $this->get_frontend_localization_data();
 				break;
 
-			case 'scdAnalyticsTracking':
+			case 'wsscdAnalyticsTracking':
 				$data = $this->get_analytics_localization_data();
 				break;
 
 			default:
-				$data = apply_filters( 'scd_frontend_localize_' . $object_name, array(), $handle );
+				$data = apply_filters( 'wsscd_frontend_localize_' . $object_name, array(), $handle );
 				break;
 		}
 
@@ -222,8 +222,8 @@ class SCD_Frontend_Asset_Manager {
 	private function get_frontend_localization_data(): array {
 		return array(
 			'ajax_url'           => admin_url( 'admin-ajax.php' ),
-			'nonce'              => wp_create_nonce( 'scd_frontend_nonce' ),
-			'rest_url'           => rest_url( 'scd/v1/' ),
+			'nonce'              => wp_create_nonce( 'wsscd_frontend_nonce' ),
+			'rest_url'           => rest_url( 'wsscd/v1/' ),
 			'rest_nonce'         => wp_create_nonce( 'wp_rest' ),
 			'currency_symbol'    => html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES | ENT_HTML5, 'UTF-8' ),
 			'currency_position'  => get_option( 'woocommerce_currency_pos' ),
@@ -242,10 +242,10 @@ class SCD_Frontend_Asset_Manager {
 				'seconds'          => __( 'seconds', 'smart-cycle-discounts' ),
 			),
 			'settings'           => array(
-				'auto_update_prices'    => get_option( 'scd_auto_update_prices', true ),
-				'show_countdown_timers' => get_option( 'scd_show_countdown_timers', true ),
-				'animate_price_changes' => get_option( 'scd_animate_price_changes', true ),
-				'debug_mode'            => SCD_DEBUG,
+				'auto_update_prices'    => get_option( 'wsscd_auto_update_prices', true ),
+				'show_countdown_timers' => get_option( 'wsscd_show_countdown_timers', true ),
+				'animate_price_changes' => get_option( 'wsscd_animate_price_changes', true ),
+				'debug_mode'            => WSSCD_DEBUG,
 			),
 		);
 	}
@@ -258,14 +258,14 @@ class SCD_Frontend_Asset_Manager {
 	 */
 	private function get_analytics_localization_data(): array {
 		// Load Ajax security class if needed
-		if ( ! class_exists( 'SCD_Ajax_Security' ) ) {
-			require_once SCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
+		if ( ! class_exists( 'WSSCD_Ajax_Security' ) ) {
+			require_once WSSCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
 		}
 
 		return array(
 			'ajax_url'       => admin_url( 'admin-ajax.php' ),
-			'nonce'          => wp_create_nonce( 'scd_public_tracking_nonce' ),
-			'tracking_token' => wp_hash( 'scd_tracking_' . date( 'Y-m-d' ) . '_' . SCD_Ajax_Security::get_client_ip() ),
+			'nonce'          => wp_create_nonce( 'wsscd_public_tracking_nonce' ),
+			'tracking_token' => wp_hash( 'wsscd_tracking_' . gmdate( 'Y-m-d' ) . '_' . WSSCD_Ajax_Security::get_client_ip() ),
 		);
 	}
 
@@ -282,7 +282,7 @@ class SCD_Frontend_Asset_Manager {
 		// Localize to jQuery for now until frontend script is created
 		wp_localize_script(
 			'jquery',
-			'scdFrontend',
+			'wsscdFrontend',
 			$localized_data
 		);
 
@@ -330,7 +330,7 @@ class SCD_Frontend_Asset_Manager {
 		}
 
 		// Allow filtering
-		return apply_filters( 'scd_should_load_frontend_assets', false );
+		return apply_filters( 'wsscd_should_load_frontend_assets', false );
 	}
 
 	/**
@@ -347,10 +347,10 @@ class SCD_Frontend_Asset_Manager {
 		}
 
 		$shortcodes = array(
-			'scd_discount_badge',
-			'scd_countdown_timer',
-			'scd_featured_discounts',
-			'scd_campaign_showcase',
+			'wsscd_discount_badge',
+			'wsscd_countdown_timer',
+			'wsscd_featured_discounts',
+			'wsscd_campaign_showcase',
 		);
 
 		foreach ( $shortcodes as $shortcode ) {
@@ -376,9 +376,9 @@ class SCD_Frontend_Asset_Manager {
 		}
 
 		$blocks = array(
-			'scd/discount-showcase',
-			'scd/countdown-timer',
-			'scd/featured-discounts',
+			'wsscd/discount-showcase',
+			'wsscd/countdown-timer',
+			'wsscd/featured-discounts',
 		);
 
 		foreach ( $blocks as $block ) {
@@ -402,8 +402,8 @@ class SCD_Frontend_Asset_Manager {
 		$component_slug = sanitize_title( $component );
 
 		// Enqueue component CSS
-		$css_path = SCD_ASSETS_URL . "dist/css/components/{$component_slug}.css";
-		if ( file_exists( SCD_ASSETS_DIR . "dist/css/components/{$component_slug}.css" ) ) {
+		$css_path = WSSCD_ASSETS_URL . "dist/css/components/{$component_slug}.css";
+		if ( file_exists( WSSCD_ASSETS_DIR . "dist/css/components/{$component_slug}.css" ) ) {
 			wp_enqueue_style(
 				$this->plugin_name . "-{$component_slug}",
 				$css_path,
@@ -414,8 +414,8 @@ class SCD_Frontend_Asset_Manager {
 		}
 
 		// Enqueue component JS
-		$js_path = SCD_ASSETS_URL . "dist/js/components/{$component_slug}.js";
-		if ( file_exists( SCD_ASSETS_DIR . "dist/js/components/{$component_slug}.js" ) ) {
+		$js_path = WSSCD_ASSETS_URL . "dist/js/components/{$component_slug}.js";
+		if ( file_exists( WSSCD_ASSETS_DIR . "dist/js/components/{$component_slug}.js" ) ) {
 			wp_enqueue_script(
 				$this->plugin_name . "-{$component_slug}",
 				$js_path,
@@ -456,7 +456,7 @@ class SCD_Frontend_Asset_Manager {
 	 * @return   string                   Full asset URL with version.
 	 */
 	public function get_asset_url( string $asset_path ): string {
-		$url = SCD_ASSETS_URL . ltrim( $asset_path, '/' );
+		$url = WSSCD_ASSETS_URL . ltrim( $asset_path, '/' );
 		return add_query_arg( 'ver', $this->version, $url );
 	}
 
@@ -468,7 +468,7 @@ class SCD_Frontend_Asset_Manager {
 	 * @return   bool                     True if asset exists.
 	 */
 	public function asset_exists( string $asset_path ): bool {
-		$file_path = SCD_ASSETS_DIR . ltrim( $asset_path, '/' );
+		$file_path = WSSCD_ASSETS_DIR . ltrim( $asset_path, '/' );
 		return file_exists( $file_path );
 	}
 
@@ -480,7 +480,7 @@ class SCD_Frontend_Asset_Manager {
 	 */
 	public function get_critical_css(): string {
 		$critical_css = '
-        .scd-discount-badge {
+        .wsscd-discount-badge {
             display: inline-block;
             background: #e74c3c;
             color: white;
@@ -492,24 +492,24 @@ class SCD_Frontend_Asset_Manager {
             line-height: 1;
         }
         
-        .scd-countdown-timer {
+        .wsscd-countdown-timer {
             display: flex;
             gap: 10px;
             align-items: center;
         }
         
-        .scd-countdown-timer .time-unit {
+        .wsscd-countdown-timer .time-unit {
             text-align: center;
             min-width: 40px;
         }
         
-        .scd-loading {
+        .wsscd-loading {
             opacity: 0.6;
             pointer-events: none;
         }
         ';
 
-		return apply_filters( 'scd_critical_css', $critical_css );
+		return apply_filters( 'wsscd_critical_css', $critical_css );
 	}
 
 	/**
@@ -525,7 +525,10 @@ class SCD_Frontend_Asset_Manager {
 
 		$critical_css = $this->get_critical_css();
 		if ( ! empty( $critical_css ) ) {
-			echo "<style id='scd-critical-css'>" . wp_strip_all_tags( $critical_css ) . "</style>\n";
+			// Use wp_add_inline_style for WordPress.org compliance
+			// Attach to wsscd-frontend style if loaded, otherwise wp-block-library as fallback
+			$handle = wp_style_is( 'wsscd-frontend', 'enqueued' ) ? 'wsscd-frontend' : 'wp-block-library';
+			wp_add_inline_style( $handle, wp_strip_all_tags( $critical_css ) );
 		}
 	}
 
@@ -537,7 +540,7 @@ class SCD_Frontend_Asset_Manager {
 	 * @return   void
 	 */
 	private function log_debug( string $message ): void {
-		if ( $this->logger && SCD_DEBUG ) {
+		if ( $this->logger && WSSCD_DEBUG ) {
 			$this->logger->debug( $message, array( 'component' => 'frontend_asset_manager' ) );
 		}
 	}
