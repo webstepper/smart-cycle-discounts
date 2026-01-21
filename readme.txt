@@ -1,9 +1,9 @@
 === Smart Cycle Discounts – WooCommerce Discount Campaigns, Dynamic Pricing & Scheduled Sales ===
 Contributors: webstepper
-Tags: woocommerce, discount, dynamic pricing, bulk discount, sale
+Tags: flash sale, bogo, bulk discount, tiered pricing, automatic discount
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.0.6
+Stable tag: 1.0.7
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -257,7 +257,8 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 
 == Changelog ==
 
-= 1.0.6 =
+= 1.0.7 =
+* Optimized plugin tags for better WordPress.org discoverability
 * Improved Free vs Pro feature comparison formatting
 * Fixed short description length (under 150 characters)
 
@@ -295,8 +296,8 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 
 == Upgrade Notice ==
 
-= 1.0.6 =
-Improved readme formatting for WordPress.org.
+= 1.0.7 =
+Improved WordPress.org discoverability with optimized tags.
 
 = 1.0.4 =
 Improved WordPress.org listing with rewritten description, comparison tables, and real-world examples.
