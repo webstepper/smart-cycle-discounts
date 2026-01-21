@@ -34,7 +34,23 @@ jobs:
             -x "composer.lock" \
             -x "phpunit*.xml" \
             -x "package.json" \
-            -x "package-lock.json"
+            -x "package-lock.json" \
+            -x "vendor/bin/*" \
+            -x "vendor/composer/*" \
+            -x "vendor/dealerdirect/*" \
+            -x "vendor/doctrine/*" \
+            -x "vendor/myclabs/*" \
+            -x "vendor/nikic/*" \
+            -x "vendor/phar-io/*" \
+            -x "vendor/phpcsstandards/*" \
+            -x "vendor/phpunit/*" \
+            -x "vendor/sebastian/*" \
+            -x "vendor/squizlabs/*" \
+            -x "vendor/theseer/*" \
+            -x "vendor/wp-coding-standards/*" \
+            -x "vendor/yoast/*" \
+            -x "vendor/autoload.php" \
+            -x "Webstepper.io/*"
 
       - name: Deploy to Freemius
         uses: buttonizer/freemius-deploy@v1.0.2
