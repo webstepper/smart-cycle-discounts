@@ -20,7 +20,21 @@ jobs:
 
       - name: Create plugin zip
         run: |
-          zip -r smart-cycle-discounts.zip . -x "*.git*" -x "*.github*" -x "node_modules/*" -x "tests/*" -x "*.md" -x "deploy-to-wporg.sh"
+          zip -r smart-cycle-discounts.zip . \
+            -x "*.git*" \
+            -x "*.github*" \
+            -x ".wordpress-org/*" \
+            -x "node_modules/*" \
+            -x "tests/*" \
+            -x "bin/*" \
+            -x "*.md" \
+            -x "*.sh" \
+            -x "*.py" \
+            -x "composer.json" \
+            -x "composer.lock" \
+            -x "phpunit*.xml" \
+            -x "package.json" \
+            -x "package-lock.json"
 
       - name: Deploy to Freemius
         uses: buttonizer/freemius-deploy@v1.0.2
