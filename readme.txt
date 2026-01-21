@@ -3,12 +3,12 @@ Contributors: webstepper
 Tags: flash sale, bogo, bulk discount, tiered pricing, automatic discount
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.0.7
+Stable tag: 1.0.8
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Schedule WooCommerce sales that run themselves. Set dates, pick products, choose discounts - campaigns activate automatically.
+Schedule WooCommerce discounts that run themselves. BOGO, tiered pricing, flash sales - campaigns activate automatically.
 
 == Description ==
 
@@ -257,10 +257,10 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 
 == Changelog ==
 
-= 1.0.7 =
+= 1.0.8 =
+* SEO-optimized short description with high-value keywords
 * Optimized plugin tags for better WordPress.org discoverability
 * Improved Free vs Pro feature comparison formatting
-* Fixed short description length (under 150 characters)
 
 = 1.0.4 =
 * Completely rewritten plugin description for better clarity and discoverability
@@ -296,8 +296,8 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 
 == Upgrade Notice ==
 
-= 1.0.7 =
-Improved WordPress.org discoverability with optimized tags.
+= 1.0.8 =
+Improved search visibility with SEO-optimized description and tags.
 
 = 1.0.4 =
 Improved WordPress.org listing with rewritten description, comparison tables, and real-world examples.
