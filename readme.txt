@@ -3,114 +3,111 @@ Contributors: webstepper
 Tags: woocommerce, discount, dynamic pricing, bulk discount, sale
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-WooCommerce dynamic pricing and discounts. Schedule sales, bulk discounts, BOGO, tiered pricing with automatic activation.
+Schedule WooCommerce sales that run themselves. Set dates, pick products, choose discounts - campaigns activate automatically. No manual price updates.
 
 == Description ==
 
-Smart Cycle Discounts is a WooCommerce dynamic pricing and discount plugin for creating scheduled sale campaigns. Set up percentage discounts, fixed amount discounts, bulk discounts, tiered pricing, and BOGO offers with a 5-step campaign wizard.
+**Stop manually updating sale prices. Schedule it once, let it run forever.**
 
-**Key capabilities:**
+You've been there: It's 11:58 PM on Black Friday eve. You're clicking through hundreds of products, setting sale prices one by one. Tomorrow morning, you'll do it all again to remove them. There has to be a better way.
 
-* Schedule WooCommerce sales with specific start and end dates
-* Apply discounts to all products, specific products, or random product selections
-* Set campaign priorities when running multiple promotions
-* Automatic activation and deactivation based on your schedule
+**There is.**
 
-= Free Version Features =
+Smart Cycle Discounts turns WooCommerce discount management from a recurring headache into a one-time setup. Create a campaign, set your schedule, walk away. Your discounts activate at midnight, deactivate when the sale ends, and you never touch a single product page.
 
-**Campaign Wizard**
+= The 5-Step Campaign Wizard =
 
-Create discount campaigns in minutes with a guided 5-step workflow:
+No documentation needed. No settings buried in submenus. Just answer five questions:
 
-1. **Basic Info** - Name your campaign and set priority
-2. **Products** - Select which products to discount
-3. **Discounts** - Choose discount type and amount
-4. **Schedule** - Set start and end dates
-5. **Review** - Verify settings and launch
+1. **What's it called?** Name your campaign and set its priority
+2. **Which products?** All of them, specific ones, or let us pick randomly
+3. **What discount?** Percentage off, fixed amount, or advanced types (Pro)
+4. **When does it run?** Set exact start/end dates with timezone support
+5. **Ready to launch?** Review everything and go live
 
-**Product Selection**
+Your first campaign takes under 2 minutes. Your hundredth takes the same.
 
-* **All Products** - Apply discounts store-wide
-* **Specific Products** - Search and select individual products by name, SKU, or ID
-* **Random Products** - Automatically rotate discounts across random products
+= What You Can Do (Free) =
 
-**Discount Types**
+**Run unlimited campaigns** - No artificial limits. Create 5 campaigns or 500.
 
-* **Percentage Off** - Reduce prices by a percentage (e.g., 25% off)
-* **Fixed Amount Off** - Reduce prices by a fixed amount (e.g., $10 off)
+**Three ways to select products:**
+- **All Products** - Store-wide sale in one click
+- **Specific Products** - Hand-pick items by name, SKU, or ID
+- **Random Products** - Auto-rotate which products go on sale
 
-**Scheduling**
+**Two discount types:**
+- **Percentage Off** - "25% off everything"
+- **Fixed Amount** - "$10 off every item"
 
-* **Date and Time Control** - Set precise start and end times with timezone support
-* **Automatic Activation** - Campaigns start and stop on schedule without manual intervention
-* **Draft Mode** - Prepare campaigns in advance and activate when ready
+**Set it and forget it scheduling:**
+- Precise date/time control down to the minute
+- Automatic activation and deactivation
+- Draft mode to prepare campaigns in advance
 
-**Campaign Management**
+**Campaign health monitoring:**
+- Real-time validation catches mistakes before they go live
+- Priority system (1-5) prevents conflicts when campaigns overlap
+- Bulk actions to manage multiple campaigns at once
 
-* **Unlimited Campaigns** - No restrictions on how many campaigns you can create
-* **Priority System** - Control which discount applies when campaigns overlap (1-5 levels)
-* **Bulk Actions** - Activate, deactivate, duplicate, or delete multiple campaigns at once
-* **Health Monitoring** - Real-time validation alerts you to potential issues
+= Pro Features =
 
-**Technical**
+**Advanced Discount Types**
 
-* **WooCommerce HPOS Compatible** - Works with High-Performance Order Storage
-* **Performance Optimized** - Efficient queries and caching for large catalogs
-* **Secure** - Follows WordPress security best practices
+| Discount Type | What It Does |
+|--------------|--------------|
+| **Tiered Pricing** | Buy 5+ get 10% off, Buy 10+ get 20% off |
+| **Buy One Get One** | Flexible BOGO with custom quantities and percentages |
+| **Spend Threshold** | Spend $100 get 15% off entire order |
 
-= Pro Version =
+**Smart Automation**
 
-Upgrade to Smart Cycle Discounts Pro for advanced discount types, analytics, and automation.
+| Feature | Free | Pro |
+|---------|------|-----|
+| Percentage & Fixed Discounts | Yes | Yes |
+| Unlimited Campaigns | Yes | Yes |
+| Scheduled Activation | Yes | Yes |
+| Campaign Health Monitoring | Yes | Yes |
+| Tiered Quantity Discounts | - | Yes |
+| BOGO Offers | - | Yes |
+| Spend Threshold Discounts | - | Yes |
+| Per-Customer Usage Limits | - | Yes |
+| Auto-Select Best Sellers | - | Yes |
+| Auto-Select Low Stock Items | - | Yes |
+| Performance Analytics | - | Yes |
+| Email Notifications | - | Yes |
+| REST API Access | - | Yes |
 
-**Additional Discount Types**
+[Upgrade to Pro](https://webstepper.io/wordpress/plugins/smart-cycle-discounts/)
 
-* **Tiered Pricing** - Quantity-based discounts (e.g., Buy 5+ get 10% off, Buy 10+ get 20% off)
-* **Buy One Get One** - Flexible BOGO offers with configurable quantities and discount percentages
-* **Spend Threshold** - Cart total discounts (e.g., Spend $100 get 15% off entire order)
+= Real Scenarios =
 
-**Advanced Controls**
+**"I need a Black Friday sale across my entire store"**
+Use: All Products + 25% Percentage + Schedule Nov 29 12:00 AM to Dec 2 11:59 PM
 
-* **Usage Limits** - Set per-customer limits, total redemption caps, and lifetime thresholds
-* **Application Rules** - Apply discounts to all items, cheapest item only, most expensive, or first X items
-* **Smart Product Selection** - Auto-select Best Sellers, Featured Products, Low Stock, or New Arrivals
+**"I want daily deals that rotate automatically"**
+Use: Random Products (5 items) + Fixed $15 off + Recurring daily schedule
 
-**Analytics**
+**"Buy 3 get 10% off, buy 5 get 20% off"**
+Use: Tiered pricing with quantity breaks (Pro)
 
-* **Performance Dashboard** - Track revenue, conversions, and campaign effectiveness
-* **Date Range Filtering** - Analyze any time period
-* **Export Reports** - Download CSV or JSON data for external analysis
+**"Flash sale for the next 4 hours only"**
+Use: Specific products + 30% off + End time 4 hours from now
 
-**Notifications**
+**"Clear out slow-moving inventory"**
+Use: Auto-select Low Stock items + 40% off (Pro)
 
-* **Campaign Alerts** - Get notified when campaigns start, end, or need attention
-* **Performance Warnings** - Automatic alerts for underperforming campaigns
-* **Scheduled Reports** - Daily or weekly email summaries
+= Technical Details =
 
-**Developer Features**
-
-* **REST API** - Programmatic campaign management for custom integrations
-* **Priority Support** - Dedicated support queue for faster response
-
-[View Pro Features](https://webstepper.io/wordpress/plugins/smart-cycle-discounts/)
-
-= Common Use Cases =
-
-* **Seasonal Promotions** - Schedule Black Friday, Christmas, or Summer sales weeks in advance
-* **Flash Sales** - Run time-limited discounts that start and end automatically
-* **Daily Deals** - Rotate discounts across different products each day
-* **Clearance Events** - Apply bulk discounts to hundreds of products at once
-* **Overlapping Campaigns** - Run multiple promotions simultaneously with priority control
-
-= For Developers =
-
-* **Hooks and Filters** - Extend functionality with actions and filters throughout
-* **Documented Code** - PHPDoc blocks and inline comments
-* **REST API** - Programmatic access to campaigns (Pro)
+- **WooCommerce HPOS Compatible** - Works with High-Performance Order Storage
+- **Large Catalog Ready** - Optimized queries handle thousands of products
+- **Developer Friendly** - Hooks, filters, and REST API (Pro) for custom integrations
+- **WordPress Coding Standards** - Clean, secure, documented code
 
 == Installation ==
 
@@ -261,6 +258,12 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 
 == Changelog ==
 
+= 1.0.3 =
+* Completely rewritten plugin description for better clarity and discoverability
+* Added Free vs Pro comparison table
+* Added real-world scenario examples
+* Improved short description for search results
+
 = 1.0.2 =
 * Updated plugin banners for WordPress.org
 * Simplified plugin name display in WP Admin
@@ -284,6 +287,9 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.0.3 =
+Improved WordPress.org listing with rewritten description, comparison tables, and real-world examples.
 
 = 1.0.2 =
 Updated plugin banners and cleaner plugin name in WP Admin.
