@@ -404,6 +404,13 @@ class WSSCD_Campaign_List_Controller extends WSSCD_Abstract_Campaign_Controller 
 						<?php echo esc_html__( 'Continue Draft', 'smart-cycle-discounts' ); ?>
 					</a>
 				<?php endif; ?>
+
+				<button type="button" class="page-title-action wsscd-import-calculator-btn" id="wsscd-open-import-modal">
+					<?php
+					WSSCD_Icon_Helper::render( 'download', array( 'size' => 16 ) );
+					?>
+					<?php echo esc_html__( 'Import from Calculator', 'smart-cycle-discounts' ); ?>
+				</button>
 			<?php endif; ?>
 
 			<hr class="wp-header-end">
@@ -437,8 +444,77 @@ class WSSCD_Campaign_List_Controller extends WSSCD_Abstract_Campaign_Controller 
 
 		if ( $this->check_capability( 'wsscd_create_campaigns' ) ) {
 			$this->render_draft_conflict_modal();
+			$this->render_calculator_import_modal();
 			$this->enqueue_modal_scripts();
 		}
+	}
+
+	/**
+	 * Render calculator import modal.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	private function render_calculator_import_modal(): void {
+		?>
+		<!-- Calculator Import Modal -->
+		<div id="wsscd-import-modal" class="wsscd-modal" style="display: none;">
+			<div class="wsscd-modal__overlay"></div>
+			<div class="wsscd-modal__container">
+				<div class="wsscd-modal__header">
+					<h3 class="wsscd-modal__title">
+						<?php echo esc_html__( 'Import from Calculator', 'smart-cycle-discounts' ); ?>
+					</h3>
+					<button type="button" class="wsscd-modal__close" id="wsscd-close-import-modal">
+						<?php WSSCD_Icon_Helper::render( 'close', array( 'size' => 20 ) ); ?>
+					</button>
+				</div>
+				<div class="wsscd-modal__body">
+					<p class="wsscd-modal__description">
+						<?php echo esc_html__( 'Paste your preset code from the Profit Calculator to automatically create a new campaign with those discount settings.', 'smart-cycle-discounts' ); ?>
+					</p>
+					<div class="wsscd-form-field">
+						<label for="wsscd-preset-code" class="wsscd-form-field__label">
+							<?php echo esc_html__( 'Preset Code', 'smart-cycle-discounts' ); ?>
+						</label>
+						<input type="text"
+							   id="wsscd-preset-code"
+							   class="wsscd-form-field__input"
+							   placeholder="<?php echo esc_attr__( 'e.g., SCD:p|20', 'smart-cycle-discounts' ); ?>"
+							   autocomplete="off">
+						<p class="wsscd-form-field__help">
+							<?php echo esc_html__( 'The code starts with "SCD:" followed by your discount configuration.', 'smart-cycle-discounts' ); ?>
+						</p>
+					</div>
+					<div id="wsscd-import-error" class="wsscd-modal__error" style="display: none;"></div>
+
+					<p class="wsscd-modal__calculator-link">
+						<?php
+						printf(
+							/* translators: %s: link to calculator */
+							esc_html__( "Don't have a code? %s", 'smart-cycle-discounts' ),
+							'<a href="https://webstepper.io/profit-calculator/" target="_blank" rel="noopener">' .
+							esc_html__( 'Try our Profit Calculator', 'smart-cycle-discounts' ) .
+							' <span class="dashicons dashicons-external" style="font-size: 14px; text-decoration: none;"></span></a>'
+						);
+						?>
+					</p>
+				</div>
+				<div class="wsscd-modal__footer">
+					<button type="button" class="wsscd-btn wsscd-btn--secondary" id="wsscd-cancel-import">
+						<?php echo esc_html__( 'Cancel', 'smart-cycle-discounts' ); ?>
+					</button>
+					<button type="button" class="wsscd-btn wsscd-btn--primary" id="wsscd-submit-import">
+						<span class="wsscd-btn__text"><?php echo esc_html__( 'Import & Create Campaign', 'smart-cycle-discounts' ); ?></span>
+						<span class="wsscd-btn__loading" style="display: none;">
+							<span class="wsscd-spinner"></span>
+							<?php echo esc_html__( 'Importing...', 'smart-cycle-discounts' ); ?>
+						</span>
+					</button>
+				</div>
+			</div>
+		</div>
+		<?php
 	}
 
 	/**

@@ -1,0 +1,334 @@
+/**
+ * Calculator Import Modal Styles
+ *
+ * Styles for the calculator preset import modal on campaigns list page.
+ *
+ * @package    SmartCycleDiscounts
+ * @subpackage SmartCycleDiscounts/resources/assets/css/admin/calculator-import.css
+ * @author     Webstepper.io <contact@webstepper.io>
+ * @copyright  2025 Webstepper.io
+ * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
+ * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @since      1.0.0
+ */
+
+/* ==========================================================================
+   Import Button Styles
+   ========================================================================== */
+
+.wsscd-import-calculator-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.wsscd-import-calculator-btn .wsscd-icon {
+	width: 16px;
+	height: 16px;
+}
+
+/* ==========================================================================
+   Modal Styles
+   ========================================================================== */
+
+.wsscd-modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 100100;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 20px;
+}
+
+.wsscd-modal__overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.6);
+	cursor: pointer;
+}
+
+.wsscd-modal__container {
+	position: relative;
+	width: 100%;
+	max-width: 480px;
+	background: #fff;
+	border-radius: 8px;
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+	animation: wsscd-modal-appear 0.2s ease-out;
+}
+
+@keyframes wsscd-modal-appear {
+	from {
+		opacity: 0;
+		transform: scale(0.95) translateY(-10px);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
+}
+
+.wsscd-modal__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 20px 24px;
+	border-bottom: 1px solid #e0e0e0;
+}
+
+.wsscd-modal__title {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.wsscd-modal__close {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	background: transparent;
+	border: none;
+	border-radius: 4px;
+	color: #646970;
+	cursor: pointer;
+	transition: background-color 0.15s ease;
+}
+
+.wsscd-modal__close:hover {
+	background: #f0f0f1;
+	color: #1d2327;
+}
+
+.wsscd-modal__close .wsscd-icon {
+	width: 20px;
+	height: 20px;
+}
+
+.wsscd-modal__body {
+	padding: 24px;
+}
+
+.wsscd-modal__description {
+	margin: 0 0 20px;
+	font-size: 14px;
+	color: #646970;
+	line-height: 1.6;
+}
+
+.wsscd-modal__error {
+	margin-top: 16px;
+	padding: 10px 14px;
+	background: #fcf0f1;
+	border: 1px solid #d63638;
+	border-radius: 4px;
+	color: #d63638;
+	font-size: 13px;
+}
+
+.wsscd-modal__calculator-link {
+	margin: 20px 0 0;
+	padding-top: 16px;
+	border-top: 1px solid #e0e0e0;
+	font-size: 13px;
+	color: #646970;
+}
+
+.wsscd-modal__calculator-link a {
+	color: #2271b1;
+	text-decoration: none;
+}
+
+.wsscd-modal__calculator-link a:hover {
+	color: #135e96;
+	text-decoration: underline;
+}
+
+.wsscd-modal__footer {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 10px;
+	padding: 16px 24px;
+	border-top: 1px solid #e0e0e0;
+	background: #f6f7f7;
+	border-radius: 0 0 8px 8px;
+}
+
+/* ==========================================================================
+   Form Field Styles
+   ========================================================================== */
+
+.wsscd-form-field__label {
+	display: block;
+	margin-bottom: 6px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.wsscd-form-field__input {
+	width: 100%;
+	padding: 8px 12px;
+	font-size: 14px;
+	line-height: 1.5;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	background: #fff;
+	box-sizing: border-box;
+}
+
+.wsscd-form-field__input:focus {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+	outline: none;
+}
+
+.wsscd-form-field__input:disabled {
+	background: #f0f0f1;
+	color: #a7aaad;
+}
+
+.wsscd-form-field__help {
+	margin: 6px 0 0;
+	font-size: 12px;
+	color: #646970;
+	line-height: 1.5;
+}
+
+/* ==========================================================================
+   Button Styles
+   ========================================================================== */
+
+.wsscd-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	padding: 8px 16px;
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 1.5;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: all 0.15s ease;
+	text-decoration: none;
+}
+
+.wsscd-btn--primary {
+	background: #2271b1;
+	border: 1px solid #2271b1;
+	color: #fff;
+}
+
+.wsscd-btn--primary:hover {
+	background: #135e96;
+	border-color: #135e96;
+	color: #fff;
+}
+
+.wsscd-btn--primary:disabled {
+	background: #a7aaad;
+	border-color: #a7aaad;
+	cursor: not-allowed;
+}
+
+.wsscd-btn--secondary {
+	background: #fff;
+	border: 1px solid #8c8f94;
+	color: #1d2327;
+}
+
+.wsscd-btn--secondary:hover {
+	background: #f0f0f1;
+	border-color: #8c8f94;
+	color: #1d2327;
+}
+
+.wsscd-btn--secondary:disabled {
+	background: #f0f0f1;
+	color: #a7aaad;
+	cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+.wsscd-btn__loading {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.wsscd-spinner {
+	display: inline-block;
+	width: 14px;
+	height: 14px;
+	border: 2px solid currentColor;
+	border-right-color: transparent;
+	border-radius: 50%;
+	animation: wsscd-spin 0.75s linear infinite;
+}
+
+@keyframes wsscd-spin {
+	from { transform: rotate(0deg); }
+	to { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   Body Class when Modal Open
+   ========================================================================== */
+
+body.wsscd-modal-open {
+	overflow: hidden;
+}
+
+/* ==========================================================================
+   Mobile Responsive
+   ========================================================================== */
+
+@media (max-width: 600px) {
+	.wsscd-modal {
+		padding: 16px;
+		align-items: flex-end;
+	}
+
+	.wsscd-modal__container {
+		max-width: none;
+		border-radius: 8px 8px 0 0;
+	}
+
+	.wsscd-modal__footer {
+		flex-direction: column;
+		border-radius: 0;
+	}
+
+	.wsscd-modal__footer .wsscd-btn {
+		width: 100%;
+	}
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+	.wsscd-modal__container {
+		animation: none;
+	}
+
+	.wsscd-spinner {
+		animation-duration: 1.5s;
+	}
+}

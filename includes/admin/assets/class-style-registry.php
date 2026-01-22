@@ -512,6 +512,17 @@ class WSSCD_Style_Registry {
 			)
 		);
 
+		// Calculator import modal (campaigns list and wizard pages)
+		$this->add_style(
+			'wsscd-calculator-import',
+			array(
+				'src'       => 'resources/assets/css/admin/calculator-import.css',
+				'deps'      => array( 'wsscd-admin' ),
+				'pages'     => array( 'wsscd-campaigns' ),
+				'condition' => array(), // No condition - load on list and wizard pages
+			)
+		);
+
 		// Wizard steps container
 		$this->add_style(
 			'wsscd-wizard-steps',

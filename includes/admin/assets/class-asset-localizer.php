@@ -448,6 +448,12 @@ class WSSCD_Asset_Localizer {
 					'nonce'          => wp_create_nonce( 'wsscd_public_tracking_nonce' ),
 					'tracking_token' => wp_hash( 'wsscd_tracking_' . gmdate( 'Y-m-d' ) . '_' . WSSCD_Ajax_Security::get_client_ip() ),
 				);
+			} elseif ( 'scdCalculatorImport' === $object_name ) {
+				// Calculator import localization (campaigns list and wizard pages)
+				$this->data[ $object_name ] = array(
+					'ajax_url' => admin_url( 'admin-ajax.php' ),
+					'nonce'    => wp_create_nonce( 'wsscd_wizard_nonce' ),
+				);
 			} else {
 				// Try to generate data dynamically
 				$this->data[ $object_name ] = apply_filters(

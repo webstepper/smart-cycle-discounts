@@ -490,6 +490,73 @@ class WSSCD_Wizard_State_Service {
 	}
 
 	/**
+	 * Pre-fill wizard from calculator preset code.
+	 *
+	 * Decodes the preset code from the external Profit Calculator tool
+	 * and populates wizard steps with the discount configuration.
+	 *
+	 * @since    1.0.0
+	 * @param    string $code    Calculator preset code (e.g., "SCD:t|5:10,10:15").
+	 * @return   bool|WP_Error   True on success, WP_Error on failure.
+	 */
+	public function prefill_from_calculator( string $code ) {
+		require_once WSSCD_INCLUDES_DIR . 'utilities/class-calculator-preset-decoder.php';
+
+		$decoded = WSSCD_Calculator_Preset_Decoder::decode( $code );
+
+		if ( is_wp_error( $decoded ) ) {
+			return $decoded;
+		}
+
+		$this->set( 'from_calculator', $code );
+
+		// Initialize steps if needed.
+		if ( ! isset( $this->data['steps'] ) ) {
+			$this->data['steps'] = array();
+		}
+
+		// Pre-fill basic step with generated name.
+		if ( ! isset( $this->data['steps']['basic'] ) ) {
+			$this->data['steps']['basic'] = array();
+		}
+		$this->data['steps']['basic']['name']     = $decoded['name'];
+		$this->data['steps']['basic']['priority'] = 3; // Normal priority.
+
+		// Pre-fill products step with default (all products).
+		if ( ! isset( $this->data['steps']['products'] ) ) {
+			$this->data['steps']['products'] = array();
+		}
+		$this->data['steps']['products']['product_selection_type'] = 'all_products';
+		$this->data['steps']['products']['selected_product_ids']   = array();
+
+		// Pre-fill discounts step with decoded data.
+		if ( ! isset( $this->data['steps']['discounts'] ) ) {
+			$this->data['steps']['discounts'] = array();
+		}
+		$this->data['steps']['discounts'] = array_merge(
+			$this->data['steps']['discounts'],
+			$decoded['discounts']
+		);
+
+		// Pre-fill schedule step with immediate start.
+		if ( ! isset( $this->data['steps']['schedule'] ) ) {
+			$this->data['steps']['schedule'] = array();
+		}
+		$this->data['steps']['schedule']['start_type'] = 'immediate';
+
+		// Mark steps as completed so user can navigate directly to Review.
+		$completed_steps = array( 'basic', 'products', 'discounts', 'schedule' );
+		$this->set( 'completed_steps', $completed_steps );
+
+		$this->set( 'prefilled_from_calculator', true );
+
+		$this->dirty = true;
+		$this->save();
+
+		return true;
+	}
+
+	/**
 	 * Create new session.
 	 *
 	 * @since    1.0.0

@@ -640,6 +640,20 @@ class WSSCD_Script_Registry {
 			)
 		);
 
+		// Calculator import modal (for importing presets from external calculator)
+		// Loads on campaigns list page (no action) and wizard page
+		$this->add_script(
+			'wsscd-calculator-import',
+			array(
+				'src'       => 'resources/assets/js/wizard/calculator-import.js',
+				'deps'      => array( 'jquery' ),
+				'pages'     => array( 'wsscd-campaigns' ),
+				'condition' => array(), // No condition - load on list and wizard pages
+				'localize'  => 'scdCalculatorImport',
+				'in_footer' => false,
+			)
+		);
+
 		// Wizard session monitor
 		$this->add_script(
 			'wsscd-wizard-session-monitor',

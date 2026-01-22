@@ -215,6 +215,8 @@ class WSSCD_Case_Converter {
 			'id',
 			'wizard_navigation',
 			'wsscd_wizard_nonce',
+			// Calculator import.
+			'code',
 			// Campaign data fields.
 			'campaign_name',
 			'campaign_description',

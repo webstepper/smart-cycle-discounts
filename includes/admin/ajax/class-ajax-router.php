@@ -381,6 +381,7 @@ class WSSCD_Ajax_Router {
 			'save_step'                      => 'WSSCD_Save_Step_Handler',
 			'load_data'                      => 'WSSCD_Load_Data_Handler',
 			'load_session'                   => 'WSSCD_Load_Data_Handler', // Map load_session to same handler.
+			'import_calculator_preset'       => 'WSSCD_Import_Calculator_Preset_Handler',
 			'product_search'                 => 'WSSCD_Product_Search_Handler',
 			'get_summary'                    => 'WSSCD_Get_Summary_Handler',
 			'check_campaign_name'            => 'WSSCD_Check_Campaign_Name_Handler',
