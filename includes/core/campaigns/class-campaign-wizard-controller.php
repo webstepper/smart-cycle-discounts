@@ -721,10 +721,10 @@ class WSSCD_Campaign_Wizard_Controller extends WSSCD_Abstract_Campaign_Controlle
 	 * @return   array                     Step data.
 	 */
 	private function get_step_data( array $session, string $current_step ): array {
-		if ( $this->is_fresh_session( $session ) ) {
-			return array();
-		}
-
+		// Always return step data if it exists, even for fresh sessions.
+		// Fresh sessions from calculator/suggestion imports have prefilled data
+		// that should be displayed. The is_fresh flag is for JS sessionStorage
+		// clearing, not for ignoring PHP-side prefilled data.
 		$step_data = $session['steps'][ $current_step ] ?? array();
 
 		return $step_data;
