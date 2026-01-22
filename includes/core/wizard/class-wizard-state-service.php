@@ -550,6 +550,10 @@ class WSSCD_Wizard_State_Service {
 
 		$this->set( 'prefilled_from_calculator', true );
 
+		// Mark session as fresh so JavaScript clears sessionStorage.
+		// This prevents old cached data from overwriting prefilled values.
+		$this->mark_as_fresh();
+
 		$this->dirty = true;
 		$this->save();
 
