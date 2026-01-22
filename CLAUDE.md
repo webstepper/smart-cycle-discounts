@@ -640,21 +640,26 @@ Edit files, fix bugs, add features as needed
 ```
 
 #### Step 2: Update Version Numbers
-Update version in TWO files:
+Update version in THREE places:
 
-**`smart-cycle-discounts.php`** (line 6):
+**`smart-cycle-discounts.php`**:
 ```php
-* Version: X.X.X
+* Version: X.X.X           // Line 6 - Plugin header
+* @version X.X.X           // Line 24 - Docblock
+define( 'WSSCD_VERSION', 'X.X.X' );  // Line ~105 - Constant
 ```
 
-**`readme.txt`** (line 6 + add changelog entry):
+**`readme.txt`** (Stable tag + changelog + upgrade notice):
 ```
 Stable tag: X.X.X
 
 == Changelog ==
-
 = X.X.X =
 * Description of changes
+
+== Upgrade Notice ==
+= X.X.X =
+Short upgrade description.
 ```
 
 #### Step 3: Commit & Push to GitHub
@@ -678,22 +683,47 @@ git push origin X.X.X
 
 #### Step 6: Deploy to WordPress.org
 ```bash
+# Run deploy script (copies files to SVN trunk)
 ./deploy-to-wporg.sh ~/Downloads/smart-cycle-discounts-free-X.X.X.zip
+
+# Script requires interactive auth - run SVN commands manually:
+cd ~/svn-deploy/smart-cycle-discounts
+svn cp trunk tags/X.X.X
+svn commit -m "Version X.X.X" --username webstepper
 ```
-→ Script handles SVN trunk update, version tag, and commit
+
+#### Step 7: Update Banners (if changed)
+```bash
+cd ~/svn-deploy/smart-cycle-discounts
+cp /path/to/.wordpress-org/banner-*.png assets/
+svn commit -m "Updated banners" --username webstepper
+```
 
 ### Quick Reference Commands
 
 ```bash
-# Full release sequence
+# 1. Git: Commit and push
 git add -A
 git commit -m "Version X.X.X: [changes]"
 git push origin main
 git tag X.X.X
 git push origin X.X.X
 
-# After downloading free zip from Freemius (~2 min wait)
+# 2. Wait ~2 min for GitHub Action → Freemius
+
+# 3. Download free zip from Freemius Dashboard
+
+# 4. WordPress.org: Deploy
 ./deploy-to-wporg.sh /path/to/smart-cycle-discounts-free-X.X.X.zip
+
+# 5. SVN: Manual commit (script prepares files)
+cd ~/svn-deploy/smart-cycle-discounts
+svn cp trunk tags/X.X.X
+svn commit -m "Version X.X.X" --username webstepper
+
+# 6. (Optional) Update banners
+cp /path/to/.wordpress-org/banner-*.png assets/
+svn commit -m "Updated banners" --username webstepper
 ```
 
 ### Deployment Architecture
