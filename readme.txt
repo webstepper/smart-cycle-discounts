@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: flash sale, bogo, bulk discount, tiered pricing, automatic discount
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -257,6 +257,9 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 
 == Changelog ==
 
+= 1.1.1 =
+* Fix: Calculator import now properly clears cached data to prevent stale campaign names
+
 = 1.1.0 =
 * New: Calculator Import - Import discount presets from external Profit Calculator
 * New: Support for percentage, fixed, tiered, BOGO, and spend threshold preset codes
@@ -301,6 +304,9 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.1.1 =
+Bugfix for Calculator Import feature.
 
 = 1.1.0 =
 New Calculator Import feature - import discount presets directly from the Profit Calculator tool.
