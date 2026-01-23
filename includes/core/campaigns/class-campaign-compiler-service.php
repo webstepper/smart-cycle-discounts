@@ -745,16 +745,14 @@ class WSSCD_Campaign_Compiler_Service {
 				break;
 		}
 
-		// Badge configuration
-		if ( ! empty( $data['badge_enabled'] ) ) {
-			$config['badge'] = array(
-				'enabled'    => true,
-				'text'       => ! empty( $data['badge_text'] ) ? $data['badge_text'] : 'auto',
-				'bg_color'   => $data['badge_bg_color'] ?? '#ff0000',
-				'text_color' => $data['badge_text_color'] ?? '#ffffff',
-				'position'   => $data['badge_position'] ?? 'top-right',
-			);
-		}
+		// Badge configuration - always save settings to preserve user preferences
+		$config['badge'] = array(
+			'enabled'    => ! empty( $data['badge_enabled'] ),
+			'text'       => ! empty( $data['badge_text'] ) ? $data['badge_text'] : 'auto',
+			'bg_color'   => $data['badge_bg_color'] ?? '#ff0000',
+			'text_color' => $data['badge_text_color'] ?? '#ffffff',
+			'position'   => $data['badge_position'] ?? 'top-right',
+		);
 
 		// Usage limits
 		if ( isset( $data['usage_limit_per_customer'] ) && $data['usage_limit_per_customer'] > 0 ) {

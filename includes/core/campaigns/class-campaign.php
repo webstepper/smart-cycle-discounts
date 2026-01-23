@@ -841,7 +841,7 @@ class WSSCD_Campaign {
 	 * @return   string    Badge text.
 	 */
 	public function get_badge_text(): string {
-		return $this->get_setting( 'badge_text', $this->badge_text );
+		return $this->badge_text;
 	}
 
 	/**
@@ -852,7 +852,6 @@ class WSSCD_Campaign {
 	 * @return   void
 	 */
 	public function set_badge_text( string $text ): void {
-		$this->set_setting( 'badge_text', $text );
 		$this->badge_text = $text;
 	}
 
@@ -863,7 +862,7 @@ class WSSCD_Campaign {
 	 * @return   string    Badge background color.
 	 */
 	public function get_badge_bg_color(): string {
-		return $this->get_setting( 'badge_bg_color', $this->badge_bg_color );
+		return $this->badge_bg_color;
 	}
 
 	/**
@@ -874,7 +873,6 @@ class WSSCD_Campaign {
 	 * @return   void
 	 */
 	public function set_badge_bg_color( string $color ): void {
-		$this->set_setting( 'badge_bg_color', $color );
 		$this->badge_bg_color = $color;
 	}
 
@@ -885,7 +883,7 @@ class WSSCD_Campaign {
 	 * @return   string    Badge text color.
 	 */
 	public function get_badge_text_color(): string {
-		return $this->get_setting( 'badge_text_color', $this->badge_text_color );
+		return $this->badge_text_color;
 	}
 
 	/**
@@ -896,7 +894,6 @@ class WSSCD_Campaign {
 	 * @return   void
 	 */
 	public function set_badge_text_color( string $color ): void {
-		$this->set_setting( 'badge_text_color', $color );
 		$this->badge_text_color = $color;
 	}
 
@@ -907,7 +904,7 @@ class WSSCD_Campaign {
 	 * @return   string    Badge position.
 	 */
 	public function get_badge_position(): string {
-		return $this->get_setting( 'badge_position', $this->badge_position );
+		return $this->badge_position;
 	}
 
 	/**
@@ -918,7 +915,6 @@ class WSSCD_Campaign {
 	 * @return   void
 	 */
 	public function set_badge_position( string $position ): void {
-		$this->set_setting( 'badge_position', $position );
 		$this->badge_position = $position;
 	}
 

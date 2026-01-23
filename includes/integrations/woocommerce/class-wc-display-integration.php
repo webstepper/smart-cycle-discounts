@@ -170,6 +170,11 @@ class WSSCD_WC_Display_Integration {
 				return '';
 			}
 
+			// Check if badge display is enabled for this campaign.
+			if ( empty( $badge_info['badge_enabled'] ) ) {
+				return '';
+			}
+
 			return $this->get_badge_html( $badge_info, $context );
 
 		} catch ( Exception $e ) {
