@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: flash sale, bogo, bulk discount, tiered pricing, automatic discount
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.1.3
+Stable tag: 1.1.4
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -257,6 +257,11 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 
 == Changelog ==
 
+= 1.1.4 =
+* Fix: Translation file (.pot) now properly configured for WordPress.org translation system
+* Fix: Added required X-Domain header for localization
+* Fix: Removed duplicate file references causing translation import errors
+
 = 1.1.3 =
 * Fix: Badge display setting now properly hides badges when disabled
 * Fix: Badge settings preserved when toggling badge display on/off
@@ -312,6 +317,9 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.1.4 =
+Fixes WordPress.org translation system compatibility - plugin can now be translated by the community.
 
 = 1.1.3 =
 Fixes badge display toggle - badges now properly hide when disabled.
