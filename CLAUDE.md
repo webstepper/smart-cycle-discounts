@@ -679,12 +679,16 @@ git push origin X.X.X
 #### Step 5: Download Free Version from Freemius
 1. Wait ~2 minutes for GitHub Action to complete
 2. Go to **Freemius Dashboard** → **Deployment**
-3. Download the **free version** zip file
+3. Download the **free version** zip file to the SCD-FREE folder:
+   `C:\Users\Alienware\Local Sites\vvmdov\app\public\wp-content\plugins\SCD-FREE`
 
 #### Step 6: Deploy to WordPress.org
 ```bash
-# Run deploy script (copies files to SVN trunk)
-./deploy-to-wporg.sh ~/Downloads/smart-cycle-discounts-free-X.X.X.zip
+# Run deploy script with version number (uses SCD-FREE folder automatically)
+./deploy-to-wporg.sh X.X.X
+
+# Or specify a custom path if needed:
+./deploy-to-wporg.sh /path/to/smart-cycle-discounts-free-X.X.X.zip
 
 # Script requires interactive auth - run SVN commands manually:
 cd ~/svn-deploy/smart-cycle-discounts
@@ -711,10 +715,10 @@ git push origin X.X.X
 
 # 2. Wait ~2 min for GitHub Action → Freemius
 
-# 3. Download free zip from Freemius Dashboard
+# 3. Download free zip from Freemius Dashboard to SCD-FREE folder
 
-# 4. WordPress.org: Deploy
-./deploy-to-wporg.sh /path/to/smart-cycle-discounts-free-X.X.X.zip
+# 4. WordPress.org: Deploy (uses SCD-FREE folder automatically)
+./deploy-to-wporg.sh X.X.X
 
 # 5. SVN: Manual commit (script prepares files)
 cd ~/svn-deploy/smart-cycle-discounts
@@ -743,23 +747,25 @@ git tag X.X.X + push tag
 │  → Freemius splits free/pro         │
 └─────────────────────────────────────┘
     ↓
-Download free zip from Freemius Dashboard
+Download free zip to SCD-FREE folder
     ↓
 ┌─────────────────────────────────────┐
-│  Manual: ./deploy-to-wporg.sh       │
+│  Manual: ./deploy-to-wporg.sh X.X.X │
+│  → Reads zip from SCD-FREE folder   │
 │  → Extracts zip to SVN trunk        │
 │  → Creates version tag              │
 │  → Commits to WordPress.org         │
 └─────────────────────────────────────┘
 ```
 
-### Key Files
+### Key Files & Folders
 
-| File | Purpose |
-|------|---------|
+| File/Folder | Purpose |
+|-------------|---------|
 | `.github/workflows/freemius-deploy.yml` | GitHub Action for Freemius |
 | `deploy-to-wporg.sh` | WordPress.org SVN deploy script |
 | `~/svn-deploy/smart-cycle-discounts/` | Local SVN checkout |
+| `SCD-FREE/` (in plugins folder) | Free version zip downloads from Freemius |
 
 ### GitHub Secrets Required
 

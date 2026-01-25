@@ -167,9 +167,9 @@ class WSSCD_Discount_Applicator {
 				$calculation_context
 			);
 
-			if ( $calculation['valid'] && 0 < $calculation['discount_amount'] ) {
-				$result['discounted_price'] = $calculation['discounted_price'];
-				$result['discount_amount']  = $calculation['discount_amount'];
+			if ( $calculation->is_applied() && 0 < $calculation->get_discount_amount() ) {
+				$result['discounted_price'] = $calculation->get_discounted_price();
+				$result['discount_amount']  = $calculation->get_discount_amount();
 				$result['discount_applied'] = true;
 				$result['success']          = true;
 
@@ -180,13 +180,16 @@ class WSSCD_Discount_Applicator {
 					array(
 						'product_id'       => $product_id,
 						'original_price'   => $original_price,
-						'discounted_price' => $calculation['discounted_price'],
-						'discount_amount'  => $calculation['discount_amount'],
+						'discounted_price' => $calculation->get_discounted_price(),
+						'discount_amount'  => $calculation->get_discount_amount(),
 					)
 				);
 
 			} else {
-				$result['errors']           = array_merge( $result['errors'], $calculation['errors'] ?? array() );
+				$reason = $calculation->get_reason();
+				if ( ! empty( $reason ) ) {
+					$result['errors'][] = $reason;
+				}
 				$result['discounted_price'] = $original_price;
 			}
 		} catch ( Exception $e ) {
@@ -306,19 +309,22 @@ class WSSCD_Discount_Applicator {
 				$context
 			);
 
-			if ( $calculation['valid'] && 0 < $calculation['discount_amount'] ) {
-				$product->set_price( $calculation['discounted_price'] );
+			if ( $calculation->is_applied() && 0 < $calculation->get_discount_amount() ) {
+				$product->set_price( $calculation->get_discounted_price() );
 
-				$result['discounted_price'] = $calculation['discounted_price'];
-				$result['discount_amount']  = $calculation['discount_amount'];
+				$result['discounted_price'] = $calculation->get_discounted_price();
+				$result['discount_amount']  = $calculation->get_discount_amount();
 				$result['success']          = true;
 
 				$cart_item['wsscd_discount_applied'] = true;
-				$cart_item['wsscd_discount_amount']  = $calculation['discount_amount'];
+				$cart_item['wsscd_discount_amount']  = $calculation->get_discount_amount();
 				$cart_item['wsscd_original_price']   = $original_price;
 
 			} else {
-				$result['errors']           = array_merge( $result['errors'], $calculation['errors'] ?? array() );
+				$reason = $calculation->get_reason();
+				if ( ! empty( $reason ) ) {
+					$result['errors'][] = $reason;
+				}
 				$result['discounted_price'] = $original_price;
 			}
 		} catch ( Exception $e ) {
@@ -373,16 +379,16 @@ class WSSCD_Discount_Applicator {
 				)
 			);
 
-			if ( $calculation['valid'] && 0 < $calculation['discount_amount'] ) {
-				$product->set_price( $calculation['discounted_price'] );
-				$product->set_sale_price( $calculation['discounted_price'] );
+			if ( $calculation->is_applied() && 0 < $calculation->get_discount_amount() ) {
+				$product->set_price( $calculation->get_discounted_price() );
+				$product->set_sale_price( $calculation->get_discounted_price() );
 
 				$this->logger->debug(
 					'Display price updated',
 					array(
 						'product_id'       => $product_id,
 						'original_price'   => $original_price,
-						'discounted_price' => $calculation['discounted_price'],
+						'discounted_price' => $calculation->get_discounted_price(),
 					)
 				);
 
@@ -568,16 +574,22 @@ class WSSCD_Discount_Applicator {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @param    int   $product_id        Product ID.
-	 * @param    array $discount_config   Discount configuration.
-	 * @param    array $calculation       Calculation result.
+	 * @param    int                   $product_id        Product ID.
+	 * @param    array                 $discount_config   Discount configuration.
+	 * @param    WSSCD_Discount_Result $calculation       Calculation result.
 	 * @return   void
 	 */
-	private function cache_applied_discount( int $product_id, array $discount_config, array $calculation ): void {
+	private function cache_applied_discount( int $product_id, array $discount_config, WSSCD_Discount_Result $calculation ): void {
 		$this->applied_discounts[ $product_id ] = array(
 			'product_id'      => $product_id,
 			'discount_config' => $discount_config,
-			'calculation'     => $calculation,
+			'calculation'     => array(
+				'discounted_price'    => $calculation->get_discounted_price(),
+				'discount_amount'     => $calculation->get_discount_amount(),
+				'discount_percentage' => $calculation->get_discount_percentage(),
+				'original_price'      => $calculation->get_original_price(),
+				'applied'             => $calculation->is_applied(),
+			),
 			'applied_at'      => current_time( 'timestamp' ),
 		);
 	}

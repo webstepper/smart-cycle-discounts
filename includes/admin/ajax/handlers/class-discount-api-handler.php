@@ -163,11 +163,23 @@ class WSSCD_Discount_API_Handler implements WSSCD_Ajax_Handler {
 			);
 		}
 
+		// Get price from product - handle both WC_Product objects and mock objects
+		$sample_price = 0.0;
+		if ( method_exists( $sample_product, 'get_price' ) ) {
+			$sample_price = floatval( $sample_product->get_price() );
+		} elseif ( isset( $sample_product->price ) ) {
+			$sample_price = floatval( $sample_product->price );
+		}
+
+		if ( 0 >= $sample_price ) {
+			$sample_price = 100.0; // Default sample price for preview
+		}
+
 		// Use discount engine for calculation
 		$preview = $this->discount_engine->calculate_discount(
-			$sample_product,
+			$sample_price,
 			$config,
-			1 // quantity
+			array( 'quantity' => 1 )
 		);
 
 		$preview_data = $this->format_preview_data( $preview, $config );
@@ -276,50 +288,58 @@ class WSSCD_Discount_API_Handler implements WSSCD_Ajax_Handler {
 	/**
 	 * Format preview data for display
 	 *
-	 * @param array $calculation Discount calculation result
-	 * @param array $config Discount configuration
-	 * @return array Formatted preview data
+	 * @param WSSCD_Discount_Result $calculation Discount calculation result.
+	 * @param array                 $config      Discount configuration.
+	 * @return array Formatted preview data.
 	 */
-	private function format_preview_data( $calculation, $config ) {
+	private function format_preview_data( WSSCD_Discount_Result $calculation, $config ) {
 		return array(
 			'type'            => $config['discount_type'],
-			'original_price'  => wc_price( $calculation['original_price'] ),
-			'discount_amount' => wc_price( $calculation['discount_amount'] ),
-			'final_price'     => wc_price( $calculation['final_price'] ),
-			'savings_percent' => $calculation['savings_percent'],
+			'original_price'  => wc_price( $calculation->get_original_price() ),
+			'discount_amount' => wc_price( $calculation->get_discount_amount() ),
+			'final_price'     => wc_price( $calculation->get_discounted_price() ),
+			'savings_percent' => round( $calculation->get_discount_percentage(), 1 ),
 			'savings_text'    => $this->get_savings_text( $calculation, $config ),
 			'badge_text'      => $this->get_badge_text( $calculation, $config ),
 		);
 	}
 
 	/**
-	 * Get savings text
+	 * Get savings text.
+	 *
+	 * @param WSSCD_Discount_Result $calculation Discount calculation result.
+	 * @param array                 $config      Discount configuration.
+	 * @return string Savings text.
 	 */
-	private function get_savings_text( $calculation, $config ) {
+	private function get_savings_text( WSSCD_Discount_Result $calculation, $config ) {
 		switch ( $config['discount_type'] ) {
 			case 'percentage':
 				return /* translators: %s: savings percentage */
-				sprintf( __( 'Save %s%%', 'smart-cycle-discounts' ), $calculation['savings_percent'] );
+				sprintf( __( 'Save %s%%', 'smart-cycle-discounts' ), round( $calculation->get_discount_percentage(), 1 ) );
 			case 'fixed':
 				return /* translators: %s: formatted price amount */
-				sprintf( __( 'Save %s', 'smart-cycle-discounts' ), wc_price( $calculation['discount_amount'] ) );
+				sprintf( __( 'Save %s', 'smart-cycle-discounts' ), wc_price( $calculation->get_discount_amount() ) );
 			default:
 				return /* translators: %s: formatted price amount */
-				sprintf( __( '%s off', 'smart-cycle-discounts' ), wc_price( $calculation['discount_amount'] ) );
+				sprintf( __( '%s off', 'smart-cycle-discounts' ), wc_price( $calculation->get_discount_amount() ) );
 		}
 	}
 
 	/**
-	 * Get badge text
+	 * Get badge text.
+	 *
+	 * @param WSSCD_Discount_Result $calculation Discount calculation result.
+	 * @param array                 $config      Discount configuration.
+	 * @return string Badge text.
 	 */
-	private function get_badge_text( $calculation, $config ) {
+	private function get_badge_text( WSSCD_Discount_Result $calculation, $config ) {
 		switch ( $config['discount_type'] ) {
 			case 'percentage':
 				return /* translators: %s: discount percentage */
-				sprintf( __( '%s%% OFF', 'smart-cycle-discounts' ), $calculation['savings_percent'] );
+				sprintf( __( '%s%% OFF', 'smart-cycle-discounts' ), round( $calculation->get_discount_percentage(), 1 ) );
 			case 'fixed':
 				return /* translators: %s: formatted price amount */
-				sprintf( __( 'SAVE %s', 'smart-cycle-discounts' ), wp_strip_all_tags( wc_price( $calculation['discount_amount'] ) ) );
+				sprintf( __( 'SAVE %s', 'smart-cycle-discounts' ), wp_strip_all_tags( wc_price( $calculation->get_discount_amount() ) ) );
 			case 'bogo':
 				return __( 'BOGO DEAL', 'smart-cycle-discounts' );
 			default:

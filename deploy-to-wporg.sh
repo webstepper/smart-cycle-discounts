@@ -2,7 +2,12 @@
 #
 # Deploy Smart Cycle Discounts to WordPress.org SVN
 #
-# Usage: ./deploy-to-wporg.sh /path/to/smart-cycle-discounts-free.x.x.x.zip
+# Usage: ./deploy-to-wporg.sh [version]
+#        ./deploy-to-wporg.sh /path/to/smart-cycle-discounts-free.x.x.x.zip
+#
+# Examples:
+#   ./deploy-to-wporg.sh 1.1.6          # Uses default SCD-FREE folder
+#   ./deploy-to-wporg.sh ~/Downloads/smart-cycle-discounts-free-1.1.6.zip
 #
 # This script:
 # 1. Extracts the free version zip
@@ -24,6 +29,8 @@ NC='\033[0m' # No Color
 SVN_DIR="$HOME/svn-deploy/smart-cycle-discounts"
 PLUGIN_SLUG="smart-cycle-discounts"
 TEMP_DIR="/tmp/${PLUGIN_SLUG}-deploy"
+# Default folder for Freemius free version downloads
+SCD_FREE_DIR="/mnt/c/Users/Alienware/Local Sites/vvmdov/app/public/wp-content/plugins/SCD-FREE"
 
 # Function to print colored output
 print_status() {
@@ -38,25 +45,37 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Check if zip file provided
+# Check if argument provided
 if [ -z "$1" ]; then
-    print_error "Usage: $0 /path/to/smart-cycle-discounts-free.x.x.x.zip"
+    print_error "Usage: $0 <version> or $0 /path/to/zip"
+    print_error "Examples:"
+    print_error "  $0 1.1.6"
+    print_error "  $0 ~/Downloads/smart-cycle-discounts-free-1.1.6.zip"
     exit 1
 fi
 
-ZIP_FILE="$1"
+# Determine if argument is version number or path
+if [[ "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    # Argument is a version number - use default SCD-FREE folder
+    VERSION="$1"
+    ZIP_FILE="${SCD_FREE_DIR}/smart-cycle-discounts-free.${VERSION}.zip"
+    print_status "Using default SCD-FREE folder..."
+else
+    # Argument is a path
+    ZIP_FILE="$1"
+    # Extract version from zip filename
+    VERSION=$(echo "$ZIP_FILE" | grep -oP '\d+\.\d+\.\d+' | tail -1)
+    if [ -z "$VERSION" ]; then
+        print_warning "Could not extract version from filename."
+        read -p "Enter version number (e.g., 1.0.2): " VERSION
+    fi
+fi
 
 # Verify zip file exists
 if [ ! -f "$ZIP_FILE" ]; then
     print_error "Zip file not found: $ZIP_FILE"
+    print_error "Make sure you downloaded the free version from Freemius Dashboard."
     exit 1
-fi
-
-# Extract version from zip filename
-VERSION=$(echo "$ZIP_FILE" | grep -oP '\d+\.\d+\.\d+' | tail -1)
-if [ -z "$VERSION" ]; then
-    print_warning "Could not extract version from filename."
-    read -p "Enter version number (e.g., 1.0.2): " VERSION
 fi
 
 print_status "Deploying version $VERSION to WordPress.org..."
