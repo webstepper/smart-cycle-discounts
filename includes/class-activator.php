@@ -571,8 +571,8 @@ class WSSCD_Activator {
 	/**
 	 * Set activation redirect transient.
 	 *
-	 * Sets a transient to trigger redirect to dashboard on first activation.
-	 * Prevents redirect during bulk activations and reactivations.
+	 * Sets a transient to trigger redirect to dashboard on every activation.
+	 * Prevents redirect during bulk activations.
 	 *
 	 * @since    1.0.0
 	 * @access   private
@@ -585,15 +585,8 @@ class WSSCD_Activator {
 			return;
 		}
 
-		// Only redirect on first activation (not reactivations).
-		$first_activation = get_option( 'wsscd_first_activation_done' );
-
-		if ( ! $first_activation ) {
-			set_transient( 'wsscd_activation_redirect', true, 30 );
-
-			// Mark that first activation has occurred.
-			add_option( 'wsscd_first_activation_done', true );
-		}
+		// Redirect to dashboard on every activation.
+		set_transient( 'wsscd_activation_redirect', true, 30 );
 	}
 
 	/**

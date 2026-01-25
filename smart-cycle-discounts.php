@@ -426,8 +426,8 @@ add_action( 'plugins_loaded', 'wsscd_init_plugin', 10 );
 /**
  * Handle activation redirect to dashboard.
  *
- * Redirects to plugin dashboard after first-time activation.
- * Skips redirect during bulk activations and reactivations.
+ * Redirects to plugin dashboard after every activation.
+ * Skips redirect during bulk activations.
  *
  * @since 1.0.0
  */
