@@ -58,6 +58,7 @@ class WSSCD_Uninstaller {
 		// Full uninstall - remove everything
 		self::drop_database_tables();
 		self::delete_plugin_options();
+		self::delete_user_meta();
 		self::remove_user_capabilities();
 		self::clear_cron_jobs();
 		self::delete_plugin_directories();
@@ -178,6 +179,25 @@ class WSSCD_Uninstaller {
 			delete_site_option( 'wsscd_db_version' );
 			delete_site_option( 'wsscd_network_settings' );
 		}
+	}
+
+	/**
+	 * Delete all plugin user meta from wp_usermeta table.
+	 *
+	 * @since    1.1.5
+	 * @access   private
+	 */
+	private static function delete_user_meta() {
+		global $wpdb;
+
+		// Delete all wsscd_ prefixed user meta
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Bulk user meta cleanup during uninstall; no WP abstraction for pattern-based delete.
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->usermeta} WHERE meta_key LIKE %s",
+				'wsscd_%'
+			)
+		);
 	}
 
 	/**

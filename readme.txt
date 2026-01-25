@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: flash sale, bogo, bulk discount, tiered pricing, automatic discount
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.1.4
+Stable tag: 1.1.5
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -257,6 +257,11 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 
 == Changelog ==
 
+= 1.1.5 =
+* New: Auto-update notice - encourages users to enable automatic updates for seamless security fixes
+* New: One-click auto-update enable button directly from the notice
+* Improvement: Added user meta cleanup on plugin uninstall
+
 = 1.1.4 =
 * Fix: Translation file (.pot) now properly configured for WordPress.org translation system
 * Fix: Added required X-Domain header for localization
@@ -317,6 +322,9 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.1.5 =
+New auto-update notice helps users stay current with the latest features and security fixes.
 
 = 1.1.4 =
 Fixes WordPress.org translation system compatibility - plugin can now be translated by the community.
