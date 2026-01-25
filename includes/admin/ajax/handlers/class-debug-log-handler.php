@@ -32,25 +32,9 @@ class WSSCD_Debug_Log_Handler {
 	 * @return   array                Response data
 	 */
 	public function handle( $request = array() ) {
-		// Verify nonce
-		$nonce = isset( $request['nonce'] ) ? sanitize_text_field( $request['nonce'] ) : '';
-		if ( ! wp_verify_nonce( $nonce, 'wsscd_wizard' ) ) {
-			return array(
-				'success' => false,
-				'data'    => array(
-					'message' => __( 'Security check failed', 'smart-cycle-discounts' ),
-				),
-			);
-		}
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return array(
-				'success' => false,
-				'data'    => array(
-					'message' => __( 'Insufficient permissions', 'smart-cycle-discounts' ),
-				),
-			);
-		}
+		// Security Note: Nonce and capability verification is handled by AJAX Router
+		// via WSSCD_Ajax_Security::verify_ajax_request() before this handler is called.
+		// See: class-ajax-router.php lines 174-190 and class-ajax-security.php
 
 		$logs_json = isset( $request['logs'] ) ? $request['logs'] : '';
 		if ( empty( $logs_json ) ) {

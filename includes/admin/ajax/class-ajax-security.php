@@ -130,6 +130,7 @@ class WSSCD_Ajax_Security {
 
 		// Debug handlers
 		'wsscd_debug_log'                      => 'wsscd_wizard_nonce',
+		'wsscd_write_debug_log'                => 'wsscd_wizard_nonce',
 		'wsscd_log_console'                    => 'wsscd_wizard_nonce',
 
 		// Sidebar handlers
@@ -218,6 +219,7 @@ class WSSCD_Ajax_Security {
 
 		// Debug handlers
 		'wsscd_debug_log'                      => 'wsscd_manage_campaigns',
+		'wsscd_write_debug_log'                => 'wsscd_manage_campaigns',
 		'wsscd_log_console'                    => 'wsscd_manage_campaigns',
 
 		// Sidebar handlers
@@ -292,6 +294,7 @@ class WSSCD_Ajax_Security {
 
 		// Debug handlers
 		'wsscd_debug_log'                      => 60,
+		'wsscd_write_debug_log'                => 60,
 		'wsscd_log_console'                    => 60,
 
 		// Default for other actions

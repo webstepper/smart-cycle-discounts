@@ -553,9 +553,9 @@ class WSSCD_Campaign_Manager {
 
 			// Note: Cache invalidation handled by Repository layer on save()
 
-			// Reschedule events for draft, scheduled, active, or paused campaigns
-			// Active campaigns MUST have deactivation events to expire properly
-			$new_status = $campaign->get_status();
+			// Reschedule events for draft, scheduled, active, or paused campaigns.
+			// Active campaigns MUST have deactivation events to expire properly.
+			// Note: Reuses $new_status from line 538 - status hasn't changed since then.
 			if ( in_array( $new_status, array( 'draft', 'scheduled', 'active', 'paused' ), true ) ) {
 				$scheduler = $this->get_scheduler_service();
 				if ( $scheduler ) {

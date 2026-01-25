@@ -78,6 +78,41 @@ class WSSCD_Discount_Applicator {
 	}
 
 	/**
+	 * Get the base price for discount calculations.
+	 *
+	 * Handles different product types appropriately:
+	 * - Simple/Variation: Uses regular price (falls back to current price)
+	 * - Variable: Uses get_price() which returns min variation price
+	 * - Grouped: Uses get_price() for the group
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    WC_Product $product    Product object.
+	 * @return   float                     Base price for calculations.
+	 */
+	private function get_product_base_price( $product ): float {
+		if ( ! $product ) {
+			return 0.0;
+		}
+
+		// Variable products don't have a meaningful regular_price on the parent.
+		// Use get_price() which returns the minimum variation price.
+		if ( $product->is_type( 'variable' ) || $product->is_type( 'grouped' ) ) {
+			$price = $product->get_price();
+		} else {
+			// For simple products and variations, prefer regular price.
+			$price = $product->get_regular_price();
+
+			// Fall back to current price if regular price is empty.
+			if ( '' === $price || null === $price ) {
+				$price = $product->get_price();
+			}
+		}
+
+		return floatval( $price );
+	}
+
+	/**
 	 * Apply discount to a product.
 	 *
 	 * @since    1.0.0
@@ -109,7 +144,7 @@ class WSSCD_Discount_Applicator {
 				return $result;
 			}
 
-			$original_price = floatval( $product->get_regular_price() );
+			$original_price = $this->get_product_base_price( $product );
 			if ( 0 >= $original_price ) {
 				$result['errors'][] = __( 'Product has no valid price', 'smart-cycle-discounts' );
 				return $result;
@@ -248,7 +283,7 @@ class WSSCD_Discount_Applicator {
 		try {
 			$product        = $cart_item['data'];
 			$quantity       = intval( $cart_item['quantity'] );
-			$original_price = floatval( $product->get_regular_price() );
+			$original_price = $this->get_product_base_price( $product );
 
 			if ( 0 >= $original_price ) {
 				$result['errors'][] = __( 'Invalid product price', 'smart-cycle-discounts' );
@@ -323,7 +358,7 @@ class WSSCD_Discount_Applicator {
 
 		try {
 			$product_id     = $product->get_id();
-			$original_price = floatval( $product->get_regular_price() );
+			$original_price = $this->get_product_base_price( $product );
 
 			if ( 0 >= $original_price ) {
 				return false;
