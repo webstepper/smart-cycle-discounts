@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: flash sale, bogo, bulk discount, tiered pricing, automatic discount
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.1.5
+Stable tag: 1.1.6
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -257,6 +257,12 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 
 == Changelog ==
 
+= 1.1.6 =
+* Fix: Variable product price handling now correctly uses minimum variation price
+* Fix: AJAX action mapping for debug log handler
+* Fix: Removed duplicate variable assignment in campaign manager
+* Improvement: Added centralized price helper for consistent product pricing
+
 = 1.1.5 =
 * New: Auto-update notice - encourages users to enable automatic updates for seamless security fixes
 * New: One-click auto-update enable button directly from the notice
@@ -322,6 +328,9 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.1.6 =
+Fixes variable product discount handling and improves code quality.
 
 = 1.1.5 =
 New auto-update notice helps users stay current with the latest features and security fixes.
