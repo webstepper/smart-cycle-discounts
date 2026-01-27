@@ -3,7 +3,7 @@
  * Plugin Name: Smart Cycle Discounts
  * Plugin URI: https://webstepper.io/wordpress/plugins/smart-cycle-discounts/
  * Description: Schedule WooCommerce discounts that run themselves. BOGO, tiered pricing, flash sales - campaigns activate automatically.
- * Version: 1.1.7
+ * Version: 1.1.8
  * Author: Webstepper
  * Author URI: https://webstepper.io
  * Text Domain: smart-cycle-discounts
@@ -21,7 +21,7 @@
  * @fs_premium_only /includes/core/discounts/strategies/class-tiered-strategy.php, /includes/core/discounts/strategies/class-bogo-strategy.php, /includes/core/discounts/strategies/class-spend-threshold-strategy.php, /includes/core/analytics/class-export-service.php, /includes/core/analytics/class-report-generator.php, /includes/core/analytics/class-analytics-controller.php, /includes/admin/pages/class-analytics-dashboard.php, /includes/admin/licensing/class-license-manager.php, /includes/api/, /templates/emails/campaign-ending.php, /templates/emails/daily-report.php, /templates/emails/weekly-report.php, /templates/emails/performance-alert.php, /templates/emails/low-stock-alert.php, /templates/emails/milestone-alert.php, /resources/assets/js/steps/discounts/tiered-discount.js, /resources/assets/js/steps/discounts/bogo-discount.js, /resources/assets/js/steps/discounts/spend-threshold.js, /resources/assets/js/analytics/analytics-dashboard.js
  *
  * @package SmartCycleDiscounts
- * @version 1.1.7
+ * @version 1.1.8
  * @since 1.0.0
  */
 
@@ -102,7 +102,7 @@ if ( function_exists( 'wsscd_fs' ) ) {
 }
 
 // Plugin constants
-define( 'WSSCD_VERSION', '1.1.7' );
+define( 'WSSCD_VERSION', '1.1.8' );
 define( 'WSSCD_DB_VERSION', '1.0.0' );
 define( 'WSSCD_MIN_PHP_VERSION', '7.4' );
 define( 'WSSCD_MIN_WP_VERSION', '6.4' );

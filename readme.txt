@@ -1,112 +1,197 @@
 === Smart Cycle Discounts – WooCommerce Discount Campaigns, Dynamic Pricing & Scheduled Sales ===
 Contributors: webstepper
-Tags: flash sale, bogo, bulk discount, tiered pricing, automatic discount
+Tags: woocommerce discount, dynamic pricing, bulk discount, scheduled sale, sale price
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.1.7
+Stable tag: 1.1.8
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Schedule WooCommerce discounts that run themselves. BOGO, tiered pricing, flash sales - campaigns activate automatically.
+Automate WooCommerce discounts and sale prices. Schedule campaigns with percentage off, fixed amount, BOGO, tiered pricing, and dynamic bulk discounts.
 
 == Description ==
 
-**Stop manually updating sale prices. Schedule it once, let it run forever.**
+**Stop manually editing sale prices. Schedule your WooCommerce discounts once, let them run forever.**
 
-You've been there: It's 11:58 PM on Black Friday eve. You're clicking through hundreds of products, setting sale prices one by one. Tomorrow morning, you'll do it all again to remove them. There has to be a better way.
+You know the drill. It's 11:58 PM on Black Friday eve. You're clicking through hundreds of products, setting sale prices one by one. Tomorrow morning, you'll do it all again to remove them. Next week, you'll repeat the process for Cyber Monday. And again for Christmas. And again for New Year's.
 
-**There is.**
+**What if your discounts ran themselves?**
 
-Smart Cycle Discounts turns WooCommerce discount management from a recurring headache into a one-time setup. Create a campaign, set your schedule, walk away. Your discounts activate at midnight, deactivate when the sale ends, and you never touch a single product page.
+Smart Cycle Discounts is the WooCommerce discount plugin that turns price management from a recurring chore into a one-time setup. Create a discount campaign, set your schedule, walk away. Your sale prices activate automatically, deactivate when the promotion ends, and you never touch a single product page.
 
-= The 5-Step Campaign Wizard =
+No more late-night price edits. No more forgetting to remove sale prices. No more missed promotions.
 
-No documentation needed. No settings buried in submenus. Just answer five questions:
+= How It Works: The 5-Step Campaign Wizard =
 
-1. **What's it called?** Name your campaign and set its priority
-2. **Which products?** All of them, specific ones, or let us pick randomly
-3. **What discount?** Percentage off, fixed amount, or advanced types (Pro)
-4. **When does it run?** Set exact start/end dates with timezone support
-5. **Ready to launch?** Review everything and go live
+No documentation needed. No settings buried in submenus. Just answer five simple questions and your WooCommerce discount campaign is ready to go:
 
-Your first campaign takes under 2 minutes. Your hundredth takes the same.
+1. **What's it called?** Name your campaign and set its priority level
+2. **Which products?** Pick all products, specific ones, or let us choose randomly
+3. **What discount?** Percentage off, fixed amount, or advanced discount types like BOGO and tiered pricing (Pro)
+4. **When does it run?** Set exact start and end dates with timezone support
+5. **Ready to launch?** Review everything, check smart recommendations, and go live
 
-= What You Can Do (Free) =
+Your first discount campaign takes under 2 minutes. Your hundredth takes the same.
 
-**Run unlimited campaigns** - No artificial limits. Create 5 campaigns or 500.
+= The Problem With Managing WooCommerce Sale Prices Manually =
 
-**Three ways to select products:**
-- **All Products** - Store-wide sale in one click
-- **Specific Products** - Hand-pick items by name, SKU, or ID
-- **Random Products** - Auto-rotate which products go on sale
+Every WooCommerce store owner hits this wall:
 
-**Two discount types:**
-- **Percentage Off** - "25% off everything"
-- **Fixed Amount** - "$10 off every item"
+* **Time sink** - Updating sale prices product by product takes hours for large catalogs
+* **Human error** - Forgetting to remove a sale price means selling at a loss for days
+* **Missed opportunities** - You planned a flash sale but got busy and forgot to set it up
+* **No scheduling** - WooCommerce's built-in sale dates are per-product, not per-campaign
+* **Overlap chaos** - Running two promotions at once? Good luck managing which discount applies where
+* **No overview** - No central dashboard to see which discounts are active, scheduled, or expired
 
-**Set it and forget it scheduling:**
-- Precise date/time control down to the minute
-- Automatic activation and deactivation
-- Draft mode to prepare campaigns in advance
+Smart Cycle Discounts solves every one of these problems with campaign-based discount management.
+
+= What You Get For Free =
+
+**Unlimited discount campaigns** - No artificial limits. Create 5 campaigns or 500. Run them simultaneously.
+
+**Three ways to select products for your discount:**
+
+* **All Products** - Store-wide sale in one click. Perfect for Black Friday, clearance events, or seasonal promotions
+* **Specific Products** - Hand-pick items by name, SKU, or product ID. Great for targeted promotions on select inventory
+* **Random Products** - Automatically rotate which products go on sale each day. Creates a "deal of the day" experience that drives repeat visits
+
+**Two core discount types:**
+
+* **Percentage Off** - "25% off everything this weekend" - The most popular WooCommerce discount type, scales proportionally with product price
+* **Fixed Amount Off** - "$10 off every item" - Clear, tangible savings that work best on higher-priced products
+
+**Automatic scheduling with precision:**
+
+* Set exact start and end dates down to the minute
+* Automatic activation and deactivation - no manual intervention required
+* Draft mode to prepare campaigns days or weeks in advance
+* Full timezone support so your sale starts when your customers expect it
 
 **Campaign health monitoring:**
-- Real-time validation catches mistakes before they go live
-- Priority system (1-5) prevents conflicts when campaigns overlap
-- Bulk actions to manage multiple campaigns at once
 
-= Pro Features =
+* Real-time validation catches mistakes before discounts go live
+* Priority system (1-5) prevents conflicts when multiple campaigns overlap on the same product
+* Bulk actions to pause, activate, duplicate, or delete multiple campaigns at once
+* Health score dashboard widget shows all campaign statuses at a glance
 
-**Advanced Discount Types**
+**Campaign intelligence:**
 
-* **Tiered Pricing** - Buy 5+ get 10% off, Buy 10+ get 20% off
-* **Buy One Get One** - Flexible BOGO with custom quantities and percentages
-* **Spend Threshold** - Spend $100 get 15% off entire order
+* Smart recommendations in the wizard suggest improvements before you launch
+* Seasonal campaign suggestions for upcoming holidays and events
+* Built-in campaign planner helps you prepare promotions ahead of time
 
-**Included in Free:**
+= Pro: Advanced WooCommerce Discount Types =
 
-* Percentage & Fixed Discounts
-* Unlimited Campaigns
-* Scheduled Activation
-* Campaign Health Monitoring
+**Tiered Quantity Discounts (Dynamic Pricing)**
 
-**Pro Adds:**
+Set quantity-based pricing breaks that encourage larger orders:
 
-* Tiered Quantity Discounts
-* BOGO Offers
-* Spend Threshold Discounts
-* Per-Customer Usage Limits
-* Auto-Select Best Sellers
-* Auto-Select Low Stock Items
-* Performance Analytics
-* Email Notifications
-* REST API Access
+* Buy 5+ get 10% off
+* Buy 10+ get 20% off
+* Buy 25+ get 30% off
+
+Perfect for wholesale, B2B stores, consumable products, and any store that wants to increase average order value through volume-based dynamic pricing.
+
+**Buy One Get One (BOGO Deals)**
+
+Create flexible BOGO offers with custom quantities and discount percentages:
+
+* Buy 1 Get 1 Free (classic BOGO)
+* Buy 2 Get 1 at 50% off
+* Buy 3 Get 1 Free
+
+BOGO deals are psychologically powerful - the word "free" drives action faster than any percentage discount.
+
+**Spend Threshold Discounts**
+
+Unlock discounts when customers reach a minimum cart value:
+
+* Spend $50 get 10% off
+* Spend $100 get 15% off
+* Spend $200 get 25% off
+
+Proven to increase average order value by 20-45%. Customers add more to their cart to unlock the next discount tier.
+
+**Also included in Pro:**
+
+* Per-customer usage limits (prevent abuse)
+* Auto-select best-selling products for promotions
+* Auto-select low-stock items for clearance
+* Performance analytics and revenue tracking
+* Email notifications when campaigns start, end, or hit milestones
+* REST API access for custom integrations
+* CSV and JSON export for reporting
 
 [Upgrade to Pro](https://webstepper.io/wordpress/plugins/smart-cycle-discounts/)
 
-= Real Scenarios =
+= Real-World Discount Scenarios =
 
-**"I need a Black Friday sale across my entire store"**
-Use: All Products + 25% Percentage + Schedule Nov 29 12:00 AM to Dec 2 11:59 PM
+**"I need a Black Friday sale across my entire WooCommerce store"**
+Use: All Products + 25% Percentage Off + Schedule Nov 29 12:00 AM to Dec 2 11:59 PM. Create the campaign in October, forget about it. It activates automatically on Black Friday and removes all sale prices on Cyber Monday night.
 
 **"I want daily deals that rotate automatically"**
-Use: Random Products (5 items) + Fixed $15 off + Recurring daily schedule
+Use: Random Products (5 items) + Fixed $15 off + Daily schedule. Every day, 5 different products go on sale. Customers come back daily to see what's new. Creates a treasure hunt shopping experience.
 
 **"Buy 3 get 10% off, buy 5 get 20% off"**
-Use: Tiered pricing with quantity breaks (Pro)
+Use: Tiered pricing with quantity breaks (Pro). Set up once and it applies automatically to every qualifying order. Ideal for encouraging bulk purchases.
 
 **"Flash sale for the next 4 hours only"**
-Use: Specific products + 30% off + End time 4 hours from now
+Use: Specific products + 30% off + End time 4 hours from now. Create urgency with time-limited discounts. Works great with email campaigns and social media announcements.
 
-**"Clear out slow-moving inventory"**
-Use: Auto-select Low Stock items + 40% off (Pro)
+**"Clear out slow-moving inventory before new stock arrives"**
+Use: Auto-select Low Stock items + 40% off (Pro). The plugin identifies products with fewer than 10 units in stock and automatically discounts them. Set it and forget it.
 
-= Technical Details =
+**"I run a wholesale store and need quantity-based pricing"**
+Use: Tiered Quantity Discounts (Pro). Create volume breaks that reward larger orders. Perfect for B2B WooCommerce stores, distributors, and any business selling in bulk.
 
-- **WooCommerce HPOS Compatible** - Works with High-Performance Order Storage
-- **Large Catalog Ready** - Optimized queries handle thousands of products
-- **Developer Friendly** - Hooks, filters, and REST API (Pro) for custom integrations
-- **WordPress Coding Standards** - Clean, secure, documented code
+**"Weekend flash sale every Saturday and Sunday"**
+Use: All Products + 15% off + Schedule Saturday 12:00 AM to Sunday 11:59 PM. Create a single campaign that handles every weekend automatically.
+
+**"Valentine's Day promotion on specific gift items"**
+Use: Specific Products + 20% off + Schedule Feb 7 to Feb 14. Select your gift-worthy products, set the dates, and the promotion runs itself while you focus on marketing.
+
+= Who Is Smart Cycle Discounts For? =
+
+**WooCommerce store owners** who are tired of manually managing sale prices and want their discounts to run on autopilot.
+
+**E-commerce managers** running multiple promotions throughout the year who need a central dashboard to manage all discount campaigns.
+
+**Agencies and freelancers** building WooCommerce stores for clients who need a simple, reliable discount management tool that clients can use independently.
+
+**Wholesale and B2B stores** that need quantity-based pricing, volume discounts, and spend threshold offers to incentivize larger orders.
+
+**Seasonal businesses** that run recurring promotions for holidays, events, and special occasions throughout the year.
+
+= What Store Owners Say =
+
+> "Easy to setup and work perfectly. Save me time every week" - stackwise7867
+
+> "Nice and simple plugin. No unnecessary settings, just does what it's supposed to do" - logicdigger
+
+> "A lifesaver for complex client projects. Solved advanced discount rules smoothly" - shakib6472
+
+> "Exactly what I need for discount, clean and simple interface" - wm31043
+
+> "The scheduling feature is exactly what I needed" - aquilaproperty7867
+
+= Works With Your Existing Setup =
+
+* **Any WordPress theme** - Backend plugin that uses WooCommerce's native sale price system. Your theme's sale styling works automatically.
+* **WooCommerce 8.0+** - Built for modern WooCommerce with full HPOS (High-Performance Order Storage) compatibility
+* **Variable products** - All product variations receive discounts automatically
+* **WooCommerce coupons** - Works independently alongside existing coupons. Customers can use both campaign discounts and coupon codes together.
+* **Large catalogs** - Optimized database queries handle thousands of products without slowing down your store
+* **Multisite compatible** - Works on WordPress multisite installations
+
+= Technical Details For Developers =
+
+* **WooCommerce HPOS Compatible** - Tested and verified with High-Performance Order Storage
+* **Large Catalog Ready** - Optimized queries with intelligent caching for stores with 10,000+ products
+* **Developer Friendly** - Actions, filters, and REST API (Pro) for custom integrations
+* **WordPress Coding Standards** - Clean, secure, well-documented code following all WordPress.org requirements
+* **Gutenberg Block** - Includes a Discount Showcase block to display active campaigns on any page or post
 
 == Installation ==
 
@@ -140,7 +225,7 @@ Use: Auto-select Low Stock items + 40% off (Pro)
 = Quick Start =
 
 1. Go to **Campaigns > Create Campaign** in your WordPress admin
-2. Follow the 5-step wizard: Basic Info → Products → Discounts → Schedule → Review
+2. Follow the 5-step wizard: Basic Info > Products > Discounts > Schedule > Review
 3. Click **Create Campaign** to launch your discount
 
 = Example: 25% Off Flash Sale =
@@ -151,7 +236,7 @@ Use: Auto-select Low Stock items + 40% off (Pro)
 4. **Schedule**: Set start date/time and end date/time
 5. **Review**: Verify settings and click Create
 
-Your discounts will activate and deactivate automatically on schedule.
+Your WooCommerce discounts will activate and deactivate automatically on schedule.
 
 = Managing Campaigns =
 
@@ -164,17 +249,37 @@ Access **Campaigns** in your admin menu to view, edit, duplicate, or delete camp
 
 == Frequently Asked Questions ==
 
+= How do I schedule WooCommerce sales automatically? =
+
+Install Smart Cycle Discounts, create a campaign using the 5-step wizard, and set your start and end dates in the Schedule step. The plugin automatically activates your sale prices at the scheduled time and removes them when the campaign ends. No manual work required - your WooCommerce sale prices update themselves on schedule.
+
+= Is this a WooCommerce dynamic pricing plugin? =
+
+Yes. Smart Cycle Discounts supports dynamic pricing through multiple discount types. The free version includes percentage and fixed amount discounts. The Pro version adds tiered quantity pricing (buy more, save more), BOGO deals, and spend threshold discounts - all the dynamic pricing options you need for a WooCommerce store.
+
+= Can I set up BOGO deals in WooCommerce with this plugin? =
+
+Yes. The Pro version includes flexible BOGO (Buy One Get One) configurations. You can create Buy 1 Get 1 Free, Buy 2 Get 1 at 50% off, or any custom buy/get combination with your chosen discount percentage. BOGO campaigns run on the same automated schedule as all other discount types.
+
+= How do I create bulk discounts for WooCommerce? =
+
+Use the Tiered Quantity Discounts feature (Pro). Set quantity breaks like: Buy 5+ get 10% off, Buy 10+ get 20% off, Buy 25+ get 30% off. The discount applies automatically at checkout based on the quantity in the cart. Perfect for wholesale, B2B, and volume-based WooCommerce pricing.
+
+= How do I automate Black Friday and Cyber Monday sales? =
+
+Create a campaign with your desired discount, select your products, and schedule it for your Black Friday dates (e.g., November 29 12:00 AM to December 2 11:59 PM). You can set this up weeks in advance using Draft mode. The campaign activates and deactivates automatically - no midnight price editing required.
+
 = Is Smart Cycle Discounts compatible with my theme? =
 
-Yes. Smart Cycle Discounts is a backend plugin that works with any properly coded WordPress theme. It integrates with WooCommerce's native sale price system, so your theme's existing sale price styling applies automatically.
+Yes. Smart Cycle Discounts is a backend plugin that works with any properly coded WordPress theme. It integrates with WooCommerce's native sale price system, so your theme's existing sale price styling applies automatically. No theme modifications needed.
 
 = Can I schedule campaigns in advance? =
 
-Yes. Use the Schedule step in the wizard to set specific start and end dates/times. Campaigns activate and deactivate automatically based on your schedule. You can create campaigns weeks or months in advance.
+Yes. Use the Schedule step in the wizard to set specific start and end dates/times. Campaigns activate and deactivate automatically based on your schedule. You can create campaigns weeks or months in advance using Draft status, then set them to Scheduled when ready.
 
 = How many campaigns can I create? =
 
-There are no campaign limits - you can create and run **unlimited campaigns** in both the free and Pro versions.
+There are no campaign limits - you can create and run **unlimited campaigns** in both the free and Pro versions. Run as many simultaneous promotions as your store needs.
 
 = What's the difference between the discount types? =
 
@@ -183,35 +288,35 @@ There are no campaign limits - you can create and run **unlimited campaigns** in
 - **Fixed Amount**: Reduce price by fixed amount (e.g., $10 off = $100 product becomes $90)
 
 **Pro Version:**
-- **Tiered**: Quantity-based discounts (e.g., Buy 5 get 10% off, Buy 10 get 20% off)
+- **Tiered**: Quantity-based dynamic pricing (e.g., Buy 5 get 10% off, Buy 10 get 20% off)
 - **BOGO**: Buy One Get One offers with flexible configurations
 - **Spend Threshold**: Discount based on cart total (e.g., Spend $100 get 15% off)
 
 = Will this slow down my site? =
 
-No. Smart Cycle Discounts uses optimized database queries, efficient caching, and loads assets only on admin pages where needed. Frontend performance is not impacted. The plugin is designed to handle thousands of products efficiently.
+No. Smart Cycle Discounts uses optimized database queries, efficient caching, and loads assets only on admin pages where needed. Frontend performance is not impacted. The plugin is designed to handle stores with thousands of products efficiently.
 
-= Can I run multiple campaigns at the same time? =
+= Can I run multiple discount campaigns at the same time? =
 
-Yes. You can run unlimited campaigns simultaneously. Use the Priority field (1-5, where 5 is highest priority) to control which campaign takes precedence when multiple campaigns affect the same product.
+Yes. You can run unlimited campaigns simultaneously. Use the Priority field (1-5, where 5 is highest priority) to control which campaign takes precedence when multiple campaigns affect the same product. This prevents discount stacking and gives you full control.
 
 = What's the difference between "All Products", "Specific Products", and "Random Products"? =
 
-* **All Products** - Applies discount to your entire product catalog
-* **Specific Products** - You manually select which products to discount using the AJAX-powered product search
-* **Random Products** - Plugin automatically selects X random products from your catalog when the campaign runs
+* **All Products** - Applies discount to your entire product catalog. Best for store-wide sales.
+* **Specific Products** - You manually select which products to discount using the AJAX-powered product search. Best for targeted promotions.
+* **Random Products** - Plugin automatically selects X random products from your catalog each day. Best for "deal of the day" promotions that drive repeat visits.
 
 = Does it work with WooCommerce HPOS (High-Performance Order Storage)? =
 
-Yes. Smart Cycle Discounts is fully compatible with WooCommerce HPOS and has been tested with custom order tables.
+Yes. Smart Cycle Discounts is fully compatible with WooCommerce HPOS and has been tested with custom order tables. It works with both the legacy post-based storage and the new High-Performance Order Storage system.
 
 = Can I duplicate an existing campaign? =
 
-Yes. On the Campaigns list page, hover over any campaign and click the "Duplicate" action. This creates a copy of the campaign with all settings intact, which you can then modify as needed.
+Yes. On the Campaigns list page, hover over any campaign and click the "Duplicate" action. This creates a copy of the campaign with all settings intact, which you can then modify as needed. Great for creating seasonal promotions based on previous campaigns.
 
 = How does the priority system work? =
 
-When multiple campaigns affect the same product, the campaign with the highest priority (5 = highest, 1 = lowest) takes precedence. This lets you run multiple campaigns without conflicts - for example, a high-priority flash sale can override a lower-priority seasonal sale.
+When multiple campaigns affect the same product, the campaign with the highest priority (5 = highest, 1 = lowest) takes precedence. This lets you run multiple campaigns without conflicts - for example, a high-priority flash sale can override a lower-priority seasonal discount.
 
 = Can I export campaign data? =
 
@@ -219,13 +324,13 @@ Campaign analytics and export features are available in the **Pro version**. Pro
 
 = What happens when a campaign ends? =
 
-When a campaign reaches its end date/time, it automatically deactivates and removes the sale prices from affected products. The campaign remains in your list as "Ended" and can be duplicated or reactivated with new dates.
+When a campaign reaches its end date/time, it automatically deactivates and removes the sale prices from affected products. The campaign remains in your list as "Expired" and can be duplicated or reactivated with new dates. Your original product prices are restored automatically.
 
 = Is there a way to test campaigns before activating them? =
 
 Yes. Use the **Draft** status to create and configure campaigns without activating them. You can review the campaign settings, check the health score, and preview which products will be affected. When ready, change the status to Active or Scheduled.
 
-= Does it work with variable products? =
+= Does it work with WooCommerce variable products? =
 
 Yes. Smart Cycle Discounts fully supports WooCommerce variable products. When you apply a discount to a variable product, all variations receive the discount automatically. The sale price displays correctly on both the main product page and individual variation selections.
 
@@ -240,6 +345,22 @@ Yes. Campaign discounts and WooCommerce coupons work independently. Campaign dis
 = What happens if two campaigns affect the same product? =
 
 The campaign with the higher priority wins. Each campaign has a priority setting from 1 (lowest) to 5 (highest). When multiple active campaigns include the same product, only the highest-priority discount applies. This prevents discount stacking and gives you full control over which promotions take precedence.
+
+= How is this different from WooCommerce's built-in sale price feature? =
+
+WooCommerce's built-in sale prices are set per product - you need to edit each product individually. Smart Cycle Discounts lets you manage discounts at the campaign level: select hundreds of products at once, set a schedule, and the plugin handles everything automatically. You also get features like priority management, health monitoring, random product rotation, and campaign intelligence that WooCommerce doesn't offer natively.
+
+= Can I create recurring weekly or monthly promotions? =
+
+The Pro version supports recurring campaign templates. Set up a "Weekend Flash Sale" once and schedule it to repeat every weekend, or create monthly promotions that run automatically. The free version supports one-time campaigns with specific start and end dates.
+
+= What WooCommerce discount types are supported? =
+
+The free version supports percentage discounts and fixed amount discounts on any WooCommerce product. The Pro version adds tiered quantity discounts (volume-based dynamic pricing), BOGO deals (Buy One Get One), and spend threshold discounts (minimum cart value offers). All discount types work with the automated scheduling system.
+
+= Is there a limit on how many products I can discount? =
+
+No. You can apply discounts to your entire product catalog or select specific products. The plugin is optimized with efficient database queries and caching to handle stores with thousands of products without performance issues.
 
 == Screenshots ==
 
@@ -256,6 +377,12 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 11. Main dashboard - Performance summary with campaign cards sorted by urgency
 
 == Changelog ==
+
+= 1.1.8 =
+* Improvement: Rewritten plugin description for maximum WordPress.org search discoverability
+* Improvement: Expanded FAQ from 17 to 24 keyword-rich entries matching common search queries
+* Improvement: Optimized tags for higher search volume terms
+* Improvement: Added testimonials, target audience, compatibility, and real-world scenario sections
 
 = 1.1.7 =
 * Fix: Critical bug in discount calculation - results now correctly use object methods instead of array access
@@ -333,6 +460,9 @@ The campaign with the higher priority wins. Each campaign has a priority setting
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.1.8 =
+Improved WordPress.org listing with expanded description, new FAQ entries, and optimized search tags.
 
 = 1.1.7 =
 Critical fix for discount calculations. Recommended update for all users.
