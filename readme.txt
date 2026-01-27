@@ -8,7 +8,7 @@ Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Automate WooCommerce discounts and sale prices. Schedule campaigns with percentage off, fixed amount, BOGO, tiered pricing, and dynamic bulk discounts.
+Automate WooCommerce discounts and sale prices. Schedule campaigns with percentage off, fixed amount, BOGO, tiered pricing, and bulk discounts.
 
 == Description ==
 
