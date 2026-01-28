@@ -303,9 +303,7 @@ class Smart_Cycle_Discounts {
 		 * Load product selection components
 		 */
 		require_once WSSCD_INCLUDES_DIR . 'core/products/class-product-selector.php';
-		require_once WSSCD_INCLUDES_DIR . 'core/products/class-product-filter.php';
 		require_once WSSCD_INCLUDES_DIR . 'core/products/class-condition-engine.php';
-		require_once WSSCD_INCLUDES_DIR . 'admin/components/class-condition-builder.php';
 
 		/**
 		 * Load currency change system
@@ -354,7 +352,6 @@ class Smart_Cycle_Discounts {
 		require_once WSSCD_INCLUDES_DIR . 'frontend/class-frontend-manager.php';
 		require_once WSSCD_INCLUDES_DIR . 'frontend/class-frontend-asset-manager.php';
 		require_once WSSCD_INCLUDES_DIR . 'frontend/class-discount-display.php';
-		require_once WSSCD_INCLUDES_DIR . 'frontend/class-countdown-timer.php';
 		require_once WSSCD_INCLUDES_DIR . 'frontend/class-shortcodes.php';
 		require_once WSSCD_INCLUDES_DIR . 'frontend/class-template-loader.php';
 
@@ -366,13 +363,6 @@ class Smart_Cycle_Discounts {
 		require_once WSSCD_INCLUDES_DIR . 'integrations/woocommerce/class-woocommerce-integration.php';
 		require_once WSSCD_INCLUDES_DIR . 'integrations/class-privacy-integration.php';
 		require_once WSSCD_INCLUDES_DIR . 'integrations/class-integration-manager.php';
-
-		/**
-		 * Load API classes (Pro-only)
-		 */
-		if ( file_exists( WSSCD_INCLUDES_DIR . 'api/class-rest-api-manager.php' ) ) {
-			require_once WSSCD_INCLUDES_DIR . 'api/class-rest-api-manager.php';
-		}
 
 		/**
 		 * Load health check if needed
@@ -396,9 +386,6 @@ class Smart_Cycle_Discounts {
 			require_once WSSCD_PLUGIN_DIR . 'includes/utilities/class-error-handler.php';
 		}
 
-		// Connect error handler to logger after container is set up
-		add_action( 'wsscd_error_logged', array( $this, 'log_error_to_logger' ), 10, 3 );
-		add_action( 'wsscd_exception_logged', array( $this, 'log_exception_to_logger' ), 10, 2 );
 	}
 
 	/**
@@ -1019,44 +1006,6 @@ class Smart_Cycle_Discounts {
 			}
 		} catch ( Exception $e ) {
 			WSSCD_Log::exception( $e, 'Error cleaning up audit logs' );
-		}
-	}
-
-	/**
-	 * Log error to logger service.
-	 *
-	 * @since    1.0.0
-	 * @param    string $code       Error code.
-	 * @param    string $message    Error message.
-	 * @param    array  $data       Error data.
-	 * @return   void
-	 */
-	public function log_error_to_logger( string $code, string $message, array $data ) {
-		if ( $this->container && $this->container->has( 'logger' ) ) {
-			$logger = $this->container->get( 'logger' );
-			$logger->error( sprintf( '[%s] %s', $code, $message ), $data );
-		}
-	}
-
-	/**
-	 * Log exception to logger service.
-	 *
-	 * @since    1.0.0
-	 * @param    Throwable $exception    Exception to log.
-	 * @param    string    $context      Error context.
-	 * @return   void
-	 */
-	public function log_exception_to_logger( Throwable $exception, string $context ) {
-		if ( $this->container && $this->container->has( 'logger' ) ) {
-			$logger = $this->container->get( 'logger' );
-			$logger->critical(
-				sprintf( 'Exception in %s: %s', $context, $exception->getMessage() ),
-				array(
-					'file'  => $exception->getFile(),
-					'line'  => $exception->getLine(),
-					'trace' => $exception->getTraceAsString(),
-				)
-			);
 		}
 	}
 

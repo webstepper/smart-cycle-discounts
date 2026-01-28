@@ -181,9 +181,7 @@ class WSSCD_Autoloader {
 
 		// Analytics classes
 		'WSSCD_Abstract_Analytics_Handler'   => 'core/analytics/abstract-analytics-handler.php',
-		'WSSCD_Analytics_Controller'         => 'core/analytics/class-analytics-controller.php',
 		'WSSCD_Analytics_Collector'          => 'core/analytics/class-analytics-collector.php',
-		'WSSCD_Analytics_Data'               => 'core/analytics/class-analytics-data.php',
 		'WSSCD_Metrics_Calculator'           => 'core/analytics/class-metrics-calculator.php',
 		'WSSCD_Report_Generator'             => 'core/analytics/class-report-generator.php',
 		'WSSCD_Analytics_Repository'         => 'database/repositories/class-analytics-repository.php',
@@ -196,18 +194,16 @@ class WSSCD_Autoloader {
 		'WSSCD_Save_Step_Handler'               => 'admin/ajax/handlers/class-save-step-handler.php',
 		'WSSCD_Load_Data_Handler'               => 'admin/ajax/handlers/class-load-data-handler.php',
 		'WSSCD_Product_Search_Handler'          => 'admin/ajax/handlers/class-product-search-handler.php',
-		'WSSCD_Clear_Cache_Handler'             => 'admin/ajax/handlers/class-clear-cache-handler.php',
 		'WSSCD_Test_Provider_Connection_Handler' => 'admin/ajax/handlers/class-test-provider-connection-handler.php',
 		'WSSCD_Get_Summary_Handler'          => 'admin/ajax/handlers/class-get-summary-handler.php',
 		'WSSCD_Check_Campaign_Name_Handler'  => 'admin/ajax/handlers/class-check-campaign-name-handler.php',
 		'WSSCD_Get_Product_Stats_Handler'    => 'admin/ajax/handlers/class-get-product-stats-handler.php',
-		'WSSCD_Recover_Session_Handler'      => 'admin/ajax/handlers/class-recover-session-handler.php',
 		'WSSCD_Health_Check_Handler'         => 'admin/ajax/handlers/class-health-check-handler.php',
 		'WSSCD_Campaign_Health_Handler'      => 'admin/ajax/handlers/class-campaign-health-handler.php',
 		'WSSCD_Preview_Coverage_Handler'     => 'admin/ajax/handlers/class-preview-coverage-handler.php',
 		'WSSCD_Check_Conflicts_Handler'      => 'admin/ajax/handlers/class-check-conflicts-handler.php',
-		'WSSCD_Get_Active_Campaigns_Handler' => 'admin/ajax/handlers/class-get-active-campaigns-handler.php',
 		'WSSCD_Sidebar_Ajax_Handler'         => 'admin/ajax/handlers/class-sidebar-ajax-handler.php',
+		'WSSCD_Toggle_Campaign_Status_Handler' => 'admin/ajax/handlers/class-toggle-campaign-status-handler.php',
 
 		// Draft Handler (consolidated)
 		'WSSCD_Draft_Handler'                => 'admin/ajax/handlers/class-draft-handler.php',
@@ -235,10 +231,7 @@ class WSSCD_Autoloader {
 
 		// Security classes
 		'WSSCD_Ajax_Security'                => 'admin/ajax/class-ajax-security.php',
-		'WSSCD_Request_Schemas'              => 'api/class-request-schemas.php',
-
 		// Product classes
-		'WSSCD_Product_Filter'               => 'core/products/class-product-filter.php',
 		'WSSCD_Product_Selector'             => 'core/products/class-product-selector.php',
 		'WSSCD_Product_Service'              => 'core/products/class-product-service.php',
 		'WSSCD_Condition_Engine'             => 'core/products/class-condition-engine.php',
@@ -250,7 +243,6 @@ class WSSCD_Autoloader {
 		'WSSCD_Frontend_Manager'             => 'frontend/class-frontend-manager.php',
 		'WSSCD_Discount_Display'             => 'frontend/class-discount-display.php',
 		'WSSCD_Discount_Display_Rules'       => 'frontend/class-discount-display-rules.php',
-		'WSSCD_Countdown_Timer'              => 'frontend/class-countdown-timer.php',
 		'WSSCD_Shortcodes'                   => 'frontend/class-shortcodes.php',
 		'WSSCD_Template_Loader'              => 'frontend/class-template-loader.php',
 
@@ -264,7 +256,6 @@ class WSSCD_Autoloader {
 
 		// Utility classes
 		'WSSCD_Log'                          => 'utilities/class-wsscd-log.php',
-		'WSSCD_Time_Helpers'                 => 'utilities/class-time-helpers.php',
 		'WSSCD_Translation_Handler'          => 'utilities/class-translation-handler.php',
 		'WSSCD_Service_Health_Check'         => 'utilities/class-service-health-check.php',
 		'WSSCD_Requirements_Checker'         => 'utilities/class-requirements-checker.php',
@@ -273,12 +264,6 @@ class WSSCD_Autoloader {
 		'WSSCD_Schedule_Field_Names'         => 'constants/class-wsscd-schedule-field-names.php',
 		'WSSCD_Product_Selection_Types'      => 'constants/class-wsscd-product-selection-types.php',
 
-		// API classes
-		'WSSCD_REST_API_Manager'             => 'api/class-rest-api-manager.php',
-		'WSSCD_API_Authentication'           => 'api/class-api-authentication.php',
-		'WSSCD_API_Permissions'              => 'api/class-api-permissions.php',
-		'WSSCD_Campaigns_Controller'         => 'api/endpoints/class-campaigns-controller.php',
-		'WSSCD_Discounts_Controller'         => 'api/endpoints/class-discounts-controller.php',
 
 		// Additional security classes
 		'WSSCD_Audit_Logger'                 => 'security/class-audit-logger.php',
@@ -288,9 +273,8 @@ class WSSCD_Autoloader {
 
 		// Campaign utilities
 		'WSSCD_Campaign_Formatter'           => 'core/campaigns/class-campaign-formatter.php',
-		'WSSCD_Campaign_Serializer'          => 'core/campaigns/class-campaign-serializer.php',
 		'WSSCD_Campaign_State_Manager'       => 'core/campaigns/class-campaign-state-manager.php',
-		'WSSCD_Campaign_Calculator'          => 'core/campaigns/class-campaign-calculator.php',
+
 
 		// Additional helpers
 		'WSSCD_Tooltip_Helper'               => 'admin/helpers/class-tooltip-helper.php',
@@ -298,13 +282,9 @@ class WSSCD_Autoloader {
 		'WSSCD_Button_Helper'                => 'admin/helpers/class-button-helper.php',
 		'WSSCD_Card_Helper'                  => 'admin/helpers/class-card-helper.php',
 		'WSSCD_Chart_Renderer'               => 'admin/components/class-chart-renderer.php',
-		'WSSCD_Condition_Builder'            => 'admin/components/class-condition-builder.php',
 		'WSSCD_Badge_Helper'                 => 'admin/components/class-badge-helper.php',
 		'WSSCD_Campaign_Overview_Panel'      => 'admin/components/class-campaign-overview-panel.php',
 		'WSSCD_Modal_Component'              => 'admin/components/class-modal-component.php',
-		'WSSCD_Cache_Warming'                => 'cache/class-cache-warming.php',
-		'WSSCD_Cache_Factory'                => 'cache/class-cache-factory.php',
-		'WSSCD_Task_Manager'                 => 'core/scheduling/class-task-manager.php',
 		'WSSCD_Wizard_Navigation'            => 'core/wizard/class-wizard-navigation.php',
 	);
 
@@ -316,16 +296,6 @@ class WSSCD_Autoloader {
 	 */
 	public static function register(): void {
 		spl_autoload_register( array( __CLASS__, 'autoload' ) );
-	}
-
-	/**
-	 * Unregister autoloader.
-	 *
-	 * @since    1.0.0
-	 * @return   void
-	 */
-	public static function unregister(): void {
-		spl_autoload_unregister( array( __CLASS__, 'autoload' ) );
 	}
 
 	/**
@@ -419,19 +389,4 @@ class WSSCD_Autoloader {
 		return null;
 	}
 
-	/**
-	 * Check if class can be autoloaded.
-	 *
-	 * @since    1.0.0
-	 * @param    string $class_name    Class name.
-	 * @return   bool                     True if can be autoloaded.
-	 */
-	public static function can_autoload( string $class_name ): bool {
-		if ( 0 !== strpos( $class_name, 'WSSCD_' ) ) {
-			return false;
-		}
-
-		return isset( self::$class_map[ $class_name ] ) ||
-				null !== self::get_file_path_from_class( $class_name );
-	}
 }

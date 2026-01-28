@@ -105,9 +105,6 @@
 		if ( confirm( this.config.strings.confirmReset ) ) {
 			var defaults = this.config.defaults || {};
 
-			$( '#enable_rest_api' ).prop( 'checked', defaults.enable_rest_api );
-			$( '#api_rate_limit' ).val( defaults.api_rate_limit );
-			$( '#api_rate_limit_window' ).val( defaults.api_rate_limit_window );
 			$( '#enable_webhooks' ).prop( 'checked', defaults.enable_webhooks );
 			$( '#enable_database_optimization' ).prop( 'checked', defaults.enable_database_optimization );
 			$( '#auto_cleanup_logs' ).prop( 'checked', defaults.auto_cleanup_logs );

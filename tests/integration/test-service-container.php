@@ -125,11 +125,6 @@ class Test_Service_Container extends WP_UnitTestCase {
 
 		// Campaign support services
 		$this->assertTrue(
-			$this->container->has( 'campaign.calculator' ),
-			'Campaign calculator service must be registered'
-		);
-
-		$this->assertTrue(
 			$this->container->has( 'campaign.formatter' ),
 			'Campaign formatter service must be registered'
 		);

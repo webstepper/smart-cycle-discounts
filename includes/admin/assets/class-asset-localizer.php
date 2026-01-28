@@ -1407,9 +1407,6 @@ class WSSCD_Asset_Localizer {
 				'confirmReset'             => __( 'Are you sure you want to reset all advanced settings to defaults? This cannot be undone.', 'smart-cycle-discounts' ),
 			),
 			'defaults' => array(
-				'enable_rest_api'              => true,
-				'api_rate_limit'               => 100,
-				'api_rate_limit_window'        => 3600,
 				'enable_webhooks'              => false,
 				'enable_database_optimization' => true,
 				'auto_cleanup_logs'            => true,

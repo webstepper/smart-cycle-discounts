@@ -528,6 +528,16 @@ class WSSCD_Campaign_Display_Service {
 				$type_label = __( 'BOGO', 'smart-cycle-discounts' );
 				break;
 
+			case 'spend_threshold':
+				$threshold_count = isset( $discount_rules['thresholds'] ) ? count( $discount_rules['thresholds'] ) : 0;
+				$type_icon       = 'money-alt';
+				$type_label      = sprintf(
+					/* translators: %d: number of thresholds */
+					_n( '%d Threshold', '%d Thresholds', $threshold_count, 'smart-cycle-discounts' ),
+					$threshold_count
+				);
+				break;
+
 			default:
 				$type_label = ucfirst( $discount_type );
 		}

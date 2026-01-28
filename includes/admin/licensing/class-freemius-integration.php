@@ -304,6 +304,16 @@ class WSSCD_Freemius_Integration {
 			}
 		}
 
+		/**
+		 * Fires after a license key is activated.
+		 *
+		 * Used by cache manager and dashboard service to invalidate caches
+		 * so pro features are immediately available.
+		 *
+		 * @since 1.1.9
+		 */
+		do_action( 'wsscd_license_activated' );
+
 		// Show activation success notice.
 		add_action( 'admin_notices', array( __CLASS__, 'show_license_activated_notice' ) );
 	}
@@ -336,6 +346,16 @@ class WSSCD_Freemius_Integration {
 				$license_manager->force_validation();
 			}
 		}
+
+		/**
+		 * Fires after a license key is deactivated.
+		 *
+		 * Used by cache manager and dashboard service to invalidate caches
+		 * so pro features are immediately locked.
+		 *
+		 * @since 1.1.9
+		 */
+		do_action( 'wsscd_license_deactivated' );
 	}
 
 	/**

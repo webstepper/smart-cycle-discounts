@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: woocommerce discount, dynamic pricing, bulk discount, scheduled sale, sale price
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.1.8
+Stable tag: 1.1.9
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -33,6 +33,8 @@ No documentation needed. No settings buried in submenus. Just answer five simple
 5. **Ready to launch?** Review everything, check smart recommendations, and go live
 
 Your first discount campaign takes under 2 minutes. Your hundredth takes the same.
+
+[See how it works](https://webstepper.io/wordpress/plugins/smart-cycle-discounts/#how-it-works)
 
 = The Problem With Managing WooCommerce Sale Prices Manually =
 
@@ -82,6 +84,12 @@ Smart Cycle Discounts solves every one of these problems with campaign-based dis
 * Seasonal campaign suggestions for upcoming holidays and events
 * Built-in campaign planner helps you prepare promotions ahead of time
 
+**Calculator Import:**
+
+* Import discount presets from the [WooCommerce Discount Calculator](https://webstepper.io/woocommerce-discount-calculator/) directly into the plugin
+* One-click campaign creation from imported presets - no manual setup needed
+* Supports percentage, fixed, tiered, BOGO, and spend threshold presets
+
 = Pro: Advanced WooCommerce Discount Types =
 
 **Tiered Quantity Discounts (Dynamic Pricing)**
@@ -121,10 +129,9 @@ Proven to increase average order value by 20-45%. Customers add more to their ca
 * Auto-select low-stock items for clearance
 * Performance analytics and revenue tracking
 * Email notifications when campaigns start, end, or hit milestones
-* REST API access for custom integrations
 * CSV and JSON export for reporting
 
-[Upgrade to Pro](https://webstepper.io/wordpress/plugins/smart-cycle-discounts/)
+[Upgrade to Pro](https://webstepper.io/wordpress/plugins/smart-cycle-discounts/#pricing)
 
 = Real-World Discount Scenarios =
 
@@ -152,6 +159,8 @@ Use: All Products + 15% off + Schedule Saturday 12:00 AM to Sunday 11:59 PM. Cre
 **"Valentine's Day promotion on specific gift items"**
 Use: Specific Products + 20% off + Schedule Feb 7 to Feb 14. Select your gift-worthy products, set the dates, and the promotion runs itself while you focus on marketing.
 
+Want to know how discounts affect your margins? Use our free [WooCommerce Discount Calculator](https://webstepper.io/woocommerce-discount-calculator/) to calculate profit before running a campaign.
+
 = Who Is Smart Cycle Discounts For? =
 
 **WooCommerce store owners** who are tired of manually managing sale prices and want their discounts to run on autopilot.
@@ -163,6 +172,8 @@ Use: Specific Products + 20% off + Schedule Feb 7 to Feb 14. Select your gift-wo
 **Wholesale and B2B stores** that need quantity-based pricing, volume discounts, and spend threshold offers to incentivize larger orders.
 
 **Seasonal businesses** that run recurring promotions for holidays, events, and special occasions throughout the year.
+
+Not sure if Free or Pro is right for you? Take the [Capability Score Calculator](https://webstepper.io/wordpress/plugins/smart-cycle-discounts/#capability-spectrum) to find out in 30 seconds.
 
 = What Store Owners Say =
 
@@ -189,7 +200,7 @@ Use: Specific Products + 20% off + Schedule Feb 7 to Feb 14. Select your gift-wo
 
 * **WooCommerce HPOS Compatible** - Tested and verified with High-Performance Order Storage
 * **Large Catalog Ready** - Optimized queries with intelligent caching for stores with 10,000+ products
-* **Developer Friendly** - Actions, filters, and REST API (Pro) for custom integrations
+* **Developer Friendly** - Actions and filters for custom integrations
 * **WordPress Coding Standards** - Clean, secure, well-documented code following all WordPress.org requirements
 * **Gutenberg Block** - Includes a Discount Showcase block to display active campaigns on any page or post
 
@@ -378,6 +389,18 @@ No. You can apply discounts to your entire product catalog or select specific pr
 
 == Changelog ==
 
+= 1.1.9 =
+* Fix: Dashboard pause/resume buttons now functional with dedicated AJAX handler and security registration
+* Fix: Dashboard campaign list not updating after campaign changes — added dashboard cache invalidation to cache manager
+* Fix: Dashboard toggle using unavailable AJAX service — replaced with direct jQuery AJAX matching existing dashboard pattern
+* Fix: Spend threshold discount type now displays correctly in dashboard cards, badge text, savings text, and discount descriptions
+* Fix: Connected 6 missing event triggers for settings updates, license events, wizard session cleanup, and milestone monitoring
+* Fix: Tools page expired campaign cleanup now properly invalidates caches after deletion
+* Improvement: Removed non-functional cache warming system — 5 dead methods writing to cache keys never read by any code
+* Improvement: Simplified cache tools — renamed "Clear & Rebuild Cache" to "Clear Cache" with accurate descriptions
+* Improvement: Removed unused campaign management code from admin JavaScript
+* Improvement: Reduced plugin footprint — removed 11 unused classes, 16 unused AJAX endpoints, and 21 unused functions
+
 = 1.1.8 =
 * Improvement: Rewritten plugin description for maximum WordPress.org search discoverability
 * Improvement: Expanded FAQ from 17 to 24 keyword-rich entries matching common search queries
@@ -460,6 +483,9 @@ No. You can apply discounts to your entire product catalog or select specific pr
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.1.9 =
+Fixes dashboard campaign list caching, cache invalidation on expired cleanup, pause/resume controls, spend threshold display, and 6 missing event triggers. Removes dead cache warming code and reduces plugin footprint. Recommended update.
 
 = 1.1.8 =
 Improved WordPress.org listing with expanded description, new FAQ entries, and optimized search tags.

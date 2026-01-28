@@ -243,6 +243,15 @@ class WSSCD_Tools_Handler extends WSSCD_Abstract_Ajax_Handler {
 			return $this->error( __( 'Database error occurred', 'smart-cycle-discounts' ) );
 		}
 
+		// Invalidate caches after deleting campaigns directly from database
+		if ( $deleted > 0 ) {
+			$cache_manager = Smart_Cycle_Discounts::get_service( 'cache_manager' );
+			if ( $cache_manager ) {
+				$cache_manager->invalidate_campaign();
+				$cache_manager->invalidate_analytics();
+			}
+		}
+
 		// Log successful cleanup
 		$this->logger->flow(
 			'notice',
@@ -326,31 +335,14 @@ class WSSCD_Tools_Handler extends WSSCD_Abstract_Ajax_Handler {
 			}
 		}
 
-		// Warm cache with fresh data
-		if ( $cache_manager && method_exists( $cache_manager, 'warm_cache' ) ) {
-			$cache_manager->warm_cache();
-			$operations[] = 'cache_warming';
-			$details[] = __( 'Cache pre-warmed with active campaigns', 'smart-cycle-discounts' );
-		}
-
-		// Get stats after rebuilding
-		$stats_after = array(
-			'transients' => 0,
-		);
-		if ( $cache_manager && method_exists( $cache_manager, 'get_stats' ) ) {
-			$stats = $cache_manager->get_stats();
-			$stats_after['transients'] = $stats['transient_count'] ?? 0;
-		}
-
 		// Log cache clear with details
 		$this->logger->flow(
 			'notice',
 			'CACHE CLEAR',
-			'Cache cleared and rebuilt',
+			'Cache cleared',
 			array(
 				'operations'        => $operations,
 				'transients_before' => $stats_before['transients'],
-				'transients_after'  => $stats_after['transients'],
 				'user_id'           => get_current_user_id(),
 				'_start_time'       => $start_time,
 				'_include_memory'   => true,
@@ -358,7 +350,7 @@ class WSSCD_Tools_Handler extends WSSCD_Abstract_Ajax_Handler {
 		);
 
 		// Build detailed message
-		$message = __( 'Cache cleared and rebuilt successfully.', 'smart-cycle-discounts' );
+		$message = __( 'Cache cleared successfully.', 'smart-cycle-discounts' );
 		if ( ! empty( $details ) ) {
 			$message .= ' ' . implode( '. ', $details ) . '.';
 		}
@@ -367,8 +359,7 @@ class WSSCD_Tools_Handler extends WSSCD_Abstract_Ajax_Handler {
 			array(
 				'message'    => $message,
 				'stats'      => array(
-					'cleared'  => $stats_before['transients'],
-					'rebuilt'  => $stats_after['transients'],
+					'cleared'          => $stats_before['transients'],
 					'has_object_cache' => $stats_before['object_cache'],
 				),
 			)

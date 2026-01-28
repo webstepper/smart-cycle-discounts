@@ -110,11 +110,10 @@ class WSSCD_Cache_Manager {
 		// Invalidate cache when campaigns expire (CRITICAL for stopping discounts)
 		add_action( 'wsscd_campaign_expired', array( $this, 'on_campaign_status_changed' ), 10, 1 );
 
-		// Invalidate cache when campaigns are activated/deactivated
+		// Invalidate cache when campaigns are activated
 		add_action( 'wsscd_campaign_activated', array( $this, 'on_campaign_status_changed' ), 10, 1 );
-		add_action( 'wsscd_campaign_deactivated', array( $this, 'on_campaign_status_changed' ), 10, 1 );
 
-		// Invalidate cache when campaign status changes (covers pause, resume, etc.)
+		// Invalidate cache when campaign status changes (covers deactivation, pause, resume, etc.)
 		add_action( 'wsscd_campaign_status_changed', array( $this, 'on_campaign_status_changed' ), 10, 1 );
 
 		// Invalidate cache when campaigns are created/updated/deleted
@@ -664,99 +663,6 @@ class WSSCD_Cache_Manager {
 	}
 
 	/**
-	 * Warm cache with commonly used data.
-	 *
-	 * Called on-demand from Tools page to pre-populate cache.
-	 *
-	 * @since    1.0.0
-	 * @return   void
-	 */
-	public function warm_cache(): void {
-		if ( ! $this->enabled ) {
-			return;
-		}
-
-		// Warm campaign cache
-		$this->warm_campaign_cache();
-
-		// Warm settings cache
-		$this->warm_settings_cache();
-
-		// Warm product cache
-		$this->warm_product_cache();
-	}
-
-	/**
-	 * Warm campaign cache.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @return   void
-	 */
-	private function warm_campaign_cache(): void {
-		global $wpdb;
-
-		$campaigns_table = $wpdb->prefix . 'wsscd_campaigns';
-
-		$check_table_sql = $wpdb->prepare( 'SHOW TABLES LIKE %s', $campaigns_table );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- SHOW TABLES has no WP abstraction; query prepared above.
-		if ( $campaigns_table === $wpdb->get_var( $check_table_sql ) ) {
-			// SECURITY: Use %i placeholder for table identifier (WordPress 6.2+).
-			$active_sql = $wpdb->prepare(
-				'SELECT * FROM %i WHERE status = %s AND deleted_at IS NULL LIMIT %d',
-				$campaigns_table,
-				'active',
-				10
-			);
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Cache warming query; query prepared above.
-			$active_campaigns = $wpdb->get_results( $active_sql );
-
-			if ( $active_campaigns ) {
-				$this->set( 'campaigns_active_campaigns', $active_campaigns, 1800 ); // 30 minutes
-			}
-		}
-	}
-
-	/**
-	 * Warm settings cache.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @return   void
-	 */
-	private function warm_settings_cache(): void {
-		$settings = get_option( 'wsscd_settings', array() );
-		if ( ! empty( $settings ) ) {
-			$this->set( 'settings_plugin_settings', $settings, 3600 ); // 1 hour (settings rarely change)
-		}
-	}
-
-	/**
-	 * Warm product cache.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @return   void
-	 */
-	private function warm_product_cache(): void {
-		if ( ! function_exists( 'wc_get_products' ) ) {
-			return;
-		}
-
-		$featured_products = wc_get_products(
-			array(
-				'status'   => 'publish',
-				'featured' => true,
-				'limit'    => 20,
-			)
-		);
-
-		if ( $featured_products ) {
-			$this->set( 'products_featured_products', $featured_products, 900 ); // 15 minutes
-		}
-	}
-
-	/**
 	 * Get cache key with prefix and version.
 	 *
 	 * @since    1.0.0
@@ -858,38 +764,6 @@ class WSSCD_Cache_Manager {
 	 */
 	public function decrement( string $key, int $offset = 1 ) {
 		return $this->increment( $key, -$offset );
-	}
-
-	/**
-	 * Warm up cache with multiple keys.
-	 *
-	 * @since    1.0.0
-	 * @param    array  $cache_keys    Array of cache keys and their callbacks.
-	 * @param    string $group         Optional cache group for logging.
-	 * @return   int                      Number of keys warmed.
-	 */
-	public function warm_up( array $cache_keys, string $group = '' ): int {
-		if ( ! $this->enabled ) {
-			return 0;
-		}
-
-		$warmed = 0;
-
-		foreach ( $cache_keys as $key => $callback ) {
-			if ( ! is_callable( $callback ) ) {
-				continue;
-			}
-
-			try {
-				$this->remember( $key, $callback );
-				++$warmed;
-			} catch ( Exception $e ) {
-				// Log error but continue warming other keys
-				continue;
-			}
-		}
-
-		return $warmed;
 	}
 
 	/**
@@ -1013,6 +887,10 @@ class WSSCD_Cache_Manager {
 
 		// Clear reference data cache since campaign changes may affect category/product counts
 		$this->delete_group( 'reference' );
+
+		// Clear dashboard cache - Dashboard Service is lazy-loaded so its own
+		// invalidation hooks may not be registered during non-dashboard AJAX requests
+		$this->delete_group( 'wsscd_dashboard' );
 
 		// Log invalidation for debugging
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {

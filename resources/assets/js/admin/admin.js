@@ -318,54 +318,6 @@
 		}
 	};
 
-	// Campaign management helpers
-	WSSCD.Admin.Campaigns = {
-		/**
-		 * Handle campaign status toggle
-		 * @param campaignId
-		 * @param newStatus
-		 */
-		toggleStatus: function( campaignId, newStatus ) {
-			return WSSCD.Admin.ajax( 'wsscd_toggle_campaign_status', {
-				campaignId: campaignId,
-				status: newStatus
-			} ).done( function( response ) {
-				if ( response.success ) {
-					WSSCD.Shared.NotificationService.success( response.data.message );
-					// Reload table or update UI
-					if ( 'undefined' !== typeof WSSCD.CampaignsList ) {
-						WSSCD.CampaignsList.reload();
-					}
-				}
-			} );
-		},
-
-		/**
-		 * Delete campaign
-		 * @param campaignId
-		 */
-		deleteCampaign: function( campaignId ) {
-			if ( ! confirm( 'Are you sure you want to delete this campaign?' ) ) {
-				return;
-			}
-
-			return WSSCD.Admin.ajax( 'wsscd_delete_campaign', {
-				campaignId: campaignId
-			} ).done( function( response ) {
-				if ( response.success ) {
-					WSSCD.Shared.NotificationService.success( 'Campaign deleted successfully' );
-					// Reload or redirect
-					if ( 'undefined' !== typeof WSSCD.CampaignsList ) {
-						WSSCD.CampaignsList.reload();
-					} else {
-						window.location.href = window.wsscdCampaigns && window.wsscdCampaigns.urls && window.wsscdCampaigns.urls.campaignsList ?
-							window.wsscdCampaigns.urls.campaignsList : '/wp-admin/admin.php?page=wsscd-campaigns';
-					}
-				}
-			} );
-		}
-	};
-
 	// Analytics helpers
 	WSSCD.Admin.Analytics = {
 		/**
@@ -384,30 +336,6 @@
 		exportReport: function( format, params ) {
 			params.format = format;
 			return WSSCD.Admin.ajax( 'wsscd_export_analytics', params );
-		}
-	};
-
-	// Product search helpers
-	WSSCD.Admin.Products = {
-		/**
-		 * Search products
-		 * @param query
-		 * @param params
-		 */
-		search: function( query, params ) {
-			params = params || {};
-			params.search = query;
-
-			// REST API calls still use jQuery directly
-			return $.ajax( {
-				url: window.wsscdProducts && window.wsscdProducts.endpoints && window.wsscdProducts.endpoints.search ?
-					window.wsscdProducts.endpoints.search : '/wp-json/wsscd/v1/products/search',
-				method: 'GET',
-				data: params,
-				headers: {
-					'X-WP-Nonce': WSSCD.Admin.config.restNonce // Use REST nonce for REST API calls
-				}
-			} );
 		}
 	};
 

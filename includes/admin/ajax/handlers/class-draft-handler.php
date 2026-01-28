@@ -503,6 +503,13 @@ class WSSCD_Draft_Handler {
 		$draft_info    = $this->state_service->get_draft_info();
 		$campaign_name = isset( $draft_info['campaign_name'] ) ? $draft_info['campaign_name'] : __( 'Unnamed Draft', 'smart-cycle-discounts' );
 
+		// Fire cancellation hook before clearing session data.
+		$session_id = $this->state_service->get_session_id();
+		if ( $session_id ) {
+			/** This action is documented in includes/core/campaigns/class-campaign-list-controller.php */
+			do_action( 'wsscd_wizard_session_cancelled', $session_id );
+		}
+
 		$this->state_service->clear_session();
 
 		// Log the action.

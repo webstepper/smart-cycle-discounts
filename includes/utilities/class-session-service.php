@@ -704,10 +704,24 @@ class WSSCD_Session_Service {
 			)
 		);
 
+		$session_prefix = 'wsscd_wizard_session_';
+
 		foreach ( $transients as $transient ) {
 			$key = str_replace( '_transient_', '', $transient->option_name );
 
 			if ( get_transient( $key ) === false ) {
+				// Fire expiration hook for wizard session transients.
+				if ( 0 === strpos( $key, $session_prefix ) ) {
+					$session_id = substr( $key, strlen( $session_prefix ) );
+					/**
+					 * Fires when a wizard session has expired.
+					 *
+					 * @since 1.1.9
+					 * @param string $session_id The expired wizard session ID.
+					 */
+					do_action( 'wsscd_wizard_session_expired', $session_id );
+				}
+
 				delete_transient( $key );
 				++$expired_count;
 			}

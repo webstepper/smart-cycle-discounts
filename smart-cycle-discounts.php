@@ -3,7 +3,7 @@
  * Plugin Name: Smart Cycle Discounts
  * Plugin URI: https://webstepper.io/wordpress/plugins/smart-cycle-discounts/
  * Description: Schedule WooCommerce discounts that run themselves. BOGO, tiered pricing, flash sales - campaigns activate automatically.
- * Version: 1.1.8
+ * Version: 1.1.9
  * Author: Webstepper
  * Author URI: https://webstepper.io
  * Text Domain: smart-cycle-discounts
@@ -18,10 +18,10 @@
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Requires Plugins: woocommerce
  *
- * @fs_premium_only /includes/core/discounts/strategies/class-tiered-strategy.php, /includes/core/discounts/strategies/class-bogo-strategy.php, /includes/core/discounts/strategies/class-spend-threshold-strategy.php, /includes/core/analytics/class-export-service.php, /includes/core/analytics/class-report-generator.php, /includes/core/analytics/class-analytics-controller.php, /includes/admin/pages/class-analytics-dashboard.php, /includes/admin/licensing/class-license-manager.php, /includes/api/, /templates/emails/campaign-ending.php, /templates/emails/daily-report.php, /templates/emails/weekly-report.php, /templates/emails/performance-alert.php, /templates/emails/low-stock-alert.php, /templates/emails/milestone-alert.php, /resources/assets/js/steps/discounts/tiered-discount.js, /resources/assets/js/steps/discounts/bogo-discount.js, /resources/assets/js/steps/discounts/spend-threshold.js, /resources/assets/js/analytics/analytics-dashboard.js
+ * @fs_premium_only /includes/core/discounts/strategies/class-tiered-strategy.php, /includes/core/discounts/strategies/class-bogo-strategy.php, /includes/core/discounts/strategies/class-spend-threshold-strategy.php, /includes/core/analytics/class-export-service.php, /includes/core/analytics/class-report-generator.php, /includes/admin/pages/class-analytics-dashboard.php, /includes/admin/licensing/class-license-manager.php, /templates/emails/campaign-ending.php, /templates/emails/daily-report.php, /templates/emails/weekly-report.php, /templates/emails/performance-alert.php, /templates/emails/low-stock-alert.php, /templates/emails/milestone-alert.php, /resources/assets/js/steps/discounts/tiered-discount.js, /resources/assets/js/steps/discounts/bogo-discount.js, /resources/assets/js/steps/discounts/spend-threshold.js, /resources/assets/js/analytics/analytics-dashboard.js
  *
  * @package SmartCycleDiscounts
- * @version 1.1.8
+ * @version 1.1.9
  * @since 1.0.0
  */
 
@@ -102,7 +102,7 @@ if ( function_exists( 'wsscd_fs' ) ) {
 }
 
 // Plugin constants
-define( 'WSSCD_VERSION', '1.1.8' );
+define( 'WSSCD_VERSION', '1.1.9' );
 define( 'WSSCD_DB_VERSION', '1.0.0' );
 define( 'WSSCD_MIN_PHP_VERSION', '7.4' );
 define( 'WSSCD_MIN_WP_VERSION', '6.4' );
@@ -692,8 +692,8 @@ function wsscd_deactivate_plugin() {
  */
 function wsscd_plugin_action_links( $links ) {
 	$plugin_links = array(
-		'<a href="' . admin_url( 'admin.php?page=wsscd-wizard&intent=new' ) . '">' . esc_html__( 'Create Campaign', 'smart-cycle-discounts' ) . '</a>',
 		'<a href="' . admin_url( 'admin.php?page=wsscd-dashboard' ) . '">' . esc_html__( 'Dashboard', 'smart-cycle-discounts' ) . '</a>',
+		'<a href="' . admin_url( 'admin.php?page=smart-cycle-discounts' ) . '">' . esc_html__( 'Campaigns', 'smart-cycle-discounts' ) . '</a>',
 	);
 
 	return array_merge( $plugin_links, $links );
@@ -712,8 +712,8 @@ function wsscd_plugin_meta_links( $links, $file ) {
 		
 		$translations = WSSCD_Translation_Handler::get_meta_links();
 		$meta_links = array(
-			'<a href="https://webstepper.io/wordpress-plugins/smart-cycle-discounts/docs/" target="_blank">' . esc_html( $translations['documentation'] ) . '</a>',
-			'<a href="https://webstepper.io/wordpress-plugins/smart-cycle-discounts/support/" target="_blank">' . esc_html( $translations['support'] ) . '</a>',
+			'<a href="https://webstepper.io/wordpress/plugins/smart-cycle-discounts/docs/" target="_blank">' . esc_html( $translations['documentation'] ) . '</a>',
+			'<a href="https://webstepper.io/wordpress/plugins/smart-cycle-discounts/support/" target="_blank">' . esc_html( $translations['support'] ) . '</a>',
 		);
 		
 		return array_merge( $links, $meta_links );

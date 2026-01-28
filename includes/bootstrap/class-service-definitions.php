@@ -129,18 +129,6 @@ class WSSCD_Service_Definitions {
 
 			// Campaign Model Services (New modular components)
 
-			'campaign.calculator'          => array(
-				'class'        => 'WSSCD_Campaign_Calculator',
-				'singleton'    => true,
-				'dependencies' => array( 'analytics_repository', 'product_selector' ),
-				'factory'      => function ( $container ) {
-					return new WSSCD_Campaign_Calculator(
-						$container->get( 'analytics_repository' ),
-						$container->get( 'product_selector' )
-					);
-				},
-			),
-
 			'campaign.formatter'           => array(
 				'class'     => 'WSSCD_Campaign_Formatter',
 				'singleton' => true,
@@ -739,14 +727,6 @@ class WSSCD_Service_Definitions {
 				},
 			),
 
-			'countdown_timer'              => array(
-				'class'     => 'WSSCD_Countdown_Timer',
-				'singleton' => true,
-				'factory'   => function ( $container ) {
-					return new WSSCD_Countdown_Timer();
-				},
-			),
-
 			'shortcodes'                   => array(
 				'class'        => 'WSSCD_Shortcodes',
 				'singleton'    => true,
@@ -814,93 +794,6 @@ class WSSCD_Service_Definitions {
 						$container->get( 'analytics_repository' ),
 						$container->get( 'action_scheduler' ),
 						$container->get( 'feature_gate' )
-					);
-				},
-			),
-
-			// API Services
-			'api_authentication'           => array(
-				'class'        => 'WSSCD_API_Authentication',
-				'singleton'    => true,
-				'optional'     => true,
-				'dependencies' => array( 'logger' ),
-				'factory'      => function ( $container ) {
-					if ( ! class_exists( 'WSSCD_API_Authentication' ) ) {
-						return null;
-					}
-					return new WSSCD_API_Authentication(
-						$container->get( 'logger' )
-					);
-				},
-			),
-
-			'api_permissions'              => array(
-				'class'        => 'WSSCD_API_Permissions',
-				'singleton'    => true,
-				'optional'     => true,
-				'dependencies' => array( 'capability_manager', 'logger', 'feature_gate' ),
-				'factory'      => function ( $container ) {
-					if ( ! class_exists( 'WSSCD_API_Permissions' ) ) {
-						return null;
-					}
-					return new WSSCD_API_Permissions(
-						$container->get( 'capability_manager' ),
-						$container->get( 'logger' ),
-						$container->get( 'feature_gate' )
-					);
-				},
-			),
-
-			'api_campaigns_controller'     => array(
-				'class'        => 'WSSCD_Campaigns_Controller',
-				'singleton'    => true,
-				'optional'     => true,
-				'dependencies' => array( 'campaign_manager', 'api_permissions', 'campaign_serializer', 'logger' ),
-				'factory'      => function ( $container ) {
-					if ( ! class_exists( 'WSSCD_Campaigns_Controller' ) ) {
-						return null;
-					}
-					return new WSSCD_Campaigns_Controller(
-						'wsscd/v1',
-						$container->get( 'campaign_manager' ),
-						$container->get( 'api_permissions' ),
-						$container->get( 'campaign_serializer' ),
-						$container->get( 'logger' )
-					);
-				},
-			),
-
-			'api_discounts_controller'     => array(
-				'class'        => 'WSSCD_Discounts_Controller',
-				'singleton'    => true,
-				'optional'     => true,
-				'dependencies' => array( 'discount_engine', 'campaign_manager', 'api_permissions', 'logger' ),
-				'factory'      => function ( $container ) {
-					if ( ! class_exists( 'WSSCD_Discounts_Controller' ) ) {
-						return null;
-					}
-					return new WSSCD_Discounts_Controller(
-						'wsscd/v1',
-						$container->get( 'discount_engine' ),
-						$container->get( 'campaign_manager' ),
-						$container->get( 'api_permissions' ),
-						$container->get( 'logger' )
-					);
-				},
-			),
-
-			'rest_api_manager'             => array(
-				'class'        => 'WSSCD_REST_API_Manager',
-				'singleton'    => true,
-				'optional'     => true,
-				'dependencies' => array( 'cache_manager', 'container' ),
-				'factory'      => function ( $container ) {
-					if ( ! class_exists( 'WSSCD_REST_API_Manager' ) ) {
-						return null;
-					}
-					return new WSSCD_REST_API_Manager(
-						$container->get( 'cache_manager' ),
-						$container
 					);
 				},
 			),
@@ -1252,30 +1145,7 @@ class WSSCD_Service_Definitions {
 				},
 			),
 
-			'product_filter'               => array(
-				'class'        => 'WSSCD_Product_Filter',
-				'singleton'    => true,
-				'dependencies' => array( 'product_selector', 'logger' ),
-				'factory'      => function ( $container ) {
-					return new WSSCD_Product_Filter(
-						$container->get( 'product_selector' ),
-						$container->get( 'logger' )
-					);
-				},
-			),
-
 			// Campaign Services
-
-			'campaign_serializer'          => array(
-				'class'        => 'WSSCD_Campaign_Serializer',
-				'singleton'    => true,
-				'dependencies' => array( 'logger' ),
-				'factory'      => function ( $container ) {
-					return new WSSCD_Campaign_Serializer(
-						$container->get( 'logger' )
-					);
-				},
-			),
 
 			'campaign_compiler'            => array(
 				'class'        => 'WSSCD_Campaign_Compiler_Service',

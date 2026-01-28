@@ -273,6 +273,18 @@ class WSSCD_Campaign_List_Controller extends WSSCD_Abstract_Campaign_Controller 
 			wp_die( esc_html__( 'You do not have permission to discard drafts.', 'smart-cycle-discounts' ) );
 		}
 
+		// Fire cancellation hook before clearing session data.
+		$session_id = $this->wizard_state_service->get_session_id();
+		if ( $session_id ) {
+			/**
+			 * Fires when a wizard session is explicitly cancelled by the user.
+			 *
+			 * @since 1.1.9
+			 * @param string $session_id The wizard session ID.
+			 */
+			do_action( 'wsscd_wizard_session_cancelled', $session_id );
+		}
+
 		// Discard the draft
 		$this->wizard_state_service->clear_session();
 

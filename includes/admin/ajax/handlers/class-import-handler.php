@@ -500,6 +500,15 @@ class WSSCD_Import_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 		$result = update_option( 'wsscd_settings', $merged_settings );
 
+		if ( $result ) {
+			/**
+			 * Fires after plugin settings are updated.
+			 *
+			 * @since 1.1.9
+			 */
+			do_action( 'wsscd_settings_updated' );
+		}
+
 		// Log import results
 		if ( $result ) {
 			$this->logger->flow(

@@ -63,10 +63,65 @@
 				WSSCD_Main_Dashboard.toggleSuggestionDetails( $( this ) );
 			} );
 
+			// Pause campaign from dashboard card
+			$( document ).on( 'click', '.wsscd-pause-campaign', function( e ) {
+				e.preventDefault();
+				var campaignId = $( this ).data( 'campaign-id' );
+				WSSCD_Main_Dashboard.toggleCampaignStatus( campaignId, 'paused', $( this ) );
+			} );
+
+			// Resume campaign from dashboard card
+			$( document ).on( 'click', '.wsscd-resume-campaign', function( e ) {
+				e.preventDefault();
+				var campaignId = $( this ).data( 'campaign-id' );
+				WSSCD_Main_Dashboard.toggleCampaignStatus( campaignId, 'active', $( this ) );
+			} );
+
 			// Prevent page unload during data loading
 			$( window ).on( 'beforeunload', function() {
 				if ( WSSCD_Main_Dashboard.isLoading ) {
 					return 'Dashboard data is still loading. Are you sure you want to leave?';
+				}
+			} );
+		},
+
+		/**
+		 * Toggle campaign status (pause/resume) via AJAX
+		 *
+		 * @since 1.1.8
+		 * @param {Number} campaignId Campaign ID
+		 * @param {String} newStatus New status ('active' or 'paused')
+		 * @param {jQuery} $btn Button element
+		 */
+		toggleCampaignStatus: function( campaignId, newStatus, $btn ) {
+			var originalHtml = $btn.html();
+			$btn.prop( 'disabled', true ).html( '...' );
+
+			$.ajax( {
+				url: ajaxurl,
+				type: 'POST',
+				data: {
+					action: 'wsscd_ajax',
+					wsscdAction: 'toggle_campaign_status',
+					nonce: window.wsscdAdmin && window.wsscdAdmin.nonce ? window.wsscdAdmin.nonce : '',
+					campaignId: campaignId,
+					status: newStatus
+				},
+				dataType: 'json',
+				timeout: 15000,
+				success: function( response ) {
+					if ( response.success ) {
+						window.location.reload();
+					} else {
+						$btn.prop( 'disabled', false ).html( originalHtml );
+						WSSCD_Main_Dashboard.handleError(
+							response.data && response.data.message ? response.data.message : 'Failed to update campaign status'
+						);
+					}
+				},
+				error: function( xhr, status, error ) {
+					$btn.prop( 'disabled', false ).html( originalHtml );
+					WSSCD_Main_Dashboard.handleError( 'Network error: ' + error );
 				}
 			} );
 		},

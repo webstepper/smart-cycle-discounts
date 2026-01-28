@@ -73,7 +73,6 @@ class WSSCD_Analytics_Test_Runner {
 		$this->test_class_loading();
 		$this->test_metrics_calculator();
 		$this->test_analytics_collector();
-		$this->test_data_model();
 		$this->test_ajax_handlers();
 
 		// Output summary.
@@ -129,7 +128,6 @@ class WSSCD_Analytics_Test_Runner {
 		$classes = array(
 			'WSSCD_Metrics_Calculator'    => 'Metrics Calculator',
 			'WSSCD_Analytics_Collector'   => 'Analytics Collector',
-			'WSSCD_Analytics_Data'        => 'Analytics Data Model',
 			'WSSCD_Report_Generator'      => 'Report Generator',
 			'WSSCD_Export_Service'        => 'Export Service',
 			'WSSCD_Analytics_Helpers'     => 'Analytics Helpers Trait',
@@ -261,64 +259,6 @@ class WSSCD_Analytics_Test_Runner {
 			}
 		} catch ( Exception $e ) {
 			$this->assert( false, 'Analytics Collector tests: ' . $e->getMessage() );
-		}
-	}
-
-	/**
-	 * Test Analytics Data Model.
-	 *
-	 * @return void
-	 */
-	private function test_data_model() {
-		$this->output( "\n[5] Analytics Data Model" );
-		$this->output( str_repeat( '-', 40 ) );
-
-		try {
-			// Test instantiation.
-			$data = new WSSCD_Analytics_Data();
-			$this->assert( true, 'WSSCD_Analytics_Data instantiated' );
-
-			// Test fill method.
-			$test_data = array(
-				'campaign_id' => 1,
-				'event_type'  => 'campaign_view',
-				'product_id'  => 123,
-				'revenue'     => 99.99,
-			);
-
-			$data->fill( $test_data );
-			$this->assert( 1 === $data->get_campaign_id(), 'fill() sets campaign_id correctly' );
-			$this->assert( 'campaign_view' === $data->get_event_type(), 'fill() sets event_type correctly' );
-
-			// Test validation.
-			$errors = $data->validate();
-			$this->assert( is_array( $errors ), 'validate() returns array' );
-			$this->assert( empty( $errors ), 'Valid data passes validation' );
-
-			// Test invalid data.
-			$invalid_data = new WSSCD_Analytics_Data();
-			$invalid_data->fill( array( 'event_type' => 'invalid_type' ) );
-			$invalid_errors = $invalid_data->validate();
-			$this->assert( ! empty( $invalid_errors ), 'Invalid data fails validation' );
-
-			// Test to_array.
-			$array = $data->to_array();
-			$this->assert( is_array( $array ), 'to_array() returns array' );
-			$this->assert( isset( $array['campaign_id'] ), 'to_array() includes campaign_id' );
-
-			// Test static factory.
-			$created = WSSCD_Analytics_Data::create_from_event( 'purchase', 1, array( 'revenue' => 50 ), array( 'product_id' => 456 ) );
-			$this->assert( $created instanceof WSSCD_Analytics_Data, 'create_from_event() returns instance' );
-			$this->assert( 'purchase' === $created->get_event_type(), 'Factory sets event_type' );
-
-			// Test event types.
-			$valid_types = WSSCD_Analytics_Data::get_valid_event_types();
-			$this->assert( is_array( $valid_types ), 'get_valid_event_types() returns array' );
-			$this->assert( in_array( 'purchase', $valid_types, true ), 'Valid types include purchase' );
-			$this->assert( in_array( 'conversion', $valid_types, true ), 'Valid types include conversion' );
-
-		} catch ( Exception $e ) {
-			$this->assert( false, 'Data Model tests: ' . $e->getMessage() );
 		}
 	}
 

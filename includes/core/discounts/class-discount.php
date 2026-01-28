@@ -385,6 +385,9 @@ class WSSCD_Discount {
 			case 'tiered':
 				return __( 'Tiered pricing discount', 'smart-cycle-discounts' );
 
+			case 'spend_threshold':
+				return __( 'Spend threshold discount', 'smart-cycle-discounts' );
+
 			default:
 				return __( 'Discount applied', 'smart-cycle-discounts' );
 		}

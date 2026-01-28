@@ -270,14 +270,14 @@
 	}
 
 	/**
-	 * Handle rebuild cache button click
+	 * Handle clear cache button click
 	 */
 	function handleRebuildCache( e ) {
 		e.preventDefault();
 		var $button = $( this );
 
 		if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
-			WSSCD.LoaderUtil.showButton( $button, 'Rebuilding...' );
+			WSSCD.LoaderUtil.showButton( $button, 'Clearing...' );
 		}
 
 		// Make AJAX request
@@ -292,13 +292,13 @@
 			},
 			success: function( response ) {
 				if ( response.success ) {
-					showNotification( response.data.message || 'Cache rebuilt successfully', 'success' );
+					showNotification( response.data.message || 'Cache cleared successfully', 'success' );
 				} else {
-					showNotification( response.data ? response.data.message : 'Failed to rebuild cache', 'error' );
+					showNotification( response.data ? response.data.message : 'Failed to clear cache', 'error' );
 				}
 			},
 			error: function() {
-				showNotification( 'Error rebuilding cache. Please try again.', 'error' );
+				showNotification( 'Error clearing cache. Please try again.', 'error' );
 			},
 			complete: function() {
 				if ( window.WSSCD && window.WSSCD.LoaderUtil ) {

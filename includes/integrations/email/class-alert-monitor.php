@@ -170,7 +170,12 @@ class WSSCD_Alert_Monitor {
 			}
 		}
 
-		// Milestone monitoring runs with performance monitoring
+		// Schedule milestone monitoring (runs on performance schedule)
+		if ( $this->settings['performance']['enabled'] ) {
+			if ( ! wp_next_scheduled( 'wsscd_monitor_milestones' ) ) {
+				wp_schedule_event( time(), $this->settings['performance']['check_interval'], 'wsscd_monitor_milestones' );
+			}
+		}
 	}
 
 	/**

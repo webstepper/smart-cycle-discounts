@@ -319,6 +319,9 @@ class WSSCD_Discount_API_Handler implements WSSCD_Ajax_Handler {
 			case 'fixed':
 				return /* translators: %s: formatted price amount */
 				sprintf( __( 'Save %s', 'smart-cycle-discounts' ), wc_price( $calculation->get_discount_amount() ) );
+			case 'spend_threshold':
+				return /* translators: %s: formatted price amount */
+				sprintf( __( 'Save %s when you spend more', 'smart-cycle-discounts' ), wc_price( $calculation->get_discount_amount() ) );
 			default:
 				return /* translators: %s: formatted price amount */
 				sprintf( __( '%s off', 'smart-cycle-discounts' ), wc_price( $calculation->get_discount_amount() ) );
@@ -342,6 +345,8 @@ class WSSCD_Discount_API_Handler implements WSSCD_Ajax_Handler {
 				sprintf( __( 'SAVE %s', 'smart-cycle-discounts' ), wp_strip_all_tags( wc_price( $calculation->get_discount_amount() ) ) );
 			case 'bogo':
 				return __( 'BOGO DEAL', 'smart-cycle-discounts' );
+			case 'spend_threshold':
+				return __( 'SPEND & SAVE', 'smart-cycle-discounts' );
 			default:
 				return __( 'SPECIAL OFFER', 'smart-cycle-discounts' );
 		}

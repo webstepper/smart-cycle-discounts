@@ -220,26 +220,6 @@
 
 **Folder Total: 3 files, 816 LOC**
 
-### 📁 `includes/api/`
-
-| File Name | LOC |
-|-----------|----:|
-| `class-rest-api-manager.php` | 701 |
-| `class-api-authentication.php` | 677 |
-| `class-api-permissions.php` | 652 |
-| `class-request-schemas.php` | 440 |
-
-**Folder Total: 4 files, 2470 LOC**
-
-### 📁 `includes/api/endpoints/`
-
-| File Name | LOC |
-|-----------|----:|
-| `class-discounts-controller.php` | 888 |
-| `class-campaigns-controller.php` | 867 |
-
-**Folder Total: 2 files, 1755 LOC**
-
 ### 📁 `includes/bootstrap/`
 
 | File Name | LOC |
@@ -283,7 +263,6 @@
 |-----------|----:|
 | `class-analytics-collector.php` | 1481 |
 | `class-report-generator.php` | 805 |
-| `class-analytics-controller.php` | 797 |
 | `class-analytics-data.php` | 746 |
 | `class-metrics-calculator.php` | 645 |
 | `class-export-service.php` | 251 |
@@ -291,7 +270,7 @@
 | `abstract-analytics-handler.php` | 132 |
 | `trait-analytics-helpers.php` | 63 |
 
-**Folder Total: 9 files, 5147 LOC**
+**Folder Total: 8 files, 4350 LOC**
 
 ### 📁 `includes/core/campaigns/`
 
@@ -304,7 +283,6 @@
 | `class-campaign-state-manager.php` | 694 |
 | `class-campaign-list-controller.php` | 693 |
 | `class-campaign-formatter.php` | 510 |
-| `class-campaign-serializer.php` | 475 |
 | `class-campaign-view-renderer.php` | 457 |
 | `class-campaign-action-handler.php` | 434 |
 | `class-campaign-calculator.php` | 431 |
@@ -312,7 +290,7 @@
 | `class-campaign-edit-controller.php` | 271 |
 | `abstract-campaign-controller.php` | 152 |
 
-**Folder Total: 14 files, 9834 LOC**
+**Folder Total: 13 files, 9359 LOC**
 
 ### 📁 `includes/core/cron/`
 

@@ -201,7 +201,10 @@ class WSSCD_Logger {
 		if ( isset( $settings['advanced'] ) ) {
 			$settings['advanced']['enable_debug_mode']     = false;
 			$settings['advanced']['debug_mode_enabled_at'] = 0;
-			update_option( 'wsscd_settings', $settings );
+			if ( update_option( 'wsscd_settings', $settings ) ) {
+				/** This action is documented in includes/admin/ajax/handlers/class-import-handler.php */
+				do_action( 'wsscd_settings_updated' );
+			}
 		}
 	}
 

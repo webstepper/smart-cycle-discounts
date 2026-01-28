@@ -406,19 +406,4 @@ abstract class WSSCD_Notifications_Tab_Base {
 	protected function get_tooltip( string $text, array $args = array() ): string {
 		return WSSCD_Tooltip_Helper::get( $text, $args );
 	}
-
-	/**
-	 * Render field label with tooltip.
-	 *
-	 * @since    1.0.0
-	 * @access   protected
-	 * @param    string $label     Label text.
-	 * @param    string $field_id  Field ID.
-	 * @param    string $tooltip   Tooltip text.
-	 * @param    array  $args      Optional tooltip arguments.
-	 * @return   void
-	 */
-	protected function render_label_with_tooltip( string $label, string $field_id, string $tooltip, array $args = array() ): void {
-		WSSCD_Tooltip_Helper::render_label( $label, $field_id, $tooltip, $args );
-	}
 }

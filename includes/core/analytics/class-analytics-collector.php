@@ -145,7 +145,7 @@ class WSSCD_Analytics_Collector {
 
 		// Campaign tracking hooks
 		add_action( 'wsscd_campaign_activated', array( $this, 'track_campaign_activation' ), 10, 1 );
-		add_action( 'wsscd_campaign_deactivated', array( $this, 'track_campaign_deactivation' ), 10, 1 );
+		add_action( 'wsscd_campaign_status_changed', array( $this, 'track_campaign_status_change' ), 10, 3 );
 
 		// AJAX tracking handled by specialized handlers (track-impression, track-click)
 
@@ -384,6 +384,24 @@ class WSSCD_Analytics_Collector {
 
 		// Invalidate analytics cache for this campaign
 		$this->invalidate_analytics_cache( $campaign->get_id() );
+	}
+
+	/**
+	 * Track campaign status change.
+	 *
+	 * Routes to specific tracking methods based on status transition.
+	 * Fired by wsscd_campaign_status_changed hook.
+	 *
+	 * @since    1.1.9
+	 * @param    WSSCD_Campaign $campaign    Campaign object.
+	 * @param    string         $from        Previous status.
+	 * @param    string         $to          New status.
+	 * @return   void
+	 */
+	public function track_campaign_status_change( $campaign, $from, $to ): void {
+		if ( 'active' === $from && 'active' !== $to ) {
+			$this->track_campaign_deactivation( $campaign );
+		}
 	}
 
 	/**

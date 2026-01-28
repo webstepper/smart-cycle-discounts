@@ -865,9 +865,6 @@
 				return Promise.resolve();
 				} )
 				.then( function() {
-				// Note: Fullscreen loader is now shown, don't show modal loading state
-				// $( document ).trigger( 'wsscd:wizard:completing' );
-
 				if ( self.modules.stateManager ) {
 					self.modules.stateManager.set( {
 						isProcessing: true,

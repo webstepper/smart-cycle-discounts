@@ -637,7 +637,7 @@ class WSSCD_Campaign_Manager {
 		// Handle timezone conversion for schedule updates
 		// CRITICAL: Only combine date/time fields if starts_at/ends_at are NOT already set
 		// The Campaign Compiler already handles this when data comes from wizard
-		// This code path is for direct REST API or traditional form submissions
+		// This code path is for traditional form submissions
 		if ( ! isset( $data['starts_at'] ) && isset( $data['start_date'] ) && isset( $data['start_time'] ) && isset( $data['timezone'] ) ) {
 			$start_datetime    = $data['start_date'] . ' ' . $data['start_time'];
 			$data['starts_at'] = $this->convert_datetime_to_utc( $start_datetime, $data['timezone'] );

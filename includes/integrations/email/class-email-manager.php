@@ -1659,6 +1659,11 @@ class WSSCD_Email_Manager {
 
 		$result = update_option( 'wsscd_settings', $all_settings );
 
+		if ( $result ) {
+			/** This action is documented in includes/admin/ajax/handlers/class-import-handler.php */
+			do_action( 'wsscd_settings_updated' );
+		}
+
 		// Re-initialize provider if provider settings changed
 		if ( isset( $settings['email_provider'] ) || isset( $settings['sendgrid_api_key'] ) || isset( $settings['amazonses_access_key'] ) ) {
 			$this->init_provider();

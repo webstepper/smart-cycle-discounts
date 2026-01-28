@@ -757,6 +757,9 @@ $has_warnings        = in_array( $campaign_health['status'], array( 'fair', 'poo
 										} elseif ( 'bogo' === $campaign['discount_type'] ) {
 											WSSCD_Icon_Helper::render( 'cart', array( 'size' => 16 ) );
 											printf( '<span class="wsscd-discount-value wsscd-discount-bogo">%s</span>', esc_html__( 'BOGO', 'smart-cycle-discounts' ) );
+										} elseif ( 'spend_threshold' === $campaign['discount_type'] ) {
+											WSSCD_Icon_Helper::render( 'money-alt', array( 'size' => 16 ) );
+											printf( '<span class="wsscd-discount-value wsscd-discount-threshold">%s</span>', esc_html( $discount_type_label ) );
 										}
 										?>
 									</div>

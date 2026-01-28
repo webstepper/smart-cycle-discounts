@@ -396,25 +396,6 @@ abstract class WSSCD_Abstract_Ajax_Handler {
 	}
 
 	/**
-	 * Sanitize boolean.
-	 *
-	 * Helper method for common sanitization.
-	 *
-	 * @since    1.0.0
-	 * @access   protected
-	 * @param    mixed $value      Value to sanitize.
-	 * @param    bool  $default    Default value if not set.
-	 * @return   bool                 Boolean value.
-	 */
-	protected function sanitize_bool( $value, $default = false ) {
-		if ( ! isset( $value ) ) {
-			return $default;
-		}
-
-		return filter_var( $value, FILTER_VALIDATE_BOOLEAN );
-	}
-
-	/**
 	 * Get request parameter with default.
 	 *
 	 * Helper method to safely get request parameters.
@@ -428,44 +409,6 @@ abstract class WSSCD_Abstract_Ajax_Handler {
 	 */
 	protected function get_param( $request, $key, $default = null ) {
 		return isset( $request[ $key ] ) ? $request[ $key ] : $default;
-	}
-
-	/**
-	 * Validate required parameters.
-	 *
-	 * Helper method to validate that required parameters are present.
-	 *
-	 * @since    1.0.0
-	 * @access   protected
-	 * @param    array $request     Request array.
-	 * @param    array $required    Required parameter keys.
-	 * @return   true|WP_Error         True if valid, WP_Error otherwise.
-	 */
-	protected function validate_required_params( $request, $required ) {
-		$missing = array();
-
-		foreach ( $required as $param ) {
-			if ( ! isset( $request[ $param ] ) || '' === $request[ $param ] ) {
-				$missing[] = $param;
-			}
-		}
-
-		if ( ! empty( $missing ) ) {
-			return new WP_Error(
-				'missing_parameters',
-				sprintf(
-					/* translators: %s: comma-separated list of missing parameters */
-					__( 'Missing required parameters: %s', 'smart-cycle-discounts' ),
-					implode( ', ', $missing )
-				),
-				array(
-					'status'  => 400,
-					'missing' => $missing,
-				)
-			);
-		}
-
-		return true;
 	}
 
 	/**

@@ -57,8 +57,6 @@ class WSSCD_Ajax_Security {
 		// Wizard actions
 		'wsscd_save_step'                      => 'wsscd_wizard_nonce',
 		'wsscd_load_data'                      => 'wsscd_wizard_nonce',
-		'wsscd_load_session'                   => 'wsscd_wizard_nonce',
-		'wsscd_check_session'                  => 'wsscd_wizard_nonce',
 		'wsscd_session_status'                 => 'wsscd_wizard_nonce',
 		'wsscd_complete_wizard'                => 'wsscd_wizard_nonce',
 		'wsscd_import_calculator_preset'       => 'wsscd_wizard_nonce',
@@ -66,19 +64,13 @@ class WSSCD_Ajax_Security {
 		'wsscd_get_product_stats'              => 'wsscd_wizard_nonce',
 		'wsscd_health_check'                   => 'wsscd_admin_nonce',
 		'wsscd_campaign_health'                => 'wsscd_wizard_nonce',
-		'wsscd_check_conflicts'                => 'wsscd_wizard_nonce',
-		'wsscd_preview_coverage'               => 'wsscd_wizard_nonce',
 		'wsscd_calculate_discount_impact'      => 'wsscd_wizard_nonce',
-		'wsscd_sale_items_filter'              => 'wsscd_wizard_nonce',
-		'wsscd_profit_margin_warning'          => 'wsscd_wizard_nonce',
-		'wsscd_recover_session'                => 'wsscd_wizard_nonce',
 
 		// Tools page actions
 		'wsscd_export'                         => 'wsscd_admin_nonce',
 		'wsscd_import'                         => 'wsscd_admin_nonce',
 		'wsscd_database_maintenance'           => 'wsscd_admin_nonce',
 		'wsscd_cache_management'               => 'wsscd_admin_nonce',
-		'wsscd_clear_cache'                    => 'wsscd_admin_nonce',
 		'wsscd_log_viewer'                     => 'wsscd_admin_nonce',
 
 		// Validation actions
@@ -99,8 +91,8 @@ class WSSCD_Ajax_Security {
 		'wsscd_analytics_refresh_cache'        => 'wsscd_analytics_nonce',
 
 		// Campaign actions
-		'wsscd_get_active_campaigns'           => 'wsscd_campaign_nonce',
 		'wsscd_campaign_overview'              => 'wsscd_admin_nonce',
+		'wsscd_toggle_campaign_status'         => 'wsscd_admin_nonce',
 
 		// WooCommerce integration
 		'wsscd_apply_discount'                 => 'wsscd_discount_nonce',
@@ -113,10 +105,7 @@ class WSSCD_Ajax_Security {
 		'wsscd_preview_discount'               => 'wsscd_wizard_nonce', // Called from wizard
 
 		// Draft handlers
-		'wsscd_save_draft'                     => 'wsscd_wizard_nonce',
 		'wsscd_delete_draft'                   => 'wsscd_wizard_nonce',
-		'wsscd_draft_list'                     => 'wsscd_wizard_nonce',
-		'wsscd_draft_preview'                  => 'wsscd_wizard_nonce',
 
 		// Dashboard actions
 		'wsscd_main_dashboard_data'            => 'wsscd_main_dashboard',
@@ -129,7 +118,6 @@ class WSSCD_Ajax_Security {
 		'wsscd_clear_queue'                    => 'wsscd_admin_nonce',
 
 		// Debug handlers
-		'wsscd_debug_log'                      => 'wsscd_wizard_nonce',
 		'wsscd_write_debug_log'                => 'wsscd_wizard_nonce',
 		'wsscd_log_console'                    => 'wsscd_wizard_nonce',
 
@@ -145,8 +133,6 @@ class WSSCD_Ajax_Security {
 		// Wizard actions - require campaign management
 		'wsscd_save_step'                      => 'wsscd_manage_campaigns',
 		'wsscd_load_data'                      => 'wsscd_manage_campaigns',
-		'wsscd_load_session'                   => 'wsscd_manage_campaigns',
-		'wsscd_check_session'                  => 'wsscd_manage_campaigns',
 		'wsscd_session_status'                 => 'wsscd_manage_campaigns',
 		'wsscd_complete_wizard'                => 'wsscd_manage_campaigns',
 		'wsscd_import_calculator_preset'       => 'wsscd_manage_campaigns',
@@ -154,19 +140,13 @@ class WSSCD_Ajax_Security {
 		'wsscd_get_product_stats'              => 'wsscd_manage_campaigns',
 		'wsscd_health_check'                   => 'manage_options',
 		'wsscd_campaign_health'                => 'wsscd_manage_campaigns',
-		'wsscd_check_conflicts'                => 'wsscd_manage_campaigns',
-		'wsscd_preview_coverage'               => 'wsscd_manage_campaigns',
 		'wsscd_calculate_discount_impact'      => 'wsscd_manage_campaigns',
-		'wsscd_sale_items_filter'              => 'wsscd_manage_campaigns',
-		'wsscd_profit_margin_warning'          => 'wsscd_manage_campaigns',
-		'wsscd_recover_session'                => 'wsscd_manage_campaigns',
 
 		// Tools page actions - require admin capabilities
 		'wsscd_export'                         => 'manage_options',
 		'wsscd_import'                         => 'manage_options',
 		'wsscd_database_maintenance'           => 'manage_options',
 		'wsscd_cache_management'               => 'manage_options',
-		'wsscd_clear_cache'                    => 'manage_options',
 		'wsscd_log_viewer'                     => 'manage_options',
 
 		// Validation actions - require campaign management
@@ -188,8 +168,8 @@ class WSSCD_Ajax_Security {
 		'wsscd_analytics_refresh_cache'        => 'wsscd_manage_analytics',
 
 		// Campaign actions - require campaign management
-		'wsscd_get_active_campaigns'           => 'wsscd_manage_campaigns',
 		'wsscd_campaign_overview'              => 'wsscd_view_campaigns',
+		'wsscd_toggle_campaign_status'         => 'wsscd_activate_campaigns',
 
 		// WooCommerce integration - no capability for public discount application
 		'wsscd_apply_discount'                 => '',
@@ -202,10 +182,7 @@ class WSSCD_Ajax_Security {
 		'wsscd_preview_discount'               => 'wsscd_manage_campaigns',
 
 		// Draft handlers
-		'wsscd_save_draft'                     => 'wsscd_manage_campaigns',
 		'wsscd_delete_draft'                   => 'wsscd_manage_campaigns',
-		'wsscd_draft_list'                     => 'wsscd_manage_campaigns',
-		'wsscd_draft_preview'                  => 'wsscd_manage_campaigns',
 
 		// Dashboard actions
 		'wsscd_main_dashboard_data'            => 'wsscd_view_analytics',
@@ -218,7 +195,6 @@ class WSSCD_Ajax_Security {
 		'wsscd_clear_queue'                    => 'manage_options',
 
 		// Debug handlers
-		'wsscd_debug_log'                      => 'wsscd_manage_campaigns',
 		'wsscd_write_debug_log'                => 'wsscd_manage_campaigns',
 		'wsscd_log_console'                    => 'wsscd_manage_campaigns',
 
@@ -242,19 +218,12 @@ class WSSCD_Ajax_Security {
 		// Wizard actions
 		'wsscd_save_step'                      => 30,
 		'wsscd_load_data'                      => 30,
-		'wsscd_load_session'                   => 30,
 		'wsscd_complete_wizard'                => 5,
-		'wsscd_recover_session'                => 5,
-		'wsscd_check_session'                  => 60,
 		'wsscd_get_summary'                    => 30,
 		'wsscd_get_product_stats'              => 30,
 		'wsscd_health_check'                   => 10,
 		'wsscd_campaign_health'                => 10,
-		'wsscd_check_conflicts'                => 20,
-		'wsscd_preview_coverage'               => 20,
 		'wsscd_calculate_discount_impact'      => 20,
-		'wsscd_sale_items_filter'              => 30,
-		'wsscd_profit_margin_warning'          => 20,
 
 		// Validation actions
 		'wsscd_check_campaign_name'            => 10,
@@ -272,17 +241,8 @@ class WSSCD_Ajax_Security {
 		'wsscd_analytics_export'               => 5,
 		'wsscd_analytics_refresh_cache'        => 10,
 
-		// Settings/Admin actions
-		'wsscd_clear_cache'                    => 10,
-
-		// Campaign actions
-		'wsscd_get_active_campaigns'           => 30,
-
 		// Draft handlers
-		'wsscd_save_draft'                     => 10,
 		'wsscd_delete_draft'                   => 10,
-		'wsscd_draft_list'                     => 30,
-		'wsscd_draft_preview'                  => 20,
 
 		// Dashboard actions
 		'wsscd_main_dashboard_data'            => 30,
@@ -293,7 +253,6 @@ class WSSCD_Ajax_Security {
 		'wsscd_get_discount_preview'           => 30,
 
 		// Debug handlers
-		'wsscd_debug_log'                      => 60,
 		'wsscd_write_debug_log'                => 60,
 		'wsscd_log_console'                    => 60,
 

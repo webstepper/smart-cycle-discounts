@@ -90,7 +90,6 @@ class WSSCD_Ajax_Router {
 		// Register WordPress AJAX hooks for each handler.
 		foreach ( $this->handlers as $action => $handler_class ) {
 			add_action( 'wp_ajax_wsscd_' . $action, array( $this, 'route_request' ) );
-			// add_action( 'wp_ajax_nopriv_wsscd_' . $action, array( $this, 'route_request' ) ).
 		}
 	}
 
@@ -380,35 +379,25 @@ class WSSCD_Ajax_Router {
 			// Wizard handlers.
 			'save_step'                      => 'WSSCD_Save_Step_Handler',
 			'load_data'                      => 'WSSCD_Load_Data_Handler',
-			'load_session'                   => 'WSSCD_Load_Data_Handler', // Map load_session to same handler.
 			'import_calculator_preset'       => 'WSSCD_Import_Calculator_Preset_Handler',
 			'product_search'                 => 'WSSCD_Product_Search_Handler',
 			'get_summary'                    => 'WSSCD_Get_Summary_Handler',
 			'check_campaign_name'            => 'WSSCD_Check_Campaign_Name_Handler',
 			'get_product_stats'              => 'WSSCD_Get_Product_Stats_Handler',
-			'recover_session'                => 'WSSCD_Recover_Session_Handler',
 			'health_check'                   => 'WSSCD_Health_Check_Handler',
-			'check_session'                  => 'WSSCD_Check_Session_Handler',
 			'session_status'                 => 'WSSCD_Session_Status_Handler',
-			'check_conflicts'                => 'WSSCD_Check_Conflicts_Handler',
-			'preview_coverage'               => 'WSSCD_Preview_Coverage_Handler',
 			'campaign_health'                => 'WSSCD_Campaign_Health_Handler',
 			'calculate_discount_impact'      => 'WSSCD_Calculate_Discount_Impact_Handler',
-			'sale_items_filter'              => 'WSSCD_Sale_Items_Filter_Handler',
-			'profit_margin_warning'          => 'WSSCD_Profit_Margin_Warning_Handler',
 			'apply_recommendation'           => 'WSSCD_Apply_Recommendation_Handler',
-			'occurrence_preview'             => 'WSSCD_Occurrence_Preview_Handler',
 
 			// Campaign handlers.
-			'get_active_campaigns'           => 'WSSCD_Get_Active_Campaigns_Handler',
 			'campaign_overview'              => 'WSSCD_Campaign_Overview_Handler',
-			'get_campaign_products'          => 'WSSCD_Get_Campaign_Products_Handler',
+			'toggle_campaign_status'         => 'WSSCD_Toggle_Campaign_Status_Handler',
 
 			// Contextual Sidebar handlers.
 			'get_help_topic'                 => 'WSSCD_Sidebar_Ajax_Handler',
 
 			// Debug handlers.
-			'debug_log'                      => 'WSSCD_Ajax_Debug_Log',
 			'log_console'                    => 'WSSCD_Console_Logger_Handler',
 			'write_debug_log'                => 'WSSCD_Debug_Log_Handler',
 			'log_viewer'                     => 'WSSCD_Log_Viewer_Handler',
@@ -418,14 +407,10 @@ class WSSCD_Ajax_Router {
 			'import'                         => 'WSSCD_Import_Handler',
 			'database_maintenance'           => 'WSSCD_Tools_Handler',
 			'cache_management'               => 'WSSCD_Tools_Handler',
-			'clear_cache'                    => 'WSSCD_Clear_Cache_Handler',
 
 			// Draft handlers (consolidated).
 			'complete_wizard'                => 'WSSCD_Draft_Handler',
-			'save_draft'                     => 'WSSCD_Draft_Handler',
 			'delete_draft'                   => 'WSSCD_Draft_Handler',
-			'draft_list'                     => 'WSSCD_Draft_Handler',
-			'draft_preview'                  => 'WSSCD_Draft_Handler',
 
 			// Dashboard handlers.
 			'main_dashboard_data'            => 'WSSCD_Main_Dashboard_Data_Handler',
@@ -455,8 +440,6 @@ class WSSCD_Ajax_Router {
 			'retry_failed_emails'            => 'WSSCD_Retry_Failed_Emails_Handler',
 			'clear_queue'                    => 'WSSCD_Clear_Queue_Handler',
 
-			// License/Debug handlers.
-			'clear_license_cache'            => 'WSSCD_Clear_License_Cache_Handler',
 		);
 	}
 
@@ -757,9 +740,7 @@ class WSSCD_Ajax_Router {
 				}
 			} elseif ( 'WSSCD_Import_Export_Handler' === $handler_class ||
 						'WSSCD_Import_Handler' === $handler_class ||
-						'WSSCD_Tools_Handler' === $handler_class ||
-						'WSSCD_Clear_Cache_Handler' === $handler_class ||
-						'WSSCD_Clear_License_Cache_Handler' === $handler_class ) {
+						'WSSCD_Tools_Handler' === $handler_class ) {
 				// Tools and debug handlers require container and logger.
 				$container = Smart_Cycle_Discounts::get_instance();
 
@@ -802,6 +783,17 @@ class WSSCD_Ajax_Router {
 				$logger = $container::get_service( 'logger' );
 
 				$this->handler_instances[ $action ] = new $handler_class( $dashboard_service, $logger );
+		} elseif ( 'WSSCD_Toggle_Campaign_Status_Handler' === $handler_class ) {
+				$container        = Smart_Cycle_Discounts::get_instance();
+				$campaign_manager = $container::get_service( 'campaign_manager' );
+
+				if ( ! $campaign_manager ) {
+					return null;
+				}
+
+				$logger = $container::get_service( 'logger' );
+
+				$this->handler_instances[ $action ] = new $handler_class( $campaign_manager, $logger );
 		} elseif ( 'WSSCD_Campaign_Overview_Handler' === $handler_class ) {
 			// Campaign overview handler requires campaign repository and panel component.
 			$container = Smart_Cycle_Discounts::get_instance();
@@ -824,40 +816,7 @@ class WSSCD_Ajax_Router {
 			}
 
 			$this->handler_instances[ $action ] = $handler;
-		} elseif ( 'WSSCD_Get_Campaign_Products_Handler' === $handler_class ) {
-			// Get campaign products handler requires campaign repository.
-			$container           = Smart_Cycle_Discounts::get_instance();
-			$campaign_repository = $container::get_service( 'campaign_repository' );
-			$logger              = $container::get_service( 'logger' );
-
-			if ( ! $campaign_repository ) {
-				return null;
-			}
-
-			$this->handler_instances[ $action ] = new $handler_class( $campaign_repository, $logger );
-		} elseif ( 'WSSCD_Get_Active_Campaigns_Handler' === $handler_class ) {
-			// Get Active Campaigns handler requires cache manager.
-			$container     = Smart_Cycle_Discounts::get_instance();
-			$cache_manager = $container::get_service( 'cache_manager' );
-			$logger        = $container::get_service( 'logger' );
-
-			if ( ! $cache_manager ) {
-				return null;
-			}
-
-			$this->handler_instances[ $action ] = new $handler_class( $cache_manager, $logger );
-			} elseif ( 'WSSCD_Occurrence_Preview_Handler' === $handler_class ) {
-				// Occurrence Preview handler requires occurrence cache.
-				$container        = Smart_Cycle_Discounts::get_instance();
-				$occurrence_cache = $container::get_service( 'occurrence_cache' );
-				$logger           = $container::get_service( 'logger' );
-
-				if ( ! $occurrence_cache ) {
-					return null;
-				}
-
-				$this->handler_instances[ $action ] = new $handler_class( $occurrence_cache, $logger );
-			} else {
+		} else {
 				// Default instantiation for handlers without dependencies.
 				try {
 					$this->handler_instances[ $action ] = new $handler_class();

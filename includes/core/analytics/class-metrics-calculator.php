@@ -108,9 +108,6 @@ class WSSCD_Metrics_Calculator {
 		add_action( 'wsscd_campaign_deleted', array( $this, 'clear_cache' ) );
 		add_action( 'wsscd_campaign_status_changed', array( $this, 'clear_cache' ) );
 
-		// Clear cache when analytics data is recorded
-		add_action( 'wsscd_analytics_recorded', array( $this, 'clear_cache' ) );
-
 		// Clear cache when WooCommerce orders complete or are refunded
 		add_action( 'woocommerce_order_status_completed', array( $this, 'clear_cache' ) );
 		add_action( 'woocommerce_order_status_refunded', array( $this, 'clear_cache' ) );

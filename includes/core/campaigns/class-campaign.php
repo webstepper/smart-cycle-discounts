@@ -532,6 +532,57 @@ class WSSCD_Campaign {
 		return in_array( $to_status, $allowed_transitions[ $current_status ], true );
 	}
 
+	/**
+	 * Check if campaign is currently active.
+	 *
+	 * @since    1.0.0
+	 * @return   bool    True if campaign status is active.
+	 */
+	public function is_active(): bool {
+		return 'active' === $this->get_status();
+	}
+
+	/**
+	 * Check if campaign is scheduled for future activation.
+	 *
+	 * @since    1.0.0
+	 * @return   bool    True if campaign status is scheduled.
+	 */
+	public function is_scheduled(): bool {
+		return 'scheduled' === $this->get_status();
+	}
+
+	/**
+	 * Check if campaign has expired.
+	 *
+	 * @since    1.0.0
+	 * @return   bool    True if campaign status is expired.
+	 */
+	public function is_expired(): bool {
+		return 'expired' === $this->get_status();
+	}
+
+	/**
+	 * Calculate days remaining until campaign ends.
+	 *
+	 * @since    1.0.0
+	 * @return   int    Days remaining, 0 if already ended, -1 if no end date.
+	 */
+	public function get_days_remaining(): int {
+		$ends_at = $this->get_ends_at();
+		if ( ! $ends_at ) {
+			return -1;
+		}
+
+		$now = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
+		if ( $ends_at < $now ) {
+			return 0;
+		}
+
+		$diff = $now->diff( $ends_at );
+		return $diff->days;
+	}
+
 	public function get_priority(): int {
 		return $this->priority;
 	}

@@ -1102,55 +1102,6 @@ class WSSCD_Comprehensive_Analytics_Test {
 			is_array( $metrics ),
 			"Empty date range returns array (uses default)"
 		);
-
-		// Test WSSCD_Analytics_Data validation
-		$data = new WSSCD_Analytics_Data();
-
-		// Invalid event type
-		$data->fill( array(
-			'campaign_id' => 1,
-			'event_type'  => 'INVALID_EVENT_TYPE_XYZ',
-		) );
-		$errors = $data->validate();
-		$this->assert(
-			! empty( $errors ),
-			"Invalid event type fails validation"
-		);
-
-		// Missing required campaign_id
-		$data2 = new WSSCD_Analytics_Data();
-		$data2->fill( array( 'event_type' => 'click' ) );
-		$errors2 = $data2->validate();
-		$this->assert(
-			! empty( $errors2 ),
-			"Missing campaign_id fails validation"
-		);
-
-		// Invalid IP address
-		$data3 = new WSSCD_Analytics_Data();
-		$data3->fill( array(
-			'campaign_id' => 1,
-			'event_type'  => 'click',
-			'ip_address'  => 'not.a.valid.ip.address',
-		) );
-		$errors3 = $data3->validate();
-		$this->assert(
-			! empty( $errors3 ),
-			"Invalid IP address fails validation"
-		);
-
-		// Valid data should pass
-		$data4 = new WSSCD_Analytics_Data();
-		$data4->fill( array(
-			'campaign_id' => 1,
-			'event_type'  => 'click',
-			'ip_address'  => '192.168.1.1',
-		) );
-		$errors4 = $data4->validate();
-		$this->assert(
-			empty( $errors4 ),
-			"Valid data passes validation"
-		);
 	}
 
 	/**

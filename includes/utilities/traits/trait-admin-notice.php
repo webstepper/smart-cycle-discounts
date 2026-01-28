@@ -44,28 +44,6 @@ trait WSSCD_Admin_Notice_Trait {
 	private $valid_notice_types = array( 'success', 'error', 'warning', 'info' );
 
 	/**
-	 * Notice queue for batch display.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @var      array    $notice_queue    Queued notices.
-	 */
-	private $notice_queue = array();
-
-	/**
-	 * Show success notice.
-	 *
-	 * @since    1.0.0
-	 * @param    string  $message       Notice message.
-	 * @param    boolean $dismissible   Whether notice is dismissible.
-	 * @param    boolean $persistent    Whether to store in transient.
-	 * @return   void
-	 */
-	protected function show_success_notice( $message, $dismissible = true, $persistent = false ) {
-		$this->add_admin_notice( $message, 'success', $dismissible, $persistent );
-	}
-
-	/**
 	 * Show error notice.
 	 *
 	 * @since    1.0.0
@@ -76,68 +54,6 @@ trait WSSCD_Admin_Notice_Trait {
 	 */
 	protected function show_error_notice( $message, $dismissible = true, $persistent = false ) {
 		$this->add_admin_notice( $message, 'error', $dismissible, $persistent );
-	}
-
-	/**
-	 * Show warning notice.
-	 *
-	 * @since    1.0.0
-	 * @param    string  $message       Notice message.
-	 * @param    boolean $dismissible   Whether notice is dismissible.
-	 * @param    boolean $persistent    Whether to store in transient.
-	 * @return   void
-	 */
-	protected function show_warning_notice( $message, $dismissible = true, $persistent = false ) {
-		$this->add_admin_notice( $message, 'warning', $dismissible, $persistent );
-	}
-
-	/**
-	 * Show info notice.
-	 *
-	 * @since    1.0.0
-	 * @param    string  $message       Notice message.
-	 * @param    boolean $dismissible   Whether notice is dismissible.
-	 * @param    boolean $persistent    Whether to store in transient.
-	 * @return   void
-	 */
-	protected function show_info_notice( $message, $dismissible = true, $persistent = false ) {
-		$this->add_admin_notice( $message, 'info', $dismissible, $persistent );
-	}
-
-	/**
-	 * Add notice to queue for batch display.
-	 *
-	 * @since    1.0.0
-	 * @param    string  $message       Notice message.
-	 * @param    string  $type          Notice type.
-	 * @param    boolean $dismissible   Whether notice is dismissible.
-	 * @return   void
-	 */
-	protected function queue_notice( $message, $type = 'info', $dismissible = true ) {
-		if ( ! in_array( $type, $this->valid_notice_types, true ) ) {
-			$type = 'info';
-		}
-
-		$this->notice_queue[] = array(
-			'message'     => $message,
-			'type'        => $type,
-			'dismissible' => $dismissible,
-			'timestamp'   => time(),
-		);
-	}
-
-	/**
-	 * Display all queued notices.
-	 *
-	 * @since    1.0.0
-	 * @return   void
-	 */
-	protected function display_queued_notices() {
-		if ( empty( $this->notice_queue ) ) {
-			return;
-		}
-
-		add_action( 'admin_notices', array( $this, '_render_queued_notices' ) );
 	}
 
 	/**
@@ -198,19 +114,6 @@ trait WSSCD_Admin_Notice_Trait {
 			);
 		}
 
-		delete_transient( $transient_key );
-	}
-
-	/**
-	 * Clear all persistent notices for user.
-	 *
-	 * @since    1.0.0
-	 * @param    int $user_id    Optional user ID.
-	 * @return   void
-	 */
-	protected function clear_persistent_notices( $user_id = 0 ) {
-		$user_id       = $user_id ?: get_current_user_id();
-		$transient_key = "wsscd_admin_notice_{$user_id}";
 		delete_transient( $transient_key );
 	}
 
@@ -277,25 +180,6 @@ trait WSSCD_Admin_Notice_Trait {
 			$dismissible ? wp_kses( $this->_get_dismiss_button(), $this->_get_allowed_notice_html() ) : ''
 		);
 		
-	}
-
-	/**
-	 * Render all queued notices.
-	 *
-	 * @since    1.0.0
-	 * @access   public
-	 * @return   void
-	 */
-	public function _render_queued_notices() {
-		foreach ( $this->notice_queue as $notice ) {
-			$this->_render_single_notice(
-				$notice['message'],
-				$notice['type'],
-				$notice['dismissible']
-			);
-		}
-
-		$this->notice_queue = array();
 	}
 
 	/**
@@ -368,53 +252,6 @@ trait WSSCD_Admin_Notice_Trait {
 		return current_user_can( 'manage_options' ) ||
 				current_user_can( 'edit_posts' ) ||
 				current_user_can( 'manage_woocommerce' );
-	}
-
-	/**
-	 * Add notice with action buttons.
-	 *
-	 * @since    1.0.0
-	 * @param    string  $message    Notice message.
-	 * @param    array   $actions    Action buttons array.
-	 * @param    string  $type       Notice type.
-	 * @param    boolean $dismissible Whether notice is dismissible.
-	 * @return   void
-	 */
-	protected function show_notice_with_actions( $message, $actions = array(), $type = 'info', $dismissible = true ) {
-		if ( ! $this->can_show_notices() ) {
-			return;
-		}
-
-		$action_html = '';
-		if ( ! empty( $actions ) && is_array( $actions ) ) {
-			$action_buttons = array();
-
-			foreach ( $actions as $action ) {
-				if ( ! isset( $action['text'] ) || ! isset( $action['url'] ) ) {
-					continue;
-				}
-
-				$button_class = isset( $action['primary'] ) && $action['primary'] ?
-					'button button-primary' : 'button button-secondary';
-
-				$target = isset( $action['target'] ) ? 'target="' . esc_attr( $action['target'] ) . '"' : '';
-
-				$action_buttons[] = sprintf(
-					'<a href="%s" class="%s" %s>%s</a>',
-					esc_url( $action['url'] ),
-					esc_attr( $button_class ),
-					$target,
-					esc_html( $action['text'] )
-				);
-			}
-
-			if ( ! empty( $action_buttons ) ) {
-				$action_html = '<p>' . implode( ' ', $action_buttons ) . '</p>';
-			}
-		}
-
-		$full_message = $message . $action_html;
-		$this->add_admin_notice( $full_message, $type, $dismissible );
 	}
 
 	/**

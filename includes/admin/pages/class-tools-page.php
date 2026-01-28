@@ -336,7 +336,7 @@ class WSSCD_Tools_Page {
 				<?php esc_html_e( 'Cache Management', 'smart-cycle-discounts' ); ?>
 			</h2>
 			<p class="description">
-				<?php esc_html_e( 'Clear and rebuild all cached data including object cache, transients, and campaign data.', 'smart-cycle-discounts' ); ?>
+				<?php esc_html_e( 'Clear all cached data including object cache, transients, and campaign data.', 'smart-cycle-discounts' ); ?>
 			</p>
 
 			<table class="form-table" role="presentation">
@@ -361,14 +361,14 @@ class WSSCD_Tools_Page {
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Clear & Rebuild Cache', 'smart-cycle-discounts' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Clear Cache', 'smart-cycle-discounts' ); ?></th>
 						<td>
 							<p class="description">
-								<?php esc_html_e( 'Clears all cached data and rebuilds the cache with fresh campaign data for optimal performance.', 'smart-cycle-discounts' ); ?>
+								<?php esc_html_e( 'Clears all cached data. Fresh data will be loaded automatically on next page visit.', 'smart-cycle-discounts' ); ?>
 							</p>
 							<?php
 							WSSCD_Button_Helper::primary(
-								__( 'Clear & Rebuild Cache', 'smart-cycle-discounts' ),
+								__( 'Clear Cache', 'smart-cycle-discounts' ),
 								array(
 									'type'    => 'button',
 									'icon'    => 'update',

@@ -520,6 +520,10 @@ trait WSSCD_Wizard_Helpers {
 			case 'fixed':
 				return max( 0, $price - $discount_value );
 
+			case 'spend_threshold':
+				// Threshold discounts depend on cart total, not individual product price.
+				return $price;
+
 			default:
 				return $price;
 		}
