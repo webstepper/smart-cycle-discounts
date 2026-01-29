@@ -36,59 +36,31 @@ class WSSCD_Feature_Gate {
 	 * @var      array    $features    Feature access definitions.
 	 */
 	private $features = array(
-		// Dashboard features
-		'dashboard_advanced_stats'           => 'pro',
-		'dashboard_custom_date_range'        => 'pro',
-		'dashboard_export'                   => 'pro',
-
-		// Analytics features
-		'analytics_page'                     => 'pro',
-		'analytics_detailed_metrics'         => 'pro',
-		'analytics_traffic_breakdown'        => 'pro',
-		'analytics_device_breakdown'         => 'pro',
-		'analytics_geographic_data'          => 'pro',
-		'analytics_funnel_analysis'          => 'pro',
-
-		// Campaign features
-		'campaigns_unlimited'                => 'free',
+		// Campaign features (USED)
 		'campaigns_advanced_product_filters' => 'pro',
 		'campaigns_recurring'                => 'free',
 
-		// Discount configurations (usage limits, application rules, combination policy)
+		// Discount configurations (USED - usage limits, application rules, combination policy)
 		'discount_configurations'            => 'pro',
 
-		// Discount types
+		// Discount types (USED via can_use_discount_type)
 		'discount_type_tiered'               => 'pro',
 		'discount_type_bogo'                 => 'pro',
 		'discount_type_spend_threshold'      => 'pro',
 
-		// Email notification types (FREE = reactive, PRO = proactive)
-		'notification_campaign_started'      => 'free',      // Reactive: after start
-		'notification_campaign_ending'       => 'pro',        // Proactive: 24h warning
-		'notification_campaign_ended'        => 'free',        // Reactive: after end
-		'notification_daily_report'          => 'pro',           // Proactive: daily insights
-		'notification_weekly_report'         => 'pro',          // Proactive: weekly insights
-		'notification_performance_alert'     => 'pro',      // Proactive: smart alerts
-		'notification_low_stock_alert'       => 'pro',        // Proactive: stock warnings
-		'notification_milestone_alert'       => 'pro',        // Proactive: achievement notifications
+		// Email notification types (USED via can_send_notification)
+		// FREE = reactive (after event), PRO = proactive (before event / insights)
+		'notification_campaign_started'      => 'free',
+		'notification_campaign_ending'       => 'pro',
+		'notification_campaign_ended'        => 'free',
+		'notification_daily_report'          => 'pro',
+		'notification_weekly_report'         => 'pro',
+		'notification_performance_alert'     => 'pro',
+		'notification_low_stock_alert'       => 'pro',
+		'notification_milestone_alert'       => 'pro',
 
-		// Email providers (all FREE)
-		'email_provider_wpmail'              => 'free',
-		'email_provider_sendgrid'            => 'free',
-		'email_provider_amazonses'           => 'free',
-
-		// Export features
+		// Export features (USED via can_export_data)
 		'export_csv'                         => 'pro',
-		'export_json'                        => 'pro',
-		'export_scheduled_reports'           => 'pro',
-
-		// Advanced features
-		'priority_support'                   => 'pro',
-
-		// API access (read = free, write = pro)
-		'api_read'                           => 'free',
-		'api_write'                          => 'pro',
-		'api_bulk_operations'                => 'pro',
 	);
 
 	/**
@@ -197,16 +169,6 @@ class WSSCD_Feature_Gate {
 	}
 
 	/**
-	 * Check if user can access analytics page.
-	 *
-	 * @since    1.0.0
-	 * @return   bool    True if user can access analytics.
-	 */
-	public function can_access_analytics() {
-		return $this->can_use_feature( 'analytics_page' );
-	}
-
-	/**
 	 * Check if user can export data.
 	 *
 	 * @since    1.0.0
@@ -247,16 +209,6 @@ class WSSCD_Feature_Gate {
 	 */
 	public function can_use_discount_configurations() {
 		return $this->can_use_feature( 'discount_configurations' );
-	}
-
-	/**
-	 * Check if user can use custom date ranges.
-	 *
-	 * @since    1.0.0
-	 * @return   bool    True if user can use custom date ranges.
-	 */
-	public function can_use_custom_date_ranges() {
-		return $this->can_use_feature( 'dashboard_custom_date_range' );
 	}
 
 	/**
@@ -449,39 +401,4 @@ class WSSCD_Feature_Gate {
 		return in_array( $notification_type, $this->get_pro_notifications(), true );
 	}
 
-	/**
-	 * Check if user can access API read endpoints.
-	 *
-	 * Read endpoints are free for all users.
-	 *
-	 * @since    1.0.0
-	 * @return   bool    True if user can access API read endpoints.
-	 */
-	public function can_use_api_read() {
-		return $this->can_use_feature( 'api_read' );
-	}
-
-	/**
-	 * Check if user can access API write endpoints.
-	 *
-	 * Write endpoints (create, update, delete) require premium.
-	 *
-	 * @since    1.0.0
-	 * @return   bool    True if user can access API write endpoints.
-	 */
-	public function can_use_api_write() {
-		return $this->can_use_feature( 'api_write' );
-	}
-
-	/**
-	 * Check if user can access API bulk operations.
-	 *
-	 * Bulk operations require premium.
-	 *
-	 * @since    1.0.0
-	 * @return   bool    True if user can access API bulk operations.
-	 */
-	public function can_use_api_bulk() {
-		return $this->can_use_feature( 'api_bulk_operations' );
-	}
 }

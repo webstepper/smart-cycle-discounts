@@ -71,6 +71,12 @@ Smart Cycle Discounts solves every one of these problems with campaign-based dis
 * Draft mode to prepare campaigns days or weeks in advance
 * Full timezone support so your sale starts when your customers expect it
 
+**Free shipping campaigns:**
+
+* Enable free shipping for any discount campaign with a single toggle
+* Apply to all shipping methods or select specific methods
+* Stack free shipping with any discount type for powerful promotions
+
 **Campaign health monitoring:**
 
 * Real-time validation catches mistakes before discounts go live
@@ -130,6 +136,8 @@ Proven to increase average order value by 20-45%. Customers add more to their ca
 * Performance analytics and revenue tracking
 * Email notifications when campaigns start, end, or hit milestones
 * CSV and JSON export for reporting
+* Application rules: minimum quantity, minimum order value, exclude sale items
+* Combination policies: control how discounts stack with WooCommerce coupons
 
 [Upgrade to Pro](https://webstepper.io/wordpress/plugins/smart-cycle-discounts/#pricing)
 
@@ -149,6 +157,9 @@ Use: Specific products + 30% off + End time 4 hours from now. Create urgency wit
 
 **"Clear out slow-moving inventory before new stock arrives"**
 Use: Auto-select Low Stock items + 40% off (Pro). The plugin identifies products with fewer than 10 units in stock and automatically discounts them. Set it and forget it.
+
+**"Spend $50, get 10% off + free shipping"**
+Use: Spend threshold (Pro) + Free Shipping toggle. Combine a minimum spend discount with free shipping to reduce cart abandonment and increase average order value. Customers see the discount and shipping savings at checkout.
 
 **"I run a wholesale store and need quantity-based pricing"**
 Use: Tiered Quantity Discounts (Pro). Create volume breaks that reward larger orders. Perfect for B2B WooCommerce stores, distributors, and any business selling in bulk.
@@ -349,6 +360,10 @@ Yes. Smart Cycle Discounts fully supports WooCommerce variable products. When yo
 
 Yes. The plugin respects existing sale prices. If a product already has a manual sale price set in WooCommerce, you can configure your campaign to skip those products or override them based on your preference.
 
+= Can I offer free shipping with discount campaigns? =
+
+Yes. Enable free shipping for any campaign with a single toggle in the Discounts step. When enabled, customers receive free shipping on qualifying orders. You can apply free shipping to all shipping methods or select specific methods like flat rate or local pickup. This is included in the free version.
+
 = Does it work alongside WooCommerce coupons? =
 
 Yes. Campaign discounts and WooCommerce coupons work independently. Campaign discounts apply to product prices (shown as sale prices), while coupons apply at checkout. Customers can use both together unless you configure specific restrictions.
@@ -372,6 +387,14 @@ The free version supports percentage discounts and fixed amount discounts on any
 = Is there a limit on how many products I can discount? =
 
 No. You can apply discounts to your entire product catalog or select specific products. The plugin is optimized with efficient database queries and caching to handle stores with thousands of products without performance issues.
+
+= Can I set minimum order requirements for discounts? =
+
+Yes (Pro). Application rules let you fine-tune when discounts apply. Set minimum quantity requirements (e.g., "discount only applies when buying 3+ items"), minimum order value thresholds, and choose whether to exclude products already on sale. These rules give you precise control over discount eligibility.
+
+= How do I control discount stacking with coupons? =
+
+Pro users can configure combination policies for each campaign. Choose whether your campaign discount can be combined with WooCommerce coupon codes or if it should be mutually exclusive. This prevents over-discounting and protects your margins when running multiple promotions.
 
 == Screenshots ==
 
