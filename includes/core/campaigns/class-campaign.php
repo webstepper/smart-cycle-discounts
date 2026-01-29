@@ -337,6 +337,16 @@ class WSSCD_Campaign {
 	private array $discount_rules = array();
 
 	/**
+	 * Free shipping configuration.
+	 *
+	 * Structure: {enabled: bool, methods: "all"|array}
+	 *
+	 * @since    1.2.0
+	 * @var      array    $free_shipping_config    Free shipping configuration.
+	 */
+	private array $free_shipping_config = array();
+
+	/**
 	 * Badge enabled flag.
 	 *
 	 * @since    1.0.0
@@ -865,6 +875,47 @@ class WSSCD_Campaign {
 	}
 
 	/**
+	 * Get free shipping configuration.
+	 *
+	 * @since    1.2.0
+	 * @return   array    Free shipping configuration.
+	 */
+	public function get_free_shipping_config(): array {
+		return $this->free_shipping_config;
+	}
+
+	/**
+	 * Set free shipping configuration.
+	 *
+	 * @since    1.2.0
+	 * @param    array $config    Free shipping configuration.
+	 * @return   void
+	 */
+	public function set_free_shipping_config( array $config ): void {
+		$this->free_shipping_config = $config;
+	}
+
+	/**
+	 * Check if free shipping is enabled.
+	 *
+	 * @since    1.2.0
+	 * @return   bool    True if free shipping is enabled.
+	 */
+	public function is_free_shipping_enabled(): bool {
+		return ! empty( $this->free_shipping_config['enabled'] );
+	}
+
+	/**
+	 * Get free shipping methods.
+	 *
+	 * @since    1.2.0
+	 * @return   string|array    "all" or array of method IDs.
+	 */
+	public function get_free_shipping_methods() {
+		return $this->free_shipping_config['methods'] ?? 'all';
+	}
+
+	/**
 	 * Check if badge is enabled.
 	 *
 	 * @since    1.0.0
@@ -1066,6 +1117,7 @@ class WSSCD_Campaign {
 			'discount_type'          => $this->discount_type,
 			'discount_value'         => $this->discount_value,
 			'discount_rules'         => $this->discount_rules,
+			'free_shipping_config'   => $this->free_shipping_config,
 			'created_at'             => $this->created_at->format( 'Y-m-d H:i:s' ),
 			'updated_at'             => $this->updated_at->format( 'Y-m-d H:i:s' ),
 			'version'                => $this->version,

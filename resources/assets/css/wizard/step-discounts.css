@@ -1833,7 +1833,7 @@
     text-align: center;
     color: var(--wsscd-color-primary-light);
     font-style: italic;
-    padding: calc(var(--wsscd-spacing-xxl) + var(--wsscd-spacing-sm) var(--wsscd-spacing-lg);
+    padding: calc(var(--wsscd-spacing-xxl) + var(--wsscd-spacing-sm)) var(--wsscd-spacing-lg);
     border: var(--wsscd-border-width-thick) dashed var(--wsscd-color-border-light);
     border-radius: var(--wsscd-radius-xl);
     background: var(--wsscd-color-surface);
@@ -1906,5 +1906,272 @@
  */
 .wsscd-conditional-rule {
 	transition: opacity var(--wsscd-transition-base) ease-in;
+}
+
+/* =============================================================================
+   Free Shipping Section
+   ============================================================================= */
+
+/**
+ * Free Shipping Enable Section
+ */
+.wsscd-free-shipping-enable-section {
+	padding: var(--wsscd-padding-compact);
+}
+
+.wsscd-free-shipping-enable-row {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--wsscd-spacing-md);
+}
+
+.wsscd-free-shipping-enable-text {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wsscd-spacing-xs);
+}
+
+.wsscd-free-shipping-enable-title {
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+	cursor: pointer;
+}
+
+.wsscd-free-shipping-enable-description {
+	font-size: var(--wsscd-font-size-sm);
+	color: var(--wsscd-color-text-muted);
+	line-height: 1.4;
+}
+
+/**
+ * Free Shipping Configuration Wrapper
+ */
+.wsscd-free-shipping-config-wrapper {
+	margin-top: var(--wsscd-spacing-lg);
+	padding-top: var(--wsscd-spacing-lg);
+	border-top: 1px solid var(--wsscd-color-border-light);
+}
+
+.wsscd-free-shipping-config-wrapper.wsscd-hidden {
+	display: none;
+}
+
+/**
+ * Free Shipping Section Title
+ */
+.wsscd-free-shipping-section-title {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-sm);
+	font-size: var(--wsscd-font-size-sm);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+	margin-bottom: var(--wsscd-spacing-md);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.wsscd-free-shipping-section-title .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	color: var(--wp-admin-theme-color);
+}
+
+/**
+ * Free Shipping Method Selector (Radio Buttons)
+ */
+.wsscd-free-shipping-method-selector {
+	display: flex;
+	gap: var(--wsscd-spacing-md);
+	margin-bottom: var(--wsscd-spacing-lg);
+}
+
+.wsscd-free-shipping-method-option {
+	flex: 1;
+	cursor: pointer;
+}
+
+.wsscd-free-shipping-method-option input[type="radio"] {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.wsscd-free-shipping-method-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--wsscd-spacing-sm);
+	padding: var(--wsscd-spacing-lg) var(--wsscd-spacing-xl);
+	background: var(--wsscd-color-surface);
+	border: 2px solid var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-lg);
+	text-align: center;
+	transition: all var(--wsscd-transition-base) ease;
+	box-shadow: var(--wsscd-shadow-sm);
+}
+
+.wsscd-free-shipping-method-card:hover {
+	border-color: var(--wp-admin-theme-color);
+	background: var(--wsscd-color-background);
+	box-shadow: var(--wsscd-shadow-md);
+}
+
+.wsscd-free-shipping-method-option input[type="radio"]:checked + .wsscd-free-shipping-method-card {
+	border-color: var(--wp-admin-theme-color);
+	background: var(--wsscd-color-white);
+	box-shadow: 0 0 0 2px var(--wp-admin-theme-color), var(--wsscd-shadow-md);
+}
+
+.wsscd-free-shipping-method-option input[type="radio"]:focus + .wsscd-free-shipping-method-card {
+	outline: 2px solid var(--wp-admin-theme-color);
+	outline-offset: 2px;
+}
+
+.wsscd-free-shipping-method-card .dashicons {
+	font-size: 24px;
+	width: 24px;
+	height: 24px;
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-free-shipping-method-option input[type="radio"]:checked + .wsscd-free-shipping-method-card .dashicons {
+	color: var(--wp-admin-theme-color);
+}
+
+.wsscd-free-shipping-method-card strong {
+	font-size: var(--wsscd-font-size-sm);
+	color: var(--wsscd-color-text);
+	font-weight: var(--wsscd-font-weight-semibold);
+}
+
+.wsscd-free-shipping-method-card .wsscd-method-description {
+	font-size: var(--wsscd-font-size-xs);
+	color: var(--wsscd-color-text-muted);
+	line-height: 1.4;
+}
+
+/**
+ * Shipping Methods List (Checkboxes)
+ */
+#wsscd-shipping-methods-list {
+	margin-top: var(--wsscd-spacing-md);
+	padding: var(--wsscd-spacing-md);
+	background: var(--wsscd-color-surface);
+	border: 1px solid var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-md);
+}
+
+#wsscd-shipping-methods-list.wsscd-hidden {
+	display: none;
+}
+
+.wsscd-shipping-methods-loading {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-sm);
+	padding: var(--wsscd-spacing-md);
+	color: var(--wsscd-color-text-muted);
+	font-size: var(--wsscd-font-size-sm);
+}
+
+.wsscd-shipping-methods-loading .spinner {
+	float: none;
+	margin: 0;
+}
+
+.wsscd-shipping-methods-checkboxes {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wsscd-spacing-xs);
+}
+
+.wsscd-shipping-method-item {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-sm);
+	padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-md);
+	border-radius: var(--wsscd-radius-sm);
+	cursor: pointer;
+	transition: background var(--wsscd-transition-base) ease;
+	border: 1px solid transparent;
+}
+
+.wsscd-shipping-method-item:hover {
+	background: var(--wsscd-color-background);
+	border-color: var(--wsscd-color-border-light);
+}
+
+.wsscd-shipping-method-item input[type="checkbox"] {
+	margin: 0;
+	flex-shrink: 0;
+	accent-color: var(--wp-admin-theme-color);
+}
+
+.wsscd-shipping-method-label {
+	font-size: var(--wsscd-font-size-sm);
+	color: var(--wsscd-color-text);
+}
+
+.wsscd-no-methods,
+.wsscd-error,
+.wsscd-shipping-methods-empty {
+	padding: var(--wsscd-spacing-lg);
+	text-align: center;
+	color: var(--wsscd-color-text-muted);
+	font-size: var(--wsscd-font-size-sm);
+}
+
+.wsscd-error,
+.wsscd-shipping-methods-error {
+	color: var(--wsscd-color-danger);
+	padding: var(--wsscd-spacing-lg);
+	text-align: center;
+	font-size: var(--wsscd-font-size-sm);
+}
+
+/**
+ * Free Shipping Note
+ */
+.wsscd-free-shipping-note {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--wsscd-spacing-sm);
+	margin-top: var(--wsscd-spacing-lg);
+	padding: var(--wsscd-spacing-md);
+	background: var(--wsscd-color-surface);
+	border: 1px solid var(--wsscd-color-border-light);
+	border-left: 3px solid var(--wp-admin-theme-color);
+	border-radius: var(--wsscd-radius-md);
+	font-size: var(--wsscd-font-size-sm);
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-free-shipping-note.wsscd-hidden {
+	display: none;
+}
+
+.wsscd-free-shipping-note .dashicons {
+	flex-shrink: 0;
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	color: var(--wp-admin-theme-color);
+}
+
+/**
+ * Responsive Adjustments for Free Shipping
+ */
+@media (max-width: 782px) {
+	.wsscd-free-shipping-method-selector {
+		flex-direction: column;
+	}
+
+	.wsscd-free-shipping-method-card {
+		padding: var(--wsscd-spacing-md) var(--wsscd-spacing-lg);
+	}
 }
 

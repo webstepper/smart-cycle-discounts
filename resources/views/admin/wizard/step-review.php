@@ -172,6 +172,56 @@ wsscd_wizard_card(
 		'help_topic' => 'card-impact-analysis',
 	)
 );
+
+// Configuration Summary Card
+ob_start();
+?>
+<div class="wsscd-config-summary" id="wsscd-config-summary">
+	<div class="wsscd-config-summary-loading">
+		<span class="spinner is-active"></span>
+		<span><?php esc_html_e( 'Loading configuration...', 'smart-cycle-discounts' ); ?></span>
+	</div>
+	<div class="wsscd-config-summary-content" style="display: none;">
+		<div class="wsscd-config-summary-grid">
+			<!-- Discount Type -->
+			<div class="wsscd-config-summary-item">
+				<div class="wsscd-config-summary-label"><?php esc_html_e( 'Discount Type', 'smart-cycle-discounts' ); ?></div>
+				<div class="wsscd-config-summary-value" data-config="discount_type">--</div>
+			</div>
+			<!-- Products -->
+			<div class="wsscd-config-summary-item">
+				<div class="wsscd-config-summary-label"><?php esc_html_e( 'Products', 'smart-cycle-discounts' ); ?></div>
+				<div class="wsscd-config-summary-value" data-config="products">--</div>
+			</div>
+			<!-- Schedule -->
+			<div class="wsscd-config-summary-item">
+				<div class="wsscd-config-summary-label"><?php esc_html_e( 'Schedule', 'smart-cycle-discounts' ); ?></div>
+				<div class="wsscd-config-summary-value" data-config="schedule">--</div>
+			</div>
+			<!-- Free Shipping -->
+			<div class="wsscd-config-summary-item wsscd-config-free-shipping" data-has-free-shipping="false">
+				<div class="wsscd-config-summary-label"><?php esc_html_e( 'Free Shipping', 'smart-cycle-discounts' ); ?></div>
+				<div class="wsscd-config-summary-value" data-config="free_shipping">
+					<span class="wsscd-config-disabled"><?php esc_html_e( 'Not enabled', 'smart-cycle-discounts' ); ?></span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<?php
+$config_summary_content = ob_get_clean();
+
+wsscd_wizard_card(
+	array(
+		'title'      => __( 'Configuration Summary', 'smart-cycle-discounts' ),
+		'subtitle'   => __( 'Overview of your campaign settings', 'smart-cycle-discounts' ),
+		'icon'       => 'saved',
+		'content'    => $config_summary_content,
+		'class'      => 'wsscd-config-summary-card',
+		'id'         => 'wsscd-config-summary-card',
+		'help_topic' => 'card-config-summary',
+	)
+);
 ?>
 
 </div><!-- #wsscd-health-container -->

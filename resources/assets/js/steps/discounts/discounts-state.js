@@ -65,6 +65,12 @@
 			badgeTextColor: '#ffffff',
 			badgePosition: 'top-right',
 
+			// Free Shipping
+			freeShippingConfig: {
+				enabled: false,
+				methods: 'all'
+			},
+
 			// UI state
 			activePanel: 'basic',
 			isLoading: false,
@@ -370,6 +376,10 @@
 				badgeBgColor: '#ff0000',
 				badgeTextColor: '#ffffff',
 				badgePosition: 'top-right',
+				freeShippingConfig: {
+					enabled: false,
+					methods: 'all'
+				},
 				activePanel: 'basic',
 				isLoading: false,
 				isSaving: false,
@@ -425,7 +435,9 @@
 				badgeText: state.badgeText,
 				badgeBgColor: state.badgeBgColor,
 				badgeTextColor: state.badgeTextColor,
-				badgePosition: state.badgePosition
+				badgePosition: state.badgePosition,
+				// Free Shipping
+				freeShippingConfig: state.freeShippingConfig || { enabled: false, methods: 'all' }
 			};
 
 			switch ( state.discountType ) {
@@ -601,6 +613,11 @@
 			if ( data.badgeBgColor ) {updates.badgeBgColor = data.badgeBgColor;}
 			if ( data.badgeTextColor ) {updates.badgeTextColor = data.badgeTextColor;}
 			if ( data.badgePosition ) {updates.badgePosition = data.badgePosition;}
+
+			// Free Shipping
+			if ( data.freeShippingConfig ) {
+				updates.freeShippingConfig = data.freeShippingConfig;
+			}
 
 			// Apply all updates
 			this.setState( updates );

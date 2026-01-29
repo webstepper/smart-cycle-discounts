@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: woocommerce discount, dynamic pricing, bulk discount, scheduled sale, sale price
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.1.9
+Stable tag: 1.2.0
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -389,6 +389,12 @@ No. You can apply discounts to your entire product catalog or select specific pr
 
 == Changelog ==
 
+= 1.2.0 =
+* New: Free shipping badge now visible in campaigns list table
+* New: Free shipping status displayed in campaign overview panel with shipping method details
+* New: Configuration summary card in wizard review step shows free shipping status
+* Improvement: Badge helper now includes reusable free_shipping_badge() method for consistent UI
+
 = 1.1.9 =
 * Fix: Dashboard pause/resume buttons now functional with dedicated AJAX handler and security registration
 * Fix: Dashboard campaign list not updating after campaign changes — added dashboard cache invalidation to cache manager
@@ -483,6 +489,9 @@ No. You can apply discounts to your entire product catalog or select specific pr
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.2.0 =
+Free shipping visibility now integrated across admin areas - campaigns list, overview panel, and wizard review step all display free shipping status.
 
 = 1.1.9 =
 Fixes dashboard campaign list caching, cache invalidation on expired cleanup, pause/resume controls, spend threshold display, and 6 missing event triggers. Removes dead cache warming code and reduces plugin footprint. Recommended update.

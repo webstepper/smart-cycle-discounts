@@ -151,6 +151,7 @@ class WSSCD_Autoloader {
 		'WSSCD_WC_Admin_Integration'         => 'integrations/woocommerce/class-wc-admin-integration.php',
 		'WSSCD_WC_Order_Integration'         => 'integrations/woocommerce/class-wc-order-integration.php',
 		'WSSCD_WC_Coupon_Restriction'        => 'integrations/woocommerce/class-wc-coupon-restriction.php',
+		'WSSCD_WC_Free_Shipping_Handler'     => 'integrations/woocommerce/class-wc-free-shipping-handler.php',
 
 		'WSSCD_Blocks_Manager'               => 'integrations/blocks/class-blocks-manager.php',
 		'WSSCD_Email_Manager'                => 'integrations/email/class-email-manager.php',
@@ -198,6 +199,7 @@ class WSSCD_Autoloader {
 		'WSSCD_Get_Summary_Handler'          => 'admin/ajax/handlers/class-get-summary-handler.php',
 		'WSSCD_Check_Campaign_Name_Handler'  => 'admin/ajax/handlers/class-check-campaign-name-handler.php',
 		'WSSCD_Get_Product_Stats_Handler'    => 'admin/ajax/handlers/class-get-product-stats-handler.php',
+		'WSSCD_Get_Shipping_Methods_Handler' => 'admin/ajax/handlers/class-get-shipping-methods-handler.php',
 		'WSSCD_Health_Check_Handler'         => 'admin/ajax/handlers/class-health-check-handler.php',
 		'WSSCD_Campaign_Health_Handler'      => 'admin/ajax/handlers/class-campaign-health-handler.php',
 		'WSSCD_Preview_Coverage_Handler'     => 'admin/ajax/handlers/class-preview-coverage-handler.php',

@@ -67,9 +67,25 @@ $wsscd_min_order_amount = isset( $data['min_order_amount'] ) ? floatval( $data['
 $wsscd_min_quantity     = isset( $data['min_quantity'] ) ? absint( $data['min_quantity'] ) : null;
 
 // Restrictions
-$wsscd_exclude_sale_items = isset( $data['exclude_sale_items'] ) ? $data['exclude_sale_items'] : false;
-$wsscd_individual_use     = isset( $data['individual_use'] ) ? $data['individual_use'] : false;
-$wsscd_free_shipping      = isset( $data['free_shipping'] ) ? $data['free_shipping'] : false;
+$wsscd_exclude_sale_items    = isset( $data['exclude_sale_items'] ) ? $data['exclude_sale_items'] : false;
+$wsscd_individual_use        = isset( $data['individual_use'] ) ? $data['individual_use'] : false;
+$wsscd_free_shipping         = isset( $data['free_shipping'] ) ? $data['free_shipping'] : false;
+$wsscd_free_shipping_methods = isset( $data['free_shipping_methods'] ) ? $data['free_shipping_methods'] : 'all';
+
+// Format free shipping methods info
+$wsscd_free_shipping_info = '';
+if ( $wsscd_free_shipping ) {
+	if ( 'all' === $wsscd_free_shipping_methods ) {
+		$wsscd_free_shipping_info = __( 'All shipping methods', 'smart-cycle-discounts' );
+	} elseif ( is_array( $wsscd_free_shipping_methods ) ) {
+		$count = count( $wsscd_free_shipping_methods );
+		$wsscd_free_shipping_info = sprintf(
+			/* translators: %d: number of selected shipping methods */
+			_n( '%d selected method', '%d selected methods', $count, 'smart-cycle-discounts' ),
+			$count
+		);
+	}
+}
 ?>
 
 <div class="wsscd-overview-subsection">
@@ -253,9 +269,14 @@ $wsscd_free_shipping      = isset( $data['free_shipping'] ) ? $data['free_shippi
 					</li>
 				<?php endif; ?>
 				<?php if ( $wsscd_free_shipping ) : ?>
-					<li>
+					<li class="wsscd-free-shipping-item">
 						<?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 14 ) ); ?>
-						<?php esc_html_e( 'Free shipping', 'smart-cycle-discounts' ); ?>
+						<span>
+							<?php esc_html_e( 'Free shipping', 'smart-cycle-discounts' ); ?>
+							<?php if ( ! empty( $wsscd_free_shipping_info ) ) : ?>
+								<span class="wsscd-free-shipping-detail">(<?php echo esc_html( $wsscd_free_shipping_info ); ?>)</span>
+							<?php endif; ?>
+						</span>
 					</li>
 				<?php endif; ?>
 			</ul>

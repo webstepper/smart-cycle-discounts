@@ -564,6 +564,27 @@
 	text-overflow: ellipsis;
 }
 
+/* Free Shipping Badge */
+.wsscd-free-shipping-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-xxs);
+	padding: var(--wsscd-spacing-xxs) var(--wsscd-spacing-sm);
+	margin-left: var(--wsscd-spacing-xs);
+	background: var(--wsscd-color-success-lighter);
+	color: var(--wsscd-color-success-dark);
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-medium);
+	border-radius: var(--wsscd-radius-sm);
+	white-space: nowrap;
+	vertical-align: middle;
+}
+
+.wsscd-free-shipping-badge::before {
+	content: "🚚";
+	font-size: 12px;
+}
+
 /* Keep description visible even without hover */
 .toplevel_page_wsscd-campaigns .wp-list-table .column-name .description,
 .wp-list-table.campaigns .column-name .description {

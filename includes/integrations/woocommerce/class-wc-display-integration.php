@@ -137,17 +137,17 @@ class WSSCD_WC_Display_Integration {
 			return $html;
 		}
 
-		// Get badge HTML
+		// Get discount badge HTML.
 		$badge_html = $this->get_badge_for_context( $product, 'single-image' );
 
 		if ( empty( $badge_html ) ) {
 			return $html;
 		}
 
-		// Mark as injected so we don't add to subsequent gallery images
+		// Mark as injected so we don't add to subsequent gallery images.
 		$this->badge_injected_into_gallery = true;
 
-		// Wrap the image and badge in a positioned container
+		// Wrap the image and badge in a positioned container.
 		return '<div class="wsscd-gallery-image-wrapper" style="position: relative;">' . $html . $badge_html . '</div>';
 	}
 

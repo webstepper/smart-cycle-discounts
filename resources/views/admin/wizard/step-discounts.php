@@ -974,6 +974,107 @@ ob_start();
         ));
         ?>
 
+        <!-- Free Shipping Configuration -->
+        <?php
+        // Get free shipping config from step data
+        $free_shipping_config = $step_data['free_shipping_config'] ?? array();
+        $free_shipping_enabled = ! empty( $free_shipping_config['enabled'] );
+        $free_shipping_methods = $free_shipping_config['methods'] ?? 'all';
+
+        ob_start();
+        ?>
+            <!-- Enable Free Shipping Toggle -->
+            <div class="wsscd-free-shipping-enable-section">
+                <div class="wsscd-free-shipping-enable-row">
+                    <label class="wsscd-toggle" for="free_shipping_enabled">
+                        <input type="checkbox"
+                               id="free_shipping_enabled"
+                               name="free_shipping_enabled"
+                               value="1"
+                               <?php checked( $free_shipping_enabled ); ?>>
+                        <span class="wsscd-toggle-slider"></span>
+                    </label>
+                    <div class="wsscd-free-shipping-enable-text">
+                        <label for="free_shipping_enabled" class="wsscd-free-shipping-enable-title"><?php esc_html_e( 'Include Free Shipping', 'smart-cycle-discounts' ); ?></label>
+                        <span class="wsscd-free-shipping-enable-description"><?php esc_html_e( 'Customers get free shipping when their cart contains products from this campaign.', 'smart-cycle-discounts' ); ?></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipping Methods Selection (shown when enabled) -->
+            <div class="wsscd-free-shipping-config-wrapper wsscd-free-shipping-setting<?php echo ! $free_shipping_enabled ? ' wsscd-hidden' : ''; ?>" data-depends-on="free_shipping_enabled">
+                <div class="wsscd-free-shipping-methods-section">
+                    <h4 class="wsscd-free-shipping-section-title">
+                        <?php WSSCD_Icon_Helper::render( 'admin-settings', array( 'size' => 16 ) ); ?>
+                        <?php esc_html_e( 'Apply To', 'smart-cycle-discounts' ); ?>
+                    </h4>
+
+                    <div class="wsscd-free-shipping-method-selector">
+                        <label class="wsscd-free-shipping-method-option">
+                            <input type="radio"
+                                   name="free_shipping_method_type"
+                                   value="all"
+                                   <?php checked( 'all' === $free_shipping_methods || ! is_array( $free_shipping_methods ) ); ?>>
+                            <span class="wsscd-free-shipping-method-card">
+                                <?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 20 ) ); ?>
+                                <strong><?php esc_html_e( 'All Shipping Methods', 'smart-cycle-discounts' ); ?></strong>
+                                <small class="wsscd-method-description">
+                                    <?php esc_html_e( 'Make all shipping options free.', 'smart-cycle-discounts' ); ?>
+                                </small>
+                            </span>
+                        </label>
+                        <label class="wsscd-free-shipping-method-option">
+                            <input type="radio"
+                                   name="free_shipping_method_type"
+                                   value="selected"
+                                   <?php checked( is_array( $free_shipping_methods ) ); ?>>
+                            <span class="wsscd-free-shipping-method-card">
+                                <?php WSSCD_Icon_Helper::render( 'list-view', array( 'size' => 20 ) ); ?>
+                                <strong><?php esc_html_e( 'Selected Methods Only', 'smart-cycle-discounts' ); ?></strong>
+                                <small class="wsscd-method-description">
+                                    <?php esc_html_e( 'Choose which shipping methods become free.', 'smart-cycle-discounts' ); ?>
+                                </small>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Specific Methods Selection -->
+                    <div class="wsscd-shipping-methods-list<?php echo 'all' === $free_shipping_methods || ! is_array( $free_shipping_methods ) ? ' wsscd-hidden' : ''; ?>" id="wsscd-shipping-methods-list">
+                        <div class="wsscd-shipping-methods-loading">
+                            <span class="spinner is-active"></span>
+                            <?php esc_html_e( 'Loading shipping methods...', 'smart-cycle-discounts' ); ?>
+                        </div>
+                        <div class="wsscd-shipping-methods-checkboxes">
+                            <!-- Populated via JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Hidden input to store selected methods -->
+                    <input type="hidden"
+                           id="free_shipping_methods"
+                           name="free_shipping_methods"
+                           value="<?php echo esc_attr( is_array( $free_shipping_methods ) ? wp_json_encode( $free_shipping_methods ) : 'all' ); ?>">
+                </div>
+
+                <!-- Spend Threshold Note -->
+                <div class="wsscd-free-shipping-note wsscd-hidden" id="wsscd-free-shipping-threshold-note">
+                    <?php WSSCD_Icon_Helper::render( 'info', array( 'size' => 16 ) ); ?>
+                    <span><?php esc_html_e( 'Free shipping will only apply when the spend threshold is met.', 'smart-cycle-discounts' ); ?></span>
+                </div>
+            </div>
+        <?php
+        $free_shipping_content = ob_get_clean();
+
+        wsscd_wizard_card( array(
+            'title'      => __( 'Free Shipping', 'smart-cycle-discounts' ),
+            'icon'       => 'airplane',
+            'subtitle'   => __( 'Offer free shipping as an additional incentive for customers.', 'smart-cycle-discounts' ),
+            'content'    => $free_shipping_content,
+            'id'         => 'free-shipping-card',
+            'help_topic' => 'card-free-shipping',
+        ) );
+        ?>
+
         <!-- Step 4: Configure Discount Rules (PRO Feature) - Dual-block pattern for WordPress.org compliance -->
         <?php if ( ! $has_pro_access ) : ?>
         <?php
@@ -1402,7 +1503,9 @@ wsscd_wizard_state_script('discounts', array(
     // Tiered Data
     'tiered_data' => $step_data['tiered_data'] ?? array(),
     // Conditions Logic
-    'conditions_logic' => $conditions_logic
+    'conditions_logic' => $conditions_logic,
+    // Free Shipping
+    'free_shipping_config' => $free_shipping_config
 ), array(
     'selected_products' => $wsscd_discount_step_data['selected_products'] ?? array(),
     'currency_data' => $currency_data

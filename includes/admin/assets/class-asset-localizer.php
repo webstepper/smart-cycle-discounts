@@ -365,6 +365,10 @@ class WSSCD_Asset_Localizer {
 			'network_error'       => __( 'Network error. Please check your connection.', 'smart-cycle-discounts' ),
 			'permission_error'    => __( 'You do not have permission to perform this action.', 'smart-cycle-discounts' ),
 			'validation_error'    => __( 'Please fix the errors below.', 'smart-cycle-discounts' ),
+
+			// Free Shipping
+			'noShippingMethods'   => __( 'No shipping methods found. Please configure shipping zones in WooCommerce.', 'smart-cycle-discounts' ),
+			'loadingError'        => __( 'Error loading shipping methods. Please try again.', 'smart-cycle-discounts' ),
 		);
 	}
 

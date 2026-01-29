@@ -155,6 +155,31 @@ class WSSCD_Badge_Helper {
 	}
 
 	/**
+	 * Generate a free shipping badge.
+	 *
+	 * @since 1.2.0
+	 * @param string $title Optional title attribute for tooltip.
+	 * @param string $methods_info Optional methods info to display (e.g., "All methods" or "2 methods").
+	 * @return string Free shipping badge HTML.
+	 */
+	public static function free_shipping_badge( $title = '', $methods_info = '' ) {
+		if ( empty( $title ) ) {
+			$title = __( 'Free shipping enabled for this campaign', 'smart-cycle-discounts' );
+		}
+
+		$text = __( 'Free Shipping', 'smart-cycle-discounts' );
+		if ( ! empty( $methods_info ) ) {
+			$text .= ' (' . $methods_info . ')';
+		}
+
+		return self::badge(
+			$text,
+			'wsscd-free-shipping-badge',
+			$title
+		);
+	}
+
+	/**
 	 * Generate a product selection badge.
 	 *
 	 * @since 1.0.0

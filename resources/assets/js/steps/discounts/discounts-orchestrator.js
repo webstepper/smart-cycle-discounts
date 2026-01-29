@@ -269,6 +269,21 @@
 				self.updateBadgeSettings();
 			} );
 
+			// Free shipping toggle
+			this.bindDelegatedEvent( document, '#free_shipping_enabled', 'change', function() {
+				self.handleFreeShippingToggle();
+			} );
+
+			// Free shipping method type selection (all vs selected)
+			this.bindDelegatedEvent( document, 'input[name="free_shipping_method_type"]', 'change', function() {
+				self.handleFreeShippingMethodTypeChange();
+			} );
+
+			// Free shipping specific method checkboxes
+			this.bindDelegatedEvent( document, '.wsscd-shipping-method-checkbox', 'change', function() {
+				self.updateFreeShippingMethods();
+			} );
+
 			// Collapsible sections
 			this.bindDelegatedEvent( document, '.wsscd-collapsible-trigger', 'click', function( e ) {
 				e.preventDefault();
@@ -279,6 +294,8 @@
 			this.bindCustomEvent( 'wsscd:discounts:state:changed', function( event, change ) {
 				if ( 'discountType' === change.property ) {
 					self.updateDiscountTypeUI( change.value );
+					// Update free shipping threshold note when discount type changes
+					self.updateFreeShippingThresholdNote();
 				}
 			} );
 
@@ -303,6 +320,31 @@
 				this.updateDiscountTypeUI( currentType );
 			}
 
+			// Initialize free shipping UI
+			this.initializeFreeShippingUI();
+		},
+
+		/**
+		 * Initialize free shipping UI based on saved state
+		 */
+		initializeFreeShippingUI: function() {
+			var $toggle = $( '#free_shipping_enabled' );
+			var isEnabled = $toggle.is( ':checked' );
+
+			// Update visibility of config wrapper
+			if ( isEnabled ) {
+				$( '.wsscd-free-shipping-config-wrapper' ).removeClass( 'wsscd-hidden' );
+
+				// Check if 'selected' is chosen
+				var methodType = $( 'input[name="free_shipping_method_type"]:checked' ).val();
+				if ( 'selected' === methodType ) {
+					$( '#wsscd-shipping-methods-list' ).removeClass( 'wsscd-hidden' );
+					this.loadShippingMethodsIfNeeded();
+				}
+			}
+
+			// Update threshold note visibility
+			this.updateFreeShippingThresholdNote();
 		},
 
 		// loadData method removed - data population is handled by wizard orchestrator
@@ -623,6 +665,150 @@
 					badgeBgColor: $( '#badge_bg_color' ).val(),
 					badgeTextColor: $( '#badge_text_color' ).val()
 				} );
+			}
+		},
+
+		/**
+		 * Handle free shipping toggle change
+		 */
+		handleFreeShippingToggle: function() {
+			var isEnabled = $( '#free_shipping_enabled' ).is( ':checked' );
+			var $configWrapper = $( '.wsscd-free-shipping-config-wrapper' );
+
+			// Show/hide configuration options
+			if ( isEnabled ) {
+				$configWrapper.removeClass( 'wsscd-hidden' );
+				// Load shipping methods if not already loaded
+				this.loadShippingMethodsIfNeeded();
+			} else {
+				$configWrapper.addClass( 'wsscd-hidden' );
+			}
+
+			// Update state
+			this.updateFreeShippingState();
+
+			// Show threshold note for spend_threshold discount type
+			this.updateFreeShippingThresholdNote();
+		},
+
+		/**
+		 * Handle free shipping method type change (all vs selected)
+		 */
+		handleFreeShippingMethodTypeChange: function() {
+			var methodType = $( 'input[name="free_shipping_method_type"]:checked' ).val();
+			var $methodsList = $( '#wsscd-shipping-methods-list' );
+
+			if ( 'selected' === methodType ) {
+				$methodsList.removeClass( 'wsscd-hidden' );
+				// Load shipping methods if not already loaded
+				this.loadShippingMethodsIfNeeded();
+			} else {
+				$methodsList.addClass( 'wsscd-hidden' );
+			}
+
+			// Update state
+			this.updateFreeShippingState();
+		},
+
+		/**
+		 * Load shipping methods from server if not already loaded
+		 * Delegates to the FreeShipping module if available
+		 */
+		loadShippingMethodsIfNeeded: function() {
+			// Delegate to FreeShipping module if available
+			if ( window.WSSCD && WSSCD.Modules && WSSCD.Modules.Discounts && WSSCD.Modules.Discounts.FreeShipping ) {
+				var freeShippingModule = WSSCD.Modules.Discounts.FreeShipping;
+
+				// Only load if not already loaded and not currently loading
+				if ( 0 === freeShippingModule.shippingMethods.length && ! freeShippingModule.isLoading ) {
+					freeShippingModule.loadShippingMethods();
+				}
+				return;
+			}
+
+			// Fallback: Check if already loaded in DOM
+			var $container = $( '.wsscd-shipping-methods-checkboxes' );
+			if ( $container.children().length > 0 ) {
+				return;
+			}
+		},
+
+		/**
+		 * Render shipping methods checkboxes
+		 * Kept for backwards compatibility but delegates to FreeShipping module
+		 * @param {Array} methods - Array of shipping method objects
+		 */
+		renderShippingMethodsCheckboxes: function( methods ) {
+			// Delegate to FreeShipping module if available
+			if ( window.WSSCD && WSSCD.Modules && WSSCD.Modules.Discounts && WSSCD.Modules.Discounts.FreeShipping ) {
+				var freeShippingModule = WSSCD.Modules.Discounts.FreeShipping;
+				freeShippingModule.shippingMethods = methods;
+				freeShippingModule.renderShippingMethods();
+				return;
+			}
+		},
+
+		/**
+		 * Update free shipping methods from checkboxes
+		 */
+		updateFreeShippingMethods: function() {
+			var selectedMethods = [];
+
+			$( '.wsscd-shipping-method-checkbox:checked' ).each( function() {
+				selectedMethods.push( $( this ).val() );
+			} );
+
+			// Update hidden input
+			$( '#free_shipping_methods' ).val( JSON.stringify( selectedMethods ) );
+
+			// Update state
+			this.updateFreeShippingState();
+		},
+
+		/**
+		 * Update free shipping state from UI
+		 */
+		updateFreeShippingState: function() {
+			var isEnabled = $( '#free_shipping_enabled' ).is( ':checked' );
+			var methodType = $( 'input[name="free_shipping_method_type"]:checked' ).val() || 'all';
+			var methods = 'all';
+
+			if ( 'selected' === methodType ) {
+				var selectedMethods = [];
+				$( '.wsscd-shipping-method-checkbox:checked' ).each( function() {
+					selectedMethods.push( $( this ).val() );
+				} );
+				methods = selectedMethods;
+			}
+
+			var config = {
+				enabled: isEnabled,
+				methods: methods
+			};
+
+			// Update hidden input
+			$( '#free_shipping_methods' ).val( 'all' === methods ? 'all' : JSON.stringify( methods ) );
+
+			// Update state
+			if ( this.modules.state ) {
+				this.modules.state.setState( {
+					freeShippingConfig: config
+				} );
+			}
+		},
+
+		/**
+		 * Update free shipping threshold note visibility
+		 * Shows a note when spend_threshold discount is selected
+		 */
+		updateFreeShippingThresholdNote: function() {
+			var $note = $( '#wsscd-free-shipping-threshold-note' );
+			var discountType = this.getDiscountType();
+
+			if ( 'spend_threshold' === discountType && $( '#free_shipping_enabled' ).is( ':checked' ) ) {
+				$note.removeClass( 'wsscd-hidden' );
+			} else {
+				$note.addClass( 'wsscd-hidden' );
 			}
 		},
 

@@ -1741,6 +1741,20 @@ a.wsscd-product-card:hover .wsscd-product-card-name {
 	color: var(--wsscd-color-success);
 }
 
+/* Free shipping item with details */
+.wsscd-free-shipping-item > span {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-xs);
+	flex-wrap: wrap;
+}
+
+.wsscd-free-shipping-detail {
+	color: var(--wsscd-color-text-muted);
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-normal);
+}
+
 /* Usage Limits */
 .wsscd-discount-usage {
 	padding: var(--wsscd-padding-compact);

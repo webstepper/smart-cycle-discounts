@@ -1750,7 +1750,86 @@
 }
 
 /* ==========================================================================
-   19. PRINT STYLES
+   19. CONFIGURATION SUMMARY CARD
+   ========================================================================== */
+
+.wsscd-config-summary-card {
+	margin-top: var(--wsscd-spacing-lg);
+}
+
+.wsscd-config-summary-loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--wsscd-spacing-sm);
+	padding: var(--wsscd-spacing-xl);
+	color: var(--wsscd-color-text-muted);
+}
+
+.wsscd-config-summary-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: var(--wsscd-spacing-lg);
+}
+
+.wsscd-config-summary-item {
+	padding: var(--wsscd-spacing-md);
+	background: var(--wsscd-color-surface);
+	border-radius: var(--wsscd-radius-md);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+}
+
+.wsscd-config-summary-label {
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-medium);
+	color: var(--wsscd-color-text-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.025em;
+	margin-bottom: var(--wsscd-spacing-xs);
+}
+
+.wsscd-config-summary-value {
+	font-size: var(--wsscd-font-size-medium);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+}
+
+/* Free shipping enabled state */
+.wsscd-config-free-shipping[data-has-free-shipping="true"] {
+	background: var(--wsscd-color-success-lighter);
+	border-color: var(--wsscd-color-success-alpha-25);
+}
+
+.wsscd-config-free-shipping[data-has-free-shipping="true"] .wsscd-config-summary-value {
+	color: var(--wsscd-color-success-dark);
+}
+
+.wsscd-config-enabled {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-xs);
+}
+
+.wsscd-config-check {
+	color: var(--wsscd-color-success);
+	font-weight: var(--wsscd-font-weight-bold);
+}
+
+.wsscd-config-disabled {
+	color: var(--wsscd-color-text-muted);
+	font-style: italic;
+	font-weight: var(--wsscd-font-weight-normal);
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 600px) {
+	.wsscd-config-summary-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ==========================================================================
+   20. PRINT STYLES
    ========================================================================== */
 
 @media print {

@@ -484,8 +484,12 @@ class WSSCD_Campaign_Overview_Panel {
 		// Extract restrictions - always show with proper defaults
 		$exclude_sale_items   = $discount_rules['exclude_sale_items'] ?? false;
 		$individual_use       = $discount_rules['individual_use'] ?? false;
-		$free_shipping        = $discount_rules['free_shipping'] ?? false;
 		$allowed_combinations = $discount_rules['allowed_combinations'] ?? array();
+
+		// Extract full free shipping configuration
+		$free_shipping_config = $campaign->get_free_shipping_config();
+		$free_shipping        = ! empty( $free_shipping_config['enabled'] );
+		$free_shipping_methods = isset( $free_shipping_config['methods'] ) ? $free_shipping_config['methods'] : 'all';
 
 		// Extract badge configuration
 		$badge_config = $this->extract_badge_config( $discount_rules );
@@ -524,10 +528,11 @@ class WSSCD_Campaign_Overview_Panel {
 			'min_quantity'          => $min_quantity,
 
 			// Restrictions and features (always show)
-			'exclude_sale_items'    => $exclude_sale_items,
-			'individual_use'        => $individual_use,
-			'free_shipping'         => $free_shipping,
-			'allowed_combinations'  => $allowed_combinations,
+			'exclude_sale_items'     => $exclude_sale_items,
+			'individual_use'         => $individual_use,
+			'free_shipping'          => $free_shipping,
+			'free_shipping_methods'  => $free_shipping_methods,
+			'allowed_combinations'   => $allowed_combinations,
 
 			// Badge configuration
 			'badge_config'          => $badge_config,

@@ -118,6 +118,9 @@ class WSSCD_Discounts_Step_Validator {
 		// Cross-field validation between discount type and application rules
 		self::validate_cross_field_logic( $data, $errors );
 
+		// Validate free shipping configuration
+		self::validate_free_shipping_config( $data, $errors );
+
 		// NOTE: Cross-step validation (products, filters, schedule) is now handled by
 		// WSSCD_Campaign_Cross_Validator at the review step via the campaign health system.
 	}
@@ -1031,6 +1034,45 @@ class WSSCD_Discounts_Step_Validator {
 		if ( 'fixed' === $discount_type && 'cart_total' === $apply_to && 0 === $max_discount ) {
 			// Fixed cart discount with no cap could be abused
 			self::log_hint( 'Fixed discount applied to cart total has no maximum discount cap. Consider setting a maximum to prevent abuse on very large orders.' );
+		}
+	}
+
+	/**
+	 * Validate free shipping configuration.
+	 *
+	 * @since    1.2.0
+	 * @access   private
+	 * @param    array    $data      Discount data.
+	 * @param    WP_Error $errors    Error object.
+	 * @return   void
+	 */
+	private static function validate_free_shipping_config( array $data, WP_Error $errors ) {
+		// Skip if free_shipping_config not set or not enabled.
+		if ( ! isset( $data['free_shipping_config'] ) || ! is_array( $data['free_shipping_config'] ) ) {
+			return;
+		}
+
+		$config  = $data['free_shipping_config'];
+		$enabled = isset( $config['enabled'] ) && $config['enabled'];
+
+		if ( ! $enabled ) {
+			return; // Free shipping disabled, no validation needed.
+		}
+
+		$methods = isset( $config['methods'] ) ? $config['methods'] : 'all';
+
+		// Rule 1: If methods is an array, at least one method must be selected.
+		if ( is_array( $methods ) && empty( $methods ) ) {
+			$errors->add(
+				'free_shipping_no_methods',
+				__( 'Free shipping is enabled but no shipping methods are selected. Please select at least one shipping method or choose "All shipping methods".', 'smart-cycle-discounts' )
+			);
+		}
+
+		// Rule 2: Log hint for spend_threshold discount type with free shipping.
+		$discount_type = isset( $data['discount_type'] ) ? $data['discount_type'] : 'percentage';
+		if ( 'spend_threshold' === $discount_type ) {
+			self::log_hint( 'Free shipping is enabled with spend threshold discount. Free shipping will apply when the minimum spend threshold is reached.' );
 		}
 	}
 

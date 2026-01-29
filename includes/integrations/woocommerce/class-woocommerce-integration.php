@@ -157,6 +157,15 @@ class WSSCD_WooCommerce_Integration implements WSSCD_Ecommerce_Integration {
 	private ?WSSCD_WC_Coupon_Restriction $coupon_restriction = null;
 
 	/**
+	 * Free shipping handler instance.
+	 *
+	 * @since    1.2.0
+	 * @access   private
+	 * @var      WSSCD_WC_Free_Shipping_Handler|null    $free_shipping_handler    Free shipping handler.
+	 */
+	private ?WSSCD_WC_Free_Shipping_Handler $free_shipping_handler = null;
+
+	/**
 	 * WooCommerce compatibility status.
 	 *
 	 * @since    1.0.0
@@ -320,6 +329,19 @@ class WSSCD_WooCommerce_Integration implements WSSCD_Ecommerce_Integration {
 				$this->logger
 			);
 
+			// Get campaign repository for free shipping handler
+			$campaign_repository = $this->container->has( 'campaign_repository' )
+				? $this->container->get( 'campaign_repository' )
+				: null;
+
+			if ( $campaign_repository ) {
+				$this->free_shipping_handler = new WSSCD_WC_Free_Shipping_Handler(
+					$this->discount_query,
+					$campaign_repository,
+					$this->logger
+				);
+			}
+
 			$this->log( 'debug', 'WooCommerce integration components initialized successfully' );
 
 		} catch ( RuntimeException $e ) {
@@ -383,6 +405,11 @@ class WSSCD_WooCommerce_Integration implements WSSCD_Ecommerce_Integration {
 
 		if ( $this->coupon_restriction ) {
 			$this->coupon_restriction->register_hooks();
+		}
+
+		// Free shipping handler - runs on frontend only
+		if ( ! is_admin() && $this->free_shipping_handler ) {
+			$this->free_shipping_handler->register_hooks();
 		}
 
 		// WooCommerce compatibility hooks

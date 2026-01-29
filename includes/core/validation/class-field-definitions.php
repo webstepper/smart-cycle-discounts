@@ -579,6 +579,17 @@ class WSSCD_Field_Definitions {
 				'validator'   => array( __CLASS__, 'validate_in_array' ),
 				'field_name'  => 'badge_position',
 			),
+			'free_shipping_config'      => array(
+				'type'       => 'complex',
+				'label'      => __( 'Free Shipping Configuration', 'smart-cycle-discounts' ),
+				'required'   => false,
+				'default'    => array(
+					'enabled' => false,
+					'methods' => 'all',
+				),
+				'sanitizer'  => array( __CLASS__, 'sanitize_free_shipping_config' ),
+				'field_name' => 'free_shipping_config',
+			),
 		);
 	}
 
@@ -2378,6 +2389,41 @@ class WSSCD_Field_Definitions {
 				return $a['spend_amount'] <=> $b['spend_amount'];
 			}
 		);
+
+		return $sanitized;
+	}
+
+	/**
+	 * Sanitize free shipping configuration
+	 *
+	 * @since 1.2.0
+	 * @param mixed $value The value to sanitize.
+	 * @return array Sanitized free shipping config.
+	 */
+	public static function sanitize_free_shipping_config( $value ) {
+		if ( ! is_array( $value ) ) {
+			return array(
+				'enabled' => false,
+				'methods' => 'all',
+			);
+		}
+
+		$sanitized = array(
+			'enabled' => isset( $value['enabled'] ) ? rest_sanitize_boolean( $value['enabled'] ) : false,
+		);
+
+		// Handle methods - can be 'all' or an array of method IDs.
+		if ( isset( $value['methods'] ) ) {
+			if ( 'all' === $value['methods'] ) {
+				$sanitized['methods'] = 'all';
+			} elseif ( is_array( $value['methods'] ) ) {
+				$sanitized['methods'] = array_map( 'sanitize_text_field', $value['methods'] );
+			} else {
+				$sanitized['methods'] = 'all';
+			}
+		} else {
+			$sanitized['methods'] = 'all';
+		}
 
 		return $sanitized;
 	}

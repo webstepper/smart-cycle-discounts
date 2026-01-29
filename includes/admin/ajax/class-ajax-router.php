@@ -384,6 +384,7 @@ class WSSCD_Ajax_Router {
 			'get_summary'                    => 'WSSCD_Get_Summary_Handler',
 			'check_campaign_name'            => 'WSSCD_Check_Campaign_Name_Handler',
 			'get_product_stats'              => 'WSSCD_Get_Product_Stats_Handler',
+			'get_shipping_methods'           => 'WSSCD_Get_Shipping_Methods_Handler',
 			'health_check'                   => 'WSSCD_Health_Check_Handler',
 			'session_status'                 => 'WSSCD_Session_Status_Handler',
 			'campaign_health'                => 'WSSCD_Campaign_Health_Handler',

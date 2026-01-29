@@ -292,6 +292,91 @@
 		if ( $.fn.tooltip ) {
 			this.elements.$summaryContainer.find( '[data-tooltip]' ).tooltip();
 		}
+
+		// Populate configuration summary
+		this.populateConfigSummary();
+	};
+
+	/**
+	 * Populate configuration summary from wizard data
+	 */
+	WSSCD.Modules.Review.Components.prototype.populateConfigSummary = function() {
+		var $container = $( '#wsscd-config-summary' );
+		if ( ! $container.length ) {
+			return;
+		}
+
+		var wizardData = window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.data
+			? window.WSSCD.Wizard.data
+			: {};
+
+		// Discount type
+		var discountType = wizardData.discountType || wizardData.discount_type || '--';
+		var discountTypeLabels = {
+			'percentage': 'Percentage Discount',
+			'fixed': 'Fixed Amount Discount',
+			'bogo': 'Buy One Get One',
+			'tiered': 'Tiered Discount',
+			'spend_threshold': 'Spend Threshold'
+		};
+		$container.find( '[data-config="discount_type"]' ).text(
+			discountTypeLabels[ discountType ] || discountType
+		);
+
+		// Products
+		var productSelectionType = wizardData.productSelectionType || wizardData.product_selection_type || 'all_products';
+		var productsLabels = {
+			'all_products': 'All Products',
+			'specific_products': 'Specific Products',
+			'categories': 'By Category',
+			'tags': 'By Tag'
+		};
+		var productsText = productsLabels[ productSelectionType ] || productSelectionType;
+
+		// Add count if specific products
+		if ( 'specific_products' === productSelectionType ) {
+			var productIds = wizardData.productIds || wizardData.product_ids || [];
+			if ( productIds.length > 0 ) {
+				productsText += ' (' + productIds.length + ')';
+			}
+		}
+		$container.find( '[data-config="products"]' ).text( productsText );
+
+		// Schedule
+		var startType = wizardData.startType || wizardData.start_type || 'immediate';
+		var scheduleText = 'immediate' === startType ? 'Starts Immediately' : 'Scheduled';
+		if ( 'scheduled' === startType && wizardData.startDate ) {
+			scheduleText = 'Starts: ' + wizardData.startDate;
+		}
+		$container.find( '[data-config="schedule"]' ).text( scheduleText );
+
+		// Free shipping
+		var freeShippingConfig = wizardData.freeShippingConfig || wizardData.free_shipping_config || {};
+		var freeShippingEnabled = freeShippingConfig.enabled || false;
+		var $freeShippingItem = $container.find( '.wsscd-config-free-shipping' );
+		var $freeShippingValue = $container.find( '[data-config="free_shipping"]' );
+
+		if ( freeShippingEnabled ) {
+			$freeShippingItem.attr( 'data-has-free-shipping', 'true' );
+			var methods = freeShippingConfig.methods || 'all';
+			var methodsText = 'all' === methods
+				? 'All shipping methods'
+				: ( Array.isArray( methods ) ? methods.length + ' method(s)' : 'Selected methods' );
+			$freeShippingValue.html(
+				'<span class="wsscd-config-enabled">' +
+				'<span class="wsscd-config-check">✓</span> Enabled - ' + methodsText +
+				'</span>'
+			);
+		} else {
+			$freeShippingItem.attr( 'data-has-free-shipping', 'false' );
+			$freeShippingValue.html(
+				'<span class="wsscd-config-disabled">Not enabled</span>'
+			);
+		}
+
+		// Show content, hide loading
+		$container.find( '.wsscd-config-summary-loading' ).hide();
+		$container.find( '.wsscd-config-summary-content' ).show();
 	};
 
 	/**

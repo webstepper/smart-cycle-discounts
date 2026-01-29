@@ -324,6 +324,31 @@ class WSSCD_Campaigns_List_Table extends WP_List_Table {
 			}
 		}
 
+		// Free shipping badge.
+		$free_shipping_badge = '';
+		if ( $campaign->is_free_shipping_enabled() ) {
+			$free_shipping_config = $campaign->get_free_shipping_config();
+			$methods              = isset( $free_shipping_config['methods'] ) ? $free_shipping_config['methods'] : 'all';
+
+			if ( 'all' === $methods ) {
+				$methods_info = __( 'All', 'smart-cycle-discounts' );
+			} elseif ( is_array( $methods ) ) {
+				$count        = count( $methods );
+				$methods_info = sprintf(
+					/* translators: %d: number of shipping methods */
+					_n( '%d method', '%d methods', $count, 'smart-cycle-discounts' ),
+					$count
+				);
+			} else {
+				$methods_info = '';
+			}
+
+			$free_shipping_badge = ' ' . WSSCD_Badge_Helper::free_shipping_badge(
+				__( 'Free shipping enabled for this campaign', 'smart-cycle-discounts' ),
+				$methods_info
+			);
+		}
+
 		$actions = array();
 
 		$deleted_at = $campaign->get_deleted_at();
@@ -468,14 +493,16 @@ class WSSCD_Campaigns_List_Table extends WP_List_Table {
 			}
 		}
 
+		$badges = $recurring_badge . $free_shipping_badge;
+
 		$title = $this->capability_manager->current_user_can( 'edit_campaign', $campaign_id )
 			? sprintf(
 				'<a href="%s" class="row-title"><strong>%s</strong></a>%s',
 				esc_url( admin_url( 'admin.php?page=wsscd-campaigns&action=wizard&intent=edit&id=' . $campaign_id ) ),
 				esc_html( $campaign_name ),
-				$recurring_badge
+				$badges
 			)
-			: sprintf( '<strong>%s</strong>%s', esc_html( $campaign_name ), $recurring_badge );
+			: sprintf( '<strong>%s</strong>%s', esc_html( $campaign_name ), $badges );
 
 		if ( $campaign->get_description() ) {
 			$title .= '<br><span class="description">' . esc_html( $campaign->get_description() ) . '</span>';

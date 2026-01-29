@@ -61,7 +61,7 @@ class WSSCD_Campaign_Repository extends WSSCD_Base_Repository {
 		$this->db          = $db;
 		$this->cache       = $cache;
 		$this->table_name  = $wpdb->prefix . 'wsscd_campaigns';
-		$this->json_fields = array( 'conditions', 'category_ids', 'tag_ids', 'attributes', 'product_ids', 'variation_rules' );
+		$this->json_fields = array( 'conditions', 'category_ids', 'tag_ids', 'attributes', 'product_ids', 'variation_rules', 'free_shipping_config' );
 		$this->date_fields = array( 'created_at', 'updated_at', 'starts_at', 'ends_at', 'deleted_at' );
 	}
 
@@ -1507,6 +1507,9 @@ class WSSCD_Campaign_Repository extends WSSCD_Base_Repository {
 			'discount_value'         => (float) ( $data->discount_value ?? 0.0 ),
 			'discount_rules'         => isset( $data->discount_rules ) ? json_decode( $data->discount_rules ?: '[]', true ) : array(),
 
+			// Free Shipping Configuration
+			'free_shipping_config'   => isset( $data->free_shipping_config ) ? json_decode( $data->free_shipping_config ?: '{}', true ) : array(),
+
 			// Scheduling
 			'starts_at'              => $data->starts_at,
 			'ends_at'                => $data->ends_at,
@@ -1586,6 +1589,7 @@ class WSSCD_Campaign_Repository extends WSSCD_Base_Repository {
 			'category_ids',
 			'tag_ids',
 			'discount_rules',
+			'free_shipping_config',
 			'usage_limits',
 			'discount_configuration',
 			'schedule_configuration',

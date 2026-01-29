@@ -1111,6 +1111,7 @@ class WSSCD_Script_Registry {
 			'wsscd-complex-field-handler'   => 'complex-field-handler.js',
 			'wsscd-discounts-integration'   => 'discounts-integration.js',
 			'wsscd-discounts-orchestrator'  => 'discounts-orchestrator.js',
+			'wsscd-free-shipping'           => 'free-shipping.js',
 		);
 
 		$this->register_step_module_group( 'discounts', $modules );
