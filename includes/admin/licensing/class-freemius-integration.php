@@ -140,7 +140,7 @@ class WSSCD_Freemius_Integration {
 				'anonymous_mode'      => false, // Show opt-in on first install (with Skip button).
 				'opt_in'              => true, // Show opt-in screen on activation.
 				'enable_anonymous'    => true, // Allow anonymous usage if user skips.
-				'anonymous_mode_after_days' => 7, // Show opt-in reminder after 7 days if user skipped.
+				'anonymous_mode_after_days' => 14, // Show opt-in reminder after 14 days if user skipped.
 				'menu'                => array(
 					'slug'       => 'smart-cycle-discounts',
 					'first-path' => 'admin.php?page=smart-cycle-discounts',

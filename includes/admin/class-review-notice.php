@@ -423,7 +423,7 @@ class WSSCD_Review_Notice {
 		global $wpdb;
 		$table = $wpdb->prefix . 'wsscd_campaigns';
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- One-time lookup for review notice.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- One-time lookup; table name from trusted $wpdb->prefix.
 		$name = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT name FROM {$table} WHERE id = %d",
@@ -611,7 +611,7 @@ class WSSCD_Review_Notice {
 			return 0;
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- One-time count for review notice.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- One-time count; table name from trusted $wpdb->prefix, no user input.
 		$count = $wpdb->get_var(
 			"SELECT COUNT(*) FROM {$table} WHERE deleted_at IS NULL"
 		);

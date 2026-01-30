@@ -78,11 +78,11 @@ if ( $wsscd_free_shipping ) {
 	if ( 'all' === $wsscd_free_shipping_methods ) {
 		$wsscd_free_shipping_info = __( 'All shipping methods', 'smart-cycle-discounts' );
 	} elseif ( is_array( $wsscd_free_shipping_methods ) ) {
-		$count = count( $wsscd_free_shipping_methods );
+		$wsscd_method_count = count( $wsscd_free_shipping_methods );
 		$wsscd_free_shipping_info = sprintf(
 			/* translators: %d: number of selected shipping methods */
-			_n( '%d selected method', '%d selected methods', $count, 'smart-cycle-discounts' ),
-			$count
+			_n( '%d selected method', '%d selected methods', $wsscd_method_count, 'smart-cycle-discounts' ),
+			$wsscd_method_count
 		);
 	}
 }

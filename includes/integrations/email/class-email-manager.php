@@ -1034,17 +1034,42 @@ class WSSCD_Email_Manager {
 	}
 
 	/**
-	 * Replace variables in content.
+	 * Replace variables in content with context-aware escaping.
+	 *
+	 * Applies appropriate escaping based on variable name suffix:
+	 * - *_url variables: esc_url() for URL context
+	 * - *_summary, *_list, *_html, *_table variables: wp_kses_post() for pre-formatted HTML
+	 * - All other variables: esc_html() for plain text
+	 *
+	 * This provides defense in depth against XSS even if input sanitization is bypassed.
 	 *
 	 * @since    1.0.0
+	 * @since    1.2.2 Added context-aware escaping for security hardening.
 	 * @access   private
 	 * @param    string $content      Content with variables.
 	 * @param    array  $variables    Variable values.
-	 * @return   string                  Content with replaced variables.
+	 * @return   string               Content with replaced and escaped variables.
 	 */
 	private function replace_variables( string $content, array $variables ): string {
 		foreach ( $variables as $key => $value ) {
-			$content = str_replace( '{' . $key . '}', $value, $content );
+			// Skip non-string values (arrays are pre-formatted by helper methods).
+			if ( ! is_string( $value ) ) {
+				continue;
+			}
+
+			// Apply context-aware escaping based on variable name.
+			if ( preg_match( '/_url$/', $key ) ) {
+				// URL variables: use URL escaping.
+				$escaped_value = esc_url( $value );
+			} elseif ( preg_match( '/_(summary|list|html|table|message|trends|actions)$/', $key ) ) {
+				// Pre-formatted HTML variables: allow safe HTML tags.
+				$escaped_value = wp_kses_post( $value );
+			} else {
+				// Default: HTML-escape plain text values.
+				$escaped_value = esc_html( $value );
+			}
+
+			$content = str_replace( '{' . $key . '}', $escaped_value, $content );
 		}
 
 		return $content;

@@ -1,9 +1,9 @@
-=== Smart Cycle Discounts – WooCommerce Discount Campaigns, Dynamic Pricing & Scheduled Sales ===
+=== Smart Cycle Discounts - Automated Campaigns for WooCommerce ===
 Contributors: webstepper
-Tags: woocommerce discount, dynamic pricing, bulk discount, scheduled sale, sale price
+Tags: dynamic pricing, discount rules, flash sale, bulk discount, free shipping
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.2.1
+Stable tag: 1.2.2
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -412,6 +412,12 @@ Pro users can configure combination policies for each campaign. Choose whether y
 
 == Changelog ==
 
+= 1.2.2 =
+* Fix: Plugin name updated for WordPress.org trademark compliance
+* Security: Added input sanitization to admin notice display logic
+* Security: Added context-aware output escaping to email template variable replacement
+* Improvement: Extended Freemius opt-in reminder delay from 7 to 14 days
+
 = 1.2.1 =
 * Improvement: Dashboard layout reordered - "Your Campaigns" now appears above "Campaign Planner" for faster access to active campaigns
 * Improvement: Campaign Health widget now shows status breakdown (e.g., "2 campaigns analyzed • 1 active, 1 scheduled")
@@ -518,6 +524,9 @@ Pro users can configure combination policies for each campaign. Choose whether y
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.2.2 =
+Security hardening and WordPress.org compliance update. Plugin name corrected for trademark guidelines.
 
 = 1.2.1 =
 Dashboard UX improvements - Your Campaigns section now prioritized above Campaign Planner, plus visual alignment fixes.

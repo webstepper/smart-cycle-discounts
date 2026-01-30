@@ -2,12 +2,18 @@
 /**
  * Email Template: Campaign Started
  *
- * Available variables:
- * - {campaign_name}    Campaign name
- * - {campaign_url}     Link to edit campaign
- * - {start_date}       Campaign start date
- * - {end_date}         Campaign end date
- * - {product_count}    Number of products in campaign
+ * Available variables (automatically escaped during replacement):
+ * - {campaign_name}    Campaign name (HTML-escaped)
+ * - {campaign_url}     Link to edit campaign (URL-escaped)
+ * - {start_date}       Campaign start date (HTML-escaped)
+ * - {end_date}         Campaign end date (HTML-escaped)
+ * - {product_count}    Number of products in campaign (HTML-escaped)
+ *
+ * Note: All variables are automatically escaped by the Email Manager's
+ * replace_variables() method based on their suffix:
+ * - *_url → esc_url()
+ * - *_summary, *_list, *_html → wp_kses_post()
+ * - All others → esc_html()
  *
  * @package    SmartCycleDiscounts
  * @subpackage SmartCycleDiscounts/templates/emails

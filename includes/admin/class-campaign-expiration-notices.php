@@ -114,16 +114,18 @@ class WSSCD_Campaign_Expiration_Notices {
 			return false;
 		}
 
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Checking URL params for display context only.
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Safe: read-only display context check, no data modification.
 		// Show on main dashboard (overview page).
-		if ( false !== strpos( $screen->id, 'smart-cycle-discounts' ) && ! isset( $_GET['page'] ) ) {
+		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+		if ( false !== strpos( $screen->id, 'smart-cycle-discounts' ) && empty( $page ) ) {
 			return true;
 		}
 
 		// Show on campaigns list page ONLY (not wizard, not edit).
 		if ( false !== strpos( $screen->id, 'wsscd-campaigns' ) ) {
 			// Only on list view (no action parameter).
-			return ! isset( $_GET['action'] );
+			$action = isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : '';
+			return empty( $action );
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 

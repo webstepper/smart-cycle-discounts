@@ -65,7 +65,7 @@ class WSSCD_Migration_002_Add_Free_Shipping implements WSSCD_Migration_Interface
 		$table_name = $this->db->get_table_name( 'campaigns' );
 
 		// Check if column already exists.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Migration check, not cached.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Migration check; table name from trusted source.
 		$column_exists = $wpdb->get_results(
 			$wpdb->prepare(
 				"SHOW COLUMNS FROM {$table_name} LIKE %s",
@@ -75,13 +75,14 @@ class WSSCD_Migration_002_Add_Free_Shipping implements WSSCD_Migration_Interface
 
 		if ( empty( $column_exists ) ) {
 			// Add the column after discount_rules for logical grouping.
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- Migration ALTER TABLE.
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Migration ALTER TABLE; table name from trusted source.
 			$wpdb->query(
 				"ALTER TABLE {$table_name}
 				ADD COLUMN free_shipping_config LONGTEXT DEFAULT NULL
 				COMMENT 'JSON configuration for free shipping: {enabled: bool, methods: \"all\"|array}'
 				AFTER discount_rules"
 			);
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		}
 	}
 
@@ -98,9 +99,10 @@ class WSSCD_Migration_002_Add_Free_Shipping implements WSSCD_Migration_Interface
 
 		$table_name = $this->db->get_table_name( 'campaigns' );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- Migration ALTER TABLE.
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Migration ALTER TABLE; table name from trusted source.
 		$wpdb->query(
 			"ALTER TABLE {$table_name} DROP COLUMN IF EXISTS free_shipping_config"
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	}
 }

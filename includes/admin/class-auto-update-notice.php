@@ -161,6 +161,7 @@ class WSSCD_Auto_Update_Notice {
 		}
 
 		// Check if plugin auto-updates are disabled via filter.
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- This is a WordPress core filter, not a custom hook.
 		if ( ! apply_filters( 'plugins_auto_update_enabled', true ) ) {
 			return false;
 		}
