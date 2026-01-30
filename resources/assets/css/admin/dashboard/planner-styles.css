@@ -256,21 +256,24 @@
 	z-index: 1;
 	padding: 18px;
 	background: var(--wsscd-color-white);
-	border: 2px solid var(--wsscd-color-border-light);
+	border: 1px solid var(--wsscd-color-border-light);
 	border-radius: var(--wsscd-radius-lg);
-	box-shadow: var(--wsscd-shadow-xs);
+	box-shadow: var(--wsscd-shadow-sm);
 	cursor: pointer;
-	transition: all 0.2s ease;
+	transition:
+		transform var(--wsscd-transition-fast) ease,
+		box-shadow var(--wsscd-transition-base) ease,
+		border-color var(--wsscd-transition-fast) ease;
 }
 
 .wsscd-planner-card:hover {
-	border-color: var(--wp-admin-theme-color, var(--wsscd-color-primary));
+	transform: var(--wsscd-transform-lift-subtle);
 	box-shadow: var(--wsscd-shadow-md);
+	border-color: var(--wsscd-color-border);
 }
 
 .wsscd-planner-card:focus {
-	outline: 2px solid var(--wp-admin-theme-color, var(--wsscd-color-primary));
-	outline-offset: 2px;
+	outline: none;
 }
 
 /* =============================================================================
@@ -290,90 +293,60 @@
 
 /* --- Slot 1: Past Position --- */
 .wsscd-planner-card[data-position="past"] {
-	background: var(--wsscd-color-gray-50);
-	border: 2px solid var(--wsscd-color-border-light);
-	opacity: 0.7;
+	background: var(--wsscd-color-surface);
+	opacity: 0.75;
 }
 
 .wsscd-planner-card[data-position="past"]:hover {
-	border-color: var(--wsscd-color-border);
-	opacity: 0.85;
+	opacity: 0.9;
 }
 
-.wsscd-planner-card[data-position="past"][data-major-event="true"] {
-	background: var(--wsscd-color-warning-bg);
-	border-color: var(--wsscd-color-warning-border);
-}
-
-/* --- Slot 2: Active Position (Focus Slot) --- */
+/* --- Slot 2: Active Position (Center Focus) --- */
 .wsscd-planner-card[data-position="active"] {
-	background: var(--wsscd-color-info-bg);
-	border: 2px solid var(--wsscd-color-secondary);
-	box-shadow: var(--wsscd-shadow-primary-md);
+	border-color: var(--wsscd-color-border);
 }
 
 .wsscd-planner-card[data-position="active"]:hover {
-	background: var(--wsscd-color-info-light);
-	border-color: var(--wsscd-color-info);
-	box-shadow: var(--wsscd-shadow-primary-lg);
-}
-
-/* Major event in focus slot */
-.wsscd-planner-card[data-position="active"][data-major-event="true"] {
-	background: var(--wsscd-color-warning-lighter);
-	border-color: var(--wsscd-color-warning);
-	box-shadow: var(--wsscd-shadow-warning-md, 0 4px 12px rgba(234, 179, 8, 0.15));
-}
-
-.wsscd-planner-card[data-position="active"][data-major-event="true"]:hover {
-	background: var(--wsscd-color-warning-bg);
-	border-color: var(--wsscd-color-warning-dark, #ca8a04);
-	box-shadow: var(--wsscd-shadow-warning-lg, 0 6px 16px rgba(234, 179, 8, 0.2));
+	border-color: var(--wp-admin-theme-color, var(--wsscd-color-primary));
 }
 
 /* --- Slot 3: Future Position --- */
 .wsscd-planner-card[data-position="future"] {
-	background: var(--wsscd-color-blue-lighter);
-	border: 2px dashed var(--wsscd-color-blue);
-}
-
-.wsscd-planner-card[data-position="future"]:hover {
-	background: var(--wsscd-color-info-bg);
-	border-color: var(--wsscd-color-primary);
-}
-
-.wsscd-planner-card[data-position="future"][data-major-event="true"] {
-	background: var(--wsscd-color-warning-bg);
-	border: 2px dashed var(--wsscd-color-warning);
-}
-
-.wsscd-planner-card[data-position="future"][data-major-event="true"]:hover {
-	border-color: var(--wsscd-color-warning-dark, #ca8a04);
+	border-style: dashed;
 }
 
 /* =============================================================================
-   6. CAMPAIGN CARDS - FOCUSED STATE
+   6. CAMPAIGN CARDS - FOCUSED STATE (Connected to Insights Panel)
    ============================================================================= */
 
+/*
+ * Focused state creates visual connection to insights panel.
+ * Uses 2px solid border matching the insights panel accent color.
+ * Clean design - no shadows, no transforms, just clear selection.
+ */
+
 .wsscd-planner-card[data-focused="true"] {
+	transform: none;
+	opacity: 1;
+	background: var(--wsscd-color-white);
+	border: 2px solid var(--wsscd-color-text-muted);
 	border-style: solid;
-	border-color: var(--wp-admin-theme-color, var(--wsscd-color-primary));
-	box-shadow:
-		0 0 0 3px var(--wsscd-color-primary-alpha-15),
-		0 2px 8px var(--wsscd-overlay-subtle);
+	box-shadow: var(--wsscd-shadow-sm);
 }
 
+/* Past - muted border */
+.wsscd-planner-card[data-position="past"][data-focused="true"] {
+	border-color: var(--wsscd-color-text-muted);
+}
+
+/* Active - primary accent */
 .wsscd-planner-card[data-position="active"][data-focused="true"] {
-	box-shadow:
-		0 0 0 3px var(--wsscd-color-primary-alpha-20),
-		var(--wsscd-shadow-primary-lg);
+	border-color: var(--wp-admin-theme-color, var(--wsscd-color-primary));
 }
 
-.wsscd-planner-card[data-position="active"][data-major-event="true"][data-focused="true"] {
-	border-color: var(--wsscd-color-warning);
-	box-shadow:
-		0 0 0 3px rgba(234, 179, 8, 0.2),
-		var(--wsscd-shadow-warning-lg, 0 6px 16px rgba(234, 179, 8, 0.2));
+/* Future - info blue */
+.wsscd-planner-card[data-position="future"][data-focused="true"] {
+	border-color: var(--wsscd-color-info);
 }
 
 /* =============================================================================
@@ -416,8 +389,25 @@
 
 .wsscd-planner-icon {
 	flex-shrink: 0;
-	font-size: var(--wsscd-icon-medium);
-	line-height: 1;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--wsscd-icon-medium);
+	height: var(--wsscd-icon-medium);
+	color: var(--wsscd-color-text-secondary);
+}
+
+.wsscd-planner-icon .wsscd-icon {
+	width: var(--wsscd-icon-medium);
+	height: var(--wsscd-icon-medium);
+}
+
+.wsscd-planner-card[data-position="active"] .wsscd-planner-icon {
+	color: var(--wsscd-color-primary);
+}
+
+.wsscd-planner-card[data-position="active"][data-major-event="true"] .wsscd-planner-icon {
+	color: var(--wsscd-color-warning-dark, #92400e);
 }
 
 /* =============================================================================
@@ -606,25 +596,87 @@
 }
 
 /* =============================================================================
-   11. INSIGHTS PANEL (Seamless Integration)
+   11. INSIGHTS PANEL (Connected to Selected Card)
    ============================================================================= */
 
-/* Main Container - Seamless with planner (no separate card) */
+/* Main Container - Connected to selected card via accent border + pointer */
 .wsscd-planner-insights {
-	border-top: 1px solid var(--wsscd-color-border-light);
+	position: relative;
+	margin: var(--wsscd-spacing-md) var(--wsscd-padding-section) var(--wsscd-padding-section);
+	border: 2px solid var(--wsscd-color-border-light);
+	border-radius: var(--wsscd-radius-lg);
+	background: var(--wsscd-color-white);
+	transition: border-color var(--wsscd-transition-base) ease;
 }
 
-/* Persistent Header */
-.wsscd-insights-header {
-	padding: var(--wsscd-padding-compact) var(--wsscd-padding-section);
-	background: var(--wsscd-color-gray-50);
+/* Connector Tab (pointer arrow) */
+.wsscd-planner-insights::before {
+	content: '';
+	position: absolute;
+	top: -10px;
+	width: 0;
+	height: 0;
+	border-left: 10px solid transparent;
+	border-right: 10px solid transparent;
+	border-bottom: 10px solid var(--wsscd-color-border-light);
+	transition: left var(--wsscd-transition-base) ease,
+	            border-color var(--wsscd-transition-base) ease;
 }
 
-.wsscd-insights-title {
-	margin: 0;
-	font-size: var(--wsscd-font-size-medium);
-	font-weight: var(--wsscd-font-weight-semibold);
-	color: var(--wsscd-color-text);
+/* Inner triangle (white fill) */
+.wsscd-planner-insights::after {
+	content: '';
+	position: absolute;
+	top: -7px;
+	width: 0;
+	height: 0;
+	border-left: 8px solid transparent;
+	border-right: 8px solid transparent;
+	border-bottom: 8px solid var(--wsscd-color-white);
+	transition: left var(--wsscd-transition-base) ease;
+}
+
+/* Position-based pointer placement (left = 16.67%, center = 50%, right = 83.33%) */
+.wsscd-planner-insights[data-position="past"]::before {
+	left: calc(16.67% - 10px);
+}
+.wsscd-planner-insights[data-position="past"]::after {
+	left: calc(16.67% - 8px);
+}
+
+.wsscd-planner-insights[data-position="active"]::before {
+	left: calc(50% - 10px);
+}
+.wsscd-planner-insights[data-position="active"]::after {
+	left: calc(50% - 8px);
+}
+
+.wsscd-planner-insights[data-position="future"]::before {
+	left: calc(83.33% - 10px);
+}
+.wsscd-planner-insights[data-position="future"]::after {
+	left: calc(83.33% - 8px);
+}
+
+/*
+ * Accent border colors - MUST match focused card colors exactly.
+ * Using same CSS custom property pattern for consistency.
+ */
+.wsscd-planner-insights[data-position="past"] {
+	--wsscd-accent-color: var(--wsscd-color-text-muted);
+}
+.wsscd-planner-insights[data-position="active"] {
+	--wsscd-accent-color: var(--wp-admin-theme-color, var(--wsscd-color-primary));
+}
+.wsscd-planner-insights[data-position="future"] {
+	--wsscd-accent-color: var(--wsscd-color-info);
+}
+
+.wsscd-planner-insights[data-position] {
+	border-color: var(--wsscd-accent-color);
+}
+.wsscd-planner-insights[data-position]::before {
+	border-bottom-color: var(--wsscd-accent-color);
 }
 
 
@@ -830,6 +882,10 @@
 		padding: var(--wsscd-padding-large);
 	}
 
+	.wsscd-planner-insights {
+		margin: var(--wsscd-spacing-md) var(--wsscd-padding-large) var(--wsscd-padding-large);
+	}
+
 	.wsscd-insights-columns {
 		grid-template-columns: repeat(2, 1fr);
 		gap: var(--wsscd-gap-normal);
@@ -865,6 +921,17 @@
 
 	.wsscd-planner-timeline {
 		display: none;
+	}
+
+	/* Hide connector pointer on mobile (cards are stacked) */
+	.wsscd-planner-insights::before,
+	.wsscd-planner-insights::after {
+		display: none;
+	}
+
+	.wsscd-planner-insights {
+		margin: var(--wsscd-spacing-sm) var(--wsscd-padding-large) var(--wsscd-padding-large);
+		border-radius: var(--wsscd-radius-md);
 	}
 
 	.wsscd-insights-columns {

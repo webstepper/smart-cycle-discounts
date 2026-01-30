@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: woocommerce discount, dynamic pricing, bulk discount, scheduled sale, sale price
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -412,6 +412,12 @@ Pro users can configure combination policies for each campaign. Choose whether y
 
 == Changelog ==
 
+= 1.2.1 =
+* Improvement: Dashboard layout reordered - "Your Campaigns" now appears above "Campaign Planner" for faster access to active campaigns
+* Improvement: Campaign Health widget now shows status breakdown (e.g., "2 campaigns analyzed • 1 active, 1 scheduled")
+* Improvement: Campaign Planner insights panel width now matches campaign cards section for visual consistency
+* Fix: Removed non-functional "View Results" button from past campaign insights (card already has "Plan Next" action)
+
 = 1.2.0 =
 * New: Free shipping badge now visible in campaigns list table
 * New: Free shipping status displayed in campaign overview panel with shipping method details
@@ -512,6 +518,9 @@ Pro users can configure combination policies for each campaign. Choose whether y
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.2.1 =
+Dashboard UX improvements - Your Campaigns section now prioritized above Campaign Planner, plus visual alignment fixes.
 
 = 1.2.0 =
 Free shipping visibility now integrated across admin areas - campaigns list, overview panel, and wizard review step all display free shipping status.

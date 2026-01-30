@@ -68,6 +68,34 @@ $health_class = 'wsscd-health-' . $current_config['class'];
 				<?php esc_html_e( 'Create your first campaign to start tracking health metrics.', 'smart-cycle-discounts' ); ?>
 			<?php else : ?>
 				<?php
+				// Build status breakdown parts.
+				$status_parts = array();
+				$active_count = isset( $quick_stats['active_count'] ) ? $quick_stats['active_count'] : 0;
+				$scheduled_count = isset( $quick_stats['scheduled_count'] ) ? $quick_stats['scheduled_count'] : 0;
+				$paused_count = isset( $quick_stats['paused_count'] ) ? $quick_stats['paused_count'] : 0;
+
+				if ( $active_count > 0 ) {
+					$status_parts[] = sprintf(
+						/* translators: %d: number of active campaigns */
+						_n( '%d active', '%d active', $active_count, 'smart-cycle-discounts' ),
+						$active_count
+					);
+				}
+				if ( $scheduled_count > 0 ) {
+					$status_parts[] = sprintf(
+						/* translators: %d: number of scheduled campaigns */
+						_n( '%d scheduled', '%d scheduled', $scheduled_count, 'smart-cycle-discounts' ),
+						$scheduled_count
+					);
+				}
+				if ( $paused_count > 0 ) {
+					$status_parts[] = sprintf(
+						/* translators: %d: number of paused campaigns */
+						_n( '%d paused', '%d paused', $paused_count, 'smart-cycle-discounts' ),
+						$paused_count
+					);
+				}
+
 				echo esc_html(
 					sprintf(
 						/* translators: %d: number of campaigns analyzed */
@@ -75,8 +103,14 @@ $health_class = 'wsscd-health-' . $current_config['class'];
 						$quick_stats['total_analyzed']
 					)
 				);
-				?>
-				<span class="wsscd-health-divider">•</span>
+
+				// Show status breakdown after bullet.
+				if ( ! empty( $status_parts ) ) :
+					?>
+					<span class="wsscd-health-divider">•</span>
+					<span class="wsscd-health-status-breakdown"><?php echo esc_html( implode( ', ', $status_parts ) ); ?></span>
+				<?php endif; ?>
+				<br>
 				<span class="wsscd-health-quick-stats">
 					<span class="wsscd-health-stat-critical"><?php echo esc_html( $quick_stats['issues_count'] ); ?> <?php esc_html_e( 'critical', 'smart-cycle-discounts' ); ?></span>
 					<span class="wsscd-health-divider">•</span>

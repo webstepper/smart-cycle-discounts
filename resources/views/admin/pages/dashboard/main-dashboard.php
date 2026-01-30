@@ -104,295 +104,7 @@ $has_warnings        = in_array( $campaign_health['status'], array( 'fair', 'poo
 	?>
 
 	<?php
-	// 3. CAMPAIGN PLANNER
-	$planner_data = $planner_data ?? array();
-	$campaigns     = $planner_data['campaigns'] ?? array();
-
-	if ( ! empty( $campaigns ) ) :
-		?>
-		<div class="wsscd-dashboard-section wsscd-campaign-planner">
-			<div class="wsscd-section-header">
-				<div class="wsscd-section-header-content">
-					<div class="wsscd-section-header-icon">
-						<?php WSSCD_Icon_Helper::render( 'calendar', array( 'size' => 20 ) ); ?>
-					</div>
-					<div class="wsscd-section-header-text">
-						<h2><?php esc_html_e( 'Campaign Planner', 'smart-cycle-discounts' ); ?></h2>
-					</div>
-				</div>
-				<p class="wsscd-section-header-description"><?php esc_html_e( 'Optimize your promotional calendar with smart scheduling insights', 'smart-cycle-discounts' ); ?></p>
-			</div>
-
-			<!-- 3-Card Timeline Grid -->
-			<div class="wsscd-planner-grid">
-				<!-- Timeline Track -->
-				<div class="wsscd-planner-timeline">
-					<div class="wsscd-timeline-track">
-						<?php
-						// Map campaigns by POSITION (slot index) for smart timeline.
-						// Smart timeline always returns 3 campaigns in order:
-						// [0] = Slot 1 (PAST position) - most recently ended
-						// [1] = Slot 2 (ACTIVE/NEXT position) - current OR next upcoming
-						// [2] = Slot 3 (FUTURE position) - next after Slot 2
-						$campaigns_by_position = array(
-							'past'   => $campaigns[0] ?? null, // Slot 1
-							'active' => $campaigns[1] ?? null, // Slot 2 (ACTIVE/NEXT)
-							'future' => $campaigns[2] ?? null, // Slot 3
-						);
-
-						// Timeline position configuration (UI labels).
-						$timeline_positions = array(
-							'past'   => array(
-								'label' => __( 'Past', 'smart-cycle-discounts' ),
-								'title' => __( 'Past Campaign', 'smart-cycle-discounts' ),
-							),
-							'active' => array(
-								'label' => __( 'Active', 'smart-cycle-discounts' ),
-								'title' => __( 'Active Campaign', 'smart-cycle-discounts' ),
-							),
-							'future' => array(
-								'label' => __( 'Upcoming', 'smart-cycle-discounts' ),
-								'title' => __( 'Upcoming Campaign', 'smart-cycle-discounts' ),
-							),
-						);
-
-						$first = true;
-						foreach ( $timeline_positions as $position => $position_config ) :
-							$campaign = $campaigns_by_position[ $position ] ?? null;
-
-							// Add segment before item (except for first).
-							if ( ! $first ) {
-								$segment_class = 'past' === $position ? 'past' : 'active';
-								?>
-								<div class="wsscd-timeline-segment wsscd-timeline-segment--<?php echo esc_attr( $segment_class ); ?>"></div>
-								<?php
-							}
-							$first = false;
-
-							// Timeline item with campaign data.
-							// NOTE: Uses POSITION class (timeline UI position), not campaign state.
-							?>
-							<div class="wsscd-timeline-item wsscd-timeline-item--<?php echo esc_attr( $position ); ?>"
-								<?php if ( $campaign ) : ?>
-									data-campaign-id="<?php echo esc_attr( $campaign['id'] ); ?>"
-									data-position="<?php echo esc_attr( $position ); ?>"
-									data-state="<?php echo esc_attr( $campaign['state'] ); ?>"
-									data-is-major-event="<?php echo esc_attr( ! empty( $campaign['is_major_event'] ) ? '1' : '0' ); ?>"
-									role="button"
-									tabindex="0"
-									aria-label="<?php echo esc_attr( sprintf( '%s - %s', $campaign['name'], $position_config['title'] ) ); ?>"
-								<?php endif; ?>>
-								<div class="wsscd-timeline-dot wsscd-timeline-dot--<?php echo esc_attr( $position ); ?>"
-									title="<?php echo esc_attr( $position_config['title'] ); ?>"></div>
-								<span class="wsscd-timeline-label <?php echo esc_attr( 'active' === $position ? 'wsscd-timeline-label--active' : '' ); ?>">
-									<?php echo esc_html( $position_config['label'] ); ?>
-								</span>
-							</div>
-							<?php
-						endforeach;
-						?>
-					</div>
-				</div>
-
-				<?php
-				// Map slot index to timeline position name.
-				$position_names = array( 'past', 'active', 'future' );
-
-				foreach ( $campaigns as $index => $campaign ) :
-					$state          = $campaign['state'];
-					$is_major_event = ! empty( $campaign['is_major_event'] );
-					$position       = $position_names[ $index ] ?? 'future'; // Slot 0=past, 1=active, 2=future
-
-					$state_labels = array(
-						'past'   => __( 'Ended', 'smart-cycle-discounts' ),
-						'active' => __( 'Active Now', 'smart-cycle-discounts' ),
-						'future' => __( 'Coming Soon', 'smart-cycle-discounts' ),
-					);
-					$state_label  = $state_labels[ $state ] ?? '';
-					?>
-					<div class="wsscd-planner-card"
-						data-state="<?php echo esc_attr( $state ); ?>"
-						data-position="<?php echo esc_attr( $position ); ?>"
-						data-major-event="<?php echo esc_attr( $is_major_event ? 'true' : 'false' ); ?>"
-						data-campaign-id="<?php echo esc_attr( $campaign['id'] ); ?>"
-						role="button"
-						tabindex="0"
-						aria-label="<?php echo esc_attr( sprintf( '%s - %s', $campaign['name'], $state_label ) ); ?>">
-
-						<!-- Card Header -->
-						<div class="wsscd-planner-card-header">
-							<div class="wsscd-planner-card-title">
-								<h3>
-									<span class="wsscd-planner-icon"><?php echo esc_html( $campaign['icon'] ); ?></span>
-									<?php echo esc_html( $campaign['name'] ); ?>
-								</h3>
-							</div>
-							<div class="wsscd-planner-card-badges">
-								<?php if ( $is_major_event ) : ?>
-									<?php
-									// Combined badge for major events showing both state and importance
-									$major_event_labels = array(
-										'past'   => __( 'Past Major Event', 'smart-cycle-discounts' ),
-										'active' => __( 'Active Major Event', 'smart-cycle-discounts' ),
-										'future' => __( 'Upcoming Major Event', 'smart-cycle-discounts' ),
-									);
-									$combined_label = $major_event_labels[ $state ] ?? __( 'Major Event', 'smart-cycle-discounts' );
-									?>
-									<span class="wsscd-planner-card-badge wsscd-badge-major wsscd-badge-combined wsscd-badge-major-<?php echo esc_attr( $state ); ?>">
-										<?php WSSCD_Icon_Helper::render( 'awards', array( 'size' => 16 ) ); ?>
-										<?php echo esc_html( $combined_label ); ?>
-									</span>
-								<?php else : ?>
-									<?php
-									// Regular state badge for non-major events
-									$badge_icons = array(
-										'past'   => 'clock',
-										'active' => 'star-filled',
-										'future' => 'calendar',
-									);
-									$badge_icon  = $badge_icons[ $state ] ?? 'info';
-									?>
-									<span class="wsscd-planner-card-badge wsscd-badge-<?php echo esc_attr( $state ); ?>">
-										<?php WSSCD_Icon_Helper::render( $badge_icon, array( 'size' => 16 ) ); ?>
-										<?php echo esc_html( $state_label ); ?>
-									</span>
-								<?php endif; ?>
-							</div>
-						</div>
-
-						<!-- Card Content -->
-						<div class="wsscd-planner-card-content">
-							<?php if ( ! empty( $campaign['description'] ) ) : ?>
-								<p class="wsscd-planner-card-description"><?php echo esc_html( $campaign['description'] ); ?></p>
-							<?php endif; ?>
-
-							<div class="wsscd-planner-card-meta">
-								<?php
-								$content_parts = array();
-
-								if ( ! empty( $campaign['date_range'] ) ) {
-									$content_parts[] = '<span class="wsscd-planner-card-date">' . esc_html( $campaign['date_range'] ) . '</span>';
-								}
-
-								if ( ! empty( $campaign['time_relative'] ) ) {
-									$content_parts[] = '<span class="wsscd-planner-card-relative">' . esc_html( $campaign['time_relative'] ) . '</span>';
-								}
-
-								if ( ! empty( $campaign['discount_suggestion'] ) ) {
-									$content_parts[] = '<span class="wsscd-planner-card-discount">' . esc_html( $campaign['discount_suggestion'] ) . '</span>';
-								}
-
-								echo wp_kses_post( implode( ' <span class="wsscd-planner-card-separator">·</span> ', $content_parts ) );
-								?>
-							</div>
-						</div>
-
-						<!-- Card Actions -->
-						<div class="wsscd-planner-card-actions">
-							<?php
-							/*
-							 * Button Logic:
-							 * - Slot 2 (active position): Always show action button (Create/Schedule)
-							 * - Slots 1 & 3: Only show buttons for weekly campaigns (recurring)
-							 *   Major events in past/future slots are informational only
-							 *   (e.g., "Plan next Christmas" doesn't make sense - it's 12 months away)
-							 */
-							$is_focus_slot = 'active' === $position;
-
-							if ( $is_focus_slot ) :
-								// Slot 2: Always actionable
-								if ( 'active' === $state ) :
-									// Campaign is currently running - create now.
-									?>
-									<a href="<?php echo esc_url( $campaign['wizard_url'] ); ?>" class="wsscd-card-link">
-										<?php echo esc_html( $is_major_event ? __( 'Create Campaign', 'smart-cycle-discounts' ) : __( 'Create Campaign', 'smart-cycle-discounts' ) ); ?>
-										<span class="wsscd-card-link-arrow">&rarr;</span>
-									</a>
-									<?php
-								else :
-									// Future campaign in focus slot - schedule ahead.
-									$schedule_url = add_query_arg( 'schedule', '1', $campaign['wizard_url'] );
-									?>
-									<a href="<?php echo esc_url( $schedule_url ); ?>" class="wsscd-card-link">
-										<?php esc_html_e( 'Schedule Campaign', 'smart-cycle-discounts' ); ?>
-										<span class="wsscd-card-link-arrow">&rarr;</span>
-									</a>
-									<?php
-								endif;
-							elseif ( ! $is_major_event ) :
-								// Slots 1 & 3: Only weekly campaigns get action buttons.
-								if ( 'past' === $position ) :
-									// Past weekly campaign - plan the next occurrence.
-									?>
-									<a href="<?php echo esc_url( $campaign['wizard_url'] ); ?>" class="wsscd-card-link">
-										<?php esc_html_e( 'Plan Next', 'smart-cycle-discounts' ); ?>
-										<span class="wsscd-card-link-arrow">&rarr;</span>
-									</a>
-									<?php
-								else :
-									// Future weekly campaign - plan ahead.
-									?>
-									<a href="<?php echo esc_url( $campaign['wizard_url'] ); ?>" class="wsscd-card-link">
-										<?php esc_html_e( 'Plan Ahead', 'smart-cycle-discounts' ); ?>
-										<span class="wsscd-card-link-arrow">&rarr;</span>
-									</a>
-									<?php
-								endif;
-							endif;
-							// Major events in slots 1 & 3: No button (informational only).
-							?>
-						</div>
-					</div>
-				<?php endforeach; ?>
-			</div>
-
-			<!-- Unified Insights Section (Bottom) -->
-			<?php
-			// Get focus campaign for insights (slot 2 = index 1).
-			// This is always the most relevant campaign (active or next upcoming).
-			$focus_campaign = isset( $campaigns[1] ) ? $campaigns[1] : null;
-			$insights_data  = null;
-
-			if ( $focus_campaign ) {
-				$insights_data = $dashboard_service->get_unified_insights(
-					$focus_campaign['id'],
-					'active', // Position is 'active' for slot 2.
-					! empty( $focus_campaign['is_major_event'] ),
-					$focus_campaign['state'] // Actual campaign state.
-				);
-			}
-
-			// Extract title for header (includes emoji from server).
-			$insights_title = $insights_data['title'] ?? '';
-			?>
-			<div class="wsscd-planner-insights">
-				<!-- Persistent Header (updated via JS, not replaced) -->
-				<div class="wsscd-insights-header">
-					<h3 class="wsscd-insights-title">
-						<?php
-						if ( $insights_title ) {
-							echo esc_html( $insights_title );
-						} else {
-							esc_html_e( 'Campaign Insights', 'smart-cycle-discounts' );
-						}
-						?>
-					</h3>
-				</div>
-
-				<!-- Dynamic Content (replaced by AJAX) -->
-				<div class="wsscd-insights-body" role="tabpanel">
-					<?php
-					if ( $insights_data ) {
-						require __DIR__ . '/partials/planner-insights.php';
-					}
-					?>
-				</div>
-			</div>
-		</div>
-	<?php endif; ?>
-
-	<?php
-	// 4. YOUR CAMPAIGNS (Status Distribution + Analytics Teaser/Performance + Campaign List)
+	// 3. YOUR CAMPAIGNS (Status Distribution + Analytics Teaser/Performance + Campaign List)
 	if ( 0 === $total_campaigns ) :
 		// Empty state: No campaigns at all
 		?>
@@ -898,6 +610,279 @@ $has_warnings        = in_array( $campaign_health['status'], array( 'fair', 'poo
 						<?php endif; ?>
 					</div>
 				<?php endif; ?>
+			</div>
+		</div>
+	<?php endif; ?>
+
+	<?php
+	// 4. CAMPAIGN PLANNER
+	$planner_data = $planner_data ?? array();
+	$campaigns     = $planner_data['campaigns'] ?? array();
+
+	if ( ! empty( $campaigns ) ) :
+		?>
+		<div class="wsscd-dashboard-section wsscd-campaign-planner">
+			<div class="wsscd-section-header">
+				<div class="wsscd-section-header-content">
+					<div class="wsscd-section-header-icon">
+						<?php WSSCD_Icon_Helper::render( 'calendar', array( 'size' => 20 ) ); ?>
+					</div>
+					<div class="wsscd-section-header-text">
+						<h2><?php esc_html_e( 'Campaign Planner', 'smart-cycle-discounts' ); ?></h2>
+					</div>
+				</div>
+				<p class="wsscd-section-header-description"><?php esc_html_e( 'Optimize your promotional calendar with smart scheduling insights', 'smart-cycle-discounts' ); ?></p>
+			</div>
+
+			<!-- 3-Card Timeline Grid -->
+			<div class="wsscd-planner-grid">
+				<!-- Timeline Track -->
+				<div class="wsscd-planner-timeline">
+					<div class="wsscd-timeline-track">
+						<?php
+						// Map campaigns by POSITION (slot index) for smart timeline.
+						// Smart timeline always returns 3 campaigns in order:
+						// [0] = Slot 1 (PAST position) - most recently ended
+						// [1] = Slot 2 (ACTIVE/NEXT position) - current OR next upcoming
+						// [2] = Slot 3 (FUTURE position) - next after Slot 2
+						$campaigns_by_position = array(
+							'past'   => $campaigns[0] ?? null, // Slot 1
+							'active' => $campaigns[1] ?? null, // Slot 2 (ACTIVE/NEXT)
+							'future' => $campaigns[2] ?? null, // Slot 3
+						);
+
+						// Timeline position configuration (UI labels).
+						$timeline_positions = array(
+							'past'   => array(
+								'label' => __( 'Past', 'smart-cycle-discounts' ),
+								'title' => __( 'Past Campaign', 'smart-cycle-discounts' ),
+							),
+							'active' => array(
+								'label' => __( 'Active', 'smart-cycle-discounts' ),
+								'title' => __( 'Active Campaign', 'smart-cycle-discounts' ),
+							),
+							'future' => array(
+								'label' => __( 'Upcoming', 'smart-cycle-discounts' ),
+								'title' => __( 'Upcoming Campaign', 'smart-cycle-discounts' ),
+							),
+						);
+
+						$first = true;
+						foreach ( $timeline_positions as $position => $position_config ) :
+							$campaign = $campaigns_by_position[ $position ] ?? null;
+
+							// Add segment before item (except for first).
+							if ( ! $first ) {
+								$segment_class = 'past' === $position ? 'past' : 'active';
+								?>
+								<div class="wsscd-timeline-segment wsscd-timeline-segment--<?php echo esc_attr( $segment_class ); ?>"></div>
+								<?php
+							}
+							$first = false;
+
+							// Timeline item with campaign data.
+							// NOTE: Uses POSITION class (timeline UI position), not campaign state.
+							?>
+							<div class="wsscd-timeline-item wsscd-timeline-item--<?php echo esc_attr( $position ); ?>"
+								<?php if ( $campaign ) : ?>
+									data-campaign-id="<?php echo esc_attr( $campaign['id'] ); ?>"
+									data-position="<?php echo esc_attr( $position ); ?>"
+									data-state="<?php echo esc_attr( $campaign['state'] ); ?>"
+									data-is-major-event="<?php echo esc_attr( ! empty( $campaign['is_major_event'] ) ? '1' : '0' ); ?>"
+									role="button"
+									tabindex="0"
+									aria-label="<?php echo esc_attr( sprintf( '%s - %s', $campaign['name'], $position_config['title'] ) ); ?>"
+								<?php endif; ?>>
+								<div class="wsscd-timeline-dot wsscd-timeline-dot--<?php echo esc_attr( $position ); ?>"
+									title="<?php echo esc_attr( $position_config['title'] ); ?>"></div>
+								<span class="wsscd-timeline-label <?php echo esc_attr( 'active' === $position ? 'wsscd-timeline-label--active' : '' ); ?>">
+									<?php echo esc_html( $position_config['label'] ); ?>
+								</span>
+							</div>
+							<?php
+						endforeach;
+						?>
+					</div>
+				</div>
+
+				<?php
+				// Map slot index to timeline position name.
+				$position_names = array( 'past', 'active', 'future' );
+
+				foreach ( $campaigns as $index => $campaign ) :
+					$state          = $campaign['state'];
+					$is_major_event = ! empty( $campaign['is_major_event'] );
+					$position       = $position_names[ $index ] ?? 'future'; // Slot 0=past, 1=active, 2=future
+
+					$state_labels = array(
+						'past'   => __( 'Ended', 'smart-cycle-discounts' ),
+						'active' => __( 'Active Now', 'smart-cycle-discounts' ),
+						'future' => __( 'Coming Soon', 'smart-cycle-discounts' ),
+					);
+					$state_label  = $state_labels[ $state ] ?? '';
+					?>
+					<div class="wsscd-planner-card"
+						data-state="<?php echo esc_attr( $state ); ?>"
+						data-position="<?php echo esc_attr( $position ); ?>"
+						data-major-event="<?php echo esc_attr( $is_major_event ? 'true' : 'false' ); ?>"
+						data-campaign-id="<?php echo esc_attr( $campaign['id'] ); ?>"
+						role="button"
+						tabindex="0"
+						aria-label="<?php echo esc_attr( sprintf( '%s - %s', $campaign['name'], $state_label ) ); ?>">
+
+						<!-- Card Header -->
+						<div class="wsscd-planner-card-header">
+							<div class="wsscd-planner-card-title">
+								<h3>
+									<span class="wsscd-planner-icon"><?php WSSCD_Icon_Helper::render( $campaign['icon'], array( 'size' => 20 ) ); ?></span>
+									<?php echo esc_html( $campaign['name'] ); ?>
+								</h3>
+							</div>
+							<div class="wsscd-planner-card-badges">
+								<?php if ( $is_major_event ) : ?>
+									<?php
+									// Combined badge for major events showing both state and importance
+									$major_event_labels = array(
+										'past'   => __( 'Past Major Event', 'smart-cycle-discounts' ),
+										'active' => __( 'Active Major Event', 'smart-cycle-discounts' ),
+										'future' => __( 'Upcoming Major Event', 'smart-cycle-discounts' ),
+									);
+									$combined_label = $major_event_labels[ $state ] ?? __( 'Major Event', 'smart-cycle-discounts' );
+									?>
+									<span class="wsscd-planner-card-badge wsscd-badge-major wsscd-badge-combined wsscd-badge-major-<?php echo esc_attr( $state ); ?>">
+										<?php WSSCD_Icon_Helper::render( 'awards', array( 'size' => 16 ) ); ?>
+										<?php echo esc_html( $combined_label ); ?>
+									</span>
+								<?php else : ?>
+									<?php
+									// Regular state badge for non-major events
+									$badge_icons = array(
+										'past'   => 'clock',
+										'active' => 'star-filled',
+										'future' => 'calendar',
+									);
+									$badge_icon  = $badge_icons[ $state ] ?? 'info';
+									?>
+									<span class="wsscd-planner-card-badge wsscd-badge-<?php echo esc_attr( $state ); ?>">
+										<?php WSSCD_Icon_Helper::render( $badge_icon, array( 'size' => 16 ) ); ?>
+										<?php echo esc_html( $state_label ); ?>
+									</span>
+								<?php endif; ?>
+							</div>
+						</div>
+
+						<!-- Card Content -->
+						<div class="wsscd-planner-card-content">
+							<?php if ( ! empty( $campaign['description'] ) ) : ?>
+								<p class="wsscd-planner-card-description"><?php echo esc_html( $campaign['description'] ); ?></p>
+							<?php endif; ?>
+
+							<div class="wsscd-planner-card-meta">
+								<?php
+								$content_parts = array();
+
+								if ( ! empty( $campaign['date_range'] ) ) {
+									$content_parts[] = '<span class="wsscd-planner-card-date">' . esc_html( $campaign['date_range'] ) . '</span>';
+								}
+
+								if ( ! empty( $campaign['time_relative'] ) ) {
+									$content_parts[] = '<span class="wsscd-planner-card-relative">' . esc_html( $campaign['time_relative'] ) . '</span>';
+								}
+
+								if ( ! empty( $campaign['discount_suggestion'] ) ) {
+									$content_parts[] = '<span class="wsscd-planner-card-discount">' . esc_html( $campaign['discount_suggestion'] ) . '</span>';
+								}
+
+								echo wp_kses_post( implode( ' <span class="wsscd-planner-card-separator">·</span> ', $content_parts ) );
+								?>
+							</div>
+						</div>
+
+						<!-- Card Actions -->
+						<div class="wsscd-planner-card-actions">
+							<?php
+							/*
+							 * Button Logic:
+							 * - Slot 2 (active position): Always show action button (Create/Schedule)
+							 * - Slots 1 & 3: Only show buttons for weekly campaigns (recurring)
+							 *   Major events in past/future slots are informational only
+							 *   (e.g., "Plan next Christmas" doesn't make sense - it's 12 months away)
+							 */
+							$is_focus_slot = 'active' === $position;
+
+							if ( $is_focus_slot ) :
+								// Slot 2: Always actionable
+								if ( 'active' === $state ) :
+									// Campaign is currently running - create now.
+									?>
+									<a href="<?php echo esc_url( $campaign['wizard_url'] ); ?>" class="wsscd-card-link">
+										<?php echo esc_html( $is_major_event ? __( 'Create Campaign', 'smart-cycle-discounts' ) : __( 'Create Campaign', 'smart-cycle-discounts' ) ); ?>
+										<span class="wsscd-card-link-arrow">&rarr;</span>
+									</a>
+									<?php
+								else :
+									// Future campaign in focus slot - schedule ahead.
+									$schedule_url = add_query_arg( 'schedule', '1', $campaign['wizard_url'] );
+									?>
+									<a href="<?php echo esc_url( $schedule_url ); ?>" class="wsscd-card-link">
+										<?php esc_html_e( 'Schedule Campaign', 'smart-cycle-discounts' ); ?>
+										<span class="wsscd-card-link-arrow">&rarr;</span>
+									</a>
+									<?php
+								endif;
+							elseif ( ! $is_major_event ) :
+								// Slots 1 & 3: Only weekly campaigns get action buttons.
+								if ( 'past' === $position ) :
+									// Past weekly campaign - plan the next occurrence.
+									?>
+									<a href="<?php echo esc_url( $campaign['wizard_url'] ); ?>" class="wsscd-card-link">
+										<?php esc_html_e( 'Plan Next', 'smart-cycle-discounts' ); ?>
+										<span class="wsscd-card-link-arrow">&rarr;</span>
+									</a>
+									<?php
+								else :
+									// Future weekly campaign - plan ahead.
+									?>
+									<a href="<?php echo esc_url( $campaign['wizard_url'] ); ?>" class="wsscd-card-link">
+										<?php esc_html_e( 'Plan Ahead', 'smart-cycle-discounts' ); ?>
+										<span class="wsscd-card-link-arrow">&rarr;</span>
+									</a>
+									<?php
+								endif;
+							endif;
+							// Major events in slots 1 & 3: No button (informational only).
+							?>
+						</div>
+					</div>
+				<?php endforeach; ?>
+			</div>
+
+			<!-- Unified Insights Section (Bottom) -->
+			<?php
+			// Get focus campaign for insights (slot 2 = index 1).
+			// This is always the most relevant campaign (active or next upcoming).
+			$focus_campaign  = isset( $campaigns[1] ) ? $campaigns[1] : null;
+			$insights_data   = null;
+			$focus_position  = 'active'; // Default position for slot 2.
+
+			if ( $focus_campaign ) {
+				$insights_data = $dashboard_service->get_unified_insights(
+					$focus_campaign['id'],
+					$focus_position,
+					! empty( $focus_campaign['is_major_event'] ),
+					$focus_campaign['state'] // Actual campaign state.
+				);
+			}
+			?>
+			<div class="wsscd-planner-insights" data-position="<?php echo esc_attr( $focus_position ); ?>">
+				<!-- Dynamic Content (replaced by AJAX) -->
+				<div class="wsscd-insights-body" role="region" aria-label="<?php esc_attr_e( 'Campaign Insights', 'smart-cycle-discounts' ); ?>">
+					<?php
+					if ( $insights_data ) {
+						require __DIR__ . '/partials/planner-insights.php';
+					}
+					?>
+				</div>
 			</div>
 		</div>
 	<?php endif; ?>

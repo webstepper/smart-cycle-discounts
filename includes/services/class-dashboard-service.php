@@ -140,6 +140,15 @@ class WSSCD_Dashboard_Service {
 	private WSSCD_Campaign_Planner_Service $planner_service;
 
 	/**
+	 * Insights builder instance (lazy-loaded).
+	 *
+	 * @since    1.3.0
+	 * @access   private
+	 * @var      WSSCD_Insights_Builder|null    $insights_builder    Insights builder.
+	 */
+	private ?WSSCD_Insights_Builder $insights_builder = null;
+
+	/**
 	 * Initialize the dashboard service.
 	 *
 	 * @since    1.0.0
@@ -179,6 +188,28 @@ class WSSCD_Dashboard_Service {
 	}
 
 	/**
+	 * Get the insights builder instance (lazy-loaded).
+	 *
+	 * @since    1.3.0
+	 * @return   WSSCD_Insights_Builder    Insights builder instance.
+	 */
+	private function get_insights_builder(): WSSCD_Insights_Builder {
+		if ( null === $this->insights_builder ) {
+			require_once WSSCD_INCLUDES_DIR . 'core/campaigns/interface-campaign-data.php';
+			require_once WSSCD_INCLUDES_DIR . 'core/campaigns/class-major-event-data.php';
+			require_once WSSCD_INCLUDES_DIR . 'core/campaigns/class-weekly-campaign-data.php';
+			require_once WSSCD_INCLUDES_DIR . 'core/campaigns/class-campaign-data-factory.php';
+			require_once WSSCD_INCLUDES_DIR . 'core/campaigns/class-campaign-suggestions-registry.php';
+			require_once WSSCD_INCLUDES_DIR . 'core/campaigns/class-weekly-campaign-definitions.php';
+			require_once WSSCD_INCLUDES_DIR . 'services/class-insights-builder.php';
+
+			$this->insights_builder = new WSSCD_Insights_Builder();
+		}
+
+		return $this->insights_builder;
+	}
+
+	/**
 	 * Run one-time cache migration to clear stale dashboard caches.
 	 *
 	 * This ensures old cache formats are cleared when the cache key structure changes.
@@ -187,7 +218,7 @@ class WSSCD_Dashboard_Service {
 	 * @return   void
 	 */
 	private function maybe_run_cache_migration(): void {
-		$migration_version = 2; // Increment this to force cache clear.
+		$migration_version = 3; // Increment this to force cache clear.
 		$current_version   = get_option( 'wsscd_dashboard_cache_migration', 0 );
 
 		if ( (int) $current_version < $migration_version ) {
@@ -470,6 +501,19 @@ class WSSCD_Dashboard_Service {
 			return $this->get_empty_health_structure();
 		}
 
+		// Count campaigns by status for quick stats breakdown.
+		$status_counts = array(
+			'active'    => 0,
+			'scheduled' => 0,
+			'paused'    => 0,
+		);
+		foreach ( $campaigns as $campaign ) {
+			$status = $campaign['status'] ?? '';
+			if ( isset( $status_counts[ $status ] ) ) {
+				++$status_counts[ $status ];
+			}
+		}
+
 		// Use unified health service to analyze all campaigns
 		$aggregate_health = $this->health_service->analyze_campaigns( $campaigns, 'standard' );
 
@@ -506,9 +550,12 @@ class WSSCD_Dashboard_Service {
 				),
 			),
 			'quick_stats'      => array(
-				'total_analyzed' => $aggregate_health['total_campaigns_analyzed'],
-				'issues_count'   => count( $aggregate_health['critical_issues'] ),
-				'warnings_count' => count( $aggregate_health['warnings'] ),
+				'total_analyzed'   => $aggregate_health['total_campaigns_analyzed'],
+				'issues_count'     => count( $aggregate_health['critical_issues'] ),
+				'warnings_count'   => count( $aggregate_health['warnings'] ),
+				'active_count'     => $status_counts['active'],
+				'scheduled_count'  => $status_counts['scheduled'],
+				'paused_count'     => $status_counts['paused'],
 			),
 		);
 
@@ -609,9 +656,12 @@ class WSSCD_Dashboard_Service {
 				),
 			),
 			'quick_stats'      => array(
-				'total_analyzed' => 0,
-				'issues_count'   => 0,
-				'warnings_count' => 0,
+				'total_analyzed'  => 0,
+				'issues_count'    => 0,
+				'warnings_count'  => 0,
+				'active_count'    => 0,
+				'scheduled_count' => 0,
+				'paused_count'    => 0,
 			),
 		);
 	}
@@ -949,837 +999,15 @@ class WSSCD_Dashboard_Service {
 			$state = $position;
 		}
 
-		// If major event, get rich event data from Registry.
-		if ( $is_major_event ) {
-			$event = WSSCD_Campaign_Suggestions_Registry::get_event_by_id( $campaign_id );
+		// Use unified factory and builder (Phase 1 refactoring).
+		$builder  = $this->get_insights_builder();
+		$campaign = WSSCD_Campaign_Data_Factory::create( $campaign_id, $is_major_event );
 
-			if ( $event ) {
-				return $this->build_event_insights( $event, $position, $state );
-			}
+		if ( $campaign ) {
+			return $builder->build( $campaign, $position, $state );
 		}
 
-		// For weekly campaigns, get rich data from Weekly Definitions.
-		require_once WSSCD_INCLUDES_DIR . 'core/campaigns/class-weekly-campaign-definitions.php';
-		$weekly = WSSCD_Weekly_Campaign_Definitions::get_by_id( $campaign_id );
-
-		if ( $weekly ) {
-			return $this->build_weekly_event_insights( $weekly, $position, $state );
-		}
-
-		// Fallback to basic structure if no data found.
-		return $this->build_weekly_insights( $campaign_id, $position );
-	}
-
-	/**
-	 * Build comprehensive insights for major events with 3-column layout.
-	 *
-	 * @since  1.0.0
-	 * @param  array  $event     Event definition from Campaign Suggestions Registry.
-	 * @param  string $position  Timeline position (past/active/future).
-	 * @param  string $state     Campaign state (past/active/future).
-	 * @return array             Insights data structure.
-	 */
-	private function build_event_insights( array $event, string $position, string $state ): array {
-		$tabs = array(
-			$this->build_opportunity_column( $event, $position ),
-			$this->build_strategy_column( $event, $position, $state, true ),
-			$this->build_timeline_column( $event, $position ),
-		);
-
-		// Build title with emoji icon.
-		$emoji = isset( $event['icon'] ) ? $event['icon'] . ' ' : '';
-
-		return array(
-			'title' => $emoji . $event['name'],
-			'icon'  => 'calendar-alt',
-			'tabs'  => $tabs,
-		);
-	}
-
-	/**
-	 * Build comprehensive insights for weekly campaigns with 3-column layout.
-	 *
-	 * Uses rich data from Weekly Campaign Definitions to build the same comprehensive
-	 * column structure as major events.
-	 *
-	 * @since  1.0.0
-	 * @param  array  $weekly    Weekly campaign definition from Weekly Campaign Definitions.
-	 * @param  string $position  Timeline position (past/active/future).
-	 * @param  string $state     Campaign state (past/active/future).
-	 * @return array             Insights data structure.
-	 */
-	private function build_weekly_event_insights( array $weekly, string $position, string $state ): array {
-		$tabs = array(
-			$this->build_weekly_opportunity_column( $weekly, $position ),
-			$this->build_weekly_strategy_column( $weekly, $position, $state ),
-			$this->build_weekly_timeline_column( $weekly, $position ),
-		);
-
-		// Build title with emoji icon.
-		$emoji = isset( $weekly['icon'] ) ? $weekly['icon'] . ' ' : '';
-
-		return array(
-			'title' => $emoji . $weekly['name'],
-			'icon'  => 'calendar-alt',
-			'tabs'  => $tabs,
-		);
-	}
-
-	/**
-	 * Build "Opportunity" column - Market Intelligence.
-	 * Returns 3 randomly selected insights from available pool.
-	 *
-	 * @since  1.0.0
-	 * @param  array  $event  Event definition.
-	 * @param  string $position  Timeline position.
-	 * @return array          Column data structure.
-	 */
-	private function build_opportunity_column( array $event, string $position ): array {
-		$content_pool = array();
-
-		$content_pool[] = array(
-			'type'   => 'info',
-			'icon'   => 'info',
-			'text'   => $event['description'],
-			'weight' => 2,
-		);
-
-		if ( ! empty( $event['statistics'] ) ) {
-			foreach ( $event['statistics'] as $label => $value ) {
-				$formatted_label = ucwords( str_replace( '_', ' ', $label ) );
-				$content_pool[]  = array(
-					'type'   => 'info',
-					'icon'   => $this->get_stat_icon( $label ),
-					'text'   => $formatted_label . ': ' . $value,
-					'weight' => 1,
-				);
-			}
-		}
-
-		// Randomly select 3 items from pool with weighted selection.
-		$selected_content = $this->weighted_random_select( $content_pool, 3 );
-
-		return array(
-			'id'      => 'opportunity',
-			'label'   => __( 'Opportunity', 'smart-cycle-discounts' ),
-			'icon'    => 'trending-up',
-			'content' => $selected_content,
-		);
-	}
-
-	/**
-	 * Build "Strategy" column - Execution Guide.
-	 * Returns 3 randomly selected strategy insights + CTA button.
-	 *
-	 * @since  1.0.0
-	 * @param  array  $event          Event definition.
-	 * @param  string $position       Timeline position.
-	 * @param  string $state          Campaign state.
-	 * @param  bool   $is_major_event Whether this is a major event.
-	 * @return array                  Column data structure.
-	 */
-	private function build_strategy_column( array $event, string $position, string $state, bool $is_major_event ): array {
-		$content_pool = array();
-
-		if ( ! empty( $event['suggested_discount'] ) ) {
-			$discount       = $event['suggested_discount'];
-			$content_pool[] = array(
-				'type'   => 'info',
-				'icon'   => 'percent',
-				'text'   => sprintf(
-					/* translators: %d: optimal discount percentage */
-					__( 'Optimal Discount: %d%%', 'smart-cycle-discounts' ),
-					$discount['optimal']
-				),
-				'weight' => 3,
-			);
-			$content_pool[] = array(
-				'type'   => 'info',
-				'icon'   => 'chart-bar',
-				'text'   => sprintf(
-					/* translators: %1$d: minimum discount, %2$d: maximum discount */
-					__( 'Range: %1$d%% - %2$d%% based on industry performance', 'smart-cycle-discounts' ),
-					$discount['min'],
-					$discount['max']
-				),
-				'weight' => 2,
-			);
-		}
-
-		if ( ! empty( $event['recommendations'] ) ) {
-			foreach ( $event['recommendations'] as $recommendation ) {
-				$content_pool[] = array(
-					'type'   => 'info',
-					'icon'   => 'check-circle',
-					'text'   => $recommendation,
-					'weight' => 2,
-				);
-			}
-		}
-
-		if ( ! empty( $event['tips'] ) ) {
-			foreach ( $event['tips'] as $tip ) {
-				$content_pool[] = array(
-					'type'   => 'info',
-					'icon'   => 'lightbulb',
-					'text'   => $tip,
-					'weight' => 1,
-				);
-			}
-		}
-
-		// Randomly select 3 items from pool with weighted selection.
-		$selected_content = $this->weighted_random_select( $content_pool, 3 );
-
-		// Add CTA button with position and state-aware URL and text.
-		$cta = $this->build_position_aware_cta( $event['id'], $event['name'], $position, $state, $is_major_event );
-		if ( $cta ) {
-			$selected_content[] = $cta;
-		}
-
-		return array(
-			'id'      => 'strategy',
-			'label'   => __( 'Strategy', 'smart-cycle-discounts' ),
-			'icon'    => 'target',
-			'content' => $selected_content,
-		);
-	}
-
-	/**
-	 * Build "Timeline" column - Launch Timeline.
-	 * Returns 3 randomly selected timing insights from available pool.
-	 *
-	 * @since  1.0.0
-	 * @param  array  $event  Event definition.
-	 * @param  string $position  Timeline position.
-	 * @return array          Column data structure.
-	 */
-	private function build_timeline_column( array $event, string $position ): array {
-		$content_pool = array();
-
-		if ( ! empty( $event['event_date'] ) ) {
-			$event_date     = wp_date( 'F j, Y', $event['event_date'] );
-			$content_pool[] = array(
-				'type'   => 'info',
-				'icon'   => 'calendar',
-				'text'   => sprintf(
-					/* translators: %s: event date */
-					__( 'Event Date: %s', 'smart-cycle-discounts' ),
-					$event_date
-				),
-				'weight' => 3,
-			);
-		}
-
-		if ( ! empty( $event['calculated_start_date'] ) ) {
-			$start_date     = wp_date( 'F j, Y', $event['calculated_start_date'] );
-			$content_pool[] = array(
-				'type'   => 'info',
-				'icon'   => 'play-circle',
-				'text'   => sprintf(
-					/* translators: %s: start date */
-					__( 'Campaign Starts: %s', 'smart-cycle-discounts' ),
-					$start_date
-				),
-				'weight' => 2,
-			);
-		}
-
-		if ( ! empty( $event['calculated_end_date'] ) ) {
-			$end_date       = wp_date( 'F j, Y', $event['calculated_end_date'] );
-			$content_pool[] = array(
-				'type'   => 'info',
-				'icon'   => 'stop-circle',
-				'text'   => sprintf(
-					/* translators: %s: end date */
-					__( 'Campaign Ends: %s', 'smart-cycle-discounts' ),
-					$end_date
-				),
-				'weight' => 2,
-			);
-		}
-
-		if ( ! empty( $event['duration_days'] ) ) {
-			$content_pool[] = array(
-				'type'   => 'info',
-				'icon'   => 'clock',
-				'text'   => sprintf(
-					/* translators: %d: number of days */
-					__( 'Duration: %d days', 'smart-cycle-discounts' ),
-					$event['duration_days']
-				),
-				'weight' => 1,
-			);
-		}
-
-		if ( ! empty( $event['lead_time'] ) ) {
-			$lead_time = $event['lead_time'];
-
-			if ( ! empty( $lead_time['marketing'] ) ) {
-				$content_pool[] = array(
-					'type'   => 'info',
-					'icon'   => 'bullhorn',
-					'text'   => sprintf(
-						/* translators: %d: number of weeks */
-						__( 'Start marketing %d weeks before', 'smart-cycle-discounts' ),
-						$lead_time['marketing']
-					),
-					'weight' => 1,
-				);
-			}
-
-			if ( ! empty( $lead_time['inventory'] ) ) {
-				$content_pool[] = array(
-					'type'   => 'info',
-					'icon'   => 'box',
-					'text'   => sprintf(
-						/* translators: %d: number of weeks */
-						__( 'Order inventory %d weeks ahead', 'smart-cycle-discounts' ),
-						$lead_time['inventory']
-					),
-					'weight' => 1,
-				);
-			}
-		}
-
-		if ( ! empty( $event['best_practices'] ) ) {
-			foreach ( $event['best_practices'] as $practice ) {
-				$content_pool[] = array(
-					'type'   => 'info',
-					'icon'   => 'star',
-					'text'   => $practice,
-					'weight' => 1,
-				);
-			}
-		}
-
-		// Randomly select 3 items from pool with weighted selection.
-		$selected_content = $this->weighted_random_select( $content_pool, 3 );
-
-		return array(
-			'id'      => 'timeline',
-			'label'   => __( 'Timeline', 'smart-cycle-discounts' ),
-			'icon'    => 'calendar',
-			'content' => $selected_content,
-		);
-	}
-
-	/**
-	 * Build "Opportunity" column for weekly campaigns.
-	 * Returns 3 randomly selected insights from available pool.
-	 *
-	 * @since  1.0.0
-	 * @param  array  $weekly  Weekly campaign definition.
-	 * @param  string $position   Timeline position.
-	 * @return array           Column data structure.
-	 */
-	private function build_weekly_opportunity_column( array $weekly, string $position ): array {
-		$content_pool = array();
-
-		$content_pool[] = array(
-			'type'   => 'info',
-			'icon'   => 'calendar-alt',
-			'text'   => $weekly['description'],
-			'weight' => 2,
-		);
-
-		if ( ! empty( $weekly['psychology'] ) ) {
-			$content_pool[] = array(
-				'type'   => 'info',
-				'icon'   => 'admin-users',
-				'text'   => __( 'Psychology: ', 'smart-cycle-discounts' ) . $weekly['psychology'],
-				'weight' => 2,
-			);
-		}
-
-		if ( ! empty( $weekly['statistics'] ) ) {
-			foreach ( $weekly['statistics'] as $label => $value ) {
-				$formatted_label = ucwords( str_replace( '_', ' ', $label ) );
-				$content_pool[]  = array(
-					'type'   => 'info',
-					'icon'   => $this->get_stat_icon( $label ),
-					'text'   => $formatted_label . ': ' . $value,
-					'weight' => 1,
-				);
-			}
-		}
-
-		// Add "best for" items.
-		if ( ! empty( $weekly['best_for'] ) ) {
-			foreach ( $weekly['best_for'] as $item ) {
-				$content_pool[] = array(
-					'type'   => 'info',
-					'icon'   => 'yes',
-					'text'   => $item,
-					'weight' => 1,
-				);
-			}
-		}
-
-		// Randomly select 3 items from pool with weighted selection.
-		$selected_content = $this->weighted_random_select( $content_pool, 3 );
-
-		return array(
-			'id'      => 'opportunity',
-			'label'   => __( 'Opportunity', 'smart-cycle-discounts' ),
-			'icon'    => 'lightbulb',
-			'content' => $selected_content,
-		);
-	}
-
-	/**
-	 * Build "Strategy" column for weekly campaigns.
-	 * Returns 3 randomly selected strategy insights + CTA button.
-	 *
-	 * @since  1.0.0
-	 * @param  array  $weekly    Weekly campaign definition.
-	 * @param  string $position  Timeline position.
-	 * @param  string $state     Campaign state.
-	 * @return array             Column data structure.
-	 */
-	private function build_weekly_strategy_column( array $weekly, string $position, string $state ): array {
-		$content_pool = array();
-
-		if ( ! empty( $weekly['suggested_discount'] ) ) {
-			$discount       = $weekly['suggested_discount'];
-			$content_pool[] = array(
-				'type'   => 'info',
-				'icon'   => 'tag',
-				'text'   => sprintf(
-					/* translators: %d: optimal discount percentage */
-					__( 'Optimal Discount: %d%%', 'smart-cycle-discounts' ),
-					$discount['optimal']
-				),
-				'weight' => 3,
-			);
-			$content_pool[] = array(
-				'type'   => 'info',
-				'icon'   => 'chart-line',
-				'text'   => sprintf(
-					/* translators: %1$d: minimum discount, %2$d: maximum discount */
-					__( 'Range: %1$d%% - %2$d%% based on weekly performance', 'smart-cycle-discounts' ),
-					$discount['min'],
-					$discount['max']
-				),
-				'weight' => 2,
-			);
-		}
-
-		if ( ! empty( $weekly['recommendations'] ) ) {
-			foreach ( $weekly['recommendations'] as $recommendation ) {
-				$content_pool[] = array(
-					'type'   => 'info',
-					'icon'   => 'yes-alt',
-					'text'   => $recommendation,
-					'weight' => 2,
-				);
-			}
-		}
-
-		// Randomly select 3 items from pool with weighted selection.
-		$selected_content = $this->weighted_random_select( $content_pool, 3 );
-
-		// Add CTA button with position and state-aware URL and text.
-		$cta = $this->build_position_aware_cta( $weekly['id'], $weekly['name'], $position, $state, false );
-		if ( $cta ) {
-			$selected_content[] = $cta;
-		}
-
-		return array(
-			'id'      => 'strategy',
-			'label'   => __( 'Strategy', 'smart-cycle-discounts' ),
-			'icon'    => 'admin-tools',
-			'content' => $selected_content,
-		);
-	}
-
-	/**
-	 * Build "Timeline" column for weekly campaigns.
-	 * Uses weighted random selection to display 3 items from content pool.
-	 *
-	 * @since  1.0.0
-	 * @param  array  $weekly  Weekly campaign definition.
-	 * @param  string $position   Timeline position.
-	 * @return array           Column data structure.
-	 */
-	private function build_weekly_timeline_column( array $weekly, string $position ): array {
-		$content_pool = array();
-
-		if ( ! empty( $weekly['schedule'] ) ) {
-			$schedule = $weekly['schedule'];
-			$days     = array(
-				1 => __( 'Monday', 'smart-cycle-discounts' ),
-				2 => __( 'Tuesday', 'smart-cycle-discounts' ),
-				3 => __( 'Wednesday', 'smart-cycle-discounts' ),
-				4 => __( 'Thursday', 'smart-cycle-discounts' ),
-				5 => __( 'Friday', 'smart-cycle-discounts' ),
-				6 => __( 'Saturday', 'smart-cycle-discounts' ),
-				7 => __( 'Sunday', 'smart-cycle-discounts' ),
-			);
-
-			$start_day = $days[ $schedule['start_day'] ];
-			$end_day   = $days[ $schedule['end_day'] ];
-
-			$content_pool[] = array(
-				'type'   => 'info',
-				'icon'   => 'calendar',
-				'text'   => sprintf(
-					/* translators: %1$s: start day, %2$s: start time, %3$s: end day, %4$s: end time */
-					__( 'Runs every week from %1$s %2$s to %3$s %4$s', 'smart-cycle-discounts' ),
-					$start_day,
-					$schedule['start_time'],
-					$end_day,
-					$schedule['end_time']
-				),
-				'weight' => 3,
-			);
-
-			$content_pool[] = array(
-				'type'   => 'info',
-				'icon'   => 'flag',
-				'text'   => sprintf(
-					/* translators: %1$s: start day, %2$s: start time */
-					__( 'Campaign starts: %1$s at %2$s', 'smart-cycle-discounts' ),
-					$start_day,
-					$schedule['start_time']
-				),
-				'weight' => 2,
-			);
-
-			$content_pool[] = array(
-				'type'   => 'info',
-				'icon'   => 'flag',
-				'text'   => sprintf(
-					/* translators: %1$s: end day, %2$s: end time */
-					__( 'Campaign ends: %1$s at %2$s', 'smart-cycle-discounts' ),
-					$end_day,
-					$schedule['end_time']
-				),
-				'weight' => 2,
-			);
-
-			$duration_days = ( $schedule['end_day'] - $schedule['start_day'] );
-			if ( $duration_days < 0 ) {
-				$duration_days += 7; // Wrap around week.
-			}
-			if ( $duration_days > 0 ) {
-				$content_pool[] = array(
-					'type'   => 'info',
-					'icon'   => 'clock',
-					'text'   => sprintf(
-						/* translators: %d: number of days */
-						_n( 'Runs for %d day each week', 'Runs for %d days each week', $duration_days, 'smart-cycle-discounts' ),
-						$duration_days
-					),
-					'weight' => 1,
-				);
-			}
-		}
-
-		if ( isset( $weekly['prep_time'] ) ) {
-			$prep_time      = absint( $weekly['prep_time'] );
-			$content_pool[] = array(
-				'type'   => 'info',
-				'icon'   => 'admin-settings',
-				'text'   => 0 === $prep_time
-					? __( 'Can be created day-of', 'smart-cycle-discounts' )
-					: sprintf(
-						/* translators: %d: number of days */
-						_n( 'Prepare %d day in advance', 'Prepare %d days in advance', $prep_time, 'smart-cycle-discounts' ),
-						$prep_time
-					),
-				'weight' => 1,
-			);
-		}
-
-		if ( ! empty( $weekly['psychology'] ) ) {
-			$content_pool[] = array(
-				'type'   => 'info',
-				'icon'   => 'lightbulb',
-				'text'   => $weekly['psychology'],
-				'weight' => 1,
-			);
-		}
-
-		$content_pool[] = array(
-			'type'   => 'info',
-			'icon'   => 'update',
-			'text'   => __( 'Repeats automatically every week', 'smart-cycle-discounts' ),
-			'weight' => 1,
-		);
-
-		if ( ! empty( $weekly['position'] ) ) {
-			$position_texts = array(
-				'first'  => __( 'Best launched early in the week', 'smart-cycle-discounts' ),
-				'middle' => __( 'Peak engagement mid-week', 'smart-cycle-discounts' ),
-				'last'   => __( 'Capitalize on weekend browsing behavior', 'smart-cycle-discounts' ),
-			);
-
-			if ( isset( $position_texts[ $weekly['position'] ] ) ) {
-				$content_pool[] = array(
-					'type'   => 'info',
-					'icon'   => 'chart-area',
-					'text'   => $position_texts[ $weekly['position'] ],
-					'weight' => 1,
-				);
-			}
-		}
-
-		// Randomly select 3 items from pool with weighted selection.
-		$selected_content = $this->weighted_random_select( $content_pool, 3 );
-
-		return array(
-			'id'      => 'timeline',
-			'label'   => __( 'Timeline', 'smart-cycle-discounts' ),
-			'icon'    => 'calendar',
-			'content' => $selected_content,
-		);
-	}
-
-	/**
-	 * Build basic insights for weekly campaigns.
-	 *
-	 * @since  1.0.0
-	 * @param  string $campaign_id  Campaign ID.
-	 * @param  string $position        Timeline position.
-	 * @return array                Insights data structure.
-	 */
-	private function build_weekly_insights( string $campaign_id, string $position ): array {
-		$title = '';
-		$icon  = 'info';
-
-		// Position-specific title and icon.
-		switch ( $position ) {
-			case 'past':
-				$title = __( 'Campaign Results', 'smart-cycle-discounts' );
-				$icon  = 'chart-line';
-				break;
-			case 'active':
-				$title = __( 'Ready to Launch', 'smart-cycle-discounts' );
-				$icon  = 'star-filled';
-				break;
-			case 'future':
-				$title = __( 'Planning Ahead', 'smart-cycle-discounts' );
-				$icon  = 'calendar';
-				break;
-		}
-
-		// Single tab for weekly campaigns.
-		$tabs = array(
-			array(
-				'id'       => 'overview',
-				'label'    => __( 'Overview', 'smart-cycle-discounts' ),
-				'icon'     => 'admin-generic',
-				'sections' => array(
-					array(
-						'heading'      => __( 'This Week\'s Opportunity', 'smart-cycle-discounts' ),
-						'icon'         => 'calendar',
-						'default_open' => true,
-						'content'      => array(
-							array(
-								'type' => 'message',
-								'icon' => 'calendar',
-								'text' => __( 'Create a targeted campaign for this week\'s sales opportunity', 'smart-cycle-discounts' ),
-							),
-							array(
-								'type' => 'tip',
-								'icon' => 'yes',
-								'text' => __( 'Weekend sales typically perform best with 10-15% discounts', 'smart-cycle-discounts' ),
-							),
-						),
-					),
-				),
-			),
-		);
-
-		return array(
-			'title' => $title,
-			'icon'  => $icon,
-			'tabs'  => $tabs,
-		);
-	}
-
-	/**
-	 * Get appropriate dashicon for a statistic based on its label.
-	 *
-	 * @since  1.0.0
-	 * @param  string $label Statistic label (snake_case).
-	 * @return string        Dashicon name (without 'dashicons-' prefix).
-	 */
-	private function get_stat_icon( string $label ): string {
-		// Map common statistic types to appropriate icons.
-		$icon_map = array(
-			'conversion_lift'  => 'chart-line',
-			'peak_time'        => 'clock',
-			'avg_order'        => 'money-alt',
-			'average_order'    => 'money-alt',
-			'order_value'      => 'money-alt',
-			'discount'         => 'tag',
-			'optimal_discount' => 'tag',
-			'conversion'       => 'chart-area',
-			'conversion_rate'  => 'chart-area',
-			'revenue'          => 'chart-bar',
-			'sales'            => 'cart',
-			'customers'        => 'groups',
-			'orders'           => 'clipboard',
-			'engagement'       => 'heart',
-			'traffic'          => 'admin-site',
-			'bounce_rate'      => 'undo',
-			'time_on_site'     => 'backup',
-			'repeat_purchase'  => 'update',
-			'margin'           => 'performance',
-		);
-
-		return $icon_map[ $label ] ?? 'chart-line';
-	}
-
-	/**
-	 * Weighted random selection from content pool.
-	 *
-	 * Selects N items from the pool with weighted probability.
-	 * Items with higher weights are more likely to be selected.
-	 *
-	 * @since  1.0.0
-	 * @param  array $pool  Array of items with 'weight' property.
-	 * @param  int   $count Number of items to select.
-	 * @return array        Selected items (without weight property).
-	 */
-	private function weighted_random_select( array $pool, int $count ): array {
-		if ( empty( $pool ) ) {
-			return array();
-		}
-
-		// If pool is smaller than requested count, return all items.
-		if ( count( $pool ) <= $count ) {
-			// Remove weight property - avoid closure for serialization compatibility.
-			$result = array();
-			foreach ( $pool as $item ) {
-				unset( $item['weight'] );
-				$result[] = $item;
-			}
-			return $result;
-		}
-
-		$selected       = array();
-		$remaining_pool = $pool;
-
-		for ( $i = 0; $i < $count; $i++ ) {
-			if ( empty( $remaining_pool ) ) {
-				break;
-			}
-
-			$total_weight = array_sum( array_column( $remaining_pool, 'weight' ) );
-
-			// Generate random number between 0 and total weight.
-			$random = wp_rand( 0, $total_weight );
-
-			// Select item based on weighted probability.
-			$cumulative_weight = 0;
-			$selected_index    = 0;
-
-			foreach ( $remaining_pool as $index => $item ) {
-				$cumulative_weight += $item['weight'];
-				if ( $random <= $cumulative_weight ) {
-					$selected_index = $index;
-					break;
-				}
-			}
-
-			$selected_item = $remaining_pool[ $selected_index ];
-			unset( $selected_item['weight'] );
-			$selected[] = $selected_item;
-
-			array_splice( $remaining_pool, $selected_index, 1 );
-			$remaining_pool = array_values( $remaining_pool ); // Re-index array.
-		}
-
-		return $selected;
-	}
-
-	/**
-	 * Build position-aware CTA button for insights.
-	 *
-	 * Generates CTA button that matches the card button logic:
-	 * - Active position + active state: "Create Campaign"
-	 * - Active position + future state: "Schedule Campaign" (with schedule=1)
-	 * - Past position (weekly only): "Plan Next"
-	 * - Future position (weekly only): "Plan Ahead"
-	 * - Major events in past/future: No CTA (informational only)
-	 *
-	 * @since  1.0.0
-	 * @param  string $campaign_id    Campaign/event ID.
-	 * @param  string $campaign_name  Campaign/event name.
-	 * @param  string $position       Timeline position (past/active/future).
-	 * @param  string $state          Campaign state (past/active/future).
-	 * @param  bool   $is_major_event Whether this is a major event.
-	 * @return array|null             CTA array or null if no CTA should be shown.
-	 */
-	private function build_position_aware_cta( string $campaign_id, string $campaign_name, string $position, string $state, bool $is_major_event ): ?array {
-		$base_url = admin_url( 'admin.php?page=wsscd-campaigns&action=wizard&intent=new&suggestion=' . $campaign_id );
-
-		// Active position (focus slot): Always show CTA.
-		if ( 'active' === $position ) {
-			// Check state to determine Create vs Schedule.
-			if ( 'active' === $state ) {
-				// Campaign is currently running - create now.
-				return array(
-					'type' => 'cta',
-					'url'  => $base_url,
-					'text' => $is_major_event
-						? sprintf(
-							/* translators: %s: event name */
-							__( '✨ Create %s Campaign', 'smart-cycle-discounts' ),
-							$campaign_name
-						)
-						: sprintf(
-							/* translators: %s: campaign name */
-							__( '⚡ Create %s Campaign', 'smart-cycle-discounts' ),
-							$campaign_name
-						),
-				);
-			} else {
-				// Future campaign in focus slot - schedule ahead.
-				$schedule_url = add_query_arg( 'schedule', '1', $base_url );
-				return array(
-					'type' => 'cta',
-					'url'  => $schedule_url,
-					'text' => $is_major_event
-						? sprintf(
-							/* translators: %s: event name */
-							__( '📅 Schedule %s Campaign', 'smart-cycle-discounts' ),
-							$campaign_name
-						)
-						: sprintf(
-							/* translators: %s: campaign name */
-							__( '📅 Schedule %s Campaign', 'smart-cycle-discounts' ),
-							$campaign_name
-						),
-				);
-			}
-		}
-
-		// Major events in past/future positions: No CTA (informational only).
-		if ( $is_major_event ) {
-			return null;
-		}
-
-		// Weekly campaigns in past/future positions get planning CTAs.
-		if ( 'past' === $position ) {
-			return array(
-				'type' => 'cta',
-				'url'  => $base_url,
-				'text' => __( 'Plan Next Occurrence', 'smart-cycle-discounts' ),
-			);
-		}
-
-		if ( 'future' === $position ) {
-			return array(
-				'type' => 'cta',
-				'url'  => $base_url,
-				'text' => __( 'Plan Ahead', 'smart-cycle-discounts' ),
-			);
-		}
-
-		return null;
+		// Fallback to generic insights if campaign not found.
+		return $builder->build_fallback( $position );
 	}
 }

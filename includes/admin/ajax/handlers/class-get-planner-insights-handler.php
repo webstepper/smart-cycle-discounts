@@ -114,9 +114,6 @@ class WSSCD_Get_Planner_Insights_Handler extends WSSCD_Abstract_Ajax_Handler {
 			return $this->error( __( 'View template not found', 'smart-cycle-discounts' ), 'template_not_found', 500 );
 		}
 
-		// Extract title for header update.
-		$title = isset( $insights_data['title'] ) ? $insights_data['title'] : '';
-
 		try {
 			ob_start();
 			require $view_file;
@@ -124,8 +121,7 @@ class WSSCD_Get_Planner_Insights_Handler extends WSSCD_Abstract_Ajax_Handler {
 
 			return $this->success(
 				array(
-					'html'  => $html,
-					'title' => $title,
+					'html' => $html,
 				)
 			);
 		} catch ( Exception $e ) {

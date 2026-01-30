@@ -34,7 +34,7 @@ class WSSCD_Weekly_Campaign_Definitions {
 			array(
 				'id'                 => 'weekly_early_boost',
 				'name'               => __( 'Fresh Start Monday', 'smart-cycle-discounts' ),
-				'icon'               => '🌅',
+				'icon'               => 'sunrise',
 				'category'           => 'recurring_weekly',
 				'position'           => 'first',
 				'priority'           => 10, // Medium priority (major events = 100).
@@ -90,7 +90,7 @@ class WSSCD_Weekly_Campaign_Definitions {
 			array(
 				'id'                 => 'weekly_midweek_push',
 				'name'               => __( 'Wednesday Wins', 'smart-cycle-discounts' ),
-				'icon'               => '⚡',
+				'icon'               => 'trophy',
 				'category'           => 'recurring_weekly',
 				'position'           => 'middle',
 				'priority'           => 10,
@@ -147,7 +147,7 @@ class WSSCD_Weekly_Campaign_Definitions {
 			array(
 				'id'                 => 'weekly_weekend_flash',
 				'name'               => __( 'Weekend Flash Sale', 'smart-cycle-discounts' ),
-				'icon'               => '🎉',
+				'icon'               => 'bolt',
 				'category'           => 'recurring_weekly',
 				'position'           => 'last',
 				'priority'           => 10,

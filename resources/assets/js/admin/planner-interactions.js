@@ -44,8 +44,8 @@
 		 * Cache frequently used DOM elements.
 		 */
 		cacheElements: function() {
+			this.$insightsPanel = $( '.wsscd-planner-insights' );
 			this.$insightsBody = $( '.wsscd-insights-body' );
-			this.$insightsTitle = $( '.wsscd-insights-title' );
 		},
 
 		/**
@@ -188,18 +188,6 @@
 		},
 
 		/**
-		 * Scroll to insights section smoothly.
-		 */
-		scrollToInsights: function() {
-			var $insights = $( '.wsscd-planner-insights' );
-			if ( $insights.length ) {
-				$( 'html, body' ).animate( {
-					scrollTop: $insights.offset().top - 50
-				}, 300 );
-			}
-		},
-
-		/**
 		 * Load insights via AJAX.
 		 *
 		 * @param {string}  campaignId       Campaign ID.
@@ -212,7 +200,6 @@
 
 			// Skip if same campaign already loaded.
 			if ( campaignId === currentCampaignId ) {
-				this.scrollToInsights();
 				return;
 			}
 
@@ -220,9 +207,6 @@
 			if ( pendingRequest ) {
 				pendingRequest.abort();
 			}
-
-			// Scroll to insights section.
-			this.scrollToInsights();
 
 			// Show loading state.
 			this.$insightsBody.addClass( 'wsscd-insights-loading' );
@@ -252,10 +236,8 @@
 						// Track loaded campaign.
 						currentCampaignId = campaignId;
 
-						// Update header from AJAX response (includes emoji).
-						if ( response.data.title ) {
-							self.updateHeader( response.data.title );
-						}
+						// Update position attribute for visual connector.
+						self.$insightsPanel.attr( 'data-position', campaignPosition );
 
 						// Replace body content.
 						if ( response.data.html ) {
@@ -280,17 +262,6 @@
 					}
 				}
 			} );
-		},
-
-		/**
-		 * Update the persistent header with new campaign info.
-		 *
-		 * @param {string} title Campaign title.
-		 */
-		updateHeader: function( title ) {
-			if ( this.$insightsTitle.length && title ) {
-				this.$insightsTitle.text( title );
-			}
 		},
 
 		/**
