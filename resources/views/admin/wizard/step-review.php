@@ -205,6 +205,13 @@ ob_start();
 					<span class="wsscd-config-disabled"><?php esc_html_e( 'Not enabled', 'smart-cycle-discounts' ); ?></span>
 				</div>
 			</div>
+			<!-- User Role Targeting -->
+			<div class="wsscd-config-summary-item wsscd-config-user-roles" data-has-user-roles="false">
+				<div class="wsscd-config-summary-label"><?php esc_html_e( 'User Roles', 'smart-cycle-discounts' ); ?></div>
+				<div class="wsscd-config-summary-value" data-config="user_roles">
+					<span class="wsscd-config-disabled"><?php esc_html_e( 'All users', 'smart-cycle-discounts' ); ?></span>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>

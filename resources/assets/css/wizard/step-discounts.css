@@ -112,9 +112,7 @@
     padding: var(--wsscd-padding-section);
 }
 
-/* Hide complex elements */
-.wsscd-section-hint,
-.wsscd-section-icon,
+/* Hide label icons in section titles - visual-only, kept for accessibility */
 .wsscd-label-icon {
     display: none;
 }
@@ -1979,83 +1977,8 @@
 }
 
 /**
- * Free Shipping Method Selector (Radio Buttons)
- */
-.wsscd-free-shipping-method-selector {
-	display: flex;
-	gap: var(--wsscd-spacing-md);
-	margin-bottom: var(--wsscd-spacing-lg);
-}
-
-.wsscd-free-shipping-method-option {
-	flex: 1;
-	cursor: pointer;
-}
-
-.wsscd-free-shipping-method-option input[type="radio"] {
-	position: absolute;
-	opacity: 0;
-	width: 0;
-	height: 0;
-}
-
-.wsscd-free-shipping-method-card {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	gap: var(--wsscd-spacing-sm);
-	padding: var(--wsscd-spacing-lg) var(--wsscd-spacing-xl);
-	background: var(--wsscd-color-surface);
-	border: 2px solid var(--wsscd-color-border-light);
-	border-radius: var(--wsscd-radius-lg);
-	text-align: center;
-	transition: all var(--wsscd-transition-base) ease;
-	box-shadow: var(--wsscd-shadow-sm);
-}
-
-.wsscd-free-shipping-method-card:hover {
-	border-color: var(--wp-admin-theme-color);
-	background: var(--wsscd-color-background);
-	box-shadow: var(--wsscd-shadow-md);
-}
-
-.wsscd-free-shipping-method-option input[type="radio"]:checked + .wsscd-free-shipping-method-card {
-	border-color: var(--wp-admin-theme-color);
-	background: var(--wsscd-color-white);
-	box-shadow: 0 0 0 2px var(--wp-admin-theme-color), var(--wsscd-shadow-md);
-}
-
-.wsscd-free-shipping-method-option input[type="radio"]:focus + .wsscd-free-shipping-method-card {
-	outline: 2px solid var(--wp-admin-theme-color);
-	outline-offset: 2px;
-}
-
-.wsscd-free-shipping-method-card .dashicons {
-	font-size: 24px;
-	width: 24px;
-	height: 24px;
-	color: var(--wsscd-color-text-muted);
-}
-
-.wsscd-free-shipping-method-option input[type="radio"]:checked + .wsscd-free-shipping-method-card .dashicons {
-	color: var(--wp-admin-theme-color);
-}
-
-.wsscd-free-shipping-method-card strong {
-	font-size: var(--wsscd-font-size-sm);
-	color: var(--wsscd-color-text);
-	font-weight: var(--wsscd-font-weight-semibold);
-}
-
-.wsscd-free-shipping-method-card .wsscd-method-description {
-	font-size: var(--wsscd-font-size-xs);
-	color: var(--wsscd-color-text-muted);
-	line-height: 1.4;
-}
-
-/**
  * Shipping Methods List (Checkboxes)
+ * Note: Uses .wsscd-user-roles-checkboxes and .wsscd-role-checkbox classes for chip-style
  */
 #wsscd-shipping-methods-list {
 	margin-top: var(--wsscd-spacing-md);
@@ -2081,39 +2004,6 @@
 .wsscd-shipping-methods-loading .spinner {
 	float: none;
 	margin: 0;
-}
-
-.wsscd-shipping-methods-checkboxes {
-	display: flex;
-	flex-direction: column;
-	gap: var(--wsscd-spacing-xs);
-}
-
-.wsscd-shipping-method-item {
-	display: flex;
-	align-items: center;
-	gap: var(--wsscd-spacing-sm);
-	padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-md);
-	border-radius: var(--wsscd-radius-sm);
-	cursor: pointer;
-	transition: background var(--wsscd-transition-base) ease;
-	border: 1px solid transparent;
-}
-
-.wsscd-shipping-method-item:hover {
-	background: var(--wsscd-color-background);
-	border-color: var(--wsscd-color-border-light);
-}
-
-.wsscd-shipping-method-item input[type="checkbox"] {
-	margin: 0;
-	flex-shrink: 0;
-	accent-color: var(--wp-admin-theme-color);
-}
-
-.wsscd-shipping-method-label {
-	font-size: var(--wsscd-font-size-sm);
-	color: var(--wsscd-color-text);
 }
 
 .wsscd-no-methods,
@@ -2162,16 +2052,275 @@
 	color: var(--wp-admin-theme-color);
 }
 
+/* ==========================================================================
+   User Role Targeting Styles
+   Also used by Free Shipping method selector for consistent UI
+   ========================================================================== */
+
 /**
- * Responsive Adjustments for Free Shipping
+ * User Roles Mode Selector
+ * Card-style radio selector pattern
+ */
+.wsscd-user-roles-mode-section {
+	margin-bottom: var(--wsscd-spacing-lg);
+}
+
+.wsscd-user-roles-mode-row {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wsscd-spacing-md);
+}
+
+.wsscd-user-roles-mode-field {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-xs);
+}
+
+.wsscd-user-roles-mode-field .wsscd-field-label {
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+	margin: 0;
+}
+
+.wsscd-user-roles-mode-selector {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--wsscd-spacing-md);
+}
+
+.wsscd-user-roles-mode-option {
+	flex: 1;
+	min-width: 140px;
+	cursor: pointer;
+}
+
+.wsscd-user-roles-mode-option input[type="radio"] {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.wsscd-user-roles-mode-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--wsscd-spacing-xs);
+	padding: var(--wsscd-spacing-lg);
+	background: var(--wsscd-color-white);
+	border: 2px solid var(--wsscd-color-border);
+	border-radius: var(--wsscd-radius-md);
+	transition: all var(--wsscd-transition-base) ease;
+	text-align: center;
+}
+
+.wsscd-user-roles-mode-card:hover {
+	border-color: var(--wsscd-color-border-dark);
+	background: linear-gradient(to bottom, var(--wsscd-color-white), var(--wsscd-color-surface-light));
+}
+
+.wsscd-user-roles-mode-option input[type="radio"]:checked + .wsscd-user-roles-mode-card {
+	border-color: var(--wp-admin-theme-color, var(--wsscd-color-primary));
+	background: var(--wsscd-color-primary-bg);
+}
+
+.wsscd-user-roles-mode-option input[type="radio"]:focus-visible + .wsscd-user-roles-mode-card {
+	outline: 2px solid var(--wp-admin-theme-color, var(--wsscd-color-primary));
+	outline-offset: 2px;
+}
+
+.wsscd-user-roles-mode-card .wsscd-icon {
+	font-size: 20px;
+	width: 20px;
+	height: 20px;
+	color: var(--wp-admin-theme-color, var(--wsscd-color-primary));
+}
+
+.wsscd-user-roles-mode-card strong {
+	font-size: var(--wsscd-font-size-base);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+}
+
+.wsscd-user-roles-mode-card .wsscd-mode-description {
+	font-size: var(--wsscd-font-size-small);
+	color: var(--wsscd-color-text-muted);
+	line-height: 1.4;
+}
+
+/**
+ * User Roles Selection Wrapper
+ */
+.wsscd-user-roles-selection-wrapper {
+	margin-top: var(--wsscd-spacing-lg);
+	padding-top: var(--wsscd-spacing-lg);
+	border-top: 1px solid var(--wsscd-color-border-light);
+}
+
+.wsscd-user-roles-selection-wrapper.wsscd-hidden {
+	display: none;
+}
+
+.wsscd-user-roles-section-title {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-xs);
+	margin: 0 0 var(--wsscd-spacing-md) 0;
+	font-size: var(--wsscd-font-size-base);
+	font-weight: var(--wsscd-font-weight-semibold);
+	color: var(--wsscd-color-text);
+}
+
+.wsscd-user-roles-section-title .wsscd-icon {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	color: var(--wp-admin-theme-color, var(--wsscd-color-primary));
+}
+
+/**
+ * Role/Method Checkboxes - Modern Chip/Pill Style
+ * Used by User Roles and Free Shipping method selection
+ */
+.wsscd-user-roles-checkboxes {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--wsscd-spacing-sm);
+	margin-bottom: var(--wsscd-spacing-md);
+}
+
+.wsscd-role-checkbox {
+	position: relative;
+	display: inline-block;
+}
+
+.wsscd-role-checkbox input[type="checkbox"] {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.wsscd-role-label {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 10px 18px;
+	background: var(--wsscd-color-white);
+	border: 2px solid var(--wsscd-color-border-light);
+	border-radius: 999px; /* Pill shape */
+	cursor: pointer;
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+	font-size: var(--wsscd-font-size-base);
+	font-weight: var(--wsscd-font-weight-medium);
+	text-align: center;
+	white-space: nowrap;
+	color: var(--wsscd-color-text-secondary);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+	user-select: none;
+}
+
+/* Checkmark icon - hidden by default */
+.wsscd-role-label::before {
+	content: '';
+	display: inline-block;
+	width: 0;
+	height: 16px;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+	opacity: 0;
+	transform: scale(0.5);
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover state */
+.wsscd-role-label:hover {
+	border-color: var(--wp-admin-theme-color, var(--wsscd-color-primary));
+	background: var(--wsscd-color-primary-bg);
+	color: var(--wsscd-color-text);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+	transform: translateY(-1px);
+}
+
+/* Selected/Checked state */
+.wsscd-role-checkbox input[type="checkbox"]:checked + .wsscd-role-label {
+	background: var(--wp-admin-theme-color, var(--wsscd-color-primary));
+	border-color: var(--wp-admin-theme-color, var(--wsscd-color-primary));
+	color: var(--wsscd-color-white);
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+	padding-left: 14px;
+}
+
+/* Show checkmark when checked */
+.wsscd-role-checkbox input[type="checkbox"]:checked + .wsscd-role-label::before {
+	width: 16px;
+	opacity: 1;
+	transform: scale(1);
+}
+
+/* Focus states */
+.wsscd-role-checkbox input[type="checkbox"]:focus + .wsscd-role-label {
+	outline: none;
+}
+
+.wsscd-role-checkbox input[type="checkbox"]:focus-visible + .wsscd-role-label {
+	outline: 2px solid var(--wp-admin-theme-color, var(--wsscd-color-primary));
+	outline-offset: 2px;
+}
+
+/* Active/pressed state */
+.wsscd-role-label:active {
+	transform: translateY(0);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+	.wsscd-role-label,
+	.wsscd-role-label::before {
+		transition: none;
+	}
+
+	.wsscd-role-label:hover {
+		transform: none;
+	}
+}
+
+/**
+ * Responsive Adjustments for User Roles & Chips
  */
 @media (max-width: 782px) {
-	.wsscd-free-shipping-method-selector {
+	.wsscd-user-roles-mode-selector {
 		flex-direction: column;
 	}
 
-	.wsscd-free-shipping-method-card {
+	.wsscd-user-roles-mode-card {
 		padding: var(--wsscd-spacing-md) var(--wsscd-spacing-lg);
+	}
+
+	.wsscd-user-roles-checkboxes {
+		justify-content: flex-start;
+	}
+
+	/* Slightly smaller chips on mobile */
+	.wsscd-role-label {
+		padding: 8px 14px;
+		font-size: var(--wsscd-font-size-small);
+	}
+
+	.wsscd-role-checkbox input[type="checkbox"]:checked + .wsscd-role-label {
+		padding-left: 12px;
+	}
+
+	.wsscd-role-label::before {
+		height: 14px;
+	}
+
+	.wsscd-role-checkbox input[type="checkbox"]:checked + .wsscd-role-label::before {
+		width: 14px;
 	}
 }
 

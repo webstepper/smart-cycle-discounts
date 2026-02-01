@@ -671,6 +671,7 @@ class WSSCD_Asset_Localizer {
 			'timezone'          => wp_timezone_string(),
 			'debug_persistence' => false, // Set to true to enable debug logging
 			'features'          => $this->get_feature_gate_data(),
+			'available_user_roles' => $this->get_available_user_roles(),
 		);
 
 		$session_data = $this->load_wizard_session_data();
@@ -1537,6 +1538,35 @@ class WSSCD_Asset_Localizer {
 			// Upgrade URL for upsell prompts.
 			'upgrade_url'                   => $feature_gate->get_upgrade_url(),
 		);
+	}
+
+	/**
+	 * Get available user roles for wizard.
+	 *
+	 * Returns user roles in a format suitable for JavaScript.
+	 * Uses WSSCD_Role_Helper if available, otherwise falls back to wp_roles().
+	 *
+	 * @since  1.3.0
+	 * @return array Array of role objects with value and label.
+	 */
+	private function get_available_user_roles(): array {
+		// Try to use the Role Helper for consistent formatting.
+		if ( class_exists( 'WSSCD_Role_Helper' ) ) {
+			return WSSCD_Role_Helper::get_roles_for_js();
+		}
+
+		// Fallback: get roles directly from WordPress.
+		$wp_roles = wp_roles();
+		$result   = array();
+
+		foreach ( $wp_roles->get_names() as $slug => $name ) {
+			$result[] = array(
+				'value' => $slug,
+				'label' => translate_user_role( $name ),
+			);
+		}
+
+		return $result;
 	}
 
 	/**

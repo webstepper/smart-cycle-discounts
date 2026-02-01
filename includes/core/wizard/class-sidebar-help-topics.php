@@ -698,6 +698,316 @@ class WSSCD_Sidebar_Help_Topics {
 	}
 
 	/**
+	 * Get user roles help topic
+	 *
+	 * @since  1.3.0
+	 * @return array Topic configuration
+	 */
+	private static function get_user_roles_topic() {
+		return array(
+			'title'   => __( 'User Role Targeting', 'smart-cycle-discounts' ),
+			'icon'    => 'groups',
+			'type'    => 'help_guide',
+			'content' => array(
+				'how_it_works' => array(
+					__( 'Restrict which users can see and use this discount based on their WordPress role', 'smart-cycle-discounts' ),
+					__( 'All Users: No restriction - everyone sees the discount (default)', 'smart-cycle-discounts' ),
+					__( 'Include Only: Only users with selected roles see the discount', 'smart-cycle-discounts' ),
+					__( 'Exclude: Users with selected roles are blocked from the discount', 'smart-cycle-discounts' ),
+				),
+				'use_cases'    => array(
+					__( 'Wholesaler pricing: Include only "Wholesaler" role for B2B discounts', 'smart-cycle-discounts' ),
+					__( 'Member exclusives: Include only "Subscriber" or "VIP Member" roles', 'smart-cycle-discounts' ),
+					__( 'Retail only: Exclude "Wholesaler" to keep wholesale pricing separate', 'smart-cycle-discounts' ),
+					__( 'Staff discounts: Include only "Shop Manager" or "Employee" roles', 'smart-cycle-discounts' ),
+				),
+				'watch_out'    => array(
+					__( 'Guest (non-logged-in) users have no role - they won\'t match any include filter', 'smart-cycle-discounts' ),
+					__( 'Users with multiple roles only need ONE matching role for include/exclude', 'smart-cycle-discounts' ),
+					__( 'Test with a user account that has the target role before going live', 'smart-cycle-discounts' ),
+				),
+				'setup_tips'   => array(
+					__( 'Use "Include" for exclusive member pricing tiers', 'smart-cycle-discounts' ),
+					__( 'Use "Exclude" when most users should see the discount except specific groups', 'smart-cycle-discounts' ),
+					__( 'Combine with other restrictions like usage limits for maximum control', 'smart-cycle-discounts' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Get card user roles help topic
+	 *
+	 * @since  1.3.0
+	 * @return array Topic configuration
+	 */
+	private static function get_card_user_roles_topic() {
+		return array(
+			'title'   => __( 'User Role Targeting', 'smart-cycle-discounts' ),
+			'icon'    => 'groups',
+			'type'    => 'simple',
+			'content' => array(
+				'quick_tip' => __( 'Control which user roles can access this discount - perfect for B2B, member-only, or staff pricing.', 'smart-cycle-discounts' ),
+				'bullets'   => array(
+					__( 'All Users: Default - no role restrictions, everyone sees the discount', 'smart-cycle-discounts' ),
+					__( 'Include Only: Whitelist specific roles (e.g., wholesalers, VIP members)', 'smart-cycle-discounts' ),
+					__( 'Exclude: Blacklist specific roles (e.g., exclude staff from customer promos)', 'smart-cycle-discounts' ),
+					__( 'Works with all WordPress roles including custom roles from plugins', 'smart-cycle-discounts' ),
+				),
+				'pro_tip'   => __( 'Create tiered pricing by running multiple campaigns with different role targets and priorities', 'smart-cycle-discounts' ),
+			),
+		);
+	}
+
+	/**
+	 * Get user roles mode help topic
+	 *
+	 * @since  1.3.0
+	 * @return array Topic configuration
+	 */
+	private static function get_user_roles_mode_topic() {
+		return array(
+			'title'   => __( 'Role Targeting Mode', 'smart-cycle-discounts' ),
+			'icon'    => 'admin-settings',
+			'type'    => 'simple',
+			'content' => array(
+				'quick_tip' => __( 'Choose how to filter users by role: allow everyone, whitelist specific roles, or blacklist specific roles.', 'smart-cycle-discounts' ),
+				'bullets'   => array(
+					__( 'All Users: No filtering - every visitor can use this discount', 'smart-cycle-discounts' ),
+					__( 'Include Only: Whitelist mode - only selected roles see the discount', 'smart-cycle-discounts' ),
+					__( 'Exclude: Blacklist mode - selected roles cannot see the discount', 'smart-cycle-discounts' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Get user roles "All" option help topic
+	 *
+	 * @since  1.3.0
+	 * @return array Topic configuration
+	 */
+	private static function get_option_user_roles_all_topic() {
+		return array(
+			'title'   => __( 'All Users Mode', 'smart-cycle-discounts' ),
+			'icon'    => 'groups',
+			'type'    => 'simple',
+			'content' => array(
+				'quick_tip' => __( 'No role restrictions - every user (including guests) can see and use this discount.', 'smart-cycle-discounts' ),
+				'bullets'   => array(
+					__( 'Best for: Public promotions, site-wide sales, seasonal discounts', 'smart-cycle-discounts' ),
+					__( 'Guest users (not logged in) will see the discount', 'smart-cycle-discounts' ),
+					__( 'This is the default setting for new campaigns', 'smart-cycle-discounts' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Get user roles "Include" option help topic
+	 *
+	 * @since  1.3.0
+	 * @return array Topic configuration
+	 */
+	private static function get_option_user_roles_include_topic() {
+		return array(
+			'title'   => __( 'Include Only Mode', 'smart-cycle-discounts' ),
+			'icon'    => 'yes-alt',
+			'type'    => 'simple',
+			'content' => array(
+				'quick_tip' => __( 'Whitelist mode - only users with selected roles can see and use this discount.', 'smart-cycle-discounts' ),
+				'bullets'   => array(
+					__( 'Best for: B2B pricing, member exclusives, VIP-only deals', 'smart-cycle-discounts' ),
+					__( 'Guest users will NOT see the discount (no role = no match)', 'smart-cycle-discounts' ),
+					__( 'Users with multiple roles only need ONE matching role', 'smart-cycle-discounts' ),
+				),
+				'pro_tip'   => __( 'Create a "Wholesaler" role with a membership plugin for tiered B2B pricing', 'smart-cycle-discounts' ),
+			),
+		);
+	}
+
+	/**
+	 * Get user roles "Exclude" option help topic
+	 *
+	 * @since  1.3.0
+	 * @return array Topic configuration
+	 */
+	private static function get_option_user_roles_exclude_topic() {
+		return array(
+			'title'   => __( 'Exclude Mode', 'smart-cycle-discounts' ),
+			'icon'    => 'dismiss',
+			'type'    => 'simple',
+			'content' => array(
+				'quick_tip' => __( 'Blacklist mode - users with selected roles cannot see this discount. Everyone else can.', 'smart-cycle-discounts' ),
+				'bullets'   => array(
+					__( 'Best for: Excluding staff from customer promos, separating B2B from retail', 'smart-cycle-discounts' ),
+					__( 'Guest users will see the discount (they have no role to exclude)', 'smart-cycle-discounts' ),
+					__( 'Users with multiple roles are excluded if ANY role matches', 'smart-cycle-discounts' ),
+				),
+				'pro_tip'   => __( 'Exclude "Wholesaler" from retail discounts to keep pricing tiers separate', 'smart-cycle-discounts' ),
+			),
+		);
+	}
+
+	/**
+	 * Get user roles selection help topic
+	 *
+	 * @since  1.3.0
+	 * @return array Topic configuration
+	 */
+	private static function get_user_roles_selection_topic() {
+		return array(
+			'title'   => __( 'Select User Roles', 'smart-cycle-discounts' ),
+			'icon'    => 'admin-users',
+			'type'    => 'simple',
+			'content' => array(
+				'quick_tip' => __( 'Click roles to include or exclude them from this discount campaign.', 'smart-cycle-discounts' ),
+				'bullets'   => array(
+					__( 'All WordPress roles are shown, including custom roles from plugins', 'smart-cycle-discounts' ),
+					__( 'Select multiple roles - users matching ANY selected role are affected', 'smart-cycle-discounts' ),
+					__( 'Common roles: Customer, Subscriber, Shop Manager, Administrator', 'smart-cycle-discounts' ),
+				),
+				'pro_tip'   => __( 'Test with a user account that has the target role before publishing', 'smart-cycle-discounts' ),
+			),
+		);
+	}
+
+	/**
+	 * Get card free shipping help topic
+	 *
+	 * @since  1.3.0
+	 * @return array Topic configuration
+	 */
+	private static function get_card_free_shipping_topic() {
+		return array(
+			'title'   => __( 'Free Shipping', 'smart-cycle-discounts' ),
+			'icon'    => 'shipping',
+			'type'    => 'simple',
+			'content' => array(
+				'quick_tip' => __( 'Add free shipping as a bonus incentive alongside your product discounts.', 'smart-cycle-discounts' ),
+				'bullets'   => array(
+					__( 'Free shipping applies when cart contains products from this campaign', 'smart-cycle-discounts' ),
+					__( 'Choose to make all shipping methods free, or only specific ones', 'smart-cycle-discounts' ),
+					__( 'Works with spend threshold discounts for "Spend $X, get free shipping"', 'smart-cycle-discounts' ),
+					__( 'Stacks with product discounts for maximum customer value', 'smart-cycle-discounts' ),
+				),
+				'pro_tip'   => __( 'Combine free shipping with a spend threshold to increase average order value', 'smart-cycle-discounts' ),
+			),
+		);
+	}
+
+	/**
+	 * Get free shipping toggle help topic
+	 *
+	 * @since  1.3.0
+	 * @return array Topic configuration
+	 */
+	private static function get_free_shipping_toggle_topic() {
+		return array(
+			'title'   => __( 'Enable Free Shipping', 'smart-cycle-discounts' ),
+			'icon'    => 'yes-alt',
+			'type'    => 'simple',
+			'content' => array(
+				'quick_tip' => __( 'Toggle this on to include free shipping as part of your campaign offer.', 'smart-cycle-discounts' ),
+				'bullets'   => array(
+					__( 'When enabled, customers get free shipping on eligible products', 'smart-cycle-discounts' ),
+					__( 'Free shipping is applied in addition to any product discounts', 'smart-cycle-discounts' ),
+					__( 'The cart must contain products from this campaign to qualify', 'smart-cycle-discounts' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Get free shipping methods help topic
+	 *
+	 * @since  1.3.0
+	 * @return array Topic configuration
+	 */
+	private static function get_free_shipping_methods_topic() {
+		return array(
+			'title'   => __( 'Shipping Method Options', 'smart-cycle-discounts' ),
+			'icon'    => 'admin-settings',
+			'type'    => 'simple',
+			'content' => array(
+				'quick_tip' => __( 'Choose whether to make all shipping methods free, or only specific ones.', 'smart-cycle-discounts' ),
+				'bullets'   => array(
+					__( 'All Methods: Every available shipping option becomes free', 'smart-cycle-discounts' ),
+					__( 'Selected Only: Choose which specific methods to make free', 'smart-cycle-discounts' ),
+					__( 'Use "Selected Only" to offer free standard shipping while charging for express', 'smart-cycle-discounts' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Get free shipping "All Methods" option help topic
+	 *
+	 * @since  1.3.0
+	 * @return array Topic configuration
+	 */
+	private static function get_option_free_shipping_all_topic() {
+		return array(
+			'title'   => __( 'All Shipping Methods', 'smart-cycle-discounts' ),
+			'icon'    => 'yes',
+			'type'    => 'simple',
+			'content' => array(
+				'quick_tip' => __( 'Make every available shipping option free for qualifying orders.', 'smart-cycle-discounts' ),
+				'bullets'   => array(
+					__( 'All shipping methods in all zones become free', 'smart-cycle-discounts' ),
+					__( 'Simplest option - no additional configuration needed', 'smart-cycle-discounts' ),
+					__( 'Best for: Site-wide promotions, clearance sales, VIP campaigns', 'smart-cycle-discounts' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Get free shipping "Selected Methods" option help topic
+	 *
+	 * @since  1.3.0
+	 * @return array Topic configuration
+	 */
+	private static function get_option_free_shipping_selected_topic() {
+		return array(
+			'title'   => __( 'Selected Methods Only', 'smart-cycle-discounts' ),
+			'icon'    => 'list-view',
+			'type'    => 'simple',
+			'content' => array(
+				'quick_tip' => __( 'Choose specific shipping methods to make free while others remain paid.', 'smart-cycle-discounts' ),
+				'bullets'   => array(
+					__( 'Pick exactly which shipping methods become free', 'smart-cycle-discounts' ),
+					__( 'Other methods remain at their normal price', 'smart-cycle-discounts' ),
+					__( 'Best for: Free standard shipping only, local pickup incentives', 'smart-cycle-discounts' ),
+				),
+				'pro_tip'   => __( 'Offer free standard shipping while keeping express/overnight as paid options', 'smart-cycle-discounts' ),
+			),
+		);
+	}
+
+	/**
+	 * Get free shipping selection help topic
+	 *
+	 * @since  1.3.0
+	 * @return array Topic configuration
+	 */
+	private static function get_free_shipping_selection_topic() {
+		return array(
+			'title'   => __( 'Select Shipping Methods', 'smart-cycle-discounts' ),
+			'icon'    => 'admin-settings',
+			'type'    => 'simple',
+			'content' => array(
+				'quick_tip' => __( 'Check the shipping methods you want to make free for this campaign.', 'smart-cycle-discounts' ),
+				'bullets'   => array(
+					__( 'Methods are loaded from your WooCommerce shipping zones', 'smart-cycle-discounts' ),
+					__( 'Select multiple methods if needed', 'smart-cycle-discounts' ),
+					__( 'Unchecked methods will remain at their normal price', 'smart-cycle-discounts' ),
+				),
+			),
+		);
+	}
+
+	/**
 	 * ========================================================================
 	 * SCHEDULE STEP - FIELD-LEVEL TOPICS
 	 * ========================================================================
@@ -1601,19 +1911,36 @@ class WSSCD_Sidebar_Help_Topics {
 			'badge-text'                  => 'get_badge_text_topic',
 			'badge-position'              => 'get_badge_position_topic',
 			'usage-limit'                 => 'get_usage_limit_topic',
+			'user-roles'                  => 'get_user_roles_topic',
 
 			// Discounts Step - Card Topics
 			'card-discount-type'          => 'get_card_discount_type_topic',
 			'card-discount-value'         => 'get_card_discount_value_topic',
 			'card-badge-display'          => 'get_card_badge_display_topic',
 			'card-discount-rules'         => 'get_card_discount_rules_topic',
+			'card-user-roles'             => 'get_card_user_roles_topic',
 
-			// Discounts Step - Option Topics
+			// Discounts Step - Option Topics (Discount Types)
 			'option-discount-percentage'  => 'get_option_discount_percentage_topic',
 			'option-discount-fixed'       => 'get_option_discount_fixed_topic',
 			'option-discount-tiered'      => 'get_option_discount_tiered_topic',
 			'option-discount-bogo'        => 'get_option_discount_bogo_topic',
 			'option-discount-spend-threshold' => 'get_option_discount_spend_threshold_topic',
+
+			// Discounts Step - User Roles Option Topics
+			'user-roles-mode'             => 'get_user_roles_mode_topic',
+			'option-user-roles-all'       => 'get_option_user_roles_all_topic',
+			'option-user-roles-include'   => 'get_option_user_roles_include_topic',
+			'option-user-roles-exclude'   => 'get_option_user_roles_exclude_topic',
+			'user-roles-selection'        => 'get_user_roles_selection_topic',
+
+			// Discounts Step - Free Shipping Topics
+			'card-free-shipping'          => 'get_card_free_shipping_topic',
+			'free-shipping-toggle'        => 'get_free_shipping_toggle_topic',
+			'free-shipping-methods'       => 'get_free_shipping_methods_topic',
+			'option-free-shipping-all'    => 'get_option_free_shipping_all_topic',
+			'option-free-shipping-selected' => 'get_option_free_shipping_selected_topic',
+			'free-shipping-selection'     => 'get_free_shipping_selection_topic',
 
 			// Schedule Step - Field Topics
 			'start-date'                  => 'get_start_date_topic',
@@ -1686,15 +2013,28 @@ class WSSCD_Sidebar_Help_Topics {
 			'badge-text',
 			'badge-position',
 			'usage-limit',
+			'user-roles',
 			'card-discount-type',
 			'card-discount-value',
 			'card-badge-display',
 			'card-discount-rules',
+			'card-user-roles',
 			'option-discount-percentage',
 			'option-discount-fixed',
 			'option-discount-tiered',
 			'option-discount-bogo',
 			'option-discount-spend-threshold',
+			'user-roles-mode',
+			'option-user-roles-all',
+			'option-user-roles-include',
+			'option-user-roles-exclude',
+			'user-roles-selection',
+			'card-free-shipping',
+			'free-shipping-toggle',
+			'free-shipping-methods',
+			'option-free-shipping-all',
+			'option-free-shipping-selected',
+			'free-shipping-selection',
 
 			// Schedule Step
 			'start-date',

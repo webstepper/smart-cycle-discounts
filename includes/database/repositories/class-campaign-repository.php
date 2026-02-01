@@ -61,7 +61,7 @@ class WSSCD_Campaign_Repository extends WSSCD_Base_Repository {
 		$this->db          = $db;
 		$this->cache       = $cache;
 		$this->table_name  = $wpdb->prefix . 'wsscd_campaigns';
-		$this->json_fields = array( 'conditions', 'category_ids', 'tag_ids', 'attributes', 'product_ids', 'variation_rules', 'free_shipping_config' );
+		$this->json_fields = array( 'conditions', 'category_ids', 'tag_ids', 'attributes', 'product_ids', 'variation_rules', 'free_shipping_config', 'user_roles' );
 		$this->date_fields = array( 'created_at', 'updated_at', 'starts_at', 'ends_at', 'deleted_at' );
 	}
 
@@ -468,7 +468,35 @@ class WSSCD_Campaign_Repository extends WSSCD_Base_Repository {
 		// This prevents stale cached campaigns from applying discounts after their end date.
 		// Even if ActionScheduler fails to fire wsscd_deactivate_campaign, this ensures
 		// expired campaigns never apply discounts.
-		return $this->filter_expired_campaigns( $campaigns );
+		$campaigns = $this->filter_expired_campaigns( $campaigns );
+
+		// Filter campaigns by user role eligibility.
+		// This runs per-request (not cached) since user roles are user-specific.
+		return $this->filter_by_user_eligibility( $campaigns );
+	}
+
+	/**
+	 * Filter campaigns by current user's role eligibility.
+	 *
+	 * Runs after cache retrieval since user roles are user-specific.
+	 * Campaigns with user_roles_mode='all' pass through unchanged.
+	 *
+	 * @since    1.3.0
+	 * @access   private
+	 * @param    array $campaigns    Array of campaign objects.
+	 * @return   array                  Filtered campaigns (only user-eligible ones).
+	 */
+	private function filter_by_user_eligibility( array $campaigns ): array {
+		if ( empty( $campaigns ) ) {
+			return array();
+		}
+
+		return array_filter(
+			$campaigns,
+			function ( $campaign ) {
+				return $campaign->is_user_eligible();
+			}
+		);
 	}
 
 	/**
@@ -1510,6 +1538,10 @@ class WSSCD_Campaign_Repository extends WSSCD_Base_Repository {
 			// Free Shipping Configuration
 			'free_shipping_config'   => isset( $data->free_shipping_config ) ? json_decode( $data->free_shipping_config ?: '{}', true ) : array(),
 
+			// User Role Targeting
+			'user_roles'             => isset( $data->user_roles ) ? json_decode( $data->user_roles ?: '[]', true ) : array(),
+			'user_roles_mode'        => $data->user_roles_mode ?? 'all',
+
 			// Scheduling
 			'starts_at'              => $data->starts_at,
 			'ends_at'                => $data->ends_at,
@@ -1590,6 +1622,7 @@ class WSSCD_Campaign_Repository extends WSSCD_Base_Repository {
 			'tag_ids',
 			'discount_rules',
 			'free_shipping_config',
+			'user_roles',
 			'usage_limits',
 			'discount_configuration',
 			'schedule_configuration',

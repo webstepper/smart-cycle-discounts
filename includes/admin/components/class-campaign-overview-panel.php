@@ -534,6 +534,10 @@ class WSSCD_Campaign_Overview_Panel {
 			'free_shipping_methods'  => $free_shipping_methods,
 			'allowed_combinations'   => $allowed_combinations,
 
+			// User Role Targeting
+			'user_roles_mode'        => $campaign->get_user_roles_mode(),
+			'user_roles'             => $campaign->get_user_roles(),
+
 			// Badge configuration
 			'badge_config'          => $badge_config,
 

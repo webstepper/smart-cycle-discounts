@@ -306,12 +306,28 @@
 			return;
 		}
 
+		// Get data from multiple sources (edit mode uses Wizard.data, create mode uses StateManager)
 		var wizardData = window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.data
 			? window.WSSCD.Wizard.data
 			: {};
 
+		// Also get step data from State Manager for new campaigns
+		var stepData = {};
+		if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.StateManager ) {
+			var stateManager = window.WSSCD.Wizard.StateManager.getInstance();
+			if ( stateManager ) {
+				var fullState = stateManager.get();
+				stepData = fullState.stepData || {};
+			}
+		}
+
+		// Merge step data for fields (stepData takes precedence for current session data)
+		var discountsData = stepData.discounts || {};
+		var productsData = stepData.products || {};
+		var scheduleData = stepData.schedule || {};
+
 		// Discount type
-		var discountType = wizardData.discountType || wizardData.discount_type || '--';
+		var discountType = discountsData.discountType || wizardData.discountType || wizardData.discount_type || '--';
 		var discountTypeLabels = {
 			'percentage': 'Percentage Discount',
 			'fixed': 'Fixed Amount Discount',
@@ -324,7 +340,7 @@
 		);
 
 		// Products
-		var productSelectionType = wizardData.productSelectionType || wizardData.product_selection_type || 'all_products';
+		var productSelectionType = productsData.productSelectionType || wizardData.productSelectionType || wizardData.product_selection_type || 'all_products';
 		var productsLabels = {
 			'all_products': 'All Products',
 			'specific_products': 'Specific Products',
@@ -335,7 +351,7 @@
 
 		// Add count if specific products
 		if ( 'specific_products' === productSelectionType ) {
-			var productIds = wizardData.productIds || wizardData.product_ids || [];
+			var productIds = productsData.productIds || wizardData.productIds || wizardData.product_ids || [];
 			if ( productIds.length > 0 ) {
 				productsText += ' (' + productIds.length + ')';
 			}
@@ -343,15 +359,16 @@
 		$container.find( '[data-config="products"]' ).text( productsText );
 
 		// Schedule
-		var startType = wizardData.startType || wizardData.start_type || 'immediate';
+		var startType = scheduleData.startType || wizardData.startType || wizardData.start_type || 'immediate';
 		var scheduleText = 'immediate' === startType ? 'Starts Immediately' : 'Scheduled';
-		if ( 'scheduled' === startType && wizardData.startDate ) {
-			scheduleText = 'Starts: ' + wizardData.startDate;
+		var startDate = scheduleData.startDate || wizardData.startDate;
+		if ( 'scheduled' === startType && startDate ) {
+			scheduleText = 'Starts: ' + startDate;
 		}
 		$container.find( '[data-config="schedule"]' ).text( scheduleText );
 
-		// Free shipping
-		var freeShippingConfig = wizardData.freeShippingConfig || wizardData.free_shipping_config || {};
+		// Free shipping - check stepData first (current session), then wizardData (edit mode)
+		var freeShippingConfig = discountsData.freeShippingConfig || wizardData.freeShippingConfig || wizardData.free_shipping_config || {};
 		var freeShippingEnabled = freeShippingConfig.enabled || false;
 		var $freeShippingItem = $container.find( '.wsscd-config-free-shipping' );
 		var $freeShippingValue = $container.find( '[data-config="free_shipping"]' );
@@ -372,6 +389,32 @@
 			$freeShippingValue.html(
 				'<span class="wsscd-config-disabled">Not enabled</span>'
 			);
+		}
+
+		// User Role Targeting - check stepData first (current session), then wizardData (edit mode)
+		var userRolesMode = discountsData.userRolesMode || discountsData.user_roles_mode ||
+			wizardData.userRolesMode || wizardData.user_roles_mode || 'all';
+		var userRoles = discountsData.userRoles || discountsData.user_roles ||
+			wizardData.userRoles || wizardData.user_roles || [];
+		var $userRolesItem = $container.find( '.wsscd-config-user-roles' );
+		var $userRolesValue = $container.find( '[data-config="user_roles"]' );
+
+		if ( $userRolesValue.length ) {
+			if ( 'all' === userRolesMode || ( 0 === userRoles.length ) ) {
+				$userRolesItem.attr( 'data-has-user-roles', 'false' );
+				$userRolesValue.html(
+					'<span class="wsscd-config-disabled">All users</span>'
+				);
+			} else {
+				$userRolesItem.attr( 'data-has-user-roles', 'true' );
+				var modeText = 'include' === userRolesMode ? 'Include only:' : 'Exclude:';
+				var rolesText = Array.isArray( userRoles ) ? userRoles.length + ' role(s)' : 'Selected roles';
+				$userRolesValue.html(
+					'<span class="wsscd-config-enabled">' +
+					'<span class="wsscd-config-' + userRolesMode + '">' + modeText + '</span> ' + rolesText +
+					'</span>'
+				);
+			}
 		}
 
 		// Show content, hide loading

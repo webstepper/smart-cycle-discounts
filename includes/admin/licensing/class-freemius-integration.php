@@ -230,13 +230,13 @@ class WSSCD_Freemius_Integration {
 	}
 
 	/**
-	 * Get custom plugin icon path.
+	 * Get custom plugin icon URL.
 	 *
 	 * @since    1.2.1
-	 * @return   string    Path to custom icon.
+	 * @return   string    URL to custom icon.
 	 */
 	public static function custom_optin_icon() {
-		return WSSCD_PLUGIN_DIR . 'logo.svg';
+		return 'https://webstepper.io/wp-content/uploads/2025/12/smart-cycle-discounts.svg';
 	}
 
 	/**
@@ -265,8 +265,8 @@ class WSSCD_Freemius_Integration {
 	public static function custom_connect_message( $message, $user_first_name, $product_title, $user_login, $site_link, $freemius_link ) {
 		return sprintf(
 			/* translators: %1$s: User's first name, %2$s: Product title (bold), %3$s: Freemius link */
-			esc_html__(
-				'Hey %1$s! 👋 Thanks for installing %2$s. To help us improve the plugin and keep you updated on new features & security fixes, please opt in to share basic usage data. Your store data stays private — we only collect environment info to ensure compatibility. Powered securely by %3$s.',
+			__(
+				'Hey %1$s, thanks for installing %2$s!<br><br>Opt in to receive security updates and help us improve compatibility. We only collect basic environment info — your store data stays private.<br><br>Powered by %3$s.',
 				'smart-cycle-discounts'
 			),
 			'<strong>' . esc_html( $user_first_name ) . '</strong>',
@@ -286,7 +286,7 @@ class WSSCD_Freemius_Integration {
 		$user = wp_get_current_user();
 		return sprintf(
 			/* translators: %s: User's first name */
-			esc_html__( 'Hey %s! Quick update 🚀', 'smart-cycle-discounts' ),
+			esc_html__( 'Hey %s, quick update!', 'smart-cycle-discounts' ),
 			esc_html( $user->user_firstname ? $user->user_firstname : $user->display_name )
 		);
 	}
@@ -306,8 +306,8 @@ class WSSCD_Freemius_Integration {
 	public static function custom_connect_message_on_update( $message, $user_first_name, $product_title, $user_login, $site_link, $freemius_link ) {
 		return sprintf(
 			/* translators: %1$s: Product title (bold), %2$s: Freemius link */
-			esc_html__(
-				'We\'ve added this one-time opt-in to %1$s to help us build a better plugin for you. By opting in, you\'ll get notified about important updates and help us ensure compatibility with your setup. Skip if you prefer — the plugin works great either way! Powered by %2$s.',
+			__(
+				'We\'ve added a one-time opt-in to %1$s.<br><br>Opt in to get notified about updates and help us ensure compatibility. Skip if you prefer — the plugin works great either way.<br><br>Powered by %2$s.',
 				'smart-cycle-discounts'
 			),
 			'<strong>' . esc_html( $product_title ) . '</strong>',

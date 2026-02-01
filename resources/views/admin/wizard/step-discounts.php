@@ -984,7 +984,7 @@ ob_start();
         ob_start();
         ?>
             <!-- Enable Free Shipping Toggle -->
-            <div class="wsscd-free-shipping-enable-section">
+            <div class="wsscd-free-shipping-enable-section" data-help-topic="free-shipping-toggle">
                 <div class="wsscd-free-shipping-enable-row">
                     <label class="wsscd-toggle" for="free_shipping_enabled">
                         <input type="checkbox"
@@ -1009,29 +1009,29 @@ ob_start();
                         <?php esc_html_e( 'Apply To', 'smart-cycle-discounts' ); ?>
                     </h4>
 
-                    <div class="wsscd-free-shipping-method-selector">
-                        <label class="wsscd-free-shipping-method-option">
+                    <div class="wsscd-user-roles-mode-selector" data-help-topic="free-shipping-methods">
+                        <label class="wsscd-user-roles-mode-option">
                             <input type="radio"
                                    name="free_shipping_method_type"
                                    value="all"
                                    <?php checked( 'all' === $free_shipping_methods || ! is_array( $free_shipping_methods ) ); ?>>
-                            <span class="wsscd-free-shipping-method-card">
+                            <span class="wsscd-user-roles-mode-card" data-help-topic="option-free-shipping-all">
                                 <?php WSSCD_Icon_Helper::render( 'yes', array( 'size' => 20 ) ); ?>
                                 <strong><?php esc_html_e( 'All Shipping Methods', 'smart-cycle-discounts' ); ?></strong>
-                                <small class="wsscd-method-description">
+                                <small class="wsscd-mode-description">
                                     <?php esc_html_e( 'Make all shipping options free.', 'smart-cycle-discounts' ); ?>
                                 </small>
                             </span>
                         </label>
-                        <label class="wsscd-free-shipping-method-option">
+                        <label class="wsscd-user-roles-mode-option">
                             <input type="radio"
                                    name="free_shipping_method_type"
                                    value="selected"
                                    <?php checked( is_array( $free_shipping_methods ) ); ?>>
-                            <span class="wsscd-free-shipping-method-card">
+                            <span class="wsscd-user-roles-mode-card" data-help-topic="option-free-shipping-selected">
                                 <?php WSSCD_Icon_Helper::render( 'list-view', array( 'size' => 20 ) ); ?>
                                 <strong><?php esc_html_e( 'Selected Methods Only', 'smart-cycle-discounts' ); ?></strong>
-                                <small class="wsscd-method-description">
+                                <small class="wsscd-mode-description">
                                     <?php esc_html_e( 'Choose which shipping methods become free.', 'smart-cycle-discounts' ); ?>
                                 </small>
                             </span>
@@ -1039,7 +1039,7 @@ ob_start();
                     </div>
 
                     <!-- Specific Methods Selection -->
-                    <div class="wsscd-shipping-methods-list<?php echo 'all' === $free_shipping_methods || ! is_array( $free_shipping_methods ) ? ' wsscd-hidden' : ''; ?>" id="wsscd-shipping-methods-list">
+                    <div class="wsscd-shipping-methods-list<?php echo 'all' === $free_shipping_methods || ! is_array( $free_shipping_methods ) ? ' wsscd-hidden' : ''; ?>" id="wsscd-shipping-methods-list" data-help-topic="free-shipping-selection">
                         <div class="wsscd-shipping-methods-loading">
                             <span class="spinner is-active"></span>
                             <?php esc_html_e( 'Loading shipping methods...', 'smart-cycle-discounts' ); ?>
@@ -1067,11 +1067,163 @@ ob_start();
 
         wsscd_wizard_card( array(
             'title'      => __( 'Free Shipping', 'smart-cycle-discounts' ),
-            'icon'       => 'airplane',
+            'icon'       => 'shipping',
+            'badge'      => array(
+                'text' => __( 'Optional', 'smart-cycle-discounts' ),
+                'type' => 'optional',
+            ),
             'subtitle'   => __( 'Offer free shipping as an additional incentive for customers.', 'smart-cycle-discounts' ),
             'content'    => $free_shipping_content,
             'id'         => 'free-shipping-card',
             'help_topic' => 'card-free-shipping',
+        ) );
+        ?>
+
+        <!-- User Role Targeting -->
+        <?php
+        // Get user roles config from step data.
+        $user_roles_mode = $step_data['user_roles_mode'] ?? 'all';
+        $user_roles = $step_data['user_roles'] ?? array();
+        $show_roles_selector = 'all' !== $user_roles_mode;
+
+        ob_start();
+        ?>
+            <!-- User Role Mode Selection -->
+            <div class="wsscd-user-roles-mode-section">
+                <div class="wsscd-user-roles-mode-row">
+                    <div class="wsscd-user-roles-mode-field">
+                        <label for="user_roles_mode" class="wsscd-field-label">
+                            <?php esc_html_e( 'Who can use this discount?', 'smart-cycle-discounts' ); ?>
+                        </label>
+                        <?php
+                        WSSCD_Tooltip_Helper::render(
+                            __( 'Control which users can see and use this discount based on their WordPress role.', 'smart-cycle-discounts' )
+                        );
+                        ?>
+                    </div>
+                    <div class="wsscd-user-roles-mode-selector" data-help-topic="user-roles-mode">
+                        <label class="wsscd-user-roles-mode-option">
+                            <input type="radio"
+                                   name="user_roles_mode"
+                                   value="all"
+                                   <?php checked( 'all' === $user_roles_mode ); ?>>
+                            <span class="wsscd-user-roles-mode-card" data-help-topic="option-user-roles-all">
+                                <?php WSSCD_Icon_Helper::render( 'groups', array( 'size' => 20 ) ); ?>
+                                <strong><?php esc_html_e( 'All Users', 'smart-cycle-discounts' ); ?></strong>
+                                <small class="wsscd-mode-description">
+                                    <?php esc_html_e( 'Everyone can use this discount.', 'smart-cycle-discounts' ); ?>
+                                </small>
+                            </span>
+                        </label>
+                        <label class="wsscd-user-roles-mode-option">
+                            <input type="radio"
+                                   name="user_roles_mode"
+                                   value="include"
+                                   <?php checked( 'include' === $user_roles_mode ); ?>>
+                            <span class="wsscd-user-roles-mode-card" data-help-topic="option-user-roles-include">
+                                <?php WSSCD_Icon_Helper::render( 'yes-alt', array( 'size' => 20 ) ); ?>
+                                <strong><?php esc_html_e( 'Include Only', 'smart-cycle-discounts' ); ?></strong>
+                                <small class="wsscd-mode-description">
+                                    <?php esc_html_e( 'Only selected roles can use this.', 'smart-cycle-discounts' ); ?>
+                                </small>
+                            </span>
+                        </label>
+                        <label class="wsscd-user-roles-mode-option">
+                            <input type="radio"
+                                   name="user_roles_mode"
+                                   value="exclude"
+                                   <?php checked( 'exclude' === $user_roles_mode ); ?>>
+                            <span class="wsscd-user-roles-mode-card" data-help-topic="option-user-roles-exclude">
+                                <?php WSSCD_Icon_Helper::render( 'dismiss', array( 'size' => 20 ) ); ?>
+                                <strong><?php esc_html_e( 'Exclude', 'smart-cycle-discounts' ); ?></strong>
+                                <small class="wsscd-mode-description">
+                                    <?php esc_html_e( 'Hide from selected roles.', 'smart-cycle-discounts' ); ?>
+                                </small>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role Selection (shown when mode is include/exclude) -->
+            <div class="wsscd-user-roles-selection-wrapper<?php echo ! $show_roles_selector ? ' wsscd-hidden' : ''; ?>"
+                 id="wsscd-user-roles-selection"
+                 data-depends-on="user_roles_mode">
+                <div class="wsscd-user-roles-selection-section">
+                    <h4 class="wsscd-user-roles-section-title">
+                        <?php WSSCD_Icon_Helper::render( 'admin-users', array( 'size' => 16 ) ); ?>
+                        <span id="wsscd-user-roles-section-label">
+                            <?php
+                            if ( 'include' === $user_roles_mode ) {
+                                esc_html_e( 'Select Roles to Include', 'smart-cycle-discounts' );
+                            } else {
+                                esc_html_e( 'Select Roles to Exclude', 'smart-cycle-discounts' );
+                            }
+                            ?>
+                        </span>
+                    </h4>
+
+                    <div class="wsscd-user-roles-checkboxes"
+                         role="group"
+                         aria-label="<?php esc_attr_e( 'Select user roles', 'smart-cycle-discounts' ); ?>"
+                         data-help-topic="user-roles-selection">
+                        <?php
+                        // Get available roles.
+                        $available_roles = array();
+                        if ( class_exists( 'WSSCD_Role_Helper' ) ) {
+                            $available_roles = WSSCD_Role_Helper::get_available_roles();
+                        } else {
+                            $wp_roles = wp_roles();
+                            foreach ( $wp_roles->get_names() as $slug => $name ) {
+                                $available_roles[ $slug ] = translate_user_role( $name );
+                            }
+                        }
+
+                        foreach ( $available_roles as $slug => $name ) :
+                            $is_checked = in_array( $slug, (array) $user_roles, true );
+                        ?>
+                            <label class="wsscd-role-checkbox">
+                                <input type="checkbox"
+                                       name="user_roles[]"
+                                       value="<?php echo esc_attr( $slug ); ?>"
+                                       <?php checked( $is_checked ); ?>
+                                       aria-label="<?php echo esc_attr( $name ); ?>">
+                                <span class="wsscd-role-label"><?php echo esc_html( $name ); ?></span>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <p class="wsscd-field-help" id="wsscd-user-roles-help">
+                        <?php
+                        if ( 'include' === $user_roles_mode ) {
+                            esc_html_e( 'Only users with the selected roles will see this discount.', 'smart-cycle-discounts' );
+                        } else {
+                            esc_html_e( 'Users with the selected roles will NOT see this discount.', 'smart-cycle-discounts' );
+                        }
+                        ?>
+                    </p>
+                </div>
+
+                <!-- Hidden input to store selected roles as JSON -->
+                <input type="hidden"
+                       id="user_roles_json"
+                       name="user_roles_json"
+                       value="<?php echo esc_attr( wp_json_encode( (array) $user_roles ) ); ?>">
+            </div>
+        <?php
+        $user_roles_content = ob_get_clean();
+
+        wsscd_wizard_card( array(
+            'title'      => __( 'User Role Targeting', 'smart-cycle-discounts' ),
+            'icon'       => 'admin-users',
+            'badge'      => array(
+                'text' => __( 'Optional', 'smart-cycle-discounts' ),
+                'type' => 'optional',
+            ),
+            'subtitle'   => __( 'Restrict this discount to specific user roles like wholesalers, subscribers, or VIP customers.', 'smart-cycle-discounts' ),
+            'content'    => $user_roles_content,
+            'id'         => 'user-roles-card',
+            'help_topic' => 'card-user-roles',
         ) );
         ?>
 
@@ -1505,7 +1657,10 @@ wsscd_wizard_state_script('discounts', array(
     // Conditions Logic
     'conditions_logic' => $conditions_logic,
     // Free Shipping
-    'free_shipping_config' => $free_shipping_config
+    'free_shipping_config' => $free_shipping_config,
+    // User Role Targeting
+    'user_roles_mode' => $user_roles_mode,
+    'user_roles' => $user_roles
 ), array(
     'selected_products' => $wsscd_discount_step_data['selected_products'] ?? array(),
     'currency_data' => $currency_data

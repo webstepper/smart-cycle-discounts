@@ -580,15 +580,50 @@ class WSSCD_Field_Definitions {
 				'field_name'  => 'badge_position',
 			),
 			'free_shipping_config'      => array(
-				'type'       => 'complex',
-				'label'      => __( 'Free Shipping Configuration', 'smart-cycle-discounts' ),
-				'required'   => false,
-				'default'    => array(
+				'type'        => 'complex',
+				'label'       => __( 'Free Shipping Configuration', 'smart-cycle-discounts' ),
+				'required'    => false,
+				'default'     => array(
 					'enabled' => false,
 					'methods' => 'all',
 				),
-				'sanitizer'  => array( __CLASS__, 'sanitize_free_shipping_config' ),
-				'field_name' => 'free_shipping_config',
+				'handler'     => 'WSSCD.Modules.Discounts.FreeShipping',
+				'methods'     => array(
+					'collect'  => 'getData',
+					'populate' => 'setData',
+				),
+				'sanitizer'   => array( __CLASS__, 'sanitize_free_shipping_config' ),
+				'field_name'  => 'free_shipping_config',
+			),
+			'user_roles_mode'           => array(
+				'type'       => 'select',
+				'label'      => __( 'User Role Targeting', 'smart-cycle-discounts' ),
+				'required'   => false,
+				'default'    => 'all',
+				'options'    => array(
+					'all'     => __( 'All Users', 'smart-cycle-discounts' ),
+					'include' => __( 'Include Only', 'smart-cycle-discounts' ),
+					'exclude' => __( 'Exclude', 'smart-cycle-discounts' ),
+				),
+				'sanitizer'  => 'sanitize_text_field',
+				'validator'  => array( __CLASS__, 'validate_in_array' ),
+				'tooltip'    => __( 'Control which user roles can see and use this discount', 'smart-cycle-discounts' ),
+				'field_name' => 'user_roles_mode',
+			),
+			'user_roles'                => array(
+				'type'        => 'complex',
+				'label'       => __( 'User Roles', 'smart-cycle-discounts' ),
+				'required'    => false,
+				'default'     => array(),
+				'sanitizer'   => array( __CLASS__, 'sanitize_user_roles' ),
+				'validator'   => array( __CLASS__, 'validate_user_roles' ),
+				'conditional' => array(
+					'field'    => 'user_roles_mode',
+					'operator' => 'not_equals',
+					'value'    => 'all',
+				),
+				'tooltip'     => __( 'Select which user roles to include or exclude from this discount', 'smart-cycle-discounts' ),
+				'field_name'  => 'user_roles',
 			),
 		);
 	}
@@ -2426,6 +2461,97 @@ class WSSCD_Field_Definitions {
 		}
 
 		return $sanitized;
+	}
+
+	/**
+	 * Sanitize user roles array.
+	 *
+	 * Validates and sanitizes an array of WordPress user role slugs.
+	 *
+	 * @since  1.3.0
+	 * @param  mixed $value The value to sanitize.
+	 * @return array Sanitized array of role slugs.
+	 */
+	public static function sanitize_user_roles( $value ) {
+		if ( ! is_array( $value ) ) {
+			// Handle JSON string input.
+			if ( is_string( $value ) && ! empty( $value ) ) {
+				$decoded = json_decode( $value, true );
+				if ( is_array( $decoded ) ) {
+					$value = $decoded;
+				} else {
+					return array();
+				}
+			} else {
+				return array();
+			}
+		}
+
+		// Use Role Helper if available.
+		if ( class_exists( 'WSSCD_Role_Helper' ) ) {
+			return WSSCD_Role_Helper::sanitize_roles( $value );
+		}
+
+		// Fallback: sanitize each role slug.
+		return array_map( 'sanitize_key', array_filter( $value ) );
+	}
+
+	/**
+	 * Validate user roles array.
+	 *
+	 * Ensures all provided role slugs are valid WordPress roles.
+	 *
+	 * @since  1.3.0
+	 * @param  mixed $value The value to validate.
+	 * @param  array $field The field definition.
+	 * @param  array $data  The complete data array.
+	 * @return bool|WP_Error True if valid, WP_Error if invalid.
+	 */
+	public static function validate_user_roles( $value, $field = array(), $data = array() ) {
+		// Empty is valid - means no role restriction.
+		if ( empty( $value ) ) {
+			return true;
+		}
+
+		if ( ! is_array( $value ) ) {
+			return new WP_Error(
+				'invalid_type',
+				__( 'User roles must be an array', 'smart-cycle-discounts' )
+			);
+		}
+
+		// Use Role Helper if available.
+		if ( class_exists( 'WSSCD_Role_Helper' ) ) {
+			$invalid_roles = WSSCD_Role_Helper::validate_roles( $value );
+			if ( ! empty( $invalid_roles ) ) {
+				return new WP_Error(
+					'invalid_roles',
+					sprintf(
+						/* translators: %s: comma-separated list of invalid role slugs */
+						__( 'Invalid user roles: %s', 'smart-cycle-discounts' ),
+						implode( ', ', $invalid_roles )
+					)
+				);
+			}
+			return true;
+		}
+
+		// Fallback: validate against wp_roles().
+		$available_roles = array_keys( wp_roles()->get_names() );
+		$invalid_roles   = array_diff( $value, $available_roles );
+
+		if ( ! empty( $invalid_roles ) ) {
+			return new WP_Error(
+				'invalid_roles',
+				sprintf(
+					/* translators: %s: comma-separated list of invalid role slugs */
+					__( 'Invalid user roles: %s', 'smart-cycle-discounts' ),
+					implode( ', ', $invalid_roles )
+				)
+			);
+		}
+
+		return true;
 	}
 
 	/**

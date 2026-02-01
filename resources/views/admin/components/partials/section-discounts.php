@@ -72,6 +72,22 @@ $wsscd_individual_use        = isset( $data['individual_use'] ) ? $data['individ
 $wsscd_free_shipping         = isset( $data['free_shipping'] ) ? $data['free_shipping'] : false;
 $wsscd_free_shipping_methods = isset( $data['free_shipping_methods'] ) ? $data['free_shipping_methods'] : 'all';
 
+// User Role Targeting
+$wsscd_user_roles_mode = isset( $data['user_roles_mode'] ) ? $data['user_roles_mode'] : 'all';
+$wsscd_user_roles      = isset( $data['user_roles'] ) ? $data['user_roles'] : array();
+$wsscd_has_role_targeting = 'all' !== $wsscd_user_roles_mode && ! empty( $wsscd_user_roles );
+
+// Format user roles info
+$wsscd_user_roles_info = '';
+if ( $wsscd_has_role_targeting ) {
+	// Get role names for display
+	if ( class_exists( 'WSSCD_Role_Helper' ) ) {
+		$wsscd_user_roles_info = WSSCD_Role_Helper::format_roles_for_display( $wsscd_user_roles );
+	} else {
+		$wsscd_user_roles_info = implode( ', ', $wsscd_user_roles );
+	}
+}
+
 // Format free shipping methods info
 $wsscd_free_shipping_info = '';
 if ( $wsscd_free_shipping ) {
@@ -249,7 +265,7 @@ if ( $wsscd_free_shipping ) {
 	<?php endif; ?>
 
 	<!-- Restrictions -->
-	<?php if ( $wsscd_exclude_sale_items || $wsscd_individual_use || $wsscd_free_shipping ) : ?>
+	<?php if ( $wsscd_exclude_sale_items || $wsscd_individual_use || $wsscd_free_shipping || $wsscd_has_role_targeting ) : ?>
 		<div class="wsscd-discount-restrictions">
 			<div class="wsscd-restrictions-header">
 				<?php WSSCD_Icon_Helper::render( 'lock', array( 'size' => 16 ) ); ?>
@@ -275,6 +291,23 @@ if ( $wsscd_free_shipping ) {
 							<?php esc_html_e( 'Free shipping', 'smart-cycle-discounts' ); ?>
 							<?php if ( ! empty( $wsscd_free_shipping_info ) ) : ?>
 								<span class="wsscd-free-shipping-detail">(<?php echo esc_html( $wsscd_free_shipping_info ); ?>)</span>
+							<?php endif; ?>
+						</span>
+					</li>
+				<?php endif; ?>
+				<?php if ( $wsscd_has_role_targeting ) : ?>
+					<li class="wsscd-user-roles-item">
+						<?php WSSCD_Icon_Helper::render( 'admin-users', array( 'size' => 14 ) ); ?>
+						<span>
+							<?php
+							if ( 'include' === $wsscd_user_roles_mode ) {
+								esc_html_e( 'Include only:', 'smart-cycle-discounts' );
+							} else {
+								esc_html_e( 'Exclude:', 'smart-cycle-discounts' );
+							}
+							?>
+							<?php if ( ! empty( $wsscd_user_roles_info ) ) : ?>
+								<span class="wsscd-user-roles-detail"><?php echo esc_html( $wsscd_user_roles_info ); ?></span>
 							<?php endif; ?>
 						</span>
 					</li>

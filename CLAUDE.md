@@ -432,6 +432,115 @@ Component modules have `showError()` methods that internally delegate to `Valida
 4. **Output Escaping**: `esc_html()`, `esc_attr()`, `esc_url()`
 5. **Database Security**: `$wpdb->prepare()` for ALL queries
 
+### Input Sanitization Rules
+
+**ALWAYS sanitize `$_GET`, `$_POST`, `$_REQUEST` - even for display logic:**
+```php
+// ❌ WRONG: Using $_GET without sanitization
+if ( ! isset( $_GET['action'] ) ) {
+    return true;
+}
+
+// ✅ CORRECT: Always sanitize, even for simple checks
+// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: read-only display context check.
+$action = isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : '';
+if ( empty( $action ) ) {
+    return true;
+}
+```
+
+### Context-Aware Output Escaping
+
+**Use different escaping functions based on context:**
+```php
+// HTML content
+echo esc_html( $text );
+
+// HTML attributes
+echo '<div class="' . esc_attr( $class ) . '">';
+
+// URLs
+echo '<a href="' . esc_url( $url ) . '">';
+
+// JavaScript strings
+echo 'var name = "' . esc_js( $name ) . '";';
+
+// Allow safe HTML (user content with allowed tags)
+echo wp_kses_post( $html_content );
+```
+
+**For email templates or dynamic content with multiple variable types:**
+```php
+// Context-aware escaping based on variable name suffix
+private function replace_variables( string $content, array $variables ): string {
+    foreach ( $variables as $key => $value ) {
+        if ( ! is_string( $value ) ) {
+            continue;
+        }
+
+        // URL variables: use URL escaping
+        if ( preg_match( '/_url$/', $key ) ) {
+            $escaped_value = esc_url( $value );
+        // Pre-formatted HTML variables: allow safe HTML tags
+        } elseif ( preg_match( '/_(summary|list|html|table|message)$/', $key ) ) {
+            $escaped_value = wp_kses_post( $value );
+        // Default: HTML-escape plain text
+        } else {
+            $escaped_value = esc_html( $value );
+        }
+
+        $content = str_replace( '{' . $key . '}', $escaped_value, $content );
+    }
+    return $content;
+}
+```
+
+### Database Query Security
+
+**Table names cannot be parameterized - use PHPCS ignore with explanation:**
+```php
+// ✅ CORRECT: Table name from trusted source with PHPCS ignore
+$table = $wpdb->prefix . 'wsscd_campaigns';
+
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name from trusted $wpdb->prefix.
+$result = $wpdb->get_var(
+    $wpdb->prepare(
+        "SELECT name FROM {$table} WHERE id = %d",
+        $id
+    )
+);
+```
+
+**For migrations with schema changes:**
+```php
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Migration ALTER TABLE; table name from trusted source.
+$wpdb->query(
+    "ALTER TABLE {$table_name} ADD COLUMN new_column VARCHAR(255)"
+);
+// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+```
+
+### Variable Prefixing in Templates
+
+**ALL variables in template files must use plugin prefix:**
+```php
+// ❌ WRONG: Generic variable name
+$count = count( $items );
+
+// ✅ CORRECT: Prefixed variable name
+$wsscd_count = count( $wsscd_items );
+```
+
+### WordPress Core Hooks
+
+**When using WordPress core filters/actions, add PHPCS ignore:**
+```php
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- This is a WordPress core filter, not a custom hook.
+if ( ! apply_filters( 'plugins_auto_update_enabled', true ) ) {
+    return false;
+}
+```
+
 ## 🏗️ PLUGIN ARCHITECTURE PATTERNS
 
 ### Your Plugin Structure:

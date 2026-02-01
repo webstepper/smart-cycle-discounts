@@ -614,7 +614,7 @@
 
 		/**
 		 * Get complex field handler
-		 * @param {string} handlerPath - Handler path
+		 * @param {string} handlerPath - Handler path (e.g., 'tieredDiscount' or 'WSSCD.Modules.Discounts.FreeShipping')
 		 * @returns {object | null} Handler instance
 		 */
 		getComplexFieldHandler: function( handlerPath ) {
@@ -637,6 +637,16 @@
 			if ( this.complexFieldHandlers && this.complexFieldHandlers[handlerPath] ) {
 				handler = this.complexFieldHandlers[handlerPath];
 				this._complexFieldHandlers[handlerPath] = handler;
+			}
+
+			// Try to resolve from global scope if path contains dots (e.g., 'WSSCD.Modules.Discounts.FreeShipping')
+			if ( !handler && -1 !== handlerPath.indexOf( '.' ) ) {
+				if ( window.WSSCD && window.WSSCD.Utils && 'function' === typeof window.WSSCD.Utils.get ) {
+					handler = window.WSSCD.Utils.get( window, handlerPath, null );
+					if ( handler ) {
+						this._complexFieldHandlers[handlerPath] = handler;
+					}
+				}
 			}
 
 			return handler;

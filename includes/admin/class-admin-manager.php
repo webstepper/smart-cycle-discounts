@@ -21,6 +21,7 @@ require_once WSSCD_PLUGIN_DIR . 'includes/admin/ajax/class-ajax-security.php';
 require_once WSSCD_PLUGIN_DIR . 'includes/admin/ajax/class-wsscd-ajax-response.php';
 require_once WSSCD_PLUGIN_DIR . 'includes/admin/class-review-notice.php';
 require_once WSSCD_PLUGIN_DIR . 'includes/admin/class-auto-update-notice.php';
+require_once WSSCD_PLUGIN_DIR . 'includes/admin/class-welcome-notice.php';
 
 /**
  * Admin Manager
@@ -145,6 +146,10 @@ class WSSCD_Admin_Manager {
 		// Initialize auto-update notice.
 		$auto_update_notice = new WSSCD_Auto_Update_Notice();
 		$auto_update_notice->init();
+
+		// Initialize welcome notice for first-time users.
+		$welcome_notice = new WSSCD_Welcome_Notice( $this->container );
+		$welcome_notice->init();
 	}
 
 	/**

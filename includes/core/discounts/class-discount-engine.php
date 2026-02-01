@@ -103,7 +103,12 @@ class WSSCD_Discount_Engine {
 		$this->register_strategy( new WSSCD_Percentage_Strategy() );
 		$this->register_strategy( new WSSCD_Fixed_Strategy() );
 
-		// Pro-only discount strategies (only register if available)
+		// Pro-only discount strategies require valid license
+		// This ensures Pro discounts stop working when license expires
+		if ( ! $this->has_pro_license() ) {
+			return;
+		}
+
 		if ( class_exists( 'WSSCD_Tiered_Strategy' ) ) {
 			$this->register_strategy( new WSSCD_Tiered_Strategy() );
 		}
@@ -113,6 +118,22 @@ class WSSCD_Discount_Engine {
 		if ( class_exists( 'WSSCD_Spend_Threshold_Strategy' ) ) {
 			$this->register_strategy( new WSSCD_Spend_Threshold_Strategy() );
 		}
+	}
+
+	/**
+	 * Check if user has valid Pro license.
+	 *
+	 * @since    1.2.2
+	 * @access   private
+	 * @return   bool    True if user has Pro or trial license.
+	 */
+	private function has_pro_license(): bool {
+		// Check via Freemius SDK
+		if ( function_exists( 'wsscd_fs' ) && wsscd_fs() ) {
+			return wsscd_fs()->is_premium() || wsscd_fs()->is_trial();
+		}
+
+		return false;
 	}
 
 	/**

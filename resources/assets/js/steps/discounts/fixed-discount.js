@@ -141,30 +141,22 @@
 		 * Validate fixed discount configuration
 		 */
 		validate: function() {
-			console.group( '🔍 FIXED DISCOUNT - validate()' );
 			var errors = {};
 			var warnings = {};
 
 			// Get value from state (now always synchronized via input handler)
 			var value = this.state.getData ? parseFloat( this.state.getData( 'discountValueFixed' ) ) : 0;
 
-			console.log( 'State value:', value );
-			console.log( 'Field exists:', $( '#discount_value_fixed' ).length > 0 );
-			console.log( 'Field value from DOM:', $( '#discount_value_fixed' ).val() );
-
 			if ( isNaN( value ) || 0 >= value ) {
 				errors.discount_value_fixed = 'Please enter a valid amount';
-				console.warn( '❌ Validation failed: Invalid or missing fixed amount' );
 			}
 
 			var minOrder = this.state.getState ?
 				parseFloat( this.state.getData( 'minimumOrderAmount' ) ) : 0;
 			if ( !isNaN( minOrder ) && 0 < minOrder && value >= minOrder ) {
 				warnings.discount_value_fixed = 'Discount amount equals or exceeds minimum order amount';
-				console.log( '⚠️ Warning: Amount exceeds minimum order' );
 			} else if ( 1000 < value ) {
 				warnings.discount_value_fixed = 'Large discount amount. Please verify this is intended.';
-				console.log( '⚠️ Warning: Large discount amount' );
 			}
 
 			var result = {
@@ -173,8 +165,6 @@
 				warnings: warnings
 			};
 
-			console.log( 'Validation result:', result );
-			console.groupEnd();
 			return result;
 		},
 

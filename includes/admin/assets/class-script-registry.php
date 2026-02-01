@@ -1112,6 +1112,7 @@ class WSSCD_Script_Registry {
 			'wsscd-discounts-integration'   => 'discounts-integration.js',
 			'wsscd-discounts-orchestrator'  => 'discounts-orchestrator.js',
 			'wsscd-free-shipping'           => 'free-shipping.js',
+			'wsscd-user-roles'              => 'user-roles.js',
 		);
 
 		$this->register_step_module_group( 'discounts', $modules );

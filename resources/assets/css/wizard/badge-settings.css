@@ -260,84 +260,6 @@
 }
 
 /* ========================================================================
-   Display Location Options
-   ======================================================================== */
-
-.wsscd-badge-location-options {
-	display: flex;
-	flex-direction: column;
-	gap: var(--wsscd-gap-normal);
-}
-
-.wsscd-location-option {
-	position: relative;
-	cursor: pointer;
-}
-
-.wsscd-location-option input[type="radio"] {
-	position: absolute;
-	opacity: 0;
-	width: 0;
-	height: 0;
-}
-
-.wsscd-location-card {
-	display: flex;
-	flex-direction: column;
-	gap: var(--wsscd-gap-tight);
-	padding: var(--wsscd-padding-large);
-	background: var(--wsscd-color-surface);
-	border: 2px solid var(--wsscd-color-border-light);
-	border-radius: var(--wsscd-radius-lg);
-	transition: all var(--wsscd-transition-base) ease;
-}
-
-.wsscd-location-card:hover {
-	border-color: var(--wsscd-color-accent-light);
-	background: var(--wsscd-color-white);
-}
-
-.wsscd-location-option input[type="radio"]:checked + .wsscd-location-card {
-	border-color: var(--wsscd-color-accent);
-	background: var(--wsscd-color-accent-lighter);
-}
-
-.wsscd-location-option input[type="radio"]:checked + .wsscd-location-card .wsscd-icon {
-	color: var(--wsscd-color-accent);
-}
-
-.wsscd-location-option input[type="radio"]:checked + .wsscd-location-card strong {
-	color: var(--wsscd-color-accent);
-}
-
-.wsscd-location-card .wsscd-icon {
-	font-size: var(--wsscd-font-size-xxl);
-	width: var(--wsscd-icon-medium);
-	height: var(--wsscd-icon-medium);
-	color: var(--wsscd-color-text-secondary);
-	transition: color var(--wsscd-transition-base) ease;
-}
-
-.wsscd-location-card strong {
-	font-size: var(--wsscd-font-size-medium);
-	font-weight: var(--wsscd-font-weight-semibold);
-	color: var(--wsscd-color-text);
-	transition: color var(--wsscd-transition-base) ease;
-}
-
-.wsscd-location-card small {
-	font-size: var(--wsscd-font-size-small);
-	color: var(--wsscd-color-text-muted);
-	line-height: 1.4;
-}
-
-/* Focus state for accessibility */
-.wsscd-location-option:focus-within .wsscd-location-card {
-	outline: 2px solid var(--wsscd-color-accent);
-	outline-offset: 2px;
-}
-
-/* ========================================================================
    Colors Grid
    ======================================================================== */
 
@@ -539,8 +461,7 @@
 	.wsscd-badge-preview-badge,
 	.wsscd-position-box,
 	.wsscd-position-visual,
-	.wsscd-position-indicator,
-	.wsscd-location-card {
+	.wsscd-position-indicator {
 		animation: none;
 		transition: none;
 	}

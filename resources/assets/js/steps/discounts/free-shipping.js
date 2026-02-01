@@ -221,7 +221,7 @@
 		},
 
 		/**
-		 * Render shipping methods as checkboxes
+		 * Render shipping methods as checkboxes (chip-style matching user roles)
 		 */
 		renderShippingMethods: function() {
 			var self = this;
@@ -239,15 +239,18 @@
 				return;
 			}
 
+			// Add wrapper with same class as user roles for consistent styling
+			$container.addClass( 'wsscd-user-roles-checkboxes' );
+
 			$.each( this.shippingMethods, function( index, method ) {
 				var isChecked = -1 !== $.inArray( method.id, selectedMethods );
 				var $checkbox = $(
-					'<label class="wsscd-shipping-method-item">' +
+					'<label class="wsscd-role-checkbox">' +
 					'<input type="checkbox" ' +
 					'name="shipping_method_' + index + '" ' +
 					'value="' + self.escapeAttr( method.id ) + '" ' +
 					( isChecked ? 'checked' : '' ) + '>' +
-					'<span class="wsscd-shipping-method-label">' +
+					'<span class="wsscd-role-label">' +
 					self.escapeHtml( method.title ) +
 					'</span>' +
 					'</label>'

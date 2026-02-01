@@ -697,13 +697,9 @@
 				return;
 			}
 
-			console.log( '[CategorySelect] API call: searchCategories', { search: query } );
-
 			this.api.searchCategories( { search: query } )
 				.done( function( response ) {
-					console.log( '[CategorySelect] API response:', response );
 					var categories = self.extractCategories( response );
-					console.log( '[CategorySelect] Extracted categories:', categories.length, categories );
 
 					categories.forEach( function( cat ) {
 						self.cache.categories.set( cat.value, cat );
@@ -718,7 +714,6 @@
 						$order: 0
 					} ].concat( categories );
 
-					console.log( '[CategorySelect] Final options:', options.length, options );
 					callback( options );
 				} )
 				.fail( function( jqXHR, textStatus ) {

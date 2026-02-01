@@ -151,27 +151,18 @@
 		 * Validate percentage discount configuration
 		 */
 		validate: function() {
-			console.group( '🔍 PERCENTAGE DISCOUNT - validate()' );
 			var errors = {};
 			var warnings = {};
 
 			// Get value from state (now always synchronized via input handler)
 			var value = this.state.getData ? parseFloat( this.state.getData( 'discountValuePercentage' ) ) : 0;
 
-			console.log( 'State value:', value );
-			console.log( 'Field exists:', $( '#discount_value_percentage' ).length > 0 );
-			console.log( 'Field value from DOM:', $( '#discount_value_percentage' ).val() );
-			console.log( 'Full state:', this.state.getState ? this.state.getState() : 'no state' );
-
 			if ( isNaN( value ) || 0 >= value ) {
 				errors.discount_value_percentage = 'Please enter a valid percentage';
-				console.warn( '❌ Validation failed: Invalid or missing percentage value' );
 			} else if ( 100 < value ) {
 				errors.discount_value_percentage = 'Percentage cannot exceed 100%';
-				console.warn( '❌ Validation failed: Percentage exceeds 100%' );
 			} else if ( 50 < value ) {
 				warnings.discount_value_percentage = 'Large discount percentage. Please verify this is intended.';
-				console.log( '⚠️ Warning: Large percentage value' );
 			}
 
 			var result = {
@@ -180,8 +171,6 @@
 				warnings: warnings
 			};
 
-			console.log( 'Validation result:', result );
-			console.groupEnd();
 			return result;
 		},
 

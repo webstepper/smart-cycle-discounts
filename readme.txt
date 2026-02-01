@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: dynamic pricing, discount rules, flash sale, bulk discount, free shipping
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.2.2
+Stable tag: 1.3.0
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -412,6 +412,19 @@ Pro users can configure combination policies for each campaign. Choose whether y
 
 == Changelog ==
 
+= 1.3.0 =
+* New: User role targeting - restrict discounts to specific WordPress user roles
+* New: Include/exclude mode for role-based targeting (e.g., "wholesalers only" or "exclude subscribers")
+* New: Chip-style role selector UI in discounts step matching existing schedule day picker pattern
+* New: User roles displayed in campaign overview panel and review step summary
+* New: Contextual sidebar help for user role targeting with use cases and setup tips
+* New: Contextual sidebar help for free shipping configuration
+* New: Shipping truck icon added to icon library
+* New: Optional badge added to Free Shipping card for clarity
+* Improvement: Modern chip/pill design with animated checkmark, gradient background, and smooth hover effects
+* Improvement: Free shipping UI now uses chip-style pattern matching user roles (mode selector and method checkboxes)
+* Improvement: Role eligibility filtering runs per-request (post-cache) to support user-specific targeting
+
 = 1.2.2 =
 * Fix: Plugin name updated for WordPress.org trademark compliance
 * Security: Added input sanitization to admin notice display logic
@@ -524,6 +537,9 @@ Pro users can configure combination policies for each campaign. Choose whether y
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.3.0 =
+New user role targeting feature - restrict discounts to specific user roles like wholesalers, subscribers, or custom roles. Perfect for B2B pricing and member-only promotions.
 
 = 1.2.2 =
 Security hardening and WordPress.org compliance update. Plugin name corrected for trademark guidelines.

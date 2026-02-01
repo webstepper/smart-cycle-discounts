@@ -623,18 +623,12 @@
 		 * Validate tiered configuration
 		 */
 		validate: function() {
-			console.group( '🔍 TIERED DISCOUNT - validate()' );
 			var errors = {};
 			var warnings = {};
 
 			var fullState = this.state.getState();
 			var tierMode = fullState.tierMode || 'percentage';
 			var tiers = 'percentage' === tierMode ? this._percentageTiers : this._fixedTiers;
-
-			console.log( 'Tier mode:', tierMode );
-			console.log( 'Tiers:', tiers );
-			console.log( 'Field #tiers exists:', $( '#tiers' ).length > 0 );
-			console.log( 'Field #tiers value:', $( '#tiers' ).val() );
 
 			if ( 0 === tiers.length ) {
 				errors.tiers = 'At least one tier is required';
@@ -683,8 +677,6 @@
 				warnings: warnings
 			};
 
-			console.log( 'Validation result:', result );
-			console.groupEnd();
 			return result;
 		},
 

@@ -347,6 +347,29 @@ class WSSCD_Campaign {
 	private array $free_shipping_config = array();
 
 	/**
+	 * User roles for targeting.
+	 *
+	 * Array of WordPress role slugs (e.g., ['wholesaler', 'subscriber']).
+	 *
+	 * @since    1.3.0
+	 * @var      array    $user_roles    User role slugs.
+	 */
+	private array $user_roles = array();
+
+	/**
+	 * User roles mode.
+	 *
+	 * Determines how user_roles are applied:
+	 * - 'all': No restriction, all users eligible
+	 * - 'include': Only users with specified roles are eligible
+	 * - 'exclude': Users with specified roles are NOT eligible
+	 *
+	 * @since    1.3.0
+	 * @var      string    $user_roles_mode    Role targeting mode.
+	 */
+	private string $user_roles_mode = 'all';
+
+	/**
 	 * Badge enabled flag.
 	 *
 	 * @since    1.0.0
@@ -916,6 +939,79 @@ class WSSCD_Campaign {
 	}
 
 	/**
+	 * Get user roles for targeting.
+	 *
+	 * @since    1.3.0
+	 * @return   array    Array of role slugs.
+	 */
+	public function get_user_roles(): array {
+		return $this->user_roles;
+	}
+
+	/**
+	 * Set user roles for targeting.
+	 *
+	 * @since    1.3.0
+	 * @param    array $roles    Array of role slugs.
+	 * @return   self
+	 */
+	public function set_user_roles( array $roles ): self {
+		$this->user_roles = array_map( 'sanitize_key', array_filter( $roles ) );
+		return $this;
+	}
+
+	/**
+	 * Get user roles mode.
+	 *
+	 * @since    1.3.0
+	 * @return   string    Mode: 'all', 'include', or 'exclude'.
+	 */
+	public function get_user_roles_mode(): string {
+		return $this->user_roles_mode;
+	}
+
+	/**
+	 * Set user roles mode.
+	 *
+	 * @since    1.3.0
+	 * @param    string $mode    Mode: 'all', 'include', 'exclude'.
+	 * @return   self
+	 */
+	public function set_user_roles_mode( string $mode ): self {
+		$valid_modes = array( 'all', 'include', 'exclude' );
+		$this->user_roles_mode = in_array( $mode, $valid_modes, true ) ? $mode : 'all';
+		return $this;
+	}
+
+	/**
+	 * Check if current user is eligible based on role restrictions.
+	 *
+	 * @since    1.3.0
+	 * @return   bool    True if current user is eligible.
+	 */
+	public function is_user_eligible(): bool {
+		// Load role helper if needed.
+		if ( ! class_exists( 'WSSCD_Role_Helper' ) ) {
+			require_once WSSCD_INCLUDES_DIR . 'utilities/class-role-helper.php';
+		}
+
+		$is_eligible = WSSCD_Role_Helper::is_current_user_eligible(
+			$this->user_roles_mode,
+			$this->user_roles
+		);
+
+		/**
+		 * Filter user eligibility for campaign.
+		 *
+		 * @since 1.3.0
+		 * @param bool           $is_eligible Whether user is eligible.
+		 * @param WSSCD_Campaign $campaign    The campaign instance.
+		 * @param WP_User        $user        Current user.
+		 */
+		return apply_filters( 'wsscd_user_eligible_for_campaign', $is_eligible, $this, wp_get_current_user() );
+	}
+
+	/**
 	 * Check if badge is enabled.
 	 *
 	 * @since    1.0.0
@@ -1118,6 +1214,8 @@ class WSSCD_Campaign {
 			'discount_value'         => $this->discount_value,
 			'discount_rules'         => $this->discount_rules,
 			'free_shipping_config'   => $this->free_shipping_config,
+			'user_roles'             => $this->user_roles,
+			'user_roles_mode'        => $this->user_roles_mode,
 			'created_at'             => $this->created_at->format( 'Y-m-d H:i:s' ),
 			'updated_at'             => $this->updated_at->format( 'Y-m-d H:i:s' ),
 			'version'                => $this->version,

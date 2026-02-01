@@ -16,6 +16,8 @@ directories and files needed for production. Any file not explicitly
 listed here will NOT be in the build.
 
 Usage: python3 build.py
+
+Output: Creates ZIP file in parent directory (../smart-cycle-discounts-X.X.X.zip)
 """
 
 import os
@@ -31,6 +33,32 @@ PLUGIN_SLUG = 'smart-cycle-discounts'
 # ---------------------------------------------------------------------------
 # Only these directories and root files will be in the build.
 # Everything else is automatically excluded.
+#
+# DIRECTORIES THAT EXIST BUT ARE EXCLUDED (dev/build only):
+# - .git/                 Version control
+# - .github/              GitHub Actions workflows
+# - .claude/              Claude Code settings
+# - .wordpress-org/       SVN assets for WordPress.org (banners, icons)
+# - assets/               Old/empty asset structure (placeholder index.php only)
+# - banner-export/        Banner export tool
+# - bin/                  Development scripts
+# - frames/               Animation frames (temp files)
+# - resources/assets/scss/ SCSS source files (not compiled CSS)
+# - tests/                PHPUnit tests
+# - vendor/               Dev dependencies (except freemius/)
+# - Webstepper.io/        Website content
+#
+# ROOT FILES THAT ARE EXCLUDED (dev/docs only):
+# - *.md (ARCHITECTURE.md, CLAUDE.md, etc.)
+# - *.py (build.py, prefix-migration.py)
+# - *.sh (deploy-to-wporg.sh)
+# - *.json (composer.json, package.json, elementor-*.json)
+# - *.xml (phpunit*.xml)
+# - *.phar (composer.phar)
+# - *.png, *.gif, *.svg, *.html (dev assets at root)
+# - *.po at root (translation files should be in languages/)
+# - .gitignore
+# ---------------------------------------------------------------------------
 
 # Root-level files to include
 INCLUDE_ROOT_FILES = [
@@ -42,9 +70,9 @@ INCLUDE_ROOT_FILES = [
 
 # Directories to include recursively (all contents included)
 INCLUDE_DIRS = [
-    'includes',                   # PHP classes and logic
+    'includes',                   # PHP classes and logic (~308 files)
     'resources/assets/css',       # Compiled stylesheets
-    'resources/assets/js',        # JavaScript files
+    'resources/assets/js',        # JavaScript files (~102 files)
     'resources/assets/vendor',    # Bundled libs (Chart.js, Tom Select)
     'resources/assets/images',    # Plugin images
     'resources/views',            # PHP view templates
@@ -53,9 +81,19 @@ INCLUDE_DIRS = [
     'vendor/freemius',            # Freemius SDK (loaded via vendor/freemius/start.php)
 ]
 
-# Files to skip within included directories (minimal exclusions)
+# Files to skip within included directories
+# These patterns catch dev files that might accidentally end up in production dirs
 EXCLUDE_FILES_WITHIN = [
-    '*.sh',   # Dev shell scripts (e.g., verify-naming-conventions.sh)
+    '*.sh',       # Shell scripts
+    '*.md',       # Markdown documentation
+    '*.map',      # Source maps
+    '*.scss',     # SCSS source files
+    '*.sass',     # SASS source files
+    '*.ts',       # TypeScript source files
+    '*.log',      # Log files
+    '.gitkeep',   # Git placeholder files
+    '.DS_Store',  # macOS metadata
+    'Thumbs.db',  # Windows metadata
 ]
 
 
@@ -136,6 +174,60 @@ def format_size(size_bytes):
     return f"{size_bytes:.2f} TB"
 
 
+def get_excluded_directories(source_dir):
+    """
+    Find directories that exist but are not included in the build.
+    Returns a list of excluded directory names for transparency.
+    """
+    excluded = []
+
+    # Get all top-level directories
+    for item in os.listdir(source_dir):
+        item_path = os.path.join(source_dir, item)
+        if not os.path.isdir(item_path):
+            continue
+
+        # Skip hidden directories
+        if item.startswith('.'):
+            excluded.append(f".{item[1:]}/")
+            continue
+
+        # Check if this directory (or any subdirectory) is in INCLUDE_DIRS
+        is_included = False
+        for inc_dir in INCLUDE_DIRS:
+            if inc_dir == item or inc_dir.startswith(f"{item}/"):
+                is_included = True
+                break
+
+        if not is_included:
+            excluded.append(f"{item}/")
+
+    return sorted(excluded)
+
+
+def get_excluded_root_files(source_dir):
+    """
+    Find root-level files that exist but are not included in the build.
+    Returns a list of excluded file names for transparency.
+    """
+    excluded = []
+
+    for item in os.listdir(source_dir):
+        item_path = os.path.join(source_dir, item)
+        if not os.path.isfile(item_path):
+            continue
+
+        # Skip hidden files
+        if item.startswith('.'):
+            excluded.append(item)
+            continue
+
+        if item not in INCLUDE_ROOT_FILES:
+            excluded.append(item)
+
+    return sorted(excluded)
+
+
 def main():
     """Main build process."""
     print("=" * 60)
@@ -157,15 +249,37 @@ def main():
     print(f"Output directory: {dist_dir}")
     print()
 
+    # Show what will be excluded (for transparency)
+    print("Directories EXCLUDED from build:")
+    excluded_dirs = get_excluded_directories('.')
+    for d in excluded_dirs:
+        print(f"  - {d}")
+    print()
+
+    print("Root files EXCLUDED from build:")
+    excluded_files = get_excluded_root_files('.')
+    # Group by extension for cleaner output
+    if len(excluded_files) > 10:
+        by_ext = {}
+        for f in excluded_files:
+            ext = os.path.splitext(f)[1] or '(no ext)'
+            by_ext.setdefault(ext, []).append(f)
+        for ext, files in sorted(by_ext.items()):
+            print(f"  - {ext}: {len(files)} files")
+    else:
+        for f in excluded_files:
+            print(f"  - {f}")
+    print()
+
     # Create ZIP file
     zip_filename = f'{PLUGIN_SLUG}-{version}.zip'
     zip_path = os.path.join(dist_dir, zip_filename)
 
     print(f"Creating ZIP archive: {zip_filename}")
     zip_size, included, skipped = create_zip('.', zip_path, PLUGIN_SLUG)
-    print(f"  Included: {included} files")
-    print(f"  Skipped:  {skipped} files")
-    print(f"  Size:     {format_size(zip_size)}")
+    print(f"  Included:  {included} files")
+    print(f"  Skipped:   {skipped} files (matched exclusion patterns)")
+    print(f"  Size:      {format_size(zip_size)}")
     print()
 
     # Success message

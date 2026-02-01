@@ -279,10 +279,7 @@
 				self.handleFreeShippingMethodTypeChange();
 			} );
 
-			// Free shipping specific method checkboxes
-			this.bindDelegatedEvent( document, '.wsscd-shipping-method-checkbox', 'change', function() {
-				self.updateFreeShippingMethods();
-			} );
+			// Note: Free shipping method checkboxes are now handled by FreeShipping module
 
 			// Collapsible sections
 			this.bindDelegatedEvent( document, '.wsscd-collapsible-trigger', 'click', function( e ) {
@@ -734,57 +731,39 @@
 		},
 
 		/**
-		 * Render shipping methods checkboxes
-		 * Kept for backwards compatibility but delegates to FreeShipping module
-		 * @param {Array} methods - Array of shipping method objects
-		 */
-		renderShippingMethodsCheckboxes: function( methods ) {
-			// Delegate to FreeShipping module if available
-			if ( window.WSSCD && WSSCD.Modules && WSSCD.Modules.Discounts && WSSCD.Modules.Discounts.FreeShipping ) {
-				var freeShippingModule = WSSCD.Modules.Discounts.FreeShipping;
-				freeShippingModule.shippingMethods = methods;
-				freeShippingModule.renderShippingMethods();
-				return;
-			}
-		},
-
-		/**
-		 * Update free shipping methods from checkboxes
-		 */
-		updateFreeShippingMethods: function() {
-			var selectedMethods = [];
-
-			$( '.wsscd-shipping-method-checkbox:checked' ).each( function() {
-				selectedMethods.push( $( this ).val() );
-			} );
-
-			// Update hidden input
-			$( '#free_shipping_methods' ).val( JSON.stringify( selectedMethods ) );
-
-			// Update state
-			this.updateFreeShippingState();
-		},
-
-		/**
 		 * Update free shipping state from UI
+		 * Delegates to FreeShipping module if available
 		 */
 		updateFreeShippingState: function() {
-			var isEnabled = $( '#free_shipping_enabled' ).is( ':checked' );
-			var methodType = $( 'input[name="free_shipping_method_type"]:checked' ).val() || 'all';
-			var methods = 'all';
+			var config;
 
-			if ( 'selected' === methodType ) {
-				var selectedMethods = [];
-				$( '.wsscd-shipping-method-checkbox:checked' ).each( function() {
-					selectedMethods.push( $( this ).val() );
-				} );
-				methods = selectedMethods;
+			// Prefer FreeShipping module's data (single source of truth)
+			if ( window.WSSCD && WSSCD.Modules && WSSCD.Modules.Discounts && WSSCD.Modules.Discounts.FreeShipping ) {
+				config = WSSCD.Modules.Discounts.FreeShipping.getData();
+			} else {
+				// Fallback: read directly from DOM
+				var isEnabled = $( '#free_shipping_enabled' ).is( ':checked' );
+				var methodType = $( 'input[name="free_shipping_method_type"]:checked' ).val() || 'all';
+				var methods = 'all';
+
+				if ( 'selected' === methodType ) {
+					var hiddenValue = $( '#free_shipping_methods' ).val();
+					if ( hiddenValue && 'all' !== hiddenValue ) {
+						try {
+							methods = JSON.parse( hiddenValue );
+						} catch ( e ) {
+							methods = [];
+						}
+					} else {
+						methods = [];
+					}
+				}
+
+				config = {
+					enabled: isEnabled,
+					methods: methods
+				};
 			}
-
-			var config = {
-				enabled: isEnabled,
-				methods: methods
-			};
 
 			// Update hidden input
 			$( '#free_shipping_methods' ).val( 'all' === methods ? 'all' : JSON.stringify( methods ) );

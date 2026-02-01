@@ -435,48 +435,35 @@
 		 * Validate BOGO configuration
 		 */
 		validate: function() {
-			console.group( '🔍 BOGO DISCOUNT - validate()' );
 			var errors = {};
 			var warnings = {};
 
 			var config = this.state.getData( 'bogoConfig' ) || {};
 			var rules = config.rules || [];
 
-			console.log( 'BOGO Config:', config );
-			console.log( 'Rules:', rules );
-			console.log( 'Field #bogo_buy_quantity exists:', $( '#bogo_buy_quantity' ).length > 0 );
-			console.log( 'Field #bogo_buy_quantity value:', $( '#bogo_buy_quantity' ).val() );
-
 			if ( 0 === rules.length ) {
 				errors.bogo_buy_quantity = 'BOGO configuration is required';
-				console.warn( '❌ No BOGO rules configured' );
 			} else {
 				var rule = rules[0];
-				console.log( 'Validating rule:', rule );
 
 				if ( !rule.buyQuantity || 0 >= rule.buyQuantity ) {
 					errors.bogo_buy_quantity = 'Buy quantity must be at least 1';
-					console.warn( '❌ Invalid buy quantity:', rule.buyQuantity );
 				}
 
 				if ( !rule.getQuantity || 0 >= rule.getQuantity ) {
 					errors.bogo_get_quantity = 'Get quantity must be at least 1';
-					console.warn( '❌ Invalid get quantity:', rule.getQuantity );
 				}
 
 				if ( undefined === rule.discountPercent || 0 > rule.discountPercent || 100 < rule.discountPercent ) {
 					errors.bogo_discount_percentage = 'Discount must be between 0-100%';
-					console.warn( '❌ Invalid discount percent:', rule.discountPercent );
 				}
 
 				if ( 'different' === rule.applyTo && ( !rule.getProducts || 0 === rule.getProducts.length ) ) {
 					errors.bogo_get_products = 'Select products for free items';
-					console.warn( '❌ No products selected for "different" apply mode' );
 				}
 
 				if ( rule.getQuantity > rule.buyQuantity ) {
 					warnings.bogo_get_quantity = 'Getting more items than buying is unusual';
-					console.log( '⚠️ Warning: Get quantity exceeds buy quantity' );
 				}
 			}
 
@@ -486,8 +473,6 @@
 				warnings: warnings
 			};
 
-			console.log( 'Validation result:', result );
-			console.groupEnd();
 			return result;
 		},
 
