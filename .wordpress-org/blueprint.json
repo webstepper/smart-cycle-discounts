@@ -5,6 +5,9 @@
 		"php": "8.0",
 		"wp": "latest"
 	},
+	"phpExtensionBundles": [
+		"kitchen-sink"
+	],
 	"features": {
 		"networking": true
 	},
@@ -22,26 +25,6 @@
 				"resource": "wordpress.org/plugins",
 				"slug": "smart-cycle-discounts"
 			}
-		},
-		{
-			"step": "runPHP",
-			"code": "<?php require_once '/wordpress/wp-load.php'; update_option( 'woocommerce_store_address', '123 Demo Street' ); update_option( 'woocommerce_store_city', 'San Francisco' ); update_option( 'woocommerce_default_country', 'US:CA' ); update_option( 'woocommerce_store_postcode', '94103' ); update_option( 'woocommerce_currency', 'USD' ); update_option( 'woocommerce_price_thousand_sep', ',' ); update_option( 'woocommerce_price_decimal_sep', '.' ); update_option( 'woocommerce_price_num_decimals', '2' ); update_option( 'woocommerce_calc_taxes', 'no' ); update_option( 'woocommerce_onboarding_profile', array( 'completed' => true ) ); update_option( 'woocommerce_task_list_hidden', 'yes' ); update_option( 'woocommerce_task_list_complete', 'yes' ); update_option( 'woocommerce_show_marketplace_suggestions', 'no' ); delete_transient( 'woocommerce_installing' ); update_option( 'permalink_structure', '/%postname%/' ); flush_rewrite_rules(); ?>"
-		},
-		{
-			"step": "runPHP",
-			"code": "<?php require_once '/wordpress/wp-load.php'; $categories = array( array( 'name' => 'Clothing', 'slug' => 'clothing' ), array( 'name' => 'Electronics', 'slug' => 'electronics' ), array( 'name' => 'Accessories', 'slug' => 'accessories' ), array( 'name' => 'Home & Garden', 'slug' => 'home-garden' ) ); foreach ( $categories as $cat ) { if ( ! term_exists( $cat['slug'], 'product_cat' ) ) { wp_insert_term( $cat['name'], 'product_cat', array( 'slug' => $cat['slug'] ) ); } } ?>"
-		},
-		{
-			"step": "runPHP",
-			"code": "<?php require_once '/wordpress/wp-load.php'; $products = array( array( 'name' => 'Classic T-Shirt', 'price' => '29.99', 'category' => 'clothing', 'sku' => 'TSHIRT-001' ), array( 'name' => 'Denim Jeans', 'price' => '79.99', 'category' => 'clothing', 'sku' => 'JEANS-001' ), array( 'name' => 'Summer Dress', 'price' => '59.99', 'category' => 'clothing', 'sku' => 'DRESS-001' ), array( 'name' => 'Wool Sweater', 'price' => '89.99', 'category' => 'clothing', 'sku' => 'SWEATER-001' ), array( 'name' => 'Wireless Headphones', 'price' => '149.99', 'category' => 'electronics', 'sku' => 'HEADPH-001' ), array( 'name' => 'Smartphone Case', 'price' => '24.99', 'category' => 'electronics', 'sku' => 'CASE-001' ), array( 'name' => 'USB-C Charger', 'price' => '34.99', 'category' => 'electronics', 'sku' => 'CHARGER-001' ), array( 'name' => 'Bluetooth Speaker', 'price' => '79.99', 'category' => 'electronics', 'sku' => 'SPEAKER-001' ), array( 'name' => 'Leather Wallet', 'price' => '49.99', 'category' => 'accessories', 'sku' => 'WALLET-001' ), array( 'name' => 'Sunglasses', 'price' => '89.99', 'category' => 'accessories', 'sku' => 'SUNGLASS-001' ), array( 'name' => 'Watch Band', 'price' => '19.99', 'category' => 'accessories', 'sku' => 'WATCHBAND-001' ), array( 'name' => 'Ceramic Vase', 'price' => '44.99', 'category' => 'home-garden', 'sku' => 'VASE-001' ), array( 'name' => 'Throw Pillow', 'price' => '29.99', 'category' => 'home-garden', 'sku' => 'PILLOW-001' ), array( 'name' => 'Plant Pot Set', 'price' => '39.99', 'category' => 'home-garden', 'sku' => 'PLANTPOT-001' ) ); foreach ( $products as $prod ) { $existing = get_posts( array( 'post_type' => 'product', 'meta_key' => '_sku', 'meta_value' => $prod['sku'], 'posts_per_page' => 1 ) ); if ( ! empty( $existing ) ) { continue; } $product = new WC_Product_Simple(); $product->set_name( $prod['name'] ); $product->set_regular_price( $prod['price'] ); $product->set_sku( $prod['sku'] ); $product->set_stock_status( 'instock' ); $product->set_manage_stock( false ); $product->set_status( 'publish' ); $product_id = $product->save(); $term = get_term_by( 'slug', $prod['category'], 'product_cat' ); if ( $term ) { wp_set_object_terms( $product_id, $term->term_id, 'product_cat' ); } } ?>"
-		},
-		{
-			"step": "runPHP",
-			"code": "<?php require_once '/wordpress/wp-load.php'; global $wpdb; $clothing_term = get_term_by( 'slug', 'clothing', 'product_cat' ); $clothing_id = $clothing_term ? $clothing_term->term_id : 0; $table_name = $wpdb->prefix . 'wsscd_campaigns'; $existing = $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM ' . $table_name . ' WHERE slug = %s', 'demo-clothing-sale' ) ); if ( ! $existing ) { $now = current_time( 'mysql' ); $starts = $now; $ends = date( 'Y-m-d H:i:s', strtotime( '+30 days' ) ); $uuid = wp_generate_uuid4(); $wpdb->insert( $table_name, array( 'uuid' => $uuid, 'name' => '20% Off All Clothing', 'slug' => 'demo-clothing-sale', 'description' => 'Demo campaign: Get 20% off all items in the Clothing category. This is an example of a category-wide percentage discount created by Smart Cycle Discounts.', 'status' => 'active', 'priority' => 3, 'product_selection_type' => 'all_products', 'category_ids' => json_encode( array( $clothing_id ) ), 'discount_type' => 'percentage', 'discount_value' => 20.0000, 'discount_rules' => json_encode( array( 'discount_type' => 'percentage', 'discount_value' => 20 ) ), 'starts_at' => $starts, 'ends_at' => $ends, 'timezone' => 'UTC', 'created_by' => 1, 'created_at' => $now, 'updated_at' => $now, 'color_theme' => '#2271b1', 'icon' => 'tag' ), array( '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s' ) ); } ?>"
-		},
-		{
-			"step": "runPHP",
-			"code": "<?php require_once '/wordpress/wp-load.php'; delete_transient( 'woocommerce_admin_notice_ask_review_due' ); update_option( 'woocommerce_admin_notices', array() ); update_option( 'woocommerce_no_sales_tax', array( 'hide' => true ) ); remove_action( 'admin_notices', 'update_nag', 3 ); ?>"
 		},
 		{
 			"step": "login",
