@@ -74,6 +74,10 @@
 			"code": "<?php require '/wordpress/wp-load.php'; global $wpdb; $table = $wpdb->prefix . 'wsscd_campaigns'; $now = current_time('mysql'); $wpdb->insert($table, array('uuid' => wp_generate_uuid4(), 'name' => '$5 Off Accessories', 'slug' => 'accessories-fixed', 'description' => 'Fixed discount: $5 off all accessories!', 'status' => 'active', 'priority' => 3, 'product_selection_type' => 'all_products', 'category_ids' => json_encode(array(get_term_by('slug', 'accessories', 'product_cat')->term_id)), 'discount_type' => 'fixed', 'discount_value' => 5.0000, 'discount_rules' => json_encode(array('discount_type' => 'fixed', 'discount_value' => 5)), 'starts_at' => $now, 'ends_at' => date('Y-m-d H:i:s', strtotime('+1 year')), 'timezone' => 'UTC', 'created_by' => 1, 'created_at' => $now, 'updated_at' => $now, 'color_theme' => '#00a32a', 'icon' => 'money-alt')); ?>"
 		},
 		{
+			"step": "runPHP",
+			"code": "<?php require '/wordpress/wp-load.php'; global $wpdb; $table = $wpdb->prefix . 'wsscd_campaigns'; $now = current_time('mysql'); $wpdb->insert($table, array('uuid' => wp_generate_uuid4(), 'name' => 'Summer Flash Sale - 30% Off!', 'slug' => 'summer-flash-sale', 'description' => 'Coming soon! 30% off all Home & Garden products for a limited time.', 'status' => 'scheduled', 'priority' => 1, 'product_selection_type' => 'all_products', 'category_ids' => json_encode(array(get_term_by('slug', 'home-garden', 'product_cat')->term_id)), 'discount_type' => 'percentage', 'discount_value' => 30.0000, 'discount_rules' => json_encode(array('discount_type' => 'percentage', 'discount_value' => 30)), 'starts_at' => date('Y-m-d H:i:s', strtotime('+7 days')), 'ends_at' => date('Y-m-d H:i:s', strtotime('+14 days')), 'timezone' => 'UTC', 'created_by' => 1, 'created_at' => $now, 'updated_at' => $now, 'color_theme' => '#f0b849', 'icon' => 'calendar')); ?>"
+		},
+		{
 			"step": "login",
 			"username": "admin",
 			"password": "password"
