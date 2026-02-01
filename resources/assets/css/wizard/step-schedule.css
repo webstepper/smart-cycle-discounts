@@ -1095,6 +1095,175 @@
     margin-top: 24px;
 }
 
+/* ==========================================================================
+   Recurrence Mode Selection
+   ========================================================================== */
+
+.wsscd-recurrence-mode-options {
+    margin-top: 16px;
+    margin-bottom: 20px;
+}
+
+.wsscd-recurrence-mode-options .wsscd-form-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.wsscd-recurrence-mode-options .wsscd-form-section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: var(--wsscd-font-size-base);
+    font-weight: var(--wsscd-font-weight-semibold);
+    color: var(--wsscd-color-text);
+}
+
+.wsscd-recurrence-mode-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--wsscd-gap-comfortable);
+}
+
+/* Recurrence mode card */
+.wsscd-recurrence-mode-card {
+    position: relative;
+    border: var(--wsscd-border-width) solid var(--wsscd-color-border);
+    border-radius: var(--wsscd-radius-md);
+    padding: var(--wsscd-padding-section);
+    cursor: pointer;
+    transition: border-color var(--wsscd-transition-fast) ease,
+                box-shadow var(--wsscd-transition-fast) ease;
+    overflow: hidden;
+}
+
+.wsscd-recurrence-mode-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: transparent;
+    transition: background var(--wsscd-transition-fast) ease;
+}
+
+.wsscd-recurrence-mode-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.wsscd-recurrence-mode-card:hover {
+    border-color: var(--wsscd-color-border-dark);
+}
+
+.wsscd-recurrence-mode-card:hover::before {
+    background: var(--wsscd-color-primary);
+}
+
+.wsscd-recurrence-mode-card.selected,
+.wsscd-recurrence-mode-card:has(input[type="radio"]:checked) {
+    border-color: var(--wsscd-color-primary);
+    border-width: var(--wsscd-border-width-thick);
+    background: var(--wsscd-color-primary-bg);
+}
+
+.wsscd-recurrence-mode-card.selected::before,
+.wsscd-recurrence-mode-card:has(input[type="radio"]:checked)::before {
+    background: var(--wsscd-color-primary);
+}
+
+.wsscd-recurrence-mode-card .wsscd-card__content {
+    padding: 0;
+}
+
+.wsscd-recurrence-mode-card .wsscd-card__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.wsscd-recurrence-mode-card .wsscd-card__header h5 {
+    margin: 0;
+    font-size: var(--wsscd-font-size-large);
+    font-weight: var(--wsscd-font-weight-semibold);
+    color: var(--wsscd-color-text);
+}
+
+.wsscd-recurrence-mode-card .wsscd-mode-icon {
+    color: var(--wsscd-color-primary);
+}
+
+.wsscd-recurrence-mode-card .wsscd-card__content p {
+    margin: 0 0 12px 0;
+    font-size: var(--wsscd-font-size-small);
+    color: var(--wsscd-color-text-muted);
+    line-height: 1.5;
+}
+
+.wsscd-recurrence-mode-card .wsscd-card__example {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--wsscd-color-surface-alt);
+    border-radius: var(--wsscd-radius-sm);
+    font-size: 12px;
+    color: var(--wsscd-color-text-muted);
+    line-height: 1.4;
+}
+
+.wsscd-recurrence-mode-card .wsscd-card__example .wsscd-icon {
+    flex-shrink: 0;
+    color: var(--wsscd-color-warning);
+    margin-top: 1px;
+}
+
+/* Recommended badge */
+.wsscd-badge-recommended {
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: var(--wsscd-font-weight-medium);
+    color: var(--wsscd-color-success);
+    background: var(--wsscd-color-success-bg);
+    border-radius: var(--wsscd-radius-full);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Mode badges in preview */
+.wsscd-mode-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    margin-right: 4px;
+    font-size: 11px;
+    font-weight: var(--wsscd-font-weight-medium);
+    border-radius: var(--wsscd-radius-sm);
+    text-transform: uppercase;
+}
+
+.wsscd-mode-continuous {
+    color: var(--wsscd-color-success);
+    background: var(--wsscd-color-success-bg);
+}
+
+.wsscd-mode-instances {
+    color: var(--wsscd-color-info);
+    background: var(--wsscd-color-info-bg);
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .wsscd-recurrence-mode-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Recurring campaign warning notice */
 .wsscd-recurring-warning {
     display: flex;

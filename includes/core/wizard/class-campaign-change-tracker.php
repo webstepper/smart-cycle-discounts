@@ -69,6 +69,14 @@ class WSSCD_Campaign_Change_Tracker {
 	private $campaign_cache = null;
 
 	/**
+	 * Cached recurring settings.
+	 *
+	 * @since    1.0.0
+	 * @var      array|null
+	 */
+	private $recurring_settings_cache = null;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since    1.0.0
@@ -261,6 +269,35 @@ class WSSCD_Campaign_Change_Tracker {
 	}
 
 	/**
+	 * Load recurring settings from database (with caching).
+	 *
+	 * @since    1.0.0
+	 * @return   array    Recurring settings or empty array.
+	 */
+	private function load_recurring_settings() {
+		if ( null !== $this->recurring_settings_cache ) {
+			return $this->recurring_settings_cache;
+		}
+
+		// Try to get recurring handler from container
+		$recurring_handler = null;
+		if ( class_exists( 'Smart_Cycle_Discounts' ) ) {
+			$container         = Smart_Cycle_Discounts::get_instance();
+			$recurring_handler = $container::get_service( 'recurring_handler' );
+		}
+
+		if ( ! $recurring_handler || ! method_exists( $recurring_handler, 'get_recurring_settings' ) ) {
+			$this->recurring_settings_cache = array();
+			return $this->recurring_settings_cache;
+		}
+
+		$settings = $recurring_handler->get_recurring_settings( $this->campaign_id );
+
+		$this->recurring_settings_cache = is_array( $settings ) ? $settings : array();
+		return $this->recurring_settings_cache;
+	}
+
+	/**
 	 * Get value from database.
 	 *
 	 * @since    1.0.0
@@ -412,6 +449,10 @@ class WSSCD_Campaign_Change_Tracker {
 					$end_time = $end_split['time'] ?? '';
 				}
 
+				// Load recurring settings from recurring table for recurrence_mode
+				$recurring_settings = $this->load_recurring_settings();
+				$recurrence_mode    = $recurring_settings['recurrence_mode'] ?? 'continuous';
+
 				return array(
 					// Date/Time fields
 					'start_date'          => $start_split['date'] ?? '',
@@ -424,6 +465,7 @@ class WSSCD_Campaign_Change_Tracker {
 					'duration_seconds'    => $metadata['duration_seconds'] ?? 3600,
 					// Recurring fields
 					'enable_recurring'    => $metadata['enable_recurring'] ?? false,
+					'recurrence_mode'     => $recurrence_mode,
 					'recurrence_pattern'  => $metadata['recurrence_pattern'] ?? 'daily',
 					'recurrence_interval' => $metadata['recurrence_interval'] ?? 1,
 					'recurrence_days'     => $metadata['recurrence_days'] ?? array(),

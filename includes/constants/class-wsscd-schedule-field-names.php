@@ -36,6 +36,7 @@ class WSSCD_Schedule_Field_Names {
 	 * @since 1.0.0
 	 */
 	const ENABLE_RECURRING    = 'enable_recurring';
+	const RECURRENCE_MODE     = 'recurrence_mode';
 	const RECURRENCE_PATTERN  = 'recurrence_pattern';
 	const RECURRENCE_INTERVAL = 'recurrence_interval';
 	const RECURRENCE_DAYS     = 'recurrence_days';
@@ -52,6 +53,7 @@ class WSSCD_Schedule_Field_Names {
 	public static function get_fields(): array {
 		return array(
 			self::ENABLE_RECURRING,
+			self::RECURRENCE_MODE,
 			self::RECURRENCE_PATTERN,
 			self::RECURRENCE_INTERVAL,
 			self::RECURRENCE_DAYS,
@@ -81,6 +83,7 @@ class WSSCD_Schedule_Field_Names {
 	public static function get_defaults(): array {
 		return array(
 			self::ENABLE_RECURRING    => 0,
+			self::RECURRENCE_MODE     => 'continuous',
 			self::RECURRENCE_PATTERN  => 'daily',
 			self::RECURRENCE_INTERVAL => 1,
 			self::RECURRENCE_DAYS     => array(),

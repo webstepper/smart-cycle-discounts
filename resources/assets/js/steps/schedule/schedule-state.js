@@ -73,6 +73,7 @@
 
 			// Recurring schedule fields
 			enableRecurring: false,
+			recurrenceMode: 'continuous',
 			recurrencePattern: 'daily',
 			recurrenceInterval: 1,
 			recurrenceDays: [],
@@ -245,6 +246,7 @@
 				presetId: state.presetId,
 				// Recurring fields
 				enableRecurring: state.enableRecurring,
+				recurrenceMode: state.recurrenceMode,
 				recurrencePattern: state.recurrencePattern,
 				recurrenceInterval: state.recurrenceInterval,
 				recurrenceDays: state.recurrenceDays,
@@ -285,6 +287,7 @@
 			if ( data.presetId !== undefined ) {updates.presetId = data.presetId;}
 			// Recurring fields
 			if ( data.enableRecurring !== undefined ) {updates.enableRecurring = data.enableRecurring;}
+			if ( data.recurrenceMode !== undefined ) {updates.recurrenceMode = data.recurrenceMode;}
 			if ( data.recurrencePattern !== undefined ) {updates.recurrencePattern = data.recurrencePattern;}
 			if ( data.recurrenceInterval !== undefined ) {updates.recurrenceInterval = data.recurrenceInterval;}
 			if ( data.recurrenceDays !== undefined ) {updates.recurrenceDays = data.recurrenceDays;}
@@ -378,6 +381,7 @@
 				campaignName: '',
 				productCount: 0,
 				enableRecurring: false,
+				recurrenceMode: 'continuous',
 				recurrencePattern: 'daily',
 				recurrenceInterval: 1,
 				recurrenceDays: [],

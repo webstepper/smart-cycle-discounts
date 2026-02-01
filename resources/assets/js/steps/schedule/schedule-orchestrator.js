@@ -240,12 +240,18 @@
 			this.$container.on( 'change', '#enable_recurring', function() {
 				var isChecked = $( this ).prop( 'checked' );
 				var $recurringOptions = $( '#wsscd-recurring-options' );
+				var $recurrenceModeOptions = $( '#wsscd-recurrence-mode-options' );
 				var $recurringWarning = $( '#wsscd-recurring-warning' );
+				var recurrenceMode = $( 'input[name="recurrence_mode"]:checked' ).val() || 'continuous';
 
-				// Toggle recurring options and warning
+				// Toggle recurring options and mode selection
 				$recurringOptions.toggle( isChecked );
 				$recurringOptions.attr( 'aria-hidden', !isChecked );
-				$recurringWarning.toggle( isChecked );
+				$recurrenceModeOptions.toggle( isChecked );
+				$recurrenceModeOptions.attr( 'aria-hidden', !isChecked );
+
+				// Only show warning for instances mode
+				$recurringWarning.toggle( isChecked && 'instances' === recurrenceMode );
 
 				if ( self.modules.state && 'function' === typeof self.modules.state.setState ) {
 					self.modules.state.setState( { enableRecurring: isChecked } );
@@ -327,6 +333,26 @@
 				if ( self.modules.state && 'function' === typeof self.modules.state.setState ) {
 					self.modules.state.setState( { recurrenceEndDate: endDate } );
 				}
+				self.updateRecurrencePreview();
+			} );
+
+			// Recurrence mode selection
+			this.$container.on( 'change', 'input[name="recurrence_mode"]', function() {
+				var mode = $( this ).val();
+				var $recurringWarning = $( '#wsscd-recurring-warning' );
+				var $modeCards = self.$container.find( '.wsscd-recurrence-mode-card' );
+
+				// Update card selection visual
+				$modeCards.removeClass( 'selected' );
+				$( this ).closest( '.wsscd-recurrence-mode-card' ).addClass( 'selected' );
+
+				// Toggle warning visibility (only show for instances mode)
+				$recurringWarning.toggle( 'instances' === mode );
+
+				if ( self.modules.state && 'function' === typeof self.modules.state.setState ) {
+					self.modules.state.setState( { recurrenceMode: mode } );
+				}
+
 				self.updateRecurrencePreview();
 			} );
 		},
@@ -467,8 +493,13 @@
 				return;
 			}
 
-			// Build preview text
-			var text = 'Repeats every ' + state.recurrenceInterval + ' ';
+			// Build preview text with mode indicator
+			var recurrenceMode = state.recurrenceMode || 'continuous';
+			var modeLabel = 'continuous' === recurrenceMode
+				? '<span class="wsscd-mode-badge wsscd-mode-continuous">Continuous</span> '
+				: '<span class="wsscd-mode-badge wsscd-mode-instances">Instances</span> ';
+
+			var text = modeLabel + 'Repeats every ' + state.recurrenceInterval + ' ';
 
 			if ( 'daily' === state.recurrencePattern ) {
 				text += 1 === state.recurrenceInterval ? 'day' : 'days';
@@ -706,10 +737,29 @@
 
 			// Update UI state for recurring options
 			var enableRecurring = this.getPropertyValue( data, [ 'enableRecurring' ] );
+			var recurrenceMode = this.getPropertyValue( data, [ 'recurrenceMode' ] ) || 'continuous';
+
 			if ( enableRecurring !== undefined ) {
 				var $recurringOptions = $( '#wsscd-recurring-options' );
+				var $recurrenceModeOptions = $( '#wsscd-recurrence-mode-options' );
+				var $recurringWarning = $( '#wsscd-recurring-warning' );
+
 				$recurringOptions.toggle( enableRecurring );
 				$recurringOptions.attr( 'aria-hidden', !enableRecurring );
+				$recurrenceModeOptions.toggle( enableRecurring );
+				$recurrenceModeOptions.attr( 'aria-hidden', !enableRecurring );
+
+				// Only show warning for instances mode
+				$recurringWarning.toggle( enableRecurring && 'instances' === recurrenceMode );
+			}
+
+			// Update recurrence mode card selection
+			if ( recurrenceMode ) {
+				var $modeCards = this.$container.find( '.wsscd-recurrence-mode-card' );
+				$modeCards.removeClass( 'selected' );
+				$( 'input[name="recurrence_mode"][value="' + recurrenceMode + '"]' )
+					.closest( '.wsscd-recurrence-mode-card' )
+					.addClass( 'selected' );
 			}
 
 			var recurrencePattern = this.getPropertyValue( data, [ 'recurrencePattern' ] );

@@ -1,26 +1,30 @@
-=== Smart Cycle Discounts - Automated Campaigns for WooCommerce ===
+=== Smart Cycle Discounts – Automated Sale Campaigns for WooCommerce ===
 Contributors: webstepper
-Tags: dynamic pricing, discount rules, flash sale, bulk discount, free shipping
+Tags: discount rules, BOGO, bulk discount, tiered pricing, sale scheduler
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.3.0
+Stable tag: 1.4.0
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Automate WooCommerce discounts and sale prices. Schedule campaigns with percentage off, fixed amount, BOGO, tiered pricing, and bulk discounts.
+Schedule WooCommerce sale campaigns - BOGO, bulk discounts, tiered pricing & discount rules. Set dates, let them run. Dynamic pricing made easy.
 
 == Description ==
 
-**Stop manually editing sale prices. Schedule your WooCommerce discounts once, let them run forever.**
+**The WooCommerce discount rules plugin that runs your sales on autopilot.**
 
-You know the drill. It's 11:58 PM on Black Friday eve. You're clicking through hundreds of products, setting sale prices one by one. Tomorrow morning, you'll do it all again to remove them. Next week, you'll repeat the process for Cyber Monday. And again for Christmas. And again for New Year's.
+Stop manually editing sale prices. Smart Cycle Discounts automates your WooCommerce discounts so you can schedule bulk discounts, BOGO deals, tiered pricing, and flash sales - then forget about them. Sale prices activate and deactivate automatically on schedule.
 
-**What if your discounts ran themselves?**
+**Tired of midnight price edits on Black Friday?**
 
-Smart Cycle Discounts is the WooCommerce discount plugin that turns price management from a recurring chore into a one-time setup. Create a discount campaign, set your schedule, walk away. Your sale prices activate automatically, deactivate when the promotion ends, and you never touch a single product page.
+You know the drill. It's 11:58 PM on Black Friday eve. You're clicking through hundreds of products, setting sale prices one by one. Tomorrow morning, you'll do it all again to remove them. Next week, you'll repeat the process for Cyber Monday.
 
-No more late-night price edits. No more forgetting to remove sale prices. No more missed promotions.
+**Smart Cycle Discounts eliminates this completely.**
+
+Create a discount campaign, set your schedule, walk away. Your WooCommerce sale prices activate automatically, deactivate when the promotion ends, and you never touch a single product page again.
+
+**Discount rules made simple:** Percentage off, fixed amount, quantity-based bulk discounts, BOGO offers, spend thresholds, and tiered pricing - all managed from one intuitive campaign wizard.
 
 = How It Works: The 5-Step Campaign Wizard =
 
@@ -76,6 +80,13 @@ Smart Cycle Discounts solves every one of these problems with campaign-based dis
 * Enable free shipping for any discount campaign with a single toggle
 * Apply to all shipping methods or select specific methods
 * Stack free shipping with any discount type for powerful promotions
+
+**User role targeting:**
+
+* Restrict discounts to specific WordPress user roles (wholesalers, subscribers, members)
+* Include mode: "Only these roles get the discount"
+* Exclude mode: "Everyone except these roles gets the discount"
+* Perfect for B2B pricing, membership sites, and wholesale stores
 
 **Campaign health monitoring:**
 
@@ -166,6 +177,9 @@ Use: Tiered Quantity Discounts (Pro). Create volume breaks that reward larger or
 
 **"Weekend flash sale every Saturday and Sunday"**
 Use: All Products + 15% off + Schedule Saturday 12:00 AM to Sunday 11:59 PM. Create a single campaign that handles every weekend automatically.
+
+**"Wholesale pricing for registered dealers only"**
+Use: User Role Targeting (include "Wholesale Customer" role) + Tiered Bulk Discounts. Only users with the wholesale role see the discounted prices. Perfect for B2B stores that serve both retail and wholesale customers from the same WooCommerce store.
 
 **"Valentine's Day promotion on specific gift items"**
 Use: Specific Products + 20% off + Schedule Feb 7 to Feb 14. Select your gift-worthy products, set the dates, and the promotion runs itself while you focus on marketing.
@@ -364,6 +378,10 @@ Yes. The plugin respects existing sale prices. If a product already has a manual
 
 Yes. Enable free shipping for any campaign with a single toggle in the Discounts step. When enabled, customers receive free shipping on qualifying orders. You can apply free shipping to all shipping methods or select specific methods like flat rate or local pickup. This is included in the free version.
 
+= Can I create wholesale or member-only discounts? =
+
+Yes. Use the User Role Targeting feature to restrict discounts to specific WordPress user roles. Choose "Include" mode to give discounts only to selected roles (e.g., "Wholesale Customer" or "Premium Member"), or "Exclude" mode to give discounts to everyone except certain roles. This makes it easy to create B2B pricing, membership discounts, or role-based promotions - all from the same WooCommerce store.
+
 = Does it work alongside WooCommerce coupons? =
 
 Yes. Campaign discounts and WooCommerce coupons work independently. Campaign discounts apply to product prices (shown as sale prices), while coupons apply at checkout. Customers can use both together unless you configure specific restrictions.
@@ -378,7 +396,7 @@ WooCommerce's built-in sale prices are set per product - you need to edit each p
 
 = Can I create recurring weekly or monthly promotions? =
 
-The Pro version supports recurring campaign templates. Set up a "Weekend Flash Sale" once and schedule it to repeat every weekend, or create monthly promotions that run automatically. The free version supports one-time campaigns with specific start and end dates.
+The Pro version supports recurring campaigns with two powerful modes. **Continuous mode** toggles your campaign active/inactive based on time windows - perfect for daily happy hours or weekend specials without creating hundreds of database entries. **Instances mode** creates separate campaign copies for each occurrence with individual analytics. Set up a "Weekend Flash Sale" once and schedule it to repeat every weekend, or create monthly promotions that run automatically. The free version supports one-time campaigns with specific start and end dates.
 
 = What WooCommerce discount types are supported? =
 
@@ -411,6 +429,16 @@ Pro users can configure combination policies for each campaign. Choose whether y
 11. Main dashboard - Performance summary with campaign cards sorted by urgency
 
 == Changelog ==
+
+= 1.4.0 =
+* New: Continuous Recurring Mode - campaigns toggle active/inactive based on time schedule without creating database instances (Pro)
+* New: Two operational modes for recurring campaigns: "Continuous" (time-window based) and "Instances" (materialized copies)
+* New: Continuous mode ideal for daily happy hours, weekend specials, and weekly promotions
+* New: Instances mode preserves per-occurrence analytics and individual campaign tracking
+* New: Recurrence mode displayed in wizard review step configuration summary
+* Improvement: Database migration adds recurrence_mode column with backwards compatibility
+* Improvement: Campaign manager filters continuous recurring campaigns by active time window
+* Improvement: Edit mode properly loads recurrence_mode from recurring settings table
 
 = 1.3.0 =
 * New: User role targeting - restrict discounts to specific WordPress user roles
@@ -537,6 +565,9 @@ Pro users can configure combination policies for each campaign. Choose whether y
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.4.0 =
+New Continuous Recurring Mode for Pro users - run daily happy hours, weekend specials, and weekly promotions without creating hundreds of database entries. Campaigns toggle active/inactive based on time schedule.
 
 = 1.3.0 =
 New user role targeting feature - restrict discounts to specific user roles like wholesalers, subscribers, or custom roles. Perfect for B2B pricing and member-only promotions.

@@ -475,6 +475,7 @@ class WSSCD_Save_Step_Handler extends WSSCD_Abstract_Ajax_Handler {
 				if ( 'schedule' === $step && $this->feature_gate && ! $this->feature_gate->can_use_recurring_campaigns() ) {
 					$recurring_fields = array(
 						'enable_recurring',
+						'recurrence_mode',
 						'recurrence_pattern',
 						'recurrence_interval',
 						'recurrence_days',

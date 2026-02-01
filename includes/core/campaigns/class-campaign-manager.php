@@ -1435,12 +1435,83 @@ class WSSCD_Campaign_Manager {
 	/**
 	 * Get active campaigns.
 	 *
+	 * Filters continuous recurring campaigns based on whether they're
+	 * currently in an active time window according to their schedule.
+	 *
 	 * @since    1.0.0
 	 * @param    array $options    Query options.
 	 * @return   array               Active campaigns.
 	 */
 	public function get_active_campaigns( array $options = array() ): array {
-		return $this->repository->get_active( $options );
+		$campaigns = $this->repository->get_active( $options );
+
+		// Filter continuous recurring campaigns based on time window
+		return $this->filter_continuous_recurring( $campaigns );
+	}
+
+	/**
+	 * Filter continuous recurring campaigns based on current time window.
+	 *
+	 * Continuous recurring campaigns (campaign_type = 'recurring_continuous') are only
+	 * considered active if the current time matches their recurring schedule pattern.
+	 *
+	 * @since    1.3.1
+	 * @param    array $campaigns    Array of campaign objects.
+	 * @return   array                  Filtered campaigns.
+	 */
+	private function filter_continuous_recurring( array $campaigns ): array {
+		if ( empty( $campaigns ) || ! $this->container ) {
+			return $campaigns;
+		}
+
+		// Get recurring handler from container
+		$recurring_handler = $this->container->has( 'recurring_handler' )
+			? $this->container->get( 'recurring_handler' )
+			: null;
+
+		if ( ! $recurring_handler ) {
+			return $campaigns;
+		}
+
+		return array_filter(
+			$campaigns,
+			function ( $campaign ) use ( $recurring_handler ) {
+				// Get campaign type from database
+				$campaign_id   = $campaign->get_id();
+				$campaign_type = $this->get_campaign_type( $campaign_id );
+
+				// If not a continuous recurring campaign, pass through
+				if ( 'recurring_continuous' !== $campaign_type ) {
+					return true;
+				}
+
+				// Check if currently in active window
+				return $recurring_handler->is_in_active_window( $campaign_id );
+			}
+		);
+	}
+
+	/**
+	 * Get campaign type from database.
+	 *
+	 * @since    1.3.1
+	 * @param    int $campaign_id    Campaign ID.
+	 * @return   string                 Campaign type.
+	 */
+	private function get_campaign_type( int $campaign_id ): string {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . 'wsscd_campaigns';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Single-row lookup for campaign type; caching handled at caller level.
+		$type = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT campaign_type FROM {$table_name} WHERE id = %d",
+				$campaign_id
+			)
+		);
+
+		return $type ?: 'standard';
 	}
 
 	/**

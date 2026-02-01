@@ -365,6 +365,14 @@
 		if ( 'scheduled' === startType && startDate ) {
 			scheduleText = 'Starts: ' + startDate;
 		}
+
+		// Add recurring mode info if enabled
+		var enableRecurring = scheduleData.enableRecurring || wizardData.enableRecurring || wizardData.enable_recurring || false;
+		if ( enableRecurring ) {
+			var recurrenceMode = scheduleData.recurrenceMode || wizardData.recurrenceMode || wizardData.recurrence_mode || 'continuous';
+			var modeLabel = 'continuous' === recurrenceMode ? 'Continuous' : 'Instances';
+			scheduleText += ' (Recurring: ' + modeLabel + ')';
+		}
 		$container.find( '[data-config="schedule"]' ).text( scheduleText );
 
 		// Free shipping - check stepData first (current session), then wizardData (edit mode)

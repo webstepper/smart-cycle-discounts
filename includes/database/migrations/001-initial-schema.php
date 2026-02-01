@@ -387,6 +387,7 @@ class WSSCD_Migration_001_Initial_Schema implements WSSCD_Migration_Interface {
 			recurrence_end_type varchar(20) NOT NULL DEFAULT 'never',
 			recurrence_count int(11) DEFAULT NULL,
 			recurrence_end_date date DEFAULT NULL,
+			recurrence_mode varchar(20) NOT NULL DEFAULT 'continuous' COMMENT 'Recurrence mode: continuous or instances (migration 004)',
 			occurrence_number int(11) NOT NULL DEFAULT 1,
 			next_occurrence_date datetime DEFAULT NULL,
 			last_run_at datetime DEFAULT NULL COMMENT 'Last run timestamp (migration 009)',
@@ -400,7 +401,8 @@ class WSSCD_Migration_001_Initial_Schema implements WSSCD_Migration_Interface {
 			KEY idx_parent_campaign (parent_campaign_id),
 			KEY idx_parent (parent_campaign_id),
 			KEY idx_next_occurrence (next_occurrence_date, is_active),
-			KEY idx_active_recurring (is_active, recurrence_end_type)
+			KEY idx_active_recurring (is_active, recurrence_end_type),
+			KEY idx_recurrence_mode (recurrence_mode)
 		) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';

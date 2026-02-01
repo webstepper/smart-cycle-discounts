@@ -212,6 +212,7 @@ class WSSCD_Campaign_Health_Handler extends WSSCD_Abstract_Ajax_Handler {
 			'end_time'               => isset( $schedule['end_time'] ) ? $schedule['end_time'] : '23:59',
 			'start_type'             => isset( $schedule['start_type'] ) ? $schedule['start_type'] : 'scheduled',
 			'enable_recurring'       => isset( $schedule['enable_recurring'] ) ? $schedule['enable_recurring'] : false,
+			'recurrence_mode'        => isset( $schedule['recurrence_mode'] ) ? $schedule['recurrence_mode'] : 'continuous',
 			'status'                 => 'draft', // Wizard campaigns are drafts
 		);
 	}

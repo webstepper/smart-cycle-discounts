@@ -736,6 +736,23 @@ class WSSCD_Field_Definitions {
 				'validator'  => array( __CLASS__, 'validate_boolean' ),
 				'field_name' => 'enable_recurring',
 			),
+			'recurrence_mode'     => array(
+				'type'        => 'radio',
+				'label'       => __( 'Recurrence Mode', 'smart-cycle-discounts' ),
+				'required'    => false,
+				'default'     => 'continuous',
+				'options'     => array(
+					'continuous' => __( 'Continuous (Same Campaign)', 'smart-cycle-discounts' ),
+					'instances'  => __( 'Instances (Separate Campaigns)', 'smart-cycle-discounts' ),
+				),
+				'sanitizer'   => 'sanitize_text_field',
+				'validator'   => array( __CLASS__, 'validate_in_array' ),
+				'conditional' => array(
+					'field' => 'enable_recurring',
+					'value' => true,
+				),
+				'field_name'  => 'recurrence_mode',
+			),
 			'recurrence_pattern'  => array(
 				'type'        => 'select',
 				'label'       => __( 'Recurrence Pattern', 'smart-cycle-discounts' ),
