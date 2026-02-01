@@ -27,6 +27,18 @@
 			}
 		},
 		{
+			"step": "runPHP",
+			"code": "<?php require '/wordpress/wp-load.php'; delete_transient('_wc_activation_redirect'); update_option('woocommerce_onboarding_profile', array('completed' => true)); update_option('woocommerce_task_list_hidden', 'yes'); update_option('woocommerce_task_list_complete', 'yes'); ?>"
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require '/wordpress/wp-load.php'; if (!term_exists('clothing', 'product_cat')) { wp_insert_term('Clothing', 'product_cat', array('slug' => 'clothing')); } if (!term_exists('electronics', 'product_cat')) { wp_insert_term('Electronics', 'product_cat', array('slug' => 'electronics')); } if (!term_exists('accessories', 'product_cat')) { wp_insert_term('Accessories', 'product_cat', array('slug' => 'accessories')); } if (!term_exists('home-garden', 'product_cat')) { wp_insert_term('Home & Garden', 'product_cat', array('slug' => 'home-garden')); } ?>"
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require '/wordpress/wp-load.php'; $clothing = get_term_by('slug', 'clothing', 'product_cat'); $electronics = get_term_by('slug', 'electronics', 'product_cat'); $accessories = get_term_by('slug', 'accessories', 'product_cat'); $home = get_term_by('slug', 'home-garden', 'product_cat'); $products = array( array('Classic T-Shirt', '29.99', $clothing), array('Denim Jeans', '79.99', $clothing), array('Summer Dress', '59.99', $clothing), array('Wool Sweater', '89.99', $clothing), array('Wireless Headphones', '149.99', $electronics), array('Smartphone Case', '24.99', $electronics), array('USB-C Charger', '34.99', $electronics), array('Bluetooth Speaker', '79.99', $electronics), array('Leather Wallet', '49.99', $accessories), array('Sunglasses', '89.99', $accessories), array('Watch Band', '19.99', $accessories), array('Ceramic Vase', '44.99', $home), array('Throw Pillow', '29.99', $home), array('Plant Pot Set', '39.99', $home) ); foreach ($products as $p) { $product = new WC_Product_Simple(); $product->set_name($p[0]); $product->set_regular_price($p[1]); $product->set_stock_status('instock'); $product->set_status('publish'); $id = $product->save(); if ($p[2]) { wp_set_object_terms($id, $p[2]->term_id, 'product_cat'); } } ?>"
+		},
+		{
 			"step": "login",
 			"username": "admin",
 			"password": "password"
