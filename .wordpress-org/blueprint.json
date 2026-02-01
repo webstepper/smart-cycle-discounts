@@ -27,6 +27,21 @@
 			}
 		},
 		{
+			"step": "installTheme",
+			"themeData": {
+				"resource": "wordpress.org/themes",
+				"slug": "storefront"
+			}
+		},
+		{
+			"step": "activateTheme",
+			"themeFolderName": "storefront"
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require '/wordpress/wp-load.php'; update_option('blogname', 'Smart Cycle Discounts Demo'); update_option('blogdescription', 'Experience automatic product discounts'); ?>"
+		},
+		{
 			"step": "runPHP",
 			"code": "<?php require '/wordpress/wp-load.php'; delete_transient('_wc_activation_redirect'); update_option('woocommerce_onboarding_profile', array('completed' => true)); update_option('woocommerce_task_list_hidden', 'yes'); update_option('woocommerce_task_list_complete', 'yes'); ?>"
 		},
@@ -48,7 +63,15 @@
 		},
 		{
 			"step": "runPHP",
-			"code": "<?php require '/wordpress/wp-load.php'; global $wpdb; $table = $wpdb->prefix . 'wsscd_campaigns'; $now = current_time('mysql'); $uuid = wp_generate_uuid4(); $wpdb->insert($table, array('uuid' => $uuid, 'name' => '20% Off Everything', 'slug' => 'demo-store-sale', 'description' => 'Welcome to our demo store! Enjoy 20% off all products.', 'status' => 'active', 'priority' => 1, 'product_selection_type' => 'all_products', 'category_ids' => '[]', 'discount_type' => 'percentage', 'discount_value' => 20.0000, 'discount_rules' => json_encode(array('discount_type' => 'percentage', 'discount_value' => 20)), 'starts_at' => $now, 'ends_at' => date('Y-m-d H:i:s', strtotime('+1 year')), 'timezone' => 'UTC', 'created_by' => 1, 'created_at' => $now, 'updated_at' => $now, 'color_theme' => '#2271b1', 'icon' => 'tag')); ?>"
+			"code": "<?php require '/wordpress/wp-load.php'; global $wpdb; $table = $wpdb->prefix . 'wsscd_campaigns'; $now = current_time('mysql'); $wpdb->insert($table, array('uuid' => wp_generate_uuid4(), 'name' => '20% Off All Clothing', 'slug' => 'clothing-sale', 'description' => 'Get 20% off all items in the Clothing category!', 'status' => 'active', 'priority' => 1, 'product_selection_type' => 'all_products', 'category_ids' => json_encode(array(get_term_by('slug', 'clothing', 'product_cat')->term_id)), 'discount_type' => 'percentage', 'discount_value' => 20.0000, 'discount_rules' => json_encode(array('discount_type' => 'percentage', 'discount_value' => 20)), 'starts_at' => $now, 'ends_at' => date('Y-m-d H:i:s', strtotime('+1 year')), 'timezone' => 'UTC', 'created_by' => 1, 'created_at' => $now, 'updated_at' => $now, 'color_theme' => '#2271b1', 'icon' => 'tag')); ?>"
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require '/wordpress/wp-load.php'; global $wpdb; $table = $wpdb->prefix . 'wsscd_campaigns'; $now = current_time('mysql'); $wpdb->insert($table, array('uuid' => wp_generate_uuid4(), 'name' => 'Buy More Save More - Electronics', 'slug' => 'electronics-tiered', 'description' => 'Tiered pricing: Buy 2+ get 10% off, Buy 5+ get 20% off!', 'status' => 'active', 'priority' => 2, 'product_selection_type' => 'all_products', 'category_ids' => json_encode(array(get_term_by('slug', 'electronics', 'product_cat')->term_id)), 'discount_type' => 'tiered', 'discount_value' => 0, 'discount_rules' => json_encode(array('discount_type' => 'tiered', 'tiers' => array(array('min_quantity' => 2, 'discount_type' => 'percentage', 'discount_value' => 10), array('min_quantity' => 5, 'discount_type' => 'percentage', 'discount_value' => 20)))), 'starts_at' => $now, 'ends_at' => date('Y-m-d H:i:s', strtotime('+1 year')), 'timezone' => 'UTC', 'created_by' => 1, 'created_at' => $now, 'updated_at' => $now, 'color_theme' => '#d63638', 'icon' => 'chart-line')); ?>"
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require '/wordpress/wp-load.php'; global $wpdb; $table = $wpdb->prefix . 'wsscd_campaigns'; $now = current_time('mysql'); $wpdb->insert($table, array('uuid' => wp_generate_uuid4(), 'name' => '$5 Off Accessories', 'slug' => 'accessories-fixed', 'description' => 'Fixed discount: $5 off all accessories!', 'status' => 'active', 'priority' => 3, 'product_selection_type' => 'all_products', 'category_ids' => json_encode(array(get_term_by('slug', 'accessories', 'product_cat')->term_id)), 'discount_type' => 'fixed', 'discount_value' => 5.0000, 'discount_rules' => json_encode(array('discount_type' => 'fixed', 'discount_value' => 5)), 'starts_at' => $now, 'ends_at' => date('Y-m-d H:i:s', strtotime('+1 year')), 'timezone' => 'UTC', 'created_by' => 1, 'created_at' => $now, 'updated_at' => $now, 'color_theme' => '#00a32a', 'icon' => 'money-alt')); ?>"
 		},
 		{
 			"step": "login",
