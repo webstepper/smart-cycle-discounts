@@ -27,57 +27,6 @@
 			}
 		},
 		{
-			"step": "setSiteOptions",
-			"options": {
-				"woocommerce_store_address": "123 Demo Street",
-				"woocommerce_store_city": "San Francisco",
-				"woocommerce_default_country": "US:CA",
-				"woocommerce_store_postcode": "94103",
-				"woocommerce_currency": "USD",
-				"woocommerce_onboarding_profile": "{\"completed\":true}",
-				"woocommerce_task_list_hidden": "yes",
-				"woocommerce_task_list_complete": "yes",
-				"woocommerce_show_marketplace_suggestions": "no",
-				"woocommerce_admin_notices": "[]"
-			}
-		},
-		{
-			"step": "wp-cli",
-			"command": "wp term create product_cat Clothing --slug=clothing --porcelain"
-		},
-		{
-			"step": "wp-cli",
-			"command": "wp term create product_cat Electronics --slug=electronics --porcelain"
-		},
-		{
-			"step": "wp-cli",
-			"command": "wp term create product_cat Accessories --slug=accessories --porcelain"
-		},
-		{
-			"step": "wp-cli",
-			"command": "wp wc product create --name='Classic T-Shirt' --regular_price=29.99 --status=publish --user=1"
-		},
-		{
-			"step": "wp-cli",
-			"command": "wp wc product create --name='Denim Jeans' --regular_price=79.99 --status=publish --user=1"
-		},
-		{
-			"step": "wp-cli",
-			"command": "wp wc product create --name='Summer Dress' --regular_price=59.99 --status=publish --user=1"
-		},
-		{
-			"step": "wp-cli",
-			"command": "wp wc product create --name='Wireless Headphones' --regular_price=149.99 --status=publish --user=1"
-		},
-		{
-			"step": "wp-cli",
-			"command": "wp wc product create --name='Leather Wallet' --regular_price=49.99 --status=publish --user=1"
-		},
-		{
-			"step": "wp-cli",
-			"command": "wp wc product create --name='Ceramic Vase' --regular_price=44.99 --status=publish --user=1"
-		},
-		{
 			"step": "login",
 			"username": "admin",
 			"password": "password"
