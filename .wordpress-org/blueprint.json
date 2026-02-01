@@ -36,6 +36,10 @@
 		},
 		{
 			"step": "runPHP",
+			"code": "<?php require '/wordpress/wp-load.php'; WC_Install::create_pages(); ?>"
+		},
+		{
+			"step": "runPHP",
 			"code": "<?php require '/wordpress/wp-load.php'; if (!term_exists('clothing', 'product_cat')) { wp_insert_term('Clothing', 'product_cat', array('slug' => 'clothing')); } if (!term_exists('electronics', 'product_cat')) { wp_insert_term('Electronics', 'product_cat', array('slug' => 'electronics')); } if (!term_exists('accessories', 'product_cat')) { wp_insert_term('Accessories', 'product_cat', array('slug' => 'accessories')); } if (!term_exists('home-garden', 'product_cat')) { wp_insert_term('Home & Garden', 'product_cat', array('slug' => 'home-garden')); } ?>"
 		},
 		{
