@@ -591,6 +591,11 @@ class WSSCD_Freemius_Integration {
 		if ( ! function_exists( 'wsscd_fs' ) || ! wsscd_fs() || ! wsscd_fs()->is_premium() ) {
 			return;
 		}
+
+		// Don't show on wizard pages - they break the layout.
+		if ( self::is_wizard_page() ) {
+			return;
+		}
 		?>
 		<div class="notice notice-success is-dismissible">
 			<p>
@@ -692,6 +697,11 @@ class WSSCD_Freemius_Integration {
 	 */
 	public static function show_license_activated_notice() {
 		if ( ! function_exists( 'wsscd_fs' ) || ! wsscd_fs() || ! wsscd_fs()->is_premium() ) {
+			return;
+		}
+
+		// Don't show on wizard pages - they break the layout.
+		if ( self::is_wizard_page() ) {
 			return;
 		}
 		?>
@@ -803,6 +813,24 @@ class WSSCD_Freemius_Integration {
 		}
 
 		return $show;
+	}
+
+	/**
+	 * Check if current page is the wizard page.
+	 *
+	 * Used to exclude admin notices from wizard pages as they break the layout.
+	 *
+	 * @since    1.4.0
+	 * @access   private
+	 * @return   bool    True if on wizard page.
+	 */
+	private static function is_wizard_page() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only display context check.
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only display context check.
+		$action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
+
+		return 'wsscd-campaigns' === $page && 'wizard' === $action;
 	}
 
 	/**

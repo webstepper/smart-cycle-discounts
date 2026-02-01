@@ -572,6 +572,15 @@ class WSSCD_Review_Notice {
 			return false;
 		}
 
+		// Don't show on wizard pages - they break the layout.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only display context check.
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only display context check.
+		$action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
+		if ( 'wsscd-campaigns' === $page && 'wizard' === $action ) {
+			return false;
+		}
+
 		return strpos( $screen->id, 'smart-cycle-discounts' ) !== false ||
 			   strpos( $screen->id, 'wsscd' ) !== false;
 	}

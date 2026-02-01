@@ -70,6 +70,81 @@
 				$endTime.attr( 'type', 'time' )
 					.removeClass( 'wsscd-time-placeholder' );
 			}
+
+			// Initialize recurring schedule state from DOM values
+			this.initializeRecurringState();
+		},
+
+		/**
+		 * Initialize recurring schedule state from DOM values
+		 * This syncs the PHP-rendered values into JavaScript state
+		 */
+		initializeRecurringState: function() {
+			if ( ! this.modules.state || 'function' !== typeof this.modules.state.setState ) {
+				return;
+			}
+
+			var stateUpdate = {
+				// Read values from DOM
+				startDate: $( '#start_date' ).val() || '',
+				endDate: $( '#end_date' ).val() || '',
+				startTime: $( '#start_time' ).val() || '00:00',
+				endTime: $( '#end_time' ).val() || '23:59',
+				startType: $( 'input[name="start_type"]:checked' ).val() || 'immediate',
+
+				// Recurring schedule values
+				enableRecurring: '1' === $( '#enable_recurring' ).val(),
+				recurrencePattern: $( '#recurrence_pattern' ).val() || 'daily',
+				recurrenceInterval: parseInt( $( '#recurrence_interval' ).val(), 10 ) || 1,
+				recurrenceEndType: $( '#recurrence_end_type' ).val() || 'never',
+				recurrenceCount: parseInt( $( '#recurrence_count' ).val(), 10 ) || 10,
+				recurrenceEndDate: $( '#recurrence_end_date' ).val() || '',
+				recurrenceMode: $( 'input[name="recurrence_mode"]:checked' ).val() || 'continuous'
+			};
+
+			// Get recurrence days (checkboxes)
+			var recurrenceDays = [];
+			this.$container.find( 'input[name="recurrence_days[]"]:checked' ).each( function() {
+				recurrenceDays.push( $( this ).val() );
+			} );
+			stateUpdate.recurrenceDays = recurrenceDays;
+
+			// Set state
+			this.modules.state.setState( stateUpdate );
+
+			// Update preview with initial values
+			this.updateRecurrencePreview();
+
+			// Run initial validations if recurring is enabled (for editing existing campaigns)
+			if ( stateUpdate.enableRecurring && stateUpdate.endDate ) {
+				var self = this;
+
+				// Small delay to ensure DOM is ready
+				setTimeout( function() {
+					// Update weekly day constraints and validate
+					if ( 'weekly' === stateUpdate.recurrencePattern ) {
+						self.updateWeeklyDayConstraints();
+						var daysValidation = self.validateWeeklyDays( stateUpdate.recurrenceDays );
+						self.showWeeklyDaysValidation( daysValidation );
+					}
+
+					// Validate interval vs duration
+					var intervalValidation = self.validateIntervalVsDuration();
+					self.showIntervalValidation( intervalValidation );
+
+					// Validate monthly edge case
+					if ( 'monthly' === stateUpdate.recurrencePattern ) {
+						var monthlyValidation = self.validateMonthlyEdgeCase();
+						self.showMonthlyEdgeCaseInfo( monthlyValidation );
+					}
+
+					// Validate recurrence end date
+					if ( 'on' === stateUpdate.recurrenceEndType ) {
+						var endDateValidation = self.validateRecurrenceEndDate();
+						self.showRecurrenceEndDateValidation( endDateValidation );
+					}
+				}, 100 );
+			}
 		},
 
 		/**
@@ -236,43 +311,48 @@
 				self.applyPreset( preset );
 			} );
 
-			// Recurring schedule
-			this.$container.on( 'change', '#enable_recurring', function() {
-				var isChecked = $( this ).prop( 'checked' );
-				var $recurringOptions = $( '#wsscd-recurring-options' );
-				var $recurrenceModeOptions = $( '#wsscd-recurrence-mode-options' );
-				var $recurringWarning = $( '#wsscd-recurring-warning' );
-				var recurrenceMode = $( 'input[name="recurrence_mode"]:checked' ).val() || 'continuous';
+			// Schedule type cards (One-time vs Recurring) - NEW REDESIGNED STRUCTURE
+			this.$container.on( 'change', 'input[name="schedule_type"]', function() {
+				var scheduleType = $( this ).val();
+				var isRecurring = 'recurring' === scheduleType;
+				var $cards = self.$container.find( '.wsscd-schedule-type-card' );
+				var $recurringConfig = $( '#wsscd-recurring-options' );
 
-				// Toggle recurring options and mode selection
-				$recurringOptions.toggle( isChecked );
-				$recurringOptions.attr( 'aria-hidden', !isChecked );
-				$recurrenceModeOptions.toggle( isChecked );
-				$recurrenceModeOptions.attr( 'aria-hidden', !isChecked );
+				// Update card visual selection
+				$cards.removeClass( 'selected' );
+				$( this ).closest( '.wsscd-schedule-type-card' ).addClass( 'selected' );
 
-				// Only show warning for instances mode
-				$recurringWarning.toggle( isChecked && 'instances' === recurrenceMode );
+				// Sync hidden field for backend compatibility
+				$( '#enable_recurring' ).val( isRecurring ? '1' : '0' );
+
+				// Toggle recurring configuration section
+				$recurringConfig.toggle( isRecurring );
+				$recurringConfig.attr( 'aria-hidden', !isRecurring );
 
 				if ( self.modules.state && 'function' === typeof self.modules.state.setState ) {
-					self.modules.state.setState( { enableRecurring: isChecked } );
+					self.modules.state.setState( { enableRecurring: isRecurring } );
 				}
 				self.updateRecurrencePreview();
 
-				// Validate recurring requirements (end_date or duration)
-				var endDate = $( '#end_date' ).val();
-				var durationSeconds = $( 'input[name="duration_seconds"]' ).val();
-				var validation = self._validateRecurring( isChecked, endDate, durationSeconds );
+				// Validate recurring requirements when switching to recurring
+				if ( isRecurring ) {
+					var endDate = $( '#end_date' ).val();
+					var durationSeconds = $( 'input[name="duration_seconds"]' ).val();
+					var validation = self._validateRecurring( isRecurring, endDate, durationSeconds );
 
-				// Show error at end of row, but apply red border to date field
-				if ( ! validation.valid ) {
-					self._showOrClearValidation( validation, $( '#end_time' ) );
-					// Apply error styling to date field
-					$( '#end_date_display' ).addClass( 'error' ).attr( 'aria-invalid', 'true' );
-					// Open calendar to help user fix the issue
-					$( '#end_date_display' ).datepicker( 'show' );
+					if ( ! validation.valid ) {
+						self._showOrClearValidation( validation, $( '#end_time' ) );
+						$( '#end_date_display' ).addClass( 'error' ).attr( 'aria-invalid', 'true' );
+						$( '#end_date_display' ).datepicker( 'show' );
+					} else {
+						self._showOrClearValidation( validation, $( '#end_time' ) );
+						$( '#end_date_display' ).removeClass( 'error' ).attr( 'aria-invalid', 'false' );
+					}
 				} else {
-					self._showOrClearValidation( validation, $( '#end_time' ) );
-					// Clear error styling from date field
+					// Clear validation errors when switching to one-time
+					if ( window.WSSCD && window.WSSCD.ValidationError ) {
+						WSSCD.ValidationError.clear( $( '#end_time' ) );
+					}
 					$( '#end_date_display' ).removeClass( 'error' ).attr( 'aria-invalid', 'false' );
 				}
 			} );
@@ -284,37 +364,126 @@
 				if ( self.modules.state && 'function' === typeof self.modules.state.setState ) {
 					self.modules.state.setState( { recurrencePattern: pattern } );
 				}
+
+				// Handle weekly pattern
+				if ( 'weekly' === pattern ) {
+					// Update day constraints based on campaign duration
+					self.updateWeeklyDayConstraints();
+
+					var days = self.$container.find( 'input[name="recurrence_days[]"]:checked' ).map( function() {
+						return $( this ).val();
+					} ).get();
+					var daysValidation = self.validateWeeklyDays( days );
+					self.showWeeklyDaysValidation( daysValidation );
+				} else {
+					// Clear weekly-related UI when not weekly
+					self.$container.find( '.wsscd-days-warning, .wsscd-days-suggestion, .wsscd-days-info' ).remove();
+					self.$container.find( '.wsscd-recurring-days' ).removeClass( 'has-warning has-suggestion has-info has-error' );
+					// Re-enable all day chips
+					self.$container.find( '.wsscd-day-chip' ).removeClass( 'disabled' );
+					self.$container.find( '.wsscd-day-chip input[type="checkbox"]' ).prop( 'disabled', false );
+				}
+
+				// Validate interval vs duration (changes based on pattern)
+				var intervalValidation = self.validateIntervalVsDuration();
+				self.showIntervalValidation( intervalValidation );
+
+				// Show monthly edge case info if applicable
+				if ( 'monthly' === pattern ) {
+					var monthlyValidation = self.validateMonthlyEdgeCase();
+					self.showMonthlyEdgeCaseInfo( monthlyValidation );
+				} else {
+					// Clear monthly info when not monthly
+					self.$container.find( '.wsscd-monthly-info' ).remove();
+				}
+
+				// Re-validate recurrence end date (affected by pattern change)
+				var endDateValidation = self.validateRecurrenceEndDate();
+				self.showRecurrenceEndDateValidation( endDateValidation );
+
 				self.updateRecurrencePreview();
 			} );
 
-			// Recurrence interval
+			// Recurrence interval - with validation against campaign duration
 			this.$container.on( 'change', '#recurrence_interval', function() {
 				var interval = parseInt( $( this ).val() ) || 1;
 				if ( self.modules.state && 'function' === typeof self.modules.state.setState ) {
 					self.modules.state.setState( { recurrenceInterval: interval } );
 				}
+
+				// Validate interval against campaign duration
+				var validation = self.validateIntervalVsDuration();
+				self.showIntervalValidation( validation );
+
+				// Re-validate recurrence end date (affected by interval)
+				var endDateValidation = self.validateRecurrenceEndDate();
+				self.showRecurrenceEndDateValidation( endDateValidation );
+
 				self.updateRecurrencePreview();
 			} );
 
-			// Recurrence days
+			// Recurrence days - with visual selection update and constraint-based disabling
 			this.$container.on( 'change', 'input[name="recurrence_days[]"]', function() {
+				var $checkbox = $( this );
+				var $chip = $checkbox.closest( '.wsscd-day-chip' );
+
+				// Toggle selected class based on checkbox state
+				if ( $chip.length ) {
+					if ( $checkbox.is( ':checked' ) ) {
+						$chip.addClass( 'selected' );
+					} else {
+						$chip.removeClass( 'selected' );
+					}
+				}
+
 				var days = self.$container.find( 'input[name="recurrence_days[]"]:checked' ).map( function() {
 					return $( this ).val();
 				} ).get();
+
+				// Update constraints (disable days that would cause overlap)
+				self.updateWeeklyDayConstraints();
+
+				// Simple validation (no days, all days)
+				var validation = self.validateWeeklyDays( days );
+				self.showWeeklyDaysValidation( validation );
+
 				if ( self.modules.state && 'function' === typeof self.modules.state.setState ) {
 					self.modules.state.setState( { recurrenceDays: days } );
 				}
 				self.updateRecurrencePreview();
 			} );
 
-			// Recurrence end type
-			this.$container.on( 'change', 'input[name="recurrence_end_type"]', function() {
+			// Recurrence end type - NEW dropdown structure
+			this.$container.on( 'change', '#recurrence_end_type_select', function() {
 				var endType = $( this ).val();
+				var $afterSection = $( '.wsscd-recurring-until__after' );
+				var $onSection = $( '.wsscd-recurring-until__on' );
+
+				// Sync hidden field for backend compatibility
+				$( '#recurrence_end_type' ).val( endType );
+
+				// Show/hide conditional sections
+				$afterSection.toggle( 'after' === endType );
+				$onSection.toggle( 'on' === endType );
+
+				// Enable/disable fields based on selection
 				$( '#recurrence_count' ).prop( 'disabled', 'after' !== endType );
 				$( '#recurrence_end_date' ).prop( 'disabled', 'on' !== endType );
+
 				if ( self.modules.state && 'function' === typeof self.modules.state.setState ) {
 					self.modules.state.setState( { recurrenceEndType: endType } );
 				}
+
+				// Validate recurrence end date when switching to "on" type
+				if ( 'on' === endType ) {
+					var validation = self.validateRecurrenceEndDate();
+					self.showRecurrenceEndDateValidation( validation );
+				} else {
+					// Clear end date warning when not using "on" type
+					self.$container.find( '.wsscd-enddate-warning' ).remove();
+					self.$container.find( '.wsscd-recurring-until__on' ).removeClass( 'has-warning' );
+				}
+
 				self.updateRecurrencePreview();
 			} );
 
@@ -333,6 +502,11 @@
 				if ( self.modules.state && 'function' === typeof self.modules.state.setState ) {
 					self.modules.state.setState( { recurrenceEndDate: endDate } );
 				}
+
+				// Validate recurrence end date
+				var validation = self.validateRecurrenceEndDate();
+				self.showRecurrenceEndDateValidation( validation );
+
 				self.updateRecurrencePreview();
 			} );
 
@@ -340,11 +514,11 @@
 			this.$container.on( 'change', 'input[name="recurrence_mode"]', function() {
 				var mode = $( this ).val();
 				var $recurringWarning = $( '#wsscd-recurring-warning' );
-				var $modeCards = self.$container.find( '.wsscd-recurrence-mode-card' );
+				var $modeOptions = self.$container.find( '.wsscd-mode-option' );
 
-				// Update card selection visual
-				$modeCards.removeClass( 'selected' );
-				$( this ).closest( '.wsscd-recurrence-mode-card' ).addClass( 'selected' );
+				// Update mode option selection visual
+				$modeOptions.removeClass( 'selected' );
+				$( this ).closest( '.wsscd-mode-option' ).addClass( 'selected' );
 
 				// Toggle warning visibility (only show for instances mode)
 				$recurringWarning.toggle( 'instances' === mode );
@@ -370,6 +544,37 @@
 					this.modules.state.setState( stateUpdate );
 				}
 				$( document ).trigger( 'wsscd:schedule:' + field + ':changed', value );
+
+				// Re-validate when dates change (duration affects all validations)
+				var pattern = $( '#recurrence_pattern' ).val();
+
+				// Update weekly day constraints (duration change affects which days can be selected)
+				if ( 'weekly' === pattern ) {
+					this.updateWeeklyDayConstraints();
+
+					var days = this.$container.find( 'input[name="recurrence_days[]"]:checked' ).map( function() {
+						return $( this ).val();
+					} ).get();
+					var daysValidation = this.validateWeeklyDays( days );
+					this.showWeeklyDaysValidation( daysValidation );
+				}
+
+				// Validate interval vs duration
+				var intervalValidation = this.validateIntervalVsDuration();
+				this.showIntervalValidation( intervalValidation );
+
+				// Validate monthly edge case
+				if ( 'monthly' === pattern ) {
+					var monthlyValidation = this.validateMonthlyEdgeCase();
+					this.showMonthlyEdgeCaseInfo( monthlyValidation );
+				}
+
+				// Validate recurrence end date (affected by campaign dates)
+				var endDateValidation = this.validateRecurrenceEndDate();
+				this.showRecurrenceEndDateValidation( endDateValidation );
+
+				// Update recurrence preview when dates change (affects calculations)
+				this.updateRecurrencePreview();
 			} catch ( error ) {
 				this.safeErrorHandle( error, 'schedule-date-change' );
 				this.showError( 'Failed to update date. Please check your input.', 'error', 5000 );
@@ -477,68 +682,196 @@
 
 		/**
 		 * Update recurrence preview
+		 * Uses timeline visualization for visual preview
 		 */
 		updateRecurrencePreview: function() {
-			var $preview = $( '#wsscd-recurrence-preview-text' );
+			var $summaryText = $( '#wsscd-schedule-summary-text .wsscd-schedule-summary__description' );
 
 			if ( !this.modules.state || 'function' !== typeof this.modules.state.getState ) {
-				$preview.html( '<em>Configure recurrence settings to see preview</em>' );
+				if ( $summaryText.length ) {
+					$summaryText.text( 'Configure your recurring schedule above' );
+				}
+				this.updateTimelineVisualization( [] );
 				return;
 			}
 
 			var state = this.modules.state.getState();
 
 			if ( !state.enableRecurring ) {
-				$preview.html( '<em>Configure recurrence settings to see preview</em>' );
+				if ( $summaryText.length ) {
+					$summaryText.text( 'Configure your recurring schedule above' );
+				}
+				this.updateTimelineVisualization( [] );
 				return;
 			}
 
-			// Build preview text with mode indicator
-			var recurrenceMode = state.recurrenceMode || 'continuous';
-			var modeLabel = 'continuous' === recurrenceMode
-				? '<span class="wsscd-mode-badge wsscd-mode-continuous">Continuous</span> '
-				: '<span class="wsscd-mode-badge wsscd-mode-instances">Instances</span> ';
+			// Parse values ensuring correct types
+			var interval = parseInt( state.recurrenceInterval, 10 ) || 1;
+			var count = parseInt( state.recurrenceCount, 10 ) || 10;
+			var pattern = state.recurrencePattern || 'daily';
+			var endType = state.recurrenceEndType || 'never';
 
-			var text = modeLabel + 'Repeats every ' + state.recurrenceInterval + ' ';
+			// Check if we have required dates for calculation
+			if ( ! state.startDate || ! state.endDate ) {
+				if ( $summaryText.length ) {
+					$summaryText.text( 'Set campaign dates to see recurrence schedule' );
+				}
+				this.updateTimelineVisualization( [] );
+				return;
+			}
 
-			if ( 'daily' === state.recurrencePattern ) {
-				text += 1 === state.recurrenceInterval ? 'day' : 'days';
-			} else if ( 'weekly' === state.recurrencePattern ) {
-				text += 1 === state.recurrenceInterval ? 'week' : 'weeks';
+			// Calculate campaign duration for context
+			var startDate = new Date( state.startDate );
+			var endDate = new Date( state.endDate );
+			var durationMs = endDate.getTime() - startDate.getTime();
+			var durationDays = Math.ceil( durationMs / ( 1000 * 60 * 60 * 24 ) );
 
+			// Build natural language summary
+			var summaryParts = [];
+
+			// Interval description
+			var intervalText = 'Every ' + interval + ' ';
+			if ( 'daily' === pattern ) {
+				intervalText += ( 1 === interval ? 'day' : 'days' );
+			} else if ( 'weekly' === pattern ) {
+				intervalText += ( 1 === interval ? 'week' : 'weeks' );
 				if ( state.recurrenceDays && 0 < state.recurrenceDays.length ) {
 					var dayLabels = this.getDayLabels( state.recurrenceDays );
-					text += ' on ' + dayLabels.join( ', ' );
+					intervalText += ' on ' + dayLabels.join( ', ' );
 				}
-			} else if ( 'monthly' === state.recurrencePattern ) {
-				text += 1 === state.recurrenceInterval ? 'month' : 'months';
+			} else if ( 'monthly' === pattern ) {
+				intervalText += ( 1 === interval ? 'month' : 'months' );
 			}
+			summaryParts.push( intervalText );
 
-			if ( 'after' === state.recurrenceEndType ) {
-				text += ', ' + state.recurrenceCount + ' ' + ( 1 === state.recurrenceCount ? 'time' : 'times' );
-			} else if ( 'on' === state.recurrenceEndType && state.recurrenceEndDate ) {
+			// Add context about what this means
+			summaryParts.push( 'after each ' + durationDays + '-day campaign ends' );
+
+			// End type
+			if ( 'after' === endType ) {
+				summaryParts.push( '(' + count + ' ' + ( 1 === count ? 'repeat' : 'repeats' ) + ')' );
+			} else if ( 'on' === endType && state.recurrenceEndDate ) {
 				var formattedDate = new Date( state.recurrenceEndDate ).toLocaleDateString();
-				text += ', until ' + formattedDate;
+				summaryParts.push( '(until ' + formattedDate + ')' );
+			} else if ( 'never' === endType ) {
+				summaryParts.push( '(ongoing)' );
 			}
 
-			// Generate occurrences
+			var summaryTextContent = summaryParts.join( ' ' );
+
+			// Update summary text
+			if ( $summaryText.length ) {
+				$summaryText.text( summaryTextContent );
+			}
+
+			// Generate and display timeline
 			var occurrences = this.calculateNextOccurrences( this.getPreviewOccurrenceCount() );
-			if ( 0 < occurrences.length ) {
-				text += '<ul class="wsscd-occurrence-list">';
-				for ( var i = 0; i < occurrences.length; i++ ) {
-					text += '<li>' + occurrences[i] + '</li>';
-				}
-				text += '</ul>';
-			}
-
-			$preview.html( text );
+			this.updateTimelineVisualization( occurrences );
 		},
 
 		/**
-		 * Calculate next occurrences
-		 * @param count
+		 * Update timeline visualization
+		 * Shows original campaign + recurrence instances
+		 * @param occurrences Array of date strings (recurrence start dates)
 		 */
-		calculateNextOccurrences: function( count ) {
+		updateTimelineVisualization: function( occurrences ) {
+			var $timeline = $( '#wsscd-schedule-timeline .wsscd-schedule-timeline__track' );
+			if ( ! $timeline.length ) {
+				return;
+			}
+
+			var state = this.modules.state ? this.modules.state.getState() : {};
+
+			// Check if we have required dates
+			if ( ! state.startDate ) {
+				$timeline.html(
+					'<div class="wsscd-schedule-timeline__placeholder">' +
+						'<span class="wsscd-icon wsscd-icon--info-outline"></span>' +
+						'<span>Set a start date to see the timeline</span>' +
+					'</div>'
+				);
+				return;
+			}
+
+			if ( ! state.endDate ) {
+				$timeline.html(
+					'<div class="wsscd-schedule-timeline__placeholder">' +
+						'<span class="wsscd-icon wsscd-icon--info-outline"></span>' +
+						'<span>Set an end date to calculate recurrences</span>' +
+					'</div>'
+				);
+				return;
+			}
+
+			if ( ! occurrences || 0 === occurrences.length ) {
+				$timeline.html(
+					'<div class="wsscd-schedule-timeline__placeholder">' +
+						'<span class="wsscd-icon wsscd-icon--update"></span>' +
+						'<span>Configure recurrence settings above</span>' +
+					'</div>'
+				);
+				return;
+			}
+
+			// Build timeline with original campaign + recurrences
+			var markersHtml = '<div class="wsscd-schedule-timeline__markers">';
+
+			// Add original campaign as first marker (highlighted differently)
+			var startDate = new Date( state.startDate );
+			var endDate = new Date( state.endDate );
+			var originalDateRange = this.formatDateRange( startDate, endDate );
+			markersHtml += '<div class="wsscd-schedule-timeline__marker wsscd-schedule-timeline__marker--original">';
+			markersHtml += '<span class="wsscd-schedule-timeline__marker-day">' + originalDateRange.days + '</span>';
+			markersHtml += '<span class="wsscd-schedule-timeline__marker-month">' + originalDateRange.months + '</span>';
+			markersHtml += '<span class="wsscd-schedule-timeline__marker-label">Original</span>';
+			markersHtml += '</div>';
+
+			// Add arrow separator
+			markersHtml += '<div class="wsscd-schedule-timeline__arrow">→</div>';
+
+			// Add recurrence markers (dynamic count based on end type)
+			var maxMarkers = Math.min( occurrences.length, this.getMaxDisplayMarkers() );
+			for ( var i = 0; i < maxMarkers; i++ ) {
+				var occurrence = occurrences[i];
+				var dateRange = this.formatDateRange( occurrence.start, occurrence.end );
+
+				markersHtml += '<div class="wsscd-schedule-timeline__marker">';
+				markersHtml += '<span class="wsscd-schedule-timeline__marker-day">' + dateRange.days + '</span>';
+				markersHtml += '<span class="wsscd-schedule-timeline__marker-month">' + dateRange.months + '</span>';
+				markersHtml += '</div>';
+			}
+
+			// Show "more" indicator if there are more occurrences
+			if ( occurrences.length > maxMarkers ) {
+				markersHtml += '<div class="wsscd-schedule-timeline__marker wsscd-schedule-timeline__marker--more">';
+				markersHtml += '<span class="wsscd-schedule-timeline__marker-day">+' + ( occurrences.length - maxMarkers ) + '</span>';
+				markersHtml += '<span class="wsscd-schedule-timeline__marker-month">more</span>';
+				markersHtml += '</div>';
+			}
+
+			markersHtml += '</div>';
+			$timeline.html( markersHtml );
+		},
+
+		/**
+		 * Calculate next occurrences (campaign instance start dates)
+		 *
+		 * Recurrence means the campaign REPEATS after it ends.
+		 * Each occurrence = previous instance END + interval.
+		 * Each instance runs for the same duration as the original campaign.
+		 *
+		 * For weekly pattern with specific days:
+		 * - Find the next selected weekday after previous instance ends + interval
+		 *
+		 * Example: 3-day campaign (Feb 1-3), repeat every 1 day, 3 times:
+		 * - Instance 1: Feb 1-3 (original)
+		 * - Instance 2: Feb 4-6 (Feb 3 + 1 day = Feb 4 start)
+		 * - Instance 3: Feb 7-9 (Feb 6 + 1 day = Feb 7 start)
+		 *
+		 * @param maxCount Maximum number of occurrences to return for preview
+		 */
+		calculateNextOccurrences: function( maxCount ) {
+			var self = this;
 			var occurrences = [];
 
 			if ( !this.modules.state || 'function' !== typeof this.modules.state.getState ) {
@@ -547,29 +880,124 @@
 
 			var state = this.modules.state.getState();
 
-			if ( !state.startDate ) {
+			// Need both start and end date to calculate recurrences
+			if ( !state.startDate || !state.endDate ) {
 				return occurrences;
 			}
 
-			var startDate = new Date( state.startDate );
-			var interval = state.recurrenceInterval;
-			var pattern = state.recurrencePattern;
+			var campaignStart = new Date( state.startDate );
+			var campaignEnd = new Date( state.endDate );
 
-			for ( var i = 0; i < count; i++ ) {
-				var nextDate = new Date( startDate );
+			// Calculate campaign duration in days
+			var durationMs = campaignEnd.getTime() - campaignStart.getTime();
+			var durationDays = Math.ceil( durationMs / ( 1000 * 60 * 60 * 24 ) );
 
+			var interval = parseInt( state.recurrenceInterval, 10 ) || 1;
+			var pattern = state.recurrencePattern || 'daily';
+			var endType = state.recurrenceEndType || 'never';
+			var recurrenceCount = parseInt( state.recurrenceCount, 10 ) || 10;
+
+			// Determine maximum occurrences based on end type
+			var maxOccurrences = maxCount;
+			if ( 'after' === endType ) {
+				maxOccurrences = Math.min( recurrenceCount, maxCount );
+			}
+
+			// Get recurrence end date if specified
+			var recurrenceEndDate = null;
+			if ( 'on' === endType && state.recurrenceEndDate ) {
+				recurrenceEndDate = new Date( state.recurrenceEndDate );
+				recurrenceEndDate.setHours( 23, 59, 59, 999 );
+			}
+
+			// Get selected weekdays for weekly pattern (convert to JS day numbers: 0=Sun, 1=Mon, etc.)
+			var selectedWeekdays = [];
+			if ( 'weekly' === pattern && state.recurrenceDays && state.recurrenceDays.length > 0 ) {
+				var dayMap = { 'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6 };
+				for ( var d = 0; d < state.recurrenceDays.length; d++ ) {
+					var dayVal = state.recurrenceDays[d];
+					if ( dayMap.hasOwnProperty( dayVal ) ) {
+						selectedWeekdays.push( dayMap[dayVal] );
+					}
+				}
+				selectedWeekdays.sort( function( a, b ) { return a - b; } );
+			}
+
+			// Track the end of the previous instance (starts with original campaign end)
+			var previousEndDate = new Date( campaignEnd );
+
+			// Calculate occurrences
+			for ( var i = 0; i < maxOccurrences; i++ ) {
+				var nextStartDate = new Date( previousEndDate );
+
+				// Add interval after previous instance ends
 				if ( 'daily' === pattern ) {
-					nextDate.setDate( nextDate.getDate() + ( interval * ( i + 1 ) ) );
+					nextStartDate.setDate( nextStartDate.getDate() + interval );
 				} else if ( 'weekly' === pattern ) {
-					nextDate.setDate( nextDate.getDate() + ( interval * 7 * ( i + 1 ) ) );
+					// First, move forward by the interval in weeks
+					nextStartDate.setDate( nextStartDate.getDate() + ( interval * 7 ) );
+
+					// If specific days are selected, find the next occurrence on one of those days
+					if ( selectedWeekdays.length > 0 ) {
+						nextStartDate = self.findNextWeekday( nextStartDate, selectedWeekdays, durationDays );
+					}
 				} else if ( 'monthly' === pattern ) {
-					nextDate.setMonth( nextDate.getMonth() + ( interval * ( i + 1 ) ) );
+					nextStartDate.setMonth( nextStartDate.getMonth() + interval );
 				}
 
-				occurrences.push( nextDate.toLocaleDateString() );
+				// Check recurrence end date limit
+				if ( recurrenceEndDate && nextStartDate > recurrenceEndDate ) {
+					break;
+				}
+
+				// Calculate when this instance ends
+				var nextEndDate = new Date( nextStartDate );
+				nextEndDate.setDate( nextEndDate.getDate() + durationDays );
+
+				// Return object with both start and end dates
+				occurrences.push( {
+					start: new Date( nextStartDate ),
+					end: new Date( nextEndDate )
+				} );
+
+				// Track end for next iteration
+				previousEndDate = nextEndDate;
 			}
 
 			return occurrences;
+		},
+
+		/**
+		 * Find the next occurrence date that falls on one of the selected weekdays
+		 * Ensures the campaign duration doesn't overlap with the next selected day
+		 *
+		 * @param {Date} fromDate - Start searching from this date
+		 * @param {array} selectedWeekdays - Array of JS day numbers (0=Sun, 6=Sat)
+		 * @param {number} durationDays - Campaign duration in days
+		 * @return {Date} The next valid start date
+		 */
+		findNextWeekday: function( fromDate, selectedWeekdays, durationDays ) {
+			var currentDay = fromDate.getDay();
+			var result = new Date( fromDate );
+
+			// Find next selected weekday on or after fromDate
+			var daysToAdd = 0;
+			var found = false;
+
+			for ( var offset = 0; offset < 7; offset++ ) {
+				var checkDay = ( currentDay + offset ) % 7;
+				if ( selectedWeekdays.indexOf( checkDay ) !== -1 ) {
+					daysToAdd = offset;
+					found = true;
+					break;
+				}
+			}
+
+			if ( found ) {
+				result.setDate( result.getDate() + daysToAdd );
+			}
+
+			return result;
 		},
 
 		/**
@@ -579,9 +1007,6 @@
 		applyPreset: function( preset ) {
 			try {
 				if ( !preset || !preset.duration || !preset.unit ) {
-					if ( window.console && window.console.error ) {
-						console.error( '[Schedule] Invalid preset object:', preset );
-					}
 					this.showError( 'Invalid preset configuration', 'error', 3000 );
 					return;
 				}
@@ -597,17 +1022,11 @@
 				} else if ( 'hours' === preset.unit ) {
 					calculatedSeconds = preset.duration * 60 * 60;
 				} else {
-					if ( window.console && window.console.error ) {
-						console.error( '[Schedule] Invalid preset unit:', preset.unit );
-					}
 					this.showError( 'Invalid preset duration unit', 'error', 3000 );
 					return;
 				}
 
 				if ( calculatedSeconds < minDurationSeconds || calculatedSeconds > maxDurationSeconds ) {
-					if ( window.console && window.console.error ) {
-						console.error( '[Schedule] Preset duration out of range:', calculatedSeconds );
-					}
 					this.showError( 'Preset duration must be between 5 minutes and 365 days', 'error', 3000 );
 					return;
 				}
@@ -743,22 +1162,37 @@
 				var $recurringOptions = $( '#wsscd-recurring-options' );
 				var $recurrenceModeOptions = $( '#wsscd-recurrence-mode-options' );
 				var $recurringWarning = $( '#wsscd-recurring-warning' );
+				var $scheduleTypeCards = this.$container.find( '.wsscd-schedule-type-card' );
+
+				// NEW: Update schedule type cards visual state
+				$scheduleTypeCards.removeClass( 'selected' );
+				var scheduleTypeValue = enableRecurring ? 'recurring' : 'one-time';
+				$( 'input[name="schedule_type"][value="' + scheduleTypeValue + '"]' )
+					.prop( 'checked', true )
+					.closest( '.wsscd-schedule-type-card' )
+					.addClass( 'selected' );
 
 				$recurringOptions.toggle( enableRecurring );
 				$recurringOptions.attr( 'aria-hidden', !enableRecurring );
-				$recurrenceModeOptions.toggle( enableRecurring );
-				$recurrenceModeOptions.attr( 'aria-hidden', !enableRecurring );
+				if ( $recurrenceModeOptions.length ) {
+					$recurrenceModeOptions.toggle( enableRecurring );
+					$recurrenceModeOptions.attr( 'aria-hidden', !enableRecurring );
+				}
 
 				// Only show warning for instances mode
-				$recurringWarning.toggle( enableRecurring && 'instances' === recurrenceMode );
+				if ( $recurringWarning.length ) {
+					$recurringWarning.toggle( enableRecurring && 'instances' === recurrenceMode );
+				}
 			}
 
-			// Update recurrence mode card selection
+			// Update recurrence mode selection
 			if ( recurrenceMode ) {
-				var $modeCards = this.$container.find( '.wsscd-recurrence-mode-card' );
-				$modeCards.removeClass( 'selected' );
+				var $modeOptions = this.$container.find( '.wsscd-mode-option' );
+				$modeOptions.removeClass( 'selected' );
+
 				$( 'input[name="recurrence_mode"][value="' + recurrenceMode + '"]' )
-					.closest( '.wsscd-recurrence-mode-card' )
+					.prop( 'checked', true )
+					.closest( '.wsscd-mode-option' )
 					.addClass( 'selected' );
 			}
 
@@ -769,8 +1203,32 @@
 
 			var recurrenceEndType = this.getPropertyValue( data, [ 'recurrenceEndType' ] );
 			if ( recurrenceEndType ) {
+				// NEW: Update until dropdown and conditional sections
+				$( '#recurrence_end_type_select' ).val( recurrenceEndType );
+				$( '.wsscd-recurring-until__after' ).toggle( 'after' === recurrenceEndType );
+				$( '.wsscd-recurring-until__on' ).toggle( 'on' === recurrenceEndType );
+
 				$( '#recurrence_count' ).prop( 'disabled', 'after' !== recurrenceEndType );
 				$( '#recurrence_end_date' ).prop( 'disabled', 'on' !== recurrenceEndType );
+			}
+
+			// Update day chips visual state
+			var recurrenceDays = this.getPropertyValue( data, [ 'recurrenceDays' ] );
+			if ( recurrenceDays && Array.isArray( recurrenceDays ) ) {
+				var $dayChips = this.$container.find( '.wsscd-day-chip' );
+				$dayChips.each( function() {
+					var $chip = $( this );
+					var $checkbox = $chip.find( 'input[type="checkbox"]' );
+					var dayValue = $checkbox.val();
+
+					if ( recurrenceDays.indexOf( dayValue ) !== -1 ) {
+						$checkbox.prop( 'checked', true );
+						$chip.addClass( 'selected' );
+					} else {
+						$checkbox.prop( 'checked', false );
+						$chip.removeClass( 'selected' );
+					}
+				} );
 			}
 
 			this.updateRecurrencePreview();
@@ -1008,7 +1466,79 @@
 		/**
 		 * Get preview occurrence count
 		 */
+		/**
+		 * Format a date range for display in timeline markers
+		 * Handles same-month and cross-month ranges
+		 *
+		 * @param {Date} startDate - Start date
+		 * @param {Date} endDate - End date
+		 * @return {object} { days: '2-5', months: 'Feb' } or { days: '28-2', months: 'Feb-Mar' }
+		 */
+		formatDateRange: function( startDate, endDate ) {
+			var startDay = startDate.getDate();
+			var endDay = endDate.getDate();
+			var startMonth = startDate.toLocaleDateString( 'en-US', { month: 'short' } );
+			var endMonth = endDate.toLocaleDateString( 'en-US', { month: 'short' } );
+
+			// Same day (1-day campaign)
+			if ( startDay === endDay && startMonth === endMonth ) {
+				return {
+					days: String( startDay ),
+					months: startMonth
+				};
+			}
+
+			// Same month
+			if ( startMonth === endMonth ) {
+				return {
+					days: startDay + '-' + endDay,
+					months: startMonth
+				};
+			}
+
+			// Cross-month
+			return {
+				days: startDay + '-' + endDay,
+				months: startMonth + '-' + endMonth
+			};
+		},
+
+		/**
+		 * Get the number of occurrences to calculate for preview
+		 * Dynamic based on end type
+		 */
 		getPreviewOccurrenceCount: function() {
+			var state = this.modules.state ? this.modules.state.getState() : {};
+			var endType = state.recurrenceEndType || 'never';
+			var count = parseInt( state.recurrenceCount, 10 ) || 10;
+
+			if ( 'after' === endType ) {
+				// Calculate all occurrences up to 12 for "after X" type
+				return Math.min( count, 12 );
+			}
+
+			// For "never" or "on date", calculate 8 for preview
+			return 8;
+		},
+
+		/**
+		 * Get the maximum number of markers to display in timeline
+		 * Dynamic based on end type:
+		 * - "After X" with small X (≤6): Show all
+		 * - "After X" with large X (>6): Show 6 + "+X more"
+		 * - "Never"/"On date": Show 5 as reasonable preview
+		 */
+		getMaxDisplayMarkers: function() {
+			var state = this.modules.state ? this.modules.state.getState() : {};
+			var endType = state.recurrenceEndType || 'never';
+			var count = parseInt( state.recurrenceCount, 10 ) || 10;
+
+			if ( 'after' === endType ) {
+				// Show all if count is small (≤6), otherwise cap at 6
+				return count <= 6 ? count : 6;
+			}
+
+			// For "never" or "on date", show 5 as reasonable preview
 			return 5;
 		},
 
@@ -1111,6 +1641,366 @@
 		}
 
 		return { valid: true };
+	},
+
+	/**
+	 * Get campaign duration in days
+	 * @return {number} Duration in days, or 0 if dates not set
+	 */
+	getCampaignDurationDays: function() {
+		var state = this.modules.state ? this.modules.state.getState() : {};
+		if ( ! state.startDate || ! state.endDate ) {
+			return 0;
+		}
+
+		var startDate = new Date( state.startDate );
+		var endDate = new Date( state.endDate );
+		var durationMs = endDate.getTime() - startDate.getTime();
+		return Math.ceil( durationMs / ( 1000 * 60 * 60 * 24 ) );
+	},
+
+	/**
+	 * Update weekly day chips - disable days that would cause overlap
+	 * Called when: days selected, campaign dates change, pattern changes
+	 */
+	updateWeeklyDayConstraints: function() {
+		var self = this;
+		var durationDays = this.getCampaignDurationDays();
+		var $daysContainer = this.$container.find( '.wsscd-recurring-days' );
+		var $dayChips = $daysContainer.find( '.wsscd-day-chip' );
+		var $infoEl = $daysContainer.find( '.wsscd-days-info' );
+
+		// Day name to number mapping
+		var dayMap = { 'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6 };
+		var dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+		// Get currently selected days
+		var selectedDays = [];
+		$dayChips.each( function() {
+			var $chip = $( this );
+			var $checkbox = $chip.find( 'input[type="checkbox"]' );
+			if ( $checkbox.is( ':checked' ) ) {
+				selectedDays.push( dayMap[ $checkbox.val() ] );
+			}
+		} );
+
+		// Reset all chips first
+		$dayChips.removeClass( 'disabled' );
+		$dayChips.find( 'input[type="checkbox"]' ).prop( 'disabled', false );
+
+		// If no duration or duration is 1 day, no constraints needed
+		if ( durationDays <= 1 ) {
+			$infoEl.remove();
+			$daysContainer.removeClass( 'has-info' );
+			return;
+		}
+
+		// Calculate which days should be disabled based on selected days
+		var disabledDays = [];
+
+		selectedDays.forEach( function( selectedDay ) {
+			// Disable days within (durationDays - 1) before and after
+			for ( var offset = 1; offset < durationDays; offset++ ) {
+				// Days after
+				var afterDay = ( selectedDay + offset ) % 7;
+				if ( selectedDays.indexOf( afterDay ) === -1 ) {
+					disabledDays.push( afterDay );
+				}
+				// Days before
+				var beforeDay = ( selectedDay - offset + 7 ) % 7;
+				if ( selectedDays.indexOf( beforeDay ) === -1 ) {
+					disabledDays.push( beforeDay );
+				}
+			}
+		} );
+
+		// Remove duplicates
+		disabledDays = disabledDays.filter( function( day, index, arr ) {
+			return arr.indexOf( day ) === index;
+		} );
+
+		// Apply disabled state to chips
+		$dayChips.each( function() {
+			var $chip = $( this );
+			var $checkbox = $chip.find( 'input[type="checkbox"]' );
+			var dayNum = dayMap[ $checkbox.val() ];
+
+			if ( disabledDays.indexOf( dayNum ) !== -1 ) {
+				$chip.addClass( 'disabled' );
+				$checkbox.prop( 'disabled', true );
+			}
+		} );
+
+		// Show info message about constraints
+		if ( durationDays > 1 ) {
+			if ( ! $infoEl.length ) {
+				$infoEl = $( '<div class="wsscd-days-info"></div>' );
+				$daysContainer.append( $infoEl );
+			}
+
+			var availableDays = 7 - disabledDays.length - selectedDays.length;
+			var infoText = 'Campaign runs ' + durationDays + ' days. Days must be ' + durationDays + '+ days apart.';
+
+			if ( selectedDays.length > 0 && availableDays === 0 && disabledDays.length > 0 ) {
+				infoText += ' No more days available.';
+			}
+
+			$infoEl.html(
+				'<span class="wsscd-days-info__icon">ℹ️</span>' +
+				'<span class="wsscd-days-info__text">' + infoText + '</span>'
+			);
+			$daysContainer.addClass( 'has-info' );
+		} else {
+			$infoEl.remove();
+			$daysContainer.removeClass( 'has-info' );
+		}
+	},
+
+	/**
+	 * Validate weekly recurrence days - simplified for constrained UI
+	 * Only checks for no days selected or all days selected
+	 *
+	 * @param {array} selectedDays - Array of selected day values ('mon', 'tue', etc.)
+	 * @return {object} Validation result {valid: boolean, warning: string}
+	 */
+	validateWeeklyDays: function( selectedDays ) {
+		// Check if no days selected
+		if ( ! selectedDays || 0 === selectedDays.length ) {
+			return {
+				valid: false,
+				warning: 'Please select at least one day for weekly recurrence.',
+				type: 'error'
+			};
+		}
+
+		// Check if all 7 days selected - suggest daily pattern instead
+		if ( 7 === selectedDays.length ) {
+			return {
+				valid: true,
+				warning: 'All days selected. Consider using "Daily" pattern instead for simpler configuration.',
+				type: 'suggestion'
+			};
+		}
+
+		return { valid: true };
+	},
+
+	/**
+	 * Show validation feedback for weekly days selection
+	 * @param {object} validation - Result from validateWeeklyDays
+	 */
+	showWeeklyDaysValidation: function( validation ) {
+		var $daysContainer = this.$container.find( '.wsscd-recurring-days' );
+		var $warningEl = $daysContainer.find( '.wsscd-days-warning' );
+		var $suggestionEl = $daysContainer.find( '.wsscd-days-suggestion' );
+
+		// Clear warning/suggestion (but not info)
+		$warningEl.remove();
+		$suggestionEl.remove();
+		$daysContainer.removeClass( 'has-warning has-suggestion has-error' );
+
+		// No message needed
+		if ( validation.valid && ! validation.warning ) {
+			return;
+		}
+
+		// Show warning or suggestion
+		if ( validation.warning ) {
+			var cssClass = 'suggestion' === validation.type ? 'wsscd-days-suggestion' : 'wsscd-days-warning';
+			var icon = 'suggestion' === validation.type ? '💡' : ( 'error' === validation.type ? '❌' : '⚠️' );
+			var containerClass = 'suggestion' === validation.type ? 'has-suggestion' : ( 'error' === validation.type ? 'has-error' : 'has-warning' );
+
+			var $el = $( '<div class="' + cssClass + '"></div>' );
+			$el.html(
+				'<span class="' + cssClass + '__icon">' + icon + '</span>' +
+				'<span class="' + cssClass + '__text">' + validation.warning + '</span>'
+			);
+			$daysContainer.append( $el );
+			$daysContainer.addClass( containerClass );
+		}
+	},
+
+	/**
+	 * Validate recurrence interval against campaign duration
+	 *
+	 * NOTE: Always returns valid because the recurrence logic is:
+	 *   nextInstanceStart = previousInstanceEnd + interval
+	 *
+	 * This means ANY positive interval is valid - overlap is impossible.
+	 * Example: 3-day campaign (Feb 1-3), 1-day interval:
+	 *   Instance 1: Feb 1-3
+	 *   Instance 2: Feb 3 + 1 = Feb 4-6 (no overlap)
+	 *
+	 * For weekly patterns with specific days, overlap prevention is handled
+	 * by updateWeeklyDayConstraints() which disables invalid day selections.
+	 *
+	 * @return {object} Validation result {valid: boolean}
+	 */
+	validateIntervalVsDuration: function() {
+		return { valid: true };
+	},
+
+	/**
+	 * Show validation feedback for interval (clears any existing warnings)
+	 * @param {object} validation - Result from validateIntervalVsDuration
+	 */
+	showIntervalValidation: function( validation ) {
+		var $frequencyRow = this.$container.find( '.wsscd-recurring-frequency' );
+		var $warningEl = $frequencyRow.find( '.wsscd-interval-warning' );
+
+		// Always clear since validation always passes
+		$warningEl.remove();
+		$frequencyRow.removeClass( 'has-warning' );
+	},
+
+	/**
+	 * Validate recurrence end date
+	 * Checks:
+	 * 1. End date is not in the past
+	 * 2. End date allows at least one recurrence to occur
+	 *
+	 * @return {object} Validation result {valid: boolean, warning: string}
+	 */
+	validateRecurrenceEndDate: function() {
+		var state = this.modules.state ? this.modules.state.getState() : {};
+
+		// Only validate if using "on" end type
+		if ( 'on' !== state.recurrenceEndType || ! state.recurrenceEndDate ) {
+			return { valid: true };
+		}
+
+		var recurrenceEnd = new Date( state.recurrenceEndDate );
+		recurrenceEnd.setHours( 23, 59, 59, 999 );
+
+		// Check if end date is in the past
+		var today = new Date();
+		today.setHours( 0, 0, 0, 0 );
+		if ( recurrenceEnd < today ) {
+			return {
+				valid: false,
+				warning: 'Recurrence end date (' + recurrenceEnd.toLocaleDateString() + ') is in the past.',
+				type: 'error'
+			};
+		}
+
+		// Need campaign dates to calculate first recurrence
+		if ( ! state.startDate || ! state.endDate ) {
+			return { valid: true };
+		}
+
+		var campaignEnd = new Date( state.endDate );
+		var interval = parseInt( state.recurrenceInterval, 10 ) || 1;
+		var pattern = state.recurrencePattern || 'daily';
+
+		// Calculate when first recurrence would start
+		var firstRecurrenceStart = new Date( campaignEnd );
+		if ( 'daily' === pattern ) {
+			firstRecurrenceStart.setDate( firstRecurrenceStart.getDate() + interval );
+		} else if ( 'weekly' === pattern ) {
+			firstRecurrenceStart.setDate( firstRecurrenceStart.getDate() + ( interval * 7 ) );
+		} else if ( 'monthly' === pattern ) {
+			firstRecurrenceStart.setMonth( firstRecurrenceStart.getMonth() + interval );
+		}
+
+		// Check if end date is before first recurrence would even start
+		if ( recurrenceEnd < firstRecurrenceStart ) {
+			var firstStartFormatted = firstRecurrenceStart.toLocaleDateString();
+			return {
+				valid: false,
+				warning: 'Recurrence end date (' + recurrenceEnd.toLocaleDateString() + ') is before the first recurrence would start (' + firstStartFormatted + ').',
+				type: 'error'
+			};
+		}
+
+		return { valid: true };
+	},
+
+	/**
+	 * Show validation feedback for recurrence end date
+	 * @param {object} validation - Result from validateRecurrenceEndDate
+	 */
+	showRecurrenceEndDateValidation: function( validation ) {
+		var $endDateRow = this.$container.find( '.wsscd-recurring-until__on' );
+		var $warningEl = $endDateRow.find( '.wsscd-enddate-warning' );
+
+		if ( validation.valid ) {
+			$warningEl.remove();
+			$endDateRow.removeClass( 'has-warning has-error' );
+			return;
+		}
+
+		// Determine icon and class based on type
+		var icon = 'error' === validation.type ? '❌' : '⚠️';
+		var containerClass = 'error' === validation.type ? 'has-error' : 'has-warning';
+
+		// Create or update warning element
+		if ( ! $warningEl.length ) {
+			$warningEl = $( '<div class="wsscd-enddate-warning"></div>' );
+			$endDateRow.append( $warningEl );
+		}
+
+		$warningEl.html(
+			'<span class="wsscd-enddate-warning__icon">' + icon + '</span>' +
+			'<span class="wsscd-enddate-warning__text">' + validation.warning + '</span>'
+		);
+		$endDateRow.removeClass( 'has-warning has-error' ).addClass( containerClass );
+	},
+
+	/**
+	 * Validate monthly pattern for end-of-month edge cases
+	 * Warns if campaign start date is 29th, 30th, or 31st
+	 *
+	 * @return {object} Validation result {valid: boolean, info: string}
+	 */
+	validateMonthlyEdgeCase: function() {
+		var state = this.modules.state ? this.modules.state.getState() : {};
+
+		// Only validate monthly pattern
+		if ( 'monthly' !== state.recurrencePattern ) {
+			return { valid: true };
+		}
+
+		if ( ! state.endDate ) {
+			return { valid: true };
+		}
+
+		var endDate = new Date( state.endDate );
+		var dayOfMonth = endDate.getDate();
+
+		// Days 29-31 can cause month-end shifts
+		if ( dayOfMonth >= 29 ) {
+			return {
+				valid: true, // Not blocking, just informational
+				info: 'Note: Campaign ends on day ' + dayOfMonth + '. For months with fewer days, recurrence will shift to the last day of that month (e.g., Feb ' + ( dayOfMonth > 28 ? '28/29' : dayOfMonth ) + ').'
+			};
+		}
+
+		return { valid: true };
+	},
+
+	/**
+	 * Show informational message for monthly edge case
+	 * @param {object} validation - Result from validateMonthlyEdgeCase
+	 */
+	showMonthlyEdgeCaseInfo: function( validation ) {
+		var $patternRow = this.$container.find( '.wsscd-recurring-frequency' );
+		var $infoEl = $patternRow.find( '.wsscd-monthly-info' );
+
+		if ( ! validation.info ) {
+			$infoEl.remove();
+			return;
+		}
+
+		// Create or update info element
+		if ( ! $infoEl.length ) {
+			$infoEl = $( '<div class="wsscd-monthly-info"></div>' );
+			$patternRow.append( $infoEl );
+		}
+
+		$infoEl.html(
+			'<span class="wsscd-monthly-info__icon">ℹ️</span>' +
+			'<span class="wsscd-monthly-info__text">' + validation.info + '</span>'
+		);
 	},
 
 	/**
@@ -1245,6 +2135,33 @@
 		);
 		if ( ! recurringValidation.valid ) {
 			errors.push( recurringValidation );
+		}
+
+		// Additional smart validations for recurring campaigns
+		if ( state.enableRecurring && state.endDate ) {
+			// Validate weekly days selection
+			if ( 'weekly' === state.recurrencePattern ) {
+				var weeklyValidation = this.validateWeeklyDays( state.recurrenceDays );
+				if ( ! weeklyValidation.valid && 'error' === weeklyValidation.type ) {
+					errors.push( {
+						valid: false,
+						field: 'recurrence_days',
+						message: weeklyValidation.warning
+					} );
+				}
+			}
+
+			// Validate recurrence end date
+			if ( 'on' === state.recurrenceEndType ) {
+				var endDateValidation = this.validateRecurrenceEndDate();
+				if ( ! endDateValidation.valid ) {
+					errors.push( {
+						valid: false,
+						field: 'recurrence_end_date',
+						message: endDateValidation.warning
+					} );
+				}
+			}
 		}
 
 		if ( errors.length > 0 ) {

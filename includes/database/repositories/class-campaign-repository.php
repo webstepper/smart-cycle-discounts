@@ -184,6 +184,7 @@ class WSSCD_Campaign_Repository extends WSSCD_Base_Repository {
 							r.recurrence_end_type,
 							r.recurrence_count,
 							r.recurrence_end_date,
+							r.recurrence_mode,
 							r.is_active as recurring_is_active
 						FROM {$this->table_name} c
 						LEFT JOIN {$recurring_table} r
@@ -199,6 +200,7 @@ class WSSCD_Campaign_Repository extends WSSCD_Base_Repository {
 							r.recurrence_end_type,
 							r.recurrence_count,
 							r.recurrence_end_date,
+							r.recurrence_mode,
 							r.is_active as recurring_is_active
 						FROM {$this->table_name} c
 						LEFT JOIN {$recurring_table} r
@@ -854,6 +856,7 @@ class WSSCD_Campaign_Repository extends WSSCD_Base_Repository {
 			'recurrence_end_type' => $recurring_config['recurrence_end_type'] ?? 'never',
 			'recurrence_count'    => isset( $recurring_config['recurrence_count'] ) ? (int) $recurring_config['recurrence_count'] : null,
 			'recurrence_end_date' => $recurring_config['recurrence_end_date'] ?? null,
+			'recurrence_mode'     => $recurring_config['recurrence_mode'] ?? 'continuous',
 			'is_active'           => 1,
 			'created_at'          => current_time( 'mysql' ),
 		);
@@ -871,6 +874,7 @@ class WSSCD_Campaign_Repository extends WSSCD_Base_Repository {
 				'%s', // recurrence_end_type
 				'%d', // recurrence_count
 				'%s', // recurrence_end_date
+				'%s', // recurrence_mode
 				'%d', // is_active
 				'%s', // created_at
 			)
@@ -1571,6 +1575,7 @@ class WSSCD_Campaign_Repository extends WSSCD_Base_Repository {
 				'recurrence_end_type' => $data->recurrence_end_type ?? 'never',
 				'recurrence_count'    => isset( $data->recurrence_count ) ? (int) $data->recurrence_count : null,
 				'recurrence_end_date' => $data->recurrence_end_date ?? null,
+				'recurrence_mode'     => $data->recurrence_mode ?? 'continuous',
 			);
 		}
 

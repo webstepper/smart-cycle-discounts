@@ -170,7 +170,6 @@
 		WSSCD.Modules.Schedule.API.prototype = {
 			saveStepData: function( data ) {
 				if ( !WSSCD.Ajax || !WSSCD.Ajax.post ) {
-					console.error( '[Schedule API] WSSCD.Ajax not available' );
 					return $.Deferred().reject( 'Ajax module not available' );
 				}
 				return WSSCD.Ajax.post( 'wsscd_save_step', {
@@ -184,7 +183,6 @@
 					return $.Deferred().reject( 'Schedule data is required' );
 				}
 				if ( !WSSCD.Ajax || !WSSCD.Ajax.post ) {
-					console.error( '[Schedule API] WSSCD.Ajax not available' );
 					return $.Deferred().reject( 'Ajax module not available' );
 				}
 				return WSSCD.Ajax.post( 'wsscd_validate_schedule', data );
@@ -192,7 +190,6 @@
 
 			getPresets: function() {
 				if ( !WSSCD.Ajax || !WSSCD.Ajax.post ) {
-					console.error( '[Schedule API] WSSCD.Ajax not available' );
 					return $.Deferred().reject( 'Ajax module not available' );
 				}
 				return WSSCD.Ajax.post( 'wsscd_get_schedule_presets', {} );
@@ -200,7 +197,6 @@
 
 			loadStepData: function() {
 				if ( !WSSCD.Ajax || !WSSCD.Ajax.post ) {
-					console.error( '[Schedule API] WSSCD.Ajax not available' );
 					return $.Deferred().reject( 'Ajax module not available' );
 				}
 				return WSSCD.Ajax.post( 'wsscd_load_data', { step: 'schedule' } );

@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: discount rules, BOGO, bulk discount, tiered pricing, sale scheduler
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.4.0
+Stable tag: 1.5.0
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -430,6 +430,21 @@ Pro users can configure combination policies for each campaign. Choose whether y
 
 == Changelog ==
 
+= 1.5.0 =
+* New: Smart recurrence validation system - prevents invalid recurring schedule configurations
+* New: Constrained day selection for weekly recurring campaigns - days that would cause overlap are automatically disabled
+* New: Recurrence end date validation - warns when end date is in the past or before first recurrence would start
+* New: Monthly pattern edge case detection - informs users about date shifting for campaigns ending on days 29-31
+* New: Timeline preview shows date ranges for all occurrences (e.g., "15-18 Feb" instead of just "15 Feb")
+* New: Dynamic preview count - shows all occurrences for small counts, summarizes larger ones
+* New: Initial validation on page load for editing existing campaigns with invalid settings
+* Fix: Recurrence mode now properly loads when editing existing recurring campaigns
+* Fix: Corrected recurrence logic - interval is gap between instances (end-to-start), any positive interval is valid
+* Improvement: Weekly day selection shows informative message explaining spacing requirements
+* Improvement: Disabled day chips visually indicate unavailable options with grayed-out appearance
+* Improvement: All frontend validations mirrored in backend PHP for security
+* Improvement: Smarter UX - impossible configurations prevented rather than error messages after the fact
+
 = 1.4.0 =
 * New: Continuous Recurring Mode - campaigns toggle active/inactive based on time schedule without creating database instances (Pro)
 * New: Two operational modes for recurring campaigns: "Continuous" (time-window based) and "Instances" (materialized copies)
@@ -565,6 +580,9 @@ Pro users can configure combination policies for each campaign. Choose whether y
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.5.0 =
+Smart recurring schedule validation. Fixed recurrence mode loading when editing campaigns. Timeline preview now shows date ranges for all occurrences. Invalid weekly days are automatically disabled to prevent overlap.
 
 = 1.4.0 =
 New Continuous Recurring Mode for Pro users - run daily happy hours, weekend specials, and weekly promotions without creating hundreds of database entries. Campaigns toggle active/inactive based on time schedule.

@@ -372,252 +372,161 @@ ob_start();
     ) );
     ?>
 
-    <!-- Recurring Schedule Card -->
+    <!-- Recurring Schedule Card - Redesigned -->
     <?php
     // Recurring is now FREE for all users - no premium check needed
     ob_start();
     ?>
 
-    <div id="wsscd-recurring-container">
-    <!-- Enable Recurring Toggle -->
-    <div class="wsscd-form-row">
-        <label class="wsscd-toggle-control">
-            <input type="checkbox"
+    <div id="wsscd-recurring-container" class="wsscd-recurring-redesign">
+
+        <!-- Schedule Type Selection: One-time vs Recurring -->
+        <div class="wsscd-schedule-type-selection">
+            <div class="wsscd-schedule-type-cards">
+                <label class="wsscd-schedule-type-card <?php echo ! $enable_recurring ? 'selected' : ''; ?>">
+                    <input type="radio"
+                           name="schedule_type"
+                           value="one-time"
+                           <?php checked( ! $enable_recurring ); ?>>
+                    <div class="wsscd-schedule-type-card__icon">
+                        <?php WSSCD_Icon_Helper::render( 'calendar', array( 'size' => 24 ) ); ?>
+                    </div>
+                    <div class="wsscd-schedule-type-card__content">
+                        <h5><?php esc_html_e( 'One-time', 'smart-cycle-discounts' ); ?></h5>
+                        <p><?php esc_html_e( 'Runs once on the scheduled dates', 'smart-cycle-discounts' ); ?></p>
+                    </div>
+                </label>
+
+                <label class="wsscd-schedule-type-card <?php echo $enable_recurring ? 'selected' : ''; ?>">
+                    <input type="radio"
+                           name="schedule_type"
+                           value="recurring"
+                           <?php checked( $enable_recurring ); ?>>
+                    <div class="wsscd-schedule-type-card__icon">
+                        <?php WSSCD_Icon_Helper::render( 'update', array( 'size' => 24 ) ); ?>
+                    </div>
+                    <div class="wsscd-schedule-type-card__content">
+                        <h5><?php esc_html_e( 'Recurring', 'smart-cycle-discounts' ); ?></h5>
+                        <p><?php esc_html_e( 'Repeats on a regular schedule', 'smart-cycle-discounts' ); ?></p>
+                    </div>
+                </label>
+            </div>
+            <!-- Hidden field for backend compatibility -->
+            <input type="hidden"
                    id="enable_recurring"
                    name="enable_recurring"
-                   value="1"
-                   <?php checked( $enable_recurring, true ); ?>>
-            <span class="wsscd-toggle-slider" aria-hidden="true"></span>
-            <span class="wsscd-toggle-label">
-                <?php esc_html_e( 'Enable recurring schedule', 'smart-cycle-discounts' ); ?>
-            </span>
-        </label>
-    </div>
-
-    <!-- Recurrence Mode Selection -->
-    <div id="wsscd-recurrence-mode-options"
-         class="wsscd-recurrence-mode-options wsscd-form-section"
-         style="display: <?php echo esc_attr( ( $enable_recurring ) ? 'block' : 'none' ); ?>;"
-         aria-hidden="<?php echo esc_attr( ( $enable_recurring ) ? 'false' : 'true' ); ?>">
-        <div class="wsscd-form-section-header">
-            <h4 class="wsscd-form-section-title">
-                <?php WSSCD_Icon_Helper::render( 'admin-settings', array( 'size' => 16, 'class' => 'wsscd-section-icon' ) ); ?>
-                <?php esc_html_e( 'Recurrence Mode', 'smart-cycle-discounts' ); ?>
-            </h4>
-            <?php
-            WSSCD_Tooltip_Helper::render(
-                __( 'Choose how recurring campaigns should work: Continuous mode toggles the same campaign on/off based on schedule (ideal for happy hours), while Instances mode creates separate campaign copies for each occurrence (ideal for tracking different periods separately).', 'smart-cycle-discounts' ),
-                'wsscd-tooltip--right'
-            );
-            ?>
+                   value="<?php echo esc_attr( $enable_recurring ? '1' : '0' ); ?>">
         </div>
-        <div class="wsscd-recurrence-mode-cards">
-            <label class="wsscd-card-option wsscd-recurrence-mode-card <?php echo 'continuous' === $recurrence_mode ? 'selected' : ''; ?>">
-                <input type="radio"
-                       name="recurrence_mode"
-                       value="continuous"
-                       <?php checked( $recurrence_mode, 'continuous' ); ?>>
-                <div class="wsscd-card__content">
-                    <div class="wsscd-card__header">
-                        <?php WSSCD_Icon_Helper::render( 'update', array( 'size' => 20, 'class' => 'wsscd-mode-icon' ) ); ?>
-                        <h5><?php esc_html_e( 'Continuous', 'smart-cycle-discounts' ); ?></h5>
-                        <span class="wsscd-badge wsscd-badge-recommended"><?php esc_html_e( 'Recommended', 'smart-cycle-discounts' ); ?></span>
-                    </div>
-                    <p><?php esc_html_e( 'Same campaign activates and deactivates based on time. Perfect for daily happy hours, weekend specials, or any repeating time-based promotion.', 'smart-cycle-discounts' ); ?></p>
-                    <div class="wsscd-card__example">
-                        <?php WSSCD_Icon_Helper::render( 'lightbulb', array( 'size' => 14 ) ); ?>
-                        <span><?php esc_html_e( 'Example: "Happy Hour 3-5 PM daily" - single campaign, toggles active during scheduled hours', 'smart-cycle-discounts' ); ?></span>
-                    </div>
-                </div>
-            </label>
 
-            <label class="wsscd-card-option wsscd-recurrence-mode-card <?php echo 'instances' === $recurrence_mode ? 'selected' : ''; ?>">
-                <input type="radio"
-                       name="recurrence_mode"
-                       value="instances"
-                       <?php checked( $recurrence_mode, 'instances' ); ?>>
-                <div class="wsscd-card__content">
-                    <div class="wsscd-card__header">
-                        <?php WSSCD_Icon_Helper::render( 'backup', array( 'size' => 20, 'class' => 'wsscd-mode-icon' ) ); ?>
-                        <h5><?php esc_html_e( 'Instances', 'smart-cycle-discounts' ); ?></h5>
-                    </div>
-                    <p><?php esc_html_e( 'Creates separate campaign copies for each occurrence. Useful when you need individual analytics and tracking for each period.', 'smart-cycle-discounts' ); ?></p>
-                    <div class="wsscd-card__example">
-                        <?php WSSCD_Icon_Helper::render( 'lightbulb', array( 'size' => 14 ) ); ?>
-                        <span><?php esc_html_e( 'Example: "Weekly Sale" - creates "Weekly Sale #1", "Weekly Sale #2", etc. with separate analytics', 'smart-cycle-discounts' ); ?></span>
-                    </div>
-                </div>
-            </label>
-        </div>
-    </div>
+        <!-- Recurring Configuration (shown when recurring is selected) -->
+        <div id="wsscd-recurring-options"
+             class="wsscd-recurring-config"
+             style="display: <?php echo esc_attr( $enable_recurring ? 'block' : 'none' ); ?>;"
+             aria-hidden="<?php echo esc_attr( $enable_recurring ? 'false' : 'true' ); ?>">
 
-    <!-- Recurring Campaign Important Notice (for instances mode) -->
-    <div id="wsscd-recurring-warning"
-         class="wsscd-recurring-warning wsscd-notice wsscd-notice-info"
-         style="display: <?php echo esc_attr( ( $enable_recurring && 'instances' === $recurrence_mode ) ? 'block' : 'none' ); ?>;"
-         role="alert">
-        <?php WSSCD_Icon_Helper::render( 'info', array( 'size' => 16 ) ); ?>
-        <div class="wsscd-notice-content">
-            <strong><?php esc_html_e( 'Important: Instance Mode Considerations', 'smart-cycle-discounts' ); ?></strong>
-            <p>
-                <?php
-                esc_html_e(
-                    'Instance mode creates separate campaign copies for each occurrence. For best results:',
-                    'smart-cycle-discounts'
-                );
-                ?>
-            </p>
-            <ul>
-                <li><?php esc_html_e( 'Keep recurring periods to 6 months or less to avoid issues with product and price changes', 'smart-cycle-discounts' ); ?></li>
-                <li><?php esc_html_e( 'Set an end date for your campaign (required for instance mode)', 'smart-cycle-discounts' ); ?></li>
-                <li><?php esc_html_e( 'Review future occurrences if products, categories, or prices change significantly', 'smart-cycle-discounts' ); ?></li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- Recurring Options (hidden by default) -->
-    <div id="wsscd-recurring-options"
-         class="wsscd-recurring-options"
-         style="display: <?php echo esc_attr( ( $enable_recurring ) ? 'block' : 'none' ); ?>;"
-         aria-hidden="<?php echo esc_attr( ( $enable_recurring ) ? 'false' : 'true' ); ?>">
-
-        <!-- Repeat Every Field -->
-        <div class="wsscd-recurring-field-group">
-            <div class="wsscd-recurring-field-header">
-                <?php WSSCD_Icon_Helper::render( 'update', array( 'size' => 16, 'class' => 'wsscd-recurring-field-icon' ) ); ?>
-                <label for="recurrence_interval" class="wsscd-recurring-field-label">
-                    <?php esc_html_e( 'Repeat Every', 'smart-cycle-discounts' ); ?>
-                    <span class="wsscd-required-indicator" aria-label="<?php esc_attr_e( 'Required when recurring is enabled', 'smart-cycle-discounts' ); ?>">*</span>
-                </label>
-                <?php
-                WSSCD_Tooltip_Helper::render(
-                    __( 'How often the discount campaign repeats', 'smart-cycle-discounts' ),
-                    'wsscd-tooltip--right'
-                );
-                ?>
+            <!-- Frequency Row: Repeat every [X] [pattern] -->
+            <div class="wsscd-recurring-frequency">
+                <span class="wsscd-recurring-frequency__label">
+                    <?php esc_html_e( 'Repeat every', 'smart-cycle-discounts' ); ?>
+                </span>
+                <input type="number"
+                       id="recurrence_interval"
+                       name="recurrence_interval"
+                       value="<?php echo esc_attr( $recurrence_interval ); ?>"
+                       min="1"
+                       max="365"
+                       step="1"
+                       inputmode="numeric"
+                       data-label="Recurrence Interval"
+                       data-input-type="integer"
+                       class="wsscd-recurring-frequency__input"
+                       aria-label="<?php esc_attr_e( 'Interval number', 'smart-cycle-discounts' ); ?>">
+                <select id="recurrence_pattern"
+                        name="recurrence_pattern"
+                        class="wsscd-recurring-frequency__select"
+                        aria-label="<?php esc_attr_e( 'Recurrence pattern', 'smart-cycle-discounts' ); ?>">
+                    <option value="daily" <?php selected( $recurrence_pattern, 'daily' ); ?>>
+                        <?php esc_html_e( 'day(s)', 'smart-cycle-discounts' ); ?>
+                    </option>
+                    <option value="weekly" <?php selected( $recurrence_pattern, 'weekly' ); ?>>
+                        <?php esc_html_e( 'week(s)', 'smart-cycle-discounts' ); ?>
+                    </option>
+                    <option value="monthly" <?php selected( $recurrence_pattern, 'monthly' ); ?>>
+                        <?php esc_html_e( 'month(s)', 'smart-cycle-discounts' ); ?>
+                    </option>
+                </select>
             </div>
-            <div class="wsscd-recurring-field-content">
-                <div class="wsscd-recurrence-input-group">
-                    <input type="number"
-                           id="recurrence_interval"
-                           name="recurrence_interval"
-                           value="<?php echo esc_attr( $recurrence_interval ); ?>"
-                           min="1"
-                           max="365"
-                           step="1"
-                           inputmode="numeric"
-                           data-label="Recurrence Interval"
-                           data-input-type="integer"
-                           class="wsscd-input-small wsscd-enhanced-input"
-                           aria-label="<?php esc_attr_e( 'Interval number', 'smart-cycle-discounts' ); ?>"
-                           aria-describedby="recurrence-pattern-help">
-                    <select id="recurrence_pattern"
-                            name="recurrence_pattern"
-                            class="wsscd-select-medium wsscd-enhanced-select"
-                            aria-label="<?php esc_attr_e( 'Recurrence pattern', 'smart-cycle-discounts' ); ?>">
-                        <option value="daily" <?php selected( $recurrence_pattern, 'daily' ); ?>>
-                            <?php esc_html_e( 'Day(s)', 'smart-cycle-discounts' ); ?>
-                        </option>
-                        <option value="weekly" <?php selected( $recurrence_pattern, 'weekly' ); ?>>
-                            <?php esc_html_e( 'Week(s)', 'smart-cycle-discounts' ); ?>
-                        </option>
-                        <option value="monthly" <?php selected( $recurrence_pattern, 'monthly' ); ?>>
-                            <?php esc_html_e( 'Month(s)', 'smart-cycle-discounts' ); ?>
-                        </option>
-                    </select>
-                </div>
-                <p id="recurrence-pattern-help" class="wsscd-field-help">
-                    <?php esc_html_e( 'Example: "2 Week(s)" means the campaign repeats every 2 weeks', 'smart-cycle-discounts' ); ?>
-                </p>
-            </div>
-        </div>
 
-
-        <!-- On Days Field (for weekly pattern) -->
-        <div id="wsscd-weekly-options"
-             class="wsscd-recurring-field-group wsscd-weekly-options"
-             style="display: <?php echo esc_attr( ( 'weekly' === $recurrence_pattern ) ? 'block' : 'none' ); ?>;">
-            <div class="wsscd-recurring-field-header">
-                <?php WSSCD_Icon_Helper::render( 'calendar', array( 'size' => 16, 'class' => 'wsscd-recurring-field-icon' ) ); ?>
-                <label class="wsscd-recurring-field-label">
-                    <?php esc_html_e( 'On Days', 'smart-cycle-discounts' ); ?>
-                </label>
-                <?php
-                WSSCD_Tooltip_Helper::render(
-                    __( 'Select which days of the week to run the campaign', 'smart-cycle-discounts' ),
-                    'wsscd-tooltip--right'
-                );
-                ?>
-            </div>
-            <div class="wsscd-recurring-field-content">
-                <div class="wsscd-days-selector" role="group" aria-label="<?php esc_attr_e( 'Select days of the week', 'smart-cycle-discounts' ); ?>">
+            <!-- Days Selector (for weekly pattern) -->
+            <div id="wsscd-weekly-options"
+                 class="wsscd-recurring-days"
+                 style="display: <?php echo esc_attr( 'weekly' === $recurrence_pattern ? 'block' : 'none' ); ?>;">
+                <span class="wsscd-recurring-days__label">
+                    <?php esc_html_e( 'On', 'smart-cycle-discounts' ); ?>
+                </span>
+                <div class="wsscd-recurring-days__selector" role="group" aria-label="<?php esc_attr_e( 'Select days of the week', 'smart-cycle-discounts' ); ?>">
                     <?php
                     $days = array(
-                        'mon' => __( 'Mon', 'smart-cycle-discounts' ),
-                        'tue' => __( 'Tue', 'smart-cycle-discounts' ),
-                        'wed' => __( 'Wed', 'smart-cycle-discounts' ),
-                        'thu' => __( 'Thu', 'smart-cycle-discounts' ),
-                        'fri' => __( 'Fri', 'smart-cycle-discounts' ),
-                        'sat' => __( 'Sat', 'smart-cycle-discounts' ),
-                        'sun' => __( 'Sun', 'smart-cycle-discounts' )
+                        'mon' => __( 'M', 'smart-cycle-discounts' ),
+                        'tue' => __( 'T', 'smart-cycle-discounts' ),
+                        'wed' => __( 'W', 'smart-cycle-discounts' ),
+                        'thu' => __( 'T', 'smart-cycle-discounts' ),
+                        'fri' => __( 'F', 'smart-cycle-discounts' ),
+                        'sat' => __( 'S', 'smart-cycle-discounts' ),
+                        'sun' => __( 'S', 'smart-cycle-discounts' ),
+                    );
+                    $days_full = array(
+                        'mon' => __( 'Monday', 'smart-cycle-discounts' ),
+                        'tue' => __( 'Tuesday', 'smart-cycle-discounts' ),
+                        'wed' => __( 'Wednesday', 'smart-cycle-discounts' ),
+                        'thu' => __( 'Thursday', 'smart-cycle-discounts' ),
+                        'fri' => __( 'Friday', 'smart-cycle-discounts' ),
+                        'sat' => __( 'Saturday', 'smart-cycle-discounts' ),
+                        'sun' => __( 'Sunday', 'smart-cycle-discounts' ),
                     );
                     $selected_days = (array) $recurrence_days;
-                    foreach ( $days as $value => $label ) : ?>
-                        <label class="wsscd-day-checkbox">
+                    foreach ( $days as $value => $label ) :
+                        ?>
+                        <label class="wsscd-day-chip <?php echo in_array( $value, $selected_days, true ) ? 'selected' : ''; ?>"
+                               title="<?php echo esc_attr( $days_full[ $value ] ); ?>">
                             <input type="checkbox"
                                    name="recurrence_days[]"
                                    value="<?php echo esc_attr( $value ); ?>"
                                    <?php checked( in_array( $value, $selected_days, true ) ); ?>
-                                   aria-label="<?php echo esc_attr( $label ); ?>">
-                            <span class="wsscd-day-label"><?php echo esc_html( $label ); ?></span>
+                                   aria-label="<?php echo esc_attr( $days_full[ $value ] ); ?>">
+                            <span><?php echo esc_html( $label ); ?></span>
                         </label>
                     <?php endforeach; ?>
                 </div>
-                <p class="wsscd-field-help">
-                    <?php esc_html_e( 'Select one or more days for weekly recurring campaigns', 'smart-cycle-discounts' ); ?>
-                </p>
             </div>
-        </div>
 
+            <!-- Stop Repeating Dropdown -->
+            <div class="wsscd-recurring-until">
+                <span class="wsscd-recurring-until__label">
+                    <?php esc_html_e( 'Until', 'smart-cycle-discounts' ); ?>
+                </span>
+                <div class="wsscd-recurring-until__controls">
+                    <select id="recurrence_end_type_select"
+                            class="wsscd-recurring-until__select"
+                            aria-label="<?php esc_attr_e( 'Stop repeating condition', 'smart-cycle-discounts' ); ?>">
+                        <option value="never" <?php selected( $recurrence_end_type, 'never' ); ?>>
+                            <?php esc_html_e( 'Forever', 'smart-cycle-discounts' ); ?>
+                        </option>
+                        <option value="after" <?php selected( $recurrence_end_type, 'after' ); ?>>
+                            <?php esc_html_e( 'After...', 'smart-cycle-discounts' ); ?>
+                        </option>
+                        <option value="on" <?php selected( $recurrence_end_type, 'on' ); ?>>
+                            <?php esc_html_e( 'On date...', 'smart-cycle-discounts' ); ?>
+                        </option>
+                    </select>
+                    <!-- Hidden field for backend compatibility -->
+                    <input type="hidden"
+                           id="recurrence_end_type"
+                           name="recurrence_end_type"
+                           value="<?php echo esc_attr( $recurrence_end_type ); ?>">
 
-        <!-- End Condition Field -->
-        <div class="wsscd-recurring-field-group">
-            <div class="wsscd-recurring-field-header">
-                <?php WSSCD_Icon_Helper::render( 'controls-skipforward', array( 'size' => 16, 'class' => 'wsscd-recurring-field-icon' ) ); ?>
-                <label class="wsscd-recurring-field-label">
-                    <?php esc_html_e( 'Ends', 'smart-cycle-discounts' ); ?>
-                </label>
-                <?php
-                WSSCD_Tooltip_Helper::render(
-                    __( 'When the recurring schedule should stop', 'smart-cycle-discounts' ),
-                    'wsscd-tooltip--right'
-                );
-                ?>
-            </div>
-            <div class="wsscd-recurring-field-content">
-                <div class="wsscd-recurrence-end-options" role="radiogroup" aria-label="<?php esc_attr_e( 'Recurrence end condition', 'smart-cycle-discounts' ); ?>">
-                    <label class="wsscd-radio-inline wsscd-end-option">
-                        <input type="radio"
-                               name="recurrence_end_type"
-                               value="never"
-                               <?php checked( $recurrence_end_type, 'never' ); ?>
-                               aria-describedby="recurrence-end-help">
-                        <span class="wsscd-radio-label-text">
-                            <?php WSSCD_Icon_Helper::render( 'infinity', array( 'size' => 16 ) ); ?>
-                            <?php esc_html_e( 'Never', 'smart-cycle-discounts' ); ?>
-                        </span>
-                    </label>
-
-                    <label class="wsscd-radio-inline wsscd-end-option">
-                        <input type="radio"
-                               name="recurrence_end_type"
-                               value="after"
-                               <?php checked( $recurrence_end_type, 'after' ); ?>
-                               aria-describedby="recurrence-end-help">
-                        <span class="wsscd-radio-label-text">
-                            <?php WSSCD_Icon_Helper::render( 'marker', array( 'size' => 16 ) ); ?>
-                            <?php esc_html_e( 'After', 'smart-cycle-discounts' ); ?>
-                        </span>
+                    <!-- After X occurrences (conditional) -->
+                    <div class="wsscd-recurring-until__after" style="display: <?php echo 'after' === $recurrence_end_type ? 'flex' : 'none'; ?>;">
                         <input type="number"
                                id="recurrence_count"
                                name="recurrence_count"
@@ -628,92 +537,116 @@ ob_start();
                                inputmode="numeric"
                                data-label="Occurrence Count"
                                data-input-type="integer"
-                               class="wsscd-input-tiny wsscd-enhanced-input"
-                               <?php disabled( 'after' !== $recurrence_end_type ); ?>
+                               class="wsscd-recurring-until__count"
                                aria-label="<?php esc_attr_e( 'Number of occurrences', 'smart-cycle-discounts' ); ?>">
-                        <span class="wsscd-occurrence-suffix"><?php esc_html_e( 'occurrences', 'smart-cycle-discounts' ); ?></span>
-                    </label>
+                        <span class="wsscd-recurring-until__suffix"><?php esc_html_e( 'occurrences', 'smart-cycle-discounts' ); ?></span>
+                    </div>
 
-                    <label class="wsscd-radio-inline wsscd-end-option">
-                        <input type="radio"
-                               name="recurrence_end_type"
-                               value="on"
-                               <?php checked( $recurrence_end_type, 'on' ); ?>
-                               aria-describedby="recurrence-end-help">
-                        <span class="wsscd-radio-label-text">
-                            <?php WSSCD_Icon_Helper::render( 'calendar', array( 'size' => 16 ) ); ?>
-                            <?php esc_html_e( 'On', 'smart-cycle-discounts' ); ?>
-                        </span>
-                        <div class="wsscd-date-picker-wrapper">
+                    <!-- On date (conditional) -->
+                    <div class="wsscd-recurring-until__on" style="display: <?php echo 'on' === $recurrence_end_type ? 'flex' : 'none'; ?>;">
+                        <div class="wsscd-date-picker-wrapper wsscd-date-picker-wrapper--compact">
                             <input type="text"
                                    id="recurrence_end_date"
                                    name="recurrence_end_date"
-                                   class="wsscd-date-picker wsscd-input-date"
-                                   placeholder="<?php esc_attr_e( 'Select end date', 'smart-cycle-discounts' ); ?>"
+                                   class="wsscd-date-picker"
+                                   placeholder="<?php esc_attr_e( 'Select date', 'smart-cycle-discounts' ); ?>"
                                    readonly
                                    value="<?php echo esc_attr( $recurrence_end_date ); ?>"
-                                   <?php disabled( 'on' !== $recurrence_end_type ); ?>
                                    aria-label="<?php esc_attr_e( 'Recurrence end date', 'smart-cycle-discounts' ); ?>">
                             <button type="button"
                                     class="wsscd-calendar-icon"
                                     data-target="recurrence_end_date"
-                                    aria-label="<?php esc_attr_e( 'Choose recurrence end date', 'smart-cycle-discounts' ); ?>">
-                                <?php
-                                if ( class_exists( 'WSSCD_Icon_Helper' ) ) {
-                                    WSSCD_Icon_Helper::render(
-                                        'calendar-alt',
-                                        array(
-                                            'size'        => 18,
-                                            'class'       => 'wsscd-icon',
-                                            'aria_hidden' => true,
-                                        )
-                                    );
-                                }
-                                ?>
+                                    aria-label="<?php esc_attr_e( 'Choose end date', 'smart-cycle-discounts' ); ?>">
+                                <?php WSSCD_Icon_Helper::render( 'calendar-alt', array( 'size' => 16 ) ); ?>
                             </button>
                         </div>
-                    </label>
-                </div>
-                <p id="recurrence-end-help" class="wsscd-field-help">
-                    <?php esc_html_e( 'Choose when the recurring campaign should stop running', 'smart-cycle-discounts' ); ?>
-                </p>
-            </div>
-        </div>
-
-
-        <!-- Next Occurrences Preview -->
-        <div class="wsscd-recurrence-preview" role="region" aria-label="<?php esc_attr_e( 'Recurring campaign preview', 'smart-cycle-discounts' ); ?>">
-            <div class="wsscd-preview-header">
-                <?php WSSCD_Icon_Helper::render( 'visibility', array( 'size' => 16, 'class' => 'wsscd-preview-icon' ) ); ?>
-                <h4 class="wsscd-preview-title"><?php esc_html_e( 'Next Occurrences Preview', 'smart-cycle-discounts' ); ?></h4>
-            </div>
-            <div id="wsscd-recurrence-preview-text" class="wsscd-preview-text" aria-live="polite">
-                <div class="wsscd-preview-empty">
-                    <?php WSSCD_Icon_Helper::render( 'calendar', array( 'size' => 16 ) ); ?>
-                    <p><?php esc_html_e( 'Configure recurrence settings above to see a preview of when your campaign will run', 'smart-cycle-discounts' ); ?></p>
+                    </div>
                 </div>
             </div>
-            <div class="wsscd-preview-footer">
-                <?php WSSCD_Icon_Helper::render( 'info', array( 'size' => 16 ) ); ?>
-                <span class="wsscd-preview-footer-text"><?php esc_html_e( 'Each occurrence will use the same campaign duration as configured in your schedule', 'smart-cycle-discounts' ); ?></span>
+
+            <!-- Schedule Summary -->
+            <div class="wsscd-schedule-summary" role="region" aria-label="<?php esc_attr_e( 'Schedule summary', 'smart-cycle-discounts' ); ?>">
+                <!-- Natural Language Summary -->
+                <div class="wsscd-schedule-summary__text" id="wsscd-schedule-summary-text">
+                    <span class="wsscd-schedule-summary__icon">
+                        <?php WSSCD_Icon_Helper::render( 'calendar-alt', array( 'size' => 18 ) ); ?>
+                    </span>
+                    <span class="wsscd-schedule-summary__description">
+                        <?php esc_html_e( 'Configure your recurring schedule above', 'smart-cycle-discounts' ); ?>
+                    </span>
+                </div>
+
+                <!-- Visual Timeline -->
+                <div class="wsscd-schedule-timeline" id="wsscd-schedule-timeline" aria-live="polite">
+                    <div class="wsscd-schedule-timeline__track">
+                        <div class="wsscd-schedule-timeline__placeholder">
+                            <?php WSSCD_Icon_Helper::render( 'update', array( 'size' => 16 ) ); ?>
+                            <span><?php esc_html_e( 'Timeline preview will appear here', 'smart-cycle-discounts' ); ?></span>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
+
+            <!-- Advanced Options (Collapsible) -->
+            <details class="wsscd-recurring-advanced" id="wsscd-recurrence-mode-options">
+                <summary class="wsscd-recurring-advanced__toggle">
+                    <?php WSSCD_Icon_Helper::render( 'admin-settings', array( 'size' => 14 ) ); ?>
+                    <span><?php esc_html_e( 'Advanced: Recurrence Mode', 'smart-cycle-discounts' ); ?></span>
+                    <?php WSSCD_Icon_Helper::render( 'arrow-down', array( 'size' => 12, 'class' => 'wsscd-recurring-advanced__arrow' ) ); ?>
+                </summary>
+                <div class="wsscd-recurring-advanced__content">
+                    <div class="wsscd-recurrence-mode-compact">
+                        <label class="wsscd-mode-option <?php echo 'continuous' === $recurrence_mode ? 'selected' : ''; ?>">
+                            <input type="radio"
+                                   name="recurrence_mode"
+                                   value="continuous"
+                                   <?php checked( $recurrence_mode, 'continuous' ); ?>>
+                            <span class="wsscd-mode-option__radio"></span>
+                            <span class="wsscd-mode-option__content">
+                                <strong>
+                                    <?php esc_html_e( 'Continuous', 'smart-cycle-discounts' ); ?>
+                                    <span class="wsscd-badge wsscd-badge--small wsscd-badge--success"><?php esc_html_e( 'Recommended', 'smart-cycle-discounts' ); ?></span>
+                                </strong>
+                                <span class="wsscd-mode-option__desc"><?php esc_html_e( 'Same campaign toggles on/off. Best for daily specials, happy hours.', 'smart-cycle-discounts' ); ?></span>
+                            </span>
+                        </label>
+                        <label class="wsscd-mode-option <?php echo 'instances' === $recurrence_mode ? 'selected' : ''; ?>">
+                            <input type="radio"
+                                   name="recurrence_mode"
+                                   value="instances"
+                                   <?php checked( $recurrence_mode, 'instances' ); ?>>
+                            <span class="wsscd-mode-option__radio"></span>
+                            <span class="wsscd-mode-option__content">
+                                <strong><?php esc_html_e( 'Instances', 'smart-cycle-discounts' ); ?></strong>
+                                <span class="wsscd-mode-option__desc"><?php esc_html_e( 'Creates separate copies for each occurrence with individual analytics.', 'smart-cycle-discounts' ); ?></span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Instance Mode Warning -->
+                    <div id="wsscd-recurring-warning"
+                         class="wsscd-instance-mode-notice"
+                         style="display: <?php echo 'instances' === $recurrence_mode ? 'flex' : 'none'; ?>;"
+                         role="alert">
+                        <?php WSSCD_Icon_Helper::render( 'info', array( 'size' => 14 ) ); ?>
+                        <span><?php esc_html_e( 'Instance mode requires an end date and works best for periods under 6 months.', 'smart-cycle-discounts' ); ?></span>
+                    </div>
+                </div>
+            </details>
+
+        </div><!-- #wsscd-recurring-options -->
+
     </div><!-- #wsscd-recurring-container -->
     <?php
     $recurring_content = ob_get_clean();
 
     wsscd_wizard_card( array(
-        'title' => __( 'Recurring Schedule', 'smart-cycle-discounts' ),
-        'icon' => 'backup',
-        'badge' => array(
-            'text' => __( 'Optional', 'smart-cycle-discounts' ),
-            'type' => 'optional'
-        ),
-        'subtitle' => __( 'Set up your discount to repeat automatically on a regular schedule.', 'smart-cycle-discounts' ),
-        'content' => $recurring_content,
-        'class' => 'wsscd-card--recurring',
-        'help_topic' => 'card-recurring-schedule'
+        'title'      => __( 'Does It Repeat?', 'smart-cycle-discounts' ),
+        'icon'       => 'update',
+        'subtitle'   => __( 'Choose whether this campaign runs once or repeats on a schedule.', 'smart-cycle-discounts' ),
+        'content'    => $recurring_content,
+        'class'      => 'wsscd-card--recurring wsscd-card--recurring-redesign',
+        'help_topic' => 'card-recurring-schedule',
     ) );
     ?>
 

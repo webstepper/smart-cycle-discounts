@@ -53,6 +53,15 @@ class WSSCD_License_Notices {
 			return;
 		}
 
+		// Don't show admin notices on wizard pages - they break the layout
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only display context check.
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only display context check.
+		$action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
+		if ( 'wsscd-campaigns' === $page && 'wizard' === $action ) {
+			return;
+		}
+
 		// Only show to users who can manage options
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;

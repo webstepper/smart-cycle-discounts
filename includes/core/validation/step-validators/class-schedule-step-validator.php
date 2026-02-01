@@ -444,6 +444,119 @@ class WSSCD_Schedule_Step_Validator {
 				);
 			}
 		}
+
+		// Smart validation: Interval vs campaign duration
+		self::validate_interval_vs_duration( $data, $errors );
+
+		// Smart validation: Recurrence end date
+		self::validate_recurrence_end_date( $data, $errors );
+	}
+
+	/**
+	 * Validate interval vs duration.
+	 *
+	 * NOTE: No validation needed here because the recurrence logic is:
+	 *   nextInstanceStart = previousInstanceEnd + interval
+	 *
+	 * This means ANY positive interval is valid - overlap is impossible.
+	 * Example: 3-day campaign (Feb 1-3), 1-day interval:
+	 *   - Instance 1: Feb 1-3
+	 *   - Instance 2: Feb 3 + 1 = Feb 4-6 (no overlap)
+	 *
+	 * For weekly patterns with specific days, overlap prevention is handled
+	 * by the frontend's updateWeeklyDayConstraints() which disables invalid days.
+	 *
+	 * @since    1.2.3
+	 * @access   private
+	 * @param    array    $data      Sanitized field data.
+	 * @param    WP_Error $errors    Error object.
+	 * @return   void
+	 */
+	private static function validate_interval_vs_duration( array $data, WP_Error $errors ) {
+		// No validation needed - see docblock for explanation.
+		unset( $data, $errors );
+	}
+
+	/**
+	 * Validate recurrence end date.
+	 *
+	 * Checks:
+	 * 1. End date is not in the past
+	 * 2. End date allows at least one recurrence to occur
+	 *
+	 * @since    1.2.3
+	 * @access   private
+	 * @param    array    $data      Sanitized field data.
+	 * @param    WP_Error $errors    Error object.
+	 * @return   void
+	 */
+	private static function validate_recurrence_end_date( array $data, WP_Error $errors ) {
+		// Support both field names
+		$end_type = '';
+		if ( isset( $data['recurrence_end_type'] ) ) {
+			$end_type = $data['recurrence_end_type'];
+		} elseif ( isset( $data['end_type'] ) ) {
+			$end_type = $data['end_type'];
+		}
+
+		// Only validate when using "on date" end type
+		if ( 'on' !== $end_type && 'on_date' !== $end_type ) {
+			return;
+		}
+
+		$recurrence_end_date = isset( $data['recurrence_end_date'] ) ? $data['recurrence_end_date'] : '';
+		if ( empty( $recurrence_end_date ) ) {
+			return;
+		}
+
+		$recurrence_end_time = strtotime( $recurrence_end_date . ' 23:59:59' );
+		$now                 = current_time( 'timestamp' );
+
+		// Check if end date is in the past
+		if ( $recurrence_end_time < $now ) {
+			$errors->add(
+				'schedule_recurrence_end_in_past',
+				sprintf(
+					/* translators: %s: End date */
+					__( 'Recurrence end date (%s) is in the past.', 'smart-cycle-discounts' ),
+					$recurrence_end_date
+				),
+				array( 'severity' => 'critical' )
+			);
+			return;
+		}
+
+		// Check if end date allows at least one recurrence
+		if ( empty( $data['end_date'] ) ) {
+			return;
+		}
+
+		$campaign_end_time = strtotime( $data['end_date'] );
+		$pattern           = isset( $data['recurrence_pattern'] ) ? $data['recurrence_pattern'] : 'daily';
+		$interval          = isset( $data['recurrence_interval'] ) ? intval( $data['recurrence_interval'] ) : 1;
+
+		// Calculate when first recurrence would start
+		$first_recurrence_time = $campaign_end_time;
+		if ( 'daily' === $pattern ) {
+			$first_recurrence_time += $interval * DAY_IN_SECONDS;
+		} elseif ( 'weekly' === $pattern ) {
+			$first_recurrence_time += $interval * WEEK_IN_SECONDS;
+		} elseif ( 'monthly' === $pattern ) {
+			$first_recurrence_time = strtotime( '+' . $interval . ' months', $campaign_end_time );
+		}
+
+		if ( $recurrence_end_time < $first_recurrence_time ) {
+			$errors->add(
+				'schedule_recurrence_end_before_first',
+				sprintf(
+					/* translators: 1: Recurrence end date, 2: First recurrence date */
+					__( 'Recurrence end date (%1$s) is before the first recurrence would start (%2$s).', 'smart-cycle-discounts' ),
+					$recurrence_end_date,
+					gmdate( 'Y-m-d', $first_recurrence_time )
+				),
+				array( 'severity' => 'critical' )
+			);
+		}
 	}
 
 	/**
@@ -653,7 +766,19 @@ class WSSCD_Schedule_Step_Validator {
 	 * @return   void
 	 */
 	private static function validate_schedule_type( array $data, WP_Error $errors ) {
-		$schedule_type = isset( $data['schedule_type'] ) ? $data['schedule_type'] : 'daily';
+		// Support both field names (schedule_type for legacy, recurrence_pattern for new wizard)
+		$schedule_type = 'daily';
+		if ( ! empty( $data['recurrence_pattern'] ) ) {
+			$schedule_type = $data['recurrence_pattern'];
+		} elseif ( ! empty( $data['schedule_type'] ) ) {
+			$schedule_type = $data['schedule_type'];
+		}
+
+		// Only validate if recurring is enabled
+		$is_recurring = ! empty( $data['enable_recurring'] );
+		if ( ! $is_recurring ) {
+			return;
+		}
 
 		// Weekly schedule validation
 		if ( 'weekly' === $schedule_type ) {
@@ -676,7 +801,13 @@ class WSSCD_Schedule_Step_Validator {
 	 * @return   void
 	 */
 	private static function validate_weekly_schedule( array $data, WP_Error $errors ) {
-		$selected_days = isset( $data['weekly_days'] ) ? $data['weekly_days'] : array();
+		// Support both field names (weekly_days for legacy, recurrence_days for new wizard)
+		$selected_days = array();
+		if ( ! empty( $data['recurrence_days'] ) ) {
+			$selected_days = $data['recurrence_days'];
+		} elseif ( ! empty( $data['weekly_days'] ) ) {
+			$selected_days = $data['weekly_days'];
+		}
 
 		// Scenario 26: No days selected
 		if ( empty( $selected_days ) ) {
@@ -722,6 +853,93 @@ class WSSCD_Schedule_Step_Validator {
 					esc_html( $selected_days[0] )
 				),
 				array( 'severity' => 'info' )
+			);
+		}
+
+		// Smart validation: Check if selected days are far enough apart for campaign duration
+		if ( count( $selected_days ) >= 2 && ! empty( $data['start_date'] ) && ! empty( $data['end_date'] ) ) {
+			self::validate_weekly_days_gap( $data, $selected_days, $errors );
+		}
+	}
+
+	/**
+	 * Validate that weekly days are far enough apart to prevent overlapping campaigns.
+	 *
+	 * If a campaign runs for 3 days, selected days must be at least 3 days apart.
+	 *
+	 * @since    1.2.3
+	 * @access   private
+	 * @param    array    $data          Sanitized field data.
+	 * @param    array    $selected_days Array of selected day names.
+	 * @param    WP_Error $errors        Error object.
+	 * @return   void
+	 */
+	private static function validate_weekly_days_gap( array $data, array $selected_days, WP_Error $errors ) {
+		$start_time       = strtotime( $data['start_date'] );
+		$end_time         = strtotime( $data['end_date'] );
+		$duration_days    = ceil( ( $end_time - $start_time ) / DAY_IN_SECONDS );
+
+		if ( $duration_days < 1 ) {
+			return; // Invalid duration, caught elsewhere
+		}
+
+		// Map day names to numbers (0=Sun, 6=Sat)
+		$day_map = array(
+			'sun' => 0,
+			'mon' => 1,
+			'tue' => 2,
+			'wed' => 3,
+			'thu' => 4,
+			'fri' => 5,
+			'sat' => 6,
+		);
+
+		// Convert to numbers and sort
+		$day_numbers = array();
+		foreach ( $selected_days as $day ) {
+			$day_lower = strtolower( $day );
+			if ( isset( $day_map[ $day_lower ] ) ) {
+				$day_numbers[] = $day_map[ $day_lower ];
+			}
+		}
+		sort( $day_numbers );
+
+		// Check gaps between consecutive days
+		$day_names = array( 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' );
+		$conflicts = array();
+
+		$count = count( $day_numbers );
+		for ( $i = 0; $i < $count; $i++ ) {
+			$current_day = $day_numbers[ $i ];
+			$next_day    = $day_numbers[ ( $i + 1 ) % $count ];
+
+			// Calculate gap (accounting for week wrap-around)
+			$gap = $next_day - $current_day;
+			if ( $gap <= 0 ) {
+				$gap += 7;
+			}
+
+			if ( $gap < $duration_days ) {
+				$conflicts[] = sprintf(
+					'%s → %s (%d days apart)',
+					$day_names[ $current_day ],
+					$day_names[ $next_day ],
+					$gap
+				);
+			}
+		}
+
+		if ( ! empty( $conflicts ) ) {
+			$errors->add(
+				'schedule_weekly_days_too_close',
+				sprintf(
+					/* translators: 1: Campaign duration in days, 2: Required gap, 3: List of conflicts */
+					__( 'Campaign is %1$d days long. Selected days must be at least %2$d days apart to avoid overlap. Conflicts: %3$s', 'smart-cycle-discounts' ),
+					$duration_days,
+					$duration_days,
+					implode( ', ', $conflicts )
+				),
+				array( 'severity' => 'critical' )
 			);
 		}
 	}
@@ -771,6 +989,26 @@ class WSSCD_Schedule_Step_Validator {
 				),
 				array( 'severity' => 'warning' )
 			);
+		}
+
+		// Check campaign end date for month-end edge cases
+		if ( ! empty( $data['end_date'] ) ) {
+			$end_date     = strtotime( $data['end_date'] );
+			$end_day      = (int) gmdate( 'j', $end_date );
+
+			if ( $end_day >= 29 ) {
+				$feb_day = $end_day > 28 ? '28/29' : (string) $end_day;
+				$errors->add(
+					'schedule_monthly_end_date_shift',
+					sprintf(
+						/* translators: 1: Day of month, 2: February equivalent */
+						__( 'Campaign ends on day %1$d. For months with fewer days, recurrence will shift to the last day of that month (e.g., Feb %2$s).', 'smart-cycle-discounts' ),
+						$end_day,
+						$feb_day
+					),
+					array( 'severity' => 'info' )
+				);
+			}
 		}
 	}
 
