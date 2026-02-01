@@ -1241,7 +1241,6 @@ class WSSCD_Script_Registry {
 		);
 
 		$modules = array(
-			'wsscd-schedule-debug'        => 'schedule-debug.js',
 			'wsscd-schedule-state'        => 'schedule-state.js',
 			'wsscd-schedule-api'          => 'schedule-api.js',
 			'wsscd-schedule-config'       => 'schedule-config.js',
@@ -1330,7 +1329,7 @@ class WSSCD_Script_Registry {
 				'basic'     => array( 'wsscd-basic-state', 'wsscd-basic-api', 'wsscd-basic-fields' ),
 				'products'  => array( 'wsscd-constants-product-selection', 'wsscd-tom-select-base', 'wsscd-products-state', 'wsscd-products-api', 'wsscd-products-picker' ),
 				'discounts' => array( 'wsscd-discounts-config', 'wsscd-discounts-state', 'wsscd-discounts-api', 'wsscd-discounts-conditions', 'wsscd-discounts-type-registry' ),
-				'schedule'  => array( 'jquery-ui-datepicker', 'wsscd-schedule-debug', 'wsscd-schedule-state', 'wsscd-schedule-api', 'wsscd-schedule-config' ),
+				'schedule'  => array( 'jquery-ui-datepicker', 'wsscd-schedule-state', 'wsscd-schedule-api', 'wsscd-schedule-config' ),
 				'review'    => array( 'wsscd-review-state', 'wsscd-review-api', 'wsscd-review-components' ),
 			);
 

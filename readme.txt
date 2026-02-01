@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: discount rules, BOGO, bulk discount, tiered pricing, sale scheduler
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.5.0
+Stable tag: 1.5.1
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -430,6 +430,24 @@ Pro users can configure combination policies for each campaign. Choose whether y
 
 == Changelog ==
 
+= 1.5.1 =
+* New: Redesigned Campaign Period section with modern horizontal date range layout
+* New: Inline toggle buttons for "Immediately" vs "Scheduled" start type selection
+* New: Visual date boxes with accent colors - green for start, primary for end
+* New: "Indefinite" state styling with dashed border when no end date is set
+* New: Compact duration bar showing campaign length with contextual hints
+* Improvement: Timeline preview now shows infinity symbol (∞) for "forever" recurring campaigns
+* Improvement: Timeline styling updated to match plugin design system with CSS variables
+* Improvement: Timeline tooltips now show full date ranges on hover (e.g., "Feb 1-3, 2026")
+* Improvement: Recurrence end date picker disables invalid dates directly in calendar
+* Improvement: Calendar minimum date updates dynamically based on campaign settings
+* Improvement: Validation errors now persist until user fixes the issue
+* Improvement: Clearer validation message "Campaign must end after it starts"
+* Fix: Timeline tooltip z-index corrected to display above other elements
+* Fix: Removed horizontal scrolling from timeline - uses centered flex layout
+* Fix: Time field validation properly checks context (required only when applicable)
+* Code: Removed 109 lines of legacy schedule selection card code
+
 = 1.5.0 =
 * New: Smart recurrence validation system - prevents invalid recurring schedule configurations
 * New: Constrained day selection for weekly recurring campaigns - days that would cause overlap are automatically disabled
@@ -580,6 +598,9 @@ Pro users can configure combination policies for each campaign. Choose whether y
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.5.1 =
+Redesigned Campaign Period section with modern horizontal date layout, toggle buttons, and visual date boxes. Timeline preview improvements. Better validation UX with persistent errors.
 
 = 1.5.0 =
 Smart recurring schedule validation. Fixed recurrence mode loading when editing campaigns. Timeline preview now shows date ranges for all occurrences. Invalid weekly days are automatically disabled to prevent overlap.

@@ -46,17 +46,16 @@
 			this.setupDatePickers();
 			this.initializePresets();
 
-			this.$container.find( 'input[name="start_type"]:checked' )
-				.closest( '.wsscd-radio-option' )
-				.addClass( 'wsscd-radio-option--selected' );
-
-			// Initialize clear button visibility based on end_date value
+			// Initialize clear button visibility and date box styling based on end_date value
 			var endDate = $( '#end_date' ).val();
 			var $clearButton = this.$container.find( '.wsscd-clear-end-date' );
+			var $endDateBox = this.$container.find( '.wsscd-date-box--end' );
 			if ( endDate ) {
 				$clearButton.show();
+				$endDateBox.removeClass( 'wsscd-date-box--indefinite' );
 			} else {
 				$clearButton.hide();
+				$endDateBox.addClass( 'wsscd-date-box--indefinite' );
 			}
 
 			// Initialize end_time field type and state based on end_date
@@ -138,11 +137,8 @@
 						self.showMonthlyEdgeCaseInfo( monthlyValidation );
 					}
 
-					// Validate recurrence end date
-					if ( 'on' === stateUpdate.recurrenceEndType ) {
-						var endDateValidation = self.validateRecurrenceEndDate();
-						self.showRecurrenceEndDateValidation( endDateValidation );
-					}
+					// Update recurrence end date min date constraint
+					self.updateRecurrenceEndDateMinDate();
 				}, 100 );
 			}
 		},
@@ -195,12 +191,15 @@
 					var durationSeconds = $( 'input[name="duration_seconds"]' ).val();
 					var recurringValidation = self._validateRecurring( enableRecurring, selectedDate, durationSeconds );
 
-					// Show/hide clear button based on whether date is selected
+					// Show/hide clear button and update date box styling based on whether date is selected
 					var $clearButton = self.$container.find( '.wsscd-clear-end-date' );
+					var $endDateBox = self.$container.find( '.wsscd-date-box--end' );
 					if ( selectedDate ) {
 						$clearButton.show();
+						$endDateBox.removeClass( 'wsscd-date-box--indefinite' );
 					} else {
 						$clearButton.hide();
+						$endDateBox.addClass( 'wsscd-date-box--indefinite' );
 					}
 
 					// Show error at end of row, but apply red border to date field
@@ -241,6 +240,30 @@
 				var $input = $( this );
 				var selectedTime = $input.val();
 
+				// Check if field is required based on context
+				var startType = $( 'input[name="start_type"]:checked' ).val() || 'immediate';
+				var endDate = $( '#end_date' ).val();
+
+				// Determine if field is required
+				var isRequired = false;
+				if ( 'start' === field && 'scheduled' === startType ) {
+					isRequired = true;
+				} else if ( 'end' === field && endDate ) {
+					isRequired = true;
+				}
+
+				// If empty and required, show error and persist it
+				if ( ! selectedTime && isRequired ) {
+					if ( window.WSSCD && window.WSSCD.ValidationError ) {
+						var requiredMessage = ( 'start' === field )
+							? 'Start time is required for scheduled campaigns'
+							: 'End time is required when end date is set';
+						WSSCD.ValidationError.show( $input, requiredMessage );
+					}
+					return;
+				}
+
+				// If empty and not required, just clear any error
 				if ( ! selectedTime ) {
 					if ( window.WSSCD && window.WSSCD.ValidationError ) {
 						WSSCD.ValidationError.clear( $input );
@@ -256,12 +279,12 @@
 				// Validate with current DOM values
 				var startDate = $( '#start_date' ).val();
 				var startTime = $( '#start_time' ).val();
-				var endDate = $( '#end_date' ).val();
+				var endDateVal = $( '#end_date' ).val();
 				var endTime = $( '#end_time' ).val();
 
 				var validation = ( 'start' === field )
 					? self._validateStartTime( startDate, startTime )
-					: self._validateEndTime( endDate, endTime, startDate, startTime );
+					: self._validateEndTime( endDateVal, endTime, startDate, startTime );
 
 				self._showOrClearValidation( validation, $input );
 			} );
@@ -274,12 +297,15 @@
 				self.updateDurationDisplay();
 			} );
 
-			// Start type changes
+			// Start type changes - toggle buttons
 			this.$container.on( 'change', 'input[name="start_type"]', function() {
 				var value = $( this ).val();
-				var $radioOptions = self.$container.find( '.wsscd-radio-option' );
-				$radioOptions.removeClass( 'wsscd-radio-option--selected' );
-				$( this ).closest( '.wsscd-radio-option' ).addClass( 'wsscd-radio-option--selected' );
+
+				// Update toggle button states
+				var $toggleBtns = self.$container.find( '.wsscd-toggle-btn' );
+				$toggleBtns.removeClass( 'wsscd-toggle-btn--active' );
+				$( this ).closest( '.wsscd-toggle-btn' ).addClass( 'wsscd-toggle-btn--active' );
+
 				self.handleStartTypeChange( value );
 			} );
 
@@ -292,12 +318,25 @@
 					.prop( 'disabled', true )
 					.val( '--:--' )
 					.addClass( 'wsscd-time-placeholder' );
+
+				// Update end date box styling
+				self.$container.find( '.wsscd-date-box--end' ).addClass( 'wsscd-date-box--indefinite' );
+				$( this ).hide();
+
 				self.updateDurationDisplay();
-				// Trigger change event
 				$( '#end_date' ).trigger( 'change' );
 			} );
 
-			// Calendar icon buttons
+			// Calendar buttons in date boxes (Campaign Period section)
+			this.$container.on( 'click', '.wsscd-date-box__calendar-btn', function( e ) {
+				e.preventDefault();
+				var targetId = $( this ).data( 'target' );
+				if ( targetId ) {
+					$( '#' + targetId ).datepicker( 'show' );
+				}
+			} );
+
+			// Calendar icon buttons (Recurring Schedule section)
 			this.$container.on( 'click', '.wsscd-calendar-icon', function( e ) {
 				e.preventDefault();
 				var targetId = $( this ).data( 'target' );
@@ -397,9 +436,8 @@
 					self.$container.find( '.wsscd-monthly-info' ).remove();
 				}
 
-				// Re-validate recurrence end date (affected by pattern change)
-				var endDateValidation = self.validateRecurrenceEndDate();
-				self.showRecurrenceEndDateValidation( endDateValidation );
+				// Update recurrence end date min constraint (affected by pattern)
+				self.updateRecurrenceEndDateMinDate();
 
 				self.updateRecurrencePreview();
 			} );
@@ -415,9 +453,8 @@
 				var validation = self.validateIntervalVsDuration();
 				self.showIntervalValidation( validation );
 
-				// Re-validate recurrence end date (affected by interval)
-				var endDateValidation = self.validateRecurrenceEndDate();
-				self.showRecurrenceEndDateValidation( endDateValidation );
+				// Update recurrence end date min constraint (affected by interval)
+				self.updateRecurrenceEndDateMinDate();
 
 				self.updateRecurrencePreview();
 			} );
@@ -474,14 +511,9 @@
 					self.modules.state.setState( { recurrenceEndType: endType } );
 				}
 
-				// Validate recurrence end date when switching to "on" type
+				// Update min date constraint when switching to "on" type
 				if ( 'on' === endType ) {
-					var validation = self.validateRecurrenceEndDate();
-					self.showRecurrenceEndDateValidation( validation );
-				} else {
-					// Clear end date warning when not using "on" type
-					self.$container.find( '.wsscd-enddate-warning' ).remove();
-					self.$container.find( '.wsscd-recurring-until__on' ).removeClass( 'has-warning' );
+					self.updateRecurrenceEndDateMinDate();
 				}
 
 				self.updateRecurrencePreview();
@@ -502,11 +534,6 @@
 				if ( self.modules.state && 'function' === typeof self.modules.state.setState ) {
 					self.modules.state.setState( { recurrenceEndDate: endDate } );
 				}
-
-				// Validate recurrence end date
-				var validation = self.validateRecurrenceEndDate();
-				self.showRecurrenceEndDateValidation( validation );
-
 				self.updateRecurrencePreview();
 			} );
 
@@ -569,9 +596,8 @@
 					this.showMonthlyEdgeCaseInfo( monthlyValidation );
 				}
 
-				// Validate recurrence end date (affected by campaign dates)
-				var endDateValidation = this.validateRecurrenceEndDate();
-				this.showRecurrenceEndDateValidation( endDateValidation );
+				// Update recurrence end date min constraint (affected by campaign dates)
+				this.updateRecurrenceEndDateMinDate();
 
 				// Update recurrence preview when dates change (affects calculations)
 				this.updateRecurrencePreview();
@@ -659,14 +685,20 @@
 		handleStartTypeChange: function( startType ) {
 			try {
 				var $startDateRow = this.$container.find( '.wsscd-scheduled-start-fields' );
+				var $immediateDisplay = this.$container.find( '.wsscd-date-box__immediate' );
+				var $startDateBox = this.$container.find( '.wsscd-date-box--start' );
 
 				if ( 'scheduled' === startType ) {
 					$startDateRow.show();
+					$immediateDisplay.hide();
+					$startDateBox.removeClass( 'wsscd-date-box--immediate' );
 					// Re-enable fields and restore tabindex when showing
 					$startDateRow.find( 'input, button' ).removeAttr( 'tabindex' );
 					$startDateRow.find( '#start_time' ).prop( 'disabled', false );
 				} else {
 					$startDateRow.hide();
+					$immediateDisplay.show();
+					$startDateBox.addClass( 'wsscd-date-box--immediate' );
 					// Set tabindex to -1 for hidden fields to remove from tab order
 					$startDateRow.find( 'input, button' ).attr( 'tabindex', '-1' );
 				}
@@ -820,31 +852,56 @@
 			var startDate = new Date( state.startDate );
 			var endDate = new Date( state.endDate );
 			var originalDateRange = this.formatDateRange( startDate, endDate );
-			markersHtml += '<div class="wsscd-schedule-timeline__marker wsscd-schedule-timeline__marker--original">';
+			var originalTooltip = this.formatTooltipDate( startDate, endDate );
+
+			markersHtml += '<div class="wsscd-schedule-timeline__marker wsscd-schedule-timeline__marker--original" data-tooltip="' + originalTooltip + '">';
+			markersHtml += '<div class="wsscd-timeline-pulse"></div>';
 			markersHtml += '<span class="wsscd-schedule-timeline__marker-day">' + originalDateRange.days + '</span>';
 			markersHtml += '<span class="wsscd-schedule-timeline__marker-month">' + originalDateRange.months + '</span>';
 			markersHtml += '<span class="wsscd-schedule-timeline__marker-label">Original</span>';
 			markersHtml += '</div>';
 
-			// Add arrow separator
-			markersHtml += '<div class="wsscd-schedule-timeline__arrow">→</div>';
-
 			// Add recurrence markers (dynamic count based on end type)
 			var maxMarkers = Math.min( occurrences.length, this.getMaxDisplayMarkers() );
+			var hasMore = occurrences.length > maxMarkers;
+
 			for ( var i = 0; i < maxMarkers; i++ ) {
 				var occurrence = occurrences[i];
 				var dateRange = this.formatDateRange( occurrence.start, occurrence.end );
+				var tooltip = this.formatTooltipDate( occurrence.start, occurrence.end );
 
-				markersHtml += '<div class="wsscd-schedule-timeline__marker">';
+				// Add connector before each recurrence marker
+				var connectorClass = 'wsscd-schedule-timeline__connector';
+				if ( 0 === i ) {
+					connectorClass += ' wsscd-schedule-timeline__connector--first';
+				}
+				markersHtml += '<div class="' + connectorClass + '"></div>';
+
+				// Add recurrence marker
+				markersHtml += '<div class="wsscd-schedule-timeline__marker wsscd-schedule-timeline__marker--recurrence" data-tooltip="' + tooltip + '">';
 				markersHtml += '<span class="wsscd-schedule-timeline__marker-day">' + dateRange.days + '</span>';
 				markersHtml += '<span class="wsscd-schedule-timeline__marker-month">' + dateRange.months + '</span>';
 				markersHtml += '</div>';
 			}
 
-			// Show "more" indicator if there are more occurrences
-			if ( occurrences.length > maxMarkers ) {
-				markersHtml += '<div class="wsscd-schedule-timeline__marker wsscd-schedule-timeline__marker--more">';
-				markersHtml += '<span class="wsscd-schedule-timeline__marker-day">+' + ( occurrences.length - maxMarkers ) + '</span>';
+			// Show "more" indicator based on end type
+			var endType = state.recurrenceEndType || 'never';
+
+			if ( 'never' === endType ) {
+				// For "forever" - show infinity indicator
+				markersHtml += '<div class="wsscd-schedule-timeline__connector"></div>';
+				markersHtml += '<div class="wsscd-schedule-timeline__marker wsscd-schedule-timeline__marker--more wsscd-schedule-timeline__marker--infinite" data-tooltip="Continues indefinitely">';
+				markersHtml += '<span class="wsscd-schedule-timeline__marker-day">∞</span>';
+				markersHtml += '<span class="wsscd-schedule-timeline__marker-month">forever</span>';
+				markersHtml += '</div>';
+			} else if ( hasMore ) {
+				// For finite recurrence with more items
+				var moreCount = occurrences.length - maxMarkers;
+				var moreTooltip = moreCount + ' more occurrence' + ( 1 !== moreCount ? 's' : '' );
+
+				markersHtml += '<div class="wsscd-schedule-timeline__connector"></div>';
+				markersHtml += '<div class="wsscd-schedule-timeline__marker wsscd-schedule-timeline__marker--more" data-tooltip="' + moreTooltip + '">';
+				markersHtml += '<span class="wsscd-schedule-timeline__marker-day">+' + moreCount + '</span>';
 				markersHtml += '<span class="wsscd-schedule-timeline__marker-month">more</span>';
 				markersHtml += '</div>';
 			}
@@ -1504,6 +1561,40 @@
 		},
 
 		/**
+		 * Format tooltip date range for hover display
+		 *
+		 * @param {Date} startDate - Start date
+		 * @param {Date} endDate - End date
+		 * @return {string} Formatted date range (e.g., "Feb 1-3, 2026" or "Feb 28 - Mar 2, 2026")
+		 */
+		formatTooltipDate: function( startDate, endDate ) {
+			var startDay = startDate.getDate();
+			var endDay = endDate.getDate();
+			var startMonth = startDate.toLocaleDateString( 'en-US', { month: 'short' } );
+			var endMonth = endDate.toLocaleDateString( 'en-US', { month: 'short' } );
+			var startYear = startDate.getFullYear();
+			var endYear = endDate.getFullYear();
+
+			// Same day (1-day campaign)
+			if ( startDay === endDay && startMonth === endMonth && startYear === endYear ) {
+				return startMonth + ' ' + startDay + ', ' + startYear;
+			}
+
+			// Same month and year
+			if ( startMonth === endMonth && startYear === endYear ) {
+				return startMonth + ' ' + startDay + '-' + endDay + ', ' + startYear;
+			}
+
+			// Same year but different months
+			if ( startYear === endYear ) {
+				return startMonth + ' ' + startDay + ' - ' + endMonth + ' ' + endDay + ', ' + startYear;
+			}
+
+			// Cross-year
+			return startMonth + ' ' + startDay + ', ' + startYear + ' - ' + endMonth + ' ' + endDay + ', ' + endYear;
+		},
+
+		/**
 		 * Get the number of occurrences to calculate for preview
 		 * Dynamic based on end type
 		 */
@@ -1517,8 +1608,13 @@
 				return Math.min( count, 12 );
 			}
 
-			// For "never" or "on date", calculate 8 for preview
-			return 8;
+			if ( 'never' === endType ) {
+				// For "forever", only calculate what we display (5) + infinity indicator
+				return 5;
+			}
+
+			// For "on date", calculate more to show accurate count
+			return 10;
 		},
 
 		/**
@@ -1606,12 +1702,28 @@
 		}
 
 		if ( ! validation.valid ) {
-			var $errorField = this.$container.find( '#' + validation.field );
+			// Map hidden field IDs to visible display field IDs
+			var fieldId = validation.field;
+			if ( 'start_date' === fieldId || 'end_date' === fieldId ) {
+				fieldId = fieldId + '_display';
+			}
+
+			var $errorField = this.$container.find( '#' + fieldId );
 			if ( $errorField.length ) {
 				WSSCD.ValidationError.show( $errorField, validation.message );
 			}
 		} else {
+			// Clear from both the input and its display counterpart
 			WSSCD.ValidationError.clear( $input );
+
+			// Also clear from display field if applicable
+			var inputId = $input.attr( 'id' );
+			if ( inputId && ( 'start_date' === inputId || 'end_date' === inputId ) ) {
+				var $displayField = this.$container.find( '#' + inputId + '_display' );
+				if ( $displayField.length ) {
+					WSSCD.ValidationError.clear( $displayField );
+				}
+			}
 		}
 	},
 
@@ -1916,34 +2028,52 @@
 	},
 
 	/**
-	 * Show validation feedback for recurrence end date
-	 * @param {object} validation - Result from validateRecurrenceEndDate
+	 * Update the minimum selectable date for recurrence end date picker
+	 * Disables dates before the first recurrence would start
 	 */
-	showRecurrenceEndDateValidation: function( validation ) {
-		var $endDateRow = this.$container.find( '.wsscd-recurring-until__on' );
-		var $warningEl = $endDateRow.find( '.wsscd-enddate-warning' );
+	updateRecurrenceEndDateMinDate: function() {
+		var $recurrenceEndDate = this.$container.find( '#recurrence_end_date' );
 
-		if ( validation.valid ) {
-			$warningEl.remove();
-			$endDateRow.removeClass( 'has-warning has-error' );
+		if ( ! $recurrenceEndDate.length || ! $.fn.datepicker ) {
 			return;
 		}
 
-		// Determine icon and class based on type
-		var icon = 'error' === validation.type ? '❌' : '⚠️';
-		var containerClass = 'error' === validation.type ? 'has-error' : 'has-warning';
+		var state = this.modules.state ? this.modules.state.getState() : {};
 
-		// Create or update warning element
-		if ( ! $warningEl.length ) {
-			$warningEl = $( '<div class="wsscd-enddate-warning"></div>' );
-			$endDateRow.append( $warningEl );
+		// Default to today if no campaign dates set
+		if ( ! state.endDate ) {
+			$recurrenceEndDate.datepicker( 'option', 'minDate', 0 );
+			return;
 		}
 
-		$warningEl.html(
-			'<span class="wsscd-enddate-warning__icon">' + icon + '</span>' +
-			'<span class="wsscd-enddate-warning__text">' + validation.warning + '</span>'
-		);
-		$endDateRow.removeClass( 'has-warning has-error' ).addClass( containerClass );
+		var campaignEnd = new Date( state.endDate );
+		var interval = parseInt( state.recurrenceInterval, 10 ) || 1;
+		var pattern = state.recurrencePattern || 'daily';
+
+		// Calculate when first recurrence would start
+		var firstRecurrenceStart = new Date( campaignEnd );
+		if ( 'daily' === pattern ) {
+			firstRecurrenceStart.setDate( firstRecurrenceStart.getDate() + interval );
+		} else if ( 'weekly' === pattern ) {
+			firstRecurrenceStart.setDate( firstRecurrenceStart.getDate() + ( interval * 7 ) );
+		} else if ( 'monthly' === pattern ) {
+			firstRecurrenceStart.setMonth( firstRecurrenceStart.getMonth() + interval );
+		}
+
+		// Set min date to first recurrence start
+		$recurrenceEndDate.datepicker( 'option', 'minDate', firstRecurrenceStart );
+
+		// If current value is before min date, clear it
+		var currentVal = $recurrenceEndDate.val();
+		if ( currentVal ) {
+			var currentDate = new Date( currentVal );
+			if ( currentDate < firstRecurrenceStart ) {
+				$recurrenceEndDate.val( '' );
+				if ( this.modules.state && 'function' === typeof this.modules.state.setState ) {
+					this.modules.state.setState( { recurrenceEndDate: '' } );
+				}
+			}
+		}
 	},
 
 	/**
@@ -2081,7 +2211,7 @@
 			return {
 				valid: false,
 				field: 'end_date',
-				message: 'Campaign end date must be after start date'
+				message: 'Campaign must end after it starts'
 			};
 		}
 
@@ -2090,7 +2220,7 @@
 			return {
 				valid: false,
 				field: 'end_time',
-				message: 'Campaign end time must be after start time'
+				message: 'Campaign must end after it starts'
 			};
 		}
 
@@ -2166,9 +2296,14 @@
 
 		if ( errors.length > 0 ) {
 			// Convert errors array to object format for ValidationError.showMultiple
+			// Map hidden field IDs to visible display field IDs
 			var errorObject = {};
 			errors.forEach( function( error ) {
-				errorObject[error.field] = error.message;
+				var fieldId = error.field;
+				if ( 'start_date' === fieldId || 'end_date' === fieldId ) {
+					fieldId = fieldId + '_display';
+				}
+				errorObject[fieldId] = error.message;
 			} );
 
 			// Use wizard validation pattern - handles inline errors and auto-scroll to field

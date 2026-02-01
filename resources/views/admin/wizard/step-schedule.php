@@ -95,280 +95,142 @@ ob_start();
     ) );
     ?>
 
-    <!-- Primary Schedule Configuration -->
+    <!-- Primary Schedule Configuration - Campaign Period -->
     <?php
     ob_start();
     ?>
-    <!-- Start Type Selection Cards -->
-    <div class="wsscd-form-section">
-        <div class="wsscd-form-section-header">
-            <h3 class="wsscd-form-section-title">
-                <?php esc_html_e( 'Campaign Start Type', 'smart-cycle-discounts' ); ?>
-            </h3>
-        </div>
-        <div class="wsscd-schedule-selection-cards">
-            <label class="wsscd-card-option">
-                <input type="radio" 
-                       name="start_type" 
-                       value="immediate" 
-                       <?php checked( $start_type, 'immediate' ); ?>>
-                <div class="wsscd-card__content">
-                    <h4>
-                        <?php WSSCD_Icon_Helper::render( 'play', array( 'size' => 16 ) ); ?>
-                        <?php esc_html_e( 'Start Immediately', 'smart-cycle-discounts' ); ?>
-                    </h4>
-                    <p><?php esc_html_e( 'Campaign begins as soon as it\'s launched. Perfect for urgent promotions or flash sales.', 'smart-cycle-discounts' ); ?></p>
-                </div>
+    <!-- Hidden inputs for form submission -->
+    <input type="hidden" id="start_date" name="start_date" value="<?php echo esc_attr( $start_date ); ?>" data-field="start_date">
+    <input type="hidden" id="end_date" name="end_date" value="<?php echo esc_attr( $end_date ); ?>" data-field="end_date">
+
+    <!-- Start Type Toggle -->
+    <div class="wsscd-period-start-toggle">
+        <span class="wsscd-period-start-toggle__label"><?php esc_html_e( 'Start:', 'smart-cycle-discounts' ); ?></span>
+        <div class="wsscd-toggle-buttons" role="radiogroup" aria-label="<?php esc_attr_e( 'Campaign start type', 'smart-cycle-discounts' ); ?>">
+            <label class="wsscd-toggle-btn <?php echo 'immediate' === $start_type ? 'wsscd-toggle-btn--active' : ''; ?>">
+                <input type="radio" name="start_type" value="immediate" <?php checked( $start_type, 'immediate' ); ?>>
+                <?php WSSCD_Icon_Helper::render( 'controls-play', array( 'size' => 14 ) ); ?>
+                <span><?php esc_html_e( 'Immediately', 'smart-cycle-discounts' ); ?></span>
             </label>
-            <label class="wsscd-card-option">
-                <input type="radio" 
-                       name="start_type" 
-                       value="scheduled" 
-                       <?php checked( $start_type, 'scheduled' ); ?>>
-                <div class="wsscd-card__content">
-                    <h4>
-                        <?php WSSCD_Icon_Helper::render( 'calendar', array( 'size' => 16 ) ); ?>
-                        <?php esc_html_e( 'Scheduled Start', 'smart-cycle-discounts' ); ?>
-                    </h4>
-                    <p><?php esc_html_e( 'Set a specific date and time to begin. Ideal for planned campaigns and seasonal promotions.', 'smart-cycle-discounts' ); ?></p>
-                </div>
+            <label class="wsscd-toggle-btn <?php echo 'scheduled' === $start_type ? 'wsscd-toggle-btn--active' : ''; ?>">
+                <input type="radio" name="start_type" value="scheduled" <?php checked( $start_type, 'scheduled' ); ?>>
+                <?php WSSCD_Icon_Helper::render( 'calendar', array( 'size' => 14 ) ); ?>
+                <span><?php esc_html_e( 'Scheduled', 'smart-cycle-discounts' ); ?></span>
             </label>
         </div>
     </div>
 
-    <!-- Schedule Dates Section -->
-    <div class="wsscd-form-section">
-        <div class="wsscd-form-section-header">
-            <h4 class="wsscd-form-section-title">
-                <?php esc_html_e( 'Schedule Dates', 'smart-cycle-discounts' ); ?>
-            </h4>
+    <!-- Horizontal Date Range -->
+    <div class="wsscd-date-range">
+        <!-- Start Date Box -->
+        <div class="wsscd-date-box wsscd-date-box--start <?php echo 'immediate' === $start_type ? 'wsscd-date-box--immediate' : ''; ?>">
+            <div class="wsscd-date-box__label">
+                <?php WSSCD_Icon_Helper::render( 'calendar-alt', array( 'size' => 16 ) ); ?>
+                <span><?php esc_html_e( 'From', 'smart-cycle-discounts' ); ?></span>
+            </div>
+
+            <!-- Immediate state display -->
+            <div class="wsscd-date-box__immediate" <?php echo 'scheduled' === $start_type ? 'style="display: none;"' : ''; ?>>
+                <span class="wsscd-date-box__date-text"><?php esc_html_e( 'Now', 'smart-cycle-discounts' ); ?></span>
+                <span class="wsscd-date-box__time-text"><?php esc_html_e( 'Upon activation', 'smart-cycle-discounts' ); ?></span>
+            </div>
+
+            <!-- Scheduled state inputs -->
+            <div class="wsscd-date-box__scheduled wsscd-scheduled-start-fields" <?php echo 'immediate' === $start_type ? 'style="display: none;"' : ''; ?>>
+                <div class="wsscd-date-box__date">
+                    <input type="text"
+                           id="start_date_display"
+                           class="wsscd-date-input <?php echo esc_attr( isset( $validation_errors['start_date'] ) ? 'error' : '' ); ?>"
+                           placeholder="<?php esc_attr_e( 'Select date', 'smart-cycle-discounts' ); ?>"
+                           readonly
+                           value="<?php echo esc_attr( $start_date ); ?>"
+                           aria-label="<?php esc_attr_e( 'Start date', 'smart-cycle-discounts' ); ?>">
+                    <button type="button" class="wsscd-date-box__calendar-btn" data-target="start_date_display" aria-label="<?php esc_attr_e( 'Choose start date', 'smart-cycle-discounts' ); ?>">
+                        <?php WSSCD_Icon_Helper::render( 'calendar-alt', array( 'size' => 16 ) ); ?>
+                    </button>
+                </div>
+                <div class="wsscd-date-box__time">
+                    <input type="time"
+                           id="start_time"
+                           name="start_time"
+                           value="<?php echo esc_attr( $start_time ); ?>"
+                           class="wsscd-time-input <?php echo esc_attr( isset( $validation_errors['start_time'] ) ? 'error' : '' ); ?>"
+                           aria-label="<?php esc_attr_e( 'Start time', 'smart-cycle-discounts' ); ?>">
+                </div>
+            </div>
+            <?php wsscd_wizard_field_errors( $validation_errors, 'start_date' ); ?>
         </div>
 
-    <!-- Start Date - Only visible when "scheduled" is selected -->
-    <div class="wsscd-scheduled-start-fields"<?php if ( 'immediate' === $start_type ) { echo ' style="display: none;"'; } ?>>
-        <!-- Hidden actual input for form submission -->
-        <input type="hidden"
-               id="start_date"
-               name="start_date"
-               value="<?php echo esc_attr( $start_date ); ?>"
-               data-field="start_date">
-
-        <?php
-        // Start date and time fields
-        ob_start();
-        ?>
-        <div class="wsscd-datetime-wrapper">
-            <!-- Date picker -->
-            <div class="wsscd-date-picker-wrapper">
-                <input type="text"
-                       id="start_date_display"
-                       class="wsscd-date-picker <?php echo esc_attr( isset( $validation_errors['start_date'] ) ? 'error' : '' ); ?>"
-                       placeholder="<?php esc_attr_e( 'Select date', 'smart-cycle-discounts' ); ?>"
-                       readonly
-                       value="<?php echo esc_attr( $start_date ); ?>"
-                       aria-describedby="start_date_help"
-                       <?php if ( 'immediate' === $start_type ) { echo 'tabindex="-1"'; } ?>>
-                <button type="button"
-                        class="wsscd-calendar-icon"
-                        data-target="start_date_display"
-                        aria-label="<?php esc_attr_e( 'Choose start date', 'smart-cycle-discounts' ); ?>"
-                        <?php if ( 'immediate' === $start_type ) { echo 'tabindex="-1"'; } ?>>
-                    <?php
-                    if ( class_exists( 'WSSCD_Icon_Helper' ) ) {
-                        WSSCD_Icon_Helper::render(
-                            'calendar-alt',
-                            array(
-                                'size'        => 18,
-                                'class'       => 'wsscd-icon',
-                                'aria_hidden' => true,
-                            )
-                        );
-                    }
-                    ?>
-                </button>
-            </div>
-
-            <!-- Time picker -->
-            <div class="wsscd-time-picker-wrapper">
-                <span class="wsscd-at-label"><?php esc_html_e( 'at', 'smart-cycle-discounts' ); ?></span>
-                <input type="time"
-                       id="start_time"
-                       name="start_time"
-                       value="<?php echo esc_attr( $start_time ); ?>"
-                       class="wsscd-time-picker <?php echo esc_attr( isset( $validation_errors['start_time'] ) ? 'error' : '' ); ?>"
-                       aria-label="<?php esc_attr_e( 'Start time', 'smart-cycle-discounts' ); ?>"
-                       <?php if ( 'immediate' === $start_type ) { echo 'tabindex="-1"'; } ?>>
-            </div>
+        <!-- Arrow Connector -->
+        <div class="wsscd-date-range__connector">
+            <span class="wsscd-date-range__arrow">→</span>
         </div>
-        <?php wsscd_wizard_field_errors( $validation_errors, 'start_date' ); ?>
-        <?php $start_date_content = ob_get_clean(); ?>
 
-        <!-- Modern flexbox field layout -->
-        <div class="wsscd-field-group">
-            <div class="wsscd-field-header">
-                <label class="wsscd-field-label" for="start_date_display">
-                    <?php esc_html_e( 'Start Date', 'smart-cycle-discounts' ); ?>
-                    <span class="wsscd-required-indicator" aria-label="<?php esc_attr_e( 'Required', 'smart-cycle-discounts' ); ?>">*</span>
-                </label>
-                <?php
-                WSSCD_Tooltip_Helper::render(
-                    __( 'When your discount campaign begins. Recent dates (within 5 minutes) are allowed to account for clock differences and processing time.', 'smart-cycle-discounts' )
-                );
-                ?>
+        <!-- End Date Box -->
+        <div class="wsscd-date-box wsscd-date-box--end <?php echo empty( $end_date ) ? 'wsscd-date-box--indefinite' : ''; ?>">
+            <div class="wsscd-date-box__label">
+                <?php WSSCD_Icon_Helper::render( 'flag', array( 'size' => 16 ) ); ?>
+                <span><?php esc_html_e( 'Until', 'smart-cycle-discounts' ); ?></span>
             </div>
-            <div class="wsscd-field-content">
-                <?php WSSCD_HTML_Helper::output( $start_date_content ); ?>
+
+            <div class="wsscd-date-box__content">
+                <div class="wsscd-date-box__date">
+                    <input type="text"
+                           id="end_date_display"
+                           class="wsscd-date-input <?php echo esc_attr( isset( $validation_errors['end_date'] ) ? 'error' : '' ); ?>"
+                           placeholder="<?php esc_attr_e( 'No end date', 'smart-cycle-discounts' ); ?>"
+                           readonly
+                           value="<?php echo esc_attr( $end_date ); ?>"
+                           aria-label="<?php esc_attr_e( 'End date', 'smart-cycle-discounts' ); ?>">
+                    <button type="button" class="wsscd-date-box__calendar-btn" data-target="end_date_display" aria-label="<?php esc_attr_e( 'Choose end date', 'smart-cycle-discounts' ); ?>">
+                        <?php WSSCD_Icon_Helper::render( 'calendar-alt', array( 'size' => 16 ) ); ?>
+                    </button>
+                </div>
+                <div class="wsscd-date-box__time">
+                    <input type="<?php echo esc_attr( empty( $end_date ) ? 'text' : 'time' ); ?>"
+                           id="end_time"
+                           name="end_time"
+                           value="<?php echo esc_attr( empty( $end_date ) ? '--:--' : $end_time ); ?>"
+                           class="wsscd-time-input <?php echo esc_attr( empty( $end_date ) ? 'wsscd-time-placeholder' : '' ); ?><?php echo esc_attr( isset( $validation_errors['end_time'] ) ? ' error' : '' ); ?>"
+                           <?php echo empty( $end_date ) ? 'disabled' : ''; ?>
+                           aria-label="<?php esc_attr_e( 'End time', 'smart-cycle-discounts' ); ?>">
+                </div>
             </div>
+
+            <!-- Clear button -->
+            <button type="button"
+                    class="wsscd-date-box__clear wsscd-clear-end-date"
+                    title="<?php esc_attr_e( 'Run indefinitely', 'smart-cycle-discounts' ); ?>"
+                    aria-label="<?php esc_attr_e( 'Clear end date', 'smart-cycle-discounts' ); ?>"
+                    <?php echo empty( $end_date ) ? 'style="display: none;"' : ''; ?>>
+                <?php WSSCD_Icon_Helper::render( 'no-alt', array( 'size' => 14 ) ); ?>
+            </button>
+            <?php wsscd_wizard_field_errors( $validation_errors, 'end_date' ); ?>
         </div>
     </div>
 
-    <!-- End Date - Always visible -->
-        <!-- Hidden actual input for form submission -->
-        <input type="hidden"
-               id="end_date"
-               name="end_date"
-               value="<?php echo esc_attr( $end_date ); ?>"
-               data-field="end_date">
-
-        <?php
-        // End date and time fields
-        ob_start();
-        ?>
-        <div class="wsscd-datetime-wrapper">
-            <!-- Date picker -->
-            <div class="wsscd-date-picker-wrapper">
-                <input type="text"
-                       id="end_date_display"
-                       class="wsscd-date-picker <?php echo esc_attr( isset( $validation_errors['end_date'] ) ? 'error' : '' ); ?>"
-                       placeholder="<?php esc_attr_e( 'Runs indefinitely', 'smart-cycle-discounts' ); ?>"
-                       readonly
-                       value="<?php echo esc_attr( $end_date ); ?>"
-                       aria-describedby="end_date_help">
-                <button type="button"
-                        class="wsscd-calendar-icon"
-                        data-target="end_date_display"
-                        aria-label="<?php esc_attr_e( 'Choose end date', 'smart-cycle-discounts' ); ?>">
-                    <?php
-                    if ( class_exists( 'WSSCD_Icon_Helper' ) ) {
-                        WSSCD_Icon_Helper::render(
-                            'calendar-alt',
-                            array(
-                                'size'        => 18,
-                                'class'       => 'wsscd-icon',
-                                'aria_hidden' => true,
-                            )
-                        );
-                    }
-                    ?>
-                </button>
-            </div>
-
-            <!-- Time picker -->
-            <div class="wsscd-time-picker-wrapper">
-                <span class="wsscd-at-label"><?php esc_html_e( 'at', 'smart-cycle-discounts' ); ?></span>
-                <input type="<?php echo esc_attr( empty( $end_date ) ? 'text' : 'time' ); ?>"
-                       id="end_time"
-                       name="end_time"
-                       value="<?php echo esc_attr( empty( $end_date ) ? '--:--' : $end_time ); ?>"
-                       class="wsscd-time-picker <?php echo esc_attr( empty( $end_date ) ? 'wsscd-time-placeholder' : '' ); ?><?php echo esc_attr( isset( $validation_errors['end_time'] ) ? ' error' : '' ); ?>"
-                       <?php echo esc_attr( empty( $end_date ) ? 'disabled' : '' ); ?>
-                       aria-label="<?php esc_attr_e( 'End time', 'smart-cycle-discounts' ); ?>">
-            </div>
-
-            <!-- Option to clear end date -->
-            <?php
-            WSSCD_Button_Helper::icon(
-                'no-alt',
-                __( 'Clear end date and time', 'smart-cycle-discounts' ),
-                array(
-                    'style'      => 'ghost-danger',
-                    'size'       => 'small',
-                    'classes'    => array( 'wsscd-clear-end-date' ),
-                    'attributes' => array( 'title' => __( 'Run indefinitely', 'smart-cycle-discounts' ) ),
-                )
-            );
-            ?>
-        </div>
-
-        <?php wsscd_wizard_field_errors( $validation_errors, 'end_date' ); ?>
-        <?php $end_date_content = ob_get_clean(); ?>
-
-        <!-- Modern flexbox field layout -->
-        <div class="wsscd-field-group">
-            <div class="wsscd-field-header">
-                <label class="wsscd-field-label" for="end_date_display">
-                    <?php esc_html_e( 'End Date', 'smart-cycle-discounts' ); ?>
-                </label>
-                <?php
-                WSSCD_Tooltip_Helper::render(
-                    __( 'When your discount campaign ends. Leave empty to run indefinitely', 'smart-cycle-discounts' )
-                );
-                ?>
-            </div>
-            <div class="wsscd-field-content">
-                <?php WSSCD_HTML_Helper::output( $end_date_content ); ?>
-            </div>
-        </div>
-    </div><!-- .wsscd-form-section (Schedule Dates) -->
-    
-    <!-- Duration Display -->
-    <div id="wsscd-duration-display" 
-         class="wsscd-duration-display"
-         role="status"
-         aria-live="polite">
-        <div class="wsscd-duration-content">
-            <?php WSSCD_Icon_Helper::render( 'clock', array( 'size' => 16, 'class' => 'wsscd-duration-icon' ) ); ?>
-            <span class="wsscd-duration-label"><?php esc_html_e( 'Duration:', 'smart-cycle-discounts' ); ?></span>
-            <span id="wsscd-duration-text" class="wsscd-duration-value">
-                <?php esc_html_e( '7 days (168 hours)', 'smart-cycle-discounts' ); ?>
-            </span>
-        </div>
-        <div id="wsscd-duration-hint" class="wsscd-duration-hint">
-            <?php WSSCD_Icon_Helper::render( 'lightbulb', array( 'size' => 16, 'class' => 'wsscd-hint-icon' ) ); ?>
-            <span class="wsscd-hint-text"><?php esc_html_e( 'Perfect for weekly promotions', 'smart-cycle-discounts' ); ?></span>
-        </div>
+    <!-- Compact Duration Bar -->
+    <div id="wsscd-duration-display" class="wsscd-duration-bar" role="status" aria-live="polite">
+        <?php WSSCD_Icon_Helper::render( 'clock', array( 'size' => 16, 'class' => 'wsscd-duration-bar__icon' ) ); ?>
+        <span id="wsscd-duration-text" class="wsscd-duration-bar__text"><?php esc_html_e( '7 days', 'smart-cycle-discounts' ); ?></span>
+        <span class="wsscd-duration-bar__separator">•</span>
+        <span id="wsscd-duration-hint" class="wsscd-duration-bar__hint"><?php esc_html_e( 'Perfect for weekly promotions', 'smart-cycle-discounts' ); ?></span>
     </div>
-    
-    <!-- Timezone indicator -->
-    <div class="wsscd-timezone-indicator wsscd-timezone-indicator--prominent">
-        <div class="wsscd-timezone-content">
-            <?php WSSCD_Icon_Helper::render( 'admin-site-alt3', array( 'size' => 16, 'class' => 'wsscd-timezone-icon' ) ); ?>
-            <span class="wsscd-timezone-label"><?php esc_html_e( 'Campaign timezone:', 'smart-cycle-discounts' ); ?></span>
-            <strong class="wsscd-timezone-value"><?php echo esc_html( $timezone ); ?></strong>
-        </div>
-        <div class="wsscd-timezone-note">
-            <?php
-            if ( 'immediate' === $start_type ) {
-                printf(
-                    wp_kses(
-                        /* translators: %s: WordPress site timezone wrapped in strong tags */
-                        __( 'This campaign will start immediately using the server time in %s timezone.', 'smart-cycle-discounts' ),
-                        array( 'strong' => array() )
-                    ),
-                    '<strong>' . esc_html( $timezone ) . '</strong>'
-                );
-            } else {
-                printf(
-                    wp_kses(
-                        /* translators: %s: WordPress site timezone wrapped in strong tags */
-                        __( 'All dates and times use the %s timezone. Please schedule accordingly.', 'smart-cycle-discounts' ),
-                        array( 'strong' => array() )
-                    ),
-                    '<strong>' . esc_html( $timezone ) . '</strong>'
-                );
-            }
-            ?>
-        </div>
+
+    <!-- Subtle Timezone -->
+    <div class="wsscd-timezone-subtle">
+        <?php WSSCD_Icon_Helper::render( 'admin-site-alt3', array( 'size' => 14 ) ); ?>
+        <span><?php echo esc_html( $timezone ); ?></span>
     </div>
     <?php
-    $schedule_content = ob_get_clean();
-    
+    $wsscd_schedule_content = ob_get_clean();
+
     wsscd_wizard_card( array(
-        'title' => __( 'Schedule Configuration', 'smart-cycle-discounts' ),
-        'subtitle' => __( 'Configure when your campaign should run. All times are in your store timezone.', 'smart-cycle-discounts' ),
-        'icon' => 'calendar-alt',
-        'content' => $schedule_content,
-        'help_topic' => 'card-schedule-config'
+        'title'      => __( 'Campaign Period', 'smart-cycle-discounts' ),
+        'subtitle'   => __( 'Set when your discount campaign runs', 'smart-cycle-discounts' ),
+        'icon'       => 'calendar-alt',
+        'content'    => $wsscd_schedule_content,
+        'help_topic' => 'card-schedule-config',
     ) );
     ?>
 
