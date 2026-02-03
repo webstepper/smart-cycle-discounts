@@ -78,19 +78,25 @@ class WSSCD_Migration_004_Add_Recurrence_Mode implements WSSCD_Migration_Interfa
 			// Default to 'continuous' for new campaigns, but existing campaigns keep instances behavior.
 			// Using VARCHAR for broader MySQL compatibility.
 			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Migration ALTER TABLE; table name from trusted source.
-			$wpdb->query(
+			$alter_ok = $wpdb->query(
 				"ALTER TABLE {$table_name}
 				ADD COLUMN recurrence_mode VARCHAR(20) NOT NULL DEFAULT 'continuous'
 				COMMENT 'Recurrence mode: continuous (toggle active/inactive) or instances (create campaign copies)'
 				AFTER recurrence_end_date"
 			);
 			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			if ( false === $alter_ok && ! empty( $wpdb->last_error ) ) {
+				throw new Exception( '004 add recurrence_mode: ' . $wpdb->last_error );
+			}
 
 			// Update existing recurring campaigns to use 'instances' mode for backwards compatibility.
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Migration data update; table name from trusted source.
-			$wpdb->query(
+			$update_ok = $wpdb->query(
 				"UPDATE {$table_name} SET recurrence_mode = 'instances' WHERE id > 0"
 			);
+			if ( false === $update_ok && ! empty( $wpdb->last_error ) ) {
+				throw new Exception( '004 update recurrence_mode: ' . $wpdb->last_error );
+			}
 		}
 	}
 

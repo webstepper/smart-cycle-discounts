@@ -76,13 +76,16 @@ class WSSCD_Migration_002_Add_Free_Shipping implements WSSCD_Migration_Interface
 		if ( empty( $column_exists ) ) {
 			// Add the column after discount_rules for logical grouping.
 			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Migration ALTER TABLE; table name from trusted source.
-			$wpdb->query(
+			$alter_ok = $wpdb->query(
 				"ALTER TABLE {$table_name}
 				ADD COLUMN free_shipping_config LONGTEXT DEFAULT NULL
 				COMMENT 'JSON configuration for free shipping: {enabled: bool, methods: \"all\"|array}'
 				AFTER discount_rules"
 			);
 			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			if ( false === $alter_ok && ! empty( $wpdb->last_error ) ) {
+				throw new Exception( '002 add free_shipping_config: ' . $wpdb->last_error );
+			}
 		}
 	}
 

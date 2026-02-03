@@ -77,13 +77,16 @@ class WSSCD_Migration_003_Add_User_Roles implements WSSCD_Migration_Interface {
 			// Add user_roles column - stores JSON array of role slugs.
 			// Using LONGTEXT for broader MySQL compatibility (JSON type requires MySQL 5.7.8+).
 			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Migration ALTER TABLE; table name from trusted source.
-			$wpdb->query(
+			$alter_ok = $wpdb->query(
 				"ALTER TABLE {$table_name}
 				ADD COLUMN user_roles LONGTEXT DEFAULT NULL
 				COMMENT 'JSON array of role slugs for targeting'
 				AFTER free_shipping_config"
 			);
 			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			if ( false === $alter_ok && ! empty( $wpdb->last_error ) ) {
+				throw new Exception( '003 add user_roles: ' . $wpdb->last_error );
+			}
 		}
 
 		// Check if user_roles_mode column already exists.
@@ -99,13 +102,16 @@ class WSSCD_Migration_003_Add_User_Roles implements WSSCD_Migration_Interface {
 			// Add user_roles_mode column - determines how roles are applied.
 			// Using VARCHAR for broader compatibility instead of ENUM.
 			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Migration ALTER TABLE; table name from trusted source.
-			$wpdb->query(
+			$alter_ok = $wpdb->query(
 				"ALTER TABLE {$table_name}
 				ADD COLUMN user_roles_mode VARCHAR(10) DEFAULT 'all'
 				COMMENT 'How to apply roles: all, include, exclude'
 				AFTER user_roles"
 			);
 			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			if ( false === $alter_ok && ! empty( $wpdb->last_error ) ) {
+				throw new Exception( '003 add user_roles_mode: ' . $wpdb->last_error );
+			}
 		}
 	}
 

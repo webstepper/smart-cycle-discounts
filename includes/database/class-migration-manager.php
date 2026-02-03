@@ -243,6 +243,7 @@ class WSSCD_Migration_Manager {
 	 * @return   array    Pending migrations.
 	 */
 	public function get_pending_migrations(): array {
+		$this->repair_schema_drift();
 		$executed = $this->get_executed_migrations();
 		$pending  = array();
 
@@ -253,6 +254,47 @@ class WSSCD_Migration_Manager {
 		}
 
 		return $pending;
+	}
+
+	/**
+	 * Repair schema drift: if a migration was recorded as run but the schema change
+	 * never applied (e.g. ALTER failed on a previous run and was not thrown), remove
+	 * the migration record so it will run again on the next migrate().
+	 *
+	 * Fixes "Unknown column" errors after plugin update when migrations table said
+	 * 002/003 were run but campaigns table is missing columns (e.g. due to timeout or lock).
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   void
+	 */
+	private function repair_schema_drift(): void {
+		if ( ! $this->db->table_exists( 'campaigns' ) || ! $this->db->table_exists( 'migrations' ) ) {
+			return;
+		}
+
+		$campaigns_table = $this->db->get_table_name( 'campaigns' );
+		$columns         = $this->db->get_columns( $campaigns_table );
+		$executed        = $this->get_executed_migrations();
+
+		// 002: free_shipping_config must exist if 002 was "executed".
+		if ( in_array( '002-add-free-shipping', $executed, true ) && ! in_array( 'free_shipping_config', $columns, true ) ) {
+			$this->db->delete( 'migrations', array( 'migration' => '002-add-free-shipping' ), array( '%s' ) );
+		}
+
+		// 003: user_roles and user_roles_mode must exist if 003 was "executed".
+		if ( in_array( '003-add-user-roles', $executed, true ) ) {
+			$missing = array();
+			if ( ! in_array( 'user_roles', $columns, true ) ) {
+				$missing[] = 'user_roles';
+			}
+			if ( ! in_array( 'user_roles_mode', $columns, true ) ) {
+				$missing[] = 'user_roles_mode';
+			}
+			if ( ! empty( $missing ) ) {
+				$this->db->delete( 'migrations', array( 'migration' => '003-add-user-roles' ), array( '%s' ) );
+			}
+		}
 	}
 
 	/**

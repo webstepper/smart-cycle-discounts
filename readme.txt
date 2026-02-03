@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: discount rules, BOGO, bulk discount, tiered pricing, sale scheduler
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.5.3
+Stable tag: 1.5.4
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -430,6 +430,11 @@ Pro users can configure combination policies for each campaign. Choose whether y
 
 == Changelog ==
 
+= 1.5.4 =
+* Fix: Migrations 002, 003, 004 now throw on ALTER/query failure so they are not marked as run when the schema change failed (fixes campaign save errors after timeout or lock)
+* Fix: Schema drift repair – if migrations table says 002/003 ran but campaigns table is missing columns, those migration records are cleared so migrations run again on next load
+* Ensures campaign creation works after plugin update even when earlier migrations had failed silently
+
 = 1.5.3 =
 * Fix: Run pending database migrations on every plugin load so schema stays up to date (fixes "Unknown column 'user_roles'" when migrations had not run)
 * Fix: Campaign save only persists columns that exist in the table (defensive when migrations are pending)
@@ -617,6 +622,9 @@ Pro users can configure combination policies for each campaign. Choose whether y
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.5.4 =
+Migration reliability fix: migrations now throw on failure so they are not marked as run when ALTER failed. Schema drift repair automatically retries missing columns. Fixes campaign save errors after update.
 
 = 1.5.3 =
 Database migrations now run automatically on plugin load. Fixes campaign save errors when schema was out of date. Cleaner error handling and deploy script improvements.
