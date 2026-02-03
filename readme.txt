@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: discount rules, BOGO, bulk discount, tiered pricing, sale scheduler
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.5.61
+Stable tag: 1.5.62
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -430,6 +430,9 @@ Pro users can configure combination policies for each campaign. Choose whether y
 
 == Changelog ==
 
+= 1.5.62 =
+* Fix: PHP 8 TypeError in recurring campaigns – DateTime::__construct() no longer receives a DateTime object. Recurring handler now accepts campaign start/end as either DateTime or string (clone and set timezone when DateTime, parse string otherwise). Fixes critical error when loading frontend or AJAX with recurring campaigns active.
+
 = 1.5.61 =
 * Fix: AJAX handler method signatures aligned with abstract base (handle parameter type removed) so PHP no longer throws "Declaration must be compatible" fatal on Track Impression, Track Click, and Test Provider Connection handlers. Prevents critical error when updating or loading admin pages that use these handlers.
 
@@ -633,6 +636,9 @@ Pro users can configure combination policies for each campaign. Choose whether y
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.5.62 =
+Fixes PHP 8 critical error (DateTime::__construct type error) when recurring campaigns are active. Recommended update for sites using recurring campaigns.
 
 = 1.5.61 =
 Fixes PHP fatal "Declaration must be compatible" on AJAX handlers (track impression, track click, test provider connection). Recommended update to avoid critical error after upgrading.

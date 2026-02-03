@@ -1063,9 +1063,19 @@ class WSSCD_Recurring_Handler {
 		try {
 			$timezone = $now->getTimezone();
 
-			// Extract time portion only (ignore date)
-			$start_dt = new DateTime( $starts_at, $timezone );
-			$end_dt   = new DateTime( $ends_at, $timezone );
+			// Extract time portion only (ignore date). Campaign may return DateTime or string.
+			if ( $starts_at instanceof DateTime ) {
+				$start_dt = clone $starts_at;
+				$start_dt->setTimezone( $timezone );
+			} else {
+				$start_dt = new DateTime( $starts_at, $timezone );
+			}
+			if ( $ends_at instanceof DateTime ) {
+				$end_dt = clone $ends_at;
+				$end_dt->setTimezone( $timezone );
+			} else {
+				$end_dt = new DateTime( $ends_at, $timezone );
+			}
 
 			$start_time = $start_dt->format( 'H:i:s' );
 			$end_time   = $end_dt->format( 'H:i:s' );
