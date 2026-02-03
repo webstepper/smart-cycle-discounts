@@ -189,16 +189,29 @@ class WSSCD_Campaign_Overview_Panel {
 		$starts_at = $campaign->get_starts_at();
 		$ends_at   = $campaign->get_ends_at();
 		$timezone  = $campaign->get_timezone();
-
-		// Convert UTC to site timezone for display
-		if ( $starts_at ) {
-			$starts_at = clone $starts_at;
-			$starts_at->setTimezone( new DateTimeZone( $timezone ) );
+		// Avoid invalid timezone (empty or null) which would throw in DateTimeZone.
+		if ( ! is_string( $timezone ) || '' === trim( $timezone ) ) {
+			$timezone = wp_timezone_string();
+		}
+		try {
+			$tz = new DateTimeZone( $timezone );
+		} catch ( Exception $e ) {
+			$timezone = wp_timezone_string();
+			$tz       = new DateTimeZone( $timezone );
 		}
 
-		if ( $ends_at ) {
+		// Convert UTC to site timezone for display (only if values are DateTime instances)
+		if ( $starts_at instanceof DateTime ) {
+			$starts_at = clone $starts_at;
+			$starts_at->setTimezone( $tz );
+		} else {
+			$starts_at = null;
+		}
+		if ( $ends_at instanceof DateTime ) {
 			$ends_at = clone $ends_at;
-			$ends_at->setTimezone( new DateTimeZone( $timezone ) );
+			$ends_at->setTimezone( $tz );
+		} else {
+			$ends_at = null;
 		}
 
 		// Calculate duration with improved formatting
@@ -486,8 +499,8 @@ class WSSCD_Campaign_Overview_Panel {
 		$individual_use       = $discount_rules['individual_use'] ?? false;
 		$allowed_combinations = $discount_rules['allowed_combinations'] ?? array();
 
-		// Extract full free shipping configuration
-		$free_shipping_config = $campaign->get_free_shipping_config();
+		// Extract full free shipping configuration (safe when method missing)
+		$free_shipping_config = method_exists( $campaign, 'get_free_shipping_config' ) ? $campaign->get_free_shipping_config() : array();
 		$free_shipping        = ! empty( $free_shipping_config['enabled'] );
 		$free_shipping_methods = isset( $free_shipping_config['methods'] ) ? $free_shipping_config['methods'] : 'all';
 
@@ -534,9 +547,9 @@ class WSSCD_Campaign_Overview_Panel {
 			'free_shipping_methods'  => $free_shipping_methods,
 			'allowed_combinations'   => $allowed_combinations,
 
-			// User Role Targeting
-			'user_roles_mode'        => $campaign->get_user_roles_mode(),
-			'user_roles'             => $campaign->get_user_roles(),
+			// User Role Targeting (safe when methods missing on older/cached campaign object)
+			'user_roles_mode'        => method_exists( $campaign, 'get_user_roles_mode' ) ? $campaign->get_user_roles_mode() : 'all',
+			'user_roles'             => method_exists( $campaign, 'get_user_roles' ) ? $campaign->get_user_roles() : array(),
 
 			// Badge configuration
 			'badge_config'          => $badge_config,

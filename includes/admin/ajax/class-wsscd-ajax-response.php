@@ -274,6 +274,11 @@ class WSSCD_AJAX_Response {
 			return $message;
 		}
 
+		// Allow handlers to pass through a custom message for request_failed (e.g. overview load failure).
+		if ( 'request_failed' === $code && is_string( $message ) && '' !== trim( $message ) ) {
+			return $message;
+		}
+
 		// Use safe message if available, otherwise use general error
 		if ( isset( $messages[ $code ] ) ) {
 			return $messages[ $code ];

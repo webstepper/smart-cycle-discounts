@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: discount rules, BOGO, bulk discount, tiered pricing, sale scheduler
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.5.5
+Stable tag: 1.5.6
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -430,6 +430,11 @@ Pro users can configure combination policies for each campaign. Choose whether y
 
 == Changelog ==
 
+= 1.5.6 =
+* Fix: Campaign overview no longer fails with "Failed to load campaign data" after creating a campaign. Schedule section now handles empty or invalid timezone and non-DateTime values safely; overview panel shows actual server error messages.
+* Fix: Tools page (Clear cache, Health check, Generate report) now displays the real error message from the server instead of a generic "Please try again" when a request fails. Error callback reads response.error.message when present.
+* Fix: Admin nonce (wsscdAdmin) is now registered when the user has manage_options OR manage_woocommerce, so Tools and other AJAX actions work on live free sites where the Administrator role may not have manage_woocommerce. Fixes "Error clearing cache / health check / report" only on live free version.
+
 = 1.5.5 =
 * Fix: Free version no longer returns 403 "Campaign stacking policy requires a PRO license" when creating or updating campaigns. Campaign data is normalized to free-tier defaults before PRO validation so compiled/session data from UI or loaded campaigns does not trigger false rejections.
 
@@ -625,6 +630,9 @@ Pro users can configure combination policies for each campaign. Choose whether y
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.5.6 =
+Fixes campaign overview load after create, Tools page errors on live free (clear cache, health check, report), and admin nonce so AJAX works when user has manage_options. Update recommended for free version on live sites.
 
 = 1.5.5 =
 Fixes 403 error on free version when creating or updating campaigns. Campaign data is normalized to free defaults before validation.

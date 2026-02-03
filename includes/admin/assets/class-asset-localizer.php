@@ -105,9 +105,12 @@ class WSSCD_Asset_Localizer {
 			return;
 		}
 
-		// SECURITY: Only register data providers for admin users.
-		// This is called from admin context but we add explicit check for defense in depth.
-		if ( ! is_admin() || ! current_user_can( 'manage_woocommerce' ) ) {
+		// SECURITY: Only register data providers for admin users who can use the plugin.
+		// Require manage_options OR manage_woocommerce so that nonce is available on all
+		// environments (e.g. live free version where Administrator may not have manage_woocommerce
+		// yet, or Shop Manager has manage_woocommerce but not manage_options). Tools and other
+		// AJAX actions then enforce their own capability (e.g. manage_options) server-side.
+		if ( ! is_admin() || ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_woocommerce' ) ) ) {
 			return;
 		}
 

@@ -296,6 +296,11 @@
 				return response.data.message;
 			}
 
+			// Try response.error object (API sends { code, message } after camelCase)
+			if ( response.error && typeof response.error === 'object' && response.error.message && 'string' === typeof response.error.message ) {
+				return response.error.message;
+			}
+
 			// Try response.error array
 			if ( response.error && Array.isArray( response.error ) && response.error.length > 0 ) {
 				return response.error[0];

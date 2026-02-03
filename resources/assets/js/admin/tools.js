@@ -292,13 +292,13 @@
 			},
 			success: function( response ) {
 				if ( response.success ) {
-					showNotification( response.data.message || 'Cache cleared successfully', 'success' );
+					showNotification( response.data && response.data.message ? response.data.message : 'Cache cleared successfully', 'success' );
 				} else {
-					showNotification( response.data ? response.data.message : 'Failed to clear cache', 'error' );
+					showNotification( extractErrorMessage( response, 'Failed to clear cache' ), 'error' );
 				}
 			},
-			error: function() {
-				showNotification( 'Error clearing cache. Please try again.', 'error' );
+			error: function( xhr ) {
+				showNotification( extractErrorMessage( xhr.responseJSON, 'Error clearing cache. Please try again.' ), 'error' );
 			},
 			complete: function() {
 				if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
@@ -475,11 +475,11 @@
 					$results.html( formatHealthCheckResults( response.data.results ) );
 					$results.slideDown();
 				} else {
-					showNotification( response.data ? response.data.message : 'Failed to run health check', 'error' );
+					showNotification( extractErrorMessage( response, 'Failed to run health check' ), 'error' );
 				}
 			},
-			error: function() {
-				showNotification( 'Error running health check. Please try again.', 'error' );
+			error: function( xhr ) {
+				showNotification( extractErrorMessage( xhr.responseJSON, 'Error running health check. Please try again.' ), 'error' );
 			},
 			complete: function() {
 				if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
@@ -518,11 +518,11 @@
 
 					$( '.wsscd-copy-report-btn, .wsscd-download-report-btn' ).fadeIn();
 				} else {
-					showNotification( response.data ? response.data.message : 'Failed to generate report', 'error' );
+					showNotification( extractErrorMessage( response, 'Failed to generate report' ), 'error' );
 				}
 			},
-			error: function() {
-				showNotification( 'Error generating report. Please try again.', 'error' );
+			error: function( xhr ) {
+				showNotification( extractErrorMessage( xhr.responseJSON, 'Error generating report. Please try again.' ), 'error' );
 			},
 			complete: function() {
 				if ( window.WSSCD && window.WSSCD.LoaderUtil ) {
@@ -651,6 +651,37 @@
 
 		html += '</div>';
 		return html;
+	}
+
+	/**
+	 * Extract user-facing error message from AJAX response.
+	 * Handles API shape: success/data/message and error: { code, message }.
+	 *
+	 * @param {Object} response Response object (may be null).
+	 * @param {string} fallback Fallback message if none found.
+	 * @return {string} Error message.
+	 */
+	function extractErrorMessage( response, fallback ) {
+		var defaultFallback = fallback || 'An error occurred. Please try again.';
+		if ( ! response ) {
+			return defaultFallback;
+		}
+		if ( response.message && 'string' === typeof response.message ) {
+			return response.message;
+		}
+		if ( response.data && response.data.message && 'string' === typeof response.data.message ) {
+			return response.data.message;
+		}
+		if ( response.error && typeof response.error === 'object' && response.error.message && 'string' === typeof response.error.message ) {
+			return response.error.message;
+		}
+		if ( response.error && Array.isArray( response.error ) && response.error.length > 0 ) {
+			return response.error[0].message || response.error[0];
+		}
+		if ( response.error && 'string' === typeof response.error ) {
+			return response.error;
+		}
+		return defaultFallback;
 	}
 
 	/**
