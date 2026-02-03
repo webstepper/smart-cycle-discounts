@@ -220,6 +220,10 @@ class WSSCD_Campaign_Creator_Service {
 			// instead of 'campaign_complete' (step-based) validation.
 			$campaign_data['_validation_context'] = 'campaign_compiled';
 
+			// Normalize PRO-only fields to free defaults so validation passes and we never 403.
+			// Session/compiler may contain PRO values from UI defaults or loaded campaign.
+			$this->normalize_campaign_data_for_free_users( $campaign_data );
+
 			// CRITICAL: Validate PRO features in final campaign data (security layer).
 			// This is the last line of defense before campaign creation.
 			$pro_validation = $this->validate_pro_features( $campaign_data );
@@ -607,6 +611,55 @@ class WSSCD_Campaign_Creator_Service {
 		if ( $this->audit_logger ) {
 			$event = true === $is_draft ? 'draft_saved' : 'campaign_created';
 			$this->audit_logger->log_security_event( $event, $action, $log_data );
+		}
+	}
+
+	/**
+	 * Normalize campaign data to free-tier defaults when user cannot use discount configurations.
+	 *
+	 * Ensures compiled/session data never triggers PRO validation (403). Session or
+	 * compiler may contain stack_with_others/allow_coupons/apply_to_sale_items from
+	 * UI defaults or from loading a campaign; we coerce to free defaults before validating.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $campaign_data    Campaign data (passed by reference, modified in place).
+	 * @return   void
+	 */
+	private function normalize_campaign_data_for_free_users( array &$campaign_data ): void {
+		if ( ! $this->feature_gate || $this->feature_gate->can_use_discount_configurations() ) {
+			return;
+		}
+
+		$pro_config_fields = array(
+			'usage_limit_per_customer',
+			'total_usage_limit',
+			'lifetime_usage_cap',
+			'max_discount_amount',
+			'minimum_quantity',
+			'minimum_order_amount',
+		);
+
+		foreach ( $pro_config_fields as $field ) {
+			if ( array_key_exists( $field, $campaign_data ) ) {
+				$campaign_data[ $field ] = 0;
+			}
+		}
+
+		$campaign_data['stack_with_others']   = false;
+		$campaign_data['allow_coupons']       = true;
+		$campaign_data['apply_to_sale_items'] = true;
+
+		if ( ! empty( $campaign_data['discount_rules'] ) && is_array( $campaign_data['discount_rules'] ) ) {
+			$dr = &$campaign_data['discount_rules'];
+			foreach ( $pro_config_fields as $field ) {
+				if ( array_key_exists( $field, $dr ) ) {
+					$dr[ $field ] = 0;
+				}
+			}
+			$dr['stack_with_others']   = false;
+			$dr['allow_coupons']       = true;
+			$dr['apply_to_sale_items'] = true;
 		}
 	}
 

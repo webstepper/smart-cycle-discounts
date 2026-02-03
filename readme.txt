@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: discount rules, BOGO, bulk discount, tiered pricing, sale scheduler
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.5.4
+Stable tag: 1.5.5
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -430,6 +430,9 @@ Pro users can configure combination policies for each campaign. Choose whether y
 
 == Changelog ==
 
+= 1.5.5 =
+* Fix: Free version no longer returns 403 "Campaign stacking policy requires a PRO license" when creating or updating campaigns. Campaign data is normalized to free-tier defaults before PRO validation so compiled/session data from UI or loaded campaigns does not trigger false rejections.
+
 = 1.5.4 =
 * Fix: Migrations 002, 003, 004 now throw on ALTER/query failure so they are not marked as run when the schema change failed (fixes campaign save errors after timeout or lock)
 * Fix: Schema drift repair – if migrations table says 002/003 ran but campaigns table is missing columns, those migration records are cleared so migrations run again on next load
@@ -622,6 +625,9 @@ Pro users can configure combination policies for each campaign. Choose whether y
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.5.5 =
+Fixes 403 error on free version when creating or updating campaigns. Campaign data is normalized to free defaults before validation.
 
 = 1.5.4 =
 Migration reliability fix: migrations now throw on failure so they are not marked as run when ALTER failed. Schema drift repair automatically retries missing columns. Fixes campaign save errors after update.
