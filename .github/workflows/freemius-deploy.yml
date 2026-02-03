@@ -50,7 +50,13 @@ jobs:
             -x "vendor/wp-coding-standards/*" \
             -x "vendor/yoast/*" \
             -x "vendor/autoload.php" \
-            -x "Webstepper.io/*"
+            -x "Webstepper.io/*" \
+            -x "includes/admin/ajax/handlers/class-cycle-ai-create-full-handler.php" \
+            -x "includes/admin/ajax/handlers/class-cycle-ai-handler.php" \
+            -x "includes/services/class-cycle-ai-service.php" \
+            -x "resources/assets/js/admin/cycle-ai-create-full.js" \
+            -x "resources/assets/js/wizard/cycle-ai-suggestions.js" \
+            -x "resources/assets/css/admin/cycle-ai-create-modal.css"
 
       - name: Deploy to Freemius
         uses: buttonizer/freemius-deploy@v0.1.3
