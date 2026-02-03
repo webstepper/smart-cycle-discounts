@@ -583,20 +583,6 @@ class WSSCD_Save_Step_Handler extends WSSCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Database errors
-		global $wpdb;
-		if ( $wpdb->last_error ) {
-			return new WP_Error(
-				'database_error',
-				__( 'Database temporarily unavailable. Please try again.', 'smart-cycle-discounts' ),
-				array(
-					'status'      => 503,
-					'retry_after' => 30,
-				)
-			);
-		}
-
-		// Generic error
 		return new WP_Error(
 			'save_step_error',
 			$e->getMessage(),

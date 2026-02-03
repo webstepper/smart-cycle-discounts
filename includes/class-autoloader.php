@@ -247,6 +247,7 @@ class WSSCD_Autoloader {
 		'WSSCD_Discount_Display_Rules'       => 'frontend/class-discount-display-rules.php',
 		'WSSCD_Shortcodes'                   => 'frontend/class-shortcodes.php',
 		'WSSCD_Template_Loader'              => 'frontend/class-template-loader.php',
+		'WSSCD_Frontend_Ajax_Handler'        => 'frontend/class-frontend-ajax-handler.php',
 
 		// Asset management classes
 		'WSSCD_Frontend_Asset_Manager'       => 'frontend/class-frontend-asset-manager.php',

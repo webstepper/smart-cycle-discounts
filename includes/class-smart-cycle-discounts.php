@@ -121,6 +121,9 @@ class Smart_Cycle_Discounts {
 		$this->setup_performance_optimizations();
 		$this->set_locale();
 
+		// Run pending DB migrations on every load so schema is up to date (e.g. after file-based updates).
+		add_action( 'init', array( $this, 'run_pending_migrations' ), 1 );
+
 		// Defer ActionScheduler initialization until after it's ready
 		// ActionScheduler initializes on 'init' priority 1, so we use priority 20
 		add_action( 'init', array( $this, 'init_cron_scheduler' ), 20 );
@@ -824,6 +827,38 @@ class Smart_Cycle_Discounts {
 		if ( isset( $hook_extra['plugin'] ) && $hook_extra['plugin'] === WSSCD_PLUGIN_BASENAME ) {
 			// Handle plugin update logic
 			$this->run_update_procedures();
+		}
+	}
+
+	/**
+	 * Run pending database migrations on plugin load.
+	 *
+	 * Ensures schema is up to date even when the plugin was updated without
+	 * going through the WordPress upgrader (e.g. Git pull, file copy). Fixes
+	 * "Unknown column 'user_roles'" and similar errors when migrations 002/003
+	 * were never run.
+	 *
+	 * @since    1.0.0
+	 */
+	public function run_pending_migrations(): void {
+		if ( ! $this->container->has( 'migration_manager' ) ) {
+			return;
+		}
+
+		$migration_manager = $this->container->get( 'migration_manager' );
+		if ( ! method_exists( $migration_manager, 'get_pending_migrations' ) || ! method_exists( $migration_manager, 'migrate' ) ) {
+			return;
+		}
+
+		$pending = $migration_manager->get_pending_migrations();
+		if ( empty( $pending ) ) {
+			return;
+		}
+
+		$result = $migration_manager->migrate();
+		if ( $result['status'] !== 'success' && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional debug logging when WP_DEBUG is enabled.
+			error_log( '[WSSCD] Pending migrations failed: ' . wp_json_encode( $result ) );
 		}
 	}
 

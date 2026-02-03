@@ -846,13 +846,19 @@ class WSSCD_Campaign_Repository extends WSSCD_Base_Repository {
 			array( '%d', '%d' )
 		);
 
+		// recurrence_days: store as JSON string when array (weekly pattern), else string
+		$recurrence_days = $recurring_config['recurrence_days'] ?? '';
+		if ( is_array( $recurrence_days ) ) {
+			$recurrence_days = wp_json_encode( array_values( $recurrence_days ) );
+		}
+
 		// Prepare data for insertion
 		$recurring_data = array(
 			'campaign_id'         => $campaign_id,
 			'parent_campaign_id'  => 0, // This IS the parent
 			'recurrence_pattern'  => $recurring_config['recurrence_pattern'] ?? 'daily',
 			'recurrence_interval' => isset( $recurring_config['recurrence_interval'] ) ? (int) $recurring_config['recurrence_interval'] : 1,
-			'recurrence_days'     => $recurring_config['recurrence_days'] ?? '',
+			'recurrence_days'     => $recurrence_days,
 			'recurrence_end_type' => $recurring_config['recurrence_end_type'] ?? 'never',
 			'recurrence_count'    => isset( $recurring_config['recurrence_count'] ) ? (int) $recurring_config['recurrence_count'] : null,
 			'recurrence_end_date' => $recurring_config['recurrence_end_date'] ?? null,
@@ -1619,6 +1625,11 @@ class WSSCD_Campaign_Repository extends WSSCD_Base_Repository {
 		// Recurring config is stored in a separate table (campaign_recurring), not in campaigns table
 		unset( $data['recurring_config'] );
 
+		// Ensure tinyint(1) NOT NULL columns get integer 0/1 (MySQL strict mode rejects boolean/empty string)
+		if ( array_key_exists( 'enable_recurring', $data ) ) {
+			$data['enable_recurring'] = $data['enable_recurring'] ? 1 : 0;
+		}
+
 		$json_fields = array(
 			'settings',
 			'metadata',
@@ -1657,6 +1668,12 @@ class WSSCD_Campaign_Repository extends WSSCD_Base_Repository {
 			unset( $data['id'] );
 		}
 
+		// Only persist columns that exist in the table (defensive: handles missing migrations).
+		$existing_columns = $this->db->get_columns( $this->table_name );
+		if ( ! empty( $existing_columns ) ) {
+			$data = array_intersect_key( $data, array_flip( $existing_columns ) );
+		}
+
 		return $data;
 	}
 
@@ -1681,6 +1698,7 @@ class WSSCD_Campaign_Repository extends WSSCD_Base_Repository {
 				case 'orders_count':
 				case 'impressions_count':
 				case 'clicks_count':
+				case 'enable_recurring':
 					$format[] = '%d';
 					break;
 				case 'revenue_generated':

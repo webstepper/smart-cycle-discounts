@@ -122,7 +122,89 @@
    ========================================================================== */
 
 /* Form field styling is defined in shared/_forms.css */
-/* Toggle switch styling is defined in shared/_forms.css */
+
+/* ==========================================================================
+   Toggle Switches for Notification Settings
+   ========================================================================== */
+
+.wsscd-toggle-wrapper {
+	display: inline-block;
+}
+
+.wsscd-toggle {
+	display: inline-flex;
+	align-items: center;
+	cursor: pointer;
+	position: relative;
+}
+
+/* Hide the actual checkbox */
+.wsscd-toggle input[type="checkbox"] {
+	position: absolute;
+	width: 0;
+	height: 0;
+	opacity: 0;
+}
+
+/* Toggle Track (slider background) */
+.wsscd-toggle-slider {
+	position: relative;
+	display: inline-block;
+	width: 44px;
+	height: 22px;
+	background: #c3c4c7;
+	border-radius: 11px;
+	transition: background-color 0.2s ease;
+}
+
+/* Toggle Thumb (slider knob) */
+.wsscd-toggle-slider::before {
+	content: '';
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 16px;
+	height: 16px;
+	background: #fff;
+	border-radius: 50%;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+	transition: transform 0.2s ease;
+}
+
+/* Checked State */
+.wsscd-toggle input[type="checkbox"]:checked + .wsscd-toggle-slider {
+	background: var(--wsscd-color-primary, #2271b1);
+}
+
+.wsscd-toggle input[type="checkbox"]:checked + .wsscd-toggle-slider::before {
+	transform: translateX(22px);
+}
+
+/* Focus State */
+.wsscd-toggle input[type="checkbox"]:focus + .wsscd-toggle-slider {
+	box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.3);
+}
+
+/* Disabled State */
+.wsscd-toggle input[type="checkbox"]:disabled + .wsscd-toggle-slider {
+	cursor: not-allowed;
+	opacity: 0.5;
+	background: #ddd;
+}
+
+.wsscd-toggle:has(input[type="checkbox"]:disabled) {
+	cursor: not-allowed;
+}
+
+/* PRO Feature Locked State */
+.wsscd-pro-feature-locked .wsscd-toggle {
+	cursor: not-allowed;
+}
+
+.wsscd-pro-feature-locked .wsscd-toggle-slider {
+	opacity: 0.5;
+	background: #ddd;
+}
 
 /* ==========================================================================
    Submit Section

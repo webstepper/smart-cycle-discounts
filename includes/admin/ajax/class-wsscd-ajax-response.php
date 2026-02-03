@@ -49,6 +49,7 @@ class WSSCD_AJAX_Response {
 			'not_found'            => __( 'The requested item could not be found.', 'smart-cycle-discounts' ),
 			'duplicate'            => __( 'This item already exists.', 'smart-cycle-discounts' ),
 			'rate_limit'           => __( 'Too many requests. Please wait and try again.', 'smart-cycle-discounts' ),
+			'rate_limited'         => __( 'You have reached the Cycle AI usage limit. Please try again later.', 'smart-cycle-discounts' ),
 			'general_error'        => __( 'An error occurred. Please try again.', 'smart-cycle-discounts' ),
 			'validation_failed'    => __( 'Validation failed. Please check the form and try again.', 'smart-cycle-discounts' ),
 			'server_error'         => __( 'An internal server error occurred.', 'smart-cycle-discounts' ),
@@ -57,6 +58,15 @@ class WSSCD_AJAX_Response {
 			'gateway_timeout'      => __( 'Gateway timeout. Please try again.', 'smart-cycle-discounts' ),
 			'processing_error'     => __( 'An error occurred while processing your request.', 'smart-cycle-discounts' ),
 			'pro_feature_required' => __( 'This feature requires a PRO license.', 'smart-cycle-discounts' ),
+			// Cycle AI errors (user-facing messages).
+			'wsscd_cycle_ai_not_configured'   => __( 'Cycle AI is not configured. Please add an API key in the plugin settings.', 'smart-cycle-discounts' ),
+			'wsscd_cycle_ai_http_error'       => __( 'Cycle AI request failed. Please try again later.', 'smart-cycle-discounts' ),
+			'wsscd_cycle_ai_api_error'         => __( 'Cycle AI returned an error response.', 'smart-cycle-discounts' ),
+			'wsscd_cycle_ai_invalid_response'  => __( 'Cycle AI returned an invalid response.', 'smart-cycle-discounts' ),
+			'wsscd_cycle_ai_no_choices'        => __( 'Cycle AI did not return any suggestions.', 'smart-cycle-discounts' ),
+			'wsscd_cycle_ai_empty_content'     => __( 'Cycle AI returned an empty suggestion.', 'smart-cycle-discounts' ),
+			'wsscd_cycle_ai_invalid_json'      => __( 'Cycle AI returned suggestions in an unexpected format.', 'smart-cycle-discounts' ),
+			'wsscd_cycle_ai_no_suggestions'    => __( 'Cycle AI did not return any campaign suggestions.', 'smart-cycle-discounts' ),
 		);
 	}
 
@@ -252,6 +262,17 @@ class WSSCD_AJAX_Response {
 	 */
 	private static function get_safe_error_message( $message, $code ) {
 		$messages = self::get_safe_messages();
+
+		// When code is numeric (e.g. HTTP 500), use the provided message if non-empty so
+		// handlers can return specific translated messages (e.g. "No campaign data found in session.").
+		if ( is_numeric( $code ) && is_string( $message ) && '' !== trim( $message ) ) {
+			return $message;
+		}
+
+		// Allow handlers to pass through a custom message for rate_limited (e.g. Cycle AI limit).
+		if ( 'rate_limited' === $code && is_string( $message ) && '' !== trim( $message ) ) {
+			return $message;
+		}
 
 		// Use safe message if available, otherwise use general error
 		if ( isset( $messages[ $code ] ) ) {

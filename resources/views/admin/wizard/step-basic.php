@@ -80,14 +80,54 @@ ob_start();
 
     $priority_content = ob_get_clean();
 
-    wsscd_wizard_card(array(
-        'title' => __('Campaign Priority', 'smart-cycle-discounts'),
-        'icon' => 'sort',
-        'subtitle' => __('Set the priority level to control which campaign applies when multiple campaigns target the same products.', 'smart-cycle-discounts'),
-        'content' => $priority_content,
-        'help_topic' => 'card-campaign-priority'
-    ));
-    ?>
+	wsscd_wizard_card(
+		array(
+			'title'      => __( 'Campaign Priority', 'smart-cycle-discounts' ),
+			'icon'       => 'sort',
+			'subtitle'   => __( 'Set the priority level to control which campaign applies when multiple campaigns target the same products.', 'smart-cycle-discounts' ),
+			'content'    => $priority_content,
+			'help_topic' => 'card-campaign-priority',
+		)
+	);
+	?>
+
+	<!-- Cycle AI Campaign Suggestions (PRO-only: visible only when user has access) -->
+	<?php
+	if ( $feature_gate && $feature_gate->can_use_feature( 'cycle_ai_campaign_suggestions' ) ) {
+		ob_start();
+		?>
+		<p class="wsscd-cycle-ai-intro">
+			<?php
+			echo esc_html__(
+				'Let Cycle AI suggest campaign ideas based on your WooCommerce store. You can apply a suggestion to prefill the campaign name and description.',
+				'smart-cycle-discounts'
+			);
+			?>
+		</p>
+		<p>
+			<button
+				type="button"
+				class="button button-secondary wsscd-cycle-ai-suggest-button"
+				data-loading-text="<?php echo esc_attr__( 'Asking Cycle AI\u2026', 'smart-cycle-discounts' ); ?>"
+				data-status-text="<?php echo esc_attr__( 'Cycle AI is generating campaign suggestions\u2026', 'smart-cycle-discounts' ); ?>"
+			>
+				<?php echo esc_html__( 'Suggest with Cycle AI', 'smart-cycle-discounts' ); ?>
+			</button>
+		</p>
+		<div class="wsscd-cycle-ai-suggestions-container" aria-live="polite" aria-busy="false"></div>
+		<?php
+		$cycle_ai_content = ob_get_clean();
+
+		wsscd_wizard_card(
+			array(
+				'title'    => __( 'Cycle AI Campaign Suggestions', 'smart-cycle-discounts' ),
+				'icon'     => 'lightbulb',
+				'subtitle' => __( 'Use AI to get campaign ideas, then fine-tune them using the wizard steps.', 'smart-cycle-discounts' ),
+				'content'  => $cycle_ai_content,
+			)
+		);
+	}
+	?>
 <?php
 // Get the content
 $content = ob_get_clean();
@@ -106,11 +146,14 @@ wsscd_wizard_render_step( array(
 <?php
 // Validation rules are now handled by the centralized field schema system
 
-wsscd_wizard_state_script('basic', array(
-    'name' => $name,
-    'description' => $description,
-    'priority' => $priority
-));
+wsscd_wizard_state_script(
+	'basic',
+	array(
+		'name'        => $name,
+		'description' => $description,
+		'priority'    => $priority,
+	)
+);
 ?>
 
 

@@ -1,170 +1,119 @@
-<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <style>
-        /* Smooth arrow rotation */
-        .arrows-group {
-            transform-origin: 100px 100px;
-            animation: rotate 10s linear infinite;
-        }
+<svg class="logo-svg" id="logoSvg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="logoTitle logoDesc"><style>:root{--brand-1:#2271b1;--brand-2:#135e96;--brand-3:#0a4b78;--ink:rgba(255, 255, 255, 0.92);--glow:rgba(34, 113, 177, 0.40);}.arrows-group{transform-origin:100px 100px;animation:rotate 10s linear infinite;}@keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}.inner-ring{transform-origin:100px 100px;animation:counterRotate 15s linear infinite;}@keyframes counterRotate{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}.icon-group{opacity:0;animation:iconSlide 10s cubic-bezier(0.25,0.1,0.25,1) infinite}.icon-1{animation-delay:0s}.icon-2{animation-delay:2s}.icon-3{animation-delay:4s}.icon-4{animation-delay:6s}.icon-5{animation-delay:8s}@keyframes iconSlide{0%{opacity:0;transform:translateX(50px)}3%{opacity:1;transform:translateX(0)}17%{opacity:1;transform:translateX(0)}20%{opacity:0;transform:translateX(-50px)}100%{opacity:0;transform:translateX(-50px)}}.shimmer{opacity:0;animation:shimmer 2.4s ease-in-out infinite}@keyframes shimmer{0%{opacity:0;stroke-dashoffset:160}20%{opacity:0.28}50%{opacity:0.18}100%{opacity:0;stroke-dashoffset:-160}}</style>
+				<title id="logoTitle">Smart Cycle Discounts</title>
+				<desc id="logoDesc">A cycling discount mark: rotating arrows around a center badge that cycles commerce icons.</desc>
+				<defs>
+					<linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+						<stop offset="0%" stop-color="var(--brand-1)"/>
+						<stop offset="55%" stop-color="var(--brand-2)"/>
+						<stop offset="100%" stop-color="var(--brand-3)"/>
+					</linearGradient>
 
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+					<radialGradient id="centerGradient" cx="50%" cy="50%" r="50%">
+						<stop offset="0%" stop-color="var(--brand-1)"/>
+						<stop offset="70%" stop-color="var(--brand-2)"/>
+						<stop offset="100%" stop-color="var(--brand-3)"/>
+					</radialGradient>
 
-        /* Inner ring counter-rotation */
-        .inner-ring {
-            transform-origin: 100px 100px;
-            animation: counterRotate 15s linear infinite;
-        }
+					<!-- Center depth treatment (no visible "reflection line") -->
+					<radialGradient id="centerBloom" cx="36%" cy="30%" r="60%">
+						<stop offset="0%" stop-color="#ffffff" stop-opacity="0.20"/>
+						<stop offset="42%" stop-color="#ffffff" stop-opacity="0.06"/>
+						<stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+					</radialGradient>
 
-        @keyframes counterRotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(-360deg); }
-        }
+					<radialGradient id="centerVignette" cx="50%" cy="55%" r="70%">
+						<stop offset="0%" stop-color="#000000" stop-opacity="0"/>
+						<stop offset="70%" stop-color="#000000" stop-opacity="0"/>
+						<stop offset="100%" stop-color="#000000" stop-opacity="0.18"/>
+					</radialGradient>
 
-        /* Perfect slider animation */
-        .icon-group {
-            opacity: 0;
-            animation: iconSlide 10s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
-        }
+					<filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+						<feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.24"/>
+					</filter>
 
-        .icon-1 { animation-delay: 0s; }
-        .icon-2 { animation-delay: 2s; }
-        .icon-3 { animation-delay: 4s; }
-        .icon-4 { animation-delay: 6s; }
-        .icon-5 { animation-delay: 8s; }
+					<filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%">
+						<feGaussianBlur stdDeviation="3.2" result="blur"/>
+						<feColorMatrix in="blur" type="matrix" values="&#xA;&#9;&#9;&#9;&#9;&#9;&#9;&#9;1 0 0 0 0&#xA;&#9;&#9;&#9;&#9;&#9;&#9;&#9;0 1 0 0 0&#xA;&#9;&#9;&#9;&#9;&#9;&#9;&#9;0 0 1 0 0&#xA;&#9;&#9;&#9;&#9;&#9;&#9;&#9;0 0 0 0.65 0" result="glow"/>
+						<feMerge>
+							<feMergeNode in="glow"/>
+							<feMergeNode in="SourceGraphic"/>
+						</feMerge>
+					</filter>
 
-        @keyframes iconSlide {
-            0% {
-                opacity: 0;
-                transform: translateX(50px);
-            }
-            3% {
-                opacity: 1;
-                transform: translateX(0);
-            }
-            17% {
-                opacity: 1;
-                transform: translateX(0);
-            }
-            20% {
-                opacity: 0;
-                transform: translateX(-50px);
-            }
-            100% {
-                opacity: 0;
-                transform: translateX(-50px);
-            }
-        }
-    </style>
+					<clipPath id="sliderClip">
+						<circle cx="100" cy="100" r="36"/>
+					</clipPath>
 
-    <defs>
-        <!-- WordPress native blue gradient -->
-        <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#2271b1"/>
-            <stop offset="100%" stop-color="#135e96"/>
-        </linearGradient>
+				</defs>
 
-        <!-- Center radial gradient (darker tones) -->
-        <radialGradient id="centerGradient" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#2271b1"/>
-            <stop offset="100%" stop-color="#0a4b78"/>
-        </radialGradient>
+				<!-- Halo ring -->
+				<circle cx="100" cy="100" r="88" fill="none" stroke="var(--glow)" stroke-width="10" opacity="0.22" filter="url(#softGlow)"/>
 
-        <!-- Subtle shadow -->
-        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0a4b78" flood-opacity="0.3"/>
-        </filter>
+				<!-- Rotating arrows -->
+				<g class="arrows-group" filter="url(#shadow)">
+					<path d="M 42 58 A 70 70 0 0 1 158 58" stroke="url(#brandGradient)" stroke-width="12" stroke-linecap="round" fill="none"/>
+					<path d="M 164 50 L 150 68 L 168 68 Z" fill="var(--brand-1)" transform="rotate(15, 160, 62)"/>
 
-        <!-- Clip mask for slider -->
-        <clipPath id="sliderClip">
-            <circle cx="100" cy="100" r="36"/>
-        </clipPath>
-    </defs>
+					<path d="M 158 142 A 70 70 0 0 1 42 142" stroke="url(#brandGradient)" stroke-width="12" stroke-linecap="round" fill="none"/>
+					<path d="M 36 150 L 50 132 L 32 132 Z" fill="var(--brand-2)" transform="rotate(15, 40, 138)"/>
+				</g>
 
-    <!-- Rotating arrows group -->
-    <g class="arrows-group" filter="url(#shadow)">
-        <!-- Top arc (left to right) -->
-        <path d="M 42 58 A 70 70 0 0 1 158 58"
-              stroke="url(#blueGradient)"
-              stroke-width="12"
-              stroke-linecap="round"
-              fill="none"/>
-        <!-- Top arrow head -->
-        <path d="M 164 50 L 150 68 L 168 68 Z" fill="#2271b1" transform="rotate(15, 160, 62)"/>
+				<!-- Shimmer highlights -->
+				<g class="arrows-group" opacity="1">
+					<path class="shimmer" d="M 42 58 A 70 70 0 0 1 158 58" stroke="rgba(255,255,255,0.95)" stroke-width="4" stroke-linecap="round" stroke-dasharray="18 150" fill="none"/>
+					<path class="shimmer" d="M 158 142 A 70 70 0 0 1 42 142" stroke="rgba(255,255,255,0.85)" stroke-width="4" stroke-linecap="round" stroke-dasharray="18 150" fill="none"/>
+				</g>
 
-        <!-- Bottom arc (right to left) -->
-        <path d="M 158 142 A 70 70 0 0 1 42 142"
-              stroke="url(#blueGradient)"
-              stroke-width="12"
-              stroke-linecap="round"
-              fill="none"/>
-        <!-- Bottom arrow head -->
-        <path d="M 36 150 L 50 132 L 32 132 Z" fill="#135e96" transform="rotate(15, 40, 138)"/>
-    </g>
+				<!-- Center -->
+				<g class="center-circle">
+					<circle cx="100" cy="100" r="52" fill="url(#centerGradient)" filter="url(#shadow)"/>
+					<circle class="inner-ring" cx="100" cy="100" r="44" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="6 4" fill="none"/>
 
-    <!-- Center circle group -->
-    <g class="center-circle">
-        <!-- Main circle -->
-        <circle cx="100" cy="100" r="52" fill="url(#centerGradient)" filter="url(#shadow)"/>
+					<!-- Subtle center depth (bloom + vignette) -->
+					<circle cx="100" cy="100" r="52" fill="url(#centerBloom)"/>
+					<circle cx="100" cy="100" r="52" fill="url(#centerVignette)"/>
 
-        <!-- Inner decorative ring -->
-        <circle class="inner-ring"
-                cx="100" cy="100" r="44"
-                stroke="rgba(255,255,255,0.2)"
-                stroke-width="1"
-                stroke-dasharray="6 4"
-                fill="none"/>
+					<g clip-path="url(#sliderClip)">
+						<g transform="translate(100, 100)">
+							<g class="icon-group icon-1">
+								<g transform="scale(2) translate(-12,-12)" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<line x1="19" y1="5" x2="5" y2="19"/>
+									<circle cx="6.5" cy="6.5" r="2.5"/>
+									<circle cx="17.5" cy="17.5" r="2.5"/>
+								</g>
+							</g>
 
-        <!-- Cycling Icons Container -->
-        <g clip-path="url(#sliderClip)">
-            <g transform="translate(100, 100)">
+							<g class="icon-group icon-2">
+								<g transform="scale(2) translate(-12,-12)" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<circle cx="8" cy="21" r="1"/>
+									<circle cx="19" cy="21" r="1"/>
+									<path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+								</g>
+							</g>
 
-                <!-- Icon 1: Percentage (Lucide) -->
-                <g class="icon-group icon-1">
-                    <g transform="scale(2) translate(-12,-12)" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="19" y1="5" x2="5" y2="19"/>
-                        <circle cx="6.5" cy="6.5" r="2.5"/>
-                        <circle cx="17.5" cy="17.5" r="2.5"/>
-                    </g>
-                </g>
+							<g class="icon-group icon-3">
+								<g transform="scale(2) translate(-12,-12)" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/>
+									<circle cx="7.5" cy="7.5" r=".5" fill="var(--ink)"/>
+								</g>
+							</g>
 
-                <!-- Icon 2: Shopping Cart (Lucide) -->
-                <g class="icon-group icon-2">
-                    <g transform="scale(2) translate(-12,-12)" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="8" cy="21" r="1"/>
-                        <circle cx="19" cy="21" r="1"/>
-                        <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
-                    </g>
-                </g>
+							<g class="icon-group icon-4">
+								<g transform="scale(2) translate(-12,-12)" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<rect x="3" y="8" width="18" height="4" rx="1"/>
+									<path d="M12 8v13"/>
+									<path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/>
+									<path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>
+								</g>
+							</g>
 
-                <!-- Icon 3: Price Tag (Lucide) -->
-                <g class="icon-group icon-3">
-                    <g transform="scale(2) translate(-12,-12)" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/>
-                        <circle cx="7.5" cy="7.5" r=".5" fill="#ffffff"/>
-                    </g>
-                </g>
-
-                <!-- Icon 4: Gift (Lucide) -->
-                <g class="icon-group icon-4">
-                    <g transform="scale(2) translate(-12,-12)" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="8" width="18" height="4" rx="1"/>
-                        <path d="M12 8v13"/>
-                        <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/>
-                        <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>
-                    </g>
-                </g>
-
-                <!-- Icon 5: Dollar Sign (Lucide) -->
-                <g class="icon-group icon-5">
-                    <g transform="scale(2) translate(-12,-12)" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="2" x2="12" y2="22"/>
-                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                    </g>
-                </g>
-
-            </g>
-        </g>
-    </g>
-</svg>
+							<g class="icon-group icon-5">
+								<g transform="scale(2) translate(-12,-12)" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<line x1="12" y1="2" x2="12" y2="22"/>
+									<path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+								</g>
+							</g>
+						</g>
+					</g>
+				</g>
+			</svg>

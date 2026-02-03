@@ -154,7 +154,7 @@ class WSSCD_Campaign_Manager {
 
 			if ( ! $this->repository->save( $campaign ) ) {
 				$this->log_save_failure( $data );
-				return new WP_Error( 'save_failed', 'Failed to save campaign.' );
+				return new WP_Error( 'save_failed', __( 'Failed to save campaign.', 'smart-cycle-discounts' ) );
 			}
 
 			$this->log_campaign_created( $campaign );
@@ -411,7 +411,10 @@ class WSSCD_Campaign_Manager {
 	private function prepare_data_for_creation( array $data ): array {
 		$data = $this->set_default_values( $data );
 
-		if ( ! empty( $data['slug'] ) ) {
+		// Ensure slug is set (NOT NULL in DB); derive from name if empty.
+		if ( empty( $data['slug'] ) && ! empty( $data['name'] ) ) {
+			$data['slug'] = $this->repository->get_unique_slug( sanitize_title( $data['name'] ) );
+		} elseif ( ! empty( $data['slug'] ) ) {
 			$data['slug'] = $this->repository->get_unique_slug( $data['slug'] );
 		}
 

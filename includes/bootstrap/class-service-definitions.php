@@ -817,6 +817,24 @@ class WSSCD_Service_Definitions {
 				},
 			),
 
+			// Cycle AI Service (PRO feature using external AI provider).
+			'cycle_ai_service'             => array(
+				'class'        => 'WSSCD_Cycle_AI_Service',
+				'singleton'    => true,
+				'optional'     => true,
+				'dependencies' => array( 'logger' ),
+				'factory'      => function ( $container ) {
+					// Service is optional (PRO-only). If class is missing in free build, return null.
+					if ( ! class_exists( 'WSSCD_Cycle_AI_Service' ) ) {
+						return null;
+					}
+
+					return new WSSCD_Cycle_AI_Service(
+						$container->get( 'logger' )
+					);
+				},
+			),
+
 			'audit_logger'                 => array(
 				'class'        => 'WSSCD_Audit_Logger',
 				'singleton'    => true,

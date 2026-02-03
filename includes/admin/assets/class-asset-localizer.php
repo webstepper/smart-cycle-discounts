@@ -725,10 +725,11 @@ class WSSCD_Asset_Localizer {
 			$state_service = new WSSCD_Wizard_State_Service();
 			$all_data      = $state_service->get_all_data();
 
-			// Don't load step data if this is a fresh session.
-			// Uses is_fresh() which reads from request-level static cache.
-			// This handles the case where consume_fresh_flag() already cleared the flag from transient.
-			if ( $state_service->is_fresh() ) {
+			// Don't load step data if this is a fresh session — except when prefilled from Cycle AI.
+			// Cycle AI Create Full sets is_fresh so JS clears sessionStorage, but we must still send
+			// the prefilled step data so the Review step Configuration Summary and overview display correctly.
+			$prefilled_from_cycle_ai = ! empty( $all_data['prefilled_from_cycle_ai'] );
+			if ( $state_service->is_fresh() && ! $prefilled_from_cycle_ai ) {
 				return array();
 			}
 

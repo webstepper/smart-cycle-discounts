@@ -540,6 +540,61 @@ body.wsscd-has-discount .product .onsale {
 	font-weight: 500;
 }
 
+/* Gallery Thumbnail Badges */
+.woocommerce div.product .wsscd-gallery-thumbnail-wrapper {
+	position: relative;
+	display: inline-block;
+}
+
+/* Compact badge for thumbnails */
+.wsscd-discount-badge.wsscd-badge-compact {
+	font-size: 9px;
+	padding: 2px 5px;
+	letter-spacing: 0;
+}
+
+/* Thumbnail badge positioning - smaller offset */
+.wsscd-gallery-thumbnail-wrapper .wsscd-discount-badge.wsscd-badge-gallery-thumbnail {
+	position: absolute;
+	z-index: 15;
+}
+
+.wsscd-gallery-thumbnail-wrapper .wsscd-badge-gallery-thumbnail.wsscd-badge-position-top-left {
+	top: 4px;
+	left: 4px;
+	right: auto;
+	bottom: auto;
+}
+
+.wsscd-gallery-thumbnail-wrapper .wsscd-badge-gallery-thumbnail.wsscd-badge-position-top-right {
+	top: 4px;
+	right: 4px;
+	left: auto;
+	bottom: auto;
+}
+
+.wsscd-gallery-thumbnail-wrapper .wsscd-badge-gallery-thumbnail.wsscd-badge-position-bottom-left {
+	bottom: 4px;
+	left: 4px;
+	top: auto;
+	right: auto;
+}
+
+.wsscd-gallery-thumbnail-wrapper .wsscd-badge-gallery-thumbnail.wsscd-badge-position-bottom-right {
+	bottom: 4px;
+	right: 4px;
+	top: auto;
+	left: auto;
+}
+
+/* Responsive thumbnail badge sizing */
+@media ( max-width: 768px ) {
+	.wsscd-discount-badge.wsscd-badge-compact {
+		font-size: 8px;
+		padding: 2px 4px;
+	}
+}
+
 /* ==========================================================================
    8. Cart & Mini-Cart Integration
    ========================================================================== */
@@ -756,6 +811,66 @@ body.wsscd-has-discount .product .onsale {
 .wsscd-tier-table .wsscd-tier-discount {
 	color: var(--wsscd-frontend-discount-color);
 	font-weight: 600;
+}
+
+/* Spend Threshold Progress Bar (Dynamic AJAX) */
+.wsscd-spend-progress-container {
+	margin: var(--wsscd-frontend-spacing-lg) 0;
+}
+
+.wsscd-spend-progress {
+	background-color: #f8f9fa;
+	border-radius: var(--wsscd-frontend-badge-radius);
+	padding: var(--wsscd-frontend-spacing-md);
+	margin-bottom: var(--wsscd-frontend-spacing-md);
+}
+
+.wsscd-spend-progress-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: var(--wsscd-frontend-spacing-sm);
+}
+
+.wsscd-spend-title {
+	font-weight: 600;
+	color: #333;
+	font-size: 0.95em;
+}
+
+.wsscd-spend-progress-bar-wrapper {
+	height: 10px;
+	background-color: #e0e0e0;
+	border-radius: 5px;
+	overflow: hidden;
+	margin-bottom: var(--wsscd-frontend-spacing-sm);
+}
+
+.wsscd-spend-progress-bar {
+	height: 100%;
+	background-color: var(--wsscd-frontend-badge-bg);
+	border-radius: 5px;
+	transition: width 0.5s ease-out;
+	min-width: 0;
+}
+
+.wsscd-spend-message {
+	display: block;
+	font-size: 0.9em;
+	color: #555;
+	text-align: center;
+}
+
+.wsscd-spend-message strong {
+	color: var(--wsscd-frontend-badge-bg);
+}
+
+.wsscd-spend-message.wsscd-spend-complete {
+	color: var(--wsscd-frontend-discount-color);
+}
+
+.wsscd-spend-message.wsscd-spend-complete strong {
+	color: var(--wsscd-frontend-discount-color);
 }
 
 /* ==========================================================================

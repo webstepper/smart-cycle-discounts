@@ -40,6 +40,9 @@ class WSSCD_Feature_Gate {
 		'campaigns_advanced_product_filters' => 'pro',
 		'campaigns_recurring'                => 'free',
 
+		// Cycle AI features (PRO-only)
+		'cycle_ai_campaign_suggestions'      => 'pro',
+
 		// Discount configurations (USED - usage limits, application rules, combination policy)
 		'discount_configurations'            => 'pro',
 

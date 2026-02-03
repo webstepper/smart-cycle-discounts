@@ -654,8 +654,8 @@
 		var currentIndex = this.config.steps.indexOf( stepName );
 		var progress = ( ( currentIndex + 1 ) / this.config.steps.length ) * 100;
 
-		$( '.wsscd-progress-bar' ).css( 'width', progress + '%' );
-		$( '.wsscd-progress-text' ).text( 'Step ' + ( currentIndex + 1 ) + ' of ' + this.config.steps.length );
+		$( '.wsscd-wizard-navigation' ).css( '--progress', progress + '%' );
+		$( '.wsscd-nav-status__step' ).text( 'Step ' + ( currentIndex + 1 ) + ' of ' + this.config.steps.length );
 	};
 
 	/**
@@ -872,10 +872,20 @@
 					} );
 				}
 
+				// Build payload: send full step data so server has campaign data even if session cookie is missing (e.g. after Cycle AI redirect).
+				var payload = { saveAsDraft: options.saveAsDraft };
+				var state = self.modules.stateManager ? self.modules.stateManager.get() : null;
+				if ( state && state.stepData ) {
+					var stepData = state.stepData;
+					if ( ! stepData.review ) {
+						stepData.review = {};
+					}
+					stepData.review.launch_option = options.saveAsDraft ? 'draft' : ( stepData.review.launch_option || 'active' );
+					payload.campaignData = stepData;
+				}
+
 				// Complete wizard via AJAX
-				return WSSCD.Ajax.post( 'wsscd_complete_wizard', {
-					saveAsDraft: options.saveAsDraft
-				} );
+				return WSSCD.Ajax.post( 'wsscd_complete_wizard', payload );
 			} )
 			.then( function( response ) {
 				self.handleCompletionSuccess( response );

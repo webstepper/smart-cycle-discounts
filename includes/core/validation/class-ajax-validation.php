@@ -97,6 +97,9 @@ class WSSCD_AJAX_Validation {
 				// Simple action, just return validated nonce and action
 				return $validated;
 
+			case 'wsscd_complete_wizard':
+				return self::validate_complete_wizard( $data, $validated );
+
 			default:
 				if ( isset( $data['draft_action'] ) ) {
 					return self::validate_draft_action( $data, $validated );
@@ -104,6 +107,51 @@ class WSSCD_AJAX_Validation {
 				// For unknown actions, return basic validated data
 				return $validated;
 		}
+	}
+
+	/**
+	 * Validate complete wizard action (launch / save as draft).
+	 *
+	 * Passes through save_as_draft and campaign_data so the server has full
+	 * step data when the session cookie is missing (e.g. after Cycle AI redirect).
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $data        Original data.
+	 * @param    array $validated   Already validated data.
+	 * @return   array Validated data with save_as_draft and campaign_data when present.
+	 */
+	private static function validate_complete_wizard( array $data, array $validated ) {
+		if ( isset( $data['save_as_draft'] ) ) {
+			$validated['save_as_draft'] = rest_sanitize_boolean( $data['save_as_draft'] );
+		}
+
+		if ( isset( $data['campaign_data'] ) && is_array( $data['campaign_data'] ) ) {
+			$validated['campaign_data'] = self::sanitize_campaign_data_for_complete( $data['campaign_data'] );
+		}
+
+		return $validated;
+	}
+
+	/**
+	 * Sanitize campaign_data payload for complete wizard (step keys and arrays only).
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @param    array $campaign_data Raw campaign_data from request.
+	 * @return   array Sanitized step-keyed array; only allowed step keys and array values kept.
+	 */
+	private static function sanitize_campaign_data_for_complete( array $campaign_data ) {
+		$allowed_steps = array( 'basic', 'products', 'discounts', 'schedule', 'review' );
+		$out           = array();
+
+		foreach ( $allowed_steps as $step ) {
+			if ( isset( $campaign_data[ $step ] ) && is_array( $campaign_data[ $step ] ) ) {
+				$out[ $step ] = $campaign_data[ $step ];
+			}
+		}
+
+		return $out;
 	}
 
 	/**

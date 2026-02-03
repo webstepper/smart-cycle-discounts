@@ -152,6 +152,11 @@ class WSSCD_Campaign_Creator_Service {
 				);
 			}
 
+			// Ensure schedule step exists so compiler can merge it (defaults applied in compiler).
+			if ( ! isset( $steps_data['schedule'] ) || ! is_array( $steps_data['schedule'] ) ) {
+				$steps_data['schedule'] = array();
+			}
+
 			$campaign_data = $this->compiler->compile( $steps_data, $campaign_id );
 			if ( ! $campaign_data || empty( $campaign_data ) ) {
 				return $this->error_response(

@@ -167,14 +167,14 @@ class WSSCD_Get_Summary_Handler extends WSSCD_Abstract_Ajax_Handler {
 			);
 		}
 
-		// Schedule information
+		// Schedule information (wizard uses enable_recurring and recurrence_pattern)
 		if ( ! empty( $steps['schedule'] ) ) {
 			$summary['schedule'] = array(
-				'start_date'        => isset( $steps['schedule']['start_date'] ) ? $steps['schedule']['start_date'] : '',
-				'end_date'          => isset( $steps['schedule']['end_date'] ) ? $steps['schedule']['end_date'] : '',
-				'enable_time_limit' => ! empty( $steps['schedule']['enable_time_limit'] ),
-				'recurring'         => ! empty( $steps['schedule']['recurring'] ),
-				'recurring_pattern' => isset( $steps['schedule']['recurring_pattern'] ) ? $steps['schedule']['recurring_pattern'] : '',
+				'start_date'         => isset( $steps['schedule']['start_date'] ) ? $steps['schedule']['start_date'] : '',
+				'end_date'           => isset( $steps['schedule']['end_date'] ) ? $steps['schedule']['end_date'] : '',
+				'enable_time_limit'  => ! empty( $steps['schedule']['enable_time_limit'] ),
+				'recurring'          => ! empty( $steps['schedule']['enable_recurring'] ),
+				'recurrence_pattern' => isset( $steps['schedule']['recurrence_pattern'] ) ? $steps['schedule']['recurrence_pattern'] : '',
 			);
 
 			if ( ! empty( $summary['schedule']['start_date'] ) ) {

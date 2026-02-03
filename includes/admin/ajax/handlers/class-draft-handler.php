@@ -236,6 +236,15 @@ class WSSCD_Draft_Handler {
 		$save_as_draft = isset( $this->validated_data['save_as_draft'] ) ?
 						(bool) $this->validated_data['save_as_draft'] : false;
 
+		// Ensure review step has launch_option for compiler (status calculation).
+		// When campaign_data is not sent (e.g. Cycle AI prefilled session), session may lack review step.
+		$review_data   = $this->state_service->get_step_data( 'review' );
+		$launch_option = $save_as_draft ? 'draft' : 'active';
+		$review_data   = is_array( $review_data ) ? $review_data : array();
+		$review_data['launch_option'] = $launch_option;
+		$this->state_service->set_step_data( 'review', $review_data );
+		$this->state_service->save();
+
 		// CRITICAL: Ensure compiler is initialized before creating Campaign_Creator_Service.
 		// Campaign_Creator_Service uses strict types and requires non-null compiler.
 		// Ensure compiler is initialized using centralized method.
@@ -274,7 +283,11 @@ class WSSCD_Draft_Handler {
 					'user_id' => get_current_user_id(),
 				)
 			);
-			WSSCD_Ajax_Response::error( __( 'Campaign creation failed. Please check the error log.', 'smart-cycle-discounts' ) );
+			$message = __( 'Campaign creation failed. Please check the error log.', 'smart-cycle-discounts' );
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG && $e->getMessage() ) {
+				$message = $e->getMessage();
+			}
+			WSSCD_Ajax_Response::error( $message, 500 );
 		}
 	}
 

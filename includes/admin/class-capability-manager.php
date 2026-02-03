@@ -320,6 +320,9 @@ class WSSCD_Admin_Capability_Manager {
 	 * @return   bool                     True if user has capability.
 	 */
 	public function current_user_can( string $capability, $object_id = null ): bool {
+		// Map shorthand capabilities to prefixed versions
+		$capability = $this->map_capability_name( $capability );
+
 		if ( null !== $object_id ) {
 			return current_user_can( $capability, $object_id );
 		}
@@ -337,11 +340,73 @@ class WSSCD_Admin_Capability_Manager {
 	 * @return   bool                         True if user has capability.
 	 */
 	public function user_can( $user, string $capability, $object_id = null ): bool {
+		// Map shorthand capabilities to prefixed versions
+		$capability = $this->map_capability_name( $capability );
+
 		if ( null !== $object_id ) {
 			return user_can( $user, $capability, $object_id );
 		}
 
 		return user_can( $user, $capability );
+	}
+
+	/**
+	 * Map shorthand capability names to prefixed versions.
+	 *
+	 * Allows using 'manage_campaigns' instead of 'wsscd_manage_campaigns'.
+	 *
+	 * @since    1.5.1
+	 * @param    string $capability    Capability name (shorthand or prefixed).
+	 * @return   string                   Prefixed capability name.
+	 */
+	private function map_capability_name( string $capability ): string {
+		// If already prefixed or is a WordPress core capability, return as-is
+		if ( 0 === strpos( $capability, 'wsscd_' ) || $this->is_core_capability( $capability ) ) {
+			return $capability;
+		}
+
+		// Map shorthand to prefixed capability
+		$shorthand_map = array(
+			'manage_campaigns'   => 'wsscd_manage_campaigns',
+			'view_campaigns'     => 'wsscd_view_campaigns',
+			'create_campaigns'   => 'wsscd_create_campaigns',
+			'edit_campaigns'     => 'wsscd_edit_campaigns',
+			'delete_campaigns'   => 'wsscd_delete_campaigns',
+			'activate_campaigns' => 'wsscd_activate_campaigns',
+			'view_analytics'     => 'wsscd_view_analytics',
+			'manage_analytics'   => 'wsscd_manage_analytics',
+			'export_analytics'   => 'wsscd_export_analytics',
+			'view_products'      => 'wsscd_view_products',
+			'manage_settings'    => 'wsscd_manage_settings',
+			'manage_tools'       => 'wsscd_manage_tools',
+			'import_export'      => 'wsscd_import_export',
+		);
+
+		return isset( $shorthand_map[ $capability ] ) ? $shorthand_map[ $capability ] : $capability;
+	}
+
+	/**
+	 * Check if capability is a WordPress core capability.
+	 *
+	 * @since    1.5.1
+	 * @param    string $capability    Capability to check.
+	 * @return   bool                     True if core capability.
+	 */
+	private function is_core_capability( string $capability ): bool {
+		$core_caps = array(
+			'manage_options',
+			'edit_posts',
+			'manage_woocommerce',
+			'edit_shop_orders',
+			'read',
+			'upload_files',
+			'publish_posts',
+			'edit_others_posts',
+			'delete_posts',
+			'activate_plugins',
+		);
+
+		return in_array( $capability, $core_caps, true );
 	}
 
 	/**

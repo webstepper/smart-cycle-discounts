@@ -90,13 +90,14 @@ class WSSCD_WC_Display_Integration {
 	 * Reset badge injection flag.
 	 *
 	 * Called before each product gallery renders to ensure the badge
-	 * is only injected into the first image of each product.
+	 * tracking is reset for each product.
 	 *
 	 * @since    1.0.0
 	 * @return   void
 	 */
 	public function reset_badge_injection_flag(): void {
 		$this->badge_injected_into_gallery = false;
+		$this->gallery_image_index         = 0;
 	}
 
 	/**
@@ -109,11 +110,20 @@ class WSSCD_WC_Display_Integration {
 	private bool $badge_injected_into_gallery = false;
 
 	/**
+	 * Track gallery image index for thumbnail badge sizing.
+	 *
+	 * @since    1.5.2
+	 * @access   private
+	 * @var      int
+	 */
+	private int $gallery_image_index = 0;
+
+	/**
 	 * Inject badge into gallery image HTML (single product page).
 	 *
 	 * Uses woocommerce_single_product_image_thumbnail_html filter to inject
-	 * the badge directly into the first gallery image's wrapper div.
-	 * This ensures proper positioning within the gallery container.
+	 * badges into gallery images. First image gets full badge, subsequent
+	 * thumbnails get smaller indicator badges.
 	 *
 	 * @since    1.0.0
 	 * @param    mixed      $html             The image HTML (can be null from some filters).
@@ -126,29 +136,41 @@ class WSSCD_WC_Display_Integration {
 			$html = '';
 		}
 
-		// Only inject badge into the first image (main product image).
-		if ( $this->badge_injected_into_gallery ) {
-			return (string) $html;
-		}
-
 		$product = wc_get_product( get_the_ID() );
 
 		if ( ! $product ) {
 			return $html;
 		}
 
+		// Determine if this is main image or thumbnail.
+		$is_main_image = ! $this->badge_injected_into_gallery;
+
+		// Get badge context based on image type.
+		$context = $is_main_image ? 'single-image' : 'gallery-thumbnail';
+
 		// Get discount badge HTML.
-		$badge_html = $this->get_badge_for_context( $product, 'single-image' );
+		$badge_html = $this->get_badge_for_context( $product, $context );
 
 		if ( empty( $badge_html ) ) {
 			return $html;
 		}
 
-		// Mark as injected so we don't add to subsequent gallery images.
-		$this->badge_injected_into_gallery = true;
+		// Mark first image as processed.
+		if ( $is_main_image ) {
+			$this->badge_injected_into_gallery = true;
+		}
+
+		// Increment gallery index for tracking.
+		$this->gallery_image_index++;
+
+		// Build wrapper classes.
+		$wrapper_class = 'wsscd-gallery-image-wrapper';
+		if ( ! $is_main_image ) {
+			$wrapper_class .= ' wsscd-gallery-thumbnail-wrapper';
+		}
 
 		// Wrap the image and badge in a positioned container.
-		return '<div class="wsscd-gallery-image-wrapper" style="position: relative;">' . $html . $badge_html . '</div>';
+		return '<div class="' . esc_attr( $wrapper_class ) . '" style="position: relative;">' . $html . $badge_html . '</div>';
 	}
 
 	/**
@@ -157,7 +179,7 @@ class WSSCD_WC_Display_Integration {
 	 * @since    1.0.0
 	 * @access   private
 	 * @param    WC_Product $product    Product object.
-	 * @param    string     $context    Display context (single-image, shop).
+	 * @param    string     $context    Display context (single-image, shop, gallery-thumbnail).
 	 * @return   string                 Badge HTML or empty string.
 	 */
 	private function get_badge_for_context( WC_Product $product, string $context ): string {
@@ -173,6 +195,23 @@ class WSSCD_WC_Display_Integration {
 			// Check if badge display is enabled for this campaign.
 			if ( empty( $badge_info['badge_enabled'] ) ) {
 				return '';
+			}
+
+			// For gallery thumbnails, check if thumbnail badges are enabled.
+			if ( 'gallery-thumbnail' === $context ) {
+				/**
+				 * Filter whether to show badges on gallery thumbnails.
+				 *
+				 * @since 1.5.2
+				 * @param bool  $show_thumbnail_badges Whether to show badges on thumbnails.
+				 * @param array $badge_info            Badge information.
+				 * @param int   $product_id            Product ID.
+				 */
+				$show_thumbnail_badges = apply_filters( 'wsscd_show_gallery_thumbnail_badges', true, $badge_info, $product_id );
+
+				if ( ! $show_thumbnail_badges ) {
+					return '';
+				}
 			}
 
 			return $this->get_badge_html( $badge_info, $context );
@@ -353,6 +392,13 @@ class WSSCD_WC_Display_Integration {
 			'wsscd-badge-position-' . esc_attr( $position ),
 		);
 
+		// For gallery thumbnails, add compact class and use shortened text.
+		$display_text = $text;
+		if ( 'gallery-thumbnail' === $context ) {
+			$classes[]    = 'wsscd-badge-compact';
+			$display_text = $this->get_compact_badge_text( $type, $badge_info );
+		}
+
 		// Build inline styles
 		$styles = sprintf(
 			'background-color: %s; color: %s;',
@@ -365,8 +411,44 @@ class WSSCD_WC_Display_Integration {
 			esc_attr( implode( ' ', $classes ) ),
 			esc_attr( $styles ),
 			esc_attr( $type ),
-			esc_html( $text )
+			esc_html( $display_text )
 		);
+	}
+
+	/**
+	 * Get compact badge text for thumbnails.
+	 *
+	 * Returns a shortened version of the badge text suitable for small thumbnails.
+	 *
+	 * @since    1.5.2
+	 * @access   private
+	 * @param    string $type        Discount type.
+	 * @param    array  $badge_info  Badge information.
+	 * @return   string              Compact text.
+	 */
+	private function get_compact_badge_text( string $type, array $badge_info ): string {
+		switch ( $type ) {
+			case 'percentage':
+				$value = absint( $badge_info['value'] ?? 0 );
+				return $value > 0 ? '-' . $value . '%' : '%';
+
+			case 'fixed':
+				$value           = floatval( $badge_info['value'] ?? 0 );
+				$currency_symbol = get_woocommerce_currency_symbol();
+				return $value > 0 ? '-' . $currency_symbol . number_format( $value, 0 ) : $currency_symbol;
+
+			case 'bogo':
+				return 'BOGO';
+
+			case 'tiered':
+				return 'DEAL';
+
+			case 'spend_threshold':
+				return 'SAVE';
+
+			default:
+				return 'SALE';
+		}
 	}
 
 	/**

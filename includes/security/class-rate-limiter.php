@@ -49,24 +49,35 @@ class WSSCD_Rate_Limiter {
 	}
 
 	/**
-	 * Check if action is rate limited.
+	 * Check if action is rate limited (does not increment count).
 	 *
 	 * @since    1.0.0
 	 * @param    string $key       Rate limit key.
 	 * @param    int    $limit     Request limit.
-	 * @param    int    $window    Time window in seconds.
+	 * @param    int    $window    Time window in seconds (used only for record_hit).
 	 * @return   bool                 True if rate limited.
 	 */
 	public function is_limited( string $key, int $limit = 60, int $window = 3600 ): bool {
 		$cache_key     = 'rate_limit_' . md5( $key );
 		$current_count = $this->cache_manager->get( $cache_key, 0 );
 
-		if ( $current_count >= $limit ) {
-			return true;
-		}
+		return $current_count >= $limit;
+	}
 
+	/**
+	 * Record a successful use (increment count). Call only after the action succeeded
+	 * so that failed attempts do not consume quota.
+	 *
+	 * @since    1.0.0
+	 * @param    string $key       Rate limit key.
+	 * @param    int    $limit     Request limit (unused; for API consistency).
+	 * @param    int    $window    Time window in seconds.
+	 * @return   void
+	 */
+	public function record_hit( string $key, int $limit = 60, int $window = 3600 ): void {
+		$cache_key     = 'rate_limit_' . md5( $key );
+		$current_count = $this->cache_manager->get( $cache_key, 0 );
 		$this->cache_manager->set( $cache_key, $current_count + 1, $window );
-		return false;
 	}
 
 	/**

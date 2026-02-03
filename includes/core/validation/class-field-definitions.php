@@ -523,7 +523,7 @@ class WSSCD_Field_Definitions {
 			'badge_text'                => array(
 				'type'        => 'text',
 				'label'       => __( 'Badge Text', 'smart-cycle-discounts' ),
-				'required'    => false,
+				'required'    => true,
 				'conditional' => array(
 					'field' => 'badge_enabled',
 					'value' => true,
@@ -613,7 +613,7 @@ class WSSCD_Field_Definitions {
 			'user_roles'                => array(
 				'type'        => 'complex',
 				'label'       => __( 'User Roles', 'smart-cycle-discounts' ),
-				'required'    => false,
+				'required'    => true,
 				'default'     => array(),
 				'sanitizer'   => array( __CLASS__, 'sanitize_user_roles' ),
 				'validator'   => array( __CLASS__, 'validate_user_roles' ),
@@ -789,7 +789,7 @@ class WSSCD_Field_Definitions {
 			'recurrence_days'     => array(
 				'type'        => 'array',
 				'label'       => __( 'Recurrence Days', 'smart-cycle-discounts' ),
-				'required'    => false,
+				'required'    => true,
 				'default'     => array(),
 				'sanitizer'   => array( __CLASS__, 'sanitize_array_values' ),
 				'validator'   => array( __CLASS__, 'validate_recurrence_days' ),
@@ -820,7 +820,7 @@ class WSSCD_Field_Definitions {
 			'recurrence_count'    => array(
 				'type'        => 'number',
 				'label'       => __( 'Recurrence Count', 'smart-cycle-discounts' ),
-				'required'    => false,
+				'required'    => true,
 				'min'         => 1,
 				'max'         => 100,
 				'default'     => 10,
@@ -835,7 +835,7 @@ class WSSCD_Field_Definitions {
 			'recurrence_end_date' => array(
 				'type'        => 'date',
 				'label'       => __( 'Recurrence End Date', 'smart-cycle-discounts' ),
-				'required'    => false,
+				'required'    => true,
 				'default'     => '',
 				'sanitizer'   => array( __CLASS__, 'sanitize_date' ),
 				'validator'   => array( __CLASS__, 'validate_datetime' ),
@@ -857,7 +857,7 @@ class WSSCD_Field_Definitions {
 			'rotation_interval'   => array(
 				'type'        => 'number',
 				'label'       => __( 'Rotation Interval (hours)', 'smart-cycle-discounts' ),
-				'required'    => false,
+				'required'    => true,
 				'min'         => 1,
 				'max'         => 168,
 				'default'     => 24,
@@ -985,6 +985,9 @@ class WSSCD_Field_Definitions {
 						'field' => $field_schema['conditional']['field'], // Keep snake_case to match form field names
 						'value' => $field_schema['conditional']['value'],
 					);
+					if ( isset( $field_schema['conditional']['operator'] ) ) {
+						$js_field['conditional']['operator'] = $field_schema['conditional']['operator'];
+					}
 				}
 
 				$js_schemas[ $step ][ $js_field_key ] = $js_field;
@@ -1314,6 +1317,7 @@ class WSSCD_Field_Definitions {
 			if ( isset( $field_schema['conditional'] ) ) {
 				$condition_field = $field_schema['conditional']['field'];
 				$condition_value = $field_schema['conditional']['value'];
+				$condition_op    = isset( $field_schema['conditional']['operator'] ) ? $field_schema['conditional']['operator'] : 'equals';
 				$actual_value    = isset( $data[ $condition_field ] ) ? $data[ $condition_field ] : null;
 
 				// Handle boolean comparison with proper normalization
@@ -1334,6 +1338,11 @@ class WSSCD_Field_Definitions {
 					$condition_matches = $actual_value === $condition_value;
 				}
 
+				// Support optional operator: when 'not_equals', condition is met when value differs
+				if ( 'not_equals' === $condition_op ) {
+					$condition_matches = ! $condition_matches;
+				}
+
 				// Skip validation if conditional not met
 				if ( ! $condition_matches ) {
 					continue;
@@ -1344,7 +1353,7 @@ class WSSCD_Field_Definitions {
 			$value = isset( $data[ $field_key ] ) ? $data[ $field_key ] : null;
 
 			// Skip non-required fields that are not present in the data
-			// Conditional fields are skipped if not visible (conditional not met)
+			// When conditional is set, we only validate this field when condition matches (skip above).
 			if ( empty( $field_schema['required'] ) && ! isset( $data[ $field_key ] ) ) {
 				continue;
 			}
@@ -1354,8 +1363,8 @@ class WSSCD_Field_Definitions {
 				$value = call_user_func( $field_schema['sanitizer'], $value );
 			}
 
-			// Fields are required based on their 'required' flag
-			// Conditional only controls visibility, not required status
+			// Required is enforced only when this field is validated (conditional met if any).
+			// So PRO/conditional fields are "required when enabled" by using required=true + conditional.
 			$is_required = ! empty( $field_schema['required'] );
 			if ( $is_required && ( ! isset( $value ) || '' === $value || array() === $value ) ) {
 				$errors->add(

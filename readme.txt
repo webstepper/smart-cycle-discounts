@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: discount rules, BOGO, bulk discount, tiered pricing, sale scheduler
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.5.1
+Stable tag: 1.5.3
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -430,6 +430,25 @@ Pro users can configure combination policies for each campaign. Choose whether y
 
 == Changelog ==
 
+= 1.5.3 =
+* Fix: Run pending database migrations on every plugin load so schema stays up to date (fixes "Unknown column 'user_roles'" when migrations had not run)
+* Fix: Campaign save only persists columns that exist in the table (defensive when migrations are pending)
+* Fix: Migration manager queries corrected for compatibility so pending migrations are detected reliably
+* Fix: Removed redundant error-reporting band-aids from campaign save and save-step handler
+* Improvement: Deploy script supports "local" mode for WordPress.org (deploy full version excluding only Cycle AI)
+* Code: Cycle AI script and style registration is conditional so the plugin works when AI files are excluded from the package
+
+= 1.5.2 =
+* New: Discount badges now display on all product gallery images (main image + thumbnails)
+* New: Compact badge text for thumbnails (e.g., "-20%", "BOGO", "DEAL") for better visual balance
+* New: Dynamic spend threshold progress bar shows real-time progress toward next discount tier (Pro)
+* New: AJAX-powered cart updates - progress bar refreshes automatically when items are added/removed (Pro)
+* New: Filter hook `wsscd_show_gallery_thumbnail_badges` to disable thumbnail badges if needed
+* Improvement: Gallery thumbnail badges use smaller positioning offsets for cleaner appearance
+* Improvement: Progress bar animates smoothly when cart total changes
+* Improvement: Formatted price display in progress messages uses WooCommerce currency settings
+* Code: New `WSSCD_Frontend_Ajax_Handler` class for frontend AJAX operations (Pro)
+
 = 1.5.1 =
 * New: Redesigned Campaign Period section with modern horizontal date range layout
 * New: Inline toggle buttons for "Immediately" vs "Scheduled" start type selection
@@ -598,6 +617,12 @@ Pro users can configure combination policies for each campaign. Choose whether y
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.5.3 =
+Database migrations now run automatically on plugin load. Fixes campaign save errors when schema was out of date. Cleaner error handling and deploy script improvements.
+
+= 1.5.2 =
+Discount badges now display on all product gallery images. Pro users get real-time spend threshold progress bar that updates dynamically as cart changes.
 
 = 1.5.1 =
 Redesigned Campaign Period section with modern horizontal date layout, toggle buttons, and visual date boxes. Timeline preview improvements. Better validation UX with persistent errors.

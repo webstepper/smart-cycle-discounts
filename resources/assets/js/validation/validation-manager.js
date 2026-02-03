@@ -296,7 +296,7 @@
 	/**
 	 * Helper: Evaluate condition for conditional field visibility
 	 *
-	 * Uses structured format from PHP field definitions: { field: 'fieldName', value: 'expectedValue' }
+	 * Uses structured format from PHP field definitions: { field: 'fieldName', value: 'expectedValue', operator?: 'equals'|'not_equals' }
 	 *
 	 * @private
 	 * @since 1.0.0
@@ -305,37 +305,37 @@
 	 * @returns {boolean} True if condition is met
 	 */
 	ValidationManager.prototype._evaluateCondition = function( condition, allValues ) {
-		// Structured format: { field: 'fieldName', value: 'expectedValue' }
-		// This is the format from PHP field definitions after export_for_js conversion
+		// Structured format: { field: 'fieldName', value: 'expectedValue', operator?: 'not_equals' }
 		var fieldName = condition.field;
 		var expectedValue = condition.value;
+		var operator = condition.operator || 'equals';
 
 		// CRITICAL FIX: Convert field name from snake_case to camelCase
-		// Conditional field names come from PHP in snake_case (e.g., 'discount_type')
-		// But allValues uses camelCase keys (e.g., 'discountType')
 		var camelCaseFieldName = window.WSSCD && window.WSSCD.Utils && window.WSSCD.Utils.Fields
 			? window.WSSCD.Utils.Fields.toCamelCase( fieldName )
 			: fieldName;
 
-		// Get value from allValues object (JavaScript layer uses camelCase)
 		var actualValue = allValues[camelCaseFieldName];
 
+		var matches;
 		// Array of possible values
 		if ( Array.isArray( expectedValue ) ) {
-			return expectedValue.indexOf( actualValue ) !== -1;
+			matches = expectedValue.indexOf( actualValue ) !== -1;
 		}
 		// Boolean comparison with type coercion
 		else if ( 'boolean' === typeof expectedValue ) {
-			// Coerce actual value to boolean for comparison
-			// Handle checkbox values: '1', 1, true, 'true' -> true
-			// Handle: '0', 0, false, 'false', '', null, undefined -> false
 			var actualBoolean = !! actualValue && '0' !== actualValue && 'false' !== actualValue;
-			return actualBoolean === expectedValue;
+			matches = actualBoolean === expectedValue;
 		}
 		// Single value - strict equality
 		else {
-			return actualValue === expectedValue;
+			matches = actualValue === expectedValue;
 		}
+
+		if ( 'not_equals' === operator ) {
+			return ! matches;
+		}
+		return matches;
 	};
 	
 	/**

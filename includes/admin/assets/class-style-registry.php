@@ -234,7 +234,7 @@ class WSSCD_Style_Registry {
 			array(
 				'src'      => 'resources/assets/css/shared/_forms.css',
 				'deps'     => array( 'wsscd-variables', 'wsscd-theme-colors' ),
-				'pages'    => array( 'wsscd-campaigns', 'wsscd-analytics', 'wsscd-settings', 'wsscd-tools', 'wsscd-dashboard' ),
+				'pages'    => array( 'wsscd-campaigns', 'wsscd-analytics', 'wsscd-settings', 'wsscd-tools', 'wsscd-dashboard', 'wsscd-notifications' ),
 				'media'    => 'all',
 				'priority' => 6,
 			)
@@ -346,7 +346,7 @@ class WSSCD_Style_Registry {
 			'wsscd-notifications-page',
 			array(
 				'src'      => 'resources/assets/css/admin/notifications-page.css',
-				'deps'     => array(),
+				'deps'     => array( 'wsscd-theme-colors', 'wsscd-variables', 'wsscd-utilities', 'wsscd-components', 'wsscd-forms' ),
 				'pages'    => array( 'wsscd-notifications' ),
 				'media'    => 'all',
 				'priority' => 10,
@@ -444,6 +444,19 @@ class WSSCD_Style_Registry {
 				'priority' => 10,
 			)
 		);
+
+		// Cycle AI Create Full progress modal (PRO-only; only register when AI service exists, excluded from WordPress.org package).
+		if ( class_exists( 'WSSCD_Cycle_AI_Service', false ) ) {
+			$this->add_style(
+				'wsscd-cycle-ai-create-modal',
+				array(
+					'src'      => 'resources/assets/css/admin/cycle-ai-create-modal.css',
+					'deps'     => array( 'wsscd-admin', 'wsscd-draft-conflict-modal' ),
+					'pages'    => array( 'wsscd-campaigns' ),
+					'priority' => 10,
+				)
+			);
+		}
 
 		// Campaign overview panel styles
 		$this->add_style(

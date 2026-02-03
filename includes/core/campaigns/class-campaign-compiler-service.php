@@ -418,13 +418,18 @@ class WSSCD_Campaign_Compiler_Service {
 			$data['discount_configuration'] = $discount_config;
 		}
 
-		// Transform schedule data
-		if ( isset( $data['start_date'] ) || isset( $data['start_type'] ) ) {
-			$campaign_timezone = $data['timezone'] ?? wp_timezone_string();
-			$start_type        = $data['start_type'] ?? 'scheduled';
+		// Transform schedule data - always run so timezone and starts_at are set (required for campaign creation).
+		$campaign_timezone = $data['timezone'] ?? wp_timezone_string();
+		$data['timezone']  = $campaign_timezone;
+		$start_type        = $data['start_type'] ?? 'immediate';
+		// If scheduled but no start_date, treat as immediate so campaign has valid starts_at.
+		if ( 'scheduled' === $start_type && empty( $data['start_date'] ) ) {
+			$start_type        = 'immediate';
+			$data['start_type'] = 'immediate';
+		}
 
-			// Handle immediate vs scheduled campaigns differently
-			if ( 'immediate' === $start_type ) {
+		// Handle immediate vs scheduled campaigns differently
+		if ( 'immediate' === $start_type ) {
 				// IMMEDIATE: Use current server time (WordPress timezone)
 				// Single source of truth - server calculates both start and end times
 				try {
@@ -457,11 +462,10 @@ class WSSCD_Campaign_Compiler_Service {
 					throw $e;
 				}
 
-				// FIX: User-selected end_date should be respected, not overridden by stale duration_seconds
-				if ( isset( $data['end_date'] ) && isset( $data['end_time'] ) && ! empty( $data['end_date'] ) ) {
-					// Use user's explicit end date/time selection (PRIMARY)
+				// User-selected end date/time (refactored schedule: end_time may be empty when end date set)
+				if ( ! empty( $data['end_date'] ) ) {
 					$end_date = $data['end_date'];
-					$end_time = $data['end_time'];
+					$end_time = isset( $data['end_time'] ) && '' !== (string) $data['end_time'] ? $data['end_time'] : '23:59';
 
 					// Use DateTimeBuilder for type-safe combination
 					$end_builder = WSSCD_DateTime_Builder::from_user_input(
@@ -535,10 +539,10 @@ class WSSCD_Campaign_Compiler_Service {
 					}
 				}
 
-				// Map end_date to ends_at (convert to UTC) - for scheduled campaigns
+				// Map end_date to ends_at (convert to UTC) - for scheduled campaigns; empty end_time defaults to 23:59
 				if ( ! empty( $data['end_date'] ) ) {
 					$end_date = $data['end_date'];
-					$end_time = $data['end_time'] ?? '23:59';
+					$end_time = isset( $data['end_time'] ) && '' !== (string) $data['end_time'] ? $data['end_time'] : '23:59';
 
 					try {
 						// Use DateTimeBuilder for validation and combination
@@ -563,16 +567,15 @@ class WSSCD_Campaign_Compiler_Service {
 						throw $e;
 					}
 				}
-			}
-
-			$data['schedule_configuration'] = $this->build_schedule_configuration( $data );
 		}
+
+		$data['schedule_configuration'] = $this->build_schedule_configuration( $data );
 
 		// Transform recurring campaign data
 		if ( ! empty( $data['enable_recurring'] ) ) {
 			$data['enable_recurring'] = 1;
 
-			// Extract recurring configuration from wizard data
+			// Extract recurring configuration from wizard data (matches WSSCD_Schedule_Field_Names and campaign_recurring table)
 			$recurring_config = array(
 				'recurrence_pattern'  => $data['recurrence_pattern'] ?? 'daily',
 				'recurrence_interval' => isset( $data['recurrence_interval'] ) ? (int) $data['recurrence_interval'] : 1,
@@ -580,6 +583,7 @@ class WSSCD_Campaign_Compiler_Service {
 				'recurrence_end_type' => $data['recurrence_end_type'] ?? 'never',
 				'recurrence_count'    => isset( $data['recurrence_count'] ) ? (int) $data['recurrence_count'] : null,
 				'recurrence_end_date' => $data['recurrence_end_date'] ?? null,
+				'recurrence_mode'     => isset( $data['recurrence_mode'] ) ? sanitize_key( $data['recurrence_mode'] ) : 'continuous',
 			);
 
 			// Store in metadata for repository to process
@@ -833,12 +837,12 @@ class WSSCD_Campaign_Compiler_Service {
 			);
 		}
 
-		// Recurring settings
-		if ( ! empty( $data['recurring'] ) ) {
+		// Recurring settings (wizard uses enable_recurring and recurrence_*)
+		if ( ! empty( $data['enable_recurring'] ) ) {
 			$config['recurring'] = array(
 				'enabled' => true,
-				'pattern' => $data['recurring_pattern'] ?? 'daily',
-				'days'    => $data['recurring_days'] ?? array(),
+				'pattern' => $data['recurrence_pattern'] ?? 'daily',
+				'days'    => $data['recurrence_days'] ?? array(),
 			);
 		}
 

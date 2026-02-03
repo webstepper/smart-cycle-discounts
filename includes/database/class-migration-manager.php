@@ -263,13 +263,14 @@ class WSSCD_Migration_Manager {
 	 */
 	public function get_executed_migrations(): array {
 		$table_name = $this->db->get_table_name( 'migrations' );
+		if ( empty( $table_name ) ) {
+			return array();
+		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Migration tracking query; no WP abstraction.
+		// Table name from trusted get_table_name(); wpdb has no identifier placeholder.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Migration tracking; table name from trusted source.
 		$results = $this->db->get_results(
-			$this->db->prepare(
-				'SELECT migration FROM %i ORDER BY id ASC',
-				$table_name
-			)
+			"SELECT migration FROM `{$table_name}` ORDER BY id ASC"
 		);
 
 		return array_column( $results, 'migration' );
@@ -408,13 +409,13 @@ class WSSCD_Migration_Manager {
 	 */
 	private function get_next_batch_number(): int {
 		$table_name = $this->db->get_table_name( 'migrations' );
+		if ( empty( $table_name ) ) {
+			return 1;
+		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Migration tracking query; no WP abstraction.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Migration tracking; table name from trusted source.
 		$result = $this->db->get_var(
-			$this->db->prepare(
-				'SELECT MAX(batch) FROM %i',
-				$table_name
-			)
+			"SELECT MAX(batch) FROM `{$table_name}`"
 		);
 
 		return $result ? (int) $result + 1 : 1;
@@ -429,13 +430,13 @@ class WSSCD_Migration_Manager {
 	 */
 	private function get_executed_batches(): array {
 		$table_name = $this->db->get_table_name( 'migrations' );
+		if ( empty( $table_name ) ) {
+			return array();
+		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Migration tracking query; no WP abstraction.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Migration tracking; table name from trusted source.
 		$results = $this->db->get_results(
-			$this->db->prepare(
-				'SELECT DISTINCT batch FROM %i ORDER BY batch DESC',
-				$table_name
-			)
+			"SELECT DISTINCT batch FROM `{$table_name}` ORDER BY batch DESC"
 		);
 
 		return array_column( $results, 'batch' );
@@ -451,12 +452,14 @@ class WSSCD_Migration_Manager {
 	 */
 	private function get_migrations_in_batch( int $batch ): array {
 		$table_name = $this->db->get_table_name( 'migrations' );
+		if ( empty( $table_name ) ) {
+			return array();
+		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching , PluginCheck.CodeAnalysis.Sniffs.DirectDBcalls.DirectDBcalls -- Migration tracking query; no WP abstraction.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Migration tracking; table name from trusted source; batch is integer.
 		$results = $this->db->get_results(
 			$this->db->prepare(
-				'SELECT migration FROM %i WHERE batch = %d ORDER BY id ASC',
-				$table_name,
+				"SELECT migration FROM `{$table_name}` WHERE batch = %d ORDER BY id ASC",
 				$batch
 			)
 		);

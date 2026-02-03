@@ -390,6 +390,8 @@ class WSSCD_Ajax_Router {
 			'campaign_health'                => 'WSSCD_Campaign_Health_Handler',
 			'calculate_discount_impact'      => 'WSSCD_Calculate_Discount_Impact_Handler',
 			'apply_recommendation'           => 'WSSCD_Apply_Recommendation_Handler',
+			'cycle_ai_suggest_campaigns'     => 'WSSCD_Cycle_AI_Handler',
+			'cycle_ai_create_full_campaign'  => 'WSSCD_Cycle_AI_Create_Full_Handler',
 
 			// Campaign handlers.
 			'campaign_overview'              => 'WSSCD_Campaign_Overview_Handler',
@@ -784,6 +786,45 @@ class WSSCD_Ajax_Router {
 				$logger = $container::get_service( 'logger' );
 
 				$this->handler_instances[ $action ] = new $handler_class( $dashboard_service, $logger );
+			} elseif ( 'WSSCD_Cycle_AI_Handler' === $handler_class ) {
+				// Cycle AI handler requires AI service, feature gate, rate limiter, and logger.
+				$container        = Smart_Cycle_Discounts::get_instance();
+				$cycle_ai_service = $container::get_service( 'cycle_ai_service' );
+				$feature_gate     = $container::get_service( 'feature_gate' );
+				$rate_limiter     = $container::get_service( 'rate_limiter' );
+				$logger           = $container::get_service( 'logger' );
+
+				if ( ! $cycle_ai_service || ! $feature_gate || ! $rate_limiter ) {
+					return null;
+				}
+
+				$this->handler_instances[ $action ] = new $handler_class(
+					$cycle_ai_service,
+					$feature_gate,
+					$rate_limiter,
+					$logger
+				);
+			} elseif ( 'WSSCD_Cycle_AI_Create_Full_Handler' === $handler_class ) {
+				$container         = Smart_Cycle_Discounts::get_instance();
+				$cycle_ai_service  = $container::get_service( 'cycle_ai_service' );
+				$feature_gate      = $container::get_service( 'feature_gate' );
+				$rate_limiter      = $container::get_service( 'rate_limiter' );
+				$state_service     = $container::get_service( 'wizard_state_service' );
+				$campaign_manager  = $container::get_service( 'campaign_manager' );
+				$logger            = $container::get_service( 'logger' );
+
+				if ( ! $cycle_ai_service || ! $feature_gate || ! $rate_limiter || ! $state_service || ! $campaign_manager ) {
+					return null;
+				}
+
+				$this->handler_instances[ $action ] = new $handler_class(
+					$cycle_ai_service,
+					$feature_gate,
+					$rate_limiter,
+					$state_service,
+					$campaign_manager,
+					$logger
+				);
 		} elseif ( 'WSSCD_Toggle_Campaign_Status_Handler' === $handler_class ) {
 				$container        = Smart_Cycle_Discounts::get_instance();
 				$campaign_manager = $container::get_service( 'campaign_manager' );

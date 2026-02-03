@@ -856,16 +856,18 @@
 			}
 		}
 
+		var operator = conditional.operator || 'equals';
 		var conditionMatches = false;
 		if ( 'boolean' === typeof conditionalValue ) {
 			// Boolean comparison - coerce actual value to boolean
-			// Handle checkbox values: '1', 1, true, 'true' -> true
-			// Handle: '0', 0, false, 'false', '', null, undefined -> false
 			conditionMatches = !! actualValue && '0' !== actualValue && 'false' !== actualValue;
 			conditionMatches = conditionMatches === conditionalValue;
 		} else {
 			// Non-boolean comparison - use strict equality
 			conditionMatches = actualValue === conditionalValue;
+		}
+		if ( 'not_equals' === operator ) {
+			conditionMatches = ! conditionMatches;
 		}
 
 		if ( window.wsscdDebugPersistence ) {

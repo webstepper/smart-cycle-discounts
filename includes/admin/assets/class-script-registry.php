@@ -491,6 +491,19 @@ class WSSCD_Script_Registry {
 			)
 		);
 
+		// Cycle AI Create Full - list page only (PRO); only register when AI service exists (excluded from WordPress.org package).
+		if ( class_exists( 'WSSCD_Cycle_AI_Service', false ) ) {
+			$this->add_script(
+				'wsscd-cycle-ai-create-full',
+				array(
+					'src'       => 'resources/assets/js/admin/cycle-ai-create-full.js',
+					'deps'      => array( 'jquery', 'wsscd-shared-ajax-service' ),
+					'pages'     => array( 'wsscd-campaigns' ),
+					'condition' => array( 'action' => null ),
+				)
+			);
+		}
+
 		// Note: Draft management scripts removed - functionality handled by PHP AJAX handler
 	}
 
@@ -671,6 +684,21 @@ class WSSCD_Script_Registry {
 				'in_footer' => false,
 			)
 		);
+
+		// Cycle AI campaign suggestions (PRO-only feature; only register when AI service exists, excluded from WordPress.org package).
+		if ( class_exists( 'WSSCD_Cycle_AI_Service', false ) ) {
+			$this->add_script(
+				'wsscd-cycle-ai-suggestions',
+				array(
+					'src'       => 'resources/assets/js/wizard/cycle-ai-suggestions.js',
+					'deps'      => array( 'jquery', 'wsscd-shared-notification-service' ),
+					'pages'     => array( 'wsscd-campaigns' ),
+					'condition' => array( 'action' => 'wizard' ),
+					'localize'  => null,
+					'in_footer' => false,
+				)
+			);
+		}
 
 		// Shared modules
 		$this->register_wizard_shared_modules();

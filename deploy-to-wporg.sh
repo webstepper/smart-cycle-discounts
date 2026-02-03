@@ -2,19 +2,16 @@
 #
 # Deploy Smart Cycle Discounts to WordPress.org SVN
 #
-# Usage: ./deploy-to-wporg.sh [version]
-#        ./deploy-to-wporg.sh /path/to/smart-cycle-discounts-free.x.x.x.zip
+# Usage: ./deploy-to-wporg.sh local <version>     # Full plugin from repo, exclude AI only
+#        ./deploy-to-wporg.sh <version>           # From Freemius free zip in SCD-FREE
+#        ./deploy-to-wporg.sh /path/to/zip        # From custom zip
 #
 # Examples:
-#   ./deploy-to-wporg.sh 1.1.6          # Uses default SCD-FREE folder
-#   ./deploy-to-wporg.sh ~/Downloads/smart-cycle-discounts-free-1.1.6.zip
+#   ./deploy-to-wporg.sh local 1.5.2             # Deploy full version (this repo), exclude only AI
+#   ./deploy-to-wporg.sh 1.5.2                   # Use zip from SCD-FREE folder
+#   ./deploy-to-wporg.sh ~/Downloads/smart-cycle-discounts-free-1.5.2.zip
 #
-# This script:
-# 1. Extracts the free version zip
-# 2. Copies files to SVN trunk
-# 3. Handles new/deleted files
-# 4. Creates version tag
-# 5. Commits to WordPress.org
+# WordPress.org package = source (full or zip) with Cycle AI files removed.
 #
 
 set -e
@@ -29,6 +26,8 @@ NC='\033[0m' # No Color
 SVN_DIR="$HOME/svn-deploy/smart-cycle-discounts"
 PLUGIN_SLUG="smart-cycle-discounts"
 TEMP_DIR="/tmp/${PLUGIN_SLUG}-deploy"
+# Script dir = plugin root when run from repo
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Default folder for Freemius free version downloads
 SCD_FREE_DIR="/mnt/c/Users/Alienware/Local Sites/vvmdov/app/public/wp-content/plugins/SCD-FREE"
 
@@ -47,55 +46,83 @@ print_error() {
 
 # Check if argument provided
 if [ -z "$1" ]; then
-    print_error "Usage: $0 <version> or $0 /path/to/zip"
-    print_error "Examples:"
-    print_error "  $0 1.1.6"
-    print_error "  $0 ~/Downloads/smart-cycle-discounts-free-1.1.6.zip"
+    print_error "Usage: $0 local <version>  |  $0 <version>  |  $0 /path/to/zip"
+    print_error "  local <version>  = full plugin from this repo, exclude only AI"
+    print_error "  <version>        = zip from SCD-FREE folder (e.g. 1.5.2)"
+    print_error "  /path/to/zip     = custom zip path"
     exit 1
 fi
 
-# Determine if argument is version number or path
-if [[ "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    # Argument is a version number - use default SCD-FREE folder
-    VERSION="$1"
-    ZIP_FILE="${SCD_FREE_DIR}/smart-cycle-discounts-free.${VERSION}.zip"
-    print_status "Using default SCD-FREE folder..."
-else
-    # Argument is a path
-    ZIP_FILE="$1"
-    # Extract version from zip filename
-    VERSION=$(echo "$ZIP_FILE" | grep -oP '\d+\.\d+\.\d+' | tail -1)
-    if [ -z "$VERSION" ]; then
-        print_warning "Could not extract version from filename."
-        read -p "Enter version number (e.g., 1.0.2): " VERSION
+USE_LOCAL=false
+if [ "$1" = "local" ]; then
+    USE_LOCAL=true
+    shift
+    if [ -z "$1" ]; then
+        print_error "Usage: $0 local <version>"
+        exit 1
     fi
+    VERSION="$1"
+else
+    VERSION="$1"
 fi
-
-# Verify zip file exists
-if [ ! -f "$ZIP_FILE" ]; then
-    print_error "Zip file not found: $ZIP_FILE"
-    print_error "Make sure you downloaded the free version from Freemius Dashboard."
-    exit 1
-fi
-
-print_status "Deploying version $VERSION to WordPress.org..."
-
-# Clean up temp directory
-rm -rf "$TEMP_DIR"
-mkdir -p "$TEMP_DIR"
-
-# Extract zip using Python (more portable)
-print_status "Extracting zip file..."
-python3 -c "import zipfile; z = zipfile.ZipFile('$ZIP_FILE'); z.extractall('$TEMP_DIR')"
 
 # Navigate to SVN directory
 print_status "Updating SVN repository..."
 cd "$SVN_DIR"
 svn update
 
-# Copy files to trunk
-print_status "Copying files to trunk..."
-cp -r "$TEMP_DIR/$PLUGIN_SLUG/"* trunk/
+if [ "$USE_LOCAL" = true ]; then
+    # Deploy full version from repo (script's directory = plugin root), exclude only AI
+    print_status "Deploying full version from repo (excluding AI only)..."
+    print_status "Source: $SCRIPT_DIR"
+    rsync -a --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='.cursor' --exclude='*.md' --exclude='*.sh' --exclude='*.py' --exclude='phpunit*.xml' --exclude='composer.*' --exclude='.wordpress-org' --exclude='tests' --exclude='bin' --exclude='Webstepper.io' \
+        "$SCRIPT_DIR/" trunk/
+    # Remove vendor except Freemius
+    find trunk/vendor -mindepth 1 -maxdepth 1 ! -name 'freemius' -exec rm -rf {} + 2>/dev/null || true
+else
+    # Determine if argument is version number or path
+    if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        ZIP_FILE="${SCD_FREE_DIR}/smart-cycle-discounts-free.${VERSION}.zip"
+        print_status "Using zip from SCD-FREE folder..."
+    else
+        ZIP_FILE="$VERSION"
+        VERSION=$(echo "$ZIP_FILE" | grep -oP '\d+\.\d+\.\d+' | tail -1)
+        if [ -z "$VERSION" ]; then
+            print_warning "Could not extract version from filename."
+            read -p "Enter version number (e.g., 1.0.2): " VERSION
+        fi
+    fi
+
+    if [ ! -f "$ZIP_FILE" ]; then
+        print_error "Zip file not found: $ZIP_FILE"
+        exit 1
+    fi
+
+    print_status "Deploying version $VERSION from zip..."
+    rm -rf "$TEMP_DIR"
+    mkdir -p "$TEMP_DIR"
+    print_status "Extracting zip..."
+    python3 -c "import zipfile; z = zipfile.ZipFile('$ZIP_FILE'); z.extractall('$TEMP_DIR')"
+    print_status "Copying files to trunk..."
+    cp -r "$TEMP_DIR/$PLUGIN_SLUG/"* trunk/
+fi
+
+# Remove Cycle AI files from WordPress.org package (Pro-only feature)
+print_status "Removing Cycle AI files from WordPress.org package..."
+AI_FILES=(
+	"trunk/includes/admin/ajax/handlers/class-cycle-ai-create-full-handler.php"
+	"trunk/includes/admin/ajax/handlers/class-cycle-ai-handler.php"
+	"trunk/includes/services/class-cycle-ai-service.php"
+	"trunk/resources/assets/js/admin/cycle-ai-create-full.js"
+	"trunk/resources/assets/js/wizard/cycle-ai-suggestions.js"
+	"trunk/resources/assets/css/admin/cycle-ai-create-modal.css"
+)
+for f in "${AI_FILES[@]}"; do
+	if [ -f "$SVN_DIR/$f" ]; then
+		rm -f "$SVN_DIR/$f"
+		print_status "  Removed $f"
+	fi
+done
 
 # Handle new files (? status)
 print_status "Adding new files..."

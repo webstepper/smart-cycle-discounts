@@ -976,8 +976,8 @@
 			var currentIndex = this.config.steps.indexOf( currentStep );
 			var progress = ( ( currentIndex + 1 ) / this.config.steps.length ) * 100;
 
-			$( '.wsscd-progress-bar' ).css( 'width', progress + '%' );
-			$( '.wsscd-progress-text' ).text( 'Step ' + ( currentIndex + 1 ) + ' of ' + this.config.steps.length );
+			$( '.wsscd-wizard-navigation' ).css( '--progress', progress + '%' );
+			$( '.wsscd-nav-status__step' ).text( 'Step ' + ( currentIndex + 1 ) + ' of ' + this.config.steps.length );
 		},
 
 		/**

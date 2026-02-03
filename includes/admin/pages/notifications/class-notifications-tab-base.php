@@ -340,7 +340,7 @@ abstract class WSSCD_Notifications_Tab_Base {
 
 		?>
 		<div class="wsscd-toggle-wrapper<?php echo esc_attr( $is_pro_tier && ! $has_access ? ' wsscd-pro-feature-locked' : '' ); ?>">
-			<label class="wsscd-toggle-switch">
+			<label class="wsscd-toggle">
 				<input type="checkbox"
 					id="<?php echo esc_attr( $field_id ); ?>"
 					name="<?php echo esc_attr( $args['label_for'] ); ?>"

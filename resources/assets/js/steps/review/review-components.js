@@ -311,7 +311,7 @@
 			? window.WSSCD.Wizard.data
 			: {};
 
-		// Also get step data from State Manager for new campaigns
+		// Also get step data from State Manager for new campaigns (and from Cycle AI prefilled session)
 		var stepData = {};
 		if ( window.WSSCD && window.WSSCD.Wizard && window.WSSCD.Wizard.StateManager ) {
 			var stateManager = window.WSSCD.Wizard.StateManager.getInstance();
@@ -321,12 +321,21 @@
 			}
 		}
 
+		// Fallback: when landing on Review from Cycle AI Create Full, initial state may come from window
+		if ( ( ! stepData.discounts || ! stepData.products || ! stepData.schedule ) && window.wsscdWizardData && window.wsscdWizardData.currentCampaign ) {
+			var campaign = window.wsscdWizardData.currentCampaign;
+			if ( campaign.basic ) { stepData.basic = campaign.basic; }
+			if ( campaign.products ) { stepData.products = campaign.products; }
+			if ( campaign.discounts ) { stepData.discounts = campaign.discounts; }
+			if ( campaign.schedule ) { stepData.schedule = campaign.schedule; }
+		}
+
 		// Merge step data for fields (stepData takes precedence for current session data)
 		var discountsData = stepData.discounts || {};
 		var productsData = stepData.products || {};
 		var scheduleData = stepData.schedule || {};
 
-		// Discount type
+		// Discount type (and value for percentage/fixed)
 		var discountType = discountsData.discountType || wizardData.discountType || wizardData.discount_type || '--';
 		var discountTypeLabels = {
 			'percentage': 'Percentage Discount',
@@ -335,25 +344,42 @@
 			'tiered': 'Tiered Discount',
 			'spend_threshold': 'Spend Threshold'
 		};
-		$container.find( '[data-config="discount_type"]' ).text(
-			discountTypeLabels[ discountType ] || discountType
-		);
+		var discountTypeText = discountTypeLabels[ discountType ] || discountType;
+		if ( 'percentage' === discountType ) {
+			var pct = discountsData.discountValuePercentage || wizardData.discountValuePercentage || wizardData.discount_value_percentage;
+			if ( pct != null && pct !== '' ) {
+				discountTypeText += ' (' + pct + '%)';
+			}
+		} else if ( 'fixed' === discountType ) {
+			var fixedVal = discountsData.discountValueFixed || wizardData.discountValueFixed || wizardData.discount_value_fixed;
+			if ( fixedVal != null && fixedVal !== '' ) {
+				discountTypeText += ' (' + fixedVal + ')';
+			}
+		}
+		$container.find( '[data-config="discount_type"]' ).text( discountTypeText );
 
 		// Products
 		var productSelectionType = productsData.productSelectionType || wizardData.productSelectionType || wizardData.product_selection_type || 'all_products';
 		var productsLabels = {
 			'all_products': 'All Products',
 			'specific_products': 'Specific Products',
+			'random_products': 'Random Products',
+			'smart_selection': 'Smart Selection',
 			'categories': 'By Category',
 			'tags': 'By Tag'
 		};
 		var productsText = productsLabels[ productSelectionType ] || productSelectionType;
 
-		// Add count if specific products
+		// Add count for specific or random products
 		if ( 'specific_products' === productSelectionType ) {
 			var productIds = productsData.productIds || wizardData.productIds || wizardData.product_ids || [];
 			if ( productIds.length > 0 ) {
 				productsText += ' (' + productIds.length + ')';
+			}
+		} else if ( 'random_products' === productSelectionType ) {
+			var randomCount = productsData.randomCount || wizardData.randomCount || wizardData.random_count;
+			if ( randomCount != null && randomCount !== '' ) {
+				productsText += ' (' + randomCount + ')';
 			}
 		}
 		$container.find( '[data-config="products"]' ).text( productsText );

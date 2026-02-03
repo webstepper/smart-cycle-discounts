@@ -432,13 +432,10 @@
 		 * @param {string} position Position value
 		 */
 		updatePreviewPosition: function( position ) {
-			// Remove all position classes
-			this.cache.previewBadge.removeClass( 'wsscd-position-top-left wsscd-position-top-right wsscd-position-bottom-left wsscd-position-bottom-right' );
+			// Update data attribute for CSS selectors
+			this.cache.previewBadge.attr( 'data-position', position );
 
-			// Add current position class
-			this.cache.previewBadge.addClass( 'wsscd-position-' + position );
-
-			// Apply inline positioning
+			// Apply inline positioning for immediate visual feedback
 			var positionStyles = {
 				'top-left': { top: '10px', left: '10px', right: 'auto', bottom: 'auto' },
 				'top-right': { top: '10px', right: '10px', left: 'auto', bottom: 'auto' },

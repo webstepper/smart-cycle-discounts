@@ -66,6 +66,8 @@ class WSSCD_Ajax_Security {
 		'wsscd_health_check'                   => 'wsscd_admin_nonce',
 		'wsscd_campaign_health'                => 'wsscd_wizard_nonce',
 		'wsscd_calculate_discount_impact'      => 'wsscd_wizard_nonce',
+		'wsscd_cycle_ai_suggest_campaigns'     => 'wsscd_wizard_nonce',
+		'wsscd_cycle_ai_create_full_campaign'  => 'wsscd_admin_nonce',
 
 		// Tools page actions
 		'wsscd_export'                         => 'wsscd_admin_nonce',
@@ -143,6 +145,8 @@ class WSSCD_Ajax_Security {
 		'wsscd_health_check'                   => 'manage_options',
 		'wsscd_campaign_health'                => 'wsscd_manage_campaigns',
 		'wsscd_calculate_discount_impact'      => 'wsscd_manage_campaigns',
+		'wsscd_cycle_ai_suggest_campaigns'     => 'wsscd_manage_campaigns',
+		'wsscd_cycle_ai_create_full_campaign'  => 'wsscd_manage_campaigns',
 
 		// Tools page actions - require admin capabilities
 		'wsscd_export'                         => 'manage_options',
@@ -226,6 +230,8 @@ class WSSCD_Ajax_Security {
 		'wsscd_health_check'                   => 10,
 		'wsscd_campaign_health'                => 10,
 		'wsscd_calculate_discount_impact'      => 20,
+		'wsscd_cycle_ai_suggest_campaigns'     => 10,  // Per-minute; handler also enforces 30/hour
+		'wsscd_cycle_ai_create_full_campaign'  => 5,
 
 		// Validation actions
 		'wsscd_check_campaign_name'            => 10,

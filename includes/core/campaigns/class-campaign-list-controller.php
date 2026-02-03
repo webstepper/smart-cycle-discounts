@@ -407,6 +407,18 @@ class WSSCD_Campaign_List_Controller extends WSSCD_Abstract_Campaign_Controller 
 					<?php echo esc_html__( 'Add New Campaign', 'smart-cycle-discounts' ); ?>
 				</a>
 
+				<?php
+				if ( $this->feature_gate->can_use_feature( 'cycle_ai_campaign_suggestions' ) ) {
+					?>
+					<button type="button"
+							class="page-title-action wsscd-create-with-ai-btn"
+							data-loading-text="<?php echo esc_attr__( 'Creating campaign…', 'smart-cycle-discounts' ); ?>">
+						<?php echo esc_html__( 'Create with AI', 'smart-cycle-discounts' ); ?>
+					</button>
+					<?php
+				}
+				?>
+
 				<?php if ( $has_draft ) : ?>
 					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wsscd-campaigns&action=wizard&intent=continue' ) ); ?>"
 						class="page-title-action">
@@ -457,6 +469,9 @@ class WSSCD_Campaign_List_Controller extends WSSCD_Abstract_Campaign_Controller 
 		if ( $this->check_capability( 'wsscd_create_campaigns' ) ) {
 			$this->render_draft_conflict_modal();
 			$this->render_calculator_import_modal();
+			if ( $this->feature_gate->can_use_feature( 'cycle_ai_campaign_suggestions' ) ) {
+				$this->render_cycle_ai_create_modal();
+			}
 			$this->enqueue_modal_scripts();
 		}
 	}
@@ -527,6 +542,67 @@ class WSSCD_Campaign_List_Controller extends WSSCD_Abstract_Campaign_Controller 
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Render Cycle AI "Create with AI" progress modal (loader + fading sentences).
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	private function render_cycle_ai_create_modal(): void {
+		$phrases = array(
+			__( 'Checking your store…', 'smart-cycle-discounts' ),
+			__( 'Looking at your products and categories…', 'smart-cycle-discounts' ),
+			__( 'Checking existing campaigns…', 'smart-cycle-discounts' ),
+			__( 'Creating a campaign idea for you…', 'smart-cycle-discounts' ),
+			__( 'Almost there…', 'smart-cycle-discounts' ),
+		);
+		// Normalize phrases to single line (translations may contain newlines from .po format).
+		$phrases = array_map( array( $this, 'normalize_cycle_ai_phrase' ), $phrases );
+		?>
+		<!-- Cycle AI Create Full - Progress Modal -->
+		<div id="wsscd-cycle-ai-create-modal" class="wsscd-modal wsscd-modal--cycle-ai-create" aria-hidden="true" aria-labelledby="wsscd-cycle-ai-create-modal-title">
+			<div class="wsscd-modal__overlay"></div>
+			<div class="wsscd-modal__container wsscd-cycle-ai-create-modal__container">
+				<div class="wsscd-cycle-ai-create-modal__content">
+					<div class="wsscd-cycle-ai-create-modal__loader" aria-hidden="true">
+						<span class="wsscd-spinner wsscd-cycle-ai-create-modal__spinner"></span>
+					</div>
+					<h3 id="wsscd-cycle-ai-create-modal-title" class="wsscd-cycle-ai-create-modal__title">
+						<?php echo esc_html__( 'Creating your campaign with AI', 'smart-cycle-discounts' ); ?>
+					</h3>
+					<div class="wsscd-cycle-ai-create-modal__phrase-wrap" data-phrases="<?php echo esc_attr( wp_json_encode( $phrases ) ); ?>">
+						<p class="wsscd-cycle-ai-create-modal__phrase wsscd-cycle-ai-create-modal__phrase--a" aria-live="polite"><?php echo esc_html( $phrases[0] ); ?></p>
+						<p class="wsscd-cycle-ai-create-modal__phrase wsscd-cycle-ai-create-modal__phrase--b" aria-live="polite"></p>
+					</div>
+					<div class="wsscd-cycle-ai-create-modal__footer">
+						<button type="button" class="wsscd-btn wsscd-btn--secondary wsscd-cycle-ai-create-modal__cancel" id="wsscd-cycle-ai-create-cancel">
+							<?php echo esc_html__( 'Cancel', 'smart-cycle-discounts' ); ?>
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Normalize a Cycle AI progress phrase to a single line.
+	 *
+	 * Translations (e.g. from .po files) can contain newlines; this collapses them to spaces.
+	 *
+	 * @since    1.0.0
+	 * @param    string $phrase    Raw phrase string.
+	 * @return   string            Single-line phrase.
+	 */
+	private function normalize_cycle_ai_phrase( $phrase ): string {
+		if ( ! is_string( $phrase ) ) {
+			return '';
+		}
+		$normalized = preg_replace( '/\s*[\r\n]+\s*/', ' ', $phrase );
+		$normalized = preg_replace( '/\s{2,}/', ' ', $normalized );
+		return trim( $normalized );
 	}
 
 	/**

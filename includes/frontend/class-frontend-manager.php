@@ -67,6 +67,15 @@ class WSSCD_Frontend_Manager {
 	private ?WSSCD_Frontend_Asset_Manager $asset_manager = null;
 
 	/**
+	 * Frontend AJAX handler instance.
+	 *
+	 * @since    1.5.2
+	 * @access   private
+	 * @var      WSSCD_Frontend_Ajax_Handler|null    $ajax_handler    Frontend AJAX handler.
+	 */
+	private ?WSSCD_Frontend_Ajax_Handler $ajax_handler = null;
+
+	/**
 	 * Initialize the frontend manager.
 	 *
 	 * @since    1.0.0
@@ -94,7 +103,32 @@ class WSSCD_Frontend_Manager {
 			}
 		}
 
-		// Frontend initialization is now handled by this consolidated manager
+		// Initialize frontend AJAX handler.
+		$this->init_ajax_handler();
+	}
+
+	/**
+	 * Initialize frontend AJAX handler.
+	 *
+	 * Only loads for premium users as it's primarily used for
+	 * spend threshold progress which is a Pro feature.
+	 *
+	 * @since    1.5.2
+	 * @return   void
+	 */
+	private function init_ajax_handler(): void {
+		// Only load for premium users - spend threshold is a Pro feature.
+		if ( ! function_exists( 'wsscd_is_premium' ) || ! wsscd_is_premium() ) {
+			return;
+		}
+
+		// Load AJAX handler class.
+		if ( ! class_exists( 'WSSCD_Frontend_Ajax_Handler' ) ) {
+			require_once WSSCD_PLUGIN_DIR . 'includes/frontend/class-frontend-ajax-handler.php';
+		}
+
+		$this->ajax_handler = new WSSCD_Frontend_Ajax_Handler();
+		$this->ajax_handler->init();
 	}
 
 	/**
