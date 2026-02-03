@@ -194,25 +194,26 @@ class WSSCD_Campaign_Overview_Panel {
 			$timezone = wp_timezone_string();
 		}
 		try {
-			$tz = new DateTimeZone( $timezone );
-		} catch ( Exception $e ) {
+			$tz = new \DateTimeZone( $timezone );
+		} catch ( \Exception $e ) {
 			$timezone = wp_timezone_string();
-			$tz       = new DateTimeZone( $timezone );
+			$tz       = new \DateTimeZone( $timezone );
 		}
 
 		// Convert UTC to site timezone for display (only if values are DateTime instances)
-		if ( $starts_at instanceof DateTime ) {
+		if ( $starts_at instanceof \DateTime ) {
 			$starts_at = clone $starts_at;
 			$starts_at->setTimezone( $tz );
 		} else {
 			$starts_at = null;
 		}
-		if ( $ends_at instanceof DateTime ) {
+		if ( $ends_at instanceof \DateTime ) {
 			$ends_at = clone $ends_at;
 			$ends_at->setTimezone( $tz );
 		} else {
 			$ends_at = null;
 		}
+
 
 		// Calculate duration with improved formatting
 		$duration        = null;

@@ -66,7 +66,7 @@ class WSSCD_Track_Click_Handler extends WSSCD_Abstract_Ajax_Handler {
 	 * @param    array $request    Request data.
 	 * @return   array                Response data.
 	 */
-	protected function handle( array $request ): array {
+	protected function handle( $request ): array {
 		$container = WSSCD_Container::get_instance();
 
 		if ( ! $container->has( 'analytics_collector' ) ) {

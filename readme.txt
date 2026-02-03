@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: discount rules, BOGO, bulk discount, tiered pricing, sale scheduler
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.5.6
+Stable tag: 1.5.61
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -430,6 +430,9 @@ Pro users can configure combination policies for each campaign. Choose whether y
 
 == Changelog ==
 
+= 1.5.61 =
+* Fix: AJAX handler method signatures aligned with abstract base (handle parameter type removed) so PHP no longer throws "Declaration must be compatible" fatal on Track Impression, Track Click, and Test Provider Connection handlers. Prevents critical error when updating or loading admin pages that use these handlers.
+
 = 1.5.6 =
 * Fix: Campaign overview no longer fails with "Failed to load campaign data" after creating a campaign. Schedule section now handles empty or invalid timezone and non-DateTime values safely; overview panel shows actual server error messages.
 * Fix: Tools page (Clear cache, Health check, Generate report) now displays the real error message from the server instead of a generic "Please try again" when a request fails. Error callback reads response.error.message when present.
@@ -630,6 +633,9 @@ Pro users can configure combination policies for each campaign. Choose whether y
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.5.61 =
+Fixes PHP fatal "Declaration must be compatible" on AJAX handlers (track impression, track click, test provider connection). Recommended update to avoid critical error after upgrading.
 
 = 1.5.6 =
 Fixes campaign overview load after create, Tools page errors on live free (clear cache, health check, report), and admin nonce so AJAX works when user has manage_options. Update recommended for free version on live sites.

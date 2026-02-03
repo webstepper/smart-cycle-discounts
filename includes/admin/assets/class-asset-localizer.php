@@ -110,7 +110,14 @@ class WSSCD_Asset_Localizer {
 		// environments (e.g. live free version where Administrator may not have manage_woocommerce
 		// yet, or Shop Manager has manage_woocommerce but not manage_options). Tools and other
 		// AJAX actions then enforce their own capability (e.g. manage_options) server-side.
-		if ( ! is_admin() || ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_woocommerce' ) ) ) {
+		// Defensive: only call current_user_can when available (avoid fatal during edge-case loads).
+		if ( ! is_admin() ) {
+			return;
+		}
+		if ( ! function_exists( 'current_user_can' ) ) {
+			return;
+		}
+		if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_woocommerce' ) ) {
 			return;
 		}
 

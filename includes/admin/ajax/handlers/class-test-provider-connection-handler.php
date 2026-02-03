@@ -68,7 +68,7 @@ class WSSCD_Test_Provider_Connection_Handler extends WSSCD_Abstract_Ajax_Handler
 	 * @param array $request_data Request data.
 	 * @return array Response data.
 	 */
-	public function handle( array $request_data ): array {
+	public function handle( $request_data ): array {
 		try {
 			// Get current settings
 			$settings = get_option( 'wsscd_settings', array() );
