@@ -81,7 +81,15 @@ wp-config.php
 !package.json
 !composer.json
 
-# Temporary documentation (AI/audit reports)
+# Cycle AI (Pro-only: exclude from Git so repo = production free version only)
+includes/admin/ajax/handlers/class-cycle-ai-create-full-handler.php
+includes/admin/ajax/handlers/class-cycle-ai-handler.php
+includes/services/class-cycle-ai-service.php
+resources/assets/js/admin/cycle-ai-create-full.js
+resources/assets/js/wizard/cycle-ai-suggestions.js
+resources/assets/css/admin/cycle-ai-create-modal.css
+
+# Temporary documentation (AI/audit reports and analysis)
 AI-*.md
 AUDIT-*.md
 WORDPRESS-*.md
@@ -96,12 +104,22 @@ WORDPRESS-*.md
 *-SUMMARY.md
 *-AUDIT.md
 *-CHECKLIST.md
+*-ANALYSIS.md
+CLEANUP-REPORT-*.md
 CONFLICT-*.md
 ELEMENTOR-*.md
 INTERACTIVE-*.md
 I18N-*.md
+GEMINI.md
+INNOVATIVE-*.md
+SALE-PRICE-*.md
+meta-trac-*.md
+cursor_initial_greeting.md
 
-# Other temporary folders/files
+# Dev/temp folders and files
+.claude/
+frames/
+frames.txt
 Webstepper.io/
 banner-export/
 SCD-FREE/
@@ -111,3 +129,8 @@ freemius-portal.css
 ineed-*.html
 ineed-*.md
 logo-*.html
+
+# WordPress.org export .po (keep only languages/ in repo)
+/wp-plugins-smart-cycle-discounts-stable-*.po
+/smart-cycle-discounts-de_DE.po
+/smart-cycle-discounts-es_ES.po
