@@ -1,0 +1,152 @@
+/**
+ * Freemius Pricing (Upgrade) page – Smart Cycle Discounts styling.
+ *
+ * Matches the plugin's design system: primary gradient, typography, spacing,
+ * shadows, and border radius. The wrapper and same-origin content are styled;
+ * if the pricing table is in an iframe, only the outer frame is affected.
+ *
+ * @package SmartCycleDiscounts
+ */
+
+/* -------------------------------------------------------------------------
+   Design tokens (plugin alignment)
+   ------------------------------------------------------------------------- */
+#fs_pricing {
+	--wsscd-primary: #2271b1;
+	--wsscd-primary-dark: #135e96;
+	--wsscd-primary-darker: #0a4b78;
+	--wsscd-text: #1d2327;
+	--wsscd-text-muted: #646970;
+	--wsscd-surface: #f6f7f7;
+	--wsscd-white: #fff;
+	--wsscd-radius-md: 6px;
+	--wsscd-radius-lg: 8px;
+	--wsscd-radius-xl: 12px;
+	--wsscd-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+	--wsscd-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+	--wsscd-shadow-primary: 0 2px 8px rgba(34, 113, 177, 0.2);
+}
+
+/* -------------------------------------------------------------------------
+   Page wrapper – typography and layout
+   ------------------------------------------------------------------------- */
+#fs_pricing.fs-section.fs-full-size-wrapper {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	margin: 24px 20px 40px 0;
+	max-width: 1200px;
+	color: var(--wsscd-text);
+	font-size: 14px;
+	line-height: 1.6;
+}
+
+/* -------------------------------------------------------------------------
+   Header strip – gradient bar above pricing (plugin brand)
+   ------------------------------------------------------------------------- */
+#fs_pricing.fs-section::before {
+	content: "";
+	display: block;
+	height: 4px;
+	background: linear-gradient(135deg, var(--wsscd-primary) 0%, var(--wsscd-primary-darker) 100%);
+	border-radius: var(--wsscd-radius-md) var(--wsscd-radius-md) 0 0;
+	margin: -24px -24px 20px -24px;
+	box-shadow: var(--wsscd-shadow-primary);
+}
+
+/* -------------------------------------------------------------------------
+   Pricing container – card-style frame (same element as #fs_pricing)
+   ------------------------------------------------------------------------- */
+#fs_pricing.fs-section {
+	background: var(--wsscd-white);
+	border-radius: var(--wsscd-radius-xl);
+	box-shadow: var(--wsscd-shadow-sm), 0 0 0 1px rgba(0, 0, 0, 0.04);
+	padding: 24px;
+}
+
+#fs_pricing_wrapper {
+	min-height: 420px;
+	border-radius: var(--wsscd-radius-lg);
+	overflow: hidden;
+	background: var(--wsscd-surface);
+}
+
+/* -------------------------------------------------------------------------
+   Iframe (if Freemius loads pricing in iframe) – seamless edge
+   ------------------------------------------------------------------------- */
+#fs_pricing_wrapper iframe {
+	border: none;
+	border-radius: var(--wsscd-radius-lg);
+}
+
+/* -------------------------------------------------------------------------
+   Same-origin content (if pricing is rendered in-page by Freemius JS)
+   ------------------------------------------------------------------------- */
+#fs_pricing_wrapper .fs-pricing-container,
+#fs_pricing_wrapper [class*="pricing"] {
+	font-family: inherit;
+	color: var(--wsscd-text);
+}
+
+#fs_pricing_wrapper a {
+	color: var(--wsscd-primary);
+	text-decoration: none;
+	transition: color 0.2s ease;
+}
+
+#fs_pricing_wrapper a:hover {
+	color: var(--wsscd-primary-dark);
+}
+
+#fs_pricing_wrapper .button-primary,
+#fs_pricing_wrapper button.primary,
+#fs_pricing_wrapper [class*="button"][class*="primary"] {
+	background: linear-gradient(135deg, var(--wsscd-primary) 0%, var(--wsscd-primary-dark) 100%) !important;
+	border: none !important;
+	border-radius: var(--wsscd-radius-md) !important;
+	padding: 10px 20px !important;
+	font-size: 14px !important;
+	font-weight: 600 !important;
+	box-shadow: var(--wsscd-shadow-primary) !important;
+	transition: all 0.2s ease !important;
+}
+
+#fs_pricing_wrapper .button-primary:hover,
+#fs_pricing_wrapper button.primary:hover,
+#fs_pricing_wrapper [class*="button"][class*="primary"]:hover {
+	background: linear-gradient(135deg, var(--wsscd-primary-dark) 0%, var(--wsscd-primary-darker) 100%) !important;
+	box-shadow: 0 4px 12px rgba(34, 113, 177, 0.35) !important;
+	transform: translateY(-1px);
+}
+
+#fs_pricing_wrapper h1,
+#fs_pricing_wrapper h2,
+#fs_pricing_wrapper h3 {
+	color: var(--wsscd-text);
+	font-weight: 600;
+}
+
+#fs_pricing_wrapper h2 {
+	font-size: 1.25rem;
+	margin-bottom: 16px;
+}
+
+/* -------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------- */
+@media screen and (max-width: 782px) {
+	#fs_pricing.fs-section.fs-full-size-wrapper {
+		margin: 16px 10px 32px 0;
+	}
+
+	#fs_pricing.fs-section::before {
+		margin-left: -10px;
+		margin-right: -10px;
+	}
+
+	#fs_pricing .wrap {
+		padding: 16px;
+	}
+
+	#fs_pricing_wrapper {
+		min-height: 360px;
+	}
+}

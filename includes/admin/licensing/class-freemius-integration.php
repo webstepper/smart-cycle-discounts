@@ -201,8 +201,8 @@ class WSSCD_Freemius_Integration {
 		self::$freemius->add_filter( 'after_connect_url', array( __CLASS__, 'filter_after_activation_redirect_url' ) );
 		self::$freemius->add_filter( 'after_skip_url', array( __CLASS__, 'filter_after_activation_redirect_url' ) );
 
-		// Keep plugin menu visible on subsites when network-activated so subdomain admins can access the plugin.
-		self::$freemius->add_filter( 'should_hide_site_admin_settings_on_network_activation_mode', array( __CLASS__, 'filter_keep_menu_on_subsites' ) );
+		// Custom styles for the Pricing (Upgrade) page.
+		self::$freemius->add_filter( 'pricing/css_path', array( __CLASS__, 'filter_pricing_css_path' ) );
 
 		// Style the reminder admin notice.
 		add_action( 'admin_head', array( __CLASS__, 'inject_reminder_notice_styles' ) );
@@ -232,24 +232,70 @@ class WSSCD_Freemius_Integration {
 		// Custom button labels.
 		self::setup_optin_button_labels();
 
+		// Custom full message shown after opt-in when email confirmation is required.
+		self::$freemius->add_filter( 'pending_activation_message', array( __CLASS__, 'filter_pending_activation_message' ) );
+
+		// Custom message when license key is required (e.g. first-time Pro install).
+		self::$freemius->add_filter( 'connect-message_on-premium', array( __CLASS__, 'filter_connect_message_on_premium' ), 10, 3 );
+
+		// Custom text for the deactivation modal (before feedback form).
+		self::$freemius->add_filter( 'uninstall_confirmation_message', array( __CLASS__, 'filter_uninstall_confirmation_message' ) );
+
 		// Inject custom styling.
 		self::$freemius->add_action( 'connect/before', array( __CLASS__, 'inject_optin_styles' ) );
 	}
 
 	/**
-	 * Keep plugin menu visible on subsites when network-activated.
+	 * Custom full message shown when email confirmation is required after opt-in.
 	 *
-	 * Freemius normally hides the plugin menu on subsites when network-activated
-	 * and the connection is not delegated, which causes "Sorry, you are not allowed
-	 * to access this page" on every plugin page. Returning false keeps the menu so
-	 * subdomain admins can use the plugin.
+	 * Replaces the default Freemius text with one clear, complete message so users
+	 * know exactly what to do (check inbox, click the button to complete opt-in).
 	 *
 	 * @since    1.0.0
-	 * @param    bool $should_hide    Whether to hide site admin settings on subsites.
-	 * @return   bool                False to always show the menu on subsites.
+	 * @param    string $message    Default pending activation message from Freemius.
+	 * @return   string             Custom full message.
 	 */
-	public static function filter_keep_menu_on_subsites( $should_hide ) {
-		return false;
+	public static function filter_pending_activation_message( $message ) {
+		$current_user = wp_get_current_user();
+		$first_name   = ! empty( $current_user->user_firstname ) ? $current_user->user_firstname : $current_user->display_name;
+		$email        = $current_user->user_email;
+		$plugin_name  = self::$freemius->get_plugin_name();
+
+		return sprintf(
+			/* translators: %1$s: user first name (HTML), %2$s: plugin name (HTML), %3$s: user email (HTML) */
+			__( 'Thanks %1$s! We\'ve sent a confirmation email to the address we have on file. Please check the inbox for %3$s and click the button inside that email to complete your opt-in and start using %2$s. If you don\'t see it in a few minutes, check your spam or junk folder.', 'smart-cycle-discounts' ),
+			'<strong>' . esc_html( $first_name ) . '</strong>',
+			'<strong>' . esc_html( $plugin_name ) . '</strong>',
+			'<strong>' . esc_html( $email ) . '</strong>'
+		);
+	}
+
+	/**
+	 * Custom message when license key is required (e.g. first-time Pro or license activation screen).
+	 *
+	 * @since    1.0.0
+	 * @param    string $message         Default message.
+	 * @param    string $user_first_name User first name.
+	 * @param    string $product_title   Plugin name.
+	 * @return   string                  Custom message.
+	 */
+	public static function filter_connect_message_on_premium( $message, $user_first_name, $product_title ) {
+		return sprintf(
+			/* translators: %1$s: plugin name (bold), %2$s: user first name */
+			__( 'Welcome to %1$s! Enter your license key below to unlock Pro features and receive updates.', 'smart-cycle-discounts' ),
+			'<strong>' . esc_html( $product_title ) . '</strong>'
+		);
+	}
+
+	/**
+	 * Custom text for the deactivation modal (shown before the feedback form when user clicks Deactivate).
+	 *
+	 * @since    1.0.0
+	 * @param    string $message Default confirmation message (empty by default).
+	 * @return   string          Short, on-brand message.
+	 */
+	public static function filter_uninstall_confirmation_message( $message ) {
+		return __( 'Deactivating will turn off Smart Cycle Discounts. Your campaigns and settings stay in the database — you can reactivate anytime. To remove everything, uninstall the plugin from the Plugins screen.', 'smart-cycle-discounts' );
 	}
 
 	/**
@@ -266,13 +312,33 @@ class WSSCD_Freemius_Integration {
 	}
 
 	/**
-	 * Get custom plugin icon URL.
+	 * Return path to custom CSS for the Freemius Pricing (Upgrade) page.
+	 *
+	 * Freemius enqueues this stylesheet only on the pricing page. Use it to match
+	 * plugin branding (colors, typography, spacing). The wrapper #fs_pricing is
+	 * in the WordPress admin; if pricing content is loaded in an iframe, only
+	 * the wrapper and any same-origin elements can be styled.
+	 *
+	 * @since    1.0.0
+	 * @param    string|null $path Default null (no custom CSS).
+	 * @return   string|null      Absolute path to CSS file, or null to use no custom CSS.
+	 */
+	public static function filter_pricing_css_path( $path ) {
+		$custom_css = WSSCD_PLUGIN_DIR . '/assets/css/admin/freemius-pricing.css';
+		return file_exists( $custom_css ) ? $custom_css : null;
+	}
+
+	/**
+	 * Get custom plugin icon path for Freemius opt-in screen.
+	 *
+	 * Freemius expects a local filesystem path (not a URL). It passes this to
+	 * fs_asset_url() to build the image URL. Returning a remote URL breaks the icon.
 	 *
 	 * @since    1.2.1
-	 * @return   string    URL to custom icon.
+	 * @return   string    Local path to plugin icon (e.g. /path/to/plugin/assets/img/icon.svg).
 	 */
 	public static function custom_optin_icon() {
-		return 'https://webstepper.io/wp-content/uploads/2025/12/smart-cycle-discounts.svg';
+		return WSSCD_PLUGIN_DIR . '/assets/img/icon.svg';
 	}
 
 	/**
@@ -461,7 +527,11 @@ class WSSCD_Freemius_Integration {
 	}
 
 	/**
-	 * Inject custom styles for Freemius reminder admin notices.
+	 * Inject styles so all Freemius admin notices match the plugin's native notice look.
+	 *
+	 * Uses the same structure and type-based colors as WordPress core notices
+	 * (notice-success, notice-warning, notice-error, notice-info) so Freemius
+	 * messages feel like part of the plugin.
 	 *
 	 * @since    1.2.1
 	 * @return   void
@@ -469,87 +539,92 @@ class WSSCD_Freemius_Integration {
 	public static function inject_reminder_notice_styles() {
 		?>
 		<style>
-			/* Modern styling for Freemius reminder notices */
+			/* Base: match WordPress .notice structure for all Freemius notices */
 			.fs-notice.fs-slug-smart-cycle-discounts,
 			.notice[data-plugin="smart-cycle-discounts"] {
 				border: none !important;
-				border-left: 4px solid #2271b1 !important;
-				border-radius: 0 8px 8px 0 !important;
-				background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
-				box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
-				padding: 16px 20px !important;
-				margin: 20px 20px 20px 0 !important;
+				border-left-width: 4px !important;
+				border-left-style: solid !important;
+				background: #fff !important;
+				padding: 1px 12px !important;
+				margin: 15px 15px 15px 0 !important;
+				box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04) !important;
+			}
+			/* Success / updated (green, like notice-success) */
+			.fs-notice.fs-slug-smart-cycle-discounts.updated.success,
+			.fs-notice.fs-slug-smart-cycle-discounts.success,
+			.notice[data-plugin="smart-cycle-discounts"].updated {
+				border-left-color: #00a32a !important;
+			}
+			/* Error (red, like notice-error) */
+			.fs-notice.fs-slug-smart-cycle-discounts.error,
+			.notice[data-plugin="smart-cycle-discounts"].error {
+				border-left-color: #d63638 !important;
+			}
+			/* Warning (yellow, like notice-warning) */
+			.fs-notice.fs-slug-smart-cycle-discounts.notice-warning,
+			.fs-notice.fs-slug-smart-cycle-discounts.warn,
+			.notice[data-plugin="smart-cycle-discounts"].notice-warning {
+				border-left-color: #dba617 !important;
+			}
+			/* Promotion / info (blue, like notice-info) */
+			.fs-notice.fs-slug-smart-cycle-discounts.promotion,
+			.fs-notice.fs-slug-smart-cycle-discounts.update {
+				border-left-color: #2271b1 !important;
+			}
+			/* Default when no type (e.g. opt-in reminder) */
+			.fs-notice.fs-slug-smart-cycle-discounts:not(.success):not(.error):not(.notice-warning):not(.warn):not(.promotion),
+			.notice[data-plugin="smart-cycle-discounts"]:not(.updated):not(.error):not(.notice-warning) {
+				border-left-color: #72aee6 !important;
 			}
 			.fs-notice.fs-slug-smart-cycle-discounts .fs-notice-body,
 			.notice[data-plugin="smart-cycle-discounts"] .fs-notice-body {
 				display: flex !important;
 				align-items: center !important;
-				gap: 16px !important;
+				gap: 12px !important;
+				padding: 11px 0 !important;
 			}
 			.fs-notice.fs-slug-smart-cycle-discounts .fs-notice-body p,
+			.fs-notice.fs-slug-smart-cycle-discounts .fs-notice-body,
 			.notice[data-plugin="smart-cycle-discounts"] p {
-				font-size: 14px !important;
-				line-height: 1.6 !important;
+				font-size: 13px !important;
+				line-height: 1.5 !important;
 				color: #1d2327 !important;
 				margin: 0 !important;
 			}
 			.fs-notice.fs-slug-smart-cycle-discounts .fs-notice-body .button,
 			.notice[data-plugin="smart-cycle-discounts"] .button {
-				border-radius: 6px !important;
-				padding: 8px 16px !important;
+				padding: 6px 12px !important;
 				font-size: 13px !important;
-				font-weight: 600 !important;
-				transition: all 0.2s ease !important;
 				text-decoration: none !important;
-				margin-left: 8px !important;
+				margin-left: 4px !important;
 			}
 			.fs-notice.fs-slug-smart-cycle-discounts .fs-notice-body .button-primary,
 			.notice[data-plugin="smart-cycle-discounts"] .button-primary {
-				background: linear-gradient(135deg, #2271b1 0%, #135e96 100%) !important;
-				border: none !important;
+				background: #2271b1 !important;
+				border-color: #2271b1 !important;
 				color: #fff !important;
-				box-shadow: 0 2px 6px rgba(34, 113, 177, 0.25) !important;
 			}
 			.fs-notice.fs-slug-smart-cycle-discounts .fs-notice-body .button-primary:hover,
 			.notice[data-plugin="smart-cycle-discounts"] .button-primary:hover {
-				background: linear-gradient(135deg, #135e96 0%, #0a4b78 100%) !important;
-				box-shadow: 0 4px 10px rgba(34, 113, 177, 0.35) !important;
-				transform: translateY(-1px) !important;
+				background: #135e96 !important;
+				border-color: #135e96 !important;
+				color: #fff !important;
 			}
-			.fs-notice.fs-slug-smart-cycle-discounts .fs-notice-body .button:not(.button-primary),
-			.notice[data-plugin="smart-cycle-discounts"] .button:not(.button-primary) {
-				background: #f0f0f1 !important;
-				border: 1px solid #c3c4c7 !important;
-				color: #50575e !important;
-			}
-			.fs-notice.fs-slug-smart-cycle-discounts .fs-notice-body .button:not(.button-primary):hover,
-			.notice[data-plugin="smart-cycle-discounts"] .button:not(.button-primary):hover {
-				background: #e0e0e1 !important;
-				border-color: #8c8f94 !important;
-			}
-			/* Plugin icon in notice */
 			.fs-notice.fs-slug-smart-cycle-discounts .fs-plugin-icon,
 			.notice[data-plugin="smart-cycle-discounts"] .fs-plugin-icon {
-				width: 40px !important;
-				height: 40px !important;
-				border-radius: 8px !important;
-				box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+				width: 32px !important;
+				height: 32px !important;
+				border-radius: 4px !important;
 			}
-			/* Dismiss button */
 			.fs-notice.fs-slug-smart-cycle-discounts .notice-dismiss,
 			.notice[data-plugin="smart-cycle-discounts"] .notice-dismiss {
 				top: 50% !important;
 				transform: translateY(-50%) !important;
-				padding: 10px !important;
 			}
-			.fs-notice.fs-slug-smart-cycle-discounts .notice-dismiss:before,
-			.notice[data-plugin="smart-cycle-discounts"] .notice-dismiss:before {
+			.fs-notice.fs-slug-smart-cycle-discounts .fs-close,
+			.notice[data-plugin="smart-cycle-discounts"] .fs-close {
 				color: #646970 !important;
-				transition: color 0.2s ease !important;
-			}
-			.fs-notice.fs-slug-smart-cycle-discounts .notice-dismiss:hover:before,
-			.notice[data-plugin="smart-cycle-discounts"] .notice-dismiss:hover:before {
-				color: #d63638 !important;
 			}
 		</style>
 		<?php
