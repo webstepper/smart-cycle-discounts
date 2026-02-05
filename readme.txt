@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: discount rules, BOGO, bulk discount, tiered pricing, sale scheduler
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.5.64
+Stable tag: 1.5.65
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -430,6 +430,13 @@ Pro users can configure combination policies for each campaign. Choose whether y
 
 == Changelog ==
 
+= 1.5.65 =
+* Improvement: New in-plugin Help & Support page with card-based layout that links directly to documentation, support center, and campaign ideas so users can get help without leaving the admin.
+* Improvement: Floating help button added to all Smart Cycle Discounts admin screens (excluding the campaign wizard) for one-click access to the Help & Support hub.
+* Improvement: Contextual help links added to the dashboard empty state and Tools page, plus a smart wizard sidebar docs footer that deep-links directly to per-topic documentation instead of a second generic Help Center link.
+* Improvement: Wizard sidebar footer restyled to match the plugin’s card-based admin design and keep the “Open documentation for this topic” link visually prominent but unobtrusive.
+* Fix: Admin notification documentation updated to use the correct `WSSCD.Shared.NotificationService` namespace and `wsscd:notify` event name, eliminating confusion between docs and implementation.
+
 = 1.5.64 =
 * Bug fixes.
 
@@ -642,6 +649,9 @@ Pro users can configure combination policies for each campaign. Choose whether y
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.5.65 =
+Improves onboarding with an in-plugin Help & Support hub, floating help button, and contextual help links, plus notification docs alignment. Recommended update for all sites.
 
 = 1.5.64 =
 Bug fixes. Recommended update.

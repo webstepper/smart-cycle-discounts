@@ -193,6 +193,15 @@ class WSSCD_Menu_Manager {
 				'callback'    => array( $this, 'render_tools_page' ),
 				'type'        => 'submenu',
 			),
+			'help'          => array(
+				'parent_slug' => 'smart-cycle-discounts',
+				'page_title'  => 'Help & Support',
+				'menu_title'  => 'Help',
+				'capability'  => 'manage_options',
+				'menu_slug'   => 'wsscd-help',
+				'callback'    => array( $this, 'render_help_page' ),
+				'type'        => 'submenu',
+			),
 			'license_fix'   => array(
 				'parent_slug' => 'smart-cycle-discounts',
 				'page_title'  => '🔧 License Fix',
@@ -245,6 +254,10 @@ class WSSCD_Menu_Manager {
 			'tools'         => array(
 				'page_title' => __( 'Tools & Maintenance', 'smart-cycle-discounts' ),
 				'menu_title' => __( 'Tools', 'smart-cycle-discounts' ),
+			),
+			'help'          => array(
+				'page_title' => __( 'Help & Support', 'smart-cycle-discounts' ),
+				'menu_title' => __( 'Help', 'smart-cycle-discounts' ),
 			),
 		);
 
@@ -306,7 +319,7 @@ class WSSCD_Menu_Manager {
 	private function add_submenu_pages(): void {
 		$parent_slug = 'smart-cycle-discounts';
 
-		$ordered_keys = array( 'dashboard', 'campaigns', 'analytics', 'notifications', 'settings', 'tools' );
+		$ordered_keys = array( 'dashboard', 'campaigns', 'analytics', 'notifications', 'settings', 'tools', 'help' );
 
 		foreach ( $ordered_keys as $key ) {
 			if ( ! isset( $this->menu_pages[ $key ] ) || $this->menu_pages[ $key ]['type'] !== 'submenu' ) {
@@ -596,6 +609,136 @@ class WSSCD_Menu_Manager {
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML structure.
 		echo '</div>';
+
+		$this->render_page_footer();
+	}
+
+	/**
+	 * Render help & support page.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	public function render_help_page(): void {
+		$this->render_page_header( __( 'Help & Support', 'smart-cycle-discounts' ) );
+
+		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Static HTML structure with escaped dynamic content.
+		echo '<div class="wrap wsscd-help-page wsscd-main-dashboard">';
+
+		echo '<div class="wsscd-dashboard-section wsscd-help-section">';
+		echo '<div class="wsscd-section-header">';
+		echo '<div class="wsscd-section-header-content">';
+		echo '<div class="wsscd-section-header-text">';
+		echo '<h2>' . esc_html__( 'How can we help?', 'smart-cycle-discounts' ) . '</h2>';
+		echo '</div>';
+		echo '</div>';
+		echo '<p class="wsscd-section-header-description">';
+		echo esc_html__( 'Get answers fast with docs, direct support, and real campaign ideas tailored to how you sell.', 'smart-cycle-discounts' );
+		echo '</p>';
+		echo '</div>';
+
+		echo '<div class="wsscd-section-content">';
+		echo '<div class="wsscd-help-grid wsscd-campaigns-grid">';
+
+		// Documentation card.
+		echo '<div class="wsscd-card wsscd-help-card">';
+		echo '<div class="wsscd-card__header">';
+		echo '<h2 class="wsscd-card__title">';
+		if ( class_exists( 'WSSCD_Icon_Helper' ) ) {
+			WSSCD_Icon_Helper::render( 'book', array( 'size' => 18 ) );
+		}
+		echo esc_html__( 'Documentation & Guides', 'smart-cycle-discounts' );
+		echo '</h2>';
+		echo '</div>';
+		echo '<div class="wsscd-card__content">';
+		echo '<p>';
+		echo esc_html__( 'Step-by-step guides, FAQs, and best-practice tutorials to help you set up and optimize your discount campaigns.', 'smart-cycle-discounts' );
+		echo '</p>';
+		if ( class_exists( 'WSSCD_Button_Helper' ) ) {
+			WSSCD_Button_Helper::primary(
+				__( 'View Documentation', 'smart-cycle-discounts' ),
+				array(
+					'href' => esc_url( 'https://webstepper.io/docs/' ),
+					'icon' => 'external',
+					'attributes' => array(
+						'target' => '_blank',
+						'rel'    => 'noopener noreferrer',
+					),
+				)
+			);
+		} else {
+			echo '<p><a href="' . esc_url( 'https://webstepper.io/docs/' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'View Documentation', 'smart-cycle-discounts' ) . '</a></p>';
+		}
+		echo '</div>';
+		echo '</div>';
+
+		// Support Center card.
+		echo '<div class="wsscd-card wsscd-help-card">';
+		echo '<div class="wsscd-card__header">';
+		echo '<h2 class="wsscd-card__title">';
+		if ( class_exists( 'WSSCD_Icon_Helper' ) ) {
+			WSSCD_Icon_Helper::render( 'support', array( 'size' => 18 ) );
+		}
+		echo esc_html__( 'Customer Support', 'smart-cycle-discounts' );
+		echo '</h2>';
+		echo '</div>';
+		echo '<div class="wsscd-card__content">';
+		echo '<p>';
+		echo esc_html__( 'Licensed customers get priority email support from the people who built the plugin. We aim to respond within 24 hours.', 'smart-cycle-discounts' );
+		echo '</p>';
+		if ( class_exists( 'WSSCD_Button_Helper' ) ) {
+			WSSCD_Button_Helper::primary(
+				__( 'Open Support Center', 'smart-cycle-discounts' ),
+				array(
+					'href' => esc_url( 'https://webstepper.io/contact-us/' ),
+					'icon' => 'email',
+					'attributes' => array(
+						'target' => '_blank',
+						'rel'    => 'noopener noreferrer',
+					),
+				)
+			);
+		} else {
+			echo '<p><a href="' . esc_url( 'https://webstepper.io/contact-us/' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Open Support Center', 'smart-cycle-discounts' ) . '</a></p>';
+		}
+		echo '</div>';
+		echo '</div>';
+
+		// Recipes / inspiration card.
+		echo '<div class="wsscd-card wsscd-help-card">';
+		echo '<div class="wsscd-card__header">';
+		echo '<h2 class="wsscd-card__title">';
+		if ( class_exists( 'WSSCD_Icon_Helper' ) ) {
+			WSSCD_Icon_Helper::render( 'lightbulb', array( 'size' => 18 ) );
+		}
+		echo esc_html__( 'Campaign Ideas & Recipes', 'smart-cycle-discounts' );
+		echo '</h2>';
+		echo '</div>';
+		echo '<div class="wsscd-card__content">';
+		echo '<p>';
+		echo esc_html__( 'Not sure where to start? Explore proven discount campaign ideas to increase average order value and repeat purchases.', 'smart-cycle-discounts' );
+		echo '</p>';
+		if ( class_exists( 'WSSCD_Button_Helper' ) ) {
+			WSSCD_Button_Helper::secondary(
+				__( 'Browse Campaign Ideas', 'smart-cycle-discounts' ),
+				array(
+					'href' => esc_url( 'https://webstepper.io/blog/' ),
+					'icon' => 'lightbulb',
+					'attributes' => array(
+						'target' => '_blank',
+						'rel'    => 'noopener noreferrer',
+					),
+				)
+			);
+		} else {
+			echo '<p><a href="' . esc_url( 'https://webstepper.io/blog/' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Browse Campaign Ideas', 'smart-cycle-discounts' ) . '</a></p>';
+		}
+		echo '</div>';
+		echo '</div>';
+
+		echo '</div>'; // .wsscd-help-grid
+		echo '</div>'; // .wrap
+		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 
 		$this->render_page_footer();
 	}

@@ -160,6 +160,57 @@
 }
 
 /* ==========================================================================
+   5b. Sidebar Footer (Documentation link)
+   ========================================================================== */
+
+.wsscd-sidebar-footer {
+	flex-shrink: 0;
+	padding: var(--wsscd-spacing-sm-large) var(--wsscd-padding-base);
+	border-top: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+	background: var(--wsscd-color-surface);
+}
+
+.wsscd-sidebar-footer__link {
+	display: flex;
+	align-items: center;
+	gap: var(--wsscd-spacing-sm);
+	padding: var(--wsscd-spacing-sm) var(--wsscd-spacing-sm-large);
+	border-radius: var(--wsscd-radius-md);
+	background: var(--wsscd-color-white);
+	border: var(--wsscd-border-width) solid var(--wsscd-color-border-light);
+	color: var(--wsscd-color-primary);
+	font-size: var(--wsscd-font-size-small);
+	font-weight: var(--wsscd-font-weight-medium);
+	text-decoration: none;
+	transition: background-color var(--wsscd-transition-fast),
+	            border-color var(--wsscd-transition-fast),
+	            color var(--wsscd-transition-fast),
+	            box-shadow var(--wsscd-transition-fast);
+}
+
+.wsscd-sidebar-footer__link:hover {
+	background: var(--wsscd-color-primary-light-bg);
+	border-color: var(--wsscd-color-primary);
+	color: var(--wsscd-color-primary-dark);
+	box-shadow: var(--wsscd-shadow-sm);
+}
+
+.wsscd-sidebar-footer__link:focus {
+	outline: none;
+	box-shadow: 0 0 0 2px var(--wsscd-color-primary-alpha-30);
+}
+
+.wsscd-sidebar-footer__icon {
+	flex-shrink: 0;
+	color: var(--wsscd-color-primary);
+}
+
+.wsscd-sidebar-footer__text {
+	flex: 1;
+	line-height: var(--wsscd-line-height-tight);
+}
+
+/* ==========================================================================
    6. Topic Header
    ========================================================================== */
 

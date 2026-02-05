@@ -81,6 +81,14 @@ class WSSCD_Tools_Page {
 		echo '<div class="wrap wsscd-tools-page">';
 		echo '<h1>' . esc_html__( 'Tools & Maintenance', 'smart-cycle-discounts' ) . '</h1>';
 
+		echo '<p class="description">';
+		printf(
+			/* translators: %s: Help Center URL. */
+			esc_html__( 'Need help using these tools? Visit the %s.', 'smart-cycle-discounts' ),
+			'<a href="' . esc_url( 'https://webstepper.io/contact-us/' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Help Center', 'smart-cycle-discounts' ) . '</a>'
+		);
+		echo '</p>';
+
 		// Show admin notices
 		settings_errors( 'wsscd_tools_messages' );
 

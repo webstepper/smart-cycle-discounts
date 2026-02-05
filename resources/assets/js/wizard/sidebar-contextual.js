@@ -56,6 +56,92 @@
 		currentTopic: '',
 
 		/**
+		 * Base documentation URL (fallback when no specific topic URL is defined)
+		 */
+		docsBaseUrl: 'https://webstepper.io/docs/',
+
+		/**
+		 * Mapping of help topics to documentation URLs.
+		 * These can be refined over time or overridden via localized config.
+		 *
+		 * IMPORTANT: Every topic ID used in the wizard (cards + fields)
+		 * has a corresponding entry here so the sidebar link always
+		 * deep-links to a specific article, and falls back to docsBaseUrl
+		 * only if a new topic is introduced without a mapping.
+		 */
+		topicDocsMap: {
+			// Getting started / wizard overview
+			'wizard-overview': 'https://webstepper.io/docs/campaign-wizard-overview/',
+
+			// Step 1 – Basic Information (fields + cards)
+			'campaign-name': 'https://webstepper.io/docs/step-1-basic-information/',
+			'campaign-description': 'https://webstepper.io/docs/step-1-basic-information/',
+			'priority': 'https://webstepper.io/docs/campaign-priority-system/',
+			'card-campaign-details': 'https://webstepper.io/docs/step-1-basic-information/',
+			'card-campaign-priority': 'https://webstepper.io/docs/campaign-priority-system/',
+
+			// Step 2 – Product Selection (fields + cards)
+			'product-selection-type': 'https://webstepper.io/docs/step-2-product-selection/',
+			'category-ids': 'https://webstepper.io/docs/step-2-product-selection/',
+			'product-ids': 'https://webstepper.io/docs/product-search-tips/',
+			'option-product-all': 'https://webstepper.io/docs/all-products-mode/',
+			'option-product-random': 'https://webstepper.io/docs/random-products-mode/',
+			'random-count': 'https://webstepper.io/docs/random-products-mode/',
+			'option-product-specific': 'https://webstepper.io/docs/specific-products-mode/',
+			'card-category-selection': 'https://webstepper.io/docs/step-2-product-selection/',
+			'card-product-selection': 'https://webstepper.io/docs/step-2-product-selection/',
+			'card-advanced-filters': 'https://webstepper.io/docs/product-search-tips/',
+
+			// Step 3 – Discount Configuration / Discount Types (fields + cards)
+			'discount-type': 'https://webstepper.io/docs/step-3-discount-configuration/',
+			'discount-value': 'https://webstepper.io/docs/step-3-discount-configuration/',
+			'option-discount-percentage': 'https://webstepper.io/docs/percentage-discounts/',
+			'option-discount-fixed': 'https://webstepper.io/docs/fixed-amount-discount/',
+			'option-discount-tiered': 'https://webstepper.io/docs/tiered-volume-pricing/',
+			'option-discount-bogo': 'https://webstepper.io/docs/buy-one-get-one-bogo/',
+			'option-discount-spend-threshold': 'https://webstepper.io/docs/spend-threshold-discounts/',
+			'card-discount-type': 'https://webstepper.io/docs/step-3-discount-configuration/',
+			'card-discount-value': 'https://webstepper.io/docs/step-3-discount-configuration/',
+			'card-discount-rules': 'https://webstepper.io/docs/step-3-discount-configuration/',
+
+			// Free Shipping add-on (fields + card)
+			'free-shipping-toggle': 'https://webstepper.io/docs/step-3-discount-configuration/',
+			'free-shipping-methods': 'https://webstepper.io/docs/step-3-discount-configuration/',
+			'option-free-shipping-all': 'https://webstepper.io/docs/step-3-discount-configuration/',
+			'option-free-shipping-selected': 'https://webstepper.io/docs/step-3-discount-configuration/',
+			'free-shipping-selection': 'https://webstepper.io/docs/step-3-discount-configuration/',
+			'card-free-shipping': 'https://webstepper.io/docs/step-3-discount-configuration/',
+
+			// User Role Targeting (fields + card)
+			'user-roles-mode': 'https://webstepper.io/docs/advanced-settings/',
+			'option-user-roles-all': 'https://webstepper.io/docs/advanced-settings/',
+			'option-user-roles-include': 'https://webstepper.io/docs/advanced-settings/',
+			'option-user-roles-exclude': 'https://webstepper.io/docs/advanced-settings/',
+			'user-roles-selection': 'https://webstepper.io/docs/advanced-settings/',
+			'card-user-roles': 'https://webstepper.io/docs/advanced-settings/',
+
+			// Badge display UI
+			'card-badge-display': 'https://webstepper.io/docs/display-settings/',
+
+			// Step 4 – Scheduling (fields + cards)
+			'start-date': 'https://webstepper.io/docs/setting-campaign-dates/',
+			'end-date': 'https://webstepper.io/docs/setting-campaign-dates/',
+			'recurring-type': 'https://webstepper.io/docs/recurring-campaigns/',
+			'card-duration-presets': 'https://webstepper.io/docs/step-4-campaign-scheduling/',
+			'card-schedule-config': 'https://webstepper.io/docs/step-4-campaign-scheduling/',
+			'card-recurring-schedule': 'https://webstepper.io/docs/recurring-campaigns/',
+
+			// Step 5 – Review, Health & Launch
+			'card-health-score': 'https://webstepper.io/docs/campaign-health-scoring/',
+			'card-health-factors': 'https://webstepper.io/docs/campaign-health-scoring/',
+			'card-recommendations': 'https://webstepper.io/docs/campaign-health-scoring/',
+			'card-conflicts': 'https://webstepper.io/docs/discount-stacking-and-priority/',
+			'card-impact-analysis': 'https://webstepper.io/docs/analytics-dashboard-overview/',
+			'card-config-summary': 'https://webstepper.io/docs/step-5-review-launch/',
+			'card-launch-options': 'https://webstepper.io/docs/step-5-review-launch/'
+		},
+
+		/**
 		 * Help content cache
 		 */
 		helpCache: {},
@@ -411,6 +497,9 @@
 
 			this.currentTopic = topicId;
 
+			// Update documentation link for this topic
+			this.updateDocsLink(topicId);
+
 			// Update breadcrumb
 			this.updateBreadcrumb(topicName || this.formatTopicName(topicId));
 
@@ -697,6 +786,27 @@
 				'</div>';
 
 			this.renderHelpContent(errorHtml);
+			this.updateDocsLink(''); // Fallback to base docs on error
+		},
+
+		/**
+		 * Update the documentation link based on the current topic.
+		 *
+		 * @param {string} topicId Topic identifier
+		 */
+		updateDocsLink: function(topicId) {
+			var $link = $('#wsscd-sidebar-docs-link');
+
+			if ( ! $link.length ) {
+				return;
+			}
+
+			var url = this.docsBaseUrl;
+			if ( topicId && this.topicDocsMap[topicId] ) {
+				url = this.topicDocsMap[topicId];
+			}
+
+			$link.attr('href', url);
 		}
 	};
 

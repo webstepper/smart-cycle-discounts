@@ -520,7 +520,7 @@ class WSSCD_Campaign_List_Controller extends WSSCD_Abstract_Campaign_Controller 
 						printf(
 							/* translators: %s: link to calculator */
 							esc_html__( "Don't have a code? %s", 'smart-cycle-discounts' ),
-							'<a href="https://webstepper.io/profit-calculator/" target="_blank" rel="noopener">' .
+							'<a href="https://webstepper.io/woocommerce-discount-calculator/" target="_blank" rel="noopener">' .
 							esc_html__( 'Try our Profit Calculator', 'smart-cycle-discounts' ) .
 							' <span class="dashicons dashicons-external" style="font-size: 14px; text-decoration: none;"></span></a>'
 						);

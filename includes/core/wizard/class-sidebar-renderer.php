@@ -443,6 +443,18 @@ class WSSCD_Sidebar_Renderer {
 				</div>
 			</div>
 
+			<!-- Sidebar footer: documentation link (URL updated by JS per topic) -->
+			<footer class="wsscd-sidebar-footer">
+				<a href="https://webstepper.io/docs/"
+					target="_blank"
+					rel="noopener noreferrer"
+					id="wsscd-sidebar-docs-link"
+					class="wsscd-sidebar-footer__link">
+					<?php WSSCD_Icon_Helper::render( 'book', array( 'size' => 16, 'class' => 'wsscd-sidebar-footer__icon' ) ); ?>
+					<span class="wsscd-sidebar-footer__text"><?php esc_html_e( 'Open documentation for this topic', 'smart-cycle-discounts' ); ?></span>
+				</a>
+			</footer>
+
 			<!-- PERFORMANCE: Pre-render most common topics for instant display (no AJAX) -->
 			<div id="wsscd-prerendered-topics" style="display: none;">
 				<?php

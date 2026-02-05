@@ -128,6 +128,7 @@ class WSSCD_Style_Registry {
 					'wsscd-settings',
 					'wsscd-tools',
 					'wsscd-dashboard',
+					'wsscd-help',
 				),
 				'media'    => 'all',
 				'priority' => 1,
@@ -147,6 +148,7 @@ class WSSCD_Style_Registry {
 					'wsscd-settings',
 					'wsscd-tools',
 					'wsscd-dashboard',
+					'wsscd-help',
 				),
 				'media'    => 'all',
 				'priority' => 2,
@@ -166,6 +168,7 @@ class WSSCD_Style_Registry {
 					'wsscd-settings',
 					'wsscd-tools',
 					'wsscd-dashboard',
+					'wsscd-help',
 				),
 				'media'    => 'all',
 				'priority' => 3,
@@ -185,6 +188,7 @@ class WSSCD_Style_Registry {
 					'wsscd-settings',
 					'wsscd-tools',
 					'wsscd-dashboard',
+					'wsscd-help',
 				),
 				'media'    => 'all',
 				'priority' => 4,
@@ -204,6 +208,7 @@ class WSSCD_Style_Registry {
 					'wsscd-settings',
 					'wsscd-tools',
 					'wsscd-dashboard',
+					'wsscd-help',
 				),
 				'media'    => 'all',
 				'priority' => 4,
@@ -223,6 +228,7 @@ class WSSCD_Style_Registry {
 					'wsscd-settings',
 					'wsscd-tools',
 					'wsscd-dashboard',
+					'wsscd-help',
 				),
 				'media'    => 'all',
 				'priority' => 5,
@@ -234,7 +240,7 @@ class WSSCD_Style_Registry {
 			array(
 				'src'      => 'resources/assets/css/shared/_forms.css',
 				'deps'     => array( 'wsscd-variables', 'wsscd-theme-colors' ),
-				'pages'    => array( 'wsscd-campaigns', 'wsscd-analytics', 'wsscd-settings', 'wsscd-tools', 'wsscd-dashboard', 'wsscd-notifications' ),
+				'pages'    => array( 'wsscd-campaigns', 'wsscd-analytics', 'wsscd-settings', 'wsscd-tools', 'wsscd-dashboard', 'wsscd-notifications', 'wsscd-help' ),
 				'media'    => 'all',
 				'priority' => 6,
 			)
@@ -245,7 +251,7 @@ class WSSCD_Style_Registry {
 			array(
 				'src'      => 'resources/assets/css/shared/_buttons.css',
 				'deps'     => array( 'wsscd-variables', 'wsscd-theme-colors' ),
-				'pages'    => array( 'wsscd-campaigns', 'wsscd-analytics', 'wsscd-settings', 'wsscd-tools', 'wsscd-dashboard' ),
+				'pages'    => array( 'wsscd-campaigns', 'wsscd-analytics', 'wsscd-settings', 'wsscd-tools', 'wsscd-dashboard', 'wsscd-help' ),
 				'media'    => 'all',
 				'priority' => 7,
 			)
@@ -268,7 +274,7 @@ class WSSCD_Style_Registry {
 			array(
 				'src'      => 'resources/assets/css/admin/admin.css',
 				'deps'     => array( 'wsscd-variables', 'wsscd-utilities', 'wsscd-components', 'wsscd-forms', 'wsscd-buttons', 'wsscd-badges' ),
-				'pages'    => array( 'wsscd-campaigns', 'wsscd-analytics' ),
+				'pages'    => array( 'wsscd-campaigns', 'wsscd-analytics', 'wsscd-help' ),
 				'media'    => 'all',
 				'priority' => 10,
 			)

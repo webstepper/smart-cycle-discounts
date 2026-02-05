@@ -334,35 +334,31 @@ class WSSCD_Case_Converter {
 
 ### Notification System
 
-**ALWAYS use `SCD.Shared.NotificationService` for user notifications:**
+**ALWAYS use `WSSCD.Shared.NotificationService` for user notifications:**
 
 ```javascript
 // ✅ CORRECT: Use NotificationService directly
-SCD.Shared.NotificationService.success('Campaign saved successfully!');
-SCD.Shared.NotificationService.error('Failed to save campaign');
-SCD.Shared.NotificationService.warning('Please review your settings');
-SCD.Shared.NotificationService.info('Processing your request...');
+WSSCD.Shared.NotificationService.success( 'Campaign saved successfully!' );
+WSSCD.Shared.NotificationService.error( 'Failed to save campaign' );
+WSSCD.Shared.NotificationService.warning( 'Please review your settings' );
+WSSCD.Shared.NotificationService.info( 'Processing your request...' );
 
 // With options
-SCD.Shared.NotificationService.show('Custom message', 'success', 5000, {
+WSSCD.Shared.NotificationService.show( 'Custom message', 'success', 5000, {
     id: 'unique-notification-id',
-    replace: true  // Replace existing notification with same ID
-});
+    replace: true // Replace existing notification with same ID
+} );
 
 // Or trigger via event (for decoupled components)
-$(document).trigger('scd:notify', {
+$( document ).trigger( 'wsscd:notify', {
     message: 'Operation completed',
     type: 'success',
     duration: 3000
-});
+} );
 ```
 
-**❌ DEPRECATED - Do NOT use:**
-```javascript
-// These are deprecated compatibility wrappers
-SCD.Shared.UI.notify(message, type, options);  // Deprecated
-SCD.Wizard.showNotification(message, type);     // Deprecated
-```
+**Deprecated patterns (already removed in current codebase):**
+Older versions used ad‑hoc wrappers for notifications. These wrappers have been removed; do **not** re‑introduce patterns like `Shared.UI.notify()` or `Wizard.showNotification()`. Always call `WSSCD.Shared.NotificationService` directly or trigger the `wsscd:notify` event as shown above.
 
 **Why NotificationService?**
 - Consistent notification display across the plugin
@@ -374,7 +370,7 @@ SCD.Wizard.showNotification(message, type);     // Deprecated
 
 ### Validation System
 
-**ALWAYS use `SCD.ValidationError` for field validation errors:**
+**ALWAYS use `WSSCD.ValidationError` for field validation errors:**
 
 The validation system has TWO complementary components:
 
@@ -383,25 +379,25 @@ The validation system has TWO complementary components:
 
 ```javascript
 // ✅ CORRECT: Use ValidationError for field-level errors
-if ( window.SCD && window.SCD.ValidationError ) {
+if ( window.WSSCD && window.WSSCD.ValidationError ) {
     // Show error on specific field
-    SCD.ValidationError.show( $field, 'This field is required' );
+    WSSCD.ValidationError.show( $field, 'This field is required' );
 
     // Clear error from field
-    SCD.ValidationError.clear( $field );
+    WSSCD.ValidationError.clear( $field );
 
     // Show multiple field errors with summary notification
     var errors = {
         'campaign_name': 'Campaign name is required',
         'discount_value': 'Discount value must be greater than 0'
     };
-    SCD.ValidationError.showMultiple( errors, $container, {
+    WSSCD.ValidationError.showMultiple( errors, $container, {
         clearFirst: true,
         showSummary: true  // Automatically uses NotificationService for summary
     });
 
     // Clear all errors in container
-    SCD.ValidationError.clearAll( $container );
+    WSSCD.ValidationError.clearAll( $container );
 }
 ```
 

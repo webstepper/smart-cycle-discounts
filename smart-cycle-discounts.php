@@ -3,7 +3,7 @@
  * Plugin Name: Smart Cycle Discounts – Automated Sale Campaigns for WooCommerce
  * Plugin URI: https://webstepper.io/wordpress/plugins/smart-cycle-discounts/
  * Description: Schedule WooCommerce discounts that run themselves. BOGO, tiered pricing, flash sales - campaigns activate automatically.
- * Version: 1.5.64
+ * Version: 1.5.65
  * Author: Webstepper
  * Author URI: https://webstepper.io
  * Text Domain: smart-cycle-discounts
@@ -21,7 +21,7 @@
  * @fs_premium_only /includes/core/discounts/strategies/class-tiered-strategy.php, /includes/core/discounts/strategies/class-bogo-strategy.php, /includes/core/discounts/strategies/class-spend-threshold-strategy.php, /includes/core/analytics/class-export-service.php, /includes/core/analytics/class-report-generator.php, /includes/admin/pages/class-analytics-dashboard.php, /includes/admin/licensing/class-license-manager.php, /includes/frontend/class-frontend-ajax-handler.php, /templates/emails/campaign-ending.php, /templates/emails/daily-report.php, /templates/emails/weekly-report.php, /templates/emails/performance-alert.php, /templates/emails/low-stock-alert.php, /templates/emails/milestone-alert.php, /resources/assets/js/steps/discounts/tiered-discount.js, /resources/assets/js/steps/discounts/bogo-discount.js, /resources/assets/js/steps/discounts/spend-threshold.js, /resources/assets/js/analytics/analytics-dashboard.js
  *
  * @package SmartCycleDiscounts
- * @version 1.5.64
+ * @version 1.5.65
  * @since 1.0.0
  */
 
@@ -102,7 +102,7 @@ if ( function_exists( 'wsscd_fs' ) ) {
 }
 
 // Plugin constants
-define( 'WSSCD_VERSION', '1.5.64' );
+define( 'WSSCD_VERSION', '1.5.65' );
 define( 'WSSCD_DB_VERSION', '1.0.0' );
 define( 'WSSCD_MIN_PHP_VERSION', '7.4' );
 define( 'WSSCD_MIN_WP_VERSION', '6.4' );
@@ -722,6 +722,93 @@ function wsscd_plugin_meta_links( $links, $file ) {
 	return $links;
 }
 add_filter( 'plugin_row_meta', 'wsscd_plugin_meta_links', 10, 2 );
+
+/**
+ * Render floating Help button on plugin admin pages (excluding wizard).
+ *
+ * This uses the shared admin page footer hook so it appears consistently
+ * across Dashboard, Campaigns, Analytics, Settings, Tools, Notifications, etc.
+ *
+ * @since 1.0.0
+ */
+function wsscd_render_help_floating_button() {
+	if ( ! is_admin() ) {
+		return;
+	}
+
+	// Restrict to this plugin's admin screens.
+	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+	if ( ! $screen ) {
+		return;
+	}
+
+	$screen_id = $screen->id;
+	if ( false === strpos( $screen_id, 'smart-cycle-discounts' ) && false === strpos( $screen_id, 'wsscd-' ) ) {
+		return;
+	}
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only check of current admin page context.
+	$page   = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only check of current admin page context.
+	$action = isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : '';
+
+	// Do not show on wizard pages.
+	if ( 'wsscd-campaigns' === $page && 'wizard' === $action ) {
+		return;
+	}
+
+	// Link to the in-plugin Help page (central hub).
+	$help_page_url = admin_url( 'admin.php?page=wsscd-help' );
+
+	// Output minimal, scoped styles once per request.
+	static $styles_output = false;
+	if ( ! $styles_output ) {
+		$styles_output = true;
+		?>
+		<style>
+			.wsscd-help-fab {
+				position: fixed;
+				right: 24px;
+				bottom: 24px;
+				width: 44px;
+				height: 44px;
+				border-radius: 50%;
+				background: #2271b1;
+				color: #ffffff;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				text-decoration: none;
+				box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+				z-index: 1000;
+				border: none;
+				cursor: pointer;
+				font-size: 20px;
+			}
+
+			.wsscd-help-fab:hover,
+			.wsscd-help-fab:focus {
+				background: #135e96;
+				color: #ffffff;
+				outline: none;
+			}
+
+			@media (max-width: 782px) {
+				.wsscd-help-fab {
+					right: 16px;
+					bottom: 16px;
+				}
+			}
+		</style>
+		<?php
+	}
+	?>
+	<a href="<?php echo esc_url( $help_page_url ); ?>" class="wsscd-help-fab" aria-label="<?php esc_attr_e( 'Need help? Open Help & Support.', 'smart-cycle-discounts' ); ?>">
+		?
+	</a>
+	<?php
+}
+add_action( 'admin_footer', 'wsscd_render_help_floating_button' );
 
 /**
  * Load analytics test runners in admin (for development/debugging).

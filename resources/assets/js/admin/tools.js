@@ -654,19 +654,25 @@
 	}
 
 	/**
-	 * Show notification message
+	 * Show notification message via the shared NotificationService.
+	 *
+	 * NOTE: This helper now delegates directly to the canonical service and exists only
+	 * to keep this file concise. Prefer calling NotificationService directly in new code:
+	 * WSSCD.Shared.NotificationService.success( message );
 	 *
 	 * @param {string} message Notification message
 	 * @param {string} type    Notification type (success, error, warning, info)
 	 */
 	function showNotification( message, type ) {
-		// Use NotificationService if available
+		// Use NotificationService if available (canonical JS notification layer).
 		if ( window.WSSCD && window.WSSCD.Shared && window.WSSCD.Shared.NotificationService ) {
-			window.WSSCD.Shared.NotificationService.show( message, type || 'info', 3000 );
-		} else {
-			// Fallback to alert
-			alert( message );
+			WSSCD.Shared.NotificationService.show( message, type || 'info', 3000 );
+			return;
 		}
+
+		// Fallback to alert for extremely early‑load or error cases where assets
+		// failed to initialize. This keeps tools usable even if JS fails partially.
+		alert( message );
 	}
 
 	$( document ).ready( init );

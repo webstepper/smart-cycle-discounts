@@ -123,6 +123,15 @@ $has_warnings        = in_array( $campaign_health['status'], array( 'fair', 'poo
 					)
 				);
 				?>
+				<p class="wsscd-empty-help">
+					<?php
+					printf(
+						/* translators: %s: Help Center URL. */
+						esc_html__( 'Need help? Visit the %s.', 'smart-cycle-discounts' ),
+						'<a href="' . esc_url( 'https://webstepper.io/contact-us/' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Help Center', 'smart-cycle-discounts' ) . '</a>'
+					);
+					?>
+				</p>
 			</div>
 		</div>
 		<?php
