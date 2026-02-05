@@ -17,7 +17,7 @@
  * @author     Webstepper <contact@webstepper.io>
  * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later
- * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @link       https://webstepper.io/wordpress/plugins/smart-cycle-discounts/
  * @since      1.0.0
  */
 

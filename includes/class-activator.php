@@ -7,7 +7,7 @@
  * @author     Webstepper <contact@webstepper.io>
  * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
- * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @link       https://webstepper.io/wordpress/plugins/smart-cycle-discounts/
  * @since      1.0.0
  */
 
@@ -396,12 +396,36 @@ class WSSCD_Activator {
 	}
 
 	/**
-	 * Create custom capabilities.
+	 * Create custom capabilities for the current site's roles.
+	 *
+	 * In Multisite, runs for each site so subdomain/subsite roles get caps too
+	 * (network activation otherwise only runs in main site context).
 	 *
 	 * @since    1.0.0
 	 * @access   private
 	 */
 	private static function create_capabilities() {
+		$add_caps_to_current_site = array( __CLASS__, 'add_plugin_capabilities_to_site_roles' );
+
+		if ( is_multisite() ) {
+			$site_ids = get_sites( array( 'fields' => 'ids', 'number' => 10000 ) );
+			foreach ( $site_ids as $site_id ) {
+				switch_to_blog( $site_id );
+				call_user_func( $add_caps_to_current_site );
+				restore_current_blog();
+			}
+		} else {
+			call_user_func( $add_caps_to_current_site );
+		}
+	}
+
+	/**
+	 * Add plugin capabilities to the current site's roles (administrator, shop_manager, and any role with manage_options).
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 */
+	private static function add_plugin_capabilities_to_site_roles() {
 		$capabilities = array(
 			'wsscd_view_campaigns',
 			'wsscd_manage_campaigns',
@@ -441,6 +465,22 @@ class WSSCD_Activator {
 			);
 			foreach ( $shop_manager_caps as $capability ) {
 				$shop_manager_role->add_cap( $capability );
+			}
+		}
+
+		// Any role with manage_options (e.g. custom roles, subdomain admins) gets full plugin caps.
+		$wp_roles = wp_roles();
+		if ( $wp_roles ) {
+			foreach ( $wp_roles->roles as $role_name => $role_info ) {
+				$role = get_role( $role_name );
+				if ( ! $role || ! $role->has_cap( 'manage_options' ) ) {
+					continue;
+				}
+				foreach ( $capabilities as $capability ) {
+					if ( ! $role->has_cap( $capability ) ) {
+						$role->add_cap( $capability );
+					}
+				}
 			}
 		}
 	}

@@ -8,7 +8,7 @@
  * and has no access to wp_enqueue_style() stylesheets.
  * Inline CSS is REQUIRED for the report to display correctly.
  *
- * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @link       https://webstepper.io/wordpress/plugins/smart-cycle-discounts/
  * @since      1.0.0
  *
  * @package    SmartCycleDiscounts

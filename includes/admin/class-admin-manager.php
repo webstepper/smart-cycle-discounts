@@ -7,7 +7,7 @@
  * @author     Webstepper <contact@webstepper.io>
  * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
- * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @link       https://webstepper.io/wordpress/plugins/smart-cycle-discounts/
  * @since      1.0.0
  */
 
@@ -174,10 +174,20 @@ class WSSCD_Admin_Manager {
 	/**
 	 * Setup admin menu.
 	 *
+	 * Ensures plugin capabilities are synced before building the menu so any
+	 * user who can see the menu (manage_options) has the plugin caps required
+	 * for page-level checks.
+	 *
 	 * @since    1.0.0
 	 * @return   void
 	 */
 	public function admin_menu(): void {
+		if ( $this->container->has( 'capability_manager' ) ) {
+			$capability_manager = $this->container->get( 'capability_manager' );
+			if ( method_exists( $capability_manager, 'ensure_capabilities_synced' ) ) {
+				$capability_manager->ensure_capabilities_synced();
+			}
+		}
 		if ( $this->container->has( 'menu_manager' ) ) {
 			$menu_manager = $this->container->get( 'menu_manager' );
 			$menu_manager->add_menus();

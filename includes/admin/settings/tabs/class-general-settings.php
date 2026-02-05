@@ -7,7 +7,7 @@
  * @author     Webstepper <contact@webstepper.io>
  * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
- * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @link       https://webstepper.io/wordpress/plugins/smart-cycle-discounts/
  * @since      1.0.0
  */
 
@@ -201,8 +201,8 @@ class WSSCD_General_Settings extends WSSCD_Settings_Page_Base {
 	protected function sanitize_settings( array $input ): array {
 		$sanitized = array();
 
-		// Trash auto-purge
-		$sanitized['trash_auto_purge'] = isset( $input['trash_auto_purge'] ) && '1' === $input['trash_auto_purge'];
+		// Trash auto-purge: accept '1' (raw form) or truthy; missing = off
+		$sanitized['trash_auto_purge'] = ! empty( $input['trash_auto_purge'] );
 
 		// Trash retention days
 		if ( isset( $input['trash_retention_days'] ) ) {

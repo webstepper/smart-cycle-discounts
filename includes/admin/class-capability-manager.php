@@ -7,7 +7,7 @@
  * @author     Webstepper <contact@webstepper.io>
  * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
- * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @link       https://webstepper.io/wordpress/plugins/smart-cycle-discounts/
  * @since      1.0.0
  */
 
@@ -725,6 +725,9 @@ class WSSCD_Admin_Capability_Manager {
 	/**
 	 * Ensure capabilities exist in WordPress roles.
 	 *
+	 * Adds plugin capabilities to predefined roles, and to any role that has
+	 * manage_options (so custom roles and new users can access plugin pages).
+	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @return   void
@@ -732,8 +735,56 @@ class WSSCD_Admin_Capability_Manager {
 	private function ensure_capabilities_exist(): void {
 		$admin_role = get_role( 'administrator' );
 		if ( ! $admin_role || ! $admin_role->has_cap( 'wsscd_view_campaigns' ) ) {
-			// Capabilities not added yet, add them now
 			$this->add_capabilities();
 		}
+		$this->add_capabilities_to_roles_with_manage_options();
+	}
+
+	/**
+	 * Grant plugin capabilities to any role that has manage_options.
+	 *
+	 * Ensures custom roles and any role that can see the plugin menu (menu uses
+	 * manage_options) also have the plugin caps required for page-level checks,
+	 * fixing "Sorry, you are not allowed to access this page" for new users.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @return   void
+	 */
+	private function add_capabilities_to_roles_with_manage_options(): void {
+		$admin_caps = isset( $this->role_capabilities['administrator'] ) ? $this->role_capabilities['administrator'] : array();
+		if ( empty( $admin_caps ) ) {
+			return;
+		}
+
+		$wp_roles = wp_roles();
+		if ( ! $wp_roles ) {
+			return;
+		}
+
+		foreach ( $wp_roles->roles as $role_name => $role_info ) {
+			$role = get_role( $role_name );
+			if ( ! $role || ! $role->has_cap( 'manage_options' ) ) {
+				continue;
+			}
+			foreach ( $admin_caps as $capability ) {
+				if ( isset( $this->capabilities[ $capability ] ) && ! $role->has_cap( $capability ) ) {
+					$role->add_cap( $capability );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Ensure plugin capabilities are synced for all roles that should have access.
+	 *
+	 * Call before building the admin menu so any user who can see the menu
+	 * has the plugin caps needed for page-level checks.
+	 *
+	 * @since    1.0.0
+	 * @return   void
+	 */
+	public function ensure_capabilities_synced(): void {
+		$this->ensure_capabilities_exist();
 	}
 }

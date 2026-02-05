@@ -5,7 +5,7 @@
  * Comprehensive product selection with categories, smart filters,
  * and advanced conditions for targeted discount campaigns
  *
- * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @link       https://webstepper.io/wordpress/plugins/smart-cycle-discounts/
  * @since      1.0.0
  *
  * @package    SmartCycleDiscounts

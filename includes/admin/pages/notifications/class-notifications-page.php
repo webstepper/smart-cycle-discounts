@@ -7,7 +7,7 @@
  * @author     Webstepper <contact@webstepper.io>
  * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
- * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @link       https://webstepper.io/wordpress/plugins/smart-cycle-discounts/
  * @since      1.0.0
  */
 
@@ -362,6 +362,26 @@ class WSSCD_Notifications_Page {
 		// Apply guaranteed per-field sanitization based on field type
 		// This ensures data is always sanitized, even if filters don't run
 		$input = $this->sanitize_fields_by_type( $input );
+
+		// Unchecked checkboxes are omitted from POST; set missing notification toggles to false so they save as off.
+		if ( isset( $input['notifications'] ) && is_array( $input['notifications'] ) ) {
+			$notification_toggle_keys = array(
+				'notify_campaign_started',
+				'notify_campaign_ended',
+				'notify_errors',
+				'notify_campaign_ending',
+				'notify_daily_report',
+				'notify_weekly_report',
+				'notify_performance_alert',
+				'notify_low_stock_alert',
+				'notify_milestone_alert',
+			);
+			foreach ( $notification_toggle_keys as $key ) {
+				if ( ! array_key_exists( $key, $input['notifications'] ) ) {
+					$input['notifications'][ $key ] = false;
+				}
+			}
+		}
 
 		// Merge with current settings to preserve other sections
 		$sanitized = array_replace_recursive( $current, $input );

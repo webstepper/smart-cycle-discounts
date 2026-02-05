@@ -5,7 +5,7 @@
  * Streamlined dashboard with clear visual hierarchy and action-oriented design.
  * Displays: health alerts, hero metrics, campaign planner, campaign overview, and quick actions.
  *
- * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @link       https://webstepper.io/wordpress/plugins/smart-cycle-discounts/
  * @since      1.0.0
  *
  * @package    SmartCycleDiscounts
@@ -126,9 +126,9 @@ $has_warnings        = in_array( $campaign_health['status'], array( 'fair', 'poo
 				<p class="wsscd-empty-help">
 					<?php
 					printf(
-						/* translators: %s: Help Center URL. */
+						/* translators: %s: Link to Help & Support admin page. */
 						esc_html__( 'Need help? Visit the %s.', 'smart-cycle-discounts' ),
-						'<a href="' . esc_url( 'https://webstepper.io/contact-us/' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Help Center', 'smart-cycle-discounts' ) . '</a>'
+						'<a href="' . esc_url( admin_url( 'admin.php?page=wsscd-help' ) ) . '">' . esc_html__( 'Help & Support', 'smart-cycle-discounts' ) . '</a>'
 					);
 					?>
 				</p>

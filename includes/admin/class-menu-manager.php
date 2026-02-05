@@ -7,7 +7,7 @@
  * @author     Webstepper <contact@webstepper.io>
  * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
- * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @link       https://webstepper.io/wordpress/plugins/smart-cycle-discounts/
  * @since      1.0.0
  */
 
@@ -677,7 +677,7 @@ class WSSCD_Menu_Manager {
 		echo '<div class="wsscd-card__header">';
 		echo '<h2 class="wsscd-card__title">';
 		if ( class_exists( 'WSSCD_Icon_Helper' ) ) {
-			WSSCD_Icon_Helper::render( 'support', array( 'size' => 18 ) );
+			WSSCD_Icon_Helper::render( 'email', array( 'size' => 18 ) );
 		}
 		echo esc_html__( 'Customer Support', 'smart-cycle-discounts' );
 		echo '</h2>';

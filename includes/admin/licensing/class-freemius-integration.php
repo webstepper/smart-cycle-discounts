@@ -7,7 +7,7 @@
  * @author     Webstepper <contact@webstepper.io>
  * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
- * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @link       https://webstepper.io/wordpress/plugins/smart-cycle-discounts/
  * @since      1.0.0
  */
 
@@ -144,7 +144,7 @@ class WSSCD_Freemius_Integration {
 				'menu'                => array(
 					'slug'       => 'smart-cycle-discounts',
 					'first-path' => 'admin.php?page=smart-cycle-discounts',
-					'support'    => true, // Enable built-in support ticket system.
+					'support'    => false, // Support Forum link removed; use in-plugin Help & Support page.
 					'contact'    => true, // Show Contact Us submenu.
 				),
 				'support'             => array(
@@ -197,6 +197,10 @@ class WSSCD_Freemius_Integration {
 		// Opt-in screen customizations.
 		self::setup_optin_customizations();
 
+		// Force redirect after opt-in/skip to plugin dashboard (correct URL and capability).
+		self::$freemius->add_filter( 'after_connect_url', array( __CLASS__, 'filter_after_activation_redirect_url' ) );
+		self::$freemius->add_filter( 'after_skip_url', array( __CLASS__, 'filter_after_activation_redirect_url' ) );
+
 		// Style the reminder admin notice.
 		add_action( 'admin_head', array( __CLASS__, 'inject_reminder_notice_styles' ) );
 	}
@@ -227,6 +231,19 @@ class WSSCD_Freemius_Integration {
 
 		// Inject custom styling.
 		self::$freemius->add_action( 'connect/before', array( __CLASS__, 'inject_optin_styles' ) );
+	}
+
+	/**
+	 * Filter redirect URL after opt-in or skip so users land on the plugin dashboard.
+	 *
+	 * Ensures the post-activation redirect uses the correct admin page URL and capability.
+	 *
+	 * @since    1.2.1
+	 * @param    string $url    Redirect URL from Freemius (may be wrong in some setups).
+	 * @return   string         Plugin dashboard URL.
+	 */
+	public static function filter_after_activation_redirect_url( $url ) {
+		return admin_url( 'admin.php?page=smart-cycle-discounts' );
 	}
 
 	/**

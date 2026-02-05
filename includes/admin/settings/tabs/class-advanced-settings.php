@@ -7,7 +7,7 @@
  * @author     Webstepper <contact@webstepper.io>
  * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
- * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @link       https://webstepper.io/wordpress/plugins/smart-cycle-discounts/
  * @since      1.0.0
  */
 
@@ -111,7 +111,7 @@ class WSSCD_Advanced_Settings extends WSSCD_Settings_Page_Base {
 	 * @return   void
 	 */
 	public function render_debug_section(): void {
-		$tools_url = admin_url( 'admin.php?page=smart-cycle-discounts-tools' );
+		$tools_url = admin_url( 'admin.php?page=wsscd-tools' );
 		echo '<p class="wsscd-section-description">';
 		printf(
 			wp_kses(
@@ -203,8 +203,8 @@ class WSSCD_Advanced_Settings extends WSSCD_Settings_Page_Base {
 	protected function sanitize_settings( array $input ): array {
 		$sanitized = array();
 
-		// Debug settings
-		$debug_mode_enabled             = isset( $input['enable_debug_mode'] ) && '1' === $input['enable_debug_mode'];
+		// Debug settings: accept '1' (raw form) or truthy; missing = off
+		$debug_mode_enabled             = ! empty( $input['enable_debug_mode'] );
 		$sanitized['enable_debug_mode'] = $debug_mode_enabled;
 
 		// Track when debug mode was enabled for auto-disable after 24 hours
@@ -233,8 +233,8 @@ class WSSCD_Advanced_Settings extends WSSCD_Settings_Page_Base {
 			? max( 0, min( 365, absint( $input['log_retention_days'] ) ) )
 			: 7;
 
-		// Uninstall data
-		$sanitized['uninstall_data'] = isset( $input['uninstall_data'] ) && '1' === $input['uninstall_data'];
+		// Uninstall data: accept '1' (raw form) or truthy; missing = off
+		$sanitized['uninstall_data'] = ! empty( $input['uninstall_data'] );
 
 		return $sanitized;
 	}

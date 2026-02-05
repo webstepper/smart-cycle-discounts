@@ -2,7 +2,7 @@
 /**
  * Analytics Dashboard View
  *
- * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @link       https://webstepper.io/wordpress/plugins/smart-cycle-discounts/
  * @since      1.0.0
  *
  * @package    SmartCycleDiscounts

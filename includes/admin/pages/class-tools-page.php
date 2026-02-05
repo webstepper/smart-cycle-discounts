@@ -7,7 +7,7 @@
  * @author     Webstepper <contact@webstepper.io>
  * @copyright  2025 Webstepper
  * @license    GPL-3.0-or-later https://www.gnu.org/licenses/gpl-3.0.html
- * @link       https://webstepper.io/wordpress-plugins/smart-cycle-discounts
+ * @link       https://webstepper.io/wordpress/plugins/smart-cycle-discounts/
  * @since      1.0.0
  */
 
@@ -83,9 +83,9 @@ class WSSCD_Tools_Page {
 
 		echo '<p class="description">';
 		printf(
-			/* translators: %s: Help Center URL. */
+			/* translators: %s: Link to Help & Support admin page. */
 			esc_html__( 'Need help using these tools? Visit the %s.', 'smart-cycle-discounts' ),
-			'<a href="' . esc_url( 'https://webstepper.io/contact-us/' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Help Center', 'smart-cycle-discounts' ) . '</a>'
+			'<a href="' . esc_url( admin_url( 'admin.php?page=wsscd-help' ) ) . '">' . esc_html__( 'Help & Support', 'smart-cycle-discounts' ) . '</a>'
 		);
 		echo '</p>';
 
