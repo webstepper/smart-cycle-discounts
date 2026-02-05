@@ -3,7 +3,7 @@ Contributors: webstepper
 Tags: discount rules, BOGO, bulk discount, tiered pricing, sale scheduler
 Requires at least: 6.4
 Tested up to: 6.9
-Stable tag: 1.5.62
+Stable tag: 1.5.63
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -430,6 +430,9 @@ Pro users can configure combination policies for each campaign. Choose whether y
 
 == Changelog ==
 
+= 1.5.63 =
+* Fix: Free shipping and Recurring schedule no longer appear as enabled in Campaign Overview and List when they were disabled or never enabled. Root cause: boolean field collection used :checked (checkbox-only); schedule uses a hidden input with value "0"/"1". Shared field logic now reads/writes .val() for boolean fields on non-checkbox/radio elements so the schedule step value is saved and displayed correctly.
+
 = 1.5.62 =
 * Fix: PHP 8 TypeError in recurring campaigns – DateTime::__construct() no longer receives a DateTime object. Recurring handler now accepts campaign start/end as either DateTime or string (clone and set timezone when DateTime, parse string otherwise). Fixes critical error when loading frontend or AJAX with recurring campaigns active.
 
@@ -636,6 +639,9 @@ Pro users can configure combination policies for each campaign. Choose whether y
 * WordPress 6.4+ and WooCommerce 8.0+ support
 
 == Upgrade Notice ==
+
+= 1.5.63 =
+Fixes Free shipping and Recurring schedule incorrectly showing as enabled in campaign overview and list when they were off. Recommended update for accurate campaign badges.
 
 = 1.5.62 =
 Fixes PHP 8 critical error (DateTime::__construct type error) when recurring campaigns are active. Recommended update for sites using recurring campaigns.

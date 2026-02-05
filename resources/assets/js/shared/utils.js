@@ -1275,7 +1275,12 @@
 				if ( $field.prop( 'disabled' ) ) {
 					return fieldDef.default || false;
 				}
-					return $field.is( ':checked' );
+					// Checkbox/radio: use :checked. Hidden input (e.g. schedule enable_recurring): use .val() so "1"/"0" is read correctly.
+					if ( $field.is( ':checkbox, :radio' ) ) {
+						return $field.is( ':checked' );
+					}
+					var raw = $field.val();
+					return raw === '1' || raw === 'true' || raw === 'yes';
 				case 'array':
 					if ( $field.is( 'select[multiple]' ) ) {
 						return $field.val() || [];
@@ -1330,8 +1335,16 @@
 			switch ( fieldDef.type ) {
 				case 'boolean':
 					next = !!value;
-					if ( $field.prop( 'checked' ) !== next ) {
-						$field.prop( 'checked', next ).trigger( 'change' );
+					// Checkbox/radio: use .prop('checked'). Hidden input (e.g. schedule enable_recurring): use .val() so "0"/"1" is written correctly.
+					if ( $field.is( ':checkbox, :radio' ) ) {
+						if ( $field.prop( 'checked' ) !== next ) {
+							$field.prop( 'checked', next ).trigger( 'change' );
+						}
+					} else {
+						var boolVal = next ? '1' : '0';
+						if ( $field.val() !== boolVal ) {
+							$field.val( boolVal ).trigger( 'change' );
+						}
 					}
 					break;
 				case 'array':
